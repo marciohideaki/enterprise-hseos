@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://enterprise-bmad/schema/replay-plan.schema.json",
+  "title": "BMAD Repository Replay Plan",
+  "description": "Contract defining the mandatory structure for curated repository replay plans.",
+  "type": "array",
+  "minItems": 1,
+
+  "items": {
+    "type": "object",
+    "required": [
+      "Epic",
+      "Story",
+      "Hash",
+      "Subject",
+      "Author",
+      "Date"
+    ],
+    "additionalProperties": false,
+
+    "properties": {
+      "Epic": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Logical epic identifier discovered from the legacy repository."
+      },
+
+      "Story": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Minimal reproducible story or unit of work."
+      },
+
+      "Hash": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{7,40}$",
+        "description": "Git commit hash from Repository A that anchors this story."
+      },
+
+      "Subject": {
+        "type": "string",
+        "minLength": 10,
+        "description": "Technical intent of the change, extracted from legacy history."
+      },
+
+      "Author": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Original author of the legacy commit."
+      },
+
+      "Date": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Original commit timestamp (ISO 8601). Defines chronological replay order."
+      }
+    }
+  }
+}
