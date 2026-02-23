@@ -385,14 +385,16 @@ Two categories of files are installed. The distinction is fundamental:
   |   +-- core/                           <- copy from ~/.claude/enterprise/.specs/core/
   |   +-- cross/                          <- copy from ~/.claude/enterprise/.specs/cross/
   |   +-- <Stack>/                        <- copy ONLY [SELECTED_STACKS]
-  |   +-- decisions/                      <- empty, ready for project ADRs
+  |   +-- decisions/                      <- create with .gitkeep (future project ADRs)
   +-- governance/                         <- AI TOOLING -- gitignored
   |   +-- agent-skills/
   |       +-- SKILLS-REGISTRY.md
   |       +-- <skill>/                    <- copy ONLY [SELECTED_SKILLS]
-  +-- agents/                             <- AI TOOLING -- gitignored
-  +-- exceptions/                         <- starts empty, add per project need
+  +-- exceptions/                         <- create with .gitkeep (future exceptions)
   ```
+  Notes:
+  - DO NOT create `.enterprise/agents/` -- it is gitignored and serves no purpose empty.
+  - `.gitkeep` files ensure `decisions/` and `exceptions/` are tracked by git even when empty.
 
 3. Create `CLAUDE.md` at the project root (goes to git -- team entry point):
   ```markdown
