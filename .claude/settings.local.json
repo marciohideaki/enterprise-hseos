@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:tech-leads-club.github.io)",
+      "WebFetch(domain:agent-skills.techleads.club)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(head:*)",
+      "Bash(grep:*)",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(for skill in commit-hygiene sanitize-comments ddd-boundary-check breaking-change-detection release-control secure-coding pr-review adr-compliance naming-conventions documentation-completeness dependency-audit test-coverage observability-compliance spec-driven accessibility performance-profiling; do \n  quick=\"/d/github/enterprise-bmad/.enterprise/governance/agent-skills/$skill/SKILL-QUICK.md\"\n  full=\"/d/github/enterprise-bmad/.enterprise/governance/agent-skills/$skill/SKILL.md\"\n  [ -f \"$quick\" ] && echo \"✓ $skill QUICK\" || echo \"✗ $skill QUICK MISSING\"\n  [ -f \"$full\" ] && echo \"✓ $skill FULL\" || echo \"✗ $skill FULL MISSING\"\ndone 2>&1)",
+      "Bash(echo === Fix 1: Enterprise Enterprise duplicate ===:*)",
+      "Bash(cd /d/github/enterprise-bmad && powershell.exe -ExecutionPolicy Bypass -File \".enterprise/tooling/bootstrap/install-global.ps1\" -DryRun 2>&1)",
+      "Bash(cd /d/github/enterprise-bmad && powershell.exe -ExecutionPolicy Bypass -File \".enterprise/tooling/bootstrap/install-global.ps1\" -Force 2>&1)",
+      "Bash(cd:*)"
+    ]
+  }
+}
