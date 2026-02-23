@@ -363,36 +363,78 @@ Apply the following logic based on [SELECTED_STACKS], [PROJECT_TYPE], [SELECTED_
 - Confirm: "Governance loaded for [SELECTED_STACKS] [PROJECT_TYPE]. [N] spec files + [M] skills active."
 
 ### If Mode B (install into project):
-- Check if `.enterprise/` already exists. If yes, warn and ask before overwriting.
-- Create the following structure:
+
+#### What goes to git vs what stays local
+
+Two categories of files are installed. The distinction is fundamental:
+
+| Category | What | Why |
+|---|---|---|
+| **Project artifacts** | `.enterprise/.specs/` | Constitution, standards, ADRs -- team decisions that must be versioned |
+| **AI tooling** | `.enterprise/governance/`, `.enterprise/agents/`, `.claude/` | Skills and agent configs -- local tooling, each dev installs via /setup |
+
+#### Installation steps
+
+1. Check if `.enterprise/` already exists. If yes, warn and ask before overwriting.
+
+2. Create the following structure:
   ```
   .enterprise/
-  +-- .specs/
-  |   +-- constitution/    <- copy from ~/.claude/enterprise/.specs/constitution/
-  |   +-- core/            <- copy from ~/.claude/enterprise/.specs/core/
-  |   +-- cross/           <- copy from ~/.claude/enterprise/.specs/cross/
-  |   +-- <Stack>/         <- copy ONLY [SELECTED_STACKS]
-  +-- governance/
+  +-- .specs/                              <- PROJECT ARTIFACT -- goes to git
+  |   +-- constitution/                   <- copy from ~/.claude/enterprise/.specs/constitution/
+  |   +-- core/                           <- copy from ~/.claude/enterprise/.specs/core/
+  |   +-- cross/                          <- copy from ~/.claude/enterprise/.specs/cross/
+  |   +-- <Stack>/                        <- copy ONLY [SELECTED_STACKS]
+  |   +-- decisions/                      <- empty, ready for project ADRs
+  +-- governance/                         <- AI TOOLING -- gitignored
   |   +-- agent-skills/
-  |       +-- SKILLS-REGISTRY.md          <- always copy
+  |       +-- SKILLS-REGISTRY.md
   |       +-- <skill>/                    <- copy ONLY [SELECTED_SKILLS]
-  +-- agents/              <- placeholder
-  +-- policies/            <- placeholder
-  +-- playbooks/           <- placeholder
-  +-- exceptions/          <- placeholder
+  +-- agents/                             <- AI TOOLING -- gitignored
+  +-- exceptions/                         <- starts empty, add per project need
   ```
-- Create `CLAUDE.md` at the project root:
+
+3. Create `CLAUDE.md` at the project root (goes to git -- team entry point):
   ```markdown
   # Project Governance
 
   Stack(s): [SELECTED_STACKS]
   Type: [PROJECT_TYPE]
   Constitution: `.enterprise/.specs/constitution/Enterprise-Constitution.md`
-  Skills: [SELECTED_SKILLS]
+  Active skills: [SELECTED_SKILLS]
 
-  Commands: /setup (re-run) · /skills (update skills) · /constitution (full reference)
+  > AI tooling is local. Clone this repo then run /setup to restore it.
+
+  Commands: /setup · /skills · /constitution · /architect · /dev · /pm
   ```
-- Confirm: "Project governance installed. Stack: [SELECTED_STACKS] | Skills: [SELECTED_SKILLS]"
+
+4. Create or update `.gitignore` at the project root with the following entries:
+  ```gitignore
+  # Governance AI tooling -- local only, restore via /setup
+  .enterprise/governance/
+  .enterprise/agents/
+
+  # Claude Code -- local machine settings
+  .claude/
+  ```
+  - If `.gitignore` already exists: append only the missing entries, never duplicate.
+  - If it does not exist: create it with the entries above.
+
+5. Confirm with a clear summary:
+  ```
+  Governance installed for [SELECTED_STACKS] [PROJECT_TYPE]
+
+  Goes to git (project artifacts):
+    .enterprise/.specs/      Constitution, standards, ADRs
+    CLAUDE.md                Team entry point
+
+  Stays local (AI tooling -- gitignored):
+    .enterprise/governance/  Skills: [SELECTED_SKILLS]
+    .enterprise/agents/      Agent personas
+    .claude/                 Claude Code settings
+
+  Next: git add .enterprise/.specs/ CLAUDE.md .gitignore && git commit
+  ```
 
 ---
 
@@ -401,6 +443,7 @@ Apply the following logic based on [SELECTED_STACKS], [PROJECT_TYPE], [SELECTED_
 - NEVER load specs for stacks not in [SELECTED_STACKS].
 - NEVER skip constitution and core standards.
 - NEVER activate performance-profiling without warning the user about the ADR requirement.
+- NEVER add `.enterprise/.specs/` to `.gitignore` -- specs are project artifacts and must be versioned.
 - If files are not found at `~/.claude/enterprise/`, ask the user to re-run: `install-global.ps1`
 '@
 
