@@ -27,7 +27,7 @@
 #   .\install-global.ps1 -DryRun      - Preview only, no changes
 #
 # Idempotent: safe to run multiple times.
-# Version: 1.0.0
+# Version: 1.1.0
 # ============================================================
 
 [CmdletBinding()]
@@ -110,7 +110,7 @@ function Build-AgentCommand {
 # BANNER
 # ---------------------------------------------------------------
 Write-Host ""
-Write-Host "Enterprise BMAD - Global Bootstrap v1.0.0" -ForegroundColor White
+Write-Host "Enterprise BMAD - Global Bootstrap v1.1.0" -ForegroundColor White
 Write-Host "  Target : $ClaudeHome" -ForegroundColor DarkGray
 Write-Host "  Source : $EnterpriseDir" -ForegroundColor DarkGray
 if ($DryRun) { Write-Host "  Mode   : DRY RUN (no changes)" -ForegroundColor DarkYellow }
@@ -181,6 +181,46 @@ Agent personas: /analyst · /architect · /dev · /pm · /sm · /tea · /tech-wr
 - Produce output without referencing governing standards
 - Introduce undocumented assumptions
 - Optimize for speed over rigor
+
+---
+
+## Execution Discipline
+
+**Planning:**
+- Enter plan mode for ANY task with 3+ steps or architectural decisions
+- If something goes sideways: STOP and re-plan immediately -- do not keep pushing
+- Write detailed plan upfront to reduce ambiguity
+
+**Execution:**
+- Use subagents to offload research, exploration, and parallel analysis -- keep main context clean
+- One task per subagent for focused execution
+- For non-trivial changes: pause and ask "is there a more elegant way?"
+
+**Verification:**
+- Never mark a task complete without proving it works
+- Run tests, check logs, demonstrate correctness
+- Ask: "Would a staff engineer approve this?"
+
+**Bug Fixing:**
+- When given a bug report: fix it autonomously -- do not ask for hand-holding
+- Point at logs, errors, failing tests -- then resolve them
+- Fix failing CI without being told how
+
+**Self-Improvement:**
+- After any user correction: capture the pattern in `tasks/lessons.md`
+- Review `tasks/lessons.md` at session start for relevant patterns
+
+---
+
+## Core Principles
+
+| Principle | Rule |
+|---|---|
+| **Simplicity** | Every change as simple as possible. Impact minimal code. |
+| **No Laziness** | Find root causes. No temporary fixes. Senior developer standards. |
+| **Minimal Impact** | Touch only what is necessary. Avoid introducing bugs. |
+| **Defensive Style** | Assume worst-case scenarios; design guards against failure. |
+| **Correctness** | Fast is good. Correct is better. |
 
 ---
 

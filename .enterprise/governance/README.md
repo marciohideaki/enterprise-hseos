@@ -11,7 +11,8 @@ The `governance/` directory holds the **operational machinery** that agents use 
 ```
 governance/
 ├── agent-skills/       Tiered skill system — loaded by agents during task execution
-└── policies/           Internal governance policies (architecture boundaries, etc.)
+├── policies/           Internal governance policies (architecture boundaries, etc.)
+└── references/         Source documents and external references integrated into governance
 ```
 
 ---
@@ -61,6 +62,16 @@ Contains policies that govern the governance infrastructure itself (meta-governa
 | File | Purpose |
 |---|---|
 | `architecture-boundaries.md` | Defines boundaries for the governance overlay itself |
+
+---
+
+## `references/` — Source Documents
+
+Original documents and external references whose content has been integrated into the governance overlay. Kept for traceability — not consumed by agents directly.
+
+| File | Content | Integrated into |
+|---|---|---|
+| `boris-cherny-execution.md` | Agentic execution discipline — plan mode, subagents, self-improvement, verification, core principles | `~/.claude/CLAUDE.md` (Execution Discipline + Core Principles sections) |
 
 ---
 

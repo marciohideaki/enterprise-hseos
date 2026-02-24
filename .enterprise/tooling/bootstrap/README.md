@@ -56,7 +56,7 @@ Instala a constituição e os agentes globalmente no `~/.claude/`, tornando a go
 
 ```
 C:\Users\<você>\.claude\
-├── CLAUDE.md                      <- Regras sempre ativas (toda sessão, ~600 tokens)
+├── CLAUDE.md                      <- Regras sempre ativas (toda sessão, ~900 tokens)
 ├── commands\
 │   ├── constitution.md            <- /constitution
 │   ├── setup.md                   <- /setup
@@ -87,10 +87,12 @@ Sempre que este repositório receber uma nova versão (constituição, agentes, 
 
 ### `CLAUDE.md` — Sempre ativo
 
-Carregado automaticamente pelo Claude Code em **toda sessão**. Contém apenas o essencial (~600 tokens):
+Carregado automaticamente pelo Claude Code em **toda sessão**. Contém apenas o essencial (~900 tokens):
 
 - Non-negotiables (regras invioláveis)
 - Regras de comportamento do agente (MUST / MUST NOT)
+- **Execution Discipline** — planejamento, subagentes, verificação, bug fixing autônomo
+- **Core Principles** — Simplicity, No Laziness, Minimal Impact, Defensive, Correctness
 - Protocolo de resolução de conflitos entre documentos
 - Tabela de precedência de documentos
 - Índice dos comandos disponíveis
@@ -235,7 +237,7 @@ Todos os flows devem ser rastreáveis ao PRD. Acessibilidade é obrigatória. N�
 
 | O que | Quando consome tokens | Estimativa |
 |---|---|---|
-| `CLAUDE.md` | Toda sessão, automaticamente | ~600 tokens |
+| `CLAUDE.md` | Toda sessão, automaticamente | ~900 tokens |
 | `/constitution` | Apenas quando invocado | ~5.000 tokens |
 | `/setup` modo sessão | Invocação + specs + skills carregados | ~2.000–10.000 tokens |
 | `/setup` modo instalar | Apenas a invocação + wizard | ~800 tokens |
