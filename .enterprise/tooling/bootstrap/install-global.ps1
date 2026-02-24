@@ -340,6 +340,7 @@ GROUP: Architecture
   [ ] breaking-change-detection Detect breaking changes in APIs, events, DTOs, contracts
   [ ] adr-compliance            Validate ADR format, completeness, and linkage
   [ ] spec-driven               Structured 4-phase workflow: Specify > Design > Tasks > Implement
+  [ ] threat-modeling           AppSec threat modeling -- explicit request only, outputs threat-model.md
 
 GROUP: Quality & Operations
   [ ] documentation-completeness  Validate documentation coverage for public code and APIs
@@ -347,6 +348,7 @@ GROUP: Quality & Operations
   [ ] observability-compliance    Validate structured logging, metrics, and tracing
   [ ] sanitize-comments           Remove methodology and AI-attribution references from code comments
   [ ] release-control             Release governance: changelog, risk classification, rollout
+  [ ] agent-permissions           Generate least-privilege .claude/settings.json for this project
 
 GROUP: Stack-specific
   (auto-selected if Flutter or ReactNative was chosen in Step 1)
@@ -573,6 +575,11 @@ GROUP: Architecture
       Structured 4-phase workflow: Specify > Design > Tasks > Implement.
       Triggers: new feature, new service, planning, specification, breakdown, task list
 
+  [ ] threat-modeling
+      Repository-grounded AppSec threat modeling: trust boundaries, assets, abuse paths, mitigations.
+      8-step workflow with mandatory user validation pause. Explicit request only.
+      Triggers: threat model, AppSec, abuse path, attack surface, attacker model, trust boundary
+
 GROUP: Quality & Operations
   [ ] documentation-completeness
       Validate documentation coverage for public code, APIs, and architecture.
@@ -593,6 +600,11 @@ GROUP: Quality & Operations
   [ ] release-control
       Release governance: changelog discipline, risk classification, rollout requirements.
       Triggers: release, version bump, semver, CHANGELOG, hotfix, production deploy
+
+  [ ] agent-permissions
+      Analyze repository to generate least-privilege .claude/settings.json -- read-only commands only.
+      Stack-aware, package-manager-exclusive. Use when setting up or auditing Claude Code permissions.
+      Triggers: settings.json, claude permissions, agent permissions, least privilege, new project setup
 
 GROUP: Stack-specific
   [ ] accessibility

@@ -142,8 +142,8 @@ Wizard interativo com 3 perguntas:
 | Grupo | Skills | Padrão |
 |---|---|---|
 | **Core** | commit-hygiene, secure-coding, pr-review, naming-conventions, test-coverage | Todos selecionados |
-| **Arquitetura** | ddd-boundary-check, breaking-change-detection, adr-compliance, spec-driven | Nenhum |
-| **Qualidade & Ops** | documentation-completeness, dependency-audit, observability-compliance, sanitize-comments, release-control | Nenhum |
+| **Arquitetura** | ddd-boundary-check, breaking-change-detection, adr-compliance, spec-driven, threat-modeling | Nenhum |
+| **Qualidade & Ops** | documentation-completeness, dependency-audit, observability-compliance, sanitize-comments, release-control, agent-permissions | Nenhum |
 | **Stack-specific** | accessibility (Flutter/RN) | Auto se stack escolhida |
 | **Opt-in** | performance-profiling | Nunca — requer ADR ativo |
 
