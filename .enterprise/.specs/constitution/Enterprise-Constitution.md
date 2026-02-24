@@ -140,6 +140,11 @@ Includes:
 - Advanced Testing Strategy Standard *(mandatory)*
 - API Management & Versioning Standard *(mandatory)*
 - CI/CD Pipeline Standard *(mandatory)*
+- Context-Degradation-Monitoring Standard *(mandatory)*
+- Memory-Architecture Standard *(mandatory)*
+- Multi-Agent-Architecture Standard *(mandatory)*
+- Tool-Design-Governance Standard *(mandatory)*
+- Context-Compression Standard *(mandatory)*
 - Performance Engineering Standard *(opt-in — requires ADR per service)*
 
 Characteristics:

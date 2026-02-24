@@ -23,6 +23,11 @@
 | [Advanced Testing Strategy Standard.md](./Advanced%20Testing%20Strategy%20Standard.md) | Test pyramid, TDD, BDD, contract, property-based, mutation, chaos | No — mandatory | AT-01 to AT-80 |
 | [API Management & Versioning Standard.md](./API%20Management%20%26%20Versioning%20Standard.md) | URL versioning, breaking changes, rate limiting, deprecation, error format | No — mandatory | AM-01 to AM-75 |
 | [CI CD Pipeline Standard.md](./CI%20CD%20Pipeline%20Standard.md) | Pipeline stages, branch strategy, CD promotion, quality gates, artifact management | No — mandatory | CI-01 to CI-80 |
+| [Context-Degradation-Monitoring-Standard.md](./Context-Degradation-Monitoring-Standard.md) | Degradation pattern detection, mitigation, context usage rules for agent sessions | No — mandatory | CE-DEG-01 to CE-DEG-15 |
+| [Memory-Architecture-Standard.md](./Memory-Architecture-Standard.md) | In-context, external, cached, and computed memory — selection rules and handoff protocol | No — mandatory | CE-MEM-01 to CE-MEM-13 |
+| [Multi-Agent-Architecture-Standard.md](./Multi-Agent-Architecture-Standard.md) | Orchestrator/subagent design, trust boundaries, prompt injection defense, parallelism | No — mandatory | CE-MAA-01 to CE-MAA-24 |
+| [Tool-Design-Governance-Standard.md](./Tool-Design-Governance-Standard.md) | Tool responsibility, permission scope, reversibility, output contracts, security | No — mandatory | CE-TOOL-01 to CE-TOOL-17 |
+| [Context-Compression-Standard.md](./Context-Compression-Standard.md) | Compression techniques, quality rules, compression vs. loss classification | No — mandatory | CE-COMP-01 to CE-COMP-15 |
 
 ---
 
@@ -55,3 +60,8 @@ For any PR or task, load cross-cutting standards that match the change:
 | API deprecation or version bump | API Management & Versioning |
 | New CI/CD pipeline or pipeline change | CI/CD Pipeline Standard |
 | New deployment environment or promotion gate | CI/CD Pipeline Standard |
+| Long-running agent session (> 5 turns) | Context-Degradation-Monitoring-Standard |
+| Multi-session agent workflow or handoff | Memory-Architecture-Standard |
+| Multi-agent orchestration design | Multi-Agent-Architecture-Standard |
+| New tool design or tool review | Tool-Design-Governance-Standard |
+| Context budget concern or session compression | Context-Compression-Standard |

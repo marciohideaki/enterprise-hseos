@@ -15,8 +15,8 @@ Source documents and external references whose content has been selectively inte
 | File | Source | Integrated into |
 |---|---|---|
 | `boris-cherny-execution.md` | Boris Cherny (Anthropic) | `~/.claude/CLAUDE.md` — Execution Discipline + Core Principles |
-| `sentry-security-review.md` | Sentry Engineering | `secure-coding` skill Tier 2 (enrichment planned) |
-| `trailofbits-differential-review.md` | Trail of Bits / Omar Inuwa | `pr-review` skill Tier 2 (enrichment planned) |
+| `sentry-security-review.md` | Sentry Engineering | `secure-coding` SKILL.md — §0 Investigation Protocol, §11 Confidence-Based Reporting, language patterns (JS, Python) |
+| `trailofbits-differential-review.md` | Trail of Bits / Omar Inuwa | `pr-review` SKILL.md — §0 Risk-Based Triage, §8 Blast Radius Analysis, §9 Adversarial Analysis |
 
 ---
 

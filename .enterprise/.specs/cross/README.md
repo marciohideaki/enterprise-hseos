@@ -26,6 +26,11 @@ Unlike core standards (organizational invariants), cross-cutting standards are *
 | `Advanced Testing Strategy Standard.md` | TDD, BDD, contract testing, mutation testing, chaos engineering | **Yes** | AT-01 to AT-80 |
 | `API Management & Versioning Standard.md` | URL versioning, rate limiting, RFC 7807 errors, deprecation | **Yes** | AM-01 to AM-75 |
 | `CI/CD Pipeline Standard.md` | Pipeline stages, CD promotion, quality gates, artifact management | **Yes** | CI-01 to CI-80 |
+| `Context-Degradation-Monitoring-Standard.md` | Degradation pattern detection, mitigation, context usage rules for agent sessions | **Yes** | CE-DEG-01 to CE-DEG-15 |
+| `Memory-Architecture-Standard.md` | In-context, external, cached, and computed memory — selection rules and handoff protocol | **Yes** | CE-MEM-01 to CE-MEM-13 |
+| `Multi-Agent-Architecture-Standard.md` | Orchestrator/subagent design, trust boundaries, prompt injection defense, parallelism | **Yes** | CE-MAA-01 to CE-MAA-24 |
+| `Tool-Design-Governance-Standard.md` | Tool responsibility, permission scope, reversibility, output contracts, security | **Yes** | CE-TOOL-01 to CE-TOOL-17 |
+| `Context-Compression-Standard.md` | Compression techniques, quality rules, compression vs. loss classification | **Yes** | CE-COMP-01 to CE-COMP-15 |
 | `Performance Engineering Standard.md` | Hot path, zero-alloc, benchmarking gates | **Opt-in** | PE-01 to PE-55 |
 
 ---
