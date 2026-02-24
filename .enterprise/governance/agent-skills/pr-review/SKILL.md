@@ -1,10 +1,11 @@
 ---
 name: pr-review
-description: Enforce PR review standards — quality gates, boundary evidence, contract safety, and governance compliance.
+description: Enforce PR review standards — quality gates, boundary evidence, contract safety, and governance compliance. Includes blast radius analysis and adversarial analysis from Trail of Bits differential-review methodology.
 license: Apache-2.0
 metadata:
   owner: platform-governance
-  version: "1.0.0"
+  version: "2.0.0"
+  enriched-from: .enterprise/governance/references/trailofbits-differential-review.md
 ---
 
 # PR Review
@@ -15,6 +16,33 @@ Use this skill when:
 - acting as a reviewer agent on a PR diff
 - generating a PR review report
 - validating that a PR is ready to merge
+
+---
+
+## 0. Risk-Based Triage (Do This First)
+
+Before reviewing the full diff, assess the risk profile to allocate review depth:
+
+**Step 1 — Identify high-risk areas in the diff:**
+- Authentication or authorization logic
+- Cryptographic operations
+- Value transfers or financial logic
+- Privilege boundary crossings
+- Input validation at trust boundaries
+- Shared libraries or platform-wide interfaces
+
+**Step 2 — Assess scope:**
+- Total lines changed and files touched
+- Number of components affected
+- Whether the change is additive-only or modifies existing behavior
+
+**Step 3 — Historical context:**
+- Use `git blame` on key modified files to understand evolution
+- Check if the modified area has a history of past bugs or regressions
+- Look for patterns that have been fixed before but may be reintroduced
+
+**Step 4 — Prioritize:**
+Review high-risk areas first and with greater depth. Low-risk areas (documentation, formatting, additive helpers) may receive lighter review. Explicitly state the triage outcome in the review report.
 
 ---
 
@@ -86,7 +114,55 @@ Use this skill when:
 
 ---
 
-## 8. Review Output Format
+## 8. Blast Radius Analysis
+
+For changes with significant scope, quantify impact before approving:
+
+**Caller analysis:**
+- How many callers does the modified function/method have? (`grep -r "functionName" --include="*.{ext}"`)
+- Are there callers in other services, packages, or bounded contexts?
+
+**Deployment scope:**
+- One service (isolated) → standard review
+- Shared library (internal) → require evidence callers were checked
+- Platform-wide API (external consumers) → require migration guide + consumer notification
+
+**Test gap for consumers:**
+- Are there downstream consumers of the changed interface with no tests covering this change?
+- If yes → block until coverage is added or consumer sign-off is explicit
+
+**High blast radius PRs require in the description:**
+- Explicit scope statement: "This change affects N callers in M services"
+- Evidence that callers were checked and remain compatible
+- Test coverage for affected consumers or explicit justification for skipping
+
+---
+
+## 9. Adversarial Analysis
+
+Apply attacker thinking to the diff — especially for auth, input validation, and state changes. This is NOT a duplicate of `secure-coding` — it focuses on **logic-level weaknesses** created by the diff in combination with existing code.
+
+**Ask for each significant change:**
+
+| Question | What to look for |
+|---|---|
+| What assumptions does this change make about inputs? | Preconditions that can be violated by a caller |
+| Does this create a race condition or TOCTOU window? | Check-then-act patterns, non-atomic state transitions |
+| Does this expand the attack surface? | New permissions, new entry points, new data exposed |
+| Is there a bypass path around new guards? | Can the sensitive code be reached without the new check? |
+| Does this change break an existing security invariant? | Previously safe code made unsafe by the modification |
+
+**Flag as a finding if:**
+- An assumption is clearly violable AND the consequence is a security or correctness impact
+- A new bypass path exists in the changed code itself (not a theoretical future issue)
+
+**Do NOT flag:**
+- Theoretical future misuse that requires multiple additional changes
+- Defense-in-depth improvements (these go to the suggestions section)
+
+---
+
+## 10. Review Output Format
 
 When generating a formal review report, the output MUST include:
 
@@ -96,6 +172,7 @@ When generating a formal review report, the output MUST include:
 **PR:** [title]
 **Reviewer:** [agent/human]
 **Date:** [date]
+**Risk triage:** [Low / Medium / High] — [one-line justification]
 
 ### Quality Gates
 [PASS/FAIL per gate]
@@ -107,7 +184,13 @@ When generating a formal review report, the output MUST include:
 [Result of breaking-change-detection if applicable]
 
 ### Security
-[Result of secure-coding if applicable]
+[Result of secure-coding if applicable — HIGH confidence findings only]
+
+### Blast Radius
+[Caller count, deployment scope, consumer test coverage — or N/A if isolated change]
+
+### Adversarial Analysis
+[Logic-level weaknesses found in the diff — or CLEAR if none identified]
 
 ### Documentation
 [Coverage status]
@@ -118,7 +201,7 @@ When generating a formal review report, the output MUST include:
 ### Verdict: APPROVED / CHANGES REQUESTED / BLOCKED
 
 ### Required Changes (if any)
-[Explicit list of blocking items]
+[Explicit list of blocking items with file:line references]
 ```
 
 ---

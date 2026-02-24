@@ -1,7 +1,7 @@
 ---
 name: secure-coding
 tier: quick
-version: "1.0"
+version: "2.0"
 ---
 
 # Secure Coding — Quick Check
@@ -47,3 +47,24 @@ version: "1.0"
 
 **PASS** → all items clear.
 **FAIL** → blocking violation — load `SKILL.md` (Tier 2) for full secure coding policy and remediation guidance.
+
+---
+
+## Confidence Rule (Before Reporting)
+
+Only flag findings where BOTH hold:
+1. A clear vulnerable pattern exists
+2. Attacker-controlled input is confirmed to reach it
+
+**Do NOT flag:** test files, ORM queries, env vars, framework-auto-escaped templates, code behind confirmed auth.
+
+---
+
+## Severity Reference
+
+| Level | Threshold |
+|---|---|
+| **Critical** | Pre-auth RCE, confirmed SQL injection, auth bypass, hardcoded secrets |
+| **High** | Stored XSS, SSRF, IDOR with confirmed attacker path |
+| **Medium** | Reflected XSS, CSRF on state changes, path traversal |
+| **Low** | Missing headers, verbose errors, defense-in-depth gaps |

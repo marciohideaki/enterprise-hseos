@@ -1,13 +1,34 @@
 ---
 name: secure-coding
-description: Secure coding guardrails for changes impacting auth, crypto, secrets, and PII.
+description: Secure coding guardrails for changes impacting auth, crypto, secrets, and PII. Includes confidence-based reporting and severity classification from Sentry's security-review methodology.
 license: Apache-2.0
 metadata:
   owner: platform-governance
-  version: "1.0.0"
+  version: "2.0.0"
+  enriched-from: .enterprise/governance/references/sentry-security-review.md
 ---
 
 # Secure Coding
+
+## 0. Investigation Protocol (Confidence-Based)
+
+Before flagging any finding, follow this sequence:
+
+**Step 1 — Detect context.** Identify what type of code changed: API endpoint, frontend component, file handler, background job, event consumer, CLI tool. Different contexts carry different risk profiles.
+
+**Step 2 — Research the codebase.** Do NOT flag based on the diff alone. Trace data flow:
+- Where does user-controlled input enter?
+- What validation, sanitization, or escaping layers exist?
+- What does the authentication/authorization middleware do?
+- Does the framework provide automatic protections (ORM parameterization, template auto-escaping)?
+
+**Step 3 — Verify exploitability.** A finding requires BOTH conditions:
+1. A clear vulnerable pattern exists in the code
+2. Attacker-controlled input is confirmed to reach that pattern
+
+**Step 4 — Report HIGH confidence only.** Theoretical issues, defense-in-depth gaps, and partially-mitigated patterns go to the low/informational bucket or are omitted entirely.
+
+---
 
 ## When to use
 Use this skill whenever a diff or PR touches:
@@ -130,6 +151,49 @@ Use this skill whenever a diff or PR touches:
   - `X-Frame-Options: DENY` (where applicable)
   - `Content-Security-Policy` (where applicable)
 - SC-52: Sensitive API responses MUST include `Cache-Control: no-store`.
+
+---
+
+## 11. Confidence-Based Reporting
+
+Only report findings you are HIGH confidence about. A finding requires BOTH:
+1. A clear vulnerable pattern in the code
+2. A confirmed path from attacker-controlled input to that pattern
+
+### Do NOT flag — false positive prevention
+
+| Category | Why it passes |
+|---|---|
+| Test files and commented-out code | Not in production execution path |
+| Constants or server-controlled config | Not attacker-controlled input |
+| Code paths requiring prior authentication | Auth layer assumption must be explicitly confirmed unsound to flag |
+| ORM queries using parameterized methods | Framework provides injection protection |
+| Template variables with framework auto-escaping | Framework prevents XSS |
+| Environment variables and deployment config | Not user-controlled at runtime |
+| Verbose error messages in non-production environments | Risk profile depends on deployment context |
+
+### Severity Classification
+
+| Level | Examples |
+|---|---|
+| **Critical** | Pre-auth RCE, confirmed SQL injection, auth bypass without preconditions, hardcoded secrets in source |
+| **High** | Stored XSS (confirmed attacker path), SSRF to internal systems, IDOR with confirmed cross-user access |
+| **Medium** | Reflected XSS (requires user action), CSRF on state-changing endpoints, path traversal (limited scope) |
+| **Low** | Missing security headers, verbose error messages, defense-in-depth improvements |
+
+### Reporting Format
+
+For each finding, include:
+
+```
+**[SC-FIND-NNN] <Short name>**
+- Location: <file>:<line>
+- Severity: Critical / High / Medium / Low
+- Pattern: <what vulnerable pattern exists>
+- Attacker path: <how attacker-controlled input reaches the vulnerability>
+- Evidence: <specific code snippet or line reference>
+- Remediation: <specific fix at the specific location>
+```
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: pr-review
 tier: quick
-version: "1.0.0"
+version: "2.0.0"
 ---
 
 # PR Review — Quick Check
@@ -39,7 +39,24 @@ version: "1.0.0"
 
 ---
 
+**Blast Radius**
+- [ ] For shared libraries or platform APIs: caller count verified, consumers checked
+- [ ] High blast radius declared in PR description with scope statement
+
+**Adversarial**
+- [ ] No TOCTOU / race condition introduced by the diff
+- [ ] No bypass path to sensitive logic around new guards
+- [ ] No existing security invariant broken by the change
+
+---
+
 ## Verdict
 
 **PASS** → all items clear, PR may be approved.
 **BLOCK** → one or more failing items — reviewer MUST request changes.
+
+---
+
+## Triage First
+
+Before starting: identify high-risk areas (auth, crypto, shared interfaces), assess scope, check `git blame` for past bugs in modified files. Allocate review depth accordingly.
