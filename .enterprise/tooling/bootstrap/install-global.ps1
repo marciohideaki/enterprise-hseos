@@ -26,8 +26,10 @@
 #   .\install-global.ps1 -Force       - Overwrite all without prompting
 #   .\install-global.ps1 -DryRun      - Preview only, no changes
 #
+#   ~/.claude/settings.json              - Governance read permissions (merged, non-destructive)
+#
 # Idempotent: safe to run multiple times.
-# Version: 1.1.0
+# Version: 1.2.0
 # ============================================================
 
 [CmdletBinding()]
@@ -97,6 +99,48 @@ function Strip-GovernanceClauses {
     return ($Content -replace "(?s)\r?\n## Mandatory Governance Clauses.*", "").Trim()
 }
 
+# Merge new allow entries into ~/.claude/settings.json without overwriting existing content.
+# Creates the file if it does not exist. Skips entries already present (idempotent).
+function Merge-ClaudeSettings {
+    param(
+        [string]$SettingsPath,
+        [string[]]$NewAllowEntries
+    )
+
+    if (Test-Path $SettingsPath) {
+        $raw      = Get-Content $SettingsPath -Raw -Encoding UTF8
+        $existing = $raw | ConvertFrom-Json
+    }
+    else {
+        $existing = [PSCustomObject]@{
+            permissions = [PSCustomObject]@{ defaultMode = "default" }
+        }
+    }
+
+    # Ensure permissions object exists
+    if (-not $existing.PSObject.Properties['permissions']) {
+        $existing | Add-Member -MemberType NoteProperty -Name 'permissions' -Value ([PSCustomObject]@{ defaultMode = "default" })
+    }
+
+    # Ensure permissions.allow array exists
+    if (-not $existing.permissions.PSObject.Properties['allow']) {
+        $existing.permissions | Add-Member -MemberType NoteProperty -Name 'allow' -Value @()
+    }
+
+    # Merge: add only missing entries
+    [System.Collections.Generic.List[string]]$currentAllow = @($existing.permissions.allow)
+    $added = 0
+    foreach ($entry in $NewAllowEntries) {
+        if ($currentAllow -notcontains $entry) {
+            $currentAllow.Add($entry)
+            $added++
+        }
+    }
+
+    $existing.permissions.allow = $currentAllow.ToArray()
+    return @{ Settings = $existing; Added = $added }
+}
+
 # Build a combined agent command file from authority.md + constraints.md
 function Build-AgentCommand {
     param([string]$AgentName)
@@ -110,7 +154,7 @@ function Build-AgentCommand {
 # BANNER
 # ---------------------------------------------------------------
 Write-Host ""
-Write-Host "Enterprise BMAD - Global Bootstrap v1.1.0" -ForegroundColor White
+Write-Host "Enterprise BMAD - Global Bootstrap v1.2.0" -ForegroundColor White
 Write-Host "  Target : $ClaudeHome" -ForegroundColor DarkGray
 Write-Host "  Source : $EnterpriseDir" -ForegroundColor DarkGray
 if ($DryRun) { Write-Host "  Mode   : DRY RUN (no changes)" -ForegroundColor DarkYellow }
@@ -161,6 +205,10 @@ Agent personas: /analyst · /architect · /dev · /pm · /sm · /tea · /tech-wr
 - **Never remove, shrink, rewrite, or summarize away existing requirements.** Any change must be explicit, traceable, and reviewed.
 - **No silent architecture reinvention.** Follow existing patterns. Propose improvements ONLY as suggestion + ADR draft, never as silent replacement.
 - **Ambiguity triggers mandatory stop.** Do not guess intent. Do not average conflicting rules. Do not pick the easiest path.
+- **Context is a finite resource.** Every token loaded into context has a cost. Load only what is needed for the current step. Use subagents to isolate large research from the main context.
+- **Long sessions degrade silently.** Instructions stated early lose effect as context fills. For sessions exceeding 5 major tasks, create checkpoint summaries and prefer session splits over a single unbounded session.
+- **External memory is the source of truth -- not session memory.** If a decision, constraint, or artifact is not written to the repo, it does not persist. Write artifacts, not memories.
+- **Subagent isolation is the primary multi-agent benefit.** Use subagents to keep the main context clean -- not primarily for parallelism. A subagent that floods its result back into main context defeats the purpose.
 
 ---
 
@@ -782,6 +830,37 @@ else {
 }
 
 # ---------------------------------------------------------------
+# 7. Merge governance read permissions into ~/.claude/settings.json
+# ---------------------------------------------------------------
+Write-Host ""
+Write-Step "Configuring governance read permissions in settings.json"
+
+$settingsPath  = Join-Path $ClaudeHome "settings.json"
+# Forward-slash paths for cross-platform glob compatibility
+$enterpriseGlob = ($SpecsTarget -replace '\\', '/') + "/**"
+
+$newAllowEntries = @(
+    "Read($enterpriseGlob)",   # ~/.claude/enterprise/** (specs + skills)
+    "Read(**/.enterprise/**)"  # Any project's .enterprise/ overlay
+)
+
+if ($DryRun) {
+    Write-Dry "Would merge into: $settingsPath"
+    foreach ($e in $newAllowEntries) { Write-Dry "  Allow: $e" }
+}
+else {
+    $result = Merge-ClaudeSettings -SettingsPath $settingsPath -NewAllowEntries $newAllowEntries
+    $json   = $result.Settings | ConvertTo-Json -Depth 10
+    Set-Content -Path $settingsPath -Value $json -Encoding UTF8
+    if ($result.Added -gt 0) {
+        Write-Ok "$($result.Added) permission entries added to settings.json"
+    }
+    else {
+        Write-Ok "settings.json already up to date (no changes needed)"
+    }
+}
+
+# ---------------------------------------------------------------
 # SUMMARY
 # ---------------------------------------------------------------
 Write-Host ""
@@ -803,8 +882,12 @@ Write-Host "    /pm /sm /tea /tech-writer       Agent personas" -ForegroundColor
 Write-Host "    /quick-flow /ux-designer        Agent personas" -ForegroundColor DarkGray
 Write-Host ""
 Write-Host "  Libraries:" -ForegroundColor Gray
-Write-Host "    ~/.claude/enterprise/.specs/                Spec library" -ForegroundColor DarkGray
-Write-Host "    ~/.claude/enterprise/governance/agent-skills/  Skill library" -ForegroundColor DarkGray
+Write-Host "    ~/.claude/enterprise/.specs/                    Spec library" -ForegroundColor DarkGray
+Write-Host "    ~/.claude/enterprise/governance/agent-skills/   Skill library" -ForegroundColor DarkGray
+Write-Host ""
+Write-Host "  Permissions (merged into settings.json):" -ForegroundColor Gray
+Write-Host "    Read(~/.claude/enterprise/**)                   Governance specs + skills (no prompt)" -ForegroundColor DarkGray
+Write-Host "    Read(**/.enterprise/**)                         Project overlays (no prompt)" -ForegroundColor DarkGray
 Write-Host ""
 
 if ($DryRun) {
