@@ -41,7 +41,9 @@ agent-skills/
 ├── sanitize-comments/              Removes FR/NFR/story refs from code comments
 ├── secure-coding/
 ├── spec-driven/
-└── test-coverage/
+├── test-coverage/
+├── agent-permissions/          Least-privilege .claude/settings.json generation
+└── threat-modeling/            AppSec threat modeling (explicit request only)
 ```
 
 ---

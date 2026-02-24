@@ -32,7 +32,7 @@ Each skill has two tiers:
 
 The `SKILLS-REGISTRY.md` at the root of `agent-skills/` is the **only entry point agents use**. They load the registry first, then load individual skill files as needed.
 
-### Available skills (17 total)
+### Available skills (18 total)
 
 | Skill | Triggers |
 |---|---|
@@ -52,6 +52,8 @@ The `SKILLS-REGISTRY.md` at the root of `agent-skills/` is the **only entry poin
 | `secure-coding` | Any code touching auth, secrets, input validation, PII |
 | `spec-driven` | Spec-first development, any task with requirements |
 | `test-coverage` | Test files, coverage reports |
+| `agent-permissions` | Setting up or auditing `.claude/settings.json` |
+| `threat-modeling` | Explicit AppSec / threat model requests only |
 
 ---
 
@@ -72,6 +74,8 @@ Original documents and external references whose content has been integrated int
 | File | Content | Integrated into |
 |---|---|---|
 | `boris-cherny-execution.md` | Agentic execution discipline — plan mode, subagents, self-improvement, verification, core principles | `~/.claude/CLAUDE.md` (Execution Discipline + Core Principles sections) |
+| `sentry-security-review.md` | Confidence-based security review methodology (Sentry) | `secure-coding` skill Tier 2 (enrichment planned) |
+| `trailofbits-differential-review.md` | 6-phase diff review with blast radius analysis (Trail of Bits) | `pr-review` skill Tier 2 (enrichment planned) |
 
 ---
 

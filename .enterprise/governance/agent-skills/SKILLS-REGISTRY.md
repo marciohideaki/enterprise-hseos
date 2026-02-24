@@ -186,6 +186,27 @@ version: "1.3"
 
 ---
 
+### agent-permissions
+**Description:** Analyze repository structure to generate a least-privilege `.claude/settings.json` — read-only commands only, stack-aware, package-manager-exclusive. Never allows state-modifying commands, absolute paths, or custom scripts.
+**Load when:** Setting up Claude Code for a new project; auditing existing `.claude/settings.json` for over-permission; after running `/setup` Mode B.
+**Triggers:** `settings.json`, `claude permissions`, `agent permissions`, `settings audit`, `least privilege`, `.claude/settings`, `what permissions`, `claude setup`, `new project permissions`
+**Tier 1:** `.enterprise/governance/agent-skills/agent-permissions/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/agent-permissions/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+
+---
+
+### threat-modeling
+**Description:** Repository-grounded threat modeling — enumerates trust boundaries, assets, attacker capabilities, abuse paths, and mitigations from actual code evidence. 8-step workflow with mandatory user validation pause at Step 6.
+**Load when:** User explicitly requests threat modeling, AppSec analysis, or abuse path enumeration. NOT for general security reviews, PR review, or architecture discussions.
+**Triggers:** `threat model`, `threat modeling`, `AppSec`, `application security`, `abuse path`, `attack surface`, `attacker model`, `trust boundary`, `security assessment`
+**Tier 1:** `.enterprise/governance/agent-skills/threat-modeling/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/threat-modeling/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = high
+**Note:** Explicit request only — never auto-load for general security or architecture reviews.
+
+---
+
 ## Decision Table
 
 | Task context | Skills to load | Tier |
@@ -212,6 +233,10 @@ version: "1.3"
 | Generating / reviewing an ADR | adr-compliance | 1 |
 | New naming review or code gen | naming-conventions | 1 |
 | Starting new feature or service | spec-driven | 1 |
+| Setting up .claude/settings.json for a project | agent-permissions | 1 |
+| Auditing existing Claude Code permissions | agent-permissions | 2 |
+| User explicitly requests threat model / AppSec | threat-modeling | 1 |
+| Full threat model generation and output | threat-modeling | 2 |
 | Fixing a DDD violation | ddd-boundary-check | 2 |
 | Formal architectural PR review | ddd-boundary-check + pr-review | 2 |
 | Security audit of a module | secure-coding | 2 |
