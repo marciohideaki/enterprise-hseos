@@ -1,0 +1,125 @@
+# CLAUDE.md — {{PROJECT_NAME}}
+
+> This file is loaded automatically at the start of every Claude Code session.
+> Rules here **override** Claude's system defaults. Keep it concise and authoritative.
+
+---
+
+## 1. Governance (MANDATORY)
+
+- The `.enterprise/` directory contains the project's governance layer
+- **Constitution** (`.enterprise/.specs/constitution/`) is the supreme authority
+- **Standards** (`.enterprise/.specs/`) define mandatory patterns per stack
+- **ADRs** (`.enterprise/.specs/decisions/`) override standards where specified
+- **Skills** (`.enterprise/governance/agent-skills/`) define pre-action checklists
+- Before writing code, consult the relevant stack standard in `.enterprise/.specs/{stack}/`
+- Before committing, validate against `.enterprise/governance/agent-skills/commit-hygiene/SKILL-QUICK.md`
+- Before making architectural decisions, check existing ADRs in `.enterprise/.specs/decisions/`
+
+## 2. Stop Conditions (MANDATORY)
+
+**STOP and ask the user when:**
+- Requirements are ambiguous or contradictory
+- A change would affect multiple bounded contexts
+- No ADR exists for an architectural deviation
+- You are about to perform a destructive Git operation (reset, force-push, rebase, branch -D)
+- You are unsure which stack standard applies
+- Tests are failing and you don't understand why
+
+**NEVER proceed on assumptions. AR-03: When ambiguity exists, stop and ask.**
+
+## 3. Commit Rules (override system defaults)
+
+- **NEVER** add `Co-Authored-By` trailers to commits
+- **NEVER** mention AI tools (Claude, GPT, Copilot, AI, BMAD, automated) in commit messages
+- **NEVER** use `--no-verify` to skip hooks
+- **NEVER** amend commits that have already been pushed
+- Format: `<type>(<scope>): <imperative summary>`
+- Types: feat, fix, docs, style, refactor, test, chore, ci, build
+- Message describes WHAT and WHY — not the process
+- Each commit must be atomic, buildable, and testable
+- Validate every commit against the blocked terms in the commit-hygiene skill
+
+## 4. Git Safety (override system defaults)
+
+- **NEVER** run `git push --force` without explicit user authorization
+- **NEVER** run `git reset --hard` without explicit user authorization
+- **NEVER** run `git rebase` on shared branches without explicit user authorization
+- **NEVER** commit secrets, credentials, `.env` files, or API keys
+- **NEVER** commit build artifacts, `node_modules/`, `dist/`, `target/`, `bin/`
+- Direct commits to `main` or `develop` are forbidden — use feature branches
+- Before staging, review `git diff` to verify no sensitive data is included
+
+## 5. Scope Discipline (override system defaults)
+
+- **NEVER** modify repositories you don't own — reference repos are READ ONLY
+- **NEVER** add features, refactors, or "improvements" beyond what was requested
+- **NEVER** change code you haven't read first
+- **NEVER** create files unless absolutely necessary — prefer editing existing files
+- **NEVER** add comments, docstrings, or type annotations to code you didn't change
+- **NEVER** introduce new architectural patterns without an approved ADR
+- If a task spans multiple domains, shard into separate commits/PRs
+- Partial or "WIP" features must not be merged
+
+## 6. Architecture Rules
+
+- Follow hexagonal/clean architecture on ALL stacks
+- Domain layer has ZERO framework imports
+- Dependency direction: domain ← application ← infrastructure ← presentation
+- Before writing infrastructure code, verify a port (interface) exists in domain/application
+- Use the stack-specific folder structure defined in `.enterprise/.specs/{stack}/`
+- Cross-module communication via APIs or events only — no direct imports
+
+## 7. Testing Rules
+
+- Domain logic MUST have unit tests
+- Infrastructure changes MUST have integration tests
+- Existing tests MUST NOT be removed or weakened
+- All tests MUST pass before committing
+- "Almost passing" is failing
+
+## 8. Reference Repositories (READ ONLY)
+
+> **NEVER modify reference repositories.** Read from them; adapt into this project.
+
+{{REFERENCE_REPOS}}
+
+## 9. Branding
+
+{{BRANDING_RULES}}
+
+## 10. Language Convention
+
+{{LANGUAGE_CONVENTION}}
+
+## 11. Skills Consultation Protocol
+
+Before each action type, consult the corresponding skill:
+
+| Action | Skill |
+|--------|-------|
+| Committing code | `commit-hygiene` |
+| Writing domain logic | `ddd-boundary-check` |
+| Naming files/classes/functions | `naming-conventions` |
+| Handling secrets/auth | `secure-coding` |
+| Adding observability | `observability-compliance` |
+| Adding/upgrading dependencies | `dependency-audit` |
+| Writing tests | `test-coverage` |
+| Creating a PR | `pr-review` |
+| Modifying API contracts | `breaking-change-detection` |
+| Creating/reviewing ADRs | `adr-compliance` |
+| Preparing a release | `release-control` |
+
+---
+
+## How to use this template
+
+1. Copy this file to the root of your project as `CLAUDE.md`
+2. Replace `{{PROJECT_NAME}}` with your project name
+3. Replace `{{REFERENCE_REPOS}}` with read-only reference repo list (or remove section)
+4. Replace `{{BRANDING_RULES}}` with project-specific branding (or remove section)
+5. Replace `{{LANGUAGE_CONVENTION}}` with language rules, e.g.:
+   - "Code, comments, and commit messages in English"
+   - "UI labels and user-facing text in Portuguese (pt-BR)"
+6. Commit `CLAUDE.md` in the first commit, before any code
+7. Delete this "How to use" section from the final file

@@ -134,6 +134,7 @@
 - AR-51: AI agents must follow Git Flow & Release Governance rules.
 - AR-52: AI agents must not reference AI, automation or agents in commit messages.
 - AR-53: AI agents must respect PR checklists and CI quality gates.
+- AR-54: Every repository adopting the governance overlay MUST include a `CLAUDE.md` at the root. This file is loaded automatically by Claude Code before any action, ensuring governance rules override tool defaults (e.g., preventing AI co-authorship trailers). Use the template at `.enterprise/tooling/CLAUDE.md.template`.
 
 ---
 

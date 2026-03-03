@@ -26,6 +26,17 @@ If any prerequisite is missing, onboarding MUST stop.
 
 ## 3. Mandatory Onboarding Steps
 
+### Step 0 — CLAUDE.md Verification
+Before any operation, verify that a `CLAUDE.md` exists at the repository root.
+
+- If missing, copy from `.enterprise/tooling/CLAUDE.md.template` and configure it
+- This file overrides AI tool defaults that may conflict with governance (e.g., co-authorship trailers, AI references in commits)
+- Without `CLAUDE.md`, the agent may follow system defaults that violate AR-52 and commit-hygiene rules
+
+**A repository without `CLAUDE.md` is not ready for agent operation.**
+
+---
+
 ### Step 1 — Governance Load
 The agent MUST load and acknowledge:
 
