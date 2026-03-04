@@ -135,6 +135,8 @@
 - AR-52: AI agents must not reference AI, automation or agents in commit messages.
 - AR-53: AI agents must respect PR checklists and CI quality gates.
 - AR-54: Every repository adopting the governance overlay MUST include a `CLAUDE.md` at the root. This file is loaded automatically by Claude Code before any action, ensuring governance rules override tool defaults (e.g., preventing AI co-authorship trailers). Use the template at `.enterprise/tooling/CLAUDE.md.template`.
+- AR-55: AI agents must **never** delete branches (`git branch -d`, `git branch -D`, `git push origin --delete`) without explicit user authorization.
+- AR-56: AI agents must **never** delete or remove repositories without explicit user authorization.
 
 ---
 
@@ -145,6 +147,7 @@ AI agents must **never**:
 - Bypass persistence, outbox, idempotency or versioning rules
 - Perform cross-context refactors implicitly
 - Generate undocumented breaking changes
+- Delete branches or repositories without explicit user authorization
 
 ---
 

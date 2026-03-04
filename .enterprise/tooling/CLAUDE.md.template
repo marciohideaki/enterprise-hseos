@@ -22,7 +22,7 @@
 - Requirements are ambiguous or contradictory
 - A change would affect multiple bounded contexts
 - No ADR exists for an architectural deviation
-- You are about to perform a destructive Git operation (reset, force-push, rebase, branch -D)
+- You are about to perform a destructive Git operation (reset, force-push, rebase, branch -D, branch deletion, repo deletion)
 - You are unsure which stack standard applies
 - Tests are failing and you don't understand why
 
@@ -45,6 +45,8 @@
 - **NEVER** run `git push --force` without explicit user authorization
 - **NEVER** run `git reset --hard` without explicit user authorization
 - **NEVER** run `git rebase` on shared branches without explicit user authorization
+- **NEVER** delete branches (`git branch -d`, `git branch -D`, `git push origin --delete`) without explicit user authorization
+- **NEVER** delete or remove repositories without explicit user authorization
 - **NEVER** commit secrets, credentials, `.env` files, or API keys
 - **NEVER** commit build artifacts, `node_modules/`, `dist/`, `target/`, `bin/`
 - Direct commits to `main` or `develop` are forbidden — use feature branches
