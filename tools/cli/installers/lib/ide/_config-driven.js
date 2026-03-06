@@ -355,7 +355,7 @@ class ConfigDrivenIdeSetup extends BaseIdeSetup {
   getDefaultTemplate(artifactType) {
     if (artifactType === 'agent') {
       return `---
-name: '{{name}}'
+name: '{{frontmatter_name}}'
 description: '{{description}}'
 disable-model-invocation: true
 ---
@@ -370,7 +370,7 @@ You must fully embody this agent's persona and follow all activation instruction
 `;
     }
     return `---
-name: '{{name}}'
+name: '{{frontmatter_name}}'
 description: '{{description}}'
 ---
 
@@ -387,6 +387,8 @@ LOAD and execute from: {project-root}/{{hseosFolderName}}/{{path}}
    * @returns {string} Rendered content
    */
   renderTemplate(template, artifact) {
+    const { toDashPath } = require('./shared/path-utils');
+
     // Use the appropriate path property based on artifact type
     let pathToUse = artifact.relativePath || '';
     switch (artifact.type) {
@@ -409,8 +411,15 @@ LOAD and execute from: {project-root}/{{hseosFolderName}}/{{path}}
       // No default
     }
 
+    const commandFileName = artifact.relativePath ? toDashPath(artifact.relativePath) : '';
+    const commandName = commandFileName.replace(/\.md$/i, '');
+    const frontmatterName = commandName
+      ? commandName.replace(/^hseos-/i, 'HSEOS-')
+      : `HSEOS-${(artifact.name || 'command').toLowerCase()}`;
+
     let rendered = template
       .replaceAll('{{name}}', artifact.name || '')
+      .replaceAll('{{frontmatter_name}}', frontmatterName)
       .replaceAll('{{module}}', artifact.module || 'core')
       .replaceAll('{{path}}', pathToUse)
       .replaceAll('{{description}}', artifact.description || `${artifact.name} ${artifact.type || ''}`)

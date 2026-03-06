@@ -247,9 +247,9 @@ You must fully embody this agent's persona and follow all activation instruction
    */
   createWorkflowPromptContent(entry, workflowFile, toolsStr) {
     const description = this.escapeYamlSingleQuote(this.createPromptDescription(entry.name));
-    // bmm/config.yaml is safe to hardcode here: these prompts are only generated when
-    // hseos-help.csv exists (bmm module data), so bmm is guaranteed to be installed.
-    const configLine = `1. Load {project-root}/${this.hseosFolderName}/bmm/config.yaml and store ALL fields as session variables`;
+    // hsm/config.yaml is safe to hardcode here: these prompts are only generated when
+    // hseos-help.csv exists (hsm module data), so hsm is guaranteed to be installed.
+    const configLine = `1. Load {project-root}/${this.hseosFolderName}/hsm/config.yaml and store ALL fields as session variables`;
 
     let body;
     if (workflowFile.endsWith('.yaml')) {
@@ -331,11 +331,11 @@ ${body}
     if (entry['agent-name'] !== 'tech-writer') return null;
 
     const techWriterCommands = {
-      'Write Document': { code: 'WD', file: 'hseos-bmm-write-document', description: 'Write document' },
-      'Update Standards': { code: 'US', file: 'hseos-bmm-update-standards', description: 'Update standards' },
-      'Mermaid Generate': { code: 'MG', file: 'hseos-bmm-mermaid-generate', description: 'Mermaid generate' },
-      'Validate Document': { code: 'VD', file: 'hseos-bmm-validate-document', description: 'Validate document' },
-      'Explain Concept': { code: 'EC', file: 'hseos-bmm-explain-concept', description: 'Explain concept' },
+      'Write Document': { code: 'WD', file: 'hseos-hsm-write-document', description: 'Write document' },
+      'Update Standards': { code: 'US', file: 'hseos-hsm-update-standards', description: 'Update standards' },
+      'Mermaid Generate': { code: 'MG', file: 'hseos-hsm-mermaid-generate', description: 'Mermaid generate' },
+      'Validate Document': { code: 'VD', file: 'hseos-hsm-validate-document', description: 'Validate document' },
+      'Explain Concept': { code: 'EC', file: 'hseos-hsm-explain-concept', description: 'Explain concept' },
     };
 
     const cmd = techWriterCommands[entry.name];
@@ -350,8 +350,8 @@ agent: 'agent'
 tools: ${toolsStr}
 ---
 
-1. Load {project-root}/${this.hseosFolderName}/bmm/config.yaml and store ALL fields as session variables
-2. Load the full agent file from {project-root}/${this.hseosFolderName}/bmm/agents/tech-writer/tech-writer.md and activate the Paige (Technical Writer) persona
+1. Load {project-root}/${this.hseosFolderName}/hsm/config.yaml and store ALL fields as session variables
+2. Load the full agent file from {project-root}/${this.hseosFolderName}/hsm/agents/quill-core/tech-writer.md and activate the Paige (Technical Writer) persona
 3. Execute the ${entry.name} menu command (${cmd.code})
 `;
 
@@ -376,15 +376,15 @@ tools: ${toolsStr}
     const agentPath = artifact.agentPath || artifact.relativePath;
     const agentFilePath = `{project-root}/${this.hseosFolderName}/${agentPath}`;
 
-    // bmm/config.yaml is safe to hardcode: agent activators are only generated from
-    // bmm agent artifacts, so bmm is guaranteed to be installed.
+    // hsm/config.yaml is safe to hardcode: agent activators are only generated from
+    // hsm agent artifacts, so hsm is guaranteed to be installed.
     return `---
 description: '${safeDescription}'
 agent: 'agent'
 tools: ${toolsStr}
 ---
 
-1. Load {project-root}/${this.hseosFolderName}/bmm/config.yaml and store ALL fields as session variables
+1. Load {project-root}/${this.hseosFolderName}/hsm/config.yaml and store ALL fields as session variables
 2. Load the full agent file from ${agentFilePath}
 3. Follow ALL activation instructions in the agent file
 4. Display the welcome/greeting as instructed
@@ -443,12 +443,12 @@ tools: ${toolsStr}
 
 ## HSEOS Runtime Structure
 
-- **Agent definitions**: \`${hseos}/bmm/agents/\` (BMM module) and \`${hseos}/core/agents/\` (core)
-- **Workflow definitions**: \`${hseos}/bmm/workflows/\` (organized by phase)
+- **Agent definitions**: \`${hseos}/hsm/agents/\` (HSM module) and \`${hseos}/core/agents/\` (core)
+- **Workflow definitions**: \`${hseos}/hsm/workflows/\` (organized by phase)
 - **Core tasks**: \`${hseos}/core/tasks/\` (help, editorial review, indexing, sharding, adversarial review)
 - **Core workflows**: \`${hseos}/core/workflows/\` (brainstorming, party-mode, advanced-elicitation)
 - **Workflow engine**: \`${hseos}/core/tasks/workflow.xml\` (executes YAML-based workflows)
-- **Module configuration**: \`${hseos}/bmm/config.yaml\`
+- **Module configuration**: \`${hseos}/hsm/config.yaml\`
 - **Core configuration**: \`${hseos}/core/config.yaml\`
 - **Agent manifest**: \`${hseos}/_config/agent-manifest.csv\`
 - **Workflow manifest**: \`${hseos}/_config/workflow-manifest.csv\`
@@ -457,7 +457,7 @@ tools: ${toolsStr}
 
 ## Key Conventions
 
-- Always load \`${hseos}/bmm/config.yaml\` before any agent activation or workflow execution
+- Always load \`${hseos}/hsm/config.yaml\` before any agent activation or workflow execution
 - Store all config fields as session variables: \`{user_name}\`, \`{communication_language}\`, \`{output_folder}\`, \`{planning_artifacts}\`, \`{implementation_artifacts}\`, \`{project_knowledge}\`
 - MD-based workflows execute directly — load and follow the \`.md\` file
 - YAML-based workflows require the workflow engine — load \`workflow.xml\` first, then pass the \`.yaml\` config
