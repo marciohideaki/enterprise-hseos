@@ -71,15 +71,24 @@ class WorkflowCommandGenerator {
       let workflowRelPath = workflow.path || '';
       // Normalize path separators for cross-platform compatibility
       workflowRelPath = workflowRelPath.replaceAll('\\', '/');
-      // Remove _hseos/ prefix if present to get relative path from project root
-      // Handle both absolute paths (/path/to/_hseos/...) and relative paths (_hseos/...)
+      // Remove hseos installation prefix if present to get module-relative path.
+      // Handles absolute paths (/path/to/.hseos/...), relative paths (.hseos/...), and legacy _hseos/.
       if (workflowRelPath.includes('_hseos/')) {
         const parts = workflowRelPath.split(/_hseos\//);
         if (parts.length > 1) {
           workflowRelPath = parts.slice(1).join('/');
         }
-      } else if (workflowRelPath.includes('/src/')) {
-        // Normalize source paths (e.g. .../src/bmm/...) to relative module path (e.g. bmm/...)
+      } else {
+        const escapedFolderName = this.hseosFolderName.replace('.', String.raw`\.`);
+        const folderRegex = new RegExp(`(?:^|/)${escapedFolderName}/`);
+        const folderMatch = workflowRelPath.match(folderRegex);
+        if (folderMatch) {
+          workflowRelPath = workflowRelPath.slice(folderMatch.index + folderMatch[0].length);
+        }
+      }
+
+      if (workflowRelPath.includes('/src/')) {
+        // Normalize source paths (e.g. .../src/hsm/...) to relative module path (e.g. hsm/...)
         const match = workflowRelPath.match(/\/src\/([^/]+)\/(.+)/);
         if (match) {
           workflowRelPath = `${match[1]}/${match[2]}`;
@@ -133,22 +142,16 @@ class WorkflowCommandGenerator {
     const template = await fs.readFile(templatePath, 'utf8');
 
     // Convert source path to installed path
-    // From: /Users/.../src/bmm/workflows/.../workflow.yaml
-    // To: {project-root}/_hseos/hsm/workflows/.../workflow.yaml
+    // From: /Users/.../src/hsm/workflows/.../workflow.yaml
+    // To: {project-root}/.hseos/hsm/workflows/.../workflow.yaml
     let workflowPath = workflow.path;
 
-    // Extract the relative path from source
-    if (workflowPath.includes('/src/bmm/')) {
-      // bmm is directly under src/
-      const match = workflowPath.match(/\/src\/bmm\/(.+)/);
-      if (match) {
-        workflowPath = `${this.hseosFolderName}/bmm/${match[1]}`;
-      }
-    } else if (workflowPath.includes('/src/core/')) {
-      const match = workflowPath.match(/\/src\/core\/(.+)/);
-      if (match) {
-        workflowPath = `${this.hseosFolderName}/core/${match[1]}`;
-      }
+    // Extract module-relative path from source for any module under src/
+    const sourceMatch = workflowPath.match(/[\\/]src[\\/]([^/\\]+)[\\/]([^]+)$/);
+    if (sourceMatch) {
+      const moduleName = sourceMatch[1];
+      const moduleRelativePath = sourceMatch[2].replaceAll('\\', '/');
+      workflowPath = `${this.hseosFolderName}/${moduleName}/${moduleRelativePath}`;
     }
 
     // Replace template variables
@@ -233,16 +236,11 @@ When running any workflow:
   transformWorkflowPath(workflowPath) {
     let transformed = workflowPath;
 
-    if (workflowPath.includes('/src/bmm/')) {
-      const match = workflowPath.match(/\/src\/bmm\/(.+)/);
-      if (match) {
-        transformed = `{project-root}/${this.hseosFolderName}/bmm/${match[1]}`;
-      }
-    } else if (workflowPath.includes('/src/core/')) {
-      const match = workflowPath.match(/\/src\/core\/(.+)/);
-      if (match) {
-        transformed = `{project-root}/${this.hseosFolderName}/core/${match[1]}`;
-      }
+    const sourceMatch = workflowPath.match(/[\\/]src[\\/]([^/\\]+)[\\/]([^]+)$/);
+    if (sourceMatch) {
+      const moduleName = sourceMatch[1];
+      const moduleRelativePath = sourceMatch[2].replaceAll('\\', '/');
+      transformed = `{project-root}/${this.hseosFolderName}/${moduleName}/${moduleRelativePath}`;
     }
 
     return transformed;
