@@ -1,4 +1,4 @@
-﻿# AGENT RULES STANDARD
+# AGENT RULES STANDARD
 ## Complete & Normative Ruleset for AI Agents
 
 **Version:** 2.0  
@@ -134,7 +134,7 @@
 - AR-51: AI agents must follow Git Flow & Release Governance rules.
 - AR-52: AI agents must not reference AI, automation or agents in commit messages.
 - AR-53: AI agents must respect PR checklists and CI quality gates.
-- AR-54: Every repository adopting the governance overlay MUST include a `AGENTS.md` at the root. This file is loaded automatically by Codex CLI before any action, ensuring governance rules override tool defaults (e.g., preventing AI co-authorship trailers). Use the template at `.enterprise/tooling/AGENTS.md.template`.
+- AR-54: Every repository adopting the governance overlay MUST include a `CLAUDE.md` at the root. This file is loaded automatically by Claude Code before any action, ensuring governance rules override tool defaults (e.g., preventing AI co-authorship trailers). Use the template at `.enterprise/tooling/CLAUDE.md.template`.
 - AR-55: AI agents must **never** delete branches (`git branch -d`, `git branch -D`, `git push origin --delete`) without explicit user authorization.
 - AR-56: AI agents must **never** delete or remove repositories without explicit user authorization.
 
@@ -162,4 +162,3 @@ AI agents operate under strict governance to ensure:
 - safe AI-assisted engineering
 
 **Non-compliance is considered a blocking violation.**
-

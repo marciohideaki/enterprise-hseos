@@ -1,32 +1,32 @@
-﻿# ============================================================
+# ============================================================
 # Enterprise BMAD Governance - Global Bootstrap
 #
 # Purpose:
 #   Installs the Enterprise BMAD governance overlay globally
-#   into ~/.codex/ so it is available from ANY project,
+#   into ~/.claude/ so it is available from ANY project,
 #   regardless of working directory.
 #
 # What this installs:
-#   ~/.codex/AGENTS.md                  - Minimal governance rules (always active)
-#   ~/.codex/commands/constitution.md   - /constitution (full, on-demand)
-#   ~/.codex/commands/setup.md          - /setup wizard (stack selector)
-#   ~/.codex/commands/analyst.md        - /analyst persona
-#   ~/.codex/commands/architect.md      - /architect persona
-#   ~/.codex/commands/dev.md            - /dev persona
-#   ~/.codex/commands/pm.md             - /pm persona
-#   ~/.codex/commands/sm.md             - /sm persona
-#   ~/.codex/commands/tea.md            - /tea persona
-#   ~/.codex/commands/tech-writer.md    - /tech-writer persona
-#   ~/.codex/commands/quick-flow.md     - /quick-flow persona
-#   ~/.codex/commands/ux-designer.md    - /ux-designer persona
-#   ~/.codex/enterprise/.specs/         - Full spec library (for /setup wizard)
+#   ~/.claude/CLAUDE.md                  - Minimal governance rules (always active)
+#   ~/.claude/commands/constitution.md   - /constitution (full, on-demand)
+#   ~/.claude/commands/setup.md          - /setup wizard (stack selector)
+#   ~/.claude/commands/analyst.md        - /analyst persona
+#   ~/.claude/commands/architect.md      - /architect persona
+#   ~/.claude/commands/dev.md            - /dev persona
+#   ~/.claude/commands/pm.md             - /pm persona
+#   ~/.claude/commands/sm.md             - /sm persona
+#   ~/.claude/commands/tea.md            - /tea persona
+#   ~/.claude/commands/tech-writer.md    - /tech-writer persona
+#   ~/.claude/commands/quick-flow.md     - /quick-flow persona
+#   ~/.claude/commands/ux-designer.md    - /ux-designer persona
+#   ~/.claude/enterprise/.specs/         - Full spec library (for /setup wizard)
 #
 # Usage:
 #   .\install-global.ps1              - Interactive (prompts on conflict)
 #   .\install-global.ps1 -Force       - Overwrite all without prompting
 #   .\install-global.ps1 -DryRun      - Preview only, no changes
 #
-#   ~/.codex/settings.json              - Governance read permissions (merged, non-destructive)
+#   ~/.claude/settings.json              - Governance read permissions (merged, non-destructive)
 #
 # Idempotent: safe to run multiple times.
 # Version: 1.2.0
@@ -44,9 +44,9 @@ $ErrorActionPreference = "Stop"
 # ---------------------------------------------------------------
 # PATHS
 # ---------------------------------------------------------------
-$CodexHome    = Join-Path $env:USERPROFILE ".codex"
-$CommandsDir   = Join-Path $CodexHome "commands"
-$SpecsTarget   = Join-Path $CodexHome "enterprise"
+$ClaudeHome    = Join-Path $env:USERPROFILE ".claude"
+$CommandsDir   = Join-Path $ClaudeHome "commands"
+$SpecsTarget   = Join-Path $ClaudeHome "enterprise"
 $ScriptDir     = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot      = (Resolve-Path (Join-Path $ScriptDir "..\..\..")).Path.TrimEnd('\')
 $EnterpriseDir = Join-Path $RepoRoot ".enterprise"
@@ -99,9 +99,9 @@ function Strip-GovernanceClauses {
     return ($Content -replace "(?s)\r?\n## Mandatory Governance Clauses.*", "").Trim()
 }
 
-# Merge new allow entries into ~/.codex/settings.json without overwriting existing content.
+# Merge new allow entries into ~/.claude/settings.json without overwriting existing content.
 # Creates the file if it does not exist. Skips entries already present (idempotent).
-function Merge-CodexSettings {
+function Merge-ClaudeSettings {
     param(
         [string]$SettingsPath,
         [string[]]$NewAllowEntries
@@ -155,7 +155,7 @@ function Build-AgentCommand {
 # ---------------------------------------------------------------
 Write-Host ""
 Write-Host "Enterprise BMAD - Global Bootstrap v1.2.0" -ForegroundColor White
-Write-Host "  Target : $CodexHome" -ForegroundColor DarkGray
+Write-Host "  Target : $ClaudeHome" -ForegroundColor DarkGray
 Write-Host "  Source : $EnterpriseDir" -ForegroundColor DarkGray
 if ($DryRun) { Write-Host "  Mode   : DRY RUN (no changes)" -ForegroundColor DarkYellow }
 if ($Force)  { Write-Host "  Mode   : FORCE (overwrite all)" -ForegroundColor DarkYellow }
@@ -182,19 +182,19 @@ if (-not (Test-Path $SkillsSource)) {
 Write-Ok "Source validated: $EnterpriseDir"
 
 # ---------------------------------------------------------------
-# 1. ~/.codex/AGENTS.md - Minimal governance (always active)
+# 1. ~/.claude/CLAUDE.md - Minimal governance (always active)
 # ---------------------------------------------------------------
 Write-Host ""
-Write-Step "Writing AGENTS.md"
+Write-Step "Writing CLAUDE.md"
 
-$agentsMd = @'
+$claudeMd = @'
 # Enterprise Governance -- Active
 
 **Version:** 2.0 | **Status:** Active | **Scope:** All repositories
 
 Full constitution: /constitution
 Project setup wizard: /setup
-Agent personas: /analyst Â· /architect Â· /dev Â· /pm Â· /sm Â· /tea Â· /tech-writer Â· /quick-flow Â· /ux-designer
+Agent personas: /analyst · /architect · /dev · /pm · /sm · /tea · /tech-writer · /quick-flow · /ux-designer
 
 ---
 
@@ -278,7 +278,7 @@ When documents conflict:
 1. STOP autonomous execution
 2. Identify the conflicting documents explicitly
 3. Apply precedence: **Constitution > Core > Cross > Stack > ADR > Templates > Generated**
-4. Produce one of: clarification request Â· ADR draft Â· explicit deviation report
+4. Produce one of: clarification request · ADR draft · explicit deviation report
 
 ---
 
@@ -295,7 +295,7 @@ When documents conflict:
 | 7 (lowest) | Generated Artifacts | -- |
 '@
 
-Write-GovernanceFile -Path (Join-Path $CodexHome "AGENTS.md") -Content $agentsMd
+Write-GovernanceFile -Path (Join-Path $ClaudeHome "CLAUDE.md") -Content $claudeMd
 
 # ---------------------------------------------------------------
 # 2. /constitution - Full constitution on-demand
@@ -396,7 +396,7 @@ GROUP: Quality & Operations
   [ ] observability-compliance    Validate structured logging, metrics, and tracing
   [ ] sanitize-comments           Remove methodology and AI-attribution references from code comments
   [ ] release-control             Release governance: changelog, risk classification, rollout
-  [ ] agent-permissions           Generate least-privilege .codex/settings.json for this project
+  [ ] agent-permissions           Generate least-privilege .claude/settings.json for this project
 
 GROUP: Stack-specific
   (auto-selected if Flutter or ReactNative was chosen in Step 1)
@@ -434,17 +434,17 @@ Wait for the answer. Store as [MODE].
 Apply the following logic based on [SELECTED_STACKS], [PROJECT_TYPE], [SELECTED_SKILLS], and [MODE].
 
 ### Specs to load (always, regardless of stack):
-- `~/.codex/enterprise/.specs/constitution/Enterprise-Constitution.md`
-- All files under `~/.codex/enterprise/.specs/core/`
-- All files under `~/.codex/enterprise/.specs/cross/`
+- `~/.claude/enterprise/.specs/constitution/Enterprise-Constitution.md`
+- All files under `~/.claude/enterprise/.specs/core/`
+- All files under `~/.claude/enterprise/.specs/cross/`
 
 ### Specs to load (stack-specific):
-- `~/.codex/enterprise/.specs/<Stack>/` for each stack in [SELECTED_STACKS] only
+- `~/.claude/enterprise/.specs/<Stack>/` for each stack in [SELECTED_STACKS] only
 - Skip all other stacks
 
 ### Skills to reference:
-- `~/.codex/enterprise/governance/agent-skills/SKILLS-REGISTRY.md` (always)
-- For each skill in [SELECTED_SKILLS]: `~/.codex/enterprise/governance/agent-skills/<skill>/`
+- `~/.claude/enterprise/governance/agent-skills/SKILLS-REGISTRY.md` (always)
+- For each skill in [SELECTED_SKILLS]: `~/.claude/enterprise/governance/agent-skills/<skill>/`
 
 ### If Mode A (session only):
 - Read all identified spec files and load into context
@@ -461,7 +461,7 @@ Two categories of files are installed. The distinction is fundamental:
 | Category | What | Why |
 |---|---|---|
 | **Project artifacts** | `.enterprise/.specs/` | Constitution, standards, ADRs -- team decisions that must be versioned |
-| **AI tooling** | `.enterprise/governance/`, `.enterprise/agents/`, `.codex/` | Skills and agent configs -- local tooling, each dev installs via /setup |
+| **AI tooling** | `.enterprise/governance/`, `.enterprise/agents/`, `.claude/` | Skills and agent configs -- local tooling, each dev installs via /setup |
 
 #### Installation steps
 
@@ -471,9 +471,9 @@ Two categories of files are installed. The distinction is fundamental:
   ```
   .enterprise/
   +-- .specs/                              <- PROJECT ARTIFACT -- goes to git
-  |   +-- constitution/                   <- copy from ~/.codex/enterprise/.specs/constitution/
-  |   +-- core/                           <- copy from ~/.codex/enterprise/.specs/core/
-  |   +-- cross/                          <- copy from ~/.codex/enterprise/.specs/cross/
+  |   +-- constitution/                   <- copy from ~/.claude/enterprise/.specs/constitution/
+  |   +-- core/                           <- copy from ~/.claude/enterprise/.specs/core/
+  |   +-- cross/                          <- copy from ~/.claude/enterprise/.specs/cross/
   |   +-- <Stack>/                        <- copy ONLY [SELECTED_STACKS]
   |   +-- decisions/                      <- create with .gitkeep (future project ADRs)
   +-- governance/                         <- AI TOOLING -- gitignored
@@ -486,7 +486,7 @@ Two categories of files are installed. The distinction is fundamental:
   - DO NOT create `.enterprise/agents/` -- it is gitignored and serves no purpose empty.
   - `.gitkeep` files ensure `decisions/` and `exceptions/` are tracked by git even when empty.
 
-3. Create `AGENTS.md` at the project root (goes to git -- team entry point):
+3. Create `CLAUDE.md` at the project root (goes to git -- team entry point):
   ```markdown
   # Project Governance
 
@@ -497,7 +497,7 @@ Two categories of files are installed. The distinction is fundamental:
 
   > AI tooling is local. Clone this repo then run /setup to restore it.
 
-  Commands: /setup Â· /skills Â· /constitution Â· /architect Â· /dev Â· /pm
+  Commands: /setup · /skills · /constitution · /architect · /dev · /pm
   ```
 
 4. Create or update `.gitignore` at the project root with the following entries:
@@ -506,8 +506,8 @@ Two categories of files are installed. The distinction is fundamental:
   .enterprise/governance/
   .enterprise/agents/
 
-  # Codex CLI -- local machine settings
-  .codex/
+  # Claude Code -- local machine settings
+  .claude/
   ```
   - If `.gitignore` already exists: append only the missing entries, never duplicate.
   - If it does not exist: create it with the entries above.
@@ -518,14 +518,14 @@ Two categories of files are installed. The distinction is fundamental:
 
   Goes to git (project artifacts):
     .enterprise/.specs/      Constitution, standards, ADRs
-    AGENTS.md                Team entry point
+    CLAUDE.md                Team entry point
 
   Stays local (AI tooling -- gitignored):
     .enterprise/governance/  Skills: [SELECTED_SKILLS]
     .enterprise/agents/      Agent personas
-    .codex/                 Codex CLI settings
+    .claude/                 Claude Code settings
 
-  Next: git add .enterprise/.specs/ AGENTS.md .gitignore && git commit
+  Next: git add .enterprise/.specs/ CLAUDE.md .gitignore && git commit
   ```
 
 ---
@@ -536,7 +536,7 @@ Two categories of files are installed. The distinction is fundamental:
 - NEVER skip constitution and core standards.
 - NEVER activate performance-profiling without warning the user about the ADR requirement.
 - NEVER add `.enterprise/.specs/` to `.gitignore` -- specs are project artifacts and must be versioned.
-- If files are not found at `~/.codex/enterprise/`, ask the user to re-run: `install-global.ps1`
+- If files are not found at `~/.claude/enterprise/`, ask the user to re-run: `install-global.ps1`
 '@
 
 Write-GovernanceFile -Path (Join-Path $CommandsDir "setup.md") -Content $setupCmd
@@ -650,9 +650,9 @@ GROUP: Quality & Operations
       Triggers: release, version bump, semver, CHANGELOG, hotfix, production deploy
 
   [ ] agent-permissions
-      Analyze repository to generate least-privilege .codex/settings.json -- read-only commands only.
-      Stack-aware, package-manager-exclusive. Use when setting up or auditing Codex CLI permissions.
-      Triggers: settings.json, codex permissions, agent permissions, least privilege, new project setup
+      Analyze repository to generate least-privilege .claude/settings.json -- read-only commands only.
+      Stack-aware, package-manager-exclusive. Use when setting up or auditing Claude Code permissions.
+      Triggers: settings.json, claude permissions, agent permissions, least privilege, new project setup
 
 GROUP: Stack-specific
   [ ] accessibility
@@ -692,8 +692,8 @@ Wait for the answer.
 ## Step 4 -- Execute
 
 ### If Mode A (session only):
-- Read `~/.codex/enterprise/governance/agent-skills/SKILLS-REGISTRY.md`
-- Read `~/.codex/enterprise/governance/agent-skills/<skill>/SKILL-QUICK.md` for each skill in [SELECTED_SKILLS]
+- Read `~/.claude/enterprise/governance/agent-skills/SKILLS-REGISTRY.md`
+- Read `~/.claude/enterprise/governance/agent-skills/<skill>/SKILL-QUICK.md` for each skill in [SELECTED_SKILLS]
 - Confirm active skills and their triggers in a summary table:
   | Skill | Key Triggers |
   |---|---|
@@ -705,10 +705,10 @@ Wait for the answer.
 - Check if `.enterprise/governance/agent-skills/` already exists. If yes, ask before overwriting individual skills.
 - Copy `SKILLS-REGISTRY.md` to `.enterprise/governance/agent-skills/SKILLS-REGISTRY.md` (always)
 - For each skill in [SELECTED_SKILLS], copy from:
-  `~/.codex/enterprise/governance/agent-skills/<skill>/`
+  `~/.claude/enterprise/governance/agent-skills/<skill>/`
   to:
   `.enterprise/governance/agent-skills/<skill>/`
-- If `AGENTS.md` exists at project root, append the skills list to the Skills line. If not, suggest running `/setup` first.
+- If `CLAUDE.md` exists at project root, append the skills list to the Skills line. If not, suggest running `/setup` first.
 - Confirm: "[N] skills installed to .enterprise/governance/agent-skills/"
 - List installed skills with their primary triggers.
 
@@ -718,7 +718,7 @@ Wait for the answer.
 
 - NEVER activate performance-profiling without explicitly warning about the ADR requirement.
 - NEVER skip SKILLS-REGISTRY.md -- it is required for agents to discover and load skills.
-- If skill files are not found at `~/.codex/enterprise/governance/agent-skills/`, ask the user to re-run: `install-global.ps1`
+- If skill files are not found at `~/.claude/enterprise/governance/agent-skills/`, ask the user to re-run: `install-global.ps1`
 '@
 
 Write-GovernanceFile -Path (Join-Path $CommandsDir "skills.md") -Content $skillsCmd
@@ -754,10 +754,10 @@ foreach ($agent in $agents) {
 }
 
 # ---------------------------------------------------------------
-# 5. Copy specs to ~/.codex/enterprise/.specs/
+# 5. Copy specs to ~/.claude/enterprise/.specs/
 # ---------------------------------------------------------------
 Write-Host ""
-Write-Step "Copying spec library to ~/.codex/enterprise/.specs/"
+Write-Step "Copying spec library to ~/.claude/enterprise/.specs/"
 
 $specsTargetPath = Join-Path $SpecsTarget ".specs"
 $skipSpecs = $false
@@ -792,10 +792,10 @@ else {
 }
 
 # ---------------------------------------------------------------
-# 6. Copy skills to ~/.codex/enterprise/governance/agent-skills/
+# 6. Copy skills to ~/.claude/enterprise/governance/agent-skills/
 # ---------------------------------------------------------------
 Write-Host ""
-Write-Step "Copying skill library to ~/.codex/enterprise/governance/agent-skills/"
+Write-Step "Copying skill library to ~/.claude/enterprise/governance/agent-skills/"
 
 $skillsTargetPath = Join-Path $SpecsTarget "governance\agent-skills"
 $skipSkills = $false
@@ -830,17 +830,17 @@ else {
 }
 
 # ---------------------------------------------------------------
-# 7. Merge governance read permissions into ~/.codex/settings.json
+# 7. Merge governance read permissions into ~/.claude/settings.json
 # ---------------------------------------------------------------
 Write-Host ""
 Write-Step "Configuring governance read permissions in settings.json"
 
-$settingsPath  = Join-Path $CodexHome "settings.json"
+$settingsPath  = Join-Path $ClaudeHome "settings.json"
 # Forward-slash paths for cross-platform glob compatibility
 $enterpriseGlob = ($SpecsTarget -replace '\\', '/') + "/**"
 
 $newAllowEntries = @(
-    "Read($enterpriseGlob)",   # ~/.codex/enterprise/** (specs + skills)
+    "Read($enterpriseGlob)",   # ~/.claude/enterprise/** (specs + skills)
     "Read(**/.enterprise/**)"  # Any project's .enterprise/ overlay
 )
 
@@ -849,7 +849,7 @@ if ($DryRun) {
     foreach ($e in $newAllowEntries) { Write-Dry "  Allow: $e" }
 }
 else {
-    $result = Merge-CodexSettings -SettingsPath $settingsPath -NewAllowEntries $newAllowEntries
+    $result = Merge-ClaudeSettings -SettingsPath $settingsPath -NewAllowEntries $newAllowEntries
     $json   = $result.Settings | ConvertTo-Json -Depth 10
     Set-Content -Path $settingsPath -Value $json -Encoding UTF8
     if ($result.Added -gt 0) {
@@ -868,10 +868,10 @@ Write-Host "---------------------------------------------" -ForegroundColor Dark
 Write-Host " Enterprise BMAD Global Bootstrap -- Done" -ForegroundColor White
 Write-Host "---------------------------------------------" -ForegroundColor DarkGray
 Write-Host ""
-Write-Host "  Installed to : $CodexHome" -ForegroundColor Gray
+Write-Host "  Installed to : $ClaudeHome" -ForegroundColor Gray
 Write-Host ""
 Write-Host "  Always active:" -ForegroundColor Gray
-Write-Host "    ~/.codex/AGENTS.md             Non-negotiables + behavior rules" -ForegroundColor DarkGray
+Write-Host "    ~/.claude/CLAUDE.md             Non-negotiables + behavior rules" -ForegroundColor DarkGray
 Write-Host ""
 Write-Host "  On-demand commands:" -ForegroundColor Gray
 Write-Host "    /constitution                   Full Enterprise Constitution v2.0" -ForegroundColor DarkGray
@@ -882,11 +882,11 @@ Write-Host "    /pm /sm /tea /tech-writer       Agent personas" -ForegroundColor
 Write-Host "    /quick-flow /ux-designer        Agent personas" -ForegroundColor DarkGray
 Write-Host ""
 Write-Host "  Libraries:" -ForegroundColor Gray
-Write-Host "    ~/.codex/enterprise/.specs/                    Spec library" -ForegroundColor DarkGray
-Write-Host "    ~/.codex/enterprise/governance/agent-skills/   Skill library" -ForegroundColor DarkGray
+Write-Host "    ~/.claude/enterprise/.specs/                    Spec library" -ForegroundColor DarkGray
+Write-Host "    ~/.claude/enterprise/governance/agent-skills/   Skill library" -ForegroundColor DarkGray
 Write-Host ""
 Write-Host "  Permissions (merged into settings.json):" -ForegroundColor Gray
-Write-Host "    Read(~/.codex/enterprise/**)                   Governance specs + skills (no prompt)" -ForegroundColor DarkGray
+Write-Host "    Read(~/.claude/enterprise/**)                   Governance specs + skills (no prompt)" -ForegroundColor DarkGray
 Write-Host "    Read(**/.enterprise/**)                         Project overlays (no prompt)" -ForegroundColor DarkGray
 Write-Host ""
 
@@ -895,9 +895,5 @@ if ($DryRun) {
     Write-Host ""
 }
 
-Write-Host "  Open a new Codex session in any directory to verify." -ForegroundColor Gray
+Write-Host "  Open a new Claude session in any directory to verify." -ForegroundColor Gray
 Write-Host ""
-
-
-
-

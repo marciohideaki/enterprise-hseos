@@ -1,4 +1,4 @@
-﻿# Enterprise Bootstrap Tooling
+# Enterprise Bootstrap Tooling
 **Scope:** Enterprise Overlay Initialization
 **Execution:** Manual
 **Status:** Controlled
@@ -7,20 +7,20 @@
 
 ## Scripts
 
-| Script | PropÃ³sito |
+| Script | Propósito |
 |---|---|
-| `bmad-enterprise-overlay-bootstrap.ps1` | Inicializa a estrutura `.enterprise/` em um repositÃ³rio |
-| `install-global.ps1` | Instala a governanÃ§a globalmente no `~/.codex/` |
+| `bmad-enterprise-overlay-bootstrap.ps1` | Inicializa a estrutura `.enterprise/` em um repositório |
+| `install-global.ps1` | Instala a governança globalmente no `~/.claude/` |
 
 ---
 
 ## `bmad-enterprise-overlay-bootstrap.ps1`
 
-Cria a estrutura completa de diretÃ³rios e arquivos placeholder do overlay `.enterprise/` em um repositÃ³rio.
+Cria a estrutura completa de diretórios e arquivos placeholder do overlay `.enterprise/` em um repositório.
 
-**Onde executar:** Raiz do repositÃ³rio
-**Efeito:** Cria diretÃ³rios e arquivos placeholder
-**SeguranÃ§a:** Idempotente, cria backups se necessÃ¡rio
+**Onde executar:** Raiz do repositório
+**Efeito:** Cria diretórios e arquivos placeholder
+**Segurança:** Idempotente, cria backups se necessário
 
 ```powershell
 .\bmad-enterprise-overlay-bootstrap.ps1
@@ -31,51 +31,51 @@ Cria a estrutura completa de diretÃ³rios e arquivos placeholder do overlay `.e
 
 ## `install-global.ps1`
 
-Instala a constituiÃ§Ã£o e os agentes globalmente no `~/.codex/`, tornando a governanÃ§a disponÃ­vel em **qualquer projeto**, independente do diretÃ³rio de trabalho.
+Instala a constituição e os agentes globalmente no `~/.claude/`, tornando a governança disponível em **qualquer projeto**, independente do diretório de trabalho.
 
-### PrÃ©-requisitos
+### Pré-requisitos
 
-- [Codex CLI](https://platform.openai.com/docs/codex/overview) instalado e configurado
+- [Claude Code](https://claude.ai/code) instalado e configurado
 - PowerShell 5.1+ (nativo no Windows) ou PowerShell 7+
-- Este repositÃ³rio clonado localmente
+- Este repositório clonado localmente
 
-### InstalaÃ§Ã£o
+### Instalação
 
 ```powershell
-# Interativo â€” pergunta antes de sobrescrever arquivos existentes
+# Interativo — pergunta antes de sobrescrever arquivos existentes
 .\.enterprise\tooling\bootstrap\install-global.ps1
 
-# Silencioso â€” sobrescreve tudo sem confirmaÃ§Ã£o
+# Silencioso — sobrescreve tudo sem confirmação
 .\.enterprise\tooling\bootstrap\install-global.ps1 -Force
 
-# Preview â€” mostra o que seria feito sem alterar nada
+# Preview — mostra o que seria feito sem alterar nada
 .\.enterprise\tooling\bootstrap\install-global.ps1 -DryRun
 ```
 
-### O que Ã© instalado
+### O que é instalado
 
 ```
-C:\Users\<vocÃª>\\.codex\\
-â”œâ”€â”€ AGENTS.md                      <- Regras sempre ativas (toda sessÃ£o, ~900 tokens)
-â”œâ”€â”€ commands\
-â”‚   â”œâ”€â”€ constitution.md            <- /constitution
-â”‚   â”œâ”€â”€ setup.md                   <- /setup
-â”‚   â”œâ”€â”€ analyst.md                 <- /analyst
-â”‚   â”œâ”€â”€ architect.md               <- /architect
-â”‚   â”œâ”€â”€ dev.md                     <- /dev
-â”‚   â”œâ”€â”€ pm.md                      <- /pm
-â”‚   â”œâ”€â”€ sm.md                      <- /sm
-â”‚   â”œâ”€â”€ tea.md                     <- /tea
-â”‚   â”œâ”€â”€ tech-writer.md             <- /tech-writer
-â”‚   â”œâ”€â”€ quick-flow.md              <- /quick-flow
-â”‚   â””â”€â”€ ux-designer.md             <- /ux-designer
-â””â”€â”€ enterprise\
-    â””â”€â”€ .specs\                    <- Biblioteca completa de specs (para /setup)
+C:\Users\<você>\.claude\
+├── CLAUDE.md                      <- Regras sempre ativas (toda sessão, ~900 tokens)
+├── commands\
+│   ├── constitution.md            <- /constitution
+│   ├── setup.md                   <- /setup
+│   ├── analyst.md                 <- /analyst
+│   ├── architect.md               <- /architect
+│   ├── dev.md                     <- /dev
+│   ├── pm.md                      <- /pm
+│   ├── sm.md                      <- /sm
+│   ├── tea.md                     <- /tea
+│   ├── tech-writer.md             <- /tech-writer
+│   ├── quick-flow.md              <- /quick-flow
+│   └── ux-designer.md             <- /ux-designer
+└── enterprise\
+    └── .specs\                    <- Biblioteca completa de specs (para /setup)
 ```
 
 ### Atualizar
 
-Sempre que este repositÃ³rio receber uma nova versÃ£o (constituiÃ§Ã£o, agentes, specs), basta re-executar:
+Sempre que este repositório receber uma nova versão (constituição, agentes, specs), basta re-executar:
 
 ```powershell
 .\.enterprise\tooling\bootstrap\install-global.ps1 -Force
@@ -85,31 +85,31 @@ Sempre que este repositÃ³rio receber uma nova versÃ£o (constituiÃ§Ã£o, a
 
 ## Como funciona
 
-### `AGENTS.md` â€” Sempre ativo
+### `CLAUDE.md` — Sempre ativo
 
-Carregado automaticamente pelo Codex CLI em **toda sessÃ£o**. ContÃ©m apenas o essencial (~900 tokens):
+Carregado automaticamente pelo Claude Code em **toda sessão**. Contém apenas o essencial (~900 tokens):
 
-- Non-negotiables (regras inviolÃ¡veis)
+- Non-negotiables (regras invioláveis)
 - Regras de comportamento do agente (MUST / MUST NOT)
-- **Execution Discipline** â€” planejamento, subagentes, verificaÃ§Ã£o, bug fixing autÃ´nomo
-- **Core Principles** â€” Simplicity, No Laziness, Minimal Impact, Defensive, Correctness
-- Protocolo de resoluÃ§Ã£o de conflitos entre documentos
-- Tabela de precedÃªncia de documentos
-- Ãndice dos comandos disponÃ­veis
+- **Execution Discipline** — planejamento, subagentes, verificação, bug fixing autônomo
+- **Core Principles** — Simplicity, No Laziness, Minimal Impact, Defensive, Correctness
+- Protocolo de resolução de conflitos entre documentos
+- Tabela de precedência de documentos
+- Índice dos comandos disponíveis
 
-### `commands/` â€” On-demand (zero custo atÃ© ser invocado)
+### `commands/` — On-demand (zero custo até ser invocado)
 
-Cada arquivo em `~/.codex/commands/` vira um slash command global. SÃ³ consome tokens quando explicitamente chamado.
+Cada arquivo em `~/.claude/commands/` vira um slash command global. Só consome tokens quando explicitamente chamado.
 
 ---
 
-## Comandos disponÃ­veis
+## Comandos disponíveis
 
 ### `/constitution`
 
-**Caso de uso:** Revisar governance, propor mudanÃ§as estruturais, resolver conflitos entre documentos.
+**Caso de uso:** Revisar governance, propor mudanças estruturais, resolver conflitos entre documentos.
 
-Carrega o documento completo `Enterprise-Constitution.md` (v2.0) na sessÃ£o. O Codex confirma ativaÃ§Ã£o e aplica todas as suas regras.
+Carrega o documento completo `Enterprise-Constitution.md` (v2.0) na sessão. O Claude confirma ativação e aplica todas as suas regras.
 
 ---
 
@@ -119,37 +119,37 @@ Carrega o documento completo `Enterprise-Constitution.md` (v2.0) na sessÃ£o. O
 
 Wizard interativo com 4 perguntas:
 
-1. **Stack** â€” Flutter / ReactNative / CSharp / Java / Go / PHP / C++
-2. **Tipo de projeto** â€” Mobile App / Microservice / API / Library / Monolith
-3. **Skills** â€” seleÃ§Ã£o guiada por grupos (ver `/skills` abaixo para detalhes)
+1. **Stack** — Flutter / ReactNative / CSharp / Java / Go / PHP / C++
+2. **Tipo de projeto** — Mobile App / Microservice / API / Library / Monolith
+3. **Skills** — seleção guiada por grupos (ver `/skills` abaixo para detalhes)
 4. **Modo:**
-   - **(A) SessÃ£o** â€” lÃª specs e skills no contexto atual. Nenhum arquivo criado.
-   - **(B) Instalar no projeto** â€” cria `.enterprise/` com specs da stack + skills selecionadas.
+   - **(A) Sessão** — lê specs e skills no contexto atual. Nenhum arquivo criado.
+   - **(B) Instalar no projeto** — cria `.enterprise/` com specs da stack + skills selecionadas.
 
-Sempre carrega: constituiÃ§Ã£o + core + cross-cutting. Carrega **apenas** a stack e skills selecionadas.
+Sempre carrega: constituição + core + cross-cutting. Carrega **apenas** a stack e skills selecionadas.
 
 ---
 
 ### `/skills`
 
-**Caso de uso:** Adicionar ou atualizar skills em um projeto jÃ¡ existente, sem refazer o setup completo.
+**Caso de uso:** Adicionar ou atualizar skills em um projeto já existente, sem refazer o setup completo.
 
 Wizard interativo com 3 perguntas:
 
-1. **Stack** â€” para prÃ©-selecionar skills relevantes (ex: `accessibility` sÃ³ aparece prÃ©-selecionada em Flutter/RN)
-2. **SeleÃ§Ã£o de skills** â€” catÃ¡logo completo agrupado com prÃ©-seleÃ§Ãµes inteligentes:
+1. **Stack** — para pré-selecionar skills relevantes (ex: `accessibility` só aparece pré-selecionada em Flutter/RN)
+2. **Seleção de skills** — catálogo completo agrupado com pré-seleções inteligentes:
 
-| Grupo | Skills | PadrÃ£o |
+| Grupo | Skills | Padrão |
 |---|---|---|
 | **Core** | commit-hygiene, secure-coding, pr-review, naming-conventions, test-coverage | Todos selecionados |
 | **Arquitetura** | ddd-boundary-check, breaking-change-detection, adr-compliance, spec-driven, threat-modeling | Nenhum |
 | **Qualidade & Ops** | documentation-completeness, dependency-audit, observability-compliance, sanitize-comments, release-control, agent-permissions | Nenhum |
 | **Stack-specific** | accessibility (Flutter/RN) | Auto se stack escolhida |
-| **Opt-in** | performance-profiling | Nunca â€” requer ADR ativo |
+| **Opt-in** | performance-profiling | Nunca — requer ADR ativo |
 
 3. **Modo:**
-   - **(A) SessÃ£o** â€” ativa skills no contexto atual. Nenhum arquivo criado.
-   - **(B) Instalar no projeto** â€” copia as skills selecionadas para `.enterprise/governance/agent-skills/`
+   - **(A) Sessão** — ativa skills no contexto atual. Nenhum arquivo criado.
+   - **(B) Instalar no projeto** — copia as skills selecionadas para `.enterprise/governance/agent-skills/`
 
 > Aceita: `"defaults"` (apenas core), `"all"` (todas, com aviso para performance-profiling), nome de grupo, ou lista de skills individuais.
 
@@ -161,75 +161,75 @@ Wizard interativo com 3 perguntas:
 
 ### `/analyst`
 
-**Caso de uso:** ElicitaÃ§Ã£o de requisitos, anÃ¡lise de negÃ³cio, descoberta de contexto, validaÃ§Ã£o de completude.
+**Caso de uso:** Elicitação de requisitos, análise de negócio, descoberta de contexto, validação de completude.
 
-Motor de precisÃ£o de requisitos. Transforma necessidades ambÃ­guas em requisitos explÃ­citos e rastreÃ¡veis. NÃ£o aprova PRDs, nÃ£o define arquitetura, nÃ£o inventa soluÃ§Ãµes tÃ©cnicas.
+Motor de precisão de requisitos. Transforma necessidades ambíguas em requisitos explícitos e rastreáveis. Não aprova PRDs, não define arquitetura, não inventa soluções técnicas.
 
 ---
 
 ### `/architect`
 
-**Caso de uso:** Documentos de arquitetura, definiÃ§Ã£o de componentes e fronteiras de sistema, detecÃ§Ã£o de inconsistÃªncias, draft de ADRs.
+**Caso de uso:** Documentos de arquitetura, definição de componentes e fronteiras de sistema, detecção de inconsistências, draft de ADRs.
 
-Executor de autoridade tÃ©cnica. Traduz intenÃ§Ã£o de produto em designs tÃ©cnicos robustos. NÃ£o inventa requisitos, nÃ£o simplifica por conveniÃªncia, nÃ£o aprova ADRs.
+Executor de autoridade técnica. Traduz intenção de produto em designs técnicos robustos. Não inventa requisitos, não simplifica por conveniência, não aprova ADRs.
 
 ---
 
 ### `/dev`
 
-**Caso de uso:** ImplementaÃ§Ã£o de stories aprovadas, escrita de testes, ciclos red-green-refactor, validaÃ§Ã£o de acceptance criteria.
+**Caso de uso:** Implementação de stories aprovadas, escrita de testes, ciclos red-green-refactor, validação de acceptance criteria.
 
-Motor de execuÃ§Ã£o de precisÃ£o. Implementa exatamente o que estÃ¡ especificado. NÃ£o interpreta intenÃ§Ã£o, nÃ£o modifica escopo, nÃ£o pula testes.
+Motor de execução de precisão. Implementa exatamente o que está especificado. Não interpreta intenção, não modifica escopo, não pula testes.
 
 ---
 
 ### `/pm`
 
-**Caso de uso:** CriaÃ§Ã£o de PRDs, definiÃ§Ã£o de escopo, priorizaÃ§Ã£o de backlog, alinhamento entre objetivos de negÃ³cio e viabilidade tÃ©cnica.
+**Caso de uso:** Criação de PRDs, definição de escopo, priorização de backlog, alinhamento entre objetivos de negócio e viabilidade técnica.
 
-Executor de autoridade de produto. ResponsÃ¡vel pelo *o que* Ã© construÃ­do, nunca pelo *como*. NÃ£o define arquitetura, nÃ£o enfraquece NFRs, nÃ£o troca qualidade por velocidade.
+Executor de autoridade de produto. Responsável pelo *o que* é construído, nunca pelo *como*. Não define arquitetura, não enfraquece NFRs, não troca qualidade por velocidade.
 
 ---
 
 ### `/sm`
 
-**Caso de uso:** PreparaÃ§Ã£o de stories development-ready, validaÃ§Ã£o de acceptance criteria, planejamento de sprint, orquestraÃ§Ã£o de fluxo.
+**Caso de uso:** Preparação de stories development-ready, validação de acceptance criteria, planejamento de sprint, orquestração de fluxo.
 
-Orquestrador de fluxo de entrega. Garante clareza de execuÃ§Ã£o sem alterar escopo ou design. NÃ£o implementa cÃ³digo, nÃ£o redefine arquitetura.
+Orquestrador de fluxo de entrega. Garante clareza de execução sem alterar escopo ou design. Não implementa código, não redefine arquitetura.
 
 ---
 
 ### `/tea`
 
-**Caso de uso:** EstratÃ©gia de testes, enforcement de quality gates, validaÃ§Ã£o de NFRs de qualidade, draft de ADRs para trade-offs de cobertura.
+**Caso de uso:** Estratégia de testes, enforcement de quality gates, validação de NFRs de qualidade, draft de ADRs para trade-offs de cobertura.
 
-Test Architect Agent. Define estratÃ©gias baseadas em risco. NÃ£o pula testes, nÃ£o enfraquece quality gates, nÃ£o documenta trade-offs sem justificativa.
+Test Architect Agent. Define estratégias baseadas em risco. Não pula testes, não enfraquece quality gates, não documenta trade-offs sem justificativa.
 
 ---
 
 ### `/tech-writer`
 
-**Caso de uso:** ProduÃ§Ã£o de documentaÃ§Ã£o tÃ©cnica, enforcement de padrÃµes de documentaÃ§Ã£o, rastreabilidade entre docs e cÃ³digo.
+**Caso de uso:** Produção de documentação técnica, enforcement de padrões de documentação, rastreabilidade entre docs e código.
 
-GuardiÃ£o de integridade documental. NÃ£o remove detalhes por brevidade, nÃ£o inventa conteÃºdo, aplica sharding em docs grandes.
+Guardião de integridade documental. Não remove detalhes por brevidade, não inventa conteúdo, aplica sharding em docs grandes.
 
 ---
 
 ### `/quick-flow`
 
-**Caso de uso:** Entrega end-to-end de features bem definidas â€” spec + cÃ³digo + testes + docs em um Ãºnico fluxo, sem handoffs entre agentes.
+**Caso de uso:** Entrega end-to-end de features bem definidas — spec + código + testes + docs em um único fluxo, sem handoffs entre agentes.
 
-Motor de alta velocidade. Executa mÃºltiplas fases do ciclo de vida mantendo rigor enterprise. NÃ£o ignora validaÃ§Ã£o de requisitos, nÃ£o bypassa testes, nÃ£o introduz mudanÃ§as arquiteturais sem ADR.
+Motor de alta velocidade. Executa múltiplas fases do ciclo de vida mantendo rigor enterprise. Não ignora validação de requisitos, não bypassa testes, não introduz mudanças arquiteturais sem ADR.
 
-> **Quando usar:** features com escopo claro onde a separaÃ§Ã£o entre agentes adicionaria overhead sem valor.
+> **Quando usar:** features com escopo claro onde a separação entre agentes adicionaria overhead sem valor.
 
 ---
 
 ### `/ux-designer`
 
-**Caso de uso:** Design de flows de UX, wireframes, validaÃ§Ã£o de usabilidade, enforcement de acessibilidade (WCAG).
+**Caso de uso:** Design de flows de UX, wireframes, validação de usabilidade, enforcement de acessibilidade (WCAG).
 
-Todos os flows devem ser rastreÃ¡veis ao PRD. Acessibilidade Ã© obrigatÃ³ria. NÃ£o toma decisÃµes de escopo, nÃ£o altera arquitetura.
+Todos os flows devem ser rastreáveis ao PRD. Acessibilidade é obrigatória. Não toma decisões de escopo, não altera arquitetura.
 
 ---
 
@@ -237,13 +237,13 @@ Todos os flows devem ser rastreÃ¡veis ao PRD. Acessibilidade Ã© obrigatÃ³r
 
 | O que | Quando consome tokens | Estimativa |
 |---|---|---|
-| `AGENTS.md` | Toda sessÃ£o, automaticamente | ~900 tokens |
+| `CLAUDE.md` | Toda sessão, automaticamente | ~900 tokens |
 | `/constitution` | Apenas quando invocado | ~5.000 tokens |
-| `/setup` modo sessÃ£o | InvocaÃ§Ã£o + specs + skills carregados | ~2.000â€“10.000 tokens |
-| `/setup` modo instalar | Apenas a invocaÃ§Ã£o + wizard | ~800 tokens |
-| `/skills` modo sessÃ£o | InvocaÃ§Ã£o + skills carregadas | ~500â€“3.000 tokens |
-| `/skills` modo instalar | Apenas a invocaÃ§Ã£o + wizard | ~500 tokens |
-| Qualquer agente `/xxx` | Apenas quando invocado | ~500â€“1.500 tokens |
+| `/setup` modo sessão | Invocação + specs + skills carregados | ~2.000–10.000 tokens |
+| `/setup` modo instalar | Apenas a invocação + wizard | ~800 tokens |
+| `/skills` modo sessão | Invocação + skills carregadas | ~500–3.000 tokens |
+| `/skills` modo instalar | Apenas a invocação + wizard | ~500 tokens |
+| Qualquer agente `/xxx` | Apenas quando invocado | ~500–1.500 tokens |
 
 ---
 
@@ -251,34 +251,31 @@ Todos os flows devem ser rastreÃ¡veis ao PRD. Acessibilidade Ã© obrigatÃ³r
 
 ```
 Novo projeto
-    â””â”€â”€ /setup           <- stack + skills + instala .enterprise/ no repo
+    └── /setup           <- stack + skills + instala .enterprise/ no repo
 
 Atualizar skills de projeto existente
-    â””â”€â”€ /skills          <- adiciona ou troca skills sem refazer o setup
+    └── /skills          <- adiciona ou troca skills sem refazer o setup
 
-SessÃ£o de trabalho
-    â””â”€â”€ /architect       <- define ou revisa arquitetura
-    â””â”€â”€ /pm              <- alinha ou atualiza PRD
-    â””â”€â”€ /sm              <- prepara stories
-    â””â”€â”€ /dev             <- implementa
-    â””â”€â”€ /tea             <- valida cobertura e quality gates
+Sessão de trabalho
+    └── /architect       <- define ou revisa arquitetura
+    └── /pm              <- alinha ou atualiza PRD
+    └── /sm              <- prepara stories
+    └── /dev             <- implementa
+    └── /tea             <- valida cobertura e quality gates
 
-RevisÃ£o de governance
-    â””â”€â”€ /constitution    <- carrega constituiÃ§Ã£o completa para anÃ¡lise
+Revisão de governance
+    └── /constitution    <- carrega constituição completa para análise
 ```
 
 ---
 
-## Regras de execuÃ§Ã£o
+## Regras de execução
 
 - Scripts MUST ser executados conscientemente
-- Scripts SHOULD ser revisados antes da execuÃ§Ã£o
-- Scripts MUST NOT ser modificados sem incremento de versÃ£o
-- Qualquer mudanÃ§a requer atualizaÃ§Ã£o do cabeÃ§alho de versÃ£o
+- Scripts SHOULD ser revisados antes da execução
+- Scripts MUST NOT ser modificados sem incremento de versão
+- Qualquer mudança requer atualização do cabeçalho de versão
 
 ---
 
 **End**
-
-
-

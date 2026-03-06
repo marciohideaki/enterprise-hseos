@@ -1,12 +1,12 @@
-﻿---
+---
 type: skill-registry
 version: "1.3"
 ---
 
 # Agent Skills Registry
 
-> Read this file FIRST â€” always â€” before any task.
-> Match triggers â†’ load the minimum skill tier needed.
+> Read this file FIRST — always — before any task.
+> Match triggers → load the minimum skill tier needed.
 > Never load all skills simultaneously.
 
 ---
@@ -15,16 +15,16 @@ version: "1.3"
 
 1. Read this registry (always, low cost)
 2. Match the current task context against triggers below
-3. Load **Tier 1 (SKILL-QUICK.md)** â€” default for active development tasks
-4. Load **Tier 2 (SKILL.md)** â€” only for deep analysis, violation fixing, or formal review gates
-5. If no trigger matches â†’ no skill loaded
+3. Load **Tier 1 (SKILL-QUICK.md)** — default for active development tasks
+4. Load **Tier 2 (SKILL.md)** — only for deep analysis, violation fixing, or formal review gates
+5. If no trigger matches → no skill loaded
 
 ---
 
 ## Registered Skills
 
 ### commit-hygiene
-**Description:** Enforce commit message hygiene â€” no co-authorship trailers, no AI tool names. Uses whole-word matching only; technical terms like "domain", "email", "cursor" (DB) are never flagged.
+**Description:** Enforce commit message hygiene — no co-authorship trailers, no AI tool names. Uses whole-word matching only; technical terms like "domain", "email", "cursor" (DB) are never flagged.
 **Load when:** creating or amending a commit, generating PR title/body, generating changelog or release notes. Also load when validating any existing commit for compliance.
 **Triggers:** `commit`, `amend`, `PR title`, `PR body`, `changelog`, `release notes`, `Co-authored-by`, `AI mention`, `BMAD mention`, `Claude mention`
 **Tier 1:** `.enterprise/governance/agent-skills/commit-hygiene/SKILL-QUICK.md`
@@ -46,7 +46,7 @@ version: "1.3"
 ---
 
 ### ddd-boundary-check
-**Description:** Validate DDD boundaries â€” layer direction, bounded context isolation, domain purity.
+**Description:** Validate DDD boundaries — layer direction, bounded context isolation, domain purity.
 **Load when:** PR or diff touches `domain/`, `application/`, `infrastructure/`, `api/`, `services/`; new modules; cross-module imports; contracts or ORM mappings changed.
 **Triggers:** `domain`, `application`, `infrastructure`, `bounded context`, `aggregate`, `repository`, `ORM`, `cross-module`, `import`, `event contract`, `integration event`, `persistence`
 **Tier 1:** `.enterprise/governance/agent-skills/architecture/ddd-boundary-check/SKILL-QUICK.md`
@@ -66,7 +66,7 @@ version: "1.3"
 ---
 
 ### release-control
-**Description:** Release governance â€” changelog discipline, risk classification, rollout requirements.
+**Description:** Release governance — changelog discipline, risk classification, rollout requirements.
 **Load when:** preparing a release, creating a release branch or tag, updating CHANGELOG, promoting to production, writing a hotfix.
 **Triggers:** `release`, `version bump`, `semver`, `CHANGELOG`, `hotfix`, `production deploy`, `release branch`, `release tag`, `breaking change announcement`
 **Tier 1:** `.enterprise/governance/agent-skills/release-control/SKILL-QUICK.md`
@@ -86,7 +86,7 @@ version: "1.3"
 ---
 
 ### pr-review
-**Description:** Enforce PR review standards â€” quality gates, boundary evidence, contract safety, and governance compliance.
+**Description:** Enforce PR review standards — quality gates, boundary evidence, contract safety, and governance compliance.
 **Load when:** performing or generating a pull request review, validating a PR is ready to merge.
 **Triggers:** `pull request`, `PR review`, `code review`, `merge request`, `ready to merge`, `review checklist`
 **Tier 1:** `.enterprise/governance/agent-skills/pr-review/SKILL-QUICK.md`
@@ -156,7 +156,7 @@ version: "1.3"
 ---
 
 ### spec-driven
-**Description:** Structured 4-phase workflow for planning features and services â€” Specify, Design, Tasks, Implement.
+**Description:** Structured 4-phase workflow for planning features and services — Specify, Design, Tasks, Implement.
 **Load when:** starting a new feature, service, or significant change; breaking down complex work into tasks.
 **Triggers:** `new feature`, `new service`, `planning`, `specification`, `requirements`, `user story`, `breakdown`, `task list`, `feature spec`, `design doc`
 **Tier 1:** `.enterprise/governance/agent-skills/spec-driven/SKILL-QUICK.md`
@@ -166,7 +166,7 @@ version: "1.3"
 ---
 
 ### accessibility
-**Description:** WCAG 2.1 compliance for Flutter and React Native â€” screen readers, touch targets, contrast.
+**Description:** WCAG 2.1 compliance for Flutter and React Native — screen readers, touch targets, contrast.
 **Load when:** building or reviewing UI components, screens, or interactive flows in Flutter or React Native.
 **Triggers:** `Flutter widget`, `React Native component`, `screen reader`, `VoiceOver`, `TalkBack`, `accessibility`, `a11y`, `WCAG`, `contrast`, `touch target`, `semantic label`, `accessibilityLabel`
 **Tier 1:** `.enterprise/governance/agent-skills/accessibility/SKILL-QUICK.md`
@@ -176,20 +176,20 @@ version: "1.3"
 ---
 
 ### performance-profiling
-**Description:** Hot path review â€” zero-alloc validation, lock-free pattern audit, cache layout, and benchmark regression gates. Only applies to services that have adopted the Performance Engineering Standard via ADR.
+**Description:** Hot path review — zero-alloc validation, lock-free pattern audit, cache layout, and benchmark regression gates. Only applies to services that have adopted the Performance Engineering Standard via ADR.
 **Load when:** PR touches hot path code, benchmarks, lock-free data structures, memory pools, serialization on critical paths, or performance-sensitive services.
 **Triggers:** `hot path`, `zero alloc`, `lock-free`, `SPSC`, `MPSC`, `MPMC`, `ring buffer`, `benchmark`, `allocs/op`, `ns/op`, `cache line`, `false sharing`, `SoA`, `AoS`, `sync.Pool`, `object pool`, `arena`, `performance regression`, `latency`, `throughput`, `pprof`, `flamegraph`, `JMH`, `heaptrack`
 **Tier 1:** `.enterprise/governance/agent-skills/performance-profiling/SKILL-QUICK.md`
 **Tier 2:** `.enterprise/governance/agent-skills/performance-profiling/SKILL.md`
 **Cost:** Tier 1 = low | Tier 2 = high
-**Note:** Opt-in â€” only load if service has an active Performance Engineering ADR.
+**Note:** Opt-in — only load if service has an active Performance Engineering ADR.
 
 ---
 
 ### agent-permissions
-**Description:** Analyze repository structure to generate a least-privilege `.codex/settings.json` â€” read-only commands only, stack-aware, package-manager-exclusive. Never allows state-modifying commands, absolute paths, or custom scripts.
-**Load when:** Setting up Codex CLI for a new project; auditing existing `.codex/settings.json` for over-permission; after running `/setup` Mode B.
-**Triggers:** `settings.json`, `codex permissions`, `agent permissions`, `settings audit`, `least privilege`, `.codex/settings`, `what permissions`, `codex setup`, `new project permissions`
+**Description:** Analyze repository structure to generate a least-privilege `.claude/settings.json` — read-only commands only, stack-aware, package-manager-exclusive. Never allows state-modifying commands, absolute paths, or custom scripts.
+**Load when:** Setting up Claude Code for a new project; auditing existing `.claude/settings.json` for over-permission; after running `/setup` Mode B.
+**Triggers:** `settings.json`, `claude permissions`, `agent permissions`, `settings audit`, `least privilege`, `.claude/settings`, `what permissions`, `claude setup`, `new project permissions`
 **Tier 1:** `.enterprise/governance/agent-skills/agent-permissions/SKILL-QUICK.md`
 **Tier 2:** `.enterprise/governance/agent-skills/agent-permissions/SKILL.md`
 **Cost:** Tier 1 = low | Tier 2 = medium
@@ -197,13 +197,13 @@ version: "1.3"
 ---
 
 ### threat-modeling
-**Description:** Repository-grounded threat modeling â€” enumerates trust boundaries, assets, attacker capabilities, abuse paths, and mitigations from actual code evidence. 8-step workflow with mandatory user validation pause at Step 6.
+**Description:** Repository-grounded threat modeling — enumerates trust boundaries, assets, attacker capabilities, abuse paths, and mitigations from actual code evidence. 8-step workflow with mandatory user validation pause at Step 6.
 **Load when:** User explicitly requests threat modeling, AppSec analysis, or abuse path enumeration. NOT for general security reviews, PR review, or architecture discussions.
 **Triggers:** `threat model`, `threat modeling`, `AppSec`, `application security`, `abuse path`, `attack surface`, `attacker model`, `trust boundary`, `security assessment`
 **Tier 1:** `.enterprise/governance/agent-skills/threat-modeling/SKILL-QUICK.md`
 **Tier 2:** `.enterprise/governance/agent-skills/threat-modeling/SKILL.md`
 **Cost:** Tier 1 = low | Tier 2 = high
-**Note:** Explicit request only â€” never auto-load for general security or architecture reviews.
+**Note:** Explicit request only — never auto-load for general security or architecture reviews.
 
 ---
 
@@ -233,8 +233,8 @@ version: "1.3"
 | Generating / reviewing an ADR | adr-compliance | 1 |
 | New naming review or code gen | naming-conventions | 1 |
 | Starting new feature or service | spec-driven | 1 |
-| Setting up .codex/settings.json for a project | agent-permissions | 1 |
-| Auditing existing Codex CLI permissions | agent-permissions | 2 |
+| Setting up .claude/settings.json for a project | agent-permissions | 1 |
+| Auditing existing Claude Code permissions | agent-permissions | 2 |
 | User explicitly requests threat model / AppSec | threat-modeling | 1 |
 | Full threat model generation and output | threat-modeling | 2 |
 | Fixing a DDD violation | ddd-boundary-check | 2 |
@@ -244,7 +244,7 @@ version: "1.3"
 | ADR format review / generation | adr-compliance | 2 |
 | Test adequacy audit | test-coverage | 2 |
 | Full observability audit | observability-compliance | 2 |
-| General coding (no trigger match) | none | â€” |
+| General coding (no trigger match) | none | — |
 
 ---
 
@@ -254,7 +254,7 @@ Multiple skills may be triggered simultaneously. Load each at Tier 1 first.
 Upgrade to Tier 2 only the skill requiring deep analysis.
 
 **Example:** PR that modifies infrastructure/ AND adds a new endpoint AND changes a DTO:
-â†’ `ddd-boundary-check` Tier 1 + `breaking-change-detection` Tier 1 + `secure-coding` Tier 1
+→ `ddd-boundary-check` Tier 1 + `breaking-change-detection` Tier 1 + `secure-coding` Tier 1
 
 ---
 
@@ -264,4 +264,3 @@ Upgrade to Tier 2 only the skill requiring deep analysis.
 2. Add registry entry here (description, triggers, paths, cost)
 3. Update Decision Table
 4. A skill without a registry entry MUST NOT be used by agents
-
