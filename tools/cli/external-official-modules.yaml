@@ -1,0 +1,53 @@
+# This file allows these modules under hseos-code-org to also be installed with the hseos method installer, while
+# allowing us to keep the source of these projects in separate repos.
+
+modules:
+  hseos-builder:
+    url: https://github.com/hseos-code-org/hseos-builder
+    module-definition: src/module.yaml
+    code: bmb
+    name: "HSEOS Builder"
+    description: "Agent, Workflow and Module Builder"
+    defaultSelected: false
+    type: hseos-org
+    npmPackage: hseos-builder
+
+  hseos-creative-intelligence-suite:
+    url: https://github.com/hseos-code-org/hseos-module-creative-intelligence-suite
+    module-definition: src/module.yaml
+    code: cis
+    name: "HSEOS Creative Intelligence Suite"
+    description: "Creative tools for writing, brainstorming, and more"
+    defaultSelected: false
+    type: hseos-org
+    npmPackage: hseos-creative-intelligence-suite
+
+  hseos-game-dev-studio:
+    url: https://github.com/hseos-code-org/hseos-module-game-dev-studio.git
+    module-definition: src/module.yaml
+    code: gds
+    name: "HSEOS Game Dev Studio"
+    description: "Game development agents and workflows"
+    defaultSelected: false
+    type: hseos-org
+    npmPackage: hseos-game-dev-studio
+
+  hseos-test-architecture-enterprise:
+    url: https://github.com/hseos-code-org/hseos-test-architecture-enterprise
+    module-definition: src/module.yaml
+    code: tea
+    name: "Test Architect"
+    description: "Master Test Architect for quality strategy, test automation, and release gates"
+    defaultSelected: false
+    type: hseos-org
+    npmPackage: hseos-test-architecture-enterprise
+
+  # whiteport-design-system:
+  #   url: https://github.com/hseos-code-org/hseos-wds-expansion
+  #   module-definition: src/module.yaml
+  #   code: wds
+  #   name: "Whiteport UX Design System"
+  #   description: "UX design framework with Figma integration"
+  #   defaultSelected: false
+  #   type: community
+  #   npmPackage: hseos-wds-expansion

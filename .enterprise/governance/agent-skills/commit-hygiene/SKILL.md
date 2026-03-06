@@ -73,7 +73,7 @@ AI-mention detection as a case-insensitive `contains("ai")` check.
                    → does NOT match: domain, email, detail, maintain
 
 # Exact product name matches (case-sensitive):
-\bBMAD\b
+\bHSEOS\b
 \bClaude\b
 \bGemini\b
 \bCodex\b
@@ -115,7 +115,7 @@ When ambiguous: read the full sentence. If the technical meaning is clear → PA
 | Term | Match type | Always blocked | Exceptions |
 |---|---|---|---|
 | `AI` | `\bAI\b` case-insensitive | Yes | Words containing "ai" as substring |
-| `BMAD` | `\bBMAD\b` | Yes | — |
+| `HSEOS` | `\bHSEOS\b` | Yes | — |
 | `Claude` | `\bClaude\b` | Yes | Product named Claude unrelated to Anthropic's AI |
 | `Gemini` | `\bGemini\b` | Yes | Gemini zodiac sign (edge case, allow in clear context) |
 | `Codex` | `\bCodex\b` | Yes | Legal/historical "codex" (edge case, allow) |

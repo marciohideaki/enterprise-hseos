@@ -26,7 +26,7 @@ version: "1.3"
 ### commit-hygiene
 **Description:** Enforce commit message hygiene — no co-authorship trailers, no AI tool names. Uses whole-word matching only; technical terms like "domain", "email", "cursor" (DB) are never flagged.
 **Load when:** creating or amending a commit, generating PR title/body, generating changelog or release notes. Also load when validating any existing commit for compliance.
-**Triggers:** `commit`, `amend`, `PR title`, `PR body`, `changelog`, `release notes`, `Co-authored-by`, `AI mention`, `BMAD mention`, `Claude mention`
+**Triggers:** `commit`, `amend`, `PR title`, `PR body`, `changelog`, `release notes`, `Co-authored-by`, `AI mention`, `HSEOS mention`, `Claude mention`
 **Tier 1:** `.enterprise/governance/agent-skills/commit-hygiene/SKILL-QUICK.md`
 **Tier 2:** `.enterprise/governance/agent-skills/commit-hygiene/SKILL.md`
 **Cost:** Tier 1 = low | Tier 2 = low

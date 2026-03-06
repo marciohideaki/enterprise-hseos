@@ -1,0 +1,134 @@
+framework:
+  name: "HSEOS — Hideaki Software Engineering Operating System"
+  code: hseos
+  version: "1.0.0"
+  institution: "Hideaki Solutions"
+  description: "Spec-driven, AI-assisted institutional engineering framework"
+  status: active
+
+# Core paths
+paths:
+  agent_definitions: ".hseos/agents"
+  workflows: ".hseos/workflows"
+  skills: ".hseos/skills"
+  teams: ".hseos/teams"
+  data: ".hseos/data"
+  governance_root: ".enterprise"
+  specs: ".enterprise/.specs"
+  constitution: ".enterprise/.specs/constitution"
+  agent_authority: ".enterprise/agents"
+  skills_registry: ".enterprise/governance/agent-skills/SKILLS-REGISTRY.md"
+  adrs: ".enterprise/.specs/decisions"
+  policies: ".enterprise/policies"
+
+# Agent roster
+agents:
+  - code: NYX
+    name: Intelligence Broker
+    role: Business Analysis & Requirements
+    file: ".hseos/agents/nyx.agent.yaml"
+    authority: ".enterprise/agents/nyx"
+    phase: discovery
+
+  - code: VECTOR
+    name: Mission Architect
+    role: Product Vision & PRD Ownership
+    file: ".hseos/agents/vector.agent.yaml"
+    authority: ".enterprise/agents/vector"
+    phase: planning
+
+  - code: CIPHER
+    name: Systems Architect
+    role: Technical Design & Architecture
+    file: ".hseos/agents/cipher.agent.yaml"
+    authority: ".enterprise/agents/cipher"
+    phase: solutioning
+
+  - code: GHOST
+    name: Code Executor
+    role: Story Implementation & TDD
+    file: ".hseos/agents/ghost.agent.yaml"
+    authority: ".enterprise/agents/ghost"
+    phase: execution
+
+  - code: RAZOR
+    name: Sprint Commander
+    role: Sprint Planning & Story Preparation
+    file: ".hseos/agents/razor.agent.yaml"
+    authority: ".enterprise/agents/razor"
+    phase: coordination
+
+  - code: GLITCH
+    name: Chaos Engineer
+    role: QA, Testing & Risk Discovery
+    file: ".hseos/agents/glitch.agent.yaml"
+    authority: ".enterprise/agents/glitch"
+    phase: validation
+
+  - code: PRISM
+    name: Interface Weaver
+    role: UX Research & Interaction Design
+    file: ".hseos/agents/prism.agent.yaml"
+    authority: ".enterprise/agents/prism"
+    phase: experience
+
+  - code: BLITZ
+    name: Solo Protocol
+    role: Full-stack Solo Dev Fast Flow
+    file: ".hseos/agents/blitz.agent.yaml"
+    authority: ".enterprise/agents/blitz"
+    phase: autonomy
+
+  - code: QUILL
+    name: Knowledge Scribe
+    role: Technical Documentation
+    file: ".hseos/agents/quill.agent.yaml"
+    authority: ".enterprise/agents/quill"
+    phase: knowledge
+
+# Standard engineering flow
+flows:
+  standard:
+    - phase: discovery
+      agents: [NYX]
+    - phase: planning
+      agents: [VECTOR, PRISM]
+    - phase: solutioning
+      agents: [CIPHER]
+    - phase: coordination
+      agents: [RAZOR]
+    - phase: execution
+      agents: [GHOST]
+    - phase: validation
+      agents: [GLITCH]
+    - phase: knowledge
+      agents: [QUILL]
+
+  solo_fast:
+    - phase: autonomy
+      agents: [BLITZ]
+
+# Governance enforcement
+governance:
+  constitution_required: true
+  adr_required_for:
+    - architectural_change
+    - breaking_change
+    - security_posture_change
+    - performance_affecting_change
+    - governance_modification
+    - standard_exception
+  skill_loading: tiered
+  stop_on_ambiguity: true
+  human_approval_required_for:
+    - adr_approval
+    - exception_approval
+    - production_release
+    - architecture_strategy
+
+# Output requirements
+output:
+  format: versionable
+  pr_ready: true
+  traceability_required: true
+  chat_not_authoritative: true

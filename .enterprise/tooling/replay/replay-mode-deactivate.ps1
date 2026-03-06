@@ -31,7 +31,7 @@
 # ============================================================
 
 $Timestamp   = Get-Date -Format "yyyyMMdd-HHmmss"
-$BackupRoot  = ".backup-bmad-$Timestamp"
+$BackupRoot  = ".backup-hseos-$Timestamp"
 
 $ModesDir    = ".enterprise/modes"
 $ActiveFile  = "$ModesDir/replay-mode.active"

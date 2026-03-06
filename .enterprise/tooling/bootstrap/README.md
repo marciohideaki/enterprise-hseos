@@ -9,12 +9,12 @@
 
 | Script | Propósito |
 |---|---|
-| `bmad-enterprise-overlay-bootstrap.ps1` | Inicializa a estrutura `.enterprise/` em um repositório |
+| `hseos-enterprise-overlay-bootstrap.ps1` | Inicializa a estrutura `.enterprise/` em um repositório |
 | `install-global.ps1` | Instala a governança globalmente no `~/.claude/` |
 
 ---
 
-## `bmad-enterprise-overlay-bootstrap.ps1`
+## `hseos-enterprise-overlay-bootstrap.ps1`
 
 Cria a estrutura completa de diretórios e arquivos placeholder do overlay `.enterprise/` em um repositório.
 
@@ -23,8 +23,8 @@ Cria a estrutura completa de diretórios e arquivos placeholder do overlay `.ent
 **Segurança:** Idempotente, cria backups se necessário
 
 ```powershell
-.\bmad-enterprise-overlay-bootstrap.ps1
-.\bmad-enterprise-overlay-bootstrap.ps1 -DryRun
+.\hseos-enterprise-overlay-bootstrap.ps1
+.\hseos-enterprise-overlay-bootstrap.ps1 -DryRun
 ```
 
 ---

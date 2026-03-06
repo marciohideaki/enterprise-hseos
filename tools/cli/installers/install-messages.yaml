@@ -1,0 +1,35 @@
+welcome:
+  title: "HSEOS v{version}"
+  message: |
+    Welcome to HSEOS — Hideaki Software Engineering Operating System
+
+    A spec-driven, AI-assisted institutional engineering framework.
+
+    ◈ Cyberpunk agents with strict authority boundaries
+    ◈ Constitutional governance — specs are sovereign
+    ◈ Engineered for enterprise, optimized for velocity
+
+    Institution: Hideaki Solutions
+    Framework: HSEOS v{version}
+  separator: true
+
+agents_installed:
+  message: "◈ HSEOS agents installed: {count} agents ready"
+
+install_complete:
+  message: |
+    ◈ HSEOS installation complete.
+
+    Your agent roster:
+      NYX    — Intelligence Broker
+      VECTOR — Mission Architect
+      CIPHER — Systems Architect
+      GHOST  — Code Executor
+      RAZOR  — Sprint Commander
+      GLITCH — Chaos Engineer
+      PRISM  — Interface Weaver
+      BLITZ  — Solo Protocol
+      QUILL  — Knowledge Scribe
+
+    Entry point: CLAUDE.md
+    Governance:  .enterprise/.specs/constitution/

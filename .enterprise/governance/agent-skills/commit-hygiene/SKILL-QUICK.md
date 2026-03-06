@@ -28,7 +28,7 @@ Match as **complete words** using word boundaries (`\b...\b`).
 | Term | Case | Blocked | NOT blocked (examples) |
 |---|---|---|---|
 | `AI` | case-insensitive whole-word | "an AI system", "AI-assisted" | **domain**, **email**, **detail**, **maintain**, **trail**, **curtail**, **retail**, **email**, **claim**, **air** |
-| `BMAD` | exact | "BMAD", "using BMAD" | — |
+| `HSEOS` | exact | "HSEOS", "using HSEOS" | — |
 | `Claude` | exact | "Claude generated" | — |
 | `Gemini` | exact | "Gemini API" | — |
 | `Codex` | exact | "via Codex" | — |

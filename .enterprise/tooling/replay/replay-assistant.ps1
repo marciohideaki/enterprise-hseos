@@ -1,7 +1,7 @@
 # ============================================================
 # Enterprise Tooling Script
 #
-# Name: BMAD Repository Replay Assistant
+# Name: HSEOS Repository Replay Assistant
 #
 # ⚠️ GOVERNANCE SUPPORT TOOL
 # ⚠️ MANUAL / INTERACTIVE EXECUTION ONLY
@@ -65,7 +65,7 @@ if (-not (Test-Path $ReplayPlanPath)) {
 $plan = Get-Content $ReplayPlanPath | ConvertFrom-Json
 
 Write-Host ""
-Write-Host "🎬 BMAD Replay Assistant"
+Write-Host "🎬 HSEOS Replay Assistant"
 Write-Host "Base branch: $BaseBranch"
 Write-Host "Stories to replay: $($plan.Count)"
 Write-Host ""
