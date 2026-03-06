@@ -1,4 +1,4 @@
-# Agent Onboarding Playbook
+﻿# Agent Onboarding Playbook
 **Scope:** All AI Agents (existing or new)  
 **Status:** Mandatory  
 **Version:** 1.0  
@@ -26,18 +26,18 @@ If any prerequisite is missing, onboarding MUST stop.
 
 ## 3. Mandatory Onboarding Steps
 
-### Step 0 — CLAUDE.md Verification
-Before any operation, verify that a `CLAUDE.md` exists at the repository root.
+### Step 0 â€” AGENTS.md Verification
+Before any operation, verify that a `AGENTS.md` exists at the repository root.
 
-- If missing, copy from `.enterprise/tooling/CLAUDE.md.template` and configure it
+- If missing, copy from `.enterprise/tooling/AGENTS.md.template` and configure it
 - This file overrides AI tool defaults that may conflict with governance (e.g., co-authorship trailers, AI references in commits)
-- Without `CLAUDE.md`, the agent may follow system defaults that violate AR-52 and commit-hygiene rules
+- Without `AGENTS.md`, the agent may follow system defaults that violate AR-52 and commit-hygiene rules
 
-**A repository without `CLAUDE.md` is not ready for agent operation.**
+**A repository without `AGENTS.md` is not ready for agent operation.**
 
 ---
 
-### Step 1 — Governance Load
+### Step 1 â€” Governance Load
 The agent MUST load and acknowledge:
 
 - Constitution
@@ -48,7 +48,7 @@ Failure to load governance invalidates the agent.
 
 ---
 
-### Step 2 — Role Definition
+### Step 2 â€” Role Definition
 The agent MUST have:
 
 - `authority.md`
@@ -60,7 +60,7 @@ The agent MUST explicitly acknowledge:
 
 ---
 
-### Step 3 — Scope Alignment
+### Step 3 â€” Scope Alignment
 The agent MUST identify:
 
 - Which stacks it operates on
@@ -71,7 +71,7 @@ Out-of-scope execution is forbidden.
 
 ---
 
-### Step 4 — Execution Rules
+### Step 4 â€” Execution Rules
 The agent MUST agree to:
 
 - Pre-Flight Checks
@@ -79,7 +79,7 @@ The agent MUST agree to:
 - Sharding rules
 - Escalation rules
 
-No “best judgment” overrides are allowed.
+No â€œbest judgmentâ€ overrides are allowed.
 
 ---
 
@@ -105,3 +105,4 @@ Re-onboarding is REQUIRED when:
 ---
 
 **End of Playbook**
+

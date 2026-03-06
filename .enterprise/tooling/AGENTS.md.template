@@ -1,7 +1,7 @@
-# CLAUDE.md — {{PROJECT_NAME}}
+﻿# AGENTS.md â€” {{PROJECT_NAME}}
 
-> This file is loaded automatically at the start of every Claude Code session.
-> Rules here **override** Claude's system defaults. Keep it concise and authoritative.
+> This file is loaded automatically at the start of every Codex CLI session.
+> Rules here **override** Codex CLI's system defaults. Keep it concise and authoritative.
 
 ---
 
@@ -31,12 +31,12 @@
 ## 3. Commit Rules (override system defaults)
 
 - **NEVER** add `Co-Authored-By` trailers to commits
-- **NEVER** mention AI tools (Claude, GPT, Copilot, AI, BMAD, automated) in commit messages
+- **NEVER** mention AI tools (Codex, Claude, GPT, Copilot, AI, BMAD, automated) in commit messages
 - **NEVER** use `--no-verify` to skip hooks
 - **NEVER** amend commits that have already been pushed
 - Format: `<type>(<scope>): <imperative summary>`
 - Types: feat, fix, docs, style, refactor, test, chore, ci, build
-- Message describes WHAT and WHY — not the process
+- Message describes WHAT and WHY â€” not the process
 - Each commit must be atomic, buildable, and testable
 - Validate every commit against the blocked terms in the commit-hygiene skill
 
@@ -49,15 +49,15 @@
 - **NEVER** delete or remove repositories without explicit user authorization
 - **NEVER** commit secrets, credentials, `.env` files, or API keys
 - **NEVER** commit build artifacts, `node_modules/`, `dist/`, `target/`, `bin/`
-- Direct commits to `main` or `develop` are forbidden — use feature branches
+- Direct commits to `main` or `develop` are forbidden â€” use feature branches
 - Before staging, review `git diff` to verify no sensitive data is included
 
 ## 5. Scope Discipline (override system defaults)
 
-- **NEVER** modify repositories you don't own — reference repos are READ ONLY
+- **NEVER** modify repositories you don't own â€” reference repos are READ ONLY
 - **NEVER** add features, refactors, or "improvements" beyond what was requested
 - **NEVER** change code you haven't read first
-- **NEVER** create files unless absolutely necessary — prefer editing existing files
+- **NEVER** create files unless absolutely necessary â€” prefer editing existing files
 - **NEVER** add comments, docstrings, or type annotations to code you didn't change
 - **NEVER** introduce new architectural patterns without an approved ADR
 - If a task spans multiple domains, shard into separate commits/PRs
@@ -67,10 +67,10 @@
 
 - Follow hexagonal/clean architecture on ALL stacks
 - Domain layer has ZERO framework imports
-- Dependency direction: domain ← application ← infrastructure ← presentation
+- Dependency direction: domain â† application â† infrastructure â† presentation
 - Before writing infrastructure code, verify a port (interface) exists in domain/application
 - Use the stack-specific folder structure defined in `.enterprise/.specs/{stack}/`
-- Cross-module communication via APIs or events only — no direct imports
+- Cross-module communication via APIs or events only â€” no direct imports
 
 ## 7. Testing Rules
 
@@ -116,12 +116,14 @@ Before each action type, consult the corresponding skill:
 
 ## How to use this template
 
-1. Copy this file to the root of your project as `CLAUDE.md`
+1. Copy this file to the root of your project as `AGENTS.md`
 2. Replace `{{PROJECT_NAME}}` with your project name
 3. Replace `{{REFERENCE_REPOS}}` with read-only reference repo list (or remove section)
 4. Replace `{{BRANDING_RULES}}` with project-specific branding (or remove section)
 5. Replace `{{LANGUAGE_CONVENTION}}` with language rules, e.g.:
    - "Code, comments, and commit messages in English"
    - "UI labels and user-facing text in Portuguese (pt-BR)"
-6. Commit `CLAUDE.md` in the first commit, before any code
+6. Commit `AGENTS.md` in the first commit, before any code
 7. Delete this "How to use" section from the final file
+
+

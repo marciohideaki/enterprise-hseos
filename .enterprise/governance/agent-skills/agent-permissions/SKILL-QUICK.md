@@ -1,12 +1,12 @@
----
+﻿---
 name: agent-permissions
 tier: quick
 version: "1.0"
 ---
 
-# Agent Permissions — Quick Reference
+# Agent Permissions â€” Quick Reference
 
-> Tier 1: Use when setting up or auditing `.claude/settings.json` for a project.
+> Tier 1: Use when setting up or auditing `.codex/settings.json` for a project.
 > Load SKILL.md (Tier 2) for full stack detection tables and permission catalogue.
 
 ---
@@ -14,12 +14,12 @@ version: "1.0"
 ## When to Use
 
 Load when:
-- Starting Claude Code in a project without an existing `.claude/settings.json`
+- Starting Codex CLI in a project without an existing `.codex/settings.json`
 - Running `/setup` Mode B (project install)
 - Auditing existing settings for over-permission or gaps
-- A team member asks "what permissions should Claude have here?"
+- A team member asks "what permissions should Codex have here?"
 
-**Do NOT use for:** code review, security audits, or any task unrelated to Claude Code permission configuration.
+**Do NOT use for:** code review, security audits, or any task unrelated to Codex CLI permission configuration.
 
 ---
 
@@ -31,10 +31,10 @@ Load when:
 
 ## Detection Checklist
 
-- [ ] Identify ONE package manager (exclusive — never list competing managers)
+- [ ] Identify ONE package manager (exclusive â€” never list competing managers)
 - [ ] Detect primary stack from manifest files present in repo
 - [ ] Detect build and infrastructure tools
-- [ ] Check for existing `.claude/settings.json` to avoid conflicts
+- [ ] Check for existing `.codex/settings.json` to avoid conflicts
 - [ ] Identify WebFetch domains needed (documentation sites only)
 
 ---
@@ -52,11 +52,11 @@ Load when:
 - Absolute hardcoded paths (`/home/user/...`, `C:\Users\...`)
 - Custom scripts with side effects
 - Multiple package managers for the same role
-- GitHub MCP server — use `gh` CLI instead
+- GitHub MCP server â€” use `gh` CLI instead
 
 ---
 
-## Package Manager — Exclusive Rule
+## Package Manager â€” Exclusive Rule
 
 | Lock file present | Allow only |
 |---|---|
@@ -74,9 +74,9 @@ Load when:
 ## Output Format
 
 Deliver in this order:
-1. **Summary table** — detected stack, tools, package manager
-2. **JSON config** — ready to copy into `.claude/settings.json`
-3. **Merge instructions** — if settings already exist
+1. **Summary table** â€” detected stack, tools, package manager
+2. **JSON config** â€” ready to copy into `.codex/settings.json`
+3. **Merge instructions** â€” if settings already exist
 
 ```json
 {
@@ -89,3 +89,4 @@ Deliver in this order:
   }
 }
 ```
+

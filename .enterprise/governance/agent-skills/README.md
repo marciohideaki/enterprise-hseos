@@ -1,12 +1,12 @@
-# Agent Skills
+﻿# Agent Skills
 
-> **For human contributors.** AI agents start from `SKILLS-REGISTRY.md` — not this README.
+> **For human contributors.** AI agents start from `SKILLS-REGISTRY.md` â€” not this README.
 
 ---
 
 ## What This Directory Is
 
-This is the skill library for AI agents operating under the Enterprise Overlay. Skills are **focused, on-demand enforcement modules** — each one knows how to check a specific concern (commit hygiene, DDD boundaries, test coverage, etc.) without loading the full governance stack.
+This is the skill library for AI agents operating under the Enterprise Overlay. Skills are **focused, on-demand enforcement modules** â€” each one knows how to check a specific concern (commit hygiene, DDD boundaries, test coverage, etc.) without loading the full governance stack.
 
 ---
 
@@ -14,36 +14,36 @@ This is the skill library for AI agents operating under the Enterprise Overlay. 
 
 ```
 agent-skills/
-├── SKILLS-REGISTRY.md              Master registry — the ONLY agent entry point
-├── accessibility/
-│   ├── SKILL-QUICK.md              Tier 1: fast rules, pass/fail
-│   └── SKILL.md                    Tier 2: deep analysis, edge cases
-├── adr-compliance/
-│   ├── SKILL-QUICK.md
-│   └── SKILL.md
-├── architecture/
-│   ├── breaking-change-detection/
-│   │   ├── SKILL-QUICK.md
-│   │   └── SKILL.md
-│   └── ddd-boundary-check/
-│       ├── SKILL-QUICK.md
-│       └── SKILL.md
-├── commit-hygiene/                 Prevents AI/tool attribution in commits
-│   ├── SKILL-QUICK.md
-│   └── SKILL.md
-├── dependency-audit/
-├── documentation-completeness/
-├── naming-conventions/
-├── observability-compliance/
-├── performance-profiling/          Only active if PE Standard ADR approved
-├── pr-review/
-├── release-control/
-├── sanitize-comments/              Removes FR/NFR/story refs from code comments
-├── secure-coding/
-├── spec-driven/
-├── test-coverage/
-├── agent-permissions/          Least-privilege .claude/settings.json generation
-└── threat-modeling/            AppSec threat modeling (explicit request only)
+â”œâ”€â”€ SKILLS-REGISTRY.md              Master registry â€” the ONLY agent entry point
+â”œâ”€â”€ accessibility/
+â”‚   â”œâ”€â”€ SKILL-QUICK.md              Tier 1: fast rules, pass/fail
+â”‚   â””â”€â”€ SKILL.md                    Tier 2: deep analysis, edge cases
+â”œâ”€â”€ adr-compliance/
+â”‚   â”œâ”€â”€ SKILL-QUICK.md
+â”‚   â””â”€â”€ SKILL.md
+â”œâ”€â”€ architecture/
+â”‚   â”œâ”€â”€ breaking-change-detection/
+â”‚   â”‚   â”œâ”€â”€ SKILL-QUICK.md
+â”‚   â”‚   â””â”€â”€ SKILL.md
+â”‚   â””â”€â”€ ddd-boundary-check/
+â”‚       â”œâ”€â”€ SKILL-QUICK.md
+â”‚       â””â”€â”€ SKILL.md
+â”œâ”€â”€ commit-hygiene/                 Prevents AI/tool attribution in commits
+â”‚   â”œâ”€â”€ SKILL-QUICK.md
+â”‚   â””â”€â”€ SKILL.md
+â”œâ”€â”€ dependency-audit/
+â”œâ”€â”€ documentation-completeness/
+â”œâ”€â”€ naming-conventions/
+â”œâ”€â”€ observability-compliance/
+â”œâ”€â”€ performance-profiling/          Only active if PE Standard ADR approved
+â”œâ”€â”€ pr-review/
+â”œâ”€â”€ release-control/
+â”œâ”€â”€ sanitize-comments/              Removes FR/NFR/story refs from code comments
+â”œâ”€â”€ secure-coding/
+â”œâ”€â”€ spec-driven/
+â”œâ”€â”€ test-coverage/
+â”œâ”€â”€ agent-permissions/          Least-privilege .codex/settings.json generation
+â””â”€â”€ threat-modeling/            AppSec threat modeling (explicit request only)
 ```
 
 ---
@@ -52,14 +52,14 @@ agent-skills/
 
 Every skill has exactly two files:
 
-### Tier 1 — `SKILL-QUICK.md`
-- Short: typically 1–2 pages
+### Tier 1 â€” `SKILL-QUICK.md`
+- Short: typically 1â€“2 pages
 - Contains: trigger conditions, rules summary, pass/fail criteria, quick examples
 - **Used by default** for every matching task
 - Designed for minimal context consumption
 
-### Tier 2 — `SKILL.md`
-- Full: typically 3–8 pages
+### Tier 2 â€” `SKILL.md`
+- Full: typically 3â€“8 pages
 - Contains: complete algorithm, edge cases, anti-patterns, violation fixing guidance
 - **Loaded only when** deep analysis is needed or a violation must be fixed
 - Never loaded preemptively
@@ -71,7 +71,7 @@ Every skill has exactly two files:
 1. Create a new directory: `agent-skills/<skill-name>/`
 2. Create `SKILL-QUICK.md` following this structure:
    ```
-   # <Skill Name> — Quick Reference
+   # <Skill Name> â€” Quick Reference
    **Tier:** 1
    **Triggers:** [when agents load this]
    **Pass criteria:** [what makes a check pass]
@@ -79,12 +79,12 @@ Every skill has exactly two files:
    **Rules:** [numbered list, concise]
    ```
 3. Create `SKILL.md` following the Tier 2 structure (full algorithm, examples, edge cases)
-4. Add an entry to `SKILLS-REGISTRY.md` (v1.x → v1.(x+1)) with:
+4. Add an entry to `SKILLS-REGISTRY.md` (v1.x â†’ v1.(x+1)) with:
    - Skill name
    - Trigger conditions
    - Tier 1 path
    - Tier 2 path
-5. No other files needed — skills are self-contained
+5. No other files needed â€” skills are self-contained
 
 ---
 
@@ -95,3 +95,4 @@ Every skill has exactly two files:
 - **Idempotent:** running a skill twice on the same artifact produces the same result
 - **No side effects:** skills read and evaluate; they never write or commit
 - **Word-boundary matching:** commit-hygiene uses `\bAI\b` regex to avoid false positives (e.g., "domain" contains "ai" but is never flagged)
+

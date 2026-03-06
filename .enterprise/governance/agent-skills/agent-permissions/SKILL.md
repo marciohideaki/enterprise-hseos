@@ -1,6 +1,6 @@
----
+﻿---
 name: agent-permissions
-description: Analyze repository structure to generate a least-privilege .claude/settings.json — read-only commands only, stack-aware, package-manager-exclusive. Adapted from Sentry's claude-settings-audit methodology.
+description: Analyze repository structure to generate a least-privilege .codex/settings.json â€” read-only commands only, stack-aware, package-manager-exclusive. Adapted from Sentry's claude-settings-audit methodology.
 license: MIT
 metadata:
   owner: platform-governance
@@ -8,15 +8,15 @@ metadata:
   source: https://github.com/getsentry/skills/tree/main/plugins/sentry-skills/skills/claude-settings-audit
 ---
 
-# Agent Permissions — Full Policy
+# Agent Permissions â€” Full Policy
 
 ## When to Use
 
 Load this skill when:
-- Setting up `.claude/settings.json` for a new project
+- Setting up `.codex/settings.json` for a new project
 - Running `/setup` Mode B (project install)
 - Auditing an existing settings file for over-permission or missing permissions
-- Onboarding a repository to Claude Code governance
+- Onboarding a repository to Codex CLI governance
 
 ---
 
@@ -28,7 +28,7 @@ Every permission added is a security decision. An over-permissioned agent can in
 
 ---
 
-## Phase 1 — Tech Stack Detection
+## Phase 1 â€” Tech Stack Detection
 
 Scan the repository root and common config directories for these indicator files:
 
@@ -39,7 +39,7 @@ Scan the repository root and common config directories for these indicator files
 | `pyproject.toml` + `uv.lock` | uv | `uv pip list`, `uv tree` |
 | `Pipfile.lock` | pipenv | `pipenv graph` |
 | `requirements.txt` (no lock) | pip | `pip list`, `pip show <pkg>` |
-| Any Python indicator | — | `python --version`, `python -m pytest --collect-only` |
+| Any Python indicator | â€” | `python --version`, `python -m pytest --collect-only` |
 
 ### Node.js / JavaScript / TypeScript
 | Indicator | Package Manager | Safe commands to add |
@@ -48,7 +48,7 @@ Scan the repository root and common config directories for these indicator files
 | `yarn.lock` | yarn | `yarn list`, `yarn info` |
 | `bun.lockb` | bun | `bun pm ls` |
 | `package-lock.json` | npm | `npm list`, `npm outdated` |
-| Any Node indicator | — | `node --version`, `npx tsc --noEmit` (TypeScript only) |
+| Any Node indicator | â€” | `node --version`, `npx tsc --noEmit` (TypeScript only) |
 
 ### Go
 | Indicator | Safe commands |
@@ -89,7 +89,7 @@ Scan the repository root and common config directories for these indicator files
 
 ---
 
-## Phase 2 — Service Integration Detection
+## Phase 2 â€” Service Integration Detection
 
 Check `package.json`, `pyproject.toml`, or `requirements.txt` for:
 
@@ -103,17 +103,17 @@ Check `package.json`, `pyproject.toml`, or `requirements.txt` for:
 
 ---
 
-## Phase 3 — Existing Settings Review
+## Phase 3 â€” Existing Settings Review
 
 Before generating output:
-1. Check if `.claude/settings.json` already exists
+1. Check if `.codex/settings.json` already exists
 2. If yes: read current permissions
-3. Flag conflicts — commands already present that violate read-only rules
+3. Flag conflicts â€” commands already present that violate read-only rules
 4. Provide merge instructions rather than overwrite
 
 ---
 
-## Phase 4 — Permission Generation
+## Phase 4 â€” Permission Generation
 
 ### Baseline (always include)
 
@@ -140,9 +140,9 @@ Before generating output:
 "Bash(gh run list:*)"
 ```
 
-### Package manager — exclusive
+### Package manager â€” exclusive
 
-**RULE**: Include only the package manager detected in Phase 1. Never list multiple managers for the same runtime. If `pnpm-lock.yaml` exists, include only pnpm — not npm or yarn.
+**RULE**: Include only the package manager detected in Phase 1. Never list multiple managers for the same runtime. If `pnpm-lock.yaml` exists, include only pnpm â€” not npm or yarn.
 
 ### Absolute prohibition list
 
@@ -153,7 +153,7 @@ The following MUST NEVER appear in `allow`:
 - Any `rm`, `del`, `rmdir` command
 - Absolute paths like `Bash(/home/user/scripts/setup.sh:*)`
 - Custom scripts: `Bash(./scripts/anything.sh:*)`
-- GitHub MCP server — always use `gh` CLI
+- GitHub MCP server â€” always use `gh` CLI
 
 ---
 
@@ -167,7 +167,7 @@ Deliver in this exact order:
 |---|---|
 | Primary language | Go |
 | Package manager | go modules |
-| Build tools | — |
+| Build tools | â€” |
 | Infrastructure | Terraform |
 | Service integrations | AWS SDK |
 
@@ -187,7 +187,7 @@ Deliver in this exact order:
 
 ### 3. Merge Instructions
 
-If `.claude/settings.json` already exists:
+If `.codex/settings.json` already exists:
 - Compare existing `allow` list with recommendations
 - Flag any existing entries that violate read-only rules (mark as `# REVIEW`)
 - Provide the merged version ready to save
@@ -202,3 +202,4 @@ If `.claude/settings.json` already exists:
 - [ ] No custom scripts
 - [ ] WebFetch domains are documentation sites only (no API endpoints)
 - [ ] Existing settings conflicts flagged and resolved
+

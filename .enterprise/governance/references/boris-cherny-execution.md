@@ -1,7 +1,7 @@
-# Agentic Execution Reference
+﻿# Agentic Execution Reference
 
 **Source:** Boris Cherny (Anthropic)
-**Integrated into:** `~/.claude/CLAUDE.md` — Execution Discipline + Core Principles sections
+**Integrated into:** `~/.codex/AGENTS.md` â€” Execution Discipline + Core Principles sections
 **Status:** Active reference
 
 ---
@@ -11,7 +11,7 @@
 ### 1. Plan Node Default
 
 - Enter plan mode for ANY non-trivial task (3+ steps or architectural decisions)
-- If something goes sideways, STOP and re-plan immediately — don't keep pushing
+- If something goes sideways, STOP and re-plan immediately â€” don't keep pushing
 - Use plan mode for verification steps, not just building
 - Write detailed specs upfront to reduce ambiguity
 
@@ -40,13 +40,13 @@
 
 - For non-trivial changes: pause and ask "is there a more elegant way?"
 - If a fix feels hacky: "Knowing everything I know now, implement the elegant solution"
-- Skip this for simple, obvious fixes — don't over-engineer
+- Skip this for simple, obvious fixes â€” don't over-engineer
 - Challenge your own work before presenting it
 
 ### 6. Autonomous Bug Fixing
 
 - When given a bug report: just fix it. Don't ask for hand-holding
-- Point at logs, errors, failing tests — then resolve them
+- Point at logs, errors, failing tests â€” then resolve them
 - Zero context switching required from the user
 - Go fix failing CI tests without being told how
 
@@ -79,8 +79,8 @@ When adopted in a project, create a `tasks/` directory at the repo root:
 
 ```
 tasks/
-  todo.md       # Active plan with checkable items — created per task/session
-  lessons.md    # Accumulated patterns from corrections — persists across sessions
+  todo.md       # Active plan with checkable items â€” created per task/session
+  lessons.md    # Accumulated patterns from corrections â€” persists across sessions
 ```
 
 ### `tasks/lessons.md` format
@@ -88,7 +88,7 @@ tasks/
 ```markdown
 # Lessons
 
-## [date] — [brief context]
+## [date] â€” [brief context]
 - Pattern observed: <what went wrong or was corrected>
 - Rule: <the rule to prevent it>
 - Applies to: <task type / trigger>
@@ -112,3 +112,4 @@ tasks/
 ---
 
 **End**
+
