@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# HSEOS Commit-Msg Hook
+# Authority: execution-governance — commit message validation
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# Validate commit message (receives .git/COMMIT_EDITMSG path as $1)
+bash "${REPO_ROOT}/scripts/governance/validate-commit-msg.sh" "$1"

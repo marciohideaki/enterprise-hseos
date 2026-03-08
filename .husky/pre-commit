@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# HSEOS Pre-Commit Hook
+# Authority: execution-governance — branch protection + quality gates
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# 1. Branch protection — block direct commits to main/develop
+bash "${REPO_ROOT}/scripts/governance/check-branch.sh"
+
+# 2. Quality gates (commit hygiene gate)
+VALIDATION_ENFORCED="${VALIDATION_ENFORCED:-true}" \
+  bash "${REPO_ROOT}/scripts/governance/quality-gates.sh" --phase code

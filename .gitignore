@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+coverage/
+*.tsbuildinfo
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
+
+# =============================================================================
+# HSEOS Governance — Logs/Audit
+# Only .logs/summaries/ content may be committed
+# Runs and validation logs are temporary and MUST NOT be versioned
+# =============================================================================
+.logs/runs/*
+!.logs/runs/.gitkeep
+.logs/validation/*
+!.logs/validation/.gitkeep
+
+# Worktrees — task isolation dirs are never committed
+.worktrees/
+
+# Husky
+.husky/_/
+
+# NPM
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
