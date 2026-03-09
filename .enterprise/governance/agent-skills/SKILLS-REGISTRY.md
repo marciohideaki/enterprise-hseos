@@ -85,6 +85,17 @@ version: "1.3"
 
 ---
 
+---
+
+### security-audit-plain-language
+**Description:** Read-only project security audit for non-technical stakeholders, with plain-language risk communication and step-by-step remediation guidance.
+**Load when:** user asks for a project security audit in simple language, executive-friendly risk summary, or non-technical security review.
+**Triggers:** `security audit`, `non-technical security review`, `plain language security`, `executive security summary`, `check my project security`
+**Tier 1:** `.enterprise/governance/agent-skills/security-audit-plain-language/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/security-audit-plain-language/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+
+
 ### pr-review
 **Description:** Enforce PR review standards — quality gates, boundary evidence, contract safety, and governance compliance.
 **Load when:** performing or generating a pull request review, validating a PR is ready to merge.
@@ -222,6 +233,7 @@ version: "1.3"
 | PR touches infrastructure/ or ORM | ddd-boundary-check | 1 |
 | PR modifies API / event / DTO | breaking-change-detection | 1 |
 | PR touches auth, tokens, secrets | secure-coding | 1 |
+| User requests full security audit in plain language | security-audit-plain-language | 1 |
 | PR adds new endpoint or dependency | secure-coding + dependency-audit | 1 |
 | PR adds new public code | documentation-completeness | 1 |
 | PR adds new business logic | test-coverage | 1 |
