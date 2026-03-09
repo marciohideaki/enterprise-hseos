@@ -1,0 +1,9 @@
+
+# =============================================================================
+# HSEOS Governance — Logs/Audit
+# =============================================================================
+.logs/runs/*
+!.logs/runs/.gitkeep
+.logs/validation/*
+!.logs/validation/.gitkeep
+.worktrees/
