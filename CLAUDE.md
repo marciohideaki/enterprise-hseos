@@ -1,78 +1,9 @@
-# HSEOS — Master AI Entry Point
+# CLAUDE.md — enterprise-bmad
 
-> **AI Agent:** Read this file completely before any action in this repository.
+> **Claude Code Agent:** Read this file completely before any action in this repository.
 
----
-
-## 1. What This Repository Is
-
-This is the **HSEOS — Hideaki Software Engineering Operating System**.
-
-It is a **spec-driven, AI-assisted institutional engineering framework** combining:
-- Architecture governance
-- Cyberpunk-named AI agents with strict authority boundaries
-- Tiered skill system
-- Engineering workflows (analysis → planning → architecture → implementation → validation)
-- MCP-compatible agent definitions
-
-You are operating inside an **institutionalized engineering system**. Governance is mandatory. Authority limits are enforced.
-
----
-
-## 2. Mandatory Bootstrap Sequence
-
-Before any work, agents MUST execute this sequence:
-
-```
-1. Read: .enterprise/.specs/constitution/Enterprise-Constitution.md  ← SUPREME LAW
-2. Read: .enterprise/agents/<your-agent-code>/authority.md           ← YOUR SCOPE
-3. Read: .enterprise/agents/<your-agent-code>/constraints.md         ← YOUR LIMITS
-4. Read: .enterprise/policies/*                                       ← OPERATIONAL RULES
-5. Read: .enterprise/governance/agent-skills/SKILLS-REGISTRY.md      ← SKILLS PROTOCOL
-6. Read relevant .enterprise/.specs/core/* and .enterprise/.specs/cross/* ← STANDARDS
-```
-
-Failure to execute this bootstrap sequence **invalidates all agent output**.
-
----
-
-## 3. Agent Roster
-
-| Code | Name | Role | Activate With |
-|------|------|------|--------------|
-| `NYX` | Intelligence Broker | Business Analysis & Requirements | `activate NYX` |
-| `VECTOR` | Mission Architect | Product Vision & PRD Ownership | `activate VECTOR` |
-| `CIPHER` | Systems Architect | Technical Design & Architecture | `activate CIPHER` |
-| `GHOST` | Code Executor | Story Implementation & TDD | `activate GHOST` |
-| `RAZOR` | Sprint Commander | Sprint Planning & Story Preparation | `activate RAZOR` |
-| `GLITCH` | Chaos Engineer | QA, Testing & Risk Discovery | `activate GLITCH` |
-| `PRISM` | Interface Weaver | UX Research & Interaction Design | `activate PRISM` |
-| `BLITZ` | Solo Protocol | Full-stack Solo Dev Fast Flow | `activate BLITZ` |
-| `QUILL` | Knowledge Scribe | Technical Documentation | `activate QUILL` |
-
-Agent definitions: `.hseos/agents/<code>.agent.yaml`
-Agent authority: `.enterprise/agents/<code>/authority.md`
-Agent constraints: `.enterprise/agents/<code>/constraints.md`
-
----
-
-## 4. Engineering Flow
-
-### Standard Flow (Multi-Phase)
-```
-Phase 1 — Discovery:     NYX  → Requirements, Market Research, Domain Analysis
-Phase 2 — Planning:      VECTOR → PRD, PRISM → UX Design
-Phase 3 — Architecture:  CIPHER → Architecture, ADRs, Epics & Stories
-Phase 4 — Execution:     RAZOR → Sprint Plan, GHOST → Implementation, GLITCH → Validation
-Phase 5 — Knowledge:     QUILL → Documentation
-```
-
-### Solo Fast Flow
-```
-Activate BLITZ → end-to-end solo dev protocol
-```
-
----
+## Project
+Repository: `enterprise-bmad`
 
 ## 5. Governance Rules (Non-Negotiable)
 
@@ -135,58 +66,35 @@ Agents MUST NEVER:
 └── skills/                  ← Agent skill definitions
 ```
 
-### For Humans
-- Start with this file for context
-- Read `README.md` for framework overview
-- Navigate `.enterprise/.specs/constitution/` for governing rules
-- Per-agent docs: `.enterprise/agents/<code>/`
+## Execution Governance
 
----
+See full rules: `scripts/governance/quality-gates.sh`
 
-## 7. Document Authority Precedence
+### Git Rules
+- **NEVER** commit directly to `main`, `master`, or `develop`
+- **NEVER** merge pull requests — human approval required
+- **NEVER** add `Co-Authored-By` trailers
+- **NEVER** mention AI tools in commit messages (Claude, Codex, GPT, LLM...)
+- All work in `feature/*` branches; each task in `task/*` branches
 
-Highest to lowest:
-1. Enterprise Constitution (`.enterprise/.specs/constitution/`)
-2. Core Standards (`.enterprise/.specs/core/`)
-3. Cross-Cutting Standards (`.enterprise/.specs/cross/`)
-4. Stack Standards (`.enterprise/.specs/<Stack>/`)
-5. ADRs (`.enterprise/.specs/decisions/`)
-6. Templates & Examples
-7. Generated Artifacts
+### Task Flow
+```bash
+./scripts/governance/worktree-manager.sh create <task-id> feature/<phase>
+# work in .worktrees/<task-id>/
+./scripts/governance/worktree-manager.sh validate <task-id>
+./scripts/governance/worktree-manager.sh commit <task-id> "type(scope): summary"
+./scripts/governance/worktree-manager.sh merge <task-id> feature/<phase>
+./scripts/governance/worktree-manager.sh remove <task-id>
+```
 
-**Lower-precedence documents NEVER override higher-precedence ones.**
+### Commit Format
+`<type>(<scope>): <summary>` — types: feat fix docs style refactor test chore ci build
 
----
+### Logs
+- `.logs/runs/` — run logs (gitignored)
+- `.logs/validation/` — gate results (gitignored)
+- `.logs/summaries/` — phase summaries (committable)
 
-## 8. Output Requirements
-
-All agent output MUST be:
-- Versionable (markdown, code, config — not chat)
-- PR-ready (structured, reviewable, mergeable)
-- Traceable to a governing document (standard, ADR, or requirement)
-- Explicitly referencing the authority source
-
----
-
-## 9. What Agents Cannot Do
-
-- ❌ Define or redefine architecture autonomously
-- ❌ Choose or alter technology stack
-- ❌ Override functional or non-functional requirements
-- ❌ Make final technical or business decisions
-- ❌ Treat chat history or memory as authoritative
-- ❌ Resolve conflicts without ADR or human approval
-- ❌ Remove or weaken security, compliance, or observability requirements
-
----
-
-## 10. HSEOS Version
-
-**Framework:** HSEOS v1.0
-**Governance Overlay:** Enterprise Overlay v1.0
-**Institution:** Hideaki Solutions
-**Status:** Active
-
----
-
-*HSEOS — Institutional AI Engineering. Agents execute. Humans decide.*
+### Enforcement Flags
+- `VALIDATION_ENFORCED=true` (default)
+- `WORKTREE_ENFORCED=true` (default)
