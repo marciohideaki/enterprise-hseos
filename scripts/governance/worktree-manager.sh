@@ -84,13 +84,22 @@ cmd_create() {
     fatal "Worktree already exists: ${wt_path}. Remove it first with: remove ${task_id}"
   fi
 
-  # Check feature branch exists
-  git -C "${REPO_ROOT}" rev-parse --verify "origin/${feature_branch}" &>/dev/null || \
-  git -C "${REPO_ROOT}" rev-parse --verify "${feature_branch}" &>/dev/null || \
+  # Resolve source ref for feature branch (local preferred, remote fallback)
+  local feature_ref
+  if git -C "${REPO_ROOT}" rev-parse --verify "${feature_branch}" &>/dev/null; then
+    feature_ref="${feature_branch}"
+  elif git -C "${REPO_ROOT}" rev-parse --verify "origin/${feature_branch}" &>/dev/null; then
+    feature_ref="origin/${feature_branch}"
+  else
     fatal "Feature branch not found: ${feature_branch}"
+  fi
 
-  info "Creating task branch: ${task_branch} from ${feature_branch}"
-  git -C "${REPO_ROOT}" checkout -b "${task_branch}" "${feature_branch}" 2>/dev/null || \
+  if git -C "${REPO_ROOT}" rev-parse --verify "${task_branch}" &>/dev/null; then
+    fatal "Task branch already exists: ${task_branch}. Remove it first or pick another task-id"
+  fi
+
+  info "Creating task branch: ${task_branch} from ${feature_ref}"
+  git -C "${REPO_ROOT}" branch "${task_branch}" "${feature_ref}" 2>/dev/null || \
     fatal "Failed to create task branch ${task_branch}"
 
   info "Creating worktree: ${wt_path}"

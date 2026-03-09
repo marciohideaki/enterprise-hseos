@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 # HSEOS Pre-Commit Hook — branch protection + quality gates
-set -euo pipefail
+set -eu
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 bash "${REPO_ROOT}/scripts/governance/check-branch.sh"
 VALIDATION_ENFORCED="${VALIDATION_ENFORCED:-true}" \
