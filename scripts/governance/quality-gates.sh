@@ -286,6 +286,43 @@ gate_commit_hygiene() {
 }
 
 # =============================================================================
+# Gate 6: Workflow publication trigger policy
+# =============================================================================
+gate_workflow_publication() {
+  info "Gate 6: Workflow Publication Triggers"
+
+  local workflow_file="${REPO_ROOT}/.github/workflows/docs-image.yml"
+  if [[ ! -f "${workflow_file}" ]]; then
+    info "No docs-image workflow found — skipping publication trigger gate"
+    return
+  fi
+
+  local required_patterns=(
+    "push:"
+    "workflow_dispatch:"
+    "- main"
+    "- develop"
+    "- 'feature/**'"
+    "- 'hotfix/**'"
+    "- 'release/**'"
+  )
+
+  local missing=0
+  for pattern in "${required_patterns[@]}"; do
+    if grep -Fq -- "${pattern}" "${workflow_file}"; then
+      pass "docs-image policy contains: ${pattern}"
+    else
+      record_fail "docs-image policy missing: ${pattern}"
+      missing=$((missing + 1))
+    fi
+  done
+
+  if [[ "${missing}" -eq 0 ]]; then
+    pass "Workflow publication trigger policy is compliant"
+  fi
+}
+
+# =============================================================================
 # Main execution
 # =============================================================================
 main() {
@@ -295,12 +332,14 @@ main() {
     doc|documentation)
       gate_governance_structure
       gate_documentation
+      gate_workflow_publication
       ;;
     code)
       gate_governance_structure
       gate_code
       gate_security
       gate_commit_hygiene
+      gate_workflow_publication
       ;;
     auto|full|*)
       gate_governance_structure
@@ -308,6 +347,7 @@ main() {
       gate_code
       gate_security
       gate_commit_hygiene
+      gate_workflow_publication
       ;;
   esac
 
