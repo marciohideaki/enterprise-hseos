@@ -1,8 +1,8 @@
 # ============================================================
-# Enterprise BMAD Governance - Global Bootstrap
+# Enterprise HSEOS Governance - Global Bootstrap
 #
 # Purpose:
-#   Installs the Enterprise BMAD governance overlay globally
+#   Installs the Enterprise HSEOS governance overlay globally
 #   into ~/.claude/ so it is available from ANY project,
 #   regardless of working directory.
 #
@@ -154,7 +154,7 @@ function Build-AgentCommand {
 # BANNER
 # ---------------------------------------------------------------
 Write-Host ""
-Write-Host "Enterprise BMAD - Global Bootstrap v1.2.0" -ForegroundColor White
+Write-Host "Enterprise HSEOS - Global Bootstrap v1.2.0" -ForegroundColor White
 Write-Host "  Target : $ClaudeHome" -ForegroundColor DarkGray
 Write-Host "  Source : $EnterpriseDir" -ForegroundColor DarkGray
 if ($DryRun) { Write-Host "  Mode   : DRY RUN (no changes)" -ForegroundColor DarkYellow }
@@ -168,7 +168,7 @@ Write-Step "Pre-flight checks"
 
 if (-not (Test-Path $EnterpriseDir)) {
     Write-Fail "Source .enterprise/ not found at: $EnterpriseDir"
-    Write-Fail "Run this script from within the enterprise-bmad repository."
+    Write-Fail "Run this script from within the hseos repository."
     exit 1
 }
 if (-not (Test-Path $SpecsSource)) {
@@ -329,7 +329,7 @@ Write-Step "Writing /setup wizard command"
 $setupCmd = @'
 # Enterprise Governance -- Project Setup Wizard
 
-You are the Enterprise BMAD Governance Setup Wizard.
+You are the Enterprise HSEOS Governance Setup Wizard.
 Conduct an interactive setup to initialize governance for the current project.
 Ask questions ONE AT A TIME. Wait for each answer before proceeding.
 
@@ -550,7 +550,7 @@ Write-Step "Writing /skills wizard command"
 $skillsCmd = @'
 # Enterprise Governance -- Skills Wizard
 
-You are the Enterprise BMAD Skills Wizard.
+You are the Enterprise HSEOS Skills Wizard.
 Use this command to install or update the governance skills for an existing project.
 Ask questions ONE AT A TIME. Wait for each answer before proceeding.
 
@@ -745,7 +745,7 @@ foreach ($agent in $agents) {
     try {
         $body    = Build-AgentCommand -AgentName $agent.Name
         $label   = $agent.Name
-        $content = "# Enterprise Agent -- $label`n`nYou are now operating as the **$label** agent under the Enterprise BMAD Governance overlay.`nAdopt this persona fully for the current session. All rules below are binding.`n`n---`n`n$body"
+        $content = "# Enterprise Agent -- $label`n`nYou are now operating as the **$label** agent under the Enterprise HSEOS Governance overlay.`nAdopt this persona fully for the current session. All rules below are binding.`n`n---`n`n$body"
         Write-GovernanceFile -Path (Join-Path $CommandsDir $agent.File) -Content $content
     }
     catch {
@@ -865,7 +865,7 @@ else {
 # ---------------------------------------------------------------
 Write-Host ""
 Write-Host "---------------------------------------------" -ForegroundColor DarkGray
-Write-Host " Enterprise BMAD Global Bootstrap -- Done" -ForegroundColor White
+Write-Host " Enterprise HSEOS Global Bootstrap -- Done" -ForegroundColor White
 Write-Host "---------------------------------------------" -ForegroundColor DarkGray
 Write-Host ""
 Write-Host "  Installed to : $ClaudeHome" -ForegroundColor Gray

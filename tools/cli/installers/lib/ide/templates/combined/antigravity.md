@@ -1,0 +1,8 @@
+---
+name: '{{frontmatter_name}}'
+description: '{{description}}'
+---
+
+Read the entire workflow file at: {project-root}/_hseos/{{workflow_path}}
+
+Follow all instructions in the workflow file exactly as written.

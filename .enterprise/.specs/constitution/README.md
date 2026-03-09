@@ -18,7 +18,7 @@ That's it. One document. No addendums, no splits.
 
 The `Enterprise-Constitution.md` is the **highest-authority document** in the entire governance overlay. Everything else — core standards, cross-cutting standards, stack standards, ADRs — derives its authority from or must comply with this document.
 
-**v2.0 history:** Previously split into two documents (`BMAD-Enterprise-Constitution.md` + an Addendum). The split existed because the overlay was built on top of an upstream framework whose files were not to be modified. Once the overlay became fully owned, the split was eliminated and both documents were merged into one coherent constitution.
+**v2.0 history:** Previously split into two documents (`HSEOS-Enterprise-Constitution.md` + an Addendum). The split existed because the overlay was built on top of an upstream framework whose files were not to be modified. Once the overlay became fully owned, the split was eliminated and both documents were merged into one coherent constitution.
 
 **Why a single document?** An addendum implies you cannot modify the original. If you own the document, there is no reason to maintain two files covering the same subject — it creates inconsistency risk and cognitive overhead.
 

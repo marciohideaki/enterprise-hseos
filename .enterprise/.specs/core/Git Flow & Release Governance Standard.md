@@ -31,7 +31,7 @@ Defines the mandatory Git workflow, branching strategy, commit rules, tagging an
 
 ### Forbidden Terms (regex enforced)
 ```
-(?i)\b(ai|ia|gpt|chatgpt|claude|copilot|bmad|automation|automated|agent|llm)\b
+(?i)\b(ai|ia|gpt|chatgpt|claude|copilot|hseos|automation|automated|agent|llm)\b
 ```
 
 ## 5. Pull Requests

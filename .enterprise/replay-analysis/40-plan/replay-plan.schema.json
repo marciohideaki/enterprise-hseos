@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://enterprise-bmad/schema/replay-plan.schema.json",
-  "title": "BMAD Repository Replay Plan",
+  "$id": "https://enterprise-hseos/schema/replay-plan.schema.json",
+  "title": "hseos Repository Replay Plan",
   "description": "Contract defining the mandatory structure for curated repository replay plans.",
   "type": "array",
   "minItems": 1,
