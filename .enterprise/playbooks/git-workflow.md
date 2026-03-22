@@ -43,6 +43,16 @@ All projects MUST follow **GitFlow**.
 
 Direct commits to `main` or `develop` are forbidden.
 
+### Active repository model
+
+Per [ADR-0007](../.specs/decisions/ADR-0007-integration-governance-branching-model.md):
+
+- `master` is the currently stable branch in this repository
+- `develop` is the active integration branch
+- all new `feature/*` work for staged delivery MUST start from `develop`
+
+If repository defaults lag behind this model, governance still follows the ADR and not UI defaults.
+
 ---
 
 ## 4. Feature & Story Completion Rule
