@@ -81,6 +81,9 @@ hseos run reconcile
 hseos run status mission-id
 ```
 
+Mission work items can also carry richer operational fields such as `owner`, `priority`,
+`deadline_at`, `mission_type`, `labels`, `dependencies`, `retry_class`, and `max_attempts`.
+
 ## Execution Observability Surface
 
 HSEOS exposes operational read models for runtime posture and governance evidence:
