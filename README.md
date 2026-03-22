@@ -114,6 +114,22 @@ For solo/fast delivery: activate **BLITZ** directly.
 
 ---
 
+## Wave 1 Runtime Capabilities
+
+Wave 1 consolidates HSEOS around five runtime capabilities with one coherent vocabulary:
+
+| Capability | Purpose | Primary Surface |
+|---|---|---|
+| Integration Governance Bootstrap | Establishes controlled integration through `develop` | governance workflow |
+| Structural Execution Governance | Enforces deterministic runtime boundaries before mutation | `hseos policy` |
+| Mission Execution Runtime | Claims, isolates, and reconciles queued work items | `hseos run` |
+| Execution Observability Surface | Aggregates runtime posture, evidence, and blockers | `hseos ops` |
+| CORTEX Recall Intelligence | Encodes, retrieves, traces, and impacts context | `hseos cortex` |
+
+These capabilities are intended to operate as one HSEOS system, not as separate products.
+
+---
+
 ## License
 
 MIT — Hideaki Solutions

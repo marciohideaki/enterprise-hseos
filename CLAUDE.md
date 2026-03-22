@@ -1,9 +1,9 @@
-# CLAUDE.md — enterprise-bmad
+# CLAUDE.md — HSEOS
 
 > **Claude Code Agent:** Read this file completely before any action in this repository.
 
 ## Project
-Repository: `enterprise-bmad`
+Repository: `enterprise-hseos`
 
 ## 5. Governance Rules (Non-Negotiable)
 
@@ -94,6 +94,17 @@ See full rules: `scripts/governance/quality-gates.sh`
 - `.logs/runs/` — run logs (gitignored)
 - `.logs/validation/` — gate results (gitignored)
 - `.logs/summaries/` — phase summaries (committable)
+
+## Wave 1 Runtime Surfaces
+
+Wave 1 standardizes four runtime command groups:
+
+- `hseos policy` — structural execution governance
+- `hseos run` — mission execution runtime
+- `hseos ops` — execution observability surface
+- `hseos cortex` — recall intelligence
+
+These are HSEOS-native capabilities and should be described only in HSEOS terms.
 
 ### Enforcement Flags
 - `VALIDATION_ENFORCED=true` (default)

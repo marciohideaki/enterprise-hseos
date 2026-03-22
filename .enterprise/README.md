@@ -153,6 +153,12 @@ Governance is enforced through:
 - replay-mode constraints
 - exception auditing
 
+Wave 1 runtime consolidation also introduces HSEOS-native operational surfaces:
+- structural execution governance
+- mission execution runtime
+- execution observability surface
+- CORTEX recall intelligence
+
 If a required governance artifact is missing:
 
 **Execution is invalid.**
@@ -192,6 +198,9 @@ The Enterprise Overlay exists to make AI-assisted engineering
 If something feels blocked by this overlay,  
 the correct response is **not to bypass it**,  
 but to **document and decide deliberately**.
+
+For the Wave 1 capability map, see:
+`.enterprise/playbooks/runtime-capability-consolidation.md`
 
 ---
 
