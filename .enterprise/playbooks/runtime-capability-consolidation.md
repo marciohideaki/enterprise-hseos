@@ -57,6 +57,10 @@ Internal adopters should treat the current baseline as:
 
 The next waves should prefer hardening and adoption support over broad new surface area.
 
+For internal rollout readiness, use:
+
+- `.enterprise/playbooks/internal-rollout-checklist.md`
+
 ## Naming Rule
 
 All wave capabilities are described in HSEOS-native terms only.
