@@ -38,10 +38,32 @@ missions:
   owners:
     allow: []
     deny: []
+  labels:
+    allow: []
+    deny: []
+  dependencies:
+    allow: []
+    deny: []
+  retry_classes:
+    allow:
+      - none
+      - transient
+      - manual
+      - policy
+    deny: []
   require_owner_for_priorities:
     - critical
   require_deadline_for_priorities:
     - critical
+  require_labels_for_retry_classes:
+    transient:
+      - runtime
+      - remediation
+    policy:
+      - governance
+  require_dependencies_for_retry_classes:
+    policy:
+      - policy-baseline
 
 budgets:
   max_total_selections: 16

@@ -224,13 +224,43 @@ function normalizeMissionRequest(mission) {
   const normalizedOwner = typeof mission.owner === 'string' && mission.owner.trim().length > 0 ? mission.owner.trim() : null;
   const normalizedDeadline =
     typeof mission.deadlineAt === 'string' && mission.deadlineAt.trim().length > 0 ? mission.deadlineAt.trim() : null;
+  const normalizedLabels = normalizeStringArray(mission.labels);
+  const normalizedDependencies = normalizeStringArray(mission.dependencies);
+  const normalizedRetryClass =
+    typeof mission.retryClass === 'string' && mission.retryClass.trim().length > 0 ? mission.retryClass.trim().toLowerCase() : null;
 
   return {
     type: normalizedType,
     priority: normalizedPriority,
     owner: normalizedOwner,
     deadlineAt: normalizedDeadline,
+    labels: normalizedLabels,
+    dependencies: normalizedDependencies,
+    retryClass: normalizedRetryClass,
   };
+}
+
+function applyMissionSelectionRules(values, rules, noun, violations) {
+  const normalizedValues = normalizeStringArray(values);
+  const allow = normalizeStringArray(rules.allow);
+  const deny = new Set(normalizeStringArray(rules.deny));
+  const requireAny = normalizeStringArray(rules.require_any);
+
+  for (const value of normalizedValues) {
+    if (allow.length > 0 && !allow.includes(value)) {
+      violations.push(`${noun} "${value}" is outside the allowed list`);
+    }
+
+    if (deny.has(value)) {
+      violations.push(`${noun} "${value}" is denied by policy`);
+    }
+  }
+
+  if (requireAny.length > 0 && !normalizedValues.some((value) => requireAny.includes(value))) {
+    violations.push(`${noun} must include at least one of: ${requireAny.join(', ')}`);
+  }
+
+  return normalizedValues;
 }
 
 function applyMissionRules(mission, rules, violations) {
@@ -241,8 +271,17 @@ function applyMissionRules(mission, rules, violations) {
   const types = rules.types || {};
   const priorities = rules.priorities || {};
   const owners = rules.owners || {};
+  const labels = rules.labels || {};
+  const dependencies = rules.dependencies || {};
+  const retryClasses = rules.retry_classes || {};
   const requireOwnerForPriorities = new Set(normalizeStringArray(rules.require_owner_for_priorities).map((entry) => entry.toLowerCase()));
   const requireDeadlineForPriorities = new Set(normalizeStringArray(rules.require_deadline_for_priorities).map((entry) => entry.toLowerCase()));
+  const requireLabelsForRetryClasses = new Map(
+    Object.entries(rules.require_labels_for_retry_classes || {}).map(([key, value]) => [key.toLowerCase(), normalizeStringArray(value)]),
+  );
+  const requireDependenciesForRetryClasses = new Map(
+    Object.entries(rules.require_dependencies_for_retry_classes || {}).map(([key, value]) => [key.toLowerCase(), normalizeStringArray(value)]),
+  );
 
   if (mission.type) {
     const allowedTypes = normalizeStringArray(types.allow);
@@ -285,6 +324,34 @@ function applyMissionRules(mission, rules, violations) {
 
     if (deniedOwners.has(mission.owner)) {
       violations.push(`Mission owner "${mission.owner}" is denied by policy`);
+    }
+  }
+
+  mission.labels = applyMissionSelectionRules(mission.labels, labels, 'Mission label', violations);
+  mission.dependencies = applyMissionSelectionRules(mission.dependencies, dependencies, 'Mission dependency', violations);
+
+  if (mission.retryClass) {
+    const allowedRetryClasses = normalizeStringArray(retryClasses.allow).map((entry) => entry.toLowerCase());
+    const deniedRetryClasses = new Set(normalizeStringArray(retryClasses.deny).map((entry) => entry.toLowerCase()));
+
+    if (allowedRetryClasses.length > 0 && !allowedRetryClasses.includes(mission.retryClass)) {
+      violations.push(`Mission retry class "${mission.retryClass}" is outside the allowed list`);
+    }
+
+    if (deniedRetryClasses.has(mission.retryClass)) {
+      violations.push(`Mission retry class "${mission.retryClass}" is denied by policy`);
+    }
+
+    const requiredLabels = requireLabelsForRetryClasses.get(mission.retryClass) || [];
+    if (requiredLabels.length > 0 && !mission.labels.some((label) => requiredLabels.includes(label))) {
+      violations.push(`Mission retry class "${mission.retryClass}" requires at least one label: ${requiredLabels.join(', ')}`);
+    }
+
+    const requiredDependencies = requireDependenciesForRetryClasses.get(mission.retryClass) || [];
+    if (requiredDependencies.length > 0 && !mission.dependencies.some((dependency) => requiredDependencies.includes(dependency))) {
+      violations.push(
+        `Mission retry class "${mission.retryClass}" requires at least one dependency: ${requiredDependencies.join(', ')}`,
+      );
     }
   }
 

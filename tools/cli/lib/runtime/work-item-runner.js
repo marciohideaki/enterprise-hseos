@@ -168,6 +168,9 @@ function buildMissionExecutionRequest(item, projectDir) {
       priority: typeof item.priority === 'string' ? item.priority.trim().toLowerCase() : null,
       owner: typeof item.owner === 'string' ? item.owner.trim() : null,
       deadlineAt: typeof item.deadline_at === 'string' ? item.deadline_at.trim() : null,
+      labels: normalizeOptionalArray(item.labels),
+      dependencies: normalizeOptionalArray(item.dependencies),
+      retryClass: normalizeRetryPolicy(item).retry_class,
     },
   };
 }
