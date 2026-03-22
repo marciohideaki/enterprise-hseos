@@ -156,7 +156,7 @@ Governance is enforced through:
 - replay-mode constraints
 - exception auditing
 
-Wave 1 runtime consolidation also introduces HSEOS-native operational surfaces:
+The stable runtime baseline introduces HSEOS-native operational surfaces:
 - structural execution governance
 - mission execution runtime
 - execution observability surface
@@ -202,7 +202,7 @@ If something feels blocked by this overlay,
 the correct response is **not to bypass it**,  
 but to **document and decide deliberately**.
 
-For the Wave 1 capability map, see:
+For the stable runtime baseline map, see:
 `.enterprise/playbooks/runtime-capability-consolidation.md`
 
 ---
