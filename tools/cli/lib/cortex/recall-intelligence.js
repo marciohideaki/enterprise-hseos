@@ -25,6 +25,10 @@ function tokenize(text) {
     .filter(Boolean);
 }
 
+function uniq(values) {
+  return [...new Set(values)];
+}
+
 function scoreEntry(queryTokens, entry) {
   const haystack = tokenize([entry.title, entry.content, entry.tags?.join(' ')].join(' '));
   let score = 0;
@@ -89,9 +93,24 @@ async function loadAllEntries(projectDir) {
   return entries;
 }
 
+function buildMissionContextTokens(missionContext = {}) {
+  return uniq(
+    [
+      missionContext.type,
+      missionContext.priority,
+      missionContext.owner,
+      ...(Array.isArray(missionContext.labels) ? missionContext.labels : []),
+      ...(Array.isArray(missionContext.dependencies) ? missionContext.dependencies : []),
+      ...(Array.isArray(missionContext.impactTerms) ? missionContext.impactTerms : []),
+    ]
+      .flatMap((value) => tokenize(value))
+      .filter(Boolean),
+  );
+}
+
 async function retrieveContext(query, options = {}) {
   const entries = await loadAllEntries(options.projectDir);
-  const queryTokens = tokenize(query);
+  const queryTokens = uniq([...tokenize(query), ...buildMissionContextTokens(options.missionContext)]);
   const filteredEntries = typeof options.layer === 'string' && options.layer.trim().length > 0
     ? entries.filter((entry) => entry.layer === options.layer.trim())
     : entries;
@@ -109,6 +128,7 @@ async function retrieveContext(query, options = {}) {
 
   return {
     query,
+    missionContext: options.missionContext || null,
     results: scored,
   };
 }
@@ -119,6 +139,11 @@ async function traceContext(query, options = {}) {
 
 async function impactContext(term, options = {}) {
   const projectDir = path.resolve(options.projectDir || process.cwd());
+  const normalizedTerms = uniq(
+    [term, ...(Array.isArray(options.relatedTerms) ? options.relatedTerms : [])]
+      .flatMap((value) => tokenize(value))
+      .filter(Boolean),
+  );
   const matches = [];
 
   async function walk(currentDir) {
@@ -135,17 +160,27 @@ async function impactContext(term, options = {}) {
       }
 
       const content = await fs.readFile(fullPath, 'utf8').catch(() => null);
-      if (!content || !content.includes(term)) {
+      if (!content) {
         continue;
       }
 
-      matches.push(path.relative(projectDir, fullPath));
+      const contentTokens = tokenize(content);
+      const matchedTerms = normalizedTerms.filter((candidate) => contentTokens.includes(candidate));
+      if (matchedTerms.length === 0) {
+        continue;
+      }
+
+      matches.push({
+        file: path.relative(projectDir, fullPath),
+        matchedTerms,
+      });
     }
   }
 
   await walk(projectDir);
   return {
     term,
+    relatedTerms: normalizedTerms.filter((candidate) => candidate !== String(term || '').toLowerCase()),
     matches: matches.slice(0, options.limit || 20),
   };
 }

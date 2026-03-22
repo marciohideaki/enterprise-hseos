@@ -71,6 +71,9 @@ async function main() {
       '  - governance',
       'dependencies:',
       '  - policy-baseline',
+      'impact_terms:',
+      '  - runtime',
+      '  - policy',
       'retry_class: transient',
       'max_attempts: 3',
       'context_query: policy enforcement traceability',
@@ -79,6 +82,7 @@ async function main() {
   );
 
   await fs.writeFile(path.join(projectDir, 'context.txt'), 'policy enforcement traceability for runtime claims', 'utf8');
+  await fs.writeFile(path.join(projectDir, 'runtime-impact.js'), 'const criticalRuntimePolicy = "runtime governance dependency";\n', 'utf8');
   await fs.ensureDir(path.join(projectDir, '.hseos/data/cortex/scoped'));
   await fs.writeJson(
     path.join(projectDir, '.hseos/data/cortex/scoped/context-a.json'),
@@ -107,7 +111,12 @@ async function main() {
   assert.equal(claimed.retry_policy.max_attempts, 3);
   assert.equal(claimed.attempt_count, 1);
   assert.equal(claimed.execution_phase, 'claimed');
+  assert.ok(claimed.cortex_impact);
+  assert(claimed.cortex_impact.matches.length > 0);
   assert.equal(await fs.pathExists(path.join(claimed.workspacePath, 'context.json')), true);
+  const workspaceContext = await fs.readJson(path.join(claimed.workspacePath, 'context.json'));
+  assert.equal(workspaceContext.missionContext.priority, 'critical');
+  assert(workspaceContext.impact.matches.length > 0);
   const claimedEvidenceFiles = await fs.readdir(evidenceDir);
   const claimedEvents = await Promise.all(
     claimedEvidenceFiles
