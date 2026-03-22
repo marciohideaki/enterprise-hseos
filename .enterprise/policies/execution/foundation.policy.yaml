@@ -1,0 +1,32 @@
+version: 1
+kind: structural_execution_policy
+name: foundation
+description: Default enterprise execution governance pack for HSEOS runtime mutation flows.
+
+defaults:
+  fail_closed: true
+
+modules:
+  allow: []
+  deny: []
+  max_count: 12
+
+tools:
+  allow: []
+  deny: []
+  hidden: []
+  max_count: 8
+
+paths:
+  allowed_roots: []
+  denied_patterns:
+    - ".."
+    - "/.git/"
+    - "/node_modules/"
+
+custom_content:
+  allow: true
+  max_sources: 4
+
+budgets:
+  max_total_selections: 16

@@ -2,6 +2,7 @@ const path = require('node:path');
 const prompts = require('../lib/prompts');
 const { Installer } = require('../installers/lib/core/installer');
 const { UI } = require('../lib/ui');
+const { buildExecutionRequest, evaluateExecutionRequest, resolveProjectPolicy } = require('../lib/policy/engine');
 
 const installer = new Installer();
 const ui = new UI();
@@ -34,6 +35,19 @@ module.exports = {
       }
 
       const config = await ui.promptInstall(options);
+
+      const policyContext = await resolveProjectPolicy({
+        projectDir: config.directory || process.cwd(),
+      });
+      const decision = evaluateExecutionRequest(buildExecutionRequest(config), policyContext.policy, policyContext.context);
+
+      if (!decision.allowed) {
+        await prompts.log.error('Structural execution governance denied this operation.');
+        for (const violation of decision.violations) {
+          await prompts.log.message(`- ${violation}`);
+        }
+        process.exit(1);
+      }
 
       // Handle cancel
       if (config.actionType === 'cancel') {

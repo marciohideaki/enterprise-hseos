@@ -13,7 +13,6 @@ import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getSiteUrl } from '../website/src/lib/site-url.mjs';
 
 // =============================================================================
 // Configuration
@@ -40,6 +39,10 @@ const LLM_EXCLUDE_PATTERNS = [
   'bmgd/',
   // Note: Files/dirs starting with _ (like _STYLE_GUIDE.md, _archive/) are excluded in shouldExcludeFromLlm()
 ];
+
+function getSiteUrl() {
+  return process.env.HSEOS_SITE_URL || 'https://hseos.dev';
+}
 
 // =============================================================================
 // Main Entry Point

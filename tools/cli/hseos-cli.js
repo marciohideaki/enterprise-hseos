@@ -88,6 +88,10 @@ program.version(packageJson.version).description('HSEOS CLI - Hideaki Software E
 for (const [name, cmd] of Object.entries(commands)) {
   const command = program.command(name).description(cmd.description);
 
+  for (const argument of cmd.arguments || []) {
+    command.argument(...argument);
+  }
+
   // Add options
   for (const option of cmd.options || []) {
     command.option(...option);

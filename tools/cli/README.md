@@ -58,3 +58,15 @@ post-install-notes:
 ```
 
 When a user selects `auto`, they see both CLI and MCP instructions. When they select `none`, nothing is shown.
+
+## Structural Execution Governance
+
+HSEOS can validate and explain execution policy packs before installer mutation occurs.
+
+Examples:
+
+```bash
+hseos policy validate .enterprise/policies/execution/foundation.policy.yaml
+hseos policy explain .enterprise/policies/execution/foundation.policy.yaml
+hseos policy explain --project-dir /path/to/project --request-file /path/to/request.yaml
+```
