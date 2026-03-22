@@ -1,4 +1,50 @@
-# 🏷️ Enterprise Overlay — v1.0.0
+# 🏷️ Enterprise Overlay — Changelog
+
+## v1.1.0
+
+**Status:** Stable Baseline  
+**Type:** Runtime Consolidation & Internal Adoption  
+**Release Date:** 2026-03-22  
+**Risk Level:** Medium
+
+### Overview
+
+This release consolidates the HSEOS runtime baseline on `develop` and formalizes it as the
+internal adoption target for governed mission execution.
+
+### Added
+
+- structural execution governance through `hseos policy`
+- mission execution runtime through `hseos run`
+- governed retry, including approval-gated batch retry processing
+- execution observability and posture through `hseos ops`
+- CORTEX recall, trace, and impact support through `hseos cortex`
+- mission-aware governance across type, priority, owner, deadline, labels, dependencies, and retry class
+- ADR-backed runtime baseline realignment and supporting playbooks
+
+### Changed
+
+- `develop` now represents the stable runtime baseline for internal adoption
+- runtime and governance documentation now describe the implemented baseline instead of a provisional wave
+- operational posture now exposes retry readiness and approval-gated blockers explicitly
+
+### Breaking Changes
+
+- None
+
+### Adoption Notes
+
+- suitable for controlled internal adoption and operational rehearsal
+- local-first and fail-closed by design
+- still intentionally limited to file-backed evidence and non-autonomous retry handling
+
+### Rollback Notes
+
+- rollback remains low complexity because the baseline is local-first and self-contained in repository code and playbooks
+
+---
+
+## v1.0.0
 
 **Status:** Stable  
 **Type:** Governance & Process Framework  

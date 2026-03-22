@@ -20,6 +20,7 @@ Playbooks are **step-by-step operational guides** for recurring governance activ
 | `enterprise-flow.md` | AI Agents + Humans | End-to-end flow from task inception to merge — governance checkpoints |
 | `escalation-rules.md` | AI Agents | When and how to stop execution and escalate to humans |
 | `git-workflow.md` | AI Agents + Humans | Branching, commit, and PR workflow with governance compliance |
+| `runtime-capability-consolidation.md` | AI Agents + Humans | How the stable runtime baseline fits together and how to adopt it internally |
 | `repository-vitrine-checklist.md` | Human Engineers | Checklist for presenting a repository as governance-compliant |
 | `repository-curation-replay.md` | AI Agents | How to replay and audit a repository against governance standards |
 
