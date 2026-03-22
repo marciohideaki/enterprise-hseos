@@ -142,6 +142,10 @@ Current deliberate limits:
 - no autonomous retry scheduler
 - no semantic/vector knowledge backend
 
+For controlled internal rollout, use:
+
+- `.enterprise/playbooks/internal-rollout-checklist.md`
+
 ---
 
 ## License
