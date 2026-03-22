@@ -28,5 +28,20 @@ custom_content:
   allow: true
   max_sources: 4
 
+missions:
+  types:
+    allow: []
+    deny: []
+  priorities:
+    allow: []
+    deny: []
+  owners:
+    allow: []
+    deny: []
+  require_owner_for_priorities:
+    - critical
+  require_deadline_for_priorities:
+    - critical
+
 budgets:
   max_total_selections: 16

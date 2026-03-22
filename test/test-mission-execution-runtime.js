@@ -168,6 +168,20 @@ async function main() {
       'custom_content:',
       '  allow: true',
       '  max_sources: 4',
+      'missions:',
+      '  types:',
+      '    allow: []',
+      '    deny: []',
+      '  priorities:',
+      '    allow: []',
+      '    deny: []',
+      '  owners:',
+      '    allow: []',
+      '    deny: []',
+      '  require_owner_for_priorities:',
+      '    - critical',
+      '  require_deadline_for_priorities:',
+      '    - critical',
       'budgets:',
       '  max_total_selections: 16',
     ].join('\n'),
@@ -180,13 +194,15 @@ async function main() {
       'title: Denied claim',
       'status: ready',
       'tracker: local',
+      'priority: critical',
+      'mission_type: remediation',
     ].join('\n'),
     'utf8',
   );
 
   await assert.rejects(
     claimWorkItem(deniedWorkItemPath, { projectDir }),
-    /Structural execution governance denied mission "mission-denied"/,
+    /Mission priority "critical" requires an owner/,
   );
   assert.equal(await fs.pathExists(path.join(projectDir, '.hseos/data/runtime/workspaces/mission-denied')), false);
   const finalEvidenceFiles = await fs.readdir(evidenceDir);

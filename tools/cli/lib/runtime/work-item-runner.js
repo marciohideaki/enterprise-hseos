@@ -162,6 +162,12 @@ function buildMissionExecutionRequest(item, projectDir) {
     tools: Array.isArray(item.tools) ? item.tools : [],
     customContentSources: [],
     customContentIds: [],
+    mission: {
+      type: typeof item.mission_type === 'string' ? item.mission_type.trim() : null,
+      priority: typeof item.priority === 'string' ? item.priority.trim().toLowerCase() : null,
+      owner: typeof item.owner === 'string' ? item.owner.trim() : null,
+      deadlineAt: typeof item.deadline_at === 'string' ? item.deadline_at.trim() : null,
+    },
   };
 }
 
