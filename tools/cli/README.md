@@ -91,6 +91,42 @@ Mission work items can also carry richer operational fields such as `owner`, `pr
 `retry-ready` processes only missions that are already retryable, remain within policy, and
 have the required runtime blocker approval recorded.
 
+## Local Orchestration and Session Store
+
+HSEOS can coordinate local multi-worker execution with worktrees, session state,
+handoff artifacts, and snapshots without making `tmux` part of the native contract:
+
+```bash
+hseos run orchestration create path/to/session-spec.yaml
+hseos run orchestration status session-id
+hseos run orchestration snapshot session-id
+hseos run worker spawn session-id worker-id
+hseos run worker complete session-id worker-id
+hseos run worker list session-id
+hseos run handoff session-id worker-id path/to/handoff.yaml
+```
+
+Canonical session state is persisted under `.hseos/data/sessions`, while human-facing
+`task.md`, `status.md`, and `handoff.md` files remain operator artifacts under the session
+coordination directory.
+
+## Install-State Lifecycle
+
+HSEOS now exposes an operational install-state lifecycle with selective planning,
+apply, doctor, repair, and inspection surfaces:
+
+```bash
+hseos ops install plan --modules hsm
+hseos ops install apply --modules hsm
+hseos ops install doctor
+hseos ops install repair
+hseos ops install inspect
+hseos ops install summary
+```
+
+The legacy `hseos install` path remains available, but the canonical install-state now
+lives under `.hseos/data/install/install-state.json`.
+
 ## Execution Observability Surface
 
 HSEOS exposes operational read models for runtime posture and governance evidence:
@@ -102,9 +138,26 @@ hseos ops runs
 hseos ops evidence
 hseos ops blockers
 hseos ops approvals
+hseos ops session list
+hseos ops session inspect session-id
+hseos ops install summary
 hseos ops approve policy:mission-id --reason "Approved override" --actor "ops-lead"
 hseos ops revoke policy:mission-id --reason "Approval withdrawn" --actor "ops-lead"
 ```
+
+## Governance Events
+
+Runtime and install lifecycle signals can be inspected as governed HSEOS events:
+
+```bash
+hseos governance events list
+hseos governance events inspect event-id
+hseos governance events ack event-id --actor "ops-lead" --reason "Reviewed"
+hseos governance events explain event-id
+```
+
+These events are persisted under `.hseos/data/governance/events` and are surfaced
+through `hseos ops` as blockers and posture signals when severity or status requires it.
 
 ## CORTEX Recall Intelligence
 

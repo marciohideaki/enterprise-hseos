@@ -19,6 +19,7 @@ Use this capability when:
 - find missions blocked by missing approval
 - review policy denial evidence after a failed claim
 - audit the current approval state for runtime blockers
+- inspect local orchestration sessions, worker states, and install drift from one surface
 
 ## Commands
 
@@ -29,6 +30,10 @@ hseos ops runs
 hseos ops evidence
 hseos ops blockers
 hseos ops approvals
+hseos ops session list
+hseos ops session inspect session-id
+hseos ops install inspect
+hseos ops install summary
 hseos ops approve runtime:mission-123 --reason "Approved retry" --actor "ops-lead"
 hseos ops revoke runtime:mission-123 --reason "Approval withdrawn" --actor "ops-lead"
 ```
@@ -45,6 +50,7 @@ hseos ops revoke runtime:mission-123 --reason "Approval withdrawn" --actor "ops-
 - this surface is local-first and file-backed
 - it is read-dominant, with approval recording as the main mutation path
 - it is not a graphical control plane
+- session, install, runtime, and governance data converge here, but canonical truth still stays in their own stores
 
 ## Troubleshooting
 
