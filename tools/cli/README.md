@@ -110,3 +110,6 @@ hseos cortex retrieve "policy enforcement"
 hseos cortex trace "policy enforcement"
 hseos cortex impact "validateAgentFile"
 ```
+
+Mission runtime claims also attach CORTEX impact traces and mission-scoped recall
+context directly into the workspace `context.json` artifact.
