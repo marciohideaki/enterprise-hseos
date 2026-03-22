@@ -58,3 +58,14 @@ post-install-notes:
 ```
 
 When a user selects `auto`, they see both CLI and MCP instructions. When they select `none`, nothing is shown.
+
+## CORTEX Recall Intelligence
+
+HSEOS exposes native context encoding and retrieval:
+
+```bash
+hseos cortex encode docs/context.md --layer scoped --title "Domain context"
+hseos cortex retrieve "policy enforcement"
+hseos cortex trace "policy enforcement"
+hseos cortex impact "validateAgentFile"
+```

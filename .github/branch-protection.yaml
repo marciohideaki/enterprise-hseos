@@ -2,7 +2,7 @@
 # Authority: Enterprise Constitution > execution-governance
 #
 # Apply via GitHub CLI:
-#   gh api repos/{owner}/{repo}/branches/main/protection --method PUT --input .github/branch-protection.yml
+#   gh api repos/{owner}/{repo}/branches/main/protection --method PUT --input .github/branch-protection.yaml
 #
 # Or via Terraform/GitOps — see .enterprise/ci-cd/ for pipeline integration
 
