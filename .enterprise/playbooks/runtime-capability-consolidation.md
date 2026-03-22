@@ -64,3 +64,7 @@ For internal rollout readiness, use:
 ## Naming Rule
 
 All wave capabilities are described in HSEOS-native terms only.
+
+For per-capability documentation, use:
+
+- `.enterprise/capabilities/README.md`

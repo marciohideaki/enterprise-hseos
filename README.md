@@ -146,6 +146,10 @@ For controlled internal rollout, use:
 
 - `.enterprise/playbooks/internal-rollout-checklist.md`
 
+For capability-level documentation, use:
+
+- `.enterprise/capabilities/README.md`
+
 ---
 
 ## License
