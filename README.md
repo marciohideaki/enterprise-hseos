@@ -114,9 +114,9 @@ For solo/fast delivery: activate **BLITZ** directly.
 
 ---
 
-## Wave 1 Runtime Capabilities
+## Stable Runtime Baseline
 
-Wave 1 consolidates HSEOS around five runtime capabilities with one coherent vocabulary:
+HSEOS now operates with a stable runtime baseline organized around five coherent capabilities:
 
 | Capability | Purpose | Primary Surface |
 |---|---|---|
@@ -127,6 +127,20 @@ Wave 1 consolidates HSEOS around five runtime capabilities with one coherent voc
 | CORTEX Recall Intelligence | Encodes, retrieves, traces, and impacts context | `hseos cortex` |
 
 These capabilities are intended to operate as one HSEOS system, not as separate products.
+
+This baseline is ready for internal adoption on `develop` with:
+
+- deterministic structural execution governance
+- mission runtime with governed retry and batch retry processing
+- mission-aware policy evaluation across core mission metadata
+- consolidated operational posture and approval tracking
+- CORTEX-backed mission context and impact tracing
+
+Current deliberate limits:
+
+- no full graphical control plane
+- no autonomous retry scheduler
+- no semantic/vector knowledge backend
 
 ---
 
