@@ -75,6 +75,9 @@ async function main() {
         priority: 'critical',
         owner: null,
         deadlineAt: null,
+        labels: ['runtime'],
+        dependencies: ['policy-baseline'],
+        retryClass: 'transient',
       },
     },
     policy,
@@ -88,6 +91,47 @@ async function main() {
   assert.equal(missionAwareDecision.allowed, false, 'critical missions without owner and deadline must be denied');
   assert(missionAwareDecision.violations.some((entry) => entry.includes('requires an owner')));
   assert(missionAwareDecision.violations.some((entry) => entry.includes('requires a deadline')));
+
+  const deniedMissionMetadata = evaluateExecutionRequest(
+    {
+      ...request,
+      actionType: 'work-item',
+      mission: {
+        type: 'remediation',
+        priority: 'high',
+        owner: 'platform-ops',
+        deadlineAt: '2026-03-31T12:00:00Z',
+        labels: ['unknown-label'],
+        dependencies: ['missing-dependency'],
+        retryClass: 'policy',
+      },
+    },
+    {
+      ...policy,
+      missions: {
+        ...policy.missions,
+        labels: {
+          allow: ['runtime', 'governance'],
+          deny: [],
+        },
+        dependencies: {
+          allow: ['policy-baseline', 'runtime-baseline'],
+          deny: [],
+        },
+      },
+    },
+    {
+      projectRoot: '/tmp/hseos-project',
+      frameworkRoot: path.join(__dirname, '..'),
+      cwd: process.cwd(),
+    },
+  );
+
+  assert.equal(deniedMissionMetadata.allowed, false, 'mission metadata outside governance envelope must be denied');
+  assert(deniedMissionMetadata.violations.some((entry) => entry.includes('Mission label "unknown-label"')));
+  assert(deniedMissionMetadata.violations.some((entry) => entry.includes('Mission dependency "missing-dependency"')));
+  assert(deniedMissionMetadata.violations.some((entry) => entry.includes('requires at least one label: governance')));
+  assert(deniedMissionMetadata.violations.some((entry) => entry.includes('requires at least one dependency: policy-baseline')));
 
   console.log('test-installation-components: ok');
 }
