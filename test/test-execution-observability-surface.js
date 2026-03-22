@@ -39,6 +39,11 @@ async function main() {
     priority: 'medium',
     mission_type: 'delivery',
     policy_pack: 'foundation',
+    retry_policy: {
+      retry_class: 'transient',
+      max_attempts: 3,
+    },
+    attempt_count: 1,
   });
   await fs.writeFile(path.join(runtimeEvidence, 'mission-a.log'), 'claimed mission-a\n', 'utf8');
   await fs.writeJson(path.join(runtimeEvidence, 'event-1.json'), {
@@ -65,6 +70,9 @@ async function main() {
   assert.equal(snapshot.summary.missionsWithImpact, 1);
   assert.equal(snapshot.summary.criticalRuns, 1);
   assert.equal(snapshot.summary.overdueRuns, 1);
+  assert.equal(snapshot.summary.retryableInvalidations, 1);
+  assert.equal(snapshot.summary.exhaustedRetries, 0);
+  assert.equal(snapshot.summary.runtimeBlockersAwaitingApproval, 1);
   assert.equal(snapshot.summary.approvalEvents, 0);
   assert.equal(snapshot.summary.approvedBlockers, 0);
   assert.equal(snapshot.summary.openBlockers, 3);
@@ -74,7 +82,9 @@ async function main() {
   assert.equal(snapshot.blockers.every((blocker) => typeof blocker.key === 'string' && blocker.status === 'open'), true);
   assert.equal(snapshot.posture.missionRuntime.runsByPriority.critical, 1);
   assert.equal(snapshot.posture.missionRuntime.runsByMissionType.remediation, 1);
+  assert.equal(snapshot.posture.missionRuntime.retryableInvalidations.includes('mission-b'), true);
   assert.equal(snapshot.posture.governance.runsByPolicyPack.foundation, 2);
+  assert.equal(snapshot.posture.governance.blockers.runtimeAwaitingApproval.includes('mission-b'), true);
   assert.equal(snapshot.posture.cortex.missionsWithContext.includes('mission-a'), true);
   assert.equal(snapshot.posture.cortex.impactCoverage[0].impactMatches, 1);
 
