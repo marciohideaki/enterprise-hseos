@@ -18,6 +18,8 @@ Mission runtime state lives under:
 hseos run work-item path/to/work-item.yaml
 hseos run reconcile
 hseos run retry mission-id
+hseos run retry-ready
+hseos run retry-ready 5
 hseos run status mission-id
 ```
 
@@ -56,11 +58,13 @@ Optional fields may include:
 - claim attaches CORTEX recall and impact artifacts into the workspace and runtime state
 - reconcile compares runtime state with source work-item status and invalidates missions that are no longer executable
 - retry is an explicit governed transition for invalidated missions
+- retry-ready is a governed batch transition for retryable invalidations that already carry approval
 - retry requires:
   - a retry-enabled mission policy
   - remaining attempts under `max_attempts`
   - a claimable source work-item status
   - runtime blocker approval when a runtime blocker is open
+- retry-ready only processes missions that are already retryable and approved; all others are skipped and recorded in batch evidence
 - status reads the persisted runtime record without mutating state
 
 ## Claimable Statuses
@@ -89,3 +93,4 @@ Mission runtime state now carries:
 - policy evaluation summary
 - CORTEX recall trace and impact summary
 - retry posture and attempt count
+- governed retry queue processing evidence
