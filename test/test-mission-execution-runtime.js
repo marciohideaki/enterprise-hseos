@@ -13,11 +13,44 @@ async function main() {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'hseos-mission-runtime-'));
   const workItemPath = path.join(tempRoot, 'mission.yaml');
   const projectDir = tempRoot;
+  const evidenceDir = path.join(projectDir, '.hseos/data/runtime/evidence');
 
   await fs.ensureDir(path.join(projectDir, '.hseos/config'));
+  await fs.ensureDir(path.join(projectDir, '.enterprise/policies/execution'));
   await fs.writeFile(
     path.join(projectDir, '.hseos/config/hseos.config.yaml'),
     'paths:\n  data: ".hseos/data"\n',
+    'utf8',
+  );
+
+  await fs.writeFile(
+    path.join(projectDir, '.enterprise/policies/execution/foundation.policy.yaml'),
+    [
+      'version: 1',
+      'kind: structural_execution_policy',
+      'name: foundation',
+      'defaults:',
+      '  fail_closed: true',
+      'modules:',
+      '  allow: []',
+      '  deny: []',
+      '  max_count: 12',
+      'tools:',
+      '  allow: []',
+      '  deny: []',
+      '  hidden: []',
+      '  max_count: 8',
+      'paths:',
+      '  allowed_roots:',
+      `    - "${projectDir}"`,
+      '  denied_patterns:',
+      '    - ".."',
+      'custom_content:',
+      '  allow: true',
+      '  max_sources: 4',
+      'budgets:',
+      '  max_total_selections: 16',
+    ].join('\n'),
     'utf8',
   );
 
@@ -29,17 +62,43 @@ async function main() {
       'status: ready',
       'tracker: local',
       'directive: docs-refresh',
+      'context_query: policy enforcement traceability',
     ].join('\n'),
     'utf8',
+  );
+
+  await fs.writeFile(path.join(projectDir, 'context.txt'), 'policy enforcement traceability for runtime claims', 'utf8');
+  await fs.ensureDir(path.join(projectDir, '.hseos/data/cortex/scoped'));
+  await fs.writeJson(
+    path.join(projectDir, '.hseos/data/cortex/scoped/context-a.json'),
+    {
+      id: 'context-a',
+      layer: 'scoped',
+      title: 'Runtime governance context',
+      content: 'policy enforcement traceability for runtime claims',
+      tags: ['policy', 'runtime'],
+    },
+    { spaces: 2 },
   );
 
   const claimed = await claimWorkItem(workItemPath, { projectDir });
   assert.equal(claimed.status, 'claimed');
   assert.equal(await fs.pathExists(claimed.workspacePath), true);
+  assert.equal(claimed.policy_allowed, true);
+  assert.equal(claimed.cortex_context_ids.length, 1);
+  assert.equal(await fs.pathExists(path.join(claimed.workspacePath, 'context.json')), true);
+  const claimedEvidenceFiles = await fs.readdir(evidenceDir);
+  const claimedEvents = await Promise.all(
+    claimedEvidenceFiles
+      .filter((entry) => entry.endsWith('.json'))
+      .map((entry) => fs.readJson(path.join(evidenceDir, entry))),
+  );
+  assert.equal(claimedEvents.some((event) => event.type === 'mission_claimed' && event.missionId === 'mission-123'), true);
 
   const status = await getMissionStatus(projectDir, 'mission-123');
   assert.equal(status.id, 'mission-123');
   assert.equal(status.status, 'claimed');
+  assert.equal(status.cortex_query, 'policy enforcement traceability');
 
   await fs.writeFile(
     workItemPath,
@@ -57,6 +116,61 @@ async function main() {
 
   const invalidated = await getMissionStatus(projectDir, 'mission-123');
   assert.equal(invalidated.status, 'invalidated');
+
+  const deniedWorkItemPath = path.join(projectDir, 'denied-mission.yaml');
+  await fs.writeFile(
+    path.join(projectDir, '.enterprise/policies/execution/foundation.policy.yaml'),
+    [
+      'version: 1',
+      'kind: structural_execution_policy',
+      'name: foundation',
+      'defaults:',
+      '  fail_closed: true',
+      'modules:',
+      '  allow: []',
+      '  deny: []',
+      '  max_count: 12',
+      'tools:',
+      '  allow: []',
+      '  deny: []',
+      '  hidden: []',
+      '  max_count: 8',
+      'paths:',
+      '  allowed_roots:',
+      `    - "${projectDir}/allowed-only"`,
+      '  denied_patterns:',
+      '    - ".."',
+      'custom_content:',
+      '  allow: true',
+      '  max_sources: 4',
+      'budgets:',
+      '  max_total_selections: 16',
+    ].join('\n'),
+    'utf8',
+  );
+  await fs.writeFile(
+    deniedWorkItemPath,
+    [
+      'id: mission-denied',
+      'title: Denied claim',
+      'status: ready',
+      'tracker: local',
+    ].join('\n'),
+    'utf8',
+  );
+
+  await assert.rejects(
+    claimWorkItem(deniedWorkItemPath, { projectDir }),
+    /Structural execution governance denied mission "mission-denied"/,
+  );
+  assert.equal(await fs.pathExists(path.join(projectDir, '.hseos/data/runtime/workspaces/mission-denied')), false);
+  const finalEvidenceFiles = await fs.readdir(evidenceDir);
+  const finalEvents = await Promise.all(
+    finalEvidenceFiles
+      .filter((entry) => entry.endsWith('.json'))
+      .map((entry) => fs.readJson(path.join(evidenceDir, entry))),
+  );
+  assert.equal(finalEvents.some((event) => event.type === 'policy_denied' && event.missionId === 'mission-denied'), true);
 
   console.log('test-mission-execution-runtime: ok');
 }

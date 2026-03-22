@@ -92,7 +92,10 @@ async function loadAllEntries(projectDir) {
 async function retrieveContext(query, options = {}) {
   const entries = await loadAllEntries(options.projectDir);
   const queryTokens = tokenize(query);
-  const scored = entries
+  const filteredEntries = typeof options.layer === 'string' && options.layer.trim().length > 0
+    ? entries.filter((entry) => entry.layer === options.layer.trim())
+    : entries;
+  const scored = filteredEntries
     .map((entry) => {
       const trace = scoreEntry(queryTokens, entry);
       return {
