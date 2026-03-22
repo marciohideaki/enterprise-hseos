@@ -81,11 +81,15 @@ HSEOS can claim queued work items into a native runtime state layer:
 hseos run work-item path/to/work-item.yaml
 hseos run reconcile
 hseos run retry mission-id
+hseos run retry-ready
+hseos run retry-ready 5
 hseos run status mission-id
 ```
 
 Mission work items can also carry richer operational fields such as `owner`, `priority`,
 `deadline_at`, `mission_type`, `labels`, `dependencies`, `retry_class`, and `max_attempts`.
+`retry-ready` processes only missions that are already retryable, remain within policy, and
+have the required runtime blocker approval recorded.
 
 ## Execution Observability Surface
 

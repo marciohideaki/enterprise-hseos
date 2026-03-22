@@ -6,6 +6,7 @@ const path = require('node:path');
 const {
   claimWorkItem,
   getMissionStatus,
+  processRetryQueue,
   reconcileMissionRuntime,
   retryMission,
 } = require('../tools/cli/lib/runtime/work-item-runner');
@@ -256,6 +257,81 @@ async function main() {
   assert.equal(retried.state_reason, 'manual-retry');
   assert.equal(retried.attempt_count, 2);
 
+  const automatedPath = path.join(projectDir, 'mission-auto.yaml');
+  await fs.writeFile(
+    automatedPath,
+    [
+      'id: mission-auto',
+      'title: Automated retry mission',
+      'status: ready',
+      'tracker: local',
+      'owner: platform-ops',
+      'priority: medium',
+      'mission_type: remediation',
+      'retry_class: transient',
+      'max_attempts: 3',
+      'context_query: automated retry governance',
+    ].join('\n'),
+    'utf8',
+  );
+  await claimWorkItem(automatedPath, { projectDir });
+  await fs.writeFile(
+    automatedPath,
+    [
+      'id: mission-auto',
+      'title: Automated retry mission',
+      'status: blocked',
+      'tracker: local',
+      'owner: platform-ops',
+      'priority: medium',
+      'mission_type: remediation',
+      'retry_class: transient',
+      'max_attempts: 3',
+      'context_query: automated retry governance',
+    ].join('\n'),
+    'utf8',
+  );
+  await reconcileMissionRuntime(projectDir);
+  const automationBeforeApproval = await processRetryQueue(projectDir);
+  assert.equal(automationBeforeApproval.discovered >= 1, true);
+  assert.equal(automationBeforeApproval.attempted, 0);
+  assert.equal(automationBeforeApproval.skipped.some((entry) => entry.missionId === 'mission-auto'), true);
+
+  const automationSnapshot = await buildOperationsSnapshot(projectDir);
+  const automationBlocker = automationSnapshot.blockers.find((blocker) => blocker.key === 'runtime:mission-auto');
+  assert.ok(automationBlocker);
+  await recordApprovalDecision(projectDir, {
+    action: 'approve',
+    actor: 'ops-lead',
+    blocker: automationBlocker,
+    blockerKey: automationBlocker.key,
+    reason: 'Approved governed queue retry',
+  });
+
+  await fs.writeFile(
+    automatedPath,
+    [
+      'id: mission-auto',
+      'title: Automated retry mission',
+      'status: ready',
+      'tracker: local',
+      'owner: platform-ops',
+      'priority: medium',
+      'mission_type: remediation',
+      'retry_class: transient',
+      'max_attempts: 3',
+      'context_query: automated retry governance',
+    ].join('\n'),
+    'utf8',
+  );
+  const automationResult = await processRetryQueue(projectDir, { limit: 1 });
+  assert.equal(automationResult.attempted, 1);
+  assert.equal(automationResult.succeeded.length, 1);
+  assert.equal(automationResult.succeeded[0].missionId, 'mission-auto');
+  const automationStatus = await getMissionStatus(projectDir, 'mission-auto');
+  assert.equal(automationStatus.status, 'claimed');
+  assert.equal(automationStatus.attempt_count, 2);
+
   const deniedWorkItemPath = path.join(projectDir, 'denied-mission.yaml');
   await fs.writeFile(
     path.join(projectDir, '.enterprise/policies/execution/foundation.policy.yaml'),
@@ -326,6 +402,7 @@ async function main() {
       .map((entry) => fs.readJson(path.join(evidenceDir, entry))),
   );
   assert.equal(finalEvents.some((event) => event.type === 'policy_denied' && event.missionId === 'mission-denied'), true);
+  assert.equal(finalEvents.some((event) => event.type === 'retry_queue_processed'), true);
 
   console.log('test-mission-execution-runtime: ok');
 }

@@ -480,6 +480,85 @@ async function retryMission(projectDir, missionId) {
   return nextState;
 }
 
+function isRetryableMission(run) {
+  return (
+    run.status === 'invalidated' &&
+    run.retry_policy?.retry_class &&
+    run.retry_policy.retry_class !== 'none' &&
+    Number.isInteger(run.retry_policy.max_attempts) &&
+    (run.attempt_count || 1) < run.retry_policy.max_attempts
+  );
+}
+
+async function processRetryQueue(projectDir, options = {}) {
+  const runtime = await resolveRuntimePaths(projectDir);
+  const snapshot = await buildOperationsSnapshot(runtime.projectDir);
+  const limit = Number.isInteger(options.limit) && options.limit > 0 ? options.limit : Number.POSITIVE_INFINITY;
+  const retryableRuns = snapshot.runs.filter(isRetryableMission);
+  const approvedQueue = retryableRuns
+    .map((run) => {
+      const blockerKey = `runtime:${run.id}`;
+      const blocker = snapshot.blockers.find((entry) => entry.key === blockerKey) || null;
+      return {
+        missionId: run.id,
+        blockerKey,
+        approved: blocker ? blocker.status === 'approved' : false,
+      };
+    })
+    .filter((entry) => entry.approved)
+    .slice(0, limit);
+
+  const result = {
+    discovered: retryableRuns.length,
+    eligible: approvedQueue.length,
+    attempted: 0,
+    succeeded: [],
+    failed: [],
+    skipped: retryableRuns
+      .filter((run) => !approvedQueue.some((entry) => entry.missionId === run.id))
+      .map((run) => ({
+        missionId: run.id,
+        blockerKey: `runtime:${run.id}`,
+        reason: 'awaiting-approval',
+      })),
+  };
+
+  for (const entry of approvedQueue) {
+    result.attempted += 1;
+    try {
+      const retried = await retryMission(runtime.projectDir, entry.missionId);
+      result.succeeded.push({
+        missionId: retried.id,
+        attemptCount: retried.attempt_count,
+        executionPhase: retried.execution_phase,
+      });
+    } catch (error) {
+      result.failed.push({
+        missionId: entry.missionId,
+        blockerKey: entry.blockerKey,
+        reason: error.message,
+      });
+    }
+  }
+
+  await writeEvidenceEvent(runtime, {
+    type: 'retry_queue_processed',
+    missionId: null,
+    source: 'run.retry-ready',
+    summary: 'Governed retry queue processed',
+    details: {
+      discovered: result.discovered,
+      eligible: result.eligible,
+      attempted: result.attempted,
+      succeeded: result.succeeded.map((entry) => entry.missionId),
+      failed: result.failed,
+      skipped: result.skipped,
+    },
+  });
+
+  return result;
+}
+
 async function reconcileMissionRuntime(projectDir) {
   const runtime = await resolveRuntimePaths(projectDir);
   await fs.ensureDir(runtime.workItemsDir);
@@ -539,6 +618,7 @@ async function reconcileMissionRuntime(projectDir) {
 module.exports = {
   claimWorkItem,
   getMissionStatus,
+  processRetryQueue,
   reconcileMissionRuntime,
   retryMission,
   resolveRuntimePaths,
