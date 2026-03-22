@@ -62,6 +62,17 @@ async function main() {
       'status: ready',
       'tracker: local',
       'directive: docs-refresh',
+      'owner: platform-ops',
+      'priority: critical',
+      'deadline_at: 2026-03-31T12:00:00Z',
+      'mission_type: remediation',
+      'labels:',
+      '  - runtime',
+      '  - governance',
+      'dependencies:',
+      '  - policy-baseline',
+      'retry_class: transient',
+      'max_attempts: 3',
       'context_query: policy enforcement traceability',
     ].join('\n'),
     'utf8',
@@ -86,6 +97,16 @@ async function main() {
   assert.equal(await fs.pathExists(claimed.workspacePath), true);
   assert.equal(claimed.policy_allowed, true);
   assert.equal(claimed.cortex_context_ids.length, 1);
+  assert.equal(claimed.owner, 'platform-ops');
+  assert.equal(claimed.priority, 'critical');
+  assert.equal(claimed.deadline_at, '2026-03-31T12:00:00.000Z');
+  assert.equal(claimed.mission_type, 'remediation');
+  assert.deepEqual(claimed.labels, ['runtime', 'governance']);
+  assert.deepEqual(claimed.dependencies, ['policy-baseline']);
+  assert.equal(claimed.retry_policy.retry_class, 'transient');
+  assert.equal(claimed.retry_policy.max_attempts, 3);
+  assert.equal(claimed.attempt_count, 1);
+  assert.equal(claimed.execution_phase, 'claimed');
   assert.equal(await fs.pathExists(path.join(claimed.workspacePath, 'context.json')), true);
   const claimedEvidenceFiles = await fs.readdir(evidenceDir);
   const claimedEvents = await Promise.all(
@@ -99,6 +120,8 @@ async function main() {
   assert.equal(status.id, 'mission-123');
   assert.equal(status.status, 'claimed');
   assert.equal(status.cortex_query, 'policy enforcement traceability');
+  assert.equal(status.owner, 'platform-ops');
+  assert.equal(status.priority, 'critical');
 
   await fs.writeFile(
     workItemPath,
@@ -116,6 +139,8 @@ async function main() {
 
   const invalidated = await getMissionStatus(projectDir, 'mission-123');
   assert.equal(invalidated.status, 'invalidated');
+  assert.equal(invalidated.execution_phase, 'invalidated');
+  assert.equal(invalidated.state_reason, 'source-status:cancelled');
 
   const deniedWorkItemPath = path.join(projectDir, 'denied-mission.yaml');
   await fs.writeFile(
