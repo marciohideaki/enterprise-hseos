@@ -97,6 +97,22 @@ async function buildOperationsSnapshot(projectDir = process.cwd()) {
   const overdueRuns = runs.filter(
     (run) => typeof run.deadline_at === 'string' && run.deadline_at.length > 0 && Date.parse(run.deadline_at) < Date.now(),
   );
+  const retryableInvalidations = runs.filter(
+    (run) =>
+      run.status === 'invalidated' &&
+      run.retry_policy?.retry_class &&
+      run.retry_policy.retry_class !== 'none' &&
+      Number.isInteger(run.retry_policy.max_attempts) &&
+      (run.attempt_count || 1) < run.retry_policy.max_attempts,
+  );
+  const exhaustedRetries = runs.filter(
+    (run) =>
+      run.status === 'invalidated' &&
+      run.retry_policy?.retry_class &&
+      run.retry_policy.retry_class !== 'none' &&
+      Number.isInteger(run.retry_policy.max_attempts) &&
+      (run.attempt_count || 1) >= run.retry_policy.max_attempts,
+  );
   const blockers = [
     ...invalidatedRuns.map((run) => ({
       type: 'runtime',
@@ -129,6 +145,7 @@ async function buildOperationsSnapshot(projectDir = process.cwd()) {
   });
   const approvedBlockers = blockers.filter((blocker) => blocker.status === 'approved');
   const openBlockers = blockers.filter((blocker) => blocker.status === 'open');
+  const runtimeBlockersAwaitingApproval = openBlockers.filter((blocker) => blocker.type === 'runtime');
   const runsByPriority = countBy(runs, (run) => run.priority || 'unspecified');
   const runsByMissionType = countBy(runs, (run) => run.mission_type || 'unspecified');
   const runsByOwner = countBy(runs, (run) => run.owner || 'unassigned');
@@ -145,6 +162,9 @@ async function buildOperationsSnapshot(projectDir = process.cwd()) {
       missionsWithImpact: missionsWithImpact.length,
       criticalRuns: criticalRuns.length,
       overdueRuns: overdueRuns.length,
+      retryableInvalidations: retryableInvalidations.length,
+      exhaustedRetries: exhaustedRetries.length,
+      runtimeBlockersAwaitingApproval: runtimeBlockersAwaitingApproval.length,
       approvalEvents: approvalEvents.length,
       approvedBlockers: approvedBlockers.length,
       openBlockers: openBlockers.length,
@@ -156,6 +176,8 @@ async function buildOperationsSnapshot(projectDir = process.cwd()) {
         runsByOwner,
         criticalRuns: criticalRuns.map((run) => run.id),
         overdueRuns: overdueRuns.map((run) => run.id),
+        retryableInvalidations: retryableInvalidations.map((run) => run.id),
+        exhaustedRetries: exhaustedRetries.map((run) => run.id),
       },
       governance: {
         runsByPolicyPack,
@@ -167,6 +189,7 @@ async function buildOperationsSnapshot(projectDir = process.cwd()) {
         blockers: {
           open: openBlockers.length,
           approved: approvedBlockers.length,
+          runtimeAwaitingApproval: runtimeBlockersAwaitingApproval.map((blocker) => blocker.id),
         },
       },
       cortex: {

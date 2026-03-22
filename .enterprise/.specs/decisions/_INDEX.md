@@ -14,6 +14,12 @@
 | [ADR-0001](./ADR-0001-hexagonal-architecture-mandatory.md) | Hexagonal Architecture as Default | Accepted | All stacks |
 | [ADR-0002](./ADR-0002-event-sourcing-opt-in.md) | Event Sourcing is Opt-In | Accepted | All stacks |
 | [ADR-0003](./ADR-0003-cqrs-with-relational-source-of-truth.md) | CQRS: Relational DB as Source of Truth, Non-Relational for Read Models | Accepted | All stacks |
+| [ADR-0007](./ADR-0007-integration-governance-branching-model.md) | Integration Governance Branching Model | Accepted | Governance, branching |
+| [ADR-0008](./ADR-0008-structural-execution-governance.md) | Structural Execution Governance | Accepted | Runtime governance |
+| [ADR-0009](./ADR-0009-mission-execution-runtime.md) | Mission Execution Runtime | Accepted | Runtime execution |
+| [ADR-0010](./ADR-0010-execution-observability-surface.md) | Execution Observability Surface | Accepted | Operational read models |
+| [ADR-0011](./ADR-0011-cortex-recall-intelligence.md) | CORTEX Recall Intelligence | Accepted | Context and memory |
+| [ADR-0012](./ADR-0012-runtime-baseline-realignment.md) | Runtime Baseline Realignment | Accepted | Runtime baseline, governance alignment |
 
 ---
 
