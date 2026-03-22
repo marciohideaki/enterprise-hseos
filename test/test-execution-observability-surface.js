@@ -21,12 +21,24 @@ async function main() {
     id: 'mission-a',
     title: 'Healthy mission',
     status: 'claimed',
+    owner: 'platform-ops',
+    priority: 'critical',
+    mission_type: 'remediation',
+    policy_pack: 'foundation',
+    deadline_at: '2026-03-21T00:00:00Z',
+    cortex_query: 'runtime policy',
+    cortex_trace: { query: 'runtime policy', results: [{ id: 'ctx-1' }] },
+    cortex_impact: { matches: [{ file: 'src/runtime.js', matchedTerms: ['runtime', 'policy'] }] },
   });
   await fs.writeJson(path.join(runtimeWorkItems, 'mission-b.json'), {
     id: 'mission-b',
     title: 'Blocked mission',
     status: 'invalidated',
     reconcile_reason: 'source-status:blocked',
+    owner: 'unassigned',
+    priority: 'medium',
+    mission_type: 'delivery',
+    policy_pack: 'foundation',
   });
   await fs.writeFile(path.join(runtimeEvidence, 'mission-a.log'), 'claimed mission-a\n', 'utf8');
   await fs.writeJson(path.join(runtimeEvidence, 'event-1.json'), {
@@ -49,7 +61,10 @@ async function main() {
   assert.equal(snapshot.summary.invalidatedRuns, 1);
   assert.equal(snapshot.summary.evidenceFiles, 2);
   assert.equal(snapshot.summary.policyDenials, 1);
-  assert.equal(snapshot.summary.missionsWithCortex, 0);
+  assert.equal(snapshot.summary.missionsWithCortex, 1);
+  assert.equal(snapshot.summary.missionsWithImpact, 1);
+  assert.equal(snapshot.summary.criticalRuns, 1);
+  assert.equal(snapshot.summary.overdueRuns, 1);
   assert.equal(snapshot.summary.approvalEvents, 0);
   assert.equal(snapshot.summary.approvedBlockers, 0);
   assert.equal(snapshot.summary.openBlockers, 3);
@@ -57,6 +72,11 @@ async function main() {
   assert.equal(snapshot.runs.length, 2);
   assert.equal(snapshot.evidence.events.length, 1);
   assert.equal(snapshot.blockers.every((blocker) => typeof blocker.key === 'string' && blocker.status === 'open'), true);
+  assert.equal(snapshot.posture.missionRuntime.runsByPriority.critical, 1);
+  assert.equal(snapshot.posture.missionRuntime.runsByMissionType.remediation, 1);
+  assert.equal(snapshot.posture.governance.runsByPolicyPack.foundation, 2);
+  assert.equal(snapshot.posture.cortex.missionsWithContext.includes('mission-a'), true);
+  assert.equal(snapshot.posture.cortex.impactCoverage[0].impactMatches, 1);
 
   console.log('test-execution-observability-surface: ok');
 }

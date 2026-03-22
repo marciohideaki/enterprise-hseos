@@ -92,6 +92,7 @@ HSEOS exposes operational read models for runtime posture and governance evidenc
 
 ```bash
 hseos ops summary
+hseos ops posture
 hseos ops runs
 hseos ops evidence
 hseos ops blockers
