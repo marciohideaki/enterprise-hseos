@@ -7,7 +7,10 @@ const {
   claimWorkItem,
   getMissionStatus,
   reconcileMissionRuntime,
+  retryMission,
 } = require('../tools/cli/lib/runtime/work-item-runner');
+const { recordApprovalDecision } = require('../tools/cli/lib/ops/approval-store');
+const { buildOperationsSnapshot } = require('../tools/cli/lib/ops/console-read-model');
 
 async function main() {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'hseos-mission-runtime-'));
@@ -150,6 +153,108 @@ async function main() {
   assert.equal(invalidated.status, 'invalidated');
   assert.equal(invalidated.execution_phase, 'invalidated');
   assert.equal(invalidated.state_reason, 'source-status:cancelled');
+
+  await assert.rejects(
+    retryMission(projectDir, 'mission-123'),
+    /source status "cancelled" is not retryable/,
+  );
+
+  const retryablePath = path.join(projectDir, 'mission-retry.yaml');
+  await fs.writeFile(
+    retryablePath,
+    [
+      'id: mission-retry',
+      'title: Retryable mission',
+      'status: ready',
+      'tracker: local',
+      'owner: platform-ops',
+      'priority: high',
+      'mission_type: remediation',
+      'retry_class: transient',
+      'max_attempts: 3',
+      'context_query: runtime retry traceability',
+    ].join('\n'),
+    'utf8',
+  );
+
+  const retryClaimed = await claimWorkItem(retryablePath, { projectDir });
+  assert.equal(retryClaimed.attempt_count, 1);
+
+  await fs.writeFile(
+    retryablePath,
+    [
+      'id: mission-retry',
+      'title: Retryable mission',
+      'status: blocked',
+      'tracker: local',
+      'owner: platform-ops',
+      'priority: high',
+      'mission_type: remediation',
+      'retry_class: transient',
+      'max_attempts: 3',
+      'context_query: runtime retry traceability',
+    ].join('\n'),
+    'utf8',
+  );
+  await reconcileMissionRuntime(projectDir);
+  await assert.rejects(
+    retryMission(projectDir, 'mission-retry'),
+    /source status "blocked" is not retryable/,
+  );
+
+  await fs.writeFile(
+    retryablePath,
+    [
+      'id: mission-retry',
+      'title: Retryable mission',
+      'status: ready',
+      'tracker: local',
+      'owner: platform-ops',
+      'priority: high',
+      'mission_type: remediation',
+      'retry_class: transient',
+      'max_attempts: 3',
+      'context_query: runtime retry traceability',
+    ].join('\n'),
+    'utf8',
+  );
+  await assert.rejects(
+    retryMission(projectDir, 'mission-retry'),
+    /requires blocker approval before retry/,
+  );
+
+  const blockedSnapshot = await buildOperationsSnapshot(projectDir);
+  const runtimeBlocker = blockedSnapshot.blockers.find((blocker) => blocker.key === 'runtime:mission-retry');
+  assert.ok(runtimeBlocker);
+  await recordApprovalDecision(projectDir, {
+    action: 'approve',
+    actor: 'ops-lead',
+    blocker: runtimeBlocker,
+    blockerKey: runtimeBlocker.key,
+    reason: 'Approved retry',
+  });
+
+  await fs.writeFile(
+    retryablePath,
+    [
+      'id: mission-retry',
+      'title: Retryable mission',
+      'status: ready',
+      'tracker: local',
+      'owner: platform-ops',
+      'priority: high',
+      'mission_type: remediation',
+      'retry_class: transient',
+      'max_attempts: 3',
+      'context_query: runtime retry traceability',
+    ].join('\n'),
+    'utf8',
+  );
+  const retried = await retryMission(projectDir, 'mission-retry');
+  assert.equal(retried.status, 'claimed');
+  assert.equal(retried.execution_phase, 'retry-claimed');
+  assert.equal(retried.state_reason, 'manual-retry');
+  assert.equal(retried.attempt_count, 2);
 
   const deniedWorkItemPath = path.join(projectDir, 'denied-mission.yaml');
   await fs.writeFile(

@@ -1,11 +1,11 @@
-const { claimWorkItem, getMissionStatus, reconcileMissionRuntime } = require('../lib/runtime/work-item-runner');
+const { claimWorkItem, getMissionStatus, reconcileMissionRuntime, retryMission } = require('../lib/runtime/work-item-runner');
 
 module.exports = {
   command: 'run',
   description: 'Claim, reconcile, and inspect HSEOS mission runtime work items',
   arguments: [
-    ['<action>', 'Runtime action: work-item, reconcile, or status'],
-    ['[target]', 'Work item path for work-item, or mission id for status'],
+    ['<action>', 'Runtime action: work-item, reconcile, retry, or status'],
+    ['[target]', 'Work item path for work-item, or mission id for retry/status'],
   ],
   options: [['--project-dir <path>', 'Project directory that owns the mission runtime data']],
   action: async (action, target, options) => {
@@ -26,6 +26,17 @@ module.exports = {
       if (normalizedAction === 'reconcile') {
         const result = await reconcileMissionRuntime(options.projectDir || process.cwd());
         console.log(`Mission runtime reconciled: ${result.updated} state file(s) updated`);
+        return;
+      }
+
+      if (normalizedAction === 'retry') {
+        if (!target) {
+          throw new Error('A mission id is required.');
+        }
+
+        const retried = await retryMission(options.projectDir || process.cwd(), target);
+        console.log(`Mission retried: ${retried.id}`);
+        console.log(`Attempt count: ${retried.attempt_count}`);
         return;
       }
 

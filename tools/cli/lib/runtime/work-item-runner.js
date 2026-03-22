@@ -1,6 +1,7 @@
 const fs = require('fs-extra');
 const path = require('node:path');
 const yaml = require('yaml');
+const { buildOperationsSnapshot } = require('../ops/console-read-model');
 const { resolveProjectPolicy, evaluateExecutionRequest } = require('../policy/engine');
 const { impactContext, retrieveContext } = require('../cortex/recall-intelligence');
 
@@ -361,6 +362,124 @@ async function getMissionStatus(projectDir, missionId) {
   return fs.readJson(statePath);
 }
 
+async function retryMission(projectDir, missionId) {
+  const runtime = await resolveRuntimePaths(projectDir);
+  const statePath = path.join(runtime.workItemsDir, `${missionId}.json`);
+
+  if (!(await fs.pathExists(statePath))) {
+    throw new Error(`Mission runtime state not found for "${missionId}"`);
+  }
+
+  const state = await fs.readJson(statePath);
+  if (state.status !== 'invalidated') {
+    throw new Error(`Mission "${missionId}" is not retryable from status "${state.status}"`);
+  }
+
+  const retryPolicy = state.retry_policy || { max_attempts: 1, retry_class: 'none' };
+  if (retryPolicy.retry_class === 'none') {
+    throw new Error(`Mission "${missionId}" does not allow retries`);
+  }
+
+  if ((state.attempt_count || 1) >= retryPolicy.max_attempts) {
+    throw new Error(`Mission "${missionId}" exceeded max_attempts=${retryPolicy.max_attempts}`);
+  }
+
+  if (!(await fs.pathExists(state.source_path))) {
+    throw new Error(`Mission "${missionId}" source work item is missing and cannot be retried`);
+  }
+
+  const item = await loadWorkItem(state.source_path);
+  if (!CLAIMABLE_STATUSES.has(item.status)) {
+    throw new Error(`Mission "${missionId}" source status "${item.status}" is not retryable`);
+  }
+
+  const snapshot = await buildOperationsSnapshot(runtime.projectDir);
+  const blockerKey = `runtime:${missionId}`;
+  const runtimeBlocker = snapshot.blockers.find((blocker) => blocker.key === blockerKey);
+  if (runtimeBlocker && runtimeBlocker.status !== 'approved') {
+    throw new Error(`Mission "${missionId}" requires blocker approval before retry: ${blockerKey}`);
+  }
+
+  const policyContext = await resolveProjectPolicy({
+    projectDir: runtime.projectDir,
+  });
+  const policyDecision = evaluateExecutionRequest(
+    buildMissionExecutionRequest(item, runtime.projectDir),
+    policyContext.policy,
+    policyContext.context,
+  );
+
+  if (!policyDecision.allowed) {
+    await writeEvidenceEvent(runtime, {
+      type: 'policy_denied',
+      missionId: item.id,
+      source: 'run.retry',
+      summary: `Mission retry denied for "${item.id}"`,
+      details: {
+        policyPack: policyContext.packName,
+        violations: policyDecision.violations,
+        warnings: policyDecision.warnings,
+      },
+    });
+    throw new Error(
+      `Structural execution governance denied retry for mission "${item.id}": ${policyDecision.violations.join('; ')}`,
+    );
+  }
+
+  const workspacePath = state.workspacePath || path.join(runtime.workspacesDir, item.id);
+  await writeWorkspaceManifest(workspacePath, item);
+  const cortexAttachment = await attachCortexContext(item, runtime, workspacePath);
+  const missionModel = deriveMissionModel(item);
+  const nextAttemptCount = (state.attempt_count || 1) + 1;
+  const retriedAt = new Date().toISOString();
+
+  const nextState = {
+    ...state,
+    title: item.title,
+    status: 'claimed',
+    source_status: item.status,
+    source_path: item.sourcePath,
+    tracker: item.tracker || state.tracker || 'unspecified',
+    directive: item.directive || null,
+    syndicate: item.syndicate || null,
+    circuit: item.circuit || null,
+    owner: missionModel.owner,
+    priority: missionModel.priority,
+    deadline_at: missionModel.deadline_at,
+    mission_type: missionModel.mission_type,
+    labels: missionModel.labels,
+    dependencies: missionModel.dependencies,
+    retry_policy: missionModel.retry_policy,
+    attempt_count: nextAttemptCount,
+    last_attempt_at: retriedAt,
+    execution_phase: 'retry-claimed',
+    state_reason: 'manual-retry',
+    workspacePath,
+    workspaceBranch: state.workspaceBranch || `mission/${item.id}`,
+    policy_pack: policyContext.packName,
+    policy_allowed: policyDecision.allowed,
+    policy_summary: policyDecision.summary,
+    retried_at: retriedAt,
+    ...cortexAttachment,
+  };
+
+  await fs.writeJson(statePath, nextState, { spaces: 2 });
+  await writeEvidenceEvent(runtime, {
+    type: 'mission_retried',
+    missionId: item.id,
+    source: 'run.retry',
+    summary: `Mission "${item.id}" retried`,
+    details: {
+      attemptCount: nextAttemptCount,
+      blockerKey,
+      policyPack: policyContext.packName,
+      cortexImpactMatches: nextState.cortex_impact?.matches?.length || 0,
+    },
+  });
+
+  return nextState;
+}
+
 async function reconcileMissionRuntime(projectDir) {
   const runtime = await resolveRuntimePaths(projectDir);
   await fs.ensureDir(runtime.workItemsDir);
@@ -421,5 +540,6 @@ module.exports = {
   claimWorkItem,
   getMissionStatus,
   reconcileMissionRuntime,
+  retryMission,
   resolveRuntimePaths,
 };
