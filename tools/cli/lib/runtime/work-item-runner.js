@@ -1,6 +1,8 @@
 const fs = require('fs-extra');
 const path = require('node:path');
 const yaml = require('yaml');
+const { resolveProjectPolicy, evaluateExecutionRequest } = require('../policy/engine');
+const { retrieveContext } = require('../cortex/recall-intelligence');
 
 const CLAIMABLE_STATUSES = new Set(['open', 'ready', 'queued', 'todo']);
 const INVALIDATING_STATUSES = new Set(['blocked', 'cancelled', 'closed', 'done']);
@@ -83,6 +85,64 @@ async function writeWorkspaceManifest(workspacePath, item) {
   await fs.writeFile(path.join(workspacePath, 'mission.yaml'), yaml.stringify(manifest), 'utf8');
 }
 
+function buildMissionExecutionRequest(item, projectDir) {
+  return {
+    actionType: 'work-item',
+    directory: projectDir,
+    modules: Array.isArray(item.modules) ? item.modules : [],
+    tools: Array.isArray(item.tools) ? item.tools : [],
+    customContentSources: [],
+    customContentIds: [],
+  };
+}
+
+function buildEvidenceFileName(type, missionId) {
+  const timestamp = new Date().toISOString().replaceAll(':', '').replaceAll('.', '');
+  const id = missionId || 'global';
+  return `${timestamp}-${type}-${id}.json`;
+}
+
+async function writeEvidenceEvent(runtime, event) {
+  await fs.ensureDir(runtime.evidenceDir);
+  const fileName = buildEvidenceFileName(event.type, event.missionId);
+  const payload = {
+    timestamp: new Date().toISOString(),
+    ...event,
+  };
+
+  await fs.writeJson(path.join(runtime.evidenceDir, fileName), payload, { spaces: 2 });
+  return payload;
+}
+
+function deriveCortexQuery(item) {
+  if (typeof item.context_query === 'string' && item.context_query.trim().length > 0) {
+    return item.context_query.trim();
+  }
+
+  return [item.title, item.directive, item.circuit, item.syndicate].filter(Boolean).join(' ');
+}
+
+async function attachCortexContext(item, runtime, workspacePath) {
+  const query = deriveCortexQuery(item);
+  const retrieval = await retrieveContext(query, {
+    layer: typeof item.context_layer === 'string' ? item.context_layer.trim() : undefined,
+    projectDir: runtime.projectDir,
+  });
+  const contextArtifact = {
+    query,
+    layer: item.context_layer || null,
+    retrieval,
+  };
+
+  await fs.writeJson(path.join(workspacePath, 'context.json'), contextArtifact, { spaces: 2 });
+
+  return {
+    cortex_query: query,
+    cortex_trace: retrieval,
+    cortex_context_ids: retrieval.results.map((entry) => entry.id),
+  };
+}
+
 async function claimWorkItem(inputPath, options = {}) {
   const item = await loadWorkItem(inputPath);
   if (!CLAIMABLE_STATUSES.has(item.status)) {
@@ -94,8 +154,36 @@ async function claimWorkItem(inputPath, options = {}) {
   await fs.ensureDir(runtime.workspacesDir);
   await fs.ensureDir(runtime.evidenceDir);
 
+  const policyContext = await resolveProjectPolicy({
+    projectDir: runtime.projectDir,
+  });
+  const policyDecision = evaluateExecutionRequest(
+    buildMissionExecutionRequest(item, runtime.projectDir),
+    policyContext.policy,
+    policyContext.context,
+  );
+
+  if (!policyDecision.allowed) {
+    await writeEvidenceEvent(runtime, {
+      type: 'policy_denied',
+      missionId: item.id,
+      source: 'run.work-item',
+      summary: `Mission claim denied for "${item.id}"`,
+      details: {
+        policyPack: policyContext.packName,
+        violations: policyDecision.violations,
+        warnings: policyDecision.warnings,
+      },
+    });
+    throw new Error(
+      `Structural execution governance denied mission "${item.id}": ${policyDecision.violations.join('; ')}`,
+    );
+  }
+
   const statePath = path.join(runtime.workItemsDir, `${item.id}.json`);
   const workspacePath = path.join(runtime.workspacesDir, item.id);
+  await writeWorkspaceManifest(workspacePath, item);
+  const cortexAttachment = await attachCortexContext(item, runtime, workspacePath);
 
   const state = {
     id: item.id,
@@ -109,17 +197,28 @@ async function claimWorkItem(inputPath, options = {}) {
     circuit: item.circuit || null,
     workspacePath,
     workspaceBranch: `mission/${item.id}`,
+    policy_pack: policyContext.packName,
+    policy_allowed: policyDecision.allowed,
+    policy_summary: policyDecision.summary,
     claimed_at: new Date().toISOString(),
     last_reconciled_at: null,
+    ...cortexAttachment,
   };
 
-  await writeWorkspaceManifest(workspacePath, item);
   await fs.writeJson(statePath, state, { spaces: 2 });
-  await fs.writeFile(
-    path.join(runtime.evidenceDir, `${item.id}.log`),
-    `claimed ${item.id} from ${item.sourcePath}\n`,
-    'utf8',
-  );
+  await fs.writeFile(path.join(runtime.evidenceDir, `${item.id}.log`), `claimed ${item.id} from ${item.sourcePath}\n`, 'utf8');
+  await writeEvidenceEvent(runtime, {
+    type: 'mission_claimed',
+    missionId: item.id,
+    source: 'run.work-item',
+    summary: `Mission "${item.id}" claimed`,
+    details: {
+      workspacePath,
+      policyPack: policyContext.packName,
+      cortexQuery: state.cortex_query,
+      cortexContextIds: state.cortex_context_ids,
+    },
+  });
 
   return state;
 }
@@ -149,6 +248,7 @@ async function reconcileMissionRuntime(projectDir) {
 
     const statePath = path.join(runtime.workItemsDir, entry);
     const state = await fs.readJson(statePath);
+    const previousStatus = state.status;
 
     if (await fs.pathExists(state.source_path)) {
       const sourceItem = await loadWorkItem(state.source_path);
@@ -164,6 +264,17 @@ async function reconcileMissionRuntime(projectDir) {
 
     state.last_reconciled_at = new Date().toISOString();
     await fs.writeJson(statePath, state, { spaces: 2 });
+    if (previousStatus !== 'invalidated' && state.status === 'invalidated') {
+      await writeEvidenceEvent(runtime, {
+        type: 'mission_invalidated',
+        missionId: state.id,
+        source: 'run.reconcile',
+        summary: `Mission "${state.id}" invalidated`,
+        details: {
+          reconcileReason: state.reconcile_reason || 'invalidated',
+        },
+      });
+    }
     updated += 1;
   }
 

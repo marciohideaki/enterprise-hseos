@@ -29,6 +29,15 @@ async function main() {
     reconcile_reason: 'source-status:blocked',
   });
   await fs.writeFile(path.join(runtimeEvidence, 'mission-a.log'), 'claimed mission-a\n', 'utf8');
+  await fs.writeJson(path.join(runtimeEvidence, 'event-1.json'), {
+    type: 'policy_denied',
+    missionId: 'mission-c',
+    timestamp: '2026-03-22T00:00:01Z',
+    summary: 'Mission claim denied',
+    details: {
+      violations: ['Path denied'],
+    },
+  });
   await fs.writeFile(
     path.join(validationDir, 'gate-20260322T000000.log'),
     ['[PASS] lint', '[FAIL] tests'].join('\n'),
@@ -38,9 +47,12 @@ async function main() {
   const snapshot = await buildOperationsSnapshot(tempRoot);
   assert.equal(snapshot.summary.totalRuns, 2);
   assert.equal(snapshot.summary.invalidatedRuns, 1);
-  assert.equal(snapshot.summary.evidenceFiles, 1);
-  assert.equal(snapshot.blockers.length, 2);
+  assert.equal(snapshot.summary.evidenceFiles, 2);
+  assert.equal(snapshot.summary.policyDenials, 1);
+  assert.equal(snapshot.summary.missionsWithCortex, 0);
+  assert.equal(snapshot.blockers.length, 3);
   assert.equal(snapshot.runs.length, 2);
+  assert.equal(snapshot.evidence.events.length, 1);
 
   console.log('test-execution-observability-surface: ok');
 }
