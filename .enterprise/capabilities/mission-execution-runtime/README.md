@@ -19,6 +19,7 @@ Use this capability when:
 - invalidate a claimed mission when its source becomes blocked or cancelled
 - retry a single invalidated mission after blocker approval
 - process a queue of approved retryable missions with `retry-ready`
+- launch a local orchestration session that feeds worker activity into the same HSEOS evidence model
 
 ## Commands
 
@@ -29,6 +30,10 @@ hseos run retry mission-id
 hseos run retry-ready
 hseos run retry-ready 5
 hseos run status mission-id
+hseos run orchestration create path/to/session-spec.yaml
+hseos run orchestration status session-id
+hseos run orchestration snapshot session-id
+hseos run worker list session-id
 ```
 
 ## Example Work Item
@@ -56,6 +61,7 @@ context_query: policy enforcement traceability
 - runtime is an execution adapter, not a replacement for governance or ADR authority
 - batch retry remains approval-gated and non-autonomous
 - runtime state is file-backed under `.hseos/data/runtime`
+- local orchestration sessions live beside mission runtime state under `.hseos/data/sessions`
 
 ## Troubleshooting
 

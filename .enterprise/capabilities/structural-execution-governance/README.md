@@ -26,6 +26,8 @@ Use this capability when:
 hseos policy validate .enterprise/policies/execution/foundation.policy.yaml
 hseos policy explain .enterprise/policies/execution/foundation.policy.yaml
 hseos policy explain --project-dir /path/to/project --request-file /path/to/request.yaml
+hseos governance events list
+hseos governance events inspect event-id
 ```
 
 ## Example Request Shape
@@ -50,6 +52,7 @@ mission:
 - governance is deterministic and local-first
 - policy does not create approvals; it only evaluates requests
 - current policy model does not provide a graphical authoring surface
+- runtime and install lifecycle events are governed signals, not ad hoc hook scripts
 
 ## Troubleshooting
 

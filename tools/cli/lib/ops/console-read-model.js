@@ -5,6 +5,9 @@ const {
   buildBlockerKey,
   readApprovalEvents,
 } = require('./approval-store');
+const { readInstallState } = require('../install/install-state');
+const { readGovernanceEvents } = require('../governance/events/store');
+const { listSessions } = require('../session/store');
 
 async function readJsonFiles(directory, suffix = '.json') {
   if (!(await fs.pathExists(directory))) {
@@ -88,6 +91,9 @@ async function buildOperationsSnapshot(projectDir = process.cwd()) {
   const approvalEvents = await readApprovalEvents(root);
   const approvalState = buildApprovalState(approvalEvents);
   const validations = await summarizeValidationLogs(validationDir);
+  const installState = await readInstallState(root);
+  const governanceEvents = await readGovernanceEvents(root);
+  const sessions = await listSessions(root);
 
   const invalidatedRuns = runs.filter((run) => run.status === 'invalidated');
   const policyDenials = evidenceEvents.filter((event) => event.type === 'policy_denied');
@@ -131,6 +137,13 @@ async function buildOperationsSnapshot(projectDir = process.cwd()) {
         id: validation.file,
         reason: 'validation-failure',
       })),
+    ...governanceEvents
+      .filter((event) => event.status === 'open' && ['warning', 'error'].includes(event.severity))
+      .map((event) => ({
+        type: 'governance-event',
+        id: event.id,
+        reason: event.summary || event.type,
+      })),
   ].map((blocker) => {
     const key = buildBlockerKey(blocker);
     const decision = approvalState.get(key);
@@ -150,6 +163,9 @@ async function buildOperationsSnapshot(projectDir = process.cwd()) {
   const runsByMissionType = countBy(runs, (run) => run.mission_type || 'unspecified');
   const runsByOwner = countBy(runs, (run) => run.owner || 'unassigned');
   const runsByPolicyPack = countBy(runs, (run) => run.policy_pack || 'unspecified');
+  const sessionsByState = countBy(sessions, (session) => session.state || 'unspecified');
+  const activeSessions = sessions.filter((session) => ['created', 'running'].includes(session.state));
+  const pendingGovernanceEvents = governanceEvents.filter((event) => event.status === 'open');
 
   return {
     summary: {
@@ -168,6 +184,10 @@ async function buildOperationsSnapshot(projectDir = process.cwd()) {
       approvalEvents: approvalEvents.length,
       approvedBlockers: approvedBlockers.length,
       openBlockers: openBlockers.length,
+      activeSessions: activeSessions.length,
+      totalSessions: sessions.length,
+      pendingGovernanceEvents: pendingGovernanceEvents.length,
+      installStatePresent: Boolean(installState),
     },
     posture: {
       missionRuntime: {
@@ -181,6 +201,7 @@ async function buildOperationsSnapshot(projectDir = process.cwd()) {
       },
       governance: {
         runsByPolicyPack,
+        eventsBySeverity: countBy(governanceEvents, (event) => event.severity || 'info'),
         policyDenials: policyDenials.map((event) => ({
           missionId: event.missionId || null,
           summary: event.summary,
@@ -203,13 +224,29 @@ async function buildOperationsSnapshot(projectDir = process.cwd()) {
             contextIds: Array.isArray(run.cortex_context_ids) ? run.cortex_context_ids.length : 0,
           })),
       },
+      localOrchestration: {
+        sessionsByState,
+        activeSessions: activeSessions.map((session) => session.id),
+      },
+      install: installState
+        ? {
+            targetAdapter: installState.targetAdapter,
+            selectedModules: installState.selectedModules || [],
+            selectedIdes: installState.selectedIdes || [],
+            health: installState.health || 'unknown',
+            sourceVersion: installState.sourceVersion || null,
+          }
+        : null,
     },
     runs,
+    sessions,
     evidence: {
       files: evidenceFiles.map((filePath) => path.basename(filePath)),
       events: evidenceEvents,
       validations,
     },
+    install: installState,
+    governanceEvents,
     approvals: {
       events: approvalEvents,
       current: [...approvalState.values()].sort((left, right) => String(right.timestamp).localeCompare(String(left.timestamp))),

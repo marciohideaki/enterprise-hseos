@@ -3,6 +3,7 @@ const prompts = require('../lib/prompts');
 const { Installer } = require('../installers/lib/core/installer');
 const { UI } = require('../lib/ui');
 const { buildExecutionRequest, evaluateExecutionRequest, resolveProjectPolicy } = require('../lib/policy/engine');
+const { captureInstalledState } = require('../lib/install/lifecycle');
 
 const installer = new Installer();
 const ui = new UI();
@@ -58,6 +59,7 @@ module.exports = {
       // Handle quick update separately
       if (config.actionType === 'quick-update') {
         const result = await installer.quickUpdate(config);
+        await captureInstalledState(config.directory || process.cwd()).catch(() => null);
         await prompts.log.success('Quick update complete!');
         await prompts.log.info(`Updated ${result.moduleCount} modules with preserved settings (${result.modules.join(', ')})`);
         process.exit(0);
@@ -66,6 +68,7 @@ module.exports = {
       // Handle compile agents separately
       if (config.actionType === 'compile-agents') {
         const result = await installer.compileAgents(config);
+        await captureInstalledState(config.directory || process.cwd()).catch(() => null);
         await prompts.log.info(`Recompiled ${result.agentCount} agents with customizations applied`);
         process.exit(0);
       }
@@ -80,6 +83,7 @@ module.exports = {
 
       // Check if installation succeeded
       if (result && result.success) {
+        await captureInstalledState(config.directory || process.cwd()).catch(() => null);
         process.exit(0);
       }
     } catch (error) {
