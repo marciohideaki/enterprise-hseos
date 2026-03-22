@@ -2,7 +2,7 @@ const fs = require('fs-extra');
 const path = require('node:path');
 const yaml = require('yaml');
 const { resolveProjectPolicy, evaluateExecutionRequest } = require('../policy/engine');
-const { retrieveContext } = require('../cortex/recall-intelligence');
+const { impactContext, retrieveContext } = require('../cortex/recall-intelligence');
 
 const CLAIMABLE_STATUSES = new Set(['open', 'ready', 'queued', 'todo']);
 const INVALIDATING_STATUSES = new Set(['blocked', 'cancelled', 'closed', 'done']);
@@ -197,15 +197,50 @@ function deriveCortexQuery(item) {
   return [item.title, item.directive, item.circuit, item.syndicate].filter(Boolean).join(' ');
 }
 
+function uniq(values) {
+  return [...new Set(values)];
+}
+
+function buildMissionContext(item) {
+  return {
+    type: normalizeOptionalString(item.mission_type) || 'delivery',
+    priority: normalizePriority(item.priority),
+    owner: normalizeOptionalString(item.owner),
+    labels: normalizeOptionalArray(item.labels),
+    dependencies: normalizeOptionalArray(item.dependencies),
+    impactTerms: normalizeOptionalArray(item.impact_terms),
+  };
+}
+
 async function attachCortexContext(item, runtime, workspacePath) {
   const query = deriveCortexQuery(item);
+  const missionContext = buildMissionContext(item);
+  const impact = await impactContext(query, {
+    projectDir: runtime.projectDir,
+    relatedTerms: [
+      missionContext.type,
+      missionContext.priority,
+      ...missionContext.labels,
+      ...missionContext.dependencies,
+      ...missionContext.impactTerms,
+    ],
+  });
   const retrieval = await retrieveContext(query, {
     layer: typeof item.context_layer === 'string' ? item.context_layer.trim() : undefined,
+    missionContext: {
+      ...missionContext,
+      impactTerms: uniq([
+        ...missionContext.impactTerms,
+        ...impact.matches.flatMap((entry) => entry.matchedTerms || []),
+      ]),
+    },
     projectDir: runtime.projectDir,
   });
   const contextArtifact = {
     query,
     layer: item.context_layer || null,
+    missionContext,
+    impact,
     retrieval,
   };
 
@@ -213,6 +248,7 @@ async function attachCortexContext(item, runtime, workspacePath) {
 
   return {
     cortex_query: query,
+    cortex_impact: impact,
     cortex_trace: retrieval,
     cortex_context_ids: retrieval.results.map((entry) => entry.id),
   };
@@ -304,6 +340,7 @@ async function claimWorkItem(inputPath, options = {}) {
       policyPack: policyContext.packName,
       cortexQuery: state.cortex_query,
       cortexContextIds: state.cortex_context_ids,
+      cortexImpactMatches: state.cortex_impact?.matches?.length || 0,
       priority: state.priority,
       owner: state.owner,
       deadlineAt: state.deadline_at,

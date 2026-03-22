@@ -5,6 +5,7 @@ const path = require('node:path');
 
 const {
   encodeContextFile,
+  impactContext,
   retrieveContext,
 } = require('../tools/cli/lib/cortex/recall-intelligence');
 
@@ -17,15 +18,33 @@ async function main() {
     projectDir: tempRoot,
     layer: 'scoped',
     title: 'Runtime governance context',
+    tags: ['policy', 'runtime', 'critical'],
   });
+  await fs.writeFile(path.join(tempRoot, 'runtime.js'), 'const runtimePolicy = "critical remediation policy";\n', 'utf8');
 
   const retrieval = await retrieveContext('policy traceability', {
+    missionContext: {
+      type: 'remediation',
+      priority: 'critical',
+      labels: ['runtime'],
+      dependencies: ['policy'],
+    },
     projectDir: tempRoot,
   });
 
   assert.equal(retrieval.results.length, 1);
   assert.equal(retrieval.results[0].layer, 'scoped');
   assert(retrieval.results[0].trace.score > 0);
+  assert.equal(retrieval.missionContext.priority, 'critical');
+
+  const impact = await impactContext('policy', {
+    projectDir: tempRoot,
+    relatedTerms: ['critical', 'remediation'],
+  });
+  const runtimeMatch = impact.matches.find((entry) => entry.file === 'runtime.js');
+  assert.ok(runtimeMatch);
+  assert(runtimeMatch.matchedTerms.includes('policy'));
+  assert(runtimeMatch.matchedTerms.includes('critical'));
 
   console.log('test-cortex-recall-intelligence: ok');
 }
