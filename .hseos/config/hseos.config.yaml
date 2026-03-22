@@ -111,6 +111,7 @@ flows:
 # Governance enforcement
 governance:
   constitution_required: true
+  execution_policy_pack: foundation
   adr_required_for:
     - architectural_change
     - breaking_change

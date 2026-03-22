@@ -5,6 +5,7 @@ const { CLIUtils } = require('./cli-utils');
 const { CustomHandler } = require('../installers/lib/custom/handler');
 const { ExternalModuleManager } = require('../installers/lib/modules/external-manager');
 const prompts = require('./prompts');
+const { filterVisibleTools, resolveProjectPolicy } = require('./policy/engine');
 
 // Separator class for visual grouping in select/multiselect prompts
 // Note: @clack/prompts doesn't support separators natively, they are filtered out
@@ -606,14 +607,24 @@ class UI {
 
     const preferredIdes = ideManager.getPreferredIdes();
     const otherIdes = ideManager.getOtherIdes();
+    const policyContext = await resolveProjectPolicy({
+      projectDir: projectDir || process.cwd(),
+    });
+    const preferredVisibility = filterVisibleTools(preferredIdes, policyContext.policy);
+    const otherVisibility = filterVisibleTools(otherIdes, policyContext.policy);
+    const hiddenToolIds = [...new Set([...preferredVisibility.hidden, ...otherVisibility.hidden])];
+    const filteredPreferredIdes = preferredVisibility.visible;
+    const filteredOtherIdes = otherVisibility.visible;
+    const filteredConfiguredIdes = configuredIdes.filter((id) => !hiddenToolIds.includes(id));
+
+    if (hiddenToolIds.length > 0) {
+      await prompts.log.info(`Structural execution governance hid tools from selection: ${hiddenToolIds.join(', ')}`);
+    }
 
     // Determine which configured IDEs are in "preferred" vs "other" categories
-    const configuredPreferred = configuredIdes.filter((id) => preferredIdes.some((ide) => ide.value === id));
-    const configuredOther = configuredIdes.filter((id) => otherIdes.some((ide) => ide.value === id));
-
     // Warn about previously configured tools that are no longer available
-    const allKnownValues = new Set([...preferredIdes, ...otherIdes].map((ide) => ide.value));
-    const unknownTools = configuredIdes.filter((id) => id && typeof id === 'string' && !allKnownValues.has(id));
+    const allKnownValues = new Set([...filteredPreferredIdes, ...filteredOtherIdes].map((ide) => ide.value));
+    const unknownTools = filteredConfiguredIdes.filter((id) => id && typeof id === 'string' && !allKnownValues.has(id));
     if (unknownTools.length > 0) {
       await prompts.log.warn(`Previously configured tools are no longer available: ${unknownTools.join(', ')}`);
     }
@@ -621,8 +632,8 @@ class UI {
     // ─────────────────────────────────────────────────────────────────────────────
     // UPGRADE PATH: If tools already configured, show all tools with configured at top
     // ─────────────────────────────────────────────────────────────────────────────
-    if (configuredIdes.length > 0) {
-      const allTools = [...preferredIdes, ...otherIdes];
+    if (filteredConfiguredIdes.length > 0) {
+      const allTools = [...filteredPreferredIdes, ...filteredOtherIdes];
 
       // Non-interactive: handle --tools and --yes flags before interactive prompt
       if (options.tools) {
@@ -635,25 +646,25 @@ class UI {
           .map((t) => t.trim())
           .filter(Boolean);
         await prompts.log.info(`Using tools from command-line: ${selectedIdes.join(', ')}`);
-        await this.displaySelectedTools(selectedIdes, preferredIdes, allTools);
+        await this.displaySelectedTools(selectedIdes, filteredPreferredIdes, allTools);
         return { ides: selectedIdes, skipIde: false };
       }
 
       if (options.yes) {
-        await prompts.log.info(`Non-interactive mode (--yes): keeping configured tools: ${configuredIdes.join(', ')}`);
-        await this.displaySelectedTools(configuredIdes, preferredIdes, allTools);
-        return { ides: configuredIdes, skipIde: false };
+        await prompts.log.info(`Non-interactive mode (--yes): keeping configured tools: ${filteredConfiguredIdes.join(', ')}`);
+        await this.displaySelectedTools(filteredConfiguredIdes, filteredPreferredIdes, allTools);
+        return { ides: filteredConfiguredIdes, skipIde: false };
       }
 
       // Sort: configured tools first, then preferred, then others
       const sortedTools = [
-        ...allTools.filter((ide) => configuredIdes.includes(ide.value)),
-        ...allTools.filter((ide) => !configuredIdes.includes(ide.value)),
+        ...allTools.filter((ide) => filteredConfiguredIdes.includes(ide.value)),
+        ...allTools.filter((ide) => !filteredConfiguredIdes.includes(ide.value)),
       ];
 
       const upgradeOptions = sortedTools.map((ide) => {
-        const isConfigured = configuredIdes.includes(ide.value);
-        const isPreferred = preferredIdes.some((p) => p.value === ide.value);
+        const isConfigured = filteredConfiguredIdes.includes(ide.value);
+        const isPreferred = filteredPreferredIdes.some((p) => p.value === ide.value);
         let label = ide.name;
         if (isPreferred) label += ' ⭐';
         if (isConfigured) label += ' ✅';
@@ -661,7 +672,7 @@ class UI {
       });
 
       // Sort initialValues to match display order
-      const sortedInitialValues = sortedTools.filter((ide) => configuredIdes.includes(ide.value)).map((ide) => ide.value);
+      const sortedInitialValues = sortedTools.filter((ide) => filteredConfiguredIdes.includes(ide.value)).map((ide) => ide.value);
 
       const upgradeSelected = await prompts.autocompleteMultiselect({
         message: 'Integrate with',
@@ -687,7 +698,7 @@ class UI {
       }
 
       // Display selected tools
-      await this.displaySelectedTools(selectedIdes, preferredIdes, allTools);
+      await this.displaySelectedTools(selectedIdes, filteredPreferredIdes, allTools);
 
       return { ides: selectedIdes, skipIde: false };
     }
@@ -695,10 +706,10 @@ class UI {
     // ─────────────────────────────────────────────────────────────────────────────
     // NEW INSTALL: Show all tools with search
     // ─────────────────────────────────────────────────────────────────────────────
-    const allTools = [...preferredIdes, ...otherIdes];
+    const allTools = [...filteredPreferredIdes, ...filteredOtherIdes];
 
     const allToolOptions = allTools.map((ide) => {
-      const isPreferred = preferredIdes.some((p) => p.value === ide.value);
+      const isPreferred = filteredPreferredIdes.some((p) => p.value === ide.value);
       let label = ide.name;
       if (isPreferred) label += ' ⭐';
       return {
@@ -721,15 +732,15 @@ class UI {
           .map((t) => t.trim())
           .filter(Boolean);
         await prompts.log.info(`Using tools from command-line: ${selectedIdes.join(', ')}`);
-        await this.displaySelectedTools(selectedIdes, preferredIdes, allTools);
+        await this.displaySelectedTools(selectedIdes, filteredPreferredIdes, allTools);
         return { ides: selectedIdes, skipIde: false };
       }
     } else if (options.yes) {
       // If --yes flag is set, skip tool prompt and use previously configured tools or empty
-      if (configuredIdes.length > 0) {
-        await prompts.log.info(`Using previously configured tools (--yes flag): ${configuredIdes.join(', ')}`);
-        await this.displaySelectedTools(configuredIdes, preferredIdes, allTools);
-        return { ides: configuredIdes, skipIde: false };
+      if (filteredConfiguredIdes.length > 0) {
+        await prompts.log.info(`Using previously configured tools (--yes flag): ${filteredConfiguredIdes.join(', ')}`);
+        await this.displaySelectedTools(filteredConfiguredIdes, filteredPreferredIdes, allTools);
+        return { ides: filteredConfiguredIdes, skipIde: false };
       } else {
         await prompts.log.info('Skipping tool configuration (--yes flag, no previous tools)');
         return { ides: [], skipIde: true };
@@ -740,7 +751,7 @@ class UI {
     const interactiveSelectedIdes = await prompts.autocompleteMultiselect({
       message: 'Integrate with:',
       options: allToolOptions,
-      initialValues: configuredIdes.length > 0 ? configuredIdes : undefined,
+      initialValues: filteredConfiguredIdes.length > 0 ? filteredConfiguredIdes : undefined,
       required: false,
       maxItems: 8,
     });
