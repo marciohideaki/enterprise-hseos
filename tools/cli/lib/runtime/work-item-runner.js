@@ -6,6 +6,8 @@ const { retrieveContext } = require('../cortex/recall-intelligence');
 
 const CLAIMABLE_STATUSES = new Set(['open', 'ready', 'queued', 'todo']);
 const INVALIDATING_STATUSES = new Set(['blocked', 'cancelled', 'closed', 'done']);
+const ALLOWED_PRIORITIES = new Set(['low', 'medium', 'high', 'critical']);
+const ALLOWED_RETRY_CLASSES = new Set(['none', 'transient', 'manual', 'policy']);
 
 async function loadYamlIfExists(filePath) {
   if (!(await fs.pathExists(filePath))) {
@@ -70,7 +72,68 @@ async function loadWorkItem(inputPath) {
   };
 }
 
+function normalizeOptionalString(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function normalizeOptionalArray(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((entry) => typeof entry === 'string' && entry.trim().length > 0).map((entry) => entry.trim());
+}
+
+function normalizePriority(value) {
+  const normalized = String(value || 'medium').trim().toLowerCase();
+  return ALLOWED_PRIORITIES.has(normalized) ? normalized : 'medium';
+}
+
+function normalizeDeadline(value) {
+  const normalized = normalizeOptionalString(value);
+  if (!normalized) {
+    return null;
+  }
+
+  const parsed = new Date(normalized);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+}
+
+function normalizeRetryPolicy(item) {
+  const maxAttempts = Number.isInteger(item.max_attempts) ? item.max_attempts : Number.parseInt(item.max_attempts || '1', 10);
+  const retryClass = String(item.retry_class || 'none').trim().toLowerCase();
+
+  return {
+    max_attempts: Number.isInteger(maxAttempts) && maxAttempts > 0 ? maxAttempts : 1,
+    retry_class: ALLOWED_RETRY_CLASSES.has(retryClass) ? retryClass : 'none',
+  };
+}
+
+function deriveMissionModel(item) {
+  const retryPolicy = normalizeRetryPolicy(item);
+
+  return {
+    owner: normalizeOptionalString(item.owner),
+    priority: normalizePriority(item.priority),
+    deadline_at: normalizeDeadline(item.deadline_at),
+    mission_type: normalizeOptionalString(item.mission_type) || 'delivery',
+    labels: normalizeOptionalArray(item.labels),
+    dependencies: normalizeOptionalArray(item.dependencies),
+    retry_policy: retryPolicy,
+    attempt_count: 1,
+    last_attempt_at: new Date().toISOString(),
+    execution_phase: 'claimed',
+    state_reason: 'claimed-from-source',
+  };
+}
+
 async function writeWorkspaceManifest(workspacePath, item) {
+  const missionModel = deriveMissionModel(item);
   const manifest = {
     id: item.id,
     title: item.title,
@@ -79,6 +142,12 @@ async function writeWorkspaceManifest(workspacePath, item) {
     directive: item.directive || null,
     syndicate: item.syndicate || null,
     circuit: item.circuit || null,
+    owner: missionModel.owner,
+    priority: missionModel.priority,
+    deadline_at: missionModel.deadline_at,
+    mission_type: missionModel.mission_type,
+    labels: missionModel.labels,
+    dependencies: missionModel.dependencies,
   };
 
   await fs.ensureDir(workspacePath);
@@ -184,6 +253,7 @@ async function claimWorkItem(inputPath, options = {}) {
   const workspacePath = path.join(runtime.workspacesDir, item.id);
   await writeWorkspaceManifest(workspacePath, item);
   const cortexAttachment = await attachCortexContext(item, runtime, workspacePath);
+  const missionModel = deriveMissionModel(item);
 
   const state = {
     id: item.id,
@@ -195,6 +265,17 @@ async function claimWorkItem(inputPath, options = {}) {
     directive: item.directive || null,
     syndicate: item.syndicate || null,
     circuit: item.circuit || null,
+    owner: missionModel.owner,
+    priority: missionModel.priority,
+    deadline_at: missionModel.deadline_at,
+    mission_type: missionModel.mission_type,
+    labels: missionModel.labels,
+    dependencies: missionModel.dependencies,
+    retry_policy: missionModel.retry_policy,
+    attempt_count: missionModel.attempt_count,
+    last_attempt_at: missionModel.last_attempt_at,
+    execution_phase: missionModel.execution_phase,
+    state_reason: missionModel.state_reason,
     workspacePath,
     workspaceBranch: `mission/${item.id}`,
     policy_pack: policyContext.packName,
@@ -217,6 +298,9 @@ async function claimWorkItem(inputPath, options = {}) {
       policyPack: policyContext.packName,
       cortexQuery: state.cortex_query,
       cortexContextIds: state.cortex_context_ids,
+      priority: state.priority,
+      owner: state.owner,
+      deadlineAt: state.deadline_at,
     },
   });
 
@@ -256,11 +340,18 @@ async function reconcileMissionRuntime(projectDir) {
       if (INVALIDATING_STATUSES.has(sourceItem.status)) {
         state.status = 'invalidated';
         state.reconcile_reason = `source-status:${sourceItem.status}`;
+        state.execution_phase = 'invalidated';
+        state.state_reason = state.reconcile_reason;
       }
     } else {
       state.status = 'invalidated';
       state.reconcile_reason = 'source-missing';
+      state.execution_phase = 'invalidated';
+      state.state_reason = state.reconcile_reason;
     }
+
+    const nextAttemptCount = Number.isInteger(state.attempt_count) ? state.attempt_count : 1;
+    state.attempt_count = nextAttemptCount;
 
     state.last_reconciled_at = new Date().toISOString();
     await fs.writeJson(statePath, state, { spaces: 2 });
@@ -272,6 +363,8 @@ async function reconcileMissionRuntime(projectDir) {
         summary: `Mission "${state.id}" invalidated`,
         details: {
           reconcileReason: state.reconcile_reason || 'invalidated',
+          retryPolicy: state.retry_policy || null,
+          attemptCount: state.attempt_count,
         },
       });
     }
