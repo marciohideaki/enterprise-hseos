@@ -58,3 +58,14 @@ post-install-notes:
 ```
 
 When a user selects `auto`, they see both CLI and MCP instructions. When they select `none`, nothing is shown.
+
+## Execution Observability Surface
+
+HSEOS exposes operational read models for runtime posture and governance evidence:
+
+```bash
+hseos ops summary
+hseos ops runs
+hseos ops evidence
+hseos ops blockers
+```
