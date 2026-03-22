@@ -22,12 +22,19 @@ This playbook explains how the Wave 1 runtime capabilities fit together as one H
 4. CORTEX provides layered context and retrieval traceability for execution.
 5. The observability surface gives operators a read-first view of posture and blockers.
 
-## Wave Boundary
+## Current Baseline
 
-Wave 1 establishes primitives and read models. It does not yet introduce:
+The baseline now extends beyond the initial Wave 1 primitive set:
+
+- mission runtime includes richer mission metadata and governed retry
+- structural execution governance evaluates mission context as well as structural selections
+- the observability surface exposes approvals and a unified operational posture
+- CORTEX attaches mission-scoped recall and impact traces during mission claim
+
+The baseline still does not introduce:
 
 - a full graphical control plane
-- broad mutation APIs for operators
+- autonomous retry scheduling
 - a semantic/vector knowledge backend
 
 ## Naming Rule
