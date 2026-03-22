@@ -91,3 +91,14 @@ hseos ops runs
 hseos ops evidence
 hseos ops blockers
 ```
+
+## CORTEX Recall Intelligence
+
+HSEOS exposes native context encoding and retrieval:
+
+```bash
+hseos cortex encode docs/context.md --layer scoped --title "Domain context"
+hseos cortex retrieve "policy enforcement"
+hseos cortex trace "policy enforcement"
+hseos cortex impact "validateAgentFile"
+```
