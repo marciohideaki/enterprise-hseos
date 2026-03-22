@@ -1,5 +1,10 @@
 const fs = require('fs-extra');
 const path = require('node:path');
+const {
+  buildApprovalState,
+  buildBlockerKey,
+  readApprovalEvents,
+} = require('./approval-store');
 
 async function readJsonFiles(directory, suffix = '.json') {
   if (!(await fs.pathExists(directory))) {
@@ -65,6 +70,8 @@ async function buildOperationsSnapshot(projectDir = process.cwd()) {
   const runs = await readJsonFiles(runtimeWorkItems);
   const evidenceFiles = await listFiles(runtimeEvidence);
   const evidenceEvents = await readEvidenceEvents(runtimeEvidence);
+  const approvalEvents = await readApprovalEvents(root);
+  const approvalState = buildApprovalState(approvalEvents);
   const validations = await summarizeValidationLogs(validationDir);
 
   const invalidatedRuns = runs.filter((run) => run.status === 'invalidated');
@@ -88,7 +95,20 @@ async function buildOperationsSnapshot(projectDir = process.cwd()) {
         id: validation.file,
         reason: 'validation-failure',
       })),
-  ];
+  ].map((blocker) => {
+    const key = buildBlockerKey(blocker);
+    const decision = approvalState.get(key);
+    const approved = decision?.action === 'approve';
+
+    return {
+      ...blocker,
+      key,
+      status: approved ? 'approved' : 'open',
+      approval: approved ? decision : null,
+    };
+  });
+  const approvedBlockers = blockers.filter((blocker) => blocker.status === 'approved');
+  const openBlockers = blockers.filter((blocker) => blocker.status === 'open');
 
   return {
     summary: {
@@ -98,12 +118,19 @@ async function buildOperationsSnapshot(projectDir = process.cwd()) {
       validationLogs: validations.length,
       policyDenials: policyDenials.length,
       missionsWithCortex: missionsWithCortex.length,
+      approvalEvents: approvalEvents.length,
+      approvedBlockers: approvedBlockers.length,
+      openBlockers: openBlockers.length,
     },
     runs,
     evidence: {
       files: evidenceFiles.map((filePath) => path.basename(filePath)),
       events: evidenceEvents,
       validations,
+    },
+    approvals: {
+      events: approvalEvents,
+      current: [...approvalState.values()].sort((left, right) => String(right.timestamp).localeCompare(String(left.timestamp))),
     },
     blockers,
   };
