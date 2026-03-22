@@ -7,7 +7,7 @@ module.exports = {
   command: 'ops',
   description: 'Inspect HSEOS execution observability read models',
   arguments: [
-    ['<action>', 'Operational action: summary, runs, evidence, blockers, approvals, approve, or revoke'],
+    ['<action>', 'Operational action: summary, posture, runs, evidence, blockers, approvals, approve, or revoke'],
     ['[target]', 'Optional blocker key for approve/revoke actions'],
   ],
   options: [
@@ -23,6 +23,12 @@ module.exports = {
       if (normalizedAction === 'summary') {
         const snapshot = await buildOperationsSnapshot(projectDir);
         console.log(JSON.stringify(snapshot.summary, null, 2));
+        return;
+      }
+
+      if (normalizedAction === 'posture') {
+        const snapshot = await buildOperationsSnapshot(projectDir);
+        console.log(JSON.stringify(snapshot.posture, null, 2));
         return;
       }
 

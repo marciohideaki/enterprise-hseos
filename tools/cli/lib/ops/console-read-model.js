@@ -61,6 +61,21 @@ async function readEvidenceEvents(evidenceDir) {
   return events.sort((left, right) => String(right.timestamp).localeCompare(String(left.timestamp)));
 }
 
+function countBy(records, selector) {
+  const counts = {};
+
+  for (const record of records) {
+    const key = selector(record);
+    if (!key) {
+      continue;
+    }
+
+    counts[key] = (counts[key] || 0) + 1;
+  }
+
+  return counts;
+}
+
 async function buildOperationsSnapshot(projectDir = process.cwd()) {
   const root = path.resolve(projectDir);
   const runtimeWorkItems = path.join(root, '.hseos/data/runtime/work-items');
@@ -77,6 +92,11 @@ async function buildOperationsSnapshot(projectDir = process.cwd()) {
   const invalidatedRuns = runs.filter((run) => run.status === 'invalidated');
   const policyDenials = evidenceEvents.filter((event) => event.type === 'policy_denied');
   const missionsWithCortex = runs.filter((run) => run.cortex_query && run.cortex_trace);
+  const missionsWithImpact = runs.filter((run) => Array.isArray(run.cortex_impact?.matches) && run.cortex_impact.matches.length > 0);
+  const criticalRuns = runs.filter((run) => run.priority === 'critical');
+  const overdueRuns = runs.filter(
+    (run) => typeof run.deadline_at === 'string' && run.deadline_at.length > 0 && Date.parse(run.deadline_at) < Date.now(),
+  );
   const blockers = [
     ...invalidatedRuns.map((run) => ({
       type: 'runtime',
@@ -109,6 +129,10 @@ async function buildOperationsSnapshot(projectDir = process.cwd()) {
   });
   const approvedBlockers = blockers.filter((blocker) => blocker.status === 'approved');
   const openBlockers = blockers.filter((blocker) => blocker.status === 'open');
+  const runsByPriority = countBy(runs, (run) => run.priority || 'unspecified');
+  const runsByMissionType = countBy(runs, (run) => run.mission_type || 'unspecified');
+  const runsByOwner = countBy(runs, (run) => run.owner || 'unassigned');
+  const runsByPolicyPack = countBy(runs, (run) => run.policy_pack || 'unspecified');
 
   return {
     summary: {
@@ -118,9 +142,44 @@ async function buildOperationsSnapshot(projectDir = process.cwd()) {
       validationLogs: validations.length,
       policyDenials: policyDenials.length,
       missionsWithCortex: missionsWithCortex.length,
+      missionsWithImpact: missionsWithImpact.length,
+      criticalRuns: criticalRuns.length,
+      overdueRuns: overdueRuns.length,
       approvalEvents: approvalEvents.length,
       approvedBlockers: approvedBlockers.length,
       openBlockers: openBlockers.length,
+    },
+    posture: {
+      missionRuntime: {
+        runsByPriority,
+        runsByMissionType,
+        runsByOwner,
+        criticalRuns: criticalRuns.map((run) => run.id),
+        overdueRuns: overdueRuns.map((run) => run.id),
+      },
+      governance: {
+        runsByPolicyPack,
+        policyDenials: policyDenials.map((event) => ({
+          missionId: event.missionId || null,
+          summary: event.summary,
+          violations: event.details?.violations || [],
+        })),
+        blockers: {
+          open: openBlockers.length,
+          approved: approvedBlockers.length,
+        },
+      },
+      cortex: {
+        missionsWithContext: missionsWithCortex.map((run) => run.id),
+        missionsWithImpact: missionsWithImpact.map((run) => run.id),
+        impactCoverage: runs
+          .filter((run) => Array.isArray(run.cortex_impact?.matches))
+          .map((run) => ({
+            missionId: run.id,
+            impactMatches: run.cortex_impact.matches.length,
+            contextIds: Array.isArray(run.cortex_context_ids) ? run.cortex_context_ids.length : 0,
+          })),
+      },
     },
     runs,
     evidence: {
