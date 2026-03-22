@@ -80,6 +80,7 @@ HSEOS can claim queued work items into a native runtime state layer:
 ```bash
 hseos run work-item path/to/work-item.yaml
 hseos run reconcile
+hseos run retry mission-id
 hseos run status mission-id
 ```
 
