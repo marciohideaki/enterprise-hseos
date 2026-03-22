@@ -34,7 +34,7 @@
     "prepare": "command -v husky >/dev/null 2>&1 && husky || exit 0",
     "test": "npm run test:schemas && npm run test:runtime && npm run test:ops && npm run test:cortex && npm run validate:schemas && npm run lint",
     "test:runtime": "node test/test-mission-execution-runtime.js",
-    "test:ops": "node test/test-execution-observability-surface.js",
+    "test:ops": "node test/test-execution-observability-surface.js && node test/test-ops-approval-actions.js",
     "test:cortex": "node test/test-cortex-recall-intelligence.js",
     "test:schemas": "node test/test-agent-schema.js",
     "validate:schemas": "node tools/validate-agent-schema.js"
