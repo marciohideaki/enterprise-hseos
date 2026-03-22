@@ -90,6 +90,9 @@ hseos ops summary
 hseos ops runs
 hseos ops evidence
 hseos ops blockers
+hseos ops approvals
+hseos ops approve policy:mission-id --reason "Approved override" --actor "ops-lead"
+hseos ops revoke policy:mission-id --reason "Approval withdrawn" --actor "ops-lead"
 ```
 
 ## CORTEX Recall Intelligence

@@ -50,9 +50,13 @@ async function main() {
   assert.equal(snapshot.summary.evidenceFiles, 2);
   assert.equal(snapshot.summary.policyDenials, 1);
   assert.equal(snapshot.summary.missionsWithCortex, 0);
+  assert.equal(snapshot.summary.approvalEvents, 0);
+  assert.equal(snapshot.summary.approvedBlockers, 0);
+  assert.equal(snapshot.summary.openBlockers, 3);
   assert.equal(snapshot.blockers.length, 3);
   assert.equal(snapshot.runs.length, 2);
   assert.equal(snapshot.evidence.events.length, 1);
+  assert.equal(snapshot.blockers.every((blocker) => typeof blocker.key === 'string' && blocker.status === 'open'), true);
 
   console.log('test-execution-observability-surface: ok');
 }
