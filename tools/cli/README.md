@@ -62,6 +62,8 @@ When a user selects `auto`, they see both CLI and MCP instructions. When they se
 ## Structural Execution Governance
 
 HSEOS can validate and explain execution policy packs before installer mutation occurs.
+Policy packs can also enforce mission-aware constraints such as mission type,
+priority, owner, and deadline requirements for runtime execution.
 
 Examples:
 

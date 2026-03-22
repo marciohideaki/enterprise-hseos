@@ -29,6 +29,7 @@ async function main() {
   });
 
   assert.equal(allowedDecision.allowed, true, 'foundation policy should allow a normal install request');
+  assert.equal(allowedDecision.summary.mission, null);
 
   const restrictivePolicy = {
     ...policy,
@@ -64,6 +65,29 @@ async function main() {
     'hidden tools must be removed from interactive selection surfaces',
   );
   assert.deepEqual(visibility.hidden, ['rovodev']);
+
+  const missionAwareDecision = evaluateExecutionRequest(
+    {
+      ...request,
+      actionType: 'work-item',
+      mission: {
+        type: 'remediation',
+        priority: 'critical',
+        owner: null,
+        deadlineAt: null,
+      },
+    },
+    policy,
+    {
+      projectRoot: '/tmp/hseos-project',
+      frameworkRoot: path.join(__dirname, '..'),
+      cwd: process.cwd(),
+    },
+  );
+
+  assert.equal(missionAwareDecision.allowed, false, 'critical missions without owner and deadline must be denied');
+  assert(missionAwareDecision.violations.some((entry) => entry.includes('requires an owner')));
+  assert(missionAwareDecision.violations.some((entry) => entry.includes('requires a deadline')));
 
   console.log('test-installation-components: ok');
 }

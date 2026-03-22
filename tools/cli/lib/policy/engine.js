@@ -74,6 +74,10 @@ function validatePolicy(policy) {
     errors.push('Policy field "budgets" must be an object');
   }
 
+  if ('missions' in policy && typeof policy.missions !== 'object') {
+    errors.push('Policy field "missions" must be an object');
+  }
+
   return {
     valid: errors.length === 0,
     errors,
@@ -205,7 +209,86 @@ function buildExecutionRequest(config) {
       .map((source) => source?.path)
       .filter((sourcePath) => typeof sourcePath === 'string' && sourcePath.trim().length > 0),
     customContentIds: normalizeStringArray(config.customContent?.selectedModuleIds),
+    mission: config.mission && typeof config.mission === 'object' ? config.mission : null,
   };
+}
+
+function normalizeMissionRequest(mission) {
+  if (!mission || typeof mission !== 'object') {
+    return null;
+  }
+
+  const normalizedType = typeof mission.type === 'string' && mission.type.trim().length > 0 ? mission.type.trim() : null;
+  const normalizedPriority =
+    typeof mission.priority === 'string' && mission.priority.trim().length > 0 ? mission.priority.trim().toLowerCase() : null;
+  const normalizedOwner = typeof mission.owner === 'string' && mission.owner.trim().length > 0 ? mission.owner.trim() : null;
+  const normalizedDeadline =
+    typeof mission.deadlineAt === 'string' && mission.deadlineAt.trim().length > 0 ? mission.deadlineAt.trim() : null;
+
+  return {
+    type: normalizedType,
+    priority: normalizedPriority,
+    owner: normalizedOwner,
+    deadlineAt: normalizedDeadline,
+  };
+}
+
+function applyMissionRules(mission, rules, violations) {
+  if (!mission) {
+    return null;
+  }
+
+  const types = rules.types || {};
+  const priorities = rules.priorities || {};
+  const owners = rules.owners || {};
+  const requireOwnerForPriorities = new Set(normalizeStringArray(rules.require_owner_for_priorities).map((entry) => entry.toLowerCase()));
+  const requireDeadlineForPriorities = new Set(normalizeStringArray(rules.require_deadline_for_priorities).map((entry) => entry.toLowerCase()));
+
+  if (mission.type) {
+    const allowedTypes = normalizeStringArray(types.allow);
+    const deniedTypes = new Set(normalizeStringArray(types.deny));
+    if (allowedTypes.length > 0 && !allowedTypes.includes(mission.type)) {
+      violations.push(`Mission type "${mission.type}" is outside the allowed list`);
+    }
+
+    if (deniedTypes.has(mission.type)) {
+      violations.push(`Mission type "${mission.type}" is denied by policy`);
+    }
+  }
+
+  if (mission.priority) {
+    const allowedPriorities = normalizeStringArray(priorities.allow).map((entry) => entry.toLowerCase());
+    const deniedPriorities = new Set(normalizeStringArray(priorities.deny).map((entry) => entry.toLowerCase()));
+    if (allowedPriorities.length > 0 && !allowedPriorities.includes(mission.priority)) {
+      violations.push(`Mission priority "${mission.priority}" is outside the allowed list`);
+    }
+
+    if (deniedPriorities.has(mission.priority)) {
+      violations.push(`Mission priority "${mission.priority}" is denied by policy`);
+    }
+
+    if (requireOwnerForPriorities.has(mission.priority) && !mission.owner) {
+      violations.push(`Mission priority "${mission.priority}" requires an owner`);
+    }
+
+    if (requireDeadlineForPriorities.has(mission.priority) && !mission.deadlineAt) {
+      violations.push(`Mission priority "${mission.priority}" requires a deadline`);
+    }
+  }
+
+  if (mission.owner) {
+    const allowedOwners = normalizeStringArray(owners.allow);
+    const deniedOwners = new Set(normalizeStringArray(owners.deny));
+    if (allowedOwners.length > 0 && !allowedOwners.includes(mission.owner)) {
+      violations.push(`Mission owner "${mission.owner}" is outside the allowed list`);
+    }
+
+    if (deniedOwners.has(mission.owner)) {
+      violations.push(`Mission owner "${mission.owner}" is denied by policy`);
+    }
+  }
+
+  return mission;
 }
 
 function evaluateExecutionRequest(request, policy, context) {
@@ -213,6 +296,7 @@ function evaluateExecutionRequest(request, policy, context) {
   const warnings = [];
   const modules = applySelectionRules(request.modules, policy.modules || {}, 'Module', violations);
   const tools = applySelectionRules(request.tools, policy.tools || {}, 'Tool', violations);
+  const mission = applyMissionRules(normalizeMissionRequest(request.mission), policy.missions || {}, violations);
 
   applyPathRules([request.directory, ...request.customContentSources], policy.paths || {}, context, violations);
 
@@ -248,6 +332,7 @@ function evaluateExecutionRequest(request, policy, context) {
       tools,
       hiddenTools: normalizeStringArray(policy.tools?.hidden),
       customContentSources: request.customContentSources,
+      mission,
       failClosed: policy.defaults?.fail_closed !== false,
     },
   };
@@ -269,6 +354,7 @@ function explainPolicy(policy) {
   const paths = policy.paths || {};
   const customContent = policy.custom_content || {};
   const budgets = policy.budgets || {};
+  const missions = policy.missions || {};
   const failClosed = policy.defaults?.fail_closed === false ? 'no' : 'yes';
 
   return [
@@ -284,6 +370,12 @@ function explainPolicy(policy) {
     `Denied path patterns: ${normalizeStringArray(paths.denied_patterns).join(', ') || 'none declared'}`,
     `Custom content allowed: ${customContent.allow === false ? 'no' : 'yes'}`,
     `Custom content max sources: ${customContent.max_sources ?? 'unbounded'}`,
+    `Allowed mission types: ${normalizeStringArray(missions.types?.allow).join(', ') || 'any'}`,
+    `Denied mission types: ${normalizeStringArray(missions.types?.deny).join(', ') || 'none'}`,
+    `Allowed mission priorities: ${normalizeStringArray(missions.priorities?.allow).join(', ') || 'any'}`,
+    `Denied mission priorities: ${normalizeStringArray(missions.priorities?.deny).join(', ') || 'none'}`,
+    `Priority requires owner: ${normalizeStringArray(missions.require_owner_for_priorities).join(', ') || 'none'}`,
+    `Priority requires deadline: ${normalizeStringArray(missions.require_deadline_for_priorities).join(', ') || 'none'}`,
     `Max total selections: ${budgets.max_total_selections ?? 'unbounded'}`,
   ].join('\n');
 }
