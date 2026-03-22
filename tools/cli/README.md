@@ -70,3 +70,13 @@ hseos policy validate .enterprise/policies/execution/foundation.policy.yaml
 hseos policy explain .enterprise/policies/execution/foundation.policy.yaml
 hseos policy explain --project-dir /path/to/project --request-file /path/to/request.yaml
 ```
+
+## Mission Execution Runtime
+
+HSEOS can claim queued work items into a native runtime state layer:
+
+```bash
+hseos run work-item path/to/work-item.yaml
+hseos run reconcile
+hseos run status mission-id
+```

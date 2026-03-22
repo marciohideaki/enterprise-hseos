@@ -13,6 +13,7 @@ paths:
   skills: ".hseos/skills"
   teams: ".hseos/teams"
   data: ".hseos/data"
+  runtime: ".hseos/data/runtime"
   governance_root: ".enterprise"
   specs: ".enterprise/.specs"
   constitution: ".enterprise/.specs/constitution"
