@@ -3,6 +3,7 @@ const fs = require('fs-extra');
 const path = require('node:path');
 
 const LAYERS = ['immediate', 'scoped', 'archive'];
+const IMPACT_EXCLUDED_DIRS = new Set(['.git', 'node_modules', '.hseos', '.logs', '.worktrees']);
 
 async function resolveCortexRoot(projectDir) {
   const root = path.resolve(projectDir || process.cwd());
@@ -149,7 +150,7 @@ async function impactContext(term, options = {}) {
   async function walk(currentDir) {
     const entries = await fs.readdir(currentDir, { withFileTypes: true });
     for (const entry of entries) {
-      if (entry.name === 'node_modules' || entry.name === '.git') {
+      if (IMPACT_EXCLUDED_DIRS.has(entry.name)) {
         continue;
       }
 

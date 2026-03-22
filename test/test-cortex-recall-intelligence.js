@@ -21,6 +21,8 @@ async function main() {
     tags: ['policy', 'runtime', 'critical'],
   });
   await fs.writeFile(path.join(tempRoot, 'runtime.js'), 'const runtimePolicy = "critical remediation policy";\n', 'utf8');
+  await fs.ensureDir(path.join(tempRoot, '.hseos'));
+  await fs.writeFile(path.join(tempRoot, '.hseos', 'generated.txt'), 'policy critical remediation generated artifact', 'utf8');
 
   const retrieval = await retrieveContext('policy traceability', {
     missionContext: {
@@ -45,6 +47,7 @@ async function main() {
   assert.ok(runtimeMatch);
   assert(runtimeMatch.matchedTerms.includes('policy'));
   assert(runtimeMatch.matchedTerms.includes('critical'));
+  assert.equal(impact.matches.some((entry) => entry.file.startsWith('.hseos/')), false);
 
   console.log('test-cortex-recall-intelligence: ok');
 }
