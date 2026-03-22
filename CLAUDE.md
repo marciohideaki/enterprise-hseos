@@ -75,7 +75,7 @@ See full rules: `scripts/governance/quality-gates.sh`
 - **NEVER** merge pull requests — human approval required
 - **NEVER** add `Co-Authored-By` trailers
 - **NEVER** mention AI tools in commit messages (Claude, Codex, GPT, LLM...)
-- All work in `feature/*` branches; each task in `task/*` branches
+- All work in `feature/*` branches cut from `develop`; each task in `task/*` branches
 
 ### Task Flow
 ```bash
