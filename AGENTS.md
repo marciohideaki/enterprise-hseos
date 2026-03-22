@@ -13,7 +13,7 @@
 - **NEVER** use `--no-verify` to bypass hooks
 - **NEVER** run `git push --force` without explicit user authorization
 - **NEVER** delete branches without explicit user authorization
-- All work in `feature/*` branches; each task in its own `task/*` branch
+- All work in `feature/*` branches cut from `develop`; each task in its own `task/*` branch
 
 ### Task Isolation Flow
 ```bash

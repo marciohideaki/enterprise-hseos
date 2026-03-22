@@ -116,6 +116,9 @@ The Enterprise Overlay:
 - does NOT reinterpret architecture decisions
 - DOES enforce that standards are respected and not bypassed
 
+Repository integration governance is also structural: HSEOS now uses an explicit `develop` integration
+branch per ADR-0007, while keeping the stable branch isolated from in-flight capability waves.
+
 ---
 
 ## 7. Decision Management (ADR)
