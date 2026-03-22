@@ -32,8 +32,9 @@
     "lint": "eslint . --ext .js,.cjs,.mjs,.yaml --max-warnings=0",
     "lint:fix": "eslint . --ext .js,.cjs,.mjs,.yaml --fix",
     "prepare": "command -v husky >/dev/null 2>&1 && husky || exit 0",
-    "test": "npm run test:schemas && npm run test:runtime && npm run validate:schemas && npm run lint",
+    "test": "npm run test:schemas && npm run test:runtime && npm run test:ops && npm run validate:schemas && npm run lint",
     "test:runtime": "node test/test-mission-execution-runtime.js",
+    "test:ops": "node test/test-execution-observability-surface.js",
     "test:schemas": "node test/test-agent-schema.js",
     "validate:schemas": "node tools/validate-agent-schema.js"
   },

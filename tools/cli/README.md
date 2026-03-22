@@ -80,3 +80,14 @@ hseos run work-item path/to/work-item.yaml
 hseos run reconcile
 hseos run status mission-id
 ```
+
+## Execution Observability Surface
+
+HSEOS exposes operational read models for runtime posture and governance evidence:
+
+```bash
+hseos ops summary
+hseos ops runs
+hseos ops evidence
+hseos ops blockers
+```
