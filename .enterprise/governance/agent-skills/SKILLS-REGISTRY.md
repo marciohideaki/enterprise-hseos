@@ -207,6 +207,36 @@ version: "1.3"
 
 ---
 
+### gitops-deploy
+**Description:** Atualiza image tags no platform-gitops para deploy de serviços no Kubernetes. Detecta se manifests existem, faz bump de tag no kustomization.yaml, valida com Kustomize, cria branch e commit seguindo governança GitOps. Redireciona para gitops-new-project ou gitops-add-service se manifests não existirem.
+**Load when:** usuário pede deploy, publicação, bump de imagem ou promoção de versão para qualquer ambiente Kubernetes.
+**Triggers:** `deploy`, `publicar`, `publique`, `sobe no k8s`, `bump de imagem`, `bump de tag`, `atualizar tag`, `promover versão`, `promover imagem`, `lançar versão`, `fazer release`, `colocar no ar`, `nova versão`, `rollout`, `nova imagem`, `mandar pro cluster`, `mandar pra produção`, `publish`, `image tag`, `kustomization`, `newTag`
+**Tier 1:** `.enterprise/governance/agent-skills/gitops-deploy/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/gitops-deploy/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+
+---
+
+### gitops-add-service
+**Description:** Adiciona novo serviço (Deployment + Service + ConfigMap) a um projeto existente no platform-gitops. Cria manifests no base, atualiza todos os overlays dev/hmg/stg/prod, valida e commita em branch de feature.
+**Load when:** usuário quer adicionar um novo serviço, worker, microsserviço ou deployment a um projeto já existente no Kubernetes.
+**Triggers:** `adicionar serviço`, `novo serviço`, `novo deployment`, `novo worker`, `novo microsserviço`, `novo microserviço`, `criar manifests`, `criar yaml k8s`, `novo container`, `novo pod`, `subir novo serviço`, `criar deployment`, `add service`, `new service`, `new deployment`
+**Tier 1:** `.enterprise/governance/agent-skills/gitops-add-service/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/gitops-add-service/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+
+---
+
+### gitops-new-project
+**Description:** Cria estrutura GitOps completa para novo projeto no platform-gitops — namespaces, infra (StatefulSets), services (Deployments), overlays para todos os ambientes, ArgoCD Applications e AppProject, e bootstrap script.
+**Load when:** usuário quer criar um projeto completamente novo no Kubernetes / GitOps, sem estrutura prévia no platform-gitops.
+**Triggers:** `novo projeto`, `novo projeto no k8s`, `criar projeto`, `bootstrapar projeto`, `bootstrap k8s`, `onboarding k8s`, `scaffoldar projeto`, `scaffold projeto`, `registrar projeto no argocd`, `adicionar projeto ao gitops`, `iniciar projeto no kubernetes`, `subir projeto do zero`, `criar estrutura gitops`, `new project`, `bootstrap project`, `scaffold project`
+**Tier 1:** `.enterprise/governance/agent-skills/gitops-new-project/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/gitops-new-project/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+
+---
+
 ## Decision Table
 
 | Task context | Skills to load | Tier |
@@ -245,6 +275,10 @@ version: "1.3"
 | Test adequacy audit | test-coverage | 2 |
 | Full observability audit | observability-compliance | 2 |
 | General coding (no trigger match) | none | — |
+| Deploy / publicar / bump de imagem no k8s | gitops-deploy | 1 |
+| Manifests não existem ao tentar deploy | gitops-deploy (redireciona) → gitops-new-project ou gitops-add-service | 1 |
+| Adicionar novo serviço a projeto k8s existente | gitops-add-service | 1 |
+| Criar novo projeto no Kubernetes / GitOps | gitops-new-project | 1 |
 
 ---
 
