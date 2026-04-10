@@ -151,30 +151,43 @@ gate_code() {
   info "Gate 3: Code Quality"
 
   local gate_passed=true
+  local staged_files
+  staged_files=$(git -C "${REPO_ROOT}" diff --cached --name-only 2>/dev/null || true)
 
   # Node.js / JavaScript
   if [[ -f "${REPO_ROOT}/package.json" ]]; then
-    info "Detected Node.js project"
-
-    # Lint
-    if [[ -f "${REPO_ROOT}/package.json" ]] && \
-       node -e "const p=require('${REPO_ROOT}/package.json'); process.exit(p.scripts?.lint ? 0 : 1)" 2>/dev/null; then
-      if (cd "${REPO_ROOT}" && npm run lint --silent 2>>"$LOG_FILE"); then
-        pass "Lint: passed"
-      else
-        record_fail "Lint: FAILED"
-        gate_passed=false
-      fi
+    local run_node_checks=false
+    if [[ -z "${staged_files}" ]]; then
+      run_node_checks=true
+    elif echo "${staged_files}" | grep -qE '^(src/|tools/|package\.json|package-lock\.json|eslint\.config\..*|tsconfig.*|scripts/.*\.(js|ts|mjs|cjs)$)'; then
+      run_node_checks=true
     fi
 
-    # Tests
-    if node -e "const p=require('${REPO_ROOT}/package.json'); process.exit(p.scripts?.test ? 0 : 1)" 2>/dev/null; then
-      if (cd "${REPO_ROOT}" && npm test --silent 2>>"$LOG_FILE"); then
-        pass "Tests: passed"
-      else
-        record_fail "Tests: FAILED"
-        gate_passed=false
+    if [[ "${run_node_checks}" == "true" ]]; then
+      info "Detected Node.js project changes in scope"
+
+      # Lint
+      if [[ -f "${REPO_ROOT}/package.json" ]] && \
+         node -e "const p=require('${REPO_ROOT}/package.json'); process.exit(p.scripts?.lint ? 0 : 1)" 2>/dev/null; then
+        if (cd "${REPO_ROOT}" && npm run lint --silent 2>>"$LOG_FILE"); then
+          pass "Lint: passed"
+        else
+          record_fail "Lint: FAILED"
+          gate_passed=false
+        fi
       fi
+
+      # Tests
+      if node -e "const p=require('${REPO_ROOT}/package.json'); process.exit(p.scripts?.test ? 0 : 1)" 2>/dev/null; then
+        if (cd "${REPO_ROOT}" && npm test --silent 2>>"$LOG_FILE"); then
+          pass "Tests: passed"
+        else
+          record_fail "Tests: FAILED"
+          gate_passed=false
+        fi
+      fi
+    else
+      info "No staged Node.js runtime changes — skipping lint/tests"
     fi
   fi
 
@@ -192,13 +205,16 @@ gate_code() {
   fi
 
   # Schema validation (HSEOS-specific)
-  if [[ -f "${REPO_ROOT}/tools/validate-agent-schema.js" ]]; then
+  if [[ -f "${REPO_ROOT}/tools/validate-agent-schema.js" ]] && \
+     ([[ -z "${staged_files}" ]] || echo "${staged_files}" | grep -qE '^(src/hsm/agents/|tools/schema/|tools/validate-agent-schema\.js|src/utility/agent-components/)'); then
     if (cd "${REPO_ROOT}" && node tools/validate-agent-schema.js &>>"$LOG_FILE"); then
       pass "Agent schema validation: passed"
     else
       record_fail "Agent schema validation: FAILED"
       gate_passed=false
     fi
+  else
+    info "No staged agent-schema-sensitive changes — skipping schema validation"
   fi
 
   $gate_passed
@@ -270,6 +286,43 @@ gate_commit_hygiene() {
 }
 
 # =============================================================================
+# Gate 6: Workflow publication trigger policy
+# =============================================================================
+gate_workflow_publication() {
+  info "Gate 6: Workflow Publication Triggers"
+
+  local workflow_file="${REPO_ROOT}/.github/workflows/docs-image.yml"
+  if [[ ! -f "${workflow_file}" ]]; then
+    info "No docs-image workflow found — skipping publication trigger gate"
+    return
+  fi
+
+  local required_patterns=(
+    "push:"
+    "workflow_dispatch:"
+    "- main"
+    "- develop"
+    "- 'feature/**'"
+    "- 'hotfix/**'"
+    "- 'release/**'"
+  )
+
+  local missing=0
+  for pattern in "${required_patterns[@]}"; do
+    if grep -Fq -- "${pattern}" "${workflow_file}"; then
+      pass "docs-image policy contains: ${pattern}"
+    else
+      record_fail "docs-image policy missing: ${pattern}"
+      missing=$((missing + 1))
+    fi
+  done
+
+  if [[ "${missing}" -eq 0 ]]; then
+    pass "Workflow publication trigger policy is compliant"
+  fi
+}
+
+# =============================================================================
 # Main execution
 # =============================================================================
 main() {
@@ -279,12 +332,14 @@ main() {
     doc|documentation)
       gate_governance_structure
       gate_documentation
+      gate_workflow_publication
       ;;
     code)
       gate_governance_structure
       gate_code
       gate_security
       gate_commit_hygiene
+      gate_workflow_publication
       ;;
     auto|full|*)
       gate_governance_structure
@@ -292,6 +347,7 @@ main() {
       gate_code
       gate_security
       gate_commit_hygiene
+      gate_workflow_publication
       ;;
   esac
 
