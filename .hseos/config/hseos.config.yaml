@@ -86,6 +86,34 @@ agents:
     authority: ".enterprise/agents/quill"
     phase: knowledge
 
+  - code: ORBIT
+    name: Flow Conductor
+    role: Multi-agent Delivery Orchestration
+    file: ".hseos/agents/orbit.agent.yaml"
+    authority: ".enterprise/agents/orbit"
+    phase: orchestration
+
+  - code: FORGE
+    name: Release Engineer
+    role: DevOps, CI Artifact Promotion & Publication
+    file: ".hseos/agents/forge.agent.yaml"
+    authority: ".enterprise/agents/forge"
+    phase: release
+
+  - code: KUBE
+    name: Kubernetes Delivery Operator
+    role: GitOps Manifest Update, PR Lifecycle & ArgoCD Sync Orchestration
+    file: ".hseos/agents/kube.agent.yaml"
+    authority: ".enterprise/agents/kube"
+    phase: gitops
+
+  - code: SABLE
+    name: Runtime Operator
+    role: Rollout Verification, Pod Health & Runtime Smoke
+    file: ".hseos/agents/sable.agent.yaml"
+    authority: ".enterprise/agents/sable"
+    phase: operations
+
 # Standard engineering flow
 flows:
   standard:
@@ -107,6 +135,30 @@ flows:
   solo_fast:
     - phase: autonomy
       agents: [BLITZ]
+
+  epic_delivery:
+    - phase: orchestration
+      agents: [ORBIT]
+    - phase: discovery
+      agents: [NYX]
+    - phase: planning
+      agents: [VECTOR, PRISM]
+    - phase: solutioning
+      agents: [CIPHER]
+    - phase: coordination
+      agents: [RAZOR]
+    - phase: execution
+      agents: [GHOST]
+    - phase: validation
+      agents: [GLITCH]
+    - phase: release
+      agents: [FORGE]
+    - phase: gitops
+      agents: [KUBE]
+    - phase: operations
+      agents: [SABLE]
+    - phase: knowledge
+      agents: [QUILL]
 
 # Governance enforcement
 governance:

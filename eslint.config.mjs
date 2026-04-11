@@ -18,6 +18,8 @@ export default [
       'build/**',
       // Website uses ESM/Astro - separate linting ecosystem
       'website/**',
+      // build-docs imports from website (excluded above) — skip standalone tool
+      'tools/build-docs.mjs',
       // Gitignored patterns
       'z*/**', // z-samples, z1, z2, etc.
       '.claude/**',
