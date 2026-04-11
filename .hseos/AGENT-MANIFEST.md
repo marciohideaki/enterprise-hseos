@@ -86,6 +86,34 @@ version: "1.0"
 - **Authority:** `.enterprise/agents/quill/authority.md`
 - **Activate when:** documentation, API docs, developer guides, knowledge capture
 
+### ORBIT — Flow Conductor
+- **Code:** ORBIT
+- **Domain:** Orchestration
+- **Definition:** `.hseos/agents/orbit.agent.yaml`
+- **Authority:** `.enterprise/agents/orbit/authority.md`
+- **Activate when:** end-to-end delivery orchestration, readiness validation, workflow resume, artifact gatekeeping
+
+### FORGE — Release Engineer
+- **Code:** FORGE
+- **Domain:** DevOps
+- **Definition:** `.hseos/agents/forge.agent.yaml`
+- **Authority:** `.enterprise/agents/forge/authority.md`
+- **Activate when:** artifact publication, CI-backed promotion, registry verification, release evidence capture
+
+### KUBE — Kubernetes Delivery Operator
+- **Code:** KUBE
+- **Domain:** GitOps
+- **Definition:** `.hseos/agents/kube.agent.yaml`
+- **Authority:** `.enterprise/agents/kube/authority.md`
+- **Activate when:** platform-gitops manifest update, image tag bump, PR creation, ArgoCD sync monitoring, deployment orchestration between FORGE and SABLE
+
+### SABLE — Runtime Operator
+- **Code:** SABLE
+- **Domain:** Operations
+- **Definition:** `.hseos/agents/sable.agent.yaml`
+- **Authority:** `.enterprise/agents/sable/authority.md`
+- **Activate when:** rollout verification, pod health checks, runtime smoke tests, operational readiness after KUBE deployment
+
 ---
 
 ## Standard Flow
@@ -98,6 +126,12 @@ NYX → VECTOR → PRISM → CIPHER → RAZOR → GHOST → GLITCH → QUILL
 
 ```
 BLITZ (end-to-end)
+```
+
+## Epic Delivery Flow
+
+```
+ORBIT → NYX → VECTOR → PRISM → CIPHER → RAZOR → GHOST → GLITCH → FORGE → KUBE → SABLE → QUILL
 ```
 
 ---

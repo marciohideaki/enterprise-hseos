@@ -1,0 +1,32 @@
+workflow_id: "epic-delivery"
+run_id: ""
+workflow_name: ""
+owner: ""
+epic_id: ""
+epic_title: ""
+repo_root: "."
+profile: "core"
+started_at: ""
+last_updated: ""
+status: "initialized"
+current_phase: ""
+current_agent: ""
+phases_completed: []
+phase_index: 0
+phases: []
+stories: []
+artifacts:
+  branch: ""
+  git_sha: ""
+  image_tags: {}
+  deploy_revision: ""
+  pr_url: ""
+gates:
+  readiness: ""
+  build: ""
+  lint: ""
+  tests: ""
+  publish: ""
+  runtime: ""
+notes: []
+history: []

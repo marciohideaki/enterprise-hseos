@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # HSEOS Commit-Msg Hook — commit message validation
+[ -z "${BASH_VERSION-}" ] && exec bash "$0" "$@"
 set -euo pipefail
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 bash "${REPO_ROOT}/scripts/governance/validate-commit-msg.sh" "$1"

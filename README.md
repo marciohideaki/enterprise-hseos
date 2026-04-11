@@ -42,6 +42,10 @@ HSEOS is the **Hideaki Engineering Framework** — an institutional operating sy
 | `PRISM` | Interface Weaver | UX Research & Interaction Design | Experience |
 | `BLITZ` | Solo Protocol | Full-stack Solo Dev Fast Flow | Autonomy |
 | `QUILL` | Knowledge Scribe | Technical Documentation | Knowledge |
+| `ORBIT` | Flow Conductor | Multi-agent Delivery Orchestration | Orchestration |
+| `FORGE` | Release Engineer | DevOps, CI Artifact Promotion & Publication | DevOps |
+| `KUBE` | Kubernetes Delivery Operator | GitOps Manifest Update, PR & ArgoCD Sync | GitOps |
+| `SABLE` | Runtime Operator | Rollout Verification & Runtime Smoke | Operations |
 
 ---
 
@@ -97,6 +101,25 @@ NYX (discover) → VECTOR (plan) → CIPHER (architect) → PRISM (ux)
 ```
 
 For solo/fast delivery: activate **BLITZ** directly.
+
+### Orchestrated Epic Delivery
+
+```
+ORBIT (preflight + readiness)
+→ NYX / VECTOR / PRISM / CIPHER / RAZOR / GHOST / GLITCH
+→ FORGE (build + push image to registry)
+→ KUBE (update platform-gitops manifests + PR + ArgoCD sync)
+→ SABLE (rollout health + pod verification + smoke)
+→ QUILL (evidence)
+```
+
+Use `hseos workflow list` to inspect registered workflows and
+`hseos workflow validate <workflow-id> --repo <path> --profile <core|release|runtime|full>`
+to detect missing predecessor steps, artifacts, and tooling before execution.
+Then use `hseos workflow init`, `status`, and `advance` to persist the active phase, responsible agent, and execution evidence.
+For epic execution, use `story-status`, `story-commit`, and `gate` to keep the HSEOS run-state aligned with BMAD story progress and quality gates.
+If work began outside HSEOS, use `sync` or `resume` to reconstruct the active handoff from BMAD planning and sprint artifacts.
+For long-running execution after preparation, use `batch` to generate phase packets and logs for the remaining phases.
 
 ---
 

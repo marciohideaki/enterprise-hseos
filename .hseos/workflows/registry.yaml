@@ -1,0 +1,403 @@
+version: 1
+workflows:
+  - id: delivery-readiness
+    name: Delivery Readiness
+    owner: ORBIT
+    entrypoint: ".hseos/workflows/delivery-readiness/workflow.md"
+    description: "Validate predecessor steps, mandatory artifacts, and tooling before any orchestrated delivery flow starts."
+    profiles: [core, release, runtime, full]
+    state:
+      runs_dir: ".hseos/runs/delivery-readiness"
+    phases:
+      - id: baseline
+        name: Governance Baseline
+        agent: ORBIT
+        outputs:
+          - "Governance and HSEOS baseline validated"
+      - id: planning
+        name: Planning Surface
+        agent: ORBIT
+        outputs:
+          - "Required planning artifacts identified"
+      - id: tooling
+        name: Tooling Surface
+        agent: ORBIT
+        outputs:
+          - "Toolchain readiness reported"
+    checks:
+      - id: repo-git
+        kind: git_repo
+        required: true
+        profiles: [core, release, runtime, full]
+        prepare: "Initialize git and ensure the target repository is the execution root."
+      - id: hseos-config
+        kind: any_path_exists
+        required: true
+        profiles: [core, release, runtime, full]
+        paths:
+          - ".hseos/config/hseos.config.yaml"
+          - "CLAUDE.md"
+        prepare: "Install or scaffold HSEOS governance in the target repository before using orchestrated flows."
+      - id: constitution
+        kind: any_path_exists
+        required: true
+        profiles: [core, release, runtime, full]
+        paths:
+          - ".enterprise/.specs/constitution/Enterprise-Constitution.md"
+          - ".enterprise/policies/pre-flight-checks.md"
+        prepare: "Create or import the enterprise governance baseline."
+      - id: planning-artifacts
+        kind: any_path_exists
+        required: true
+        profiles: [core, full]
+        paths:
+          - ".bmad-output/planning-artifacts/prd.md"
+          - ".bmad-output/planning-artifacts/epics-v3.md"
+          - ".bmad-output/planning-artifacts/epics-v2.md"
+          - ".bmad-output/planning-artifacts/epics.md"
+        prepare: "Run discovery/planning first: NYX, VECTOR, and the BMAD planning flows."
+      - id: sprint-status
+        kind: path_exists
+        required: false
+        profiles: [core, full]
+        path: ".bmad-output/implementation-artifacts/sprint-status.yaml"
+        prepare: "Create sprint status tracking before story execution to enable resume and traceability."
+      - id: package-lock
+        kind: any_path_exists
+        required: false
+        profiles: [core, release, runtime, full]
+        paths:
+          - "package.json"
+          - "pyproject.toml"
+          - "go.mod"
+          - "pom.xml"
+          - "composer.json"
+        prepare: "Ensure the repository exposes its buildable application surface."
+      - id: git-cli
+        kind: command_exists
+        required: true
+        profiles: [core, release, runtime, full]
+        command: "git"
+        prepare: "Install git and make it available in PATH."
+      - id: gh-cli
+        kind: command_exists
+        required: false
+        profiles: [release, full]
+        command: "gh"
+        prepare: "Install GitHub CLI if PR creation or workflow introspection is required."
+      - id: docker-cli
+        kind: command_exists
+        required: false
+        profiles: [release, full]
+        command: "docker"
+        prepare: "Install Docker or provide a CI pipeline that publishes artifacts."
+      - id: kubectl-cli
+        kind: command_exists
+        required: false
+        profiles: [runtime, full]
+        command: "kubectl"
+        prepare: "Install kubectl or ensure deployment is performed through a supported control plane."
+
+  - id: epic-delivery
+    name: Epic Delivery
+    owner: ORBIT
+    entrypoint: ".hseos/workflows/epic-delivery/workflow.md"
+    description: "Execute the full epic delivery pipeline with phase state, hard gates, and preparation guidance."
+    profiles: [core, full]
+    batch:
+      enabled: true
+      handoff_after_phase: "story-prep"
+      packet_dir: ".hseos/batch-packets/epic-delivery"
+      log_dir: ".logs/runs/workflows/epic-delivery"
+    depends_on:
+      - workflow: delivery-readiness
+        profiles: [core, full]
+    state:
+      runs_dir: ".hseos/runs/epic-delivery"
+      template: ".hseos/data/run-state-templates/epic-delivery-state.yaml"
+    phases:
+      - id: preflight
+        name: Preflight Readiness
+        agent: ORBIT
+        outputs:
+          - "Run state initialized"
+          - "Required prerequisites and artifacts confirmed"
+      - id: scope
+        name: Epic Scope Load
+        agent: NYX
+        outputs:
+          - "Epic objective and impacted surfaces confirmed"
+      - id: plan
+        name: Planning and Experience
+        agent: VECTOR
+        supporting_agents: [PRISM]
+        outputs:
+          - "Story ordering and UX implications confirmed"
+      - id: architecture
+        name: Architecture Readiness
+        agent: CIPHER
+        outputs:
+          - "Architecture constraints and ADR requirements confirmed"
+      - id: story-prep
+        name: Story Preparation
+        agent: RAZOR
+        outputs:
+          - "Stories are implementation-ready"
+      - id: implementation
+        name: Story Execution Loop
+        agent: GHOST
+        outputs:
+          - "Story implementation commits recorded"
+      - id: validation
+        name: Validation Gate
+        agent: GLITCH
+        outputs:
+          - "Quality gate results recorded"
+      - id: publish
+        name: Publish
+        agent: FORGE
+        outputs:
+          - "Artifacts published or publication evidence captured"
+          - "Image tag, digest, and SHA recorded for KUBE handoff"
+      - id: gitops-deploy
+        name: GitOps Deploy
+        agent: KUBE
+        outputs:
+          - "platform-gitops manifests updated with new image tag"
+          - "PR created and merged"
+          - "ArgoCD Application synced"
+          - "Deployment revision evidence recorded for SABLE handoff"
+      - id: runtime
+        name: Deploy and Runtime
+        agent: SABLE
+        outputs:
+          - "Rollout health and pod status verified"
+          - "Runtime smoke checks recorded"
+      - id: consolidation
+        name: Consolidation
+        agent: QUILL
+        supporting_agents: [ORBIT]
+        outputs:
+          - "Execution evidence and PR summary prepared"
+    checks:
+      - id: epic-spec
+        kind: any_path_exists
+        required: true
+        profiles: [core, full]
+        paths:
+          - ".bmad-output/planning-artifacts/epics-v3.md"
+          - ".bmad-output/planning-artifacts/epics-v2.md"
+          - ".bmad-output/planning-artifacts/epics.md"
+        prepare: "Create or update epic planning artifacts before invoking epic delivery."
+      - id: implementation-dir
+        kind: any_path_exists
+        required: true
+        profiles: [core, full]
+        paths:
+          - ".bmad-output/implementation-artifacts"
+          - ".hseos/data/run-state-templates"
+        prepare: "Prepare an implementation artifact directory and run-state template."
+      - id: build-scripts
+        kind: package_script
+        required: false
+        profiles: [core, full]
+        path: "package.json"
+        scripts:
+          - "build"
+          - "lint"
+          - "test"
+        prepare: "Define build, lint, and test scripts or declare equivalent commands in workflow configuration."
+
+  - id: release-publish
+    name: Release Publish
+    owner: FORGE
+    entrypoint: ".hseos/workflows/release-publish/workflow.md"
+    description: "Publish validated artifacts with immutable evidence and handoff to deployment."
+    profiles: [release, full]
+    batch:
+      enabled: true
+      handoff_after_phase: "freeze"
+      packet_dir: ".hseos/batch-packets/release-publish"
+      log_dir: ".logs/runs/workflows/release-publish"
+    depends_on:
+      - workflow: delivery-readiness
+        profiles: [release, full]
+    state:
+      runs_dir: ".hseos/runs/release-publish"
+    phases:
+      - id: freeze
+        name: Source Freeze
+        agent: FORGE
+        outputs:
+          - "Source SHA captured"
+      - id: ci-detect
+        name: CI Detection
+        agent: FORGE
+        outputs:
+          - "Publication path selected"
+      - id: publish
+        name: Artifact Publish
+        agent: FORGE
+        outputs:
+          - "Artifacts published"
+      - id: verify
+        name: Registry Verification
+        agent: FORGE
+        outputs:
+          - "Immutable artifact evidence captured"
+    checks:
+      - id: dockerfile
+        kind: glob_exists
+        required: false
+        profiles: [release, full]
+        glob: "**/Dockerfile"
+        prepare: "Add Dockerfile definitions or use CI-native packaging."
+      - id: ci-workflows
+        kind: any_path_exists
+        required: false
+        profiles: [release, full]
+        paths:
+          - ".github/workflows"
+          - ".gitlab-ci.yml"
+          - "azure-pipelines.yml"
+        prepare: "Define CI-backed publication before adopting release automation broadly."
+
+  - id: kube-deploy
+    name: Kube Deploy
+    owner: KUBE
+    entrypoint: ".hseos/workflows/kube-deploy/workflow.md"
+    description: "Update platform-gitops manifests with published image tags, create PR, and monitor ArgoCD sync. Bridges FORGE artifact publication and SABLE runtime verification."
+    profiles: [runtime, full]
+    batch:
+      enabled: false
+    depends_on:
+      - workflow: release-publish
+        profiles: [runtime, full]
+      - workflow: delivery-readiness
+        profiles: [runtime, full]
+    state:
+      runs_dir: ".hseos/runs/kube-deploy"
+    phases:
+      - id: surface-detect
+        name: Deploy Surface Detection
+        agent: KUBE
+        outputs:
+          - "Project, service, environment, and image tag confirmed"
+          - "Manifest existence verified"
+      - id: manifest-update
+        name: Manifest Update
+        agent: KUBE
+        outputs:
+          - "kustomization.yaml updated with new image tag"
+          - "Diff recorded"
+      - id: validate
+        name: Validation
+        agent: KUBE
+        outputs:
+          - "validate_project_kustomize.sh passed"
+      - id: pr
+        name: Branch, Commit, and PR
+        agent: KUBE
+        outputs:
+          - "Branch created with governance-compliant name"
+          - "Commit created without AI references or Co-Authored-By"
+          - "PR created targeting correct base branch"
+      - id: argocd-sync
+        name: ArgoCD Sync Monitor
+        agent: KUBE
+        outputs:
+          - "ArgoCD Application status: Synced"
+          - "Sync timestamp recorded"
+      - id: handoff
+        name: Handoff Evidence
+        agent: KUBE
+        outputs:
+          - "PR URL, ArgoCD Application name, sync status, deployment revision delivered to SABLE"
+    checks:
+      - id: platform-gitops
+        kind: any_path_exists
+        required: true
+        profiles: [runtime, full]
+        paths:
+          - "../platform-gitops"
+          - "../../platform-gitops"
+        prepare: "Clone or mount the platform-gitops repository before invoking KUBE."
+      - id: kustomize-cli
+        kind: command_exists
+        required: true
+        profiles: [runtime, full]
+        command: "kustomize"
+        prepare: "Install kustomize CLI to validate and update manifests."
+      - id: kubectl-cli
+        kind: command_exists
+        required: true
+        profiles: [runtime, full]
+        command: "kubectl"
+        prepare: "Install kubectl and configure access to the target cluster."
+      - id: gh-cli
+        kind: command_exists
+        required: false
+        profiles: [runtime, full]
+        command: "gh"
+        prepare: "Install GitHub CLI to automate PR creation."
+      - id: argocd-cli
+        kind: command_exists
+        required: false
+        profiles: [runtime, full]
+        command: "argocd"
+        prepare: "Install ArgoCD CLI for Application status monitoring (optional — kubectl can be used instead)."
+
+  - id: runtime-deploy
+    name: Runtime Deploy
+    owner: SABLE
+    entrypoint: ".hseos/workflows/runtime-deploy/workflow.md"
+    description: "Verify rollout health, pod status, and runtime smoke after KUBE has applied the GitOps deployment."
+    profiles: [runtime, full]
+    batch:
+      enabled: true
+      handoff_after_phase: "handoff-verify"
+      packet_dir: ".hseos/batch-packets/runtime-deploy"
+      log_dir: ".logs/runs/workflows/runtime-deploy"
+    depends_on:
+      - workflow: kube-deploy
+        profiles: [runtime, full]
+    state:
+      runs_dir: ".hseos/runs/runtime-deploy"
+    phases:
+      - id: handoff-verify
+        name: Receive KUBE Handoff and Verify Evidence
+        agent: SABLE
+        outputs:
+          - "KUBE handoff evidence confirmed (PR URL, sync status, deployment revision)"
+      - id: rollout
+        name: Rollout Verification
+        agent: SABLE
+        outputs:
+          - "All replicas ready, no crash loops or pending pods"
+      - id: smoke
+        name: Health and Smoke
+        agent: SABLE
+        outputs:
+          - "Health endpoints responsive, no critical log errors"
+      - id: regression
+        name: Runtime Regression
+        agent: SABLE
+        outputs:
+          - "Post-deploy regression result recorded"
+    checks:
+      - id: kubectl-cli
+        kind: command_exists
+        required: true
+        profiles: [runtime, full]
+        command: "kubectl"
+        prepare: "Install kubectl and configure access to the target cluster."
+      - id: runtime-health
+        kind: any_path_exists
+        required: false
+        profiles: [runtime, full]
+        paths:
+          - "playwright.config.ts"
+          - "playwright.config.js"
+          - "e2e"
+          - "tests/e2e"
+        prepare: "Provide runtime validation assets such as smoke endpoints or browser regression tests."

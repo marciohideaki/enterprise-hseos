@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # HSEOS Pre-Commit Hook — branch protection + quality gates
+# Re-exec with bash if invoked by sh (husky v9 uses sh -e internally)
+[ -z "${BASH_VERSION-}" ] && exec bash "$0" "$@"
 set -euo pipefail
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 bash "${REPO_ROOT}/scripts/governance/check-branch.sh"

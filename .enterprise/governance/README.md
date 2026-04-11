@@ -12,6 +12,8 @@ The `governance/` directory holds the **operational machinery** that agents use 
 governance/
 ├── agent-skills/       Tiered skill system — loaded by agents during task execution
 ├── policies/           Internal governance policies (architecture boundaries, etc.)
+├── memory-evolution-roadmap.md
+│                      Planned evolution for shared memory, run-state, and token-efficient context
 └── references/         Source documents and external references integrated into governance
 ```
 
@@ -76,6 +78,16 @@ Original documents and external references whose content has been integrated int
 | `boris-cherny-execution.md` | Agentic execution discipline — plan mode, subagents, self-improvement, verification, core principles | `~/.claude/CLAUDE.md` (Execution Discipline + Core Principles sections) |
 | `sentry-security-review.md` | Confidence-based security review methodology (Sentry) | `secure-coding` skill Tier 2 (enrichment planned) |
 | `trailofbits-differential-review.md` | 6-phase diff review with blast radius analysis (Trail of Bits) | `pr-review` skill Tier 2 (enrichment planned) |
+
+---
+
+## Planned Evolution
+
+The following human-facing planning artifact is maintained here while not yet normative:
+
+| File | Purpose |
+|---|---|
+| `memory-evolution-roadmap.md` | Planned memory architecture for HSEOS, covering SQLite, MCP/tool access, event log, run-state, and shared multi-agent memory |
 
 ---
 
