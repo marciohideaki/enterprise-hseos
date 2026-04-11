@@ -39,6 +39,7 @@ agent:
       - ".enterprise/policies/"
       - ".enterprise/governance/agent-skills/SKILLS-REGISTRY.md"
       - ".enterprise/.specs/core/"
+      - ".enterprise/governance/agent-skills/second-brain/SKILL-QUICK.md"
 
   menu:
     - trigger: SP or fuzzy match on sprint-planning

@@ -39,6 +39,7 @@ agent:
       - ".enterprise/governance/agent-skills/SKILLS-REGISTRY.md"
       - ".enterprise/.specs/core/"
       - ".enterprise/.specs/cross/"
+      - ".enterprise/governance/agent-skills/second-brain/SKILL-QUICK.md"
 
   menu:
     - trigger: CP or fuzzy match on create-prd
