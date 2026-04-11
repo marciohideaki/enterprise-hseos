@@ -3,7 +3,7 @@
 #
 # Installs HSEOS in all git repositories under ROOT, skipping known non-project dirs.
 
-set -euo pipefail
+set -uo pipefail
 
 ROOT="/opt/hideakisolutions"
 VAULT_PATH=""
