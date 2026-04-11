@@ -192,3 +192,10 @@ state_management:
   mode: skill-only
   db_path: .hseos/state/project.db
   mcp_port: 3100
+
+# Second-brain integration (optional)
+# When enabled, agents read from and write to the personal knowledge vault.
+# Set during `hseos install` or manually configure path below.
+second_brain:
+  enabled: false
+  path: ""

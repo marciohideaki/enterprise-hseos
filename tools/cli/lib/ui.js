@@ -566,6 +566,7 @@ class UI {
     let toolSelection = await this.promptToolSelection(confirmedDirectory, options);
     const coreConfig = await this.collectCoreConfig(confirmedDirectory, options);
     const stateManagement = await this.promptStateManagement(confirmedDirectory, options);
+    const secondBrain = await this.promptSecondBrain(confirmedDirectory, options);
 
     return {
       actionType: 'install',
@@ -576,6 +577,7 @@ class UI {
       skipIde: toolSelection.skipIde,
       coreConfig: coreConfig,
       stateManagement: stateManagement,
+      secondBrain: secondBrain,
       customContent: customContentConfig,
       skipPrompts: options.yes || false,
     };
@@ -989,6 +991,75 @@ class UI {
     }
 
     return config;
+  }
+
+  /**
+   * Prompt for second-brain vault integration
+   * @param {string} directory - Installation directory
+   * @param {Object} options - Command-line options
+   * @returns {Object} Second-brain configuration { enabled, path }
+   */
+  async promptSecondBrain(directory, options = {}) {
+    const yaml = require('js-yaml');
+
+    // Check for existing config
+    const configPath = `${directory}/.hseos/config/hseos.config.yaml`;
+    if (await fs.pathExists(configPath)) {
+      try {
+        const existing = yaml.load(await fs.readFile(configPath, 'utf8'));
+        if (existing?.second_brain?.path !== undefined) {
+          const status = existing.second_brain.enabled ? `enabled (${existing.second_brain.path || 'no path'})` : 'disabled';
+          await prompts.log.info(`Second-brain: using existing config (${status})`);
+          return existing.second_brain;
+        }
+      } catch {
+        // ignore, proceed to prompt
+      }
+    }
+
+    if (options.yes) {
+      await prompts.log.info('Second-brain: disabled (default, --yes flag)');
+      return { enabled: false, path: '' };
+    }
+
+    const p = await import('@clack/prompts');
+
+    await p.log.step('Second-Brain Integration');
+    await p.log.message(
+      'HSEOS agents can optionally read from your personal knowledge vault (second-brain)\n' +
+        'and write decisions + learnings back to it at the end of each epic.\n\n' +
+        'This gives agents access to your goals, active projects, architecture decisions,\n' +
+        'and accumulated patterns — without replacing existing HSEOS sources of truth.'
+    );
+
+    const hasVault = await p.confirm({
+      message: 'Do you have a second-brain vault to connect?',
+      initialValue: false,
+    });
+
+    if (p.isCancel(hasVault) || !hasVault) {
+      await prompts.log.info('Second-brain: disabled');
+      return { enabled: false, path: '' };
+    }
+
+    const vaultPath = await p.text({
+      message: 'Absolute path to your vault (must contain CLAUDE.md):',
+      placeholder: '/opt/hideakisolutions/second-brain',
+      validate: async (value) => {
+        if (!value || value.trim() === '') return 'Path is required';
+        const claudeMd = `${value.trim()}/CLAUDE.md`;
+        if (!(await fs.pathExists(claudeMd))) return `CLAUDE.md not found at ${claudeMd}`;
+      },
+    });
+
+    if (p.isCancel(vaultPath)) {
+      await prompts.log.info('Second-brain: disabled (cancelled)');
+      return { enabled: false, path: '' };
+    }
+
+    const resolvedPath = vaultPath.trim();
+    await prompts.log.success(`Second-brain connected: ${resolvedPath}`);
+    return { enabled: true, path: resolvedPath };
   }
 
   /**
