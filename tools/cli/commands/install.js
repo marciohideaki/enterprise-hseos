@@ -24,6 +24,7 @@ module.exports = {
     ['--document-output-language <lang>', 'Language for document output (default: English)'],
     ['--output-folder <path>', 'Output folder path relative to project root (default: .hseos-output)'],
     ['-y, --yes', 'Accept all defaults and skip prompts where possible'],
+    ['--second-brain-path <path>', 'Absolute path to second-brain vault (enables integration if provided)'],
   ],
   action: async (options) => {
     try {

@@ -1002,6 +1002,19 @@ class UI {
   async promptSecondBrain(directory, options = {}) {
     const yaml = require('js-yaml');
 
+    // Use path provided via CLI flag (non-interactive)
+    if (options.secondBrainPath) {
+      const vaultPath = options.secondBrainPath.trim();
+      const claudeMd = `${vaultPath}/CLAUDE.md`;
+      if (await fs.pathExists(claudeMd)) {
+        await prompts.log.info(`Second-brain: using path from command-line: ${vaultPath}`);
+        return { enabled: true, path: vaultPath };
+      }
+
+      await prompts.log.warn(`Second-brain: CLAUDE.md not found at ${vaultPath} — disabling`);
+      return { enabled: false, path: '' };
+    }
+
     // Check for existing config
     const configPath = `${directory}/.hseos/config/hseos.config.yaml`;
     if (await fs.pathExists(configPath)) {
