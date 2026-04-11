@@ -9,17 +9,46 @@ KUBE
 
 ## When To Use
 - After FORGE has published a validated image to the container registry
-- When promoting an image tag to one or more environments in platform-gitops
+- When promoting an image tag to one or more environments via GitOps
 - As part of the Epic Delivery flow (between publish and runtime phases)
 - Standalone when a deploy-only operation is requested
 
 ## Phases
 
+### 0. GitOps Profile Detection
+Determine the active deployment model before any manifest mutation.
+
+**Step 1 — Read explicit config (preferred):**
+- Check if `.hseos/config/kube-profile.yaml` exists in the current repo
+- If present: load profile values (manifest-path-template, validation-cmd, argocd-app-pattern, pr-base-map, branch-prefix-template, commit-template)
+
+**Step 2 — Auto-detect from repo structure (fallback):**
+| Signal | Detected profile |
+|---|---|
+| Directory `<project>/<service>/` exists at repo root | `centralized` |
+| Directory `deploy/overlays/` or `k8s/overlays/` at repo root | `app-paired` |
+| Neither found | Ask user which model applies |
+
+**Step 3 — Display active profile** (required before any mutation):
+```
+GitOps Profile: <centralized|app-paired>
+Repo:           <gitops-repo>
+Manifest path:  <resolved manifest-path-template>
+Validation:     <validation-cmd>
+ArgoCD app:     <argocd-app-pattern>
+PR base:        <pr-base-map for target env>
+Branch prefix:  <branch-prefix-template>
+```
+
+HARD STOP if profile cannot be determined.
+
 ### 1. Deploy Surface Detection
-- Identify: project name, service(s), environment(s), image tag (received from FORGE or user)
-- Verify manifests exist: `<project>/services/overlays/<env>/kustomization.yaml`
-  - If project does NOT exist in platform-gitops → STOP, redirect to `gitops-new-project`
-  - If service has no base manifest → STOP, redirect to `gitops-add-service`
+- Identify: project/app name, service(s), environment(s), image tag (received from FORGE or user)
+- Resolve manifest path using active profile `manifest-path-template`
+- Verify manifest exists at resolved path
+  - If path does NOT exist → STOP, guide user to create project/service structure first
+    - Centralized: load `gitops-new-project` or `gitops-add-service` skill
+    - App-paired: instruct user to create `deploy/overlays/<env>/` in the manifest repo
 - Read current kustomization.yaml and display current image tags before any change
 
 ### 2. Manifest Update
@@ -35,23 +64,25 @@ KUBE
 - Display the diff before proceeding
 
 ### 3. Validation
-- Run: `./scripts/ci/validate_project_kustomize.sh <project>`
+- Run profile `validation-cmd` (with variables resolved)
+  - Centralized example: `./scripts/ci/validate_project_kustomize.sh <project>`
+  - App-paired fallback: `kustomize build <manifest-dir>`
 - HARD STOP if validation fails — do not commit
 - Fix the manifest issue and re-validate before proceeding
 
 ### 4. Branch, Commit, and PR
-- Create branch: `chore/<project>-deploy-<env>-<YYYYMMDD>`
-- Commit: `chore(<project>): bump <service> image tag to <tag> on <env>`
+- Create branch using profile `branch-prefix-template` + `-<YYYYMMDD>`
+- Commit using profile `commit-template` (variables resolved)
   - NO Co-Authored-By trailer
   - NO AI mentions
 - Push to origin
 - Create PR:
-  - Base: `develop` for dev/hmg/stg — `main` for prod
-  - Title: `chore(<project>): deploy <service> <tag> → <env>`
+  - Base: resolved from profile `pr-base-map[<env>]`; fallback to `main`
+  - Title: profile commit-template adapted for PR title
   - Body: list services updated, previous tag → new tag, environments affected
 
 ### 5. ArgoCD Sync Monitor
-- Confirm ArgoCD Application exists: `<project>-services-<env>`
+- Resolve ArgoCD Application name from profile `argocd-app-pattern` (variables resolved)
 - Poll Application status until:
   - `status.syncStatus` = `Synced`
   - `status.operationState.phase` = `Succeeded`
@@ -67,7 +98,7 @@ Deliver the following evidence before passing control to SABLE:
 - Image tag confirmed in running pods
 
 ## Required Inputs
-- Project name (must exist in platform-gitops)
+- Project/app name (must exist in the active GitOps repo)
 - Service name(s) being updated
 - Environment(s): dev | hmg | stg | prod
 - Image tag (SHA, semver, or develop)

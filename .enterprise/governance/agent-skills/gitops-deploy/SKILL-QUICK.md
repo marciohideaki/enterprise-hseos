@@ -1,13 +1,19 @@
 ---
 name: gitops-deploy
 tier: quick
-version: "1.0.0"
+version: "1.1.0"
 ---
 
 # GitOps Deploy — Quick Reference
 
 > Tier 1: use para qualquer pedido de deploy, publicação, bump de tag ou promoção de imagem.
 > Carregue SKILL.md (Tier 2) para o fluxo completo passo a passo.
+>
+> **Modelos suportados:**
+> - `centralized` — monorepo (ex: platform-gitops) → ver `SKILL-CENTRALIZED.md`
+> - `app-paired` — repo por aplicação (ex: `<app>-gitops`) → ver `SKILL-APP-PAIRED.md`
+>
+> KUBE detecta o modelo automaticamente via `.hseos/config/kube-profile.yaml` ou estrutura do repo.
 
 ---
 

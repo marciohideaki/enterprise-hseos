@@ -1,0 +1,70 @@
+# KUBE GitOps Deploy Profile
+#
+# This file declares the GitOps deployment model used by the KUBE agent.
+# If this file is absent, KUBE will attempt auto-detection based on repo structure.
+#
+# Two supported profiles:
+#   centralized — single GitOps repo holds manifests for all projects (e.g. platform-gitops)
+#   app-paired  — each application has its own GitOps/manifest repo or deploy/ folder
+#
+# ─────────────────────────────────────────────
+# ACTIVE PROFILE — Hideaki Solutions Environment
+# ─────────────────────────────────────────────
+
+profile: centralized
+
+# The GitOps repository name (used to construct clone URL or identify the repo context)
+gitops-repo: platform-gitops
+
+# Template for resolving the kustomization.yaml path.
+# Variables: {project}, {service}, {env}
+manifest-path-template: "{project}/services/overlays/{env}/kustomization.yaml"
+
+# Validation command to run before any commit.
+# Variables: {project}
+validation-cmd: "./scripts/ci/validate_project_kustomize.sh {project}"
+
+# ArgoCD Application naming pattern.
+# Variables: {project}, {env}
+argocd-app-pattern: "{project}-services-{env}"
+
+# PR base branch by environment.
+# Use "default" as a fallback key.
+pr-base-map:
+  dev: develop
+  hmg: develop
+  stg: develop
+  prod: main
+
+# Branch naming prefix.
+# Variables: {project}, {env}   (centralized)
+# Variables: {app}, {env}       (app-paired)
+branch-prefix-template: "chore/{project}-deploy-{env}"
+
+# Commit message template.
+# Variables: {project}, {service}, {tag}, {env}
+commit-template: "chore({project}): bump {service} image tag to {tag} on {env}"
+
+# ─────────────────────────────────────────────
+# REFERENCE — App-Paired Profile (market standard)
+# Uncomment and adapt when each app owns its own manifest repo.
+# ─────────────────────────────────────────────
+#
+# profile: app-paired
+#
+# gitops-repo: "{app}-gitops"
+#
+# manifest-path-template: "deploy/overlays/{env}/kustomization.yaml"
+# # Alternatives: "k8s/overlays/{env}/kustomization.yaml" | "overlays/{env}/kustomization.yaml"
+#
+# validation-cmd: "kustomize build deploy/overlays/{env}"
+#
+# argocd-app-pattern: "{app}-{env}"
+# # Alternative: "{app}" (single ArgoCD Application per repo, env via values)
+#
+# pr-base-map:
+#   default: main
+#
+# branch-prefix-template: "chore/{app}-deploy-{env}"
+#
+# commit-template: "chore({app}): bump {service} image tag to {tag} on {env}"
