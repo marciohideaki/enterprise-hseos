@@ -313,6 +313,17 @@ version: "1.3"
 
 ---
 
+### second-brain
+**Description:** Integração opcional com vault de conhecimento pessoal (second-brain). Quando `second_brain.enabled = true` em `hseos.config.yaml`, agentes lêem contexto estratégico do vault (goals, projects, decisions, learnings) e ORBIT/CIPHER/QUILL escrevem decisões e learnings de volta ao vault no formato vault-compatible.
+**Load when:** `second_brain.enabled = true` + agente iniciando task; CIPHER tomando decisão arquitetural; QUILL consolidando épico; ORBIT iniciando ou encerrando épico; rodando `hseos brain sync`.
+**Triggers:** `second-brain`, `vault`, `knowledge base`, `_decisions`, `_learnings`, `current-state`, `goals`, `projects`, `about-me`, `personal knowledge`, `vault integration`, `hseos brain`
+**Tier 1:** `.enterprise/governance/agent-skills/second-brain/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/second-brain/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+**Critical:** Vault é sempre complementar, nunca obrigatório. Se `second_brain.enabled = false` ou vault inacessível → skip silencioso, continuar com fontes HSEOS existentes.
+
+---
+
 ## Decision Table
 
 | Task context | Skills to load | Tier |
@@ -377,6 +388,10 @@ version: "1.3"
 | Epic phase transition or agent hand-off | project-state | 1 |
 | Choosing state backend (MCP vs CLI vs markdown) | project-state | 2 |
 | State backend unavailable — fallback needed | project-state | 2 |
+| second_brain.enabled = true + agent starting task | second-brain | 1 |
+| CIPHER making architectural decision + second-brain available | second-brain | 2 |
+| QUILL or ORBIT consolidating epic + second-brain available | second-brain | 2 |
+| Running hseos brain sync | second-brain | 2 |
 
 ---
 

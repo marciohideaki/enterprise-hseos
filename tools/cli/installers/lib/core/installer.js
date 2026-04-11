@@ -1314,6 +1314,17 @@ class Installer {
         });
       }
 
+      // Write second-brain config to hseos.config.yaml
+      if (config.secondBrain) {
+        postIdeTasks.push({
+          title: 'Writing second-brain configuration',
+          task: async () => {
+            await this.writeSecondBrainConfig(projectDir, config.secondBrain);
+            return `Second-brain: ${config.secondBrain.enabled ? config.secondBrain.path : 'disabled'}`;
+          },
+        });
+      }
+
       await prompts.tasks(postIdeTasks);
 
       // Retrieve restored file info for summary
@@ -2055,6 +2066,26 @@ class Installer {
     // Build the state_management node
     const smMap = doc.createNode(stateManagement);
     doc.set('state_management', smMap);
+
+    await fs.writeFile(configPath, doc.toString(), 'utf8');
+  }
+
+  /**
+   * Write second_brain section to the project's hseos.config.yaml
+   * @param {string} projectDir - Project directory
+   * @param {Object} secondBrain - Second-brain config object { enabled, path }
+   */
+  async writeSecondBrainConfig(projectDir, secondBrain) {
+    const yaml = require('yaml');
+    const configPath = path.join(projectDir, '.hseos', 'config', 'hseos.config.yaml');
+
+    if (!(await fs.pathExists(configPath))) return;
+
+    const raw = await fs.readFile(configPath, 'utf8');
+    const doc = yaml.parseDocument(raw);
+
+    const sbMap = doc.createNode(secondBrain);
+    doc.set('second_brain', sbMap);
 
     await fs.writeFile(configPath, doc.toString(), 'utf8');
   }

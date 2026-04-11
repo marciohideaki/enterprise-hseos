@@ -334,6 +334,30 @@ If you see an agent reference a skill in its output (e.g., `[commit-hygiene] vio
 
 ---
 
+#### `second-brain`
+**What it provides:** Optional integration with a personal knowledge vault. When enabled, HSEOS agents read strategic context from the vault and write decisions/learnings back to it in vault-compatible format.
+
+**Read (by agents at task start):**
+- ORBIT, NYX, BLITZ — `_memory/current-state.md` (live state bridge)
+- VECTOR — `_knowledge/goals.md`, `_knowledge/about-me.md`
+- CIPHER — all `_decisions/` ADRs + architecture learnings
+- GHOST — domain-relevant `_learnings/` files
+- RAZOR — `_knowledge/projects.md`
+
+**Write (ORBIT, CIPHER, QUILL only — after human approval):**
+- Architecture decisions → `_decisions/hseos/YYYY-MM-DD-{name}.md`
+- Epic learnings → `_learnings/hseos-{topic}.md`
+- Epic summary → appended to `_memory/current-state.md` via `hseos brain sync`
+
+**Zero-impact default:** `enabled: false` — no vault, no behavior change.  
+**Fallback:** If vault unavailable → skip silently, continue with HSEOS sources only.
+
+**CLI:** `hseos brain status` | `hseos brain sync`
+
+**Triggers automatically when:** `second_brain.enabled = true` + agent starting task; CIPHER or QUILL completing epic work.
+
+---
+
 ## Skill violation → what happens?
 
 When a skill check fails, the agent:
