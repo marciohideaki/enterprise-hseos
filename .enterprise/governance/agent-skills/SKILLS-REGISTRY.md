@@ -240,6 +240,28 @@ version: "1.3"
 
 ---
 
+### context-policy
+**Description:** Governa o uso de contexto em sessões de IA — limites de budget (≤40% ideal, ≤60% máximo), sinais de overrun, regras de sizing por agente, e protocolo de retomada stateless. Implementa AI-SDLC §4 (Stateless Execution) e §6 (Context Policy).
+**Load when:** sessão está crescendo (muitos arquivos lidos, output degradando); decidindo tamanho de task; configurando task contract; planejando boundaries de sessão; investigando degradação de qualidade em sessão longa.
+**Triggers:** `context budget`, `sessão longa`, `context overrun`, `stateless execution`, `task too large`, `session boundary`, `context policy`, `40%`, `60%`, `context window`, `degradação de output`, `retomar sessão`, `input_contract`, `output_contract`
+**Tier 1:** `.enterprise/governance/agent-skills/context-policy/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/context-policy/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = low
+**Critical:** Todo task deve ser resumível a partir do `input_contract` sozinho — sem dependência de histórico de sessão anterior.
+
+---
+
+### ai-observability
+**Description:** Modelo de observabilidade de IA para HSEOS — métricas nativas disponíveis hoje (workflow state, gate logs), métricas que requerem mission-control (tokens, context%), KPIs do AI-SDLC (custo/feature, % stateless, rework rate), e integração com mission-control dashboard.
+**Load when:** auditando métricas de uso de IA; revisando KPIs de entrega; configurando mission-control; SABLE executando auditoria FinOps; investigando custo elevado ou retrabalho excessivo.
+**Triggers:** `AI metrics`, `KPI`, `tokens`, `custo por feature`, `cost per feature`, `stateless %`, `mission-control`, `observabilidade IA`, `FinOps`, `gate failure rate`, `delivery metrics`, `context usage`, `rework rate`, `SABLE audit`
+**Tier 1:** `.enterprise/governance/agent-skills/ai-observability/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/ai-observability/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+**Owner:** SABLE (FinOps audit role)
+
+---
+
 ### inter-agent-comms
 **Description:** Protocolos de comunicação entre agentes HSEOS — sequential hand-off via shared state, e real-time coordination via claude-peers MCP. Cobre tipos de mensagem, timeouts, e constraints de segurança para comunicação cross-session.
 **Load when:** ORBIT coordenando múltiplas sessões ativas; planejando hand-off entre agentes; verificando disponibilidade de claude-peers; estruturando mensagens cross-session.
@@ -319,6 +341,13 @@ version: "1.3"
 | Test adequacy audit | test-coverage | 2 |
 | Full observability audit | observability-compliance | 2 |
 | General coding (no trigger match) | none | — |
+| Session growing long or output quality degrading | context-policy | 1 |
+| Sizing a task / deciding if it fits in one session | context-policy | 1 |
+| Designing task input_contract / output_contract | context-policy + spec-driven | 1 |
+| Context budget exceeded or approaching limit | context-policy | 2 |
+| Auditing AI usage metrics or FinOps KPIs | ai-observability | 1 |
+| Connecting or configuring mission-control | ai-observability | 2 |
+| SABLE running end-of-epic FinOps audit | ai-observability + policy-layer | 1 |
 | ORBIT planning or executing a multi-agent workflow | multi-agent-orchestration | 1 |
 | ORBIT coordinating cross-session agent hand-offs | inter-agent-comms | 1 |
 | Auditing agent tool permissions or spend controls | policy-layer | 1 |

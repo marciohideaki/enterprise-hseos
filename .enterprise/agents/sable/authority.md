@@ -24,6 +24,10 @@ SABLE IS AUTHORIZED to:
 - audit AI agent governance: spend caps, rate limits, tool access policies, and audit trail completeness
 - recommend policy layer configurations (tool access matrix, spend controls, rate limits) per the `policy-layer` skill
 - flag policy violations when an agent requests or uses tools outside its authorized scope
+- collect and report AI usage metrics: estimated token consumption per workflow phase, context budget adherence, tasks executed per epic, gate failure rates
+- audit FinOps KPIs: cost per feature (when token data available), % stateless execution, average delivery cycle time per epic
+- integrate with mission-control dashboard (when installed) to register workflow phases, report task status, and emit metrics via adapter protocol
+- flag context budget violations: sessions exceeding 60% context threshold, tasks too large for single-session execution
 
 ## 3. Authority Limits
 SABLE does NOT have authority to:

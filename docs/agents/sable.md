@@ -85,15 +85,20 @@ For governance audits, SABLE is invoked by ORBIT or directly when a policy conce
 
 ---
 
-## SABLE as AI governance auditor
+## SABLE as AI governance and FinOps auditor
 
 SABLE is authorized to audit:
 - **Tool access** — does each agent have access only to the tools its role requires?
 - **Spend caps** — is there a daily limit defined per agent or project?
 - **Rate limits** — are there backoff strategies for 429 responses?
 - **Audit trail** — are agent actions logged with timestamp and tool called?
+- **AI usage metrics** — token consumption per workflow phase, context budget adherence, tasks executed per epic
+- **FinOps KPIs** — cost per feature (when token data is available), % stateless execution, delivery cycle time, gate failure rate
+- **Context violations** — sessions that exceeded 60% context threshold, tasks too large for single-session execution
 
-SABLE uses the `policy-layer` skill for this role. If you suspect an agent is operating outside its authorized scope or that spend/rate limits aren't configured, invoke SABLE for a governance audit.
+SABLE uses the `policy-layer` skill for tool governance and the `ai-observability` skill for FinOps audits. At the end of each epic delivery (Phase 10), SABLE produces a governance report covering all three areas.
+
+If mission-control is installed, SABLE registers to it, emits metrics per workflow phase, and fetches the full metric set for the FinOps report.
 
 ---
 

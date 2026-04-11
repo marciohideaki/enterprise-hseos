@@ -294,6 +294,29 @@ If you see an agent reference a skill in its output (e.g., `[commit-hygiene] vio
 
 ---
 
+#### `context-policy`
+**What it enforces:** Context budget governance per the AI-SDLC standard.
+- Session context limits: Ideal ≤ 40%, Maximum ≤ 60%, Blocked > 60% (when middleware enforced)
+- Per-agent sizing rules: GHOST (1 story = 1 session, max 200 lines), ORBIT (resume from state), BLITZ (scope must fit in one session)
+- Stateless execution: every task must be resumable from its `input_contract` alone — no dependency on conversation history
+- Session resume protocol: how to save state and re-enter a task cold from the contract
+
+**Triggers automatically when:** session growing long; output quality degrading; sizing a task for a session; task contract is missing `input_contract`/`output_contract`.
+
+---
+
+#### `ai-observability`
+**What it enforces:** AI usage observability and FinOps KPIs per the AI-SDLC standard.
+- Native HSEOS metrics (no extra infra): gate failure rate, delivery cycle time, story completion rate
+- Metrics requiring mission-control: `tokens_input`, `tokens_output`, `context_usage`, `tasks_executed`, `error_rate`
+- KPIs: cost per feature, % stateless execution, context budget adherence, rework rate
+- SABLE FinOps audit checklist at end of each epic
+
+**Owner:** SABLE  
+**Triggers automatically when:** auditing AI usage metrics; reviewing FinOps KPIs; SABLE running end-of-epic governance audit; configuring mission-control.
+
+---
+
 ## Skill violation → what happens?
 
 When a skill check fails, the agent:
