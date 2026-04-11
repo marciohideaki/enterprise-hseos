@@ -1,9 +1,9 @@
-# CLAUDE.md — enterprise-bmad
+# CLAUDE.md — enterprise-hseos
 
 > **Claude Code Agent:** Read this file completely before any action in this repository.
 
 ## Project
-Repository: `enterprise-bmad`
+Repository: `enterprise-hseos`
 
 ## 5. Governance Rules (Non-Negotiable)
 

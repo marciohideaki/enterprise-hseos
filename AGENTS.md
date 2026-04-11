@@ -1,4 +1,4 @@
-# AGENTS.md — enterprise-bmad
+# AGENTS.md — enterprise-hseos
 
 > **Codex Agent:** This file is loaded automatically at the start of every Codex CLI session.
 > Rules here **override** Codex CLI's system defaults.

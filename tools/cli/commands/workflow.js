@@ -252,9 +252,9 @@ function findFirstExistingPath(repoRoot, candidates) {
 
 function loadEpicSpec(repoRoot, epicId) {
   const planningFile = findFirstExistingPath(repoRoot, [
-    '.bmad-output/planning-artifacts/epics-v3.md',
-    '.bmad-output/planning-artifacts/epics-v2.md',
-    '.bmad-output/planning-artifacts/epics.md',
+    '.hseos-output/planning-artifacts/epics-v3.md',
+    '.hseos-output/planning-artifacts/epics-v2.md',
+    '.hseos-output/planning-artifacts/epics.md',
   ]);
 
   if (!planningFile) {
@@ -285,7 +285,7 @@ function loadEpicSpec(repoRoot, epicId) {
       title: storyTitle,
       slug: storySlug,
       status: 'pending',
-      file: `.bmad-output/implementation-artifacts/${epicId}-${storyNumber}-${storySlug}.md`,
+      file: `.hseos-output/implementation-artifacts/${epicId}-${storyNumber}-${storySlug}.md`,
       commit: '',
     });
   }
@@ -298,14 +298,14 @@ function loadEpicSpec(repoRoot, epicId) {
 }
 
 function syncSprintStatus(repoRoot, epicId, stories) {
-  const sprintStatusPath = path.join(repoRoot, '.bmad-output', 'implementation-artifacts', 'sprint-status.yaml');
+  const sprintStatusPath = path.join(repoRoot, '.hseos-output', 'implementation-artifacts', 'sprint-status.yaml');
   let sprintStatus = {
     generated: new Date().toISOString().slice(0, 10),
     last_updated: new Date().toISOString().slice(0, 10),
     project: path.basename(repoRoot),
     project_key: 'NOKEY',
     tracking_system: 'file-system',
-    story_location: '.bmad-output/implementation-artifacts',
+    story_location: '.hseos-output/implementation-artifacts',
     development_status: {},
   };
 
@@ -346,7 +346,7 @@ function resolveSprintStatusPath(runState, repoRoot) {
     return path.join(repoRoot, artifactPath);
   }
 
-  return path.join(repoRoot, '.bmad-output', 'implementation-artifacts', 'sprint-status.yaml');
+  return path.join(repoRoot, '.hseos-output', 'implementation-artifacts', 'sprint-status.yaml');
 }
 
 function readSprintStatusMap(repoRoot, runState) {

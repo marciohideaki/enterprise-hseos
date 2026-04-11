@@ -51,16 +51,16 @@ workflows:
         required: true
         profiles: [core, full]
         paths:
-          - ".bmad-output/planning-artifacts/prd.md"
-          - ".bmad-output/planning-artifacts/epics-v3.md"
-          - ".bmad-output/planning-artifacts/epics-v2.md"
-          - ".bmad-output/planning-artifacts/epics.md"
+          - ".hseos-output/planning-artifacts/prd.md"
+          - ".hseos-output/planning-artifacts/epics-v3.md"
+          - ".hseos-output/planning-artifacts/epics-v2.md"
+          - ".hseos-output/planning-artifacts/epics.md"
         prepare: "Run discovery/planning first: NYX, VECTOR, and the BMAD planning flows."
       - id: sprint-status
         kind: path_exists
         required: false
         profiles: [core, full]
-        path: ".bmad-output/implementation-artifacts/sprint-status.yaml"
+        path: ".hseos-output/implementation-artifacts/sprint-status.yaml"
         prepare: "Create sprint status tracking before story execution to enable resume and traceability."
       - id: package-lock
         kind: any_path_exists
@@ -185,16 +185,16 @@ workflows:
         required: true
         profiles: [core, full]
         paths:
-          - ".bmad-output/planning-artifacts/epics-v3.md"
-          - ".bmad-output/planning-artifacts/epics-v2.md"
-          - ".bmad-output/planning-artifacts/epics.md"
+          - ".hseos-output/planning-artifacts/epics-v3.md"
+          - ".hseos-output/planning-artifacts/epics-v2.md"
+          - ".hseos-output/planning-artifacts/epics.md"
         prepare: "Create or update epic planning artifacts before invoking epic delivery."
       - id: implementation-dir
         kind: any_path_exists
         required: true
         profiles: [core, full]
         paths:
-          - ".bmad-output/implementation-artifacts"
+          - ".hseos-output/implementation-artifacts"
           - ".hseos/data/run-state-templates"
         prepare: "Prepare an implementation artifact directory and run-state template."
       - id: build-scripts
