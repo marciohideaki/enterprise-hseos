@@ -6,7 +6,7 @@ agent:
     title: Flow Conductor
     icon: "O"
     framework: hseos
-    capabilities: "workflow orchestration, delivery readiness, phase gating, stateful execution"
+    capabilities: "workflow orchestration, delivery readiness, phase gating, stateful execution, agentic pattern selection (sequential/fan-out/map-reduce/critic-loop/routing/HITL)"
     hasSidecar: false
 
   persona:
@@ -37,6 +37,7 @@ agent:
       - ".enterprise/policies/"
       - ".hseos/config/hseos.config.yaml"
       - ".hseos/workflows/registry.yaml"
+      - ".enterprise/governance/agent-skills/multi-agent-orchestration/SKILL-QUICK.md"
 
   menu:
     - trigger: ED or fuzzy match on epic-delivery

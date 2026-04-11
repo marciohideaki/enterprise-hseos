@@ -162,6 +162,29 @@ Apply attacker thinking to the diff — especially for auth, input validation, a
 
 ---
 
+## 9b. Deep Analysis — Socratic Questioning Pattern
+
+For complex or high-risk PRs, apply the Socratic Analysis pattern before rendering verdicts. Instead of jumping to conclusions, reason through progressively deeper questions.
+
+**5-level question progression:**
+
+| Level | Question type | Example |
+|---|---|---|
+| L1 — Surface | What does this code do? | "This adds a new endpoint `POST /users/{id}/promote`" |
+| L2 — Intent | Why was it written this way? | "It delegates role assignment to the caller — why not validate role permissions server-side?" |
+| L3 — Assumption | What must be true for this to be correct? | "This assumes callers are always authenticated — is there an auth gate before this route?" |
+| L4 — Failure mode | What breaks if the assumption is violated? | "If an unauthenticated caller reaches this, any user can be promoted to admin" |
+| L5 — Systemic | Is this a local bug or a pattern? | "Is auth-bypass-on-promotion a recurring issue in this codebase? Check git blame on similar endpoints" |
+
+**When to apply:**
+- Risk triage result is High
+- Changes touch auth, trust boundaries, or financial logic
+- The reviewer's initial reaction is "this looks fine" — Socratic questioning surfaces non-obvious issues
+
+**Output:** Document the L1-L5 chain for each finding in the Adversarial Analysis section of the review report.
+
+---
+
 ## 10. Review Output Format
 
 When generating a formal review report, the output MUST include:
