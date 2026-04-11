@@ -67,6 +67,9 @@
     "yaml": "^2.7.0",
     "zod": "^4.3.6"
   },
+  "optionalDependencies": {
+    "better-sqlite3": "^9.4.3"
+  },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
     "c8": "^10.1.3",

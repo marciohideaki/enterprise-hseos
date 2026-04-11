@@ -184,3 +184,11 @@ output:
   pr_ready: true
   traceability_required: true
   chat_not_authoritative: true
+
+# Project state management
+# Set during `hseos install`. Controls how agents persist STATE.md and TASKS.md.
+# Modes: mcp-sqlite | cli-sqlite | skill-only | hybrid
+state_management:
+  mode: skill-only
+  db_path: .hseos/state/project.db
+  mcp_port: 3100

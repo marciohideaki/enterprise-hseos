@@ -130,6 +130,23 @@ If you see an agent reference a skill in its output (e.g., `[commit-hygiene] vio
 
 ---
 
+#### `project-state`
+**What it enforces:** Live project state and task backlog persistence across agent sessions.
+- STATE.md and TASKS.md updated on every phase transition and agent hand-off
+- Mode detection: hybrid auto-selects MCP → CLI → Markdown based on available tooling
+- Pruning rule applied to TASKS.md when > 5 tasks completed
+- Escalation logged when backend falls back
+
+**Four modes:**
+- `mcp-sqlite` — MCP server + SQLite (structured, atomic, best for teams)
+- `cli-sqlite` — Shell/PowerShell + SQLite (no server, works in CI)
+- `skill-only` — Direct markdown writes (zero infra)
+- `hybrid` — Auto-detect with graceful fallback
+
+**Triggers automatically when:** reading or writing STATE.md / TASKS.md, epic phase transitions, agent hand-offs.
+
+---
+
 ### DevOps & delivery
 
 #### `gitops-deploy`
