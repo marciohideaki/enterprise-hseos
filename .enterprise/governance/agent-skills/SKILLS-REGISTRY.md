@@ -240,6 +240,47 @@ version: "1.3"
 
 ---
 
+### inter-agent-comms
+**Description:** Protocolos de comunicação entre agentes HSEOS — sequential hand-off via shared state, e real-time coordination via claude-peers MCP. Cobre tipos de mensagem, timeouts, e constraints de segurança para comunicação cross-session.
+**Load when:** ORBIT coordenando múltiplas sessões ativas; planejando hand-off entre agentes; verificando disponibilidade de claude-peers; estruturando mensagens cross-session.
+**Triggers:** `inter-agent`, `cross-session`, `hand-off`, `agent coordination`, `claude-peers`, `peer session`, `ORBIT coordenando`, `workflow state`, `phase output`, `gate request`, `A2A`
+**Tier 1:** `.enterprise/governance/agent-skills/inter-agent-comms/SKILL-QUICK.md`
+**Cost:** Tier 1 = low
+
+---
+
+### policy-layer
+**Description:** Governança da camada de política para agentes de IA — spend caps, rate limits, tool access por papel, tool hiding, e audit trail. SABLE é o agente responsável por auditar e recomendar configurações de policy layer.
+**Load when:** SABLE auditando governança de IA; configurando permissões de agentes; investigando acesso não autorizado a ferramentas; revisando spend ou rate limits.
+**Triggers:** `policy layer`, `spend cap`, `rate limit`, `tool access`, `tool hiding`, `audit trail`, `agent permissions`, `least privilege agente`, `governança IA`, `acesso ferramentas`, `policylayer`, `SABLE audit`
+**Tier 1:** `.enterprise/governance/agent-skills/policy-layer/SKILL-QUICK.md`
+**Cost:** Tier 1 = low
+**Owner:** SABLE
+
+---
+
+### multi-agent-orchestration
+**Description:** Padrões formais de orquestração multi-agente para ORBIT — Sequential Chain, Parallel Fan-Out, Map-Reduce, Critic Loop, Routing, Human-in-the-Loop. Cobre seleção de padrão, gate conditions, memória de estado, exception handling e inter-agent communication.
+**Load when:** ORBIT iniciando ou planejando um workflow multi-agente; decidindo padrão de orquestração; implementando fan-out, critic loop, ou routing entre agentes.
+**Triggers:** `ORBIT`, `workflow orchestration`, `multi-agent`, `fan-out`, `critic loop`, `map-reduce`, `routing agente`, `parallel agents`, `sequential chain`, `human-in-the-loop`, `gate condition`, `delivery flow`, `agente coordenador`
+**Tier 1:** `.enterprise/governance/agent-skills/multi-agent-orchestration/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/multi-agent-orchestration/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+**Critical:** ORBIT coordina autoridade — não a absorve. Todo workflow deve declarar prerequisites, outputs e stop conditions antes de iniciar.
+
+---
+
+### mcp-governance
+**Description:** Governa o uso de MCP servers — hierarquia de seleção de tools (MCP first), orçamento de chamadas, rate limits, caching de sessão e política de escalação. Aplica-se a todos os agentes que usam ferramentas externas.
+**Load when:** iniciando qualquer workflow com múltiplas chamadas MCP; decidindo qual tool usar (MCP vs CLI vs curl); atingindo rate limits; executando operações write em lote.
+**Triggers:** `MCP`, `tool selection`, `rate limit`, `429`, `API call`, `spend`, `throttle`, `kubectl vs MCP`, `gh vs MCP`, `chamadas MCP`, `budget de chamadas`, `loop MCP`, `parallel calls`
+**Tier 1:** `.enterprise/governance/agent-skills/mcp-governance/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/mcp-governance/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = low
+**Critical:** MCP sempre tem precedência sobre CLI equivalente. Violação = usar `gh` quando `mcp__github__*` cobre a operação.
+
+---
+
 ## Decision Table
 
 | Task context | Skills to load | Tier |
@@ -278,6 +319,15 @@ version: "1.3"
 | Test adequacy audit | test-coverage | 2 |
 | Full observability audit | observability-compliance | 2 |
 | General coding (no trigger match) | none | — |
+| ORBIT planning or executing a multi-agent workflow | multi-agent-orchestration | 1 |
+| ORBIT coordinating cross-session agent hand-offs | inter-agent-comms | 1 |
+| Auditing agent tool permissions or spend controls | policy-layer | 1 |
+| Agent requests access outside its defined tool matrix | policy-layer | 1 |
+| Deciding orchestration pattern (fan-out vs chain vs critic loop) | multi-agent-orchestration | 2 |
+| Deciding which tool to call (MCP vs CLI vs curl) | mcp-governance | 1 |
+| Multi-step workflow with > 5 MCP calls | mcp-governance | 1 |
+| Rate limit hit during MCP workflow | mcp-governance | 2 |
+| Bulk write operations via MCP (> 3 resources) | mcp-governance | 2 |
 | Deploy / publicar / bump de imagem no k8s (qualquer modelo) | gitops-deploy | 1 |
 | Deploy em monorepo centralizado (platform-gitops) | gitops-deploy → SKILL-CENTRALIZED | 1 |
 | Deploy em repo por aplicação (app-paired) | gitops-deploy → SKILL-APP-PAIRED | 1 |

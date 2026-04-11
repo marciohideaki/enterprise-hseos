@@ -21,6 +21,9 @@ SABLE IS AUTHORIZED to:
 - run or invoke smoke tests and health endpoint checks
 - trigger idempotent seed/data readiness steps where declared by workflow
 - stop progression on operational failures and report root cause
+- audit AI agent governance: spend caps, rate limits, tool access policies, and audit trail completeness
+- recommend policy layer configurations (tool access matrix, spend controls, rate limits) per the `policy-layer` skill
+- flag policy violations when an agent requests or uses tools outside its authorized scope
 
 ## 3. Authority Limits
 SABLE does NOT have authority to:
