@@ -202,7 +202,7 @@ These operations should be namespace-aware.
 Memory should be queryable by namespace.
 
 Examples:
-- `repo:enterprise-bmad`
+- `repo:enterprise-hseos`
 - `repo:event-platform`
 - `workflow:epic-delivery`
 - `run:epic17`
@@ -425,8 +425,8 @@ If implementation starts now, the recommended path is:
 ## 15. Relationship to Existing Standards
 
 This roadmap should eventually inform or update:
-- [Memory-Architecture-Standard.md](/opt/hideakisolutions/enterprise-bmad/.enterprise/.specs/cross/Memory-Architecture-Standard.md)
-- [Multi-Agent-Architecture-Standard.md](/opt/hideakisolutions/enterprise-bmad/.enterprise/.specs/cross/Multi-Agent-Architecture-Standard.md)
-- [Tool-Design-Governance-Standard.md](/opt/hideakisolutions/enterprise-bmad/.enterprise/.specs/cross/Tool-Design-Governance-Standard.md)
+- [Memory-Architecture-Standard.md](/opt/hideakisolutions/enterprise-hseos/.enterprise/.specs/cross/Memory-Architecture-Standard.md)
+- [Multi-Agent-Architecture-Standard.md](/opt/hideakisolutions/enterprise-hseos/.enterprise/.specs/cross/Multi-Agent-Architecture-Standard.md)
+- [Tool-Design-Governance-Standard.md](/opt/hideakisolutions/enterprise-hseos/.enterprise/.specs/cross/Tool-Design-Governance-Standard.md)
 
 Until then, this document remains planning guidance rather than binding governance.
