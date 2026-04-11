@@ -565,6 +565,7 @@ class UI {
     selectedModules = selectedModules.filter((m) => m !== 'core');
     let toolSelection = await this.promptToolSelection(confirmedDirectory, options);
     const coreConfig = await this.collectCoreConfig(confirmedDirectory, options);
+    const stateManagement = await this.promptStateManagement(confirmedDirectory, options);
 
     return {
       actionType: 'install',
@@ -574,6 +575,7 @@ class UI {
       ides: toolSelection.ides,
       skipIde: toolSelection.skipIde,
       coreConfig: coreConfig,
+      stateManagement: stateManagement,
       customContent: customContentConfig,
       skipPrompts: options.yes || false,
     };
@@ -918,6 +920,75 @@ class UI {
     const coreConfig = configCollector.collectedConfig.core;
     // Ensure we always have a core config object, even if empty
     return coreConfig || {};
+  }
+
+  /**
+   * Prompt for state management mode selection
+   * @param {string} directory - Installation directory
+   * @param {Object} options - Command-line options
+   * @returns {Object} State management configuration
+   */
+  async promptStateManagement(directory, options = {}) {
+    const fs = require('fs-extra');
+    const yaml = require('js-yaml');
+
+    // Check for existing config
+    const configPath = `${directory}/.hseos/config/hseos.config.yaml`;
+    if (await fs.pathExists(configPath)) {
+      try {
+        const existing = yaml.load(await fs.readFile(configPath, 'utf8'));
+        if (existing?.state_management?.mode) {
+          await prompts.log.info(`State management: using existing mode (${existing.state_management.mode})`);
+          return existing.state_management;
+        }
+      } catch {
+        // ignore parse errors, proceed to prompt
+      }
+    }
+
+    // Skip prompt in non-interactive mode
+    if (options.yes) {
+      await prompts.log.info('State management: skill-only (default, --yes flag)');
+      return { mode: 'skill-only', db_path: '.hseos/state/project.db', mcp_port: 3100 };
+    }
+
+    const p = await import('@clack/prompts');
+
+    await p.log.step('Project State Management');
+    await p.log.message(
+      'HSEOS tracks live project state (STATE.md) and task backlog (TASKS.md).\n' +
+        'Choose how agents persist and query this data:\n\n' +
+        '  mcp-sqlite  — MCP server + SQLite  (structured, atomic, queryable — best for teams)\n' +
+        '  cli-sqlite  — Shell scripts + SQLite (no server, works in CI — best for solo devs)\n' +
+        '  skill-only  — Markdown only          (zero infra, works everywhere)\n' +
+        '  hybrid      — Auto-detect at runtime  (MCP → CLI → Markdown fallback chain)'
+    );
+
+    const mode = await p.select({
+      message: 'Select state management mode:',
+      options: [
+        { value: 'hybrid', label: 'hybrid', hint: 'recommended — auto-detect with fallback' },
+        { value: 'skill-only', label: 'skill-only', hint: 'zero infrastructure required' },
+        { value: 'cli-sqlite', label: 'cli-sqlite', hint: 'shell scripts + SQLite' },
+        { value: 'mcp-sqlite', label: 'mcp-sqlite', hint: 'MCP server + SQLite (requires server)' },
+      ],
+      initialValue: 'hybrid',
+    });
+
+    if (p.isCancel(mode)) {
+      await prompts.log.info('State management: using default (skill-only)');
+      return { mode: 'skill-only', db_path: '.hseos/state/project.db', mcp_port: 3100 };
+    }
+
+    await prompts.log.success(`State management mode set to: ${mode}`);
+
+    const config = { mode, db_path: '.hseos/state/project.db', mcp_port: 3100 };
+
+    if (mode === 'hybrid') {
+      config.fallback_chain = ['mcp-sqlite', 'cli-sqlite', 'skill-only'];
+    }
+
+    return config;
   }
 
   /**

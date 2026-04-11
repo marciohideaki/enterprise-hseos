@@ -1303,6 +1303,17 @@ class Installer {
         });
       }
 
+      // Write state management config to hseos.config.yaml
+      if (config.stateManagement && config.stateManagement.mode) {
+        postIdeTasks.push({
+          title: 'Writing state management configuration',
+          task: async () => {
+            await this.writeStateManagementConfig(projectDir, config.stateManagement);
+            return `State management: ${config.stateManagement.mode}`;
+          },
+        });
+      }
+
       await prompts.tasks(postIdeTasks);
 
       // Retrieve restored file info for summary
@@ -2025,6 +2036,27 @@ class Installer {
         this.installedFiles.add(configPath);
       }
     }
+  }
+
+  /**
+   * Write state_management section to the project's hseos.config.yaml
+   * @param {string} projectDir - Project directory
+   * @param {Object} stateManagement - State management config object
+   */
+  async writeStateManagementConfig(projectDir, stateManagement) {
+    const yaml = require('yaml');
+    const configPath = path.join(projectDir, '.hseos', 'config', 'hseos.config.yaml');
+
+    if (!(await fs.pathExists(configPath))) return;
+
+    const raw = await fs.readFile(configPath, 'utf8');
+    const doc = yaml.parseDocument(raw);
+
+    // Build the state_management node
+    const smMap = doc.createNode(stateManagement);
+    doc.set('state_management', smMap);
+
+    await fs.writeFile(configPath, doc.toString(), 'utf8');
   }
 
   /**

@@ -303,6 +303,16 @@ version: "1.3"
 
 ---
 
+### project-state
+**Description:** Manages live project state (STATE.md) and task backlog (TASKS.md). Handles mode detection (mcp-sqlite, cli-sqlite, skill-only, hybrid) and provides the routing/fallback algorithm for the active backend.
+**Load when:** reading or writing STATE.md or TASKS.md; transitioning epic phases; agent hand-off; determining which state backend to use; configuring state management mode.
+**Triggers:** `STATE.md`, `TASKS.md`, `state read`, `state write`, `task backlog`, `phase transition`, `project state`, `state backend`, `mcp-sqlite`, `cli-sqlite`, `skill-only`, `hybrid state`, `task status`, `agent hand-off`
+**Tier 1:** `.enterprise/governance/agent-skills/project-state/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/project-state/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = low
+
+---
+
 ## Decision Table
 
 | Task context | Skills to load | Tier |
@@ -363,6 +373,10 @@ version: "1.3"
 | Manifests não existem ao tentar deploy | gitops-deploy (redireciona) → gitops-new-project ou gitops-add-service | 1 |
 | Adicionar novo serviço a projeto k8s existente | gitops-add-service | 1 |
 | Criar novo projeto no Kubernetes / GitOps | gitops-new-project | 1 |
+| Reading or writing STATE.md / TASKS.md | project-state | 1 |
+| Epic phase transition or agent hand-off | project-state | 1 |
+| Choosing state backend (MCP vs CLI vs markdown) | project-state | 2 |
+| State backend unavailable — fallback needed | project-state | 2 |
 
 ---
 
