@@ -31,6 +31,8 @@ version: "1.0.0"
 - [ ] Each task has: description, acceptance criteria, and definition of done
 - [ ] Dependencies between tasks identified and sequenced
 - [ ] Test strategy defined per task
+- [ ] Each task has explicit `input_contract` (files + data needed) and `output_contract` (files + artifacts produced)
+- [ ] `execution_mode: isolated` declared — no task depends on chat history from prior tasks
 
 **Phase 4 — Implement**
 - [ ] Each task implemented against its acceptance criteria

@@ -93,6 +93,56 @@ Each phase produces a durable artifact that persists beyond a single agent/human
 
 ---
 
+## 4b. Task Contract Format (AI-SDLC)
+
+Each task in `tasks.md` SHOULD be expressed using the full AI-SDLC contract format. This makes input/output boundaries explicit, enabling stateless execution — each agent session can start cold from the contract without requiring prior context.
+
+**Canonical schema:**
+
+```yaml
+tasks:
+  - id: T1
+    name: "Implement PlaceOrder command handler"
+    description: "Create PlaceOrderHandler in application layer. Validate command, emit OrderPlaced event via outbox."
+
+    input_contract:
+      files:
+        - ".specs/features/checkout/design.md"       # architecture reference
+        - "src/Orders/Domain/Order.cs"               # aggregate to extend
+      data:
+        - "PlaceOrder command schema (design.md §API)"
+        - "OrderPlaced event schema (design.md §Events)"
+      dependencies: []                               # predecessor task IDs
+
+    output_contract:
+      files:
+        - "src/Orders/Application/Commands/PlaceOrderHandler.cs"  # created
+        - "src/Orders/Application/Commands/PlaceOrderHandler.Tests.cs"
+      artifacts:
+        - "unit tests passing"
+        - "domain event dispatched to outbox"
+
+    constraints:
+      - "C# 12 / .NET 8"
+      - "Hexagonal architecture — no infrastructure imports in application layer"
+      - "DDD: handler receives command, calls aggregate, emits domain event only"
+
+    acceptance_criteria:
+      - "PlaceOrderHandler.Handle() calls Order.Place() and emits OrderPlaced"
+      - "Unit tests cover happy path and validation failure"
+      - "No direct DB calls in handler"
+
+    execution_mode: isolated   # always isolated — no shared context with other tasks
+```
+
+**Rules:**
+- SD-27: `input_contract.files` MUST list only files the agent needs to read — not the entire codebase
+- SD-28: `output_contract.files` MUST list every file the agent will create or modify
+- SD-29: `execution_mode` MUST always be `isolated` — context from prior tasks is passed via `input_contract`, not conversation history
+- SD-30: `input_contract.dependencies` MUST reference task IDs, not implicit knowledge
+
+---
+
 ## 5. Phase 4 — Implement
 
 **Goal:** Execute tasks against acceptance criteria.
