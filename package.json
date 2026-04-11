@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "hseos",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "HSEOS — Hideaki Software Engineering Operating System. Spec-driven, AI-assisted institutional engineering framework.",
   "keywords": [
     "engineering",
