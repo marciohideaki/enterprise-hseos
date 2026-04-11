@@ -34,6 +34,7 @@ agent:
       - ".enterprise/agents/sable/constraints.md"
       - ".enterprise/policies/"
       - ".hseos/workflows/registry.yaml"
+      - ".enterprise/governance/agent-skills/second-brain/SKILL-QUICK.md"
 
   menu:
     - trigger: RD or fuzzy match on runtime-deploy

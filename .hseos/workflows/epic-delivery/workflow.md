@@ -10,6 +10,11 @@ with explicit phases for GitOps deployment and runtime verification as separate 
 ORBIT
 
 ## Phase Model
+0. Vault Context Load (Pre-flight)
+   ORBIT reads strategic context from the second-brain vault before any phase begins.
+   Condition: `second_brain.enabled = true` in `hseos.config.yaml` (check via SKILL-QUICK.md §1).
+   Reads: `_memory/current-state.md` + `_knowledge/goals.md`.
+   Fallback: vault unavailable → skip silently, proceed with HSEOS sources only.
 1. Preflight Readiness
    ORBIT validates prerequisites, artifacts, tools, and prior planning steps.
 2. Epic Scope Load
@@ -32,6 +37,9 @@ ORBIT
     SABLE receives KUBE handoff evidence and verifies rollout health, pod status, and smoke checks.
 11. Consolidation
     QUILL and ORBIT emit execution evidence and PR-ready summary.
+12. Knowledge Consolidation (second-brain, if enabled)
+    QUILL identifies cross-project learnings and writes to vault. CIPHER writes approved ADRs to vault.
+    ORBIT instructs user to run `hseos brain sync`. QUILL prompts: run `/end-session` in the second-brain to capture full session context.
 
 ## Handoff Chain (Phases 8–10)
 ```
@@ -59,3 +67,40 @@ Each agent receives explicit evidence from the previous phase. No phase may proc
 - interactive and planning-heavy phases stop at `story-prep`
 - after `story-prep`, ORBIT may emit batch packets for `implementation` through `consolidation`
 - batch packets are written as versionable handoff artifacts so an external executor can run long phases without losing state
+
+## Phase 0 — Vault Context Load (detail)
+
+Responsible: ORBIT
+Condition: `second_brain.enabled = true` (SKILL-QUICK.md §1 detection)
+
+Steps:
+1. Read `.hseos/config/hseos.config.yaml` → check `second_brain.enabled`
+2. If true: verify `CLAUDE.md` exists at `second_brain.path`
+3. If verified: read `{vault_path}/_memory/current-state.md` and `{vault_path}/_knowledge/goals.md`
+4. Surface any open items or strategic context relevant to the current epic
+5. If vault unavailable at any step: log "vault unavailable — continuing without vault context" and proceed
+
+Output: Vault context available to all downstream phases. No artifact required.
+
+## Phase 12 — Knowledge Consolidation (detail)
+
+Responsible: QUILL + CIPHER + ORBIT
+Trigger: Phase 11 (Consolidation) complete
+Condition: `second_brain.enabled = true`
+
+QUILL steps:
+1. Review epic artifacts in `.hseos-output/{epic-id}/`
+2. Apply strategic threshold (SKILL.md §4): write only if cross-project value, not already documented, human-approved
+3. For each qualifying learning: create `{vault_path}/_learnings/hseos-{topic}.md` (format: SKILL.md §2.2)
+4. Prompt user: "Épico concluído. Execute `/end-session` no seu segundo-cérebro para capturar o contexto completo desta sessão."
+
+CIPHER steps (if ADR was approved during epic):
+1. For each approved ADR: create `{vault_path}/_decisions/hseos/{YYYY-MM-DD}-{kebab-name}.md` (format: SKILL.md §2.1)
+2. Never overwrite — check file existence first; append `-v2` suffix if conflict
+
+ORBIT steps:
+1. If `hseos brain sync` is available: instruct user to run it to sync `.hseos-output/` artifacts to vault
+2. If not available: append HSEOS block to `{vault_path}/_memory/current-state.md` (format: SKILL.md §3)
+   Guard: skip if file already has `## HSEOS — {epic-id}` block
+
+Stop condition: Phase 12 is optional enrichment. Never block delivery if vault write fails.

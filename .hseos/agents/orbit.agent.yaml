@@ -38,6 +38,7 @@ agent:
       - ".hseos/config/hseos.config.yaml"
       - ".hseos/workflows/registry.yaml"
       - ".enterprise/governance/agent-skills/multi-agent-orchestration/SKILL-QUICK.md"
+      - ".enterprise/governance/agent-skills/second-brain/SKILL-QUICK.md"
 
   menu:
     - trigger: ED or fuzzy match on epic-delivery

@@ -43,6 +43,7 @@ agent:
       - ".enterprise/.specs/core/"
       - ".enterprise/.specs/cross/"
       - "story file (before any implementation)"
+      - ".enterprise/governance/agent-skills/second-brain/SKILL-QUICK.md"
 
   critical_actions:
     - "READ the entire story file BEFORE any implementation"
