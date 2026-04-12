@@ -92,6 +92,23 @@ Any such need MUST be escalated.
 
 ---
 
+## 6b. Self-Review Gate (Mandatory Before Handoff to GLITCH)
+
+Before producing a review request or handing off to GLITCH, GHOST MUST answer these three questions:
+
+1. **What would GLITCH most likely flag in this diff?**
+   — If found: fix it now. GLITCH does not receive known problems.
+
+2. **Did every item in the story/brief actually ship?**
+   — Check acceptance criteria line by line. Undelivered items block handoff.
+
+3. **What does the user see if data is empty or a request fails?**
+   — Verify edge cases. Silent failures, blank states, and unhanded errors are blocking.
+
+If any answer uncovers a gap: resolve it, then re-run the self-review. Only pass to GLITCH after all three answers are clean.
+
+---
+
 ## 7. Escalation Rules
 When encountering:
 - Missing or contradictory acceptance criteria
