@@ -1,6 +1,6 @@
 ---
 type: skill-registry
-version: "1.3"
+version: "1.4"
 ---
 
 # Agent Skills Registry
@@ -404,9 +404,46 @@ version: "1.3"
 | QUILL or ORBIT consolidating epic + second-brain available | second-brain | 2 |
 | Running hseos brain sync | second-brain | 2 |
 | GHOST starting story touching infra / messaging / cache / auth / persistence | core-drift | 1 |
+| Ending a session with incomplete work | session-handoff | 1 |
+| ORBIT dispatching sub-task requiring context transfer | session-handoff | 2 |
+| Agent encountering a bug or unexpected failure | systematic-debugging | 1 |
+| Second or third fix attempt on same bug | systematic-debugging | 1 (escalate if 3rd) |
+| About to declare a task, fix, or feature complete | verification-before-completion | 1 |
+| GHOST reporting DONE to ORBIT | verification-before-completion | 1 |
 | QUILL closing Phase 10 of any epic | core-drift | 1 |
 | Evaluating whether a feature should be promoted to core | core-drift | 2 |
 | Generating a promotion ADR candidate | core-drift | 2 |
+
+---
+
+### session-handoff
+**Description:** Create or update HANDOFF.md to preserve session context for the next agent or conversation.
+**Load when:** ending a session with incomplete work; before context compaction on a long task; when ORBIT dispatches a sub-task requiring context transfer; when switching agents mid-epic.
+**Triggers:** `end session`, `handoff`, `context transfer`, `resume`, `incomplete task`, `pick up where`, `next session`, `session continuity`, `HANDOFF.md`
+**Tier 1:** `.enterprise/governance/agent-skills/session-handoff/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/session-handoff/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = low
+
+---
+
+### systematic-debugging
+**Description:** Root cause investigation protocol before any fix — 4-phase process with attempt limit and escalation gate.
+**Load when:** diagnosing a bug, investigating an unexpected failure, troubleshooting test failures, or before applying any fix; mandatory when a second fix attempt is needed.
+**Triggers:** `bug`, `error`, `exception`, `failure`, `not working`, `broken`, `debug`, `investigate`, `root cause`, `second attempt`, `third attempt`, `still failing`
+**Tier 1:** `.enterprise/governance/agent-skills/systematic-debugging/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/systematic-debugging/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = low
+**Critical:** If attempting Fix #3 → escalate instead. See escalation-rules.md §5.
+
+---
+
+### verification-before-completion
+**Description:** Evidence-based gates before declaring a task complete — functional correctness, spec compliance, governance, and regression checks.
+**Load when:** about to declare any task, story, fix, or feature complete; before GHOST reports DONE to ORBIT; before marking a TodoWrite item as completed.
+**Triggers:** `task complete`, `done`, `finished`, `ready for review`, `mark complete`, `all done`, `implementation complete`, `fix complete`, `feature complete`
+**Tier 1:** `.enterprise/governance/agent-skills/verification-before-completion/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/verification-before-completion/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = low
 
 ---
 
