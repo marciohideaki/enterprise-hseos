@@ -1,6 +1,6 @@
 ---
 name: breaking-change-detection
-description: Detect breaking changes in API, event, DTO, and contract diffs. Enforce versioning and migration requirements.
+description: "Use when performing full analysis of breaking changes across APIs, events, DTOs, and contracts requiring versioning strategy and migration guidance"
 license: Apache-2.0
 metadata:
   owner: platform-governance

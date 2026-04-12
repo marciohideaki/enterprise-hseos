@@ -2,6 +2,7 @@
 name: second-brain
 tier: quick
 version: "2.0"
+description: "Use when writing to or reading from the second-brain vault at end of session, during decision capture, or activity logging"
 ---
 
 # Second-Brain Integration — Quick Reference

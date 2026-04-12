@@ -2,6 +2,7 @@
 name: context-policy
 tier: full
 version: "1.0"
+description: "Use when designing stateless execution contracts, applying context compression strategies, or auditing context budget governance"
 ---
 
 # Context Policy — Full Policy

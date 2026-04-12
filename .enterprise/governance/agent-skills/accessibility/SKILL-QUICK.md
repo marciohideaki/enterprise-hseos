@@ -2,6 +2,7 @@
 name: accessibility
 tier: quick
 version: "1.0.0"
+description: "Use when validating UI components for WCAG 2.1 compliance, screen reader support, or touch target sizing"
 ---
 
 # Accessibility — Quick Check

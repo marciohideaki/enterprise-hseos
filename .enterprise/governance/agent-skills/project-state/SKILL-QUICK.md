@@ -2,6 +2,7 @@
 name: project-state
 tier: quick
 version: "1.0"
+description: "Use when determining current project delivery state, restoring session context, or reading task backlog"
 ---
 
 # Project State — Quick Reference

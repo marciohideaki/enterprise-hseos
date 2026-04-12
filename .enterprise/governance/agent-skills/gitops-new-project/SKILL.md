@@ -1,6 +1,6 @@
 ---
 name: gitops-new-project
-description: Scaffolda estrutura GitOps completa para novo projeto no platform-gitops — namespaces, infra, services, overlays dev/hmg/stg/prod, ArgoCD Applications, AppProject e bootstrap script.
+description: "Use when scaffolding a complete new GitOps project including namespaces, dev/hmg/stg/prod overlays, ArgoCD Applications, and AppProject"
 license: Apache-2.0
 metadata:
   owner: platform-governance

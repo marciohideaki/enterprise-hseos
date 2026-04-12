@@ -2,6 +2,7 @@
 name: second-brain
 tier: full
 version: "2.0"
+description: "Use when writing architectural decisions, discovered gotchas, or session activity to the vault, or designing the hseos brain sync protocol"
 ---
 
 # Second-Brain Integration — Full Reference

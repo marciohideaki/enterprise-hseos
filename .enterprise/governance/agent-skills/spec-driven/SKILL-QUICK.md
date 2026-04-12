@@ -2,6 +2,7 @@
 name: spec-driven
 tier: quick
 version: "1.0.0"
+description: "Use when starting a new feature, service, or architectural change that requires a structured spec before implementation"
 ---
 
 # Spec-Driven Development — Quick Check

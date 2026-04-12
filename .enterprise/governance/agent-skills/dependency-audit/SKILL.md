@@ -1,6 +1,6 @@
 ---
 name: dependency-audit
-description: Review new or upgraded dependencies for security vulnerabilities, license compliance, and governance requirements.
+description: "Use when performing a thorough security, license compliance, and governance review of dependency additions or upgrades"
 license: Apache-2.0
 metadata:
   owner: platform-governance

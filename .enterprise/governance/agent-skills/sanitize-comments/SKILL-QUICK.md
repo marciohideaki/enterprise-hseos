@@ -2,6 +2,7 @@
 skill: sanitize-comments
 tier: 1
 version: "1.0"
+description: "Use when reviewing code comments or commit messages for AI methodology references, management language, or attribution violations"
 ---
 
 # Sanitize Comments — Quick Checklist

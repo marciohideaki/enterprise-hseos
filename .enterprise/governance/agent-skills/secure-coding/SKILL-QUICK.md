@@ -2,6 +2,7 @@
 name: secure-coding
 tier: quick
 version: "2.0"
+description: "Use when reviewing code that touches authentication, cryptography, secrets, PII, or any security-sensitive path"
 ---
 
 # Secure Coding — Quick Check

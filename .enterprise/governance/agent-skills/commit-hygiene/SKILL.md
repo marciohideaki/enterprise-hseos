@@ -1,6 +1,6 @@
 ---
 name: commit-hygiene
-description: Enforce commit message hygiene — no co-authors, no AI tool mentions. Uses whole-word matching to prevent false positives on technical terms like "domain", "email", "cursor".
+description: "Use when auditing a batch of commits, establishing commit hygiene policy, or remediating persistent AI-attribution or format violations"
 license: Apache-2.0
 metadata:
   owner: platform-governance

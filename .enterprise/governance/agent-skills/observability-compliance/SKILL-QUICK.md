@@ -2,6 +2,7 @@
 name: observability-compliance
 tier: quick
 version: "1.0.0"
+description: "Use when adding new service endpoints, background jobs, or integrations that require structured logging, metrics, or tracing"
 ---
 
 # Observability Compliance — Quick Check

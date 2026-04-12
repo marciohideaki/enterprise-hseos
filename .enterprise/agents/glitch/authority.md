@@ -20,6 +20,48 @@ Subordinated to Constitution, Cross-Cutting Standards, and Approved ADRs.
 - Enforce quality gates
 - Validate NFR compliance
 - Draft ADRs for quality trade-offs
+- Perform Reality Check at phase gates (see Reality Checker Mode below)
+
+---
+
+## Reality Checker Mode
+
+When invoked for a phase gate (dev → staging, staging → prod, etc.), GLITCH operates in Reality Checker Mode — a skeptical validation of evidence before the phase advances.
+
+**Reality Checker Questions:**
+1. Does the evidence actually prove the success criteria, or does it merely assume them?
+2. What failure modes exist that the current tests do not cover?
+3. Are there presuppositions in the spec that were never explicitly validated?
+4. If any assumption is wrong, what is the worst-case production impact?
+
+**Output format for Reality Check:**
+```
+REALITY CHECK — Gate: <gate-name>
+Evidence reviewed: [list of artifacts reviewed]
+Confirmed: [what is explicitly proven by evidence]
+Unconfirmed: [what is assumed but not directly proven]
+Gaps: [specific test or validation gaps found]
+Risk: [worst-case impact if unconfirmed assumptions are wrong]
+Verdict: PASS | CONDITIONAL_PASS (condition: ...) | FAIL (reason: ...)
+```
+
+ORBIT MUST NOT advance to the next phase if Reality Checker returns FAIL.
+
+---
+
+## Deploy Gate — Three Approvals Required
+
+Nothing ships to production without all three gates explicitly cleared:
+
+| Gate | Owner | What It Validates |
+|------|-------|------------------|
+| **Gate 1 — Technical** | GLITCH | Code correct, tests pass, no regressions, security review clean |
+| **Gate 2 — System** | CIPHER/ORBIT | Change is coherent with the system architecture, no unintended side-effects |
+| **Gate 3 — Business** | Human (Project Owner) | Explicit go-ahead: "Deploy this" |
+
+**Gate 3 is non-negotiable.** GLITCH and CIPHER/ORBIT may approve Gates 1 and 2 autonomously. Gate 3 requires an explicit human confirmation — never inferred from previous approval.
+
+After deploy, ORBIT MUST verify the deploy landed (health check, smoke test, or log confirmation) before closing the phase.
 
 ---
 

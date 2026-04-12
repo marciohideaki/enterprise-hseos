@@ -1,6 +1,6 @@
 ---
 name: pr-review
-description: Enforce PR review standards — quality gates, boundary evidence, contract safety, and governance compliance. Includes blast radius analysis and adversarial analysis from Trail of Bits differential-review methodology.
+description: "Use when performing a thorough PR review with blast radius analysis, adversarial assessment, contract safety checks, and full governance compliance"
 license: Apache-2.0
 metadata:
   owner: platform-governance
@@ -16,6 +16,34 @@ Use this skill when:
 - acting as a reviewer agent on a PR diff
 - generating a PR review report
 - validating that a PR is ready to merge
+
+---
+
+## Two-Stage Review Protocol
+
+PR review MUST occur in two sequential stages. **Stage 1 before Stage 2 — always.**
+
+### Stage 1 — Spec Compliance (First)
+
+Before evaluating code quality, verify the implementation matches its specification:
+
+1. Does it fulfill the stated acceptance criteria or spec section?
+2. Does it match the ADR or design doc if one was created?
+3. Does the PR description accurately describe what changed?
+4. Are all stated changes actually present in the diff?
+
+**If Stage 1 fails:** Request changes immediately. Do NOT proceed to Stage 2 until spec compliance is confirmed.
+
+**Rationale:** Well-written code that implements the wrong thing is not mergeable. Spec compliance is binary — code quality is a gradient.
+
+### Stage 2 — Code Quality (Only After Stage 1 Passes)
+
+Evaluate implementation quality:
+- Code organization, readability, naming
+- Error handling at boundaries
+- No unnecessary complexity
+- Test coverage adequate for the change
+- No patterns that will create future debt
 
 ---
 
@@ -221,10 +249,17 @@ When generating a formal review report, the output MUST include:
 ### Governance
 [ADR status, if required]
 
-### Verdict: APPROVED / CHANGES REQUESTED / BLOCKED
+### Verdict: APPROVED / APPROVED WITH CONDITIONS / REJECTED
 
 ### Required Changes (if any)
 [Explicit list of blocking items with file:line references]
+
+> **Verdict rules:**
+> - `APPROVED` — ships as-is, no blocking items
+> - `APPROVED WITH CONDITIONS` — every condition listed blocks merge; there are no optional items
+> - `REJECTED` — re-architect or significant rework required before re-review
+>
+> There is no "Should Fix" or "Nice to Have" in a formal review. If it needs fixing, it is a Condition. If it doesn't need fixing, don't mention it.
 ```
 
 ---
@@ -234,3 +269,51 @@ When generating a formal review report, the output MUST include:
 ✅ Good PR: Green CI, ddd-boundary-check PASS, no breaking changes, public methods documented, ADR attached for new pattern.
 
 ❌ Bad PR: Test coverage dropped 15%, `AllowAnonymous` added to endpoint, no CHANGELOG entry for breaking API change, no ADR for new dependency on external service.
+
+---
+
+## Hyrum's Law
+
+> "With a sufficient number of users of an API, it does not matter what you promise in the contract: all observable behaviors of your system will be depended on by somebody."
+
+Ao revisar uma PR, considere: **todo comportamento observável se torna um contrato de fato**, documentado ou não. Pergunte:
+- Essa mudança altera algum comportamento que pode ter consumers dependentes?
+- Existe comportamento exposto acidentalmente (side effects, timing, error messages) que usuários podem estar usando?
+- A mudança é segura para adicionar (aditiva), mas não segura para remover depois?
+
+---
+
+## Racionalizações Comuns
+
+| Racionalização | Realidade |
+|---|---|
+| "Parece correto" | Não é suficiente. Evidência requerida: testes passando, build green, spec compliance verificada. |
+| "Só vou fazer um review rápido, é uma mudança pequena" | Mudanças pequenas em auth, contratos e domínio têm blast radius desproporcional ao tamanho. Risk triage é sempre obrigatório. |
+| "Os testes passam, então está ok" | Testes cobrem o que foi escrito, não o que deveria ser escrito. Stage 1 (spec compliance) deve ser confirmado independentemente dos testes. |
+| "Já revisamos isso antes" | Cada PR é um estado novo. Revisões anteriores não transferem validade para mudanças acumuladas. |
+| "O autor é sênior, não precisa de review detalhado" | Experiência não elimina erros de boundary, contrato ou segurança. O processo existe exatamente para falhas não óbvias. |
+
+---
+
+## Sinais de Alerta (Red Flags)
+
+- Stage 2 (code quality) sendo executado antes de Stage 1 (spec compliance) ser confirmado
+- Review report sem resultado explícito de risk triage
+- `AllowAnonymous` adicionado sem justificativa documentada na PR description
+- Coverage caiu e foi aprovada com "é um caso de borda"
+- Breaking change em campo ou endpoint sem `⚠ BREAKING:` no PR title/body
+- Architectural change sem ADR referenciado
+- Reviewer aprovou com "LGTM" sem mapear findings para as seções obrigatórias do report
+
+---
+
+## Verificação (Exit Criteria)
+
+- [ ] Stage 1 (spec compliance) confirmado antes de qualquer avaliação de code quality
+- [ ] Risk triage resultado declarado no review report (Low / Medium / High)
+- [ ] CI pipeline verde — sem failing builds ou failing tests (PR-05)
+- [ ] Test coverage não decresceu abaixo do baseline (PR-06)
+- [ ] Secrets scan limpo (PR-21)
+- [ ] Breaking changes declarados explicitamente se existirem (PR-03, PR-19)
+- [ ] ADR referenciado se mudança arquitetural presente (PR-28)
+- [ ] Verdict explícito: APPROVED / APPROVED WITH CONDITIONS / REJECTED

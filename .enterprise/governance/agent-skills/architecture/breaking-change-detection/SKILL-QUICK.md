@@ -2,6 +2,7 @@
 name: breaking-change-detection
 tier: quick
 version: "1.0.0"
+description: "Use when reviewing API, event schema, DTO, or contract changes that may break existing consumers"
 ---
 
 # Breaking Change Detection — Quick Check

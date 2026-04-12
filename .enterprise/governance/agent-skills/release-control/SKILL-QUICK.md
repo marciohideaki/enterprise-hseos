@@ -2,6 +2,7 @@
 name: release-control
 tier: quick
 version: "1.0"
+description: "Use when preparing a release, reviewing changelog completeness, or classifying release risk"
 ---
 
 # Release Control — Quick Check

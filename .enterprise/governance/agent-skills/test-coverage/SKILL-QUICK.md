@@ -2,6 +2,7 @@
 name: test-coverage
 tier: quick
 version: "1.0.0"
+description: "Use when reviewing test coverage, test pyramid compliance, or test quality for any code change"
 ---
 
 # Test Coverage — Quick Check

@@ -567,6 +567,7 @@ class UI {
     const coreConfig = await this.collectCoreConfig(confirmedDirectory, options);
     const stateManagement = await this.promptStateManagement(confirmedDirectory, options);
     const secondBrain = await this.promptSecondBrain(confirmedDirectory, options);
+    const rtk = await this.promptRtk(confirmedDirectory, options);
 
     return {
       actionType: 'install',
@@ -578,6 +579,7 @@ class UI {
       coreConfig: coreConfig,
       stateManagement: stateManagement,
       secondBrain: secondBrain,
+      rtk: rtk,
       customContent: customContentConfig,
       skipPrompts: options.yes || false,
     };
@@ -1073,6 +1075,75 @@ class UI {
     const resolvedPath = vaultPath.trim();
     await prompts.log.success(`Second-brain connected: ${resolvedPath}`);
     return { enabled: true, path: resolvedPath };
+  }
+
+  /**
+   * Prompt for RTK token optimizer integration
+   * @param {string} directory - Installation directory
+   * @param {Object} options - Command-line options
+   * @returns {Object} RTK configuration { enabled }
+   */
+  async promptRtk(directory, options = {}) {
+    const { execSync } = require('node:child_process');
+
+    // --rtk flag enables non-interactively
+    if (options.rtk) {
+      await prompts.log.info('RTK: enabled via --rtk flag');
+      return { enabled: true };
+    }
+
+    // Check for existing config
+    const configPath = `${directory}/.hseos/config/hseos.config.yaml`;
+    if (await fs.pathExists(configPath)) {
+      try {
+        const yaml = require('js-yaml');
+        const existing = yaml.load(await fs.readFile(configPath, 'utf8'));
+        if (existing?.rtk?.enabled !== undefined) {
+          const status = existing.rtk.enabled ? 'enabled' : 'disabled';
+          await prompts.log.info(`RTK: using existing config (${status})`);
+          return existing.rtk;
+        }
+      } catch {
+        // ignore, proceed to prompt
+      }
+    }
+
+    if (options.yes) {
+      await prompts.log.info('RTK: disabled (default, --yes flag)');
+      return { enabled: false };
+    }
+
+    // Check if rtk is already installed
+    let alreadyInstalled = false;
+    try {
+      execSync('which rtk', { stdio: 'ignore' });
+      alreadyInstalled = true;
+    } catch {
+      // not installed
+    }
+
+    const p = await import('@clack/prompts');
+
+    await p.log.step('RTK — Token Optimizer');
+    await p.log.message(
+      'RTK intercepts CLI commands (git, cargo, npm, pytest, etc.) and filters their output\n' +
+        'before it reaches the LLM context window, saving 60-90% of tokens per session.\n\n' +
+        'It installs a global PreToolUse hook in ~/.claude/ that rewrites commands automatically.\n' +
+        (alreadyInstalled ? 'RTK binary detected in PATH.' : 'RTK binary is not installed — the installer will download it.')
+    );
+
+    const enableRtk = await p.confirm({
+      message: 'Install RTK token optimizer?',
+      initialValue: false,
+    });
+
+    if (p.isCancel(enableRtk) || !enableRtk) {
+      await prompts.log.info('RTK: disabled');
+      return { enabled: false };
+    }
+
+    await prompts.log.success('RTK: will be installed');
+    return { enabled: true };
   }
 
   /**

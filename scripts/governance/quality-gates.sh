@@ -201,6 +201,17 @@ gate_code() {
     fi
   fi
 
+  # Skill format validation (HSEOS skill validator)
+  local skill_validator="${SCRIPT_DIR}/validate-skills.sh"
+  if [[ -f "$skill_validator" ]]; then
+    info "Running skill format validator..."
+    if bash "$skill_validator" >>"$LOG_FILE" 2>&1; then
+      pass "Skill validation: passed"
+    else
+      record_warn "Skill validation: warnings or failures found (see log: ${LOG_FILE})"
+    fi
+  fi
+
   $gate_passed
 }
 

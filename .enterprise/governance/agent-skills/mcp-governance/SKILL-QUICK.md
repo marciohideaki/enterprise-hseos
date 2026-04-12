@@ -2,6 +2,7 @@
 name: mcp-governance
 tier: quick
 version: "1.0"
+description: "Use when adding, configuring, or auditing MCP server usage, rate limits, or spend controls"
 ---
 
 # MCP Governance — Quick Reference

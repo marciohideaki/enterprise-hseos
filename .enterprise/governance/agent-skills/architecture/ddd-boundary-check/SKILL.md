@@ -1,6 +1,6 @@
 ---
 name: ddd-boundary-check
-description: Validate DDD boundaries (bounded contexts, layers, dependencies) in any codebase. Flags leakage across contexts and domain/infra contamination.
+description: "Use when running a full DDD boundary audit, detecting context leakage, or remediating domain and infrastructure contamination"
 license: Apache-2.0
 metadata:
   owner: platform-governance

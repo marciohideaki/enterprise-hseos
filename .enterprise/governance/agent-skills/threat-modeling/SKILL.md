@@ -1,6 +1,6 @@
 ---
 name: threat-modeling
-description: Repository-grounded threat modeling — maps trust boundaries, assets, abuse paths, and mitigations from actual code evidence. 8-step workflow with mandatory user validation. Adapted from OpenAI's security-threat-model methodology.
+description: "Use when performing a full 8-step threat model mapping trust boundaries, assets, abuse paths, and mitigations with mandatory user validation"
 license: MIT
 metadata:
   owner: platform-governance

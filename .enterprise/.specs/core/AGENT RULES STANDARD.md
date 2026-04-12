@@ -147,6 +147,23 @@ AI agents must **never**:
 
 ---
 
+## 16. Model Routing by Task Complexity
+
+Agents SHOULD select model tier based on task complexity. Escalate only when the lower tier demonstrates a reasoning gap (not just slower response).
+
+| Task Type | Recommended Tier | Examples |
+|-----------|-----------------|---------|
+| Classification, boilerplate, narrow edits | Haiku / fast | Renaming variables, generating enum lists, simple format conversions |
+| Implementation, refactoring, tests, review | Sonnet / standard | Feature implementation, PR review, test writing, debugging |
+| Architecture, root-cause analysis, multi-file invariants | Opus / capable | ADR drafting, cross-service design, complex debugging with no obvious cause |
+
+**Rules:**
+- AR-55: Do not use Opus for tasks that Sonnet can solve with correct reasoning.
+- AR-56: Escalate model tier only when the lower tier fails with a documented reasoning gap.
+- AR-57: Cost discipline — track model tier escalations; escalation rate > 20% suggests task decomposition is needed.
+
+---
+
 ## Summary
 
 This document represents the **complete, enforceable and stack-aware Agent Rules Standard**.

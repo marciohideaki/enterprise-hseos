@@ -2,6 +2,7 @@
 name: multi-agent-orchestration
 tier: quick
 version: "1.0"
+description: "Use when designing or reviewing multi-agent workflows, ORBIT dispatch, or parallel agent execution patterns"
 ---
 
 # Multi-Agent Orchestration — Quick Reference

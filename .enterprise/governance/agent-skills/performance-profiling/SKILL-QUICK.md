@@ -2,6 +2,7 @@
 skill: performance-profiling
 tier: 1
 version: "1.0"
+description: "Use when investigating a performance regression, profiling a service, or reviewing performance-sensitive code changes"
 ---
 
 # Performance Profiling — Quick Checklist

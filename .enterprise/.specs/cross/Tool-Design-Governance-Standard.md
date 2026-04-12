@@ -124,7 +124,47 @@ Before adding a new tool to an agent's toolkit:
 
 ---
 
-## 6. Anti-Patterns
+## 6. Guardrails & Safety Patterns
+
+Tools and agents operating in production contexts MUST implement appropriate guardrails. See `AgenticDesignPatterns Chapter 18` for full reference.
+
+### Input Guardrails (CE-TOOL-09)
+Before processing any input, validate:
+- Type safety: reject inputs that don't match expected types/schemas
+- Range checks: reject out-of-range values at system boundary
+- Injection prevention: sanitize any input that reaches shell execution, SQL queries, or LLM prompt construction
+
+### Output Guardrails (CE-TOOL-10)
+Before returning any output:
+- Tag external-content outputs as untrusted (extends CE-TOOL-03)
+- Validate structured outputs against schema before returning
+- Truncate or paginate large outputs to prevent context flooding
+
+### LLM-as-Judge Pattern (CE-TOOL-11)
+For ambiguous quality checks (documentation completeness, semantic correctness), use a secondary validation call:
+```
+Primary → generates output
+Judge   → validates output against criteria → pass / fail / suggest
+```
+Apply when: automated rule checks are insufficient and human review is expensive.
+
+### Fallback & Recovery (CE-TOOL-12)
+Every tool with external dependencies MUST define:
+- Primary path (expected behavior)
+- Fallback path (degraded behavior on failure)
+- Recovery action (how to restore normal operation)
+
+Tools that fail without a defined fallback MUST fail explicitly — never silently.
+
+### Prompt Injection Guard (CE-TOOL-13)
+When an agent generates prompts for other agents (e.g., ORBIT → GHOST dispatch):
+- Never embed raw user input directly into agent prompts
+- Validate prompt content for injection patterns before dispatch
+- Reject patterns: instruction overrides (`ignore previous instructions`, `new instructions:`), role changes (`you are now`), exfiltration attempts
+
+---
+
+## 7. Anti-Patterns
 
 | Anti-Pattern | Why It Fails |
 |---|---|
@@ -134,5 +174,7 @@ Before adding a new tool to an agent's toolkit:
 | Unconstrained file reads | Floods context; performance degradation |
 | Shell passthrough | Command injection vector |
 | Undocumented non-idempotency | Agent may call destructive tool multiple times |
+| Missing input guardrail | Invalid input propagates and causes cascading failures |
+| No fallback defined | External dependency failure causes silent data loss |
 
 **End**

@@ -2,6 +2,7 @@
 name: multi-agent-orchestration
 tier: full
 version: "1.0"
+description: "Use when designing complex multi-agent workflows, ORBIT dispatch chains, orchestration patterns, or reviewing agent coordination architecture"
 ---
 
 # Multi-Agent Orchestration — Full Patterns Reference
@@ -214,7 +215,112 @@ Without `claude-peers`: Use sequential hand-off via shared workflow state file.
 
 ---
 
-## 6. Anti-Patterns (never do)
+## 6. Subagent-Driven Development Pattern
+
+For epic delivery, ORBIT should dispatch fresh subagents per task rather than accumulating context in a single long-running session.
+
+### Context Isolation Model
+```
+ORBIT (controller)
+  ├── Extracts ALL tasks upfront from plan
+  ├── Dispatches GHOST (implementer) per task — fresh context, full task text
+  │     └── GHOST → GLITCH (regression review) → ORBIT (spec review) → DONE
+  └── Only dispatches next task after current is fully complete and reviewed
+```
+
+### Implementer Dispatch Template
+When ORBIT dispatches GHOST for a task:
+```
+Task: <full task text, not a file reference>
+Input artifacts: <list of files to read>
+Acceptance criteria: <exactly what DONE looks like>
+Constraints: <what must not be changed>
+Known complications: <from previous agents>
+Return format: DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
+```
+
+### Dev↔Validation Loop
+- GHOST implements → GLITCH validates → pass/fail
+- If fail: GHOST retries (max 2 more attempts = 3 total)
+- If 3rd failure: escalate to CIPHER (architectural issue) or human (trade-off decision)
+- See `escalation-rules.md §5`
+
+---
+
+## 7. Reality Checker Gate
+
+Before any phase gate that promotes work to the next phase (e.g., dev → staging, staging → prod), GLITCH operates in "Reality Checker" mode:
+
+**Reality Checker Questions:**
+1. Does the evidence actually prove the success criteria, or does it assume them?
+2. What could still be wrong that the tests don't cover?
+3. Are there any presuppositions in the spec that weren't validated?
+4. If this is wrong, what's the worst-case impact?
+
+**Gate format:**
+```
+REALITY CHECK — Phase Gate: <phase-name>
+Evidence reviewed: [list]
+Confirmed: [what is proven]
+Unconfirmed: [what is assumed, not proven]
+Risk: [worst case if assumption is wrong]
+Verdict: PASS | CONDITIONAL_PASS (with stated condition) | FAIL
+```
+
+ORBIT does NOT advance to next phase if Reality Checker returns FAIL.
+
+---
+
+## 8. Task Decomposition — Vertical Slicing
+
+Quando ORBIT decompõe um epic em tasks para dispatch, usar **vertical slicing** — não horizontal.
+
+### Horizontal Slicing (Evitar)
+
+```
+Task 1: Criar todas as tabelas do banco
+Task 2: Implementar todos os handlers da aplicação
+Task 3: Criar todos os endpoints da API
+Task 4: Criar todos os componentes de UI
+```
+
+Problema: Nenhuma task entrega valor observável. Bugs de integração aparecem apenas na Task 4.
+
+### Vertical Slicing (Usar)
+
+```
+Task 1: PlaceOrder — DB + handler + endpoint + teste (uma feature path completa)
+Task 2: CancelOrder — DB + handler + endpoint + teste
+Task 3: ListOrders — query + endpoint + teste
+```
+
+Cada task entrega um slice funcional e testável. Bugs de integração aparecem na Task 1, não na Task 4.
+
+### Dependency Graph
+
+Antes de decompor, construir o grafo de dependências bottom-up:
+
+```
+DB schema → Domain types → Command handlers → API endpoints → UI components
+(L1)         (L2)           (L3 — depende L2)    (L4 — depende L3)   (L5 — depende L4)
+```
+
+Tasks de nível mais baixo (DB, tipos) primeiro. Nunca despachar uma task cujas dependências não estão completas.
+
+### Sizing Guide
+
+| Tamanho | Arquivos | Critério |
+|---------|----------|---------|
+| S | 1-2 | Uma única responsabilidade, testável em isolamento |
+| M | 3-5 | Um slice vertical completo |
+| L | 5-8 | Múltiplos slices — considerar quebrar |
+| L+ | > 8 | **Sempre quebrar** — task muito grande para uma sessão |
+
+**Critério de quebra obrigatória:** task com "e" no título (`"Implementar PlaceOrder e CancelOrder"`) = duas tasks.
+
+---
+
+## 9. Anti-Patterns (never do)
 
 | Anti-pattern | Why it fails |
 |---|---|
@@ -224,3 +330,5 @@ Without `claude-peers`: Use sequential hand-off via shared workflow state file.
 | Implicit shared state between agents | Race conditions; non-deterministic results |
 | Auto-approving HITL gates | Bypasses governance; creates audit liability |
 | Fan-out > 5 agents without batching | Rate limits, context overflow, hard to debug |
+| Dispatcher keeping task context in memory | Context bloat; use shared state file instead |
+| Skipping Reality Checker at phase gates | Assumptions ship to production |

@@ -2,6 +2,7 @@
 name: gitops-deploy
 tier: quick
 version: "1.1.0"
+description: "Use when deploying a service by bumping image tags in the platform-gitops repository"
 ---
 
 # GitOps Deploy — Quick Reference

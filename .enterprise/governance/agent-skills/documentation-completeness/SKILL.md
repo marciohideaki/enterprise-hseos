@@ -1,6 +1,6 @@
 ---
 name: documentation-completeness
-description: Validate documentation coverage for public code, APIs, architecture, and decision records.
+description: "Use when performing full documentation coverage audit across public APIs, architecture docs, ADRs, and decision records"
 license: Apache-2.0
 metadata:
   owner: platform-governance

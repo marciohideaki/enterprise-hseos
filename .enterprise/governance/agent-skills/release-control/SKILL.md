@@ -1,6 +1,6 @@
 ---
 name: release-control
-description: Release governance — changelog discipline, risk classification, and rollout requirements.
+description: "Use when managing a release end-to-end: changelog validation, risk classification, rollout requirements, and approval gates"
 license: Apache-2.0
 metadata:
   owner: platform-governance

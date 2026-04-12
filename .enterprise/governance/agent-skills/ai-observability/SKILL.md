@@ -2,6 +2,7 @@
 name: ai-observability
 tier: full
 version: "1.0"
+description: "Use when designing AI agent observability architecture, integrating mission-control dashboards, or defining AI-specific KPI schemas"
 ---
 
 # AI Observability — Full Reference

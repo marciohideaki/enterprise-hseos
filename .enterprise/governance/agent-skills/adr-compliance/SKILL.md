@@ -1,6 +1,6 @@
 ---
 name: adr-compliance
-description: Validate ADR format, completeness, approval status, and linkage to affected standards.
+description: "Use when deeply validating an ADR's format, approval chain, linkage to standards, or deciding the correct ADR status"
 license: Apache-2.0
 metadata:
   owner: platform-governance

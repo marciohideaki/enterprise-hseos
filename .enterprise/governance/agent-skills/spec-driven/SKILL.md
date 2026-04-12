@@ -1,6 +1,6 @@
 ---
 name: spec-driven
-description: Structured 4-phase workflow for planning and implementing new features or services — Specify, Design, Tasks, Implement.
+description: "Use when planning and implementing a new feature or service end-to-end using the Specify→Design→Tasks→Implement workflow"
 license: Apache-2.0
 metadata:
   owner: platform-governance
@@ -188,3 +188,37 @@ tasks:
 
 ❌ Bad: Agent starts writing code after a one-sentence description — no spec, no design, no tasks.
 ❌ Bad: Tasks defined as "implement the payment feature" — not atomic, no acceptance criteria.
+
+---
+
+## Racionalizações Comuns
+
+| Racionalização | Realidade |
+|---|---|
+| "É simples, não precisa de spec" | Tasks simples ainda precisam de critério de aceitação. Um spec de 2 linhas já é suficiente — sem critério, "pronto" é indefinível. |
+| "Vou escrever o spec depois de codificar" | Isso é documentação, não spec. O valor do spec está em forçar clareza *antes* do código — depois, as decisões já foram tomadas implicitamente. |
+| "Os requisitos vão mudar de qualquer forma" | Por isso o spec é um documento vivo. Mudanças de requisito são esperadas; surpresas de escopo por falta de spec são evitáveis. |
+| "O usuário sabe o que quer" | Mesmo requisitos claros têm suposições implícitas. Spec as torna explícitas e verificáveis — antes de virar código. |
+| "Não temos tempo para spec" | Um spec de 15 minutos previne horas de retrabalho. Spec em 15 minutos é mais rápido que debugging em 15 horas. |
+
+---
+
+## Sinais de Alerta (Red Flags)
+
+- Iniciar qualquer implementação sem spec.md criado e revisado
+- Tasks definidas como "implementar a feature X" sem critérios de aceitação
+- Avançar da Fase 1 para a Fase 2 com Open Questions ainda abertas
+- Implementar funcionalidade não mencionada em nenhuma FR ou NFR do spec
+- Spec sem Out of Scope — ausência de exclusões explícitas garante scope creep
+- Input contract de uma task referencia "contexto implícito da sessão" em vez de arquivos concretos
+
+---
+
+## Verificação (Exit Criteria)
+
+- [ ] spec.md existe em `.specs/features/<feature-name>/` com todas as seções obrigatórias (SD-02)
+- [ ] Todas as FRs são testáveis ("o sistema MUST..." não "o sistema deveria...")
+- [ ] Open Questions da Fase 1 foram resolvidas ou aceitas como risco antes de avançar para Fase 2
+- [ ] design.md referencia os padrões de plataforma aplicáveis (SD-08)
+- [ ] Cada task em tasks.md tem acceptance criteria verificável sem interpretação humana (SD-16)
+- [ ] Todas as tasks têm `execution_mode: isolated` e input_contract completo (SD-28, SD-29)
