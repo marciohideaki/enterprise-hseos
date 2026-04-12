@@ -197,5 +197,5 @@ state_management:
 # When enabled, agents read from and write to the personal knowledge vault.
 # Set during `hseos install` or manually configure path below.
 second_brain:
-  enabled: false
-  path: ""
+  enabled: true
+  path: /opt/hideakisolutions/second-brain

@@ -98,3 +98,38 @@ See full rules: `scripts/governance/quality-gates.sh`
 ### Enforcement Flags
 - `VALIDATION_ENFORCED=true` (default)
 - `WORKTREE_ENFORCED=true` (default)
+
+---
+
+## Second Brain Integration
+
+Vault: `/opt/hideakisolutions/second-brain`
+
+Este projeto está registrado no vault em `_knowledge/projects/enterprise-hseos/`.
+
+### Ao encerrar uma sessão produtiva
+
+Escreva diretamente nos arquivos do vault **antes de sugerir ao usuário que encerre**:
+
+1. **Decisões arquiteturais** → append em `_knowledge/projects/enterprise-hseos/decisions.md`
+2. **Gotchas descobertos** (bugs, comportamentos não-óbvios) → append em `_knowledge/projects/enterprise-hseos/gotchas.md`
+3. **Progresso de fase** → atualizar `_knowledge/projects/enterprise-hseos/roadmap.md` se a fase avançou
+4. **Activity log** → append em `_memory/activity-log.md`: `## [YYYY-MM-DD HH:MM] session-end | enterprise-hseos — {tipo}: {descrição}`
+
+Depois sugerir ao usuário: *"Quer que eu também atualize o `/end-session` do second-brain para capturar o contexto completo da conversa?"*
+
+### Tipos de trabalho a registrar
+
+`epic` `feature` `story` `task` `fix` `chore` `spike` `session`
+
+Registrar qualquer implementação que produziu código, decisão ou aprendizado — não apenas epics formais.
+
+### Se o projeto não estiver registrado no vault
+
+Criar `_knowledge/projects/enterprise-hseos/` com os 7 arquivos base (README, modules, integrations, gotchas, decisions, roadmap, work-log) e atualizar `_index/MASTER-INDEX.md`.
+
+### Constraints HSEOS (respeitar)
+
+- Escrever em `_decisions/hseos/` e `_learnings/hseos-*` apenas decisões com valor cross-project
+- Nunca sobrescrever arquivos do vault sem verificar se existem
+- `_memory/current-state.md`: o `/end-session` do vault é o canal correto para atualizar
