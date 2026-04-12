@@ -1368,6 +1368,26 @@ class Installer {
         );
       }
 
+      // Install Usage Dashboard (optional)
+      if (config.usageDashboard && config.usageDashboard.enabled) {
+        postIdeTasks.push(
+          {
+            title: 'Installing usage analytics dashboard',
+            task: async () => {
+              const result = await this.installUsageDashboard(projectDir, config.usageDashboard);
+              return result;
+            },
+          },
+          {
+            title: 'Writing usage dashboard configuration',
+            task: async () => {
+              await this.writeUsageDashboardConfig(projectDir, config.usageDashboard);
+              return `Usage Dashboard: enabled (${config.usageDashboard.mode}) in hseos.config.yaml`;
+            },
+          },
+        );
+      }
+
       await prompts.tasks(postIdeTasks);
 
       // Retrieve restored file info for summary
@@ -2390,8 +2410,72 @@ fi
       });
     }
 
+    // Add rtk:* to global allowed tools so rewritten commands execute without prompting
+    if (!settings.permissions) settings.permissions = {};
+    if (!settings.permissions.allow) settings.permissions.allow = [];
+    const rtkPermission = 'Bash(rtk:*)';
+    if (!settings.permissions.allow.includes(rtkPermission)) {
+      settings.permissions.allow.push(rtkPermission);
+    }
+
     await fs.ensureDir(path.dirname(settingsPath));
     await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2), 'utf8');
+  }
+
+  /**
+   * Install the usage analytics dashboard files to the project directory.
+   * Copies Python sources + Docker files from tools/usage-dashboard/.
+   * @param {string} projectDir - Project directory
+   * @param {Object} dashboardConfig - { enabled, mode }
+   * @returns {string} Summary line for the task log
+   */
+  async installUsageDashboard(projectDir, dashboardConfig) {
+    const os = require('node:os');
+
+    // Resolve source: tools/usage-dashboard relative to this installer file
+    const sourceDir = path.resolve(__dirname, '..', '..', '..', '..', 'usage-dashboard');
+    const destDir = path.join(projectDir, '.hseos', 'usage-dashboard');
+
+    await fs.ensureDir(destDir);
+
+    // Always copy core Python files
+    for (const file of ['cli.py', 'scanner.py', 'dashboard.py']) {
+      const src = path.join(sourceDir, file);
+      if (await fs.pathExists(src)) {
+        await fs.copy(src, path.join(destDir, file), { overwrite: true });
+      }
+    }
+
+    // Always copy Docker files (user can use either mode later)
+    for (const file of ['Dockerfile', 'docker-compose.yml']) {
+      const src = path.join(sourceDir, file);
+      if (await fs.pathExists(src)) {
+        await fs.copy(src, path.join(destDir, file), { overwrite: true });
+      }
+    }
+
+    const mode = dashboardConfig.mode || 'local';
+    return `Usage Dashboard: installed to .hseos/usage-dashboard/ (mode: ${mode})`;
+  }
+
+  /**
+   * Write usageDashboard section to the project's hseos.config.yaml
+   * @param {string} projectDir - Project directory
+   * @param {Object} dashboardConfig - { enabled, mode }
+   */
+  async writeUsageDashboardConfig(projectDir, dashboardConfig) {
+    const yaml = require('yaml');
+    const configPath = path.join(projectDir, '.hseos', 'config', 'hseos.config.yaml');
+
+    if (!(await fs.pathExists(configPath))) return;
+
+    const raw = await fs.readFile(configPath, 'utf8');
+    const doc = yaml.parseDocument(raw);
+
+    const dashboardMap = doc.createNode(dashboardConfig);
+    doc.set('usageDashboard', dashboardMap);
+
+    await fs.writeFile(configPath, doc.toString(), 'utf8');
   }
 
   /**

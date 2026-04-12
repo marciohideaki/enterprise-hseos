@@ -26,6 +26,7 @@ module.exports = {
     ['-y, --yes', 'Accept all defaults and skip prompts where possible'],
     ['--second-brain-path <path>', 'Absolute path to second-brain vault (enables integration if provided)'],
     ['--rtk', 'Install RTK token optimizer (intercepts CLI commands to reduce LLM token usage by 60-90%)'],
+    ['--usage-dashboard [mode]', 'Install usage analytics dashboard. Mode: "local" (Python, default) or "docker" (Docker Compose, externally accessible)'],
   ],
   action: async (options) => {
     try {

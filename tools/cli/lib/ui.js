@@ -568,6 +568,7 @@ class UI {
     const stateManagement = await this.promptStateManagement(confirmedDirectory, options);
     const secondBrain = await this.promptSecondBrain(confirmedDirectory, options);
     const rtk = await this.promptRtk(confirmedDirectory, options);
+    const usageDashboard = await this.promptUsageDashboard(confirmedDirectory, options);
 
     return {
       actionType: 'install',
@@ -580,6 +581,7 @@ class UI {
       stateManagement: stateManagement,
       secondBrain: secondBrain,
       rtk: rtk,
+      usageDashboard: usageDashboard,
       customContent: customContentConfig,
       skipPrompts: options.yes || false,
     };
@@ -1144,6 +1146,79 @@ class UI {
 
     await prompts.log.success('RTK: will be installed');
     return { enabled: true };
+  }
+
+  /**
+   * Prompt for usage analytics dashboard integration
+   * @param {string} directory - Installation directory
+   * @param {Object} options - Command-line options
+   * @returns {Object} Dashboard configuration { enabled, mode }
+   */
+  async promptUsageDashboard(directory, options = {}) {
+    // --usage-dashboard flag enables non-interactively
+    if (options.usageDashboard !== undefined && options.usageDashboard !== false) {
+      const mode = typeof options.usageDashboard === 'string' ? options.usageDashboard : 'local';
+      const validModes = ['local', 'docker'];
+      const resolvedMode = validModes.includes(mode) ? mode : 'local';
+      await prompts.log.info(`Usage Dashboard: enabled via flag (mode: ${resolvedMode})`);
+      return { enabled: true, mode: resolvedMode };
+    }
+
+    // Check for existing config
+    const configPath = `${directory}/.hseos/config/hseos.config.yaml`;
+    if (await fs.pathExists(configPath)) {
+      try {
+        const yaml = require('js-yaml');
+        const existing = yaml.load(await fs.readFile(configPath, 'utf8'));
+        if (existing?.usageDashboard?.enabled !== undefined) {
+          const status = existing.usageDashboard.enabled ? 'enabled' : 'disabled';
+          await prompts.log.info(`Usage Dashboard: using existing config (${status})`);
+          return existing.usageDashboard;
+        }
+      } catch {
+        // ignore, proceed to prompt
+      }
+    }
+
+    if (options.yes) {
+      await prompts.log.info('Usage Dashboard: disabled (default, --yes flag)');
+      return { enabled: false, mode: 'local' };
+    }
+
+    const p = await import('@clack/prompts');
+
+    await p.log.step('Usage Dashboard — Analytics');
+    await p.log.message(
+      'Installs a local web dashboard that tracks token usage, session costs, and project activity\n' +
+        'by reading Claude Code session files from ~/.claude/projects/.\n\n' +
+        '  local   — Python 3 required. Run: python cli.py dashboard\n' +
+        '  docker  — Docker required. Accessible on the network (port 8080). Run: docker compose up -d'
+    );
+
+    const enableDashboard = await p.confirm({
+      message: 'Install usage analytics dashboard?',
+      initialValue: false,
+    });
+
+    if (p.isCancel(enableDashboard) || !enableDashboard) {
+      await prompts.log.info('Usage Dashboard: disabled');
+      return { enabled: false, mode: 'local' };
+    }
+
+    const modeChoice = await p.select({
+      message: 'Deployment mode:',
+      options: [
+        { value: 'local', label: 'Local (Python 3)', hint: 'runs on this machine only' },
+        { value: 'docker', label: 'Docker', hint: 'accessible from other machines on the network' },
+      ],
+    });
+
+    if (p.isCancel(modeChoice)) {
+      return { enabled: false, mode: 'local' };
+    }
+
+    await prompts.log.success(`Usage Dashboard: will be installed (mode: ${modeChoice})`);
+    return { enabled: true, mode: modeChoice };
   }
 
   /**
