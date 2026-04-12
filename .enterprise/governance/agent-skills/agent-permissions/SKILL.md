@@ -1,6 +1,6 @@
 ---
 name: agent-permissions
-description: Analyze repository structure to generate a least-privilege .claude/settings.json — read-only commands only, stack-aware, package-manager-exclusive. Adapted from Sentry's claude-settings-audit methodology.
+description: "Use when generating a full least-privilege settings.json from scratch or performing a deep security audit of existing agent permissions"
 license: MIT
 metadata:
   owner: platform-governance

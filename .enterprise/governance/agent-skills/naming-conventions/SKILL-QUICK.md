@@ -2,6 +2,7 @@
 name: naming-conventions
 tier: quick
 version: "1.0.0"
+description: "Use when reviewing code, file names, or API identifiers for compliance with naming standards"
 ---
 
 # Naming Conventions — Quick Check

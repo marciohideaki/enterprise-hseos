@@ -2,6 +2,7 @@
 name: documentation-completeness
 tier: quick
 version: "1.0.0"
+description: "Use when reviewing public APIs, modules, or architecture for missing or incomplete documentation"
 ---
 
 # Documentation Completeness — Quick Check

@@ -1,6 +1,6 @@
 ---
 name: spec-driven
-description: Structured 4-phase workflow for planning and implementing new features or services — Specify, Design, Tasks, Implement.
+description: "Use when planning and implementing a new feature or service end-to-end using the Specify→Design→Tasks→Implement workflow"
 license: Apache-2.0
 metadata:
   owner: platform-governance

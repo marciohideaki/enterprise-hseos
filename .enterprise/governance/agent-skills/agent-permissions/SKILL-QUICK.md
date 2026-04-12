@@ -2,6 +2,7 @@
 name: agent-permissions
 tier: quick
 version: "1.0"
+description: "Use when generating or auditing .claude/settings.json for least-privilege agent permissions"
 ---
 
 # Agent Permissions — Quick Reference

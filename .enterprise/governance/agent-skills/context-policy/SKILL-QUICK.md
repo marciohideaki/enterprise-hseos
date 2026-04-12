@@ -2,6 +2,7 @@
 name: context-policy
 tier: quick
 version: "1.0"
+description: "Use when approaching context window limits, managing agent context budget, or designing stateless task handoffs"
 ---
 
 # Context Policy — Quick Reference

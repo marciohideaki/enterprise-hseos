@@ -2,6 +2,7 @@
 name: ai-observability
 tier: quick
 version: "1.0"
+description: "Use when reviewing AI agent observability, tracking mission-control KPIs, or adding AI-specific metrics to a service"
 ---
 
 # AI Observability — Quick Reference

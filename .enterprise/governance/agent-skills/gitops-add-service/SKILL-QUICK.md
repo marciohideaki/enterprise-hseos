@@ -2,6 +2,7 @@
 name: gitops-add-service
 tier: quick
 version: "1.0.0"
+description: "Use when adding a new Deployment/Service/ConfigMap to an existing GitOps project"
 ---
 
 # GitOps Add Service — Quick Reference

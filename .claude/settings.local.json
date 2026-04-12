@@ -7,7 +7,11 @@
       "Bash(mkdir:*)",
       "Bash(grep:*)",
       "Bash(echo:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Read(//opt/**)",
+      "Read(//home/annonymous/**)",
+      "Bash(chmod +x:*)",
+      "Bash(bash scripts/governance/validate-skills.sh)"
     ]
   }
 }

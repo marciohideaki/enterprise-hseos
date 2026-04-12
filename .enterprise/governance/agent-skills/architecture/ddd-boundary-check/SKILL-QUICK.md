@@ -2,6 +2,7 @@
 name: ddd-boundary-check
 tier: quick
 version: "1.0"
+description: "Use when reviewing cross-context dependencies, domain layer violations, or infrastructure leaking into domain code"
 ---
 
 # DDD Boundary Check — Quick Check

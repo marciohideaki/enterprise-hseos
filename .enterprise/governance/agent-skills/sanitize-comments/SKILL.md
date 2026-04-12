@@ -2,6 +2,7 @@
 skill: sanitize-comments
 tier: 2
 version: "1.0"
+description: "Use when auditing source code comments and commit messages for AI methodology references, management language, or corporate attribution violations"
 standard: Commit Hygiene Policy / Corporate AI Attribution Policy
 ---
 

@@ -2,6 +2,7 @@
 name: dependency-audit
 tier: quick
 version: "1.0.0"
+description: "Use when adding, upgrading, or removing a dependency to check for vulnerabilities, license issues, or governance violations"
 ---
 
 # Dependency Audit — Quick Check

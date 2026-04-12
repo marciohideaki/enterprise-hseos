@@ -2,6 +2,7 @@
 name: commit-hygiene
 tier: quick
 version: "2.0"
+description: "Use when preparing a commit or reviewing commit messages for AI tool attribution, co-author trailers, or format violations"
 ---
 
 # Commit Hygiene — Quick Check

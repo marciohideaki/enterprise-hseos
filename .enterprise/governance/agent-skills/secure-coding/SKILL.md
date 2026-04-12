@@ -1,6 +1,6 @@
 ---
 name: secure-coding
-description: Secure coding guardrails for changes impacting auth, crypto, secrets, and PII. Includes confidence-based reporting and severity classification from Sentry's security-review methodology.
+description: "Use when performing deep security review of auth, crypto, secrets, or PII code requiring confidence-rated severity findings and OWASP checks"
 license: Apache-2.0
 metadata:
   owner: platform-governance

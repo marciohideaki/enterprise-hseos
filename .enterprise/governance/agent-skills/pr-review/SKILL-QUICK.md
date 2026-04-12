@@ -2,6 +2,7 @@
 name: pr-review
 tier: quick
 version: "2.0.0"
+description: "Use when reviewing a pull request for quality gates, governance compliance, and blast radius assessment"
 ---
 
 # PR Review — Quick Check

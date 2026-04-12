@@ -1,6 +1,6 @@
 ---
 name: gitops-deploy
-description: Atualiza image tags no platform-gitops para deploy de serviços no Kubernetes — detecção de manifests, bump de tag, validação Kustomize, branch e commit seguindo governança GitOps.
+description: "Use when deploying one or more services by updating image tags with full Kustomize validation and GitOps commit standards"
 license: Apache-2.0
 metadata:
   owner: platform-governance

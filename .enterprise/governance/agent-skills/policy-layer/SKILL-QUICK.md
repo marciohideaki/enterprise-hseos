@@ -2,6 +2,7 @@
 name: policy-layer
 tier: quick
 version: "1.0"
+description: "Use when enforcing or auditing policy-layer intercepts for agent tool calls or reviewing tool call governance"
 ---
 
 # Policy Layer — Quick Reference

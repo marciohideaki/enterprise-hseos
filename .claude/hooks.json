@@ -1,0 +1,50 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [[ -f \"$CLAUDE_TOOL_FILE_PATH\" ]]; then cp \"$CLAUDE_TOOL_FILE_PATH\" \"$CLAUDE_TOOL_FILE_PATH.bak.$(date +%s)\" 2>/dev/null || true; fi",
+            "description": "Backup file before any Edit operation"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_COMMAND\" | grep -qE '^(git push|git reset --hard|rm -rf|git branch -[Dd])'; then echo '[HSEOS] High-risk command intercepted — confirm this is intentional' >&2; fi",
+            "description": "Warn on high-risk bash commands"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=\"$CLAUDE_TOOL_FILE_PATH\"; if [[ \"$FILE\" == *.py ]] && command -v black &>/dev/null; then black \"$FILE\" 2>/dev/null || true; elif [[ \"$FILE\" == *.js || \"$FILE\" == *.ts || \"$FILE\" == *.jsx || \"$FILE\" == *.tsx ]] && command -v prettier &>/dev/null; then prettier --write \"$FILE\" 2>/dev/null || true; fi",
+            "description": "Auto-format Python (black) and JS/TS (prettier) after Edit"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '--- HSEOS SESSION START ---' && echo 'Constitution: .enterprise/.specs/constitution/Enterprise-Constitution.md' && echo 'Skills: .enterprise/governance/agent-skills/SKILLS-REGISTRY.md' && echo 'Agents: .hseos/AGENT-MANIFEST.md' && echo 'Branch:' $(git branch --show-current 2>/dev/null || echo 'unknown') && echo '--- READ CLAUDE.md BEFORE ANY ACTION ---'",
+            "description": "Display HSEOS navigation reminder at session start"
+          }
+        ]
+      }
+    ]
+  }
+}

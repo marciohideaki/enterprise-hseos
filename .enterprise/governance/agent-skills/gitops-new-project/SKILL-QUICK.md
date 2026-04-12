@@ -2,6 +2,7 @@
 name: gitops-new-project
 tier: quick
 version: "1.0.0"
+description: "Use when creating a complete GitOps project structure from scratch with namespaces, overlays, and ArgoCD resources"
 ---
 
 # GitOps New Project — Quick Reference

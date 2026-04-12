@@ -1,6 +1,6 @@
 ---
 name: gitops-add-service
-description: Adiciona novo serviço (Deployment + Service + ConfigMap) a um projeto existente no platform-gitops — cria manifests base, atualiza todos os overlays, valida e commita seguindo padrões GitOps.
+description: "Use when adding a new service with full Deployment/Service/ConfigMap manifests, overlay coverage, and GitOps commit governance"
 license: Apache-2.0
 metadata:
   owner: platform-governance

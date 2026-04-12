@@ -1,6 +1,6 @@
 ---
 name: accessibility
-description: WCAG 2.1 compliance validation for Flutter and React Native UI components — screen reader support, touch targets, contrast, and keyboard navigation.
+description: "Use when performing deep WCAG 2.1 compliance validation, fixing critical accessibility violations, or auditing an entire screen flow"
 license: Apache-2.0
 metadata:
   owner: platform-governance

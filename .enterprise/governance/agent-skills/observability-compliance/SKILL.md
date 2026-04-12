@@ -1,6 +1,6 @@
 ---
 name: observability-compliance
-description: Validate that new code meets structured logging, metrics, tracing, and alerting requirements from the Observability Playbook.
+description: "Use when performing a deep observability audit or remediating missing structured logging, metrics, traces, or alerting rules"
 license: Apache-2.0
 metadata:
   owner: platform-governance

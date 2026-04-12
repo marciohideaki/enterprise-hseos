@@ -1,6 +1,6 @@
 ---
 name: test-coverage
-description: Validate test coverage adequacy, test pyramid compliance, and test quality standards.
+description: "Use when auditing test coverage completeness, test pyramid violations, or test quality across a module, service, or pull request"
 license: Apache-2.0
 metadata:
   owner: platform-governance

@@ -2,6 +2,7 @@
 skill: performance-profiling
 tier: 2
 version: "1.0"
+description: "Use when investigating a performance regression, profiling a service under load, or auditing performance-sensitive code with regression baselines"
 standard: Performance Engineering Standard
 ---
 

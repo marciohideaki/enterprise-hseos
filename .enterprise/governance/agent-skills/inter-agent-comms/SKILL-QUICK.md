@@ -2,6 +2,7 @@
 name: inter-agent-comms
 tier: quick
 version: "1.0"
+description: "Use when designing or implementing communication protocols between two or more agents in a workflow"
 ---
 
 # Inter-Agent Communication — Quick Reference

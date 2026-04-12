@@ -2,6 +2,7 @@
 name: mcp-governance
 tier: full
 version: "1.0"
+description: "Use when designing MCP server governance policies, auditing spend controls, or establishing rate limit and operational hygiene standards"
 ---
 
 # MCP Governance — Full Policy

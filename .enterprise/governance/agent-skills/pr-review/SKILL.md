@@ -1,6 +1,6 @@
 ---
 name: pr-review
-description: Enforce PR review standards — quality gates, boundary evidence, contract safety, and governance compliance. Includes blast radius analysis and adversarial analysis from Trail of Bits differential-review methodology.
+description: "Use when performing a thorough PR review with blast radius analysis, adversarial assessment, contract safety checks, and full governance compliance"
 license: Apache-2.0
 metadata:
   owner: platform-governance
@@ -16,6 +16,34 @@ Use this skill when:
 - acting as a reviewer agent on a PR diff
 - generating a PR review report
 - validating that a PR is ready to merge
+
+---
+
+## Two-Stage Review Protocol
+
+PR review MUST occur in two sequential stages. **Stage 1 before Stage 2 — always.**
+
+### Stage 1 — Spec Compliance (First)
+
+Before evaluating code quality, verify the implementation matches its specification:
+
+1. Does it fulfill the stated acceptance criteria or spec section?
+2. Does it match the ADR or design doc if one was created?
+3. Does the PR description accurately describe what changed?
+4. Are all stated changes actually present in the diff?
+
+**If Stage 1 fails:** Request changes immediately. Do NOT proceed to Stage 2 until spec compliance is confirmed.
+
+**Rationale:** Well-written code that implements the wrong thing is not mergeable. Spec compliance is binary — code quality is a gradient.
+
+### Stage 2 — Code Quality (Only After Stage 1 Passes)
+
+Evaluate implementation quality:
+- Code organization, readability, naming
+- Error handling at boundaries
+- No unnecessary complexity
+- Test coverage adequate for the change
+- No patterns that will create future debt
 
 ---
 
@@ -221,10 +249,17 @@ When generating a formal review report, the output MUST include:
 ### Governance
 [ADR status, if required]
 
-### Verdict: APPROVED / CHANGES REQUESTED / BLOCKED
+### Verdict: APPROVED / APPROVED WITH CONDITIONS / REJECTED
 
 ### Required Changes (if any)
 [Explicit list of blocking items with file:line references]
+
+> **Verdict rules:**
+> - `APPROVED` — ships as-is, no blocking items
+> - `APPROVED WITH CONDITIONS` — every condition listed blocks merge; there are no optional items
+> - `REJECTED` — re-architect or significant rework required before re-review
+>
+> There is no "Should Fix" or "Nice to Have" in a formal review. If it needs fixing, it is a Condition. If it doesn't need fixing, don't mention it.
 ```
 
 ---

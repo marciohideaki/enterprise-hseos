@@ -2,6 +2,7 @@
 name: project-state
 tier: full
 version: "1.0"
+description: "Use when implementing project state detection, designing STATE.md/TASKS.md templates, or configuring SQLite state store and MCP state protocol"
 ---
 
 # Project State — Full Reference

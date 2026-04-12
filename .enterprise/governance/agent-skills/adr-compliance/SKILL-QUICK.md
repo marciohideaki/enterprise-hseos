@@ -2,6 +2,7 @@
 name: adr-compliance
 tier: quick
 version: "1.0.0"
+description: "Use when reviewing or creating an ADR, or checking whether an ADR is required before proceeding with a change"
 ---
 
 # ADR Compliance — Quick Check

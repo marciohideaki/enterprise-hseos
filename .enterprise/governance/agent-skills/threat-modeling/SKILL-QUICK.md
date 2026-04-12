@@ -2,6 +2,7 @@
 name: threat-modeling
 tier: quick
 version: "1.0"
+description: "Use when assessing security threats, trust boundaries, or abuse paths in a new or changed system"
 ---
 
 # Threat Modeling — Quick Reference

@@ -1,6 +1,6 @@
 ---
 name: naming-conventions
-description: Validate code naming against stack profiles and semantic rules from the Naming & Conventions Standard.
+description: "Use when performing a full naming audit across a codebase, stack profile, or API surface for convention compliance"
 license: Apache-2.0
 metadata:
   owner: platform-governance

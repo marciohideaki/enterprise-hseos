@@ -21,6 +21,7 @@ Escalation MUST occur when:
 - Scope exceeds agent authority
 - Security or compliance risk is detected
 - An exception is required
+- A fix has been attempted **3 or more times** without resolving the root cause (see §5)
 
 ---
 
@@ -64,6 +65,24 @@ The following are forbidden:
 - Making assumptions
 - Resolving conflicts silently
 - Overriding governance
+
+---
+
+## 5. Dev↔Validation Loop — Attempt Limit
+
+When an agent implements a fix and the validation agent (GLITCH or equivalent) rejects it:
+
+| Attempt | Action |
+|---------|--------|
+| 1st failure | Re-analyze, try alternative fix |
+| 2nd failure | Broaden investigation scope — check adjacent code, specs |
+| 3rd failure | **STOP. Escalate.** Do not attempt Fix #4. |
+
+**After 3 failed attempts**, escalation MUST go to:
+- CIPHER (Systems Architect) — if root cause is architectural
+- Human owner — if cause is ambiguous or requires trade-off decision
+
+**Rationale:** Three failures indicate the problem is likely deeper than the current agent's scope or authority. Continuing without architectural review risks masking a structural issue.
 
 ---
 
