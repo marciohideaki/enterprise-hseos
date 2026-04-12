@@ -209,3 +209,72 @@ For each finding, include:
 ❌ Bad: MD5 used for password hashing.
 ❌ Bad: `$"SELECT * FROM users WHERE name = '{userName}'"` — SQL injection vector.
 ❌ Bad: `Console.log("User login:", user.email, user.password)` — PII + secret in log.
+
+---
+
+## Three-Tier Security Boundary
+
+Classifique cada ação de segurança em um dos três níveis antes de implementar:
+
+### Always (Não-Negociável — Sem Aprovação Necessária)
+Implementar por padrão, sem discussão:
+- Validar todo input externo na boundary da API (SC-29, SC-30)
+- Usar queries parametrizadas para todo acesso a banco (SC-31)
+- Usar HTTPS para toda comunicação (SC-27)
+- Hashing de senhas com bcrypt/Argon2id (SC-24)
+- Security headers obrigatórios (SC-51)
+- Secrets em secret manager, nunca em source (SC-01, SC-02)
+- Rodar `npm audit` / `go mod verify` / equivalente em CI (SC-50)
+
+### Ask First (Requer Aprovação Humana Explícita)
+Não implementar sem confirmação do owner:
+- Mudanças em fluxo de autenticação ou autorização (SC-07 a SC-19)
+- Armazenamento de novo tipo de PII (SC-36 a SC-41)
+- Novas integrações com serviços externos (SC-20 a SC-22)
+- Mudanças em CORS, rate limiting, ou brute-force protection (SC-42 a SC-45)
+- Uploads de arquivo com novos tipos aceitos (SC-34)
+
+### Never (Proibido — Hard Stop)
+Se detectado, bloquear imediatamente:
+- Commitar secrets, credentials ou tokens em qualquer arquivo (SC-03)
+- Logar PII, passwords, ou tokens (SC-36, SC-37)
+- Confiar em validação client-side como única proteção (SC-15)
+- Desabilitar headers de segurança sem justificativa documentada
+- Usar `eval()` com dados de usuário
+- Usar algoritmos proibidos: MD5, SHA-1, DES, ECB mode (SC-25)
+- Implementar criptografia customizada (SC-23)
+
+---
+
+## Racionalizações Comuns
+
+| Racionalização | Realidade |
+|---|---|
+| "É um endpoint interno, não precisa de auth" | Serviços internos são alvos de lateral movement. Autenticação é obrigatória mesmo entre serviços (SC-20, SC-21). |
+| "O framework já protege contra SQL injection" | Só se você usar o ORM corretamente. Concatenação de string com user input bypassa a proteção do framework. |
+| "Vou adicionar rate limiting depois que for para produção" | Brute-force não espera produção. Rate limiting deve estar em staging antes de qualquer exposição pública. |
+| "MD5 é suficiente para esse caso" | Não existe "suficiente" para hashing de senhas. Use bcrypt/Argon2id, sem exceção (SC-24, SC-25). |
+| "A variável de ambiente com a chave é segura" | Se o container logs a env var (acontece em crash dumps), a chave vaza. Use secret manager com injection em runtime (SC-02). |
+
+---
+
+## Sinais de Alerta (Red Flags)
+
+- `AllowAnonymous` adicionado a qualquer endpoint além dos 4 permitidos (`/health`, `/ready`, `/metrics`, token flows)
+- Qualquer string que parece um secret hardcoded no diff
+- `SELECT * FROM ... WHERE name = '${variable}'` — interpolação direta em SQL
+- PII (email, CPF, nome) aparecendo em campo de log
+- Novo endpoint sem atributo de autorização declarado
+- Dependência adicionada sem verificação de CVE
+- Algoritmos proibidos (MD5, SHA-1, DES) em qualquer operação nova
+
+---
+
+## Verificação (Exit Criteria)
+
+- [ ] Secrets scan limpo (grep por patterns de API key, password, token hardcoded)
+- [ ] Todo input externo validado na boundary (SC-29)
+- [ ] Nenhum endpoint com `AllowAnonymous` sem justificativa documentada (SC-16, SC-17)
+- [ ] Dependências novas verificadas contra CVEs conhecidos (SC-46)
+- [ ] Algoritmos criptográficos usados estão na lista aprovada (SC-24, SC-25)
+- [ ] PII não aparece em logs, traces, ou error messages (SC-36, SC-37)

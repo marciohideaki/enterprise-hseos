@@ -1348,6 +1348,26 @@ class Installer {
         }
       }
 
+      // Install RTK token optimizer (global, not project-scoped)
+      if (config.rtk && config.rtk.enabled) {
+        postIdeTasks.push(
+          {
+            title: 'Installing RTK token optimizer',
+            task: async () => {
+              const result = await this.installRtk();
+              return result;
+            },
+          },
+          {
+            title: 'Writing RTK configuration',
+            task: async () => {
+              await this.writeRtkConfig(projectDir, config.rtk);
+              return 'RTK: enabled in hseos.config.yaml';
+            },
+          },
+        );
+      }
+
       await prompts.tasks(postIdeTasks);
 
       // Retrieve restored file info for summary
@@ -2171,6 +2191,230 @@ Criar \`_knowledge/projects/${projectName}/\` com os 7 arquivos base (README, mo
     const section = this.buildSecondBrainSection(projectName, secondBrainPath);
     await fs.appendFile(claudeMdPath, '\n---\n\n' + section, 'utf8');
   }
+
+  // ---------------------------------------------------------------------------
+  // RTK — Token Optimizer
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Install RTK globally: download binary if missing, install Claude Code hook,
+   * patch ~/.claude/settings.json with the PreToolUse entry.
+   * @returns {string} Summary line for the task log
+   */
+  async installRtk() {
+    const os = require('node:os');
+    const { execSync, spawnSync } = require('node:child_process');
+
+    // 1. Check if binary is already available
+    let binaryInstalled = false;
+    try {
+      execSync('which rtk', { stdio: 'ignore' });
+      binaryInstalled = true;
+    } catch {
+      // not in PATH — will install below
+    }
+
+    if (!binaryInstalled) {
+      await this.downloadRtkBinary();
+    }
+
+    // 2. Install Claude Code hook (idempotent)
+    await this.installRtkHook();
+
+    // 3. Register hook in ~/.claude/settings.json
+    await this.patchClaudeGlobalSettings();
+
+    return binaryInstalled ? 'RTK: hook installed (binary was already present)' : 'RTK: binary downloaded + hook installed';
+  }
+
+  /**
+   * Download and install the RTK binary from GitHub releases to ~/.local/bin.
+   */
+  async downloadRtkBinary() {
+    const os = require('node:os');
+    const { execSync } = require('node:child_process');
+
+    const platform = process.platform;
+    const arch = process.arch;
+
+    let target;
+    if (platform === 'linux') {
+      target = arch === 'arm64' ? 'aarch64-unknown-linux-gnu' : 'x86_64-unknown-linux-musl';
+    } else if (platform === 'darwin') {
+      target = arch === 'arm64' ? 'aarch64-apple-darwin' : 'x86_64-apple-darwin';
+    } else {
+      throw new Error(`RTK: unsupported platform ${platform}`);
+    }
+
+    // Fetch latest version tag from GitHub API
+    let version;
+    try {
+      const raw = execSync(
+        'curl -fsSL "https://api.github.com/repos/rtk-ai/rtk/releases/latest"',
+        { encoding: 'utf8', timeout: 15_000 }
+      );
+      const match = raw.match(/"tag_name"\s*:\s*"([^"]+)"/);
+      version = match ? match[1] : null;
+    } catch {
+      throw new Error('RTK: failed to fetch latest version from GitHub API');
+    }
+
+    if (!version) {
+      throw new Error('RTK: could not parse latest version tag');
+    }
+
+    const installDir = path.join(os.homedir(), '.local', 'bin');
+    await fs.ensureDir(installDir);
+
+    const url = `https://github.com/rtk-ai/rtk/releases/download/${version}/rtk-${target}.tar.gz`;
+
+    try {
+      execSync(
+        `curl -fsSL "${url}" | tar -xzf - -C "${installDir}" rtk && chmod +x "${installDir}/rtk"`,
+        { timeout: 60_000 }
+      );
+    } catch {
+      throw new Error(`RTK: failed to download binary from ${url}`);
+    }
+  }
+
+  /**
+   * Install the RTK Claude Code hook script to ~/.claude/hooks/rtk-rewrite.sh (idempotent).
+   */
+  async installRtkHook() {
+    const os = require('node:os');
+
+    const hookScript = `#!/usr/bin/env bash
+# rtk-hook-version: 3
+# RTK Claude Code hook — rewrites commands to use rtk for token savings.
+# Installed by HSEOS installer. Source: https://github.com/rtk-ai/rtk
+
+if ! command -v jq &>/dev/null; then
+  echo "[rtk] WARNING: jq is not installed. Hook disabled." >&2
+  exit 0
+fi
+
+if ! command -v rtk &>/dev/null; then
+  echo "[rtk] WARNING: rtk is not installed or not in PATH. Hook disabled." >&2
+  exit 0
+fi
+
+RTK_VERSION=$(rtk --version 2>/dev/null | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+' | head -1)
+if [ -n "$RTK_VERSION" ]; then
+  MAJOR=$(echo "$RTK_VERSION" | cut -d. -f1)
+  MINOR=$(echo "$RTK_VERSION" | cut -d. -f2)
+  if [ "$MAJOR" -eq 0 ] && [ "$MINOR" -lt 23 ]; then
+    echo "[rtk] WARNING: rtk $RTK_VERSION is too old (need >= 0.23.0)." >&2
+    exit 0
+  fi
+fi
+
+INPUT=$(cat)
+CMD=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
+
+if [ -z "$CMD" ]; then
+  exit 0
+fi
+
+REWRITTEN=$(rtk rewrite "$CMD" 2>/dev/null)
+EXIT_CODE=$?
+
+case $EXIT_CODE in
+  0) [ "$CMD" = "$REWRITTEN" ] && exit 0 ;;
+  1) exit 0 ;;
+  2) exit 0 ;;
+  3) ;;
+  *) exit 0 ;;
+esac
+
+ORIGINAL_INPUT=$(echo "$INPUT" | jq -c '.tool_input')
+UPDATED_INPUT=$(echo "$ORIGINAL_INPUT" | jq --arg cmd "$REWRITTEN" '.command = $cmd')
+
+if [ "$EXIT_CODE" -eq 3 ]; then
+  jq -n --argjson updated "$UPDATED_INPUT" '{
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "updatedInput": $updated
+    }
+  }'
+else
+  jq -n --argjson updated "$UPDATED_INPUT" '{
+    "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "allow",
+      "permissionDecisionReason": "RTK auto-rewrite",
+      "updatedInput": $updated
+    }
+  }'
+fi
+`;
+
+    const hooksDir = path.join(os.homedir(), '.claude', 'hooks');
+    const hookPath = path.join(hooksDir, 'rtk-rewrite.sh');
+
+    await fs.ensureDir(hooksDir);
+    await fs.writeFile(hookPath, hookScript, { encoding: 'utf8', mode: 0o755 });
+  }
+
+  /**
+   * Register the RTK hook in ~/.claude/settings.json (idempotent).
+   * Merges into existing settings without overwriting unrelated entries.
+   */
+  async patchClaudeGlobalSettings() {
+    const os = require('node:os');
+
+    const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+    const hookPath = path.join(os.homedir(), '.claude', 'hooks', 'rtk-rewrite.sh');
+
+    let settings = {};
+    if (await fs.pathExists(settingsPath)) {
+      try {
+        settings = JSON.parse(await fs.readFile(settingsPath, 'utf8'));
+      } catch {
+        // corrupt or empty — start fresh
+      }
+    }
+
+    if (!settings.hooks) settings.hooks = {};
+    if (!settings.hooks.PreToolUse) settings.hooks.PreToolUse = [];
+
+    // Idempotent: only add if not already registered
+    const alreadyRegistered = settings.hooks.PreToolUse.some(
+      (entry) => entry.hooks && entry.hooks.some((h) => h.command && h.command.includes('rtk-rewrite'))
+    );
+
+    if (!alreadyRegistered) {
+      settings.hooks.PreToolUse.push({
+        matcher: 'Bash',
+        hooks: [{ type: 'command', command: hookPath }],
+      });
+    }
+
+    await fs.ensureDir(path.dirname(settingsPath));
+    await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2), 'utf8');
+  }
+
+  /**
+   * Write rtk section to the project's hseos.config.yaml
+   * @param {string} projectDir - Project directory
+   * @param {Object} rtkConfig - RTK config object { enabled }
+   */
+  async writeRtkConfig(projectDir, rtkConfig) {
+    const yaml = require('yaml');
+    const configPath = path.join(projectDir, '.hseos', 'config', 'hseos.config.yaml');
+
+    if (!(await fs.pathExists(configPath))) return;
+
+    const raw = await fs.readFile(configPath, 'utf8');
+    const doc = yaml.parseDocument(raw);
+
+    const rtkMap = doc.createNode(rtkConfig);
+    doc.set('rtk', rtkMap);
+
+    await fs.writeFile(configPath, doc.toString(), 'utf8');
+  }
+
+  // ---------------------------------------------------------------------------
 
   /**
    * Install core with resolved dependencies

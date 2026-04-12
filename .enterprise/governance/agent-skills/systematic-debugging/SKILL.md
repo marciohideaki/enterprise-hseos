@@ -162,6 +162,31 @@ The hypothesis is confirmed when:
 
 ---
 
+---
+
+## Prove-It Pattern (Bug Fix Protocol)
+
+Antes de declarar um bug corrigido, o agente DEVE executar este ciclo:
+
+```
+1. Bug Report → escrever teste de repro que FALHA (confirma que o bug existe)
+2. Implementar o fix
+3. Teste de repro PASSA (confirma que o fix funciona)
+4. Suite completa PASSA (confirma que não houve regressão)
+```
+
+**Racionalização a bloquear:** "Acho que corrigi" — não está corrigido até o teste de repro passar.
+
+**Por que escrever o teste antes do fix:**
+- Confirma que o bug é reproduzível (não foi environment-specific)
+- Garante que o fix resolve exatamente o bug reportado (não um bug adjacente)
+- Cria guard automático contra regressão futura
+- Torna o root cause verificável por qualquer revisor
+
+**Se não for possível escrever teste automatizado:** documentar o passo a passo manual de reprodução e o resultado esperado antes e depois — e incluir no PR description.
+
+---
+
 ## Relationship to Other Skills
 
 - `test-coverage` — ensure the bug is covered by a test after fixing

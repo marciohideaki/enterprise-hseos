@@ -181,6 +181,31 @@ Gate 1 (Functional): ✗ BLOCKED
 
 ---
 
+---
+
+## Racionalizações Comuns
+
+| Racionalização | Realidade |
+|---|---|
+| "Deve funcionar" | "Deve" não é evidência. Rodar os testes e mostrar o output é evidência. |
+| "Corrigi, pode confiar" | Confiança não escala em multi-agent workflows. ORBIT e GLITCH precisam de evidência, não de declarações. |
+| "Os testes são lentos, vou pular Gate 4" | Regressões que chegam em produção são mais lentas de corrigir que uma suite demorada. Gate 4 não é opcional. |
+| "Não existe spec, então Gate 2 não se aplica" | Se não existe spec, Gate 2 requer documentar os critérios assumidos — não simplesmente pular. Use `DONE_WITH_CONCERNS`. |
+| "É uma mudança pequena, não precisa de todas as gates" | Blast radius não é proporcional ao tamanho da mudança. Uma linha em auth pode quebrar segurança inteira. |
+
+---
+
+## Sinais de Alerta (Red Flags)
+
+- Usar `DONE` sem nenhum output de teste colado
+- Reportar completion sem mencionar Gate 2 (spec compliance)
+- Não usar `DONE_WITH_CONCERNS` quando uma gate tem ressalva
+- Mostrar apenas resultado parcial de teste (ex: só o arquivo que foi alterado, não a suite completa)
+- Declarar "nenhuma regressão" sem executar a suite
+- Gate 3 (governance) ignorado: commit message não exibido, scan de secrets não executado
+
+---
+
 ## Relationship to Other Skills
 
 - `test-coverage` — ensures Gate 1 has adequate test surface

@@ -271,7 +271,56 @@ ORBIT does NOT advance to next phase if Reality Checker returns FAIL.
 
 ---
 
-## 8. Anti-Patterns (never do)
+## 8. Task Decomposition — Vertical Slicing
+
+Quando ORBIT decompõe um epic em tasks para dispatch, usar **vertical slicing** — não horizontal.
+
+### Horizontal Slicing (Evitar)
+
+```
+Task 1: Criar todas as tabelas do banco
+Task 2: Implementar todos os handlers da aplicação
+Task 3: Criar todos os endpoints da API
+Task 4: Criar todos os componentes de UI
+```
+
+Problema: Nenhuma task entrega valor observável. Bugs de integração aparecem apenas na Task 4.
+
+### Vertical Slicing (Usar)
+
+```
+Task 1: PlaceOrder — DB + handler + endpoint + teste (uma feature path completa)
+Task 2: CancelOrder — DB + handler + endpoint + teste
+Task 3: ListOrders — query + endpoint + teste
+```
+
+Cada task entrega um slice funcional e testável. Bugs de integração aparecem na Task 1, não na Task 4.
+
+### Dependency Graph
+
+Antes de decompor, construir o grafo de dependências bottom-up:
+
+```
+DB schema → Domain types → Command handlers → API endpoints → UI components
+(L1)         (L2)           (L3 — depende L2)    (L4 — depende L3)   (L5 — depende L4)
+```
+
+Tasks de nível mais baixo (DB, tipos) primeiro. Nunca despachar uma task cujas dependências não estão completas.
+
+### Sizing Guide
+
+| Tamanho | Arquivos | Critério |
+|---------|----------|---------|
+| S | 1-2 | Uma única responsabilidade, testável em isolamento |
+| M | 3-5 | Um slice vertical completo |
+| L | 5-8 | Múltiplos slices — considerar quebrar |
+| L+ | > 8 | **Sempre quebrar** — task muito grande para uma sessão |
+
+**Critério de quebra obrigatória:** task com "e" no título (`"Implementar PlaceOrder e CancelOrder"`) = duas tasks.
+
+---
+
+## 9. Anti-Patterns (never do)
 
 | Anti-pattern | Why it fails |
 |---|---|

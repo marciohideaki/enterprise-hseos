@@ -25,6 +25,7 @@ module.exports = {
     ['--output-folder <path>', 'Output folder path relative to project root (default: .hseos-output)'],
     ['-y, --yes', 'Accept all defaults and skip prompts where possible'],
     ['--second-brain-path <path>', 'Absolute path to second-brain vault (enables integration if provided)'],
+    ['--rtk', 'Install RTK token optimizer (intercepts CLI commands to reduce LLM token usage by 60-90%)'],
   ],
   action: async (options) => {
     try {

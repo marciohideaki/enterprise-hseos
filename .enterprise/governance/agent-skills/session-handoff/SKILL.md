@@ -176,6 +176,42 @@ When ORBIT dispatches a sub-task to GHOST and needs a handoff:
 
 ---
 
+---
+
+## Racionalizações Comuns
+
+| Racionalização | Realidade |
+|---|---|
+| "O contexto vai estar no código" | Código não explica por que abordagens falharam, quais foram tentadas, ou quais decisões foram implicitamente tomadas. |
+| "Vou lembrar onde parei" | Nova sessão = zero memória. Sem HANDOFF.md, o próximo agente re-descobre tudo do zero — às vezes repetindo os mesmos erros. |
+| "A sessão foi curta, não precisa de handoff" | Sessões curtas frequentemente ficam no meio de uma mudança. "Curta" não é critério — "incompleta" é. |
+| "Já está no commit history" | Commit history mostra o que foi feito, não o que ainda precisa ser feito, o que falhou, ou as decisões tomadas nesta sessão. |
+| "Vou criar o HANDOFF depois" | Handoff deve ser criado antes de encerrar a sessão — depois significa que o contexto já foi perdido. |
+
+---
+
+## Sinais de Alerta (Red Flags)
+
+- Sessão encerrada com tarefa incompleta e sem HANDOFF.md criado
+- HANDOFF.md com entradas vagas: "trabalhei em auth", "continuar depois" sem especificar arquivo e ação exata
+- Seção "What Didn't Work" vazia em uma sessão que teve tentativas fracassadas
+- HANDOFF.md commitado no repositório (deve ser gitignored)
+- Next Steps sem referência a arquivo específico ou comando exato
+- Sessão anterior relevante existe mas o próximo agente não verificou HANDOFF.md antes de começar
+
+---
+
+## Verificação (Exit Criteria)
+
+- [ ] HANDOFF.md criado em sessão incompleta com todas as seções obrigatórias preenchidas
+- [ ] "In Progress" tem arquivo específico e próxima ação exata (não genérica)
+- [ ] "What Didn't Work" registra todas as abordagens tentadas que falharam
+- [ ] HANDOFF.md está no `.gitignore` (não commitado)
+- [ ] SESSION-CHECKPOINT.md criado se a sessão vai ser retomada no mesmo task
+- [ ] Second Brain atualizado via `CLAUDE.md §8` para decisões arquiteturais ou gotchas descobertos
+
+---
+
 ## Relationship to Other Skills
 
 - `second-brain` — permanent vault knowledge capture (complements this skill)

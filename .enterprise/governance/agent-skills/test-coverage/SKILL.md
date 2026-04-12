@@ -117,3 +117,74 @@ Minimum test for a command handler:
 ❌ Bad: New `ProcessPaymentHandler` with no tests — "will add later".
 ❌ Bad: Test named `Test1()` that asserts 5 unrelated things.
 ❌ Bad: Coverage at 45% after PR — below domain layer threshold.
+
+---
+
+## Princípios de Qualidade de Testes
+
+### Beyonce Rule
+> "If you liked it, you should have put a test on it."
+
+Se uma mudança quebra comportamento existente e não havia teste cobrindo esse comportamento — a responsabilidade é de quem escreveu o código sem teste, não de quem fez a mudança. Novos comportamentos DEVEM ser testados antes de mergear.
+
+### DAMP > DRY em Testes
+
+Testes devem ser **Descriptive And Meaningful Phrases** (DAMP), não DRY (Don't Repeat Yourself).
+
+- **DRY em testes** cria helpers e abstrações que ocultam o que está sendo testado — quando o teste falha, não fica óbvio o porquê
+- **DAMP em testes** aceita alguma duplicação se isso tornar cada teste auto-explicativo e falhas óbvias
+
+```
+// DRY (evitar em testes): helper obscurece o que está sendo testado
+assertValidOrder(order, customer, items);
+
+// DAMP (preferir): contexto completo visível no próprio teste
+Assert.Equal(OrderStatus.Confirmed, order.Status);
+Assert.Equal(customer.Id, order.CustomerId);
+Assert.Equal(2, order.Items.Count);
+```
+
+### Pirâmide de Testes — Distribuição Alvo
+
+| Nível | Volume | Velocidade | Quando usar |
+|-------|--------|-----------|-------------|
+| Unit | ~80% | Milissegundos | Lógica de domínio, use cases, regras de negócio |
+| Integration | ~15% | Segundos | Adapters de infra, banco, eventos |
+| E2E / Contract | ~5% | Minutos | Jornadas críticas, contratos de API |
+
+E2E tests são o **último recurso**, não a estratégia principal de cobertura.
+
+---
+
+## Racionalizações Comuns
+
+| Racionalização | Realidade |
+|---|---|
+| "Vou adicionar testes depois" | "Depois" raramente acontece. Testes escritos depois de código já completo cobrem o que o código faz, não o que deveria fazer. |
+| "É uma mudança simples, não precisa de teste" | A Beyonce Rule se aplica exatamente para mudanças simples — são as mais fáceis de regredir. |
+| "Já temos 80% de cobertura no módulo" | Cobertura por linha não indica cobertura de invariantes de domínio. Verifique se as regras de negócio críticas têm testes explícitos. |
+| "Os testes de integração cobrem isso" | Integration tests testam o caminho feliz e a infra. Unit tests devem cobrir edge cases, erros e invariantes. |
+| "Não tenho como testar isso" | Se o código não é testável, é sinal de design issue (acoplamento, dependências implícitas). Refatorar para testabilidade antes de implementar. |
+
+---
+
+## Sinais de Alerta (Red Flags)
+
+- Nova classe de domínio sem nenhum unit test
+- Coverage do domain layer abaixo de 90% depois de uma PR
+- Teste com `@Ignore` ou `[Skip]` sem ticket linkado
+- Testes comentados sem explicação
+- Assertions múltiplas e não relacionadas em um único método de teste
+- Test data inline com objetos literais grandes (sem builder/factory)
+- Testes que dependem de ordem de execução (não são isolados)
+
+---
+
+## Verificação (Exit Criteria)
+
+- [ ] Coverage geral não decresceu em relação ao baseline pré-PR (TC-01)
+- [ ] Domain layer ≥ 90% (TC-02)
+- [ ] Cada invariante de domínio novo tem teste cobrindo estado válido e inválido (TC-11)
+- [ ] Novos command/query handlers têm pelo menos 3 testes: happy path, validation failure, domain rule violation
+- [ ] Nenhum teste skipado sem ticket linkado (TC-25)
+- [ ] Testes de integração para adapters de infra novos (TC-13)
