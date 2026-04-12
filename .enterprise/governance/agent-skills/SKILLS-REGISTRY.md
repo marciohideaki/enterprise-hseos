@@ -324,6 +324,17 @@ version: "1.3"
 
 ---
 
+### core-drift
+**Description:** Previne reimplementação de código já existente nos core repos e avalia candidatos a promoção ao core. GHOST (pré-story) consulta `_cores/` e FEATURE-CATALOG antes de implementar. QUILL (pós-epic) avalia features novas como candidatos à promoção e gera ADR draft se critérios forem atendidos.
+**Load when:** GHOST iniciando qualquer story que envolva infraestrutura, messaging, cache, auth, persistence, compliance ou API layer; QUILL encerrando Phase 10 de qualquer epic.
+**Triggers:** `core repo`, `_cores`, `promotion-backlog`, `core drift`, `reimplementação`, `feature existente`, `promover ao core`, `candidato promoção`, `FEATURE-CATALOG`, `backend-core`, `platform-core`, `frontend-core`, `design-system-core`, `mobile-core`
+**Tier 1:** `.enterprise/governance/agent-skills/core-drift/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/core-drift/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+**Critical:** Nunca bloquear implementação por falha no check de core-drift. Se `_cores/` inacessível → pular silenciosamente.
+
+---
+
 ## Decision Table
 
 | Task context | Skills to load | Tier |
@@ -392,6 +403,10 @@ version: "1.3"
 | CIPHER making architectural decision + second-brain available | second-brain | 2 |
 | QUILL or ORBIT consolidating epic + second-brain available | second-brain | 2 |
 | Running hseos brain sync | second-brain | 2 |
+| GHOST starting story touching infra / messaging / cache / auth / persistence | core-drift | 1 |
+| QUILL closing Phase 10 of any epic | core-drift | 1 |
+| Evaluating whether a feature should be promoted to core | core-drift | 2 |
+| Generating a promotion ADR candidate | core-drift | 2 |
 
 ---
 
