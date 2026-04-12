@@ -1323,6 +1323,29 @@ class Installer {
             return `Second-brain: ${config.secondBrain.enabled ? config.secondBrain.path : 'disabled'}`;
           },
         });
+
+        // Inject Second Brain Integration block into CLAUDE.md (idempotent)
+        if (config.secondBrain.enabled && config.secondBrain.path) {
+          postIdeTasks.push({
+            title: 'Injecting Second Brain Integration into CLAUDE.md',
+            task: async () => {
+              let projectName;
+              const pkgPath = path.join(projectDir, 'package.json');
+              if (await fs.pathExists(pkgPath)) {
+                try {
+                  const pkg = JSON.parse(await fs.readFile(pkgPath, 'utf8'));
+                  projectName = pkg.name || path.basename(projectDir);
+                } catch {
+                  projectName = path.basename(projectDir);
+                }
+              } else {
+                projectName = path.basename(projectDir);
+              }
+              await this.injectSecondBrainSection(projectDir, projectName, config.secondBrain.path);
+              return `CLAUDE.md: Second Brain Integration block injected for ${projectName}`;
+            },
+          });
+        }
       }
 
       await prompts.tasks(postIdeTasks);
@@ -2088,6 +2111,65 @@ class Installer {
     doc.set('second_brain', sbMap);
 
     await fs.writeFile(configPath, doc.toString(), 'utf8');
+  }
+
+  /**
+   * Build the Second Brain Integration block for a project's CLAUDE.md
+   * @param {string} projectName - Project name (used in vault paths)
+   * @param {string} secondBrainPath - Absolute path to the vault
+   * @returns {string} Markdown block to inject
+   */
+  buildSecondBrainSection(projectName, secondBrainPath) {
+    return `## Second Brain Integration
+
+Vault: \`${secondBrainPath}\`
+Projeto registrado em: \`_knowledge/projects/${projectName}/\`
+
+### Ao encerrar uma sessão produtiva
+
+Escreva diretamente nos arquivos do vault **antes de sugerir ao usuário que encerre**:
+
+1. **Decisões arquiteturais** → append em \`_knowledge/projects/${projectName}/decisions.md\`
+2. **Gotchas descobertos** (bugs, comportamentos não-óbvios) → append em \`_knowledge/projects/${projectName}/gotchas.md\`
+3. **Progresso de fase** → atualizar \`_knowledge/projects/${projectName}/roadmap.md\` se a fase avançou
+4. **Activity log** → append em \`_memory/activity-log.md\`: \`## [YYYY-MM-DD HH:MM] session-end | ${projectName} — {tipo}: {descrição}\`
+
+Depois sugerir ao usuário: *"Quer que eu também atualize o \`/end-session\` do second-brain para capturar o contexto completo da conversa?"*
+
+### Tipos de trabalho a registrar
+
+\`epic\` \`feature\` \`story\` \`task\` \`fix\` \`chore\` \`spike\` \`session\`
+
+Registrar qualquer implementação que produziu código, decisão ou aprendizado — não apenas epics formais.
+
+### Se o projeto não estiver registrado no vault
+
+Criar \`_knowledge/projects/${projectName}/\` com os 7 arquivos base (README, modules, integrations, gotchas, decisions, roadmap, work-log) e atualizar \`_index/MASTER-INDEX.md\`.
+
+### Constraints HSEOS (respeitar)
+
+- Escrever em \`_decisions/hseos/\` e \`_learnings/hseos-*\` apenas decisões com valor cross-project
+- Nunca sobrescrever arquivos do vault sem verificar se existem
+- \`_memory/current-state.md\`: o \`/end-session\` do vault é o canal correto para atualizar
+`;
+  }
+
+  /**
+   * Inject Second Brain Integration section into project's CLAUDE.md (idempotent)
+   * @param {string} projectDir - Project directory
+   * @param {string} projectName - Project name for vault path substitution
+   * @param {string} secondBrainPath - Absolute path to the vault
+   */
+  async injectSecondBrainSection(projectDir, projectName, secondBrainPath) {
+    const claudeMdPath = path.join(projectDir, 'CLAUDE.md');
+
+    if (!(await fs.pathExists(claudeMdPath))) return; // no CLAUDE.md — skip silently
+
+    const content = await fs.readFile(claudeMdPath, 'utf8');
+    if (content.includes('## Second Brain Integration')) return; // already injected — idempotent
+
+    const section = this.buildSecondBrainSection(projectName, secondBrainPath);
+    await fs.appendFile(claudeMdPath, '\n---\n\n' + section, 'utf8');
   }
 
   /**
