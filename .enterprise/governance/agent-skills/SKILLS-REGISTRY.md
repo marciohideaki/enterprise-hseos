@@ -518,3 +518,61 @@ Upgrade to Tier 2 only the skill requiring deep analysis.
 2. Add registry entry here (description, triggers, paths, cost)
 3. Update Decision Table
 4. A skill without a registry entry MUST NOT be used by agents
+
+---
+
+## Skill Conditions (Declarative Visibility)
+
+Skills can declare their own visibility conditions in SKILL.md frontmatter under `metadata.hseos`. These are evaluated at system-prompt build time to show or hide skills dynamically — eliminating hardcoded mode-based lists.
+
+### Frontmatter Schema
+
+```yaml
+metadata:
+  hseos:
+    required_modes: [write-safe, admin]     # Show ONLY in these agent modes
+    fallback_when: [github-mcp-disabled]    # Show ONLY when this integration is unavailable
+    requires_skills: [git-basics]           # Show ONLY when these other skills are active
+    explicit_only: true                     # Load ONLY when explicitly requested — never auto-load
+```
+
+### Field Semantics
+
+| Field | Type | Behavior |
+|---|---|---|
+| `required_modes` | list of modes | Skill hidden in modes not listed. If absent → visible in all modes. |
+| `fallback_when` | list of condition flags | Skill shown only when the named integration/tool is unavailable. Use for fallback alternatives. |
+| `requires_skills` | list of skill names | Skill shown only when all listed skills are already loaded. Use for skill compositions. |
+| `explicit_only` | boolean | If `true`, skill never auto-loads from trigger matching — requires direct invocation only. |
+
+### Examples in Use
+
+```yaml
+# threat-modeling — only load when user explicitly asks
+metadata:
+  hseos:
+    explicit_only: true
+
+# performance-profiling — only relevant in write-safe/admin
+metadata:
+  hseos:
+    required_modes: [write-safe, admin]
+    explicit_only: true
+
+# a fallback search skill when Firecrawl is unavailable
+metadata:
+  hseos:
+    fallback_when: [firecrawl-disabled]
+```
+
+### Current Skills with Conditions Applied
+
+| Skill | Condition |
+|---|---|
+| `threat-modeling` | `explicit_only: true` |
+| `performance-profiling` | `required_modes: [write-safe, admin]` + `explicit_only: true` |
+| `core-drift` | `required_modes: [write-safe]` (GHOST pre-story only) |
+| `policy-layer` | `required_modes: [admin]` |
+| `gitops-deploy` | `required_modes: [admin]` |
+| `gitops-add-service` | `required_modes: [admin]` |
+| `gitops-new-project` | `required_modes: [admin]` |

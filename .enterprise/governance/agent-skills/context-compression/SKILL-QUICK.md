@@ -69,4 +69,22 @@ Key decisions: {decision 1}; {decision 2}
 Files changed: {file list}
 Next: {immediate next action}
 Open: {unresolved questions}
+Pending verification: {task-id}: {verify_step command or "manual"} — {expected}
 ```
+
+---
+
+## Re-Compression (When Context Fills Again)
+
+Never start the summary from scratch on a second compression — update iteratively.
+
+**Prompt instruction to inject:**
+```
+UPDATE this existing summary with the new turns below.
+Preserve all prior decisions. Update current state and next action only.
+Add new items to "Pending verification" — remove resolved ones.
+```
+
+**Pre-pass:** Before calling LLM, prune stale tool outputs from new turns (saves 5–15% tokens).
+
+**Rule:** `current_summary` in session state is always the latest compressed version — replace on each re-compression, never append.

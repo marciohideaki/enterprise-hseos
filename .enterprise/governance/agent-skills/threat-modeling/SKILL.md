@@ -6,6 +6,8 @@ metadata:
   owner: platform-governance
   version: "1.0.0"
   source: https://github.com/openai/skills/tree/main/skills/.curated/security-threat-model
+  hseos:
+    explicit_only: true
 ---
 
 # Threat Modeling — Full Methodology
