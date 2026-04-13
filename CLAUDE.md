@@ -44,6 +44,24 @@ Agents MUST NEVER:
 5. Never load all skills simultaneously
 ```
 
+### 5.5 Agent Lessons (Self-Improvement Loop)
+
+**File:** `.claude/lessons.md`
+**Load:** At session start — always, as part of L1 context. Cost is low; skipping causes repeated errors.
+**Update:** After ANY user correction — add a lesson entry before the session ends.
+
+```
+Lesson format:
+### LXXX — <short title>
+**Correction:** What the agent did wrong
+**Rule:** The rule that prevents recurrence
+**Applies to:** Scope (file pattern, workflow, always)
+```
+
+**Promotion to vault:** When a lesson is domain-agnostic or recurred across 2+ projects, promote it to
+`/opt/hideakisolutions/second-brain/_learnings/<slug>.md` and note the promotion in the lesson entry.
+The `/end-session` skill handles this automatically (Step 7 — cross-project learnings).
+
 ---
 
 ## 6. Repository Navigation
