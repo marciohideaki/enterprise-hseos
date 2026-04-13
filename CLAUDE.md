@@ -144,27 +144,30 @@ tool_policy:
 
 | Mode | Permitted by default | Always denied |
 |---|---|---|
-| `read-only` | Read, Glob, Grep, WebSearch, WebFetch, Write/Edit for docs | Bash mutations, git push, rm |
-| `write-safe` | All tools within worktree path | git push --force, reset --hard, rm -rf |
+| `read-only` | Read, Glob, Grep, WebSearch, WebFetch | Write, Edit, Bash, git |
+| `write-safe (doc)` | read-only + Write/Edit files | Bash, git commit/push, rm |
+| `write-safe (code)` | All tools within worktree path | git push --force, reset --hard, rm -rf |
 | `admin` | All tools | git push --force, reset --hard, DROP TABLE |
+
+> **`write-safe` tem dois perfis:** agentes de documentação (`disallowed: bash, git_commit, git_push`) e agentes de código (sem bash restriction). A distinção está no `disallowed_tools` de cada agent.yaml.
 
 ### Agent Mode Map
 
-| Agent | Mode | Rationale |
-|---|---|---|
-| GHOST | write-safe | Implements code in worktrees |
-| BLITZ | write-safe | Solo full-stack delivery |
-| GLITCH | write-safe | Writes and runs test suites |
-| CIPHER | read-only | Drafts architecture docs — no code mutations |
-| RAZOR | read-only | Writes story files — no code execution |
-| VECTOR | read-only | Drafts PRDs — analysis only |
-| NYX | read-only | Market research and intelligence |
-| PRISM | read-only | UX/design — no code mutations |
-| QUILL | read-only | Documentation writing |
-| ORBIT | read-only | Reads state, coordinates — no direct mutations |
-| SABLE | admin | Runtime access, log inspection, FinOps |
-| FORGE | admin | Artifact publication, registry operations |
-| KUBE | admin | GitOps manifests, ArgoCD sync |
+| Agent | Mode | Escreve? | Executa Bash? | Rationale |
+|---|---|---|---|---|
+| GHOST | write-safe | código | sim | Implementa stories em worktree |
+| BLITZ | write-safe | código | sim | Solo full-stack delivery |
+| GLITCH | write-safe | testes | sim | Escreve e executa test suites |
+| CIPHER | write-safe (doc) | ADRs, arch docs | não | Drafts técnicos — sem mutations de código |
+| RAZOR | write-safe (doc) | story files | não | Prepara stories para GHOST — sem execução |
+| VECTOR | write-safe (doc) | PRDs | não | Redige requisitos — sem code execution |
+| QUILL | write-safe (doc) | docs, guides | não | Documentação técnica — sem code execution |
+| ORBIT | write-safe (doc) | STATE.md | não | Coordena e persiste estado — sem mutations diretas |
+| NYX | read-only | não | não | Pesquisa pura — sem outputs em arquivo |
+| PRISM | read-only | não | não | Análise UX/design — sem code mutations |
+| SABLE | admin | logs, reports | sim | Runtime access, FinOps audit |
+| FORGE | admin | artifacts | sim | Publicação de artefatos, registry |
+| KUBE | admin | manifests | sim | GitOps manifests, ArgoCD sync |
 
 ### Credential Path Protection (Always Denied — All Modes)
 

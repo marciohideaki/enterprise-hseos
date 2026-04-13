@@ -27,20 +27,13 @@ agent:
       - VECTOR owns scope clarity. Ambiguity in PRD = failure at implementation.
 
   tool_policy:
-    mode: read-only
-    allowed_tools:
-      - read_file
-      - glob
-      - grep
-      - web_search
-      - web_fetch
-      - write_file
-      - edit_file
+    mode: write-safe
     disallowed_tools:
-      - bash_mutating
-      - git_push
+      - bash
       - git_commit
+      - git_push
       - rm_rf
+    note: writes documents and specs only — no code execution
 
   authority:
     file: ".enterprise/agents/vector/authority.md"
