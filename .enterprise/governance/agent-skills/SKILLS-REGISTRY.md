@@ -407,6 +407,9 @@ version: "1.4"
 | CIPHER making architectural decision + second-brain available | second-brain | 2 |
 | QUILL or ORBIT consolidating epic + second-brain available | second-brain | 2 |
 | Running hseos brain sync | second-brain | 2 |
+| Context window approaching limit or responses becoming generic | context-compression | 1 |
+| Creating HANDOFF.md or passing context to another agent | context-compression | 1 |
+| Resuming a long session from compaction or cold start | context-compression | 2 |
 | About to implement a feature — evaluating design before writing code | simplicity-first | 1 |
 | Reviewing code for unnecessary abstractions or speculative patterns | simplicity-first | 1 |
 | PR diff contains refactoring bundled with a bug fix or feature | simplicity-first | 1 |
@@ -421,6 +424,16 @@ version: "1.4"
 | QUILL closing Phase 10 of any epic | core-drift | 1 |
 | Evaluating whether a feature should be promoted to core | core-drift | 2 |
 | Generating a promotion ADR candidate | core-drift | 2 |
+
+---
+
+### context-compression
+**Description:** Apply when context window is approaching its limit or when creating a session handoff. Provides 12 compression strategies (summarize-recent, compress-by-task, tree-structured, error-only, emergency-strip, decision-log, checkpoint-snapshot, file-manifest, multi-agent-relay, spec-strip, rolling-window, semantic-dedup).
+**Load when:** context window >70% used; creating HANDOFF.md; switching tasks after long session; passing context between agents; resuming after compaction.
+**Triggers:** `context limit`, `context window`, `compress`, `handoff context`, `session too long`, `context degrading`, `HANDOFF.md`, `too much context`, `summarize session`, `context full`
+**Tier 1:** `.enterprise/governance/agent-skills/context-compression/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/context-compression/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = low
 
 ---
 

@@ -101,6 +101,59 @@ See full rules: `scripts/governance/quality-gates.sh`
 
 ---
 
+## Agent Modes
+
+Agent behavior is conditioned by the **session mode**. Detect mode from task context before acting.
+
+### Mode: `read-only`
+**When:** Exploration, analysis, research, code review, diagnosis tasks.
+**Tools allowed:** Read, Glob, Grep, Bash (non-mutating: ls, cat, git log, git diff, find).
+**Tools forbidden:** Write, Edit, Bash (git commit, git push, rm, npm install, docker).
+**Verbosity:** High — explain findings in detail.
+**Stop condition:** Any mutation is requested → escalate, do not proceed silently.
+
+### Mode: `write-safe`
+**When:** Implementation tasks (feature, fix, refactor) within a worktree.
+**Tools allowed:** All tools within the current worktree path only.
+**Tools forbidden:** git push, force operations, modifications outside the worktree.
+**Verbosity:** Medium — show diffs and gate evidence.
+**Stop condition:** Change requires modifying files outside task's `output_contract` → escalate.
+
+### Mode: `admin`
+**When:** Infrastructure, CI, deployment, secrets management, governance artifact changes.
+**Tools allowed:** All tools.
+**Verbosity:** Low — direct and precise.
+**Stop condition:** Destructive operations (rm -rf, DROP TABLE, force-push) → always confirm with human first.
+**Adversarial check:** Required before any `admin` operation that affects shared state.
+
+### Mode Detection Rules
+
+```
+Task context                              → Mode
+─────────────────────────────────────────────────────
+"analyze", "review", "explain", "read"   → read-only
+"implement", "fix", "add", "refactor"    → write-safe (in worktree)
+"deploy", "migrate", "configure infra"   → admin (confirm first)
+No explicit signal                        → write-safe (default)
+```
+
+### Instruction Authority Cascade
+
+Instructions are applied in precedence order — lower items cannot override higher items:
+
+```
+1. Enterprise Constitution (.enterprise/.specs/constitution/)  ← supreme
+2. CLAUDE.md (this file)                                       ← project governance
+3. Agent authority file (.enterprise/agents/<code>/authority.md)
+4. Skill rules (loaded via SKILLS-REGISTRY)
+5. Task contract (input_contract, output_contract)
+6. User instructions in conversation
+```
+
+If instructions at different levels conflict → escalate. Do not "average" them.
+
+---
+
 ## Second Brain Integration
 
 Vault: `/opt/hideakisolutions/second-brain`

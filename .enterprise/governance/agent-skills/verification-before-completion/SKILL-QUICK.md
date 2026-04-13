@@ -58,6 +58,20 @@ Concern: <specific concern>
 Recommendation: <action needed>
 ```
 
+## Adversarial Gate (≥3 files modified)
+
+If this task modified 3 or more files, apply before declaring DONE:
+
+```
+Adversarial Check:
+[ ] Each acceptance criterion tested with a counter-example attempt
+[ ] All file changes trace directly to this task's requirement (no bundled refactoring)
+[ ] No silent assumptions: code works without unstated preconditions
+[ ] Blast radius confirmed: callers/consumers of changed files not broken
+```
+
+Fail → NEEDS_REVIEW. Partial → DONE_WITH_CONCERNS.
+
 ## Forbidden
 
 - Saying "done" without showing test output
