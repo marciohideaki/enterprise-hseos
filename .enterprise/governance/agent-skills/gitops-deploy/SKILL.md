@@ -5,6 +5,8 @@ license: Apache-2.0
 metadata:
   owner: platform-governance
   version: "1.0.0"
+  hseos:
+    required_modes: [admin]
 ---
 
 # GitOps Deploy — Guia Completo

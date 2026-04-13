@@ -3,6 +3,10 @@ skill: performance-profiling
 tier: 1
 version: "1.0"
 description: "Use when investigating a performance regression, profiling a service, or reviewing performance-sensitive code changes"
+metadata:
+  hseos:
+    required_modes: [write-safe, admin]
+    explicit_only: true
 ---
 
 # Performance Profiling — Quick Checklist

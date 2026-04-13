@@ -215,9 +215,75 @@ Compression strategies differ by session type:
 
 ---
 
+## 7. Re-Compression Protocol (Iterative Summary Updates)
+
+When a session is compressed more than once (e.g., long-running autonomous tasks, multi-day sessions), **never start the summary from scratch**. Instead, update the previous summary iteratively.
+
+### 7.1 Why Iterative Matters
+
+Starting fresh on re-compression loses accumulated context that was already distilled. Iterative updates preserve the full history of decisions without token cost.
+
+### 7.2 Protocol
+
+```
+First compression:
+  → Apply chosen strategy → produce [COMPRESSED — strategy — timestamp]
+  → Store as current_summary in session state
+
+Re-compression (context fills again):
+  → Inject previous current_summary at top of summarization prompt
+  → Instruction: "UPDATE this summary with new turns below — do not discard prior decisions"
+  → Produce updated [COMPRESSED — strategy — timestamp (v2)]
+  → Replace current_summary with the updated version
+```
+
+### 7.3 Re-Compression Prompt Template
+
+```
+You are updating an existing session summary. Do NOT start over.
+
+EXISTING SUMMARY:
+{current_summary}
+
+NEW TURNS TO INTEGRATE:
+{new_turns}
+
+Instructions:
+- Preserve all decisions from the existing summary
+- Integrate new decisions, task completions, and state changes
+- Update "Current state" and "Next action" to reflect newest turn
+- Update "Pending verification tasks" with any new open items
+- Remove items from "Open items" if they were resolved in new turns
+- Do not expand — compress new turns to match existing summary density
+
+Output the complete updated summary in the standard [COMPRESSED] format.
+```
+
+### 7.4 Pending Verification Tasks (Mandatory Section)
+
+Add this section to the standard output format for all sessions with active `verify_step` tasks:
+
+```
+Pending verification tasks:
+  - {task-id}: {verify_step.command} — {expected outcome}
+  - {task-id}: manual — {steps summary}
+```
+
+This prevents re-answering already-verified items after re-compression.
+
+### 7.5 Re-Compression Rules
+
+- **Never** lose a `BLOCKED` state across re-compressions
+- **Never** remove acceptance criteria of the active task
+- **Always** update `current_summary` in session state before the context fills again
+- **Cheap pre-pass:** Before calling LLM for re-compression, prune stale tool outputs from new turns (saves 5–15% tokens before summarization)
+
+---
+
 ## Relationship to Other Skills
 
 - `context-engineering` — L5 compression is the last level of the 5-level hierarchy
 - `session-handoff` — `tree-structured` and `checkpoint-snapshot` feed HANDOFF.md
 - `multi-agent-orchestration` — `multi-agent-relay` implements HandoffState protocol
 - `verification-before-completion` — Gate 4 (no regressions) requires preserved task history
+- `self-verification` — Re-compression must preserve `verify_step` outcomes in Pending Verification Tasks section
