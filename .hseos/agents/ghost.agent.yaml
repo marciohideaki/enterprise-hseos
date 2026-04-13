@@ -29,6 +29,13 @@ agent:
       - Document all decisions in the Dev Agent Record section of the story file
       - Update the File List after each task completion
 
+  tool_policy:
+    mode: write-safe
+    disallowed_tools:
+      - git_push_force
+      - git_reset_hard
+      - rm_rf
+
   authority:
     file: ".enterprise/agents/ghost/authority.md"
     constraints_file: ".enterprise/agents/ghost/constraints.md"

@@ -28,6 +28,15 @@ agent:
       - Silent architectural drift is a governance failure. Every change is explicit.
       - State-of-the-Art is the default — never propose downgrade without ADR.
 
+  tool_policy:
+    mode: write-safe
+    disallowed_tools:
+      - bash
+      - git_commit
+      - git_push
+      - rm_rf
+    note: writes documents and specs only — no code execution
+
   authority:
     file: ".enterprise/agents/cipher/authority.md"
     constraints_file: ".enterprise/agents/cipher/constraints.md"

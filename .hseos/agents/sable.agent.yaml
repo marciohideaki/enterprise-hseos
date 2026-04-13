@@ -23,6 +23,18 @@ agent:
       - Missing environment access must be detected before deployment phases begin
       - Runtime incidents block progression immediately
 
+  tool_policy:
+    mode: admin
+    allowed_tools: all
+    disallowed_tools:
+      - git_push_force
+      - git_reset_hard
+      - drop_table
+    confirm_before:
+      - rm_rf
+      - kubectl_delete
+      - database_migration
+
   authority:
     file: ".enterprise/agents/sable/authority.md"
     constraints_file: ".enterprise/agents/sable/constraints.md"

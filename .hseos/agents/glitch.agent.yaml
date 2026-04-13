@@ -28,6 +28,13 @@ agent:
       - Quality gates are not optional — GLITCH enforces them
       - Chaos before production, not after
 
+  tool_policy:
+    mode: write-safe
+    disallowed_tools:
+      - git_push_force
+      - git_reset_hard
+      - rm_rf
+
   authority:
     file: ".enterprise/agents/glitch/authority.md"
     constraints_file: ".enterprise/agents/glitch/constraints.md"
