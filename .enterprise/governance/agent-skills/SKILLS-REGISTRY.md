@@ -407,6 +407,9 @@ version: "1.4"
 | CIPHER making architectural decision + second-brain available | second-brain | 2 |
 | QUILL or ORBIT consolidating epic + second-brain available | second-brain | 2 |
 | Running hseos brain sync | second-brain | 2 |
+| Writing or reviewing a task in tasks.md — add verify_step | self-verification | 1 |
+| Task produced incorrect output — update governance doc + add verify_step | self-verification | 2 |
+| Agent declared done without running any verification command | self-verification | 1 |
 | Context window approaching limit or responses becoming generic | context-compression | 1 |
 | Creating HANDOFF.md or passing context to another agent | context-compression | 1 |
 | Resuming a long session from compaction or cold start | context-compression | 2 |
@@ -454,6 +457,16 @@ version: "1.4"
 **Triggers:** `end session`, `handoff`, `context transfer`, `resume`, `incomplete task`, `pick up where`, `next session`, `session continuity`, `HANDOFF.md`
 **Tier 1:** `.enterprise/governance/agent-skills/session-handoff/SKILL-QUICK.md`
 **Tier 2:** `.enterprise/governance/agent-skills/session-handoff/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = low
+
+---
+
+### self-verification
+**Description:** Design verify_step into every task contract so agents can self-correct before human review. The feedback loop improves output quality 2-3x. Distinct from verification-before-completion — this is designed at task creation, not applied at completion.
+**Load when:** writing or reviewing a task contract; designing tasks in tasks.md; any task that produces files or artifacts; after agent produces an error due to missing verification.
+**Triggers:** `verify_step`, `task contract`, `self-correct`, `verify my work`, `feedback loop`, `tasks.md`, `output_contract`, `verify before done`, `automated test in task`
+**Tier 1:** `.enterprise/governance/agent-skills/self-verification/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/self-verification/SKILL.md`
 **Cost:** Tier 1 = low | Tier 2 = low
 
 ---

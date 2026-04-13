@@ -133,6 +133,13 @@ tasks:
       - "No direct DB calls in handler"
 
     execution_mode: isolated   # always isolated — no shared context with other tasks
+
+    verify_step:
+      type: automated                            # automated | manual | visual | compound
+      command: "npm test -- PlaceOrderHandler"   # exact runnable command
+      expected: "1 passed, 0 failed"
+      fallback: "node -e \"require('./src/Orders/Application/Commands/PlaceOrderHandler');\"" 
+      on_failure: retry_once_then_escalate
 ```
 
 **Rules:**
@@ -140,6 +147,7 @@ tasks:
 - SD-28: `output_contract.files` MUST list every file the agent will create or modify
 - SD-29: `execution_mode` MUST always be `isolated` — context from prior tasks is passed via `input_contract`, not conversation history
 - SD-30: `input_contract.dependencies` MUST reference task IDs, not implicit knowledge
+- SD-31: `output_contract.verify_step` MUST be present — tasks without a verify mechanism cannot self-correct and rely entirely on human review
 
 ---
 

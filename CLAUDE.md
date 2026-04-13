@@ -154,6 +154,98 @@ If instructions at different levels conflict → escalate. Do not "average" them
 
 ---
 
+## MCP Server Configuration
+
+MCP servers extend agent capabilities with external data (Slack, databases, observability tools). Configuration is shared via `.mcp.json` at the project root — **committed to git** so all agents and team members share the same integrations.
+
+### Permitted Integrations per Agent Mode
+
+| Integration | `read-only` | `write-safe` | `admin` |
+|---|---|---|---|
+| Observability (logs, traces, errors) | ✅ query | ✅ query | ✅ full |
+| Databases / data warehouses | ✅ SELECT only | ✅ SELECT only | ✅ mutations with confirmation |
+| Communication tools (Slack, etc.) | ✅ read | ✅ read | ✅ send (with confirmation) |
+| CI/CD systems | ✅ read status | ✅ trigger (non-prod) | ✅ full |
+| Infrastructure APIs | ❌ | ✅ read | ✅ mutate with confirmation |
+
+### `.mcp.json` Pattern
+
+```json
+{
+  "mcpServers": {
+    "sentry": {
+      "command": "npx",
+      "args": ["-y", "@sentry/mcp-server"],
+      "env": { "SENTRY_AUTH_TOKEN": "${SENTRY_AUTH_TOKEN}" }
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres"],
+      "env": { "POSTGRES_URL": "${DATABASE_URL}" }
+    }
+  }
+}
+```
+
+**Rules:**
+- `.mcp.json` is committed to git — treat it as infrastructure-as-code
+- Secrets via environment variables only — never hardcoded in `.mcp.json`
+- Each server addition requires a note in `decisions.md` if it changes the team's data access posture
+- `admin`-mode mutations via MCP require explicit human confirmation before execution
+
+### CLAUDE.md Update Cadence
+
+Update this file whenever an agent produces an incorrect output due to a missing or ambiguous rule. Cadence: multiple times per sprint during active development — this file is a **living feedback artifact**, not a static reference.
+
+---
+
+## Hooks and Automation
+
+Hooks automate repetitive post-processing triggered by agent tool usage. Stored in `.claude/hooks/`.
+
+### Hook Types
+
+| Hook | Trigger | Example Use |
+|---|---|---|
+| `PostToolUse` | After any tool call | Auto-format generated code |
+| `PreCommit` | Before git commit | Validate commit message format |
+| `PostWrite` | After Write/Edit tool | Run linter on modified file |
+| `OnWait` | Agent waiting for input | System notification (desktop alert) |
+
+### Hook File Convention
+
+```
+.claude/hooks/
+├── post-tool-use-format.sh     # auto-format after Write/Edit
+├── pre-commit-validate.sh      # commit hygiene check
+└── on-wait-notify.sh           # system notification when agent pauses
+```
+
+### `PostToolUse` Format Hook (Recommended)
+
+```bash
+#!/bin/bash
+# .claude/hooks/post-tool-use-format.sh
+# Auto-format files written or edited by agent
+
+FILE="$1"
+if [[ "$FILE" =~ \.(ts|js|py|go)$ ]]; then
+  case "$FILE" in
+    *.ts|*.js) npx prettier --write "$FILE" ;;
+    *.py)      black "$FILE" ;;
+    *.go)      gofmt -w "$FILE" ;;
+  esac
+fi
+```
+
+**Rules:**
+- Hooks MUST be idempotent — running twice produces same result
+- Hooks MUST not modify files outside the current worktree
+- Hooks MUST exit 0 on success; non-zero exits block the triggering action
+- `admin`-mode hooks that affect shared state require a comment explaining blast radius
+
+---
+
 ## Second Brain Integration
 
 Vault: `/opt/hideakisolutions/second-brain`
