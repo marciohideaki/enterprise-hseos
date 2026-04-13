@@ -297,6 +297,7 @@ Ao revisar uma PR, considere: **todo comportamento observável se torna um contr
 
 ## Sinais de Alerta (Red Flags)
 
+- Refactoring, cleanup ou rename bundled com bug fix ou feature — mudanças devem ser cirúrgicas
 - Stage 2 (code quality) sendo executado antes de Stage 1 (spec compliance) ser confirmado
 - Review report sem resultado explícito de risk triage
 - `AllowAnonymous` adicionado sem justificativa documentada na PR description

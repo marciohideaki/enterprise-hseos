@@ -207,7 +207,7 @@ tasks:
 
 - Iniciar qualquer implementação sem spec.md criado e revisado
 - Tasks definidas como "implementar a feature X" sem critérios de aceitação
-- Avançar da Fase 1 para a Fase 2 com Open Questions ainda abertas
+- Avançar da Fase 1 para a Fase 2 com Open Questions ainda abertas — **Open Questions MUST be resolved before Phase 2 begins; agents MUST stop and request resolution**
 - Implementar funcionalidade não mencionada em nenhuma FR ou NFR do spec
 - Spec sem Out of Scope — ausência de exclusões explícitas garante scope creep
 - Input contract de uma task referencia "contexto implícito da sessão" em vez de arquivos concretos

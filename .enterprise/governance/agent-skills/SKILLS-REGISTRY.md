@@ -407,6 +407,10 @@ version: "1.4"
 | CIPHER making architectural decision + second-brain available | second-brain | 2 |
 | QUILL or ORBIT consolidating epic + second-brain available | second-brain | 2 |
 | Running hseos brain sync | second-brain | 2 |
+| About to implement a feature — evaluating design before writing code | simplicity-first | 1 |
+| Reviewing code for unnecessary abstractions or speculative patterns | simplicity-first | 1 |
+| PR diff contains refactoring bundled with a bug fix or feature | simplicity-first | 1 |
+| Architecture discussion: interface vs direct implementation, extract vs inline | simplicity-first | 2 |
 | GHOST starting story touching infra / messaging / cache / auth / persistence | core-drift | 1 |
 | Ending a session with incomplete work | session-handoff | 1 |
 | ORBIT dispatching sub-task requiring context transfer | session-handoff | 2 |
@@ -437,6 +441,16 @@ version: "1.4"
 **Triggers:** `end session`, `handoff`, `context transfer`, `resume`, `incomplete task`, `pick up where`, `next session`, `session continuity`, `HANDOFF.md`
 **Tier 1:** `.enterprise/governance/agent-skills/session-handoff/SKILL-QUICK.md`
 **Tier 2:** `.enterprise/governance/agent-skills/session-handoff/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = low
+
+---
+
+### simplicity-first
+**Description:** Prevent overengineering and premature abstractions — implement only what the current requirement demands. No speculative patterns, no future-proofing, no bundled refactoring.
+**Load when:** writing or reviewing code; tempted to add an interface, pattern, or abstraction; evaluating a design for speculative complexity; reviewing a PR for scope creep.
+**Triggers:** `overengineering`, `premature abstraction`, `YAGNI`, `design review`, `before implementation`, `interface`, `strategy pattern`, `factory pattern`, `refactor while fixing`, `bundled changes`, `simplify`, `too complex`, `unnecessary complexity`
+**Tier 1:** `.enterprise/governance/agent-skills/simplicity-first/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/simplicity-first/SKILL.md`
 **Cost:** Tier 1 = low | Tier 2 = low
 
 ---
