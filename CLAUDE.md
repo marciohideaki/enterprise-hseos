@@ -119,6 +119,70 @@ See full rules: `scripts/governance/quality-gates.sh`
 
 ---
 
+## Agent Tool Policy
+
+Every agent in `.hseos/agents/*.agent.yaml` declares a `tool_policy` block that restricts which tools it may use. This is **role-based capability control** — prevents a read-only analysis agent from accidentally executing mutations.
+
+### Schema
+
+```yaml
+tool_policy:
+  mode: read-only | write-safe | admin
+  allowed_tools:            # null or "all" = no allowlist restriction
+    - read_file
+    - glob
+    - grep
+  disallowed_tools:         # always denied, regardless of mode
+    - git_push_force
+    - rm_rf
+  confirm_before:           # allowed, but require explicit human confirmation
+    - kubectl_delete
+    - database_migration
+```
+
+### Mode Defaults
+
+| Mode | Permitted by default | Always denied |
+|---|---|---|
+| `read-only` | Read, Glob, Grep, WebSearch, WebFetch | Write, Edit, Bash, git |
+| `write-safe (doc)` | read-only + Write/Edit files | Bash, git commit/push, rm |
+| `write-safe (code)` | All tools within worktree path | git push --force, reset --hard, rm -rf |
+| `admin` | All tools | git push --force, reset --hard, DROP TABLE |
+
+> **`write-safe` tem dois perfis:** agentes de documentação (`disallowed: bash, git_commit, git_push`) e agentes de código (sem bash restriction). A distinção está no `disallowed_tools` de cada agent.yaml.
+
+### Agent Mode Map
+
+| Agent | Mode | Escreve? | Executa Bash? | Rationale |
+|---|---|---|---|---|
+| GHOST | write-safe | código | sim | Implementa stories em worktree |
+| BLITZ | write-safe | código | sim | Solo full-stack delivery |
+| GLITCH | write-safe | testes | sim | Escreve e executa test suites |
+| CIPHER | write-safe (doc) | ADRs, arch docs | não | Drafts técnicos — sem mutations de código |
+| RAZOR | write-safe (doc) | story files | não | Prepara stories para GHOST — sem execução |
+| VECTOR | write-safe (doc) | PRDs | não | Redige requisitos — sem code execution |
+| QUILL | write-safe (doc) | docs, guides | não | Documentação técnica — sem code execution |
+| ORBIT | write-safe (doc) | STATE.md | não | Coordena e persiste estado — sem mutations diretas |
+| NYX | read-only | não | não | Pesquisa pura — sem outputs em arquivo |
+| PRISM | read-only | não | não | Análise UX/design — sem code mutations |
+| SABLE | admin | logs, reports | sim | Runtime access, FinOps audit |
+| FORGE | admin | artifacts | sim | Publicação de artefatos, registry |
+| KUBE | admin | manifests | sim | GitOps manifests, ArgoCD sync |
+
+### Credential Path Protection (Always Denied — All Modes)
+
+These paths are **never** accessed by any agent, regardless of mode or tool_policy:
+
+```
+~/.ssh/*   ~/.aws/credentials   ~/.azure/*   ~/.config/gcloud/*
+~/.kube/config   ~/.docker/config.json   ~/.npmrc   ~/.netrc
+**/.env   **/credentials.json   **/secrets.yaml   **/secrets.json
+```
+
+See `secure-coding` SKILL.md §12 for full list and rationale (SC-53).
+
+---
+
 ## Agent Modes
 
 Agent behavior is conditioned by the **session mode**. Detect mode from task context before acting.

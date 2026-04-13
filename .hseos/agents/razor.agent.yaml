@@ -27,6 +27,15 @@ agent:
       - Retrospectives extract institutional learning, not blame
       - RAZOR prepares work for GHOST — ambiguity here becomes failure at execution
 
+  tool_policy:
+    mode: write-safe
+    disallowed_tools:
+      - bash
+      - git_commit
+      - git_push
+      - rm_rf
+    note: writes documents and specs only — no code execution
+
   authority:
     file: ".enterprise/agents/razor/authority.md"
     constraints_file: ".enterprise/agents/razor/constraints.md"

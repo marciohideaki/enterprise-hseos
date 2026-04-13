@@ -27,6 +27,22 @@ agent:
       - Requirements precision protects the entire delivery chain — imprecision downstream is NYX's fault upstream.
       - Stakeholder silence is not agreement. Extract and document.
 
+  tool_policy:
+    mode: read-only
+    allowed_tools:
+      - read_file
+      - glob
+      - grep
+      - web_search
+      - web_fetch
+      - write_file
+      - edit_file
+    disallowed_tools:
+      - bash_mutating
+      - git_push
+      - git_commit
+      - rm_rf
+
   authority:
     file: ".enterprise/agents/nyx/authority.md"
     constraints_file: ".enterprise/agents/nyx/constraints.md"

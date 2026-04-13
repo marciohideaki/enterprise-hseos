@@ -30,6 +30,18 @@ agent:
       - ArgoCD Degraded or Error state blocks progression immediately
       - KUBE delivers cluster state evidence — SABLE verifies runtime health
 
+  tool_policy:
+    mode: admin
+    allowed_tools: all
+    disallowed_tools:
+      - git_push_force
+      - git_reset_hard
+      - drop_table
+    confirm_before:
+      - rm_rf
+      - kubectl_delete
+      - database_migration
+
   authority:
     file: ".enterprise/agents/kube/authority.md"
     constraints_file: ".enterprise/agents/kube/constraints.md"
