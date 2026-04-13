@@ -11,7 +11,11 @@
       "Read(//opt/**)",
       "Read(//home/annonymous/**)",
       "Bash(chmod +x:*)",
-      "Bash(bash scripts/governance/validate-skills.sh)"
+      "Bash(bash scripts/governance/validate-skills.sh)",
+      "Bash(git checkout:*)",
+      "Bash(git rebase:*)",
+      "Bash(git merge:*)",
+      "Bash(rtk git:*)"
     ]
   }
 }
