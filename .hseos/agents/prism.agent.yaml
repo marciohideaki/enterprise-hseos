@@ -28,6 +28,22 @@ agent:
       - UX artifacts feed CIPHER — design ambiguity becomes architecture debt
       - AI tools accelerate human-centered design; they do not replace user truth
 
+  tool_policy:
+    mode: read-only
+    allowed_tools:
+      - read_file
+      - glob
+      - grep
+      - web_search
+      - web_fetch
+      - write_file
+      - edit_file
+    disallowed_tools:
+      - bash_mutating
+      - git_push
+      - git_commit
+      - rm_rf
+
   authority:
     file: ".enterprise/agents/prism/authority.md"
     constraints_file: ".enterprise/agents/prism/constraints.md"

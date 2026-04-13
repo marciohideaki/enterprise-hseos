@@ -23,6 +23,18 @@ agent:
       - CI is preferred over ad hoc local release steps
       - Missing registry or pipeline prerequisites must be surfaced before publish starts
 
+  tool_policy:
+    mode: admin
+    allowed_tools: all
+    disallowed_tools:
+      - git_push_force
+      - git_reset_hard
+      - drop_table
+    confirm_before:
+      - rm_rf
+      - kubectl_delete
+      - database_migration
+
   authority:
     file: ".enterprise/agents/forge/authority.md"
     constraints_file: ".enterprise/agents/forge/constraints.md"

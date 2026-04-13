@@ -25,6 +25,22 @@ agent:
       - Resume is allowed only from persisted state and validated evidence
       - ORBIT coordinates authority; it does not absorb it
 
+  tool_policy:
+    mode: read-only
+    allowed_tools:
+      - read_file
+      - glob
+      - grep
+      - web_search
+      - web_fetch
+      - write_file
+      - edit_file
+    disallowed_tools:
+      - bash_mutating
+      - git_push
+      - git_commit
+      - rm_rf
+
   authority:
     file: ".enterprise/agents/orbit/authority.md"
     constraints_file: ".enterprise/agents/orbit/constraints.md"

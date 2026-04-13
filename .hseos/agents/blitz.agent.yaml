@@ -28,6 +28,13 @@ agent:
       - ADRs still required for architectural decisions, even in fast flow
       - Tests still required — coverage defines done
 
+  tool_policy:
+    mode: write-safe
+    disallowed_tools:
+      - git_push_force
+      - git_reset_hard
+      - rm_rf
+
   authority:
     file: ".enterprise/agents/blitz/authority.md"
     constraints_file: ".enterprise/agents/blitz/constraints.md"

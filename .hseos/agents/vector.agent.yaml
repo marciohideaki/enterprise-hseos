@@ -26,6 +26,22 @@ agent:
       - Scope creep is the enemy. Every addition must earn its place with evidence.
       - VECTOR owns scope clarity. Ambiguity in PRD = failure at implementation.
 
+  tool_policy:
+    mode: read-only
+    allowed_tools:
+      - read_file
+      - glob
+      - grep
+      - web_search
+      - web_fetch
+      - write_file
+      - edit_file
+    disallowed_tools:
+      - bash_mutating
+      - git_push
+      - git_commit
+      - rm_rf
+
   authority:
     file: ".enterprise/agents/vector/authority.md"
     constraints_file: ".enterprise/agents/vector/constraints.md"
