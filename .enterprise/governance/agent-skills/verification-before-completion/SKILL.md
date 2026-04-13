@@ -151,6 +151,51 @@ Gate 1 (Functional): ✗ BLOCKED
 
 ---
 
+## Adversarial Verification Gate
+
+When a task involves **3 or more file modifications**, an independent adversarial check is required before declaring DONE.
+
+### Trigger Condition
+
+```
+IF (files_modified >= 3 AND task_type IN [feature, fix, refactor])
+THEN adversarial_check = required
+```
+
+### Adversarial Check Protocol
+
+The adversarial reviewer assumes the implementation is **wrong** and attempts to prove it:
+
+1. **Challenge acceptance criteria** — is each criterion actually met, or just plausibly met?
+2. **Seek counter-examples** — inputs or states that would cause the implementation to fail
+3. **Verify absence of silent assumptions** — does the code work only because of unstated preconditions?
+4. **Check blast radius** — which callers, consumers, or downstream systems are affected by these files?
+5. **Look for bundled changes** — are all file changes directly traceable to this task's requirement?
+
+### How to Apply Without a Second Agent
+
+In single-agent sessions, apply adversarial reasoning explicitly:
+
+```
+Adversarial Check — [task name]
+──────────────────────────────
+Challenge 1: Does [acceptance criterion] hold for [edge case]?
+  Result: ✓ / ✗ / ⚠ [finding]
+
+Challenge 2: What breaks if [assumption] is false?
+  Result: ✓ / ✗ / ⚠ [finding]
+
+Challenge 3: Are all N file changes required by this task?
+  Result: ✓ all changes trace to requirement / ⚠ [unexplained change found]
+
+Adversarial verdict: PASS / FAIL / CONDITIONAL
+```
+
+A FAIL from adversarial check converts DONE → NEEDS_REVIEW.
+A CONDITIONAL finding converts DONE → DONE_WITH_CONCERNS.
+
+---
+
 ## Integration with Workflows
 
 ### GHOST (Code Executor)

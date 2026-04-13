@@ -133,6 +133,13 @@ tasks:
       - "No direct DB calls in handler"
 
     execution_mode: isolated   # always isolated — no shared context with other tasks
+
+    verify_step:
+      type: automated                            # automated | manual | visual | compound
+      command: "npm test -- PlaceOrderHandler"   # exact runnable command
+      expected: "1 passed, 0 failed"
+      fallback: "node -e \"require('./src/Orders/Application/Commands/PlaceOrderHandler');\"" 
+      on_failure: retry_once_then_escalate
 ```
 
 **Rules:**
@@ -140,6 +147,7 @@ tasks:
 - SD-28: `output_contract.files` MUST list every file the agent will create or modify
 - SD-29: `execution_mode` MUST always be `isolated` — context from prior tasks is passed via `input_contract`, not conversation history
 - SD-30: `input_contract.dependencies` MUST reference task IDs, not implicit knowledge
+- SD-31: `output_contract.verify_step` MUST be present — tasks without a verify mechanism cannot self-correct and rely entirely on human review
 
 ---
 
@@ -207,7 +215,7 @@ tasks:
 
 - Iniciar qualquer implementação sem spec.md criado e revisado
 - Tasks definidas como "implementar a feature X" sem critérios de aceitação
-- Avançar da Fase 1 para a Fase 2 com Open Questions ainda abertas
+- Avançar da Fase 1 para a Fase 2 com Open Questions ainda abertas — **Open Questions MUST be resolved before Phase 2 begins; agents MUST stop and request resolution**
 - Implementar funcionalidade não mencionada em nenhuma FR ou NFR do spec
 - Spec sem Out of Scope — ausência de exclusões explícitas garante scope creep
 - Input contract de uma task referencia "contexto implícito da sessão" em vez de arquivos concretos

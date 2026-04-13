@@ -1,0 +1,28 @@
+services:
+  usage-dashboard:
+    build: .
+    container_name: hseos-usage-dashboard
+    ports:
+      # Accessible on all network interfaces — reachable from other machines on the local network
+      - "0.0.0.0:8080:8080"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "8080"
+      HSEOS_USAGE_DB: "/data/usage.db"
+      HSEOS_PROJECTS_DIR: "/projects"
+    volumes:
+      # Claude Code JSONL transcript files (read-only)
+      - "${CLAUDE_PROJECTS_DIR:-${HOME}/.claude/projects}:/projects:ro"
+      # Persistent SQLite database
+      - hseos-usage-db:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+volumes:
+  hseos-usage-db:
+    driver: local

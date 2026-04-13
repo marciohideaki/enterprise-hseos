@@ -407,6 +407,16 @@ version: "1.4"
 | CIPHER making architectural decision + second-brain available | second-brain | 2 |
 | QUILL or ORBIT consolidating epic + second-brain available | second-brain | 2 |
 | Running hseos brain sync | second-brain | 2 |
+| Writing or reviewing a task in tasks.md — add verify_step | self-verification | 1 |
+| Task produced incorrect output — update governance doc + add verify_step | self-verification | 2 |
+| Agent declared done without running any verification command | self-verification | 1 |
+| Context window approaching limit or responses becoming generic | context-compression | 1 |
+| Creating HANDOFF.md or passing context to another agent | context-compression | 1 |
+| Resuming a long session from compaction or cold start | context-compression | 2 |
+| About to implement a feature — evaluating design before writing code | simplicity-first | 1 |
+| Reviewing code for unnecessary abstractions or speculative patterns | simplicity-first | 1 |
+| PR diff contains refactoring bundled with a bug fix or feature | simplicity-first | 1 |
+| Architecture discussion: interface vs direct implementation, extract vs inline | simplicity-first | 2 |
 | GHOST starting story touching infra / messaging / cache / auth / persistence | core-drift | 1 |
 | Ending a session with incomplete work | session-handoff | 1 |
 | ORBIT dispatching sub-task requiring context transfer | session-handoff | 2 |
@@ -417,6 +427,16 @@ version: "1.4"
 | QUILL closing Phase 10 of any epic | core-drift | 1 |
 | Evaluating whether a feature should be promoted to core | core-drift | 2 |
 | Generating a promotion ADR candidate | core-drift | 2 |
+
+---
+
+### context-compression
+**Description:** Apply when context window is approaching its limit or when creating a session handoff. Provides 12 compression strategies (summarize-recent, compress-by-task, tree-structured, error-only, emergency-strip, decision-log, checkpoint-snapshot, file-manifest, multi-agent-relay, spec-strip, rolling-window, semantic-dedup).
+**Load when:** context window >70% used; creating HANDOFF.md; switching tasks after long session; passing context between agents; resuming after compaction.
+**Triggers:** `context limit`, `context window`, `compress`, `handoff context`, `session too long`, `context degrading`, `HANDOFF.md`, `too much context`, `summarize session`, `context full`
+**Tier 1:** `.enterprise/governance/agent-skills/context-compression/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/context-compression/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = low
 
 ---
 
@@ -437,6 +457,26 @@ version: "1.4"
 **Triggers:** `end session`, `handoff`, `context transfer`, `resume`, `incomplete task`, `pick up where`, `next session`, `session continuity`, `HANDOFF.md`
 **Tier 1:** `.enterprise/governance/agent-skills/session-handoff/SKILL-QUICK.md`
 **Tier 2:** `.enterprise/governance/agent-skills/session-handoff/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = low
+
+---
+
+### self-verification
+**Description:** Design verify_step into every task contract so agents can self-correct before human review. The feedback loop improves output quality 2-3x. Distinct from verification-before-completion — this is designed at task creation, not applied at completion.
+**Load when:** writing or reviewing a task contract; designing tasks in tasks.md; any task that produces files or artifacts; after agent produces an error due to missing verification.
+**Triggers:** `verify_step`, `task contract`, `self-correct`, `verify my work`, `feedback loop`, `tasks.md`, `output_contract`, `verify before done`, `automated test in task`
+**Tier 1:** `.enterprise/governance/agent-skills/self-verification/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/self-verification/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = low
+
+---
+
+### simplicity-first
+**Description:** Prevent overengineering and premature abstractions — implement only what the current requirement demands. No speculative patterns, no future-proofing, no bundled refactoring.
+**Load when:** writing or reviewing code; tempted to add an interface, pattern, or abstraction; evaluating a design for speculative complexity; reviewing a PR for scope creep.
+**Triggers:** `overengineering`, `premature abstraction`, `YAGNI`, `design review`, `before implementation`, `interface`, `strategy pattern`, `factory pattern`, `refactor while fixing`, `bundled changes`, `simplify`, `too complex`, `unnecessary complexity`
+**Tier 1:** `.enterprise/governance/agent-skills/simplicity-first/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/simplicity-first/SKILL.md`
 **Cost:** Tier 1 = low | Tier 2 = low
 
 ---
