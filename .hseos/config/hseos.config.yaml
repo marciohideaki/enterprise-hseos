@@ -196,6 +196,10 @@ state_management:
   web_port: 3200
   web_poll_ms: 1000
   stale_minutes: 10
+  # Central multi-project kanban (hseos kanban-central) — aggregates many project DBs.
+  central_port: 3210
+  central_host: 127.0.0.1
+  central_registry: ~/.hseos/projects.json
 
 # Second-brain integration (optional)
 # When enabled, agents read from and write to the personal knowledge vault.

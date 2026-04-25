@@ -34,9 +34,11 @@ function parseArgs() {
   const args = process.argv.slice(2);
   const port = Number.parseInt(args.find((a) => a.startsWith('--port='))?.split('=')[1] ?? DEFAULT_PORT, 10);
   const dbPath = args.find((a) => a.startsWith('--db='))?.split('=')[1] || process.env.HSEOS_STATE_DB || DEFAULT_DB;
+  const registry = args.find((a) => a.startsWith('--registry='))?.split('=')[1] || null;
+  const host = args.find((a) => a.startsWith('--host='))?.split('=')[1] || '127.0.0.1';
   const pollMs = Number.parseInt(args.find((a) => a.startsWith('--poll-ms='))?.split('=')[1] ?? DEFAULT_POLL_MS, 10);
   const staleMinutes = Number.parseInt(args.find((a) => a.startsWith('--stale-minutes='))?.split('=')[1] ?? 10, 10);
-  return { port, dbPath, pollMs, staleMinutes };
+  return { port, host, dbPath, pollMs, staleMinutes, registry };
 }
 
 const MIME = {
@@ -50,20 +52,52 @@ function checksum(snapshot) {
   return crypto.createHash('sha1').update(JSON.stringify(snapshot)).digest('hex');
 }
 
-function start({ port, dbPath, pollMs, staleMinutes }) {
-  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-  const db = new Database(dbPath, { readonly: false, fileMustExist: false });
-  db.pragma('journal_mode = WAL');
-  db.pragma('busy_timeout = 5000');
+function start({ port, host = '127.0.0.1', dbPath, pollMs, staleMinutes, registry: registryPath }) {
+  const isCentral = Boolean(registryPath);
+  let db = null;
+  let loadedRegistry = null;
+  let takeMultiSnapshotFn = null;
+  let loadRegistryFn = null;
+
+  if (isCentral) {
+    ({ takeMultiSnapshot: takeMultiSnapshotFn } = require('./lib/snapshot-multi'));
+    ({ loadRegistry: loadRegistryFn } = require('./lib/registry'));
+    loadedRegistry = loadRegistryFn(registryPath);
+    console.log(`[state-ui] central mode — registry: ${loadedRegistry._path}`);
+    console.log(`[state-ui] tracking ${loadedRegistry.projects.length} project(s)`);
+  } else {
+    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+    db = new Database(dbPath, { readonly: false, fileMustExist: false });
+    db.pragma('journal_mode = WAL');
+    db.pragma('busy_timeout = 5000');
+    // Apply schema if absent (idempotent migrations). Otherwise takeSnapshot
+    // crashes querying as_runs on a fresh DB.
+    try {
+      const { runMigrations } = require('../mcp-project-state/lib/migrations');
+      const migrationsDir = path.join(__dirname, '..', 'mcp-project-state', 'migrations');
+      runMigrations(db, migrationsDir, { log: () => {} });
+    } catch (error) {
+      console.error('[state-ui] migration error:', error.message);
+    }
+  }
 
   const sseClients = new Set();
   let lastSnapshot = null;
   let lastChecksum = null;
 
+  function takeCurrentSnapshot() {
+    if (isCentral) {
+      // Reload registry on each tick so register/deregister picks up without restart
+      loadedRegistry = loadRegistryFn(registryPath);
+      return takeMultiSnapshotFn(loadedRegistry, { staleMinutes });
+    }
+    return takeSnapshot(db, { staleMinutes });
+  }
+
   function pushSnapshot() {
     let snap;
     try {
-      snap = takeSnapshot(db, { staleMinutes });
+      snap = takeCurrentSnapshot();
     } catch (error) {
       console.error('[state-ui] snapshot error:', error.message);
       return;
@@ -89,14 +123,21 @@ function start({ port, dbPath, pollMs, staleMinutes }) {
     const url = req.url.split('?')[0];
 
     if (url === '/health') {
+      const meta = isCentral
+        ? {
+            mode: 'central',
+            projects: loadedRegistry?.projects?.length || 0,
+            projects_ok: lastSnapshot?.projects_meta?.filter((p) => p.db_status === 'ok').length || 0,
+          }
+        : { mode: 'single' };
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ status: 'ok', server: 'hseos-state-ui', clients: sseClients.size }));
+      res.end(JSON.stringify({ status: 'ok', server: 'hseos-state-ui', clients: sseClients.size, ...meta }));
       return;
     }
 
     if (url === '/api/state') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(lastSnapshot ?? takeSnapshot(db, { staleMinutes })));
+      res.end(JSON.stringify(lastSnapshot ?? takeCurrentSnapshot()));
       return;
     }
 
@@ -106,7 +147,7 @@ function start({ port, dbPath, pollMs, staleMinutes }) {
         'Cache-Control': 'no-cache',
         Connection: 'keep-alive',
       });
-      res.write(`data: ${JSON.stringify(lastSnapshot ?? takeSnapshot(db, { staleMinutes }))}\n\n`);
+      res.write(`data: ${JSON.stringify(lastSnapshot ?? takeCurrentSnapshot())}\n\n`);
       sseClients.add(res);
       req.on('close', () => sseClients.delete(res));
       return;
@@ -135,9 +176,13 @@ function start({ port, dbPath, pollMs, staleMinutes }) {
     res.end('not found');
   });
 
-  server.listen(port, '127.0.0.1', () => {
-    console.log(`[state-ui] listening on http://127.0.0.1:${port}`);
-    console.log(`[state-ui] db=${dbPath} poll=${pollMs}ms stale=${staleMinutes}min`);
+  server.listen(port, host, () => {
+    if (host !== '127.0.0.1' && host !== 'localhost') {
+      console.warn(`[state-ui] WARNING: binding to ${host} exposes the kanban — no auth, read-only`);
+    }
+    console.log(`[state-ui] listening on http://${host}:${port}`);
+    if (isCentral) console.log(`[state-ui] mode=central registry=${registryPath} poll=${pollMs}ms`);
+    else console.log(`[state-ui] mode=single db=${dbPath} poll=${pollMs}ms stale=${staleMinutes}min`);
   });
 
   function shutdown(signal) {
@@ -153,10 +198,12 @@ function start({ port, dbPath, pollMs, staleMinutes }) {
     }
     sseClients.clear();
     server.close(() => {
-      try {
-        db.close();
-      } catch {
-        /* ignore */
+      if (db) {
+        try {
+          db.close();
+        } catch {
+          /* ignore */
+        }
       }
       process.exit(0);
     });
