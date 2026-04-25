@@ -48,7 +48,7 @@ function runCli(args, opts = {}) {
   return spawnSync(process.execPath, [HSEOS_CLI, ...args], {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
-    timeout: 15000,
+    timeout: 15_000,
     ...opts,
   });
 }
@@ -102,7 +102,7 @@ it('state-list --orphans is empty for fresh heartbeat', () => {
   const result = runCli(['state-list', '--orphans', '--directory', dir, '--json']);
   if (result.status !== 0) throw new Error(`exit ${result.status}: ${result.stderr}`);
   const rows = JSON.parse(result.stdout);
-  if (!Array.isArray(rows) || rows.length !== 0) {
+  if (!Array.isArray(rows) || rows.length > 0) {
     throw new Error(`expected 0 orphans, got ${rows.length}`);
   }
 });
