@@ -87,6 +87,31 @@ class AgentStateDAL {
       removeWorktree: db.prepare(
         `UPDATE as_worktree_state SET removed_at = datetime('now') WHERE task_id = ?`
       ),
+
+      // === Session tracking (migration 003) ===
+      createSession: db.prepare(
+        `INSERT INTO as_sessions (id, parent_id, host) VALUES (?, ?, ?)`
+      ),
+      heartbeatSession: db.prepare(
+        `UPDATE as_sessions SET last_seen_at = datetime('now') WHERE id = ?`
+      ),
+      endSession: db.prepare(
+        `UPDATE as_sessions SET ended_at = datetime('now'), status = ? WHERE id = ?`
+      ),
+      attachRunToSession: db.prepare(
+        `UPDATE as_runs SET session_id = ?, repo_url = ?, base_branch = ? WHERE id = ?`
+      ),
+      listSessionRunsStmt: db.prepare(
+        `SELECT * FROM as_runs WHERE session_id = ? ORDER BY started_at DESC`
+      ),
+      claimWorktree: db.prepare(
+        `INSERT INTO as_worktree_state (task_id, branch_name, base_branch, claimed_by_session, claimed_at)
+         VALUES (?, ?, ?, ?, datetime('now'))`
+      ),
+      releaseWorktreeStmt: db.prepare(
+        `UPDATE as_worktree_state SET removed_at = datetime('now')
+         WHERE task_id = ? AND claimed_by_session = ? AND removed_at IS NULL`
+      ),
     };
 
     // Transactions cached for multi-statement operations
@@ -321,6 +346,91 @@ class AgentStateDAL {
    */
   removeWorktree(task_id) {
     const info = this._stmts.removeWorktree.run(task_id);
+    return { changes: info.changes };
+  }
+
+  // === Session tracking (migration 003) ===
+
+  /**
+   * Register a new session (Claude window or subagent dispatch).
+   * @param {{ id: string, parent_id?: string|null, host?: string|null }} opts
+   * @returns {{ id: string }}
+   */
+  createSession({ id, parent_id = null, host = null }) {
+    this._stmts.createSession.run(id, parent_id, host);
+    return { id };
+  }
+
+  /**
+   * Update last_seen_at for a session — call periodically while active.
+   * @param {string} session_id
+   */
+  heartbeatSession(session_id) {
+    this._stmts.heartbeatSession.run(session_id);
+    return { ts: new Date().toISOString() };
+  }
+
+  /**
+   * Close a session.
+   * @param {string} session_id
+   * @param {'completed'|'killed'|'orphaned'} [status='completed']
+   */
+  endSession(session_id, status = 'completed') {
+    const info = this._stmts.endSession.run(status, session_id);
+    return { changes: info.changes };
+  }
+
+  /**
+   * Find sessions whose last_seen_at is older than `staleMinutes`.
+   * @param {number} [staleMinutes=15]
+   * @returns {Array<object>}
+   */
+  listOrphanSessions(staleMinutes = 15) {
+    const stale = parseInt(staleMinutes, 10) || 15;
+    const sql = `SELECT * FROM as_sessions
+                 WHERE status = 'active'
+                   AND last_seen_at IS NOT NULL
+                   AND last_seen_at < datetime('now', '-${stale} minutes')`;
+    return this.db.prepare(sql).all();
+  }
+
+  /**
+   * Attach a run to a session for resume + cross-session indexing.
+   * @param {{ run_id: string, session_id: string, repo_url?: string|null, base_branch?: string|null }} opts
+   */
+  attachRunToSession({ run_id, session_id, repo_url = null, base_branch = null }) {
+    const info = this._stmts.attachRunToSession.run(session_id, repo_url, base_branch, run_id);
+    return { changes: info.changes };
+  }
+
+  /**
+   * List all runs owned by a session — primary read for `/dev-squad resume`.
+   * @param {string} session_id
+   * @returns {Array<object>}
+   */
+  listSessionRuns(session_id) {
+    return this._stmts.listSessionRunsStmt.all(session_id);
+  }
+
+  /**
+   * Atomically claim a worktree for a branch on behalf of a session.
+   * Throws on UNIQUE constraint violation — caller decides retry/escalate/release.
+   * @param {{ task_id: string, branch_name: string, base_branch: string, session_id: string }} opts
+   * @returns {{ task_id: string, claimed: true }}
+   * @throws {Error} If branch is already claimed by another active worktree.
+   */
+  claimWorktree({ task_id, branch_name, base_branch, session_id }) {
+    this._stmts.claimWorktree.run(task_id, branch_name, base_branch, session_id);
+    return { task_id, claimed: true };
+  }
+
+  /**
+   * Release a session's claim on a worktree.
+   * @param {string} task_id
+   * @param {string} session_id
+   */
+  releaseWorktree(task_id, session_id) {
+    const info = this._stmts.releaseWorktreeStmt.run(task_id, session_id);
     return { changes: info.changes };
   }
 }
