@@ -35,6 +35,10 @@ function initDb(dbPath) {
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   const db = new Database(dbPath);
 
+  db.pragma('journal_mode = WAL');
+  db.pragma('busy_timeout = 5000');
+  db.pragma('foreign_keys = ON');
+
   db.exec(`
     CREATE TABLE IF NOT EXISTS state (
       key TEXT PRIMARY KEY,
@@ -62,6 +66,9 @@ function initDb(dbPath) {
       changed_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+
+  const { runMigrations } = require('./lib/migrations');
+  runMigrations(db, path.join(__dirname, 'migrations'));
 
   return db;
 }
