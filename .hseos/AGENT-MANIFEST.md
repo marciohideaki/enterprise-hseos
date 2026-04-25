@@ -152,6 +152,23 @@ SWARM (plans in Opus) → [GHOST-equivalent × N in parallel worktrees with Sonn
 - **Governance:** `worktree-manager.sh` + `validate-commit-msg.sh` + `check-branch.sh` mandatory; 1 task = 1 commit; 1 wave = 1 PR; human reviewer only for merge
 - **When to use:** heterogeneous batch of 3+ tasks with real parallelizable decomposition; complements ORBIT (sequential delivery) and BLITZ (solo compressed flow)
 
+## State Tracking & Observability
+
+The state-tracking subsystem (Sprint 1-2 of project plan, ADR `_decisions/2026-04-25-agent-state-tracking-proposal.md`) provides 4 surfaces that observe and persist agent execution:
+
+- **SQLite canonical** (`.hseos/state/project.db`) — per-project store with `as_*` tables; atomic claim, FTS5 search, orphan detection.
+- **CLI suite** — `hseos state-emit/list/describe/render/snapshot/purge/stale-sweep`, `hseos kanban [--watch]`, `hseos kanban-central register/start/...`.
+- **MCP server** (port 3100) — JSON-RPC tools (`runs_list`, `agent_runs_list`, `orphans_list`, `events_search`, `handoffs_list`, …) for cross-session queries.
+- **Web SSE side-cars** — per-project (`hseos state-ui start`, port 3200) and central multi-project (`hseos kanban-central start`, port 3210).
+
+SWARM (and other agents) emit structured events at 5 phase boundaries via `hseos state-emit` when `HSEOS_CURRENT_RUN_ID` is set — see `~/.claude/skills/dev-squad/SKILL.md` "State emission contract" section. Failure of emission never blocks execution (best-effort).
+
+**Canonicity policy (post-Wave 5):**
+- *Single-run scope:* markdown run-dir is canonical (resume + human review).
+- *Cross-run / cross-project scope:* SQLite is canonical (orphan detection, kanban, FTS5 queries).
+
+In-process scheduler (when MCP server runs) sweeps orphans every 5 minutes, marking running agent_runs whose `last_heartbeat_at` is older than `stale_minutes` (default 10). Manual sweep via `hseos state-stale-sweep`.
+
 ---
 
 **End of Manifest**

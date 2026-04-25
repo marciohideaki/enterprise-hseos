@@ -631,3 +631,28 @@ metadata:
 | `gitops-deploy` | `required_modes: [admin]` |
 | `gitops-add-service` | `required_modes: [admin]` |
 | `gitops-new-project` | `required_modes: [admin]` |
+
+## Observability Tooling (Sprint 1-2 — state-tracking subsystem)
+
+These commands are sanctioned tooling produced by Waves 1-8 + W4-W6 of the agent state-tracking proposal (`_decisions/2026-04-25-agent-state-tracking-proposal.md`). They are not skills proper but operational tooling SWARM and other agents may invoke without explicit user approval per call.
+
+| Command | Purpose | When to use |
+|---|---|---|
+| `hseos state-emit <kind>` | Emit structured event | At phase boundaries during dev-squad runs |
+| `hseos state-list [--orphans]` | Tabulate runs / agent_runs | Status checks; orphan diagnosis |
+| `hseos state-describe <id>` | Detail single run or agent_run | Investigation |
+| `hseos state-render <run-id>` | Regenerate markdown from SQLite | Resume after kill |
+| `hseos state-snapshot` | Backup `.db` to snapshots/ | Before purge or migration |
+| `hseos state-purge <run-id>` | Archive + atomic delete | End-of-life for old runs |
+| `hseos state-stale-sweep` | Mark running runs with stale heartbeat as orphaned | Manual cleanup |
+| `hseos state-ui start` | Per-project Web SSE kanban (port 3200) | Live observability of one project |
+| `hseos kanban [--watch]` | CLI ASCII kanban | Terminal-first view |
+| `hseos kanban-central register/start` | Multi-project central kanban (port 3210) | Portfolio view |
+
+**MCP tools** (port 3100): `runs_list`, `run_describe`, `run_create`, `agent_runs_list`, `orphans_list`, `event_emit`, `events_search` (FTS5), `handoffs_list`, `handoff_get`.
+
+**Canonicity:**
+- *Single-run scope:* markdown run-dir is canonical (resume + human review).
+- *Cross-run / cross-project scope:* SQLite is canonical (orphan detection, kanban, FTS5 queries).
+
+Skill `dev-squad` emits at 5 phase boundaries when `HSEOS_CURRENT_RUN_ID` is set — see `~/.claude/skills/dev-squad/SKILL.md` "State emission contract".
