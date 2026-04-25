@@ -292,6 +292,17 @@ version: "1.4"
 
 ---
 
+### dev-squad
+**Description:** Especialização Parallel-Fan-Out + Map-Reduce para lotes heterogêneos de desenvolvimento sob SWARM. Commander (Opus) planeja e extrai handoffs; Squad (Sonnet/Haiku em worktrees isolados) executa em paralelo. Matriz de model-tiering para custo mínimo. 1 task = 1 commit; 1 wave = 1 PR. Canonical protocol em `~/.claude/skills/dev-squad/SKILL.md`.
+**Load when:** SWARM ativando; lote de 3+ tasks heterogêneas; necessidade de paralelismo com isolation de worktree; modo detached (`/clear` + resume) para preservar contexto do Commander.
+**Triggers:** `SWARM`, `dev-squad`, `batch paralelo`, `worktree isolation`, `fan-out de dev`, `Opus plan Sonnet execute`, `heterogeneous batch`, `parallel waves`, `commander handoff`, `model-tiering`, `detached mode`, `/dev-squad`
+**Tier 1:** `.enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/dev-squad/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+**Critical:** Gate G2 (plan approval) é obrigatório antes de qualquer wave. `worktree-manager.sh` é mandatório — nunca `git worktree add` direto. Commander extrai handoffs; subagents nunca os escrevem. Opus como executor exige opt-in explícito em PLAN.md. Humano é o único que faz merge de PRs.
+
+---
+
 ### mcp-governance
 **Description:** Governa o uso de MCP servers — hierarquia de seleção de tools (MCP first), orçamento de chamadas, rate limits, caching de sessão e política de escalação. Aplica-se a todos os agentes que usam ferramentas externas.
 **Load when:** iniciando qualquer workflow com múltiplas chamadas MCP; decidindo qual tool usar (MCP vs CLI vs curl); atingindo rate limits; executando operações write em lote.
@@ -499,6 +510,50 @@ version: "1.4"
 **Tier 1:** `.enterprise/governance/agent-skills/verification-before-completion/SKILL-QUICK.md`
 **Tier 2:** `.enterprise/governance/agent-skills/verification-before-completion/SKILL.md`
 **Cost:** Tier 1 = low | Tier 2 = low
+
+---
+
+### doc-project
+**Description:** Gera ou atualiza documentação rica e profissional para projetos — README bilíngue EN+PT-BR (400–600 linhas), docs estruturados (getting-started, architecture, faq, troubleshooting), placeholders de imagem com dimensões corretas, CHANGELOG, CONTRIBUTING, SECURITY e templates GitHub.
+**Load when:** usuário invoca `/doc-project`, pede para documentar, atualizar, melhorar ou revisar a documentação de um projeto.
+**Triggers:** `doc-project`, `documentar projeto`, `atualizar documentação`, `atualizar docs`, `atualizar readme`, `melhorar documentação`, `revisar documentação`, `generate docs`, `update docs`, `update readme`, `improve docs`, `rich readme`, `readme completo`, `criar documentação`, `project documentation`, `gerar readme`
+**Tier 1:** `.enterprise/governance/agent-skills/doc-project/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/doc-project/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = high
+**Critical:** Criar todos os PNGs placeholder com ImageMagick ANTES de referenciar no README. Ler README existente antes de qualquer sobrescrita. Gerar docs/pt-br/ espelhando docs/en/ (bilinguismo obrigatório).
+
+---
+
+### repo-radar
+**Description:** Analisa e classifica um repositório GitHub via repo-radar CLI (SQLite + LLM), calculando scores heurísticos e veredito LLM, registrando o resultado em PROJECT_EVALUATIONS.md.
+**Load when:** usuário pede para avaliar/analisar/classificar um repositório GitHub, verificar se vale usar um projeto open-source, ou executar repo-radar.
+**Triggers:** `repo-radar`, `avaliar repositório`, `analisar repo`, `classificar repo`, `evaluate repo`, `score repo`, `vale usar`, `análise de projeto`
+**Tier 1:** `.enterprise/governance/agent-skills/repo-radar/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/repo-radar/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+**Critical:** SQLite é a fonte primária — PROJECT_EVALUATIONS.md é relatório derivado. Nunca duplicar entrada existente — sempre atualizar. Citar arquivos reais do clone na seção Evidence.
+
+---
+
+### tech-research
+**Description:** Pesquisa e avalia uma tecnologia, ferramenta ou approach técnico com análise de maturidade, DX, comunidade, fit com stack atual, comparação de alternativas e recomendação fundamentada.
+**Load when:** usuário pede para pesquisar/avaliar/comparar tecnologia ou ferramenta, spike técnico, decisão de adoção, ou invoca /tech-research.
+**Triggers:** `tech-research`, `pesquisar tecnologia`, `evaluate technology`, `avaliar ferramenta`, `comparar abordagem`, `spike técnico`, `should we use`, `vale a pena`, `alternativa para`, `substituir`
+**Tier 1:** `.enterprise/governance/agent-skills/tech-research/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/tech-research/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+**Critical:** Dados antes de hype. Avaliar custo de migração sempre antes de recomendar adoção. "Funciona" é uma recomendação válida para a solução atual.
+
+---
+
+### rfc
+**Description:** Gera RFC (Request for Comments) ou design doc para decisões técnicas — estrutura problema, proposta, mínimo 2 alternativas, trade-offs, impacto (esforço/risco/reversibilidade) e métricas de sucesso.
+**Load when:** usuário pede RFC, design doc, quer documentar decisão técnica, proposta de arquitetura, ou invoca /rfc.
+**Triggers:** `rfc`, `RFC`, `design doc`, `decisão técnica`, `technical decision`, `architecture proposal`, `proposta de arquitetura`, `como devemos implementar`, `qual melhor abordagem`
+**Tier 1:** `.enterprise/governance/agent-skills/rfc/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/rfc/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+**Critical:** Sempre mínimo 2 alternativas. Nunca minimizar trade-offs. Sinalizar explicitamente se contradiz ADR existente. Tom técnico — RFC não é pitch.
 
 ---
 

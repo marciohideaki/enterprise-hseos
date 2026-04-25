@@ -401,3 +401,97 @@ workflows:
           - "e2e"
           - "tests/e2e"
         prepare: "Provide runtime validation assets such as smoke endpoints or browser regression tests."
+
+  - id: dev-squad
+    name: Dev Squad (Parallel Batch)
+    owner: SWARM
+    entrypoint: ".hseos/workflows/dev-squad/workflow.md"
+    description: "Plan a heterogeneous batch in Opus and execute it as parallel Sonnet/Haiku subagents isolated in worktrees. 1 task = 1 commit; 1 wave = 1 PR. Commander-extracted handoffs between waves."
+    profiles: [core, full]
+    depends_on:
+      - workflow: delivery-readiness
+        profiles: [core, full]
+    state:
+      runs_dir: ".hseos/runs/dev-squad"
+    phases:
+      - id: intake
+        name: Intake
+        agent: SWARM
+        outputs:
+          - "INTAKE.md with brief, decisions, and Opus-as-executor opt-in declaration"
+      - id: study
+        name: Study (optional)
+        agent: SWARM
+        outputs:
+          - "STUDY.md with codebase findings if Study phase was required"
+      - id: plan
+        name: Plan and Approve
+        agent: SWARM
+        outputs:
+          - "PLAN.md with atomic tasks, wave graph, model matrix"
+          - "Gate G2 approval recorded"
+          - "RESUME-PROMPT.md written for detached-mode execution"
+      - id: execute
+        name: Execute Waves
+        agent: SWARM
+        outputs:
+          - "handoffs/T{a}-to-T{c}.md extracted by Commander per dependency"
+          - "1 commit per task via worktree-manager.sh commit"
+          - "WAVE-{k}-REPORT.md per wave"
+          - "STATUS.md updated between waves"
+      - id: consolidate
+        name: Consolidate and PR Draft
+        agent: SWARM
+        outputs:
+          - "Draft PR body using .github/pull_request_template.md"
+          - "Human-initiated gh pr create; human reviewer merges"
+    checks:
+      - id: repo-git
+        kind: git_repo
+        required: true
+        profiles: [core, full]
+        prepare: "Initialize git and ensure the target repository is the execution root."
+      - id: hseos-config
+        kind: any_path_exists
+        required: true
+        profiles: [core, full]
+        paths:
+          - ".hseos/config/hseos.config.yaml"
+          - "CLAUDE.md"
+        prepare: "Install or scaffold HSEOS governance in the target repository."
+      - id: worktree-manager
+        kind: path_exists
+        required: true
+        profiles: [core, full]
+        path: "scripts/governance/worktree-manager.sh"
+        prepare: "Ensure HSEOS governance scripts are present. dev-squad requires worktree-manager.sh for task isolation."
+      - id: commit-validator
+        kind: path_exists
+        required: true
+        profiles: [core, full]
+        path: "scripts/governance/validate-commit-msg.sh"
+        prepare: "Ensure validate-commit-msg.sh exists; dev-squad validates every generated commit message."
+      - id: branch-validator
+        kind: path_exists
+        required: true
+        profiles: [core, full]
+        path: "scripts/governance/check-branch.sh"
+        prepare: "Ensure check-branch.sh exists; dev-squad validates base branch follows feature/* before creating worktrees."
+      - id: dev-squad-skill
+        kind: path_exists
+        required: true
+        profiles: [core, full]
+        path: ".enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md"
+        prepare: "Install the dev-squad skill under .enterprise/governance/agent-skills/dev-squad/."
+      - id: git-cli
+        kind: command_exists
+        required: true
+        profiles: [core, full]
+        command: "git"
+        prepare: "Install git and make it available in PATH."
+      - id: gh-cli
+        kind: command_exists
+        required: false
+        profiles: [core, full]
+        command: "gh"
+        prepare: "Install GitHub CLI to draft and open the wave PR."
