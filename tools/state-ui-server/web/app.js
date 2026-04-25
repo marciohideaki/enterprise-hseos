@@ -1,11 +1,11 @@
-/* eslint-env browser */
+/* global document, requestAnimationFrame, EventSource */
 /* HSEOS Kanban — vanilla JS, SSE-driven. */
 
 (function () {
-  const conn = document.getElementById('conn');
-  const metaText = document.getElementById('meta-text');
-  const lastUpdate = document.getElementById('last-update');
-  const dbMeta = document.getElementById('db-meta');
+  const conn = document.querySelector('#conn');
+  const metaText = document.querySelector('#meta-text');
+  const lastUpdate = document.querySelector('#last-update');
+  const dbMeta = document.querySelector('#db-meta');
   const colCards = {
     pending: document.querySelector('[data-col="pending"] .cards'),
     running: document.querySelector('[data-col="running"] .cards'),
@@ -116,7 +116,7 @@
 
     for (const k of Object.keys(buckets)) {
       const frag = document.createDocumentFragment();
-      for (const item of buckets[k]) frag.appendChild(makeCard(k, item));
+      for (const item of buckets[k]) frag.append(makeCard(k, item));
       colCards[k].replaceChildren(frag);
       colCounts[k].textContent = state.counts?.[k] ?? buckets[k].length;
     }
@@ -134,6 +134,7 @@
     });
   }
 
+  // eslint-disable-next-line n/no-unsupported-features/node-builtins -- runs in the browser
   const es = new EventSource('/events');
   es.addEventListener('open', () => setConn('connected'));
   es.addEventListener('error', () => setConn('stale'));

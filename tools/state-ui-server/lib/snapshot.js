@@ -107,10 +107,28 @@ function takeSnapshot(db, opts = {}) {
 
   const counts = { pending: 0, running: 0, completed: 0, aborted: 0, orphaned: 0 };
   for (const ar of agentRuns) {
-    if (orphanSet.has(ar.id)) counts.orphaned += 1;
-    else if (ar.status === 'running') counts.running += 1;
-    else if (ar.status === 'completed') counts.completed += 1;
-    else if (ar.status === 'aborted' || ar.status === 'killed') counts.aborted += 1;
+    if (orphanSet.has(ar.id)) {
+      counts.orphaned += 1;
+      continue;
+    }
+    switch (ar.status) {
+      case 'running': {
+        counts.running += 1;
+        break;
+      }
+      case 'completed': {
+        counts.completed += 1;
+        break;
+      }
+      case 'aborted':
+      case 'killed': {
+        counts.aborted += 1;
+        break;
+      }
+      default: {
+        break;
+      }
+    }
   }
   for (const t of tasks) {
     if (TASK_PENDING.has(t.status)) counts.pending += 1;

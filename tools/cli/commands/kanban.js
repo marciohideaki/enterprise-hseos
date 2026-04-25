@@ -70,8 +70,11 @@ const COLUMN_TITLES = [
   ['orphaned', 'Orphaned', pc.yellow],
 ];
 
+// eslint-disable-next-line no-control-regex
+const ANSI_RE = /\u001B\[[\d;]*m/g;
+
 function pad(s, w) {
-  const visible = String(s).replaceAll(/\u001B\[[\d;]*m/g, '');
+  const visible = String(s).replaceAll(ANSI_RE, '');
   if (visible.length >= w) return s;
   return s + ' '.repeat(w - visible.length);
 }
@@ -97,13 +100,17 @@ function renderBoard(snapshot) {
     const lines = [];
     if (entry.kind === 'task') {
       const t = entry.item;
-      lines.push(pc.bold(truncate(`${t.id} ${t.model_tier || '-'}`, COLUMN_WIDTH - 2)));
-      lines.push(pc.dim(truncate(`wave=${t.wave} ${t.run_id}`, COLUMN_WIDTH - 2)));
+      lines.push(
+        pc.bold(truncate(`${t.id} ${t.model_tier || '-'}`, COLUMN_WIDTH - 2)),
+        pc.dim(truncate(`wave=${t.wave} ${t.run_id}`, COLUMN_WIDTH - 2))
+      );
     } else {
       const a = entry.item;
       const age = ageSeconds(a.last_heartbeat_at);
-      lines.push(pc.bold(truncate(`#${a.id} ${a.agent_name}`, COLUMN_WIDTH - 2)));
-      lines.push(pc.dim(truncate(`${a.task_id || '-'} ${a.run_id}`, COLUMN_WIDTH - 2)) + ' ' + colorAge(age));
+      lines.push(
+        pc.bold(truncate(`#${a.id} ${a.agent_name}`, COLUMN_WIDTH - 2)),
+        pc.dim(truncate(`${a.task_id || '-'} ${a.run_id}`, COLUMN_WIDTH - 2)) + ' ' + colorAge(age)
+      );
     }
     return lines;
   };
@@ -116,29 +123,32 @@ function renderBoard(snapshot) {
   const maxLines = Math.max(0, ...cardsPerCol.map((c) => c.length));
   const out = [];
 
-  out.push(
-    COLUMN_TITLES.map(([k, title, color]) => {
-      const count = snapshot.counts?.[k] ?? buckets[k].length;
-      const head = `╭─ ${title} (${count}) `;
-      return color(pad(head, COLUMN_WIDTH) + '╮');
-    }).join(' ')
-  );
+  const head = COLUMN_TITLES.map((entry) => {
+    const k = entry[0];
+    const title = entry[1];
+    const color = entry[2];
+    const count = snapshot.counts?.[k] ?? buckets[k].length;
+    const headLine = `╭─ ${title} (${count}) `;
+    return color(pad(headLine, COLUMN_WIDTH) + '╮');
+  }).join(' ');
+  out.push(head);
 
   for (let i = 0; i < maxLines; i++) {
-    out.push(
-      cardsPerCol
-        .map((cards, idx) => {
-          const [, , color] = COLUMN_TITLES[idx];
-          const line = cards[i] || '';
-          return color('│ ') + pad(line, COLUMN_WIDTH - 2) + color('│');
-        })
-        .join(' ')
-    );
+    const row = cardsPerCol
+      .map((cards, idx) => {
+        const color = COLUMN_TITLES[idx][2];
+        const line = cards[i] || '';
+        return color('│ ') + pad(line, COLUMN_WIDTH - 2) + color('│');
+      })
+      .join(' ');
+    out.push(row);
   }
 
-  out.push(
-    COLUMN_TITLES.map(([, , color]) => color('╰' + '─'.repeat(COLUMN_WIDTH - 1) + '╯')).join(' ')
-  );
+  const foot = COLUMN_TITLES.map((entry) => {
+    const color = entry[2];
+    return color('╰' + '─'.repeat(COLUMN_WIDTH - 1) + '╯');
+  }).join(' ');
+  out.push(foot);
 
   return out.join('\n');
 }
