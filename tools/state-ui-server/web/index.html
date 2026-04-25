@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HSEOS Kanban</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">⬢</span>
+        <h1>HSEOS Agent Kanban</h1>
+      </div>
+      <div class="meta">
+        <span id="conn" class="dot dot-disconnected" title="Connection status"></span>
+        <span id="meta-text">connecting…</span>
+      </div>
+    </header>
+
+    <main id="board" class="board">
+      <section class="col" data-col="pending"><header><h2>Pending</h2><span class="count" data-count="pending">0</span></header><div class="cards"></div></section>
+      <section class="col" data-col="running"><header><h2>Running</h2><span class="count" data-count="running">0</span></header><div class="cards"></div></section>
+      <section class="col" data-col="completed"><header><h2>Completed</h2><span class="count" data-count="completed">0</span></header><div class="cards"></div></section>
+      <section class="col" data-col="aborted"><header><h2>Aborted</h2><span class="count" data-count="aborted">0</span></header><div class="cards"></div></section>
+      <section class="col" data-col="orphaned"><header><h2>Orphaned</h2><span class="count" data-count="orphaned">0</span></header><div class="cards"></div></section>
+    </main>
+
+    <footer class="footbar">
+      <span id="last-update">never</span>
+      <span class="sep">·</span>
+      <span id="db-meta">—</span>
+    </footer>
+
+    <script src="/assets/app.js"></script>
+  </body>
+</html>

@@ -35,7 +35,7 @@
     "test": "npm run test:schemas && npm run test:install && npm run test:state && npm run validate:schemas && npm run lint",
     "test:install": "node test/test-installation-components.js",
     "test:schemas": "node test/test-agent-schema.js",
-    "test:state": "node test/test-agent-state-dal.js && node test/test-state-cli.js && node test/test-state-render-lib.js",
+    "test:state": "node test/test-agent-state-dal.js && node test/test-state-cli.js && node test/test-state-render-lib.js && node test/test-state-ui.js && node test/test-kanban-cli.js",
     "validate:schemas": "node tools/validate-agent-schema.js"
   },
   "lint-staged": {
