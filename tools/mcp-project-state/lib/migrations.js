@@ -65,14 +65,14 @@ function runMigrations(db, migrationsDir, options = {}) {
       db.exec('COMMIT');
       applied.push(m.name);
       log('info', `applied ${m.name} (user_version → ${m.version})`);
-    } catch (err) {
+    } catch (error) {
       try {
         db.exec('ROLLBACK');
       } catch {
         /* ignore */
       }
-      log('error', `failed ${m.name}: ${err.message}`);
-      throw err;
+      log('error', `failed ${m.name}: ${error.message}`);
+      throw error;
     }
   }
 

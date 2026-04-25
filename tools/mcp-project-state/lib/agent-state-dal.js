@@ -174,12 +174,10 @@ class AgentStateDAL {
    * @returns {{ changes: number }}
    */
   updateRunPhase(run_id, phase, gate_status = null) {
-    let info;
-    if (gate_status !== null) {
-      info = this._stmts.updateRunPhaseAndGate.run(phase, gate_status, run_id);
-    } else {
-      info = this._stmts.updateRunPhase.run(phase, run_id);
-    }
+    const info =
+      gate_status === null
+        ? this._stmts.updateRunPhase.run(phase, run_id)
+        : this._stmts.updateRunPhaseAndGate.run(phase, gate_status, run_id);
     return { changes: info.changes };
   }
 
@@ -221,7 +219,7 @@ class AgentStateDAL {
    * @returns {{ id: number, ts: string }}
    */
   emitEvent({ agent_run_id, kind, payload = null }) {
-    const payload_json = payload !== null ? JSON.stringify(payload) : null;
+    const payload_json = payload === null ? null : JSON.stringify(payload);
     this._stmts.insertEvent.run(agent_run_id, kind, payload_json);
     const { rowid } = this.db.prepare(`SELECT last_insert_rowid() AS rowid`).get();
     const { ts } = this.db.prepare(`SELECT datetime('now') AS ts`).get();
