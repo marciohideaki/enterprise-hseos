@@ -84,3 +84,40 @@ Bypass of any gate is a governance violation — halt and escalate.
 - Subagent BLOCKED after 1 retry → Gate G3 to human
 - Two tasks touching the same file → decomposition error → return to Gate G2
 - `validate-commit-msg.sh` or `check-branch.sh` fails → stop, never bypass
+
+## Observability — state-emit dual-write (Sprint 1)
+
+While Sprint 1 of the agent-state-tracking subsystem is in effect, dev-squad emits structured events to a SQLite projection alongside the canonical markdown run-dir.
+
+**Canonicity (Sprint 1):** markdown run-dir (`PLAN.md`, `STATUS.md`, `RESUME-PROMPT.md`, `WAVE-{n}-REPORT.md`, `handoffs/*.md`) remains source of truth. SQLite is **projection only** — derived data, safe to rebuild. Sprint 2 Wave 5 inverts canonicity (SQLite primary, markdown rendered on demand).
+
+**Emission mechanism:**
+- `.claude/hooks.json` invokes `scripts/governance/state-emit-hook.sh` on `SessionStart`, `PostToolUse`, and `Stop`. The shim is non-blocking (timeout 5s, exit 0 on any error).
+- The shim calls `hseos state-emit <kind>` only when `HSEOS_CURRENT_RUN_ID` is set. Skips silently otherwise — no crashes outside tracked runs.
+
+**Per-phase emission contract:**
+| Phase | Event kind(s) | Payload hints |
+|---|---|---|
+| Intake | `start` | `{phase: 'intake'}` on first SWARM action |
+| Plan | `gate` with `gate=G2` | when human approves |
+| Execute (per task dispatch) | `start` then `heartbeat` periodically | `{task_id, model_tier}` |
+| Execute (per subagent return) | `complete` or `abort` | `{exit_reason, tokens_in/out, cost_usd}` if known |
+| Consolidate | `gate` with `gate=G4`, then `complete` for run | — |
+
+**Heartbeat cadence:** opportunistic — emitted whenever the shim fires (i.e., on every Claude Code tool use). For long-running subagents that don't call tools often, emit at G2 plan-confirm and at start of each task. Stale threshold default: 10 minutes.
+
+**Manual invocation (for skills not yet integrated):**
+```bash
+HSEOS_CURRENT_RUN_ID=20260425-2010-state-w3 \
+HSEOS_CURRENT_TASK=T3.4 \
+HSEOS_CURRENT_AGENT=SWARM \
+hseos state-emit start --silent
+```
+
+**Inspection:**
+- `hseos state-list` — all runs.
+- `hseos state-list --orphans` — running agent-runs whose heartbeat is older than `--stale-minutes` (default 10).
+- `hseos state-describe <run-id>` — counts + last 10 events.
+- `hseos state-render <run-id> --output <dir>` — read-only markdown projection.
+
+**Non-goals (Sprint 1):** state-emit failures NEVER block dev-squad execution; the canonical markdown path is unaffected by SQLite errors. If `better-sqlite3` is missing or DB is corrupt, the shim fails open and the workflow proceeds as if observability were disabled.
