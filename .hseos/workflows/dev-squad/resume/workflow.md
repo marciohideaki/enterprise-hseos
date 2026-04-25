@@ -11,10 +11,15 @@ SWARM
 
 ## Phase Model
 
-1. Locate run directory
-   - Check `.hseos/runs/dev-squad/{run-id}/` (HSEOS repo)
-   - Fallback: `.dev-squad/runs/{run-id}/` (non-HSEOS)
-   - If absent → stop and report
+1. Locate run directory (with SQLite-first projection)
+   - **SQLite-first** (Wave 5b): if `.hseos/state/project.db` exists and contains `as_runs` row for `<run-id>`,
+     run `hseos state-render <run-id> --output /tmp/resume-<run-id>` to regenerate `PLAN.md/STATUS.md/RESUME-PROMPT.md`
+     from canonical SQLite. Use this regenerated dir as primary.
+   - **Markdown fallback**: if SQLite missing or run absent there, read `.hseos/runs/dev-squad/{run-id}/` (HSEOS repo).
+   - **Non-HSEOS fallback**: `.dev-squad/runs/{run-id}/`.
+   - If all three absent → stop and report.
+
+   Rationale: SQLite as queryable canonical for cross-run aggregations; markdown remains valid backstop for single-run resume. Either source works in isolation — graceful degrade.
 
 2. Load minimal state
    Read ONLY:
