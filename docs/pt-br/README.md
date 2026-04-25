@@ -10,7 +10,7 @@
 |---|---|
 | [Primeiros Passos](primeiros-passos.md) | Guia do primeiro dia — instalação, configuração e primeiro agente |
 | [Catálogo de Skills](skills.md) | O que cada skill aplica, quando e por quê |
-| [Workflows](workflows.md) | Os 5 workflows de entrega e como participar |
+| [Workflows](workflows.md) | Os 6 workflows de entrega e como participar |
 
 ---
 
