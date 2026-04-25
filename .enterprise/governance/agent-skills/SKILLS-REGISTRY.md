@@ -292,6 +292,17 @@ version: "1.4"
 
 ---
 
+### dev-squad
+**Description:** Especialização Parallel-Fan-Out + Map-Reduce para lotes heterogêneos de desenvolvimento sob SWARM. Commander (Opus) planeja e extrai handoffs; Squad (Sonnet/Haiku em worktrees isolados) executa em paralelo. Matriz de model-tiering para custo mínimo. 1 task = 1 commit; 1 wave = 1 PR. Canonical protocol em `~/.claude/skills/dev-squad/SKILL.md`.
+**Load when:** SWARM ativando; lote de 3+ tasks heterogêneas; necessidade de paralelismo com isolation de worktree; modo detached (`/clear` + resume) para preservar contexto do Commander.
+**Triggers:** `SWARM`, `dev-squad`, `batch paralelo`, `worktree isolation`, `fan-out de dev`, `Opus plan Sonnet execute`, `heterogeneous batch`, `parallel waves`, `commander handoff`, `model-tiering`, `detached mode`, `/dev-squad`
+**Tier 1:** `.enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/dev-squad/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+**Critical:** Gate G2 (plan approval) é obrigatório antes de qualquer wave. `worktree-manager.sh` é mandatório — nunca `git worktree add` direto. Commander extrai handoffs; subagents nunca os escrevem. Opus como executor exige opt-in explícito em PLAN.md. Humano é o único que faz merge de PRs.
+
+---
+
 ### mcp-governance
 **Description:** Governa o uso de MCP servers — hierarquia de seleção de tools (MCP first), orçamento de chamadas, rate limits, caching de sessão e política de escalação. Aplica-se a todos os agentes que usam ferramentas externas.
 **Load when:** iniciando qualquer workflow com múltiplas chamadas MCP; decidindo qual tool usar (MCP vs CLI vs curl); atingindo rate limits; executando operações write em lote.
@@ -499,6 +510,17 @@ version: "1.4"
 **Tier 1:** `.enterprise/governance/agent-skills/verification-before-completion/SKILL-QUICK.md`
 **Tier 2:** `.enterprise/governance/agent-skills/verification-before-completion/SKILL.md`
 **Cost:** Tier 1 = low | Tier 2 = low
+
+---
+
+### doc-project
+**Description:** Gera documentação rica e profissional para projetos — README bilíngue EN+PT-BR (400–600 linhas), docs estruturados (getting-started, architecture, faq, troubleshooting), placeholders de imagem com dimensões corretas via ImageMagick, CHANGELOG, CONTRIBUTING, SECURITY e templates GitHub.
+**Load when:** usuário invoca `/doc-project`, pede para documentar um projeto, gerar README completo, criar docs profissionais.
+**Triggers:** `doc-project`, `documentar projeto`, `generate docs`, `rich readme`, `readme completo`, `criar documentação`, `project documentation`, `gerar readme`
+**Tier 1:** `.enterprise/governance/agent-skills/doc-project/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/doc-project/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = high
+**Critical:** Criar todos os PNGs placeholder com ImageMagick ANTES de referenciar no README. Ler README existente antes de qualquer sobrescrita. Gerar docs/pt-br/ espelhando docs/en/ (bilinguismo obrigatório).
 
 ---
 
