@@ -68,9 +68,14 @@
     return null;
   }
 
-  function makeCard(kind, item) {
+  function makeCard(kind, item, projectsMeta) {
     const el = document.createElement('div');
     el.className = `card card-${kind}`;
+    const meta = projectsMeta && item.project_id ? projectsMeta.find((p) => p.id === item.project_id) : null;
+    if (meta?.color) el.style.borderLeftColor = meta.color;
+    const projectBadge = meta
+      ? `<span class="card-project" style="color:${meta.color}">${escapeHtml(meta.label || meta.id)}</span>`
+      : '';
     if (kind === 'pending' || kind === 'aborted') {
       // task card
       el.innerHTML = `
@@ -78,7 +83,7 @@
           <span class="card-id">${escapeHtml(item.id)}</span>
           <span class="card-tier">${escapeHtml(item.model_tier || '-')}</span>
         </div>
-        <div class="card-meta">wave=${item.wave ?? '?'} · ${escapeHtml(item.run_id)}</div>
+        <div class="card-meta">${projectBadge}wave=${item.wave ?? '?'} · ${escapeHtml(item.run_id)}</div>
         ${item.goal ? `<div class="card-goal">${escapeHtml(item.goal)}</div>` : ''}
       `;
       return el;
@@ -91,7 +96,7 @@
         <span class="card-id">#${item.id} ${escapeHtml(item.agent_name)}</span>
         <span class="card-hb ${ageClass}">${age == null ? '—' : '♥ ' + fmtAge(age)}</span>
       </div>
-      <div class="card-meta">${escapeHtml(item.task_id || '-')} · ${escapeHtml(item.run_id)}</div>
+      <div class="card-meta">${projectBadge}${escapeHtml(item.task_id || '-')} · ${escapeHtml(item.run_id)}</div>
       ${item.exit_reason ? `<div class="card-goal">${escapeHtml(item.exit_reason)}</div>` : ''}
     `;
     return el;
@@ -101,8 +106,28 @@
     return String(s ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
   }
 
-  function render(state) {
-    const orphanSet = new Set(state.orphans || []);
+  // localStorage-persisted project filter
+  const STORAGE_KEY_PROJECT = 'hseos_kanban_filter_project';
+  const persistedProject = (typeof localStorage !== 'undefined' && localStorage.getItem(STORAGE_KEY_PROJECT)) || '';
+
+  function applyProjectFilter(state) {
+    const selectedProject = persistedProject;
+    if (!selectedProject) return state;
+    return {
+      ...state,
+      tasks: (state.tasks || []).filter((t) => !t.project_id || t.project_id === selectedProject),
+      agentRuns: (state.agentRuns || []).filter((a) => !a.project_id || a.project_id === selectedProject),
+      events: (state.events || []).filter((e) => !e.project_id || e.project_id === selectedProject),
+      orphans: (state.orphans || []).map((o) => (typeof o === 'object' ? o.agent_run_id : o)),
+    };
+  }
+
+  function render(rawState) {
+    const state = applyProjectFilter(rawState);
+    const orphanSet = new Set(
+      (rawState.orphans || []).map((o) => (typeof o === 'object' ? o.agent_run_id : o))
+    );
+    const projectsMeta = rawState.projects_meta || null;
     const buckets = { pending: [], running: [], completed: [], aborted: [], orphaned: [] };
 
     for (const t of state.tasks || []) {
@@ -116,13 +141,53 @@
 
     for (const k of Object.keys(buckets)) {
       const frag = document.createDocumentFragment();
-      for (const item of buckets[k]) frag.append(makeCard(k, item));
+      for (const item of buckets[k]) frag.append(makeCard(k, item, projectsMeta));
       colCards[k].replaceChildren(frag);
       colCounts[k].textContent = state.counts?.[k] ?? buckets[k].length;
     }
 
     lastUpdate.textContent = new Date(state.ts).toLocaleTimeString();
-    dbMeta.textContent = `${state.runs?.length || 0} runs · ${state.events?.length || 0} events · stale>${state.stale_minutes}m`;
+    const projInfo = projectsMeta
+      ? ` · ${projectsMeta.length} project(s)`
+      : '';
+    dbMeta.textContent = `${state.runs?.length || 0} runs · ${state.events?.length || 0} events · stale>${state.stale_minutes}m${projInfo}`;
+
+    // Render project filter dropdown if multi-project mode
+    if (projectsMeta && projectsMeta.length > 0) {
+      ensureProjectFilterUI(projectsMeta);
+    }
+  }
+
+  function ensureProjectFilterUI(projectsMeta) {
+    let select = document.querySelector('#project-filter');
+    if (!select) {
+      const meta = document.querySelector('.meta');
+      if (!meta) return;
+      select = document.createElement('select');
+      select.id = 'project-filter';
+      select.style.cssText = 'background:#11161f;color:#c5d3e6;border:1px solid #1f2a38;border-radius:4px;padding:0.25rem 0.5rem;margin-right:0.5rem;font-family:ui-monospace,monospace;font-size:0.78rem;';
+      meta.prepend(select);
+      select.addEventListener('change', () => {
+        const v = select.value;
+        if (typeof localStorage !== 'undefined') {
+          if (v) localStorage.setItem(STORAGE_KEY_PROJECT, v);
+          else localStorage.removeItem(STORAGE_KEY_PROJECT);
+        }
+        // Force re-render with last state
+        if (lastState) render(lastState);
+      });
+    }
+    const current = select.value;
+    const desired = (typeof localStorage !== 'undefined' && localStorage.getItem(STORAGE_KEY_PROJECT)) || '';
+    const opts = ['<option value="">all projects</option>'];
+    for (const p of projectsMeta) {
+      const sel = p.id === desired ? ' selected' : '';
+      opts.push(`<option value="${escapeHtml(p.id)}"${sel}>${escapeHtml(p.label || p.id)}</option>`);
+    }
+    if (select.innerHTML !== opts.join('')) {
+      select.innerHTML = opts.join('');
+      if (current) select.value = current;
+    }
   }
 
   function scheduleRender(state) {
