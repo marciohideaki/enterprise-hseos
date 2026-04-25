@@ -114,6 +114,13 @@ version: "1.0"
 - **Authority:** `.enterprise/agents/sable/authority.md`
 - **Activate when:** rollout verification, pod health checks, runtime smoke tests, operational readiness after KUBE deployment
 
+### SWARM — Parallel Execution Commander
+- **Code:** SWARM
+- **Domain:** Parallel Orchestration
+- **Definition:** `.hseos/agents/swarm.agent.yaml`
+- **Authority:** `.enterprise/agents/swarm/authority.md`
+- **Activate when:** heterogeneous batch of tasks, parallelizable decomposition, token-cost optimization via model tiering (Opus plan → Sonnet/Haiku execute), independent fixes across one or more repos, need for worktree-isolated parallel execution under a single Commander
+
 ---
 
 ## Standard Flow
@@ -133,6 +140,17 @@ BLITZ (end-to-end)
 ```
 ORBIT → NYX → VECTOR → PRISM → CIPHER → RAZOR → GHOST → GLITCH → FORGE → KUBE → SABLE → QUILL
 ```
+
+## Parallel Batch Flow
+
+```
+SWARM (plans in Opus) → [GHOST-equivalent × N in parallel worktrees with Sonnets/Haikus] → SWARM (debrief)
+```
+
+- **Commander:** SWARM (Opus 4.7 — planning, dispatch, handoff extraction, consolidation)
+- **Workers:** N general-purpose subagents in isolated worktrees (`.worktrees/T{n}/`) on model tier per task (matrix in `dev-squad` skill)
+- **Governance:** `worktree-manager.sh` + `validate-commit-msg.sh` + `check-branch.sh` mandatory; 1 task = 1 commit; 1 wave = 1 PR; human reviewer only for merge
+- **When to use:** heterogeneous batch of 3+ tasks with real parallelizable decomposition; complements ORBIT (sequential delivery) and BLITZ (solo compressed flow)
 
 ---
 
