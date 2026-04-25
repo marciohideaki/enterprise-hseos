@@ -190,7 +190,11 @@ cmd_merge() {
 
   info "Merging task/${task_id} into ${feature_branch}"
   git -C "${REPO_ROOT}" checkout "${feature_branch}"
-  git -C "${REPO_ROOT}" merge --no-ff "${task_branch}" -m "merge(${feature_branch}): integrate task/${task_id}"
+  # Use `chore(merge):` — a valid Conventional Commit type — so husky's
+  # commit-msg hook (validate-commit-msg.sh) does not reject the merge.
+  # The previous `merge(...)` form was not in the allowed type list.
+  git -C "${REPO_ROOT}" merge --no-ff "${task_branch}" \
+    -m "chore(merge): integrate ${task_branch} into ${feature_branch}"
 
   log_run "MERGE task=${task_id} into=${feature_branch}"
   pass "Task ${task_id} merged into ${feature_branch}"
