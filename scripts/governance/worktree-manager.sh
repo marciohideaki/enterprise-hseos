@@ -90,7 +90,11 @@ cmd_create() {
     fatal "Feature branch not found: ${feature_branch}"
 
   info "Creating task branch: ${task_branch} from ${feature_branch}"
-  git -C "${REPO_ROOT}" checkout -b "${task_branch}" "${feature_branch}" 2>/dev/null || \
+  # Use `git branch` (not `checkout -b`) so the main worktree HEAD is not switched.
+  # Switching HEAD would cause `git worktree add` below to fail with
+  # "branch already used by worktree" because git only allows a branch to be
+  # checked out in a single worktree at a time.
+  git -C "${REPO_ROOT}" branch "${task_branch}" "${feature_branch}" 2>/dev/null || \
     fatal "Failed to create task branch ${task_branch}"
 
   info "Creating worktree: ${wt_path}"
@@ -120,8 +124,27 @@ cmd_validate() {
   local wt_path; wt_path="$(worktree_path "$task_id")"
   [[ -d "$wt_path" ]] || fatal "Worktree not found: ${wt_path}"
 
+  # Scope lint to files changed in this worktree vs its feature branch.
+  # Without this, quality-gates would lint the whole repo and surface
+  # pre-existing tech debt unrelated to the current task.
+  local lint_scope=""
+  local feature_branch=""
+  if [[ -f "${wt_path}/.worktree-meta" ]]; then
+    feature_branch=$(grep '^feature_branch=' "${wt_path}/.worktree-meta" | cut -d= -f2)
+  fi
+  if [[ -n "$feature_branch" ]] && \
+     git -C "${REPO_ROOT}" rev-parse --verify "$feature_branch" &>/dev/null; then
+    lint_scope=$(git -C "${wt_path}" diff --name-only --diff-filter=ACMR "$feature_branch" 2>/dev/null \
+      | grep -E '\.(js|cjs|mjs|yaml)$' \
+      | tr '\n' ' ')
+  fi
+
   info "Running quality gates for task: ${task_id}"
+  if [[ -n "$lint_scope" ]]; then
+    info "Lint scope (${task_id}): $(echo "$lint_scope" | tr ' ' '\n' | wc -l) file(s)"
+  fi
   VALIDATION_ENFORCED="${VALIDATION_ENFORCED}" \
+  LINT_SCOPE="$lint_scope" \
     bash "${SCRIPT_DIR}/quality-gates.sh" || \
     fatal "Validation FAILED for task ${task_id} — commit blocked"
 
@@ -186,7 +209,11 @@ cmd_merge() {
 
   info "Merging task/${task_id} into ${feature_branch}"
   git -C "${REPO_ROOT}" checkout "${feature_branch}"
-  git -C "${REPO_ROOT}" merge --no-ff "${task_branch}" -m "merge(${feature_branch}): integrate task/${task_id}"
+  # Use `chore(merge):` — a valid Conventional Commit type — so husky's
+  # commit-msg hook (validate-commit-msg.sh) does not reject the merge.
+  # The previous `merge(...)` form was not in the allowed type list.
+  git -C "${REPO_ROOT}" merge --no-ff "${task_branch}" \
+    -m "chore(merge): integrate ${task_branch} into ${feature_branch}"
 
   log_run "MERGE task=${task_id} into=${feature_branch}"
   pass "Task ${task_id} merged into ${feature_branch}"
