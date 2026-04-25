@@ -22,7 +22,7 @@ npx hseos install
 ```
 
 This sets up:
-- `.claude/commands/` — all 13 agent commands (activated as Claude Code slash commands)
+- `.claude/commands/` — all 14 agent commands (activated as Claude Code slash commands)
 - `.enterprise/` — governance specs, agent authority files, skill library
 - `.hseos/` — agent configurations, workflow definitions, local config
 - Git hooks — pre-commit quality gates (lint, schema validation, commit hygiene)
@@ -79,6 +79,7 @@ RAZOR (prepare story) → GHOST (implement) → GLITCH (validate) → QUILL (doc
 | **VECTOR** | PRD and epic authoring |
 | **CIPHER** | Architecture design, ADR drafting, boundary checks |
 | **ORBIT** | Kicking off an orchestrated epic delivery |
+| **SWARM** | Shipping a heterogeneous batch (3+ independent tasks) in parallel waves with worktree isolation |
 
 ### If you are a platform/DevOps engineer
 

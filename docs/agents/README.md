@@ -31,6 +31,11 @@
 | KUBE — Kubernetes Operator | [kube.md](kube.md) | GitOps manifest updates, ArgoCD deploys |
 | SABLE — Runtime Operator | [sable.md](sable.md) | Runtime verification, smoke tests, AI governance audits |
 
+### Parallel execution
+| Agent | File | When to reach for it |
+|---|---|---|
+| SWARM — Parallel Execution Commander | [swarm.md](swarm.md) | Heterogeneous batch (3+ independent tasks) executed as parallel waves under worktree isolation |
+
 ---
 
 ## Authority boundaries at a glance
@@ -50,6 +55,7 @@
 | FORGE: artifact publication, CI validation | Bypass gates, update manifests, deploy to runtime |
 | KUBE: manifest updates, GitOps PRs, ArgoCD | Build images, verify runtime, modify infra manifests |
 | SABLE: runtime verification, governance audits | Re-trigger deploys, update manifests, approve exceptions |
+| SWARM: heterogeneous batch decomposition, parallel dispatch under worktree isolation, handoff extraction | Open or merge PRs, push to protected branches, write its own handoffs from inside subagents, override agent authority, bypass G2 plan approval |
 
 ---
 
