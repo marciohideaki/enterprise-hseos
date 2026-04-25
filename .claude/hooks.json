@@ -32,6 +32,16 @@
             "description": "Auto-format Python (black) and JS/TS (prettier) after Edit"
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CLAUDE_HOOK_EVENT=PostToolUse bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/state-emit-hook.sh PostToolUse \"$CLAUDE_TOOL_NAME\" 2>/dev/null || true",
+            "description": "Emit agent-state tool_call event (best-effort, non-blocking)"
+          }
+        ]
       }
     ],
     "SessionStart": [
@@ -42,6 +52,23 @@
             "type": "command",
             "command": "echo '--- HSEOS SESSION START ---' && echo 'Constitution: .enterprise/.specs/constitution/Enterprise-Constitution.md' && echo 'Skills: .enterprise/governance/agent-skills/SKILLS-REGISTRY.md' && echo 'Agents: .hseos/AGENT-MANIFEST.md' && echo 'Branch:' $(git branch --show-current 2>/dev/null || echo 'unknown') && echo '--- READ CLAUDE.md BEFORE ANY ACTION ---'",
             "description": "Display HSEOS navigation reminder at session start"
+          },
+          {
+            "type": "command",
+            "command": "CLAUDE_HOOK_EVENT=SessionStart bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/state-emit-hook.sh SessionStart 2>/dev/null || true",
+            "description": "Emit agent-state start event (best-effort, non-blocking)"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CLAUDE_HOOK_EVENT=Stop bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/state-emit-hook.sh Stop 2>/dev/null || true",
+            "description": "Emit agent-state complete event when Claude session ends (best-effort, non-blocking)"
           }
         ]
       }
