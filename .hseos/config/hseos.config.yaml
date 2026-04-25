@@ -186,10 +186,14 @@ output:
   chat_not_authoritative: true
 
 # Project state management
-# Set during `hseos install`. Controls how agents persist STATE.md and TASKS.md.
-# Modes: mcp-sqlite | cli-sqlite | skill-only | hybrid
+# Set during `hseos install`. Controls how agents persist run/task state.
+# Modes:
+#   skill-only  — Skill writes markdown only (legacy; pre-state-tracking).
+#   mcp-sqlite  — MCP server is the only writer (advanced).
+#   cli-sqlite  — Skill calls hseos state-emit directly via CLI (no MCP needed).
+#   hybrid      — Skill writes markdown AND emits to SQLite (recommended; default after Wave 5a).
 state_management:
-  mode: skill-only
+  mode: hybrid
   db_path: .hseos/state/project.db
   mcp_port: 3100
 
