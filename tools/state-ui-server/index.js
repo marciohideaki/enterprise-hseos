@@ -70,6 +70,15 @@ function start({ port, host = '127.0.0.1', dbPath, pollMs, staleMinutes, registr
     db = new Database(dbPath, { readonly: false, fileMustExist: false });
     db.pragma('journal_mode = WAL');
     db.pragma('busy_timeout = 5000');
+    // Apply schema if absent (idempotent migrations). Otherwise takeSnapshot
+    // crashes querying as_runs on a fresh DB.
+    try {
+      const { runMigrations } = require('../mcp-project-state/lib/migrations');
+      const migrationsDir = path.join(__dirname, '..', 'mcp-project-state', 'migrations');
+      runMigrations(db, migrationsDir, { log: () => {} });
+    } catch (error) {
+      console.error('[state-ui] migration error:', error.message);
+    }
   }
 
   const sseClients = new Set();

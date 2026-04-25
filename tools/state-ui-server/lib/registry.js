@@ -71,8 +71,8 @@ function addProject(registry, { id, path: projectPath, label, color }) {
     label: label || finalId,
     color: color || defaultColor(registry.projects.length),
   };
-  if (existingIdx >= 0) registry.projects[existingIdx] = entry;
-  else registry.projects.push(entry);
+  if (existingIdx === -1) registry.projects.push(entry);
+  else registry.projects[existingIdx] = entry;
   return entry;
 }
 
@@ -87,7 +87,9 @@ function validate(registry) {
     const dbPath = projectDbPath(p.path);
     const pathExists = fs.existsSync(p.path);
     const dbExists = fs.existsSync(dbPath);
-    const status = !pathExists ? 'path-missing' : !dbExists ? 'db-missing' : 'ok';
+    let status = 'ok';
+    if (!pathExists) status = 'path-missing';
+    else if (!dbExists) status = 'db-missing';
     return { id: p.id, path: p.path, dbPath, status };
   });
 }

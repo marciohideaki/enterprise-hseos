@@ -113,7 +113,7 @@ function takeMultiSnapshot(registry, opts = {}) {
     agentRuns.push(...tag(s.agentRuns || [], project.id));
     events.push(...tag(s.events || [], project.id));
     for (const oid of s.orphans || []) orphans.push({ project_id: project.id, agent_run_id: oid });
-    counts_by_project[project.id] = { ...emptyCounts(), ...(s.counts || {}) };
+    counts_by_project[project.id] = s.counts ? { ...emptyCounts(), ...s.counts } : emptyCounts();
     for (const k of STATUSES) counts[k] += s.counts?.[k] || 0;
     for (const r of s.runs || []) if (r.base_branch) branches.add(r.base_branch);
     for (const t of s.tasks || []) if (t.branch) branches.add(t.branch);
