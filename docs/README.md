@@ -7,7 +7,7 @@
 
 ## What is HSEOS?
 
-HSEOS (Hideaki Software Engineering Operating System) is a governance framework for AI-assisted software delivery. It wraps a team of 13 specialized AI agents around your engineering workflow, each with a defined role, explicit authority boundaries, and skill-based decision rules.
+HSEOS (Hideaki Software Engineering Operating System) is a governance framework for AI-assisted software delivery. It wraps a team of 14 specialized AI agents around your engineering workflow, each with a defined role, explicit authority boundaries, and skill-based decision rules.
 
 The goal: AI agents multiply engineering capacity without degrading quality, security, or architectural discipline.
 
@@ -19,12 +19,12 @@ The goal: AI agents multiply engineering capacity without degrading quality, sec
 |---|---|
 | [getting-started.md](getting-started.md) | Day 1 setup — install CLI, configure project, first commands |
 | [agents/](agents/) | Every agent: what it does, when to activate it, what it cannot do |
-| [workflows.md](workflows.md) | The 5 delivery workflows — phases, human touchpoints, how to resume |
+| [workflows.md](workflows.md) | The 6 delivery workflows — phases, human touchpoints, how to resume |
 | [skills.md](skills.md) | Governance skills catalog — what gets enforced, when, and why |
 
 ---
 
-## The 13 Agents at a Glance
+## The 14 Agents at a Glance
 
 | Code | Title | Domain |
 |---|---|---|
@@ -41,6 +41,7 @@ The goal: AI agents multiply engineering capacity without degrading quality, sec
 | **FORGE** | Release Engineer | Artifact publication, CI/CD, build promotion |
 | **KUBE** | Kubernetes Delivery Operator | GitOps manifest updates, ArgoCD sync |
 | **SABLE** | Runtime Operator | Rollout verification, pod health, smoke tests |
+| **SWARM** | Parallel Execution Commander | Heterogeneous batch fan-out under worktree isolation |
 
 ---
 

@@ -1,6 +1,6 @@
 # Workflows
 
-> The 5 delivery workflows in HSEOS — what they do, how humans participate, and how to resume if interrupted.
+> The 6 delivery workflows in HSEOS — what they do, how humans participate, and how to resume if interrupted.
 
 ---
 
@@ -152,6 +152,56 @@ What FORGE does:
 - Blocks promotion if publication evidence is incomplete
 
 **Hard rule:** No release without evidence. FORGE will refuse to proceed if CI state is missing or the build has not passed.
+
+---
+
+## 6. Dev Squad — `DS`
+
+**Activated by:** SWARM (`/swarm` → `DS`)
+**Duration:** Single session (plan + execute) or detached (recommended for waves with > 4 tasks)
+**Use when:** A heterogeneous batch of 3+ independent tasks must ship together with token-cost and wall-clock optimization
+
+This is HSEOS's parallel-execution flow. SWARM plans the batch in a high-capability model (Opus), then dispatches lean Sonnet/Haiku subagents in parallel waves — each task isolated in its own git worktree. 1 task = 1 commit; 1 wave = 1 PR.
+
+### Phase sequence
+
+| Phase | Agent | What happens | Human action required? |
+|---|---|---|---|
+| 0 — Vault Context (optional) | SWARM | Reads `_memory/current-state.md` if second-brain enabled; skips silently if not | None |
+| 1 — Intake | SWARM | Brief in prose; one `AskUserQuestion` round only if material ambiguity | Answer up to 4 questions if asked |
+| 2 — Study (optional) | SWARM | Up to 3 parallel `Explore` subagents map the unknown areas | None |
+| 3 — Plan | SWARM | Atomic tasks, wave graph, model matrix, contracts, acceptance criteria | **Approve `PLAN.md` (Gate G2 — mandatory)** |
+| 4 — Execute | SWARM (waves of N parallel subagents) | Per wave: validate base, fan out under worktrees, validate, commit, merge, remove | Review wave reports if `BLOCKED` or risk flag fires (Gate G3) |
+| 5 — Consolidate | SWARM | Drafts PR body using `.github/pull_request_template.md` | **Run `gh pr create` (Gate G4); reviewer approves and merges (Gate G5)** |
+| 6 — Knowledge Consolidation (optional) | SWARM | Surfaces gotchas to vault if second-brain enabled | None |
+
+### Gates
+
+| Gate | Type | Owner |
+|---|---|---|
+| G1 — Intake | Conditional | SWARM (one `AskUserQuestion` round if needed) |
+| G2 — Plan approval | **Mandatory** | Human approves `PLAN.md` before any Execute wave |
+| G3 — Wave review | Conditional | Human reviews `WAVE-{k}-REPORT.md` if BLOCKED or risk flagged |
+| G4 — PR open | Mandatory | Human runs `gh pr create`; agents draft, never open |
+| G5 — Merge | Mandatory | Human reviewer approves and merges; agents never merge to protected branches |
+
+### Governance invariants
+
+- **Worktree isolation** is mandatory — every write task runs under `scripts/governance/worktree-manager.sh`. Raw `git worktree` is forbidden.
+- **Commit hygiene** — conventional format, validated by `validate-commit-msg.sh`; no `Co-Authored-By`, no mentions of `Claude`, `AI`, `LLM`, `Anthropic`, `GPT`.
+- **Base branch** — `check-branch.sh` validates the base follows `feature/*`.
+- **Quality gates** — `worktree-manager.sh validate` runs the 6 quality gates before every commit.
+- **Model tiering** — minimum capable model per task; Opus-as-executor requires explicit opt-in in `PLAN.md`.
+- **Governance cascade** — scope changes route to VECTOR; arch to CIPHER; release/runtime to FORGE/KUBE/SABLE; epic-scale to ORBIT.
+
+### How to resume after interruption
+
+```
+/clear
+/swarm → RS    # Resume Squad — reads PLAN.md + STATUS.md + handoffs/ in clean context
+```
+
+Never re-run from Plan if `STATUS.md` shows committed waves — you would lose evidence.
 
 ---
 

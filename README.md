@@ -2,7 +2,7 @@
 [![CI](https://github.com/marciohideaki/hseos/actions/workflows/ci.yml/badge.svg)](https://github.com/marciohideaki/hseos/actions)
 [![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](package.json)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-green.svg)](https://nodejs.org)
-[![Agents](https://img.shields.io/badge/agents-13-purple.svg)](.hseos/agents/)
+[![Agents](https://img.shields.io/badge/agents-14-purple.svg)](.hseos/agents/)
 [![Skills](https://img.shields.io/badge/skills-46-orange.svg)](.enterprise/governance/agent-skills/)
 
 <p align="center">
@@ -67,6 +67,9 @@ Activate `QUILL` (Knowledge Scribe) or use `/doc-project`. Full bilingual docume
 
 **Scenario 5 — You need to run a full epic from discovery to deploy:**
 Activate `ORBIT` (Flow Conductor). It orchestrates the full delivery pipeline: NYX → VECTOR → CIPHER → GHOST → GLITCH → FORGE → KUBE → SABLE → QUILL.
+
+**Scenario 6 — You have a heterogeneous batch of independent tasks to ship together:**
+Activate `SWARM` (Parallel Execution Commander). It plans the batch in Opus, dispatches isolated Sonnet/Haiku subagents in parallel waves under `.worktrees/`, and consolidates 1 commit per task into a single PR.
 
 ---
 
@@ -136,6 +139,7 @@ Each step is governed by skills loaded automatically from the registry. Agents c
 | `FORGE` | Release Engineer | DevOps, CI Artifact Promotion & Publication | DevOps |
 | `KUBE` | Kubernetes Delivery Operator | GitOps Manifest Update, PR & ArgoCD Sync | GitOps |
 | `SABLE` | Runtime Operator | Rollout Verification & Runtime Smoke | Operations |
+| `SWARM` | Parallel Execution Commander | Heterogeneous Batch Decomposition & Worktree-Isolated Fan-Out | Parallelism |
 
 ---
 
@@ -161,7 +165,7 @@ npx hseos install
 ```
 
 This sets up:
-- `.claude/commands/` — all 13 agent commands as Claude Code slash commands
+- `.claude/commands/` — all 14 agent commands as Claude Code slash commands
 - `.enterprise/` — governance specs, agent authority files, 46-skill library
 - `.hseos/` — agent configurations, workflow definitions, local config
 - Git hooks — pre-commit quality gates (lint, schema validation, commit hygiene)
@@ -314,7 +318,7 @@ graph TB
 ```
 hseos/
 ├── .hseos/                         # HSEOS Agent Framework Core
-│   ├── agents/                     # 13 agent YAML definitions
+│   ├── agents/                     # 14 agent YAML definitions
 │   ├── workflows/                  # Engineering workflow definitions
 │   ├── config/                     # Framework configuration
 │   └── data/                       # Templates and data files
@@ -356,7 +360,7 @@ hseos/
 | Capability | HSEOS | GitHub Copilot | Cursor | Raw Claude Code |
 |-----------|-------|---------------|--------|----------------|
 | Governance constitution | ✅ immutable | ❌ | ❌ | ❌ |
-| Named agent roles | ✅ 13 agents | ❌ | ❌ | ❌ |
+| Named agent roles | ✅ 14 agents | ❌ | ❌ | ❌ |
 | Tiered skill registry | ✅ 46 skills | ❌ | ❌ | ❌ |
 | Pre-commit enforcement | ✅ husky hooks | ❌ | ❌ | ❌ |
 | ADR tracking | ✅ built-in | ❌ | ❌ | ❌ |
@@ -374,6 +378,7 @@ hseos/
 | Feature | Status | Milestone |
 |---------|--------|-----------|
 | 13 core agents (NYX→SABLE) | ✅ Done | v1.0 |
+| 14th agent SWARM (parallel batch executor) | ✅ Done | v1.1 |
 | 46 skills registry | ✅ Done | v1.1 |
 | `hseos install` CLI | ✅ Done | v1.0 |
 | Workflow validate/advance CLI | ✅ Done | v1.1 |
@@ -468,6 +473,7 @@ npx hseos install
 | `FORGE` | Release Engineer | DevOps, CI e publicação de artefatos |
 | `KUBE` | Kubernetes Operator | GitOps manifest update, PR e ArgoCD |
 | `SABLE` | Runtime Operator | Verificação de rollout e smoke tests |
+| `SWARM` | Parallel Execution Commander | Batch heterogêneo paralelo (worktree-isolated) |
 
 ### Links
 
