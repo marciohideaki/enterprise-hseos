@@ -495,3 +495,43 @@ workflows:
         profiles: [core, full]
         command: "gh"
         prepare: "Install GitHub CLI to draft and open the wave PR."
+
+  - id: state-tracking
+    name: Agent State Tracking
+    owner: SWARM
+    description: "Subsystem providing SQLite-backed observability of dev-squad / orbit runs. CLI + MCP + Web SSE side-cars."
+    profiles: [core, runtime, full]
+    state:
+      runs_dir: ".hseos/runs"
+      db_path: ".hseos/state/project.db"
+    cli_commands:
+      - state-emit
+      - state-list
+      - state-describe
+      - state-render
+      - state-snapshot
+      - state-purge
+      - state-stale-sweep
+      - state-ui
+      - kanban
+      - kanban-central
+    mcp_tools:
+      - runs_list
+      - run_describe
+      - run_create
+      - agent_runs_list
+      - orphans_list
+      - event_emit
+      - events_search
+      - handoffs_list
+      - handoff_get
+    surfaces:
+      - id: per-project-web
+        type: sse
+        port_default: 3200
+        binding: "127.0.0.1"
+      - id: central-multi-project
+        type: sse
+        port_default: 3210
+        binding: "127.0.0.1"
+        registry: "~/.hseos/projects.json"
