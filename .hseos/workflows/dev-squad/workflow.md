@@ -121,3 +121,40 @@ hseos state-emit start --silent
 - `hseos state-render <run-id> --output <dir>` — read-only markdown projection.
 
 **Non-goals (Sprint 1):** state-emit failures NEVER block dev-squad execution; the canonical markdown path is unaffected by SQLite errors. If `better-sqlite3` is missing or DB is corrupt, the shim fails open and the workflow proceeds as if observability were disabled.
+
+## Observability — state emission contract (Sprint 2 / Wave 5a)
+
+Wave 5a refines the Sprint 1 dual-write into an explicit emission contract on the canonical skill (`~/.claude/skills/dev-squad/SKILL.md`). Markdown writes are **preserved** (zero regression); the skill simply **adds** structured emit calls at five phase boundaries.
+
+### Required env vars (set by skill)
+
+| Variable | Value | Lifetime |
+|---|---|---|
+| `HSEOS_CURRENT_RUN_ID` | `<YYYYMMDD-HHMM>-<slug>` | Whole run, exported on Intake |
+| `HSEOS_CURRENT_TASK` | task id (e.g. `T2.3`) | Per-task in Execute |
+| `HSEOS_CURRENT_AGENT` | `SWARM` or specific squad agent name | Always |
+
+### Emission points
+
+| Phase | `kind` | Trigger | Payload |
+|---|---|---|---|
+| Intake start | `start` | SWARM enters Intake; run-dir created | `{phase:'intake'}` |
+| Plan approved | `gate` | Human approves PLAN.md (Gate G2) | `{gate:'G2'}` |
+| Execute wave start | `start` | Squad subagents dispatched | `{wave:N, task_count}` |
+| Execute wave complete | `complete` | Wave consolidation (last task OK or BLOCKED) | `{wave:N, status}` |
+| Run consolidate / abort | `complete`/`abort` | Run finalize | `{exit_reason}` |
+
+**Best-effort:** every emit call MUST be silent and non-blocking. `failure → continue`. The shim already enforces this; the skill just calls `hseos state-emit … --silent` at each boundary.
+
+### Canonicity (Sprint 2)
+
+Per ADR `2026-04-21-swarm-dev-squad` (updated in Wave 6), **SQLite is canonical for cross-run queries** (orphan detection, kanban, FTS5 search). **Markdown remains canonical for single-run resume and human review**. The skill writes both — there is no "single source of truth" mandate; there are two source-of-truth scopes:
+
+- **Inside one run:** markdown run-dir.
+- **Across runs / cross-project:** SQLite (`as_*` tables).
+
+This is the policy outcome of Wave 5a — mechanical inversion was rejected as too risky for a global skill.
+
+### Backups (Wave 5a)
+
+`hseos state-snapshot [--keep N]` copies `.hseos/state/project.db` to `.hseos/state/snapshots/project-{ISO}.db`, pruning to last N (default 7). Run before risky operations (`state-purge`, schema migrations) or daily via cron.
