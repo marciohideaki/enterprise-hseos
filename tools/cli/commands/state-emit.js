@@ -30,6 +30,11 @@ function openState(directory) {
 
 function ensureAgentRun(dal, db, { run_id, task_id, agent_name }) {
   if (!task_id) return null;
+  // Auto-register the task row if absent — best-effort emission tolerates unknown tasks.
+  // FK to as_runs is satisfied because dal.createRun was called by the caller.
+  db.prepare(
+    `INSERT OR IGNORE INTO as_tasks (id, run_id, wave, status) VALUES (?, ?, 0, 'IN_PROGRESS')`
+  ).run(task_id, run_id);
   const row = db
     .prepare(
       `SELECT id FROM as_agent_runs WHERE run_id = ? AND task_id = ? AND agent_name = ? AND ended_at IS NULL ORDER BY id DESC LIMIT 1`
