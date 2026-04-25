@@ -12,6 +12,7 @@
       "Read(//home/annonymous/**)",
       "Bash(chmod +x:*)",
       "Bash(bash scripts/governance/validate-skills.sh)",
+      "Bash(bash scripts/governance/swarm-gate.sh)",
       "Bash(git checkout:*)",
       "Bash(git rebase:*)",
       "Bash(git merge:*)",
