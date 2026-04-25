@@ -156,14 +156,27 @@ gate_code() {
   if [[ -f "${REPO_ROOT}/package.json" ]]; then
     info "Detected Node.js project"
 
-    # Lint
+    # Lint — honor LINT_SCOPE if set: a newline-separated list of files to lint
+    # instead of the whole repo. Used by worktree-manager.sh to scope validation
+    # to only the files changed in the current task's worktree.
     if [[ -f "${REPO_ROOT}/package.json" ]] && \
        node -e "const p=require('${REPO_ROOT}/package.json'); process.exit(p.scripts?.lint ? 0 : 1)" 2>/dev/null; then
-      if (cd "${REPO_ROOT}" && npm run lint --silent 2>>"$LOG_FILE"); then
-        pass "Lint: passed"
+      if [[ -n "${LINT_SCOPE:-}" ]]; then
+        info "Lint scope: ${LINT_SCOPE//$'\n'/ }"
+        # shellcheck disable=SC2086 -- LINT_SCOPE is a deliberately word-split file list
+        if (cd "${REPO_ROOT}" && npx --no-install eslint --max-warnings=0 ${LINT_SCOPE} 2>>"$LOG_FILE"); then
+          pass "Lint: passed (scoped)"
+        else
+          record_fail "Lint: FAILED (scoped)"
+          gate_passed=false
+        fi
       else
-        record_fail "Lint: FAILED"
-        gate_passed=false
+        if (cd "${REPO_ROOT}" && npm run lint --silent 2>>"$LOG_FILE"); then
+          pass "Lint: passed"
+        else
+          record_fail "Lint: FAILED"
+          gate_passed=false
+        fi
       fi
     fi
 
