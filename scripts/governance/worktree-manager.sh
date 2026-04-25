@@ -124,8 +124,27 @@ cmd_validate() {
   local wt_path; wt_path="$(worktree_path "$task_id")"
   [[ -d "$wt_path" ]] || fatal "Worktree not found: ${wt_path}"
 
+  # Scope lint to files changed in this worktree vs its feature branch.
+  # Without this, quality-gates would lint the whole repo and surface
+  # pre-existing tech debt unrelated to the current task.
+  local lint_scope=""
+  local feature_branch=""
+  if [[ -f "${wt_path}/.worktree-meta" ]]; then
+    feature_branch=$(grep '^feature_branch=' "${wt_path}/.worktree-meta" | cut -d= -f2)
+  fi
+  if [[ -n "$feature_branch" ]] && \
+     git -C "${REPO_ROOT}" rev-parse --verify "$feature_branch" &>/dev/null; then
+    lint_scope=$(git -C "${wt_path}" diff --name-only --diff-filter=ACMR "$feature_branch" 2>/dev/null \
+      | grep -E '\.(js|cjs|mjs|yaml)$' \
+      | tr '\n' ' ')
+  fi
+
   info "Running quality gates for task: ${task_id}"
+  if [[ -n "$lint_scope" ]]; then
+    info "Lint scope (${task_id}): $(echo "$lint_scope" | tr ' ' '\n' | wc -l) file(s)"
+  fi
   VALIDATION_ENFORCED="${VALIDATION_ENFORCED}" \
+  LINT_SCOPE="$lint_scope" \
     bash "${SCRIPT_DIR}/quality-gates.sh" || \
     fatal "Validation FAILED for task ${task_id} — commit blocked"
 
