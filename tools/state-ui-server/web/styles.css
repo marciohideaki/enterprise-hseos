@@ -1,0 +1,134 @@
+/* HSEOS Kanban — dark cyberpunk-leaning theme. Vanilla CSS, no framework. */
+
+:root {
+  --bg: #0a0e14;
+  --bg-elev: #11161f;
+  --bg-card: #161c27;
+  --fg: #c5d3e6;
+  --fg-dim: #6c7a8d;
+  --accent: #00d3ff;
+  --accent-warm: #ffb86c;
+  --green: #50fa7b;
+  --yellow: #f1fa8c;
+  --red: #ff5555;
+  --purple: #bd93f9;
+  --border: #1f2a38;
+  --mono: ui-monospace, "SF Mono", "Fira Code", "JetBrains Mono", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 14px;
+  height: 100vh;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+}
+.topbar .brand { display: flex; align-items: center; gap: 0.6rem; }
+.topbar .logo { color: var(--accent); font-size: 1.5rem; }
+.topbar h1 { font-size: 1rem; font-weight: 600; margin: 0; letter-spacing: 0.02em; }
+.topbar .meta { display: flex; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.8rem; color: var(--fg-dim); }
+
+.dot { width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--fg-dim); display: inline-block; }
+.dot-connected { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.dot-stale { background: var(--yellow); animation: pulse 1.5s infinite; }
+.dot-disconnected { background: var(--red); }
+@keyframes pulse { 50% { opacity: 0.4; } }
+
+.board {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 0.75rem;
+  overflow: auto;
+}
+.col {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.col > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.col h2 { margin: 0; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-dim); }
+.col .count { font-family: var(--mono); color: var(--fg); font-weight: 600; }
+.col[data-col="pending"]    h2 { color: var(--purple); }
+.col[data-col="running"]    h2 { color: var(--accent); }
+.col[data-col="completed"]  h2 { color: var(--green); }
+.col[data-col="aborted"]    h2 { color: var(--red); }
+.col[data-col="orphaned"]   h2 { color: var(--accent-warm); }
+
+.cards {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  overflow: auto;
+}
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+.card-orphaned { border-color: var(--accent-warm); animation: glow 2s infinite; }
+@keyframes glow { 50% { box-shadow: 0 0 8px var(--accent-warm); } }
+.card-aborted { border-left: 3px solid var(--red); }
+.card-completed { border-left: 3px solid var(--green); opacity: 0.85; }
+.card-running { border-left: 3px solid var(--accent); }
+.card-pending { border-left: 3px solid var(--purple); }
+.card-head { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+.card-id { font-weight: 600; color: var(--fg); }
+.card-tier { color: var(--fg-dim); font-size: 0.72rem; }
+.card-hb { font-size: 0.72rem; }
+.card-hb.age-fresh { color: var(--green); }
+.card-hb.age-warm  { color: var(--yellow); }
+.card-hb.age-stale { color: var(--red); }
+.card-hb.age-none  { color: var(--fg-dim); }
+.card-meta { color: var(--fg-dim); font-size: 0.72rem; }
+.card-goal { color: var(--fg); margin-top: 0.2rem; font-family: var(--sans); font-size: 0.78rem; }
+
+.footbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1.25rem;
+  background: var(--bg-elev);
+  border-top: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--fg-dim);
+}
+.sep { color: var(--border); }
