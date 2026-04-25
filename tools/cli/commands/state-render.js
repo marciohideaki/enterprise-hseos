@@ -31,7 +31,8 @@ function renderPlan(run, tasks) {
   if (run.session_id) lines.push(`**Session:** ${run.session_id}`);
   lines.push('', '## Tasks', '', '| ID | Wave | Effort | Tier | Status | Goal |', '|---|---|---|---|---|---|');
   for (const t of tasks) {
-    lines.push(`| ${t.id} | ${t.wave} | ${t.effort || '-'} | ${t.model_tier || '-'} | ${t.status} | ${(t.goal || '').replace(/\|/g, '\\|')} |`);
+    const goalEscaped = (t.goal || '').replaceAll('|', String.raw`\|`);
+    lines.push(`| ${t.id} | ${t.wave} | ${t.effort || '-'} | ${t.model_tier || '-'} | ${t.status} | ${goalEscaped} |`);
   }
   return lines.join('\n') + '\n';
 }
