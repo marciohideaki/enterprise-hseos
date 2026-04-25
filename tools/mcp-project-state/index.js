@@ -31,6 +31,42 @@ function parseArgs() {
   return { port, dbPath };
 }
 
+function loadDynamicTools() {
+  // Discover and require all `./tools/*.js` files; each exports an array of
+  // tool descriptors `{ name, description, inputSchema, handler(db, args, dal) }`.
+  const toolsDir = path.join(__dirname, 'tools');
+  const map = new Map();
+  if (!fs.existsSync(toolsDir)) return map;
+  for (const file of fs.readdirSync(toolsDir).filter((f) => f.endsWith('.js'))) {
+    try {
+      const exported = require(path.join(toolsDir, file));
+      if (!Array.isArray(exported)) continue;
+      for (const tool of exported) {
+        if (tool && tool.name && typeof tool.handler === 'function') {
+          map.set(tool.name, tool);
+        }
+      }
+    } catch (error) {
+      console.error(`[project-state] failed to load ${file}: ${error.message}`);
+    }
+  }
+  return map;
+}
+
+const dynamicTools = loadDynamicTools();
+let dalInstance = null;
+
+function getDal(db) {
+  if (dalInstance) return dalInstance;
+  try {
+    const { AgentStateDAL } = require('./lib/agent-state-dal');
+    dalInstance = new AgentStateDAL(db);
+  } catch {
+    dalInstance = null;
+  }
+  return dalInstance;
+}
+
 function initDb(dbPath) {
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   const db = new Database(dbPath);
@@ -82,6 +118,10 @@ function buildMcpError(id, code, message) {
 }
 
 function handleTool(db, name, args) {
+  // Dynamic tools (loaded from ./tools/*.js) take precedence over the legacy switch.
+  if (dynamicTools.has(name)) {
+    return dynamicTools.get(name).handler(db, args, getDal(db));
+  }
   switch (name) {
     case 'state_read': {
       const rows = db.prepare('SELECT key, value, updated_at FROM state ORDER BY key').all();
@@ -252,8 +292,13 @@ function createServer(db) {
         break;
         }
         case 'tools/list': {
-          res.end(JSON.stringify(buildMcpResponse(id, { tools: TOOLS })));
-        
+          const dynamicDescriptors = [...dynamicTools.values()].map((t) => ({
+            name: t.name,
+            description: t.description,
+            inputSchema: t.inputSchema,
+          }));
+          res.end(JSON.stringify(buildMcpResponse(id, { tools: [...TOOLS, ...dynamicDescriptors] })));
+
         break;
         }
         case 'tools/call': {
@@ -279,10 +324,29 @@ const { port, dbPath } = parseArgs();
 const db = initDb(dbPath);
 const server = createServer(db);
 
+// Start in-process scheduler (stale-orphan sweep every 5min) if available.
+let stopScheduler = null;
+try {
+  const { startScheduler } = require('./lib/scheduler');
+  stopScheduler = startScheduler(db, { staleMinutes: 10 });
+} catch {
+  // Scheduler is optional — server works without it.
+}
+
 server.listen(port, '127.0.0.1', () => {
   console.log(`[project-state] MCP server listening on http://127.0.0.1:${port}`);
   console.log(`[project-state] Database: ${dbPath}`);
+  console.log(`[project-state] Dynamic tools loaded: ${dynamicTools.size}`);
 });
 
-process.on('SIGTERM', () => { db.close(); process.exit(0); });
-process.on('SIGINT', () => { db.close(); process.exit(0); });
+function shutdown() {
+  if (stopScheduler) stopScheduler();
+  try {
+    db.close();
+  } catch {
+    /* ignore */
+  }
+  process.exit(0);
+}
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
