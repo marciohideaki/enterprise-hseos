@@ -514,9 +514,9 @@ version: "1.4"
 ---
 
 ### doc-project
-**Description:** Gera documentação rica e profissional para projetos — README bilíngue EN+PT-BR (400–600 linhas), docs estruturados (getting-started, architecture, faq, troubleshooting), placeholders de imagem com dimensões corretas via ImageMagick, CHANGELOG, CONTRIBUTING, SECURITY e templates GitHub.
-**Load when:** usuário invoca `/doc-project`, pede para documentar um projeto, gerar README completo, criar docs profissionais.
-**Triggers:** `doc-project`, `documentar projeto`, `generate docs`, `rich readme`, `readme completo`, `criar documentação`, `project documentation`, `gerar readme`
+**Description:** Gera ou atualiza documentação rica e profissional para projetos — README bilíngue EN+PT-BR (400–600 linhas), docs estruturados (getting-started, architecture, faq, troubleshooting), placeholders de imagem com dimensões corretas, CHANGELOG, CONTRIBUTING, SECURITY e templates GitHub.
+**Load when:** usuário invoca `/doc-project`, pede para documentar, atualizar, melhorar ou revisar a documentação de um projeto.
+**Triggers:** `doc-project`, `documentar projeto`, `atualizar documentação`, `atualizar docs`, `atualizar readme`, `melhorar documentação`, `revisar documentação`, `generate docs`, `update docs`, `update readme`, `improve docs`, `rich readme`, `readme completo`, `criar documentação`, `project documentation`, `gerar readme`
 **Tier 1:** `.enterprise/governance/agent-skills/doc-project/SKILL-QUICK.md`
 **Tier 2:** `.enterprise/governance/agent-skills/doc-project/SKILL.md`
 **Cost:** Tier 1 = low | Tier 2 = high

@@ -83,10 +83,20 @@ Fase 3: Gerar documentação
 
 ---
 
+## Criação vs Atualização
+
+| Cenário | Comportamento |
+|---------|--------------|
+| README não existe | Criar do zero com estrutura completa |
+| README existe | Ler primeiro, preservar informações, enriquecer com seções faltantes |
+| Seção específica faltando | Adicionar sem sobrescrever o restante |
+| PNGs já existem em docs/assets/ | Não recriar — usar os existentes |
+
 ## Exemplos de invocação
 
 ```
 /doc-project
 /doc-project /opt/hideakisolutions/platform-gitops
-/doc-project -- projeto: cambio-real, sem API reference
+/doc-project -- atualizar apenas README, preservar docs/
+/doc-project -- adicionar seção PT-BR que está faltando
 ```

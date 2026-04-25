@@ -16,12 +16,14 @@ metadata:
 
 Carregue esta skill quando o usuário pedir:
 - `/doc-project`, documentar projeto, gerar docs, criar README
+- **atualizar documentação**, atualizar docs, atualizar readme
+- melhorar documentação, revisar documentação
 - rich readme, readme completo, documentação profissional
-- generate documentation, project docs, add docs
+- generate documentation, update docs, update readme, improve docs
 
 ---
 
-## PASSO 0 — Identificar o projeto alvo
+## PASSO 0 — Identificar o projeto alvo e modo de operação
 
 Se `$ARGUMENTS` contiver um path, usar esse diretório.
 Caso contrário, usar o CWD da sessão atual.
@@ -30,7 +32,18 @@ Caso contrário, usar o CWD da sessão atual.
 ls -la <project-dir>
 ```
 
-Verificar se README.md já existe — **ler antes de qualquer escrita**.
+**Detectar modo de operação:**
+
+| Condição | Modo |
+|---------|------|
+| README não existe | **Criação** — gerar estrutura completa |
+| README existe, < 200 linhas | **Enriquecimento** — preservar tudo, adicionar seções faltantes |
+| README existe, ≥ 200 linhas | **Atualização** — identificar gaps específicos, não reescrever o que já está bom |
+| Argumento menciona seção específica | **Atualização cirúrgica** — adicionar/melhorar apenas o que foi pedido |
+
+**Regra de ouro:** **Nunca sobrescrever informação existente que está correta.** Em caso de atualização, ler o arquivo completo, mapear o que está presente e o que falta, e só então gerar/inserir.
+
+**Para assets:** se `docs/assets/*.png` já existem, **não recriar** — usar os existentes. Criar apenas os que ainda não existem.
 
 ---
 
