@@ -90,7 +90,11 @@ cmd_create() {
     fatal "Feature branch not found: ${feature_branch}"
 
   info "Creating task branch: ${task_branch} from ${feature_branch}"
-  git -C "${REPO_ROOT}" checkout -b "${task_branch}" "${feature_branch}" 2>/dev/null || \
+  # Use `git branch` (not `checkout -b`) so the main worktree HEAD is not switched.
+  # Switching HEAD would cause `git worktree add` below to fail with
+  # "branch already used by worktree" because git only allows a branch to be
+  # checked out in a single worktree at a time.
+  git -C "${REPO_ROOT}" branch "${task_branch}" "${feature_branch}" 2>/dev/null || \
     fatal "Failed to create task branch ${task_branch}"
 
   info "Creating worktree: ${wt_path}"
