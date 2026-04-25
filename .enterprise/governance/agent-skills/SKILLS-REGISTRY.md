@@ -524,6 +524,39 @@ version: "1.4"
 
 ---
 
+### repo-radar
+**Description:** Analisa e classifica um repositório GitHub via repo-radar CLI (SQLite + LLM), calculando scores heurísticos e veredito LLM, registrando o resultado em PROJECT_EVALUATIONS.md.
+**Load when:** usuário pede para avaliar/analisar/classificar um repositório GitHub, verificar se vale usar um projeto open-source, ou executar repo-radar.
+**Triggers:** `repo-radar`, `avaliar repositório`, `analisar repo`, `classificar repo`, `evaluate repo`, `score repo`, `vale usar`, `análise de projeto`
+**Tier 1:** `.enterprise/governance/agent-skills/repo-radar/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/repo-radar/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+**Critical:** SQLite é a fonte primária — PROJECT_EVALUATIONS.md é relatório derivado. Nunca duplicar entrada existente — sempre atualizar. Citar arquivos reais do clone na seção Evidence.
+
+---
+
+### tech-research
+**Description:** Pesquisa e avalia uma tecnologia, ferramenta ou approach técnico com análise de maturidade, DX, comunidade, fit com stack atual, comparação de alternativas e recomendação fundamentada.
+**Load when:** usuário pede para pesquisar/avaliar/comparar tecnologia ou ferramenta, spike técnico, decisão de adoção, ou invoca /tech-research.
+**Triggers:** `tech-research`, `pesquisar tecnologia`, `evaluate technology`, `avaliar ferramenta`, `comparar abordagem`, `spike técnico`, `should we use`, `vale a pena`, `alternativa para`, `substituir`
+**Tier 1:** `.enterprise/governance/agent-skills/tech-research/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/tech-research/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+**Critical:** Dados antes de hype. Avaliar custo de migração sempre antes de recomendar adoção. "Funciona" é uma recomendação válida para a solução atual.
+
+---
+
+### rfc
+**Description:** Gera RFC (Request for Comments) ou design doc para decisões técnicas — estrutura problema, proposta, mínimo 2 alternativas, trade-offs, impacto (esforço/risco/reversibilidade) e métricas de sucesso.
+**Load when:** usuário pede RFC, design doc, quer documentar decisão técnica, proposta de arquitetura, ou invoca /rfc.
+**Triggers:** `rfc`, `RFC`, `design doc`, `decisão técnica`, `technical decision`, `architecture proposal`, `proposta de arquitetura`, `como devemos implementar`, `qual melhor abordagem`
+**Tier 1:** `.enterprise/governance/agent-skills/rfc/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/rfc/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
+**Critical:** Sempre mínimo 2 alternativas. Nunca minimizar trade-offs. Sinalizar explicitamente se contradiz ADR existente. Tom técnico — RFC não é pitch.
+
+---
+
 ## Multi-Skill Loading
 
 Multiple skills may be triggered simultaneously. Load each at Tier 1 first.
