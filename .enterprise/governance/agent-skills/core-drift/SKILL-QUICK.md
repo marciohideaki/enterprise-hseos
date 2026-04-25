@@ -1,5 +1,6 @@
 ---
 name: core-drift
+description: Use when GHOST initiates a story or QUILL closes an epic to detect drift between implementation and core architectural intent.
 tier: quick
 version: "1.0"
 ---
