@@ -351,6 +351,117 @@ function testOnNotification() {
 }
 
 // =============================================================================
+// pre-compact.sh
+// =============================================================================
+
+function testPreCompact() {
+  const scriptPath = path.join(HANDLERS_DIR, 'pre-compact.sh');
+
+  assertPass(
+    'pre-compact.sh exists',
+    fs.existsSync(scriptPath),
+    scriptPath,
+  );
+
+  if (!fs.existsSync(scriptPath)) {
+    return;
+  }
+
+  const stat = fs.statSync(scriptPath);
+  assertPass(
+    'pre-compact.sh is executable',
+    (stat.mode & 0o111) !== 0,
+    `mode=${stat.mode.toString(8)}`,
+  );
+
+  // Outside an HSEOS-installed project: silent no-op
+  withTempDir((tempDir) => {
+    // No .hseos/ inside tempDir
+    const result = runHandler(scriptPath, [], { cwd: tempDir });
+    assertPass(
+      'pre-compact.sh outside HSEOS project is silent no-op',
+      result.ok && result.stdout.trim() === '',
+      `stdout="${result.stdout.trim()}"`,
+    );
+  });
+
+  // Inside an HSEOS-installed project: writes a snapshot file
+  withTempDir((tempDir) => {
+    fs.mkdirSync(path.join(tempDir, '.hseos'), { recursive: true });
+
+    const sessionId = `test-${Date.now()}`;
+    const env = {
+      ...process.env,
+      HSEOS_SESSION_ID: sessionId,
+    };
+    const result = runHandler(scriptPath, [], { cwd: tempDir, env });
+
+    assertPass(
+      'pre-compact.sh inside HSEOS project exits 0',
+      result.ok,
+      `stderr="${result.stderr ?? ''}"`,
+    );
+
+    const snapshot = path.join(
+      tempDir, '.hseos', 'runs', 'sessions', sessionId, 'PRE-COMPACT.md',
+    );
+    assertPass(
+      'pre-compact.sh writes PRE-COMPACT.md to .hseos/runs/sessions/<id>/',
+      fs.existsSync(snapshot),
+      snapshot,
+    );
+
+    if (fs.existsSync(snapshot)) {
+      const body = fs.readFileSync(snapshot, 'utf8');
+      assertPass(
+        'pre-compact.sh snapshot contains required sections',
+        body.includes('# Pre-Compact Snapshot') &&
+          body.includes('## Recent commits') &&
+          body.includes('## Dirty working tree') &&
+          body.includes(`Session:** \`${sessionId}\``),
+        `body length=${body.length}`,
+      );
+    }
+  });
+
+  // User-authored pre-compact notes are preserved + consumed
+  withTempDir((tempDir) => {
+    fs.mkdirSync(path.join(tempDir, '.hseos'), { recursive: true });
+
+    const sessionId = `notes-${Date.now()}`;
+    const runDir = path.join(tempDir, '.hseos', 'runs', 'sessions', sessionId);
+    fs.mkdirSync(runDir, { recursive: true });
+    const notesPath = path.join(runDir, '.pre-compact-notes.md');
+    fs.writeFileSync(notesPath, '## My critical context\n\n- thing 1\n- thing 2\n');
+
+    const env = {
+      ...process.env,
+      HSEOS_SESSION_ID: sessionId,
+      HSEOS_PRE_COMPACT_NOTES: notesPath,
+    };
+    runHandler(scriptPath, [], { cwd: tempDir, env });
+
+    const snapshot = path.join(runDir, 'PRE-COMPACT.md');
+    if (fs.existsSync(snapshot)) {
+      const body = fs.readFileSync(snapshot, 'utf8');
+      assertPass(
+        'pre-compact.sh embeds user-authored notes into snapshot',
+        body.includes('## User-authored pre-compact notes') &&
+          body.includes('My critical context') &&
+          body.includes('thing 2'),
+        `body excerpt="${body.slice(-200)}"`,
+      );
+    }
+
+    assertPass(
+      'pre-compact.sh consumes (removes) the user notes file after embedding',
+      !fs.existsSync(notesPath),
+      `notes still exists at ${notesPath}`,
+    );
+  });
+}
+
+// =============================================================================
 // Run
 // =============================================================================
 
@@ -358,6 +469,7 @@ console.log('Hook handler integration tests');
 testPlanLint();
 testCodeIndexPostEdit();
 testOnNotification();
+testPreCompact();
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed === 0 ? 0 : 1);
