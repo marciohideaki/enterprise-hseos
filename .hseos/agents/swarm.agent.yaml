@@ -56,7 +56,7 @@ agent:
       - ".enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md"
       - ".hseos/config/hseos.config.yaml"
       - ".hseos/workflows/registry.yaml"
-      - "~/.claude/skills/dev-squad/SKILL.md"
+      - ".agents/skills/dev-squad/SKILL.md"
 
   menu:
     - trigger: DS or fuzzy match on dev-squad

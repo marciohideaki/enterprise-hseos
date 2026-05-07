@@ -4,8 +4,8 @@
 
 | Wave | Title | Branch | Status | Tag | PR | Notes |
 |---|---|---|---|---|---|---|
-| W0 | Foundation | `feature/standalone-w0-foundation` | in-progress | `pre-w0` cut | — | ADRs 0006-0009 + config v2 + run state landed |
-| W1 | Decoupling crítico | `feature/standalone-w1-decoupling` | pending | — | — | Removes SWARM external ref, second-brain optional gating, lessons migrate |
+| W0 | Foundation | `feature/standalone-w0-foundation` | merged-pending | `pre-w0` + `v2.0.0-w0` (post-merge) | #53 | ADRs 0006-0009 + config v2 + run state landed |
+| W1 | Decoupling crítico | `feature/standalone-w1-decoupling` | in-progress | `pre-w1` cut | — | SWARM external ref removed; dev-squad sync; second-brain optional; vault hard paths gone; lessons promoted to .agents/instructions/lessons/ |
 | W2 | Compiler v2 | `feature/standalone-w2-compiler-v2` | pending | — | — | Modular compiler, AdapterContract, 6 adapters |
 | W3 | MCP Bundle | `feature/standalone-w3-mcp-bundle` | pending | — | — | hseos-governance/swarm/state-tracking + axon-bridge |
 | W4 | Hooks v2 | `feature/standalone-w4-hooks-v2` | pending | — | — | Internalize 8 globally-sourced hooks |
@@ -35,7 +35,26 @@
 
 ## Acceptance gate (W0 → W1)
 
-- [ ] All 4 ADRs (0006-0009) reviewed and accepted by Engineering Leadership
+- [x] All 4 ADRs (0006-0009) reviewed and accepted by Engineering Leadership (PR #53 in review)
 - [ ] PR `feature/standalone-w0-foundation` merged to `master`
 - [ ] Tag `v2.0.0-w0` created from merge commit
-- [ ] Tag `pre-w1` created before Wave 1 begins
+- [x] Tag `pre-w1` created before Wave 1 begins
+
+## Wave 1 — Tasks
+
+| Task | Subject | Commit | Status |
+|---|---|---|---|
+| W1-T1 | Remove ~/.claude/ ref from swarm.agent.yaml line 59 | `acd7950` | done |
+| W1-T2 | Sync dev-squad SKILL.md (Wave 5a state emission contract) | `2a02540` | done |
+| W1-T3 | Mark second-brain skill explicitly optional (vault_required: false) | `0520d6e` | done |
+| W1-T4 | Remove vault hard paths from project entrypoint | `a7f4c68` | done |
+| W1-T5 | Promote .agents/instructions/lessons/ to canonical | `1389572` | done |
+| W1-T6 | Document standalone smoke test procedure | (this commit) | in-progress |
+| W1-T7 | Update run STATUS.md and open Wave 1 PR | — | pending |
+
+## Acceptance gate (W1 → W2)
+
+- [ ] Standalone smoke test (docs/STANDALONE-VERIFICATION.md) passes in clean `node:20` Docker container
+- [ ] PR `feature/standalone-w1-decoupling` merged to `master`
+- [ ] Tag `v2.0.0-w1` created from merge commit
+- [ ] Tag `pre-w2` created before Wave 2 begins

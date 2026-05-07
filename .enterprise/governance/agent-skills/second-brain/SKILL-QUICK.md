@@ -1,14 +1,20 @@
 ---
 name: second-brain
 tier: quick
-version: "2.0"
+version: "2.1"
 description: "Use when writing to or reading from the second-brain vault at end of session, during decision capture, or activity logging"
+load_strategy: trigger
+vault_required: false
+null_mode: graceful_fallback
+triggers: [end-session, decision-capture, activity-log, vault-read]
+portable: true
 ---
 
 # Second-Brain Integration — Quick Reference
 
-> Tier 1: use when starting any task in a project where `second_brain.enabled = true`.
-> Load SKILL.md (Tier 2) for vault write formats, safe append protocol, and relevance criteria.
+> **Optional integration.** This skill enriches HSEOS workflows when a personal knowledge vault is configured (`hseos.config.yaml → second_brain.enabled: true`). When `enabled: false` or the vault path is unreachable, the skill self-suppresses silently and HSEOS continues with internal sources only. Per ADR-0006 (Standalone Architecture), HSEOS MUST function without this skill installed or activated.
+>
+> Tier 1 quick reference. Load SKILL.md (Tier 2) for vault write formats, safe append protocol, and relevance criteria.
 
 ---
 

@@ -1,39 +1,43 @@
 ---
 name: dev-squad
 tier: full
-version: "1.0"
+version: "1.1"
 description: "Full protocol for heterogeneous parallel batch execution under SWARM. Commander (Opus) plans + extracts handoffs; Squad (Sonnet/Haiku) executes in worktree-isolated parallel waves. 1 task = 1 commit; 1 wave = 1 PR."
 license: Apache-2.0
-canonical_source: "~/.claude/skills/dev-squad/SKILL.md"
+portable: true
 metadata:
   owner: platform-governance
   consumer: SWARM
 ---
 
-# Dev Squad — Full Protocol (HSEOS Overlay)
+# Dev Squad — Full Protocol
 
-> Tier 2. For the canonical protocol definition, see `~/.claude/skills/dev-squad/SKILL.md` (global skill loaded in SWARM bootstrap).
+> Tier 2. Canonical SKILL.md per ADR-0006 (Standalone Architecture).
 >
-> This file adds the **HSEOS-specific overlay** on top of the canonical skill: governance scripts, commit rules, run directory convention, agent delegation rules.
+> This file is the **single source of truth** for the dev-squad protocol — five-phase workflow, model matrix, governance scripts, commit rules, run directory convention, delegation map, and state-emission contract. The `.agents/skills/dev-squad/` compiled output mirrors this file via the agent-core compiler.
 
 ---
 
-## Relationship to the canonical skill
+## Five-Phase Protocol
 
-The canonical `dev-squad` skill lives globally at `~/.claude/skills/dev-squad/SKILL.md` so it is usable in any project. SWARM's `mandatory_reads` loads both this overlay and the canonical source.
+| # | Phase | Purpose | Owner |
+|---|---|---|---|
+| 1 | **Intake** | Gather batch description; create run-dir; verify scope is heterogeneous and parallelizable | Commander |
+| 2 | **Study** | (Optional) Investigate code, dependencies, gotchas before planning | Commander or delegated subagent |
+| 3 | **Plan** | Decompose into atomic tasks; declare DAG, tier matrix, handoffs; sign PLAN.md (G2) | Commander (Opus) |
+| 4 | **Execute** | Dispatch parallel waves of subagents in worktrees; consolidate after each wave | Commander + Squad |
+| 5 | **Consolidate** | Aggregate WAVE-REPORTs; draft PR body; surface gotchas | Commander |
 
-**What the canonical skill provides:**
-- 5-phase protocol (Intake, Study, Plan, Execute, Consolidate)
-- Model matrix (haiku/sonnet/opus × effort)
-- Commander-extract handoff protocol
-- Detached mode (RESUME-PROMPT.md for clean-context resume)
-- Template files: `PLAN.md`, `TASK-PROMPT.md`, `HANDOFF.md`, `WAVE-REPORT.md`, `RESUME-PROMPT.md`
+## Model Matrix
 
-**What this HSEOS overlay adds:**
-- Mandatory governance scripts
-- Commit message rules
-- Run directory convention (`.hseos/runs/dev-squad/`)
-- Delegation map to other HSEOS agents
+| Effort | Default model | When to override |
+|---|---|---|
+| Trivial CRUD / mechanical refactor | Haiku 4.5 | Never — Haiku always sufficient |
+| Standard implementation, single domain | Sonnet 4.6 | Bump to Opus only if explicit signal |
+| Schema design / multi-domain integration / audit | Opus 4.7 | Default |
+| Cross-cutting architectural refactor | Opus 4.7 | Default |
+
+Commander runs Opus; Squad workers default Sonnet 4.6 with Haiku/Opus opt-in declared in PLAN.md.
 
 ---
 
@@ -125,6 +129,49 @@ SWARM is a control-plane fan-out commander. It does not absorb any of the above 
 | G5 — PR merge | After CI + human review | Human reviewer |
 
 Bypass = constitution violation.
+
+---
+
+## State emission contract (Wave 5a, Sprint 2)
+
+When the HSEOS state-tracking subsystem is installed (`hseos state-emit` available on `$PATH`), the skill MUST emit structured events at five phase boundaries. Failure to emit is **best-effort** — it never blocks execution. If `HSEOS_CURRENT_RUN_ID` is not set, the skill skips emission silently.
+
+### Required env vars (set by skill on entry)
+
+| Variable | Value | When set |
+|---|---|---|
+| `HSEOS_CURRENT_RUN_ID` | `<YYYYMMDD-HHMM>-<slug>` (run-dir basename) | Intake phase, after run-dir created |
+| `HSEOS_CURRENT_TASK` | task id (e.g. `T2.3`) | Execute phase, per task dispatch |
+| `HSEOS_CURRENT_AGENT` | `SWARM` (Commander) or specific squad agent name | always |
+
+### Emission points (idempotent, best-effort)
+
+| Phase boundary | Command | Payload |
+|---|---|---|
+| Intake start (run-dir created) | `hseos state-emit start --run "$HSEOS_CURRENT_RUN_ID" --agent SWARM --silent --payload '{"phase":"intake"}'` | first action when SWARM enters Intake |
+| Gate G2 approved (PLAN.md signed) | `hseos state-emit gate --run "$HSEOS_CURRENT_RUN_ID" --agent SWARM --silent --payload '{"gate":"G2"}'` | after human approves PLAN.md |
+| Execute wave start | `hseos state-emit start --run "$HSEOS_CURRENT_RUN_ID" --task "$HSEOS_CURRENT_TASK" --agent SWARM --silent --payload '{"wave":N}'` | before dispatching squad subagents |
+| Execute wave complete | `hseos state-emit complete --run "$HSEOS_CURRENT_RUN_ID" --task "$HSEOS_CURRENT_TASK" --agent SWARM --silent --payload '{"wave":N,"status":"OK"}'` | after wave consolidation |
+| Run consolidate / abort | `hseos state-emit complete --run "$HSEOS_CURRENT_RUN_ID" --agent SWARM --silent` (or `abort` with `--payload '{"exit_reason":"..."}')` | run finalize |
+
+### Conservative dual-write semantics
+
+This contract **adds** SQLite emission to existing markdown writes. The skill **MUST continue** to write `INTAKE.md`, `PLAN.md`, `STATUS.md`, `RESUME-PROMPT.md`, and `WAVE-{n}-REPORT.md` to the run-dir. Markdown remains the operational backstop; SQLite is the queryable index.
+
+ADR `2026-04-21-swarm-dev-squad` policy declares SQLite **canonical** for cross-run queries (orphan detection, `state-list`, `kanban-central`). Markdown remains canonical for **single-run** resume and human review.
+
+### Rollback
+
+To disable state emission per-run, unset `HSEOS_CURRENT_RUN_ID`. To disable globally, prepend `false ||` to all `hseos state-emit` invocations in the skill (silent skip). Both are reversible without regenerating the run-dir.
+
+### Verification (post-W5a merge)
+
+```bash
+# In a real /dev-squad session, after Intake:
+hseos state-list --run "$HSEOS_CURRENT_RUN_ID"     # → run row visible
+sqlite3 .hseos/state/project.db "SELECT kind, ts FROM as_events WHERE agent_run_id IN (SELECT id FROM as_agent_runs WHERE run_id='$HSEOS_CURRENT_RUN_ID') ORDER BY ts"
+# → start, gate, start, complete, complete sequence
+```
 
 ---
 
