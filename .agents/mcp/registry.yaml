@@ -1,0 +1,46 @@
+# MCP Bundle Registry — neutral declarative source-of-truth
+# See ADR-0008 (MCP Project-Local + Three-Tier Bundle Policy) for design.
+#
+# This file is consumed by the agent-core compiler v2 to emit:
+#   - .mcp.json                    (root, used by most adapters)
+#   - .codex/config.toml [mcp_servers]
+#   - .cursor/mcp.json
+#   - per-adapter MCP configs as adapter specs require
+#
+# Bundles are opt-in tiers. mcp_bundles_active in hseos.config.yaml
+# selects which tiers materialize for this installation.
+
+version: "2.0"
+schema_version: "1.0"
+
+# Bundle definitions live in adjacent files for readability.
+# Each bundle file lists the servers it activates plus their config.
+bundles:
+  core:
+    file: bundles/core.yaml
+    required: true
+    description: "Minimum bundle — always active. Ships with HSEOS install."
+  extended:
+    file: bundles/extended.yaml
+    required: false
+    description: "Opt-in bundle adding code-index bridge, parallel orchestration, market-standard MCPs."
+  enterprise:
+    file: bundles/enterprise.yaml
+    required: false
+    description: "Opt-in bundle for enterprise integrations requiring secrets (github, postgres, kubernetes, sentry)."
+
+# Resolution policy — when multiple bundles declare the same server id,
+# the higher-tier bundle wins (enterprise > extended > core).
+resolution:
+  conflict_strategy: highest_tier_wins
+  duplicate_id_strategy: error
+
+# Compiler emit targets per adapter — overrides default emit paths.
+# Empty entries mean the adapter consumes the canonical .mcp.json at root.
+emit_targets:
+  claude-code: .mcp.json
+  codex: .codex/config.toml
+  cursor: .cursor/mcp.json
+  continue: ""
+  aider: ""
+  cline: ""
