@@ -183,11 +183,103 @@ function testPlanLint() {
 }
 
 // =============================================================================
+// code-index-post-edit.sh
+// =============================================================================
+
+function testCodeIndexPostEdit() {
+  const scriptPath = path.join(HANDLERS_DIR, 'code-index-post-edit.sh');
+
+  assertPass(
+    'code-index-post-edit.sh exists',
+    fs.existsSync(scriptPath),
+    scriptPath,
+  );
+
+  if (!fs.existsSync(scriptPath)) {
+    return;
+  }
+
+  const stat = fs.statSync(scriptPath);
+  assertPass(
+    'code-index-post-edit.sh is executable',
+    (stat.mode & 0o111) !== 0,
+    `mode=${stat.mode.toString(8)}`,
+  );
+
+  // Empty arg → silent no-op
+  {
+    const result = runHandler(scriptPath, []);
+    assertPass(
+      'code-index-post-edit.sh with no arg exits 0 silently',
+      result.ok && result.stdout.trim() === '',
+      `stdout="${result.stdout.trim()}"`,
+    );
+  }
+
+  // File path with no provider marker → silent no-op (graceful degradation)
+  withTempDir((tempDir) => {
+    const editedFile = path.join(tempDir, 'src', 'foo.js');
+    fs.mkdirSync(path.dirname(editedFile), { recursive: true });
+    fs.writeFileSync(editedFile, "module.exports = 1;\n");
+    const result = runHandler(scriptPath, [editedFile]);
+    assertPass(
+      'code-index-post-edit.sh with no provider marker is silent no-op',
+      result.ok && result.stdout.trim() === '',
+      `stdout="${result.stdout.trim()}"`,
+    );
+  });
+
+  // File path under a project with .axon/ marker → appends to queue
+  withTempDir((tempDir) => {
+    const axonDir = path.join(tempDir, '.axon');
+    fs.mkdirSync(axonDir);
+    const editedFile = path.join(tempDir, 'src', 'bar.ts');
+    fs.mkdirSync(path.dirname(editedFile), { recursive: true });
+    fs.writeFileSync(editedFile, "export const x = 1;\n");
+
+    const result = runHandler(scriptPath, [editedFile]);
+    assertPass(
+      'code-index-post-edit.sh with axon marker exits 0',
+      result.ok,
+      `stdout="${result.stdout.trim()}"`,
+    );
+
+    const queue = path.join(axonDir, 'pending-writes.txt');
+    const queueExists = fs.existsSync(queue);
+    assertPass(
+      'code-index-post-edit.sh axon: pending-writes.txt created',
+      queueExists,
+      queue,
+    );
+
+    if (queueExists) {
+      const lines = fs.readFileSync(queue, 'utf8').trim().split('\n');
+      assertPass(
+        'code-index-post-edit.sh axon: queue contains the edited file path',
+        lines.includes(editedFile),
+        `queue=${JSON.stringify(lines)}`,
+      );
+    }
+
+    // Idempotency: invoking twice appends two entries (provider dedupes)
+    runHandler(scriptPath, [editedFile]);
+    const linesAfter = fs.readFileSync(queue, 'utf8').trim().split('\n');
+    const occurrences = linesAfter.filter((l) => l === editedFile).length;
+    assertPass(
+      'code-index-post-edit.sh axon: idempotent append (provider dedupes)',
+      occurrences === 2,
+      `occurrences=${occurrences}`,
+    );
+  });
+}
+
+// =============================================================================
 // Run
 // =============================================================================
 
 console.log('Hook handler integration tests');
 testPlanLint();
+testCodeIndexPostEdit();
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed === 0 ? 0 : 1);
