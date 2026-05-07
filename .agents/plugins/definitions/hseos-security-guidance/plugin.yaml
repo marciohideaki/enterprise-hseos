@@ -1,0 +1,12 @@
+id: hseos-security-guidance
+version: "0.1.0"
+description: "Bundles secure-coding, threat-modeling, and dependency-audit skill activations as one plugin"
+license: MIT
+authors:
+  - "Hideaki Solutions"
+extends: ""
+requires_bundles:
+  - core
+surfaces: {}
+verification:
+  conformance_tests: tests/

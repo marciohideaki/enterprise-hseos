@@ -1,0 +1,12 @@
+id: hseos-skill-creator
+version: "0.1.0"
+description: "Interactive skill scaffolding compliant with HSEOS Tier 1/2 frontmatter (tier, load_strategy, triggers, adapter_overrides)"
+license: MIT
+authors:
+  - "Hideaki Solutions"
+extends: ""
+requires_bundles:
+  - core
+surfaces: {}   # implementation slice fills this
+verification:
+  conformance_tests: tests/
