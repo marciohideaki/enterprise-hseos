@@ -14,6 +14,12 @@
 | [ADR-0001](./ADR-0001-hexagonal-architecture-mandatory.md) | Hexagonal Architecture as Default | Accepted | All stacks |
 | [ADR-0002](./ADR-0002-event-sourcing-opt-in.md) | Event Sourcing is Opt-In | Accepted | All stacks |
 | [ADR-0003](./ADR-0003-cqrs-with-relational-source-of-truth.md) | CQRS: Relational DB as Source of Truth, Non-Relational for Read Models | Accepted | All stacks |
+| [ADR-0004](./ADR-0004-flutter-architecture-decisions.md) | Flutter Architecture Decisions | Accepted | Flutter stack |
+| [ADR-0005](./ADR-0005-performance-engineering-activation-template.md) | Performance Engineering Activation Template | Accepted | All stacks |
+| [ADR-0006](./ADR-0006-standalone-architecture.md) | HSEOS Standalone Architecture (v2.0) | Proposed | Constitution, CLAUDE.md, AGENTS.md, SKILLS-REGISTRY |
+| [ADR-0007](./ADR-0007-compiler-v2-multi-adapter-contract.md) | Agent-Core Compiler v2 (Multi-Adapter Contract) | Proposed | Compiler module, manifest schema, install lifecycle |
+| [ADR-0008](./ADR-0008-mcp-project-local-bundle-policy.md) | MCP Project-Local + Three-Tier Bundle Policy | Proposed | MCP configuration, mcp-governance skill, quality gates |
+| [ADR-0009](./ADR-0009-plugin-marketplace.md) | HSEOS Plugin Marketplace (Dual-Format) | Proposed | Compiler, install lifecycle, documentation policy |
 
 ---
 
