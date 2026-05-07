@@ -4,10 +4,10 @@
 
 | Wave | Title | Branch | Status | Tag | PR | Notes |
 |---|---|---|---|---|---|---|
-| W0 | Foundation | `feature/standalone-w0-foundation` | merged-pending | `pre-w0` + `v2.0.0-w0` (post-merge) | #53 | ADRs 0006-0009 + config v2 + run state landed |
-| W1 | Decoupling crítico | `feature/standalone-w1-decoupling` | merged-pending | `pre-w1` + `v2.0.0-w1` (post-merge) | #54 | SWARM external ref removed; dev-squad sync; second-brain optional; vault hard paths gone; lessons promoted to .agents/instructions/lessons/ |
-| W2 | Compiler v2 (foundation) | `feature/standalone-w2-compiler-v2` | in-progress | `pre-w2` cut | — | Manifest schema v2; AdapterContract base; adapter specs (claude-code, codex); CLI verify/audit/doctor stubs. Adapter implementations land in W2-followups. |
-| W3 | MCP Bundle | `feature/standalone-w3-mcp-bundle` | pending | — | — | hseos-governance/swarm/state-tracking + axon-bridge |
+| W0 | Foundation | `feature/standalone-w0-foundation` | merged | `v2.0.0-w0` | #53 | ADRs 0006-0009 + config v2 + run state landed |
+| W1 | Decoupling crítico | `feature/standalone-w1-decoupling` | merged | `v2.0.0-w1` | #56 (replaces #54) | SWARM external ref removed; dev-squad sync; second-brain optional; vault hard paths gone; lessons promoted to .agents/instructions/lessons/ |
+| W2 | Compiler v2 (foundation) | `feature/standalone-w2-compiler-v2` | merged | `v2.0.0-w2-foundation` | #55 | Manifest schema v2; AdapterContract base; adapter specs (claude-code, codex); CLI verify/audit/doctor stubs. Adapter implementations land in W2-followups. |
+| W3 | MCP Bundle (foundation) | `feature/standalone-w3-mcp-bundle` | in-progress | `pre-w3` cut | — | Registry + 3 bundles (core/extended/enterprise); 3 MCP server directories scaffolded. Server implementations land in W3-followups. |
 | W4 | Hooks v2 | `feature/standalone-w4-hooks-v2` | pending | — | — | Internalize 8 globally-sourced hooks |
 | W5 | Plugins | `feature/standalone-w5-plugins` | pending | — | — | Dual-format marketplace, 4 initial plugins |
 | W6 | Self-Verification | `feature/standalone-w6-self-verify` | pending | — | — | hseos doctor / verify / audit |
@@ -74,8 +74,29 @@ Wave 2 is delivered in two slices to bound blast radius:
 
 ## Acceptance gate (W2 → W3)
 
-- [ ] All 6 adapter implementations extending AdapterBase
+- [ ] All 6 adapter implementations extending AdapterBase (W2 implementation slice — separate PRs)
 - [ ] Round-trip idempotency tests green (`compile → diff → re-compile == 0 diff`)
-- [ ] PR `feature/standalone-w2-compiler-v2` merged to `master`
-- [ ] Tag `v2.0.0-w2` created from merge commit
-- [ ] Tag `pre-w3` created before Wave 3 begins
+- [x] PR `feature/standalone-w2-compiler-v2` (foundation) merged to `master` (PR #55)
+- [x] Tag `v2.0.0-w2-foundation` created from merge commit
+- [x] Tag `pre-w3` created before Wave 3 begins
+
+## Wave 3 — Tasks (foundation slice)
+
+| Task | Subject | Commit | Status |
+|---|---|---|---|
+| W3-T1 | .agents/mcp/registry.yaml + three bundle declarations | `f58cdb0` | done |
+| W3-T2 | Scaffold 3 MCP server directories (governance, swarm, axon-bridge) with READMEs | `15ef8ca` | done |
+| W3-T3 | STATUS update + PR | (this commit) | in-progress |
+| W3-T4..T8 | MCP server implementations + compile-time .mcp.json emit + tests | — | follow-up PRs |
+
+Wave 3 is delivered in two slices to bound blast radius (same pattern as W2):
+**Foundation slice (this PR)** — registry, bundles, server scaffolding READMEs; no MCP protocol code yet.
+**Implementation slice (follow-up PRs)** — three MCP server implementations (one PR each), compiler integration to emit `.mcp.json` from registry, MCP protocol round-trip tests, npm + Smithery publication.
+
+## Acceptance gate (W3 → W4)
+
+- [ ] Three HSEOS-native MCP servers implemented (governance, swarm, axon-bridge)
+- [ ] `hseos mcp install --bundle core` produces a valid `.mcp.json` consumable by the original platform adapter
+- [ ] PR `feature/standalone-w3-mcp-bundle` (foundation) merged to `master`
+- [ ] Tag `v2.0.0-w3-foundation` created from merge commit
+- [ ] Tag `pre-w4` created before Wave 4 begins
