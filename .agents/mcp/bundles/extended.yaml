@@ -1,0 +1,93 @@
+# MCP Bundle — extended (opt-in)
+# Adds code-index bridge, parallel orchestration, and market-standard MCPs.
+# See ADR-0008 §Extended tier.
+
+version: "1.0"
+bundle: extended
+required: false
+
+servers:
+  - id: hseos-swarm
+    transport: stdio
+    binary_resolver:
+      - path: tools/mcp-hseos-swarm/index.js
+        runtime: node
+    capabilities:
+      - plan_squad
+      - dispatch_wave
+      - consolidate_handoff
+      - get_run_state
+    description: |
+      Exposes dev-squad orchestration (plan, dispatch, consolidate) via MCP so
+      non-Anthropic adapters can drive parallel execution. Consumes the
+      .agents/skills/dev-squad/SKILL.md state-emission contract.
+    status: scaffolded
+    adapter_namespace: hseos_swarm
+
+  - id: axon-bridge
+    transport: stdio
+    binary_resolver:
+      - path: tools/mcp-axon-bridge/index.js
+        runtime: node
+    capabilities:
+      - code_search
+      - dep_graph
+      - memory_search
+      - get_skeleton
+      - get_overview
+    description: |
+      Wrapper around the Axon code-index binary. Resolver tries (1) repo-vendored
+      binary at tools/vendor/axon/, (2) $AXON_BIN env var, (3) `axon` on $PATH,
+      (4) no-op fallback returning empty results so downstream skills degrade
+      gracefully to Read+Grep.
+    status: scaffolded
+    adapter_namespace: axon
+    fallback_skill: repo-radar
+    graceful_degradation: true
+
+  - id: sequential-thinking
+    transport: stdio
+    package: "@modelcontextprotocol/server-sequential-thinking"
+    runtime: npx
+    args:
+      - "@modelcontextprotocol/server-sequential-thinking"
+    capabilities:
+      - sequential_reasoning_step
+      - branch_thought
+      - revise_thought
+    description: |
+      Anthropic reference MCP for explicit step-by-step reasoning. Standard in
+      the 2026 ecosystem; included so any HSEOS install benefits from
+      structured chain-of-thought across vendors.
+    status: market_standard
+    adapter_namespace: think
+
+  - id: fetch
+    transport: stdio
+    package: "@modelcontextprotocol/server-fetch"
+    runtime: npx
+    args:
+      - "@modelcontextprotocol/server-fetch"
+    capabilities:
+      - fetch_url
+    description: |
+      Market-standard HTTP fetch. Substitutes vendor-specific WebFetch tools in
+      adapters that lack them (Codex, Cursor, Continue, Aider, Cline).
+    status: market_standard
+    adapter_namespace: fetch
+
+  - id: memory
+    transport: stdio
+    package: "@modelcontextprotocol/server-memory"
+    runtime: npx
+    args:
+      - "@modelcontextprotocol/server-memory"
+    capabilities:
+      - create_memory
+      - search_memory
+      - delete_memory
+    description: |
+      Market-standard ephemeral memory MCP. Alternative to project-state for
+      conversation-scoped memory that does not need to persist across sessions.
+    status: market_standard
+    adapter_namespace: memory

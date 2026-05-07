@@ -1,0 +1,64 @@
+# MCP Bundle — core (always active)
+# Servers in this bundle ship with HSEOS and require no external secrets.
+# See ADR-0008 §Core tier.
+
+version: "1.0"
+bundle: core
+required: true
+
+servers:
+  - id: hseos-governance
+    transport: stdio
+    binary_resolver:
+      - path: tools/mcp-hseos-governance/index.js
+        runtime: node
+    capabilities:
+      - query_constitution
+      - validate_adr
+      - check_authority
+      - list_skills
+      - list_workflows
+    description: |
+      Exposes HSEOS governance queries via MCP. Replaces ad-hoc reads of
+      .enterprise/.specs/ with cacheable tool calls consumable by any MCP-aware
+      adapter (not only the original platform).
+    status: scaffolded   # implementation lands in W3 follow-up PR
+    adapter_namespace: hseos_gov
+
+  - id: hseos-state-tracking
+    transport: stdio
+    binary_resolver:
+      - path: tools/mcp-project-state/index.js
+        runtime: node
+    env:
+      HSEOS_STATE_DB: .hseos/state/project.db
+    capabilities:
+      - read_state
+      - write_state
+      - list_runs
+      - emit_event
+      - search_events
+    description: |
+      Existing MCP server (formalized as @hseos/mcp-project-state in W3
+      follow-up). SQLite-backed state DAL with markdown fallback.
+    status: implemented
+    adapter_namespace: hseos_state
+
+  - id: filesystem
+    transport: stdio
+    package: "@modelcontextprotocol/server-filesystem"
+    runtime: npx
+    args:
+      - "@modelcontextprotocol/server-filesystem"
+      - "."   # scoped to repo root
+    capabilities:
+      - read_file
+      - write_file
+      - list_directory
+      - search_files
+    description: |
+      Market-standard filesystem MCP, scoped to the repo root via positional
+      arg. Allows non-Anthropic adapters to read project files via MCP rather
+      than vendor-specific tool calls.
+    status: market_standard
+    adapter_namespace: fs

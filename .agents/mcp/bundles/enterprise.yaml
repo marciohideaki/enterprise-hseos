@@ -1,0 +1,90 @@
+# MCP Bundle — enterprise (opt-in, requires secrets)
+# Integrations with external SaaS / infrastructure. Enable per installation
+# only when the corresponding secrets are managed via env vars or `pass`.
+# See ADR-0008 §Enterprise tier and CLAUDE.md §Credential Path Protection.
+
+version: "1.0"
+bundle: enterprise
+required: false
+
+servers:
+  - id: github
+    transport: stdio
+    package: "@modelcontextprotocol/server-github"
+    runtime: npx
+    args:
+      - "@modelcontextprotocol/server-github"
+    env:
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+    capabilities:
+      - search_repos
+      - get_file_contents
+      - create_issue
+      - create_pull_request
+      - list_pulls
+      - list_issues
+    description: |
+      GitHub API via MCP. Token MUST come from env (`gh auth token` or fine-grained
+      PAT). Never inline in any committed file.
+    status: market_standard
+    requires_secret: GITHUB_TOKEN
+    adapter_namespace: gh
+
+  - id: postgres
+    transport: stdio
+    package: "@modelcontextprotocol/server-postgres"
+    runtime: npx
+    args:
+      - "@modelcontextprotocol/server-postgres"
+      - "${POSTGRES_URL}"
+    env:
+      POSTGRES_URL: ${POSTGRES_URL}
+    capabilities:
+      - query_select
+      - describe_schema
+    description: |
+      Read-only Postgres MCP. Server enforces SELECT-only by default; mutations
+      require `confirm_before` policy in the consuming agent.
+    status: market_standard
+    requires_secret: POSTGRES_URL
+    adapter_namespace: pg
+
+  - id: kubernetes
+    transport: stdio
+    package: "kubernetes-mcp-server"
+    runtime: npx
+    args:
+      - "kubernetes-mcp-server"
+    env:
+      KUBECONFIG: ${KUBECONFIG}
+    capabilities:
+      - get_pods
+      - get_logs
+      - get_events
+      - exec_pod
+    description: |
+      Kubernetes operational MCP. Read-mostly; mutations require admin-mode
+      agent (KUBE/SABLE) and `confirm_before` policy.
+    status: market_standard
+    requires_secret: KUBECONFIG
+    adapter_namespace: k8s
+
+  - id: sentry
+    transport: stdio
+    package: "@sentry/mcp-server"
+    runtime: npx
+    args:
+      - "@sentry/mcp-server"
+    env:
+      SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN}
+    capabilities:
+      - list_issues
+      - get_issue_details
+      - search_events
+    description: |
+      Sentry observability MCP. Used by SABLE for runtime verification and
+      ai-observability skill for OpenTelemetry GenAI semantic conventions
+      (lands fully in Wave 4+).
+    status: market_standard
+    requires_secret: SENTRY_AUTH_TOKEN
+    adapter_namespace: sentry
