@@ -1,8 +1,13 @@
 ---
 name: second-brain
 tier: full
-version: "2.0"
+version: "2.1"
 description: "Use when writing architectural decisions, discovered gotchas, or session activity to the vault, or designing the hseos brain sync protocol"
+load_strategy: trigger
+vault_required: false
+null_mode: graceful_fallback
+triggers: [end-session, decision-capture, activity-log, vault-read, brain-sync]
+portable: true
 ---
 
 # Second-Brain Integration — Full Reference
