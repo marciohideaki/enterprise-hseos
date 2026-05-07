@@ -5,8 +5,8 @@
 | Wave | Title | Branch | Status | Tag | PR | Notes |
 |---|---|---|---|---|---|---|
 | W0 | Foundation | `feature/standalone-w0-foundation` | merged-pending | `pre-w0` + `v2.0.0-w0` (post-merge) | #53 | ADRs 0006-0009 + config v2 + run state landed |
-| W1 | Decoupling crítico | `feature/standalone-w1-decoupling` | in-progress | `pre-w1` cut | — | SWARM external ref removed; dev-squad sync; second-brain optional; vault hard paths gone; lessons promoted to .agents/instructions/lessons/ |
-| W2 | Compiler v2 | `feature/standalone-w2-compiler-v2` | pending | — | — | Modular compiler, AdapterContract, 6 adapters |
+| W1 | Decoupling crítico | `feature/standalone-w1-decoupling` | merged-pending | `pre-w1` + `v2.0.0-w1` (post-merge) | #54 | SWARM external ref removed; dev-squad sync; second-brain optional; vault hard paths gone; lessons promoted to .agents/instructions/lessons/ |
+| W2 | Compiler v2 (foundation) | `feature/standalone-w2-compiler-v2` | in-progress | `pre-w2` cut | — | Manifest schema v2; AdapterContract base; adapter specs (claude-code, codex); CLI verify/audit/doctor stubs. Adapter implementations land in W2-followups. |
 | W3 | MCP Bundle | `feature/standalone-w3-mcp-bundle` | pending | — | — | hseos-governance/swarm/state-tracking + axon-bridge |
 | W4 | Hooks v2 | `feature/standalone-w4-hooks-v2` | pending | — | — | Internalize 8 globally-sourced hooks |
 | W5 | Plugins | `feature/standalone-w5-plugins` | pending | — | — | Dual-format marketplace, 4 initial plugins |
@@ -57,4 +57,25 @@
 - [ ] Standalone smoke test (docs/STANDALONE-VERIFICATION.md) passes in clean `node:20` Docker container
 - [ ] PR `feature/standalone-w1-decoupling` merged to `master`
 - [ ] Tag `v2.0.0-w1` created from merge commit
-- [ ] Tag `pre-w2` created before Wave 2 begins
+- [x] Tag `pre-w2` created before Wave 2 begins
+
+## Wave 2 — Tasks (foundation slice)
+
+| Task | Subject | Commit | Status |
+|---|---|---|---|
+| W2-T1 | manifest.schema.json (v2 JSON Schema, additive) | `4a2afbe` | done |
+| W2-T2 | AdapterContract base + adapter specs (claude-code, codex) | `d6bc1e8` | done |
+| W2-T3 | CLI subcommand stubs (verify/audit/doctor) + --target flag | `c3e7b36` | done |
+| W2-T4..T9 | Per-adapter implementations (4 new adapters), drift detection, round-trip tests | — | follow-up PRs |
+
+Wave 2 is delivered in two slices to bound blast radius:
+**Foundation slice (this PR)** — schema, contract, CLI surface; existing compiler unchanged.
+**Implementation slice (follow-up PRs)** — refactor of the monolithic compiler into modular `agent-core-compiler/` directory with per-adapter implementations; round-trip idempotency tests; `--target <id>` actual wiring.
+
+## Acceptance gate (W2 → W3)
+
+- [ ] All 6 adapter implementations extending AdapterBase
+- [ ] Round-trip idempotency tests green (`compile → diff → re-compile == 0 diff`)
+- [ ] PR `feature/standalone-w2-compiler-v2` merged to `master`
+- [ ] Tag `v2.0.0-w2` created from merge commit
+- [ ] Tag `pre-w3` created before Wave 3 begins
