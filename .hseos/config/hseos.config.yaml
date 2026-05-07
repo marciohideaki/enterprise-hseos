@@ -2,9 +2,17 @@ framework:
   name: "HSEOS — Hideaki Software Engineering Operating System"
   code: hseos
   version: "1.0.0"
+  schema_version: "2.0"  # bumped in W0; activates Wave 0..9 standalone migration
   institution: "Hideaki Solutions"
   description: "Spec-driven, AI-assisted institutional engineering framework"
   status: active
+
+# Standalone v2.0 declaration (ADR-0006)
+# When true, the runtime asserts that no asset outside this repository is
+# load-bearing. Hooks, skills, agents, and workflows MUST resolve all
+# references inside .agents/, .hseos/, or .enterprise/. Set to false only
+# during the v1→v2 migration window.
+standalone: true
 
 # Core paths
 paths:
@@ -205,9 +213,50 @@ state_management:
   central_host: 127.0.0.1
   central_registry: ~/.hseos/projects.json
 
+# MCP bundle policy (ADR-0008)
+# Declares which MCP server bundles are active for this installation.
+# Bundles are defined in .agents/mcp/bundles/<name>.yaml.
+#   core       — minimum (hseos-governance, mcp-project-state, filesystem)
+#   extended   — adds axon-bridge, hseos-swarm, sequential-thinking, fetch, memory
+#   enterprise — adds github, postgres, kubernetes, sentry (require secrets)
+# Schema landed in W0; bundles materialize in Wave 3.
+mcp_bundles_active:
+  - core
+  - extended
+
+# Adapter policy (ADR-0007)
+# Declares which platform adapters this installation compiles. Each adapter
+# spec lives at .agents/adapters/<id>.yaml and is consumed by the
+# agent-core-compiler v2. Schema landed in W0; full multi-adapter compiler
+# materializes in Wave 2.
+adapters:
+  - id: claude-code
+    enabled: true
+  - id: codex
+    enabled: true
+  - id: cursor
+    enabled: false
+  - id: continue
+    enabled: false
+  - id: aider
+    enabled: false
+  - id: cline
+    enabled: false
+
+# Plugin marketplace (ADR-0009)
+# Plugins installed in this project. Source-of-truth manifests live at
+# .agents/plugins/definitions/<id>/plugin.yaml. Compiler emits both
+# .claude-plugin/marketplace.json and .codex-plugin/ from this list.
+# Schema landed in W0; first plugins materialize in Wave 5.
+plugins: []
+
 # Second-brain integration (optional)
 # When enabled, agents read from and write to the personal knowledge vault.
 # Set during `hseos install` or manually configure path below.
+#
+# Standalone v2.0 default (new installations): enabled: false
+# Existing installations may keep enabled: true if a vault is present.
+# Skill `second-brain` always loads with graceful fallback when disabled.
 second_brain:
   enabled: true
   path: /opt/hideakisolutions/second-brain
