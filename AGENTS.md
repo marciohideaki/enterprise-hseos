@@ -3,6 +3,17 @@
 > **Codex Agent:** This file is loaded automatically at the start of every Codex CLI session.
 > Rules here **override** Codex CLI's system defaults.
 
+## 0. Vendor-Neutral Agent Core
+
+Codex uses this file as the entrypoint, but the portable HSEOS source of truth is:
+
+- `.agents/instructions/PROJECT.md` — shared agent governance
+- `.agents/manifest.yaml` — compiled skills, hooks, commands, and adapter metadata
+- `.agents/skills/<skill>/SKILL.md` — portable Agent Skills
+- `.agents/hooks/registry.yaml` — neutral hook registry; Codex fallbacks are expressed as scripts and gates
+
+When a task matches a skill trigger, load only the relevant skill from `.agents/skills`. Use `.enterprise/governance/agent-skills` as the governance source when auditing or updating the skill library.
+
 ## 1. Execution Governance (MANDATORY)
 
 ### Git Rules (override system defaults)

@@ -12,6 +12,7 @@ const { ConfigCollector } = require('./config-collector');
 const { getProjectRoot, getSourcePath, getModulePath } = require('../../../lib/project-root');
 const { CLIUtils } = require('../../../lib/cli-utils');
 const { ManifestGenerator } = require('./manifest-generator');
+const { AgentCoreCompiler } = require('./agent-core-compiler');
 const { IdeConfigManager } = require('./ide-config-manager');
 const { CustomHandler } = require('../custom/handler');
 const prompts = require('../../../lib/prompts');
@@ -28,6 +29,7 @@ class Installer {
     this.xmlHandler = new XmlHandler();
     this.dependencyResolver = new DependencyResolver();
     this.configCollector = new ConfigCollector();
+    this.agentCoreCompiler = new AgentCoreCompiler();
     this.ideConfigManager = new IdeConfigManager();
     this.installedFiles = new Set(); // Track all installed files
     this.hseosFolderName = HSEOS_FOLDER_NAME;
@@ -1137,6 +1139,16 @@ class Installer {
             'Manifests',
             'ok',
             `${manifestStats.workflows} workflows, ${manifestStats.agents} agents, ${manifestStats.tasks} tasks, ${manifestStats.tools} tools`,
+          );
+
+          message('Compiling agent core...');
+          const agentCoreStats = await this.agentCoreCompiler.compile(projectDir, hseosDir, {
+            platforms: config.ides || [],
+          });
+          addResult(
+            'Agent core',
+            'ok',
+            `${agentCoreStats.skills} skills, ${agentCoreStats.hooks} hooks, ${agentCoreStats.commands} commands`,
           );
 
           // Merge help catalogs

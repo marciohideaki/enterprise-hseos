@@ -14,7 +14,7 @@ const fs = require('node:fs');
 
 let Database;
 try {
-  // eslint-disable-next-line n/no-missing-require
+   
   Database = require('better-sqlite3');
 } catch {
   console.error('[project-state] better-sqlite3 not found. Install with: npm install better-sqlite3');

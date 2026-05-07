@@ -11,7 +11,7 @@ const assert = require('node:assert');
 
 let Database;
 try {
-  // eslint-disable-next-line n/no-missing-require
+   
   Database = require('better-sqlite3');
 } catch {
   console.warn('[test-agent-state-dal] better-sqlite3 not installed — skipping');

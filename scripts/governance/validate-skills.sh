@@ -64,32 +64,38 @@ check_skill_directory() {
   CHECKED=$((CHECKED + 1))
   info "Checking skill: ${skill_name}"
 
-  # SKILL-01: SKILL-QUICK.md must exist
+  # SKILL-01: SKILL-QUICK.md or portable SKILL.md must exist
   local quick_file="${skill_dir}/SKILL-QUICK.md"
-  if [[ ! -f "$quick_file" ]]; then
-    record_fail "SKILL-01: SKILL-QUICK.md missing in '${skill_name}'"
+  local full_file="${skill_dir}/SKILL.md"
+  local primary_file="$quick_file"
+  if [[ ! -f "$quick_file" && -f "$full_file" ]]; then
+    primary_file="$full_file"
+  fi
+
+  if [[ ! -f "$primary_file" ]]; then
+    record_fail "SKILL-01: SKILL-QUICK.md or SKILL.md missing in '${skill_name}'"
     return 0
   else
-    pass "SKILL-01: SKILL-QUICK.md exists"
+    pass "SKILL-01: $(basename "$primary_file") exists"
   fi
 
   # SKILL-02: frontmatter has name: field
-  if ! grep -qE "^name:|^skill:" "$quick_file" 2>/dev/null; then
-    record_fail "SKILL-02: SKILL-QUICK.md missing 'name:' or 'skill:' in frontmatter — ${skill_name}"
+  if ! grep -qE "^name:|^skill:" "$primary_file" 2>/dev/null; then
+    record_fail "SKILL-02: $(basename "$primary_file") missing 'name:' or 'skill:' in frontmatter — ${skill_name}"
   else
     pass "SKILL-02: name/skill field present"
   fi
 
   # SKILL-03: description: field present
-  if ! grep -q "^description:" "$quick_file" 2>/dev/null; then
-    record_fail "SKILL-03: SKILL-QUICK.md missing 'description:' in frontmatter — ${skill_name}"
+  if ! grep -q "^description:" "$primary_file" 2>/dev/null; then
+    record_fail "SKILL-03: $(basename "$primary_file") missing 'description:' in frontmatter — ${skill_name}"
   else
     pass "SKILL-03: description field present"
   fi
 
   # SKILL-04: description starts with "Use when"
   local desc
-  desc=$(grep "^description:" "$quick_file" 2>/dev/null | head -1 | sed 's/^description:\s*//' | tr -d '"'"'" | xargs)
+  desc=$(grep "^description:" "$primary_file" 2>/dev/null | head -1 | sed 's/^description:\s*//' | tr -d '"'"'" | xargs)
   if [[ -n "$desc" ]]; then
     if echo "$desc" | grep -qi "^Use when"; then
       pass "SKILL-04: description uses 'Use when...' trigger format"
