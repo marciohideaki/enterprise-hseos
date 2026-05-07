@@ -274,12 +274,90 @@ function testCodeIndexPostEdit() {
 }
 
 // =============================================================================
+// on-notification.sh
+// =============================================================================
+
+function testOnNotification() {
+  const scriptPath = path.join(HANDLERS_DIR, 'on-notification.sh');
+
+  assertPass(
+    'on-notification.sh exists',
+    fs.existsSync(scriptPath),
+    scriptPath,
+  );
+
+  if (!fs.existsSync(scriptPath)) {
+    return;
+  }
+
+  const stat = fs.statSync(scriptPath);
+  assertPass(
+    'on-notification.sh is executable',
+    (stat.mode & 0o111) !== 0,
+    `mode=${stat.mode.toString(8)}`,
+  );
+
+  // With HSEOS_NOTIFICATION_SILENT=1 the handler emits absolutely nothing
+  // (not even the terminal bell). Useful for headless CI.
+  {
+    const result = runHandler(scriptPath, ['Test message'], {
+      env: { ...process.env, HSEOS_NOTIFICATION_SILENT: '1' },
+    });
+    assertPass(
+      'on-notification.sh respects HSEOS_NOTIFICATION_SILENT=1 (silent exit 0)',
+      result.ok && result.stdout === '' && (result.stderr === '' || result.stderr === undefined),
+      `stdout="${result.stdout}" stderr="${result.stderr ?? ''}"`,
+    );
+  }
+
+  // Without the silence flag, the handler always exits 0 regardless of
+  // which notification stacks are available — terminal bell is the
+  // unconditional final fallback. We do not assert on the bell character
+  // itself (some shells absorb it) — only that the handler exits 0.
+  {
+    const result = runHandler(scriptPath, ['Test message'], {
+      env: { ...process.env, HSEOS_NOTIFICATION_SILENT: '0' },
+    });
+    assertPass(
+      'on-notification.sh exits 0 with default args',
+      result.ok,
+      `exitCode=${result.exitCode}`,
+    );
+  }
+
+  // No-arg invocation also exits 0 (uses default message)
+  {
+    const result = runHandler(scriptPath, [], {
+      env: { ...process.env, HSEOS_NOTIFICATION_SILENT: '1' },
+    });
+    assertPass(
+      'on-notification.sh with no arg exits 0',
+      result.ok,
+      `exitCode=${result.exitCode}`,
+    );
+  }
+
+  // Idempotency: running twice produces the same exit code
+  {
+    const env = { ...process.env, HSEOS_NOTIFICATION_SILENT: '1' };
+    const a = runHandler(scriptPath, ['Same message'], { env });
+    const b = runHandler(scriptPath, ['Same message'], { env });
+    assertPass(
+      'on-notification.sh is idempotent (same exit on second run)',
+      a.exitCode === b.exitCode && a.exitCode === 0,
+      `a=${a.exitCode} b=${b.exitCode}`,
+    );
+  }
+}
+
+// =============================================================================
 // Run
 // =============================================================================
 
 console.log('Hook handler integration tests');
 testPlanLint();
 testCodeIndexPostEdit();
+testOnNotification();
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed === 0 ? 0 : 1);
