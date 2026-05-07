@@ -7,8 +7,8 @@
 | W0 | Foundation | `feature/standalone-w0-foundation` | merged | `v2.0.0-w0` | #53 | ADRs 0006-0009 + config v2 + run state landed |
 | W1 | Decoupling crítico | `feature/standalone-w1-decoupling` | merged | `v2.0.0-w1` | #56 (replaces #54) | SWARM external ref removed; dev-squad sync; second-brain optional; vault hard paths gone; lessons promoted to .agents/instructions/lessons/ |
 | W2 | Compiler v2 (foundation) | `feature/standalone-w2-compiler-v2` | merged | `v2.0.0-w2-foundation` | #55 | Manifest schema v2; AdapterContract base; adapter specs (claude-code, codex); CLI verify/audit/doctor stubs. Adapter implementations land in W2-followups. |
-| W3 | MCP Bundle (foundation) | `feature/standalone-w3-mcp-bundle` | in-progress | `pre-w3` cut | — | Registry + 3 bundles (core/extended/enterprise); 3 MCP server directories scaffolded. Server implementations land in W3-followups. |
-| W4 | Hooks v2 | `feature/standalone-w4-hooks-v2` | pending | — | — | Internalize 8 globally-sourced hooks |
+| W3 | MCP Bundle (foundation) | `feature/standalone-w3-mcp-bundle` | merged | `v2.0.0-w3-foundation` | #57 | Registry + 3 bundles (core/extended/enterprise); 3 MCP server directories scaffolded. Server implementations land in W3-followups. |
+| W4 | Hooks v2 (foundation) | `feature/standalone-w4-hooks-v2` | in-progress | `pre-w4` cut | — | handlers/ scaffolded; 8 pending entries declared in registry for migration from upstream user-level hooks. |
 | W5 | Plugins | `feature/standalone-w5-plugins` | pending | — | — | Dual-format marketplace, 4 initial plugins |
 | W6 | Self-Verification | `feature/standalone-w6-self-verify` | pending | — | — | hseos doctor / verify / audit |
 | W7 | Adapter SDK (BYOA) | `feature/standalone-w7-adapter-sdk` | pending | — | — | @hseos/adapter-sdk + Goose reference impl |
@@ -100,3 +100,17 @@ Wave 3 is delivered in two slices to bound blast radius (same pattern as W2):
 - [ ] PR `feature/standalone-w3-mcp-bundle` (foundation) merged to `master`
 - [ ] Tag `v2.0.0-w3-foundation` created from merge commit
 - [ ] Tag `pre-w4` created before Wave 4 begins
+
+## Wave 4 — Tasks (foundation slice)
+
+| Task | Subject | Commit | Status |
+|---|---|---|---|
+| W4-T1 | handlers/ directory scaffold + 8 pending registry slots | `5b785e4` | done |
+| W4-T2..T9 | One handler implementation per follow-up PR (plan-lint, pre-compact, on-prompt-submit, session-end, suggest-skill, code-index-{guard,post-edit}, on-notification) | — | follow-up PRs |
+
+## Acceptance gate (W4 → W5)
+
+- [ ] All 8 handler scripts implemented in .agents/hooks/handlers/
+- [ ] PR `feature/standalone-w4-hooks-v2` (foundation) merged to `master`
+- [ ] Tag `v2.0.0-w4-foundation` created from merge commit
+- [ ] Tag `pre-w5` created before Wave 5 begins
