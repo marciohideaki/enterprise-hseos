@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hseos.dev/schemas/manifest.schema.json",
+  "title": "HSEOS Agent Core Manifest",
+  "description": "Schema for .agents/manifest.yaml. Supports v1.0 (current) and v2.0 (per ADR-0007). v2.0 adds schema_version, mcp_bundles_active, plugins, signatures, and per-adapter sha256/capabilities. v1.0 manifests remain valid; v2.0 fields are optional during the transition window.",
+  "type": "object",
+  "required": ["version", "generated_by", "source_of_truth", "adapters", "skills"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Manifest format version. Use '1.0' for current compiler output, '2.0' once the compiler v2 (ADR-0007) lands.",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Optional schema version identifier introduced in v2.0. When present, signals the compiler v2 contract (multi-adapter, hash-pinned integrity, BYOA).",
+      "enum": ["2.0"]
+    },
+    "generated_by": {
+      "type": "string",
+      "description": "Identifier of the compiler that produced this manifest.",
+      "pattern": "^hseos-agent-core-compiler"
+    },
+    "generated_at": {
+      "type": "string",
+      "description": "ISO-8601 timestamp when the manifest was emitted (v2.0 only).",
+      "format": "date-time"
+    },
+    "source_of_truth": {
+      "type": "string",
+      "description": "Project-relative path to the canonical source directory.",
+      "default": ".agents"
+    },
+    "integrity_root": {
+      "type": "string",
+      "description": "Project-relative path to the directory holding per-adapter sha256 signatures (v2.0 only).",
+      "default": ".agents/.signatures"
+    },
+    "adapters": {
+      "description": "Adapter targets. v1.0 uses an object keyed by adapter id. v2.0 uses an array of adapter records with explicit id, enabled, output, capabilities, sha256.",
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "v1.0 form: object keyed by adapter id.",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "entrypoint": { "type": "string" },
+              "skills": { "type": "string" },
+              "commands": { "type": "string" },
+              "hooks": { "type": "string" }
+            }
+          }
+        },
+        {
+          "type": "array",
+          "description": "v2.0 form: array of adapter records with declarative spec references.",
+          "items": {
+            "type": "object",
+            "required": ["id", "enabled"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "enum": ["claude-code", "codex", "cursor", "continue", "aider", "cline", "goose"]
+              },
+              "enabled": { "type": "boolean" },
+              "spec": {
+                "type": "string",
+                "description": "Project-relative path to the adapter spec yaml (e.g. .agents/adapters/<id>.yaml)."
+              },
+              "entrypoint": { "type": "string" },
+              "output": {
+                "type": "object",
+                "description": "Map of output type -> path produced by the adapter."
+              },
+              "capabilities": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Capability tags the adapter supports (hooks, subagents, slash_commands, mcp_stdio, statusline, settings, etc.)."
+              },
+              "sha256": {
+                "type": "string",
+                "description": "Hash of the emitted bundle for drift detection.",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "platforms": {
+      "type": "array",
+      "description": "v1.0 legacy field: list of platform shorthands. v2.0 supersedes this with adapters[].id.",
+      "items": { "type": "string" }
+    },
+    "mcp_bundles_active": {
+      "type": "array",
+      "description": "Active MCP bundles (v2.0, per ADR-0008). Bundles are defined in .agents/mcp/bundles/<name>.yaml.",
+      "items": {
+        "type": "string",
+        "enum": ["core", "extended", "enterprise"]
+      },
+      "uniqueItems": true
+    },
+    "mcp_servers": {
+      "type": "array",
+      "description": "Enumerated MCP servers active under the selected bundles (v2.0).",
+      "items": {
+        "type": "object",
+        "required": ["id", "transport"],
+        "properties": {
+          "id": { "type": "string" },
+          "transport": { "type": "string", "enum": ["stdio", "http", "websocket"] },
+          "binary": { "type": "string" },
+          "runtime": { "type": "string" },
+          "bundle": { "type": "string", "enum": ["core", "extended", "enterprise"] },
+          "capabilities": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "plugins": {
+      "type": "array",
+      "description": "Installed plugins from the HSEOS marketplace (v2.0, per ADR-0009).",
+      "items": {
+        "type": "object",
+        "required": ["id", "version"],
+        "properties": {
+          "id": { "type": "string" },
+          "version": { "type": "string" },
+          "extends": { "type": "string", "description": "Optional upstream plugin reference (e.g. official:pr-review-toolkit@1.2.0)." }
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "description": "Quick-reference counts of the compiled assets.",
+      "properties": {
+        "skills": { "type": "integer", "minimum": 0 },
+        "hooks": { "type": "integer", "minimum": 0 },
+        "commands": { "type": "integer", "minimum": 0 },
+        "agents": { "type": "integer", "minimum": 0 },
+        "mcp_servers": { "type": "integer", "minimum": 0 },
+        "plugins": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "output"],
+        "properties": {
+          "name": { "type": "string" },
+          "source": { "type": "string" },
+          "quick": { "type": "string" },
+          "output": { "type": "string" },
+          "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "tier": { "type": "string", "enum": ["quick", "full", "tier-1", "tier-2"] },
+          "load_strategy": { "type": "string", "enum": ["always", "trigger", "manual"] },
+          "portable": { "type": "boolean" }
+        }
+      }
+    },
+    "hooks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "event": { "type": "string" },
+          "matcher": { "type": "string" },
+          "command": { "type": "string" }
+        }
+      }
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "agents": {
+      "type": "array",
+      "description": "v2.0 only: catalog of HSEOS agents emitted as adapter-specific subagents.",
+      "items": {
+        "type": "object",
+        "required": ["code", "file"],
+        "properties": {
+          "code": { "type": "string" },
+          "file": { "type": "string" },
+          "rendered": {
+            "type": "object",
+            "description": "Map of adapter id -> emitted subagent file path."
+          },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}
