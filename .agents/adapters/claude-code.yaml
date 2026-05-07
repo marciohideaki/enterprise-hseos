@@ -1,0 +1,46 @@
+version: "1.0"
+id: claude-code
+implementation: tools/cli/installers/lib/core/agent-core-compiler/adapters/claude-code.js
+capabilities:
+  hooks:
+    events:
+      - PreToolUse
+      - PostToolUse
+      - SessionStart
+      - SessionEnd
+      - Stop
+      - UserPromptSubmit
+      - PreCompact
+      - Notification
+    matchers:
+      - tool_name
+      - glob
+  subagents:
+    native: true
+    format: markdown_with_frontmatter
+  slash_commands:
+    native: true
+    location: .claude/commands/
+  mcp:
+    transport: stdio
+    config: .mcp.json
+  statusline:
+    native: true
+    format: shell_script
+  settings:
+    location: .claude/settings.json
+    schema: claude-settings-v2
+
+output:
+  entrypoint: CLAUDE.md
+  files:
+    - { type: settings, path: .claude/settings.json, generated: true, mergeable: true }
+    - { type: hooks, path: .claude/hooks.json, generated: true, mergeable: false }
+    - { type: subagents, path: .claude/agents/, generated: true }
+    - { type: slash_commands, path: .claude/commands/, generated: true }
+    - { type: skills_link, path: .claude/skills/, generated: true, mode: symlink_or_copy }
+    - { type: mcp, path: .mcp.json, generated: true, mergeable: true }
+    - { type: lessons_mirror, path: .claude/lessons.md, generated: true, mergeable: false }
+
+fallbacks:
+  unsupported_capability: "Use repository scripts or quality-gates.sh"

@@ -1,0 +1,38 @@
+version: "1.0"
+id: codex
+implementation: tools/cli/installers/lib/core/agent-core-compiler/adapters/codex.js
+capabilities:
+  hooks:
+    events:
+      - PreToolUse
+      - PermissionRequest
+      - PostToolUse
+      - UserPromptSubmit
+      - Stop
+    matchers:
+      - tool_name
+  subagents:
+    native: true
+    format: agents_sdk_handoffs
+  slash_commands:
+    native: false
+    location: ""
+  mcp:
+    transport: stdio
+    config: .codex/config.toml
+  statusline:
+    native: false
+    format: ""
+  settings:
+    location: .codex/config.toml
+    schema: codex-config-toml
+
+output:
+  entrypoint: AGENTS.md
+  files:
+    - { type: settings, path: .codex/config.toml, generated: true, mergeable: true }
+    - { type: skills_link, path: .agents/skills/, generated: false }
+    - { type: mcp, path: .codex/config.toml, generated: true, mergeable: true }
+
+fallbacks:
+  unsupported_capability: "Slash commands surface as governance scripts; statusline not exposed"
