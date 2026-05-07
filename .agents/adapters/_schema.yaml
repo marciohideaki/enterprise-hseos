@@ -1,0 +1,118 @@
+# JSON Schema for adapter spec files (.agents/adapters/<id>.yaml)
+# Validated by the compiler before emitting an adapter target.
+# See ADR-0007 for design rationale.
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://hseos.dev/schemas/adapter-spec.schema.yaml"
+title: "HSEOS Adapter Spec"
+description: |
+  Declarative spec for an adapter target. Each .agents/adapters/<id>.yaml
+  conforms to this schema. The compiler reads the spec, instantiates the
+  implementation pointed to by `implementation`, and invokes its lifecycle
+  methods (validate, emit, verify, clean).
+type: object
+required:
+  - version
+  - id
+  - implementation
+  - capabilities
+  - output
+properties:
+  version:
+    type: string
+    description: Spec format version
+    pattern: "^[0-9]+\\.[0-9]+$"
+  id:
+    type: string
+    description: Adapter identifier — must match AdapterBase.id of the implementation and match an entry in manifest.schema.json adapters[].id enum
+    enum:
+      - claude-code
+      - codex
+      - cursor
+      - continue
+      - aider
+      - cline
+      - goose
+  implementation:
+    type: string
+    description: Project-relative path to the adapter JS file extending AdapterBase
+  capabilities:
+    type: object
+    description: Declarative capability matrix consumed by validate() and CAPABILITY-MATRIX.md
+    properties:
+      hooks:
+        type: object
+        properties:
+          events:
+            type: array
+            items: { type: string }
+          matchers:
+            type: array
+            items: { type: string }
+      subagents:
+        type: object
+        properties:
+          native: { type: boolean }
+          format: { type: string }
+      slash_commands:
+        type: object
+        properties:
+          native: { type: boolean }
+          location: { type: string }
+      mcp:
+        type: object
+        properties:
+          transport: { type: string, enum: [stdio, http, websocket] }
+          config: { type: string, description: "Project-relative path to adapter MCP config" }
+      statusline:
+        type: object
+        properties:
+          native: { type: boolean }
+          format: { type: string }
+      settings:
+        type: object
+        properties:
+          location: { type: string }
+          schema: { type: string }
+  output:
+    type: object
+    required:
+      - entrypoint
+      - files
+    properties:
+      entrypoint:
+        type: string
+        description: Path to the adapter's primary entrypoint file
+      files:
+        type: array
+        items:
+          type: object
+          required: [type, path, generated]
+          properties:
+            type:
+              type: string
+              enum:
+                - settings
+                - hooks
+                - subagents
+                - slash_commands
+                - skills_link
+                - mcp
+                - lessons_mirror
+                - statusline
+            path: { type: string }
+            generated: { type: boolean }
+            mergeable:
+              type: boolean
+              description: When true, compiler performs non-destructive merge with existing user-owned content
+            mode:
+              type: string
+              enum: [symlink_or_copy, copy, symlink]
+  fallbacks:
+    type: object
+    description: Documented behaviour when a capability is unsupported
+    properties:
+      unsupported_capability:
+        type: string
+        description: Human-readable note rendered into CAPABILITY-MATRIX.md
+additionalProperties: false
