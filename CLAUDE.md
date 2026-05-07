@@ -69,9 +69,10 @@ Lesson format:
 **Applies to:** Scope (file pattern, workflow, always)
 ```
 
-**Promotion to vault:** When a lesson is domain-agnostic or recurred across 2+ projects, promote it to
-`/opt/hideakisolutions/second-brain/_learnings/<slug>.md` and note the promotion in the lesson entry.
-The `/end-session` skill handles this automatically (Step 7 — cross-project learnings).
+**Promotion to vault (optional):** When a lesson is domain-agnostic or recurred across 2+ projects, promote it to
+`<second_brain.path>/_learnings/<slug>.md` (path resolved from `hseos.config.yaml`) and note the promotion in the lesson entry.
+This step is skipped silently when `second_brain.enabled: false`. Per ADR-0006, HSEOS lessons are stored canonically in
+`.agents/instructions/lessons/` and vault promotion is enrichment-only.
 
 ---
 
@@ -339,13 +340,22 @@ fi
 
 ---
 
-## Second Brain Integration
+## Second Brain Integration (optional)
 
-Vault: `/opt/hideakisolutions/second-brain`
+> **Optional integration per ADR-0006.** This section applies only when
+> `hseos.config.yaml → second_brain.enabled: true`. When disabled, the
+> guidance below is skipped silently and HSEOS operates entirely from
+> internal sources (`.agents/instructions/lessons/`, `.hseos/runs/`,
+> `.enterprise/.specs/decisions/`).
 
-Este projeto está registrado no vault em `_knowledge/projects/enterprise-hseos/`.
+**Vault path:** resolved from `second_brain.path` in `hseos.config.yaml`. The
+default for new installations is `enabled: false`; existing installations
+that opt in declare the path explicitly.
 
-### Ao encerrar uma sessão produtiva
+When enabled, this project is registered in the vault at
+`<second_brain.path>/_knowledge/projects/enterprise-hseos/`.
+
+### Ao encerrar uma sessão produtiva (vault enabled)
 
 Escreva diretamente nos arquivos do vault **antes de sugerir ao usuário que encerre**:
 
@@ -354,7 +364,7 @@ Escreva diretamente nos arquivos do vault **antes de sugerir ao usuário que enc
 3. **Progresso de fase** → atualizar `_knowledge/projects/enterprise-hseos/roadmap.md` se a fase avançou
 4. **Activity log** → append em `_memory/activity-log.md`: `## [YYYY-MM-DD HH:MM] session-end | enterprise-hseos — {tipo}: {descrição}`
 
-Depois sugerir ao usuário: *"Quer que eu também atualize o `/end-session` do second-brain para capturar o contexto completo da conversa?"*
+Depois sugerir ao usuário: *"Quer que eu também execute o end-session skill do vault para capturar o contexto completo da conversa?"*
 
 ### Tipos de trabalho a registrar
 
