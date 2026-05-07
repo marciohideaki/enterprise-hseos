@@ -12,7 +12,7 @@ const fs = require('node:fs');
 
 let Database;
 try {
-  // eslint-disable-next-line n/no-missing-require
+   
   Database = require('better-sqlite3');
 } catch {
   Database = null;

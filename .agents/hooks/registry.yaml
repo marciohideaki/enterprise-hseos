@@ -1,0 +1,91 @@
+version: "1.0"
+source: .claude/hooks.json
+hooks:
+  - id: pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global
+    event: PreToolUse
+    matcher: Agent
+    type: command
+    command: bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/swarm-gate.sh
+    timeout: 5
+    blocking: true
+    description: "HSEOS SWARM gate: bloqueia Agent paralelo sem run dev-squad ativo (complementa gate global)"
+    platform_support:
+      - claude-code
+    fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+  - id: pretooluse-edit-backup-file-before-any-edit-operation
+    event: PreToolUse
+    matcher: Edit
+    type: command
+    command: if [[ -f "$CLAUDE_TOOL_FILE_PATH" ]]; then cp "$CLAUDE_TOOL_FILE_PATH" "$CLAUDE_TOOL_FILE_PATH.bak.$(date +%s)" 2>/dev/null || true; fi
+    timeout: null
+    blocking: true
+    description: Backup file before any Edit operation
+    platform_support:
+      - claude-code
+    fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+  - id: pretooluse-bash-warn-on-high-risk-bash-commands
+    event: PreToolUse
+    matcher: Bash
+    type: command
+    command: if echo "$CLAUDE_TOOL_COMMAND" | grep -qE '^(git push|git reset --hard|rm -rf|git branch -[Dd])'; then echo '[HSEOS] High-risk command intercepted — confirm this is intentional' >&2; fi
+    timeout: null
+    blocking: true
+    description: Warn on high-risk bash commands
+    platform_support:
+      - claude-code
+    fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+  - id: posttooluse-edit-auto-format-python-black-and-js-ts-prettier-after-edit
+    event: PostToolUse
+    matcher: Edit
+    type: command
+    command: FILE="$CLAUDE_TOOL_FILE_PATH"; if [[ "$FILE" == *.py ]] && command -v black &>/dev/null; then black "$FILE" 2>/dev/null || true; elif [[ "$FILE" == *.js || "$FILE" == *.ts || "$FILE" == *.jsx || "$FILE" == *.tsx ]] && command -v prettier &>/dev/null; then prettier --write "$FILE" 2>/dev/null || true; fi
+    timeout: null
+    blocking: false
+    description: Auto-format Python (black) and JS/TS (prettier) after Edit
+    platform_support:
+      - claude-code
+    fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+  - id: posttooluse-all-emit-agent-state-tool-call-event-best-effort-non-blocking
+    event: PostToolUse
+    matcher: "*"
+    type: command
+    command: CLAUDE_HOOK_EVENT=PostToolUse bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/state-emit-hook.sh PostToolUse "$CLAUDE_TOOL_NAME" 2>/dev/null || true
+    timeout: null
+    blocking: false
+    description: Emit agent-state tool_call event (best-effort, non-blocking)
+    platform_support:
+      - claude-code
+    fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+  - id: sessionstart-all-display-hseos-navigation-reminder-at-session-start
+    event: SessionStart
+    matcher: "*"
+    type: command
+    command: "echo '--- HSEOS SESSION START ---' && echo 'Constitution: .enterprise/.specs/constitution/Enterprise-Constitution.md' && echo 'Skills: .enterprise/governance/agent-skills/SKILLS-REGISTRY.md' && echo 'Agents: .hseos/AGENT-MANIFEST.md' && echo 'Branch:' $(git branch --show-current 2>/dev/null || echo 'unknown') && echo '--- READ CLAUDE.md BEFORE ANY ACTION ---'"
+    timeout: null
+    blocking: false
+    description: Display HSEOS navigation reminder at session start
+    platform_support:
+      - claude-code
+    fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+  - id: sessionstart-all-emit-agent-state-start-event-best-effort-non-blocking
+    event: SessionStart
+    matcher: "*"
+    type: command
+    command: CLAUDE_HOOK_EVENT=SessionStart bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/state-emit-hook.sh SessionStart 2>/dev/null || true
+    timeout: null
+    blocking: false
+    description: Emit agent-state start event (best-effort, non-blocking)
+    platform_support:
+      - claude-code
+    fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+  - id: stop-all-emit-agent-state-complete-event-when-claude-session-ends-best-effort-non-blocking
+    event: Stop
+    matcher: "*"
+    type: command
+    command: CLAUDE_HOOK_EVENT=Stop bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/state-emit-hook.sh Stop 2>/dev/null || true
+    timeout: null
+    blocking: false
+    description: Emit agent-state complete event when Claude session ends (best-effort, non-blocking)
+    platform_support:
+      - claude-code
+    fallback: Use repository scripts or quality gates when the target platform has no native hook event.

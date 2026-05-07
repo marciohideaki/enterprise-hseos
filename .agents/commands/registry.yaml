@@ -1,0 +1,34 @@
+version: "1.0"
+commands:
+  - name: hseos-workflow-delivery-readiness
+    type: workflow
+    source: null
+    description: Validate predecessor steps, mandatory artifacts, and tooling before any orchestrated delivery flow starts.
+  - name: hseos-workflow-epic-delivery
+    type: workflow
+    source: null
+    description: Execute the full epic delivery pipeline with phase state, hard gates, and preparation guidance.
+  - name: hseos-workflow-release-publish
+    type: workflow
+    source: null
+    description: Publish validated artifacts with immutable evidence and handoff to deployment.
+  - name: hseos-workflow-kube-deploy
+    type: workflow
+    source: null
+    description: Update platform-gitops manifests with published image tags, create PR, and monitor ArgoCD sync. Bridges FORGE artifact publication and SABLE runtime verification.
+  - name: hseos-workflow-runtime-deploy
+    type: workflow
+    source: null
+    description: Verify rollout health, pod status, and runtime smoke after KUBE has applied the GitOps deployment.
+  - name: hseos-workflow-dev-squad
+    type: workflow
+    source: null
+    description: Plan a heterogeneous batch in Opus and execute it as parallel Sonnet/Haiku subagents isolated in worktrees. 1 task = 1 commit; 1 wave = 1 PR. Commander-extracted handoffs between waves.
+  - name: hseos-workflow-state-tracking
+    type: workflow
+    source: null
+    description: Subsystem providing SQLite-backed observability of dev-squad / orbit runs. CLI + MCP + Web SSE side-cars.
+  - name: hseos-agent-manifest
+    type: agent-index
+    source: .hseos/AGENT-MANIFEST.md
+    description: HSEOS installed agent manifest

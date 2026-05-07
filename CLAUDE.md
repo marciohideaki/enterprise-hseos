@@ -5,6 +5,17 @@
 ## Project
 Repository: `enterprise-hseos`
 
+## 0. Vendor-Neutral Agent Core
+
+Claude Code uses this file as its platform adapter. The portable HSEOS source of truth is:
+
+- `.agents/instructions/PROJECT.md` — shared agent governance
+- `.agents/manifest.yaml` — compiled skills, hooks, commands, and adapter metadata
+- `.agents/skills/<skill>/SKILL.md` — portable Agent Skills
+- `.agents/hooks/registry.yaml` — neutral hook registry that compiles to `.claude/hooks.json`
+
+If this file conflicts with `.agents/instructions/PROJECT.md` or the Enterprise Constitution, stop and escalate instead of averaging rules.
+
 ## 5. Governance Rules (Non-Negotiable)
 
 ### 5.1 Stop Conditions

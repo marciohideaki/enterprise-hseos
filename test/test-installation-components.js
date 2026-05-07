@@ -14,7 +14,12 @@ const REQUIRED_PATHS = [
   '.hseos/AGENT-MANIFEST.md',
   '.hseos/config/hseos.config.yaml',
   '.enterprise/.specs/constitution/Enterprise-Constitution.md',
+  '.agents/instructions/PROJECT.md',
+  '.agents/hooks/registry.yaml',
+  '.agents/manifest.yaml',
+  '.agents/skills/secure-coding/SKILL.md',
   'CLAUDE.md',
+  'AGENTS.md',
 ];
 
 const REQUIRED_AGENT_FILES = [
@@ -59,6 +64,24 @@ function run() {
       passed++;
     } catch (error) {
       console.error(`  FAIL  hseos.config.yaml parse error: ${error.message}`);
+      failed++;
+    }
+  }
+
+  // Validate portable agent manifest is parseable and has generated skills
+  const agentManifestPath = path.join(REPO_ROOT, '.agents', 'manifest.yaml');
+  if (fs.existsSync(agentManifestPath)) {
+    try {
+      const manifest = yaml.parse(fs.readFileSync(agentManifestPath, 'utf8'));
+      if (manifest?.counts?.skills >= 40 && manifest?.adapters?.codex && manifest?.adapters?.claude_code) {
+        console.log('  PASS  .agents/manifest.yaml has portable adapters and skills');
+        passed++;
+      } else {
+        console.error('  FAIL  .agents/manifest.yaml missing expected adapters or skill count');
+        failed++;
+      }
+    } catch (error) {
+      console.error(`  FAIL  .agents/manifest.yaml parse error: ${error.message}`);
       failed++;
     }
   }

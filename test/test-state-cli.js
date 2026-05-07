@@ -12,7 +12,7 @@ const { spawnSync } = require('node:child_process');
 
 let Database;
 try {
-  // eslint-disable-next-line n/no-missing-require
+   
   Database = require('better-sqlite3');
 } catch {
   Database = null;
