@@ -1,0 +1,12 @@
+id: hseos-pr-review
+version: "0.1.0"
+description: "Wraps the upstream pr-review-toolkit with HSEOS commit-hygiene and commit-msg validation"
+license: MIT
+authors:
+  - "Hideaki Solutions"
+extends: "official:pr-review-toolkit@1.2.0"
+requires_bundles:
+  - core
+surfaces: {}
+verification:
+  conformance_tests: tests/

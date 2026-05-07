@@ -1,0 +1,12 @@
+id: hseos-hookify
+version: "0.1.0"
+description: "Author hooks in .agents/hooks/registry.yaml neutral format with per-adapter dispatch"
+license: MIT
+authors:
+  - "Hideaki Solutions"
+extends: ""
+requires_bundles:
+  - core
+surfaces: {}
+verification:
+  conformance_tests: tests/

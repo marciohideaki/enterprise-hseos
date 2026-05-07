@@ -1,0 +1,77 @@
+# JSON Schema for plugin manifest files (.agents/plugins/definitions/<id>/plugin.yaml)
+# Validated by the compiler before emitting plugin marketplace artifacts.
+# See ADR-0009 for design rationale.
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://hseos.dev/schemas/plugin-manifest.schema.yaml"
+title: "HSEOS Plugin Manifest"
+description: |
+  Declarative spec for a plugin. Each .agents/plugins/definitions/<id>/plugin.yaml
+  conforms to this schema. The compiler validates conformance, resolves the
+  optional `extends` upstream reference, and emits both vendor formats
+  (.claude-plugin/marketplace.json and .codex-plugin/plugin.json).
+type: object
+required:
+  - id
+  - version
+  - description
+  - license
+properties:
+  id:
+    type: string
+    description: Plugin identifier — must match the registry entry and the directory name
+    pattern: "^[a-z][a-z0-9-]*$"
+  version:
+    type: string
+    description: SemVer plugin version
+    pattern: "^[0-9]+\\.[0-9]+\\.[0-9]+(-[a-zA-Z0-9.]+)?$"
+  description:
+    type: string
+    minLength: 10
+  license:
+    type: string
+    description: SPDX license identifier (e.g. MIT, Apache-2.0)
+  authors:
+    type: array
+    items: { type: string }
+  extends:
+    type: string
+    description: |
+      Optional upstream marketplace reference (e.g. "official:pr-review-toolkit@1.2.0").
+      The compiler resolves the reference and layers this plugin's overrides on top.
+      When the upstream is unreachable, the plugin loads in standalone mode with a warning.
+    pattern: "^(official|community):[a-z][a-z0-9-]*@[0-9]+\\.[0-9]+\\.[0-9]+$|^$"
+  requires_bundles:
+    type: array
+    description: MCP bundles this plugin depends on
+    items:
+      type: string
+      enum: [core, extended, enterprise]
+  surfaces:
+    type: object
+    description: |
+      Map of surface type to relative paths inside the plugin directory.
+      Surfaces are emitted to per-vendor plugin directories during compile.
+    properties:
+      skills:
+        type: array
+        items: { type: string, description: "Path to a SKILL.md file" }
+      hooks:
+        type: array
+        items: { type: string, description: "Path to a hook registry fragment" }
+      commands:
+        type: array
+        items: { type: string, description: "Path to a slash command definition" }
+      agents:
+        type: array
+        items: { type: string, description: "Path to an agent yaml extending base" }
+      mcp:
+        type: array
+        items: { type: string, description: "Path to an extra MCP server config" }
+  verification:
+    type: object
+    properties:
+      conformance_tests:
+        type: string
+        description: Path to plugin conformance test directory
+additionalProperties: false

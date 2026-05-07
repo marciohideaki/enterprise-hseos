@@ -1,0 +1,78 @@
+# HSEOS Plugin Marketplace — neutral declarative source-of-truth
+# See ADR-0009 (HSEOS Plugin Marketplace — Dual-Format) for design.
+#
+# This file is consumed by the agent-core compiler v2 to emit:
+#   - .claude-plugin/marketplace.json + .claude-plugin/plugins/<id>/...
+#   - .codex-plugin/plugin.json       + .codex-plugin/plugins/<id>/...
+#
+# Plugins MAY declare `extends: official:<id>@<version>` to layer behaviour
+# on an upstream marketplace plugin. The compiler validates the upstream
+# reference is reachable; if not, the plugin loads in standalone mode with
+# a warning per ADR-0009 §extends behaviour.
+
+version: "2.0"
+schema_version: "1.0"
+
+# Marketplace metadata (emitted to vendor formats)
+marketplace:
+  id: hseos
+  name: "HSEOS Plugin Marketplace"
+  description: "Plugins authored against the HSEOS standalone v2.0 contract — Tier-policy frontmatter, neutral hook registry, vendor-neutral skill format."
+  homepage: "https://hseos.dev/plugins"
+  license: MIT
+  authors:
+    - "Hideaki Solutions"
+
+# Conformance requirements every plugin must satisfy
+conformance:
+  required_files:
+    - plugin.yaml
+    - README.md
+  required_manifest_keys:
+    - id
+    - version
+    - description
+    - license
+  reserved_id_prefix: "hseos-"   # community plugins MAY use other prefixes
+
+# Resolution policy
+resolution:
+  duplicate_id_strategy: error
+  upstream_unreachable_strategy: load_standalone_with_warning
+
+# Plugins installed in this project. Foundation-slice entries are scaffolds —
+# concrete `surfaces:` (skills/hooks/commands/agents/mcp) materialize in W5
+# implementation follow-up PRs.
+plugins:
+  - id: hseos-skill-creator
+    version: "0.1.0"
+    status: scaffolded
+    description: "Generate SKILL.md+QUICK.md pairs with HSEOS-compliant frontmatter (tier, load_strategy, triggers, adapter_overrides)"
+    extends: ""
+    requires_bundles: [core]
+
+  - id: hseos-hookify
+    version: "0.1.0"
+    status: scaffolded
+    description: "Author hooks in .agents/hooks/registry.yaml neutral format with adapter dispatch"
+    extends: ""
+    requires_bundles: [core]
+
+  - id: hseos-pr-review
+    version: "0.1.0"
+    status: scaffolded
+    description: "Wraps pr-review-toolkit upstream with HSEOS commit-hygiene + commit-msg validation"
+    extends: "official:pr-review-toolkit@1.2.0"
+    requires_bundles: [core]
+
+  - id: hseos-security-guidance
+    version: "0.1.0"
+    status: scaffolded
+    description: "Bundles secure-coding, threat-modeling, and dependency-audit skill activations as one plugin"
+    extends: ""
+    requires_bundles: [core]
+
+# Compiler emit targets
+emit_targets:
+  claude-code: .claude-plugin/marketplace.json
+  codex: .codex-plugin/plugin.json
