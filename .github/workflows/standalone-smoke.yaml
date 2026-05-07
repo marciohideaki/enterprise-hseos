@@ -1,0 +1,59 @@
+name: Standalone Smoke Test
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  standalone-smoke:
+    name: "Standalone clean-env smoke (node:20)"
+    runs-on: ubuntu-latest
+    container:
+      image: node:20
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Assert no host agent state mounted
+        run: |
+          set -e
+          test ! -d ~/.claude              || { echo "FAIL: ~/.claude leaked"; exit 1; }
+          test ! -d ~/.codex               || { echo "FAIL: ~/.codex leaked";  exit 1; }
+          test ! -d /opt/hideakisolutions  || { echo "FAIL: vault path leaked"; exit 1; }
+
+      - name: Install dependencies (npm ci)
+        run: npm ci
+
+      - name: Validate schemas
+        run: npm run validate:schemas
+
+      - name: Lint (zero warnings enforced)
+        run: npm run lint
+
+      - name: Installation component tests
+        run: npm run test:install
+
+      - name: P5 zero global path — grep guards
+        run: |
+          set -e
+          # No runtime asset references ~/.claude or vault hard paths.
+          # docs/ is allowed to mention them in migration prose.
+          ! grep -rn "~/\.claude\|/opt/hideakisolutions/second-brain" \
+            .agents/ .hseos/agents/ .enterprise/governance/ scripts/governance/
+
+      - name: P6 graceful degradation — second-brain optional flag
+        run: |
+          set -e
+          grep -q "vault_required: false" .agents/skills/second-brain/SKILL.md
+          grep -q "vault_required: false" .agents/skills/second-brain/QUICK.md
+
+      - name: Full test suite
+        run: npm test
