@@ -1,0 +1,29 @@
+{
+  "name": "@hseos/adapter-sdk",
+  "version": "0.1.0-scaffolded",
+  "description": "Bring-Your-Own-Adapter SDK for the HSEOS standalone v2.0 architecture (ADR-0007). Lets third parties ship vendor adapters as npm packages that the HSEOS compiler auto-discovers.",
+  "license": "MIT",
+  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "lib/",
+    "schema/"
+  ],
+  "scripts": {
+    "test": "echo 'Implementation lands in Wave 7 follow-up PR' && exit 0"
+  },
+  "keywords": [
+    "hseos",
+    "agent-core",
+    "byoa",
+    "adapter-sdk",
+    "model-context-protocol"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
