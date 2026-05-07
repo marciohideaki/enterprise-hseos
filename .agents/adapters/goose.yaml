@@ -1,0 +1,44 @@
+version: "1.0"
+id: goose
+implementation: packages/adapter-goose/index.js
+note: |
+  BYOA reference adapter (Wave 7 implementation). Goose is an LF AAIF
+  member project (Block/Square heritage, MCP-native, multi-provider).
+  The implementation lands when @hseos/adapter-sdk extracts and Goose
+  becomes the proof-of-contract for the BYOA pattern declared in
+  ADR-0007.
+
+capabilities:
+  hooks:
+    events:
+      - PreToolUse
+      - PostToolUse
+      - SessionStart
+      - SessionEnd
+    matchers:
+      - tool_name
+  subagents:
+    native: true
+    format: goose_extension
+  slash_commands:
+    native: false
+    location: ""
+  mcp:
+    transport: stdio
+    config: .goose/mcp.json
+  statusline:
+    native: false
+    format: ""
+  settings:
+    location: .goose/config.yaml
+    schema: goose-config-v1
+
+output:
+  entrypoint: AGENTS.md
+  files:
+    - { type: settings, path: .goose/config.yaml, generated: true, mergeable: true }
+    - { type: skills_link, path: .agents/skills/, generated: false }
+    - { type: mcp, path: .goose/mcp.json, generated: true, mergeable: true }
+
+fallbacks:
+  unsupported_capability: "Goose has no slash-command equivalent; surface workflows as agent-extension entries instead."
