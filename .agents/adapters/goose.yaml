@@ -1,44 +1,33 @@
 version: "1.0"
 id: goose
-implementation: packages/adapter-goose/index.js
-note: |
-  BYOA reference adapter (Wave 7 implementation). Goose is an LF AAIF
-  member project (Block/Square heritage, MCP-native, multi-provider).
-  The implementation lands when @hseos/adapter-sdk extracts and Goose
-  becomes the proof-of-contract for the BYOA pattern declared in
-  ADR-0007.
-
+description: "Adapter for Goose (Block / LF AAIF reference AI coding tool)"
+implementation: tools/cli/installers/lib/core/agent-core-compiler/adapters/goose.js
 capabilities:
   hooks:
-    events:
-      - PreToolUse
-      - PostToolUse
-      - SessionStart
-      - SessionEnd
-    matchers:
-      - tool_name
+    events: []
+    matchers: []
+    note: "Goose does not support hooks natively; hook metadata written to .goose/hooks-metadata.json as advisory"
   subagents:
-    native: true
-    format: goose_extension
-  slash_commands:
     native: false
-    location: ""
+    format: "Goose uses toolset plugins; subagent patterns documented in .goose/agents/"
+  slash_commands:
+    native: true
+    location: .goose/skills/
+    format: markdown
   mcp:
     transport: stdio
-    config: .goose/mcp.json
+    config: .goose/config.yaml
   statusline:
     native: false
-    format: ""
   settings:
     location: .goose/config.yaml
-    schema: goose-config-v1
-
+    schema: yaml
 output:
-  entrypoint: AGENTS.md
+  entrypoint: .goose/config.yaml
   files:
-    - { type: settings, path: .goose/config.yaml, generated: true, mergeable: true }
-    - { type: skills_link, path: .agents/skills/, generated: false }
-    - { type: mcp, path: .goose/mcp.json, generated: true, mergeable: true }
-
+    - { type: config,    path: .goose/config.yaml,          generated: true,  mergeable: false }
+    - { type: skills,    path: .goose/skills/,               generated: true,  mergeable: true }
+    - { type: agents,    path: .goose/agents/,               generated: true,  mergeable: true }
+    - { type: hooks_meta, path: .goose/hooks-metadata.json, generated: true,  mergeable: false }
 fallbacks:
-  unsupported_capability: "Goose has no slash-command equivalent; surface workflows as agent-extension entries instead."
+  unsupported_capability: "Goose does not support hooks; hook intent documented in .goose/hooks-metadata.json for manual implementation"
