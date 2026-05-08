@@ -1,0 +1,5 @@
+task_id=w2-compiler
+task_branch=task/w2-compiler
+feature_branch=feature/standalone-w2-impl-compiler-modular
+created_at=20260508T174237
+status=active
