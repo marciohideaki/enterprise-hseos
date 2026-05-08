@@ -6,17 +6,18 @@ const { runDoctor } = require('../installers/lib/core/agent-core-compiler/verify
 const prompts = require('../lib/prompts');
 
 const SUPPORTED_ACTIONS = new Set(['compile', 'verify', 'audit', 'doctor']);
+const ALL_PLATFORMS = ['claude-code', 'codex', 'cursor', 'continue', 'aider', 'cline'];
+
+function resolvePlatforms(target) {
+  if (!target || target === 'all') return ALL_PLATFORMS;
+  return target.split(',').map((t) => t.trim()).filter(Boolean);
+}
 
 async function runCompile(projectDir, options) {
   const hseosDir = path.join(projectDir, '.hseos');
   const compiler = new AgentCoreCompiler();
-  const target = options.target || 'all';
-  if (target !== 'all') {
-    await prompts.log.warn(
-      `--target ${target}: per-adapter compile lands in a follow-up Wave 2 commit; running all targets`,
-    );
-  }
-  const result = await compiler.compile(projectDir, hseosDir);
+  const platforms = resolvePlatforms(options.target);
+  const result = await compiler.compile(projectDir, hseosDir, { platforms });
   await prompts.log.success(
     `Agent core compiled: ${result.skills} skills, ${result.hooks} hooks, ${result.commands} commands -> ${result.manifest}`,
   );
