@@ -623,6 +623,169 @@ function testOnPromptSubmit() {
 }
 
 // =============================================================================
+// session-end.sh
+// =============================================================================
+
+function testSessionEnd() {
+  const scriptPath = path.join(HANDLERS_DIR, 'session-end.sh');
+
+  assertPass(
+    'session-end.sh exists',
+    fs.existsSync(scriptPath),
+    scriptPath,
+  );
+
+  if (!fs.existsSync(scriptPath)) {
+    return;
+  }
+
+  const stat = fs.statSync(scriptPath);
+  assertPass(
+    'session-end.sh is executable',
+    (stat.mode & 0o111) !== 0,
+    `mode=${stat.mode.toString(8)}`,
+  );
+
+  // Outside HSEOS project: silent no-op
+  withTempDir((tempDir) => {
+    const result = runHandler(scriptPath, [], { cwd: tempDir });
+    assertPass(
+      'session-end.sh outside HSEOS project is silent no-op',
+      result.ok && result.stdout.trim() === '',
+      `stdout="${result.stdout.trim()}"`,
+    );
+  });
+
+  // Inside HSEOS, no second_brain config -> Tier 1 only (SESSION-END.md written)
+  withTempDir((tempDir) => {
+    fs.mkdirSync(path.join(tempDir, '.hseos'), { recursive: true });
+
+    const sessionId = `tier1-${Date.now()}`;
+    const env = { ...process.env, HSEOS_SESSION_ID: sessionId };
+    const result = runHandler(scriptPath, [], { cwd: tempDir, env });
+
+    assertPass(
+      'session-end.sh inside HSEOS exits 0 (Tier 1 only)',
+      result.ok,
+      `stderr="${result.stderr ?? ''}"`,
+    );
+
+    const marker = path.join(
+      tempDir, '.hseos', 'runs', 'sessions', sessionId, 'SESSION-END.md',
+    );
+    assertPass(
+      'session-end.sh writes SESSION-END.md marker',
+      fs.existsSync(marker),
+      marker,
+    );
+
+    if (fs.existsSync(marker)) {
+      const body = fs.readFileSync(marker, 'utf8');
+      assertPass(
+        'session-end.sh marker contains required sections',
+        body.includes('# Session End') &&
+          body.includes(`Session:** \`${sessionId}\``) &&
+          body.includes('## Dirty working tree'),
+        `body length=${body.length}`,
+      );
+    }
+  });
+
+  // Inside HSEOS, second_brain.enabled: false -> Tier 1 only (vault NOT touched)
+  withTempDir((tempDir) => {
+    const hseosDir = path.join(tempDir, '.hseos');
+    const configDir = path.join(hseosDir, 'config');
+    fs.mkdirSync(configDir, { recursive: true });
+
+    const vaultDir = path.join(tempDir, 'fake-vault');
+    fs.mkdirSync(path.join(vaultDir, '_memory'), { recursive: true });
+    fs.writeFileSync(path.join(vaultDir, '_memory', 'activity-log.md'), '# Pre-existing log\n');
+
+    fs.writeFileSync(
+      path.join(configDir, 'hseos.config.yaml'),
+      [
+        'framework:',
+        '  name: test',
+        '',
+        'second_brain:',
+        '  enabled: false',
+        `  path: ${vaultDir}`,
+        '',
+      ].join('\n'),
+    );
+
+    const sessionId = `disabled-${Date.now()}`;
+    const env = { ...process.env, HSEOS_SESSION_ID: sessionId };
+    const result = runHandler(scriptPath, [], { cwd: tempDir, env });
+
+    assertPass(
+      'session-end.sh with enabled:false skips Tier 2 (vault untouched)',
+      result.ok,
+      `stderr="${result.stderr ?? ''}"`,
+    );
+
+    const log = fs.readFileSync(path.join(vaultDir, '_memory', 'activity-log.md'), 'utf8');
+    assertPass(
+      'session-end.sh enabled:false: vault activity-log NOT modified',
+      log === '# Pre-existing log\n',
+      `log changed: "${log.slice(0, 60)}"`,
+    );
+    assertPass(
+      'session-end.sh enabled:false: .needs-end-session flag NOT created',
+      !fs.existsSync(path.join(vaultDir, '_memory', '.needs-end-session')),
+      'flag exists when it should not',
+    );
+  });
+
+  // Inside HSEOS, second_brain.enabled: true -> Tier 1 + Tier 2 (vault appended)
+  withTempDir((tempDir) => {
+    const hseosDir = path.join(tempDir, '.hseos');
+    const configDir = path.join(hseosDir, 'config');
+    fs.mkdirSync(configDir, { recursive: true });
+
+    const vaultDir = path.join(tempDir, 'real-vault');
+    fs.mkdirSync(path.join(vaultDir, '_memory'), { recursive: true });
+    fs.writeFileSync(path.join(vaultDir, '_memory', 'activity-log.md'), '# Pre-existing log\n');
+
+    fs.writeFileSync(
+      path.join(configDir, 'hseos.config.yaml'),
+      [
+        'framework:',
+        '  name: test',
+        '',
+        'second_brain:',
+        '  enabled: true',
+        `  path: ${vaultDir}`,
+        '',
+      ].join('\n'),
+    );
+
+    const sessionId = `enabled-${Date.now()}`;
+    const env = { ...process.env, HSEOS_SESSION_ID: sessionId };
+    const result = runHandler(scriptPath, [], { cwd: tempDir, env });
+
+    assertPass(
+      'session-end.sh with enabled:true exits 0 (Tier 1 + 2)',
+      result.ok,
+      `stderr="${result.stderr ?? ''}"`,
+    );
+
+    const log = fs.readFileSync(path.join(vaultDir, '_memory', 'activity-log.md'), 'utf8');
+    assertPass(
+      'session-end.sh enabled:true: vault activity-log appended',
+      log.includes('# Pre-existing log') &&
+        /## \[.+\] session-end \| .+/.test(log),
+      `log excerpt="${log.slice(-120)}"`,
+    );
+    assertPass(
+      'session-end.sh enabled:true: .needs-end-session flag created',
+      fs.existsSync(path.join(vaultDir, '_memory', '.needs-end-session')),
+      'flag missing',
+    );
+  });
+}
+
+// =============================================================================
 // Run
 // =============================================================================
 
@@ -632,6 +795,7 @@ testCodeIndexPostEdit();
 testOnNotification();
 testPreCompact();
 testOnPromptSubmit();
+testSessionEnd();
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed === 0 ? 0 : 1);
