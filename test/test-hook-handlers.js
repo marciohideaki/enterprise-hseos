@@ -786,6 +786,144 @@ function testSessionEnd() {
 }
 
 // =============================================================================
+// suggest-skill.sh
+// =============================================================================
+
+function testSuggestSkill() {
+  const scriptPath = path.join(HANDLERS_DIR, 'suggest-skill.sh');
+
+  assertPass(
+    'suggest-skill.sh exists',
+    fs.existsSync(scriptPath),
+    scriptPath,
+  );
+
+  if (!fs.existsSync(scriptPath)) {
+    return;
+  }
+
+  const stat = fs.statSync(scriptPath);
+  assertPass(
+    'suggest-skill.sh is executable',
+    (stat.mode & 0o111) !== 0,
+    `mode=${stat.mode.toString(8)}`,
+  );
+
+  // Outside HSEOS project (no .agents/skills/) → silent no-op
+  withTempDir((tempDir) => {
+    const payload = JSON.stringify({
+      tool_input: { prompt: 'commit-hygiene anything', description: '', subagent_type: '' },
+    });
+    const result = runHandlerWithStdin(scriptPath, payload, { cwd: tempDir });
+    assertPass(
+      'suggest-skill.sh outside HSEOS project is silent no-op',
+      result.ok && result.stdout.trim() === '',
+      `stdout="${result.stdout.trim()}"`,
+    );
+  });
+
+  function withFakeSkillsTree(fn) {
+    return withTempDir((tempDir) => {
+      const skillsDir = path.join(tempDir, '.agents', 'skills');
+      fs.mkdirSync(skillsDir, { recursive: true });
+
+      // commit-hygiene skill
+      const commitHygieneDir = path.join(skillsDir, 'commit-hygiene');
+      fs.mkdirSync(commitHygieneDir);
+      fs.writeFileSync(
+        path.join(commitHygieneDir, 'SKILL.md'),
+        [
+          '---',
+          'name: commit-hygiene',
+          'description: Validate commit messages, branch naming, and trailer policies',
+          'tier: 1',
+          'triggers:',
+          '  - commit-hygiene',
+          '  - conventional commits',
+          '  - branch protection',
+          '---',
+          '',
+          '# Commit Hygiene',
+          '',
+        ].join('\n'),
+      );
+
+      // doc-project skill (should NOT match a commit prompt)
+      const docProjectDir = path.join(skillsDir, 'doc-project');
+      fs.mkdirSync(docProjectDir);
+      fs.writeFileSync(
+        path.join(docProjectDir, 'SKILL.md'),
+        [
+          '---',
+          'name: doc-project',
+          'description: Generate bilingual README and project documentation',
+          'tier: 2',
+          'triggers: [readme, changelog, contributing]',
+          '---',
+          '',
+          '# Doc Project',
+          '',
+        ].join('\n'),
+      );
+
+      fn(tempDir, skillsDir);
+    });
+  }
+
+  // Inside HSEOS, commit-hygiene-related prompt → advisory matches commit-hygiene only
+  withFakeSkillsTree((tempDir) => {
+    const payload = JSON.stringify({
+      tool_input: {
+        prompt: 'Validate the commit-hygiene rules before this PR opens',
+        description: '',
+        subagent_type: '',
+      },
+    });
+    const result = runHandlerWithStdin(scriptPath, payload, { cwd: tempDir });
+
+    assertPass(
+      'suggest-skill.sh emits advisory when prompt matches a skill trigger',
+      result.ok && /\[HSEOS\]\[SKILL-CHECK\]/.test(result.stdout) &&
+        result.stdout.includes('/commit-hygiene'),
+      `stdout="${result.stdout.slice(0, 120)}..."`,
+    );
+
+    assertPass(
+      'suggest-skill.sh advisory does not include unrelated skills',
+      !result.stdout.includes('/doc-project'),
+      `stdout="${result.stdout.trim()}"`,
+    );
+  });
+
+  // Inside HSEOS, prompt with no skill match → silent no-op
+  withFakeSkillsTree((tempDir) => {
+    const payload = JSON.stringify({
+      tool_input: {
+        prompt: 'a completely unrelated topic about kitchen recipes',
+        description: '',
+        subagent_type: '',
+      },
+    });
+    const result = runHandlerWithStdin(scriptPath, payload, { cwd: tempDir });
+    assertPass(
+      'suggest-skill.sh silent when no skill triggers match',
+      result.ok && result.stdout.trim() === '',
+      `stdout="${result.stdout.trim()}"`,
+    );
+  });
+
+  // Empty stdin → silent no-op
+  withFakeSkillsTree((tempDir) => {
+    const result = runHandlerWithStdin(scriptPath, '', { cwd: tempDir });
+    assertPass(
+      'suggest-skill.sh with empty stdin is silent no-op',
+      result.ok && result.stdout.trim() === '',
+      `stdout="${result.stdout.trim()}"`,
+    );
+  });
+}
+
+// =============================================================================
 // Run
 // =============================================================================
 
@@ -796,6 +934,7 @@ testOnNotification();
 testPreCompact();
 testOnPromptSubmit();
 testSessionEnd();
+testSuggestSkill();
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed === 0 ? 0 : 1);
