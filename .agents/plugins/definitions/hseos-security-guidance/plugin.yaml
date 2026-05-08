@@ -7,6 +7,9 @@ authors:
 extends: ""
 requires_bundles:
   - core
-surfaces: {}
+surfaces:
+  skills:
+    - skills/threat-modeling/SKILL.md
+    - skills/dependency-audit/SKILL.md
 verification:
   conformance_tests: tests/

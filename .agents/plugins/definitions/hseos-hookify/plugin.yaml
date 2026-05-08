@@ -7,6 +7,8 @@ authors:
 extends: ""
 requires_bundles:
   - core
-surfaces: {}
+surfaces:
+  hooks:
+    - hooks/registry-fragment.yaml
 verification:
   conformance_tests: tests/

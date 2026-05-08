@@ -46,28 +46,28 @@ resolution:
 plugins:
   - id: hseos-skill-creator
     version: "0.1.0"
-    status: scaffolded
+    status: active
     description: "Generate SKILL.md+QUICK.md pairs with HSEOS-compliant frontmatter (tier, load_strategy, triggers, adapter_overrides)"
     extends: ""
     requires_bundles: [core]
 
   - id: hseos-hookify
     version: "0.1.0"
-    status: scaffolded
+    status: active
     description: "Author hooks in .agents/hooks/registry.yaml neutral format with adapter dispatch"
     extends: ""
     requires_bundles: [core]
 
   - id: hseos-pr-review
     version: "0.1.0"
-    status: scaffolded
+    status: active
     description: "Wraps pr-review-toolkit upstream with HSEOS commit-hygiene + commit-msg validation"
     extends: "official:pr-review-toolkit@1.2.0"
     requires_bundles: [core]
 
   - id: hseos-security-guidance
     version: "0.1.0"
-    status: scaffolded
+    status: active
     description: "Bundles secure-coding, threat-modeling, and dependency-audit skill activations as one plugin"
     extends: ""
     requires_bundles: [core]

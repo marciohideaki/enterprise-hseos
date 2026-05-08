@@ -7,6 +7,9 @@ authors:
 extends: "official:pr-review-toolkit@1.2.0"
 requires_bundles:
   - core
-surfaces: {}
+surfaces:
+  commands:
+    - commands/pr-review.md
+    - commands/pr-lint.md
 verification:
   conformance_tests: tests/
