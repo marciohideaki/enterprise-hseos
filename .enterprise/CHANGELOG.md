@@ -1,3 +1,36 @@
+# CHANGELOG — HSEOS
+
+## [2.0.0] — 2026-05-08
+
+**Status:** Stable  
+**Type:** Standalone Architecture — AI-Assisted Engineering Operating System  
+**Breaking change:** v1.x installs are not compatible with v2.0 agent/skill layout. See [MIGRATION-GUIDE.md](../MIGRATION-GUIDE.md).
+
+### O que esta release entrega
+
+Migração completa de 10 waves para arquitetura standalone (ADR-0006):
+
+| Wave | Escopo | Entregável principal |
+|------|--------|----------------------|
+| W0 | Foundation | Estrutura base standalone, separação enterprise/hseos |
+| W1 | Decoupling | Remoção de dependências externas; autocontido |
+| W2 | Compiler v2 | `agent-core-compiler` modular: sources/, adapters/, lib/, manifest/ |
+| W3 | MCP Bundle | 3 MCP servers: hseos-governance :3101, hseos-swarm :3102, axon-bridge :3103 |
+| W4 | Hooks v2 | 8 handlers ativos: plan-lint, pre-compact, on-prompt-submit, session-end, suggest-skill, code-index-guard, code-index-post-edit, on-notification |
+| W5 | Plugins | 4 plugin defs + `plugins-source.js` + `plugins-emit.js`; CLI plugin list/install/remove/doctor; 22 testes |
+| W6 | Self-Verification | `verify/integrity.js` (sha256 chain), `verify/audit.js` (drift detection), `verify/doctor.js` (8 health checks); 12 testes |
+| W7 | Adapter SDK / BYOA | `packages/adapter-sdk/index.js` (AdapterBase + conformance checker), Goose adapter, discovery via `node_modules/@hseos/adapter-*`; 37 testes |
+| W8 | Docs + CI | README bilíngue, MIGRATION-GUIDE completo, CI matrix (Node 20.x + 22.x), release.yaml tag-triggered, smithery.yaml |
+| W9 | Release v2.0 | Version bump 1.1.0 → 2.0.0, esta entrada de CHANGELOG, tag `v2.0.0`, npm publish |
+
+### Verificação
+```bash
+npm test          # todos os testes devem passar
+npm info hseos version   # → 2.0.0 após publish
+```
+
+---
+
 # 🏷️ Enterprise Overlay — v1.0.0
 
 **Status:** Stable  
