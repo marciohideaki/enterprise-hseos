@@ -101,10 +101,10 @@ hooks:
     fallback: Use repository scripts or quality gates when the target platform has no native hook event.
 
   # ---------------------------------------------------------------------------
-  # Pending entries (Wave 4 foundation): declares migration targets from
-  # ~/.claude/hooks/ globals. Handler scripts land in .agents/hooks/handlers/
-  # via Wave 4 implementation follow-ups. The compiler v2 ignores entries
-  # with status: pending until the corresponding handler script exists.
+  # Internalized handlers (Wave 4 implementation slice complete).
+  # All eight handler scripts live at .agents/hooks/handlers/ and pass the
+  # integration suite at test/test-hook-handlers.js (68 assertions).
+  # Status flipped from pending → active in W4-T9 (this commit).
   # ---------------------------------------------------------------------------
   - id: posttooluse-write-edit-plan-lint-validate-execution-protocol-section
     event: PostToolUse
@@ -113,7 +113,7 @@ hooks:
     command: bash .agents/hooks/handlers/plan-lint.sh "$CLAUDE_TOOL_FILE_PATH"
     timeout: null
     blocking: false
-    status: pending
+    status: active
     description: Lint plan files for missing Execution Protocol section in parallel-flow plans
     platform_support:
       - claude-code
@@ -126,7 +126,7 @@ hooks:
     command: bash .agents/hooks/handlers/pre-compact.sh
     timeout: 10
     blocking: false
-    status: pending
+    status: active
     description: Snapshot critical context (next steps, open questions) before compaction
     platform_support:
       - claude-code
@@ -139,7 +139,7 @@ hooks:
     command: bash .agents/hooks/handlers/on-prompt-submit.sh
     timeout: 5
     blocking: false
-    status: pending
+    status: active
     description: Project-scoped prompt logging and state injection (vault concerns stripped vs upstream)
     platform_support:
       - claude-code
@@ -152,7 +152,7 @@ hooks:
     command: bash .agents/hooks/handlers/session-end.sh
     timeout: null
     blocking: false
-    status: pending
+    status: active
     description: Session-end log; vault sync only when second_brain.enabled true
     platform_support:
       - claude-code
@@ -165,7 +165,7 @@ hooks:
     command: bash .agents/hooks/handlers/suggest-skill.sh
     timeout: 5
     blocking: false
-    status: pending
+    status: active
     description: Recommend skills before Agent spawn based on SKILL.md frontmatter triggers
     platform_support:
       - claude-code
@@ -178,7 +178,7 @@ hooks:
     command: bash .agents/hooks/handlers/code-index-guard.sh "$CLAUDE_TOOL_NAME"
     timeout: 3
     blocking: true
-    status: pending
+    status: active
     description: Block raw search when a code index (axon, etc.) is available; pluggable across providers
     platform_support:
       - claude-code
@@ -191,7 +191,7 @@ hooks:
     command: bash .agents/hooks/handlers/code-index-post-edit.sh "$CLAUDE_TOOL_FILE_PATH"
     timeout: null
     blocking: false
-    status: pending
+    status: active
     description: Trigger index reindex after edits; pluggable across code-index providers
     platform_support:
       - claude-code
@@ -204,7 +204,7 @@ hooks:
     command: bash .agents/hooks/handlers/on-notification.sh "$CLAUDE_NOTIFICATION_MESSAGE"
     timeout: 5
     blocking: false
-    status: pending
+    status: active
     description: System notification for long-running operations (cross-platform — toast/bell)
     platform_support:
       - claude-code
