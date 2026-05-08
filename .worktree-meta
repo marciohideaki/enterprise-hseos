@@ -1,5 +1,5 @@
-task_id=w6-verify
-task_branch=task/w6-verify
-feature_branch=feature/standalone-w6-impl-verify-audit-doctor
-created_at=20260508T175415
+task_id=w5-plugins
+task_branch=task/w5-plugins
+feature_branch=feature/standalone-w5-impl-plugins
+created_at=20260508T181935
 status=active

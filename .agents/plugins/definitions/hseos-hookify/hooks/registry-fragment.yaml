@@ -1,0 +1,13 @@
+# hseos-hookify hook fragment — merged into .agents/hooks/registry.yaml on install
+version: "1.1"
+hooks:
+  - id: hookify-post-write
+    event: PostToolUse
+    matcher: Write|Edit
+    type: command
+    command: bash .agents/hooks/handlers/hookify-validate.sh "$CLAUDE_TOOL_FILE_PATH"
+    blocking: false
+    status: active
+    description: Validates that any new hook handlers follow the neutral registry pattern
+    platform_support:
+      - claude-code
