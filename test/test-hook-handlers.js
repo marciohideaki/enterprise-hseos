@@ -924,6 +924,121 @@ function testSuggestSkill() {
 }
 
 // =============================================================================
+// code-index-guard.sh
+// =============================================================================
+
+function testCodeIndexGuard() {
+  const scriptPath = path.join(HANDLERS_DIR, 'code-index-guard.sh');
+
+  assertPass(
+    'code-index-guard.sh exists',
+    fs.existsSync(scriptPath),
+    scriptPath,
+  );
+
+  if (!fs.existsSync(scriptPath)) {
+    return;
+  }
+
+  const stat = fs.statSync(scriptPath);
+  assertPass(
+    'code-index-guard.sh is executable',
+    (stat.mode & 0o111) !== 0,
+    `mode=${stat.mode.toString(8)}`,
+  );
+
+  // No provider detected -> silent allow (exit 0, empty stdout)
+  withTempDir((tempDir) => {
+    const result = runHandler(scriptPath, ['Grep'], { cwd: tempDir });
+    assertPass(
+      'code-index-guard.sh with no provider → silent allow',
+      result.ok && result.stdout.trim() === '',
+      `stdout="${result.stdout.trim()}"`,
+    );
+  });
+
+  // Provider .axon/ but no index file -> silent allow (per design: hint
+  // is delegated to on-prompt-submit.sh once per session, not per call)
+  withTempDir((tempDir) => {
+    fs.mkdirSync(path.join(tempDir, '.axon'));
+    const result = runHandler(scriptPath, ['Grep'], { cwd: tempDir });
+    assertPass(
+      'code-index-guard.sh with provider but no index → silent allow',
+      result.ok && result.stdout.trim() === '',
+      `stdout="${result.stdout.trim()}"`,
+    );
+  });
+
+  // Provider .axon/ with index.duckdb -> blocking JSON output
+  withTempDir((tempDir) => {
+    fs.mkdirSync(path.join(tempDir, '.axon'));
+    fs.writeFileSync(path.join(tempDir, '.axon', 'index.duckdb'), '');
+
+    const result = runHandler(scriptPath, ['Grep'], { cwd: tempDir });
+    let parsed = null;
+    try {
+      parsed = JSON.parse(result.stdout.trim());
+    } catch {
+      parsed = null;
+    }
+    assertPass(
+      'code-index-guard.sh with provider+index on Grep → emits blocking JSON',
+      result.ok &&
+        parsed &&
+        parsed.hookSpecificOutput &&
+        parsed.hookSpecificOutput.permissionDecision === 'ask' &&
+        parsed.hookSpecificOutput.hookEventName === 'PreToolUse' &&
+        /Grep/.test(parsed.hookSpecificOutput.permissionDecisionReason ?? ''),
+      `stdout="${result.stdout.slice(0, 120)}"`,
+    );
+  });
+
+  // Provider+index on Glob -> different reason text
+  withTempDir((tempDir) => {
+    fs.mkdirSync(path.join(tempDir, '.axon'));
+    fs.writeFileSync(path.join(tempDir, '.axon', 'index.duckdb'), '');
+
+    const result = runHandler(scriptPath, ['Glob'], { cwd: tempDir });
+    let parsed = null;
+    try { parsed = JSON.parse(result.stdout.trim()); } catch { parsed = null; }
+    assertPass(
+      'code-index-guard.sh with provider+index on Glob → emits blocking JSON',
+      result.ok && parsed &&
+        /Glob/.test(parsed.hookSpecificOutput.permissionDecisionReason ?? '') &&
+        /get_skeleton|skeleton/.test(parsed.hookSpecificOutput.additionalContext ?? ''),
+      `stdout="${result.stdout.slice(0, 120)}"`,
+    );
+  });
+
+  // HSEOS_BYPASS_INDEX=1 -> silent allow even with provider+index
+  withTempDir((tempDir) => {
+    fs.mkdirSync(path.join(tempDir, '.axon'));
+    fs.writeFileSync(path.join(tempDir, '.axon', 'index.duckdb'), '');
+
+    const env = { ...process.env, HSEOS_BYPASS_INDEX: '1' };
+    const result = runHandler(scriptPath, ['Grep'], { cwd: tempDir, env });
+    assertPass(
+      'code-index-guard.sh respects HSEOS_BYPASS_INDEX=1 (silent allow)',
+      result.ok && result.stdout.trim() === '',
+      `stdout="${result.stdout.trim()}"`,
+    );
+  });
+
+  // Other tool names (not Grep/Glob) -> silent allow even with provider+index
+  withTempDir((tempDir) => {
+    fs.mkdirSync(path.join(tempDir, '.axon'));
+    fs.writeFileSync(path.join(tempDir, '.axon', 'index.duckdb'), '');
+
+    const result = runHandler(scriptPath, ['Read'], { cwd: tempDir });
+    assertPass(
+      'code-index-guard.sh ignores non-Grep/Glob tools',
+      result.ok && result.stdout.trim() === '',
+      `stdout="${result.stdout.trim()}"`,
+    );
+  });
+}
+
+// =============================================================================
 // Run
 // =============================================================================
 
@@ -935,6 +1050,7 @@ testPreCompact();
 testOnPromptSubmit();
 testSessionEnd();
 testSuggestSkill();
+testCodeIndexGuard();
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed === 0 ? 0 : 1);
