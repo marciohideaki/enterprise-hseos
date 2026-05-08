@@ -1,0 +1,5 @@
+task_id=w6-verify
+task_branch=task/w6-verify
+feature_branch=feature/standalone-w6-impl-verify-audit-doctor
+created_at=20260508T175415
+status=active
