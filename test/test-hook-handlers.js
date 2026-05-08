@@ -462,6 +462,167 @@ function testPreCompact() {
 }
 
 // =============================================================================
+// on-prompt-submit.sh
+// =============================================================================
+
+function runHandlerWithStdin(scriptPath, stdinPayload, options = {}) {
+  try {
+    const output = execFileSync('bash', [scriptPath], {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 5000,
+      input: stdinPayload,
+      ...options,
+    });
+    return { ok: true, stdout: output, exitCode: 0 };
+  } catch (error) {
+    return {
+      ok: false,
+      stdout: error.stdout ? error.stdout.toString() : '',
+      stderr: error.stderr ? error.stderr.toString() : '',
+      exitCode: error.status ?? 1,
+    };
+  }
+}
+
+function testOnPromptSubmit() {
+  const scriptPath = path.join(HANDLERS_DIR, 'on-prompt-submit.sh');
+
+  assertPass(
+    'on-prompt-submit.sh exists',
+    fs.existsSync(scriptPath),
+    scriptPath,
+  );
+
+  if (!fs.existsSync(scriptPath)) {
+    return;
+  }
+
+  const stat = fs.statSync(scriptPath);
+  assertPass(
+    'on-prompt-submit.sh is executable',
+    (stat.mode & 0o111) !== 0,
+    `mode=${stat.mode.toString(8)}`,
+  );
+
+  // Outside an HSEOS project: silent no-op
+  withTempDir((tempDir) => {
+    const payload = JSON.stringify({ prompt: 'hello world', cwd: tempDir });
+    const result = runHandlerWithStdin(scriptPath, payload, { cwd: tempDir });
+    assertPass(
+      'on-prompt-submit.sh outside HSEOS project is silent no-op',
+      result.ok && result.stdout.trim() === '',
+      `stdout="${result.stdout.trim()}"`,
+    );
+  });
+
+  // Inside HSEOS project: writes prompt log
+  withTempDir((tempDir) => {
+    fs.mkdirSync(path.join(tempDir, '.hseos'), { recursive: true });
+
+    const sessionId = `test-${Date.now()}`;
+    const env = { ...process.env, HSEOS_SESSION_ID: sessionId };
+    const payload = JSON.stringify({ prompt: 'just a regular prompt', cwd: tempDir });
+
+    const result = runHandlerWithStdin(scriptPath, payload, { cwd: tempDir, env });
+
+    assertPass(
+      'on-prompt-submit.sh inside HSEOS project exits 0',
+      result.ok,
+      `stderr="${result.stderr ?? ''}"`,
+    );
+
+    const promptsDir = path.join(
+      tempDir, '.hseos', 'runs', 'sessions', sessionId, 'prompts',
+    );
+    const dirExists = fs.existsSync(promptsDir);
+    assertPass(
+      'on-prompt-submit.sh creates .hseos/runs/sessions/<id>/prompts/',
+      dirExists,
+      promptsDir,
+    );
+
+    if (dirExists) {
+      const files = fs.readdirSync(promptsDir);
+      assertPass(
+        'on-prompt-submit.sh writes one prompt file',
+        files.length === 1,
+        `files=${JSON.stringify(files)}`,
+      );
+
+      if (files.length === 1) {
+        const body = fs.readFileSync(path.join(promptsDir, files[0]), 'utf8');
+        assertPass(
+          'on-prompt-submit.sh prompt file contains the prompt',
+          body.includes('just a regular prompt') &&
+            body.includes(sessionId),
+          `body excerpt="${body.slice(0, 80)}"`,
+        );
+      }
+    }
+  });
+
+  // Empty stdin: silent no-op (no prompt, even when in HSEOS project)
+  withTempDir((tempDir) => {
+    fs.mkdirSync(path.join(tempDir, '.hseos'), { recursive: true });
+    const sessionId = `empty-${Date.now()}`;
+    const env = { ...process.env, HSEOS_SESSION_ID: sessionId };
+
+    const result = runHandlerWithStdin(scriptPath, '', { cwd: tempDir, env });
+    assertPass(
+      'on-prompt-submit.sh with empty stdin is silent no-op',
+      result.ok && result.stdout.trim() === '',
+      `stdout="${result.stdout.trim()}"`,
+    );
+
+    const promptsDir = path.join(
+      tempDir, '.hseos', 'runs', 'sessions', sessionId, 'prompts',
+    );
+    assertPass(
+      'on-prompt-submit.sh with empty stdin does not create prompts dir',
+      !fs.existsSync(promptsDir),
+      promptsDir,
+    );
+  });
+
+  // /plan with heterogeneous task signals -> SWARM advisory
+  withTempDir((tempDir) => {
+    fs.mkdirSync(path.join(tempDir, '.hseos'), { recursive: true });
+    const sessionId = `swarm-${Date.now()}`;
+    const env = { ...process.env, HSEOS_SESSION_ID: sessionId };
+
+    const heterogeneousPrompt =
+      '/plan refactor the auth module, fix the broken test, implementar nova feature de logging, atualizar docs';
+    const payload = JSON.stringify({ prompt: heterogeneousPrompt, cwd: tempDir });
+    const result = runHandlerWithStdin(scriptPath, payload, { cwd: tempDir, env });
+
+    assertPass(
+      'on-prompt-submit.sh emits SWARM advisory on /plan with heterogeneous signals',
+      result.ok && /\[HSEOS\]\[SWARM\]/.test(result.stdout) &&
+        result.stdout.includes('/dev-squad'),
+      `stdout excerpt="${result.stdout.slice(0, 120)}..."`,
+    );
+  });
+
+  // /plan but only a single task signal -> NO advisory
+  withTempDir((tempDir) => {
+    fs.mkdirSync(path.join(tempDir, '.hseos'), { recursive: true });
+    const sessionId = `simple-${Date.now()}`;
+    const env = { ...process.env, HSEOS_SESSION_ID: sessionId };
+
+    const singleTaskPrompt = '/plan fix the typo in README';
+    const payload = JSON.stringify({ prompt: singleTaskPrompt, cwd: tempDir });
+    const result = runHandlerWithStdin(scriptPath, payload, { cwd: tempDir, env });
+
+    assertPass(
+      'on-prompt-submit.sh skips SWARM advisory on simple /plan (no heterogeneous signals)',
+      result.ok && !result.stdout.includes('[HSEOS][SWARM]'),
+      `stdout="${result.stdout.trim()}"`,
+    );
+  });
+}
+
+// =============================================================================
 // Run
 // =============================================================================
 
@@ -470,6 +631,7 @@ testPlanLint();
 testCodeIndexPostEdit();
 testOnNotification();
 testPreCompact();
+testOnPromptSubmit();
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed === 0 ? 0 : 1);
