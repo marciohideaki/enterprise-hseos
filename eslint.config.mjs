@@ -38,6 +38,8 @@ export default [
       // are dictated by Augment and can't be changed, so exclude
       // the entire directory from linting
       '.augment/**',
+      // adapter-sdk is a standalone publishable package — linted separately
+      'packages/**',
     ],
   },
 
