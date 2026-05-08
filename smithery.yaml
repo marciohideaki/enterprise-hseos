@@ -1,0 +1,21 @@
+name: hseos
+version: "2.0.0"
+description: "HSEOS — Hideaki Software Engineering Operating System. Spec-driven, AI-assisted institutional engineering framework."
+homepage: "https://github.com/marciohideaki/hseos"
+license: MIT
+keywords:
+  - agents
+  - hseos
+  - ai-engineering
+  - mcp
+  - byoa
+entry: tools/hseos-npx-wrapper.js
+engines:
+  node: ">=20.0.0"
+mcp_servers:
+  - id: hseos-governance
+    command: node tools/mcp-hseos-governance/index.js
+    port: 3101
+  - id: hseos-project-state
+    command: node tools/mcp-project-state/index.js
+    port: 3100
