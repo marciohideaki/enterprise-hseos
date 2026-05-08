@@ -1,7 +1,5 @@
 # Migration Guide — HSEOS v1.x → v2.0
 
-> **Status: outline (Wave 8 foundation).** Concrete migration scripts and per-file diff tables land in W8 implementation follow-ups, after the W2/W3/W4/W5/W6/W7 implementation slices have shipped and the actual v1→v2 mechanics are exercised in real installs.
-
 This guide describes how to migrate an existing HSEOS v1.x project to v2.0 (Standalone Gold Premium). v2.0 is a **breaking release** — host-machine global skills, hooks, and MCP configs are no longer load-bearing.
 
 ## Highlights of v2.0
@@ -51,6 +49,117 @@ The migration runs in five phases. Each phase is reversible (`pre-w<N>` rollback
 1. `hseos agent-core doctor` — runs the eight-check health report.
 2. Run the standalone smoke procedure documented in `docs/STANDALONE-VERIFICATION.md` inside a clean `node:20` Docker container (no host-machine skills/hooks/vault).
 3. When all five steps pass: tag your local repo with `migrated-to-v2.0.0`.
+
+## Per-File Migration Reference
+
+### Phase 1 — Hook Registry
+
+**`.claude/hooks.json`** (v1: hand-authored → v2: compiled from `registry.yaml`)
+
+**Before (v1):**
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      { "matcher": "Write|Edit", "hooks": [{ "type": "command", "command": "bash ..." }] }
+    ]
+  }
+}
+```
+
+**After (v2):** File is now **generated** — do not edit manually. Edit `.agents/hooks/registry.yaml` instead, then run:
+```bash
+hseos agent-core compile --target claude-code
+```
+
+---
+
+### Phase 2 — Compiler
+
+**`tools/cli/installers/lib/core/agent-core-compiler.js`** (v1: 382-line monolith → v2: shim)
+
+**Before (v1):** 382-line file containing `class AgentCoreCompiler`.
+
+**After (v2):** One-line shim:
+```javascript
+module.exports = require('./agent-core-compiler/index');
+```
+All logic moved to `agent-core-compiler/` directory (sources/, adapters/, lib/, verify/, manifest/).
+
+---
+
+### Phase 3 — Manifest
+
+**`.agents/manifest.yaml`** (v1: skills only → v2: adds adapters + plugins)
+
+**Before (v1):**
+```yaml
+version: "1.0"
+skills: [...]
+```
+
+**After (v2):**
+```yaml
+version: "2.0"
+skills: [...]
+adapters: []
+plugins: []
+```
+Regenerated automatically by `hseos agent-core compile`.
+
+---
+
+### Phase 4 — package.json scripts
+
+**Added in v2:**
+```json
+"test:verify":       "node test/test-agent-core-verify-audit-doctor.js",
+"test:plugins":      "node test/test-plugin-marketplace.js",
+"test:adapter-sdk":  "node test/test-adapter-sdk.js",
+"test:compiler-hooks": "node test/test-agent-core-compiler-hooks.js"
+```
+
+---
+
+### Phase 5 — MCP servers
+
+**`.mcp.json`** — add HSEOS-native servers:
+
+**Before (v1):** File may not exist or reference only external servers.
+
+**After (v2):**
+```json
+{
+  "mcpServers": {
+    "hseos-governance": {
+      "command": "node",
+      "args": ["tools/mcp-hseos-governance/index.js", "--port=3101"]
+    },
+    "hseos-project-state": {
+      "command": "node",
+      "args": ["tools/mcp-project-state/index.js"]
+    }
+  }
+}
+```
+
+---
+
+## One-Command Migration
+
+```bash
+# Step 1: install v2
+npm install hseos@2.0.0
+
+# Step 2: recompile all adapters from neutral registry
+node tools/cli/hseos-cli.js agent-core compile --target all
+
+# Step 3: verify integrity
+node tools/cli/hseos-cli.js agent-core verify
+node tools/cli/hseos-cli.js agent-core doctor
+```
+
+---
 
 ## Breaking changes
 

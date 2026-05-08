@@ -1,7 +1,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CI](https://github.com/marciohideaki/hseos/actions/workflows/ci.yml/badge.svg)](https://github.com/marciohideaki/hseos/actions)
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](package.json)
-[![Node](https://img.shields.io/badge/node-%3E%3D18-green.svg)](https://nodejs.org)
+[![CI](https://github.com/marciohideaki/hseos/actions/workflows/standalone-smoke.yaml/badge.svg)](https://github.com/marciohideaki/hseos/actions)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](package.json)
+[![Node](https://img.shields.io/badge/node-%3E%3D20-green.svg)](https://nodejs.org)
 [![Agents](https://img.shields.io/badge/agents-14-purple.svg)](.hseos/agents/)
 [![Skills](https://img.shields.io/badge/skills-46-orange.svg)](.enterprise/governance/agent-skills/)
 
@@ -390,6 +390,59 @@ hseos/
 | GitHub Actions native workflow | 📋 Planned | v1.3 |
 | Visual governance editor | 📋 Planned | v1.4 |
 
+## v2.0.0 Roadmap
+
+| Wave | Description | Status |
+|---|---|---|
+| W0 | Foundation: decouple from global ~/.claude | ✅ |
+| W1 | Agent skills + hook registry neutralization | ✅ |
+| W2 | Compiler v2 modular pipeline | ✅ |
+| W3 | 3 HSEOS-native MCP servers | ✅ |
+| W4 | Hook handlers implementation | ✅ |
+| W5 | Plugin marketplace + dual-format emit | ✅ |
+| W6 | Self-verification (verify/audit/doctor) | ✅ |
+| W7 | @hseos/adapter-sdk + Goose BYOA adapter | ✅ |
+| W8 | Bilingual docs + CI matrix + migration guide | ✅ |
+| W9 | Release v2.0.0 | 🚀 |
+
+---
+
+## Adapter SDK & BYOA
+
+HSEOS ships `@hseos/adapter-sdk` (`packages/adapter-sdk/`) — a minimal base class and utilities for authoring Bring-Your-Own-Adapter (BYOA) integrations.
+
+```javascript
+const { AdapterBase } = require('@hseos/adapter-sdk');
+class MyAdapter extends AdapterBase {
+  static get id() { return 'my-tool'; }
+  async emit(sources, outputDir) { /* write platform files */ }
+}
+module.exports = MyAdapter;
+```
+
+Install a third-party adapter via npm (`npm install @hseos/adapter-my-tool`) — the compiler discovers it automatically via `node_modules/@hseos/adapter-*`.
+
+**Reference BYOA adapter:** `tools/cli/.../adapters/goose.js` implements the [Goose](https://github.com/block/goose) (LF AAIF) adapter as the canonical example.
+
+---
+
+## Plugin Marketplace
+
+HSEOS ships 4 built-in plugins and a dual-format emitter (`.claude-plugin/` + `.codex-plugin/`):
+
+| Plugin | Purpose |
+|---|---|
+| `hseos-skill-creator` | Scaffold SKILL.md+QUICK.md with HSEOS frontmatter via `/skill-new` |
+| `hseos-hookify` | Author hooks in neutral registry format with adapter dispatch |
+| `hseos-pr-review` | HSEOS commit-hygiene + PR review (`/pr-review`, `/pr-lint`) |
+| `hseos-security-guidance` | Threat modeling + dependency audit skill activations |
+
+```bash
+hseos plugin list              # show marketplace catalog
+hseos plugin install <id>      # install to .claude-plugin/ + .codex-plugin/
+hseos plugin doctor            # conformance check all installed plugins
+```
+
 ---
 
 ## Getting Help
@@ -474,6 +527,55 @@ npx hseos install
 | `KUBE` | Kubernetes Operator | GitOps manifest update, PR e ArgoCD |
 | `SABLE` | Runtime Operator | Verificação de rollout e smoke tests |
 | `SWARM` | Parallel Execution Commander | Batch heterogêneo paralelo (worktree-isolated) |
+
+### Roadmap v2.0.0
+
+| Wave | Descrição | Status |
+|---|---|---|
+| W0 | Fundação: desacoplar do ~/.claude global | ✅ |
+| W1 | Agent skills + neutralização do hook registry | ✅ |
+| W2 | Compiler v2 pipeline modular | ✅ |
+| W3 | 3 servidores MCP nativos HSEOS | ✅ |
+| W4 | Implementação dos hook handlers | ✅ |
+| W5 | Plugin marketplace + emissão dual-format | ✅ |
+| W6 | Auto-verificação (verify/audit/doctor) | ✅ |
+| W7 | @hseos/adapter-sdk + adaptador Goose BYOA | ✅ |
+| W8 | Docs bilíngues + CI matrix + guia de migração | ✅ |
+| W9 | Release v2.0.0 | 🚀 |
+
+### Adapter SDK & BYOA
+
+O HSEOS inclui `@hseos/adapter-sdk` (`packages/adapter-sdk/`) — uma classe base mínima e utilitários para criar integrações Bring-Your-Own-Adapter (BYOA).
+
+```javascript
+const { AdapterBase } = require('@hseos/adapter-sdk');
+class MeuAdapter extends AdapterBase {
+  static get id() { return 'minha-ferramenta'; }
+  async emit(sources, outputDir) { /* escreve arquivos da plataforma */ }
+}
+module.exports = MeuAdapter;
+```
+
+Instale um adapter de terceiros via npm (`npm install @hseos/adapter-minha-ferramenta`) — o compiler o descobre automaticamente via `node_modules/@hseos/adapter-*`.
+
+**Adapter BYOA de referência:** `tools/cli/.../adapters/goose.js` implementa o adaptador [Goose](https://github.com/block/goose) (LF AAIF) como exemplo canônico.
+
+### Plugin Marketplace
+
+O HSEOS inclui 4 plugins nativos e um emissor dual-format (`.claude-plugin/` + `.codex-plugin/`):
+
+| Plugin | Finalidade |
+|---|---|
+| `hseos-skill-creator` | Gera SKILL.md+QUICK.md com frontmatter HSEOS via `/skill-new` |
+| `hseos-hookify` | Cria hooks em formato neutro de registry com dispatch por adapter |
+| `hseos-pr-review` | Higiene de commits HSEOS + revisão de PR (`/pr-review`, `/pr-lint`) |
+| `hseos-security-guidance` | Ativações de skill para threat modeling + auditoria de dependências |
+
+```bash
+hseos plugin list              # exibir catálogo do marketplace
+hseos plugin install <id>      # instalar em .claude-plugin/ + .codex-plugin/
+hseos plugin doctor            # verificar conformidade dos plugins instalados
+```
 
 ### Links
 
