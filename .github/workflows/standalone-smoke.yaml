@@ -44,10 +44,18 @@ jobs:
       - name: P5 zero global path — grep guards
         run: |
           set -e
-          # No runtime asset references ~/.claude or vault hard paths.
-          # docs/ is allowed to mention them in migration prose.
-          ! grep -rn "~/\.claude\|/opt/hideakisolutions/second-brain" \
-            .agents/ .hseos/agents/ .enterprise/governance/ scripts/governance/
+          # No runtime code references ~/.claude or vault hard paths.
+          # Comments (#, //) are excluded — scripts may document which upstream
+          # hook they replace without constituting a runtime path dependency.
+          MATCHES=$(grep -rn --include='*.sh' --include='*.js' \
+            "~/\.claude\|/opt/hideakisolutions/second-brain" \
+            .agents/ .hseos/agents/ .enterprise/governance/ scripts/governance/ \
+            | grep -Ev ":[0-9]+:[[:space:]]*(#|//)" || true)
+          if [ -n "$MATCHES" ]; then
+            echo "FAIL: runtime vault path references found:"
+            echo "$MATCHES"
+            exit 1
+          fi
 
       - name: P6 graceful degradation — second-brain optional flag
         run: |
