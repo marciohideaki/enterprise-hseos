@@ -2,6 +2,10 @@
 
 > What gets enforced, when, and why. Skills are the governance layer that agents apply automatically based on what you're doing.
 
+<p align="center">
+  <img src="../assets/screenshots/skills-registry.png" alt="hseos validate output — 46 skills registered across domains" width="90%" />
+</p>
+
 ---
 
 ## How skills work

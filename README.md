@@ -71,6 +71,12 @@ Activate `ORBIT` (Flow Conductor). It orchestrates the full delivery pipeline: N
 **Scenario 6 — You have a heterogeneous batch of independent tasks to ship together:**
 Activate `SWARM` (Parallel Execution Commander). It plans the batch in Opus, dispatches isolated Sonnet/Haiku subagents in parallel waves under `.worktrees/`, and consolidates 1 commit per task into a single PR.
 
+**Scenario 7 — You need to track active agent runs across sessions:**
+HSEOS automatically detects the active run from `.hseos/state/project.db` at session start. The `state-emit-hook.sh` shim queries SQLite for the active `as_runs` entry and wires the session context — no manual env setup required.
+
+**Scenario 8 — You need to verify framework integrity after a change:**
+Run `hseos verify` (integrity check), `hseos audit` (spec compliance scan), or `hseos doctor` (full health report). The self-verification suite validates 12 invariants without network calls.
+
 ---
 
 ## How It Works
@@ -147,7 +153,7 @@ Each step is governed by skills loaded automatically from the registry. Agents c
 
 | Tool | Version | Required | Notes |
 |------|---------|----------|-------|
-| Node.js | ≥ 18 | ✅ | Runtime for HSEOS CLI |
+| Node.js | ≥ 20 | ✅ | Runtime for HSEOS CLI |
 | Git | ≥ 2.30 | ✅ | Hooks require modern git |
 | Claude Code CLI | latest | ✅ | `npm install -g @anthropic-ai/claude-code` |
 | kubectl | ≥ 1.28 | ⚠️ | Required for KUBE agent only |
@@ -375,35 +381,29 @@ hseos/
 
 ## Roadmap
 
-| Feature | Status | Milestone |
-|---------|--------|-----------|
-| 13 core agents (NYX→SABLE) | ✅ Done | v1.0 |
-| 14th agent SWARM (parallel batch executor) | ✅ Done | v1.1 |
-| 46 skills registry | ✅ Done | v1.1 |
-| `hseos install` CLI | ✅ Done | v1.0 |
-| Workflow validate/advance CLI | ✅ Done | v1.1 |
-| SWARM multi-agent parallelism | ✅ Done | v1.1 |
-| Multi-tool install (8 tools) | ✅ Done | v1.1 |
-| Web dashboard (usage + runs) | 🔄 In progress | v1.2 |
-| Skills auto-sync to `~/.claude/skills/` | 🔄 In progress | v1.2 |
-| MCP factory integration | 🔄 In progress | v1.2 |
-| GitHub Actions native workflow | 📋 Planned | v1.3 |
-| Visual governance editor | 📋 Planned | v1.4 |
-
-## v2.0.0 Roadmap
+### What shipped in v2.0.0 (all waves complete)
 
 | Wave | Description | Status |
 |---|---|---|
-| W0 | Foundation: decouple from global ~/.claude | ✅ |
-| W1 | Agent skills + hook registry neutralization | ✅ |
-| W2 | Compiler v2 modular pipeline | ✅ |
-| W3 | 3 HSEOS-native MCP servers | ✅ |
-| W4 | Hook handlers implementation | ✅ |
-| W5 | Plugin marketplace + dual-format emit | ✅ |
-| W6 | Self-verification (verify/audit/doctor) | ✅ |
-| W7 | @hseos/adapter-sdk + Goose BYOA adapter | ✅ |
-| W8 | Bilingual docs + CI matrix + migration guide | ✅ |
-| W9 | Release v2.0.0 | 🚀 |
+| W0 | Foundation: decouple from global `~/.claude` — standalone install | ✅ |
+| W1 | Agent skills + hook registry neutralization — vendor-neutral | ✅ |
+| W2 | Compiler v2 modular pipeline (sources / adapters / lib / manifest) | ✅ |
+| W3 | 3 native MCP servers (governance :3101, swarm :3102, axon-bridge :3103) | ✅ |
+| W4 | Hook handlers implementation — 8 active handlers | ✅ |
+| W5 | Plugin marketplace + dual-format emit (`.claude-plugin/` + `.codex-plugin/`) | ✅ |
+| W6 | Self-verification suite (verify / audit / doctor — 12 tests) | ✅ |
+| W7 | `@hseos/adapter-sdk` + Goose BYOA reference adapter — 37 tests | ✅ |
+| W8 | Bilingual docs + CI matrix + migration guide + smithery.yaml | ✅ |
+| W9 | Release v2.0.0 — version bump, CHANGELOG, tag | ✅ |
+
+### Post-v2.0 backlog
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| `dev-squad` SessionStart env injection (`HSEOS_CURRENT_*` vars) | 📋 Planned | Finding #5 from pós-release audit |
+| Visual governance editor | 📋 Planned | Web UI over constitution specs |
+| Smithery registry submission | ⛔ Opted out | Private / institutional use only |
+| NPM publish `@hseos/*` packages | ⛔ Opted out | Internal use; install via git/path |
 
 ---
 
@@ -428,6 +428,10 @@ Install a third-party adapter via npm (`npm install @hseos/adapter-my-tool`) —
 
 ## Plugin Marketplace
 
+<p align="center">
+  <img src="docs/assets/plugin-marketplace.png" alt="HSEOS plugin marketplace — install flow and dual-format emit" width="90%" />
+</p>
+
 HSEOS ships 4 built-in plugins and a dual-format emitter (`.claude-plugin/` + `.codex-plugin/`):
 
 | Plugin | Purpose |
@@ -445,11 +449,95 @@ hseos plugin doctor            # conformance check all installed plugins
 
 ---
 
+## State Tracking
+
+HSEOS ships a lightweight SQLite-backed state layer at `.hseos/state/project.db`. It gives you persistent, cross-session visibility into agent runs without a server or cloud dependency.
+
+```bash
+hseos state-emit start --run <run-id>   # open a run
+hseos state list                        # list recent runs
+hseos state describe <run-id>           # full run detail
+hseos kanban                            # ASCII kanban in terminal
+```
+
+A web side-car (port `:3200`) serves a real-time kanban board via HTTP + SSE:
+
+```bash
+hseos state-ui                           # start kanban server at localhost:3200
+hseos state-ui --host 0.0.0.0           # LAN / Tailscale accessible
+```
+
+The `state-emit-hook.sh` shim is wired as a Claude Code `SessionStart` hook and auto-detects the active run from SQLite — no `HSEOS_CURRENT_RUN_ID` env required.
+
+See [`docs/state-tracking.md`](docs/state-tracking.md) for the full reference.
+
+---
+
+## Native MCP Servers
+
+<p align="center">
+  <img src="docs/assets/mcp-servers.png" alt="HSEOS native MCP servers — governance :3101, swarm :3102, axon-bridge :3103" width="90%" />
+</p>
+
+v2.0.0 ships three HSEOS-native MCP servers, each with dedicated toolsets:
+
+| Server | Port | Description |
+|--------|------|-------------|
+| `hseos-governance` | 3101 | Constitution queries, ADR lookup, spec validation, quality gate status |
+| `hseos-swarm` | 3102 | Worktree management, parallel task dispatch, run state coordination |
+| `hseos-axon-bridge` | 3103 | Knowledge graph bridge — links HSEOS runs to Axon memory capsules |
+
+Add to your Claude Code MCP config:
+
+```json
+{
+  "mcpServers": {
+    "hseos-governance": {
+      "command": "node",
+      "args": ["tools/mcp/hseos-governance/server.js"]
+    },
+    "hseos-swarm": {
+      "command": "node",
+      "args": ["tools/mcp/hseos-swarm/server.js"]
+    }
+  }
+}
+```
+
+---
+
+## Self-Verification
+
+Three commands for framework health:
+
+```bash
+hseos verify    # integrity check — validates install artifacts, schemas, hooks
+hseos audit     # spec compliance scan — checks agent configs against constitution
+hseos doctor    # full health report — verify + audit + dependency check + test run
+```
+
+Typical output:
+
+```
+✅ .enterprise/ constitution structure — OK
+✅ .hseos/agents/ — 14 agent definitions valid
+✅ Git hooks installed and executable
+✅ 46 skills registered, 0 schema violations
+✅ SQLite state layer — project.db accessible
+⚠️  MCP server hseos-axon-bridge — skipped (axon index absent)
+```
+
+---
+
 ## Getting Help
 
-- **Docs:** [`docs/getting-started.md`](docs/getting-started.md) — Day 1 guide
+- **Getting started:** [`docs/getting-started.md`](docs/getting-started.md) — Day 1 guide
 - **Skills reference:** [`docs/skills.md`](docs/skills.md) — full skills catalog
 - **Workflows:** [`docs/workflows.md`](docs/workflows.md) — engineering workflows
+- **State tracking:** [`docs/state-tracking.md`](docs/state-tracking.md) — SQLite, kanban, MCP
+- **Adapter SDK:** [`docs/ADAPTER-GUIDE.md`](docs/ADAPTER-GUIDE.md) — BYOA adapter authoring
+- **Migration from v1:** [`docs/MIGRATION-GUIDE-v1-to-v2.md`](docs/MIGRATION-GUIDE-v1-to-v2.md)
+- **Troubleshooting:** [`docs/troubleshooting.md`](docs/troubleshooting.md) — FAQ and common errors
 - **Issues:** [github.com/marciohideaki/hseos/issues](https://github.com/marciohideaki/hseos/issues)
 - **Discussions:** [github.com/marciohideaki/hseos/discussions](https://github.com/marciohideaki/hseos/discussions)
 
@@ -528,20 +616,33 @@ npx hseos install
 | `SABLE` | Runtime Operator | Verificação de rollout e smoke tests |
 | `SWARM` | Parallel Execution Commander | Batch heterogêneo paralelo (worktree-isolated) |
 
-### Roadmap v2.0.0
+### Roadmap v2.0.0 (todas as waves concluídas)
 
 | Wave | Descrição | Status |
 |---|---|---|
-| W0 | Fundação: desacoplar do ~/.claude global | ✅ |
+| W0 | Fundação: desacoplar do `~/.claude` global | ✅ |
 | W1 | Agent skills + neutralização do hook registry | ✅ |
 | W2 | Compiler v2 pipeline modular | ✅ |
 | W3 | 3 servidores MCP nativos HSEOS | ✅ |
-| W4 | Implementação dos hook handlers | ✅ |
+| W4 | Implementação dos hook handlers — 8 handlers ativos | ✅ |
 | W5 | Plugin marketplace + emissão dual-format | ✅ |
-| W6 | Auto-verificação (verify/audit/doctor) | ✅ |
-| W7 | @hseos/adapter-sdk + adaptador Goose BYOA | ✅ |
+| W6 | Auto-verificação (verify/audit/doctor — 12 testes) | ✅ |
+| W7 | `@hseos/adapter-sdk` + adaptador Goose BYOA — 37 testes | ✅ |
 | W8 | Docs bilíngues + CI matrix + guia de migração | ✅ |
-| W9 | Release v2.0.0 | 🚀 |
+| W9 | Release v2.0.0 | ✅ |
+
+### State Tracking
+
+O HSEOS inclui uma camada de estado baseada em SQLite em `.hseos/state/project.db`:
+
+```bash
+hseos kanban          # Kanban ASCII no terminal
+hseos state-ui        # Servidor web com kanban em tempo real (localhost:3200)
+hseos verify          # Verificação de integridade
+hseos doctor          # Relatório de saúde completo
+```
+
+Veja [`docs/state-tracking.md`](docs/state-tracking.md) para a referência completa.
 
 ### Adapter SDK & BYOA
 

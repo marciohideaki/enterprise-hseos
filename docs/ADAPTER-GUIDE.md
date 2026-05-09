@@ -1,6 +1,10 @@
 # Adapter Authoring Guide — Bring Your Own Adapter (BYOA)
 
-> **Status: outline (Wave 8 foundation).** Tutorial-grade content with a working `@hseos/adapter-template` walkthrough lands in W8 implementation follow-up, after the Wave 7 implementation slice publishes `@hseos/adapter-sdk` on npm.
+> **Status: complete (v2.0.0 / Wave 7).** The `@hseos/adapter-sdk` is shipped in-tree at `packages/adapter-sdk/`. The reference BYOA adapter (Goose) lives at `tools/cli/installers/lib/core/agent-core-compiler/adapters/goose.js`.
+
+<p align="center">
+  <img src="../assets/adapter-sdk-flow.png" alt="Adapter compile pipeline — neutral sources → AdapterBase.emit → vendor output" width="90%" />
+</p>
 
 The HSEOS Standalone Gold Premium architecture (ADR-0007) is multi-vendor by design. Anyone can ship a vendor adapter as an independent npm package that the HSEOS compiler discovers and consumes — without changing the core.
 
@@ -95,6 +99,67 @@ Failed validation logs a warning and skips the adapter; it never blocks the rest
 
 - ADR-0007 — Compiler v2 multi-adapter contract
 - ADR-0006 — Standalone architecture (P4 vendor parity, P5 zero global path)
-- `packages/adapter-sdk/README.md` — SDK reference
+- `packages/adapter-sdk/` — SDK source (in-tree)
 - `.agents/adapters/_schema.yaml` — full spec schema
-- `tools/cli/installers/lib/core/agent-core-compiler/adapters/_base.js` — `AdapterBase` source until SDK extracts
+- `tools/cli/installers/lib/core/agent-core-compiler/adapters/_base.js` — `AdapterBase` canonical source
+- `tools/cli/installers/lib/core/agent-core-compiler/adapters/goose.js` — reference BYOA adapter
+
+---
+
+## Quick Reference — `AdapterBase` API
+
+| Method | Required | Description |
+|--------|----------|-------------|
+| `static get id()` | ✅ | Unique adapter identifier (e.g., `'my-tool'`) |
+| `static get version()` | ✅ | Semver string (`'1.0'`) |
+| `async emit(sources, outputDir)` | ✅ | Main transform: reads neutral sources, writes vendor files |
+| `async validate(sources, manifest)` | optional | Pre-emit validation; return `{ ok, warnings[], errors[] }` |
+| `async clean(outputDir)` | optional | Remove generated files on uninstall |
+
+### `sources` object shape
+
+```javascript
+{
+  skills:   [...],   // normalized skill definitions
+  hooks:    [...],   // neutral hook registry entries
+  mcp:      [...],   // MCP server definitions
+  agents:   [...],   // agent YAML definitions
+  commands: [...],   // slash command definitions
+  plugins:  [...],   // installed plugin manifests
+  ui:       { ... }  // UI surface metadata
+}
+```
+
+---
+
+## Testing Your Adapter
+
+```bash
+# Run the adapter round-trip test
+node -e "
+const { runRoundTripTest } = require('./packages/adapter-sdk');
+const MyAdapter = require('./packages/adapter-myadapter');
+runRoundTripTest(MyAdapter).then(r => {
+  if (!r.ok) { console.error(r.errors); process.exit(1); }
+  console.log('Round-trip OK');
+});
+"
+
+# Full adapter SDK test suite
+npm run test:adapter-sdk
+```
+
+---
+
+## Registered Adapters (v2.0.0)
+
+| ID | Bundled | Discovery |
+|----|---------|-----------|
+| `claude-code` | ✅ | Built-in |
+| `codex` | ✅ | Built-in |
+| `cursor` | ✅ | Built-in |
+| `continue` | ✅ | Built-in |
+| `aider` | ✅ | Built-in |
+| `cline` | ✅ | Built-in |
+| `goose` | ✅ | Built-in (BYOA reference) |
+| `@hseos/adapter-*` | — | Auto-discovered via `node_modules/@hseos/adapter-` prefix |

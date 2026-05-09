@@ -21,6 +21,11 @@ The goal: AI agents multiply engineering capacity without degrading quality, sec
 | [agents/](agents/) | Every agent: what it does, when to activate it, what it cannot do |
 | [workflows.md](workflows.md) | The 6 delivery workflows — phases, human touchpoints, how to resume |
 | [skills.md](skills.md) | Governance skills catalog — what gets enforced, when, and why |
+| [state-tracking.md](state-tracking.md) | SQLite state layer, CLI commands, web kanban, MCP tools (v2.0.0) |
+| [ADAPTER-GUIDE.md](ADAPTER-GUIDE.md) | BYOA adapter authoring — `@hseos/adapter-sdk` + Goose reference |
+| [MIGRATION-GUIDE-v1-to-v2.md](MIGRATION-GUIDE-v1-to-v2.md) | Upgrading from v1.x to v2.0.0 |
+| [troubleshooting.md](troubleshooting.md) | FAQ, common errors, and debugging guides |
+| [pt-br/](pt-br/) | Documentação em Português (BR) |
 
 ---
 
@@ -60,6 +65,10 @@ These are non-negotiable across every agent, workflow, and skill:
 ---
 
 ## How Agents are Activated
+
+<p align="center">
+  <img src="assets/screenshots/agent-activation.png" alt="Agent activation in Claude Code — typing /ghost activates the Code Executor with skill context" width="90%" />
+</p>
 
 Every agent is a Claude Code subagent command. In your project, after `hseos install`:
 

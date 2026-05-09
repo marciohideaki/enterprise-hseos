@@ -2,11 +2,15 @@
 
 > Day 1 guide for engineers joining a project that uses HSEOS.
 
+<p align="center">
+  <img src="../assets/getting-started-flow.png" alt="HSEOS onboarding flow — install, read, pick role, activate agent, ship" width="90%" />
+</p>
+
 ---
 
 ## Prerequisites
 
-- Node.js ≥ 18
+- Node.js ≥ 20
 - Git configured with your identity
 - Claude Code CLI installed (`npm install -g @anthropic-ai/claude-code`)
 - Access to the project repository
