@@ -24,6 +24,24 @@ RUN_ID="${HSEOS_CURRENT_RUN_ID:-}"
 TASK_ID="${HSEOS_CURRENT_TASK:-}"
 AGENT="${HSEOS_CURRENT_AGENT:-}"
 
+# At SessionStart, auto-detect the most recent active run from SQLite when
+# no run context is set in the environment. This replaces the file-based
+# active-run.txt pattern — SQLite is the single canonical source of truth.
+if [[ -z "$RUN_ID" ]] && [[ "$HOOK_EVENT" == "SessionStart" ]]; then
+  _DB="${HSEOS_STATE_DB:-$(pwd)/.hseos/state/project.db}"
+  if [[ -f "$_DB" ]]; then
+    _ACTIVE=$(HSEOS_DB_PATH="$_DB" node -e "
+try {
+  const db = new (require('better-sqlite3'))(process.env.HSEOS_DB_PATH, { readonly: true });
+  const row = db.prepare(\"SELECT id FROM as_runs WHERE status='active' ORDER BY started_at DESC LIMIT 1\").get();
+  if (row) process.stdout.write(row.id);
+  db.close();
+} catch(e) {}
+" 2>/dev/null) || true
+    [[ -n "${_ACTIVE:-}" ]] && RUN_ID="$_ACTIVE"
+  fi
+fi
+
 # Skip silently if no run context — emission only meaningful inside a tracked run.
 [[ -z "$RUN_ID" ]] && exit 0
 
