@@ -40,6 +40,8 @@ export default [
       '.augment/**',
       // adapter-sdk is a standalone publishable package — linted separately
       'packages/**',
+      // git worktrees created by worktree-manager — contain copies of project files
+      '.worktrees/**',
     ],
   },
 
