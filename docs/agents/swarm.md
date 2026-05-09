@@ -6,6 +6,10 @@
 
 ## What SWARM does
 
+<p align="center">
+  <img src="../assets/swarm-worktree.png" alt="SWARM parallel execution — Commander fans out to isolated worktrees, consolidates into one PR" width="90%" />
+</p>
+
 SWARM decomposes a heterogeneous batch of 3+ tasks, plans the wave graph in a high-capability model (Opus), and dispatches lean Sonnet/Haiku subagents in parallel — each isolated in its own git worktree under `.worktrees/`. The Commander never executes the work itself; it plans, extracts handoffs between waves, and consolidates results into a single PR.
 
 The goal: convert "I have a list of unrelated tasks" into bounded, parallel execution that preserves HSEOS governance.

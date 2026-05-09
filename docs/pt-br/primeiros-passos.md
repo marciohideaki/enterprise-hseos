@@ -6,7 +6,7 @@
 
 ## Pré-requisitos
 
-- Node.js ≥ 18
+- Node.js ≥ 20
 - Git configurado com sua identidade
 - Claude Code CLI instalado (`npm install -g @anthropic-ai/claude-code`)
 - Acesso ao repositório do projeto
