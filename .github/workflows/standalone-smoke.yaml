@@ -29,6 +29,9 @@ jobs:
           test ! -d ~/.codex               || { echo "FAIL: ~/.codex leaked";  exit 1; }
           test ! -d /opt/hideakisolutions  || { echo "FAIL: vault path leaked"; exit 1; }
 
+      - name: Install system dependencies
+        run: apt-get update -qq && apt-get install -y -qq jq
+
       - name: Install dependencies (npm ci)
         run: npm ci
 
