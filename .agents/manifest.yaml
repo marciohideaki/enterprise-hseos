@@ -12,7 +12,7 @@ adapters:
 platforms: []
 counts:
   skills: 42
-  hooks: 8
+  hooks: 9
   commands: 8
 skills:
   - name: accessibility
@@ -229,6 +229,11 @@ hooks:
   - id: pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global
     event: PreToolUse
     matcher: Agent
+    platform_support:
+      - claude-code
+  - id: pretooluse-write-edit-block-claude-md-direct-edits
+    event: PreToolUse
+    matcher: Write|Edit
     platform_support:
       - claude-code
   - id: pretooluse-edit-backup-file-before-any-edit-operation

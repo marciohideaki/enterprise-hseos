@@ -21,6 +21,18 @@ hooks:
     platform_support:
       - claude-code
     fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+  - id: pretooluse-write-edit-block-claude-md-direct-edits
+    event: PreToolUse
+    matcher: Write|Edit
+    type: command
+    command: bash .agents/hooks/handlers/claude-md-guard.sh "$CLAUDE_TOOL_FILE_PATH"
+    timeout: 3
+    blocking: true
+    status: active
+    description: Block direct writes/edits to CLAUDE.md; route durable agent rules to AGENTS.md
+    platform_support:
+      - claude-code
+    fallback: "Manual review: keep CLAUDE.md as a pointer and update AGENTS.md instead."
   - id: pretooluse-edit-backup-file-before-any-edit-operation
     event: PreToolUse
     matcher: Edit

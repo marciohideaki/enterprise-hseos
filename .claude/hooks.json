@@ -13,6 +13,17 @@
         ]
       },
       {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/claude-md-guard.sh \"$CLAUDE_TOOL_FILE_PATH\"",
+            "timeout": 3,
+            "description": "Block direct writes/edits to CLAUDE.md; route durable agent rules to AGENTS.md"
+          }
+        ]
+      },
+      {
         "matcher": "Edit",
         "hooks": [
           {

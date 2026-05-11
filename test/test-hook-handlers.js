@@ -274,6 +274,71 @@ function testCodeIndexPostEdit() {
 }
 
 // =============================================================================
+// claude-md-guard.sh
+// =============================================================================
+
+function testClaudeMdGuard() {
+  const scriptPath = path.join(HANDLERS_DIR, 'claude-md-guard.sh');
+
+  assertPass(
+    'claude-md-guard.sh exists',
+    fs.existsSync(scriptPath),
+    scriptPath,
+  );
+
+  if (!fs.existsSync(scriptPath)) {
+    return;
+  }
+
+  const stat = fs.statSync(scriptPath);
+  assertPass(
+    'claude-md-guard.sh is executable',
+    (stat.mode & 0o111) !== 0,
+    `mode=${stat.mode.toString(8)}`,
+  );
+
+  {
+    const result = runHandler(scriptPath, []);
+    assertPass(
+      'claude-md-guard.sh with no arg exits 0 silently',
+      result.ok && result.stdout.trim() === '',
+      `stdout="${result.stdout.trim()}"`,
+    );
+  }
+
+  withTempDir((tempDir) => {
+    const agentsPath = path.join(tempDir, 'AGENTS.md');
+    const result = runHandler(scriptPath, [agentsPath]);
+    assertPass(
+      'claude-md-guard.sh allows AGENTS.md',
+      result.ok && result.stdout.trim() === '',
+      `stdout="${result.stdout.trim()}"`,
+    );
+  });
+
+  withTempDir((tempDir) => {
+    const claudePath = path.join(tempDir, 'CLAUDE.md');
+    const result = runHandler(scriptPath, [claudePath]);
+    let parsed = null;
+    try {
+      parsed = JSON.parse(result.stdout.trim());
+    } catch {
+      parsed = null;
+    }
+
+    assertPass(
+      'claude-md-guard.sh blocks CLAUDE.md with deny JSON',
+      result.ok &&
+        parsed &&
+        parsed.hookSpecificOutput?.hookEventName === 'PreToolUse' &&
+        parsed.hookSpecificOutput?.permissionDecision === 'deny' &&
+        /AGENTS\.md/.test(parsed.hookSpecificOutput?.additionalContext ?? ''),
+      `stdout="${result.stdout.slice(0, 160)}"`,
+    );
+  });
+}
+
+// =============================================================================
 // on-notification.sh
 // =============================================================================
 
@@ -1045,6 +1110,7 @@ function testCodeIndexGuard() {
 console.log('Hook handler integration tests');
 testPlanLint();
 testCodeIndexPostEdit();
+testClaudeMdGuard();
 testOnNotification();
 testPreCompact();
 testOnPromptSubmit();
