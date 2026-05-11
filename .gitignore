@@ -7,3 +7,10 @@
 .logs/validation/*
 !.logs/validation/.gitkeep
 .worktrees/
+
+# =============================================================================
+# Local Runtime / Dependency Artifacts
+# =============================================================================
+node_modules/
+.axon/
+.hseos/state/
