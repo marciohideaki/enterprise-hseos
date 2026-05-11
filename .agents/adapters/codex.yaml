@@ -3,14 +3,9 @@ id: codex
 implementation: tools/cli/installers/lib/core/agent-core-compiler/adapters/codex.js
 capabilities:
   hooks:
-    events:
-      - PreToolUse
-      - PermissionRequest
-      - PostToolUse
-      - UserPromptSubmit
-      - Stop
-    matchers:
-      - tool_name
+    events: []
+    matchers: []
+    note: "Codex CLI does not consume Claude-style hook JSON; HSEOS emits .codex/hseos-hooks.json as portable hook intent metadata."
   subagents:
     native: true
     format: agents_sdk_handoffs
@@ -31,8 +26,9 @@ output:
   entrypoint: AGENTS.md
   files:
     - { type: settings, path: .codex/config.toml, generated: true, mergeable: true }
+    - { type: hooks_meta, path: .codex/hseos-hooks.json, generated: true, mergeable: false }
     - { type: skills_link, path: .agents/skills/, generated: false }
     - { type: mcp, path: .codex/config.toml, generated: true, mergeable: true }
 
 fallbacks:
-  unsupported_capability: "Slash commands surface as governance scripts; statusline not exposed"
+  unsupported_capability: "Hooks surface as portable handler metadata; slash commands surface as governance scripts; statusline not exposed"

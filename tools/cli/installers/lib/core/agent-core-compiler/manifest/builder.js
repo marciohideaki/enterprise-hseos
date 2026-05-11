@@ -13,6 +13,8 @@ async function writeManifest(root, data, agentsDirName = '.agents') {
       codex: {
         entrypoint: 'AGENTS.md',
         skills: '.agents/skills',
+        settings: '.codex/config.toml',
+        hooks: '.codex/hseos-hooks.json',
       },
       claude_code: {
         entrypoint: 'CLAUDE.md',

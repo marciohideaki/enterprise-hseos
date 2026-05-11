@@ -1,0 +1,175 @@
+{
+  "notice": "Codex does not consume Claude hook JSON. HSEOS keeps hook scripts portable and records intent here for audit/manual fallback.",
+  "hooks": [
+    {
+      "id": "pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global",
+      "event": "PreToolUse",
+      "matcher": "Agent",
+      "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/swarm-gate.sh",
+      "blocking": true,
+      "description": "HSEOS SWARM gate: bloqueia Agent paralelo sem run dev-squad ativo (complementa gate global)",
+      "fallback": "Use repository scripts or quality gates when the target platform has no native hook event.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "pretooluse-write-edit-block-claude-md-direct-edits",
+      "event": "PreToolUse",
+      "matcher": "Write|Edit",
+      "command": "bash .agents/hooks/handlers/claude-md-guard.sh \"$CLAUDE_TOOL_FILE_PATH\"",
+      "blocking": true,
+      "description": "Block direct writes/edits to CLAUDE.md; route durable agent rules to AGENTS.md",
+      "fallback": "Manual review: keep CLAUDE.md as a pointer and update AGENTS.md instead.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "pretooluse-edit-backup-file-before-any-edit-operation",
+      "event": "PreToolUse",
+      "matcher": "Edit",
+      "command": "if [[ -f \"$CLAUDE_TOOL_FILE_PATH\" ]]; then cp \"$CLAUDE_TOOL_FILE_PATH\" \"$CLAUDE_TOOL_FILE_PATH.bak.$(date +%s)\" 2>/dev/null || true; fi",
+      "blocking": true,
+      "description": "Backup file before any Edit operation",
+      "fallback": "Use repository scripts or quality gates when the target platform has no native hook event.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "pretooluse-bash-warn-on-high-risk-bash-commands",
+      "event": "PreToolUse",
+      "matcher": "Bash",
+      "command": "if echo \"$CLAUDE_TOOL_COMMAND\" | grep -qE '^(git push|git reset --hard|rm -rf|git branch -[Dd])'; then echo '[HSEOS] High-risk command intercepted — confirm this is intentional' >&2; fi",
+      "blocking": true,
+      "description": "Warn on high-risk bash commands",
+      "fallback": "Use repository scripts or quality gates when the target platform has no native hook event.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "posttooluse-edit-auto-format-python-black-and-js-ts-prettier-after-edit",
+      "event": "PostToolUse",
+      "matcher": "Edit",
+      "command": "FILE=\"$CLAUDE_TOOL_FILE_PATH\"; if [[ \"$FILE\" == *.py ]] && command -v black &>/dev/null; then black \"$FILE\" 2>/dev/null || true; elif [[ \"$FILE\" == *.js || \"$FILE\" == *.ts || \"$FILE\" == *.jsx || \"$FILE\" == *.tsx ]] && command -v prettier &>/dev/null; then prettier --write \"$FILE\" 2>/dev/null || true; fi",
+      "blocking": false,
+      "description": "Auto-format Python (black) and JS/TS (prettier) after Edit",
+      "fallback": "Use repository scripts or quality gates when the target platform has no native hook event.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "posttooluse-all-emit-agent-state-tool-call-event-best-effort-non-blocking",
+      "event": "PostToolUse",
+      "matcher": "*",
+      "command": "CLAUDE_HOOK_EVENT=PostToolUse bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/state-emit-hook.sh PostToolUse \"$CLAUDE_TOOL_NAME\" 2>/dev/null || true",
+      "blocking": false,
+      "description": "Emit agent-state tool_call event (best-effort, non-blocking)",
+      "fallback": "Use repository scripts or quality gates when the target platform has no native hook event.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "sessionstart-all-display-hseos-navigation-reminder-at-session-start",
+      "event": "SessionStart",
+      "matcher": "*",
+      "command": "echo '--- HSEOS SESSION START ---' && echo 'Constitution: .enterprise/.specs/constitution/Enterprise-Constitution.md' && echo 'Skills: .enterprise/governance/agent-skills/SKILLS-REGISTRY.md' && echo 'Agents: .hseos/AGENT-MANIFEST.md' && echo 'Branch:' $(git branch --show-current 2>/dev/null || echo 'unknown') && echo '--- READ CLAUDE.md BEFORE ANY ACTION ---'",
+      "blocking": false,
+      "description": "Display HSEOS navigation reminder at session start",
+      "fallback": "Use repository scripts or quality gates when the target platform has no native hook event.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "sessionstart-all-emit-agent-state-start-event-best-effort-non-blocking",
+      "event": "SessionStart",
+      "matcher": "*",
+      "command": "CLAUDE_HOOK_EVENT=SessionStart bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/state-emit-hook.sh SessionStart 2>/dev/null || true",
+      "blocking": false,
+      "description": "Emit agent-state start event (best-effort, non-blocking)",
+      "fallback": "Use repository scripts or quality gates when the target platform has no native hook event.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "stop-all-emit-agent-state-complete-event-when-claude-session-ends-best-effort-non-blocking",
+      "event": "Stop",
+      "matcher": "*",
+      "command": "CLAUDE_HOOK_EVENT=Stop bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/state-emit-hook.sh Stop 2>/dev/null || true",
+      "blocking": false,
+      "description": "Emit agent-state complete event when Claude session ends (best-effort, non-blocking)",
+      "fallback": "Use repository scripts or quality gates when the target platform has no native hook event.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "posttooluse-write-edit-plan-lint-validate-execution-protocol-section",
+      "event": "PostToolUse",
+      "matcher": "Write|Edit",
+      "command": "bash .agents/hooks/handlers/plan-lint.sh \"$CLAUDE_TOOL_FILE_PATH\"",
+      "blocking": false,
+      "description": "Lint plan files for missing Execution Protocol section in parallel-flow plans",
+      "fallback": "Manual review during PR.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "precompact-snapshot-critical-context-before-claude-compaction",
+      "event": "PreCompact",
+      "matcher": "*",
+      "command": "bash .agents/hooks/handlers/pre-compact.sh",
+      "blocking": false,
+      "description": "Snapshot critical context (next steps, open questions) before compaction",
+      "fallback": "Manual context export prior to /compact.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "userpromptsubmit-on-prompt-submit-project-scoped-state-injection",
+      "event": "UserPromptSubmit",
+      "matcher": "*",
+      "command": "bash .agents/hooks/handlers/on-prompt-submit.sh",
+      "blocking": false,
+      "description": "Project-scoped prompt logging and state injection (vault concerns stripped vs upstream)",
+      "fallback": "No-op when handler absent.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "sessionend-on-session-end-gated-vault-sync",
+      "event": "SessionEnd",
+      "matcher": "*",
+      "command": "bash .agents/hooks/handlers/session-end.sh",
+      "blocking": false,
+      "description": "Session-end log; vault sync only when second_brain.enabled true",
+      "fallback": "No-op when handler absent.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "pretooluse-agent-suggest-skill-before-agent-dispatch",
+      "event": "PreToolUse",
+      "matcher": "Agent",
+      "command": "bash .agents/hooks/handlers/suggest-skill.sh",
+      "blocking": false,
+      "description": "Recommend skills before Agent spawn based on SKILL.md frontmatter triggers",
+      "fallback": "Manual skill selection.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "pretooluse-grep-glob-code-index-guard",
+      "event": "PreToolUse",
+      "matcher": "Grep|Glob",
+      "command": "bash .agents/hooks/handlers/code-index-guard.sh \"$CLAUDE_TOOL_NAME\"",
+      "blocking": true,
+      "description": "Block raw search when a code index (axon, etc.) is available; pluggable across providers",
+      "fallback": "No-op when no code index is configured.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "posttooluse-write-edit-code-index-post-edit-reindex",
+      "event": "PostToolUse",
+      "matcher": "Write|Edit",
+      "command": "bash .agents/hooks/handlers/code-index-post-edit.sh \"$CLAUDE_TOOL_FILE_PATH\"",
+      "blocking": false,
+      "description": "Trigger index reindex after edits; pluggable across code-index providers",
+      "fallback": "Manual reindex via provider CLI.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "notification-on-notification-system-toast-for-long-operations",
+      "event": "Notification",
+      "matcher": "*",
+      "command": "bash .agents/hooks/handlers/on-notification.sh \"$CLAUDE_NOTIFICATION_MESSAGE\"",
+      "blocking": false,
+      "description": "System notification for long-running operations (cross-platform — toast/bell)",
+      "fallback": "Terminal bell.",
+      "codex_equivalent": "portable-handler-script"
+    }
+  ]
+}
