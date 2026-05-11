@@ -9,8 +9,8 @@ This workflow institutionalizes the Parallel-Fan-Out + Map-Reduce pattern with m
 SWARM
 
 ## Skill
-Canonical protocol: `~/.claude/skills/dev-squad/SKILL.md` (global, loaded in SWARM bootstrap).
-HSEOS overlay: this workflow + `.enterprise/governance/agent-skills/dev-squad/`.
+Canonical protocol: `.agents/skills/dev-squad/SKILL.md` (project-local, loaded through the active adapter's skill mechanism).
+HSEOS source: this workflow + `.enterprise/governance/agent-skills/dev-squad/`.
 
 ## Phase Model
 

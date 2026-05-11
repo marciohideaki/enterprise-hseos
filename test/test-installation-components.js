@@ -20,6 +20,8 @@ const REQUIRED_PATHS = [
   '.agents/skills/secure-coding/SKILL.md',
   'CLAUDE.md',
   'AGENTS.md',
+  '.codex/config.toml',
+  '.codex/hseos-hooks.json',
 ];
 
 const REQUIRED_AGENT_FILES = [
@@ -82,6 +84,39 @@ function run() {
       }
     } catch (error) {
       console.error(`  FAIL  .agents/manifest.yaml parse error: ${error.message}`);
+      failed++;
+    }
+  }
+
+  const codexConfigPath = path.join(REPO_ROOT, '.codex', 'config.toml');
+  if (fs.existsSync(codexConfigPath)) {
+    const config = fs.readFileSync(codexConfigPath, 'utf8');
+    if (
+      config.includes('[features]') &&
+      config.includes('rmcp_client = true') &&
+      config.includes('[mcp_servers."hseos-governance"]')
+    ) {
+      console.log('  PASS  .codex/config.toml exposes HSEOS MCP servers');
+      passed++;
+    } else {
+      console.error('  FAIL  .codex/config.toml missing expected HSEOS MCP configuration');
+      failed++;
+    }
+  }
+
+  const codexHooksPath = path.join(REPO_ROOT, '.codex', 'hseos-hooks.json');
+  if (fs.existsSync(codexHooksPath)) {
+    try {
+      const hooksMeta = JSON.parse(fs.readFileSync(codexHooksPath, 'utf8'));
+      if (Array.isArray(hooksMeta?.hooks)) {
+        console.log('  PASS  .codex/hseos-hooks.json has hook metadata');
+        passed++;
+      } else {
+        console.error('  FAIL  .codex/hseos-hooks.json missing hooks array');
+        failed++;
+      }
+    } catch (error) {
+      console.error(`  FAIL  .codex/hseos-hooks.json parse error: ${error.message}`);
       failed++;
     }
   }

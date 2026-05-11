@@ -118,10 +118,68 @@ async function testAgentCoreCompileCommandEmitsClaudeAdapter() {
   });
 }
 
+async function testAgentCoreCompileCommandEmitsCodexAdapter() {
+  await withTempDir(async (tempDir) => {
+    const agentsMcpDir = path.join(tempDir, '.agents', 'mcp');
+    fs.mkdirSync(path.join(agentsMcpDir, 'bundles'), { recursive: true });
+    fs.writeFileSync(
+      path.join(agentsMcpDir, 'registry.yaml'),
+      yaml.stringify({
+        version: '2.0',
+        bundles: {
+          core: {
+            file: 'bundles/core.yaml',
+            required: true,
+          },
+        },
+      }),
+    );
+    fs.writeFileSync(
+      path.join(agentsMcpDir, 'bundles', 'core.yaml'),
+      yaml.stringify({
+        version: '1.0',
+        bundle: 'core',
+        required: true,
+        servers: [
+          {
+            id: 'hseos-governance',
+            transport: 'stdio',
+            binary_resolver: [{ path: 'tools/mcp-hseos-governance/index.js', runtime: 'node' }],
+          },
+        ],
+      }),
+    );
+
+    await agentCoreCommand.action('compile', {
+      directory: tempDir,
+      target: 'codex',
+    });
+
+    const codexConfigPath = path.join(tempDir, '.codex', 'config.toml');
+    const codexHooksPath = path.join(tempDir, '.codex', 'hseos-hooks.json');
+    const config = fs.readFileSync(codexConfigPath, 'utf8');
+    const hooksMeta = JSON.parse(fs.readFileSync(codexHooksPath, 'utf8'));
+
+    assertPass(
+      'agent-core compile --target codex emits .codex/config.toml',
+      fs.existsSync(codexConfigPath) &&
+        config.includes('[features]') &&
+        config.includes('[mcp_servers."hseos-governance"]'),
+      config,
+    );
+    assertPass(
+      'agent-core compile --target codex emits hook metadata',
+      Array.isArray(hooksMeta.hooks),
+      JSON.stringify(hooksMeta),
+    );
+  });
+}
+
 async function run() {
   console.log('Agent core compiler hook adapter tests');
   await testClaudeHookAdapterUsesActiveRegistryEntries();
   await testAgentCoreCompileCommandEmitsClaudeAdapter();
+  await testAgentCoreCompileCommandEmitsCodexAdapter();
 
   console.log(`\nCompiler hook tests: ${passed} passed, ${failed} failed`);
   if (failed > 0) {

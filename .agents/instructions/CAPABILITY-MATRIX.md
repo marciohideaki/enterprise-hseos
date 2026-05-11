@@ -30,12 +30,12 @@ Hook events declared in `.agents/hooks/registry.yaml`. Eight events are exercise
 
 | Event | claude-code | codex | cursor | continue | aider | cline | goose | Fallback when unsupported |
 |---|---|---|---|---|---|---|---|---|
-| `PreToolUse` | ✅ native | ✅ native | ✅ native (1.7+) | ⚠ partial | ❌ | ✅ native | ✅ native | Validate inside CLI command wrapper |
-| `PostToolUse` | ✅ native | ✅ native | ⚠ partial | ⚠ partial | ❌ | ✅ native | ✅ native | Run via worktree-manager post-commit hook |
+| `PreToolUse` | ✅ native | ⚠ proxy | ✅ native (1.7+) | ⚠ partial | ❌ | ✅ native | ✅ native | Validate inside CLI command wrapper |
+| `PostToolUse` | ✅ native | ⚠ proxy | ⚠ partial | ⚠ partial | ❌ | ✅ native | ✅ native | Run via worktree-manager post-commit hook |
 | `SessionStart` | ✅ native | ⚠ proxy | ⚠ proxy | ❌ | ❌ | ⚠ proxy | ✅ native | Manual invocation from preflight skill |
 | `SessionEnd` | ✅ native | ⚠ proxy | ❌ | ❌ | ❌ | ❌ | ✅ native | Run via end-session skill explicitly |
-| `Stop` | ✅ native | ✅ native | ❌ | ❌ | ❌ | ❌ | ❌ | Best-effort cleanup in skill exit path |
-| `UserPromptSubmit` | ✅ native | ✅ native | ⚠ partial | ❌ | ❌ | ⚠ proxy | ✅ native | Logged in `.hseos/runs/sessions/<id>/prompts/` only when session id env var is set |
+| `Stop` | ✅ native | ⚠ proxy | ❌ | ❌ | ❌ | ❌ | ❌ | Best-effort cleanup in skill exit path |
+| `UserPromptSubmit` | ✅ native | ⚠ proxy | ⚠ partial | ❌ | ❌ | ⚠ proxy | ✅ native | Logged in `.hseos/runs/sessions/<id>/prompts/` only when session id env var is set |
 | `PreCompact` | ✅ native | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | Manual snapshot via pre-compact handler invoked by user |
 | `Notification` | ✅ native | ❌ | ❌ | ❌ | ❌ | ❌ | ⚠ partial | Terminal bell fallback inside on-notification handler |
 
@@ -47,7 +47,7 @@ Legend:
 
 ## Per-handler portability snapshot (W4-impl)
 
-Each handler in `.agents/hooks/handlers/` was authored with the matrix in mind. The fallback for `Notification` (terminal bell), the silent no-op when no code-index provider is detected, the `HSEOS_BYPASS_INDEX=1` escape hatch, and the gating-by-config of vault writes are all expressions of P6 (graceful degradation) so the handlers run in every adapter — even those that lack the native event — without breaking.
+Each handler in `.agents/hooks/handlers/` was authored with the matrix in mind. The fallback for `Notification` (terminal bell), the silent no-op when no code-index provider is detected, the `HSEOS_BYPASS_INDEX=1` escape hatch, and the gating-by-config of vault writes are all expressions of P6 (graceful degradation) so the handlers run in every adapter — even those that lack the native event — without breaking. For Codex, the compiler emits `.codex/hseos-hooks.json` so hook intent remains auditable even though Codex CLI does not consume `.claude/hooks.json`.
 
 | Handler | Event(s) it serves | Behaviour on unsupported adapter |
 |---|---|---|

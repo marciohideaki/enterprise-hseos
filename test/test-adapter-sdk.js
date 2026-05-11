@@ -9,6 +9,7 @@ const os = require('node:os');
 const { AdapterBase, normalizeHookEvent, resolveAdapterOutputDir, checkAdapterConformance } =
   require('../packages/adapter-sdk');
 const GooseAdapter = require('../tools/cli/installers/lib/core/agent-core-compiler/adapters/goose');
+const CodexAdapter = require('../tools/cli/installers/lib/core/agent-core-compiler/adapters/codex');
 const { discoverByoaAdapters, buildAdapterRegistry } =
   require('../tools/cli/installers/lib/core/agent-core-compiler/lib/byoa-discovery');
 
@@ -85,6 +86,8 @@ function testCheckAdapterConformance() {
 
   assertPass('conformance passes for GooseAdapter', checkAdapterConformance(GooseAdapter).ok,
     JSON.stringify(checkAdapterConformance(GooseAdapter).missing));
+  assertPass('conformance passes for CodexAdapter', checkAdapterConformance(CodexAdapter).ok,
+    JSON.stringify(checkAdapterConformance(CodexAdapter).missing));
 
   class BrokenAdapter extends AdapterBase {
     static get id() { return 'broken'; }
@@ -175,6 +178,83 @@ async function testGooseAdapterPathMapping() {
   assertPass('mapHookEvent PostToolUse returns null (unsupported)', adapter.mapHookEvent('PostToolUse') === null);
 }
 
+// --- CodexAdapter ---
+
+async function testCodexAdapterEmit() {
+  console.log('\nCodexAdapter.emit');
+  await withTempDir(async (dir) => {
+    const adapter = new CodexAdapter();
+
+    assertPass('static id is codex', CodexAdapter.id === 'codex');
+    assertPass('static capabilities is array', Array.isArray(CodexAdapter.capabilities));
+
+    await adapter.emit({
+      hooks: [
+        {
+          id: 'directive-guard',
+          event: 'PreToolUse',
+          matcher: 'Write|Edit',
+          command: 'bash .agents/hooks/handlers/example.sh',
+          status: 'active',
+          description: 'Example hook',
+          blocking: true,
+        },
+      ],
+      mcpServers: [
+        {
+          id: 'hseos-governance',
+          command: 'node',
+          args: ['tools/mcp-hseos-governance/index.js'],
+          env: { HSEOS_STATE_DB: '.hseos/state/project.db' },
+        },
+      ],
+    }, dir);
+
+    const configPath = path.join(dir, '.codex', 'config.toml');
+    const hooksMetaPath = path.join(dir, '.codex', 'hseos-hooks.json');
+    assertPass('.codex/config.toml created', fs.existsSync(configPath));
+    assertPass('.codex/hseos-hooks.json created', fs.existsSync(hooksMetaPath));
+
+    const config = fs.readFileSync(configPath, 'utf8');
+    assertPass('config enables rmcp_client', /rmcp_client = true/.test(config), config);
+    assertPass('config does not embed temp project path', !config.includes(dir), config);
+    assertPass('config contains HSEOS MCP server',
+      /\[mcp_servers\."hseos-governance"\]/.test(config) &&
+        /command = "node"/.test(config),
+      config);
+
+    const hooksMeta = JSON.parse(fs.readFileSync(hooksMetaPath, 'utf8'));
+    assertPass('hooks metadata contains active hook',
+      hooksMeta.hooks.some((hook) => hook.id === 'directive-guard'));
+  });
+}
+
+async function testCodexAdapterVerifyClean() {
+  console.log('\nCodexAdapter.verify + clean');
+  await withTempDir(async (dir) => {
+    const adapter = new CodexAdapter();
+    const verifyBefore = await adapter.verify(dir);
+    assertPass('verify fails when Codex artifacts are missing', !verifyBefore.ok);
+
+    await adapter.emit({ hooks: [], mcpServers: [] }, dir);
+    const verifyAfter = await adapter.verify(dir);
+    assertPass('verify ok after emit', verifyAfter.ok);
+
+    const cleanResult = await adapter.clean(dir);
+    assertPass('clean removes Codex artifacts', cleanResult.removed.length === 2);
+    assertPass('clean removes .codex/config.toml from disk',
+      !fs.existsSync(path.join(dir, '.codex', 'config.toml')));
+  });
+}
+
+async function testCodexAdapterPathMapping() {
+  console.log('\nCodexAdapter path mapping');
+  const adapter = new CodexAdapter();
+  assertPass('resolvePath maps .claude/ to .codex/',
+    adapter.resolvePath('.claude/hooks.json') === '.codex/hooks.json');
+  assertPass('mapHookEvent returns null (metadata fallback)', adapter.mapHookEvent('PostToolUse') === null);
+}
+
 // --- BYOA discovery ---
 
 async function testByoaDiscovery() {
@@ -204,10 +284,12 @@ async function testByoaDiscovery() {
 async function testBuildAdapterRegistry() {
   console.log('\nbuildAdapterRegistry');
   await withTempDir(async (dir) => {
-    const registry = await buildAdapterRegistry(dir, [GooseAdapter]);
+    const registry = await buildAdapterRegistry(dir, [GooseAdapter, CodexAdapter]);
     assertPass('registry is a Map', registry instanceof Map);
     assertPass('registry contains goose', registry.has('goose'));
+    assertPass('registry contains codex', registry.has('codex'));
     assertPass('registry returns GooseAdapter for goose', registry.get('goose') === GooseAdapter);
+    assertPass('registry returns CodexAdapter for codex', registry.get('codex') === CodexAdapter);
   });
 }
 
@@ -222,6 +304,9 @@ async function run() {
   await testGooseAdapterValidate();
   await testGooseAdapterVerifyClean();
   await testGooseAdapterPathMapping();
+  await testCodexAdapterEmit();
+  await testCodexAdapterVerifyClean();
+  await testCodexAdapterPathMapping();
   await testByoaDiscovery();
   await testBuildAdapterRegistry();
 
