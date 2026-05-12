@@ -11,6 +11,7 @@ const yaml = require('yaml');
 
 const REPO_ROOT = path.join(__dirname, '..');
 const AGENTS_DIR = path.join(REPO_ROOT, '.hseos', 'agents');
+const WORKFLOW_REGISTRY = path.join(REPO_ROOT, '.hseos', 'workflows', 'registry.yaml');
 
 const REQUIRED_FIELDS = ['metadata', 'persona', 'authority', 'bootstrap', 'menu'];
 const REQUIRED_METADATA = ['id', 'code', 'name', 'title', 'framework', 'capabilities'];
@@ -36,6 +37,15 @@ function validateAgent(filePath, content) {
     for (const field of REQUIRED_METADATA) {
       if (!agent.metadata[field]) {
         issues.push(`Missing agent.metadata.${field}`);
+      }
+    }
+  }
+
+  for (const item of agent.menu || []) {
+    if (item.exec) {
+      const target = path.join(REPO_ROOT, item.exec);
+      if (!fs.existsSync(target)) {
+        issues.push(`Menu exec not found: ${item.exec}`);
       }
     }
   }
@@ -74,6 +84,21 @@ function run() {
     } catch (error) {
       console.error(`  FAIL  ${file}: ${error.message}`);
       failed++;
+    }
+  }
+
+  if (fs.existsSync(WORKFLOW_REGISTRY)) {
+    const registry = yaml.parse(fs.readFileSync(WORKFLOW_REGISTRY, 'utf8')) || {};
+    for (const workflow of registry.workflows || []) {
+      if (!workflow.entrypoint) {
+        console.error(`  FAIL  workflow:${workflow.id}: Missing entrypoint`);
+        failed++;
+        continue;
+      }
+      if (!fs.existsSync(path.join(REPO_ROOT, workflow.entrypoint))) {
+        console.error(`  FAIL  workflow:${workflow.id}: entrypoint not found: ${workflow.entrypoint}`);
+        failed++;
+      }
     }
   }
 

@@ -16,7 +16,30 @@ function normalizeSkill(sourceContent, quickContent, metadata) {
   const sourceFm = parsedSource.frontmatter || {};
   const quickFm = parsedQuick.frontmatter || {};
 
+  const preserved = {};
+  const generatedKeys = new Set([
+    'name',
+    'description',
+    'version',
+    'owner',
+    'tier',
+    'source',
+    'quick',
+    'portable',
+    'license',
+    'metadata',
+  ]);
+
+  for (const [key, value] of Object.entries(sourceFm)) {
+    if (!generatedKeys.has(key)) preserved[key] = value;
+  }
+
+  if (sourceFm.metadata?.hseos) {
+    preserved.metadata = { hseos: sourceFm.metadata.hseos };
+  }
+
   const frontmatter = {
+    ...preserved,
     name: sourceFm.name || quickFm.name || metadata.name,
     description: sourceFm.description || quickFm.description || `Use when ${metadata.name} is required`,
     version: String(sourceFm.version || quickFm.version || '1.0'),
@@ -24,7 +47,7 @@ function normalizeSkill(sourceContent, quickContent, metadata) {
     tier: 'full',
     source: metadata.sourcePath,
     quick: metadata.quickPath,
-    portable: true,
+    portable: sourceFm.portable ?? true,
   };
 
   if (sourceFm.license) frontmatter.license = sourceFm.license;

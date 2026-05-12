@@ -1,4 +1,7 @@
 ---
+metadata:
+  hseos:
+    explicit_only: true
 name: threat-modeling
 description: Use when performing a full 8-step threat model mapping trust boundaries, assets, abuse paths, and mitigations with mandatory user validation
 version: "1.0"

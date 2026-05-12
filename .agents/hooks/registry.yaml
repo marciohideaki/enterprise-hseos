@@ -1,14 +1,7 @@
 version: "1.1"
 schema_version: "1.0"
-source: .claude/hooks.json
+source: .agents/hooks/registry.yaml
 handlers_dir: .agents/hooks/handlers
-# Wave 4 foundation: registry now declares pending entries for the eight
-# hooks scheduled for internalization from ~/.claude/hooks/. Concrete
-# handler scripts land in .agents/hooks/handlers/ in W4 implementation
-# follow-up commits. Status field per entry distinguishes:
-#   active           -- compiled to .claude/hooks.json today
-#   pending          -- declared for migration; handler script not yet present
-#   deprecated       -- removed from active set; kept for audit
 hooks:
   - id: pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global
     event: PreToolUse
@@ -111,13 +104,6 @@ hooks:
     platform_support:
       - claude-code
     fallback: Use repository scripts or quality gates when the target platform has no native hook event.
-
-  # ---------------------------------------------------------------------------
-  # Internalized handlers (Wave 4 implementation slice complete).
-  # All eight handler scripts live at .agents/hooks/handlers/ and pass the
-  # integration suite at test/test-hook-handlers.js (68 assertions).
-  # Status flipped from pending → active in W4-T9 (this commit).
-  # ---------------------------------------------------------------------------
   - id: posttooluse-write-edit-plan-lint-validate-execution-protocol-section
     event: PostToolUse
     matcher: Write|Edit
@@ -130,7 +116,6 @@ hooks:
     platform_support:
       - claude-code
     fallback: Manual review during PR.
-
   - id: precompact-snapshot-critical-context-before-claude-compaction
     event: PreCompact
     matcher: "*"
@@ -143,7 +128,6 @@ hooks:
     platform_support:
       - claude-code
     fallback: Manual context export prior to /compact.
-
   - id: userpromptsubmit-on-prompt-submit-project-scoped-state-injection
     event: UserPromptSubmit
     matcher: "*"
@@ -156,7 +140,6 @@ hooks:
     platform_support:
       - claude-code
     fallback: No-op when handler absent.
-
   - id: sessionend-on-session-end-gated-vault-sync
     event: SessionEnd
     matcher: "*"
@@ -169,7 +152,6 @@ hooks:
     platform_support:
       - claude-code
     fallback: No-op when handler absent.
-
   - id: pretooluse-agent-suggest-skill-before-agent-dispatch
     event: PreToolUse
     matcher: Agent
@@ -182,7 +164,6 @@ hooks:
     platform_support:
       - claude-code
     fallback: Manual skill selection.
-
   - id: pretooluse-grep-glob-code-index-guard
     event: PreToolUse
     matcher: Grep|Glob
@@ -195,7 +176,6 @@ hooks:
     platform_support:
       - claude-code
     fallback: No-op when no code index is configured.
-
   - id: posttooluse-write-edit-code-index-post-edit-reindex
     event: PostToolUse
     matcher: Write|Edit
@@ -208,7 +188,6 @@ hooks:
     platform_support:
       - claude-code
     fallback: Manual reindex via provider CLI.
-
   - id: notification-on-notification-system-toast-for-long-operations
     event: Notification
     matcher: "*"

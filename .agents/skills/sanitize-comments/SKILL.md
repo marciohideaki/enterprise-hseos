@@ -1,4 +1,6 @@
 ---
+skill: sanitize-comments
+standard: Commit Hygiene Policy / Corporate AI Attribution Policy
 name: sanitize-comments
 description: Use when auditing source code comments and commit messages for AI methodology references, management language, or corporate attribution violations
 version: "1.0"

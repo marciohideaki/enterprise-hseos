@@ -222,6 +222,41 @@ async function testDoctorSkillsConsistency() {
   });
 }
 
+async function testDoctorResolvesGitRootHookScripts() {
+  await withTempDir(async (dir) => {
+    scaffoldMinimalProject(dir);
+    fs.mkdirSync(path.join(dir, '.claude'), { recursive: true });
+    fs.mkdirSync(path.join(dir, 'scripts', 'governance'), { recursive: true });
+    fs.writeFileSync(path.join(dir, '.claude', 'hooks.json'), JSON.stringify({ hooks: {} }));
+    fs.writeFileSync(path.join(dir, 'scripts', 'governance', 'state-emit-hook.sh'), '#!/bin/bash\n');
+    fs.writeFileSync(
+      path.join(dir, '.agents', 'hooks', 'registry.yaml'),
+      yaml.stringify({
+        version: '1.1',
+        hooks: [
+          {
+            id: 'state-emit',
+            event: 'PostToolUse',
+            matcher: '*',
+            type: 'command',
+            command:
+              'CLAUDE_HOOK_EVENT=PostToolUse bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/state-emit-hook.sh PostToolUse "$CLAUDE_TOOL_NAME" 2>/dev/null || true',
+            status: 'active',
+          },
+        ],
+      }),
+    );
+
+    const result = await runDoctor(dir);
+    const hooksCheck = result.checks.find((c) => c.id === 'hooks_reachable');
+    assertPass(
+      'doctor resolves hook scripts prefixed by git root command substitution',
+      Boolean(hooksCheck && hooksCheck.ok),
+      JSON.stringify(hooksCheck),
+    );
+  });
+}
+
 async function run() {
   console.log('Agent core verify / audit / doctor tests');
 
@@ -232,6 +267,7 @@ async function run() {
   await testDoctorFullProject();
   await testDoctorMissingPaths();
   await testDoctorSkillsConsistency();
+  await testDoctorResolvesGitRootHookScripts();
 
   console.log(`\nVerify/audit/doctor tests: ${passed} passed, ${failed} failed`);
   if (failed > 0) {

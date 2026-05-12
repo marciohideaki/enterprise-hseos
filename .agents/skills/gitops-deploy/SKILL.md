@@ -1,4 +1,8 @@
 ---
+metadata:
+  hseos:
+    required_modes:
+      - admin
 name: gitops-deploy
 description: Use when deploying one or more services by updating image tags with full Kustomize validation and GitOps commit standards
 version: 1.1.0

@@ -11,10 +11,12 @@ adapters:
     entrypoint: CLAUDE.md
     commands: .claude/commands
     hooks: .claude/hooks.json
-platforms: []
+platforms:
+  - claude-code
+  - codex
 counts:
-  skills: 42
-  hooks: 9
+  skills: 43
+  hooks: 17
   commands: 8
 skills:
   - name: accessibility
@@ -81,7 +83,7 @@ skills:
     source: .enterprise/governance/agent-skills/dev-squad/SKILL.md
     quick: .enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md
     output: .agents/skills/dev-squad/SKILL.md
-    hash: 5b5fe7ce7085a3d5b53b43777758df448f542c359eade4828c3de58ba4aa6aa5
+    hash: 9e7219f5e48cdf0d4c7fce0ab661ca4d2bd1a20bb6530b7b096d8135dab6f2db
   - name: doc-project
     source: .enterprise/governance/agent-skills/doc-project/SKILL.md
     quick: .enterprise/governance/agent-skills/doc-project/SKILL-QUICK.md
@@ -101,7 +103,7 @@ skills:
     source: .enterprise/governance/agent-skills/gitops-deploy/SKILL.md
     quick: .enterprise/governance/agent-skills/gitops-deploy/SKILL-QUICK.md
     output: .agents/skills/gitops-deploy/SKILL.md
-    hash: b06a43b3b8599346ee949e77de3418696d12ad38f5c27d65610f5e8af6e7a74c
+    hash: eff34728a1b88183404c04571fd2ca99e9c790d915278217feab5df578445a1c
   - name: gitops-new-project
     source: .enterprise/governance/agent-skills/gitops-new-project/SKILL.md
     quick: .enterprise/governance/agent-skills/gitops-new-project/SKILL-QUICK.md
@@ -136,12 +138,12 @@ skills:
     source: .enterprise/governance/agent-skills/performance-profiling/SKILL.md
     quick: .enterprise/governance/agent-skills/performance-profiling/SKILL-QUICK.md
     output: .agents/skills/performance-profiling/SKILL.md
-    hash: 5394259105dcd6da3f492f6258a3b6400714d69a93e069412154e960f459ed9a
+    hash: 8d97fc85aae303d8950dff787ddd5ad3755b2b6462bab728ad80a4175e9c840b
   - name: policy-layer
     source: .enterprise/governance/agent-skills/policy-layer/SKILL.md
     quick: .enterprise/governance/agent-skills/policy-layer/SKILL-QUICK.md
     output: .agents/skills/policy-layer/SKILL.md
-    hash: 7ac585c2669f6beac09e5e485092a24799cb28c1b44222465029370223a0379f
+    hash: 1d1d139433071a0df42bd727a362359950e430f55089e7b9c96e63c818105d06
   - name: pr-review
     source: .enterprise/governance/agent-skills/pr-review/SKILL.md
     quick: .enterprise/governance/agent-skills/pr-review/SKILL-QUICK.md
@@ -171,17 +173,22 @@ skills:
     source: .enterprise/governance/agent-skills/sanitize-comments/SKILL.md
     quick: .enterprise/governance/agent-skills/sanitize-comments/SKILL-QUICK.md
     output: .agents/skills/sanitize-comments/SKILL.md
-    hash: 01f10b726ebbd6a4c96e483774030668847c73a531abda3a9a487c509e2480ce
+    hash: 5091f557c6adcf8f79f82c6056761022da40dd8964ec3935e52246b17ebbba42
   - name: second-brain
     source: .enterprise/governance/agent-skills/second-brain/SKILL.md
     quick: .enterprise/governance/agent-skills/second-brain/SKILL-QUICK.md
     output: .agents/skills/second-brain/SKILL.md
-    hash: 1d26325c13e533cc2e5ccbdaa7ef8ea1d02c8c5b867643a0515935652af7b37a
+    hash: 5dd9485276a1d9074ba675de0aba0b9f0df8fd4b6448038afd7bd79d71161736
   - name: secure-coding
     source: .enterprise/governance/agent-skills/secure-coding/SKILL.md
     quick: .enterprise/governance/agent-skills/secure-coding/SKILL-QUICK.md
     output: .agents/skills/secure-coding/SKILL.md
     hash: 13f075afed6186259c823faf3d6b7e4cfba2e29a9daa6fe0504f297adc3d1bbd
+  - name: security-audit-plain-language
+    source: .enterprise/governance/agent-skills/security-audit-plain-language/SKILL.md
+    quick: .enterprise/governance/agent-skills/security-audit-plain-language/SKILL-QUICK.md
+    output: .agents/skills/security-audit-plain-language/SKILL.md
+    hash: ae2dc2d50b52647a2b41abbd5a8b94bf94670cfe2a0c421ab4fd4016521f6d6b
   - name: self-verification
     source: .enterprise/governance/agent-skills/self-verification/SKILL.md
     quick: .enterprise/governance/agent-skills/self-verification/SKILL-QUICK.md
@@ -221,7 +228,7 @@ skills:
     source: .enterprise/governance/agent-skills/threat-modeling/SKILL.md
     quick: .enterprise/governance/agent-skills/threat-modeling/SKILL-QUICK.md
     output: .agents/skills/threat-modeling/SKILL.md
-    hash: f5d39889df826bf26698a9eaca1e14f12c14deb912048b33f01557b4509dce3e
+    hash: 45f20c8cb3af22783fc2505ea454c850309ee9b62aa19b6a916baae7626e976b
   - name: verification-before-completion
     source: .enterprise/governance/agent-skills/verification-before-completion/SKILL.md
     quick: .enterprise/governance/agent-skills/verification-before-completion/SKILL-QUICK.md
@@ -270,6 +277,46 @@ hooks:
       - claude-code
   - id: stop-all-emit-agent-state-complete-event-when-claude-session-ends-best-effort-non-blocking
     event: Stop
+    matcher: "*"
+    platform_support:
+      - claude-code
+  - id: posttooluse-write-edit-plan-lint-validate-execution-protocol-section
+    event: PostToolUse
+    matcher: Write|Edit
+    platform_support:
+      - claude-code
+  - id: precompact-snapshot-critical-context-before-claude-compaction
+    event: PreCompact
+    matcher: "*"
+    platform_support:
+      - claude-code
+  - id: userpromptsubmit-on-prompt-submit-project-scoped-state-injection
+    event: UserPromptSubmit
+    matcher: "*"
+    platform_support:
+      - claude-code
+  - id: sessionend-on-session-end-gated-vault-sync
+    event: SessionEnd
+    matcher: "*"
+    platform_support:
+      - claude-code
+  - id: pretooluse-agent-suggest-skill-before-agent-dispatch
+    event: PreToolUse
+    matcher: Agent
+    platform_support:
+      - claude-code
+  - id: pretooluse-grep-glob-code-index-guard
+    event: PreToolUse
+    matcher: Grep|Glob
+    platform_support:
+      - claude-code
+  - id: posttooluse-write-edit-code-index-post-edit-reindex
+    event: PostToolUse
+    matcher: Write|Edit
+    platform_support:
+      - claude-code
+  - id: notification-on-notification-system-toast-for-long-operations
+    event: Notification
     matcher: "*"
     platform_support:
       - claude-code

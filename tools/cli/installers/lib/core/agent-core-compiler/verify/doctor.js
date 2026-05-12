@@ -157,10 +157,10 @@ async function checkHooksReachable(projectDir) {
     const unreachable = [];
     for (const hook of activeHooks) {
       if (!hook.command) continue;
-      const scriptMatch = hook.command.match(/bash\s+(\S+)/);
-      if (!scriptMatch) continue;
-      const scriptPath = path.join(projectDir, scriptMatch[1]);
-      if (!(await fs.pathExists(scriptPath))) unreachable.push(scriptMatch[1]);
+      for (const scriptRef of extractBashScriptRefs(hook.command)) {
+        const scriptPath = path.join(projectDir, scriptRef);
+        if (!(await fs.pathExists(scriptPath))) unreachable.push(scriptRef);
+      }
     }
     if (unreachable.length > 0) {
       return {
@@ -186,6 +186,33 @@ async function checkHooksReachable(projectDir) {
       remedy: 'Run `hseos agent-core compile` to regenerate.',
     };
   }
+}
+
+function extractBashScriptRefs(command) {
+  const refs = [];
+  const bashInvocations = command.matchAll(/\bbash\s+("[^"]+"|'[^']+'|[^\s;|&]+)/g);
+
+  for (const match of bashInvocations) {
+    let token = match[1];
+    if (
+      (token.startsWith('"') && token.endsWith('"')) ||
+      (token.startsWith("'") && token.endsWith("'"))
+    ) {
+      token = token.slice(1, -1);
+    }
+    token = token.replace(/^\$\(git rev-parse --show-toplevel 2>\/dev\/null\)\//, '');
+
+    if (token.startsWith('$(')) {
+      const repoRelative = token.match(/\)\/([^"' ]+\.sh)\b/);
+      if (repoRelative) token = repoRelative[1];
+    }
+
+    if (!token || token.startsWith('-') || token.includes('$') || path.isAbsolute(token)) continue;
+    if (!token.endsWith('.sh')) continue;
+    refs.push(token);
+  }
+
+  return refs;
 }
 
 async function checkMcpBundles(projectDir) {

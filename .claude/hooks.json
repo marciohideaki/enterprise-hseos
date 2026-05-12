@@ -9,6 +9,12 @@
             "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/swarm-gate.sh",
             "timeout": 5,
             "description": "HSEOS SWARM gate: bloqueia Agent paralelo sem run dev-squad ativo (complementa gate global)"
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/suggest-skill.sh",
+            "timeout": 5,
+            "description": "Recommend skills before Agent spawn based on SKILL.md frontmatter triggers"
           }
         ]
       },
@@ -42,6 +48,17 @@
             "description": "Warn on high-risk bash commands"
           }
         ]
+      },
+      {
+        "matcher": "Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/code-index-guard.sh \"$CLAUDE_TOOL_NAME\"",
+            "timeout": 3,
+            "description": "Block raw search when a code index (axon, etc.) is available; pluggable across providers"
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -56,7 +73,7 @@
         ]
       },
       {
-        "matcher": "",
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",
@@ -64,11 +81,26 @@
             "description": "Emit agent-state tool_call event (best-effort, non-blocking)"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/plan-lint.sh \"$CLAUDE_TOOL_FILE_PATH\"",
+            "description": "Lint plan files for missing Execution Protocol section in parallel-flow plans"
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/code-index-post-edit.sh \"$CLAUDE_TOOL_FILE_PATH\"",
+            "description": "Trigger index reindex after edits; pluggable across code-index providers"
+          }
+        ]
       }
     ],
     "SessionStart": [
       {
-        "matcher": "",
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",
@@ -85,12 +117,63 @@
     ],
     "Stop": [
       {
-        "matcher": "",
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",
             "command": "CLAUDE_HOOK_EVENT=Stop bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/state-emit-hook.sh Stop 2>/dev/null || true",
             "description": "Emit agent-state complete event when Claude session ends (best-effort, non-blocking)"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/pre-compact.sh",
+            "timeout": 10,
+            "description": "Snapshot critical context (next steps, open questions) before compaction"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/on-prompt-submit.sh",
+            "timeout": 5,
+            "description": "Project-scoped prompt logging and state injection (vault concerns stripped vs upstream)"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/session-end.sh",
+            "description": "Session-end log; vault sync only when second_brain.enabled true"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/on-notification.sh \"$CLAUDE_NOTIFICATION_MESSAGE\"",
+            "timeout": 5,
+            "description": "System notification for long-running operations (cross-platform — toast/bell)"
           }
         ]
       }

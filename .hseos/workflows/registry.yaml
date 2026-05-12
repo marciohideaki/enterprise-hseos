@@ -499,6 +499,7 @@ workflows:
   - id: state-tracking
     name: Agent State Tracking
     owner: SWARM
+    entrypoint: ".hseos/workflows/state-tracking/workflow.md"
     description: "Subsystem providing SQLite-backed observability of dev-squad / orbit runs. CLI + MCP + Web SSE side-cars."
     profiles: [core, runtime, full]
     state:

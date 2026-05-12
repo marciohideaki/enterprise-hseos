@@ -23,10 +23,12 @@ async function writeHookRegistry(root, sourcePath, _legacyFallback, agentsDirNam
 
   let hooks = [];
 
+  let parsedRegistry = {};
+
   if (sourcePath && (await fs.pathExists(sourcePath))) {
     if (sourcePath.endsWith('.yaml') || sourcePath.endsWith('.yml')) {
-      const parsed = yaml.parse(await fs.readFile(sourcePath, 'utf8')) || {};
-      hooks = parsed.hooks || [];
+      parsedRegistry = yaml.parse(await fs.readFile(sourcePath, 'utf8')) || {};
+      hooks = parsedRegistry.hooks || [];
     } else {
       // Legacy bootstrap: convert hooks.json → neutral registry entries
       const parsed = JSON.parse(await fs.readFile(sourcePath, 'utf8'));
@@ -54,7 +56,9 @@ async function writeHookRegistry(root, sourcePath, _legacyFallback, agentsDirNam
 
   const registry = {
     version: '1.1',
+    schema_version: parsedRegistry.schema_version || '1.0',
     source: sourcePath ? path.relative(root, sourcePath).replaceAll(path.sep, '/') : 'none',
+    handlers_dir: parsedRegistry.handlers_dir || `${agentsDirName}/hooks/handlers`,
     hooks,
   };
 

@@ -14,7 +14,7 @@ license: Apache-2.0
 
 > Tier 2. Canonical SKILL.md per ADR-0006 (Standalone Architecture).
 >
-> This file is the compiled mirror of `.enterprise/governance/agent-skills/dev-squad/SKILL.md` (the governance source-of-truth). The agent-core compiler regenerates this artifact; do not edit directly once Compiler v2 lands.
+> This file is the **single source of truth** for the dev-squad protocol — five-phase workflow, model matrix, governance scripts, commit rules, run directory convention, delegation map, and state-emission contract. The `.agents/skills/dev-squad/` compiled output mirrors this file via the agent-core compiler.
 
 ---
 

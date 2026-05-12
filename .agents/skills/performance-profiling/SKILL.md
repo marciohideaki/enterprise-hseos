@@ -1,4 +1,12 @@
 ---
+skill: performance-profiling
+standard: Performance Engineering Standard
+metadata:
+  hseos:
+    required_modes:
+      - write-safe
+      - admin
+    explicit_only: true
 name: performance-profiling
 description: Use when investigating a performance regression, profiling a service under load, or auditing performance-sensitive code with regression baselines
 version: "1.0"

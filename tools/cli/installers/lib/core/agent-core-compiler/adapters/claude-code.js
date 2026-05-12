@@ -31,6 +31,7 @@ function buildClaudeHooksJson(hooks) {
 
     const entry = { type, command };
     if (timeout) entry.timeout = timeout;
+    if (hook.description) entry.description = hook.description;
     group.hooks.push(entry);
   }
 

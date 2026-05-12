@@ -1,4 +1,8 @@
 ---
+metadata:
+  hseos:
+    required_modes:
+      - admin
 name: policy-layer
 description: Especificação completa da camada de política de agentes — spend controls, rate limiting, tool access matrix e compliance checklist
 version: 1.0.0

@@ -1,4 +1,13 @@
 ---
+load_strategy: trigger
+vault_required: false
+null_mode: graceful_fallback
+triggers:
+  - end-session
+  - decision-capture
+  - activity-log
+  - vault-read
+  - brain-sync
 name: second-brain
 description: Use when writing architectural decisions, discovered gotchas, or session activity to the vault, or designing the hseos brain sync protocol
 version: "2.1"
@@ -7,9 +16,6 @@ tier: full
 source: .enterprise/governance/agent-skills/second-brain/SKILL.md
 quick: .enterprise/governance/agent-skills/second-brain/SKILL-QUICK.md
 portable: true
-vault_required: false
-null_mode: graceful_fallback
-triggers: [end-session, decision-capture, activity-log, vault-read, brain-sync]
 ---
 
 # Second-Brain Integration — Full Reference
