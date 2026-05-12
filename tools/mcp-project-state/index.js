@@ -8,9 +8,9 @@
  * Port:  configurable via --port (default: 3100)
  */
 
-const http = require('node:http');
 const path = require('node:path');
 const fs = require('node:fs');
+const { createHttpServer, createMessageHandler, startStdioServer } = require('../lib/mcp-transport');
 
 let Database;
 try {
@@ -28,7 +28,8 @@ function parseArgs() {
   const args = process.argv.slice(2);
   const port = parseInt(args.find((a) => a.startsWith('--port='))?.split('=')[1] || DEFAULT_PORT);
   const dbPath = args.find((a) => a.startsWith('--db='))?.split('=')[1] || process.env.HSEOS_STATE_DB || DEFAULT_DB;
-  return { port, dbPath };
+  const mode = args.includes('--http') || args.some((a) => a.startsWith('--port=')) ? 'http' : 'stdio';
+  return { dbPath, mode, port };
 }
 
 function loadDynamicTools() {
@@ -67,7 +68,11 @@ function getDal(db) {
   return dalInstance;
 }
 
-function initDb(dbPath) {
+function logToStderr(level, msg) {
+  console.error(`[project-state:${level}] ${msg}`);
+}
+
+function initDb(dbPath, { log = logToStderr } = {}) {
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   const db = new Database(dbPath);
 
@@ -104,17 +109,9 @@ function initDb(dbPath) {
   `);
 
   const { runMigrations } = require('./lib/migrations');
-  runMigrations(db, path.join(__dirname, 'migrations'));
+  runMigrations(db, path.join(__dirname, 'migrations'), { log });
 
   return db;
-}
-
-function buildMcpResponse(id, result) {
-  return { jsonrpc: '2.0', id, result };
-}
-
-function buildMcpError(id, code, message) {
-  return { jsonrpc: '2.0', id, error: { code, message } };
 }
 
 function handleTool(db, name, args) {
@@ -192,155 +189,116 @@ function handleTool(db, name, args) {
   }
 }
 
-function createServer(db) {
-  const TOOLS = [
-    { name: 'state_read', description: 'Get current project state', inputSchema: { type: 'object', properties: {} } },
-    {
-      name: 'state_write',
-      description: 'Update state fields atomically',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          fields: { type: 'object', description: 'Key-value pairs to write' },
-          agent: { type: 'string', description: 'Agent code writing the state' },
-        },
-        required: ['fields'],
+const LEGACY_TOOLS = [
+  { name: 'state_read', description: 'Get current project state', inputSchema: { type: 'object', properties: {} } },
+  {
+    name: 'state_write',
+    description: 'Update state fields atomically',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        fields: { type: 'object', description: 'Key-value pairs to write' },
+        agent: { type: 'string', description: 'Agent code writing the state' },
       },
+      required: ['fields'],
     },
-    {
-      name: 'tasks_list',
-      description: 'List tasks with optional status filter',
-      inputSchema: {
-        type: 'object',
-        properties: { status: { type: 'string', enum: ['pending', 'done', 'blocked'] } },
+  },
+  {
+    name: 'tasks_list',
+    description: 'List tasks with optional status filter',
+    inputSchema: {
+      type: 'object',
+      properties: { status: { type: 'string', enum: ['pending', 'done', 'blocked'] } },
+    },
+  },
+  {
+    name: 'tasks_add',
+    description: 'Add a new task to the backlog',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        owner: { type: 'string' },
+        description: { type: 'string' },
+        depends: { type: 'array', items: { type: 'string' } },
       },
+      required: ['id', 'owner', 'description'],
     },
-    {
-      name: 'tasks_add',
-      description: 'Add a new task to the backlog',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          id: { type: 'string' },
-          owner: { type: 'string' },
-          description: { type: 'string' },
-          depends: { type: 'array', items: { type: 'string' } },
-        },
-        required: ['id', 'owner', 'description'],
+  },
+  {
+    name: 'tasks_update',
+    description: 'Update task status',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        status: { type: 'string', enum: ['pending', 'done', 'blocked'] },
+        note: { type: 'string' },
       },
+      required: ['id', 'status'],
     },
-    {
-      name: 'tasks_update',
-      description: 'Update task status',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          id: { type: 'string' },
-          status: { type: 'string', enum: ['pending', 'done', 'blocked'] },
-          note: { type: 'string' },
-        },
-        required: ['id', 'status'],
-      },
+  },
+  {
+    name: 'state_history',
+    description: 'Get recent state change history',
+    inputSchema: {
+      type: 'object',
+      properties: { n: { type: 'integer', description: 'Number of records (default 20)' } },
     },
-    {
-      name: 'state_history',
-      description: 'Get recent state change history',
-      inputSchema: {
-        type: 'object',
-        properties: { n: { type: 'integer', description: 'Number of records (default 20)' } },
-      },
-    },
-  ];
+  },
+];
 
-  return http.createServer((req, res) => {
-    if (req.method === 'GET' && req.url === '/health') {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ status: 'ok', server: 'hseos-project-state' }));
-      return;
-    }
-
-    if (req.method !== 'POST') {
-      res.writeHead(405);
-      res.end();
-      return;
-    }
-
-    let body = '';
-    req.on('data', (chunk) => (body += chunk));
-    req.on('end', () => {
-      let parsed;
-      try {
-        parsed = JSON.parse(body);
-      } catch {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(buildMcpError(null, -32_700, 'Parse error')));
-        return;
-      }
-
-      const { id, method, params } = parsed;
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-
-      try {
-        switch (method) {
-        case 'initialize': {
-          res.end(JSON.stringify(buildMcpResponse(id, {
-            protocolVersion: '2024-11-05',
-            serverInfo: { name: 'hseos-project-state', version: '1.0.0' },
-            capabilities: { tools: {} },
-          })));
-        
-        break;
-        }
-        case 'tools/list': {
-          const dynamicDescriptors = [...dynamicTools.values()].map((t) => ({
-            name: t.name,
-            description: t.description,
-            inputSchema: t.inputSchema,
-          }));
-          res.end(JSON.stringify(buildMcpResponse(id, { tools: [...TOOLS, ...dynamicDescriptors] })));
-
-        break;
-        }
-        case 'tools/call': {
-          const result = handleTool(db, params.name, params.arguments || {});
-          res.end(JSON.stringify(buildMcpResponse(id, {
-            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-          })));
-        
-        break;
-        }
-        default: {
-          res.end(JSON.stringify(buildMcpError(id, -32_601, `Method not found: ${method}`)));
-        }
-        }
-      } catch (error) {
-        res.end(JSON.stringify(buildMcpError(id, -32_000, error.message)));
-      }
-    });
-  });
+function listTools() {
+  const dynamicDescriptors = [...dynamicTools.values()].map((t) => ({
+    name: t.name,
+    description: t.description,
+    inputSchema: t.inputSchema,
+  }));
+  return [...LEGACY_TOOLS, ...dynamicDescriptors];
 }
 
-const { port, dbPath } = parseArgs();
-const db = initDb(dbPath);
-const server = createServer(db);
+const { dbPath, mode, port } = parseArgs();
+const db = initDb(dbPath, { log: logToStderr });
+let server = null;
 
 // Start in-process scheduler (stale-orphan sweep every 5min) if available.
 let stopScheduler = null;
 try {
   const { startScheduler } = require('./lib/scheduler');
-  stopScheduler = startScheduler(db, { staleMinutes: 10 });
+  stopScheduler = startScheduler(db, { log: logToStderr, staleMinutes: 10 });
 } catch {
   // Scheduler is optional — server works without it.
 }
 
-server.listen(port, '127.0.0.1', () => {
-  console.log(`[project-state] MCP server listening on http://127.0.0.1:${port}`);
-  console.log(`[project-state] Database: ${dbPath}`);
-  console.log(`[project-state] Dynamic tools loaded: ${dynamicTools.size}`);
-});
+function createProjectStateHandler({ wrapToolResults }) {
+  return createMessageHandler({
+    serverInfo: { name: 'hseos-project-state', version: '1.0.0' },
+    tools: listTools(),
+    wrapToolResults,
+    callTool(name, args) {
+      return handleTool(db, name, args);
+    },
+  });
+}
+
+if (mode === 'http') {
+  const handleMessage = createProjectStateHandler({ wrapToolResults: false });
+  server = createHttpServer(handleMessage, { status: 'ok', server: 'hseos-project-state' });
+  server.listen(port, '127.0.0.1', () => {
+    console.error(`[project-state] MCP server listening on http://127.0.0.1:${port}`);
+    console.error(`[project-state] Database: ${dbPath}`);
+    console.error(`[project-state] Dynamic tools loaded: ${dynamicTools.size}`);
+  });
+} else {
+  const handleMessage = createProjectStateHandler({ wrapToolResults: true });
+  console.error(`[project-state] MCP stdio server ready. Database: ${dbPath}`);
+  console.error(`[project-state] Dynamic tools loaded: ${dynamicTools.size}`);
+  startStdioServer(handleMessage);
+}
 
 function shutdown() {
   if (stopScheduler) stopScheduler();
+  if (server) server.close();
   try {
     db.close();
   } catch {

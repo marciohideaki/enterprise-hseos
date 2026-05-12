@@ -32,7 +32,7 @@
     "lint": "eslint . --ext .js,.cjs,.mjs,.yaml --max-warnings=0",
     "lint:fix": "eslint . --ext .js,.cjs,.mjs,.yaml --fix",
     "prepare": "command -v husky >/dev/null 2>&1 && husky || exit 0",
-    "test": "npm run test:schemas && npm run test:install && npm run test:state && npm run test:hooks && npm run test:state-emit-hook && npm run test:compiler-hooks && npm run test:verify && npm run test:plugins && npm run test:adapter-sdk && npm run test:mcp-governance && npm run test:mcp-swarm && npm run test:mcp-axon-bridge && npm run validate:schemas && npm run lint",
+    "test": "npm run test:schemas && npm run test:install && npm run test:state && npm run test:hooks && npm run test:state-emit-hook && npm run test:compiler-hooks && npm run test:verify && npm run test:plugins && npm run test:adapter-sdk && npm run test:mcp-governance && npm run test:mcp-swarm && npm run test:mcp-stdio && npm run test:mcp-axon-bridge && npm run validate:schemas && npm run lint",
     "test:install": "node test/test-installation-components.js",
     "test:plugins": "node test/test-plugin-marketplace.js",
     "test:schemas": "node test/test-agent-schema.js",
@@ -44,6 +44,7 @@
     "test:verify": "node test/test-agent-core-verify-audit-doctor.js",
     "test:mcp-governance": "node test/test-mcp-hseos-governance.js",
     "test:mcp-swarm": "node test/test-mcp-hseos-swarm.js",
+    "test:mcp-stdio": "node test/test-mcp-stdio.js",
     "test:mcp-axon-bridge": "node test/test-mcp-axon-bridge.js",
     "validate:schemas": "node tools/validate-agent-schema.js"
   },
