@@ -2,7 +2,10 @@
 # HSEOS suggest-skill handler — Wave 4 implementation slice (W4-T5)
 #
 # Event:   PreToolUse (matcher: Agent)
-# Status:  active (replaces upstream ~/.claude/hooks/suggest-skill-before-agent.sh)
+# Status:  active — advisory-only counterpart to swarm-gate.sh
+#          (swarm-gate handles the blocking model-routing + dev-squad gate;
+#          this handler walks .agents/skills/ and emits skill-match advisory
+#          text from project-local SKILL.md frontmatter)
 #
 # Reads the prompt being delegated to a subagent (stdin JSON), walks
 # every .agents/skills/<name>/SKILL.md frontmatter for declared
