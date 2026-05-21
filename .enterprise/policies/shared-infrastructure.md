@@ -41,29 +41,36 @@ Source containers (running on dev host as of 2026-05-20):
 
 ## Canonical mapping — k3s / k8s
 
-Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 2026-05-21.
+Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 2026-05-21 (post-cutover wave).
 
 | Service | Service DNS (cluster-internal) | Notes |
 |---|---|---|
-| PostgreSQL (pgvector) | `postgres-shared.platform-shared-dev.svc.cluster.local:5432` | StatefulSet `postgres-shared-0`; user `platform`; one database per project (`agentic_chain`, `backstage`, `nb-eventos`, …) |
+| PostgreSQL (pgvector) | `postgres-shared.platform-shared-dev.svc.cluster.local:5432` | StatefulSet `postgres-shared-0`; user `platform`; one database per project (`agentic_chain`, `backstage`, `nb-eventos`, `aiagents_dev`, `aiagents_demo`, …) |
 | PostgreSQL + PostGIS | `postgres-postgis-shared.platform-shared-dev.svc.cluster.local:5432` | Separate cluster for geo workloads |
 | Redis | `redis-shared.platform-shared-dev.svc.cluster.local:6379` | StatefulSet `redis-shared-0` |
-| Kafka | `kafka-shared.platform-shared-dev.svc.cluster.local:9092` | StatefulSet `kafka-shared-0` + zookeeper sibling; topic prefix per project |
+| Kafka | `kafka-shared.platform-shared-dev.svc.cluster.local:9092` | StatefulSet `kafka-shared-0` + zookeeper sibling; topic prefix per project. Must advertise FQDN per ADR-0003. |
 | RabbitMQ | `rabbitmq-shared.platform-shared-dev.svc.cluster.local:5672` (AMQP) / `:15672` (mgmt) | StatefulSet `rabbitmq-shared-0` |
+| NATS (JetStream) | `nats-shared.platform-shared-dev.svc.cluster.local:4222` (client) / `:8222` (mgmt) | StatefulSet `nats-shared-0`; stream prefix per project |
 | MySQL | `mysql-shared.platform-shared-dev.svc.cluster.local:3306` | StatefulSet `mysql-shared-0` |
+| MariaDB | `mariadb-shared.platform-shared-dev.svc.cluster.local:3306` | StatefulSet `mariadb-shared-0`; legacy app compatibility (EspoCRM, etc) |
+| MinIO (S3) | `minio-shared.platform-shared-dev.svc.cluster.local:9000` (API) / `:9001` (console) | StatefulSet `minio-shared-0`; bucket prefix per project |
+| OPA | `opa-shared.platform-shared-dev.svc.cluster.local:8181` | Deployment `opa-shared`; multi-tenant policy bundles loaded per-project. Per ADR-0002. |
 | Zookeeper | `zookeeper-shared.platform-shared-dev.svc.cluster.local:2181` | Internal to Kafka; do not consume directly |
 
-### Services NOT yet in shared (each project runs its own)
+### Services NOT yet in shared
 
 | Service | Status | Why |
 |---|---|---|
-| OPA | per-project | Policy bundles are per-project; shared OPA would require multi-tenant bundle loading + per-bundle authz. Reconsider when policy-as-code volume justifies the operational gain. |
-| MinIO / S3 | per-project | Pending shared deployment. New projects needing object storage should ask before adding a project-local instance. |
 | OpenSearch / Loki | not deployed in k3s | Observability stack lives outside the cluster currently. |
 | Qdrant | not deployed | Use `pgvector` extension in `postgres-shared` for embeddings until vector volume justifies dedicated store. |
 | Keycloak | not deployed in k3s | SSO managed at a different layer. |
-| OpenFGA | not deployed | Authz via OPA per-project today. |
+| OpenFGA | not deployed | Authz via OPA per-project bundles in `opa-shared` today. |
 | OTel Collector | not deployed in k3s | Tracing stack is external. |
+
+### Relevant ADRs (in `platform-gitops/_adr/`)
+
+- **ADR-0002** — OPA centralization in `platform-shared-dev` with per-project bundle loaders.
+- **ADR-0003** — `kafka-shared` must advertise FQDN for cross-namespace producers.
 
 Credentials/secrets are sourced via **External Secrets Operator** from Vault when available; otherwise via per-namespace `Secret` populated by a controlled bootstrap (see `secret.yaml` comments in `platform-gitops/<project>/services/base/`). Per-project `ExternalSecret` resources project the shared credentials into the project namespace.
 
