@@ -41,23 +41,31 @@ Source containers (running on dev host as of 2026-05-20):
 
 ## Canonical mapping — k3s / k8s
 
-Source: namespace `shared-platform` in the dev/staging k3s cluster.
+Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 2026-05-21.
 
 | Service | Service DNS (cluster-internal) | Notes |
 |---|---|---|
-| PostgreSQL | `postgres.shared-platform.svc.cluster.local:5432` | CloudNativePG cluster `shared-pg` |
-| Redis | `redis.shared-platform.svc.cluster.local:6379` | Bitnami chart |
-| OPA | `opa.shared-platform.svc.cluster.local:8181` | sidecar-mode optional via mesh |
-| MinIO | `minio.shared-platform.svc.cluster.local:9000` | Tenant per project via Tenant CRD |
-| OpenSearch | `opensearch.shared-platform.svc.cluster.local:9200` | |
-| Loki | `loki-gateway.shared-platform.svc.cluster.local:3100` | |
-| Qdrant | `qdrant.shared-platform.svc.cluster.local:6333` | StatefulSet |
-| Keycloak | `keycloak.shared-platform.svc.cluster.local:8080` | realm per tenant |
-| OpenFGA | `openfga.shared-platform.svc.cluster.local:8080` | |
-| Redpanda (Kafka) | `redpanda.shared-platform.svc.cluster.local:9092` | topic prefix per project |
-| OTel Collector | `otel-collector.shared-platform.svc.cluster.local:4317` | |
+| PostgreSQL (pgvector) | `postgres-shared.platform-shared-dev.svc.cluster.local:5432` | StatefulSet `postgres-shared-0`; user `platform`; one database per project (`agentic_chain`, `backstage`, `nb-eventos`, …) |
+| PostgreSQL + PostGIS | `postgres-postgis-shared.platform-shared-dev.svc.cluster.local:5432` | Separate cluster for geo workloads |
+| Redis | `redis-shared.platform-shared-dev.svc.cluster.local:6379` | StatefulSet `redis-shared-0` |
+| Kafka | `kafka-shared.platform-shared-dev.svc.cluster.local:9092` | StatefulSet `kafka-shared-0` + zookeeper sibling; topic prefix per project |
+| RabbitMQ | `rabbitmq-shared.platform-shared-dev.svc.cluster.local:5672` (AMQP) / `:15672` (mgmt) | StatefulSet `rabbitmq-shared-0` |
+| MySQL | `mysql-shared.platform-shared-dev.svc.cluster.local:3306` | StatefulSet `mysql-shared-0` |
+| Zookeeper | `zookeeper-shared.platform-shared-dev.svc.cluster.local:2181` | Internal to Kafka; do not consume directly |
 
-Credentials/secrets are sourced via **External Secrets Operator** from Vault (`platform-secrets-dev` SecretStore). Per-project `ExternalSecret` resources project the shared credentials into the project namespace.
+### Services NOT yet in shared (each project runs its own)
+
+| Service | Status | Why |
+|---|---|---|
+| OPA | per-project | Policy bundles are per-project; shared OPA would require multi-tenant bundle loading + per-bundle authz. Reconsider when policy-as-code volume justifies the operational gain. |
+| MinIO / S3 | per-project | Pending shared deployment. New projects needing object storage should ask before adding a project-local instance. |
+| OpenSearch / Loki | not deployed in k3s | Observability stack lives outside the cluster currently. |
+| Qdrant | not deployed | Use `pgvector` extension in `postgres-shared` for embeddings until vector volume justifies dedicated store. |
+| Keycloak | not deployed in k3s | SSO managed at a different layer. |
+| OpenFGA | not deployed | Authz via OPA per-project today. |
+| OTel Collector | not deployed in k3s | Tracing stack is external. |
+
+Credentials/secrets are sourced via **External Secrets Operator** from Vault when available; otherwise via per-namespace `Secret` populated by a controlled bootstrap (see `secret.yaml` comments in `platform-gitops/<project>/services/base/`). Per-project `ExternalSecret` resources project the shared credentials into the project namespace.
 
 ## Procedural rules
 
