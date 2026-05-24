@@ -55,6 +55,7 @@ Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 20
 | MariaDB | `mariadb-shared.platform-shared-dev.svc.cluster.local:3306` | StatefulSet `mariadb-shared-0`; legacy app compatibility (EspoCRM, etc) |
 | MinIO (S3) | `minio-shared.platform-shared-dev.svc.cluster.local:9000` (API) / `:9001` (console) | StatefulSet `minio-shared-0`; bucket prefix per project |
 | OPA | `opa-shared.platform-shared-dev.svc.cluster.local:8181` | Deployment `opa-shared`; multi-tenant policy bundles loaded per-project. Per ADR-0002. |
+| OpenTelemetry Collector | `otel-collector-shared.platform-shared-dev.svc.cluster.local:4317` (OTLP gRPC) / `:4318` (OTLP HTTP) / `:8889` (Prometheus exporter) | Deployment `otel-collector-shared`; per-project resource attributes; metrics flow to shared Prometheus via the `otel-collector-shared` ServiceMonitor in `monitoring`. Per ADR-0010. |
 | Zookeeper | `zookeeper-shared.platform-shared-dev.svc.cluster.local:2181` | Internal to Kafka; do not consume directly |
 
 ### Services NOT yet in shared
@@ -65,12 +66,12 @@ Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 20
 | Qdrant | not deployed | Use `pgvector` extension in `postgres-shared` for embeddings until vector volume justifies dedicated store. |
 | Keycloak | not deployed in k3s | SSO managed at a different layer. |
 | OpenFGA | not deployed | Authz via OPA per-project bundles in `opa-shared` today. |
-| OTel Collector | not deployed in k3s | Tracing stack is external. |
 
-### Relevant ADRs (in `platform-gitops/_adr/`)
+### Relevant ADRs (in `enterprise-hseos/.enterprise/.specs/decisions/`)
 
 - **ADR-0002** — OPA centralization in `platform-shared-dev` with per-project bundle loaders.
 - **ADR-0003** — `kafka-shared` must advertise FQDN for cross-namespace producers.
+- **ADR-0010** — `otel-collector-shared` is the canonical OTLP ingress for shared observability; capabilities must export via OTLP HTTP/gRPC instead of direct Prometheus scrape when telemetry contracts require trace/log correlation.
 
 Credentials/secrets are sourced via **External Secrets Operator** from Vault when available; otherwise via per-namespace `Secret` populated by a controlled bootstrap (see `secret.yaml` comments in `platform-gitops/<project>/services/base/`). Per-project `ExternalSecret` resources project the shared credentials into the project namespace.
 
