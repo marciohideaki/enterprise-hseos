@@ -56,16 +56,16 @@ Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 20
 | MinIO (S3) | `minio-shared.platform-shared-dev.svc.cluster.local:9000` (API) / `:9001` (console) | StatefulSet `minio-shared-0`; bucket prefix per project |
 | OPA | `opa-shared.platform-shared-dev.svc.cluster.local:8181` | Deployment `opa-shared`; multi-tenant policy bundles loaded per-project. Per ADR-0002. |
 | Loki | `loki.monitoring.svc.cluster.local:3100` | SingleBinary mode; namespace `monitoring`; deployed via ArgoCD app `loki-dev` (grafana/loki chart 6.55.0 / Loki 3.6.7); auth disabled; retention 7d; 10Gi PVC. |
+| OpenFGA | `openfga-shared.platform-shared-dev.svc.cluster.local:8080` (HTTP) / `:8081` (gRPC) | Deployment `openfga-shared`; v1.5.3; postgres backend via `openfga-shared-secret`; auth disabled for dev |
+| OpenSearch | `opensearch-shared.platform-shared-dev.svc.cluster.local:9200` | StatefulSet `opensearch-shared-0`; v2.18.0; single-node; security disabled for dev; 10Gi PVC |
 | Zookeeper | `zookeeper-shared.platform-shared-dev.svc.cluster.local:2181` | Internal to Kafka; do not consume directly |
 
 ### Services NOT yet in shared
 
 | Service | Status | Why |
 |---|---|---|
-| OpenSearch | not deployed in k3s | Search/analytics stack is external. |
 | Qdrant | not deployed | Use `pgvector` extension in `postgres-shared` for embeddings until vector volume justifies dedicated store. |
 | Keycloak | not deployed in k3s | SSO managed at a different layer. |
-| OpenFGA | not deployed | Authz via OPA per-project bundles in `opa-shared` today. |
 | OTel Collector | not deployed in k3s | Tracing stack is external. |
 
 ### Relevant ADRs (in `platform-gitops/_adr/`)
