@@ -28,7 +28,7 @@ Source containers (running on dev host as of 2026-05-20):
 | OPA | `shared-opa` | `127.0.0.1:18181` | v1.1.0 |
 | MinIO (S3) | `shared-minio` | `127.0.0.1:19000` (API) / `19002` (console) | latest |
 | OpenSearch | `shared-opensearch` | `127.0.0.1:19200` | v2.18.0 |
-| Loki | `shared-loki` | `127.0.0.1:23100` | v3.1.1 |
+| Loki | — | — | **Removido** — use Loki no k3s (`loki.monitoring.svc.cluster.local:3100`) |
 | Qdrant | `shared-qdrant` | `127.0.0.1:6333-6334` | v1.12.4 |
 | FalkorDB | `shared-falkordb` | `127.0.0.1:6379` | latest |
 | Ollama | `shared-ollama` | `127.0.0.1:11434` | latest |
