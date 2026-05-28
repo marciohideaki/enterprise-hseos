@@ -132,7 +132,7 @@ fi
 # ─── Check 8: Hook handlers ──────────────────────────────────
 echo ""
 echo "▶ Hook Handlers"
-for hook in ado-preflight-gate ado-branch-guard ado-on-plan-write ado-task-progress ado-pr-link ado-tag-close _ado-lib; do
+for hook in ado-preflight-gate ado-branch-guard ado-on-plan-write ado-task-progress ado-pr-link ado-tag-close ado-inbox-check _ado-lib; do
   HANDLER="${PROJECT_ROOT}/.agents/hooks/handlers/${hook}.sh"
   if [[ -f "$HANDLER" ]]; then
     bash -n "$HANDLER" 2>/dev/null && ok "${hook}.sh: present, syntax ok" || fail "${hook}.sh: syntax error"
@@ -140,6 +140,31 @@ for hook in ado-preflight-gate ado-branch-guard ado-on-plan-write ado-task-progr
     fail "${hook}.sh: não encontrado"
   fi
 done
+
+# ─── Check 9: _ado-lib.sh sourceability ──────────────────────
+echo ""
+echo "▶ Helper Library"
+LIB="${PROJECT_ROOT}/.agents/hooks/handlers/_ado-lib.sh"
+if bash -c "source '$LIB' && type is_ado_enabled &>/dev/null" 2>/dev/null; then
+  ok "_ado-lib.sh: sourceable, is_ado_enabled() defined"
+else
+  fail "_ado-lib.sh: source failed or is_ado_enabled() missing"
+fi
+
+# ─── Check 10: Pending inbox events ──────────────────────────
+echo ""
+echo "▶ ADO Inbox"
+INBOX="${PROJECT_ROOT}/.hseos/runs/ado-ops/inbox"
+if [[ -d "$INBOX" ]]; then
+  PENDING_COUNT=$(find "$INBOX" -name "tag-*.json" 2>/dev/null | wc -l | tr -d ' ')
+  if [[ "$PENDING_COUNT" -gt 0 ]]; then
+    warn "Inbox: ${PENDING_COUNT} evento(s) pendente(s) — execute '/atlas close'"
+  else
+    ok "Inbox: sem eventos pendentes"
+  fi
+else
+  ok "Inbox: diretório não existe (nenhuma tag processada ainda)"
+fi
 
 # ─── Summary ─────────────────────────────────────────────────
 echo ""

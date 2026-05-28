@@ -173,6 +173,16 @@
             "description": "Emit agent-state start event (best-effort, non-blocking)"
           }
         ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/.agents/hooks/handlers/ado-inbox-check.sh 2>/dev/null || true",
+            "description": "Check for pending ADO tag-close inbox events"
+          }
+        ]
       }
     ],
     "Stop": [

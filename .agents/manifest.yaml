@@ -16,7 +16,7 @@ platforms:
   - codex
 counts:
   skills: 48
-  hooks: 23
+  hooks: 24
   commands: 12
 skills:
   - name: accessibility

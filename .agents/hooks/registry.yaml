@@ -272,3 +272,15 @@ hooks:
     platform_support:
       - claude-code
     fallback: "Run /atlas close manually after tagging to close ADO Feature/Epic."
+  - id: sessionstart-ado-inbox-check
+    event: SessionStart
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/ado-inbox-check.sh
+    timeout: 3
+    blocking: false
+    status: active
+    description: "ADO inbox check: warns at session start if pending tag-close events exist in .hseos/runs/ado-ops/inbox/. Advisory only — directs user to run /atlas close. Exits silently when ado.enabled=false."
+    platform_support:
+      - claude-code
+    fallback: "Check .hseos/runs/ado-ops/inbox/ manually for pending events."
