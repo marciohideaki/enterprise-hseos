@@ -15,9 +15,9 @@ platforms:
   - claude-code
   - codex
 counts:
-  skills: 43
-  hooks: 17
-  commands: 8
+  skills: 48
+  hooks: 23
+  commands: 12
 skills:
   - name: accessibility
     source: .enterprise/governance/agent-skills/accessibility/SKILL.md
@@ -234,6 +234,30 @@ skills:
     quick: .enterprise/governance/agent-skills/verification-before-completion/SKILL-QUICK.md
     output: .agents/skills/verification-before-completion/SKILL.md
     hash: 21d3dcd97c37bf6f46bb64cf588dd2a0e0807ec38f55e8ad4d006f1fa11d951d
+  - name: ado-ops
+    source: .enterprise/governance/agent-skills/ado-ops/SKILL.md
+    quick: .enterprise/governance/agent-skills/ado-ops/SKILL-QUICK.md
+    output: .agents/skills/ado-ops/SKILL.md
+    feature_flag: ado.enabled
+  - name: ado-plan
+    source: .enterprise/governance/agent-skills/ado-plan/SKILL.md
+    quick: .enterprise/governance/agent-skills/ado-plan/SKILL-QUICK.md
+    output: .agents/skills/ado-plan/SKILL.md
+    feature_flag: ado.enabled
+  - name: ado-sync
+    source: .enterprise/governance/agent-skills/ado-sync/SKILL.md
+    quick: .enterprise/governance/agent-skills/ado-sync/SKILL-QUICK.md
+    output: .agents/skills/ado-sync/SKILL.md
+    feature_flag: ado.enabled
+  - name: ado-close-wave
+    source: .enterprise/governance/agent-skills/ado-close-wave/SKILL.md
+    quick: .enterprise/governance/agent-skills/ado-close-wave/SKILL-QUICK.md
+    output: .agents/skills/ado-close-wave/SKILL.md
+    feature_flag: ado.enabled
+  - name: ado-new-project
+    source: .enterprise/governance/agent-skills/ado-new-project/SKILL.md
+    quick: .enterprise/governance/agent-skills/ado-new-project/SKILL-QUICK.md
+    output: .agents/skills/ado-new-project/SKILL.md
 hooks:
   - id: pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global
     event: PreToolUse
@@ -349,6 +373,22 @@ commands:
     type: workflow
     source: null
     description: Subsystem providing SQLite-backed observability of dev-squad / orbit runs. CLI + MCP + Web SSE side-cars.
+  - name: hseos-workflow-ado-plan
+    type: workflow
+    source: .hseos/workflows/ado-ops/workflow.md
+    description: G1-ADO gate — creates Epic/Feature/Story/Task hierarchy in Azure DevOps from approved PLAN.md.
+  - name: hseos-workflow-ado-sync
+    type: workflow
+    source: .hseos/workflows/ado-ops/workflow.md
+    description: Sync dev-squad run state to Azure DevOps — closes completed Tasks/Stories, activates in-progress items.
+  - name: hseos-workflow-ado-close-wave
+    type: workflow
+    source: .hseos/workflows/ado-ops/workflow.md
+    description: Close wave in ADO after PR merge — closes Feature/Epic, creates git tag, updates MASTER-PLAN.md.
+  - name: hseos-workflow-ado-new-project
+    type: workflow
+    source: .hseos/workflows/ado-ops/workflow.md
+    description: Bootstrap complete Azure DevOps project — create org/project, iteration paths, optionally migrate repo, create pipeline.
   - name: hseos-agent-manifest
     type: agent-index
     source: .hseos/AGENT-MANIFEST.md

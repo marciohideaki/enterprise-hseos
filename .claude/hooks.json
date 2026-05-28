@@ -44,7 +44,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if echo \"$CLAUDE_TOOL_COMMAND\" | grep -qE '^(git push|git reset --hard|rm -rf|git branch -[Dd])'; then echo '[HSEOS] High-risk command intercepted — confirm this is intentional' >&2; fi",
+            "command": "if echo \"$CLAUDE_TOOL_COMMAND\" | grep -qE '^(git push|git reset --hard|rm -rf|git branch -[Dd])'; then echo '[HSEOS] High-risk command intercepted \u2014 confirm this is intentional' >&2; fi",
             "description": "Warn on high-risk bash commands"
           }
         ]
@@ -57,6 +57,26 @@
             "command": "bash .agents/hooks/handlers/code-index-guard.sh \"$CLAUDE_TOOL_NAME\"",
             "timeout": 3,
             "description": "Block raw search when a code index (axon, etc.) is available; pluggable across providers"
+          }
+        ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/.agents/hooks/handlers/ado-preflight-gate.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/.agents/hooks/handlers/ado-branch-guard.sh",
+            "timeout": 5
           }
         ]
       }
@@ -94,6 +114,46 @@
             "type": "command",
             "command": "bash .agents/hooks/handlers/code-index-post-edit.sh \"$CLAUDE_TOOL_FILE_PATH\"",
             "description": "Trigger index reindex after edits; pluggable across code-index providers"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/.agents/hooks/handlers/ado-on-plan-write.sh \"$CLAUDE_TOOL_FILE_PATH\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/.agents/hooks/handlers/ado-task-progress.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/.agents/hooks/handlers/ado-pr-link.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/.agents/hooks/handlers/ado-tag-close.sh",
+            "timeout": 5
           }
         ]
       }
@@ -173,7 +233,7 @@
             "type": "command",
             "command": "bash .agents/hooks/handlers/on-notification.sh \"$CLAUDE_NOTIFICATION_MESSAGE\"",
             "timeout": 5,
-            "description": "System notification for long-running operations (cross-platform — toast/bell)"
+            "description": "System notification for long-running operations (cross-platform \u2014 toast/bell)"
           }
         ]
       }
