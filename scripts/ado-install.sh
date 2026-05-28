@@ -71,20 +71,33 @@ fi
 
 # ─── Step 4: Enable ado in hseos.config.yaml ──────────────────
 log "Habilitando ado.enabled em hseos.config.yaml..."
+_ado_set_enabled() {
+  if command -v yq &>/dev/null; then
+    yq -i '.ado.enabled = true' "$HSEOS_CONFIG"
+  else
+    # sed fallback: replace 'enabled: false' only inside the ado: block
+    # matches first occurrence after 'ado:' header
+    awk '/^ado:/{in_ado=1} in_ado && /enabled: false/{sub(/enabled: false/, "enabled: true"); in_ado=0} {print}' \
+      "$HSEOS_CONFIG" > "${HSEOS_CONFIG}.tmp" && mv "${HSEOS_CONFIG}.tmp" "$HSEOS_CONFIG"
+  fi
+}
+
+# Read current value (yq or awk fallback)
 if command -v yq &>/dev/null; then
   CURRENT=$(yq '.ado.enabled // false' "$HSEOS_CONFIG" 2>/dev/null)
-  if [[ "$CURRENT" == "true" ]]; then
-    log "✓ ado.enabled já é true — skip"
-  else
-    if dry "Setaria ado.enabled=true em $HSEOS_CONFIG"; then
-      :
-    else
-      yq -i '.ado.enabled = true' "$HSEOS_CONFIG"
-      log "✓ ado.enabled=true aplicado"
-    fi
-  fi
 else
-  warn "yq não disponível. Edite manualmente: ado.enabled: false → true em $HSEOS_CONFIG"
+  CURRENT=$(awk '/^ado:/{f=1} f && /enabled:/{print; exit}' "$HSEOS_CONFIG" | grep -o 'true\|false' || echo 'false')
+fi
+
+if [[ "$CURRENT" == "true" ]]; then
+  log "✓ ado.enabled já é true — skip"
+else
+  if dry "Setaria ado.enabled=true em $HSEOS_CONFIG"; then
+    :
+  else
+    _ado_set_enabled
+    log "✓ ado.enabled=true aplicado"
+  fi
 fi
 
 # ─── Step 5: Add azure-devops to ~/.claude/mcp.json ──────────
