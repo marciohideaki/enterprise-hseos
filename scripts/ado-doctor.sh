@@ -13,9 +13,9 @@ PASS=0
 FAIL=0
 WARN=0
 
-ok()   { echo "  ✓ $*"; ((PASS++)); }
-fail() { echo "  ✗ $*" >&2; ((FAIL++)); }
-warn() { echo "  ⚠ $*"; ((WARN++)); }
+ok()   { echo "  ✓ $*"; ((PASS++)) || true; }
+fail() { echo "  ✗ $*" >&2; ((FAIL++)) || true; }
+warn() { echo "  ⚠ $*"; ((WARN++)) || true; }
 
 echo ""
 echo "╔══════════════════════════════════════════════╗"

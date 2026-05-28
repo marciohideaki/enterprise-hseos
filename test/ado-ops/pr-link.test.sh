@@ -5,8 +5,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
 HANDLER="${PROJECT_ROOT}/.agents/hooks/handlers/ado-pr-link.sh"
 PASS=0; FAIL=0
-ok() { echo "  ✓ $*"; ((PASS++)); }
-fail() { echo "  ✗ $*" >&2; ((FAIL++)); }
+ok() { echo "  ✓ $*"; ((PASS++)) || true; }
+fail() { echo "  ✗ $*" >&2; ((FAIL++)) || true; }
 echo ""; echo "▶ pr-link tests"
 
 bash -n "$HANDLER" && ok "syntax check" || fail "syntax check"
