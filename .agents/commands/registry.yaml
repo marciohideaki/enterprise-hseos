@@ -32,3 +32,19 @@ commands:
     type: agent-index
     source: .hseos/AGENT-MANIFEST.md
     description: HSEOS installed agent manifest
+  - name: hseos-workflow-ado-plan
+    type: workflow
+    source: .hseos/workflows/ado-ops/workflow.md
+    description: "G1-ADO gate: creates Epic/Feature/Story/Task hierarchy in Azure DevOps from approved PLAN.md. Required before dev-squad dispatch when ado.enabled=true."
+  - name: hseos-workflow-ado-sync
+    type: workflow
+    source: .hseos/workflows/ado-ops/workflow.md
+    description: "Sync dev-squad run state to Azure DevOps: closes completed Tasks/Stories, activates in-progress items."
+  - name: hseos-workflow-ado-close-wave
+    type: workflow
+    source: .hseos/workflows/ado-ops/workflow.md
+    description: "Close wave in ADO after PR merge: closes Feature/Epic, creates git tag, updates MASTER-PLAN.md."
+  - name: hseos-workflow-ado-new-project
+    type: workflow
+    source: .hseos/workflows/ado-ops/workflow.md
+    description: "Bootstrap complete Azure DevOps project: create org/project, iteration paths, optionally migrate repo (with explicit user prompt), create CI/CD pipeline."
