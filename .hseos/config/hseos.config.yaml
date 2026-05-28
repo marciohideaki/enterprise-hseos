@@ -122,6 +122,13 @@ agents:
     authority: ".enterprise/agents/sable"
     phase: operations
 
+  - code: ATLAS
+    name: ADO Tracking and Lifecycle Automation System
+    file: ".hseos/agents/atlas.agent.yaml"
+    authority: ".enterprise/agents/atlas"
+    phase: ado-orchestration
+    feature_flag: ado.enabled
+
 # Standard engineering flow
 flows:
   standard:
