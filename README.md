@@ -514,6 +514,7 @@ Three commands for framework health:
 hseos verify    # integrity check — validates install artifacts, schemas, hooks
 hseos audit     # spec compliance scan — checks agent configs against constitution
 hseos doctor    # full health report — verify + audit + dependency check + test run
+hseos pr closeout <num> --approved  # governed PR merge + safe feature branch cleanup
 ```
 
 Typical output:

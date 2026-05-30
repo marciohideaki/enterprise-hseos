@@ -21,6 +21,7 @@
 | [ADR-0008](./ADR-0008-mcp-project-local-bundle-policy.md) | MCP Project-Local + Three-Tier Bundle Policy | Proposed | MCP configuration, mcp-governance skill, quality gates |
 | [ADR-0009](./ADR-0009-plugin-marketplace.md) | HSEOS Plugin Marketplace (Dual-Format) | Proposed | Compiler, install lifecycle, documentation policy |
 | [ADR-0012](./ADR-0012-agent-os-sandboxing.md) | Optional Agent OS Sandboxing | Proposed | CLI, agent-core doctor, sandbox policy |
+| [ADR-0013](./ADR-0013-pr-closeout-and-branch-lifecycle.md) | PR Closeout and Branch Lifecycle | Accepted | Execution governance, branch lifecycle, PR closeout |
 
 ---
 
