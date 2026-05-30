@@ -55,7 +55,7 @@
 | FORGE: artifact publication, CI validation | Bypass gates, update manifests, deploy to runtime |
 | KUBE: manifest updates, GitOps PRs, ArgoCD | Build images, verify runtime, modify infra manifests |
 | SABLE: runtime verification, governance audits | Re-trigger deploys, update manifests, approve exceptions |
-| SWARM: heterogeneous batch decomposition, parallel dispatch under worktree isolation, handoff extraction | Open or merge PRs, push to protected branches, write its own handoffs from inside subagents, override agent authority, bypass G2 plan approval |
+| SWARM: heterogeneous batch decomposition, parallel dispatch under worktree isolation, handoff extraction | Self-approve PRs, merge without explicit approval, push to protected branches, write its own handoffs from inside subagents, override agent authority, bypass G2 plan approval |
 
 ---
 

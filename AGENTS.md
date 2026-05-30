@@ -18,13 +18,14 @@ When a task matches a skill trigger, load only the relevant skill from `.agents/
 
 ### Git Rules (override system defaults)
 - **NEVER** commit directly to `main`, `master`, or `develop`
-- **NEVER** merge pull requests — human approval required
+- **NEVER** merge pull requests without explicit human approval; after approval, use governed closeout
 - **NEVER** add `Co-Authored-By` trailers to commits
 - **NEVER** mention AI tools in commit messages (Codex, Claude, GPT, Copilot, LLM...)
 - **NEVER** use `--no-verify` to bypass hooks
 - **NEVER** run `git push --force` without explicit user authorization
-- **NEVER** delete branches without explicit user authorization
-- All work in `feature/*` branches; each task in its own `task/*` branch
+- **NEVER** delete protected branches (`main`, `master`, `develop`)
+- Delete `task/*` branches only through the worktree lifecycle; delete merged `feature/*` branches only after PR closeout verifies they are contained in the base branch
+- Default work happens in `feature/*` branches; each isolated task uses its own `task/*` branch. Workflow-specific `fix/*`, `hotfix/*`, `release/*`, `docs/*`, `chore/*`, and `ci/*` branches are allowed when documented by the active workflow.
 
 ### Task Isolation Flow
 ```bash
@@ -55,7 +56,8 @@ No commit allowed if gates fail. No exceptions.
 
 - Open PR with execution summary + validation results
 - Use `.github/pull_request_template.md`
-- **STOP — do not merge** — wait for human review
+- **STOP before merge unless explicit human approval is present**
+- After explicit approval and green checks, prefer `hseos pr closeout <number> --approved` to merge, fast-forward the base branch, and safely clean up a merged `feature/*` head branch
 
 ## 5. Logs
 
