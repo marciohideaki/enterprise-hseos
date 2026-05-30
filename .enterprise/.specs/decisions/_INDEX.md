@@ -20,6 +20,7 @@
 | [ADR-0007](./ADR-0007-compiler-v2-multi-adapter-contract.md) | Agent-Core Compiler v2 (Multi-Adapter Contract) | Proposed | Compiler module, manifest schema, install lifecycle |
 | [ADR-0008](./ADR-0008-mcp-project-local-bundle-policy.md) | MCP Project-Local + Three-Tier Bundle Policy | Proposed | MCP configuration, mcp-governance skill, quality gates |
 | [ADR-0009](./ADR-0009-plugin-marketplace.md) | HSEOS Plugin Marketplace (Dual-Format) | Proposed | Compiler, install lifecycle, documentation policy |
+| [ADR-0012](./ADR-0012-agent-os-sandboxing.md) | Optional Agent OS Sandboxing | Proposed | CLI, agent-core doctor, sandbox policy |
 
 ---
 

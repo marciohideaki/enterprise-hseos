@@ -185,7 +185,12 @@ async function testDoctorFullProject() {
       result.ok,
       JSON.stringify(result.checks.filter((c) => !c.ok)),
     );
-    assertPass('doctor runs all 8 checks', result.checks.length === 8, String(result.checks.length));
+    assertPass('doctor runs all 9 checks', result.checks.length === 9, String(result.checks.length));
+    assertPass(
+      'doctor includes optional sandbox runtime check',
+      result.checks.some((c) => c.id === 'sandbox_runtime' && c.ok),
+      JSON.stringify(result.checks),
+    );
   });
 }
 

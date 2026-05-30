@@ -213,6 +213,43 @@ state_management:
   central_host: 127.0.0.1
   central_registry: ~/.hseos/projects.json
 
+# Optional OS-level sandboxing for agent/tool execution (ADR-0012).
+# Worktree isolation governs Git/task boundaries; sandbox isolation governs host
+# filesystem/process exposure. ai-jail is an external dependency and is never
+# bundled into HSEOS.
+sandbox:
+  provider: ai-jail
+  required: false
+  default_profile: standard
+  profiles:
+    standard:
+      flags:
+        - --private-home
+        - --no-docker
+        - --no-display
+        - --no-gpu
+        - --no-save-config
+      masks:
+        - .env
+        - .env.local
+        - credentials.json
+        - secrets.yml
+      ro_maps: []
+      rw_maps: []
+      allow_tcp_ports: []
+    lockdown:
+      flags:
+        - --lockdown
+        - --no-save-config
+      masks:
+        - .env
+        - .env.local
+        - credentials.json
+        - secrets.yml
+      ro_maps: []
+      rw_maps: []
+      allow_tcp_ports: []
+
 # MCP bundle policy (ADR-0008)
 # Declares which MCP server bundles are active for this installation.
 # Bundles are defined in .agents/mcp/bundles/<name>.yaml.
