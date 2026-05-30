@@ -4,6 +4,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const fs = require('fs-extra');
 const yaml = require('yaml');
+const { sandboxDoctorCheck } = require('../../../../../lib/sandbox');
 
 const REQUIRED_REPO_PATHS = [
   '.agents',
@@ -363,6 +364,7 @@ async function runDoctor(projectDir, options = {}) {
     checkAdaptersCompiled(projectDir),
     checkGovernanceBaseline(projectDir),
     checkStateTracking(projectDir),
+    sandboxDoctorCheck(projectDir),
   ]);
 
   const failed = checks.filter((c) => !c.ok);
