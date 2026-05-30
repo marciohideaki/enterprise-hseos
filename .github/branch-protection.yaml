@@ -1,8 +1,10 @@
 # HSEOS Branch Protection Rules
 # Authority: Enterprise Constitution > execution-governance
 #
-# Apply via GitHub CLI:
-#   gh api repos/{owner}/{repo}/branches/master/protection --method PUT --input .github/branch-protection.yaml
+# Desired state for repository automation.
+# Do not pass this wrapper file directly to the GitHub branch protection REST API.
+# Apply through a translator script, Terraform/GitOps, or an explicit REST payload
+# that maps the selected branch's `protection` object to the API body.
 #
 # Or via Terraform/GitOps — see .enterprise/ci-cd/ for pipeline integration
 
