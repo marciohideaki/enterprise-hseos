@@ -22,6 +22,7 @@ The goal: AI agents multiply engineering capacity without degrading quality, sec
 | [workflows.md](workflows.md) | The 6 delivery workflows — phases, human touchpoints, how to resume |
 | [skills.md](skills.md) | Governance skills catalog — what gets enforced, when, and why |
 | [state-tracking.md](state-tracking.md) | SQLite state layer, CLI commands, web kanban, MCP tools (v2.0.0) |
+| [sandbox.md](sandbox.md) | Optional OS-level sandboxing for agent commands through external ai-jail |
 | [ADAPTER-GUIDE.md](ADAPTER-GUIDE.md) | BYOA adapter authoring — `@hseos/adapter-sdk` + Goose reference |
 | [MIGRATION-GUIDE-v1-to-v2.md](MIGRATION-GUIDE-v1-to-v2.md) | Upgrading from v1.x to v2.0.0 |
 | [troubleshooting.md](troubleshooting.md) | FAQ, common errors, and debugging guides |
