@@ -41,6 +41,30 @@ const cases = [
     },
   },
   {
+    name: 'branch protection apply tool emits GitHub REST payload',
+    fn: () => {
+      const raw = execFileSync(
+        'node',
+        ['scripts/governance/apply-branch-protection.js', '--dry-run', '--branch', 'master'],
+        {
+          cwd: REPO_ROOT,
+          encoding: 'utf8',
+          stdio: 'pipe',
+        }
+      );
+      const request = JSON.parse(raw);
+      assert.strictEqual(request.method, 'PUT');
+      assert.strictEqual(request.endpoint, 'repos/marciohideaki/enterprise-hseos/branches/master/protection');
+      assert.deepStrictEqual(request.body.required_status_checks.contexts, [
+        'test (20.x)',
+        'test (22.x)',
+        'Standalone clean-env smoke (node:20)',
+      ]);
+      assert.strictEqual(request.body.allow_force_pushes, false);
+      assert.strictEqual(request.body.allow_deletions, false);
+    },
+  },
+  {
     name: 'branch naming policy is aligned with check-branch guard',
     fn: () => {
       const config = yaml.parse(read('.github/branch-protection.yaml'));
