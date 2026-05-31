@@ -89,6 +89,10 @@ function parseGithubRemote(remoteUrl) {
 }
 
 function detectRepoSlug(cwd) {
+  if (process.env.GITHUB_REPOSITORY) {
+    return process.env.GITHUB_REPOSITORY;
+  }
+
   try {
     const remote = run('git', ['config', '--get', 'remote.origin.url'], { cwd });
     const slug = parseGithubRemote(remote);

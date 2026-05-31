@@ -65,6 +65,23 @@ const cases = [
     },
   },
   {
+    name: 'branch protection apply tool detects GitHub Actions repository',
+    fn: () => {
+      const raw = execFileSync(
+        'node',
+        ['scripts/governance/apply-branch-protection.js', '--dry-run', '--branch', 'master'],
+        {
+          cwd: REPO_ROOT,
+          encoding: 'utf8',
+          env: { ...process.env, GITHUB_REPOSITORY: 'example/project' },
+          stdio: 'pipe',
+        }
+      );
+      const request = JSON.parse(raw);
+      assert.strictEqual(request.endpoint, 'repos/example/project/branches/master/protection');
+    },
+  },
+  {
     name: 'branch naming policy is aligned with check-branch guard',
     fn: () => {
       const config = yaml.parse(read('.github/branch-protection.yaml'));
