@@ -9,6 +9,8 @@ const { writeSkills, normalizeSkill } = require('./sources/skills-source');
 const { writeHookRegistry } = require('./sources/hooks-source');
 const { writeCommandRegistry } = require('./sources/commands-source');
 const { collectAgents } = require('./sources/agents-source');
+const { writePluginRegistry } = require('./sources/plugins-source');
+const { collectMcp } = require('./sources/mcp-source');
 const { writePlatformAdapters } = require('./adapters/platforms');
 const { writeManifest } = require('./manifest/builder');
 const { parseFrontmatter } = require('./lib/frontmatter');
@@ -57,11 +59,21 @@ class AgentCoreCompiler {
     });
     const commands = await writeCommandRegistry(root, hseosDir, this.agentsDirName);
     const agents = await collectAgents(root);
+    const plugins = (await writePluginRegistry(root, this.agentsDirName))
+      .filter((plugin) => plugin && plugin.id && plugin.version)
+      .map((plugin) => {
+        const entry = { id: plugin.id, version: String(plugin.version) };
+        if (plugin.extends) entry.extends = plugin.extends;
+        return entry;
+      });
+    const mcp = await collectMcp(root, this.agentsDirName, hseosDir);
     const manifest = await writeManifest(root, {
       skills,
       hooks,
       commands,
       agents,
+      plugins,
+      mcp,
       platforms: options.platforms || [],
     }, this.agentsDirName);
 
@@ -71,6 +83,8 @@ class AgentCoreCompiler {
       hooks: hooks.length,
       commands: commands.length,
       agents: agents.length,
+      plugins: plugins.length,
+      mcpServers: mcp.servers.length,
       manifest,
     };
   }
