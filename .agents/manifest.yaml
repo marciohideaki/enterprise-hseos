@@ -19,6 +19,8 @@ counts:
   hooks: 17
   commands: 8
   agents: 15
+  plugins: 4
+  mcp_servers: 8
 skills:
   - name: accessibility
     source: .enterprise/governance/agent-skills/accessibility/SKILL.md
@@ -400,3 +402,95 @@ agents:
   - code: VECTOR
     file: .hseos/agents/vector.agent.yaml
     sha256: 2581c74190ce6bb293284f4a48d67651031667976e11c666b1622f999b5871bf
+plugins:
+  - id: hseos-skill-creator
+    version: 0.1.0
+  - id: hseos-hookify
+    version: 0.1.0
+  - id: hseos-pr-review
+    version: 0.1.0
+    extends: official:pr-review-toolkit@1.2.0
+  - id: hseos-security-guidance
+    version: 0.1.0
+mcp_bundles_active:
+  - core
+  - extended
+mcp_servers:
+  - id: axon-bridge
+    transport: stdio
+    binary: tools/mcp-axon-bridge/index.js
+    runtime: node
+    bundle: extended
+    capabilities:
+      - code_search
+      - dep_graph
+      - memory_search
+      - get_skeleton
+      - get_overview
+  - id: fetch
+    transport: stdio
+    binary: "@modelcontextprotocol/server-fetch"
+    runtime: npx
+    bundle: extended
+    capabilities:
+      - fetch_url
+  - id: filesystem
+    transport: stdio
+    binary: "@modelcontextprotocol/server-filesystem"
+    runtime: npx
+    bundle: core
+    capabilities:
+      - read_file
+      - write_file
+      - list_directory
+      - search_files
+  - id: hseos-governance
+    transport: stdio
+    binary: tools/mcp-hseos-governance/index.js
+    runtime: node
+    bundle: core
+    capabilities:
+      - query_constitution
+      - validate_adr
+      - check_authority
+      - list_skills
+      - list_workflows
+  - id: hseos-state-tracking
+    transport: stdio
+    binary: tools/mcp-project-state/index.js
+    runtime: node
+    bundle: core
+    capabilities:
+      - read_state
+      - write_state
+      - list_runs
+      - emit_event
+      - search_events
+  - id: hseos-swarm
+    transport: stdio
+    binary: tools/mcp-hseos-swarm/index.js
+    runtime: node
+    bundle: extended
+    capabilities:
+      - plan_squad
+      - dispatch_wave
+      - consolidate_handoff
+      - get_run_state
+  - id: memory
+    transport: stdio
+    binary: "@modelcontextprotocol/server-memory"
+    runtime: npx
+    bundle: extended
+    capabilities:
+      - create_memory
+      - search_memory
+      - delete_memory
+  - id: sequential-thinking
+    transport: stdio
+    binary: "@modelcontextprotocol/server-sequential-thinking"
+    runtime: npx
+    bundle: extended
+    capabilities:
+      - sequential_reasoning_step
+      - branch_thought
+      - revise_thought
