@@ -109,6 +109,35 @@ async function testIntegrityDetectsDrift() {
   });
 }
 
+async function testIntegrityVerifiesAgents() {
+  await withTempDir(async (dir) => {
+    const agentFile = '.hseos/agents/swarm.agent.yaml';
+    const full = path.join(dir, agentFile);
+    fs.mkdirSync(path.dirname(full), { recursive: true });
+    const content = 'agent:\n  metadata:\n    code: SWARM\n';
+    fs.writeFileSync(full, content);
+    const sha256 = crypto.createHash('sha256').update(content.replaceAll('\r\n', '\n')).digest('hex');
+
+    fs.mkdirSync(path.join(dir, '.agents'), { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, '.agents', 'manifest.yaml'),
+      yaml.stringify({ version: '1.0', skills: [], agents: [{ code: 'SWARM', file: agentFile, sha256 }] }),
+    );
+
+    const clean = await runIntegrity(dir);
+    assertPass('integrity ok when agent hash matches', clean.ok, JSON.stringify(clean.errors));
+    assertPass(
+      'integrity emits a check for the agent',
+      clean.checks.some((c) => c.id === 'agent:SWARM' && c.ok),
+      JSON.stringify(clean.checks),
+    );
+
+    fs.writeFileSync(full, content + '# drift\n');
+    const dirty = await runIntegrity(dir);
+    assertPass('integrity detects agent drift', !dirty.ok && dirty.errors.length > 0, JSON.stringify(dirty.checks));
+  });
+}
+
 async function testAuditAdapterDrift() {
   await withTempDir(async (dir) => {
     const agentsDir = path.join(dir, '.agents');
@@ -185,7 +214,12 @@ async function testDoctorFullProject() {
       result.ok,
       JSON.stringify(result.checks.filter((c) => !c.ok)),
     );
-    assertPass('doctor runs all 8 checks', result.checks.length === 8, String(result.checks.length));
+    assertPass('doctor runs all 9 checks', result.checks.length === 9, String(result.checks.length));
+    assertPass(
+      'doctor includes optional sandbox runtime check',
+      result.checks.some((c) => c.id === 'sandbox_runtime' && c.ok),
+      JSON.stringify(result.checks),
+    );
   });
 }
 
@@ -263,6 +297,7 @@ async function run() {
   await testIntegrityNoManifest();
   await testIntegrityEmptyManifest();
   await testIntegrityDetectsDrift();
+  await testIntegrityVerifiesAgents();
   await testAuditAdapterDrift();
   await testDoctorFullProject();
   await testDoctorMissingPaths();

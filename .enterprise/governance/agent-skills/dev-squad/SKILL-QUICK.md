@@ -60,7 +60,7 @@ Escalate by 1 tier for: auth/crypto/payments/fiscal; first greenfield task; hand
 - **Base branch:** validated by `check-branch.sh` → must match `feature/*`
 - **Quality gates:** `quality-gates.sh` runs via `worktree-manager.sh validate` (6 gates)
 - **1 task = 1 commit; 1 wave = 1 PR** (default)
-- **Human only for merge** — agents never merge to protected branches
+- **Human approval for merge** — agents may execute governed closeout only after explicit approval
 
 ---
 
@@ -78,7 +78,7 @@ Subagents are zero-context. They return structured output per TASK-PROMPT OBLIGA
 | **G2** | **Plan approval (mandatory)** | **human** |
 | G3 | Wave review (conditional: BLOCKED or risk flag) | human |
 | G4 | PR open (human runs `gh pr create`) | human |
-| G5 | Merge (human reviewer) | human |
+| G5 | Merge approval / governed closeout | human approval |
 
 Bypass = governance violation → halt + escalate.
 

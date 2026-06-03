@@ -27,6 +27,7 @@ module.exports = {
     ['--second-brain-path <path>', 'Absolute path to second-brain vault (enables integration if provided)'],
     ['--rtk', 'Install RTK token optimizer (intercepts CLI commands to reduce LLM token usage by 60-90%)'],
     ['--usage-dashboard [mode]', 'Install usage analytics dashboard. Mode: "local" (Python, default) or "docker" (Docker Compose, externally accessible)'],
+    ['--no-git-hooks', 'Skip writing the pre-commit hook at .git/hooks/pre-commit. Default: install the hook when the target is a git working tree.'],
   ],
   action: async (options) => {
     try {
@@ -37,6 +38,12 @@ module.exports = {
       }
 
       const config = await ui.promptInstall(options);
+
+      // Propagate CLI-only flags that promptInstall does not yet surface. Commander
+      // maps `--no-git-hooks` to `options.gitHooks === false`.
+      if (options.gitHooks === false) {
+        config.noGitHooks = true;
+      }
 
       // Handle cancel
       if (config.actionType === 'cancel') {

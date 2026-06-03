@@ -175,11 +175,214 @@ async function testAgentCoreCompileCommandEmitsCodexAdapter() {
   });
 }
 
+async function testAgentCoreCompileEmitsClaudeMdPointer() {
+  await withTempDir(async (tempDir) => {
+    await agentCoreCommand.action('compile', {
+      directory: tempDir,
+      target: 'claude-code',
+    });
+
+    const claudeMdPath = path.join(tempDir, 'CLAUDE.md');
+    assertPass('agent-core compile --target claude-code emits CLAUDE.md', fs.existsSync(claudeMdPath), tempDir);
+
+    const claudeMd = fs.existsSync(claudeMdPath) ? fs.readFileSync(claudeMdPath, 'utf8') : '';
+    assertPass(
+      'CLAUDE.md points at AGENTS.md as the canonical source',
+      claudeMd.includes('Read `AGENTS.md`') && /^# CLAUDE\.md/m.test(claudeMd),
+      claudeMd,
+    );
+  });
+}
+
+async function testClaudeMdEmitterIsIdempotent() {
+  await withTempDir(async (tempDir) => {
+    const claudeMdPath = path.join(tempDir, 'CLAUDE.md');
+    const custom = '# CUSTOM\n\nUser-authored content that must survive re-install.\n';
+    fs.writeFileSync(claudeMdPath, custom);
+
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+
+    assertPass(
+      'pre-existing CLAUDE.md is preserved on recompile',
+      fs.readFileSync(claudeMdPath, 'utf8') === custom,
+      fs.readFileSync(claudeMdPath, 'utf8'),
+    );
+  });
+}
+
+async function testClaudeMdNotEmittedWithoutClaudeCode() {
+  await withTempDir(async (tempDir) => {
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'codex' });
+
+    assertPass(
+      'CLAUDE.md is not emitted when claude-code is not a selected platform',
+      !fs.existsSync(path.join(tempDir, 'CLAUDE.md')),
+      tempDir,
+    );
+  });
+}
+
+async function testAgentCoreCompileRegistersAgents() {
+  await withTempDir(async (tempDir) => {
+    const peerDir = path.join(tempDir, '.hseos', 'agents');
+    fs.mkdirSync(peerDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(peerDir, 'swarm.agent.yaml'),
+      yaml.stringify({ agent: { metadata: { code: 'SWARM', name: 'SWARM' } } }),
+    );
+    // Core agent with no `code` — the catalog must derive one from the filename.
+    const coreDir = path.join(tempDir, 'src', 'core', 'agents');
+    fs.mkdirSync(coreDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(coreDir, 'hseos-master.agent.yaml'),
+      yaml.stringify({ agent: { metadata: { name: 'HSEOS Master' } } }),
+    );
+
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+
+    const manifest = yaml.parse(fs.readFileSync(path.join(tempDir, '.agents', 'manifest.yaml'), 'utf8'));
+    const agents = manifest.agents || [];
+    const codes = agents.map((a) => a.code);
+
+    assertPass(
+      'manifest registers agents with counts.agents',
+      manifest.counts.agents === 2 && agents.length === 2,
+      JSON.stringify(manifest.counts),
+    );
+    assertPass('manifest registers the peer agent code (SWARM)', codes.includes('SWARM'), codes.join(','));
+    assertPass(
+      'manifest derives a code for the core agent (HSEOS-MASTER)',
+      codes.includes('HSEOS-MASTER'),
+      codes.join(','),
+    );
+    assertPass(
+      'each agent entry carries code, file, and a sha256',
+      agents.every((a) => a.code && a.file && /^[a-f0-9]{64}$/.test(a.sha256 || '')),
+      JSON.stringify(agents),
+    );
+  });
+}
+
+async function testAgentCoreCompileRegistersPlugins() {
+  await withTempDir(async (tempDir) => {
+    const pluginsDir = path.join(tempDir, '.agents', 'plugins');
+    fs.mkdirSync(pluginsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(pluginsDir, 'registry.yaml'),
+      yaml.stringify({
+        version: '2.0',
+        plugins: [
+          { id: 'hseos-skill-creator', version: '0.1.0', status: 'active', extends: '' },
+          { id: 'hseos-pr-review', version: '0.1.0', status: 'active', extends: 'official:pr-review-toolkit@1.2.0' },
+        ],
+      }),
+    );
+
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+    const manifest = yaml.parse(fs.readFileSync(path.join(tempDir, '.agents', 'manifest.yaml'), 'utf8'));
+    const plugins = manifest.plugins || [];
+
+    assertPass(
+      'manifest registers plugins with counts.plugins',
+      manifest.counts.plugins === 2 && plugins.length === 2,
+      JSON.stringify(manifest.counts),
+    );
+    assertPass(
+      'plugin extends is captured only when present',
+      plugins.find((p) => p.id === 'hseos-pr-review')?.extends === 'official:pr-review-toolkit@1.2.0' &&
+        plugins.find((p) => p.id === 'hseos-skill-creator')?.extends === undefined,
+      JSON.stringify(plugins),
+    );
+  });
+}
+
+async function testAgentCoreCompileRegistersMcpServers() {
+  await withTempDir(async (tempDir) => {
+    const mcpDir = path.join(tempDir, '.agents', 'mcp');
+    fs.mkdirSync(path.join(mcpDir, 'bundles'), { recursive: true });
+    fs.writeFileSync(
+      path.join(mcpDir, 'registry.yaml'),
+      yaml.stringify({
+        version: '2.0',
+        bundles: {
+          core: { file: 'bundles/core.yaml', required: true },
+          extended: { file: 'bundles/extended.yaml', required: false },
+        },
+      }),
+    );
+    fs.writeFileSync(
+      path.join(mcpDir, 'bundles', 'core.yaml'),
+      yaml.stringify({
+        version: '1.0',
+        bundle: 'core',
+        servers: [{ id: 'filesystem', transport: 'stdio', package: '@modelcontextprotocol/server-filesystem', runtime: 'npx' }],
+      }),
+    );
+    fs.writeFileSync(
+      path.join(mcpDir, 'bundles', 'extended.yaml'),
+      yaml.stringify({
+        version: '1.0',
+        bundle: 'extended',
+        servers: [{ id: 'axon-bridge', transport: 'stdio', binary_resolver: [{ path: 'tools/mcp-axon-bridge/index.js', runtime: 'node' }] }],
+      }),
+    );
+    const cfgDir = path.join(tempDir, '.hseos', 'config');
+    fs.mkdirSync(cfgDir, { recursive: true });
+    fs.writeFileSync(path.join(cfgDir, 'hseos.config.yaml'), yaml.stringify({ mcp_bundles_active: ['core', 'extended'] }));
+
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+    const manifest = yaml.parse(fs.readFileSync(path.join(tempDir, '.agents', 'manifest.yaml'), 'utf8'));
+    const servers = manifest.mcp_servers || [];
+    const ids = servers.map((s) => s.id);
+
+    assertPass(
+      'manifest registers mcp_bundles_active from config',
+      JSON.stringify(manifest.mcp_bundles_active) === JSON.stringify(['core', 'extended']),
+      JSON.stringify(manifest.mcp_bundles_active),
+    );
+    assertPass(
+      'manifest enumerates servers across active bundles with counts',
+      manifest.counts.mcp_servers === 2 && ids.includes('filesystem') && ids.includes('axon-bridge'),
+      ids.join(','),
+    );
+    assertPass(
+      'mcp server entries carry id, transport, and bundle',
+      servers.every((s) => s.id && s.transport && s.bundle),
+      JSON.stringify(servers),
+    );
+  });
+}
+
+async function testManifestOmitsCatalogsWhenAbsent() {
+  await withTempDir(async (tempDir) => {
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+    const manifest = yaml.parse(fs.readFileSync(path.join(tempDir, '.agents', 'manifest.yaml'), 'utf8'));
+    assertPass(
+      'manifest omits agents/plugins/mcp catalogs when none are present',
+      manifest.agents === undefined &&
+        manifest.counts.agents === undefined &&
+        manifest.plugins === undefined &&
+        manifest.counts.plugins === undefined &&
+        manifest.mcp_servers === undefined &&
+        manifest.mcp_bundles_active === undefined &&
+        manifest.counts.mcp_servers === undefined,
+      JSON.stringify(manifest.counts),
+    );
+  });
+}
+
 async function run() {
   console.log('Agent core compiler hook adapter tests');
   await testClaudeHookAdapterUsesActiveRegistryEntries();
   await testAgentCoreCompileCommandEmitsClaudeAdapter();
   await testAgentCoreCompileCommandEmitsCodexAdapter();
+  await testAgentCoreCompileEmitsClaudeMdPointer();
+  await testClaudeMdEmitterIsIdempotent();
+  await testClaudeMdNotEmittedWithoutClaudeCode();
+  await testAgentCoreCompileRegistersAgents();
+  await testAgentCoreCompileRegistersPlugins();
+  await testAgentCoreCompileRegistersMcpServers();
+  await testManifestOmitsCatalogsWhenAbsent();
 
   console.log(`\nCompiler hook tests: ${passed} passed, ${failed} failed`);
   if (failed > 0) {

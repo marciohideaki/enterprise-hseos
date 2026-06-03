@@ -131,7 +131,7 @@ cmd_validate() {
 
   info "Running quality gates for task: ${task_id}"
   VALIDATION_ENFORCED="${VALIDATION_ENFORCED}" \
-    bash "${SCRIPT_DIR}/quality-gates.sh" || \
+    bash "${wt_path}/scripts/governance/quality-gates.sh" || \
     fatal "Validation FAILED for task ${task_id} — commit blocked"
 
   # Update metadata
@@ -195,7 +195,7 @@ cmd_merge() {
 
   info "Merging task/${task_id} into ${feature_branch}"
   git -C "${REPO_ROOT}" checkout "${feature_branch}"
-  git -C "${REPO_ROOT}" merge --no-ff "${task_branch}" -m "merge(${feature_branch}): integrate task/${task_id}"
+  git -C "${REPO_ROOT}" merge --no-ff "${task_branch}" -m "chore(merge): integrate task ${task_id}"
 
   log_run "MERGE task=${task_id} into=${feature_branch}"
   pass "Task ${task_id} merged into ${feature_branch}"

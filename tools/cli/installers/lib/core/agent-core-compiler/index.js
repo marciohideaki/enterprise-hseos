@@ -8,6 +8,9 @@ const { writeInstructions } = require('./sources/instructions-source');
 const { writeSkills, normalizeSkill } = require('./sources/skills-source');
 const { writeHookRegistry } = require('./sources/hooks-source');
 const { writeCommandRegistry } = require('./sources/commands-source');
+const { collectAgents } = require('./sources/agents-source');
+const { writePluginRegistry } = require('./sources/plugins-source');
+const { collectMcp } = require('./sources/mcp-source');
 const { writePlatformAdapters } = require('./adapters/platforms');
 const { writeManifest } = require('./manifest/builder');
 const { parseFrontmatter } = require('./lib/frontmatter');
@@ -51,12 +54,26 @@ class AgentCoreCompiler {
     }
 
     const hooks = await this.writeHookRegistry(root, hookSource, null);
-    await this.writePlatformAdapters(root, hooks, options.platforms || []);
+    await this.writePlatformAdapters(root, hooks, options.platforms || [], {
+      agentsDirName: this.agentsDirName,
+    });
     const commands = await writeCommandRegistry(root, hseosDir, this.agentsDirName);
+    const agents = await collectAgents(root);
+    const plugins = (await writePluginRegistry(root, this.agentsDirName))
+      .filter((plugin) => plugin && plugin.id && plugin.version)
+      .map((plugin) => {
+        const entry = { id: plugin.id, version: String(plugin.version) };
+        if (plugin.extends) entry.extends = plugin.extends;
+        return entry;
+      });
+    const mcp = await collectMcp(root, this.agentsDirName, hseosDir);
     const manifest = await writeManifest(root, {
       skills,
       hooks,
       commands,
+      agents,
+      plugins,
+      mcp,
       platforms: options.platforms || [],
     }, this.agentsDirName);
 
@@ -65,6 +82,9 @@ class AgentCoreCompiler {
       skills: skills.length,
       hooks: hooks.length,
       commands: commands.length,
+      agents: agents.length,
+      plugins: plugins.length,
+      mcpServers: mcp.servers.length,
       manifest,
     };
   }
@@ -82,8 +102,11 @@ class AgentCoreCompiler {
     return writeHookRegistry(root, sourcePath, legacyFallback, this.agentsDirName);
   }
 
-  async writePlatformAdapters(root, hooks, platforms) {
-    return writePlatformAdapters(root, hooks, platforms);
+  async writePlatformAdapters(root, hooks, platforms, options = {}) {
+    return writePlatformAdapters(root, hooks, platforms, {
+      agentsDirName: this.agentsDirName,
+      ...options,
+    });
   }
 
   async writeCommandRegistry(root, hseosDir) {

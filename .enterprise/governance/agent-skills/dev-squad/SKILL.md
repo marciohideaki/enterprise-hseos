@@ -126,7 +126,7 @@ SWARM is a control-plane fan-out commander. It does not absorb any of the above 
 | **G2 — Plan approval** | **Mandatory, after Plan phase** | **Human** |
 | G3 — Wave review | Conditional (BLOCKED or risk flag) | Human |
 | G4 — PR open | After Consolidate | Human (runs `gh pr create`) |
-| G5 — PR merge | After CI + human review | Human reviewer |
+| G5 — PR merge | After CI + explicit human approval | Human reviewer or governed closeout operator |
 
 Bypass = constitution violation.
 
@@ -194,6 +194,6 @@ sqlite3 .hseos/state/project.db "SELECT kind, ts FROM as_events WHERE agent_run_
 - [ ] 1 commit per OK task (all messages pass `validate-commit-msg.sh`)
 - [ ] 1 WAVE-REPORT per wave
 - [ ] Draft PR body ready, using `.github/pull_request_template.md`
-- [ ] Human-initiated PR; human-approved merge
+- [ ] Human-initiated PR; human-approved merge or governed closeout
 - [ ] Gotchas surfaced to `_knowledge/projects/<project>/gotchas.md` (second-brain)
 - [ ] Run dir persisted in `.hseos/runs/dev-squad/{run-id}/` for audit
