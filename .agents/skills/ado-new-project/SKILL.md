@@ -1,23 +1,13 @@
 ---
 name: ado-new-project
 description: "Bootstrap completo de projeto Azure DevOps: cria org/project, Iteration Paths por Phase, migra repositório Git (com prompt explícito ao usuário), cria azure-pipelines.yml. Configura hseos.config.yaml com coordenadas ADO."
+version: 1.0.0
+owner: platform-governance
+tier: full
+source: .enterprise/governance/agent-skills/ado-new-project/SKILL.md
+quick: .enterprise/governance/agent-skills/ado-new-project/SKILL-QUICK.md
+portable: true
 license: Apache-2.0
-metadata:
-  owner: platform-governance
-  version: "1.0.0"
-  tier: full
-  load_strategy: trigger
-  portable: true
-  triggers:
-    - "bootstrap ADO project"
-    - "criar projeto ADO"
-    - "ado-new-project"
-    - "atlas setup"
-    - "/atlas setup"
-    - "migrar repo ADO"
-    - "criar pipeline ADO"
-    - "iteration paths"
-    - "novo projeto azure devops"
 ---
 
 # ADO-New-Project — Bootstrap Completo
@@ -235,3 +225,9 @@ stages:
               steps:
                 - script: echo "Deploy to hmg"
 ```
+
+
+## Quick Mode
+
+For low-context activation, load `.enterprise/governance/agent-skills/ado-new-project/SKILL-QUICK.md` or `QUICK.md` first. Load this full skill for deep analysis, violation fixing, or formal review gates.
+

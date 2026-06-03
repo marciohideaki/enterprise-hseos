@@ -1,23 +1,13 @@
 ---
 name: ado-sync
-description: "Sincronização contínua de estado entre dev-squad runs e Azure DevOps. Atualiza Tasks/Stories ADO conforme tasks completam. Não bloqueia execução."
+description: Sincronização contínua de estado entre dev-squad runs e Azure DevOps. Atualiza Tasks/Stories ADO conforme tasks completam. Não bloqueia execução.
+version: 1.0.0
+owner: platform-governance
+tier: full
+source: .enterprise/governance/agent-skills/ado-sync/SKILL.md
+quick: .enterprise/governance/agent-skills/ado-sync/SKILL-QUICK.md
+portable: true
 license: Apache-2.0
-metadata:
-  owner: platform-governance
-  version: "1.0.0"
-  tier: full
-  load_strategy: trigger
-  portable: true
-  feature_flag: ado.enabled
-  triggers:
-    - "ado-sync"
-    - "sync ADO"
-    - "sincronizar ADO"
-    - "atlas sync"
-    - "/atlas sync"
-    - "task completa ADO"
-    - "dev-squad finished"
-    - "update ADO state"
 ---
 
 # ADO-Sync — Estado Contínuo
@@ -96,3 +86,9 @@ Se `ado-mapping.json` não existe: logar advisory e exit 0.
 ## Invocação pelo hook `ado-task-progress.sh`
 O hook chama ADO REST API diretamente (não MCP) para adicionar comment em commit.
 Esta skill faz a sincronização completa de estado via MCP.
+
+
+## Quick Mode
+
+For low-context activation, load `.enterprise/governance/agent-skills/ado-sync/SKILL-QUICK.md` or `QUICK.md` first. Load this full skill for deep analysis, violation fixing, or formal review gates.
+

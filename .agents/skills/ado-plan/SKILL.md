@@ -1,24 +1,13 @@
 ---
 name: ado-plan
 description: "G1-ADO gate: cria hierarquia Epic/Feature/Story/Task no Azure DevOps a partir do PLAN.md antes de qualquer execução dev-squad. Implementa o fluxo ADO-first obrigatório."
+version: 1.0.0
+owner: platform-governance
+tier: full
+source: .enterprise/governance/agent-skills/ado-plan/SKILL.md
+quick: .enterprise/governance/agent-skills/ado-plan/SKILL-QUICK.md
+portable: true
 license: Apache-2.0
-metadata:
-  owner: platform-governance
-  version: "1.0.0"
-  tier: full
-  load_strategy: trigger
-  portable: true
-  feature_flag: ado.enabled
-  triggers:
-    - "G1-ADO"
-    - "ado-plan"
-    - "plan to ADO"
-    - "criar itens ADO"
-    - "seed ADO"
-    - "atlas plan"
-    - "/atlas plan"
-    - "PLAN.md to ADO"
-    - "before dev-squad ADO"
 ---
 
 # ADO-Plan — G1-ADO Gate
@@ -144,3 +133,9 @@ Se `ado.enabled: false`: logar `[ADO-PLAN] ADO desabilitado — skip.` e retorna
 Skill chamada pelo agente ATLAS (`.hseos/agents/atlas.agent.yaml`) via menu `PLAN`.
 Hook `ado-preflight-gate.sh` verifica que esta skill foi executada antes de despachar dev-squad.
 Verificação: PLAN.md contém `<!-- ado-mapping:` ou seção `## ADO Mapping` com IDs.
+
+
+## Quick Mode
+
+For low-context activation, load `.enterprise/governance/agent-skills/ado-plan/SKILL-QUICK.md` or `QUICK.md` first. Load this full skill for deep analysis, violation fixing, or formal review gates.
+

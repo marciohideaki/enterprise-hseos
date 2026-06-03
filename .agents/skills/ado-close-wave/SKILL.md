@@ -1,24 +1,13 @@
 ---
 name: ado-close-wave
 description: "Fechamento formal de wave ADO: fecha Feature e Epic (quando completo), cria tag git semântica, atualiza MASTER-PLAN.md. Chamado após PR merged + CI verde."
+version: 1.0.0
+owner: platform-governance
+tier: full
+source: .enterprise/governance/agent-skills/ado-close-wave/SKILL.md
+quick: .enterprise/governance/agent-skills/ado-close-wave/SKILL-QUICK.md
+portable: true
 license: Apache-2.0
-metadata:
-  owner: platform-governance
-  version: "1.0.0"
-  tier: full
-  load_strategy: trigger
-  portable: true
-  feature_flag: ado.enabled
-  triggers:
-    - "close wave"
-    - "fechar wave"
-    - "ado-close-wave"
-    - "atlas close"
-    - "/atlas close"
-    - "wave done"
-    - "wave completa ADO"
-    - "criar tag wave"
-    - "MASTER-PLAN update"
 ---
 
 # ADO-Close-Wave — Fechamento Formal
@@ -99,3 +88,9 @@ wit_update_work_item(
 
 ## Modo skip
 Se `ado.enabled: false`: skip silencioso.
+
+
+## Quick Mode
+
+For low-context activation, load `.enterprise/governance/agent-skills/ado-close-wave/SKILL-QUICK.md` or `QUICK.md` first. Load this full skill for deep analysis, violation fixing, or formal review gates.
+

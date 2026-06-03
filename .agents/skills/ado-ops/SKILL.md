@@ -1,28 +1,13 @@
 ---
 name: ado-ops
-description: "Operações Azure DevOps via MCP — criar/editar Epic, Feature, User Story, Task, fechar batch, linkar dependências, gerenciar iteration paths. Core do ciclo ADO-first no HSEOS."
+description: Operações Azure DevOps via MCP — criar/editar Epic, Feature, User Story, Task, fechar batch, linkar dependências, gerenciar iteration paths. Core do ciclo ADO-first no HSEOS.
+version: 1.0.0
+owner: platform-governance
+tier: full
+source: .enterprise/governance/agent-skills/ado-ops/SKILL.md
+quick: .enterprise/governance/agent-skills/ado-ops/SKILL-QUICK.md
+portable: true
 license: Apache-2.0
-metadata:
-  owner: platform-governance
-  version: "1.0.0"
-  tier: full
-  load_strategy: trigger
-  portable: true
-  feature_flag: ado.enabled
-  triggers:
-    - "Azure DevOps"
-    - "ADO"
-    - "ADO Epic"
-    - "ADO Feature"
-    - "ADO Story"
-    - "ADO Task"
-    - "work item"
-    - "wit_create_work_item"
-    - "wit_add_child_work_items"
-    - "iteration path"
-    - "batch close"
-    - "fechar ADO"
-    - "criar demanda ADO"
 ---
 
 # ADO-Ops — Core Operations
@@ -220,3 +205,9 @@ Esta skill é compilada para `.agents/skills/ado-ops/SKILL.md` pelo `agent-core-
 - **Feature flag**: `ado.enabled` em `.hseos/config/hseos.config.yaml`
 - **Quando flag é `false`**: skill não é carregada; todos os hooks associados saem com `exit 0` silenciosamente
 - **Quick reference**: ver `SKILL-QUICK.md` (Tier 1) para referência rápida sem os templates completos
+
+
+## Quick Mode
+
+For low-context activation, load `.enterprise/governance/agent-skills/ado-ops/SKILL-QUICK.md` or `QUICK.md` first. Load this full skill for deep analysis, violation fixing, or formal review gates.
+

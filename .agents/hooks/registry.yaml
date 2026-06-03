@@ -211,7 +211,7 @@ hooks:
     description: "ADO-first gate: warns when Agent dev-squad dispatch has no ADO mapping in PLAN.md. Exits silently when ado.enabled=false."
     platform_support:
       - claude-code
-    fallback: "Run /atlas plan to create ADO work items before dispatching dev-squad."
+    fallback: Run /atlas plan to create ADO work items before dispatching dev-squad.
   - id: pretooluse-bash-ado-branch-guard
     event: PreToolUse
     matcher: Bash
@@ -223,7 +223,7 @@ hooks:
     description: "ADO branch guard: blocks direct git push to trunk branches (main/master/develop/trunk/staging/hmg). Exits silently when ado.enabled=false."
     platform_support:
       - claude-code
-    fallback: "Create a feature branch and open a PR instead of pushing directly to trunk."
+    fallback: Create a feature branch and open a PR instead of pushing directly to trunk.
   - id: posttooluse-write-edit-ado-plan-advisory
     event: PostToolUse
     matcher: Write|Edit
@@ -235,7 +235,7 @@ hooks:
     description: "ADO plan advisory: warns when PLAN.md or MASTER-PLAN.md is written without ADO mapping annotations. Non-blocking. Exits silently when ado.enabled=false."
     platform_support:
       - claude-code
-    fallback: "Add ADO mapping section to PLAN.md manually or run /atlas plan."
+    fallback: Add ADO mapping section to PLAN.md manually or run /atlas plan.
   - id: posttooluse-bash-ado-task-progress
     event: PostToolUse
     matcher: Bash
@@ -247,7 +247,7 @@ hooks:
     description: "ADO task progress: adds comment to ADO Task and transitions to Active on git commit in ado-{ID}-* branches. Best-effort, never blocks. Exits silently when ado.enabled=false."
     platform_support:
       - claude-code
-    fallback: "Update ADO Task state manually via /atlas sync."
+    fallback: Update ADO Task state manually via /atlas sync.
   - id: posttooluse-bash-ado-pr-link
     event: PostToolUse
     matcher: Bash
@@ -259,7 +259,7 @@ hooks:
     description: "ADO PR link: links GitHub PR to ADO Story after gh pr create. Extracts PR URL from output. Best-effort, never blocks. Exits silently when ado.enabled=false."
     platform_support:
       - claude-code
-    fallback: "Link PR to ADO Story manually via work item comment."
+    fallback: Link PR to ADO Story manually via work item comment.
   - id: posttooluse-bash-ado-tag-close
     event: PostToolUse
     matcher: Bash
@@ -271,7 +271,7 @@ hooks:
     description: "ADO tag close: emits inbox event when git tag pushed. ATLAS processes inbox via /atlas close to close ADO Feature/Epic. Never calls ADO directly. Exits silently when ado.enabled=false."
     platform_support:
       - claude-code
-    fallback: "Run /atlas close manually after tagging to close ADO Feature/Epic."
+    fallback: Run /atlas close manually after tagging to close ADO Feature/Epic.
   - id: sessionstart-ado-inbox-check
     event: SessionStart
     matcher: "*"
@@ -283,4 +283,4 @@ hooks:
     description: "ADO inbox check: warns at session start if pending tag-close events exist in .hseos/runs/ado-ops/inbox/. Advisory only — directs user to run /atlas close. Exits silently when ado.enabled=false."
     platform_support:
       - claude-code
-    fallback: "Check .hseos/runs/ado-ops/inbox/ manually for pending events."
+    fallback: Check .hseos/runs/ado-ops/inbox/ manually for pending events.

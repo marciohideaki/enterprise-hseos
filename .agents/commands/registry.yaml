@@ -28,23 +28,11 @@ commands:
     type: workflow
     source: null
     description: Subsystem providing SQLite-backed observability of dev-squad / orbit runs. CLI + MCP + Web SSE side-cars.
+  - name: hseos-workflow-ado-ops
+    type: workflow
+    source: null
+    description: "Complete ADO-first lifecycle: G1-ADO gate (plan), execution tracking, wave closure, new project bootstrap. Feature-flagged by ado.enabled."
   - name: hseos-agent-manifest
     type: agent-index
     source: .hseos/AGENT-MANIFEST.md
     description: HSEOS installed agent manifest
-  - name: hseos-workflow-ado-plan
-    type: workflow
-    source: .hseos/workflows/ado-ops/workflow.md
-    description: "G1-ADO gate: creates Epic/Feature/Story/Task hierarchy in Azure DevOps from approved PLAN.md. Required before dev-squad dispatch when ado.enabled=true."
-  - name: hseos-workflow-ado-sync
-    type: workflow
-    source: .hseos/workflows/ado-ops/workflow.md
-    description: "Sync dev-squad run state to Azure DevOps: closes completed Tasks/Stories, activates in-progress items."
-  - name: hseos-workflow-ado-close-wave
-    type: workflow
-    source: .hseos/workflows/ado-ops/workflow.md
-    description: "Close wave in ADO after PR merge: closes Feature/Epic, creates git tag, updates MASTER-PLAN.md."
-  - name: hseos-workflow-ado-new-project
-    type: workflow
-    source: .hseos/workflows/ado-ops/workflow.md
-    description: "Bootstrap complete Azure DevOps project: create org/project, iteration paths, optionally migrate repo (with explicit user prompt), create CI/CD pipeline."

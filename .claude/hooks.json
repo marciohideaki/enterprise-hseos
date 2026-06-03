@@ -15,6 +15,12 @@
             "command": "bash .agents/hooks/handlers/suggest-skill.sh",
             "timeout": 5,
             "description": "Recommend skills before Agent spawn based on SKILL.md frontmatter triggers"
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/ado-preflight-gate.sh",
+            "timeout": 5,
+            "description": "ADO-first gate: warns when Agent dev-squad dispatch has no ADO mapping in PLAN.md. Exits silently when ado.enabled=false."
           }
         ]
       },
@@ -44,8 +50,14 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if echo \"$CLAUDE_TOOL_COMMAND\" | grep -qE '^(git push|git reset --hard|rm -rf|git branch -[Dd])'; then echo '[HSEOS] High-risk command intercepted \u2014 confirm this is intentional' >&2; fi",
+            "command": "if echo \"$CLAUDE_TOOL_COMMAND\" | grep -qE '^(git push|git reset --hard|rm -rf|git branch -[Dd])'; then echo '[HSEOS] High-risk command intercepted — confirm this is intentional' >&2; fi",
             "description": "Warn on high-risk bash commands"
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/ado-branch-guard.sh",
+            "timeout": 5,
+            "description": "ADO branch guard: blocks direct git push to trunk branches (main/master/develop/trunk/staging/hmg). Exits silently when ado.enabled=false."
           }
         ]
       },
@@ -57,26 +69,6 @@
             "command": "bash .agents/hooks/handlers/code-index-guard.sh \"$CLAUDE_TOOL_NAME\"",
             "timeout": 3,
             "description": "Block raw search when a code index (axon, etc.) is available; pluggable across providers"
-          }
-        ]
-      },
-      {
-        "matcher": "Agent",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/.agents/hooks/handlers/ado-preflight-gate.sh",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/.agents/hooks/handlers/ado-branch-guard.sh",
-            "timeout": 5
           }
         ]
       }
@@ -114,26 +106,12 @@
             "type": "command",
             "command": "bash .agents/hooks/handlers/code-index-post-edit.sh \"$CLAUDE_TOOL_FILE_PATH\"",
             "description": "Trigger index reindex after edits; pluggable across code-index providers"
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
+          },
           {
             "type": "command",
-            "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/.agents/hooks/handlers/ado-on-plan-write.sh \"$CLAUDE_TOOL_FILE_PATH\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/.agents/hooks/handlers/ado-task-progress.sh",
-            "timeout": 10
+            "command": "bash .agents/hooks/handlers/ado-on-plan-write.sh \"$CLAUDE_TOOL_FILE_PATH\"",
+            "timeout": 5,
+            "description": "ADO plan advisory: warns when PLAN.md or MASTER-PLAN.md is written without ADO mapping annotations. Non-blocking. Exits silently when ado.enabled=false."
           }
         ]
       },
@@ -142,18 +120,21 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/.agents/hooks/handlers/ado-pr-link.sh",
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
+            "command": "bash .agents/hooks/handlers/ado-task-progress.sh",
+            "timeout": 10,
+            "description": "ADO task progress: adds comment to ADO Task and transitions to Active on git commit in ado-{ID}-* branches. Best-effort, never blocks. Exits silently when ado.enabled=false."
+          },
           {
             "type": "command",
-            "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/.agents/hooks/handlers/ado-tag-close.sh",
-            "timeout": 5
+            "command": "bash .agents/hooks/handlers/ado-pr-link.sh",
+            "timeout": 10,
+            "description": "ADO PR link: links GitHub PR to ADO Story after gh pr create. Extracts PR URL from output. Best-effort, never blocks. Exits silently when ado.enabled=false."
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/ado-tag-close.sh",
+            "timeout": 5,
+            "description": "ADO tag close: emits inbox event when git tag pushed. ATLAS processes inbox via /atlas close to close ADO Feature/Epic. Never calls ADO directly. Exits silently when ado.enabled=false."
           }
         ]
       }
@@ -171,16 +152,12 @@
             "type": "command",
             "command": "CLAUDE_HOOK_EVENT=SessionStart bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/state-emit-hook.sh SessionStart 2>/dev/null || true",
             "description": "Emit agent-state start event (best-effort, non-blocking)"
-          }
-        ]
-      },
-      {
-        "matcher": "*",
-        "hooks": [
+          },
           {
             "type": "command",
-            "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/.agents/hooks/handlers/ado-inbox-check.sh 2>/dev/null || true",
-            "description": "Check for pending ADO tag-close inbox events"
+            "command": "bash .agents/hooks/handlers/ado-inbox-check.sh",
+            "timeout": 3,
+            "description": "ADO inbox check: warns at session start if pending tag-close events exist in .hseos/runs/ado-ops/inbox/. Advisory only — directs user to run /atlas close. Exits silently when ado.enabled=false."
           }
         ]
       }
@@ -243,7 +220,7 @@
             "type": "command",
             "command": "bash .agents/hooks/handlers/on-notification.sh \"$CLAUDE_NOTIFICATION_MESSAGE\"",
             "timeout": 5,
-            "description": "System notification for long-running operations (cross-platform \u2014 toast/bell)"
+            "description": "System notification for long-running operations (cross-platform — toast/bell)"
           }
         ]
       }
