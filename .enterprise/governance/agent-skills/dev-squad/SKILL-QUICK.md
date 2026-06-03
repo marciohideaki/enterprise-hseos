@@ -1,14 +1,14 @@
 ---
 name: dev-squad
 tier: quick
-version: "1.0"
+version: "1.2"
 description: "Use when SWARM is planning a heterogeneous batch of 3+ tasks and dispatching parallel worktree-isolated subagents. Opus plans, Sonnet/Haiku execute."
 ---
 
 # Dev Squad — Quick Reference
 
 > Tier 1: load when SWARM is activating the parallel batch flow or deciding if a batch qualifies.
-> Load SKILL.md (Tier 2) or `~/.claude/skills/dev-squad/SKILL.md` (canonical, global) for full protocol.
+> Load `.enterprise/governance/agent-skills/dev-squad/SKILL.md` (Tier 2, canonical) for full protocol.
 
 ---
 
@@ -30,15 +30,19 @@ description: "Use when SWARM is planning a heterogeneous batch of 3+ tasks and d
 
 ## Model matrix (default bias = lowest tier)
 
-| Tier | Model | Criteria |
-|---|---|---|
-| trivial | haiku low | 1 file, ≤30 lines, known pattern |
-| small | sonnet low | 1-2 files, ≤100 lines, test exists |
-| medium | sonnet medium | 3-5 files, 1 layer, new tests |
-| large | sonnet high | ≥5 files, ≥2 layers, no test coverage |
-| strategic | opus (opt-in) | transversal arch, critical schema — explicit opt-in in PLAN.md |
+| Effort | Squad tier | Concrete criteria | Override |
+|---|---|---|---|
+| trivial | Haiku (low) | 1 file, ≤30 lines, mechanical/known pattern | never lower — Haiku always sufficient |
+| small | Sonnet (low) | 1–2 files, ≤100 lines, test already exists | — |
+| medium | Sonnet (medium) | 3–5 files, single layer, new tests required | — |
+| large | Sonnet (high) | ≥5 files or ≥2 layers, no existing coverage | — |
+| strategic | Opus (opt-in) | transversal architecture, schema/contract design, multi-domain integration, security audit | explicit opt-in in PLAN.md |
 
-Escalate by 1 tier for: auth/crypto/payments/fiscal; first greenfield task; handoff consumed by ≥2 tasks.
+Commander always runs the Opus tier (planning + handoff extraction). Squad default = Sonnet tier; Haiku and Opus are opt-in declared per task in PLAN.md.
+
+Escalate by exactly 1 tier for: auth / crypto / payments / fiscal; first greenfield task in a domain; a handoff consumed by ≥2 downstream tasks.
+
+> **Model pins** (refreshed independently of this matrix): Haiku → Haiku 4.5; Sonnet → Sonnet 4.6; Opus → Opus 4.8. The matrix above is version-agnostic and does not depend on these pins.
 
 ---
 
@@ -98,4 +102,4 @@ Bypass = governance violation → halt + escalate.
 
 - Consumes: `multi-agent-orchestration` (SKILL-QUICK for pattern taxonomy)
 - Delegates to: NYX (discovery), VECTOR (scope), CIPHER (arch), ORBIT (epic flow), BLITZ (solo)
-- Canonical protocol: `~/.claude/skills/dev-squad/SKILL.md` (global, loaded in SWARM bootstrap)
+- Canonical protocol: `.enterprise/governance/agent-skills/dev-squad/SKILL.md` (single source of truth per ADR-0006; compiled to `.agents/skills/dev-squad/`)
