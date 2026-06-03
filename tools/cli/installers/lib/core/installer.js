@@ -1400,6 +1400,71 @@ class Installer {
         );
       }
 
+      // Scaffold .enterprise/ overlay from the HSEOS source repo. Without this,
+      // `hseos doctor` checks for `.enterprise/.specs/constitution` and fails
+      // on every fresh install. Idempotent + self-safe (see method JSDoc).
+      postIdeTasks.push({
+        title: 'Scaffolding .enterprise/ overlay',
+        task: async () => {
+          const sourceRoot = path.resolve(getProjectRoot());
+          const overlay = await this.installEnterpriseOverlay(projectDir, sourceRoot);
+          switch (overlay.status) {
+            case 'copied': {
+              addResult('Enterprise overlay', 'ok', overlay.detail);
+              break;
+            }
+            case 'preserved': {
+              addResult('Enterprise overlay', 'ok', overlay.detail);
+              break;
+            }
+            case 'skipped-self': {
+              addResult('Enterprise overlay', 'ok', overlay.detail);
+              break;
+            }
+            case 'missing-source': {
+              addResult('Enterprise overlay', 'warn', overlay.detail);
+              break;
+            }
+            default: {
+              addResult('Enterprise overlay', 'warn', overlay.detail || 'unknown status');
+            }
+          }
+          return `Enterprise overlay: ${overlay.status}`;
+        },
+      });
+
+      // Install pre-commit hook that runs governance/quality-gates.sh when
+      // present. Honour `--no-git-hooks` opt-out. Silently no-ops when the
+      // target is not a git working tree.
+      if (config.noGitHooks) {
+        addResult('Pre-commit hook', 'ok', 'skipped (--no-git-hooks)');
+      } else {
+        postIdeTasks.push({
+          title: 'Installing pre-commit hook',
+          task: async () => {
+            const hook = await this.installPreCommitHook(projectDir);
+            switch (hook.status) {
+              case 'installed': {
+                addResult('Pre-commit hook', 'ok', hook.detail);
+                break;
+              }
+              case 'preserved': {
+                addResult('Pre-commit hook', 'ok', hook.detail);
+                break;
+              }
+              case 'no-git': {
+                addResult('Pre-commit hook', 'warn', hook.detail);
+                break;
+              }
+              default: {
+                addResult('Pre-commit hook', 'warn', hook.detail || 'unknown status');
+              }
+            }
+            return `Pre-commit hook: ${hook.status}`;
+          },
+        });
+      }
+
       await prompts.tasks(postIdeTasks);
 
       // Retrieve restored file info for summary
@@ -3641,6 +3706,88 @@ fi
       validCustomModules,
       keptModulesWithoutSources,
     };
+  }
+
+  /**
+   * Copy the .enterprise/ overlay from the HSEOS source repo into the target
+   * project. The compiler reads `.enterprise/governance/agent-skills/` and
+   * doctor expects `.enterprise/.specs/constitution`, so without this step
+   * those checks fail on every fresh install.
+   *
+   * Idempotent: skips when the target already has `.enterprise/`. Self-safe:
+   * skips when sourceRoot === projectDir (running install inside the HSEOS
+   * source repo itself — we would otherwise copy a directory onto itself).
+   *
+   * @returns {Promise<{status: 'copied'|'preserved'|'skipped-self'|'missing-source', detail: string}>}
+   */
+  async installEnterpriseOverlay(projectDir, sourceRoot) {
+    const target = path.join(projectDir, '.enterprise');
+    const source = path.join(sourceRoot, '.enterprise');
+
+    if (path.resolve(projectDir) === path.resolve(sourceRoot)) {
+      return { status: 'skipped-self', detail: 'install target is the HSEOS source repo' };
+    }
+    if (await fs.pathExists(target)) {
+      return { status: 'preserved', detail: '.enterprise/ already present' };
+    }
+    if (!(await fs.pathExists(source))) {
+      return { status: 'missing-source', detail: `source overlay not found at ${source}` };
+    }
+
+    await fs.copy(source, target, { overwrite: false, errorOnExist: false });
+    return { status: 'copied', detail: 'overlay scaffolded from HSEOS source' };
+  }
+
+  /**
+   * Install a pre-commit hook at `.git/hooks/pre-commit` that runs the project's
+   * governance quality gates when present. Silently no-ops when:
+   *   - `.git/` does not exist (the target is not a git working tree)
+   *   - a hook already exists (we never overwrite user-authored hooks)
+   *
+   * The hook itself does not assume the gates script exists at install time —
+   * it checks for it at commit time. This means the hook works whether or not
+   * the user later adds `scripts/governance/quality-gates.sh`.
+   *
+   * @returns {Promise<{status: 'installed'|'preserved'|'no-git', detail: string, path?: string}>}
+   */
+  async installPreCommitHook(projectDir) {
+    const gitDir = path.join(projectDir, '.git');
+    if (!(await fs.pathExists(gitDir))) {
+      return { status: 'no-git', detail: '.git directory not found' };
+    }
+
+    const hooksDir = path.join(gitDir, 'hooks');
+    await fs.ensureDir(hooksDir);
+    const hookPath = path.join(hooksDir, 'pre-commit');
+
+    if (await fs.pathExists(hookPath)) {
+      return { status: 'preserved', detail: 'existing pre-commit hook left untouched', path: hookPath };
+    }
+
+    const hookScript = `#!/usr/bin/env bash
+# Installed by \`hseos install\`. Pass \`--no-git-hooks\` next time to skip.
+# Pre-commit gate: runs governance/quality-gates.sh when present.
+set -e
+
+QG="scripts/governance/quality-gates.sh"
+if [ -x "$QG" ]; then
+  VALIDATION_ENFORCED=true bash "$QG"
+elif [ -f "$QG" ]; then
+  VALIDATION_ENFORCED=true bash "$QG"
+else
+  echo "[hseos] $QG not found — skipping pre-commit gate."
+fi
+`;
+
+    await fs.writeFile(hookPath, hookScript, { encoding: 'utf8', mode: 0o755 });
+    // fs.writeFile honours the mode on POSIX but not on Windows; chmod ensures
+    // executability on Linux/macOS even when the runtime ignored the mode.
+    try {
+      await fs.chmod(hookPath, 0o755);
+    } catch {
+      // ignore on Windows where chmod is a no-op
+    }
+    return { status: 'installed', detail: 'governance quality gate wired', path: hookPath };
   }
 }
 
