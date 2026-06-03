@@ -14,9 +14,13 @@ adapters:
 platforms:
   - claude-code
   - codex
+  - cursor
+  - continue
+  - aider
+  - cline
 counts:
   skills: 49
-  hooks: 24
+  hooks: 28
   commands: 9
   agents: 16
   plugins: 4
@@ -66,7 +70,7 @@ skills:
     source: .enterprise/governance/agent-skills/ai-observability/SKILL.md
     quick: .enterprise/governance/agent-skills/ai-observability/SKILL-QUICK.md
     output: .agents/skills/ai-observability/SKILL.md
-    hash: dd3b26f3af702537d923643b40910882338a09df88897e3487c548345342193d
+    hash: 87c66a74b49e68e233dd4f2d44575ac22af7063123f9baf261ccd8f5128dc15f
   - name: architecture-breaking-change-detection
     source: .enterprise/governance/agent-skills/architecture/breaking-change-detection/SKILL.md
     quick: .enterprise/governance/agent-skills/architecture/breaking-change-detection/SKILL-QUICK.md
@@ -111,7 +115,7 @@ skills:
     source: .enterprise/governance/agent-skills/dev-squad/SKILL.md
     quick: .enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md
     output: .agents/skills/dev-squad/SKILL.md
-    hash: 17f857fea50f7ae8c9b000400da2184331f586f3185978d413e46d217660150b
+    hash: 8460b32b2ec9f274e96bc1177336ea25182c01db64377d322f2b8662e7853ca4
   - name: doc-project
     source: .enterprise/governance/agent-skills/doc-project/SKILL.md
     quick: .enterprise/governance/agent-skills/doc-project/SKILL-QUICK.md
@@ -386,6 +390,26 @@ hooks:
   - id: sessionstart-ado-inbox-check
     event: SessionStart
     matcher: "*"
+    platform_support:
+      - claude-code
+  - id: posttooluse-all-telemetry-export-otlp-metrics-opt-in
+    event: PostToolUse
+    matcher: "*"
+    platform_support:
+      - claude-code
+  - id: stop-all-telemetry-export-otlp-loki-session-log-opt-in
+    event: Stop
+    matcher: "*"
+    platform_support:
+      - claude-code
+  - id: pretooluse-bash-rtk-rewrite-token-saving-optional
+    event: PreToolUse
+    matcher: Bash
+    platform_support:
+      - claude-code
+  - id: pretooluse-bash-build-resource-guard-opt-in
+    event: PreToolUse
+    matcher: Bash
     platform_support:
       - claude-code
 commands:

@@ -70,3 +70,13 @@ At end of each epic delivery (Phase 9/10):
 - [ ] Delivery cycle time recorded
 - [ ] If mission-control available: agent metrics fetched and logged
 - [ ] Context budget violations during epic reported (if any)
+
+---
+
+## Telemetry Export Bridge (OTLP / Loki)
+
+SQLite (`state-emit-hook.sh`) is canonical. OTLP/Loki is an ADDITIONAL opt-in sink — see `SKILL.md §6` for full runbook.
+
+Opt-in env vars: `OTEL_EXPORTER_OTLP_ENDPOINT`, `HSEOS_LOKI_ENDPOINT`, `HSEOS_OTEL_EXPORT`, `HSEOS_ENV`.
+Handlers: `telemetry-export-tool.sh` (PostToolUse → OTLP metrics), `telemetry-export-session.sh` (Stop → OTLP logs or Loki).
+Cross-reference: ADR-0014, ADR-0010 (shared collector), `observability-compliance` skill.

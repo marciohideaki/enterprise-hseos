@@ -1,7 +1,7 @@
 # Dev Squad — Parallel Batch Execution
 
 ## Intent
-Execute a heterogeneous batch of 3+ tasks using Opus 4.7 for planning and parallel Sonnet/Haiku subagents for execution, each isolated in its own worktree. Optimize token cost and wall-clock latency while preserving HSEOS governance.
+Execute a heterogeneous batch of 3+ tasks using the Opus tier for planning and parallel Sonnet/Haiku subagents for execution, each isolated in its own worktree. Optimize token cost and wall-clock latency while preserving HSEOS governance.
 
 This workflow institutionalizes the Parallel-Fan-Out + Map-Reduce pattern with model-tiering as a first-class HSEOS flow. Commander-mediated handoffs keep subagents zero-context; `worktree-manager.sh` enforces isolation; 1 task = 1 commit; 1 wave = 1 PR.
 
@@ -49,7 +49,7 @@ HSEOS source: this workflow + `.enterprise/governance/agent-skills/dev-squad/`.
 Wave N subagents → SWARM (Commander extracts) → handoffs/T{a}-to-T{c}.md → Wave N+1 subagents
 ```
 
-Subagents never see each other's output. Only the Commander-extracted handoff (≤40 lines, formatted per `~/.claude/skills/dev-squad/templates/HANDOFF.md`) flows downstream.
+Subagents never see each other's output. Only the Commander-extracted handoff (≤40 lines, formatted per the HANDOFF format defined in the canonical skill (`.enterprise/governance/agent-skills/dev-squad/SKILL.md`)) flows downstream.
 
 ## Stateful Execution
 - persist run state under `.hseos/runs/dev-squad/{run-id}/` (STATUS.md updated between waves)
@@ -124,7 +124,7 @@ hseos state-emit start --silent
 
 ## Observability — state emission contract (Sprint 2 / Wave 5a)
 
-Wave 5a refines the Sprint 1 dual-write into an explicit emission contract on the canonical skill (`~/.claude/skills/dev-squad/SKILL.md`). Markdown writes are **preserved** (zero regression); the skill simply **adds** structured emit calls at five phase boundaries.
+Wave 5a refines the Sprint 1 dual-write into an explicit emission contract on the canonical skill (`.enterprise/governance/agent-skills/dev-squad/SKILL.md`). Markdown writes are **preserved** (zero regression); the skill simply **adds** structured emit calls at five phase boundaries.
 
 ### Required env vars (set by skill)
 
