@@ -1,7 +1,7 @@
 ---
 name: dev-squad
 tier: full
-version: "1.1"
+version: "1.2"
 description: "Full protocol for heterogeneous parallel batch execution under SWARM. Commander (Opus) plans + extracts handoffs; Squad (Sonnet/Haiku) executes in worktree-isolated parallel waves. 1 task = 1 commit; 1 wave = 1 PR."
 license: Apache-2.0
 portable: true
@@ -30,14 +30,19 @@ metadata:
 
 ## Model Matrix
 
-| Effort | Default model | When to override |
-|---|---|---|
-| Trivial CRUD / mechanical refactor | Haiku 4.5 | Never — Haiku always sufficient |
-| Standard implementation, single domain | Sonnet 4.6 | Bump to Opus only if explicit signal |
-| Schema design / multi-domain integration / audit | Opus 4.7 | Default |
-| Cross-cutting architectural refactor | Opus 4.7 | Default |
+| Effort | Squad tier | Concrete criteria | Override |
+|---|---|---|---|
+| trivial | Haiku (low) | 1 file, ≤30 lines, mechanical/known pattern | never lower — Haiku always sufficient |
+| small | Sonnet (low) | 1–2 files, ≤100 lines, test already exists | — |
+| medium | Sonnet (medium) | 3–5 files, single layer, new tests required | — |
+| large | Sonnet (high) | ≥5 files or ≥2 layers, no existing coverage | — |
+| strategic | Opus (opt-in) | transversal architecture, schema/contract design, multi-domain integration, security audit | explicit opt-in in PLAN.md |
 
-Commander runs Opus; Squad workers default Sonnet 4.6 with Haiku/Opus opt-in declared in PLAN.md.
+Commander always runs the Opus tier (planning + handoff extraction). Squad default = Sonnet tier; Haiku and Opus are opt-in declared per task in PLAN.md.
+
+Escalate by exactly 1 tier for: auth / crypto / payments / fiscal; first greenfield task in a domain; a handoff consumed by ≥2 downstream tasks.
+
+> **Model pins** (refreshed independently of this matrix): Haiku → Haiku 4.5; Sonnet → Sonnet 4.6; Opus → Opus 4.8. The matrix above is version-agnostic and does not depend on these pins.
 
 ---
 
