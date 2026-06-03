@@ -10,7 +10,7 @@
 ## 1. Global Rules
 
 - Never push directly to `main`, `master`, or `develop`.
-- Never merge Pull Requests — human review is mandatory.
+- Never merge Pull Requests without explicit human approval.
 - Never add co-authors to commits.
 - Never reference AI systems in commit messages (Claude, Codex, OpenAI, GPT, LLM, Copilot, automated).
 - Never bypass hooks (`--no-verify` is forbidden).
@@ -32,6 +32,8 @@ One `task/*` branch per task, derived from the phase branch:
 - `task/domain-model`
 - `task/api-spec`
 - `task/auth-service`
+
+Additional governed prefixes are allowed for workflow-specific use: `fix/*`, `hotfix/*`, `release/*`, `docs/*`, `chore/*`, and `ci/*`. `feature/*` remains the default branch class for product and platform feature work.
 
 ---
 
@@ -94,7 +96,7 @@ Protected branches: `main`, `master`, `develop`
 - Require quality gate status checks to pass
 - No direct push (force or otherwise)
 - **Guard:** `scripts/governance/check-branch.sh` (enforced via `.husky/pre-commit`)
-- **Config:** `.github/branch-protection.yml`
+- **Config:** `.github/branch-protection.yaml`
 
 ---
 
@@ -107,9 +109,17 @@ When a phase is complete:
 4. Include execution summary and validation results
 
 Rules:
-- **AI agents must never merge pull requests**
-- Human review is mandatory
-- Stop execution after opening the PR — wait for next instruction
+- **AI agents must never self-approve or autonomously merge pull requests**
+- Human review/approval is mandatory
+- Stop execution after opening the PR unless explicit approval to merge is already present
+- After explicit approval and green checks, use `hseos pr closeout <number> --approved` to merge, fast-forward the base branch, and safely clean up a merged `feature/*` head branch
+
+### 7.1 Branch Cleanup Policy
+
+- `task/*` branches may be removed automatically after they are merged into their phase branch.
+- `feature/*` branches may be removed automatically only after the PR is merged and Git reports the head branch contained in the base branch.
+- `main`, `master`, and `develop` are protected and must never be deleted.
+- `release/*` and `hotfix/*` branches require explicit authorization for deletion.
 
 ---
 

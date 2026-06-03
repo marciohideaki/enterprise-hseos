@@ -15,15 +15,43 @@ platforms:
   - claude-code
   - codex
 counts:
-  skills: 43
-  hooks: 17
-  commands: 8
+  skills: 48
+  hooks: 24
+  commands: 9
+  agents: 16
+  plugins: 4
+  mcp_servers: 8
 skills:
   - name: accessibility
     source: .enterprise/governance/agent-skills/accessibility/SKILL.md
     quick: .enterprise/governance/agent-skills/accessibility/SKILL-QUICK.md
     output: .agents/skills/accessibility/SKILL.md
     hash: 199b6d79b6a64dee7eb66ed28c453ebca70a7bc72a06669d66d63ca822ce1621
+  - name: ado-close-wave
+    source: .enterprise/governance/agent-skills/ado-close-wave/SKILL.md
+    quick: .enterprise/governance/agent-skills/ado-close-wave/SKILL-QUICK.md
+    output: .agents/skills/ado-close-wave/SKILL.md
+    hash: c0b686a0425d80bdc9242774dd89c01b4308e4949d29fc807e352bd38abcdb4c
+  - name: ado-new-project
+    source: .enterprise/governance/agent-skills/ado-new-project/SKILL.md
+    quick: .enterprise/governance/agent-skills/ado-new-project/SKILL-QUICK.md
+    output: .agents/skills/ado-new-project/SKILL.md
+    hash: 96e2a21e6d75bdd1af764627e42f2224349868001f986d2e8d0f7e492be517e0
+  - name: ado-ops
+    source: .enterprise/governance/agent-skills/ado-ops/SKILL.md
+    quick: .enterprise/governance/agent-skills/ado-ops/SKILL-QUICK.md
+    output: .agents/skills/ado-ops/SKILL.md
+    hash: 5c0a47dd4c17db552c191797233e730bb923b0ce0c3c250a9997f1b9fd38e23f
+  - name: ado-plan
+    source: .enterprise/governance/agent-skills/ado-plan/SKILL.md
+    quick: .enterprise/governance/agent-skills/ado-plan/SKILL-QUICK.md
+    output: .agents/skills/ado-plan/SKILL.md
+    hash: 796f6cf083f54bd937e3ee1856cda981205dd05b56c23b781838957e9badd264
+  - name: ado-sync
+    source: .enterprise/governance/agent-skills/ado-sync/SKILL.md
+    quick: .enterprise/governance/agent-skills/ado-sync/SKILL-QUICK.md
+    output: .agents/skills/ado-sync/SKILL.md
+    hash: 43840d34e0eb31d7feec96a179644cc92c006369f1599464afc6c83cb9917d29
   - name: adr-compliance
     source: .enterprise/governance/agent-skills/adr-compliance/SKILL.md
     quick: .enterprise/governance/agent-skills/adr-compliance/SKILL-QUICK.md
@@ -83,7 +111,7 @@ skills:
     source: .enterprise/governance/agent-skills/dev-squad/SKILL.md
     quick: .enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md
     output: .agents/skills/dev-squad/SKILL.md
-    hash: 9e7219f5e48cdf0d4c7fce0ab661ca4d2bd1a20bb6530b7b096d8135dab6f2db
+    hash: 17f857fea50f7ae8c9b000400da2184331f586f3185978d413e46d217660150b
   - name: doc-project
     source: .enterprise/governance/agent-skills/doc-project/SKILL.md
     quick: .enterprise/governance/agent-skills/doc-project/SKILL-QUICK.md
@@ -320,6 +348,41 @@ hooks:
     matcher: "*"
     platform_support:
       - claude-code
+  - id: pretooluse-agent-ado-preflight-gate
+    event: PreToolUse
+    matcher: Agent
+    platform_support:
+      - claude-code
+  - id: pretooluse-bash-ado-branch-guard
+    event: PreToolUse
+    matcher: Bash
+    platform_support:
+      - claude-code
+  - id: posttooluse-write-edit-ado-plan-advisory
+    event: PostToolUse
+    matcher: Write|Edit
+    platform_support:
+      - claude-code
+  - id: posttooluse-bash-ado-task-progress
+    event: PostToolUse
+    matcher: Bash
+    platform_support:
+      - claude-code
+  - id: posttooluse-bash-ado-pr-link
+    event: PostToolUse
+    matcher: Bash
+    platform_support:
+      - claude-code
+  - id: posttooluse-bash-ado-tag-close
+    event: PostToolUse
+    matcher: Bash
+    platform_support:
+      - claude-code
+  - id: sessionstart-ado-inbox-check
+    event: SessionStart
+    matcher: "*"
+    platform_support:
+      - claude-code
 commands:
   - name: hseos-workflow-delivery-readiness
     type: workflow
@@ -349,7 +412,152 @@ commands:
     type: workflow
     source: null
     description: Subsystem providing SQLite-backed observability of dev-squad / orbit runs. CLI + MCP + Web SSE side-cars.
+  - name: hseos-workflow-ado-ops
+    type: workflow
+    source: null
+    description: "Complete ADO-first lifecycle: G1-ADO gate (plan), execution tracking, wave closure, new project bootstrap. Feature-flagged by ado.enabled."
   - name: hseos-agent-manifest
     type: agent-index
     source: .hseos/AGENT-MANIFEST.md
     description: HSEOS installed agent manifest
+agents:
+  - code: ATLAS
+    file: .hseos/agents/atlas.agent.yaml
+    sha256: 76b3a84f828282f6b21286a6c425f653cceff0039899470e95a416f1491a106c
+  - code: BLITZ
+    file: .hseos/agents/blitz.agent.yaml
+    sha256: 6fcd1690f7a9a68856382bb7c0a48310dadc6918afa10a78d978966f25e7e3db
+  - code: CIPHER
+    file: .hseos/agents/cipher.agent.yaml
+    sha256: dcebb1c35f816aad211b70000d292f3ce85ec59bc55067de730f344981b19e7a
+  - code: FORGE
+    file: .hseos/agents/forge.agent.yaml
+    sha256: 84a70d0287a8f2c2f514bdb2c9d0bbc8ead14819d5be3c1666dd6a6c892907d5
+  - code: GHOST
+    file: .hseos/agents/ghost.agent.yaml
+    sha256: 3af9f174daf2f974a72bc2425a4862eee4a9e6b4e7a458e694c0220692cca51e
+  - code: GLITCH
+    file: .hseos/agents/glitch.agent.yaml
+    sha256: 9065b57ea49cd02e098875ad19daf2b046635171cf03390ce5c085d62fa39d2f
+  - code: HSEOS-MASTER
+    file: src/core/agents/hseos-master.agent.yaml
+    sha256: cebaec17b3c25d138e2649cec2f579cc7dabf098d44cad5af8b24dec7c8b619a
+  - code: KUBE
+    file: .hseos/agents/kube.agent.yaml
+    sha256: 2fa19952b604d65c99ccd3d1c5b9b4ae09f9cdf0c380cdbe9c76065c0ae096cd
+  - code: NYX
+    file: .hseos/agents/nyx.agent.yaml
+    sha256: 299ada765d259bc9fc8410eac56f716410896e2c776ed9878fa348d63d08e6cb
+  - code: ORBIT
+    file: .hseos/agents/orbit.agent.yaml
+    sha256: d2073a516a63c4d706b07a8129e63091b08e0849290af6ff409cccbc26ed6342
+  - code: PRISM
+    file: .hseos/agents/prism.agent.yaml
+    sha256: b7766d7b793f0a8648dd6734523b3eeba171d67aadf44f234ec739bc1d45c5eb
+  - code: QUILL
+    file: .hseos/agents/quill.agent.yaml
+    sha256: b2e1cd489840fd709711046e8a5d3bfa5ce5d4c5b58b819eb03c348d60c70b94
+  - code: RAZOR
+    file: .hseos/agents/razor.agent.yaml
+    sha256: 660dca4628afc0461493d30de16db5acc01092dd6b424a02528318b8a447c846
+  - code: SABLE
+    file: .hseos/agents/sable.agent.yaml
+    sha256: c2e60b3ae53f3536dc1c7e719a14791658f7be84a4110a8e1541c9c0b505a83d
+  - code: SWARM
+    file: .hseos/agents/swarm.agent.yaml
+    sha256: 1d65966c091e2edf486dae67cfdeb63c972e733d37375c8260148814c80294ba
+  - code: VECTOR
+    file: .hseos/agents/vector.agent.yaml
+    sha256: 2581c74190ce6bb293284f4a48d67651031667976e11c666b1622f999b5871bf
+plugins:
+  - id: hseos-skill-creator
+    version: 0.1.0
+  - id: hseos-hookify
+    version: 0.1.0
+  - id: hseos-pr-review
+    version: 0.1.0
+    extends: official:pr-review-toolkit@1.2.0
+  - id: hseos-security-guidance
+    version: 0.1.0
+mcp_bundles_active:
+  - core
+  - extended
+mcp_servers:
+  - id: axon-bridge
+    transport: stdio
+    binary: tools/mcp-axon-bridge/index.js
+    runtime: node
+    bundle: extended
+    capabilities:
+      - code_search
+      - dep_graph
+      - memory_search
+      - get_skeleton
+      - get_overview
+  - id: fetch
+    transport: stdio
+    binary: "@modelcontextprotocol/server-fetch"
+    runtime: npx
+    bundle: extended
+    capabilities:
+      - fetch_url
+  - id: filesystem
+    transport: stdio
+    binary: "@modelcontextprotocol/server-filesystem"
+    runtime: npx
+    bundle: core
+    capabilities:
+      - read_file
+      - write_file
+      - list_directory
+      - search_files
+  - id: hseos-governance
+    transport: stdio
+    binary: tools/mcp-hseos-governance/index.js
+    runtime: node
+    bundle: core
+    capabilities:
+      - query_constitution
+      - validate_adr
+      - check_authority
+      - list_skills
+      - list_workflows
+  - id: hseos-state-tracking
+    transport: stdio
+    binary: tools/mcp-project-state/index.js
+    runtime: node
+    bundle: core
+    capabilities:
+      - read_state
+      - write_state
+      - list_runs
+      - emit_event
+      - search_events
+  - id: hseos-swarm
+    transport: stdio
+    binary: tools/mcp-hseos-swarm/index.js
+    runtime: node
+    bundle: extended
+    capabilities:
+      - plan_squad
+      - dispatch_wave
+      - consolidate_handoff
+      - get_run_state
+  - id: memory
+    transport: stdio
+    binary: "@modelcontextprotocol/server-memory"
+    runtime: npx
+    bundle: extended
+    capabilities:
+      - create_memory
+      - search_memory
+      - delete_memory
+  - id: sequential-thinking
+    transport: stdio
+    binary: "@modelcontextprotocol/server-sequential-thinking"
+    runtime: npx
+    bundle: extended
+    capabilities:
+      - sequential_reasoning_step
+      - branch_thought
+      - revise_thought

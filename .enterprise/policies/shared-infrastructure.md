@@ -58,6 +58,7 @@ Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 20
 | Loki | `loki.monitoring.svc.cluster.local:3100` | SingleBinary mode; namespace `monitoring`; deployed via ArgoCD app `loki-dev` (grafana/loki chart 6.55.0 / Loki 3.6.7); auth disabled; retention 7d; 10Gi PVC. |
 | OpenFGA | `openfga-shared.platform-shared-dev.svc.cluster.local:8080` (HTTP) / `:8081` (gRPC) | Deployment `openfga-shared`; v1.5.3; postgres backend via `openfga-shared-secret`; auth disabled for dev |
 | OpenSearch | `opensearch-shared.platform-shared-dev.svc.cluster.local:9200` | StatefulSet `opensearch-shared-0`; v2.18.0; single-node; security disabled for dev; 10Gi PVC |
+| OpenTelemetry Collector | `otel-collector-shared.platform-shared-dev.svc.cluster.local:4317` (OTLP gRPC) / `:4318` (OTLP HTTP) / `:8889` (Prometheus exporter) | Deployment `otel-collector-shared`; per-project resource attributes; metrics flow to shared Prometheus via the `otel-collector-shared` ServiceMonitor in `monitoring`. Per ADR-0010. |
 | Zookeeper | `zookeeper-shared.platform-shared-dev.svc.cluster.local:2181` | Internal to Kafka; do not consume directly |
 
 ### Services NOT yet in shared
@@ -66,12 +67,12 @@ Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 20
 |---|---|---|
 | Qdrant | not deployed | Use `pgvector` extension in `postgres-shared` for embeddings until vector volume justifies dedicated store. |
 | Keycloak | not deployed in k3s | SSO managed at a different layer. |
-| OTel Collector | not deployed in k3s | Tracing stack is external. |
 
-### Relevant ADRs (in `platform-gitops/_adr/`)
+### Relevant ADRs (in `enterprise-hseos/.enterprise/.specs/decisions/`)
 
 - **ADR-0002** — OPA centralization in `platform-shared-dev` with per-project bundle loaders.
 - **ADR-0003** — `kafka-shared` must advertise FQDN for cross-namespace producers.
+- **ADR-0010** — `otel-collector-shared` is the canonical OTLP ingress for shared observability; capabilities must export via OTLP HTTP/gRPC instead of direct Prometheus scrape when telemetry contracts require trace/log correlation.
 
 Credentials/secrets are sourced via **External Secrets Operator** from Vault when available; otherwise via per-namespace `Secret` populated by a controlled bootstrap (see `secret.yaml` comments in `platform-gitops/<project>/services/base/`). Per-project `ExternalSecret` resources project the shared credentials into the project namespace.
 

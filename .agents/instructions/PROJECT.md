@@ -20,6 +20,8 @@ If two instructions conflict, stop and ask for a human decision. Do not average 
 - Treat non-`hseos-*` skills as governance/check modules and `hseos-*` skills as executable agent, task, or workflow launchers. Do not activate both for the same request unless the user explicitly asks for a workflow plus its governance review.
 - Treat `.agents/hooks/registry.yaml` as the neutral hook registry. Platform-specific hook files are compiled adapters.
 - Never commit directly to `main`, `master`, or `develop`.
+- Never merge PRs without explicit human approval; after approval, use governed closeout when available.
+- Never delete protected branches. `task/*` cleanup belongs to the worktree lifecycle; merged `feature/*` cleanup must verify containment in the base branch.
 - Never add AI attribution or co-author trailers to commits.
 - Run repository quality gates before any commit.
 

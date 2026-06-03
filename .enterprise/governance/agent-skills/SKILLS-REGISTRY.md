@@ -644,6 +644,34 @@ metadata:
 | `gitops-add-service` | `required_modes: [admin]` |
 | `gitops-new-project` | `required_modes: [admin]` |
 
+## ADO-Ops Module Skills (ADR-0010)
+
+> Feature-flagged: only active when `ado.enabled: true` in `.hseos/config/hseos.config.yaml`
+
+| Skill | Tier | Triggers | Feature Flag |
+|---|---|---|---|
+| `ado-ops` | full | Azure DevOps, ADO, wit_create_work_item, work item, ADO Epic, ADO Feature, ADO Story, ADO Task | `ado.enabled` |
+| `ado-plan` | full | G1-ADO, ado-plan, plan to ADO, criar itens ADO, atlas plan, /atlas plan | `ado.enabled` |
+| `ado-sync` | full | ado-sync, sync ADO, sincronizar ADO, atlas sync, /atlas sync, dev-squad finished | `ado.enabled` |
+| `ado-close-wave` | full | close wave, fechar wave, atlas close, /atlas close, wave done, criar tag wave | `ado.enabled` |
+| `ado-new-project` | full | bootstrap ADO project, criar projeto ADO, atlas setup, /atlas setup, migrar repo ADO | none (bootstrap) |
+
+### Loading Rules
+- All ado-ops skills use `load_strategy: trigger` (Tier 2 — loaded on demand)
+- `ado-new-project` does NOT require `ado.enabled` (needed to bootstrap the feature)
+- Skills are sourced by agent ATLAS (`.hseos/agents/atlas.agent.yaml`)
+- When `ado.enabled: false`: hooks exit 0, skills may still be loaded but are no-ops
+
+### Current Skills with ADO-Ops Conditions
+
+| Skill | Condition |
+|---|---|
+| `ado-ops` | `feature_flag: ado.enabled` |
+| `ado-plan` | `feature_flag: ado.enabled` |
+| `ado-sync` | `feature_flag: ado.enabled` |
+| `ado-close-wave` | `feature_flag: ado.enabled` |
+| `ado-new-project` | None (bootstrap entrypoint) |
+
 ## Observability Tooling (Sprint 1-2 — state-tracking subsystem)
 
 These commands are sanctioned tooling produced by Waves 1-8 + W4-W6 of the agent state-tracking proposal (`_decisions/2026-04-25-agent-state-tracking-proposal.md`). They are not skills proper but operational tooling SWARM and other agents may invoke without explicit user approval per call.

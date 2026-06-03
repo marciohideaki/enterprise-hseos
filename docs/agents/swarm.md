@@ -100,7 +100,7 @@ Per run, under `.hseos/runs/dev-squad/<run-id>/`:
 | **G2 — Plan approval** | Mandatory | Human | Required before any Execute wave |
 | **G3 — Wave review** | Conditional | Human | Fires on BLOCKED or risk flag |
 | **G4 — PR open** | Mandatory | Human | Agents draft, never open |
-| **G5 — Merge** | Mandatory | Human reviewer | Agents never merge to protected branches |
+| **G5 — Merge** | Mandatory | Human reviewer | Agents may execute governed closeout only after explicit approval |
 
 ---
 

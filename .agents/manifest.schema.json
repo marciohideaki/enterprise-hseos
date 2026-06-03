@@ -95,7 +95,7 @@
     },
     "mcp_bundles_active": {
       "type": "array",
-      "description": "Active MCP bundles (v2.0, per ADR-0008). Bundles are defined in .agents/mcp/bundles/<name>.yaml.",
+      "description": "Active MCP bundles (per ADR-0008). Additive field a v1.0 manifest carries when an MCP registry is present. Bundles are defined in .agents/mcp/bundles/<name>.yaml.",
       "items": {
         "type": "string",
         "enum": ["core", "extended", "enterprise"]
@@ -104,7 +104,7 @@
     },
     "mcp_servers": {
       "type": "array",
-      "description": "Enumerated MCP servers active under the selected bundles (v2.0).",
+      "description": "Enumerated MCP servers active under the selected bundles. Additive field carried alongside mcp_bundles_active.",
       "items": {
         "type": "object",
         "required": ["id", "transport"],
@@ -123,7 +123,7 @@
     },
     "plugins": {
       "type": "array",
-      "description": "Installed plugins from the HSEOS marketplace (v2.0, per ADR-0009).",
+      "description": "Installed plugins from the HSEOS marketplace (per ADR-0009). Additive field a v1.0 manifest carries when a plugin registry is present.",
       "items": {
         "type": "object",
         "required": ["id", "version"],
@@ -188,7 +188,7 @@
     },
     "agents": {
       "type": "array",
-      "description": "v2.0 only: catalog of HSEOS agents emitted as adapter-specific subagents.",
+      "description": "Catalog of HSEOS agents. Additive field: a v1.0 manifest carries it ({code, file, sha256} per agent) when the project exposes agent definitions. v2.0 additionally emits per-adapter rendered subagents (the `rendered` map).",
       "items": {
         "type": "object",
         "required": ["code", "file"],

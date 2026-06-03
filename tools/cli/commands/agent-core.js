@@ -18,8 +18,14 @@ async function runCompile(projectDir, options) {
   const compiler = new AgentCoreCompiler();
   const platforms = resolvePlatforms(options.target);
   const result = await compiler.compile(projectDir, hseosDir, { platforms });
+  const extra = [
+    result.agents ? `${result.agents} agents` : null,
+    result.plugins ? `${result.plugins} plugins` : null,
+    result.mcpServers ? `${result.mcpServers} mcp servers` : null,
+  ].filter(Boolean);
+  const extraNote = extra.length > 0 ? `, ${extra.join(', ')}` : '';
   await prompts.log.success(
-    `Agent core compiled: ${result.skills} skills, ${result.hooks} hooks, ${result.commands} commands -> ${result.manifest}`,
+    `Agent core compiled: ${result.skills} skills, ${result.hooks} hooks, ${result.commands} commands${extraNote} -> ${result.manifest}`,
   );
 }
 

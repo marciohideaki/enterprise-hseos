@@ -183,13 +183,13 @@ This is HSEOS's parallel-execution flow. SWARM plans the batch in a high-capabil
 | G2 — Plan approval | **Mandatory** | Human approves `PLAN.md` before any Execute wave |
 | G3 — Wave review | Conditional | Human reviews `WAVE-{k}-REPORT.md` if BLOCKED or risk flagged |
 | G4 — PR open | Mandatory | Human runs `gh pr create`; agents draft, never open |
-| G5 — Merge | Mandatory | Human reviewer approves and merges; agents never merge to protected branches |
+| G5 — Merge | Mandatory | Human reviewer approves; agents may execute governed closeout only after explicit approval |
 
 ### Governance invariants
 
 - **Worktree isolation** is mandatory — every write task runs under `scripts/governance/worktree-manager.sh`. Raw `git worktree` is forbidden.
 - **Commit hygiene** — conventional format, validated by `validate-commit-msg.sh`; no `Co-Authored-By`, no mentions of `Claude`, `AI`, `LLM`, `Anthropic`, `GPT`.
-- **Base branch** — `check-branch.sh` validates the base follows `feature/*`.
+- **Base branch** — `check-branch.sh` validates governed branch prefixes; `feature/*` remains the default.
 - **Quality gates** — `worktree-manager.sh validate` runs the 6 quality gates before every commit.
 - **Model tiering** — minimum capable model per task; Opus-as-executor requires explicit opt-in in `PLAN.md`.
 - **Governance cascade** — scope changes route to VECTOR; arch to CIPHER; release/runtime to FORGE/KUBE/SABLE; epic-scale to ORBIT.

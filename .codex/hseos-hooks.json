@@ -170,6 +170,76 @@
       "description": "System notification for long-running operations (cross-platform — toast/bell)",
       "fallback": "Terminal bell.",
       "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "pretooluse-agent-ado-preflight-gate",
+      "event": "PreToolUse",
+      "matcher": "Agent",
+      "command": "bash .agents/hooks/handlers/ado-preflight-gate.sh",
+      "blocking": true,
+      "description": "ADO-first gate: warns when Agent dev-squad dispatch has no ADO mapping in PLAN.md. Exits silently when ado.enabled=false.",
+      "fallback": "Run /atlas plan to create ADO work items before dispatching dev-squad.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "pretooluse-bash-ado-branch-guard",
+      "event": "PreToolUse",
+      "matcher": "Bash",
+      "command": "bash .agents/hooks/handlers/ado-branch-guard.sh",
+      "blocking": true,
+      "description": "ADO branch guard: blocks direct git push to trunk branches (main/master/develop/trunk/staging/hmg). Exits silently when ado.enabled=false.",
+      "fallback": "Create a feature branch and open a PR instead of pushing directly to trunk.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "posttooluse-write-edit-ado-plan-advisory",
+      "event": "PostToolUse",
+      "matcher": "Write|Edit",
+      "command": "bash .agents/hooks/handlers/ado-on-plan-write.sh \"$CLAUDE_TOOL_FILE_PATH\"",
+      "blocking": false,
+      "description": "ADO plan advisory: warns when PLAN.md or MASTER-PLAN.md is written without ADO mapping annotations. Non-blocking. Exits silently when ado.enabled=false.",
+      "fallback": "Add ADO mapping section to PLAN.md manually or run /atlas plan.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "posttooluse-bash-ado-task-progress",
+      "event": "PostToolUse",
+      "matcher": "Bash",
+      "command": "bash .agents/hooks/handlers/ado-task-progress.sh",
+      "blocking": false,
+      "description": "ADO task progress: adds comment to ADO Task and transitions to Active on git commit in ado-{ID}-* branches. Best-effort, never blocks. Exits silently when ado.enabled=false.",
+      "fallback": "Update ADO Task state manually via /atlas sync.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "posttooluse-bash-ado-pr-link",
+      "event": "PostToolUse",
+      "matcher": "Bash",
+      "command": "bash .agents/hooks/handlers/ado-pr-link.sh",
+      "blocking": false,
+      "description": "ADO PR link: links GitHub PR to ADO Story after gh pr create. Extracts PR URL from output. Best-effort, never blocks. Exits silently when ado.enabled=false.",
+      "fallback": "Link PR to ADO Story manually via work item comment.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "posttooluse-bash-ado-tag-close",
+      "event": "PostToolUse",
+      "matcher": "Bash",
+      "command": "bash .agents/hooks/handlers/ado-tag-close.sh",
+      "blocking": false,
+      "description": "ADO tag close: emits inbox event when git tag pushed. ATLAS processes inbox via /atlas close to close ADO Feature/Epic. Never calls ADO directly. Exits silently when ado.enabled=false.",
+      "fallback": "Run /atlas close manually after tagging to close ADO Feature/Epic.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "sessionstart-ado-inbox-check",
+      "event": "SessionStart",
+      "matcher": "*",
+      "command": "bash .agents/hooks/handlers/ado-inbox-check.sh",
+      "blocking": false,
+      "description": "ADO inbox check: warns at session start if pending tag-close events exist in .hseos/runs/ado-ops/inbox/. Advisory only — directs user to run /atlas close. Exits silently when ado.enabled=false.",
+      "fallback": "Check .hseos/runs/ado-ops/inbox/ manually for pending events.",
+      "codex_equivalent": "portable-handler-script"
     }
   ]
 }
