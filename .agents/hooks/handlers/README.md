@@ -27,6 +27,19 @@ The existing `scripts/governance/state-emit-hook.sh`, `swarm-gate.sh`, and `qual
 4. **Config-aware.** Read `hseos.config.yaml` for behaviour flags (`second_brain.enabled`, `mcp_bundles_active`, etc.) — never hard-code paths or secrets.
 5. **Fail-open for optional integrations.** When a feature (vault, code index, etc.) is unavailable, the handler self-suppresses silently per ADR-0006 P6 (graceful degradation).
 
+## Telemetry Export Bridge (OTLP / Loki)
+
+Four additional handlers were introduced by the telemetry-swarm-coherence run (20260603):
+
+| Handler | Event | Status | Purpose |
+|---|---|---|---|
+| `telemetry-export-tool.sh` | PostToolUse | active (env-gated) | Opt-in OTLP metrics TEE (`OTEL_EXPORTER_OTLP_ENDPOINT` or `HSEOS_OTEL_EXPORT=1`). Self-suppresses when unset. SQLite remains canonical. |
+| `telemetry-export-session.sh` | Stop | active (env-gated) | Opt-in OTLP/Loki session-ended log export (`OTEL_EXPORTER_OTLP_ENDPOINT` or `HSEOS_LOKI_ENDPOINT`). Self-suppresses when unset. |
+| `rtk-rewrite.sh` | PreToolUse/Bash | **inactive** | OPTIONAL token-saving rewrite via `rtk` binary. Activate by setting `status: active` in registry + recompile. No-ops silently when `rtk` absent. |
+| `build-resource-guard.sh` | PreToolUse/Bash | **inactive** | OPT-IN build parallelism cap via `HSEOS_BUILD_MAX_JOBS`. Activate by setting the env var + `status: active` + recompile. No-op by default. |
+
+The telemetry pair (`telemetry-export-tool.sh` and `telemetry-export-session.sh`) are `active` in the registry and compiled into `.claude/hooks.json`, but they are inert by default because they exit immediately when no OTLP or Loki endpoint is configured. The two adapters (`rtk-rewrite.sh` and `build-resource-guard.sh`) are `inactive` and are not compiled into `.claude/hooks.json` until explicitly activated.
+
 ## Capability mapping
 
 The compiler v2 (Wave 2 implementation) emits per-adapter hook configurations from `.agents/hooks/registry.yaml`. When an adapter does not support a hook event natively, the handler script remains discoverable here for manual invocation; the adapter spec's `fallbacks.unsupported_capability` documents the workaround.

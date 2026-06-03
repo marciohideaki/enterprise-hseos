@@ -284,3 +284,51 @@ hooks:
     platform_support:
       - claude-code
     fallback: Check .hseos/runs/ado-ops/inbox/ manually for pending events.
+  - id: posttooluse-all-telemetry-export-otlp-metrics-opt-in
+    event: PostToolUse
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/telemetry-export-tool.sh
+    timeout: 5
+    blocking: false
+    status: active
+    description: Opt-in OTLP metrics export (TEE of tool events). Self-suppresses unless OTEL_EXPORTER_OTLP_ENDPOINT is set. SQLite remains canonical.
+    platform_support:
+      - claude-code
+    fallback: No-op when OTEL_EXPORTER_OTLP_ENDPOINT/HSEOS_OTEL_EXPORT unset; SQLite state-emit unaffected.
+  - id: stop-all-telemetry-export-otlp-loki-session-log-opt-in
+    event: Stop
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/telemetry-export-session.sh
+    timeout: 5
+    blocking: false
+    status: active
+    description: Opt-in OTLP/Loki session-ended log export. Self-suppresses unless OTEL_EXPORTER_OTLP_ENDPOINT or HSEOS_LOKI_ENDPOINT is set.
+    platform_support:
+      - claude-code
+    fallback: No-op when no OTLP/Loki endpoint configured; SQLite complete-event unaffected.
+  - id: pretooluse-bash-rtk-rewrite-token-saving-optional
+    event: PreToolUse
+    matcher: Bash
+    type: command
+    command: bash .agents/hooks/handlers/rtk-rewrite.sh
+    timeout: 5
+    blocking: false
+    status: inactive
+    description: "OPTIONAL: rewrite bash commands via the rtk binary for token savings. Inactive by default; no-ops silently when rtk is absent."
+    platform_support:
+      - claude-code
+    fallback: No-op when rtk binary not on PATH; command passes through unchanged.
+  - id: pretooluse-bash-build-resource-guard-opt-in
+    event: PreToolUse
+    matcher: Bash
+    type: command
+    command: bash .agents/hooks/handlers/build-resource-guard.sh
+    timeout: 5
+    blocking: true
+    status: inactive
+    description: "OPT-IN build resource guard: caps make/cmake/ninja parallelism at HSEOS_BUILD_MAX_JOBS on constrained hosts. Inactive by default."
+    platform_support:
+      - claude-code
+    fallback: No-op when HSEOS_BUILD_MAX_JOBS unset or HSEOS_BUILD_GUARD_DISABLE=1.
