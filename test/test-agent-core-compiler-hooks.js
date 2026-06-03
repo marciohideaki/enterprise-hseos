@@ -175,11 +175,61 @@ async function testAgentCoreCompileCommandEmitsCodexAdapter() {
   });
 }
 
+async function testAgentCoreCompileEmitsClaudeMdPointer() {
+  await withTempDir(async (tempDir) => {
+    await agentCoreCommand.action('compile', {
+      directory: tempDir,
+      target: 'claude-code',
+    });
+
+    const claudeMdPath = path.join(tempDir, 'CLAUDE.md');
+    assertPass('agent-core compile --target claude-code emits CLAUDE.md', fs.existsSync(claudeMdPath), tempDir);
+
+    const claudeMd = fs.existsSync(claudeMdPath) ? fs.readFileSync(claudeMdPath, 'utf8') : '';
+    assertPass(
+      'CLAUDE.md points at AGENTS.md as the canonical source',
+      claudeMd.includes('Read `AGENTS.md`') && /^# CLAUDE\.md/m.test(claudeMd),
+      claudeMd,
+    );
+  });
+}
+
+async function testClaudeMdEmitterIsIdempotent() {
+  await withTempDir(async (tempDir) => {
+    const claudeMdPath = path.join(tempDir, 'CLAUDE.md');
+    const custom = '# CUSTOM\n\nUser-authored content that must survive re-install.\n';
+    fs.writeFileSync(claudeMdPath, custom);
+
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+
+    assertPass(
+      'pre-existing CLAUDE.md is preserved on recompile',
+      fs.readFileSync(claudeMdPath, 'utf8') === custom,
+      fs.readFileSync(claudeMdPath, 'utf8'),
+    );
+  });
+}
+
+async function testClaudeMdNotEmittedWithoutClaudeCode() {
+  await withTempDir(async (tempDir) => {
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'codex' });
+
+    assertPass(
+      'CLAUDE.md is not emitted when claude-code is not a selected platform',
+      !fs.existsSync(path.join(tempDir, 'CLAUDE.md')),
+      tempDir,
+    );
+  });
+}
+
 async function run() {
   console.log('Agent core compiler hook adapter tests');
   await testClaudeHookAdapterUsesActiveRegistryEntries();
   await testAgentCoreCompileCommandEmitsClaudeAdapter();
   await testAgentCoreCompileCommandEmitsCodexAdapter();
+  await testAgentCoreCompileEmitsClaudeMdPointer();
+  await testClaudeMdEmitterIsIdempotent();
+  await testClaudeMdNotEmittedWithoutClaudeCode();
 
   console.log(`\nCompiler hook tests: ${passed} passed, ${failed} failed`);
   if (failed > 0) {
