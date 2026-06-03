@@ -25,6 +25,7 @@
   "scripts": {
     "hseos:install": "node tools/cli/hseos-cli.js install",
     "hseos:uninstall": "node tools/cli/hseos-cli.js uninstall",
+    "branch-protection:apply": "node scripts/governance/apply-branch-protection.js",
     "format:check": "prettier --check \"**/*.{js,cjs,mjs,json,yaml}\"",
     "format:fix": "prettier --write \"**/*.{js,cjs,mjs,json,yaml}\"",
     "format:fix:staged": "prettier --write",
