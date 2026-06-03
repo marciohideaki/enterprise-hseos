@@ -15,7 +15,7 @@ platforms:
   - claude-code
   - codex
 counts:
-  skills: 48
+  skills: 49
   hooks: 24
   commands: 9
   agents: 16
@@ -122,6 +122,11 @@ skills:
     quick: .enterprise/governance/agent-skills/documentation-completeness/SKILL-QUICK.md
     output: .agents/skills/documentation-completeness/SKILL.md
     hash: 8b3d93569f8a0d6667522a9e66580609153da73cb2b976b92087fdd460aac3af
+  - name: enterprise-readiness-audit
+    source: .enterprise/governance/agent-skills/enterprise-readiness-audit/SKILL.md
+    quick: .enterprise/governance/agent-skills/enterprise-readiness-audit/SKILL-QUICK.md
+    output: .agents/skills/enterprise-readiness-audit/SKILL.md
+    hash: 467fd8e330fdb58a44046715712aa9741141f34d79c3d67021edac42de95b7b7
   - name: gitops-add-service
     source: .enterprise/governance/agent-skills/gitops-add-service/SKILL.md
     quick: .enterprise/governance/agent-skills/gitops-add-service/SKILL-QUICK.md
