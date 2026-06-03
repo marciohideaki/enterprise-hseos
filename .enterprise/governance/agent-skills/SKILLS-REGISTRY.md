@@ -304,7 +304,7 @@ version: "1.4"
 ---
 
 ### dev-squad
-**Description:** Especialização Parallel-Fan-Out + Map-Reduce para lotes heterogêneos de desenvolvimento sob SWARM. Commander (Opus) planeja e extrai handoffs; Squad (Sonnet/Haiku em worktrees isolados) executa em paralelo. Matriz de model-tiering para custo mínimo. 1 task = 1 commit; 1 wave = 1 PR. Canonical protocol em `~/.claude/skills/dev-squad/SKILL.md`.
+**Description:** Especialização Parallel-Fan-Out + Map-Reduce para lotes heterogêneos de desenvolvimento sob SWARM. Commander (Opus) planeja e extrai handoffs; Squad (Sonnet/Haiku em worktrees isolados) executa em paralelo. Matriz de model-tiering para custo mínimo. 1 task = 1 commit; 1 wave = 1 PR. Canonical protocol em `.enterprise/governance/agent-skills/dev-squad/SKILL.md`.
 **Load when:** SWARM ativando; lote de 3+ tasks heterogêneas; necessidade de paralelismo com isolation de worktree; modo detached (`/clear` + resume) para preservar contexto do Commander.
 **Triggers:** `SWARM`, `dev-squad`, `batch paralelo`, `worktree isolation`, `fan-out de dev`, `Opus plan Sonnet execute`, `heterogeneous batch`, `parallel waves`, `commander handoff`, `model-tiering`, `detached mode`, `/dev-squad`
 **Tier 1:** `.enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md`
@@ -695,4 +695,4 @@ These commands are sanctioned tooling produced by Waves 1-8 + W4-W6 of the agent
 - *Single-run scope:* markdown run-dir is canonical (resume + human review).
 - *Cross-run / cross-project scope:* SQLite is canonical (orphan detection, kanban, FTS5 queries).
 
-Skill `dev-squad` emits at 5 phase boundaries when `HSEOS_CURRENT_RUN_ID` is set — see `~/.claude/skills/dev-squad/SKILL.md` "State emission contract".
+Skill `dev-squad` emits at 5 phase boundaries when `HSEOS_CURRENT_RUN_ID` is set — see `.enterprise/governance/agent-skills/dev-squad/SKILL.md` "State emission contract".
