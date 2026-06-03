@@ -171,10 +171,18 @@ npx hseos install
 ```
 
 This sets up:
-- `.claude/commands/` — all 14 agent commands as Claude Code slash commands
-- `.enterprise/` — governance specs, agent authority files, 46-skill library
-- `.hseos/` — agent configurations, workflow definitions, local config
-- Git hooks — pre-commit quality gates (lint, schema validation, commit hygiene)
+- `.claude/commands/` — agent commands as Claude Code slash commands (one file per agent + helper)
+- `.claude/hooks.json` — Claude Code `PreToolUse` / `UserPromptSubmit` hooks (skill suggestion, CLAUDE.md guard, SWARM gate, etc.)
+- `.hseos/` — agent configurations, workflow definitions, local config, install manifest (`_config/`, `core/`, `hsm/`, `_memory/`)
+- `.agents/` — vendor-neutral source: `instructions/PROJECT.md`, `skills/<skill>/SKILL.md`, hook + command registries
+- Per selected adapter:
+  - `claude-code` → `.claude/` artefacts above
+  - `codex` → `.codex/config.toml` (MCP servers) + `.codex/hseos-hooks.json` (hook intent for audit)
+
+> **Not created by `hseos install`** — these are expected to be provided by the user or the org governance overlay:
+> - `AGENTS.md` — Codex (and other adapters that read `AGENTS.md`) expects this entry-point file at the project root. The installer does not write it; create it manually (a minimal stub pointing to `.agents/instructions/PROJECT.md` is enough).
+> - `.enterprise/` — the installer reads `.enterprise/governance/agent-skills/` if present, falling back to the HSEOS source. It does **not** scaffold `.enterprise/` into target projects; that overlay is meant to come from your institutional governance repo.
+> - Git hooks (`.husky/` / `.git/hooks/*`) — the install pipeline does not register pre-commit hooks. The hooks listed in `.claude/hooks.json` are Claude Code agent hooks (intercepting `PreToolUse`), not `git commit` hooks. To wire pre-commit gates locally, install [husky](https://typicode.github.io/husky/) yourself and call `scripts/governance/quality-gates.sh`.
 
 ### 2. Select AI tools (optional)
 
@@ -197,12 +205,14 @@ Supported tools: `claude-code`, `cursor`, `windsurf`, `gemini`, `codex`, `antigr
 npx hseos validate
 ```
 
-Expected output:
+Typical output (the exact lines depend on which adapters and overlays the project actually has):
 ```
-✅ .enterprise/ governance structure OK
-✅ .hseos/agents/ agent definitions OK
-✅ git hooks installed
-✅ 46 skills registered
+✅ .hseos/_config/manifest.yaml valid
+✅ .agents/skills/ registered (count depends on selected modules)
+✅ .claude/hooks.json valid           # if claude-code adapter selected
+✅ .codex/config.toml valid           # if codex adapter selected
+⚠️  .enterprise/ overlay not found (read-only fallback to HSEOS source)
+⚠️  AGENTS.md not found at project root (create one if Codex is your primary adapter)
 ```
 
 ---
@@ -587,6 +597,17 @@ O framework resolve um problema específico: ferramentas de IA são ágeis mas d
 ```bash
 npx hseos install
 ```
+
+O instalador cria:
+- `.claude/commands/` + `.claude/hooks.json` (quando `claude-code` está nos adapters)
+- `.codex/config.toml` + `.codex/hseos-hooks.json` (quando `codex` está nos adapters)
+- `.hseos/` (config, módulos, manifest de instalação)
+- `.agents/` (skills, hooks registry, `instructions/PROJECT.md`)
+
+**Não é criado pelo install** — esperado vir do usuário ou do overlay corporativo de governança:
+- `AGENTS.md` na raiz do projeto (Codex lê esse arquivo; crie um stub apontando para `.agents/instructions/PROJECT.md`)
+- `.enterprise/` (overlay institucional — o compilador *lê* dele se existir, mas não o escreve)
+- Git hooks nativos em `.husky/` ou `.git/hooks/` (os "hooks" do `.claude/hooks.json` são hooks do Claude Code, não do `git commit`)
 
 ### Os Sete Princípios
 
