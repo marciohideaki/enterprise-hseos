@@ -51,7 +51,9 @@ class AgentCoreCompiler {
     }
 
     const hooks = await this.writeHookRegistry(root, hookSource, null);
-    await this.writePlatformAdapters(root, hooks, options.platforms || []);
+    await this.writePlatformAdapters(root, hooks, options.platforms || [], {
+      agentsDirName: this.agentsDirName,
+    });
     const commands = await writeCommandRegistry(root, hseosDir, this.agentsDirName);
     const manifest = await writeManifest(root, {
       skills,
@@ -82,8 +84,11 @@ class AgentCoreCompiler {
     return writeHookRegistry(root, sourcePath, legacyFallback, this.agentsDirName);
   }
 
-  async writePlatformAdapters(root, hooks, platforms) {
-    return writePlatformAdapters(root, hooks, platforms);
+  async writePlatformAdapters(root, hooks, platforms, options = {}) {
+    return writePlatformAdapters(root, hooks, platforms, {
+      agentsDirName: this.agentsDirName,
+      ...options,
+    });
   }
 
   async writeCommandRegistry(root, hseosDir) {

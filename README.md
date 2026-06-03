@@ -171,10 +171,14 @@ npx hseos install
 ```
 
 This sets up:
-- `.claude/commands/` — all 14 agent commands as Claude Code slash commands
-- `.enterprise/` — governance specs, agent authority files, 46-skill library
-- `.hseos/` — agent configurations, workflow definitions, local config
-- Git hooks — pre-commit quality gates (lint, schema validation, commit hygiene)
+- `.claude/commands/` — agent commands as Claude Code slash commands (one file per agent + helpers)
+- `.claude/hooks.json` — Claude Code `PreToolUse` / `UserPromptSubmit` hooks (skill suggestion, CLAUDE.md guard, SWARM gate)
+- `.codex/config.toml` + `.codex/hseos-hooks.json` — Codex adapter (when `codex` is in `--tools`)
+- `.hseos/` — agent configurations, workflow definitions, local config, install manifest
+- `.agents/` — vendor-neutral source: `instructions/PROJECT.md`, `skills/<skill>/SKILL.md`, hook + command registries
+- `.enterprise/` — governance overlay copied from the HSEOS source (constitution, agent authority, policies, 46-skill governance library). Preserved if you already have one.
+- `AGENTS.md` — minimal platform adapter at the project root pointing at `.agents/instructions/PROJECT.md`. Preserved if you already authored one.
+- `.git/hooks/pre-commit` — runs `scripts/governance/quality-gates.sh` when present. Skipped when `.git/` is absent or when you pass `--no-git-hooks`. Existing hooks are never overwritten.
 
 ### 2. Select AI tools (optional)
 
@@ -197,11 +201,12 @@ Supported tools: `claude-code`, `cursor`, `windsurf`, `gemini`, `codex`, `antigr
 npx hseos validate
 ```
 
-Expected output:
+Expected output (lines vary with the adapters selected and overlays present):
 ```
 ✅ .enterprise/ governance structure OK
 ✅ .hseos/agents/ agent definitions OK
-✅ git hooks installed
+✅ AGENTS.md present at project root
+✅ .git/hooks/pre-commit installed
 ✅ 46 skills registered
 ```
 
@@ -585,8 +590,18 @@ O framework resolve um problema específico: ferramentas de IA são ágeis mas d
 ### Instalação rápida
 
 ```bash
-npx hseos install
+npx hseos install                  # instala tudo
+npx hseos install --no-git-hooks   # pula o pre-commit hook
 ```
+
+O instalador cria, por padrão:
+- `.claude/commands/` + `.claude/hooks.json` (quando `claude-code` está nos adapters)
+- `.codex/config.toml` + `.codex/hseos-hooks.json` (quando `codex` está nos adapters)
+- `.hseos/` (config, módulos, manifest de instalação)
+- `.agents/` (skills, hooks registry, `instructions/PROJECT.md`)
+- `.enterprise/` copiado do HSEOS source (constituição, agentes, policies, 46 skills de governança) — preservado se já existir
+- `AGENTS.md` na raiz, stub mínimo apontando para `.agents/instructions/PROJECT.md` — preservado se já existir
+- `.git/hooks/pre-commit` invocando `scripts/governance/quality-gates.sh` (silencioso se `.git/` não existir; existing hook nunca é sobrescrito)
 
 ### Os Sete Princípios
 
