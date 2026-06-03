@@ -203,16 +203,44 @@ class Detector {
   }
 
   /**
-   * Detect legacy HSEOS v4 .hseos folder
+   * Detect legacy HSEOS v4 footprint.
+   *
+   * Discriminator: v4 used a `_cfg/` config folder under `.hseos/`. v2.0+ uses
+   * `_config/`. Mere presence of `.hseos/` is NOT a v4 signal — every
+   * successful v2.0 install creates `.hseos/`, so flagging on that alone gives
+   * a false positive on every reinstall, telling the user their current install
+   * is "legacy v4" and instructing them to delete `.hseos/`. This caused real
+   * user data loss (see commit history for `fix/legacy-v4-false-positive`).
+   *
+   * Trigger only when the directory contains an actual legacy v4 marker:
+   *   - `.hseos/_cfg/` (the v4 config folder), OR
+   *   - `.hseos/` exists but `.hseos/_config/` does NOT — i.e. a non-v2.0
+   *     install layout where the modern config marker is absent.
+   *
    * @param {string} projectDir - Project directory to check
    * @returns {{ hasLegacyV4: boolean, offenders: string[] }}
    */
   async detectLegacyV4(projectDir) {
     const offenders = [];
-
-    // Check for .hseos folder
     const hseosMethodPath = path.join(projectDir, '.hseos');
-    if (await fs.pathExists(hseosMethodPath)) {
+
+    if (!(await fs.pathExists(hseosMethodPath))) {
+      return { hasLegacyV4: false, offenders };
+    }
+
+    const legacyCfgPath = path.join(hseosMethodPath, '_cfg');
+    const modernConfigPath = path.join(hseosMethodPath, '_config');
+    const hasLegacyCfg = await fs.pathExists(legacyCfgPath);
+    const hasModernConfig = await fs.pathExists(modernConfigPath);
+
+    if (hasLegacyCfg) {
+      offenders.push(legacyCfgPath);
+    }
+    // If `.hseos/` exists with neither marker, this is a non-standard layout
+    // (HSEOS source self-host, alpha drop, manual scaffold, etc.). It is not
+    // a current v2.0 install, so warn — but only when the modern marker is
+    // missing, to avoid the historic false positive.
+    if (!hasLegacyCfg && !hasModernConfig) {
       offenders.push(hseosMethodPath);
     }
 
