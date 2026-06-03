@@ -18,8 +18,9 @@ async function runCompile(projectDir, options) {
   const compiler = new AgentCoreCompiler();
   const platforms = resolvePlatforms(options.target);
   const result = await compiler.compile(projectDir, hseosDir, { platforms });
+  const agentsNote = result.agents ? `, ${result.agents} agents` : '';
   await prompts.log.success(
-    `Agent core compiled: ${result.skills} skills, ${result.hooks} hooks, ${result.commands} commands -> ${result.manifest}`,
+    `Agent core compiled: ${result.skills} skills, ${result.hooks} hooks, ${result.commands} commands${agentsNote} -> ${result.manifest}`,
   );
 }
 

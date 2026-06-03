@@ -18,6 +18,7 @@ counts:
   skills: 43
   hooks: 17
   commands: 8
+  agents: 15
 skills:
   - name: accessibility
     source: .enterprise/governance/agent-skills/accessibility/SKILL.md
@@ -353,3 +354,49 @@ commands:
     type: agent-index
     source: .hseos/AGENT-MANIFEST.md
     description: HSEOS installed agent manifest
+agents:
+  - code: BLITZ
+    file: .hseos/agents/blitz.agent.yaml
+    sha256: 6fcd1690f7a9a68856382bb7c0a48310dadc6918afa10a78d978966f25e7e3db
+  - code: CIPHER
+    file: .hseos/agents/cipher.agent.yaml
+    sha256: dcebb1c35f816aad211b70000d292f3ce85ec59bc55067de730f344981b19e7a
+  - code: FORGE
+    file: .hseos/agents/forge.agent.yaml
+    sha256: 84a70d0287a8f2c2f514bdb2c9d0bbc8ead14819d5be3c1666dd6a6c892907d5
+  - code: GHOST
+    file: .hseos/agents/ghost.agent.yaml
+    sha256: 3af9f174daf2f974a72bc2425a4862eee4a9e6b4e7a458e694c0220692cca51e
+  - code: GLITCH
+    file: .hseos/agents/glitch.agent.yaml
+    sha256: 9065b57ea49cd02e098875ad19daf2b046635171cf03390ce5c085d62fa39d2f
+  - code: HSEOS-MASTER
+    file: src/core/agents/hseos-master.agent.yaml
+    sha256: cebaec17b3c25d138e2649cec2f579cc7dabf098d44cad5af8b24dec7c8b619a
+  - code: KUBE
+    file: .hseos/agents/kube.agent.yaml
+    sha256: 2fa19952b604d65c99ccd3d1c5b9b4ae09f9cdf0c380cdbe9c76065c0ae096cd
+  - code: NYX
+    file: .hseos/agents/nyx.agent.yaml
+    sha256: 299ada765d259bc9fc8410eac56f716410896e2c776ed9878fa348d63d08e6cb
+  - code: ORBIT
+    file: .hseos/agents/orbit.agent.yaml
+    sha256: d2073a516a63c4d706b07a8129e63091b08e0849290af6ff409cccbc26ed6342
+  - code: PRISM
+    file: .hseos/agents/prism.agent.yaml
+    sha256: b7766d7b793f0a8648dd6734523b3eeba171d67aadf44f234ec739bc1d45c5eb
+  - code: QUILL
+    file: .hseos/agents/quill.agent.yaml
+    sha256: b2e1cd489840fd709711046e8a5d3bfa5ce5d4c5b58b819eb03c348d60c70b94
+  - code: RAZOR
+    file: .hseos/agents/razor.agent.yaml
+    sha256: 660dca4628afc0461493d30de16db5acc01092dd6b424a02528318b8a447c846
+  - code: SABLE
+    file: .hseos/agents/sable.agent.yaml
+    sha256: c2e60b3ae53f3536dc1c7e719a14791658f7be84a4110a8e1541c9c0b505a83d
+  - code: SWARM
+    file: .hseos/agents/swarm.agent.yaml
+    sha256: 1d65966c091e2edf486dae67cfdeb63c972e733d37375c8260148814c80294ba
+  - code: VECTOR
+    file: .hseos/agents/vector.agent.yaml
+    sha256: 2581c74190ce6bb293284f4a48d67651031667976e11c666b1622f999b5871bf
