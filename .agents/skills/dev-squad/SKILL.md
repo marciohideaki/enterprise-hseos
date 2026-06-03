@@ -202,3 +202,4 @@ sqlite3 .hseos/state/project.db "SELECT kind, ts FROM as_events WHERE agent_run_
 ## Quick Mode
 
 For low-context activation, load `.enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md` or `QUICK.md` first. Load this full skill for deep analysis, violation fixing, or formal review gates.
+
