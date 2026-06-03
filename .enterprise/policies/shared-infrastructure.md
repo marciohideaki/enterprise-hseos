@@ -28,7 +28,7 @@ Source containers (running on dev host as of 2026-05-20):
 | OPA | `shared-opa` | `127.0.0.1:18181` | v1.1.0 |
 | MinIO (S3) | `shared-minio` | `127.0.0.1:19000` (API) / `19002` (console) | latest |
 | OpenSearch | `shared-opensearch` | `127.0.0.1:19200` | v2.18.0 |
-| Loki | `shared-loki` | `127.0.0.1:23100` | v3.1.1 |
+| Loki | — | — | **Removido** — use Loki no k3s (`loki.monitoring.svc.cluster.local:3100`) |
 | Qdrant | `shared-qdrant` | `127.0.0.1:6333-6334` | v1.12.4 |
 | FalkorDB | `shared-falkordb` | `127.0.0.1:6379` | latest |
 | Ollama | `shared-ollama` | `127.0.0.1:11434` | latest |
@@ -55,6 +55,9 @@ Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 20
 | MariaDB | `mariadb-shared.platform-shared-dev.svc.cluster.local:3306` | StatefulSet `mariadb-shared-0`; legacy app compatibility (EspoCRM, etc) |
 | MinIO (S3) | `minio-shared.platform-shared-dev.svc.cluster.local:9000` (API) / `:9001` (console) | StatefulSet `minio-shared-0`; bucket prefix per project |
 | OPA | `opa-shared.platform-shared-dev.svc.cluster.local:8181` | Deployment `opa-shared`; multi-tenant policy bundles loaded per-project. Per ADR-0002. |
+| Loki | `loki.monitoring.svc.cluster.local:3100` | SingleBinary mode; namespace `monitoring`; deployed via ArgoCD app `loki-dev` (grafana/loki chart 6.55.0 / Loki 3.6.7); auth disabled; retention 7d; 10Gi PVC. |
+| OpenFGA | `openfga-shared.platform-shared-dev.svc.cluster.local:8080` (HTTP) / `:8081` (gRPC) | Deployment `openfga-shared`; v1.5.3; postgres backend via `openfga-shared-secret`; auth disabled for dev |
+| OpenSearch | `opensearch-shared.platform-shared-dev.svc.cluster.local:9200` | StatefulSet `opensearch-shared-0`; v2.18.0; single-node; security disabled for dev; 10Gi PVC |
 | OpenTelemetry Collector | `otel-collector-shared.platform-shared-dev.svc.cluster.local:4317` (OTLP gRPC) / `:4318` (OTLP HTTP) / `:8889` (Prometheus exporter) | Deployment `otel-collector-shared`; per-project resource attributes; metrics flow to shared Prometheus via the `otel-collector-shared` ServiceMonitor in `monitoring`. Per ADR-0010. |
 | Zookeeper | `zookeeper-shared.platform-shared-dev.svc.cluster.local:2181` | Internal to Kafka; do not consume directly |
 
@@ -62,10 +65,8 @@ Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 20
 
 | Service | Status | Why |
 |---|---|---|
-| OpenSearch / Loki | not deployed in k3s | Observability stack lives outside the cluster currently. |
 | Qdrant | not deployed | Use `pgvector` extension in `postgres-shared` for embeddings until vector volume justifies dedicated store. |
 | Keycloak | not deployed in k3s | SSO managed at a different layer. |
-| OpenFGA | not deployed | Authz via OPA per-project bundles in `opa-shared` today. |
 
 ### Relevant ADRs (in `enterprise-hseos/.enterprise/.specs/decisions/`)
 
