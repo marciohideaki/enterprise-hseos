@@ -536,3 +536,69 @@ workflows:
         port_default: 3210
         binding: "127.0.0.1"
         registry: "~/.hseos/projects.json"
+
+  - id: ado-ops
+    name: ADO-Ops Lifecycle
+    owner: ATLAS
+    entrypoint: ".hseos/workflows/ado-ops/workflow.md"
+    description: "Complete ADO-first lifecycle: G1-ADO gate (plan), execution tracking, wave closure, new project bootstrap. Feature-flagged by ado.enabled."
+    profiles: [core, full]
+    feature_flag: ado.enabled
+    phases:
+      - id: preflight
+        name: ADO Preflight
+        agent: ATLAS
+        outputs:
+          - "ADO health check report"
+      - id: g1-plan
+        name: G1-ADO Gate
+        agent: ATLAS
+        outputs:
+          - "ado-mapping.json with all ADO IDs"
+          - "PLAN.md annotated with <!-- ado-mapping: -->"
+      - id: execute
+        name: Execute (delegated to dev-squad)
+        agent: SWARM
+        outputs:
+          - "STATUS.md with task completion"
+          - "ADO Tasks updated to Active/Closed"
+      - id: sync
+        name: ADO Sync
+        agent: ATLAS
+        outputs:
+          - "sync-result.json"
+          - "ADO Tasks/Stories closed"
+      - id: close-wave
+        name: Close Wave
+        agent: ATLAS
+        outputs:
+          - "ADO Feature/Epic closed"
+          - "Git tag created"
+          - "MASTER-PLAN.md updated"
+      - id: new-project
+        name: New Project Bootstrap
+        agent: ATLAS
+        outputs:
+          - "hseos.config.yaml with ado.enabled=true"
+          - "ADO project + iteration paths created"
+          - "azure-pipelines.yml committed"
+    checks:
+      - id: ado-enabled
+        kind: config_flag
+        required: false
+        profiles: [core, full]
+        path: ".hseos/config/hseos.config.yaml"
+        key: "ado.enabled"
+        prepare: "Run scripts/ado-install.sh to enable ADO integration."
+      - id: ado-pat
+        kind: env_var
+        required: false
+        profiles: [core, full]
+        var: "ADO_PAT"
+        prepare: "Export ADO_PAT=<your-personal-access-token>"
+      - id: ado-doctor
+        kind: command_exists
+        required: false
+        profiles: [core, full]
+        command: "scripts/ado-doctor.sh"
+        prepare: "Part of the ado-ops module — should exist after module install."

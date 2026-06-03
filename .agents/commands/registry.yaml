@@ -28,6 +28,10 @@ commands:
     type: workflow
     source: null
     description: Subsystem providing SQLite-backed observability of dev-squad / orbit runs. CLI + MCP + Web SSE side-cars.
+  - name: hseos-workflow-ado-ops
+    type: workflow
+    source: null
+    description: "Complete ADO-first lifecycle: G1-ADO gate (plan), execution tracking, wave closure, new project bootstrap. Feature-flagged by ado.enabled."
   - name: hseos-agent-manifest
     type: agent-index
     source: .hseos/AGENT-MANIFEST.md

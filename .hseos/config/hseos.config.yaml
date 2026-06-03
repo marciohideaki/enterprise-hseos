@@ -122,6 +122,13 @@ agents:
     authority: ".enterprise/agents/sable"
     phase: operations
 
+  - code: ATLAS
+    name: ADO Tracking and Lifecycle Automation System
+    file: ".hseos/agents/atlas.agent.yaml"
+    authority: ".enterprise/agents/atlas"
+    phase: ado-orchestration
+    feature_flag: ado.enabled
+
 # Standard engineering flow
 flows:
   standard:
@@ -297,3 +304,27 @@ plugins: []
 second_brain:
   enabled: true
   path: /opt/hideakisolutions/second-brain
+
+# ADO integration module — feature-flag controlled (ADR-0010)
+ado:
+  enabled: false           # opt-in; set to true via scripts/ado-install.sh
+  org: ""                  # populated by /atlas setup (ado-new-project skill)
+  project: ""
+  project_id: ""
+  repo_url: ""
+  pipeline_id: ""
+  auth_env: ADO_PAT        # env var name for Personal Access Token
+  parallel_max: 10         # max concurrent MCP calls per turn
+  iteration_template: "Phase {phase} — {name}"
+  granularity:
+    epic: phase            # ADO Epic = HSEOS Phase
+    feature: wave_group    # ADO Feature = wave group / sprint
+    story: wave            # ADO Story = single wave (1 dev-squad run)
+    task: worktree         # ADO Task = 1 squad agent worktree
+    max_files_per_task: 4
+    max_loc_per_task: 1000
+    max_context_pct: 60    # max % of Sonnet context window per task
+  enforce:
+    preflight_gate: true   # blocks dev-squad without ADO mapping in PLAN.md
+    branch_guard: true     # blocks direct push to trunk branches
+    plan_advisory: true    # advisory when PLAN.md lacks ADO mapping

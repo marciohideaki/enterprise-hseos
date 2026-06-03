@@ -88,3 +88,34 @@ servers:
     status: market_standard
     requires_secret: SENTRY_AUTH_TOKEN
     adapter_namespace: sentry
+
+  - id: azure-devops
+    transport: stdio
+    package: "@azure-devops/mcp-server"
+    runtime: npx
+    args:
+      - "@azure-devops/mcp-server"
+    env:
+      ADO_PAT: ${ADO_PAT}
+      ADO_ORG: ${ADO_ORG}
+    capabilities:
+      - wit_create_work_item
+      - wit_add_child_work_items
+      - wit_update_work_item
+      - wit_works_items_link
+      - wit_query_by_wiql
+      - wit_get_work_item
+      - work_create_iterations
+    description: |
+      Azure DevOps MCP. ADO-first lifecycle for Epic/Feature/Story/Task management.
+      Max 10 parallel calls per turn. NEVER create with State=Closed (ADO rejects).
+      Use wit_query_by_wiql for idempotency checks before creation.
+      Requires: ADO_PAT env var (Personal Access Token) + ADO_ORG.
+      Feature-flagged: only activated when ado.enabled=true in hseos.config.yaml.
+    status: market_standard
+    requires_secret: ADO_PAT
+    adapter_namespace: ado
+    feature_flag: ado.enabled
+    install_note: |
+      To activate: run scripts/ado-install.sh (sets ado.enabled=true in hseos.config.yaml
+      and registers MCP server in ~/.claude/mcp.json and ~/.claude/settings.json).

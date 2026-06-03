@@ -43,7 +43,9 @@ function validateAgent(filePath, content) {
 
   for (const item of agent.menu || []) {
     if (item.exec) {
-      const target = path.join(REPO_ROOT, item.exec);
+      // Menu execs may anchor into a workflow file (e.g. workflow.md#section);
+      // strip the anchor before checking that the file exists.
+      const target = path.join(REPO_ROOT, item.exec.split('#')[0]);
       if (!fs.existsSync(target)) {
         issues.push(`Menu exec not found: ${item.exec}`);
       }
