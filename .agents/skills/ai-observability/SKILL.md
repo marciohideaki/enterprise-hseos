@@ -1,7 +1,7 @@
 ---
 name: ai-observability
 description: Use when designing AI agent observability architecture, integrating mission-control dashboards, or defining AI-specific KPI schemas
-version: "1.0"
+version: "1.1"
 owner: platform-governance
 tier: full
 source: .enterprise/governance/agent-skills/ai-observability/SKILL.md
@@ -217,6 +217,48 @@ Escalate to SABLE (governance audit) when:
 - Any session exceeds 60% context (without middleware enforcement)
 - Cost per feature increases > 20% week-over-week
 - Rework rate > 15% (indicates task contracts are too loose)
+
+---
+
+## 6. Telemetry Export Bridge (OTLP / Loki)
+
+> ADR-0014 (telemetry export bridge). Cross-reference: `observability-compliance` skill, ADR-0010 (shared collector).
+
+**SQLite (via `state-emit-hook.sh`) is the canonical observability sink.** OTLP/Loki is an ADDITIONAL opt-in sink — a TEE that mirrors events to an external collector without affecting the primary state record.
+
+### 6.1 Architecture
+
+```
+Tool event
+    │
+    ├─► state-emit-hook.sh  →  SQLite (CANONICAL — always active)
+    │
+    └─► telemetry-export-*.sh  →  OTLP / Loki (OPT-IN — env-gated)
+```
+
+The shared OTLP/Loki collector referenced by ADR-0010 (`platform-shared-dev` namespace in k3s, or `shared-otel-collector` / `shared-loki` containers locally) is the intended downstream receiver.
+
+### 6.2 Opt-in environment variables
+
+| Variable | Purpose | Example |
+|---|---|---|
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | Standard OTel env — enables OTLP export for both metrics and logs | `http://localhost:4318` |
+| `HSEOS_LOKI_ENDPOINT` | Loki push API endpoint — used by `telemetry-export-session.sh` when OTLP is not set | `http://localhost:3100` |
+| `HSEOS_OTEL_EXPORT` | HSEOS convenience alias — set to `1` to enable OTLP metrics even without the standard env var | `1` |
+| `HSEOS_ENV` | Deployment environment label attached to every emitted metric/log record | `dev` (default) |
+
+All four variables are optional. When none are set, the telemetry handlers exit immediately with zero network calls.
+
+### 6.3 Handler map
+
+| Handler | Event | Emits | Endpoint |
+|---|---|---|---|
+| `.agents/hooks/handlers/telemetry-export-tool.sh` | PostToolUse | OTLP `resourceMetrics` (`claude_tool_use_total`, `claude_tool_duration_ms`) | `$OTEL_EXPORTER_OTLP_ENDPOINT/v1/metrics` |
+| `.agents/hooks/handlers/telemetry-export-session.sh` | Stop | OTLP `resourceLogs` or Loki push JSON (`session_ended`) | `$OTEL_EXPORTER_OTLP_ENDPOINT/v1/logs` or `$HSEOS_LOKI_ENDPOINT/loki/api/v1/push` |
+
+### 6.4 Activation
+
+Both telemetry handlers are `status: active` in `.agents/hooks/registry.yaml` and compiled into `.claude/hooks.json`. They are inert by default — setting any of the opt-in env vars above activates the export path without requiring a recompile.
 
 
 ## Quick Mode

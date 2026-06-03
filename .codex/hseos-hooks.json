@@ -240,6 +240,26 @@
       "description": "ADO inbox check: warns at session start if pending tag-close events exist in .hseos/runs/ado-ops/inbox/. Advisory only — directs user to run /atlas close. Exits silently when ado.enabled=false.",
       "fallback": "Check .hseos/runs/ado-ops/inbox/ manually for pending events.",
       "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "posttooluse-all-telemetry-export-otlp-metrics-opt-in",
+      "event": "PostToolUse",
+      "matcher": "*",
+      "command": "bash .agents/hooks/handlers/telemetry-export-tool.sh",
+      "blocking": false,
+      "description": "Opt-in OTLP metrics export (TEE of tool events). Self-suppresses unless OTEL_EXPORTER_OTLP_ENDPOINT is set. SQLite remains canonical.",
+      "fallback": "No-op when OTEL_EXPORTER_OTLP_ENDPOINT/HSEOS_OTEL_EXPORT unset; SQLite state-emit unaffected.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "stop-all-telemetry-export-otlp-loki-session-log-opt-in",
+      "event": "Stop",
+      "matcher": "*",
+      "command": "bash .agents/hooks/handlers/telemetry-export-session.sh",
+      "blocking": false,
+      "description": "Opt-in OTLP/Loki session-ended log export. Self-suppresses unless OTEL_EXPORTER_OTLP_ENDPOINT or HSEOS_LOKI_ENDPOINT is set.",
+      "fallback": "No-op when no OTLP/Loki endpoint configured; SQLite complete-event unaffected.",
+      "codex_equivalent": "portable-handler-script"
     }
   ]
 }
