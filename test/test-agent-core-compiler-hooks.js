@@ -222,6 +222,59 @@ async function testClaudeMdNotEmittedWithoutClaudeCode() {
   });
 }
 
+async function testAgentCoreCompileRegistersAgents() {
+  await withTempDir(async (tempDir) => {
+    const peerDir = path.join(tempDir, '.hseos', 'agents');
+    fs.mkdirSync(peerDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(peerDir, 'swarm.agent.yaml'),
+      yaml.stringify({ agent: { metadata: { code: 'SWARM', name: 'SWARM' } } }),
+    );
+    // Core agent with no `code` — the catalog must derive one from the filename.
+    const coreDir = path.join(tempDir, 'src', 'core', 'agents');
+    fs.mkdirSync(coreDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(coreDir, 'hseos-master.agent.yaml'),
+      yaml.stringify({ agent: { metadata: { name: 'HSEOS Master' } } }),
+    );
+
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+
+    const manifest = yaml.parse(fs.readFileSync(path.join(tempDir, '.agents', 'manifest.yaml'), 'utf8'));
+    const agents = manifest.agents || [];
+    const codes = agents.map((a) => a.code);
+
+    assertPass(
+      'manifest registers agents with counts.agents',
+      manifest.counts.agents === 2 && agents.length === 2,
+      JSON.stringify(manifest.counts),
+    );
+    assertPass('manifest registers the peer agent code (SWARM)', codes.includes('SWARM'), codes.join(','));
+    assertPass(
+      'manifest derives a code for the core agent (HSEOS-MASTER)',
+      codes.includes('HSEOS-MASTER'),
+      codes.join(','),
+    );
+    assertPass(
+      'each agent entry carries code, file, and a sha256',
+      agents.every((a) => a.code && a.file && /^[a-f0-9]{64}$/.test(a.sha256 || '')),
+      JSON.stringify(agents),
+    );
+  });
+}
+
+async function testManifestOmitsAgentsWhenAbsent() {
+  await withTempDir(async (tempDir) => {
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+    const manifest = yaml.parse(fs.readFileSync(path.join(tempDir, '.agents', 'manifest.yaml'), 'utf8'));
+    assertPass(
+      'manifest omits agents catalog when no agent definitions are present',
+      manifest.agents === undefined && manifest.counts.agents === undefined,
+      JSON.stringify(manifest.counts),
+    );
+  });
+}
+
 async function run() {
   console.log('Agent core compiler hook adapter tests');
   await testClaudeHookAdapterUsesActiveRegistryEntries();
@@ -230,6 +283,8 @@ async function run() {
   await testAgentCoreCompileEmitsClaudeMdPointer();
   await testClaudeMdEmitterIsIdempotent();
   await testClaudeMdNotEmittedWithoutClaudeCode();
+  await testAgentCoreCompileRegistersAgents();
+  await testManifestOmitsAgentsWhenAbsent();
 
   console.log(`\nCompiler hook tests: ${passed} passed, ${failed} failed`);
   if (failed > 0) {

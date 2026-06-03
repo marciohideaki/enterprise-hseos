@@ -188,7 +188,7 @@
     },
     "agents": {
       "type": "array",
-      "description": "v2.0 only: catalog of HSEOS agents emitted as adapter-specific subagents.",
+      "description": "Catalog of HSEOS agents. Additive field: a v1.0 manifest carries it ({code, file, sha256} per agent) when the project exposes agent definitions. v2.0 additionally emits per-adapter rendered subagents (the `rendered` map).",
       "items": {
         "type": "object",
         "required": ["code", "file"],

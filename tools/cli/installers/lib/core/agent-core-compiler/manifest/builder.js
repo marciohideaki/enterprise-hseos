@@ -38,6 +38,13 @@ async function writeManifest(root, data, agentsDirName = '.agents') {
     commands: data.commands,
   };
 
+  // Agents catalog is additive: only registered when the project exposes agent
+  // definitions. Absent → manifest keeps its prior shape (v1.0 behaviour).
+  if (Array.isArray(data.agents) && data.agents.length > 0) {
+    manifest.counts.agents = data.agents.length;
+    manifest.agents = data.agents;
+  }
+
   const manifestPath = path.join(root, agentsDirName, 'manifest.yaml');
   await fs.writeFile(manifestPath, yaml.stringify(manifest, { lineWidth: 0 }), 'utf8');
   return path.relative(root, manifestPath).replaceAll(path.sep, '/');

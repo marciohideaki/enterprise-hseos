@@ -8,6 +8,7 @@ const { writeInstructions } = require('./sources/instructions-source');
 const { writeSkills, normalizeSkill } = require('./sources/skills-source');
 const { writeHookRegistry } = require('./sources/hooks-source');
 const { writeCommandRegistry } = require('./sources/commands-source');
+const { collectAgents } = require('./sources/agents-source');
 const { writePlatformAdapters } = require('./adapters/platforms');
 const { writeManifest } = require('./manifest/builder');
 const { parseFrontmatter } = require('./lib/frontmatter');
@@ -55,10 +56,12 @@ class AgentCoreCompiler {
       agentsDirName: this.agentsDirName,
     });
     const commands = await writeCommandRegistry(root, hseosDir, this.agentsDirName);
+    const agents = await collectAgents(root);
     const manifest = await writeManifest(root, {
       skills,
       hooks,
       commands,
+      agents,
       platforms: options.platforms || [],
     }, this.agentsDirName);
 
@@ -67,6 +70,7 @@ class AgentCoreCompiler {
       skills: skills.length,
       hooks: hooks.length,
       commands: commands.length,
+      agents: agents.length,
       manifest,
     };
   }
