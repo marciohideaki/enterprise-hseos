@@ -19,3 +19,13 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+
+  governance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Server-side enforcement of the HSEOS governance gates (ADR-0015 Gate 7
+      # included). The local .husky/pre-commit hook is bypassable with
+      # --no-verify; this job is the non-bypassable PR-time enforcement point.
+      - name: HSEOS governance quality gates
+        run: VALIDATION_ENFORCED=true bash scripts/governance/quality-gates.sh --phase doc

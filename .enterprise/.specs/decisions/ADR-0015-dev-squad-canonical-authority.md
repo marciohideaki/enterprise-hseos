@@ -105,3 +105,13 @@ We will establish a single, explicit authority hierarchy for all dev-squad proto
 | Delete the external mirror entirely | Rejected: the external mirror provides a valid non-HSEOS use case (bare Claude Code sessions without `.hseos/`). Deleting it would break the portable-skill pattern without providing any additional safety inside HSEOS repos. |
 | Make the Tier 2 compiled mirror canonical (skip Tier 1) | Rejected: the compiled mirror is derived by definition. If it is also canonical, the compiler has no source to compile from; any hand-edit is immediately contradicted by the next compile run. A human-readable governance source (Tier 1) is necessary. |
 | Treat all four locations as co-equal peer sources | Rejected: co-equal peers with no conflict-resolution rule produced the exact model-matrix drift this ADR was written to fix. A strict hierarchy with a single Tier 1 is the only arrangement that prevents silent divergence. |
+
+---
+
+## Implementation Status
+
+**2026-06-04 — Enforcement landed (non-normative addendum).**
+
+- **Residuals closed.** Two runtime assets still cited the external mirror as canonical after PR #110 — `.enterprise/agents/swarm/authority.md` (model-matrix source) and `.hseos/AGENT-MANIFEST.md` (state-emission contract source). Both were demoted to the Tier 2 compiled mirror `.agents/skills/dev-squad/SKILL.md`.
+- **Quality gate implemented.** The static grep proposed under *Consequences → Positive* exists as `gate_canonical_source` (Gate 7) in `scripts/governance/quality-gates.sh`, wired into the `doc`, `code`, and `auto` phases (hence the `.husky/pre-commit` hook). It scans runtime execution assets (`.hseos/agents`, `.hseos/workflows`, `.hseos/AGENT-MANIFEST.md`, `.enterprise/agents`, `.enterprise/governance/agent-skills`, `.agents/skills`) for an external skill-mirror reference under `~`, `$HOME`, or `/home/<user>` spellings, honoring the `external mirror` / `non-canonical` label escape. ADRs, opt-in bootstrap installers, and hook provenance comments are out of scope by design.
+- **Server-side enforcement.** A `governance` job in `.github/workflows/ci.yaml` runs the gate on every push/PR, making PR-time enforcement non-bypassable (the local hook alone is bypassable with `--no-verify`). **Remaining follow-up:** promote the `governance` check to a required status check on `master` once it has reported green at least once.
