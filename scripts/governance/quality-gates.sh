@@ -340,11 +340,15 @@ gate_canonical_source() {
     ".hseos/workflows"
     ".hseos/AGENT-MANIFEST.md"
     ".enterprise/agents"
+    ".enterprise/governance/agent-skills"
     ".agents/skills"
   )
 
   # Lines explicitly labeled as the external / non-canonical mirror are permitted.
   local allow_marker='external mirror|non-canonical|not canonical|tier 3'
+
+  # Match the external skill mirror under any home spelling: ~, $HOME, /home/<user>.
+  local mirror_pattern='(~|\$HOME|/home/[^/]+)/\.claude/skills/'
 
   local violations=0 hit
   while IFS= read -r hit; do
@@ -353,9 +357,9 @@ gate_canonical_source() {
     record_fail "ADR-0015: external skill mirror cited as canonical -> ${hit}"
     violations=$((violations + 1))
   done < <(
-    grep -rn --binary-files=without-match \
+    grep -rnE --binary-files=without-match \
       --exclude-dir=.git --exclude-dir=node_modules \
-      '~/\.claude/skills/' \
+      "$mirror_pattern" \
       "${scan_paths[@]/#/${REPO_ROOT}/}" 2>/dev/null || true
   )
 
