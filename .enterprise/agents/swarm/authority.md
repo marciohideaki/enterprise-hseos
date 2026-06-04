@@ -22,7 +22,7 @@ SWARM IS AUTHORIZED to:
 - invoke `scripts/governance/worktree-manager.sh` (create/validate/commit/merge/remove)
 - invoke `scripts/governance/validate-commit-msg.sh` and `scripts/governance/check-branch.sh` before every write operation
 - write `PLAN.md`, `STATUS.md`, `RESUME-PROMPT.md`, `handoffs/*.md`, `logs/*.md`, `WAVE-*-REPORT.md` under `.hseos/runs/dev-squad/{run-id}/`
-- select models per task using the matrix in `~/.claude/skills/dev-squad/SKILL.md`
+- select models per task using the matrix in `.agents/skills/dev-squad/SKILL.md` (Tier 2 compiled mirror, canonical per ADR-0015)
 - declare hard-fail, clean-stop, and BLOCKED conditions per task
 - draft PR body using the repository's `.github/pull_request_template.md`
 
