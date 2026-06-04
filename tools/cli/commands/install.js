@@ -2,6 +2,8 @@ const path = require('node:path');
 const prompts = require('../lib/prompts');
 const { Installer } = require('../installers/lib/core/installer');
 const { UI } = require('../lib/ui');
+const { getProjectRoot } = require('../lib/project-root');
+const { parseCsv, resolveCapabilityPlan, writeCapabilitySelection } = require('../lib/capability-catalog');
 
 const installer = new Installer();
 const ui = new UI();
@@ -13,6 +15,10 @@ module.exports = {
     ['-d, --debug', 'Enable debug output for manifest generation'],
     ['--directory <path>', 'Installation directory (default: current directory)'],
     ['--modules <modules>', 'Comma-separated list of module IDs to install (e.g., "bmm,bmb")'],
+    ['--profile <id>', 'Capability profile id to resolve before install'],
+    ['--components <ids>', 'Comma-separated capability component IDs to include'],
+    ['--skills <ids>', 'Comma-separated governed skill IDs to include as skill components'],
+    ['--hook-profile <id>', 'Hook profile intent: advisory, standard, strict, or ci'],
     [
       '--tools <tools>',
       'Comma-separated list of tool/IDE IDs to configure (e.g., "claude-code,cursor"). Use "none" to skip tool configuration.',
@@ -37,7 +43,31 @@ module.exports = {
         await prompts.log.info('Debug mode enabled');
       }
 
+      const hasCapabilitySelection = Boolean(options.profile || options.components || options.skills || options.hookProfile);
+      if (hasCapabilitySelection) {
+        const capabilityPlan = resolveCapabilityPlan({
+          root: getProjectRoot(),
+          profile: options.profile,
+          components: parseCsv(options.components),
+          skills: parseCsv(options.skills),
+          hookProfile: options.hookProfile,
+        });
+        options._capabilityPlan = capabilityPlan;
+        if (!options.modules && capabilityPlan.modules.length > 0) {
+          options.modules = capabilityPlan.modules.join(',');
+        }
+        if (!options.tools && capabilityPlan.tools.length > 0) {
+          options.tools = capabilityPlan.tools.join(',');
+        }
+        await prompts.log.info(
+          `Resolved capability plan: ${capabilityPlan.profile || 'custom'} (${capabilityPlan.components.length} components, ${capabilityPlan.skills.length} skills)`,
+        );
+      }
+
       const config = await ui.promptInstall(options);
+      if (options._capabilityPlan) {
+        config.capabilityPlan = options._capabilityPlan;
+      }
 
       // Propagate CLI-only flags that promptInstall does not yet surface. Commander
       // maps `--no-git-hooks` to `options.gitHooks === false`.
@@ -76,6 +106,10 @@ module.exports = {
 
       // Check if installation succeeded
       if (result && result.success) {
+        if (config.capabilityPlan) {
+          const selectionPath = writeCapabilitySelection(config.directory, config.capabilityPlan);
+          await prompts.log.info(`Capability selection recorded: ${selectionPath}`);
+        }
         process.exit(0);
       }
     } catch (error) {
