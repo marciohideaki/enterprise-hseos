@@ -1,0 +1,246 @@
+version: "1.0"
+component_families:
+  - baseline
+  - runtime
+  - capability
+  - adapter
+  - skill
+
+hook_profiles:
+  advisory:
+    description: Warn-only hooks and portable metadata. Use for first install or teams evaluating HSEOS.
+    blocking_default: false
+  standard:
+    description: Default development hooks with state emission and targeted blocking gates.
+    blocking_default: mixed
+  strict:
+    description: Governance-heavy local execution with branch, plan, Agent, and safety gates.
+    blocking_default: mixed
+  ci:
+    description: CI and release posture. Local warnings remain readable while required repository gates enforce failure.
+    blocking_default: true
+
+components:
+  - id: baseline:governance
+    family: baseline
+    name: Governance Baseline
+    required: true
+    description: Constitution, policies, standards, ADRs, agent authority, and governance docs.
+    modules: []
+    tools: []
+    install_paths:
+      - .enterprise/
+      - .hseos/config/hseos.config.yaml
+
+  - id: baseline:entrypoints
+    family: baseline
+    name: Agent Entrypoints
+    required: true
+    description: Portable project instructions and runtime-specific entrypoints.
+    modules: []
+    tools:
+      - codex
+      - claude-code
+    install_paths:
+      - AGENTS.md
+      - CLAUDE.md
+      - .agents/instructions/
+
+  - id: baseline:skills-registry
+    family: baseline
+    name: Skills Registry
+    required: true
+    description: Governed skill registry plus Tier 1 and Tier 2 skill files.
+    modules: []
+    tools: []
+    install_paths:
+      - .enterprise/governance/agent-skills/
+      - .agents/skills/
+
+  - id: runtime:hooks
+    family: runtime
+    name: Hook Runtime
+    description: Neutral hook registry, handlers, generated adapter hooks, and fallback metadata.
+    modules: []
+    tools:
+      - claude-code
+      - codex
+    install_paths:
+      - .agents/hooks/
+      - .claude/hooks.json
+      - .codex/hseos-hooks.json
+
+  - id: runtime:state
+    family: runtime
+    name: Project State
+    description: SQLite-backed run, task, event, handoff, and kanban state.
+    modules: []
+    tools: []
+    install_paths:
+      - .hseos/state/
+      - tools/mcp-project-state/
+
+  - id: runtime:workflows
+    family: runtime
+    name: Workflow Registry
+    description: Delivery, release, runtime, and readiness workflow definitions.
+    modules: []
+    tools: []
+    install_paths:
+      - .hseos/workflows/
+
+  - id: runtime:mcp
+    family: runtime
+    name: MCP Runtime
+    description: Project-local MCP bundles, governance tools, swarm tools, state tools, and code-index bridge.
+    modules: []
+    tools:
+      - codex
+      - claude-code
+    install_paths:
+      - .agents/mcp/
+      - tools/mcp-hseos-governance/
+      - tools/mcp-hseos-swarm/
+      - tools/mcp-project-state/
+      - tools/mcp-axon-bridge/
+
+  - id: capability:architecture
+    family: capability
+    name: Architecture Governance
+    description: ADR compliance, boundary checks, breaking-change detection, RFC, and naming governance.
+    skills:
+      - adr-compliance
+      - architecture-breaking-change-detection
+      - architecture-ddd-boundary-check
+      - naming-conventions
+      - rfc
+
+  - id: capability:delivery
+    family: capability
+    name: Delivery Execution
+    description: Spec-driven delivery, dev-squad, inter-agent communication, release control, PR review, and test coverage.
+    skills:
+      - spec-driven
+      - dev-squad
+      - inter-agent-comms
+      - release-control
+      - pr-review
+      - test-coverage
+
+  - id: capability:security
+    family: capability
+    name: Security and Supply Chain
+    description: Secure coding, dependency audit, threat modeling, policy layer, and plain-language security reporting.
+    skills:
+      - secure-coding
+      - dependency-audit
+      - threat-modeling
+      - policy-layer
+      - security-audit-plain-language
+
+  - id: capability:knowledge
+    family: capability
+    name: Knowledge and Documentation
+    description: Documentation completeness, project docs, second-brain integration, context engineering, and session handoff.
+    skills:
+      - doc-project
+      - documentation-completeness
+      - second-brain
+      - context-engineering
+      - context-compression
+      - session-handoff
+
+  - id: capability:observability
+    family: capability
+    name: AI Observability
+    description: AI observability, telemetry compliance, project state, and performance profiling.
+    skills:
+      - ai-observability
+      - observability-compliance
+      - project-state
+      - performance-profiling
+
+  - id: capability:gitops
+    family: capability
+    name: GitOps Operations
+    description: GitOps project creation, service onboarding, deployment, and runtime verification.
+    skills:
+      - gitops-new-project
+      - gitops-add-service
+      - gitops-deploy
+
+  - id: capability:ado
+    family: capability
+    name: ADO Operations
+    description: Azure DevOps planning, sync, project creation, wave closeout, and operational automation.
+    skills:
+      - ado-plan
+      - ado-sync
+      - ado-new-project
+      - ado-close-wave
+      - ado-ops
+
+  - id: capability:sandbox
+    family: capability
+    name: Agent Sandboxing
+    description: Optional OS-level sandbox planning and policy alignment.
+    skills:
+      - agent-permissions
+      - mcp-governance
+
+  - id: capability:readiness
+    family: capability
+    name: Enterprise Readiness
+    description: Enterprise readiness, core drift, compliance, and self-verification checks.
+    skills:
+      - enterprise-readiness-audit
+      - core-drift
+      - self-verification
+      - verification-before-completion
+
+  - id: capability:solo
+    family: capability
+    name: Solo Execution
+    description: Compact implementation flow for BLITZ with simplicity, systematic debugging, and completion checks.
+    skills:
+      - simplicity-first
+      - systematic-debugging
+      - verification-before-completion
+
+  - id: capability:verification
+    family: capability
+    name: Verification
+    description: Verification before completion, self-verification, test coverage, and quality evidence.
+    skills:
+      - verification-before-completion
+      - self-verification
+      - test-coverage
+
+  - id: adapter:codex
+    family: adapter
+    name: Codex Adapter
+    description: AGENTS.md, Codex config, MCP config, and portable hook metadata for Codex.
+    tools:
+      - codex
+    install_paths:
+      - AGENTS.md
+      - .codex/config.toml
+      - .codex/hseos-hooks.json
+
+  - id: adapter:claude-code
+    family: adapter
+    name: Claude Code Adapter
+    description: CLAUDE.md pointer, commands, hooks, skills, MCP config, and status surface for Claude Code.
+    tools:
+      - claude-code
+    install_paths:
+      - CLAUDE.md
+      - .claude/hooks.json
+      - .claude/commands/
+
+  - id: adapter:goose
+    family: adapter
+    name: Goose Adapter
+    description: Portable adapter metadata for Goose-compatible agent execution.
+    install_paths:
+      - .agents/adapters/goose.yaml
