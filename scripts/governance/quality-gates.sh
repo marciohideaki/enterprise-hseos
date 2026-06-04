@@ -323,6 +323,48 @@ gate_workflow_publication() {
 }
 
 # =============================================================================
+# Gate 7: Canonical source invariant (ADR-0015 / ADR-0006 P5)
+# Runtime execution assets must not cite an external ~/.claude/skills/ path as
+# the canonical source of an agent protocol. The dev-squad model matrix and
+# state-emission contract are sourced from the Tier 2 compiled mirror
+# (.agents/skills/dev-squad/SKILL.md), never the external mirror.
+# Scope is deliberately narrow: ADRs (.specs/decisions), opt-in bootstrap
+# installers (.enterprise/tooling/bootstrap), reference docs, and hook
+# provenance comments legitimately mention the external mirror and are excluded.
+# =============================================================================
+gate_canonical_source() {
+  info "Gate 7: Canonical Source Invariant (ADR-0015)"
+
+  local scan_paths=(
+    ".hseos/agents"
+    ".hseos/workflows"
+    ".hseos/AGENT-MANIFEST.md"
+    ".enterprise/agents"
+    ".agents/skills"
+  )
+
+  # Lines explicitly labeled as the external / non-canonical mirror are permitted.
+  local allow_marker='external mirror|non-canonical|not canonical|tier 3'
+
+  local violations=0 hit
+  while IFS= read -r hit; do
+    [[ -z "$hit" ]] && continue
+    echo "$hit" | grep -Eiq "$allow_marker" && continue
+    record_fail "ADR-0015: external skill mirror cited as canonical -> ${hit}"
+    violations=$((violations + 1))
+  done < <(
+    grep -rn --binary-files=without-match \
+      --exclude-dir=.git --exclude-dir=node_modules \
+      '~/\.claude/skills/' \
+      "${scan_paths[@]/#/${REPO_ROOT}/}" 2>/dev/null || true
+  )
+
+  if [[ "${violations}" -eq 0 ]]; then
+    pass "No external skill-mirror canonical references in runtime assets"
+  fi
+}
+
+# =============================================================================
 # Main execution
 # =============================================================================
 main() {
@@ -331,11 +373,13 @@ main() {
   case "$PHASE" in
     doc|documentation)
       gate_governance_structure
+      gate_canonical_source
       gate_documentation
       gate_workflow_publication
       ;;
     code)
       gate_governance_structure
+      gate_canonical_source
       gate_code
       gate_security
       gate_commit_hygiene
@@ -343,6 +387,7 @@ main() {
       ;;
     auto|full|*)
       gate_governance_structure
+      gate_canonical_source
       gate_documentation
       gate_code
       gate_security

@@ -161,7 +161,7 @@ The state-tracking subsystem (Sprint 1-2 of project plan, ADR `_decisions/2026-0
 - **MCP server** (port 3100) — JSON-RPC tools (`runs_list`, `agent_runs_list`, `orphans_list`, `events_search`, `handoffs_list`, …) for cross-session queries.
 - **Web SSE side-cars** — per-project (`hseos state-ui start`, port 3200) and central multi-project (`hseos kanban-central start`, port 3210).
 
-SWARM (and other agents) emit structured events at 5 phase boundaries via `hseos state-emit` when `HSEOS_CURRENT_RUN_ID` is set — see `~/.claude/skills/dev-squad/SKILL.md` "State emission contract" section. Failure of emission never blocks execution (best-effort).
+SWARM (and other agents) emit structured events at 5 phase boundaries via `hseos state-emit` when `HSEOS_CURRENT_RUN_ID` is set — see `.agents/skills/dev-squad/SKILL.md` "State emission contract" section. Failure of emission never blocks execution (best-effort).
 
 **Canonicity policy (post-Wave 5):**
 - *Single-run scope:* markdown run-dir is canonical (resume + human review).
