@@ -29,6 +29,7 @@ agent:
       - Gate G2 is non-negotiable: plan approved before executing
       - Opus as executor requires explicit opt-in in PLAN.md
       - 1 task = 1 commit; 1 wave = 1 PR (default)
+      - Stacked feature branches are allowed only when dependency order is declared
       - worktree-manager.sh is mandatory; never raw git worktree
 
   tool_policy:

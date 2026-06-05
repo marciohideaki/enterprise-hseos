@@ -65,6 +65,7 @@ Ground decisions in these sources, in order:
   - `ADR-0013-pr-closeout-and-branch-lifecycle.md` — governed PR closeout + branch cleanup (§9).
   - `ADR-0015-dev-squad-canonical-authority.md` — 4-tier authority for the dev-squad skill (§6).
   - `ADR-0014-telemetry-export-bridge.md` — opt-in OTLP/Loki telemetry alongside the SQLite canonical state.
+  - `ADR-0017-stacked-feature-branch-chains.md` — governed stacked `feature/*` branch chains (§5.1, §9).
 - **Policies:** `.enterprise/policies/` — notably `skill-consumption.md`, `specification-consumption.md`,
   `shared-infrastructure.md`, `adr-policy.md`, `sharding-policy.md`, `automated-validation.md`.
 
@@ -95,6 +96,7 @@ into `.agents/` (hash-pinned in `manifest.yaml`); adapters (`.claude/`, `.codex/
 - **NEVER** delete protected branches (`main`, `master`, `develop`)
 - Delete `task/*` branches only through the worktree lifecycle; delete merged `feature/*` branches only after PR closeout verifies they are contained in the base branch
 - Default work happens in `feature/*` branches; each isolated task uses its own `task/*` branch. Workflow-specific `fix/*`, `hotfix/*`, `release/*`, `docs/*`, `chore/*`, and `ci/*` branches are allowed when documented by the active workflow.
+- Stacked `feature/*` branch chains are allowed only for real dependency sequencing between phases/waves. Each link remains an isolated `feature/*` branch, must declare its upstream base, must receive commits only through `task/*` worktrees, and must merge in order from the base of the chain toward the tip.
 
 ## 5. Task Isolation Flow
 ```bash
@@ -105,6 +107,25 @@ into `.agents/` (hash-pinned in `manifest.yaml`); adapters (`.claude/`, `.codex/
 ./scripts/governance/worktree-manager.sh merge <task-id> feature/<phase>
 ./scripts/governance/worktree-manager.sh remove <task-id>
 ```
+
+### 5.1 Stacked Feature Branch Chains
+
+Use a branch chain only when independent PRs would be misleading because a later wave depends on an
+earlier wave that has not merged yet:
+
+```text
+master
+  -> feature/<initiative>-w1-foundation
+      -> feature/<initiative>-w2-capability
+          -> feature/<initiative>-w3-surface
+```
+
+Rules:
+- Every chain link is a normal `feature/*` branch and follows the task isolation flow above.
+- Every chain link must record its base branch in `PLAN.md`, `STATUS.md`, or the PR body.
+- PRs target the immediate upstream branch, not always `master`.
+- Merge order is base-to-tip. After an upstream branch merges, downstream PRs must be retargeted or updated before their own merge.
+- `task/*` branches are never chained directly; they remain short-lived children of exactly one `feature/*` branch.
 
 ## 6. dev-squad / SWARM (parallel execution)
 
@@ -141,6 +162,7 @@ No commit allowed if gates fail. No exceptions. The `husky` `pre-commit` hook ru
 
 - Open PR with execution summary + validation results
 - Use `.github/pull_request_template.md`
+- For stacked feature chains, each PR must identify its upstream base and downstream dependents.
 - **STOP before merge unless explicit human approval is present**
 - After explicit approval and green checks, prefer `hseos pr closeout <number> --approved` to merge, fast-forward the base branch, and safely clean up a merged `feature/*` head branch
 

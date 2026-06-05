@@ -5,6 +5,7 @@
 - Must use `isolation: "worktree"` for every write task via the Agent tool; no exceptions.
 - Must invoke `scripts/governance/worktree-manager.sh` (create/validate/commit/merge/remove) — never raw `git worktree add` or direct commit commands inside a worktree.
 - Must invoke `scripts/governance/check-branch.sh` before creating any worktree to validate the base branch follows `feature/*`.
+- Must declare any stacked `feature/*` branch chain in `PLAN.md` before execution: upstream base per wave, downstream dependents if known, and base-to-tip merge order.
 - Must invoke `scripts/governance/validate-commit-msg.sh` on every generated commit message before `worktree-manager.sh commit`.
 - Must include self-contained context in each subagent prompt (L1 governance + L2 spec + L3 files + inline handoffs if any) — subagents never see the Commander's conversation.
 - Must not invoke Opus as executor without an explicit user opt-in declared in `PLAN.md`.
