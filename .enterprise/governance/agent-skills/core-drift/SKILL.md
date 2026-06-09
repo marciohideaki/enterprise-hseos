@@ -2,6 +2,7 @@
 name: core-drift
 tier: full
 version: "1.0"
+description: "Use when running a full core drift analysis, generating an ADR candidate for pattern promotion, or comparing pattern maturity across projects"
 ---
 
 # Core Drift — Full Reference

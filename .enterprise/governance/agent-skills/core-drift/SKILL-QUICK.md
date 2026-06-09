@@ -3,6 +3,7 @@ name: core-drift
 description: Use when GHOST initiates a story or QUILL closes an epic to detect drift between implementation and core architectural intent.
 tier: quick
 version: "1.0"
+description: "Use when evaluating whether a pattern repeated across projects is mature enough for promotion to enterprise core"
 ---
 
 # Core Drift — Quick Reference

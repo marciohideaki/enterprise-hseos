@@ -60,3 +60,8 @@ A lesson graduates from this file to `_learnings/` when:
 **Correction:** Two sequential `array.push(a)` + `array.push(b)` rejected by `unicorn/prefer-single-call`.
 **Rule:** Consolidate as `array.push(a, b)`.
 **Applies to:** All Node.js files in `tools/cli/`.
+
+### L008 — Vault registration must happen BEFORE commit/PR, not after
+**Correction:** After implementing hermes-agent patterns, committed and opened PR without registering in the vault first. User had to ask manually.
+**Rule:** After any productive implementation, write to vault (work-log, decisions, activity-log) BEFORE running git commit or gh pr create. Vault registration is not optional and not deferred.
+**Applies to:** All sessions that produce code, decisions, or learnings.

@@ -209,7 +209,11 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
   <div class="stats-row" id="stats-row"></div>
   <div class="charts-grid">
     <div class="chart-card wide">
-      <h2 id="daily-chart-title">Daily Token Usage</h2>
+      <h2 id="daily-by-model-title">Daily Token Usage by Model</h2>
+      <div class="chart-wrap tall"><canvas id="chart-daily-by-model"></canvas></div>
+    </div>
+    <div class="chart-card wide">
+      <h2 id="daily-chart-title">Daily Token Usage (Consolidated)</h2>
       <div class="chart-wrap tall"><canvas id="chart-daily"></canvas></div>
     </div>
     <div class="chart-card">
@@ -563,10 +567,15 @@ function applyFilter() {
     cost:           byModel.reduce((s, m) => s + calcCost(m.model, m.input, m.output, m.cache_read, m.cache_creation), 0),
   };
 
-  // Update daily chart title
-  document.getElementById('daily-chart-title').textContent = 'Daily Token Usage \u2014 ' + RANGE_LABELS[selectedRange];
+  // Sorted unique days across filtered data
+  const allDays = [...new Set(filteredDaily.map(r => r.day))].sort();
+
+  // Update chart titles
+  document.getElementById('daily-by-model-title').textContent = 'Daily Token Usage by Model \u2014 ' + RANGE_LABELS[selectedRange];
+  document.getElementById('daily-chart-title').textContent = 'Daily Token Usage (Consolidated) \u2014 ' + RANGE_LABELS[selectedRange];
 
   renderStats(totals);
+  renderDailyByModelChart(filteredDaily, allDays);
   renderDailyChart(daily);
   renderModelChart(byModel);
   renderProjectChart(byProject);
@@ -596,6 +605,57 @@ function renderStats(t) {
       ${s.sub ? `<div class="sub">${esc(s.sub)}</div>` : ''}
     </div>
   `).join('');
+}
+
+function renderDailyByModelChart(filteredDaily, allDays) {
+  const ctx = document.getElementById('chart-daily-by-model').getContext('2d');
+  if (charts.dailyByModel) charts.dailyByModel.destroy();
+  if (!filteredDaily.length) { charts.dailyByModel = null; return; }
+
+  // Collect ordered unique models (sorted by total desc)
+  const modelTotals = {};
+  for (const r of filteredDaily) {
+    modelTotals[r.model] = (modelTotals[r.model] || 0) + r.input + r.output + r.cache_read + r.cache_creation;
+  }
+  const models = Object.keys(modelTotals).sort((a, b) => modelTotals[b] - modelTotals[a]);
+
+  // Build per-model-per-day lookup
+  const lookup = {};
+  for (const r of filteredDaily) {
+    if (!lookup[r.model]) lookup[r.model] = {};
+    lookup[r.model][r.day] = r.input + r.output + r.cache_read + r.cache_creation;
+  }
+
+  const datasets = models.map((model, i) => ({
+    label: model,
+    data: allDays.map(day => lookup[model]?.[day] || 0),
+    backgroundColor: MODEL_COLORS[i % MODEL_COLORS.length],
+    stack: 'models',
+  }));
+
+  charts.dailyByModel = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: allDays, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#8892a4', boxWidth: 12 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${fmt(ctx.raw)} tokens`,
+            footer: items => {
+              const total = items.reduce((s, i) => s + i.raw, 0);
+              return total > 0 ? `Total: ${fmt(total)}` : '';
+            }
+          }
+        }
+      },
+      scales: {
+        x: { stacked: true, ticks: { color: '#8892a4', maxTicksLimit: RANGE_TICKS[selectedRange] }, grid: { color: '#2a2d3a' } },
+        y: { stacked: true, ticks: { color: '#8892a4', callback: v => fmt(v) }, grid: { color: '#2a2d3a' } },
+      }
+    }
+  });
 }
 
 function renderDailyChart(daily) {
