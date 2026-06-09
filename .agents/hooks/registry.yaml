@@ -2,6 +2,16 @@ version: "1.1"
 schema_version: "1.0"
 source: .agents/hooks/registry.yaml
 handlers_dir: .agents/hooks/handlers
+<<<<<<< Updated upstream
+=======
+# Wave 4 foundation: registry declares migration entries for the eight
+# hooks scheduled for internalization from ~/.claude/hooks/. Concrete
+# handler scripts land in .agents/hooks/handlers/ via W4 implementation
+# follow-up commits. Status controls adapter emission:
+#   active/omitted   -- compiled to .claude/hooks.json today
+#   pending          -- declared for migration; not emitted to adapters
+#   deprecated       -- removed from active set; kept for audit
+>>>>>>> Stashed changes
 hooks:
   - id: pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global
     event: PreToolUse
@@ -104,6 +114,15 @@ hooks:
     platform_support:
       - claude-code
     fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+<<<<<<< Updated upstream
+=======
+
+  # ---------------------------------------------------------------------------
+  # Migration entries (Wave 4 foundation): declares migration targets from
+  # ~/.claude/hooks/ globals. Active entries are emitted to platform adapters;
+  # pending entries remain registered for follow-up implementation slices.
+  # ---------------------------------------------------------------------------
+>>>>>>> Stashed changes
   - id: posttooluse-write-edit-plan-lint-validate-execution-protocol-section
     event: PostToolUse
     matcher: Write|Edit

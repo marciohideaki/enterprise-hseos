@@ -1,7 +1,13 @@
 ---
 name: dev-squad
 description: Full protocol for heterogeneous parallel batch execution under SWARM. Commander (Opus) plans + extracts handoffs; Squad (Sonnet/Haiku) executes in worktree-isolated parallel waves. 1 task = 1 commit; 1 wave = 1 PR.
+<<<<<<< Updated upstream
 version: "1.2"
+=======
+trigger: "user lists 3+ independent tasks in any /plan or request; batch mixes fix+feature+refactor+docs across non-colliding areas; session context inflating before starting new unrelated batch; user explicitly asks to parallelize work"
+skip: "single story end-to-end → use BLITZ; strict sequential delivery with release flow → use ORBIT; exploratory work without defined scope → use NYX first; architectural pivot requiring ADR → use CIPHER first"
+version: "1.1"
+>>>>>>> Stashed changes
 owner: platform-governance
 tier: full
 source: .enterprise/governance/agent-skills/dev-squad/SKILL.md

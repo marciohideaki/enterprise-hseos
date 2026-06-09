@@ -4,6 +4,8 @@ metadata:
     explicit_only: true
 name: threat-modeling
 description: Use when performing a full 8-step threat model mapping trust boundaries, assets, abuse paths, and mitigations with mandatory user validation
+trigger: "Use when performing a full 8-step threat model mapping trust boundaries, assets, abuse paths, and mitigations with mandatory user validation"
+skip: "Request is outside threat-modeling scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 version: "1.0"
 owner: platform-governance
 tier: full

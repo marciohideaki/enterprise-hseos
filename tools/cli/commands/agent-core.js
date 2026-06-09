@@ -6,16 +6,21 @@ const { runDoctor } = require('../installers/lib/core/agent-core-compiler/verify
 const prompts = require('../lib/prompts');
 
 const SUPPORTED_ACTIONS = new Set(['compile', 'verify', 'audit', 'doctor']);
+<<<<<<< Updated upstream
 const ALL_PLATFORMS = ['claude-code', 'codex', 'cursor', 'continue', 'aider', 'cline'];
 
 function resolvePlatforms(target) {
   if (!target || target === 'all') return ALL_PLATFORMS;
   return target.split(',').map((t) => t.trim()).filter(Boolean);
 }
+=======
+const DEFAULT_COMPILE_PLATFORMS = ['claude-code'];
+>>>>>>> Stashed changes
 
 async function runCompile(projectDir, options) {
   const hseosDir = path.join(projectDir, '.hseos');
   const compiler = new AgentCoreCompiler();
+<<<<<<< Updated upstream
   const platforms = resolvePlatforms(options.target);
   const result = await compiler.compile(projectDir, hseosDir, { platforms });
   const extra = [
@@ -24,6 +29,17 @@ async function runCompile(projectDir, options) {
     result.mcpServers ? `${result.mcpServers} mcp servers` : null,
   ].filter(Boolean);
   const extraNote = extra.length > 0 ? `, ${extra.join(', ')}` : '';
+=======
+  const target = options.target || 'all';
+  if (target !== 'all' && target !== 'claude-code') {
+    await prompts.log.warn(
+      `--target ${target}: per-adapter compile lands in a follow-up Wave 2 commit; running all targets`,
+    );
+  }
+  const result = await compiler.compile(projectDir, hseosDir, {
+    platforms: DEFAULT_COMPILE_PLATFORMS,
+  });
+>>>>>>> Stashed changes
   await prompts.log.success(
     `Agent core compiled: ${result.skills} skills, ${result.hooks} hooks, ${result.commands} commands${extraNote} -> ${result.manifest}`,
   );

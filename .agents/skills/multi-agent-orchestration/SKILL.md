@@ -1,6 +1,8 @@
 ---
 name: multi-agent-orchestration
 description: Use when designing complex multi-agent workflows, ORBIT dispatch chains, orchestration patterns, or reviewing agent coordination architecture
+trigger: "Use when designing complex multi-agent workflows, ORBIT dispatch chains, orchestration patterns, or reviewing agent coordination architecture"
+skip: "Request is outside multi-agent-orchestration scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 version: "1.0"
 owner: platform-governance
 tier: full

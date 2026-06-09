@@ -1,6 +1,8 @@
 ---
 name: rfc
 description: Gera RFC (Request for Comments) ou design doc para decisões técnicas — problema, proposta, alternativas, trade-offs, impacto e métricas de sucesso
+trigger: "user asks for RFC, design doc, or formal technical decision document; architectural decision needs structured alternatives analysis; user invokes /rfc; decision contradicts or extends an existing ADR"
+skip: "decision is trivial or reversible (just decide and document in commit); user wants a quick opinion not a formal doc; ADR already exists and is still valid"
 version: 1.0.0
 owner: platform-governance
 tier: full

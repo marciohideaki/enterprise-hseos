@@ -33,11 +33,16 @@
     "lint": "eslint . --ext .js,.cjs,.mjs,.yaml --max-warnings=0",
     "lint:fix": "eslint . --ext .js,.cjs,.mjs,.yaml --fix",
     "prepare": "command -v husky >/dev/null 2>&1 && husky || exit 0",
+<<<<<<< Updated upstream
     "test": "npm run test:schemas && npm run test:install && npm run test:detector && npm run test:state && npm run test:governance && npm run test:hooks && npm run test:state-emit-hook && npm run test:compiler-hooks && npm run test:capabilities && npm run test:smoke-install && npm run test:verify && npm run test:sandbox && npm run test:plugins && npm run test:adapter-sdk && npm run test:mcp-governance && npm run test:mcp-swarm && npm run test:mcp-stdio && npm run test:mcp-axon-bridge && npm run validate:schemas && npm run lint",
     "test:install": "node test/test-installation-components.js",
     "test:detector": "node test/test-detector-legacy-v4.js",
     "test:plugins": "node test/test-plugin-marketplace.js",
     "test:sandbox": "node test/test-sandbox-cli.js",
+=======
+    "test": "npm run test:schemas && npm run test:install && npm run test:state && npm run test:hooks && npm run validate:schemas && npm run lint",
+    "test:install": "node test/test-installation-components.js && node test/test-agent-core-compiler-hooks.js",
+>>>>>>> Stashed changes
     "test:schemas": "node test/test-agent-schema.js",
     "test:state": "node test/test-agent-state-dal.js && node test/test-state-cli.js && node test/test-state-render-lib.js && node test/test-state-ui.js && node test/test-kanban-cli.js",
     "test:hooks": "node test/test-hook-handlers.js",

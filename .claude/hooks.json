@@ -85,7 +85,21 @@
         ]
       },
       {
+<<<<<<< Updated upstream
         "matcher": "*",
+=======
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/plan-lint.sh \"$CLAUDE_TOOL_FILE_PATH\"",
+            "description": "Lint plan files for missing Execution Protocol section in parallel-flow plans"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+>>>>>>> Stashed changes
         "hooks": [
           {
             "type": "command",

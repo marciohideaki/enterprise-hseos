@@ -5,6 +5,8 @@ metadata:
       - admin
 name: gitops-deploy
 description: Use when deploying one or more services by updating image tags with full Kustomize validation and GitOps commit standards
+trigger: "user asks to deploy, promote, bump image tag, or release to any environment (dev/hmg/stg/prod); CI/CD pipeline produced a new image tag; user invokes /gitops-deploy"
+skip: "service manifests don't exist yet → use gitops-add-service first; project structure doesn't exist → use gitops-new-project first; deploy is to a non-GitOps environment"
 version: 1.1.0
 owner: platform-governance
 tier: full

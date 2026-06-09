@@ -1,6 +1,8 @@
 ---
 name: naming-conventions
 description: Use when performing a full naming audit across a codebase, stack profile, or API surface for convention compliance
+trigger: "Use when performing a full naming audit across a codebase, stack profile, or API surface for convention compliance"
+skip: "Request is outside naming-conventions scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 version: 1.0.0
 owner: platform-governance
 tier: full

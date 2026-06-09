@@ -1,6 +1,8 @@
 ---
 name: verification-before-completion
 description: Use when about to declare a task, feature, or fix complete — before reporting done to the orchestrator or user
+trigger: "Use when about to declare a task, feature, or fix complete — before reporting done to the orchestrator or user"
+skip: "Request is outside verification-before-completion scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 version: "1.0"
 owner: platform-governance
 tier: full

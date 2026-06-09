@@ -4,7 +4,7 @@
 # Event:   PostToolUse (matcher: Write|Edit)
 # Status:  active (replaces upstream ~/.claude/hooks/on-post-write-plan-lint.sh)
 #
-# Lints plan files (any path matching */plans/*.md) for the canonical
+# Lints plan files (any path matching */plans/*.md or plans/*.md) for the canonical
 # "## Execution Protocol" section when the plan implies parallel/coordinated
 # execution. Per the meta-directive in HSEOS governance, every plan with
 # wave/squad/parallel signals MUST formalize:
@@ -17,7 +17,7 @@
 #   - Idempotent: running twice produces the same result
 #   - Best-effort: never blocks the triggering action; exit 0 always
 #   - Project-scoped: no ~/.claude or vault references
-#   - Config-aware: matches generic */plans/*.md pattern
+#   - Config-aware: matches generic */plans/*.md and plans/*.md patterns
 #   - Fail-open: silent when invoked with no input or unrelated tool
 
 set -euo pipefail
@@ -32,7 +32,7 @@ fi
 
 # Apply only to plan files
 case "$FILE_PATH" in
-  */plans/*.md) ;;
+  */plans/*.md | plans/*.md) ;;
   *) exit 0 ;;
 esac
 

@@ -52,6 +52,26 @@ function runHandler(scriptPath, args, options = {}) {
   }
 }
 
+function runCommand(command, options = {}) {
+  try {
+    const output = execFileSync(command, {
+      encoding: 'utf8',
+      shell: true,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: 5000,
+      ...options,
+    });
+    return { ok: true, stdout: output, exitCode: 0 };
+  } catch (error) {
+    return {
+      ok: false,
+      stdout: error.stdout ? error.stdout.toString() : '',
+      stderr: error.stderr ? error.stderr.toString() : '',
+      exitCode: error.status ?? 1,
+    };
+  }
+}
+
 function withTempDir(fn) {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-hook-test-'));
   try {
@@ -178,6 +198,52 @@ function testPlanLint() {
       'plan-lint.sh is idempotent (same stdout on second run)',
       result.stdout === second.stdout,
       'stdout differs between runs',
+    );
+  });
+
+  // Relative plan paths are accepted because platform adapters may pass repo-relative paths
+  withTempDir((tempDir) => {
+    const plansDir = path.join(tempDir, 'plans');
+    fs.mkdirSync(plansDir);
+    const planFile = path.join(plansDir, 'relative-bad.md');
+    fs.writeFileSync(
+      planFile,
+      [
+        '# Relative parallel plan',
+        '',
+        'Wave parallel swarm squad execution across worktrees.',
+        '',
+      ].join('\n'),
+    );
+    const result = runHandler(scriptPath, ['plans/relative-bad.md'], { cwd: tempDir });
+    assertPass(
+      'plan-lint.sh accepts relative plans/*.md paths',
+      result.ok && /\[HSEOS\]\[PLAN-LINT\]/.test(result.stdout),
+      `stdout="${result.stdout.slice(0, 120)}..."`,
+    );
+  });
+
+  // Registry command shape: CLAUDE_TOOL_FILE_PATH is expanded by the shell
+  withTempDir((tempDir) => {
+    const plansDir = path.join(tempDir, 'plans');
+    fs.mkdirSync(plansDir);
+    const planFile = path.join(plansDir, 'registry-env-bad.md');
+    fs.writeFileSync(
+      planFile,
+      [
+        '# Registry command plan',
+        '',
+        'Wave parallel swarm squad execution across worktrees.',
+        '',
+      ].join('\n'),
+    );
+    const result = runCommand(`bash "${scriptPath}" "$CLAUDE_TOOL_FILE_PATH"`, {
+      env: { ...process.env, CLAUDE_TOOL_FILE_PATH: planFile },
+    });
+    assertPass(
+      'plan-lint.sh works with registry CLAUDE_TOOL_FILE_PATH command shape',
+      result.ok && /\[HSEOS\]\[PLAN-LINT\]/.test(result.stdout),
+      `stdout="${result.stdout.slice(0, 120)}..."`,
     );
   });
 }

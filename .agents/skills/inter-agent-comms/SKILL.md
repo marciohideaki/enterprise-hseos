@@ -1,6 +1,8 @@
 ---
 name: inter-agent-comms
 description: Use when designing or implementing communication protocols between two or more agents in a workflow
+trigger: "Use when designing or implementing communication protocols between two or more agents in a workflow"
+skip: "Request is outside inter-agent-comms scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 version: "1.0"
 owner: platform-governance
 tier: full

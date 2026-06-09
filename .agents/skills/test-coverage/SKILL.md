@@ -1,6 +1,8 @@
 ---
 name: test-coverage
 description: Use when auditing test coverage completeness, test pyramid violations, or test quality across a module, service, or pull request
+trigger: "Use when auditing test coverage completeness, test pyramid violations, or test quality across a module, service, or pull request"
+skip: "Request is outside test-coverage scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 version: 1.0.0
 owner: platform-governance
 tier: full
