@@ -27,6 +27,7 @@
 | [ADR-0014](./ADR-0014-telemetry-export-bridge.md) | Telemetry Export Bridge: Optional OTLP/Loki Sidecar for Agent-State Events | Accepted | `ai-observability` skill, `.agents/hooks/registry.yaml` |
 | [ADR-0015](./ADR-0015-dev-squad-canonical-authority.md) | dev-squad Canonical Authority Hierarchy | Accepted | SKILLS-REGISTRY, `.hseos/workflows/dev-squad/`, `.hseos/agents/swarm.agent.yaml` |
 | [ADR-0016](./ADR-0016-capability-packaging.md) | Capability Packaging and Install Planning | Accepted (2026-07-08) | install lifecycle, agent-core compiler, skill packaging |
+| [ADR-0017](./ADR-0017-stacked-feature-branch-chains.md) | Stacked Feature Branch Chains | Accepted | Execution governance, branch lifecycle, dev-squad protocol |
 
 ---
 

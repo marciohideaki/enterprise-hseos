@@ -3,7 +3,7 @@
 **Authority:** Enterprise Constitution (`.enterprise/.specs/constitution/Enterprise-Constitution.md`)
 **Status:** Mandatory
 **Scope:** All AI agent executions in any HSEOS-governed repository
-**Version:** 1.0
+**Version:** 1.1
 
 ---
 
@@ -34,6 +34,29 @@ One `task/*` branch per task, derived from the phase branch:
 - `task/auth-service`
 
 Additional governed prefixes are allowed for workflow-specific use: `fix/*`, `hotfix/*`, `release/*`, `docs/*`, `chore/*`, and `ci/*`. `feature/*` remains the default branch class for product and platform feature work.
+
+### 2.3 Stacked Feature Branch Chains
+
+Stacked `feature/*` branch chains are allowed when a later phase or wave depends on an earlier
+phase or wave that has not merged yet. A chain is a review and delivery structure, not an exception
+to isolation:
+
+```text
+master
+  -> feature/<initiative>-w1-foundation
+      -> feature/<initiative>-w2-capability
+          -> feature/<initiative>-w3-surface
+```
+
+Rules:
+- Each chain link MUST be a `feature/*` branch.
+- Each chain link MUST declare its upstream base in `PLAN.md`, `STATUS.md`, or the PR body.
+- Work inside each chain link MUST still enter through `task/*` branches and worktrees.
+- PRs MUST target the immediate upstream branch in the chain until that upstream branch merges.
+- Merge order MUST be base-to-tip. After an upstream branch merges, downstream branches MUST be
+  retargeted or updated before their own merge.
+- `task/*` branches MUST NOT be stacked directly; each task branch belongs to exactly one
+  `feature/*` branch.
 
 ---
 
@@ -113,6 +136,8 @@ Rules:
 - Human review/approval is mandatory
 - Stop execution after opening the PR unless explicit approval to merge is already present
 - After explicit approval and green checks, use `hseos pr closeout <number> --approved` to merge, fast-forward the base branch, and safely clean up a merged `feature/*` head branch
+- For stacked `feature/*` chains, PRs must identify the upstream base and any known downstream
+  dependents. Downstream PRs must be retargeted or updated after each upstream merge.
 
 ### 7.1 Branch Cleanup Policy
 

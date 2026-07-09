@@ -111,7 +111,7 @@ skills:
     source: .enterprise/governance/agent-skills/dev-squad/SKILL.md
     quick: .enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md
     output: .agents/skills/dev-squad/SKILL.md
-    hash: 196a59c22e945108ff02a41fb848d5a4856f11a816494a235c0d98f2dba8931b
+    hash: 24d345dc52767147fcadbe378219787601f2f1ea9175b4f0795e9b5a59a1a598
   - name: doc-project
     source: .enterprise/governance/agent-skills/doc-project/SKILL.md
     quick: .enterprise/governance/agent-skills/doc-project/SKILL-QUICK.md
@@ -432,7 +432,7 @@ commands:
   - name: hseos-workflow-dev-squad
     type: workflow
     source: null
-    description: Plan a heterogeneous batch in Opus and execute it as parallel Sonnet/Haiku subagents isolated in worktrees. 1 task = 1 commit; 1 wave = 1 PR. Commander-extracted handoffs between waves.
+    description: Plan a heterogeneous batch in Opus and execute it as parallel Sonnet/Haiku subagents isolated in worktrees. 1 task = 1 commit; 1 wave = 1 PR. Stacked feature chains are allowed only when dependency order is declared.
   - name: hseos-workflow-state-tracking
     type: workflow
     source: null
@@ -560,7 +560,7 @@ agents:
     sha256: c2e60b3ae53f3536dc1c7e719a14791658f7be84a4110a8e1541c9c0b505a83d
   - code: SWARM
     file: .hseos/agents/swarm.agent.yaml
-    sha256: 1d65966c091e2edf486dae67cfdeb63c972e733d37375c8260148814c80294ba
+    sha256: 278b0ed3abd868cf66c819b7ff44a88a75755ef2488a31ffe422056fff647313
   - code: VECTOR
     file: .hseos/agents/vector.agent.yaml
     sha256: 2581c74190ce6bb293284f4a48d67651031667976e11c666b1622f999b5871bf

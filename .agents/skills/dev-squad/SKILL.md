@@ -66,6 +66,19 @@ All located in `scripts/governance/`:
 
 SWARM **never** invokes `git worktree add`, `git commit`, `git merge`, or `git push` directly in a worktree flow. Always through the scripts.
 
+## Stacked Feature Branch Chains
+
+SWARM may plan a stacked `feature/*` branch chain only when a later wave depends on an earlier
+unmerged wave. This is a dependency strategy, not a shortcut around the worktree lifecycle.
+
+Rules:
+- Declare the chain in `PLAN.md`: upstream base per wave, downstream dependents if known, and merge order.
+- Every chain link must be a `feature/*` branch.
+- Every write task still runs in a `task/*` worktree created from exactly one `feature/*` link.
+- PRs target the immediate upstream branch until that upstream branch merges.
+- Merge order is base-to-tip; after each upstream merge, downstream PRs must be retargeted or updated.
+- `task/*` branches are never stacked directly.
+
 ---
 
 ## Commit Message Rules (HSEOS-enforced)
@@ -202,6 +215,7 @@ sqlite3 .hseos/state/project.db "SELECT kind, ts FROM as_events WHERE agent_run_
 - [ ] All waves executed or correctly halted
 - [ ] 1 commit per OK task (all messages pass `validate-commit-msg.sh`)
 - [ ] 1 WAVE-REPORT per wave
+- [ ] Stacked branch base map recorded when any wave targets an upstream `feature/*` branch
 - [ ] Draft PR body ready, using `.github/pull_request_template.md`
 - [ ] Human-initiated PR; human-approved merge or governed closeout
 - [ ] Gotchas surfaced to `_knowledge/projects/<project>/gotchas.md` (second-brain)

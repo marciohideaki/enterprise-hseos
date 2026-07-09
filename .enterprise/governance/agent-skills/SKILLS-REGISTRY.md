@@ -315,9 +315,9 @@ version: "1.4"
 ---
 
 ### dev-squad
-**Description:** Especialização Parallel-Fan-Out + Map-Reduce para lotes heterogêneos de desenvolvimento sob SWARM. Commander (Opus) planeja e extrai handoffs; Squad (Sonnet/Haiku em worktrees isolados) executa em paralelo. Matriz de model-tiering para custo mínimo. 1 task = 1 commit; 1 wave = 1 PR. Canonical protocol em `.enterprise/governance/agent-skills/dev-squad/SKILL.md`.
+**Description:** Especialização Parallel-Fan-Out + Map-Reduce para lotes heterogêneos de desenvolvimento sob SWARM. Commander (Opus) planeja e extrai handoffs; Squad (Sonnet/Haiku em worktrees isolados) executa em paralelo. Matriz de model-tiering para custo mínimo. 1 task = 1 commit; 1 wave = 1 PR; stacked `feature/*` chains são permitidas somente quando a dependência entre waves é declarada. Canonical protocol em `.enterprise/governance/agent-skills/dev-squad/SKILL.md`.
 **Load when:** SWARM ativando; lote de 3+ tasks heterogêneas; necessidade de paralelismo com isolation de worktree; modo detached (`/clear` + resume) para preservar contexto do Commander.
-**Triggers:** `SWARM`, `dev-squad`, `batch paralelo`, `worktree isolation`, `fan-out de dev`, `Opus plan Sonnet execute`, `heterogeneous batch`, `parallel waves`, `commander handoff`, `model-tiering`, `detached mode`, `/dev-squad`
+**Triggers:** `SWARM`, `dev-squad`, `batch paralelo`, `worktree isolation`, `fan-out de dev`, `Opus plan Sonnet execute`, `heterogeneous batch`, `parallel waves`, `commander handoff`, `model-tiering`, `detached mode`, `stacked feature branches`, `branch chain`, `/dev-squad`
 **Tier 1:** `.enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md`
 **Tier 2:** `.enterprise/governance/agent-skills/dev-squad/SKILL.md`
 **Cost:** Tier 1 = low | Tier 2 = medium

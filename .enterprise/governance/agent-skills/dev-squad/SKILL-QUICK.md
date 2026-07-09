@@ -62,6 +62,7 @@ Escalate by exactly 1 tier for: auth / crypto / payments / fiscal; first greenfi
 - **worktree-manager.sh mandatory:** `create` / `validate` / `commit` / `merge` / `remove`
 - **Commit hygiene:** validated by `validate-commit-msg.sh`; NO `Co-Authored-By`, NO mentions of `Claude`, `AI`, `LLM`, `Anthropic`, `GPT`
 - **Base branch:** validated by `check-branch.sh` → must match `feature/*`
+- **Stacked feature chains:** allowed only for real dependency sequencing; declare upstream base per wave in `PLAN.md`, keep commits in `task/*` worktrees, merge base-to-tip
 - **Quality gates:** `quality-gates.sh` runs via `worktree-manager.sh validate` (6 gates)
 - **1 task = 1 commit; 1 wave = 1 PR** (default)
 - **Human approval for merge** — agents may execute governed closeout only after explicit approval
@@ -94,6 +95,7 @@ Bypass = governance violation → halt + escalate.
 - Opus as default executor → cost explosion → opt-in only
 - Skipping G2 → bad decomposition parallelized = retrabalho ao quadrado
 - Raw `git worktree add` in HSEOS repo → skips quality gates → use the script
+- Stacking `task/*` branches directly → breaks lifecycle cleanup → stack only `feature/*` links
 - Commit with `Co-Authored-By` → validator fails → clean message
 
 ---

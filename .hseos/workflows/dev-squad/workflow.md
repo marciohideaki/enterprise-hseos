@@ -3,7 +3,7 @@
 ## Intent
 Execute a heterogeneous batch of 3+ tasks using the Opus tier for planning and parallel Sonnet/Haiku subagents for execution, each isolated in its own worktree. Optimize token cost and wall-clock latency while preserving HSEOS governance.
 
-This workflow institutionalizes the Parallel-Fan-Out + Map-Reduce pattern with model-tiering as a first-class HSEOS flow. Commander-mediated handoffs keep subagents zero-context; `worktree-manager.sh` enforces isolation; 1 task = 1 commit; 1 wave = 1 PR.
+This workflow institutionalizes the Parallel-Fan-Out + Map-Reduce pattern with model-tiering as a first-class HSEOS flow. Commander-mediated handoffs keep subagents zero-context; `worktree-manager.sh` enforces isolation; 1 task = 1 commit; 1 wave = 1 PR. When waves depend on unmerged upstream work, SWARM may use a declared stacked `feature/*` branch chain.
 
 ## Owner
 SWARM
@@ -61,6 +61,7 @@ Subagents never see each other's output. Only the Commander-extracted handoff (�
 - base branch (explicit in INTAKE or inferred by SWARM, validated by `check-branch.sh` — must match `feature/*`)
 - approval decision on Opus-as-executor (default: denied)
 - approval decision on PR strategy (default: 1 wave = 1 PR)
+- stacked branch plan when needed: upstream base per wave, downstream dependents if known, and base-to-tip merge order
 
 ## Gates
 - **G1 — Intake** (conditional): if residual ambiguity after prose → 1 AskUserQuestion round
@@ -75,6 +76,7 @@ Bypass of any gate is a governance violation — halt and escalate.
 - **Worktree isolation:** every write task uses `isolation: "worktree"`; no exceptions
 - **Commit hygiene:** conventional commit format, validated by `validate-commit-msg.sh`; no `Co-Authored-By`, no mentions of `Claude`, `AI`, `LLM`, `Anthropic`, `GPT`
 - **Base branch:** validated by `check-branch.sh` — must follow `feature/*` pattern
+- **Stacked feature chains:** allowed only when dependency order is real and declared in `PLAN.md`; every link remains `feature/*`, every commit still enters through `task/*`, and downstream PRs retarget/update after upstream merges
 - **Quality gates:** `worktree-manager.sh validate` runs `quality-gates.sh` (6 gates) before every commit
 - **Model-tiering:** matrix in skill enforces minimum-capable model per task; Opus-as-executor requires explicit opt-in in PLAN.md
 - **Governance cascade:** scope changes → VECTOR; arch changes → CIPHER; release/runtime → FORGE/KUBE/SABLE; epic-scale → ORBIT
