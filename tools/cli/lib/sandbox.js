@@ -90,7 +90,7 @@ function normalizeSandboxConfig(config = {}) {
       ...Object.fromEntries(
         Object.entries(profiles)
           .filter(([name]) => !['standard', 'lockdown'].includes(name))
-          .map(([name, profile]) => [name, mergeProfile({}, profile)])
+          .map(([name, profile]) => [name, mergeProfile({}, profile)]),
       ),
     },
   };
@@ -316,7 +316,10 @@ function sandboxDoctorCheck(projectDir) {
           : `${result.provider} sandbox readiness checks passed`,
     remedy:
       failedRequired.length > 0
-        ? failedRequired.map((check) => check.remedy).filter(Boolean).join(' ')
+        ? failedRequired
+            .map((check) => check.remedy)
+            .filter(Boolean)
+            .join(' ')
         : undefined,
   };
 }

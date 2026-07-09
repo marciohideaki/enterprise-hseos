@@ -1,4 +1,6 @@
 ---
+trigger: Use when planning and implementing a new feature or service end-to-end using the Specify→Design→Tasks→Implement workflow
+skip: Request is outside spec-driven scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: spec-driven
 description: Use when planning and implementing a new feature or service end-to-end using the Specify→Design→Tasks→Implement workflow
 version: 1.0.0

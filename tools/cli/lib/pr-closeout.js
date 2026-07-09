@@ -33,7 +33,7 @@ function prView(number, options = {}) {
       '--json',
       'number,url,state,isDraft,mergeable,mergedAt,mergeCommit,baseRefName,headRefName,statusCheckRollup',
     ],
-    options
+    options,
   );
   return parseJson(raw, `PR #${number}`);
 }
@@ -155,9 +155,7 @@ function closeoutPullRequest({
   runCommand('git', ['switch', before.baseRefName], options);
   runCommand('git', ['pull', '--ff-only', 'origin', before.baseRefName], options);
 
-  const cleanup = deleteBranch
-    ? safeDeleteBranch(before.headRefName, before.baseRefName, options)
-    : { deleted: false, reason: 'disabled' };
+  const cleanup = deleteBranch ? safeDeleteBranch(before.headRefName, before.baseRefName, options) : { deleted: false, reason: 'disabled' };
 
   return { action: 'merged', pr: after, cleanup };
 }

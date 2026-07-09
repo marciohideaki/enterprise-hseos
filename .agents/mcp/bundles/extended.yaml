@@ -17,15 +17,19 @@ servers:
       - dispatch_wave
       - consolidate_handoff
       - get_run_state
+      - list_runs
     description: |
       Exposes dev-squad orchestration (plan, dispatch, consolidate) via MCP so
       non-Anthropic adapters can drive parallel execution. Consumes the
       .agents/skills/dev-squad/SKILL.md state-emission contract.
-    status: scaffolded
+    status: implemented   # 5 tools live; covered by test/test-mcp-hseos-swarm.js in npm test
     adapter_namespace: hseos_swarm
 
   - id: axon-bridge
-    transport: stdio
+    # The server implementation is HTTP-only (port 3103) — it never reads stdin.
+    # Declaring stdio here made adapters spawn it as a stdio process and hang
+    # (test/test-mcp-stdio.js deliberately excludes this server).
+    transport: http
     binary_resolver:
       - path: tools/mcp-axon-bridge/index.js
         runtime: node
@@ -35,12 +39,13 @@ servers:
       - memory_search
       - get_skeleton
       - get_overview
+      - run_pipeline
     description: |
       Wrapper around the Axon code-index binary. Resolver tries (1) repo-vendored
       binary at tools/vendor/axon/, (2) $AXON_BIN env var, (3) `axon` on $PATH,
       (4) no-op fallback returning empty results so downstream skills degrade
       gracefully to Read+Grep.
-    status: scaffolded
+    status: implemented   # 6 proxy tools live; covered by test/test-mcp-axon-bridge.js in npm test
     adapter_namespace: axon
     fallback_skill: repo-radar
     graceful_degradation: true

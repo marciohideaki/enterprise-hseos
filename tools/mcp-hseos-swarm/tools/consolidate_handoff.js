@@ -32,7 +32,11 @@ module.exports = [
       let handoffText = null;
       let sourcePath = null;
       for (const c of candidates) {
-        if (fs.existsSync(c)) { handoffText = fs.readFileSync(c, 'utf8'); sourcePath = c; break; }
+        if (fs.existsSync(c)) {
+          handoffText = fs.readFileSync(c, 'utf8');
+          sourcePath = c;
+          break;
+        }
       }
 
       if (!handoffText) {

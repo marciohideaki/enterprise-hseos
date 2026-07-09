@@ -55,9 +55,9 @@ Before producing any output, the RAZOR Agent MUST read:
 - `/.enterprise/.specs/constitution/*`
 - `/.enterprise/policies/*`
 - `/.enterprise/agents/razor/*`
-- `/specs/core/*`
-- `/specs/cross/*`
-- `/specs/decisions/*`
+- `/.enterprise/.specs/core/*`
+- `/.enterprise/.specs/cross/*`
+- `/.enterprise/.specs/decisions/*`
 - Approved PRD
 - Approved Architecture
 - `/project-context.md` (if present)

@@ -33,7 +33,7 @@ module.exports = [
                   substr(content, 1, 200) AS content_preview
            FROM as_handoffs ${where}
            ORDER BY created_at DESC, version DESC
-           LIMIT ?`
+           LIMIT ?`,
         )
         .all(...params, limit);
       return { handoffs: rows, count: rows.length };

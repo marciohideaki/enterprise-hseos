@@ -1,6 +1,6 @@
 # ADR-0006 — HSEOS Standalone Architecture (v2.0)
 
-**Status:** Proposed
+**Status:** Accepted (ratified 2026-07-08)
 **Date:** 2026-05-07
 **Authors:** Platform Architecture
 **Affects Standards:** Enterprise Constitution (§Layer-1, §Layer-2); CLAUDE.md §0; AGENTS.md §0; SKILLS-REGISTRY governance source-of-truth

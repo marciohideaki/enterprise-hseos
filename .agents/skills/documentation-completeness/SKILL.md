@@ -1,4 +1,6 @@
 ---
+trigger: Use when performing full documentation coverage audit across public APIs, architecture docs, ADRs, and decision records
+skip: Request is outside documentation-completeness scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: documentation-completeness
 description: Use when performing full documentation coverage audit across public APIs, architecture docs, ADRs, and decision records
 version: 1.0.0

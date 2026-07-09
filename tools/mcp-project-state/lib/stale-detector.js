@@ -28,7 +28,7 @@ function sweepOrphans(db, staleMinutes = 10) {
        WHERE status = 'running'
          AND last_heartbeat_at IS NOT NULL
          AND last_heartbeat_at < datetime('now', '-${stale} minutes')
-       RETURNING id`
+       RETURNING id`,
     )
     .all();
   return { swept: rows.length, ids: rows.map((r) => r.id), stale_minutes: stale };

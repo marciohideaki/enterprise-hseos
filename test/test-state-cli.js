@@ -12,7 +12,6 @@ const { spawnSync } = require('node:child_process');
 
 let Database;
 try {
-   
   Database = require('better-sqlite3');
 } catch {
   Database = null;
@@ -57,19 +56,7 @@ console.log('State CLI smoke tests');
 
 it('state-emit creates db file and inserts event', () => {
   const dir = makeTempDir();
-  const result = runCli([
-    'state-emit',
-    'start',
-    '--directory',
-    dir,
-    '--run',
-    'R-test',
-    '--task',
-    'T1',
-    '--agent',
-    'tester',
-    '--silent',
-  ]);
+  const result = runCli(['state-emit', 'start', '--directory', dir, '--run', 'R-test', '--task', 'T1', '--agent', 'tester', '--silent']);
   if (result.status !== 0) {
     throw new Error(`exit ${result.status}: ${result.stderr || result.stdout}`);
   }

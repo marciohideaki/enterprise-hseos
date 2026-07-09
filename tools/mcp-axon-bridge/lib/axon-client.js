@@ -28,11 +28,20 @@ function callAxon(binaryPath, method, params) {
 
     const timer = setTimeout(() => {
       timedOut = true;
-      try { child.kill('SIGTERM'); } catch { /* ignore */ }
-      if (!didResolve) { didResolve = true; resolve(noOpResponse(method)); }
+      try {
+        child.kill('SIGTERM');
+      } catch {
+        /* ignore */
+      }
+      if (!didResolve) {
+        didResolve = true;
+        resolve(noOpResponse(method));
+      }
     }, TIMEOUT_MS);
 
-    child.stdout.on('data', (chunk) => { stdout += chunk; });
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk;
+    });
 
     child.on('close', () => {
       clearTimeout(timer);
@@ -54,7 +63,10 @@ function callAxon(binaryPath, method, params) {
 
     child.on('error', () => {
       clearTimeout(timer);
-      if (!didResolve) { didResolve = true; resolve(noOpResponse(method)); }
+      if (!didResolve) {
+        didResolve = true;
+        resolve(noOpResponse(method));
+      }
     });
 
     try {
@@ -62,7 +74,10 @@ function callAxon(binaryPath, method, params) {
       child.stdin.end();
     } catch {
       clearTimeout(timer);
-      if (!didResolve) { didResolve = true; resolve(noOpResponse(method)); }
+      if (!didResolve) {
+        didResolve = true;
+        resolve(noOpResponse(method));
+      }
     }
   });
 }

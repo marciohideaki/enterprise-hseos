@@ -9,11 +9,7 @@ function resolve() {
   // 1. Repo-vendored binary
   const platform = process.platform;
   const arch = process.arch;
-  const vendoredNames = [
-    `axon-${platform}-${arch}`,
-    `axon-${platform}`,
-    'axon',
-  ];
+  const vendoredNames = [`axon-${platform}-${arch}`, `axon-${platform}`, 'axon'];
   for (const name of vendoredNames) {
     const candidate = path.join(REPO_ROOT, 'tools', 'vendor', 'axon', name);
     try {

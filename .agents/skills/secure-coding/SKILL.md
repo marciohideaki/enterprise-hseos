@@ -1,4 +1,6 @@
 ---
+trigger: Use when performing deep security review of auth, crypto, secrets, or PII code requiring confidence-rated severity findings and OWASP checks
+skip: Request is outside secure-coding scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: secure-coding
 description: Use when performing deep security review of auth, crypto, secrets, or PII code requiring confidence-rated severity findings and OWASP checks
 version: "2.0"

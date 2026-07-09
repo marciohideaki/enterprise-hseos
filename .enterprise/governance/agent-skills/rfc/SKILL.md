@@ -7,6 +7,8 @@ license: Apache-2.0
 metadata:
   owner: platform-governance
   version: "1.0.0"
+trigger: "user asks for RFC, design doc, or formal technical decision document; architectural decision needs structured alternatives analysis; user invokes /rfc; decision contradicts or extends an existing ADR"
+skip: "decision is trivial or reversible (just decide and document in commit); user wants a quick opinion not a formal doc; ADR already exists and is still valid"
 ---
 
 # rfc — Guia Completo

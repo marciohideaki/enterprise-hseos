@@ -12,7 +12,6 @@ const fs = require('node:fs');
 
 let Database;
 try {
-   
   Database = require('better-sqlite3');
 } catch {
   Database = null;

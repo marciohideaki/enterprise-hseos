@@ -3,6 +3,8 @@ name: mcp-governance
 tier: full
 version: "1.0"
 description: "Use when designing MCP server governance policies, auditing spend controls, or establishing rate limit and operational hygiene standards"
+trigger: "Use when designing MCP server governance policies, auditing spend controls, or establishing rate limit and operational hygiene standards"
+skip: "Request is outside mcp-governance scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 ---
 
 # MCP Governance — Full Policy

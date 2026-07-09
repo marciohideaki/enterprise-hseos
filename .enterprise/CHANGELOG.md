@@ -4,7 +4,7 @@
 
 **Status:** Stable  
 **Type:** Standalone Architecture — AI-Assisted Engineering Operating System  
-**Breaking change:** v1.x installs are not compatible with v2.0 agent/skill layout. See [MIGRATION-GUIDE.md](../MIGRATION-GUIDE.md).
+**Breaking change:** v1.x installs are not compatible with v2.0 agent/skill layout. See [docs/MIGRATION-GUIDE-v1-to-v2.md](../docs/MIGRATION-GUIDE-v1-to-v2.md).
 
 ### O que esta release entrega
 

@@ -14,18 +14,19 @@
 | [ADR-0001](./ADR-0001-hexagonal-architecture-mandatory.md) | Hexagonal Architecture as Default | Accepted | All stacks |
 | [ADR-0002](./ADR-0002-event-sourcing-opt-in.md) | Event Sourcing is Opt-In | Accepted | All stacks |
 | [ADR-0003](./ADR-0003-cqrs-with-relational-source-of-truth.md) | CQRS: Relational DB as Source of Truth, Non-Relational for Read Models | Accepted | All stacks |
-| [ADR-0004](./ADR-0004-flutter-architecture-decisions.md) | Flutter Architecture Decisions | Accepted | Flutter stack |
-| [ADR-0005](./ADR-0005-performance-engineering-activation-template.md) | Performance Engineering Activation Template | Accepted | All stacks |
-| [ADR-0006](./ADR-0006-standalone-architecture.md) | HSEOS Standalone Architecture (v2.0) | Proposed | Constitution, CLAUDE.md, AGENTS.md, SKILLS-REGISTRY |
-| [ADR-0007](./ADR-0007-compiler-v2-multi-adapter-contract.md) | Agent-Core Compiler v2 (Multi-Adapter Contract) | Proposed | Compiler module, manifest schema, install lifecycle |
-| [ADR-0008](./ADR-0008-mcp-project-local-bundle-policy.md) | MCP Project-Local + Three-Tier Bundle Policy | Proposed | MCP configuration, mcp-governance skill, quality gates |
-| [ADR-0009](./ADR-0009-plugin-marketplace.md) | HSEOS Plugin Marketplace (Dual-Format) | Proposed | Compiler, install lifecycle, documentation policy |
-| [ADR-0010](./ADR-0010-shared-otel-collector.md) | Shared OpenTelemetry Collector in `platform-shared-dev` | Proposed | `shared-infrastructure.md` canonical mapping table |
+| [ADR-0004](./ADR-0004-flutter-architecture-decisions.md) | Flutter Architecture Decisions | Proposed (empty template — content pending) | Flutter stack |
+| [ADR-0005](./ADR-0005-performance-engineering-activation-template.md) | Performance Engineering Activation Template | Proposed (activation template — copy per service) | All stacks |
+| [ADR-0006](./ADR-0006-standalone-architecture.md) | HSEOS Standalone Architecture (v2.0) | Accepted (2026-07-08) | Constitution, CLAUDE.md, AGENTS.md, SKILLS-REGISTRY |
+| [ADR-0007](./ADR-0007-compiler-v2-multi-adapter-contract.md) | Agent-Core Compiler v2 (Multi-Adapter Contract) | Accepted (2026-07-08) | Compiler module, manifest schema, install lifecycle |
+| [ADR-0008](./ADR-0008-mcp-project-local-bundle-policy.md) | MCP Project-Local + Three-Tier Bundle Policy | Accepted (2026-07-08) | MCP configuration, mcp-governance skill, quality gates |
+| [ADR-0009](./ADR-0009-plugin-marketplace.md) | HSEOS Plugin Marketplace (Dual-Format) | Accepted (2026-07-08) | Compiler, install lifecycle, documentation policy |
+| [ADR-0010](./ADR-0010-shared-otel-collector.md) | Shared OpenTelemetry Collector in `platform-shared-dev` | Accepted (2026-07-08) | `shared-infrastructure.md` canonical mapping table |
 | [ADR-0011](./ADR-0011-ado-ops-module.md) | ADO-Ops Module: Azure DevOps Integration for HSEOS | Accepted | ADO lifecycle, dev-squad protocol, SWARM granularity, `.hseos/agents/`, hook registry |
-| [ADR-0012](./ADR-0012-agent-os-sandboxing.md) | Optional Agent OS Sandboxing | Proposed | CLI, agent-core doctor, sandbox policy |
+| [ADR-0012](./ADR-0012-agent-os-sandboxing.md) | Optional Agent OS Sandboxing | Accepted (2026-07-08) | CLI, agent-core doctor, sandbox policy |
 | [ADR-0013](./ADR-0013-pr-closeout-and-branch-lifecycle.md) | PR Closeout and Branch Lifecycle | Accepted | Execution governance, branch lifecycle, PR closeout |
 | [ADR-0014](./ADR-0014-telemetry-export-bridge.md) | Telemetry Export Bridge: Optional OTLP/Loki Sidecar for Agent-State Events | Accepted | `ai-observability` skill, `.agents/hooks/registry.yaml` |
 | [ADR-0015](./ADR-0015-dev-squad-canonical-authority.md) | dev-squad Canonical Authority Hierarchy | Accepted | SKILLS-REGISTRY, `.hseos/workflows/dev-squad/`, `.hseos/agents/swarm.agent.yaml` |
+| [ADR-0016](./ADR-0016-capability-packaging.md) | Capability Packaging and Install Planning | Accepted (2026-07-08) | install lifecycle, agent-core compiler, skill packaging |
 
 ---
 

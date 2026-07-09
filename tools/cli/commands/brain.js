@@ -58,9 +58,7 @@ async function syncEpicToVault(directory, vaultPath) {
   const hseosDirInVault = path.join(vaultPath, '_decisions', 'hseos');
   await fs.ensureDir(hseosDirInVault);
 
-  const epicDirs = (await fs.readdir(outputDir, { withFileTypes: true }))
-    .filter((e) => e.isDirectory())
-    .map((e) => e.name);
+  const epicDirs = (await fs.readdir(outputDir, { withFileTypes: true })).filter((e) => e.isDirectory()).map((e) => e.name);
 
   if (epicDirs.length === 0) {
     await prompts.log.warn('No epic directories found in .hseos-output/');
@@ -138,7 +136,7 @@ module.exports = {
           await prompts.log.message(
             'Second-brain: disabled\n' +
               '  To enable: run `hseos install` and configure your vault path,\n' +
-              '  or manually set second_brain.enabled = true + second_brain.path in .hseos/config/hseos.config.yaml'
+              '  or manually set second_brain.enabled = true + second_brain.path in .hseos/config/hseos.config.yaml',
           );
           break;
         }
@@ -156,7 +154,7 @@ module.exports = {
             `  CLAUDE.md:     ${stats.claudeOk ? 'OK' : 'MISSING'}\n` +
             `  current-state: ${stats.memoryOk ? 'OK' : 'MISSING'}\n` +
             `  _decisions:    ${stats.decisionsCount} file(s)\n` +
-            `  _learnings:    ${stats.learningsCount} file(s)`
+            `  _learnings:    ${stats.learningsCount} file(s)`,
         );
         break;
       }

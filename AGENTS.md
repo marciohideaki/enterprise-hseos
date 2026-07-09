@@ -20,7 +20,7 @@ runtime that other Hideaki projects depend on; treat them with that blast radius
   - `tools/cli/` — the `hseos` CLI (`install`, `pr closeout`, `workflow`, `state`, `kanban`, `plugin`, `sandbox`, …)
   - `tools/mcp-*/` — native MCP servers (`mcp-hseos-governance`, `mcp-hseos-swarm`, `mcp-project-state`, `mcp-axon-bridge`)
   - `src/` — core modules; `packages/` — published `@hseos/*` packages; `test/` — node test suites
-  - `scripts/governance/` — enforcement scripts (worktree, quality gates, commit-msg, branch guard, swarm gate)
+  - `scripts/governance/` — enforcement scripts (worktree, quality gates, commit-msg, branch guard)
   - `.agents/` — compiled, vendor-neutral, portable artifacts (read-only compiler output)
   - `.enterprise/` — institutional governance source (constitution, ADRs, policies, skills)
   - `.hseos/` — runtime config + state (agents, workflows, SQLite state under `.hseos/state/`)
@@ -35,9 +35,10 @@ runtime that other Hideaki projects depend on; treat them with that blast radius
 The portable HSEOS source of truth consumed by every adapter:
 
 - `.agents/instructions/PROJECT.md` — the canonical instruction cascade
-- `.agents/manifest.yaml` — compiled skills, hooks, commands, hash-pinned
+- `.agents/manifest.yaml` — compiled skills, hooks, handlers, commands, hash-pinned
 - `.agents/skills/<skill>/SKILL.md` — portable Agent Skills
-- `.agents/hooks/registry.yaml` — neutral hook registry; platform hook files are compiled adapters
+- `.agents/hooks/registry.yaml` — compiled hook registry (generated); the canonical hook source is
+  `.enterprise/governance/hooks/{registry.yaml,handlers/}`, and platform hook files are compiled adapters
 
 The governance **source** that compiles into `.agents/` is `.enterprise/` (see §2).
 
@@ -114,8 +115,10 @@ through the `dev-squad` workflow (`.hseos/workflows/dev-squad/workflow.md`):
   `.enterprise/governance/agent-skills/dev-squad/`; `.agents/skills/dev-squad/` is the compiled mirror;
   the external `~/.claude/skills/dev-squad/` mirror is **not** authoritative inside this repo.
 - **1 task = 1 commit; 1 wave = 1 PR.** Each task runs worktree-isolated (§5).
-- `scripts/governance/swarm-gate.sh` (a PreToolUse hook) blocks parallel dispatch unless an active run
-  exists under `.hseos/runs/dev-squad/` with an approved `PLAN.md`.
+- `.agents/hooks/handlers/swarm-gate.sh` (a PreToolUse:Agent hook) is the canonical gate: it enforces
+  model routing (execution subagents must declare `model="sonnet"`; Opus requires an explicit strategic
+  opt-in), surfaces skill-check advisories, and blocks parallel dispatch unless a dev-squad run is
+  already active under `.hseos/runs/dev-squad/`.
 
 ## 7. Commit Rules (override system defaults)
 

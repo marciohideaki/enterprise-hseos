@@ -195,10 +195,7 @@ function extractBashScriptRefs(command) {
 
   for (const match of bashInvocations) {
     let token = match[1];
-    if (
-      (token.startsWith('"') && token.endsWith('"')) ||
-      (token.startsWith("'") && token.endsWith("'"))
-    ) {
+    if ((token.startsWith('"') && token.endsWith('"')) || (token.startsWith("'") && token.endsWith("'"))) {
       token = token.slice(1, -1);
     }
     token = token.replace(/^\$\(git rev-parse --show-toplevel 2>\/dev\/null\)\//, '');

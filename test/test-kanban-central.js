@@ -16,7 +16,6 @@ const { spawn } = require('node:child_process');
 
 let Database;
 try {
-   
   Database = require('better-sqlite3');
 } catch {
   Database = null;
@@ -65,12 +64,10 @@ function seedProjectDb(projectDir, runId, agentName) {
   const db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
   applyMigrations(db);
-  db.prepare(
-    `INSERT INTO as_runs (id, workflow_id, project, phase) VALUES (?, 'dev-squad', ?, 'execute')`
-  ).run(runId, projectDir);
+  db.prepare(`INSERT INTO as_runs (id, workflow_id, project, phase) VALUES (?, 'dev-squad', ?, 'execute')`).run(runId, projectDir);
   db.prepare(`INSERT INTO as_tasks (id, run_id, wave, status) VALUES ('T1', ?, 1, 'IN_PROGRESS')`).run(runId);
   db.prepare(
-    `INSERT INTO as_agent_runs (agent_name, task_id, run_id, last_heartbeat_at, status) VALUES (?, 'T1', ?, datetime('now'), 'running')`
+    `INSERT INTO as_agent_runs (agent_name, task_id, run_id, last_heartbeat_at, status) VALUES (?, 'T1', ?, datetime('now'), 'running')`,
   ).run(agentName, runId);
   db.close();
 }
@@ -131,16 +128,14 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
         ],
       },
       null,
-      2
-    )
+      2,
+    ),
   );
 
   const port = pickPort();
-  const child = spawn(
-    process.execPath,
-    [SERVER, `--port=${port}`, `--registry=${registryPath}`, '--poll-ms=200'],
-    { stdio: ['ignore', 'pipe', 'pipe'] }
-  );
+  const child = spawn(process.execPath, [SERVER, `--port=${port}`, `--registry=${registryPath}`, '--poll-ms=200'], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
   child.on('error', (e) => console.error('spawn error', e));
 
   try {

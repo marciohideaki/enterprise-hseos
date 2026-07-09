@@ -8,6 +8,8 @@ metadata:
   owner: platform-governance
   version: "1.0.0"
   inspired-by: "marciohideaki/second-brain-starter (documentation quality reference)"
+trigger: "user asks to generate/update project docs, README, CONTRIBUTING, CHANGELOG or SECURITY; new project needs full documentation scaffold; existing README is outdated or missing sections; user invokes /doc-project"
+skip: "single-file documentation update (just edit directly); user asks for a one-section change without full scaffold; API docs (use code comments + OpenAPI instead)"
 ---
 
 # doc-project — Guia Completo

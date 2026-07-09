@@ -1,4 +1,6 @@
 ---
+trigger: new project needs full GitOps scaffold (namespaces, dev/hmg/stg/prod overlays, ArgoCD Application + AppProject); user says 'onboard new project to GitOps'; no existing manifests for the project in platform-gitops
+skip: project already exists in platform-gitops → use gitops-add-service or gitops-deploy instead; project uses non-Kustomize tooling (pure Helm, Terraform)
 name: gitops-new-project
 description: Use when scaffolding a complete new GitOps project including namespaces, dev/hmg/stg/prod overlays, ArgoCD Applications, and AppProject
 version: 1.0.0

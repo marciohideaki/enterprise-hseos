@@ -413,9 +413,7 @@ LOAD and execute from: {project-root}/{{hseosFolderName}}/{{path}}
 
     const commandFileName = artifact.relativePath ? toDashPath(artifact.relativePath) : '';
     const commandName = commandFileName.replace(/\.md$/i, '');
-    const frontmatterName = commandName
-      ? commandName.replace(/^hseos-/i, 'HSEOS-')
-      : `HSEOS-${(artifact.name || 'command').toLowerCase()}`;
+    const frontmatterName = commandName ? commandName.replace(/^hseos-/i, 'HSEOS-') : `HSEOS-${(artifact.name || 'command').toLowerCase()}`;
 
     let rendered = template
       .replaceAll('{{name}}', artifact.name || '')

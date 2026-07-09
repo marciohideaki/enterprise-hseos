@@ -1,4 +1,6 @@
 ---
+trigger: Use when performing full analysis of breaking changes across APIs, events, DTOs, and contracts requiring versioning strategy and migration guidance
+skip: Request is outside breaking-change-detection scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: breaking-change-detection
 description: Use when performing full analysis of breaking changes across APIs, events, DTOs, and contracts requiring versioning strategy and migration guidance
 version: 1.0.0

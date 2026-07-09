@@ -1,4 +1,6 @@
 ---
+trigger: Use when performing a thorough security, license compliance, and governance review of dependency additions or upgrades
+skip: Request is outside dependency-audit scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: dependency-audit
 description: Use when performing a thorough security, license compliance, and governance review of dependency additions or upgrades
 version: 1.0.0

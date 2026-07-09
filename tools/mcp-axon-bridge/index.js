@@ -4,6 +4,7 @@ const http = require('node:http');
 const path = require('node:path');
 const fs = require('node:fs');
 const { resolve: resolveAxon } = require('./lib/binary-resolver');
+const { MCP_PROTOCOL_VERSION } = require('../lib/mcp-protocol');
 
 const DEFAULT_PORT = 3103;
 
@@ -52,13 +53,15 @@ function createServer() {
   return http.createServer((req, res) => {
     if (req.method === 'GET' && req.url === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({
-        status: 'ok',
-        server: 'axon-bridge',
-        axon_binary: axonBin || null,
-        fallback_active: !axonBin,
-        tools: tools.size,
-      }));
+      res.end(
+        JSON.stringify({
+          status: 'ok',
+          server: 'axon-bridge',
+          axon_binary: axonBin || null,
+          fallback_active: !axonBin,
+          tools: tools.size,
+        }),
+      );
       return;
     }
 
@@ -87,11 +90,15 @@ function createServer() {
         try {
           switch (method) {
             case 'initialize': {
-              res.end(JSON.stringify(buildMcpResponse(id, {
-                protocolVersion: '2024-11-05',
-                serverInfo: { name: 'axon-bridge', version: '1.0.0' },
-                capabilities: { tools: {} },
-              })));
+              res.end(
+                JSON.stringify(
+                  buildMcpResponse(id, {
+                    protocolVersion: MCP_PROTOCOL_VERSION,
+                    serverInfo: { name: 'axon-bridge', version: '1.0.0' },
+                    capabilities: { tools: {} },
+                  }),
+                ),
+              );
               break;
             }
             case 'tools/list': {
@@ -102,9 +109,13 @@ function createServer() {
               const tool = tools.get(params.name);
               if (!tool) throw new Error(`Unknown tool: ${params.name}`);
               const result = await tool.handler(null, params.arguments || {});
-              res.end(JSON.stringify(buildMcpResponse(id, {
-                content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-              })));
+              res.end(
+                JSON.stringify(
+                  buildMcpResponse(id, {
+                    content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+                  }),
+                ),
+              );
               break;
             }
             default: {

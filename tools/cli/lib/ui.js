@@ -138,7 +138,10 @@ class UI {
       });
 
       if (proceed === 'cancel') {
-        await prompts.note('1. Delete the existing hseos folder in your project\n' + "2. Run 'hseos install' again", 'To do a fresh install');
+        await prompts.note(
+          '1. Delete the existing hseos folder in your project\n' + "2. Run 'hseos install' again",
+          'To do a fresh install',
+        );
         process.exit(0);
         return;
       }
@@ -967,7 +970,7 @@ class UI {
         '  mcp-sqlite  — MCP server + SQLite  (structured, atomic, queryable — best for teams)\n' +
         '  cli-sqlite  — Shell scripts + SQLite (no server, works in CI — best for solo devs)\n' +
         '  skill-only  — Markdown only          (zero infra, works everywhere)\n' +
-        '  hybrid      — Auto-detect at runtime  (MCP → CLI → Markdown fallback chain)'
+        '  hybrid      — Auto-detect at runtime  (MCP → CLI → Markdown fallback chain)',
     );
 
     const mode = await p.select({
@@ -1046,7 +1049,7 @@ class UI {
       'HSEOS agents can optionally read from your personal knowledge vault (second-brain)\n' +
         'and write decisions + learnings back to it at the end of each epic.\n\n' +
         'This gives agents access to your goals, active projects, architecture decisions,\n' +
-        'and accumulated patterns — without replacing existing HSEOS sources of truth.'
+        'and accumulated patterns — without replacing existing HSEOS sources of truth.',
     );
 
     const hasVault = await p.confirm({
@@ -1131,7 +1134,7 @@ class UI {
       'RTK intercepts CLI commands (git, cargo, npm, pytest, etc.) and filters their output\n' +
         'before it reaches the LLM context window, saving 60-90% of tokens per session.\n\n' +
         'It installs a global PreToolUse hook in ~/.claude/ that rewrites commands automatically.\n' +
-        (alreadyInstalled ? 'RTK binary detected in PATH.' : 'RTK binary is not installed — the installer will download it.')
+        (alreadyInstalled ? 'RTK binary detected in PATH.' : 'RTK binary is not installed — the installer will download it.'),
     );
 
     const enableRtk = await p.confirm({
@@ -1192,7 +1195,7 @@ class UI {
       'Installs a local web dashboard that tracks token usage, session costs, and project activity\n' +
         'by reading Claude Code session files from ~/.claude/projects/.\n\n' +
         '  local   — Python 3 required. Run: python cli.py dashboard\n' +
-        '  docker  — Docker required. Accessible on the network (port 8080). Run: docker compose up -d'
+        '  docker  — Docker required. Accessible on the network (port 8080). Run: docker compose up -d',
     );
 
     const enableDashboard = await p.confirm({
@@ -1473,7 +1476,8 @@ class UI {
           const installer = new Installer();
           const hseosResult = await installer.findHseosDir(directory);
           const hasHseosInstall =
-            (await fs.pathExists(hseosResult.hseosDir)) && (await fs.pathExists(path.join(hseosResult.hseosDir, '_config', 'manifest.yaml')));
+            (await fs.pathExists(hseosResult.hseosDir)) &&
+            (await fs.pathExists(path.join(hseosResult.hseosDir, '_config', 'manifest.yaml')));
 
           const hseosNote = hasHseosInstall ? ` including existing HSEOS installation (${path.basename(hseosResult.hseosDir)})` : '';
           await prompts.log.message(`Directory exists and contains ${files.length} item(s)${hseosNote}`);

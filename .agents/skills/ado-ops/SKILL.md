@@ -1,4 +1,6 @@
 ---
+trigger: user asks to create, update, query, or close Azure DevOps work items; a dev-squad wave needs ADO state changes mid-execution
+skip: ado.enabled is false; bulk operations beyond 10 REST calls per turn (split the batch); repository bootstrap or migration (use ado-new-project)
 name: ado-ops
 description: Operações Azure DevOps via MCP — criar/editar Epic, Feature, User Story, Task, fechar batch, linkar dependências, gerenciar iteration paths. Core do ciclo ADO-first no HSEOS.
 version: 1.0.0

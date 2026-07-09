@@ -6,6 +6,8 @@ description: "Use when context window is approaching its limit, when resuming a 
 license: Apache-2.0
 metadata:
   owner: platform-governance
+trigger: "Use when the user request matches this skill scope: context >70% used; switching tasks after long implementation streak; about to hand off session; responses becoming generic or losing precision; before /compact to define compression strategy"
+skip: "short sessions under 50k tokens; single focused task not yet complete; user explicitly chose /clear (no compression needed)"
 ---
 
 # Context Compression — Full Protocol

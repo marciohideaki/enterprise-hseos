@@ -8,6 +8,8 @@ metadata:
   owner: platform-governance
   version: "1.0.0"
   inspired-by: superpowers/skills/handoff, claude-code-tips/skills/handoff
+trigger: "ending a session with an incomplete task; task spans multiple sessions; user says 'we'll continue later' or 'pause here'; before /clear when work is mid-flight"
+skip: "task is fully complete (use /end-session instead); session is self-contained with no continuity needed; one-off question with no state to preserve"
 ---
 
 # Session Handoff — Full Protocol

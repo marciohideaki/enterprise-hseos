@@ -54,6 +54,7 @@ Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 20
 | MySQL | `mysql-shared.platform-shared-dev.svc.cluster.local:3306` | StatefulSet `mysql-shared-0` |
 | MariaDB | `mariadb-shared.platform-shared-dev.svc.cluster.local:3306` | StatefulSet `mariadb-shared-0`; legacy app compatibility (EspoCRM, etc) |
 | MinIO (S3) | `minio-shared.platform-shared-dev.svc.cluster.local:9000` (API) / `:9001` (console) | StatefulSet `minio-shared-0`; bucket prefix per project |
+| Keycloak | `keycloak-shared.platform-shared-dev.svc.cluster.local:8080` | Deployment `keycloak-shared`; v24.x; browser-facing hostname is currently `https://keycloak-event-platform.hideakiservicos.net/kc`; each project uses a dedicated realm (e.g. `aiagents` for `ai-agents-os`) |
 | OPA | `opa-shared.platform-shared-dev.svc.cluster.local:8181` | Deployment `opa-shared`; multi-tenant policy bundles loaded per-project. Per ADR-0002. |
 | Loki | `loki.monitoring.svc.cluster.local:3100` | SingleBinary mode; namespace `monitoring`; deployed via ArgoCD app `loki-dev` (grafana/loki chart 6.55.0 / Loki 3.6.7); auth disabled; retention 7d; 10Gi PVC. |
 | OpenFGA | `openfga-shared.platform-shared-dev.svc.cluster.local:8080` (HTTP) / `:8081` (gRPC) | Deployment `openfga-shared`; v1.5.3; postgres backend via `openfga-shared-secret`; auth disabled for dev |
@@ -66,7 +67,6 @@ Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 20
 | Service | Status | Why |
 |---|---|---|
 | Qdrant | not deployed | Use `pgvector` extension in `postgres-shared` for embeddings until vector volume justifies dedicated store. |
-| Keycloak | not deployed in k3s | SSO managed at a different layer. |
 
 ### Relevant ADRs (in `enterprise-hseos/.enterprise/.specs/decisions/`)
 

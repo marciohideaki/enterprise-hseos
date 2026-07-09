@@ -134,6 +134,27 @@ A skill without a Tier 1 file MUST NOT be used by agents.
 
 ---
 
+## Capability Packaging and Synthetic Skill Components
+
+Capability packaging may expose a governed skill as a synthetic selector named
+`skill:<skill-id>`.
+
+Rules:
+
+- Synthetic skill components are install-plan selectors only.
+- Synthetic skill components MUST NOT define new skill authority.
+- The authoritative Tier 0/Tier 1/Tier 2 files remain `SKILLS-REGISTRY.md`,
+  `SKILL-QUICK.md`, and `SKILL.md`.
+- Selecting a synthetic skill component does not bypass trigger matching or the
+  mandatory loading protocol.
+- If a selected skill conflicts with a canonical specification, the canonical
+  specification still wins.
+
+This keeps installation selection ergonomic while preserving deterministic
+skill consumption.
+
+---
+
 ## Final Statement
 
 This policy exists to ensure that:

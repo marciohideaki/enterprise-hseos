@@ -19,6 +19,9 @@ branches:
           - "test (20.x)"
           - "test (22.x)"
           - "Standalone clean-env smoke (node:20)"
+          # ci.yaml calls this job "the non-bypassable PR-time enforcement point"
+          # (ADR-0015 Gate 7) — it must therefore be a required check.
+          - "governance"
       enforce_admins: false
       required_pull_request_reviews:
         dismiss_stale_reviews: true

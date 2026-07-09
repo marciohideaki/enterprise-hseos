@@ -96,6 +96,15 @@ version: "1.4"
 **Cost:** Tier 1 = low | Tier 2 = medium
 
 
+### enterprise-readiness-audit
+**Description:** Full enterprise-readiness / production-readiness audit of a repository across 14 dimensions, including architecture modernization and POC-to-enterprise assessments.
+**Load when:** performing a full enterprise-readiness, production-readiness, architecture modernization, or POC-to-enterprise audit of a repository.
+**Triggers:** `enterprise readiness`, `production readiness`, `readiness audit`, `POC to enterprise`, `architecture modernization`, `enterprise audit`, `is this production ready`
+**Tier 1:** `.enterprise/governance/agent-skills/enterprise-readiness-audit/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/enterprise-readiness-audit/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = high
+
+
 ### pr-review
 **Description:** Enforce PR review standards — quality gates, boundary evidence, contract safety, and governance compliance.
 **Load when:** performing or generating a pull request review, validating a PR is ready to merge.
@@ -278,7 +287,8 @@ version: "1.4"
 **Load when:** ORBIT coordenando múltiplas sessões ativas; planejando hand-off entre agentes; verificando disponibilidade de claude-peers; estruturando mensagens cross-session.
 **Triggers:** `inter-agent`, `cross-session`, `hand-off`, `agent coordination`, `claude-peers`, `peer session`, `ORBIT coordenando`, `workflow state`, `phase output`, `gate request`, `A2A`
 **Tier 1:** `.enterprise/governance/agent-skills/inter-agent-comms/SKILL-QUICK.md`
-**Cost:** Tier 1 = low
+**Tier 2:** `.enterprise/governance/agent-skills/inter-agent-comms/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
 
 ---
 
@@ -287,7 +297,8 @@ version: "1.4"
 **Load when:** SABLE auditando governança de IA; configurando permissões de agentes; investigando acesso não autorizado a ferramentas; revisando spend ou rate limits.
 **Triggers:** `policy layer`, `spend cap`, `rate limit`, `tool access`, `tool hiding`, `audit trail`, `agent permissions`, `least privilege agente`, `governança IA`, `acesso ferramentas`, `policylayer`, `SABLE audit`
 **Tier 1:** `.enterprise/governance/agent-skills/policy-layer/SKILL-QUICK.md`
-**Cost:** Tier 1 = low
+**Tier 2:** `.enterprise/governance/agent-skills/policy-layer/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = medium
 **Owner:** SABLE
 
 ---

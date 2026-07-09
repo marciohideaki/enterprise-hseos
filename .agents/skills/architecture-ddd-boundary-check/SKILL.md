@@ -1,4 +1,6 @@
 ---
+trigger: Use when running a full DDD boundary audit, detecting context leakage, or remediating domain and infrastructure contamination
+skip: Request is outside ddd-boundary-check scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: ddd-boundary-check
 description: Use when running a full DDD boundary audit, detecting context leakage, or remediating domain and infrastructure contamination
 version: "1.0"

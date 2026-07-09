@@ -1,5 +1,32 @@
 # HSEOS CLI Tool
 
+## Capability install planning
+
+Use `hseos install-plan` to inspect the capability surface before writing files.
+The command resolves capability profiles, components, synthetic skill selectors,
+hook profile intent, adapter support, and install paths.
+
+```bash
+hseos install-plan --list-profiles
+hseos install-plan --list-components --family capability
+hseos install-plan --profile developer
+hseos install-plan --profile gitops --hook-profile strict --json
+hseos install-plan --skills pr-review,test-coverage
+hseos install-plan --adapters
+```
+
+The same selection layer is available during install:
+
+```bash
+hseos install --profile developer
+hseos install --profile governance --hook-profile strict
+hseos install --components capability:security,runtime:mcp
+hseos install --skills pr-review,test-coverage
+```
+
+Selection records are written to `.hseos/config/capability-selection.yaml` after
+a successful install. Capability manifests live in `.agents/capabilities/`.
+
 ## Installing external repo HSEOS official modules
 
 For external official modules to be discoverable during install, ensure an entry for the external repo is added to external-official-modules.yaml.

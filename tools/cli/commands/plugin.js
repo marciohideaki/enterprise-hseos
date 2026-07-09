@@ -135,19 +135,26 @@ async function runDoctor(projectDir) {
 module.exports = {
   command: 'plugin <action> [plugin-id]',
   description: 'Manage HSEOS plugins',
-  options: [
-    ['--directory <path>', 'Project directory (default: current directory)'],
-  ],
+  options: [['--directory <path>', 'Project directory (default: current directory)']],
   action: async (action, pluginId, options = {}) => {
     if (!SUPPORTED_ACTIONS.has(action)) {
-      throw new Error(
-        `Unsupported plugin action: ${action}. Expected one of: ${[...SUPPORTED_ACTIONS].join(', ')}`,
-      );
+      throw new Error(`Unsupported plugin action: ${action}. Expected one of: ${[...SUPPORTED_ACTIONS].join(', ')}`);
     }
     const projectDir = path.resolve(options.directory || process.cwd());
-    if (action === 'list') { await runList(projectDir); return; }
-    if (action === 'install') { await runInstall(projectDir, pluginId); return; }
-    if (action === 'remove') { await runRemove(projectDir, pluginId); return; }
-    if (action === 'doctor') { await runDoctor(projectDir); }
+    if (action === 'list') {
+      await runList(projectDir);
+      return;
+    }
+    if (action === 'install') {
+      await runInstall(projectDir, pluginId);
+      return;
+    }
+    if (action === 'remove') {
+      await runRemove(projectDir, pluginId);
+      return;
+    }
+    if (action === 'doctor') {
+      await runDoctor(projectDir);
+    }
   },
 };

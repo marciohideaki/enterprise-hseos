@@ -6,7 +6,7 @@ const { getProjectRoot } = require('../../../../lib/project-root');
 
 const { writeInstructions } = require('./sources/instructions-source');
 const { writeSkills, normalizeSkill } = require('./sources/skills-source');
-const { writeHookRegistry } = require('./sources/hooks-source');
+const { syncHandlers, writeHookRegistry } = require('./sources/hooks-source');
 const { writeCommandRegistry } = require('./sources/commands-source');
 const { collectAgents } = require('./sources/agents-source');
 const { writePluginRegistry } = require('./sources/plugins-source');
@@ -21,6 +21,7 @@ const { findFiles } = require('./lib/find-files');
 
 const DEFAULT_AGENTS_DIR = '.agents';
 const ENTERPRISE_SKILLS_DIR = path.join('.enterprise', 'governance', 'agent-skills');
+const ENTERPRISE_HOOKS_DIR = path.join('.enterprise', 'governance', 'hooks');
 
 class AgentCoreCompiler {
   constructor(options = {}) {
@@ -33,19 +34,25 @@ class AgentCoreCompiler {
     const agentsDir = path.join(root, this.agentsDirName);
     const targetEnterpriseSkillsDir = path.join(root, ENTERPRISE_SKILLS_DIR);
     const sourceEnterpriseSkillsDir = path.join(sourceRoot, ENTERPRISE_SKILLS_DIR);
-    const enterpriseSkillsDir = (await fs.pathExists(targetEnterpriseSkillsDir))
-      ? targetEnterpriseSkillsDir
-      : sourceEnterpriseSkillsDir;
+    const enterpriseSkillsDir = (await fs.pathExists(targetEnterpriseSkillsDir)) ? targetEnterpriseSkillsDir : sourceEnterpriseSkillsDir;
 
     await fs.ensureDir(agentsDir);
     await writeInstructions(root, this.agentsDirName);
     const skills = await writeSkills(root, enterpriseSkillsDir, sourceRoot, this.agentsDirName);
 
-    // Determine hook source: prefer neutral registry (target, then source), fall back to legacy hooks.json
+    // Determine hook source. Canonical: .enterprise/governance/hooks/registry.yaml
+    // (target, then source root). Compatibility fallbacks: the previously compiled
+    // .agents/hooks/registry.yaml (target, then source root), then legacy hooks.json.
+    const targetEnterpriseHooks = path.join(root, ENTERPRISE_HOOKS_DIR, 'registry.yaml');
+    const sourceEnterpriseHooks = path.join(sourceRoot, ENTERPRISE_HOOKS_DIR, 'registry.yaml');
     const targetRegistry = path.join(root, this.agentsDirName, 'hooks', 'registry.yaml');
     const sourceRegistry = path.join(sourceRoot, this.agentsDirName, 'hooks', 'registry.yaml');
     let hookSource;
-    if (await fs.pathExists(targetRegistry)) {
+    if (await fs.pathExists(targetEnterpriseHooks)) {
+      hookSource = targetEnterpriseHooks;
+    } else if (await fs.pathExists(sourceEnterpriseHooks)) {
+      hookSource = sourceEnterpriseHooks;
+    } else if (await fs.pathExists(targetRegistry)) {
       hookSource = targetRegistry;
     } else if (await fs.pathExists(sourceRegistry)) {
       hookSource = sourceRegistry;
@@ -54,9 +61,14 @@ class AgentCoreCompiler {
     }
 
     const hooks = await this.writeHookRegistry(root, hookSource, null);
-    await this.writePlatformAdapters(root, hooks, options.platforms || [], {
-      agentsDirName: this.agentsDirName,
-    });
+
+    // Sync handler scripts from the enterprise source into the compiled tree and
+    // hash-pin them (skills-style). Projects without the enterprise handlers dir
+    // skip this step entirely, keeping pre-migration installs byte-for-byte compatible.
+    const targetHandlersDir = path.join(root, ENTERPRISE_HOOKS_DIR, 'handlers');
+    const sourceHandlersDir = path.join(sourceRoot, ENTERPRISE_HOOKS_DIR, 'handlers');
+    const handlersSourceDir = (await fs.pathExists(targetHandlersDir)) ? targetHandlersDir : sourceHandlersDir;
+    const handlers = await syncHandlers(root, handlersSourceDir, this.agentsDirName);
     const commands = await writeCommandRegistry(root, hseosDir, this.agentsDirName);
     const agents = await collectAgents(root);
     const plugins = (await writePluginRegistry(root, this.agentsDirName))
@@ -67,20 +79,36 @@ class AgentCoreCompiler {
         return entry;
       });
     const mcp = await collectMcp(root, this.agentsDirName, hseosDir);
-    const manifest = await writeManifest(root, {
-      skills,
-      hooks,
-      commands,
-      agents,
-      plugins,
-      mcp,
-      platforms: options.platforms || [],
-    }, this.agentsDirName);
+
+    // Adapters run after all sources are collected so cross-surface emitters
+    // (Goose mirrors skills/agents/MCP bundles) receive real data. Returns the
+    // requested platforms that actually have an emitter — the manifest records
+    // exactly that list, never an aspirational one.
+    const emittedPlatforms = await this.writePlatformAdapters(root, hooks, options.platforms || [], {
+      agentsDirName: this.agentsDirName,
+      sources: { skills, agents, mcpBundles: mcp.bundles || [] },
+    });
+
+    const manifest = await writeManifest(
+      root,
+      {
+        skills,
+        hooks,
+        handlers,
+        commands,
+        agents,
+        plugins,
+        mcp,
+        platforms: emittedPlatforms,
+      },
+      this.agentsDirName,
+    );
 
     return {
       agentsDir,
       skills: skills.length,
       hooks: hooks.length,
+      handlers: handlers.length,
       commands: commands.length,
       agents: agents.length,
       plugins: plugins.length,

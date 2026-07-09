@@ -36,9 +36,9 @@ const cases = [
           assertChecksPassing(
             passingPr({
               statusCheckRollup: [{ name: 'test', status: 'IN_PROGRESS', conclusion: null }],
-            })
+            }),
           ),
-        /non-passing checks/
+        /non-passing checks/,
       ),
   },
   {

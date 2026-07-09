@@ -10,14 +10,7 @@ const { spawn, execSync } = require('node:child_process');
 const fs = require('fs-extra');
 
 const SERVER = path.join(__dirname, '..', '..', 'state-ui-server', 'index.js');
-const {
-  loadRegistry,
-  saveRegistry,
-  addProject,
-  removeProject,
-  validate,
-  registryPath,
-} = require('../../state-ui-server/lib/registry');
+const { loadRegistry, saveRegistry, addProject, removeProject, validate, registryPath } = require('../../state-ui-server/lib/registry');
 
 async function loadConfig(directory) {
   const yaml = require('js-yaml');
@@ -76,8 +69,7 @@ function cmdList(options) {
     Math.max('status'.length, ...status.map((s) => s.status.length)),
     Math.max('path'.length, ...status.map((s) => s.path.length)),
   ];
-  const fmt = (cols) =>
-    cols.map((c, i) => String(c).padEnd(widths[i])).join('  ');
+  const fmt = (cols) => cols.map((c, i) => String(c).padEnd(widths[i])).join('  ');
   console.log(fmt(['id', 'status', 'path']));
   console.log(fmt(widths.map((w) => '-'.repeat(w))));
   for (const s of status) console.log(fmt([s.id, s.status, s.path]));
@@ -99,15 +91,8 @@ async function cmdStart(options) {
   }
   const child = spawn(
     process.execPath,
-    [
-      SERVER,
-      `--port=${port}`,
-      `--host=${host}`,
-      `--registry=${reg}`,
-      `--poll-ms=${pollMs}`,
-      `--stale-minutes=${staleMinutes}`,
-    ],
-    { detached: true, stdio: 'ignore' }
+    [SERVER, `--port=${port}`, `--host=${host}`, `--registry=${reg}`, `--poll-ms=${pollMs}`, `--stale-minutes=${staleMinutes}`],
+    { detached: true, stdio: 'ignore' },
   );
   child.unref();
   await new Promise((r) => setTimeout(r, 400));
@@ -138,8 +123,7 @@ async function cmdStatus(options) {
 
 module.exports = {
   command: 'kanban-central <action> [target]',
-  description:
-    'Manage the central multi-project kanban (register/deregister/list/start/stop/status).',
+  description: 'Manage the central multi-project kanban (register/deregister/list/start/stop/status).',
   options: [
     ['--directory <path>', 'Project directory for config lookup (default: cwd)'],
     ['--registry <path>', 'Registry JSON path (default: ~/.hseos/projects.json)'],

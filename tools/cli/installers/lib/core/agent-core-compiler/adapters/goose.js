@@ -40,9 +40,7 @@ class GooseAdapter {
     const warnings = [];
     const activeHooks = (sources.hooks || []).filter((h) => !h.status || h.status === 'active');
     if (activeHooks.length > 0) {
-      warnings.push(
-        `Goose does not support hooks natively. ${activeHooks.length} hook(s) documented in .goose/hooks-metadata.json.`,
-      );
+      warnings.push(`Goose does not support hooks natively. ${activeHooks.length} hook(s) documented in .goose/hooks-metadata.json.`);
     }
     return { ok: true, warnings, errors: [] };
   }
@@ -83,11 +81,7 @@ class GooseAdapter {
       },
     };
 
-    await fs.writeFile(
-      path.join(outputDir, '.goose', 'config.yaml'),
-      yaml.stringify(config),
-      'utf8',
-    );
+    await fs.writeFile(path.join(outputDir, '.goose', 'config.yaml'), yaml.stringify(config), 'utf8');
   }
 
   async _emitSkills(sources, outputDir) {
@@ -95,11 +89,7 @@ class GooseAdapter {
       const skillId = skill.name || skill.id;
       if (!skillId) continue;
       const content = skill.content || `# ${skillId}\n\n${skill.description || ''}\n`;
-      await fs.writeFile(
-        path.join(outputDir, '.goose', 'skills', `${skillId}.md`),
-        content,
-        'utf8',
-      );
+      await fs.writeFile(path.join(outputDir, '.goose', 'skills', `${skillId}.md`), content, 'utf8');
     }
   }
 
@@ -114,11 +104,7 @@ class GooseAdapter {
         model: 'claude-sonnet-4-6',
         tools: agent.tool_policy?.allowed_tools || [],
       });
-      await fs.writeFile(
-        path.join(outputDir, '.goose', 'agents', `${agentId}.yaml`),
-        agentYaml,
-        'utf8',
-      );
+      await fs.writeFile(path.join(outputDir, '.goose', 'agents', `${agentId}.yaml`), agentYaml, 'utf8');
     }
   }
 
@@ -136,11 +122,7 @@ class GooseAdapter {
         goose_equivalent: HOOK_EVENT_MAP[h.event] ?? 'unsupported',
       })),
     };
-    await fs.writeFile(
-      path.join(outputDir, '.goose', 'hooks-metadata.json'),
-      JSON.stringify(meta, null, 2),
-      'utf8',
-    );
+    await fs.writeFile(path.join(outputDir, '.goose', 'hooks-metadata.json'), JSON.stringify(meta, null, 2), 'utf8');
   }
 
   async verify(outputDir) {

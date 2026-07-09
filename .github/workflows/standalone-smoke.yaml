@@ -32,6 +32,12 @@ jobs:
       - name: Install system dependencies
         run: apt-get update -qq && apt-get install -y -qq jq
 
+      - name: Mark workspace as safe for git
+        # The container user differs from the checkout owner; without this,
+        # any test that shells out to `git rev-parse` (e.g. the ado-ops hook
+        # suites via _ado-lib.sh) dies with "dubious ownership" (exit 128).
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: Install dependencies (npm ci)
         run: npm ci
 

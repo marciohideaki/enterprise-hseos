@@ -2346,10 +2346,7 @@ Criar \`_knowledge/projects/${projectName}/\` com os 7 arquivos base (README, mo
     // Fetch latest version tag from GitHub API
     let version;
     try {
-      const raw = execSync(
-        'curl -fsSL "https://api.github.com/repos/rtk-ai/rtk/releases/latest"',
-        { encoding: 'utf8', timeout: 15_000 }
-      );
+      const raw = execSync('curl -fsSL "https://api.github.com/repos/rtk-ai/rtk/releases/latest"', { encoding: 'utf8', timeout: 15_000 });
       const match = raw.match(/"tag_name"\s*:\s*"([^"]+)"/);
       version = match ? match[1] : null;
     } catch {
@@ -2366,10 +2363,7 @@ Criar \`_knowledge/projects/${projectName}/\` com os 7 arquivos base (README, mo
     const url = `https://github.com/rtk-ai/rtk/releases/download/${version}/rtk-${target}.tar.gz`;
 
     try {
-      execSync(
-        `curl -fsSL "${url}" | tar -xzf - -C "${installDir}" rtk && chmod +x "${installDir}/rtk"`,
-        { timeout: 60_000 }
-      );
+      execSync(`curl -fsSL "${url}" | tar -xzf - -C "${installDir}" rtk && chmod +x "${installDir}/rtk"`, { timeout: 60_000 });
     } catch {
       throw new Error(`RTK: failed to download binary from ${url}`);
     }
@@ -2477,7 +2471,7 @@ fi
 
     // Idempotent: only add if not already registered
     const alreadyRegistered = settings.hooks.PreToolUse.some(
-      (entry) => entry.hooks && entry.hooks.some((h) => h.command && h.command.includes('rtk-rewrite'))
+      (entry) => entry.hooks && entry.hooks.some((h) => h.command && h.command.includes('rtk-rewrite')),
     );
 
     if (!alreadyRegistered) {
@@ -2891,8 +2885,16 @@ fi
       await fs.remove(targetPath);
       await this.installCore(hseosDir);
     } else {
-      // Selective update - preserve user modifications
-      await this.fileOps.syncDirectory(sourcePath, targetPath);
+      // Selective update — content-addressed via the canonical syncFileSafe
+      // primitive; user-modified files are preserved and reported, never
+      // silently clobbered by mtime heuristics.
+      const summary = await this.fileOps.syncDirectory(sourcePath, targetPath);
+      if (summary.preserved.length > 0 || summary.conflicts.length > 0) {
+        const kept = [...summary.preserved, ...summary.conflicts];
+        await prompts.log.warn(
+          `updateCore preserved ${kept.length} locally modified core file(s): ${kept.slice(0, 5).join(', ')}${kept.length > 5 ? ', …' : ''}. Use --force to overwrite from source.`,
+        );
+      }
 
       // Recompile agents (#1133)
       const { ModuleManager } = require('../modules/manager');

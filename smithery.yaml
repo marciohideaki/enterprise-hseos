@@ -13,9 +13,15 @@ entry: tools/hseos-npx-wrapper.js
 engines:
   node: ">=20.0.0"
 mcp_servers:
-  - id: hseos-governance
-    command: node tools/mcp-hseos-governance/index.js
-    port: 3101
   - id: hseos-project-state
     command: node tools/mcp-project-state/index.js
     port: 3100
+  - id: hseos-governance
+    command: node tools/mcp-hseos-governance/index.js
+    port: 3101
+  - id: hseos-swarm
+    command: node tools/mcp-hseos-swarm/index.js
+    port: 3102
+  - id: hseos-axon-bridge
+    command: node tools/mcp-axon-bridge/index.js
+    port: 3103

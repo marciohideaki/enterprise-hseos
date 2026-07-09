@@ -1,4 +1,6 @@
 ---
+trigger: an approved dev-squad PLAN.md needs ADO work items (gate G1-ADO); user asks to create Epic/Feature/Stories/Tasks in Azure DevOps from a plan
+skip: ado.enabled is false (all ADO skills exit silently); no approved PLAN.md yet; work tracking does not use Azure DevOps
 name: ado-plan
 description: "G1-ADO gate: cria hierarquia Epic/Feature/Story/Task no Azure DevOps a partir do PLAN.md antes de qualquer execução dev-squad. Implementa o fluxo ADO-first obrigatório."
 version: 1.0.0

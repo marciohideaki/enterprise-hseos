@@ -12,7 +12,6 @@ const { spawnSync } = require('node:child_process');
 
 let Database;
 try {
-   
   Database = require('better-sqlite3');
 } catch {
   Database = null;
@@ -47,7 +46,7 @@ function seedDb(dir) {
   const result = spawnSync(
     process.execPath,
     [HSEOS_CLI, 'state-emit', 'start', '--directory', dir, '--run', 'R-test', '--task', 'T1', '--agent', 'A', '--silent'],
-    { encoding: 'utf8', timeout: 10_000 }
+    { encoding: 'utf8', timeout: 10_000 },
   );
   if (result.status !== 0) {
     throw new Error(`seed state-emit failed: ${result.stderr}`);

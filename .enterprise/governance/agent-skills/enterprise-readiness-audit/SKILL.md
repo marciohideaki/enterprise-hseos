@@ -5,6 +5,8 @@ license: Apache-2.0
 metadata:
   owner: platform-governance
   version: "1.0.0"
+trigger: "user asks for a full enterprise-readiness, production-readiness, architecture modernization, or POC-to-enterprise audit of a repository"
+skip: "a single-dimension check is enough (use the specific skill: secure-coding, test-coverage, accessibility, dependency-audit); user wants a quick opinion, not a formal 14-dimension audit"
 ---
 
 # Enterprise Readiness Audit

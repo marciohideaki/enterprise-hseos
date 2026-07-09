@@ -10,6 +10,12 @@ This matrix tells:
 - **The compiler** which adapters require fallback prose when emitting an asset that uses an unsupported capability
 - **End users** what behaviour to expect when they install HSEOS on a particular vendor
 
+For machine-readable inspection, run:
+
+```bash
+hseos install-plan --adapters --json
+```
+
 ## Adapters declared today
 
 The six initial adapters from ADR-0007 plus the BYOA reference:

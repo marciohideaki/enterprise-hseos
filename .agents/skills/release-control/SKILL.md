@@ -1,4 +1,6 @@
 ---
+trigger: "Use when managing a release end-to-end: changelog validation, risk classification, rollout requirements, and approval gates"
+skip: Request is outside release-control scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: release-control
 description: "Use when managing a release end-to-end: changelog validation, risk classification, rollout requirements, and approval gates"
 version: "1.0"

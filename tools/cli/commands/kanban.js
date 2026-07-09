@@ -10,7 +10,6 @@ const pc = require('picocolors');
 
 let Database;
 try {
-   
   Database = require('better-sqlite3');
 } catch {
   Database = null;
@@ -102,14 +101,14 @@ function renderBoard(snapshot) {
       const t = entry.item;
       lines.push(
         pc.bold(truncate(`${t.id} ${t.model_tier || '-'}`, COLUMN_WIDTH - 2)),
-        pc.dim(truncate(`wave=${t.wave} ${t.run_id}`, COLUMN_WIDTH - 2))
+        pc.dim(truncate(`wave=${t.wave} ${t.run_id}`, COLUMN_WIDTH - 2)),
       );
     } else {
       const a = entry.item;
       const age = ageSeconds(a.last_heartbeat_at);
       lines.push(
         pc.bold(truncate(`#${a.id} ${a.agent_name}`, COLUMN_WIDTH - 2)),
-        pc.dim(truncate(`${a.task_id || '-'} ${a.run_id}`, COLUMN_WIDTH - 2)) + ' ' + colorAge(age)
+        pc.dim(truncate(`${a.task_id || '-'} ${a.run_id}`, COLUMN_WIDTH - 2)) + ' ' + colorAge(age),
       );
     }
     return lines;
@@ -162,7 +161,7 @@ function renderFooter(snapshot) {
   const c = snapshot.counts || {};
   const total = (c.pending || 0) + (c.running || 0) + (c.completed || 0) + (c.aborted || 0) + (c.orphaned || 0);
   return pc.dim(
-    `Runs: ${snapshot.runs?.length || 0}  ·  Cards: ${total}  ·  Eventos: ${snapshot.events?.length || 0}  ·  Stale > ${snapshot.stale_minutes}m`
+    `Runs: ${snapshot.runs?.length || 0}  ·  Cards: ${total}  ·  Eventos: ${snapshot.events?.length || 0}  ·  Stale > ${snapshot.stale_minutes}m`,
   );
 }
 

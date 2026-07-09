@@ -19,6 +19,8 @@ metadata:
     - "/atlas plan"
     - "PLAN.md to ADO"
     - "before dev-squad ADO"
+trigger: "an approved dev-squad PLAN.md needs ADO work items (gate G1-ADO); user asks to create Epic/Feature/Stories/Tasks in Azure DevOps from a plan"
+skip: "ado.enabled is false (all ADO skills exit silently); no approved PLAN.md yet; work tracking does not use Azure DevOps"
 ---
 
 # ADO-Plan — G1-ADO Gate

@@ -15,7 +15,6 @@ const { spawn } = require('node:child_process');
 
 let Database;
 try {
-   
   Database = require('better-sqlite3');
 } catch {
   Database = null;
@@ -72,7 +71,7 @@ function rpc(port, method, params = {}) {
             reject(error);
           }
         });
-      }
+      },
     );
     req.on('error', reject);
     req.write(body);
@@ -121,14 +120,7 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
     await it('tools/list includes new agent-state tools', async () => {
       const r = await rpc(port, 'tools/list', {});
       const names = new Set(r.tools.map((t) => t.name));
-      for (const required of [
-        'runs_list',
-        'run_create',
-        'agent_runs_list',
-        'orphans_list',
-        'events_search',
-        'handoffs_list',
-      ]) {
+      for (const required of ['runs_list', 'run_create', 'agent_runs_list', 'orphans_list', 'events_search', 'handoffs_list']) {
         if (!names.has(required)) throw new Error(`missing tool: ${required}`);
       }
     });

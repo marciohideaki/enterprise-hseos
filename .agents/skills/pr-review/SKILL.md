@@ -1,4 +1,6 @@
 ---
+trigger: Use when performing a thorough PR review with blast radius analysis, adversarial assessment, contract safety checks, and full governance compliance
+skip: Request is outside pr-review scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: pr-review
 description: Use when performing a thorough PR review with blast radius analysis, adversarial assessment, contract safety checks, and full governance compliance
 version: 2.0.0

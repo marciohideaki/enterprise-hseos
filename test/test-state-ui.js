@@ -13,7 +13,6 @@ const { spawn } = require('node:child_process');
 
 let Database;
 try {
-   
   Database = require('better-sqlite3');
 } catch {
   Database = null;
@@ -86,11 +85,9 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
   const dbPath = path.join(tmp, '.hseos', 'state', 'project.db');
   const port = pickPort();
 
-  const child = spawn(
-    process.execPath,
-    [SERVER, `--port=${port}`, `--db=${dbPath}`, '--poll-ms=200'],
-    { stdio: ['ignore', 'pipe', 'pipe'] }
-  );
+  const child = spawn(process.execPath, [SERVER, `--port=${port}`, `--db=${dbPath}`, '--poll-ms=200'], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
 
   child.on('error', (e) => console.error('spawn error', e));
 

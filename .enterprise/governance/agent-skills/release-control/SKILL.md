@@ -5,6 +5,8 @@ license: Apache-2.0
 metadata:
   owner: platform-governance
   version: "1.0.0"
+trigger: "Use when managing a release end-to-end: changelog validation, risk classification, rollout requirements, and approval gates"
+skip: "Request is outside release-control scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 ---
 
 # Release Control

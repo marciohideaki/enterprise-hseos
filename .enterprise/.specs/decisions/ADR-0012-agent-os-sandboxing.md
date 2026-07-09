@@ -1,6 +1,6 @@
 # ADR-0012 — Optional Agent OS Sandboxing
 
-**Status:** Proposed
+**Status:** Accepted (ratified 2026-07-08)
 **Date:** 2026-05-30
 **Authors:** Platform Architecture
 **Approved by:** —

@@ -1,6 +1,6 @@
 # ADR-0009 — HSEOS Plugin Marketplace (Dual-Format)
 
-**Status:** Proposed
+**Status:** Accepted (ratified 2026-07-08)
 **Date:** 2026-05-07
 **Authors:** Platform Architecture
 **Affects Standards:** Compiler module; SKILLS-REGISTRY; install/uninstall lifecycle; documentation policy

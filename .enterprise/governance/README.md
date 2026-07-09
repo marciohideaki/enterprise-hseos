@@ -34,28 +34,14 @@ Each skill has two tiers:
 
 The `SKILLS-REGISTRY.md` at the root of `agent-skills/` is the **only entry point agents use**. They load the registry first, then load individual skill files as needed.
 
-### Available skills (18 total)
+### Available skills
 
-| Skill | Triggers |
-|---|---|
-| `accessibility` | Any UI/UX output |
-| `adr-compliance` | Architecture changes, ADR drafts |
-| `architecture/breaking-change-detection` | API changes, contract changes |
-| `architecture/ddd-boundary-check` | Domain model changes, service boundaries |
-| `commit-hygiene` | Before every commit |
-| `dependency-audit` | New dependencies, version bumps |
-| `documentation-completeness` | Public API or code documentation changes |
-| `naming-conventions` | Any new file, class, variable, service name |
-| `observability-compliance` | New endpoints, services, or operations |
-| `performance-profiling` | Services with activated Performance Engineering Standard |
-| `pr-review` | Every PR before merge |
-| `release-control` | Release, tag, or deployment operations |
-| `sanitize-comments` | Code comments containing FR/NFR/story/AI attribution |
-| `secure-coding` | Any code touching auth, secrets, input validation, PII |
-| `spec-driven` | Spec-first development, any task with requirements |
-| `test-coverage` | Test files, coverage reports |
-| `agent-permissions` | Setting up or auditing `.claude/settings.json` |
-| `threat-modeling` | Explicit AppSec / threat model requests only |
+The skill catalog lives in **`agent-skills/SKILLS-REGISTRY.md`** — the single canonical
+index (49 skills as of 2026-07-08, spanning governance/compliance audits, execution
+protocols, GitOps, ADO tracking, context engineering, and research). Each entry declares
+description, load-when conditions, triggers, tiers, and cost. This README intentionally
+does not duplicate the list: a static copy here went stale at 18 entries while the
+registry grew past 40.
 
 ---
 

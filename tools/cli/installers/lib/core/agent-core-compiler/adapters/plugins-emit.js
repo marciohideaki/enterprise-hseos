@@ -53,31 +53,21 @@ async function writePlatformPluginAdapters(root, registryPlugins, agentsDirName 
     registryRaw = yaml.parse(await fs.readFile(registryPath, 'utf8')) || {};
   }
 
-  const manifests = await Promise.all(
-    registryPlugins.map((p) => readPluginManifest(root, agentsDirName, p.id)),
-  );
+  const manifests = await Promise.all(registryPlugins.map((p) => readPluginManifest(root, agentsDirName, p.id)));
   const plugins = manifests.filter(Boolean);
 
   if (platforms.includes('claude-code') || platforms.length === 0) {
     const claudePluginDir = path.join(root, '.claude-plugin');
     await fs.ensureDir(claudePluginDir);
     const marketplace = buildClaudePluginMarketplace(registryRaw, plugins);
-    await fs.writeFile(
-      path.join(claudePluginDir, 'marketplace.json'),
-      JSON.stringify(marketplace, null, 2),
-      'utf8',
-    );
+    await fs.writeFile(path.join(claudePluginDir, 'marketplace.json'), JSON.stringify(marketplace, null, 2), 'utf8');
   }
 
   if (platforms.includes('codex') || platforms.length === 0) {
     const codexPluginDir = path.join(root, '.codex-plugin');
     await fs.ensureDir(codexPluginDir);
     const index = buildCodexPluginIndex(registryRaw, plugins);
-    await fs.writeFile(
-      path.join(codexPluginDir, 'plugin.json'),
-      JSON.stringify(index, null, 2),
-      'utf8',
-    );
+    await fs.writeFile(path.join(codexPluginDir, 'plugin.json'), JSON.stringify(index, null, 2), 'utf8');
   }
 }
 
