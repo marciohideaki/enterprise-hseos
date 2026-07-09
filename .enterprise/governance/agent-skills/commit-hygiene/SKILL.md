@@ -5,6 +5,8 @@ license: Apache-2.0
 metadata:
   owner: platform-governance
   version: "2.0.0"
+trigger: "Use when auditing a batch of commits, establishing commit hygiene policy, or remediating persistent AI-attribution or format violations"
+skip: "Request is outside commit-hygiene scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 ---
 
 # Commit Hygiene — Full Policy

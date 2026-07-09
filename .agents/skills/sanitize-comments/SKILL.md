@@ -1,10 +1,10 @@
 ---
 skill: sanitize-comments
 standard: Commit Hygiene Policy / Corporate AI Attribution Policy
+trigger: Use when auditing source code comments and commit messages for AI methodology references, management language, or corporate attribution violations
+skip: Request is outside sanitize-comments scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: sanitize-comments
 description: Use when auditing source code comments and commit messages for AI methodology references, management language, or corporate attribution violations
-trigger: "Use when auditing source code comments and commit messages for AI methodology references, management language, or corporate attribution violations"
-skip: "Request is outside sanitize-comments scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 version: "1.0"
 owner: platform-governance
 tier: full

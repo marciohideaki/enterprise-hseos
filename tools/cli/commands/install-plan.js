@@ -1,11 +1,6 @@
 const path = require('node:path');
 const prompts = require('../lib/prompts');
-const {
-  loadAdapterMatrix,
-  loadCapabilityCatalog,
-  parseCsv,
-  resolveCapabilityPlan,
-} = require('../lib/capability-catalog');
+const { loadAdapterMatrix, loadCapabilityCatalog, parseCsv, resolveCapabilityPlan } = require('../lib/capability-catalog');
 
 function renderList(title, values) {
   if (!values || values.length === 0) return `${title}: (none)`;
@@ -13,13 +8,20 @@ function renderList(title, values) {
 }
 
 function renderPlan(plan) {
+  const withPrereqs = plan.components.filter((component) => (component.prerequisites || []).length > 0);
   const lines = [
     'HSEOS install plan',
     '',
     `Profile: ${plan.profile || '(custom)'}`,
     `Hook profile: ${plan.hook_profile}`,
     '',
-    renderList('Components', plan.components.map((component) => `${component.id}${component.required ? ' [required]' : ''}`)),
+    renderList(
+      'Components',
+      plan.components.map(
+        (component) =>
+          `${component.id}${component.required ? ' [required]' : ''}${(component.prerequisites || []).length > 0 ? ' [has prerequisites]' : ''}`,
+      ),
+    ),
     '',
     renderList('Modules', plan.modules),
     '',
@@ -29,6 +31,16 @@ function renderPlan(plan) {
     '',
     renderList('Install paths', plan.install_paths),
   ];
+  if (withPrereqs.length > 0) {
+    lines.push(
+      '',
+      'Prerequisites (all optional components degrade gracefully when unmet):',
+      ...withPrereqs.flatMap((component) => [
+        `  ${component.id}:`,
+        ...component.prerequisites.map((prerequisite) => `    - ${prerequisite}`),
+      ]),
+    );
+  }
   return lines.join('\n');
 }
 
@@ -48,7 +60,10 @@ function renderComponents(catalog, family) {
   return [
     'Capability components',
     '',
-    ...components.map((component) => `- ${component.id} [${component.family}]\n  ${component.description || component.name || ''}`),
+    ...components.map((component) => {
+      const prereqs = (component.prerequisites || []).map((prerequisite) => `\n  prerequisite: ${prerequisite}`).join('');
+      return `- ${component.id} [${component.family}]\n  ${component.description || component.name || ''}${prereqs}`;
+    }),
   ].join('\n');
 }
 

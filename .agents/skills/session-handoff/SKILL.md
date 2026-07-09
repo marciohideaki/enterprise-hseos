@@ -1,8 +1,8 @@
 ---
+trigger: ending a session with an incomplete task; task spans multiple sessions; user says 'we'll continue later' or 'pause here'; before /clear when work is mid-flight
+skip: task is fully complete (use /end-session instead); session is self-contained with no continuity needed; one-off question with no state to preserve
 name: session-handoff
 description: Use when ending a work session and a future agent or session must resume the same task without losing context
-trigger: "ending a session with an incomplete task; task spans multiple sessions; user says 'we'll continue later' or 'pause here'; before /clear when work is mid-flight"
-skip: "task is fully complete (use /end-session instead); session is self-contained with no continuity needed; one-off question with no state to preserve"
 version: "1.0"
 owner: platform-governance
 tier: full

@@ -5,6 +5,8 @@ license: Apache-2.0
 metadata:
   owner: platform-governance
   version: "1.0.0"
+trigger: "new project needs full GitOps scaffold (namespaces, dev/hmg/stg/prod overlays, ArgoCD Application + AppProject); user says 'onboard new project to GitOps'; no existing manifests for the project in platform-gitops"
+skip: "project already exists in platform-gitops → use gitops-add-service or gitops-deploy instead; project uses non-Kustomize tooling (pure Helm, Terraform)"
 ---
 
 # GitOps New Project — Guia Completo

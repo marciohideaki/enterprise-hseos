@@ -5,6 +5,8 @@ license: Apache-2.0
 metadata:
   owner: platform-governance
   version: "1.0.0"
+trigger: "Use when performing deep WCAG 2.1 compliance validation, fixing critical accessibility violations, or auditing an entire screen flow"
+skip: "Request is outside accessibility scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 ---
 
 # Accessibility

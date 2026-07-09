@@ -16,7 +16,6 @@ const crypto = require('node:crypto');
 
 let Database;
 try {
-   
   Database = require('better-sqlite3');
 } catch {
   console.error('[state-ui] better-sqlite3 not installed — install with: npm install better-sqlite3');

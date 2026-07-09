@@ -18,6 +18,8 @@ metadata:
     - "task completa ADO"
     - "dev-squad finished"
     - "update ADO state"
+trigger: "a dev-squad run finished and the ADO board must reflect task/wave state; user explicitly asks to sync ADO"
+skip: "ado.enabled is false; no completed run to sync; the board is already current (sync is best-effort and idempotent)"
 ---
 
 # ADO-Sync — Estado Contínuo

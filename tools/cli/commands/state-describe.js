@@ -6,7 +6,6 @@ const path = require('node:path');
 
 let Database;
 try {
-   
   Database = require('better-sqlite3');
 } catch {
   Database = null;
@@ -23,18 +22,14 @@ function openState(directory) {
 function describeRun(db, run_id) {
   const run = db.prepare(`SELECT * FROM as_runs WHERE id = ?`).get(run_id);
   if (!run) return null;
-  const taskCounts = db
-    .prepare(`SELECT status, COUNT(*) AS n FROM as_tasks WHERE run_id = ? GROUP BY status`)
-    .all(run_id);
-  const agentRunCounts = db
-    .prepare(`SELECT status, COUNT(*) AS n FROM as_agent_runs WHERE run_id = ? GROUP BY status`)
-    .all(run_id);
+  const taskCounts = db.prepare(`SELECT status, COUNT(*) AS n FROM as_tasks WHERE run_id = ? GROUP BY status`).all(run_id);
+  const agentRunCounts = db.prepare(`SELECT status, COUNT(*) AS n FROM as_agent_runs WHERE run_id = ? GROUP BY status`).all(run_id);
   const lastEvents = db
     .prepare(
       `SELECT e.id, e.kind, e.ts, ar.agent_name, ar.task_id
        FROM as_events e LEFT JOIN as_agent_runs ar ON ar.id = e.agent_run_id
        WHERE ar.run_id = ? OR e.agent_run_id IS NULL
-       ORDER BY e.ts DESC LIMIT 10`
+       ORDER BY e.ts DESC LIMIT 10`,
     )
     .all(run_id);
   return { kind: 'run', run, task_status_counts: taskCounts, agent_run_status_counts: agentRunCounts, last_events: lastEvents };

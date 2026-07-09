@@ -23,6 +23,8 @@ metadata:
     - "batch close"
     - "fechar ADO"
     - "criar demanda ADO"
+trigger: "user asks to create, update, query, or close Azure DevOps work items; a dev-squad wave needs ADO state changes mid-execution"
+skip: "ado.enabled is false; bulk operations beyond 10 REST calls per turn (split the batch); repository bootstrap or migration (use ado-new-project)"
 ---
 
 # ADO-Ops — Core Operations

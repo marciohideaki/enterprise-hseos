@@ -53,7 +53,8 @@ function loadSkillEntries(root = getProjectRoot()) {
 
   const skillsRoot = path.join(root, '.agents', 'skills');
   if (!fs.existsSync(skillsRoot)) return [];
-  return fs.readdirSync(skillsRoot, { withFileTypes: true })
+  return fs
+    .readdirSync(skillsRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => ({
       id: entry.name,
@@ -136,9 +137,7 @@ function resolveCapabilityPlan(options = {}) {
   const requestedSkills = parseCsv(options.skills || options.skillIds);
   assertKnownSkills(requestedSkills, catalog.skills);
 
-  const requiredComponentIds = catalog.components
-    .filter((component) => component.required)
-    .map((component) => component.id);
+  const requiredComponentIds = catalog.components.filter((component) => component.required).map((component) => component.id);
   const componentIds = uniq([
     ...requiredComponentIds,
     ...(profile?.components || []),
@@ -159,10 +158,7 @@ function resolveCapabilityPlan(options = {}) {
   }
 
   const modules = uniq(selectedComponents.flatMap((component) => component.modules || []));
-  const tools = uniq([
-    ...selectedComponents.flatMap((component) => component.tools || []),
-    ...parseCsv(options.tools),
-  ]);
+  const tools = uniq([...selectedComponents.flatMap((component) => component.tools || []), ...parseCsv(options.tools)]);
   const installPaths = uniq(selectedComponents.flatMap((component) => component.install_paths || []));
 
   return {
@@ -177,6 +173,7 @@ function resolveCapabilityPlan(options = {}) {
       name: component.name || component.id,
       required: Boolean(component.required),
       synthetic: Boolean(component.synthetic),
+      prerequisites: component.prerequisites || [],
     })),
     modules,
     tools,
@@ -188,7 +185,8 @@ function resolveCapabilityPlan(options = {}) {
 function loadAdapterMatrix(root = getProjectRoot()) {
   const adaptersDir = capabilityPaths(root).adapters;
   if (!fs.existsSync(adaptersDir)) return [];
-  return fs.readdirSync(adaptersDir, { withFileTypes: true })
+  return fs
+    .readdirSync(adaptersDir, { withFileTypes: true })
     .filter((entry) => entry.isFile() && entry.name.endsWith('.yaml') && !entry.name.startsWith('_'))
     .map((entry) => {
       const file = path.join(adaptersDir, entry.name);

@@ -6,9 +6,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/swarm-gate.sh",
+            "command": "bash .agents/hooks/handlers/swarm-gate.sh",
             "timeout": 5,
-            "description": "HSEOS SWARM gate: bloqueia Agent paralelo sem run dev-squad ativo (complementa gate global)"
+            "description": "HSEOS SWARM gate (canonical handler): model routing guard (executor declara sonnet; Opus só com opt-in estratégico) + skill-check advisory + gate dev-squad bloqueante sem run ativo"
           },
           {
             "type": "command",
@@ -85,21 +85,7 @@
         ]
       },
       {
-<<<<<<< Updated upstream
         "matcher": "*",
-=======
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .agents/hooks/handlers/plan-lint.sh \"$CLAUDE_TOOL_FILE_PATH\"",
-            "description": "Lint plan files for missing Execution Protocol section in parallel-flow plans"
-          }
-        ]
-      },
-      {
-        "matcher": "",
->>>>>>> Stashed changes
         "hooks": [
           {
             "type": "command",

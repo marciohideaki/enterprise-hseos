@@ -5,6 +5,9 @@ component_families:
   - capability
   - adapter
   - skill
+  # extras: host-side installer conveniences — pure opt-in, never part of any
+  # profile; selecting one maps to the corresponding `hseos install` flag.
+  - extra
 
 hook_profiles:
   advisory:
@@ -93,6 +96,9 @@ components:
     family: runtime
     name: MCP Runtime
     description: Project-local MCP bundles, governance tools, swarm tools, state tools, and code-index bridge.
+    prerequisites:
+      - "axon-bridge proxies an external `axon` binary — degrades to no-op fallback results when the binary is absent"
+      - "enterprise-tier MCP bundle (github, postgres, kubernetes, sentry, azure-devops) requires secrets via environment variables (ADR-0008)"
     modules: []
     tools:
       - codex
@@ -118,13 +124,16 @@ components:
   - id: capability:delivery
     family: capability
     name: Delivery Execution
-    description: Spec-driven delivery, dev-squad, inter-agent communication, release control, PR review, and test coverage.
+    description: Spec-driven delivery, dev-squad, multi-agent orchestration, inter-agent communication, release control, PR review, commit hygiene, and test coverage.
     skills:
       - spec-driven
       - dev-squad
+      - multi-agent-orchestration
       - inter-agent-comms
       - release-control
       - pr-review
+      - commit-hygiene
+      - sanitize-comments
       - test-coverage
 
   - id: capability:security
@@ -141,19 +150,24 @@ components:
   - id: capability:knowledge
     family: capability
     name: Knowledge and Documentation
-    description: Documentation completeness, project docs, second-brain integration, context engineering, and session handoff.
+    description: Documentation completeness, project docs, second-brain integration, context engineering and policy, and session handoff.
+    prerequisites:
+      - "second-brain skill degrades gracefully without a vault (`vault_required: false`, ADR-0006 P6); vault integration is opt-in via `hseos install --second-brain-path <path>`"
     skills:
       - doc-project
       - documentation-completeness
       - second-brain
       - context-engineering
       - context-compression
+      - context-policy
       - session-handoff
 
   - id: capability:observability
     family: capability
     name: AI Observability
     description: AI observability, telemetry compliance, project state, and performance profiling.
+    prerequisites:
+      - "OTLP/Loki telemetry export hooks stay inert unless `OTEL_EXPORTER_OTLP_ENDPOINT` (and Loki equivalents) are set — opt-in per ADR-0014; SQLite remains the canonical sink"
     skills:
       - ai-observability
       - observability-compliance
@@ -164,6 +178,9 @@ components:
     family: capability
     name: GitOps Operations
     description: GitOps project creation, service onboarding, deployment, and runtime verification.
+    prerequisites:
+      - "gitops-deploy requires admin agent mode (`metadata.hseos.required_modes: [admin]`) — never auto-activates in read-only/write-safe sessions"
+      - "real deployments additionally require kubectl and ArgoCD access in the operator environment"
     skills:
       - gitops-new-project
       - gitops-add-service
@@ -173,6 +190,9 @@ components:
     family: capability
     name: ADO Operations
     description: Azure DevOps planning, sync, project creation, wave closeout, and operational automation.
+    prerequisites:
+      - "requires `ado.enabled: true` in `.hseos/config/hseos.config.yaml` plus an `ADO_PAT` token in the environment (ADR-0011)"
+      - "every ADO hook and skill exits silently (no-op) while the feature flag is off — safe to install without the prerequisite"
     skills:
       - ado-plan
       - ado-sync
@@ -184,6 +204,9 @@ components:
     family: capability
     name: Agent Sandboxing
     description: Optional OS-level sandbox planning and policy alignment.
+    prerequisites:
+      - "OS-level sandboxing requires the external `ai-jail` binary (bubblewrap/user namespaces on Linux) — not vendored; `hseos sandbox doctor` reports readiness (ADR-0012)"
+      - "degrades to no-op when the binary is absent (`sandbox.required: false` by default)"
     skills:
       - agent-permissions
       - mcp-governance
@@ -191,9 +214,10 @@ components:
   - id: capability:readiness
     family: capability
     name: Enterprise Readiness
-    description: Enterprise readiness, core drift, compliance, and self-verification checks.
+    description: Enterprise readiness, accessibility compliance, core drift, and self-verification checks.
     skills:
       - enterprise-readiness-audit
+      - accessibility
       - core-drift
       - self-verification
       - verification-before-completion
@@ -215,6 +239,52 @@ components:
       - verification-before-completion
       - self-verification
       - test-coverage
+
+  - id: capability:research
+    family: capability
+    name: Research and Evaluation
+    description: Technology research with grounded recommendations and repository evaluation via repo-radar.
+    prerequisites:
+      - "repo-radar uses the Axon code index when available and degrades to Read+Grep exploration without it"
+    skills:
+      - repo-radar
+      - tech-research
+
+  - id: extra:rtk
+    family: extra
+    name: RTK Token Optimizer
+    description: CLI command interception that reduces LLM token usage by 60-90%. Maps to `hseos install --rtk`.
+    prerequisites:
+      - "downloads an external binary from GitHub at install time"
+      - "PATCHES the USER-GLOBAL Claude Code settings file outside this repository (Claude Code only; cross-project side effect — review before enabling)"
+    install_paths: []
+
+  - id: extra:usage-dashboard
+    family: extra
+    name: Usage Analytics Dashboard
+    description: Cost/usage analytics dashboard on port 8080. Maps to `hseos install --usage-dashboard [local|docker]`.
+    prerequisites:
+      - "Python 3 (local mode, default) or Docker Compose (docker mode)"
+      - "the dashboard binds to the local network deliberately (:8080) — not loopback-only"
+    install_paths:
+      - tools/usage-dashboard/
+
+  - id: extra:second-brain
+    family: extra
+    name: Second-Brain Vault Integration
+    description: Knowledge-vault sync for decisions/learnings. Maps to `hseos install --second-brain-path <path>`.
+    prerequisites:
+      - "an existing second-brain vault; the path must be supplied via --second-brain-path (the component only signals intent)"
+      - "all vault-touching skills degrade gracefully without it (`vault_required: false`, ADR-0006 P6)"
+    install_paths: []
+
+  - id: extra:git-hooks
+    family: extra
+    name: Git Pre-Commit Hook
+    description: Wires scripts/governance/quality-gates.sh into .git/hooks/pre-commit. Installed by default in git repos; `--no-git-hooks` skips.
+    prerequisites:
+      - "a git working tree (skipped silently when .git/ is absent); existing hooks are never overwritten"
+    install_paths: []
 
   - id: adapter:codex
     family: adapter

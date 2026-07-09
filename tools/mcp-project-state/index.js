@@ -14,7 +14,6 @@ const { createHttpServer, createMessageHandler, startStdioServer } = require('..
 
 let Database;
 try {
-   
   Database = require('better-sqlite3');
 } catch {
   console.error('[project-state] better-sqlite3 not found. Install with: npm install better-sqlite3');
@@ -132,10 +131,10 @@ function handleTool(db, name, args) {
       const agent = args.agent || 'unknown';
       const now = new Date().toISOString();
       const insert = db.prepare(
-        'INSERT INTO state (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at'
+        'INSERT INTO state (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at',
       );
       const historyInsert = db.prepare(
-        'INSERT INTO state_history (key, old_value, new_value, changed_by, changed_at) VALUES (?, ?, ?, ?, ?)'
+        'INSERT INTO state_history (key, old_value, new_value, changed_by, changed_at) VALUES (?, ?, ?, ?, ?)',
       );
       const getOld = db.prepare('SELECT value FROM state WHERE key = ?');
 
@@ -162,7 +161,10 @@ function handleTool(db, name, args) {
       const { id, owner, description, depends } = args;
       if (!id || !owner || !description) throw new Error('id, owner, description are required');
       db.prepare('INSERT OR IGNORE INTO tasks (id, owner, description, depends_on) VALUES (?, ?, ?, ?)').run(
-        id, owner, description, depends ? JSON.stringify(depends) : null
+        id,
+        owner,
+        description,
+        depends ? JSON.stringify(depends) : null,
       );
       return { added: id };
     }
@@ -171,9 +173,7 @@ function handleTool(db, name, args) {
       const { id, status, note } = args;
       if (!id || !status) throw new Error('id and status are required');
       const now = new Date().toISOString();
-      db.prepare('UPDATE tasks SET status = ?, note = ?, updated_at = ? WHERE id = ?').run(
-        status, note || null, now, id
-      );
+      db.prepare('UPDATE tasks SET status = ?, note = ?, updated_at = ? WHERE id = ?').run(status, note || null, now, id);
       return { updated: id, status, updated_at: now };
     }
 

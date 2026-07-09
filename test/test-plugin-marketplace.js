@@ -55,8 +55,15 @@ async function runTests() {
     const plugins = await writePluginRegistry(REPO_ROOT);
     assertPass('returns array', Array.isArray(plugins));
     assertPass('returns 4 plugins', plugins.length === 4, `got ${plugins.length}`);
-    assertPass('all have ids', plugins.every((p) => p.id));
-    assertPass('all active', plugins.every((p) => p.status === 'active'), JSON.stringify(plugins.map((p) => p.status)));
+    assertPass(
+      'all have ids',
+      plugins.every((p) => p.id),
+    );
+    assertPass(
+      'all active',
+      plugins.every((p) => p.status === 'active'),
+      JSON.stringify(plugins.map((p) => p.status)),
+    );
   }
 
   // Test 2 & 3: writePlatformPluginAdapters emits both formats
@@ -88,11 +95,16 @@ async function runTests() {
 
       // Verify surfaces are populated
       const hookifyEntry = claudeMarketplace.plugins.find((p) => p.id === 'hseos-hookify');
-      assertPass('hseos-hookify has hooks surface', hookifyEntry && Array.isArray(hookifyEntry.surfaces.hooks) && hookifyEntry.surfaces.hooks.length > 0);
+      assertPass(
+        'hseos-hookify has hooks surface',
+        hookifyEntry && Array.isArray(hookifyEntry.surfaces.hooks) && hookifyEntry.surfaces.hooks.length > 0,
+      );
 
       const secEntry = claudeMarketplace.plugins.find((p) => p.id === 'hseos-security-guidance');
-      assertPass('hseos-security-guidance has skills surface', secEntry && Array.isArray(secEntry.surfaces.skills) && secEntry.surfaces.skills.length > 0);
-
+      assertPass(
+        'hseos-security-guidance has skills surface',
+        secEntry && Array.isArray(secEntry.surfaces.skills) && secEntry.surfaces.skills.length > 0,
+      );
     } finally {
       await fs.remove(tmpDir);
     }
@@ -175,7 +187,6 @@ async function runTests() {
 
       assertPass('claude-plugin dir removed', !(await fs.pathExists(claudePath)));
       assertPass('codex-plugin dir removed', !(await fs.pathExists(codexPath)));
-
     } finally {
       await fs.remove(tmpDir);
     }

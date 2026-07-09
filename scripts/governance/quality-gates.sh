@@ -2,7 +2,7 @@
 # =============================================================================
 # HSEOS Quality Gates — Reusable Validation Script
 # Authority: Enterprise Constitution > .enterprise/policies/automated-validation.md
-# Usage: ./scripts/governance/quality-gates.sh [--phase <doc|code>] [--strict]
+# Usage: ./scripts/governance/quality-gates.sh [--phase <doc|code|ci>] [--strict]
 # =============================================================================
 
 set -euo pipefail
@@ -228,32 +228,45 @@ gate_security() {
 
   # Check for common secret patterns
   local secret_patterns=(
-    'password\s*=\s*["\x27][^"\x27]{4,}'
-    'api[_-]?key\s*=\s*["\x27][^"\x27]{8,}'
-    'secret\s*=\s*["\x27][^"\x27]{8,}'
+    "password\\s*=\\s*[\"'][^\"']{4,}"
+    "api[_-]?key\\s*=\\s*[\"'][^\"']{8,}"
+    "secret\\s*=\\s*[\"'][^\"']{8,}"
     'private[_-]?key'
-    'BEGIN RSA PRIVATE'
-    'BEGIN EC PRIVATE'
+    'BEGIN (RSA|EC|OPENSSH|PGP) PRIVATE'
     'AKIA[0-9A-Z]{16}'
   )
 
+  # Scan TRACKED files only via `git grep`: gitignored trees (node_modules,
+  # .logs, .worktrees, .axon) can never gate a commit, and CI scans exactly
+  # what ships. The previous `grep --include="*.{js,...}"` form used a brace
+  # glob that grep does not expand, so it silently matched no files at all.
+  local scan_pathspecs=(
+    '*.js' '*.mjs' '*.cjs' '*.ts' '*.py' '*.sh' '*.yml' '*.yaml' '*.json' '*.env'
+    ':!scripts/governance/quality-gates.sh'
+    ':!test/fixtures'
+  )
+
   local secret_found=false
+  local hits
   for pattern in "${secret_patterns[@]}"; do
-    if grep -rE --include="*.{js,ts,py,sh,yml,yaml,json,env}" \
-       --exclude-dir=node_modules --exclude-dir=.git \
-       "$pattern" "${REPO_ROOT}" &>>"$LOG_FILE" 2>&1; then
-      record_fail "Potential secret detected — pattern: ${pattern}"
+    hits="$(git -C "${REPO_ROOT}" grep -IlE "$pattern" -- "${scan_pathspecs[@]}" 2>/dev/null || true)"
+    if [[ -n "$hits" ]]; then
+      echo "$hits" >>"$LOG_FILE"
+      record_fail "Potential secret detected — pattern: ${pattern} (see ${LOG_FILE})"
       secret_found=true
     fi
   done
 
   if ! $secret_found; then
-    pass "No secret patterns detected"
+    pass "No secret patterns detected in tracked files"
   fi
 
-  # Check for .env files staged for commit
-  if git -C "${REPO_ROOT}" diff --cached --name-only 2>/dev/null | grep -qE '\.env$|\.env\.'; then
+  # .env files must never be staged (local) nor tracked (local + CI)
+  if git -C "${REPO_ROOT}" diff --cached --name-only 2>/dev/null | grep -qE '(^|/)\.env$|(^|/)\.env\.'; then
     record_fail ".env file is staged — secrets must not be committed"
+  fi
+  if git -C "${REPO_ROOT}" ls-files 2>/dev/null | grep -qE '(^|/)\.env$|(^|/)\.env\.'; then
+    record_fail ".env file is tracked in git — secrets must not be committed"
   fi
 }
 
@@ -263,26 +276,55 @@ gate_security() {
 gate_commit_hygiene() {
   info "Gate 5: Commit Hygiene"
 
+  # Same vocabulary as scripts/governance/validate-commit-msg.sh (AR-52)
+  local ai_terms='claude|codex|openai|anthropic|copilot|chatgpt|gpt-[0-9]|gemini|mistral|ai-generated|ai generated|written by ai|language model|co-authored-by'
+
   local staged_files
   staged_files=$(git -C "${REPO_ROOT}" diff --cached --name-only 2>/dev/null || true)
 
-  if [[ -z "$staged_files" ]]; then
-    info "No staged files — skipping commit hygiene gate"
+  if [[ -n "$staged_files" ]]; then
+    # Local pre-commit mode: advisory scan of staged diff content
+    local blocked_terms=("claude" "codex" "openai" "copilot" "llm" "chatgpt" "gpt-4" "co-authored-by: claude" "co-authored-by: codex")
+    local staged_diff
+    staged_diff=$(git -C "${REPO_ROOT}" diff --cached 2>/dev/null || true)
+
+    for term in "${blocked_terms[@]}"; do
+      if echo "$staged_diff" | grep -qi "^+.*${term}" 2>/dev/null; then
+        record_warn "Potential AI reference in staged changes: '${term}'"
+      fi
+    done
+
+    pass "Commit hygiene check complete"
     return
   fi
 
-  # Check for AI mentions in staged diff content
-  local blocked_terms=("claude" "codex" "openai" "copilot" "llm" "chatgpt" "gpt-4" "co-authored-by: claude" "co-authored-by: codex")
-  local staged_diff
-  staged_diff=$(git -C "${REPO_ROOT}" diff --cached 2>/dev/null || true)
-
-  for term in "${blocked_terms[@]}"; do
-    if echo "$staged_diff" | grep -qi "^+.*${term}" 2>/dev/null; then
-      record_warn "Potential AI reference in staged changes: '${term}'"
+  # CI / message mode: no staged files. Working-tree CONTENT legitimately names
+  # vendors (adapters, hooks), so only commit MESSAGES are gated here. The HEAD
+  # commit is blocking (new work); the PR range is advisory because pre-existing
+  # history is rewritten by squash-merge at PR closeout.
+  if [[ -n "${GITHUB_ACTIONS:-}" || "$PHASE" == "ci" ]]; then
+    local head_msg
+    head_msg=$(git -C "${REPO_ROOT}" log -1 --format='%s%n%b' 2>/dev/null || true)
+    if echo "$head_msg" | grep -qiE "$ai_terms"; then
+      record_fail "AI mention in HEAD commit message (AR-52 / validate-commit-msg vocabulary)"
     fi
-  done
 
-  pass "Commit hygiene check complete"
+    local base_ref="${GITHUB_BASE_REF:-master}"
+    if git -C "${REPO_ROOT}" rev-parse --verify --quiet "origin/${base_ref}" >/dev/null 2>&1; then
+      local range_msgs
+      range_msgs=$(git -C "${REPO_ROOT}" log --format='%s%n%b' "origin/${base_ref}..HEAD" 2>/dev/null || true)
+      if echo "$range_msgs" | grep -qiE "$ai_terms"; then
+        record_warn "AI mention in commit range origin/${base_ref}..HEAD (advisory — squash-merge cleans history at closeout)"
+      fi
+    else
+      info "Base ref origin/${base_ref} unavailable (shallow clone?) — range hygiene skipped"
+    fi
+
+    pass "Commit hygiene (message mode) complete"
+    return
+  fi
+
+  info "No staged files — skipping commit hygiene gate"
 }
 
 # =============================================================================
@@ -385,6 +427,17 @@ main() {
       gate_governance_structure
       gate_canonical_source
       gate_code
+      gate_security
+      gate_commit_hygiene
+      gate_workflow_publication
+      ;;
+    ci)
+      # Server-side posture: doc gates + tracked-tree security scan + commit-message
+      # hygiene. gate_code is intentionally absent — the CI `test` job already runs
+      # the full suite; duplicating it here would double CI time for no coverage.
+      gate_governance_structure
+      gate_canonical_source
+      gate_documentation
       gate_security
       gate_commit_hygiene
       gate_workflow_publication

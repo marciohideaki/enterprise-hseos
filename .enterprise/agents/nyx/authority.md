@@ -56,11 +56,11 @@ Before producing any output, the NYX Agent MUST read:
 - `/.enterprise/.specs/constitution/*`
 - `/.enterprise/policies/*`
 - `/.enterprise/agents/nyx/*`
-- `/specs/core/*`
-- `/specs/cross/*`
-- `/specs/stacks/<relevant-stack>/fr.md`
-- `/specs/stacks/<relevant-stack>/nfr.md`
-- `/specs/decisions/*`
+- `/.enterprise/.specs/core/*`
+- `/.enterprise/.specs/cross/*`
+- `/.enterprise/.specs/<relevant-stack>/fr.md`
+- `/.enterprise/.specs/<relevant-stack>/nfr.md`
+- `/.enterprise/.specs/decisions/*`
 - `/project-context.md` (if present)
 
 Failure to load these sources invalidates the output.

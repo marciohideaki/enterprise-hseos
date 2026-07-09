@@ -8,6 +8,8 @@ metadata:
   owner: platform-governance
   version: "1.0.0"
   inspired-by: addyosmani/agent-skills/context-engineering
+trigger: "Use when the user request matches this skill scope: starting a new session or task; agent output quality degrading (wrong files, stale assumptions); switching from one epic/feature to another; resuming from HANDOFF.md; subagent bootstrap"
+skip: "session already warmed up and context is correct; simple one-off question not requiring project context; user explicitly loaded context manually already"
 ---
 
 # Context Engineering — Full Protocol

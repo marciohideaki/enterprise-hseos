@@ -55,10 +55,10 @@ Before producing any output, the CIPHER Agent MUST read:
 - `/.enterprise/.specs/constitution/*`
 - `/.enterprise/policies/*`
 - `/.enterprise/agents/cipher/*`
-- `/specs/core/*`
-- `/specs/cross/*`
-- `/specs/stacks/<relevant-stack>/*`
-- `/specs/decisions/*`
+- `/.enterprise/.specs/core/*`
+- `/.enterprise/.specs/cross/*`
+- `/.enterprise/.specs/<relevant-stack>/*`
+- `/.enterprise/.specs/decisions/*`
 
 Failure to load these sources invalidates the output.
 
@@ -68,10 +68,10 @@ Failure to load these sources invalidates the output.
 The CIPHER Agent MAY write or modify ONLY:
 
 - Architecture documents under:
-  - `/specs/stacks/<stack>/architecture.md`
+  - `/.enterprise/.specs/<stack>/architecture.md`
 - Technical design specs explicitly requested
 - ADR drafts under:
-  - `/specs/decisions/ADR-XXXX-*.md`
+  - `/.enterprise/.specs/decisions/ADR-XXXX-*.md`
 - Diagrams referenced by architecture docs
 
 All outputs must be versionable and PR-ready.

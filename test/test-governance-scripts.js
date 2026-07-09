@@ -43,15 +43,11 @@ const cases = [
   {
     name: 'branch protection apply tool emits GitHub REST payload',
     fn: () => {
-      const raw = execFileSync(
-        'node',
-        ['scripts/governance/apply-branch-protection.js', '--dry-run', '--branch', 'master'],
-        {
-          cwd: REPO_ROOT,
-          encoding: 'utf8',
-          stdio: 'pipe',
-        }
-      );
+      const raw = execFileSync('node', ['scripts/governance/apply-branch-protection.js', '--dry-run', '--branch', 'master'], {
+        cwd: REPO_ROOT,
+        encoding: 'utf8',
+        stdio: 'pipe',
+      });
       const request = JSON.parse(raw);
       assert.strictEqual(request.method, 'PUT');
       assert.strictEqual(request.endpoint, 'repos/marciohideaki/enterprise-hseos/branches/master/protection');
@@ -59,6 +55,7 @@ const cases = [
         'test (20.x)',
         'test (22.x)',
         'Standalone clean-env smoke (node:20)',
+        'governance',
       ]);
       assert.strictEqual(request.body.allow_force_pushes, false);
       assert.strictEqual(request.body.allow_deletions, false);
@@ -67,16 +64,12 @@ const cases = [
   {
     name: 'branch protection apply tool detects GitHub Actions repository',
     fn: () => {
-      const raw = execFileSync(
-        'node',
-        ['scripts/governance/apply-branch-protection.js', '--dry-run', '--branch', 'master'],
-        {
-          cwd: REPO_ROOT,
-          encoding: 'utf8',
-          env: { ...process.env, GITHUB_REPOSITORY: 'example/project' },
-          stdio: 'pipe',
-        }
-      );
+      const raw = execFileSync('node', ['scripts/governance/apply-branch-protection.js', '--dry-run', '--branch', 'master'], {
+        cwd: REPO_ROOT,
+        encoding: 'utf8',
+        env: { ...process.env, GITHUB_REPOSITORY: 'example/project' },
+        stdio: 'pipe',
+      });
       const request = JSON.parse(raw);
       assert.strictEqual(request.endpoint, 'repos/example/project/branches/master/protection');
     },

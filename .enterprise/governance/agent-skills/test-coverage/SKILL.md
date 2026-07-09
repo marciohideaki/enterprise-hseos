@@ -5,6 +5,8 @@ license: Apache-2.0
 metadata:
   owner: platform-governance
   version: "1.0.0"
+trigger: "Use when auditing test coverage completeness, test pyramid violations, or test quality across a module, service, or pull request"
+skip: "Request is outside test-coverage scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 ---
 
 # Test Coverage

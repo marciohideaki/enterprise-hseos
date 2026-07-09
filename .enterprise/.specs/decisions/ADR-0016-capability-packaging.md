@@ -1,6 +1,6 @@
 # ADR-0016 - Capability Packaging and Install Planning
 
-**Status:** Proposed
+**Status:** Accepted (ratified 2026-07-08)
 **Date:** 2026-06-04
 **Authors:** Platform Architecture Owners
 **Affects Standards:** Agent-Core Compiler v2, install lifecycle, skill consumption policy, execution governance

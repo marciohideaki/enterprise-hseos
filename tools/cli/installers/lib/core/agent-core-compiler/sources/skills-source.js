@@ -17,18 +17,7 @@ function normalizeSkill(sourceContent, quickContent, metadata) {
   const quickFm = parsedQuick.frontmatter || {};
 
   const preserved = {};
-  const generatedKeys = new Set([
-    'name',
-    'description',
-    'version',
-    'owner',
-    'tier',
-    'source',
-    'quick',
-    'portable',
-    'license',
-    'metadata',
-  ]);
+  const generatedKeys = new Set(['name', 'description', 'version', 'owner', 'tier', 'source', 'quick', 'portable', 'license', 'metadata']);
 
   for (const [key, value] of Object.entries(sourceFm)) {
     if (!generatedKeys.has(key)) preserved[key] = value;

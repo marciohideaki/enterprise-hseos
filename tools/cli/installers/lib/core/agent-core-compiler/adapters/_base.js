@@ -16,24 +16,18 @@ class AdapterBase {
   // Lifecycle hooks. Subclasses override the relevant ones; the rest are no-ops
   // so partial adapters can be shipped incrementally.
 
-   
   async validate(sources, manifest) {
     return { ok: true, warnings: [], errors: [] };
   }
 
-   
   async emit(sources, outputDir) {
-    throw new Error(
-      `AdapterBase: ${this.constructor.name} must override async emit(sources, outputDir)`,
-    );
+    throw new Error(`AdapterBase: ${this.constructor.name} must override async emit(sources, outputDir)`);
   }
 
-   
   async verify(outputDir) {
     return { ok: true, drift: [] };
   }
 
-   
   async clean(outputDir) {
     return { removed: [] };
   }

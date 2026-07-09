@@ -56,11 +56,11 @@ Before producing any output, the VECTOR Agent MUST read:
 - `/.enterprise/.specs/constitution/*`
 - `/.enterprise/policies/*`
 - `/.enterprise/agents/vector/*`
-- `/specs/core/*`
-- `/specs/cross/*`
-- `/specs/stacks/<relevant-stack>/fr.md`
-- `/specs/stacks/<relevant-stack>/nfr.md`
-- `/specs/decisions/*`
+- `/.enterprise/.specs/core/*`
+- `/.enterprise/.specs/cross/*`
+- `/.enterprise/.specs/<relevant-stack>/fr.md`
+- `/.enterprise/.specs/<relevant-stack>/nfr.md`
+- `/.enterprise/.specs/decisions/*`
 - `/project-context.md` (if present)
 - Analyst outputs related to the initiative
 

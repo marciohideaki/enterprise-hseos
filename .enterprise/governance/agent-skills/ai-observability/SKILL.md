@@ -3,6 +3,8 @@ name: ai-observability
 tier: full
 version: "1.1"
 description: "Use when designing AI agent observability architecture, integrating mission-control dashboards, or defining AI-specific KPI schemas"
+trigger: "Use when designing AI agent observability architecture, integrating mission-control dashboards, or defining AI-specific KPI schemas"
+skip: "Request is outside ai-observability scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 ---
 
 # AI Observability — Full Reference

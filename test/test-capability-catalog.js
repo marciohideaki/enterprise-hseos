@@ -6,11 +6,7 @@
  */
 
 const path = require('node:path');
-const {
-  loadAdapterMatrix,
-  loadCapabilityCatalog,
-  resolveCapabilityPlan,
-} = require('../tools/cli/lib/capability-catalog');
+const { loadAdapterMatrix, loadCapabilityCatalog, resolveCapabilityPlan } = require('../tools/cli/lib/capability-catalog');
 const installCommand = require('../tools/cli/commands/install');
 
 const REPO_ROOT = path.join(__dirname, '..');
@@ -34,7 +30,11 @@ function testCatalogLoadsProfilesAndComponents() {
   const componentIds = catalog.components.map((component) => component.id);
   const skillComponents = catalog.components.filter((component) => component.family === 'skill');
 
-  assertPass('catalog exposes expected capability profiles', profileIds.includes('developer') && profileIds.includes('full'), profileIds.join(','));
+  assertPass(
+    'catalog exposes expected capability profiles',
+    profileIds.includes('developer') && profileIds.includes('full'),
+    profileIds.join(','),
+  );
   assertPass('developer is the default capability profile', catalog.profiles.developer?.default === true);
   assertPass('catalog exposes required baseline governance component', componentIds.includes('baseline:governance'));
   assertPass('catalog generates synthetic skill components', skillComponents.length >= 40, String(skillComponents.length));
@@ -72,13 +72,53 @@ function testComponentsReferenceKnownSkills() {
   assertPass('all capability components reference known skills', unknown.length === 0, unknown.join(','));
 }
 
+function testEverySkillHasCapabilityFamilyHome() {
+  const catalog = loadCapabilityCatalog(REPO_ROOT);
+  const familySkills = new Set(
+    catalog.components.filter((component) => component.family === 'capability').flatMap((component) => component.skills || []),
+  );
+  const orphans = catalog.skills.map((skill) => skill.id).filter((id) => !familySkills.has(id));
+
+  assertPass(
+    'every governed skill belongs to at least one capability-family component',
+    orphans.length === 0,
+    `orphans: ${orphans.join(',')}`,
+  );
+}
+
+function testPrerequisitesAreWellFormed() {
+  const catalog = loadCapabilityCatalog(REPO_ROOT);
+  const malformed = catalog.components.filter(
+    (component) =>
+      component.prerequisites !== undefined &&
+      (!Array.isArray(component.prerequisites) || component.prerequisites.some((entry) => typeof entry !== 'string' || !entry.trim())),
+  );
+  assertPass(
+    'component prerequisites are non-empty string lists when declared',
+    malformed.length === 0,
+    malformed.map((component) => component.id).join(','),
+  );
+
+  const plan = resolveCapabilityPlan({ root: REPO_ROOT, profile: 'full' });
+  const adoComponent = plan.components.find((component) => component.id === 'capability:ado');
+  assertPass(
+    'resolved plan carries prerequisites through to components',
+    Array.isArray(adoComponent?.prerequisites) && adoComponent.prerequisites.length > 0,
+    JSON.stringify(adoComponent),
+  );
+}
+
 function testResolveProfilePlan() {
   const plan = resolveCapabilityPlan({ root: REPO_ROOT, profile: 'minimal' });
   const componentIds = plan.components.map((component) => component.id);
 
   assertPass('minimal profile resolves advisory hook profile', plan.hook_profile === 'advisory', plan.hook_profile);
   assertPass('profile plan preserves required governance baseline', componentIds.includes('baseline:governance'));
-  assertPass('profile plan resolves tool targets', plan.tools.includes('codex') && plan.tools.includes('claude-code'), plan.tools.join(','));
+  assertPass(
+    'profile plan resolves tool targets',
+    plan.tools.includes('codex') && plan.tools.includes('claude-code'),
+    plan.tools.join(','),
+  );
 }
 
 function testResolveSkillOnlyPlan() {
@@ -97,7 +137,11 @@ function testAdapterMatrix() {
   const codex = adapters.find((adapter) => adapter.id === 'codex');
 
   assertPass('adapter matrix includes Codex and Claude Code', ids.includes('codex') && ids.includes('claude-code'), ids.join(','));
-  assertPass('Codex adapter records portable hook metadata', codex?.hooks?.native === false && Boolean(codex?.hooks?.note), JSON.stringify(codex));
+  assertPass(
+    'Codex adapter records portable hook metadata',
+    codex?.hooks?.native === false && Boolean(codex?.hooks?.note),
+    JSON.stringify(codex),
+  );
 }
 
 function testInstallCommandOptions() {
@@ -108,14 +152,61 @@ function testInstallCommandOptions() {
   assertPass('install command exposes hook profile option', optionFlags.includes('--hook-profile <id>'));
 }
 
+function testExtrasArePureOptIn() {
+  const catalog = loadCapabilityCatalog(REPO_ROOT);
+  const extras = catalog.components.filter((component) => component.family === 'extra');
+  assertPass(
+    'catalog exposes the four installer extras',
+    ['extra:rtk', 'extra:usage-dashboard', 'extra:second-brain', 'extra:git-hooks'].every((id) =>
+      extras.some((component) => component.id === id),
+    ),
+    extras.map((component) => component.id).join(','),
+  );
+  assertPass(
+    'every extra declares prerequisites',
+    extras.every((component) => Array.isArray(component.prerequisites) && component.prerequisites.length > 0),
+  );
+
+  const offenders = [];
+  for (const [profileId, profile] of Object.entries(catalog.profiles)) {
+    for (const componentId of profile.components || []) {
+      if (componentId.startsWith('extra:')) offenders.push(`${profileId}:${componentId}`);
+    }
+  }
+  assertPass('no profile bundles an extra (pure opt-in invariant)', offenders.length === 0, offenders.join(','));
+}
+
+function testApplyExtrasFromPlanMapsFlags() {
+  const { applyExtrasFromPlan } = installCommand;
+  const plan = resolveCapabilityPlan({ root: REPO_ROOT, components: ['extra:rtk', 'extra:usage-dashboard', 'extra:second-brain'] });
+
+  const options = {};
+  const notes = applyExtrasFromPlan(options, plan);
+  assertPass('extra:rtk selection activates the rtk flag', options.rtk === true);
+  assertPass('extra:usage-dashboard selection defaults to local mode', options.usageDashboard === 'local');
+  assertPass(
+    'extra:second-brain without path yields an advisory note',
+    notes.some((note) => note.includes('second-brain')),
+    notes.join(' | '),
+  );
+
+  const explicit = { rtk: false, usageDashboard: 'docker' };
+  applyExtrasFromPlan(explicit, plan);
+  assertPass('explicit flags always win over component selection', explicit.rtk === false && explicit.usageDashboard === 'docker');
+}
+
 function run() {
   testCatalogLoadsProfilesAndComponents();
   testProfilesReferenceKnownComponents();
   testComponentsReferenceKnownSkills();
+  testEverySkillHasCapabilityFamilyHome();
+  testPrerequisitesAreWellFormed();
   testResolveProfilePlan();
   testResolveSkillOnlyPlan();
   testAdapterMatrix();
   testInstallCommandOptions();
+  testExtrasArePureOptIn();
+  testApplyExtrasFromPlanMapsFlags();
 
   console.log(`\nCapability catalog tests: ${passed} passed, ${failed} failed`);
   if (failed > 0) {

@@ -88,31 +88,19 @@ function withTempDir(fn) {
 function testPlanLint() {
   const scriptPath = path.join(HANDLERS_DIR, 'plan-lint.sh');
 
-  assertPass(
-    'plan-lint.sh exists',
-    fs.existsSync(scriptPath),
-    scriptPath,
-  );
+  assertPass('plan-lint.sh exists', fs.existsSync(scriptPath), scriptPath);
 
   if (!fs.existsSync(scriptPath)) {
     return;
   }
 
   const stat = fs.statSync(scriptPath);
-  assertPass(
-    'plan-lint.sh is executable',
-    (stat.mode & 0o111) !== 0,
-    `mode=${stat.mode.toString(8)}`,
-  );
+  assertPass('plan-lint.sh is executable', (stat.mode & 0o111) !== 0, `mode=${stat.mode.toString(8)}`);
 
   // Empty arg → silent no-op
   {
     const result = runHandler(scriptPath, []);
-    assertPass(
-      'plan-lint.sh with no arg exits 0 silently',
-      result.ok && result.stdout.trim() === '',
-      `stdout="${result.stdout.trim()}"`,
-    );
+    assertPass('plan-lint.sh with no arg exits 0 silently', result.ok && result.stdout.trim() === '', `stdout="${result.stdout.trim()}"`);
   }
 
   // Non-plan file path → silent no-op
@@ -194,11 +182,7 @@ function testPlanLint() {
 
     // Idempotency — running twice produces same stdout
     const second = runHandler(scriptPath, [planFile]);
-    assertPass(
-      'plan-lint.sh is idempotent (same stdout on second run)',
-      result.stdout === second.stdout,
-      'stdout differs between runs',
-    );
+    assertPass('plan-lint.sh is idempotent (same stdout on second run)', result.stdout === second.stdout, 'stdout differs between runs');
   });
 
   // Relative plan paths are accepted because platform adapters may pass repo-relative paths
@@ -206,15 +190,7 @@ function testPlanLint() {
     const plansDir = path.join(tempDir, 'plans');
     fs.mkdirSync(plansDir);
     const planFile = path.join(plansDir, 'relative-bad.md');
-    fs.writeFileSync(
-      planFile,
-      [
-        '# Relative parallel plan',
-        '',
-        'Wave parallel swarm squad execution across worktrees.',
-        '',
-      ].join('\n'),
-    );
+    fs.writeFileSync(planFile, ['# Relative parallel plan', '', 'Wave parallel swarm squad execution across worktrees.', ''].join('\n'));
     const result = runHandler(scriptPath, ['plans/relative-bad.md'], { cwd: tempDir });
     assertPass(
       'plan-lint.sh accepts relative plans/*.md paths',
@@ -228,15 +204,7 @@ function testPlanLint() {
     const plansDir = path.join(tempDir, 'plans');
     fs.mkdirSync(plansDir);
     const planFile = path.join(plansDir, 'registry-env-bad.md');
-    fs.writeFileSync(
-      planFile,
-      [
-        '# Registry command plan',
-        '',
-        'Wave parallel swarm squad execution across worktrees.',
-        '',
-      ].join('\n'),
-    );
+    fs.writeFileSync(planFile, ['# Registry command plan', '', 'Wave parallel swarm squad execution across worktrees.', ''].join('\n'));
     const result = runCommand(`bash "${scriptPath}" "$CLAUDE_TOOL_FILE_PATH"`, {
       env: { ...process.env, CLAUDE_TOOL_FILE_PATH: planFile },
     });
@@ -255,22 +223,14 @@ function testPlanLint() {
 function testCodeIndexPostEdit() {
   const scriptPath = path.join(HANDLERS_DIR, 'code-index-post-edit.sh');
 
-  assertPass(
-    'code-index-post-edit.sh exists',
-    fs.existsSync(scriptPath),
-    scriptPath,
-  );
+  assertPass('code-index-post-edit.sh exists', fs.existsSync(scriptPath), scriptPath);
 
   if (!fs.existsSync(scriptPath)) {
     return;
   }
 
   const stat = fs.statSync(scriptPath);
-  assertPass(
-    'code-index-post-edit.sh is executable',
-    (stat.mode & 0o111) !== 0,
-    `mode=${stat.mode.toString(8)}`,
-  );
+  assertPass('code-index-post-edit.sh is executable', (stat.mode & 0o111) !== 0, `mode=${stat.mode.toString(8)}`);
 
   // Empty arg → silent no-op
   {
@@ -286,7 +246,7 @@ function testCodeIndexPostEdit() {
   withTempDir((tempDir) => {
     const editedFile = path.join(tempDir, 'src', 'foo.js');
     fs.mkdirSync(path.dirname(editedFile), { recursive: true });
-    fs.writeFileSync(editedFile, "module.exports = 1;\n");
+    fs.writeFileSync(editedFile, 'module.exports = 1;\n');
     const result = runHandler(scriptPath, [editedFile]);
     assertPass(
       'code-index-post-edit.sh with no provider marker is silent no-op',
@@ -301,22 +261,14 @@ function testCodeIndexPostEdit() {
     fs.mkdirSync(axonDir);
     const editedFile = path.join(tempDir, 'src', 'bar.ts');
     fs.mkdirSync(path.dirname(editedFile), { recursive: true });
-    fs.writeFileSync(editedFile, "export const x = 1;\n");
+    fs.writeFileSync(editedFile, 'export const x = 1;\n');
 
     const result = runHandler(scriptPath, [editedFile]);
-    assertPass(
-      'code-index-post-edit.sh with axon marker exits 0',
-      result.ok,
-      `stdout="${result.stdout.trim()}"`,
-    );
+    assertPass('code-index-post-edit.sh with axon marker exits 0', result.ok, `stdout="${result.stdout.trim()}"`);
 
     const queue = path.join(axonDir, 'pending-writes.txt');
     const queueExists = fs.existsSync(queue);
-    assertPass(
-      'code-index-post-edit.sh axon: pending-writes.txt created',
-      queueExists,
-      queue,
-    );
+    assertPass('code-index-post-edit.sh axon: pending-writes.txt created', queueExists, queue);
 
     if (queueExists) {
       const lines = fs.readFileSync(queue, 'utf8').trim().split('\n');
@@ -331,11 +283,7 @@ function testCodeIndexPostEdit() {
     runHandler(scriptPath, [editedFile]);
     const linesAfter = fs.readFileSync(queue, 'utf8').trim().split('\n');
     const occurrences = linesAfter.filter((l) => l === editedFile).length;
-    assertPass(
-      'code-index-post-edit.sh axon: idempotent append (provider dedupes)',
-      occurrences === 2,
-      `occurrences=${occurrences}`,
-    );
+    assertPass('code-index-post-edit.sh axon: idempotent append (provider dedupes)', occurrences === 2, `occurrences=${occurrences}`);
   });
 }
 
@@ -346,22 +294,14 @@ function testCodeIndexPostEdit() {
 function testClaudeMdGuard() {
   const scriptPath = path.join(HANDLERS_DIR, 'claude-md-guard.sh');
 
-  assertPass(
-    'claude-md-guard.sh exists',
-    fs.existsSync(scriptPath),
-    scriptPath,
-  );
+  assertPass('claude-md-guard.sh exists', fs.existsSync(scriptPath), scriptPath);
 
   if (!fs.existsSync(scriptPath)) {
     return;
   }
 
   const stat = fs.statSync(scriptPath);
-  assertPass(
-    'claude-md-guard.sh is executable',
-    (stat.mode & 0o111) !== 0,
-    `mode=${stat.mode.toString(8)}`,
-  );
+  assertPass('claude-md-guard.sh is executable', (stat.mode & 0o111) !== 0, `mode=${stat.mode.toString(8)}`);
 
   {
     const result = runHandler(scriptPath, []);
@@ -375,11 +315,7 @@ function testClaudeMdGuard() {
   withTempDir((tempDir) => {
     const agentsPath = path.join(tempDir, 'AGENTS.md');
     const result = runHandler(scriptPath, [agentsPath]);
-    assertPass(
-      'claude-md-guard.sh allows AGENTS.md',
-      result.ok && result.stdout.trim() === '',
-      `stdout="${result.stdout.trim()}"`,
-    );
+    assertPass('claude-md-guard.sh allows AGENTS.md', result.ok && result.stdout.trim() === '', `stdout="${result.stdout.trim()}"`);
   });
 
   withTempDir((tempDir) => {
@@ -411,22 +347,14 @@ function testClaudeMdGuard() {
 function testOnNotification() {
   const scriptPath = path.join(HANDLERS_DIR, 'on-notification.sh');
 
-  assertPass(
-    'on-notification.sh exists',
-    fs.existsSync(scriptPath),
-    scriptPath,
-  );
+  assertPass('on-notification.sh exists', fs.existsSync(scriptPath), scriptPath);
 
   if (!fs.existsSync(scriptPath)) {
     return;
   }
 
   const stat = fs.statSync(scriptPath);
-  assertPass(
-    'on-notification.sh is executable',
-    (stat.mode & 0o111) !== 0,
-    `mode=${stat.mode.toString(8)}`,
-  );
+  assertPass('on-notification.sh is executable', (stat.mode & 0o111) !== 0, `mode=${stat.mode.toString(8)}`);
 
   // With HSEOS_NOTIFICATION_SILENT=1 the handler emits absolutely nothing
   // (not even the terminal bell). Useful for headless CI.
@@ -449,11 +377,7 @@ function testOnNotification() {
     const result = runHandler(scriptPath, ['Test message'], {
       env: { ...process.env, HSEOS_NOTIFICATION_SILENT: '0' },
     });
-    assertPass(
-      'on-notification.sh exits 0 with default args',
-      result.ok,
-      `exitCode=${result.exitCode}`,
-    );
+    assertPass('on-notification.sh exits 0 with default args', result.ok, `exitCode=${result.exitCode}`);
   }
 
   // No-arg invocation also exits 0 (uses default message)
@@ -461,11 +385,7 @@ function testOnNotification() {
     const result = runHandler(scriptPath, [], {
       env: { ...process.env, HSEOS_NOTIFICATION_SILENT: '1' },
     });
-    assertPass(
-      'on-notification.sh with no arg exits 0',
-      result.ok,
-      `exitCode=${result.exitCode}`,
-    );
+    assertPass('on-notification.sh with no arg exits 0', result.ok, `exitCode=${result.exitCode}`);
   }
 
   // Idempotency: running twice produces the same exit code
@@ -488,22 +408,14 @@ function testOnNotification() {
 function testPreCompact() {
   const scriptPath = path.join(HANDLERS_DIR, 'pre-compact.sh');
 
-  assertPass(
-    'pre-compact.sh exists',
-    fs.existsSync(scriptPath),
-    scriptPath,
-  );
+  assertPass('pre-compact.sh exists', fs.existsSync(scriptPath), scriptPath);
 
   if (!fs.existsSync(scriptPath)) {
     return;
   }
 
   const stat = fs.statSync(scriptPath);
-  assertPass(
-    'pre-compact.sh is executable',
-    (stat.mode & 0o111) !== 0,
-    `mode=${stat.mode.toString(8)}`,
-  );
+  assertPass('pre-compact.sh is executable', (stat.mode & 0o111) !== 0, `mode=${stat.mode.toString(8)}`);
 
   // Outside an HSEOS-installed project: silent no-op
   withTempDir((tempDir) => {
@@ -527,20 +439,10 @@ function testPreCompact() {
     };
     const result = runHandler(scriptPath, [], { cwd: tempDir, env });
 
-    assertPass(
-      'pre-compact.sh inside HSEOS project exits 0',
-      result.ok,
-      `stderr="${result.stderr ?? ''}"`,
-    );
+    assertPass('pre-compact.sh inside HSEOS project exits 0', result.ok, `stderr="${result.stderr ?? ''}"`);
 
-    const snapshot = path.join(
-      tempDir, '.hseos', 'runs', 'sessions', sessionId, 'PRE-COMPACT.md',
-    );
-    assertPass(
-      'pre-compact.sh writes PRE-COMPACT.md to .hseos/runs/sessions/<id>/',
-      fs.existsSync(snapshot),
-      snapshot,
-    );
+    const snapshot = path.join(tempDir, '.hseos', 'runs', 'sessions', sessionId, 'PRE-COMPACT.md');
+    assertPass('pre-compact.sh writes PRE-COMPACT.md to .hseos/runs/sessions/<id>/', fs.existsSync(snapshot), snapshot);
 
     if (fs.existsSync(snapshot)) {
       const body = fs.readFileSync(snapshot, 'utf8');
@@ -577,9 +479,7 @@ function testPreCompact() {
       const body = fs.readFileSync(snapshot, 'utf8');
       assertPass(
         'pre-compact.sh embeds user-authored notes into snapshot',
-        body.includes('## User-authored pre-compact notes') &&
-          body.includes('My critical context') &&
-          body.includes('thing 2'),
+        body.includes('## User-authored pre-compact notes') && body.includes('My critical context') && body.includes('thing 2'),
         `body excerpt="${body.slice(-200)}"`,
       );
     }
@@ -619,22 +519,14 @@ function runHandlerWithStdin(scriptPath, stdinPayload, options = {}) {
 function testOnPromptSubmit() {
   const scriptPath = path.join(HANDLERS_DIR, 'on-prompt-submit.sh');
 
-  assertPass(
-    'on-prompt-submit.sh exists',
-    fs.existsSync(scriptPath),
-    scriptPath,
-  );
+  assertPass('on-prompt-submit.sh exists', fs.existsSync(scriptPath), scriptPath);
 
   if (!fs.existsSync(scriptPath)) {
     return;
   }
 
   const stat = fs.statSync(scriptPath);
-  assertPass(
-    'on-prompt-submit.sh is executable',
-    (stat.mode & 0o111) !== 0,
-    `mode=${stat.mode.toString(8)}`,
-  );
+  assertPass('on-prompt-submit.sh is executable', (stat.mode & 0o111) !== 0, `mode=${stat.mode.toString(8)}`);
 
   // Outside an HSEOS project: silent no-op
   withTempDir((tempDir) => {
@@ -657,36 +549,21 @@ function testOnPromptSubmit() {
 
     const result = runHandlerWithStdin(scriptPath, payload, { cwd: tempDir, env });
 
-    assertPass(
-      'on-prompt-submit.sh inside HSEOS project exits 0',
-      result.ok,
-      `stderr="${result.stderr ?? ''}"`,
-    );
+    assertPass('on-prompt-submit.sh inside HSEOS project exits 0', result.ok, `stderr="${result.stderr ?? ''}"`);
 
-    const promptsDir = path.join(
-      tempDir, '.hseos', 'runs', 'sessions', sessionId, 'prompts',
-    );
+    const promptsDir = path.join(tempDir, '.hseos', 'runs', 'sessions', sessionId, 'prompts');
     const dirExists = fs.existsSync(promptsDir);
-    assertPass(
-      'on-prompt-submit.sh creates .hseos/runs/sessions/<id>/prompts/',
-      dirExists,
-      promptsDir,
-    );
+    assertPass('on-prompt-submit.sh creates .hseos/runs/sessions/<id>/prompts/', dirExists, promptsDir);
 
     if (dirExists) {
       const files = fs.readdirSync(promptsDir);
-      assertPass(
-        'on-prompt-submit.sh writes one prompt file',
-        files.length === 1,
-        `files=${JSON.stringify(files)}`,
-      );
+      assertPass('on-prompt-submit.sh writes one prompt file', files.length === 1, `files=${JSON.stringify(files)}`);
 
       if (files.length === 1) {
         const body = fs.readFileSync(path.join(promptsDir, files[0]), 'utf8');
         assertPass(
           'on-prompt-submit.sh prompt file contains the prompt',
-          body.includes('just a regular prompt') &&
-            body.includes(sessionId),
+          body.includes('just a regular prompt') && body.includes(sessionId),
           `body excerpt="${body.slice(0, 80)}"`,
         );
       }
@@ -706,14 +583,8 @@ function testOnPromptSubmit() {
       `stdout="${result.stdout.trim()}"`,
     );
 
-    const promptsDir = path.join(
-      tempDir, '.hseos', 'runs', 'sessions', sessionId, 'prompts',
-    );
-    assertPass(
-      'on-prompt-submit.sh with empty stdin does not create prompts dir',
-      !fs.existsSync(promptsDir),
-      promptsDir,
-    );
+    const promptsDir = path.join(tempDir, '.hseos', 'runs', 'sessions', sessionId, 'prompts');
+    assertPass('on-prompt-submit.sh with empty stdin does not create prompts dir', !fs.existsSync(promptsDir), promptsDir);
   });
 
   // /plan with heterogeneous task signals -> SWARM advisory
@@ -722,15 +593,13 @@ function testOnPromptSubmit() {
     const sessionId = `swarm-${Date.now()}`;
     const env = { ...process.env, HSEOS_SESSION_ID: sessionId };
 
-    const heterogeneousPrompt =
-      '/plan refactor the auth module, fix the broken test, implementar nova feature de logging, atualizar docs';
+    const heterogeneousPrompt = '/plan refactor the auth module, fix the broken test, implementar nova feature de logging, atualizar docs';
     const payload = JSON.stringify({ prompt: heterogeneousPrompt, cwd: tempDir });
     const result = runHandlerWithStdin(scriptPath, payload, { cwd: tempDir, env });
 
     assertPass(
       'on-prompt-submit.sh emits SWARM advisory on /plan with heterogeneous signals',
-      result.ok && /\[HSEOS\]\[SWARM\]/.test(result.stdout) &&
-        result.stdout.includes('/dev-squad'),
+      result.ok && /\[HSEOS\]\[SWARM\]/.test(result.stdout) && result.stdout.includes('/dev-squad'),
       `stdout excerpt="${result.stdout.slice(0, 120)}..."`,
     );
   });
@@ -760,22 +629,14 @@ function testOnPromptSubmit() {
 function testSessionEnd() {
   const scriptPath = path.join(HANDLERS_DIR, 'session-end.sh');
 
-  assertPass(
-    'session-end.sh exists',
-    fs.existsSync(scriptPath),
-    scriptPath,
-  );
+  assertPass('session-end.sh exists', fs.existsSync(scriptPath), scriptPath);
 
   if (!fs.existsSync(scriptPath)) {
     return;
   }
 
   const stat = fs.statSync(scriptPath);
-  assertPass(
-    'session-end.sh is executable',
-    (stat.mode & 0o111) !== 0,
-    `mode=${stat.mode.toString(8)}`,
-  );
+  assertPass('session-end.sh is executable', (stat.mode & 0o111) !== 0, `mode=${stat.mode.toString(8)}`);
 
   // Outside HSEOS project: silent no-op
   withTempDir((tempDir) => {
@@ -795,28 +656,16 @@ function testSessionEnd() {
     const env = { ...process.env, HSEOS_SESSION_ID: sessionId };
     const result = runHandler(scriptPath, [], { cwd: tempDir, env });
 
-    assertPass(
-      'session-end.sh inside HSEOS exits 0 (Tier 1 only)',
-      result.ok,
-      `stderr="${result.stderr ?? ''}"`,
-    );
+    assertPass('session-end.sh inside HSEOS exits 0 (Tier 1 only)', result.ok, `stderr="${result.stderr ?? ''}"`);
 
-    const marker = path.join(
-      tempDir, '.hseos', 'runs', 'sessions', sessionId, 'SESSION-END.md',
-    );
-    assertPass(
-      'session-end.sh writes SESSION-END.md marker',
-      fs.existsSync(marker),
-      marker,
-    );
+    const marker = path.join(tempDir, '.hseos', 'runs', 'sessions', sessionId, 'SESSION-END.md');
+    assertPass('session-end.sh writes SESSION-END.md marker', fs.existsSync(marker), marker);
 
     if (fs.existsSync(marker)) {
       const body = fs.readFileSync(marker, 'utf8');
       assertPass(
         'session-end.sh marker contains required sections',
-        body.includes('# Session End') &&
-          body.includes(`Session:** \`${sessionId}\``) &&
-          body.includes('## Dirty working tree'),
+        body.includes('# Session End') && body.includes(`Session:** \`${sessionId}\``) && body.includes('## Dirty working tree'),
         `body length=${body.length}`,
       );
     }
@@ -834,26 +683,14 @@ function testSessionEnd() {
 
     fs.writeFileSync(
       path.join(configDir, 'hseos.config.yaml'),
-      [
-        'framework:',
-        '  name: test',
-        '',
-        'second_brain:',
-        '  enabled: false',
-        `  path: ${vaultDir}`,
-        '',
-      ].join('\n'),
+      ['framework:', '  name: test', '', 'second_brain:', '  enabled: false', `  path: ${vaultDir}`, ''].join('\n'),
     );
 
     const sessionId = `disabled-${Date.now()}`;
     const env = { ...process.env, HSEOS_SESSION_ID: sessionId };
     const result = runHandler(scriptPath, [], { cwd: tempDir, env });
 
-    assertPass(
-      'session-end.sh with enabled:false skips Tier 2 (vault untouched)',
-      result.ok,
-      `stderr="${result.stderr ?? ''}"`,
-    );
+    assertPass('session-end.sh with enabled:false skips Tier 2 (vault untouched)', result.ok, `stderr="${result.stderr ?? ''}"`);
 
     const log = fs.readFileSync(path.join(vaultDir, '_memory', 'activity-log.md'), 'utf8');
     assertPass(
@@ -880,32 +717,19 @@ function testSessionEnd() {
 
     fs.writeFileSync(
       path.join(configDir, 'hseos.config.yaml'),
-      [
-        'framework:',
-        '  name: test',
-        '',
-        'second_brain:',
-        '  enabled: true',
-        `  path: ${vaultDir}`,
-        '',
-      ].join('\n'),
+      ['framework:', '  name: test', '', 'second_brain:', '  enabled: true', `  path: ${vaultDir}`, ''].join('\n'),
     );
 
     const sessionId = `enabled-${Date.now()}`;
     const env = { ...process.env, HSEOS_SESSION_ID: sessionId };
     const result = runHandler(scriptPath, [], { cwd: tempDir, env });
 
-    assertPass(
-      'session-end.sh with enabled:true exits 0 (Tier 1 + 2)',
-      result.ok,
-      `stderr="${result.stderr ?? ''}"`,
-    );
+    assertPass('session-end.sh with enabled:true exits 0 (Tier 1 + 2)', result.ok, `stderr="${result.stderr ?? ''}"`);
 
     const log = fs.readFileSync(path.join(vaultDir, '_memory', 'activity-log.md'), 'utf8');
     assertPass(
       'session-end.sh enabled:true: vault activity-log appended',
-      log.includes('# Pre-existing log') &&
-        /## \[.+\] session-end \| .+/.test(log),
+      log.includes('# Pre-existing log') && /## \[.+\] session-end \| .+/.test(log),
       `log excerpt="${log.slice(-120)}"`,
     );
     assertPass(
@@ -923,22 +747,14 @@ function testSessionEnd() {
 function testSuggestSkill() {
   const scriptPath = path.join(HANDLERS_DIR, 'suggest-skill.sh');
 
-  assertPass(
-    'suggest-skill.sh exists',
-    fs.existsSync(scriptPath),
-    scriptPath,
-  );
+  assertPass('suggest-skill.sh exists', fs.existsSync(scriptPath), scriptPath);
 
   if (!fs.existsSync(scriptPath)) {
     return;
   }
 
   const stat = fs.statSync(scriptPath);
-  assertPass(
-    'suggest-skill.sh is executable',
-    (stat.mode & 0o111) !== 0,
-    `mode=${stat.mode.toString(8)}`,
-  );
+  assertPass('suggest-skill.sh is executable', (stat.mode & 0o111) !== 0, `mode=${stat.mode.toString(8)}`);
 
   // Outside HSEOS project (no .agents/skills/) → silent no-op
   withTempDir((tempDir) => {
@@ -1014,8 +830,7 @@ function testSuggestSkill() {
 
     assertPass(
       'suggest-skill.sh emits advisory when prompt matches a skill trigger',
-      result.ok && /\[HSEOS\]\[SKILL-CHECK\]/.test(result.stdout) &&
-        result.stdout.includes('/commit-hygiene'),
+      result.ok && /\[HSEOS\]\[SKILL-CHECK\]/.test(result.stdout) && result.stdout.includes('/commit-hygiene'),
       `stdout="${result.stdout.slice(0, 120)}..."`,
     );
 
@@ -1061,22 +876,14 @@ function testSuggestSkill() {
 function testCodeIndexGuard() {
   const scriptPath = path.join(HANDLERS_DIR, 'code-index-guard.sh');
 
-  assertPass(
-    'code-index-guard.sh exists',
-    fs.existsSync(scriptPath),
-    scriptPath,
-  );
+  assertPass('code-index-guard.sh exists', fs.existsSync(scriptPath), scriptPath);
 
   if (!fs.existsSync(scriptPath)) {
     return;
   }
 
   const stat = fs.statSync(scriptPath);
-  assertPass(
-    'code-index-guard.sh is executable',
-    (stat.mode & 0o111) !== 0,
-    `mode=${stat.mode.toString(8)}`,
-  );
+  assertPass('code-index-guard.sh is executable', (stat.mode & 0o111) !== 0, `mode=${stat.mode.toString(8)}`);
 
   // No provider detected -> silent allow (exit 0, empty stdout)
   withTempDir((tempDir) => {
@@ -1131,10 +938,15 @@ function testCodeIndexGuard() {
 
     const result = runHandler(scriptPath, ['Glob'], { cwd: tempDir });
     let parsed = null;
-    try { parsed = JSON.parse(result.stdout.trim()); } catch { parsed = null; }
+    try {
+      parsed = JSON.parse(result.stdout.trim());
+    } catch {
+      parsed = null;
+    }
     assertPass(
       'code-index-guard.sh with provider+index on Glob → emits blocking JSON',
-      result.ok && parsed &&
+      result.ok &&
+        parsed &&
         /Glob/.test(parsed.hookSpecificOutput.permissionDecisionReason ?? '') &&
         /get_skeleton|skeleton/.test(parsed.hookSpecificOutput.additionalContext ?? ''),
       `stdout="${result.stdout.slice(0, 120)}"`,

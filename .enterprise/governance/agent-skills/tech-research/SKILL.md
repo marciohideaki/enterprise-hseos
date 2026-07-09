@@ -7,6 +7,8 @@ license: Apache-2.0
 metadata:
   owner: platform-governance
   version: "1.0.0"
+trigger: "user asks to evaluate, compare, or research a technology/tool/library; 'should we use X or Y?'; before adopting a new dependency; user invokes /tech-research"
+skip: "technology already in the stack with a known decision (just reference it); user wants a one-line quick answer not a structured evaluation; purely theoretical question with no adoption intent"
 ---
 
 # tech-research — Guia Completo

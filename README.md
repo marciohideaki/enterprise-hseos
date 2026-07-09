@@ -2,8 +2,8 @@
 [![CI](https://github.com/marciohideaki/hseos/actions/workflows/standalone-smoke.yaml/badge.svg)](https://github.com/marciohideaki/hseos/actions)
 [![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](package.json)
 [![Node](https://img.shields.io/badge/node-%3E%3D20-green.svg)](https://nodejs.org)
-[![Agents](https://img.shields.io/badge/agents-14-purple.svg)](.hseos/agents/)
-[![Skills](https://img.shields.io/badge/skills-46-orange.svg)](.enterprise/governance/agent-skills/)
+[![Agents](https://img.shields.io/badge/agents-16-purple.svg)](.hseos/agents/)
+[![Skills](https://img.shields.io/badge/skills-49-orange.svg)](.enterprise/governance/agent-skills/)
 
 <p align="center">
   <picture>
@@ -14,7 +14,7 @@
 
 > *"Where human intent becomes institutional intelligence."*
 
-**A spec-driven, AI-assisted development framework combining architecture governance, cyberpunk agents, 46 skills, MCPs and engineering workflows.**
+**A spec-driven, AI-assisted development framework combining architecture governance, cyberpunk agents, 49 skills, MCPs and engineering workflows.**
 
 ---
 
@@ -146,6 +146,9 @@ Each step is governed by skills loaded automatically from the registry. Agents c
 | `KUBE` | Kubernetes Delivery Operator | GitOps Manifest Update, PR & ArgoCD Sync | GitOps |
 | `SABLE` | Runtime Operator | Rollout Verification & Runtime Smoke | Operations |
 | `SWARM` | Parallel Execution Commander | Heterogeneous Batch Decomposition & Worktree-Isolated Fan-Out | Parallelism |
+| `ATLAS` | ADO Lifecycle Orchestrator | Azure DevOps Plan→Sync→Close Tracking (feature-flagged via `ado.enabled`) | ADO Ops |
+
+> Plus `HSEOS-MASTER` (`src/core/agents/hseos-master.agent.yaml`) — the meta/bootstrap executor for generic `core`-module tasks, outside the delivery flow.
 
 ---
 
@@ -176,9 +179,25 @@ This sets up:
 - `.codex/config.toml` + `.codex/hseos-hooks.json` — Codex adapter (when `codex` is in `--tools`)
 - `.hseos/` — agent configurations, workflow definitions, local config, install manifest
 - `.agents/` — vendor-neutral source: `instructions/PROJECT.md`, `skills/<skill>/SKILL.md`, hook + command registries
-- `.enterprise/` — governance overlay copied from the HSEOS source (constitution, agent authority, policies, 46-skill governance library). Preserved if you already have one.
+- `.enterprise/` — governance overlay copied from the HSEOS source (constitution, agent authority, policies, 49-skill governance library). Preserved if you already have one.
 - `AGENTS.md` — minimal platform adapter at the project root pointing at `.agents/instructions/PROJECT.md`. Preserved if you already authored one.
 - `.git/hooks/pre-commit` — runs `scripts/governance/quality-gates.sh` when present. Skipped when `.git/` is absent or when you pass `--no-git-hooks`. Existing hooks are never overwritten.
+
+### 1b. Pick a capability profile (optional — `developer` is the default)
+
+Installation is driven by an auditable capability catalog (ADR-0016). Profiles: `minimal`,
+`developer` (default), `governance`, `gitops`, `ado`, `solo`, `full`. The governance baseline
+is always included and cannot be deselected; components with external prerequisites (ADO,
+sandbox, telemetry, axon-bridge, second-brain) are optional and degrade gracefully when unmet.
+
+```bash
+npx hseos install-plan --list-profiles     # discover profiles
+npx hseos install-plan --profile gitops    # dry-run: components, skills, paths, prerequisites
+npx hseos install --profile developer      # install a profile
+npx hseos install --skills pr-review,rfc   # or baseline + individual skills
+```
+
+See [`docs/capabilities.md`](docs/capabilities.md) for the full profile/component/prerequisite reference.
 
 ### 2. Select AI tools (optional)
 
@@ -198,17 +217,11 @@ Supported tools: `claude-code`, `cursor`, `windsurf`, `gemini`, `codex`, `antigr
 ### 3. Verify installation
 
 ```bash
-npx hseos validate
+npx hseos status              # installation status + module versions
+npx hseos agent-core verify   # hash-pinned integrity of compiled artifacts
 ```
 
-Expected output (lines vary with the adapters selected and overlays present):
-```
-✅ .enterprise/ governance structure OK
-✅ .hseos/agents/ agent definitions OK
-✅ AGENTS.md present at project root
-✅ .git/hooks/pre-commit installed
-✅ 46 skills registered
-```
+`status` reports the installation manifest and installed modules; `agent-core verify` validates every compiled skill/agent against the hashes pinned in `.agents/manifest.yaml`.
 
 ---
 
@@ -484,10 +497,11 @@ See [`docs/state-tracking.md`](docs/state-tracking.md) for the full reference.
   <img src="docs/assets/mcp-servers.png" alt="HSEOS native MCP servers — governance :3101, swarm :3102, axon-bridge :3103" width="90%" />
 </p>
 
-v2.0.0 ships three HSEOS-native MCP servers, each with dedicated toolsets:
+HSEOS ships four native MCP servers, each with dedicated toolsets:
 
 | Server | Port | Description |
 |--------|------|-------------|
+| `hseos-project-state` | 3100 | Agent run/task/event/handoff state over SQLite (`as_*` schema + FTS5) |
 | `hseos-governance` | 3101 | Constitution queries, ADR lookup, spec validation, quality gate status |
 | `hseos-swarm` | 3102 | Worktree management, parallel task dispatch, run state coordination |
 | `hseos-axon-bridge` | 3103 | Knowledge graph bridge — links HSEOS runs to Axon memory capsules |
@@ -499,11 +513,11 @@ Add to your Claude Code MCP config:
   "mcpServers": {
     "hseos-governance": {
       "command": "node",
-      "args": ["tools/mcp/hseos-governance/server.js"]
+      "args": ["tools/mcp-hseos-governance/index.js"]
     },
     "hseos-swarm": {
       "command": "node",
-      "args": ["tools/mcp/hseos-swarm/server.js"]
+      "args": ["tools/mcp-hseos-swarm/index.js"]
     }
   }
 }
@@ -516,21 +530,20 @@ Add to your Claude Code MCP config:
 Three commands for framework health:
 
 ```bash
-hseos verify    # integrity check — validates install artifacts, schemas, hooks
-hseos audit     # spec compliance scan — checks agent configs against constitution
-hseos doctor    # full health report — verify + audit + dependency check + test run
+hseos agent-core verify   # integrity check — compiled artifacts vs manifest hashes
+hseos agent-core audit    # drift scan — warns instead of failing
+hseos agent-core doctor   # full health report across the .agents core
 hseos pr closeout <num> --approved  # governed PR merge + safe feature branch cleanup
 ```
 
 Typical output:
 
 ```
-✅ .enterprise/ constitution structure — OK
-✅ .hseos/agents/ — 14 agent definitions valid
-✅ Git hooks installed and executable
-✅ 46 skills registered, 0 schema violations
-✅ SQLite state layer — project.db accessible
-⚠️  MCP server hseos-axon-bridge — skipped (axon index absent)
+✓ Skill accessibility integrity
+✓ Skill adr-compliance integrity
+…
+✓ Agent SWARM integrity
+✓ verify: all checks passed.
 ```
 
 ---

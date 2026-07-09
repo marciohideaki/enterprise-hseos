@@ -1,8 +1,8 @@
 ---
+trigger: "Use when the user request matches this skill scope: context >70% used; switching tasks after long implementation streak; about to hand off session; responses becoming generic or losing precision; before /compact to define compression strategy"
+skip: short sessions under 50k tokens; single focused task not yet complete; user explicitly chose /clear (no compression needed)
 name: context-compression
 description: Use when context window is approaching its limit, when resuming a long session, or when a session handoff needs to preserve maximum information in minimum tokens.
-trigger: "Use when the user request matches this skill scope: context >70% used; switching tasks after long implementation streak; about to hand off session; responses becoming generic or losing precision; before /compact to define compression strategy"
-skip: "short sessions under 50k tokens; single focused task not yet complete; user explicitly chose /clear (no compression needed)"
 version: "1.0"
 owner: platform-governance
 tier: full

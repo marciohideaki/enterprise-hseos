@@ -3,7 +3,7 @@
 
 **ADR ID:** ADR-XXXX  
 **Title:** <Short, descriptive decision title>  
-**Status:** Proposed | Accepted | Superseded | Deprecated  
+**Status:** Proposed (empty template — Flutter content pending)  
 **Date:** YYYY-MM-DD  
 **Deciders:** <Roles or names>  
 **Technical Area:** <Architecture | Mobile | Backend | Data | DevOps | Security | etc.>  

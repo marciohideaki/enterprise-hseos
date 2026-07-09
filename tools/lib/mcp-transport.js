@@ -2,6 +2,7 @@
 
 const http = require('node:http');
 const readline = require('node:readline');
+const { MCP_PROTOCOL_VERSION } = require('./mcp-protocol');
 
 function buildMcpResponse(id, result) {
   return { jsonrpc: '2.0', id, result };
@@ -31,7 +32,7 @@ function createHttpServer(handleMessage, healthPayload) {
 
     let body = '';
     req.on('data', (chunk) => (body += chunk));
-    req.on('end', () => {
+    req.on('end', async () => {
       let parsed;
       try {
         parsed = JSON.parse(body);
@@ -42,7 +43,7 @@ function createHttpServer(handleMessage, healthPayload) {
       }
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(handleMessage(parsed)));
+      res.end(JSON.stringify(await handleMessage(parsed)));
     });
   });
 }
@@ -53,7 +54,7 @@ function startStdioServer(handleMessage) {
     crlfDelay: Number.POSITIVE_INFINITY,
   });
 
-  rl.on('line', (line) => {
+  rl.on('line', async (line) => {
     const trimmed = line.trim();
     if (!trimmed) return;
 
@@ -65,7 +66,7 @@ function startStdioServer(handleMessage) {
       return;
     }
 
-    const response = handleMessage(parsed);
+    const response = await handleMessage(parsed);
     if (response) process.stdout.write(`${JSON.stringify(response)}\n`);
   });
 
@@ -73,14 +74,14 @@ function startStdioServer(handleMessage) {
 }
 
 function createMessageHandler({ serverInfo, tools, callTool, wrapToolResults = true }) {
-  return (message) => {
+  return async (message) => {
     const { id, method, params = {} } = message;
 
     try {
       switch (method) {
         case 'initialize': {
           return buildMcpResponse(id, {
-            protocolVersion: '2024-11-05',
+            protocolVersion: MCP_PROTOCOL_VERSION,
             serverInfo,
             capabilities: { tools: {} },
           });
@@ -92,7 +93,9 @@ function createMessageHandler({ serverInfo, tools, callTool, wrapToolResults = t
           return buildMcpResponse(id, { tools });
         }
         case 'tools/call': {
-          const result = callTool(params.name, params.arguments || {});
+          // Await so async tool handlers serialize their resolved value instead
+          // of a pending Promise (awaiting a sync value is a no-op).
+          const result = await callTool(params.name, params.arguments || {});
           if (!wrapToolResults) return buildMcpResponse(id, result);
           return buildMcpResponse(id, {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],

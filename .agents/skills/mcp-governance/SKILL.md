@@ -1,8 +1,8 @@
 ---
+trigger: Use when designing MCP server governance policies, auditing spend controls, or establishing rate limit and operational hygiene standards
+skip: Request is outside mcp-governance scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: mcp-governance
 description: Use when designing MCP server governance policies, auditing spend controls, or establishing rate limit and operational hygiene standards
-trigger: "Use when designing MCP server governance policies, auditing spend controls, or establishing rate limit and operational hygiene standards"
-skip: "Request is outside mcp-governance scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 version: "1.0"
 owner: platform-governance
 tier: full

@@ -591,10 +591,7 @@ function enrichEpicDeliveryRunState(runState, repoRoot, options) {
 
   const epicSpec = loadEpicSpec(repoRoot, options.epicId);
   if (!epicSpec) {
-    runState.notes = [
-      ...(runState.notes || []),
-      `Epic ${options.epicId} not found in planning artifacts.`,
-    ];
+    runState.notes = [...(runState.notes || []), `Epic ${options.epicId} not found in planning artifacts.`];
     return runState;
   }
 

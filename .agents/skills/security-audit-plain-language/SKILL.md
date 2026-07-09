@@ -1,4 +1,6 @@
 ---
+trigger: user asks for a project security audit in simple language, an executive-friendly risk summary, or a non-technical security review
+skip: the audience is engineers and wants technical AppSec depth (use secure-coding or threat-modeling); the request is a single vulnerability fix, not an audit
 name: security-audit-plain-language
 description: Security audit workflow for non-technical stakeholders. Performs read-only project assessment, requests critical context first, and reports findings in plain language with severity and remediation steps.
 version: "1.0"

@@ -1,8 +1,8 @@
 ---
+trigger: "Use when the user request matches this skill scope: starting a new session or task; agent output quality degrading (wrong files, stale assumptions); switching from one epic/feature to another; resuming from HANDOFF.md; subagent bootstrap"
+skip: session already warmed up and context is correct; simple one-off question not requiring project context; user explicitly loaded context manually already
 name: context-engineering
 description: Use when starting a new session, switching tasks, or when agent output quality is degrading — to structure context loading efficiently across 5 levels
-trigger: "Use when the user request matches this skill scope: starting a new session or task; agent output quality degrading (wrong files, stale assumptions); switching from one epic/feature to another; resuming from HANDOFF.md; subagent bootstrap"
-skip: "session already warmed up and context is correct; simple one-off question not requiring project context; user explicitly loaded context manually already"
 version: "1.0"
 owner: platform-governance
 tier: full

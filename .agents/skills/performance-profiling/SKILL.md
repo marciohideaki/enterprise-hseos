@@ -1,6 +1,8 @@
 ---
 skill: performance-profiling
 standard: Performance Engineering Standard
+trigger: Use when investigating a performance regression, profiling a service under load, or auditing performance-sensitive code with regression baselines
+skip: Request is outside performance-profiling scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 metadata:
   hseos:
     required_modes:
@@ -9,8 +11,6 @@ metadata:
     explicit_only: true
 name: performance-profiling
 description: Use when investigating a performance regression, profiling a service under load, or auditing performance-sensitive code with regression baselines
-trigger: "Use when investigating a performance regression, profiling a service under load, or auditing performance-sensitive code with regression baselines"
-skip: "Request is outside performance-profiling scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 version: "1.0"
 owner: platform-governance
 tier: full

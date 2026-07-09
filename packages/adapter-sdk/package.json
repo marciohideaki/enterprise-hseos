@@ -2,14 +2,19 @@
   "name": "@hseos/adapter-sdk",
   "version": "1.0.0",
   "description": "HSEOS Adapter SDK — base class and utilities for authoring BYOA adapters",
-  "main": "index.js",
-  "license": "MIT",
-  "keywords": ["hseos", "adapter", "byoa", "agents"],
+  "keywords": [
+    "hseos",
+    "adapter",
+    "byoa",
+    "agents"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/marciohideaki/hseos.git",
     "directory": "packages/adapter-sdk"
   },
+  "license": "MIT",
+  "main": "index.js",
   "engines": {
     "node": ">=20.0.0"
   },

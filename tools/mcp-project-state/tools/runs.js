@@ -12,7 +12,7 @@ module.exports = [
     inputSchema: {
       type: 'object',
       properties: {
-        status: { type: 'string', description: "Filter by status (active|completed|aborted|orphaned)" },
+        status: { type: 'string', description: 'Filter by status (active|completed|aborted|orphaned)' },
         project: { type: 'string', description: 'Filter by project path' },
         limit: { type: 'integer', default: 100 },
       },
@@ -33,7 +33,7 @@ module.exports = [
       const rows = db
         .prepare(
           `SELECT id, workflow_id, project, phase, gate_status, status, started_at, ended_at, session_id, base_branch
-           FROM as_runs ${where} ORDER BY started_at DESC LIMIT ?`
+           FROM as_runs ${where} ORDER BY started_at DESC LIMIT ?`,
         )
         .all(...params, limit);
       return { runs: rows, count: rows.length };
@@ -52,9 +52,7 @@ module.exports = [
     handler: (db, args = {}) => {
       const run = db.prepare(`SELECT * FROM as_runs WHERE id = ?`).get(args.run_id);
       if (!run) throw new Error(`Run not found: ${args.run_id}`);
-      const taskCounts = db
-        .prepare(`SELECT status, COUNT(*) AS n FROM as_tasks WHERE run_id = ? GROUP BY status`)
-        .all(args.run_id);
+      const taskCounts = db.prepare(`SELECT status, COUNT(*) AS n FROM as_tasks WHERE run_id = ? GROUP BY status`).all(args.run_id);
       const agentRunCounts = db
         .prepare(`SELECT status, COUNT(*) AS n FROM as_agent_runs WHERE run_id = ? GROUP BY status`)
         .all(args.run_id);
@@ -63,7 +61,7 @@ module.exports = [
           `SELECT e.id, e.kind, e.ts, ar.agent_name, ar.task_id
            FROM as_events e LEFT JOIN as_agent_runs ar ON ar.id = e.agent_run_id
            WHERE ar.run_id = ?
-           ORDER BY e.id DESC LIMIT 20`
+           ORDER BY e.id DESC LIMIT 20`,
         )
         .all(args.run_id);
       return { run, task_status_counts: taskCounts, agent_run_status_counts: agentRunCounts, last_events: lastEvents };

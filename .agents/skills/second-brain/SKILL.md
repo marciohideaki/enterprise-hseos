@@ -8,10 +8,10 @@ triggers:
   - activity-log
   - vault-read
   - brain-sync
+trigger: Use when writing architectural decisions, discovered gotchas, or session activity to the vault, or designing the hseos brain sync protocol
+skip: Request is outside second-brain scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: second-brain
 description: Use when writing architectural decisions, discovered gotchas, or session activity to the vault, or designing the hseos brain sync protocol
-trigger: "Use when writing architectural decisions, discovered gotchas, or session activity to the vault, or designing the hseos brain sync protocol"
-skip: "Request is outside second-brain scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 version: "2.1"
 owner: platform-governance
 tier: full

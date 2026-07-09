@@ -110,10 +110,7 @@ function waitForFile(filePath, timeoutMs = 3000) {
 // =============================================================================
 
 assertPass('state-emit-hook.sh exists', fs.existsSync(HOOK_SCRIPT), HOOK_SCRIPT);
-assertPass(
-  'state-emit-hook.sh is executable',
-  (fs.statSync(HOOK_SCRIPT).mode & 0o111) !== 0,
-);
+assertPass('state-emit-hook.sh is executable', (fs.statSync(HOOK_SCRIPT).mode & 0o111) !== 0);
 
 // No context, no DB → silent exit 0
 withTempDir((dir) => {
@@ -137,11 +134,7 @@ withTempDir((dir) => {
     HSEOS_STATE_DB: dbPath,
     HOME: dir,
   });
-  assertPass(
-    'DB with completed run only → silent exit 0',
-    result.ok && result.stdout.trim() === '',
-    `exit=${result.exitCode}`,
-  );
+  assertPass('DB with completed run only → silent exit 0', result.ok && result.stdout.trim() === '', `exit=${result.exitCode}`);
 });
 
 // DB has active run → hook calls hseos with --run <id>
@@ -162,11 +155,7 @@ withTempDir((dir) => {
 
   const captured = waitForFile(captureFile);
 
-  assertPass(
-    'active run in DB → hook exits 0',
-    result.ok,
-    `exit=${result.exitCode} stderr="${result.stderr?.trim()}"`,
-  );
+  assertPass('active run in DB → hook exits 0', result.ok, `exit=${result.exitCode} stderr="${result.stderr?.trim()}"`);
   assertPass(
     'active run in DB → hseos called with correct --run id',
     captured.includes('--run') && captured.includes('20260509-active-run'),
@@ -208,11 +197,7 @@ withTempDir((dir) => {
 // Non-SessionStart with no context → silent skip (unchanged behaviour)
 withTempDir((dir) => {
   const result = runHook({ CLAUDE_HOOK_EVENT: 'PostToolUse', CLAUDE_TOOL_NAME: 'Edit', HOME: dir });
-  assertPass(
-    'PostToolUse + no context → silent exit 0',
-    result.ok && result.stdout.trim() === '',
-    `exit=${result.exitCode}`,
-  );
+  assertPass('PostToolUse + no context → silent exit 0', result.ok && result.stdout.trim() === '', `exit=${result.exitCode}`);
 });
 
 // =============================================================================

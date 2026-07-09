@@ -5,8 +5,7 @@
 ---
 
 ## 1. Constitution Validation
-- [ ] `/.enterprise/constitution/` exists
-- [ ] Constitution file exists
+- [ ] `/.enterprise/.specs/constitution/Enterprise-Constitution.md` exists
 - [ ] Constitution v2.0+ (single document — no addendum)
 
 ---

@@ -8,6 +8,8 @@ metadata:
   owner: platform-governance
   version: "1.0.0"
   inspired-by: superpowers/skills/verification-before-completion
+trigger: "Use when about to declare a task, feature, or fix complete — before reporting done to the orchestrator or user"
+skip: "Request is outside verification-before-completion scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 ---
 
 # Verification Before Completion — Full Protocol

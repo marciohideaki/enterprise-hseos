@@ -4,6 +4,8 @@ tier: 2
 version: "1.0"
 description: "Use when auditing source code comments and commit messages for AI methodology references, management language, or corporate attribution violations"
 standard: Commit Hygiene Policy / Corporate AI Attribution Policy
+trigger: "Use when auditing source code comments and commit messages for AI methodology references, management language, or corporate attribution violations"
+skip: "Request is outside sanitize-comments scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 ---
 
 # Sanitize Comments — Full Policy

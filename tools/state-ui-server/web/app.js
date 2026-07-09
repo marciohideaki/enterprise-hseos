@@ -73,9 +73,7 @@
     el.className = `card card-${kind}`;
     const meta = projectsMeta && item.project_id ? projectsMeta.find((p) => p.id === item.project_id) : null;
     if (meta?.color) el.style.borderLeftColor = meta.color;
-    const projectBadge = meta
-      ? `<span class="card-project" style="color:${meta.color}">${escapeHtml(meta.label || meta.id)}</span>`
-      : '';
+    const projectBadge = meta ? `<span class="card-project" style="color:${meta.color}">${escapeHtml(meta.label || meta.id)}</span>` : '';
     if (kind === 'pending' || kind === 'aborted') {
       // task card
       el.innerHTML = `
@@ -103,7 +101,10 @@
   }
 
   function escapeHtml(s) {
-    return String(s ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    return String(s ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;');
   }
 
   // localStorage-persisted project filter
@@ -124,9 +125,7 @@
 
   function render(rawState) {
     const state = applyProjectFilter(rawState);
-    const orphanSet = new Set(
-      (rawState.orphans || []).map((o) => (typeof o === 'object' ? o.agent_run_id : o))
-    );
+    const orphanSet = new Set((rawState.orphans || []).map((o) => (typeof o === 'object' ? o.agent_run_id : o)));
     const projectsMeta = rawState.projects_meta || null;
     const buckets = { pending: [], running: [], completed: [], aborted: [], orphaned: [] };
 
@@ -147,9 +146,7 @@
     }
 
     lastUpdate.textContent = new Date(state.ts).toLocaleTimeString();
-    const projInfo = projectsMeta
-      ? ` · ${projectsMeta.length} project(s)`
-      : '';
+    const projInfo = projectsMeta ? ` · ${projectsMeta.length} project(s)` : '';
     dbMeta.textContent = `${state.runs?.length || 0} runs · ${state.events?.length || 0} events · stale>${state.stale_minutes}m${projInfo}`;
 
     // Render project filter dropdown if multi-project mode
@@ -165,7 +162,8 @@
       if (!meta) return;
       select = document.createElement('select');
       select.id = 'project-filter';
-      select.style.cssText = 'background:#11161f;color:#c5d3e6;border:1px solid #1f2a38;border-radius:4px;padding:0.25rem 0.5rem;margin-right:0.5rem;font-family:ui-monospace,monospace;font-size:0.78rem;';
+      select.style.cssText =
+        'background:#11161f;color:#c5d3e6;border:1px solid #1f2a38;border-radius:4px;padding:0.25rem 0.5rem;margin-right:0.5rem;font-family:ui-monospace,monospace;font-size:0.78rem;';
       meta.prepend(select);
       select.addEventListener('change', () => {
         const v = select.value;

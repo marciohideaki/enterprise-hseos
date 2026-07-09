@@ -8,7 +8,34 @@ const { parseCsv, resolveCapabilityPlan, writeCapabilitySelection } = require('.
 const installer = new Installer();
 const ui = new UI();
 
+/**
+ * Map selected `extra:*` capability components onto the corresponding install
+ * flags, so a component selection IS the activation (explicit flags win).
+ * Returns advisory notes for extras that still need operator input.
+ */
+function applyExtrasFromPlan(options, capabilityPlan) {
+  const notes = [];
+  const selected = new Set((capabilityPlan?.components || []).map((component) => component.id));
+
+  if (selected.has('extra:rtk') && options.rtk === undefined) {
+    options.rtk = true;
+    notes.push('extra:rtk selected — RTK will patch the user-global Claude Code settings (cross-project side effect).');
+  }
+  if (selected.has('extra:usage-dashboard') && options.usageDashboard === undefined) {
+    options.usageDashboard = 'local';
+  }
+  if (selected.has('extra:second-brain') && !options.secondBrainPath) {
+    notes.push('extra:second-brain selected but no --second-brain-path given — the interactive wizard will ask for the vault path.');
+  }
+  if (selected.has('extra:git-hooks') && options.gitHooks === false) {
+    notes.push('extra:git-hooks selected but --no-git-hooks passed — the explicit flag wins; hook will NOT be installed.');
+  }
+
+  return notes;
+}
+
 module.exports = {
+  applyExtrasFromPlan,
   command: 'install',
   description: 'Install HSEOS agents and framework',
   options: [
@@ -32,8 +59,14 @@ module.exports = {
     ['-y, --yes', 'Accept all defaults and skip prompts where possible'],
     ['--second-brain-path <path>', 'Absolute path to second-brain vault (enables integration if provided)'],
     ['--rtk', 'Install RTK token optimizer (intercepts CLI commands to reduce LLM token usage by 60-90%)'],
-    ['--usage-dashboard [mode]', 'Install usage analytics dashboard. Mode: "local" (Python, default) or "docker" (Docker Compose, externally accessible)'],
-    ['--no-git-hooks', 'Skip writing the pre-commit hook at .git/hooks/pre-commit. Default: install the hook when the target is a git working tree.'],
+    [
+      '--usage-dashboard [mode]',
+      'Install usage analytics dashboard. Mode: "local" (Python, default) or "docker" (Docker Compose, externally accessible)',
+    ],
+    [
+      '--no-git-hooks',
+      'Skip writing the pre-commit hook at .git/hooks/pre-commit. Default: install the hook when the target is a git working tree.',
+    ],
   ],
   action: async (options) => {
     try {
@@ -58,6 +91,10 @@ module.exports = {
         }
         if (!options.tools && capabilityPlan.tools.length > 0) {
           options.tools = capabilityPlan.tools.join(',');
+        }
+        const extrasNotes = applyExtrasFromPlan(options, capabilityPlan);
+        for (const note of extrasNotes) {
+          await prompts.log.warn(note);
         }
         await prompts.log.info(
           `Resolved capability plan: ${capabilityPlan.profile || 'custom'} (${capabilityPlan.components.length} components, ${capabilityPlan.skills.length} skills)`,

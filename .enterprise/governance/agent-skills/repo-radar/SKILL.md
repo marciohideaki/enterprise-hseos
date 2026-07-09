@@ -7,6 +7,8 @@ license: Apache-2.0
 metadata:
   owner: platform-governance
   version: "1.0.0"
+trigger: "user asks to evaluate, analyze, classify, or adopt a GitHub repository; before adopting an external library or framework; user invokes /repo-radar with a URL"
+skip: "repository already evaluated in PROJECT_EVALUATIONS.md with a recent verdict; user just wants a quick README summary (use WebFetch instead); internal private repos not on GitHub"
 ---
 
 # repo-radar — Guia Completo

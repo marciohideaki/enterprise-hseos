@@ -20,7 +20,7 @@ async function printDoctor(result, json) {
   await prompts.log.message(
     `Sandbox: ${result.configured ? 'configured' : 'optional defaults'}\n` +
       `  provider: ${result.provider}\n` +
-      `  required: ${result.required ? 'true' : 'false'}`
+      `  required: ${result.required ? 'true' : 'false'}`,
   );
 
   for (const check of result.checks) {

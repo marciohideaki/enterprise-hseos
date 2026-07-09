@@ -11,58 +11,58 @@ const fs = require('node:fs');
 
 let Database;
 try {
-   
   Database = require('better-sqlite3');
 } catch {
   Database = null;
 }
 
 function countRows(db, run_id) {
-  const taskIds = db.prepare('SELECT id FROM as_tasks WHERE run_id = ?').all(run_id).map((t) => t.id);
-  const arIds = db.prepare('SELECT id FROM as_agent_runs WHERE run_id = ?').all(run_id).map((a) => a.id);
+  const taskIds = db
+    .prepare('SELECT id FROM as_tasks WHERE run_id = ?')
+    .all(run_id)
+    .map((t) => t.id);
+  const arIds = db
+    .prepare('SELECT id FROM as_agent_runs WHERE run_id = ?')
+    .all(run_id)
+    .map((a) => a.id);
   return {
     runs: db.prepare('SELECT COUNT(*) AS n FROM as_runs WHERE id = ?').get(run_id).n,
     tasks: taskIds.length,
     agent_runs: arIds.length,
     events:
       arIds.length > 0
-        ? db
-            .prepare(
-              `SELECT COUNT(*) AS n FROM as_events WHERE agent_run_id IN (${arIds.map(() => '?').join(',')})`
-            )
-            .get(...arIds).n
+        ? db.prepare(`SELECT COUNT(*) AS n FROM as_events WHERE agent_run_id IN (${arIds.map(() => '?').join(',')})`).get(...arIds).n
         : 0,
     handoffs:
       taskIds.length > 0
         ? db
             .prepare(
               `SELECT COUNT(*) AS n FROM as_handoffs WHERE src_task IN (${taskIds.map(() => '?').join(',')})
-                  OR dst_task IN (${taskIds.map(() => '?').join(',')})`
+                  OR dst_task IN (${taskIds.map(() => '?').join(',')})`,
             )
             .get(...taskIds, ...taskIds).n
         : 0,
     wave_executions:
       taskIds.length > 0
-        ? db
-            .prepare(
-              `SELECT COUNT(*) AS n FROM as_wave_executions WHERE task_id IN (${taskIds.map(() => '?').join(',')})`
-            )
-            .get(...taskIds).n
+        ? db.prepare(`SELECT COUNT(*) AS n FROM as_wave_executions WHERE task_id IN (${taskIds.map(() => '?').join(',')})`).get(...taskIds)
+            .n
         : 0,
     worktree_state:
       taskIds.length > 0
-        ? db
-            .prepare(
-              `SELECT COUNT(*) AS n FROM as_worktree_state WHERE task_id IN (${taskIds.map(() => '?').join(',')})`
-            )
-            .get(...taskIds).n
+        ? db.prepare(`SELECT COUNT(*) AS n FROM as_worktree_state WHERE task_id IN (${taskIds.map(() => '?').join(',')})`).get(...taskIds).n
         : 0,
   };
 }
 
 function purgeRun(db, run_id) {
-  const taskIds = db.prepare('SELECT id FROM as_tasks WHERE run_id = ?').all(run_id).map((t) => t.id);
-  const arIds = db.prepare('SELECT id FROM as_agent_runs WHERE run_id = ?').all(run_id).map((a) => a.id);
+  const taskIds = db
+    .prepare('SELECT id FROM as_tasks WHERE run_id = ?')
+    .all(run_id)
+    .map((t) => t.id);
+  const arIds = db
+    .prepare('SELECT id FROM as_agent_runs WHERE run_id = ?')
+    .all(run_id)
+    .map((a) => a.id);
 
   const tx = db.transaction(() => {
     if (arIds.length > 0) {
@@ -71,14 +71,10 @@ function purgeRun(db, run_id) {
     if (taskIds.length > 0) {
       db.prepare(
         `DELETE FROM as_handoffs WHERE src_task IN (${taskIds.map(() => '?').join(',')})
-            OR dst_task IN (${taskIds.map(() => '?').join(',')})`
+            OR dst_task IN (${taskIds.map(() => '?').join(',')})`,
       ).run(...taskIds, ...taskIds);
-      db.prepare(
-        `DELETE FROM as_wave_executions WHERE task_id IN (${taskIds.map(() => '?').join(',')})`
-      ).run(...taskIds);
-      db.prepare(
-        `DELETE FROM as_worktree_state WHERE task_id IN (${taskIds.map(() => '?').join(',')})`
-      ).run(...taskIds);
+      db.prepare(`DELETE FROM as_wave_executions WHERE task_id IN (${taskIds.map(() => '?').join(',')})`).run(...taskIds);
+      db.prepare(`DELETE FROM as_worktree_state WHERE task_id IN (${taskIds.map(() => '?').join(',')})`).run(...taskIds);
     }
     db.prepare('DELETE FROM as_agent_runs WHERE run_id = ?').run(run_id);
     db.prepare('DELETE FROM as_tasks WHERE run_id = ?').run(run_id);
@@ -89,8 +85,7 @@ function purgeRun(db, run_id) {
 
 module.exports = {
   command: 'state-purge <run-id>',
-  description:
-    'Archive (optional) and delete a run from the agent-state store. Default is --dry-run.',
+  description: 'Archive (optional) and delete a run from the agent-state store. Default is --dry-run.',
   options: [
     ['--directory <path>', 'Project directory (default: current)'],
     ['--archive', 'Archive run to second-brain vault before purging'],
@@ -131,7 +126,9 @@ module.exports = {
         });
         archive_path = result.archive_path;
         if (!archive_path) {
-          console.error('[state-purge] --archive specified but no output path resolvable (need --archive-path or --second-brain-path or SECOND_BRAIN_PATH env)');
+          console.error(
+            '[state-purge] --archive specified but no output path resolvable (need --archive-path or --second-brain-path or SECOND_BRAIN_PATH env)',
+          );
           process.exit(1);
         }
         if (!fs.existsSync(archive_path)) {

@@ -61,9 +61,7 @@ class AdapterBase {
   async emit(sources, outputDir) {
     void sources;
     void outputDir;
-    throw new Error(
-      `AdapterBase: ${this.constructor.name} must override async emit(sources, outputDir)`,
-    );
+    throw new Error(`AdapterBase: ${this.constructor.name} must override async emit(sources, outputDir)`);
   }
 
   /**
@@ -149,13 +147,25 @@ function resolveAdapterOutputDir(projectRoot, adapterId) {
 function checkAdapterConformance(AdapterClass) {
   const missing = [];
   let adapterId;
-  try { adapterId = AdapterClass.id; } catch { /* getter throws */ }
+  try {
+    adapterId = AdapterClass.id;
+  } catch {
+    /* getter throws */
+  }
   if (typeof adapterId !== 'string') missing.push('static id (string)');
   let adapterVersion;
-  try { adapterVersion = AdapterClass.version; } catch { /* getter throws */ }
+  try {
+    adapterVersion = AdapterClass.version;
+  } catch {
+    /* getter throws */
+  }
   if (typeof adapterVersion !== 'string') missing.push('static version (string)');
   let adapterCaps;
-  try { adapterCaps = AdapterClass.capabilities; } catch { /* getter throws */ }
+  try {
+    adapterCaps = AdapterClass.capabilities;
+  } catch {
+    /* getter throws */
+  }
   if (!Array.isArray(adapterCaps)) missing.push('static capabilities (array)');
 
   const instance = Object.create(AdapterClass.prototype);

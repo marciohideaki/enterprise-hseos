@@ -1,8 +1,8 @@
 ---
+trigger: Use when auditing a batch of commits, establishing commit hygiene policy, or remediating persistent AI-attribution or format violations
+skip: Request is outside commit-hygiene scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: commit-hygiene
 description: Use when auditing a batch of commits, establishing commit hygiene policy, or remediating persistent AI-attribution or format violations
-trigger: "Use when auditing a batch of commits, establishing commit hygiene policy, or remediating persistent AI-attribution or format violations"
-skip: "Request is outside commit-hygiene scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 version: "2.0"
 owner: platform-governance
 tier: full

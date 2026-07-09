@@ -36,7 +36,9 @@ module.exports = {
     switch (action) {
       case 'start': {
         if (config.mode === 'skill-only') {
-          await prompts.log.warn('State mode is skill-only — MCP server not available. Change mode in hseos.config.yaml to mcp-sqlite or hybrid.');
+          await prompts.log.warn(
+            'State mode is skill-only — MCP server not available. Change mode in hseos.config.yaml to mcp-sqlite or hybrid.',
+          );
           process.exit(0);
         }
         await prompts.log.info(`Starting project-state MCP server on port ${port}...`);
@@ -80,7 +82,7 @@ module.exports = {
             `  mcp server: ${mcpStatus}\n` +
             `  db path:    ${dbPath} (${dbExists ? 'exists' : 'not created yet'})\n` +
             `  cli script: ${cliExists ? CLI_SH : 'not found'}\n` +
-            `  fallback:   ${config.fallback_chain ? config.fallback_chain.join(' → ') : 'none'}`
+            `  fallback:   ${config.fallback_chain ? config.fallback_chain.join(' → ') : 'none'}`,
         );
         break;
       }

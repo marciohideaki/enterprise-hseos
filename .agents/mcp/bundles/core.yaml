@@ -22,7 +22,7 @@ servers:
       Exposes HSEOS governance queries via MCP. Replaces ad-hoc reads of
       .enterprise/.specs/ with cacheable tool calls consumable by any MCP-aware
       adapter (not only the original platform).
-    status: scaffolded   # implementation lands in W3 follow-up PR
+    status: implemented   # 5 tools live; covered by test/test-mcp-hseos-governance.js in npm test
     adapter_namespace: hseos_gov
 
   - id: hseos-state-tracking

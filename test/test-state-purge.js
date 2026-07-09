@@ -14,7 +14,6 @@ const { spawnSync } = require('node:child_process');
 
 let Database;
 try {
-   
   Database = require('better-sqlite3');
 } catch {
   Database = null;
@@ -28,6 +27,7 @@ if (!Database) {
 const REPO_ROOT = path.join(__dirname, '..');
 const HSEOS_CLI = path.join(REPO_ROOT, 'tools', 'cli', 'hseos-cli.js');
 const MIGRATIONS_DIR = path.join(REPO_ROOT, 'tools', 'mcp-project-state', 'migrations');
+const { runMigrations } = require(path.join(REPO_ROOT, 'tools', 'mcp-project-state', 'lib', 'migrations'));
 
 let pass = 0;
 let fail = 0;
@@ -44,9 +44,9 @@ function it(name, fn) {
 }
 
 function applyMigrations(db) {
-  for (const f of fs.readdirSync(MIGRATIONS_DIR).filter((x) => /^\d{3}-.*\.sql$/.test(x)).sort()) {
-    db.exec(fs.readFileSync(path.join(MIGRATIONS_DIR, f), 'utf8'));
-  }
+  // Use the production runner (user_version-tracked) so replays on an
+  // already-migrated DB are skipped exactly like the real server does.
+  runMigrations(db, MIGRATIONS_DIR, { log: () => {} });
 }
 
 function seed(dir, runId) {
@@ -55,24 +55,15 @@ function seed(dir, runId) {
   const db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
   applyMigrations(db);
-  db.prepare("INSERT INTO as_runs (id, workflow_id, project, phase) VALUES (?, 'dev-squad', ?, 'execute')").run(
-    runId,
-    dir
-  );
-  db.prepare("INSERT INTO as_tasks (id, run_id, wave, status) VALUES (?, ?, 1, 'IN_PROGRESS')").run(
-    `${runId}-T1`,
-    runId
-  );
+  db.prepare("INSERT INTO as_runs (id, workflow_id, project, phase) VALUES (?, 'dev-squad', ?, 'execute')").run(runId, dir);
+  db.prepare("INSERT INTO as_tasks (id, run_id, wave, status) VALUES (?, ?, 1, 'IN_PROGRESS')").run(`${runId}-T1`, runId);
   const ar = db
     .prepare(
-      "INSERT INTO as_agent_runs (agent_name, task_id, run_id, last_heartbeat_at, status) VALUES ('A', ?, ?, datetime('now'), 'running')"
+      "INSERT INTO as_agent_runs (agent_name, task_id, run_id, last_heartbeat_at, status) VALUES ('A', ?, ?, datetime('now'), 'running')",
     )
     .run(`${runId}-T1`, runId);
   for (let i = 0; i < 3; i++) {
-    db.prepare("INSERT INTO as_events (agent_run_id, kind, payload_json) VALUES (?, 'heartbeat', ?)").run(
-      ar.lastInsertRowid,
-      `{"i":${i}}`
-    );
+    db.prepare("INSERT INTO as_events (agent_run_id, kind, payload_json) VALUES (?, 'heartbeat', ?)").run(ar.lastInsertRowid, `{"i":${i}}`);
   }
   db.close();
   return dbPath;
@@ -112,13 +103,20 @@ it('--force deletes the run and dependent rows', () => {
   if (!out.purged) throw new Error('expected purged flag');
   const db = new Database(dbPath);
   const remaining = db.prepare("SELECT COUNT(*) AS n FROM as_runs WHERE id = 'R-purge'").get().n;
-  const events = db.prepare("SELECT COUNT(*) AS n FROM as_events").get().n;
+  // Both seeds create 3 events each; purging R-purge must leave no event
+  // dangling (agent_run deleted) while R-keep's events survive intact.
+  const dangling = db
+    .prepare('SELECT COUNT(*) AS n FROM as_events e LEFT JOIN as_agent_runs ar ON e.agent_run_id = ar.id WHERE ar.id IS NULL')
+    .get().n;
+  const keepEvents = db
+    .prepare("SELECT COUNT(*) AS n FROM as_events e JOIN as_agent_runs ar ON e.agent_run_id = ar.id WHERE ar.run_id = 'R-keep'")
+    .get().n;
   const tasks = db.prepare("SELECT COUNT(*) AS n FROM as_tasks WHERE run_id = 'R-purge'").get().n;
   db.close();
   if (remaining !== 0) throw new Error(`run still exists: ${remaining}`);
   if (tasks !== 0) throw new Error(`tasks still exist: ${tasks}`);
-  // events from R-purge should be 0 but R-keep events still survive
-  if (events !== 0) throw new Error(`events from purged run remain: ${events} (R-keep had no events seeded so total should be 0)`);
+  if (dangling !== 0) throw new Error(`dangling events from purged run remain: ${dangling}`);
+  if (keepEvents !== 3) throw new Error(`R-keep events were affected: expected 3, got ${keepEvents}`);
 });
 
 it('R-keep run is preserved (not affected by R-purge)', () => {

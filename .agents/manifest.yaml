@@ -2,26 +2,22 @@ version: "1.0"
 generated_by: hseos-agent-core-compiler
 source_of_truth: .agents
 adapters:
+  claude_code:
+    entrypoint: CLAUDE.md
+    hooks: .claude/hooks.json
   codex:
     entrypoint: AGENTS.md
     skills: .agents/skills
     settings: .codex/config.toml
     hooks: .codex/hseos-hooks.json
-  claude_code:
-    entrypoint: CLAUDE.md
-    commands: .claude/commands
-    hooks: .claude/hooks.json
 platforms:
   - claude-code
   - codex
-  - cursor
-  - continue
-  - aider
-  - cline
 counts:
   skills: 49
   hooks: 28
   commands: 9
+  handlers: 23
   agents: 16
   plugins: 4
   mcp_servers: 8
@@ -30,12 +26,12 @@ skills:
     source: .enterprise/governance/agent-skills/accessibility/SKILL.md
     quick: .enterprise/governance/agent-skills/accessibility/SKILL-QUICK.md
     output: .agents/skills/accessibility/SKILL.md
-    hash: 199b6d79b6a64dee7eb66ed28c453ebca70a7bc72a06669d66d63ca822ce1621
+    hash: abdab94406dad1959b2bcc293513a25e4286d9f3e4346350bf7143e1f6293a04
   - name: ado-close-wave
     source: .enterprise/governance/agent-skills/ado-close-wave/SKILL.md
     quick: .enterprise/governance/agent-skills/ado-close-wave/SKILL-QUICK.md
     output: .agents/skills/ado-close-wave/SKILL.md
-    hash: c0b686a0425d80bdc9242774dd89c01b4308e4949d29fc807e352bd38abcdb4c
+    hash: 7df9664df8e3bec3b525ea84c886e5e315228271c7ba2a3a5d52fcfd387c85e8
   - name: ado-new-project
     source: .enterprise/governance/agent-skills/ado-new-project/SKILL.md
     quick: .enterprise/governance/agent-skills/ado-new-project/SKILL-QUICK.md
@@ -45,232 +41,232 @@ skills:
     source: .enterprise/governance/agent-skills/ado-ops/SKILL.md
     quick: .enterprise/governance/agent-skills/ado-ops/SKILL-QUICK.md
     output: .agents/skills/ado-ops/SKILL.md
-    hash: 5c0a47dd4c17db552c191797233e730bb923b0ce0c3c250a9997f1b9fd38e23f
+    hash: 6eb5853c7f5511e20f0f0141b1e3a26f2e3658bf8559cc0f440d3f33e2b1e4c2
   - name: ado-plan
     source: .enterprise/governance/agent-skills/ado-plan/SKILL.md
     quick: .enterprise/governance/agent-skills/ado-plan/SKILL-QUICK.md
     output: .agents/skills/ado-plan/SKILL.md
-    hash: 796f6cf083f54bd937e3ee1856cda981205dd05b56c23b781838957e9badd264
+    hash: ccbf2a7b919918a7daf42e0d750e89b39cc44816868a8a5dd5843f7f234ed4a0
   - name: ado-sync
     source: .enterprise/governance/agent-skills/ado-sync/SKILL.md
     quick: .enterprise/governance/agent-skills/ado-sync/SKILL-QUICK.md
     output: .agents/skills/ado-sync/SKILL.md
-    hash: 43840d34e0eb31d7feec96a179644cc92c006369f1599464afc6c83cb9917d29
+    hash: 64a79342ef8617d19a91d25381c5b2973a436251791f29aab77523de5c58215c
   - name: adr-compliance
     source: .enterprise/governance/agent-skills/adr-compliance/SKILL.md
     quick: .enterprise/governance/agent-skills/adr-compliance/SKILL-QUICK.md
     output: .agents/skills/adr-compliance/SKILL.md
-    hash: d4c615e2a315fb49990c70ac233dcf04075053f15aa8834e45e36411b3a78348
+    hash: 1fe83667115555c6759f2891dad43041ec6db60d9f88b03fce6320725cee778a
   - name: agent-permissions
     source: .enterprise/governance/agent-skills/agent-permissions/SKILL.md
     quick: .enterprise/governance/agent-skills/agent-permissions/SKILL-QUICK.md
     output: .agents/skills/agent-permissions/SKILL.md
-    hash: dbe08fec0cc53171d9ff2b1d10e06c0830016cb236db2f4b2ed9b7a9f0ee614d
+    hash: 310f663976f1d86723a141960d68e721988f726e641ab41fdce1e7b2a0ba261b
   - name: ai-observability
     source: .enterprise/governance/agent-skills/ai-observability/SKILL.md
     quick: .enterprise/governance/agent-skills/ai-observability/SKILL-QUICK.md
     output: .agents/skills/ai-observability/SKILL.md
-    hash: 87c66a74b49e68e233dd4f2d44575ac22af7063123f9baf261ccd8f5128dc15f
+    hash: d588bc5fd6cac717d7f7aa841f282d5cf21f18b279fd667a11a8026a56d7c20c
   - name: architecture-breaking-change-detection
     source: .enterprise/governance/agent-skills/architecture/breaking-change-detection/SKILL.md
     quick: .enterprise/governance/agent-skills/architecture/breaking-change-detection/SKILL-QUICK.md
     output: .agents/skills/architecture-breaking-change-detection/SKILL.md
-    hash: 821f81cddedc3debc7f0a01d284ed467b3a8603e7d5b37f02fe9d3dbb674d7ab
+    hash: 99e174f606ee562074758b913994a4cca8e05bb2bc7c06962fa70e15e4649ead
   - name: architecture-ddd-boundary-check
     source: .enterprise/governance/agent-skills/architecture/ddd-boundary-check/SKILL.md
     quick: .enterprise/governance/agent-skills/architecture/ddd-boundary-check/SKILL-QUICK.md
     output: .agents/skills/architecture-ddd-boundary-check/SKILL.md
-    hash: 3ecbd73cb6c787df9d620643d80b88cc65f560d2f49bb011ccb26001966aeefc
+    hash: b3f4f6767d813705bfe20c395299cd0d55b5baebf5d6470a305dc4bacb63edf6
   - name: commit-hygiene
     source: .enterprise/governance/agent-skills/commit-hygiene/SKILL.md
     quick: .enterprise/governance/agent-skills/commit-hygiene/SKILL-QUICK.md
     output: .agents/skills/commit-hygiene/SKILL.md
-    hash: 68d27c7a37b0dedad6e5629f65304d778c0b34595dd38b855bfe5ec2752778ef
+    hash: 1caef589639c593eea512356a6f653d0a6b87bfa68b7e983821f4b412e857a20
   - name: context-compression
     source: .enterprise/governance/agent-skills/context-compression/SKILL.md
     quick: .enterprise/governance/agent-skills/context-compression/SKILL-QUICK.md
     output: .agents/skills/context-compression/SKILL.md
-    hash: 2ea33458e17cd157bca5433d841c4842b48596c1689d40655f754e917046ce9e
+    hash: 2302e63bad80b502cb75ffbf07adad535e93cb141c478b379d764e07ba0cf7f2
   - name: context-engineering
     source: .enterprise/governance/agent-skills/context-engineering/SKILL.md
     quick: .enterprise/governance/agent-skills/context-engineering/SKILL-QUICK.md
     output: .agents/skills/context-engineering/SKILL.md
-    hash: 72a5477b04b5d2c17e78bf4adbd1668519e2a5a189d867fd67b02eabc6f9fc25
+    hash: b83218fdaaee04d0bae797c9eb0407c07630fd606590c1f5cb1f046e136a28ea
   - name: context-policy
     source: .enterprise/governance/agent-skills/context-policy/SKILL.md
     quick: .enterprise/governance/agent-skills/context-policy/SKILL-QUICK.md
     output: .agents/skills/context-policy/SKILL.md
-    hash: 9ba9beb8cf2d32eee491bef8c888ac8e1e540f2ab8e9155aac8a358c6e428a8d
+    hash: 41711b637eed66600f73dd0ef6fdd9f7981408934801379db489f141e7578b11
   - name: core-drift
     source: .enterprise/governance/agent-skills/core-drift/SKILL.md
     quick: .enterprise/governance/agent-skills/core-drift/SKILL-QUICK.md
     output: .agents/skills/core-drift/SKILL.md
-    hash: bc4f068a212974ce6ba0720394335354e68b0c40b5d987c97915fd11523b7576
+    hash: 4f68ef2fe5732f7eaad494912a6a21844365b408aaf701c260ec793080c7e9cc
   - name: dependency-audit
     source: .enterprise/governance/agent-skills/dependency-audit/SKILL.md
     quick: .enterprise/governance/agent-skills/dependency-audit/SKILL-QUICK.md
     output: .agents/skills/dependency-audit/SKILL.md
-    hash: b6e68be38cdc1003c72d0fb7485dc55a826791bf70c2327f1457e906edde0b36
+    hash: e915849d1d958baee37a3c1b7698b46fcbf92903ee2c6f9a231ed0ac043f3f2e
   - name: dev-squad
     source: .enterprise/governance/agent-skills/dev-squad/SKILL.md
     quick: .enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md
     output: .agents/skills/dev-squad/SKILL.md
-    hash: 8460b32b2ec9f274e96bc1177336ea25182c01db64377d322f2b8662e7853ca4
+    hash: 196a59c22e945108ff02a41fb848d5a4856f11a816494a235c0d98f2dba8931b
   - name: doc-project
     source: .enterprise/governance/agent-skills/doc-project/SKILL.md
     quick: .enterprise/governance/agent-skills/doc-project/SKILL-QUICK.md
     output: .agents/skills/doc-project/SKILL.md
-    hash: a31cde94a333c39c1ee0fc6120c992898a2b17a01d70d987ca448cb39fe030ea
+    hash: 522c39a6ba1270ed2fe212a3fe1d0edf2bd2aaf3281d57d8ca25e8aa145e095e
   - name: documentation-completeness
     source: .enterprise/governance/agent-skills/documentation-completeness/SKILL.md
     quick: .enterprise/governance/agent-skills/documentation-completeness/SKILL-QUICK.md
     output: .agents/skills/documentation-completeness/SKILL.md
-    hash: 8b3d93569f8a0d6667522a9e66580609153da73cb2b976b92087fdd460aac3af
+    hash: 0d36d7ddf190c4afe6a059349f9a9cee5948f6203de32bf28bcc2358dcfc5003
   - name: enterprise-readiness-audit
     source: .enterprise/governance/agent-skills/enterprise-readiness-audit/SKILL.md
     quick: .enterprise/governance/agent-skills/enterprise-readiness-audit/SKILL-QUICK.md
     output: .agents/skills/enterprise-readiness-audit/SKILL.md
-    hash: 467fd8e330fdb58a44046715712aa9741141f34d79c3d67021edac42de95b7b7
+    hash: 6601fc9aa573f8d49aa3656b8743f0af3dacbcd07305b3f335519fcf83fdd907
   - name: gitops-add-service
     source: .enterprise/governance/agent-skills/gitops-add-service/SKILL.md
     quick: .enterprise/governance/agent-skills/gitops-add-service/SKILL-QUICK.md
     output: .agents/skills/gitops-add-service/SKILL.md
-    hash: ed6484a34b2c003832721d3d6510fd1d6b89fedf787924e409b63aab2e61ed6d
+    hash: 6c00f1db9704e6b817b56ee6a55606f4869b2d0115febc103c53f8f4a3b6a11b
   - name: gitops-deploy
     source: .enterprise/governance/agent-skills/gitops-deploy/SKILL.md
     quick: .enterprise/governance/agent-skills/gitops-deploy/SKILL-QUICK.md
     output: .agents/skills/gitops-deploy/SKILL.md
-    hash: eff34728a1b88183404c04571fd2ca99e9c790d915278217feab5df578445a1c
+    hash: 956987655ca6a10e2c7cfdd54e50f792b7272dc13cedb68b20c94aa253f642b8
   - name: gitops-new-project
     source: .enterprise/governance/agent-skills/gitops-new-project/SKILL.md
     quick: .enterprise/governance/agent-skills/gitops-new-project/SKILL-QUICK.md
     output: .agents/skills/gitops-new-project/SKILL.md
-    hash: 8efe22d397e9a59435b5082d7a59d105c291f08998b3235c5a7bc5f78cbb9d1b
+    hash: af67d5483b6b102c5556d08cf8539d62184930566b7deb258c5b7b0ea5bbc6b7
   - name: inter-agent-comms
     source: .enterprise/governance/agent-skills/inter-agent-comms/SKILL.md
     quick: .enterprise/governance/agent-skills/inter-agent-comms/SKILL-QUICK.md
     output: .agents/skills/inter-agent-comms/SKILL.md
-    hash: 88e2b17541e257d7311f9752b9a40420b2816710dfbb266a78af1d61625f0ce6
+    hash: 4d388ec1c36a6774aaa31eb1a7d271d6a8f18f18256e103d31578016d0da302f
   - name: mcp-governance
     source: .enterprise/governance/agent-skills/mcp-governance/SKILL.md
     quick: .enterprise/governance/agent-skills/mcp-governance/SKILL-QUICK.md
     output: .agents/skills/mcp-governance/SKILL.md
-    hash: ddd7741c01d2455aa96304f5dfc2621cb4d6fe865e1893a6864f2664bf417c9c
+    hash: 75b8aca79d4d1d8b2345b308815b4f2c7691e2afb7f15c5e8cdb408832c6df56
   - name: multi-agent-orchestration
     source: .enterprise/governance/agent-skills/multi-agent-orchestration/SKILL.md
     quick: .enterprise/governance/agent-skills/multi-agent-orchestration/SKILL-QUICK.md
     output: .agents/skills/multi-agent-orchestration/SKILL.md
-    hash: 67e51e271fca328afaa3200180360949a7142888a45113954833346fa7c132c7
+    hash: ab50af97a93e0346afae9318ab99724617fc21cadcd1b22a7ce1864dff9b8455
   - name: naming-conventions
     source: .enterprise/governance/agent-skills/naming-conventions/SKILL.md
     quick: .enterprise/governance/agent-skills/naming-conventions/SKILL-QUICK.md
     output: .agents/skills/naming-conventions/SKILL.md
-    hash: 5e1b91f9ee2447ac1210fb1861725cfac76decfa16672a5db6cfdbd994b4c034
+    hash: 5040ad46933599b6054bbccda17fce620e5fc102fa048b23fe683d971a85bf7d
   - name: observability-compliance
     source: .enterprise/governance/agent-skills/observability-compliance/SKILL.md
     quick: .enterprise/governance/agent-skills/observability-compliance/SKILL-QUICK.md
     output: .agents/skills/observability-compliance/SKILL.md
-    hash: 5eb4ea731f0a4c55bacc1dbc13a941f2554e5fbc686401c0e66787e98cb00b62
+    hash: e92afaff4ea1eff4ba032d9dca09ed20faff28334f2d2259adda831d57c88698
   - name: performance-profiling
     source: .enterprise/governance/agent-skills/performance-profiling/SKILL.md
     quick: .enterprise/governance/agent-skills/performance-profiling/SKILL-QUICK.md
     output: .agents/skills/performance-profiling/SKILL.md
-    hash: 8d97fc85aae303d8950dff787ddd5ad3755b2b6462bab728ad80a4175e9c840b
+    hash: 902a47508aa8e592346f0064cfbdd45ae5d6ad7c200725ad62fd6c2a1088a0bd
   - name: policy-layer
     source: .enterprise/governance/agent-skills/policy-layer/SKILL.md
     quick: .enterprise/governance/agent-skills/policy-layer/SKILL-QUICK.md
     output: .agents/skills/policy-layer/SKILL.md
-    hash: 1d1d139433071a0df42bd727a362359950e430f55089e7b9c96e63c818105d06
+    hash: c2dbf74b9e53111340df66a73b1e140b22ee8fd8830fe6fbbc921dda7cbf85e4
   - name: pr-review
     source: .enterprise/governance/agent-skills/pr-review/SKILL.md
     quick: .enterprise/governance/agent-skills/pr-review/SKILL-QUICK.md
     output: .agents/skills/pr-review/SKILL.md
-    hash: 7ce509bfe69b51334fc64d17f3b7b7910f5d538684b4cdec660838314b2c6b8e
+    hash: e2ff73521e1128cc96e3f28894628840be5569a5b8d2634cd567055c313ec877
   - name: project-state
     source: .enterprise/governance/agent-skills/project-state/SKILL.md
     quick: .enterprise/governance/agent-skills/project-state/SKILL-QUICK.md
     output: .agents/skills/project-state/SKILL.md
-    hash: f031ba1b1d715f917e8308dd99edfe4cfa23aa1c1944d39c4b0e87d30f11088f
+    hash: 8c4db65ed80a3694f768d02f34ecad643bb3bdb7da3219b93a029678c2572371
   - name: release-control
     source: .enterprise/governance/agent-skills/release-control/SKILL.md
     quick: .enterprise/governance/agent-skills/release-control/SKILL-QUICK.md
     output: .agents/skills/release-control/SKILL.md
-    hash: f7333b7881e8c944ebd230ee1e15cfd62408382e7d36ef8d1ab675ad5848163f
+    hash: a2a37939a2cd397066b19c5db585d31df3a5afa1d54b3bef8b7394c7d58ef536
   - name: repo-radar
     source: .enterprise/governance/agent-skills/repo-radar/SKILL.md
     quick: .enterprise/governance/agent-skills/repo-radar/SKILL-QUICK.md
     output: .agents/skills/repo-radar/SKILL.md
-    hash: f1b9818739b5142f557e27a698ffe8cd6732f7038ee2d43adaa22ee287e39741
+    hash: 8cc720e771a5de73d094cb216631dc29497e62bba112cd99fcd007b9d8e5f345
   - name: rfc
     source: .enterprise/governance/agent-skills/rfc/SKILL.md
     quick: .enterprise/governance/agent-skills/rfc/SKILL-QUICK.md
     output: .agents/skills/rfc/SKILL.md
-    hash: 111961cbcb7238c6511e39ae2b75e4eace4852fe43dccfdca69d778c28f84ac0
+    hash: 67fd6f2658c8a307f23228f591f98dc7f90784775f57d0036afca76544b3a6b7
   - name: sanitize-comments
     source: .enterprise/governance/agent-skills/sanitize-comments/SKILL.md
     quick: .enterprise/governance/agent-skills/sanitize-comments/SKILL-QUICK.md
     output: .agents/skills/sanitize-comments/SKILL.md
-    hash: 5091f557c6adcf8f79f82c6056761022da40dd8964ec3935e52246b17ebbba42
+    hash: e9721e33f73908e0a0ebfc3a63084234f154079103edb4b7b91f27d2c03b1f84
   - name: second-brain
     source: .enterprise/governance/agent-skills/second-brain/SKILL.md
     quick: .enterprise/governance/agent-skills/second-brain/SKILL-QUICK.md
     output: .agents/skills/second-brain/SKILL.md
-    hash: 5dd9485276a1d9074ba675de0aba0b9f0df8fd4b6448038afd7bd79d71161736
+    hash: 0ae941f7bf403065725475aa34de4f78f455d8ad298c6a814bb5cf4fdea6320f
   - name: secure-coding
     source: .enterprise/governance/agent-skills/secure-coding/SKILL.md
     quick: .enterprise/governance/agent-skills/secure-coding/SKILL-QUICK.md
     output: .agents/skills/secure-coding/SKILL.md
-    hash: 13f075afed6186259c823faf3d6b7e4cfba2e29a9daa6fe0504f297adc3d1bbd
+    hash: 85f48744cf7f54ef10ea6eeb86d6b936200b3926fc3174282abfb4dcd593ab22
   - name: security-audit-plain-language
     source: .enterprise/governance/agent-skills/security-audit-plain-language/SKILL.md
     quick: .enterprise/governance/agent-skills/security-audit-plain-language/SKILL-QUICK.md
     output: .agents/skills/security-audit-plain-language/SKILL.md
-    hash: ae2dc2d50b52647a2b41abbd5a8b94bf94670cfe2a0c421ab4fd4016521f6d6b
+    hash: 70c093504bdc47c33cca96b1c5a98d7bdf86d068abc1c34c56e3ee28d85ec718
   - name: self-verification
     source: .enterprise/governance/agent-skills/self-verification/SKILL.md
     quick: .enterprise/governance/agent-skills/self-verification/SKILL-QUICK.md
     output: .agents/skills/self-verification/SKILL.md
-    hash: 5b6a832730e7868737c522239b8ad91e154908cbcba24f862fef718f9b1c28b6
+    hash: 0e63311a22efc8a154a45a0d47403978df6472aa695fd9ca51f8d3626e3b523a
   - name: session-handoff
     source: .enterprise/governance/agent-skills/session-handoff/SKILL.md
     quick: .enterprise/governance/agent-skills/session-handoff/SKILL-QUICK.md
     output: .agents/skills/session-handoff/SKILL.md
-    hash: 785b02035d36308984ba4abf36f36be20b7a4c7c3e84d80035640ccebdec05d3
+    hash: ab06b0081ce292a81cf9b7ff8640c7e4a5e08e2141128d30326df0e4caeea589
   - name: simplicity-first
     source: .enterprise/governance/agent-skills/simplicity-first/SKILL.md
     quick: .enterprise/governance/agent-skills/simplicity-first/SKILL-QUICK.md
     output: .agents/skills/simplicity-first/SKILL.md
-    hash: ef630a42aebc5b48dcc61ff3a197c6c455b5c73f22c74096c4c83e3627bd499b
+    hash: 15df2181a8c0ecb8b0a4f96a4294a546ad97d50ac3be48df48dc027b403e52bb
   - name: spec-driven
     source: .enterprise/governance/agent-skills/spec-driven/SKILL.md
     quick: .enterprise/governance/agent-skills/spec-driven/SKILL-QUICK.md
     output: .agents/skills/spec-driven/SKILL.md
-    hash: dc0a3be2e2407292c8902b4fc204aef90d5a627d154ea68619dee14dc031f8de
+    hash: 03c77f97af8758571dd4eceb4194a3ac76cfaaee1d13c2024d9ea04bd0541484
   - name: systematic-debugging
     source: .enterprise/governance/agent-skills/systematic-debugging/SKILL.md
     quick: .enterprise/governance/agent-skills/systematic-debugging/SKILL-QUICK.md
     output: .agents/skills/systematic-debugging/SKILL.md
-    hash: 3412ad0e14b1302e9c15d742301afc790e9e1758780ecddf1bcfd45d91f915b5
+    hash: cbdb5dd6b6c667c31cf175245baf3227888f441806a04a2c552632c3076567a0
   - name: tech-research
     source: .enterprise/governance/agent-skills/tech-research/SKILL.md
     quick: .enterprise/governance/agent-skills/tech-research/SKILL-QUICK.md
     output: .agents/skills/tech-research/SKILL.md
-    hash: f0802f49f77909dd075541be2197be700a0adf0affe88cd31517acea74722a25
+    hash: 6554aee736deff1b29c624c9c8c01c58dd9dd553c7dcab9a5ca0db432f8f7ebf
   - name: test-coverage
     source: .enterprise/governance/agent-skills/test-coverage/SKILL.md
     quick: .enterprise/governance/agent-skills/test-coverage/SKILL-QUICK.md
     output: .agents/skills/test-coverage/SKILL.md
-    hash: d507b0cc5f10b205211cf7b1f7af494d64f186d4028705ad9f003a62c6ba8b82
+    hash: 44b40c0d291442ff11bec17143636c918daf77864172fe1ce9fe93a6b3e3be4a
   - name: threat-modeling
     source: .enterprise/governance/agent-skills/threat-modeling/SKILL.md
     quick: .enterprise/governance/agent-skills/threat-modeling/SKILL-QUICK.md
     output: .agents/skills/threat-modeling/SKILL.md
-    hash: 45f20c8cb3af22783fc2505ea454c850309ee9b62aa19b6a916baae7626e976b
+    hash: 1c6f91980af560d202a6890ae49c416400af8cc0dc310a36fbc8f0e62e1a5f6f
   - name: verification-before-completion
     source: .enterprise/governance/agent-skills/verification-before-completion/SKILL.md
     quick: .enterprise/governance/agent-skills/verification-before-completion/SKILL-QUICK.md
     output: .agents/skills/verification-before-completion/SKILL.md
-    hash: 21d3dcd97c37bf6f46bb64cf588dd2a0e0807ec38f55e8ad4d006f1fa11d951d
+    hash: d41201acf4f9842daa3781d1a2906848dbf49cae2168518c65c00ce7aab40f14
 hooks:
   - id: pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global
     event: PreToolUse
@@ -449,6 +445,76 @@ commands:
     type: agent-index
     source: .hseos/AGENT-MANIFEST.md
     description: HSEOS installed agent manifest
+handlers:
+  - file: .agents/hooks/handlers/README.md
+    source: .enterprise/governance/hooks/handlers/README.md
+    sha256: b16326522aa26e293be70b3a94c8d7056e40e28a9a2a564e6a90615a97d9bc38
+  - file: .agents/hooks/handlers/_ado-lib.sh
+    source: .enterprise/governance/hooks/handlers/_ado-lib.sh
+    sha256: bd2dbb5881fc0b01b6c0fbe3f71fba72305c9c93af60ebfe0def42e4536e2b33
+  - file: .agents/hooks/handlers/ado-branch-guard.sh
+    source: .enterprise/governance/hooks/handlers/ado-branch-guard.sh
+    sha256: 6f4b4278c67a10bbfaceb39d9971df68c12617491e6720eaaa1a1bcda1a26463
+  - file: .agents/hooks/handlers/ado-inbox-check.sh
+    source: .enterprise/governance/hooks/handlers/ado-inbox-check.sh
+    sha256: c45bba4c1e6cb33747f5ef02f3e7f37a8239a8000623e9ef04e443f018417a17
+  - file: .agents/hooks/handlers/ado-on-plan-write.sh
+    source: .enterprise/governance/hooks/handlers/ado-on-plan-write.sh
+    sha256: 7d2ca43236aa2322eac4bf0a3b33ce7d21793f234a72eebb42ea6c0b7530f13a
+  - file: .agents/hooks/handlers/ado-pr-link.sh
+    source: .enterprise/governance/hooks/handlers/ado-pr-link.sh
+    sha256: c6a78ff7428edb094fdc60f0fc1e1c9f23c9924bb0c5986cfe75f04a31b0518c
+  - file: .agents/hooks/handlers/ado-preflight-gate.sh
+    source: .enterprise/governance/hooks/handlers/ado-preflight-gate.sh
+    sha256: db9ee28e20b231b5be73e4f7d09b37c851264a0d17c9dc334a7021ff845fda7a
+  - file: .agents/hooks/handlers/ado-tag-close.sh
+    source: .enterprise/governance/hooks/handlers/ado-tag-close.sh
+    sha256: 0b853e0fbb8107984dce75a59fcbde7a614dcb55454fd09f5c836eb1567fa27b
+  - file: .agents/hooks/handlers/ado-task-progress.sh
+    source: .enterprise/governance/hooks/handlers/ado-task-progress.sh
+    sha256: 4d9ec7a81f49cf65597390add7e318e3cec4d762c37d8c2f674010cd07e39d1b
+  - file: .agents/hooks/handlers/build-resource-guard.sh
+    source: .enterprise/governance/hooks/handlers/build-resource-guard.sh
+    sha256: a0eba699e3f0a61a8de38694d3fcb0c93013769f7304115e1ddb7465ed94577d
+  - file: .agents/hooks/handlers/claude-md-guard.sh
+    source: .enterprise/governance/hooks/handlers/claude-md-guard.sh
+    sha256: fb0b8631bb316c43702ff652f32ed87e80c9eff24cb27c117517d4a22848a6dc
+  - file: .agents/hooks/handlers/code-index-guard.sh
+    source: .enterprise/governance/hooks/handlers/code-index-guard.sh
+    sha256: bd3229a912c0f8f38ebba25df7eb42b689164f50a8404371e58dd1e6de80c8e1
+  - file: .agents/hooks/handlers/code-index-post-edit.sh
+    source: .enterprise/governance/hooks/handlers/code-index-post-edit.sh
+    sha256: c8e1b0aa0dad1375ce4d4375ea8090ef825ad09cff2f3a0a91361ccf36ba2791
+  - file: .agents/hooks/handlers/on-notification.sh
+    source: .enterprise/governance/hooks/handlers/on-notification.sh
+    sha256: f832358bdb190040e962492b10a1bd56ba9cf57b4339721512eedef4f3d77262
+  - file: .agents/hooks/handlers/on-prompt-submit.sh
+    source: .enterprise/governance/hooks/handlers/on-prompt-submit.sh
+    sha256: bc6c47fc48c6cef44d9a25346ba39ca50dc16567bcc647a1606251749fb06e1e
+  - file: .agents/hooks/handlers/plan-lint.sh
+    source: .enterprise/governance/hooks/handlers/plan-lint.sh
+    sha256: 6fdb00bbb7c46bf7765e10999c5d18536c18aca1ffb5e864d2b6b6bf5c6fb17d
+  - file: .agents/hooks/handlers/pre-compact.sh
+    source: .enterprise/governance/hooks/handlers/pre-compact.sh
+    sha256: 182c44d6e4dc15aec01bb791fd0dc012a37d644c9837972d9d7a266ec03eb460
+  - file: .agents/hooks/handlers/rtk-rewrite.sh
+    source: .enterprise/governance/hooks/handlers/rtk-rewrite.sh
+    sha256: 35a4e8af844828a29aa71e724fc28c9a668682c83575cb215c2123698a688a1a
+  - file: .agents/hooks/handlers/session-end.sh
+    source: .enterprise/governance/hooks/handlers/session-end.sh
+    sha256: c331a2ff08666b2f13a4caa6b2a6e0405275654b5ea27788bcb00e7d53a9705b
+  - file: .agents/hooks/handlers/suggest-skill.sh
+    source: .enterprise/governance/hooks/handlers/suggest-skill.sh
+    sha256: 87153f5431a380150acebd00f13ac75987c52f50112869965766f391bc00f0db
+  - file: .agents/hooks/handlers/swarm-gate.sh
+    source: .enterprise/governance/hooks/handlers/swarm-gate.sh
+    sha256: 3b6b6f9c50b395d398be221f0557343ae4a7709bbbdad2b7300fac09e88e9ec0
+  - file: .agents/hooks/handlers/telemetry-export-session.sh
+    source: .enterprise/governance/hooks/handlers/telemetry-export-session.sh
+    sha256: f2d9ecd53d4d3656487cdabd909930edd103cfa9ec05d459ed01efb1636d9624
+  - file: .agents/hooks/handlers/telemetry-export-tool.sh
+    source: .enterprise/governance/hooks/handlers/telemetry-export-tool.sh
+    sha256: 5ab2ec876925ebd23dae59757ff2c2264b1f6a14db393d80a7a8859d09b5f8dc
 agents:
   - code: ATLAS
     file: .hseos/agents/atlas.agent.yaml
@@ -513,7 +579,7 @@ mcp_bundles_active:
   - extended
 mcp_servers:
   - id: axon-bridge
-    transport: stdio
+    transport: http
     binary: tools/mcp-axon-bridge/index.js
     runtime: node
     bundle: extended
@@ -523,6 +589,7 @@ mcp_servers:
       - memory_search
       - get_skeleton
       - get_overview
+      - run_pipeline
   - id: fetch
     transport: stdio
     binary: "@modelcontextprotocol/server-fetch"
@@ -572,6 +639,7 @@ mcp_servers:
       - dispatch_wave
       - consolidate_handoff
       - get_run_state
+      - list_runs
   - id: memory
     transport: stdio
     binary: "@modelcontextprotocol/server-memory"

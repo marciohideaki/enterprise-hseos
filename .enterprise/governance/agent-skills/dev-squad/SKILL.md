@@ -8,13 +8,17 @@ portable: true
 metadata:
   owner: platform-governance
   consumer: SWARM
+trigger: "user lists 3+ independent tasks in any /plan or request; batch mixes fix+feature+refactor+docs across non-colliding areas; session context inflating before starting new unrelated batch; user explicitly asks to parallelize work"
+skip: "single story end-to-end → use BLITZ; strict sequential delivery with release flow → use ORBIT; exploratory work without defined scope → use NYX first; architectural pivot requiring ADR → use CIPHER first"
 ---
 
 # Dev Squad — Full Protocol
 
-> Tier 2. Canonical SKILL.md per ADR-0006 (Standalone Architecture).
->
-> This file is the **single source of truth** for the dev-squad protocol — five-phase workflow, model matrix, governance scripts, commit rules, run directory convention, delegation map, and state-emission contract. The `.agents/skills/dev-squad/` compiled output mirrors this file via the agent-core compiler.
+## Authority
+
+**Tier 1 — Source of Truth (ADR-0015).** This file and `SKILL-QUICK.md` are the sole authoritative definitions of the dev-squad protocol — five-phase workflow, model matrix, tier assignments, Commander/Squad contract, commit rules, run directory convention, delegation map, and state-emission contract. All normative changes are made here first.
+
+Derived tiers: `.agents/skills/dev-squad/` is the **Tier 2 compiled mirror** (hash-pinned in `.agents/manifest.yaml`; the agent-core compiler is the only permitted writer). The external mirror under the user-level skills directory is **Tier 3, non-canonical** inside HSEOS-enabled repositories. `.hseos/agents/swarm.agent.yaml` and `.hseos/workflows/dev-squad/` are the **Tier 4 execution surface**, consuming exclusively the Tier 2 mirror.
 
 ---
 

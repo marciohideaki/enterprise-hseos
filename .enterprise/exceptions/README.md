@@ -48,4 +48,4 @@ No undocumented exception is valid. Agents MUST refuse execution if an exception
 - Exceptions are append-only — accepted exceptions are never edited
 - Expired exceptions are automatically invalid
 - Agents MUST check this registry before proceeding when a standard violation is detected
-- See `policies/exceptions.md` for full governance rules
+- See `.enterprise/policies/exceptions.md` for full governance rules

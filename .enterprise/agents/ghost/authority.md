@@ -55,10 +55,10 @@ Before implementation, the GHOST Agent MUST read:
 - `/.enterprise/.specs/constitution/*`
 - `/.enterprise/policies/*`
 - `/.enterprise/agents/ghost/*`
-- `/specs/core/*`
-- `/specs/cross/*`
-- `/specs/stacks/<relevant-stack>/*`
-- `/specs/decisions/*`
+- `/.enterprise/.specs/core/*`
+- `/.enterprise/.specs/cross/*`
+- `/.enterprise/.specs/<relevant-stack>/*`
+- `/.enterprise/.specs/decisions/*`
 - Approved Story files and subtasks
 - `/project-context.md` (coding standards only)
 

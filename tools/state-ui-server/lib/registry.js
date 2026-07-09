@@ -42,11 +42,7 @@ function saveRegistry(registry, override) {
   const p = registryPath(override);
   fs.mkdirSync(path.dirname(p), { recursive: true });
   const tmp = p + '.tmp';
-  const payload = JSON.stringify(
-    { version: registry.version || 1, projects: registry.projects || [] },
-    null,
-    2
-  );
+  const payload = JSON.stringify({ version: registry.version || 1, projects: registry.projects || [] }, null, 2);
   fs.writeFileSync(tmp, payload + '\n', 'utf8');
   fs.renameSync(tmp, p);
 }

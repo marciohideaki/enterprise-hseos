@@ -112,6 +112,9 @@ profiles:
       - capability:gitops
       - capability:ado
       - capability:sandbox
+      - capability:readiness
+      - capability:research
+      - capability:solo
       - capability:verification
       - adapter:codex
       - adapter:claude-code

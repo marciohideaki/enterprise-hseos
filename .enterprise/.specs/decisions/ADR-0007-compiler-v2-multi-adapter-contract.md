@@ -1,6 +1,6 @@
 # ADR-0007 — Agent-Core Compiler v2 (Multi-Adapter Contract)
 
-**Status:** Proposed
+**Status:** Accepted (ratified 2026-07-08)
 **Date:** 2026-05-07
 **Authors:** Platform Architecture
 **Affects Standards:** Compiler module (`tools/cli/installers/lib/core/agent-core-compiler.js`); manifest schema (`.agents/manifest.yaml`); installation/uninstall lifecycle

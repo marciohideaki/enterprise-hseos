@@ -35,7 +35,7 @@ module.exports = [
       const rows = db
         .prepare(
           `SELECT id, agent_name, task_id, run_id, started_at, last_heartbeat_at, ended_at, status, exit_reason, tokens_in, tokens_out, cost_usd
-           FROM as_agent_runs ${where} ORDER BY id DESC LIMIT ?`
+           FROM as_agent_runs ${where} ORDER BY id DESC LIMIT ?`,
         )
         .all(...params, limit);
       return { agent_runs: rows, count: rows.length };
@@ -59,7 +59,7 @@ module.exports = [
            WHERE status = 'running'
              AND last_heartbeat_at IS NOT NULL
              AND last_heartbeat_at < datetime('now', '-${stale} minutes')
-           ORDER BY last_heartbeat_at`
+           ORDER BY last_heartbeat_at`,
         )
         .all();
       return { orphans: rows, count: rows.length, stale_minutes: stale };

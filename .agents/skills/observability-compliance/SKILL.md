@@ -1,8 +1,8 @@
 ---
+trigger: Use when performing a deep observability audit or remediating missing structured logging, metrics, traces, or alerting rules
+skip: Request is outside observability-compliance scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: observability-compliance
 description: Use when performing a deep observability audit or remediating missing structured logging, metrics, traces, or alerting rules
-trigger: "Use when performing a deep observability audit or remediating missing structured logging, metrics, traces, or alerting rules"
-skip: "Request is outside observability-compliance scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 version: 1.0.0
 owner: platform-governance
 tier: full

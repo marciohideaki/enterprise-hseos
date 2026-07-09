@@ -9,6 +9,8 @@ metadata:
   version: "1.0.0"
   hseos:
     required_modes: [admin]
+trigger: "Use when the user request matches this skill scope: Especificação completa da camada de política de agentes — spend controls, rate limiting, tool access matrix e compliance checklist"
+skip: "Request is outside policy-layer scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 ---
 
 # Policy Layer — Guia Completo

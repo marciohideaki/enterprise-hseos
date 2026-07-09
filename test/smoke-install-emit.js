@@ -33,9 +33,7 @@ function check(label, fn) {
     // 1. installEnterpriseOverlay — fresh copy, idempotent re-run, self-target safety
     const overlay = await installer.installEnterpriseOverlay(TEST_DIR, sourceRoot);
     check('overlay first call copies', () => assert.equal(overlay.status, 'copied'));
-    check('overlay copies the constitution', () =>
-      assert.ok(fs.existsSync(path.join(TEST_DIR, '.enterprise', '.specs', 'constitution'))),
-    );
+    check('overlay copies the constitution', () => assert.ok(fs.existsSync(path.join(TEST_DIR, '.enterprise', '.specs', 'constitution'))));
 
     const overlay2 = await installer.installEnterpriseOverlay(TEST_DIR, sourceRoot);
     check('overlay re-run preserves existing', () => assert.equal(overlay2.status, 'preserved'));
@@ -78,12 +76,8 @@ function check(label, fn) {
     await fs.writeFile(agentsMdPath, custom, 'utf8');
     await fs.writeFile(claudeMdPath, custom, 'utf8');
     await compiler.compile(TEST_DIR, hseosDir, { platforms: ['claude-code', 'codex'] });
-    check('pre-existing AGENTS.md is not overwritten', () =>
-      assert.equal(fs.readFileSync(agentsMdPath, 'utf8'), custom),
-    );
-    check('pre-existing root pointer is not overwritten', () =>
-      assert.equal(fs.readFileSync(claudeMdPath, 'utf8'), custom),
-    );
+    check('pre-existing AGENTS.md is not overwritten', () => assert.equal(fs.readFileSync(agentsMdPath, 'utf8'), custom));
+    check('pre-existing root pointer is not overwritten', () => assert.equal(fs.readFileSync(claudeMdPath, 'utf8'), custom));
 
     console.log(`\nInstall emit smoke: ${passed} passed, 0 failed`);
   } finally {

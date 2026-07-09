@@ -13,104 +13,60 @@ class AgentStateDAL {
     this.db = db;
 
     this._stmts = {
-      createRun: db.prepare(
-        `INSERT OR IGNORE INTO as_runs (id, workflow_id, project, phase) VALUES (?, ?, ?, ?)`
-      ),
-      updateRunPhase: db.prepare(
-        `UPDATE as_runs SET phase = ? WHERE id = ?`
-      ),
-      updateRunPhaseAndGate: db.prepare(
-        `UPDATE as_runs SET phase = ?, gate_status = ? WHERE id = ?`
-      ),
-      completeRun: db.prepare(
-        `UPDATE as_runs SET ended_at = datetime('now'), status = ? WHERE id = ?`
-      ),
+      createRun: db.prepare(`INSERT OR IGNORE INTO as_runs (id, workflow_id, project, phase) VALUES (?, ?, ?, ?)`),
+      updateRunPhase: db.prepare(`UPDATE as_runs SET phase = ? WHERE id = ?`),
+      updateRunPhaseAndGate: db.prepare(`UPDATE as_runs SET phase = ?, gate_status = ? WHERE id = ?`),
+      completeRun: db.prepare(`UPDATE as_runs SET ended_at = datetime('now'), status = ? WHERE id = ?`),
       createTask: db.prepare(
         `INSERT INTO as_tasks (id, run_id, wave, effort, model_tier, goal, branch, worktree_path)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ),
-      getTaskForClaim: db.prepare(
-        `SELECT id, run_id, status FROM as_tasks WHERE id = ?`
-      ),
+      getTaskForClaim: db.prepare(`SELECT id, run_id, status FROM as_tasks WHERE id = ?`),
       setTaskInProgress: db.prepare(
-        `UPDATE as_tasks SET status = 'IN_PROGRESS', updated_at = datetime('now') WHERE id = ? AND status = 'PENDING_EXECUTION'`
+        `UPDATE as_tasks SET status = 'IN_PROGRESS', updated_at = datetime('now') WHERE id = ? AND status = 'PENDING_EXECUTION'`,
       ),
-      createAgentRun: db.prepare(
-        `INSERT INTO as_agent_runs (agent_name, task_id, run_id) VALUES (?, ?, ?)`
-      ),
-      insertEvent: db.prepare(
-        `INSERT INTO as_events (agent_run_id, kind, payload_json) VALUES (?, ?, ?)`
-      ),
+      createAgentRun: db.prepare(`INSERT INTO as_agent_runs (agent_name, task_id, run_id) VALUES (?, ?, ?)`),
+      insertEvent: db.prepare(`INSERT INTO as_events (agent_run_id, kind, payload_json) VALUES (?, ?, ?)`),
       getLastInsertRowid: db.prepare(`SELECT last_insert_rowid() AS rowid`),
-      updateHeartbeatAgentRun: db.prepare(
-        `UPDATE as_agent_runs SET last_heartbeat_at = datetime('now') WHERE id = ?`
-      ),
+      updateHeartbeatAgentRun: db.prepare(`UPDATE as_agent_runs SET last_heartbeat_at = datetime('now') WHERE id = ?`),
       completeAgentRun: db.prepare(
         `UPDATE as_agent_runs
          SET ended_at = datetime('now'), status = ?, exit_reason = ?, tokens_in = ?, tokens_out = ?, cost_usd = ?
-         WHERE id = ?`
+         WHERE id = ?`,
       ),
       listOrphansBase: null, // built dynamically (staleMinutes inline)
-      listRuns: db.prepare(
-        `SELECT * FROM as_runs ORDER BY started_at DESC LIMIT ?`
-      ),
-      listRunsStatus: db.prepare(
-        `SELECT * FROM as_runs WHERE status = ? ORDER BY started_at DESC LIMIT ?`
-      ),
-      listRunsProject: db.prepare(
-        `SELECT * FROM as_runs WHERE project = ? ORDER BY started_at DESC LIMIT ?`
-      ),
-      listRunsStatusProject: db.prepare(
-        `SELECT * FROM as_runs WHERE status = ? AND project = ? ORDER BY started_at DESC LIMIT ?`
-      ),
+      listRuns: db.prepare(`SELECT * FROM as_runs ORDER BY started_at DESC LIMIT ?`),
+      listRunsStatus: db.prepare(`SELECT * FROM as_runs WHERE status = ? ORDER BY started_at DESC LIMIT ?`),
+      listRunsProject: db.prepare(`SELECT * FROM as_runs WHERE project = ? ORDER BY started_at DESC LIMIT ?`),
+      listRunsStatusProject: db.prepare(`SELECT * FROM as_runs WHERE status = ? AND project = ? ORDER BY started_at DESC LIMIT ?`),
       getRun: db.prepare(`SELECT * FROM as_runs WHERE id = ?`),
-      taskStatusCounts: db.prepare(
-        `SELECT status, COUNT(*) AS cnt FROM as_tasks WHERE run_id = ? GROUP BY status`
-      ),
-      agentRunStatusCounts: db.prepare(
-        `SELECT status, COUNT(*) AS cnt FROM as_agent_runs WHERE run_id = ? GROUP BY status`
-      ),
-      maxHandoffVersion: db.prepare(
-        `SELECT COALESCE(MAX(version), 0) AS max_v FROM as_handoffs WHERE src_task = ? AND dst_task = ?`
-      ),
-      insertHandoff: db.prepare(
-        `INSERT INTO as_handoffs (src_task, dst_task, content, version) VALUES (?, ?, ?, ?)`
-      ),
+      taskStatusCounts: db.prepare(`SELECT status, COUNT(*) AS cnt FROM as_tasks WHERE run_id = ? GROUP BY status`),
+      agentRunStatusCounts: db.prepare(`SELECT status, COUNT(*) AS cnt FROM as_agent_runs WHERE run_id = ? GROUP BY status`),
+      maxHandoffVersion: db.prepare(`SELECT COALESCE(MAX(version), 0) AS max_v FROM as_handoffs WHERE src_task = ? AND dst_task = ?`),
+      insertHandoff: db.prepare(`INSERT INTO as_handoffs (src_task, dst_task, content, version) VALUES (?, ?, ?, ?)`),
       recordWaveExec: db.prepare(
         `INSERT OR REPLACE INTO as_wave_executions (wave_id, task_id, commit_sha, status, logs_path)
-         VALUES (?, ?, ?, ?, ?)`
+         VALUES (?, ?, ?, ?, ?)`,
       ),
       recordWorktree: db.prepare(
         `INSERT OR REPLACE INTO as_worktree_state (task_id, branch_name, base_branch)
-         VALUES (?, ?, ?)`
+         VALUES (?, ?, ?)`,
       ),
-      removeWorktree: db.prepare(
-        `UPDATE as_worktree_state SET removed_at = datetime('now') WHERE task_id = ?`
-      ),
+      removeWorktree: db.prepare(`UPDATE as_worktree_state SET removed_at = datetime('now') WHERE task_id = ?`),
 
       // === Session tracking (migration 003) ===
-      createSession: db.prepare(
-        `INSERT INTO as_sessions (id, parent_id, host) VALUES (?, ?, ?)`
-      ),
-      heartbeatSession: db.prepare(
-        `UPDATE as_sessions SET last_seen_at = datetime('now') WHERE id = ?`
-      ),
-      endSession: db.prepare(
-        `UPDATE as_sessions SET ended_at = datetime('now'), status = ? WHERE id = ?`
-      ),
-      attachRunToSession: db.prepare(
-        `UPDATE as_runs SET session_id = ?, repo_url = ?, base_branch = ? WHERE id = ?`
-      ),
-      listSessionRunsStmt: db.prepare(
-        `SELECT * FROM as_runs WHERE session_id = ? ORDER BY started_at DESC`
-      ),
+      createSession: db.prepare(`INSERT INTO as_sessions (id, parent_id, host) VALUES (?, ?, ?)`),
+      heartbeatSession: db.prepare(`UPDATE as_sessions SET last_seen_at = datetime('now') WHERE id = ?`),
+      endSession: db.prepare(`UPDATE as_sessions SET ended_at = datetime('now'), status = ? WHERE id = ?`),
+      attachRunToSession: db.prepare(`UPDATE as_runs SET session_id = ?, repo_url = ?, base_branch = ? WHERE id = ?`),
+      listSessionRunsStmt: db.prepare(`SELECT * FROM as_runs WHERE session_id = ? ORDER BY started_at DESC`),
       claimWorktree: db.prepare(
         `INSERT INTO as_worktree_state (task_id, branch_name, base_branch, claimed_by_session, claimed_at)
-         VALUES (?, ?, ?, ?, datetime('now'))`
+         VALUES (?, ?, ?, ?, datetime('now'))`,
       ),
       releaseWorktreeStmt: db.prepare(
         `UPDATE as_worktree_state SET removed_at = datetime('now')
-         WHERE task_id = ? AND claimed_by_session = ? AND removed_at IS NULL`
+         WHERE task_id = ? AND claimed_by_session = ? AND removed_at IS NULL`,
       ),
     };
 
@@ -255,11 +211,13 @@ class AgentStateDAL {
   listOrphans(staleMinutes = 10) {
     // Build statement dynamically — staleMinutes inlined (integer, safe from injection)
     const minutes = parseInt(staleMinutes, 10);
-    return this.db.prepare(
-      `SELECT * FROM as_agent_runs
+    return this.db
+      .prepare(
+        `SELECT * FROM as_agent_runs
        WHERE status = 'running'
-         AND last_heartbeat_at < datetime('now', '-${minutes} minutes')`
-    ).all();
+         AND last_heartbeat_at < datetime('now', '-${minutes} minutes')`,
+      )
+      .all();
   }
 
   /**
@@ -287,8 +245,8 @@ class AgentStateDAL {
     const run = this._stmts.getRun.get(run_id) || null;
     const taskRows = this._stmts.taskStatusCounts.all(run_id);
     const agentRows = this._stmts.agentRunStatusCounts.all(run_id);
-    const task_status_counts = Object.fromEntries(taskRows.map(r => [r.status, r.cnt]));
-    const agent_run_status_counts = Object.fromEntries(agentRows.map(r => [r.status, r.cnt]));
+    const task_status_counts = Object.fromEntries(taskRows.map((r) => [r.status, r.cnt]));
+    const agent_run_status_counts = Object.fromEntries(agentRows.map((r) => [r.status, r.cnt]));
     return { run, task_status_counts, agent_run_status_counts };
   }
 
@@ -299,13 +257,15 @@ class AgentStateDAL {
    * @returns {{ id: number, agent_run_id: number, ts: string, kind: string, payload_json: string|null }[]}
    */
   searchEvents(query, { limit = 50 } = {}) {
-    return this.db.prepare(
-      `SELECT e.id, e.agent_run_id, e.ts, e.kind, e.payload_json
+    return this.db
+      .prepare(
+        `SELECT e.id, e.agent_run_id, e.ts, e.kind, e.payload_json
        FROM as_events_fts fts
        JOIN as_events e ON e.id = fts.rowid
        WHERE as_events_fts MATCH ?
-       LIMIT ?`
-    ).all(query, limit);
+       LIMIT ?`,
+      )
+      .all(query, limit);
   }
 
   /**

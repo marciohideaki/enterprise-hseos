@@ -25,8 +25,19 @@ const REQUIRED_PATHS = [
 ];
 
 const REQUIRED_AGENT_FILES = [
-  'nyx', 'vector', 'cipher', 'ghost', 'razor', 'glitch', 'prism', 'blitz', 'quill',
-  'orbit', 'forge', 'kube', 'sable',
+  'nyx',
+  'vector',
+  'cipher',
+  'ghost',
+  'razor',
+  'glitch',
+  'prism',
+  'blitz',
+  'quill',
+  'orbit',
+  'forge',
+  'kube',
+  'sable',
 ];
 
 function run() {
@@ -91,11 +102,7 @@ function run() {
   const codexConfigPath = path.join(REPO_ROOT, '.codex', 'config.toml');
   if (fs.existsSync(codexConfigPath)) {
     const config = fs.readFileSync(codexConfigPath, 'utf8');
-    if (
-      config.includes('[features]') &&
-      config.includes('rmcp_client = true') &&
-      config.includes('[mcp_servers."hseos-governance"]')
-    ) {
+    if (config.includes('[features]') && config.includes('rmcp_client = true') && config.includes('[mcp_servers."hseos-governance"]')) {
       console.log('  PASS  .codex/config.toml exposes HSEOS MCP servers');
       passed++;
     } else {

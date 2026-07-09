@@ -1,6 +1,6 @@
 # ADR-0008 — MCP Project-Local Configuration and Three-Tier Bundle Policy
 
-**Status:** Proposed
+**Status:** Accepted (ratified 2026-07-08)
 **Date:** 2026-05-07
 **Authors:** Platform Architecture
 **Affects Standards:** CLAUDE.md §"MCP Server Configuration"; mcp-governance skill; installer/uninstaller; quality gates (`scripts/governance/quality-gates.sh`)
