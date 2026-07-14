@@ -21,7 +21,7 @@
 | [Resilience Patterns Standard.md](./Resilience%20Patterns%20Standard.md) | Retry, circuit breaker, bulkhead | No — mandatory | Full standard |
 | [Performance Engineering Standard.md](./Performance%20Engineering%20Standard.md) | Hot path, zero-alloc, benchmarking | **Yes — requires ADR** | PE-01 to PE-55 |
 | [Advanced Testing Strategy Standard.md](./Advanced%20Testing%20Strategy%20Standard.md) | Test pyramid, TDD, BDD, contract, property-based, mutation, chaos | No — mandatory | AT-01 to AT-80 |
-| [API Management & Versioning Standard.md](./API%20Management%20%26%20Versioning%20Standard.md) | URL versioning, breaking changes, rate limiting, deprecation, error format | No — mandatory | AM-01 to AM-75 |
+| [API Management & Versioning Standard.md](./API%20Management%20%26%20Versioning%20Standard.md) | URL versioning, breaking changes, rate limiting, deprecation, error format, canonical response envelope | No — mandatory | AM-01 to AM-82 |
 | [CI CD Pipeline Standard.md](./CI%20CD%20Pipeline%20Standard.md) | Pipeline stages, branch strategy, CD promotion, quality gates, artifact management | No — mandatory | CI-01 to CI-80 |
 | [Context-Degradation-Monitoring-Standard.md](./Context-Degradation-Monitoring-Standard.md) | Degradation pattern detection, mitigation, context usage rules for agent sessions | No — mandatory | CE-DEG-01 to CE-DEG-15 |
 | [Memory-Architecture-Standard.md](./Memory-Architecture-Standard.md) | In-context, external, cached, and computed memory — selection rules and handoff protocol | No — mandatory | CE-MEM-01 to CE-MEM-13 |
