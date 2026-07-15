@@ -14,8 +14,6 @@
 | [ADR-0001](./ADR-0001-hexagonal-architecture-mandatory.md) | Hexagonal Architecture as Default | Accepted | All stacks |
 | [ADR-0002](./ADR-0002-event-sourcing-opt-in.md) | Event Sourcing is Opt-In | Accepted | All stacks |
 | [ADR-0003](./ADR-0003-cqrs-with-relational-source-of-truth.md) | CQRS: Relational DB as Source of Truth, Non-Relational for Read Models | Accepted | All stacks |
-| [ADR-0004](./ADR-0004-flutter-architecture-decisions.md) | Flutter Architecture Decisions | Proposed (empty template — content pending) | Flutter stack |
-| [ADR-0005](./ADR-0005-performance-engineering-activation-template.md) | Performance Engineering Activation Template | Proposed (activation template — copy per service) | All stacks |
 | [ADR-0006](./ADR-0006-standalone-architecture.md) | HSEOS Standalone Architecture (v2.0) | Accepted (2026-07-08) | Constitution, CLAUDE.md, AGENTS.md, SKILLS-REGISTRY |
 | [ADR-0007](./ADR-0007-compiler-v2-multi-adapter-contract.md) | Agent-Core Compiler v2 (Multi-Adapter Contract) | Accepted (2026-07-08) | Compiler module, manifest schema, install lifecycle |
 | [ADR-0008](./ADR-0008-mcp-project-local-bundle-policy.md) | MCP Project-Local + Three-Tier Bundle Policy | Accepted (2026-07-08) | MCP configuration, mcp-governance skill, quality gates |
@@ -28,6 +26,17 @@
 | [ADR-0015](./ADR-0015-dev-squad-canonical-authority.md) | dev-squad Canonical Authority Hierarchy | Accepted | SKILLS-REGISTRY, `.hseos/workflows/dev-squad/`, `.hseos/agents/swarm.agent.yaml` |
 | [ADR-0016](./ADR-0016-capability-packaging.md) | Capability Packaging and Install Planning | Accepted (2026-07-08) | install lifecycle, agent-core compiler, skill packaging |
 | [ADR-0017](./ADR-0017-stacked-feature-branch-chains.md) | Stacked Feature Branch Chains | Accepted | Execution governance, branch lifecycle, dev-squad protocol |
+
+---
+
+## Templates / Placeholders (not active decisions)
+
+The following entries are ADR templates or placeholders for optional activation. They carry no normative authority and are not binding decisions.
+
+| ID | Title | Status | Affects |
+|---|---|---|---|
+| [ADR-0004](./ADR-0004-flutter-architecture-decisions.md) | Flutter Architecture Decisions | Proposed (empty template — content pending) | Flutter stack |
+| [ADR-0005](./ADR-0005-performance-engineering-activation-template.md) | Performance Engineering Activation Template | Proposed (activation template — copy per service) | All stacks |
 
 ---
 
