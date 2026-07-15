@@ -22,7 +22,8 @@ branches:
           # ci.yaml calls this job "the non-bypassable PR-time enforcement point"
           # (ADR-0015 Gate 7) — it must therefore be a required check.
           - "governance"
-      enforce_admins: false
+      # owner decision 2026-07-15 — break-glass procedure in execution-governance §6
+      enforce_admins: true
       required_pull_request_reviews:
         dismiss_stale_reviews: true
         require_code_owner_reviews: false

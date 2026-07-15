@@ -120,6 +120,16 @@ Protected branches: `main`, `master`, `develop`
 - No direct push (force or otherwise)
 - **Guard:** `scripts/governance/check-branch.sh` (enforced via `.husky/pre-commit`)
 - **Config:** `.github/branch-protection.yaml`
+- `enforce_admins: enabled` (owner decision 2026-07-15) — admin merges are subject to the same required checks and review rules.
+
+### Break-glass (admin bypass) procedure
+
+The only sanctioned path to bypass branch protection:
+
+1. Explicit owner authorization, recorded in the session/run log that performs the bypass.
+2. Verify zero pending required checks in a separate call BEFORE any bypass merge — never rely on the merge call itself to surface them.
+3. Temporarily disable `enforce_admins` via `node scripts/governance/apply-branch-protection.js` (desired-state override), perform the authorized action, re-enable immediately in the same session.
+4. Record the bypass in the project work-log with PR number and rationale.
 
 ---
 

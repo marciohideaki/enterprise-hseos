@@ -1,12 +1,14 @@
 # Enterprise Constitution
 
-**Version:** 2.0
+**Version:** 2.1
 **Status:** Active
 **Scope:** All repositories and projects under this organization
 **Source of Truth:** GitHub (repository content)
 **Audience:** Engineering Team + AI Agents (any framework)
 
 > **v2.0 change:** Merged from previous two-document structure (Constitution v1.0 + Addendum v1.0) into a single authoritative document. Removed framework-specific branding. All rules are preserved.
+
+> **v2.1 change (2026-07-15):** The Seven Laws, previously named only in README and derived docs, are now a named constitutional section (§14), anchoring normative content of §2, §5, §7-§10. Acceptance renumbered to §15. No rules changed.
 
 ---
 
@@ -374,7 +376,22 @@ Owners:
 
 ---
 
-## 14. Acceptance
+## 14. The Seven Laws
+
+The Seven Laws are the named, canonical summary of this Constitution's operating principles.
+Their normative force derives from the sections referenced below.
+
+1. **Specs are sovereign** — all agents read specs before acting (§2, §8)
+2. **Ambiguity triggers stop** — no autonomous resolution of conflicts (§9)
+3. **ADRs are mandatory** for every architectural trade-off (§10)
+4. **Authority is explicit** — every agent knows exactly what it can and cannot do (§8)
+5. **GitHub is truth** — chat, memory, and assumption are not authoritative (§2)
+6. **Enforcement is structural** — governance is not optional (§7)
+7. **Humans decide** — agents execute (§5, §9)
+
+---
+
+## 15. Acceptance
 
 By contributing to this repository (human or agent), you accept and must follow this Constitution.
 
