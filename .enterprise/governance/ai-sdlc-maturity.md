@@ -42,9 +42,9 @@
 | Planning obrigatório antes de execução | `spec-driven` skill bloqueia implementação sem spec |
 | Task isolation | Worktree manager + 1 story = 1 sessão (GHOST) |
 | Contratos explícitos de task | `input_contract` / `output_contract` no schema spec-driven |
-| Agentes com authority declarada | 13 agentes com `authority.md` + `constraints.md` |
+| Agentes com authority declarada | 15 agentes com `authority.md` + `constraints.md` |
 | Quality gates no CI/pre-commit | Lint, schema, install tests, security scan, commit hygiene |
-| Enforcement estrutural | Sete Leis, gates bloqueiam avanço sem evidência |
+| Enforcement estrutural | Sete Leis (nomeadas no README.md, "The Seven Laws"), gates bloqueiam avanço sem evidência |
 | Rastreabilidade | Workflow state files, logs de validação |
 | Context policy documentada | `context-policy` skill (guideline) |
 | Observabilidade de entrega | Métricas nativas via `.hseos-output/` e `.logs/` |
@@ -98,6 +98,7 @@
 ## Referência normativa
 
 - AI-SDLC v1.0 §12 — Níveis de Maturidade
-- HSEOS Enterprise Constitution — Sete Leis
+- HSEOS Enterprise Constitution (`.enterprise/.specs/constitution/Enterprise-Constitution.md`) — Non-Negotiables (§2), Agent Behavior Rules (§8), Conflict Resolution for Agents (§9)
+- README.md — "The Seven Laws" (princípios nomeados; conteúdo normativo distribuído nas seções da Constitution acima)
 - `.enterprise/governance/agent-skills/context-policy/` — Context Policy skill
 - `.enterprise/governance/agent-skills/ai-observability/` — Observabilidade skill
