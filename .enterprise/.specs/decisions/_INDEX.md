@@ -26,6 +26,8 @@
 | [ADR-0015](./ADR-0015-dev-squad-canonical-authority.md) | dev-squad Canonical Authority Hierarchy | Accepted | SKILLS-REGISTRY, `.hseos/workflows/dev-squad/`, `.hseos/agents/swarm.agent.yaml` |
 | [ADR-0016](./ADR-0016-capability-packaging.md) | Capability Packaging and Install Planning | Accepted (2026-07-08) | install lifecycle, agent-core compiler, skill packaging |
 | [ADR-0017](./ADR-0017-stacked-feature-branch-chains.md) | Stacked Feature Branch Chains | Accepted | Execution governance, branch lifecycle, dev-squad protocol |
+| [ADR-0018](./ADR-0018-provider-gateway-repo-topology.md) | Provider/Integration Gateway: New Repo vs. Folder in an Existing Repo | Proposed | provider gateways, repo topology |
+| [ADR-0019](./ADR-0019-mcp-post-ga-conformance.md) | MCP Post-GA Conformance: Manual Subset with SDK Trigger | Accepted (2026-07-15) | `tools/mcp-*`, mcp-transport, contract tests |
 
 ---
 
