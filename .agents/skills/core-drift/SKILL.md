@@ -1,6 +1,8 @@
 ---
+trigger: Use when GHOST initiates a story or QUILL closes an epic to detect drift between implementation and core architectural intent.
+skip: Request is outside core-drift scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: core-drift
-description: Use when GHOST initiates a story or QUILL closes an epic to detect drift between implementation and core architectural intent.
+description: Use when running a full core drift analysis, generating an ADR candidate for pattern promotion, or comparing pattern maturity across projects
 version: "1.0"
 owner: platform-governance
 tier: full

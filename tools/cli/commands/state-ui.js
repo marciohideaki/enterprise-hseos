@@ -59,7 +59,7 @@ module.exports = {
         const child = spawn(
           process.execPath,
           [SERVER, `--port=${port}`, `--db=${dbPath}`, `--poll-ms=${pollMs}`, `--stale-minutes=${staleMinutes}`],
-          { detached: true, stdio: 'ignore' }
+          { detached: true, stdio: 'ignore' },
         );
         child.unref();
         await new Promise((r) => setTimeout(r, 400));

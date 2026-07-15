@@ -7,7 +7,7 @@
 
 ## What is HSEOS?
 
-HSEOS (Hideaki Software Engineering Operating System) is a governance framework for AI-assisted software delivery. It wraps a team of 14 specialized AI agents around your engineering workflow, each with a defined role, explicit authority boundaries, and skill-based decision rules.
+HSEOS (Hideaki Software Engineering Operating System) is a governance framework for AI-assisted software delivery. It wraps a team of 15 specialized AI agents (14 delivery personas + the feature-flagged ATLAS for Azure DevOps tracking, plus the HSEOS-MASTER meta executor) around your engineering workflow, each with a defined role, explicit authority boundaries, and skill-based decision rules.
 
 The goal: AI agents multiply engineering capacity without degrading quality, security, or architectural discipline.
 
@@ -18,6 +18,7 @@ The goal: AI agents multiply engineering capacity without degrading quality, sec
 | Document | What you'll find |
 |---|---|
 | [getting-started.md](getting-started.md) | Day 1 setup — install CLI, configure project, first commands |
+| [capabilities.md](capabilities.md) | Capability profiles/components (ADR-0016) — what installs what, prerequisites, opt-in extras |
 | [agents/](agents/) | Every agent: what it does, when to activate it, what it cannot do |
 | [workflows.md](workflows.md) | The 6 delivery workflows — phases, human touchpoints, how to resume |
 | [skills.md](skills.md) | Governance skills catalog — what gets enforced, when, and why |
@@ -26,6 +27,7 @@ The goal: AI agents multiply engineering capacity without degrading quality, sec
 | [ADAPTER-GUIDE.md](ADAPTER-GUIDE.md) | BYOA adapter authoring — `@hseos/adapter-sdk` + Goose reference |
 | [MIGRATION-GUIDE-v1-to-v2.md](MIGRATION-GUIDE-v1-to-v2.md) | Upgrading from v1.x to v2.0.0 |
 | [troubleshooting.md](troubleshooting.md) | FAQ, common errors, and debugging guides |
+| [ado-ops/](ado-ops/) | Azure DevOps module — ATLAS agent, hooks, feature flag, tests |
 | [pt-br/](pt-br/) | Documentação em Português (BR) |
 
 ---
@@ -48,6 +50,7 @@ The goal: AI agents multiply engineering capacity without degrading quality, sec
 | **KUBE** | Kubernetes Delivery Operator | GitOps manifest updates, ArgoCD sync |
 | **SABLE** | Runtime Operator | Rollout verification, pod health, smoke tests |
 | **SWARM** | Parallel Execution Commander | Heterogeneous batch fan-out under worktree isolation |
+| **ATLAS** | ADO Lifecycle Orchestrator | Azure DevOps plan→sync→close tracking (feature-flagged: `ado.enabled`) |
 
 ---
 

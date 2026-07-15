@@ -104,17 +104,9 @@ async function testAgentCoreCompileCommandEmitsClaudeAdapter() {
     const claudeHooks = JSON.parse(fs.readFileSync(claudeHooksPath, 'utf8'));
     const commands = JSON.stringify(claudeHooks);
 
-    assertPass(
-      'agent-core compile --target claude-code emits Claude hooks adapter',
-      commands.includes('plan-lint.sh'),
-      commands,
-    );
+    assertPass('agent-core compile --target claude-code emits Claude hooks adapter', commands.includes('plan-lint.sh'), commands);
     // pre-compact.sh is active in the current registry (W4 activated it) — both hooks should be present
-    assertPass(
-      'agent-core compile emits pre-compact hook (status: active in registry)',
-      commands.includes('pre-compact.sh'),
-      commands,
-    );
+    assertPass('agent-core compile emits pre-compact hook (status: active in registry)', commands.includes('pre-compact.sh'), commands);
   });
 }
 
@@ -162,16 +154,10 @@ async function testAgentCoreCompileCommandEmitsCodexAdapter() {
 
     assertPass(
       'agent-core compile --target codex emits .codex/config.toml',
-      fs.existsSync(codexConfigPath) &&
-        config.includes('[features]') &&
-        config.includes('[mcp_servers."hseos-governance"]'),
+      fs.existsSync(codexConfigPath) && config.includes('[features]') && config.includes('[mcp_servers."hseos-governance"]'),
       config,
     );
-    assertPass(
-      'agent-core compile --target codex emits hook metadata',
-      Array.isArray(hooksMeta.hooks),
-      JSON.stringify(hooksMeta),
-    );
+    assertPass('agent-core compile --target codex emits hook metadata', Array.isArray(hooksMeta.hooks), JSON.stringify(hooksMeta));
   });
 }
 
@@ -226,17 +212,11 @@ async function testAgentCoreCompileRegistersAgents() {
   await withTempDir(async (tempDir) => {
     const peerDir = path.join(tempDir, '.hseos', 'agents');
     fs.mkdirSync(peerDir, { recursive: true });
-    fs.writeFileSync(
-      path.join(peerDir, 'swarm.agent.yaml'),
-      yaml.stringify({ agent: { metadata: { code: 'SWARM', name: 'SWARM' } } }),
-    );
+    fs.writeFileSync(path.join(peerDir, 'swarm.agent.yaml'), yaml.stringify({ agent: { metadata: { code: 'SWARM', name: 'SWARM' } } }));
     // Core agent with no `code` — the catalog must derive one from the filename.
     const coreDir = path.join(tempDir, 'src', 'core', 'agents');
     fs.mkdirSync(coreDir, { recursive: true });
-    fs.writeFileSync(
-      path.join(coreDir, 'hseos-master.agent.yaml'),
-      yaml.stringify({ agent: { metadata: { name: 'HSEOS Master' } } }),
-    );
+    fs.writeFileSync(path.join(coreDir, 'hseos-master.agent.yaml'), yaml.stringify({ agent: { metadata: { name: 'HSEOS Master' } } }));
 
     await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
 
@@ -250,11 +230,7 @@ async function testAgentCoreCompileRegistersAgents() {
       JSON.stringify(manifest.counts),
     );
     assertPass('manifest registers the peer agent code (SWARM)', codes.includes('SWARM'), codes.join(','));
-    assertPass(
-      'manifest derives a code for the core agent (HSEOS-MASTER)',
-      codes.includes('HSEOS-MASTER'),
-      codes.join(','),
-    );
+    assertPass('manifest derives a code for the core agent (HSEOS-MASTER)', codes.includes('HSEOS-MASTER'), codes.join(','));
     assertPass(
       'each agent entry carries code, file, and a sha256',
       agents.every((a) => a.code && a.file && /^[a-f0-9]{64}$/.test(a.sha256 || '')),
@@ -323,7 +299,9 @@ async function testAgentCoreCompileRegistersMcpServers() {
       yaml.stringify({
         version: '1.0',
         bundle: 'extended',
-        servers: [{ id: 'axon-bridge', transport: 'stdio', binary_resolver: [{ path: 'tools/mcp-axon-bridge/index.js', runtime: 'node' }] }],
+        servers: [
+          { id: 'axon-bridge', transport: 'stdio', binary_resolver: [{ path: 'tools/mcp-axon-bridge/index.js', runtime: 'node' }] },
+        ],
       }),
     );
     const cfgDir = path.join(tempDir, '.hseos', 'config');
@@ -371,6 +349,42 @@ async function testManifestOmitsCatalogsWhenAbsent() {
   });
 }
 
+async function testAgentCoreCompileEmitsGooseAdapterAndTruthfulManifest() {
+  await withTempDir(async (tempDir) => {
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'goose' });
+
+    const gooseConfigPath = path.join(tempDir, '.goose', 'config.yaml');
+    assertPass('agent-core compile --target goose emits .goose/config.yaml', fs.existsSync(gooseConfigPath));
+
+    const skillsDir = path.join(tempDir, '.goose', 'skills');
+    const skillCount = fs.existsSync(skillsDir) ? fs.readdirSync(skillsDir).length : 0;
+    assertPass('goose adapter mirrors the governed skills', skillCount >= 40, String(skillCount));
+
+    const manifest = yaml.parse(fs.readFileSync(path.join(tempDir, '.agents', 'manifest.yaml'), 'utf8'));
+    assertPass(
+      'manifest platforms record exactly the emitted platform',
+      JSON.stringify(manifest.platforms) === JSON.stringify(['goose']),
+      JSON.stringify(manifest.platforms),
+    );
+    assertPass(
+      'manifest adapters block is derived from emitted platforms only',
+      Object.keys(manifest.adapters || {}).join(',') === 'goose',
+      JSON.stringify(Object.keys(manifest.adapters || {})),
+    );
+    assertPass('goose adapter surface lists the emitted config path', manifest.adapters.goose?.config === '.goose/config.yaml');
+  });
+}
+
+async function testUnknownPlatformTargetIsRejected() {
+  let rejected = false;
+  try {
+    await agentCoreCommand.action('compile', { directory: os.tmpdir(), target: 'cursor' });
+  } catch (error) {
+    rejected = /No adapter emitter/.test(error.message);
+  }
+  assertPass('compile --target cursor is rejected (no emitter behind it)', rejected);
+}
+
 async function run() {
   console.log('Agent core compiler hook adapter tests');
   await testClaudeHookAdapterUsesActiveRegistryEntries();
@@ -383,6 +397,8 @@ async function run() {
   await testAgentCoreCompileRegistersPlugins();
   await testAgentCoreCompileRegistersMcpServers();
   await testManifestOmitsCatalogsWhenAbsent();
+  await testAgentCoreCompileEmitsGooseAdapterAndTruthfulManifest();
+  await testUnknownPlatformTargetIsRejected();
 
   console.log(`\nCompiler hook tests: ${passed} passed, ${failed} failed`);
   if (failed > 0) {

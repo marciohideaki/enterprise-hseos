@@ -121,6 +121,13 @@ version: "1.0"
 - **Authority:** `.enterprise/agents/swarm/authority.md`
 - **Activate when:** heterogeneous batch of tasks, parallelizable decomposition, token-cost optimization via model tiering (Opus plan → Sonnet/Haiku execute), independent fixes across one or more repos, need for worktree-isolated parallel execution under a single Commander
 
+### ATLAS — ADO Lifecycle Orchestrator
+- **Code:** ATLAS
+- **Domain:** ADO Ops (feature-flagged: requires `ado.enabled: true` in `.hseos/config/hseos.config.yaml`)
+- **Definition:** `.hseos/agents/atlas.agent.yaml`
+- **Authority:** `.enterprise/agents/atlas/authority.md`
+- **Activate when:** creating ADO work items from an approved PLAN.md (gate G1-ADO), syncing post-run dev-squad state to the ADO board, closing a wave (Tasks/Stories/Feature + git tag), bootstrapping a new ADO project. Silent no-op when the feature flag is off (ADR-0011)
+
 ---
 
 ## Standard Flow

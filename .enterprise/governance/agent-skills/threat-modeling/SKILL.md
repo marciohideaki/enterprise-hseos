@@ -8,6 +8,8 @@ metadata:
   source: https://github.com/openai/skills/tree/main/skills/.curated/security-threat-model
   hseos:
     explicit_only: true
+trigger: "Use when performing a full 8-step threat model mapping trust boundaries, assets, abuse paths, and mitigations with mandatory user validation"
+skip: "Request is outside threat-modeling scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 ---
 
 # Threat Modeling — Full Methodology

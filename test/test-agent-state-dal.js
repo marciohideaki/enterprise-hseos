@@ -11,7 +11,6 @@ const assert = require('node:assert');
 
 let Database;
 try {
-   
   Database = require('better-sqlite3');
 } catch {
   console.warn('[test-agent-state-dal] better-sqlite3 not installed — skipping');
@@ -89,9 +88,7 @@ it('listOrphans returns running agent_runs without recent heartbeat', () => {
   dal.createTask({ id: 'T1', run_id: 'R1', wave: 1 });
   dal.db.prepare(`UPDATE as_tasks SET status = 'PENDING_EXECUTION' WHERE id = ?`).run('T1');
   const { agent_run_id } = dal.claimTask('T1', 'agent-A');
-  dal.db.prepare(
-    `UPDATE as_agent_runs SET last_heartbeat_at = datetime('now', '-30 minutes') WHERE id = ?`
-  ).run(agent_run_id);
+  dal.db.prepare(`UPDATE as_agent_runs SET last_heartbeat_at = datetime('now', '-30 minutes') WHERE id = ?`).run(agent_run_id);
   const orphans = dal.listOrphans(10);
   assert.strictEqual(orphans.length, 1);
 });

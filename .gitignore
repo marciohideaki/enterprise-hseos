@@ -15,3 +15,6 @@
 node_modules/
 .axon/
 .hseos/state/
+
+# Personal (per-user) Claude Code settings — never shared
+.claude/settings.local.json

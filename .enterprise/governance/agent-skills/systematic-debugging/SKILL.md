@@ -8,6 +8,8 @@ metadata:
   owner: platform-governance
   version: "1.0.0"
   inspired-by: superpowers/skills/systematic-debugging
+trigger: "Use when diagnosing a bug, investigating an error, or troubleshooting unexpected behavior before applying any fix"
+skip: "Request is outside systematic-debugging scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 ---
 
 # Systematic Debugging — Full Protocol

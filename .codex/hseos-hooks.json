@@ -5,9 +5,9 @@
       "id": "pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global",
       "event": "PreToolUse",
       "matcher": "Agent",
-      "command": "bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/swarm-gate.sh",
+      "command": "bash .agents/hooks/handlers/swarm-gate.sh",
       "blocking": true,
-      "description": "HSEOS SWARM gate: bloqueia Agent paralelo sem run dev-squad ativo (complementa gate global)",
+      "description": "HSEOS SWARM gate (canonical handler): model routing guard (executor declara sonnet; Opus só com opt-in estratégico) + skill-check advisory + gate dev-squad bloqueante sem run ativo",
       "fallback": "Use repository scripts or quality gates when the target platform has no native hook event.",
       "codex_equivalent": "portable-handler-script"
     },

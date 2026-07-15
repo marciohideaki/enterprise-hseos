@@ -42,6 +42,9 @@ export default [
       'packages/**',
       // git worktrees created by worktree-manager — contain copies of project files
       '.worktrees/**',
+      // gitignored temporary run/validation logs (AGENTS.md §10) — must not affect local gates
+      '.logs/runs/**',
+      '.logs/validation/**',
     ],
   },
 

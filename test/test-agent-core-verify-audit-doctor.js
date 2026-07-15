@@ -55,10 +55,7 @@ function scaffoldMinimalProject(dir) {
   fs.writeFileSync(path.join(agentsDir, 'instructions', 'PROJECT.md'), '# PROJECT');
   fs.writeFileSync(path.join(enterpriseDir, 'Constitution.md'), '# Constitution');
   fs.writeFileSync(path.join(configDir, 'hseos.config.yaml'), yaml.stringify({ version: '2.0' }));
-  fs.writeFileSync(
-    path.join(hooksDir, 'registry.yaml'),
-    yaml.stringify({ version: '1.1', hooks: [] }),
-  );
+  fs.writeFileSync(path.join(hooksDir, 'registry.yaml'), yaml.stringify({ version: '1.1', hooks: [] }));
 
   const manifest = { version: '2.0', skills: [] };
   fs.writeFileSync(path.join(agentsDir, 'manifest.yaml'), yaml.stringify(manifest));
@@ -67,11 +64,7 @@ function scaffoldMinimalProject(dir) {
 async function testIntegrityNoManifest() {
   await withTempDir(async (dir) => {
     const result = await runIntegrity(dir);
-    assertPass(
-      'integrity returns ok:false when manifest missing',
-      !result.ok && result.errors.length > 0,
-      JSON.stringify(result.errors),
-    );
+    assertPass('integrity returns ok:false when manifest missing', !result.ok && result.errors.length > 0, JSON.stringify(result.errors));
   });
 }
 
@@ -146,10 +139,7 @@ async function testAuditAdapterDrift() {
     fs.mkdirSync(hooksDir, { recursive: true });
     fs.mkdirSync(claudeDir, { recursive: true });
 
-    fs.writeFileSync(
-      path.join(agentsDir, 'manifest.yaml'),
-      yaml.stringify({ version: '2.0', skills: [] }),
-    );
+    fs.writeFileSync(path.join(agentsDir, 'manifest.yaml'), yaml.stringify({ version: '2.0', skills: [] }));
 
     const cmd = 'bash .agents/hooks/handlers/plan-lint.sh "$CLAUDE_TOOL_FILE_PATH"';
     fs.writeFileSync(
@@ -176,11 +166,7 @@ async function testAuditAdapterDrift() {
 
     const resultDrift = await runAudit(dir);
     const driftCheck = resultDrift.checks.find((c) => c.id && c.id.includes('plan-lint'));
-    assertPass(
-      'audit detects adapter drift for missing hook',
-      Boolean(driftCheck && !driftCheck.ok),
-      JSON.stringify(driftCheck),
-    );
+    assertPass('audit detects adapter drift for missing hook', Boolean(driftCheck && !driftCheck.ok), JSON.stringify(driftCheck));
 
     // Now emit hooks.json WITH the plan-lint hook
     fs.writeFileSync(
@@ -194,11 +180,7 @@ async function testAuditAdapterDrift() {
 
     const resultClean = await runAudit(dir);
     const cleanCheck = resultClean.checks.find((c) => c.id && c.id.includes('plan-lint'));
-    assertPass(
-      'audit reports no drift when hook is present',
-      Boolean(cleanCheck && cleanCheck.ok),
-      JSON.stringify(cleanCheck),
-    );
+    assertPass('audit reports no drift when hook is present', Boolean(cleanCheck && cleanCheck.ok), JSON.stringify(cleanCheck));
   });
 }
 
@@ -209,11 +191,7 @@ async function testDoctorFullProject() {
     fs.writeFileSync(path.join(dir, '.claude', 'hooks.json'), JSON.stringify({ hooks: {} }));
 
     const result = await runDoctor(dir);
-    assertPass(
-      'doctor passes on minimal valid project',
-      result.ok,
-      JSON.stringify(result.checks.filter((c) => !c.ok)),
-    );
+    assertPass('doctor passes on minimal valid project', result.ok, JSON.stringify(result.checks.filter((c) => !c.ok)));
     assertPass('doctor runs all 9 checks', result.checks.length === 9, String(result.checks.length));
     assertPass(
       'doctor includes optional sandbox runtime check',
@@ -227,11 +205,7 @@ async function testDoctorMissingPaths() {
   await withTempDir(async (dir) => {
     const result = await runDoctor(dir);
     const repoCheck = result.checks.find((c) => c.id === 'repo_structure');
-    assertPass(
-      'doctor repo_structure fails on empty dir',
-      Boolean(repoCheck && !repoCheck.ok),
-      JSON.stringify(repoCheck),
-    );
+    assertPass('doctor repo_structure fails on empty dir', Boolean(repoCheck && !repoCheck.ok), JSON.stringify(repoCheck));
     assertPass('doctor overall fails when structure missing', !result.ok);
   });
 }
@@ -291,6 +265,60 @@ async function testDoctorResolvesGitRootHookScripts() {
   });
 }
 
+async function testAuditTriangularVerdicts() {
+  const { AgentCoreCompiler } = require('../tools/cli/installers/lib/core/agent-core-compiler');
+  await withTempDir(async (tempDir) => {
+    // Give the target its own .enterprise skill source so triangulation has a
+    // local third point (installed-without-source projects use the fallback).
+    const repoRfc = path.join(__dirname, '..', '.enterprise', 'governance', 'agent-skills', 'rfc');
+    const targetRfc = path.join(tempDir, '.enterprise', 'governance', 'agent-skills', 'rfc');
+    fs.mkdirSync(targetRfc, { recursive: true });
+    for (const f of ['SKILL.md', 'SKILL-QUICK.md']) {
+      fs.copyFileSync(path.join(repoRfc, f), path.join(targetRfc, f));
+    }
+
+    const compiler = new AgentCoreCompiler();
+    await compiler.compile(tempDir, path.join(tempDir, '.hseos'), { platforms: [] });
+
+    const findRfc = (result) => result.checks.find((c) => c.id === 'drift:skill:rfc');
+
+    const clean = await runAudit(tempDir);
+    assertPass('triangular: clean compile reports in-sync verdict', findRfc(clean)?.ok === true, JSON.stringify(findRfc(clean)));
+
+    // Tamper the COMPILED output → verdict must blame the output, not the source
+    const outputPath = path.join(tempDir, '.agents', 'skills', 'rfc', 'SKILL.md');
+    fs.appendFileSync(outputPath, '\n<!-- tampered -->\n');
+    const tampered = await runAudit(tempDir);
+    assertPass(
+      'triangular: hand-edited output verdict',
+      findRfc(tampered)?.ok === false && /hand-edited/.test(findRfc(tampered)?.details || ''),
+      JSON.stringify(findRfc(tampered)),
+    );
+
+    // Restore output, then edit the SOURCE → verdict must blame the source
+    await compiler.compile(tempDir, path.join(tempDir, '.hseos'), { platforms: [] });
+    const sourcePath = path.join(tempDir, '.enterprise', 'governance', 'agent-skills', 'rfc', 'SKILL.md');
+    if (fs.existsSync(sourcePath)) {
+      fs.appendFileSync(sourcePath, '\n<!-- source change -->\n');
+      const sourceEdited = await runAudit(tempDir);
+      assertPass(
+        'triangular: source-edited verdict',
+        findRfc(sourceEdited)?.ok === false && /source edited/.test(findRfc(sourceEdited)?.details || ''),
+        JSON.stringify(findRfc(sourceEdited)),
+      );
+    } else {
+      // Compile resolved skills from the repo sourceRoot — target has no local
+      // .enterprise copy, so triangulation degrades to the two-point fallback.
+      const fallback = await runAudit(tempDir);
+      assertPass(
+        'triangular: source-unavailable fallback stays in sync',
+        findRfc(fallback)?.ok === true && /source unavailable/.test(findRfc(fallback)?.details || ''),
+        JSON.stringify(findRfc(fallback)),
+      );
+    }
+  });
+}
+
 async function run() {
   console.log('Agent core verify / audit / doctor tests');
 
@@ -299,6 +327,7 @@ async function run() {
   await testIntegrityDetectsDrift();
   await testIntegrityVerifiesAgents();
   await testAuditAdapterDrift();
+  await testAuditTriangularVerdicts();
   await testDoctorFullProject();
   await testDoctorMissingPaths();
   await testDoctorSkillsConsistency();

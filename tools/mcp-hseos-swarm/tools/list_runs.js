@@ -33,9 +33,7 @@ module.exports = [
         };
       });
       const filter = args.status;
-      const filtered = filter
-        ? runs.filter((r) => r.status_snippet.toLowerCase().includes(filter.toLowerCase()))
-        : runs;
+      const filtered = filter ? runs.filter((r) => r.status_snippet.toLowerCase().includes(filter.toLowerCase())) : runs;
       return { runs: filtered, total: filtered.length };
     },
   },

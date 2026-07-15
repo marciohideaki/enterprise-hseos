@@ -36,6 +36,11 @@
 |---|---|---|
 | SWARM — Parallel Execution Commander | [swarm.md](swarm.md) | Heterogeneous batch (3+ independent tasks) executed as parallel waves under worktree isolation |
 
+### External tracking (feature-flagged)
+| Agent | File | When to reach for it |
+|---|---|---|
+| ATLAS — ADO Lifecycle Orchestrator | [atlas.md](atlas.md) | Azure DevOps plan→sync→close tracking; only active with `ado.enabled: true` (ADR-0011) |
+
 ---
 
 ## Authority boundaries at a glance
@@ -56,6 +61,7 @@
 | KUBE: manifest updates, GitOps PRs, ArgoCD | Build images, verify runtime, modify infra manifests |
 | SABLE: runtime verification, governance audits | Re-trigger deploys, update manifests, approve exceptions |
 | SWARM: heterogeneous batch decomposition, parallel dispatch under worktree isolation, handoff extraction | Self-approve PRs, merge without explicit approval, push to protected branches, write its own handoffs from inside subagents, override agent authority, bypass G2 plan approval |
+| ATLAS: ADO work-item lifecycle (plan/sync/close), PR↔Story linking, ADO project bootstrap | Execute or modify code, create items as `State=Closed`, migrate repositories without asking, block delivery on ADO API failures, operate with `ado.enabled: false` |
 
 ---
 

@@ -12,17 +12,11 @@ function snapshotRun(db, run_id) {
   const run = db.prepare('SELECT * FROM as_runs WHERE id = ?').get(run_id);
   if (!run) throw new Error(`Run not found: ${run_id}`);
   const tasks = db.prepare('SELECT * FROM as_tasks WHERE run_id = ? ORDER BY wave, id').all(run_id);
-  const agentRuns = db
-    .prepare('SELECT * FROM as_agent_runs WHERE run_id = ? ORDER BY started_at')
-    .all(run_id);
+  const agentRuns = db.prepare('SELECT * FROM as_agent_runs WHERE run_id = ? ORDER BY started_at').all(run_id);
   const arIds = agentRuns.map((a) => a.id);
   const events =
     arIds.length > 0
-      ? db
-          .prepare(
-            `SELECT * FROM as_events WHERE agent_run_id IN (${arIds.map(() => '?').join(',')}) ORDER BY ts`
-          )
-          .all(...arIds)
+      ? db.prepare(`SELECT * FROM as_events WHERE agent_run_id IN (${arIds.map(() => '?').join(',')}) ORDER BY ts`).all(...arIds)
       : [];
   const taskIds = tasks.map((t) => t.id);
   const handoffs =
@@ -30,7 +24,7 @@ function snapshotRun(db, run_id) {
       ? db
           .prepare(
             `SELECT * FROM as_handoffs WHERE src_task IN (${taskIds.map(() => '?').join(',')})
-                OR dst_task IN (${taskIds.map(() => '?').join(',')})`
+                OR dst_task IN (${taskIds.map(() => '?').join(',')})`,
           )
           .all(...taskIds, ...taskIds)
       : [];
@@ -55,7 +49,7 @@ function renderArchiveMd(archive) {
     '|---|---|---|---|---|---|',
     ...tasks.map(
       (t) =>
-        `| ${t.id} | ${t.wave} | ${t.effort || '-'} | ${t.model_tier || '-'} | ${t.status} | ${(t.goal || '').replaceAll('|', String.raw`\|`)} |`
+        `| ${t.id} | ${t.wave} | ${t.effort || '-'} | ${t.model_tier || '-'} | ${t.status} | ${(t.goal || '').replaceAll('|', String.raw`\|`)} |`,
     ),
     '',
     '## Agent Runs',
@@ -64,7 +58,7 @@ function renderArchiveMd(archive) {
     '|---|---|---|---|---|---|---|---|',
     ...agentRuns.map(
       (a) =>
-        `| ${a.id} | ${a.agent_name} | ${a.task_id || '-'} | ${a.status} | ${a.started_at} | ${a.ended_at || '-'} | ${a.tokens_in || '-'}/${a.tokens_out || '-'} | ${a.cost_usd || '-'} |`
+        `| ${a.id} | ${a.agent_name} | ${a.task_id || '-'} | ${a.status} | ${a.started_at} | ${a.ended_at || '-'} | ${a.tokens_in || '-'}/${a.tokens_out || '-'} | ${a.cost_usd || '-'} |`,
     ),
     '',
     '## Events Timeline',
@@ -91,9 +85,7 @@ function archiveRun(db, run_id, options = {}) {
   const archive = snapshotRun(db, run_id);
   let archive_path = null;
   if (options.outputPath || options.secondBrainPath) {
-    const target =
-      options.outputPath ||
-      path.join(options.secondBrainPath, '_sessions', 'runs', `${run_id}.md`);
+    const target = options.outputPath || path.join(options.secondBrainPath, '_sessions', 'runs', `${run_id}.md`);
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.writeFileSync(target, renderArchiveMd(archive), 'utf8');
     archive_path = target;

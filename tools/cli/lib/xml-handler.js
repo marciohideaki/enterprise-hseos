@@ -125,13 +125,6 @@ class XmlHandler {
   }
 
   /**
-   * TODO: DELETE THIS METHOD
-   */
-  injectActivationSimple(agentContent, metadata = {}) {
-    console.error('Error in simple injection:', error);
-  }
-
-  /**
    * Build agent from YAML source
    * @param {string} yamlPath - Path to .agent.yaml file
    * @param {string} customizePath - Path to .customize.yaml file (optional)

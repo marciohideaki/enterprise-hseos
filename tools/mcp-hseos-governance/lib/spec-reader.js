@@ -32,7 +32,8 @@ function readConstitution(article) {
 function listAdrs() {
   const dir = path.join(REPO_ROOT, '.enterprise', '.specs', 'decisions');
   if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir)
+  return fs
+    .readdirSync(dir)
     .filter((f) => f.startsWith('ADR-') && f.endsWith('.md'))
     .sort()
     .map((f) => {

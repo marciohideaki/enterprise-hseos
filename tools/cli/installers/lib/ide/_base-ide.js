@@ -503,10 +503,9 @@ class BaseIdeSetup {
     // Replace placeholders
     let processed = content;
 
-    // Inject activation block for agent files FIRST (before replacements)
-    if (metadata.name && content.includes('<agent')) {
-      processed = this.xmlHandler.injectActivationSimple(processed, metadata);
-    }
+    // Activation-block injection was removed here: injectActivationSimple was a
+    // broken stub (referenced an undefined variable and crashed when reached);
+    // modules/manager.js had already disabled its equivalent call.
 
     // Only replace {project-root} if a specific projectDir is provided
     // Otherwise leave the placeholder intact

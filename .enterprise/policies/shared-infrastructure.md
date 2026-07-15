@@ -8,7 +8,7 @@
 
 All projects in `/opt/hideakisolutions/*` **MUST** consume the shared infrastructure stack rather than provisioning project-local instances of stateful services (databases, caches, queues, object storage, policy engines, identity providers, observability backends).
 
-If a required shared service does not exist (in `shared-*` containers locally or in the `shared-platform` k3s namespace), the agent **MUST stop and ask the user** how to proceed. **Do not** spin up a project-local replacement without explicit authorization.
+If a required shared service does not exist (in `shared-*` containers locally or in the `platform-shared-dev` k3s namespace), the agent **MUST stop and ask the user** how to proceed. **Do not** spin up a project-local replacement without explicit authorization.
 
 ## Motivation
 
@@ -41,7 +41,7 @@ Source containers (running on dev host as of 2026-05-20):
 
 ## Canonical mapping — k3s / k8s
 
-Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 2026-05-21 (post-cutover wave).
+Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 2026-05-21 (post-cutover wave); credential and identity conventions normalized after the `.70` cutover on 2026-07-11.
 
 | Service | Service DNS (cluster-internal) | Notes |
 |---|---|---|
@@ -54,6 +54,7 @@ Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 20
 | MySQL | `mysql-shared.platform-shared-dev.svc.cluster.local:3306` | StatefulSet `mysql-shared-0` |
 | MariaDB | `mariadb-shared.platform-shared-dev.svc.cluster.local:3306` | StatefulSet `mariadb-shared-0`; legacy app compatibility (EspoCRM, etc) |
 | MinIO (S3) | `minio-shared.platform-shared-dev.svc.cluster.local:9000` (API) / `:9001` (console) | StatefulSet `minio-shared-0`; bucket prefix per project |
+| Keycloak | `keycloak-shared.platform-shared-dev.svc.cluster.local:8080` | Deployment `keycloak-shared`; v24.x; browser-facing hostname is the neutral shared IdP `https://keycloak.hideakiservicos.net/kc`; each project uses a dedicated realm (e.g. `aiagents` for `ai-agents-os`) |
 | OPA | `opa-shared.platform-shared-dev.svc.cluster.local:8181` | Deployment `opa-shared`; multi-tenant policy bundles loaded per-project. Per ADR-0002. |
 | Loki | `loki.monitoring.svc.cluster.local:3100` | SingleBinary mode; namespace `monitoring`; deployed via ArgoCD app `loki-dev` (grafana/loki chart 6.55.0 / Loki 3.6.7); auth disabled; retention 7d; 10Gi PVC. |
 | OpenFGA | `openfga-shared.platform-shared-dev.svc.cluster.local:8080` (HTTP) / `:8081` (gRPC) | Deployment `openfga-shared`; v1.5.3; postgres backend via `openfga-shared-secret`; auth disabled for dev |
@@ -75,6 +76,17 @@ Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 20
 - **ADR-0010** — `otel-collector-shared` is the canonical OTLP ingress for shared observability; capabilities must export via OTLP HTTP/gRPC instead of direct Prometheus scrape when telemetry contracts require trace/log correlation.
 
 Credentials/secrets are sourced via **External Secrets Operator** from Vault when available; otherwise via per-namespace `Secret` populated by a controlled bootstrap (see `secret.yaml` comments in `platform-gitops/<project>/services/base/`). Per-project `ExternalSecret` resources project the shared credentials into the project namespace.
+
+## Shared dev admin credential
+
+For user-facing dev platform access, the canonical admin identity is:
+
+- username/email: `admin@hideakisolutions.local`
+- password source: `pass misc/admin-hideakisolutions-local`
+
+This applies to dev platform UIs and per-project Keycloak realms backed by `keycloak-shared` (for example Grafana, Catalyst, AI Agents OS, Marketplace-compatible realms, and new platform apps). New dev apps should seed or JIT-provision this user as the platform/admin persona and must not invent app-specific admin passwords.
+
+This does **not** apply to technical infrastructure credentials whose usernames or credential model are fixed by the tool or chart, such as database users, broker users, service account tokens, GitHub App keys, ArgoCD's local `admin` account, or the Keycloak master/admin bootstrap credential. Those remain separate secrets in `pass` and must be named by purpose.
 
 ## Procedural rules
 
@@ -149,4 +161,4 @@ Changes require:
 
 Mapping additions (new shared service) require additionally:
 1. Coordination with the team operating the shared stack.
-2. Update of the k3s `shared-platform` namespace charts.
+2. Update of the k3s `platform-shared-dev` namespace charts.

@@ -1,0 +1,18 @@
+# Generated / compiled output — owned by the agent-core compiler, not prettier
+.agents/
+.claude/
+.codex/
+
+# Runtime state and temp artifacts
+.hseos/
+.logs/
+.worktrees/
+.axon/
+
+# Test fixtures may assert exact byte content
+test/fixtures/
+test/template-test-generator/
+
+# Vendor / lockfiles
+node_modules/
+package-lock.json

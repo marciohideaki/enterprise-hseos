@@ -3,6 +3,8 @@ name: context-policy
 tier: full
 version: "1.0"
 description: "Use when designing stateless execution contracts, applying context compression strategies, or auditing context budget governance"
+trigger: "Use when designing stateless execution contracts, applying context compression strategies, or auditing context budget governance"
+skip: "Request is outside context-policy scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 ---
 
 # Context Policy — Full Policy

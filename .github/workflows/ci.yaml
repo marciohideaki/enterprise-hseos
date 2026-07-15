@@ -24,8 +24,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history so the commit-hygiene gate can scan the PR range
+          # (origin/<base>..HEAD) in addition to the HEAD commit message.
+          fetch-depth: 0
       # Server-side enforcement of the HSEOS governance gates (ADR-0015 Gate 7
       # included). The local .husky/pre-commit hook is bypassable with
-      # --no-verify; this job is the non-bypassable PR-time enforcement point.
+      # --no-verify; this job is the non-bypassable PR-time enforcement point
+      # and a required status check on master. The `ci` phase adds the
+      # tracked-tree secret scan and commit-message hygiene on top of the doc
+      # gates (gate_code is covered by the `test` job).
       - name: HSEOS governance quality gates
-        run: VALIDATION_ENFORCED=true bash scripts/governance/quality-gates.sh --phase doc
+        run: VALIDATION_ENFORCED=true bash scripts/governance/quality-gates.sh --phase ci

@@ -8,14 +8,7 @@
 
   "items": {
     "type": "object",
-    "required": [
-      "Epic",
-      "Story",
-      "Hash",
-      "Subject",
-      "Author",
-      "Date"
-    ],
+    "required": ["Epic", "Story", "Hash", "Subject", "Author", "Date"],
     "additionalProperties": false,
 
     "properties": {

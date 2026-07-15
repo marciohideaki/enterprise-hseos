@@ -22,6 +22,7 @@ If two instructions conflict, stop and ask for a human decision. Do not average 
 - Never commit directly to `main`, `master`, or `develop`.
 - Never merge PRs without explicit human approval; after approval, use governed closeout when available.
 - Never delete protected branches. `task/*` cleanup belongs to the worktree lifecycle; merged `feature/*` cleanup must verify containment in the base branch.
+- Stacked `feature/*` branch chains are allowed only for real dependency sequencing; each link must declare its upstream base, use `task/*` worktrees for commits, and merge from base to tip.
 - Never add AI attribution or co-author trailers to commits.
 - Run repository quality gates before any commit.
 

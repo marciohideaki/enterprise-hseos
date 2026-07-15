@@ -1,4 +1,6 @@
 ---
+trigger: user asks to evaluate, compare, or research a technology/tool/library; 'should we use X or Y?'; before adopting a new dependency; user invokes /tech-research
+skip: technology already in the stack with a known decision (just reference it); user wants a one-line quick answer not a structured evaluation; purely theoretical question with no adoption intent
 name: tech-research
 description: Pesquisa e avalia uma tecnologia, ferramenta ou approach técnico com comparação de alternativas e recomendação fundamentada
 version: 1.0.0

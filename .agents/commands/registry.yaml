@@ -23,7 +23,7 @@ commands:
   - name: hseos-workflow-dev-squad
     type: workflow
     source: null
-    description: Plan a heterogeneous batch in Opus and execute it as parallel Sonnet/Haiku subagents isolated in worktrees. 1 task = 1 commit; 1 wave = 1 PR. Commander-extracted handoffs between waves.
+    description: Plan a heterogeneous batch in Opus and execute it as parallel Sonnet/Haiku subagents isolated in worktrees. 1 task = 1 commit; 1 wave = 1 PR. Stacked feature chains are allowed only when dependency order is declared.
   - name: hseos-workflow-state-tracking
     type: workflow
     source: null

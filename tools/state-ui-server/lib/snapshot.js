@@ -56,7 +56,7 @@ function takeSnapshot(db, opts = {}) {
   const runs = db
     .prepare(
       `SELECT id, workflow_id, project, phase, gate_status, status, started_at, ended_at, session_id, base_branch
-       FROM as_runs ${runWhereClause} ORDER BY started_at DESC LIMIT 100`
+       FROM as_runs ${runWhereClause} ORDER BY started_at DESC LIMIT 100`,
     )
     .all(...runParams);
 
@@ -68,7 +68,7 @@ function takeSnapshot(db, opts = {}) {
       ? db
           .prepare(
             `SELECT id, run_id, wave, effort, model_tier, status, goal, branch, last_heartbeat_at
-             FROM as_tasks WHERE run_id IN (${placeholders}) ORDER BY run_id, wave, id`
+             FROM as_tasks WHERE run_id IN (${placeholders}) ORDER BY run_id, wave, id`,
           )
           .all(...runIds)
       : [];
@@ -78,7 +78,7 @@ function takeSnapshot(db, opts = {}) {
       ? db
           .prepare(
             `SELECT id, agent_name, task_id, run_id, started_at, last_heartbeat_at, ended_at, status, exit_reason
-             FROM as_agent_runs WHERE run_id IN (${placeholders}) ORDER BY id DESC`
+             FROM as_agent_runs WHERE run_id IN (${placeholders}) ORDER BY id DESC`,
           )
           .all(...runIds)
       : [];
@@ -89,7 +89,7 @@ function takeSnapshot(db, opts = {}) {
           .prepare(
             `SELECT id, agent_run_id, ts, kind FROM as_events
              WHERE agent_run_id IN (${agentRuns.map(() => '?').join(',')})
-             ORDER BY id DESC LIMIT ?`
+             ORDER BY id DESC LIMIT ?`,
           )
           .all(...agentRuns.map((a) => a.id), eventLimit)
       : [];
@@ -99,7 +99,7 @@ function takeSnapshot(db, opts = {}) {
       `SELECT id FROM as_agent_runs
        WHERE status = 'running'
          AND last_heartbeat_at IS NOT NULL
-         AND last_heartbeat_at < datetime('now', '-${stale} minutes')`
+         AND last_heartbeat_at < datetime('now', '-${stale} minutes')`,
     )
     .all()
     .map((row) => row.id);

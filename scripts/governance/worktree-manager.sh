@@ -14,7 +14,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="${REPO_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 WORKTREE_BASE="${REPO_ROOT}/.worktrees"
 LOG_DIR="${REPO_ROOT}/.logs/runs"
 TIMESTAMP="$(date +%Y%m%dT%H%M%S)"

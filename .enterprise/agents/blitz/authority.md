@@ -56,10 +56,10 @@ Before execution, the Quick Flow Solo Dev Agent MUST read:
 - `/.enterprise/.specs/constitution/*`
 - `/.enterprise/policies/*`
 - `/.enterprise/agents/blitz/*`
-- `/specs/core/*`
-- `/specs/cross/*`
-- `/specs/stacks/<relevant-stack>/*`
-- `/specs/decisions/*`
+- `/.enterprise/.specs/core/*`
+- `/.enterprise/.specs/cross/*`
+- `/.enterprise/.specs/<relevant-stack>/*`
+- `/.enterprise/.specs/decisions/*`
 - Approved PRDs / Tech Specs / Stories
 - `/project-context.md` (if present)
 

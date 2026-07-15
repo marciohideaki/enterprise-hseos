@@ -1,0 +1,121 @@
+version: "1.0"
+profiles:
+  minimal:
+    name: Minimal Governance
+    description: Smallest governed HSEOS surface for projects that only need baseline instructions, core policy, and portable agent entrypoints.
+    hook_profile: advisory
+    components:
+      - baseline:governance
+      - baseline:entrypoints
+      - baseline:skills-registry
+      - adapter:codex
+      - adapter:claude-code
+
+  developer:
+    name: Developer
+    description: Default engineering setup for implementation, review, verification, state tracking, and local agent workflows.
+    default: true
+    hook_profile: standard
+    components:
+      - baseline:governance
+      - baseline:entrypoints
+      - baseline:skills-registry
+      - runtime:hooks
+      - runtime:state
+      - runtime:workflows
+      - adapter:codex
+      - adapter:claude-code
+      - capability:delivery
+      - capability:security
+      - capability:knowledge
+
+  governance:
+    name: Governance
+    description: Policy-heavy setup for architecture, ADR, compliance, secure coding, and readiness reviews.
+    hook_profile: strict
+    components:
+      - baseline:governance
+      - baseline:entrypoints
+      - baseline:skills-registry
+      - runtime:hooks
+      - runtime:state
+      - capability:architecture
+      - capability:security
+      - capability:readiness
+      - adapter:codex
+      - adapter:claude-code
+
+  gitops:
+    name: GitOps Delivery
+    description: Delivery and runtime operations setup for GitOps, release, rollout, and deployment verification.
+    hook_profile: strict
+    components:
+      - baseline:governance
+      - baseline:entrypoints
+      - baseline:skills-registry
+      - runtime:hooks
+      - runtime:state
+      - runtime:workflows
+      - capability:delivery
+      - capability:gitops
+      - capability:observability
+      - adapter:codex
+      - adapter:claude-code
+
+  ado:
+    name: ADO Operations
+    description: Azure DevOps planning, synchronization, branch governance, and delivery traceability setup.
+    hook_profile: strict
+    components:
+      - baseline:governance
+      - baseline:entrypoints
+      - baseline:skills-registry
+      - runtime:hooks
+      - runtime:state
+      - capability:ado
+      - capability:delivery
+      - adapter:codex
+      - adapter:claude-code
+
+  solo:
+    name: Solo Fast Flow
+    description: Compact setup for BLITZ-style solo execution with verification and completion safeguards.
+    hook_profile: standard
+    components:
+      - baseline:governance
+      - baseline:entrypoints
+      - baseline:skills-registry
+      - runtime:hooks
+      - runtime:state
+      - capability:solo
+      - capability:verification
+      - adapter:codex
+      - adapter:claude-code
+
+  full:
+    name: Full Enterprise
+    description: Complete HSEOS surface with governance, delivery, ADO, GitOps, observability, sandboxing, and all adapters.
+    hook_profile: ci
+    components:
+      - baseline:governance
+      - baseline:entrypoints
+      - baseline:skills-registry
+      - runtime:hooks
+      - runtime:state
+      - runtime:workflows
+      - runtime:mcp
+      - capability:architecture
+      - capability:delivery
+      - capability:security
+      - capability:knowledge
+      - capability:observability
+      - capability:gitops
+      - capability:ado
+      - capability:sandbox
+      - capability:readiness
+      - capability:research
+      - capability:solo
+      - capability:verification
+      - adapter:codex
+      - adapter:claude-code
+      - adapter:goose

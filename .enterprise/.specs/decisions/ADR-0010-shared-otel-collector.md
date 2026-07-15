@@ -1,6 +1,6 @@
 # ADR-0010 — Shared OpenTelemetry Collector in `platform-shared-dev`
 
-**Status:** Proposed
+**Status:** Accepted (ratified 2026-07-08)
 **Date:** 2026-05-24
 **Authors:** Platform Architecture
 **Affects Standards:** `.enterprise/policies/shared-infrastructure.md` (canonical mapping table)

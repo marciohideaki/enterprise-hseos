@@ -1,4 +1,6 @@
 ---
+trigger: a wave completed and its ADO Tasks/Stories/Feature must be closed with the git tag; user says the wave is done or asks to close a wave
+skip: ado.enabled is false; the wave is not fully merged yet; the work items were already closed
 name: ado-close-wave
 description: "Fechamento formal de wave ADO: fecha Feature e Epic (quando completo), cria tag git semântica, atualiza MASTER-PLAN.md. Chamado após PR merged + CI verde."
 version: 1.0.0

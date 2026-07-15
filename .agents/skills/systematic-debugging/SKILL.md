@@ -1,4 +1,6 @@
 ---
+trigger: Use when diagnosing a bug, investigating an error, or troubleshooting unexpected behavior before applying any fix
+skip: Request is outside systematic-debugging scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: systematic-debugging
 description: Use when diagnosing a bug, investigating an error, or troubleshooting unexpected behavior before applying any fix
 version: "1.0"

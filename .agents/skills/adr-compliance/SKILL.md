@@ -1,4 +1,6 @@
 ---
+trigger: Use when deeply validating an ADR's format, approval chain, linkage to standards, or deciding the correct ADR status
+skip: Request is outside adr-compliance scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: adr-compliance
 description: Use when deeply validating an ADR's format, approval chain, linkage to standards, or deciding the correct ADR status
 version: 1.0.0

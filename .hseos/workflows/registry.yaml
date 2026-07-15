@@ -406,7 +406,7 @@ workflows:
     name: Dev Squad (Parallel Batch)
     owner: SWARM
     entrypoint: ".hseos/workflows/dev-squad/workflow.md"
-    description: "Plan a heterogeneous batch in Opus and execute it as parallel Sonnet/Haiku subagents isolated in worktrees. 1 task = 1 commit; 1 wave = 1 PR. Commander-extracted handoffs between waves."
+    description: "Plan a heterogeneous batch in Opus and execute it as parallel Sonnet/Haiku subagents isolated in worktrees. 1 task = 1 commit; 1 wave = 1 PR. Stacked feature chains are allowed only when dependency order is declared."
     profiles: [core, full]
     depends_on:
       - workflow: delivery-readiness
@@ -429,6 +429,7 @@ workflows:
         agent: SWARM
         outputs:
           - "PLAN.md with atomic tasks, wave graph, model matrix"
+          - "Stacked branch base map when waves depend on unmerged upstream work"
           - "Gate G2 approval recorded"
           - "RESUME-PROMPT.md written for detached-mode execution"
       - id: execute

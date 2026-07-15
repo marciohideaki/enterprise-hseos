@@ -112,6 +112,46 @@ async function runIntegrity(projectDir) {
     });
   }
 
+  // Hook handler integrity (manifest `handlers[]`, additive). Handlers are
+  // compiled copies of .enterprise/governance/hooks/handlers/ — hashed over
+  // CRLF-normalized content, exactly as the compiler wrote them.
+  const handlers = Array.isArray(manifest && manifest.handlers) ? manifest.handlers : [];
+  for (const entry of handlers) {
+    if (!entry || !entry.file || !entry.sha256) {
+      continue;
+    }
+    const label = entry.file.split('/').pop();
+    const handlerPath = path.join(projectDir, entry.file);
+    if (!(await fs.pathExists(handlerPath))) {
+      checks.push({
+        id: `handler:${label}`,
+        title: `Handler ${label} integrity`,
+        ok: false,
+        details: `handler file missing: ${entry.file}`,
+        remedy: 'Run `hseos agent-core compile` to regenerate.',
+      });
+      errors.push(`Missing handler file: ${entry.file}`);
+      continue;
+    }
+    const observed = await agentHash(handlerPath);
+    if (observed !== entry.sha256) {
+      checks.push({
+        id: `handler:${label}`,
+        title: `Handler ${label} integrity`,
+        ok: false,
+        details: `hash mismatch: expected ${entry.sha256.slice(0, 12)}…, observed ${observed.slice(0, 12)}…`,
+        remedy: 'Edit the source under .enterprise/governance/hooks/handlers/ and run `hseos agent-core compile`.',
+      });
+      errors.push(`Drift on ${entry.file}`);
+      continue;
+    }
+    checks.push({
+      id: `handler:${label}`,
+      title: `Handler ${label} integrity`,
+      ok: true,
+    });
+  }
+
   // Per-asset signatures under .agents/.signatures/ and adapters[].sha256 remain
   // Wave 6 (ADR-0007). Plugins and MCP servers carry no content hash today, so
   // they are catalog-only entries (registered, not integrity-checked).

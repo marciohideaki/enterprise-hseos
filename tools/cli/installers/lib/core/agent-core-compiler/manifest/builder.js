@@ -3,25 +3,27 @@
 const path = require('node:path');
 const fs = require('fs-extra');
 const yaml = require('yaml');
+const { PLATFORM_SURFACES } = require('../adapters/platforms');
+
+// adapters{} is derived from the platforms that actually emitted during this
+// compile — the manifest must never advertise surfaces (platforms or paths)
+// the pipeline did not produce, because the instruction cascade tells agents
+// to trust it.
+function buildAdaptersBlock(platforms) {
+  const adapters = {};
+  for (const platform of platforms || []) {
+    const surfaces = PLATFORM_SURFACES[platform];
+    if (surfaces) adapters[platform.replaceAll('-', '_')] = surfaces;
+  }
+  return adapters;
+}
 
 async function writeManifest(root, data, agentsDirName = '.agents') {
   const manifest = {
     version: '1.0',
     generated_by: 'hseos-agent-core-compiler',
     source_of_truth: '.agents',
-    adapters: {
-      codex: {
-        entrypoint: 'AGENTS.md',
-        skills: '.agents/skills',
-        settings: '.codex/config.toml',
-        hooks: '.codex/hseos-hooks.json',
-      },
-      claude_code: {
-        entrypoint: 'CLAUDE.md',
-        commands: '.claude/commands',
-        hooks: '.claude/hooks.json',
-      },
-    },
+    adapters: buildAdaptersBlock(data.platforms),
     platforms: data.platforms,
     counts: {
       skills: data.skills.length,
@@ -42,6 +44,10 @@ async function writeManifest(root, data, agentsDirName = '.agents') {
   // project exposes the corresponding definitions. Absent → the manifest keeps
   // its prior shape (v1.0 behaviour), so installs that compile none of these
   // stay byte-for-byte compatible.
+  if (Array.isArray(data.handlers) && data.handlers.length > 0) {
+    manifest.counts.handlers = data.handlers.length;
+    manifest.handlers = data.handlers;
+  }
   if (Array.isArray(data.agents) && data.agents.length > 0) {
     manifest.counts.agents = data.agents.length;
     manifest.agents = data.agents;

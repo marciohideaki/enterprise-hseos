@@ -53,7 +53,7 @@ module.exports = [
              LEFT JOIN as_agent_runs ar ON ar.id = e.agent_run_id
            WHERE as_events_fts MATCH ?
            ORDER BY e.id DESC
-           LIMIT ?`
+           LIMIT ?`,
         )
         .all(args.query, limit);
       return { hits: rows, count: rows.length, query: args.query };

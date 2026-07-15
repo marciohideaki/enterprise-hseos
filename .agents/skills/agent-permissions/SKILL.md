@@ -1,4 +1,6 @@
 ---
+trigger: Use when generating a full least-privilege settings.json from scratch or performing a deep security audit of existing agent permissions
+skip: Request is outside agent-permissions scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: agent-permissions
 description: Use when generating a full least-privilege settings.json from scratch or performing a deep security audit of existing agent permissions
 version: "1.0"

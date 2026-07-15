@@ -1,0 +1,727 @@
+/goal
+
+Transformar o HSEOS (Hideaki Software Engineering Operating System) na plataforma definitiva de governança, constituição, harness, orquestração e execução de agentes de IA para engenharia de software, tornando-o continuamente autoavaliável, autoconsistente, autoevolutivo e aderente ao estado da arte mundial.
+
+Este objetivo NÃO parte da documentação como fonte de verdade.
+
+A documentação representa apenas uma hipótese sobre o sistema.
+
+A única fonte de verdade é a implementação existente.
+
+Toda análise deverá partir do código.
+
+A documentação deverá ser continuamente validada contra a implementação e nunca o contrário.
+
+=========================================================================
+MISSÃO
+=========================================================================
+
+A cada iteração o agente deverá:
+
+• compreender profundamente a implementação existente
+
+• descobrir capacidades reais
+
+• comparar implementação x documentação
+
+• comparar implementação x especificações
+
+• comparar implementação x melhores práticas
+
+• comparar implementação x soluções líderes de mercado
+
+• identificar oportunidades
+
+• evoluir continuamente o framework
+
+• eliminar inconsistências
+
+• reduzir complexidade
+
+• aumentar extensibilidade
+
+• aumentar capacidade de autoevolução
+
+• aumentar capacidade de governança
+
+• aumentar capacidade de observabilidade
+
+• aumentar capacidade de explicabilidade
+
+• aumentar capacidade de portabilidade
+
+• aumentar capacidade de composição
+
+• aumentar capacidade de adaptação
+
+• aumentar capacidade de autoverificação
+
+até que o framework represente o estado da arte para sistemas de engenharia assistida por IA.
+
+=========================================================================
+PRINCÍPIO MÁXIMO
+=========================================================================
+
+O código é soberano.
+
+Nunca assumir que:
+
+README
+
+SPEC
+
+Guides
+
+ADRs
+
+Constituição
+
+comentários
+
+ou qualquer documentação
+
+representam a verdade.
+
+Toda documentação deve ser considerada uma hipótese até ser comprovada pela implementação.
+
+=========================================================================
+EXECUÇÃO
+=========================================================================
+
+Em cada ciclo:
+
+1.
+
+Mapear completamente
+
+• arquitetura
+
+• módulos
+
+• packages
+
+• adapters
+
+• runtime
+
+• compiler
+
+• installer
+
+• plugins
+
+• hooks
+
+• skills
+
+• agents
+
+• workflows
+
+• CLI
+
+• MCP
+
+• policies
+
+• governance
+
+• state
+
+• telemetry
+
+• observabilidade
+
+• persistence
+
+• manifests
+
+• registries
+
+• configuration
+
+• schemas
+
+• validation
+
+• tests
+
+• examples
+
+• templates
+
+2.
+
+Identificar:
+
+capacidades implementadas
+
+capacidades parcialmente implementadas
+
+capacidades apenas documentadas
+
+capacidades órfãs
+
+código morto
+
+duplicação
+
+acoplamentos
+
+hardcodes
+
+especializações
+
+violações arquiteturais
+
+inconsistências
+
+regras conflitantes
+
+dependências cíclicas
+
+quebras de abstração
+
+violação da constituição
+
+violação de ADR
+
+violação de authority
+
+violação de policies
+
+violação do instruction cascade
+
+violações de segurança
+
+violações de isolamento
+
+violações de portabilidade
+
+violações de determinismo
+
+violações de idempotência
+
+violações de reprodutibilidade
+
+3.
+
+Pesquisar continuamente referências externas.
+
+Comparar com soluções como:
+
+Claude Code
+
+Codex
+
+Cursor
+
+Windsurf
+
+OpenHands
+
+OpenCode
+
+Goose
+
+Continue
+
+Cline
+
+Roo Code
+
+OpenDevin
+
+LangGraph
+
+CrewAI
+
+AutoGen
+
+OpenAI Agents SDK
+
+Anthropic Agent Patterns
+
+Microsoft AutoGen
+
+Google ADK
+
+MCP Specification
+
+OpenTelemetry
+
+Harnesses
+
+Constitutions
+
+Guardrails
+
+Policy Engines
+
+Capability Systems
+
+Plugin Systems
+
+Workflow Engines
+
+Context Engineering
+
+Memory Systems
+
+Session Management
+
+Prompt Compilers
+
+Instruction Hierarchies
+
+Agent Runtimes
+
+Tool Registries
+
+Model Routing
+
+BYOA
+
+Vendor Neutral Frameworks
+
+Skill Systems
+
+Execution Sandboxes
+
+Workspace Isolation
+
+Context Compression
+
+Knowledge Management
+
+Prompt Optimization
+
+Governance Frameworks
+
+Rule Engines
+
+Adaptive Planning
+
+AI SDLC
+
+Agentic Engineering
+
+Parallel Execution
+
+Swarm Architectures
+
+Avaliar continuamente novas práticas emergentes.
+
+Sempre que alguma prática for superior à implementação atual:
+
+propor
+
+validar
+
+integrar
+
+normalizar
+
+documentar
+
+testar
+
+4.
+
+Avaliar continuamente:
+
+Constituição
+
+Harness
+
+Instruction Cascade
+
+Prompt Compiler
+
+Skill Loader
+
+Skill Registry
+
+Authority System
+
+Governance Engine
+
+Plugin Marketplace
+
+Adapter SDK
+
+Hook Engine
+
+CLI
+
+MCP
+
+Runtime
+
+Swarm
+
+Workflow Engine
+
+Compiler
+
+Installer
+
+State Engine
+
+Knowledge Layer
+
+Configuration
+
+Sandbox
+
+Isolation
+
+Execution Policies
+
+Quality Gates
+
+Self Verification
+
+Audit
+
+Doctor
+
+Validation
+
+5.
+
+Verificar se todos os componentes seguem:
+
+Configuration Driven
+
+Convention over Configuration
+
+Specification Driven
+
+Contract First
+
+Policy Driven
+
+Capability Driven
+
+Plugin First
+
+Adapter First
+
+Composition over Inheritance
+
+Event Driven
+
+DDD
+
+CQRS
+
+Event Sourcing
+
+Inbox
+
+Outbox
+
+Idempotência
+
+Determinismo
+
+Imutabilidade
+
+Pure Functions quando aplicável
+
+Open Closed Principle
+
+SOLID
+
+Clean Architecture
+
+Hexagonal
+
+Ports & Adapters
+
+Dependency Inversion
+
+Twelve Factor
+
+Cloud Native
+
+GitOps
+
+Observability First
+
+Audit First
+
+Explainability
+
+Security by Default
+
+Least Privilege
+
+Zero Trust
+
+Reproducibility
+
+Hermetic Builds
+
+Portable Runtime
+
+Vendor Neutrality
+
+AI Native
+
+Agent Native
+
+Tool Agnostic
+
+Memory Agnostic
+
+Context Agnostic
+
+Model Agnostic
+
+6.
+
+Avaliar continuamente o Harness.
+
+O Harness deve possuir capacidades para:
+
+governança
+
+restrições
+
+constituição
+
+políticas
+
+contexto
+
+memória
+
+compressão
+
+delegação
+
+planejamento
+
+execução
+
+coordenação
+
+paralelismo
+
+isolamento
+
+capability routing
+
+skill routing
+
+model routing
+
+tool routing
+
+permission routing
+
+instruction routing
+
+validation
+
+explainability
+
+rollback
+
+checkpoint
+
+recovery
+
+auditoria
+
+telemetria
+
+observabilidade
+
+self healing
+
+self verification
+
+self improvement
+
+self documentation
+
+self optimization
+
+self consistency
+
+7.
+
+Sempre priorizar:
+
+redução de contexto
+
+redução de tokens
+
+reutilização
+
+componentização
+
+baixo acoplamento
+
+alta coesão
+
+extensibilidade
+
+composição
+
+capacidade plugável
+
+capacidade de evolução
+
+compatibilidade reversa
+
+8.
+
+Nunca implementar algo específico para um vendor.
+
+Toda capacidade deve nascer abstrata.
+
+Claude
+
+Codex
+
+Gemini
+
+Cursor
+
+Copilot
+
+OpenAI
+
+Anthropic
+
+Google
+
+OpenRouter
+
+Bedrock
+
+OpenHands
+
+Goose
+
+devem ser apenas adapters.
+
+Nunca o núcleo.
+
+=========================================================================
+AUTO EVOLUÇÃO
+=========================================================================
+
+Ao final de cada ciclo:
+
+avaliar a própria arquitetura
+
+avaliar a própria constituição
+
+avaliar as próprias regras
+
+avaliar o próprio harness
+
+avaliar os próprios prompts
+
+avaliar os próprios skills
+
+avaliar os próprios agentes
+
+avaliar os próprios workflows
+
+avaliar os próprios compiladores
+
+avaliar os próprios adapters
+
+avaliar os próprios instaladores
+
+avaliar o próprio runtime
+
+avaliar a própria documentação
+
+avaliar os próprios testes
+
+avaliar a própria experiência do usuário
+
+avaliar a experiência do desenvolvedor
+
+identificar gargalos
+
+identificar simplificações
+
+identificar oportunidades
+
+identificar novas abstrações
+
+identificar novos padrões
+
+identificar redundâncias
+
+identificar capacidades reutilizáveis
+
+identificar novos componentes compartilhados
+
+propor melhorias
+
+implementar melhorias
+
+executar validações
+
+executar testes
+
+atualizar documentação
+
+atualizar especificações
+
+atualizar ADRs
+
+atualizar CHANGELOG
+
+atualizar guias
+
+atualizar instaladores
+
+atualizar templates
+
+atualizar exemplos
+
+atualizar diagramas
+
+atualizar manifests
+
+atualizar registries
+
+atualizar capacidades opcionais quando dependências externas forem necessárias.
+
+=========================================================================
+CRITÉRIO DE PARADA
+=========================================================================
+
+Este objetivo nunca termina.
+
+A cada nova execução o agente deverá considerar que existe uma arquitetura melhor possível.
+
+O HSEOS deve evoluir continuamente até tornar-se a principal referência mundial em engenharia de software governada por agentes de IA.
+
+Ao final de cada execução:
+
+• produzir relatório arquitetural
+
+• produzir relatório de gaps
+
+• produzir relatório de melhorias
+
+• produzir relatório de aderência
+
+• produzir relatório de benchmark
+
+• atualizar toda documentação afetada
+
+• garantir que documentação e implementação permaneçam sincronizadas
+
+• definir automaticamente o próximo objetivo de maior impacto para a próxima iteração.

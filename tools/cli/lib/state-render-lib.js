@@ -13,16 +13,14 @@ function renderPlan(run, tasks) {
     `**Workflow:** ${run.workflow_id}`,
     `**Project:** ${run.project}`,
     `**Phase:** ${run.phase}    Gate: ${run.gate_status}`,
-    ''
+    '',
   );
   if (run.base_branch) lines.push(`**Base branch:** ${run.base_branch}`);
   if (run.session_id) lines.push(`**Session:** ${run.session_id}`);
   lines.push('', '## Tasks', '', '| ID | Wave | Effort | Tier | Status | Goal |', '|---|---|---|---|---|---|');
   for (const t of tasks) {
     const goalEscaped = (t.goal || '').replaceAll('|', String.raw`\|`);
-    lines.push(
-      `| ${t.id} | ${t.wave} | ${t.effort || '-'} | ${t.model_tier || '-'} | ${t.status} | ${goalEscaped} |`
-    );
+    lines.push(`| ${t.id} | ${t.wave} | ${t.effort || '-'} | ${t.model_tier || '-'} | ${t.status} | ${goalEscaped} |`);
   }
   return lines.join('\n') + '\n';
 }
@@ -35,7 +33,7 @@ function renderStatus(run, tasks, agentRuns) {
     `**Phase:** ${run.phase}    Gate: ${run.gate_status}    Status: ${run.status}`,
     '',
     '## Tasks',
-    ''
+    '',
   );
   for (const t of tasks) {
     const last = t.last_heartbeat_at ? `  (heartbeat: ${t.last_heartbeat_at})` : '';

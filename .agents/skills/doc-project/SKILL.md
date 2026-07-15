@@ -1,4 +1,6 @@
 ---
+trigger: user asks to generate/update project docs, README, CONTRIBUTING, CHANGELOG or SECURITY; new project needs full documentation scaffold; existing README is outdated or missing sections; user invokes /doc-project
+skip: single-file documentation update (just edit directly); user asks for a one-section change without full scaffold; API docs (use code comments + OpenAPI instead)
 name: doc-project
 description: Gera documentação rica e profissional para projetos — README bilíngue EN+PT-BR, docs estruturados, placeholders de imagem com dimensões corretas, CHANGELOG, CONTRIBUTING, SECURITY e templates GitHub
 version: 1.0.0

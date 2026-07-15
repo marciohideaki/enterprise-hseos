@@ -6,6 +6,8 @@ description: "Use when designing any task to embed a verify_step — the feedbac
 license: Apache-2.0
 metadata:
   owner: platform-governance
+trigger: "Use when designing any task to embed a verify_step — the feedback loop that improves output quality 2-3x. Verification is part of task design, not just task completion."
+skip: "Request is outside self-verification scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 ---
 
 # Self-Verification — Full Protocol

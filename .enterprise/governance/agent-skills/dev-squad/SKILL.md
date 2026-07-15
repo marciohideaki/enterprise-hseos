@@ -8,13 +8,17 @@ portable: true
 metadata:
   owner: platform-governance
   consumer: SWARM
+trigger: "user lists 3+ independent tasks in any /plan or request; batch mixes fix+feature+refactor+docs across non-colliding areas; session context inflating before starting new unrelated batch; user explicitly asks to parallelize work"
+skip: "single story end-to-end → use BLITZ; strict sequential delivery with release flow → use ORBIT; exploratory work without defined scope → use NYX first; architectural pivot requiring ADR → use CIPHER first"
 ---
 
 # Dev Squad — Full Protocol
 
-> Tier 2. Canonical SKILL.md per ADR-0006 (Standalone Architecture).
->
-> This file is the **single source of truth** for the dev-squad protocol — five-phase workflow, model matrix, governance scripts, commit rules, run directory convention, delegation map, and state-emission contract. The `.agents/skills/dev-squad/` compiled output mirrors this file via the agent-core compiler.
+## Authority
+
+**Tier 1 — Source of Truth (ADR-0015).** This file and `SKILL-QUICK.md` are the sole authoritative definitions of the dev-squad protocol — five-phase workflow, model matrix, tier assignments, Commander/Squad contract, commit rules, run directory convention, delegation map, and state-emission contract. All normative changes are made here first.
+
+Derived tiers: `.agents/skills/dev-squad/` is the **Tier 2 compiled mirror** (hash-pinned in `.agents/manifest.yaml`; the agent-core compiler is the only permitted writer). The external mirror under the user-level skills directory is **Tier 3, non-canonical** inside HSEOS-enabled repositories. `.hseos/agents/swarm.agent.yaml` and `.hseos/workflows/dev-squad/` are the **Tier 4 execution surface**, consuming exclusively the Tier 2 mirror.
 
 ---
 
@@ -61,6 +65,19 @@ All located in `scripts/governance/`:
 | `worktree-manager.sh remove <task-id>` | after merge | Removes worktree + cleans `.worktree-meta` |
 
 SWARM **never** invokes `git worktree add`, `git commit`, `git merge`, or `git push` directly in a worktree flow. Always through the scripts.
+
+## Stacked Feature Branch Chains
+
+SWARM may plan a stacked `feature/*` branch chain only when a later wave depends on an earlier
+unmerged wave. This is a dependency strategy, not a shortcut around the worktree lifecycle.
+
+Rules:
+- Declare the chain in `PLAN.md`: upstream base per wave, downstream dependents if known, and merge order.
+- Every chain link must be a `feature/*` branch.
+- Every write task still runs in a `task/*` worktree created from exactly one `feature/*` link.
+- PRs target the immediate upstream branch until that upstream branch merges.
+- Merge order is base-to-tip; after each upstream merge, downstream PRs must be retargeted or updated.
+- `task/*` branches are never stacked directly.
 
 ---
 
@@ -198,6 +215,7 @@ sqlite3 .hseos/state/project.db "SELECT kind, ts FROM as_events WHERE agent_run_
 - [ ] All waves executed or correctly halted
 - [ ] 1 commit per OK task (all messages pass `validate-commit-msg.sh`)
 - [ ] 1 WAVE-REPORT per wave
+- [ ] Stacked branch base map recorded when any wave targets an upstream `feature/*` branch
 - [ ] Draft PR body ready, using `.github/pull_request_template.md`
 - [ ] Human-initiated PR; human-approved merge or governed closeout
 - [ ] Gotchas surfaced to `_knowledge/projects/<project>/gotchas.md` (second-brain)

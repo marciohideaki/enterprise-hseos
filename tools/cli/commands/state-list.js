@@ -6,7 +6,6 @@ const path = require('node:path');
 
 let Database;
 try {
-   
   Database = require('better-sqlite3');
 } catch {
   Database = null;
@@ -66,7 +65,7 @@ module.exports = {
            FROM as_agent_runs
            WHERE status = 'running' AND last_heartbeat_at IS NOT NULL
              AND last_heartbeat_at < datetime('now', '-${stale} minutes')
-           ORDER BY last_heartbeat_at DESC`
+           ORDER BY last_heartbeat_at DESC`,
         )
         .all();
       columns = ['id', 'agent_name', 'task_id', 'run_id', 'last_heartbeat_at', 'status'];

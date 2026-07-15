@@ -8,6 +8,8 @@ vault_required: false
 null_mode: graceful_fallback
 triggers: [end-session, decision-capture, activity-log, vault-read, brain-sync]
 portable: true
+trigger: "Use when writing architectural decisions, discovered gotchas, or session activity to the vault, or designing the hseos brain sync protocol"
+skip: "Request is outside second-brain scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 ---
 
 # Second-Brain Integration — Full Reference

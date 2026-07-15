@@ -1,4 +1,6 @@
 ---
+trigger: Use when implementing project state detection, designing STATE.md/TASKS.md templates, or configuring SQLite state store and MCP state protocol
+skip: Request is outside project-state scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: project-state
 description: Use when implementing project state detection, designing STATE.md/TASKS.md templates, or configuring SQLite state store and MCP state protocol
 version: "1.0"

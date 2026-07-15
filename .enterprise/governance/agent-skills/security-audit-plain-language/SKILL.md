@@ -5,6 +5,8 @@ license: Apache-2.0
 metadata:
   owner: platform-governance
   version: "1.0.0"
+trigger: "user asks for a project security audit in simple language, an executive-friendly risk summary, or a non-technical security review"
+skip: "the audience is engineers and wants technical AppSec depth (use secure-coding or threat-modeling); the request is a single vulnerability fix, not an audit"
 ---
 
 # Security Audit (Plain Language)

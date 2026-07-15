@@ -1,4 +1,6 @@
 ---
+trigger: user asks to evaluate, analyze, classify, or adopt a GitHub repository; before adopting an external library or framework; user invokes /repo-radar with a URL
+skip: repository already evaluated in PROJECT_EVALUATIONS.md with a recent verdict; user just wants a quick README summary (use WebFetch instead); internal private repos not on GitHub
 name: repo-radar
 description: Analisa e classifica um repositório GitHub via repo-radar CLI (SQLite + LLM), registrando o veredito em PROJECT_EVALUATIONS.md
 version: 1.0.0

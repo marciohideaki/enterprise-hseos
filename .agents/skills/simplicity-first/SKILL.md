@@ -1,4 +1,6 @@
 ---
+trigger: Use when writing or reviewing code to avoid premature abstractions, overengineering, and speculative complexity. Implement only what the current requirement demands.
+skip: Request is outside simplicity-first scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow.
 name: simplicity-first
 description: Use when writing or reviewing code to avoid premature abstractions, overengineering, and speculative complexity. Implement only what the current requirement demands.
 version: "1.0"

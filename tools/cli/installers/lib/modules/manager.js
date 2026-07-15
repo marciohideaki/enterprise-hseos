@@ -1008,7 +1008,14 @@ class ModuleManager {
             const isUpdate = await fs.pathExists(targetMdPath);
 
             // Copy sidecar to memory location with update-safe handling
-            const copiedFiles = await this.copySidecarToMemory(sourceSidecarPath, agentName, hseosMemoryPath, isUpdate, hseosDir, installer);
+            const copiedFiles = await this.copySidecarToMemory(
+              sourceSidecarPath,
+              agentName,
+              hseosMemoryPath,
+              isUpdate,
+              hseosDir,
+              installer,
+            );
 
             if (process.env.HSEOS_VERBOSE_INSTALL === 'true' && copiedFiles.length > 0) {
               await prompts.log.message(`    Sidecar files processed: ${copiedFiles.length} files`);
@@ -1447,27 +1454,24 @@ class ModuleManager {
    * @param {string} targetPath - Target module path
    */
   async syncModule(sourcePath, targetPath) {
-    // Get list of all source files
+    // Content-addressed sync via the canonical FileOps primitive — mtime is
+    // never consulted (checkouts reset it and made "target newer" meaningless).
+    // User-modified files are preserved; identical/new files flow through.
+    const { FileOps } = require('../../../lib/file-ops');
+    const fileOps = new FileOps();
     const sourceFiles = await this.getFileList(sourcePath);
+    const preserved = [];
 
     for (const file of sourceFiles) {
-      const sourceFile = path.join(sourcePath, file);
-      const targetFile = path.join(targetPath, file);
-
-      // Check if target file exists and has been modified
-      if (await fs.pathExists(targetFile)) {
-        const sourceStats = await fs.stat(sourceFile);
-        const targetStats = await fs.stat(targetFile);
-
-        // Skip if target is newer (user modified)
-        if (targetStats.mtime > sourceStats.mtime) {
-          continue;
-        }
+      const verdict = await fileOps.syncFileSafe(path.join(sourcePath, file), path.join(targetPath, file), {
+        copyFn: (src, dst) => this.copyFileWithPlaceholderReplacement(src, dst),
+      });
+      if (verdict === 'preserved-modified' || verdict === 'conflict-preserved') {
+        preserved.push(file);
       }
-
-      // Copy file with placeholder replacement
-      await this.copyFileWithPlaceholderReplacement(sourceFile, targetFile);
     }
+
+    return { preserved };
   }
 
   /**

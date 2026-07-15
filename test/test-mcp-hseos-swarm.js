@@ -36,8 +36,14 @@ function rpc(port, method, params = {}) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({ jsonrpc: '2.0', id: Date.now(), method, params });
     const req = http.request(
-      { host: '127.0.0.1', port, path: '/', method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Content-Length': body.length }, timeout: 4000 },
+      {
+        host: '127.0.0.1',
+        port,
+        path: '/',
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': body.length },
+        timeout: 4000,
+      },
       (res) => {
         let chunks = '';
         res.setEncoding('utf8');
@@ -47,9 +53,11 @@ function rpc(port, method, params = {}) {
             const r = JSON.parse(chunks);
             if (r.error) return reject(new Error(`${method}: ${r.error.message}`));
             resolve(r.result);
-          } catch (error) { reject(error); }
+          } catch (error) {
+            reject(error);
+          }
         });
-      }
+      },
     );
     req.on('error', reject);
     req.write(body);
@@ -61,7 +69,11 @@ function waitFor(predicate, { timeoutMs = 6000, intervalMs = 100 } = {}) {
   return new Promise((resolve, reject) => {
     const t0 = Date.now();
     const tick = async () => {
-      try { if (await predicate()) return resolve(); } catch { /* swallow */ }
+      try {
+        if (await predicate()) return resolve();
+      } catch {
+        /* swallow */
+      }
       if (Date.now() - t0 > timeoutMs) return reject(new Error('timeout waiting for server'));
       setTimeout(tick, intervalMs);
     };
@@ -82,7 +94,12 @@ function waitFor(predicate, { timeoutMs = 6000, intervalMs = 100 } = {}) {
 
   try {
     await waitFor(async () => {
-      try { const r = await rpc(port, 'tools/list', {}); return Array.isArray(r.tools); } catch { return false; }
+      try {
+        const r = await rpc(port, 'tools/list', {});
+        return Array.isArray(r.tools);
+      } catch {
+        return false;
+      }
     });
 
     await it('tools/list returns 5 tools', async () => {
@@ -139,7 +156,6 @@ function waitFor(predicate, { timeoutMs = 6000, intervalMs = 100 } = {}) {
         throw new Error('dispatch_wave returned unexpected shape');
       }
     });
-
   } finally {
     child.kill('SIGTERM');
     await new Promise((r) => setTimeout(r, 200));

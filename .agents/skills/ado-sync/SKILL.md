@@ -1,4 +1,6 @@
 ---
+trigger: a dev-squad run finished and the ADO board must reflect task/wave state; user explicitly asks to sync ADO
+skip: ado.enabled is false; no completed run to sync; the board is already current (sync is best-effort and idempotent)
 name: ado-sync
 description: Sincronização contínua de estado entre dev-squad runs e Azure DevOps. Atualiza Tasks/Stories ADO conforme tasks completam. Não bloqueia execução.
 version: 1.0.0

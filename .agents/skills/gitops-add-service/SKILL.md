@@ -1,4 +1,6 @@
 ---
+trigger: user needs to add a new microservice/worker/API to an existing GitOps project; new service needs k8s manifests (Deployment, Service, ConfigMap); user invokes /gitops-add-service
+skip: project GitOps structure doesn't exist yet → use gitops-new-project first; only bumping an image tag → use gitops-deploy instead; service is a one-off job/cronjob not needing full manifest set
 name: gitops-add-service
 description: Use when adding a new service with full Deployment/Service/ConfigMap manifests, overlay coverage, and GitOps commit governance
 version: 1.0.0

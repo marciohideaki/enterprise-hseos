@@ -6,6 +6,8 @@ metadata:
   owner: platform-governance
   version: "1.0.0"
   source: https://github.com/getsentry/skills/tree/main/plugins/sentry-skills/skills/claude-settings-audit
+trigger: "Use when generating a full least-privilege settings.json from scratch or performing a deep security audit of existing agent permissions"
+skip: "Request is outside agent-permissions scope; another skill is more specific; user explicitly asks not to use this skill; only a brief answer is needed without the workflow."
 ---
 
 # Agent Permissions — Full Policy

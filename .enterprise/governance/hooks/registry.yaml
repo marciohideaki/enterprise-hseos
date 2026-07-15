@@ -1,0 +1,337 @@
+# HSEOS hook registry — CANONICAL SOURCE (.enterprise/governance/hooks/).
+# Edit hooks HERE. `hseos agent-core compile` regenerates .agents/hooks/registry.yaml,
+# copies handlers/ into .agents/hooks/handlers/, and hash-pins them in the manifest.
+# Handler scripts live in ./handlers/ next to this file.
+version: "1.1"
+schema_version: "1.0"
+handlers_dir: .agents/hooks/handlers
+hooks:
+  - id: pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global
+    event: PreToolUse
+    matcher: Agent
+    type: command
+    command: bash .agents/hooks/handlers/swarm-gate.sh
+    timeout: 5
+    blocking: true
+    description: "HSEOS SWARM gate (canonical handler): model routing guard (executor declara sonnet; Opus só com opt-in estratégico) + skill-check advisory + gate dev-squad bloqueante sem run ativo"
+    platform_support:
+      - claude-code
+    fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+  - id: pretooluse-write-edit-block-claude-md-direct-edits
+    event: PreToolUse
+    matcher: Write|Edit
+    type: command
+    command: bash .agents/hooks/handlers/claude-md-guard.sh "$CLAUDE_TOOL_FILE_PATH"
+    timeout: 3
+    blocking: true
+    status: active
+    description: Block direct writes/edits to CLAUDE.md; route durable agent rules to AGENTS.md
+    platform_support:
+      - claude-code
+    fallback: "Manual review: keep CLAUDE.md as a pointer and update AGENTS.md instead."
+  - id: pretooluse-edit-backup-file-before-any-edit-operation
+    event: PreToolUse
+    matcher: Edit
+    type: command
+    command: if [[ -f "$CLAUDE_TOOL_FILE_PATH" ]]; then cp "$CLAUDE_TOOL_FILE_PATH" "$CLAUDE_TOOL_FILE_PATH.bak.$(date +%s)" 2>/dev/null || true; fi
+    timeout: null
+    blocking: true
+    description: Backup file before any Edit operation
+    platform_support:
+      - claude-code
+    fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+  - id: pretooluse-bash-warn-on-high-risk-bash-commands
+    event: PreToolUse
+    matcher: Bash
+    type: command
+    command: if echo "$CLAUDE_TOOL_COMMAND" | grep -qE '^(git push|git reset --hard|rm -rf|git branch -[Dd])'; then echo '[HSEOS] High-risk command intercepted — confirm this is intentional' >&2; fi
+    timeout: null
+    blocking: true
+    description: Warn on high-risk bash commands
+    platform_support:
+      - claude-code
+    fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+  - id: posttooluse-edit-auto-format-python-black-and-js-ts-prettier-after-edit
+    event: PostToolUse
+    matcher: Edit
+    type: command
+    command: FILE="$CLAUDE_TOOL_FILE_PATH"; if [[ "$FILE" == *.py ]] && command -v black &>/dev/null; then black "$FILE" 2>/dev/null || true; elif [[ "$FILE" == *.js || "$FILE" == *.ts || "$FILE" == *.jsx || "$FILE" == *.tsx ]] && command -v prettier &>/dev/null; then prettier --write "$FILE" 2>/dev/null || true; fi
+    timeout: null
+    blocking: false
+    description: Auto-format Python (black) and JS/TS (prettier) after Edit
+    platform_support:
+      - claude-code
+    fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+  - id: posttooluse-all-emit-agent-state-tool-call-event-best-effort-non-blocking
+    event: PostToolUse
+    matcher: "*"
+    type: command
+    command: CLAUDE_HOOK_EVENT=PostToolUse bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/state-emit-hook.sh PostToolUse "$CLAUDE_TOOL_NAME" 2>/dev/null || true
+    timeout: null
+    blocking: false
+    description: Emit agent-state tool_call event (best-effort, non-blocking)
+    platform_support:
+      - claude-code
+    fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+  - id: sessionstart-all-display-hseos-navigation-reminder-at-session-start
+    event: SessionStart
+    matcher: "*"
+    type: command
+    command: "echo '--- HSEOS SESSION START ---' && echo 'Constitution: .enterprise/.specs/constitution/Enterprise-Constitution.md' && echo 'Skills: .enterprise/governance/agent-skills/SKILLS-REGISTRY.md' && echo 'Agents: .hseos/AGENT-MANIFEST.md' && echo 'Branch:' $(git branch --show-current 2>/dev/null || echo 'unknown') && echo '--- READ CLAUDE.md BEFORE ANY ACTION ---'"
+    timeout: null
+    blocking: false
+    description: Display HSEOS navigation reminder at session start
+    platform_support:
+      - claude-code
+    fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+  - id: sessionstart-all-emit-agent-state-start-event-best-effort-non-blocking
+    event: SessionStart
+    matcher: "*"
+    type: command
+    command: CLAUDE_HOOK_EVENT=SessionStart bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/state-emit-hook.sh SessionStart 2>/dev/null || true
+    timeout: null
+    blocking: false
+    description: Emit agent-state start event (best-effort, non-blocking)
+    platform_support:
+      - claude-code
+    fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+  - id: stop-all-emit-agent-state-complete-event-when-claude-session-ends-best-effort-non-blocking
+    event: Stop
+    matcher: "*"
+    type: command
+    command: CLAUDE_HOOK_EVENT=Stop bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/state-emit-hook.sh Stop 2>/dev/null || true
+    timeout: null
+    blocking: false
+    status: active
+    description: Emit agent-state complete event when Claude session ends (best-effort, non-blocking)
+    platform_support:
+      - claude-code
+    fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+  - id: posttooluse-write-edit-plan-lint-validate-execution-protocol-section
+    event: PostToolUse
+    matcher: Write|Edit
+    type: command
+    command: bash .agents/hooks/handlers/plan-lint.sh "$CLAUDE_TOOL_FILE_PATH"
+    timeout: null
+    blocking: false
+    status: active
+    description: Lint plan files for missing Execution Protocol section in parallel-flow plans
+    platform_support:
+      - claude-code
+    fallback: Manual review during PR.
+  - id: precompact-snapshot-critical-context-before-claude-compaction
+    event: PreCompact
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/pre-compact.sh
+    timeout: 10
+    blocking: false
+    status: active
+    description: Snapshot critical context (next steps, open questions) before compaction
+    platform_support:
+      - claude-code
+    fallback: Manual context export prior to /compact.
+  - id: userpromptsubmit-on-prompt-submit-project-scoped-state-injection
+    event: UserPromptSubmit
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/on-prompt-submit.sh
+    timeout: 5
+    blocking: false
+    status: active
+    description: Project-scoped prompt logging and state injection (vault concerns stripped vs upstream)
+    platform_support:
+      - claude-code
+    fallback: No-op when handler absent.
+  - id: sessionend-on-session-end-gated-vault-sync
+    event: SessionEnd
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/session-end.sh
+    timeout: null
+    blocking: false
+    status: active
+    description: Session-end log; vault sync only when second_brain.enabled true
+    platform_support:
+      - claude-code
+    fallback: No-op when handler absent.
+  - id: pretooluse-agent-suggest-skill-before-agent-dispatch
+    event: PreToolUse
+    matcher: Agent
+    type: command
+    command: bash .agents/hooks/handlers/suggest-skill.sh
+    timeout: 5
+    blocking: false
+    status: active
+    description: Recommend skills before Agent spawn based on SKILL.md frontmatter triggers
+    platform_support:
+      - claude-code
+    fallback: Manual skill selection.
+  - id: pretooluse-grep-glob-code-index-guard
+    event: PreToolUse
+    matcher: Grep|Glob
+    type: command
+    command: bash .agents/hooks/handlers/code-index-guard.sh "$CLAUDE_TOOL_NAME"
+    timeout: 3
+    blocking: true
+    status: active
+    description: Block raw search when a code index (axon, etc.) is available; pluggable across providers
+    platform_support:
+      - claude-code
+    fallback: No-op when no code index is configured.
+  - id: posttooluse-write-edit-code-index-post-edit-reindex
+    event: PostToolUse
+    matcher: Write|Edit
+    type: command
+    command: bash .agents/hooks/handlers/code-index-post-edit.sh "$CLAUDE_TOOL_FILE_PATH"
+    timeout: null
+    blocking: false
+    status: active
+    description: Trigger index reindex after edits; pluggable across code-index providers
+    platform_support:
+      - claude-code
+    fallback: Manual reindex via provider CLI.
+  - id: notification-on-notification-system-toast-for-long-operations
+    event: Notification
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/on-notification.sh "$CLAUDE_NOTIFICATION_MESSAGE"
+    timeout: 5
+    blocking: false
+    status: active
+    description: System notification for long-running operations (cross-platform — toast/bell)
+    platform_support:
+      - claude-code
+    fallback: Terminal bell.
+  - id: pretooluse-agent-ado-preflight-gate
+    event: PreToolUse
+    matcher: Agent
+    type: command
+    command: bash .agents/hooks/handlers/ado-preflight-gate.sh
+    timeout: 5
+    blocking: true
+    status: active
+    description: "ADO-first gate: warns when Agent dev-squad dispatch has no ADO mapping in PLAN.md. Exits silently when ado.enabled=false."
+    platform_support:
+      - claude-code
+    fallback: Run /atlas plan to create ADO work items before dispatching dev-squad.
+  - id: pretooluse-bash-ado-branch-guard
+    event: PreToolUse
+    matcher: Bash
+    type: command
+    command: bash .agents/hooks/handlers/ado-branch-guard.sh
+    timeout: 5
+    blocking: true
+    status: active
+    description: "ADO branch guard: blocks direct git push to trunk branches (main/master/develop/trunk/staging/hmg). Exits silently when ado.enabled=false."
+    platform_support:
+      - claude-code
+    fallback: Create a feature branch and open a PR instead of pushing directly to trunk.
+  - id: posttooluse-write-edit-ado-plan-advisory
+    event: PostToolUse
+    matcher: Write|Edit
+    type: command
+    command: bash .agents/hooks/handlers/ado-on-plan-write.sh "$CLAUDE_TOOL_FILE_PATH"
+    timeout: 5
+    blocking: false
+    status: active
+    description: "ADO plan advisory: warns when PLAN.md or MASTER-PLAN.md is written without ADO mapping annotations. Non-blocking. Exits silently when ado.enabled=false."
+    platform_support:
+      - claude-code
+    fallback: Add ADO mapping section to PLAN.md manually or run /atlas plan.
+  - id: posttooluse-bash-ado-task-progress
+    event: PostToolUse
+    matcher: Bash
+    type: command
+    command: bash .agents/hooks/handlers/ado-task-progress.sh
+    timeout: 10
+    blocking: false
+    status: active
+    description: "ADO task progress: adds comment to ADO Task and transitions to Active on git commit in ado-{ID}-* branches. Best-effort, never blocks. Exits silently when ado.enabled=false."
+    platform_support:
+      - claude-code
+    fallback: Update ADO Task state manually via /atlas sync.
+  - id: posttooluse-bash-ado-pr-link
+    event: PostToolUse
+    matcher: Bash
+    type: command
+    command: bash .agents/hooks/handlers/ado-pr-link.sh
+    timeout: 10
+    blocking: false
+    status: active
+    description: "ADO PR link: links GitHub PR to ADO Story after gh pr create. Extracts PR URL from output. Best-effort, never blocks. Exits silently when ado.enabled=false."
+    platform_support:
+      - claude-code
+    fallback: Link PR to ADO Story manually via work item comment.
+  - id: posttooluse-bash-ado-tag-close
+    event: PostToolUse
+    matcher: Bash
+    type: command
+    command: bash .agents/hooks/handlers/ado-tag-close.sh
+    timeout: 5
+    blocking: false
+    status: active
+    description: "ADO tag close: emits inbox event when git tag pushed. ATLAS processes inbox via /atlas close to close ADO Feature/Epic. Never calls ADO directly. Exits silently when ado.enabled=false."
+    platform_support:
+      - claude-code
+    fallback: Run /atlas close manually after tagging to close ADO Feature/Epic.
+  - id: sessionstart-ado-inbox-check
+    event: SessionStart
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/ado-inbox-check.sh
+    timeout: 3
+    blocking: false
+    status: active
+    description: "ADO inbox check: warns at session start if pending tag-close events exist in .hseos/runs/ado-ops/inbox/. Advisory only — directs user to run /atlas close. Exits silently when ado.enabled=false."
+    platform_support:
+      - claude-code
+    fallback: Check .hseos/runs/ado-ops/inbox/ manually for pending events.
+  - id: posttooluse-all-telemetry-export-otlp-metrics-opt-in
+    event: PostToolUse
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/telemetry-export-tool.sh
+    timeout: 5
+    blocking: false
+    status: active
+    description: Opt-in OTLP metrics export (TEE of tool events). Self-suppresses unless OTEL_EXPORTER_OTLP_ENDPOINT is set. SQLite remains canonical.
+    platform_support:
+      - claude-code
+    fallback: No-op when OTEL_EXPORTER_OTLP_ENDPOINT/HSEOS_OTEL_EXPORT unset; SQLite state-emit unaffected.
+  - id: stop-all-telemetry-export-otlp-loki-session-log-opt-in
+    event: Stop
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/telemetry-export-session.sh
+    timeout: 5
+    blocking: false
+    status: active
+    description: Opt-in OTLP/Loki session-ended log export. Self-suppresses unless OTEL_EXPORTER_OTLP_ENDPOINT or HSEOS_LOKI_ENDPOINT is set.
+    platform_support:
+      - claude-code
+    fallback: No-op when no OTLP/Loki endpoint configured; SQLite complete-event unaffected.
+  - id: pretooluse-bash-rtk-rewrite-token-saving-optional
+    event: PreToolUse
+    matcher: Bash
+    type: command
+    command: bash .agents/hooks/handlers/rtk-rewrite.sh
+    timeout: 5
+    blocking: false
+    status: inactive
+    description: "OPTIONAL: rewrite bash commands via the rtk binary for token savings. Inactive by default; no-ops silently when rtk is absent."
+    platform_support:
+      - claude-code
+    fallback: No-op when rtk binary not on PATH; command passes through unchanged.
+  - id: pretooluse-bash-build-resource-guard-opt-in
+    event: PreToolUse
+    matcher: Bash
+    type: command
+    command: bash .agents/hooks/handlers/build-resource-guard.sh
+    timeout: 5
+    blocking: true
+    status: inactive
+    description: "OPT-IN build resource guard: caps make/cmake/ninja parallelism at HSEOS_BUILD_MAX_JOBS on constrained hosts. Inactive by default."
+    platform_support:
+      - claude-code
+    fallback: No-op when HSEOS_BUILD_MAX_JOBS unset or HSEOS_BUILD_GUARD_DISABLE=1.

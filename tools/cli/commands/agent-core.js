@@ -6,11 +6,21 @@ const { runDoctor } = require('../installers/lib/core/agent-core-compiler/verify
 const prompts = require('../lib/prompts');
 
 const SUPPORTED_ACTIONS = new Set(['compile', 'verify', 'audit', 'doctor']);
-const ALL_PLATFORMS = ['claude-code', 'codex', 'cursor', 'continue', 'aider', 'cline'];
+const { SUPPORTED_PLATFORMS } = require('../installers/lib/core/agent-core-compiler/adapters/platforms');
 
 function resolvePlatforms(target) {
-  if (!target || target === 'all') return ALL_PLATFORMS;
-  return target.split(',').map((t) => t.trim()).filter(Boolean);
+  if (!target || target === 'all') return [...SUPPORTED_PLATFORMS];
+  const requested = target
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean);
+  const unknown = requested.filter((t) => !SUPPORTED_PLATFORMS.includes(t));
+  if (unknown.length > 0) {
+    throw new Error(
+      `No adapter emitter for platform(s): ${unknown.join(', ')}. Supported: ${SUPPORTED_PLATFORMS.join(', ')} (cursor/continue/aider/cline are ADR-0007 pending work).`,
+    );
+  }
+  return requested;
 }
 
 async function runCompile(projectDir, options) {
@@ -19,6 +29,7 @@ async function runCompile(projectDir, options) {
   const platforms = resolvePlatforms(options.target);
   const result = await compiler.compile(projectDir, hseosDir, { platforms });
   const extra = [
+    result.handlers ? `${result.handlers} handlers` : null,
     result.agents ? `${result.agents} agents` : null,
     result.plugins ? `${result.plugins} plugins` : null,
     result.mcpServers ? `${result.mcpServers} mcp servers` : null,
@@ -64,9 +75,7 @@ async function runAuditCmd(projectDir) {
   }
   const driftCount = result.checks.filter((c) => !c.ok).length;
   if (driftCount > 0) {
-    await prompts.log.warn(
-      `audit: ${driftCount} drift(s) detected. Run \`hseos agent-core compile\` to re-sync.`,
-    );
+    await prompts.log.warn(`audit: ${driftCount} drift(s) detected. Run \`hseos agent-core compile\` to re-sync.`);
     return;
   }
   if (result.checks.length === 0) {
@@ -101,13 +110,11 @@ module.exports = {
   description: 'Manage the vendor-neutral .agents core',
   options: [
     ['--directory <path>', 'Project directory (default: current directory)'],
-    ['--target <id>', 'Adapter target id (default: all). One of claude-code, codex, cursor, continue, aider, cline, all'],
+    ['--target <id>', 'Adapter target id (default: all). One of claude-code, codex, goose, all'],
   ],
   action: async (action, options = {}) => {
     if (!SUPPORTED_ACTIONS.has(action)) {
-      throw new Error(
-        `Unsupported agent-core action: ${action}. Expected one of: ${[...SUPPORTED_ACTIONS].join(', ')}`,
-      );
+      throw new Error(`Unsupported agent-core action: ${action}. Expected one of: ${[...SUPPORTED_ACTIONS].join(', ')}`);
     }
 
     const projectDir = path.resolve(options.directory || process.cwd());
