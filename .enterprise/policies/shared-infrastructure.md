@@ -60,6 +60,7 @@ Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 20
 | OpenFGA | `openfga-shared.platform-shared-dev.svc.cluster.local:8080` (HTTP) / `:8081` (gRPC) | Deployment `openfga-shared`; v1.5.3; postgres backend via `openfga-shared-secret`; auth disabled for dev |
 | OpenSearch | `opensearch-shared.platform-shared-dev.svc.cluster.local:9200` | StatefulSet `opensearch-shared-0`; v2.18.0; single-node; security disabled for dev; 10Gi PVC |
 | OpenTelemetry Collector | `otel-collector-shared.platform-shared-dev.svc.cluster.local:4317` (OTLP gRPC) / `:4318` (OTLP HTTP) / `:8889` (Prometheus exporter) | Deployment `otel-collector-shared`; per-project resource attributes; metrics flow to shared Prometheus via the `otel-collector-shared` ServiceMonitor in `monitoring`. Per ADR-0010. |
+| Keycloak | `keycloak-shared.platform-shared-dev.svc.cluster.local:8080` | Deployment `keycloak-shared` (Keycloak 24.x); HTTP relative path `/kc`; `--hostname-strict=true` with `--hostname-url=https://keycloak-event-platform.hideakiservicos.net/kc`. Each project uses a **dedicated realm** (e.g. `aiagents` for ai-agents-os). Backend services fetch JWKS internally at `…:8080/kc/realms/<realm>/protocol/openid-connect/certs` (no egress); the token `iss` is the public hostname-url. |
 | Zookeeper | `zookeeper-shared.platform-shared-dev.svc.cluster.local:2181` | Internal to Kafka; do not consume directly |
 
 ### Services NOT yet in shared
