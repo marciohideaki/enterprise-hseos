@@ -1,7 +1,7 @@
 # Code & API Documentation Standard
 ## Mandatory Documentation Rules for Multi-Stack Systems
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Status:** Canonical / Normative Standard  
 **Applies to:** Backend (C# / .NET), Mobile (Flutter / Dart), Web (React / TypeScript)
 
@@ -84,11 +84,11 @@ Code that violates these rules is a **PR blocker**.
 
 ---
 
-## 5. API Documentation (OpenAPI / Swagger)
+## 5. API Documentation (OpenAPI / Interactive Documentation)
 
 ### 5.1 Mandatory API Documentation
 
-- CD-23: Every HTTP API **must** expose an OpenAPI (Swagger) specification.
+- CD-23: Every HTTP API **must** expose an OpenAPI specification and an interactive documentation UI generated from it.
 - CD-24: Endpoints, request models, response models and error models **must** be documented.
 - CD-25: Authentication and authorization requirements **must** be documented.
 
@@ -96,11 +96,12 @@ Code that violates these rules is a **PR blocker**.
 
 ### 5.2 Environment Rules
 
-- CD-26: Swagger **must be enabled** in:
+- CD-26: The interactive OpenAPI UI **must be enabled** in:
   - Development
   - Staging / Homologation
 
-- CD-27: Swagger **must be disabled or protected** in Production.
+- CD-27: The interactive OpenAPI UI **must be disabled or protected** in Production.
+- **Reference tool:** Scalar (`Scalar.AspNetCore` for .NET; the stack-equivalent otherwise) is the platform's reference implementation for the interactive UI — see 5.4. Swagger UI remains acceptable only for services not yet migrated; new services **must** use Scalar or an equivalent tool that satisfies 5.4.
 
 ---
 
@@ -111,6 +112,19 @@ Code that violates these rules is a **PR blocker**.
   - New API version
   - Updated OpenAPI specification
   - ADR approval
+
+---
+
+### 5.4 Self-Service Developer Portal Requirements
+
+> Goal: an integrator can complete their first successful call using only the published documentation, with no support request. Documentation is not "reference material next to the API" — it is the onboarding path.
+
+- CD-40: The interactive documentation UI **must** allow executing real requests against a live environment directly from the docs ("try it out"), requiring no tool outside the browser.
+- CD-41: Every endpoint **must** include a rich, human-readable description — not just method/path — explaining intent, typical use case, and any non-obvious behavior, written for a developer with no prior context on the service.
+- CD-42: Every endpoint **must** document realistic example values for request and response bodies. An empty/placeholder schema alone does not satisfy this rule.
+- CD-43: Response schemas **must** be generated from the actual wire contract (e.g., reflection/source-generation over `CambioReal.Contracts.Envelope<T>` for .NET services) rather than hand-maintained in parallel — a duplicated schema violates the single-source-of-truth principle in CD-01–CD-05 the moment it drifts from the real response.
+- CD-44: Authentication/authorization requirements (CD-25) **must** be directly testable from the interactive UI (e.g., a configurable bearer token / API key input) — describing them in prose only is not sufficient.
+- `cambioreal/kira-gateway` is the first production reference implementation of CD-40 to CD-44.
 
 ---
 

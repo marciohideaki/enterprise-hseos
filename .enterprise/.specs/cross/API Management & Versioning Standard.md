@@ -1,7 +1,7 @@
 # API Management & Versioning Standard
 ## Cross-Cutting — Mandatory
 
-**Version:** 1.0
+**Version:** 1.1
 **Status:** Canonical / Normative
 **Scope:** All stacks — mandatory for any service exposing HTTP/gRPC/event APIs
 **Classification:** Cross-Cutting (Mandatory)
@@ -453,9 +453,9 @@ RateLimiter::for('api-read', function (Request $request) {
 
 ## 7. Error Response Standard
 
-### 7.1 Mandatory Format (RFC 7807 Problem Details)
+### 7.1 Mandatory Format (RFC 9457 Problem Details)
 
-- AM-66: All error responses MUST use the RFC 7807 Problem Details format. Custom error formats that deviate from this structure are **forbidden**.
+- AM-66: All error responses MUST use the RFC 9457 Problem Details format (RFC 9457 obsoletes RFC 7807 — same field semantics, current IETF standard; references to "RFC 7807" in older service documentation mean the same structure). Custom error formats that deviate from this structure are **forbidden**.
 - AM-67: The canonical error response structure is:
 
 ```json
@@ -517,6 +517,18 @@ Each platform or product MUST maintain a registry of `type` URIs mapping to huma
 | `.../errors/service-unavailable` | 503 | Downstream dependency is unavailable |
 | `.../errors/internal-error` | 500 | Unexpected server error |
 
+### 7.5 Canonical Platform Response Envelope
+
+Sections 7.1–7.4 define the shape of a **single** Problem Details object. This section generalizes that into the platform's canonical top-level response contract, used for both success and error responses, across every endpoint of a compliant service.
+
+- AM-76: A service adopting the platform's canonical response contract MUST wrap **every** HTTP response — success or error — in a single outer envelope with exactly these fields: `success` (boolean, authoritative — never inferred from HTTP status alone), `code` (stable functional code, e.g. `CUSTOMER_CREATED` / `VALIDATION_ERROR` — never a message), `message` (human-friendly, never parsed programmatically), `data`, `errors`, `warnings`, `metadata`, and an optional `links` map for HATEOAS. Returning a bare/naked payload — success or error — at the top level is **forbidden** for such services.
+- AM-77: `data` MUST be `null` when there is no content. Using `{}`, `[]`, or `""` to represent absence of content is **forbidden**.
+- AM-78: **AM-60 is not superseded by AM-76.** For collection endpoints, `data` MUST itself be the AM-60 collection envelope (`{data: [...], pagination: {...}}`). AM-60 defines the shape of `data` inside the outer envelope for collections; it does not compete with it.
+- AM-79: `errors` MUST be an array of Problem Detail objects (Section 7.1/7.2) — not a single object. This generalizes RFC 9457 (which wraps one problem per response) to support multiple concurrent, independently-typed errors in one response (e.g., several field validation failures, each with its own `type`/`status`/severity) without losing per-error semantic richness. Each entry MUST additionally carry: `code` (stable functional code, distinct from the HTTP `status` and from any parent-level `code`), `retryable` (boolean — whether repeating the same request unchanged has a reasonable chance of succeeding), and `severity`. `target` generalizes RFC 9457's `instance` to identify non-HTTP entities (e.g. a `recipientId`) when the error is not naturally tied to a request path.
+- AM-80: `metadata` MUST include at minimum a `timestamp`. Whenever the service participates in distributed tracing, `metadata` MUST include `traceId`/`spanId` sourced from the real trace context (e.g. OpenTelemetry `Activity.Current`) — never a placeholder or static value. `traceId` here satisfies AM-69.
+- AM-81: The canonical .NET reference implementation of this envelope is the `CambioReal.Contracts` package (`Envelope<T>`, `ProblemDetail`, `Warning`, `ResponseMetadata`, `PagedMetadata`), published from `cambioreal/kira-sdk`. Services on other stacks MUST implement an equivalent structure with the same field names (camelCase on the wire) and semantics rather than invent divergent field names. `cambioreal/kira-gateway` is the first production reference service built on this contract.
+- AM-82: New services MUST adopt this envelope from inception. Existing services MAY defer adoption only via an explicit ADR exception (`.specs/decisions/`) documenting a migration timeline; indefinite deferral is **forbidden**.
+
 ---
 
 ## Compliance Checklist
@@ -530,6 +542,7 @@ Every API MUST satisfy the following before being promoted to production:
 - [ ] All external traffic routed through API Gateway (AM-46 to AM-55)
 - [ ] Health endpoints `/health`, `/health/live`, `/health/ready` implemented (AM-55)
 - [ ] Pagination uses approved envelope and does not return bare arrays (AM-56 to AM-65)
-- [ ] All errors conform to RFC 7807 format with `traceId` and no PII (AM-66 to AM-75)
+- [ ] All errors conform to RFC 9457 format with `traceId` and no PII (AM-66 to AM-75)
+- [ ] Every response (success or error) wrapped in the canonical `Envelope<T>` contract, or an explicit ADR exception exists (AM-76 to AM-82)
 - [ ] OpenAPI/AsyncAPI specification published and current
 - [ ] Consumer registry updated if applicable (for deprecation tracking)
