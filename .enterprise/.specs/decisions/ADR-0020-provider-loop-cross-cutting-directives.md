@@ -1,8 +1,9 @@
 # ADR-0020 — Cross-cutting directives from the provider-gateway loop (agnostic CI/CD · external-provider live validation · real-write authorization discipline)
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-07-18
-**Authors:** Platform Architecture (proposed by agent from the cambio-real provider-gateway loop; **human decision required — Constitution §5.1, §13, Law 7. Do NOT mark Accepted without Engineering Leadership review.**)
+**Accepted by:** Marcio Hideaki (owner) — 2026-07-18, via merge of PR #120 (Constitution §5.1/§13, Law 7 — human authority; owner explicitly authorized the merge).
+**Authors:** Platform Architecture (proposed by agent from the cambio-real provider-gateway loop; accepted by owner decision).
 **Affects Standards:** CI/CD Pipeline Standard, Advanced Testing Strategy Standard (extends AT-32/AT-56), Security & Identity Standard
 **Supersedes:** N/A · **Superseded By:** N/A
 
