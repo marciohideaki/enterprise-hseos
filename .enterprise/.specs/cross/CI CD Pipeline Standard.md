@@ -1,9 +1,11 @@
 # CI/CD Pipeline Standard
 ## Cross-Cutting — Mandatory
 
-**Version:** 1.0
+**Version:** 1.1
 **Status:** Canonical / Normative
 **Scope:** All stacks — mandatory for all services with automated pipelines
+
+> **1.1 (2026-07-18):** added §9 Portable Pipeline Logic (CI-81–CI-84) per ADR-0020.
 **Classification:** Cross-Cutting (Mandatory)
 
 > CI/CD pipelines are the enforcement boundary of every engineering standard.
@@ -1064,6 +1066,20 @@ sonar.coverage.exclusions=**/*Infrastructure*/**,**/*Migration*/**
 
 ---
 
+## 9. Portable Pipeline Logic (CI-81 a CI-84)
+
+> A pipeline whose build/test/package/deploy logic is inlined into one vendor's YAML is locked to that
+> vendor. Extracting the logic into a portable script makes the **same** commands run on a developer
+> workstation, in GitHub Actions, in GitLab CI, in AWS CodeBuild, and in a Kubernetes Job — and
+> **relocates, rather than weakens**, every gate above.
+
+- **CI-81:** The build/test/package/publish/deploy **logic** MUST live in a portable, version-controlled script (`build.sh`, `Makefile`, or equivalent) that is invocable **identically** from a developer workstation and from CI. All configuration and secrets MUST be passed via environment variables; hard-coded values and dependencies on a specific CI vendor's context variables inside the logic are forbidden.
+- **CI-82:** The CI/CD platform configuration (GitHub Actions workflow, GitLab CI, Azure Pipelines, AWS CodeBuild `buildspec`, Jenkinsfile, or a k8s Job) MUST be a **thin adapter**: install the toolchain, inject env/secrets, and invoke the portable script. Vendor-specific marketplace actions/tasks that embed pipeline logic (build, test, publish, deploy) MUST NOT be the only implementation — the same outcome MUST be reproducible via the script without that vendor.
+- **CI-83:** The portable script MUST depend only on the toolchain (language SDK/compiler, container builder, VCS, registry CLI) — never on the CI runner. Registry and auth differences (e.g. GHCR PAT vs ECR IAM) MUST be expressed as env/config, not as vendor-bound branches in the logic.
+- **CI-84:** This portability requirement **relocates, it does not weaken**, the mandatory gates (CI-01–CI-15). Every gate still executes — inside or around the portable script. A gate that exists only inside a vendor action, with no script-reproducible equivalent, is a non-compliance finding.
+
+---
+
 ## Compliance Summary
 
 | ID Range | Section | Enforcement |
@@ -1076,5 +1092,6 @@ sonar.coverage.exclusions=**/*Infrastructure*/**,**/*Migration*/**
 | CI-59 – CI-65 | Quality Gates | Automated — blocks merge/build |
 | CI-66 – CI-72 | Pipeline Observability | Automated — monitoring + alerting |
 | CI-73 – CI-80 | Reference Configurations | Normative examples — teams adapt |
+| CI-81 – CI-84 | Portable Pipeline Logic | Automated — script-reproducible gates; vendor lock-in is a finding |
 
 **Non-compliance that cannot be immediately remediated MUST be tracked as a finding in the engineering backlog with: severity classification, owner, remediation plan, and due date not exceeding 30 days for HIGH findings and 7 days for CRITICAL findings.**
