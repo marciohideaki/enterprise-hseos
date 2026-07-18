@@ -25,8 +25,12 @@ them to all projects.
 
 ## Decision (proposed — pending human approval)
 
+> **Rule-id note (live-verified convention):** the CI/CD Pipeline Standard numbers its rules `CI-NN`
+> (not `CD-NN`), so D1 lands as **CI-81–CI-84**, not the placeholder `CD-9x` — confirmed by reading the
+> standard before editing (the same "verify the real shape, don't assume" discipline D2 codifies).
+
 ### D1 — Pipeline logic MUST be platform-agnostic; CI config is a thin shell
-- Rule (proposed **CD-9x**, CI/CD Pipeline Standard): the build/test/package/publish/deploy logic MUST
+- Rule (**CI-81–CI-84**, CI/CD Pipeline Standard §9): the build/test/package/publish/deploy logic MUST
   live in a **portable, version-controlled script** (`build.sh`/`Makefile`) that depends only on the
   toolchain (compiler, `docker`/BuildKit, `git`, registry CLI) and takes all config/secrets via **env
   vars** (never hard-coded). The CI/CD config (GitHub Actions, CodeBuild buildspec, GitLab, Jenkins, a
@@ -39,7 +43,7 @@ them to all projects.
   ECR-IAM is just env). This does **not** weaken existing CI/CD gates — it relocates them.
 
 ### D2 — External-provider adapters MUST be validated LIVE, endpoint-by-endpoint (contract is necessary, not sufficient)
-- Rule (proposed **AT-7x**, Advanced Testing Strategy Standard; extends AT-32 "contract testing is not
+- Rule (**AT-81–AT-83**, Advanced Testing Strategy Standard §4.3; extends AT-32 "contract testing is not
   a substitute for integration tests" and AT-56 chaos-for-external-providers): for any adapter/gateway
   wrapping an **external provider API**, contract/unit tests (which prove OUR serialization) are
   necessary but **insufficient**. Each endpoint MUST also be validated **live against the provider's
@@ -53,7 +57,7 @@ them to all projects.
   `second-brain/_learnings/live-testing-catches-legacy-shape-bugs`.
 
 ### D3 — Mutating operations against REAL external/production systems require explicit per-run authorization
-- Rule (proposed **SI-xx**, Security & Identity Standard; complements AT-67 synthetic-test-data): agents
+- Rule (**SI-48–SI-50**, Security & Identity Standard §14; complements AT-67 synthetic-test-data): agents
   and automated suites MUST NOT exercise **state-changing operations against real external or production
   systems** — financial-write (payment/transfer), compliance-write (approve/reject applicant, submit a
   monitored transaction), or any mutating call — **without explicit, per-run authorization**. Default is
@@ -84,14 +88,18 @@ them to all projects.
 
 ## Affected Standards
 
-| Standard | Section / Rule | Change |
-|---|---|---|
-| CI/CD Pipeline Standard | new rule (CD-9x) | Pipeline logic in a portable script; CI config is a thin shell |
-| Advanced Testing Strategy Standard | extends AT-32, AT-56 (new AT-7x) | External-provider adapters require live endpoint-by-endpoint sandbox validation |
-| Security & Identity Standard | new rule (SI-xx) | Real-system mutating ops require explicit per-run authorization; default read-only + synthetic; non-mutating probes |
+| Standard | Section / Rule | Change | Version |
+|---|---|---|---|
+| CI/CD Pipeline Standard | new §9 (CI-81–CI-84) | Pipeline logic in a portable script; CI config is a thin adapter | 1.0 → 1.1 |
+| Advanced Testing Strategy Standard | new §4.3 (AT-81–AT-83), extends AT-32/AT-56 | External-provider adapters require live endpoint-by-endpoint sandbox validation | 1.0 → 1.1 |
+| Security & Identity Standard | new §14 (SI-48–SI-50) | Real-system mutating ops require explicit per-run authorization; default read-only + synthetic; non-mutating probes | 1.0 → 1.1 |
 
-## Distribution (once Accepted)
-Human review → move to `Accepted` with owner + version bump (§13). Then the three standards receive the
-new rules and **`hseos install`** distributes them to every project under the governance overlay. Until
-then, this ADR is a Proposed draft only.
+## Applied in this PR (acceptance = owner merge)
+Following the repo convention (PR #117 landed ADR-0018 **together with** its standard content), the three
+standard edits above are included in **this same PR (#120)**, version-bumped 1.0 → 1.1. The changes are
+inert until merged: **the owner's merge of PR #120 IS the acceptance** (Constitution §5.1/§13, Law 7 — an
+agent MUST NOT self-merge or self-mark `Accepted`). On merge, flip this ADR's Status to `Accepted` (owner +
+date) and **`hseos install`** distributes the updated overlay to every project. If the owner prefers to
+accept the ADR first and apply the standards in a follow-up, revert the three standard edits from this PR
+and keep only the ADR.
 </content>

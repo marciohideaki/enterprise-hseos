@@ -1,9 +1,11 @@
 # Security & Identity Standard
 ## Authentication, Authorization, Secrets and Access Control (Multi-Stack)
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Scope:** Generic / Domain-agnostic  
 **Stacks:** Backend (C#/.NET), Clients (Flutter/Dart, React/TypeScript)
+
+> **1.1 (2026-07-18):** added §14 Automated Agent & Test Write Discipline (SI-48–SI-50) per ADR-0020.
 
 > This standard defines mandatory security and identity rules across services and clients.
 > It complements NFRs by providing **normative implementation expectations**.
@@ -138,6 +140,14 @@
 
 - SI-46: Runbooks must exist for auth outages, token compromise, and secret leaks.
 - SI-47: Breach response must include token revocation and secret rotation.
+
+---
+
+## 14. Automated Agent & Test Write Discipline
+
+- SI-48: Automated actors (AI agents, test suites, scripts) MUST NOT perform **state-mutating operations against real external or production systems** — financial writes (payments, transfers, settlements), compliance writes (approve/reject a KYC applicant, submit a monitored transaction), or any irreversible state change — **without explicit, per-run authorization**. Default posture: **read-only + synthetic data**.
+- SI-49: To prove an actor *can* perform a privileged/mutating operation without performing it, use a **non-mutating discriminating probe** (e.g. a safe request to a mutation-only route to distinguish `405` route-exists / `403` no-permission / `404` absent). Non-financial writes are permitted only with deterministic cleanup.
+- SI-50: Per-run authorization for a real-system mutating operation MUST be explicit and recorded (authorizer, scope, expiry). Blanket or implicit standing authorization for financial/compliance writes by automation is forbidden. This rule underpins the live-validation discipline in Advanced Testing **AT-83**.
 
 ---
 
