@@ -124,8 +124,9 @@ components:
   - id: capability:delivery
     family: capability
     name: Delivery Execution
-    description: Spec-driven delivery, dev-squad, multi-agent orchestration, inter-agent communication, release control, PR review, commit hygiene, and test coverage.
+    description: Production-oriented goal/loop execution, spec-driven delivery, dev-squad, multi-agent orchestration, inter-agent communication, release control, PR review, commit hygiene, and test coverage.
     skills:
+      - hseos-goal-loop
       - spec-driven
       - dev-squad
       - multi-agent-orchestration
