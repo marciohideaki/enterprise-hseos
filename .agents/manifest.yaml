@@ -10,11 +10,17 @@ adapters:
     skills: .agents/skills
     settings: .codex/config.toml
     hooks: .codex/hseos-hooks.json
+  goose:
+    config: .goose/config.yaml
+    skills: .goose/skills
+    agents: .goose/agents
+    hooks_metadata: .goose/hooks-metadata.json
 platforms:
   - claude-code
   - codex
+  - goose
 counts:
-  skills: 49
+  skills: 50
   hooks: 28
   commands: 9
   handlers: 23
@@ -142,6 +148,11 @@ skills:
     quick: .enterprise/governance/agent-skills/gitops-new-project/SKILL-QUICK.md
     output: .agents/skills/gitops-new-project/SKILL.md
     hash: af67d5483b6b102c5556d08cf8539d62184930566b7deb258c5b7b0ea5bbc6b7
+  - name: hseos-goal-loop
+    source: .enterprise/governance/agent-skills/hseos-goal-loop/SKILL.md
+    quick: .enterprise/governance/agent-skills/hseos-goal-loop/SKILL-QUICK.md
+    output: .agents/skills/hseos-goal-loop/SKILL.md
+    hash: 5dd86d9a550e0d3f2dfaf24c70529a9828f6f8ee6271c1d5dc3396bb7c3c545f
   - name: inter-agent-comms
     source: .enterprise/governance/agent-skills/inter-agent-comms/SKILL.md
     quick: .enterprise/governance/agent-skills/inter-agent-comms/SKILL-QUICK.md

@@ -104,6 +104,17 @@ version: "1.4"
 **Tier 2:** `.enterprise/governance/agent-skills/enterprise-readiness-audit/SKILL.md`
 **Cost:** Tier 1 = low | Tier 2 = high
 
+---
+
+### hseos-goal-loop
+**Description:** Seleciona Goal ou Loop para um objetivo explícito, analisa código, fluxos, integrações, arquitetura e convenções, e executa incrementalmente rumo a um resultado pronto para produção com evidências.
+**Load when:** usuário pede para executar um objetivo, montar/executar goal ou loop, conduzir evolução contínua, normalizar uma área, ou entregar um resultado production-ready a partir de uma intenção.
+**Triggers:** `objective`, `goal`, `loop`, `execute goal`, `execute loop`, `production-ready objective`, `analyze and deliver`, `normalize system`, `continuous delivery loop`, `objetivo`, `executar goal`, `executar loop`, `pronto para produção`, `normalizar sistema`
+**Tier 1:** `.enterprise/governance/agent-skills/hseos-goal-loop/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/hseos-goal-loop/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = high
+**Critical:** A skill escolhe e executa o fluxo, mas não amplia autoridade. Deploy, merge, mutação real externa/produção, secrets, contratos, schemas, RBAC e infraestrutura exigem a autorização aplicável.
+
 
 ### pr-review
 **Description:** Enforce PR review standards — quality gates, boundary evidence, contract safety, and governance compliance.
