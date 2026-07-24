@@ -20,7 +20,7 @@ platforms:
   - codex
   - goose
 counts:
-  skills: 50
+  skills: 52
   hooks: 28
   commands: 9
   handlers: 23
@@ -148,11 +148,16 @@ skills:
     quick: .enterprise/governance/agent-skills/gitops-new-project/SKILL-QUICK.md
     output: .agents/skills/gitops-new-project/SKILL.md
     hash: af67d5483b6b102c5556d08cf8539d62184930566b7deb258c5b7b0ea5bbc6b7
+  - name: goal-graph
+    source: .enterprise/governance/agent-skills/goal-graph/SKILL.md
+    quick: .enterprise/governance/agent-skills/goal-graph/SKILL-QUICK.md
+    output: .agents/skills/goal-graph/SKILL.md
+    hash: f969372b15ca1801c417e7b6a20159c58f2de48718cf11dcd89500b94ba46fec
   - name: hseos-goal-loop
     source: .enterprise/governance/agent-skills/hseos-goal-loop/SKILL.md
     quick: .enterprise/governance/agent-skills/hseos-goal-loop/SKILL-QUICK.md
     output: .agents/skills/hseos-goal-loop/SKILL.md
-    hash: 5dd86d9a550e0d3f2dfaf24c70529a9828f6f8ee6271c1d5dc3396bb7c3c545f
+    hash: 465e1bae7244b78bc486bf043464886fb36ed60ba78eb5b859cedb696edb0aab
   - name: inter-agent-comms
     source: .enterprise/governance/agent-skills/inter-agent-comms/SKILL.md
     quick: .enterprise/governance/agent-skills/inter-agent-comms/SKILL-QUICK.md
@@ -278,6 +283,11 @@ skills:
     quick: .enterprise/governance/agent-skills/verification-before-completion/SKILL-QUICK.md
     output: .agents/skills/verification-before-completion/SKILL.md
     hash: d41201acf4f9842daa3781d1a2906848dbf49cae2168518c65c00ce7aab40f14
+  - name: verifier
+    source: .enterprise/governance/agent-skills/verifier/SKILL.md
+    quick: null
+    output: .agents/skills/verifier/SKILL.md
+    hash: 2cd7e9511e7c254ad42cdc4f241efcafffd58688bb178e37302f6dfa94539da9
 hooks:
   - id: pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global
     event: PreToolUse
