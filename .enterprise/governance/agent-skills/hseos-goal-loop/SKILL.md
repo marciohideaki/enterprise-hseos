@@ -45,6 +45,8 @@ Build an evidence map from the minimum relevant sources:
 3. code entrypoints, callers, flows, persistence, integration clients and delivery manifests;
 4. tests, CI, logs/metrics/traces, runbooks and production evidence when safely available.
 
+In a project containing `.axon/`, route code discovery (item 3) through Axon first: health-check the index (≤24h; reindex or alert if stale), then `mcp__axon__get_context_capsule(query)` — or the `axon capsule` CLI when the MCP server is unavailable — and read directly only the pivots it surfaces. Never degrade silently into sequential full-file exploration; record the discovery mode used.
+
 For each claim, distinguish **observed**, **inferred** and **unverified**. Locate existing implementation before creating a parallel solution. Identify gaps, dependencies, regressions, ownership boundaries and blockers.
 
 ## 3. Define the contract
