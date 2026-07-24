@@ -37,6 +37,9 @@ Source containers (running on dev host as of 2026-05-20):
 | Redpanda (Kafka) | `shared-redpanda` | `127.0.0.1:39092` | v24.2.7 |
 | MySQL | `shared-mysql` | `127.0.0.1:13306` | v8.0 |
 | MariaDB | `shared-mariadb` | `127.0.0.1:13308` | v11 |
+| MongoDB | `shared-mongodb` | `127.0.0.1:17017` | v7.0 |
+| PostgreSQL + PostGIS | `shared-postgres-postgis` | `127.0.0.1:15433` | pg16 / postgis 3.4 |
+| Azurite (Azure Storage emulator) | `shared-azurite` | `127.0.0.1:10000` (blob) / `10001` (queue) / `10002` (table) | 3.31.0 |
 | OpenTelemetry Collector | `shared-otel-collector` | `127.0.0.1:14317` (gRPC) / `14318` (HTTP) | v0.110.0 |
 
 ## Canonical mapping — k3s / k8s

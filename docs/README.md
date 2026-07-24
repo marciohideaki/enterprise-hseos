@@ -22,6 +22,8 @@ The goal: AI agents multiply engineering capacity without degrading quality, sec
 | [agents/](agents/) | Every agent: what it does, when to activate it, what it cannot do |
 | [workflows.md](workflows.md) | The 6 delivery workflows — phases, human touchpoints, how to resume |
 | [skills.md](skills.md) | Governance skills catalog — what gets enforced, when, and why |
+| [LOOP-GRAPHS-MANUAL.md](LOOP-GRAPHS-MANUAL.md) | Loop graphs usage manual — objective → gap-map → compiled `workflow.js`, governed loops, state versioning/resume, verification, cost |
+| [RUNNING-GOVERNED-LOOPS.md](RUNNING-GOVERNED-LOOPS.md) | Governed loop operations — proven step-by-step (worktree, loop-guard, iterate, close) |
 | [state-tracking.md](state-tracking.md) | SQLite state layer, CLI commands, web kanban, MCP tools (v2.0.0) |
 | [sandbox.md](sandbox.md) | Optional OS-level sandboxing for agent commands through external ai-jail |
 | [ADAPTER-GUIDE.md](ADAPTER-GUIDE.md) | BYOA adapter authoring — `@hseos/adapter-sdk` + Goose reference |

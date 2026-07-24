@@ -5,7 +5,7 @@
 > **When to run:**
 > - End of Wave 1 (this PR) — proves the decoupling closed all P5 violations
 > - End of Wave 8 (Docs + Tests) — full v2.0 pre-release acceptance
-> - In CI on every PR via `.github/workflows/standalone-smoke.yml` (lands in Wave 6)
+> - In CI on every PR via `.github/workflows/standalone-smoke.yaml` (lands in Wave 6)
 
 ---
 

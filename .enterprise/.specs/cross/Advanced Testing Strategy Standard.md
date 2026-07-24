@@ -1,9 +1,11 @@
 # Advanced Testing Strategy Standard
 ## Cross-Cutting — Mandatory
 
-**Version:** 1.0
+**Version:** 1.1
 **Status:** Canonical / Normative
 **Scope:** All stacks — mandatory for all services with business logic
+
+> **1.1 (2026-07-18):** added §4.3 External-Provider Adapter Verification (AT-81–AT-83) per ADR-0020.
 **Classification:** Cross-Cutting (Mandatory)
 
 > Testing is not a phase — it is a design discipline.
@@ -199,6 +201,12 @@ const interaction = {
 - AT-38: Contracts are versioned using semver in the broker as `<consumer-name>/<version>`. Consumers MUST tag the provider version they tested against.
 - AT-39: For asynchronous events, Pact message contracts apply. The message schema is the contract — not the broker configuration.
 - AT-40: Verification is bidirectional: the consumer asserts it can handle the provider's response; the provider asserts it produces what the consumer expects.
+
+### 4.3 External-Provider Adapter Verification (Live Sandbox)
+
+- AT-81: For any adapter, gateway, or client that wraps an **external provider API** (payment, KYC/AML, banking, identity, messaging), contract tests (AT-31–AT-40) prove **our** serialization but are **insufficient** to prove functional correctness against the live provider. Each exposed operation MUST additionally be validated **live against the provider's sandbox/test environment**, endpoint-by-endpoint, before it is declared "covered". This operationalizes AT-32 for the external-provider case.
+- AT-82: External-provider coverage MUST be reported with three **distinct** states — **live-validated** (exercised against the real sandbox and asserted), **contract-only** (serialization proven, provider not exercised), and **not-exercised**. A green contract-only suite MUST NOT be reported as "covered"; the gap catches legacy/version shape-drift (wrong path/verb, signature over the wrong body, enum/version mismatch) that mocks cannot.
+- AT-83: Live sandbox validation MUST respect the write-discipline rules (Security & Identity **SI-48–SI-50**): reads and non-mutating probes freely; non-financial writes only with deterministic cleanup; financial/compliance/state-mutating writes only under explicit per-run authorization. Where an operation cannot be safely exercised, use a non-mutating discriminating probe and record it as **verified-reachable**, not live-validated.
 
 ---
 
@@ -475,6 +483,7 @@ All testing layers MUST be integrated into CI as follows:
 | Mutation testing | Weekly + release branch | Score < 70% on domain blocks release |
 | Chaos experiments | Weekly (staging) | Failed experiment creates P1 defect |
 | E2E tests | Release branch + post-deploy smoke | Failing E2E blocks promotion to next environment |
+| External-provider live validation (AT-81) | Per-endpoint before "covered"; re-run on adapter change | Contract-only reported as "covered" is a non-compliance finding |
 
 ---
 
