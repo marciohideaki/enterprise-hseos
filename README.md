@@ -3,7 +3,7 @@
 [![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](package.json)
 [![Node](https://img.shields.io/badge/node-%3E%3D20-green.svg)](https://nodejs.org)
 [![Agents](https://img.shields.io/badge/agents-16-purple.svg)](.hseos/agents/)
-[![Skills](https://img.shields.io/badge/skills-49-orange.svg)](.enterprise/governance/agent-skills/)
+[![Skills](https://img.shields.io/badge/skills-52-orange.svg)](.enterprise/governance/agent-skills/)
 
 <p align="center">
   <picture>
@@ -14,7 +14,7 @@
 
 > *"Where human intent becomes institutional intelligence."*
 
-**A spec-driven, AI-assisted development framework combining architecture governance, cyberpunk agents, 49 skills, MCPs and engineering workflows.**
+**A spec-driven, AI-assisted development framework combining architecture governance, cyberpunk agents, 52 skills, MCPs and engineering workflows.**
 
 ---
 
@@ -274,7 +274,7 @@ hseos workflow advance
 
 ## Skills Catalog
 
-46 skills auto-loaded from the registry based on task context. **You never load skills manually** — agents match triggers and load the minimum tier needed.
+52 skills auto-loaded from the registry based on task context. **You never load skills manually** — agents match triggers and load the minimum tier needed.
 
 | Domain | Skills |
 |--------|--------|
@@ -310,7 +310,7 @@ graph TB
 
     subgraph "HSEOS Framework"
         CLI[hseos CLI\nInstall · Validate · Workflow]
-        REGISTRY[SKILLS-REGISTRY.md\n46 skills · trigger-based]
+        REGISTRY[SKILLS-REGISTRY.md\n52 skills · trigger-based]
         HOOKS[Git Hooks\npre-commit · commit-msg]
     end
 
@@ -352,7 +352,7 @@ hseos/
 │   ├── .specs/core/                # Org-wide invariants
 │   ├── .specs/decisions/           # Architecture Decision Records
 │   ├── agents/                     # Agent authority & constraint definitions
-│   ├── governance/agent-skills/    # 46 tiered executable skills
+│   ├── governance/agent-skills/    # 52 tiered executable skills
 │   ├── policies/                   # Operational governance policies
 │   └── playbooks/                  # How to operate within governance
 │
@@ -375,7 +375,7 @@ hseos/
 | Stack Standards | `.enterprise/.specs/<Stack>/` | Language/framework specifics |
 | ADRs | `.enterprise/.specs/decisions/` | Traceable architectural decisions |
 | Agent Authority | `.enterprise/agents/<code>/` | Per-agent scope and hard limits |
-| Skills | `.enterprise/governance/agent-skills/` | 46 tiered skills, trigger-loaded |
+| Skills | `.enterprise/governance/agent-skills/` | 52 tiered skills, trigger-loaded |
 
 ---
 
@@ -385,7 +385,7 @@ hseos/
 |-----------|-------|---------------|--------|----------------|
 | Governance constitution | ✅ immutable | ❌ | ❌ | ❌ |
 | Named agent roles | ✅ 14 agents | ❌ | ❌ | ❌ |
-| Tiered skill registry | ✅ 46 skills | ❌ | ❌ | ❌ |
+| Tiered skill registry | ✅ 52 skills | ❌ | ❌ | ❌ |
 | Pre-commit enforcement | ✅ husky hooks | ❌ | ❌ | ❌ |
 | ADR tracking | ✅ built-in | ❌ | ❌ | ❌ |
 | GitOps deploy workflow | ✅ KUBE agent | ❌ | ❌ | ❌ |
@@ -612,7 +612,7 @@ O instalador cria, por padrão:
 - `.codex/config.toml` + `.codex/hseos-hooks.json` (quando `codex` está nos adapters)
 - `.hseos/` (config, módulos, manifest de instalação)
 - `.agents/` (skills, hooks registry, `instructions/PROJECT.md`)
-- `.enterprise/` copiado do HSEOS source (constituição, agentes, policies, 46 skills de governança) — preservado se já existir
+- `.enterprise/` copiado do HSEOS source (constituição, agentes, policies, 52 skills de governança) — preservado se já existir
 - `AGENTS.md` na raiz, stub mínimo apontando para `.agents/instructions/PROJECT.md` — preservado se já existir
 - `.git/hooks/pre-commit` invocando `scripts/governance/quality-gates.sh` (silencioso se `.git/` não existir; existing hook nunca é sobrescrito)
 
