@@ -1,2 +1,4 @@
 {"iter":1,"goal":"baseline discovery","verdict":"REPROVADO","evidence":"verify-doc-facts.sh: 9 discrepancias (7x skills-count 46/49 vs 52 real; agents-count L345 14 vs 15; CHANGELOG ausente)","files":""}
 {"iter":2,"goal":"corrigir contagem de skills no README (carta iter-1)","verdict":"PASS","evidence":"verify-doc-facts.sh: skills-count PASS todas as 7 mencoes == 52 (baseline: 7 FAIL); loop-guard scope PASS","files":"README.md"}
+{"iter":3,"goal":"teste de rollback (aceite Gate item 4)","verdict":"PASS","evidence":"git revert 974fa77 -> verify regrediu a 7 FAILs skills-count + arvore limpa; revert do revert -> skills-count PASS de volta. Rollback granular provado.","files":""}
+{"iter":4,"goal":"corrigir contagem de agents no README (carta iter-2)","verdict":"PASS","evidence":"verify-doc-facts.sh: agents-count PASS L345+L387 == 15 (antes 14); loop-guard scope PASS","files":"README.md"}

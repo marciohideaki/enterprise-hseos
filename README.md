@@ -342,7 +342,7 @@ graph TB
 ```
 hseos/
 ├── .hseos/                         # HSEOS Agent Framework Core
-│   ├── agents/                     # 14 agent YAML definitions
+│   ├── agents/                     # 15 agent YAML definitions
 │   ├── workflows/                  # Engineering workflow definitions
 │   ├── config/                     # Framework configuration
 │   └── data/                       # Templates and data files
@@ -384,7 +384,7 @@ hseos/
 | Capability | HSEOS | GitHub Copilot | Cursor | Raw Claude Code |
 |-----------|-------|---------------|--------|----------------|
 | Governance constitution | ✅ immutable | ❌ | ❌ | ❌ |
-| Named agent roles | ✅ 14 agents | ❌ | ❌ | ❌ |
+| Named agent roles | ✅ 15 agents | ❌ | ❌ | ❌ |
 | Tiered skill registry | ✅ 52 skills | ❌ | ❌ | ❌ |
 | Pre-commit enforcement | ✅ husky hooks | ❌ | ❌ | ❌ |
 | ADR tracking | ✅ built-in | ❌ | ❌ | ❌ |
