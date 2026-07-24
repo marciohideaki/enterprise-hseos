@@ -1,9 +1,0 @@
-# Escopo do loop-piloto N1 (doc-only) — allow-list consumida por loop-guard scope.
-# Formato: caminho exato OU prefixo de diretório terminado em '/'.
-# Nada aqui é âncora; o anchor-guard é a segunda barreira (defense in depth).
-# Qualquer diff fora desta lista REPROVA a iteração (loop-guard scope, exit 1).
-README.md
-CONTRIBUTING.md
-CHANGELOG.md
-docs/
-.agents/instructions/CAPABILITY-MATRIX.md
