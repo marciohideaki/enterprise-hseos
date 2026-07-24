@@ -2,3 +2,4 @@
 {"iter":2,"goal":"corrigir contagem de skills no README (carta iter-1)","verdict":"PASS","evidence":"verify-doc-facts.sh: skills-count PASS todas as 7 mencoes == 52 (baseline: 7 FAIL); loop-guard scope PASS","files":"README.md"}
 {"iter":3,"goal":"teste de rollback (aceite Gate item 4)","verdict":"PASS","evidence":"git revert 974fa77 -> verify regrediu a 7 FAILs skills-count + arvore limpa; revert do revert -> skills-count PASS de volta. Rollback granular provado.","files":""}
 {"iter":4,"goal":"corrigir contagem de agents no README (carta iter-2)","verdict":"PASS","evidence":"verify-doc-facts.sh: agents-count PASS L345+L387 == 15 (antes 14); loop-guard scope PASS","files":"README.md"}
+{"iter":5,"goal":"criar CHANGELOG.md Keep-a-Changelog (carta iter-4, F-031)","verdict":"PASS","evidence":"verify-doc-facts.sh: 4/4 PASS incl. CHANGELOG.md existe; conteudo derivado do git log real, sem invencao","files":"CHANGELOG.md"}
