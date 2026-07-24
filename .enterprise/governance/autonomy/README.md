@@ -27,7 +27,20 @@ Não há CODEOWNERS nem mudança de CI/branch — o kit é autocontido nos guard
 | 5 — Sensor + alerta | ✅ pronto e testado | `heartbeat.jsonl` + exit 3; evoluir para PrometheusRule na Wave 2 |
 | 6 — Gate humano na fronteira | ✅ | escrito na carta §6 |
 
-**Veredito:** os 6 itens do Gate estão fechados no código, sem depender de branch protection. O ambiente está pronto para ligar o loop-piloto N1.
+**Veredito:** os 6 itens do Gate estão fechados no código, sem depender de branch protection. ~~O ambiente está pronto para ligar o loop-piloto N1.~~ **O piloto foi executado em 2026-07-24 — ver seção "Execução do piloto" abaixo.**
+
+## Execução do piloto (2026-07-24) — rodou até a stop condition
+
+O loop-piloto N1 **rodou até a stop condition** (budget 8/8 esgotado + superfície do verificador determinístico 100% verde) em 2026-07-24 — worktree `task/pilot-n1`, **PR #121** mergeado em `feature/hseos-goal-loop` (merge `09acc9d`), tags `pilot-iter-1..5`, heartbeat integral versionado em `.hseos/loops/pilot-n1/heartbeat.jsonl`.
+
+Aceites comportamentais provados em execução real:
+
+- **≥1 REPROVADO real: houve 2** — baseline com 9 discrepâncias; e comando de verificação não-reprodutível escrito na CAPABILITY-MATRIX (dizia 21, comando literal produzia 22), pego por amostragem adversarial do orquestrador, corrigido pela causa raiz e revalidado. O verificador tem dentes.
+- **Rollback testado de propósito** (aceite item 4): revert da iter-1 → verificador regrediu às falhas → revert do revert → verde.
+- **Alerta silencioso** em todas as iterações (nenhum disparo de gate-sem-evidência / sem-progresso).
+- **Zero âncora tocada**; todos os diffs ⊆ allow-list; quality gates verdes em todos os commits.
+
+Resultado final: `verify-doc-facts.sh` **4/4 PASS** ("afirmações factuais conferem — pode declarar DONE"). Pré-condições comportamentais de N2 atendidas; N2 permanece bloqueado nas Waves 2–3 (ver "Próximo nível"). Learnings da execução: runbook do piloto, seção "Learnings da execução".
 
 ## Como o loop roda (isolamento)
 O loop roda num **worktree isolado** (`worktree-manager.sh create <run-id> <branch>`), a partir de um commit onde os guardrails existam. Nesse worktree, `loop-guard scope` compara working-tree vs HEAD → enxerga exatamente as edições da iteração. 1 iteração = 1 commit; rollback = `git revert` ou remoção do worktree. O loop **não** faz push nem merge (item 6).
