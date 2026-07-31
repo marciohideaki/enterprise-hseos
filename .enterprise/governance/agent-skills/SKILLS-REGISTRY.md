@@ -104,6 +104,37 @@ version: "1.4"
 **Tier 2:** `.enterprise/governance/agent-skills/enterprise-readiness-audit/SKILL.md`
 **Cost:** Tier 1 = low | Tier 2 = high
 
+---
+
+### hseos-goal-loop
+**Description:** Seleciona Goal ou Loop para um objetivo explícito, analisa código, fluxos, integrações, arquitetura e convenções, e executa incrementalmente rumo a um resultado pronto para produção com evidências.
+**Load when:** usuário pede para executar um objetivo, montar/executar goal ou loop, conduzir evolução contínua, normalizar uma área, ou entregar um resultado production-ready a partir de uma intenção.
+**Triggers:** `objective`, `goal`, `loop`, `execute goal`, `execute loop`, `production-ready objective`, `analyze and deliver`, `normalize system`, `continuous delivery loop`, `objetivo`, `executar goal`, `executar loop`, `pronto para produção`, `normalizar sistema`
+**Tier 1:** `.enterprise/governance/agent-skills/hseos-goal-loop/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/hseos-goal-loop/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = high
+**Critical:** A skill escolhe e executa o fluxo, mas não amplia autoridade. Deploy, merge, mutação real externa/produção, secrets, contratos, schemas, RBAC e infraestrutura exigem a autorização aplicável.
+
+
+### goal-graph
+**Description:** Compila um objetivo completo (prompt + arquivos/spec) em um grafo de loops executável — nós (mini-goals verificáveis), arestas de dependência, paralelismo entre nós independentes e fluxos dinâmicos (expansão por descoberta) onde a estrutura é desconhecida. Inclui fase Entender & Confrontar (diamond de leitura via axon → **gap-map**: existe/conflita/falta/assume-errado) antes da decomposição. Emite `GOAL-GRAPH.md` + `workflow.js` (compilação para o runtime `Workflow` — coordenação em código, checkpoint/resume idempotente) para execução via Workflow, `dev-squad` (waves) ou `hseos-goal-loop` (loop) sob os guardrails `loop-guard`/`anchor-guard`/`verifier`. Planeja, não executa. Layout de estado versionado: `templates/graph-state-layout.md`.
+**Load when:** usuário entrega um objetivo grande ou heterogêneo e quer montá-lo como grafo de loops para execução em goal/loop com paralelismo e fluxo dinâmico; decomposição em waves; orquestração de objetivo em nós verificáveis.
+**Triggers:** `montar grafo`, `grafo de loops`, `compilar objetivo em grafo`, `goal graph`, `loop graph`, `orquestrar objetivo`, `planejar execução paralela`, `decompor objetivo em waves`, `executar goal/loop com paralelismo`, `fluxo dinâmico`, `gap-map`, `compilar workflow`, `/goal-graph`
+**Tier 1:** `.enterprise/governance/agent-skills/goal-graph/SKILL-QUICK.md`
+**Tier 2:** `.enterprise/governance/agent-skills/goal-graph/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = high
+**Critical:** Protocolo de planejamento, não concessão de permissão. O grafo emitido não autoriza execução; compilar `workflow.js` NÃO executa (o diálogo de permissão do Workflow é o gate de ligar); ligar cada nó respeita os gates de autoridade (deploy/merge/secret/schema/externo = humano) e nenhum nó toca âncoras. Fluxo dinâmico sem stop condition não é emitido.
+
+
+### verifier
+**Description:** Componente formal de verificação isolada — o único papel autorizado a ratificar resultado de nó/loop/wave. Determinístico quando existir (teste/script/contagem); senão adversarial ("tente refutar; default REPROVADO") em contexto independente que recebe apenas caminhos de evidência e ground truth que o executor não controla — nunca o transcript de quem executou (invariante G2). Escala por criticidade: 1 cético comum · 3 céticos/maioria em domínio crítico · lentes diversas quando a falha é multi-modo. Fecha o finding F-007 ("avaliador = avaliado").
+**Load when:** ratificar entrega de nó/loop/wave; auditar evidência de execução; veredito PASS/REPROVADO/INCONCLUSIVO sobre um resultado; wave review do dev-squad; fase Verify do hseos-goal-loop.
+**Triggers:** `verificar resultado`, `ratificar`, `verify adversarial`, `veredito`, `auditar evidência`, `refutar resultado`, `/verifier`
+**Tier 1:** `.enterprise/governance/agent-skills/verifier/SKILL.md`
+**Tier 2:** `.enterprise/governance/agent-skills/verifier/SKILL.md`
+**Cost:** Tier 1 = low | Tier 2 = low
+**Critical:** Verificador ≠ executor, sempre — ratificar no contexto que executou é proibido. PASS exige evidência reconferida na fonte. INCONCLUSIVO rebaixa, nunca aprova. O verifier não corrige nem melhora o trabalho.
+
 
 ### pr-review
 **Description:** Enforce PR review standards — quality gates, boundary evidence, contract safety, and governance compliance.

@@ -157,9 +157,11 @@ npm run test:adapter-sdk
 |----|---------|-----------|
 | `claude-code` | ✅ | Built-in |
 | `codex` | ✅ | Built-in |
-| `cursor` | ✅ | Built-in |
-| `continue` | ✅ | Built-in |
-| `aider` | ✅ | Built-in |
-| `cline` | ✅ | Built-in |
+| `cursor` | 🚧 N/A | Spec slot reserved (pending W2-impl) |
+| `continue` | 🚧 N/A | Spec slot reserved (pending W2-impl) |
+| `aider` | 🚧 N/A | Spec slot reserved (pending W2-impl) |
+| `cline` | 🚧 N/A | Spec slot reserved (pending W2-impl) |
 | `goose` | ✅ | Built-in (BYOA reference) |
 | `@hseos/adapter-*` | — | Auto-discovered via `node_modules/@hseos/adapter-` prefix |
+
+> `cursor`/`continue`/`aider`/`cline` have no adapter spec file (`.agents/adapters/*.yaml`) or implementation on disk yet — see `.agents/instructions/CAPABILITY-MATRIX.md`, which uses the same "🚧 N/A — no adapter spec/implementation exists for this vendor yet" rating.
