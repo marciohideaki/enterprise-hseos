@@ -28,6 +28,8 @@
 | [ADR-0017](./ADR-0017-stacked-feature-branch-chains.md) | Stacked Feature Branch Chains | Accepted | Execution governance, branch lifecycle, dev-squad protocol |
 | [ADR-0018](./ADR-0018-provider-gateway-repo-topology.md) | Provider/Integration Gateway: New Repo vs. Folder in an Existing Repo | Proposed | provider gateways, repo topology |
 | [ADR-0019](./ADR-0019-mcp-post-ga-conformance.md) | MCP Post-GA Conformance: Manual Subset with SDK Trigger | Accepted (2026-07-15) | `tools/mcp-*`, mcp-transport, contract tests |
+| [ADR-0020](./ADR-0020-provider-loop-cross-cutting-directives.md) | Cross-cutting directives from the provider-gateway loop | Accepted (2026-07-18) | CI/CD Pipeline, Advanced Testing Strategy (AT-32/AT-56), Security & Identity |
+| [ADR-0021](./ADR-0021-brand-variants-via-design-tokens.md) | Brand Variants via Design Tokens, Not Forked Frontends | Proposed | SOLID (§6 DRY), CI/CD Pipeline (CI-43, CI-53), frontend repo topology |
 
 ---
 
