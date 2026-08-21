@@ -1,7 +1,7 @@
 const path = require('node:path');
 const fs = require('fs-extra');
 const csv = require('csv-parse/sync');
-const { toColonName, toColonPath, toDashPath, HSEOS_FOLDER_NAME } = require('./path-utils');
+const { toDashPath, HSEOS_FOLDER_NAME } = require('./path-utils');
 
 /**
  * Generates command files for standalone tasks and tools
@@ -221,52 +221,8 @@ Follow all instructions in the ${type} file exactly as written.
   }
 
   /**
-   * Generate task and tool commands using underscore format (Windows-compatible)
-   * Creates flat files like: hseos_bmm_help.md
-   *
-   * @param {string} projectDir - Project directory
-   * @param {string} hseosDir - HSEOS installation directory
-   * @param {string} baseCommandsDir - Base commands directory for the IDE
-   * @returns {Object} Generation results
-   */
-  async generateColonTaskToolCommands(projectDir, hseosDir, baseCommandsDir) {
-    const tasks = await this.loadTaskManifest(hseosDir);
-    const tools = await this.loadToolManifest(hseosDir);
-
-    let generatedCount = 0;
-
-    // Generate command files for tasks
-    for (const task of tasks || []) {
-      const commandContent = this.generateCommandContent(task, 'task');
-      // Use underscore format: hseos_bmm_name.md
-      const flatName = toColonName(task.module, 'tasks', task.name);
-      const commandPath = path.join(baseCommandsDir, flatName);
-      await fs.ensureDir(path.dirname(commandPath));
-      await fs.writeFile(commandPath, commandContent);
-      generatedCount++;
-    }
-
-    // Generate command files for tools
-    for (const tool of tools || []) {
-      const commandContent = this.generateCommandContent(tool, 'tool');
-      // Use underscore format: hseos_bmm_name.md
-      const flatName = toColonName(tool.module, 'tools', tool.name);
-      const commandPath = path.join(baseCommandsDir, flatName);
-      await fs.ensureDir(path.dirname(commandPath));
-      await fs.writeFile(commandPath, commandContent);
-      generatedCount++;
-    }
-
-    return {
-      generated: generatedCount,
-      tasks: (tasks || []).length,
-      tools: (tools || []).length,
-    };
-  }
-
-  /**
-   * Generate task and tool commands using underscore format (Windows-compatible)
-   * Creates flat files like: hseos_bmm_help.md
+   * Generate task and tool commands using the uniform dash format
+   * Creates flat files like: hseos-bmm-help.md
    *
    * @param {string} projectDir - Project directory
    * @param {string} hseosDir - HSEOS installation directory
@@ -306,32 +262,6 @@ Follow all instructions in the ${type} file exactly as written.
       tasks: (tasks || []).length,
       tools: (tools || []).length,
     };
-  }
-
-  /**
-   * Write task/tool artifacts using underscore format (Windows-compatible)
-   * Creates flat files like: hseos_bmm_help.md
-   *
-   * @param {string} baseCommandsDir - Base commands directory for the IDE
-   * @param {Array} artifacts - Task/tool artifacts with relativePath
-   * @returns {number} Count of commands written
-   */
-  async writeColonArtifacts(baseCommandsDir, artifacts) {
-    let writtenCount = 0;
-
-    for (const artifact of artifacts) {
-      if (artifact.type === 'task' || artifact.type === 'tool') {
-        const commandContent = this.generateCommandContent(artifact, artifact.type);
-        // Use underscore format: hseos_module_name.md
-        const flatName = toColonPath(artifact.relativePath);
-        const commandPath = path.join(baseCommandsDir, flatName);
-        await fs.ensureDir(path.dirname(commandPath));
-        await fs.writeFile(commandPath, commandContent);
-        writtenCount++;
-      }
-    }
-
-    return writtenCount;
   }
 
   /**
