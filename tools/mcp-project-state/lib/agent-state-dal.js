@@ -58,6 +58,31 @@ class AgentStateDAL {
       createSession: db.prepare(`INSERT INTO as_sessions (id, parent_id, host) VALUES (?, ?, ?)`),
       heartbeatSession: db.prepare(`UPDATE as_sessions SET last_seen_at = datetime('now') WHERE id = ?`),
       endSession: db.prepare(`UPDATE as_sessions SET ended_at = datetime('now'), status = ? WHERE id = ?`),
+      // Always-on tracking (migration 004): idempotent upsert — re-registering a
+      // live/resumed session refreshes last_seen and re-activates it.
+      registerSession: db.prepare(
+        `INSERT INTO as_sessions (id, parent_id, host, cwd, service)
+         VALUES (?, ?, ?, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+           last_seen_at = datetime('now'),
+           status = 'active',
+           ended_at = NULL,
+           host = COALESCE(excluded.host, host),
+           cwd = COALESCE(excluded.cwd, cwd),
+           service = COALESCE(excluded.service, service)`,
+      ),
+      listActiveSessions: db.prepare(
+        `SELECT * FROM as_sessions WHERE status = 'active'
+         ORDER BY COALESCE(last_seen_at, started_at) DESC LIMIT ?`,
+      ),
+      listRecentSessions: db.prepare(
+        `SELECT * FROM as_sessions ORDER BY COALESCE(last_seen_at, started_at) DESC LIMIT ?`,
+      ),
+      sweepOrphanSessions: db.prepare(
+        `UPDATE as_sessions SET status = 'orphaned', ended_at = datetime('now')
+         WHERE status = 'active'
+           AND COALESCE(last_seen_at, started_at) < datetime('now', '-' || ? || ' minutes')`,
+      ),
       attachRunToSession: db.prepare(`UPDATE as_runs SET session_id = ?, repo_url = ?, base_branch = ? WHERE id = ?`),
       listSessionRunsStmt: db.prepare(`SELECT * FROM as_runs WHERE session_id = ? ORDER BY started_at DESC`),
       claimWorktree: db.prepare(
@@ -335,6 +360,39 @@ class AgentStateDAL {
    */
   endSession(session_id, status = 'completed') {
     const info = this._stmts.endSession.run(status, session_id);
+    return { changes: info.changes };
+  }
+
+  /**
+   * Idempotent always-on registration (migration 004). Unlike createSession,
+   * re-registering an existing id refreshes last_seen_at and re-activates the
+   * session — safe to call from every hook firing.
+   * @param {{ id: string, parent_id?: string|null, host?: string|null, cwd?: string|null, service?: string|null }} opts
+   */
+  registerSession({ id, parent_id = null, host = null, cwd = null, service = null }) {
+    this._stmts.registerSession.run(id, parent_id, host, cwd, service);
+    return { id };
+  }
+
+  /**
+   * List sessions, active-only by default, most recently seen first.
+   * @param {{ all?: boolean, limit?: number }} [opts]
+   * @returns {Array<object>}
+   */
+  listSessions({ all = false, limit = 50 } = {}) {
+    const stmt = all ? this._stmts.listRecentSessions : this._stmts.listActiveSessions;
+    return stmt.all(limit);
+  }
+
+  /**
+   * Mark active sessions with no heartbeat for `staleMinutes` as orphaned.
+   * Conservative default (24h): an idle-but-open terminal only heartbeats on
+   * prompt/turn boundaries, so short thresholds would orphan live sessions.
+   * @param {number} [staleMinutes=1440]
+   * @returns {{ changes: number }}
+   */
+  sweepOrphanSessions(staleMinutes = 1440) {
+    const info = this._stmts.sweepOrphanSessions.run(parseInt(staleMinutes, 10) || 1440);
     return { changes: info.changes };
   }
 

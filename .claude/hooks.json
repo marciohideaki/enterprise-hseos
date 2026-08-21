@@ -164,6 +164,12 @@
             "command": "bash .agents/hooks/handlers/ado-inbox-check.sh",
             "timeout": 3,
             "description": "ADO inbox check: warns at session start if pending tag-close events exist in .hseos/runs/ado-ops/inbox/. Advisory only — directs user to run /atlas close. Exits silently when ado.enabled=false."
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/session-track.sh",
+            "timeout": 5,
+            "description": "Always-on session tracking: register EVERY Claude session (hseos-launched or not) in as_sessions ($HOME machine store)"
           }
         ]
       }
@@ -182,6 +188,12 @@
             "command": "bash .agents/hooks/handlers/telemetry-export-session.sh",
             "timeout": 5,
             "description": "Opt-in OTLP/Loki session-ended log export. Self-suppresses unless OTEL_EXPORTER_OTLP_ENDPOINT or HSEOS_LOKI_ENDPOINT is set."
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/session-track.sh",
+            "timeout": 5,
+            "description": "Always-on session tracking: heartbeat as_sessions at turn end (long autonomous turns stay fresh)"
           }
         ]
       }
@@ -208,6 +220,12 @@
             "command": "bash .agents/hooks/handlers/on-prompt-submit.sh",
             "timeout": 5,
             "description": "Project-scoped prompt logging and state injection (vault concerns stripped vs upstream)"
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/session-track.sh",
+            "timeout": 5,
+            "description": "Always-on session tracking: heartbeat as_sessions on each prompt (register-if-missing upsert)"
           }
         ]
       }
@@ -220,6 +238,12 @@
             "type": "command",
             "command": "bash .agents/hooks/handlers/session-end.sh",
             "description": "Session-end log; vault sync only when second_brain.enabled true"
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/session-track.sh",
+            "timeout": 5,
+            "description": "Always-on session tracking: mark as_sessions row completed on session end"
           }
         ]
       }
