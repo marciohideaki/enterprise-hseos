@@ -32,6 +32,7 @@
 | [ADR-0021](./ADR-0021-brand-variants-via-design-tokens.md) | Brand Variants via Design Tokens, Not Forked Frontends | Proposed | SOLID (§6 DRY), CI/CD Pipeline (CI-43, CI-53), frontend repo topology |
 | [ADR-0022](./ADR-0022-governed-execution-ledger.md) | Governed Execution Runtime with Relational Event Ledger | Accepted (2026-08-21) | event sourcing, CQRS state, execution ports, capabilities, projections |
 | [ADR-0023](./ADR-0023-mcp-2026-stateless-adapter.md) | MCP 2026-07-28 Stateless Adapter and Legacy Boundary | Accepted (2026-08-21) | native MCP servers, shared transport, tool contracts |
+| [ADR-0024](./ADR-0024-model-agnostic-agent-framework.md) | Model-Agnostic Agent Framework and Substitutable Runtime Providers | Accepted (2026-08-21) | agent kernel, model providers, runtime providers, session lifecycle, conformance |
 
 ---
 
