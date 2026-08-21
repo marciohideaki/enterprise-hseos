@@ -167,110 +167,6 @@ function parseDashName(filename) {
   };
 }
 
-// ============================================================================
-// LEGACY FUNCTIONS (underscore format) - kept for backward compatibility
-// ============================================================================
-
-/**
- * Convert hierarchical path to flat underscore-separated name (LEGACY)
- * @deprecated Use toDashName instead
- */
-function toUnderscoreName(module, type, name) {
-  const isAgent = type === AGENT_SEGMENT;
-  if (module === 'core') {
-    return isAgent ? `hseos_agent_${name}.md` : `hseos_${name}.md`;
-  }
-  return isAgent ? `hseos_${module}_agent_${name}.md` : `hseos_${module}_${name}.md`;
-}
-
-/**
- * Convert relative path to flat underscore-separated name (LEGACY)
- * @deprecated Use toDashPath instead
- */
-function toUnderscorePath(relativePath) {
-  // Strip common file extensions (same as toDashPath for consistency)
-  const withoutExt = relativePath.replace(/\.(md|yaml|yml|json|xml|toml)$/i, '');
-  const parts = withoutExt.split(/[/\\]/);
-
-  const module = parts[0];
-  const type = parts[1];
-  const name = parts.slice(2).join('_');
-
-  return toUnderscoreName(module, type, name);
-}
-
-/**
- * Create custom agent underscore name (LEGACY)
- * @deprecated Use customAgentDashName instead
- */
-function customAgentUnderscoreName(agentName) {
-  return `hseos_custom_${agentName}.md`;
-}
-
-/**
- * Check if a filename uses underscore format (LEGACY)
- * @deprecated Use isDashFormat instead
- */
-function isUnderscoreFormat(filename) {
-  return filename.startsWith('hseos_') && filename.includes('_');
-}
-
-/**
- * Extract parts from an underscore-formatted filename (LEGACY)
- * @deprecated Use parseDashName instead
- */
-function parseUnderscoreName(filename) {
-  const withoutExt = filename.replace('.md', '');
-  const parts = withoutExt.split('_');
-
-  if (parts.length < 2 || parts[0] !== 'hseos') {
-    return null;
-  }
-
-  const agentIndex = parts.indexOf('agent');
-
-  if (agentIndex !== -1) {
-    if (agentIndex === 1) {
-      return {
-        prefix: parts[0],
-        module: 'core',
-        type: 'agents',
-        name: parts.slice(agentIndex + 1).join('_'),
-      };
-    } else {
-      return {
-        prefix: parts[0],
-        module: parts[1],
-        type: 'agents',
-        name: parts.slice(agentIndex + 1).join('_'),
-      };
-    }
-  }
-
-  if (parts.length === 2) {
-    return {
-      prefix: parts[0],
-      module: 'core',
-      type: 'workflows',
-      name: parts[1],
-    };
-  }
-
-  return {
-    prefix: parts[0],
-    module: parts[1],
-    type: 'workflows',
-    name: parts.slice(2).join('_'),
-  };
-}
-
-// Backward compatibility aliases (colon format was same as underscore)
-const toColonName = toUnderscoreName;
-const toColonPath = toUnderscorePath;
-const customAgentColonName = customAgentUnderscoreName;
-const isColonFormat = isUnderscoreFormat;
-const parseColonName = parseUnderscoreName;
-
 module.exports = {
   // New standard (dash-based)
   toDashName,
@@ -278,20 +174,6 @@ module.exports = {
   customAgentDashName,
   isDashFormat,
   parseDashName,
-
-  // Legacy (underscore-based) - kept for backward compatibility
-  toUnderscoreName,
-  toUnderscorePath,
-  customAgentUnderscoreName,
-  isUnderscoreFormat,
-  parseUnderscoreName,
-
-  // Backward compatibility aliases
-  toColonName,
-  toColonPath,
-  customAgentColonName,
-  isColonFormat,
-  parseColonName,
 
   TYPE_SEGMENTS,
   AGENT_SEGMENT,
