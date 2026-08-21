@@ -25,7 +25,7 @@
 | G1 | Dead-code and stale-status cleanup | G0 | focused tests, lint, documentation fact tests | Stop if a consumer of a removal is found |
 | G2 | Relational append-only event ledger and schema v2 | accepted ADR-0022 | migration tests on temporary DBs; concurrent ordering; idempotency | Stop before operational data migration |
 | G3 | Rebuildable state projections and truthful reconcile/health | G2 | crash recovery, replay, high-water, and 2/14 false-green regression tests | Stop on unreconciled destructive migration |
-| G4 | Governed execution core and common result envelope | G2 | policy, approval, timeout, cancel, schema, evidence contract tests | Stop on security-policy ambiguity |
+| G4 | Governed execution core, event schema/upcaster registry, sensitive-data allowlists, and common result envelope | G2 | policy, approval, timeout, cancel, versioned event/input/output schema, upcaster, evidence contract tests | Stop on security-policy ambiguity or an unregistered event type/version |
 | G5 | MCP 2026-07-28 adapter with bounded legacy negotiation | accepted ADR-0023, G4 | official-era request fixtures, deterministic list/cache/header tests | Stop if required consumed subset is unsupported |
 | G6 | CLI, hooks, project-state, and SWARM adapters | G3, G4 | cross-adapter parity tests and scheduler barrier/cancel tests | Stop if an adapter bypasses the execution port |
 | G7 | Capability schema v2 and exact materialization | G4 | selected set equals emitted set for every profile | Stop if mandatory baseline can be omitted |
