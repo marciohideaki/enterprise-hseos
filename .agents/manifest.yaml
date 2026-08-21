@@ -10,15 +10,9 @@ adapters:
     skills: .agents/skills
     settings: .codex/config.toml
     hooks: .codex/hseos-hooks.json
-  goose:
-    config: .goose/config.yaml
-    skills: .goose/skills
-    agents: .goose/agents
-    hooks_metadata: .goose/hooks-metadata.json
 platforms:
   - claude-code
   - codex
-  - goose
 counts:
   skills: 52
   hooks: 32
@@ -116,7 +110,7 @@ skills:
     source: .enterprise/governance/agent-skills/dev-squad/SKILL.md
     quick: .enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md
     output: .agents/skills/dev-squad/SKILL.md
-    hash: 24d345dc52767147fcadbe378219787601f2f1ea9175b4f0795e9b5a59a1a598
+    hash: 8f2415b578f706f96c1de0cc63c5de89f04ba34ba74f9042bd29b8960837bbed
   - name: doc-project
     source: .enterprise/governance/agent-skills/doc-project/SKILL.md
     quick: .enterprise/governance/agent-skills/doc-project/SKILL-QUICK.md
@@ -545,7 +539,7 @@ handlers:
     sha256: c331a2ff08666b2f13a4caa6b2a6e0405275654b5ea27788bcb00e7d53a9705b
   - file: .agents/hooks/handlers/session-track.sh
     source: .enterprise/governance/hooks/handlers/session-track.sh
-    sha256: 210a6085fd1a688ed31b1b93ab9b6ef56a233e0d739059be4d542a678255a011
+    sha256: 3d9786b8e2983b33ba85ba34dc8d530d83d6ebe92510ae55809af67af21c04f5
   - file: .agents/hooks/handlers/suggest-skill.sh
     source: .enterprise/governance/hooks/handlers/suggest-skill.sh
     sha256: 87153f5431a380150acebd00f13ac75987c52f50112869965766f391bc00f0db

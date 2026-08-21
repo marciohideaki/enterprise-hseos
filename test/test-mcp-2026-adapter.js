@@ -1,7 +1,10 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const http = require('node:http');
+const os = require('node:os');
+const path = require('node:path');
 const { PassThrough } = require('node:stream');
 const { test } = require('node:test');
 
@@ -21,6 +24,7 @@ const {
 } = require('../tools/lib/mcp-2026-adapter');
 const { deterministicOperationId } = require('../tools/lib/governed-execution/runtime');
 const { MCP_LEGACY_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION, MCP_PROTOCOL_VERSION } = require('../tools/lib/mcp-protocol');
+const { McpLegacyUsageStore } = require('../tools/mcp-project-state/lib/mcp-legacy-usage-store');
 
 const BASE_TOOLS = [
   {
@@ -129,7 +133,7 @@ test('MRTR state codec enforces integrity, exact operation binding, and expiry',
 
 test('modern discovery and tool list are stateless, deterministic, cacheable, and server-stamped', async () => {
   const { instance } = adapter();
-  assert.equal(MCP_PROTOCOL_VERSION, MCP_LEGACY_PROTOCOL_VERSION, 'operational servers must not advertise modern before G6');
+  assert.equal(MCP_PROTOCOL_VERSION, MCP_LEGACY_PROTOCOL_VERSION, 'operational activation remains ADR-gated');
 
   const discover = await instance.handle(modernMessage('server/discover'));
   assert.deepEqual(discover.result.supportedVersions, [MCP_MODERN_PROTOCOL_VERSION]);
@@ -496,6 +500,103 @@ test('legacy era is explicit, isolated, metered, deprecated, and cannot skip ini
   );
   assert.equal(legacyOnModern.error.code, JSON_RPC.UNSUPPORTED_PROTOCOL_VERSION);
   assert.equal(calls.length, 0);
+});
+
+test('legacy usage evidence survives restart in a bounded daily aggregate', (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-legacy-usage-'));
+  const databasePath = path.join(directory, 'legacy.db');
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const event = {
+    client_identity: 'legacy-client@1',
+    protocol_version: MCP_LEGACY_PROTOCOL_VERSION,
+    server_id: 'governance',
+    sunset: LEGACY_SUNSET,
+  };
+  const first = new McpLegacyUsageStore(databasePath);
+  first.record(event, new Date('2026-08-21T01:00:00.000Z'));
+  first.close();
+  const reopened = new McpLegacyUsageStore(databasePath);
+  reopened.record(event, new Date('2026-08-21T02:00:00.000Z'));
+  assert.deepEqual(reopened.snapshot().map(({ request_count: count, usage_day: day }) => ({ count, day })), [
+    { count: 2, day: '2026-08-21' },
+  ]);
+  reopened.close();
+});
+
+test('legacy activation readiness requires every hour of 30 completed zero-use days from every native server', (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-legacy-readiness-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const store = new McpLegacyUsageStore(path.join(directory, 'legacy.db'));
+  const servers = ['governance', 'project_state', 'swarm', 'axon_bridge'];
+  const start = new Date('2026-07-22T00:00:00.000Z');
+  for (let hour = 0; hour < 30 * 24; hour += 1) {
+    const instant = new Date(start.getTime() + hour * 3_600_000);
+    for (const serverId of servers) store.markObservation(serverId, instant);
+  }
+  assert.equal(store.activationReadiness({ serverIds: servers, asOf: new Date('2026-08-21T23:00:00.000Z') }).ready, true);
+  store.record(
+    {
+      client_identity: 'late-legacy-client',
+      protocol_version: MCP_LEGACY_PROTOCOL_VERSION,
+      server_id: 'swarm',
+      sunset: LEGACY_SUNSET,
+    },
+    new Date('2026-08-20T18:00:00.000Z'),
+  );
+  const blocked = store.activationReadiness({ serverIds: servers, asOf: new Date('2026-08-21T23:00:00.000Z') });
+  assert.equal(blocked.ready, false);
+  assert.deepEqual(blocked.legacy_use, [{ count: 1, day: '2026-08-20', server_id: 'swarm' }]);
+  store.record(
+    {
+      client_identity: 'current-day-legacy-client',
+      protocol_version: MCP_LEGACY_PROTOCOL_VERSION,
+      server_id: 'governance',
+      sunset: LEGACY_SUNSET,
+    },
+    new Date('2026-08-21T18:00:00.000Z'),
+  );
+  assert.equal(
+    store.activationReadiness({ serverIds: servers, asOf: new Date('2026-08-21T23:00:00.000Z') }).legacy_use.some(
+      (usage) => usage.day === '2026-08-21' && usage.server_id === 'governance',
+    ),
+    true,
+  );
+  store.close();
+});
+
+test('one heartbeat per day cannot produce false-green legacy readiness', (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-legacy-sparse-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const store = new McpLegacyUsageStore(path.join(directory, 'legacy.db'));
+  const servers = ['governance', 'project_state', 'swarm', 'axon_bridge'];
+  for (let day = 0; day < 30; day += 1) {
+    const instant = new Date(Date.parse('2026-07-22T12:00:00.000Z') + day * 86_400_000);
+    for (const serverId of servers) store.markObservation(serverId, instant);
+  }
+  const readiness = store.activationReadiness({ serverIds: servers, asOf: new Date('2026-08-21T23:00:00.000Z') });
+  assert.equal(readiness.ready, false);
+  assert.equal(readiness.gaps.every((gap) => gap.covered_hours === 1 && gap.required_hours === 24), true);
+  store.close();
+});
+
+test('durable legacy telemetry bounds identity cardinality and expires old aggregates', (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-legacy-bounded-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const store = new McpLegacyUsageStore(path.join(directory, 'legacy.db'), { maxIdentitiesPerDay: 8, retentionDays: 31 });
+  const base = {
+    protocol_version: MCP_LEGACY_PROTOCOL_VERSION,
+    server_id: 'governance',
+    sunset: LEGACY_SUNSET,
+  };
+  store.record({ ...base, client_identity: 'expired' }, new Date('2026-06-01T00:00:00.000Z'));
+  for (let index = 0; index < 100; index += 1) {
+    store.record({ ...base, client_identity: `client-${index}` }, new Date('2026-08-21T12:00:00.000Z'));
+  }
+  const rows = store.snapshot();
+  assert.equal(rows.length, 8);
+  assert.equal(rows.some((row) => row.client_label === 'expired'), false);
+  assert.equal(rows.find((row) => row.client_label === '__overflow__').request_count, 93);
+  store.close();
 });
 
 test('legacy compatibility stops at the approved sunset and keeps identity metrics bounded', async () => {

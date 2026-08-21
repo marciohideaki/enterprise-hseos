@@ -1,7 +1,6 @@
 -- Migration 005 — ADR-0022 governed execution ledger (schema v2)
--- PENDING ACTIVATION: production migration runners do not scan this directory.
--- G2 applies it only through the temporary-fixture gate. Moving it into the
--- operational migrations directory requires separate human authorization.
+-- PENDING ACTIVATION: the accepted ADR requires 30 consecutive zero-legacy
+-- days and migration evidence before an activation release may run this file.
 
 CREATE TABLE IF NOT EXISTS execution_event_schemas (
   event_type TEXT NOT NULL CHECK(length(event_type) > 0),

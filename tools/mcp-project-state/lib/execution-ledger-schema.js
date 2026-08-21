@@ -21,7 +21,7 @@ class ExecutionLedgerActivationError extends Error {
  * Apply the accepted schema only to an in-memory fixture. File-backed fixtures
  * must be created atomically by createExecutionLedgerFileFixture(); arbitrary
  * paths are rejected so symlink/hardlink aliases cannot cross the gate.
- * Operational activation remains a separate human gate.
+ * Operational activation remains gated by the accepted ADR compatibility window.
  * @param {import('better-sqlite3').Database} db
  * @returns {{applied: string[], current: number}}
  */

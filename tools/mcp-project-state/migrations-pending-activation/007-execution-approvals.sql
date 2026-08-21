@@ -1,5 +1,5 @@
 -- Migration 007 — ADR-0022 immutable per-operation approvals
--- PENDING ACTIVATION alongside migrations 005 and 006.
+-- PENDING ACTIVATION with migrations 005 and 006 under ADR-0022.
 
 CREATE TABLE IF NOT EXISTS execution_approvals (
   approval_id TEXT PRIMARY KEY CHECK(length(approval_id) > 0),

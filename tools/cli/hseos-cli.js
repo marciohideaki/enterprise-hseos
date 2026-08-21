@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const { execSync } = require('node:child_process');
 const semver = require('semver');
 const prompts = require('./lib/prompts');
+const { GOVERNED_CLI_COMMANDS, runGovernedCliAction } = require('./lib/governed-action');
 
 // The installer flow uses many sequential @clack/prompts, each adding keypress
 // listeners to stdin. Raise the limit to avoid spurious EventEmitter warnings.
@@ -87,6 +88,7 @@ program.version(packageJson.version).description('HSEOS CLI - Hideaki Software E
 // Register all commands
 for (const [name, cmd] of Object.entries(commands)) {
   const command = program.command(name).description(cmd.description);
+  const commandName = name.split(/\s+/, 1)[0];
 
   // Add options
   for (const option of cmd.options || []) {
@@ -94,11 +96,18 @@ for (const [name, cmd] of Object.entries(commands)) {
   }
 
   // Set action
-  command.action(cmd.action);
+  command.action(
+    GOVERNED_CLI_COMMANDS[commandName]
+      ? (...args) => runGovernedCliAction(commandName, cmd.action, args)
+      : cmd.action,
+  );
 }
 
 // Parse arguments
-program.parse(process.argv);
+void program.parseAsync(process.argv).catch((error) => {
+  console.error(`[hseos] ${error.code ? `${error.code}: ` : ''}${error.message}`);
+  process.exitCode = 1;
+});
 
 // Show help if no command provided
 if (process.argv.slice(2).length === 0) {

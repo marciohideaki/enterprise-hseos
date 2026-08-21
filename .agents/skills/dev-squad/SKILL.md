@@ -178,13 +178,15 @@ When the HSEOS state-tracking subsystem is installed (`hseos state-emit` availab
 
 ### Conservative dual-write semantics
 
-This contract **adds** SQLite emission to existing markdown writes. The skill **MUST continue** to write `INTAKE.md`, `PLAN.md`, `STATUS.md`, `RESUME-PROMPT.md`, and `WAVE-{n}-REPORT.md` to the run-dir. Markdown remains the operational backstop; SQLite is the queryable index.
+This contract preserves `INTAKE.md`, `PLAN.md`, `STATUS.md`, `RESUME-PROMPT.md`, and `WAVE-{n}-REPORT.md` as human-readable compatibility renders. They never override relational state. After ADR-0022 activation, every required transition is written through the governed execution port and the relational ledger is the sole mutable operational source; failed required emission stops the transition. Until that activation gate opens, the legacy state contract remains explicitly transitional and may not claim ledger conformance.
 
-ADR `2026-04-21-swarm-dev-squad` policy declares SQLite **canonical** for cross-run queries (orphan detection, `state-list`, `kanban-central`). Markdown remains canonical for **single-run** resume and human review.
+The transition is operational, not dormant: CLI and native MCP entrypoints keep the v4 path available in `legacy-metered` mode and persist usage in `.hseos/state/mcp-legacy-usage.db`. Activation requires explicit ADR approval plus 24 hourly observations for each of the four MCP servers on every one of the preceding 30 complete UTC days, with zero legacy requests. The current partial day never counts. Pending migrations 005–007 and the modern protocol remain test-fixture-only until that evidence is accepted.
+
+Production rejects any database above v4 or containing pending execution tables, even if its `user_version` was lowered. Telemetry retains 45 days and caps each server/day at 1,024 identity buckets, aggregating excess identities into `__overflow__`. Modern fixture mutations that require authorization use signed, operation-bound MRTR state and explicit client elicitation; they are never silently approved.
 
 ### Rollback
 
-To disable state emission per-run, unset `HSEOS_CURRENT_RUN_ID`. To disable globally, prepend `false ||` to all `hseos state-emit` invocations in the skill (silent skip). Both are reversible without regenerating the run-dir.
+Before activation, optional hook telemetry can be disabled by unsetting `HSEOS_CURRENT_RUN_ID`. After activation, required state emission cannot be disabled or bypassed; rollback means reverting the complete activation release and restoring its documented compatibility boundary.
 
 ### Verification (post-W5a merge)
 

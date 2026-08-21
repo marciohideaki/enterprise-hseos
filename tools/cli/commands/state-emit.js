@@ -1,6 +1,7 @@
 /**
  * `hseos state-emit` — emit a structured event into the agent-state SQLite store.
- * Best-effort write: idempotently runs migrations on first call. Used by hooks and skills.
+ * Governed write used by hooks and skills. The CLI boundary records execution
+ * facts before this provider is allowed to mutate agent state.
  */
 
 const path = require('node:path');
@@ -44,7 +45,7 @@ function ensureAgentRun(dal, db, { run_id, task_id, agent_name }) {
 
 module.exports = {
   command: 'state-emit <kind>',
-  description: 'Emit an agent-state event (start/heartbeat/checkpoint/complete/abort/tool_call/gate). Best-effort write to SQLite.',
+  description: 'Emit an agent-state event (start/heartbeat/checkpoint/complete/abort/tool_call/gate) through governed execution.',
   options: [
     ['--directory <path>', 'Project directory (default: current directory)'],
     ['--run <id>', 'Run id'],

@@ -1,6 +1,7 @@
 'use strict';
 
 const { createHash, randomUUID } = require('node:crypto');
+const { executionEnvelope, failureEnvelope } = require('./canonical-envelope');
 
 const TERMINAL_EVENTS = new Set([
   'ExecutionSucceeded',
@@ -49,31 +50,6 @@ function canonicalTime(value) {
   const parsed = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(parsed.getTime())) throw new GovernedExecutionError('Clock returned an invalid timestamp');
   return parsed.toISOString();
-}
-
-function envelope({ ok, data = null, error = null, evidence = [], warnings = [] }) {
-  return {
-    schema_version: 1,
-    ok,
-    data,
-    error,
-    evidence: [...new Set(evidence)],
-    warnings: [...new Set(warnings)],
-  };
-}
-
-function failureEnvelope(error, operationId = null, evidence = [], warnings = []) {
-  return envelope({
-    ok: false,
-    error: {
-      code: error.code || 'EXECUTION_FAILED',
-      message: error.message || 'Execution failed',
-      operation_id: operationId,
-      retryable: Boolean(error.retryable),
-    },
-    evidence,
-    warnings,
-  });
 }
 
 function providerError(error) {
@@ -197,7 +173,7 @@ class GovernedExecutionRuntime {
       );
     }
     if (terminal.event_type === 'ExecutionSucceeded') {
-      return envelope({
+      return executionEnvelope({
         ok: true,
         data: { operation_id: operation.operation_id, result: terminal.payload.result, replayed: true },
         evidence: allEvidence,
@@ -259,6 +235,138 @@ class GovernedExecutionRuntime {
       this.projector.reconcileActive();
     } catch (error) {
       warnings.push(`projection_reconcile_failed:${error.code || error.message}`);
+    }
+  }
+
+  async cancelQueued(request) {
+    let operationId = null;
+    const warnings = [];
+    try {
+      if (!request || typeof request !== 'object' || Array.isArray(request)) {
+        throw new GovernedExecutionError('Execution request must be an object', 'EXECUTION_REQUEST_INVALID');
+      }
+      const contract = this.contracts.resolve(request.tool);
+      if (contract.failure_mode !== 'fail_closed') {
+        throw new GovernedExecutionError(
+          `Failure mode ${contract.failure_mode} is reserved but not implemented by execution runtime v1`,
+          'EXECUTION_FAILURE_MODE_NOT_IMPLEMENTED',
+        );
+      }
+      if (contract.cancellation_policy !== 'cooperative') {
+        throw new GovernedExecutionError('Tool contract does not permit cancellation', 'EXECUTION_CANCELLATION_REFUSED');
+      }
+      const input = this.contracts.validateInput(contract, request.input);
+      if (
+        !request.actor ||
+        typeof request.actor !== 'object' ||
+        Array.isArray(request.actor) ||
+        typeof request.actor.id !== 'string' ||
+        request.actor.id.length === 0 ||
+        typeof request.actor.type !== 'string' ||
+        request.actor.type.length === 0
+      ) {
+        throw new GovernedExecutionError('actor must declare non-empty id and type', 'EXECUTION_REQUEST_INVALID');
+      }
+      if (
+        !request.resource_scope ||
+        typeof request.resource_scope !== 'object' ||
+        Array.isArray(request.resource_scope) ||
+        Object.keys(request.resource_scope).length === 0
+      ) {
+        throw new GovernedExecutionError('resource_scope must be a non-empty object', 'EXECUTION_REQUEST_INVALID');
+      }
+      const authorityDecision = await this.authority.evaluate({
+        contract,
+        actor: request.actor,
+        resource_scope: request.resource_scope,
+      });
+      if (!authorityDecision || authorityDecision.allowed !== true) {
+        throw new GovernedExecutionError('Authority evaluation denied cancellation', 'EXECUTION_AUTHORITY_DENIED');
+      }
+      const policyDecision = await this.policy.evaluate({
+        contract,
+        input,
+        actor: request.actor,
+        resource_scope: request.resource_scope,
+      });
+      if (!policyDecision || policyDecision.allowed !== true) {
+        throw new GovernedExecutionError('Policy evaluation denied cancellation', 'EXECUTION_POLICY_DENIED');
+      }
+      if (policyDecision.policy_version !== contract.policy_version) {
+        throw new GovernedExecutionError('Policy version does not match the tool contract', 'EXECUTION_POLICY_VERSION_MISMATCH');
+      }
+      if (
+        (policyDecision.requires_approval !== undefined && typeof policyDecision.requires_approval !== 'boolean') ||
+        (policyDecision.warnings !== undefined &&
+          (!Array.isArray(policyDecision.warnings) || policyDecision.warnings.some((warning) => typeof warning !== 'string')))
+      ) {
+        throw new GovernedExecutionError('Policy decision has an invalid shape', 'EXECUTION_POLICY_DECISION_INVALID');
+      }
+      warnings.push(...(policyDecision.warnings || []));
+      const idempotencyKey = request.idempotency_key;
+      if (typeof idempotencyKey !== 'string' || idempotencyKey.length === 0) {
+        throw new GovernedExecutionError('Queued cancellation requires its original idempotency key', 'EXECUTION_REQUEST_INVALID');
+      }
+      operationId = deterministicOperationId(contract.name, idempotencyKey);
+      const startedAt = canonicalTime(this.clock.now());
+      const deadline = new Date(new Date(startedAt).getTime() + contract.timeout_ms).toISOString();
+      const operation = {
+        operation_id: operationId,
+        tool: contract.name,
+        capability: contract.capability,
+        actor: request.actor,
+        resource_scope: request.resource_scope,
+        idempotency_key: idempotencyKey,
+        correlation_id: request.correlation_id || operationId,
+        causation_id: request.causation_id || `scheduler-cancel:${operationId}`,
+        deadline,
+      };
+      const inputDigest = digest(input);
+      const replay = this._readExisting(operation, inputDigest, contract);
+      if (replay) return replay;
+      const facts = [
+        this._fact('ExecutionAuthorized', operation, {
+          tool: contract.name,
+          capability: contract.capability,
+          input_schema_version: contract.input_schema.version,
+          output_schema_version: contract.output_schema.version,
+          reversibility: contract.reversibility,
+          policy_version: contract.policy_version,
+          deadline,
+          cancellation_policy: contract.cancellation_policy,
+          idempotency_key: idempotencyKey,
+          resource_scope: request.resource_scope,
+          input_digest: inputDigest,
+          warnings: [...warnings],
+        }),
+        this._fact('ExecutionStarted', operation, {
+          tool: contract.name,
+          provider: contract.provider,
+          idempotency_key: idempotencyKey,
+          dispatch_attempt: 1,
+          deadline,
+        }),
+        this._fact('ExecutionCancelled', operation, {
+          reason: 'cancelled by governed scheduler before provider dispatch',
+          phase: 'scheduler_queue',
+          warnings: [...warnings],
+        }),
+      ];
+      this.ledger.append({
+        aggregate_type: 'execution',
+        aggregate_id: operationId,
+        expected_version: 0,
+        events: facts,
+      });
+      this._reconcile(warnings);
+      return failureEnvelope(
+        new GovernedExecutionError('Execution cancelled before provider dispatch', 'EXECUTION_CANCELLED'),
+        operationId,
+        [],
+        warnings,
+      );
+    } catch (error) {
+      return failureEnvelope(error, operationId, [], warnings);
     }
   }
 
@@ -357,7 +465,7 @@ class GovernedExecutionRuntime {
       const requiresApproval =
         contract.requires_approval ||
         contract.reversibility === 'irreversible_mutation' ||
-        !contract.provider_accepts_idempotency ||
+        (contract.reversibility !== 'read_only' && !contract.provider_accepts_idempotency) ||
         policyDecision.requires_approval === true;
       let approvalId = null;
       let approvalEvidence = [];
@@ -366,7 +474,13 @@ class GovernedExecutionRuntime {
         if (!this.approvalStore || typeof this.approvalResolver !== 'function') {
           throw new GovernedExecutionError('Explicit approval is required but no approval boundary is available', 'EXECUTION_APPROVAL_REQUIRED');
         }
-        approvalId = await this.approvalResolver({ ...operation, policy_version: contract.policy_version });
+        approvalId = await this.approvalResolver(
+          { ...operation, policy_version: contract.policy_version },
+          request.approval_context || null,
+        );
+        if (typeof approvalId !== 'string' || approvalId.length === 0) {
+          throw new GovernedExecutionError('Explicit approval is required', 'EXECUTION_APPROVAL_REQUIRED');
+        }
         approval = this.approvalStore.get(approvalId);
         approvalEvidence = approval ? [approval.evidence_ref] : [];
       }
@@ -615,7 +729,7 @@ class GovernedExecutionRuntime {
         );
       }
       this._reconcile(warnings);
-      return envelope({ ok: true, data: { operation_id: operationId, result: output, replayed: false }, evidence, warnings });
+      return executionEnvelope({ ok: true, data: { operation_id: operationId, result: output, replayed: false }, evidence, warnings });
     } catch (error) {
       if (providerDispatchBegan) return this._terminalPersistenceFailure(operationId, operationEvidence, warnings, error);
       return failureEnvelope(error, operationId, [], warnings);

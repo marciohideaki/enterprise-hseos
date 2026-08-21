@@ -8,6 +8,7 @@ const { TextDecoder } = require('node:util');
 const { Worker } = require('node:worker_threads');
 const Ajv2020 = require('ajv/dist/2020');
 
+const { assertCanonicalEnvelope } = require('./governed-execution/canonical-envelope');
 const { deterministicOperationId } = require('./governed-execution/runtime');
 const { MCP_LEGACY_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION } = require('./mcp-protocol');
 
@@ -58,59 +59,6 @@ function deepFreeze(value) {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
   for (const child of Object.values(value)) deepFreeze(child);
   return Object.freeze(value);
-}
-
-function validateExecutionEnvelope(outcome) {
-  if (!outcome || typeof outcome !== 'object' || Array.isArray(outcome)) {
-    throw new McpAdapterError('Execution port returned an invalid envelope');
-  }
-  const expectedKeys = ['data', 'error', 'evidence', 'ok', 'schema_version', 'warnings'];
-  if (Object.keys(outcome).sort().join('\0') !== expectedKeys.join('\0')) {
-    throw new McpAdapterError('Execution port returned a non-canonical envelope');
-  }
-  if (
-    outcome.schema_version !== 1 ||
-    typeof outcome.ok !== 'boolean' ||
-    !Array.isArray(outcome.evidence) ||
-    !outcome.evidence.every((item) => typeof item === 'string') ||
-    new Set(outcome.evidence).size !== outcome.evidence.length ||
-    !Array.isArray(outcome.warnings) ||
-    !outcome.warnings.every((item) => typeof item === 'string') ||
-    new Set(outcome.warnings).size !== outcome.warnings.length
-  ) {
-    throw new McpAdapterError('Execution port returned an invalid envelope');
-  }
-  if (outcome.ok) {
-    if (
-      !outcome.data ||
-      typeof outcome.data !== 'object' ||
-      Array.isArray(outcome.data) ||
-      Object.keys(outcome.data).sort().join('\0') !== ['operation_id', 'replayed', 'result'].join('\0') ||
-      typeof outcome.data.operation_id !== 'string' ||
-      outcome.data.operation_id.length === 0 ||
-      typeof outcome.data.replayed !== 'boolean' ||
-      outcome.error !== null
-    ) {
-      throw new McpAdapterError('Execution port returned an invalid success envelope');
-    }
-  } else if (
-    outcome.data !== null ||
-    !outcome.error ||
-    typeof outcome.error !== 'object' ||
-    Array.isArray(outcome.error) ||
-    typeof outcome.error.code !== 'string' ||
-    outcome.error.code.length === 0 ||
-    typeof outcome.error.message !== 'string' ||
-    outcome.error.message.length === 0 ||
-    typeof outcome.error.retryable !== 'boolean' ||
-    Object.keys(outcome.error).sort().join('\0') !== ['code', 'message', 'operation_id', 'retryable'].join('\0') ||
-    !(
-      outcome.error.operation_id === null ||
-      (typeof outcome.error.operation_id === 'string' && outcome.error.operation_id.length > 0)
-    )
-  ) {
-    throw new McpAdapterError('Execution port returned an invalid failure envelope');
-  }
 }
 
 function createMcpApprovalStateCodec({ key, ttlMs = 300_000, clock = { now: () => new Date() } }) {
@@ -900,7 +848,7 @@ class Mcp2026Adapter {
       executionRequest.approval_context = approvalContext;
     }
     const outcome = await this.executePort(executionRequest);
-    validateExecutionEnvelope(outcome);
+    assertCanonicalEnvelope(outcome);
     if (outcome.ok && tool.outputSchema) {
       const outputValidation =
         outcome.data &&
