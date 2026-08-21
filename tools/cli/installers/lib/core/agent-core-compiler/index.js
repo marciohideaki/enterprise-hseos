@@ -12,6 +12,7 @@ const { collectAgents } = require('./sources/agents-source');
 const { writePluginRegistry } = require('./sources/plugins-source');
 const { collectMcp } = require('./sources/mcp-source');
 const { writePlatformAdapters } = require('./adapters/platforms');
+const { writePlatformPluginAdapters } = require('./adapters/plugins-emit');
 const { writeManifest } = require('./manifest/builder');
 const { parseFrontmatter } = require('./lib/frontmatter');
 const { slug } = require('./lib/slug');
@@ -71,8 +72,9 @@ class AgentCoreCompiler {
     const handlers = await syncHandlers(root, handlersSourceDir, this.agentsDirName);
     const commands = await writeCommandRegistry(root, hseosDir, this.agentsDirName);
     const agents = await collectAgents(root);
-    const plugins = (await writePluginRegistry(root, this.agentsDirName))
-      .filter((plugin) => plugin && plugin.id && plugin.version)
+    const registryPlugins = await writePluginRegistry(root, this.agentsDirName);
+    const plugins = registryPlugins
+      .filter((plugin) => plugin && plugin.id && plugin.version && plugin.status === 'active')
       .map((plugin) => {
         const entry = { id: plugin.id, version: String(plugin.version) };
         if (plugin.extends) entry.extends = plugin.extends;
@@ -88,6 +90,7 @@ class AgentCoreCompiler {
       agentsDirName: this.agentsDirName,
       sources: { skills, agents, mcpBundles: mcp.bundles || [] },
     });
+    await writePlatformPluginAdapters(root, registryPlugins, this.agentsDirName, emittedPlatforms);
 
     const manifest = await writeManifest(
       root,

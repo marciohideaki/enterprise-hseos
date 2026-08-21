@@ -25,7 +25,6 @@ counts:
   commands: 9
   handlers: 24
   agents: 16
-  plugins: 4
   mcp_servers: 8
 skills:
   - name: accessibility
@@ -489,7 +488,7 @@ commands:
 handlers:
   - file: .agents/hooks/handlers/README.md
     source: .enterprise/governance/hooks/handlers/README.md
-    sha256: b16326522aa26e293be70b3a94c8d7056e40e28a9a2a564e6a90615a97d9bc38
+    sha256: 9b430c198785c990f6c414bbfdc6049d751e5c7daace99b412809091226385a6
   - file: .agents/hooks/handlers/_ado-lib.sh
     source: .enterprise/governance/hooks/handlers/_ado-lib.sh
     sha256: bd2dbb5881fc0b01b6c0fbe3f71fba72305c9c93af60ebfe0def42e4536e2b33
@@ -608,16 +607,6 @@ agents:
   - code: VECTOR
     file: .hseos/agents/vector.agent.yaml
     sha256: 2581c74190ce6bb293284f4a48d67651031667976e11c666b1622f999b5871bf
-plugins:
-  - id: hseos-skill-creator
-    version: 0.1.0
-  - id: hseos-hookify
-    version: 0.1.0
-  - id: hseos-pr-review
-    version: 0.1.0
-    extends: official:pr-review-toolkit@1.2.0
-  - id: hseos-security-guidance
-    version: 0.1.0
 mcp_bundles_active:
   - core
   - extended

@@ -40,34 +40,34 @@ resolution:
   duplicate_id_strategy: error
   upstream_unreachable_strategy: load_standalone_with_warning
 
-# Plugins installed in this project. Foundation-slice entries are scaffolds —
-# concrete `surfaces:` (skills/hooks/commands/agents/mcp) materialize in W5
-# implementation follow-up PRs.
+# Marketplace candidates. Only `status: active` entries are emitted or
+# installable. Scaffolds remain visible for roadmap traceability but cannot be
+# presented to adapters as functioning plugins.
 plugins:
   - id: hseos-skill-creator
     version: "0.1.0"
-    status: active
+    status: scaffolded
     description: "Generate SKILL.md+QUICK.md pairs with HSEOS-compliant frontmatter (tier, load_strategy, triggers, adapter_overrides)"
     extends: ""
     requires_bundles: [core]
 
   - id: hseos-hookify
     version: "0.1.0"
-    status: active
-    description: "Author hooks in .agents/hooks/registry.yaml neutral format with adapter dispatch"
+    status: scaffolded
+    description: "Author hooks in the canonical .enterprise/governance/hooks source with adapter dispatch"
     extends: ""
     requires_bundles: [core]
 
   - id: hseos-pr-review
     version: "0.1.0"
-    status: active
+    status: scaffolded
     description: "Wraps pr-review-toolkit upstream with HSEOS commit-hygiene + commit-msg validation"
     extends: "official:pr-review-toolkit@1.2.0"
     requires_bundles: [core]
 
   - id: hseos-security-guidance
     version: "0.1.0"
-    status: active
+    status: scaffolded
     description: "Bundles secure-coding, threat-modeling, and dependency-audit skill activations as one plugin"
     extends: ""
     requires_bundles: [core]

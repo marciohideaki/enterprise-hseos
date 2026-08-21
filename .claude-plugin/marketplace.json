@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "marketplace": {
+    "id": "hseos",
+    "name": "HSEOS Plugin Marketplace",
+    "description": "Plugins authored against the HSEOS standalone v2.0 contract — Tier-policy frontmatter, neutral hook registry, vendor-neutral skill format.",
+    "homepage": "https://hseos.dev/plugins",
+    "license": "MIT",
+    "authors": [
+      "Hideaki Solutions"
+    ]
+  },
+  "plugins": []
+}

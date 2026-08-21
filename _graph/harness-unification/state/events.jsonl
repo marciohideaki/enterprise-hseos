@@ -1,1 +1,2 @@
 {"schema_version":1,"event_id":"harness-unification-0001","goal_id":"harness-unification","event_type":"baseline.captured","occurred_at":"2026-08-21T00:00:00Z","status":"in_progress","evidence":["BASELINE.md","GOAL-GRAPH.md"],"baseline_commit":"cfdcbbe692816aebca4623a3c878bb6c088ba664"}
+{"schema_version":1,"event_id":"harness-unification-0002","goal_id":"harness-unification","event_type":"node.completed","node_id":"G1","occurred_at":"2026-08-21T03:09:30Z","status":"completed","evidence":["state/checkpoints/G1-cleanup.md",".logs/validation/gate-20260821T030841.log"]}

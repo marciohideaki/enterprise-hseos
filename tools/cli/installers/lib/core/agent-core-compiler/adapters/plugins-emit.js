@@ -45,15 +45,13 @@ function buildCodexPluginIndex(registryRaw, plugins) {
 }
 
 async function writePlatformPluginAdapters(root, registryPlugins, agentsDirName = '.agents', platforms = []) {
-  if (registryPlugins.length === 0) return;
-
   const registryPath = path.join(root, agentsDirName, 'plugins', 'registry.yaml');
-  let registryRaw = {};
-  if (await fs.pathExists(registryPath)) {
-    registryRaw = yaml.parse(await fs.readFile(registryPath, 'utf8')) || {};
-  }
+  if (!(await fs.pathExists(registryPath))) return;
 
-  const manifests = await Promise.all(registryPlugins.map((p) => readPluginManifest(root, agentsDirName, p.id)));
+  const registryRaw = yaml.parse(await fs.readFile(registryPath, 'utf8')) || {};
+  const activeRegistryPlugins = registryPlugins.filter((plugin) => plugin && plugin.status === 'active');
+
+  const manifests = await Promise.all(activeRegistryPlugins.map((p) => readPluginManifest(root, agentsDirName, p.id)));
   const plugins = manifests.filter(Boolean);
 
   if (platforms.includes('claude-code') || platforms.length === 0) {

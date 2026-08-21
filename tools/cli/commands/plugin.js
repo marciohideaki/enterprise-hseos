@@ -39,6 +39,9 @@ async function runInstall(projectDir, pluginId) {
   if (!entry) {
     throw new Error(`Plugin not found in registry: ${pluginId}`);
   }
+  if (entry.status !== 'active') {
+    throw new Error(`Plugin is not installable: ${pluginId} has status ${entry.status || 'unspecified'}`);
+  }
 
   const manifestPath = path.join(projectDir, '.agents', 'plugins', 'definitions', pluginId, 'plugin.yaml');
   if (!(await fs.pathExists(manifestPath))) {
@@ -92,6 +95,7 @@ async function runDoctor(projectDir) {
 
   let passed = 0;
   let failed = 0;
+  let skipped = 0;
   for (const entry of registry.plugins) {
     const manifestPath = path.join(projectDir, '.agents', 'plugins', 'definitions', entry.id, 'plugin.yaml');
     const readmePath = path.join(projectDir, '.agents', 'plugins', 'definitions', entry.id, 'README.md');
@@ -122,6 +126,12 @@ async function runDoctor(projectDir) {
       continue;
     }
 
+    if (entry.status !== 'active') {
+      await prompts.log.warn(`○ ${entry.id}@${manifest.version} — ${entry.status || 'inactive'}; behavior checks skipped`);
+      skipped++;
+      continue;
+    }
+
     await prompts.log.success(`✓ ${entry.id}@${manifest.version} — conformance pass`);
     passed++;
   }
@@ -129,7 +139,7 @@ async function runDoctor(projectDir) {
   if (failed > 0) {
     throw new Error(`plugin doctor: ${failed} plugin(s) failed conformance checks`);
   }
-  await prompts.log.success(`plugin doctor: all ${passed} plugin(s) passed.`);
+  await prompts.log.success(`plugin doctor: ${passed} active plugin(s) passed; ${skipped} inactive plugin(s) skipped.`);
 }
 
 module.exports = {
