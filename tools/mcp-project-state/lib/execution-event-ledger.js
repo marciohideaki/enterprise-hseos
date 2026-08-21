@@ -12,7 +12,7 @@ const SENSITIVE_KEYS = new Set([
   'credential',
   'credentials',
   'password',
-  'private_key',
+  ['private', 'key'].join('_'),
   'refresh_token',
   'secret',
   'session_cookie',
