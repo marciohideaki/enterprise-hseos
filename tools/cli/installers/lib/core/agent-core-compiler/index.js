@@ -42,7 +42,16 @@ class AgentCoreCompiler {
 
     await fs.ensureDir(agentsDir);
     await writeInstructions(root, this.agentsDirName);
-    const skills = await writeSkills(root, enterpriseSkillsDir, sourceRoot, this.agentsDirName);
+    const selectedSkills = Array.isArray(options.selectedSkills) ? [...new Set(options.selectedSkills)].sort() : null;
+    const skills = await writeSkills(root, enterpriseSkillsDir, sourceRoot, this.agentsDirName, selectedSkills);
+    if (selectedSkills) {
+      const emittedSkills = skills.map((skill) => skill.name).sort();
+      if (JSON.stringify(emittedSkills) !== JSON.stringify(selectedSkills)) {
+        throw new Error(
+          `Capability materialization mismatch: selected [${selectedSkills.join(', ')}], emitted [${emittedSkills.join(', ')}]`,
+        );
+      }
+    }
 
     // Determine hook source. Canonical: .enterprise/governance/hooks/registry.yaml
     // (target, then source root). Compatibility fallbacks: the previously compiled
@@ -125,8 +134,8 @@ class AgentCoreCompiler {
     return writeInstructions(root, this.agentsDirName);
   }
 
-  async writeSkills(root, enterpriseSkillsDir, sourceRoot) {
-    return writeSkills(root, enterpriseSkillsDir, sourceRoot, this.agentsDirName);
+  async writeSkills(root, enterpriseSkillsDir, sourceRoot, selectedSkillIds = null) {
+    return writeSkills(root, enterpriseSkillsDir, sourceRoot, this.agentsDirName, selectedSkillIds);
   }
 
   async writeHookRegistry(root, sourcePath, legacyFallback) {

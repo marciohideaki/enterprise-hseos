@@ -8,6 +8,10 @@ It is a planning and selection layer. It does not replace the Enterprise
 Constitution, agent authority files, skill registry, quality gates, worktree
 lifecycle, or state management.
 
+Both catalog documents use fail-closed schema v2 (`schema_version: "2.0"`).
+Unknown fields, duplicate IDs, unsafe paths, invalid references, multiple
+defaults, or a changed mandatory baseline reject the catalog before planning.
+
 ## Files
 
 | File | Purpose |
@@ -67,8 +71,14 @@ hseos install --skills pr-review,test-coverage
 ```
 
 The installer resolves the capability plan, fills module/tool defaults when the
-operator did not provide explicit values, and records the resolved plan at
-`.hseos/config/capability-selection.yaml` after a successful install.
+operator did not provide explicit values, and passes the exact selected skill
+set to the compiler. The compiler reconciles generated skill directories,
+fails if selected and emitted sets differ, and records the resolved plan at
+`.hseos/config/capability-selection.yaml` only after a successful install.
+
+Required baseline components are injected by the resolver. Profiles must not
+repeat them, which keeps profile declarations normalized without making the
+baseline optional.
 
 ## Accommodation Rules
 
