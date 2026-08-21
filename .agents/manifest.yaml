@@ -21,9 +21,9 @@ platforms:
   - goose
 counts:
   skills: 52
-  hooks: 28
+  hooks: 32
   commands: 9
-  handlers: 23
+  handlers: 24
   agents: 16
   plugins: 4
   mcp_servers: 8
@@ -429,6 +429,26 @@ hooks:
     matcher: Bash
     platform_support:
       - claude-code
+  - id: sessionstart-all-session-track-register-machine-store
+    event: SessionStart
+    matcher: "*"
+    platform_support:
+      - claude-code
+  - id: userpromptsubmit-all-session-track-heartbeat
+    event: UserPromptSubmit
+    matcher: "*"
+    platform_support:
+      - claude-code
+  - id: stop-all-session-track-heartbeat-turn-end
+    event: Stop
+    matcher: "*"
+    platform_support:
+      - claude-code
+  - id: sessionend-all-session-track-end
+    event: SessionEnd
+    matcher: "*"
+    platform_support:
+      - claude-code
 commands:
   - name: hseos-workflow-delivery-readiness
     type: workflow
@@ -524,6 +544,9 @@ handlers:
   - file: .agents/hooks/handlers/session-end.sh
     source: .enterprise/governance/hooks/handlers/session-end.sh
     sha256: c331a2ff08666b2f13a4caa6b2a6e0405275654b5ea27788bcb00e7d53a9705b
+  - file: .agents/hooks/handlers/session-track.sh
+    source: .enterprise/governance/hooks/handlers/session-track.sh
+    sha256: 210a6085fd1a688ed31b1b93ab9b6ef56a233e0d739059be4d542a678255a011
   - file: .agents/hooks/handlers/suggest-skill.sh
     source: .enterprise/governance/hooks/handlers/suggest-skill.sh
     sha256: 87153f5431a380150acebd00f13ac75987c52f50112869965766f391bc00f0db

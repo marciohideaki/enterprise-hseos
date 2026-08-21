@@ -260,6 +260,46 @@
       "description": "Opt-in OTLP/Loki session-ended log export. Self-suppresses unless OTEL_EXPORTER_OTLP_ENDPOINT or HSEOS_LOKI_ENDPOINT is set.",
       "fallback": "No-op when no OTLP/Loki endpoint configured; SQLite complete-event unaffected.",
       "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "sessionstart-all-session-track-register-machine-store",
+      "event": "SessionStart",
+      "matcher": "*",
+      "command": "bash .agents/hooks/handlers/session-track.sh",
+      "blocking": false,
+      "description": "Always-on session tracking: register EVERY Claude session (hseos-launched or not) in as_sessions ($HOME machine store)",
+      "fallback": "No-op when hseos CLI or jq absent.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "userpromptsubmit-all-session-track-heartbeat",
+      "event": "UserPromptSubmit",
+      "matcher": "*",
+      "command": "bash .agents/hooks/handlers/session-track.sh",
+      "blocking": false,
+      "description": "Always-on session tracking: heartbeat as_sessions on each prompt (register-if-missing upsert)",
+      "fallback": "No-op when hseos CLI or jq absent.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "stop-all-session-track-heartbeat-turn-end",
+      "event": "Stop",
+      "matcher": "*",
+      "command": "bash .agents/hooks/handlers/session-track.sh",
+      "blocking": false,
+      "description": "Always-on session tracking: heartbeat as_sessions at turn end (long autonomous turns stay fresh)",
+      "fallback": "No-op when hseos CLI or jq absent.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "sessionend-all-session-track-end",
+      "event": "SessionEnd",
+      "matcher": "*",
+      "command": "bash .agents/hooks/handlers/session-track.sh",
+      "blocking": false,
+      "description": "Always-on session tracking: mark as_sessions row completed on session end",
+      "fallback": "No-op when hseos CLI or jq absent.",
+      "codex_equivalent": "portable-handler-script"
     }
   ]
 }

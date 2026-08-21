@@ -338,3 +338,51 @@ hooks:
     platform_support:
       - claude-code
     fallback: No-op when HSEOS_BUILD_MAX_JOBS unset or HSEOS_BUILD_GUARD_DISABLE=1.
+  - id: sessionstart-all-session-track-register-machine-store
+    event: SessionStart
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/session-track.sh
+    timeout: 5
+    blocking: false
+    status: active
+    description: "Always-on session tracking: register EVERY Claude session (hseos-launched or not) in as_sessions ($HOME machine store)"
+    platform_support:
+      - claude-code
+    fallback: No-op when hseos CLI or jq absent.
+  - id: userpromptsubmit-all-session-track-heartbeat
+    event: UserPromptSubmit
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/session-track.sh
+    timeout: 5
+    blocking: false
+    status: active
+    description: "Always-on session tracking: heartbeat as_sessions on each prompt (register-if-missing upsert)"
+    platform_support:
+      - claude-code
+    fallback: No-op when hseos CLI or jq absent.
+  - id: stop-all-session-track-heartbeat-turn-end
+    event: Stop
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/session-track.sh
+    timeout: 5
+    blocking: false
+    status: active
+    description: "Always-on session tracking: heartbeat as_sessions at turn end (long autonomous turns stay fresh)"
+    platform_support:
+      - claude-code
+    fallback: No-op when hseos CLI or jq absent.
+  - id: sessionend-all-session-track-end
+    event: SessionEnd
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/session-track.sh
+    timeout: 5
+    blocking: false
+    status: active
+    description: "Always-on session tracking: mark as_sessions row completed on session end"
+    platform_support:
+      - claude-code
+    fallback: No-op when hseos CLI or jq absent.
