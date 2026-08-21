@@ -313,6 +313,12 @@ Use `AdapterBase.writeFile(path, content)` instead of raw `fs.writeFile` — it 
 Plugin conformance checks validate active plugin manifests. Entries marked `scaffolded`
 remain visible in the catalog but are deliberately not installable.
 
+Author plugin definitions only under `.enterprise/governance/plugins/`. The compiler
+replaces `.agents/plugins/` from that canonical tree; direct edits in `.agents` are
+generated drift and will be overwritten. A schema-v2 registry fails closed before
+publication on unknown fields, unsafe IDs/paths, duplicate IDs, invalid statuses, or
+invalid versions.
+
 During compilation, a previously installed plugin that is no longer active is moved from
 `<vendor>-plugin/plugins/<id>/` to `<vendor>-plugin/disabled/<id>/`. This preserves the
 generated installation for inspection while removing it from the vendor discovery path.

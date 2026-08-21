@@ -299,7 +299,7 @@ Bundles (ADR-0008, `.agents/mcp/bundles/`): **core** (sempre: governance, state,
 - `tools/usage-dashboard/` (Python) — mineração dos JSONL do Claude Code para SQLite + dashboard de custo/uso (:8080, exposto na rede local deliberadamente).
 - `tools/state-ui-server/` — kanban web SSE (loopback-only por default; `lib/snapshot.js` é a fonte única do formato, compartilhada com o kanban ASCII).
 - `packages/adapter-sdk` (`@hseos/adapter-sdk` v1.0.0, **implemented**) — contrato `AdapterBase` + `checkAdapterConformance` para BYOA; Goose é o adapter de referência.
-- Plugins (ADR-0009): a infraestrutura de catálogo/emissão dual está implementada; os quatro candidatos (`hseos-skill-creator`, `hseos-hookify`, `hseos-pr-review`, `hseos-security-guidance`) permanecem `scaffolded` e não são emitidos nem instaláveis até terem comportamento testado.
+- Plugins (ADR-0009): a fonte canônica é `.enterprise/governance/plugins/`; o compiler sincroniza uma visão exata em `.agents/plugins/` e só então emite os formatos de vendor. O registry v2 falha fechado e os quatro candidatos permanecem `scaffolded`, fora do manifest, da publicação e da instalação até terem testes de comportamento aprovados.
 
 ### 9.4 Scripts de governança (`scripts/governance/`)
 

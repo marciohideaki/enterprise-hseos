@@ -1,0 +1,14 @@
+id: hseos-hookify
+version: "0.1.0"
+description: "Author hooks in the canonical .enterprise/governance/hooks source with per-adapter dispatch"
+license: MIT
+authors:
+  - "Hideaki Solutions"
+extends: ""
+requires_bundles:
+  - core
+surfaces:
+  hooks:
+    - hooks/registry-fragment.yaml
+verification:
+  conformance_tests: tests/

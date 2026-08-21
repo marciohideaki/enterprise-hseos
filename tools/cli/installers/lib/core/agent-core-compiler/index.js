@@ -9,7 +9,12 @@ const { writeSkills, normalizeSkill } = require('./sources/skills-source');
 const { syncHandlers, writeHookRegistry } = require('./sources/hooks-source');
 const { writeCommandRegistry } = require('./sources/commands-source');
 const { collectAgents } = require('./sources/agents-source');
-const { writePluginRegistry, loadActivePluginManifests, verifyActivePluginConformance } = require('./sources/plugins-source');
+const {
+  writePluginRegistry,
+  loadActivePluginManifests,
+  syncPluginCatalog,
+  verifyActivePluginConformance,
+} = require('./sources/plugins-source');
 const { collectMcp } = require('./sources/mcp-source');
 const { writePlatformAdapters } = require('./adapters/platforms');
 const { writePlatformPluginAdapters } = require('./adapters/plugins-emit');
@@ -36,6 +41,7 @@ class AgentCoreCompiler {
     const targetEnterpriseSkillsDir = path.join(root, ENTERPRISE_SKILLS_DIR);
     const sourceEnterpriseSkillsDir = path.join(sourceRoot, ENTERPRISE_SKILLS_DIR);
     const enterpriseSkillsDir = (await fs.pathExists(targetEnterpriseSkillsDir)) ? targetEnterpriseSkillsDir : sourceEnterpriseSkillsDir;
+    await syncPluginCatalog(root, sourceRoot, this.agentsDirName);
     const registryPlugins = await writePluginRegistry(root, this.agentsDirName);
     const activePluginManifests = await loadActivePluginManifests(root, registryPlugins, this.agentsDirName);
     await verifyActivePluginConformance(root, activePluginManifests, this.agentsDirName);
