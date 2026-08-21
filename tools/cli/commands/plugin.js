@@ -4,6 +4,10 @@ const path = require('node:path');
 const fs = require('fs-extra');
 const yaml = require('yaml');
 const prompts = require('../lib/prompts');
+const {
+  loadActivePluginManifests,
+  verifyActivePluginConformance,
+} = require('../installers/lib/core/agent-core-compiler/sources/plugins-source');
 
 const SUPPORTED_ACTIONS = new Set(['list', 'install', 'remove', 'doctor']);
 
@@ -42,23 +46,89 @@ async function runInstall(projectDir, pluginId) {
   if (entry.status !== 'active') {
     throw new Error(`Plugin is not installable: ${pluginId} has status ${entry.status || 'unspecified'}`);
   }
+  const [validatedManifest] = await loadActivePluginManifests(projectDir, [entry]);
+  const manifest = validatedManifest;
+  await verifyActivePluginConformance(projectDir, [manifest]);
 
-  const manifestPath = path.join(projectDir, '.agents', 'plugins', 'definitions', pluginId, 'plugin.yaml');
-  if (!(await fs.pathExists(manifestPath))) {
-    throw new Error(`Plugin definition not found: ${manifestPath}`);
+  const pluginSourceDir = path.join(projectDir, '.agents', 'plugins', 'definitions', pluginId);
+  const surfaceFiles = Object.values(manifest.surfaces).flatMap((value) => (Array.isArray(value) ? value : []));
+
+  async function prepare(vendorRoot) {
+    const pluginsDir = path.join(projectDir, vendorRoot, 'plugins');
+    const installedDir = path.join(pluginsDir, pluginId);
+    await fs.ensureDir(pluginsDir);
+    const stagingDir = await fs.mkdtemp(path.join(pluginsDir, `.${pluginId}-`));
+    const artifact = {
+      installedDir,
+      stagingDir,
+      backupDir: `${stagingDir}.previous`,
+      previousMoved: false,
+      committed: false,
+    };
+    try {
+      await fs.writeFile(path.join(stagingDir, 'plugin.json'), JSON.stringify(manifest, null, 2), 'utf8');
+      await fs.copy(path.join(pluginSourceDir, 'README.md'), path.join(stagingDir, 'README.md'));
+      for (const surfaceFile of surfaceFiles) {
+        await fs.copy(path.join(pluginSourceDir, surfaceFile), path.join(stagingDir, surfaceFile));
+      }
+    } catch (error) {
+      await fs.remove(stagingDir);
+      throw error;
+    }
+    return artifact;
   }
-  const raw = await fs.readFile(manifestPath, 'utf8');
-  const manifest = yaml.parse(raw) || {};
 
-  // Emit to claude-plugin
-  const claudePluginDir = path.join(projectDir, '.claude-plugin', 'plugins', pluginId);
-  await fs.ensureDir(claudePluginDir);
-  await fs.writeFile(path.join(claudePluginDir, 'plugin.json'), JSON.stringify(manifest, null, 2), 'utf8');
+  const artifacts = [];
+  try {
+    // Prepare both complete vendor trees before exposing either one.
+    for (const vendorRoot of ['.claude-plugin', '.codex-plugin']) {
+      artifacts.push(await prepare(vendorRoot));
+    }
 
-  // Emit to codex-plugin
-  const codexPluginDir = path.join(projectDir, '.codex-plugin', 'plugins', pluginId);
-  await fs.ensureDir(codexPluginDir);
-  await fs.writeFile(path.join(codexPluginDir, 'plugin.json'), JSON.stringify(manifest, null, 2), 'utf8');
+    // Swap both destinations while retaining their previous versions for rollback.
+    for (const artifact of artifacts) {
+      if (await fs.pathExists(artifact.installedDir)) {
+        await fs.move(artifact.installedDir, artifact.backupDir);
+        artifact.previousMoved = true;
+      }
+      await fs.move(artifact.stagingDir, artifact.installedDir);
+      artifact.committed = true;
+    }
+  } catch (error) {
+    let rollbackError;
+    for (const artifact of artifacts.toReversed()) {
+      try {
+        if (artifact.committed && (await fs.pathExists(artifact.installedDir))) {
+          await fs.remove(artifact.installedDir);
+        }
+        if (artifact.previousMoved && (await fs.pathExists(artifact.backupDir))) {
+          await fs.move(artifact.backupDir, artifact.installedDir);
+        }
+        if (await fs.pathExists(artifact.stagingDir)) await fs.remove(artifact.stagingDir);
+      } catch (error_) {
+        rollbackError ||= error_;
+      }
+    }
+    if (rollbackError) {
+      throw new Error(`Plugin install failed (${error.message}) and rollback failed: ${rollbackError.message}`);
+    }
+    throw error;
+  }
+
+  // Both swaps are now committed. Backup cleanup is housekeeping: a cleanup
+  // failure must never trigger a rollback after another backup was deleted.
+  const cleanupFailures = [];
+  for (const artifact of artifacts) {
+    if (!artifact.previousMoved) continue;
+    try {
+      await fs.remove(artifact.backupDir);
+    } catch (error) {
+      cleanupFailures.push(`${artifact.backupDir}: ${error.message}`);
+    }
+  }
+  if (cleanupFailures.length > 0) {
+    await prompts.log.warn(`Plugin installed, but old backup cleanup requires attention: ${cleanupFailures.join('; ')}`);
+  }
 
   await prompts.log.success(`Installed plugin: ${pluginId}@${manifest.version}`);
 }
@@ -93,7 +163,16 @@ async function runDoctor(projectDir) {
     return;
   }
 
-  let passed = 0;
+  let activeManifests;
+  try {
+    activeManifests = await loadActivePluginManifests(projectDir, registry.plugins);
+    await verifyActivePluginConformance(projectDir, activeManifests);
+  } catch (error) {
+    await prompts.log.error(`✗ ${error.message}`);
+    throw new Error(`plugin doctor: active plugin conformance failed: ${error.message}`);
+  }
+
+  const passed = activeManifests.length;
   let failed = 0;
   let skipped = 0;
   for (const entry of registry.plugins) {
@@ -133,7 +212,6 @@ async function runDoctor(projectDir) {
     }
 
     await prompts.log.success(`✓ ${entry.id}@${manifest.version} — conformance pass`);
-    passed++;
   }
 
   if (failed > 0) {

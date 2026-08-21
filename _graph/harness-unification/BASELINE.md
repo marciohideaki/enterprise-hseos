@@ -1,9 +1,9 @@
 # Harness Unification Baseline
 
-**Artifact type:** Governed goal baseline  
-**Scope:** HSEOS runtime, state, capabilities, plugins, MCP adapters, generated surfaces, and compatibility layers  
-**Baseline commit:** `cfdcbbe692816aebca4623a3c878bb6c088ba664`  
-**Worktree:** `task/harness-unification-foundation` from `feature/harness-unification`  
+**Artifact type:** Governed goal baseline
+**Scope:** HSEOS runtime, state, capabilities, plugins, MCP adapters, generated surfaces, and compatibility layers
+**Baseline commit:** `cfdcbbe692816aebca4623a3c878bb6c088ba664`
+**Worktree:** `task/harness-unification-foundation` from `feature/harness-unification`
 **Captured:** 2026-08-21 UTC
 
 ## Governing documents
@@ -56,4 +56,3 @@ This target is **inferred from the user's authorization plus the prior accepted 
 ## Rollback position
 
 Until an ADR is accepted, only isolated documentation, tests that expose existing contradictions, and behavior-preserving cleanup may proceed. The task branch can be discarded without changing `master` or the user's dirty worktree.
-

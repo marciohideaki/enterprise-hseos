@@ -488,7 +488,7 @@ commands:
 handlers:
   - file: .agents/hooks/handlers/README.md
     source: .enterprise/governance/hooks/handlers/README.md
-    sha256: 9b430c198785c990f6c414bbfdc6049d751e5c7daace99b412809091226385a6
+    sha256: 91be729bb6597cad23989be76bfe08cca9ceacbba79a4f7d1336059ad576be24
   - file: .agents/hooks/handlers/_ado-lib.sh
     source: .enterprise/governance/hooks/handlers/_ado-lib.sh
     sha256: bd2dbb5881fc0b01b6c0fbe3f71fba72305c9c93af60ebfe0def42e4536e2b33

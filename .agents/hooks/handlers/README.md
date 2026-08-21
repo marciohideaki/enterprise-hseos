@@ -2,27 +2,27 @@
 
 > **Status: implemented.** The canonical handler source is `.enterprise/governance/hooks/handlers/`. The agent-core compiler copies and hash-pins it into `.agents/hooks/handlers/`; clean clones do not depend on host-global paths (ADR-0006 P5). Files in the compiled mirror must not be edited directly.
 
-## Migration plan
+## Implemented handler families
 
-The following eight handler scripts will land in this directory, one per follow-up commit:
+The canonical directory currently contains the following core handler families:
 
 | Handler | Source | Event | Purpose |
 |---|---|---|---|
-| `plan-lint.sh` | `~/.claude/hooks/on-post-write-plan-lint.sh` | PostToolUse (Write\|Edit) | Lint plan files for missing `## Execution Protocol` section in parallel-flow plans |
-| `pre-compact.sh` | `~/.claude/hooks/on-pre-compact.sh` | PreCompact | Snapshot critical context (next steps, open questions) before compaction |
-| `on-prompt-submit.sh` | `~/.claude/hooks/on-prompt-submit.sh` (refactored) | UserPromptSubmit | Project-only concerns; vault dependencies stripped |
-| `session-end.sh` | `~/.claude/hooks/on-session-end.sh` | SessionEnd | Gated session-end log; vault sync only when `second_brain.enabled: true` |
-| `suggest-skill.sh` | `~/.claude/hooks/suggest-skill-before-agent.sh` | PreToolUse (Agent) | Recommend skills before Agent spawn; reads SKILL.md frontmatter `triggers` |
-| `code-index-guard.sh` | `~/.claude/hooks/axon-guard.sh` (generalized) | PreToolUse (Grep\|Glob) | Block raw search when code index is available; pluggable across index providers |
-| `code-index-post-edit.sh` | `~/.claude/hooks/axon-post-edit.sh` (generalized) | PostToolUse (Write\|Edit) | Trigger index reindex after edits; pluggable across providers |
-| `on-notification.sh` | `~/.claude/hooks/on-notification.sh` | Notification | System notification for long-running operations |
+| `plan-lint.sh` | PostToolUse (Write\|Edit) | Lint parallel-flow plans for a missing execution protocol |
+| `pre-compact.sh` | PreCompact | Snapshot critical context before compaction |
+| `on-prompt-submit.sh` | UserPromptSubmit | Capture project-scoped prompt context and advisories |
+| `session-end.sh`, `session-track.sh` | Session lifecycle | Track sessions and optionally bridge second-brain state |
+| `suggest-skill.sh` | PreToolUse (Agent) | Recommend governed skills before agent dispatch |
+| `code-index-guard.sh`, `code-index-post-edit.sh` | Pre/Post tool use | Enforce and refresh the configured project-local code index |
+| `swarm-gate.sh`, `claude-md-guard.sh`, ADO guards | PreToolUse | Enforce blocking governance decisions declared by the registry |
+| `telemetry-export-*.sh` | PostToolUse/Stop | Export optional telemetry without becoming state authority |
 
-The existing `scripts/governance/state-emit-hook.sh`, `swarm-gate.sh`, and `quality-gates.sh` continue to live under `scripts/governance/` for backward compatibility; they will be relocated here in a follow-up wave when the compiler v2 (W2 implementation) lands and can rewrite registry paths atomically.
+`scripts/governance/state-emit-hook.sh` and `quality-gates.sh` remain explicit runtime/governance entrypoints. They are not pending handler migrations. Registry commands are authored in `.enterprise/governance/hooks/registry.yaml` and compiled atomically for each adapter.
 
 ## Handler authoring rules
 
 1. **Idempotent.** Running twice produces the same result.
-2. **Best-effort.** Never block the triggering action; exit 0 even on failure (use `|| true`).
+2. **Declared failure behavior.** Optional integrations are best-effort. A handler may block only when its registry entry declares `blocking: true` and an accepted policy requires fail-closed enforcement.
 3. **Project-scoped.** Only modify files within the current worktree; never touch `~/.claude/`, `/opt/`, or `$HOME` outside the repo.
 4. **Config-aware.** Read `hseos.config.yaml` for behaviour flags (`second_brain.enabled`, `mcp_bundles_active`, etc.) — never hard-code paths or secrets.
 5. **Fail-open for optional integrations.** When a feature (vault, code index, etc.) is unavailable, the handler self-suppresses silently per ADR-0006 P6 (graceful degradation).
@@ -42,4 +42,4 @@ The telemetry pair (`telemetry-export-tool.sh` and `telemetry-export-session.sh`
 
 ## Capability mapping
 
-The compiler v2 (Wave 2 implementation) emits per-adapter hook configurations from `.agents/hooks/registry.yaml`. When an adapter does not support a hook event natively, the handler script remains discoverable here for manual invocation; the adapter spec's `fallbacks.unsupported_capability` documents the workaround.
+Compiler v2 emits per-adapter hook configurations from the canonical `.enterprise/governance/hooks/registry.yaml` source into `.agents/hooks/registry.yaml` and vendor adapters. When an adapter does not support an event natively, its adapter contract must document the fallback explicitly.

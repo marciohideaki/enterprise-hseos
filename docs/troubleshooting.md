@@ -313,6 +313,11 @@ Use `AdapterBase.writeFile(path, content)` instead of raw `fs.writeFile` — it 
 Plugin conformance checks validate active plugin manifests. Entries marked `scaffolded`
 remain visible in the catalog but are deliberately not installable.
 
+During compilation, a previously installed plugin that is no longer active is moved from
+`<vendor>-plugin/plugins/<id>/` to `<vendor>-plugin/disabled/<id>/`. This preserves the
+generated installation for inspection while removing it from the vendor discovery path.
+If a quarantine already exists, compilation fails instead of overwriting either copy.
+
 ```bash
 # Show validation results and inactive candidates
 hseos plugin doctor

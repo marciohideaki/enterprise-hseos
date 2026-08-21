@@ -44,6 +44,34 @@ async function assertPassAsync(label, fn) {
   }
 }
 
+async function writeActivePluginFixture(tmpDir, { failing = false } = {}) {
+  const yaml = require('yaml');
+  const pluginDir = path.join(tmpDir, '.agents', 'plugins', 'definitions', 'verified-plugin');
+  await fs.ensureDir(path.join(pluginDir, 'commands'));
+  await fs.ensureDir(path.join(pluginDir, 'tests'));
+  await fs.writeFile(path.join(pluginDir, 'README.md'), '# Verified plugin\n');
+  await fs.writeFile(path.join(pluginDir, 'commands', 'run.md'), '# Run\n');
+  await fs.writeFile(
+    path.join(pluginDir, 'tests', 'behavior.test.js'),
+    failing ? "require('node:assert').fail('fixture failure');\n" : "'use strict';\n",
+  );
+  await fs.writeFile(
+    path.join(pluginDir, 'plugin.yaml'),
+    yaml.stringify({
+      id: 'verified-plugin',
+      version: '1.0.0',
+      description: 'Verified behavior fixture',
+      license: 'MIT',
+      surfaces: { commands: ['commands/run.md'] },
+      verification: { conformance_tests: 'tests/' },
+    }),
+  );
+  await fs.writeFile(
+    path.join(tmpDir, '.agents', 'plugins', 'registry.yaml'),
+    yaml.stringify({ plugins: [{ id: 'verified-plugin', version: '1.0.0', status: 'active' }] }),
+  );
+}
+
 async function runTests() {
   console.log('\n=== Plugin Marketplace Tests ===\n');
 
@@ -72,6 +100,11 @@ async function runTests() {
       const registryPlugins = await writePluginRegistry(REPO_ROOT);
       // Copy plugin definitions to tmpDir for the emitter to read
       await fs.copy(path.join(REPO_ROOT, '.agents'), path.join(tmpDir, '.agents'));
+      for (const vendorRoot of ['.claude-plugin', '.codex-plugin']) {
+        const staleDir = path.join(tmpDir, vendorRoot, 'plugins', 'hseos-skill-creator');
+        await fs.ensureDir(staleDir);
+        await fs.writeJson(path.join(staleDir, 'plugin.json'), { id: 'hseos-skill-creator', version: '0.1.0' });
+      }
       await writePlatformPluginAdapters(tmpDir, registryPlugins, '.agents', []);
 
       const claudeMarketplacePath = path.join(tmpDir, '.claude-plugin', 'marketplace.json');
@@ -84,6 +117,26 @@ async function runTests() {
       const codexIndex = JSON.parse(await fs.readFile(codexIndexPath, 'utf8'));
       assertPass('Claude marketplace has no inactive entries', claudeMarketplace.plugins.length === 0);
       assertPass('Codex marketplace has no inactive entries', codexIndex.plugins.length === 0);
+      assertPass(
+        'stale Claude installation is disabled',
+        !(await fs.pathExists(path.join(tmpDir, '.claude-plugin', 'plugins', 'hseos-skill-creator'))) &&
+          (await fs.pathExists(path.join(tmpDir, '.claude-plugin', 'disabled', 'hseos-skill-creator', 'plugin.json'))),
+      );
+      assertPass(
+        'stale Codex installation is disabled',
+        !(await fs.pathExists(path.join(tmpDir, '.codex-plugin', 'plugins', 'hseos-skill-creator'))) &&
+          (await fs.pathExists(path.join(tmpDir, '.codex-plugin', 'disabled', 'hseos-skill-creator', 'plugin.json'))),
+      );
+
+      const staleCodexOnly = path.join(tmpDir, '.codex-plugin', 'plugins', 'hseos-hookify');
+      await fs.ensureDir(staleCodexOnly);
+      await fs.writeJson(path.join(staleCodexOnly, 'plugin.json'), { id: 'hseos-hookify', version: '0.1.0' });
+      await writePlatformPluginAdapters(tmpDir, registryPlugins, '.agents', ['claude-code']);
+      assertPass(
+        'Claude-only compile still disables stale Codex plugins',
+        !(await fs.pathExists(staleCodexOnly)) &&
+          (await fs.pathExists(path.join(tmpDir, '.codex-plugin', 'disabled', 'hseos-hookify', 'plugin.json'))),
+      );
     } finally {
       await fs.remove(tmpDir);
     }
@@ -93,30 +146,25 @@ async function runTests() {
   {
     console.log('\n4. plugin doctor — passes on real definitions tree');
 
-    // Capture log output via mock
-    const logs = [];
-    const errors = [];
-    const originalLog = console.log;
-    const originalError = console.error;
-
-    // We need to stub prompts — run doctor directly with project dir
-    // Since prompts.log methods are async, we test by running the action
-    // and catching any thrown error
+    const prompts = require('../tools/cli/lib/prompts');
+    const originalLog = prompts.log;
+    const messages = [];
+    prompts.log = {
+      success: async (message) => messages.push({ level: 'success', message }),
+      warn: async (message) => messages.push({ level: 'warn', message }),
+      error: async (message) => messages.push({ level: 'error', message }),
+      message: async (message) => messages.push({ level: 'message', message }),
+    };
     await assertPassAsync('doctor passes without error', async () => {
-      // Directly test the doctor logic by reading the registry and checking files
-      const yaml = require('yaml');
-      const registry = yaml.parse(await fs.readFile(path.join(REPO_ROOT, '.agents', 'plugins', 'registry.yaml'), 'utf8'));
-      for (const entry of registry.plugins) {
-        const manifestPath = path.join(REPO_ROOT, '.agents', 'plugins', 'definitions', entry.id, 'plugin.yaml');
-        const readmePath = path.join(REPO_ROOT, '.agents', 'plugins', 'definitions', entry.id, 'README.md');
-        if (!(await fs.pathExists(manifestPath))) throw new Error(`Missing plugin.yaml for ${entry.id}`);
-        if (!(await fs.pathExists(readmePath))) throw new Error(`Missing README.md for ${entry.id}`);
-        const manifest = yaml.parse(await fs.readFile(manifestPath, 'utf8'));
-        for (const key of ['id', 'version', 'description', 'license']) {
-          if (!manifest[key]) throw new Error(`${entry.id} missing key: ${key}`);
-        }
-      }
+      await pluginCmd.action('doctor', undefined, { directory: REPO_ROOT });
     });
+    prompts.log = originalLog;
+    assertPass('doctor reports all four inactive candidates', messages.filter((entry) => entry.level === 'warn').length === 4);
+    assertPass(
+      'doctor reports zero active plugins passed',
+      messages.some((entry) => /0 active plugin\(s\) passed; 4 inactive plugin\(s\) skipped/.test(entry.message)),
+      JSON.stringify(messages),
+    );
   }
 
   // Test 5: plugin install rejects inactive candidates
@@ -152,6 +200,309 @@ async function runTests() {
       assertPass('Claude plugin is not written', !(await fs.pathExists(claudePath)));
       assertPass('Codex plugin is not written', !(await fs.pathExists(codexPath)));
     } finally {
+      await fs.remove(tmpDir);
+    }
+  }
+
+  // Test 6: doctor fails closed for an active plugin without behavior tests
+  {
+    console.log('\n6. plugin doctor — rejects active plugin without behavior tests');
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'hseos-plugin-doctor-test-'));
+    try {
+      await fs.copy(path.join(REPO_ROOT, '.agents'), path.join(tmpDir, '.agents'));
+      const yaml = require('yaml');
+      const registryPath = path.join(tmpDir, '.agents', 'plugins', 'registry.yaml');
+      const registry = yaml.parse(await fs.readFile(registryPath, 'utf8'));
+      registry.plugins[0].status = 'active';
+      await fs.writeFile(registryPath, yaml.stringify(registry));
+
+      const prompts = require('../tools/cli/lib/prompts');
+      const originalLog = prompts.log;
+      prompts.log = {
+        success: async () => {},
+        warn: async () => {},
+        error: async () => {},
+        message: async () => {},
+      };
+
+      let doctorError;
+      try {
+        await pluginCmd.action('doctor', undefined, { directory: tmpDir });
+      } catch (error) {
+        doctorError = error;
+      } finally {
+        prompts.log = originalLog;
+      }
+
+      assertPass(
+        'doctor rejects missing behavior tests',
+        doctorError && /behavior tests/.test(doctorError.message),
+        doctorError && doctorError.message,
+      );
+    } finally {
+      await fs.remove(tmpDir);
+    }
+  }
+
+  // Test 7: doctor executes declared behavior tests for active plugins
+  {
+    console.log('\n7. plugin doctor — executes active behavior tests');
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'hseos-plugin-behavior-test-'));
+    try {
+      const yaml = require('yaml');
+      const pluginDir = path.join(tmpDir, '.agents', 'plugins', 'definitions', 'verified-plugin');
+      await fs.ensureDir(path.join(pluginDir, 'commands'));
+      await fs.ensureDir(path.join(pluginDir, 'tests'));
+      await fs.writeFile(path.join(pluginDir, 'README.md'), '# Verified plugin\n');
+      await fs.writeFile(path.join(pluginDir, 'commands', 'run.md'), '# Run\n');
+      await fs.writeFile(
+        path.join(pluginDir, 'tests', 'behavior.test.js'),
+        "require('node:fs').writeFileSync('behavior-ran.marker', 'yes');\n",
+      );
+      await fs.writeFile(
+        path.join(pluginDir, 'plugin.yaml'),
+        yaml.stringify({
+          id: 'verified-plugin',
+          version: '1.0.0',
+          description: 'Verified behavior fixture',
+          license: 'MIT',
+          surfaces: { commands: ['commands/run.md'] },
+          verification: { conformance_tests: 'tests/' },
+        }),
+      );
+      const registryDir = path.join(tmpDir, '.agents', 'plugins');
+      await fs.writeFile(
+        path.join(registryDir, 'registry.yaml'),
+        yaml.stringify({ plugins: [{ id: 'verified-plugin', version: '1.0.0', status: 'active' }] }),
+      );
+
+      const prompts = require('../tools/cli/lib/prompts');
+      const originalLog = prompts.log;
+      prompts.log = {
+        success: async () => {},
+        warn: async () => {},
+        error: async () => {},
+        message: async () => {},
+      };
+      try {
+        await pluginCmd.action('doctor', undefined, { directory: tmpDir });
+      } finally {
+        prompts.log = originalLog;
+      }
+
+      assertPass('active behavior test executed', await fs.pathExists(path.join(pluginDir, 'behavior-ran.marker')));
+    } finally {
+      await fs.remove(tmpDir);
+    }
+  }
+
+  // Test 8: install materializes every declared surface after conformance passes
+  {
+    console.log('\n8. plugin install — materializes validated surfaces for both vendors');
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'hseos-plugin-install-active-'));
+    try {
+      await writeActivePluginFixture(tmpDir);
+      const prompts = require('../tools/cli/lib/prompts');
+      const originalLog = prompts.log;
+      prompts.log = {
+        success: async () => {},
+        warn: async () => {},
+        error: async () => {},
+        message: async () => {},
+      };
+      try {
+        await pluginCmd.action('install', 'verified-plugin', { directory: tmpDir });
+      } finally {
+        prompts.log = originalLog;
+      }
+
+      for (const vendorRoot of ['.claude-plugin', '.codex-plugin']) {
+        const installedDir = path.join(tmpDir, vendorRoot, 'plugins', 'verified-plugin');
+        assertPass(
+          `${vendorRoot} install contains manifest and declared command`,
+          (await fs.pathExists(path.join(installedDir, 'plugin.json'))) &&
+            (await fs.pathExists(path.join(installedDir, 'commands', 'run.md'))),
+        );
+      }
+    } finally {
+      await fs.remove(tmpDir);
+    }
+  }
+
+  // Test 9: install fails closed before writing a plugin whose behavior test fails
+  {
+    console.log('\n9. plugin install — rejects failing behavior before materialization');
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'hseos-plugin-install-failing-'));
+    try {
+      await writeActivePluginFixture(tmpDir, { failing: true });
+      const prompts = require('../tools/cli/lib/prompts');
+      const originalLog = prompts.log;
+      prompts.log = {
+        success: async () => {},
+        warn: async () => {},
+        error: async () => {},
+        message: async () => {},
+      };
+      let installError;
+      try {
+        await pluginCmd.action('install', 'verified-plugin', { directory: tmpDir });
+      } catch (error) {
+        installError = error;
+      } finally {
+        prompts.log = originalLog;
+      }
+      assertPass('failing conformance rejects install', Boolean(installError));
+      assertPass(
+        'failing conformance writes no vendor plugin',
+        !(await fs.pathExists(path.join(tmpDir, '.claude-plugin', 'plugins', 'verified-plugin'))) &&
+          !(await fs.pathExists(path.join(tmpDir, '.codex-plugin', 'plugins', 'verified-plugin'))),
+      );
+    } finally {
+      await fs.remove(tmpDir);
+    }
+  }
+
+  // Test 10: a vendor preparation failure cannot leave a partial dual-vendor install
+  {
+    console.log('\n10. plugin install — rolls back cross-vendor preparation failure');
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'hseos-plugin-install-transaction-'));
+    try {
+      await writeActivePluginFixture(tmpDir);
+      await fs.ensureDir(path.join(tmpDir, '.codex-plugin'));
+      await fs.writeFile(path.join(tmpDir, '.codex-plugin', 'plugins'), 'forced directory collision\n');
+
+      const prompts = require('../tools/cli/lib/prompts');
+      const originalLog = prompts.log;
+      prompts.log = {
+        success: async () => {},
+        warn: async () => {},
+        error: async () => {},
+        message: async () => {},
+      };
+      let installError;
+      try {
+        await pluginCmd.action('install', 'verified-plugin', { directory: tmpDir });
+      } catch (error) {
+        installError = error;
+      } finally {
+        prompts.log = originalLog;
+      }
+
+      assertPass('second-vendor preparation failure is reported', Boolean(installError));
+      assertPass(
+        'preparation failure leaves no partial Claude install',
+        !(await fs.pathExists(path.join(tmpDir, '.claude-plugin', 'plugins', 'verified-plugin'))),
+      );
+      const claudeEntries = await fs.readdir(path.join(tmpDir, '.claude-plugin', 'plugins'));
+      assertPass('preparation failure removes Claude staging artifacts', claudeEntries.length === 0, claudeEntries.join(','));
+    } finally {
+      await fs.remove(tmpDir);
+    }
+  }
+
+  // Test 11: failure during the second swap restores both previous installations
+  {
+    console.log('\n11. plugin install — rolls back both vendors when second swap fails');
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'hseos-plugin-install-swap-'));
+    const originalMove = fs.move;
+    try {
+      await writeActivePluginFixture(tmpDir);
+      for (const vendorRoot of ['.claude-plugin', '.codex-plugin']) {
+        const installedDir = path.join(tmpDir, vendorRoot, 'plugins', 'verified-plugin');
+        await fs.ensureDir(installedDir);
+        await fs.writeFile(path.join(installedDir, 'old.marker'), vendorRoot);
+      }
+
+      fs.move = async (...arguments_) => {
+        const [source, destination] = arguments_;
+        if (
+          source.includes(`${path.sep}.codex-plugin${path.sep}plugins${path.sep}.verified-plugin-`) &&
+          destination.endsWith(`${path.sep}.codex-plugin${path.sep}plugins${path.sep}verified-plugin`) &&
+          !source.endsWith('.previous')
+        ) {
+          throw new Error('injected second-swap failure');
+        }
+        return originalMove(...arguments_);
+      };
+
+      const prompts = require('../tools/cli/lib/prompts');
+      const originalLog = prompts.log;
+      prompts.log = { success: async () => {}, warn: async () => {}, error: async () => {}, message: async () => {} };
+      let installError;
+      try {
+        await pluginCmd.action('install', 'verified-plugin', { directory: tmpDir });
+      } catch (error) {
+        installError = error;
+      } finally {
+        prompts.log = originalLog;
+        fs.move = originalMove;
+      }
+
+      assertPass('second-swap failure is reported', Boolean(installError));
+      for (const vendorRoot of ['.claude-plugin', '.codex-plugin']) {
+        const installedDir = path.join(tmpDir, vendorRoot, 'plugins', 'verified-plugin');
+        assertPass(
+          `${vendorRoot} previous install is restored`,
+          (await fs.pathExists(path.join(installedDir, 'old.marker'))) &&
+            !(await fs.pathExists(path.join(installedDir, 'commands', 'run.md'))),
+        );
+      }
+    } finally {
+      fs.move = originalMove;
+      await fs.remove(tmpDir);
+    }
+  }
+
+  // Test 12: backup cleanup failure preserves the committed new installations
+  {
+    console.log('\n12. plugin install — cleanup failure cannot roll back a committed install');
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'hseos-plugin-install-cleanup-'));
+    const originalRemove = fs.remove;
+    try {
+      await writeActivePluginFixture(tmpDir);
+      for (const vendorRoot of ['.claude-plugin', '.codex-plugin']) {
+        const installedDir = path.join(tmpDir, vendorRoot, 'plugins', 'verified-plugin');
+        await fs.ensureDir(installedDir);
+        await fs.writeFile(path.join(installedDir, 'old.marker'), vendorRoot);
+      }
+
+      let injected = false;
+      fs.remove = async (...arguments_) => {
+        const [target] = arguments_;
+        if (!injected && target.includes(`${path.sep}.codex-plugin${path.sep}plugins${path.sep}`) && target.endsWith('.previous')) {
+          injected = true;
+          throw new Error('injected backup-cleanup failure');
+        }
+        return originalRemove(...arguments_);
+      };
+
+      const prompts = require('../tools/cli/lib/prompts');
+      const originalLog = prompts.log;
+      const warnings = [];
+      prompts.log = {
+        success: async () => {},
+        warn: async (message) => warnings.push(message),
+        error: async () => {},
+        message: async () => {},
+      };
+      try {
+        await pluginCmd.action('install', 'verified-plugin', { directory: tmpDir });
+      } finally {
+        prompts.log = originalLog;
+        fs.remove = originalRemove;
+      }
+
+      for (const vendorRoot of ['.claude-plugin', '.codex-plugin']) {
+        const installedDir = path.join(tmpDir, vendorRoot, 'plugins', 'verified-plugin');
+        assertPass(
+          `${vendorRoot} keeps the committed new install`,
+          (await fs.pathExists(path.join(installedDir, 'commands', 'run.md'))) &&
+            !(await fs.pathExists(path.join(installedDir, 'old.marker'))),
+        );
+      }
+      assertPass('cleanup failure is reported as a warning', warnings.some((message) => /cleanup requires attention/.test(message)));
+    } finally {
+      fs.remove = originalRemove;
       await fs.remove(tmpDir);
     }
   }

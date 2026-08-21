@@ -3,13 +3,7 @@
 const path = require('node:path');
 const fs = require('fs-extra');
 const yaml = require('yaml');
-
-async function readPluginManifest(root, agentsDirName, pluginId) {
-  const manifestPath = path.join(root, agentsDirName, 'plugins', 'definitions', pluginId, 'plugin.yaml');
-  if (!(await fs.pathExists(manifestPath))) return null;
-  const raw = await fs.readFile(manifestPath, 'utf8');
-  return yaml.parse(raw) || null;
-}
+const { loadActivePluginManifests } = require('../sources/plugins-source');
 
 function buildClaudePluginMarketplace(registryRaw, plugins) {
   return {
@@ -44,15 +38,34 @@ function buildCodexPluginIndex(registryRaw, plugins) {
   };
 }
 
-async function writePlatformPluginAdapters(root, registryPlugins, agentsDirName = '.agents', platforms = []) {
+async function writePlatformPluginAdapters(root, registryPlugins, agentsDirName = '.agents', platforms = [], validatedManifests) {
   const registryPath = path.join(root, agentsDirName, 'plugins', 'registry.yaml');
   if (!(await fs.pathExists(registryPath))) return;
 
   const registryRaw = yaml.parse(await fs.readFile(registryPath, 'utf8')) || {};
-  const activeRegistryPlugins = registryPlugins.filter((plugin) => plugin && plugin.status === 'active');
+  const plugins = validatedManifests || (await loadActivePluginManifests(root, registryPlugins, agentsDirName));
+  const inactiveIds = registryPlugins.filter((plugin) => plugin && plugin.id && plugin.status !== 'active').map((plugin) => plugin.id);
 
-  const manifests = await Promise.all(activeRegistryPlugins.map((p) => readPluginManifest(root, agentsDirName, p.id)));
-  const plugins = manifests.filter(Boolean);
+  // Registry status is vendor-neutral. Deactivation therefore applies to every
+  // vendor installation even when this compile emits only one target.
+  const pluginRoots = [path.join(root, '.claude-plugin'), path.join(root, '.codex-plugin')];
+
+  for (const pluginRoot of pluginRoots) {
+    for (const pluginId of inactiveIds) {
+      if (!/^[a-z0-9][a-z0-9-]*$/.test(pluginId)) {
+        throw new Error(`Inactive plugin has unsafe id: ${pluginId}`);
+      }
+      const installedDir = path.join(pluginRoot, 'plugins', pluginId);
+      if (!(await fs.pathExists(installedDir))) continue;
+
+      const disabledDir = path.join(pluginRoot, 'disabled', pluginId);
+      if (await fs.pathExists(disabledDir)) {
+        throw new Error(`Cannot disable stale plugin ${pluginId}: quarantine already exists at ${disabledDir}`);
+      }
+      await fs.ensureDir(path.dirname(disabledDir));
+      await fs.move(installedDir, disabledDir);
+    }
+  }
 
   if (platforms.includes('claude-code') || platforms.length === 0) {
     const claudePluginDir = path.join(root, '.claude-plugin');
