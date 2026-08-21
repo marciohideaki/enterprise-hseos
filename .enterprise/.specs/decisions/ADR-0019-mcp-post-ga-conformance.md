@@ -1,10 +1,11 @@
 # ADR-0019 — MCP Post-GA Conformance: Manual Subset with SDK Trigger
 
-**Status:** Accepted (ratified 2026-07-15)
+**Status:** Superseded by ADR-0023 (2026-08-21)
 **Date:** 2026-07-15
 **Owner:** platform-governance
 **Affects:** `tools/mcp-*`, `tools/lib/mcp-transport.js`, `tools/lib/mcp-protocol.js`, `.agents/mcp/bundles/`, `test/test-mcp-contract.js`
 **Source RFC:** `docs/rfc/2026-07-09-mcp-post-ga-conformance.md`
+**Superseded By:** `ADR-0023-mcp-2026-stateless-adapter.md`
 
 ---
 
