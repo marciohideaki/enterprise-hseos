@@ -12,6 +12,12 @@
  * docs/rfc/2026-07-09-mcp-post-ga-conformance.md — bump here once the
  * conformance work lands, never in per-server code.
  */
-const MCP_PROTOCOL_VERSION = '2024-11-05';
+const MCP_LEGACY_PROTOCOL_VERSION = '2024-11-05';
+const MCP_MODERN_PROTOCOL_VERSION = '2026-07-28';
 
-module.exports = { MCP_PROTOCOL_VERSION };
+// Existing servers continue to advertise the legacy era until G6 wires every
+// adapter through the governed execution port. Advertising the modern version
+// before that cutover would be false conformance.
+const MCP_PROTOCOL_VERSION = MCP_LEGACY_PROTOCOL_VERSION;
+
+module.exports = { MCP_LEGACY_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION, MCP_PROTOCOL_VERSION };
