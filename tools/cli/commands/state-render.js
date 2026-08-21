@@ -2,8 +2,8 @@
  * `hseos state-render` — regenerate PLAN.md / STATUS.md / RESUME-PROMPT.md from SQLite for a run.
  *
  * Read-only on SQLite. Output mirrors the artifact format used by the dev-squad skill.
- * In Sprint 1 (current) markdown is canonical and SQLite is projection — render is best-effort
- * preview. In Sprint 2 Wave 5 (inversion), this becomes the authoritative render path.
+ * Markdown is a human-readable projection. The relational state store remains
+ * authoritative; governed execution-ledger activation is separately ADR-gated.
  */
 
 const path = require('node:path');

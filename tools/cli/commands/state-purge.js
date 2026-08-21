@@ -2,7 +2,8 @@
  * `hseos state-purge` — archive (optional) then delete an entire run from the
  * agent-state store.
  *
- * Default is `--dry-run` printing counts. Pass `--force` to actually delete.
+ * Default is `--dry-run` printing counts. Deletion requires `--force` plus a
+ * previously recorded approval and its bound idempotency key.
  * Pass `--archive` to write a markdown archive to second-brain vault before purge.
  */
 
@@ -85,25 +86,25 @@ function purgeRun(db, run_id) {
 
 module.exports = {
   command: 'state-purge <run-id>',
-  description: 'Archive (optional) and delete a run from the agent-state store. Default is --dry-run.',
+  description: 'Archive (optional) and delete a run with independent governed approval. Default is --dry-run.',
   options: [
     ['--directory <path>', 'Project directory (default: current)'],
     ['--archive', 'Archive run to second-brain vault before purging'],
     ['--archive-path <path>', 'Override archive output path'],
     ['--second-brain-path <path>', 'Second-brain vault root (default: $SECOND_BRAIN_PATH or skipped)'],
     ['--force', 'Actually delete (default is dry-run)'],
+    ['--approval-id <id>', 'Previously recorded independent approval for this exact operation'],
+    ['--idempotency-key <key>', 'Stable operation key bound to the approval'],
     ['--json', 'Print result as JSON'],
   ],
   action: (run_id, options) => {
     if (!Database) {
-      console.error('[state-purge] better-sqlite3 not installed');
-      process.exit(1);
+      throw new Error('[state-purge] better-sqlite3 not installed');
     }
     const directory = path.resolve(options.directory || process.cwd());
     const dbPath = path.join(directory, '.hseos', 'state', 'project.db');
     if (!fs.existsSync(dbPath)) {
-      console.error(`[state-purge] no db at ${dbPath}`);
-      process.exit(1);
+      throw new Error(`[state-purge] no db at ${dbPath}`);
     }
     const db = new Database(dbPath);
     db.pragma('journal_mode = WAL');
@@ -112,8 +113,7 @@ module.exports = {
     try {
       const counts = countRows(db, run_id);
       if (counts.runs === 0) {
-        console.error(`[state-purge] run not found: ${run_id}`);
-        process.exit(1);
+        throw new Error(`[state-purge] run not found: ${run_id}`);
       }
 
       let archive_path = null;
@@ -126,14 +126,12 @@ module.exports = {
         });
         archive_path = result.archive_path;
         if (!archive_path) {
-          console.error(
+          throw new Error(
             '[state-purge] --archive specified but no output path resolvable (need --archive-path or --second-brain-path or SECOND_BRAIN_PATH env)',
           );
-          process.exit(1);
         }
         if (!fs.existsSync(archive_path)) {
-          console.error(`[state-purge] archive verify failed: ${archive_path}`);
-          process.exit(1);
+          throw new Error(`[state-purge] archive verify failed: ${archive_path}`);
         }
       }
 

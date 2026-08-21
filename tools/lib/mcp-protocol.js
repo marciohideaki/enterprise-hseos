@@ -15,9 +15,7 @@
 const MCP_LEGACY_PROTOCOL_VERSION = '2024-11-05';
 const MCP_MODERN_PROTOCOL_VERSION = '2026-07-28';
 
-// Existing servers continue to advertise the legacy era until G6 wires every
-// adapter through the governed execution port. Advertising the modern version
-// before that cutover would be false conformance.
+// Activation remains gated by ADR-0023's persistent zero-legacy window.
 const MCP_PROTOCOL_VERSION = MCP_LEGACY_PROTOCOL_VERSION;
 
 module.exports = { MCP_LEGACY_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION, MCP_PROTOCOL_VERSION };

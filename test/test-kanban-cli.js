@@ -46,7 +46,11 @@ function seedDb(dir) {
   const result = spawnSync(
     process.execPath,
     [HSEOS_CLI, 'state-emit', 'start', '--directory', dir, '--run', 'R-test', '--task', 'T1', '--agent', 'A', '--silent'],
-    { encoding: 'utf8', timeout: 10_000 },
+    {
+      encoding: 'utf8',
+      timeout: 10_000,
+      env: { ...process.env, HSEOS_GOVERNED_EXECUTION_FIXTURE: '1', NODE_ENV: 'test' },
+    },
   );
   if (result.status !== 0) {
     throw new Error(`seed state-emit failed: ${result.stderr}`);

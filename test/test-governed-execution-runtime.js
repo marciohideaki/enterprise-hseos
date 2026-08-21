@@ -14,6 +14,7 @@ const {
   ExecutionEventRegistry,
 } = require('../tools/lib/governed-execution/event-registry');
 const { GovernedExecutionRuntime } = require('../tools/lib/governed-execution/runtime');
+const { createGovernedExecutionPort } = require('../tools/lib/governed-execution/execution-port');
 const { ExecutionApprovalStore } = require('../tools/mcp-project-state/lib/execution-approval-store');
 const { applyExecutionLedgerFixtureSchema } = require('../tools/mcp-project-state/lib/execution-ledger-schema');
 const { ExecutionEventLedger } = require('../tools/mcp-project-state/lib/execution-event-ledger');
@@ -768,7 +769,7 @@ test('retryable provider failure remains retryable on immediate response and rep
 test('a provider without idempotency support forces explicit approval', async () => {
   let calls = 0;
   const fixture = setup({
-    contract: toolContract({ provider_accepts_idempotency: false }),
+    contract: toolContract({ reversibility: 'idempotent_mutation', provider_accepts_idempotency: false }),
     provider: { async execute() { calls++; return { data: { echoed: 'unexpected' } }; } },
   });
   try {
@@ -802,6 +803,49 @@ test('non-cancellable execution ignores a pre-aborted caller signal', async () =
     assert.equal(fixture.ledger.readGlobal().at(-1).event_type, 'ExecutionSucceeded');
   } finally {
     fixture.db.close();
+  }
+});
+
+test('cooperative execution records a durable cancellation before provider dispatch', async () => {
+  let calls = 0;
+  const fixture = setup({
+    contract: toolContract({
+      cancellation_policy: 'cooperative',
+      requires_approval: true,
+      reversibility: 'irreversible_mutation',
+    }),
+    provider: { async execute() { calls++; return { data: { echoed: 'unexpected' } }; } },
+  });
+  try {
+    const port = createGovernedExecutionPort(fixture.runtime);
+    const result = await port.cancelQueued(request(), 'caller cancelled while queued');
+    assert.equal(result.error.code, 'EXECUTION_CANCELLED');
+    assert.equal(calls, 0);
+    assert.deepEqual(
+      fixture.ledger.readGlobal().map((event) => event.event_type),
+      ['ExecutionAuthorized', 'ExecutionStarted', 'ExecutionCancelled'],
+    );
+    assert.equal(fixture.ledger.readGlobal().at(-1).payload.phase, 'scheduler_queue');
+    const replay = await port.cancelQueued(request(), 'duplicate cancellation');
+    assert.equal(replay.error.code, 'EXECUTION_CANCELLED');
+    assert.equal(fixture.ledger.readGlobal().length, 3);
+  } finally {
+    fixture.db.close();
+  }
+});
+
+test('queued cancellation still fails closed on authority and policy denial', async () => {
+  for (const boundary of ['authority', 'policy']) {
+    const fixture = setup({
+      [boundary]: { async evaluate() { return { allowed: false, policy_version: 'policy-v1' }; } },
+    });
+    try {
+      const result = await createGovernedExecutionPort(fixture.runtime).cancelQueued(request());
+      assert.equal(result.error.code, boundary === 'authority' ? 'EXECUTION_AUTHORITY_DENIED' : 'EXECUTION_POLICY_DENIED');
+      assert.equal(fixture.ledger.readGlobal().length, 0);
+    } finally {
+      fixture.db.close();
+    }
   }
 });
 

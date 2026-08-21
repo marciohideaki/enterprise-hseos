@@ -87,11 +87,11 @@ Bypass of any gate is a governance violation — halt and escalate.
 - Two tasks touching the same file → decomposition error → return to Gate G2
 - `validate-commit-msg.sh` or `check-branch.sh` fails → stop, never bypass
 
-## Observability — state-emit dual-write (Sprint 1)
+## Governed state emission and compatibility renders
 
-While Sprint 1 of the agent-state-tracking subsystem is in effect, dev-squad emits structured events to a SQLite projection alongside the canonical markdown run-dir.
+Dev-squad emits structured events to relational state while preserving the markdown run-dir as a human-readable compatibility render.
 
-**Canonicity (Sprint 1):** markdown run-dir (`PLAN.md`, `STATUS.md`, `RESUME-PROMPT.md`, `WAVE-{n}-REPORT.md`, `handoffs/*.md`) remains source of truth. SQLite is **projection only** — derived data, safe to rebuild. Sprint 2 Wave 5 inverts canonicity (SQLite primary, markdown rendered on demand).
+**Canonicity:** relational state is the mutable operational authority. `PLAN.md`, `STATUS.md`, `RESUME-PROMPT.md`, `WAVE-{n}-REPORT.md`, and `handoffs/*.md` are review/resume renders and cannot override it. ADR-0022's ledger cutover remains disabled until its accepted activation evidence is complete.
 
 **Emission mechanism:**
 - `.claude/hooks.json` invokes `scripts/governance/state-emit-hook.sh` on `SessionStart`, `PostToolUse`, and `Stop`. The shim is non-blocking (timeout 5s, exit 0 on any error).
@@ -122,11 +122,15 @@ hseos state-emit start --silent
 - `hseos state-describe <run-id>` — counts + last 10 events.
 - `hseos state-render <run-id> --output <dir>` — read-only markdown projection.
 
-**Non-goals (Sprint 1):** state-emit failures NEVER block dev-squad execution; the canonical markdown path is unaffected by SQLite errors. If `better-sqlite3` is missing or DB is corrupt, the shim fails open and the workflow proceeds as if observability were disabled.
+**Failure boundary:** after ADR-0022 activation, required state transitions fail closed when the ledger or policy boundary is unavailable. Only optional telemetry/index projections may fail open with explicit warnings. Before activation, no workflow may describe the legacy path as governed-ledger compliant.
 
-## Observability — state emission contract (Sprint 2 / Wave 5a)
+**Compatibility evidence:** pre-activation CLI/MCP traffic remains functional on schema v4 and is recorded in `.hseos/state/mcp-legacy-usage.db`. Cutover requires all 24 hourly coverage buckets for each native MCP server across the preceding 30 complete UTC days, no legacy requests in that window, and a new explicit ADR activation decision. Sparse daily heartbeats and the current incomplete day are insufficient.
 
-Wave 5a refines the Sprint 1 dual-write into an explicit emission contract on the canonical skill (`.enterprise/governance/agent-skills/dev-squad/SKILL.md`). Markdown writes are **preserved** (zero regression); the skill simply **adds** structured emit calls at five phase boundaries.
+**Transition bounds:** operational entrypoints reject pending schema tables or `user_version > 4`. Legacy identity telemetry is capped and retained for 45 days. In the gated modern fixture, approval-required mutations complete only through signed MRTR state plus an accepted elicitation response bound to the exact operation.
+
+## State emission contract
+
+The canonical skill (`.enterprise/governance/agent-skills/dev-squad/SKILL.md`) defines the emission contract. Markdown writes are preserved only as derived compatibility artifacts.
 
 ### Required env vars (set by skill)
 
@@ -146,16 +150,11 @@ Wave 5a refines the Sprint 1 dual-write into an explicit emission contract on th
 | Execute wave complete | `complete` | Wave consolidation (last task OK or BLOCKED) | `{wave:N, status}` |
 | Run consolidate / abort | `complete`/`abort` | Run finalize | `{exit_reason}` |
 
-**Best-effort:** every emit call MUST be silent and non-blocking. `failure → continue`. The shim already enforces this; the skill just calls `hseos state-emit … --silent` at each boundary.
+**Transition rule:** the pre-activation hook remains optional telemetry and is silent/non-blocking. An activation release must replace required transitions with awaited governed calls; `failure → stop`. The detached shim cannot prove that a required transition committed.
 
-### Canonicity (Sprint 2)
+### Canonicity
 
-Per ADR `2026-04-21-swarm-dev-squad` (updated in Wave 6), **SQLite is canonical for cross-run queries** (orphan detection, kanban, FTS5 search). **Markdown remains canonical for single-run resume and human review**. The skill writes both — there is no "single source of truth" mandate; there are two source-of-truth scopes:
-
-- **Inside one run:** markdown run-dir.
-- **Across runs / cross-project:** SQLite (`as_*` tables).
-
-This is the policy outcome of Wave 5a — mechanical inversion was rejected as too risky for a global skill.
+ADR-0022 supersedes split mutation authority: relational state is canonical for both execution lifecycle and cross-run queries. Markdown remains a derived interface for single-run resume and human review.
 
 ### Backups (Wave 5a)
 

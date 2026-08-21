@@ -112,7 +112,10 @@ console.log('[test-state-session] CLI');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-state-session-'));
 
 function cli(args) {
-  return spawnSync('node', [HSEOS_CLI, ...args, '--directory', tmp], { encoding: 'utf8' });
+  return spawnSync('node', [HSEOS_CLI, ...args, '--directory', tmp], {
+    encoding: 'utf8',
+    env: { ...process.env, HSEOS_GOVERNED_EXECUTION_FIXTURE: '1', NODE_ENV: 'test' },
+  });
 }
 
 it('CLI register creates the store and the row', () => {

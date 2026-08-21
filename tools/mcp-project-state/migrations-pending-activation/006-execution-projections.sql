@@ -1,5 +1,5 @@
 -- Migration 006 — ADR-0022 rebuildable execution projections
--- PENDING ACTIVATION alongside migration 005.
+-- PENDING ACTIVATION with migration 005 under ADR-0022.
 
 CREATE TABLE IF NOT EXISTS execution_projection_generations (
   projection_name TEXT NOT NULL,

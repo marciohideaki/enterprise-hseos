@@ -79,7 +79,12 @@ function runHook(env = {}) {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
       timeout: 8000,
-      env: { PATH: process.env.PATH, ...env },
+      env: {
+        PATH: process.env.PATH,
+        HSEOS_GOVERNED_EXECUTION_FIXTURE: '1',
+        NODE_ENV: 'test',
+        ...env,
+      },
     });
     return { ok: true, stdout: output, exitCode: 0 };
   } catch (error) {
@@ -122,6 +127,27 @@ withTempDir((dir) => {
   );
 });
 
+// An arbitrary global hseos binary must never be selected by the hook.
+withTempDir((dir) => {
+  const dbDir = path.join(dir, '.hseos', 'state');
+  fs.mkdirSync(dbDir, { recursive: true });
+  const dbPath = path.join(dbDir, 'project.db');
+  seedDb(dbPath, '20260509-no-global');
+  const { binDir, captureFile } = buildFakeHseos(dir);
+  const result = runHook({
+    CLAUDE_HOOK_EVENT: 'SessionStart',
+    HSEOS_STATE_DB: dbPath,
+    PATH: `${binDir}:${process.env.PATH}`,
+    HOME: dir,
+  });
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 300);
+  assertPass(
+    'hook ignores arbitrary global hseos binaries',
+    result.ok && !fs.existsSync(captureFile),
+    fs.existsSync(captureFile) ? fs.readFileSync(captureFile, 'utf8') : '',
+  );
+});
+
 // DB exists but no active run → silent exit 0
 withTempDir((dir) => {
   const dbDir = path.join(dir, '.hseos', 'state');
@@ -144,12 +170,12 @@ withTempDir((dir) => {
   const dbPath = path.join(dbDir, 'project.db');
   seedDb(dbPath, '20260509-active-run');
 
-  const { binDir, captureFile } = buildFakeHseos(dir);
+  const { fakeBin, captureFile } = buildFakeHseos(dir);
 
   const result = runHook({
     CLAUDE_HOOK_EVENT: 'SessionStart',
     HSEOS_STATE_DB: dbPath,
-    PATH: `${binDir}:${process.env.PATH}`,
+    HSEOS_CLI_PATH: fakeBin,
     HOME: dir,
   });
 
@@ -175,13 +201,13 @@ withTempDir((dir) => {
   const dbPath = path.join(dbDir, 'project.db');
   seedDb(dbPath, '20260509-db-run');
 
-  const { binDir, captureFile } = buildFakeHseos(dir);
+  const { fakeBin, captureFile } = buildFakeHseos(dir);
 
   runHook({
     CLAUDE_HOOK_EVENT: 'SessionStart',
     HSEOS_CURRENT_RUN_ID: '20260509-env-run',
     HSEOS_STATE_DB: dbPath,
-    PATH: `${binDir}:${process.env.PATH}`,
+    HSEOS_CLI_PATH: fakeBin,
     HOME: dir,
   });
 

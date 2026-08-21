@@ -981,6 +981,38 @@ function testCodeIndexGuard() {
   });
 }
 
+function testSessionTrackInstalledConsumer() {
+  const source = path.join(HANDLERS_DIR, 'session-track.sh');
+  assertPass('session-track.sh exists', fs.existsSync(source), source);
+  if (!fs.existsSync(source)) return;
+  withTempDir((tempDir) => {
+    const handlerDir = path.join(tempDir, '.agents', 'hooks', 'handlers');
+    const binDir = path.join(tempDir, 'node_modules', '.bin');
+    const capture = path.join(tempDir, 'captured-args');
+    fs.mkdirSync(handlerDir, { recursive: true });
+    fs.mkdirSync(binDir, { recursive: true });
+    const handler = path.join(handlerDir, 'session-track.sh');
+    const localBin = path.join(binDir, 'hseos');
+    fs.copyFileSync(source, handler);
+    fs.writeFileSync(localBin, `#!/usr/bin/env bash\nprintf '%s\\n' "$*" > "${capture}"\n`);
+    fs.chmodSync(handler, 0o755);
+    fs.chmodSync(localBin, 0o755);
+    execFileSync('git', ['init', '--quiet'], { cwd: tempDir });
+    const payload = JSON.stringify({ session_id: 'consumer-session', hook_event_name: 'SessionStart', cwd: tempDir });
+    const result = runHandler(handler, [], { cwd: tempDir, env: { ...process.env, NODE_ENV: 'production' }, input: payload, stdio: ['pipe', 'pipe', 'pipe'] });
+    let captured = '';
+    for (let attempt = 0; attempt < 20 && !fs.existsSync(capture); attempt += 1) {
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25);
+    }
+    if (fs.existsSync(capture)) captured = fs.readFileSync(capture, 'utf8');
+    assertPass(
+      'session-track.sh uses the project-local installed hseos binary',
+      result.ok && captured.includes('state-session register') && captured.includes('consumer-session'),
+      `captured="${captured.trim()}"`,
+    );
+  });
+}
+
 // =============================================================================
 // Run
 // =============================================================================
@@ -995,6 +1027,7 @@ testOnPromptSubmit();
 testSessionEnd();
 testSuggestSkill();
 testCodeIndexGuard();
+testSessionTrackInstalledConsumer();
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed === 0 ? 0 : 1);
