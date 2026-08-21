@@ -1,4 +1,4 @@
-version: "1.0"
+schema_version: "2.0"
 component_families:
   - baseline
   - runtime
@@ -53,12 +53,12 @@ components:
     family: baseline
     name: Skills Registry
     required: true
-    description: Governed skill registry plus Tier 1 and Tier 2 skill files.
+    description: Governed skill authority and compiled registry; profile-selected skills are materialized separately.
     modules: []
     tools: []
     install_paths:
       - .enterprise/governance/agent-skills/
-      - .agents/skills/
+      - .agents/manifest.yaml
 
   - id: runtime:hooks
     family: runtime
@@ -315,5 +315,7 @@ components:
     family: adapter
     name: Goose Adapter
     description: Portable adapter metadata for Goose-compatible agent execution.
+    tools:
+      - goose
     install_paths:
       - .agents/adapters/goose.yaml

@@ -52,19 +52,40 @@ function normalizeSkill(sourceContent, quickContent, metadata) {
   };
 }
 
-async function writeSkills(root, enterpriseSkillsDir, sourceRoot, agentsDirName) {
+async function writeSkills(root, enterpriseSkillsDir, sourceRoot, agentsDirName, selectedSkillIds = null) {
   const outputDir = path.join(root, agentsDirName, 'skills');
   await fs.ensureDir(outputDir);
 
   if (!(await fs.pathExists(enterpriseSkillsDir))) return [];
 
   const skillFiles = await findFiles(enterpriseSkillsDir, 'SKILL.md');
-  const skills = [];
-
+  const requested = Array.isArray(selectedSkillIds) ? new Set(selectedSkillIds) : null;
+  const available = new Map();
   for (const skillFile of skillFiles) {
     const relativeSource = path.relative(enterpriseSkillsDir, skillFile).replaceAll(path.sep, '/');
     const skillName = path.dirname(relativeSource).replaceAll('/', '-');
-    if (!skillName || skillName === '.') continue;
+    if (skillName && skillName !== '.') available.set(skillName, skillFile);
+  }
+
+  if (requested) {
+    const unknown = [...requested].filter((skillId) => !available.has(skillId)).sort();
+    if (unknown.length > 0) {
+      throw new Error(`Capability plan selected unknown source skill(s): ${unknown.join(', ')}`);
+    }
+
+    // `.agents/skills` is compiler-owned output. Reconcile it to the selected
+    // set so updates cannot retain a stale skill from a broader prior profile.
+    for (const entry of await fs.readdir(outputDir, { withFileTypes: true })) {
+      if (entry.isDirectory() && !requested.has(entry.name)) {
+        await fs.remove(path.join(outputDir, entry.name));
+      }
+    }
+  }
+
+  const skills = [];
+
+  for (const [skillName, skillFile] of [...available.entries()].sort(([left], [right]) => left.localeCompare(right))) {
+    if (requested && !requested.has(skillName)) continue;
 
     const quickFile = path.join(path.dirname(skillFile), 'SKILL-QUICK.md');
     const sourceContent = await fs.readFile(skillFile, 'utf8');
@@ -76,6 +97,7 @@ async function writeSkills(root, enterpriseSkillsDir, sourceRoot, agentsDirName)
     });
 
     const skillDir = path.join(outputDir, skillName);
+    if (requested) await fs.remove(skillDir);
     await fs.ensureDir(skillDir);
     const outputPath = path.join(skillDir, 'SKILL.md');
     await fs.writeFile(outputPath, normalized.content, 'utf8');

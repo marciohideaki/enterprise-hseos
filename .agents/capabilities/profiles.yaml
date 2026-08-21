@@ -1,13 +1,10 @@
-version: "1.0"
+schema_version: "2.0"
 profiles:
   minimal:
     name: Minimal Governance
     description: Smallest governed HSEOS surface for projects that only need baseline instructions, core policy, and portable agent entrypoints.
     hook_profile: advisory
     components:
-      - baseline:governance
-      - baseline:entrypoints
-      - baseline:skills-registry
       - adapter:codex
       - adapter:claude-code
 
@@ -17,9 +14,6 @@ profiles:
     default: true
     hook_profile: standard
     components:
-      - baseline:governance
-      - baseline:entrypoints
-      - baseline:skills-registry
       - runtime:hooks
       - runtime:state
       - runtime:workflows
@@ -34,9 +28,6 @@ profiles:
     description: Policy-heavy setup for architecture, ADR, compliance, secure coding, and readiness reviews.
     hook_profile: strict
     components:
-      - baseline:governance
-      - baseline:entrypoints
-      - baseline:skills-registry
       - runtime:hooks
       - runtime:state
       - capability:architecture
@@ -50,9 +41,6 @@ profiles:
     description: Delivery and runtime operations setup for GitOps, release, rollout, and deployment verification.
     hook_profile: strict
     components:
-      - baseline:governance
-      - baseline:entrypoints
-      - baseline:skills-registry
       - runtime:hooks
       - runtime:state
       - runtime:workflows
@@ -67,9 +55,6 @@ profiles:
     description: Azure DevOps planning, synchronization, branch governance, and delivery traceability setup.
     hook_profile: strict
     components:
-      - baseline:governance
-      - baseline:entrypoints
-      - baseline:skills-registry
       - runtime:hooks
       - runtime:state
       - capability:ado
@@ -82,9 +67,6 @@ profiles:
     description: Compact setup for BLITZ-style solo execution with verification and completion safeguards.
     hook_profile: standard
     components:
-      - baseline:governance
-      - baseline:entrypoints
-      - baseline:skills-registry
       - runtime:hooks
       - runtime:state
       - capability:solo
@@ -97,9 +79,6 @@ profiles:
     description: Complete HSEOS surface with governance, delivery, ADO, GitOps, observability, sandboxing, and all adapters.
     hook_profile: ci
     components:
-      - baseline:governance
-      - baseline:entrypoints
-      - baseline:skills-registry
       - runtime:hooks
       - runtime:state
       - runtime:workflows

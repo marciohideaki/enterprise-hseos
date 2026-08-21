@@ -22,7 +22,7 @@ Números do sistema (estado atual):
 | Comandos CLI `hseos` | ~21 (auto-discovery em `tools/cli/commands/`) |
 | Servidores MCP nativos | 4 (+ 5 market-standard + 5 enterprise via bundles) |
 | Adapters de IDE/plataforma | 19 no installer; 3 com spec declarativa completa (claude-code, codex, goose) |
-| Perfis de capability | 7 (`minimal`→`full`) · 4 hook profiles · 18 componentes + sintéticos `skill:*` |
+| Perfis de capability | 7 (`minimal`→`full`) · 4 hook profiles · 26 componentes + sintéticos `skill:*` |
 | ADRs | 16 (14 Accepted; 0004/0005 são templates "Proposed" — ratificação em lote 2026-07-08) |
 | Standards normativos | 13 core + 16 cross-cutting + 7 stacks × 10 docs |
 | Políticas | 12 |
@@ -322,9 +322,9 @@ Bundles (ADR-0008, `.agents/mcp/bundles/`): **core** (sempre: governance, state,
 
 **Solução (aditiva — não substitui Constituição/gates/worktree):**
 
-- `.agents/capabilities/components.yaml` — 18 componentes + sintéticos, em 5 famílias: `baseline:*` (3, `required:true` — governance, entrypoints, skills-registry; **irremovíveis**), `runtime:*` (4 — hooks, state, workflows, mcp), `capability:*` (11 — architecture, delivery, security, knowledge, observability, gitops, ado, sandbox, readiness, solo, verification — cada um mapeando skills reais), `adapter:*` (3), `skill:*` (sintéticos, gerados em runtime de `.agents/skills/` — ≥40; só seletores, a autoridade permanece em `.enterprise/`).
+- `.agents/capabilities/components.yaml` — schema v2 com 26 componentes estáticos + sintéticos, em 6 famílias: `baseline:*` (3, `required:true` e injetados pelo resolver — governance, entrypoints, skills-registry; **irremovíveis**), `runtime:*` (4), `capability:*` (12), `adapter:*` (3), `extra:*` (4) e `skill:*` sintéticos; a autoridade das skills permanece em `.enterprise/`.
 - `.agents/capabilities/profiles.yaml` — 7 perfis: `minimal` (advisory), `developer` (**default**, standard), `governance`/`gitops`/`ado` (strict), `solo` (standard), `full` (ci, único com adapter goose).
-- `tools/cli/lib/capability-catalog.js` — `loadCapabilityCatalog` / `resolveCapabilityPlan` (sempre inclui `required`; valida IDs; retorna plano `{profile, hook_profile, components, modules, tools, skills, install_paths}`) / `loadAdapterMatrix` / `writeCapabilitySelection` (persiste em `.hseos/config/capability-selection.yaml`).
+- `tools/cli/lib/capability-catalog.js` — validação fail-closed do schema v2, `loadCapabilityCatalog` / `resolveCapabilityPlan` (sempre inclui o baseline obrigatório, rejeita referências/campos inválidos e retorna seleção determinística) / `loadAdapterMatrix` / `writeCapabilitySelection`. O compiler recebe somente `plan.skills`, reconcilia resíduos de perfis anteriores e falha se seleção e emissão divergirem.
 - CLI: `hseos install-plan --profile <id> [--json|--list-*|--adapters]` (dry-run) e `hseos install --profile/--components/--skills/--hook-profile`.
 - Testes: `test/test-capability-catalog.js` (integridade referencial perfil→componente→skill, resolução, flags).
 

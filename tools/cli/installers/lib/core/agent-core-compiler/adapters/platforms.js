@@ -2,6 +2,7 @@
 
 const path = require('node:path');
 const fs = require('fs-extra');
+const yaml = require('yaml');
 
 const { writePlatformAdapters: writeClaudeCodeAdapters } = require('./claude-code');
 const { writeCodexAdapter } = require('./codex');
@@ -37,6 +38,22 @@ const PLATFORM_SURFACES = {
   },
 };
 
+async function removePreviouslyGeneratedGooseSurface(root, platforms) {
+  if (platforms.includes('goose')) return;
+  const manifestPath = path.join(root, '.agents', 'manifest.yaml');
+  if (!(await fs.pathExists(manifestPath))) return;
+
+  try {
+    const manifest = yaml.parse(await fs.readFile(manifestPath, 'utf8')) || {};
+    if (Array.isArray(manifest.platforms) && manifest.platforms.includes('goose')) {
+      await fs.remove(path.join(root, '.goose'));
+    }
+  } catch {
+    // A malformed prior manifest is handled by verify/doctor. Never delete a
+    // surface unless compiler ownership can be established from valid YAML.
+  }
+}
+
 async function writeGooseAdapter(root, hooks, platforms, sources = {}) {
   if (!platforms.includes('goose')) return;
 
@@ -67,6 +84,7 @@ async function writeGooseAdapter(root, hooks, platforms, sources = {}) {
 }
 
 async function writePlatformAdapters(root, hooks, platforms, options = {}) {
+  await removePreviouslyGeneratedGooseSurface(root, platforms);
   await writeClaudeCodeAdapters(root, hooks, platforms);
   await writeCodexAdapter(root, hooks, platforms);
   // AGENTS.md is platform-neutral: any adapter that reads it (Codex today,
