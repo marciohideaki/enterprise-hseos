@@ -1,6 +1,6 @@
 # ADR-0022 — Governed Execution Runtime with Relational Event Ledger
 
-**Status:** Proposed
+**Status:** Accepted (human-approved 2026-08-21)
 **Date:** 2026-08-21
 **Authors:** Platform Architecture (draft prepared by execution agent)
 **Affects Standards:** Event Sourcing Standard ES-01; CQRS Standard CQ-02/CQ-17; Agent Rules AR-17; Tool Design Governance; ADR-0001; ADR-0002; ADR-0003; ADR-0012; ADR-0014; ADR-0016
@@ -134,7 +134,7 @@ The activation change set must also update `.hseos/AGENT-MANIFEST.md`, `.hseos/w
 
 ## Compliance
 
-- [ ] Approved by Engineering Leadership
+- [x] Approved by Engineering Leadership — explicit project-authority approval recorded 2026-08-21
 - [ ] Event Sourcing, CQRS, Agent Rules, and Tool Design standards updated to reference this ADR
 - [ ] Legacy migration dry-run reviewed against a backup copy
 - [ ] Adapter conformance suite passes

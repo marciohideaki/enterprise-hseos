@@ -1,10 +1,10 @@
 # ADR-0023 — MCP 2026-07-28 Stateless Adapter and Legacy Boundary
 
-**Status:** Proposed
+**Status:** Accepted (human-approved 2026-08-21)
 **Date:** 2026-08-21
 **Authors:** Platform Architecture (draft prepared by execution agent)
 **Affects Standards:** ADR-0008; ADR-0019; MCP bundles; MCP transport; tool contracts; security and observability boundaries
-**Supersedes:** ADR-0019 upon acceptance
+**Supersedes:** ADR-0019
 **Superseded By:** N/A
 
 ---
@@ -15,7 +15,7 @@ ADR-0019 retained a manually implemented subset at protocol revision `2024-11-05
 
 HSEOS currently assumes the retired initialization exchange in its shared transport and contract tests. HTTP and stdio adapters also differ in tool-result wrapping. The current transport does not centrally enforce bounded request bodies, deadlines, cancellation, output schemas, or precise JSON-RPC error mapping.
 
-The Governed Execution Runtime proposed by ADR-0022 owns domain policy and execution semantics. MCP must therefore be a stateless boundary adapter and must not introduce its own task or authority model.
+The Governed Execution Runtime accepted by ADR-0022 owns domain policy and execution semantics. MCP must therefore be a stateless boundary adapter and must not introduce its own task or authority model.
 
 ## Decision
 
@@ -82,8 +82,8 @@ The implementation may use the official TypeScript SDK if dependency and conform
 
 ## Compliance
 
-- [ ] Approved by Engineering Leadership
-- [ ] ADR-0019 marked superseded and index updated
+- [x] Approved by Engineering Leadership — explicit project-authority approval recorded 2026-08-21
+- [x] ADR-0019 marked superseded and index updated
 - [ ] All four native MCP servers pass modern contract tests
 - [ ] Legacy compatibility window and removal version documented
 - [ ] Teams notified
@@ -121,6 +121,6 @@ The implementation may use the official TypeScript SDK if dependency and conform
 ## References
 
 - ADR-0008 and ADR-0019
-- ADR-0022 (proposed)
+- ADR-0022 (accepted 2026-08-21)
 - MCP 2026-07-28 release: https://blog.modelcontextprotocol.io/posts/2026-07-28/
 - TypeScript SDK migration guide: https://ts.sdk.modelcontextprotocol.io/v2/migration/support-2026-07-28
