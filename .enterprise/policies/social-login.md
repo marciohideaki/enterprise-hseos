@@ -30,8 +30,18 @@ OAuth dentro do app. O app não muda: os botões aparecem na tela de login do re
    múltiplos parceiros no mesmo realm); nunca misturar com o provider social `microsoft`.
 5. WAF Cloudflare do tunnel exige User-Agent de navegador em chamadas de script à admin API.
 
+## Temas de login por produto (mesma policy)
+Cada produto pode (e deve) ter seu login theme no Keycloak compartilhado: ConfigMap
+`keycloak-theme-<produto>` montado por subPath em `/opt/keycloak/themes/<produto>/login/`
+(theme.properties `parent=keycloak` + CSS da marca) + `loginTheme` no realm via admin API.
+Referência viva: tema `linkedout` (gitops `platform-shared-dev/infra/base/keycloak-theme-
+linkedout-configmap.yaml`). Embutir a tela do Keycloak no app (iframe/ROPC) é PROIBIDO —
+quebra brokering social, SSO e o modelo de confiança. Gotchas: a app Argo do shared-infra é
+manual-sync (aplicar cirurgicamente os recursos, content-identical ao git); o edge do
+Cloudflare cacheia `/kc/resources/*` (iterações de tema podem demorar a aparecer).
+
 ## Estado (2026-08-21)
 Realm `linkedout`: 7 IdPs provisionados — **google HABILITADO** (client promovido de
 `google/aiagents-oauth-client-*` → `social-login/`; PENDENTE do owner: adicionar o redirect URI
 do linkedout no console Google) · facebook/x/linkedin/github/microsoft/entra-id desabilitados
-aguardando credenciais. Demais realms: rodar o script sob demanda.
+aguardando credenciais. Demais realms: rodar o script sob demanda. Tema `linkedout` ATIVO no realm linkedout (i18n pt-BR default).
