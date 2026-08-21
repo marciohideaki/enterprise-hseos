@@ -6,16 +6,27 @@ const yaml = require('yaml');
 const prompts = require('../lib/prompts');
 const {
   loadActivePluginManifests,
+  validatePluginRegistryDocument,
   verifyActivePluginConformance,
 } = require('../installers/lib/core/agent-core-compiler/sources/plugins-source');
 
 const SUPPORTED_ACTIONS = new Set(['list', 'install', 'remove', 'doctor']);
+const PLUGIN_ID_PATTERN = /^[a-z][a-z0-9-]*$/;
+
+function assertPluginId(pluginId) {
+  if (!pluginId || !PLUGIN_ID_PATTERN.test(pluginId)) {
+    throw new Error(`Invalid plugin id: ${pluginId || '(missing)'}`);
+  }
+}
 
 async function readRegistry(projectDir) {
   const registryPath = path.join(projectDir, '.agents', 'plugins', 'registry.yaml');
   if (!(await fs.pathExists(registryPath))) return null;
   const raw = await fs.readFile(registryPath, 'utf8');
-  return yaml.parse(raw) || null;
+  const registry = yaml.parse(raw) || null;
+  const strict = validatePluginRegistryDocument(registry);
+  Object.defineProperty(registry.plugins, 'schemaVersion', { value: strict ? '2.0' : 'legacy', enumerable: false });
+  return registry;
 }
 
 async function runList(projectDir) {
@@ -35,6 +46,7 @@ async function runInstall(projectDir, pluginId) {
   if (!pluginId) {
     throw new Error('hseos plugin install requires a plugin id. Usage: hseos plugin install <id>');
   }
+  assertPluginId(pluginId);
   const registry = await readRegistry(projectDir);
   if (!registry) {
     throw new Error('No plugin registry found. Run `hseos agent-core compile` first.');
@@ -46,7 +58,12 @@ async function runInstall(projectDir, pluginId) {
   if (entry.status !== 'active') {
     throw new Error(`Plugin is not installable: ${pluginId} has status ${entry.status || 'unspecified'}`);
   }
-  const [validatedManifest] = await loadActivePluginManifests(projectDir, [entry]);
+  const selectedEntries = [entry];
+  Object.defineProperty(selectedEntries, 'schemaVersion', {
+    value: String(registry.schema_version) === '2.0' ? '2.0' : 'legacy',
+    enumerable: false,
+  });
+  const [validatedManifest] = await loadActivePluginManifests(projectDir, selectedEntries);
   const manifest = validatedManifest;
   await verifyActivePluginConformance(projectDir, [manifest]);
 
@@ -137,6 +154,7 @@ async function runRemove(projectDir, pluginId) {
   if (!pluginId) {
     throw new Error('hseos plugin remove requires a plugin id. Usage: hseos plugin remove <id>');
   }
+  assertPluginId(pluginId);
   const claudePluginDir = path.join(projectDir, '.claude-plugin', 'plugins', pluginId);
   const codexPluginDir = path.join(projectDir, '.codex-plugin', 'plugins', pluginId);
 
