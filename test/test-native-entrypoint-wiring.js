@@ -54,8 +54,10 @@ test('production entrypoint preserves metered legacy compatibility without pendi
     const response = await rpc(port, 'query_constitution', {}, 'legacy-metered');
     assert.equal(response.error, undefined);
   } finally {
-    child.kill('SIGTERM');
-    await new Promise((resolve) => child.once('close', resolve));
+    if (child.exitCode === null && child.signalCode === null) {
+      child.kill('SIGTERM');
+      await new Promise((resolve) => child.once('close', resolve));
+    }
   }
   assert.equal(fs.existsSync(databasePath), false, 'pending execution database must not be created');
   const usagePath = path.join(directory, '.hseos', 'state', 'mcp-legacy-usage.db');
