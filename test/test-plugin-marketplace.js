@@ -2,12 +2,10 @@
  * Plugin Marketplace Tests (W5-impl)
  *
  * Tests:
- * 1. writePluginRegistry returns 4 plugins from the real registry
- * 2. writePlatformPluginAdapters emits .claude-plugin/marketplace.json with 4 entries
- * 3. writePlatformPluginAdapters emits .codex-plugin/plugin.json with 4 entries
- * 4. plugin doctor passes on real .agents/plugins/definitions/ tree
- * 5. plugin install creates .claude-plugin/plugins/<id>/plugin.json
- * 6. plugin remove removes installed plugin
+ * 1. writePluginRegistry exposes scaffolded marketplace candidates
+ * 2. writePlatformPluginAdapters emits empty vendor catalogs for inactive candidates
+ * 3. plugin definitions remain structurally valid while inactive
+ * 4. plugin install rejects inactive candidates
  */
 
 'use strict';
@@ -60,8 +58,8 @@ async function runTests() {
       plugins.every((p) => p.id),
     );
     assertPass(
-      'all active',
-      plugins.every((p) => p.status === 'active'),
+      'all scaffolded',
+      plugins.every((p) => p.status === 'scaffolded'),
       JSON.stringify(plugins.map((p) => p.status)),
     );
   }
@@ -83,28 +81,9 @@ async function runTests() {
       assertPass('.codex-plugin/plugin.json exists', await fs.pathExists(codexIndexPath));
 
       const claudeMarketplace = JSON.parse(await fs.readFile(claudeMarketplacePath, 'utf8'));
-      assertPass('marketplace has plugins array', Array.isArray(claudeMarketplace.plugins));
-      assertPass('marketplace has 4 plugin entries', claudeMarketplace.plugins.length === 4, `got ${claudeMarketplace.plugins.length}`);
-      assertPass('marketplace has schema_version', !!claudeMarketplace.schema_version);
-      assertPass('marketplace has marketplace field', !!claudeMarketplace.marketplace);
-
       const codexIndex = JSON.parse(await fs.readFile(codexIndexPath, 'utf8'));
-      assertPass('codex index has plugins array', Array.isArray(codexIndex.plugins));
-      assertPass('codex index has 4 plugin entries', codexIndex.plugins.length === 4, `got ${codexIndex.plugins.length}`);
-      assertPass('codex index has marketplace_id', !!codexIndex.marketplace_id);
-
-      // Verify surfaces are populated
-      const hookifyEntry = claudeMarketplace.plugins.find((p) => p.id === 'hseos-hookify');
-      assertPass(
-        'hseos-hookify has hooks surface',
-        hookifyEntry && Array.isArray(hookifyEntry.surfaces.hooks) && hookifyEntry.surfaces.hooks.length > 0,
-      );
-
-      const secEntry = claudeMarketplace.plugins.find((p) => p.id === 'hseos-security-guidance');
-      assertPass(
-        'hseos-security-guidance has skills surface',
-        secEntry && Array.isArray(secEntry.surfaces.skills) && secEntry.surfaces.skills.length > 0,
-      );
+      assertPass('Claude marketplace has no inactive entries', claudeMarketplace.plugins.length === 0);
+      assertPass('Codex marketplace has no inactive entries', codexIndex.plugins.length === 0);
     } finally {
       await fs.remove(tmpDir);
     }
@@ -140,9 +119,9 @@ async function runTests() {
     });
   }
 
-  // Test 5: plugin install creates plugin.json files
+  // Test 5: plugin install rejects inactive candidates
   {
-    console.log('\n5. plugin install — creates .claude-plugin/plugins/<id>/plugin.json');
+    console.log('\n5. plugin install — rejects inactive candidate');
     const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'hseos-install-test-'));
     try {
       await fs.copy(path.join(REPO_ROOT, '.agents'), path.join(tmpDir, '.agents'));
@@ -157,36 +136,21 @@ async function runTests() {
         message: async () => {},
       };
 
-      await pluginCmd.action('install', 'hseos-skill-creator', { directory: tmpDir });
+      let installError;
+      try {
+        await pluginCmd.action('install', 'hseos-skill-creator', { directory: tmpDir });
+      } catch (error) {
+        installError = error;
+      }
 
       prompts.log = origLog;
 
       const claudePath = path.join(tmpDir, '.claude-plugin', 'plugins', 'hseos-skill-creator', 'plugin.json');
       const codexPath = path.join(tmpDir, '.codex-plugin', 'plugins', 'hseos-skill-creator', 'plugin.json');
 
-      assertPass('claude-plugin/plugins/hseos-skill-creator/plugin.json exists', await fs.pathExists(claudePath));
-      assertPass('codex-plugin/plugins/hseos-skill-creator/plugin.json exists', await fs.pathExists(codexPath));
-
-      const manifest = JSON.parse(await fs.readFile(claudePath, 'utf8'));
-      assertPass('installed manifest has id', manifest.id === 'hseos-skill-creator');
-      assertPass('installed manifest has surfaces.commands', Array.isArray(manifest.surfaces && manifest.surfaces.commands));
-
-      // Test 6: plugin remove
-      console.log('\n6. plugin remove — removes installed plugin');
-      const prompts2 = require('../tools/cli/lib/prompts');
-      const origLog2 = prompts2.log;
-      prompts2.log = {
-        success: async () => {},
-        warn: async () => {},
-        error: async () => {},
-        message: async () => {},
-      };
-
-      await pluginCmd.action('remove', 'hseos-skill-creator', { directory: tmpDir });
-      prompts2.log = origLog2;
-
-      assertPass('claude-plugin dir removed', !(await fs.pathExists(claudePath)));
-      assertPass('codex-plugin dir removed', !(await fs.pathExists(codexPath)));
+      assertPass('inactive install returns a clear error', installError && /not installable/.test(installError.message));
+      assertPass('Claude plugin is not written', !(await fs.pathExists(claudePath)));
+      assertPass('Codex plugin is not written', !(await fs.pathExists(codexPath)));
     } finally {
       await fs.remove(tmpDir);
     }

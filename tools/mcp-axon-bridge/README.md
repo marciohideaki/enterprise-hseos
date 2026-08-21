@@ -1,6 +1,6 @@
 # `mcp-axon-bridge` — Axon Code-Index Wrapper
 
-> **Status: scaffolded.** Implementation lands as a follow-up PR within Wave 3. Declared in `.agents/mcp/bundles/extended.yaml`.
+> **Status: implemented.** Declared in `.agents/mcp/bundles/extended.yaml`; contract and fallback behavior are covered by `test/test-mcp-axon-bridge.js` and `test/test-mcp-contract.js`.
 
 ## Purpose
 
@@ -15,7 +15,7 @@ Provide an HSEOS-shipped wrapper around the `axon` code-indexing binary so proje
 
 This satisfies ADR-0006 P5 (zero global path) and P6 (graceful degradation): the bridge never hard-fails on Axon absence.
 
-## Tools (planned, mirroring upstream Axon MCP API)
+## Tools
 
 | Tool | Purpose |
 |---|---|
@@ -26,16 +26,17 @@ This satisfies ADR-0006 P5 (zero global path) and P6 (graceful degradation): the
 | `get_overview` | Project-wide overview |
 | `run_pipeline` | Refresh the Axon index |
 
-## Implementation plan
+## Implementation
 
 - `index.js` — bridge entrypoint, talks to upstream Axon binary via stdio
 - `lib/binary-resolver.js` — implements the four-step chain
 - `lib/no-op-fallback.js` — empty-result responses when binary absent
-- Test: `test/test-mcp-axon-bridge.js` — mocks the upstream binary, asserts fallback path returns empty cleanly
+- `test/test-mcp-axon-bridge.js` exercises the no-binary fallback path.
+- `test/test-mcp-contract.js` verifies the shared protocol and tool descriptor contract.
 
 ## Acceptance
 
-- [ ] All six tools forwarded when binary is reachable
-- [ ] No-op fallback returns valid empty MCP responses (never throws)
-- [ ] `hseos mcp doctor` reports either reachable or fallback-active (never error)
-- [ ] Published as `@hseos/mcp-server-axon-bridge` on npm and Smithery
+- [x] Six tool descriptors are exposed by the bridge.
+- [x] No-op fallback returns valid MCP responses without throwing.
+- [x] Shared MCP contract covers the bridge.
+- [ ] Reachable-binary forwarding requires an integration fixture.

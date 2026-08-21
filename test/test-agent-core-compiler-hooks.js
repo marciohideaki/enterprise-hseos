@@ -243,6 +243,14 @@ async function testAgentCoreCompileRegistersPlugins() {
   await withTempDir(async (tempDir) => {
     const pluginsDir = path.join(tempDir, '.agents', 'plugins');
     fs.mkdirSync(pluginsDir, { recursive: true });
+    for (const id of ['hseos-skill-creator', 'hseos-pr-review']) {
+      const definitionDir = path.join(pluginsDir, 'definitions', id);
+      fs.mkdirSync(definitionDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(definitionDir, 'plugin.yaml'),
+        yaml.stringify({ id, version: '0.1.0', description: id, license: 'MIT', surfaces: {} }),
+      );
+    }
     fs.writeFileSync(
       path.join(pluginsDir, 'registry.yaml'),
       yaml.stringify({
@@ -250,6 +258,7 @@ async function testAgentCoreCompileRegistersPlugins() {
         plugins: [
           { id: 'hseos-skill-creator', version: '0.1.0', status: 'active', extends: '' },
           { id: 'hseos-pr-review', version: '0.1.0', status: 'active', extends: 'official:pr-review-toolkit@1.2.0' },
+          { id: 'hseos-future-plugin', version: '0.1.0', status: 'scaffolded', extends: '' },
         ],
       }),
     );
@@ -257,6 +266,7 @@ async function testAgentCoreCompileRegistersPlugins() {
     await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
     const manifest = yaml.parse(fs.readFileSync(path.join(tempDir, '.agents', 'manifest.yaml'), 'utf8'));
     const plugins = manifest.plugins || [];
+    const marketplace = JSON.parse(fs.readFileSync(path.join(tempDir, '.claude-plugin', 'marketplace.json'), 'utf8'));
 
     assertPass(
       'manifest registers plugins with counts.plugins',
@@ -268,6 +278,16 @@ async function testAgentCoreCompileRegistersPlugins() {
       plugins.find((p) => p.id === 'hseos-pr-review')?.extends === 'official:pr-review-toolkit@1.2.0' &&
         plugins.find((p) => p.id === 'hseos-skill-creator')?.extends === undefined,
       JSON.stringify(plugins),
+    );
+    assertPass(
+      'inactive plugin candidates are omitted from the compiled manifest',
+      !plugins.some((p) => p.id === 'hseos-future-plugin'),
+      JSON.stringify(plugins),
+    );
+    assertPass(
+      'compiler emits only active plugin definitions to the platform marketplace',
+      marketplace.plugins.length === 2 && !marketplace.plugins.some((p) => p.id === 'hseos-future-plugin'),
+      JSON.stringify(marketplace.plugins),
     );
   });
 }

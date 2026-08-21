@@ -4,7 +4,9 @@
 
 ## Purpose
 
-Generates `SKILL.md` and `QUICK.md` pairs that conform to the HSEOS Tier-policy frontmatter declared in `.agents/instructions/TIER-POLICY.md` (lands in Wave 4 implementation). Replaces the upstream `skill-creator` plugin with one that emits HSEOS-compliant skill files out of the box.
+Plans to generate `SKILL.md` and `SKILL-QUICK.md` pairs in the canonical
+`.enterprise/governance/agent-skills/` source. The compiler, rather than the plugin,
+owns the `.agents/skills/` mirror.
 
 ## Frontmatter the plugin emits
 

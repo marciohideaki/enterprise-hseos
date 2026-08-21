@@ -1,6 +1,6 @@
 # Hook Handlers — `.agents/hooks/handlers/`
 
-> **Status: scaffolded (Wave 4 foundation).** Per ADR-0006 P5 (zero global path), hook handler scripts must live inside the repository so that a clean clone can install hooks without depending on the host machine. The directory is reserved here; concrete handler scripts are migrated from `~/.claude/hooks/` and `scripts/governance/` in Wave 4 implementation follow-ups.
+> **Status: implemented.** The canonical handler source is `.enterprise/governance/hooks/handlers/`. The agent-core compiler copies and hash-pins it into `.agents/hooks/handlers/`; clean clones do not depend on host-global paths (ADR-0006 P5). Files in the compiled mirror must not be edited directly.
 
 ## Migration plan
 

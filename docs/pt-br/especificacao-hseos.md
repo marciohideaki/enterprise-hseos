@@ -288,9 +288,9 @@ Subsistema de instalação (`tools/cli/installers/`): orquestrador de 3.8k linha
 | Server | Porta | Status | Tools | Por que existe |
 |---|---|---|---|---|
 | `mcp-project-state` | 3100 | **implemented** | runs/tasks/events/handoffs sobre schema `as_*` + FTS5 | Estado de execução queryável por agente ("qual agente tocou auth nos últimos 30 runs") |
-| `mcp-hseos-governance` | 3101 | scaffolded | query_constitution, validate_adr, check_authority, list_skills, list_workflows | Governança consultável via MCP em vez de leitura de arquivos |
-| `mcp-hseos-swarm` | 3102 | scaffolded | plan_squad, dispatch_wave, consolidate_handoff, get_run_state | Protocolo dev-squad como API (hoje opera em markdown/filesystem; integração SQLite declarada mas não implementada) |
-| `mcp-axon-bridge` | 3103 | scaffolded | code_search, dep_graph, get_skeleton, get_overview, memory_search, run_pipeline | Wrapper portável do Axon com resolução de binário em 4 passos e fallback no-op (`fallback:true`) — P5/P6 |
+| `mcp-hseos-governance` | 3101 | **implemented** | query_constitution, validate_adr, check_authority, list_skills, list_workflows | Governança consultável via MCP em vez de leitura de arquivos |
+| `mcp-hseos-swarm` | 3102 | **implemented** | plan_squad, dispatch_wave, consolidate_handoff, get_run_state, list_runs | Protocolo dev-squad como API sobre os artefatos de run; a normalização com o estado relacional está proposta no ADR-0022 |
+| `mcp-axon-bridge` | 3103 | **implemented** | code_search, dep_graph, get_skeleton, get_overview, memory_search, run_pipeline | Wrapper portável do Axon com resolução de binário e fallback no-op (`fallback:true`) — P5/P6 |
 
 Bundles (ADR-0008, `.agents/mcp/bundles/`): **core** (sempre: governance, state, filesystem), **extended** (opt-in: swarm, axon-bridge, sequential-thinking, fetch, memory), **enterprise** (opt-in + secrets via env: github, postgres SELECT-only, kubernetes read-mostly, sentry, azure-devops com regras operacionais embutidas — "nunca criar com State=Closed", ≤10 chamadas/turno). Ativos: `[core, extended]`.
 
@@ -298,8 +298,8 @@ Bundles (ADR-0008, `.agents/mcp/bundles/`): **core** (sempre: governance, state,
 
 - `tools/usage-dashboard/` (Python) — mineração dos JSONL do Claude Code para SQLite + dashboard de custo/uso (:8080, exposto na rede local deliberadamente).
 - `tools/state-ui-server/` — kanban web SSE (loopback-only por default; `lib/snapshot.js` é a fonte única do formato, compartilhada com o kanban ASCII).
-- `packages/adapter-sdk` (`@hseos/adapter-sdk` v1.0.0, scaffolded) — contrato `AdapterBase` + `checkAdapterConformance` para BYOA; Goose é o adapter de referência.
-- Plugins (ADR-0009, 4): `hseos-skill-creator`, `hseos-hookify`, `hseos-pr-review` (extends toolkit oficial), `hseos-security-guidance` — emissão dual `.claude-plugin/` + `.codex-plugin/`.
+- `packages/adapter-sdk` (`@hseos/adapter-sdk` v1.0.0, **implemented**) — contrato `AdapterBase` + `checkAdapterConformance` para BYOA; Goose é o adapter de referência.
+- Plugins (ADR-0009): a infraestrutura de catálogo/emissão dual está implementada; os quatro candidatos (`hseos-skill-creator`, `hseos-hookify`, `hseos-pr-review`, `hseos-security-guidance`) permanecem `scaffolded` e não são emitidos nem instaláveis até terem comportamento testado.
 
 ### 9.4 Scripts de governança (`scripts/governance/`)
 

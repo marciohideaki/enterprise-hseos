@@ -310,13 +310,14 @@ Use `AdapterBase.writeFile(path, content)` instead of raw `fs.writeFile` — it 
 
 ### `hseos plugin doctor` reports conformance errors
 
-Plugin conformance checks validate the plugin manifest against `.claude-plugin/` and `.codex-plugin/` schemas.
+Plugin conformance checks validate active plugin manifests. Entries marked `scaffolded`
+remain visible in the catalog but are deliberately not installable.
 
 ```bash
-# Show detailed errors
-hseos plugin doctor --verbose
+# Show validation results and inactive candidates
+hseos plugin doctor
 
-# Re-install a specific plugin
+# Re-install a specific active plugin
 hseos plugin install <plugin-id>
 ```
 
@@ -358,10 +359,13 @@ In `.enterprise/.specs/decisions/` as ADR files. Every architectural trade-off, 
 
 ### How do I add a new skill?
 
-1. Use the `hseos-skill-creator` plugin: `hseos plugin install hseos-skill-creator`, then `/skill-new` in Claude Code
-2. The plugin scaffolds `SKILL.md` + `SKILL-QUICK.md` with correct HSEOS frontmatter
-3. Register the skill in `.enterprise/governance/agent-skills/SKILLS-REGISTRY.md`
-4. Run `npm run validate:schemas` to verify
+1. Create `.enterprise/governance/agent-skills/<skill-name>/SKILL.md` and `SKILL-QUICK.md` from an existing governed skill structure.
+2. Register the skill in `.enterprise/governance/agent-skills/SKILLS-REGISTRY.md`.
+3. Run `npm run validate:schemas` to verify.
+4. Run `hseos agent-core compile --target all` to regenerate the portable mirrors.
+
+`hseos-skill-creator` remains a non-installable marketplace candidate until its generator
+and behavior tests are implemented.
 
 ---
 
