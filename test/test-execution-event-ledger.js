@@ -40,16 +40,27 @@ function eventId(label) {
 }
 
 function event(id, overrides = {}) {
+  const eventType = overrides.event_type || 'ExecutionStarted';
+  const payloadByType = {
+    ExecutionStarted: {
+      tool: 'fixture.echo',
+      provider: 'fixture-provider',
+      idempotency_key: `idempotency-${id}`,
+      dispatch_attempt: 1,
+      deadline: '2026-08-21T04:01:00.000Z',
+    },
+    ExecutionSucceeded: { result: { fixture: id }, output_schema_version: 1, warnings: [] },
+  };
   return {
     event_id: eventId(id),
-    event_type: 'ExecutionStarted',
+    event_type: eventType,
     schema_version: 1,
     occurred_at: '2026-08-21T04:00:00.000Z',
     correlation_id: 'corr-1',
     causation_id: `command-${id}`,
     actor: { id: 'human-1', type: 'human' },
     operation_id: `operation-${id}`,
-    payload: { tool: 'fixture' },
+    payload: payloadByType[eventType],
     evidence_refs: ['evidence://fixture'],
     ...overrides,
   };
@@ -63,7 +74,7 @@ test('operational runner stays at v4 and the gated fixture migration creates sch
     assert.equal(db.prepare(`SELECT COUNT(*) AS count FROM sqlite_master WHERE name = 'execution_events'`).get().count, 0);
     db.prepare(`INSERT INTO as_runs (id, workflow_id, project) VALUES ('legacy-run', 'fixture', '/tmp/project')`).run();
     applyExecutionLedgerFixtureSchema(db);
-    assert.equal(db.pragma('user_version', { simple: true }), 6);
+    assert.equal(db.pragma('user_version', { simple: true }), 7);
     assert.equal(db.prepare(`SELECT COUNT(*) AS count FROM as_runs WHERE id = 'legacy-run'`).get().count, 1);
     const columns = new Set(db.prepare(`PRAGMA table_info(execution_events)`).all().map((column) => column.name));
     for (const field of [
@@ -227,7 +238,11 @@ test('an exact event-id retry is idempotent while changed or partial reuse fails
     assert.equal(ledger.metrics().idempotent_replays, 1);
 
     assert.throws(
-      () => ledger.append({ ...request, events: [event('event-1', { payload: { changed: true } }), event('event-2')] }),
+      () =>
+        ledger.append({
+          ...request,
+          events: [event('event-1', { payload: { ...event('event-1').payload, provider: 'changed-provider' } }), event('event-2')],
+        }),
       DuplicateEventError,
     );
     assert.throws(
@@ -273,7 +288,7 @@ test('ledger rows reject update/delete/replace and sensitive payload fields', ()
       assert.throws(
         () =>
           ledger.append({
-            aggregate_type: 'execution',
+            aggregate_type: 'fixture',
             aggregate_id: 'run-1',
             expected_version: 0,
             events: [event(`event-secret-${sensitiveKey}`, { payload: { nested: { [sensitiveKey]: 'must-not-persist' } } })],
@@ -284,7 +299,7 @@ test('ledger rows reject update/delete/replace and sensitive payload fields', ()
     }
     assert.doesNotThrow(() =>
       ledger.append({
-        aggregate_type: 'execution',
+        aggregate_type: 'fixture',
         aggregate_id: 'safe-run',
         expected_version: 0,
         events: [event('event-safe-counters', { payload: { idempotency_key: 'public-operation-id', token_count: 42 } })],
@@ -326,7 +341,7 @@ test('payload and actor require strict lossless JSON values', () => {
       assert.throws(
         () =>
           ledger.append({
-            aggregate_type: 'execution',
+            aggregate_type: 'fixture',
             aggregate_id: `invalid-${index}`,
             expected_version: 0,
             events: [event(`invalid-${index}`, { payload: { value: invalid } })],
@@ -337,7 +352,7 @@ test('payload and actor require strict lossless JSON values', () => {
     assert.throws(
       () =>
         ledger.append({
-          aggregate_type: 'execution',
+          aggregate_type: 'fixture',
           aggregate_id: 'invalid-actor',
           expected_version: 0,
           events: [event('invalid-actor', { actor: { id: 'human', metadata: { value: undefined } } })],
@@ -347,7 +362,7 @@ test('payload and actor require strict lossless JSON values', () => {
 
     const payload = { amount: 10.5, flags: [true, false, null], nested: { unicode: 'ação' } };
     const result = ledger.append({
-      aggregate_type: 'execution',
+      aggregate_type: 'fixture',
       aggregate_id: 'lossless',
       expected_version: 0,
       events: [event('lossless', { payload })],
@@ -436,7 +451,10 @@ test('concurrent connections yield unique monotonic sequences with explicit call
             event_id: workerData.eventId, event_type: 'ExecutionStarted', schema_version: 1,
             occurred_at: '2026-08-21T04:00:00.000Z', correlation_id: 'concurrent', causation_id: 'command-' + workerData.eventId,
             actor: { type: 'worker', id: workerData.eventId }, operation_id: workerData.eventId,
-            payload: { worker: workerData.eventId }, evidence_refs: []
+            payload: {
+              tool: 'fixture.concurrent', provider: 'fixture-provider', idempotency_key: workerData.eventId,
+              dispatch_attempt: 1, deadline: '2026-08-21T04:01:00.000Z'
+            }, evidence_refs: []
           }]
         });
         parentPort.postMessage({ sequence: result.events[0].stream_sequence, position: result.events[0].position, conflicts });

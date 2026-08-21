@@ -69,9 +69,10 @@ class ExecutionProjectionStore {
    * @param {import('better-sqlite3').Database} db
    * @param {import('./execution-event-ledger').ExecutionEventLedger} ledger
    */
-  constructor(db, ledger) {
+  constructor(db, ledger, { event_registry = ledger.eventRegistry || null } = {}) {
     this.db = db;
     this.ledger = ledger;
+    this.eventRegistry = event_registry;
     this._metrics = {
       events_processed_by_projection: { [PROJECTION_NAME]: 0 },
       projection_failures_by_projection: { [PROJECTION_NAME]: 0 },
@@ -122,9 +123,10 @@ class ExecutionProjectionStore {
     this._applyBatch = db.transaction((generation, expectedCheckpoint, events, faultInjector) => {
       for (const event of events) {
         if (faultInjector) faultInjector('before_event', event);
-        if (event.aggregate_type === 'execution') {
-          const current = this._getProjectedRun.get(generation, event.aggregate_type, event.aggregate_id) || null;
-          const next = applyExecutionRun(current, event);
+        const projectedEvent = this.eventRegistry ? this.eventRegistry.deserialize(event) : event;
+        if (projectedEvent.aggregate_type === 'execution') {
+          const current = this._getProjectedRun.get(generation, projectedEvent.aggregate_type, projectedEvent.aggregate_id) || null;
+          const next = applyExecutionRun(current, projectedEvent);
           this._upsertProjectedRun.run(
             generation,
             next.aggregate_type,

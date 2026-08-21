@@ -19,6 +19,16 @@ function eventId(label) {
 }
 
 function event(label, event_type = 'ExecutionStarted') {
+  const payloadByType = {
+    ExecutionStarted: {
+      tool: 'fixture.echo',
+      provider: 'fixture-provider',
+      idempotency_key: `idempotency-${label}`,
+      dispatch_attempt: 1,
+      deadline: '2026-08-21T04:01:00.000Z',
+    },
+    ExecutionSucceeded: { result: { fixture: label }, output_schema_version: 1, warnings: [] },
+  };
   return {
     event_id: eventId(label),
     event_type,
@@ -28,7 +38,7 @@ function event(label, event_type = 'ExecutionStarted') {
     causation_id: `command-${label}`,
     actor: { id: 'fixture', type: 'test' },
     operation_id: `operation-${label}`,
-    payload: { fixture: label },
+    payload: payloadByType[event_type],
     evidence_refs: [],
   };
 }
@@ -53,7 +63,7 @@ test('fixture schema includes projection migration 006 while operational runner 
     runMigrations(db, MIGRATIONS_DIR, { log: () => {} });
     assert.equal(db.pragma('user_version', { simple: true }), 4);
     applyExecutionLedgerFixtureSchema(db);
-    assert.equal(db.pragma('user_version', { simple: true }), 6);
+    assert.equal(db.pragma('user_version', { simple: true }), 7);
     assert.equal(db.prepare(`SELECT COUNT(*) AS count FROM sqlite_master WHERE name = 'execution_projection_checkpoints'`).get().count, 1);
   } finally {
     db.close();

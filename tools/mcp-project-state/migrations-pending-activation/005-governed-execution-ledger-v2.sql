@@ -3,6 +3,34 @@
 -- G2 applies it only through the temporary-fixture gate. Moving it into the
 -- operational migrations directory requires separate human authorization.
 
+CREATE TABLE IF NOT EXISTS execution_event_schemas (
+  event_type TEXT NOT NULL CHECK(length(event_type) > 0),
+  schema_version INTEGER NOT NULL CHECK(schema_version > 0),
+  PRIMARY KEY (event_type, schema_version)
+);
+
+INSERT INTO execution_event_schemas (event_type, schema_version) VALUES
+  ('ExecutionAuthorized', 1),
+  ('ExecutionStarted', 1),
+  ('ExecutionSucceeded', 1),
+  ('ExecutionFailed', 1),
+  ('ExecutionCancelled', 1),
+  ('ExecutionOutcomeUncertain', 1),
+  ('ExecutionCompensated', 1),
+  ('ExecutionCompensationFailed', 1);
+
+CREATE TRIGGER IF NOT EXISTS execution_event_schemas_no_insert
+BEFORE INSERT ON execution_event_schemas
+BEGIN SELECT RAISE(ABORT, 'execution_event_schemas changes require a migration'); END;
+
+CREATE TRIGGER IF NOT EXISTS execution_event_schemas_no_update
+BEFORE UPDATE ON execution_event_schemas
+BEGIN SELECT RAISE(ABORT, 'execution_event_schemas changes require a migration'); END;
+
+CREATE TRIGGER IF NOT EXISTS execution_event_schemas_no_delete
+BEFORE DELETE ON execution_event_schemas
+BEGIN SELECT RAISE(ABORT, 'execution_event_schemas changes require a migration'); END;
+
 CREATE TABLE IF NOT EXISTS execution_events (
   position INTEGER PRIMARY KEY AUTOINCREMENT,
   event_id TEXT NOT NULL UNIQUE CHECK(
@@ -32,7 +60,8 @@ CREATE TABLE IF NOT EXISTS execution_events (
   evidence_refs_json TEXT NOT NULL DEFAULT '[]'
     CHECK(json_valid(evidence_refs_json) AND json_type(evidence_refs_json) = 'array'),
   recorded_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-  UNIQUE(aggregate_type, aggregate_id, stream_sequence)
+  UNIQUE(aggregate_type, aggregate_id, stream_sequence),
+  FOREIGN KEY (event_type, schema_version) REFERENCES execution_event_schemas(event_type, schema_version)
 );
 
 CREATE INDEX IF NOT EXISTS idx_execution_events_stream
@@ -41,6 +70,16 @@ CREATE INDEX IF NOT EXISTS idx_execution_events_operation
   ON execution_events(operation_id, position);
 CREATE INDEX IF NOT EXISTS idx_execution_events_correlation
   ON execution_events(correlation_id, position);
+
+CREATE TRIGGER IF NOT EXISTS execution_events_registered_schema
+BEFORE INSERT ON execution_events
+WHEN NOT EXISTS (
+  SELECT 1 FROM execution_event_schemas schema
+  WHERE schema.event_type = NEW.event_type AND schema.schema_version = NEW.schema_version
+)
+BEGIN
+  SELECT RAISE(ABORT, 'execution event type/schema is not registered');
+END;
 
 CREATE TRIGGER IF NOT EXISTS execution_events_no_update
 BEFORE UPDATE ON execution_events
