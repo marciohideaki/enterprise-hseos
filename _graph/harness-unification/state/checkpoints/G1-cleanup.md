@@ -1,7 +1,7 @@
 # G1 Checkpoint — Cleanup and Truthful Plugin Surfaces
 
-**Status:** completed  
-**Baseline:** feature commit `87e40e8`  
+**Status:** superseded by `G1-independent-correction.md`
+**Baseline:** feature commit `87e40e8`
 **Risk class:** reversible cleanup; no operational state or security policy changed
 
 ## Changes
@@ -14,18 +14,15 @@
 - Corrected scaffolded/implemented status drift for hook handlers, MCP Axon bridge, native MCP servers, and adapter SDK.
 - Corrected plugin authoring destinations to canonical `.enterprise/governance` sources.
 
-## Verification
+## Original verification (superseded)
 
-- Full governed quality gates: passed with zero failures.
-- Plugin marketplace tests: 12 passed, 0 failed.
-- Compiler hook/adapter tests: 28 passed, 0 failed.
-- Lint: passed with zero warnings.
-- `git diff --check`: passed.
+- These original counts and the untracked log reference attached to event `harness-unification-0002` are not accepted as completion evidence.
+- Independent verification refuted the original completion claim. Event `harness-unification-0003` invalidates it, and the durable replacement checkpoint records the corrected implementation and current results.
 - Existing unrelated `format:check` baseline remains non-green in `state-session.js` and `agent-state-dal.js`; neither file was changed by G1.
 
 ## Residual boundary
 
-The candidates remain in the internal registry because ADR-0009 explicitly defines them as the initial marketplace set. Eliminating or replacing those definitions is deferred to the architectural acceptance/retirement nodes; they cannot reach users while `scaffolded`.
+The candidates remain in the internal registry because ADR-0009 explicitly defines them as the initial marketplace set. Eliminating or replacing those definitions is deferred to the architectural acceptance/retirement nodes. Previously installed copies require explicit deactivation by the compiler; this behavior is added and verified in the follow-up checkpoint.
 
 ## Rollback
 

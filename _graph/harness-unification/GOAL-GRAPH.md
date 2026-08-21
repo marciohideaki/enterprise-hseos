@@ -1,8 +1,8 @@
 # Goal Graph — Uniform and Robust HSEOS Harness
 
-**Artifact type:** Executable goal graph  
-**Objective:** Correct all identified deprecations, normalization gaps, duplicate surfaces, and harness fragmentation without weakening governance.  
-**Authority:** User authorization dated 2026-08-21; architectural activation remains subject to accepted ADRs.  
+**Artifact type:** Executable goal graph
+**Objective:** Correct all identified deprecations, normalization gaps, duplicate surfaces, and harness fragmentation without weakening governance.
+**Authority:** User authorization dated 2026-08-21; architectural activation remains subject to accepted ADRs.
 **Baseline:** `BASELINE.md`
 
 ## Global invariants
@@ -75,4 +75,3 @@
 ## Rollback
 
 Each node remains on an isolated `task/*` branch. Code nodes must include down-migration or compatibility reversal where applicable. No feature branch is merged and no task branch is removed without preserved validation evidence.
-
