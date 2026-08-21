@@ -1,5 +1,7 @@
 'use strict';
 
+const { createExecutionEventRegistry, ExecutionEventRegistry } = require('../../lib/governed-execution/event-registry');
+
 const SENSITIVE_KEYS = new Set([
   'access_token',
   'api_key',
@@ -219,9 +221,19 @@ function samePersistedEvent(row, candidate) {
 }
 
 class ExecutionEventLedger {
-  /** @param {import('better-sqlite3').Database} db */
-  constructor(db) {
+  /**
+   * @param {import('better-sqlite3').Database} db
+   * @param {{event_registry?: import('../../lib/governed-execution/event-registry').ExecutionEventRegistry}} [options]
+   */
+  constructor(db, { event_registry = createExecutionEventRegistry() } = {}) {
+    if (!(event_registry instanceof ExecutionEventRegistry)) {
+      throw new ExecutionLedgerError(
+        'Execution ledger requires a concrete fail-closed event registry',
+        'EXECUTION_EVENT_REGISTRY_BOUNDARY_MISSING',
+      );
+    }
     this.db = db;
+    this.eventRegistry = event_registry;
     this._metrics = {
       append_count: 0,
       append_count_by_aggregate_type: Object.create(null),
@@ -293,6 +305,9 @@ class ExecutionEventLedger {
     }
     if (!Array.isArray(events) || events.length === 0) {
       throw new InvalidEventError('events must be a non-empty array');
+    }
+    if (aggregate_type === 'execution' && this.eventRegistry) {
+      for (const event of events) this.eventRegistry.validateForAppend(event);
     }
     const stream = { aggregate_id, aggregate_type };
     const candidates = events.map((event, index) => normalizeEvent(event, stream, expected_version + index + 1));
