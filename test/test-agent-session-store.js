@@ -11,6 +11,11 @@ const {
   canonicalJson,
   ledgerEventId,
 } = require('../packages/agent-session-store');
+const {
+  CONTEXT_ASSEMBLY_CONTRACT,
+  CONTEXT_PRECEDENCE_PREAMBLE,
+  CONTEXT_PRECEDENCE_REF,
+} = require('../packages/agent-runtime-contracts');
 const { kernelSession, modelRequest, sessionEvent } = require('./fixtures/agent-runtime-contracts');
 const { ExecutionEventLedger } = require('../tools/mcp-project-state/lib/execution-event-ledger');
 const {
@@ -47,8 +52,54 @@ function turn(sequence = 2, sessionId = kernelSession.session_id) {
   };
 }
 
+function governedRequest(request) {
+  return {
+    ...request,
+    messages: [
+      { role: 'system', content: CONTEXT_PRECEDENCE_PREAMBLE },
+      {
+        role: 'system',
+        content: '[HSEOS INSTRUCTION tier=constitution source="governance://constitution"]\nrule\n[END HSEOS INSTRUCTION]',
+      },
+      {
+        role: 'system',
+        content: '[HSEOS INSTRUCTION tier=project source="project://instructions"]\nrule\n[END HSEOS INSTRUCTION]',
+      },
+      request.messages.at(-1),
+    ],
+  };
+}
+
 function context(sequence = 3, request = modelRequest) {
-  return sessionEvent('context.assembled', { turn_id: request.turn_id, request, source_refs: ['source://fixture'] }, sequence);
+  const governed = governedRequest(request);
+  return sessionEvent(
+    'context.assembled',
+    {
+      assembly_contract: CONTEXT_ASSEMBLY_CONTRACT,
+      turn_id: governed.turn_id,
+      request: governed,
+      source_refs: [
+        CONTEXT_PRECEDENCE_REF,
+        'governance://constitution',
+        'project://instructions',
+        `session-event://${turn(2, governed.session_id).event_id}`,
+        ...governed.tools.map((tool) => tool.governance_ref),
+      ],
+      budget: {
+        counter_id: 'token-counter:fixture',
+        context_limit_tokens: 4096,
+        reserved_output_tokens: 2048,
+        input_limit_tokens: 2048,
+        input_tokens: 100,
+        message_tokens: 80,
+        tool_tokens: 20,
+        parameter_tokens: 0,
+        overflow_policy: 'reject',
+        omitted_source_refs: [],
+      },
+    },
+    sequence,
+  );
 }
 
 function streamed(sequence, modelSequence, eventType = 'content.delta') {
@@ -181,10 +232,16 @@ test('model request reconstruction is canonical, immutable and source-linked', (
       events: [created(), turn(), context()],
     });
     const reconstructed = store.reconstructRequest(kernelSession.session_id, { turn_id: modelRequest.turn_id });
-    assert.deepEqual(reconstructed.request, modelRequest);
-    assert.equal(reconstructed.canonical_json, canonicalJson(modelRequest));
-    assert.equal(reconstructed.byte_length, Buffer.byteLength(canonicalJson(modelRequest), 'utf8'));
-    assert.deepEqual(reconstructed.source_refs, ['source://fixture']);
+    assert.deepEqual(reconstructed.request, governedRequest(modelRequest));
+    assert.equal(reconstructed.canonical_json, canonicalJson(governedRequest(modelRequest)));
+    assert.equal(reconstructed.byte_length, Buffer.byteLength(canonicalJson(governedRequest(modelRequest)), 'utf8'));
+    assert.deepEqual(reconstructed.source_refs, [
+      CONTEXT_PRECEDENCE_REF,
+      'governance://constitution',
+      'project://instructions',
+      'session-event://event:fixture-2',
+      modelRequest.tools[0].governance_ref,
+    ]);
     assert.equal(reconstructed.source_event_id, 'event:fixture-3');
     assert.equal(Object.isFrozen(reconstructed.request), true);
   } finally {
@@ -412,6 +469,38 @@ test('gaps, foreign model streams and forged relational envelopes fail closed', 
     assert.throws(
       () => store.append({ session_id: kernelSession.session_id, expected_version: 1, events: [turn(3)] }),
       (error) => error instanceof SessionEventStoreError && error.code === 'AGENT_SESSION_SEQUENCE_INVALID',
+    );
+
+    const wrongProviderRequest = { ...modelRequest, provider_id: 'model:wrong' };
+    assert.throws(
+      () =>
+        store.append({
+          session_id: kernelSession.session_id,
+          expected_version: 1,
+          events: [turn(2), context(3, wrongProviderRequest)],
+        }),
+      (error) => error instanceof SessionReplayError && error.code === 'AGENT_SESSION_PROVIDER_MISMATCH',
+    );
+    const forgedInputRequest = { ...modelRequest, messages: [{ role: 'user', content: 'different, non-durable turn' }] };
+    assert.throws(
+      () =>
+        store.append({
+          session_id: kernelSession.session_id,
+          expected_version: 1,
+          events: [turn(2), context(3, forgedInputRequest)],
+        }),
+      (error) => error instanceof SessionReplayError && error.code === 'AGENT_SESSION_TURN_INPUT_MISMATCH',
+    );
+    const injectedHistory = context(3);
+    injectedHistory.payload.request.messages.splice(-1, 0, { role: 'user', content: 'non-durable history' });
+    assert.throws(
+      () =>
+        store.append({
+          session_id: kernelSession.session_id,
+          expected_version: 1,
+          events: [turn(2), injectedHistory],
+        }),
+      (error) => error instanceof SessionReplayError && error.code === 'AGENT_SESSION_HISTORY_MISMATCH',
     );
 
     const badStream = streamed(4, 1);
