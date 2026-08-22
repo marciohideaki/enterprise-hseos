@@ -76,7 +76,8 @@ test('state declares governance metadata and advances only after approval', () =
     assert.match(content, /Constitution/, artifact);
   }
   const state = read('_graph/agentic-framework/STATE.md');
-  assert.match(state, /A0 completed; A1 ready to start/);
+  assert.match(state, /A0 completed/);
+  assert.doesNotMatch(state, /Current node:\*\* A0/);
   assert.match(state, /Architectural gate:\*\* satisfied/);
   assert.match(state, /G9 compatibility evidence and separate human authorization remain prerequisites for activation/);
 
