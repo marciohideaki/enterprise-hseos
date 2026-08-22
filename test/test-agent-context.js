@@ -6,6 +6,12 @@ const path = require('node:path');
 const { test } = require('node:test');
 
 const Database = require('better-sqlite3');
+const {
+  CompactionProviderRegistry,
+  CompactionRuntime,
+  DeterministicCompactionProvider,
+  InMemoryCheckpointProvider,
+} = require('../packages/agent-compaction');
 
 const {
   ConservativeUtf8TokenCounter,
@@ -20,7 +26,7 @@ const {
   CONTEXT_PRECEDENCE_PREAMBLE,
   CONTEXT_PRECEDENCE_REF,
 } = require('../packages/agent-runtime-contracts');
-const { RelationalSessionEventStore, canonicalJson } = require('../packages/agent-session-store');
+const { RelationalSessionEventStore, canonicalJson, replaySessionEvents } = require('../packages/agent-session-store');
 const { ModelProviderRegistry, ModelProviderRegistrySnapshot, ScriptedModelProvider } = require('../packages/model-providers');
 const { ExecutionEventLedger } = require('../tools/mcp-project-state/lib/execution-event-ledger');
 const { applyExecutionLedgerFixtureSchema } = require('../tools/mcp-project-state/lib/execution-ledger-schema');
@@ -62,12 +68,33 @@ function providerSnapshot(manifest = providerManifest()) {
   return registry.snapshot();
 }
 
-function assembler(store, { manifest = providerManifest(), counter } = {}) {
+function assembler(store, { manifest = providerManifest(), counter, compactionRuntime } = {}) {
   return new ContextAssembler({
     session_store: store,
     model_provider_snapshot: providerSnapshot(manifest),
+    ...(compactionRuntime ? { compaction_runtime: compactionRuntime } : {}),
     ...(counter ? { token_counter: counter } : {}),
   });
+}
+
+function compactionFixture() {
+  const provider = new DeterministicCompactionProvider({ provider_id: 'compaction:context-fixture' });
+  const registry = new CompactionProviderRegistry();
+  const manifestInput = {
+    schema_version: 1,
+    request_id: 'request:context-compaction-manifest',
+    provider_id: 'compaction:context-fixture',
+  };
+  registry.register(provider, provider.manifest(manifestInput));
+  const checkpoint = new InMemoryCheckpointProvider({ provider_id: 'checkpoint:context-fixture' });
+  return {
+    checkpoint,
+    runtime: new CompactionRuntime({
+      compaction_provider_snapshot: registry.snapshot(),
+      checkpoint_provider: checkpoint,
+      checkpoint_provider_id: 'checkpoint:context-fixture',
+    }),
+  };
 }
 
 function eventId(label) {
@@ -372,6 +399,77 @@ test('truncate_optional keeps recent history first and durably records whole omi
   } finally {
     baseline.db.close();
     bounded.db.close();
+  }
+});
+
+test('compact pressure atomically records exact lineage and a byte-reconstructable request', () => {
+  const baseline = openStore();
+  const compacted = openStore();
+  try {
+    const baselineSpec = session('session:context-compact-base');
+    const baselineTurn = prepareSession(baseline.store, baselineSpec);
+    const baselineResult = assembler(baseline.store).assembleAndRecord(assemblyInput(baselineSpec, baselineTurn));
+    const spec = session('session:context-compact');
+    const history = prepareSessionWithHistory(compacted.store, spec);
+    const compaction = compactionFixture();
+    const contextLimit = baselineResult.budget.input_tokens + 512 + 1000;
+    const input = assemblyInput(spec, history.turn, {
+      expected_version: history.expectedVersion,
+      current_turn: { source_ref: `session-event://${history.currentEventId}`, message: history.turn },
+      overflow_policy: 'compact',
+      compaction_provider_id: 'compaction:context-fixture',
+      compaction_id: 'compaction:context-history',
+      compaction_event_id: 'event:context-compaction',
+    });
+    const beforeEvents = compacted.store.readSession(spec.session_id);
+    const originalContent = beforeEvents.find(
+      (event) => event.event_id === eventId(`${spec.session_id}:old:content`),
+    );
+    const result = assembler(compacted.store, {
+      manifest: providerManifest(contextLimit),
+      compactionRuntime: compaction.runtime,
+    }).assembleAndRecord(input);
+    assert.equal(result.compaction_event.event_type, 'compaction.completed');
+    assert.deepEqual(
+      compacted.store.readSession(spec.session_id).slice(-2).map((event) => event.event_type),
+      ['compaction.completed', 'context.assembled'],
+    );
+    assert.match(result.request.messages.find((message) => message.content.includes('HSEOS COMPACTION')).content, /sha256:/);
+    assert.equal(result.request.messages.some((message) => message.content === 'recent answer'), true);
+    assert.equal(result.source_refs.includes('session-event://event:context-compaction'), true);
+    assert.equal(
+      result.source_refs.includes(`session-event://${eventId(`${spec.session_id}:old:turn`)}`),
+      false,
+    );
+    assert.equal(result.reconstructed.canonical_json, canonicalJson(result.request));
+    assert.equal(compacted.store.replay(spec.session_id).compactions.length, 1);
+    assert.deepEqual(
+      compacted.store.readSession(spec.session_id).find((event) => event.event_id === originalContent.event_id),
+      originalContent,
+      'original provider output remains byte-equivalent',
+    );
+    const checkpoint = compaction.checkpoint.get({
+      schema_version: 1,
+      provider_id: 'checkpoint:context-fixture',
+      checkpoint_id: input.compaction_id,
+      session_id: spec.session_id,
+    });
+    assert.equal(checkpoint.checkpoint_ref, result.compaction_event.payload.checkpoint_ref);
+    compaction.checkpoint.dispose({
+      schema_version: 1,
+      provider_id: 'checkpoint:context-fixture',
+      session_id: spec.session_id,
+    });
+    assert.equal(compacted.store.reconstructRequest(spec.session_id).canonical_json, canonicalJson(result.request));
+    const forged = structuredClone(compacted.store.readSession(spec.session_id));
+    forged.find((event) => event.event_type === 'compaction.completed').payload.source_digest = `sha256:${'0'.repeat(64)}`;
+    assert.throws(
+      () => replaySessionEvents(forged),
+      (error) => error.code === 'AGENT_SESSION_COMPACTION_DIGEST_INVALID',
+    );
+  } finally {
+    baseline.db.close();
+    compacted.db.close();
   }
 });
 

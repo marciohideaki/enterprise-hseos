@@ -1,5 +1,7 @@
 'use strict';
 
+const { createHash } = require('node:crypto');
+
 const {
   MAX_MODEL_EVENTS_PER_STEP,
   MAX_MODEL_STREAM_BYTES_PER_STEP,
@@ -27,6 +29,15 @@ function canonicalJson(value) {
       .join(',')}}`;
   }
   return JSON.stringify(value);
+}
+
+function digest(value) {
+  return `sha256:${createHash('sha256').update(canonicalJson(value)).digest('hex')}`;
+}
+
+function compactionStats(messages) {
+  const bytes = Buffer.byteLength(canonicalJson(messages), 'utf8');
+  return { message_count: messages.length, bytes, tokens: bytes };
 }
 
 function requireTurn(state, turnId, event) {
@@ -75,12 +86,33 @@ function assembledToolCalls(modelEvents) {
   });
 }
 
+function toolOutcomeMessage(execution) {
+  const outcome = execution.outcome;
+  return {
+    role: 'tool',
+    name: execution.name,
+    tool_call_id: execution.tool_call_id,
+    content: canonicalJson({
+      status: outcome.status,
+      result: outcome.result,
+      error: outcome.error,
+      evidence_refs: outcome.evidence_refs,
+      warnings: outcome.warnings,
+    }),
+  };
+}
+
 function durableHistory(state, currentTurnId) {
   const history = [];
   for (const turnId of state.turn_order) {
     if (turnId === currentTurnId) break;
     const turn = state.turns[turnId];
-    history.push({ message: turn.input, source_ref: `session-event://${turn.input_event_id}` });
+    history.push({
+      source_event_id: turn.input_event_id,
+      source_ref: `session-event://${turn.input_event_id}`,
+      sequence: turn.input_event_sequence,
+      message: turn.input,
+    });
     const terminalIndex = turn.model_events.findIndex((item) => item.event_type === 'completed');
     const content = turn.model_events
       .slice(0, terminalIndex < 0 ? 0 : terminalIndex)
@@ -89,8 +121,10 @@ function durableHistory(state, currentTurnId) {
       .join('');
     if (terminalIndex >= 0 && content.length > 0) {
       history.push({
+        source_event_id: turn.model_event_ids[terminalIndex],
         message: { role: 'assistant', content },
         source_ref: `session-event://${turn.model_event_ids[terminalIndex]}`,
+        sequence: turn.model_event_sequences[terminalIndex],
       });
     }
   }
@@ -200,6 +234,8 @@ function replaySessionEvents(inputEvents) {
           model_steps: [],
           model_steps_by_id: {},
           tool_executions: {},
+          context_compaction: null,
+          tool_compactions: [],
           input_event_sequence: event.sequence,
         };
         state.turn_order.push(turnId);
@@ -238,12 +274,41 @@ function replaySessionEvents(inputEvents) {
         const visibleHistory = event.payload.request.messages
           .slice(1, -1)
           .filter((message) => message.role !== 'system');
+        const compaction = turn.context_compaction;
+        if (event.payload.budget.overflow_policy === 'compact') {
+          if (
+            compaction &&
+            (event.payload.budget.compaction_provider_id !== compaction.provider_id ||
+              event.payload.budget.checkpoint_provider_id !== compaction.checkpoint_provider_id ||
+              canonicalJson(event.payload.budget.compaction_provider_manifest) !== canonicalJson(compaction.provider_manifest))
+          ) {
+            throw new SessionReplayError('context compaction provenance differs from selected budget providers', 'AGENT_SESSION_COMPACTION_PROVENANCE_INVALID');
+          }
+        }
         const selectedHistory = visibleHistory.length === 0 ? [] : durable.slice(-visibleHistory.length);
-        if (
+        const expectedCompactedHistory = compaction
+          ? [
+              compaction.replacement_messages[0],
+              ...durable
+                .filter((item) => compaction.retained_source_event_ids.includes(item.source_event_id))
+                .map((item) => item.message),
+            ]
+          : null;
+        const ordinaryInvalid =
           visibleHistory.length > durable.length ||
           canonicalJson(visibleHistory) !== canonicalJson(selectedHistory.map((item) => item.message)) ||
-          selectedHistory.some((item) => !event.payload.source_refs.includes(item.source_ref))
-        ) {
+          selectedHistory.some((item) => !event.payload.source_refs.includes(item.source_ref));
+        const compactedInvalid =
+          !compaction ||
+          canonicalJson(visibleHistory) !== canonicalJson(expectedCompactedHistory) ||
+          !event.payload.source_refs.includes(`session-event://${compaction.event_id}`) ||
+          durable
+            .filter((item) => compaction.retained_source_event_ids.includes(item.source_event_id))
+            .some((item) => !event.payload.source_refs.includes(item.source_ref)) ||
+          durable
+            .filter((item) => compaction.source_event_ids.includes(item.source_event_id))
+            .some((item) => event.payload.source_refs.includes(item.source_ref));
+        if (compaction ? compactedInvalid : ordinaryInvalid) {
           throw new SessionReplayError(
             'model-visible history is not a durable contiguous suffix',
             'AGENT_SESSION_HISTORY_MISMATCH',
@@ -298,9 +363,15 @@ function replaySessionEvents(inputEvents) {
           }
           const calls = assembledToolCalls(previous.model_events);
           const executions = calls.map((call) => turn.tool_executions[call.tool_call_id]);
+          const toolCompaction = turn.tool_compactions.find(
+            (compaction) =>
+              canonicalJson(compaction.source_event_ids) ===
+              canonicalJson(executions.map((execution) => execution?.completed_event_id)),
+          );
           if (
             executions.some((execution) => !execution?.outcome) ||
-            executions.some((execution) => !event.payload.source_event_ids.includes(execution.completed_event_id))
+            (!toolCompaction && executions.some((execution) => !event.payload.source_event_ids.includes(execution.completed_event_id))) ||
+            (toolCompaction && !event.payload.source_event_ids.includes(toolCompaction.event_id))
           ) {
             throw new SessionReplayError('model continuation precedes durable tool outcomes', 'AGENT_SESSION_TOOL_INCOMPLETE');
           }
@@ -311,23 +382,12 @@ function replaySessionEvents(inputEvents) {
           const expectedMessages = [
             ...previous.request.messages,
             { role: 'assistant', content, tool_calls: calls },
-            ...calls.map((call, index) => {
-              const outcome = executions[index].outcome;
-              return {
-                role: 'tool',
-                name: call.name,
-                tool_call_id: call.tool_call_id,
-                content: canonicalJson({
-                  status: outcome.status,
-                  result: outcome.result,
-                  error: outcome.error,
-                  evidence_refs: outcome.evidence_refs,
-                  warnings: outcome.warnings,
-                }),
-              };
-            }),
+            ...(toolCompaction ? toolCompaction.replacement_messages : executions.map(toolOutcomeMessage)),
           ];
-          const expectedSources = [previous.terminal_event_id, ...executions.map((execution) => execution.completed_event_id)];
+          const expectedSources = [
+            previous.terminal_event_id,
+            ...(toolCompaction ? [toolCompaction.event_id] : executions.map((execution) => execution.completed_event_id)),
+          ];
           const stableRequest = { ...event.payload.request, request_id: previous.request.request_id, messages: previous.request.messages };
           if (
             canonicalJson(event.payload.request.messages) !== canonicalJson(expectedMessages) ||
@@ -440,6 +500,7 @@ function replaySessionEvents(inputEvents) {
         }
         execution.outcome = event.payload.outcome;
         execution.completed_event_id = event.event_id;
+        execution.completed_event_sequence = event.sequence;
         turn.tool_executions[execution.tool_call_id] = execution;
         break;
       }
@@ -456,9 +517,97 @@ function replaySessionEvents(inputEvents) {
         }
         state.operation_ids.push(event.payload.operation_id);
         break;
-      case 'compaction.completed':
-        state.compactions.push({ ...event.payload, event_id: event.event_id });
+      case 'compaction.completed': {
+        const turn = requireTurn(state, event.payload.turn_id, event);
+        if (
+          state.compactions.some(
+            (compaction) =>
+              compaction.compaction_id === event.payload.compaction_id ||
+              compaction.checkpoint_ref === event.payload.checkpoint_ref ||
+              (compaction.turn_id === event.payload.turn_id &&
+                compaction.trigger === event.payload.trigger &&
+                canonicalJson(compaction.source_event_ids) === canonicalJson(event.payload.source_event_ids)),
+          )
+        ) {
+          throw new SessionReplayError('compaction identity or source set is already recorded', 'AGENT_SESSION_DUPLICATE_COMPACTION');
+        }
+        let sources;
+        if (event.payload.trigger === 'context_pressure') {
+          if (turn.request || turn.context_compaction) {
+            throw new SessionReplayError(
+              'turn context compaction must occur exactly once before context assembly',
+              'AGENT_SESSION_COMPACTION_ORDER_INVALID',
+            );
+          }
+          const durable = durableHistory(state, event.payload.turn_id);
+          const durableIds = durable.map((item) => item.source_event_id);
+          const recordedIds = [...event.payload.source_event_ids, ...event.payload.retained_source_event_ids];
+          if (canonicalJson(recordedIds) !== canonicalJson(durableIds)) {
+            throw new SessionReplayError(
+              'compaction lineage must partition the exact durable history into prefix and suffix',
+              'AGENT_SESSION_COMPACTION_LINEAGE_INVALID',
+            );
+          }
+          sources = durable.slice(0, event.payload.source_event_ids.length);
+        } else {
+          const step = turn.model_steps.at(-1);
+          const terminal = step?.model_events.at(-1);
+          if (!step || terminal?.event_type !== 'completed' || terminal.payload.finish_reason !== 'tool_calls') {
+            throw new SessionReplayError('tool compaction requires a completed tool-call step', 'AGENT_SESSION_COMPACTION_ORDER_INVALID');
+          }
+          const calls = assembledToolCalls(step.model_events);
+          const executions = calls.map((call) => turn.tool_executions[call.tool_call_id]);
+          if (
+            executions.some((execution) => !execution?.outcome) ||
+            event.payload.retained_source_event_ids.length !== 0 ||
+            canonicalJson(event.payload.source_event_ids) !==
+              canonicalJson(executions.map((execution) => execution.completed_event_id))
+          ) {
+            throw new SessionReplayError('tool compaction lineage differs from exact durable outcomes', 'AGENT_SESSION_COMPACTION_LINEAGE_INVALID');
+          }
+          if (
+            canonicalJson(event.payload.replacement_messages.map((message) => message.tool_call_id)) !==
+            canonicalJson(calls.map((call) => call.tool_call_id))
+          ) {
+            throw new SessionReplayError('tool compaction changed call identity or ordering', 'AGENT_SESSION_COMPACTION_TOOL_IDENTITY_INVALID');
+          }
+          sources = executions.map((execution) => ({
+            source_event_id: execution.completed_event_id,
+            source_ref: `session-event://${execution.completed_event_id}`,
+            sequence: execution.completed_event_sequence,
+            message: toolOutcomeMessage(execution),
+          }));
+        }
+        if (event.payload.source_digest !== digest(sources)) {
+          throw new SessionReplayError('compaction source digest differs from durable history', 'AGENT_SESSION_COMPACTION_DIGEST_INVALID');
+        }
+        const sourceMessages = sources.map((source) => source.message);
+        if (
+          canonicalJson(event.payload.before) !== canonicalJson(compactionStats(sourceMessages)) ||
+          canonicalJson(event.payload.after) !== canonicalJson(compactionStats(event.payload.replacement_messages))
+        ) {
+          throw new SessionReplayError('compaction accounting differs from durable messages', 'AGENT_SESSION_COMPACTION_ACCOUNTING_INVALID');
+        }
+        if (
+          event.payload.before.bytes > event.payload.provider_manifest.max_input_bytes ||
+          event.payload.after.bytes > event.payload.provider_manifest.max_output_bytes
+        ) {
+          throw new SessionReplayError('compaction exceeds its durable provider manifest', 'AGENT_SESSION_COMPACTION_CAP_INVALID');
+        }
+        if (
+          turn.budget &&
+          (turn.budget.compaction_provider_id !== event.payload.provider_id ||
+            turn.budget.checkpoint_provider_id !== event.payload.checkpoint_provider_id ||
+            canonicalJson(turn.budget.compaction_provider_manifest) !== canonicalJson(event.payload.provider_manifest))
+        ) {
+          throw new SessionReplayError('tool compaction provenance differs from selected budget providers', 'AGENT_SESSION_COMPACTION_PROVENANCE_INVALID');
+        }
+        const compaction = { ...event.payload, event_id: event.event_id };
+        if (event.payload.trigger === 'context_pressure') turn.context_compaction = compaction;
+        else turn.tool_compactions.push(compaction);
+        state.compactions.push(compaction);
         break;
+      }
       case 'child.attached':
         if (event.payload.child_session_id === state.session_id) {
           throw new SessionReplayError('session cannot attach itself as a child', 'AGENT_SESSION_SELF_CHILD');

@@ -24,6 +24,14 @@
 | `state/checkpoints/A4-context-assembler.md`                                     | Context precedence, lineage, budgets and independent evidence    | Accepted context boundary for A5–A10               |
 | `../../packages/agent-context/`                                                 | Durable deterministic context assembly and token accounting      | ADR-0024 Agent Kernel context service              |
 | `../../test/test-agent-context.js`                                              | A4 precedence, overflow, accounting and boundary suite           | Deterministic A4 verification                      |
+| `state/checkpoints/A5-tool-runtime.md`                                          | Governed ToolRuntime completion and adversarial evidence         | Accepted governed tool boundary for A6–A11         |
+| `../../packages/tool-runtime/`                                                  | Model-neutral governed tool registry and lifecycle               | ADR-0022/0024 ToolRuntime implementation           |
+| `state/checkpoints/A6-agent-runtime.md`                                         | Bounded headless loop completion and adversarial evidence        | Accepted AgentRuntime boundary for A7–A12           |
+| `../../packages/agent-runtime/`                                                 | Headless model-neutral Agent Kernel loop                          | ADR-0024 Agent Kernel runtime                       |
+| `../../test/test-agent-runtime.js`                                              | A6/A7 loop, recovery, limits and tool-compaction journeys        | Deterministic runtime verification                  |
+| `../../packages/agent-compaction/`                                              | Substitutable compaction registry, runtime and checkpoint provider | ADR-0024 compaction provider implementation       |
+| `../../test/test-agent-compaction.js`                                           | A7 provider, checkpoint, pruning and adversarial suite           | Deterministic A7 verification                       |
+| `state/checkpoints/A7-compaction-checkpoints.md`                                | A7 lineage, recovery, provenance and independent evidence        | Accepted compaction boundary for A8–A12             |
 | `../../.enterprise/.specs/decisions/ADR-0024-model-agnostic-agent-framework.md` | Accepted architectural decision                                  | Authoritative ADR                                  |
 
 Implementation artifacts will be indexed here as nodes A2–A13 add their own checkpoint shards.

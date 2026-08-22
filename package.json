@@ -33,10 +33,11 @@
     "lint": "eslint . --ext .js,.cjs,.mjs,.yaml --max-warnings=0",
     "lint:fix": "eslint . --ext .js,.cjs,.mjs,.yaml --fix",
     "prepare": "command -v husky >/dev/null 2>&1 && husky || exit 0",
-    "test": "npm run test:schemas && npm run test:install && npm run test:detector && npm run test:state && npm run test:governance && npm run test:hooks && npm run test:ado-hooks && npm run test:state-emit-hook && npm run test:compiler-hooks && npm run test:capabilities && npm run test:smoke-install && npm run test:verify && npm run test:sandbox && npm run test:plugins && npm run test:adapter-sdk && npm run test:mcp-governance && npm run test:mcp-swarm && npm run test:mcp-project-state && npm run test:mcp-stdio && npm run test:mcp-axon-bridge && npm run test:mcp-contract && npm run test:mcp-2026 && npm run test:entrypoints && npm run test:compatibility && npm run test:agentic-foundation && npm run test:agentic-contracts && npm run test:agentic-session-store && npm run test:model-providers && npm run test:agent-context && npm run test:tool-runtime && npm run test:agent-runtime && npm run validate:schemas && npm run lint",
+    "test": "npm run test:schemas && npm run test:install && npm run test:detector && npm run test:state && npm run test:governance && npm run test:hooks && npm run test:ado-hooks && npm run test:state-emit-hook && npm run test:compiler-hooks && npm run test:capabilities && npm run test:smoke-install && npm run test:verify && npm run test:sandbox && npm run test:plugins && npm run test:adapter-sdk && npm run test:mcp-governance && npm run test:mcp-swarm && npm run test:mcp-project-state && npm run test:mcp-stdio && npm run test:mcp-axon-bridge && npm run test:mcp-contract && npm run test:mcp-2026 && npm run test:entrypoints && npm run test:compatibility && npm run test:agentic-foundation && npm run test:agentic-contracts && npm run test:agentic-session-store && npm run test:model-providers && npm run test:agent-context && npm run test:tool-runtime && npm run test:agent-runtime && npm run test:agent-compaction && npm run validate:schemas && npm run lint",
     "test:adapter-sdk": "node test/test-adapter-sdk.js",
     "test:ado-hooks": "bash test/ado-ops/branch-guard.test.sh && bash test/ado-ops/feature-flag-disabled.test.sh && bash test/ado-ops/pr-link.test.sh && bash test/ado-ops/preflight-gate.test.sh && bash test/ado-ops/tag-close.test.sh",
     "test:agent-context": "node --test test/test-agent-context.js",
+    "test:agent-compaction": "node --test test/test-agent-compaction.js",
     "test:agent-runtime": "node --test test/test-agent-runtime.js",
     "test:agentic-contracts": "node --test test/test-agent-runtime-contracts.js",
     "test:agentic-foundation": "node --test test/test-agentic-framework-foundation.js",
@@ -118,5 +119,14 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/marciohideaki/hseos/issues"
+  },
+  "homepage": "https://github.com/marciohideaki/hseos#readme"
 }

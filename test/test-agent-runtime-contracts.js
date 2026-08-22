@@ -56,6 +56,8 @@ test('package exposes one immutable schema version and canonical ports', () => {
   assert.deepEqual(PORT_METHODS.ModelProvider, ['manifest', 'discover', 'stream', 'cancel', 'dispose']);
   assert.deepEqual(PORT_METHODS.RuntimeProvider, ['manifest', 'create', 'resume', 'send', 'events', 'cancel', 'dispose']);
   assert.deepEqual(PORT_METHODS.ToolRuntime, ['list', 'execute', 'cancel', 'dispose']);
+  assert.deepEqual(PORT_METHODS.CompactionProvider, ['manifest', 'assess', 'compact', 'dispose']);
+  assert.deepEqual(PORT_METHODS.CheckpointProvider, ['put', 'get', 'dispose']);
   assert.equal(Object.isFrozen(PORT_METHODS), true);
   assert.equal(PORT_RESULT_CONTRACTS.ModelProvider.stream, 'AsyncIterable<ModelStreamEvent>');
   assert.equal(PORT_INPUT_CONTRACTS.ModelProvider.stream, 'ModelRequest');
@@ -448,6 +450,53 @@ test('port inputs, resolved results, stream items and errors are executable cont
         reason: 'deadline',
       },
       dispose: { schema_version: 1, session_id: 'session:fixture-1' },
+    },
+    CompactionProvider: {
+      manifest: { schema_version: 1, request_id: 'request:compaction-manifest', provider_id: 'compaction:fixture' },
+      assess: {
+        schema_version: 1,
+        provider_id: 'compaction:fixture',
+        session_id: 'session:fixture-1',
+        turn_id: 'turn:fixture-1',
+        trigger: 'context_pressure',
+        input_tokens: 900,
+        input_limit_tokens: 1000,
+      },
+      compact: {
+        schema_version: 1,
+        provider_id: 'compaction:fixture',
+        compaction_id: 'compaction:fixture-1',
+        session_id: 'session:fixture-1',
+        turn_id: 'turn:fixture-1',
+        trigger: 'context_pressure',
+        strategy: 'history_summary',
+        target_tokens: 500,
+        sources: [
+          {
+            source_event_id: 'event:history-1',
+            source_ref: 'session-event://event:history-1',
+            sequence: 2,
+            message: { role: 'user', content: 'old history '.repeat(20) },
+          },
+        ],
+      },
+      dispose: { schema_version: 1, request_id: 'request:compaction-dispose', provider_id: 'compaction:fixture' },
+    },
+    CheckpointProvider: {
+      put: {
+        schema_version: 1,
+        provider_id: 'checkpoint:fixture',
+        checkpoint_id: 'compaction:fixture-1',
+        session_id: 'session:fixture-1',
+        payload: { digest: 'fixture' },
+      },
+      get: {
+        schema_version: 1,
+        provider_id: 'checkpoint:fixture',
+        checkpoint_id: 'compaction:fixture-1',
+        session_id: 'session:fixture-1',
+      },
+      dispose: { schema_version: 1, provider_id: 'checkpoint:fixture', session_id: 'session:fixture-1' },
     },
   };
 

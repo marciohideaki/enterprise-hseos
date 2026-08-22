@@ -46,6 +46,7 @@ const MemorySourceSchema = strictObject({
   content: ContextTextSchema,
 });
 const HistorySourceSchema = strictObject({
+  source_event_id: IdentifierSchema,
   source_ref: SafeReferenceSchema,
   sequence: z.number().int().positive(),
   message: BoundedAgentMessageSchema,
@@ -102,6 +103,9 @@ const ContextAssemblyInputSchema = strictObject({
   request_id: IdentifierSchema,
   turn_id: IdentifierSchema,
   event_id: IdentifierSchema,
+  compaction_id: IdentifierSchema.optional(),
+  compaction_event_id: IdentifierSchema.optional(),
+  compaction_provider_id: IdentifierSchema.optional(),
   occurred_at: TimestampSchema,
   expected_version: z.number().int().nonnegative(),
   session: AgentSessionSpecSchema,
@@ -118,10 +122,17 @@ const ContextAssemblyInputSchema = strictObject({
   }).refine((parameters) => Buffer.byteLength(JSON.stringify(parameters), 'utf8') <= MAX_PARAMETER_BYTES, {
     message: 'model parameters exceed the assembly byte limit',
   }),
-  overflow_policy: z.enum(['reject', 'truncate_optional']),
+  overflow_policy: z.enum(['reject', 'truncate_optional', 'compact']),
 }).superRefine((input, context) => {
   if (input.session.execution.mode !== 'kernel') {
     context.addIssue({ code: 'custom', path: ['session', 'execution', 'mode'], message: 'context assembly requires kernel execution' });
+  }
+  const compactionFields = [input.compaction_id, input.compaction_event_id, input.compaction_provider_id];
+  if (input.overflow_policy === 'compact' && compactionFields.some((field) => !field)) {
+    context.addIssue({ code: 'custom', path: ['overflow_policy'], message: 'compact policy requires compaction ids and provider' });
+  }
+  if (input.overflow_policy !== 'compact' && compactionFields.some((field) => field !== undefined)) {
+    context.addIssue({ code: 'custom', path: ['overflow_policy'], message: 'compaction fields require compact policy' });
   }
   const sourceRefs = allSources(input).map((source) => source.source_ref);
   const duplicateRefs = sourceRefs.filter((reference, index) => sourceRefs.indexOf(reference) !== index);

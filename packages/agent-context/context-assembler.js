@@ -13,6 +13,7 @@ const {
 } = require('../agent-runtime-contracts');
 const { canonicalJson, isRelationalSessionEventStore } = require('../agent-session-store');
 const { ModelProviderRegistrySnapshot } = require('../model-providers');
+const { CompactionRuntime, CompactionRuntimeError } = require('../agent-compaction');
 const { ContextAssemblyInputSchema, HistorySourceSchema, MAX_CONTEXT_ASSEMBLY_BYTES } = require('./schemas');
 const { ConservativeUtf8TokenCounter, deterministicCount, validateTokenCounter } = require('./token-counter');
 
@@ -82,6 +83,7 @@ function durableHistory(state, currentTurnId) {
     if (turnId === currentTurnId) break;
     const turn = state.turns[turnId];
     history.push(parseContract(HistorySourceSchema, {
+      source_event_id: turn.input_event_id,
       source_ref: `session-event://${turn.input_event_id}`,
       sequence: turn.input_event_sequence,
       message: turn.input,
@@ -94,6 +96,7 @@ function durableHistory(state, currentTurnId) {
       .join('');
     if (terminalIndex >= 0 && content.length > 0) {
       history.push(parseContract(HistorySourceSchema, {
+        source_event_id: turn.model_event_ids[terminalIndex],
         source_ref: `session-event://${turn.model_event_ids[terminalIndex]}`,
         sequence: turn.model_event_sequences[terminalIndex],
         message: { role: 'assistant', content },
@@ -126,24 +129,34 @@ function remainingSessionTokens(state, excludedTurnId) {
 }
 
 class ContextAssembler {
+  #compactionRuntime;
   #store;
   #tokenCounter;
   #counterId;
   #countCache = new Map();
   #providerSnapshot;
 
-  constructor({ session_store, model_provider_snapshot, token_counter = new ConservativeUtf8TokenCounter() }) {
+  constructor({
+    session_store,
+    model_provider_snapshot,
+    compaction_runtime = null,
+    token_counter = new ConservativeUtf8TokenCounter(),
+  }) {
     if (!isRelationalSessionEventStore(session_store)) {
       throw new ContextAssemblyError('session store must be a verified RelationalSessionEventStore');
     }
     if (!(model_provider_snapshot instanceof ModelProviderRegistrySnapshot)) {
       throw new ContextAssemblyError('model provider snapshot must come from ModelProviderRegistry.snapshot()');
     }
+    if (compaction_runtime !== null && !(compaction_runtime instanceof CompactionRuntime)) {
+      throw new ContextAssemblyError('compaction runtime must be a nominal CompactionRuntime');
+    }
     const validatedCounter = validateTokenCounter(token_counter);
     this.#store = session_store;
     this.#tokenCounter = validatedCounter;
     this.#counterId = validatedCounter.counter_id;
     this.#providerSnapshot = model_provider_snapshot;
+    this.#compactionRuntime = compaction_runtime;
   }
 
   #count(value) {
@@ -218,8 +231,8 @@ class ContextAssembler {
       });
     }
 
+    const complete = this.#compose(input, input.history, input.memory);
     if (input.overflow_policy === 'reject') {
-      const complete = this.#compose(input, input.history, input.memory);
       if (complete.measurement.input_tokens > inputLimit) {
         throw new ContextBudgetError('complete model context exceeds the input budget', {
           context_limit_tokens: contextLimit,
@@ -227,6 +240,10 @@ class ContextAssembler {
           required_input_tokens: complete.measurement.input_tokens,
         });
       }
+      return { composition: complete, omitted_source_refs: [], contextLimit, inputLimit, reservedOutput };
+    }
+
+    if (complete.measurement.input_tokens <= inputLimit) {
       return { composition: complete, omitted_source_refs: [], contextLimit, inputLimit, reservedOutput };
     }
 
@@ -251,12 +268,94 @@ class ContextAssembler {
       if (candidate.measurement.input_tokens <= inputLimit) selectedMemory.push(entry);
       else omitted.push(entry.source_ref);
     }
-    return {
+    const ordinary = {
       composition: this.#compose(input, selectedHistory, selectedMemory),
       omitted_source_refs: omitted.sort((left, right) => (left < right ? -1 : left > right ? 1 : 0)),
       contextLimit,
       inputLimit,
       reservedOutput,
+      compaction: null,
+    };
+    if (input.overflow_policy !== 'compact') return ordinary;
+    if (!this.#compactionRuntime) {
+      throw new ContextBudgetError('compact overflow policy requires a compaction runtime');
+    }
+    let retainedHistory = orderedHistory(selectedHistory);
+    let retainedMemory = orderedMemory(selectedMemory);
+    let compactedHistory = orderedHistory(input.history).filter(
+      (entry) => !retainedHistory.some((retained) => retained.source_event_id === entry.source_event_id),
+    );
+    const omittedMemoryRefs = input.memory
+      .filter((entry) => !retainedMemory.some((retained) => retained.source_ref === entry.source_ref))
+      .map((entry) => entry.source_ref);
+    if (compactedHistory.length === 0) return ordinary;
+    const pressure = this.#compactionRuntime.assess({
+      schema_version: CONTRACT_SCHEMA_VERSION,
+      provider_id: input.compaction_provider_id,
+      session_id: input.session.session_id,
+      turn_id: input.turn_id,
+      trigger: 'context_pressure',
+      input_tokens: complete.measurement.input_tokens,
+      input_limit_tokens: inputLimit,
+    });
+    if (!pressure.should_compact) {
+      throw new ContextBudgetError('compaction provider declined an over-budget request');
+    }
+    let acceptedComposition = null;
+    let record = null;
+    for (let attempt = 0; attempt <= input.history.length + input.memory.length; attempt++) {
+      const withoutReplacement = this.#compose(input, retainedHistory, retainedMemory);
+      const targetTokens = Math.max(1, inputLimit - withoutReplacement.measurement.input_tokens);
+      try {
+        record = this.#compactionRuntime.compact(
+          {
+            schema_version: CONTRACT_SCHEMA_VERSION,
+            provider_id: input.compaction_provider_id,
+            compaction_id: input.compaction_id,
+            session_id: input.session.session_id,
+            turn_id: input.turn_id,
+            trigger: 'context_pressure',
+            strategy: 'history_summary',
+            target_tokens: targetTokens,
+            sources: compactedHistory,
+          },
+          retainedHistory.map((entry) => entry.source_event_id),
+          (result) => {
+            const replacement = {
+              source_event_id: input.compaction_event_id,
+              source_ref: `session-event://${input.compaction_event_id}`,
+              sequence: compactedHistory[0].sequence,
+              message: result.replacement_messages[0],
+            };
+            const candidate = this.#compose(input, [replacement, ...retainedHistory], retainedMemory);
+            if (candidate.measurement.input_tokens > inputLimit) return false;
+            acceptedComposition = candidate;
+            return true;
+          },
+        );
+        break;
+      } catch (error) {
+        if (!(error instanceof CompactionRuntimeError) || error.code !== 'COMPACTION_REPLACEMENT_REJECTED') throw error;
+        if (retainedMemory.length > 0) {
+          omittedMemoryRefs.push(retainedMemory.pop().source_ref);
+          continue;
+        }
+        if (retainedHistory.length > 0) {
+          compactedHistory.push(retainedHistory.shift());
+          compactedHistory = orderedHistory(compactedHistory);
+          continue;
+        }
+        throw new ContextBudgetError('compaction replacement cannot fit the model input budget');
+      }
+    }
+    if (!record || !acceptedComposition) throw new ContextBudgetError('compaction did not converge within bounded attempts');
+    return {
+      composition: acceptedComposition,
+      omitted_source_refs: [...compactedHistory.map((entry) => entry.source_ref), ...omittedMemoryRefs].sort(),
+      contextLimit,
+      inputLimit,
+      reservedOutput,
+      compaction: record,
     };
   }
 
@@ -310,53 +409,55 @@ class ContextAssembler {
         tool_tokens: budgeted.composition.measurement.tool_tokens,
         parameter_tokens: budgeted.composition.measurement.parameter_tokens,
         overflow_policy: input.overflow_policy,
+        compaction_provider_id: input.overflow_policy === 'compact' ? input.compaction_provider_id : null,
+        checkpoint_provider_id: input.overflow_policy === 'compact' ? this.#compactionRuntime.checkpoint_provider_id : null,
+        compaction_provider_manifest:
+          input.overflow_policy === 'compact'
+            ? this.#compactionRuntime.resolve(input.compaction_provider_id, 'history_summary')
+            : null,
         omitted_source_refs: budgeted.omitted_source_refs,
       },
       'context budget report',
     );
+    const compactionEvent = budgeted.compaction
+      ? {
+          schema_version: CONTRACT_SCHEMA_VERSION,
+          event_id: input.compaction_event_id,
+          session_id: input.session.session_id,
+          sequence: input.expected_version + 1,
+          occurred_at: input.occurred_at,
+          event_type: 'compaction.completed',
+          payload: budgeted.compaction,
+        }
+      : null;
+    const contextEvent = {
+      schema_version: CONTRACT_SCHEMA_VERSION,
+      event_id: input.event_id,
+      session_id: input.session.session_id,
+      sequence: input.expected_version + (compactionEvent ? 2 : 1),
+      occurred_at: input.occurred_at,
+      event_type: 'context.assembled',
+      payload: {
+        assembly_contract: CONTEXT_ASSEMBLY_CONTRACT,
+        turn_id: input.turn_id,
+        request,
+        source_refs: budgeted.composition.source_refs,
+        budget,
+      },
+    };
+    const appendedEvents = compactionEvent ? [compactionEvent, contextEvent] : [contextEvent];
     const appendResult = this.#store.append({
       session_id: input.session.session_id,
       expected_version: input.expected_version,
-      events: [
-        {
-          schema_version: CONTRACT_SCHEMA_VERSION,
-          event_id: input.event_id,
-          session_id: input.session.session_id,
-          sequence: input.expected_version + 1,
-          occurred_at: input.occurred_at,
-          event_type: 'context.assembled',
-          payload: {
-            assembly_contract: CONTEXT_ASSEMBLY_CONTRACT,
-            turn_id: input.turn_id,
-            request,
-            source_refs: budgeted.composition.source_refs,
-            budget,
-          },
-        },
-      ],
+      events: appendedEvents,
     });
     if (
       !appendResult ||
-      appendResult.current_version !== input.expected_version + 1 ||
+      appendResult.current_version !== input.expected_version + appendedEvents.length ||
       typeof appendResult.idempotent !== 'boolean' ||
       !Array.isArray(appendResult.events) ||
-      appendResult.events.length !== 1 ||
-      canonicalJson(appendResult.events[0]) !==
-        canonicalJson({
-          schema_version: CONTRACT_SCHEMA_VERSION,
-          event_id: input.event_id,
-          session_id: input.session.session_id,
-          sequence: input.expected_version + 1,
-          occurred_at: input.occurred_at,
-          event_type: 'context.assembled',
-          payload: {
-            assembly_contract: CONTEXT_ASSEMBLY_CONTRACT,
-            turn_id: input.turn_id,
-            request,
-            source_refs: budgeted.composition.source_refs,
-            budget,
-          },
-        })
+      appendResult.events.length !== appendedEvents.length ||
+      canonicalJson(appendResult.events) !== canonicalJson(appendedEvents)
     ) {
       throw new ContextAssemblyError('session store returned an invalid append receipt', 'AGENT_CONTEXT_APPEND_RECEIPT_INVALID');
     }
@@ -373,7 +474,8 @@ class ContextAssembler {
       request,
       budget,
       source_refs: budgeted.composition.source_refs,
-      event: appendResult.events[0],
+      event: appendResult.events.at(-1),
+      compaction_event: compactionEvent ? appendResult.events[0] : null,
       current_version: appendResult.current_version,
       idempotent: appendResult.idempotent,
       reconstructed,

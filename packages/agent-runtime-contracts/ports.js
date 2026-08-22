@@ -29,12 +29,26 @@ const {
 } = require('./agent-contracts');
 const { ModelStreamEventSchema, RuntimeEventSchema } = require('./event-contracts');
 const { ModelProviderManifestSchema, RuntimeProviderManifestSchema } = require('./provider-contracts');
+const {
+  CheckpointDisposeInputSchema,
+  CheckpointDisposeResultSchema,
+  CheckpointGetInputSchema,
+  CheckpointPutInputSchema,
+  CheckpointRecordSchema,
+  CompactionAssessInputSchema,
+  CompactionInputSchema,
+  CompactionPressureSchema,
+  CompactionProviderManifestSchema,
+  CompactionResultSchema,
+} = require('./compaction-contracts');
 
 const PORT_METHODS = deepFreeze({
   AgentRuntime: ['create', 'resume', 'send', 'cancel', 'dispose'],
   ModelProvider: ['manifest', 'discover', 'stream', 'cancel', 'dispose'],
   RuntimeProvider: ['manifest', 'create', 'resume', 'send', 'events', 'cancel', 'dispose'],
   ToolRuntime: ['list', 'execute', 'cancel', 'dispose'],
+  CompactionProvider: ['manifest', 'assess', 'compact', 'dispose'],
+  CheckpointProvider: ['put', 'get', 'dispose'],
 });
 
 const PortAckSchema = strictObject({
@@ -230,6 +244,17 @@ const PORT_INPUT_CONTRACTS = deepFreeze({
     cancel: 'ToolCancelInput',
     dispose: 'ToolDisposeInput',
   },
+  CompactionProvider: {
+    manifest: 'ProviderQuery',
+    assess: 'CompactionAssessInput',
+    compact: 'CompactionInput',
+    dispose: 'ProviderQuery',
+  },
+  CheckpointProvider: {
+    put: 'CheckpointPutInput',
+    get: 'CheckpointGetInput',
+    dispose: 'CheckpointDisposeInput',
+  },
 });
 
 const PORT_RESULT_CONTRACTS = deepFreeze({
@@ -262,6 +287,17 @@ const PORT_RESULT_CONTRACTS = deepFreeze({
     cancel: 'ToolCancelResult',
     dispose: 'ToolDisposeResult',
   },
+  CompactionProvider: {
+    manifest: 'CompactionProviderManifest',
+    assess: 'CompactionPressure',
+    compact: 'CompactionResult',
+    dispose: 'PortAck',
+  },
+  CheckpointProvider: {
+    put: 'CheckpointRecord',
+    get: 'CheckpointRecord',
+    dispose: 'CheckpointDisposeResult',
+  },
 });
 
 const RESULT_SCHEMAS = {
@@ -287,6 +323,17 @@ const RESULT_SCHEMAS = {
     execute: ToolExecutionResultSchema,
     cancel: ToolCancelResultSchema,
     dispose: ToolDisposeResultSchema,
+  },
+  CompactionProvider: {
+    manifest: CompactionProviderManifestSchema,
+    assess: CompactionPressureSchema,
+    compact: CompactionResultSchema,
+    dispose: PortAckSchema,
+  },
+  CheckpointProvider: {
+    put: CheckpointRecordSchema,
+    get: CheckpointRecordSchema,
+    dispose: CheckpointDisposeResultSchema,
   },
 };
 
@@ -319,6 +366,17 @@ const INPUT_SCHEMAS = {
     execute: ToolExecuteInputSchema,
     cancel: ToolCancelInputSchema,
     dispose: ToolDisposeInputSchema,
+  },
+  CompactionProvider: {
+    manifest: ProviderQuerySchema,
+    assess: CompactionAssessInputSchema,
+    compact: CompactionInputSchema,
+    dispose: ProviderQuerySchema,
+  },
+  CheckpointProvider: {
+    put: CheckpointPutInputSchema,
+    get: CheckpointGetInputSchema,
+    dispose: CheckpointDisposeInputSchema,
   },
 };
 
@@ -419,6 +477,18 @@ function correlateResult(portName, method, input, result) {
       }
     }
   }
+  if (portName === 'CompactionProvider') {
+    assertEqual(portName, method, 'provider_id', input.provider_id, result.provider_id);
+    if (method === 'compact') assertEqual(portName, method, 'compaction_id', input.compaction_id, result.compaction_id);
+    if (method === 'dispose') assertEqual(portName, method, 'request_id', input.request_id, result.request_id);
+  }
+  if (portName === 'CheckpointProvider') {
+    assertEqual(portName, method, 'provider_id', input.provider_id, result.provider_id);
+    assertEqual(portName, method, 'session_id', input.session_id, result.session_id);
+    if (method === 'put' || method === 'get') {
+      assertEqual(portName, method, 'checkpoint_id', input.checkpoint_id, result.checkpoint_id);
+    }
+  }
   return result;
 }
 
@@ -484,6 +554,16 @@ function validatePortError(value) {
 
 module.exports = {
   AgentOperationResultSchema,
+  CheckpointDisposeInputSchema,
+  CheckpointDisposeResultSchema,
+  CheckpointGetInputSchema,
+  CheckpointPutInputSchema,
+  CheckpointRecordSchema,
+  CompactionAssessInputSchema,
+  CompactionInputSchema,
+  CompactionPressureSchema,
+  CompactionProviderManifestSchema,
+  CompactionResultSchema,
   ModelDiscoveryResultSchema,
   PORT_METHODS,
   PORT_INPUT_CONTRACTS,
