@@ -1,0 +1,19 @@
+{
+  "name": "@hseos/agent-orchestration",
+  "version": "1.0.0",
+  "description": "Bounded subagent and workflow orchestration for HSEOS",
+  "keywords": ["hseos", "agents", "subagents", "workflows"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marciohideaki/hseos.git",
+    "directory": "packages/agent-orchestration"
+  },
+  "license": "MIT",
+  "main": "index.js",
+  "dependencies": {
+    "@hseos/agent-runtime-contracts": "^1.0.0",
+    "@hseos/agent-session-store": "^1.0.0"
+  },
+  "engines": { "node": ">=20.0.0" },
+  "publishConfig": { "access": "public" }
+}

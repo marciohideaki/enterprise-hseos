@@ -32,6 +32,9 @@
 | `../../packages/agent-compaction/`                                              | Substitutable compaction registry, runtime and checkpoint provider | ADR-0024 compaction provider implementation       |
 | `../../test/test-agent-compaction.js`                                           | A7 provider, checkpoint, pruning and adversarial suite           | Deterministic A7 verification                       |
 | `state/checkpoints/A7-compaction-checkpoints.md`                                | A7 lineage, recovery, provenance and independent evidence        | Accepted compaction boundary for A8–A12             |
+| `../../packages/agent-orchestration/`                                           | Bounded SubagentProvider and durable WorkflowEngine              | ADR-0024 orchestration-plane implementation         |
+| `../../test/test-agent-orchestration.js`                                        | A8 scope, join/cancel, phases, caps, crash and teardown suite     | Deterministic A8 verification                       |
+| `state/checkpoints/A8-subagents-workflows.md`                                   | A8 hierarchy, workflow, crash, fencing and review evidence        | Accepted orchestration boundary for A9–A12          |
 | `../../.enterprise/.specs/decisions/ADR-0024-model-agnostic-agent-framework.md` | Accepted architectural decision                                  | Authoritative ADR                                  |
 
 Implementation artifacts will be indexed here as nodes A2–A13 add their own checkpoint shards.

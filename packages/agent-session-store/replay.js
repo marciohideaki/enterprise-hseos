@@ -157,8 +157,11 @@ function replaySessionEvents(inputEvents) {
     turn_order: [],
     operation_ids: [],
     children: [],
+    subagent_request: null,
     compactions: [],
     workflow_checkpoints: [],
+    workflows: {},
+    workflow_reservations: {},
     cancellation_request: null,
     tool_invocations: {},
     terminal_event: null,
@@ -620,7 +623,105 @@ function replaySessionEvents(inputEvents) {
         }
         state.children.push(event.payload.child_session_id);
         break;
+      case 'subagent.requested':
+        if (state.subagent_request || state.turn_order.length > 0) {
+          throw new SessionReplayError('subagent request must be unique and precede execution', 'AGENT_SESSION_SUBAGENT_REQUEST_INVALID');
+        }
+        state.subagent_request = { ...event.payload, event_id: event.event_id };
+        break;
+      case 'workflow.reserved': {
+        const existing = state.workflow_reservations[event.payload.workflow_id];
+        if (existing) {
+          throw new SessionReplayError('workflow reservation is already durable', 'AGENT_SESSION_WORKFLOW_RESERVATION_DUPLICATE');
+        }
+        const reservedSteps = Object.values(state.workflow_reservations).reduce(
+          (count, reservation) => count + reservation.step_count,
+          0,
+        );
+        const legacySteps = state.workflow_checkpoints
+          .filter((checkpoint) => !state.workflow_reservations[checkpoint.workflow_id])
+          .reduce((count, checkpoint) => count + (checkpoint.completed_step_ids?.length || 1), 0);
+        if (reservedSteps + legacySteps + event.payload.step_count > state.spec.limits.max_workflow_steps) {
+          throw new SessionReplayError('workflow reservation exceeds the parent step limit', 'AGENT_SESSION_WORKFLOW_STEP_LIMIT_EXCEEDED');
+        }
+        const newChildIds = event.payload.child_session_ids.filter((childId) => !state.children.includes(childId));
+        if (state.children.length + newChildIds.length > state.spec.limits.max_children) {
+          throw new SessionReplayError('workflow reservation exceeds the parent child limit', 'AGENT_SESSION_WORKFLOW_CHILD_LIMIT_EXCEEDED');
+        }
+        const active = Object.values(state.workflow_reservations).find((reservation) => !reservation.released);
+        if (active) {
+          throw new SessionReplayError('parent already has an active workflow reservation', 'AGENT_SESSION_WORKFLOW_RESERVATION_ACTIVE');
+        }
+        state.workflow_reservations[event.payload.workflow_id] = {
+          ...event.payload,
+          event_id: event.event_id,
+          claim_ref: `session-event://${event.event_id}`,
+          released: null,
+        };
+        break;
+      }
+      case 'workflow.reclaimed': {
+        const reservation = state.workflow_reservations[event.payload.workflow_id];
+        if (
+          !reservation ||
+          reservation.released ||
+          reservation.definition_digest !== event.payload.definition_digest ||
+          reservation.claim_ref !== event.payload.prior_claim_ref ||
+          Date.parse(event.occurred_at) <= Date.parse(reservation.claim_expires_at)
+        ) {
+          throw new SessionReplayError('workflow reclaim does not match the active claim', 'AGENT_SESSION_WORKFLOW_RECLAIM_INVALID');
+        }
+        reservation.claim_id = event.payload.claim_id;
+        reservation.claim_expires_at = event.payload.claim_expires_at;
+        reservation.claim_ref = `session-event://${event.event_id}`;
+        break;
+      }
+      case 'workflow.released': {
+        const reservation = state.workflow_reservations[event.payload.workflow_id];
+        if (
+          !reservation ||
+          reservation.released ||
+          reservation.definition_digest !== event.payload.definition_digest ||
+          reservation.claim_ref !== event.payload.claim_ref
+        ) {
+          throw new SessionReplayError('workflow release does not match one active reservation', 'AGENT_SESSION_WORKFLOW_RELEASE_INVALID');
+        }
+        reservation.released = { status: event.payload.status, event_id: event.event_id };
+        break;
+      }
       case 'workflow.checkpointed':
+        state.workflow_checkpoints.push({ ...event.payload, event_id: event.event_id });
+        break;
+      case 'workflow.phase.checkpointed':
+        if (state.workflow_reservations[event.payload.workflow_id]?.claim_ref !== event.payload.claim_ref) {
+          throw new SessionReplayError('workflow checkpoint is fenced by a different claim', 'AGENT_SESSION_WORKFLOW_CLAIM_INVALID');
+        }
+        if (event.payload.child_session_ids.some((childId) => !state.children.includes(childId))) {
+          throw new SessionReplayError('workflow checkpoint references an unattached child', 'AGENT_SESSION_WORKFLOW_CHILD_INVALID');
+        }
+        if (!state.workflows[event.payload.workflow_id]) {
+          state.workflows[event.payload.workflow_id] = {
+            definition_digest: event.payload.definition_digest,
+            phases: [],
+          };
+        }
+        if (state.workflows[event.payload.workflow_id].definition_digest !== event.payload.definition_digest) {
+          throw new SessionReplayError('workflow identifier has a different durable definition', 'AGENT_SESSION_WORKFLOW_DEFINITION_CONFLICT');
+        }
+        if (state.workflows[event.payload.workflow_id].phases.includes(event.payload.phase_id)) {
+          throw new SessionReplayError('workflow phase is already checkpointed', 'AGENT_SESSION_WORKFLOW_PHASE_DUPLICATE');
+        }
+        const reservation = state.workflow_reservations[event.payload.workflow_id];
+        const completedForWorkflow = state.workflow_checkpoints
+          .filter((checkpoint) => checkpoint.workflow_id === event.payload.workflow_id && checkpoint.completed_step_ids)
+          .reduce((count, checkpoint) => count + checkpoint.completed_step_ids.length, 0);
+        if (
+          completedForWorkflow + event.payload.completed_step_ids.length >
+          (reservation?.step_count || state.spec.limits.max_workflow_steps)
+        ) {
+          throw new SessionReplayError('workflow step limit is exhausted', 'AGENT_SESSION_WORKFLOW_STEP_LIMIT_EXCEEDED');
+        }
+        state.workflows[event.payload.workflow_id].phases.push(event.payload.phase_id);
         state.workflow_checkpoints.push({ ...event.payload, event_id: event.event_id });
         break;
       case 'session.cancellation.requested':
