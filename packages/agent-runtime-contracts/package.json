@@ -1,0 +1,28 @@
+{
+  "name": "@hseos/agent-runtime-contracts",
+  "version": "1.0.0",
+  "description": "Versioned, vendor-neutral contracts for the HSEOS Agent Kernel",
+  "keywords": [
+    "hseos",
+    "agents",
+    "runtime",
+    "providers",
+    "contracts"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marciohideaki/hseos.git",
+    "directory": "packages/agent-runtime-contracts"
+  },
+  "license": "MIT",
+  "main": "index.js",
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
