@@ -2,6 +2,7 @@
 
 const {
   AgentContractError,
+  boundedJsonObject,
   CONTRACT_SCHEMA_VERSION,
   IdentifierSchema,
   ModelNameSchema,
@@ -23,6 +24,7 @@ const {
   ModelRequestSchema,
   ResumeAgentCommandSchema,
   SendAgentCommandSchema,
+  ToolDefinitionsSchema,
 } = require('./agent-contracts');
 const { ModelStreamEventSchema, RuntimeEventSchema } = require('./event-contracts');
 const { ModelProviderManifestSchema, RuntimeProviderManifestSchema } = require('./provider-contracts');
@@ -31,6 +33,7 @@ const PORT_METHODS = deepFreeze({
   AgentRuntime: ['create', 'resume', 'send', 'cancel', 'dispose'],
   ModelProvider: ['manifest', 'discover', 'stream', 'cancel', 'dispose'],
   RuntimeProvider: ['manifest', 'create', 'resume', 'send', 'events', 'cancel', 'dispose'],
+  ToolRuntime: ['list', 'execute', 'cancel', 'dispose'],
 });
 
 const PortAckSchema = strictObject({
@@ -138,6 +141,107 @@ const RuntimeDisposeInputSchema = strictObject({
   session_id: IdentifierSchema,
 });
 
+const ToolListInputSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  session_id: IdentifierSchema,
+});
+
+const ToolExecuteInputSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  invocation_id: IdentifierSchema,
+  session_id: IdentifierSchema,
+  turn_id: IdentifierSchema,
+  tool_call_id: IdentifierSchema,
+  name: IdentifierSchema,
+  input: boundedJsonObject(1_048_576),
+  actor: strictObject({ id: IdentifierSchema, type: IdentifierSchema }),
+  resource_scope: boundedJsonObject(262_144).refine((scope) => Object.keys(scope).length > 0, {
+    message: 'resource_scope must not be empty',
+  }),
+  idempotency_key: IdentifierSchema,
+  correlation_id: IdentifierSchema,
+  causation_id: IdentifierSchema,
+  approval_context: boundedJsonObject(262_144).nullable(),
+});
+
+const ToolCancelInputSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  invocation_id: IdentifierSchema,
+  session_id: IdentifierSchema,
+  turn_id: IdentifierSchema,
+  tool_call_id: IdentifierSchema,
+  reason: z.string().min(1).max(2048),
+});
+
+const ToolDisposeInputSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  session_id: IdentifierSchema,
+});
+
+const ToolListResultSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  session_id: IdentifierSchema,
+  tools: ToolDefinitionsSchema,
+});
+
+const ToolExecutionErrorSchema = strictObject({
+  code: z.string().min(1),
+  message: z.string().min(1),
+  retryable: z.boolean(),
+});
+
+const ToolExecutionResultSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  invocation_id: IdentifierSchema,
+  session_id: IdentifierSchema,
+  turn_id: IdentifierSchema,
+  tool_call_id: IdentifierSchema,
+  name: IdentifierSchema,
+  status: z.enum(['succeeded', 'failed', 'cancelled', 'uncertain']),
+  operation_id: IdentifierSchema.nullable(),
+  result: z.json().nullable(),
+  error: ToolExecutionErrorSchema.nullable(),
+  evidence_refs: z.array(z.string()),
+  warnings: z.array(z.string()),
+  replayed: z.boolean(),
+}).superRefine((outcome, context) => {
+  if (outcome.status === 'succeeded' && (outcome.operation_id === null || outcome.error !== null)) {
+    context.addIssue({ code: 'custom', message: 'succeeded tool outcomes require operation_id and no error' });
+  }
+  if (outcome.status !== 'succeeded' && (outcome.result !== null || outcome.error === null || outcome.replayed)) {
+    context.addIssue({ code: 'custom', message: 'non-success tool outcomes require an error and cannot contain result/replayed' });
+  }
+  if (outcome.status === 'cancelled' && outcome.error?.code !== 'EXECUTION_CANCELLED') {
+    context.addIssue({ code: 'custom', message: 'cancelled outcomes require EXECUTION_CANCELLED' });
+  }
+  if (outcome.status === 'uncertain' && outcome.error?.code !== 'EXECUTION_OUTCOME_IN_DOUBT') {
+    context.addIssue({ code: 'custom', message: 'uncertain outcomes require EXECUTION_OUTCOME_IN_DOUBT' });
+  }
+  if (outcome.status === 'failed' && ['EXECUTION_CANCELLED', 'EXECUTION_OUTCOME_IN_DOUBT'].includes(outcome.error?.code)) {
+    context.addIssue({ code: 'custom', message: 'failed outcomes cannot use cancelled or uncertain codes' });
+  }
+  for (const field of ['evidence_refs', 'warnings']) {
+    if (new Set(outcome[field]).size !== outcome[field].length) {
+      context.addIssue({ code: 'custom', path: [field], message: `${field} must contain unique values` });
+    }
+  }
+});
+
+const ToolCancelResultSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  invocation_id: IdentifierSchema,
+  session_id: IdentifierSchema,
+  turn_id: IdentifierSchema,
+  tool_call_id: IdentifierSchema,
+  accepted: z.boolean(),
+});
+
+const ToolDisposeResultSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  session_id: IdentifierSchema,
+  accepted: z.boolean(),
+});
+
 const PORT_INPUT_CONTRACTS = deepFreeze({
   AgentRuntime: {
     create: 'CreateAgentCommand',
@@ -161,6 +265,12 @@ const PORT_INPUT_CONTRACTS = deepFreeze({
     events: 'RuntimeEventsInput',
     cancel: 'RuntimeCancelInput',
     dispose: 'RuntimeDisposeInput',
+  },
+  ToolRuntime: {
+    list: 'ToolListInput',
+    execute: 'ToolExecuteInput',
+    cancel: 'ToolCancelInput',
+    dispose: 'ToolDisposeInput',
   },
 });
 
@@ -188,6 +298,12 @@ const PORT_RESULT_CONTRACTS = deepFreeze({
     cancel: 'RuntimeOperationResult',
     dispose: 'RuntimeOperationResult',
   },
+  ToolRuntime: {
+    list: 'ToolListResult',
+    execute: 'ToolExecutionResult',
+    cancel: 'ToolCancelResult',
+    dispose: 'ToolDisposeResult',
+  },
 });
 
 const RESULT_SCHEMAS = {
@@ -207,6 +323,12 @@ const RESULT_SCHEMAS = {
     events: null,
     cancel: RuntimeOperationResultSchema,
     dispose: RuntimeOperationResultSchema,
+  },
+  ToolRuntime: {
+    list: ToolListResultSchema,
+    execute: ToolExecutionResultSchema,
+    cancel: ToolCancelResultSchema,
+    dispose: ToolDisposeResultSchema,
   },
 };
 
@@ -233,6 +355,12 @@ const INPUT_SCHEMAS = {
     events: RuntimeEventsInputSchema,
     cancel: RuntimeCancelInputSchema,
     dispose: RuntimeDisposeInputSchema,
+  },
+  ToolRuntime: {
+    list: ToolListInputSchema,
+    execute: ToolExecuteInputSchema,
+    cancel: ToolCancelInputSchema,
+    dispose: ToolDisposeInputSchema,
   },
 };
 
@@ -320,6 +448,19 @@ function correlateResult(portName, method, input, result) {
       }
     }
   }
+  if (portName === 'ToolRuntime') {
+    if (method === 'list' || method === 'dispose') assertEqual(portName, method, 'session_id', input.session_id, result.session_id);
+    if (method === 'execute') {
+      for (const field of ['invocation_id', 'session_id', 'turn_id', 'tool_call_id', 'name']) {
+        assertEqual(portName, method, field, input[field], result[field]);
+      }
+    }
+    if (method === 'cancel') {
+      for (const field of ['invocation_id', 'session_id', 'turn_id', 'tool_call_id']) {
+        assertEqual(portName, method, field, input[field], result[field]);
+      }
+    }
+  }
   return result;
 }
 
@@ -400,6 +541,14 @@ module.exports = {
   RuntimeOperationResultSchema,
   RuntimeResumeInputSchema,
   RuntimeSendInputSchema,
+  ToolCancelInputSchema,
+  ToolCancelResultSchema,
+  ToolDisposeInputSchema,
+  ToolDisposeResultSchema,
+  ToolExecuteInputSchema,
+  ToolExecutionResultSchema,
+  ToolListInputSchema,
+  ToolListResultSchema,
   assertPortShape,
   validatePortError,
   validatePortInput,

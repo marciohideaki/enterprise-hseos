@@ -54,6 +54,7 @@ test('package exposes one immutable schema version and canonical ports', () => {
   assert.deepEqual(PORT_METHODS.AgentRuntime, ['create', 'resume', 'send', 'cancel', 'dispose']);
   assert.deepEqual(PORT_METHODS.ModelProvider, ['manifest', 'discover', 'stream', 'cancel', 'dispose']);
   assert.deepEqual(PORT_METHODS.RuntimeProvider, ['manifest', 'create', 'resume', 'send', 'events', 'cancel', 'dispose']);
+  assert.deepEqual(PORT_METHODS.ToolRuntime, ['list', 'execute', 'cancel', 'dispose']);
   assert.equal(Object.isFrozen(PORT_METHODS), true);
   assert.equal(PORT_RESULT_CONTRACTS.ModelProvider.stream, 'AsyncIterable<ModelStreamEvent>');
   assert.equal(PORT_INPUT_CONTRACTS.ModelProvider.stream, 'ModelRequest');
@@ -390,6 +391,33 @@ test('port inputs, resolved results, stream items and errors are executable cont
         session_id: 'session:fixture-2',
       },
     },
+    ToolRuntime: {
+      list: { schema_version: 1, session_id: 'session:fixture-1' },
+      execute: {
+        schema_version: 1,
+        invocation_id: 'invocation:fixture-1',
+        session_id: 'session:fixture-1',
+        turn_id: 'turn:fixture-1',
+        tool_call_id: 'call:fixture-1',
+        name: 'fixture.read',
+        input: { path: 'fixture.txt' },
+        actor: { id: 'agent:fixture', type: 'agent' },
+        resource_scope: { project: 'fixture' },
+        idempotency_key: 'idempotency:fixture-1',
+        correlation_id: 'correlation:fixture-1',
+        causation_id: 'request:fixture-1',
+        approval_context: null,
+      },
+      cancel: {
+        schema_version: 1,
+        invocation_id: 'invocation:fixture-1',
+        session_id: 'session:fixture-1',
+        turn_id: 'turn:fixture-1',
+        tool_call_id: 'call:fixture-1',
+        reason: 'deadline',
+      },
+      dispose: { schema_version: 1, session_id: 'session:fixture-1' },
+    },
   };
 
   for (const [portName, methods] of Object.entries(PORT_METHODS)) {
@@ -491,6 +519,74 @@ test('port inputs, resolved results, stream items and errors are executable cont
         event_refs: ['event://session-created'],
       },
       inputByPort.AgentRuntime.create,
+    ).accepted,
+    true,
+  );
+  assert.equal(validatePortInput('ToolRuntime', 'execute', inputByPort.ToolRuntime.execute).name, 'fixture.read');
+  assert.equal(
+    validatePortResult(
+      'ToolRuntime',
+      'execute',
+      {
+        schema_version: 1,
+        invocation_id: 'invocation:fixture-1',
+        session_id: 'session:fixture-1',
+        turn_id: 'turn:fixture-1',
+        tool_call_id: 'call:fixture-1',
+        name: 'fixture.read',
+        status: 'succeeded',
+        operation_id: 'operation:fixture-1',
+        result: { contents: 'fixture' },
+        error: null,
+        evidence_refs: ['evidence://fixture'],
+        warnings: [],
+        replayed: false,
+      },
+      inputByPort.ToolRuntime.execute,
+    ).status,
+    'succeeded',
+  );
+  assert.throws(
+    () => validatePortInput('ToolRuntime', 'execute', { ...inputByPort.ToolRuntime.execute, provider: 'direct-bypass' }),
+    AgentContractError,
+  );
+  assert.throws(
+    () =>
+      validatePortResult(
+        'ToolRuntime',
+        'execute',
+        {
+          schema_version: 1,
+          invocation_id: 'invocation:fixture-1',
+          session_id: 'session:fixture-1',
+          turn_id: 'turn:fixture-1',
+          tool_call_id: 'call:fixture-1',
+          name: 'fixture.read',
+          status: 'cancelled',
+          operation_id: 'operation:fixture-1',
+          result: null,
+          error: { code: 'EXECUTION_OUTCOME_IN_DOUBT', message: 'wrong terminal semantics', retryable: false },
+          evidence_refs: ['evidence://duplicate', 'evidence://duplicate'],
+          warnings: [],
+          replayed: false,
+        },
+        inputByPort.ToolRuntime.execute,
+      ),
+    AgentContractError,
+  );
+  assert.equal(
+    validatePortResult(
+      'ToolRuntime',
+      'cancel',
+      {
+        schema_version: 1,
+        invocation_id: 'invocation:fixture-1',
+        session_id: 'session:fixture-1',
+        turn_id: 'turn:fixture-1',
+        tool_call_id: 'call:fixture-1',
+        accepted: true,
+      },
+      inputByPort.ToolRuntime.cancel,
     ).accepted,
     true,
   );
