@@ -80,6 +80,7 @@ const SessionEventSchema = z
   .discriminatedUnion('event_type', [
     sessionEvent('session.created', strictObject({ spec: AgentSessionSpecSchema })),
     sessionEvent('session.resumed', strictObject({ from_sequence: z.number().int().nonnegative() })),
+    sessionEvent('session.forked', strictObject({ parent_session_id: IdentifierSchema, parent_sequence: z.number().int().positive() })),
     sessionEvent('turn.started', strictObject({ turn_id: IdentifierSchema, input: AgentMessageSchema })),
     sessionEvent(
       'context.assembled',
