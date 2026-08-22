@@ -140,7 +140,7 @@ function normalizeEvent(event, stream, sequence) {
   requireString(event.occurred_at, 'occurred_at');
   requireString(event.correlation_id, 'correlation_id');
   requireString(event.causation_id, 'causation_id');
-  requireString(event.operation_id, 'operation_id');
+  requireString(event.operation_id, 'operation_id', { nullable: stream.aggregate_type !== 'execution' });
   if (!Number.isInteger(event.schema_version) || event.schema_version < 1) {
     throw new InvalidEventError('schema_version must be a positive integer');
   }
@@ -257,7 +257,7 @@ class ExecutionEventLedger {
          operation_id, payload_json, evidence_refs_json
        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     );
-    this._appendTransaction = db.transaction((stream, expectedVersion, candidates) => {
+    this._appendRows = (stream, expectedVersion, candidates) => {
       const existing = candidates.map((candidate) => this._selectById.get(candidate.event_id));
       if (existing.some(Boolean)) {
         if (existing.every((row, index) => row && samePersistedEvent(row, candidates[index]))) {
@@ -294,10 +294,14 @@ class ExecutionEventLedger {
         current_version: expectedVersion + candidates.length,
         idempotent: false,
       };
-    });
+    };
+    this._appendTransaction = db.transaction(this._appendRows);
+    this._appendBatchTransaction = db.transaction((prepared) =>
+      prepared.map(({ stream, expected_version, candidates }) => this._appendRows(stream, expected_version, candidates)),
+    );
   }
 
-  append({ aggregate_id, aggregate_type, expected_version, events }) {
+  _prepareAppend({ aggregate_id, aggregate_type, expected_version, events }) {
     requireString(aggregate_id, 'aggregate_id');
     requireString(aggregate_type, 'aggregate_type');
     if (!Number.isInteger(expected_version) || expected_version < 0) {
@@ -313,31 +317,68 @@ class ExecutionEventLedger {
     const candidates = events.map((event, index) => normalizeEvent(event, stream, expected_version + index + 1));
     const uniqueIds = new Set(candidates.map((event) => event.event_id));
     if (uniqueIds.size !== candidates.length) throw new InvalidEventError('event_id values must be unique within an append');
+    return { aggregate_type, stream, expected_version, candidates };
+  }
+
+  _recordAttempt(aggregateType) {
+    this._metrics.append_count++;
+    this._metrics.append_count_by_aggregate_type[aggregateType] =
+      (this._metrics.append_count_by_aggregate_type[aggregateType] || 0) + 1;
+  }
+
+  _recordResult(aggregateType, result) {
+    if (result.idempotent) this._metrics.idempotent_replays++;
+    else {
+      this._metrics.events_appended += result.rows.length;
+      this._metrics.events_appended_by_aggregate_type[aggregateType] =
+        (this._metrics.events_appended_by_aggregate_type[aggregateType] || 0) + result.rows.length;
+    }
+    return {
+      current_version: result.current_version,
+      idempotent: result.idempotent,
+      events: result.rows.map(hydrate),
+    };
+  }
+
+  _recordError(error, fallbackAggregateType) {
+    const aggregateType = error.details?.aggregate_type || fallbackAggregateType;
+    if (error instanceof ConcurrencyConflictError) {
+      this._metrics.concurrency_conflicts++;
+      this._metrics.concurrency_conflicts_by_aggregate_type[aggregateType] =
+        (this._metrics.concurrency_conflicts_by_aggregate_type[aggregateType] || 0) + 1;
+    }
+    if (error instanceof DuplicateEventError) this._metrics.event_id_conflicts++;
+  }
+
+  append(request) {
+    const prepared = this._prepareAppend(request);
+    const { aggregate_type, stream, expected_version, candidates } = prepared;
 
     const startedAt = process.hrtime.bigint();
-    this._metrics.append_count++;
-    this._metrics.append_count_by_aggregate_type[aggregate_type] =
-      (this._metrics.append_count_by_aggregate_type[aggregate_type] || 0) + 1;
+    this._recordAttempt(aggregate_type);
     try {
       const result = this._appendTransaction.immediate(stream, expected_version, candidates);
-      if (result.idempotent) this._metrics.idempotent_replays++;
-      else {
-        this._metrics.events_appended += result.rows.length;
-        this._metrics.events_appended_by_aggregate_type[aggregate_type] =
-          (this._metrics.events_appended_by_aggregate_type[aggregate_type] || 0) + result.rows.length;
-      }
-      return {
-        current_version: result.current_version,
-        idempotent: result.idempotent,
-        events: result.rows.map(hydrate),
-      };
+      return this._recordResult(aggregate_type, result);
     } catch (error) {
-      if (error instanceof ConcurrencyConflictError) {
-        this._metrics.concurrency_conflicts++;
-        this._metrics.concurrency_conflicts_by_aggregate_type[aggregate_type] =
-          (this._metrics.concurrency_conflicts_by_aggregate_type[aggregate_type] || 0) + 1;
-      }
-      if (error instanceof DuplicateEventError) this._metrics.event_id_conflicts++;
+      this._recordError(error, aggregate_type);
+      throw error;
+    } finally {
+      this._metrics.append_latency_ms += Number(process.hrtime.bigint() - startedAt) / 1e6;
+    }
+  }
+
+  appendBatch(requests) {
+    if (!Array.isArray(requests) || requests.length === 0) {
+      throw new InvalidEventError('append batch must be a non-empty array');
+    }
+    const prepared = requests.map((request) => this._prepareAppend(request));
+    const startedAt = process.hrtime.bigint();
+    for (const item of prepared) this._recordAttempt(item.aggregate_type);
+    try {
+      const results = this._appendBatchTransaction.immediate(prepared);
+      return results.map((result, index) => this._recordResult(prepared[index].aggregate_type, result));
+    } catch (error) {
+      this._recordError(error, prepared[0].aggregate_type);
       throw error;
     } finally {
       this._metrics.append_latency_ms += Number(process.hrtime.bigint() - startedAt) / 1e6;
@@ -366,9 +407,16 @@ class ExecutionEventLedger {
       .map(hydrate);
   }
 
-  readGlobal({ after_position = 0, limit = 100 } = {}) {
+  readGlobal({ after_position = 0, limit = 100, aggregate_type } = {}) {
     if (!Number.isInteger(after_position) || after_position < 0 || !Number.isInteger(limit) || limit < 1 || limit > 1000) {
       throw new InvalidEventError('Invalid global stream cursor or limit');
+    }
+    if (aggregate_type !== undefined) requireString(aggregate_type, 'aggregate_type');
+    if (aggregate_type !== undefined) {
+      return this.db
+        .prepare(`SELECT * FROM execution_events WHERE position > ? AND aggregate_type = ? ORDER BY position LIMIT ?`)
+        .all(after_position, aggregate_type, limit)
+        .map(hydrate);
     }
     return this.db
       .prepare(`SELECT * FROM execution_events WHERE position > ? ORDER BY position LIMIT ?`)

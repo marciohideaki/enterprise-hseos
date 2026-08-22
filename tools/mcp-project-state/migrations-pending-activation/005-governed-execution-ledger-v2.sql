@@ -16,7 +16,8 @@ INSERT INTO execution_event_schemas (event_type, schema_version) VALUES
   ('ExecutionCancelled', 1),
   ('ExecutionOutcomeUncertain', 1),
   ('ExecutionCompensated', 1),
-  ('ExecutionCompensationFailed', 1);
+  ('ExecutionCompensationFailed', 1),
+  ('AgentSessionEventRecorded', 1);
 
 CREATE TRIGGER IF NOT EXISTS execution_event_schemas_no_insert
 BEFORE INSERT ON execution_event_schemas
@@ -54,7 +55,10 @@ CREATE TABLE IF NOT EXISTS execution_events (
   correlation_id TEXT NOT NULL CHECK(length(correlation_id) > 0),
   causation_id TEXT NOT NULL CHECK(length(causation_id) > 0),
   actor_json TEXT NOT NULL CHECK(json_valid(actor_json) AND json_type(actor_json) = 'object'),
-  operation_id TEXT NOT NULL CHECK(length(operation_id) > 0),
+  operation_id TEXT CHECK(
+    (operation_id IS NULL OR length(operation_id) > 0)
+    AND (aggregate_type <> 'execution' OR operation_id IS NOT NULL)
+  ),
   payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),
   evidence_refs_json TEXT NOT NULL DEFAULT '[]'
     CHECK(json_valid(evidence_refs_json) AND json_type(evidence_refs_json) = 'array'),
