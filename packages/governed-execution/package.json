@@ -1,0 +1,24 @@
+{
+  "name": "@hseos/governed-execution",
+  "version": "1.0.0",
+  "description": "Canonical governed execution envelope and scheduler for HSEOS",
+  "keywords": [
+    "hseos",
+    "governance",
+    "execution",
+    "scheduler"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marciohideaki/hseos.git",
+    "directory": "packages/governed-execution"
+  },
+  "license": "MIT",
+  "main": "index.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
