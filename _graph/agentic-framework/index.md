@@ -16,8 +16,11 @@
 | `../../packages/agent-runtime-contracts/`                                       | Vendor-neutral executable Agent Kernel contracts                 | ADR-0024 inward port package                       |
 | `../../test/test-agent-runtime-contracts.js`                                    | A1 contract and adversarial conformance suite                    | Deterministic A1 verification                      |
 | `state/checkpoints/A2-session-event-store.md`                                   | Relational session persistence and independent evidence          | Accepted reconstruction boundary for A3–A8         |
-| `../../packages/agent-session-store/`                                           | Append, replay, fork, reconstruction and crash recovery           | ADR-0022/0024 relational session adapter            |
-| `../../test/test-agent-session-store.js`                                        | A2 lifecycle, recovery, hierarchy and security suite              | Deterministic A2 verification                       |
+| `../../packages/agent-session-store/`                                           | Append, replay, fork, reconstruction and crash recovery          | ADR-0022/0024 relational session adapter           |
+| `../../test/test-agent-session-store.js`                                        | A2 lifecycle, recovery, hierarchy and security suite             | Deterministic A2 verification                      |
+| `state/checkpoints/A3-model-providers.md`                                       | Registry, streaming, security and independent evidence           | Accepted model-provider boundary for A4–A10        |
+| `../../packages/model-providers/`                                               | Scripted and OpenAI-compatible normalized provider adapters      | ADR-0024 Provider Plane                            |
+| `../../test/test-model-providers.js`                                            | A3 lifecycle, protocol, capability and security suite            | Deterministic A3 verification                      |
 | `../../.enterprise/.specs/decisions/ADR-0024-model-agnostic-agent-framework.md` | Accepted architectural decision                                  | Authoritative ADR                                  |
 
 Implementation artifacts will be indexed here as nodes A2–A13 add their own checkpoint shards.

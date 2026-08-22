@@ -231,7 +231,7 @@ gate_security() {
     "password\\s*=\\s*[\"'][^\"']{4,}"
     "api[_-]?key\\s*=\\s*[\"'][^\"']{8,}"
     "secret\\s*=\\s*[\"'][^\"']{8,}"
-    'private[_-]?key'
+    "private[_-]?key[\"']?\s*[:=]\s*[\"'][^\"']{8,}"
     'BEGIN (RSA|EC|OPENSSH|PGP) PRIVATE'
     'AKIA[0-9A-Z]{16}'
   )
