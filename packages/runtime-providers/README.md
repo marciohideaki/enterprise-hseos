@@ -15,3 +15,27 @@ suite proves that every classified effect crosses the governed `ToolRuntime`.
 ACP v2 is intentionally excluded because it remains a draft. Unknown or
 malformed ACP v1 messages fail closed instead of being coerced into normalized
 runtime events.
+
+## Hosted runtime adapters
+
+Codex, Claude Code and DeepSeek Harness expose different native integration
+surfaces. HSEOS preserves that distinction while normalizing all three through
+the `RuntimeProvider` port:
+
+| Adapter | Native boundary | Declared level |
+| --- | --- | --- |
+| Codex | official app-server, injected behind a driver | L0 |
+| Claude Code | official Agent SDK, injected behind a driver | L0 |
+| DeepSeek Harness | stable ACP v1 peer | L0 |
+
+The Codex and Claude classes accept a process-neutral driver supplied by the
+host. The driver must attest `instructions_only` on create and resume and may
+emit only text deltas. An effect attempt terminates the session with
+`policy_denied`. The DeepSeek class uses the ACP bridge directly; Cordis, MCP
+servers and DeepSeek packages are not vendored or imported.
+
+These adapters deliberately resolve no credentials and declare no secret
+references. They do not claim governed tools, lifecycle conformance or replay.
+External SDK/app-server composition smokes belong to a separately configured
+environment and cannot upgrade the manifest without the corresponding HSEOS
+conformance suite.
