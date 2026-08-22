@@ -6,7 +6,10 @@
     "hseos",
     "agents",
     "runtime",
-    "acp"
+    "acp",
+    "codex",
+    "claude-code",
+    "deepseek-harness"
   ],
   "repository": {
     "type": "git",
