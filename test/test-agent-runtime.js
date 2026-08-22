@@ -7,6 +7,12 @@ const { test } = require('node:test');
 
 const Database = require('better-sqlite3');
 const { z } = require('zod');
+const {
+  CompactionProviderRegistry,
+  CompactionRuntime,
+  DeterministicCompactionProvider,
+  InMemoryCheckpointProvider,
+} = require('../packages/agent-compaction');
 
 const { ContextAssembler } = require('../packages/agent-context');
 const { AgentRuntime, RUNTIME_CAPS, stableId } = require('../packages/agent-runtime');
@@ -16,7 +22,7 @@ const {
   assertPortShape,
   validatePortResult,
 } = require('../packages/agent-runtime-contracts');
-const { RelationalSessionEventStore } = require('../packages/agent-session-store');
+const { RelationalSessionEventStore, canonicalJson } = require('../packages/agent-session-store');
 const { ModelProviderRegistry, ScriptedModelProvider } = require('../packages/model-providers');
 const { ToolRuntime, ToolRuntimeRegistry, governanceRef } = require('../packages/tool-runtime');
 const { ExecutionContractRegistry } = require('../tools/lib/governed-execution/contract-registry');
@@ -154,7 +160,16 @@ function modelRoutes({ slow = false, calls = null } = {}) {
   ];
 }
 
-function setup({ routes = modelRoutes(), limits = {}, clock = Date, streamLimits = {} } = {}) {
+function setup({
+  routes = modelRoutes(),
+  limits = {},
+  clock = Date,
+  streamLimits = {},
+  modelManifest = manifest(),
+  contextProfileResolver = profile,
+  compactionRuntime = null,
+  toolResultBody = null,
+} = {}) {
   const db = new Database(':memory:');
   db.pragma('foreign_keys = ON');
   runMigrations(db, MIGRATIONS_DIR, { log: () => {} });
@@ -186,7 +201,7 @@ function setup({ routes = modelRoutes(), limits = {}, clock = Date, streamLimits
           async execute(input) {
             external.dispatches++;
             external.value = input.value;
-            return { data: { echoed: input.value }, evidence: ['evidence://external-read'] };
+            return { data: { echoed: toolResultBody ?? input.value }, evidence: ['evidence://external-read'] };
           },
         },
       ],
@@ -202,19 +217,40 @@ function setup({ routes = modelRoutes(), limits = {}, clock = Date, streamLimits
     scheduler: new GovernedExecutionScheduler({ contracts, port: createGovernedExecutionPort(governed), maxConcurrency: 2 }),
   });
 
-  const provider = new ScriptedModelProvider({ manifest: manifest(), routes });
+  const provider = new ScriptedModelProvider({ manifest: modelManifest, routes });
   const modelRegistry = new ModelProviderRegistry();
-  modelRegistry.register(provider, manifest());
+  modelRegistry.register(provider, modelManifest);
   const snapshot = modelRegistry.snapshot();
   const runtime = new AgentRuntime({
     session_store: sessionStore,
     model_provider_snapshot: snapshot,
     tool_runtime: tools,
-    context_profile_resolver: profile,
+    context_profile_resolver: contextProfileResolver,
+    compaction_runtime: compactionRuntime,
     clock,
     stream_limits: streamLimits,
   });
   return { db, external, provider, runtime, sessionStore, snapshot, tools, sessionSpec: spec('session:loop', limits) };
+}
+
+function compactionRuntimeFixture() {
+  const provider = new DeterministicCompactionProvider({ provider_id: 'compaction:runtime-fixture' });
+  const registry = new CompactionProviderRegistry();
+  const manifestInput = {
+    schema_version: 1,
+    request_id: 'request:runtime-compaction-manifest',
+    provider_id: 'compaction:runtime-fixture',
+  };
+  registry.register(provider, provider.manifest(manifestInput));
+  const checkpoint = new InMemoryCheckpointProvider({ provider_id: 'checkpoint:runtime-fixture' });
+  return {
+    checkpoint,
+    runtime: new CompactionRuntime({
+      compaction_provider_snapshot: registry.snapshot(),
+      checkpoint_provider: checkpoint,
+      checkpoint_provider_id: 'checkpoint:runtime-fixture',
+    }),
+  };
 }
 
 function createCommand(sessionSpec) {
@@ -274,6 +310,60 @@ test('headless runtime satisfies the port and completes a durable multi-step gov
     JSON.parse(fixture.db.prepare('SELECT payload_json FROM execution_events WHERE position = ?').get(row.position).payload_json).session_event_json.includes('tool.execution.started'));
   const dispatchStart = rows.find((row) => row.aggregate_type === 'execution' && row.event_type === 'ExecutionStarted');
   assert.ok(toolIntent.position < dispatchStart.position, 'session tool intent is durable before governed dispatch');
+});
+
+test('tool-result pressure prunes bodies with lineage before a byte-exact continuation', async (context) => {
+  const compaction = compactionRuntimeFixture();
+  const boundedManifest = manifest();
+  boundedManifest.limits.context_tokens = 4000;
+  const largeResult = 'external result body '.repeat(600);
+  const routes = [
+    modelRoutes()[0],
+    {
+      match: (request) => request.messages.at(-1).role === 'tool',
+      events(request) {
+        const toolMessage = request.messages.at(-1);
+        assert.equal(toolMessage.tool_call_id, 'call:echo-1');
+        assert.match(toolMessage.content, /"pruned":true/);
+        assert.match(toolMessage.content, /evidence:\/\/external-read/);
+        assert.doesNotMatch(toolMessage.content, /external result body/);
+        return [
+          { event_type: 'content.delta', payload: { text: 'compacted continuation verified' } },
+          { event_type: 'completed', payload: { finish_reason: 'stop', provider_response_ref: 'scripted://compact-done' } },
+        ];
+      },
+    },
+  ];
+  const fixture = setup({
+    routes,
+    modelManifest: boundedManifest,
+    toolResultBody: largeResult,
+    compactionRuntime: compaction.runtime,
+    contextProfileResolver: () => ({
+      ...profile(),
+      overflow_policy: 'compact',
+      compaction_provider_id: 'compaction:runtime-fixture',
+    }),
+  });
+  context.after(() => fixture.db.close());
+  await fixture.runtime.create(createCommand(fixture.sessionSpec));
+  const result = await fixture.runtime.send(sendCommand());
+  assert.equal(result.terminal, true);
+  const state = fixture.sessionStore.replay('session:loop');
+  assert.equal(state.status, 'completed', JSON.stringify(fixture.sessionStore.readSession('session:loop')));
+  const turn = state.turns['turn:loop-1'];
+  assert.equal(turn.tool_compactions.length, 1);
+  assert.equal(turn.model_steps.length, 2);
+  assert.equal(turn.model_steps[1].request.messages.at(-1).tool_call_id, 'call:echo-1');
+  assert.doesNotMatch(canonicalJson(turn.model_steps[1].request), /external result body/);
+  const events = fixture.sessionStore.readSession('session:loop');
+  const compactionIndex = events.findIndex((event) => event.event_type === 'compaction.completed');
+  const continuationIndex = events.findIndex(
+    (event, index) => index > compactionIndex && event.event_type === 'model.request.started',
+  );
+  assert.ok(compactionIndex > 0 && continuationIndex > compactionIndex);
+  assert.deepEqual(turn.model_steps[1].source_event_ids, [turn.model_steps[0].terminal_event_id, events[compactionIndex].event_id]);
+  assert.equal(events[compactionIndex].payload.source_event_ids[0], turn.tool_executions['call:echo-1'].completed_event_id);
 });
 
 test('a second runtime resumes after durable tool completion without redispatch', async (context) => {

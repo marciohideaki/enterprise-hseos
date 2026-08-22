@@ -17,6 +17,7 @@ const { ContextAssembler } = require('../agent-context');
 const { assembledToolCalls, canonicalJson, isRelationalSessionEventStore } = require('../agent-session-store');
 const { ModelProviderRegistrySnapshot } = require('../model-providers');
 const { ToolRuntime } = require('../tool-runtime');
+const { CompactionRuntimeError } = require('../agent-compaction');
 const { AgentContextProfileSchema } = require('./schemas');
 
 const RUNTIME_CAPS = deepFreeze({
@@ -106,6 +107,7 @@ function assertRuntimeCaps(spec) {
 class AgentRuntime {
   #active = new Map();
   #clock;
+  #compactionRuntime;
   #contextAssembler;
   #contextProfileResolver;
   #providers;
@@ -118,6 +120,7 @@ class AgentRuntime {
     model_provider_snapshot,
     tool_runtime,
     context_profile_resolver,
+    compaction_runtime = null,
     clock = Date,
     stream_limits = {},
   }) {
@@ -154,10 +157,15 @@ class AgentRuntime {
     this.#store = session_store;
     this.#providers = model_provider_snapshot;
     this.#tools = tool_runtime;
+    this.#compactionRuntime = compaction_runtime;
     this.#contextProfileResolver = context_profile_resolver;
     this.#clock = clock;
     this.#streamCaps = deepFreeze(resolvedStreamCaps);
-    this.#contextAssembler = new ContextAssembler({ session_store, model_provider_snapshot });
+    this.#contextAssembler = new ContextAssembler({
+      session_store,
+      model_provider_snapshot,
+      compaction_runtime,
+    });
   }
 
   #nowMs() {
@@ -225,6 +233,14 @@ class AgentRuntime {
       throw new AgentRuntimeError('headless AgentRuntime requires kernel execution ownership', 'AGENT_RUNTIME_EXECUTION_OWNER_INVALID');
     }
     assertRuntimeCaps(spec);
+    const contextProfile = this.#profile(spec);
+    if (contextProfile.overflow_policy === 'compact') {
+      if (!this.#compactionRuntime) {
+        throw new AgentRuntimeError('compact context profile requires a compaction runtime', 'AGENT_RUNTIME_COMPACTION_UNAVAILABLE');
+      }
+      this.#compactionRuntime.resolve(contextProfile.compaction_provider_id, 'history_summary');
+      this.#compactionRuntime.resolve(contextProfile.compaction_provider_id, 'tool_result_prune');
+    }
     this.#providers.resolve(spec.execution.model_provider_id, spec.execution.model);
     this.#tools.list({ schema_version: CONTRACT_SCHEMA_VERSION, session_id: spec.session_id });
     const existing = this.#store.readSession(spec.session_id);
@@ -450,11 +466,20 @@ class AgentRuntime {
     const tools = this.#tools.list({ schema_version: CONTRACT_SCHEMA_VERSION, session_id: state.session_id }).tools;
     const requestId = stableId('request', state.session_id, turn.turn_id, 0);
     const eventId = stableId('event', state.session_id, 'context.assembled', turn.turn_id);
+    const compactionFields =
+      profile.overflow_policy === 'compact'
+        ? {
+            compaction_id: stableId('compaction', state.session_id, turn.turn_id),
+            compaction_event_id: stableId('event', state.session_id, 'compaction.completed', turn.turn_id),
+            compaction_provider_id: profile.compaction_provider_id,
+          }
+        : {};
     const assembled = this.#contextAssembler.assembleAndRecord({
       schema_version: CONTRACT_SCHEMA_VERSION,
       request_id: requestId,
       turn_id: turn.turn_id,
       event_id: eventId,
+      ...compactionFields,
       occurred_at: this.#timestamp(),
       expected_version: state.current_sequence,
       session: state.spec,
@@ -467,6 +492,7 @@ class AgentRuntime {
       parameters: profile.parameters,
       overflow_policy: profile.overflow_policy,
     });
+    if (assembled.compaction_event) active.eventIds.push(assembled.compaction_event.event_id);
     active.eventIds.push(assembled.event.event_id);
     return this.#store.replay(state.session_id);
   }
@@ -751,19 +777,110 @@ class AgentRuntime {
         }),
       };
     });
-    const request = parseContract(
-      ModelRequestSchema,
-      {
-        ...step.request,
-        request_id: stableId('request', state.session_id, turn.turn_id, turn.model_steps.length),
-        messages: [...step.request.messages, assistant, ...toolMessages],
-      },
-      'tool continuation model request',
+    const requestId = stableId('request', state.session_id, turn.turn_id, turn.model_steps.length);
+    const fullMessages = [...step.request.messages, assistant, ...toolMessages];
+    const providerManifest = this.#providers.resolve(step.request.provider_id, step.request.model).manifest;
+    const inputLimit = providerManifest.limits.context_tokens - step.request.parameters.max_output_tokens;
+    const fullInputTokens = Buffer.byteLength(
+      canonicalJson({ messages: fullMessages, tools: step.request.tools, parameters: step.request.parameters }),
+      'utf8',
     );
-    const sourceEventIds = [
+    let continuationMessages = fullMessages;
+    let sourceEventIds = [
       step.terminal_event_id,
       ...calls.map((call) => turn.tool_executions[call.tool_call_id].completed_event_id),
     ];
+    const profile = this.#profile(state.spec);
+    if (profile.overflow_policy === 'compact') {
+      if (!this.#compactionRuntime) {
+        return this.#fail(state, { code: 'budget_exceeded', message: 'tool continuation requires unavailable compaction' }, active);
+      }
+      const pressure = this.#compactionRuntime.assess({
+        schema_version: CONTRACT_SCHEMA_VERSION,
+        provider_id: profile.compaction_provider_id,
+        session_id: state.session_id,
+        turn_id: turn.turn_id,
+        trigger: 'tool_result_pressure',
+        input_tokens: fullInputTokens,
+        input_limit_tokens: inputLimit,
+      });
+      if (pressure.should_compact) {
+        const completedIds = calls.map((call) => turn.tool_executions[call.tool_call_id].completed_event_id);
+        let record = turn.tool_compactions.find((candidate) => equal(candidate.source_event_ids, completedIds));
+        if (!record) {
+          const compactionId = stableId('compaction', state.session_id, turn.turn_id, step.step_id, 'tools');
+          const eventSequence = new Map(
+            this.#store.readSession(state.session_id).map((event) => [event.event_id, event.sequence]),
+          );
+          try {
+            record = this.#compactionRuntime.compact(
+              {
+                schema_version: CONTRACT_SCHEMA_VERSION,
+                provider_id: profile.compaction_provider_id,
+                compaction_id: compactionId,
+                session_id: state.session_id,
+                turn_id: turn.turn_id,
+                trigger: 'tool_result_pressure',
+                strategy: 'tool_result_prune',
+                target_tokens: Math.max(1, inputLimit - (fullInputTokens - Buffer.byteLength(canonicalJson(toolMessages), 'utf8'))),
+                sources: calls.map((call, index) => ({
+                  source_event_id: completedIds[index],
+                  source_ref: eventRef(completedIds[index]),
+                  sequence: eventSequence.get(completedIds[index]),
+                  message: toolMessages[index],
+                })),
+              },
+              [],
+              (result) => {
+                const candidateMessages = [...step.request.messages, assistant, ...result.replacement_messages];
+                const candidateTokens = Buffer.byteLength(
+                  canonicalJson({ messages: candidateMessages, tools: step.request.tools, parameters: step.request.parameters }),
+                  'utf8',
+                );
+                return candidateTokens <= inputLimit;
+              },
+            );
+          } catch (error) {
+            if (
+              fullInputTokens <= inputLimit &&
+              error instanceof CompactionRuntimeError &&
+              ['COMPACTION_PROVIDER_FAILED', 'COMPACTION_REPLACEMENT_REJECTED'].includes(error.code)
+            ) {
+              record = null;
+            } else {
+              return this.#fail(state, { code: 'budget_exceeded', message: 'tool result compaction failed' }, active);
+            }
+          }
+          if (record) {
+            const compactionEvent = this.#append(
+              state.session_id,
+              'compaction.completed',
+              record,
+              [turn.turn_id, step.step_id, 'tool-results'],
+              active,
+            );
+            record = { ...record, event_id: compactionEvent.event_id };
+          }
+        }
+        if (record) {
+          continuationMessages = [...step.request.messages, assistant, ...record.replacement_messages];
+          sourceEventIds = [step.terminal_event_id, record.event_id];
+        }
+      }
+    }
+    if (
+      Buffer.byteLength(
+        canonicalJson({ messages: continuationMessages, tools: step.request.tools, parameters: step.request.parameters }),
+        'utf8',
+      ) > inputLimit
+    ) {
+      return this.#fail(state, { code: 'budget_exceeded', message: 'tool continuation exceeds provider context' }, active);
+    }
+    const request = parseContract(
+      ModelRequestSchema,
+      { ...step.request, request_id: requestId, messages: continuationMessages },
+      'tool continuation model request',
+    );
     return this.#startStep(state, turn, request, sourceEventIds, active);
   }
 

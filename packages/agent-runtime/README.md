@@ -8,4 +8,6 @@
 
 The loop is bounded by the durable session limits for turns, tokens, duration and tool calls. Tool-call continuations are complete model requests with lineage to the preceding model terminal event and durable tool outcomes. A restart can replay an unstarted request, resume an idempotent governed tool execution, continue after recorded tool results or fail closed when a partial provider stream cannot be resumed safely.
 
-The package owns no model or tool implementation. It resolves a model from one immutable registry snapshot and invokes tools only through a nominal `ToolRuntime`. Compaction, subagents, workflows, delegated runtimes and operational activation remain separate graph nodes.
+The package owns no model, tool or compaction implementation. It resolves a model from one immutable registry snapshot and invokes tools only through a nominal `ToolRuntime`. When a profile selects `compact`, it requires a registered `CompactionProvider` supporting both history summaries and tool-result pruning. Large settled tool bodies are replaced by ordered tool messages that preserve call identity, status, evidence, warnings and an original-result digest before the continuation request becomes durable.
+
+Subagents, workflows, delegated runtimes and operational activation remain separate graph nodes.

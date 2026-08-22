@@ -14,6 +14,7 @@ Deterministic APIs include:
 - immutable replay with lifecycle invariants;
 - canonical model-request reconstruction;
 - exact multi-step model/tool continuation lineage and started-work settlement;
+- context and tool-result compaction replay with exact source partition, digest, call identity and replacement validation;
 - lineage-preserving session forks;
 - recovery plans for interrupted turns;
 - filtered session reads over the shared global stream.

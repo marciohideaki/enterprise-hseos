@@ -13,6 +13,7 @@ const {
   z,
 } = require('./common');
 const { AgentMessageSchema, AgentSessionSpecSchema, ModelRequestSchema, ToolExecutionResultSchema } = require('./agent-contracts');
+const { CompactionProviderManifestSchema, CompactionRecordSchema } = require('./compaction-contracts');
 
 const MAX_EVENT_DELTA_BYTES = 262_144;
 const MAX_RUNTIME_TOOL_INPUT_BYTES = 1_048_576;
@@ -52,7 +53,10 @@ const ContextBudgetReportSchema = strictObject({
   message_tokens: z.number().int().nonnegative(),
   tool_tokens: z.number().int().nonnegative(),
   parameter_tokens: z.number().int().nonnegative(),
-  overflow_policy: z.enum(['reject', 'truncate_optional']),
+  overflow_policy: z.enum(['reject', 'truncate_optional', 'compact']),
+  compaction_provider_id: IdentifierSchema.nullable().optional(),
+  checkpoint_provider_id: IdentifierSchema.nullable().optional(),
+  compaction_provider_manifest: CompactionProviderManifestSchema.nullable().optional(),
   omitted_source_refs: UniqueReferencesSchema,
 }).superRefine((budget, context) => {
   if (budget.input_limit_tokens !== budget.context_limit_tokens - budget.reserved_output_tokens) {
@@ -63,6 +67,16 @@ const ContextBudgetReportSchema = strictObject({
   }
   if (budget.input_tokens > budget.input_limit_tokens) {
     context.addIssue({ code: 'custom', path: ['input_tokens'], message: 'assembled input exceeds its budget' });
+  }
+  const provenance = [budget.compaction_provider_id, budget.checkpoint_provider_id, budget.compaction_provider_manifest];
+  if (budget.overflow_policy === 'compact') {
+    if (provenance.some((value) => value == null)) {
+      context.addIssue({ code: 'custom', message: 'compact budgets require exact provider and checkpoint provenance' });
+    } else if (budget.compaction_provider_manifest.provider_id !== budget.compaction_provider_id) {
+      context.addIssue({ code: 'custom', message: 'compact budget manifest identity mismatch' });
+    }
+  } else if (provenance.some((value) => value != null)) {
+    context.addIssue({ code: 'custom', message: 'non-compact budgets cannot declare compaction provenance' });
   }
 });
 
@@ -256,10 +270,7 @@ const SessionEventSchema = z
       'tool.operation_linked',
       strictObject({ turn_id: IdentifierSchema, tool_call_id: IdentifierSchema, operation_id: IdentifierSchema }),
     ),
-    sessionEvent(
-      'compaction.completed',
-      strictObject({ checkpoint_ref: ReferenceSchema, source_event_ids: z.array(IdentifierSchema).min(1) }),
-    ),
+    sessionEvent('compaction.completed', CompactionRecordSchema),
     sessionEvent('child.attached', strictObject({ child_session_id: IdentifierSchema, authority_ceiling_ref: ReferenceSchema })),
     sessionEvent(
       'workflow.checkpointed',
