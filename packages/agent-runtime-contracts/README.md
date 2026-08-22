@@ -18,7 +18,7 @@ Every object schema is strict and requires `schema_version: 1`. Unknown fields a
 
 `assertPortShape` checks the method surface without executing effects. Every resolved call must additionally cross `validatePortInput` and `validatePortResult`; the latter requires the original input and rejects identity drift between the call, result and stream. Stream wrappers enforce exact sequence progression and validate every item before the kernel observes it. Provider failures cross a deterministic, vendor-neutral `PortError` taxonomy. A function-shaped implementation is therefore not behavioral conformance by itself.
 
-Model and delegated-runtime stream envelopes carry provider/request or provider/runtime-session identities. Text deltas are capped at 256 KiB and delegated tool inputs at 1 MiB per event. Larger or cyclic boundary values fail closed before reaching the kernel.
+Model and delegated-runtime stream envelopes carry provider/request or provider/runtime-session identities. Text deltas are capped at 256 KiB and delegated tool inputs at 1 MiB per event. Kernel-owned model steps additionally carry durable request lineage, assistant tool calls, governed tool outcomes and cancellation intent. Per-step event and byte ceilings reserve room for a terminal event even when a provider exhausts its stream allowance. Larger, cyclic or mis-correlated boundary values fail closed before reaching the kernel.
 
 ## Conformance
 

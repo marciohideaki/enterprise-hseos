@@ -13,8 +13,11 @@ Deterministic APIs include:
 - compare-and-append with exact session sequence validation;
 - immutable replay with lifecycle invariants;
 - canonical model-request reconstruction;
+- exact multi-step model/tool continuation lineage and started-work settlement;
 - lineage-preserving session forks;
 - recovery plans for interrupted turns;
 - filtered session reads over the shared global stream.
+
+Store instances are nominal and immutable. Structural lookalikes, forged prototypes, subclasses and method overrides cannot be supplied to the context assembler or headless runtime as durable authority.
 
 Rollback before activation is the A2 task commit plus disposable temporary fixture databases. Canonical events are never deleted after operational activation.

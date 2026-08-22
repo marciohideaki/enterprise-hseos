@@ -11,7 +11,7 @@ const {
   deepFreeze,
   parseContract,
 } = require('../agent-runtime-contracts');
-const { RelationalSessionEventStore, canonicalJson } = require('../agent-session-store');
+const { canonicalJson, isRelationalSessionEventStore } = require('../agent-session-store');
 const { ModelProviderRegistrySnapshot } = require('../model-providers');
 const { ContextAssemblyInputSchema, HistorySourceSchema, MAX_CONTEXT_ASSEMBLY_BYTES } = require('./schemas');
 const { ConservativeUtf8TokenCounter, deterministicCount, validateTokenCounter } = require('./token-counter');
@@ -133,7 +133,7 @@ class ContextAssembler {
   #providerSnapshot;
 
   constructor({ session_store, model_provider_snapshot, token_counter = new ConservativeUtf8TokenCounter() }) {
-    if (!(session_store instanceof RelationalSessionEventStore)) {
+    if (!isRelationalSessionEventStore(session_store)) {
       throw new ContextAssemblyError('session store must be a verified RelationalSessionEventStore');
     }
     if (!(model_provider_snapshot instanceof ModelProviderRegistrySnapshot)) {

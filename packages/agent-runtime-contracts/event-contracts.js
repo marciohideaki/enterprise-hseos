@@ -12,10 +12,13 @@ const {
   strictObject,
   z,
 } = require('./common');
-const { AgentMessageSchema, AgentSessionSpecSchema, ModelRequestSchema } = require('./agent-contracts');
+const { AgentMessageSchema, AgentSessionSpecSchema, ModelRequestSchema, ToolExecutionResultSchema } = require('./agent-contracts');
 
 const MAX_EVENT_DELTA_BYTES = 262_144;
 const MAX_RUNTIME_TOOL_INPUT_BYTES = 1_048_576;
+const MAX_MODEL_EVENTS_PER_STEP = 4096;
+const MAX_MODEL_STREAM_BYTES_PER_STEP = 16_777_216;
+const MODEL_TERMINAL_RESERVE_BYTES = 8192;
 const CONTEXT_ASSEMBLY_CONTRACT = 'hseos.context/v1';
 const CONTEXT_PRECEDENCE_REF = 'hseos://context/precedence-v1';
 const CONTEXT_PRECEDENCE_PREAMBLE = [
@@ -31,6 +34,12 @@ const UniqueReferencesSchema = z.array(ReferenceSchema).max(4096).superRefine((r
   }
   if (Buffer.byteLength(JSON.stringify(references), 'utf8') > 1_048_576) {
     context.addIssue({ code: 'custom', message: 'source references exceed the event byte limit' });
+  }
+});
+
+const UniqueEventIdsSchema = z.array(IdentifierSchema).min(1).max(4096).superRefine((eventIds, context) => {
+  if (new Set(eventIds).size !== eventIds.length) {
+    context.addIssue({ code: 'custom', message: 'source event identifiers must be unique' });
   }
 });
 
@@ -210,8 +219,38 @@ const SessionEventSchema = z
     ),
     sessionEvent('context.assembled', ContextAssembledPayloadSchema),
     sessionEvent(
+      'model.request.started',
+      strictObject({
+        turn_id: IdentifierSchema,
+        step_id: IdentifierSchema,
+        request: ModelRequestSchema,
+        source_event_ids: UniqueEventIdsSchema,
+      }),
+    ),
+    sessionEvent(
       'model.streamed',
-      strictObject({ turn_id: IdentifierSchema, provider_id: IdentifierSchema, event: ModelStreamEventSchema }),
+      strictObject({
+        turn_id: IdentifierSchema,
+        step_id: IdentifierSchema.optional(),
+        provider_id: IdentifierSchema,
+        event: ModelStreamEventSchema,
+      }),
+    ),
+    sessionEvent(
+      'tool.execution.started',
+      strictObject({
+        turn_id: IdentifierSchema,
+        step_id: IdentifierSchema,
+        invocation_id: IdentifierSchema,
+        tool_call_id: IdentifierSchema,
+        name: IdentifierSchema,
+        input: boundedJsonObject(MAX_RUNTIME_TOOL_INPUT_BYTES),
+        idempotency_key: IdentifierSchema,
+      }),
+    ),
+    sessionEvent(
+      'tool.execution.completed',
+      strictObject({ turn_id: IdentifierSchema, step_id: IdentifierSchema, outcome: ToolExecutionResultSchema }),
     ),
     sessionEvent(
       'tool.operation_linked',
@@ -225,6 +264,14 @@ const SessionEventSchema = z
     sessionEvent(
       'workflow.checkpointed',
       strictObject({ workflow_id: IdentifierSchema, step_id: IdentifierSchema, checkpoint_ref: ReferenceSchema }),
+    ),
+    sessionEvent(
+      'session.cancellation.requested',
+      strictObject({
+        reason: z.string().min(1).max(2048),
+        cascade: z.boolean(),
+        source: z.enum(['user', 'deadline', 'dispose']),
+      }),
     ),
     sessionEvent('session.cancelled', strictObject({ reason: z.string().min(1).max(2048), cascade: z.boolean() })),
     sessionEvent('session.completed', strictObject({ outcome_ref: ReferenceSchema })),
@@ -247,6 +294,17 @@ const SessionEventSchema = z
     }
     if (event.event_type === 'model.streamed' && event.payload.provider_id !== event.payload.event.provider_id) {
       context.addIssue({ code: 'custom', path: ['payload', 'event', 'provider_id'], message: 'provider identity mismatch' });
+    }
+    if (event.event_type === 'model.request.started') {
+      if (event.session_id !== event.payload.request.session_id || event.payload.turn_id !== event.payload.request.turn_id) {
+        context.addIssue({ code: 'custom', path: ['payload', 'request'], message: 'model request identity mismatch' });
+      }
+    }
+    if (event.event_type === 'tool.execution.completed') {
+      const outcome = event.payload.outcome;
+      if (event.session_id !== outcome.session_id || event.payload.turn_id !== outcome.turn_id) {
+        context.addIssue({ code: 'custom', path: ['payload', 'outcome'], message: 'tool outcome identity mismatch' });
+      }
     }
   });
 
@@ -291,7 +349,10 @@ module.exports = {
   CONTEXT_PRECEDENCE_REF,
   ContextBudgetReportSchema,
   MAX_EVENT_DELTA_BYTES,
+  MAX_MODEL_EVENTS_PER_STEP,
+  MAX_MODEL_STREAM_BYTES_PER_STEP,
   MAX_RUNTIME_TOOL_INPUT_BYTES,
+  MODEL_TERMINAL_RESERVE_BYTES,
   ModelStreamEventSchema,
   RuntimeEventSchema,
   SessionEventSchema,

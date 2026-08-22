@@ -24,6 +24,7 @@ const {
   ModelRequestSchema,
   ResumeAgentCommandSchema,
   SendAgentCommandSchema,
+  ToolExecutionResultSchema,
   ToolDefinitionsSchema,
 } = require('./agent-contracts');
 const { ModelStreamEventSchema, RuntimeEventSchema } = require('./event-contracts');
@@ -182,49 +183,6 @@ const ToolListResultSchema = strictObject({
   schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
   session_id: IdentifierSchema,
   tools: ToolDefinitionsSchema,
-});
-
-const ToolExecutionErrorSchema = strictObject({
-  code: z.string().min(1),
-  message: z.string().min(1),
-  retryable: z.boolean(),
-});
-
-const ToolExecutionResultSchema = strictObject({
-  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
-  invocation_id: IdentifierSchema,
-  session_id: IdentifierSchema,
-  turn_id: IdentifierSchema,
-  tool_call_id: IdentifierSchema,
-  name: IdentifierSchema,
-  status: z.enum(['succeeded', 'failed', 'cancelled', 'uncertain']),
-  operation_id: IdentifierSchema.nullable(),
-  result: z.json().nullable(),
-  error: ToolExecutionErrorSchema.nullable(),
-  evidence_refs: z.array(z.string()),
-  warnings: z.array(z.string()),
-  replayed: z.boolean(),
-}).superRefine((outcome, context) => {
-  if (outcome.status === 'succeeded' && (outcome.operation_id === null || outcome.error !== null)) {
-    context.addIssue({ code: 'custom', message: 'succeeded tool outcomes require operation_id and no error' });
-  }
-  if (outcome.status !== 'succeeded' && (outcome.result !== null || outcome.error === null || outcome.replayed)) {
-    context.addIssue({ code: 'custom', message: 'non-success tool outcomes require an error and cannot contain result/replayed' });
-  }
-  if (outcome.status === 'cancelled' && outcome.error?.code !== 'EXECUTION_CANCELLED') {
-    context.addIssue({ code: 'custom', message: 'cancelled outcomes require EXECUTION_CANCELLED' });
-  }
-  if (outcome.status === 'uncertain' && outcome.error?.code !== 'EXECUTION_OUTCOME_IN_DOUBT') {
-    context.addIssue({ code: 'custom', message: 'uncertain outcomes require EXECUTION_OUTCOME_IN_DOUBT' });
-  }
-  if (outcome.status === 'failed' && ['EXECUTION_CANCELLED', 'EXECUTION_OUTCOME_IN_DOUBT'].includes(outcome.error?.code)) {
-    context.addIssue({ code: 'custom', message: 'failed outcomes cannot use cancelled or uncertain codes' });
-  }
-  for (const field of ['evidence_refs', 'warnings']) {
-    if (new Set(outcome[field]).size !== outcome[field].length) {
-      context.addIssue({ code: 'custom', path: [field], message: `${field} must contain unique values` });
-    }
-  }
 });
 
 const ToolCancelResultSchema = strictObject({

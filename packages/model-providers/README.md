@@ -6,7 +6,7 @@
 
 This package implements the `ModelProvider` port defined by `@hseos/agent-runtime-contracts`. The Agent Kernel consumes only normalized stream events and never branches on a vendor, SDK or wire format.
 
-The registry creates immutable routing snapshots so an in-flight session retains the provider and manifest it selected. The scripted provider supplies deterministic text, reasoning, tool-call, usage and cancellation fixtures. The OpenAI-compatible adapter translates incremental SSE responses into the same normalized events, bounds its parser, retries only before observable output, supports cancellation and resolves credentials exclusively through manifest references and an injected resolver.
+The registry creates immutable routing snapshots so an in-flight session retains the provider and manifest it selected. The scripted provider supplies deterministic text, reasoning, tool-call, usage and cancellation fixtures. The OpenAI-compatible adapter translates incremental SSE responses into the same normalized events, maps canonical assistant/tool continuation messages to the wire format, bounds its parser, retries only before observable output, supports cancellation and resolves credentials exclusively through manifest references and an injected resolver.
 
 The adapter does not include a vendor SDK, persist secret values or contact a provider during package initialization. Tests use a loopback fake HTTP endpoint and no real credentials.
 

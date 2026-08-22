@@ -1,18 +1,20 @@
 # Agentic Framework State
 
 **Artifact type:** Governed goal state
-**Scope:** Model-agnostic HSEOS Agent Framework, A5 governed ToolRuntime implementation
+**Scope:** Model-agnostic HSEOS Agent Framework, A6 headless AgentRuntime loop completed and awaiting integration authorization
 **Governing documents:** Enterprise Constitution; ADR-0024; ADR Policy; Automated Validation Rules
 
-- **Status:** A0 completed; A1 completed; A2 completed; A3 completed; A4 completed and integrated; A5 completed in an isolated task worktree and awaiting human-authorized merge
-- **Current node:** A5 — General ToolRuntime integrated with governed execution (merge gate)
-- **Baseline:** `ae6bb46`
+- **Status:** A0 completed; A1 completed; A2 completed; A3 completed; A4 completed; A5 completed and integrated; A6 completed in an isolated task worktree and awaiting human-authorized integration
+- **Current node:** A6 — Headless AgentRuntime loop completed
+- **Baseline:** `fe47e01`
 - **Observed:** HSEOS has governed operation execution but no model-neutral Agent Kernel
 - **Accepted decision:** ADR-0024, explicitly approved by the human authority on 2026-08-21
 - **Architectural gate:** satisfied; implementation remains bounded by the A1–A13 graph
-- **Validation:** ToolRuntime `11/11`; agentic contracts `9/9`; full `npm test`; strict code gate `0 failures / 1 unrelated pre-existing warning`; independent test-only rerun `11/11`
-- **Evidence:** `state/checkpoints/A0-foundation-readiness.md`; `state/checkpoints/A0-completion.md`; `state/checkpoints/A1-contracts.md`
-- **Next reversible action:** obtain explicit human authorization to merge the single A5 task commit; then start A6 in a new isolated task worktree
+- **Validation:** AgentRuntime `11/11`; session store `9/9`; contracts `9/9`; model providers `15/15`; context `9/9`; ToolRuntime `11/11`; full `npm test`; strict code gate `0 failures / 1 unrelated pre-existing warning`
+- **Evidence:** `state/checkpoints/A0-foundation-readiness.md`; `state/checkpoints/A0-completion.md`; `state/checkpoints/A1-contracts.md`; `state/checkpoints/A6-agent-runtime.md`
+- **Next reversible action:** after explicit human authorization, integrate A6 locally and begin A7 in a new isolated worktree; stop before either action without authorization
+- **A6 worktree:** `task/agentic-runtime-loop` at baseline `fe47e01`
+- **A5 integration:** human-authorized local merge `fe47e01`; no push or activation performed
 - **A5 worktree:** `task/agentic-tool-runtime` at baseline `46c0eb7`
 - **A4 integration:** human-authorized local merge `46c0eb7`; no push or activation performed
 - **A3 worktree:** `task/agentic-model-providers` at baseline `3910bd2`
@@ -26,5 +28,7 @@
 - **A4 independent evidence:** `READY`; 10 reported boundary bypasses and no-usage session accounting revalidated with no residual BLOCKER/HIGH/MEDIUM
 - **A5 deterministic evidence:** ToolRuntime `11/11`; contracts `9/9`; governed entrypoint/native wiring `15/15`; full `npm test`; strict gate `0 failures / 1 unrelated pre-existing warning`
 - **A5 independent evidence:** six adversarial findings corrected and encoded as regressions; independent test-only rerun `11/11`; broader final reruns blocked by the verifier platform safety filter and therefore not claimed as `READY`
-- **Evidence:** `_graph/agentic-framework/state/checkpoints/A2-session-event-store.md`; `_graph/agentic-framework/state/checkpoints/A3-model-providers.md`; `_graph/agentic-framework/state/checkpoints/A4-context-assembler.md`; `_graph/agentic-framework/state/checkpoints/A5-tool-runtime.md`
+- **A6 deterministic evidence:** AgentRuntime `11/11`; session store `9/9`; contracts `9/9`; model providers `15/15`; context `9/9`; ToolRuntime `11/11`; canonical full gate passed
+- **A6 independent evidence:** `READY`; restarted cancellation, terminal legacy replay, partial legacy settlement and strict terminal causality revalidated with no residual BLOCKER/HIGH/MEDIUM
+- **Evidence:** `_graph/agentic-framework/state/checkpoints/A2-session-event-store.md`; `_graph/agentic-framework/state/checkpoints/A3-model-providers.md`; `_graph/agentic-framework/state/checkpoints/A4-context-assembler.md`; `_graph/agentic-framework/state/checkpoints/A5-tool-runtime.md`; `_graph/agentic-framework/state/checkpoints/A6-agent-runtime.md`
 - **Operational constraint:** G9 compatibility evidence and separate human authorization remain prerequisites for activation, not for fixture implementation
