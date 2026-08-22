@@ -39,6 +39,15 @@ function requestBody(input, manifest) {
       content: message.content,
       ...(message.name ? { name: message.name } : {}),
       ...(message.tool_call_id ? { tool_call_id: message.tool_call_id } : {}),
+      ...(message.tool_calls
+        ? {
+            tool_calls: message.tool_calls.map((call) => ({
+              id: call.tool_call_id,
+              type: 'function',
+              function: { name: call.name, arguments: JSON.stringify(call.input) },
+            })),
+          }
+        : {}),
     })),
     ...(input.tools.length === 0
       ? {}

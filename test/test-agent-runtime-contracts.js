@@ -11,6 +11,7 @@ const fixtures = require('./fixtures/agent-runtime-contracts');
 const {
   AgentCommandSchema,
   AgentContractError,
+  AgentMessageSchema,
   AgentSessionSpecSchema,
   CONFORMANCE_LEVELS,
   CONFORMANCE_REQUIREMENTS,
@@ -200,6 +201,18 @@ test('model requests and normalized stream events reject unknown provider data',
   const oversizedStop = clone(fixtures.modelRequest);
   oversizedStop.parameters.stop = ['x'.repeat(2_000_000)];
   assertInvalid(ModelRequestSchema, oversizedStop, 'model request');
+  const assistantToolCall = {
+    role: 'assistant',
+    content: '',
+    tool_calls: [{ tool_call_id: 'call:1', name: 'fixture.read', input: { path: 'fixture.txt' } }],
+  };
+  assert.equal(AgentMessageSchema.safeParse(assistantToolCall).success, true);
+  assertInvalid(AgentMessageSchema, { ...assistantToolCall, role: 'user' }, 'agent message');
+  assertInvalid(
+    AgentMessageSchema,
+    { ...assistantToolCall, tool_calls: [assistantToolCall.tool_calls[0], assistantToolCall.tool_calls[0]] },
+    'agent message',
+  );
 });
 
 test('session events preserve reconstructable request and operation ownership', () => {
@@ -252,7 +265,19 @@ test('session events preserve reconstructable request and operation ownership', 
     { turn_id: 'turn:fixture-1', tool_call_id: 'call:1', operation_id: 'operation:governed-1' },
     3,
   );
-  for (const event of [created, context, linked]) assert.equal(SessionEventSchema.safeParse(event).success, true);
+  const started = fixtures.sessionEvent(
+    'model.request.started',
+    { turn_id: 'turn:fixture-1', step_id: 'step:fixture-1', request: assembledRequest, source_event_ids: [context.event_id] },
+    3,
+  );
+  const cancellation = fixtures.sessionEvent(
+    'session.cancellation.requested',
+    { reason: 'deadline', cascade: true, source: 'deadline' },
+    4,
+  );
+  for (const event of [created, context, linked, started, cancellation]) {
+    assert.equal(SessionEventSchema.safeParse(event).success, true);
+  }
   assert.equal(parseContract(SessionEventSchema, context).payload.request.request_id, fixtures.modelRequest.request_id);
 
   const unbalancedBudget = clone(context);
@@ -292,6 +317,12 @@ test('session events preserve reconstructable request and operation ownership', 
   const wrongRequestTurn = clone(context);
   wrongRequestTurn.payload.request.turn_id = 'turn:other';
   assertInvalid(SessionEventSchema, wrongRequestTurn, 'session event');
+  const duplicateLineage = clone(started);
+  duplicateLineage.payload.source_event_ids.push(context.event_id);
+  assertInvalid(SessionEventSchema, duplicateLineage, 'session event');
+  const wrongStartedSession = clone(started);
+  wrongStartedSession.payload.request.session_id = 'session:other';
+  assertInvalid(SessionEventSchema, wrongStartedSession, 'session event');
 });
 
 test('delegated runtime events are untrusted strict boundary input', () => {

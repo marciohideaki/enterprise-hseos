@@ -6,6 +6,7 @@ const { buildRecoveryPlan, reconstructModelRequest, replaySessionEvents } = requ
 
 const AGGREGATE_TYPE = 'agent_session';
 const LEDGER_EVENT_TYPE = 'AgentSessionEventRecorded';
+const RELATIONAL_SESSION_STORES = new WeakSet();
 const SENSITIVE_KEYS = new Set([
   'access_token',
   'api_key',
@@ -161,8 +162,12 @@ class RelationalSessionEventStore {
       throw new SessionEventStoreError('a relational ledger port with append/appendBatch/readStream/readGlobal is required');
     }
     const parsedActor = cloneActor(actor);
-    this.ledger = ledger;
-    this.actor = parsedActor;
+    Object.defineProperties(this, {
+      ledger: { value: ledger, enumerable: true },
+      actor: { value: parsedActor, enumerable: true },
+    });
+    RELATIONAL_SESSION_STORES.add(this);
+    Object.freeze(this);
   }
 
   _prepareAppend({ session_id, expected_version, events, correlation_id = session_id, causation_id = null, actor = this.actor }) {
@@ -347,11 +352,24 @@ class RelationalSessionEventStore {
   }
 }
 
+function isRelationalSessionEventStore(value) {
+  return (
+    RELATIONAL_SESSION_STORES.has(value) &&
+    Object.getPrototypeOf(value) === RelationalSessionEventStore.prototype &&
+    ['append', 'readSession', 'readGlobal', 'replay', 'reconstructRequest', 'recoveryPlan', 'forkSession'].every(
+      (method) => value[method] === RelationalSessionEventStore.prototype[method],
+    )
+  );
+}
+
+Object.freeze(RelationalSessionEventStore.prototype);
+
 module.exports = {
   AGGREGATE_TYPE,
   LEDGER_EVENT_TYPE,
   RelationalSessionEventStore,
   SessionEventStoreError,
   hydrateSessionEvent,
+  isRelationalSessionEventStore,
   ledgerEventId,
 };

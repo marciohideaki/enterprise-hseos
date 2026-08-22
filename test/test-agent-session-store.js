@@ -577,3 +577,130 @@ test('gaps, foreign model streams and forged relational envelopes fail closed', 
     db.close();
   }
 });
+
+test('session success cannot contradict a failed model terminal event', () => {
+  const { db, store } = openStore();
+  try {
+    const request = governedRequest(modelRequest);
+    const stepId = 'step:failed-terminal';
+    store.append({
+      session_id: kernelSession.session_id,
+      expected_version: 0,
+      events: [
+        created(),
+        turn(),
+        context(),
+        sessionEvent(
+          'model.request.started',
+          { turn_id: modelRequest.turn_id, step_id: stepId, request, source_event_ids: [context().event_id] },
+          4,
+        ),
+        sessionEvent(
+          'model.streamed',
+          {
+            turn_id: modelRequest.turn_id,
+            step_id: stepId,
+            provider_id: modelRequest.provider_id,
+            event: {
+              schema_version: 1,
+              provider_id: modelRequest.provider_id,
+              request_id: modelRequest.request_id,
+              event_type: 'failed',
+              sequence: 0,
+              payload: { error_code: 'provider_unavailable', message: 'fixture failure', retryable: true },
+            },
+          },
+          5,
+        ),
+      ],
+    });
+    assert.throws(
+      () =>
+        store.append({
+          session_id: kernelSession.session_id,
+          expected_version: 5,
+          events: [sessionEvent('session.completed', { outcome_ref: 'outcome://contradiction' }, 6)],
+        }),
+      (error) => error.code === 'AGENT_SESSION_SUCCESS_PRECONDITION_INVALID',
+    );
+    assert.throws(
+      () =>
+        store.append({
+          session_id: kernelSession.session_id,
+          expected_version: 5,
+          events: [sessionEvent('session.cancelled', { reason: 'forged cancellation', cascade: true }, 6)],
+        }),
+      (error) => error.code === 'AGENT_SESSION_CANCELLATION_REQUIRED',
+    );
+  } finally {
+    db.close();
+  }
+});
+
+test('session cancellation terminal must exactly match its durable non-deadline request', () => {
+  const { db, store } = openStore();
+  try {
+    store.append({
+      session_id: kernelSession.session_id,
+      expected_version: 0,
+      events: [
+        created(),
+        sessionEvent(
+          'session.cancellation.requested',
+          { reason: 'operator requested', cascade: true, source: 'user' },
+          2,
+        ),
+      ],
+    });
+    assert.throws(
+      () =>
+        store.append({
+          session_id: kernelSession.session_id,
+          expected_version: 2,
+          events: [sessionEvent('session.cancelled', { reason: 'different reason', cascade: true }, 3)],
+        }),
+      (error) => error.code === 'AGENT_SESSION_CANCELLATION_MISMATCH',
+    );
+    assert.throws(
+      () =>
+        store.append({
+          session_id: kernelSession.session_id,
+          expected_version: 2,
+          events: [sessionEvent('session.cancelled', { reason: 'operator requested', cascade: false }, 3)],
+        }),
+      (error) => error.code === 'AGENT_SESSION_CANCELLATION_MISMATCH',
+    );
+    const deadlineSpec = { ...kernelSession, session_id: 'session:deadline-cancellation' };
+    store.append({
+      session_id: deadlineSpec.session_id,
+      expected_version: 0,
+      events: [
+        created(deadlineSpec),
+        {
+          ...sessionEvent(
+            'session.cancellation.requested',
+            { reason: 'deadline exhausted', cascade: true, source: 'deadline' },
+            2,
+          ),
+          session_id: deadlineSpec.session_id,
+        },
+      ],
+    });
+    assert.throws(
+      () =>
+        store.append({
+          session_id: deadlineSpec.session_id,
+          expected_version: 2,
+          events: [
+            {
+              ...sessionEvent('session.cancelled', { reason: 'deadline exhausted', cascade: true }, 3),
+              session_id: deadlineSpec.session_id,
+            },
+          ],
+        }),
+      (error) => error.code === 'AGENT_SESSION_CANCELLATION_TERMINAL_INVALID',
+    );
+  } finally {
+    db.close();
+  }
+});

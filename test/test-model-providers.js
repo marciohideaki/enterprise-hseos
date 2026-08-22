@@ -218,6 +218,18 @@ before(async () => {
       assert.equal(incoming.method, 'POST');
       assert.equal(incoming.url, '/chat/completions');
       assert.equal(body.stream, true);
+      if (body.messages.at(-1).role === 'tool') {
+        assert.equal(body.messages.at(-1).tool_call_id, 'call:continuation');
+        assert.deepEqual(body.messages.at(-2).tool_calls, [
+          {
+            id: 'call:continuation',
+            type: 'function',
+            function: { name: 'fixture.read', arguments: '{"path":"state"}' },
+          },
+        ]);
+        sendSse(response, [{ choices: [{ delta: { content: 'continued' }, finish_reason: 'stop' }] }]);
+        return;
+      }
       if (content === 'authenticated') {
         assert.equal(incoming.headers.authorization, 'Bearer ephemeral-fixture-value');
       }
@@ -284,6 +296,21 @@ test('assembles fragmented SSE tool deltas, usage and opaque response evidence',
   assert.deepEqual(events[3].payload, { input_tokens: 3, output_tokens: 2, cached_tokens: 1 });
   assert.match(events[4].payload.provider_response_ref, /^provider-response:\/\/sha256\/[a-f0-9]{64}$/);
   assert.doesNotMatch(events[4].payload.provider_response_ref, /unsafe/);
+});
+
+test('maps canonical assistant tool calls and tool outcomes into OpenAI-compatible continuation messages', async () => {
+  const input = request('model:http', 'request:http-continuation', 'unused');
+  input.messages = [
+    {
+      role: 'assistant',
+      content: '',
+      tool_calls: [{ tool_call_id: 'call:continuation', name: 'fixture.read', input: { path: 'state' } }],
+    },
+    { role: 'tool', name: 'fixture.read', tool_call_id: 'call:continuation', content: '{"status":"succeeded"}' },
+  ];
+  const events = await collect(provider(), input);
+  assert.equal(events[0].payload.text, 'continued');
+  assert.equal(events.at(-1).payload.finish_reason, 'stop');
 });
 
 test('retries a transient failure before emission', async () => {
