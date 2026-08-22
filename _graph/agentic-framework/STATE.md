@@ -1,19 +1,21 @@
 # Agentic Framework State
 
 **Artifact type:** Governed goal state
-**Scope:** Model-agnostic HSEOS Agent Framework, A8 subagent and workflow orchestration
+**Scope:** Model-agnostic HSEOS Agent Framework, A9 RuntimeProvider seam and ACP v1 bridge
 **Governing documents:** Enterprise Constitution; ADR-0024; ADR Policy; Automated Validation Rules
 
-- **Status:** A0 completed; A1 completed; A2 completed; A3 completed; A4 completed; A5 completed and integrated; A6 completed and integrated; A7 completed and integrated; A8 completed in an isolated task worktree and awaiting explicit merge authorization
-- **Current node:** A8 — SubagentProvider and WorkflowEngine, completed but not integrated
-- **Baseline:** `9fca10b`
+- **Status:** A0 completed; A1 completed; A2 completed; A3 completed; A4 completed; A5 completed and integrated; A6 completed and integrated; A7 completed and integrated; A8 completed and integrated; A9 completed in an isolated task worktree and awaiting explicit merge authorization
+- **Current node:** A9 — RuntimeProvider seam and ACP v1 bridge, completed but not integrated
+- **Baseline:** `fb63a28`
 - **Observed:** HSEOS has governed operation execution but no model-neutral Agent Kernel
 - **Accepted decision:** ADR-0024, explicitly approved by the human authority on 2026-08-21
 - **Architectural gate:** satisfied; implementation remains bounded by the A1–A13 graph
-- **Validation:** orchestration `13/13`; focused orchestration/contracts/session-store `31/31`; AgentRuntime `12/12`; clean package install; independent review `READY`; full `npm test`; strict code gate `0 failures / 1 unrelated pre-existing warning`
-- **Evidence:** `state/checkpoints/A0-foundation-readiness.md`; `state/checkpoints/A0-completion.md`; `state/checkpoints/A1-contracts.md`; `state/checkpoints/A6-agent-runtime.md`; `state/checkpoints/A7-compaction-checkpoints.md`; `state/checkpoints/A8-subagents-workflows.md`
-- **Next reversible action:** stop for explicit human authorization before merging A8 or opening A9
-- **A8 worktree:** `task/agentic-subagents-workflows` at baseline `9fca10b`
+- **Validation:** runtime providers `22/22`; focused integrated suites `76/76`; contracts `9/9`; compatibility `7/7`; clean package install; independent review `READY`; full `npm test`; strict gate `0 failures / 1 unrelated pre-existing warning`
+- **Evidence:** `state/checkpoints/A0-foundation-readiness.md`; `state/checkpoints/A0-completion.md`; `state/checkpoints/A1-contracts.md`; `state/checkpoints/A6-agent-runtime.md`; `state/checkpoints/A7-compaction-checkpoints.md`; `state/checkpoints/A8-subagents-workflows.md`; `state/checkpoints/A9-runtime-provider-acp.md`
+- **Next reversible action:** stop for explicit human authorization before merging A9 or opening A10
+- **A9 worktree:** `task/agentic-runtime-provider-acp` at baseline `fb63a28`
+- **A8 integration:** human-authorized local merge `fb63a28`; no push or activation performed
+- **A8 worktree:** removed after integration; task commit `644e128`
 - **A7 integration:** human-authorized local merge `9fca10b`; no push or activation performed
 - **A7 worktree:** `task/agentic-compaction-checkpoints` at baseline `dbd7e6d`
 - **A6 integration:** human-authorized local merge `dbd7e6d`; no push or activation performed
@@ -38,5 +40,7 @@
 - **A7 independent evidence:** `READY`; crash retry, snapshot immutability, accounting/provenance, secret rejection, manifest caps and UTF-8 counter semantics revalidated with no residual material finding
 - **A8 deterministic evidence:** orchestration `13/13`; contracts `9/9`; session store `9/9`; AgentRuntime `12/12`; clean package install; full `npm test`; strict gate `0 failures / 1 unrelated pre-existing warning`
 - **A8 independent evidence:** `READY`; file-backed two-connection concurrency, durable leases, claim fencing, crash resume, join truth, recursive cancellation, limits and teardown revalidated with no residual material finding
-- **Evidence:** `_graph/agentic-framework/state/checkpoints/A2-session-event-store.md`; `_graph/agentic-framework/state/checkpoints/A3-model-providers.md`; `_graph/agentic-framework/state/checkpoints/A4-context-assembler.md`; `_graph/agentic-framework/state/checkpoints/A5-tool-runtime.md`; `_graph/agentic-framework/state/checkpoints/A6-agent-runtime.md`; `_graph/agentic-framework/state/checkpoints/A7-compaction-checkpoints.md`; `_graph/agentic-framework/state/checkpoints/A8-subagents-workflows.md`
+- **A9 deterministic evidence:** runtime providers `22/22`; focused integrated suites `76/76`; contracts `9/9`; compatibility `7/7`; clean package install; full `npm test`; strict gate `0 failures / 1 unrelated pre-existing warning`
+- **A9 independent evidence:** `READY`; ten focused reliability repros, package install and secret scan revalidated with no residual blocker/high/medium finding
+- **Evidence:** `_graph/agentic-framework/state/checkpoints/A2-session-event-store.md`; `_graph/agentic-framework/state/checkpoints/A3-model-providers.md`; `_graph/agentic-framework/state/checkpoints/A4-context-assembler.md`; `_graph/agentic-framework/state/checkpoints/A5-tool-runtime.md`; `_graph/agentic-framework/state/checkpoints/A6-agent-runtime.md`; `_graph/agentic-framework/state/checkpoints/A7-compaction-checkpoints.md`; `_graph/agentic-framework/state/checkpoints/A8-subagents-workflows.md`; `_graph/agentic-framework/state/checkpoints/A9-runtime-provider-acp.md`
 - **Operational constraint:** G9 compatibility evidence and separate human authorization remain prerequisites for activation, not for fixture implementation
