@@ -6,6 +6,7 @@ const {
   JsonObjectSchema,
   ModelNameSchema,
   ReferenceSchema,
+  boundedString,
   strictObject,
   z,
 } = require('./common');
@@ -88,7 +89,9 @@ const ModelRequestSchema = strictObject({
   parameters: strictObject({
     max_output_tokens: z.number().int().positive(),
     temperature: z.number().min(0).max(2).nullable(),
-    stop: z.array(z.string().min(1)).max(16),
+    stop: z.array(boundedString(16_384).min(1)).max(16),
+  }).refine((parameters) => Buffer.byteLength(JSON.stringify(parameters), 'utf8') <= 262_144, {
+    message: 'model parameters exceed the request byte limit',
   }),
 });
 

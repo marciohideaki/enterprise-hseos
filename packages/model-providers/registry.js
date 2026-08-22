@@ -11,6 +11,8 @@ const {
   validatePortResult,
 } = require('../agent-runtime-contracts');
 
+const SNAPSHOT_TOKEN = Symbol('ModelProviderRegistrySnapshot');
+
 class ProviderRegistryError extends Error {
   constructor(message, code = 'MODEL_PROVIDER_REGISTRY_INVALID', details = {}) {
     super(message);
@@ -19,6 +21,33 @@ class ProviderRegistryError extends Error {
     this.details = details;
   }
 }
+
+class ModelProviderRegistrySnapshot {
+  #entries;
+
+  constructor(entries, token) {
+    if (token !== SNAPSHOT_TOKEN || !(entries instanceof Map)) {
+      throw new ProviderRegistryError('registry snapshots can be created only from a provider map');
+    }
+    this.#entries = new Map(entries);
+    Object.freeze(this);
+  }
+
+  get manifests() {
+    return deepFreeze([...this.#entries.values()].map((entry) => entry.manifest));
+  }
+
+  resolve(providerId, model) {
+    const entry = this.#entries.get(providerId);
+    if (!entry) throw new ProviderRegistryError('provider is not present in this snapshot', 'MODEL_PROVIDER_NOT_FOUND');
+    if (model !== undefined && !entry.manifest.models.includes(model)) {
+      throw new ProviderRegistryError('model is not declared by the provider', 'MODEL_PROVIDER_MODEL_NOT_FOUND');
+    }
+    return entry;
+  }
+}
+
+Object.freeze(ModelProviderRegistrySnapshot.prototype);
 
 class ModelProviderRegistry {
   #providers;
@@ -56,19 +85,8 @@ class ModelProviderRegistry {
   }
 
   snapshot() {
-    const entries = new Map(this.#providers);
-    return Object.freeze({
-      manifests: deepFreeze([...entries.values()].map((entry) => entry.manifest)),
-      resolve(providerId, model) {
-        const entry = entries.get(providerId);
-        if (!entry) throw new ProviderRegistryError('provider is not present in this snapshot', 'MODEL_PROVIDER_NOT_FOUND');
-        if (model !== undefined && !entry.manifest.models.includes(model)) {
-          throw new ProviderRegistryError('model is not declared by the provider', 'MODEL_PROVIDER_MODEL_NOT_FOUND');
-        }
-        return entry;
-      },
-    });
+    return new ModelProviderRegistrySnapshot(this.#providers, SNAPSHOT_TOKEN);
   }
 }
 
-module.exports = { ModelProviderRegistry, ProviderRegistryError };
+module.exports = { ModelProviderRegistry, ModelProviderRegistrySnapshot, ProviderRegistryError };

@@ -33,6 +33,28 @@ function requireTurn(state, turnId, event) {
   return turn;
 }
 
+function durableHistory(state, currentTurnId) {
+  const history = [];
+  for (const turnId of state.turn_order) {
+    if (turnId === currentTurnId) break;
+    const turn = state.turns[turnId];
+    history.push({ message: turn.input, source_ref: `session-event://${turn.input_event_id}` });
+    const terminalIndex = turn.model_events.findIndex((item) => item.event_type === 'completed');
+    const content = turn.model_events
+      .slice(0, terminalIndex < 0 ? 0 : terminalIndex)
+      .filter((item) => item.event_type === 'content.delta')
+      .map((item) => item.payload.text)
+      .join('');
+    if (terminalIndex >= 0 && content.length > 0) {
+      history.push({
+        message: { role: 'assistant', content },
+        source_ref: `session-event://${turn.model_event_ids[terminalIndex]}`,
+      });
+    }
+  }
+  return history;
+}
+
 function replaySessionEvents(inputEvents) {
   if (!Array.isArray(inputEvents)) throw new SessionReplayError('events must be an array');
   const events = inputEvents.map((event) => parseContract(SessionEventSchema, event, 'session event'));
@@ -108,7 +130,17 @@ function replaySessionEvents(inputEvents) {
         if (state.turns[turnId]) {
           throw new SessionReplayError('turn identifier is already present', 'AGENT_SESSION_DUPLICATE_TURN', { turn_id: turnId });
         }
-        state.turns[turnId] = { turn_id: turnId, input: event.payload.input, request: null, model_events: [] };
+        state.turns[turnId] = {
+          turn_id: turnId,
+          input: event.payload.input,
+          input_event_id: event.event_id,
+          request: null,
+          budget: null,
+          model_events: [],
+          model_event_ids: [],
+          model_event_sequences: [],
+          input_event_sequence: event.sequence,
+        };
         state.turn_order.push(turnId);
         break;
       }
@@ -117,8 +149,48 @@ function replaySessionEvents(inputEvents) {
         if (turn.request) {
           throw new SessionReplayError('a turn may have only one assembled request', 'AGENT_SESSION_DUPLICATE_REQUEST');
         }
+        if (state.spec.execution.mode !== 'kernel') {
+          throw new SessionReplayError('delegated sessions cannot contain kernel model requests', 'AGENT_SESSION_EXECUTION_MODE_MISMATCH');
+        }
+        if (
+          event.payload.request.provider_id !== state.spec.execution.model_provider_id ||
+          event.payload.request.model !== state.spec.execution.model
+        ) {
+          throw new SessionReplayError(
+            'assembled request provider or model differs from the durable session',
+            'AGENT_SESSION_PROVIDER_MISMATCH',
+          );
+        }
+        if (canonicalJson(event.payload.request.messages.at(-1)) !== canonicalJson(turn.input)) {
+          throw new SessionReplayError(
+            'assembled request does not end with the durable turn input',
+            'AGENT_SESSION_TURN_INPUT_MISMATCH',
+          );
+        }
+        if (!event.payload.source_refs.includes(`session-event://${turn.input_event_id}`)) {
+          throw new SessionReplayError(
+            'assembled request does not reference the durable turn event',
+            'AGENT_SESSION_SOURCE_MISMATCH',
+          );
+        }
+        const durable = durableHistory(state, event.payload.turn_id);
+        const visibleHistory = event.payload.request.messages
+          .slice(1, -1)
+          .filter((message) => message.role !== 'system');
+        const selectedHistory = visibleHistory.length === 0 ? [] : durable.slice(-visibleHistory.length);
+        if (
+          visibleHistory.length > durable.length ||
+          canonicalJson(visibleHistory) !== canonicalJson(selectedHistory.map((item) => item.message)) ||
+          selectedHistory.some((item) => !event.payload.source_refs.includes(item.source_ref))
+        ) {
+          throw new SessionReplayError(
+            'model-visible history is not a durable contiguous suffix',
+            'AGENT_SESSION_HISTORY_MISMATCH',
+          );
+        }
         turn.request = event.payload.request;
         turn.source_refs = event.payload.source_refs;
+        turn.budget = event.payload.budget;
         turn.request_event_id = event.event_id;
         break;
       }
@@ -144,6 +216,8 @@ function replaySessionEvents(inputEvents) {
           throw new SessionReplayError('model stream continues after a terminal provider event', 'AGENT_SESSION_MODEL_ALREADY_TERMINAL');
         }
         turn.model_events.push(event.payload.event);
+        turn.model_event_ids.push(event.event_id);
+        turn.model_event_sequences.push(event.sequence);
         break;
       }
       case 'tool.operation_linked':
@@ -210,6 +284,7 @@ function reconstructModelRequest(events, { turn_id } = {}) {
     canonical_json: canonicalRequestJson,
     byte_length: Buffer.byteLength(canonicalRequestJson, 'utf8'),
     source_refs: turn.source_refs,
+    budget: turn.budget,
     source_event_id: turn.request_event_id,
   });
 }
