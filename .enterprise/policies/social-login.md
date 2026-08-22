@@ -30,7 +30,16 @@ OAuth dentro do app. O app não muda: os botões aparecem na tela de login do re
    múltiplos parceiros no mesmo realm); nunca misturar com o provider social `microsoft`.
 5. WAF Cloudflare do tunnel exige User-Agent de navegador em chamadas de script à admin API.
 
-## Temas de login por produto (mesma policy)
+## Temas de login por produto (mesma policy) — padrão FTL/AuthScreen (2026-08-22)
+O tema-pai **`hideaki-base`** é a renderização FTL do contrato de login do Design System
+(`design-system-core/components/contracts/login-screen.schema.json` + `frontend-core/
+ui-react-layout` AuthScreen/AuthCard): template.ftl com a anatomia `hs-auth*` (hero de marca +
+card acessível), mapeamento `kc*Class→hs-*` (todas as páginas do fluxo herdam o shell), i18n
+pt-BR/en. Cada produto cria um SKIN filho (`parent=hideaki-base`): só tokens `--hs-*`, wordmark
+e copy (messages) — ver `keycloak-theme-linkedout-configmap.yaml` como referência. Valide
+sempre no realm **`theme-lab`** (laboratório permanente) antes de apontar um realm real.
+Cache-bust de CSS: bump `hsThemeVersion` no theme.properties do skin (o edge do CF cacheia
+`/kc/resources/*`).
 Cada produto pode (e deve) ter seu login theme no Keycloak compartilhado: ConfigMap
 `keycloak-theme-<produto>` montado por subPath em `/opt/keycloak/themes/<produto>/login/`
 (theme.properties `parent=keycloak` + CSS da marca) + `loginTheme` no realm via admin API.
