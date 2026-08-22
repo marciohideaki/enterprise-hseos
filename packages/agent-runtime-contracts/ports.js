@@ -41,6 +41,19 @@ const {
   CompactionProviderManifestSchema,
   CompactionResultSchema,
 } = require('./compaction-contracts');
+const {
+  SubagentCancelInputSchema,
+  SubagentDisposeInputSchema,
+  SubagentJoinInputSchema,
+  SubagentProviderManifestSchema,
+  SubagentSettleResultSchema,
+  SubagentSpawnInputSchema,
+  SubagentSpawnResultSchema,
+  WorkflowCancelInputSchema,
+  WorkflowDisposeInputSchema,
+  WorkflowResultSchema,
+  WorkflowRunInputSchema,
+} = require('./orchestration-contracts');
 
 const PORT_METHODS = deepFreeze({
   AgentRuntime: ['create', 'resume', 'send', 'cancel', 'dispose'],
@@ -49,6 +62,8 @@ const PORT_METHODS = deepFreeze({
   ToolRuntime: ['list', 'execute', 'cancel', 'dispose'],
   CompactionProvider: ['manifest', 'assess', 'compact', 'dispose'],
   CheckpointProvider: ['put', 'get', 'dispose'],
+  SubagentProvider: ['manifest', 'spawn', 'join', 'cancel', 'dispose'],
+  WorkflowEngine: ['run', 'cancel', 'dispose'],
 });
 
 const PortAckSchema = strictObject({
@@ -255,6 +270,18 @@ const PORT_INPUT_CONTRACTS = deepFreeze({
     get: 'CheckpointGetInput',
     dispose: 'CheckpointDisposeInput',
   },
+  SubagentProvider: {
+    manifest: 'ProviderQuery',
+    spawn: 'SubagentSpawnInput',
+    join: 'SubagentJoinInput',
+    cancel: 'SubagentCancelInput',
+    dispose: 'SubagentDisposeInput',
+  },
+  WorkflowEngine: {
+    run: 'WorkflowRunInput',
+    cancel: 'WorkflowCancelInput',
+    dispose: 'WorkflowDisposeInput',
+  },
 });
 
 const PORT_RESULT_CONTRACTS = deepFreeze({
@@ -298,6 +325,18 @@ const PORT_RESULT_CONTRACTS = deepFreeze({
     get: 'CheckpointRecord',
     dispose: 'CheckpointDisposeResult',
   },
+  SubagentProvider: {
+    manifest: 'SubagentProviderManifest',
+    spawn: 'SubagentSpawnResult',
+    join: 'SubagentSettleResult',
+    cancel: 'SubagentSettleResult',
+    dispose: 'PortAck',
+  },
+  WorkflowEngine: {
+    run: 'WorkflowResult',
+    cancel: 'WorkflowResult',
+    dispose: 'PortAck',
+  },
 });
 
 const RESULT_SCHEMAS = {
@@ -334,6 +373,18 @@ const RESULT_SCHEMAS = {
     put: CheckpointRecordSchema,
     get: CheckpointRecordSchema,
     dispose: CheckpointDisposeResultSchema,
+  },
+  SubagentProvider: {
+    manifest: SubagentProviderManifestSchema,
+    spawn: SubagentSpawnResultSchema,
+    join: SubagentSettleResultSchema,
+    cancel: SubagentSettleResultSchema,
+    dispose: PortAckSchema,
+  },
+  WorkflowEngine: {
+    run: WorkflowResultSchema,
+    cancel: WorkflowResultSchema,
+    dispose: PortAckSchema,
   },
 };
 
@@ -377,6 +428,18 @@ const INPUT_SCHEMAS = {
     put: CheckpointPutInputSchema,
     get: CheckpointGetInputSchema,
     dispose: CheckpointDisposeInputSchema,
+  },
+  SubagentProvider: {
+    manifest: ProviderQuerySchema,
+    spawn: SubagentSpawnInputSchema,
+    join: SubagentJoinInputSchema,
+    cancel: SubagentCancelInputSchema,
+    dispose: SubagentDisposeInputSchema,
+  },
+  WorkflowEngine: {
+    run: WorkflowRunInputSchema,
+    cancel: WorkflowCancelInputSchema,
+    dispose: WorkflowDisposeInputSchema,
   },
 };
 
@@ -489,6 +552,40 @@ function correlateResult(portName, method, input, result) {
       assertEqual(portName, method, 'checkpoint_id', input.checkpoint_id, result.checkpoint_id);
     }
   }
+  if (portName === 'SubagentProvider') {
+    assertEqual(portName, method, 'provider_id', input.provider_id, result.provider_id);
+    if (method !== 'manifest') assertEqual(portName, method, 'request_id', input.request_id, result.request_id);
+    if (['spawn', 'join', 'cancel'].includes(method)) {
+      assertEqual(portName, method, 'parent_session_id', input.parent_session_id, result.parent_session_id);
+    }
+    if (method === 'spawn') assertEqual(portName, method, 'child_session_id', input.child_spec.session_id, result.child_session_id);
+    if (method === 'join' || method === 'cancel') {
+      const expected = JSON.stringify(input.child_session_ids);
+      const actual = JSON.stringify(result.children.map((child) => child.child_session_id));
+      assertEqual(portName, method, 'child_session_ids', expected, actual);
+    }
+  }
+  if (portName === 'WorkflowEngine') {
+    if (method === 'dispose') {
+      assertEqual(portName, method, 'provider_id', input.engine_id, result.provider_id);
+      assertEqual(portName, method, 'request_id', input.request_id, result.request_id);
+    } else {
+      assertEqual(portName, method, 'engine_id', input.engine_id, result.engine_id);
+      assertEqual(portName, method, 'request_id', input.request_id, result.request_id);
+      assertEqual(portName, method, 'parent_session_id', input.parent_session_id, result.parent_session_id);
+      const workflowId = method === 'run' ? input.workflow.workflow_id : input.workflow_id;
+      assertEqual(portName, method, 'workflow_id', workflowId, result.workflow_id);
+      if (method === 'run' && result.status === 'completed') {
+        assertEqual(
+          portName,
+          method,
+          'phase_ids',
+          JSON.stringify(input.workflow.phases.map((phase) => phase.phase_id)),
+          JSON.stringify(result.phases.map((phase) => phase.phase_id)),
+        );
+      }
+    }
+  }
   return result;
 }
 
@@ -579,6 +676,13 @@ module.exports = {
   RuntimeOperationResultSchema,
   RuntimeResumeInputSchema,
   RuntimeSendInputSchema,
+  SubagentCancelInputSchema,
+  SubagentDisposeInputSchema,
+  SubagentJoinInputSchema,
+  SubagentProviderManifestSchema,
+  SubagentSettleResultSchema,
+  SubagentSpawnInputSchema,
+  SubagentSpawnResultSchema,
   ToolCancelInputSchema,
   ToolCancelResultSchema,
   ToolDisposeInputSchema,
@@ -587,6 +691,10 @@ module.exports = {
   ToolExecutionResultSchema,
   ToolListInputSchema,
   ToolListResultSchema,
+  WorkflowCancelInputSchema,
+  WorkflowDisposeInputSchema,
+  WorkflowResultSchema,
+  WorkflowRunInputSchema,
   assertPortShape,
   validatePortError,
   validatePortInput,

@@ -16,9 +16,12 @@ Deterministic APIs include:
 - exact multi-step model/tool continuation lineage and started-work settlement;
 - context and tool-result compaction replay with exact source partition, digest, call identity and replacement validation;
 - lineage-preserving session forks;
+- atomic workflow reservations plus terminal releases, and phase checkpoints bound to a definition digest and exact step/child lineage;
 - recovery plans for interrupted turns;
 - filtered session reads over the shared global stream.
 
 Store instances are nominal and immutable. Structural lookalikes, forged prototypes, subclasses and method overrides cannot be supplied to the context assembler or headless runtime as durable authority.
+
+Replay rejects concurrent durable workflow reservations, live or stale reclaim references, checkpoint/release claim drift, release-status drift, definition drift, duplicate phases, unattached children and cumulative step/child overflow. A reservation consumes the bounded step budget before dispatch and survives a crash before the first phase checkpoint; after its parent-bounded lease expires, an explicit reclaim rotates the single execution claim atomically across SQLite connections. Child creation, execution intent and parent attachment remain atomic, and every fork preserves identical authority/policy with resource limits no wider than its parent.
 
 Rollback before activation is the A2 task commit plus disposable temporary fixture databases. Canonical events are never deleted after operational activation.

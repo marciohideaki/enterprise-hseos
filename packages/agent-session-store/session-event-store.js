@@ -262,7 +262,7 @@ class RelationalSessionEventStore {
     return buildRecoveryPlan(this.readSession(sessionId));
   }
 
-  forkSession({ parent_session_id, parent_sequence, child_spec, event_ids, occurred_at, correlation_id, actor = this.actor }) {
+  forkSession({ parent_session_id, parent_sequence, child_spec, child_request = null, event_ids, occurred_at, correlation_id, actor = this.actor }) {
     const sourceEvents = this.readSession(parent_session_id, { from_version: 1, to_version: parent_sequence });
     const sourceState = replaySessionEvents(sourceEvents);
     if (sourceState.current_sequence !== parent_sequence) {
@@ -288,9 +288,10 @@ class RelationalSessionEventStore {
       !event_ids ||
       typeof event_ids.attached !== 'string' ||
       typeof event_ids.created !== 'string' ||
-      typeof event_ids.forked !== 'string'
+      typeof event_ids.forked !== 'string' ||
+      (child_request && typeof event_ids.requested !== 'string')
     ) {
-      throw new SessionEventStoreError('fork requires explicit attached, created and forked event identifiers');
+      throw new SessionEventStoreError('fork requires explicit attached, created, forked and optional request event identifiers');
     }
     const existingAttachment = currentParentEvents.find(
       (event) => event.event_type === 'child.attached' && event.payload.child_session_id === spec.session_id,
@@ -320,32 +321,44 @@ class RelationalSessionEventStore {
         },
       ],
     });
+    const childEvents = [
+      {
+        schema_version: 1,
+        event_id: event_ids.created,
+        session_id: spec.session_id,
+        sequence: 1,
+        occurred_at,
+        event_type: 'session.created',
+        payload: { spec },
+      },
+      {
+        schema_version: 1,
+        event_id: event_ids.forked,
+        session_id: spec.session_id,
+        sequence: 2,
+        occurred_at,
+        event_type: 'session.forked',
+        payload: { parent_session_id, parent_sequence },
+      },
+    ];
+    if (child_request) {
+      childEvents.push({
+        schema_version: 1,
+        event_id: event_ids.requested,
+        session_id: spec.session_id,
+        sequence: 3,
+        occurred_at,
+        event_type: 'subagent.requested',
+        payload: child_request,
+      });
+    }
     const childRequest = this._prepareAppend({
       session_id: spec.session_id,
       expected_version: 0,
       correlation_id: correlation_id || parent_session_id,
       causation_id: event_ids.created,
       actor,
-      events: [
-        {
-          schema_version: 1,
-          event_id: event_ids.created,
-          session_id: spec.session_id,
-          sequence: 1,
-          occurred_at,
-          event_type: 'session.created',
-          payload: { spec },
-        },
-        {
-          schema_version: 1,
-          event_id: event_ids.forked,
-          session_id: spec.session_id,
-          sequence: 2,
-          occurred_at,
-          event_type: 'session.forked',
-          payload: { parent_session_id, parent_sequence },
-        },
-      ],
+      events: childEvents,
     });
     const [parentResult, childResult] = this.ledger.appendBatch([parentRequest, childRequest]);
     return deepFreeze({ parent: this._formatResult(parentResult), child: this._formatResult(childResult) });

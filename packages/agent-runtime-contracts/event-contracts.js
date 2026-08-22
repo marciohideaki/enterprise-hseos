@@ -273,8 +273,67 @@ const SessionEventSchema = z
     sessionEvent('compaction.completed', CompactionRecordSchema),
     sessionEvent('child.attached', strictObject({ child_session_id: IdentifierSchema, authority_ceiling_ref: ReferenceSchema })),
     sessionEvent(
-      'workflow.checkpointed',
-      strictObject({ workflow_id: IdentifierSchema, step_id: IdentifierSchema, checkpoint_ref: ReferenceSchema }),
+      'subagent.requested',
+      strictObject({ provider_id: IdentifierSchema, turn_id: IdentifierSchema, message: AgentMessageSchema }),
+    ),
+    sessionEvent(
+      'workflow.reserved',
+      strictObject({
+        workflow_id: IdentifierSchema,
+        definition_digest: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+        claim_id: IdentifierSchema,
+        claim_expires_at: TimestampSchema,
+        step_count: z.number().int().positive().max(4096),
+        child_session_ids: z.array(IdentifierSchema).min(1).max(4096),
+      }).superRefine((reservation, context) => {
+        if (new Set(reservation.child_session_ids).size !== reservation.child_session_ids.length) {
+          context.addIssue({ code: 'custom', path: ['child_session_ids'], message: 'reserved child identities must be unique' });
+        }
+        if (reservation.step_count !== reservation.child_session_ids.length) {
+          context.addIssue({ code: 'custom', message: 'reserved step and child counts must be balanced' });
+        }
+      }),
+    ),
+    sessionEvent(
+      'workflow.reclaimed',
+      strictObject({
+        workflow_id: IdentifierSchema,
+        definition_digest: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+        claim_id: IdentifierSchema,
+        claim_expires_at: TimestampSchema,
+        prior_claim_ref: ReferenceSchema,
+      }),
+    ),
+    sessionEvent(
+      'workflow.released',
+      strictObject({
+        workflow_id: IdentifierSchema,
+        definition_digest: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+        claim_ref: ReferenceSchema,
+        status: z.enum(['completed', 'cancelled', 'failed']),
+      }),
+    ),
+    sessionEvent('workflow.checkpointed', strictObject({ workflow_id: IdentifierSchema, step_id: IdentifierSchema, checkpoint_ref: ReferenceSchema })),
+    sessionEvent(
+      'workflow.phase.checkpointed',
+      strictObject({
+        workflow_id: IdentifierSchema,
+        definition_digest: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+        claim_ref: ReferenceSchema,
+        phase_id: IdentifierSchema,
+        mode: z.enum(['parallel', 'pipeline']),
+        completed_step_ids: z.array(IdentifierSchema).min(1).max(256),
+        child_session_ids: z.array(IdentifierSchema).min(1).max(256),
+        checkpoint_ref: ReferenceSchema,
+      }).superRefine((checkpoint, context) => {
+        if (
+          checkpoint.completed_step_ids.length !== checkpoint.child_session_ids.length ||
+          new Set(checkpoint.completed_step_ids).size !== checkpoint.completed_step_ids.length ||
+          new Set(checkpoint.child_session_ids).size !== checkpoint.child_session_ids.length
+        ) {
+          context.addIssue({ code: 'custom', message: 'workflow checkpoint step and child lineage must be unique and balanced' });
+        }
+      }),
     ),
     sessionEvent(
       'session.cancellation.requested',

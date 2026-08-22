@@ -498,6 +498,82 @@ test('port inputs, resolved results, stream items and errors are executable cont
       },
       dispose: { schema_version: 1, provider_id: 'checkpoint:fixture', session_id: 'session:fixture-1' },
     },
+    SubagentProvider: {
+      manifest: { schema_version: 1, request_id: 'request:subagent-manifest', provider_id: 'subagent:fixture' },
+      spawn: {
+        schema_version: 1,
+        provider_id: 'subagent:fixture',
+        request_id: 'request:subagent-spawn',
+        parent_session_id: 'session:fixture-1',
+        parent_sequence: 1,
+        child_spec: { ...fixtures.kernelSession, session_id: 'session:child-1', parent_session_id: 'session:fixture-1' },
+        turn_id: 'turn:child-1',
+        message: { role: 'user', content: 'execute bounded child task' },
+        occurred_at: '2026-08-22T13:34:00Z',
+      },
+      join: {
+        schema_version: 1,
+        provider_id: 'subagent:fixture',
+        request_id: 'request:subagent-join',
+        parent_session_id: 'session:fixture-1',
+        child_session_ids: ['session:child-1'],
+        timeout_ms: 1000,
+      },
+      cancel: {
+        schema_version: 1,
+        provider_id: 'subagent:fixture',
+        request_id: 'request:subagent-cancel',
+        parent_session_id: 'session:fixture-1',
+        child_session_ids: ['session:child-1'],
+        reason: 'fixture cancellation',
+      },
+      dispose: {
+        schema_version: 1,
+        provider_id: 'subagent:fixture',
+        request_id: 'request:subagent-dispose',
+        reason: 'fixture disposal',
+      },
+    },
+    WorkflowEngine: {
+      run: {
+        schema_version: 1,
+        engine_id: 'workflow:fixture',
+        request_id: 'request:workflow-run',
+        parent_session_id: 'session:fixture-1',
+        workflow: {
+          schema_version: 1,
+          workflow_id: 'workflow:fixture-1',
+          subagent_provider_id: 'subagent:fixture',
+          max_parallelism: 1,
+          join_timeout_ms: 1000,
+          phases: [{
+            phase_id: 'phase:fixture-1',
+            mode: 'pipeline',
+            steps: [{
+              step_id: 'step:fixture-1',
+              child_spec: { ...fixtures.kernelSession, session_id: 'session:child-1', parent_session_id: 'session:fixture-1' },
+              turn_id: 'turn:child-1',
+              message: { role: 'user', content: 'execute bounded child task' },
+            }],
+          }],
+        },
+        occurred_at: '2026-08-22T13:34:00Z',
+      },
+      cancel: {
+        schema_version: 1,
+        engine_id: 'workflow:fixture',
+        request_id: 'request:workflow-cancel',
+        parent_session_id: 'session:fixture-1',
+        workflow_id: 'workflow:fixture-1',
+        reason: 'fixture cancellation',
+      },
+      dispose: {
+        schema_version: 1,
+        engine_id: 'workflow:fixture',
+        request_id: 'request:workflow-dispose',
+        reason: 'fixture disposal',
+      },
+    },
   };
 
   for (const [portName, methods] of Object.entries(PORT_METHODS)) {
