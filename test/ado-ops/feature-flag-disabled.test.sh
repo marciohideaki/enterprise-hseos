@@ -4,7 +4,13 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
+
+# Git hooks export repository-local variables such as GIT_INDEX_FILE. They must
+# not leak into the isolated repository created by this fixture.
+while IFS= read -r git_var; do
+  unset "$git_var"
+done < <(git rev-parse --local-env-vars)
 HANDLERS="${PROJECT_ROOT}/.agents/hooks/handlers"
 
 PASS=0

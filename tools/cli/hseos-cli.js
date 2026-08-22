@@ -16,9 +16,11 @@ if (process.stdin?.setMaxListeners) {
 // Check for updates - do this asynchronously so it doesn't block startup
 const packageJson = require('../../package.json');
 const packageName = 'hseos';
-checkForUpdate().catch(() => {
-  // Silently ignore errors - version check is best-effort
-});
+if (process.env.HSEOS_DISABLE_UPDATE_CHECK !== '1') {
+  checkForUpdate().catch(() => {
+    // Silently ignore errors - version check is best-effort
+  });
+}
 
 async function checkForUpdate() {
   try {

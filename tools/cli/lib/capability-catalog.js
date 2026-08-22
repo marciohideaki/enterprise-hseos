@@ -10,7 +10,8 @@ const AGENT_MANIFEST = path.join('.agents', 'manifest.yaml');
 const ADAPTERS_DIR = path.join('.agents', 'adapters');
 const CAPABILITY_SCHEMA_VERSION = '2.0';
 const REQUIRED_BASELINE_IDS = ['baseline:governance', 'baseline:entrypoints', 'baseline:skills-registry'];
-const PROFILE_KEYS = new Set(['name', 'description', 'default', 'hook_profile', 'components']);
+const PROFILE_KEYS = new Set(['name', 'description', 'default', 'hook_profile', 'components', 'agent']);
+const AGENT_PROFILE_KEYS = new Set(['execution_mode', 'model_provider_id', 'runtime_provider_id', 'secret_refs']);
 const COMPONENT_KEYS = new Set([
   'id',
   'family',
@@ -177,6 +178,19 @@ function validateCapabilityDocuments(profileData, componentData) {
     const unknown = profile.components.filter((id) => !componentIds.has(id));
     if (unknown.length > 0) {
       throw new Error(`Invalid capability schema v2: profile ${profileId} references unknown component(s): ${unknown.join(', ')}`);
+    }
+    if (profile.agent !== undefined) {
+      assertObject(profile.agent, `profile ${profileId}.agent`);
+      assertExactKeys(profile.agent, AGENT_PROFILE_KEYS, `profile ${profileId}.agent`);
+      if (!['kernel', 'hosted'].includes(profile.agent.execution_mode)) {
+        throw new Error(`Invalid capability schema v2: profile ${profileId}.agent.execution_mode is invalid`);
+      }
+      for (const field of ['model_provider_id', 'runtime_provider_id']) {
+        if (typeof profile.agent[field] !== 'string' || !/^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$/.test(profile.agent[field])) {
+          throw new Error(`Invalid capability schema v2: profile ${profileId}.agent.${field} is malformed`);
+        }
+      }
+      assertStringList(profile.agent.secret_refs, `profile ${profileId}.agent.secret_refs`, { required: true });
     }
   }
   if (defaultProfiles.length !== 1) {
@@ -367,7 +381,11 @@ function resolveCapabilityPlan(options = {}) {
     materialization: {
       mode: 'selected-only',
       selected_skills: selectedSkills,
+      selected_model_providers: profile?.agent ? [profile.agent.model_provider_id] : [],
+      selected_runtime_providers: profile?.agent ? [profile.agent.runtime_provider_id] : [],
+      secret_refs: profile?.agent?.secret_refs || [],
     },
+    agent: profile?.agent ? { ...profile.agent, secret_refs: [...profile.agent.secret_refs] } : null,
   };
 }
 

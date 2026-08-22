@@ -8,6 +8,21 @@ profiles:
       - adapter:codex
       - adapter:claude-code
 
+  agent-reference:
+    name: Agent Framework Reference
+    description: Keyless, temporary and non-operational reference assembly of the model-agnostic HSEOS Agent Kernel.
+    hook_profile: strict
+    components:
+      - runtime:agent-kernel
+      - runtime:agent-reference
+      - adapter:codex
+      - adapter:claude-code
+    agent:
+      execution_mode: kernel
+      model_provider_id: model:scripted-reference
+      runtime_provider_id: runtime:hseos-kernel
+      secret_refs: []
+
   developer:
     name: Developer
     description: Default engineering setup for implementation, review, verification, state tracking, and local agent workflows.

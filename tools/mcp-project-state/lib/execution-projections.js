@@ -39,11 +39,7 @@ class ProjectionIntegrityError extends ProjectionError {
 
 class ProjectionCheckpointConflictError extends ProjectionError {
   constructor(details) {
-    super(
-      'Projection checkpoint changed before the batch could commit',
-      'EXECUTION_PROJECTION_CHECKPOINT_CONFLICT',
-      details,
-    );
+    super('Projection checkpoint changed before the batch could commit', 'EXECUTION_PROJECTION_CHECKPOINT_CONFLICT', details);
   }
 }
 
@@ -82,12 +78,8 @@ class ExecutionProjectionStore {
       `SELECT * FROM execution_projection_generations
        WHERE projection_name = ? AND status = 'active'`,
     );
-    this._getGeneration = db.prepare(
-      `SELECT * FROM execution_projection_generations WHERE projection_name = ? AND generation = ?`,
-    );
-    this._getCheckpoint = db.prepare(
-      `SELECT * FROM execution_projection_checkpoints WHERE projection_name = ? AND generation = ?`,
-    );
+    this._getGeneration = db.prepare(`SELECT * FROM execution_projection_generations WHERE projection_name = ? AND generation = ?`);
+    this._getCheckpoint = db.prepare(`SELECT * FROM execution_projection_checkpoints WHERE projection_name = ? AND generation = ?`);
     this._getProjectedRun = db.prepare(
       `SELECT * FROM execution_run_projection
        WHERE generation = ? AND aggregate_type = ? AND aggregate_id = ?`,
@@ -123,7 +115,11 @@ class ExecutionProjectionStore {
     this._applyBatch = db.transaction((generation, expectedCheckpoint, events, faultInjector) => {
       for (const event of events) {
         if (faultInjector) faultInjector('before_event', event);
-        const projectedEvent = this.eventRegistry ? this.eventRegistry.deserialize(event) : event;
+        // This projection shares the canonical ledger with other aggregate
+        // families. Its registry is authoritative only for execution events;
+        // unrelated durable events must advance the checkpoint without being
+        // interpreted through an incompatible schema registry.
+        const projectedEvent = event.aggregate_type === 'execution' && this.eventRegistry ? this.eventRegistry.deserialize(event) : event;
         if (projectedEvent.aggregate_type === 'execution') {
           const current = this._getProjectedRun.get(generation, projectedEvent.aggregate_type, projectedEvent.aggregate_id) || null;
           const next = applyExecutionRun(current, projectedEvent);
@@ -143,12 +139,7 @@ class ExecutionProjectionStore {
       }
       const lastPosition = events.at(-1).position;
       if (faultInjector) faultInjector('before_checkpoint', events.at(-1));
-      const advanced = this._updateCheckpoint.run(
-        lastPosition,
-        PROJECTION_NAME,
-        generation,
-        expectedCheckpoint,
-      );
+      const advanced = this._updateCheckpoint.run(lastPosition, PROJECTION_NAME, generation, expectedCheckpoint);
       if (advanced.changes !== 1) {
         throw new ProjectionCheckpointConflictError({
           generation,
@@ -161,11 +152,10 @@ class ExecutionProjectionStore {
     this._activate = db.transaction((generation) => {
       const candidate = this._getGeneration.get(PROJECTION_NAME, generation);
       if (!candidate || candidate.status !== 'building') {
-        throw new ProjectionError(
-          `Projection generation is not activatable: ${generation}`,
-          'EXECUTION_PROJECTION_NOT_ACTIVATABLE',
-          { generation, status: candidate ? candidate.status : null },
-        );
+        throw new ProjectionError(`Projection generation is not activatable: ${generation}`, 'EXECUTION_PROJECTION_NOT_ACTIVATABLE', {
+          generation,
+          status: candidate ? candidate.status : null,
+        });
       }
       if (candidate.schema_version !== PROJECTION_SCHEMA_VERSION) {
         throw new ProjectionError(
@@ -188,11 +178,13 @@ class ExecutionProjectionStore {
          SET status = 'retired', retired_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
          WHERE projection_name = ? AND status = 'active' AND generation != ?`,
       ).run(PROJECTION_NAME, generation);
-      const promoted = db.prepare(
-        `UPDATE execution_projection_generations
+      const promoted = db
+        .prepare(
+          `UPDATE execution_projection_generations
          SET status = 'active', source_high_water = ?, activated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
          WHERE projection_name = ? AND generation = ? AND status = 'building'`,
-      ).run(ledgerHighWater, PROJECTION_NAME, generation);
+        )
+        .run(ledgerHighWater, PROJECTION_NAME, generation);
       if (promoted.changes !== 1) {
         throw new ProjectionError(
           `Projection generation lost activation eligibility: ${generation}`,
@@ -254,13 +246,12 @@ class ExecutionProjectionStore {
 
   createGeneration() {
     const transaction = this.db.transaction(() => {
-      const generation =
-        this.db
-          .prepare(
-            `SELECT COALESCE(MAX(generation), 0) + 1 AS generation
+      const generation = this.db
+        .prepare(
+          `SELECT COALESCE(MAX(generation), 0) + 1 AS generation
              FROM execution_projection_generations WHERE projection_name = ?`,
-          )
-          .get(PROJECTION_NAME).generation;
+        )
+        .get(PROJECTION_NAME).generation;
       const highWater = this.db.prepare(`SELECT COALESCE(MAX(position), 0) AS position FROM execution_events`).get().position;
       this.db
         .prepare(
@@ -306,10 +297,7 @@ class ExecutionProjectionStore {
         }
         processed += events.length;
         this._metrics.events_processed_by_projection[PROJECTION_NAME] += events.length;
-        this._metrics.processing_lag_ms_by_projection[PROJECTION_NAME] = Math.max(
-          0,
-          Date.now() - Date.parse(events.at(-1).occurred_at),
-        );
+        this._metrics.processing_lag_ms_by_projection[PROJECTION_NAME] = Math.max(0, Date.now() - Date.parse(events.at(-1).occurred_at));
         if (events.length < batch_size) break;
       }
       return { processed, checkpoint: this._getCheckpoint.get(PROJECTION_NAME, generation).last_position };

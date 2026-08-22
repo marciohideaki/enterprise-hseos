@@ -62,7 +62,8 @@ esac
 ARGS=(state-session "$ACTION" --silent --session "$SESSION_ID" --service claude-code)
 [[ -n "$CWD" ]] && ARGS+=(--cwd "$CWD")
 
-# Fully detached, capped, silent — the hook must never slow the session down.
-( timeout 5s "${HSEOS_COMMAND[@]}" "${ARGS[@]}" >/dev/null 2>&1 ) &
+# Fully detached, capped, silent — survive hosts that terminate the hook's
+# process group while never slowing the triggering session down.
+nohup timeout 5s "${HSEOS_COMMAND[@]}" "${ARGS[@]}" </dev/null >/dev/null 2>&1 &
 
 exit 0

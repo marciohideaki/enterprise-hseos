@@ -1,19 +1,21 @@
 # Agentic Framework State
 
 **Artifact type:** Governed goal state
-**Scope:** Model-agnostic HSEOS Agent Framework, A10 hosted runtime adapters
+**Scope:** Model-agnostic HSEOS Agent Framework, A11 capability packaging, CLI and reference profile
 **Governing documents:** Enterprise Constitution; ADR-0024; ADR Policy; Automated Validation Rules
 
-- **Status:** A0 completed; A1 completed; A2 completed; A3 completed; A4 completed; A5 completed and integrated; A6 completed and integrated; A7 completed and integrated; A8 completed and integrated; A9 completed and integrated; A10 completed in an isolated task worktree and awaiting explicit merge authorization
-- **Current node:** A10 — Codex, Claude Code and DeepSeek Harness adapters, completed but not integrated
-- **Baseline:** `dfc6116`
+- **Status:** A0 completed; A1–A10 completed and integrated; A11 completed in an isolated task worktree and awaiting explicit merge authorization
+- **Current node:** A11 — Capability packaging, CLI and reference profile, completed but not integrated
+- **Baseline:** `56cf90b`
 - **Observed:** HSEOS has governed operation execution but no model-neutral Agent Kernel
 - **Accepted decision:** ADR-0024, explicitly approved by the human authority on 2026-08-21
 - **Architectural gate:** satisfied; implementation remains bounded by the A1–A13 graph
-- **Validation:** A10 runtime providers `44/44`; contracts `9/9`; compatibility `7/7`; clean package install; full `npm test`; independent review `READY`; strict gate `0 failures / 1 unrelated pre-existing warning`
+- **Validation:** A11 CLI/reference `8/8`; capabilities `92/92`; AgentRuntime `12/12`; ledger/projection `26/26`; clean tarball assembled smoke; full `npm test`; independent review `READY`; strict gate `0 failures / 1 unrelated pre-existing warning`
 - **Evidence:** `state/checkpoints/A0-foundation-readiness.md`; `state/checkpoints/A0-completion.md`; `state/checkpoints/A1-contracts.md`; `state/checkpoints/A6-agent-runtime.md`; `state/checkpoints/A7-compaction-checkpoints.md`; `state/checkpoints/A8-subagents-workflows.md`; `state/checkpoints/A9-runtime-provider-acp.md`; `state/checkpoints/A10-hosted-runtime-adapters.md`
-- **Next reversible action:** stop for explicit human authorization before merging A10 or opening A11
-- **A10 worktree:** `task/agentic-hosted-runtime-adapters` at baseline `dfc6116`
+- **Next reversible action:** stop for explicit human authorization before merging A11 or opening A12
+- **A11 worktree:** `task/agentic-capability-cli` at baseline `56cf90b`
+- **A10 integration:** human-authorized local merge `56cf90b`; no push or activation performed
+- **A10 worktree:** removed after integration; task commit `3200f26`
 - **A9 integration:** human-authorized local merge `dfc6116`; no push or activation performed
 - **A9 worktree:** `task/agentic-runtime-provider-acp` at baseline `fb63a28`
 - **A8 integration:** human-authorized local merge `fb63a28`; no push or activation performed
@@ -46,5 +48,7 @@
 - **A9 independent evidence:** `READY`; ten focused reliability repros, package install and secret scan revalidated with no residual blocker/high/medium finding
 - **A10 deterministic evidence:** runtime providers `44/44`; contracts `9/9`; compatibility `7/7`; clean package install; full `npm test`; lint and diff checks passed; strict gate `0 failures / 1 unrelated pre-existing warning`
 - **A10 independent evidence:** `READY`; owner collision, close/create, malformed events, resume races, immediate/late create ABA, dispose ABA, generational release fences and bounded tombstone overflow revalidated with no residual blocker/high/medium finding
-- **Evidence:** `_graph/agentic-framework/state/checkpoints/A2-session-event-store.md`; `_graph/agentic-framework/state/checkpoints/A3-model-providers.md`; `_graph/agentic-framework/state/checkpoints/A4-context-assembler.md`; `_graph/agentic-framework/state/checkpoints/A5-tool-runtime.md`; `_graph/agentic-framework/state/checkpoints/A6-agent-runtime.md`; `_graph/agentic-framework/state/checkpoints/A7-compaction-checkpoints.md`; `_graph/agentic-framework/state/checkpoints/A8-subagents-workflows.md`; `_graph/agentic-framework/state/checkpoints/A9-runtime-provider-acp.md`; `_graph/agentic-framework/state/checkpoints/A10-hosted-runtime-adapters.md`
+- **A11 deterministic evidence:** CLI/reference `8/8`; capabilities `92/92`; AgentRuntime `12/12`; ledger/projection `26/26`; clean tarball assembled smoke persisted 17 events; full `npm test`; strict gate `0 failures / 1 unrelated pre-existing warning`
+- **A11 independent evidence:** initial `NOT READY` workspace-link escape and mutable cross-process manifest were corrected and encoded as regressions; final verdict `READY`
+- **Evidence:** `_graph/agentic-framework/state/checkpoints/A2-session-event-store.md`; `_graph/agentic-framework/state/checkpoints/A3-model-providers.md`; `_graph/agentic-framework/state/checkpoints/A4-context-assembler.md`; `_graph/agentic-framework/state/checkpoints/A5-tool-runtime.md`; `_graph/agentic-framework/state/checkpoints/A6-agent-runtime.md`; `_graph/agentic-framework/state/checkpoints/A7-compaction-checkpoints.md`; `_graph/agentic-framework/state/checkpoints/A8-subagents-workflows.md`; `_graph/agentic-framework/state/checkpoints/A9-runtime-provider-acp.md`; `_graph/agentic-framework/state/checkpoints/A10-hosted-runtime-adapters.md`; `_graph/agentic-framework/state/checkpoints/A11-capability-cli-reference.md`
 - **Operational constraint:** G9 compatibility evidence and separate human authorization remain prerequisites for activation, not for fixture implementation
