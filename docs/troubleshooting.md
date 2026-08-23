@@ -386,7 +386,7 @@ Agent authority is defined in `.enterprise/agents/<code>/authority.md`. To reque
 
 1. Open `.enterprise/.specs/decisions/` and create an ADR from `_TEMPLATE.md`
 2. Document the rationale and the specific override
-3. Get human approval (PR review)
+3. Record explicit repository-owner authorization (a separate approving review is not required in solo-maintainer mode)
 4. After approval, update the agent's authority file accordingly
 
 Agents cannot self-modify their authority — stop conditions apply.

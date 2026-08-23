@@ -58,7 +58,7 @@ Per run, under `.hseos/runs/dev-squad/<run-id>/`:
 
 ## What SWARM cannot do
 
-- **Open or merge PRs.** Humans run `gh pr create`; reviewers approve and merge.
+- **Open or autonomously merge PRs.** Humans run `gh pr create`; the repository owner explicitly authorizes merge after required checks.
 - **Push to protected branches, force-push, reset hard, or `rm -rf`.** Out of policy.
 - **Write its own handoffs from inside subagents.** Handoffs are Commander-extracted only.
 - **Bypass commit hygiene.** Every commit goes through `validate-commit-msg.sh` and the 6 quality gates run by `worktree-manager.sh validate`.
@@ -87,7 +87,7 @@ Per run, under `.hseos/runs/dev-squad/<run-id>/`:
 | 2 — Study (optional) | Up to 3 parallel `Explore` subagents when codebase areas are unknown | `STUDY.md` (≤ 150 lines) |
 | 3 — Plan | Atomic tasks, wave graph, model matrix, contracts, acceptance criteria | `PLAN.md` + **G2 approval** + `RESUME-PROMPT.md` |
 | 4 — Execute | Per wave: parallel dispatch, validate, commit, merge, remove worktrees | `WAVE-{k}-REPORT.md` per wave |
-| 5 — Consolidate | Draft PR body; human runs `gh pr create`; reviewer merges | Draft PR + closed run |
+| 5 — Consolidate | Draft PR body; human runs `gh pr create`; owner authorizes merge | Draft PR + closed run |
 | 6 — Knowledge consolidation (optional) | Surface gotchas to `_knowledge/projects/<project>/gotchas.md` if vault enabled | Vault note |
 
 ---
@@ -100,7 +100,7 @@ Per run, under `.hseos/runs/dev-squad/<run-id>/`:
 | **G2 — Plan approval** | Mandatory | Human | Required before any Execute wave |
 | **G3 — Wave review** | Conditional | Human | Fires on BLOCKED or risk flag |
 | **G4 — PR open** | Mandatory | Human | Agents draft, never open |
-| **G5 — Merge** | Mandatory | Human reviewer | Agents may execute governed closeout only after explicit approval |
+| **G5 — Merge** | Mandatory | Repository owner | Agents may execute governed closeout only after explicit owner authorization |
 
 ---
 

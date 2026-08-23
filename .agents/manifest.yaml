@@ -110,7 +110,7 @@ skills:
     source: .enterprise/governance/agent-skills/dev-squad/SKILL.md
     quick: .enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md
     output: .agents/skills/dev-squad/SKILL.md
-    hash: 8f2415b578f706f96c1de0cc63c5de89f04ba34ba74f9042bd29b8960837bbed
+    hash: 11c58373efad1130d2943fcab42b92415dcfdd6ec7210f6580931737128dcae6
   - name: doc-project
     source: .enterprise/governance/agent-skills/doc-project/SKILL.md
     quick: .enterprise/governance/agent-skills/doc-project/SKILL-QUICK.md
@@ -155,7 +155,7 @@ skills:
     source: .enterprise/governance/agent-skills/inter-agent-comms/SKILL.md
     quick: .enterprise/governance/agent-skills/inter-agent-comms/SKILL-QUICK.md
     output: .agents/skills/inter-agent-comms/SKILL.md
-    hash: 4d388ec1c36a6774aaa31eb1a7d271d6a8f18f18256e103d31578016d0da302f
+    hash: b514e21479ae6727f07ba770696456775cc9bc0a2b9d194af47edf365cf3d987
   - name: mcp-governance
     source: .enterprise/governance/agent-skills/mcp-governance/SKILL.md
     quick: .enterprise/governance/agent-skills/mcp-governance/SKILL-QUICK.md
@@ -200,7 +200,7 @@ skills:
     source: .enterprise/governance/agent-skills/release-control/SKILL.md
     quick: .enterprise/governance/agent-skills/release-control/SKILL-QUICK.md
     output: .agents/skills/release-control/SKILL.md
-    hash: a2a37939a2cd397066b19c5db585d31df3a5afa1d54b3bef8b7394c7d58ef536
+    hash: 065d891556b1386b4c4568937d6182444ed042b5913b98a479b55421fc28b1ed
   - name: repo-radar
     source: .enterprise/governance/agent-skills/repo-radar/SKILL.md
     quick: .enterprise/governance/agent-skills/repo-radar/SKILL-QUICK.md
@@ -539,7 +539,7 @@ handlers:
     sha256: c331a2ff08666b2f13a4caa6b2a6e0405275654b5ea27788bcb00e7d53a9705b
   - file: .agents/hooks/handlers/session-track.sh
     source: .enterprise/governance/hooks/handlers/session-track.sh
-    sha256: 3d9786b8e2983b33ba85ba34dc8d530d83d6ebe92510ae55809af67af21c04f5
+    sha256: e0b8530f55eda54f37d7da1c7390beca30ca15c024e7d5dc4410b6f0f7d6ae4e
   - file: .agents/hooks/handlers/suggest-skill.sh
     source: .enterprise/governance/hooks/handlers/suggest-skill.sh
     sha256: 87153f5431a380150acebd00f13ac75987c52f50112869965766f391bc00f0db

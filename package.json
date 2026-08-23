@@ -59,7 +59,7 @@
     "test:compiler-hooks": "node test/test-agent-core-compiler-hooks.js",
     "test:detector": "node test/test-detector-legacy-v4.js",
     "test:entrypoints": "node --test test/test-governed-entrypoints.js test/test-native-entrypoint-wiring.js",
-    "test:governance": "node test/test-commit-msg.js && node test/test-governance-scripts.js && node test/test-pr-closeout.js",
+    "test:governance": "node test/test-commit-msg.js && node test/test-governance-scripts.js && node test/test-solo-maintainer-governance.js && node test/test-pr-closeout.js",
     "test:hooks": "node test/test-hook-handlers.js && node test/test-blocking-hooks.js",
     "test:install": "node test/test-installation-components.js && node test/test-file-sync.js",
     "test:mcp-2026": "node --test test/test-mcp-2026-adapter.js",
