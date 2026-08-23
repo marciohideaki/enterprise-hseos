@@ -449,6 +449,7 @@ class WorkflowEngine {
     }
     active.cancelled = true;
     active.reason = input.reason;
+    const released = this.#release(active.input, active.workflow, 'cancelled', active.claimRef);
     const children = await this.#cancelChildren(active.input, active.workflow, active, input.reason);
     return validatePortResult('WorkflowEngine', 'cancel', {
       schema_version: CONTRACT_SCHEMA_VERSION,
@@ -459,7 +460,7 @@ class WorkflowEngine {
       status: 'cancelled',
       phases: [],
       children,
-      evidence_refs: children.map((child) => child.outcome_ref),
+      evidence_refs: [eventRef(released.event_id), ...children.map((child) => child.outcome_ref)],
     }, input);
   }
 
