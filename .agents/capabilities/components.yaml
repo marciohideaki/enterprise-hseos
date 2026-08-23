@@ -167,8 +167,11 @@ components:
     tools: []
     install_paths:
       - .agents/activation/agent-openai-compatible-candidate.yaml
+      - .agents/activation/provider-bindings/openai-compatible.example.yaml
       - tools/cli/commands/agent-activation-rehearsal.js
+      - tools/cli/commands/agent-provider-validate.js
       - tools/lib/agentic-activation-rehearsal.js
+      - tools/lib/agent-provider-binding.js
       - packages/agent-runtime/
       - packages/model-providers/
       - packages/tool-runtime/

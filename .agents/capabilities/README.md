@@ -80,6 +80,22 @@ Required baseline components are injected by the resolver. Profiles must not
 repeat them, which keeps profile declarations normalized without making the
 baseline optional.
 
+## Agent Provider Binding
+
+The `agent-openai-compatible-candidate` profile includes an immutable binding
+example under `.agents/activation/provider-bindings/`. Copy it outside the
+canonical tree, select a credential-free endpoint and model, and keep only a
+secret reference in `secret_refs`.
+
+```bash
+hseos agent-provider-validate --binding ./provider-binding.yaml
+hseos agent-provider-validate --binding ./provider-binding.yaml --probe
+```
+
+The first command is structural and performs no secret or network access. The
+second resolves the declared secret at dispatch only after every required
+sandbox check passes. Neither command authorizes activation.
+
 ## Accommodation Rules
 
 - Keep canonical profile/component manifests in `.agents/capabilities/`.

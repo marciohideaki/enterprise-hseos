@@ -70,5 +70,6 @@ Each code node uses an isolated `task/*` worktree and one accepted commit. Befor
 
 - A0–A12 are integrated and the operational release remains on MCP `2024-11-05` and state schema v4.
 - A13 private-copy migration/rollback and the OpenAI-compatible candidate-profile contract pass against the real schema-v4 state; no operational mutation or provider call occurred.
+- A13 now has a strict immutable provider binding and sandbox-gated environment-probe path; structural validation loads neither credentials nor network resources.
 - A13 is still waiting on required sandbox readiness, selected provider-environment validation, harness-unification G9's 30 consecutive complete zero-use days, final stable-snapshot audit and explicit human cutover authorization.
 - The live observation monitor is evidence-only and leaves `ready_for_cutover` and `cutover_authorized` false under every telemetry outcome.
