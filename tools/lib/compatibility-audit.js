@@ -251,6 +251,7 @@ module.exports = {
   RETIRED_INTERNAL_SYMBOLS,
   RETIREMENT_DEADLINE,
   auditCompatibility,
+  databaseFingerprint,
   migrationDryRun,
   scanInternalCompatibilityCallers,
   snapshotTables,

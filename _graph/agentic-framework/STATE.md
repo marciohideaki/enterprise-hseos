@@ -1,18 +1,20 @@
 # Agentic Framework State
 
 **Artifact type:** Governed goal state
-**Scope:** Model-agnostic HSEOS Agent Framework, A12 security, performance and completion audit
+**Scope:** Model-agnostic HSEOS Agent Framework and A13 operational activation evidence
 **Governing documents:** Enterprise Constitution; ADR-0024; ADR Policy; Automated Validation Rules
 
-- **Status:** A0 completed; A1–A12 completed and integrated locally; A13 remains blocked by its separate human activation gate
-- **Current node:** A12 — completed; stopped before A13 operational activation
-- **Baseline:** `cf80117`
-- **Observed:** HSEOS now has a model-neutral Agent Kernel and an opt-in reference profile; production activation remains gated
+- **Status:** A0 completed; A1–A12 completed; A13 in progress with migration/rollback/profile rehearsal passed and operational cutover still blocked
+- **Current node:** A13 — evidence collection; no operational activation
+- **Baseline:** `d7886b571a7b`
+- **Observed:** HSEOS has a model-neutral Agent Kernel, a non-operational reference profile and an explicit OpenAI-compatible activation candidate; production activation remains gated
 - **Accepted decision:** ADR-0024, explicitly approved by the human authority on 2026-08-21
 - **Architectural gate:** satisfied; implementation remains bounded by the A1–A13 graph
 - **Validation:** A12 assembled suite `7/7`; orchestration regression `13/13`; lint and diff checks passed; independent verifier `READY`
 - **Evidence:** `state/checkpoints/A0-foundation-readiness.md`; `state/checkpoints/A0-completion.md`; `state/checkpoints/A1-contracts.md`; `state/checkpoints/A6-agent-runtime.md`; `state/checkpoints/A7-compaction-checkpoints.md`; `state/checkpoints/A8-subagents-workflows.md`; `state/checkpoints/A9-runtime-provider-acp.md`; `state/checkpoints/A10-hosted-runtime-adapters.md`
-- **Next reversible action:** obtain explicit human authorization before opening A13 operational activation
+- **Next reversible action:** install and validate the required sandbox runtime, then validate a selected provider endpoint/model without persisting credentials
+- **A13 rehearsal:** real schema-v4 state rehearsed through a verified WAL snapshot; v7 migration, v4 rollback, legacy-table preservation, source immutability and candidate provider contract passed
+- **A13 remaining gates:** required sandbox runtime; real provider environment; 30 complete G9 zero-use days; final stable audit; explicit human cutover authorization
 - **A12 integration:** human-authorized local merge `6f69386`; no push, migration or activation performed
 - **A12 worktree:** removed after integration; task commit `6c40e52`
 - **A11 integration:** human-authorized local merge `cf80117`; no push or activation performed
@@ -55,5 +57,6 @@
 - **A11 independent evidence:** initial `NOT READY` workspace-link escape and mutable cross-process manifest were corrected and encoded as regressions; final verdict `READY`
 - **A12 deterministic evidence:** provider substitution, malformed transport, coordinated cancel-tree, non-settling workflow, terminal correlation, persistent exact resume and scaled file-backed replay `7/7`; orchestration `13/13`; final full `npm test` passed through the strict worktree-manager gate
 - **A12 independent evidence:** initial `NOT READY` findings for incomplete assembled cancel/resume/performance evidence, sequential cancellation blocking and terminal relabeling were corrected and encoded as regressions; final verdict `READY` with no residual blocker/high/medium finding
+- **A13 deterministic evidence:** activation rehearsal `4/4`; compatibility `12/12`; capabilities `97/97`; model providers `15/15`; real state v4→v7→v4 rehearsal passed without changing DB/WAL/SHM fingerprints
 - **Evidence:** `_graph/agentic-framework/state/checkpoints/A2-session-event-store.md`; `_graph/agentic-framework/state/checkpoints/A3-model-providers.md`; `_graph/agentic-framework/state/checkpoints/A4-context-assembler.md`; `_graph/agentic-framework/state/checkpoints/A5-tool-runtime.md`; `_graph/agentic-framework/state/checkpoints/A6-agent-runtime.md`; `_graph/agentic-framework/state/checkpoints/A7-compaction-checkpoints.md`; `_graph/agentic-framework/state/checkpoints/A8-subagents-workflows.md`; `_graph/agentic-framework/state/checkpoints/A9-runtime-provider-acp.md`; `_graph/agentic-framework/state/checkpoints/A10-hosted-runtime-adapters.md`; `_graph/agentic-framework/state/checkpoints/A11-capability-cli-reference.md`; `_graph/agentic-framework/state/checkpoints/A12-completion-audit.md`
-- **Operational constraint:** G9 compatibility evidence and separate human authorization remain prerequisites for activation, not for fixture implementation
+- **Operational constraint:** sandbox/provider environment, G9 compatibility evidence and separate human authorization remain prerequisites for activation, not for private-copy rehearsal

@@ -155,6 +155,24 @@ components:
       - tools/mcp-project-state/migrations/
       - tools/mcp-project-state/migrations-pending-activation/
 
+  - id: runtime:agent-openai-compatible
+    family: runtime
+    name: OpenAI-Compatible Agent Candidate
+    description: Pre-activation provider assembly, immutable configuration contract, secret reference and activation rehearsal surface.
+    prerequisites:
+      - "candidate only; operational activation requires a real endpoint/model decision, successful required-sandbox checks, G9 evidence and explicit human cutover authorization"
+      - "credentials are resolved from the declared secret reference only at dispatch and are never stored in capability or rehearsal evidence"
+    modules:
+      - agent-openai-compatible-candidate
+    tools: []
+    install_paths:
+      - .agents/activation/agent-openai-compatible-candidate.yaml
+      - tools/cli/commands/agent-activation-rehearsal.js
+      - tools/lib/agentic-activation-rehearsal.js
+      - packages/agent-runtime/
+      - packages/model-providers/
+      - packages/tool-runtime/
+
   - id: capability:architecture
     family: capability
     name: Architecture Governance
