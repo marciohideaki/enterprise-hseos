@@ -985,6 +985,12 @@ function testSessionTrackInstalledConsumer() {
   const source = path.join(HANDLERS_DIR, 'session-track.sh');
   assertPass('session-track.sh exists', fs.existsSync(source), source);
   if (!fs.existsSync(source)) return;
+  const sourceText = fs.readFileSync(source, 'utf8');
+  assertPass(
+    'session-track.sh detaches outside the host process group',
+    sourceText.includes('nohup timeout 5s') && sourceText.includes('</dev/null'),
+    sourceText,
+  );
   withTempDir((tempDir) => {
     const handlerDir = path.join(tempDir, '.agents', 'hooks', 'handlers');
     const binDir = path.join(tempDir, 'node_modules', '.bin');

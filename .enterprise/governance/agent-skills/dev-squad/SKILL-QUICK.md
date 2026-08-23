@@ -52,7 +52,7 @@ Escalate by exactly 1 tier for: auth / crypto / payments / fiscal; first greenfi
 2. **Study** (optional) — up to 3 parallel Explore agents
 3. **Plan** — atomic tasks, wave graph, model matrix → **Gate G2 mandatory**
 4. **Execute** — detached mode; per wave: check-branch → worktree-manager create → N parallel Agents → Commander extracts handoffs → validate → commit → merge → remove → WAVE-REPORT
-5. **Consolidate** — draft PR body; human opens PR; human reviewer merges
+5. **Consolidate** — draft PR body; human opens PR; owner authorizes merge after required checks
 
 ---
 

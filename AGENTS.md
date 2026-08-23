@@ -163,7 +163,9 @@ No commit allowed if gates fail. No exceptions. The `husky` `pre-commit` hook ru
 - Open PR with execution summary + validation results
 - Use `.github/pull_request_template.md`
 - For stacked feature chains, each PR must identify its upstream base and downstream dependents.
+- This repository operates in solo-maintainer mode: a separate approving review is not required; required checks and the PR boundary remain mandatory.
 - **STOP before merge unless explicit human approval is present**
+- Explicit owner authorization is a merge-control decision, not a GitHub approving review, and must be recorded in the active session/run.
 - After explicit approval and green checks, prefer `hseos pr closeout <number> --approved` to merge, fast-forward the base branch, and safely clean up a merged `feature/*` head branch
 
 ## 10. Logs
