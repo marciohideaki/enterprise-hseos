@@ -75,3 +75,10 @@
 ## Rollback
 
 Each node remains on an isolated `task/*` branch. Code nodes must include down-migration or compatibility reversal where applicable. No feature branch is merged and no task branch is removed without preserved validation evidence.
+
+## Execution checkpoint — 2026-08-23
+
+- G0–G8 are integrated in release `5df935d180cf57a36ad321a40bdb09c7552cbe35`; G9 remains active.
+- The four legacy MCP entrypoints are metered in one operational telemetry database. The deployment day is partial and excluded; the first candidate complete UTC day is 2026-08-24.
+- `compatibility-observe` monitors the active WAL through a verified private snapshot, detects missing/stale servers, incomplete hourly coverage and legacy use, and cannot authorize cutover.
+- The initial live report has 4/4 fresh server IDs, legacy use on the excluded deployment day and 0/30 complete zero-use days. G9 and G10 remain incomplete.

@@ -55,7 +55,7 @@
     "test:agentic-foundation": "node --test test/test-agentic-framework-foundation.js",
     "test:agentic-session-store": "node --test test/test-agent-session-store.js",
     "test:capabilities": "node test/test-capability-catalog.js",
-    "test:compatibility": "node --test test/test-compatibility-audit.js",
+    "test:compatibility": "node --test test/test-compatibility-audit.js test/test-compatibility-observation.js",
     "test:compiler-hooks": "node test/test-agent-core-compiler-hooks.js",
     "test:detector": "node test/test-detector-legacy-v4.js",
     "test:entrypoints": "node --test test/test-governed-entrypoints.js test/test-native-entrypoint-wiring.js",

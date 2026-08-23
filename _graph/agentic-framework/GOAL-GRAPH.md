@@ -65,3 +65,9 @@ The objective is complete only when a user can install a profile, select a confo
 ## Rollback
 
 Each code node uses an isolated `task/*` worktree and one accepted commit. Before activation, revert the node and delete only its generated/temporary artifacts. After activation, disable the provider profile and replay projections from canonical events; never delete session or governed execution ledgers.
+
+## Execution checkpoint — 2026-08-23
+
+- A0–A12 are integrated and the operational release remains on MCP `2024-11-05` and state schema v4.
+- A13 is waiting on harness-unification G9: 30 consecutive complete zero-use days, final stable-snapshot audit and explicit human cutover authorization.
+- The live observation monitor is evidence-only and leaves `ready_for_cutover` and `cutover_authorized` false under every telemetry outcome.

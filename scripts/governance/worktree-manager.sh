@@ -130,9 +130,12 @@ cmd_validate() {
   [[ -d "$wt_path" ]] || fatal "Worktree not found: ${wt_path}"
 
   info "Running quality gates for task: ${task_id}"
-  VALIDATION_ENFORCED="${VALIDATION_ENFORCED}" \
-    bash "${wt_path}/scripts/governance/quality-gates.sh" || \
+  if ! (
+    cd "${wt_path}"
+    env -u REPO_ROOT VALIDATION_ENFORCED="${VALIDATION_ENFORCED}" bash "./scripts/governance/quality-gates.sh"
+  ); then
     fatal "Validation FAILED for task ${task_id} — commit blocked"
+  fi
 
   # Update metadata
   sed -i 's/^status=.*/status=validated/' "${wt_path}/.worktree-meta" 2>/dev/null || true
