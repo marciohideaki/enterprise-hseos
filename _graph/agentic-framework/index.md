@@ -35,6 +35,15 @@
 | `../../packages/agent-orchestration/`                                           | Bounded SubagentProvider and durable WorkflowEngine              | ADR-0024 orchestration-plane implementation         |
 | `../../test/test-agent-orchestration.js`                                        | A8 scope, join/cancel, phases, caps, crash and teardown suite     | Deterministic A8 verification                       |
 | `state/checkpoints/A8-subagents-workflows.md`                                   | A8 hierarchy, workflow, crash, fencing and review evidence        | Accepted orchestration boundary for A9–A12          |
+| `../../packages/runtime-providers/`                                             | ACP and hosted delegated-runtime adapters                          | ADR-0024 RuntimeProvider plane                      |
+| `state/checkpoints/A9-runtime-provider-acp.md`                                  | A9 negotiation, lifecycle and ACP refutation evidence              | Accepted delegated-runtime boundary                 |
+| `state/checkpoints/A10-hosted-runtime-adapters.md`                              | Codex, Claude Code and DeepSeek honest-level adapter evidence      | Accepted hosted-adapter boundary                    |
+| `state/checkpoints/A11-capability-cli-reference.md`                             | Exact profile, CLI and keyless assembled runtime evidence          | Accepted pre-activation productization boundary     |
+| `A12-THREAT-MODEL.md`                                                          | Security boundaries, abuse cases and activation blockers           | A12 security assessment                             |
+| `A12-COMPLETION-AUDIT.md`                                                      | Functional percentage, journey matrix and DeepSeek comparison      | A12 completion assessment                           |
+| `state/checkpoints/A12-completion-audit.md`                                    | A12 deterministic gates, refutations and rollback boundary         | Accepted pre-activation completion checkpoint       |
+| `../../packages/agent-orchestration/execution-supervisor.js`                   | Coordinated bounded root cancellation across runtime and workflows | ADR-0024 orchestration supervision                   |
+| `../../test/test-agentic-completion-audit.js`                                   | Provider substitution, fault injection and replay performance      | Deterministic A12 assembled evidence                |
 | `../../.enterprise/.specs/decisions/ADR-0024-model-agnostic-agent-framework.md` | Accepted architectural decision                                  | Authoritative ADR                                  |
 
-Implementation artifacts will be indexed here as nodes A2–A13 add their own checkpoint shards.
+A13 activation evidence remains intentionally absent until its separate human gate is satisfied.
