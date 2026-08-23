@@ -181,7 +181,7 @@ if (fixtureActivation) {
   operationalDb = openOperationalStateDatabase(dbPath, { log: logToStderr });
   runtimeHandle = startLegacyMcpServer({
     serverId: 'project_state', serverName: 'hseos-project-state', tools: toolMap, mode, port,
-    projectDirectory: process.cwd(), wrapHttpResults: false,
+    projectDirectory: process.cwd(), stateDatabasePath: dbPath, wrapHttpResults: false,
     health: { schema_version: operationalDb.pragma('user_version', { simple: true }), tools: toolMap.size },
     invokeTool(name, args) { return handleTool(operationalDb, name, args); },
     log: (message) => logToStderr('info', message),

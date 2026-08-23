@@ -16,6 +16,33 @@ The authoritative decisions are ADR-0022 and ADR-0023. Their owner is `platform-
 
 Generic fallbacks are not removed merely because they are named “fallback.” Platform adapters, optional input defaults, recovery behavior, and generated compatibility pointers remain when they serve a current contract.
 
+## Observation deployment
+
+Every running legacy entrypoint must write to one telemetry database. Resolution is deterministic:
+
+1. absolute `HSEOS_LEGACY_TELEMETRY_DB`;
+2. `mcp-legacy-usage.db` beside the resolved `HSEOS_STATE_DB`;
+3. project-local `.hseos/state/mcp-legacy-usage.db` only when neither operational path is configured.
+
+`HSEOS_LEGACY_TELEMETRY_DB` intentionally rejects relative paths. A client process may start an
+MCP server with the client's current working directory, so using that directory as an implicit
+shared authority would fragment the 30-day evidence.
+
+Before starting the observation window:
+
+- deploy the same reviewed release SHA to every configured entrypoint;
+- configure `governance`, `project_state`, `swarm`, and `axon_bridge` with the same absolute
+  telemetry path, whether or not all four are exposed by one client bundle;
+- restart each MCP client/server process and verify all four server IDs appear in the current UTC
+  hour in `mcp_legacy_observation_hourly`;
+- inventory other launchers and project/user-scoped MCP configuration so an older unmetered
+  entrypoint cannot remain reachable;
+- record the release SHA, configuration digest, telemetry path and first complete UTC day. The
+  partial deployment day never counts.
+
+Starting telemetry is not protocol or schema activation. Production remains on MCP `2024-11-05`
+and operational schema v4 until G9 and the separate A13 cutover gate are satisfied.
+
 ## Read-only audit
 
 Run:
