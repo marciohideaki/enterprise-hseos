@@ -390,6 +390,7 @@ async function runActivationRehearsal({ databasePath, repositoryRoot, environmen
 module.exports = {
   ActivationRehearsalError,
   CANDIDATE_PROFILE,
+  checkRequiredSandbox,
   certifyCandidateProfile,
   readCandidateManifest,
   runActivationRehearsal,
