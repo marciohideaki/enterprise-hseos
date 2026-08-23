@@ -16,6 +16,7 @@ const {
   PROTOCOL_VERSION_META_KEY,
 } = require('../tools/lib/mcp-2026-adapter');
 const { MCP_MODERN_PROTOCOL_VERSION } = require('../tools/lib/mcp-protocol');
+const { assertLegacyTelemetryTarget, resolveLegacyTelemetryPath } = require('../tools/lib/legacy-mcp-server');
 const { createOperationalExecution } = require('../tools/lib/governed-execution/operational-runtime');
 const { openOperationalStateDatabase } = require('../tools/mcp-project-state/lib/operational-state-db');
 const { runStaleSweep } = require('../tools/mcp-project-state/lib/scheduler');
@@ -39,13 +40,70 @@ const SERVERS = Object.freeze([
   { id: 'axon_bridge', script: 'mcp-axon-bridge', tool: 'get_overview', arguments: {} },
 ]);
 
+test('legacy telemetry path has one explicit central authority', () => {
+  assert.equal(
+    resolveLegacyTelemetryPath({
+      projectDirectory: '/tmp/consumer',
+      stateDatabasePath: '/var/lib/hseos/project.db',
+    }),
+    path.normalize('/var/lib/hseos/mcp-legacy-usage.db'),
+  );
+  assert.equal(
+    resolveLegacyTelemetryPath({
+      projectDirectory: '/tmp/consumer',
+      stateDatabasePath: '/var/lib/hseos/project.db',
+      telemetryPath: '/var/lib/hseos-observation/legacy.db',
+    }),
+    path.normalize('/var/lib/hseos-observation/legacy.db'),
+  );
+  assert.throws(
+    () => resolveLegacyTelemetryPath({ telemetryPath: '.hseos/state/legacy.db' }),
+    /must be an absolute path/,
+  );
+});
+
+test('legacy telemetry target cannot alias operational state or linked files', (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-legacy-target-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const statePath = path.join(directory, 'project.db');
+  const telemetryPath = path.join(directory, 'telemetry.db');
+  fs.writeFileSync(statePath, 'state');
+  assert.throws(
+    () => assertLegacyTelemetryTarget(statePath, { stateDatabasePath: statePath }),
+    /must be separate/,
+  );
+  fs.symlinkSync(statePath, telemetryPath);
+  assert.throws(
+    () => assertLegacyTelemetryTarget(telemetryPath, { stateDatabasePath: statePath }),
+    /regular, non-linked file/,
+  );
+  fs.unlinkSync(telemetryPath);
+  fs.linkSync(statePath, telemetryPath);
+  assert.throws(
+    () => assertLegacyTelemetryTarget(telemetryPath, { stateDatabasePath: statePath }),
+    /regular, non-linked file/,
+  );
+  fs.unlinkSync(telemetryPath);
+  fs.unlinkSync(statePath);
+  fs.symlinkSync(telemetryPath, statePath);
+  fs.writeFileSync(telemetryPath, 'telemetry');
+  assert.throws(
+    () => assertLegacyTelemetryTarget(telemetryPath, { stateDatabasePath: statePath }),
+    /state database must not be a symlink/,
+  );
+});
+
 test('production entrypoint preserves metered legacy compatibility without pending schema activation', async (t) => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-activation-gate-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
-  const databasePath = path.join(directory, 'project.db');
+  const workingDirectory = path.join(directory, 'consumer-workspace');
+  const stateDirectory = path.join(directory, 'central-state');
+  fs.mkdirSync(workingDirectory);
+  fs.mkdirSync(stateDirectory);
+  const databasePath = path.join(stateDirectory, 'project.db');
   const port = 4800 + Math.floor(Math.random() * 100);
   const child = spawn(process.execPath, [path.join(ROOT, 'tools', 'mcp-hseos-governance', 'index.js'), `--port=${port}`], {
-    cwd: directory,
+    cwd: workingDirectory,
     env: { ...process.env, HSEOS_STATE_DB: databasePath, NODE_ENV: 'production' },
     stdio: ['ignore', 'ignore', 'ignore'],
   });
@@ -60,10 +118,47 @@ test('production entrypoint preserves metered legacy compatibility without pendi
     }
   }
   assert.equal(fs.existsSync(databasePath), false, 'pending execution database must not be created');
-  const usagePath = path.join(directory, '.hseos', 'state', 'mcp-legacy-usage.db');
+  const usagePath = path.join(stateDirectory, 'mcp-legacy-usage.db');
+  assert.equal(
+    fs.existsSync(path.join(workingDirectory, '.hseos', 'state', 'mcp-legacy-usage.db')),
+    false,
+    'an inherited consumer cwd must not fragment compatibility evidence',
+  );
   const usageDb = new Database(usagePath, { readonly: true });
   assert.ok(usageDb.prepare("SELECT SUM(request_count) AS count FROM mcp_legacy_usage_daily WHERE server_id = 'governance'").get().count >= 1);
   usageDb.close();
+});
+
+test('project-state --db keeps telemetry beside the selected database without env assistance', async (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-project-db-telemetry-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const workingDirectory = path.join(directory, 'consumer-workspace');
+  const stateDirectory = path.join(directory, 'central-state');
+  fs.mkdirSync(workingDirectory);
+  fs.mkdirSync(stateDirectory);
+  const databasePath = path.join(stateDirectory, 'project.db');
+  const port = 4900 + Math.floor(Math.random() * 100);
+  const env = { ...process.env, NODE_ENV: 'production' };
+  delete env.HSEOS_STATE_DB;
+  delete env.HSEOS_LEGACY_TELEMETRY_DB;
+  const child = spawn(
+    process.execPath,
+    [path.join(ROOT, 'tools', 'mcp-project-state', 'index.js'), `--port=${port}`, `--db=${databasePath}`],
+    { cwd: workingDirectory, env, stdio: ['ignore', 'ignore', 'ignore'] },
+  );
+  try {
+    await waitForHealth(port);
+    const response = await rpc(port, 'runs_list', {}, 'project-db-path');
+    assert.equal(response.error, undefined);
+  } finally {
+    if (child.exitCode === null && child.signalCode === null) {
+      child.kill('SIGTERM');
+      await new Promise((resolve) => child.once('close', resolve));
+    }
+  }
+  assert.equal(fs.existsSync(databasePath), true);
+  assert.equal(fs.existsSync(path.join(stateDirectory, 'mcp-legacy-usage.db')), true);
+  assert.equal(fs.existsSync(path.join(workingDirectory, '.hseos', 'state', 'mcp-legacy-usage.db')), false);
 });
 
 function rpc(port, tool, argumentsValue, idempotencyKey, { capabilities = {}, requestState, inputResponses } = {}) {

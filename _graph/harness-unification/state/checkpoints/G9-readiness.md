@@ -23,6 +23,30 @@
 - `ready_for_human_gate` is therefore `false`, `activation_authorized` is always `false`, and G9 remains active.
 - The operational main database SHA-256 remains `99852724d4c4ab0a378f5931380fc4dd85d13648952283c0fbaaec56523421bf`.
 
+## Observation-release preparation — 2026-08-23
+
+- Read-only process inspection proved the deployed MCP processes inherit a consumer `cwd` and run
+  source that predates the observation implementation. Starting the window therefore still requires
+  a reviewed release deployment and client restart.
+- Legacy telemetry now resolves to one explicit authority: absolute
+  `HSEOS_LEGACY_TELEMETRY_DB`, otherwise beside the resolved `HSEOS_STATE_DB`, and only then to
+  the project-local fallback. The supported project-state `--db` option is wired into the same
+  resolver.
+- The telemetry database cannot equal or alias the operational state database and rejects telemetry
+  symlinks, hardlinks, non-files and a symlinked state path before SQLite opens it.
+- A black-box regression starts project-state from a different consumer directory with only
+  `--db`, then proves telemetry is created beside that database and not under the inherited
+  `cwd`.
+- Independent reliability review initially returned `NOT READY` for the missing `--db` wiring
+  and inverse-symlink alias. Both reproducers were encoded as regressions; re-review returned
+  `READY` with no residual BLOCKER/HIGH/MEDIUM finding.
+- Final entrypoint suite: **18 passed, 0 failed**. Full governed gate:
+  **0 failures, 1 unrelated pre-existing documentation warning**. Log:
+  `.logs/validation/gate-20260823T160320.log`, SHA-256
+  `e53383aacb609383f174961d0c59f632977ba156344c141603bca2875bf5a38a`.
+- No operational configuration, process, database, schema or protocol was changed. G9 remains
+  `awaiting evidence`.
+
 ## Deterministic evidence
 
 - `node --test test/test-compatibility-audit.js`: **7 passed, 0 failed**.
