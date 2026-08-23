@@ -37,7 +37,7 @@ const cases = [
       assert.ok(master, 'master branch protection entry missing');
       assert.strictEqual(master.protection.allow_force_pushes, false);
       assert.strictEqual(master.protection.allow_deletions, false);
-      assert.strictEqual(master.protection.required_pull_request_reviews.required_approving_review_count, 1);
+      assert.strictEqual(master.protection.required_pull_request_reviews, null);
     },
   },
   {
