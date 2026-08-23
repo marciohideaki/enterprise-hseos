@@ -492,7 +492,6 @@ class HostedInstructionsRuntimeProvider {
             () => reject(new RuntimeProviderError(`${label} exceeded its deadline`, 'timeout')),
             Math.min(timeoutMs, MAX_TIMER_DELAY_MS),
           );
-          timeout.unref?.();
         }),
       ]);
     } finally {
@@ -522,7 +521,6 @@ class HostedInstructionsRuntimeProvider {
       void this.#safeDriver('cancel', { runtime_session_id: session.runtimeSessionId, reason: 'timeout' });
       this.#terminate(session, 'runtime.session.failed', { error_code: 'timeout', message: 'hosted session exceeded its duration limit', retryable: false });
     }, Math.min(remainingMs, MAX_TIMER_DELAY_MS));
-    session.deadline.unref?.();
   }
 }
 
