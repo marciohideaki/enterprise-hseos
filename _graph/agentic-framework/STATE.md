@@ -4,7 +4,7 @@
 **Scope:** Model-agnostic HSEOS Agent Framework, A12 security, performance and completion audit
 **Governing documents:** Enterprise Constitution; ADR-0024; ADR Policy; Automated Validation Rules
 
-- **Status:** A0 completed; A1–A11 completed and integrated; A12 completed in an isolated task worktree and not integrated
+- **Status:** A0 completed; A1–A12 completed and integrated locally; A13 remains blocked by its separate human activation gate
 - **Current node:** A12 — completed; stopped before A13 operational activation
 - **Baseline:** `cf80117`
 - **Observed:** HSEOS now has a model-neutral Agent Kernel and an opt-in reference profile; production activation remains gated
@@ -12,8 +12,9 @@
 - **Architectural gate:** satisfied; implementation remains bounded by the A1–A13 graph
 - **Validation:** A12 assembled suite `7/7`; orchestration regression `13/13`; lint and diff checks passed; independent verifier `READY`
 - **Evidence:** `state/checkpoints/A0-foundation-readiness.md`; `state/checkpoints/A0-completion.md`; `state/checkpoints/A1-contracts.md`; `state/checkpoints/A6-agent-runtime.md`; `state/checkpoints/A7-compaction-checkpoints.md`; `state/checkpoints/A8-subagents-workflows.md`; `state/checkpoints/A9-runtime-provider-acp.md`; `state/checkpoints/A10-hosted-runtime-adapters.md`
-- **Next reversible action:** obtain explicit human authorization before locally integrating A12 or opening A13
-- **A12 worktree:** `task/agentic-completion-audit` at baseline `cf80117`
+- **Next reversible action:** obtain explicit human authorization before opening A13 operational activation
+- **A12 integration:** human-authorized local merge `6f69386`; no push, migration or activation performed
+- **A12 worktree:** removed after integration; task commit `6c40e52`
 - **A11 integration:** human-authorized local merge `cf80117`; no push or activation performed
 - **A11 worktree:** removed after integration; task commit `c10d843`
 - **A10 integration:** human-authorized local merge `56cf90b`; no push or activation performed
