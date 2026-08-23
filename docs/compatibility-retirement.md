@@ -43,6 +43,26 @@ Before starting the observation window:
 Starting telemetry is not protocol or schema activation. Production remains on MCP `2024-11-05`
 and operational schema v4 until G9 and the separate A13 cutover gate are satisfied.
 
+### Live observation monitor
+
+While the writers remain active, run:
+
+```sh
+node tools/cli/hseos-cli.js compatibility-observe --directory /path/to/project
+```
+
+Use `--json` for automation and `--require-current-hour` to exit with status 2 when the release
+manifest is inconsistent or any required server is absent or stale. The default freshness limit is
+75 minutes and can be changed with `--max-staleness-minutes`.
+
+This command copies the live database and WAL into a private snapshot, verifies that their content
+did not change during the copy, and opens only that copy in SQLite query-only mode. It never opens
+or mutates the operational files, initializes tables, records a heartbeat, runs migrations, or emits
+cutover readiness. Its progress counter includes only complete UTC days after
+`first_candidate_complete_utc_day`, requires all 24 hourly buckets for all four server IDs, and
+resets after a gap or any legacy request. Even at 30/30 it reports `ready_for_cutover: false` because
+the stable-snapshot audit and explicit human gate remain separate.
+
 ## Read-only audit
 
 Run:

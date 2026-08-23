@@ -14,10 +14,13 @@ function read(relativePath) {
 
 const cases = [
   {
-    name: 'worktree-manager validates the task worktree script',
+    name: 'worktree-manager validates from inside the task worktree',
     fn: () => {
       const script = read('scripts/governance/worktree-manager.sh');
-      assert.match(script, /bash "\$\{wt_path\}\/scripts\/governance\/quality-gates\.sh"/);
+      const validation = script.slice(script.indexOf('cmd_validate()'), script.indexOf('cmd_commit()'));
+      assert.match(validation, /cd "\$\{wt_path\}"/);
+      assert.match(validation, /env -u REPO_ROOT .*bash "\.\/scripts\/governance\/quality-gates\.sh"/);
+      assert.doesNotMatch(validation, /bash "\$\{wt_path\}\/scripts\/governance\/quality-gates\.sh"/);
     },
   },
   {
