@@ -9,6 +9,13 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
+const {
+  CLIENT_CAPABILITIES_META_KEY,
+  CLIENT_INFO_META_KEY,
+  PROTOCOL_VERSION_META_KEY,
+  SERVER_INFO_META_KEY,
+} = require('../tools/lib/mcp-2026-adapter');
+const { MCP_MODERN_PROTOCOL_VERSION } = require('../tools/lib/mcp-protocol');
 
 const REPO_ROOT = path.join(__dirname, '..');
 
@@ -47,10 +54,12 @@ async function it(name, fn) {
 
 function runStdio(server) {
   return new Promise((resolve, reject) => {
-    const tmp = server.withTempDb ? fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-mcp-stdio-')) : null;
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-mcp-stdio-'));
     const env = {
       ...process.env,
-      ...(tmp ? { HSEOS_STATE_DB: path.join(tmp, 'project.db') } : {}),
+      HSEOS_GOVERNED_EXECUTION_FIXTURE: '1',
+      HSEOS_STATE_DB: path.join(tmp, 'project.db'),
+      NODE_ENV: 'test',
     };
     const child = spawn(process.execPath, [server.script], {
       cwd: REPO_ROOT,
@@ -67,12 +76,24 @@ function runStdio(server) {
     child.stderr.on('data', (chunk) => (stderr += chunk));
     child.on('error', reject);
     child.on('close', () => {
-      if (tmp) fs.rmSync(tmp, { recursive: true, force: true });
+      fs.rmSync(tmp, { recursive: true, force: true });
       resolve({ stdout, stderr });
     });
 
-    child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: {} })}\n`);
-    child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} })}\n`);
+    const meta = {
+      [PROTOCOL_VERSION_META_KEY]: MCP_MODERN_PROTOCOL_VERSION,
+      [CLIENT_INFO_META_KEY]: { name: 'stdio-test', version: '1.0.0' },
+      [CLIENT_CAPABILITIES_META_KEY]: {},
+    };
+    child.stdin.write(
+      `${JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'server/discover',
+        params: { _meta: meta },
+      })}\n`,
+    );
+    child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: { _meta: meta } })}\n`);
     child.stdin.end();
   });
 }
@@ -81,15 +102,15 @@ function runStdio(server) {
   console.log('mcp stdio smoke test');
 
   for (const server of SERVERS) {
-    await it(`${server.name} initialize + tools/list over stdio`, async () => {
+    await it(`${server.name} discovery + tools/list over stdio`, async () => {
       const { stdout } = await runStdio(server);
       const lines = stdout.trim().split('\n').filter(Boolean);
       if (lines.length !== 2) throw new Error(`expected 2 JSON-RPC lines, got ${lines.length}: ${stdout}`);
 
       const init = JSON.parse(lines[0]);
       const list = JSON.parse(lines[1]);
-      if (init.result?.serverInfo?.name !== server.name) {
-        throw new Error(`unexpected server name: ${JSON.stringify(init.result?.serverInfo)}`);
+      if (init.result?._meta?.[SERVER_INFO_META_KEY]?.name !== server.name) {
+        throw new Error(`unexpected server name: ${JSON.stringify(init.result?._meta?.[SERVER_INFO_META_KEY])}`);
       }
       const tools = list.result?.tools || [];
       if (!tools.some((tool) => tool.name === server.expectedTool)) {

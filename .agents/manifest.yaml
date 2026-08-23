@@ -10,22 +10,15 @@ adapters:
     skills: .agents/skills
     settings: .codex/config.toml
     hooks: .codex/hseos-hooks.json
-  goose:
-    config: .goose/config.yaml
-    skills: .goose/skills
-    agents: .goose/agents
-    hooks_metadata: .goose/hooks-metadata.json
 platforms:
   - claude-code
   - codex
-  - goose
 counts:
   skills: 52
   hooks: 32
   commands: 9
   handlers: 24
   agents: 16
-  plugins: 4
   mcp_servers: 8
 skills:
   - name: accessibility
@@ -117,7 +110,7 @@ skills:
     source: .enterprise/governance/agent-skills/dev-squad/SKILL.md
     quick: .enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md
     output: .agents/skills/dev-squad/SKILL.md
-    hash: 24d345dc52767147fcadbe378219787601f2f1ea9175b4f0795e9b5a59a1a598
+    hash: 8f2415b578f706f96c1de0cc63c5de89f04ba34ba74f9042bd29b8960837bbed
   - name: doc-project
     source: .enterprise/governance/agent-skills/doc-project/SKILL.md
     quick: .enterprise/governance/agent-skills/doc-project/SKILL-QUICK.md
@@ -489,7 +482,7 @@ commands:
 handlers:
   - file: .agents/hooks/handlers/README.md
     source: .enterprise/governance/hooks/handlers/README.md
-    sha256: b16326522aa26e293be70b3a94c8d7056e40e28a9a2a564e6a90615a97d9bc38
+    sha256: 91be729bb6597cad23989be76bfe08cca9ceacbba79a4f7d1336059ad576be24
   - file: .agents/hooks/handlers/_ado-lib.sh
     source: .enterprise/governance/hooks/handlers/_ado-lib.sh
     sha256: bd2dbb5881fc0b01b6c0fbe3f71fba72305c9c93af60ebfe0def42e4536e2b33
@@ -546,7 +539,7 @@ handlers:
     sha256: c331a2ff08666b2f13a4caa6b2a6e0405275654b5ea27788bcb00e7d53a9705b
   - file: .agents/hooks/handlers/session-track.sh
     source: .enterprise/governance/hooks/handlers/session-track.sh
-    sha256: 210a6085fd1a688ed31b1b93ab9b6ef56a233e0d739059be4d542a678255a011
+    sha256: 3d9786b8e2983b33ba85ba34dc8d530d83d6ebe92510ae55809af67af21c04f5
   - file: .agents/hooks/handlers/suggest-skill.sh
     source: .enterprise/governance/hooks/handlers/suggest-skill.sh
     sha256: 87153f5431a380150acebd00f13ac75987c52f50112869965766f391bc00f0db
@@ -608,16 +601,6 @@ agents:
   - code: VECTOR
     file: .hseos/agents/vector.agent.yaml
     sha256: 2581c74190ce6bb293284f4a48d67651031667976e11c666b1622f999b5871bf
-plugins:
-  - id: hseos-skill-creator
-    version: 0.1.0
-  - id: hseos-hookify
-    version: 0.1.0
-  - id: hseos-pr-review
-    version: 0.1.0
-    extends: official:pr-review-toolkit@1.2.0
-  - id: hseos-security-guidance
-    version: 0.1.0
 mcp_bundles_active:
   - core
   - extended

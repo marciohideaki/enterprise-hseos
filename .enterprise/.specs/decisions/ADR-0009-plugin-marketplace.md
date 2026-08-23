@@ -24,10 +24,10 @@ A neutral plugin marketplace internal to HSEOS — emitting both formats from a 
 
 We will create the **HSEOS Plugin Marketplace** as a dual-format publication channel.
 
-**Source of truth** (vendor-neutral):
+**Source of truth** (vendor-neutral, amended by harness normalization):
 
 ```
-.agents/plugins/
+.enterprise/governance/plugins/
 ├── registry.yaml              # marketplace catalog
 └── definitions/<plugin-id>/
     ├── plugin.yaml            # neutral manifest
@@ -39,13 +39,19 @@ We will create the **HSEOS Plugin Marketplace** as a dual-format publication cha
     └── mcp/                   # optional — extra MCP servers
 ```
 
+The compiler materializes an exact neutral view under `.agents/plugins/` and
+then emits vendor views under `.claude-plugin/` and `.codex-plugin/`. Direct
+authoring under either generated tree is unsupported and is overwritten by the
+next compile. Pre-normalization projects may temporarily use `.agents/plugins/`
+as a bounded compatibility source; G9 owns removal of that fallback.
+
 **Plugin manifest** (`.agents/plugins/definitions/<id>/plugin.yaml`):
 
 ```yaml
 id: hseos-skill-creator
 version: "1.0.0"
 description: "Interactive skill scaffolding compliant with HSEOS Tier 1/2 frontmatter"
-extends: official:skill-creator@1.2.0   # optional upstream reference
+extends: official:skill-creator@1.2.0   # optional provenance reference; not resolved by G8
 license: MIT
 authors: ["Hideaki Solutions"]
 requires_bundles: [core]
@@ -66,17 +72,17 @@ verification:
 | Plugin | Purpose |
 |---|---|
 | `hseos-skill-creator` | Generates SKILL.md+QUICK.md pairs with HSEOS-compliant frontmatter (tier, load_strategy, triggers, adapter_overrides) |
-| `hseos-hookify` | Authors hooks in `.agents/hooks/registry.yaml` neutral format with adapter dispatch |
+| `hseos-hookify` | Authors hooks in `.enterprise/governance/hooks/registry.yaml` with adapter dispatch |
 | `hseos-pr-review` | Wraps `pr-review-toolkit` upstream with HSEOS commit-hygiene + commit-msg validation |
 | `hseos-security-guidance` | Bundles secure-coding, threat-modeling, and dependency-audit skill activations as one plugin |
 
 **Discovery and install:**
 - `hseos plugin list` shows the marketplace catalog
-- `hseos plugin install <id>` resolves dependencies, validates conformance, and writes to `.claude-plugin/` and `.codex-plugin/`
+- `hseos plugin install <id>` validates conformance and writes complete trees to `.claude-plugin/` and `.codex-plugin/`
 - `hseos plugin remove <id>` performs reverse cleanup
 - `hseos plugin doctor` runs each plugin's conformance tests
 
-**Versioning and `extends`:** plugins MAY declare `extends: official:<id>@<version>` to layer behaviour on an upstream Anthropic or Codex plugin. The compiler validates the upstream reference is reachable; if not, the plugin loads in standalone mode with a warning.
+**Versioning and `extends`:** plugins MAY declare `extends: official:<id>@<version>` as syntax-validated provenance metadata. G8 does not resolve networks, fetch upstream plugins, or claim behavior layering. A future resolver requires its own capability, tests, cache/integrity policy, and ADR amendment before activation.
 
 ---
 
@@ -85,13 +91,13 @@ verification:
 ### Positive
 - HSEOS-aware plugins (skill-creator emits HSEOS Tier-policy frontmatter; hookify uses the neutral registry format).
 - One source of truth, two distribution channels — community installs HSEOS plugins regardless of vendor preference.
-- `extends` keeps HSEOS aligned with upstream evolution without forking.
+- `extends` preserves an explicit upstream provenance relationship without implicit network behavior.
 - Conformance tests prevent malformed plugins from polluting the marketplace.
 
 ### Negative / Trade-offs
 - Plugin metadata maintained in `plugin.yaml` plus emitted in two vendor formats — small drift surface, mitigated by compiler ownership.
-- Plugin authoring requires familiarity with the `.agents/` source-of-truth model.
-- `extends` requires resolving upstream marketplace at install time (network).
+- Plugin authoring requires familiarity with the `.enterprise → .agents → vendor` compilation model.
+- Upstream behavior is not inherited automatically; a plugin must bundle and test every behavior it publishes.
 
 ### Risks
 - Marketplace fragmentation if either vendor adds proprietary surfaces — mitigated by capability declaration in `plugin.yaml` and adapter capability matrix from ADR-0007.
@@ -104,7 +110,8 @@ verification:
 
 | Standard | Section | Change |
 |---|---|---|
-| `.agents/plugins/` (NEW) | Directory | Holds registry, definitions, manifest schema |
+| `.enterprise/governance/plugins/` | Directory | Holds the canonical registry, definitions, and manifest schema |
+| `.agents/plugins/` | Generated directory | Exact neutral compiler output; legacy authoring fallback is temporary |
 | Compiler (`agent-core-compiler/`) | New target | Emits `.claude-plugin/marketplace.json` and `.codex-plugin/` |
 | `tools/cli/commands/plugin.js` (NEW) | Module | Implements `list`, `install`, `remove`, `doctor` |
 | Documentation policy | New artifact | `PLUGIN-AUTHORING.md` lifecycle guide |

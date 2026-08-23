@@ -108,8 +108,10 @@ Per run, under `.hseos/runs/dev-squad/<run-id>/`:
 
 SWARM is the canonical executor for the **dev-squad** workflow. It is peer to ORBIT (which orchestrates the linear epic-delivery pipeline) and complements rather than replaces it: ORBIT for sequential epic flow, SWARM for parallel heterogeneous batches.
 
-Skill source: `~/.claude/skills/dev-squad/SKILL.md` (global, authoritative).
+Skill source: `.enterprise/governance/agent-skills/dev-squad/SKILL.md` (project-local, authoritative; vendor copies are generated).
 HSEOS overlay: `.hseos/workflows/dev-squad/` and `.enterprise/governance/agent-skills/dev-squad/`.
+
+During the ADR-0022 transition, operational CLI and MCP consumers remain on the metered v4 compatibility path. The modern governed runtime and pending migrations 005–007 are fixture-only. Cutover is allowed only after an explicit activation decision backed by zero legacy calls and complete hourly coverage for every native MCP server during the preceding 30 complete UTC days.
 
 ---
 

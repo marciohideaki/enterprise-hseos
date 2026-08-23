@@ -1,0 +1,28 @@
+{
+  "name": "@hseos/tool-runtime",
+  "version": "1.0.0",
+  "description": "Model-neutral governed tool boundary for the HSEOS Agent Kernel",
+  "keywords": [
+    "hseos",
+    "agents",
+    "tools",
+    "governance"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marciohideaki/hseos.git",
+    "directory": "packages/tool-runtime"
+  },
+  "license": "MIT",
+  "main": "index.js",
+  "dependencies": {
+    "@hseos/agent-runtime-contracts": "^1.0.0",
+    "@hseos/governed-execution": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

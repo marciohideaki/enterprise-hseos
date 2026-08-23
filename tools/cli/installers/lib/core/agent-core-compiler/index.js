@@ -9,9 +9,15 @@ const { writeSkills, normalizeSkill } = require('./sources/skills-source');
 const { syncHandlers, writeHookRegistry } = require('./sources/hooks-source');
 const { writeCommandRegistry } = require('./sources/commands-source');
 const { collectAgents } = require('./sources/agents-source');
-const { writePluginRegistry } = require('./sources/plugins-source');
+const {
+  writePluginRegistry,
+  loadActivePluginManifests,
+  syncPluginCatalog,
+  verifyActivePluginConformance,
+} = require('./sources/plugins-source');
 const { collectMcp } = require('./sources/mcp-source');
 const { writePlatformAdapters } = require('./adapters/platforms');
+const { writePlatformPluginAdapters } = require('./adapters/plugins-emit');
 const { writeManifest } = require('./manifest/builder');
 const { parseFrontmatter } = require('./lib/frontmatter');
 const { slug } = require('./lib/slug');
@@ -35,10 +41,23 @@ class AgentCoreCompiler {
     const targetEnterpriseSkillsDir = path.join(root, ENTERPRISE_SKILLS_DIR);
     const sourceEnterpriseSkillsDir = path.join(sourceRoot, ENTERPRISE_SKILLS_DIR);
     const enterpriseSkillsDir = (await fs.pathExists(targetEnterpriseSkillsDir)) ? targetEnterpriseSkillsDir : sourceEnterpriseSkillsDir;
+    await syncPluginCatalog(root, sourceRoot, this.agentsDirName);
+    const registryPlugins = await writePluginRegistry(root, this.agentsDirName);
+    const activePluginManifests = await loadActivePluginManifests(root, registryPlugins, this.agentsDirName);
+    await verifyActivePluginConformance(root, activePluginManifests, this.agentsDirName);
 
     await fs.ensureDir(agentsDir);
     await writeInstructions(root, this.agentsDirName);
-    const skills = await writeSkills(root, enterpriseSkillsDir, sourceRoot, this.agentsDirName);
+    const selectedSkills = Array.isArray(options.selectedSkills) ? [...new Set(options.selectedSkills)].sort() : null;
+    const skills = await writeSkills(root, enterpriseSkillsDir, sourceRoot, this.agentsDirName, selectedSkills);
+    if (selectedSkills) {
+      const emittedSkills = skills.map((skill) => skill.name).sort();
+      if (JSON.stringify(emittedSkills) !== JSON.stringify(selectedSkills)) {
+        throw new Error(
+          `Capability materialization mismatch: selected [${selectedSkills.join(', ')}], emitted [${emittedSkills.join(', ')}]`,
+        );
+      }
+    }
 
     // Determine hook source. Canonical: .enterprise/governance/hooks/registry.yaml
     // (target, then source root). Compatibility fallbacks: the previously compiled
@@ -71,13 +90,11 @@ class AgentCoreCompiler {
     const handlers = await syncHandlers(root, handlersSourceDir, this.agentsDirName);
     const commands = await writeCommandRegistry(root, hseosDir, this.agentsDirName);
     const agents = await collectAgents(root);
-    const plugins = (await writePluginRegistry(root, this.agentsDirName))
-      .filter((plugin) => plugin && plugin.id && plugin.version)
-      .map((plugin) => {
-        const entry = { id: plugin.id, version: String(plugin.version) };
-        if (plugin.extends) entry.extends = plugin.extends;
-        return entry;
-      });
+    const plugins = activePluginManifests.map((plugin) => {
+      const entry = { id: plugin.id, version: String(plugin.version) };
+      if (plugin.extends) entry.extends = plugin.extends;
+      return entry;
+    });
     const mcp = await collectMcp(root, this.agentsDirName, hseosDir);
 
     // Adapters run after all sources are collected so cross-surface emitters
@@ -88,6 +105,7 @@ class AgentCoreCompiler {
       agentsDirName: this.agentsDirName,
       sources: { skills, agents, mcpBundles: mcp.bundles || [] },
     });
+    await writePlatformPluginAdapters(root, registryPlugins, this.agentsDirName, emittedPlatforms, activePluginManifests);
 
     const manifest = await writeManifest(
       root,
@@ -122,8 +140,8 @@ class AgentCoreCompiler {
     return writeInstructions(root, this.agentsDirName);
   }
 
-  async writeSkills(root, enterpriseSkillsDir, sourceRoot) {
-    return writeSkills(root, enterpriseSkillsDir, sourceRoot, this.agentsDirName);
+  async writeSkills(root, enterpriseSkillsDir, sourceRoot, selectedSkillIds = null) {
+    return writeSkills(root, enterpriseSkillsDir, sourceRoot, this.agentsDirName, selectedSkillIds);
   }
 
   async writeHookRegistry(root, sourcePath, legacyFallback) {

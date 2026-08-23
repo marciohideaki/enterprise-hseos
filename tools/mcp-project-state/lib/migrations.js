@@ -47,19 +47,21 @@ function setVersion(db, version) {
 function runMigrations(db, migrationsDir, options = {}) {
   const log = options.log || ((level, msg) => console.log(`[migrations:${level}] ${msg}`));
   const migrations = listMigrations(migrationsDir);
-  const current = getCurrentVersion(db);
   const applied = [];
 
   if (migrations.length === 0) {
     log('info', `no migrations found in ${migrationsDir}`);
-    return { applied, current };
+    return { applied, current: getCurrentVersion(db) };
   }
 
   for (const m of migrations) {
-    if (m.version <= current) continue;
     const sql = fs.readFileSync(m.fullPath, 'utf8');
     try {
-      db.exec('BEGIN');
+      db.exec('BEGIN IMMEDIATE');
+      if (m.version <= getCurrentVersion(db)) {
+        db.exec('COMMIT');
+        continue;
+      }
       db.exec(sql);
       setVersion(db, m.version);
       db.exec('COMMIT');

@@ -2,7 +2,8 @@
 
 const path = require('node:path');
 const fs = require('node:fs');
-const { createHttpServer, createMessageHandler, startStdioServer } = require('../lib/mcp-transport');
+const { startNativeMcpServer } = require('../lib/governed-execution/native-mcp-server');
+const { startLegacyMcpServer } = require('../lib/legacy-mcp-server');
 
 const DEFAULT_PORT = 3101;
 
@@ -33,39 +34,23 @@ function loadTools() {
 
 const tools = loadTools();
 
-const TOOL_LIST = [...tools.values()].map((t) => ({
-  name: t.name,
-  description: t.description,
-  inputSchema: t.inputSchema,
-}));
-
-const handleMessage = createMessageHandler({
-  serverInfo: { name: 'hseos-governance', version: '1.0.0' },
-  tools: TOOL_LIST,
-  callTool(name, args) {
+const { mode, port } = parseArgs();
+const fixtureActivation = process.env.NODE_ENV === 'test' && process.env.HSEOS_GOVERNED_EXECUTION_FIXTURE === '1';
+const serverOptions = {
+  serverId: 'governance', tools, mode, port,
+  invokeTool(name, args, context) {
     const tool = tools.get(name);
     if (!tool) throw new Error(`Unknown tool: ${name}`);
-    return tool.handler(null, args);
+    return tool.handler(null, args, null, context);
   },
-});
+};
+const runtimeHandle = fixtureActivation
+  ? startNativeMcpServer(serverOptions)
+  : startLegacyMcpServer({ ...serverOptions, serverName: 'hseos-governance', health: { tools: tools.size } });
 
-const { mode, port } = parseArgs();
-let server = null;
-
-if (mode === 'http') {
-  server = createHttpServer(handleMessage, { status: 'ok', server: 'hseos-governance', tools: tools.size });
-  server.listen(port, '127.0.0.1', () => {
-    console.error(`[governance] MCP server listening on http://127.0.0.1:${port}`);
-    console.error(`[governance] Tools loaded: ${tools.size}`);
-  });
-} else {
-  console.error(`[governance] MCP stdio server ready. Tools loaded: ${tools.size}`);
-  startStdioServer(handleMessage);
-}
-
-function shutdown() {
-  if (server) server.close();
+async function shutdown() {
+  await runtimeHandle.close();
   process.exit(0);
 }
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
+process.on('SIGTERM', () => void shutdown());
+process.on('SIGINT', () => void shutdown());

@@ -4,14 +4,29 @@ const path = require('node:path');
 const fs = require('fs-extra');
 const yaml = require('yaml');
 const prompts = require('../lib/prompts');
+const {
+  loadActivePluginManifests,
+  validatePluginRegistryDocument,
+  verifyActivePluginConformance,
+} = require('../installers/lib/core/agent-core-compiler/sources/plugins-source');
 
 const SUPPORTED_ACTIONS = new Set(['list', 'install', 'remove', 'doctor']);
+const PLUGIN_ID_PATTERN = /^[a-z][a-z0-9-]*$/;
+
+function assertPluginId(pluginId) {
+  if (!pluginId || !PLUGIN_ID_PATTERN.test(pluginId)) {
+    throw new Error(`Invalid plugin id: ${pluginId || '(missing)'}`);
+  }
+}
 
 async function readRegistry(projectDir) {
   const registryPath = path.join(projectDir, '.agents', 'plugins', 'registry.yaml');
   if (!(await fs.pathExists(registryPath))) return null;
   const raw = await fs.readFile(registryPath, 'utf8');
-  return yaml.parse(raw) || null;
+  const registry = yaml.parse(raw) || null;
+  const strict = validatePluginRegistryDocument(registry);
+  Object.defineProperty(registry.plugins, 'schemaVersion', { value: strict ? '2.0' : 'legacy', enumerable: false });
+  return registry;
 }
 
 async function runList(projectDir) {
@@ -31,6 +46,7 @@ async function runInstall(projectDir, pluginId) {
   if (!pluginId) {
     throw new Error('hseos plugin install requires a plugin id. Usage: hseos plugin install <id>');
   }
+  assertPluginId(pluginId);
   const registry = await readRegistry(projectDir);
   if (!registry) {
     throw new Error('No plugin registry found. Run `hseos agent-core compile` first.');
@@ -39,23 +55,97 @@ async function runInstall(projectDir, pluginId) {
   if (!entry) {
     throw new Error(`Plugin not found in registry: ${pluginId}`);
   }
-
-  const manifestPath = path.join(projectDir, '.agents', 'plugins', 'definitions', pluginId, 'plugin.yaml');
-  if (!(await fs.pathExists(manifestPath))) {
-    throw new Error(`Plugin definition not found: ${manifestPath}`);
+  if (entry.status !== 'active') {
+    throw new Error(`Plugin is not installable: ${pluginId} has status ${entry.status || 'unspecified'}`);
   }
-  const raw = await fs.readFile(manifestPath, 'utf8');
-  const manifest = yaml.parse(raw) || {};
+  const selectedEntries = [entry];
+  Object.defineProperty(selectedEntries, 'schemaVersion', {
+    value: String(registry.schema_version) === '2.0' ? '2.0' : 'legacy',
+    enumerable: false,
+  });
+  const [validatedManifest] = await loadActivePluginManifests(projectDir, selectedEntries);
+  const manifest = validatedManifest;
+  await verifyActivePluginConformance(projectDir, [manifest]);
 
-  // Emit to claude-plugin
-  const claudePluginDir = path.join(projectDir, '.claude-plugin', 'plugins', pluginId);
-  await fs.ensureDir(claudePluginDir);
-  await fs.writeFile(path.join(claudePluginDir, 'plugin.json'), JSON.stringify(manifest, null, 2), 'utf8');
+  const pluginSourceDir = path.join(projectDir, '.agents', 'plugins', 'definitions', pluginId);
+  const surfaceFiles = Object.values(manifest.surfaces).flatMap((value) => (Array.isArray(value) ? value : []));
 
-  // Emit to codex-plugin
-  const codexPluginDir = path.join(projectDir, '.codex-plugin', 'plugins', pluginId);
-  await fs.ensureDir(codexPluginDir);
-  await fs.writeFile(path.join(codexPluginDir, 'plugin.json'), JSON.stringify(manifest, null, 2), 'utf8');
+  async function prepare(vendorRoot) {
+    const pluginsDir = path.join(projectDir, vendorRoot, 'plugins');
+    const installedDir = path.join(pluginsDir, pluginId);
+    await fs.ensureDir(pluginsDir);
+    const stagingDir = await fs.mkdtemp(path.join(pluginsDir, `.${pluginId}-`));
+    const artifact = {
+      installedDir,
+      stagingDir,
+      backupDir: `${stagingDir}.previous`,
+      previousMoved: false,
+      committed: false,
+    };
+    try {
+      await fs.writeFile(path.join(stagingDir, 'plugin.json'), JSON.stringify(manifest, null, 2), 'utf8');
+      await fs.copy(path.join(pluginSourceDir, 'README.md'), path.join(stagingDir, 'README.md'));
+      for (const surfaceFile of surfaceFiles) {
+        await fs.copy(path.join(pluginSourceDir, surfaceFile), path.join(stagingDir, surfaceFile));
+      }
+    } catch (error) {
+      await fs.remove(stagingDir);
+      throw error;
+    }
+    return artifact;
+  }
+
+  const artifacts = [];
+  try {
+    // Prepare both complete vendor trees before exposing either one.
+    for (const vendorRoot of ['.claude-plugin', '.codex-plugin']) {
+      artifacts.push(await prepare(vendorRoot));
+    }
+
+    // Swap both destinations while retaining their previous versions for rollback.
+    for (const artifact of artifacts) {
+      if (await fs.pathExists(artifact.installedDir)) {
+        await fs.move(artifact.installedDir, artifact.backupDir);
+        artifact.previousMoved = true;
+      }
+      await fs.move(artifact.stagingDir, artifact.installedDir);
+      artifact.committed = true;
+    }
+  } catch (error) {
+    let rollbackError;
+    for (const artifact of artifacts.toReversed()) {
+      try {
+        if (artifact.committed && (await fs.pathExists(artifact.installedDir))) {
+          await fs.remove(artifact.installedDir);
+        }
+        if (artifact.previousMoved && (await fs.pathExists(artifact.backupDir))) {
+          await fs.move(artifact.backupDir, artifact.installedDir);
+        }
+        if (await fs.pathExists(artifact.stagingDir)) await fs.remove(artifact.stagingDir);
+      } catch (error_) {
+        rollbackError ||= error_;
+      }
+    }
+    if (rollbackError) {
+      throw new Error(`Plugin install failed (${error.message}) and rollback failed: ${rollbackError.message}`);
+    }
+    throw error;
+  }
+
+  // Both swaps are now committed. Backup cleanup is housekeeping: a cleanup
+  // failure must never trigger a rollback after another backup was deleted.
+  const cleanupFailures = [];
+  for (const artifact of artifacts) {
+    if (!artifact.previousMoved) continue;
+    try {
+      await fs.remove(artifact.backupDir);
+    } catch (error) {
+      cleanupFailures.push(`${artifact.backupDir}: ${error.message}`);
+    }
+  }
+  if (cleanupFailures.length > 0) {
+    await prompts.log.warn(`Plugin installed, but old backup cleanup requires attention: ${cleanupFailures.join('; ')}`);
+  }
 
   await prompts.log.success(`Installed plugin: ${pluginId}@${manifest.version}`);
 }
@@ -64,6 +154,7 @@ async function runRemove(projectDir, pluginId) {
   if (!pluginId) {
     throw new Error('hseos plugin remove requires a plugin id. Usage: hseos plugin remove <id>');
   }
+  assertPluginId(pluginId);
   const claudePluginDir = path.join(projectDir, '.claude-plugin', 'plugins', pluginId);
   const codexPluginDir = path.join(projectDir, '.codex-plugin', 'plugins', pluginId);
 
@@ -90,8 +181,18 @@ async function runDoctor(projectDir) {
     return;
   }
 
-  let passed = 0;
+  let activeManifests;
+  try {
+    activeManifests = await loadActivePluginManifests(projectDir, registry.plugins);
+    await verifyActivePluginConformance(projectDir, activeManifests);
+  } catch (error) {
+    await prompts.log.error(`✗ ${error.message}`);
+    throw new Error(`plugin doctor: active plugin conformance failed: ${error.message}`);
+  }
+
+  const passed = activeManifests.length;
   let failed = 0;
+  let skipped = 0;
   for (const entry of registry.plugins) {
     const manifestPath = path.join(projectDir, '.agents', 'plugins', 'definitions', entry.id, 'plugin.yaml');
     const readmePath = path.join(projectDir, '.agents', 'plugins', 'definitions', entry.id, 'README.md');
@@ -122,14 +223,19 @@ async function runDoctor(projectDir) {
       continue;
     }
 
+    if (entry.status !== 'active') {
+      await prompts.log.warn(`○ ${entry.id}@${manifest.version} — ${entry.status || 'inactive'}; behavior checks skipped`);
+      skipped++;
+      continue;
+    }
+
     await prompts.log.success(`✓ ${entry.id}@${manifest.version} — conformance pass`);
-    passed++;
   }
 
   if (failed > 0) {
     throw new Error(`plugin doctor: ${failed} plugin(s) failed conformance checks`);
   }
-  await prompts.log.success(`plugin doctor: all ${passed} plugin(s) passed.`);
+  await prompts.log.success(`plugin doctor: ${passed} active plugin(s) passed; ${skipped} inactive plugin(s) skipped.`);
 }
 
 module.exports = {

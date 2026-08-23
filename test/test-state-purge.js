@@ -28,6 +28,14 @@ const REPO_ROOT = path.join(__dirname, '..');
 const HSEOS_CLI = path.join(REPO_ROOT, 'tools', 'cli', 'hseos-cli.js');
 const MIGRATIONS_DIR = path.join(REPO_ROOT, 'tools', 'mcp-project-state', 'migrations');
 const { runMigrations } = require(path.join(REPO_ROOT, 'tools', 'mcp-project-state', 'lib', 'migrations'));
+const { ExecutionApprovalStore } = require(path.join(
+  REPO_ROOT,
+  'tools',
+  'mcp-project-state',
+  'lib',
+  'execution-approval-store',
+));
+const { deterministicOperationId } = require(path.join(REPO_ROOT, 'tools', 'lib', 'governed-execution', 'runtime'));
 
 let pass = 0;
 let fail = 0;
@@ -73,6 +81,7 @@ function runCli(args, opts = {}) {
   return spawnSync(process.execPath, [HSEOS_CLI, ...args], {
     encoding: 'utf8',
     timeout: 10_000,
+    env: { ...process.env, HSEOS_GOVERNED_EXECUTION_FIXTURE: '1', NODE_ENV: 'test' },
     ...opts,
   });
 }
@@ -96,27 +105,99 @@ it('dry-run reports counts without deleting', () => {
   if (n !== 1) throw new Error('run was deleted on dry-run');
 });
 
+it('--force without independent approval fails without deleting', () => {
+  const result = runCli(['state-purge', 'R-purge', '--directory', tmp, '--force', '--json']);
+  if (result.status === 0 || !result.stderr.includes('EXECUTION_APPROVAL_REQUIRED')) {
+    throw new Error(`expected approval failure, exit ${result.status}: ${result.stderr}`);
+  }
+  const db = new Database(dbPath, { readonly: true });
+  const remaining = db.prepare("SELECT COUNT(*) AS n FROM as_runs WHERE id = 'R-purge'").get().n;
+  db.close();
+  if (remaining !== 1) throw new Error('unapproved purge changed the run');
+});
+
+it('approval for one run cannot authorize purging another run', () => {
+  const approvalId = 'approval-purge-wrong-target';
+  const idempotencyKey = 'purge-wrong-target-operation';
+  const db = new Database(dbPath);
+  const now = new Date();
+  new ExecutionApprovalStore(db).issue({
+    approval_id: approvalId,
+    operation_id: deterministicOperationId('cli.state-purge', idempotencyKey),
+    authorizer: { id: 'independent-test-authorizer', type: 'human' },
+    resource_scope: { project: path.resolve(tmp), surface: 'cli', target: { kind: 'run', id: 'R-keep' } },
+    issued_at: now.toISOString(),
+    expires_at: new Date(now.getTime() + 300_000).toISOString(),
+    decision: 'approved',
+    policy_version: 'hseos-operational-v1',
+    evidence_ref: 'test://wrong-target-purge-approval',
+  });
+  db.close();
+  const result = runCli([
+    'state-purge', 'R-purge', '--directory', tmp, '--force',
+    '--approval-id', approvalId, '--idempotency-key', idempotencyKey, '--json',
+  ]);
+  if (result.status === 0 || !result.stderr.includes('EXECUTION_APPROVAL_SCOPE_MISMATCH')) {
+    throw new Error(`expected target scope rejection, exit ${result.status}: ${result.stderr}`);
+  }
+  const verify = new Database(dbPath, { readonly: true });
+  const remaining = verify.prepare("SELECT COUNT(*) AS n FROM as_runs WHERE id = 'R-purge'").get().n;
+  verify.close();
+  if (remaining !== 1) throw new Error('wrong-target approval changed the victim run');
+});
+
 it('--force deletes the run and dependent rows', () => {
-  const r = runCli(['state-purge', 'R-purge', '--directory', tmp, '--force', '--json']);
+  const approvalId = 'approval-purge-fixture';
+  const idempotencyKey = 'purge-fixture-operation';
+  const db = new Database(dbPath);
+  const now = new Date();
+  new ExecutionApprovalStore(db).issue({
+    approval_id: approvalId,
+    operation_id: deterministicOperationId('cli.state-purge', idempotencyKey),
+    authorizer: { id: 'independent-test-authorizer', type: 'human' },
+    resource_scope: { project: path.resolve(tmp), surface: 'cli', target: { kind: 'run', id: 'R-purge' } },
+    issued_at: now.toISOString(),
+    expires_at: new Date(now.getTime() + 300_000).toISOString(),
+    decision: 'approved',
+    policy_version: 'hseos-operational-v1',
+    evidence_ref: 'test://independent-purge-approval',
+  });
+  db.close();
+  const r = runCli([
+    'state-purge',
+    'R-purge',
+    '--directory',
+    tmp,
+    '--force',
+    '--approval-id',
+    approvalId,
+    '--idempotency-key',
+    idempotencyKey,
+    '--json',
+  ]);
   if (r.status !== 0) throw new Error(`exit ${r.status}: ${r.stderr}`);
   const out = JSON.parse(r.stdout);
   if (!out.purged) throw new Error('expected purged flag');
-  const db = new Database(dbPath);
-  const remaining = db.prepare("SELECT COUNT(*) AS n FROM as_runs WHERE id = 'R-purge'").get().n;
+  const verifyDb = new Database(dbPath);
+  const remaining = verifyDb.prepare("SELECT COUNT(*) AS n FROM as_runs WHERE id = 'R-purge'").get().n;
   // Both seeds create 3 events each; purging R-purge must leave no event
   // dangling (agent_run deleted) while R-keep's events survive intact.
-  const dangling = db
+  const dangling = verifyDb
     .prepare('SELECT COUNT(*) AS n FROM as_events e LEFT JOIN as_agent_runs ar ON e.agent_run_id = ar.id WHERE ar.id IS NULL')
     .get().n;
-  const keepEvents = db
+  const keepEvents = verifyDb
     .prepare("SELECT COUNT(*) AS n FROM as_events e JOIN as_agent_runs ar ON e.agent_run_id = ar.id WHERE ar.run_id = 'R-keep'")
     .get().n;
-  const tasks = db.prepare("SELECT COUNT(*) AS n FROM as_tasks WHERE run_id = 'R-purge'").get().n;
-  db.close();
+  const tasks = verifyDb.prepare("SELECT COUNT(*) AS n FROM as_tasks WHERE run_id = 'R-purge'").get().n;
+  const governed = verifyDb
+    .prepare(`SELECT event_type FROM execution_events WHERE aggregate_type = 'execution' ORDER BY position DESC LIMIT 1`)
+    .get();
+  verifyDb.close();
   if (remaining !== 0) throw new Error(`run still exists: ${remaining}`);
   if (tasks !== 0) throw new Error(`tasks still exist: ${tasks}`);
   if (dangling !== 0) throw new Error(`dangling events from purged run remain: ${dangling}`);
   if (keepEvents !== 3) throw new Error(`R-keep events were affected: expected 3, got ${keepEvents}`);
+  if (governed?.event_type !== 'ExecutionSucceeded') throw new Error('purge lacks a durable governed terminal fact');
 });
 
 it('R-keep run is preserved (not affected by R-purge)', () => {

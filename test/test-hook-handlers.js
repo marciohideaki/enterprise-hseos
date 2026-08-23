@@ -981,6 +981,67 @@ function testCodeIndexGuard() {
   });
 }
 
+function testSessionTrackInstalledConsumer() {
+  const source = path.join(HANDLERS_DIR, 'session-track.sh');
+  assertPass('session-track.sh exists', fs.existsSync(source), source);
+  if (!fs.existsSync(source)) return;
+  withTempDir((tempDir) => {
+    const handlerDir = path.join(tempDir, '.agents', 'hooks', 'handlers');
+    const binDir = path.join(tempDir, 'node_modules', '.bin');
+    const fixtureBinDir = path.join(tempDir, 'fixture-bin');
+    const capture = path.join(tempDir, 'captured-args');
+    fs.mkdirSync(handlerDir, { recursive: true });
+    fs.mkdirSync(binDir, { recursive: true });
+    fs.mkdirSync(fixtureBinDir, { recursive: true });
+    const handler = path.join(handlerDir, 'session-track.sh');
+    const localBin = path.join(binDir, 'hseos');
+    const fixtureGit = path.join(fixtureBinDir, 'git');
+    fs.copyFileSync(source, handler);
+    fs.writeFileSync(localBin, `#!/usr/bin/env bash\nprintf '%s\\n' "$*" > "${capture}"\n`);
+    fs.writeFileSync(fixtureGit, `#!/usr/bin/env bash\nprintf '%s\\n' "${tempDir}"\n`);
+    fs.chmodSync(handler, 0o755);
+    fs.chmodSync(localBin, 0o755);
+    fs.chmodSync(fixtureGit, 0o755);
+    execFileSync('git', ['init', '--quiet'], { cwd: tempDir });
+    const payload = JSON.stringify({ session_id: 'consumer-session', hook_event_name: 'SessionStart', cwd: tempDir });
+    const env = { ...process.env, NODE_ENV: 'production' };
+    // Git exports repository-local variables to hooks. They override `git -C`
+    // and would make this installed-consumer fixture resolve the source repo.
+    for (const key of [
+      'GIT_ALTERNATE_OBJECT_DIRECTORIES',
+      'GIT_COMMON_DIR',
+      'GIT_CEILING_DIRECTORIES',
+      'GIT_DIR',
+      'GIT_GRAFT_FILE',
+      'GIT_IMPLICIT_WORK_TREE',
+      'GIT_INDEX_FILE',
+      'GIT_INTERNAL_SUPER_PREFIX',
+      'GIT_NO_REPLACE_OBJECTS',
+      'GIT_OBJECT_DIRECTORY',
+      'GIT_PREFIX',
+      'GIT_REPLACE_REF_BASE',
+      'GIT_SHALLOW_FILE',
+      'GIT_WORK_TREE',
+    ])
+      delete env[key];
+    env.PATH = `${fixtureBinDir}:${env.PATH}`;
+    const result = runHandler(handler, [], { cwd: tempDir, env, input: payload, stdio: ['pipe', 'pipe', 'pipe'] });
+    let captured = '';
+    // The handler intentionally detaches its best-effort write. Under the full
+    // quality gate, native SQLite tests can keep the runner busy for longer
+    // than the former 500 ms polling window even though the child is healthy.
+    for (let attempt = 0; attempt < 100 && !fs.existsSync(capture); attempt += 1) {
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25);
+    }
+    if (fs.existsSync(capture)) captured = fs.readFileSync(capture, 'utf8');
+    assertPass(
+      'session-track.sh uses the project-local installed hseos binary',
+      result.ok && captured.includes('state-session register') && captured.includes('consumer-session'),
+      `captured="${captured.trim()}"`,
+    );
+  });
+}
+
 // =============================================================================
 // Run
 // =============================================================================
@@ -995,6 +1056,7 @@ testOnPromptSubmit();
 testSessionEnd();
 testSuggestSkill();
 testCodeIndexGuard();
+testSessionTrackInstalledConsumer();
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed === 0 ? 0 : 1);

@@ -408,7 +408,7 @@ hseos/
 | W2 | Compiler v2 modular pipeline (sources / adapters / lib / manifest) | ✅ |
 | W3 | 3 native MCP servers (governance :3101, swarm :3102, axon-bridge :3103) | ✅ |
 | W4 | Hook handlers implementation — 8 active handlers | ✅ |
-| W5 | Plugin marketplace + dual-format emit (`.claude-plugin/` + `.codex-plugin/`) | ✅ |
+| W5 | Plugin marketplace + dual-format emitter infrastructure | ✅ infrastructure; candidates scaffolded |
 | W6 | Self-verification suite (verify / audit / doctor — 12 tests) | ✅ |
 | W7 | `@hseos/adapter-sdk` + Goose BYOA reference adapter — 37 tests | ✅ |
 | W8 | Bilingual docs + CI matrix + migration guide + smithery.yaml | ✅ |
@@ -450,7 +450,9 @@ Install a third-party adapter via npm (`npm install @hseos/adapter-my-tool`) —
   <img src="docs/assets/plugin-marketplace.png" alt="HSEOS plugin marketplace — install flow and dual-format emit" width="90%" />
 </p>
 
-HSEOS ships 4 built-in plugins and a dual-format emitter (`.claude-plugin/` + `.codex-plugin/`):
+HSEOS ships the dual-format marketplace infrastructure. The four catalog candidates are
+currently `scaffolded`: they are visible in `plugin list`, but are not emitted or installable
+until their behavior tests pass.
 
 | Plugin | Purpose |
 |---|---|
@@ -461,8 +463,8 @@ HSEOS ships 4 built-in plugins and a dual-format emitter (`.claude-plugin/` + `.
 
 ```bash
 hseos plugin list              # show marketplace catalog
-hseos plugin install <id>      # install to .claude-plugin/ + .codex-plugin/
-hseos plugin doctor            # conformance check all installed plugins
+hseos plugin install <id>      # accepts only status: active
+hseos plugin doctor            # validates active entries; reports inactive candidates
 ```
 
 ---
@@ -692,7 +694,9 @@ Instale um adapter de terceiros via npm (`npm install @hseos/adapter-minha-ferra
 
 ### Plugin Marketplace
 
-O HSEOS inclui 4 plugins nativos e um emissor dual-format (`.claude-plugin/` + `.codex-plugin/`):
+O HSEOS inclui a infraestrutura de marketplace dual-format. Os quatro candidatos do
+catálogo estão `scaffolded`: aparecem em `plugin list`, mas não são emitidos nem instaláveis
+até passarem por testes de comportamento.
 
 | Plugin | Finalidade |
 |---|---|
@@ -703,8 +707,8 @@ O HSEOS inclui 4 plugins nativos e um emissor dual-format (`.claude-plugin/` + `
 
 ```bash
 hseos plugin list              # exibir catálogo do marketplace
-hseos plugin install <id>      # instalar em .claude-plugin/ + .codex-plugin/
-hseos plugin doctor            # verificar conformidade dos plugins instalados
+hseos plugin install <id>      # aceita somente status: active
+hseos plugin doctor            # valida ativos e informa candidatos inativos
 ```
 
 ### Links

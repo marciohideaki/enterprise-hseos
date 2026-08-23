@@ -23,10 +23,10 @@ full project inventory.
   `mcp_servers`, `mcp_bundles_active` (+ `counts`).
 - Self-verification: `verify` (integrity — skills **and** agents), `audit`, `doctor`.
 
-**Remaining (this plan)** — the manifest *registers* plugins/MCP/agents but the
-compiler does not yet *emit* per-adapter plugin/MCP configs or rendered
-subagents, is not yet in the v2.0 manifest form, has no per-asset signatures, and
-ships only 2 of the 6 ADR-0007 adapters.
+**Remaining (this plan)** — MCP configs and rendered subagents still need complete
+per-adapter coverage. Plugin catalogs are emitted from active registry entries; inactive
+scaffolds are excluded. The manifest is not yet in the v2.0 form and has no per-adapter
+signatures.
 
 ---
 
@@ -36,7 +36,7 @@ ships only 2 of the 6 ADR-0007 adapters.
 |------|-------|-----|--------|
 | **W1** | Manifest integrity hardening — `verify` covers the agent catalog (CRLF-normalized sha256), closing the drift foot-gun introduced with the agent catalog | 0007 | **Done (this PR)** |
 | **W2** | Per-adapter **MCP emit** — `.mcp.json` (root), `.codex/config.toml [mcp_servers]`, `.cursor/mcp.json` from the active bundles | 0008 | Planned |
-| **W3** | Per-adapter **plugin emit** — marketplace manifests per adapter format from the plugin registry | 0009 | Planned |
+| **W3** | Per-adapter **plugin emit** — marketplace manifests contain only active registry entries | 0009 | **Done** |
 | **W4** | **Rendered subagents** — emit agents as adapter-specific subagent files; populate `agents[].rendered` map | 0007 | Planned |
 | **W5** | **v2.0 manifest form** — `adapters[]` array (`id, enabled, spec, output, capabilities, sha256`), `schema_version: "2.0"`, `generated_at`, `CAPABILITY-MATRIX.md` generated from adapter specs | 0007 | Planned |
 | **W6** | **Signatures & drift** — `.agents/.signatures/<adapter>.sha256`, `adapters[].sha256`, drift detection in CI and at SessionStart | 0007 | Planned |

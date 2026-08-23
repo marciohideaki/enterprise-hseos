@@ -22,7 +22,7 @@ Números do sistema (estado atual):
 | Comandos CLI `hseos` | ~21 (auto-discovery em `tools/cli/commands/`) |
 | Servidores MCP nativos | 4 (+ 5 market-standard + 5 enterprise via bundles) |
 | Adapters de IDE/plataforma | 19 no installer; 3 com spec declarativa completa (claude-code, codex, goose) |
-| Perfis de capability | 7 (`minimal`→`full`) · 4 hook profiles · 18 componentes + sintéticos `skill:*` |
+| Perfis de capability | 7 (`minimal`→`full`) · 4 hook profiles · 26 componentes + sintéticos `skill:*` |
 | ADRs | 16 (14 Accepted; 0004/0005 são templates "Proposed" — ratificação em lote 2026-07-08) |
 | Standards normativos | 13 core + 16 cross-cutting + 7 stacks × 10 docs |
 | Políticas | 12 |
@@ -288,9 +288,9 @@ Subsistema de instalação (`tools/cli/installers/`): orquestrador de 3.8k linha
 | Server | Porta | Status | Tools | Por que existe |
 |---|---|---|---|---|
 | `mcp-project-state` | 3100 | **implemented** | runs/tasks/events/handoffs sobre schema `as_*` + FTS5 | Estado de execução queryável por agente ("qual agente tocou auth nos últimos 30 runs") |
-| `mcp-hseos-governance` | 3101 | scaffolded | query_constitution, validate_adr, check_authority, list_skills, list_workflows | Governança consultável via MCP em vez de leitura de arquivos |
-| `mcp-hseos-swarm` | 3102 | scaffolded | plan_squad, dispatch_wave, consolidate_handoff, get_run_state | Protocolo dev-squad como API (hoje opera em markdown/filesystem; integração SQLite declarada mas não implementada) |
-| `mcp-axon-bridge` | 3103 | scaffolded | code_search, dep_graph, get_skeleton, get_overview, memory_search, run_pipeline | Wrapper portável do Axon com resolução de binário em 4 passos e fallback no-op (`fallback:true`) — P5/P6 |
+| `mcp-hseos-governance` | 3101 | **implemented** | query_constitution, validate_adr, check_authority, list_skills, list_workflows | Governança consultável via MCP em vez de leitura de arquivos |
+| `mcp-hseos-swarm` | 3102 | **implemented** | plan_squad, dispatch_wave, consolidate_handoff, get_run_state, list_runs | Protocolo dev-squad como API sobre os artefatos de run; a normalização com o estado relacional está proposta no ADR-0022 |
+| `mcp-axon-bridge` | 3103 | **implemented** | code_search, dep_graph, get_skeleton, get_overview, memory_search, run_pipeline | Wrapper portável do Axon com resolução de binário e fallback no-op (`fallback:true`) — P5/P6 |
 
 Bundles (ADR-0008, `.agents/mcp/bundles/`): **core** (sempre: governance, state, filesystem), **extended** (opt-in: swarm, axon-bridge, sequential-thinking, fetch, memory), **enterprise** (opt-in + secrets via env: github, postgres SELECT-only, kubernetes read-mostly, sentry, azure-devops com regras operacionais embutidas — "nunca criar com State=Closed", ≤10 chamadas/turno). Ativos: `[core, extended]`.
 
@@ -298,8 +298,8 @@ Bundles (ADR-0008, `.agents/mcp/bundles/`): **core** (sempre: governance, state,
 
 - `tools/usage-dashboard/` (Python) — mineração dos JSONL do Claude Code para SQLite + dashboard de custo/uso (:8080, exposto na rede local deliberadamente).
 - `tools/state-ui-server/` — kanban web SSE (loopback-only por default; `lib/snapshot.js` é a fonte única do formato, compartilhada com o kanban ASCII).
-- `packages/adapter-sdk` (`@hseos/adapter-sdk` v1.0.0, scaffolded) — contrato `AdapterBase` + `checkAdapterConformance` para BYOA; Goose é o adapter de referência.
-- Plugins (ADR-0009, 4): `hseos-skill-creator`, `hseos-hookify`, `hseos-pr-review` (extends toolkit oficial), `hseos-security-guidance` — emissão dual `.claude-plugin/` + `.codex-plugin/`.
+- `packages/adapter-sdk` (`@hseos/adapter-sdk` v1.0.0, **implemented**) — contrato `AdapterBase` + `checkAdapterConformance` para BYOA; Goose é o adapter de referência.
+- Plugins (ADR-0009): a fonte canônica é `.enterprise/governance/plugins/`; o compiler sincroniza uma visão exata em `.agents/plugins/` e só então emite os formatos de vendor. O registry v2 falha fechado e os quatro candidatos permanecem `scaffolded`, fora do manifest, da publicação e da instalação até terem testes de comportamento aprovados.
 
 ### 9.4 Scripts de governança (`scripts/governance/`)
 
@@ -322,9 +322,9 @@ Bundles (ADR-0008, `.agents/mcp/bundles/`): **core** (sempre: governance, state,
 
 **Solução (aditiva — não substitui Constituição/gates/worktree):**
 
-- `.agents/capabilities/components.yaml` — 18 componentes + sintéticos, em 5 famílias: `baseline:*` (3, `required:true` — governance, entrypoints, skills-registry; **irremovíveis**), `runtime:*` (4 — hooks, state, workflows, mcp), `capability:*` (11 — architecture, delivery, security, knowledge, observability, gitops, ado, sandbox, readiness, solo, verification — cada um mapeando skills reais), `adapter:*` (3), `skill:*` (sintéticos, gerados em runtime de `.agents/skills/` — ≥40; só seletores, a autoridade permanece em `.enterprise/`).
+- `.agents/capabilities/components.yaml` — schema v2 com 26 componentes estáticos + sintéticos, em 6 famílias: `baseline:*` (3, `required:true` e injetados pelo resolver — governance, entrypoints, skills-registry; **irremovíveis**), `runtime:*` (4), `capability:*` (12), `adapter:*` (3), `extra:*` (4) e `skill:*` sintéticos; a autoridade das skills permanece em `.enterprise/`.
 - `.agents/capabilities/profiles.yaml` — 7 perfis: `minimal` (advisory), `developer` (**default**, standard), `governance`/`gitops`/`ado` (strict), `solo` (standard), `full` (ci, único com adapter goose).
-- `tools/cli/lib/capability-catalog.js` — `loadCapabilityCatalog` / `resolveCapabilityPlan` (sempre inclui `required`; valida IDs; retorna plano `{profile, hook_profile, components, modules, tools, skills, install_paths}`) / `loadAdapterMatrix` / `writeCapabilitySelection` (persiste em `.hseos/config/capability-selection.yaml`).
+- `tools/cli/lib/capability-catalog.js` — validação fail-closed do schema v2, `loadCapabilityCatalog` / `resolveCapabilityPlan` (sempre inclui o baseline obrigatório, rejeita referências/campos inválidos e retorna seleção determinística) / `loadAdapterMatrix` / `writeCapabilitySelection`. O compiler recebe somente `plan.skills`, reconcilia resíduos de perfis anteriores e falha se seleção e emissão divergirem.
 - CLI: `hseos install-plan --profile <id> [--json|--list-*|--adapters]` (dry-run) e `hseos install --profile/--components/--skills/--hook-profile`.
 - Testes: `test/test-capability-catalog.js` (integridade referencial perfil→componente→skill, resolução, flags).
 

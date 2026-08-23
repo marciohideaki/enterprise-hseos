@@ -19,6 +19,7 @@ The goal: AI agents multiply engineering capacity without degrading quality, sec
 |---|---|
 | [getting-started.md](getting-started.md) | Day 1 setup — install CLI, configure project, first commands |
 | [capabilities.md](capabilities.md) | Capability profiles/components (ADR-0016) — what installs what, prerequisites, opt-in extras |
+| [plugins.md](plugins.md) | Plugin authority, schema v2, activation gates, generated views, install/remove lifecycle |
 | [agents/](agents/) | Every agent: what it does, when to activate it, what it cannot do |
 | [workflows.md](workflows.md) | The 6 delivery workflows — phases, human touchpoints, how to resume |
 | [skills.md](skills.md) | Governance skills catalog — what gets enforced, when, and why |

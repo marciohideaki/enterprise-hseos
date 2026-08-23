@@ -13,9 +13,9 @@ plan; `hseos install` materializes it. The governance baseline can never be dese
 | Concept | What it is |
 |---|---|
 | **Profile** | Named, curated selection of components + a hook profile. One command → coherent surface. |
-| **Component** | Installable unit in one of 5 families: `baseline:*`, `runtime:*`, `capability:*`, `adapter:*`, `skill:*`. |
+| **Component** | Installable unit in one of 6 families: `baseline:*`, `runtime:*`, `capability:*`, `adapter:*`, `skill:*`, `extra:*`. |
 | **Baseline** | `baseline:governance`, `baseline:entrypoints`, `baseline:skills-registry` are `required: true` — always included, impossible to remove. |
-| **Synthetic `skill:*` selectors** | Generated at runtime from the compiled manifest — every governed skill (49 today) is individually selectable via `--skills <id>`; authority stays in `.enterprise/`. |
+| **Synthetic `skill:*` selectors** | Generated at runtime from the governed manifest — every governed skill is individually selectable via `--skills <id>`; authority stays in `.enterprise/`. |
 | **Hook profile** | Enforcement posture: `advisory` (warn-only) · `standard` (dev default) · `strict` (heavy local gates) · `ci` (required gates fail hard). Repository-mandatory gates are never disabled by a lighter profile. |
 | **Prerequisites** | Declared per component in the catalog and rendered by `hseos install-plan`. Every optional component **degrades gracefully** when its prerequisite is unmet — installing without the prerequisite is always safe. |
 
@@ -75,9 +75,11 @@ hseos install --profile developer --components extra:usage-dashboard
 
 ## Guarantees & invariants
 
-- **Baseline is irremovable** — `resolveCapabilityPlan` always injects `required: true` components.
+- **Schema v2 fails closed** — both catalog documents require `schema_version: "2.0"`; unknown fields, duplicate IDs, unsafe paths, invalid references, multiple defaults, or a changed mandatory baseline are rejected before resolution.
+- **Baseline is irremovable and normalized** — `resolveCapabilityPlan` always injects the three `required: true` components; profile documents are forbidden from repeating them.
+- **Materialization is exact** — a capability-driven install passes only `plan.skills` to the compiler. Generated `.agents/skills` and Goose mirrors are reconciled on profile changes, and compilation fails if the selected and emitted skill sets differ.
 - **Referential integrity is tested** — `test/test-capability-catalog.js` fails if a profile references
   an unknown component, a component references an unknown skill, **any governed skill lacks a
   capability-family home**, or prerequisites are malformed.
 - **Selection is persisted** — the resolved plan is written to `.hseos/config/capability-selection.yaml`
-  for audit and reproducibility.
+  for audit and reproducibility only after installation succeeds.

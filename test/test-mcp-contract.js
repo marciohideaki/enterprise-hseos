@@ -18,7 +18,13 @@ const fs = require('node:fs');
 const os = require('node:os');
 const http = require('node:http');
 const { spawn } = require('node:child_process');
-const { MCP_PROTOCOL_VERSION } = require('../tools/lib/mcp-protocol');
+const {
+  CLIENT_CAPABILITIES_META_KEY,
+  CLIENT_INFO_META_KEY,
+  PROTOCOL_VERSION_META_KEY,
+  SERVER_INFO_META_KEY,
+} = require('../tools/lib/mcp-2026-adapter');
+const { MCP_MODERN_PROTOCOL_VERSION } = require('../tools/lib/mcp-protocol');
 
 const REPO_ROOT = path.join(__dirname, '..');
 
@@ -43,8 +49,13 @@ const STDIO_SERVERS = [
 
 function probeStdio(server) {
   return new Promise((resolve, reject) => {
-    const tmp = server.withTempDb ? fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-mcp-contract-')) : null;
-    const env = { ...process.env, ...(tmp ? { HSEOS_STATE_DB: path.join(tmp, 'project.db') } : {}) };
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-mcp-contract-'));
+    const env = {
+      ...process.env,
+      HSEOS_GOVERNED_EXECUTION_FIXTURE: '1',
+      HSEOS_STATE_DB: path.join(tmp, 'project.db'),
+      NODE_ENV: 'test',
+    };
     const child = spawn(process.execPath, [server.script], { cwd: REPO_ROOT, env, stdio: ['pipe', 'pipe', 'pipe'] });
 
     let stdout = '';
@@ -52,7 +63,7 @@ function probeStdio(server) {
     child.stdout.on('data', (chunk) => (stdout += chunk));
     child.on('error', reject);
     child.on('close', () => {
-      if (tmp) fs.rmSync(tmp, { recursive: true, force: true });
+      fs.rmSync(tmp, { recursive: true, force: true });
       try {
         const [init, list] = stdout.trim().split('\n').filter(Boolean).map(JSON.parse);
         resolve({ init: init.result, tools: list.result?.tools || [] });
@@ -61,15 +72,38 @@ function probeStdio(server) {
       }
     });
 
-    child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: {} })}\n`);
-    child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} })}\n`);
+    const meta = {
+      [PROTOCOL_VERSION_META_KEY]: MCP_MODERN_PROTOCOL_VERSION,
+      [CLIENT_INFO_META_KEY]: { name: 'contract-test', version: '1.0.0' },
+      [CLIENT_CAPABILITIES_META_KEY]: {},
+    };
+    child.stdin.write(
+      `${JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'server/discover',
+        params: { _meta: meta },
+      })}\n`,
+    );
+    child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: { _meta: meta } })}\n`);
     child.stdin.end();
   });
 }
 
 function httpRpc(port, payload) {
   return new Promise((resolve, reject) => {
-    const req = http.request({ host: '127.0.0.1', port, method: 'POST', headers: { 'Content-Type': 'application/json' } }, (res) => {
+    const req = http.request({
+      host: '127.0.0.1',
+      port,
+      path: '/mcp',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'mcp-protocol-version': MCP_MODERN_PROTOCOL_VERSION,
+        'mcp-method': payload.method,
+        ...(payload.params?.name ? { 'mcp-name': payload.params.name } : {}),
+      },
+    }, (res) => {
       let body = '';
       res.setEncoding('utf8');
       res.on('data', (chunk) => (body += chunk));
@@ -88,10 +122,17 @@ function httpRpc(port, payload) {
 
 function probeAxonBridgeHttp() {
   const port = 3900 + (process.pid % 90);
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-mcp-contract-axon-'));
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [path.join(REPO_ROOT, 'tools', 'mcp-axon-bridge', 'index.js'), `--port=${port}`], {
       cwd: REPO_ROOT,
       stdio: ['ignore', 'pipe', 'pipe'],
+      env: {
+        ...process.env,
+        HSEOS_GOVERNED_EXECUTION_FIXTURE: '1',
+        HSEOS_STATE_DB: path.join(tmp, 'project.db'),
+        NODE_ENV: 'test',
+      },
     });
     const timeout = setTimeout(() => {
       child.kill();
@@ -103,13 +144,24 @@ function probeAxonBridgeHttp() {
       if (!chunk.includes('listening')) return;
       clearTimeout(timeout);
       try {
-        const init = await httpRpc(port, { jsonrpc: '2.0', id: 1, method: 'initialize', params: {} });
-        const list = await httpRpc(port, { jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} });
+        const meta = {
+          [PROTOCOL_VERSION_META_KEY]: MCP_MODERN_PROTOCOL_VERSION,
+          [CLIENT_INFO_META_KEY]: { name: 'contract-test', version: '1.0.0' },
+          [CLIENT_CAPABILITIES_META_KEY]: {},
+        };
+        const init = await httpRpc(port, {
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'server/discover',
+          params: { _meta: meta },
+        });
+        const list = await httpRpc(port, { jsonrpc: '2.0', id: 2, method: 'tools/list', params: { _meta: meta } });
         resolve({ init: init.result, tools: list.result?.tools || [] });
       } catch (error) {
         reject(error);
       } finally {
         child.kill();
+        fs.rmSync(tmp, { recursive: true, force: true });
       }
     });
     child.on('error', (error) => {
@@ -121,11 +173,11 @@ function probeAxonBridgeHttp() {
 
 function assertServerContract(name, probe) {
   assertPass(
-    `${name}: protocolVersion matches the shared mcp-protocol constant`,
-    probe.init?.protocolVersion === MCP_PROTOCOL_VERSION,
-    `${probe.init?.protocolVersion} != ${MCP_PROTOCOL_VERSION}`,
+    `${name}: fixture supports the gated modern protocol`,
+    probe.init?.supportedVersions?.includes(MCP_MODERN_PROTOCOL_VERSION),
+    `${JSON.stringify(probe.init?.supportedVersions)} does not include ${MCP_MODERN_PROTOCOL_VERSION}`,
   );
-  assertPass(`${name}: initialize returns serverInfo.name`, typeof probe.init?.serverInfo?.name === 'string');
+  assertPass(`${name}: discovery returns serverInfo.name`, typeof probe.init?._meta?.[SERVER_INFO_META_KEY]?.name === 'string');
   assertPass(`${name}: exposes at least one tool`, probe.tools.length > 0, String(probe.tools.length));
   const names = probe.tools.map((tool) => tool.name);
   assertPass(`${name}: tool names are unique`, new Set(names).size === names.length, names.join(','));
@@ -142,12 +194,12 @@ function assertServerContract(name, probe) {
   for (const server of STDIO_SERVERS) {
     const probe = await probeStdio(server);
     assertServerContract(server.name, probe);
-    versions.push(probe.init?.protocolVersion);
+    versions.push(JSON.stringify(probe.init?.supportedVersions));
   }
 
   const axon = await probeAxonBridgeHttp();
   assertServerContract('axon-bridge (http)', axon);
-  versions.push(axon.init?.protocolVersion);
+  versions.push(JSON.stringify(axon.init?.supportedVersions));
 
   assertPass('all four servers report an identical protocolVersion', new Set(versions).size === 1, versions.join(','));
 

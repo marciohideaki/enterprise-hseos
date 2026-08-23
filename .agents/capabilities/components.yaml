@@ -1,4 +1,4 @@
-version: "1.0"
+schema_version: "2.0"
 component_families:
   - baseline
   - runtime
@@ -53,12 +53,12 @@ components:
     family: baseline
     name: Skills Registry
     required: true
-    description: Governed skill registry plus Tier 1 and Tier 2 skill files.
+    description: Governed skill authority and compiled registry; profile-selected skills are materialized separately.
     modules: []
     tools: []
     install_paths:
       - .enterprise/governance/agent-skills/
-      - .agents/skills/
+      - .agents/manifest.yaml
 
   - id: runtime:hooks
     family: runtime
@@ -109,6 +109,51 @@ components:
       - tools/mcp-hseos-swarm/
       - tools/mcp-project-state/
       - tools/mcp-axon-bridge/
+
+  - id: runtime:agent-kernel
+    family: runtime
+    name: Model-agnostic Agent Kernel
+    description: Contracts, durable sessions, context, governed tools, compaction, orchestration, model providers, and the headless AgentRuntime.
+    prerequisites:
+      - "operational schema activation remains gated; reference execution uses only marked stores created under the operating-system temporary directory"
+    modules:
+      - agent-runtime-contracts
+      - agent-session-store
+      - agent-context
+      - governed-execution
+      - tool-runtime
+      - model-providers
+      - agent-runtime
+      - agent-compaction
+      - agent-orchestration
+    tools: []
+    install_paths:
+      - packages/agent-runtime-contracts/
+      - packages/agent-session-store/
+      - packages/agent-context/
+      - packages/governed-execution/
+      - packages/tool-runtime/
+      - packages/model-providers/
+      - packages/agent-runtime/
+      - packages/agent-compaction/
+      - packages/agent-orchestration/
+
+  - id: runtime:agent-reference
+    family: runtime
+    name: Keyless Agent Reference Profile
+    description: Temporary scripted model, governed state tool, exact provider selection, and run/resume/cancel CLI surface.
+    prerequisites:
+      - "reference-only and keyless; it never activates the operational ledger or loads environment credentials"
+    modules:
+      - agent-reference-profile
+    tools: []
+    install_paths:
+      - tools/cli/commands/agent.js
+      - tools/cli/lib/reference-agent-runtime.js
+      - tools/lib/governed-execution/
+      - tools/mcp-project-state/lib/
+      - tools/mcp-project-state/migrations/
+      - tools/mcp-project-state/migrations-pending-activation/
 
   - id: capability:architecture
     family: capability
@@ -315,5 +360,7 @@ components:
     family: adapter
     name: Goose Adapter
     description: Portable adapter metadata for Goose-compatible agent execution.
+    tools:
+      - goose
     install_paths:
       - .agents/adapters/goose.yaml

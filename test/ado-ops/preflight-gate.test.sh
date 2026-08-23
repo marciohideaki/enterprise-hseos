@@ -2,7 +2,7 @@
 # Tests for ado-preflight-gate.sh
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
 HANDLER="${PROJECT_ROOT}/.agents/hooks/handlers/ado-preflight-gate.sh"
 PASS=0; FAIL=0
 ok() { echo "  ✓ $*"; ((PASS++)) || true; }
