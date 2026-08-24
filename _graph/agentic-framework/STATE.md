@@ -4,7 +4,7 @@
 **Scope:** Model-agnostic HSEOS Agent Framework and A13 operational activation evidence
 **Governing documents:** Enterprise Constitution; ADR-0024; ADR Policy; Automated Validation Rules
 
-- **Status:** A0 completed; A1–A12 completed; A13 in progress with migration/rollback/profile rehearsal passed and operational cutover still blocked
+- **Status:** A0 completed; A1–A12 and A14–A21 completed; A13 in progress with migration/rollback/profile rehearsal passed and operational cutover still blocked
 - **Current node:** A13 — evidence collection; no operational activation
 - **Baseline:** `d7886b571a7b`
 - **Observed:** HSEOS has a model-neutral Agent Kernel, a non-operational reference profile and an explicit OpenAI-compatible activation candidate; production activation remains gated
@@ -20,6 +20,8 @@
 - **A13 required sandbox runtime:** `ai-jail 1.20.0` and Ubuntu `bubblewrap 0.9.0` execute a real clean lockdown probe; a scoped AppArmor profile preserves the global user-namespace restriction while enabling `bwrap`; the doctor now verifies effective execution rather than binary presence alone
 - **A13 exact sandbox profile:** supervisors now execute the exact configured profile before secret access; real `ai-jail 1.20.0` rejects restricted TCP egress and requires unrestricted `--network`, so the networked candidate remains fail-closed pending an egress decision/backend
 - **A14 restricted egress:** the raw-provider candidate now uses a supervisor-owned Unix socket with no sandbox network; endpoint/route/credential ownership, bounded transport, secret-free worker execution and digested cross-process state promotion passed on real `ai-jail`/`bwrap`
+- **A15–A20 Claude Code hardening:** all seven selected proposals are dispositioned and tested; six are fully adopted, while generic credential sentinel substitution is rejected in favor of the narrower A19 broker boundary
+- **A21 integrated evidence:** exact seven-item conformance, full repository gate and independent trace-lineage refutation passed; no operational schema, cutover authority or provider-specific kernel branch was added
 - **A10–A11 live delegated providers:** authenticated Codex CLI `0.149.0` and Claude Code `2.1.241` requests completed through `hseos agent run`; first-turn provider continuity, current Codex app-server v2 sandbox spelling and Claude SDK rate-limit events are covered by regressions
 - **A10–A11 live lifecycle boundary:** one-turn `run` is proven and is now the only public lifecycle advertised by the direct Codex profile; raw app-server does not persist a pre-turn rollout, so `create-only`, cross-process resume and post-process cancel fail closed
 - **A13 DeepSeek public profile:** the hash-bound tool-free ACP composition is exposed as an honest sandbox-required `run`-only candidate; deterministic create+prompt persists terminal truth while unsupported lifecycle actions fail closed
