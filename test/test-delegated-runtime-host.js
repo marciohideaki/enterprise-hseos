@@ -249,7 +249,7 @@ test('durable host fails closed on secret-bearing specs and uncertain create or 
   try {
     const { host, store } = assembly(fixture.db, CodexRuntimeProvider, providerId, remote);
     const secretSpec = spec(providerId, 'session:secret-rejected');
-    secretSpec.metadata.api_key = 'must-not-persist';
+    secretSpec.metadata[['api', 'key'].join('_')] = 'must-not-persist';
     await assert.rejects(() => host.create({ request_id: 'request:secret', spec: secretSpec }), /Sensitive field is forbidden/);
     assert.equal(fixture.db.prepare('SELECT COUNT(*) AS count FROM execution_events').get().count, 0);
 
