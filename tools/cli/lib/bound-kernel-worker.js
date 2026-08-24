@@ -1,8 +1,11 @@
 'use strict';
 
 const { stdin, stdout } = require('node:process');
+const fs = require('node:fs');
 
 const { cancelBoundKernelAgent, resumeBoundKernelAgent, runBoundKernelAgent } = require('./bound-kernel-agent-runtime');
+const { createUnixSocketFetch } = require('./provider-egress-broker');
+const { captureStateSnapshot, restoreStateSnapshot } = require('./bound-kernel-state-snapshot');
 
 const MAX_INPUT_BYTES = 1_048_576;
 const OPERATIONS = new Set(['run', 'resume', 'cancel']);
@@ -30,7 +33,7 @@ function allowedObject(value, allowed, required, label) {
 }
 
 function validatePayload(value) {
-  exactObject(value, ['attestation', 'operation', 'options', 'schema_version'], 'worker payload');
+  exactObject(value, ['attestation', 'operation', 'options', 'schema_version', 'state_snapshot', 'transport'], 'worker payload');
   if (value.schema_version !== 1 || !OPERATIONS.has(value.operation)) throw new BoundKernelWorkerError('worker payload is unsupported');
   const optionShapes = {
     run: { allowed: ['bindingPath', 'createOnly', 'message', 'sessionId', 'value'], required: ['bindingPath', 'createOnly'] },
@@ -38,19 +41,42 @@ function validatePayload(value) {
     cancel: { allowed: ['reason', 'state'], required: ['state'] },
   };
   allowedObject(value.options, optionShapes[value.operation].allowed, optionShapes[value.operation].required, 'worker options');
+  if (value.transport !== null) {
+    exactObject(value.transport, ['kind', 'socket_path'], 'worker transport');
+    if (value.transport.kind !== 'unix-socket' || typeof value.transport.socket_path !== 'string' || !value.transport.socket_path.startsWith('/')) {
+      throw new BoundKernelWorkerError('worker transport must be an absolute Unix socket');
+    }
+  }
+  if ((value.operation === 'run' && value.state_snapshot !== null) || (value.operation !== 'run' && !value.state_snapshot)) {
+    throw new BoundKernelWorkerError('worker state snapshot does not match the operation');
+  }
   return value;
 }
 
 async function executeWorkerPayload(input, environment = process.env) {
   const payload = validatePayload(input);
+  let restoredState = null;
+  if (payload.operation !== 'run') {
+    restoredState = restoreStateSnapshot(payload.state_snapshot);
+    payload.options = { ...payload.options, state: restoredState };
+  }
   const executionAuthorizer = async () => payload.attestation;
-  if (payload.operation === 'run') {
-    return runBoundKernelAgent({ ...payload.options, environment, executionAuthorizer });
+  const fetch_impl = payload.transport ? createUnixSocketFetch(payload.transport.socket_path) : undefined;
+  const secret_resolver = payload.transport ? async () => 'hseos-supervisor-owned-secret' : undefined;
+  let result;
+  try {
+    if (payload.operation === 'run') {
+      result = await runBoundKernelAgent({ ...payload.options, environment, executionAuthorizer, fetch_impl, secret_resolver });
+    } else if (payload.operation === 'resume') {
+      result = await resumeBoundKernelAgent({ ...payload.options, environment, executionAuthorizer, fetch_impl, secret_resolver });
+    } else {
+      result = await cancelBoundKernelAgent({ ...payload.options, environment });
+    }
+    return { result, state_snapshot: captureStateSnapshot(result.state) };
+  } finally {
+    const state = result?.state || restoredState;
+    if (state && fs.existsSync(state)) fs.rmSync(state, { recursive: true, force: true });
   }
-  if (payload.operation === 'resume') {
-    return resumeBoundKernelAgent({ ...payload.options, environment, executionAuthorizer });
-  }
-  return cancelBoundKernelAgent({ ...payload.options, environment });
 }
 
 async function readInput(stream = stdin) {
@@ -70,8 +96,8 @@ async function readInput(stream = stdin) {
 
 async function main() {
   try {
-    const result = await executeWorkerPayload(await readInput());
-    stdout.write(`${JSON.stringify({ ok: true, result })}\n`);
+    const executed = await executeWorkerPayload(await readInput());
+    stdout.write(`${JSON.stringify({ ok: true, ...executed })}\n`);
   } catch (error) {
     stdout.write(
       `${JSON.stringify({

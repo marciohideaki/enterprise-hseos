@@ -50,7 +50,7 @@ function fixture(t, { port = '443', endpoint = 'https://provider.fixture.invalid
             masks: ['.env', '.env.local', 'credentials.json', 'secrets.yml'],
             ro_maps: [],
             rw_maps: [],
-            allow_tcp_ports: [String(port)],
+            allow_tcp_ports: [],
           },
         },
       },
@@ -154,7 +154,9 @@ test('supervisor executes the complete provider/tool loop inside the fixed sandb
       readinessCheck: readiness(),
       spawnImpl(binary, args, options) {
         assert.equal(binary, fs.realpathSync(project.binary));
-        assert.deepEqual(args.slice(-3), ['--', process.execPath, path.join(ROOT, 'tools', 'cli', 'lib', 'bound-kernel-worker.js')]);
+        assert.equal(args.at(-3), '--');
+        assert.match(args.at(-2), /^\/opt\/hideakisolutions\/\.hseos-runtime\/\.provider-runtime-[^/]+\/node$/);
+        assert.equal(args.at(-1), path.join(ROOT, 'tools', 'cli', 'lib', 'bound-kernel-worker.js'));
         childEnvironment = options.env;
         return spawn(binary, args, options);
       },
@@ -166,7 +168,8 @@ test('supervisor executes the complete provider/tool loop inside the fixed sandb
     assert.deepEqual(JSON.parse(fs.readFileSync(result.world_state, 'utf8')), { schema_version: 1, value: 'durable' });
     assert.equal(observed.length, 2);
     assert.ok(observed.every((request) => request.authorization === `Bearer ${SECRET}`));
-    assert.deepEqual(Object.keys(childEnvironment).sort(), ['HSEOS_DISABLE_UPDATE_CHECK', 'HSEOS_MODEL_PROVIDER_API_KEY', 'PATH']);
+    assert.deepEqual(Object.keys(childEnvironment).sort(), ['HSEOS_DISABLE_UPDATE_CHECK', 'PATH']);
+    assert.doesNotMatch(JSON.stringify(childEnvironment), new RegExp(SECRET));
     assert.doesNotMatch(JSON.stringify(result), /must-not-cross-worker-boundary/);
     const manifest = fs.readFileSync(path.join(result.state, 'bound-kernel-agent.json'), 'utf8');
     assert.match(manifest, /sandbox:\/\/ai-jail\/lockdown\/sha256\/[a-f0-9]{64}/);
