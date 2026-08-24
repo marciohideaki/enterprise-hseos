@@ -29,9 +29,87 @@ const cases = [
       const graph = loadAndValidate({ root: REPO_ROOT });
       assert.ok(graph.nodes.has('capability.governance.capability-graph'));
       assert.ok(graph.edges.size > 0);
-      assert.strictEqual(graph.registry.fragments.length, 2);
-      assert.strictEqual(graph.deferredFragments.length, 1);
-      assert.strictEqual(graph.deferredFragments[0].repository, 'repo.platform-core');
+      assert.strictEqual(graph.registry.fragments.length, 4);
+      assert.strictEqual(graph.deferredFragments.length, 3);
+      assert.deepStrictEqual(
+        graph.deferredFragments.map((fragment) => fragment.repository),
+        ['repo.platform-core', 'repo.backend-core', 'repo.cambio-real-v2'],
+      );
+    },
+  },
+  {
+    name: 'verified adoption requires a published installed artifact',
+    fn: () => {
+      const graph = loadAndValidate({ root: REPO_ROOT });
+      const fragments = clone(graph.fragments);
+      const fragment = fragments[0];
+      fragment.nodes.push(
+        {
+          id: 'package.fixture.messaging',
+          type: 'Package',
+          name: 'Fixture Package',
+          lifecycle: 'available',
+          attributes: { publication_state: 'published' },
+        },
+        {
+          id: 'artifact.fixture.messaging.v1',
+          type: 'ArtifactVersion',
+          name: 'Fixture Package 1.0.0',
+          lifecycle: 'available',
+          version: '1.0.0',
+        },
+        {
+          id: 'consumer.fixture.messaging',
+          type: 'Consumer',
+          name: 'Fixture Consumer',
+          lifecycle: 'available',
+          attributes: { adoption_state: 'verified-install', artifact_version_id: 'artifact.fixture.messaging.v1' },
+        },
+      );
+      fragment.edges.push(
+        {
+          id: 'edge.package.fixture.owned-by.platform-architecture',
+          type: 'OWNED_BY',
+          from: 'package.fixture.messaging',
+          to: 'owner.platform-architecture',
+          repository: 'repo.enterprise-hseos',
+        },
+        {
+          id: 'edge.artifact.fixture.owned-by.platform-architecture',
+          type: 'OWNED_BY',
+          from: 'artifact.fixture.messaging.v1',
+          to: 'owner.platform-architecture',
+          repository: 'repo.enterprise-hseos',
+        },
+        {
+          id: 'edge.package.fixture.published-as.v1',
+          type: 'PUBLISHED_AS',
+          from: 'package.fixture.messaging',
+          to: 'artifact.fixture.messaging.v1',
+          repository: 'repo.enterprise-hseos',
+          evidence: ['evidence.capability-graph.policy'],
+        },
+        {
+          id: 'edge.consumer.fixture.depends-on.package',
+          type: 'DEPENDS_ON',
+          from: 'consumer.fixture.messaging',
+          to: 'package.fixture.messaging',
+          repository: 'repo.enterprise-hseos',
+        },
+        {
+          id: 'edge.capability.graph.consumed-by.fixture',
+          type: 'CONSUMED_BY',
+          from: 'capability.governance.capability-graph',
+          to: 'consumer.fixture.messaging',
+          repository: 'repo.enterprise-hseos',
+          evidence: ['evidence.capability-graph.policy'],
+        },
+      );
+      validateGraph(graph.registry, fragments, REPO_ROOT);
+      fragment.nodes.find((node) => node.id === 'consumer.fixture.messaging').attributes = {
+        adoption_state: 'compatibility-evidence-only',
+      };
+      expectFailure('false adoption', () => validateGraph(graph.registry, fragments, REPO_ROOT), /verified-install/);
     },
   },
   {
@@ -69,6 +147,32 @@ const cases = [
       const fragments = clone(graph.fragments);
       fragments[0].edges[0].to = 'owner.missing';
       expectFailure('dangling edge', () => validateGraph(graph.registry, fragments, REPO_ROOT), /dangling edge target/);
+    },
+  },
+  {
+    name: 'typed relationship endpoints fail closed',
+    fn: () => {
+      const graph = loadAndValidate({ root: REPO_ROOT });
+      const fragments = clone(graph.fragments);
+      fragments[0].edges.push({
+        id: 'edge.invalid.implemented-by',
+        type: 'IMPLEMENTED_BY',
+        from: 'module.capability-graph.validator',
+        to: 'module.constitution-change.validator',
+        repository: 'repo.enterprise-hseos',
+        evidence: ['evidence.capability-graph.policy'],
+      });
+      expectFailure('typed endpoint', () => validateGraph(graph.registry, fragments, REPO_ROOT), /invalid IMPLEMENTED_BY source type/);
+    },
+  },
+  {
+    name: 'semantic relationships require tracked evidence',
+    fn: () => {
+      const graph = loadAndValidate({ root: REPO_ROOT });
+      const fragments = clone(graph.fragments);
+      const governed = fragments[0].edges.find((edge) => edge.type === 'GOVERNED_BY');
+      delete governed.evidence;
+      expectFailure('missing evidence', () => validateGraph(graph.registry, fragments, REPO_ROOT), /requires tracked evidence/);
     },
   },
   {

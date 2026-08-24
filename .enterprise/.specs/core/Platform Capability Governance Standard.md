@@ -1,7 +1,7 @@
 # Platform Capability Governance Standard
 
 **Status:** Mandatory
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Effective:** 2026-08-24
 **Scope:** All repositories, projects, modules, packages, contracts, and agents
 **Authority:** Enterprise Constitution §2.6 and ADR-0022
@@ -39,6 +39,16 @@ The graph supports `DEFINED_BY`, `OWNED_BY`, `IMPLEMENTED_BY`, `CONSUMED_BY`, `E
 Edges MUST reference existing nodes. `DEPENDS_ON` cycles are forbidden. Relationships that
 cannot be derived directly from tracked repository structure MUST reference an `Evidence`
 node.
+
+Edge endpoints are typed: a capability is `DEFINED_BY` a contract or error catalog,
+`IMPLEMENTED_BY` a package or module, `EXTENDED_BY` an adapter, and `CONSUMED_BY` a
+consumer; `PUBLISHED_AS` links a package to an artifact version. `VALIDATED_BY` always
+targets a test suite, `GOVERNED_BY` an ADR, and `EXCEPTED_BY` an exception.
+
+`source-only`, local-path and local-tarball dependencies are compatibility evidence. They
+MUST NOT carry `PUBLISHED_AS` or `CONSUMED_BY`. A `CONSUMED_BY` edge is valid only when the
+consumer records `adoption_state=verified-install` plus the installed `ArtifactVersion`,
+depends on the package, and that package publishes the same artifact version.
 
 ## 5. Lifecycle
 
@@ -111,4 +121,3 @@ non-compliant.
 - ADR-0022 Federated Platform Capability Graph and Platform-First Intake
 - `.enterprise/policies/capability-graph.md`
 - `.enterprise/policies/automated-validation.md`
-

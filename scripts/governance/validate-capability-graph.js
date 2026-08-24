@@ -55,6 +55,17 @@ const OWNERSHIP_REQUIRED = new Set([
 ]);
 const ID_PATTERN = /^[a-z0-9]+(?:[._-][a-z0-9]+)*$/;
 const DEFAULT_REGISTRY = '.enterprise/governance/capabilities/registry.yaml';
+const EVIDENCE_REQUIRED_EDGES = new Set([
+  'DEFINED_BY',
+  'IMPLEMENTED_BY',
+  'CONSUMED_BY',
+  'EXTENDED_BY',
+  'VALIDATED_BY',
+  'PUBLISHED_AS',
+  'GOVERNED_BY',
+  'SUPERSEDES',
+  'EXCEPTED_BY',
+]);
 
 function fail(message) {
   throw new Error(message);
@@ -331,10 +342,58 @@ function validateGraph(registry, fragments, root, fragmentRoots = new Map()) {
   for (const edge of edges.values()) {
     if (!nodes.has(edge.from)) fail(`dangling edge source ${edge.from} in ${edge.id}`);
     if (!nodes.has(edge.to)) fail(`dangling edge target ${edge.to} in ${edge.id}`);
-    if (edge.type === 'OWNED_BY' && nodes.get(edge.to).type !== 'Owner') fail(`${edge.id} must target an Owner`);
+    const fromNode = nodes.get(edge.from);
+    const toNode = nodes.get(edge.to);
+    const endpointRules = {
+      DEFINED_BY: [['Capability'], ['Contract', 'ErrorCatalog']],
+      OWNED_BY: [null, ['Owner']],
+      IMPLEMENTED_BY: [['Capability'], ['Package', 'Module']],
+      CONSUMED_BY: [['Capability'], ['Consumer']],
+      EXTENDED_BY: [['Capability'], ['Adapter']],
+      VALIDATED_BY: [null, ['TestSuite']],
+      PUBLISHED_AS: [['Package'], ['ArtifactVersion']],
+      GOVERNED_BY: [null, ['Adr']],
+      SUPERSEDES: [null, null],
+      EXCEPTED_BY: [null, ['Exception']],
+    };
+    const rule = endpointRules[edge.type];
+    if (rule?.[0] && !rule[0].includes(fromNode.type)) fail(`${edge.id} has invalid ${edge.type} source type ${fromNode.type}`);
+    if (rule?.[1] && !rule[1].includes(toNode.type)) fail(`${edge.id} has invalid ${edge.type} target type ${toNode.type}`);
+    if (edge.type === 'SUPERSEDES' && fromNode.type !== toNode.type) fail(`${edge.id} SUPERSEDES endpoints must have the same type`);
+    if (EVIDENCE_REQUIRED_EDGES.has(edge.type) && (!edge.evidence || edge.evidence.length === 0)) {
+      fail(`${edge.id} requires tracked evidence`);
+    }
     for (const evidenceId of edge.evidence || []) {
       if (nodes.get(evidenceId)?.type !== 'Evidence') fail(`${edge.id} evidence is missing or not Evidence: ${evidenceId}`);
     }
+  }
+
+  for (const node of nodes.values()) {
+    if (
+      node.type === 'Package' &&
+      node.attributes?.distribution_state === 'source-only' &&
+      [...edges.values()].some((edge) => edge.type === 'PUBLISHED_AS' && edge.from === node.id)
+    ) {
+      fail(`source-only package ${node.id} cannot be PUBLISHED_AS`);
+    }
+  }
+
+  for (const adoption of [...edges.values()].filter((edge) => edge.type === 'CONSUMED_BY')) {
+    const consumer = nodes.get(adoption.to);
+    const artifactId = consumer.attributes?.artifact_version_id;
+    if (consumer.attributes?.adoption_state !== 'verified-install' || typeof artifactId !== 'string') {
+      fail(`${adoption.id} requires consumer adoption_state=verified-install and artifact_version_id`);
+    }
+    if (nodes.get(artifactId)?.type !== 'ArtifactVersion') fail(`${adoption.id} references unknown ArtifactVersion ${artifactId}`);
+    const packages = new Set(
+      [...edges.values()]
+        .filter((edge) => edge.type === 'DEPENDS_ON' && edge.from === consumer.id && nodes.get(edge.to)?.type === 'Package')
+        .map((edge) => edge.to),
+    );
+    const installedArtifactIsPublished = [...edges.values()].some(
+      (edge) => edge.type === 'PUBLISHED_AS' && packages.has(edge.from) && edge.to === artifactId,
+    );
+    if (!installedArtifactIsPublished) fail(`${adoption.id} has no package PUBLISHED_AS installed artifact ${artifactId}`);
   }
 
   for (const node of nodes.values()) {
