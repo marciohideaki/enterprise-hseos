@@ -55,6 +55,24 @@ Use `--json` for automation and `--require-current-hour` to exit with status 2 w
 manifest is inconsistent or any required server is absent or stale. The default freshness limit is
 75 minutes and can be changed with `--max-staleness-minutes`.
 
+An external supervisor such as cron or a systemd timer may append each report to a dedicated
+evidence directory:
+
+```sh
+node tools/cli/hseos-cli.js compatibility-observe \
+  --directory /path/to/project \
+  --evidence-directory /absolute/private/path/compatibility-observation \
+  --require-current-hour
+```
+
+Capture is opt-in: without `--evidence-directory`, the command writes no report. The directory must
+be absolute, private, outside `.hseos/state`, and free of symlink traversal. Each canonical JSON
+artifact is created with mode `0600`, atomically renamed, ordered by `as_of`, and linked to the
+previous artifact by SHA-256. Replay, ambiguous transaction residue, unsafe permissions, malformed
+envelopes, filename/timestamp disagreement, or a broken chain fail closed. Retain the emitted digest
+in the supervisor log as the external anchor for the newest chain member. Degraded reports are also
+captured: durable evidence never converts monitor health into cutover authority.
+
 This command copies the live database and WAL into a private snapshot, verifies that their content
 did not change during the copy, and opens only that copy in SQLite query-only mode. It never opens
 or mutates the operational files, initializes tables, records a heartbeat, runs migrations, or emits
@@ -62,6 +80,9 @@ cutover readiness. Its progress counter includes only complete UTC days after
 `first_candidate_complete_utc_day`, requires all 24 hourly buckets for all four server IDs, and
 resets after a gap or any legacy request. Even at 30/30 it reports `ready_for_cutover: false` because
 the stable-snapshot audit and explicit human gate remain separate.
+
+HSEOS does not install or enable a recurring job through this command. Scheduling, log retention and
+the evidence-directory lifecycle remain explicit operational deployment decisions.
 
 ## Read-only audit
 

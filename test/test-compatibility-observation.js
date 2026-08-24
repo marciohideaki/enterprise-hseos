@@ -8,7 +8,12 @@ const path = require('node:path');
 const test = require('node:test');
 
 const { LEGACY_SERVER_IDS } = require('../tools/lib/compatibility-audit');
-const { assertLiveTelemetryTarget, monitorCompatibilityObservation } = require('../tools/lib/compatibility-observation');
+const {
+  assertLiveTelemetryTarget,
+  monitorCompatibilityObservation,
+  verifyObservationEvidenceChain,
+  writeCompatibilityObservationEvidence,
+} = require('../tools/lib/compatibility-observation');
 const { render } = require('../tools/cli/commands/compatibility-observe');
 const { McpLegacyUsageStore } = require('../tools/mcp-project-state/lib/mcp-legacy-usage-store');
 
@@ -295,4 +300,93 @@ test('monitor rejects symlink, hardlink, state alias, and inconsistent manifest 
   assert.equal(report.observation_healthy, false);
   assert.equal(report.progress.current_consecutive_days, 0);
   assert.equal(report.ready_for_cutover, false);
+});
+
+test('observation evidence is private, atomic, hash-chained, and cannot grant cutover', (t) => {
+  const paths = fixture(t, { firstCandidateDay: '2026-08-31' });
+  const store = new McpLegacyUsageStore(paths.telemetryDatabase);
+  t.after(() => store.close());
+  markHour(store, new Date('2026-08-31T12:20:00.000Z'));
+  const evidenceDirectory = path.join(paths.projectDirectory, '.hseos', 'evidence', 'compatibility');
+  const firstReport = monitorCompatibilityObservation({ projectDirectory: paths.projectDirectory, asOf: AS_OF });
+  const beforeFirstCapture = fingerprints(paths.telemetryDatabase);
+
+  const first = writeCompatibilityObservationEvidence(firstReport, evidenceDirectory);
+
+  assert.deepEqual(fingerprints(paths.telemetryDatabase), beforeFirstCapture);
+  assert.equal(first.chain_length, 1);
+  assert.equal(first.previous_evidence_sha256, null);
+  assert.equal(path.basename(first.path), 'observation-20260831T123000000Z.json');
+  if (process.platform !== 'win32') {
+    assert.equal(fs.statSync(evidenceDirectory).mode & 0o777, 0o700);
+    assert.equal(fs.statSync(first.path).mode & 0o777, 0o600);
+  }
+
+  markHour(store, new Date('2026-08-31T12:35:00.000Z'));
+  const secondReport = monitorCompatibilityObservation({
+    projectDirectory: paths.projectDirectory,
+    asOf: new Date('2026-08-31T12:40:00.000Z'),
+  });
+  const beforeSecondCapture = fingerprints(paths.telemetryDatabase);
+  const second = writeCompatibilityObservationEvidence(secondReport, evidenceDirectory);
+  assert.deepEqual(fingerprints(paths.telemetryDatabase), beforeSecondCapture);
+  assert.equal(second.chain_length, 2);
+  assert.equal(second.previous_evidence_sha256, first.sha256);
+  assert.deepEqual(verifyObservationEvidenceChain(evidenceDirectory), {
+    count: 2,
+    latest_sha256: second.sha256,
+    latest_as_of: '2026-08-31T12:40:00.000Z',
+  });
+
+  const secondArtifact = JSON.parse(fs.readFileSync(second.path, 'utf8'));
+  assert.equal(secondArtifact.report.monitor_only, true);
+  assert.equal(secondArtifact.report.ready_for_cutover, false);
+  assert.equal(secondArtifact.report.cutover_authorized, false);
+  assert.match(render({ ...secondReport, evidence_capture: second }), /immutable evidence: .* \(chain 2\)/);
+});
+
+test('observation evidence fails closed on replay, tampering, ambiguous paths, and unsafe targets', (t) => {
+  const paths = fixture(t, { firstCandidateDay: '2026-08-31' });
+  const store = new McpLegacyUsageStore(paths.telemetryDatabase);
+  t.after(() => store.close());
+  markHour(store, new Date('2026-08-31T12:20:00.000Z'));
+  const report = monitorCompatibilityObservation({ projectDirectory: paths.projectDirectory, asOf: AS_OF });
+  const evidenceDirectory = path.join(paths.projectDirectory, 'evidence');
+  const first = writeCompatibilityObservationEvidence(report, evidenceDirectory);
+
+  assert.throws(() => writeCompatibilityObservationEvidence(report, evidenceDirectory), /advance monotonically/);
+  const original = fs.readFileSync(first.path);
+  fs.appendFileSync(first.path, ' ');
+  assert.throws(() => verifyObservationEvidenceChain(evidenceDirectory), /encoding is invalid/);
+  fs.writeFileSync(first.path, original);
+
+  const degradedReport = monitorCompatibilityObservation({
+    projectDirectory: paths.projectDirectory,
+    asOf: new Date('2026-08-31T13:30:00.000Z'),
+  });
+  assert.equal(degradedReport.status, 'observation-degraded');
+  const degradedCapture = writeCompatibilityObservationEvidence(degradedReport, evidenceDirectory);
+  const degradedArtifact = JSON.parse(fs.readFileSync(degradedCapture.path, 'utf8'));
+  assert.equal(degradedArtifact.report.observation_healthy, false);
+  assert.equal(degradedArtifact.report.ready_for_cutover, false);
+  assert.equal(degradedArtifact.report.cutover_authorized, false);
+
+  const residue = path.join(evidenceDirectory, '.capture-stale.tmp');
+  fs.writeFileSync(residue, 'stale', { mode: 0o600 });
+  assert.throws(() => verifyObservationEvidenceChain(evidenceDirectory), /Unexpected observation evidence artifact/);
+  fs.unlinkSync(residue);
+
+  const alias = path.join(paths.projectDirectory, 'evidence-alias');
+  fs.symlinkSync(evidenceDirectory, alias);
+  assert.throws(() => verifyObservationEvidenceChain(alias), /must not traverse a symlink/);
+  assert.throws(
+    () => writeCompatibilityObservationEvidence(report, path.join(paths.stateDirectory, 'evidence')),
+    /outside the operational state directory/,
+  );
+
+  const publicDirectory = path.join(paths.projectDirectory, 'public-evidence');
+  fs.mkdirSync(publicDirectory, { mode: 0o755 });
+  if (process.platform !== 'win32') {
+    assert.throws(() => writeCompatibilityObservationEvidence(report, publicDirectory), /must not be accessible by group or other users/);
+  }
 });

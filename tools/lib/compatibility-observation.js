@@ -3,12 +3,14 @@
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { createHash } = require('node:crypto');
+const { createHash, randomUUID } = require('node:crypto');
 const Database = require('better-sqlite3');
 
 const { LEGACY_SERVER_IDS } = require('./compatibility-audit');
 
 const REQUIRED_TABLES = Object.freeze(['mcp_legacy_observation_daily', 'mcp_legacy_observation_hourly', 'mcp_legacy_usage_daily']);
+const EVIDENCE_FILE_PATTERN = /^observation-(\d{8}T\d{9}Z)\.json$/;
+const MAX_EVIDENCE_BYTES = 2 * 1024 * 1024;
 
 function assertRegularFile(filename, label) {
   const metadata = fs.lstatSync(filename);
@@ -83,6 +85,165 @@ function sourceFingerprint(telemetryPath) {
         return [path.basename(filename), { bytes: contents.length, sha256: createHash('sha256').update(contents).digest('hex') }];
       }),
   );
+}
+
+function sha256(contents) {
+  return createHash('sha256').update(contents).digest('hex');
+}
+
+function isWithin(parent, candidate) {
+  const relative = path.relative(parent, candidate);
+  return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
+}
+
+function assertNoSymlinkAncestors(target) {
+  const resolved = path.resolve(target);
+  const root = path.parse(resolved).root;
+  let current = root;
+  for (const component of resolved.slice(root.length).split(path.sep).filter(Boolean)) {
+    current = path.join(current, component);
+    if (!fs.existsSync(current)) continue;
+    if (fs.lstatSync(current).isSymbolicLink()) throw new Error('Observation evidence path must not traverse a symlink');
+  }
+}
+
+function evidenceFilename(asOf) {
+  return `observation-${asOf.replaceAll('-', '').replaceAll(':', '').replace('.', '')}.json`;
+}
+
+function assertObservationReport(report, filename = null) {
+  const asOf = report?.as_of;
+  if (
+    typeof asOf !== 'string' ||
+    !Number.isFinite(Date.parse(asOf)) ||
+    new Date(asOf).toISOString() !== asOf ||
+    report.monitor_only !== true ||
+    report.ready_for_cutover !== false ||
+    report.cutover_authorized !== false
+  ) {
+    throw new Error(filename ? `Observation evidence report is invalid at ${filename}` : 'Observation report is not capturable');
+  }
+  if (filename && filename !== evidenceFilename(asOf)) {
+    throw new Error(`Observation evidence filename does not match report at ${filename}`);
+  }
+  return asOf;
+}
+
+function evidenceFiles(evidenceDirectory) {
+  const entries = fs.readdirSync(evidenceDirectory);
+  const ambiguous = entries.find(
+    (filename) =>
+      (filename.startsWith('observation-') && !EVIDENCE_FILE_PATTERN.test(filename)) ||
+      (filename.startsWith('.capture-') && filename.endsWith('.tmp')),
+  );
+  if (ambiguous) throw new Error(`Unexpected observation evidence artifact: ${ambiguous}`);
+  return entries.filter((filename) => EVIDENCE_FILE_PATTERN.test(filename)).sort();
+}
+
+function verifyObservationEvidenceChain(evidenceDirectory) {
+  const resolvedDirectory = path.resolve(evidenceDirectory);
+  assertNoSymlinkAncestors(resolvedDirectory);
+  const metadata = fs.lstatSync(resolvedDirectory);
+  if (!metadata.isDirectory() || metadata.isSymbolicLink()) throw new Error('Observation evidence target must be a real directory');
+  if (process.platform !== 'win32' && (metadata.mode & 0o077) !== 0) {
+    throw new Error('Observation evidence directory must not be accessible by group or other users');
+  }
+  let previousHash = null;
+  let previousAsOf = null;
+  const files = evidenceFiles(resolvedDirectory);
+  for (const filename of files) {
+    const evidencePath = path.join(resolvedDirectory, filename);
+    const fileMetadata = assertRegularFile(evidencePath, 'Observation evidence');
+    if (fileMetadata.nlink !== 1) throw new Error('Observation evidence must not be hard-linked');
+    if (fileMetadata.size > MAX_EVIDENCE_BYTES) throw new Error('Observation evidence exceeds the fixed size limit');
+    const contents = fs.readFileSync(evidencePath);
+    const artifact = JSON.parse(contents.toString('utf8'));
+    const canonicalContents = Buffer.from(`${JSON.stringify(artifact, null, 2)}\n`);
+    if (!contents.equals(canonicalContents)) throw new Error(`Observation evidence encoding is invalid at ${filename}`);
+    const artifactKeys = Object.keys(artifact).sort();
+    if (JSON.stringify(artifactKeys) !== JSON.stringify(['evidence_schema_version', 'previous_evidence_sha256', 'report'])) {
+      throw new Error(`Observation evidence envelope is invalid at ${filename}`);
+    }
+    if (artifact.evidence_schema_version !== 1 || artifact.previous_evidence_sha256 !== previousHash) {
+      throw new Error(`Observation evidence chain is invalid at ${filename}`);
+    }
+    const asOf = assertObservationReport(artifact.report, filename);
+    if (previousAsOf && asOf <= previousAsOf) throw new Error(`Observation evidence order is invalid at ${filename}`);
+    previousHash = sha256(contents);
+    previousAsOf = asOf;
+  }
+  return Object.freeze({ count: files.length, latest_sha256: previousHash, latest_as_of: previousAsOf });
+}
+
+function writeCompatibilityObservationEvidence(report, evidenceDirectory) {
+  if (!path.isAbsolute(evidenceDirectory || '')) throw new TypeError('Observation evidence directory must be absolute');
+  const asOf = assertObservationReport(report);
+  if (!path.isAbsolute(report?.operational_paths?.state_database || '')) {
+    throw new Error('Observation report must identify an absolute operational state database');
+  }
+  const resolvedDirectory = path.resolve(evidenceDirectory);
+  const stateDirectory = path.dirname(path.resolve(report.operational_paths.state_database));
+  if (isWithin(stateDirectory, resolvedDirectory)) {
+    throw new Error('Observation evidence directory must be outside the operational state directory');
+  }
+  assertNoSymlinkAncestors(resolvedDirectory);
+  fs.mkdirSync(resolvedDirectory, { recursive: true, mode: 0o700 });
+  assertNoSymlinkAncestors(resolvedDirectory);
+  const directoryMetadata = fs.lstatSync(resolvedDirectory);
+  if (!directoryMetadata.isDirectory() || directoryMetadata.isSymbolicLink()) {
+    throw new Error('Observation evidence target must be a real directory');
+  }
+  if (process.platform !== 'win32' && (directoryMetadata.mode & 0o077) !== 0) {
+    throw new Error('Observation evidence directory must not be accessible by group or other users');
+  }
+  const lockPath = path.join(resolvedDirectory, '.capture.lock');
+  fs.mkdirSync(lockPath, { mode: 0o700 });
+  let temporaryPath = null;
+  try {
+    const chain = verifyObservationEvidenceChain(resolvedDirectory);
+    if (chain.latest_as_of && asOf <= chain.latest_as_of) {
+      throw new Error('Observation evidence must advance monotonically');
+    }
+    const filename = evidenceFilename(asOf);
+    const finalPath = path.join(resolvedDirectory, filename);
+    const artifact = Object.freeze({
+      evidence_schema_version: 1,
+      previous_evidence_sha256: chain.latest_sha256,
+      report,
+    });
+    const contents = Buffer.from(`${JSON.stringify(artifact, null, 2)}\n`);
+    if (contents.length > MAX_EVIDENCE_BYTES) throw new Error('Observation evidence exceeds the fixed size limit');
+    temporaryPath = path.join(resolvedDirectory, `.capture-${process.pid}-${randomUUID()}.tmp`);
+    const descriptor = fs.openSync(temporaryPath, 'wx', 0o600);
+    try {
+      fs.writeFileSync(descriptor, contents);
+      fs.fsyncSync(descriptor);
+    } finally {
+      fs.closeSync(descriptor);
+    }
+    if (fs.existsSync(finalPath)) throw new Error('Observation evidence for this instant already exists');
+    fs.renameSync(temporaryPath, finalPath);
+    temporaryPath = null;
+    const directoryDescriptor = fs.openSync(resolvedDirectory, 'r');
+    try {
+      try {
+        fs.fsyncSync(directoryDescriptor);
+      } catch (error) {
+        if (!['EINVAL', 'ENOTSUP', 'EBADF'].includes(error.code)) throw error;
+      }
+    } finally {
+      fs.closeSync(directoryDescriptor);
+    }
+    return Object.freeze({
+      path: finalPath,
+      sha256: sha256(contents),
+      previous_evidence_sha256: chain.latest_sha256,
+      chain_length: chain.count + 1,
+    });
+  } finally {
+    if (temporaryPath) fs.rmSync(temporaryPath, { force: true });
+    fs.rmdirSync(lockPath);
+  }
 }
 
 function createLiveSnapshot(telemetryPath, attempts = 3) {
@@ -387,4 +548,6 @@ module.exports = {
   createLiveSnapshot,
   monitorCompatibilityObservation,
   observationProgress,
+  verifyObservationEvidenceChain,
+  writeCompatibilityObservationEvidence,
 };
