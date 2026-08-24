@@ -137,6 +137,12 @@ class GovernedExecutionRuntime {
     if (existing.length === 0) return null;
     const authorized = existing.find((event) => event.event_type === 'ExecutionAuthorized');
     if (
+      existing.some(
+        (event) =>
+          event.operation_id !== operation.operation_id ||
+          event.correlation_id !== operation.correlation_id ||
+          event.causation_id !== operation.causation_id,
+      ) ||
       !authorized ||
       authorized.payload.tool !== operation.tool ||
       authorized.payload.idempotency_key !== operation.idempotency_key ||
@@ -146,7 +152,9 @@ class GovernedExecutionRuntime {
       authorized.payload.input_schema_version !== contract.input_schema.version ||
       authorized.payload.output_schema_version !== contract.output_schema.version ||
       stableJson(authorized.payload.resource_scope) !== stableJson(operation.resource_scope) ||
-      stableJson(authorized.actor) !== stableJson(operation.actor)
+      stableJson(authorized.actor) !== stableJson(operation.actor) ||
+      authorized.correlation_id !== operation.correlation_id ||
+      authorized.causation_id !== operation.causation_id
     ) {
       throw new GovernedExecutionError(
         'Idempotency key is already bound to a different operation scope',

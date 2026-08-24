@@ -16,6 +16,7 @@ Deterministic APIs include:
 - exact multi-step model/tool continuation lineage and started-work settlement;
 - context and tool-result compaction replay with exact source partition, digest, call identity and replacement validation;
 - lineage-preserving session forks;
+- one durable trace root across resumed appends and child forks, with deterministic W3C `traceparent` projection;
 - atomic workflow reservations plus terminal releases, and phase checkpoints bound to a definition digest and exact step/child lineage;
 - recovery plans for interrupted turns;
 - filtered session reads over the shared global stream.
@@ -25,3 +26,5 @@ Store instances are nominal and immutable. Structural lookalikes, forged prototy
 Replay rejects concurrent durable workflow reservations, live or stale reclaim references, checkpoint/release claim drift, release-status drift, definition drift, duplicate phases, unattached children and cumulative step/child overflow. A reservation consumes the bounded step budget before dispatch and survives a crash before the first phase checkpoint; after its parent-bounded lease expires, an explicit reclaim rotates the single execution claim atomically across SQLite connections. Child creation, execution intent and parent attachment remain atomic, and every fork preserves identical authority/policy with resource limits no wider than its parent.
 
 Rollback before activation is the A2 task commit plus disposable temporary fixture databases. Canonical events are never deleted after operational activation.
+
+The relational `correlation_id` remains canonical lineage authority. A stream with more than one correlation fails closed on append, replay, and trace projection. Every non-root event continues from its immediately preceding durable event; a fork attachment may instead reference its earlier durable branch point, and a child's root is anchored by that parent attachment. Children inherit the parent trace. Telemetry exporters may project this state, but cannot replace or repair it.

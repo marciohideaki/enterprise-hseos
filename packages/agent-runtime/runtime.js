@@ -41,7 +41,9 @@ class AgentRuntimeError extends Error {
 }
 
 function stableId(kind, ...parts) {
-  const digest = createHash('sha256').update(parts.map((part) => canonicalJson(part)).join('\0')).digest('hex');
+  const digest = createHash('sha256')
+    .update(parts.map((part) => canonicalJson(part)).join('\0'))
+    .digest('hex');
   return `${kind}:${digest.slice(0, 40)}`;
 }
 
@@ -190,11 +192,7 @@ class AgentRuntime {
       payload,
     };
     const receipt = this.#store.append({ session_id: sessionId, expected_version: state.current_sequence, events: [event] });
-    if (
-      receipt.current_version !== event.sequence ||
-      receipt.events.length !== 1 ||
-      !equal(receipt.events[0], event)
-    ) {
+    if (receipt.current_version !== event.sequence || receipt.events.length !== 1 || !equal(receipt.events[0], event)) {
       throw new AgentRuntimeError('session store returned an invalid append receipt', 'AGENT_RUNTIME_APPEND_RECEIPT_INVALID');
     }
     if (active) active.eventIds.push(event.event_id);
@@ -268,13 +266,7 @@ class AgentRuntime {
   #requestCancellation(sessionId, reason, cascade, source, active = null) {
     const state = this.#store.replay(sessionId);
     if (state.terminal_event || state.cancellation_request) return state.cancellation_request;
-    return this.#append(
-      sessionId,
-      'session.cancellation.requested',
-      { reason, cascade, source },
-      [source],
-      active,
-    );
+    return this.#append(sessionId, 'session.cancellation.requested', { reason, cascade, source }, [source], active);
   }
 
   #cancelActiveWork(active, reason) {
@@ -502,7 +494,12 @@ class AgentRuntime {
     const stepId = stableId('step', state.session_id, turn.turn_id, index);
     const projected = tokenUsage(state) + Buffer.byteLength(canonicalJson(request), 'utf8') + request.parameters.max_output_tokens;
     if (projected > state.spec.limits.max_tokens) {
-      return this.#fail(state, { code: 'budget_exceeded', message: 'session token budget cannot reserve another model step' }, active, 'token-budget');
+      return this.#fail(
+        state,
+        { code: 'budget_exceeded', message: 'session token budget cannot reserve another model step' },
+        active,
+        'token-budget',
+      );
     }
     this.#append(
       state.session_id,
@@ -648,7 +645,7 @@ class AgentRuntime {
         policy_ref: state.spec.policy_ref,
       },
       idempotency_key: stableId('idempotency', state.session_id, turn.turn_id, call.tool_call_id),
-      correlation_id: state.session_id,
+      correlation_id: this.#store.traceContext(state.session_id).trace_id,
       causation_id: step.request_event_id,
       approval_context: null,
     };
@@ -786,10 +783,7 @@ class AgentRuntime {
       'utf8',
     );
     let continuationMessages = fullMessages;
-    let sourceEventIds = [
-      step.terminal_event_id,
-      ...calls.map((call) => turn.tool_executions[call.tool_call_id].completed_event_id),
-    ];
+    let sourceEventIds = [step.terminal_event_id, ...calls.map((call) => turn.tool_executions[call.tool_call_id].completed_event_id)];
     const profile = this.#profile(state.spec);
     if (profile.overflow_policy === 'compact') {
       if (!this.#compactionRuntime) {
@@ -809,9 +803,7 @@ class AgentRuntime {
         let record = turn.tool_compactions.find((candidate) => equal(candidate.source_event_ids, completedIds));
         if (!record) {
           const compactionId = stableId('compaction', state.session_id, turn.turn_id, step.step_id, 'tools');
-          const eventSequence = new Map(
-            this.#store.readSession(state.session_id).map((event) => [event.event_id, event.sequence]),
-          );
+          const eventSequence = new Map(this.#store.readSession(state.session_id).map((event) => [event.event_id, event.sequence]));
           try {
             record = this.#compactionRuntime.compact(
               {
@@ -941,20 +933,10 @@ class AgentRuntime {
               return this.#complete(state, legacyTerminal.payload.provider_response_ref, active);
             }
             if (legacyTerminal.payload.finish_reason === 'length') {
-              return this.#fail(
-                state,
-                { code: 'budget_exceeded', message: 'legacy model output limit reached' },
-                active,
-                'legacy-length',
-              );
+              return this.#fail(state, { code: 'budget_exceeded', message: 'legacy model output limit reached' }, active, 'legacy-length');
             }
             if (legacyTerminal.payload.finish_reason === 'cancelled') {
-              return this.#fail(
-                state,
-                { code: 'cancelled', message: 'legacy model request was cancelled' },
-                active,
-                'legacy-cancelled',
-              );
+              return this.#fail(state, { code: 'cancelled', message: 'legacy model request was cancelled' }, active, 'legacy-cancelled');
             }
             return this.#fail(
               state,
@@ -1042,13 +1024,7 @@ class AgentRuntime {
     }
     return this.#run('send', input, async (active) => {
       if (!existingTurn) {
-        this.#append(
-          input.session_id,
-          'turn.started',
-          { turn_id: input.turn_id, input: input.message },
-          [input.turn_id],
-          active,
-        );
+        this.#append(input.session_id, 'turn.started', { turn_id: input.turn_id, input: input.message }, [input.turn_id], active);
       }
     });
   }
@@ -1061,13 +1037,7 @@ class AgentRuntime {
     }
     if (state.terminal_event) return this.#operationResult('resume', input, false, true, [state.terminal_event.event_id]);
     return this.#run('resume', input, async (active) => {
-      this.#append(
-        input.session_id,
-        'session.resumed',
-        { from_sequence: input.expected_sequence },
-        [input.expected_sequence],
-        active,
-      );
+      this.#append(input.session_id, 'session.resumed', { from_sequence: input.expected_sequence }, [input.expected_sequence], active);
     });
   }
 
