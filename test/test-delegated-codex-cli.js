@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { execFileSync } = require('node:child_process');
+const { execFileSync, spawnSync } = require('node:child_process');
 const { test } = require('node:test');
 const yaml = require('yaml');
 
@@ -28,6 +28,16 @@ function cli(...args) {
       },
     }).trim(),
   );
+}
+
+function cliFailure(...args) {
+  const result = spawnSync(process.execPath, [CLI, 'agent', ...args, '--json'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    env: { PATH: process.env.PATH, HSEOS_DISABLE_UPDATE_CHECK: '1' },
+  });
+  assert.notEqual(result.status, 0);
+  return `${result.stdout}${result.stderr}`;
 }
 
 function fixtureBinding(mode = 'normal') {
@@ -68,38 +78,15 @@ test('delegated Codex capability plan selects the direct runtime and no raw mode
   assert.ok(!JSON.stringify(plan).includes('runtime:deepseek-harness'));
 });
 
-test('public delegated Codex CLI creates and resumes the same remote thread across processes', () => {
+test('public delegated Codex CLI rejects create-only before spawning app-server', () => {
   const fixture = fixtureBinding();
-  const created = cli('run', '--profile', PROFILE, '--binding', fixture.binding, '--create-only');
   try {
-    assert.equal(created.operation, 'created');
-    assert.equal(created.status, 'active');
-    assert.equal(created.terminal, false);
-    const resumed = cli(
-      'resume',
-      '--profile',
-      PROFILE,
-      '--state',
-      created.state,
-      '--expected-sequence',
-      String(created.current_sequence),
-      '--message',
-      'continue through app-server',
+    assert.match(
+      cliFailure('run', '--profile', PROFILE, '--binding', fixture.binding, '--create-only'),
+      /create-only is unavailable for the delegated Codex run-only profile/,
     );
-    assert.equal(resumed.session_id, created.session_id);
-    assert.equal(resumed.operation, 'resume-and-send');
-    assert.equal(resumed.status, 'completed');
-    assert.equal(resumed.output, 'fixture answer');
-    assert.deepEqual(JSON.parse(fs.readFileSync(fixture.remote, 'utf8')), {
-      created: 1,
-      resumed: 1,
-      interrupted: 0,
-      turns: 1,
-      thread_id: 'codex-thread-1',
-      selected_environment_received: false,
-    });
+    assert.equal(fs.existsSync(fixture.remote), false);
   } finally {
-    cleanupState(created.state);
     fixture.cleanup();
   }
 });
@@ -125,46 +112,32 @@ test('public delegated Codex run keeps the first turn attached to the newly crea
   }
 });
 
-test('public delegated Codex CLI reattaches and durably cancels an idle session', () => {
+test('public delegated Codex CLI rejects resume and cancel as unavailable capabilities', () => {
   const fixture = fixtureBinding();
-  const created = cli('run', '--profile', PROFILE, '--binding', fixture.binding, '--create-only');
   try {
-    const cancelled = cli('cancel', '--profile', PROFILE, '--state', created.state, '--reason', 'operator stop');
-    assert.equal(cancelled.session_id, created.session_id);
-    assert.equal(cancelled.operation, 'cancel');
-    assert.equal(cancelled.status, 'cancelled');
-    assert.equal(cancelled.terminal, true);
-    const remote = JSON.parse(fs.readFileSync(fixture.remote, 'utf8'));
-    assert.equal(remote.created, 1);
-    assert.equal(remote.resumed, 1);
+    assert.match(
+      cliFailure('resume', '--profile', PROFILE, '--state', fixture.directory, '--message', 'continue'),
+      /profile supports only agent run/,
+    );
+    assert.match(
+      cliFailure('cancel', '--profile', PROFILE, '--state', fixture.directory),
+      /profile supports only agent run/,
+    );
+    assert.equal(fs.existsSync(fixture.remote), false);
   } finally {
-    cleanupState(created.state);
     fixture.cleanup();
   }
 });
 
-test('delegated Codex resume rejects stale optimistic state before app-server dispatch', () => {
+test('delegated Codex run-only rejection takes precedence over lifecycle arguments', () => {
   const fixture = fixtureBinding();
-  const created = cli('run', '--profile', PROFILE, '--binding', fixture.binding, '--create-only');
   try {
-    assert.throws(
-      () =>
-        cli(
-          'resume',
-          '--profile',
-          PROFILE,
-          '--state',
-          created.state,
-          '--expected-sequence',
-          String(created.current_sequence - 1),
-          '--message',
-          'stale',
-        ),
-      /expected_sequence does not match/,
+    assert.match(
+      cliFailure('resume', '--profile', PROFILE, '--binding', fixture.binding, '--state', fixture.directory, '--expected-sequence', '0'),
+      /profile supports only agent run/,
     );
-    assert.equal(JSON.parse(fs.readFileSync(fixture.remote, 'utf8')).resumed, 0);
+    assert.equal(fs.existsSync(fixture.remote), false);
   } finally {
-    cleanupState(created.state);
     fixture.cleanup();
   }
 });
@@ -176,47 +149,31 @@ test('delegated Codex durable manifest contains no resolved environment value', 
   fs.writeFileSync(fixture.binding, yaml.stringify(document), { encoding: 'utf8', mode: 0o600 });
   const prior = process.env.HSEOS_CODEX_TEST_VALUE;
   process.env.HSEOS_CODEX_TEST_VALUE = 'sensitive-runtime-only-value';
-  let created;
+  let result;
   try {
-    created = cli('run', '--profile', PROFILE, '--binding', fixture.binding, '--create-only');
-    const durable = fs.readFileSync(path.join(created.state, 'delegated-codex.json'), 'utf8');
+    result = cli('run', '--profile', PROFILE, '--binding', fixture.binding, '--message', 'inspect durable binding');
+    const durable = fs.readFileSync(path.join(result.state, 'delegated-codex.json'), 'utf8');
     assert.equal(durable.includes('sensitive-runtime-only-value'), false);
     assert.equal(durable.includes('HSEOS_CODEX_TEST_VALUE'), true);
     assert.equal(JSON.parse(fs.readFileSync(fixture.remote, 'utf8')).selected_environment_received, true);
   } finally {
-    if (created) cleanupState(created.state);
+    if (result) cleanupState(result.state);
     if (prior === undefined) delete process.env.HSEOS_CODEX_TEST_VALUE;
     else process.env.HSEOS_CODEX_TEST_VALUE = prior;
     fixture.cleanup();
   }
 });
 
-test('delegated Codex resume rejects manifest argument drift before remote reattachment', () => {
+test('public delegated Codex rejects resume before inspecting durable state', () => {
   const fixture = fixtureBinding();
-  const created = cli('run', '--profile', PROFILE, '--binding', fixture.binding, '--create-only');
   try {
-    const filename = path.join(created.state, 'delegated-codex.json');
-    const manifest = JSON.parse(fs.readFileSync(filename, 'utf8'));
-    manifest.args.push('--changed-after-create');
-    fs.writeFileSync(filename, `${JSON.stringify(manifest, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 });
-    assert.throws(
-      () =>
-        cli(
-          'resume',
-          '--profile',
-          PROFILE,
-          '--state',
-          created.state,
-          '--expected-sequence',
-          String(created.current_sequence),
-          '--message',
-          'must not reach remote',
-        ),
-      /differs from the durable session binding/,
+    const absent = path.join(fixture.directory, 'does-not-exist');
+    assert.match(
+      cliFailure('resume', '--profile', PROFILE, '--state', absent, '--expected-sequence', '0', '--message', 'must not inspect'),
+      /profile supports only agent run/,
     );
-    assert.equal(JSON.parse(fs.readFileSync(fixture.remote, 'utf8')).resumed, 0);
+    assert.equal(fs.existsSync(fixture.remote), false);
   } finally {
-    cleanupState(created.state);
     fixture.cleanup();
   }
 });

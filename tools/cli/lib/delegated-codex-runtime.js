@@ -283,6 +283,9 @@ function summarize(handle, manifest, state, operation) {
 }
 
 async function runDelegatedCodex(options = {}) {
+  if (options.createOnly) {
+    throw new DelegatedCodexError('create-only is unavailable for the delegated Codex run-only profile', 'CAPABILITY_UNAVAILABLE');
+  }
   const binding = readBinding(options.binding);
   const sessionId = options.sessionId || `session:${randomUUID()}`;
   text(sessionId, 'delegated Codex session id', 1024);
@@ -294,18 +297,16 @@ async function runDelegatedCodex(options = {}) {
     let state;
     try {
       state = await assembled.host.create({ request_id: `request:${randomUUID()}`, spec: sessionSpec(manifest) });
-      if (!options.createOnly) {
-        state = await assembled.host.resumeAndSend({
-          request_id: `request:${randomUUID()}`,
-          session_id: sessionId,
-          turn_id: `turn:${randomUUID()}`,
-          message: { role: 'user', content: text(options.message || 'Execute the delegated instruction.', 'message', 262_144) },
-        });
-      }
+      state = await assembled.host.resumeAndSend({
+        request_id: `request:${randomUUID()}`,
+        session_id: sessionId,
+        turn_id: `turn:${randomUUID()}`,
+        message: { role: 'user', content: text(options.message || 'Execute the delegated instruction.', 'message', 262_144) },
+      });
     } finally {
       await assembled.closeProviders();
     }
-    return summarize(handle, manifest, state, options.createOnly ? 'created' : 'run');
+    return summarize(handle, manifest, state, 'run');
   } catch (error) {
     handle.cleanup();
     throw error;

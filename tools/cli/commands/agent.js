@@ -5,8 +5,6 @@ const { CANDIDATE_PROFILE } = require('../../lib/agentic-activation-rehearsal');
 const { runSupervisedBoundKernel } = require('../lib/bound-kernel-supervisor');
 const {
   PROFILE_ID: CODEX_DELEGATED_PROFILE,
-  cancelDelegatedCodex,
-  resumeDelegatedCodex,
   runDelegatedCodex,
 } = require('../lib/delegated-codex-runtime');
 const {
@@ -101,26 +99,12 @@ async function execute(action, options = {}) {
     return result;
   }
   if (profile === CODEX_DELEGATED_PROFILE) {
+    if (action !== 'run') throw new Error(`The ${CODEX_DELEGATED_PROFILE} profile supports only agent run`);
     if (options.directory || options.value) throw new Error('--directory and --value are not valid for the delegated Codex profile');
-    if (action === 'run' && !options.binding) throw new Error('--binding is required for a new delegated Codex run');
-    if (action !== 'run' && options.binding) throw new Error('--binding is only valid for a new delegated Codex run');
-    if (action !== 'run' && !options.state) throw new Error(`--state is required for agent ${action}`);
-    const delegatedOptions =
-      action === 'run'
-        ? { binding: options.binding, createOnly: options.createOnly === true, message: options.message, sessionId: options.session }
-        : action === 'resume'
-          ? {
-              expectedSequence: integer(options.expectedSequence, '--expected-sequence'),
-              message: options.message,
-              state: options.state,
-            }
-          : { reason: options.reason, state: options.state };
-    const result =
-      action === 'run'
-        ? await runDelegatedCodex(delegatedOptions)
-        : action === 'resume'
-          ? await resumeDelegatedCodex(delegatedOptions)
-          : await cancelDelegatedCodex(delegatedOptions);
+    if (!options.binding) throw new Error('--binding is required for a new delegated Codex run');
+    if (options.createOnly) throw new Error('--create-only is unavailable for the delegated Codex run-only profile');
+    if (options.state) throw new Error('--state is unavailable for the delegated Codex run-only profile');
+    const result = await runDelegatedCodex({ binding: options.binding, message: options.message, sessionId: options.session });
     render(result, options.json === true);
     return result;
   }

@@ -19,9 +19,9 @@
 - **A13 sandbox supervisor:** the public `hseos agent` surface selects the candidate profile only through a fail-closed `ai-jail` worker; exact lockdown configuration and binary digest are durably bound across run/resume/cancel
 - **A13 required sandbox runtime:** `ai-jail 1.20.0` and Ubuntu `bubblewrap 0.9.0` execute a real clean lockdown probe; a scoped AppArmor profile preserves the global user-namespace restriction while enabling `bwrap`; the doctor now verifies effective execution rather than binary presence alone
 - **A10–A11 live delegated providers:** authenticated Codex CLI `0.149.0` and Claude Code `2.1.241` requests completed through `hseos agent run`; first-turn provider continuity, current Codex app-server v2 sandbox spelling and Claude SDK rate-limit events are covered by regressions
-- **A10–A11 live lifecycle boundary:** one-turn `run` is proven; real Codex cross-process `create-only` → `resume` remains open because raw app-server does not persist a pre-turn rollout and the installed npm distribution cannot start the standalone-managed daemon/proxy service
+- **A10–A11 live lifecycle boundary:** one-turn `run` is proven and is now the only public lifecycle advertised by the direct Codex profile; raw app-server does not persist a pre-turn rollout, so `create-only`, cross-process resume and post-process cancel fail closed
 - **A13 DeepSeek public profile:** the hash-bound tool-free ACP composition is exposed as an honest sandbox-required `run`-only candidate; deterministic create+prompt persists terminal truth while unsupported lifecycle actions fail closed
-- **A13 remaining gates:** sandbox-supervised OpenAI-compatible candidate probe; honest real Codex cross-process lifecycle disposition; 30 complete G9 zero-use days; final stable audit; explicit human cutover authorization
+- **A13 remaining gates:** sandbox-supervised OpenAI-compatible candidate probe; 30 complete G9 zero-use days; final stable audit; explicit human cutover authorization
 - **A12 integration:** human-authorized local merge `6f69386`; no push, migration or activation performed
 - **A12 worktree:** removed after integration; task commit `6c40e52`
 - **A11 integration:** human-authorized local merge `cf80117`; no push or activation performed
