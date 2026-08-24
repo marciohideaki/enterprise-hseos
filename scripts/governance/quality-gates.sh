@@ -120,6 +120,12 @@ gate_governance_anchors() {
   else
     record_fail "Federated capability graph: FAILED"
   fi
+
+  if node "${REPO_ROOT}/scripts/governance/validate-capability-reference-corpus.js" --root "${REPO_ROOT}" &>>"$LOG_FILE"; then
+    pass "Capability reference corpus: passed"
+  else
+    record_fail "Capability reference corpus: FAILED"
+  fi
 }
 
 # =============================================================================

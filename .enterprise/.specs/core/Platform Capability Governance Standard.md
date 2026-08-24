@@ -99,6 +99,25 @@ the affected capability.
 Semantic discovery is advisory. It may create reviewable `CandidateEdge` and `DriftFinding`
 records but MUST NOT mutate canonical nodes or edges.
 
+### 8.1 Portfolio reference corpus
+
+Capability discovery MUST include the versioned portfolio reference corpus in
+`.enterprise/governance/capabilities/reference-corpus.json`. Its mandatory product sentinels
+are Poynt Hub, Cambio Real V3, LinkedOut, Cryptor, and SRM Asset. The corpus also includes
+platform-core, backend-core, frontend-core, mobile-core, and design-system-core as contract
+or projection sources.
+
+Reference-corpus signals are candidate evidence only. A product sentinel never becomes a
+canonical owner, package source, or verified consumer because a symbol, module, or semantic
+match was found there. Promotion still requires intake, neutral contract, owner, repository
+fragment, conformance evidence, and the applicable human gate. Adoption still requires a
+published immutable artifact and verified installation.
+
+Every corpus source MUST be pinned by full Git SHA and origin identity. Evidence paths MUST
+be read from that Git object, not from an uncommitted working tree. Deterministic validation
+MUST reject mutable revisions, path traversal, unknown capability IDs, false authority, and
+incomplete combined coverage of the migration-view baseline.
+
 ## 9. Agent projection
 
 Vendor-neutral agent instructions MUST point to the Constitution, this standard, the graph

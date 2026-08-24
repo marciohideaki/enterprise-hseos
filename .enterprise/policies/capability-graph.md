@@ -1,7 +1,7 @@
 # Policy: Federated Platform Capability Graph
 
 **Status:** Canonical
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Effective:** 2026-08-24
 **Scope:** All Hideaki repositories, projects, and agents
 **Authority:** Enterprise Constitution §2.6; Platform Capability Governance Standard; ADR-0022
@@ -18,6 +18,8 @@ MUST query the graph and record one intake outcome: `consume`, `extend`, `promot
 - Root registry: `.enterprise/governance/capabilities/registry.yaml`
 - Graph schemas: `.enterprise/governance/capabilities/schemas/`
 - HSEOS-owned fragment: `.enterprise/governance/capabilities/fragments/enterprise-hseos.yaml`
+- Discovery-only reference corpus: `.enterprise/governance/capabilities/reference-corpus.json`
+- Reference corpus validator: `scripts/governance/validate-capability-reference-corpus.js`
 - Validator: `scripts/governance/validate-capability-graph.js`
 - Repository fragments: `.platform/capability-graph.yaml` by default
 
@@ -39,6 +41,19 @@ expiring exception. New or changed capabilities are `enforced` immediately.
 The deterministic query surface MUST support exact lookup by node ID, node type, capability,
 contract, package, module, project, owner, and lifecycle. Semantic retrieval augments exact
 lookup but never replaces it.
+
+Before broad repository search, discovery MUST query the pinned portfolio corpus. The five
+mandatory product sentinels are Poynt Hub, Cambio Real V3, LinkedOut, Cryptor, and SRM Asset;
+the five mandatory core sources are platform-core, backend-core, frontend-core, mobile-core,
+and design-system-core. Use:
+
+```bash
+node scripts/governance/validate-capability-reference-corpus.js --query <capability-id>
+```
+
+The corpus is not a graph fragment and does not assert ownership, implementation,
+publication, or adoption. It only bounds reproducible discovery and records candidates for
+intake or repository-owned fragment work.
 
 An intake record MUST contain:
 
@@ -77,6 +92,8 @@ CI MUST fail on:
 - source-only packages presented as published or adopted;
 - `CONSUMED_BY` claims without a package, published artifact version and verified-install
   evidence.
+- reference sources with mutable revisions, mismatched origin, missing pinned evidence,
+  unknown capabilities, or authority/adoption claims.
 
 Repository reconciliation is progressively enforced. Legacy gaps require explicit,
 time-bounded migration exceptions; environment flags are not exceptions.
