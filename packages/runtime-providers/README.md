@@ -23,11 +23,11 @@ Codex, Claude Code and DeepSeek Harness expose different native integration
 surfaces. HSEOS preserves that distinction while normalizing all three through
 the `RuntimeProvider` port:
 
-| Adapter | Native boundary | Declared level |
-| --- | --- | --- |
-| Codex | official app-server over bounded JSONL/stdio | L0 |
-| Claude Code | official Agent SDK `query()` process boundary | L0 |
-| DeepSeek Harness | stable ACP v1 peer | L0 |
+| Adapter          | Native boundary                               | Declared level |
+| ---------------- | --------------------------------------------- | -------------- |
+| Codex            | official app-server over bounded JSONL/stdio  | L0             |
+| Claude Code      | official Agent SDK `query()` process boundary | L0             |
+| DeepSeek Harness | stable ACP v1 peer                            | L0             |
 
 The hosted provider classes still accept injected drivers for conformance
 tests. Their production candidates now have direct drivers. Codex binds the
@@ -67,7 +67,7 @@ These adapters deliberately resolve no credentials and declare no secret
 references. They do not claim governed tools, lifecycle conformance or replay.
 The public candidate profiles are `agent-codex-delegated-candidate` and
 `agent-claude-delegated-candidate`. Claude exposes `hseos agent
-run/resume/cancel` against temporary schema-v8 ledgers. The direct Codex
+run/resume/cancel` against temporary schema-v9 ledgers. The direct Codex
 app-server profile is explicitly run-only because the real raw server does not
 persist an empty pre-turn thread for later process reattachment; its completed
 one-turn record remains durable. Deterministic external-process/module fixtures
@@ -75,3 +75,9 @@ cover composition without credentials, but cannot upgrade that public
 lifecycle claim. Real provider smokes belong to a separately configured
 environment and cannot upgrade the manifest without the corresponding HSEOS
 conformance suite.
+
+## Hosted worker lifecycle
+
+Worker ownership is an additive responsibility of `DelegatedRuntimeHost`, not a second provider state machine. A live delegated session may be claimed with a bounded lease; heartbeats extend only the current epoch, and every send or cancel after a claim must present the exact worker ID and lease epoch. Expiry or a bounded drain deadline records an immutable `orphaned` fact before a replacement receives the next epoch, fencing the old worker.
+
+A process-level SIGTERM handler can call `drainAndParkWorker()` to record `draining` and then an exact runtime-sequence checkpoint as `parked`; the library deliberately installs no global signal handler. `retireWorker()` durably retires the binding, and only a different worker may subsequently claim it. Worker facts are registered by pending fixture migration 009, so this conformance surface does not activate the operational schema or weaken G9.

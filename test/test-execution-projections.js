@@ -63,7 +63,7 @@ test('fixture schema includes projection migration 006 while operational runner 
     runMigrations(db, MIGRATIONS_DIR, { log: () => {} });
     assert.equal(db.pragma('user_version', { simple: true }), 4);
     applyExecutionLedgerFixtureSchema(db);
-    assert.equal(db.pragma('user_version', { simple: true }), 8);
+    assert.equal(db.pragma('user_version', { simple: true }), 9);
     assert.equal(db.prepare(`SELECT COUNT(*) AS count FROM sqlite_master WHERE name = 'execution_projection_checkpoints'`).get().count, 1);
   } finally {
     db.close();
