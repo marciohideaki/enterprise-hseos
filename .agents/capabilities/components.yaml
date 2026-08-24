@@ -188,6 +188,29 @@ components:
       - packages/model-providers/
       - packages/tool-runtime/
 
+  - id: runtime:agent-codex-delegated
+    family: runtime
+    name: Codex Delegated Runtime Candidate
+    description: Direct JSONL/stdio Codex app-server driver, hosted L0 adapter, durable delegated host, and public run/resume/cancel CLI surface.
+    prerequisites:
+      - "candidate only; Codex executable and host authentication remain operator-selected and operational activation is not implied"
+      - "instructions-only boundary; any observed command, file, MCP, dynamic-tool, web-search, or image-generation item fails closed"
+    modules:
+      - agent-codex-delegated-candidate
+    tools: []
+    install_paths:
+      - .agents/activation/provider-bindings/codex-app-server.example.yaml
+      - tools/cli/commands/agent.js
+      - tools/cli/lib/delegated-codex-runtime.js
+      - tools/lib/governed-execution/
+      - tools/mcp-project-state/lib/
+      - tools/mcp-project-state/migrations/
+      - tools/mcp-project-state/migrations-pending-activation/
+      - packages/agent-runtime-contracts/
+      - packages/agent-session-store/
+      - packages/delegated-runtime-host/
+      - packages/runtime-providers/
+
   - id: capability:architecture
     family: capability
     name: Architecture Governance

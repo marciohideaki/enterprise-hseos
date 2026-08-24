@@ -96,6 +96,21 @@ The first command is structural and performs no secret or network access. The
 second resolves the declared secret at dispatch only after every required
 sandbox check passes. Neither command authorizes activation.
 
+The `agent-codex-delegated-candidate` profile binds directly to the official
+Codex app-server JSONL/stdio protocol. Copy its example binding outside the
+canonical tree, replace the executable and project paths with absolute paths,
+and run a resumable instructions-only session:
+
+```bash
+hseos agent run --profile agent-codex-delegated-candidate --binding ./codex-binding.yaml --create-only
+hseos agent resume --profile agent-codex-delegated-candidate --state /tmp/hseos-ledger-fixture-... --expected-sequence N --message "Continue"
+```
+
+The binding persists only executable identity, arguments, environment variable
+names, and secret references. Environment values flow directly to the child
+process and never enter the binding, canonical ledger, or CLI output. This is a
+pre-activation L0 surface: observed effect-bearing items fail closed.
+
 ## Accommodation Rules
 
 - Keep canonical profile/component manifests in `.agents/capabilities/`.
