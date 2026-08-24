@@ -1,9 +1,10 @@
 # HSEOS Runtime Providers
 
 `@hseos/runtime-providers` contains model-neutral implementations of the
-`RuntimeProvider` port. The first bridge targets stable ACP v1 through an
-injected, process-neutral peer; spawning processes, resolving credentials and
-network access remain adapter responsibilities.
+`RuntimeProvider` port. The first bridge targets stable ACP v1 through either
+an injected peer or the bounded `ProcessAcpPeer` JSON-RPC/stdio transport.
+Executable selection, arguments and the replacement environment are explicit;
+credential resolution and network access remain deployment responsibilities.
 
 The reference bridge is deliberately L0 (`instructions`) only. It advertises no
 filesystem, terminal or MCP client capability and requires the peer to
@@ -41,7 +42,16 @@ requires plan mode. The driver must attest `instructions_only` on create and
 resume and may emit only text deltas. Any tool/content capability outside the
 small non-effect allowlist terminates the session with `policy_denied`. The
 DeepSeek class uses the ACP bridge directly; Cordis, MCP servers and DeepSeek
-packages are not vendored or imported.
+packages are not vendored or imported. Its process transport enforces absolute
+executable/cwd paths, `shell: false`, a selected replacement environment, 1 MiB
+line bounds, 64 pending requests and strict JSON-RPC response correlation.
+
+The stock DeepSeek Harness ACP server intentionally advertises fresh sessions
+only and does not attest HSEOS's `instructions_only` boundary. Consequently,
+stock process initialization fails closed and cross-process resume remains
+`capability_unavailable`. A public DeepSeek candidate profile must wait for a
+tool-free, sandbox-attested composition; HSEOS does not simulate resume,
+cancellation or effect confinement that the external runtime cannot prove.
 
 These adapters deliberately resolve no credentials and declare no secret
 references. They do not claim governed tools, lifecycle conformance or replay.

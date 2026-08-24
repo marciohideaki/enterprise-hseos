@@ -12,7 +12,7 @@
 - **Architectural gate:** satisfied; implementation remains bounded by the A1–A13 graph
 - **Validation:** A13 supervisor `5/5`; bound kernel `6/6`; reference `8/8`; model providers `16/16`; capability packaging `97/97`; full strict gate passed with 0 failures and 1 unrelated historical warning
 - **Evidence:** `state/checkpoints/A0-foundation-readiness.md`; `state/checkpoints/A0-completion.md`; `state/checkpoints/A1-contracts.md`; `state/checkpoints/A6-agent-runtime.md`; `state/checkpoints/A7-compaction-checkpoints.md`; `state/checkpoints/A8-subagents-workflows.md`; `state/checkpoints/A9-runtime-provider-acp.md`; `state/checkpoints/A10-hosted-runtime-adapters.md`
-- **Next reversible action:** expose substitutable delegated RuntimeProviders through the same public agent lifecycle while live provider activation remains sandbox-gated
+- **Next reversible action:** define a versioned one-shot delegated lifecycle or obtain a sandbox-attested, tool-free DeepSeek composition with real resume/cancel before exposing its public profile
 - **A13 rehearsal:** real schema-v4 state rehearsed through a verified WAL snapshot; v7 migration, v4 rollback, legacy-table preservation, source immutability and candidate provider contract passed
 - **A13 provider binding:** strict YAML binding, immutable registry snapshot, late pluggable secret resolution and sandbox-gated optional probe implemented; structural validation performs no secret/network access
 - **A13 bound kernel:** common temporary assembly now drives both the scripted reference and an immutable OpenAI-compatible binding; run/resume/cancel, governed tool effects, durable sandbox evidence and provider substitution pass against fake endpoints
@@ -56,6 +56,7 @@
 - **A9 independent evidence:** `READY`; ten focused reliability repros, package install and secret scan revalidated with no residual blocker/high/medium finding
 - **A10 deterministic evidence:** runtime providers `44/44`; contracts `9/9`; compatibility `7/7`; clean package install; full `npm test`; lint and diff checks passed; strict gate `0 failures / 1 unrelated pre-existing warning`
 - **A10 independent evidence:** `READY`; owner collision, close/create, malformed events, resume races, immediate/late create ABA, dispose ABA, generational release fences and bounded tombstone overflow revalidated with no residual blocker/high/medium finding
+- **A10 DeepSeek process evidence:** bounded ACP JSON-RPC/stdio transport passes 54/54 runtime-provider tests; stock-like missing effect attestation fails `policy_denied`; missing `loadSession` fails `capability_unavailable`; no public profile is overclaimed
 - **A11 deterministic evidence:** CLI/reference `8/8`; capabilities `92/92`; AgentRuntime `12/12`; ledger/projection `26/26`; clean tarball assembled smoke persisted 17 events; full `npm test`; strict gate `0 failures / 1 unrelated pre-existing warning`
 - **A11 independent evidence:** initial `NOT READY` workspace-link escape and mutable cross-process manifest were corrected and encoded as regressions; final verdict `READY`
 - **A12 deterministic evidence:** provider substitution, malformed transport, coordinated cancel-tree, non-settling workflow, terminal correlation, persistent exact resume and scaled file-backed replay `7/7`; orchestration `13/13`; final full `npm test` passed through the strict worktree-manager gate
