@@ -1,10 +1,10 @@
 # A10 Extension Checkpoint — Durable Delegated Runtime Host
 
-**Artifact type:** Code checkpoint and verification evidence  
-**Status:** accepted mini-goal; external driver bindings and operational activation remain open  
-**Baseline:** `fbf7800`  
-**Scope:** cross-process RuntimeProvider reattachment, provider-neutral durable host, delegated-runtime event catalog and fixture-only migration rehearsal  
-**Governing documents:** Enterprise Constitution; ADR-0022; ADR-0023; ADR-0024; Automated Validation Rules  
+**Artifact type:** Code checkpoint and verification evidence
+**Status:** accepted mini-goal; external driver bindings and operational activation remain open
+**Baseline:** `fbf7800`
+**Scope:** cross-process RuntimeProvider reattachment, provider-neutral durable host, delegated-runtime event catalog and fixture-only migration rehearsal
+**Governing documents:** Enterprise Constitution; ADR-0022; ADR-0023; ADR-0024; Automated Validation Rules
 **Authority:** explicit owner authorization on 2026-08-24 for the pending schema migration and continued implementation
 
 ## Outcome
@@ -33,8 +33,8 @@ Pending migration 008 registers and reseals the eight delegated-runtime fact typ
 - `npm run test:compatibility` — 12/12.
 - Native entrypoint wiring — 12/12.
 - Full strict worktree gate — 0 failures, 1 unrelated historical placeholder warning.
-- Gate log — `.logs/validation/gate-20260824T004820.log`.
-- Gate SHA-256 — `24fa09115739d5459ade55738b62a07ad8810a640f5fa5cec2340215951ef510`.
+- Gate log — `.logs/validation/gate-20260824T005400.log`.
+- Gate SHA-256 — `d8b741c9b9c03402a848535b98e35bab7819f6f22e1be6254c88779f0308c01a`.
 
 ## Boundary and rollback
 
