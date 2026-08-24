@@ -38,6 +38,7 @@
 | `../../packages/runtime-providers/`                                             | ACP and hosted delegated-runtime adapters                          | ADR-0024 RuntimeProvider plane                      |
 | `state/checkpoints/A9-runtime-provider-acp.md`                                  | A9 negotiation, lifecycle and ACP refutation evidence              | Accepted delegated-runtime boundary                 |
 | `state/checkpoints/A10-hosted-runtime-adapters.md`                              | Codex, Claude Code and DeepSeek honest-level adapter evidence      | Accepted hosted-adapter boundary                    |
+| `state/checkpoints/A10-A11-deepseek-acp-process.md`                            | External ACP process binding and DeepSeek lifecycle refutation     | Partial binding evidence; profile remains gated     |
 | `state/checkpoints/A11-capability-cli-reference.md`                             | Exact profile, CLI and keyless assembled runtime evidence          | Accepted pre-activation productization boundary     |
 | `A12-THREAT-MODEL.md`                                                          | Security boundaries, abuse cases and activation blockers           | A12 security assessment                             |
 | `A12-COMPLETION-AUDIT.md`                                                      | Functional percentage, journey matrix and DeepSeek comparison      | A12 completion assessment                           |
