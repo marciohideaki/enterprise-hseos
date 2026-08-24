@@ -187,6 +187,30 @@ test('historical same-day legacy use remains invalid while heartbeat freshness h
   assert.equal(report.progress.current_consecutive_days, 0);
 });
 
+test('latest legacy use remains visible across UTC days for the retained observation window', (t) => {
+  const paths = fixture(t, { firstCandidateDay: '2026-08-31' });
+  const store = new McpLegacyUsageStore(paths.telemetryDatabase);
+  t.after(() => store.close());
+  store.record(
+    {
+      client_identity: 'legacy-previous-day',
+      protocol_version: '2024-11-05',
+      server_id: 'axon_bridge',
+      sunset: 'fixture',
+    },
+    new Date('2026-08-30T10:00:00.000Z'),
+  );
+  markHour(store, new Date('2026-08-31T12:20:00.000Z'));
+
+  const report = monitorCompatibilityObservation({ projectDirectory: paths.projectDirectory, asOf: AS_OF });
+
+  assert.equal(report.status, 'observing-zero-use');
+  assert.deepEqual(report.current.legacy_use_today, []);
+  assert.equal(report.current.latest_legacy_use_at, '2026-08-30T10:00:00.000Z');
+  assert.equal(report.current.legacy_quiet_minutes, 1590);
+  assert.equal(report.observation_healthy, true);
+});
+
 test('invalid or future legacy timestamps degrade observation evidence', (t) => {
   const paths = fixture(t, { firstCandidateDay: '2026-08-31' });
   const store = new McpLegacyUsageStore(paths.telemetryDatabase);
