@@ -1,6 +1,8 @@
 'use strict';
 
 const assert = require('node:assert');
+const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const {
@@ -20,6 +22,27 @@ function clone(value) {
 
 function expectFailure(label, fn, pattern) {
   assert.throws(fn, pattern, label);
+}
+
+function withGitFixture(files, callback, remote) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'capability-graph-'));
+  try {
+    execFileSync('git', ['init', '-q'], { cwd: root });
+    execFileSync('git', ['config', 'user.name', 'Capability Governance Tests'], { cwd: root });
+    execFileSync('git', ['config', 'user.email', 'capability-tests@example.invalid'], { cwd: root });
+    if (remote) execFileSync('git', ['remote', 'add', 'origin', remote], { cwd: root });
+    for (const [relativePath, contents] of Object.entries(files)) {
+      const absolutePath = path.join(root, relativePath);
+      fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+      fs.writeFileSync(absolutePath, contents);
+    }
+    execFileSync('git', ['add', '.'], { cwd: root });
+    execFileSync('git', ['commit', '-q', '-m', 'fixture baseline'], { cwd: root });
+    const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+    callback({ root, revision });
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 }
 
 const cases = [
@@ -125,15 +148,24 @@ const cases = [
   {
     name: 'mapped Git fragments are loaded from their pinned commit',
     fn: () => {
-      const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
-      const fragment = readPinnedGitFragment(REPO_ROOT, {
-        id: 'fragment.enterprise-hseos.fixture',
-        revision,
-        path: '.enterprise/governance/capabilities/fragments/enterprise-hseos.yaml',
-        source: { kind: 'git', uri: 'https://github.com/marciohideaki/enterprise-hseos.git' },
-      });
-      assert.strictEqual(fragment.fragment_id, 'fragment.enterprise-hseos');
-      assert.ok(fragment.nodes.some((node) => node.id === 'capability.governance.capability-graph'));
+      const fragmentPath = '.enterprise/governance/capabilities/fragments/enterprise-hseos.yaml';
+      const fragmentContents = fs.readFileSync(path.join(REPO_ROOT, fragmentPath), 'utf8');
+      const remote = 'https://github.com/hideakisolutions/capability-graph-fixture.git';
+      withGitFixture(
+        { [fragmentPath]: fragmentContents },
+        ({ root, revision }) => {
+          fs.writeFileSync(path.join(root, fragmentPath), 'fragment_id: uncommitted-mutation\n');
+          const fragment = readPinnedGitFragment(root, {
+            id: 'fragment.enterprise-hseos.fixture',
+            revision,
+            path: fragmentPath,
+            source: { kind: 'git', uri: remote },
+          });
+          assert.strictEqual(fragment.fragment_id, 'fragment.enterprise-hseos');
+          assert.ok(fragment.nodes.some((node) => node.id === 'capability.governance.capability-graph'));
+        },
+        remote,
+      );
     },
   },
   {
@@ -279,11 +311,28 @@ const cases = [
   {
     name: 'current constitutional amendment is linked and protected',
     fn: () => {
-      const result = validateConstitutionChange({ root: REPO_ROOT, base: 'master' });
-      assert.strictEqual(result.changed, true);
-      assert.strictEqual(result.previous_version, '2.1');
-      assert.strictEqual(result.version, '2.2');
-      assert.ok(result.adrs.some((file) => file.includes('ADR-0022')));
+      const constitution = '.enterprise/.specs/constitution/Enterprise-Constitution.md';
+      const adr = '.enterprise/.specs/decisions/ADR-0022-capability-graph.md';
+      withGitFixture(
+        {
+          [constitution]: '**Version:** 2.1\n\nBaseline.\n',
+          '.github/CODEOWNERS': `${constitution} @platform-architecture\n`,
+          '.github/branch-protection.yaml':
+            'branches:\n  - name: master\n    protection:\n      required_pull_request_reviews:\n        require_code_owner_reviews: true\n',
+        },
+        ({ root }) => {
+          fs.writeFileSync(path.join(root, constitution), '**Version:** 2.2\n\nCode-owner approval enforced by branch protection.\n');
+          const adrPath = path.join(root, adr);
+          fs.mkdirSync(path.dirname(adrPath), { recursive: true });
+          fs.writeFileSync(adrPath, '**Status:** Accepted\n**Affects Standards:** Enterprise Constitution\n');
+          execFileSync('git', ['add', constitution, adr], { cwd: root });
+          const result = validateConstitutionChange({ root, base: 'HEAD' });
+          assert.strictEqual(result.changed, true);
+          assert.strictEqual(result.previous_version, '2.1');
+          assert.strictEqual(result.version, '2.2');
+          assert.ok(result.adrs.some((file) => file.includes('ADR-0022')));
+        },
+      );
     },
   },
 ];
