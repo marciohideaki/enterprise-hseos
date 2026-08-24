@@ -115,14 +115,42 @@ function factory(Adapter, providerId, remote) {
 }
 
 function assembly(db, Adapter, providerId, remote) {
-  let tick = 0;
+  if (!Number.isSafeInteger(remote.clockTick)) remote.clockTick = 0;
   const store = new DelegatedRuntimeStore({
     ledger: new ExecutionEventLedger(db),
-    clock: () => new Date(Date.parse('2026-08-24T01:00:00Z') + tick++ * 1000).toISOString(),
+    clock: () => new Date(Date.parse('2026-08-24T01:00:00Z') + remote.clockTick++ * 1000).toISOString(),
   });
   return {
     host: new DelegatedRuntimeHost({ store, provider_factory: factory(Adapter, providerId, remote), operation_timeout_ms: 500 }),
     store,
+  };
+}
+
+function workerAssembly(db, providerId, remote, initialNow = '2026-08-24T02:00:00.000Z') {
+  let current = initialNow;
+  const store = new DelegatedRuntimeStore({
+    ledger: new ExecutionEventLedger(db),
+    clock: () => current,
+  });
+  const host = new DelegatedRuntimeHost({
+    store,
+    provider_factory: (requestedProviderId) => {
+      assert.equal(requestedProviderId, providerId);
+      return new CodexRuntimeProvider({
+        provider_id: providerId,
+        driver: new DurableHostedDriver(remote),
+        default_cwd: '/workspace/default',
+        clock: () => current,
+      });
+    },
+    operation_timeout_ms: 500,
+  });
+  return {
+    host,
+    store,
+    setNow(value) {
+      current = value;
+    },
   };
 }
 
@@ -403,6 +431,319 @@ test('a durable cancellation intent is retryable while a post-dispatch failure b
   }
 });
 
+test('worker lease heartbeat, bounded drain, park, reopen, and takeover preserve one durable session', async () => {
+  const fixture = createExecutionLedgerFileFixture();
+  const providerId = 'runtime:codex-worker-lifecycle';
+  const sessionId = 'session:worker-lifecycle';
+  const remote = { id: 'remote-worker-lifecycle', exists: false, created: 0, resumed: 0, sent: 0, cancelled: 0 };
+  try {
+    const first = workerAssembly(fixture.db, providerId, remote);
+    await first.host.create({ request_id: 'request:worker:create', spec: spec(providerId, sessionId) });
+    const attached = first.host.claimWorker({
+      request_id: 'request:worker:claim-a',
+      session_id: sessionId,
+      worker_id: 'worker:a',
+      lease_ttl_ms: 60_000,
+    });
+    assert.deepEqual({ status: attached.worker.status, epoch: attached.worker.lease_epoch }, { status: 'attached', epoch: 1 });
+    first.setNow('2026-08-24T02:00:10.000Z');
+    const heartbeat = first.host.heartbeatWorker({
+      request_id: 'request:worker:heartbeat-a',
+      session_id: sessionId,
+      worker_id: 'worker:a',
+      lease_epoch: 1,
+    });
+    assert.equal(heartbeat.worker.lease_expires_at, '2026-08-24T02:01:10.000Z');
+    const draining = first.host.drainWorker({
+      request_id: 'request:worker:drain-a',
+      session_id: sessionId,
+      worker_id: 'worker:a',
+      lease_epoch: 1,
+      defer_shutdown_ms: 20_000,
+      reason: 'sigterm',
+    });
+    assert.equal(draining.worker.drain_deadline_at, '2026-08-24T02:00:30.000Z');
+    const parked = first.host.drainAndParkWorker({
+      request_id: 'request:worker:drain-a',
+      session_id: sessionId,
+      worker_id: 'worker:a',
+      lease_epoch: 1,
+      defer_shutdown_ms: 20_000,
+      reason: 'sigterm',
+    });
+    assert.equal(parked.worker.status, 'parked');
+    assert.equal(parked.worker.checkpoint_sequence, 1);
+    fixture.db.close();
+
+    const reopened = openExecutionLedgerFileFixture(fixture.directory);
+    try {
+      const second = workerAssembly(reopened.db, providerId, remote, '2026-08-24T02:00:11.000Z');
+      const replacement = second.host.claimWorker({
+        request_id: 'request:worker:claim-b',
+        session_id: sessionId,
+        worker_id: 'worker:b',
+        lease_ttl_ms: 60_000,
+      });
+      assert.equal(replacement.worker.lease_epoch, 2);
+      await assert.rejects(
+        () =>
+          second.host.resumeAndSend({
+            request_id: 'request:worker:stale-send',
+            session_id: sessionId,
+            turn_id: 'turn:worker:stale',
+            message: { role: 'user', content: 'must be fenced' },
+            worker_id: 'worker:a',
+            lease_epoch: 1,
+          }),
+        (error) => error.code === 'DELEGATED_WORKER_FENCED',
+      );
+      const completed = await second.host.resumeAndSend({
+        request_id: 'request:worker:send-b',
+        session_id: sessionId,
+        turn_id: 'turn:worker:b',
+        message: { role: 'user', content: 'continue after park' },
+        worker_id: 'worker:b',
+        lease_epoch: 2,
+      });
+      assert.equal(completed.terminal, true);
+      assert.equal(remote.sent, 1);
+    } finally {
+      reopened.close();
+    }
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('expired lease is orphaned before replacement and fences every stale worker operation', async () => {
+  const fixture = createExecutionLedgerFileFixture();
+  const providerId = 'runtime:codex-worker-expiry';
+  const sessionId = 'session:worker-expiry';
+  const remote = { id: 'remote-worker-expiry', exists: false, created: 0, resumed: 0, sent: 0, cancelled: 0 };
+  try {
+    const item = workerAssembly(fixture.db, providerId, remote);
+    await item.host.create({ request_id: 'request:expiry:create', spec: spec(providerId, sessionId) });
+    item.host.claimWorker({
+      request_id: 'request:expiry:claim-a',
+      session_id: sessionId,
+      worker_id: 'worker:old',
+      lease_ttl_ms: 5000,
+    });
+    item.setNow('2026-08-24T02:00:05.000Z');
+    const replacement = item.host.claimWorker({
+      request_id: 'request:expiry:claim-b',
+      session_id: sessionId,
+      worker_id: 'worker:new',
+      lease_ttl_ms: 5000,
+    });
+    assert.equal(replacement.worker.status, 'attached');
+    assert.equal(replacement.worker.lease_epoch, 2);
+    assert.throws(
+      () =>
+        item.host.heartbeatWorker({
+          request_id: 'request:expiry:stale-heartbeat',
+          session_id: sessionId,
+          worker_id: 'worker:old',
+          lease_epoch: 1,
+        }),
+      (error) => error.code === 'DELEGATED_WORKER_FENCED',
+    );
+    const lifecycle = fixture.db
+      .prepare(
+        "SELECT event_type FROM execution_events WHERE aggregate_id=? AND event_type LIKE 'delegated.worker.%' ORDER BY stream_sequence",
+      )
+      .all(sessionId)
+      .map((row) => row.event_type);
+    assert.deepEqual(lifecycle, ['delegated.worker.attached', 'delegated.worker.orphaned', 'delegated.worker.attached']);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('crash during drain becomes orphaned at the defer deadline and retirement is durable', async () => {
+  const fixture = createExecutionLedgerFileFixture();
+  const providerId = 'runtime:codex-worker-crash';
+  const sessionId = 'session:worker-crash';
+  const remote = { id: 'remote-worker-crash', exists: false, created: 0, resumed: 0, sent: 0, cancelled: 0 };
+  try {
+    const item = workerAssembly(fixture.db, providerId, remote);
+    await item.host.create({ request_id: 'request:crash:create', spec: spec(providerId, sessionId) });
+    item.host.claimWorker({
+      request_id: 'request:crash:claim-a',
+      session_id: sessionId,
+      worker_id: 'worker:crashed',
+      lease_ttl_ms: 60_000,
+    });
+    item.host.drainWorker({
+      request_id: 'request:crash:drain',
+      session_id: sessionId,
+      worker_id: 'worker:crashed',
+      lease_epoch: 1,
+      defer_shutdown_ms: 5000,
+      reason: 'sigterm',
+    });
+    item.setNow('2026-08-24T02:00:05.000Z');
+    assert.equal(item.host.sweepWorker({ request_id: 'request:crash:sweep', session_id: sessionId }).worker.status, 'orphaned');
+    const claimed = item.host.claimWorker({
+      request_id: 'request:crash:claim-b',
+      session_id: sessionId,
+      worker_id: 'worker:replacement',
+      lease_ttl_ms: 60_000,
+    });
+    assert.equal(claimed.worker.lease_epoch, 2);
+    item.host.drainAndParkWorker({
+      request_id: 'request:crash:shutdown-b',
+      session_id: sessionId,
+      worker_id: 'worker:replacement',
+      lease_epoch: 2,
+      defer_shutdown_ms: 10_000,
+      reason: 'operator_shutdown',
+    });
+    const retriedShutdown = item.host.drainAndParkWorker({
+      request_id: 'request:crash:shutdown-b',
+      session_id: sessionId,
+      worker_id: 'worker:replacement',
+      lease_epoch: 2,
+      defer_shutdown_ms: 10_000,
+      reason: 'operator_shutdown',
+    });
+    assert.equal(retriedShutdown.worker.status, 'parked');
+    const retired = item.host.retireWorker({
+      request_id: 'request:crash:retire-b',
+      session_id: sessionId,
+      worker_id: 'worker:replacement',
+      lease_epoch: 2,
+      reason: 'runner_retired',
+    });
+    assert.equal(retired.worker.status, 'retired');
+    assert.throws(
+      () =>
+        item.host.claimWorker({
+          request_id: 'request:crash:reclaim-retired',
+          session_id: sessionId,
+          worker_id: 'worker:replacement',
+          lease_ttl_ms: 60_000,
+        }),
+      (error) => error.code === 'DELEGATED_WORKER_FENCED',
+    );
+    assert.equal(item.host.read(sessionId).worker.status, 'retired');
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('persisted worker facts cannot forge lease, checkpoint, expiry, or retired-worker semantics', async () => {
+  const fixture = createExecutionLedgerFileFixture();
+  const providerId = 'runtime:codex-worker-forgery';
+  const sessionId = 'session:worker-forgery';
+  const remote = { id: 'remote-worker-forgery', exists: false, created: 0, resumed: 0, sent: 0, cancelled: 0 };
+  const eventCount = () => fixture.db.prepare('SELECT COUNT(*) AS count FROM execution_events').get().count;
+  try {
+    const item = workerAssembly(fixture.db, providerId, remote);
+    await item.host.create({ request_id: 'request:forgery:create', spec: spec(providerId, sessionId) });
+    let state = item.host.read(sessionId);
+    let before = eventCount();
+    assert.throws(() =>
+      item.store.append({
+        session_id: sessionId,
+        expected_version: state.version,
+        event_type: 'delegated.worker.attached',
+        payload: {
+          request_id: 'request:forgery:lease',
+          worker_id: 'worker:forged',
+          lease_epoch: 1,
+          lease_ttl_ms: 1,
+          lease_expires_at: '2027-08-24T02:00:00.000Z',
+        },
+        key: 'request:forgery:lease',
+        occurred_at: '2026-08-24T02:00:00.000Z',
+      }),
+    );
+    assert.equal(eventCount(), before);
+
+    state = item.host.claimWorker({
+      request_id: 'request:forgery:claim',
+      session_id: sessionId,
+      worker_id: 'worker:original',
+      lease_ttl_ms: 10_000,
+    });
+    before = eventCount();
+    assert.throws(() =>
+      item.store.append({
+        session_id: sessionId,
+        expected_version: state.version,
+        event_type: 'delegated.worker.orphaned',
+        payload: {
+          request_id: 'request:forgery:premature-orphan',
+          worker_id: 'worker:original',
+          lease_epoch: 1,
+          reason: 'lease_expired',
+        },
+        key: 'request:forgery:premature-orphan',
+        occurred_at: '2026-08-24T02:00:01.000Z',
+      }),
+    );
+    assert.equal(eventCount(), before);
+
+    state = item.host.drainWorker({
+      request_id: 'request:forgery:drain',
+      session_id: sessionId,
+      worker_id: 'worker:original',
+      lease_epoch: 1,
+      defer_shutdown_ms: 5000,
+      reason: 'sigterm',
+    });
+    before = eventCount();
+    assert.throws(() =>
+      item.store.append({
+        session_id: sessionId,
+        expected_version: state.version,
+        event_type: 'delegated.worker.parked',
+        payload: {
+          request_id: 'request:forgery:late-park',
+          worker_id: 'worker:original',
+          lease_epoch: 1,
+          checkpoint_sequence: state.runtime_sequence,
+          reason: 'sigterm',
+        },
+        key: 'request:forgery:late-park',
+        occurred_at: state.worker.drain_deadline_at,
+      }),
+    );
+    assert.equal(eventCount(), before);
+
+    item.setNow(state.worker.drain_deadline_at);
+    state = item.host.sweepWorker({ request_id: 'request:forgery:sweep', session_id: sessionId });
+    state = item.host.retireWorker({
+      request_id: 'request:forgery:retire',
+      session_id: sessionId,
+      worker_id: 'worker:original',
+      lease_epoch: 1,
+      reason: 'runner_retired',
+    });
+    before = eventCount();
+    assert.throws(() =>
+      item.store.append({
+        session_id: sessionId,
+        expected_version: state.version,
+        event_type: 'delegated.worker.attached',
+        payload: {
+          request_id: 'request:forgery:aba',
+          worker_id: 'worker:original',
+          lease_epoch: 2,
+          lease_ttl_ms: 10_000,
+          lease_expires_at: '2026-08-24T02:00:15.000Z',
+        },
+        key: 'request:forgery:aba',
+        occurred_at: '2026-08-24T02:00:05.000Z',
+      }),
+    );
+    assert.equal(eventCount(), before);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
 test('the SQL catalog is sealed after registering every delegated runtime fact', () => {
   const fixture = createExecutionLedgerFileFixture();
   try {
@@ -419,6 +760,12 @@ test('the SQL catalog is sealed after registering every delegated runtime fact',
       'delegated.runtime.outcome_uncertain',
       'delegated.turn.dispatch_started',
       'delegated.turn.requested',
+      'delegated.worker.attached',
+      'delegated.worker.drain_requested',
+      'delegated.worker.heartbeat',
+      'delegated.worker.orphaned',
+      'delegated.worker.parked',
+      'delegated.worker.retired',
     ]);
     assert.throws(
       () => fixture.db.prepare("INSERT INTO execution_event_schemas VALUES ('delegated.forged', 1)").run(),

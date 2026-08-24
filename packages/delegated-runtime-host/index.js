@@ -20,6 +20,8 @@ const {
 
 const AGGREGATE_TYPE = 'delegated_runtime';
 const MAX_OPERATION_TIMEOUT_MS = 2_147_483_647;
+const MAX_WORKER_LEASE_MS = 300_000;
+const MAX_DEFER_SHUTDOWN_MS = 900_000;
 
 const CreatedSchema = strictObject({ request_id: IdentifierSchema, spec: AgentSessionSpecSchema });
 const BoundSchema = strictObject({
@@ -36,6 +38,52 @@ const FailedSchema = strictObject({
   retryable: z.boolean(),
 });
 const RecordedSchema = strictObject({ event: RuntimeEventSchema });
+const WorkerLeaseSchema = strictObject({
+  request_id: IdentifierSchema,
+  worker_id: IdentifierSchema,
+  lease_epoch: z.number().int().positive().safe(),
+  lease_ttl_ms: z.number().int().positive().max(MAX_WORKER_LEASE_MS),
+  lease_expires_at: z.string().min(20).max(32),
+});
+const WorkerDrainSchema = strictObject({
+  request_id: IdentifierSchema,
+  worker_id: IdentifierSchema,
+  lease_epoch: z.number().int().positive().safe(),
+  defer_shutdown_ms: z.number().int().positive().max(MAX_DEFER_SHUTDOWN_MS),
+  drain_deadline_at: z.string().min(20).max(32),
+  reason: z.string().min(1).max(256),
+});
+const WorkerCheckpointSchema = strictObject({
+  request_id: IdentifierSchema,
+  worker_id: IdentifierSchema,
+  lease_epoch: z.number().int().positive().safe(),
+  checkpoint_sequence: z.number().int().nonnegative().safe(),
+  reason: z.string().min(1).max(256),
+});
+const WorkerTerminalSchema = strictObject({
+  request_id: IdentifierSchema,
+  worker_id: IdentifierSchema,
+  lease_epoch: z.number().int().positive().safe(),
+  reason: z.string().min(1).max(256),
+});
+const WorkerClaimInputSchema = strictObject({
+  request_id: IdentifierSchema,
+  session_id: IdentifierSchema,
+  worker_id: IdentifierSchema,
+  lease_ttl_ms: z.number().int().positive().max(MAX_WORKER_LEASE_MS),
+});
+const WorkerFencedInputSchema = strictObject({
+  request_id: IdentifierSchema,
+  session_id: IdentifierSchema,
+  worker_id: IdentifierSchema,
+  lease_epoch: z.number().int().positive().safe(),
+});
+const WorkerDrainInputSchema = WorkerFencedInputSchema.extend({
+  defer_shutdown_ms: z.number().int().positive().max(MAX_DEFER_SHUTDOWN_MS),
+  reason: z.string().min(1).max(256),
+}).strict();
+const WorkerParkInputSchema = WorkerFencedInputSchema.extend({ reason: z.string().min(1).max(256) }).strict();
+const WorkerSweepInputSchema = strictObject({ request_id: IdentifierSchema, session_id: IdentifierSchema });
 
 const EVENT_SCHEMAS = Object.freeze({
   'delegated.runtime.created': CreatedSchema,
@@ -46,6 +94,12 @@ const EVENT_SCHEMAS = Object.freeze({
   'delegated.runtime.failed': FailedSchema,
   'delegated.runtime.outcome_uncertain': FailedSchema,
   'delegated.runtime.event_recorded': RecordedSchema,
+  'delegated.worker.attached': WorkerLeaseSchema,
+  'delegated.worker.heartbeat': WorkerLeaseSchema,
+  'delegated.worker.drain_requested': WorkerDrainSchema,
+  'delegated.worker.parked': WorkerCheckpointSchema,
+  'delegated.worker.orphaned': WorkerTerminalSchema,
+  'delegated.worker.retired': WorkerTerminalSchema,
 });
 
 class DelegatedRuntimeHostError extends Error {
@@ -63,9 +117,21 @@ function eventId(sessionId, eventType, key) {
 }
 
 function canonicalTimestamp(value) {
-  const timestamp = new Date(value).toISOString();
-  if (timestamp !== value) throw new DelegatedRuntimeHostError('clock must return a canonical UTC timestamp');
-  return timestamp;
+  try {
+    const timestamp = new Date(value).toISOString();
+    if (timestamp !== value) throw new Error('non-canonical');
+    return timestamp;
+  } catch {
+    throw new DelegatedRuntimeHostError('clock must return a canonical UTC timestamp');
+  }
+}
+
+function addMilliseconds(timestamp, milliseconds) {
+  const result = Date.parse(timestamp) + milliseconds;
+  if (!Number.isSafeInteger(result) || result > 8_640_000_000_000_000) {
+    throw new DelegatedRuntimeHostError('worker deadline exceeds the supported clock range');
+  }
+  return new Date(result).toISOString();
 }
 
 function initialState(sessionId) {
@@ -83,7 +149,26 @@ function initialState(sessionId) {
     cancel_request: null,
     failed: null,
     runtime_events: [],
+    last_occurred_at: null,
+    worker: {
+      status: 'unassigned',
+      worker_id: null,
+      lease_epoch: 0,
+      lease_ttl_ms: null,
+      lease_expires_at: null,
+      drain_deadline_at: null,
+      drain_request_id: null,
+      drain_reason: null,
+      drain_defer_shutdown_ms: null,
+      checkpoint_sequence: null,
+    },
   };
+}
+
+function assertWorkerIdentity(state, payload) {
+  if (state.worker.worker_id !== payload.worker_id || state.worker.lease_epoch !== payload.lease_epoch) {
+    throw new DelegatedRuntimeHostError('delegated worker fencing token is invalid', 'DELEGATED_WORKER_FENCED');
+  }
 }
 
 function applyFact(state, row) {
@@ -93,6 +178,10 @@ function applyFact(state, row) {
   }
   if (row.stream_sequence !== state.version + 1) {
     throw new DelegatedRuntimeHostError('delegated runtime ledger sequence is discontinuous', 'DELEGATED_RUNTIME_SEQUENCE_INVALID');
+  }
+  const occurredAt = canonicalTimestamp(row.occurred_at);
+  if (state.last_occurred_at && Date.parse(occurredAt) < Date.parse(state.last_occurred_at)) {
+    throw new DelegatedRuntimeHostError('delegated runtime clock regressed', 'DELEGATED_RUNTIME_SEQUENCE_INVALID');
   }
   const payload = parseContract(schema, row.payload, `persisted ${row.event_type}`);
   if (row.event_type === 'delegated.runtime.created') {
@@ -145,8 +234,100 @@ function applyFact(state, row) {
     state.failed = payload;
     state.terminal = true;
     state.pending_turn = null;
+  } else if (row.event_type === 'delegated.worker.attached') {
+    canonicalTimestamp(payload.lease_expires_at);
+    const canonicalExpiry = addMilliseconds(occurredAt, payload.lease_ttl_ms);
+    if (
+      !state.manifest ||
+      state.terminal ||
+      !['unassigned', 'parked', 'orphaned', 'retired'].includes(state.worker.status) ||
+      payload.lease_epoch !== state.worker.lease_epoch + 1 ||
+      payload.lease_expires_at !== canonicalExpiry ||
+      (state.worker.status === 'retired' && state.worker.worker_id === payload.worker_id)
+    ) {
+      throw new DelegatedRuntimeHostError('delegated worker attachment fact is invalid');
+    }
+    state.worker = {
+      status: 'attached',
+      worker_id: payload.worker_id,
+      lease_epoch: payload.lease_epoch,
+      lease_ttl_ms: payload.lease_ttl_ms,
+      lease_expires_at: payload.lease_expires_at,
+      drain_deadline_at: null,
+      drain_request_id: null,
+      drain_reason: null,
+      drain_defer_shutdown_ms: null,
+      checkpoint_sequence: null,
+    };
+  } else if (row.event_type === 'delegated.worker.heartbeat') {
+    canonicalTimestamp(payload.lease_expires_at);
+    assertWorkerIdentity(state, payload);
+    const requestedExpiry = addMilliseconds(occurredAt, payload.lease_ttl_ms);
+    const canonicalExpiry = state.worker.drain_deadline_at
+      ? new Date(Math.min(Date.parse(requestedExpiry), Date.parse(state.worker.drain_deadline_at))).toISOString()
+      : requestedExpiry;
+    if (
+      !['attached', 'draining'].includes(state.worker.status) ||
+      payload.lease_ttl_ms !== state.worker.lease_ttl_ms ||
+      payload.lease_expires_at !== canonicalExpiry ||
+      Date.parse(payload.lease_expires_at) <= Date.parse(state.worker.lease_expires_at)
+    ) {
+      throw new DelegatedRuntimeHostError('delegated worker heartbeat fact is invalid');
+    }
+    state.worker.lease_expires_at = payload.lease_expires_at;
+  } else if (row.event_type === 'delegated.worker.drain_requested') {
+    canonicalTimestamp(payload.drain_deadline_at);
+    assertWorkerIdentity(state, payload);
+    const requestedDeadline = addMilliseconds(occurredAt, payload.defer_shutdown_ms);
+    const canonicalDeadline = new Date(Math.min(Date.parse(requestedDeadline), Date.parse(state.worker.lease_expires_at))).toISOString();
+    if (
+      state.worker.status !== 'attached' ||
+      payload.drain_deadline_at !== canonicalDeadline ||
+      Date.parse(payload.drain_deadline_at) <= Date.parse(occurredAt)
+    ) {
+      throw new DelegatedRuntimeHostError('delegated worker drain fact is invalid');
+    }
+    state.worker.status = 'draining';
+    state.worker.drain_deadline_at = payload.drain_deadline_at;
+    state.worker.drain_request_id = payload.request_id;
+    state.worker.drain_reason = payload.reason;
+    state.worker.drain_defer_shutdown_ms = payload.defer_shutdown_ms;
+  } else if (row.event_type === 'delegated.worker.parked') {
+    assertWorkerIdentity(state, payload);
+    if (
+      state.worker.status !== 'draining' ||
+      state.dispatch_started ||
+      payload.checkpoint_sequence !== state.runtime_sequence ||
+      payload.reason !== state.worker.drain_reason ||
+      Date.parse(occurredAt) >= Date.parse(state.worker.lease_expires_at) ||
+      Date.parse(occurredAt) >= Date.parse(state.worker.drain_deadline_at)
+    ) {
+      throw new DelegatedRuntimeHostError('delegated worker checkpoint fact is invalid');
+    }
+    state.worker.status = 'parked';
+    state.worker.checkpoint_sequence = payload.checkpoint_sequence;
+    state.worker.lease_expires_at = null;
+    state.worker.drain_deadline_at = null;
+  } else if (row.event_type === 'delegated.worker.orphaned') {
+    assertWorkerIdentity(state, payload);
+    const drainExpired = state.worker.drain_deadline_at && Date.parse(occurredAt) >= Date.parse(state.worker.drain_deadline_at);
+    const leaseExpired = Date.parse(occurredAt) >= Date.parse(state.worker.lease_expires_at);
+    const expectedReason = drainExpired ? 'defer_expired' : 'lease_expired';
+    if (!['attached', 'draining'].includes(state.worker.status) || (!drainExpired && !leaseExpired) || payload.reason !== expectedReason) {
+      throw new DelegatedRuntimeHostError('delegated worker orphan fact is invalid');
+    }
+    state.worker.status = 'orphaned';
+    state.worker.lease_expires_at = null;
+    state.worker.drain_deadline_at = null;
+  } else if (row.event_type === 'delegated.worker.retired') {
+    assertWorkerIdentity(state, payload);
+    if (!state.terminal && !['parked', 'orphaned'].includes(state.worker.status)) {
+      throw new DelegatedRuntimeHostError('delegated worker retirement fact is invalid');
+    }
+    state.worker.status = 'retired';
   }
   state.version = row.stream_sequence;
+  state.last_occurred_at = occurredAt;
   return state;
 }
 
@@ -184,11 +365,27 @@ class DelegatedRuntimeStore {
     return deepFreeze(state);
   }
 
-  append({ session_id, expected_version, event_type, payload, key }) {
+  now() {
+    return canonicalTimestamp(this.clock());
+  }
+
+  append({ session_id, expected_version, event_type, payload, key, occurred_at = null }) {
     const schema = EVENT_SCHEMAS[event_type];
     if (!schema) throw new DelegatedRuntimeHostError('unregistered delegated runtime event type');
     const parsedPayload = parseContract(schema, payload, event_type);
-    const timestamp = canonicalTimestamp(this.clock());
+    const timestamp = occurred_at === null ? this.now() : canonicalTimestamp(occurred_at);
+    const current = this.read(session_id);
+    if (current.last_occurred_at && Date.parse(timestamp) < Date.parse(current.last_occurred_at)) {
+      throw new DelegatedRuntimeHostError('delegated runtime clock regressed', 'DELEGATED_RUNTIME_SEQUENCE_INVALID');
+    }
+    applyFact(structuredClone(current), {
+      aggregate_type: AGGREGATE_TYPE,
+      aggregate_id: session_id,
+      stream_sequence: expected_version + 1,
+      event_type,
+      occurred_at: timestamp,
+      payload: parsedPayload,
+    });
     const result = this.ledger.append({
       aggregate_type: AGGREGATE_TYPE,
       aggregate_id: session_id,
@@ -243,6 +440,182 @@ class DelegatedRuntimeHost {
     this.operationTimeoutMs = operation_timeout_ms;
   }
 
+  claimWorker(value) {
+    const input = parseContract(WorkerClaimInputSchema, value, 'delegated worker claim');
+    let state = this.store.read(input.session_id);
+    if (!state.manifest || state.terminal) throw new DelegatedRuntimeHostError('worker requires a live durably bound session');
+    const now = this.store.now();
+    state = this.#expireWorkerIfNeeded(state, now, input.request_id);
+    if (state.worker.status === 'retired' && state.worker.worker_id === input.worker_id) {
+      throw new DelegatedRuntimeHostError('retired worker cannot reclaim its former binding', 'DELEGATED_WORKER_FENCED');
+    }
+    if (!['unassigned', 'parked', 'orphaned', 'retired'].includes(state.worker.status)) {
+      throw new DelegatedRuntimeHostError('session already has a live worker lease', 'DELEGATED_WORKER_LEASE_CONFLICT');
+    }
+    return this.store.append({
+      session_id: state.session_id,
+      expected_version: state.version,
+      event_type: 'delegated.worker.attached',
+      payload: {
+        request_id: input.request_id,
+        worker_id: input.worker_id,
+        lease_epoch: state.worker.lease_epoch + 1,
+        lease_ttl_ms: input.lease_ttl_ms,
+        lease_expires_at: addMilliseconds(now, input.lease_ttl_ms),
+      },
+      key: input.request_id,
+      occurred_at: now,
+    }).state;
+  }
+
+  heartbeatWorker(value) {
+    const input = parseContract(WorkerFencedInputSchema, value, 'delegated worker heartbeat');
+    let state = this.store.read(input.session_id);
+    const now = this.store.now();
+    state = this.#expireWorkerIfNeeded(state, now, input.request_id);
+    this.#assertWorkerLease(state, input, now);
+    let leaseExpiresAt = addMilliseconds(now, state.worker.lease_ttl_ms);
+    if (state.worker.drain_deadline_at && Date.parse(leaseExpiresAt) > Date.parse(state.worker.drain_deadline_at)) {
+      leaseExpiresAt = state.worker.drain_deadline_at;
+    }
+    if (Date.parse(leaseExpiresAt) <= Date.parse(state.worker.lease_expires_at)) {
+      throw new DelegatedRuntimeHostError('heartbeat does not advance the worker lease');
+    }
+    return this.store.append({
+      session_id: state.session_id,
+      expected_version: state.version,
+      event_type: 'delegated.worker.heartbeat',
+      payload: {
+        request_id: input.request_id,
+        worker_id: input.worker_id,
+        lease_epoch: input.lease_epoch,
+        lease_ttl_ms: state.worker.lease_ttl_ms,
+        lease_expires_at: leaseExpiresAt,
+      },
+      key: input.request_id,
+      occurred_at: now,
+    }).state;
+  }
+
+  drainWorker(value) {
+    const input = parseContract(WorkerDrainInputSchema, value, 'delegated worker drain');
+    let state = this.store.read(input.session_id);
+    if (
+      state.worker.status === 'draining' &&
+      state.worker.worker_id === input.worker_id &&
+      state.worker.lease_epoch === input.lease_epoch &&
+      state.worker.drain_request_id === input.request_id &&
+      state.worker.drain_reason === input.reason &&
+      state.worker.drain_defer_shutdown_ms === input.defer_shutdown_ms
+    ) {
+      return state;
+    }
+    const now = this.store.now();
+    state = this.#expireWorkerIfNeeded(state, now, input.request_id);
+    this.#assertWorkerLease(state, input, now, ['attached']);
+    const requestedDeadline = addMilliseconds(now, input.defer_shutdown_ms);
+    const drainDeadline = new Date(Math.min(Date.parse(requestedDeadline), Date.parse(state.worker.lease_expires_at))).toISOString();
+    if (Date.parse(drainDeadline) <= Date.parse(now)) throw new DelegatedRuntimeHostError('worker has no bounded drain window');
+    return this.store.append({
+      session_id: state.session_id,
+      expected_version: state.version,
+      event_type: 'delegated.worker.drain_requested',
+      payload: {
+        request_id: input.request_id,
+        worker_id: input.worker_id,
+        lease_epoch: input.lease_epoch,
+        defer_shutdown_ms: input.defer_shutdown_ms,
+        drain_deadline_at: drainDeadline,
+        reason: input.reason,
+      },
+      key: input.request_id,
+      occurred_at: now,
+    }).state;
+  }
+
+  parkWorker(value) {
+    const input = parseContract(WorkerParkInputSchema, value, 'delegated worker park');
+    let state = this.store.read(input.session_id);
+    if (
+      state.worker.status === 'parked' &&
+      state.worker.worker_id === input.worker_id &&
+      state.worker.lease_epoch === input.lease_epoch &&
+      state.worker.drain_request_id === input.request_id &&
+      state.worker.drain_reason === input.reason
+    ) {
+      return state;
+    }
+    const now = this.store.now();
+    state = this.#expireWorkerIfNeeded(state, now, input.request_id);
+    this.#assertWorkerLease(state, input, now, ['draining']);
+    if (state.dispatch_started) {
+      throw new DelegatedRuntimeHostError('worker cannot checkpoint an outcome-in-doubt dispatch', 'DELEGATED_RUNTIME_OUTCOME_IN_DOUBT');
+    }
+    return this.store.append({
+      session_id: state.session_id,
+      expected_version: state.version,
+      event_type: 'delegated.worker.parked',
+      payload: {
+        request_id: input.request_id,
+        worker_id: input.worker_id,
+        lease_epoch: input.lease_epoch,
+        checkpoint_sequence: state.runtime_sequence,
+        reason: input.reason,
+      },
+      key: input.request_id,
+      occurred_at: now,
+    }).state;
+  }
+
+  drainAndParkWorker(value) {
+    const input = parseContract(WorkerDrainInputSchema, value, 'delegated worker shutdown');
+    const state = this.store.read(input.session_id);
+    if (
+      ['draining', 'parked'].includes(state.worker.status) &&
+      (state.worker.worker_id !== input.worker_id ||
+        state.worker.lease_epoch !== input.lease_epoch ||
+        state.worker.drain_request_id !== input.request_id ||
+        state.worker.drain_reason !== input.reason ||
+        state.worker.drain_defer_shutdown_ms !== input.defer_shutdown_ms)
+    ) {
+      throw new DelegatedRuntimeHostError('delegated worker shutdown does not match the durable drain', 'DELEGATED_WORKER_FENCED');
+    }
+    if (state.worker.status === 'parked') return state;
+    if (state.worker.status !== 'draining') this.drainWorker(input);
+    return this.parkWorker({
+      request_id: input.request_id,
+      session_id: input.session_id,
+      worker_id: input.worker_id,
+      lease_epoch: input.lease_epoch,
+      reason: input.reason,
+    });
+  }
+
+  sweepWorker(value) {
+    const input = parseContract(WorkerSweepInputSchema, value, 'delegated worker sweep');
+    return this.#expireWorkerIfNeeded(this.store.read(input.session_id), this.store.now(), input.request_id);
+  }
+
+  retireWorker(value) {
+    const input = parseContract(WorkerParkInputSchema, value, 'delegated worker retirement');
+    const state = this.store.read(input.session_id);
+    if (state.worker.worker_id !== input.worker_id || state.worker.lease_epoch !== input.lease_epoch) {
+      throw new DelegatedRuntimeHostError('stale worker cannot retire this binding', 'DELEGATED_WORKER_FENCED');
+    }
+    return this.store.append({
+      session_id: state.session_id,
+      expected_version: state.version,
+      event_type: 'delegated.worker.retired',
+      payload: {
+        request_id: input.request_id,
+        worker_id: input.worker_id,
+        lease_epoch: input.lease_epoch,
+        reason: input.reason,
+      },
+      key: input.request_id,
+    }).state;
+  }
+
   async create({ request_id, spec: specValue }) {
     const requestId = parseContract(IdentifierSchema, request_id, 'delegated create request id');
     const spec = parseContract(AgentSessionSpecSchema, specValue, 'delegated runtime spec');
@@ -285,11 +658,11 @@ class DelegatedRuntimeHost {
     }
   }
 
-  async resumeAndSend({ request_id, session_id, turn_id, message: messageValue }) {
+  async resumeAndSend({ request_id, session_id, turn_id, message: messageValue, worker_id, lease_epoch }) {
     const requestId = parseContract(IdentifierSchema, request_id, 'delegated send request id');
     const turnId = parseContract(IdentifierSchema, turn_id, 'delegated turn id');
     const message = parseContract(AgentMessageSchema, messageValue, 'delegated turn message');
-    let state = this.#continuable(session_id);
+    let state = this.#continuable(session_id, { worker_id, lease_epoch });
     if (state.pending_turn) {
       if (
         state.pending_turn.request_id !== requestId ||
@@ -300,6 +673,12 @@ class DelegatedRuntimeHost {
       }
     }
     const provider = await this.#reattach(state);
+    try {
+      state = this.#continuable(session_id, { worker_id, lease_epoch });
+    } catch (error) {
+      await this.#closeProvider(provider);
+      throw error;
+    }
     if (!state.pending_turn) {
       state = this.store.append({
         session_id: state.session_id,
@@ -334,15 +713,21 @@ class DelegatedRuntimeHost {
     }
   }
 
-  async resumeAndCancel({ request_id, session_id, reason }) {
+  async resumeAndCancel({ request_id, session_id, reason, worker_id, lease_epoch }) {
     const requestId = parseContract(IdentifierSchema, request_id, 'delegated cancel request id');
     let state = this.store.read(session_id);
     if (state.terminal) return state;
-    state = this.#continuable(session_id);
+    state = this.#continuable(session_id, { worker_id, lease_epoch });
     if (state.cancel_request && (state.cancel_request.request_id !== requestId || state.cancel_request.reason !== reason)) {
       throw new DelegatedRuntimeHostError('a different delegated cancellation is already pending');
     }
     const provider = await this.#reattach(state);
+    try {
+      state = this.#continuable(session_id, { worker_id, lease_epoch });
+    } catch (error) {
+      await this.#closeProvider(provider);
+      throw error;
+    }
     if (!state.cancel_request) {
       state = this.store.append({
         session_id: state.session_id,
@@ -374,7 +759,7 @@ class DelegatedRuntimeHost {
     return this.store.read(sessionId);
   }
 
-  #continuable(sessionId) {
+  #continuable(sessionId, lease = {}) {
     const state = this.store.read(sessionId);
     if (!state.manifest)
       throw new DelegatedRuntimeHostError('delegated runtime is not durably bound', 'DELEGATED_RUNTIME_OUTCOME_IN_DOUBT');
@@ -382,7 +767,46 @@ class DelegatedRuntimeHost {
     if (state.dispatch_started) {
       throw new DelegatedRuntimeHostError('delegated dispatch outcome is uncertain', 'DELEGATED_RUNTIME_OUTCOME_IN_DOUBT');
     }
+    if (state.worker.status === 'unassigned') {
+      if (lease.worker_id !== undefined || lease.lease_epoch !== undefined) {
+        throw new DelegatedRuntimeHostError('session has no worker lease', 'DELEGATED_WORKER_FENCED');
+      }
+    } else {
+      this.#assertWorkerLease(state, lease, this.store.now(), ['attached']);
+    }
     return state;
+  }
+
+  #assertWorkerLease(state, input, now, statuses = ['attached', 'draining']) {
+    if (
+      !statuses.includes(state.worker.status) ||
+      state.worker.worker_id !== input.worker_id ||
+      state.worker.lease_epoch !== input.lease_epoch ||
+      Date.parse(state.worker.lease_expires_at) <= Date.parse(now) ||
+      (state.worker.drain_deadline_at && Date.parse(state.worker.drain_deadline_at) <= Date.parse(now))
+    ) {
+      throw new DelegatedRuntimeHostError('delegated worker lease is stale or fenced', 'DELEGATED_WORKER_FENCED');
+    }
+  }
+
+  #expireWorkerIfNeeded(state, now, requestId) {
+    if (state.terminal || !['attached', 'draining'].includes(state.worker.status)) return state;
+    const drainExpired = state.worker.drain_deadline_at && Date.parse(state.worker.drain_deadline_at) <= Date.parse(now);
+    const leaseExpired = Date.parse(state.worker.lease_expires_at) <= Date.parse(now);
+    if (!drainExpired && !leaseExpired) return state;
+    return this.store.append({
+      session_id: state.session_id,
+      expected_version: state.version,
+      event_type: 'delegated.worker.orphaned',
+      payload: {
+        request_id: requestId,
+        worker_id: state.worker.worker_id,
+        lease_epoch: state.worker.lease_epoch,
+        reason: drainExpired ? 'defer_expired' : 'lease_expired',
+      },
+      key: `${requestId}:orphan:${state.worker.lease_epoch}`,
+      occurred_at: now,
+    }).state;
   }
 
   #provider(spec) {
@@ -493,6 +917,14 @@ class DelegatedRuntimeHost {
       ]);
     } finally {
       if (timer) clearTimeout(timer);
+    }
+  }
+
+  async #closeProvider(provider) {
+    try {
+      await this.#bounded(provider.close());
+    } catch {
+      // The durable fencing decision does not depend on best-effort adapter teardown.
     }
   }
 }

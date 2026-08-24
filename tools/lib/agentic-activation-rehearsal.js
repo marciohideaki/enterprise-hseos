@@ -280,7 +280,7 @@ async function runActivationRehearsal({ databasePath, repositoryRoot, environmen
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-agentic-activation-rehearsal-'));
   fs.chmodSync(directory, 0o700);
   const baselinePath = path.join(directory, 'rollback-v4.db');
-  const candidatePath = path.join(directory, 'candidate-v8.db');
+  const candidatePath = path.join(directory, 'candidate-v9.db');
   let baseline;
   let candidate;
   try {
@@ -328,8 +328,8 @@ async function runActivationRehearsal({ databasePath, repositoryRoot, environmen
     const sourceUnchanged = JSON.stringify(sourceFilesBefore) === JSON.stringify(sourceFilesAfter);
     const migrationReady =
       sourceVersion === 4 &&
-      candidateVersion === 8 &&
-      migration.applied.length === 4 &&
+      candidateVersion === 9 &&
+      migration.applied.length === 5 &&
       candidateIntegrity.length === 1 &&
       candidateIntegrity[0] === 'ok' &&
       changedLegacyTables.length === 0;
