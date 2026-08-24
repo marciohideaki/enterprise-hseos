@@ -82,4 +82,5 @@ Each node remains on an isolated `task/*` branch. Code nodes must include down-m
 - The four legacy MCP entrypoints are metered in one operational telemetry database. The deployment day is partial and excluded; the first candidate complete UTC day is 2026-08-24.
 - `compatibility-observe` monitors the active WAL through a verified private snapshot, detects missing/stale servers, incomplete hourly coverage and legacy use, and cannot authorize cutover.
 - `compatibility-observe-plan` deterministically renders a project-bound, networkless hourly systemd user-unit plan without creating evidence directories, installing units or enabling a timer.
+- `compatibility-audit` now fails closed unless the exact plugin-v1 and installer-v4 downstream release-window bundle references hash-verified local artifacts bound to the observation release; this evidence can only advance to human review.
 - The initial live report has 4/4 fresh server IDs, legacy use on the excluded deployment day and 0/30 complete zero-use days. G9 and G10 remain incomplete.
