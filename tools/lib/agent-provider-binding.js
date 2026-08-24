@@ -189,7 +189,7 @@ function createSecretResolver({ environment = process.env, resolvers = {} } = {}
   };
 }
 
-function createBoundModelProvider({ binding, environment, resolvers, fetch_impl }) {
+function createBoundModelProvider({ binding, environment, resolvers, fetch_impl, secret_resolver }) {
   binding = validateBinding(binding);
   const manifest = providerManifest(binding);
   const fetchImplementation = fetch_impl || Reflect.get(globalThis, 'fetch');
@@ -197,7 +197,7 @@ function createBoundModelProvider({ binding, environment, resolvers, fetch_impl 
     manifest,
     base_url: binding.provider.base_url,
     fetch_impl: fetchImplementation,
-    secret_resolver: createSecretResolver({ environment, resolvers }),
+    secret_resolver: secret_resolver || createSecretResolver({ environment, resolvers }),
     max_attempts: binding.transport.max_attempts,
     retry_delay_ms: binding.transport.retry_delay_ms,
   });

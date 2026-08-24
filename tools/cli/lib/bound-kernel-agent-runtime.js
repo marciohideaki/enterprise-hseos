@@ -188,8 +188,8 @@ function sessionSpec(manifest) {
   };
 }
 
-function assemble(handle, manifest, { createWorkspace = false, environment, resolvers, fetch_impl } = {}) {
-  const models = createBoundModelProvider({ binding: manifest.binding, environment, resolvers, fetch_impl });
+function assemble(handle, manifest, { createWorkspace = false, environment, resolvers, fetch_impl, secret_resolver } = {}) {
+  const models = createBoundModelProvider({ binding: manifest.binding, environment, resolvers, fetch_impl, secret_resolver });
   const sandbox = {
     provider: manifest.execution_attestation.provider,
     profile: manifest.execution_attestation.profile,

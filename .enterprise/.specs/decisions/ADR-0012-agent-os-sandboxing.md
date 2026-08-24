@@ -1,6 +1,6 @@
 # ADR-0012 — Optional Agent OS Sandboxing
 
-**Status:** Accepted (ratified 2026-07-08)
+**Status:** Accepted (ratified 2026-07-08; restricted-egress amendment approved 2026-08-24)
 **Date:** 2026-05-30
 **Authors:** Platform Architecture
 **Approved by:** —
@@ -34,6 +34,32 @@ The default HSEOS policy defines two profiles:
 
 - `standard`: writable project, private home, Docker/display/GPU disabled, common secret files masked.
 - `lockdown`: ai-jail lockdown mode, no saved ai-jail config, common secret files masked, TCP ports allowlisted only when explicitly configured.
+
+### Restricted-egress amendment (2026-08-24)
+
+The Agent Kernel activation candidate must not use `--network` or
+`--allow-tcp-port`. Real `ai-jail 1.20.0` rejects restricted TCP-port egress
+because UDP cannot be isolated. The accepted replacement is a
+supervisor-owned Unix-domain-socket broker:
+
+- the lockdown worker retains a separate network namespace with no direct
+  network route;
+- the broker pins the immutable provider base URL and the single
+  `/chat/completions` operation, injects the provider credential on the host,
+  rejects credential/endpoint override headers, and enforces byte and time
+  limits;
+- the worker receives neither the provider credential nor a general proxy;
+- the broker socket and a transient copy of the Node runtime live in a private,
+  short-lived directory already visible read-only under `/opt` in lockdown;
+- private jail state is exported only as a bounded, compressed, SHA-256
+  verified snapshot and promoted by the supervisor after ledger/manifest
+  validation, preserving cross-process resume/cancel;
+- broker/runtime artifacts are removed after every worker exit.
+
+This restricted transport is mandatory for the raw OpenAI-compatible
+activation candidate. It does not authorize operational activation and does
+not claim transparent support for SDK-owned transports such as the delegated
+DeepSeek composition.
 
 HSEOS will not add broad `Bash(ai-jail:*)` permissions, will not enable ai-jail defaults blindly, and will not bundle ai-jail binaries or Rust source into the MIT core.
 
@@ -81,6 +107,8 @@ HSEOS will not add broad `Bash(ai-jail:*)` permissions, will not enable ai-jail 
 - **Risk:** ai-jail defaults expose Docker, display, GPU, or inherited secrets. **Mitigation:** HSEOS profiles disable Docker/display/GPU and mask common secret files by default.
 - **Risk:** Optional sandbox check creates false failures in normal installs. **Mitigation:** `sandbox.required=false` by default; doctor only fails when the project explicitly requires sandboxing.
 - **Risk:** License contamination from GPL code. **Mitigation:** HSEOS calls ai-jail externally and does not vendor source or binaries.
+- **Risk:** A model worker can select an arbitrary egress endpoint or observe a provider credential. **Mitigation:** the host broker pins the binding endpoint, strips worker headers and owns late secret resolution.
+- **Risk:** Lockdown-private `/tmp` makes a successful session non-resumable. **Mitigation:** only allowlisted state files cross the boundary in bounded, digested snapshots that are validated before atomic promotion.
 
 ## Affected Standards
 
@@ -95,6 +123,7 @@ HSEOS will not add broad `Bash(ai-jail:*)` permissions, will not enable ai-jail 
 - `hseos sandbox run --dry-run -- codex` prints an ai-jail command without requiring ai-jail to be installed.
 - `hseos agent-core doctor` includes a sandbox readiness check and still passes in projects where sandboxing is optional.
 - Tests cover missing ai-jail with `required=false` and `required=true`.
+- Real `ai-jail`/`bwrap` validation covers no-network broker access, a complete model/tool loop, and cross-process create/resume with durable state.
 
 ## Rollback
 

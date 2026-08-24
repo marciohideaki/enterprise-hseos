@@ -11,12 +11,16 @@ const { CANDIDATE_PROFILE } = require('../../lib/agentic-activation-rehearsal');
 const { openExecutionLedgerFileFixture } = require('../../mcp-project-state/lib/execution-ledger-schema');
 const { readBoundManifest } = require('./bound-kernel-agent-runtime');
 const { buildAiJailArgs, getProfile, resolveCommand, resolveSandbox, sandboxDoctor } = require('./sandbox');
+const { startProviderEgressBroker } = require('./provider-egress-broker');
+const { captureStateSnapshot, promoteStateSnapshot } = require('./bound-kernel-state-snapshot');
 
 const WORKER = path.join(__dirname, 'bound-kernel-worker.js');
+const BROKER = path.join(__dirname, 'provider-egress-broker.js');
 const PROFILE = 'lockdown';
 const MAX_CHILD_OUTPUT_BYTES = 1_048_576;
 const MAX_BINARY_BYTES = 67_108_864;
 const DEFAULT_TIMEOUT_MS = 120_000;
+const RUNTIME_ROOT = '/opt/hideakisolutions/.hseos-runtime';
 const SAFE_FLAGS = new Set(['--lockdown', '--no-save-config', '--exec', '--private-home', '--no-docker', '--no-display', '--no-gpu']);
 const REQUIRED_FLAGS = ['--lockdown', '--no-save-config', '--exec'];
 const REQUIRED_MASKS = ['.env', '.env.local', 'credentials.json', 'secrets.yml'];
@@ -36,11 +40,6 @@ function exactObject(value, keys, label) {
   if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new BoundKernelSupervisorError(`${label} has an invalid shape`);
 }
 
-function endpointPort(binding) {
-  const endpoint = new URL(binding.provider.base_url);
-  return endpoint.port || (endpoint.protocol === 'https:' ? '443' : '80');
-}
-
 function assertUniqueStrings(values, label) {
   if (!Array.isArray(values) || values.some((value) => typeof value !== 'string' || value.length === 0)) {
     throw new BoundKernelSupervisorError(`${label} must contain non-empty strings`);
@@ -48,7 +47,7 @@ function assertUniqueStrings(values, label) {
   if (new Set(values).size !== values.length) throw new BoundKernelSupervisorError(`${label} must not contain duplicates`);
 }
 
-function validateLockdownProfile(profile, port) {
+function validateLockdownProfile(profile, allowedPort = null) {
   exactObject(profile, ['allow_tcp_ports', 'flags', 'masks', 'ro_maps', 'rw_maps'], 'lockdown profile');
   assertUniqueStrings(profile.flags, 'lockdown flags');
   assertUniqueStrings(profile.masks, 'lockdown masks');
@@ -62,15 +61,18 @@ function validateLockdownProfile(profile, port) {
     throw new BoundKernelSupervisorError('bound kernel lockdown does not permit host filesystem maps');
   }
   const ports = (profile.allow_tcp_ports || []).map(String);
-  if (ports.length !== 1 || ports[0] !== port) {
-    throw new BoundKernelSupervisorError(`lockdown must allow exactly the selected provider TCP port ${port}`);
+  if (allowedPort === null && ports.length > 0) {
+    throw new BoundKernelSupervisorError('bound kernel lockdown must deny direct TCP egress');
+  }
+  if (allowedPort !== null && (ports.length !== 1 || ports[0] !== String(allowedPort))) {
+    throw new BoundKernelSupervisorError(`lockdown must allow exactly the selected provider TCP port ${allowedPort}`);
   }
   return Object.freeze({
     flags: [...profile.flags],
     masks: [...profile.masks],
     ro_maps: [],
     rw_maps: [],
-    allow_tcp_ports: [port],
+    allow_tcp_ports: ports,
   });
 }
 
@@ -102,8 +104,28 @@ function binaryDigest(binary) {
   return createHash('sha256').update(fs.readFileSync(binary.path)).digest('hex');
 }
 
-function probeExactSandboxProfile({ binaryPath, cwd, environment, sandbox, spawnSyncImpl = spawnSync }) {
-  const args = buildAiJailArgs({ sandbox, profileName: PROFILE, command: ['/usr/bin/true'] });
+function sandboxWithBrokerMap(sandbox, directory) {
+  if (typeof directory !== 'string' || !path.isAbsolute(directory)) {
+    throw new BoundKernelSupervisorError('broker runtime directory must be absolute');
+  }
+  return {
+    ...sandbox,
+    profiles: {
+      ...sandbox.profiles,
+      [PROFILE]: {
+        ...sandbox.profiles[PROFILE],
+        allow_tcp_ports: [],
+        ro_maps: [],
+        rw_maps: [],
+      },
+    },
+  };
+}
+
+function probeExactSandboxProfile({ binaryPath, cwd, environment, sandbox, brokerDirectory, runtimePath, spawnSyncImpl = spawnSync }) {
+  const mappedSandbox = brokerDirectory ? sandboxWithBrokerMap(sandbox, brokerDirectory) : sandbox;
+  const command = runtimePath ? [runtimePath, '--version'] : ['/usr/bin/true'];
+  const args = buildAiJailArgs({ sandbox: mappedSandbox, profileName: PROFILE, command });
   let result;
   try {
     result = spawnSyncImpl(binaryPath, args, {
@@ -119,18 +141,20 @@ function probeExactSandboxProfile({ binaryPath, cwd, environment, sandbox, spawn
   return result?.status === 0 && !result.signal && !result.error;
 }
 
-function createAttestation({ binary, profile, port }) {
+function createAttestation({ binary, profile }) {
   const evidence = {
     schema_version: 1,
     provider: 'ai-jail',
     profile: PROFILE,
     binary_path: binary.path,
     binary_sha256: binaryDigest(binary),
+    broker_sha256: createHash('sha256').update(fs.readFileSync(BROKER)).digest('hex'),
     flags: profile.flags,
     masks: profile.masks,
-    ro_maps: profile.ro_maps,
-    rw_maps: profile.rw_maps,
-    allow_tcp_ports: [port],
+    ro_maps: [],
+    rw_maps: ['ephemeral-private-unix-socket'],
+    allow_tcp_ports: [],
+    egress_transport: 'supervisor-owned-project-visible-unix-socket-broker',
   };
   const digest = createHash('sha256').update(canonicalJson(evidence)).digest('hex');
   return Object.freeze({ provider: 'ai-jail', profile: PROFILE, evidence_ref: `sandbox://ai-jail/lockdown/sha256/${digest}` });
@@ -154,8 +178,7 @@ function secretEnvironment(binding, operation, options, environment) {
   if (typeof value !== 'string' || value.length === 0) {
     throw new BoundKernelSupervisorError('declared provider secret is unavailable', 'BOUND_KERNEL_PROVIDER_SECRET_UNAVAILABLE');
   }
-  child[name] = value;
-  return { environment: child, protectedValues: [value] };
+  return { environment: child, protectedValues: [value], secret: value, dispatchPossible };
 }
 
 function collectChild(binary, args, { cwd, environment, input, spawnImpl = spawn, timeoutMs = DEFAULT_TIMEOUT_MS }) {
@@ -201,7 +224,7 @@ function collectChild(binary, args, { cwd, environment, input, spawnImpl = spawn
   });
 }
 
-function validateWorkerResult(value) {
+function validateWorkerResult(value, targetState = null) {
   if (!value || typeof value !== 'object' || Array.isArray(value) || typeof value.ok !== 'boolean') {
     throw new BoundKernelSupervisorError('sandboxed worker returned a malformed envelope');
   }
@@ -210,11 +233,21 @@ function validateWorkerResult(value) {
     const message = typeof value.error?.message === 'string' ? value.error.message : 'sandboxed bound-kernel worker failed';
     throw new BoundKernelSupervisorError(message, code);
   }
-  exactObject(value, ['ok', 'result'], 'worker success');
+  exactObject(value, ['ok', 'result', 'state_snapshot'], 'worker success');
   if (value.result?.profile !== CANDIDATE_PROFILE || value.result?.operational !== false) {
     throw new BoundKernelSupervisorError('sandboxed worker returned an invalid profile result');
   }
-  return value.result;
+  const state = promoteStateSnapshot(value.state_snapshot, targetState, (candidateState) => {
+    const manifest = readBoundManifest(candidateState);
+    if (manifest.session_id !== value.result.session_id || manifest.binding_sha256 !== value.result.binding_sha256) {
+      throw new BoundKernelSupervisorError('sandboxed worker state differs from its result');
+    }
+  });
+  return {
+    ...value.result,
+    state,
+    world_state: value.result.world_state ? path.join(state, 'workspace', 'world-state.json') : null,
+  };
 }
 
 function workerOptions(operation, options) {
@@ -268,35 +301,84 @@ async function runSupervisedBoundKernel(operation, options = {}, dependencies = 
     throw new BoundKernelSupervisorError('required ai-jail configuration is invalid', 'BOUND_KERNEL_SANDBOX_UNAVAILABLE');
   }
   const { profile } = getProfile(resolved.sandbox, PROFILE);
-  const port = endpointPort(binding);
-  const exactProfile = validateLockdownProfile(profile, port);
+  const exactProfile = validateLockdownProfile(profile);
   const readiness = await (dependencies.readinessCheck || sandboxDoctor)(projectDir, environment, { forceRequired: true });
   validateReadiness(readiness);
   const binary = resolveCommand(resolved.sandbox.binary || 'ai-jail', environment);
-  const exactProfileReady = await (dependencies.profileReadinessCheck || probeExactSandboxProfile)({
-    binaryPath: binary.path,
-    cwd: projectDir,
-    environment,
-    sandbox: resolved.sandbox,
-  });
+  const runtimeRoot = RUNTIME_ROOT;
+  fs.mkdirSync(runtimeRoot, { recursive: true, mode: 0o700 });
+  const runtimeRootStat = fs.lstatSync(runtimeRoot);
+  if (!runtimeRootStat.isDirectory() || runtimeRootStat.isSymbolicLink()) {
+    throw new BoundKernelSupervisorError('bound kernel runtime root must be a real directory');
+  }
+  const executionDirectory = fs.mkdtempSync(path.join(runtimeRoot, '.provider-runtime-'));
+  fs.chmodSync(executionDirectory, 0o700);
+  const runtimePath = path.join(executionDirectory, 'node');
+  fs.copyFileSync(process.execPath, runtimePath, fs.constants.COPYFILE_EXCL);
+  fs.chmodSync(runtimePath, 0o500);
+  let exactProfileReady;
+  try {
+    exactProfileReady = await (dependencies.profileReadinessCheck || probeExactSandboxProfile)({
+      binaryPath: binary.path,
+      cwd: projectDir,
+      environment,
+      sandbox: resolved.sandbox,
+      brokerDirectory: executionDirectory,
+      runtimePath,
+    });
+  } catch (error) {
+    fs.rmSync(executionDirectory, { recursive: true, force: true });
+    throw error;
+  }
   if (exactProfileReady !== true) {
+    fs.rmSync(executionDirectory, { recursive: true, force: true });
     throw new BoundKernelSupervisorError(
       'the exact configured lockdown profile could not execute',
       'BOUND_KERNEL_SANDBOX_PROFILE_UNAVAILABLE',
     );
   }
-  const attestation = createAttestation({ binary, profile: exactProfile, port });
-  const command = [process.execPath, WORKER];
-  const args = buildAiJailArgs({ sandbox: resolved.sandbox, profileName: PROFILE, command });
-  const payload = { schema_version: 1, operation, options: workerOptions(operation, options), attestation };
-  const protectedEnvironment = secretEnvironment(binding, operation, options, environment);
-  const execution = await collectChild(binary.path, args, {
-    cwd: projectDir,
-    environment: protectedEnvironment.environment,
-    input: `${JSON.stringify(payload)}\n`,
-    spawnImpl: dependencies.spawnImpl,
-    timeoutMs: dependencies.timeoutMs,
-  });
+  const attestation = createAttestation({ binary, profile: exactProfile });
+  const command = [runtimePath, WORKER];
+  let protectedEnvironment;
+  try {
+    protectedEnvironment = secretEnvironment(binding, operation, options, environment);
+  } catch (error) {
+    fs.rmSync(executionDirectory, { recursive: true, force: true });
+    throw error;
+  }
+  let broker = null;
+  let execution;
+  try {
+    if (protectedEnvironment.dispatchPossible) {
+      broker = await (dependencies.startBroker || startProviderEgressBroker)({
+        baseUrl: binding.provider.base_url,
+        secret: protectedEnvironment.secret,
+        fetchImpl: dependencies.fetchImpl,
+        timeoutMs: dependencies.timeoutMs,
+        directory: executionDirectory,
+      });
+    }
+    const executionSandbox = sandboxWithBrokerMap(resolved.sandbox, executionDirectory);
+    const args = buildAiJailArgs({ sandbox: executionSandbox, profileName: PROFILE, command });
+    const payload = {
+      schema_version: 1,
+      operation,
+      options: workerOptions(operation, options),
+      attestation,
+      state_snapshot: operation === 'run' ? null : captureStateSnapshot(path.resolve(options.state)),
+      transport: broker ? { kind: 'unix-socket', socket_path: broker.socketPath } : null,
+    };
+    execution = await collectChild(binary.path, args, {
+      cwd: projectDir,
+      environment: protectedEnvironment.environment,
+      input: `${JSON.stringify(payload)}\n`,
+      spawnImpl: dependencies.spawnImpl,
+      timeoutMs: dependencies.timeoutMs,
+    });
+  } finally {
+    await broker?.close();
+    fs.rmSync(executionDirectory, { recursive: true, force: true });
+  }
   if (protectedEnvironment.protectedValues.some((value) => execution.stdout.includes(value))) {
     throw new BoundKernelSupervisorError('sandboxed worker output contains a protected value', 'BOUND_KERNEL_SECRET_EXPOSURE');
   }
@@ -311,7 +393,7 @@ async function runSupervisedBoundKernel(operation, options = {}, dependencies = 
     throw new BoundKernelSupervisorError('sandboxed worker terminated unsuccessfully', 'BOUND_KERNEL_SANDBOX_EXECUTION_FAILED');
   }
   if (!envelope) throw new BoundKernelSupervisorError('sandboxed worker returned non-JSON output');
-  return validateWorkerResult(envelope);
+  return validateWorkerResult(envelope, operation === 'run' ? null : path.resolve(options.state));
 }
 
 module.exports = {
@@ -319,6 +401,7 @@ module.exports = {
   MAX_CHILD_OUTPUT_BYTES,
   collectChild,
   createAttestation,
+  sandboxWithBrokerMap,
   probeExactSandboxProfile,
   runSupervisedBoundKernel,
   validateLockdownProfile,
