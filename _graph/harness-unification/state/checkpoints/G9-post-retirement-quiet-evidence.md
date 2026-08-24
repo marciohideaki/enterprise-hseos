@@ -28,11 +28,12 @@
 
 ## Monitor hardening
 
-`compatibility-observe` now reports, per server, `first_seen_at` and
+`compatibility-observe` now reports today's per-server `first_seen_at` and
 `last_seen_at`, plus the cross-server `latest_legacy_use_at` and
-`legacy_quiet_minutes`. These values come from the bounded usage rows rather
-than heartbeat rows. Invalid, inconsistent or future usage timestamps degrade
-observation health.
+`legacy_quiet_minutes` across the complete retained telemetry window. These
+values come from bounded usage rows rather than heartbeat rows, and the latest
+request remains visible after a UTC-day rollover. Invalid, inconsistent or
+future usage timestamps degrade observation health.
 
 The quiet duration is diagnostic only. It cannot create partial-day progress,
 repair a missing hourly bucket or override any legacy use earlier in the same
@@ -41,12 +42,12 @@ can advance G9.
 
 ## Validation
 
-- Compatibility observation tests: 7/7 focused and 14/14 combined audit plus
+- Compatibility observation tests: 8/8 focused and 15/15 combined audit plus
   observation tests passed.
 - MCP 2026 adapter tests: 23/23 passed.
 - Full governed quality gate: 0 failures, 1 pre-existing documentation warning.
-- Local gate log: `.logs/validation/gate-20260824T221408.log`, SHA-256
-  `18385a69e22b6235ec1d05056b16a43a64f22b7663d4cc6e6c19ab12b8e1c0f9`.
+- Local gate log: `.logs/validation/gate-20260824T221917.log`, SHA-256
+  `8b78e6aa63967d9683d67867a22916c4cf4d40b419cb92221e1d0bf5e9c3ca18`.
 
 ## Boundary
 

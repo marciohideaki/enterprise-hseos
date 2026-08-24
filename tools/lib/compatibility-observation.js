@@ -161,14 +161,15 @@ function legacyUseByDay(db, firstDay, lastDay) {
 function legacyUseTimeline(db, day, asOf) {
   const rows = db
     .prepare(
-      `SELECT server_id, first_seen_at, last_seen_at
-       FROM mcp_legacy_usage_daily WHERE usage_day = ?
-       ORDER BY server_id, first_seen_at`,
+      `SELECT usage_day, server_id, first_seen_at, last_seen_at
+       FROM mcp_legacy_usage_daily WHERE usage_day <= ?
+       ORDER BY usage_day, server_id, first_seen_at`,
     )
     .all(day);
   const byServer = new Map();
   const integrityErrors = [];
   const asOfMilliseconds = new Date(asOf).getTime();
+  let latestLegacyUseAt = null;
   for (const row of rows) {
     const firstMilliseconds = Date.parse(row.first_seen_at);
     const lastMilliseconds = Date.parse(row.last_seen_at);
@@ -183,7 +184,11 @@ function legacyUseTimeline(db, day, asOf) {
       });
       continue;
     }
-    if (row.first_seen_at.slice(0, 10) !== day || row.last_seen_at.slice(0, 10) !== day || firstMilliseconds > lastMilliseconds) {
+    if (
+      row.first_seen_at.slice(0, 10) !== row.usage_day ||
+      row.last_seen_at.slice(0, 10) !== row.usage_day ||
+      firstMilliseconds > lastMilliseconds
+    ) {
       integrityErrors.push({
         kind: 'inconsistent_legacy_use_timeline',
         server_id: row.server_id,
@@ -196,16 +201,14 @@ function legacyUseTimeline(db, day, asOf) {
       integrityErrors.push({ kind: 'future_legacy_use_timestamp', server_id: row.server_id, last_seen_at: row.last_seen_at });
       continue;
     }
+    if (!latestLegacyUseAt || row.last_seen_at > latestLegacyUseAt) latestLegacyUseAt = row.last_seen_at;
+    if (row.usage_day !== day) continue;
     const existing = byServer.get(row.server_id);
     byServer.set(row.server_id, {
       first_seen_at: !existing || row.first_seen_at < existing.first_seen_at ? row.first_seen_at : existing.first_seen_at,
       last_seen_at: !existing || row.last_seen_at > existing.last_seen_at ? row.last_seen_at : existing.last_seen_at,
     });
   }
-  const latestLegacyUseAt = [...byServer.values()].reduce(
-    (latest, row) => (!latest || row.last_seen_at > latest ? row.last_seen_at : latest),
-    null,
-  );
   return { byServer, integrityErrors, latestLegacyUseAt };
 }
 
