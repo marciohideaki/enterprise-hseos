@@ -11,11 +11,7 @@ const {
   canonicalJson,
   ledgerEventId,
 } = require('../packages/agent-session-store');
-const {
-  CONTEXT_ASSEMBLY_CONTRACT,
-  CONTEXT_PRECEDENCE_PREAMBLE,
-  CONTEXT_PRECEDENCE_REF,
-} = require('../packages/agent-runtime-contracts');
+const { CONTEXT_ASSEMBLY_CONTRACT, CONTEXT_PRECEDENCE_PREAMBLE, CONTEXT_PRECEDENCE_REF } = require('../packages/agent-runtime-contracts');
 const { kernelSession, modelRequest, sessionEvent } = require('./fixtures/agent-runtime-contracts');
 const { ExecutionEventLedger } = require('../tools/mcp-project-state/lib/execution-event-ledger');
 const {
@@ -425,6 +421,186 @@ test('fork parent attachment and child creation commit atomically', () => {
   }
 });
 
+test('root, resumed appends, and forked children retain one durable trace', () => {
+  const { db, store } = openStore();
+  try {
+    store.append({
+      session_id: kernelSession.session_id,
+      expected_version: 0,
+      correlation_id: 'external-trace:fixture',
+      events: [created()],
+    });
+    store.append({ session_id: kernelSession.session_id, expected_version: 1, events: [turn()] });
+    const rootTrace = store.traceContext(kernelSession.session_id);
+    assert.match(rootTrace.traceparent, new RegExp(`^00-${rootTrace.trace_id}-[0-9a-f]{16}-01$`, 'u'));
+
+    const childSpec = {
+      ...kernelSession,
+      session_id: 'session:trace-child',
+      parent_session_id: kernelSession.session_id,
+    };
+    store.forkSession({
+      parent_session_id: kernelSession.session_id,
+      parent_sequence: 2,
+      child_spec: childSpec,
+      event_ids: { attached: 'event:trace-attached', created: 'event:trace-created', forked: 'event:trace-forked' },
+      occurred_at: '2026-08-22T00:02:00Z',
+    });
+    store.append({ session_id: childSpec.session_id, expected_version: 2, events: [turn(3, childSpec.session_id)] });
+    const childTrace = store.traceContext(childSpec.session_id);
+    assert.equal(childTrace.trace_id, rootTrace.trace_id);
+
+    const rows = db
+      .prepare(
+        "SELECT aggregate_id, stream_sequence, correlation_id, causation_id FROM execution_events WHERE aggregate_type='agent_session' ORDER BY position",
+      )
+      .all();
+    assert.deepEqual([...new Set(rows.map((row) => row.correlation_id))], [rootTrace.trace_id]);
+    assert.equal(
+      rows.find((row) => row.aggregate_id === childSpec.session_id && row.stream_sequence === 1).causation_id,
+      'event:trace-attached',
+    );
+
+    const before = rows.length;
+    assert.throws(
+      () =>
+        store.append({
+          session_id: childSpec.session_id,
+          expected_version: 3,
+          correlation_id: 'different-trace',
+          events: [
+            {
+              ...sessionEvent('session.resumed', { from_sequence: 3 }, 4),
+              session_id: childSpec.session_id,
+            },
+          ],
+        }),
+      (error) => error instanceof SessionEventStoreError && error.code === 'AGENT_SESSION_TRACE_FRAGMENTED',
+    );
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM execution_events WHERE aggregate_type='agent_session'").get().count, before);
+  } finally {
+    db.close();
+  }
+});
+
+test('replay fails closed when persisted trace lineage is fragmented', () => {
+  const { db, ledger, store } = openStore();
+  const spec = { ...kernelSession, session_id: 'session:fragmented-trace' };
+  const events = [created(spec), turn(2, spec.session_id)];
+  try {
+    ledger.append({
+      aggregate_type: 'agent_session',
+      aggregate_id: spec.session_id,
+      expected_version: 0,
+      events: events.map((event, index) => ({
+        event_id: ledgerEventId(spec.session_id, event.event_id),
+        event_type: 'AgentSessionEventRecorded',
+        schema_version: 1,
+        occurred_at: new Date(event.occurred_at).toISOString(),
+        correlation_id: index === 0 ? 'trace:original' : 'trace:forged',
+        causation_id: index === 0 ? `session-root:${spec.session_id}` : events[0].event_id,
+        actor: { type: 'fixture', id: 'ledger-bypass' },
+        operation_id: null,
+        payload: { session_event_json: JSON.stringify(event) },
+        evidence_refs: [],
+      })),
+    });
+
+    assert.throws(
+      () => store.replay(spec.session_id),
+      (error) => error instanceof SessionEventStoreError && error.code === 'AGENT_SESSION_TRACE_FRAGMENTED',
+    );
+    assert.throws(
+      () => store.traceContext(spec.session_id),
+      (error) => error instanceof SessionEventStoreError && error.code === 'AGENT_SESSION_TRACE_FRAGMENTED',
+    );
+  } finally {
+    db.close();
+  }
+});
+
+test('replay fails closed when persisted causation does not reference earlier lineage', () => {
+  const { db, ledger, store } = openStore();
+  const spec = { ...kernelSession, session_id: 'session:fragmented-causation' };
+  const events = [created(spec), turn(2, spec.session_id)];
+  const traceId = '11111111111111111111111111111111';
+  try {
+    ledger.append({
+      aggregate_type: 'agent_session',
+      aggregate_id: spec.session_id,
+      expected_version: 0,
+      events: events.map((event, index) => ({
+        event_id: ledgerEventId(spec.session_id, event.event_id),
+        event_type: 'AgentSessionEventRecorded',
+        schema_version: 1,
+        occurred_at: new Date(event.occurred_at).toISOString(),
+        correlation_id: traceId,
+        causation_id: index === 0 ? `session-root:${spec.session_id}` : 'event:forged-unrelated',
+        actor: { type: 'fixture', id: 'ledger-bypass' },
+        operation_id: null,
+        payload: { session_event_json: JSON.stringify(event) },
+        evidence_refs: [],
+      })),
+    });
+
+    assert.throws(
+      () => store.replay(spec.session_id),
+      (error) => error instanceof SessionEventStoreError && error.code === 'AGENT_SESSION_CAUSATION_FRAGMENTED',
+    );
+  } finally {
+    db.close();
+  }
+});
+
+test('root and child creation require verifiable causation anchors', () => {
+  const { db, ledger, store } = openStore();
+  try {
+    const appendRaw = (spec, events, correlationId, rootCause) =>
+      ledger.append({
+        aggregate_type: 'agent_session',
+        aggregate_id: spec.session_id,
+        expected_version: 0,
+        events: events.map((event, index) => ({
+          event_id: ledgerEventId(spec.session_id, event.event_id),
+          event_type: 'AgentSessionEventRecorded',
+          schema_version: 1,
+          occurred_at: new Date(event.occurred_at).toISOString(),
+          correlation_id: correlationId,
+          causation_id: index === 0 ? rootCause : events[index - 1].event_id,
+          actor: { type: 'fixture', id: 'ledger-bypass' },
+          operation_id: null,
+          payload: { session_event_json: JSON.stringify(event) },
+          evidence_refs: [],
+        })),
+      });
+
+    const rootSpec = { ...kernelSession, session_id: 'session:forged-root-anchor' };
+    appendRaw(rootSpec, [created(rootSpec), turn(2, rootSpec.session_id)], '22222222222222222222222222222222', 'event:missing-root');
+    assert.throws(
+      () => store.replay(rootSpec.session_id),
+      (error) => error instanceof SessionEventStoreError && error.code === 'AGENT_SESSION_CAUSATION_FRAGMENTED',
+    );
+
+    const parentSpec = { ...kernelSession, session_id: 'session:anchor-parent' };
+    store.append({ session_id: parentSpec.session_id, expected_version: 0, events: [created(parentSpec)] });
+    const childSpec = { ...kernelSession, session_id: 'session:orphan-child-anchor', parent_session_id: parentSpec.session_id };
+    const childEvents = [
+      created(childSpec),
+      {
+        ...sessionEvent('session.forked', { parent_session_id: parentSpec.session_id, parent_sequence: 1 }, 2),
+        session_id: childSpec.session_id,
+      },
+    ];
+    appendRaw(childSpec, childEvents, store.traceContext(parentSpec.session_id).trace_id, 'event:missing-attachment');
+    assert.throws(
+      () => store.replay(childSpec.session_id),
+      (error) => error instanceof SessionEventStoreError && error.code === 'AGENT_SESSION_CAUSATION_FRAGMENTED',
+    );
+  } finally {
+    db.close();
+  }
+});
+
 test('gaps, foreign model streams and forged relational envelopes fail closed', () => {
   const { db, ledger, store } = openStore();
   try {
@@ -645,11 +821,7 @@ test('session cancellation terminal must exactly match its durable non-deadline 
       expected_version: 0,
       events: [
         created(),
-        sessionEvent(
-          'session.cancellation.requested',
-          { reason: 'operator requested', cascade: true, source: 'user' },
-          2,
-        ),
+        sessionEvent('session.cancellation.requested', { reason: 'operator requested', cascade: true, source: 'user' }, 2),
       ],
     });
     assert.throws(
@@ -677,11 +849,7 @@ test('session cancellation terminal must exactly match its durable non-deadline 
       events: [
         created(deadlineSpec),
         {
-          ...sessionEvent(
-            'session.cancellation.requested',
-            { reason: 'deadline exhausted', cascade: true, source: 'deadline' },
-            2,
-          ),
+          ...sessionEvent('session.cancellation.requested', { reason: 'deadline exhausted', cascade: true, source: 'deadline' }, 2),
           session_id: deadlineSpec.session_id,
         },
       ],

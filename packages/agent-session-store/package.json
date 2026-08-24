@@ -16,7 +16,8 @@
   "license": "MIT",
   "main": "index.js",
   "dependencies": {
-    "@hseos/agent-runtime-contracts": "^1.0.0"
+    "@hseos/agent-runtime-contracts": "^1.0.0",
+    "@hseos/agent-trace-lineage": "^1.0.0"
   },
   "engines": {
     "node": ">=20.0.0"

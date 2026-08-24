@@ -1,6 +1,7 @@
 'use strict';
 
 const { createHash, randomUUID } = require('node:crypto');
+const { canonicalTraceId } = require('../agent-trace-lineage');
 
 const {
   AgentMessageSchema,
@@ -137,6 +138,7 @@ function addMilliseconds(timestamp, milliseconds) {
 function initialState(sessionId) {
   return {
     session_id: sessionId,
+    trace_id: null,
     version: 0,
     spec: null,
     manifest: null,
@@ -184,6 +186,11 @@ function applyFact(state, row) {
     throw new DelegatedRuntimeHostError('delegated runtime clock regressed', 'DELEGATED_RUNTIME_SEQUENCE_INVALID');
   }
   const payload = parseContract(schema, row.payload, `persisted ${row.event_type}`);
+  const rowTraceId = canonicalTraceId(row.correlation_id);
+  if (state.trace_id && state.trace_id !== rowTraceId) {
+    throw new DelegatedRuntimeHostError('delegated runtime trace lineage is fragmented', 'DELEGATED_RUNTIME_TRACE_FRAGMENTED');
+  }
+  state.trace_id = rowTraceId;
   if (row.event_type === 'delegated.runtime.created') {
     if (state.version !== 0 || payload.spec.session_id !== state.session_id || payload.spec.execution.mode !== 'delegated') {
       throw new DelegatedRuntimeHostError('delegated runtime creation fact is invalid');
@@ -369,12 +376,16 @@ class DelegatedRuntimeStore {
     return canonicalTimestamp(this.clock());
   }
 
-  append({ session_id, expected_version, event_type, payload, key, occurred_at = null }) {
+  append({ session_id, expected_version, event_type, payload, key, occurred_at = null, trace_id }) {
     const schema = EVENT_SCHEMAS[event_type];
     if (!schema) throw new DelegatedRuntimeHostError('unregistered delegated runtime event type');
     const parsedPayload = parseContract(schema, payload, event_type);
     const timestamp = occurred_at === null ? this.now() : canonicalTimestamp(occurred_at);
     const current = this.read(session_id);
+    const resolvedTraceId = current.trace_id || canonicalTraceId(trace_id || session_id);
+    if (trace_id !== undefined && canonicalTraceId(trace_id) !== resolvedTraceId) {
+      throw new DelegatedRuntimeHostError('append cannot replace the durable delegated trace', 'DELEGATED_RUNTIME_TRACE_FRAGMENTED');
+    }
     if (current.last_occurred_at && Date.parse(timestamp) < Date.parse(current.last_occurred_at)) {
       throw new DelegatedRuntimeHostError('delegated runtime clock regressed', 'DELEGATED_RUNTIME_SEQUENCE_INVALID');
     }
@@ -384,6 +395,7 @@ class DelegatedRuntimeStore {
       stream_sequence: expected_version + 1,
       event_type,
       occurred_at: timestamp,
+      correlation_id: resolvedTraceId,
       payload: parsedPayload,
     });
     const result = this.ledger.append({
@@ -396,7 +408,7 @@ class DelegatedRuntimeStore {
           event_type,
           schema_version: CONTRACT_SCHEMA_VERSION,
           occurred_at: timestamp,
-          correlation_id: session_id,
+          correlation_id: resolvedTraceId,
           causation_id: key,
           actor: this.actor,
           operation_id: null,
@@ -616,17 +628,23 @@ class DelegatedRuntimeHost {
     }).state;
   }
 
-  async create({ request_id, spec: specValue }) {
+  async create({ request_id, spec: specValue, trace_id }) {
     const requestId = parseContract(IdentifierSchema, request_id, 'delegated create request id');
     const spec = parseContract(AgentSessionSpecSchema, specValue, 'delegated runtime spec');
     if (spec.execution.mode !== 'delegated') throw new DelegatedRuntimeHostError('delegated host requires delegated execution');
     let state = this.store.read(spec.session_id);
     if (state.version > 0) {
+      if (trace_id !== undefined && canonicalTraceId(trace_id) !== state.trace_id) {
+        throw new DelegatedRuntimeHostError('create cannot replace the durable delegated trace', 'DELEGATED_RUNTIME_TRACE_FRAGMENTED');
+      }
       if (state.spec && canonicalJson(state.spec) === canonicalJson(spec)) {
         if (state.manifest || state.terminal) return state;
         throw new DelegatedRuntimeHostError('delegated create outcome is uncertain', 'DELEGATED_RUNTIME_OUTCOME_IN_DOUBT');
       }
       throw new DelegatedRuntimeHostError('delegated session already exists');
+    }
+    if (spec.parent_session_id !== null && trace_id === undefined) {
+      throw new DelegatedRuntimeHostError('a delegated child requires its inherited trace root', 'DELEGATED_RUNTIME_TRACE_REQUIRED');
     }
     state = this.store.append({
       session_id: spec.session_id,
@@ -634,6 +652,7 @@ class DelegatedRuntimeHost {
       event_type: 'delegated.runtime.created',
       payload: { request_id: requestId, spec },
       key: requestId,
+      trace_id,
     }).state;
     let crossedCreateBoundary = false;
     try {

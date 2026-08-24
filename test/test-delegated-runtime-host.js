@@ -7,6 +7,7 @@ const { test } = require('node:test');
 const Database = require('better-sqlite3');
 
 const { CONTRACT_SCHEMA_VERSION } = require('../packages/agent-runtime-contracts');
+const { canonicalTraceId } = require('../packages/agent-trace-lineage');
 const { DelegatedRuntimeHost, DelegatedRuntimeHostError, DelegatedRuntimeStore } = require('../packages/delegated-runtime-host');
 const { ClaudeCodeRuntimeProvider, CodexRuntimeProvider, DeepSeekHarnessRuntimeProvider } = require('../packages/runtime-providers');
 const { ExecutionEventLedger } = require('../tools/mcp-project-state/lib/execution-event-ledger');
@@ -164,8 +165,13 @@ for (const [name, Adapter, providerId] of [
     const sessionId = `session:${name.toLowerCase().replace(' ', '-')}-durable`;
     try {
       const slug = name.toLowerCase().replace(' ', '-');
+      const inheritedTraceId = canonicalTraceId(`parent-trace:${slug}`);
       const first = assembly(fixture.db, Adapter, providerId, remote).host;
-      const created = await first.create({ request_id: `request:${slug}:create`, spec: spec(providerId, sessionId) });
+      const created = await first.create({
+        request_id: `request:${slug}:create`,
+        spec: spec(providerId, sessionId),
+        trace_id: inheritedTraceId,
+      });
       assert.equal(created.runtime_sequence, 1);
       assert.equal(created.runtime_events[0].event_type, 'runtime.session.started');
       fixture.db.close();
@@ -191,6 +197,16 @@ for (const [name, Adapter, providerId] of [
           .all()
           .map((row) => row.aggregate_type);
         assert.deepEqual(aggregateTypes, ['delegated_runtime']);
+        const traceIds = reopened.db
+          .prepare('SELECT DISTINCT correlation_id FROM execution_events WHERE aggregate_id = ? ORDER BY correlation_id')
+          .all(sessionId)
+          .map((row) => row.correlation_id);
+        assert.deepEqual(traceIds, [inheritedTraceId]);
+        await assert.rejects(
+          () =>
+            second.create({ request_id: `request:${slug}:retry-drift`, spec: spec(providerId, sessionId), trace_id: 'different-trace' }),
+          (error) => error instanceof DelegatedRuntimeHostError && error.code === 'DELEGATED_RUNTIME_TRACE_FRAGMENTED',
+        );
       } finally {
         reopened.close();
       }
@@ -214,7 +230,12 @@ test('DeepSeek Harness crosses the same durable host through ACP without a provi
   try {
     const firstStore = new DelegatedRuntimeStore({ ledger: new ExecutionEventLedger(fixture.db) });
     const first = new DelegatedRuntimeHost({ store: firstStore, provider_factory: providerFactory, operation_timeout_ms: 500 });
-    await first.create({ request_id: 'request:deepseek:create', spec: spec(providerId, 'session:deepseek-durable') });
+    const inheritedTraceId = canonicalTraceId('parent-trace:deepseek');
+    await first.create({
+      request_id: 'request:deepseek:create',
+      spec: spec(providerId, 'session:deepseek-durable'),
+      trace_id: inheritedTraceId,
+    });
     fixture.db.close();
 
     const reopened = openExecutionLedgerFileFixture(fixture.directory);
@@ -232,6 +253,11 @@ test('DeepSeek Harness crosses the same durable host through ACP without a provi
         ['runtime.session.started', 'runtime.message.delta', 'runtime.session.completed'],
       );
       assert.deepEqual({ created: remote.created, resumed: remote.resumed, sent: remote.sent }, { created: 1, resumed: 1, sent: 1 });
+      const traceIds = reopened.db
+        .prepare('SELECT DISTINCT correlation_id FROM execution_events WHERE aggregate_id = ? ORDER BY correlation_id')
+        .all('session:deepseek-durable')
+        .map((row) => row.correlation_id);
+      assert.deepEqual(traceIds, [inheritedTraceId]);
     } finally {
       reopened.close();
     }
@@ -276,6 +302,16 @@ test('durable host fails closed on secret-bearing specs and uncertain create or 
   const remote = { id: 'remote-fail-closed', exists: false, created: 0, resumed: 0, sent: 0, cancelled: 0 };
   try {
     const { host, store } = assembly(fixture.db, CodexRuntimeProvider, providerId, remote);
+    const childSpec = {
+      ...spec(providerId, 'session:delegated-child-without-trace'),
+      parent_session_id: 'session:delegated-parent',
+    };
+    await assert.rejects(
+      () => host.create({ request_id: 'request:child-without-trace', spec: childSpec }),
+      (error) => error instanceof DelegatedRuntimeHostError && error.code === 'DELEGATED_RUNTIME_TRACE_REQUIRED',
+    );
+    assert.equal(fixture.db.prepare('SELECT COUNT(*) AS count FROM execution_events').get().count, 0);
+
     const secretSpec = spec(providerId, 'session:secret-rejected');
     secretSpec.metadata[['api', 'key'].join('_')] = 'must-not-persist';
     await assert.rejects(() => host.create({ request_id: 'request:secret', spec: secretSpec }), /Sensitive field is forbidden/);

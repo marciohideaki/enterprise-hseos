@@ -138,8 +138,13 @@ function operationSignature(input) {
     stableValue({
       name: input.name,
       input: input.input,
+      session_id: input.session_id,
+      turn_id: input.turn_id,
+      tool_call_id: input.tool_call_id,
       actor: input.actor,
       resource_scope: input.resource_scope,
+      correlation_id: input.correlation_id,
+      causation_id: input.causation_id,
       approval_context: input.approval_context,
     }),
   );

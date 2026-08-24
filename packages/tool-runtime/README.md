@@ -8,6 +8,8 @@
 
 The public `ToolRuntime` port is `list`, `execute`, `cancel` and `dispose`. Inputs and outputs use strict version-1 contracts from `@hseos/agent-runtime-contracts`; unknown fields, duplicate active invocation identifiers, unregistered tools, malformed canonical outcomes and scheduler/registry contract drift fail closed. Resolved results are deeply immutable.
 
+Idempotent coalescing is bound to the complete execution identity, including session, turn, tool call, correlation and causation. A deferred or concurrently active tool call cannot be resumed or joined from a different trace even when its idempotency key and payload match.
+
 Cancellation remains governed: an active handle delegates cancellation to the scheduler, which persists queued cancellation through the execution port and propagates cooperative cancellation to running providers. `dispose` requests cancellation only for invocations belonging to the specified agent session, reports whether every request was accepted without waiting on a non-cancellable effect, and does not shut down a scheduler shared by other sessions. The execution promise remains the source of the eventual durable terminal outcome.
 
 ## Wiring

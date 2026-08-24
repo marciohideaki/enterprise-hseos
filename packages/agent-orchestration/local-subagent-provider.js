@@ -85,11 +85,13 @@ class LocalSubagentProvider {
         !attachment ||
         canonicalJson(existingState.spec) !== canonicalJson(input.child_spec) ||
         existingState.parent?.parent_session_id !== input.parent_session_id ||
-        canonicalJson(existingState.subagent_request && {
-          provider_id: existingState.subagent_request.provider_id,
-          turn_id: existingState.subagent_request.turn_id,
-          message: existingState.subagent_request.message,
-        }) !== canonicalJson(childRequest)
+        canonicalJson(
+          existingState.subagent_request && {
+            provider_id: existingState.subagent_request.provider_id,
+            turn_id: existingState.subagent_request.turn_id,
+            message: existingState.subagent_request.message,
+          },
+        ) !== canonicalJson(childRequest)
       ) {
         throw new SubagentProviderError('existing child identity or scope differs', 'SUBAGENT_CHILD_CONFLICT');
       }
@@ -105,7 +107,6 @@ class LocalSubagentProvider {
         child_request: childRequest,
         event_ids: ids,
         occurred_at: input.occurred_at,
-        correlation_id: stableId('correlation', input.parent_session_id, input.child_spec.session_id),
       });
     }
     let task = this.#active.get(input.child_spec.session_id);
@@ -260,13 +261,18 @@ class LocalSubagentProvider {
         reason: input.reason,
       });
     }
-    return validatePortResult('SubagentProvider', 'dispose', {
-      schema_version: CONTRACT_SCHEMA_VERSION,
-      request_id: input.request_id,
-      provider_id: input.provider_id,
-      accepted: true,
-      evidence_refs: [],
-    }, input);
+    return validatePortResult(
+      'SubagentProvider',
+      'dispose',
+      {
+        schema_version: CONTRACT_SCHEMA_VERSION,
+        request_id: input.request_id,
+        provider_id: input.provider_id,
+        accepted: true,
+        evidence_refs: [],
+      },
+      input,
+    );
   }
 }
 
