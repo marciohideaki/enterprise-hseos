@@ -248,6 +248,7 @@ sandbox:
       flags:
         - --lockdown
         - --no-save-config
+        - --exec
       masks:
         - .env
         - .env.local

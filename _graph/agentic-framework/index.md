@@ -50,6 +50,7 @@
 | `state/checkpoints/A13-sandbox-supervisor-cli.md`                              | Fail-closed public candidate route and sandbox attestation proof      | A13 partial evidence; never live-runtime authority   |
 | `state/checkpoints/A13-required-sandbox-runtime.md`                           | Real host lockdown readiness and effective runtime-probe evidence     | A13 environment evidence; never provider activation authority |
 | `state/checkpoints/A10-A11-live-codex-claude-providers.md`                  | Real authenticated delegated-provider CLI smoke and compatibility fixes | A10–A11 live evidence; never cutover authority       |
+| `state/checkpoints/A13-exact-sandbox-profile.md`                            | Exact real sandbox-profile probe and restricted-egress blocker           | A13 fail-closed network sandbox evidence               |
 | `../../packages/agent-orchestration/execution-supervisor.js`                   | Coordinated bounded root cancellation across runtime and workflows | ADR-0024 orchestration supervision                   |
 | `../../test/test-agentic-completion-audit.js`                                   | Provider substitution, fault injection and replay performance      | Deterministic A12 assembled evidence                |
 | `../../.enterprise/.specs/decisions/ADR-0024-model-agnostic-agent-framework.md` | Accepted architectural decision                                  | Authoritative ADR                                  |

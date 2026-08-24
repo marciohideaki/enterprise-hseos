@@ -8,6 +8,7 @@ const {
   BoundKernelSupervisorError,
   collectChild,
   createAttestation,
+  probeExactSandboxProfile,
   validateLockdownProfile,
   validateReadiness,
 } = require('./bound-kernel-supervisor');
@@ -68,13 +69,23 @@ function workerResult(execution, protectedValues) {
   try {
     envelope = JSON.parse(execution.stdout);
   } catch {
-    throw new DelegatedDeepSeekSupervisorError('sandboxed DeepSeek worker returned non-JSON output');
+    envelope = null;
   }
+  if (execution.status !== 0 || execution.signal) {
+    if (envelope?.ok === false) {
+      throw new DelegatedDeepSeekSupervisorError(envelope.error?.message || 'sandboxed DeepSeek worker failed', envelope.error?.code);
+    }
+    throw new DelegatedDeepSeekSupervisorError(
+      'sandboxed DeepSeek worker terminated unsuccessfully',
+      'DELEGATED_DEEPSEEK_SANDBOX_EXECUTION_FAILED',
+    );
+  }
+  if (!envelope) throw new DelegatedDeepSeekSupervisorError('sandboxed DeepSeek worker returned non-JSON output');
   if (!envelope || typeof envelope !== 'object' || typeof envelope.ok !== 'boolean') {
     throw new DelegatedDeepSeekSupervisorError('sandboxed DeepSeek worker returned a malformed envelope');
   }
   if (!envelope.ok) throw new DelegatedDeepSeekSupervisorError(envelope.error?.message || 'sandboxed DeepSeek worker failed', envelope.error?.code);
-  if (execution.status !== 0 || execution.signal || envelope.result?.profile !== PROFILE_ID || envelope.result?.lifecycle !== 'one_shot') {
+  if (envelope.result?.profile !== PROFILE_ID || envelope.result?.lifecycle !== 'one_shot') {
     throw new DelegatedDeepSeekSupervisorError('sandboxed DeepSeek worker returned an invalid result');
   }
   return envelope.result;
@@ -106,6 +117,18 @@ async function runSupervisedDelegatedDeepSeek(options = {}, dependencies = {}) {
     throw error;
   }
   const binary = resolveCommand(resolved.sandbox.binary || 'ai-jail', sourceEnvironment);
+  const exactProfileReady = await (dependencies.profileReadinessCheck || probeExactSandboxProfile)({
+    binaryPath: binary.path,
+    cwd: projectDir,
+    environment: sourceEnvironment,
+    sandbox: resolved.sandbox,
+  });
+  if (exactProfileReady !== true) {
+    throw new DelegatedDeepSeekSupervisorError(
+      'the exact configured lockdown profile could not execute',
+      'DELEGATED_DEEPSEEK_SANDBOX_PROFILE_UNAVAILABLE',
+    );
+  }
   const attestation = createAttestation({ binary, profile: exactProfile, port: String(binding.network_port) });
   const args = buildAiJailArgs({ sandbox: resolved.sandbox, profileName: 'lockdown', command: [process.execPath, WORKER] });
   const childEnvironment = selectedEnvironment(binding, sourceEnvironment);
