@@ -1,8 +1,12 @@
 'use strict';
 
 const { cancelReferenceAgent, resumeReferenceAgent, runReferenceAgent } = require('../lib/reference-agent-runtime');
+const { CANDIDATE_PROFILE } = require('../../lib/agentic-activation-rehearsal');
+const { runSupervisedBoundKernel } = require('../lib/bound-kernel-supervisor');
 
 const ACTIONS = new Set(['run', 'resume', 'cancel']);
+const REFERENCE_PROFILE = 'agent-reference';
+const PROFILES = new Set([REFERENCE_PROFILE, CANDIDATE_PROFILE]);
 
 function integer(value, label) {
   if (value === undefined) return;
@@ -35,6 +39,35 @@ function render(result, json) {
 
 async function execute(action, options = {}) {
   if (!ACTIONS.has(action)) throw new Error(`Unsupported agent action: ${action}. Expected one of: ${[...ACTIONS].join(', ')}`);
+  const profile = options.profile || REFERENCE_PROFILE;
+  if (!PROFILES.has(profile)) throw new Error(`Unsupported agent profile: ${profile}. Expected one of: ${[...PROFILES].join(', ')}`);
+  if (profile === CANDIDATE_PROFILE) {
+    if (action === 'run' && !options.binding) throw new Error('--binding is required for the OpenAI-compatible candidate');
+    if (action !== 'run' && options.binding) throw new Error('--binding is only valid for a new candidate run');
+    if (action !== 'run' && !options.state) throw new Error(`--state is required for agent ${action}`);
+    const supervisedOptions =
+      action === 'run'
+        ? {
+            bindingPath: options.binding,
+            createOnly: options.createOnly === true,
+            message: options.message,
+            projectDir: options.directory,
+            sessionId: options.session,
+            value: options.value,
+          }
+        : action === 'resume'
+          ? {
+              expectedSequence: integer(options.expectedSequence, '--expected-sequence'),
+              message: options.message,
+              projectDir: options.directory,
+              state: options.state,
+            }
+          : { projectDir: options.directory, reason: options.reason, state: options.state };
+    const result = await runSupervisedBoundKernel(action, supervisedOptions);
+    render(result, options.json === true);
+    return result;
+  }
+  if (options.binding || options.directory) throw new Error('--binding and --directory are only valid for the candidate profile');
   let result;
   if (action === 'run') {
     if (options.state) throw new Error('--state is only valid for agent resume or agent cancel');
@@ -61,8 +94,11 @@ async function execute(action, options = {}) {
 
 module.exports = {
   command: 'agent <action>',
-  description: 'Run, resume, or cancel the keyless temporary HSEOS reference agent',
+  description: 'Run, resume, or cancel a temporary HSEOS Agent Kernel profile',
   options: [
+    ['--profile <id>', `Agent profile (default: ${REFERENCE_PROFILE})`],
+    ['--binding <path>', 'Immutable provider binding for a new OpenAI-compatible candidate run'],
+    ['--directory <path>', 'Project directory containing the required sandbox configuration'],
     ['--state <path>', 'Temporary state directory returned by agent run'],
     ['--session <id>', 'Session id for a new reference run'],
     ['--message <text>', 'User message for run or resume'],

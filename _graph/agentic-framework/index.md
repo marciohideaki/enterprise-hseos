@@ -45,6 +45,7 @@
 | `state/checkpoints/A13-activation-rehearsal.md`                                | Candidate profile, real-state private migration and rollback proof  | A13 partial evidence; never cutover authority        |
 | `state/checkpoints/A13-provider-binding.md`                                    | Immutable provider binding, secret timing and environment gate      | A13 partial evidence; never cutover authority        |
 | `state/checkpoints/A13-bound-kernel-assembly.md`                               | Common kernel assembly, durable binding and governed tool-loop proof | A13 partial evidence; never cutover authority        |
+| `state/checkpoints/A13-sandbox-supervisor-cli.md`                              | Fail-closed public candidate route and sandbox attestation proof      | A13 partial evidence; never live-runtime authority   |
 | `../../packages/agent-orchestration/execution-supervisor.js`                   | Coordinated bounded root cancellation across runtime and workflows | ADR-0024 orchestration supervision                   |
 | `../../test/test-agentic-completion-audit.js`                                   | Provider substitution, fault injection and replay performance      | Deterministic A12 assembled evidence                |
 | `../../.enterprise/.specs/decisions/ADR-0024-model-agnostic-agent-framework.md` | Accepted architectural decision                                  | Authoritative ADR                                  |

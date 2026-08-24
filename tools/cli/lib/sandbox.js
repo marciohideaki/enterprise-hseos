@@ -29,17 +29,41 @@ const DEFAULT_SANDBOX = {
 };
 
 function commandExists(command, env = process.env) {
-  const envPath = env.PATH || '';
-  const extensions = process.platform === 'win32' ? ['.exe', '.cmd', '.bat', ''] : [''];
+  try {
+    resolveCommand(command, env);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
-  for (const entry of envPath.split(path.delimiter)) {
-    if (!entry) continue;
-    for (const ext of extensions) {
-      if (fs.existsSync(path.join(entry, `${command}${ext}`))) return true;
+function resolveCommand(command, env = process.env) {
+  if (typeof command !== 'string' || command.length === 0 || command.includes('\0')) {
+    throw new Error('Sandbox binary must be a non-empty command.');
+  }
+  const extensions = process.platform === 'win32' ? ['.exe', '.cmd', '.bat', ''] : [''];
+  const hasSeparator = command.includes('/') || command.includes('\\');
+  const bases = hasSeparator
+    ? [path.resolve(command)]
+    : String(env.PATH || '')
+        .split(path.delimiter)
+        .filter(Boolean)
+        .map((entry) => path.join(entry, command));
+  for (const base of bases) {
+    for (const extension of extensions) {
+      const candidate = `${base}${extension}`;
+      try {
+        const canonical = fs.realpathSync(candidate);
+        const stat = fs.statSync(canonical);
+        if (stat.isFile() && (process.platform === 'win32' || (stat.mode & 0o111) !== 0)) {
+          return Object.freeze({ path: canonical, dev: stat.dev, ino: stat.ino, mode: stat.mode, size: stat.size, mtimeMs: stat.mtimeMs });
+        }
+      } catch {
+        // Continue searching PATH without exposing host filesystem details.
+      }
     }
   }
-
-  return false;
+  throw new Error('Sandbox binary is unavailable or not executable.');
 }
 
 function readSysctl(relPath) {
@@ -178,10 +202,10 @@ function runSandbox({ projectDir, profileName, command, dryRun = false, stdio = 
   };
 }
 
-function sandboxDoctor(projectDir, env = process.env) {
+function sandboxDoctor(projectDir, env = process.env, { forceRequired = false } = {}) {
   const resolved = resolveSandbox(projectDir);
   const { sandbox, parseError } = resolved;
-  const required = sandbox.required === true;
+  const required = forceRequired || sandbox.required === true;
   const checks = [];
 
   checks.push({
@@ -326,9 +350,13 @@ function sandboxDoctorCheck(projectDir) {
 
 module.exports = {
   DEFAULT_SANDBOX,
+  buildAiJailArgs,
   buildSandboxCommand,
   commandExists,
   formatCommand,
+  getProfile,
+  resolveCommand,
+  resolveSandbox,
   runSandbox,
   sandboxDoctor,
   sandboxDoctorCheck,
