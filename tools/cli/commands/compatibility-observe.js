@@ -2,7 +2,7 @@
 
 const path = require('node:path');
 
-const { monitorCompatibilityObservation } = require('../../lib/compatibility-observation');
+const { monitorCompatibilityObservation, writeCompatibilityObservationEvidence } = require('../../lib/compatibility-observation');
 
 function render(report) {
   const missing = report.current.servers.filter(({ present }) => !present).map(({ server_id }) => server_id);
@@ -24,6 +24,9 @@ function render(report) {
     `  consecutive complete zero-use days: ${report.progress.current_consecutive_days}/${report.progress.required_days}`,
     `  remaining complete days: ${report.progress.remaining_days}`,
     `  manifest consistent: ${report.manifest.valid ? 'yes' : 'no'}`,
+    ...(report.evidence_capture
+      ? [`  immutable evidence: ${report.evidence_capture.path} (chain ${report.evidence_capture.chain_length})`]
+      : []),
     '  ready for cutover: no (final audit and explicit human gate remain required)',
   ].join('\n');
 }
@@ -38,6 +41,7 @@ module.exports = {
     ['--as-of <timestamp>', 'UTC observation instant (default: now)'],
     ['--max-staleness-minutes <minutes>', 'Maximum heartbeat age (default: 75)', '75'],
     ['--json', 'Output machine-readable JSON'],
+    ['--evidence-directory <absolute-path>', 'Atomically append an immutable hash-chained JSON report'],
     ['--require-current-hour', 'Exit non-zero unless all required servers are present and fresh'],
   ],
   async action(options) {
@@ -54,9 +58,11 @@ module.exports = {
       asOf,
       maxStalenessMinutes,
     });
-    console.log(options.json ? JSON.stringify(report, null, 2) : render(report));
+    const evidenceCapture = options.evidenceDirectory ? writeCompatibilityObservationEvidence(report, options.evidenceDirectory) : null;
+    const outputReport = evidenceCapture ? Object.freeze({ ...report, evidence_capture: evidenceCapture }) : report;
+    console.log(options.json ? JSON.stringify(outputReport, null, 2) : render(outputReport));
     if (options.requireCurrentHour && !report.observation_healthy) process.exitCode = 2;
-    return report;
+    return outputReport;
   },
   render,
 };
