@@ -73,6 +73,10 @@ CI MUST fail on:
 - paths escaping a repository root;
 - canonical semantic auto-promotion;
 - registry/fragment revision drift in enforced mode.
+- invalid edge endpoint types or untracked semantic relationships;
+- source-only packages presented as published or adopted;
+- `CONSUMED_BY` claims without a package, published artifact version and verified-install
+  evidence.
 
 Repository reconciliation is progressively enforced. Legacy gaps require explicit,
 time-bounded migration exceptions; environment flags are not exceptions.

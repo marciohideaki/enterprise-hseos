@@ -4,3 +4,5 @@
 {"event":"worktree-validation-root-defect","at":"2026-08-24T12:38:00Z","status":"corrected","evidence":"worktree-manager inherited bare REPO_ROOT and validated the wrong checkout; task root is now passed explicitly and covered by regression"}
 {"event":"platform-fragment-federated","at":"2026-08-24T12:48:00Z","status":"passed","evidence":"root registry pins platform-core fragment commit 93d289dbfcedd5715b4b16a85cf63a02c81cc863; delegated CI plus mapped composition validates 2/2 fragments, 18 nodes, 24 edges"}
 {"event":"external-fragment-pin-hardened","at":"2026-08-24T13:02:00Z","status":"passed","evidence":"validator checks origin identity and parses git show <sha>:<path>; 12/12 adversarial governance tests passed"}
+{"event":"event-envelope-vertical-slice-composed","at":"2026-08-24T21:51:00Z","status":"passed","evidence":"4/4 pinned fragments; 35 nodes; 45 edges; exact query links contract, JVM projection, adapter and conformance tests"}
+{"event":"distribution-adoption-hardening","at":"2026-08-24T21:52:00Z","status":"passed","evidence":"source-only false adoption rejected; CONSUMED_BY requires verified-install and a PUBLISHED_AS ArtifactVersion"}
