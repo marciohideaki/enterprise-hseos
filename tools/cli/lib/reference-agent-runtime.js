@@ -3,28 +3,16 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { createHash, randomUUID } = require('node:crypto');
-const { z } = require('zod');
 
-const { AgentRuntime } = require('../../../packages/agent-runtime');
-const { RelationalSessionEventStore, canonicalJson } = require('../../../packages/agent-session-store');
+const { canonicalJson } = require('../../../packages/agent-session-store');
 const { ModelProviderRegistry, ScriptedModelProvider } = require('../../../packages/model-providers');
-const { ToolRuntime, ToolRuntimeRegistry, governanceRef } = require('../../../packages/tool-runtime');
-const { ExecutionContractRegistry } = require('../../lib/governed-execution/contract-registry');
-const { createExecutionEventRegistry } = require('../../lib/governed-execution/event-registry');
-const { createGovernedExecutionPort } = require('../../lib/governed-execution/execution-port');
-const { GovernedExecutionRuntime } = require('../../lib/governed-execution/runtime');
-const { GovernedExecutionScheduler } = require('../../lib/governed-execution/scheduler');
-const { ExecutionApprovalStore } = require('../../mcp-project-state/lib/execution-approval-store');
 const { createExecutionLedgerFileFixture, openExecutionLedgerFileFixture } = require('../../mcp-project-state/lib/execution-ledger-schema');
-const { ExecutionEventLedger } = require('../../mcp-project-state/lib/execution-event-ledger');
-const { ExecutionProjectionStore } = require('../../mcp-project-state/lib/execution-projections');
+const { assembleTemporaryKernel } = require('./temporary-kernel-assembly');
+const { TOOL_NAME, createTemporaryStateTool } = require('./temporary-state-tool');
 
 const REFERENCE_MANIFEST = 'reference-agent.json';
-const WORLD_STATE = path.join('workspace', 'world-state.json');
 const MODEL_PROVIDER_ID = 'model:scripted-reference';
 const MODEL_ID = 'reference/tool-model';
-const TOOL_NAME = 'reference.set-state';
-const TOOL_PROVIDER = 'reference-state-provider';
 
 class ReferenceAgentError extends Error {
   constructor(message, code = 'REFERENCE_AGENT_INVALID') {
@@ -106,33 +94,6 @@ function manifestDigest(manifest) {
   return createHash('sha256').update(canonicalJson(manifest)).digest('hex');
 }
 
-function assertWorkspace(directory, { create = false } = {}) {
-  const workspace = path.join(directory, 'workspace');
-  if (create) fs.mkdirSync(workspace, { mode: 0o700 });
-  let stat;
-  try {
-    stat = fs.lstatSync(workspace);
-  } catch {
-    throw new ReferenceAgentError('reference workspace is missing');
-  }
-  if (!stat.isDirectory() || stat.isSymbolicLink() || (stat.mode & 0o077) !== 0) {
-    throw new ReferenceAgentError('reference workspace is not a private regular directory');
-  }
-  const canonical = fs.realpathSync(workspace);
-  if (path.dirname(canonical) !== directory || canonical !== workspace) {
-    throw new ReferenceAgentError('reference workspace escapes its temporary fixture');
-  }
-  return Object.freeze({ path: workspace, dev: stat.dev, ino: stat.ino });
-}
-
-function assertSameWorkspace(directory, expected) {
-  const current = assertWorkspace(directory);
-  if (current.path !== expected.path || current.dev !== expected.dev || current.ino !== expected.ino) {
-    throw new ReferenceAgentError('reference workspace identity changed before the governed effect');
-  }
-  return current;
-}
-
 function modelManifest() {
   return {
     schema_version: 1,
@@ -169,44 +130,6 @@ function modelRoutes(value) {
   ];
 }
 
-function executionContract() {
-  const input = z.object({ value: z.string().min(1).max(4096) }).strict();
-  const output = z.object({ path: z.string().min(1), value: z.string() }).strict();
-  const executable = (schema) => Object.freeze({ version: 1, safeParse: schema.safeParse.bind(schema) });
-  return {
-    name: TOOL_NAME,
-    capability: TOOL_NAME,
-    provider: TOOL_PROVIDER,
-    authority: 'reference.execute',
-    policy_version: 'reference-policy-v1',
-    reversibility: 'idempotent_mutation',
-    cancellation_policy: 'cooperative',
-    failure_mode: 'fail_closed',
-    timeout_ms: 1000,
-    requires_approval: false,
-    exclusive: true,
-    provider_accepts_idempotency: true,
-    sandbox: null,
-    prerequisites: [],
-    input_schema: executable(input),
-    output_schema: executable(output),
-  };
-}
-
-function toolDefinition() {
-  return {
-    name: TOOL_NAME,
-    description: 'Write deterministic state inside the temporary reference workspace.',
-    input_schema: {
-      type: 'object',
-      properties: { value: { type: 'string', minLength: 1, maxLength: 4096 } },
-      required: ['value'],
-      additionalProperties: false,
-    },
-    governance_ref: governanceRef(TOOL_NAME),
-  };
-}
-
 function profile() {
   return {
     instructions: {
@@ -241,68 +164,22 @@ function sessionSpec(sessionId, referenceManifestDigest) {
 }
 
 function assemble(handle, manifest, { createWorkspace = false } = {}) {
-  const eventRegistry = createExecutionEventRegistry();
-  const executionLedger = new ExecutionEventLedger(handle.db, { event_registry: eventRegistry });
-  const sessionStore = new RelationalSessionEventStore({ ledger: executionLedger });
-  const projection = new ExecutionProjectionStore(handle.db, executionLedger);
-  projection.rebuild();
-  const contracts = new ExecutionContractRegistry();
-  const registered = contracts.register(executionContract());
-  const workspace = assertWorkspace(handle.directory, { create: createWorkspace });
-  const worldStatePath = path.join(handle.directory, WORLD_STATE);
-  const governed = new GovernedExecutionRuntime({
-    contracts,
-    event_registry: eventRegistry,
-    ledger: executionLedger,
-    approval_store: new ExecutionApprovalStore(handle.db),
-    authority: {
-      async evaluate() {
-        return { allowed: true };
-      },
-    },
-    policy: {
-      async evaluate() {
-        return { allowed: true, requires_approval: false, policy_version: registered.policy_version, warnings: [] };
-      },
-    },
-    providers: new Map([
-      [
-        TOOL_PROVIDER,
-        {
-          async execute(input) {
-            assertSameWorkspace(handle.directory, workspace);
-            const temporary = `${worldStatePath}.${process.pid}.${randomUUID()}.tmp`;
-            fs.writeFileSync(temporary, `${JSON.stringify({ schema_version: 1, value: input.value })}\n`, {
-              encoding: 'utf8',
-              mode: 0o600,
-              flag: 'wx',
-            });
-            fs.renameSync(temporary, worldStatePath);
-            return { data: { path: worldStatePath, value: input.value }, evidence: [`file://${worldStatePath}`] };
-          },
-        },
-      ],
-    ]),
-    projector: projection,
-    clock: { now: () => new Date().toISOString() },
-    event_id_factory: randomUUID,
-  });
-  const toolRegistry = new ToolRuntimeRegistry({ contracts });
-  toolRegistry.register(toolDefinition());
-  const toolRuntime = new ToolRuntime({
-    registry: toolRegistry,
-    scheduler: new GovernedExecutionScheduler({ contracts, port: createGovernedExecutionPort(governed), maxConcurrency: 1 }),
-  });
+  let stateTool;
+  try {
+    stateTool = createTemporaryStateTool(handle.directory, { createWorkspace });
+  } catch (error) {
+    throw new ReferenceAgentError(`reference workspace is invalid: ${error.message}`);
+  }
   const provider = new ScriptedModelProvider({ manifest: modelManifest(), routes: modelRoutes(manifest.value) });
   const models = new ModelProviderRegistry();
   models.register(provider, modelManifest());
-  const runtime = new AgentRuntime({
-    session_store: sessionStore,
+  const assembly = assembleTemporaryKernel({
+    db: handle.db,
     model_provider_snapshot: models.snapshot(),
-    tool_runtime: toolRuntime,
     context_profile_resolver: profile,
+    tool_bundles: [stateTool.bundle],
   });
-  return { runtime, sessionStore, worldStatePath };
+  return { runtime: assembly.runtime, sessionStore: assembly.sessionStore, worldStatePath: stateTool.worldStatePath };
 }
 
 function assertSessionBinding(sessionStore, manifest) {

@@ -10,6 +10,7 @@ provider:
   capabilities:
     - text_generation
     - streaming
+    - tool_calls
     - usage
     - cancellation
   limits:
