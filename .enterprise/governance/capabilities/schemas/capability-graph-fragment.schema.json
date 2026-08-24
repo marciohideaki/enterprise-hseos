@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.hideakiservicos.com/hseos/capability-graph-fragment/1.0.0",
+  "title": "Federated Platform Capability Graph Fragment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "fragment_id", "repository", "nodes", "edges", "findings"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "fragment_id": { "$ref": "#/$defs/id" },
+    "repository": { "$ref": "#/$defs/id" },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/node" }
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/edge" }
+    },
+    "findings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/finding" }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+      "minLength": 3,
+      "maxLength": 160
+    },
+    "path": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._ -]+(?:/[A-Za-z0-9._ -]+)*$"
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "name", "lifecycle"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": {
+          "enum": [
+            "Capability",
+            "Contract",
+            "Package",
+            "ArtifactVersion",
+            "Repository",
+            "Project",
+            "Module",
+            "Consumer",
+            "Adapter",
+            "Provider",
+            "PartnerApi",
+            "ErrorCatalog",
+            "Adr",
+            "Owner",
+            "Evidence",
+            "TestSuite",
+            "Exception"
+          ]
+        },
+        "name": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "lifecycle": { "enum": ["proposed", "available", "deprecated", "retired"] },
+        "path": { "$ref": "#/$defs/path" },
+        "uri": { "type": "string", "format": "uri" },
+        "version": { "type": "string", "minLength": 1 },
+        "expires_on": { "type": "string", "format": "date" },
+        "rationale": { "type": "string", "minLength": 1 },
+        "scope": { "type": "string", "minLength": 1 },
+        "migration_path": { "type": "string", "minLength": 1 },
+        "attributes": { "type": "object" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "Exception" } } },
+          "then": { "required": ["expires_on", "rationale", "scope", "migration_path"] }
+        }
+      ]
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "from", "to", "repository"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": {
+          "enum": [
+            "DEFINED_BY",
+            "OWNED_BY",
+            "IMPLEMENTED_BY",
+            "CONSUMED_BY",
+            "EXTENDED_BY",
+            "VALIDATED_BY",
+            "PUBLISHED_AS",
+            "GOVERNED_BY",
+            "DEPENDS_ON",
+            "SUPERSEDES",
+            "EXCEPTED_BY"
+          ]
+        },
+        "from": { "$ref": "#/$defs/id" },
+        "to": { "$ref": "#/$defs/id" },
+        "repository": { "$ref": "#/$defs/id" },
+        "evidence": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "status", "sources", "reason", "provenance"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "kind": { "enum": ["CandidateEdge", "DriftFinding"] },
+        "status": { "enum": ["pending-review", "rejected", "promoted"] },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "reason": { "type": "string", "minLength": 1 },
+        "score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "provenance": { "type": "string", "minLength": 1 },
+        "review_evidence": { "$ref": "#/$defs/id" },
+        "promoted_edge_id": { "$ref": "#/$defs/id" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "promoted" } } },
+          "then": { "required": ["review_evidence", "promoted_edge_id"] }
+        }
+      ]
+    }
+  }
+}

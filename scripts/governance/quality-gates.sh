@@ -104,6 +104,25 @@ gate_governance_structure() {
 }
 
 # =============================================================================
+# Gate 1.1: Protected governance anchors and capability graph
+# =============================================================================
+gate_governance_anchors() {
+  info "Gate 1.1: Governance Anchors and Capability Graph"
+
+  if node "${REPO_ROOT}/scripts/governance/validate-constitutional-change.js" --root "${REPO_ROOT}" &>>"$LOG_FILE"; then
+    pass "Constitutional change control: passed"
+  else
+    record_fail "Constitutional change control: FAILED"
+  fi
+
+  if node "${REPO_ROOT}/scripts/governance/validate-capability-graph.js" --root "${REPO_ROOT}" &>>"$LOG_FILE"; then
+    pass "Federated capability graph: passed"
+  else
+    record_fail "Federated capability graph: FAILED"
+  fi
+}
+
+# =============================================================================
 # Gate 2: Documentation phase validation
 # =============================================================================
 gate_documentation() {
@@ -427,12 +446,14 @@ main() {
   case "$PHASE" in
     doc|documentation)
       gate_governance_structure
+      gate_governance_anchors
       gate_canonical_source
       gate_documentation
       gate_workflow_publication
       ;;
     code)
       gate_governance_structure
+      gate_governance_anchors
       gate_canonical_source
       gate_code
       gate_security
@@ -444,6 +465,7 @@ main() {
       # hygiene. gate_code is intentionally absent — the CI `test` job already runs
       # the full suite; duplicating it here would double CI time for no coverage.
       gate_governance_structure
+      gate_governance_anchors
       gate_canonical_source
       gate_documentation
       gate_security
@@ -452,6 +474,7 @@ main() {
       ;;
     auto|full|*)
       gate_governance_structure
+      gate_governance_anchors
       gate_canonical_source
       gate_documentation
       gate_code
