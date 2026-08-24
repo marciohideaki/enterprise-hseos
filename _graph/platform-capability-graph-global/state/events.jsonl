@@ -1,0 +1,4 @@
+{"event":"baseline_recorded","at":"2026-08-24T12:20:00Z","status":"accepted","evidence":"_graph/platform-capability-graph-global/BASELINE.md"}
+{"event":"adr_owner_approved","at":"2026-08-24T12:27:00Z","status":"accepted","evidence":"active-session owner approval of ADR-0022, Constitution v2.2, and global implementation"}
+{"event":"foundation_validation","at":"2026-08-24T12:35:00Z","status":"passed","evidence":"capability graph 1 fragment/10 nodes/14 edges; 10 adversarial tests passed"}
+{"event":"worktree-validation-root-defect","at":"2026-08-24T12:38:00Z","status":"corrected","evidence":"worktree-manager inherited bare REPO_ROOT and validated the wrong checkout; task root is now passed explicitly and covered by regression"}

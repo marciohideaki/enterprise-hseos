@@ -18,6 +18,7 @@ const cases = [
     fn: () => {
       const script = read('scripts/governance/worktree-manager.sh');
       assert.match(script, /bash "\$\{wt_path\}\/scripts\/governance\/quality-gates\.sh"/);
+      assert.match(script, /REPO_ROOT="\$\{wt_path\}" VALIDATION_ENFORCED=/);
     },
   },
   {
