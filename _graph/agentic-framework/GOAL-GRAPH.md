@@ -51,6 +51,21 @@ The objective is complete only when a user can install a profile, select a confo
 4. **Productization:** A11 packages the headless framework and provider profiles.
 5. **Proof and activation:** A12 independently refutes completeness; A13 waits for operational authority/evidence.
 
+## Post-reference hardening extension — 2026-08-24
+
+| Node | Claude Code learning                                                 | Result                          | Gate                                                                         |
+| ---- | -------------------------------------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------- |
+| A14  | Restricted egress prerequisite                                       | Completed                       | Networkless worker; supervisor-owned Unix broker and credential              |
+| A15  | Permission plus configuration/provenance lattice (proposals 1 and 5) | Completed                       | Monotonic policy; restrictive merge; child cannot widen                      |
+| A16  | Transitive isolation (proposal 2)                                    | Completed                       | Real five-role sandbox proof; no host/network/environment escape             |
+| A17  | Provider-neutral Agent Message Transport (proposal 3)                | Completed                       | Durable text-only semantics; bounded policy-aware delivery                   |
+| A18  | Hosted worker lifecycle (proposal 4)                                 | Completed                       | Durable leases, drain/park/orphan/retire and fencing                         |
+| A19  | Egress credential transformer (proposal 6)                           | Completed with partial adoption | Pinned narrow host injection retained; generic sentinel transformer rejected |
+| A20  | Continuous trace lineage (proposal 7)                                | Completed                       | Durable W3C root, causal anchors, defer/replay and delegated reattach        |
+| A21  | Integrated seven-proposal disposition and conformance                | Completed                       | Exact verdict catalog, full quality gate, no activation authority            |
+
+This extension hardens A1–A14 without changing A13's activation prerequisites or introducing a provider-specific branch into the kernel.
+
 ## Mandatory assembled journeys
 
 - `provider-substitution`: the scripted provider and OpenAI-compatible provider against a fake endpoint execute one task through the same kernel with equivalent normalized events; optional real-API smoke is separate.
