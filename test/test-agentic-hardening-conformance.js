@@ -51,11 +51,14 @@ test('Claude Code learning disposition is exact, complete, and executable', () =
     }
   }
   assert.equal(PROPOSALS[5].rejected, 'generic sentinel substitution');
+  assert.equal(PROPOSALS[5].implemented_capability, 'supervisor-owned credential injection');
+  assert.equal(PROPOSALS.length, 7);
   assert.match(scripts.test, /test:agentic-hardening-conformance/u);
 });
 
-test('all seven hardened seams remain provider-neutral by explicit core allowlist', () => {
+test('all adopted proposal surfaces remain provider-neutral across six implementation cores', () => {
   const vendorBranch = /\b(?:anthropic|claude|codex|deepseek|gemini|openai)\b/iu;
+  assert.equal(NEUTRAL_CORE.length, 6);
   for (const relativePath of NEUTRAL_CORE) {
     for (const filename of javascriptFiles(relativePath)) {
       assert.doesNotMatch(fs.readFileSync(filename, 'utf8'), vendorBranch, path.relative(ROOT, filename));
@@ -63,7 +66,7 @@ test('all seven hardened seams remain provider-neutral by explicit core allowlis
   }
 });
 
-test('hardening closeout preserves the operational cutover gates', () => {
+test('hardening closeout preserves cutover gates and validates schema v4 only in ephemeral SQLite', () => {
   const state = fs.readFileSync(path.join(ROOT, '_graph', 'agentic-framework', 'STATE.md'), 'utf8');
   assert.match(state, /30 complete G9 zero-use days/u);
   assert.match(state, /explicit human cutover authorization/u);
