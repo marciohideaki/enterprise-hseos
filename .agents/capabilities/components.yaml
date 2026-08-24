@@ -150,6 +150,8 @@ components:
     install_paths:
       - tools/cli/commands/agent.js
       - tools/cli/lib/reference-agent-runtime.js
+      - tools/cli/lib/temporary-kernel-assembly.js
+      - tools/cli/lib/temporary-state-tool.js
       - tools/lib/governed-execution/
       - tools/mcp-project-state/lib/
       - tools/mcp-project-state/migrations/
@@ -170,8 +172,16 @@ components:
       - .agents/activation/provider-bindings/openai-compatible.example.yaml
       - tools/cli/commands/agent-activation-rehearsal.js
       - tools/cli/commands/agent-provider-validate.js
+      - tools/cli/lib/bound-kernel-agent-runtime.js
+      - tools/cli/lib/temporary-kernel-assembly.js
+      - tools/cli/lib/temporary-state-tool.js
       - tools/lib/agentic-activation-rehearsal.js
       - tools/lib/agent-provider-binding.js
+      - tools/lib/governed-execution/
+      - tools/mcp-project-state/lib/
+      - tools/mcp-project-state/migrations/
+      - tools/mcp-project-state/migrations-pending-activation/
+      - packages/agent-session-store/
       - packages/agent-runtime/
       - packages/model-providers/
       - packages/tool-runtime/

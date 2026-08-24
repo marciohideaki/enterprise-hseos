@@ -83,7 +83,7 @@ const BindingSchema = z
       });
     }
     const capabilities = binding.provider.capabilities;
-    for (const required of ['text_generation', 'streaming', 'cancellation']) {
+    for (const required of ['text_generation', 'streaming', 'tool_calls', 'cancellation']) {
       if (!capabilities.includes(required))
         context.addIssue({ code: 'custom', path: ['provider', 'capabilities'], message: `missing ${required}` });
     }
