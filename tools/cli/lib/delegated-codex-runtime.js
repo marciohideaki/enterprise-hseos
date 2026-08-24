@@ -229,12 +229,12 @@ function assertDurableBinding(state, manifest) {
 }
 
 function assembly(db, manifest) {
-  const providers = [];
+  let provider;
   const store = new DelegatedRuntimeStore({ ledger: new ExecutionEventLedger(db) });
   const host = new DelegatedRuntimeHost({
     store,
     provider_factory: () => {
-      const provider = new CodexRuntimeProvider({
+      provider ??= new CodexRuntimeProvider({
         provider_id: PROVIDER_ID,
         driver: new CodexAppServerDriver({
           executable: manifest.executable,
@@ -244,7 +244,6 @@ function assembly(db, manifest) {
         }),
         default_cwd: manifest.cwd,
       });
-      providers.push(provider);
       return provider;
     },
     operation_timeout_ms: 3_600_000,
@@ -252,7 +251,7 @@ function assembly(db, manifest) {
   return {
     host,
     async closeProviders() {
-      await Promise.allSettled(providers.splice(0).map((provider) => provider.close()));
+      if (provider) await Promise.allSettled([provider.close()]);
     },
   };
 }
@@ -295,25 +294,18 @@ async function runDelegatedCodex(options = {}) {
     let state;
     try {
       state = await assembled.host.create({ request_id: `request:${randomUUID()}`, spec: sessionSpec(manifest) });
-    } finally {
-      await assembled.closeProviders();
-    }
-    let operation = 'created';
-    if (!options.createOnly) {
-      const second = assembly(handle.db, manifest);
-      try {
-        state = await second.host.resumeAndSend({
+      if (!options.createOnly) {
+        state = await assembled.host.resumeAndSend({
           request_id: `request:${randomUUID()}`,
           session_id: sessionId,
           turn_id: `turn:${randomUUID()}`,
           message: { role: 'user', content: text(options.message || 'Execute the delegated instruction.', 'message', 262_144) },
         });
-      } finally {
-        await second.closeProviders();
       }
-      operation = 'run';
+    } finally {
+      await assembled.closeProviders();
     }
-    return summarize(handle, manifest, state, operation);
+    return summarize(handle, manifest, state, options.createOnly ? 'created' : 'run');
   } catch (error) {
     handle.cleanup();
     throw error;

@@ -220,11 +220,11 @@ function assertDurableBinding(state, manifest) {
 }
 
 function assembly(db, manifest) {
-  const providers = [];
+  let provider;
   const host = new DelegatedRuntimeHost({
     store: new DelegatedRuntimeStore({ ledger: new ExecutionEventLedger(db) }),
     provider_factory: () => {
-      const provider = new ClaudeCodeRuntimeProvider({
+      provider ??= new ClaudeCodeRuntimeProvider({
         provider_id: PROVIDER_ID,
         driver: new ClaudeAgentSdkDriver({
           sdk_module: manifest.sdk_module,
@@ -234,12 +234,11 @@ function assembly(db, manifest) {
         }),
         default_cwd: manifest.cwd,
       });
-      providers.push(provider);
       return provider;
     },
     operation_timeout_ms: 3_600_000,
   });
-  return { host, closeProviders: () => Promise.allSettled(providers.splice(0).map((provider) => provider.close())) };
+  return { host, closeProviders: async () => provider && Promise.allSettled([provider.close()]) };
 }
 
 function summarize(handle, manifest, state, operation) {
@@ -280,25 +279,18 @@ async function runDelegatedClaude(options = {}) {
     let state;
     try {
       state = await createdAssembly.host.create({ request_id: `request:${randomUUID()}`, spec: sessionSpec(manifest) });
-    } finally {
-      await createdAssembly.closeProviders();
-    }
-    let operation = 'created';
-    if (!options.createOnly) {
-      const resumedAssembly = assembly(handle.db, manifest);
-      try {
-        state = await resumedAssembly.host.resumeAndSend({
+      if (!options.createOnly) {
+        state = await createdAssembly.host.resumeAndSend({
           request_id: `request:${randomUUID()}`,
           session_id: sessionId,
           turn_id: `turn:${randomUUID()}`,
           message: { role: 'user', content: text(options.message || 'Execute the delegated instruction.', 'message', 262_144) },
         });
-      } finally {
-        await resumedAssembly.closeProviders();
       }
-      operation = 'run';
+    } finally {
+      await createdAssembly.closeProviders();
     }
-    return summarize(handle, manifest, state, operation);
+    return summarize(handle, manifest, state, options.createOnly ? 'created' : 'run');
   } catch (error) {
     handle.cleanup();
     throw error;

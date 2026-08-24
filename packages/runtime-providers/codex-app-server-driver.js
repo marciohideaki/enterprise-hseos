@@ -225,7 +225,7 @@ class CodexAppServerDriver {
       const result = await connection.request('thread/start', {
         cwd: input.cwd,
         approvalPolicy: 'never',
-        sandbox: 'readOnly',
+        sandbox: 'read-only',
         serviceName: 'hseos',
       });
       const runtimeSessionId = text(result?.thread?.id, 'Codex thread id', 1024);

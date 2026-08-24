@@ -60,6 +60,11 @@ export function query({ prompt, options }) {
         tools: options.tools,
         permissionMode: options.permissionMode,
       };
+      yield {
+        type: 'rate_limit_event',
+        session_id: sessionId,
+        rate_limit_info: { status: 'allowed' },
+      };
       if (prompt === 'wait') {
         while (!options.abortController.signal.aborted && !closed) {
           await new Promise((resolve) => setImmediate(resolve));

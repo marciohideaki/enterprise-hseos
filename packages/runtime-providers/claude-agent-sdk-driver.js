@@ -225,6 +225,12 @@ class ClaudeAgentSdkDriver {
       }
       return;
     }
+    if (value.type === 'rate_limit_event') {
+      if (!record(value.rate_limit_info) || !['allowed', 'allowed_warning', 'rejected'].includes(value.rate_limit_info.status)) {
+        throw new RuntimeProviderError('Claude rate-limit event is malformed', 'protocol_error');
+      }
+      return;
+    }
     if (value.type === 'assistant') {
       if (!record(value.message) || !Array.isArray(value.message.content)) {
         throw new RuntimeProviderError('Claude assistant message is malformed', 'protocol_error');

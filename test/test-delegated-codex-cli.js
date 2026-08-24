@@ -104,6 +104,27 @@ test('public delegated Codex CLI creates and resumes the same remote thread acro
   }
 });
 
+test('public delegated Codex run keeps the first turn attached to the newly created thread', () => {
+  const fixture = fixtureBinding();
+  const result = cli('run', '--profile', PROFILE, '--binding', fixture.binding, '--message', 'first turn');
+  try {
+    assert.equal(result.operation, 'run');
+    assert.equal(result.status, 'completed');
+    assert.equal(result.output, 'fixture answer');
+    assert.deepEqual(JSON.parse(fs.readFileSync(fixture.remote, 'utf8')), {
+      created: 1,
+      resumed: 0,
+      interrupted: 0,
+      turns: 1,
+      thread_id: 'codex-thread-1',
+      selected_environment_received: false,
+    });
+  } finally {
+    cleanupState(result.state);
+    fixture.cleanup();
+  }
+});
+
 test('public delegated Codex CLI reattaches and durably cancels an idle session', () => {
   const fixture = fixtureBinding();
   const created = cli('run', '--profile', PROFILE, '--binding', fixture.binding, '--create-only');
