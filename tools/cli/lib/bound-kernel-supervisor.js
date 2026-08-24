@@ -3,7 +3,7 @@
 const { createHash } = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
-const { spawn } = require('node:child_process');
+const { spawn, spawnSync } = require('node:child_process');
 
 const { canonicalJson } = require('../../../packages/agent-session-store');
 const { readProviderBinding } = require('../../lib/agent-provider-binding');
@@ -17,8 +17,8 @@ const PROFILE = 'lockdown';
 const MAX_CHILD_OUTPUT_BYTES = 1_048_576;
 const MAX_BINARY_BYTES = 67_108_864;
 const DEFAULT_TIMEOUT_MS = 120_000;
-const SAFE_FLAGS = new Set(['--lockdown', '--no-save-config', '--private-home', '--no-docker', '--no-display', '--no-gpu']);
-const REQUIRED_FLAGS = ['--lockdown', '--no-save-config'];
+const SAFE_FLAGS = new Set(['--lockdown', '--no-save-config', '--exec', '--private-home', '--no-docker', '--no-display', '--no-gpu']);
+const REQUIRED_FLAGS = ['--lockdown', '--no-save-config', '--exec'];
 const REQUIRED_MASKS = ['.env', '.env.local', 'credentials.json', 'secrets.yml'];
 
 class BoundKernelSupervisorError extends Error {
@@ -100,6 +100,23 @@ function validateReadiness(result) {
 function binaryDigest(binary) {
   if (binary.size > MAX_BINARY_BYTES) throw new BoundKernelSupervisorError('sandbox binary exceeds the attestation byte limit');
   return createHash('sha256').update(fs.readFileSync(binary.path)).digest('hex');
+}
+
+function probeExactSandboxProfile({ binaryPath, cwd, environment, sandbox, spawnSyncImpl = spawnSync }) {
+  const args = buildAiJailArgs({ sandbox, profileName: PROFILE, command: ['/usr/bin/true'] });
+  let result;
+  try {
+    result = spawnSyncImpl(binaryPath, args, {
+      cwd,
+      env: { PATH: environment.PATH || '', HSEOS_DISABLE_UPDATE_CHECK: '1' },
+      encoding: 'utf8',
+      maxBuffer: 65_536,
+      timeout: 15_000,
+    });
+  } catch {
+    return false;
+  }
+  return result?.status === 0 && !result.signal && !result.error;
 }
 
 function createAttestation({ binary, profile, port }) {
@@ -256,6 +273,18 @@ async function runSupervisedBoundKernel(operation, options = {}, dependencies = 
   const readiness = await (dependencies.readinessCheck || sandboxDoctor)(projectDir, environment, { forceRequired: true });
   validateReadiness(readiness);
   const binary = resolveCommand(resolved.sandbox.binary || 'ai-jail', environment);
+  const exactProfileReady = await (dependencies.profileReadinessCheck || probeExactSandboxProfile)({
+    binaryPath: binary.path,
+    cwd: projectDir,
+    environment,
+    sandbox: resolved.sandbox,
+  });
+  if (exactProfileReady !== true) {
+    throw new BoundKernelSupervisorError(
+      'the exact configured lockdown profile could not execute',
+      'BOUND_KERNEL_SANDBOX_PROFILE_UNAVAILABLE',
+    );
+  }
   const attestation = createAttestation({ binary, profile: exactProfile, port });
   const command = [process.execPath, WORKER];
   const args = buildAiJailArgs({ sandbox: resolved.sandbox, profileName: PROFILE, command });
@@ -275,12 +304,13 @@ async function runSupervisedBoundKernel(operation, options = {}, dependencies = 
   try {
     envelope = JSON.parse(execution.stdout);
   } catch {
-    throw new BoundKernelSupervisorError('sandboxed worker returned non-JSON output');
+    envelope = null;
   }
   if (execution.status !== 0 || execution.signal) {
     if (envelope?.ok === false) return validateWorkerResult(envelope);
-    throw new BoundKernelSupervisorError('sandboxed worker terminated unsuccessfully', 'BOUND_KERNEL_WORKER_FAILED');
+    throw new BoundKernelSupervisorError('sandboxed worker terminated unsuccessfully', 'BOUND_KERNEL_SANDBOX_EXECUTION_FAILED');
   }
+  if (!envelope) throw new BoundKernelSupervisorError('sandboxed worker returned non-JSON output');
   return validateWorkerResult(envelope);
 }
 
@@ -289,6 +319,7 @@ module.exports = {
   MAX_CHILD_OUTPUT_BYTES,
   collectChild,
   createAttestation,
+  probeExactSandboxProfile,
   runSupervisedBoundKernel,
   validateLockdownProfile,
   validateOperationOptions,

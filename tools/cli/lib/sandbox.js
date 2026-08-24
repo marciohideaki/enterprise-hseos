@@ -19,7 +19,7 @@ const DEFAULT_SANDBOX = {
       allow_tcp_ports: [],
     },
     lockdown: {
-      flags: ['--lockdown', '--no-save-config'],
+      flags: ['--lockdown', '--no-save-config', '--exec'],
       masks: ['.env', '.env.local', 'credentials.json', 'secrets.yml'],
       ro_maps: [],
       rw_maps: [],

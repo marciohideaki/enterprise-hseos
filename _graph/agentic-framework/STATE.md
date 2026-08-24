@@ -10,7 +10,7 @@
 - **Observed:** HSEOS has a model-neutral Agent Kernel, a non-operational reference profile and an explicit OpenAI-compatible activation candidate; production activation remains gated
 - **Accepted decision:** ADR-0024, explicitly approved by the human authority on 2026-08-21
 - **Architectural gate:** satisfied; implementation remains bounded by the A1–A13 graph
-- **Validation:** required sandbox probe passed; live Codex and Claude delegated smokes passed; sandbox `7/7`; A13 supervisor `5/5`; DeepSeek public profile `6/6`; bound kernel `6/6`; reference `8/8`; model providers `16/16`; capability packaging `112/112`
+- **Validation:** generic networkless sandbox probe passed; exact networked profile fails closed on the real `ai-jail` backend; live Codex and Claude delegated smokes passed; sandbox `7/7`; A13 supervisor `6/6`; DeepSeek public profile `6/6`; bound kernel `6/6`; reference `8/8`; model providers `16/16`; capability packaging `112/112`
 - **Evidence:** `state/checkpoints/A0-foundation-readiness.md`; `state/checkpoints/A0-completion.md`; `state/checkpoints/A1-contracts.md`; `state/checkpoints/A6-agent-runtime.md`; `state/checkpoints/A7-compaction-checkpoints.md`; `state/checkpoints/A8-subagents-workflows.md`; `state/checkpoints/A9-runtime-provider-acp.md`; `state/checkpoints/A10-hosted-runtime-adapters.md`
 - **Next reversible action:** validate the sandbox-supervised OpenAI-compatible candidate endpoint without persisting or reflecting credential values
 - **A13 rehearsal:** real schema-v4 state rehearsed through a verified WAL snapshot; v7 migration, v4 rollback, legacy-table preservation, source immutability and candidate provider contract passed
@@ -18,10 +18,11 @@
 - **A13 bound kernel:** common temporary assembly now drives both the scripted reference and an immutable OpenAI-compatible binding; run/resume/cancel, governed tool effects, durable sandbox evidence and provider substitution pass against fake endpoints
 - **A13 sandbox supervisor:** the public `hseos agent` surface selects the candidate profile only through a fail-closed `ai-jail` worker; exact lockdown configuration and binary digest are durably bound across run/resume/cancel
 - **A13 required sandbox runtime:** `ai-jail 1.20.0` and Ubuntu `bubblewrap 0.9.0` execute a real clean lockdown probe; a scoped AppArmor profile preserves the global user-namespace restriction while enabling `bwrap`; the doctor now verifies effective execution rather than binary presence alone
+- **A13 exact sandbox profile:** supervisors now execute the exact configured profile before secret access; real `ai-jail 1.20.0` rejects restricted TCP egress and requires unrestricted `--network`, so the networked candidate remains fail-closed pending an egress decision/backend
 - **A10–A11 live delegated providers:** authenticated Codex CLI `0.149.0` and Claude Code `2.1.241` requests completed through `hseos agent run`; first-turn provider continuity, current Codex app-server v2 sandbox spelling and Claude SDK rate-limit events are covered by regressions
 - **A10–A11 live lifecycle boundary:** one-turn `run` is proven and is now the only public lifecycle advertised by the direct Codex profile; raw app-server does not persist a pre-turn rollout, so `create-only`, cross-process resume and post-process cancel fail closed
 - **A13 DeepSeek public profile:** the hash-bound tool-free ACP composition is exposed as an honest sandbox-required `run`-only candidate; deterministic create+prompt persists terminal truth while unsupported lifecycle actions fail closed
-- **A13 remaining gates:** sandbox-supervised OpenAI-compatible candidate probe; 30 complete G9 zero-use days; final stable audit; explicit human cutover authorization
+- **A13 remaining gates:** restricted-egress sandbox disposition and sandbox-supervised OpenAI-compatible candidate probe; 30 complete G9 zero-use days; final stable audit; explicit human cutover authorization
 - **A12 integration:** human-authorized local merge `6f69386`; no push, migration or activation performed
 - **A12 worktree:** removed after integration; task commit `6c40e52`
 - **A11 integration:** human-authorized local merge `cf80117`; no push or activation performed

@@ -46,7 +46,7 @@ function fixture(t, { port = '443', endpoint = 'https://provider.fixture.invalid
         default_profile: 'lockdown',
         profiles: {
           lockdown: {
-            flags: ['--lockdown', '--no-save-config'],
+            flags: ['--lockdown', '--no-save-config', '--exec'],
             masks: ['.env', '.env.local', 'credentials.json', 'secrets.yml'],
             ro_maps: [],
             rw_maps: [],
@@ -252,6 +252,37 @@ test('readiness failure happens before provider secret resolution or worker laun
         },
       ),
     /readiness checks did not pass/,
+  );
+  assert.equal(secretReads, 0);
+  assert.equal(launches, 0);
+});
+
+test('exact lockdown profile failure happens before provider secret resolution or worker launch', async (t) => {
+  const project = fixture(t);
+  let secretReads = 0;
+  let launches = 0;
+  const environment = { PATH: process.env.PATH };
+  Object.defineProperty(environment, 'HSEOS_MODEL_PROVIDER_API_KEY', {
+    enumerable: true,
+    get() {
+      secretReads += 1;
+      return SECRET;
+    },
+  });
+  await assert.rejects(
+    () =>
+      runSupervisedBoundKernel(
+        'run',
+        { bindingPath: project.bindingPath, projectDir: project.directory, environment },
+        {
+          readinessCheck: readiness(),
+          profileReadinessCheck: async () => false,
+          spawnImpl() {
+            launches += 1;
+          },
+        },
+      ),
+    (error) => error.code === 'BOUND_KERNEL_SANDBOX_PROFILE_UNAVAILABLE',
   );
   assert.equal(secretReads, 0);
   assert.equal(launches, 0);
