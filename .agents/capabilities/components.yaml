@@ -191,10 +191,11 @@ components:
   - id: runtime:agent-codex-delegated
     family: runtime
     name: Codex Delegated Runtime Candidate
-    description: Direct JSONL/stdio Codex app-server driver, hosted L0 adapter, durable delegated host, and public run/resume/cancel CLI surface.
+    description: Direct JSONL/stdio Codex app-server driver, hosted L0 adapter, durable delegated host, and public run-only CLI surface.
     prerequisites:
       - "candidate only; Codex executable and host authentication remain operator-selected and operational activation is not implied"
       - "instructions-only boundary; any observed command, file, MCP, dynamic-tool, web-search, or image-generation item fails closed"
+      - "run only; raw app-server does not durably expose an empty pre-turn thread, so create-only, cross-process resume and post-process cancel are explicitly unsupported"
     modules:
       - agent-codex-delegated-candidate
     tools: []

@@ -42,7 +42,7 @@ profiles:
 
   agent-codex-delegated-candidate:
     name: Codex Delegated Runtime Candidate
-    description: Pre-activation direct Codex app-server assembly with durable HSEOS lifecycle governance and an instructions-only effect boundary.
+    description: Pre-activation direct Codex app-server assembly with a durable one-turn HSEOS record, explicit run-only lifecycle, and an instructions-only effect boundary.
     hook_profile: strict
     components:
       - runtime:agent-codex-delegated

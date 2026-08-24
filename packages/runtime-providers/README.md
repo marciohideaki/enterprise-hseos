@@ -66,8 +66,12 @@ The canonical example is
 These adapters deliberately resolve no credentials and declare no secret
 references. They do not claim governed tools, lifecycle conformance or replay.
 The public candidate profiles are `agent-codex-delegated-candidate` and
-`agent-claude-delegated-candidate`; both expose `hseos agent run/resume/cancel`
-against temporary schema-v8 ledgers. Deterministic external-process/module
-fixtures cover composition without credentials. Real provider smokes belong to
-a separately configured environment and cannot upgrade the manifest without
-the corresponding HSEOS conformance suite.
+`agent-claude-delegated-candidate`. Claude exposes `hseos agent
+run/resume/cancel` against temporary schema-v8 ledgers. The direct Codex
+app-server profile is explicitly run-only because the real raw server does not
+persist an empty pre-turn thread for later process reattachment; its completed
+one-turn record remains durable. Deterministic external-process/module fixtures
+cover composition without credentials, but cannot upgrade that public
+lifecycle claim. Real provider smokes belong to a separately configured
+environment and cannot upgrade the manifest without the corresponding HSEOS
+conformance suite.

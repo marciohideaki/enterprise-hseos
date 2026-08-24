@@ -72,12 +72,18 @@ cutover. It also does not replace A13's sandbox-supervised probe for the
 OpenAI-compatible candidate profile. G9's 30-complete-day window, the final
 stable-snapshot audit and explicit human cutover authorization remain open.
 
-The raw Codex app-server does not persist an empty thread before its first turn,
-so `create-only` followed by `resume` in another process remains unproven in the
-real environment. A future live lifecycle proof must either bind the official
-daemon/proxy composition from a supported standalone installation or downgrade
-the advertised cross-process capability honestly. The successful `run` smoke
-must not be used as evidence for that separate claim.
+The raw Codex app-server does not persist an empty thread before its first turn.
+The public direct profile has therefore been downgraded to the lifecycle proven
+here: one-turn `run`. `create-only`, cross-process `resume` and post-process
+`cancel` now reject as unavailable before binding or state access. The lower
+provider-neutral host contracts remain reusable by a future managed
+daemon/proxy profile, but deterministic fixture behavior no longer inflates the
+capability advertised for the installed raw server.
+
+This is the final disposition of the Codex lifecycle gap for the direct
+profile. It requires no standalone installation and does not weaken the global
+Agent Kernel contract: the reference, bound kernel and Claude profiles retain
+their independently verified durable lifecycle support.
 
 The temporary provider bindings, SDK installation and session ledgers are
 disposable validation artifacts outside the repository. Rollback of the code
