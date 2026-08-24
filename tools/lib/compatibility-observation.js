@@ -129,6 +129,48 @@ function assertObservationReport(report, filename = null) {
   return asOf;
 }
 
+function observationBinding(report) {
+  const operationalPaths = report?.operational_paths;
+  for (const key of ['telemetry_database', 'state_database', 'observation_manifest']) {
+    if (!path.isAbsolute(operationalPaths?.[key] || '')) {
+      throw new Error(`Observation report must identify an absolute ${key}`);
+    }
+  }
+  const serverIds = report?.current?.servers?.map(({ server_id: serverId }) => serverId).sort();
+  if (
+    report.schema_version !== '1.0' ||
+    report.database_mode !== 'verified-read-snapshot-of-live-wal' ||
+    !Array.isArray(serverIds) ||
+    serverIds.length === 0 ||
+    serverIds.some((serverId, index) => typeof serverId !== 'string' || serverId.length === 0 || serverId === serverIds[index - 1]) ||
+    !Number.isSafeInteger(report?.progress?.required_days) ||
+    report.progress.required_days < 1
+  ) {
+    throw new Error('Observation report does not define a valid immutable evidence scope');
+  }
+  return Object.freeze({
+    report_schema_version: report.schema_version,
+    database_mode: report.database_mode,
+    operational_paths: {
+      telemetry_database: operationalPaths.telemetry_database,
+      state_database: operationalPaths.state_database,
+      observation_manifest: operationalPaths.observation_manifest,
+    },
+    manifest: {
+      valid: report.manifest?.valid === true,
+      release_sha: report.manifest?.release_sha ?? null,
+      configuration_sha256: report.manifest?.configuration_sha256 ?? null,
+      first_candidate_complete_utc_day: report.manifest?.first_candidate_complete_utc_day ?? null,
+    },
+    server_ids: serverIds,
+    required_days: report.progress.required_days,
+  });
+}
+
+function observationBindingSha256(binding) {
+  return sha256(Buffer.from(JSON.stringify(binding)));
+}
+
 function evidenceFiles(evidenceDirectory) {
   const entries = fs.readdirSync(evidenceDirectory);
   const ambiguous = entries.find(
@@ -150,6 +192,7 @@ function verifyObservationEvidenceChain(evidenceDirectory) {
   }
   let previousHash = null;
   let previousAsOf = null;
+  let chainBindingSha256 = null;
   const files = evidenceFiles(resolvedDirectory);
   for (const filename of files) {
     const evidencePath = path.join(resolvedDirectory, filename);
@@ -161,26 +204,45 @@ function verifyObservationEvidenceChain(evidenceDirectory) {
     const canonicalContents = Buffer.from(`${JSON.stringify(artifact, null, 2)}\n`);
     if (!contents.equals(canonicalContents)) throw new Error(`Observation evidence encoding is invalid at ${filename}`);
     const artifactKeys = Object.keys(artifact).sort();
-    if (JSON.stringify(artifactKeys) !== JSON.stringify(['evidence_schema_version', 'previous_evidence_sha256', 'report'])) {
+    if (
+      JSON.stringify(artifactKeys) !==
+      JSON.stringify(['evidence_schema_version', 'observation_binding', 'observation_binding_sha256', 'previous_evidence_sha256', 'report'])
+    ) {
       throw new Error(`Observation evidence envelope is invalid at ${filename}`);
     }
-    if (artifact.evidence_schema_version !== 1 || artifact.previous_evidence_sha256 !== previousHash) {
+    if (artifact.evidence_schema_version !== 2 || artifact.previous_evidence_sha256 !== previousHash) {
       throw new Error(`Observation evidence chain is invalid at ${filename}`);
     }
     const asOf = assertObservationReport(artifact.report, filename);
+    const expectedBinding = observationBinding(artifact.report);
+    const expectedBindingSha256 = observationBindingSha256(expectedBinding);
+    if (
+      JSON.stringify(artifact.observation_binding) !== JSON.stringify(expectedBinding) ||
+      artifact.observation_binding_sha256 !== expectedBindingSha256
+    ) {
+      throw new Error(`Observation evidence binding is invalid at ${filename}`);
+    }
+    if (chainBindingSha256 && expectedBindingSha256 !== chainBindingSha256) {
+      throw new Error(`Observation evidence scope changed at ${filename}`);
+    }
     if (previousAsOf && asOf <= previousAsOf) throw new Error(`Observation evidence order is invalid at ${filename}`);
     previousHash = sha256(contents);
     previousAsOf = asOf;
+    chainBindingSha256 = expectedBindingSha256;
   }
-  return Object.freeze({ count: files.length, latest_sha256: previousHash, latest_as_of: previousAsOf });
+  return Object.freeze({
+    count: files.length,
+    latest_sha256: previousHash,
+    latest_as_of: previousAsOf,
+    observation_binding_sha256: chainBindingSha256,
+  });
 }
 
 function writeCompatibilityObservationEvidence(report, evidenceDirectory) {
   if (!path.isAbsolute(evidenceDirectory || '')) throw new TypeError('Observation evidence directory must be absolute');
   const asOf = assertObservationReport(report);
-  if (!path.isAbsolute(report?.operational_paths?.state_database || '')) {
-    throw new Error('Observation report must identify an absolute operational state database');
-  }
+  const binding = observationBinding(report);
+  const bindingSha256 = observationBindingSha256(binding);
   const resolvedDirectory = path.resolve(evidenceDirectory);
   const stateDirectory = path.dirname(path.resolve(report.operational_paths.state_database));
   if (isWithin(stateDirectory, resolvedDirectory)) {
@@ -201,13 +263,18 @@ function writeCompatibilityObservationEvidence(report, evidenceDirectory) {
   let temporaryPath = null;
   try {
     const chain = verifyObservationEvidenceChain(resolvedDirectory);
+    if (chain.observation_binding_sha256 && chain.observation_binding_sha256 !== bindingSha256) {
+      throw new Error('Observation evidence scope differs from the existing chain');
+    }
     if (chain.latest_as_of && asOf <= chain.latest_as_of) {
       throw new Error('Observation evidence must advance monotonically');
     }
     const filename = evidenceFilename(asOf);
     const finalPath = path.join(resolvedDirectory, filename);
     const artifact = Object.freeze({
-      evidence_schema_version: 1,
+      evidence_schema_version: 2,
+      observation_binding: binding,
+      observation_binding_sha256: bindingSha256,
       previous_evidence_sha256: chain.latest_sha256,
       report,
     });
@@ -238,6 +305,7 @@ function writeCompatibilityObservationEvidence(report, evidenceDirectory) {
       path: finalPath,
       sha256: sha256(contents),
       previous_evidence_sha256: chain.latest_sha256,
+      observation_binding_sha256: bindingSha256,
       chain_length: chain.count + 1,
     });
   } finally {

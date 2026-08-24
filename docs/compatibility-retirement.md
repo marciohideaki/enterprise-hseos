@@ -68,10 +68,14 @@ node tools/cli/hseos-cli.js compatibility-observe \
 Capture is opt-in: without `--evidence-directory`, the command writes no report. The directory must
 be absolute, private, outside `.hseos/state`, and free of symlink traversal. Each canonical JSON
 artifact is created with mode `0600`, atomically renamed, ordered by `as_of`, and linked to the
-previous artifact by SHA-256. Replay, ambiguous transaction residue, unsafe permissions, malformed
-envelopes, filename/timestamp disagreement, or a broken chain fail closed. Retain the emitted digest
-in the supervisor log as the external anchor for the newest chain member. Degraded reports are also
-captured: durable evidence never converts monitor health into cutover authority.
+previous artifact by SHA-256. Evidence schema v2 also binds the complete chain to one report schema,
+database mode, telemetry/state/manifest path set, manifest validity, release SHA, configuration
+digest, candidate start day, required server set and day count. A changed release or observation
+scope must start a new evidence directory; it cannot silently continue an earlier G9 window. Replay,
+ambiguous transaction residue, unsafe permissions, malformed envelopes, filename/timestamp
+disagreement, scope drift, or a broken chain fail closed. Retain the emitted artifact and binding
+digests in the supervisor log as external anchors for the newest chain member. Degraded reports are
+also captured: durable evidence never converts monitor health into cutover authority.
 
 This command copies the live database and WAL into a private snapshot, verifies that their content
 did not change during the copy, and opens only that copy in SQLite query-only mode. It never opens
