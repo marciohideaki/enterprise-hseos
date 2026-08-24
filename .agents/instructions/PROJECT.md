@@ -29,6 +29,7 @@ If two instructions conflict, stop and ask for a human decision. Do not average 
 ## Platform-First Capability Intake
 
 - Before implementing shared, platform, cross-cutting, provider, partner, client, contract, schema, request/response, or error-catalog concerns, query the versioned capability graph with `node scripts/governance/validate-capability-graph.js --query <id-or-term>`.
+- Query the pinned discovery corpus with `node scripts/governance/validate-capability-reference-corpus.js --query <capability-id>`. Its product sentinels (Poynt Hub, Cambio Real V3, LinkedOut, Cryptor, and SRM Asset) and core sources produce candidates only; they do not establish ownership, publication, or adoption.
 - Prefer consuming an existing contract and versioned package. If needed, extend only through its declared extension point. Promote genuinely new shared needs through the governed capability-intake flow.
 - Never create a parallel local implementation without an approved, expiring exception.
 - Treat semantic search, FalkorDB, Qdrant, dashboards, and generated catalogs as advisory projections. Git-hosted graph fragments are authoritative and semantic findings require human review before canonical promotion.

@@ -6,3 +6,4 @@
 {"event":"external-fragment-pin-hardened","at":"2026-08-24T13:02:00Z","status":"passed","evidence":"validator checks origin identity and parses git show <sha>:<path>; 12/12 adversarial governance tests passed"}
 {"event":"event-envelope-vertical-slice-composed","at":"2026-08-24T21:51:00Z","status":"passed","evidence":"4/4 pinned fragments; 35 nodes; 45 edges; exact query links contract, JVM projection, adapter and conformance tests"}
 {"event":"distribution-adoption-hardening","at":"2026-08-24T21:52:00Z","status":"passed","evidence":"source-only false adoption rejected; CONSUMED_BY requires verified-install and a PUBLISHED_AS ArtifactVersion"}
+{"event":"portfolio-reference-corpus-validated","at":"2026-08-24T22:11:41Z","status":"passed","evidence":"5 product sentinels cover 29/33 candidate capabilities; 5 core sources close 33/33; 10/10 pinned origins and evidence trees verified"}

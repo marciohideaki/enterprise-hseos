@@ -1,7 +1,7 @@
 # State — Global Platform Capability Graph
 
 **Status:** In progress
-**Current node:** First cross-repository capability consumption proof
+**Current node:** Portfolio reference corpus validation
 **Authority gate:** ADR-0022 approved on 2026-08-24
 
 ## Completed
@@ -22,11 +22,16 @@
 - Source-only projection cannot claim `PUBLISHED_AS` or `CONSUMED_BY`; verified adoption now
   requires an installed artifact version linked to its publishing package
 - Cambio Real unit consumer and canonical fixture validation delegated through its pinned fragment
+- Portfolio discovery corpus versioned with five product sentinels and five core sources
+- Product sentinels expose candidate signals for 29/33 migration-view capabilities; the four
+  AI/governance gaps are covered by platform/backend/HSEOS sources, yielding 33/33 reference coverage
+- Ten source identities, full Git SHAs, and evidence paths verified from pinned Git objects
+- Reference corpus is fail-closed and structurally prohibited from claiming canonical mutation or adoption
 
 ## Next
 
-- Commit the four-fragment federation hardening on the local feature branch
 - Expand repository-owned fragments beyond the first `messaging.event-envelope` vertical slice
+- Reconcile the 29 product signals into repository-owned fragments or explicit rejected candidates
 - Retire the platform capability manifest after graph completeness reaches 100%
 - Run independent adversarial completion audit
 
@@ -36,3 +41,5 @@
   versioned.
 - Package publication and verified installation are intentionally absent and remain a human gate.
 - The other 32 migration-view capabilities still lack repository-owned graph completeness.
+- Candidate coverage in the reference corpus proves discovery breadth, not that each signal is common,
+  conformant, packaged, or adopted.

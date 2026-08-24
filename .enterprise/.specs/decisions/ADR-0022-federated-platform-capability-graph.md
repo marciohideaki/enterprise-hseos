@@ -138,6 +138,20 @@ implementation on 2026-08-24. The implementation remains subject to deterministi
 gates and the prohibition on autonomous push, protected-branch merge, publication, or
 deployment.
 
+### 7. Implementation addendum — portfolio reference corpus
+
+The owner designated Poynt Hub, Cambio Real V3, LinkedOut, Cryptor, and SRM Asset as the
+initial product sentinels for capability discovery, alongside the five platform cores. They
+form a pinned, versioned discovery corpus because together they expose broad financial,
+marketplace, social, polyglot, backend, frontend, mobile, event-driven, and governance
+surfaces.
+
+This designation does not alter the federated ownership decision. Product evidence is
+`discovery-only`: it can reveal duplication, extension points, and promotion candidates, but
+cannot create a canonical edge or adoption claim. Each candidate still follows intake and
+must be represented by the repository that owns the resulting contract, package, adapter,
+consumer, module, or test evidence.
+
 ## Alternatives Considered
 
 ### Alternative A: Keep the existing central manifest only
