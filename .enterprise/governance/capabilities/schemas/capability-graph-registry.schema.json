@@ -47,20 +47,67 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "repository", "path", "revision", "enforcement"],
+        "required": ["id", "repository", "path", "revision", "enforcement", "source", "validation"],
         "properties": {
           "id": { "$ref": "#/$defs/id" },
           "repository": { "$ref": "#/$defs/id" },
           "path": { "$ref": "#/$defs/path" },
           "revision": { "type": "string", "minLength": 1 },
           "enforcement": { "enum": ["enforced", "report-only"] },
-          "exception": { "$ref": "#/$defs/id" }
+          "exception": { "$ref": "#/$defs/id" },
+          "source": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["kind"],
+                "properties": { "kind": { "const": "local" } }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["kind", "uri"],
+                "properties": {
+                  "kind": { "const": "git" },
+                  "uri": { "type": "string", "format": "uri", "pattern": "^https://" }
+                }
+              }
+            ]
+          },
+          "validation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["mode", "command"],
+            "properties": {
+              "mode": { "enum": ["local", "delegated"] },
+              "command": { "type": "string", "minLength": 1 },
+              "workflow_path": { "$ref": "#/$defs/path" }
+            }
+          }
         },
         "allOf": [
           {
             "if": { "properties": { "enforcement": { "const": "report-only" } } },
             "then": { "required": ["exception"] },
             "else": { "not": { "required": ["exception"] } }
+          },
+          {
+            "if": { "properties": { "source": { "properties": { "kind": { "const": "git" } } } } },
+            "then": {
+              "properties": {
+                "revision": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+                "validation": {
+                  "properties": { "mode": { "const": "delegated" } },
+                  "required": ["workflow_path"]
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "revision": { "const": "same-commit" },
+                "validation": { "properties": { "mode": { "const": "local" } } }
+              }
+            }
           }
         ]
       }

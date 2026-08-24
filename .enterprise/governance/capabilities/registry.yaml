@@ -19,3 +19,20 @@ fragments:
     path: .enterprise/governance/capabilities/fragments/enterprise-hseos.yaml
     revision: same-commit
     enforcement: enforced
+    source:
+      kind: local
+    validation:
+      mode: local
+      command: node scripts/governance/validate-capability-graph.js
+  - id: fragment.platform-core
+    repository: repo.platform-core
+    path: .platform/capability-graph.fragment.json
+    revision: 93d289dbfcedd5715b4b16a85cf63a02c81cc863
+    enforcement: enforced
+    source:
+      kind: git
+      uri: https://github.com/hideakisolutions/platform-core.git
+    validation:
+      mode: delegated
+      command: npm run validate:capability-graph
+      workflow_path: .github/workflows/validate.yml

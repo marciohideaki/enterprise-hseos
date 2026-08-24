@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { execFileSync } = require('node:child_process');
 const yaml = require('yaml');
 
 const NODE_TYPES = new Set([
@@ -99,6 +100,46 @@ function readYaml(filePath) {
   }
 }
 
+function readYamlText(contents, label) {
+  try {
+    return yaml.parse(contents);
+  } catch (error) {
+    fail(`cannot parse ${label}: ${error.message}`);
+  }
+}
+
+function canonicalGitUri(uri) {
+  const scpMatch = /^git@([^:]+):(.+)$/.exec(uri);
+  const normalized = scpMatch ? `https://${scpMatch[1]}/${scpMatch[2]}` : uri;
+  return normalized.replace(/\.git$/, '').replace(/\/$/, '');
+}
+
+function readPinnedGitFragment(repositoryRoot, entry) {
+  let remote;
+  let contents;
+  try {
+    remote = execFileSync('git', ['-C', repositoryRoot, 'remote', 'get-url', 'origin'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }).trim();
+    if (canonicalGitUri(remote) !== canonicalGitUri(entry.source.uri)) {
+      fail(`fragment ${entry.id} repository origin does not match ${entry.source.uri}`);
+    }
+    execFileSync('git', ['-C', repositoryRoot, 'cat-file', '-e', `${entry.revision}^{commit}`], {
+      stdio: ['ignore', 'ignore', 'pipe'],
+    });
+    contents = execFileSync('git', ['-C', repositoryRoot, 'show', `${entry.revision}:${entry.path}`], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      maxBuffer: 10 * 1024 * 1024,
+    });
+  } catch (error) {
+    if (error.message.startsWith('fragment ')) throw error;
+    fail(`cannot load pinned fragment ${entry.id}@${entry.revision}: ${error.stderr?.toString().trim() || error.message}`);
+  }
+  return readYamlText(contents, `${entry.id}@${entry.revision}:${entry.path}`);
+}
+
 function validateRegistry(registry, root) {
   assertExactKeys(
     registry,
@@ -143,17 +184,36 @@ function validateRegistry(registry, root) {
     const label = `registry.fragments[${index}]`;
     assertExactKeys(
       fragment,
-      ['id', 'repository', 'path', 'revision', 'enforcement', 'exception'],
-      ['id', 'repository', 'path', 'revision', 'enforcement'],
+      ['id', 'repository', 'path', 'revision', 'enforcement', 'exception', 'source', 'validation'],
+      ['id', 'repository', 'path', 'revision', 'enforcement', 'source', 'validation'],
       label,
     );
     assertId(fragment.id, `${label}.id`);
     assertId(fragment.repository, `${label}.repository`);
     if (fragmentIds.has(fragment.id)) fail(`duplicate fragment id: ${fragment.id}`);
     fragmentIds.add(fragment.id);
-    safeResolve(root, fragment.path, `${label}.path`);
     if (typeof fragment.revision !== 'string' || !fragment.revision) fail(`${label}.revision must be non-empty`);
     if (!['enforced', 'report-only'].includes(fragment.enforcement)) fail(`${label}.enforcement is invalid`);
+    assertExactKeys(fragment.source, ['kind', 'uri'], ['kind'], `${label}.source`);
+    assertExactKeys(fragment.validation, ['mode', 'command', 'workflow_path'], ['mode', 'command'], `${label}.validation`);
+    if (typeof fragment.validation.command !== 'string' || !fragment.validation.command) {
+      fail(`${label}.validation.command must be non-empty`);
+    }
+    if (fragment.source.kind === 'local') {
+      if (fragment.source.uri !== undefined) fail(`${label}.source.uri is not allowed for local fragments`);
+      if (fragment.revision !== 'same-commit') fail(`${label}.revision must be same-commit for local fragments`);
+      if (fragment.validation.mode !== 'local') fail(`${label}.validation.mode must be local`);
+      safeResolve(root, fragment.path, `${label}.path`);
+    } else if (fragment.source.kind === 'git') {
+      if (typeof fragment.source.uri !== 'string' || !fragment.source.uri.startsWith('https://')) {
+        fail(`${label}.source.uri must be an https URI`);
+      }
+      if (!/^[a-f0-9]{40}$/.test(fragment.revision)) fail(`${label}.revision must be a full Git SHA`);
+      if (fragment.validation.mode !== 'delegated') fail(`${label}.validation.mode must be delegated`);
+      if (!fragment.validation.workflow_path) fail(`${label}.validation.workflow_path is required`);
+    } else {
+      fail(`${label}.source.kind is invalid: ${fragment.source.kind}`);
+    }
     if (fragment.enforcement === 'report-only') {
       assertId(fragment.exception, `${label}.exception`);
     } else if (fragment.exception !== undefined) {
@@ -204,13 +264,14 @@ function hasCycle(adjacency) {
   return [...adjacency.keys()].some(visit);
 }
 
-function validateGraph(registry, fragments, root) {
+function validateGraph(registry, fragments, root, fragmentRoots = new Map()) {
   const nodes = new Map();
   const edges = new Map();
   const findings = new Map();
   const fragmentById = new Map(registry.fragments.map((entry) => [entry.id, entry]));
 
   for (const fragment of fragments) {
+    const fragmentRoot = fragmentRoots.get(fragment.fragment_id) || root;
     assertExactKeys(
       fragment,
       ['schema_version', 'fragment_id', 'repository', 'nodes', 'edges', 'findings'],
@@ -227,7 +288,7 @@ function validateGraph(registry, fragments, root) {
       fail(`fragment ${fragment.fragment_id} nodes, edges, and findings must be arrays`);
     }
     for (const [index, node] of fragment.nodes.entries()) {
-      validateNode(node, `${fragment.fragment_id}.nodes[${index}]`, root);
+      validateNode(node, `${fragment.fragment_id}.nodes[${index}]`, fragmentRoot);
       if (nodes.has(node.id)) fail(`duplicate node id: ${node.id}`);
       nodes.set(node.id, node);
     }
@@ -318,23 +379,46 @@ function validateGraph(registry, fragments, root) {
   return { nodes, edges, findings };
 }
 
-function loadAndValidate({ root = process.cwd(), registryPath = DEFAULT_REGISTRY } = {}) {
+function loadAndValidate({ root = process.cwd(), registryPath = DEFAULT_REGISTRY, repositoryRoots = new Map() } = {}) {
   const resolvedRoot = path.resolve(root);
   const resolvedRegistry = safeResolve(resolvedRoot, registryPath, 'registry path');
   if (!fs.existsSync(resolvedRegistry)) fail(`registry does not exist: ${registryPath}`);
   const registry = readYaml(resolvedRegistry);
   validateRegistry(registry, resolvedRoot);
-  const fragments = registry.fragments.map((entry) => {
-    const fragmentPath = safeResolve(resolvedRoot, entry.path, `fragment ${entry.id} path`);
-    if (!fs.existsSync(fragmentPath)) fail(`fragment does not exist: ${entry.path}`);
-    return readYaml(fragmentPath);
-  });
-  const graph = validateGraph(registry, fragments, resolvedRoot);
-  return { registry, fragments, ...graph };
+  const fragmentRoots = new Map();
+  const deferredFragments = [];
+  const fragments = [];
+  for (const entry of registry.fragments) {
+    const fragmentRoot = entry.source.kind === 'local' ? resolvedRoot : repositoryRoots.get(entry.repository);
+    if (!fragmentRoot) {
+      deferredFragments.push(entry);
+      continue;
+    }
+    const resolvedFragmentRoot = path.resolve(fragmentRoot);
+    let document;
+    if (entry.source.kind === 'git') {
+      document = readPinnedGitFragment(resolvedFragmentRoot, entry);
+    } else {
+      const fragmentPath = safeResolve(resolvedFragmentRoot, entry.path, `fragment ${entry.id} path`);
+      if (!fs.existsSync(fragmentPath)) fail(`fragment does not exist: ${entry.path}`);
+      document = readYaml(fragmentPath);
+    }
+    fragments.push(document);
+    fragmentRoots.set(entry.id, resolvedFragmentRoot);
+  }
+  const graph = validateGraph(registry, fragments, resolvedRoot, fragmentRoots);
+  return { registry, fragments, deferredFragments, ...graph };
 }
 
 function parseArgs(argv) {
-  const options = { root: process.cwd(), registryPath: DEFAULT_REGISTRY, query: null, type: null, json: false };
+  const options = {
+    root: process.cwd(),
+    registryPath: DEFAULT_REGISTRY,
+    query: null,
+    type: null,
+    json: false,
+    repositoryRoots: new Map(),
+  };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
     switch (arg) {
@@ -356,6 +440,17 @@ function parseArgs(argv) {
       }
       case '--json': {
         options.json = true;
+        break;
+      }
+      case '--repository-root': {
+        const mapping = argv[++index] || '';
+        const separator = mapping.indexOf('=');
+        if (separator < 1) fail('--repository-root must use repository.id=/absolute/path');
+        const repository = mapping.slice(0, separator);
+        const repositoryRoot = mapping.slice(separator + 1);
+        assertId(repository, '--repository-root repository id');
+        if (!path.isAbsolute(repositoryRoot)) fail('--repository-root path must be absolute');
+        options.repositoryRoots.set(repository, repositoryRoot);
         break;
       }
       default: {
@@ -387,7 +482,9 @@ function main() {
     const summary = {
       graph_id: graph.registry.graph_id,
       schema_version: graph.registry.schema_version,
-      fragments: graph.fragments.length,
+      registered_fragments: graph.registry.fragments.length,
+      validated_fragments: graph.fragments.length,
+      deferred_fragments: graph.deferredFragments.length,
       nodes: graph.nodes.size,
       edges: graph.edges.size,
       findings: graph.findings.size,
@@ -396,7 +493,7 @@ function main() {
     process.stdout.write(
       options.json
         ? `${JSON.stringify(summary)}\n`
-        : `Capability graph valid: ${summary.fragments} fragments, ${summary.nodes} nodes, ${summary.edges} edges, ${summary.findings} findings\n`,
+        : `Capability graph valid: ${summary.validated_fragments}/${summary.registered_fragments} fragments validated (${summary.deferred_fragments} delegated), ${summary.nodes} nodes, ${summary.edges} edges, ${summary.findings} findings\n`,
     );
   } catch (error) {
     process.stderr.write(`Capability graph invalid: ${error.message}\n`);
@@ -406,4 +503,12 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { DEFAULT_REGISTRY, hasCycle, loadAndValidate, safeResolve, validateGraph, validateRegistry };
+module.exports = {
+  DEFAULT_REGISTRY,
+  hasCycle,
+  loadAndValidate,
+  readPinnedGitFragment,
+  safeResolve,
+  validateGraph,
+  validateRegistry,
+};
