@@ -9,6 +9,7 @@ const test = require('node:test');
 
 const { LEGACY_SERVER_IDS } = require('../tools/lib/compatibility-audit');
 const { assertLiveTelemetryTarget, monitorCompatibilityObservation } = require('../tools/lib/compatibility-observation');
+const { render } = require('../tools/cli/commands/compatibility-observe');
 const { McpLegacyUsageStore } = require('../tools/mcp-project-state/lib/mcp-legacy-usage-store');
 
 const AS_OF = new Date('2026-08-31T12:30:00.000Z');
@@ -146,9 +147,88 @@ test('legacy use resets the consecutive complete-day sequence and remains visibl
   assert.equal(report.progress.current_consecutive_days, 14);
   assert.equal(report.progress.remaining_days, 16);
   assert.deepEqual(report.progress.invalid_days.at(-1).legacy_use, [{ server_id: 'governance', count: 1 }]);
-  assert.deepEqual(report.current.legacy_use_today, [{ server_id: 'swarm', count: 1 }]);
+  assert.deepEqual(report.current.legacy_use_today, [
+    {
+      server_id: 'swarm',
+      count: 1,
+      first_seen_at: '2026-08-31T12:25:00.000Z',
+      last_seen_at: '2026-08-31T12:25:00.000Z',
+    },
+  ]);
+  assert.equal(report.current.latest_legacy_use_at, '2026-08-31T12:25:00.000Z');
+  assert.equal(report.current.legacy_quiet_minutes, 5);
+  assert.match(render(report), /quiet since latest legacy request: 5 minutes \(informational; complete UTC days govern G9\)/);
   assert.equal(report.progress.window_complete, false);
   assert.equal(report.ready_for_cutover, false);
+});
+
+test('historical same-day legacy use remains invalid while heartbeat freshness has independent timing', (t) => {
+  const paths = fixture(t, { firstCandidateDay: '2026-08-31' });
+  const store = new McpLegacyUsageStore(paths.telemetryDatabase);
+  t.after(() => store.close());
+  store.record(
+    {
+      client_identity: 'legacy-before-restart',
+      protocol_version: '2024-11-05',
+      server_id: 'governance',
+      sunset: 'fixture',
+    },
+    new Date('2026-08-31T10:00:00.000Z'),
+  );
+  markHour(store, new Date('2026-08-31T12:20:00.000Z'));
+
+  const report = monitorCompatibilityObservation({ projectDirectory: paths.projectDirectory, asOf: AS_OF });
+
+  assert.equal(report.status, 'legacy-use-observed');
+  assert.equal(report.observation_healthy, true);
+  assert.equal(report.current.latest_legacy_use_at, '2026-08-31T10:00:00.000Z');
+  assert.equal(report.current.legacy_quiet_minutes, 150);
+  assert.ok(report.current.servers.every(({ last_observed_at }) => last_observed_at === '2026-08-31T12:20:00.000Z'));
+  assert.equal(report.progress.current_consecutive_days, 0);
+});
+
+test('invalid or future legacy timestamps degrade observation evidence', (t) => {
+  const paths = fixture(t, { firstCandidateDay: '2026-08-31' });
+  const store = new McpLegacyUsageStore(paths.telemetryDatabase);
+  t.after(() => store.close());
+  store.record(
+    {
+      client_identity: 'future-fixture',
+      protocol_version: '2024-11-05',
+      server_id: 'governance',
+      sunset: 'fixture',
+    },
+    new Date('2026-08-31T12:25:00.000Z'),
+  );
+  markHour(store, new Date('2026-08-31T12:20:00.000Z'));
+  store.db.prepare("UPDATE mcp_legacy_usage_daily SET last_seen_at = '2026-08-31T12:31:00.000Z' WHERE server_id = 'governance'").run();
+
+  const report = monitorCompatibilityObservation({ projectDirectory: paths.projectDirectory, asOf: AS_OF });
+
+  assert.equal(report.status, 'observation-degraded');
+  assert.equal(report.observation_healthy, false);
+  assert.equal(report.current.latest_legacy_use_at, null);
+  assert.equal(report.current.legacy_quiet_minutes, null);
+  assert.deepEqual(report.current.integrity_errors, [
+    {
+      kind: 'future_legacy_use_timestamp',
+      server_id: 'governance',
+      last_seen_at: '2026-08-31T12:31:00.000Z',
+    },
+  ]);
+
+  store.db.prepare("UPDATE mcp_legacy_usage_daily SET last_seen_at = 'not-a-timestamp' WHERE server_id = 'governance'").run();
+  const invalid = monitorCompatibilityObservation({ projectDirectory: paths.projectDirectory, asOf: AS_OF });
+  assert.equal(invalid.status, 'observation-degraded');
+  assert.equal(invalid.current.latest_legacy_use_at, null);
+  assert.deepEqual(invalid.current.integrity_errors, [
+    {
+      kind: 'invalid_legacy_use_timestamp',
+      server_id: 'governance',
+      first_seen_at: '2026-08-31T12:25:00.000Z',
+      last_seen_at: 'not-a-timestamp',
+    },
+  ]);
 });
 
 test('sparse daily heartbeats cannot produce false progress', (t) => {
