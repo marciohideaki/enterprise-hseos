@@ -141,6 +141,21 @@ const RuntimeResumeInputSchema = strictObject({
   runtime_session_id: OpaqueIdentifierSchema,
   session_id: IdentifierSchema,
   expected_sequence: z.number().int().nonnegative(),
+  spec: AgentSessionSpecSchema.optional(),
+}).superRefine((input, context) => {
+  if (!input.spec) return;
+  if (input.spec.session_id !== input.session_id) {
+    context.addIssue({ code: 'custom', path: ['spec', 'session_id'], message: 'resume session identity mismatch' });
+  }
+  if (input.spec.execution.mode !== 'delegated') {
+    context.addIssue({ code: 'custom', path: ['spec', 'execution', 'mode'], message: 'runtime resume requires delegated execution' });
+  } else if (input.spec.execution.runtime_provider_id !== input.provider_id) {
+    context.addIssue({
+      code: 'custom',
+      path: ['spec', 'execution', 'runtime_provider_id'],
+      message: 'resume provider identity mismatch',
+    });
+  }
 });
 
 const RuntimeSendInputSchema = strictObject({

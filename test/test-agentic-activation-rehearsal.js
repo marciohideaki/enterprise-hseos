@@ -61,11 +61,12 @@ test('rehearsal migrates and discards a private candidate, restores v4 and leave
     assert.equal(report.ready_for_provider_environment_gate, false);
     assert.equal(report.evidence.migration.ready, true);
     assert.equal(report.evidence.migration.source_version, 4);
-    assert.equal(report.evidence.migration.target_version, 7);
+    assert.equal(report.evidence.migration.target_version, 8);
     assert.deepEqual(report.evidence.migration.applied, [
       '005-governed-execution-ledger-v2.sql',
       '006-execution-projections.sql',
       '007-execution-approvals.sql',
+      '008-delegated-runtime-event-catalog.sql',
     ]);
     assert.deepEqual(report.evidence.migration.changed_legacy_tables, []);
     assert.equal(report.evidence.rollback.ready, true);

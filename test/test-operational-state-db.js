@@ -71,7 +71,7 @@ if (process.argv[2] === '--migration-worker') {
     assert.throws(() => openOperationalStateDatabase(databasePath), /pending execution schema/);
   });
 
-  test('concurrent gated fixture startups serialize pending schema migration through version 7', async (t) => {
+  test('concurrent gated fixture startups serialize pending schema migration through version 8', async (t) => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-operational-db-'));
     const databasePath = path.join(directory, 'project.db');
     const startSignal = path.join(directory, 'start');
@@ -83,7 +83,7 @@ if (process.argv[2] === '--migration-worker') {
 
     const db = new Database(databasePath, { readonly: true });
     try {
-      assert.equal(db.pragma('user_version', { simple: true }), 7);
+      assert.equal(db.pragma('user_version', { simple: true }), 8);
       const executionTables = db
         .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'execution_%' ORDER BY name")
         .all()

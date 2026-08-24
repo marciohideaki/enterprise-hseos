@@ -283,6 +283,41 @@ test('resume, cancellation and disposal preserve correlated lifecycle semantics'
   assert.equal(peer.closed, true);
 });
 
+test('ACP reattaches a durable session in a fresh provider through load without creating a remote session', async () => {
+  const peer = new FakeAcpPeer();
+  const restored = provider(peer);
+  const resume = {
+    ...sessionInput('resume'),
+    expected_sequence: 5,
+    spec: delegatedSpec(),
+  };
+  const result = validatePortResult('RuntimeProvider', 'resume', await restored.resume(resume), resume);
+  assert.equal(result.runtime_session_id, 'acp-session-1');
+  assert.deepEqual(peer.calls.map(({ method }) => method), ['initialize', 'session/load']);
+
+  const cancel = { ...sessionInput('cancel'), reason: 'operator stop', cascade: true };
+  await restored.cancel(cancel);
+  const events = await collect(restored, 'session:acp-1', 'acp-session-1', 5);
+  assert.deepEqual(events.map((event) => [event.sequence, event.event_type, event.payload.error_code]), [
+    [6, 'runtime.session.failed', 'cancelled'],
+  ]);
+});
+
+test('ACP reattachment rejects unsupported load and missing durable state without session/new', async () => {
+  const missingPeer = new FakeAcpPeer();
+  const missing = provider(missingPeer);
+  await assert.rejects(() => missing.resume({ ...sessionInput('resume'), expected_sequence: 1 }), /durable session spec/);
+  assert.deepEqual(missingPeer.calls, []);
+
+  const unsupportedPeer = new FakeAcpPeer({ loadSession: false });
+  const unsupported = provider(unsupportedPeer);
+  await assert.rejects(
+    () => unsupported.resume({ ...sessionInput('resume'), expected_sequence: 1, spec: delegatedSpec() }),
+    (error) => error.error_code === 'capability_unavailable',
+  );
+  assert.deepEqual(unsupportedPeer.calls.map(({ method }) => method), ['initialize']);
+});
+
 test('concurrent duplicate creates reserve identity before crossing the ACP boundary', async () => {
   const peer = new FakeAcpPeer();
   const runtime = provider(peer);
