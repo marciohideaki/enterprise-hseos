@@ -287,6 +287,7 @@ async function runSupervisedBoundKernel(operation, options = {}, dependencies = 
 module.exports = {
   BoundKernelSupervisorError,
   MAX_CHILD_OUTPUT_BYTES,
+  collectChild,
   createAttestation,
   runSupervisedBoundKernel,
   validateLockdownProfile,
