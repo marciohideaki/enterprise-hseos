@@ -114,7 +114,7 @@ Run:
 node tools/cli/hseos-cli.js compatibility-audit --directory /path/to/project
 ```
 
-Use `--json` for machine-readable evidence and `--require-ready` in a gate that should exit non-zero until all pre-authorization evidence is complete. The audit:
+Use `--json` for machine-readable evidence and `--require-ready` in a gate that should exit non-zero until all pre-authorization evidence is complete. Downstream plugin and installer migration evidence defaults to `.hseos/state/harness-g9-downstream-evidence.json`; use `--downstream-evidence /absolute/path/evidence.json` only when the evidence is stored separately. The audit:
 
 1. reads the legacy MCP telemetry database without creating tables or recording observations;
 2. backs up the operational state database into a private temporary directory;
@@ -122,6 +122,83 @@ Use `--json` for machine-readable evidence and `--require-ready` in a gate that 
 4. runs SQLite integrity checks and compares a digest of every pre-existing table;
 5. hashes both databases plus WAL, SHM, or rollback-journal sidecars before and after their read-only checks;
 6. scans internal JavaScript, shell, and PowerShell runtime surfaces for retired symbols and still-active legacy entrypoints.
+7. validates a canonical, integrity-checked downstream release-window artifact for the exact `plugin-catalog-v1` and `installer-v4-detection` surfaces and binds it to the observation release SHA and configuration digest.
+
+The downstream artifact is evidence-only and has this strict shape:
+
+```json
+{
+  "schema_version": 1,
+  "evidence_only": true,
+  "cutover_authorized": false,
+  "release_sha": "<40 lowercase hexadecimal characters>",
+  "configuration_sha256": "<64 lowercase hexadecimal characters>",
+  "release_window": {
+    "activation_release": "R",
+    "compatibility_release": "R+1",
+    "opened_at": "2026-07-01T00:00:00.000Z",
+    "closed_at": "2026-08-20T23:59:59.000Z",
+    "activation_artifact": {
+      "artifact_path": "artifacts/release-r.json",
+      "media_type": "application/json",
+      "sha256": "<SHA-256 of the referenced file>"
+    },
+    "compatibility_artifact": {
+      "artifact_path": "artifacts/release-r-plus-1.json",
+      "media_type": "application/json",
+      "sha256": "<SHA-256 of the referenced file>"
+    }
+  },
+  "surfaces": [
+    {
+      "surface_id": "installer-v4-detection",
+      "legacy_consumers": 0,
+      "migrated_consumers": 1,
+      "inventory_artifact": {
+        "artifact_path": "artifacts/installer-v4-inventory.json",
+        "media_type": "application/json",
+        "sha256": "<SHA-256 of the referenced file>"
+      },
+      "inventory_observed_at": "2026-08-20T12:00:00.000Z",
+      "attestations": [
+        {
+          "consumer_id_sha256": "<64 lowercase hexadecimal characters>",
+          "artifact": {
+            "artifact_path": "artifacts/installer-v4-consumer-01.json",
+            "media_type": "application/json",
+            "sha256": "<SHA-256 of the referenced file>"
+          },
+          "observed_at": "2026-08-20T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "surface_id": "plugin-catalog-v1",
+      "legacy_consumers": 0,
+      "migrated_consumers": 1,
+      "inventory_artifact": {
+        "artifact_path": "artifacts/plugin-v1-inventory.json",
+        "media_type": "application/json",
+        "sha256": "<SHA-256 of the referenced file>"
+      },
+      "inventory_observed_at": "2026-08-20T12:00:00.000Z",
+      "attestations": [
+        {
+          "consumer_id_sha256": "<64 lowercase hexadecimal characters>",
+          "artifact": {
+            "artifact_path": "artifacts/plugin-v1-consumer-01.json",
+            "media_type": "application/json",
+            "sha256": "<SHA-256 of the referenced file>"
+          },
+          "observed_at": "2026-08-20T12:00:00.000Z"
+        }
+      ]
+    }
+  ]
+}
+```
+
+The file must use canonical pretty-printed JSON with a final newline, be a real single-link file, and not be writable by group or other users. Every artifact reference is a normalized relative path under the adjacent `artifacts/` directory; the audit opens that regular single-link file through a stable descriptor, bounds its size, verifies its media type and computes the declared SHA-256. Missing, escaping, aliased, shared-writable, changed or digest-mismatched artifacts fail closed. Both surfaces require a verified inventory artifact, zero remaining legacy consumers, and observations inside the closed release window. `migrated_consumers` may be zero when that inventory proves there were no downstream consumers; otherwise it must exactly equal the number of unique hashed consumer attestations. The bundle hashes are review anchors, not self-authorizing proof: the human gate still evaluates the external facts captured by those artifacts before cutover.
 
 For safety, evidence databases must be stable regular files with one link and no SQLite sidecars. Stop writers and checkpoint WAL or rollback journals first; symlinks, hardlinks, and live `-wal`, `-shm`, or `-journal` files fail closed before SQLite opens the file.
 
@@ -131,5 +208,5 @@ Even when every automated check passes, the report says `awaiting-human-authoriz
 
 - Do not activate migrations 005-007 against an operational path through development or audit code.
 - Do not delete schema v4 data, MCP compatibility, plugin v1 readers, or installation detectors based only on repository-local tests.
-- Missing telemetry, incomplete hourly coverage, any legacy use, changed migration data, active internal writers, or absent human authorization blocks cutover.
+- Missing telemetry, incomplete hourly coverage, any legacy use, changed migration data, active internal writers, absent or scope-drifted downstream evidence, or absent human authorization blocks cutover.
 - Rollback before cutover is removal of the isolated change. After cutover, follow ADR-0022: preserve the ledger and rebuild a compatibility projection before switching readers.
