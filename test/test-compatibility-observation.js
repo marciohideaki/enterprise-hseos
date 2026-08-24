@@ -316,6 +316,7 @@ test('observation evidence is private, atomic, hash-chained, and cannot grant cu
   assert.deepEqual(fingerprints(paths.telemetryDatabase), beforeFirstCapture);
   assert.equal(first.chain_length, 1);
   assert.equal(first.previous_evidence_sha256, null);
+  assert.match(first.observation_binding_sha256, /^[a-f0-9]{64}$/);
   assert.equal(path.basename(first.path), 'observation-20260831T123000000Z.json');
   if (process.platform !== 'win32') {
     assert.equal(fs.statSync(evidenceDirectory).mode & 0o777, 0o700);
@@ -336,13 +337,38 @@ test('observation evidence is private, atomic, hash-chained, and cannot grant cu
     count: 2,
     latest_sha256: second.sha256,
     latest_as_of: '2026-08-31T12:40:00.000Z',
+    observation_binding_sha256: first.observation_binding_sha256,
   });
 
   const secondArtifact = JSON.parse(fs.readFileSync(second.path, 'utf8'));
+  assert.equal(secondArtifact.evidence_schema_version, 2);
+  assert.equal(secondArtifact.observation_binding_sha256, first.observation_binding_sha256);
+  assert.deepEqual(secondArtifact.observation_binding.server_ids, [...LEGACY_SERVER_IDS].sort());
   assert.equal(secondArtifact.report.monitor_only, true);
   assert.equal(secondArtifact.report.ready_for_cutover, false);
   assert.equal(secondArtifact.report.cutover_authorized, false);
   assert.match(render({ ...secondReport, evidence_capture: second }), /immutable evidence: .* \(chain 2\)/);
+
+  const driftCases = [
+    (candidate) => {
+      candidate.manifest.configuration_sha256 = 'c'.repeat(64);
+    },
+    (candidate) => {
+      candidate.manifest.release_sha = 'd'.repeat(40);
+    },
+    (candidate) => {
+      candidate.operational_paths.telemetry_database = path.join(paths.projectDirectory, 'other-telemetry.db');
+    },
+    (candidate) => {
+      candidate.current.servers.pop();
+    },
+  ];
+  for (const mutate of driftCases) {
+    const candidate = structuredClone(secondReport);
+    candidate.as_of = '2026-08-31T12:50:00.000Z';
+    mutate(candidate);
+    assert.throws(() => writeCompatibilityObservationEvidence(candidate, evidenceDirectory), /scope differs/);
+  }
 });
 
 test('observation evidence fails closed on replay, tampering, ambiguous paths, and unsafe targets', (t) => {
@@ -370,6 +396,11 @@ test('observation evidence fails closed on replay, tampering, ambiguous paths, a
   assert.equal(degradedArtifact.report.observation_healthy, false);
   assert.equal(degradedArtifact.report.ready_for_cutover, false);
   assert.equal(degradedArtifact.report.cutover_authorized, false);
+  const originalDegraded = fs.readFileSync(degradedCapture.path);
+  degradedArtifact.observation_binding.manifest.release_sha = 'e'.repeat(40);
+  fs.writeFileSync(degradedCapture.path, `${JSON.stringify(degradedArtifact, null, 2)}\n`);
+  assert.throws(() => verifyObservationEvidenceChain(evidenceDirectory), /binding is invalid/);
+  fs.writeFileSync(degradedCapture.path, originalDegraded);
 
   const residue = path.join(evidenceDirectory, '.capture-stale.tmp');
   fs.writeFileSync(residue, 'stale', { mode: 0o600 });
