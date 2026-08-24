@@ -173,6 +173,8 @@ components:
       - tools/cli/commands/agent-activation-rehearsal.js
       - tools/cli/commands/agent-provider-validate.js
       - tools/cli/lib/bound-kernel-agent-runtime.js
+      - tools/cli/lib/bound-kernel-supervisor.js
+      - tools/cli/lib/bound-kernel-worker.js
       - tools/cli/lib/temporary-kernel-assembly.js
       - tools/cli/lib/temporary-state-tool.js
       - tools/lib/agentic-activation-rehearsal.js
