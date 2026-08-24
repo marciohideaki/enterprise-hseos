@@ -35,6 +35,11 @@ function makeTempProject(sandbox) {
   return dir;
 }
 
+function makeExecutable(filename) {
+  fs.writeFileSync(filename, '#!/bin/sh\nexit 0\n', { encoding: 'utf8', mode: 0o700 });
+  fs.chmodSync(filename, 0o700);
+}
+
 function runCli(args, opts = {}) {
   return spawnSync(process.execPath, [HSEOS_CLI, ...args], {
     encoding: 'utf8',
@@ -79,6 +84,43 @@ it('sandbox doctor fails when ai-jail is missing and required=true', () => {
   if (!binaryCheck || !binaryCheck.required || binaryCheck.ok) {
     throw new Error(JSON.stringify(binaryCheck));
   }
+});
+
+it('required doctor accepts a functional bwrap profile without weakening the global AppArmor sysctl', () => {
+  const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-sandbox-bin-'));
+  makeExecutable(path.join(bin, 'ai-jail'));
+  makeExecutable(path.join(bin, 'bwrap'));
+  const dir = makeTempProject({ provider: 'ai-jail', required: true });
+  const result = sandboxDoctor(
+    dir,
+    { PATH: bin },
+    {
+      runtimeProbe: () => ({ ok: true, status: 0 }),
+      sysctlReader: () => '1',
+    },
+  );
+  if (!result.ok) throw new Error(JSON.stringify(result, null, 2));
+  const runtimeCheck = result.checks.find((check) => check.id === 'sandbox_runtime_probe');
+  const apparmorCheck = result.checks.find((check) => check.id === 'apparmor_userns');
+  if (!runtimeCheck?.ok || !runtimeCheck.required || !apparmorCheck?.ok) throw new Error(JSON.stringify(result, null, 2));
+});
+
+it('required doctor rejects installed binaries when the clean lockdown probe fails', () => {
+  const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-sandbox-bin-'));
+  makeExecutable(path.join(bin, 'ai-jail'));
+  makeExecutable(path.join(bin, 'bwrap'));
+  const dir = makeTempProject({ provider: 'ai-jail', required: true });
+  const result = sandboxDoctor(
+    dir,
+    { PATH: bin },
+    {
+      runtimeProbe: () => ({ ok: false, status: 1 }),
+      sysctlReader: () => '1',
+    },
+  );
+  if (result.ok) throw new Error(JSON.stringify(result, null, 2));
+  const runtimeCheck = result.checks.find((check) => check.id === 'sandbox_runtime_probe');
+  if (!runtimeCheck || runtimeCheck.ok || !runtimeCheck.required) throw new Error(JSON.stringify(result, null, 2));
 });
 
 it('hseos sandbox run --dry-run prints command and does not require ai-jail', () => {

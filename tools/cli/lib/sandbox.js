@@ -76,6 +76,20 @@ function readSysctl(relPath) {
   }
 }
 
+function probeSandboxRuntime(binary, projectDir, env = process.env) {
+  const result = spawnSync(
+    binary,
+    ['--clean', '--lockdown', '--no-save-config', '--exec', '--', '/usr/bin/true'],
+    {
+      cwd: projectDir,
+      env,
+      stdio: 'ignore',
+      timeout: 10_000,
+    },
+  );
+  return Object.freeze({ ok: !result.error && result.status === 0, status: result.status });
+}
+
 function readHseosConfig(projectDir) {
   const configPath = path.join(projectDir, '.hseos', 'config', 'hseos.config.yaml');
   if (!fs.existsSync(configPath)) {
@@ -202,7 +216,11 @@ function runSandbox({ projectDir, profileName, command, dryRun = false, stdio = 
   };
 }
 
-function sandboxDoctor(projectDir, env = process.env, { forceRequired = false } = {}) {
+function sandboxDoctor(
+  projectDir,
+  env = process.env,
+  { forceRequired = false, runtimeProbe = probeSandboxRuntime, sysctlReader = readSysctl } = {},
+) {
   const resolved = resolveSandbox(projectDir);
   const { sandbox, parseError } = resolved;
   const required = forceRequired || sandbox.required === true;
@@ -261,7 +279,29 @@ function sandboxDoctor(projectDir, env = process.env, { forceRequired = false } 
       remedy: bwrapFound ? undefined : 'Install bubblewrap for Linux sandbox support.',
     });
 
-    const userns = readSysctl('kernel/unprivileged_userns_clone');
+    let runtimeReady = false;
+    if (providerOk && aiJailFound && bwrapFound) {
+      try {
+        const probe = runtimeProbe(resolveCommand(binary, env).path, projectDir, env);
+        runtimeReady = probe?.ok === true;
+      } catch {
+        runtimeReady = false;
+      }
+    }
+    checks.push({
+      id: 'sandbox_runtime_probe',
+      title: 'Sandbox runtime probe',
+      ok: runtimeReady,
+      required,
+      details: runtimeReady
+        ? 'A clean lockdown sandbox executed successfully'
+        : 'A clean lockdown sandbox could not execute',
+      remedy: runtimeReady
+        ? undefined
+        : 'Run ai-jail --clean --lockdown --no-save-config --exec -- /usr/bin/true and correct the reported host policy failure.',
+    });
+
+    const userns = sysctlReader('kernel/unprivileged_userns_clone');
     if (userns !== null) {
       checks.push({
         id: 'user_namespaces',
@@ -273,19 +313,22 @@ function sandboxDoctor(projectDir, env = process.env, { forceRequired = false } 
       });
     }
 
-    const apparmorUserns = readSysctl('kernel/apparmor_restrict_unprivileged_userns');
+    const apparmorUserns = sysctlReader('kernel/apparmor_restrict_unprivileged_userns');
     if (apparmorUserns !== null) {
+      const apparmorReady = apparmorUserns === '0' || runtimeReady;
       checks.push({
         id: 'apparmor_userns',
         title: 'AppArmor userns restriction',
-        ok: apparmorUserns === '0',
+        ok: apparmorReady,
         required,
         details:
           apparmorUserns === '0'
             ? 'AppArmor is not restricting unprivileged user namespaces'
+            : runtimeReady
+              ? 'AppArmor restricts user namespaces globally, but the sandbox runtime probe passed'
             : 'AppArmor restricts unprivileged user namespaces; bwrap may need an explicit profile',
         remedy:
-          apparmorUserns === '0'
+          apparmorReady
             ? undefined
             : 'Install an AppArmor profile for bwrap or relax the system restriction before requiring sandbox.',
       });
