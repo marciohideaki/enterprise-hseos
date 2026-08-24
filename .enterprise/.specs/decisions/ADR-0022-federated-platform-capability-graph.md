@@ -1,6 +1,6 @@
 # ADR-0022 - Federated Platform Capability Graph and Platform-First Intake
 
-**Status:** Proposed
+**Status:** Accepted (owner-authorized 2026-08-24)
 **Date:** 2026-08-24
 **Authors:** Platform Architecture Owners
 **Affects Standards:** Enterprise Constitution v2.1, Core Standards index, specification consumption, automated validation, agent instruction cascade
@@ -133,9 +133,10 @@ independently maintained copy of the rules.
 
 ### 6. Activation gate
 
-This ADR is non-authoritative while `Proposed`. Implementation and constitutional mutation
-begin only after explicit human approval changes the status to `Accepted` through the
-governed review flow.
+The owner explicitly approved this ADR, the v2.2 constitutional amendment, and the global
+implementation on 2026-08-24. The implementation remains subject to deterministic quality
+gates and the prohibition on autonomous push, protected-branch merge, publication, or
+deployment.
 
 ## Alternatives Considered
 
@@ -238,4 +239,3 @@ rollback requires a new ADR because consumers will depend on stable graph identi
 - `../../policies/shared-infrastructure.md`
 - Hideaki Second Brain learning: `2026-06-25-platform-shared-capability-projection-pattern`
 - Platform workspace registry: `docs/platform/platform-capabilities.manifest.json`
-

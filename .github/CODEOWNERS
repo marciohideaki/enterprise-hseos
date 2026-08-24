@@ -1,0 +1,7 @@
+# Governance anchors require Platform Architecture Owner review.
+/.enterprise/.specs/constitution/Enterprise-Constitution.md @marciohideaki
+/.enterprise/.specs/core/ @marciohideaki
+/.enterprise/governance/capabilities/ @marciohideaki
+/.enterprise/policies/capability-graph.md @marciohideaki
+/scripts/governance/validate-constitutional-change.js @marciohideaki
+/scripts/governance/validate-capability-graph.js @marciohideaki

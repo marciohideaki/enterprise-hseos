@@ -30,7 +30,7 @@
 | [ADR-0019](./ADR-0019-mcp-post-ga-conformance.md) | MCP Post-GA Conformance: Manual Subset with SDK Trigger | Accepted (2026-07-15) | `tools/mcp-*`, mcp-transport, contract tests |
 | [ADR-0020](./ADR-0020-provider-loop-cross-cutting-directives.md) | Cross-cutting directives from the provider-gateway loop | Accepted (2026-07-18) | CI/CD Pipeline, Advanced Testing Strategy (AT-32/AT-56), Security & Identity |
 | [ADR-0021](./ADR-0021-brand-variants-via-design-tokens.md) | Brand Variants via Design Tokens, Not Forked Frontends | Proposed | SOLID (§6 DRY), CI/CD Pipeline (CI-43, CI-53), frontend repo topology |
-| [ADR-0022](./ADR-0022-federated-platform-capability-graph.md) | Federated Platform Capability Graph and Platform-First Intake | Proposed | Constitution, core standards, specification consumption, automated validation, agent instructions |
+| [ADR-0022](./ADR-0022-federated-platform-capability-graph.md) | Federated Platform Capability Graph and Platform-First Intake | Accepted (2026-08-24) | Constitution, core standards, specification consumption, automated validation, agent instructions |
 
 ---
 
