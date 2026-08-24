@@ -77,6 +77,23 @@ disagreement, scope drift, or a broken chain fail closed. Retain the emitted art
 digests in the supervisor log as external anchors for the newest chain member. Degraded reports are
 also captured: durable evidence never converts monitor health into cutover authority.
 
+Prepare a deterministic hourly systemd user-unit plan without writing or enabling anything:
+
+```sh
+node tools/cli/hseos-cli.js compatibility-observe-plan \
+  --directory /absolute/path/to/project \
+  --evidence-directory /absolute/private/path/compatibility-observation \
+  --json
+```
+
+The plan validates the project, Node executable, CLI and evidence paths; derives a project-specific
+unit name; and renders a persistent hourly timer plus a hardened networkless oneshot service. The
+service disables update checks, requires the current hour to be healthy, writes only to the declared
+evidence directory and sends the JSON result and binding digest to the supervising journal. Paths
+with spaces or systemd metacharacters are escaped using directive-specific rules. The emitted plan
+always says `plan_only: true` and `activation_authorized: false`; it does not create the evidence
+directory, write unit files, reload systemd or enable the timer.
+
 This command copies the live database and WAL into a private snapshot, verifies that their content
 did not change during the copy, and opens only that copy in SQLite query-only mode. It never opens
 or mutates the operational files, initializes tables, records a heartbeat, runs migrations, or emits
@@ -85,8 +102,9 @@ cutover readiness. Its progress counter includes only complete UTC days after
 resets after a gap or any legacy request. Even at 30/30 it reports `ready_for_cutover: false` because
 the stable-snapshot audit and explicit human gate remain separate.
 
-HSEOS does not install or enable a recurring job through this command. Scheduling, log retention and
-the evidence-directory lifecycle remain explicit operational deployment decisions.
+HSEOS does not install or enable a recurring job through either observation command. Creating the
+private evidence directory, independently verifying the unit on the target host, installation,
+enablement, journal retention and rollback remain explicit operational deployment decisions.
 
 ## Read-only audit
 
