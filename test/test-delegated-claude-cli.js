@@ -105,6 +105,22 @@ test('public delegated Claude CLI creates and materializes the same explicit SDK
   }
 });
 
+test('public delegated Claude run keeps the first query attached to the newly created SDK session', () => {
+  const fixture = fixtureBinding();
+  const result = cli(fixture.environment, 'run', '--profile', PROFILE, '--binding', fixture.binding, '--message', 'first turn');
+  try {
+    assert.equal(result.operation, 'run');
+    assert.equal(result.status, 'completed');
+    assert.equal(result.output, 'fixture answer');
+    const remoteSession = Object.values(JSON.parse(fs.readFileSync(fixture.remote, 'utf8')).sessions)[0];
+    assert.equal(remoteSession.mode, 'new');
+    assert.equal(remoteSession.isolated, true);
+  } finally {
+    cleanupState(result.state);
+    fixture.cleanup();
+  }
+});
+
 test('public delegated Claude CLI reattaches and durably cancels an idle session', () => {
   const fixture = fixtureBinding();
   const created = cli(fixture.environment, 'run', '--profile', PROFILE, '--binding', fixture.binding, '--create-only');

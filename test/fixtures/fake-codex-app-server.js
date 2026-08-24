@@ -48,6 +48,9 @@ readline.createInterface({ input: process.stdin, crlfDelay: Infinity }).on('line
   if (!initialized) return send({ id: message.id, error: { code: -32000, message: 'Not initialized' } });
   const current = state();
   if (message.method === 'thread/start') {
+    if (message.params.sandbox !== 'read-only') {
+      return send({ id: message.id, error: { code: -32602, message: 'Expected the v2 read-only sandbox mode' } });
+    }
     current.created += 1;
     save(current);
     return result(message.id, { thread: { id: current.thread_id } });
@@ -58,6 +61,9 @@ readline.createInterface({ input: process.stdin, crlfDelay: Infinity }).on('line
     return result(message.id, { thread: { id: message.params.threadId } });
   }
   if (message.method === 'turn/start') {
+    if (message.params.sandboxPolicy?.type !== 'readOnly') {
+      return send({ id: message.id, error: { code: -32602, message: 'Expected the v2 readOnly sandbox policy' } });
+    }
     current.turns += 1;
     save(current);
     activeTurn = `codex-turn-${current.turns}`;
