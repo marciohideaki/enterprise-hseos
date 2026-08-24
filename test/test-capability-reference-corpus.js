@@ -1,6 +1,8 @@
 'use strict';
 
 const assert = require('node:assert');
+const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const {
@@ -18,6 +20,27 @@ function clone(value) {
 
 function expectFailure(label, fn, pattern) {
   assert.throws(fn, pattern, label);
+}
+
+function withGitFixture(files, remote, callback) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'capability-reference-'));
+  try {
+    execFileSync('git', ['init', '-q'], { cwd: root });
+    execFileSync('git', ['config', 'user.name', 'Capability Governance Tests'], { cwd: root });
+    execFileSync('git', ['config', 'user.email', 'capability-tests@example.invalid'], { cwd: root });
+    execFileSync('git', ['remote', 'add', 'origin', remote], { cwd: root });
+    for (const [relativePath, contents] of Object.entries(files)) {
+      const absolutePath = path.join(root, relativePath);
+      fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+      fs.writeFileSync(absolutePath, contents);
+    }
+    execFileSync('git', ['add', '.'], { cwd: root });
+    execFileSync('git', ['commit', '-q', '-m', 'fixture'], { cwd: root });
+    const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+    callback({ root, revision });
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 }
 
 const cases = [
@@ -99,18 +122,20 @@ const cases = [
   {
     name: 'pinned evidence is loaded from the Git object, not the working tree',
     fn: () => {
-      const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
-      const remote = execFileSync('git', ['remote', 'get-url', 'origin'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
-      verifyPinnedSource(
-        {
-          id: 'reference.enterprise-hseos.fixture',
-          repository: 'repo.enterprise-hseos',
-          revision,
-          source_uri: `https://github.com/${repositorySlug(remote)}.git`,
-          evidence_paths: ['package.json'],
-        },
-        REPO_ROOT,
-      );
+      const remote = 'https://github.com/hideakisolutions/capability-fixture.git';
+      withGitFixture({ 'evidence/proof.txt': 'committed proof\n' }, remote, ({ root, revision }) => {
+        fs.writeFileSync(path.join(root, 'evidence/proof.txt'), 'uncommitted mutation\n');
+        verifyPinnedSource(
+          {
+            id: 'reference.capability.fixture',
+            repository: 'repo.capability-fixture',
+            revision,
+            source_uri: remote,
+            evidence_paths: ['evidence/proof.txt'],
+          },
+          root,
+        );
+      });
     },
   },
   {
