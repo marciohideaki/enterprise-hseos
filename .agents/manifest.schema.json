@@ -111,6 +111,7 @@
         "properties": {
           "id": { "type": "string" },
           "transport": { "type": "string", "enum": ["stdio", "http", "websocket"] },
+          "client_enabled": { "type": "boolean", "description": "Whether generated client adapters may launch/connect to this server." },
           "binary": { "type": "string" },
           "runtime": { "type": "string" },
           "bundle": { "type": "string", "enum": ["core", "extended", "enterprise"] },

@@ -136,6 +136,7 @@ async function testAgentCoreCompileCommandEmitsCodexAdapter() {
           {
             id: 'hseos-governance',
             transport: 'stdio',
+            client_enabled: false,
             binary_resolver: [{ path: 'tools/mcp-hseos-governance/index.js', runtime: 'node' }],
           },
         ],
@@ -157,6 +158,7 @@ async function testAgentCoreCompileCommandEmitsCodexAdapter() {
       fs.existsSync(codexConfigPath) && config.includes('[features]') && config.includes('[mcp_servers."hseos-governance"]'),
       config,
     );
+    assertPass('agent-core compile preserves canonical MCP client activation', config.includes('enabled = false'), config);
     assertPass('agent-core compile --target codex emits hook metadata', Array.isArray(hooksMeta.hooks), JSON.stringify(hooksMeta));
   });
 }

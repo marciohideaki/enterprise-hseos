@@ -9,6 +9,12 @@
 
 - Codex: `hseos-governance`, `hseos-state-tracking`, `hseos-swarm` and
   `hseos-axon-bridge` are preserved as definitions with `enabled = false`.
+- Codex project precedence: the canonical MCP bundle now carries
+  `client_enabled: false` for the three legacy stdio servers; the compiler
+  preserves that value in `.agents/manifest.yaml` and emits `enabled = false`
+  in project-local `.codex/config.toml`. The deployed HSEOS project-local
+  config was also disabled with a rollback copy, preventing it from
+  re-enabling servers over the global setting.
 - Claude: the three stdio HSEOS entries were removed from the user MCP catalog
   and from `allowedMcpServers`.
 - Axon, Playwright, filesystem and every unrelated MCP remained unchanged.
