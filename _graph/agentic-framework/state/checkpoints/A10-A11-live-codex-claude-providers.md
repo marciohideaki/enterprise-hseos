@@ -26,10 +26,11 @@ had not represented:
   the assistant message; the strict driver rejected this non-effect event.
 
 The Codex protocol spelling is now correct. A normal `run` keeps creation and
-the first turn on the same provider instance for both adapters, while separate
-CLI invocations still use durable reattachment. The Claude driver accepts only
-a structurally valid rate-limit event and continues to fail closed on unknown
-assistant content or any effect-bearing block.
+the first turn on the same provider instance for both adapters. Deterministic
+fixtures continue to cover durable reattachment in separate CLI invocations;
+that cross-process lifecycle is not promoted to live evidence here. The Claude
+driver accepts only a structurally valid rate-limit event and continues to fail
+closed on unknown assistant content or any effect-bearing block.
 
 ## Live evidence
 
@@ -46,6 +47,9 @@ assistant content or any effect-bearing block.
 - Codex used app-server `approvalPolicy: never` and a read-only sandbox policy.
 - Claude used `permissionMode: plan`, `allowedTools: []`, `tools: []`, one turn
   and no settings sources.
+- The installed npm-distributed Codex CLI cannot start the managed app-server
+  daemon because that command requires the separate standalone installation;
+  no daemon or service was started.
 
 ## Deterministic evidence
 
@@ -67,6 +71,13 @@ and Claude L0 adapters. It does not claim governed-tool capability, external
 cutover. It also does not replace A13's sandbox-supervised probe for the
 OpenAI-compatible candidate profile. G9's 30-complete-day window, the final
 stable-snapshot audit and explicit human cutover authorization remain open.
+
+The raw Codex app-server does not persist an empty thread before its first turn,
+so `create-only` followed by `resume` in another process remains unproven in the
+real environment. A future live lifecycle proof must either bind the official
+daemon/proxy composition from a supported standalone installation or downgrade
+the advertised cross-process capability honestly. The successful `run` smoke
+must not be used as evidence for that separate claim.
 
 The temporary provider bindings, SDK installation and session ledgers are
 disposable validation artifacts outside the repository. Rollback of the code
