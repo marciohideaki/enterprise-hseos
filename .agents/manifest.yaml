@@ -607,6 +607,7 @@ mcp_bundles_active:
 mcp_servers:
   - id: axon-bridge
     transport: http
+    client_enabled: true
     binary: tools/mcp-axon-bridge/index.js
     runtime: node
     bundle: extended
@@ -619,6 +620,7 @@ mcp_servers:
       - run_pipeline
   - id: fetch
     transport: stdio
+    client_enabled: true
     binary: "@modelcontextprotocol/server-fetch"
     runtime: npx
     bundle: extended
@@ -626,6 +628,7 @@ mcp_servers:
       - fetch_url
   - id: filesystem
     transport: stdio
+    client_enabled: true
     binary: "@modelcontextprotocol/server-filesystem"
     runtime: npx
     bundle: core
@@ -636,6 +639,7 @@ mcp_servers:
       - search_files
   - id: hseos-governance
     transport: stdio
+    client_enabled: false
     binary: tools/mcp-hseos-governance/index.js
     runtime: node
     bundle: core
@@ -647,6 +651,7 @@ mcp_servers:
       - list_workflows
   - id: hseos-state-tracking
     transport: stdio
+    client_enabled: false
     binary: tools/mcp-project-state/index.js
     runtime: node
     bundle: core
@@ -658,6 +663,7 @@ mcp_servers:
       - search_events
   - id: hseos-swarm
     transport: stdio
+    client_enabled: false
     binary: tools/mcp-hseos-swarm/index.js
     runtime: node
     bundle: extended
@@ -669,6 +675,7 @@ mcp_servers:
       - list_runs
   - id: memory
     transport: stdio
+    client_enabled: true
     binary: "@modelcontextprotocol/server-memory"
     runtime: npx
     bundle: extended
@@ -678,6 +685,7 @@ mcp_servers:
       - delete_memory
   - id: sequential-thinking
     transport: stdio
+    client_enabled: true
     binary: "@modelcontextprotocol/server-sequential-thinking"
     runtime: npx
     bundle: extended
