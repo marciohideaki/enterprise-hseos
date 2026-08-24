@@ -158,6 +158,57 @@ function legacyUseByDay(db, firstDay, lastDay) {
   return { counts, integrityErrors };
 }
 
+function legacyUseTimeline(db, day, asOf) {
+  const rows = db
+    .prepare(
+      `SELECT server_id, first_seen_at, last_seen_at
+       FROM mcp_legacy_usage_daily WHERE usage_day = ?
+       ORDER BY server_id, first_seen_at`,
+    )
+    .all(day);
+  const byServer = new Map();
+  const integrityErrors = [];
+  const asOfMilliseconds = new Date(asOf).getTime();
+  for (const row of rows) {
+    const firstMilliseconds = Date.parse(row.first_seen_at);
+    const lastMilliseconds = Date.parse(row.last_seen_at);
+    const canonicalFirst = Number.isFinite(firstMilliseconds) && new Date(firstMilliseconds).toISOString() === row.first_seen_at;
+    const canonicalLast = Number.isFinite(lastMilliseconds) && new Date(lastMilliseconds).toISOString() === row.last_seen_at;
+    if (!canonicalFirst || !canonicalLast) {
+      integrityErrors.push({
+        kind: 'invalid_legacy_use_timestamp',
+        server_id: row.server_id,
+        first_seen_at: row.first_seen_at,
+        last_seen_at: row.last_seen_at,
+      });
+      continue;
+    }
+    if (row.first_seen_at.slice(0, 10) !== day || row.last_seen_at.slice(0, 10) !== day || firstMilliseconds > lastMilliseconds) {
+      integrityErrors.push({
+        kind: 'inconsistent_legacy_use_timeline',
+        server_id: row.server_id,
+        first_seen_at: row.first_seen_at,
+        last_seen_at: row.last_seen_at,
+      });
+      continue;
+    }
+    if (lastMilliseconds > asOfMilliseconds) {
+      integrityErrors.push({ kind: 'future_legacy_use_timestamp', server_id: row.server_id, last_seen_at: row.last_seen_at });
+      continue;
+    }
+    const existing = byServer.get(row.server_id);
+    byServer.set(row.server_id, {
+      first_seen_at: !existing || row.first_seen_at < existing.first_seen_at ? row.first_seen_at : existing.first_seen_at,
+      last_seen_at: !existing || row.last_seen_at > existing.last_seen_at ? row.last_seen_at : existing.last_seen_at,
+    });
+  }
+  const latestLegacyUseAt = [...byServer.values()].reduce(
+    (latest, row) => (!latest || row.last_seen_at > latest ? row.last_seen_at : latest),
+    null,
+  );
+  return { byServer, integrityErrors, latestLegacyUseAt };
+}
+
 function observationProgress(db, { asOf, firstCandidateDay, serverIds }) {
   const today = utcDay(asOf);
   const yesterday = addUtcDays(today, -1);
@@ -238,16 +289,26 @@ function currentObservation(db, { asOf, serverIds, maxStalenessMinutes }) {
     };
   });
   const use = legacyUseByDay(db, today, today);
+  const timeline = legacyUseTimeline(db, today, asOf);
   const legacyUse = serverIds
-    .map((serverId) => ({ server_id: serverId, count: use.counts.get(`${today}:${serverId}`) || 0 }))
+    .map((serverId) => ({
+      server_id: serverId,
+      count: use.counts.get(`${today}:${serverId}`) || 0,
+      ...timeline.byServer.get(serverId),
+    }))
     .filter(({ count }) => count > 0);
+  const legacyQuietMinutes = timeline.latestLegacyUseAt
+    ? Math.round(((new Date(asOf).getTime() - new Date(timeline.latestLegacyUseAt).getTime()) / 60_000) * 10) / 10
+    : null;
   return {
     usage_hour: currentHour,
     all_servers_present: servers.every(({ present }) => present),
     all_servers_fresh: servers.every(({ fresh }) => fresh),
     servers,
     legacy_use_today: legacyUse,
-    integrity_errors: use.integrityErrors,
+    latest_legacy_use_at: timeline.latestLegacyUseAt,
+    legacy_quiet_minutes: legacyQuietMinutes,
+    integrity_errors: [...use.integrityErrors, ...timeline.integrityErrors],
   };
 }
 

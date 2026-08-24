@@ -17,6 +17,10 @@ function render(report) {
     `  missing servers: ${missing.length === 0 ? 'none' : missing.join(', ')}`,
     `  stale servers: ${stale.length === 0 ? 'none' : stale.join(', ')}`,
     `  legacy requests today: ${legacyUse}`,
+    `  latest legacy request: ${report.current.latest_legacy_use_at || 'none recorded today'}`,
+    `  quiet since latest legacy request: ${
+      report.current.legacy_quiet_minutes === null ? 'not applicable' : `${report.current.legacy_quiet_minutes} minutes`
+    } (informational; complete UTC days govern G9)`,
     `  consecutive complete zero-use days: ${report.progress.current_consecutive_days}/${report.progress.required_days}`,
     `  remaining complete days: ${report.progress.remaining_days}`,
     `  manifest consistent: ${report.manifest.valid ? 'yes' : 'no'}`,
