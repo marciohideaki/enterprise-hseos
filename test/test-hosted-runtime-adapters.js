@@ -182,6 +182,55 @@ test('hosted resume requires declared support and re-attests the effect boundary
   assert.equal(driver.calls.at(-1)[0], 'resume');
 });
 
+for (const [name, Adapter, providerId] of [
+  ['Codex', CodexRuntimeProvider, 'runtime:codex-reattach'],
+  ['Claude Code', ClaudeCodeRuntimeProvider, 'runtime:claude-reattach'],
+]) {
+  test(`${name} reattaches a durable session in a fresh provider without creating a new remote identity`, async () => {
+    const driver = new FakeHostedDriver();
+    const restored = runtime(Adapter, providerId, driver);
+    const spec = createInput(providerId).spec;
+    const resume = {
+      ...sessionInput(providerId, 'resume'),
+      expected_sequence: 7,
+      spec,
+    };
+    const result = validatePortResult('RuntimeProvider', 'resume', await restored.resume(resume), resume);
+    assert.equal(result.runtime_session_id, 'hosted-session-1');
+    assert.deepEqual(driver.calls.map(([method]) => method), ['resume']);
+
+    const send = {
+      ...sessionInput(providerId, 'send'),
+      turn_id: `turn:${name.toLowerCase().replace(' ', '-')}-restored`,
+      message: { role: 'user', content: 'continue from durable state' },
+    };
+    await restored.send(send);
+    driver.emit({ type: 'message.delta', text: 'resumed' });
+    driver.turn.resolve({ stop_reason: 'completed' });
+    const events = await collect(restored, providerId, 7);
+    assert.deepEqual(events.map((event) => [event.sequence, event.event_type]), [
+      [8, 'runtime.message.delta'],
+      [9, 'runtime.session.completed'],
+    ]);
+  });
+}
+
+test('hosted reattachment rejects missing or drifted durable specs before driver dispatch', async () => {
+  const providerId = 'runtime:codex-reattach-invalid';
+  const driver = new FakeHostedDriver();
+  const restored = runtime(CodexRuntimeProvider, providerId, driver);
+  const base = { ...sessionInput(providerId, 'resume'), expected_sequence: 3 };
+  await assert.rejects(() => restored.resume(base), /durable session spec is required/);
+  assert.deepEqual(driver.calls, []);
+
+  const spec = createInput(providerId).spec;
+  await restored.resume({ ...base, spec });
+  const drifted = structuredClone(spec);
+  drifted.limits.max_tokens += 1;
+  await assert.rejects(() => restored.resume({ ...base, spec: drifted }), /does not match/);
+  assert.equal(driver.calls.filter(([method]) => method === 'resume').length, 1);
+});
+
 test('DeepSeek Harness adapter is the ACP bridge and does not import Cordis or MCP', () => {
   assert.equal(Object.getPrototypeOf(DeepSeekHarnessRuntimeProvider.prototype).constructor.name, 'AcpRuntimeProvider');
   assert.deepEqual(HOSTED_RUNTIME_ADAPTERS['deepseek-harness'], {

@@ -33,6 +33,17 @@ function isRecord(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
+  if (isRecord(value)) {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
 function assertRecord(value, label) {
   if (!isRecord(value)) throw new RuntimeProviderError(`${label} is malformed`, 'protocol_error');
   return value;
@@ -299,19 +310,46 @@ class AcpRuntimeProvider {
   async resume(inputValue) {
     const input = this.#input('resume', inputValue);
     this.#available();
-    const existing = this.#sessions.get(input.session_id);
-    if (!existing || existing.runtimeSessionId !== input.runtime_session_id) this.#sessionError();
+    let existing = this.#sessions.get(input.session_id);
+    const restoring = existing === undefined;
+    if (restoring) {
+      if (!input.spec) {
+        throw new RuntimeProviderError('durable session spec is required to reattach an ACP session', 'invalid_request');
+      }
+      await this.#boundedRequest(this.#initialize(), input.spec.limits.max_duration_ms, 'ACP initialize');
+      this.#available();
+      if (!this.agentCapabilities.loadSession) {
+        throw new RuntimeProviderError('ACP agent does not support session/load', 'capability_unavailable');
+      }
+      if (this.#pendingSessions.has(input.session_id) || this.#runtimeSessions.has(input.runtime_session_id)) {
+        throw new RuntimeProviderError('ACP session identity is already reserved', 'invalid_request');
+      }
+      if (this.#sessions.size + this.#pendingSessions.size >= MAX_SESSIONS) {
+        throw new RuntimeProviderError('ACP session limit reached', 'rate_limited');
+      }
+      existing = this.#newSession(input.spec, input.runtime_session_id, this.#cwd(input.spec), input.expected_sequence);
+      existing.loading = true;
+      this.#pendingSessions.add(input.session_id);
+      this.#sessions.set(input.session_id, existing);
+      this.#runtimeSessions.add(input.runtime_session_id);
+    } else {
+      if (existing.runtimeSessionId !== input.runtime_session_id) this.#sessionError();
+      if (input.spec && stableJson(input.spec) !== stableJson(existing.spec)) {
+        throw new RuntimeProviderError('durable session spec does not match the ACP session', 'invalid_request');
+      }
+    }
     if (existing.terminal || existing.activeTurn || existing.loading) {
-      throw new RuntimeProviderError('ACP session cannot resume concurrently', 'invalid_request');
+      if (!restoring) throw new RuntimeProviderError('ACP session cannot resume concurrently', 'invalid_request');
     }
     if (existing.sequence !== input.expected_sequence) {
       throw new RuntimeProviderError('resume sequence does not match durable expectation', 'invalid_request');
     }
-    if (!this.agentCapabilities.loadSession) {
+    if (!this.agentCapabilities?.loadSession) {
       throw new RuntimeProviderError('ACP agent does not support session/load', 'capability_unavailable');
     }
     const deadlineAt = Date.now() + existing.maxDurationMs;
     existing.loading = true;
+    let resumed = false;
     try {
       const response = assertRecord(
         await this.#boundedRequest(
@@ -328,12 +366,20 @@ class AcpRuntimeProvider {
       if (this.#sessions.get(existing.sessionId) !== existing || existing.terminal) {
         throw new RuntimeProviderError('ACP session changed while resume was in flight', 'cancelled');
       }
+      resumed = true;
     } catch (error) {
       void this.#safeNotify('session/cancel', { sessionId: existing.runtimeSessionId });
       this.#fail(existing, error);
       throw error;
     } finally {
       existing.loading = false;
+      if (restoring) {
+        this.#pendingSessions.delete(input.session_id);
+        if (!resumed && this.#sessions.get(input.session_id) === existing) {
+          this.#sessions.delete(input.session_id);
+          this.#runtimeSessions.delete(input.runtime_session_id);
+        }
+      }
     }
     return operation(this.providerManifest.provider_id, existing.runtimeSessionId, existing.sessionId, true, existing.terminal);
   }
@@ -516,6 +562,7 @@ class AcpRuntimeProvider {
     return {
       sessionId: spec.session_id,
       runtimeSessionId,
+      spec,
       cwd,
       sequence,
       events: [],
