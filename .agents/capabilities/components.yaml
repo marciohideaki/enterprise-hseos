@@ -211,6 +211,29 @@ components:
       - packages/delegated-runtime-host/
       - packages/runtime-providers/
 
+  - id: runtime:agent-claude-delegated
+    family: runtime
+    name: Claude Delegated Runtime Candidate
+    description: Direct Claude Agent SDK driver, hosted L0 adapter, durable delegated host, and public run/resume/cancel CLI surface.
+    prerequisites:
+      - "candidate only; the Agent SDK module, Claude executable and host authentication remain operator-selected and operational activation is not implied"
+      - "instructions-only boundary; built-in tools and filesystem settings are disabled, plan mode is mandatory, and any tool or unknown content block fails closed"
+    modules:
+      - agent-claude-delegated-candidate
+    tools: []
+    install_paths:
+      - .agents/activation/provider-bindings/claude-agent-sdk.example.yaml
+      - tools/cli/commands/agent.js
+      - tools/cli/lib/delegated-claude-runtime.js
+      - tools/lib/governed-execution/
+      - tools/mcp-project-state/lib/
+      - tools/mcp-project-state/migrations/
+      - tools/mcp-project-state/migrations-pending-activation/
+      - packages/agent-runtime-contracts/
+      - packages/agent-session-store/
+      - packages/delegated-runtime-host/
+      - packages/runtime-providers/
+
   - id: capability:architecture
     family: capability
     name: Architecture Governance

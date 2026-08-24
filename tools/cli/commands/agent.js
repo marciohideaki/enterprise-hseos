@@ -9,10 +9,16 @@ const {
   resumeDelegatedCodex,
   runDelegatedCodex,
 } = require('../lib/delegated-codex-runtime');
+const {
+  PROFILE_ID: CLAUDE_DELEGATED_PROFILE,
+  cancelDelegatedClaude,
+  resumeDelegatedClaude,
+  runDelegatedClaude,
+} = require('../lib/delegated-claude-runtime');
 
 const ACTIONS = new Set(['run', 'resume', 'cancel']);
 const REFERENCE_PROFILE = 'agent-reference';
-const PROFILES = new Set([REFERENCE_PROFILE, CANDIDATE_PROFILE, CODEX_DELEGATED_PROFILE]);
+const PROFILES = new Set([REFERENCE_PROFILE, CANDIDATE_PROFILE, CODEX_DELEGATED_PROFILE, CLAUDE_DELEGATED_PROFILE]);
 
 function integer(value, label) {
   if (value === undefined) return;
@@ -47,6 +53,30 @@ async function execute(action, options = {}) {
   if (!ACTIONS.has(action)) throw new Error(`Unsupported agent action: ${action}. Expected one of: ${[...ACTIONS].join(', ')}`);
   const profile = options.profile || REFERENCE_PROFILE;
   if (!PROFILES.has(profile)) throw new Error(`Unsupported agent profile: ${profile}. Expected one of: ${[...PROFILES].join(', ')}`);
+  if (profile === CLAUDE_DELEGATED_PROFILE) {
+    if (options.directory || options.value) throw new Error('--directory and --value are not valid for the delegated Claude profile');
+    if (action === 'run' && !options.binding) throw new Error('--binding is required for a new delegated Claude run');
+    if (action !== 'run' && options.binding) throw new Error('--binding is only valid for a new delegated Claude run');
+    if (action !== 'run' && !options.state) throw new Error(`--state is required for agent ${action}`);
+    const delegatedOptions =
+      action === 'run'
+        ? { binding: options.binding, createOnly: options.createOnly === true, message: options.message, sessionId: options.session }
+        : action === 'resume'
+          ? {
+              expectedSequence: integer(options.expectedSequence, '--expected-sequence'),
+              message: options.message,
+              state: options.state,
+            }
+          : { reason: options.reason, state: options.state };
+    const result =
+      action === 'run'
+        ? await runDelegatedClaude(delegatedOptions)
+        : action === 'resume'
+          ? await resumeDelegatedClaude(delegatedOptions)
+          : await cancelDelegatedClaude(delegatedOptions);
+    render(result, options.json === true);
+    return result;
+  }
   if (profile === CODEX_DELEGATED_PROFILE) {
     if (options.directory || options.value) throw new Error('--directory and --value are not valid for the delegated Codex profile');
     if (action === 'run' && !options.binding) throw new Error('--binding is required for a new delegated Codex run');

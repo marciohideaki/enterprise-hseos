@@ -185,8 +185,10 @@ This sets up:
 
 ### 1b. Pick a capability profile (optional — `developer` is the default)
 
-Installation is driven by an auditable capability catalog (ADR-0016). Profiles: `minimal`,
-`developer` (default), `governance`, `gitops`, `ado`, `solo`, `full`. The governance baseline
+Installation is driven by an auditable capability catalog (ADR-0016). General profiles include
+`minimal`, `developer` (default), `governance`, `gitops`, `ado`, `solo`, and `full`. Agent runtime
+candidates additionally include `agent-reference`, `agent-openai-compatible-candidate`,
+`agent-codex-delegated-candidate`, and `agent-claude-delegated-candidate`. The governance baseline
 is always included and cannot be deselected; components with external prerequisites (ADO,
 sandbox, telemetry, axon-bridge, second-brain) are optional and degrade gracefully when unmet.
 
