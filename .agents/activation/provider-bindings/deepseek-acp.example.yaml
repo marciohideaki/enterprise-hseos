@@ -1,0 +1,16 @@
+schema_version: 1
+profile_id: agent-deepseek-one-shot-candidate
+runtime_provider_id: runtime:deepseek-harness
+executable: /absolute/path/to/node
+entrypoint: /absolute/path/to/sandboxed/project/node_modules/@deepseek-ai/deepseek-harness/packages/examples/acp-demo/lib/bin.js
+composition: /absolute/path/to/sandboxed/project/.hseos/config/deepseek-acp-tool-free.yaml
+cwd: /absolute/path/to/sandboxed/project
+env_names:
+  - DEEPSEEK_API_KEY
+  - DEEPSEEK_BASE_URL
+  - PATH
+secret_env_names:
+  - DEEPSEEK_API_KEY
+secret_refs:
+  - secret://deepseek/host-auth
+network_port: 443

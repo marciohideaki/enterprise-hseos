@@ -15,10 +15,18 @@ const {
   resumeDelegatedClaude,
   runDelegatedClaude,
 } = require('../lib/delegated-claude-runtime');
+const { PROFILE_ID: DEEPSEEK_ONE_SHOT_PROFILE } = require('../lib/delegated-deepseek-runtime');
+const { runSupervisedDelegatedDeepSeek } = require('../lib/delegated-deepseek-supervisor');
 
 const ACTIONS = new Set(['run', 'resume', 'cancel']);
 const REFERENCE_PROFILE = 'agent-reference';
-const PROFILES = new Set([REFERENCE_PROFILE, CANDIDATE_PROFILE, CODEX_DELEGATED_PROFILE, CLAUDE_DELEGATED_PROFILE]);
+const PROFILES = new Set([
+  REFERENCE_PROFILE,
+  CANDIDATE_PROFILE,
+  CODEX_DELEGATED_PROFILE,
+  CLAUDE_DELEGATED_PROFILE,
+  DEEPSEEK_ONE_SHOT_PROFILE,
+]);
 
 function integer(value, label) {
   if (value === undefined) return;
@@ -53,6 +61,21 @@ async function execute(action, options = {}) {
   if (!ACTIONS.has(action)) throw new Error(`Unsupported agent action: ${action}. Expected one of: ${[...ACTIONS].join(', ')}`);
   const profile = options.profile || REFERENCE_PROFILE;
   if (!PROFILES.has(profile)) throw new Error(`Unsupported agent profile: ${profile}. Expected one of: ${[...PROFILES].join(', ')}`);
+  if (profile === DEEPSEEK_ONE_SHOT_PROFILE) {
+    if (action !== 'run') throw new Error(`The ${DEEPSEEK_ONE_SHOT_PROFILE} profile supports only agent run`);
+    if (!options.binding) throw new Error('--binding is required for a delegated DeepSeek one-shot run');
+    if (options.createOnly) throw new Error('--create-only is unavailable for the delegated DeepSeek one-shot profile');
+    if (options.state || options.value) throw new Error('--state and --value are unavailable for the delegated DeepSeek one-shot profile');
+    const result = await runSupervisedDelegatedDeepSeek({
+      binding: options.binding,
+      environment: options.environment,
+      message: options.message,
+      projectDir: options.directory,
+      sessionId: options.session,
+    });
+    render(result, options.json === true);
+    return result;
+  }
   if (profile === CLAUDE_DELEGATED_PROFILE) {
     if (options.directory || options.value) throw new Error('--directory and --value are not valid for the delegated Claude profile');
     if (action === 'run' && !options.binding) throw new Error('--binding is required for a new delegated Claude run');

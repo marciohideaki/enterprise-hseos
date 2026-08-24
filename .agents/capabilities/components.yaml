@@ -234,6 +234,34 @@ components:
       - packages/delegated-runtime-host/
       - packages/runtime-providers/
 
+  - id: runtime:agent-deepseek-one-shot
+    family: runtime
+    name: DeepSeek One-Shot Runtime Candidate
+    description: Sandboxed ACP process, hash-bound tool-free composition, durable terminal evidence, and public run-only CLI surface.
+    prerequisites:
+      - "candidate only; executable, entrypoint, composition and network port remain operator-selected and operational activation is not implied"
+      - "one-shot only; create-only, resume and post-process cancel are explicitly unsupported by the referenced ACP lifecycle"
+      - "required ai-jail lockdown must pass before credentials or the external runtime process are accessed"
+    modules:
+      - agent-deepseek-one-shot-candidate
+    tools: []
+    install_paths:
+      - .agents/activation/provider-bindings/deepseek-acp.example.yaml
+      - .agents/activation/provider-bindings/deepseek-acp-tool-free.example.yaml
+      - tools/cli/commands/agent.js
+      - tools/cli/lib/delegated-deepseek-runtime.js
+      - tools/cli/lib/delegated-deepseek-supervisor.js
+      - tools/cli/lib/delegated-deepseek-worker.js
+      - tools/cli/lib/bound-kernel-supervisor.js
+      - tools/lib/governed-execution/
+      - tools/mcp-project-state/lib/
+      - tools/mcp-project-state/migrations/
+      - tools/mcp-project-state/migrations-pending-activation/
+      - packages/agent-runtime-contracts/
+      - packages/agent-session-store/
+      - packages/delegated-runtime-host/
+      - packages/runtime-providers/
+
   - id: capability:architecture
     family: capability
     name: Architecture Governance
