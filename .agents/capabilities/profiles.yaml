@@ -55,6 +55,21 @@ profiles:
       secret_refs:
         - secret://codex/host-auth
 
+  agent-claude-delegated-candidate:
+    name: Claude Delegated Runtime Candidate
+    description: Pre-activation direct Claude Agent SDK assembly with durable HSEOS lifecycle governance and an instructions-only effect boundary.
+    hook_profile: strict
+    components:
+      - runtime:agent-claude-delegated
+      - adapter:codex
+      - adapter:claude-code
+    agent:
+      execution_mode: hosted
+      model_provider_id: model:delegated-runtime
+      runtime_provider_id: runtime:claude-agent-sdk
+      secret_refs:
+        - secret://claude/host-auth
+
   developer:
     name: Developer
     description: Default engineering setup for implementation, review, verification, state tracking, and local agent workflows.
