@@ -12,14 +12,17 @@
 - Core standard and operational policy
 - Registry and fragment JSON Schemas
 - Initial HSEOS graph fragment and exact query surface
-- Deterministic validator and 10 negative/positive governance tests
+- Deterministic validator and 12 negative/positive governance tests
 - Constitutional version/ADR/CODEOWNERS validation
+- Git-pinned `platform-core` external fragment with delegated owner-repository validation
+- External fragments loaded from the pinned Git object after remote-identity verification
+- Cross-repository composition verified locally: 2 fragments, 18 nodes, 24 edges
 
 ## Next
 
-- Complete full repository quality gates
-- Commit and integrate the enterprise foundation into the local feature branch
-- Migrate the platform capability manifest as the first external fragment
+- Integrate the federation task into the local feature branch
+- Expand repository-owned fragments beyond `platform-core`
+- Retire the platform capability manifest after graph completeness reaches 100%
 - Run independent adversarial completion audit
 
 ## Residual uncertainty

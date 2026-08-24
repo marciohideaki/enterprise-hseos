@@ -3,7 +3,13 @@
 const assert = require('node:assert');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
-const { loadAndValidate, safeResolve, validateGraph } = require('../scripts/governance/validate-capability-graph');
+const {
+  loadAndValidate,
+  readPinnedGitFragment,
+  safeResolve,
+  validateGraph,
+  validateRegistry,
+} = require('../scripts/governance/validate-capability-graph');
 const { isGreater, parseVersion, validateConstitutionChange } = require('../scripts/governance/validate-constitutional-change');
 
 const REPO_ROOT = path.join(__dirname, '..');
@@ -23,6 +29,33 @@ const cases = [
       const graph = loadAndValidate({ root: REPO_ROOT });
       assert.ok(graph.nodes.has('capability.governance.capability-graph'));
       assert.ok(graph.edges.size > 0);
+      assert.strictEqual(graph.registry.fragments.length, 2);
+      assert.strictEqual(graph.deferredFragments.length, 1);
+      assert.strictEqual(graph.deferredFragments[0].repository, 'repo.platform-core');
+    },
+  },
+  {
+    name: 'delegated Git fragments require immutable revision pins',
+    fn: () => {
+      const graph = loadAndValidate({ root: REPO_ROOT });
+      const registry = clone(graph.registry);
+      const external = registry.fragments.find((fragment) => fragment.repository === 'repo.platform-core');
+      external.revision = 'feature/platform-governance-hardening';
+      expectFailure('mutable git revision', () => validateRegistry(registry, REPO_ROOT), /full Git SHA/);
+    },
+  },
+  {
+    name: 'mapped Git fragments are loaded from their pinned commit',
+    fn: () => {
+      const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
+      const fragment = readPinnedGitFragment(REPO_ROOT, {
+        id: 'fragment.enterprise-hseos.fixture',
+        revision,
+        path: '.enterprise/governance/capabilities/fragments/enterprise-hseos.yaml',
+        source: { kind: 'git', uri: 'https://github.com/marciohideaki/enterprise-hseos.git' },
+      });
+      assert.strictEqual(fragment.fragment_id, 'fragment.enterprise-hseos');
+      assert.ok(fragment.nodes.some((node) => node.id === 'capability.governance.capability-graph'));
     },
   },
   {
