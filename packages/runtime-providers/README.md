@@ -53,6 +53,16 @@ stock process initialization fails closed and cross-process resume remains
 tool-free, sandbox-attested composition; HSEOS does not simulate resume,
 cancellation or effect confinement that the external runtime cannot prove.
 
+`validateDeepSeekAcpComposition()` provides the first half of that gate. It
+accepts exactly the official model adapter plus `dsh-acp-demo`, requires one
+model route, and requires workspace context, skills, Bash, job tools and goals
+to be disabled. It rejects links and every additional plugin, then returns an
+immutable SHA-256-bound `one_shot` effect attestation. That attestation permits
+only same-process host reattachment before the single turn; a fresh provider
+still rejects resume because the external ACP server has no `loadSession`.
+The canonical example is
+`.agents/activation/provider-bindings/deepseek-acp-tool-free.example.yaml`.
+
 These adapters deliberately resolve no credentials and declare no secret
 references. They do not claim governed tools, lifecycle conformance or replay.
 The public candidate profiles are `agent-codex-delegated-candidate` and

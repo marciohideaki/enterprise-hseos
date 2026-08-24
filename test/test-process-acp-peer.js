@@ -6,11 +6,13 @@ const { test } = require('node:test');
 
 const { CONTRACT_SCHEMA_VERSION } = require('../packages/agent-runtime-contracts');
 const { DeepSeekHarnessRuntimeProvider, ProcessAcpPeer, RuntimeProviderError } = require('../packages/runtime-providers');
+const { validateDeepSeekAcpComposition } = require('../packages/runtime-providers');
 const fixtures = require('./fixtures/agent-runtime-contracts');
 
 const ROOT = path.join(__dirname, '..');
 const FIXTURE = path.join(__dirname, 'fixtures', 'fake-acp-process.js');
 const PROVIDER_ID = 'runtime:deepseek-harness';
+const TOOL_FREE_COMPOSITION = path.join(ROOT, '.agents', 'activation', 'provider-bindings', 'deepseek-acp-tool-free.example.yaml');
 
 function peer(mode = 'normal') {
   return new ProcessAcpPeer({
@@ -30,12 +32,13 @@ function spec() {
   };
 }
 
-function runtime(acpPeer) {
+function runtime(acpPeer, effectBoundaryAttestation) {
   let tick = 0;
   return new DeepSeekHarnessRuntimeProvider({
     provider_id: PROVIDER_ID,
     peer: acpPeer,
     default_cwd: ROOT,
+    ...(effectBoundaryAttestation ? { effect_boundary_attestation: effectBoundaryAttestation } : {}),
     clock: () => new Date(Date.parse('2026-08-24T02:00:00Z') + tick++ * 1000).toISOString(),
   });
 }
@@ -75,6 +78,47 @@ test('process ACP peer drives one bounded DeepSeek-compatible session over JSON-
       ['runtime.session.started', 'runtime.message.delta', 'runtime.session.completed'],
     );
     assert.equal(events[1].payload.text, 'deepseek fixture answer');
+  } finally {
+    await provider.close();
+  }
+});
+
+test('tool-free DeepSeek composition yields a hash-bound one-shot effect attestation', () => {
+  const attestation = validateDeepSeekAcpComposition(TOOL_FREE_COMPOSITION);
+  assert.equal(attestation.effect_boundary, 'instructions_only');
+  assert.equal(attestation.lifecycle, 'one_shot');
+  assert.match(attestation.composition_sha256, /^[a-f0-9]{64}$/);
+  assert.equal(attestation.evidence_ref, `sha256:${attestation.composition_sha256}`);
+  assert.equal(Object.isFrozen(attestation), true);
+});
+
+test('host-verified tool-free composition compensates for the missing stock ACP metadata', async () => {
+  const attestation = validateDeepSeekAcpComposition(TOOL_FREE_COMPOSITION);
+  const acpPeer = peer('unattested');
+  const provider = runtime(acpPeer, {
+    effect_boundary: attestation.effect_boundary,
+    lifecycle: attestation.lifecycle,
+    evidence_ref: attestation.evidence_ref,
+  });
+  try {
+    const created = await provider.create({
+      schema_version: CONTRACT_SCHEMA_VERSION,
+      command: 'create',
+      provider_id: PROVIDER_ID,
+      spec: spec(),
+    });
+    assert.equal(created.accepted, true);
+    const resumed = await provider.resume({
+      schema_version: CONTRACT_SCHEMA_VERSION,
+      command: 'resume',
+      provider_id: PROVIDER_ID,
+      runtime_session_id: created.runtime_session_id,
+      session_id: spec().session_id,
+      expected_sequence: 1,
+      spec: spec(),
+    });
+    assert.equal(resumed.accepted, true);
+    assert.deepEqual(resumed.evidence_refs, [attestation.evidence_ref]);
   } finally {
     await provider.close();
   }

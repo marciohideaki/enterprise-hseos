@@ -195,7 +195,14 @@ class AcpRuntimeProvider {
   #runtimeSessions = new Set();
   #unsubscribe;
 
-  constructor({ provider_id, provider_version = '1.0.0', peer, default_cwd, clock = () => new Date().toISOString() }) {
+  constructor({
+    provider_id,
+    provider_version = '1.0.0',
+    peer,
+    default_cwd,
+    effect_boundary_attestation,
+    clock = () => new Date().toISOString(),
+  }) {
     this.peer = validatePeer(peer);
     if (typeof clock !== 'function') throw new RuntimeProviderError('clock must be a function', 'invalid_request');
     if (typeof default_cwd !== 'string' || !path.isAbsolute(default_cwd)) {
@@ -203,6 +210,19 @@ class AcpRuntimeProvider {
     }
     this.clock = clock;
     this.defaultCwd = default_cwd;
+    if (effect_boundary_attestation !== undefined) {
+      const attestation = assertRecord(effect_boundary_attestation, 'ACP effect boundary attestation');
+      assertOnlyKeys(attestation, ['effect_boundary', 'evidence_ref', 'lifecycle'], 'ACP effect boundary attestation');
+      if (
+        attestation.effect_boundary !== 'instructions_only' ||
+        attestation.lifecycle !== 'one_shot' ||
+        typeof attestation.evidence_ref !== 'string' ||
+        !/^sha256:[a-f0-9]{64}$/.test(attestation.evidence_ref)
+      ) {
+        throw new RuntimeProviderError('ACP effect boundary attestation is malformed', 'invalid_request');
+      }
+      this.effectBoundaryAttestation = deepFreeze(structuredClone(attestation));
+    }
     this.providerManifest = parseContract(
       RuntimeProviderManifestSchema,
       {
@@ -345,6 +365,11 @@ class AcpRuntimeProvider {
       throw new RuntimeProviderError('resume sequence does not match durable expectation', 'invalid_request');
     }
     if (!this.agentCapabilities?.loadSession) {
+      if (!restoring && this.effectBoundaryAttestation?.lifecycle === 'one_shot') {
+        return operation(this.providerManifest.provider_id, existing.runtimeSessionId, existing.sessionId, true, false, [
+          this.effectBoundaryAttestation.evidence_ref,
+        ]);
+      }
       throw new RuntimeProviderError('ACP agent does not support session/load', 'capability_unavailable');
     }
     const deadlineAt = Date.now() + existing.maxDurationMs;
@@ -544,7 +569,7 @@ class AcpRuntimeProvider {
           assertOptionalImplementation(response.agentInfo, 'initialize agentInfo');
           assertOptionalMeta(response._meta, 'initialize response');
           const hseos = isRecord(capabilities._meta) && isRecord(capabilities._meta.hseos) ? capabilities._meta.hseos : null;
-          if (!hseos || hseos.effectBoundary !== 'instructions_only') {
+          if ((!hseos || hseos.effectBoundary !== 'instructions_only') && !this.effectBoundaryAttestation) {
             throw new RuntimeProviderError('ACP peer did not attest the instructions-only effect boundary', 'policy_denied');
           }
           this.agentCapabilities = deepFreeze({ loadSession: capabilities.loadSession === true });
