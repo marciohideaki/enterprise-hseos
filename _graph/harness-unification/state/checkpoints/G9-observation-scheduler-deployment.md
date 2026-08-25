@@ -1,9 +1,9 @@
 # G9 Observation Scheduler Deployment Checkpoint
 
-**Artifact type:** Governed goal checkpoint  
-**Scope:** Authorized local A22 integration and recurring G9 evidence capture  
-**Status:** Scheduler installed, enabled and observing; compatibility cutover remains unauthorized  
-**Governing documents:** Enterprise Constitution; ADR-0022; ADR-0023; automated-validation policy  
+**Artifact type:** Governed goal checkpoint
+**Scope:** Authorized local A22 integration and recurring G9 evidence capture
+**Status:** Scheduler installed, enabled and observing; compatibility cutover remains unauthorized
+**Governing documents:** Enterprise Constitution; ADR-0022; ADR-0023; automated-validation policy
 **Authority:** Explicit human authorization on 2026-08-25 to merge A22 locally and install/activate the proposed G9 timer; no push, migration, provider activation or compatibility cutover
 
 ## Local integration
