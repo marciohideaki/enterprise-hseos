@@ -66,7 +66,7 @@
     "test:capabilities": "node test/test-capability-catalog.js",
     "test:claude-agent-sdk-driver": "node --test test/test-claude-agent-sdk-driver.js",
     "test:codex-app-server-driver": "node --test test/test-codex-app-server-driver.js",
-    "test:compatibility": "node --test test/test-compatibility-audit.js test/test-compatibility-evidence-pack.js test/test-compatibility-observation.js test/test-compatibility-observation-plan.js",
+    "test:compatibility": "node --test test/test-compatibility-audit.js test/test-compatibility-evidence-inventory.js test/test-compatibility-evidence-pack.js test/test-compatibility-observation.js test/test-compatibility-observation-plan.js",
     "test:compiler-hooks": "node test/test-agent-core-compiler-hooks.js",
     "test:delegated-claude-cli": "node --test test/test-delegated-claude-cli.js",
     "test:delegated-codex-cli": "node --test test/test-delegated-codex-cli.js",
