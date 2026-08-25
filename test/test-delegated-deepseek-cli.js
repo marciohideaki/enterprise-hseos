@@ -99,7 +99,7 @@ function cleanupState(state) {
 
 test('DeepSeek capability plan selects the external runtime and no raw model implementation', () => {
   const plan = resolveCapabilityPlan({ root: ROOT, profile: PROFILE });
-  assert.deepEqual(plan.materialization.selected_model_providers, ['model:delegated-runtime']);
+  assert.deepEqual(plan.materialization.selected_model_providers, []);
   assert.deepEqual(plan.materialization.selected_runtime_providers, ['runtime:deepseek-harness']);
   assert.deepEqual(plan.materialization.secret_refs, ['secret://deepseek/host-auth']);
   assert.ok(plan.install_paths.includes('tools/cli/lib/delegated-deepseek-supervisor.js'));

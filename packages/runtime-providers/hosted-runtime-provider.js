@@ -88,6 +88,21 @@ function validateDriver(driver) {
   return driver;
 }
 
+function createHostedRuntimeManifest(adapterId, providerId, providerVersion = '1.0.0') {
+  const descriptor = HOSTED_RUNTIME_ADAPTERS[adapterId];
+  if (!descriptor) throw new RuntimeProviderError('hosted adapter_id is unknown', 'invalid_request');
+  return parseContract(RuntimeProviderManifestSchema, {
+    schema_version: CONTRACT_SCHEMA_VERSION,
+    provider_type: 'runtime',
+    provider_id: providerId,
+    provider_version: providerVersion,
+    conformance_level: descriptor.conformance_level,
+    capabilities: descriptor.capabilities,
+    transport: descriptor.transport,
+    secret_refs: [],
+  }, `${adapterId} runtime provider manifest`);
+}
+
 function operation(providerId, session, terminal = session.terminal) {
   return deepFreeze({
     schema_version: CONTRACT_SCHEMA_VERSION,
@@ -122,16 +137,7 @@ class HostedInstructionsRuntimeProvider {
     this.driver = validateDriver(driver);
     this.defaultCwd = path.normalize(default_cwd);
     this.clock = clock;
-    this.providerManifest = parseContract(RuntimeProviderManifestSchema, {
-      schema_version: CONTRACT_SCHEMA_VERSION,
-      provider_type: 'runtime',
-      provider_id,
-      provider_version,
-      conformance_level: descriptor.conformance_level,
-      capabilities: descriptor.capabilities,
-      transport: descriptor.transport,
-      secret_refs: [],
-    }, `${adapter_id} runtime provider manifest`);
+    this.providerManifest = createHostedRuntimeManifest(adapter_id, provider_id, provider_version);
   }
 
   manifest(inputValue) {
@@ -589,4 +595,5 @@ module.exports = {
   ClaudeCodeRuntimeProvider,
   CodexRuntimeProvider,
   HostedInstructionsRuntimeProvider,
+  createHostedRuntimeManifest,
 };

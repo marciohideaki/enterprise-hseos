@@ -188,7 +188,8 @@ This sets up:
 Installation is driven by an auditable capability catalog (ADR-0016). General profiles include
 `minimal`, `developer` (default), `governance`, `gitops`, `ado`, `solo`, and `full`. Agent runtime
 candidates additionally include `agent-reference`, `agent-openai-compatible-candidate`,
-`agent-codex-delegated-candidate`, and `agent-claude-delegated-candidate`. The governance baseline
+`agent-codex-delegated-candidate`, `agent-claude-delegated-candidate`, and
+`agent-deepseek-one-shot-candidate`. The governance baseline
 is always included and cannot be deselected; components with external prerequisites (ADO,
 sandbox, telemetry, axon-bridge, second-brain) are optional and degrade gracefully when unmet.
 
@@ -197,6 +198,7 @@ npx hseos install-plan --list-profiles     # discover profiles
 npx hseos install-plan --profile gitops    # dry-run: components, skills, paths, prerequisites
 npx hseos install --profile developer      # install a profile
 npx hseos install --skills pr-review,rfc   # or baseline + individual skills
+npx hseos agent-provider-conformance --verify --require-ready # verify selected provider manifests and suites
 ```
 
 See [`docs/capabilities.md`](docs/capabilities.md) for the full profile/component/prerequisite reference.
