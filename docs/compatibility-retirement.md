@@ -94,6 +94,11 @@ with spaces or systemd metacharacters are escaped using directive-specific rules
 always says `plan_only: true` and `activation_authorized: false`; it does not create the evidence
 directory, write unit files, reload systemd or enable the timer.
 
+The user unit deliberately omits `ProtectKernelModules`: that directive asks the user manager to
+alter capability bounds and can fail with `218/CAPABILITIES` on supported nested user-session hosts
+before the monitor can start. Kernel tunables and control groups remain protected, while
+`RestrictAddressFamilies=AF_UNIX` and `IPAddressDeny=any` retain the networkless boundary.
+
 This command copies the live database and WAL into a private snapshot, verifies that their content
 did not change during the copy, and opens only that copy in SQLite query-only mode. It never opens
 or mutates the operational files, initializes tables, records a heartbeat, runs migrations, or emits

@@ -55,6 +55,9 @@ test('schedule plan is deterministic, hardened, explicit, and side-effect free',
   assert.match(first.systemd.service, /--evidence-directory/);
   assert.match(first.systemd.service, /Environment=HSEOS_DISABLE_UPDATE_CHECK=1/);
   assert.match(first.systemd.service, /ProtectSystem=strict/);
+  assert.doesNotMatch(first.systemd.service, /ProtectKernelModules=/);
+  assert.match(first.systemd.service, /ProtectKernelTunables=true/);
+  assert.match(first.systemd.service, /ProtectControlGroups=true/);
   assert.match(first.systemd.service, /IPAddressDeny=any/);
   assert.match(first.systemd.service, /RestrictAddressFamilies=AF_UNIX/);
   assert.ok(first.prerequisites.some((item) => /explicit operational authorization/.test(item)));
