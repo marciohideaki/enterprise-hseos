@@ -119,7 +119,6 @@ function renderSystemdUnits({ unitBase, projectDirectory, evidenceDirectory, nod
     'ProtectSystem=strict',
     `ReadWritePaths=${systemdEscapeDirectiveValue(evidenceDirectory)}`,
     'ProtectKernelTunables=true',
-    'ProtectKernelModules=true',
     'ProtectControlGroups=true',
     'RestrictSUIDSGID=true',
     'LockPersonality=true',
