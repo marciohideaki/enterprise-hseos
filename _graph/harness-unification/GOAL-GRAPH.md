@@ -83,4 +83,5 @@ Each node remains on an isolated `task/*` branch. Code nodes must include down-m
 - `compatibility-observe` monitors the active WAL through a verified private snapshot, detects missing/stale servers, incomplete hourly coverage and legacy use, and cannot authorize cutover.
 - `compatibility-observe-plan` deterministically renders a project-bound, networkless hourly systemd user-unit plan without creating evidence directories, installing units or enabling a timer.
 - `compatibility-audit` now fails closed unless the exact plugin-v1 and installer-v4 downstream release-window bundle references hash-verified local artifacts bound to the observation release; this evidence can only advance to human review.
+- `compatibility-evidence-pack` now constructs that bundle from strict external inventories and attestations in a new private directory, deriving counts and binding R/R+1 to the canonical project observation scope; operational state, unsafe anchors and unsupported ACL semantics fail closed.
 - The initial live report has 4/4 fresh server IDs, legacy use on the excluded deployment day and 0/30 complete zero-use days. G9 and G10 remain incomplete.
