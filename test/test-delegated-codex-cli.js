@@ -67,7 +67,7 @@ function cleanupState(directory) {
 
 test('delegated Codex capability plan selects the direct runtime and no raw model implementation', () => {
   const plan = resolveCapabilityPlan({ root: ROOT, profile: PROFILE });
-  assert.deepEqual(plan.materialization.selected_model_providers, ['model:delegated-runtime']);
+  assert.deepEqual(plan.materialization.selected_model_providers, []);
   assert.deepEqual(plan.materialization.selected_runtime_providers, ['runtime:codex-app-server']);
   assert.deepEqual(plan.materialization.secret_refs, ['secret://codex/host-auth']);
   assert.ok(plan.install_paths.includes('packages/delegated-runtime-host/'));

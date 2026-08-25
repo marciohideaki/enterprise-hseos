@@ -50,7 +50,6 @@ profiles:
       - adapter:claude-code
     agent:
       execution_mode: hosted
-      model_provider_id: model:delegated-runtime
       runtime_provider_id: runtime:codex-app-server
       secret_refs:
         - secret://codex/host-auth
@@ -65,7 +64,6 @@ profiles:
       - adapter:claude-code
     agent:
       execution_mode: hosted
-      model_provider_id: model:delegated-runtime
       runtime_provider_id: runtime:claude-agent-sdk
       secret_refs:
         - secret://claude/host-auth
@@ -81,7 +79,6 @@ profiles:
       - adapter:claude-code
     agent:
       execution_mode: hosted
-      model_provider_id: model:delegated-runtime
       runtime_provider_id: runtime:deepseek-harness
       secret_refs:
         - secret://deepseek/host-auth

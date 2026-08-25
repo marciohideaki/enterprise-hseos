@@ -63,8 +63,9 @@ The objective is complete only when a user can install a profile, select a confo
 | A19  | Supervisor-owned credential injection (proposal 6)                    | Completed with partial adoption | Pinned narrow host injection retained; generic sentinel transformer rejected |
 | A20  | Continuous trace lineage (proposal 7)                                | Completed                       | Durable W3C root, causal anchors, defer/replay and delegated reattach        |
 | A21  | Integrated seven-proposal disposition and conformance                | Completed                       | Exact verdict catalog, full quality gate, no activation authority            |
+| A22  | Canonical agent-provider conformance matrix                          | Completed                       | Exact profiles, manifests, bindings and descriptor-bound suites; no activation authority |
 
-This extension hardens A1–A14 without changing A13's activation prerequisites or introducing a provider-specific branch into the kernel.
+This extension hardens A1–A14 without changing A13's activation prerequisites or introducing a provider-specific branch into the kernel. A22 also removes phantom model ownership from hosted profiles and makes provider certification a canonical, non-injectable operation.
 
 ## Mandatory assembled journeys
 

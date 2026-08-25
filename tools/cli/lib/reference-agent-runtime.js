@@ -303,6 +303,7 @@ module.exports = {
   REFERENCE_MANIFEST,
   ReferenceAgentError,
   cancelReferenceAgent,
+  getReferenceModelManifest: modelManifest,
   readReferenceManifest,
   resumeReferenceAgent,
   runReferenceAgent,

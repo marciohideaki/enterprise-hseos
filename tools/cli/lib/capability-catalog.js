@@ -185,10 +185,24 @@ function validateCapabilityDocuments(profileData, componentData) {
       if (!['kernel', 'hosted'].includes(profile.agent.execution_mode)) {
         throw new Error(`Invalid capability schema v2: profile ${profileId}.agent.execution_mode is invalid`);
       }
-      for (const field of ['model_provider_id', 'runtime_provider_id']) {
-        if (typeof profile.agent[field] !== 'string' || !/^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$/.test(profile.agent[field])) {
-          throw new Error(`Invalid capability schema v2: profile ${profileId}.agent.${field} is malformed`);
+      if (
+        typeof profile.agent.runtime_provider_id !== 'string' ||
+        !/^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$/.test(profile.agent.runtime_provider_id)
+      ) {
+        throw new Error(`Invalid capability schema v2: profile ${profileId}.agent.runtime_provider_id is malformed`);
+      }
+      if (profile.agent.execution_mode === 'kernel') {
+        if (
+          typeof profile.agent.model_provider_id !== 'string' ||
+          !/^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$/.test(profile.agent.model_provider_id)
+        ) {
+          throw new Error(`Invalid capability schema v2: profile ${profileId}.agent.model_provider_id is required for kernel execution`);
         }
+        if (profile.agent.runtime_provider_id !== 'runtime:hseos-kernel') {
+          throw new Error(`Invalid capability schema v2: profile ${profileId}.agent kernel execution requires runtime:hseos-kernel`);
+        }
+      } else if (profile.agent.model_provider_id !== undefined) {
+        throw new Error(`Invalid capability schema v2: profile ${profileId}.agent hosted execution cannot select a model provider`);
       }
       assertStringList(profile.agent.secret_refs, `profile ${profileId}.agent.secret_refs`, { required: true });
     }
@@ -381,7 +395,7 @@ function resolveCapabilityPlan(options = {}) {
     materialization: {
       mode: 'selected-only',
       selected_skills: selectedSkills,
-      selected_model_providers: profile?.agent ? [profile.agent.model_provider_id] : [],
+      selected_model_providers: profile?.agent?.model_provider_id ? [profile.agent.model_provider_id] : [],
       selected_runtime_providers: profile?.agent ? [profile.agent.runtime_provider_id] : [],
       secret_refs: profile?.agent?.secret_refs || [],
     },

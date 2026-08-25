@@ -30,6 +30,11 @@ plan; `hseos install` materializes it. The governance baseline can never be dese
 | `ado` | strict | Azure DevOps tracking on top of delivery |
 | `solo` | standard | BLITZ-style compact solo flow |
 | `full` | ci | Complete surface: every capability family + all adapters (including Goose) |
+| `agent-reference` | strict | Keyless HSEOS kernel with the scripted `ModelProvider` |
+| `agent-openai-compatible-candidate` | strict | HSEOS kernel with a bound OpenAI-compatible `ModelProvider` |
+| `agent-codex-delegated-candidate` | strict | Hosted Codex `RuntimeProvider`, honestly limited to L0/run-only |
+| `agent-claude-delegated-candidate` | strict | Hosted Claude Code `RuntimeProvider`, honestly limited to L0 |
+| `agent-deepseek-one-shot-candidate` | strict | Sandboxed DeepSeek ACP `RuntimeProvider`, honestly limited to L0/one-shot |
 
 ```bash
 hseos install-plan --list-profiles          # discover profiles
@@ -37,7 +42,15 @@ hseos install-plan --profile gitops         # dry-run: components, skills, paths
 hseos install --profile developer           # materialize the default
 hseos install --skills pr-review,rfc        # baseline + individual skills only
 hseos install-plan --list-components --family capability
+hseos agent-provider-conformance --verify --require-ready
 ```
+
+Kernel profiles select exactly one model provider and `runtime:hseos-kernel`. Hosted profiles
+select a runtime provider only: the delegated product owns its model boundary, so HSEOS does not
+invent a placeholder `ModelProvider`. `agent-provider-conformance` resolves every selected ID to
+the actual versioned manifest, hashes its canonical test files, executes each unique suite once,
+and promotes a declared runtime level only when all associated suites pass. This is conformance
+evidence, not operational activation; the report always keeps activation authority false.
 
 ## Components with prerequisites (all optional, all degrade gracefully)
 
@@ -76,6 +89,7 @@ hseos install --profile developer --components extra:usage-dashboard
 ## Guarantees & invariants
 
 - **Schema v2 fails closed** — both catalog documents require `schema_version: "2.0"`; unknown fields, duplicate IDs, unsafe paths, invalid references, multiple defaults, or a changed mandatory baseline are rejected before resolution.
+- **Execution modes are exact** — kernel profiles require a real model provider and the native HSEOS kernel; hosted profiles forbid model-provider placeholders and require only their delegated runtime provider.
 - **Baseline is irremovable and normalized** — `resolveCapabilityPlan` always injects the three `required: true` components; profile documents are forbidden from repeating them.
 - **Materialization is exact** — a capability-driven install passes only `plan.skills` to the compiler. Generated `.agents/skills` and Goose mirrors are reconciled on profile changes, and compilation fails if the selected and emitted skill sets differ.
 - **Referential integrity is tested** — `test/test-capability-catalog.js` fails if a profile references

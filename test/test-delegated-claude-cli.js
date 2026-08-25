@@ -62,7 +62,7 @@ function cleanupState(directory) {
 
 test('delegated Claude capability plan selects Agent SDK and no raw model implementation', () => {
   const plan = resolveCapabilityPlan({ root: ROOT, profile: PROFILE });
-  assert.deepEqual(plan.materialization.selected_model_providers, ['model:delegated-runtime']);
+  assert.deepEqual(plan.materialization.selected_model_providers, []);
   assert.deepEqual(plan.materialization.selected_runtime_providers, ['runtime:claude-agent-sdk']);
   assert.deepEqual(plan.materialization.secret_refs, ['secret://claude/host-auth']);
   assert.ok(plan.install_paths.includes('tools/cli/lib/delegated-claude-runtime.js'));

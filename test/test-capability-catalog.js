@@ -88,6 +88,58 @@ function testSchemaV2FailsClosed() {
       components,
     ],
     [
+      'hosted profile with a phantom model provider',
+      {
+        ...profiles,
+        profiles: {
+          ...profiles.profiles,
+          'agent-codex-delegated-candidate': {
+            ...profiles.profiles['agent-codex-delegated-candidate'],
+            agent: {
+              ...profiles.profiles['agent-codex-delegated-candidate'].agent,
+              model_provider_id: 'model:delegated-runtime',
+            },
+          },
+        },
+      },
+      components,
+    ],
+    [
+      'kernel profile without a model provider',
+      {
+        ...profiles,
+        profiles: {
+          ...profiles.profiles,
+          'agent-reference': {
+            ...profiles.profiles['agent-reference'],
+            agent: {
+              execution_mode: 'kernel',
+              runtime_provider_id: 'runtime:hseos-kernel',
+              secret_refs: [],
+            },
+          },
+        },
+      },
+      components,
+    ],
+    [
+      'kernel profile with a delegated runtime provider',
+      {
+        ...profiles,
+        profiles: {
+          ...profiles.profiles,
+          'agent-reference': {
+            ...profiles.profiles['agent-reference'],
+            agent: {
+              ...profiles.profiles['agent-reference'].agent,
+              runtime_provider_id: 'runtime:codex-app-server',
+            },
+          },
+        },
+      },
+      components,
+    ],
+    [
       'unknown component field',
       profiles,
       { ...components, components: [{ ...components.components[0], typo_field: true }, ...components.components.slice(1)] },

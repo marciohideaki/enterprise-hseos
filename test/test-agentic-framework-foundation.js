@@ -57,7 +57,7 @@ test('goal graph has an acyclic proof and activation tail', () => {
   const nodeRows = [...graph.matchAll(/^\| (A\d+)\s+\|/gm)].map((match) => match[1]);
   assert.deepEqual(
     nodeRows,
-    Array.from({ length: 22 }, (_, index) => `A${index}`),
+    Array.from({ length: 23 }, (_, index) => `A${index}`),
   );
   assert.match(graph, /\| A12\s+\|[^\n]+\| A0–A11\s+\|/);
   assert.match(graph, /\| A13\s+\|[^\n]+\| A12, harness-unification G9\s+\|/);

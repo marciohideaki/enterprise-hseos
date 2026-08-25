@@ -186,6 +186,23 @@ function validatePeer(peer) {
   return peer;
 }
 
+function createAcpRuntimeManifest(providerId, providerVersion = '1.0.0') {
+  return parseContract(
+    RuntimeProviderManifestSchema,
+    {
+      schema_version: CONTRACT_SCHEMA_VERSION,
+      provider_type: 'runtime',
+      provider_id: providerId,
+      provider_version: providerVersion,
+      conformance_level: 'L0',
+      capabilities: ['instructions'],
+      transport: 'acp',
+      secret_refs: [],
+    },
+    'ACP runtime provider manifest',
+  );
+}
+
 class AcpRuntimeProvider {
   #closeController = new AbortController();
   #disposed = false;
@@ -223,20 +240,7 @@ class AcpRuntimeProvider {
       }
       this.effectBoundaryAttestation = deepFreeze(structuredClone(attestation));
     }
-    this.providerManifest = parseContract(
-      RuntimeProviderManifestSchema,
-      {
-        schema_version: CONTRACT_SCHEMA_VERSION,
-        provider_type: 'runtime',
-        provider_id,
-        provider_version,
-        conformance_level: 'L0',
-        capabilities: ['instructions'],
-        transport: 'acp',
-        secret_refs: [],
-      },
-      'ACP runtime provider manifest',
-    );
+    this.providerManifest = createAcpRuntimeManifest(provider_id, provider_version);
     this.#unsubscribe = this.peer.subscribe({
       notification: (method, params) => this.#onNotification(method, params),
       request: (method, params) => this.#onRequest(method, params),
@@ -915,4 +919,5 @@ module.exports = {
   NOTIFY_SETTLE_TIMEOUT_MS,
   AcpRuntimeProvider,
   RuntimeProviderError,
+  createAcpRuntimeManifest,
 };
