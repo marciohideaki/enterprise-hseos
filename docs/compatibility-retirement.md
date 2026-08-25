@@ -108,8 +108,98 @@ enablement, journal retention and rollback remain explicit operational deploymen
 
 ## Downstream evidence packaging
 
-Package externally collected release, inventory and consumer artifacts without manually writing
-the audit envelope:
+Collect the two downstream inventories from exact local Git commits before packaging release
+evidence:
+
+```sh
+node tools/cli/hseos-cli.js compatibility-evidence-inventory \
+  --manifest /absolute/private/git-inventory-manifest.json \
+  --directory /absolute/project \
+  --output-directory /absolute/private/new-inventory \
+  --json
+```
+
+The inventory collector is networkless and reads Git objects, not mutable worktree files. Consumer
+membership, commit SHAs and surfaces come from a separate pinned consumer-registry blob; the local
+manifest supplies only an exact one-to-one mapping from those remotes to local repositories. This
+prevents an operator from silently omitting a consumer in the same mutable request that performs
+the collection. The only accepted evidence paths are `.hseos` for legacy installer detection and
+`.agents/plugins/registry.yaml` for the bounded plugin catalog v1 reader. Remote URLs with embedded
+credentials and local-path remotes are rejected. Repository remotes are normalized and SHA-256
+hashed; plaintext repository URLs and paths are not emitted in the inventory.
+
+```json
+{
+  "schema_version": 1,
+  "evidence_only": true,
+  "cutover_authorized": false,
+  "observed_at": "2026-08-20T12:00:00.000Z",
+  "release_window": {
+    "activation_release": "R",
+    "compatibility_release": "R+1",
+    "opened_at": "2026-07-01T00:00:00.000Z",
+    "closed_at": "2026-08-20T23:59:59.000Z"
+  },
+  "registry": {
+    "repository_path": "/absolute/local/governance-registry",
+    "remote_name": "origin",
+    "expected_remote": "https://github.com/example/governance-registry.git",
+    "commit_sha": "<40 lowercase hexadecimal characters>",
+    "evidence_path": ".hseos/compatibility/downstream-consumers.json"
+  },
+  "repository_bindings": [
+    {
+      "repository_path": "/absolute/local/consumer",
+      "remote_name": "origin",
+      "expected_remote": "https://github.com/example/consumer.git"
+    }
+  ]
+}
+```
+
+The pinned `.hseos/compatibility/downstream-consumers.json` blob has this canonical shape:
+
+```json
+{
+  "schema_version": 1,
+  "scope": "hseos-downstream-compatibility",
+  "completeness_status": "complete",
+  "consumers": [
+    {
+      "repository_remote": "https://github.com/example/consumer.git",
+      "commit_sha": "<40 lowercase hexadecimal characters>",
+      "surfaces": [
+        {
+          "surface_id": "installer-v4-detection",
+          "evidence_path": ".hseos"
+        },
+        {
+          "surface_id": "plugin-catalog-v1",
+          "evidence_path": ".agents/plugins/registry.yaml"
+        }
+      ]
+    }
+  ]
+}
+```
+
+The tracked registry intentionally ships with `completeness_status: "pending"` and an empty
+consumer list, so a repository-local default can never prove the downstream universe complete.
+Collection is allowed only from a release commit that changes the status to `complete`; that
+registry commit must be the exact SHA in the canonical observation-release manifest. Local
+repository bindings must form a one-to-one remote match with the pinned registry. Collection is
+networkless: Git objects and configured remotes are verified locally, while publication and
+reachability of those commits at the declared remotes remain explicit human-verification items.
+
+The collector classifies installer layouts with the same v4 discriminator as the runtime and
+validates plugin registries through the canonical strict registry validator. It emits one inventory
+per required surface plus one attestation per migrated consumer, all under a new private directory.
+The index is published last and explicitly reports `final_evidence_ready: false`,
+`release_artifacts_required: true`, and `cutover_authorized: false`. It does not create R/R+1
+artifacts or a final downstream bundle.
+
+Package externally collected release artifacts and a Git-pinned collection manifest without
+manually writing the audit envelope:
 
 ```sh
 node tools/cli/hseos-cli.js compatibility-evidence-pack \
@@ -120,21 +210,22 @@ node tools/cli/hseos-cli.js compatibility-evidence-pack \
 ```
 
 The command requires the complete canonical observation manifest under the selected project's
-`.hseos/state`, plus an absent output directory beneath an existing private parent outside that
-state directory. It reads every
-source through a stable non-linked descriptor, copies source bytes with mode `0600`, derives
-consumer counts from the two inventory artifacts, and publishes the evidence envelope last. It
-never writes under `.hseos/state`, changes a source artifact, invents a consumer, or grants cutover.
-The release SHA and configuration digest come from the observation manifest rather than from the
-collection request. `--require-ready` returns status 2 when a truthful inventory still contains a
-legacy consumer.
+`.hseos/state`, plus an absent output directory beneath an existing private parent outside both the
+state directory and the immutable observation release. It re-runs the Git-pinned collector in a
+private staging directory, reopens every registry and consumer repository, recalculates the
+tree/blob classifications and packages only those freshly derived bytes. The collector manifest
+it used is copied into the final bundle. Manually supplied inventory or attestation artifacts are
+not part of the packer contract and therefore cannot be normalized into a false green. The release
+SHA and configuration digest come from the observation manifest rather than from the packaging
+request. `--require-ready` returns status 2 when the re-collected evidence still contains a legacy
+consumer.
 
-The canonical collection manifest has the following strict shape. Both required surfaces must be
-present exactly once. Release artifacts, inventories and consumer attestations are canonical JSON.
+The canonical packaging manifest has the following strict shape. Release artifacts and the
+Git-pinned inventory collection manifest are canonical JSON.
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "evidence_only": true,
   "cutover_authorized": false,
   "release_window": {
@@ -151,45 +242,53 @@ present exactly once. Release artifacts, inventories and consumer attestations a
       "media_type": "application/json"
     }
   },
-  "surfaces": [
-    {
-      "surface_id": "installer-v4-detection",
-      "inventory": {
-        "source_path": "/absolute/private/installer-v4-inventory.json",
-        "media_type": "application/json"
-      },
-      "attestations": []
-    },
-    {
-      "surface_id": "plugin-catalog-v1",
-      "inventory": {
-        "source_path": "/absolute/private/plugin-v1-inventory.json",
-        "media_type": "application/json"
-      },
-      "attestations": [
-        {
-          "consumer_id_sha256": "<64 lowercase hexadecimal characters>",
-          "source_path": "/absolute/private/plugin-consumer.json"
-        }
-      ]
-    }
-  ]
+  "inventory_collection_manifest": {
+    "source_path": "/absolute/private/git-inventory-manifest.json",
+    "media_type": "application/json"
+  }
 }
 ```
 
-An inventory artifact declares `schema_version`, `surface_id`, `observed_at`, and a bounded
-`consumers` array. A legacy item has only `consumer_id_sha256` plus `disposition: "legacy"`. A
-migrated item additionally declares `observed_at` and the SHA-256 of its attestation:
+Only Git-pinned inventory schema v2 is accepted. An inventory binds the observation release and
+configuration, declares `collection_method: "git-pinned-v1"`, and carries a bounded `consumers`
+array. It also records the registry remote/commit/tree and blob evidence shared by both surfaces.
+Every consumer includes the hashed normalized remote, full commit and tree SHAs, plus a
+content-addressed Git blob/tree evidence record. A migrated item additionally declares
+`observed_at` and the SHA-256 of its attestation:
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "surface_id": "plugin-catalog-v1",
   "observed_at": "2026-08-20T12:00:00.000Z",
+  "collection_method": "git-pinned-v1",
+  "observation_release_sha": "<40 lowercase hexadecimal characters>",
+  "configuration_sha256": "<64 lowercase hexadecimal characters>",
+  "consumer_registry": {
+    "repository_remote_sha256": "<64 lowercase hexadecimal characters>",
+    "commit_sha": "<40 lowercase hexadecimal characters>",
+    "tree_sha": "<40 lowercase hexadecimal characters>",
+    "evidence": {
+      "kind": "git-blob",
+      "path": ".hseos/compatibility/downstream-consumers.json",
+      "object_sha": "<40 lowercase hexadecimal characters>",
+      "content_sha256": "<64 lowercase hexadecimal characters>"
+    }
+  },
   "consumers": [
     {
       "consumer_id_sha256": "<64 lowercase hexadecimal characters>",
       "disposition": "migrated",
+      "repository_remote_sha256": "<same SHA-256 as consumer_id_sha256>",
+      "commit_sha": "<40 lowercase hexadecimal characters>",
+      "tree_sha": "<40 lowercase hexadecimal characters>",
+      "evidence": {
+        "kind": "git-blob",
+        "path": ".agents/plugins/registry.yaml",
+        "object_sha": "<40 lowercase hexadecimal characters>",
+        "content_sha256": "<64 lowercase hexadecimal characters>",
+        "classification": "migrated"
+      },
       "observed_at": "2026-08-20T12:00:00.000Z",
       "attestation_sha256": "<SHA-256 of the canonical attestation JSON>"
     }
@@ -197,13 +296,16 @@ migrated item additionally declares `observed_at` and the SHA-256 of its attesta
 }
 ```
 
-Each attestation must repeat the surface, hashed consumer identity, observation instant and exact
-R/R+1 identifiers, and must set `migration_verified: true`. The packer cross-checks all of those
-facts and requires an exact one-to-one mapping between migrated inventory entries and source
-attestations. A consumer observation cannot be newer than the inventory, source files cannot be
-reused across evidence roles, and the R/R+1 artifacts must have distinct bytes. The resulting
-hashes remain review anchors: a human must still verify the external meaning of the supplied
-artifacts.
+Each schema-v2 attestation must repeat the surface, hashed consumer identity, observation instant,
+exact R/R+1 identifiers, repository/commit/tree provenance and the complete Git evidence record,
+and must set `migration_verified: true`. The packer cross-checks all of those facts and requires an
+exact one-to-one mapping between migrated inventory entries and generated attestations. Manually
+supplied inventories are outside schema v2 and fail closed. A consumer observation cannot be newer than the inventory, source files
+cannot be reused across evidence roles, and the R/R+1 artifacts must have distinct bytes. The
+packer copies and hashes the complete pinned registry alongside the inventories, so the claimed
+consumer universe is reviewable from the final bundle. The resulting hashes remain review anchors:
+a human must still verify the external meaning of the supplied artifacts and confirm that each
+declared commit is published at its declared remote.
 
 Packaging currently fails closed on Windows until equivalent ACL privacy validation exists. On
 POSIX, the observation manifest, collection manifest and every source artifact must not be
@@ -227,7 +329,10 @@ Use `--json` for machine-readable evidence and `--require-ready` in a gate that 
 4. runs SQLite integrity checks and compares a digest of every pre-existing table;
 5. hashes both databases plus WAL, SHM, or rollback-journal sidecars before and after their read-only checks;
 6. scans internal JavaScript, shell, and PowerShell runtime surfaces for retired symbols and still-active legacy entrypoints.
-7. validates a canonical, integrity-checked downstream release-window artifact for the exact `plugin-catalog-v1` and `installer-v4-detection` surfaces and binds it to the observation release SHA and configuration digest.
+7. validates a canonical, integrity-checked downstream release-window artifact for the exact `plugin-catalog-v1` and `installer-v4-detection` surfaces and binds it to the observation release SHA and configuration digest;
+8. re-runs the Git-pinned collection from the bundled manifest, compares inventories,
+   attestations, counts and timestamps with the envelope, and reapplies the complete R/R+1
+   semantic contract before allowing the human gate.
 
 The downstream artifact is evidence-only and has this strict shape:
 
@@ -238,6 +343,16 @@ The downstream artifact is evidence-only and has this strict shape:
   "cutover_authorized": false,
   "release_sha": "<40 lowercase hexadecimal characters>",
   "configuration_sha256": "<64 lowercase hexadecimal characters>",
+  "inventory_collection_manifest_artifact": {
+    "artifact_path": "artifacts/inventory-collection-manifest.json",
+    "media_type": "application/json",
+    "sha256": "<SHA-256 of the referenced file>"
+  },
+  "consumer_registry_artifact": {
+    "artifact_path": "artifacts/consumer-registry.json",
+    "media_type": "application/json",
+    "sha256": "<SHA-256 of the referenced file>"
+  },
   "release_window": {
     "activation_release": "R",
     "compatibility_release": "R+1",
@@ -303,7 +418,7 @@ The downstream artifact is evidence-only and has this strict shape:
 }
 ```
 
-The file must use canonical pretty-printed JSON with a final newline, be a real single-link file, and not be writable by group or other users. Every artifact reference is a normalized relative path under the adjacent `artifacts/` directory; the audit opens that regular single-link file through a stable descriptor, bounds its size, verifies its media type and computes the declared SHA-256. Missing, escaping, aliased, shared-writable, changed or digest-mismatched artifacts fail closed. Both surfaces require a verified inventory artifact, zero remaining legacy consumers, and observations inside the closed release window. `migrated_consumers` may be zero when that inventory proves there were no downstream consumers; otherwise it must exactly equal the number of unique hashed consumer attestations. The bundle hashes are review anchors, not self-authorizing proof: the human gate still evaluates the external facts captured by those artifacts before cutover.
+The file must use canonical pretty-printed JSON with a final newline, be a real single-link file, and not be writable by group or other users. Every artifact reference is a normalized relative path under the adjacent `artifacts/` directory; the audit opens that regular single-link file through a stable descriptor, bounds its size, verifies its media type and computes the declared SHA-256. Missing, escaping, aliased, shared-writable, changed or digest-mismatched artifacts fail closed. Both surfaces require a verified inventory artifact, zero remaining legacy consumers, and observations inside the closed release window. Counts and observation timestamps are re-derived from a fresh local Git collection; editing only the envelope cannot advance the gate. The activation and compatibility artifacts are parsed again and must preserve exact identifiers, SHA lineage, publication order and window membership. `migrated_consumers` may be zero only when the re-collected inventory proves there were no downstream consumers; otherwise it must exactly equal the generated hashed consumer attestations. The bundle hashes are review anchors, not self-authorizing proof: remote commit reachability and completeness of the declared registry remain human-verification items before cutover.
 
 For safety, evidence databases must be stable regular files with one link and no SQLite sidecars. Stop writers and checkpoint WAL or rollback journals first; symlinks, hardlinks, and live `-wal`, `-shm`, or `-journal` files fail closed before SQLite opens the file.
 

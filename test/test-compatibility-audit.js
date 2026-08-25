@@ -44,6 +44,11 @@ function writeArtifact(directory, filename, value) {
 }
 
 function downstreamEvidence(directory, overrides = {}) {
+  const inventoryCollectionManifestArtifact = writeArtifact(directory, 'inventory-collection-manifest.json', {
+    schema_version: 1,
+    evidence_only: true,
+    cutover_authorized: false,
+  });
   const activationArtifact = writeArtifact(directory, 'release-r.json', {
     release_id: 'R',
     release_sha: RELEASE_SHA,
@@ -51,8 +56,15 @@ function downstreamEvidence(directory, overrides = {}) {
   });
   const compatibilityArtifact = writeArtifact(directory, 'release-r-plus-1.json', {
     release_id: 'R+1',
+    release_sha: 'd'.repeat(40),
     predecessor_sha: RELEASE_SHA,
     published_at: '2026-08-20T23:59:59.000Z',
+  });
+  const consumerRegistryArtifact = writeArtifact(directory, 'downstream-consumers.json', {
+    schema_version: 1,
+    scope: 'hseos-downstream-compatibility',
+    completeness_status: 'complete',
+    consumers: [],
   });
   return {
     schema_version: 1,
@@ -60,6 +72,8 @@ function downstreamEvidence(directory, overrides = {}) {
     cutover_authorized: false,
     release_sha: RELEASE_SHA,
     configuration_sha256: CONFIGURATION_SHA256,
+    inventory_collection_manifest_artifact: inventoryCollectionManifestArtifact,
+    consumer_registry_artifact: consumerRegistryArtifact,
     release_window: {
       activation_release: 'R',
       compatibility_release: 'R+1',
@@ -229,7 +243,7 @@ test('downstream release evidence is strict, scope-bound, integrity-checked, and
   assert.equal(valid.human_verification_required, true);
   assert.equal(valid.cutover_authorized, false);
   assert.match(valid.sha256, /^[a-f0-9]{64}$/);
-  assert.equal(valid.verified_artifacts.length, 6);
+  assert.equal(valid.verified_artifacts.length, 8);
 
   const tamperedArtifact = path.join(directory, valid.surfaces[0].inventory_artifact.artifact_path);
   writeCanonicalJson(tamperedArtifact, { forged: true });
@@ -293,11 +307,17 @@ test(
     const target = path.join(directory, evidence.release_window.activation_artifact.artifact_path);
     const moved = `${target}.original`;
     const originalReadFileSync = fs.readFileSync;
-    let descriptorReads = 0;
+    let targetSwapped = false;
     fs.readFileSync = function readFileWithSwap(filename, ...args) {
-      if (Number.isInteger(filename)) {
-        descriptorReads += 1;
-        if (descriptorReads === 2) {
+      if (Number.isInteger(filename) && !targetSwapped) {
+        let descriptorTarget;
+        try {
+          descriptorTarget = fs.readlinkSync(`/proc/self/fd/${filename}`);
+        } catch {
+          descriptorTarget = undefined;
+        }
+        if (descriptorTarget === target) {
+          targetSwapped = true;
           fs.renameSync(target, moved);
           writeCanonicalJson(target, { forged: true });
         }
@@ -318,7 +338,7 @@ test(
   },
 );
 
-test('audit reaches only the human gate when downstream evidence and every automated gate are ready', async (t) => {
+test('audit rejects a structurally valid but fabricated bundle before the human gate', async (t) => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-compat-human-gate-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const projectDirectory = path.join(directory, 'project');
@@ -343,9 +363,11 @@ test('audit reaches only the human gate when downstream evidence and every autom
   assert.equal(report.evidence.migration.ready, true);
   assert.equal(report.evidence.callers.legacy_runtime_zero, true);
   assert.equal(report.evidence.observation_scope.valid, true);
-  assert.equal(report.evidence.downstream.ready, true);
-  assert.equal(report.ready_for_human_gate, true);
-  assert.equal(report.status, 'awaiting-human-authorization');
+  assert.equal(report.evidence.downstream.ready, false);
+  assert.equal(report.evidence.downstream.local_git_revalidated, false);
+  assert.ok(report.evidence.downstream.errors.some((error) => error.includes('Git-pinned bundle revalidation failed')));
+  assert.equal(report.ready_for_human_gate, false);
+  assert.equal(report.status, 'blocked-on-evidence');
   assert.equal(report.activation_authorized, false);
 
   fs.unlinkSync(path.join(stateDirectory, 'harness-g9-downstream-evidence.json'));

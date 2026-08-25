@@ -149,7 +149,129 @@ function readObservationScopeForAudit(manifestPath, operationalDatabase, telemet
   }
 }
 
-function readDownstreamCompatibilityEvidence(evidencePath, { asOf = new Date(), observationScope } = {}) {
+function artifactAbsolutePath(evidenceDirectory, reference) {
+  return path.resolve(evidenceDirectory, ...reference.artifact_path.split('/'));
+}
+
+function readBundledJsonArtifact(evidenceDirectory, reference, label) {
+  const artifact = readStableRegularFile(artifactAbsolutePath(evidenceDirectory, reference), label, MAX_DOWNSTREAM_ARTIFACT_BYTES);
+  if (artifact.sha256 !== reference.sha256) throw new Error(`${label} digest does not match the referenced artifact`);
+  const parsed = JSON.parse(artifact.contents.toString('utf8'));
+  const canonical = Buffer.from(`${JSON.stringify(parsed, null, 2)}\n`);
+  if (!artifact.contents.equals(canonical)) throw new Error(`${label} must use canonical JSON encoding`);
+  return Object.freeze({ parsed, sha256: artifact.sha256 });
+}
+
+function validateBundledReleaseArtifacts(evidence, evidenceDirectory) {
+  const { release_window: releaseWindow } = evidence;
+  const activation = readBundledJsonArtifact(evidenceDirectory, releaseWindow.activation_artifact, 'activation release artifact');
+  const compatibility = readBundledJsonArtifact(evidenceDirectory, releaseWindow.compatibility_artifact, 'compatibility release artifact');
+  if (!hasExactKeys(activation.parsed, ['release_id', 'release_sha', 'published_at'])) {
+    throw new Error('activation release artifact has unknown or missing fields');
+  }
+  if (!hasExactKeys(compatibility.parsed, ['release_id', 'release_sha', 'predecessor_sha', 'published_at'])) {
+    throw new Error('compatibility release artifact has unknown or missing fields');
+  }
+  if (
+    activation.parsed.release_id !== releaseWindow.activation_release ||
+    compatibility.parsed.release_id !== releaseWindow.compatibility_release
+  ) {
+    throw new Error('release artifact identifiers do not match the evidence window');
+  }
+  if (activation.parsed.release_sha !== evidence.release_sha) {
+    throw new Error('activation release artifact does not match the observation release');
+  }
+  if (
+    !/^[a-f0-9]{40}$/.test(compatibility.parsed.release_sha || '') ||
+    compatibility.parsed.release_sha === activation.parsed.release_sha
+  ) {
+    throw new Error('compatibility release artifact must identify a distinct full Git SHA');
+  }
+  if (compatibility.parsed.predecessor_sha !== activation.parsed.release_sha) {
+    throw new Error('compatibility release artifact predecessor does not match activation');
+  }
+  for (const [label, publishedAt] of [
+    ['activation', activation.parsed.published_at],
+    ['compatibility', compatibility.parsed.published_at],
+  ]) {
+    if (!isCanonicalUtcInstant(publishedAt) || publishedAt < releaseWindow.opened_at || publishedAt > releaseWindow.closed_at) {
+      throw new Error(`${label} release artifact published_at is outside the release window`);
+    }
+  }
+  if (compatibility.parsed.published_at <= activation.parsed.published_at) {
+    throw new Error('compatibility release artifact must follow activation');
+  }
+  if (activation.sha256 === compatibility.sha256) throw new Error('release artifacts must have distinct content');
+}
+
+function revalidatePinnedBundle(evidence, evidenceDirectory, projectDirectory, asOf) {
+  if (typeof projectDirectory !== 'string' || !path.isAbsolute(projectDirectory)) {
+    throw new Error('projectDirectory is required for Git-pinned downstream revalidation');
+  }
+  const stagingRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-downstream-revalidate-'));
+  fs.chmodSync(stagingRoot, 0o700);
+  try {
+    const { collectCompatibilityInventory } = require('./compatibility-evidence-inventory');
+    const inventoryManifestPath = artifactAbsolutePath(evidenceDirectory, evidence.inventory_collection_manifest_artifact);
+    const collected = collectCompatibilityInventory({
+      manifestPath: inventoryManifestPath,
+      projectDirectory,
+      outputDirectory: path.join(stagingRoot, 'inventory'),
+      asOf,
+    });
+    if (collected.collection_manifest_sha256 !== evidence.inventory_collection_manifest_artifact.sha256) {
+      throw new Error('re-collected inventory manifest digest differs from the bundle');
+    }
+    const expectedWindow = {
+      activation_release: evidence.release_window.activation_release,
+      compatibility_release: evidence.release_window.compatibility_release,
+      opened_at: evidence.release_window.opened_at,
+      closed_at: evidence.release_window.closed_at,
+    };
+    if (JSON.stringify(collected.release_window) !== JSON.stringify(expectedWindow)) {
+      throw new Error('re-collected inventory release window differs from the bundle');
+    }
+    if (sha256File(collected.consumer_registry.source_path) !== evidence.consumer_registry_artifact.sha256) {
+      throw new Error('re-collected consumer registry differs from the bundle');
+    }
+    for (const surface of evidence.surfaces) {
+      const recollected = collected.surfaces.find((candidate) => candidate.surface_id === surface.surface_id);
+      if (!recollected || sha256File(recollected.inventory.source_path) !== surface.inventory_artifact.sha256) {
+        throw new Error(`re-collected ${surface.surface_id} inventory differs from the bundle`);
+      }
+      const inventory = JSON.parse(fs.readFileSync(recollected.inventory.source_path, 'utf8'));
+      const legacyConsumers = inventory.consumers.filter((consumer) => consumer.disposition === 'legacy').length;
+      const migratedConsumers = inventory.consumers.filter((consumer) => consumer.disposition === 'migrated').length;
+      if (
+        surface.legacy_consumers !== legacyConsumers ||
+        surface.migrated_consumers !== migratedConsumers ||
+        surface.inventory_observed_at !== inventory.observed_at
+      ) {
+        throw new Error(`re-collected ${surface.surface_id} summary differs from the bundle`);
+      }
+      const expectedAttestations = new Map(
+        surface.attestations.map((item) => [item.consumer_id_sha256, { sha256: item.artifact.sha256, observed_at: item.observed_at }]),
+      );
+      const observedAttestations = new Map(
+        recollected.attestations.map((item) => {
+          const attestation = JSON.parse(fs.readFileSync(item.source_path, 'utf8'));
+          return [item.consumer_id_sha256, { sha256: sha256File(item.source_path), observed_at: attestation.observed_at }];
+        }),
+      );
+      if (JSON.stringify([...expectedAttestations.entries()].sort()) !== JSON.stringify([...observedAttestations.entries()].sort())) {
+        throw new Error(`re-collected ${surface.surface_id} attestations differ from the bundle`);
+      }
+    }
+    return true;
+  } finally {
+    fs.rmSync(stagingRoot, { recursive: true, force: true });
+  }
+}
+
+function readDownstreamCompatibilityEvidence(
+  evidencePath,
+  { asOf = new Date(), observationScope, revalidateGit = false, projectDirectory } = {},
+) {
   if (!fs.existsSync(evidencePath)) {
     return Object.freeze({
       ready: false,
@@ -176,6 +298,8 @@ function readDownstreamCompatibilityEvidence(evidencePath, { asOf = new Date(), 
         'cutover_authorized',
         'release_sha',
         'configuration_sha256',
+        'inventory_collection_manifest_artifact',
+        'consumer_registry_artifact',
         'release_window',
         'surfaces',
       ])
@@ -192,6 +316,14 @@ function readDownstreamCompatibilityEvidence(evidencePath, { asOf = new Date(), 
       errors.push('release_sha differs from observation scope');
     if (observationScope?.valid && evidence.configuration_sha256 !== observationScope.configuration_sha256) {
       errors.push('configuration_sha256 differs from observation scope');
+    }
+    try {
+      verifiedArtifacts.push(
+        verifyDownstreamArtifact(evidence.inventory_collection_manifest_artifact, evidenceDirectory, 'inventory collection manifest'),
+        verifyDownstreamArtifact(evidence.consumer_registry_artifact, evidenceDirectory, 'consumer registry'),
+      );
+    } catch (error) {
+      errors.push(error.message);
     }
 
     const releaseWindow = evidence.release_window;
@@ -228,6 +360,11 @@ function readDownstreamCompatibilityEvidence(evidencePath, { asOf = new Date(), 
         } catch (error) {
           errors.push(error.message);
         }
+      }
+      try {
+        validateBundledReleaseArtifacts(evidence, evidenceDirectory);
+      } catch (error) {
+        errors.push(error.message);
       }
     } else {
       errors.push('release_window has unknown or missing fields');
@@ -307,11 +444,21 @@ function readDownstreamCompatibilityEvidence(evidencePath, { asOf = new Date(), 
         }
       }
     }
+    let localGitRevalidated = false;
+    if (revalidateGit) {
+      try {
+        localGitRevalidated = revalidatePinnedBundle(evidence, evidenceDirectory, projectDirectory, asOf);
+      } catch (error) {
+        errors.push(`Git-pinned bundle revalidation failed: ${error.message}`);
+      }
+    }
     return Object.freeze({
       ready: errors.length === 0,
       evidence_only: true,
       human_verification_required: true,
       cutover_authorized: false,
+      local_git_revalidated: localGitRevalidated,
+      remote_reachability_verified: false,
       path: evidencePath,
       sha256,
       errors,
@@ -488,7 +635,12 @@ async function auditCompatibility({ repositoryRoot, projectDirectory = repositor
   const resolvedDownstreamEvidence = path.resolve(downstreamEvidencePath || path.join(stateDirectory, DOWNSTREAM_EVIDENCE_FILENAME));
   const callers = scanInternalCompatibilityCallers(resolvedRoot);
   const observationScope = readObservationScopeForAudit(observationManifest, operationalDatabase, telemetryDatabase);
-  const downstream = readDownstreamCompatibilityEvidence(resolvedDownstreamEvidence, { asOf, observationScope });
+  const downstream = readDownstreamCompatibilityEvidence(resolvedDownstreamEvidence, {
+    asOf,
+    observationScope,
+    revalidateGit: true,
+    projectDirectory: resolvedProject,
+  });
 
   let telemetry;
   if (fs.existsSync(telemetryDatabase)) {

@@ -2,28 +2,29 @@
 
 const path = require('node:path');
 
-const { packCompatibilityEvidence } = require('../../lib/compatibility-evidence-pack');
+const { collectCompatibilityInventory } = require('../../lib/compatibility-evidence-inventory');
 
 function render(report) {
   return [
-    `Downstream evidence bundle: ${report.status}`,
+    `Downstream inventory: ${report.status}`,
     `  output: ${report.output_directory}`,
-    `  artifacts: ${report.artifact_count}`,
-    `  available for human verification: ${report.ready_for_human_verification ? 'yes' : 'no'}`,
+    ...report.surfaces.map(
+      (surface) => `  ${surface.surface_id}: ${surface.legacy_consumers} legacy, ${surface.migrated_consumers} migrated`,
+    ),
+    '  final evidence ready: no (release artifacts still required)',
     '  activation authorized: no',
   ].join('\n');
 }
 
 module.exports = {
-  command: 'compatibility-evidence-pack',
-  description: 'Re-collect Git-pinned downstream evidence and package it without touching operational state.',
+  command: 'compatibility-evidence-inventory',
+  description: 'Collect Git-pinned downstream compatibility inventories without network or operational state writes.',
   options: [
-    ['--manifest <absolute-path>', 'Canonical packaging manifest referencing the Git-pinned collector manifest'],
+    ['--manifest <absolute-path>', 'Canonical downstream Git inventory manifest'],
     ['--directory <absolute-path>', 'Project containing the canonical G9 observation manifest'],
-    ['--output-directory <absolute-path>', 'New private directory for the immutable evidence bundle'],
-    ['--as-of <timestamp>', 'UTC packaging cutoff (default: now)'],
-    ['--json', 'Output the machine-readable packaging result'],
-    ['--require-ready', 'Exit non-zero when legacy consumers remain'],
+    ['--output-directory <absolute-path>', 'New private directory for immutable inventory artifacts'],
+    ['--as-of <timestamp>', 'UTC collection cutoff (default: now)'],
+    ['--json', 'Output the machine-readable inventory result'],
   ],
   async action(options = {}) {
     for (const [option, value] of [
@@ -36,14 +37,13 @@ module.exports = {
     }
     const asOf = options.asOf ? new Date(options.asOf) : new Date();
     if (Number.isNaN(asOf.getTime())) throw new TypeError('--as-of must be a valid timestamp');
-    const report = packCompatibilityEvidence({
-      collectionManifestPath: options.manifest,
+    const report = collectCompatibilityInventory({
+      manifestPath: options.manifest,
       projectDirectory: options.directory,
       outputDirectory: options.outputDirectory,
       asOf,
     });
     console.log(options.json ? JSON.stringify(report, null, 2) : render(report));
-    if (options.requireReady && !report.ready_for_human_verification) process.exitCode = 2;
     return report;
   },
   render,
