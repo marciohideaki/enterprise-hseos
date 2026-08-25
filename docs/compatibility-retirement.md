@@ -106,6 +106,111 @@ HSEOS does not install or enable a recurring job through either observation comm
 private evidence directory, independently verifying the unit on the target host, installation,
 enablement, journal retention and rollback remain explicit operational deployment decisions.
 
+## Downstream evidence packaging
+
+Package externally collected release, inventory and consumer artifacts without manually writing
+the audit envelope:
+
+```sh
+node tools/cli/hseos-cli.js compatibility-evidence-pack \
+  --manifest /absolute/private/collection.json \
+  --directory /absolute/project \
+  --output-directory /absolute/private/new-bundle \
+  --require-ready
+```
+
+The command requires the complete canonical observation manifest under the selected project's
+`.hseos/state`, plus an absent output directory beneath an existing private parent outside that
+state directory. It reads every
+source through a stable non-linked descriptor, copies source bytes with mode `0600`, derives
+consumer counts from the two inventory artifacts, and publishes the evidence envelope last. It
+never writes under `.hseos/state`, changes a source artifact, invents a consumer, or grants cutover.
+The release SHA and configuration digest come from the observation manifest rather than from the
+collection request. `--require-ready` returns status 2 when a truthful inventory still contains a
+legacy consumer.
+
+The canonical collection manifest has the following strict shape. Both required surfaces must be
+present exactly once. Release artifacts, inventories and consumer attestations are canonical JSON.
+
+```json
+{
+  "schema_version": 1,
+  "evidence_only": true,
+  "cutover_authorized": false,
+  "release_window": {
+    "activation_release": "R",
+    "compatibility_release": "R+1",
+    "opened_at": "2026-07-01T00:00:00.000Z",
+    "closed_at": "2026-08-20T23:59:59.000Z",
+    "activation_artifact": {
+      "source_path": "/absolute/private/release-r.json",
+      "media_type": "application/json"
+    },
+    "compatibility_artifact": {
+      "source_path": "/absolute/private/release-r-plus-1.json",
+      "media_type": "application/json"
+    }
+  },
+  "surfaces": [
+    {
+      "surface_id": "installer-v4-detection",
+      "inventory": {
+        "source_path": "/absolute/private/installer-v4-inventory.json",
+        "media_type": "application/json"
+      },
+      "attestations": []
+    },
+    {
+      "surface_id": "plugin-catalog-v1",
+      "inventory": {
+        "source_path": "/absolute/private/plugin-v1-inventory.json",
+        "media_type": "application/json"
+      },
+      "attestations": [
+        {
+          "consumer_id_sha256": "<64 lowercase hexadecimal characters>",
+          "source_path": "/absolute/private/plugin-consumer.json"
+        }
+      ]
+    }
+  ]
+}
+```
+
+An inventory artifact declares `schema_version`, `surface_id`, `observed_at`, and a bounded
+`consumers` array. A legacy item has only `consumer_id_sha256` plus `disposition: "legacy"`. A
+migrated item additionally declares `observed_at` and the SHA-256 of its attestation:
+
+```json
+{
+  "schema_version": 1,
+  "surface_id": "plugin-catalog-v1",
+  "observed_at": "2026-08-20T12:00:00.000Z",
+  "consumers": [
+    {
+      "consumer_id_sha256": "<64 lowercase hexadecimal characters>",
+      "disposition": "migrated",
+      "observed_at": "2026-08-20T12:00:00.000Z",
+      "attestation_sha256": "<SHA-256 of the canonical attestation JSON>"
+    }
+  ]
+}
+```
+
+Each attestation must repeat the surface, hashed consumer identity, observation instant and exact
+R/R+1 identifiers, and must set `migration_verified: true`. The packer cross-checks all of those
+facts and requires an exact one-to-one mapping between migrated inventory entries and source
+attestations. A consumer observation cannot be newer than the inventory, source files cannot be
+reused across evidence roles, and the R/R+1 artifacts must have distinct bytes. The resulting
+hashes remain review anchors: a human must still verify the external meaning of the supplied
+artifacts.
+
+Packaging currently fails closed on Windows until equivalent ACL privacy validation exists. On
+POSIX, the observation manifest, collection manifest and every source artifact must not be
+group/world-writable; the private output parent and SHA-addressed observation release directory
+must have no group/other access. The release's `RELEASE_SHA` marker is read through the same stable
+file boundary and must match the observation manifest.
+
 ## Read-only audit
 
 Run:

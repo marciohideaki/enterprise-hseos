@@ -26,6 +26,7 @@
 - **A10–A11 live lifecycle boundary:** one-turn `run` is proven and is now the only public lifecycle advertised by the direct Codex profile; raw app-server does not persist a pre-turn rollout, so `create-only`, cross-process resume and post-process cancel fail closed
 - **A13 DeepSeek public profile:** the hash-bound tool-free ACP composition is exposed as an honest sandbox-required `run`-only candidate; deterministic create+prompt persists terminal truth while unsupported lifecycle actions fail closed
 - **A13 remaining gates:** 30 complete G9 zero-use days; final stable audit; explicit human cutover authorization
+- **A13 downstream preparation:** a strict local packer can now derive and publish the G9 plugin/installer evidence bundle from real R/R+1 inventories and attestations without touching operational state; no real bundle or activation was produced
 - **A12 integration:** human-authorized local merge `6f69386`; no push, migration or activation performed
 - **A12 worktree:** removed after integration; task commit `6c40e52`
 - **A11 integration:** human-authorized local merge `cf80117`; no push or activation performed
