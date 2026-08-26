@@ -1,8 +1,11 @@
 # A13 / G9 Downstream Discovery Checkpoint
 
-**Artifact type:** Governed goal checkpoint  
-**Scope:** A13 dependency evidence for the real G9 downstream R/R+1 bundle  
-**Status:** Candidate consumer set discovered; activation evidence remains incomplete  
+**Artifact type:** Governed goal checkpoint
+
+**Scope:** A13 dependency evidence for the real G9 downstream R/R+1 bundle
+
+**Status:** Candidate consumer set discovered; activation evidence remains incomplete
+
 **Governing documents:** Enterprise Constitution; ADR-0016; ADR-0022; ADR-0024; automated-validation policy
 
 The resumed A13 goal revalidated G9 without activating any provider, protocol or schema. The live

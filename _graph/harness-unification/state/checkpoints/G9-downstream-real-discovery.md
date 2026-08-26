@@ -1,9 +1,13 @@
 # G9 Real Downstream Discovery Checkpoint
 
-**Artifact type:** Governed goal checkpoint  
-**Scope:** Local, Git-pinned discovery of candidate HSEOS downstream compatibility consumers  
-**Status:** Discovery complete; canonical registry, release bundle and cutover remain blocked  
-**Governing documents:** Enterprise Constitution; ADR-0016; ADR-0022; ADR-0023; ADR-0024; automated-validation policy  
+**Artifact type:** Governed goal checkpoint
+
+**Scope:** Local, Git-pinned discovery of candidate HSEOS downstream compatibility consumers
+
+**Status:** Discovery complete; canonical registry, release bundle and cutover remain blocked
+
+**Governing documents:** Enterprise Constitution; ADR-0016; ADR-0022; ADR-0023; ADR-0024; automated-validation policy
+
 **Authority:** Read-only local discovery and reviewable evidence only; no remote access, release mutation, deployment, migration or cutover
 
 ## Outcome
