@@ -72,7 +72,9 @@ release decisions and were not performed.
 
 ## Next authorized boundary
 
-Source-only preparation may continue by validating this candidate and producing migration plans
-for the three legacy consumers. Stop before changing any consumer repository, remote configuration,
-observation snapshot, systemd unit, operational file mode, downstream release artifact or cutover
-state without the corresponding explicit authority.
+Source-only preparation found that the three strict-classifier `legacy` candidates are state-only
+layouts, not proven v4 installations; the disposition and evidence are recorded in
+`G9-downstream-migration-preparation.md`. Their owners must confirm whether each repository is an
+installer-surface consumer before any registry promotion or migration. Stop before changing any
+consumer repository, remote configuration, observation snapshot, systemd unit, operational file
+mode, downstream release artifact or cutover state without the corresponding explicit authority.

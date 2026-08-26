@@ -15,3 +15,9 @@ The full evidence, claim classifications, exact commits and stop conditions are 
 registry in the monitor snapshot remains `pending`, while the observed release lacks that blob;
 organization-wide completeness, remote reachability, consumer migrations, a new release-bound
 registry, the final stable audit and explicit human cutover are still required.
+
+Follow-up source-only inspection is recorded in
+`../../../harness-unification/state/checkpoints/G9-downstream-migration-preparation.md`: the three
+legacy-classified candidates contain tracked run/state artifacts but no `_cfg` or `_config` in
+locally available history. They are not proven v4 installations, so owner confirmation of actual
+installer-surface membership must precede any migration or complete-registry claim.
