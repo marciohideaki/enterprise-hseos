@@ -12,7 +12,7 @@
 - **Architectural gate:** satisfied; implementation remains bounded by the A1–A13 graph
 - **Validation:** real no-network Unix-broker profile and cross-process state promotion pass on `ai-jail`/`bwrap`; live Codex and Claude delegated smokes passed; sandbox `7/7`; A13 supervisor `6/6`; broker/snapshot `6/6`; DeepSeek public profile `6/6`; bound kernel `6/6`; reference `8/8`; model providers `16/16`; capability packaging `112/112`
 - **Evidence:** `state/checkpoints/A0-foundation-readiness.md`; `state/checkpoints/A0-completion.md`; `state/checkpoints/A1-contracts.md`; `state/checkpoints/A6-agent-runtime.md`; `state/checkpoints/A7-compaction-checkpoints.md`; `state/checkpoints/A8-subagents-workflows.md`; `state/checkpoints/A9-runtime-provider-acp.md`; `state/checkpoints/A10-hosted-runtime-adapters.md`
-- **Next reversible action:** collect complete zero-use G9 days while continuing read-only observation and prepare the final stable audit
+- **Next reversible action:** collect complete zero-use G9 days while preparing migration evidence for the three observed legacy downstream installer consumers; keep the final stable audit and operational release changes gated
 - **A13 rehearsal:** real schema-v4 state rehearsed through a verified WAL snapshot; v7 migration, v4 rollback, legacy-table preservation, source immutability and candidate provider contract passed
 - **A13 provider binding:** strict YAML binding, immutable registry snapshot, late pluggable secret resolution and sandbox-gated optional probe implemented; structural validation performs no secret/network access
 - **A13 bound kernel:** common temporary assembly now drives both the scripted reference and an immutable OpenAI-compatible binding; run/resume/cancel, governed tool effects, durable sandbox evidence and provider substitution pass against fake endpoints
@@ -29,7 +29,7 @@
 - **A10–A11 live lifecycle boundary:** one-turn `run` is proven and is now the only public lifecycle advertised by the direct Codex profile; raw app-server does not persist a pre-turn rollout, so `create-only`, cross-process resume and post-process cancel fail closed
 - **A13 DeepSeek public profile:** the hash-bound tool-free ACP composition is exposed as an honest sandbox-required `run`-only candidate; deterministic create+prompt persists terminal truth while unsupported lifecycle actions fail closed
 - **A13 remaining gates:** 30 complete G9 zero-use days; final stable audit; explicit human cutover authorization
-- **A13 downstream preparation:** a strict local packer can now derive and publish the G9 plugin/installer evidence bundle from real R/R+1 inventories and attestations without touching operational state; no real bundle or activation was produced
+- **A13 downstream preparation:** a strict local packer can derive the G9 plugin/installer evidence bundle; local Git discovery now identifies four candidate installer consumers (three legacy, one migrated) and no local plugin-v1 consumer, but the monitor snapshot registry remains pending, the observed release lacks the registry blob, and no real bundle or activation was produced
 - **A12 integration:** human-authorized local merge `6f69386`; no push, migration or activation performed
 - **A12 worktree:** removed after integration; task commit `6c40e52`
 - **A11 integration:** human-authorized local merge `cf80117`; no push or activation performed

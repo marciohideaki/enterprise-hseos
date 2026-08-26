@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "scope": "hseos-downstream-compatibility",
+  "completeness_status": "pending",
+  "consumers": [
+    {
+      "repository_remote": "https://github.com/marciohideaki/ai-agents-os.git",
+      "commit_sha": "ba3e4c14a4d5e23eee8ab076a18572a8555d2459",
+      "surfaces": [
+        {
+          "surface_id": "installer-v4-detection",
+          "evidence_path": ".hseos"
+        }
+      ]
+    },
+    {
+      "repository_remote": "https://github.com/HideakiSolutions/events-platform.git",
+      "commit_sha": "969856996b6bb0b9b0f78f474e77d571ba5a62ed",
+      "surfaces": [
+        {
+          "surface_id": "installer-v4-detection",
+          "evidence_path": ".hseos"
+        }
+      ]
+    },
+    {
+      "repository_remote": "https://github.com/HideakiSolutions/intent-os.git",
+      "commit_sha": "3e9b4e3542be77f49a0e6b646283fc4503b6dc84",
+      "surfaces": [
+        {
+          "surface_id": "installer-v4-detection",
+          "evidence_path": ".hseos"
+        }
+      ]
+    },
+    {
+      "repository_remote": "https://github.com/HideakiSolutions/platform-gitops.git",
+      "commit_sha": "c542df4f6062298ddf589c52d1d003ac65db22ab",
+      "surfaces": [
+        {
+          "surface_id": "installer-v4-detection",
+          "evidence_path": ".hseos"
+        }
+      ]
+    }
+  ]
+}
