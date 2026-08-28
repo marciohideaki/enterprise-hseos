@@ -1,6 +1,9 @@
-version: 1
+version: 2
+schema_version: "2.0"
 workflows:
   - id: delivery-readiness
+    kind: executable
+    execution_mode: sequential
     name: Delivery Readiness
     owner: ORBIT
     entrypoint: ".hseos/workflows/delivery-readiness/workflow.md"
@@ -99,6 +102,8 @@ workflows:
         prepare: "Install kubectl or ensure deployment is performed through a supported control plane."
 
   - id: epic-delivery
+    kind: executable
+    execution_mode: sequential
     name: Epic Delivery
     owner: ORBIT
     entrypoint: ".hseos/workflows/epic-delivery/workflow.md"
@@ -164,7 +169,7 @@ workflows:
         agent: KUBE
         outputs:
           - "platform-gitops manifests updated with new image tag"
-          - "PR created and merged"
+          - "PR opened; explicit human approval and governed merge evidence recorded"
           - "ArgoCD Application synced"
           - "Deployment revision evidence recorded for SABLE handoff"
       - id: runtime
@@ -209,6 +214,8 @@ workflows:
         prepare: "Define build, lint, and test scripts or declare equivalent commands in workflow configuration."
 
   - id: release-publish
+    kind: executable
+    execution_mode: sequential
     name: Release Publish
     owner: FORGE
     entrypoint: ".hseos/workflows/release-publish/workflow.md"
@@ -263,6 +270,8 @@ workflows:
         prepare: "Define CI-backed publication before adopting release automation broadly."
 
   - id: kube-deploy
+    kind: executable
+    execution_mode: sequential
     name: Kube Deploy
     owner: KUBE
     entrypoint: ".hseos/workflows/kube-deploy/workflow.md"
@@ -348,6 +357,8 @@ workflows:
         prepare: "Install ArgoCD CLI for Application status monitoring (optional — kubectl can be used instead)."
 
   - id: runtime-deploy
+    kind: executable
+    execution_mode: sequential
     name: Runtime Deploy
     owner: SABLE
     entrypoint: ".hseos/workflows/runtime-deploy/workflow.md"
@@ -403,6 +414,8 @@ workflows:
         prepare: "Provide runtime validation assets such as smoke endpoints or browser regression tests."
 
   - id: dev-squad
+    kind: executable
+    execution_mode: sequential
     name: Dev Squad (Parallel Batch)
     owner: SWARM
     entrypoint: ".hseos/workflows/dev-squad/workflow.md"
@@ -498,6 +511,7 @@ workflows:
         prepare: "Install GitHub CLI to draft and open the wave PR."
 
   - id: state-tracking
+    kind: subsystem
     name: Agent State Tracking
     owner: SWARM
     entrypoint: ".hseos/workflows/state-tracking/workflow.md"
@@ -539,6 +553,8 @@ workflows:
         registry: "~/.hseos/projects.json"
 
   - id: ado-ops
+    kind: executable
+    execution_mode: sequential
     name: ADO-Ops Lifecycle
     owner: ATLAS
     entrypoint: ".hseos/workflows/ado-ops/workflow.md"
@@ -598,8 +614,8 @@ workflows:
         var: "ADO_PAT"
         prepare: "Export ADO_PAT=<your-personal-access-token>"
       - id: ado-doctor
-        kind: command_exists
+        kind: path_exists
         required: false
         profiles: [core, full]
-        command: "scripts/ado-doctor.sh"
+        path: "scripts/ado-doctor.sh"
         prepare: "Part of the ado-ops module — should exist after module install."

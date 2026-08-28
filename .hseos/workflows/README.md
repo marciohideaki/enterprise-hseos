@@ -2,13 +2,25 @@
 
 Workflow files define reusable delivery flows that coordinate one or more agents.
 
-Each workflow must declare:
+Registry entries use schema v2 and declare a `kind`:
+
+- `executable` entries have ordered phases, checks, and
+  `execution_mode: sequential`;
+- `subsystem` entries describe operational side-car surfaces and cannot be
+  initialized or advanced as workflows.
+
+Each executable workflow must declare:
+
 - intent and scope
 - prerequisites and predecessor artifacts
 - ordered phases
 - evidence required per phase
 - gates: hard-fail, clean-stop, warn
 - run-state location and resume rules
+
+The CLI and governance MCP server consume the same validated catalog. Unknown
+kinds, duplicate IDs, unsafe entrypoints, invalid dependencies, and ambiguous
+phase contracts fail closed.
 
 Use `hseos workflow list` to inspect registered workflows.
 Use `hseos workflow validate <workflow-id> --repo <path> --profile <core|release|runtime|full>` to check readiness.
