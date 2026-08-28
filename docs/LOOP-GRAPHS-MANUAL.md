@@ -14,20 +14,20 @@
 
 ## 2. Mapa de componentes (o que existe e onde)
 
-| Componente | Path | Papel |
-|---|---|---|
-| Skill `goal-graph` v1.1 | `.enterprise/governance/agent-skills/goal-graph/SKILL.md` (Tier 1) → `.agents/skills/goal-graph/` (compilado) | **Compilador**: objetivo → gap-map → DAG de loops → `GOAL-GRAPH.md` + `workflow.js` |
-| Skill `verifier` 1.0 | `.enterprise/governance/agent-skills/verifier/SKILL.md` | **Ratificador**: único papel que grava veredito terminal; determinístico primeiro; adversarial isolado senão |
-| Skill `hseos-goal-loop` | `.enterprise/governance/agent-skills/hseos-goal-loop/` | Loop sequencial (discover→contract→execute→verify), discovery axon-first |
-| dev-squad / SWARM | `.enterprise/governance/agent-skills/dev-squad/` + `.hseos/agents/swarm.agent.yaml` | Waves paralelas PR-driven (Commander Opus + Squad em worktrees), gates G1–G5 |
-| Runtime `Workflow` | harness (Claude Code Dynamic Workflows) | Executa `workflow.js`: `agent()`/`pipeline()`/`parallel()`, budget, resume, cap 16 concorrentes |
-| `loop-guard.sh` | `scripts/governance/loop-guard.sh` | Escopo imposto (diff ⊆ allow-list), budget de iterações, heartbeat + 3 alertas |
-| `anchor-guard.sh` | `scripts/governance/anchor-guard.sh` | Nenhum loop toca constituição/specs/policies/manifest/hooks — só `ANCHOR_OVERRIDE=1` humano |
-| `worktree-manager.sh` | `scripts/governance/worktree-manager.sh` | Isolamento por nó/loop: `create/validate/commit/merge/remove` (1 task = 1 branch `task/<id>`) |
-| Verificador determinístico (exemplo) | `scripts/governance/verify-doc-facts.sh` | Recomputa a verdade por contagem — padrão a imitar para novos domínios |
-| Layout de estado `_graph/` | `.enterprise/governance/agent-skills/goal-graph/templates/graph-state-layout.md` | Estado versionado por goal: events.jsonl (fonte) > SQLite (projeção) > markdown (render) |
-| Autonomy kit (N1) | `.enterprise/governance/autonomy/` | Carta, allow-list e Readiness Gate para loops autônomos governados |
-| Templates de prompt | vault `_prompts/18-22` | Anatomia de goal (ciclos, retomada, carta prompt-pointer) |
+| Componente                           | Path                                                                                                          | Papel                                                                                                        |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Skill `goal-graph` v1.1              | `.enterprise/governance/agent-skills/goal-graph/SKILL.md` (Tier 1) → `.agents/skills/goal-graph/` (compilado) | **Compilador**: objetivo → gap-map → DAG de loops → `GOAL-GRAPH.md` + `workflow.js`                          |
+| Skill `verifier` 1.0                 | `.enterprise/governance/agent-skills/verifier/SKILL.md`                                                       | **Ratificador**: único papel que grava veredito terminal; determinístico primeiro; adversarial isolado senão |
+| Skill `hseos-goal-loop`              | `.enterprise/governance/agent-skills/hseos-goal-loop/`                                                        | Loop sequencial (discover→contract→execute→verify), discovery axon-first                                     |
+| dev-squad / SWARM                    | `.enterprise/governance/agent-skills/dev-squad/` + `.hseos/agents/swarm.agent.yaml`                           | Waves paralelas PR-driven (Commander Opus + Squad em worktrees), gates G1–G5                                 |
+| Runtime `Workflow`                   | harness (Claude Code Dynamic Workflows)                                                                       | Executa `workflow.js`: `agent()`/`pipeline()`/`parallel()`, budget, resume, cap 16 concorrentes              |
+| `loop-guard.sh`                      | `scripts/governance/loop-guard.sh`                                                                            | Escopo imposto (diff ⊆ allow-list), budget de iterações, heartbeat + 3 alertas                               |
+| `anchor-guard.sh`                    | `scripts/governance/anchor-guard.sh`                                                                          | Nenhum loop toca constituição/specs/policies/manifest/hooks — só `ANCHOR_OVERRIDE=1` humano                  |
+| `worktree-manager.sh`                | `scripts/governance/worktree-manager.sh`                                                                      | Isolamento por nó/loop: `create/validate/commit/merge/remove` (1 task = 1 branch `task/<id>`)                |
+| Verificador determinístico (exemplo) | `scripts/governance/verify-doc-facts.sh`                                                                      | Recomputa a verdade por contagem — padrão a imitar para novos domínios                                       |
+| Layout de estado `_graph/`           | `.enterprise/governance/agent-skills/goal-graph/templates/graph-state-layout.md`                              | Estado versionado por goal: events.jsonl (fonte) > SQLite (projeção) > markdown (render)                     |
+| Autonomy kit (N1)                    | `.enterprise/governance/autonomy/`                                                                            | Carta, allow-list e Readiness Gate para loops autônomos governados                                           |
+| Templates de prompt                  | vault `_prompts/18-22`                                                                                        | Anatomia de goal (ciclos, retomada, carta prompt-pointer)                                                    |
 
 ## 3. Escolher a rota
 
@@ -52,7 +52,7 @@ Na sessão do projeto-alvo:
 /goal-graph <objetivo completo — prompt e/ou paths de spec>
 ```
 
-ou "monte o grafo de loops para: <objetivo>". Variantes úteis: *"só o gap-map primeiro"* (para no confronto) · *"compila mas não roda"* (para no artefato) · *"roda com +200k de budget"* (teto de tokens na execução).
+ou "monte o grafo de loops para: <objetivo>". Variantes úteis: _"só o gap-map primeiro"_ (para no confronto) · _"compila mas não roda"_ (para no artefato) · _"roda com +200k de budget"_ (teto de tokens na execução).
 
 ### 4.2 O que o sistema faz — fase Entender & Confrontar (goal-graph §1-bis)
 
@@ -129,21 +129,21 @@ Deploy · merge · push outward-facing · secrets/credenciais · migração de s
 
 ## 10. Troubleshooting (aprendido em execução real)
 
-| Sintoma | Causa | Ação |
-|---|---|---|
-| Exploração cara/sem pivots úteis | axon MCP down silencioso ou índice stale | health-gate: `axon status`, reindex (`axon index <path>`); pivots ruins → query em inglês + `pivot_files` |
-| Commit de iteração rejeitado: tipo inválido | validador não aceita tipo `loop` | usar `docs(pilot):` (tipos: feat/fix/docs/style/refactor/test/chore/ci/build/perf/revert) |
-| Commit bloqueado por teste "orphan skills" | skill nova sem capability-family | mapear em `.agents/capabilities/components.yaml` (o gate está certo) |
-| `hseos pr closeout` falha em PR task→feature | CI só dispara para master | merge direto `gh pr merge --merge`; closeout governado é feature→master |
-| Estado do loop aparece no commit da iteração | `worktree-manager commit` usa `git add -A` | comportamento aceito (bus auditável versionado); alternativa: gitignorar `.hseos/loops/` |
-| Run não aparece em `state-list`/kanban | heartbeat do loop-guard ≠ state store | exportar `HSEOS_CURRENT_RUN_ID=<run-id>` na sessão do loop |
-| Executor subagente idle sem relatório | encerrou sem enviar a SAÍDA | contrato deve exigir "envie a SAÍDA antes de encerrar"; orquestrador confere o disco (evidência > relato) |
-| Loop dinâmico nunca converge | dedupe contra confirmados, não contra vistos | dedupe vs `seen` — rejeitados não podem reaparecer |
-| `worktree-manager` "Worktree not found" | rodado de dentro do worktree | rodar sempre da RAIZ do repo |
+| Sintoma                                      | Causa                                        | Ação                                                                                                      |
+| -------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Exploração cara/sem pivots úteis             | axon MCP down silencioso ou índice stale     | health-gate: `axon status`, reindex (`axon index <path>`); pivots ruins → query em inglês + `pivot_files` |
+| Commit de iteração rejeitado: tipo inválido  | validador não aceita tipo `loop`             | usar `docs(pilot):` (tipos: feat/fix/docs/style/refactor/test/chore/ci/build/perf/revert)                 |
+| Commit bloqueado por teste "orphan skills"   | skill nova sem capability-family             | mapear em `.enterprise/governance/capabilities/components.yaml` (o gate está certo)                       |
+| `hseos pr closeout` falha em PR task→feature | CI só dispara para master                    | merge direto `gh pr merge --merge`; closeout governado é feature→master                                   |
+| Estado do loop aparece no commit da iteração | `worktree-manager commit` usa `git add -A`   | comportamento aceito (bus auditável versionado); alternativa: gitignorar `.hseos/loops/`                  |
+| Run não aparece em `state-list`/kanban       | heartbeat do loop-guard ≠ state store        | exportar `HSEOS_CURRENT_RUN_ID=<run-id>` na sessão do loop                                                |
+| Executor subagente idle sem relatório        | encerrou sem enviar a SAÍDA                  | contrato deve exigir "envie a SAÍDA antes de encerrar"; orquestrador confere o disco (evidência > relato) |
+| Loop dinâmico nunca converge                 | dedupe contra confirmados, não contra vistos | dedupe vs `seen` — rejeitados não podem reaparecer                                                        |
+| `worktree-manager` "Worktree not found"      | rodado de dentro do worktree                 | rodar sempre da RAIZ do repo                                                                              |
 
 ## 11. Exemplo completo (caso real: o piloto N1)
 
-Objetivo: *"reconciliar a documentação factualmente incorreta do enterprise-hseos com a realidade do repo"*. Carta + allow-list doc-only + budget 8 → worktree `task/pilot-n1` → baseline REPROVADO (9 discrepâncias) → iterações: skills 46/49→52 · rollback testado de propósito · agents 14→15 · CHANGELOG criado · CAPABILITY-MATRIX reconciliada (com um REPROVADO real pego por amostragem: comando que não reproduzia o número) · sweep final (ADAPTER-GUIDE + ref morta) → verificador 4/4 PASS → PR #121 (humano) → merge (humano) → higiene. Heartbeat integral: `.hseos/loops/pilot-n1/heartbeat.jsonl`. Tags: `pilot-iter-1..5`.
+Objetivo: _"reconciliar a documentação factualmente incorreta do enterprise-hseos com a realidade do repo"_. Carta + allow-list doc-only + budget 8 → worktree `task/pilot-n1` → baseline REPROVADO (9 discrepâncias) → iterações: skills 46/49→52 · rollback testado de propósito · agents 14→15 · CHANGELOG criado · CAPABILITY-MATRIX reconciliada (com um REPROVADO real pego por amostragem: comando que não reproduzia o número) · sweep final (ADAPTER-GUIDE + ref morta) → verificador 4/4 PASS → PR #121 (humano) → merge (humano) → higiene. Heartbeat integral: `.hseos/loops/pilot-n1/heartbeat.jsonl`. Tags: `pilot-iter-1..5`.
 
 Para um objetivo de código (Rota A), o mesmo esqueleto com `workflow.js`: leitores → gap-map → G2 → fan-out de implementadores em worktrees → verificadores adversariais → merge node → PR humano.
 

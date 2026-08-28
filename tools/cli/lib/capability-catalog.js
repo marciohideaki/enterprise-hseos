@@ -3,7 +3,8 @@ const path = require('node:path');
 const yaml = require('yaml');
 const { getProjectRoot } = require('./project-root');
 
-const CAPABILITY_DIR = path.join('.agents', 'capabilities');
+const CANONICAL_CAPABILITY_DIR = path.join('.enterprise', 'governance', 'capabilities');
+const COMPILED_CAPABILITY_DIR = path.join('.agents', 'capabilities');
 const PROFILES_FILE = 'profiles.yaml';
 const COMPONENTS_FILE = 'components.yaml';
 const AGENT_MANIFEST = path.join('.agents', 'manifest.yaml');
@@ -213,9 +214,15 @@ function validateCapabilityDocuments(profileData, componentData) {
 }
 
 function capabilityPaths(root = getProjectRoot()) {
-  const base = path.join(root, CAPABILITY_DIR);
+  const canonicalBase = path.join(root, CANONICAL_CAPABILITY_DIR);
+  const compiledBase = path.join(root, COMPILED_CAPABILITY_DIR);
+  const canonicalComplete = [PROFILES_FILE, COMPONENTS_FILE].every((fileName) => fs.existsSync(path.join(canonicalBase, fileName)));
+  const base = canonicalComplete ? canonicalBase : compiledBase;
   return {
     base,
+    sourceKind: canonicalComplete ? 'canonical' : 'compiled-compatibility',
+    canonicalBase,
+    compiledBase,
     profiles: path.join(base, PROFILES_FILE),
     components: path.join(base, COMPONENTS_FILE),
     manifest: path.join(root, AGENT_MANIFEST),
@@ -294,6 +301,7 @@ function loadCapabilityCatalog(root = getProjectRoot()) {
   return {
     root,
     schemaVersion: CAPABILITY_SCHEMA_VERSION,
+    sourceKind: paths.sourceKind,
     paths,
     profiles: profileData.profiles || {},
     components,
