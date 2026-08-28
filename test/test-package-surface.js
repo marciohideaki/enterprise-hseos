@@ -26,6 +26,8 @@ test('published package exposes runtime and governance assets only', () => {
     '.agents/manifest.yaml',
     '.enterprise/.specs/constitution/Enterprise-Constitution.md',
     '.enterprise/governance/capabilities/profiles.yaml',
+    '.enterprise/governance/capabilities/surfaces.yaml',
+    '.agents/capabilities/surfaces.yaml',
     '.hseos/workflows/registry.yaml',
     'scripts/governance/quality-gates.sh',
     'packages/agent-runtime/index.js',

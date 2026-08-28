@@ -5,7 +5,7 @@ const fs = require('fs-extra');
 const yaml = require('yaml');
 
 const CANONICAL_CAPABILITIES_DIR = path.join('.enterprise', 'governance', 'capabilities');
-const REQUIRED_CAPABILITY_FILES = ['profiles.yaml', 'components.yaml'];
+const REQUIRED_CAPABILITY_FILES = ['profiles.yaml', 'components.yaml', 'surfaces.yaml'];
 
 function assertCapabilitySource(directory) {
   for (const fileName of REQUIRED_CAPABILITY_FILES) {
@@ -14,8 +14,9 @@ function assertCapabilitySource(directory) {
       throw new Error(`Capability catalog source is incomplete: missing ${filePath}`);
     }
     const document = yaml.parse(fs.readFileSync(filePath, 'utf8')) || {};
-    if (String(document.schema_version) !== '2.0') {
-      throw new Error(`Capability catalog source requires schema_version 2.0: ${filePath}`);
+    const expectedVersion = fileName === 'surfaces.yaml' ? '1.0' : '2.0';
+    if (String(document.schema_version) !== expectedVersion) {
+      throw new Error(`Capability catalog source requires schema_version ${expectedVersion}: ${filePath}`);
     }
   }
 }

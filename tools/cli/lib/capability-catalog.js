@@ -7,6 +7,7 @@ const CANONICAL_CAPABILITY_DIR = path.join('.enterprise', 'governance', 'capabil
 const COMPILED_CAPABILITY_DIR = path.join('.agents', 'capabilities');
 const PROFILES_FILE = 'profiles.yaml';
 const COMPONENTS_FILE = 'components.yaml';
+const SURFACES_FILE = 'surfaces.yaml';
 const AGENT_MANIFEST = path.join('.agents', 'manifest.yaml');
 const ADAPTERS_DIR = path.join('.agents', 'adapters');
 const CAPABILITY_SCHEMA_VERSION = '2.0';
@@ -25,6 +26,8 @@ const COMPONENT_KEYS = new Set([
   'skills',
   'install_paths',
 ]);
+const SURFACE_CLASSIFICATIONS = new Set(['core', 'module', 'sidecar', 'candidate', 'compatibility']);
+const SURFACE_DISPOSITIONS = new Set(['active', 'opt-in', 'pre-activation', 'retiring']);
 
 function uniq(values) {
   return [...new Set((values || []).map((value) => String(value).trim()).filter(Boolean))];
@@ -213,10 +216,95 @@ function validateCapabilityDocuments(profileData, componentData) {
   }
 }
 
+function validateSurfaceDocument(surfaceData, componentData) {
+  assertObject(surfaceData, 'surface lifecycle document');
+  assertExactKeys(
+    surfaceData,
+    new Set(['schema_version', 'classifications', 'dispositions', 'component_classes', 'standalone_surfaces']),
+    'surface lifecycle document',
+  );
+  if (String(surfaceData.schema_version) !== '1.0') {
+    throw new Error(`Unsupported surface lifecycle schema: ${surfaceData.schema_version || 'missing'} (expected 1.0)`);
+  }
+  assertStringList(surfaceData.classifications, 'surface classifications', { required: true });
+  assertStringList(surfaceData.dispositions, 'surface dispositions', { required: true });
+  if (
+    surfaceData.classifications.some((value) => !SURFACE_CLASSIFICATIONS.has(value)) ||
+    surfaceData.classifications.length !== SURFACE_CLASSIFICATIONS.size
+  ) {
+    throw new Error('Invalid surface lifecycle schema: classifications must declare the complete closed vocabulary');
+  }
+  if (
+    surfaceData.dispositions.some((value) => !SURFACE_DISPOSITIONS.has(value)) ||
+    surfaceData.dispositions.length !== SURFACE_DISPOSITIONS.size
+  ) {
+    throw new Error('Invalid surface lifecycle schema: dispositions must declare the complete closed vocabulary');
+  }
+  assertObject(surfaceData.component_classes, 'surface component_classes');
+  const componentIds = new Set(componentData.components.map((component) => component.id));
+  const classifiedIds = new Set(Object.keys(surfaceData.component_classes));
+  const missing = [...componentIds].filter((id) => !classifiedIds.has(id));
+  const unknown = [...classifiedIds].filter((id) => !componentIds.has(id));
+  if (missing.length > 0 || unknown.length > 0) {
+    throw new Error(
+      `Invalid surface lifecycle schema: component coverage mismatch (missing: ${missing.join(', ') || 'none'}; unknown: ${unknown.join(', ') || 'none'})`,
+    );
+  }
+  for (const [componentId, classification] of Object.entries(surfaceData.component_classes)) {
+    if (!SURFACE_CLASSIFICATIONS.has(classification)) {
+      throw new Error(`Invalid surface lifecycle schema: ${componentId} has unknown classification ${classification}`);
+    }
+  }
+  for (const requiredId of REQUIRED_BASELINE_IDS) {
+    if (surfaceData.component_classes[requiredId] !== 'core') {
+      throw new Error(`Invalid surface lifecycle schema: required baseline ${requiredId} must be core`);
+    }
+  }
+  if (!Array.isArray(surfaceData.standalone_surfaces)) {
+    throw new TypeError('Invalid surface lifecycle schema: standalone_surfaces must be a list');
+  }
+  const surfaceIds = new Set();
+  const surfacePaths = new Set();
+  for (const [index, surface] of surfaceData.standalone_surfaces.entries()) {
+    const label = `standalone_surfaces[${index}]`;
+    assertObject(surface, label);
+    assertExactKeys(surface, new Set(['id', 'classification', 'disposition', 'contract', 'paths']), label);
+    if (typeof surface.id !== 'string' || !/^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$/.test(surface.id) || surfaceIds.has(surface.id)) {
+      throw new Error(`Invalid surface lifecycle schema: ${label}.id is malformed or duplicated`);
+    }
+    surfaceIds.add(surface.id);
+    if (!SURFACE_CLASSIFICATIONS.has(surface.classification) || !SURFACE_DISPOSITIONS.has(surface.disposition)) {
+      throw new Error(`Invalid surface lifecycle schema: ${surface.id} has an invalid classification or disposition`);
+    }
+    if (!surface.id.startsWith(`${surface.classification}:`)) {
+      throw new Error(`Invalid surface lifecycle schema: ${surface.id} does not match its classification`);
+    }
+    const requiredDisposition = { sidecar: 'opt-in', candidate: 'pre-activation', compatibility: 'retiring' }[surface.classification];
+    if (requiredDisposition && surface.disposition !== requiredDisposition) {
+      throw new Error(`Invalid surface lifecycle schema: ${surface.id} must use disposition ${requiredDisposition}`);
+    }
+    if (typeof surface.contract !== 'string' || !surface.contract.trim()) {
+      throw new Error(`Invalid surface lifecycle schema: ${surface.id} requires a contract`);
+    }
+    assertStringList(surface.paths, `${surface.id}.paths`, { required: true });
+    for (const surfacePath of surface.paths) {
+      if (path.isAbsolute(surfacePath) || path.win32.isAbsolute(surfacePath) || surfacePath.split(/[\\/]/).includes('..')) {
+        throw new Error(`Invalid surface lifecycle schema: ${surface.id} has unsafe path ${surfacePath}`);
+      }
+      if (surfacePaths.has(surfacePath)) {
+        throw new Error(`Invalid surface lifecycle schema: path ${surfacePath} has multiple owners`);
+      }
+      surfacePaths.add(surfacePath);
+    }
+  }
+}
+
 function capabilityPaths(root = getProjectRoot()) {
   const canonicalBase = path.join(root, CANONICAL_CAPABILITY_DIR);
   const compiledBase = path.join(root, COMPILED_CAPABILITY_DIR);
-  const canonicalComplete = [PROFILES_FILE, COMPONENTS_FILE].every((fileName) => fs.existsSync(path.join(canonicalBase, fileName)));
+  const canonicalComplete = [PROFILES_FILE, COMPONENTS_FILE, SURFACES_FILE].every((fileName) =>
+    fs.existsSync(path.join(canonicalBase, fileName)),
+  );
   const base = canonicalComplete ? canonicalBase : compiledBase;
   return {
     base,
@@ -225,6 +313,7 @@ function capabilityPaths(root = getProjectRoot()) {
     compiledBase,
     profiles: path.join(base, PROFILES_FILE),
     components: path.join(base, COMPONENTS_FILE),
+    surfaces: path.join(base, SURFACES_FILE),
     manifest: path.join(root, AGENT_MANIFEST),
     adapters: path.join(root, ADAPTERS_DIR),
   };
@@ -281,11 +370,16 @@ function loadCapabilityCatalog(root = getProjectRoot()) {
   const paths = capabilityPaths(root);
   const profileData = readYaml(paths.profiles, {});
   const componentData = readYaml(paths.components, {});
+  const surfaceData = readYaml(paths.surfaces, {});
   validateCapabilityDocuments(profileData, componentData);
+  validateSurfaceDocument(surfaceData, componentData);
   const staticComponents = Array.isArray(componentData.components) ? componentData.components : [];
   const skillEntries = loadSkillEntries(root);
   const syntheticSkillComponents = buildSyntheticSkillComponents(root, skillEntries);
-  const components = [...staticComponents, ...syntheticSkillComponents];
+  const components = [
+    ...staticComponents.map((component) => ({ ...component, surface_class: surfaceData.component_classes[component.id] })),
+    ...syntheticSkillComponents.map((component) => ({ ...component, surface_class: 'module' })),
+  ];
   const skillIds = new Set(skillEntries.map((skill) => skill.id));
   const duplicateComponentIds = components.map((component) => component.id).filter((id, index, ids) => ids.indexOf(id) !== index);
   if (duplicateComponentIds.length > 0) {
@@ -307,6 +401,7 @@ function loadCapabilityCatalog(root = getProjectRoot()) {
     components,
     componentFamilies: componentData.component_families || [],
     hookProfiles: componentData.hook_profiles || {},
+    standaloneSurfaces: surfaceData.standalone_surfaces || [],
     skills: skillEntries,
   };
 }
@@ -395,6 +490,7 @@ function resolveCapabilityPlan(options = {}) {
       required: Boolean(component.required),
       synthetic: Boolean(component.synthetic),
       prerequisites: component.prerequisites || [],
+      surface_class: component.surface_class,
     })),
     modules,
     tools,
@@ -457,5 +553,6 @@ module.exports = {
   parseCsv,
   resolveCapabilityPlan,
   validateCapabilityDocuments,
+  validateSurfaceDocument,
   writeCapabilitySelection,
 };

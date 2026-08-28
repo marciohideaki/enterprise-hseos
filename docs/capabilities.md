@@ -2,7 +2,7 @@
 
 > Human-facing guide for ADR-0016 (Capability Packaging, Accepted 2026-07-08).
 > Technical reference: `.enterprise/governance/capabilities/README.md` · Catalog sources:
-> `.enterprise/governance/capabilities/{profiles,components}.yaml` · Compiled output:
+> `.enterprise/governance/capabilities/{profiles,components,surfaces}.yaml` · Compiled output:
 > `.agents/capabilities/` · Resolver: `tools/cli/lib/capability-catalog.js`.
 
 HSEOS installation is driven by an **auditable capability catalog** instead of a raw module list.
@@ -19,6 +19,13 @@ plan; `hseos install` materializes it. The governance baseline can never be dese
 | **Synthetic `skill:*` selectors** | Generated at runtime from the governed manifest — every governed skill is individually selectable via `--skills <id>`; authority stays in `.enterprise/`.                                                         |
 | **Hook profile**                  | Enforcement posture: `advisory` (warn-only) · `standard` (dev default) · `strict` (heavy local gates) · `ci` (required gates fail hard). Repository-mandatory gates are never disabled by a lighter profile.      |
 | **Prerequisites**                 | Declared per component in the catalog and rendered by `hseos install-plan`. Every optional component **degrades gracefully** when its prerequisite is unmet — installing without the prerequisite is always safe. |
+| **Surface class**                 | Closed classification: `core`, `module`, `sidecar`, `candidate`, or `compatibility`. Every component is covered exactly once.                                                                                     |
+
+`hseos install-plan` renders the surface class beside every selected component.
+The baseline and canonical state/control paths are `core`; selectable business
+capabilities and adapters are `module`; web dashboards are `sidecar` and may
+only read canonical state; activation rehearsals remain `candidate`; legacy
+transition code is `compatibility` and requires retirement evidence.
 
 ## Profiles
 

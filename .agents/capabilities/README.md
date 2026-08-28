@@ -18,6 +18,7 @@ defaults, or a changed mandatory baseline reject the catalog before planning.
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `profiles.yaml`                           | Operator-facing install profiles such as `minimal`, `developer`, `governance`, `gitops`, `ado`, `solo`, and `full` |
 | `components.yaml`                         | Capability components grouped by `baseline`, `runtime`, `capability`, `adapter`, and `skill`                       |
+| `surfaces.yaml`                           | Closed lifecycle classification for every component plus independently operated surfaces                           |
 | `.hseos/config/capability-selection.yaml` | Installed project record of the resolved capability plan                                                           |
 
 ## Naming
@@ -48,6 +49,24 @@ under `.agents/skills/`.
 
 Hook profiles are recorded as install intent. Mandatory repository gates remain
 governed by HSEOS policy and are not disabled by selecting a lighter profile.
+
+## Surface Lifecycle
+
+Every catalog component has exactly one class in `surfaces.yaml`:
+
+| Class           | Contract                                                             |
+| --------------- | -------------------------------------------------------------------- |
+| `core`          | Required for governance truth, execution control, or canonical state |
+| `module`        | Selectable capability installed in-process                           |
+| `sidecar`       | Separately operated process that cannot own canonical state          |
+| `candidate`     | Pre-activation surface that cannot imply production readiness        |
+| `compatibility` | Metered transition surface with explicit retirement evidence         |
+
+Standalone surfaces also declare `active`, `opt-in`, `pre-activation`, or
+`retiring`. Unknown classes, missing component coverage, unsafe paths, and any
+attempt to classify a required baseline outside `core` fail closed. Synthetic
+skill selectors inherit `module` because they package governed content without
+becoming runtime authority.
 
 ## Install Planning
 

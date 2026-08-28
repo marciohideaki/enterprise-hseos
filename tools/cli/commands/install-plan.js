@@ -19,7 +19,7 @@ function renderPlan(plan) {
       'Components',
       plan.components.map(
         (component) =>
-          `${component.id}${component.required ? ' [required]' : ''}${(component.prerequisites || []).length > 0 ? ' [has prerequisites]' : ''}`,
+          `${component.id} [${component.surface_class}]${component.required ? ' [required]' : ''}${(component.prerequisites || []).length > 0 ? ' [has prerequisites]' : ''}`,
       ),
     ),
     '',
@@ -62,7 +62,7 @@ function renderComponents(catalog, family) {
     '',
     ...components.map((component) => {
       const prereqs = (component.prerequisites || []).map((prerequisite) => `\n  prerequisite: ${prerequisite}`).join('');
-      return `- ${component.id} [${component.family}]\n  ${component.description || component.name || ''}${prereqs}`;
+      return `- ${component.id} [${component.family}; ${component.surface_class}]\n  ${component.description || component.name || ''}${prereqs}`;
     }),
   ].join('\n');
 }
