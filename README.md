@@ -509,9 +509,14 @@ hseos kanban                            # ASCII kanban in terminal
 A web side-car (port `:3200`) serves a real-time kanban board via HTTP + SSE:
 
 ```bash
-hseos state-ui                           # start kanban server at localhost:3200
-hseos state-ui --host 0.0.0.0           # LAN / Tailscale accessible
+hseos state-ui start                     # loopback kanban at localhost:3200
+export HSEOS_STATE_UI_TOKEN='replace-with-a-long-random-token'
+hseos state-ui start --auth-token-env HSEOS_STATE_UI_TOKEN
 ```
+
+Direct non-loopback HTTP is rejected. Remote browser access requires an
+authenticated TLS reverse proxy forwarding to the loopback side-car; the proxy
+can inject the configured bearer header.
 
 The `state-emit-hook.sh` shim is wired as a Claude Code `SessionStart` hook and auto-detects the active run from SQLite — no `HSEOS_CURRENT_RUN_ID` env required.
 
