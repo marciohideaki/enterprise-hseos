@@ -39,6 +39,7 @@
 | [ADR-0028](./ADR-0028-project-scoped-observability-sidecars.md)     | Project-Scoped Observability Side-Cars                                     | Accepted (2026-08-28)               | state UI, session tracking, central project registry                                  |
 | [ADR-0029](./ADR-0029-bounded-package-surface.md)                   | Bounded Package Surface                                                    | Accepted (2026-08-28)               | npm distribution, runtime assets, repository evidence                                 |
 | [ADR-0030](./ADR-0030-surface-lifecycle-contract.md)                | Surface Lifecycle Contract                                                 | Accepted (2026-08-28)               | capability catalog, install plans, module and sidecar boundaries                      |
+| [ADR-0031](./ADR-0031-v3-contract-migration-boundary.md)            | v3 Contract Migration Boundary                                             | Accepted (2026-08-28)               | package version, catalog compatibility, state and side-car migration                  |
 
 ---
 

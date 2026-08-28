@@ -262,13 +262,13 @@
       "codex_equivalent": "portable-handler-script"
     },
     {
-      "id": "sessionstart-all-session-track-register-machine-store",
+      "id": "sessionstart-all-session-track-register-project-store",
       "event": "SessionStart",
       "matcher": "*",
       "command": "bash .agents/hooks/handlers/session-track.sh",
       "blocking": false,
-      "description": "Always-on session tracking: register EVERY Claude session (hseos-launched or not) in as_sessions ($HOME machine store)",
-      "fallback": "No-op when hseos CLI or jq absent.",
+      "description": "Always-on session tracking: register each supported session in the active project's as_sessions store.",
+      "fallback": "No-op outside a project or when the project-local hseos CLI or jq is absent.",
       "codex_equivalent": "portable-handler-script"
     },
     {

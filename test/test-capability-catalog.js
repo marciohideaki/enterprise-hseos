@@ -18,6 +18,7 @@ const {
   validateSurfaceDocument,
 } = require('../tools/cli/lib/capability-catalog');
 const { AgentCoreCompiler } = require('../tools/cli/installers/lib/core/agent-core-compiler');
+const { syncCapabilityCatalog } = require('../tools/cli/installers/lib/core/agent-core-compiler/sources/capabilities-source');
 const installCommand = require('../tools/cli/commands/install');
 
 const REPO_ROOT = path.join(__dirname, '..');
@@ -303,10 +304,38 @@ async function testCanonicalCapabilitySourceAndCompatibility() {
     const canonicalCatalog = loadCapabilityCatalog(tempRoot);
     assertPass('catalog prefers the complete canonical source', canonicalCatalog.sourceKind === 'canonical');
 
+    const targetCanonical = path.join(tempRoot, '.enterprise', 'governance', 'capabilities');
+    await fs.remove(path.join(targetCanonical, 'surfaces.yaml'));
+    let incompleteCanonicalRejected = false;
+    try {
+      await syncCapabilityCatalog(tempRoot, tempRoot);
+    } catch (error) {
+      incompleteCanonicalRejected = /incomplete/.test(error.message);
+    }
+    assertPass('compiler never synthesizes missing lifecycle metadata for a canonical source', incompleteCanonicalRejected);
+    await fs.copyFile(path.join(canonical, 'surfaces.yaml'), path.join(targetCanonical, 'surfaces.yaml'));
+
     await fs.remove(path.join(tempRoot, '.enterprise'));
-    await fs.copy(canonical, path.join(tempRoot, '.agents', 'capabilities'), { overwrite: true });
+    for (const fileName of ['README.md', 'profiles.yaml', 'components.yaml']) {
+      await fs.copyFile(path.join(canonical, fileName), path.join(tempRoot, '.agents', 'capabilities', fileName));
+    }
+    await fs.remove(path.join(tempRoot, '.agents', 'capabilities', 'surfaces.yaml'));
     const compatibilityCatalog = loadCapabilityCatalog(tempRoot);
-    assertPass('catalog supports a compiled-only compatibility installation', compatibilityCatalog.sourceKind === 'compiled-compatibility');
+    assertPass(
+      'catalog supports a true legacy compiled-only installation without surfaces',
+      compatibilityCatalog.sourceKind === 'compiled-legacy-compatibility' &&
+        compatibilityCatalog.components
+          .filter((component) => !component.required && !component.synthetic)
+          .every((component) => component.surface_class === 'compatibility'),
+    );
+
+    const syncResult = await syncCapabilityCatalog(tempRoot, tempRoot);
+    assertPass(
+      'compiler upgrades a legacy generated catalog instead of returning early',
+      syncResult.mode === 'legacy-generated-source' && fs.existsSync(path.join(tempRoot, '.agents', 'capabilities', 'surfaces.yaml')),
+    );
+    const upgradedCatalog = loadCapabilityCatalog(tempRoot);
+    assertPass('upgraded compiled catalog passes the strict surface contract', upgradedCatalog.sourceKind === 'compiled-compatibility');
   } finally {
     await fs.remove(tempRoot);
   }

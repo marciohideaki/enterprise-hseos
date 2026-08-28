@@ -4,7 +4,7 @@
  * DAL level: in-memory DB, all migrations, exercises registerSession /
  * heartbeat / end / listSessions / sweepOrphanSessions.
  * CLI level: spawns `hseos state-session` against an isolated temp directory
- * (the machine-store default is overridden with --directory).
+ * (the project-store root is isolated with --directory).
  *
  * Skips cleanly if better-sqlite3 is not installed.
  */

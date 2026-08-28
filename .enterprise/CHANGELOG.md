@@ -1,5 +1,20 @@
 # CHANGELOG — HSEOS
 
+## [3.0.0] — 2026-08-28
+
+**Status:** Stable
+
+**Type:** Project isolation and contract hardening
+
+**Breaking change:** state and registry defaults are project-scoped, direct
+non-loopback state UI access is rejected, and canonical workflow/capability
+catalogs use the new explicit contracts. See
+[`docs/MIGRATION-GUIDE-v2-to-v3.md`](../docs/MIGRATION-GUIDE-v2-to-v3.md).
+
+Compatibility readers preserve version 1 workflow catalogs and compiled
+capability catalogs without surface metadata during the v3 migration window.
+The compiler upgrades those inputs to the strict current form.
+
 ## [2.0.0] — 2026-05-08
 
 **Status:** Stable  
@@ -10,20 +25,21 @@
 
 Migração completa de 10 waves para arquitetura standalone (ADR-0006):
 
-| Wave | Escopo | Entregável principal |
-|------|--------|----------------------|
-| W0 | Foundation | Estrutura base standalone, separação enterprise/hseos |
-| W1 | Decoupling | Remoção de dependências externas; autocontido |
-| W2 | Compiler v2 | `agent-core-compiler` modular: sources/, adapters/, lib/, manifest/ |
-| W3 | MCP Bundle | 3 MCP servers: hseos-governance :3101, hseos-swarm :3102, axon-bridge :3103 |
-| W4 | Hooks v2 | 8 handlers ativos: plan-lint, pre-compact, on-prompt-submit, session-end, suggest-skill, code-index-guard, code-index-post-edit, on-notification |
-| W5 | Plugins | 4 plugin defs + `plugins-source.js` + `plugins-emit.js`; CLI plugin list/install/remove/doctor; 22 testes |
-| W6 | Self-Verification | `verify/integrity.js` (sha256 chain), `verify/audit.js` (drift detection), `verify/doctor.js` (8 health checks); 12 testes |
-| W7 | Adapter SDK / BYOA | `packages/adapter-sdk/index.js` (AdapterBase + conformance checker), Goose adapter, discovery via `node_modules/@hseos/adapter-*`; 37 testes |
-| W8 | Docs + CI | README bilíngue, MIGRATION-GUIDE completo, CI matrix (Node 20.x + 22.x), release.yaml tag-triggered, smithery.yaml |
-| W9 | Release v2.0 | Version bump 1.1.0 → 2.0.0, esta entrada de CHANGELOG, tag `v2.0.0`, npm publish |
+| Wave | Escopo             | Entregável principal                                                                                                                             |
+| ---- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| W0   | Foundation         | Estrutura base standalone, separação enterprise/hseos                                                                                            |
+| W1   | Decoupling         | Remoção de dependências externas; autocontido                                                                                                    |
+| W2   | Compiler v2        | `agent-core-compiler` modular: sources/, adapters/, lib/, manifest/                                                                              |
+| W3   | MCP Bundle         | 3 MCP servers: hseos-governance :3101, hseos-swarm :3102, axon-bridge :3103                                                                      |
+| W4   | Hooks v2           | 8 handlers ativos: plan-lint, pre-compact, on-prompt-submit, session-end, suggest-skill, code-index-guard, code-index-post-edit, on-notification |
+| W5   | Plugins            | 4 plugin defs + `plugins-source.js` + `plugins-emit.js`; CLI plugin list/install/remove/doctor; 22 testes                                        |
+| W6   | Self-Verification  | `verify/integrity.js` (sha256 chain), `verify/audit.js` (drift detection), `verify/doctor.js` (8 health checks); 12 testes                       |
+| W7   | Adapter SDK / BYOA | `packages/adapter-sdk/index.js` (AdapterBase + conformance checker), Goose adapter, discovery via `node_modules/@hseos/adapter-*`; 37 testes     |
+| W8   | Docs + CI          | README bilíngue, MIGRATION-GUIDE completo, CI matrix (Node 20.x + 22.x), release.yaml tag-triggered, smithery.yaml                               |
+| W9   | Release v2.0       | Version bump 1.1.0 → 2.0.0, esta entrada de CHANGELOG, tag `v2.0.0`, npm publish                                                                 |
 
 ### Verificação
+
 ```bash
 npm test          # todos os testes devem passar
 npm info hseos version   # → 2.0.0 após publish
@@ -52,22 +68,26 @@ ensuring AI agents operate as **assistants**, never as autonomous decision-maker
 ## 🧱 What This Release Delivers
 
 ### Governance Foundations
+
 - Enterprise Constitution defining non-negotiable principles
 - Explicit separation between **specifications (external)** and **governance (internal)**
 - Mandatory ADR mechanism with enforced stop conditions
 
 ### Agent Control & Safety
+
 - Clear authority and constraint model for all agents
 - Standardized mandatory governance clauses
 - Conceptual Lint to validate agent semantic compliance
 - Protection against agent autonomy drift
 
 ### Process & Operational Clarity
+
 - Playbooks for onboarding, escalation, replay, and governance flows
 - Explicit operational modes, including Replay Mode
 - Exception handling with strict documentation and expiration rules
 
 ### Enforcement & Tooling
+
 - CI/CD governance gates validating structure and contracts
 - Bootstrap script for isolated, version-safe setup
 - Assisted Replay tooling for curated repository reconstruction
@@ -121,7 +141,7 @@ ensuring AI agents operate as **assistants**, never as autonomous decision-maker
 
 ## 🟢 Conclusion
 
-**Enterprise Overlay v1.0.0** marks the transition from *implicit trust* to
+**Enterprise Overlay v1.0.0** marks the transition from _implicit trust_ to
 **explicit, enforceable governance** in AI-assisted engineering environments.
 
 This version is considered **stable and production-ready**.

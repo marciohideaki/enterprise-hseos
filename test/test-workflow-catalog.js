@@ -5,7 +5,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 const yaml = require('yaml');
-const { loadWorkflowCatalog, validateWorkflowCatalogDocument } = require('../tools/cli/lib/workflow-catalog');
+const {
+  loadWorkflowCatalog,
+  normalizeWorkflowCatalogDocument,
+  validateWorkflowCatalogDocument,
+} = require('../tools/cli/lib/workflow-catalog');
 const { listWorkflows } = require('../tools/mcp-hseos-governance/lib/spec-reader');
 
 const REPO_ROOT = path.join(__dirname, '..');
@@ -50,11 +54,34 @@ test('workflow schema rejects invalid dependencies and executable fields on subs
   assert.throws(() => validateWorkflowCatalogDocument(executableSubsystem, REPO_ROOT), /cannot declare executable/);
 });
 
+test('workflow schema accepts and deterministically normalizes the bounded v1 catalog', () => {
+  const legacy = registryDocument();
+  legacy.version = 1;
+  delete legacy.schema_version;
+  for (const workflow of legacy.workflows) {
+    delete workflow.kind;
+    delete workflow.execution_mode;
+  }
+  const normalized = normalizeWorkflowCatalogDocument(legacy);
+  const workflows = validateWorkflowCatalogDocument(legacy, REPO_ROOT);
+  assert.equal(normalized.version, 2);
+  assert.equal(workflows.find((workflow) => workflow.id === 'state-tracking').kind, 'subsystem');
+  assert.ok(
+    workflows
+      .filter((workflow) => workflow.id !== 'state-tracking')
+      .every((workflow) => workflow.kind === 'executable' && workflow.execution_mode === 'sequential'),
+  );
+});
+
 test('MCP workflow discovery uses the parsed catalog and profile membership', () => {
   const all = listWorkflows();
   const runtime = listWorkflows('runtime');
+  const owner = listWorkflows('orbit');
+  const partialId = listWorkflows('delivery');
   assert.equal(all.total, 8);
   assert.ok(all.workflows.some((workflow) => workflow.id === 'state-tracking' && workflow.kind === 'subsystem'));
   assert.ok(runtime.workflows.every((workflow) => workflow.profiles.includes('runtime')));
   assert.ok(runtime.workflows.some((workflow) => workflow.id === 'runtime-deploy'));
+  assert.ok(owner.total > 0 && owner.workflows.every((workflow) => workflow.owner === 'ORBIT'));
+  assert.ok(partialId.total > 0 && partialId.workflows.every((workflow) => workflow.id.includes('delivery')));
 });
