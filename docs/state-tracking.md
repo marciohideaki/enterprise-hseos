@@ -10,12 +10,12 @@
 
 All state is stored in `.hseos/state/project.db` — a single SQLite file per project. The schema has four core tables:
 
-| Table | Description |
-|-------|-------------|
-| `as_runs` | Top-level agent runs (one per `dev-squad` or manual session) |
-| `as_agent_runs` | Individual agent executions within a run |
-| `as_tasks` | Tasks tracked inside an agent run |
-| `as_events` | Append-only event log (state transitions, hook events) |
+| Table           | Description                                                  |
+| --------------- | ------------------------------------------------------------ |
+| `as_runs`       | Top-level agent runs (one per `dev-squad` or manual session) |
+| `as_agent_runs` | Individual agent executions within a run                     |
+| `as_tasks`      | Tasks tracked inside an agent run                            |
+| `as_events`     | Append-only event log (state transitions, hook events)       |
 
 ---
 
@@ -64,10 +64,9 @@ hseos kanban --project my-project --branch feature/my-branch
 hseos state-ui start                         # http://localhost:3200
 hseos state-ui start --port 3201             # custom port
 
-# Non-loopback requires a bearer token from a named environment variable.
-# An authenticated reverse proxy can inject this header for browser clients.
+# Optional defense in depth for a loopback reverse proxy.
 export HSEOS_STATE_UI_TOKEN='replace-with-a-long-random-token'
-hseos state-ui start --host 0.0.0.0 --auth-token-env HSEOS_STATE_UI_TOKEN
+hseos state-ui start --auth-token-env HSEOS_STATE_UI_TOKEN
 
 # Central multi-project kanban
 hseos kanban-central register /path/to/project
@@ -89,8 +88,17 @@ The `state-ui` server serves a real-time kanban at `http://localhost:3200`:
 
 The server is a side-car: it requires an existing state database, opens SQLite
 read-only, and never owns migrations. Safe to run alongside active agent
-sessions. Every route requires the bearer token when authentication is
-configured.
+sessions. It binds only to loopback. Remote access must terminate TLS at an
+authenticated reverse proxy that forwards to loopback; the proxy can inject a
+bearer header configured through `--auth-token-env`. When authentication is
+configured, every data, asset, and SSE route requires the bearer token. The
+minimal `/health` route is intentionally unauthenticated and exposes only the
+server marker and managed-instance identifier.
+
+Lifecycle commands persist a project-scoped, owner-only instance record under
+`.hseos/state/`. `stop` signals only the recorded PID after verifying its owner,
+entrypoint, instance identifier, and health marker. A process is never selected
+for termination merely because it listens on the configured port.
 
 ---
 
@@ -115,15 +123,15 @@ export HSEOS_STATE_DB=/path/to/custom/project.db  # optional, defaults to .hseos
 
 The `hseos-swarm` MCP server exposes state tools to agents:
 
-| Tool | Description |
-|------|-------------|
-| `state_emit` | Emit a state event for a run |
-| `state_list` | List recent runs with filters |
-| `state_describe` | Get full detail for a run ID |
-| `state_advance` | Advance a run to the next phase |
-| `state_close` | Close an active run |
-| `run_claim` | Atomically claim an orphaned run |
-| `run_create` | Create a new run with metadata |
+| Tool             | Description                      |
+| ---------------- | -------------------------------- |
+| `state_emit`     | Emit a state event for a run     |
+| `state_list`     | List recent runs with filters    |
+| `state_describe` | Get full detail for a run ID     |
+| `state_advance`  | Advance a run to the next phase  |
+| `state_close`    | Close an active run              |
+| `run_claim`      | Atomically claim an orphaned run |
+| `run_create`     | Create a new run with metadata   |
 
 Add the server to your MCP config:
 
@@ -147,27 +155,27 @@ Add the server to your MCP config:
 
 ### `as_runs`
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | TEXT PK | Run identifier (e.g., `20260509-dev-squad-cleanup`) |
-| `workflow_id` | TEXT | Workflow that created the run |
-| `project` | TEXT | Project name |
-| `phase` | TEXT | Current phase (`intake`, `planning`, `review`, `done`) |
-| `gate_status` | TEXT | Last gate result (`PASS`, `FAIL`, `WARN`) |
-| `status` | TEXT | Run status (`active`, `completed`, `aborted`) |
-| `started_at` | TEXT | ISO timestamp |
-| `ended_at` | TEXT | ISO timestamp (null if active) |
-| `session_id` | TEXT | Claude session that owns this run |
+| Column        | Type    | Description                                            |
+| ------------- | ------- | ------------------------------------------------------ |
+| `id`          | TEXT PK | Run identifier (e.g., `20260509-dev-squad-cleanup`)    |
+| `workflow_id` | TEXT    | Workflow that created the run                          |
+| `project`     | TEXT    | Project name                                           |
+| `phase`       | TEXT    | Current phase (`intake`, `planning`, `review`, `done`) |
+| `gate_status` | TEXT    | Last gate result (`PASS`, `FAIL`, `WARN`)              |
+| `status`      | TEXT    | Run status (`active`, `completed`, `aborted`)          |
+| `started_at`  | TEXT    | ISO timestamp                                          |
+| `ended_at`    | TEXT    | ISO timestamp (null if active)                         |
+| `session_id`  | TEXT    | Claude session that owns this run                      |
 
 ### `as_events`
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | INTEGER PK | Auto-increment |
-| `run_id` | TEXT FK | Parent run |
-| `kind` | TEXT | Event type (`start`, `phase`, `gate`, `stop`, `hook`) |
-| `payload` | TEXT | JSON blob with event details |
-| `created_at` | TEXT | ISO timestamp |
+| Column       | Type       | Description                                           |
+| ------------ | ---------- | ----------------------------------------------------- |
+| `id`         | INTEGER PK | Auto-increment                                        |
+| `run_id`     | TEXT FK    | Parent run                                            |
+| `kind`       | TEXT       | Event type (`start`, `phase`, `gate`, `stop`, `hook`) |
+| `payload`    | TEXT       | JSON blob with event details                          |
+| `created_at` | TEXT       | ISO timestamp                                         |
 
 ---
 
@@ -192,8 +200,8 @@ hseos state-emit phase --run <run-id> --phase aborted
 
 ## Database Location
 
-| Scenario | Default path |
-|----------|-------------|
-| Project install | `.hseos/state/project.db` (relative to project root) |
-| Override via env | `$HSEOS_STATE_DB` |
+| Scenario                       | Default path                                                        |
+| ------------------------------ | ------------------------------------------------------------------- |
+| Project install                | `.hseos/state/project.db` (relative to project root)                |
+| Override via env               | `$HSEOS_STATE_DB`                                                   |
 | Central multi-project registry | `.hseos/config/projects.json` (explicit paths to project databases) |

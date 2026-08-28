@@ -8,9 +8,18 @@
 const path = require('node:path');
 const { spawn } = require('node:child_process');
 const fs = require('fs-extra');
-const { healthCheck, parsePort, stopPort } = require('../lib/sidecar-lifecycle');
+const {
+  createInstanceRecord,
+  healthCheck,
+  inspectInstance,
+  instanceRecordPath,
+  parsePort,
+  stopInstance,
+  writeInstanceRecord,
+} = require('../lib/sidecar-lifecycle');
 
 const SERVER = path.join(__dirname, '..', '..', 'state-ui-server', 'index.js');
+const SERVER_ID = 'hseos-state-ui';
 const { loadRegistry, saveRegistry, addProject, removeProject, validate, registryPath } = require('../../state-ui-server/lib/registry');
 
 async function loadConfig(directory) {
@@ -78,14 +87,24 @@ async function cmdStart(options) {
   const pollMs = options.pollMs || config.web_poll_ms || 1000;
   const staleMinutes = options.staleMinutes || config.stale_minutes || 10;
   const reg = registryPath(options.registry);
+  const recordPath = instanceRecordPath(directory, 'kanban-central');
+  const expected = { server: SERVER_ID, entrypoint: SERVER };
 
-  if (await healthCheck({ port, token: authToken })) {
+  const existing = await inspectInstance(recordPath, expected);
+  if (existing.state === 'running') {
     console.log(`[kanban-central] already running on http://${host}:${port}`);
     return;
   }
-  if (!['127.0.0.1', 'localhost', '::1'].includes(host) && (!authTokenEnv || !authToken)) {
-    throw new Error('non-loopback binding requires --auth-token-env naming a populated environment variable');
+  if (existing.state === 'unhealthy') {
+    throw new Error(`recorded kanban-central process ${existing.record.pid} is running but failed its identity health check`);
   }
+  if (!['127.0.0.1', 'localhost', '::1'].includes(host)) {
+    throw new Error('kanban-central binds only to loopback; use a TLS reverse proxy for remote access');
+  }
+  if (authTokenEnv && !authToken) {
+    throw new Error(`authentication environment variable ${authTokenEnv} is not populated`);
+  }
+  const record = createInstanceRecord({ server: SERVER_ID, entrypoint: SERVER, port, host });
   const serverArgs = [
     SERVER,
     `--port=${port}`,
@@ -93,33 +112,34 @@ async function cmdStart(options) {
     `--registry=${reg}`,
     `--poll-ms=${pollMs}`,
     `--stale-minutes=${staleMinutes}`,
+    `--instance-id=${record.instanceId}`,
   ];
   if (authTokenEnv) serverArgs.push(`--auth-token-env=${authTokenEnv}`);
   const child = spawn(process.execPath, serverArgs, { detached: true, stdio: 'ignore' });
+  writeInstanceRecord(recordPath, { ...record, pid: child.pid });
   child.unref();
   await new Promise((r) => setTimeout(r, 400));
-  if (await healthCheck({ port, token: authToken })) console.log(`[kanban-central] started on http://${host}:${port} (PID ${child.pid})`);
+  if (await healthCheck(record)) console.log(`[kanban-central] started on http://${host}:${port} (PID ${child.pid})`);
   else console.log(`[kanban-central] started in background (PID ${child.pid}); not yet responding on ${port}`);
 }
 
 async function cmdStop(options) {
-  const config = await loadConfig(path.resolve(options.directory || process.cwd()));
-  const port = parsePort(options.port, config.central_port || 3210);
-  if (stopPort(port) > 0) {
-    console.log(`[kanban-central] sent SIGTERM to processes on port ${port}`);
+  const directory = path.resolve(options.directory || process.cwd());
+  const recordPath = instanceRecordPath(directory, 'kanban-central');
+  if ((await stopInstance(recordPath, { server: SERVER_ID, entrypoint: SERVER })) > 0) {
+    console.log('[kanban-central] sent SIGTERM to the verified managed instance');
   } else {
-    console.log('[kanban-central] no process found to stop');
+    console.log('[kanban-central] no managed instance found to stop');
   }
 }
 
 async function cmdStatus(options) {
-  const config = await loadConfig(path.resolve(options.directory || process.cwd()));
-  const port = parsePort(options.port, config.central_port || 3210);
-  const authTokenEnv = options.authTokenEnv || config.central_auth_token_env || null;
-  const authToken = authTokenEnv ? process.env[authTokenEnv] : null;
-  if (await healthCheck({ port, token: authToken })) console.log(`[kanban-central] running on http://127.0.0.1:${port}`);
+  const directory = path.resolve(options.directory || process.cwd());
+  const recordPath = instanceRecordPath(directory, 'kanban-central');
+  const instance = await inspectInstance(recordPath, { server: SERVER_ID, entrypoint: SERVER });
+  if (instance.state === 'running') console.log(`[kanban-central] running on http://${instance.record.host}:${instance.record.port}`);
   else {
-    console.log('[kanban-central] not running');
+    console.log(`[kanban-central] ${instance.state === 'unhealthy' ? 'managed process is unhealthy' : 'not running'}`);
     process.exit(1);
   }
 }
@@ -134,7 +154,7 @@ module.exports = {
     ['--label <label>', 'Project display label (register only)'],
     ['--color <hex>', 'Project color hex (register only)'],
     ['--port <port>', 'Central server port'],
-    ['--host <host>', 'Bind interface'],
+    ['--host <host>', 'Loopback bind interface (remote access requires a reverse proxy)'],
     ['--auth-token-env <name>', 'Environment variable containing the bearer token'],
     ['--poll-ms <ms>', 'Snapshot poll interval'],
     ['--stale-minutes <n>', 'Orphan threshold'],

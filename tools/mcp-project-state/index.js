@@ -20,10 +20,15 @@ const DEFAULT_DB = path.join(process.cwd(), '.hseos', 'state', 'project.db');
 
 function parseArgs() {
   const args = process.argv.slice(2);
-  const port = parseInt(args.find((a) => a.startsWith('--port='))?.split('=')[1] || DEFAULT_PORT);
+  const portText = args.find((a) => a.startsWith('--port='))?.slice('--port='.length) || String(DEFAULT_PORT);
+  if (!/^[0-9]+$/.test(portText)) throw new Error('port must be an integer from 1 to 65535');
+  const port = Number(portText);
+  if (!Number.isSafeInteger(port) || port < 1 || port > 65_535) throw new Error('port must be an integer from 1 to 65535');
   const dbPath = args.find((a) => a.startsWith('--db='))?.split('=')[1] || process.env.HSEOS_STATE_DB || DEFAULT_DB;
+  const instanceId = args.find((a) => a.startsWith('--instance-id='))?.slice('--instance-id='.length) || null;
+  if (instanceId !== null && !/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(instanceId)) throw new Error('instance-id must be a UUID');
   const mode = args.includes('--http') || args.some((a) => a.startsWith('--port=')) ? 'http' : 'stdio';
-  return { dbPath, mode, port };
+  return { dbPath, instanceId, mode, port };
 }
 
 function loadDynamicTools() {
@@ -156,7 +161,7 @@ function listTools() {
   return [...LEGACY_TOOLS, ...dynamicDescriptors];
 }
 
-const { dbPath, mode, port } = parseArgs();
+const { dbPath, instanceId, mode, port } = parseArgs();
 const toolMap = new Map(listTools().map((tool) => [tool.name, tool]));
 const fixtureActivation = process.env.NODE_ENV === 'test' && process.env.HSEOS_GOVERNED_EXECUTION_FIXTURE === '1';
 let runtimeHandle;
@@ -173,17 +178,36 @@ if (fixtureActivation) {
     },
   });
   runtimeHandle = startNativeMcpServer({
-    serverId: 'project_state', tools: toolMap, mode, port, dbPath,
-    invokeTool(name, args, context) { return handleTool(runtimeHandle.db, name, args, context); },
+    serverId: 'project_state',
+    tools: toolMap,
+    mode,
+    port,
+    dbPath,
+    health: instanceId ? { instance_id: instanceId } : {},
+    invokeTool(name, args, context) {
+      return handleTool(runtimeHandle.db, name, args, context);
+    },
     log: (message) => logToStderr('info', message),
   });
 } else {
   operationalDb = openOperationalStateDatabase(dbPath, { log: logToStderr });
   runtimeHandle = startLegacyMcpServer({
-    serverId: 'project_state', serverName: 'hseos-project-state', tools: toolMap, mode, port,
-    projectDirectory: process.cwd(), stateDatabasePath: dbPath, wrapHttpResults: false,
-    health: { schema_version: operationalDb.pragma('user_version', { simple: true }), tools: toolMap.size },
-    invokeTool(name, args) { return handleTool(operationalDb, name, args); },
+    serverId: 'project_state',
+    serverName: 'hseos-project-state',
+    tools: toolMap,
+    mode,
+    port,
+    projectDirectory: process.cwd(),
+    stateDatabasePath: dbPath,
+    wrapHttpResults: false,
+    health: {
+      schema_version: operationalDb.pragma('user_version', { simple: true }),
+      tools: toolMap.size,
+      ...(instanceId ? { instance_id: instanceId } : {}),
+    },
+    invokeTool(name, args) {
+      return handleTool(operationalDb, name, args);
+    },
     log: (message) => logToStderr('info', message),
   });
 }
