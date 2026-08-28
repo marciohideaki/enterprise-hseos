@@ -1,0 +1,175 @@
+schema_version: "2.0"
+profiles:
+  minimal:
+    name: Minimal Governance
+    description: Smallest governed HSEOS surface for projects that only need baseline instructions, core policy, and portable agent entrypoints.
+    hook_profile: advisory
+    components:
+      - adapter:codex
+      - adapter:claude-code
+
+  agent-reference:
+    name: Agent Framework Reference
+    description: Keyless, temporary and non-operational reference assembly of the model-agnostic HSEOS Agent Kernel.
+    hook_profile: strict
+    components:
+      - runtime:agent-kernel
+      - runtime:agent-reference
+      - adapter:codex
+      - adapter:claude-code
+    agent:
+      execution_mode: kernel
+      model_provider_id: model:scripted-reference
+      runtime_provider_id: runtime:hseos-kernel
+      secret_refs: []
+
+  agent-openai-compatible-candidate:
+    name: OpenAI-Compatible Agent Candidate
+    description: Pre-activation candidate for the model-agnostic kernel with deferred provider configuration and mandatory OS sandboxing.
+    hook_profile: strict
+    components:
+      - runtime:agent-kernel
+      - runtime:agent-openai-compatible
+      - capability:sandbox
+      - adapter:codex
+      - adapter:claude-code
+    agent:
+      execution_mode: kernel
+      model_provider_id: model:openai-compatible
+      runtime_provider_id: runtime:hseos-kernel
+      secret_refs:
+        - secret://hseos/model-provider-api-key
+
+  agent-codex-delegated-candidate:
+    name: Codex Delegated Runtime Candidate
+    description: Pre-activation direct Codex app-server assembly with a durable one-turn HSEOS record, explicit run-only lifecycle, and an instructions-only effect boundary.
+    hook_profile: strict
+    components:
+      - runtime:agent-codex-delegated
+      - adapter:codex
+      - adapter:claude-code
+    agent:
+      execution_mode: hosted
+      runtime_provider_id: runtime:codex-app-server
+      secret_refs:
+        - secret://codex/host-auth
+
+  agent-claude-delegated-candidate:
+    name: Claude Delegated Runtime Candidate
+    description: Pre-activation direct Claude Agent SDK assembly with durable HSEOS lifecycle governance and an instructions-only effect boundary.
+    hook_profile: strict
+    components:
+      - runtime:agent-claude-delegated
+      - adapter:codex
+      - adapter:claude-code
+    agent:
+      execution_mode: hosted
+      runtime_provider_id: runtime:claude-agent-sdk
+      secret_refs:
+        - secret://claude/host-auth
+
+  agent-deepseek-one-shot-candidate:
+    name: DeepSeek One-Shot Runtime Candidate
+    description: Pre-activation sandboxed DeepSeek ACP assembly with a hash-bound tool-free composition and explicit one-shot lifecycle.
+    hook_profile: strict
+    components:
+      - runtime:agent-deepseek-one-shot
+      - capability:sandbox
+      - adapter:codex
+      - adapter:claude-code
+    agent:
+      execution_mode: hosted
+      runtime_provider_id: runtime:deepseek-harness
+      secret_refs:
+        - secret://deepseek/host-auth
+
+  developer:
+    name: Developer
+    description: Default engineering setup for implementation, review, verification, state tracking, and local agent workflows.
+    default: true
+    hook_profile: standard
+    components:
+      - runtime:hooks
+      - runtime:state
+      - runtime:workflows
+      - adapter:codex
+      - adapter:claude-code
+      - capability:delivery
+      - capability:security
+      - capability:knowledge
+
+  governance:
+    name: Governance
+    description: Policy-heavy setup for architecture, ADR, compliance, secure coding, and readiness reviews.
+    hook_profile: strict
+    components:
+      - runtime:hooks
+      - runtime:state
+      - capability:architecture
+      - capability:security
+      - capability:readiness
+      - adapter:codex
+      - adapter:claude-code
+
+  gitops:
+    name: GitOps Delivery
+    description: Delivery and runtime operations setup for GitOps, release, rollout, and deployment verification.
+    hook_profile: strict
+    components:
+      - runtime:hooks
+      - runtime:state
+      - runtime:workflows
+      - capability:delivery
+      - capability:gitops
+      - capability:observability
+      - adapter:codex
+      - adapter:claude-code
+
+  ado:
+    name: ADO Operations
+    description: Azure DevOps planning, synchronization, branch governance, and delivery traceability setup.
+    hook_profile: strict
+    components:
+      - runtime:hooks
+      - runtime:state
+      - capability:ado
+      - capability:delivery
+      - adapter:codex
+      - adapter:claude-code
+
+  solo:
+    name: Solo Fast Flow
+    description: Compact setup for BLITZ-style solo execution with verification and completion safeguards.
+    hook_profile: standard
+    components:
+      - runtime:hooks
+      - runtime:state
+      - capability:solo
+      - capability:verification
+      - adapter:codex
+      - adapter:claude-code
+
+  full:
+    name: Full Enterprise
+    description: Complete HSEOS surface with governance, delivery, ADO, GitOps, observability, sandboxing, and all adapters.
+    hook_profile: ci
+    components:
+      - runtime:hooks
+      - runtime:state
+      - runtime:workflows
+      - runtime:mcp
+      - capability:architecture
+      - capability:delivery
+      - capability:security
+      - capability:knowledge
+      - capability:observability
+      - capability:gitops
+      - capability:ado
+      - capability:sandbox
+      - capability:readiness
+      - capability:research
+      - capability:solo
+      - capability:verification
+      - adapter:codex
+      - adapter:claude-code
+      - adapter:goose

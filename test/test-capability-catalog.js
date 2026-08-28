@@ -51,8 +51,10 @@ function testCatalogLoadsProfilesAndComponents() {
 }
 
 function testSchemaV2FailsClosed() {
-  const profiles = yaml.parse(fs.readFileSync(path.join(REPO_ROOT, '.agents', 'capabilities', 'profiles.yaml'), 'utf8'));
-  const components = yaml.parse(fs.readFileSync(path.join(REPO_ROOT, '.agents', 'capabilities', 'components.yaml'), 'utf8'));
+  const profiles = yaml.parse(fs.readFileSync(path.join(REPO_ROOT, '.enterprise', 'governance', 'capabilities', 'profiles.yaml'), 'utf8'));
+  const components = yaml.parse(
+    fs.readFileSync(path.join(REPO_ROOT, '.enterprise', 'governance', 'capabilities', 'components.yaml'), 'utf8'),
+  );
   const catalog = loadCapabilityCatalog(REPO_ROOT);
 
   assertPass('catalog is validated as capability schema v2', catalog.schemaVersion === '2.0', catalog.schemaVersion);
@@ -231,6 +233,35 @@ function testSchemaV2FailsClosed() {
     }
     assertPass(`resolver rejects inherited profile key ${inheritedName}`, profileRejected);
     assertPass(`resolver rejects inherited hook key ${inheritedName}`, hookRejected);
+  }
+}
+
+async function testCanonicalCapabilitySourceAndCompatibility() {
+  const canonical = path.join(REPO_ROOT, '.enterprise', 'governance', 'capabilities');
+  const compiled = path.join(REPO_ROOT, '.agents', 'capabilities');
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'hseos-capability-source-'));
+
+  try {
+    for (const fileName of ['README.md', 'profiles.yaml', 'components.yaml']) {
+      assertPass(
+        `compiled capability ${fileName} matches its canonical source`,
+        fs.readFileSync(path.join(canonical, fileName), 'utf8') === fs.readFileSync(path.join(compiled, fileName), 'utf8'),
+      );
+    }
+
+    await fs.copy(canonical, path.join(tempRoot, '.enterprise', 'governance', 'capabilities'));
+    await fs.copy(compiled, path.join(tempRoot, '.agents', 'capabilities'));
+    await fs.copy(path.join(REPO_ROOT, '.agents', 'manifest.yaml'), path.join(tempRoot, '.agents', 'manifest.yaml'));
+    await fs.writeFile(path.join(tempRoot, '.agents', 'capabilities', 'profiles.yaml'), 'schema_version: "invalid"\n');
+    const canonicalCatalog = loadCapabilityCatalog(tempRoot);
+    assertPass('catalog prefers the complete canonical source', canonicalCatalog.sourceKind === 'canonical');
+
+    await fs.remove(path.join(tempRoot, '.enterprise'));
+    await fs.copy(canonical, path.join(tempRoot, '.agents', 'capabilities'), { overwrite: true });
+    const compatibilityCatalog = loadCapabilityCatalog(tempRoot);
+    assertPass('catalog supports a compiled-only compatibility installation', compatibilityCatalog.sourceKind === 'compiled-compatibility');
+  } finally {
+    await fs.remove(tempRoot);
   }
 }
 
@@ -425,6 +456,11 @@ async function testEveryProfileMaterializesExactlySelectedSkills() {
         selectedSkills: plan.skills,
       });
       const emittedManifest = yaml.parse(await fs.readFile(path.join(target, result.manifest), 'utf8'));
+      assertPass(
+        `${profileId} compiler materializes the canonical capability catalog`,
+        (await fs.readFile(path.join(target, '.agents', 'capabilities', 'profiles.yaml'), 'utf8')) ===
+          (await fs.readFile(path.join(REPO_ROOT, '.enterprise', 'governance', 'capabilities', 'profiles.yaml'), 'utf8')),
+      );
       const emittedManifestSkills = (emittedManifest.skills || []).map((skill) => skill.name).sort();
       const selectedAdapters = plan.components
         .filter((component) => component.family === 'adapter')
@@ -514,6 +550,7 @@ async function testEveryProfileMaterializesExactlySelectedSkills() {
 async function run() {
   testCatalogLoadsProfilesAndComponents();
   testSchemaV2FailsClosed();
+  await testCanonicalCapabilitySourceAndCompatibility();
   testProfilesReferenceKnownComponents();
   testComponentsReferenceKnownSkills();
   testEverySkillHasCapabilityFamilyHome();

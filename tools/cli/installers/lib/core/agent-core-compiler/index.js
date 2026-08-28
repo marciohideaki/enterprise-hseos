@@ -9,6 +9,7 @@ const { writeSkills, normalizeSkill } = require('./sources/skills-source');
 const { syncHandlers, writeHookRegistry } = require('./sources/hooks-source');
 const { writeCommandRegistry } = require('./sources/commands-source');
 const { collectAgents } = require('./sources/agents-source');
+const { syncCapabilityCatalog } = require('./sources/capabilities-source');
 const {
   writePluginRegistry,
   loadActivePluginManifests,
@@ -41,6 +42,7 @@ class AgentCoreCompiler {
     const targetEnterpriseSkillsDir = path.join(root, ENTERPRISE_SKILLS_DIR);
     const sourceEnterpriseSkillsDir = path.join(sourceRoot, ENTERPRISE_SKILLS_DIR);
     const enterpriseSkillsDir = (await fs.pathExists(targetEnterpriseSkillsDir)) ? targetEnterpriseSkillsDir : sourceEnterpriseSkillsDir;
+    await syncCapabilityCatalog(root, sourceRoot, this.agentsDirName);
     await syncPluginCatalog(root, sourceRoot, this.agentsDirName);
     const registryPlugins = await writePluginRegistry(root, this.agentsDirName);
     const activePluginManifests = await loadActivePluginManifests(root, registryPlugins, this.agentsDirName);
