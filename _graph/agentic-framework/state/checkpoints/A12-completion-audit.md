@@ -3,11 +3,11 @@
 **Status:** completed in isolated task worktree; not integrated
 **Baseline:** `cf80117`
 **Authority:** explicit human response, “Prossiga”
-**Scope:** assembled acceptance journeys, threat model, persistent performance evidence and comparison with DeepSeek Harness `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`
+**Scope:** assembled acceptance journeys, threat model and persistent performance evidence against the approved HSEOS goal graph
 
 ## Outcome
 
-The declared pre-activation HSEOS framework scope passes 8/8 mandatory acceptance journeys and A0–A12 account for 13/14 goal nodes. The comparison no longer uses subjective product percentages: only measures with explicit denominators remain. DeepSeek retains broader client, SDK, LSP, terminal and native-sandbox surfaces; HSEOS now owns a model-neutral loop plus stronger governed authority, durable evidence and activation gates.
+The declared pre-activation HSEOS framework scope passes 8/8 mandatory acceptance journeys and A0–A12 account for 13/14 goal nodes. Completion uses only measures with explicit denominators and makes no cross-product parity claim. HSEOS owns a model-neutral loop, governed authority, durable evidence and activation gates within the accepted scope.
 
 A12 adds an `AgentExecutionSupervisor` that coordinates root runtime and workflow cancellation under one deadline. Workflow cancellation releases its durable claim before child teardown. The supervisor independently initiates all cancellation branches, recursively verifies terminal descendants and refuses to relabel a completed/failed root as cancelled.
 

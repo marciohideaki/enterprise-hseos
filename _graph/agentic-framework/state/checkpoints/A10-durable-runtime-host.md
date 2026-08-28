@@ -9,7 +9,7 @@
 
 ## Outcome
 
-The `RuntimeProvider.resume` contract can now carry the immutable delegated `AgentSessionSpec`. Codex, Claude Code and ACP/DeepSeek adapters reconstruct their bounded local state in a fresh provider instance, reattach the exact remote identity, preserve the expected normalized-event sequence and never call their create/new-session path during resume.
+The `RuntimeProvider.resume` contract can now carry the immutable delegated `AgentSessionSpec`. Hosted and ACP adapters reconstruct their bounded local state in a fresh provider instance, reattach the exact remote identity, preserve the expected normalized-event sequence and never call their create/new-session path during resume.
 
 `DelegatedRuntimeHost` persists provider-neutral lifecycle facts in the shared relational ledger under the separate `delegated_runtime` aggregate. Durable create and turn intent precede provider effects. A dispatch crash gap is never replayed automatically and becomes an explicit uncertain outcome. Cancellation intent is retryable, manifest drift fails before remote reattachment, provider events remain untrusted schema input, and secret-bearing specs fail at the ledger boundary.
 
@@ -18,11 +18,11 @@ Pending migration 008 registers and reseals the eight delegated-runtime fact typ
 ## Evidence classification
 
 - **Observed:** Codex and Claude Code each create through one host instance, close/reopen the fixture database, reattach through a new provider/host instance and settle with the same normalized lifecycle.
-- **Observed:** DeepSeek Harness follows the identical host path through ACP `session/load`; no `session/new` occurs on reattachment.
+- **Observed:** the external ACP adapter follows the identical host path through `session/load`; no `session/new` occurs on reattachment.
 - **Observed:** cancellation after reopen settles durably; matching cancellation-intent retry is idempotent; manifest drift, secret fields, uncertain create/dispatch gaps and catalog mutation fail closed.
 - **Observed:** the host core imports only agent runtime contracts and contains no vendor adapter branch.
 - **Observed:** operational entrypoints remain schema v4; temporary candidate migration reaches v8 and rollback/source-integrity checks pass.
-- **Unverified:** real Codex app-server, Claude Agent SDK and DeepSeek/ACP process bindings. Tests use injected deterministic drivers/peers and make no external provider call.
+- **Unverified:** real hosted-agent and external ACP process bindings. Tests use injected deterministic drivers/peers and make no external provider call.
 
 ## Verification
 

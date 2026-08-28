@@ -45,7 +45,7 @@ effective isolation instead of inferring it from binary presence or one sysctl.
 - `test/test-sandbox-cli.js`
 - `test:sandbox` — 7/7
 - `test:bound-kernel-supervisor` — 5/5
-- `test:delegated-deepseek-cli` — 6/6
+- Delegated ACP one-shot CLI suite — 6/6
 - `test:agentic-activation` — 4/4
 - `test:verify` — 20/20
 - `npm run lint` — passed

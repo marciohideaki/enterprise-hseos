@@ -58,8 +58,8 @@ supervisor-owned Unix-domain-socket broker:
 
 This restricted transport is mandatory for the raw OpenAI-compatible
 activation candidate. It does not authorize operational activation and does
-not claim transparent support for SDK-owned transports such as the delegated
-DeepSeek composition.
+not claim transparent support for SDK-owned transports whose network lifecycle
+does not cross the supervised broker boundary.
 
 HSEOS will not add broad `Bash(ai-jail:*)` permissions, will not enable ai-jail defaults blindly, and will not bundle ai-jail binaries or Rust source into the MIT core.
 

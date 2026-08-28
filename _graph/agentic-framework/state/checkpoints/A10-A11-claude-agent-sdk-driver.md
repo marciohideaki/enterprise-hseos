@@ -34,4 +34,4 @@
 
 - All composition tests use a deterministic local ESM fixture. The installed Claude Code executable was inspected read-only but never invoked for a model request.
 - No credential, provider network, operational database, deployment, sandbox claim, or runtime cutover was accessed.
-- Codex and Claude now have equivalent public L0 profiles. External ACP/DeepSeek process binding, required OS-sandbox attestation, separately authorized real-provider smokes, G9 evidence, final stable audit, and explicit cutover remain open.
+- Codex and Claude now have equivalent public L0 profiles. External ACP process binding, required OS-sandbox attestation, separately authorized real-provider smokes, G9 evidence, final stable audit, and explicit cutover remain open.

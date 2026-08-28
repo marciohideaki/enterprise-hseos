@@ -188,8 +188,7 @@ This sets up:
 Installation is driven by an auditable capability catalog (ADR-0016). General profiles include
 `minimal`, `developer` (default), `governance`, `gitops`, `ado`, `solo`, and `full`. Agent runtime
 candidates additionally include `agent-reference`, `agent-openai-compatible-candidate`,
-`agent-codex-delegated-candidate`, `agent-claude-delegated-candidate`, and
-`agent-deepseek-one-shot-candidate`. The governance baseline
+the delegated hosted-agent candidates, and a sandboxed ACP one-shot candidate. The governance baseline
 is always included and cannot be deselected; components with external prerequisites (ADO,
 sandbox, telemetry, axon-bridge, second-brain) are optional and degrade gracefully when unmet.
 
