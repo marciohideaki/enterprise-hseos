@@ -29,6 +29,7 @@ if (!Database) {
 const REPO_ROOT = path.join(__dirname, '..');
 const SERVER = path.join(REPO_ROOT, 'tools', 'state-ui-server', 'index.js');
 const MIGRATIONS_DIR = path.join(REPO_ROOT, 'tools', 'mcp-project-state', 'migrations');
+const { registryPath: resolveRegistryPath } = require('../tools/state-ui-server/lib/registry');
 
 let pass = 0;
 let fail = 0;
@@ -109,6 +110,11 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
 
 (async () => {
   console.log('Central kanban smoke');
+
+  await it('default central registry is project-scoped', async () => {
+    const expected = path.join(process.cwd(), '.hseos', 'config', 'projects.json');
+    if (resolveRegistryPath() !== expected) throw new Error(`registry path: ${resolveRegistryPath()}`);
+  });
 
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-central-'));
   const projA = path.join(tmp, 'project-a');

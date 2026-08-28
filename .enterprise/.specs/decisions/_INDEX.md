@@ -36,6 +36,7 @@
 | [ADR-0025](./ADR-0025-provider-neutral-documentation-provenance.md) | Provider-Neutral Documentation Provenance                                  | Accepted (2026-08-28)               | documentation policy, accepted-ADR redaction, documentation validation                |
 | [ADR-0026](./ADR-0026-canonical-capability-catalog-source.md)       | Canonical Capability Catalog Source                                        | Accepted (2026-08-28)               | capability catalog, agent-core compiler, compatibility loader                         |
 | [ADR-0027](./ADR-0027-explicit-hook-and-workflow-contracts.md)      | Explicit Hook and Workflow Contracts                                       | Accepted (2026-08-28)               | hook registry, workflow catalog, CLI and MCP discovery                                |
+| [ADR-0028](./ADR-0028-project-scoped-observability-sidecars.md)     | Project-Scoped Observability Side-Cars                                     | Accepted (2026-08-28)               | state UI, session tracking, central project registry                                  |
 
 ---
 

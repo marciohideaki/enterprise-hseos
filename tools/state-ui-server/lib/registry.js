@@ -1,6 +1,6 @@
 /**
  * Registry of HSEOS-installed projects for the central kanban.
- * Stored at `~/.hseos/projects.json` per-host (gitignored).
+ * Stored in the active project's `.hseos/config/projects.json` by default.
  *
  * Atomic writes via tmp + rename.
  */
@@ -9,7 +9,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 
-const DEFAULT_REGISTRY_PATH = path.join(os.homedir(), '.hseos', 'projects.json');
+const DEFAULT_REGISTRY_PATH = path.join('.hseos', 'config', 'projects.json');
 
 const DEFAULT_COLORS = ['#00d3ff', '#bd93f9', '#50fa7b', '#f1fa8c', '#ff79c6', '#8be9fd', '#ffb86c', '#ff5555'];
 
@@ -23,7 +23,7 @@ function emptyRegistry() {
 
 function registryPath(override) {
   if (override) return path.resolve(override.replace(/^~/, os.homedir()));
-  return process.env.HSEOS_REGISTRY_PATH || DEFAULT_REGISTRY_PATH;
+  return path.resolve(process.env.HSEOS_REGISTRY_PATH || DEFAULT_REGISTRY_PATH);
 }
 
 function loadRegistry(override) {

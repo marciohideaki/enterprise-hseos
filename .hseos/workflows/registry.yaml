@@ -550,7 +550,7 @@ workflows:
         type: sse
         port_default: 3210
         binding: "127.0.0.1"
-        registry: "~/.hseos/projects.json"
+        registry: ".hseos/config/projects.json"
 
   - id: ado-ops
     kind: executable
