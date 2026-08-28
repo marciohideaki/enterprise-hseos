@@ -147,6 +147,14 @@ gate_documentation() {
 # =============================================================================
 # Gate 3: Code phase validation
 # =============================================================================
+run_node_check() (
+  cd "${REPO_ROOT}"
+  while IFS= read -r variable; do
+    [[ -n "${variable}" ]] && unset "${variable}"
+  done < <(git rev-parse --local-env-vars)
+  "$@"
+)
+
 gate_code() {
   info "Gate 3: Code Quality"
 
@@ -169,7 +177,7 @@ gate_code() {
       # Lint
       if [[ -f "${REPO_ROOT}/package.json" ]] && \
          node -e "const p=require('${REPO_ROOT}/package.json'); process.exit(p.scripts?.lint ? 0 : 1)" 2>/dev/null; then
-        if (cd "${REPO_ROOT}" && npm run lint --silent 2>>"$LOG_FILE"); then
+        if run_node_check npm run lint --silent 2>>"$LOG_FILE"; then
           pass "Lint: passed"
         else
           record_fail "Lint: FAILED"
@@ -179,7 +187,7 @@ gate_code() {
 
       # Tests
       if node -e "const p=require('${REPO_ROOT}/package.json'); process.exit(p.scripts?.test ? 0 : 1)" 2>/dev/null; then
-        if (cd "${REPO_ROOT}" && npm test --silent 2>>"$LOG_FILE"); then
+        if run_node_check npm test --silent 2>>"$LOG_FILE"; then
           pass "Tests: passed"
         else
           record_fail "Tests: FAILED"

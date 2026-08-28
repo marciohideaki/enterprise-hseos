@@ -428,6 +428,16 @@ hseos/
 
 ---
 
+## Package Surface
+
+The root package uses an explicit allowlist for standalone runtime,
+governance, workflows, source modules, and CLI tooling. Tests, run histories,
+internal graph evidence, CI files, and logs stay repository-only. The package
+surface is verified during `npm test` with bounded file-count and unpacked-size
+contracts.
+
+---
+
 ## Adapter SDK & BYOA
 
 HSEOS ships `@hseos/adapter-sdk` (`packages/adapter-sdk/`) — a minimal base class and utilities for authoring Bring-Your-Own-Adapter (BYOA) integrations.
@@ -671,7 +681,7 @@ O HSEOS inclui uma camada de estado baseada em SQLite em `.hseos/state/project.d
 
 ```bash
 hseos kanban          # Kanban ASCII no terminal
-hseos state-ui        # Servidor web com kanban em tempo real (localhost:3200)
+hseos state-ui start  # Servidor web com kanban em tempo real (localhost:3200)
 hseos verify          # Verificação de integridade
 hseos doctor          # Relatório de saúde completo
 ```
