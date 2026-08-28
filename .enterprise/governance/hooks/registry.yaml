@@ -2,8 +2,8 @@
 # Edit hooks HERE. `hseos agent-core compile` regenerates .agents/hooks/registry.yaml,
 # copies handlers/ into .agents/hooks/handlers/, and hash-pins them in the manifest.
 # Handler scripts live in ./handlers/ next to this file.
-version: "1.1"
-schema_version: "1.0"
+version: "2.0"
+schema_version: "2.0"
 handlers_dir: .agents/hooks/handlers
 hooks:
   - id: pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global
@@ -13,6 +13,7 @@ hooks:
     command: bash .agents/hooks/handlers/swarm-gate.sh
     timeout: 5
     blocking: true
+    status: active
     description: "HSEOS SWARM gate (canonical handler): model routing guard (executor declara sonnet; Opus só com opt-in estratégico) + skill-check advisory + gate dev-squad bloqueante sem run ativo"
     platform_support:
       - claude-code
@@ -36,6 +37,7 @@ hooks:
     command: if [[ -f "$CLAUDE_TOOL_FILE_PATH" ]]; then cp "$CLAUDE_TOOL_FILE_PATH" "$CLAUDE_TOOL_FILE_PATH.bak.$(date +%s)" 2>/dev/null || true; fi
     timeout: null
     blocking: true
+    status: active
     description: Backup file before any Edit operation
     platform_support:
       - claude-code
@@ -47,6 +49,7 @@ hooks:
     command: if echo "$CLAUDE_TOOL_COMMAND" | grep -qE '^(git push|git reset --hard|rm -rf|git branch -[Dd])'; then echo '[HSEOS] High-risk command intercepted — confirm this is intentional' >&2; fi
     timeout: null
     blocking: true
+    status: active
     description: Warn on high-risk bash commands
     platform_support:
       - claude-code
@@ -58,6 +61,7 @@ hooks:
     command: FILE="$CLAUDE_TOOL_FILE_PATH"; if [[ "$FILE" == *.py ]] && command -v black &>/dev/null; then black "$FILE" 2>/dev/null || true; elif [[ "$FILE" == *.js || "$FILE" == *.ts || "$FILE" == *.jsx || "$FILE" == *.tsx ]] && command -v prettier &>/dev/null; then prettier --write "$FILE" 2>/dev/null || true; fi
     timeout: null
     blocking: false
+    status: active
     description: Auto-format Python (black) and JS/TS (prettier) after Edit
     platform_support:
       - claude-code
@@ -69,6 +73,7 @@ hooks:
     command: CLAUDE_HOOK_EVENT=PostToolUse bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/state-emit-hook.sh PostToolUse "$CLAUDE_TOOL_NAME" 2>/dev/null || true
     timeout: null
     blocking: false
+    status: active
     description: Emit agent-state tool_call event (best-effort, non-blocking)
     platform_support:
       - claude-code
@@ -80,6 +85,7 @@ hooks:
     command: "echo '--- HSEOS SESSION START ---' && echo 'Constitution: .enterprise/.specs/constitution/Enterprise-Constitution.md' && echo 'Skills: .enterprise/governance/agent-skills/SKILLS-REGISTRY.md' && echo 'Agents: .hseos/AGENT-MANIFEST.md' && echo 'Branch:' $(git branch --show-current 2>/dev/null || echo 'unknown') && echo '--- READ CLAUDE.md BEFORE ANY ACTION ---'"
     timeout: null
     blocking: false
+    status: active
     description: Display HSEOS navigation reminder at session start
     platform_support:
       - claude-code
@@ -91,6 +97,7 @@ hooks:
     command: CLAUDE_HOOK_EVENT=SessionStart bash $(git rev-parse --show-toplevel 2>/dev/null)/scripts/governance/state-emit-hook.sh SessionStart 2>/dev/null || true
     timeout: null
     blocking: false
+    status: active
     description: Emit agent-state start event (best-effort, non-blocking)
     platform_support:
       - claude-code

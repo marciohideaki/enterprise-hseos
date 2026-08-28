@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { globSync } = require('glob');
 const YAML = require('yaml');
+const { loadWorkflowCatalog } = require('../lib/workflow-catalog');
 
 const SUPPORTED_PROFILES = new Set(['core', 'release', 'runtime', 'full']);
 const DEFAULT_NOTE = 'Phase advanced without additional note.';
@@ -10,14 +11,8 @@ function getRepoRoot() {
   return path.resolve(__dirname, '../../..');
 }
 
-function getRegistryPath() {
-  return path.join(getRepoRoot(), '.hseos', 'workflows', 'registry.yaml');
-}
-
 function loadRegistry() {
-  const content = fs.readFileSync(getRegistryPath(), 'utf8');
-  const data = YAML.parse(content);
-  return data?.workflows || [];
+  return loadWorkflowCatalog(getRepoRoot());
 }
 
 function nowIso() {
@@ -66,6 +61,18 @@ function readPackageJson(repoRoot, packagePath = 'package.json') {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
+function readYamlObject(repoRoot, relativePath) {
+  const filePath = path.join(repoRoot, relativePath);
+  if (!fs.existsSync(filePath)) return null;
+  return YAML.parse(fs.readFileSync(filePath, 'utf8')) || {};
+}
+
+function readNestedValue(value, dottedKey) {
+  return String(dottedKey)
+    .split('.')
+    .reduce((current, key) => (current && Object.prototype.hasOwnProperty.call(current, key) ? current[key] : undefined), value);
+}
+
 function runCheck(repoRoot, check) {
   switch (check.kind) {
     case 'git_repo': {
@@ -111,6 +118,19 @@ function runCheck(repoRoot, check) {
       return {
         passed: missing.length === 0,
         evidence: missing.length === 0 ? (check.scripts || []).join(', ') : `missing: ${missing.join(', ')}`,
+      };
+    }
+    case 'config_flag': {
+      const config = readYamlObject(repoRoot, check.path);
+      return {
+        passed: readNestedValue(config, check.key) === true,
+        evidence: `${check.path}:${check.key}`,
+      };
+    }
+    case 'env_var': {
+      return {
+        passed: typeof process.env[check.var] === 'string' && process.env[check.var].length > 0,
+        evidence: check.var,
       };
     }
     default: {
@@ -909,6 +929,12 @@ module.exports = {
     const workflow = workflows.find((entry) => entry.id === workflowId);
     if (!workflow) {
       console.error(`Unknown workflow: ${workflowId}`);
+      process.exitCode = 1;
+      return;
+    }
+
+    if (workflow.kind !== 'executable' && action !== 'validate') {
+      console.error(`Workflow action '${action}' is unavailable for subsystem: ${workflowId}`);
       process.exitCode = 1;
       return;
     }
