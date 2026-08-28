@@ -539,7 +539,7 @@ handlers:
     sha256: c331a2ff08666b2f13a4caa6b2a6e0405275654b5ea27788bcb00e7d53a9705b
   - file: .agents/hooks/handlers/session-track.sh
     source: .enterprise/governance/hooks/handlers/session-track.sh
-    sha256: e0b8530f55eda54f37d7da1c7390beca30ca15c024e7d5dc4410b6f0f7d6ae4e
+    sha256: 4b05d14c7cf1f8ab69544e78b6d2f59976b9bcda77d06b853f3b15d865a6c7d0
   - file: .agents/hooks/handlers/suggest-skill.sh
     source: .enterprise/governance/hooks/handlers/suggest-skill.sh
     sha256: 87153f5431a380150acebd00f13ac75987c52f50112869965766f391bc00f0db

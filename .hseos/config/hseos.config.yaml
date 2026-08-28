@@ -213,12 +213,15 @@ state_management:
   mcp_port: 3100
   # Web side-car kanban (hseos state-ui) — local 127.0.0.1 dashboard.
   web_port: 3200
+  web_host: 127.0.0.1
+  # web_auth_token_env: HSEOS_STATE_UI_TOKEN # required for non-loopback binding
   web_poll_ms: 1000
   stale_minutes: 10
   # Central multi-project kanban (hseos kanban-central) — aggregates many project DBs.
   central_port: 3210
   central_host: 127.0.0.1
-  central_registry: ~/.hseos/projects.json
+  central_registry: .hseos/config/projects.json
+  # central_auth_token_env: HSEOS_STATE_UI_TOKEN # required for non-loopback binding
 
 # Optional OS-level sandboxing for agent/tool execution (ADR-0012).
 # Worktree isolation governs Git/task boundaries; sandbox isolation governs host

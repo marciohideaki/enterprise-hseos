@@ -61,12 +61,17 @@ hseos kanban
 hseos kanban --project my-project --branch feature/my-branch
 
 # Start the web side-car (SSE + HTTP)
-hseos state-ui                         # http://localhost:3200
-hseos state-ui --port 3201             # custom port
-hseos state-ui --host 0.0.0.0          # LAN / Tailscale accessible
+hseos state-ui start                         # http://localhost:3200
+hseos state-ui start --port 3201             # custom port
+
+# Non-loopback requires a bearer token from a named environment variable.
+# An authenticated reverse proxy can inject this header for browser clients.
+export HSEOS_STATE_UI_TOKEN='replace-with-a-long-random-token'
+hseos state-ui start --host 0.0.0.0 --auth-token-env HSEOS_STATE_UI_TOKEN
 
 # Central multi-project kanban
-hseos state-ui --central               # aggregates all registered projects
+hseos kanban-central register /path/to/project
+hseos kanban-central start             # registry: .hseos/config/projects.json
 ```
 
 ---
@@ -82,7 +87,10 @@ The `state-ui` server serves a real-time kanban at `http://localhost:3200`:
 - **Filters:** by project, branch, run status, agent
 - **SSE push:** board updates automatically without page refresh
 
-The server is a sidecar — it reads SQLite directly (read-only) and never writes. Safe to run alongside active agent sessions.
+The server is a side-car: it requires an existing state database, opens SQLite
+read-only, and never owns migrations. Safe to run alongside active agent
+sessions. Every route requires the bearer token when authentication is
+configured.
 
 ---
 
@@ -188,4 +196,4 @@ hseos state-emit phase --run <run-id> --phase aborted
 |----------|-------------|
 | Project install | `.hseos/state/project.db` (relative to project root) |
 | Override via env | `$HSEOS_STATE_DB` |
-| Central multi-project | `~/.hseos/state/central.db` (read by `--central` mode) |
+| Central multi-project registry | `.hseos/config/projects.json` (explicit paths to project databases) |
