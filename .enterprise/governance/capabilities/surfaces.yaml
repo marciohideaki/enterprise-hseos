@@ -1,0 +1,84 @@
+schema_version: "1.0"
+classifications:
+  - core
+  - module
+  - sidecar
+  - candidate
+  - compatibility
+dispositions:
+  - active
+  - opt-in
+  - pre-activation
+  - retiring
+
+component_classes:
+  baseline:governance: core
+  baseline:entrypoints: core
+  baseline:skills-registry: core
+  runtime:hooks: core
+  runtime:state: core
+  runtime:workflows: core
+  runtime:mcp: module
+  runtime:agent-kernel: core
+  runtime:agent-reference: candidate
+  runtime:agent-openai-compatible: candidate
+  runtime:agent-codex-delegated: candidate
+  runtime:agent-claude-delegated: candidate
+  runtime:agent-deepseek-one-shot: candidate
+  capability:architecture: module
+  capability:delivery: module
+  capability:security: module
+  capability:knowledge: module
+  capability:observability: module
+  capability:gitops: module
+  capability:ado: module
+  capability:sandbox: module
+  capability:readiness: module
+  capability:solo: module
+  capability:verification: module
+  capability:research: module
+  extra:rtk: module
+  extra:usage-dashboard: sidecar
+  extra:second-brain: module
+  extra:git-hooks: module
+  adapter:codex: module
+  adapter:claude-code: module
+  adapter:goose: module
+
+standalone_surfaces:
+  - id: module:hsm
+    classification: module
+    disposition: opt-in
+    contract: Product-method workflows and templates are distributable content, not runtime kernel behavior.
+    paths:
+      - src/hsm/
+  - id: sidecar:state-ui
+    classification: sidecar
+    disposition: opt-in
+    contract: Reads an existing project state database and cannot own migrations or canonical writes.
+    paths:
+      - tools/state-ui-server/
+      - tools/cli/commands/state-ui.js
+  - id: sidecar:central-kanban
+    classification: sidecar
+    disposition: opt-in
+    contract: Aggregates explicitly registered projects and cannot become a global state authority.
+    paths:
+      - tools/cli/commands/kanban-central.js
+      - tools/state-ui-server/lib/registry.js
+  - id: candidate:plugins
+    classification: candidate
+    disposition: pre-activation
+    contract: Scaffolded plugins remain inactive until their governed activation gates pass.
+    paths:
+      - .enterprise/governance/plugins/definitions/
+  - id: compatibility:legacy-install
+    classification: compatibility
+    disposition: retiring
+    contract: Legacy detection remains metered and cannot authorize its own removal or activation.
+    paths:
+      - tools/lib/compatibility-audit.js
+      - tools/lib/compatibility-evidence-inventory.js
+      - tools/lib/compatibility-evidence-pack.js
+      - tools/lib/compatibility-observation.js
+      - tools/cli/installers/lib/core/detector.js

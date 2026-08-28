@@ -15,6 +15,7 @@ const {
   loadCapabilityCatalog,
   resolveCapabilityPlan,
   validateCapabilityDocuments,
+  validateSurfaceDocument,
 } = require('../tools/cli/lib/capability-catalog');
 const { AgentCoreCompiler } = require('../tools/cli/installers/lib/core/agent-core-compiler');
 const installCommand = require('../tools/cli/commands/install');
@@ -31,6 +32,52 @@ function assertPass(label, condition, details = '') {
   } else {
     console.error(`  FAIL  ${label}${details ? ` - ${details}` : ''}`);
     failed++;
+  }
+}
+
+function testSurfaceLifecycleFailsClosed() {
+  const capabilityRoot = path.join(REPO_ROOT, '.enterprise', 'governance', 'capabilities');
+  const components = yaml.parse(fs.readFileSync(path.join(capabilityRoot, 'components.yaml'), 'utf8'));
+  const surfaces = yaml.parse(fs.readFileSync(path.join(capabilityRoot, 'surfaces.yaml'), 'utf8'));
+  const catalog = loadCapabilityCatalog(REPO_ROOT);
+
+  validateSurfaceDocument(surfaces, components);
+  assertPass(
+    'every resolved component exposes a closed surface class',
+    catalog.components.every((component) => ['core', 'module', 'sidecar', 'candidate', 'compatibility'].includes(component.surface_class)),
+  );
+  assertPass(
+    'every standalone surface path exists',
+    catalog.standaloneSurfaces.every((surface) => surface.paths.every((surfacePath) => fs.existsSync(path.join(REPO_ROOT, surfacePath)))),
+  );
+
+  const invalidCases = [
+    ['missing component coverage', { ...surfaces, component_classes: { ...surfaces.component_classes, 'runtime:state': undefined } }],
+    ['baseline demotion', { ...surfaces, component_classes: { ...surfaces.component_classes, 'baseline:governance': 'module' } }],
+    [
+      'unsafe standalone path',
+      {
+        ...surfaces,
+        standalone_surfaces: [{ ...surfaces.standalone_surfaces[0], paths: ['../escape'] }, ...surfaces.standalone_surfaces.slice(1)],
+      },
+    ],
+    [
+      'classification and id mismatch',
+      {
+        ...surfaces,
+        standalone_surfaces: [{ ...surfaces.standalone_surfaces[0], classification: 'sidecar' }, ...surfaces.standalone_surfaces.slice(1)],
+      },
+    ],
+  ];
+  delete invalidCases[0][1].component_classes['runtime:state'];
+  for (const [label, document] of invalidCases) {
+    let rejected = false;
+    try {
+      validateSurfaceDocument(document, components);
+    } catch {
+      rejected = true;
+    }
+    assertPass(`surface lifecycle rejects ${label}`, rejected);
   }
 }
 
@@ -242,7 +289,7 @@ async function testCanonicalCapabilitySourceAndCompatibility() {
   const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'hseos-capability-source-'));
 
   try {
-    for (const fileName of ['README.md', 'profiles.yaml', 'components.yaml']) {
+    for (const fileName of ['README.md', 'profiles.yaml', 'components.yaml', 'surfaces.yaml']) {
       assertPass(
         `compiled capability ${fileName} matches its canonical source`,
         fs.readFileSync(path.join(canonical, fileName), 'utf8') === fs.readFileSync(path.join(compiled, fileName), 'utf8'),
@@ -550,6 +597,7 @@ async function testEveryProfileMaterializesExactlySelectedSkills() {
 async function run() {
   testCatalogLoadsProfilesAndComponents();
   testSchemaV2FailsClosed();
+  testSurfaceLifecycleFailsClosed();
   await testCanonicalCapabilitySourceAndCompatibility();
   testProfilesReferenceKnownComponents();
   testComponentsReferenceKnownSkills();
