@@ -17,51 +17,49 @@ ACP v2 is intentionally excluded because it remains a draft. Unknown or
 malformed ACP v1 messages fail closed instead of being coerced into normalized
 runtime events.
 
-## Hosted runtime adapters
+## Delegated runtime adapters
 
-Codex, Claude Code and DeepSeek Harness expose different native integration
-surfaces. HSEOS preserves that distinction while normalizing all three through
-the `RuntimeProvider` port:
+Hosted coding agents and external ACP processes expose different native
+integration surfaces. HSEOS preserves those distinctions while normalizing
+them through the `RuntimeProvider` port:
 
-| Adapter          | Native boundary                               | Declared level |
-| ---------------- | --------------------------------------------- | -------------- |
-| Codex            | official app-server over bounded JSONL/stdio  | L0             |
-| Claude Code      | official Agent SDK `query()` process boundary | L0             |
-| DeepSeek Harness | stable ACP v1 peer                            | L0             |
+| Adapter class        | Native boundary                               | Declared level |
+| -------------------- | --------------------------------------------- | -------------- |
+| Hosted app server    | bounded JSONL/stdio                            | L0             |
+| Hosted agent SDK     | SDK-owned process boundary                     | L0             |
+| External ACP process | stable ACP v1 peer                             | L0             |
 
-The hosted provider classes still accept injected drivers for conformance
-tests. Their production candidates now have direct drivers. Codex binds the
-app-server executable; Claude binds both the Agent SDK module and the Claude
-Code executable. Both bindings use canonical paths and SHA-256 evidence in the
-public delegated CLI manifests.
+The hosted provider classes accept injected drivers for conformance tests and
+bind their production candidates through canonical paths with SHA-256 evidence
+in public delegated CLI manifests.
 
-The Claude driver assigns an explicit SDK session UUID before the first turn,
-uses `resume` only after a transcript exists, replaces the child environment
-with the selected names, disables built-in tools and filesystem settings, and
-requires plan mode. The driver must attest `instructions_only` on create and
-resume and may emit only text deltas. Any tool/content capability outside the
-small non-effect allowlist terminates the session with `policy_denied`. The
-DeepSeek class uses the ACP bridge directly; Cordis, MCP servers and DeepSeek
-packages are not vendored or imported. Its process transport enforces absolute
-executable/cwd paths, `shell: false`, a selected replacement environment, 1 MiB
-line bounds, 64 pending requests and strict JSON-RPC response correlation.
+The SDK driver assigns an explicit session UUID before the first turn, uses
+`resume` only after a transcript exists, replaces the child environment with
+selected names, disables built-in tools and filesystem settings, and requires
+plan mode. The driver must attest `instructions_only` on create and resume and
+may emit only text deltas. Any tool or content capability outside the small
+non-effect allowlist terminates the session with `policy_denied`.
 
-The stock DeepSeek Harness ACP server intentionally advertises fresh sessions
-only and does not attest HSEOS's `instructions_only` boundary. Consequently,
-stock process initialization fails closed and cross-process resume remains
-`capability_unavailable`. A public DeepSeek candidate profile must wait for a
-tool-free, sandbox-attested composition; HSEOS does not simulate resume,
-cancellation or effect confinement that the external runtime cannot prove.
+The external ACP adapter uses the protocol bridge directly and vendors no
+external runtime or MCP server. Its transport enforces absolute executable and
+working-directory paths, `shell: false`, a selected replacement environment,
+1 MiB line bounds, 64 pending requests and strict JSON-RPC response
+correlation.
 
-`validateDeepSeekAcpComposition()` provides the first half of that gate. It
-accepts exactly the official model adapter plus `dsh-acp-demo`, requires one
-model route, and requires workspace context, skills, Bash, job tools and goals
-to be disabled. It rejects links and every additional plugin, then returns an
-immutable SHA-256-bound `one_shot` effect attestation. That attestation permits
-only same-process host reattachment before the single turn; a fresh provider
-still rejects resume because the external ACP server has no `loadSession`.
-The canonical example is
-`.agents/activation/provider-bindings/deepseek-acp-tool-free.example.yaml`.
+An ACP process that advertises only fresh sessions or omits the HSEOS
+`instructions_only` attestation fails closed. Cross-process resume remains
+`capability_unavailable` unless the peer proves `loadSession`. A public
+one-shot candidate additionally requires a tool-free, sandbox-attested
+composition; HSEOS does not simulate resume, cancellation or effect confinement
+that an external runtime cannot prove.
+
+The composition validator accepts only the declared model adapter and ACP
+process plugin, requires one model route, and requires workspace context,
+skills, Bash, job tools and goals to be disabled. It rejects links and every
+additional plugin, then returns an immutable SHA-256-bound `one_shot` effect
+attestation. That attestation permits only same-process host reattachment
+before the single turn; a fresh provider still rejects resume when the external
+ACP server has no `loadSession`.
 
 These adapters deliberately resolve no credentials and declare no secret
 references. They do not claim governed tools, lifecycle conformance or replay.

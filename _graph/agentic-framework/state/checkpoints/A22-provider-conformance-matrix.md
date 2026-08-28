@@ -7,7 +7,7 @@
 
 ## Result
 
-- Hosted Codex, Claude and DeepSeek profiles no longer claim the phantom `model:delegated-runtime`; the hosted runtime owns inference and each profile selects exactly one real runtime provider.
+- Hosted and ACP profiles no longer claim the phantom `model:delegated-runtime`; the delegated runtime owns inference and each profile selects exactly one real runtime provider.
 - Kernel profiles must select `runtime:hseos-kernel` and one real model provider. Hosted profiles must not select a model provider.
 - `hseos agent-provider-conformance --verify --require-ready --json` inventories the exact five agent profiles and six selected providers.
 - Every provider is bound to its actual manifest factory, declared conformance level, canonical binding template when applicable, and an explicit suite set.
@@ -28,7 +28,7 @@ The independent review initially found profile/provider set substitution, mutabl
 
 - Provider conformance: `8/8`.
 - Capability catalog: `115/115`.
-- Delegated Codex, Claude and DeepSeek clients: `20/20`.
+- Delegated hosted and ACP clients: `20/20`.
 - Runtime providers and hosted drivers: `63/63`.
 - Lint and `git diff --check`: passed.
 - Full worktree quality gate: `0` failures and `1` unrelated historical placeholder warning.

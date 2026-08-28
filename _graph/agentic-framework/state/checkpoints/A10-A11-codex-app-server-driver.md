@@ -34,5 +34,5 @@
 ## Boundaries and remaining work
 
 - All external composition tests used a deterministic local app-server fixture. No real credential, model request, provider network endpoint, operational database, deployment, or runtime cutover was accessed.
-- This closes the direct external binding and public delegated CLI for Codex only. Claude Agent SDK and an external ACP/DeepSeek process binding still need equivalent public profiles and process-level conformance.
+- This closes the direct external binding and public delegated CLI for Codex only. Claude Agent SDK and an external ACP process binding still need equivalent public profiles and process-level conformance.
 - Required OS-sandbox attestation, a separately authorized real-provider environment smoke, G9 zero-legacy evidence, final stable audit, and explicit operational cutover remain open.

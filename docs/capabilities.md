@@ -34,7 +34,7 @@ plan; `hseos install` materializes it. The governance baseline can never be dese
 | `agent-openai-compatible-candidate` | strict | HSEOS kernel with a bound OpenAI-compatible `ModelProvider` |
 | `agent-codex-delegated-candidate` | strict | Hosted Codex `RuntimeProvider`, honestly limited to L0/run-only |
 | `agent-claude-delegated-candidate` | strict | Hosted Claude Code `RuntimeProvider`, honestly limited to L0 |
-| `agent-deepseek-one-shot-candidate` | strict | Sandboxed DeepSeek ACP `RuntimeProvider`, honestly limited to L0/one-shot |
+| Sandboxed ACP one-shot candidate | strict | External ACP `RuntimeProvider`, honestly limited to L0/one-shot |
 
 ```bash
 hseos install-plan --list-profiles          # discover profiles

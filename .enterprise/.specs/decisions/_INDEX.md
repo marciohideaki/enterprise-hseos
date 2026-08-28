@@ -33,6 +33,7 @@
 | [ADR-0022](./ADR-0022-governed-execution-ledger.md) | Governed Execution Runtime with Relational Event Ledger | Accepted (2026-08-21) | event sourcing, CQRS state, execution ports, capabilities, projections |
 | [ADR-0023](./ADR-0023-mcp-2026-stateless-adapter.md) | MCP 2026-07-28 Stateless Adapter and Legacy Boundary | Accepted (2026-08-21) | native MCP servers, shared transport, tool contracts |
 | [ADR-0024](./ADR-0024-model-agnostic-agent-framework.md) | Model-Agnostic Agent Framework and Substitutable Runtime Providers | Accepted (2026-08-21) | agent kernel, model providers, runtime providers, session lifecycle, conformance |
+| [ADR-0025](./ADR-0025-provider-neutral-documentation-provenance.md) | Provider-Neutral Documentation Provenance | Accepted (2026-08-28) | documentation policy, accepted-ADR redaction, documentation validation |
 
 ---
 

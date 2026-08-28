@@ -57,6 +57,6 @@ both are now covered:
 
 This closes the restricted-egress and sandbox-supervised candidate gaps for the
 raw OpenAI-compatible path. It does not activate the candidate, weaken G9 or
-claim that an SDK-owned DeepSeek transport uses the broker. Remaining hard
+claim that an SDK-owned external transport uses the broker. Remaining hard
 gates are the 30 complete G9 zero-use days, the final stable audit and explicit
 human schema/protocol/runtime cutover authorization.

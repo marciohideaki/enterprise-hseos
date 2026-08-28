@@ -31,4 +31,4 @@ Proposal 6 is intentionally narrower than Claude Code's generic transformer patt
 
 ## Uniformity and rollback
 
-The kernel owns policy, configuration, isolation, messaging, worker state, egress authority and trace lineage. Codex, Claude Code, DeepSeek and future clients remain substitutable adapters and cannot weaken these rules. Each implementation remains in an isolated reversible commit. A21 owns integrated closeout evidence; operational schema remains v4, while G9 observation, final stable audit and explicit human cutover remain separate gates.
+The kernel owns policy, configuration, isolation, messaging, worker state, egress authority and trace lineage. Hosted and ACP clients remain substitutable adapters and cannot weaken these rules. Each implementation remains in an isolated reversible commit. A21 owns integrated closeout evidence; operational schema remains v4, while G9 observation, final stable audit and explicit human cutover remain separate gates.

@@ -1,18 +1,18 @@
-# A10/A11 DeepSeek Public One-Shot Checkpoint
+# A10/A11 Public ACP One-Shot Checkpoint
 
 **Artifact type:** Governed goal checkpoint
-**Scope:** Sandboxed public run-only profile for the external DeepSeek ACP runtime
+**Scope:** Sandboxed public run-only profile for an external ACP runtime
 **Status:** Complete for deterministic candidate assembly; operational activation remains gated
 **Authority:** Explicit user instruction to proceed; no provider activation inferred
 
 ## Outcome
 
-HSEOS now exposes `agent-deepseek-one-shot-candidate` through the same public
+HSEOS now exposes a sandboxed ACP one-shot candidate through the same public
 `hseos agent run` surface used by its other agent profiles. The profile binds a
 canonical executable, ACP entrypoint, exact tool-free composition, working
 directory, selected environment names, secret references and one network port.
 It deliberately rejects `resume`, `cancel` and `create-only`, matching the
-connection-owned lifecycle of the referenced DeepSeek ACP implementation.
+connection-owned lifecycle declared by the external ACP implementation.
 
 The public route requires the existing `ai-jail` lockdown supervisor. Sandbox
 readiness is verified before the declared secret is read or a worker is
@@ -27,19 +27,16 @@ One provider instance performs ACP create and prompt in the same process, then
 persists normalized terminal truth in the delegated runtime ledger. The durable
 manifest contains names, hashes, references and sandbox evidence, but never a
 resolved secret. The candidate remains non-operational and makes no claim of
-cross-process DeepSeek resume or cancellation.
+cross-process resume or cancellation.
 
 ## Evidence
 
-- `tools/cli/lib/delegated-deepseek-runtime.js`
-- `tools/cli/lib/delegated-deepseek-supervisor.js`
-- `tools/cli/lib/delegated-deepseek-worker.js`
+- Delegated ACP runtime, supervisor and worker modules
 - `tools/cli/commands/agent.js`
 - `.agents/capabilities/profiles.yaml`
 - `.agents/capabilities/components.yaml`
-- `.agents/activation/provider-bindings/deepseek-acp.example.yaml`
-- `test/test-delegated-deepseek-cli.js`
-- `test:delegated-deepseek-cli` — 6/6
+- Canonical external ACP provider-binding example
+- Delegated ACP CLI suite — 6/6
 - `test:runtime-providers` — 63/63
 - `test:delegated-runtime-host` — 9/9
 - `test:agent-capability-cli` — 8/8
@@ -49,10 +46,9 @@ cross-process DeepSeek resume or cancellation.
 - Strict-mode exit remains non-zero because warnings are fatal; no false strict-pass claim
 - `.logs/validation/gate-20260824T023439.log`
 - SHA-256 `0fd95848a18397613ef4acb4a663243fa0c3cdb9366c3acf2355f68997428c58`
-- DeepSeek reference commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`
 
-No real credential was read, no model request was made, no external DeepSeek
-runtime was activated and no operational schema or protocol was changed.
+No real credential was read, no model request was made, no external runtime was
+activated and no operational schema or protocol was changed.
 
 ## Remaining gates
 

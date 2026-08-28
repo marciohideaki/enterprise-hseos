@@ -27,7 +27,7 @@ ADR-0022 introduced a Governed Execution Runtime for HSEOS domain operations. It
 
 The approved product objective now expands HSEOS into a complete model-agnostic agent framework in which models and agent runtimes are substitutable providers. HSEOS must retain its governance advantages while gaining an execution plane that does not depend on one model vendor or one closed coding-agent product.
 
-“Model-agnostic” cannot mean pretending every provider has identical capabilities. Raw model APIs and hosted agent products expose different control boundaries. Codex and Claude Code may own their loops; OpenAI-compatible, Anthropic, DeepSeek, Ollama, or vLLM endpoints may expose raw inference. A truthful framework needs separate contracts and conformance levels for those modes.
+“Model-agnostic” cannot mean pretending every provider has identical capabilities. Raw model APIs and hosted agent products expose different control boundaries. Hosted coding agents may own their loops, while OpenAI-compatible, Anthropic-compatible, local or self-hosted endpoints may expose raw inference. A truthful framework needs separate contracts and conformance levels for those modes.
 
 ## Decision
 
@@ -53,7 +53,7 @@ The planes communicate only through versioned ports. Generated adapters remain o
 - provider request/response metadata safe for durable evidence;
 - deterministic error taxonomy.
 
-`RuntimeProvider` delegates an agent run to an external runtime such as Codex, Claude Code, DeepSeek Harness, Goose, or ACP-compatible products. Its contract covers:
+`RuntimeProvider` delegates an agent run to a hosted coding agent or an ACP-compatible runtime. Its contract covers:
 
 - create, resume, send, cancel and dispose;
 - session identity and ownership;
@@ -105,7 +105,7 @@ The first required providers are:
 - an OpenAI-compatible streaming provider as the first raw-provider family;
 - a delegated runtime adapter contract with ACP as the reference wire path;
 - hosted adapters for Codex and Claude Code that declare only the levels their actual hooks/tools expose;
-- a DeepSeek Harness adapter evaluated through ACP/plugin/MCP boundaries without vendoring Cordis.
+- an external ACP process adapter evaluated through protocol and effect-governance boundaries without vendoring another runtime.
 
 Provider-specific packages depend inward on ports; the Agent Kernel never imports a vendor SDK directly.
 
@@ -140,7 +140,7 @@ All implementation begins against temporary databases and deterministic provider
 | Alternative                               | Why rejected                                                                                                                       |
 | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | Continue only as a governance overlay     | Cannot provide uniform session, context, compaction, tool, cancellation or replay semantics.                                       |
-| Fork/adopt DeepSeek Harness wholesale     | Imports 227 packages, vendored Cordis, UI/runtime churn and a pre-release compatibility stance that conflict with HSEOS ownership. |
+| Adopt another execution harness           | Creates a parallel runtime, imports unrelated surface area and conflicts with HSEOS ownership.                                      |
 | Treat Codex/Claude as model providers     | They are hosted agent runtimes and do not expose the same boundary as raw inference APIs.                                          |
 | One lowest-common-denominator adapter API | Hides missing capabilities and weakens providers that expose stronger lifecycle guarantees.                                        |
 | Put provider behavior in MCP servers      | MCP is a tool/integration adapter, not an owner of agent lifecycle or model turns.                                                 |
@@ -154,7 +154,7 @@ All implementation begins against temporary databases and deterministic provider
 - Governance applies consistently whether HSEOS owns the loop or delegates it.
 - Providers are replaceable through explicit capabilities and conformance evidence.
 - Existing skills, workflows, state, approvals and delivery governance become runtime-enforceable.
-- DeepSeek patterns can be absorbed through ports rather than a parallel source of truth.
+- Provider capabilities enter through explicit ports without creating a parallel source of truth.
 
 ### Negative / Trade-offs
 
@@ -166,7 +166,7 @@ All implementation begins against temporary databases and deterministic provider
 
 ## Risks
 
-- **Framework inflation:** copying every DeepSeek feature obscures the kernel. Mitigation: headless reference runtime; UI/LSP/terminal stay provider capabilities.
+- **Framework inflation:** adding unrelated client surfaces obscures the kernel. Mitigation: keep the reference runtime headless; UI/LSP/terminal remain provider capabilities.
 - **False portability:** adapters claim uniformity without proof. Mitigation: capability negotiation and level-specific conformance suites.
 - **Dual event authority:** session and execution state diverge. Mitigation: one relational global ordering infrastructure and reference IDs between aggregates.
 - **Approval bypass:** delegated runtimes execute tools outside HSEOS. Mitigation: L1+ requires governed tool routing; otherwise the adapter is L0 and cannot run classified effects.
@@ -218,4 +218,3 @@ All implementation begins against temporary databases and deterministic provider
 - ADR-0022 and ADR-0023
 - `_graph/agentic-framework/BASELINE.md`
 - `_graph/agentic-framework/GOAL-GRAPH.md`
-- `/opt/references/HSEOS_VS_DEEPSEEK_HARNESS_REVALIDATION_2026-08-21.md`

@@ -24,13 +24,13 @@ the worker's protocol stdout. A rejected sandbox process is classified as a
 sandbox execution failure before JSON framing is considered.
 
 The same checks protect both the bound OpenAI-compatible kernel and the
-DeepSeek process composition. Deterministic forwarding fixtures remain green,
+external ACP process composition. Deterministic forwarding fixtures remain green,
 while the real host truthfully reports the networked profile unavailable.
 
 ## Evidence
 
 - Bound-kernel supervisor: 6/6.
-- Delegated DeepSeek CLI: 6/6.
+- Delegated ACP one-shot CLI: 6/6.
 - Sandbox CLI: 7/7.
 - Real exact-profile probe:
   `{"exact_lockdown_network_profile_ready":false}`.
