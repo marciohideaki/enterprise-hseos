@@ -299,6 +299,21 @@ function validateSurfaceDocument(surfaceData, componentData) {
   }
 }
 
+function synthesizeLegacySurfaceDocument(componentData) {
+  return {
+    schema_version: '1.0',
+    classifications: [...SURFACE_CLASSIFICATIONS],
+    dispositions: [...SURFACE_DISPOSITIONS],
+    component_classes: Object.fromEntries(
+      (componentData.components || []).map((component) => [
+        component.id,
+        REQUIRED_BASELINE_IDS.includes(component.id) ? 'core' : 'compatibility',
+      ]),
+    ),
+    standalone_surfaces: [],
+  };
+}
+
 function capabilityPaths(root = getProjectRoot()) {
   const canonicalBase = path.join(root, CANONICAL_CAPABILITY_DIR);
   const compiledBase = path.join(root, COMPILED_CAPABILITY_DIR);
@@ -306,9 +321,10 @@ function capabilityPaths(root = getProjectRoot()) {
     fs.existsSync(path.join(canonicalBase, fileName)),
   );
   const base = canonicalComplete ? canonicalBase : compiledBase;
+  const legacyCompiled = !canonicalComplete && !fs.existsSync(path.join(compiledBase, SURFACES_FILE));
   return {
     base,
-    sourceKind: canonicalComplete ? 'canonical' : 'compiled-compatibility',
+    sourceKind: canonicalComplete ? 'canonical' : legacyCompiled ? 'compiled-legacy-compatibility' : 'compiled-compatibility',
     canonicalBase,
     compiledBase,
     profiles: path.join(base, PROFILES_FILE),
@@ -370,8 +386,12 @@ function loadCapabilityCatalog(root = getProjectRoot()) {
   const paths = capabilityPaths(root);
   const profileData = readYaml(paths.profiles, {});
   const componentData = readYaml(paths.components, {});
-  const surfaceData = readYaml(paths.surfaces, {});
   validateCapabilityDocuments(profileData, componentData);
+  const surfaceData = fs.existsSync(paths.surfaces)
+    ? readYaml(paths.surfaces, {})
+    : paths.sourceKind === 'compiled-legacy-compatibility'
+      ? synthesizeLegacySurfaceDocument(componentData)
+      : {};
   validateSurfaceDocument(surfaceData, componentData);
   const staticComponents = Array.isArray(componentData.components) ? componentData.components : [];
   const skillEntries = loadSkillEntries(root);
@@ -552,6 +572,7 @@ module.exports = {
   loadCapabilityCatalog,
   parseCsv,
   resolveCapabilityPlan,
+  synthesizeLegacySurfaceDocument,
   validateCapabilityDocuments,
   validateSurfaceDocument,
   writeCapabilitySelection,

@@ -74,7 +74,26 @@ function assertExactKeys(value, allowed, label) {
   if (unknown.length > 0) throw new Error(`${label} has unknown field(s): ${unknown.join(', ')}`);
 }
 
+function normalizeWorkflowCatalogDocument(document) {
+  if (Number(document?.version) !== 1 || document.schema_version !== undefined) return document;
+  return {
+    version: 2,
+    schema_version: WORKFLOW_SCHEMA_VERSION,
+    workflows: Array.isArray(document.workflows)
+      ? document.workflows.map((workflow) => {
+          const executable = Array.isArray(workflow?.phases) || Array.isArray(workflow?.checks);
+          return {
+            ...workflow,
+            kind: executable ? 'executable' : 'subsystem',
+            ...(executable ? { execution_mode: 'sequential' } : {}),
+          };
+        })
+      : document.workflows,
+  };
+}
+
 function validateWorkflowCatalogDocument(document, root = getProjectRoot()) {
+  document = normalizeWorkflowCatalogDocument(document);
   assertObject(document, 'Workflow registry');
   const unknownTopLevel = Object.keys(document).filter((key) => !new Set(['version', 'schema_version', 'workflows']).has(key));
   if (unknownTopLevel.length > 0) throw new Error(`Workflow registry has unknown field(s): ${unknownTopLevel.join(', ')}`);
@@ -216,5 +235,6 @@ module.exports = {
   WORKFLOW_KINDS,
   WORKFLOW_SCHEMA_VERSION,
   loadWorkflowCatalog,
+  normalizeWorkflowCatalogDocument,
   validateWorkflowCatalogDocument,
 };

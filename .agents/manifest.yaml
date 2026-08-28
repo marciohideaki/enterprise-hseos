@@ -15,7 +15,7 @@ platforms:
   - codex
 counts:
   skills: 52
-  hooks: 32
+  hooks: 33
   commands: 9
   handlers: 24
   agents: 16
@@ -423,6 +423,11 @@ hooks:
     platform_support:
       - claude-code
   - id: sessionstart-all-session-track-register-machine-store
+    event: SessionStart
+    matcher: "*"
+    platform_support:
+      - claude-code
+  - id: sessionstart-all-session-track-register-project-store
     event: SessionStart
     matcher: "*"
     platform_support:

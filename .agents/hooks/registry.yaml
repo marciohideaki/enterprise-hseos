@@ -352,11 +352,23 @@ hooks:
     command: bash .agents/hooks/handlers/session-track.sh
     timeout: 5
     blocking: false
-    status: active
-    description: "Always-on session tracking: register EVERY Claude session (hseos-launched or not) in as_sessions ($HOME machine store)"
+    status: deprecated
+    description: Deprecated compatibility identifier for the former machine-scoped session registration hook; never emitted to adapters.
     platform_support:
       - claude-code
-    fallback: No-op when hseos CLI or jq absent.
+    fallback: Superseded by sessionstart-all-session-track-register-project-store.
+  - id: sessionstart-all-session-track-register-project-store
+    event: SessionStart
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/session-track.sh
+    timeout: 5
+    blocking: false
+    status: active
+    description: "Always-on session tracking: register each supported session in the active project's as_sessions store."
+    platform_support:
+      - claude-code
+    fallback: No-op outside a project or when the project-local hseos CLI or jq is absent.
   - id: userpromptsubmit-all-session-track-heartbeat
     event: UserPromptSubmit
     matcher: "*"

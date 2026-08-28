@@ -87,8 +87,15 @@ function listSkills(filter, tier) {
 }
 
 function listWorkflows(profile) {
+  const keyword = typeof profile === 'string' ? profile.trim().toLowerCase() : '';
   const workflows = loadWorkflowCatalog(REPO_ROOT)
-    .filter((workflow) => !profile || workflow.profiles.includes(profile))
+    .filter(
+      (workflow) =>
+        !keyword ||
+        workflow.profiles.some((candidate) => candidate.toLowerCase() === keyword) ||
+        workflow.owner.toLowerCase().includes(keyword) ||
+        workflow.id.toLowerCase().includes(keyword),
+    )
     .map((workflow) => ({
       id: workflow.id,
       kind: workflow.kind,

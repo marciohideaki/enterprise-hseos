@@ -169,7 +169,7 @@
             "type": "command",
             "command": "bash .agents/hooks/handlers/session-track.sh",
             "timeout": 5,
-            "description": "Always-on session tracking: register EVERY Claude session (hseos-launched or not) in as_sessions ($HOME machine store)"
+            "description": "Always-on session tracking: register each supported session in the active project's as_sessions store."
           }
         ]
       }

@@ -103,6 +103,12 @@ function testCanonicalHookRegistryRequiresExplicitStatus() {
     'every canonical hook declares status',
     registry.hooks.every((hook) => hook.status),
   );
+  const legacySessionHook = registry.hooks.find((hook) => hook.id === 'sessionstart-all-session-track-register-machine-store');
+  const projectSessionHook = registry.hooks.find((hook) => hook.id === 'sessionstart-all-session-track-register-project-store');
+  assertPass(
+    'session registration keeps the old id deprecated and activates the project-store id',
+    legacySessionHook?.status === 'deprecated' && projectSessionHook?.status === 'active',
+  );
 
   const missingStatus = structuredClone(registry);
   delete missingStatus.hooks[0].status;
