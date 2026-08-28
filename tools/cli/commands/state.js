@@ -1,10 +1,52 @@
 const path = require('node:path');
-const { spawn, execSync } = require('node:child_process');
+const http = require('node:http');
+const { spawn, execFileSync } = require('node:child_process');
 const fs = require('fs-extra');
 const prompts = require('../lib/prompts');
 
 const MCP_SERVER = path.join(__dirname, '..', '..', 'mcp-project-state', 'index.js');
 const CLI_SH = path.join(__dirname, '..', '..', 'cli-project-state', 'project-state.sh');
+
+function parsePort(value) {
+  const text = String(value ?? '').trim();
+  if (!/^[0-9]+$/.test(text)) throw new TypeError('port must be an integer between 1 and 65535');
+  const port = Number(text);
+  if (!Number.isSafeInteger(port) || port < 1 || port > 65_535) {
+    throw new RangeError('port must be an integer between 1 and 65535');
+  }
+  return port;
+}
+
+function listeningPids(port) {
+  try {
+    const output = execFileSync('lsof', ['-nP', '-t', `-iTCP:${port}`, '-sTCP:LISTEN'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+      timeout: 2000,
+    });
+    return [
+      ...new Set(
+        output
+          .split(/\s+/)
+          .filter((value) => /^[1-9][0-9]*$/.test(value))
+          .map(Number),
+      ),
+    ];
+  } catch {
+    return [];
+  }
+}
+
+async function healthStatus(port) {
+  return new Promise((resolve) => {
+    const request = http.get({ hostname: '127.0.0.1', port, path: '/health', timeout: 2000 }, (response) => {
+      response.resume();
+      resolve(response.statusCode === 200 ? `running on port ${port}` : 'not running');
+    });
+    request.on('timeout', () => request.destroy());
+    request.on('error', () => resolve('not running'));
+  });
+}
 
 async function loadConfig(directory) {
   const yaml = require('js-yaml');
@@ -30,7 +72,7 @@ module.exports = {
   action: async (action, options) => {
     const directory = path.resolve(options.directory || process.cwd());
     const config = await loadConfig(directory);
-    const port = options.port || config.mcp_port || 3100;
+    const port = parsePort(options.port ?? config.mcp_port ?? 3100);
     const dbPath = path.join(directory, config.db_path || '.hseos/state/project.db');
 
     switch (action) {
@@ -52,26 +94,18 @@ module.exports = {
       }
 
       case 'stop': {
-        try {
-          execSync(`lsof -ti tcp:${port} | xargs kill -9`, { stdio: 'ignore' });
-          await prompts.log.success(`MCP server on port ${port} stopped.`);
-        } catch {
+        const pids = listeningPids(port);
+        if (pids.length === 0) {
           await prompts.log.warn(`No MCP server found on port ${port}.`);
+          break;
         }
+        for (const pid of pids) process.kill(pid, 'SIGTERM');
+        await prompts.log.success(`MCP server on port ${port} stopped (${pids.length} process(es), SIGTERM).`);
         break;
       }
 
       case 'status': {
-        let mcpStatus = 'not running';
-        try {
-          const res = execSync(`curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:${port}/health`, {
-            timeout: 2000,
-            stdio: ['ignore', 'pipe', 'ignore'],
-          });
-          if (res.toString().trim() === '200') mcpStatus = `running on port ${port}`;
-        } catch {
-          // not running
-        }
+        const mcpStatus = await healthStatus(port);
 
         const dbExists = await fs.pathExists(dbPath);
         const cliExists = await fs.pathExists(CLI_SH);
@@ -93,4 +127,5 @@ module.exports = {
       }
     }
   },
+  _internal: { parsePort, listeningPids, healthStatus },
 };
