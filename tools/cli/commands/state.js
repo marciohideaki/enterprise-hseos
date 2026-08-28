@@ -1,52 +1,19 @@
 const path = require('node:path');
-const http = require('node:http');
-const { spawn, execFileSync } = require('node:child_process');
+const { spawn } = require('node:child_process');
 const fs = require('fs-extra');
 const prompts = require('../lib/prompts');
+const {
+  createInstanceRecord,
+  inspectInstance,
+  instanceRecordPath,
+  parsePort,
+  stopInstance,
+  writeInstanceRecord,
+} = require('../lib/sidecar-lifecycle');
 
 const MCP_SERVER = path.join(__dirname, '..', '..', 'mcp-project-state', 'index.js');
 const CLI_SH = path.join(__dirname, '..', '..', 'cli-project-state', 'project-state.sh');
-
-function parsePort(value) {
-  const text = String(value ?? '').trim();
-  if (!/^[0-9]+$/.test(text)) throw new TypeError('port must be an integer between 1 and 65535');
-  const port = Number(text);
-  if (!Number.isSafeInteger(port) || port < 1 || port > 65_535) {
-    throw new RangeError('port must be an integer between 1 and 65535');
-  }
-  return port;
-}
-
-function listeningPids(port) {
-  try {
-    const output = execFileSync('lsof', ['-nP', '-t', `-iTCP:${port}`, '-sTCP:LISTEN'], {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-      timeout: 2000,
-    });
-    return [
-      ...new Set(
-        output
-          .split(/\s+/)
-          .filter((value) => /^[1-9][0-9]*$/.test(value))
-          .map(Number),
-      ),
-    ];
-  } catch {
-    return [];
-  }
-}
-
-async function healthStatus(port) {
-  return new Promise((resolve) => {
-    const request = http.get({ hostname: '127.0.0.1', port, path: '/health', timeout: 2000 }, (response) => {
-      response.resume();
-      resolve(response.statusCode === 200 ? `running on port ${port}` : 'not running');
-    });
-    request.on('timeout', () => request.destroy());
-    request.on('error', () => resolve('not running'));
-  });
-}
+const SERVER_ID = 'hseos-project-state';
 
 async function loadConfig(directory) {
   const yaml = require('js-yaml');
@@ -74,6 +41,8 @@ module.exports = {
     const config = await loadConfig(directory);
     const port = parsePort(options.port ?? config.mcp_port ?? 3100);
     const dbPath = path.join(directory, config.db_path || '.hseos/state/project.db');
+    const recordPath = instanceRecordPath(directory, 'project-state-mcp');
+    const expected = { server: SERVER_ID, entrypoint: MCP_SERVER };
 
     switch (action) {
       case 'start': {
@@ -83,29 +52,38 @@ module.exports = {
           );
           process.exit(0);
         }
+        const existing = await inspectInstance(recordPath, expected);
+        if (existing.state === 'running') {
+          await prompts.log.info(`Project-state MCP server already running on port ${existing.record.port}.`);
+          break;
+        }
+        if (existing.state === 'unhealthy') {
+          throw new Error(`recorded project-state MCP process ${existing.record.pid} is running but failed its identity health check`);
+        }
         await prompts.log.info(`Starting project-state MCP server on port ${port}...`);
-        const child = spawn(process.execPath, [MCP_SERVER, `--port=${port}`, `--db=${dbPath}`], {
+        const record = createInstanceRecord({ server: SERVER_ID, entrypoint: MCP_SERVER, port });
+        const child = spawn(process.execPath, [MCP_SERVER, `--port=${port}`, `--db=${dbPath}`, `--instance-id=${record.instanceId}`], {
           detached: true,
           stdio: 'ignore',
         });
+        writeInstanceRecord(recordPath, { ...record, pid: child.pid });
         child.unref();
         await prompts.log.success(`MCP server started (PID ${child.pid}) — http://127.0.0.1:${port}`);
         break;
       }
 
       case 'stop': {
-        const pids = listeningPids(port);
-        if (pids.length === 0) {
-          await prompts.log.warn(`No MCP server found on port ${port}.`);
+        if ((await stopInstance(recordPath, expected)) === 0) {
+          await prompts.log.warn('No managed MCP server instance found.');
           break;
         }
-        for (const pid of pids) process.kill(pid, 'SIGTERM');
-        await prompts.log.success(`MCP server on port ${port} stopped (${pids.length} process(es), SIGTERM).`);
+        await prompts.log.success('Verified managed MCP server instance stopped (SIGTERM).');
         break;
       }
 
       case 'status': {
-        const mcpStatus = await healthStatus(port);
+        const instance = await inspectInstance(recordPath, expected);
+        const mcpStatus = instance.state === 'running' ? `running on port ${instance.record.port}` : instance.state;
 
         const dbExists = await fs.pathExists(dbPath);
         const cliExists = await fs.pathExists(CLI_SH);
@@ -127,5 +105,5 @@ module.exports = {
       }
     }
   },
-  _internal: { parsePort, listeningPids, healthStatus },
+  _internal: { parsePort },
 };

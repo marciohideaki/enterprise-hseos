@@ -21,7 +21,7 @@ function localProcessActor() {
   };
 }
 
-function startNativeMcpServer({ serverId, tools, invokeTool, mode, port, dbPath, log = console.error }) {
+function startNativeMcpServer({ serverId, tools, invokeTool, mode, port, dbPath, health = {}, log = console.error }) {
   const serverSpec = NATIVE_MCP_SERVERS[serverId];
   if (!serverSpec) throw new TypeError(`Unknown native MCP server: ${serverId}`);
   const fixtureActivation = process.env.NODE_ENV === 'test' && process.env.HSEOS_GOVERNED_EXECUTION_FIXTURE === '1';
@@ -43,13 +43,16 @@ function startNativeMcpServer({ serverId, tools, invokeTool, mode, port, dbPath,
   });
   const legacyUsageStore = new McpLegacyUsageStore(path.join(path.dirname(resolvedDbPath), 'mcp-legacy-usage.db'));
   legacyUsageStore.markObservation(serverId);
-  const legacyObservationTimer = setInterval(() => {
-    try {
-      legacyUsageStore.markObservation(serverId);
-    } catch (error) {
-      log(`[${serverId}:legacy-observation:warn] ${error.message}`);
-    }
-  }, 60 * 60 * 1000);
+  const legacyObservationTimer = setInterval(
+    () => {
+      try {
+        legacyUsageStore.markObservation(serverId);
+      } catch (error) {
+        log(`[${serverId}:legacy-observation:warn] ${error.message}`);
+      }
+    },
+    60 * 60 * 1000,
+  );
   legacyObservationTimer.unref();
   const execution = createOperationalExecution({ db, serverId, tools, invokeTool });
   const approvalStateCodec = createMcpApprovalStateCodec({ key: randomBytes(32) });
@@ -128,6 +131,7 @@ function startNativeMcpServer({ serverId, tools, invokeTool, mode, port, dbPath,
       protocol: 'governed',
       schema_version: db.pragma('user_version', { simple: true }),
       tools: tools.size,
+      ...health,
     });
     server.listen(port, '127.0.0.1', () => log(`[${serverId}] governed MCP listening on http://127.0.0.1:${port}/mcp`));
   } else {

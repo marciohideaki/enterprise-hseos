@@ -10,6 +10,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const http = require('node:http');
 const { spawn } = require('node:child_process');
+const { randomUUID } = require('node:crypto');
 
 let Database;
 try {
@@ -90,8 +91,9 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
   runMigrations(db, path.join(REPO_ROOT, 'tools', 'mcp-project-state', 'migrations'), { log: () => {} });
   db.close();
   const token = 'state-ui-test-token-1234';
+  const instanceId = randomUUID();
   const { start } = require('../tools/state-ui-server');
-  const { parsePort } = require('../tools/cli/lib/sidecar-lifecycle');
+  const { healthCheck, parsePort, stopInstance, writeInstanceRecord } = require('../tools/cli/lib/sidecar-lifecycle');
 
   await it('side-car lifecycle rejects command-shaped and out-of-range ports', async () => {
     for (const value of ['3200; touch /tmp/sidecar-injection', '0', '65536', '3.14']) {
@@ -105,14 +107,55 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
     }
   });
 
-  await it('non-loopback binding fails closed without authentication', async () => {
+  await it('non-loopback binding fails closed even with authentication', async () => {
     let rejected = false;
     try {
-      start({ port, host: '0.0.0.0', dbPath, pollMs: 200, staleMinutes: 10 });
+      start({ port, host: '0.0.0.0', dbPath, pollMs: 200, staleMinutes: 10, authToken: token });
     } catch (error) {
-      rejected = /requires --auth-token-env/.test(error.message);
+      rejected = /binds only to loopback/.test(error.message);
     }
-    if (!rejected) throw new Error('non-loopback binding was accepted without authentication');
+    if (!rejected) throw new Error('cleartext non-loopback binding was accepted');
+  });
+
+  await it('identity health check sends no bearer secret and rejects an arbitrary 200 response', async () => {
+    let authorization = 'not-observed';
+    const fake = http.createServer((request, response) => {
+      authorization = request.headers.authorization;
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ status: 'ok', server: 'unrelated-server', instance_id: instanceId }));
+    });
+    await new Promise((resolve) => fake.listen(0, '127.0.0.1', resolve));
+    try {
+      const accepted = await healthCheck({ port: fake.address().port, server: 'hseos-state-ui', instanceId });
+      if (accepted) throw new Error('unrelated server passed the identity check');
+      if (authorization !== undefined) throw new Error('health request disclosed an Authorization header');
+    } finally {
+      await new Promise((resolve) => fake.close(resolve));
+    }
+  });
+
+  await it('stop refuses an instance record whose PID belongs to another process', async () => {
+    const unrelated = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], {
+      stdio: 'ignore',
+    });
+    const recordPath = path.join(tmp, 'unrelated.instance.json');
+    writeInstanceRecord(recordPath, {
+      version: 1,
+      server: 'hseos-state-ui',
+      instanceId: randomUUID(),
+      entrypoint: SERVER,
+      port,
+      host: '127.0.0.1',
+      pid: unrelated.pid,
+      startedAt: new Date().toISOString(),
+    });
+    try {
+      const stopped = await stopInstance(recordPath, { server: 'hseos-state-ui', entrypoint: SERVER });
+      if (stopped !== 0) throw new Error('unrelated process was treated as managed');
+      process.kill(unrelated.pid, 0);
+    } finally {
+      unrelated.kill('SIGTERM');
+    }
   });
 
   await it('single-project side-car refuses to create a missing state database', async () => {
@@ -127,7 +170,7 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
 
   const child = spawn(
     process.execPath,
-    [SERVER, `--port=${port}`, `--db=${dbPath}`, '--poll-ms=200', '--auth-token-env=HSEOS_TEST_UI_TOKEN'],
+    [SERVER, `--port=${port}`, `--db=${dbPath}`, '--poll-ms=200', '--auth-token-env=HSEOS_TEST_UI_TOKEN', `--instance-id=${instanceId}`],
     {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: { ...process.env, HSEOS_TEST_UI_TOKEN: token },
@@ -137,17 +180,19 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
   child.on('error', (e) => console.error('spawn error', e));
 
   try {
-    await waitFor(() => fetchJson(port, '/health', token).then((r) => r.status === 'ok'));
+    await waitFor(() => fetchJson(port, '/health').then((r) => r.instance_id === instanceId));
 
     await it('requests without the configured bearer token are rejected', async () => {
       const response = await fetchResponse(port, '/api/state');
       if (response.statusCode !== 401) throw new Error(`status ${response.statusCode}`);
     });
 
-    await it('GET /health returns ok', async () => {
-      const body = await fetchJson(port, '/health', token);
+    await it('GET /health exposes only unauthenticated process identity', async () => {
+      const body = await fetchJson(port, '/health');
       if (body.status !== 'ok') throw new Error('not ok');
       if (body.server !== 'hseos-state-ui') throw new Error('wrong server name');
+      if (body.instance_id !== instanceId) throw new Error('wrong instance id');
+      if (Object.keys(body).sort().join(',') !== 'instance_id,server,status') throw new Error('health response exposes runtime data');
     });
 
     await it('GET /api/state returns snapshot shape', async () => {
@@ -160,6 +205,23 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
       if (!Array.isArray(snap.tasks)) throw new Error('tasks not array');
       if (!Array.isArray(snap.agentRuns)) throw new Error('agentRuns not array');
       if (typeof snap.counts !== 'object') throw new Error('counts not object');
+    });
+
+    await it('stop signals exactly the verified managed process', async () => {
+      const recordPath = path.join(tmp, 'managed.instance.json');
+      writeInstanceRecord(recordPath, {
+        version: 1,
+        server: 'hseos-state-ui',
+        instanceId,
+        entrypoint: SERVER,
+        port,
+        host: '127.0.0.1',
+        pid: child.pid,
+        startedAt: new Date().toISOString(),
+      });
+      const stopped = await stopInstance(recordPath, { server: 'hseos-state-ui', entrypoint: SERVER });
+      if (stopped !== 1) throw new Error('verified process was not signalled');
+      if (fs.existsSync(recordPath)) throw new Error('instance record remained after stop');
     });
   } finally {
     child.kill('SIGTERM');

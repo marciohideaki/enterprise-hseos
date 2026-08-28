@@ -13,6 +13,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const http = require('node:http');
 const { spawn } = require('node:child_process');
+const { randomUUID } = require('node:crypto');
 
 let Database;
 try {
@@ -139,18 +140,23 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
   );
 
   const port = pickPort();
-  const child = spawn(process.execPath, [SERVER, `--port=${port}`, `--registry=${registryPath}`, '--poll-ms=200'], {
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  const instanceId = randomUUID();
+  const child = spawn(
+    process.execPath,
+    [SERVER, `--port=${port}`, `--registry=${registryPath}`, '--poll-ms=200', `--instance-id=${instanceId}`],
+    {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  );
   child.on('error', (e) => console.error('spawn error', e));
 
   try {
-    await waitFor(() => fetchJson(port, '/health').then((r) => r.status === 'ok'));
+    await waitFor(() => fetchJson(port, '/health').then((r) => r.instance_id === instanceId));
 
-    await it('GET /health reports central mode with 2 projects', async () => {
+    await it('GET /health reports only the managed instance identity', async () => {
       const body = await fetchJson(port, '/health');
-      if (body.mode !== 'central') throw new Error(`mode != central: ${body.mode}`);
-      if (body.projects !== 2) throw new Error(`projects != 2: ${body.projects}`);
+      if (body.server !== 'hseos-state-ui' || body.instance_id !== instanceId) throw new Error('wrong managed instance identity');
+      if ('projects' in body || 'mode' in body) throw new Error('health leaked central registry metadata');
     });
 
     await it('GET /api/state aggregates 2 project DBs', async () => {
