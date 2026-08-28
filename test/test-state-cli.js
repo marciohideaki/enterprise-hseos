@@ -58,13 +58,54 @@ function runCli(args, opts = {}) {
 
 console.log('State CLI smoke tests');
 
+it('state rejects command-shaped ports before invoking a process', () => {
+  const dir = makeTempDir();
+  const marker = path.join(dir, 'injection-marker');
+  const result = runCli(['state', 'stop', '--directory', dir, '--port', `3100;touch ${marker}`], {
+    env: { ...process.env, HSEOS_DISABLE_UPDATE_CHECK: '1', NODE_ENV: 'test' },
+  });
+  if (result.status === 0) throw new Error('command-shaped port unexpectedly succeeded');
+  if (fs.existsSync(marker)) throw new Error('port input reached a shell');
+  if (!result.stderr.includes('port must be an integer')) throw new Error(`unexpected error: ${result.stderr}`);
+});
+
+it('state validates the complete TCP port range', () => {
+  for (const port of ['0', '65536', '-1', '3.1', '']) {
+    const result = runCli(['state', 'status', '--port', port], {
+      env: { ...process.env, HSEOS_DISABLE_UPDATE_CHECK: '1', NODE_ENV: 'test' },
+    });
+    if (result.status === 0 || !result.stderr.includes('port must be an integer')) {
+      throw new Error(`invalid port ${JSON.stringify(port)} was accepted: ${result.stderr}`);
+    }
+  }
+});
+
+it('legacy state SQL input is escaped instead of executed', () => {
+  const sqlite = spawnSync('sh', ['-c', 'command -v sqlite3'], { encoding: 'utf8' });
+  if (sqlite.status !== 0) return;
+  const dir = makeTempDir();
+  const script = path.join(REPO_ROOT, 'tools', 'cli-project-state', 'project-state.sh');
+  const dbPath = path.join(dir, 'project.db');
+  const key = "owner'); DROP TABLE state; --";
+  const result = spawnSync('bash', [script, 'state', 'write', key, "value'with-quote"], {
+    encoding: 'utf8',
+    cwd: dir,
+    env: { ...process.env, HSEOS_STATE_DB: dbPath },
+  });
+  if (result.status !== 0) throw new Error(`escaped write failed: ${result.stderr}`);
+  const db = new Database(dbPath, { readonly: true });
+  const row = db.prepare('SELECT value FROM state WHERE key = ?').get(key);
+  const table = db.prepare("SELECT COUNT(*) AS count FROM sqlite_master WHERE type='table' AND name='state'").get();
+  db.close();
+  if (table.count !== 1 || row?.value !== "value'with-quote") throw new Error('SQL literal was not preserved safely');
+});
+
 it('production CLI preserves v4 behavior and records legacy transition usage', () => {
   const dir = makeTempDir();
-  const result = spawnSync(
-    process.execPath,
-    [HSEOS_CLI, 'state-emit', 'start', '--directory', dir, '--run', 'R-gated', '--silent'],
-    { encoding: 'utf8', env: { ...process.env, NODE_ENV: 'production' } },
-  );
+  const result = spawnSync(process.execPath, [HSEOS_CLI, 'state-emit', 'start', '--directory', dir, '--run', 'R-gated', '--silent'], {
+    encoding: 'utf8',
+    env: { ...process.env, NODE_ENV: 'production' },
+  });
   if (result.status !== 0) throw new Error(`legacy compatibility failed, exit ${result.status}: ${result.stderr}`);
   const dbPath = path.join(dir, '.hseos', 'state', 'project.db');
   const db = new Database(dbPath, { readonly: true });
@@ -98,10 +139,9 @@ it('production CLI rejects a pre-existing pending execution schema', () => {
 
 it('state-emit creates db file and inserts event', () => {
   const dir = makeTempDir();
-  const result = runCli(
-    ['state-emit', 'start', '--directory', dir, '--run', 'R-test', '--task', 'T1', '--agent', 'tester', '--silent'],
-    { env: { ...process.env, HSEOS_GOVERNED_EXECUTION_FIXTURE: '1', NODE_ENV: 'test', USER: 'self-asserted-attacker' } },
-  );
+  const result = runCli(['state-emit', 'start', '--directory', dir, '--run', 'R-test', '--task', 'T1', '--agent', 'tester', '--silent'], {
+    env: { ...process.env, HSEOS_GOVERNED_EXECUTION_FIXTURE: '1', NODE_ENV: 'test', USER: 'self-asserted-attacker' },
+  });
   if (result.status !== 0) {
     throw new Error(`exit ${result.status}: ${result.stderr || result.stdout}`);
   }
@@ -117,7 +157,8 @@ it('state-emit creates db file and inserts event', () => {
   if (JSON.stringify(lifecycle) !== JSON.stringify(['ExecutionAuthorized', 'ExecutionStarted', 'ExecutionSucceeded'])) {
     throw new Error(`missing governed lifecycle: ${JSON.stringify(lifecycle)}`);
   }
-  if (actor.id.includes('self-asserted-attacker') || actor.type !== 'local_process') throw new Error(`untrusted CLI actor: ${JSON.stringify(actor)}`);
+  if (actor.id.includes('self-asserted-attacker') || actor.type !== 'local_process')
+    throw new Error(`untrusted CLI actor: ${JSON.stringify(actor)}`);
 });
 
 it('state-emit cannot write state when the governed pre-effect append fails', () => {
