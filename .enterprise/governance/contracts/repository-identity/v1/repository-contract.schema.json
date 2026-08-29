@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hideakisolutions.local/contracts/repository-identity/v1/repository-contract.schema.json",
+  "title": "Repository Contract v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "repository_id", "identity", "capabilities"],
+  "properties": {
+    "schema_version": { "const": "repository-contract/v1" },
+    "repository_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Immutable, versioned identity of the logical repository."
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["remotes"],
+      "properties": {
+        "remotes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Normalized remote aliases accepted for discovery and verification."
+        }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifest"],
+      "properties": {
+        "manifest": {
+          "type": ["string", "null"],
+          "pattern": "^\\.agents/capabilities/[A-Za-z0-9._/-]+\\.ya?ml$",
+          "description": "Repository-owned HSEOS capability manifest, or null when unmanaged."
+        }
+      }
+    }
+  }
+}
