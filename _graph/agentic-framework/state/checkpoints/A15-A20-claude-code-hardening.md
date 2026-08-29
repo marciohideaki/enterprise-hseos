@@ -1,8 +1,8 @@
 # A15–A20 — Claude Code Learning Hardening Implementation
 
-**Artifact type:** Governed implementation checkpoint  
+**Artifact type:** Governed implementation checkpoint
 **Scope:** Seven proposals mapped into six implementation cores; proposals 1 and 5 share `agent-policy-lattice`
-**Authority:** Explicit user instruction to analyze, validate, test and implement the seven proposals; negative verdicts must be discarded  
+**Authority:** Explicit user instruction to analyze, validate, test and implement the seven proposals; negative verdicts must be discarded
 **Operational effect:** None; no schema activation, provider activation, secret access, deployment or cutover
 
 ## Final disposition
