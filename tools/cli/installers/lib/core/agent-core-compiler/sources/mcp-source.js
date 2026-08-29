@@ -41,6 +41,7 @@ function mapServer(server, bundleName) {
   const binary = (resolver && resolver.path) || server.package;
   const runtime = (resolver && resolver.runtime) || server.runtime;
   const entry = { id: server.id, transport: server.transport };
+  entry.client_enabled = server.client_enabled !== false;
   if (binary) entry.binary = binary;
   if (runtime) entry.runtime = runtime;
   entry.bundle = bundleName;

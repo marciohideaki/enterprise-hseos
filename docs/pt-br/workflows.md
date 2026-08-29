@@ -171,7 +171,7 @@ Este é o fluxo de execução paralela do HSEOS. SWARM planeja em modelo de alta
 | 2 — Study (opcional) | SWARM | Até 3 subagentes `Explore` em paralelo mapeiam áreas desconhecidas | Nenhuma |
 | 3 — Plan | SWARM | Tarefas atômicas, grafo de waves, matriz de modelo, contratos, critérios de aceite | **Aprovar `PLAN.md` (Gate G2 — obrigatório)** |
 | 4 — Execute | SWARM (waves de N subagentes paralelos) | Por wave: valida base, fan-out em worktrees, valida, commita, mescla, remove | Revisar `WAVE-{k}-REPORT.md` se BLOCKED ou flag de risco (Gate G3) |
-| 5 — Consolidate | SWARM | Esboça corpo do PR com `.github/pull_request_template.md` | **Rodar `gh pr create` (Gate G4); reviewer aprova e merge (Gate G5)** |
+| 5 — Consolidate | SWARM | Esboça corpo do PR com `.github/pull_request_template.md` | **Rodar `gh pr create` (Gate G4); owner autoriza o merge após os checks (Gate G5)** |
 | 6 — Knowledge Consolidation (opcional) | SWARM | Surge gotchas para o vault se second-brain ativo | Nenhuma |
 
 ### Gates
@@ -182,7 +182,7 @@ Este é o fluxo de execução paralela do HSEOS. SWARM planeja em modelo de alta
 | G2 — Plan approval | **Obrigatório** | Humano aprova `PLAN.md` antes de qualquer wave de Execute |
 | G3 — Wave review | Condicional | Humano revisa `WAVE-{k}-REPORT.md` se BLOCKED ou risco |
 | G4 — PR open | Obrigatório | Humano roda `gh pr create`; agentes esboçam, nunca abrem |
-| G5 — Merge | Obrigatório | Reviewer humano aprova; agentes só executam closeout governado após aprovação explícita |
+| G5 — Merge | Obrigatório | Owner do repositório autoriza; agentes só executam closeout governado após essa autorização explícita |
 
 ### Invariantes de governança
 

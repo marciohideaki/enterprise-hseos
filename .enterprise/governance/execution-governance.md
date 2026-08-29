@@ -114,13 +114,14 @@ No commit is allowed if validation fails. No exceptions.
 ## 6. Branch Protection Policy
 
 Protected branches: `main`, `master`, `develop`
-- Require PR with at least 1 human approval
-- Dismiss stale reviews on new push
+- Require a PR and all configured status checks
+- Do not require approving reviews in solo-maintainer mode (`required_pull_request_reviews: null`)
 - Require quality gate status checks to pass
 - No direct push (force or otherwise)
 - **Guard:** `scripts/governance/check-branch.sh` (enforced via `.husky/pre-commit`)
 - **Config:** `.github/branch-protection.yaml`
-- `enforce_admins: enabled` (owner decision 2026-07-15) — admin merges are subject to the same required checks and review rules.
+- `enforce_admins: enabled` (owner decision 2026-07-15) — admin merges are subject to the same required checks.
+- Explicit owner authorization remains an execution gate and is distinct from a GitHub approving review.
 
 ### Break-glass (admin bypass) procedure
 
@@ -143,7 +144,8 @@ When a phase is complete:
 
 Rules:
 - **AI agents must never self-approve or autonomously merge pull requests**
-- Human review/approval is mandatory
+- A separate reviewer or approving review is not required in solo-maintainer mode
+- Explicit repository-owner authorization is mandatory before an agent may execute governed closeout
 - Stop execution after opening the PR unless explicit approval to merge is already present
 - After explicit approval and green checks, use `hseos pr closeout <number> --approved` to merge, fast-forward the base branch, and safely clean up a merged `feature/*` head branch
 - For stacked `feature/*` chains, PRs must identify the upstream base and any known downstream

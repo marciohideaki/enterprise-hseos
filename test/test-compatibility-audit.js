@@ -12,6 +12,7 @@ const {
   LEGACY_SERVER_IDS,
   auditCompatibility,
   migrationDryRun,
+  readDownstreamCompatibilityEvidence,
   scanInternalCompatibilityCallers,
 } = require('../tools/lib/compatibility-audit');
 const { McpLegacyUsageStore, readMcpLegacyActivationReadiness } = require('../tools/mcp-project-state/lib/mcp-legacy-usage-store');
@@ -19,9 +20,109 @@ const { runMigrations } = require('../tools/mcp-project-state/lib/migrations');
 
 const ROOT = path.join(__dirname, '..');
 const AS_OF = new Date('2026-08-21T23:00:00.000Z');
+const RELEASE_SHA = 'a'.repeat(40);
+const CONFIGURATION_SHA256 = 'b'.repeat(64);
 
 function sha256(filename) {
   return createHash('sha256').update(fs.readFileSync(filename)).digest('hex');
+}
+
+function writeCanonicalJson(filename, value) {
+  fs.writeFileSync(filename, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 });
+}
+
+function writeArtifact(directory, filename, value) {
+  const artifactDirectory = path.join(directory, 'artifacts');
+  fs.mkdirSync(artifactDirectory, { recursive: true, mode: 0o700 });
+  const artifactPath = path.join(artifactDirectory, filename);
+  writeCanonicalJson(artifactPath, value);
+  return {
+    artifact_path: `artifacts/${filename}`,
+    media_type: 'application/json',
+    sha256: sha256(artifactPath),
+  };
+}
+
+function downstreamEvidence(directory, overrides = {}) {
+  const inventoryCollectionManifestArtifact = writeArtifact(directory, 'inventory-collection-manifest.json', {
+    schema_version: 1,
+    evidence_only: true,
+    cutover_authorized: false,
+  });
+  const activationArtifact = writeArtifact(directory, 'release-r.json', {
+    release_id: 'R',
+    release_sha: RELEASE_SHA,
+    published_at: '2026-07-01T00:00:00.000Z',
+  });
+  const compatibilityArtifact = writeArtifact(directory, 'release-r-plus-1.json', {
+    release_id: 'R+1',
+    release_sha: 'd'.repeat(40),
+    predecessor_sha: RELEASE_SHA,
+    published_at: '2026-08-20T23:59:59.000Z',
+  });
+  const consumerRegistryArtifact = writeArtifact(directory, 'downstream-consumers.json', {
+    schema_version: 1,
+    scope: 'hseos-downstream-compatibility',
+    completeness_status: 'complete',
+    consumers: [],
+  });
+  return {
+    schema_version: 1,
+    evidence_only: true,
+    cutover_authorized: false,
+    release_sha: RELEASE_SHA,
+    configuration_sha256: CONFIGURATION_SHA256,
+    inventory_collection_manifest_artifact: inventoryCollectionManifestArtifact,
+    consumer_registry_artifact: consumerRegistryArtifact,
+    release_window: {
+      activation_release: 'R',
+      compatibility_release: 'R+1',
+      opened_at: '2026-07-01T00:00:00.000Z',
+      closed_at: '2026-08-20T23:59:59.000Z',
+      activation_artifact: activationArtifact,
+      compatibility_artifact: compatibilityArtifact,
+    },
+    surfaces: ['installer-v4-detection', 'plugin-catalog-v1'].map((surfaceId, index) => {
+      const inventoryArtifact = writeArtifact(directory, `${surfaceId}-inventory.json`, {
+        surface_id: surfaceId,
+        observed_legacy_consumers: 0,
+        observed_migrated_consumers: 1,
+      });
+      const consumerArtifact = writeArtifact(directory, `${surfaceId}-consumer.json`, {
+        surface_id: surfaceId,
+        consumer_id_sha256: String(index + 1).repeat(64),
+        migration_verified: true,
+      });
+      return {
+        surface_id: surfaceId,
+        legacy_consumers: 0,
+        migrated_consumers: 1,
+        inventory_artifact: inventoryArtifact,
+        inventory_observed_at: '2026-08-20T12:00:00.000Z',
+        attestations: [
+          {
+            consumer_id_sha256: String(index + 1).repeat(64),
+            artifact: consumerArtifact,
+            observed_at: '2026-08-20T12:00:00.000Z',
+          },
+        ],
+      };
+    }),
+    ...overrides,
+  };
+}
+
+function writeObservationScope(stateDirectory, databasePath, telemetryPath) {
+  writeCanonicalJson(path.join(stateDirectory, 'harness-g9-observation-release.json'), {
+    schema_version: 1,
+    release_sha: RELEASE_SHA,
+    configuration_sha256: CONFIGURATION_SHA256,
+    telemetry_database: telemetryPath,
+    state_database: databasePath,
+    cutover_authorized: false,
+    server_ids: LEGACY_SERVER_IDS,
+    first_candidate_complete_utc_day: '2026-07-01',
+  });
 }
 
 function createOperationalFixture(directory) {
@@ -83,11 +184,13 @@ test('migration dry-run upgrades only a temporary copy and preserves every legac
   const result = await migrationDryRun(databasePath, ROOT);
   assert.equal(result.ready, true);
   assert.equal(result.source_version, 4);
-  assert.equal(result.target_version, 7);
+  assert.equal(result.target_version, 9);
   assert.deepEqual(result.applied, [
     '005-governed-execution-ledger-v2.sql',
     '006-execution-projections.sql',
     '007-execution-approvals.sql',
+    '008-delegated-runtime-event-catalog.sql',
+    '009-delegated-worker-lifecycle.sql',
   ]);
   assert.deepEqual(result.changed_legacy_tables, []);
   assert.equal(result.operational_unchanged, true);
@@ -117,10 +220,164 @@ test('read-only telemetry evidence can become ready but never bypasses active ca
   assert.equal(report.evidence.migration.ready, true);
   assert.equal(report.evidence.migration.operational_unchanged, true);
   assert.equal(report.evidence.callers.legacy_runtime_zero, false);
+  assert.equal(report.evidence.downstream.ready, false);
   assert.equal(report.ready_for_human_gate, false);
   assert.equal(report.activation_authorized, false);
   assert.equal(report.status, 'blocked-on-evidence');
   assert.equal(sha256(telemetryPath), telemetryHash);
+});
+
+test('downstream release evidence is strict, scope-bound, integrity-checked, and never authorizes cutover', (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-compat-downstream-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const evidencePath = path.join(directory, 'downstream.json');
+  const observationScope = {
+    valid: true,
+    release_sha: RELEASE_SHA,
+    configuration_sha256: CONFIGURATION_SHA256,
+  };
+  writeCanonicalJson(evidencePath, downstreamEvidence(directory));
+  const valid = readDownstreamCompatibilityEvidence(evidencePath, { asOf: AS_OF, observationScope });
+  assert.equal(valid.ready, true);
+  assert.equal(valid.evidence_only, true);
+  assert.equal(valid.human_verification_required, true);
+  assert.equal(valid.cutover_authorized, false);
+  assert.match(valid.sha256, /^[a-f0-9]{64}$/);
+  assert.equal(valid.verified_artifacts.length, 8);
+
+  const tamperedArtifact = path.join(directory, valid.surfaces[0].inventory_artifact.artifact_path);
+  writeCanonicalJson(tamperedArtifact, { forged: true });
+  const tampered = readDownstreamCompatibilityEvidence(evidencePath, { asOf: AS_OF, observationScope });
+  assert.equal(tampered.ready, false);
+  assert.ok(tampered.errors.some((error) => error.includes('digest does not match')));
+
+  const zeroConsumerEvidence = downstreamEvidence(directory);
+  writeCanonicalJson(
+    evidencePath,
+    downstreamEvidence(directory, {
+      surfaces: zeroConsumerEvidence.surfaces.map((surface) => ({ ...surface, migrated_consumers: 0, attestations: [] })),
+    }),
+  );
+  const emptyInventory = readDownstreamCompatibilityEvidence(evidencePath, { asOf: AS_OF, observationScope });
+  assert.equal(emptyInventory.ready, true);
+
+  writeCanonicalJson(evidencePath, downstreamEvidence(directory, { release_sha: 'c'.repeat(40) }));
+  const drifted = readDownstreamCompatibilityEvidence(evidencePath, { asOf: AS_OF, observationScope });
+  assert.equal(drifted.ready, false);
+  assert.ok(drifted.errors.includes('release_sha differs from observation scope'));
+
+  writeCanonicalJson(evidencePath, downstreamEvidence(directory, { cutover_authorized: true }));
+  const authorized = readDownstreamCompatibilityEvidence(evidencePath, { asOf: AS_OF, observationScope });
+  assert.equal(authorized.ready, false);
+  assert.ok(authorized.errors.includes('cutover_authorized must be false'));
+
+  writeCanonicalJson(evidencePath, { ...downstreamEvidence(directory), unknown: true });
+  const widened = readDownstreamCompatibilityEvidence(evidencePath, { asOf: AS_OF, observationScope });
+  assert.equal(widened.ready, false);
+  assert.ok(widened.errors.includes('downstream evidence envelope has unknown or missing fields'));
+
+  const escapingEvidence = downstreamEvidence(directory);
+  escapingEvidence.surfaces[0].inventory_artifact = {
+    ...escapingEvidence.surfaces[0].inventory_artifact,
+    artifact_path: 'artifacts/../outside.json',
+  };
+  writeCanonicalJson(evidencePath, escapingEvidence);
+  const escaping = readDownstreamCompatibilityEvidence(evidencePath, { asOf: AS_OF, observationScope });
+  assert.equal(escaping.ready, false);
+  assert.ok(escaping.errors.some((error) => error.includes('normalized relative path')));
+
+  const symbolic = path.join(directory, 'symbolic.json');
+  fs.symlinkSync(evidencePath, symbolic);
+  const aliased = readDownstreamCompatibilityEvidence(symbolic, { asOf: AS_OF, observationScope });
+  assert.equal(aliased.ready, false);
+  assert.ok(aliased.errors.some((error) => error.includes('must not traverse a symlink')));
+});
+
+test(
+  'descriptor-bound evidence read rejects a pathname swapped during artifact verification',
+  {
+    skip: process.platform === 'win32',
+  },
+  (t) => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-compat-downstream-race-'));
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    const evidencePath = path.join(directory, 'downstream.json');
+    const evidence = downstreamEvidence(directory);
+    writeCanonicalJson(evidencePath, evidence);
+    const target = path.join(directory, evidence.release_window.activation_artifact.artifact_path);
+    const moved = `${target}.original`;
+    const originalReadFileSync = fs.readFileSync;
+    let targetSwapped = false;
+    fs.readFileSync = function readFileWithSwap(filename, ...args) {
+      if (Number.isInteger(filename) && !targetSwapped) {
+        let descriptorTarget;
+        try {
+          descriptorTarget = fs.readlinkSync(`/proc/self/fd/${filename}`);
+        } catch {
+          descriptorTarget = undefined;
+        }
+        if (descriptorTarget === target) {
+          targetSwapped = true;
+          fs.renameSync(target, moved);
+          writeCanonicalJson(target, { forged: true });
+        }
+      }
+      return originalReadFileSync.call(this, filename, ...args);
+    };
+    let result;
+    try {
+      result = readDownstreamCompatibilityEvidence(evidencePath, {
+        asOf: AS_OF,
+        observationScope: { valid: true, release_sha: RELEASE_SHA, configuration_sha256: CONFIGURATION_SHA256 },
+      });
+    } finally {
+      fs.readFileSync = originalReadFileSync;
+    }
+    assert.equal(result.ready, false);
+    assert.ok(result.errors.some((error) => error.includes('changed while it was being read')));
+  },
+);
+
+test('audit rejects a structurally valid but fabricated bundle before the human gate', async (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-compat-human-gate-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const projectDirectory = path.join(directory, 'project');
+  const repositoryRoot = path.join(directory, 'repository');
+  const { databasePath, stateDirectory } = createOperationalFixture(projectDirectory);
+  const telemetryPath = path.join(stateDirectory, 'mcp-legacy-usage.db');
+  fillCompleteTelemetry(telemetryPath);
+  writeObservationScope(stateDirectory, databasePath, telemetryPath);
+  if (process.platform !== 'win32') fs.chmodSync(path.join(stateDirectory, 'harness-g9-observation-release.json'), 0o664);
+  writeCanonicalJson(path.join(stateDirectory, 'harness-g9-downstream-evidence.json'), downstreamEvidence(stateDirectory));
+  const pendingMigrations = path.join(repositoryRoot, 'tools', 'mcp-project-state', 'migrations-pending-activation');
+  fs.mkdirSync(path.dirname(pendingMigrations), { recursive: true });
+  fs.mkdirSync(pendingMigrations);
+  const sourceMigrations = path.join(ROOT, 'tools', 'mcp-project-state', 'migrations-pending-activation');
+  for (const filename of fs.readdirSync(sourceMigrations)) {
+    fs.copyFileSync(path.join(sourceMigrations, filename), path.join(pendingMigrations, filename));
+  }
+  fs.mkdirSync(path.join(repositoryRoot, 'src'), { recursive: true });
+
+  const report = await auditCompatibility({ repositoryRoot, projectDirectory, asOf: AS_OF });
+  assert.equal(report.evidence.telemetry.ready, true);
+  assert.equal(report.evidence.migration.ready, true);
+  assert.equal(report.evidence.callers.legacy_runtime_zero, true);
+  assert.equal(report.evidence.observation_scope.valid, true);
+  assert.equal(report.evidence.downstream.ready, false);
+  assert.equal(report.evidence.downstream.local_git_revalidated, false);
+  assert.ok(report.evidence.downstream.errors.some((error) => error.includes('Git-pinned bundle revalidation failed')));
+  assert.equal(report.ready_for_human_gate, false);
+  assert.equal(report.status, 'blocked-on-evidence');
+  assert.equal(report.activation_authorized, false);
+
+  fs.unlinkSync(path.join(stateDirectory, 'harness-g9-downstream-evidence.json'));
+  const absent = await auditCompatibility({ repositoryRoot, projectDirectory, asOf: AS_OF });
+  assert.equal(absent.evidence.telemetry.ready, true);
+  assert.equal(absent.evidence.migration.ready, true);
+  assert.equal(absent.evidence.callers.legacy_runtime_zero, true);
+  assert.equal(absent.evidence.downstream.ready, false);
+  assert.equal(absent.ready_for_human_gate, false);
+  assert.equal(absent.status, 'blocked-on-evidence');
 });
 
 test('sparse daily telemetry cannot produce a false green', (t) => {

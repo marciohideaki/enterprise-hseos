@@ -1,0 +1,14 @@
+schema_version: 1
+profile_id: agent-codex-delegated-candidate
+runtime_provider_id: runtime:codex-app-server
+executable: /usr/local/bin/codex
+args:
+  - app-server
+  - --listen
+  - stdio://
+cwd: /absolute/path/to/project
+env_names:
+  - HOME
+  - PATH
+secret_refs:
+  - secret://codex/host-auth

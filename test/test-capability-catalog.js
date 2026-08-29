@@ -15,8 +15,10 @@ const {
   loadCapabilityCatalog,
   resolveCapabilityPlan,
   validateCapabilityDocuments,
+  validateSurfaceDocument,
 } = require('../tools/cli/lib/capability-catalog');
 const { AgentCoreCompiler } = require('../tools/cli/installers/lib/core/agent-core-compiler');
+const { syncCapabilityCatalog } = require('../tools/cli/installers/lib/core/agent-core-compiler/sources/capabilities-source');
 const installCommand = require('../tools/cli/commands/install');
 
 const REPO_ROOT = path.join(__dirname, '..');
@@ -31,6 +33,52 @@ function assertPass(label, condition, details = '') {
   } else {
     console.error(`  FAIL  ${label}${details ? ` - ${details}` : ''}`);
     failed++;
+  }
+}
+
+function testSurfaceLifecycleFailsClosed() {
+  const capabilityRoot = path.join(REPO_ROOT, '.enterprise', 'governance', 'capabilities');
+  const components = yaml.parse(fs.readFileSync(path.join(capabilityRoot, 'components.yaml'), 'utf8'));
+  const surfaces = yaml.parse(fs.readFileSync(path.join(capabilityRoot, 'surfaces.yaml'), 'utf8'));
+  const catalog = loadCapabilityCatalog(REPO_ROOT);
+
+  validateSurfaceDocument(surfaces, components);
+  assertPass(
+    'every resolved component exposes a closed surface class',
+    catalog.components.every((component) => ['core', 'module', 'sidecar', 'candidate', 'compatibility'].includes(component.surface_class)),
+  );
+  assertPass(
+    'every standalone surface path exists',
+    catalog.standaloneSurfaces.every((surface) => surface.paths.every((surfacePath) => fs.existsSync(path.join(REPO_ROOT, surfacePath)))),
+  );
+
+  const invalidCases = [
+    ['missing component coverage', { ...surfaces, component_classes: { ...surfaces.component_classes, 'runtime:state': undefined } }],
+    ['baseline demotion', { ...surfaces, component_classes: { ...surfaces.component_classes, 'baseline:governance': 'module' } }],
+    [
+      'unsafe standalone path',
+      {
+        ...surfaces,
+        standalone_surfaces: [{ ...surfaces.standalone_surfaces[0], paths: ['../escape'] }, ...surfaces.standalone_surfaces.slice(1)],
+      },
+    ],
+    [
+      'classification and id mismatch',
+      {
+        ...surfaces,
+        standalone_surfaces: [{ ...surfaces.standalone_surfaces[0], classification: 'sidecar' }, ...surfaces.standalone_surfaces.slice(1)],
+      },
+    ],
+  ];
+  delete invalidCases[0][1].component_classes['runtime:state'];
+  for (const [label, document] of invalidCases) {
+    let rejected = false;
+    try {
+      validateSurfaceDocument(document, components);
+    } catch {
+      rejected = true;
+    }
+    assertPass(`surface lifecycle rejects ${label}`, rejected);
   }
 }
 
@@ -51,8 +99,10 @@ function testCatalogLoadsProfilesAndComponents() {
 }
 
 function testSchemaV2FailsClosed() {
-  const profiles = yaml.parse(fs.readFileSync(path.join(REPO_ROOT, '.agents', 'capabilities', 'profiles.yaml'), 'utf8'));
-  const components = yaml.parse(fs.readFileSync(path.join(REPO_ROOT, '.agents', 'capabilities', 'components.yaml'), 'utf8'));
+  const profiles = yaml.parse(fs.readFileSync(path.join(REPO_ROOT, '.enterprise', 'governance', 'capabilities', 'profiles.yaml'), 'utf8'));
+  const components = yaml.parse(
+    fs.readFileSync(path.join(REPO_ROOT, '.enterprise', 'governance', 'capabilities', 'components.yaml'), 'utf8'),
+  );
   const catalog = loadCapabilityCatalog(REPO_ROOT);
 
   assertPass('catalog is validated as capability schema v2', catalog.schemaVersion === '2.0', catalog.schemaVersion);
@@ -82,6 +132,58 @@ function testSchemaV2FailsClosed() {
           minimal: {
             ...profiles.profiles.minimal,
             components: [...profiles.profiles.minimal.components, 'baseline:governance'],
+          },
+        },
+      },
+      components,
+    ],
+    [
+      'hosted profile with a phantom model provider',
+      {
+        ...profiles,
+        profiles: {
+          ...profiles.profiles,
+          'agent-codex-delegated-candidate': {
+            ...profiles.profiles['agent-codex-delegated-candidate'],
+            agent: {
+              ...profiles.profiles['agent-codex-delegated-candidate'].agent,
+              model_provider_id: 'model:delegated-runtime',
+            },
+          },
+        },
+      },
+      components,
+    ],
+    [
+      'kernel profile without a model provider',
+      {
+        ...profiles,
+        profiles: {
+          ...profiles.profiles,
+          'agent-reference': {
+            ...profiles.profiles['agent-reference'],
+            agent: {
+              execution_mode: 'kernel',
+              runtime_provider_id: 'runtime:hseos-kernel',
+              secret_refs: [],
+            },
+          },
+        },
+      },
+      components,
+    ],
+    [
+      'kernel profile with a delegated runtime provider',
+      {
+        ...profiles,
+        profiles: {
+          ...profiles.profiles,
+          'agent-reference': {
+            ...profiles.profiles['agent-reference'],
+            agent: {
+              ...profiles.profiles['agent-reference'].agent,
+              runtime_provider_id: 'runtime:codex-app-server',
+            },
           },
         },
       },
@@ -179,6 +281,63 @@ function testSchemaV2FailsClosed() {
     }
     assertPass(`resolver rejects inherited profile key ${inheritedName}`, profileRejected);
     assertPass(`resolver rejects inherited hook key ${inheritedName}`, hookRejected);
+  }
+}
+
+async function testCanonicalCapabilitySourceAndCompatibility() {
+  const canonical = path.join(REPO_ROOT, '.enterprise', 'governance', 'capabilities');
+  const compiled = path.join(REPO_ROOT, '.agents', 'capabilities');
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'hseos-capability-source-'));
+
+  try {
+    for (const fileName of ['README.md', 'profiles.yaml', 'components.yaml', 'surfaces.yaml']) {
+      assertPass(
+        `compiled capability ${fileName} matches its canonical source`,
+        fs.readFileSync(path.join(canonical, fileName), 'utf8') === fs.readFileSync(path.join(compiled, fileName), 'utf8'),
+      );
+    }
+
+    await fs.copy(canonical, path.join(tempRoot, '.enterprise', 'governance', 'capabilities'));
+    await fs.copy(compiled, path.join(tempRoot, '.agents', 'capabilities'));
+    await fs.copy(path.join(REPO_ROOT, '.agents', 'manifest.yaml'), path.join(tempRoot, '.agents', 'manifest.yaml'));
+    await fs.writeFile(path.join(tempRoot, '.agents', 'capabilities', 'profiles.yaml'), 'schema_version: "invalid"\n');
+    const canonicalCatalog = loadCapabilityCatalog(tempRoot);
+    assertPass('catalog prefers the complete canonical source', canonicalCatalog.sourceKind === 'canonical');
+
+    const targetCanonical = path.join(tempRoot, '.enterprise', 'governance', 'capabilities');
+    await fs.remove(path.join(targetCanonical, 'surfaces.yaml'));
+    let incompleteCanonicalRejected = false;
+    try {
+      await syncCapabilityCatalog(tempRoot, tempRoot);
+    } catch (error) {
+      incompleteCanonicalRejected = /incomplete/.test(error.message);
+    }
+    assertPass('compiler never synthesizes missing lifecycle metadata for a canonical source', incompleteCanonicalRejected);
+    await fs.copyFile(path.join(canonical, 'surfaces.yaml'), path.join(targetCanonical, 'surfaces.yaml'));
+
+    await fs.remove(path.join(tempRoot, '.enterprise'));
+    for (const fileName of ['README.md', 'profiles.yaml', 'components.yaml']) {
+      await fs.copyFile(path.join(canonical, fileName), path.join(tempRoot, '.agents', 'capabilities', fileName));
+    }
+    await fs.remove(path.join(tempRoot, '.agents', 'capabilities', 'surfaces.yaml'));
+    const compatibilityCatalog = loadCapabilityCatalog(tempRoot);
+    assertPass(
+      'catalog supports a true legacy compiled-only installation without surfaces',
+      compatibilityCatalog.sourceKind === 'compiled-legacy-compatibility' &&
+        compatibilityCatalog.components
+          .filter((component) => !component.required && !component.synthetic)
+          .every((component) => component.surface_class === 'compatibility'),
+    );
+
+    const syncResult = await syncCapabilityCatalog(tempRoot, tempRoot);
+    assertPass(
+      'compiler upgrades a legacy generated catalog instead of returning early',
+      syncResult.mode === 'legacy-generated-source' && fs.existsSync(path.join(tempRoot, '.agents', 'capabilities', 'surfaces.yaml')),
+    );
+    const upgradedCatalog = loadCapabilityCatalog(tempRoot);
+    assertPass('upgraded compiled catalog passes the strict surface contract', upgradedCatalog.sourceKind === 'compiled-compatibility');
+  } finally {
+    await fs.remove(tempRoot);
   }
 }
 
@@ -373,6 +532,11 @@ async function testEveryProfileMaterializesExactlySelectedSkills() {
         selectedSkills: plan.skills,
       });
       const emittedManifest = yaml.parse(await fs.readFile(path.join(target, result.manifest), 'utf8'));
+      assertPass(
+        `${profileId} compiler materializes the canonical capability catalog`,
+        (await fs.readFile(path.join(target, '.agents', 'capabilities', 'profiles.yaml'), 'utf8')) ===
+          (await fs.readFile(path.join(REPO_ROOT, '.enterprise', 'governance', 'capabilities', 'profiles.yaml'), 'utf8')),
+      );
       const emittedManifestSkills = (emittedManifest.skills || []).map((skill) => skill.name).sort();
       const selectedAdapters = plan.components
         .filter((component) => component.family === 'adapter')
@@ -462,6 +626,8 @@ async function testEveryProfileMaterializesExactlySelectedSkills() {
 async function run() {
   testCatalogLoadsProfilesAndComponents();
   testSchemaV2FailsClosed();
+  testSurfaceLifecycleFailsClosed();
+  await testCanonicalCapabilitySourceAndCompatibility();
   testProfilesReferenceKnownComponents();
   testComponentsReferenceKnownSkills();
   testEverySkillHasCapabilityFamilyHome();

@@ -8,6 +8,7 @@ required: true
 
 servers:
   - id: hseos-governance
+    client_enabled: false # G9 observation: definitions remain available but clients must not launch them
     transport: stdio
     binary_resolver:
       - path: tools/mcp-hseos-governance/index.js
@@ -26,6 +27,7 @@ servers:
     adapter_namespace: hseos_gov
 
   - id: hseos-state-tracking
+    client_enabled: false # G9 observation: definitions remain available but clients must not launch them
     transport: stdio
     binary_resolver:
       - path: tools/mcp-project-state/index.js

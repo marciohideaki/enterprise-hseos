@@ -19,7 +19,7 @@ const DEFAULT_SANDBOX = {
       allow_tcp_ports: [],
     },
     lockdown: {
-      flags: ['--lockdown', '--no-save-config'],
+      flags: ['--lockdown', '--no-save-config', '--exec'],
       masks: ['.env', '.env.local', 'credentials.json', 'secrets.yml'],
       ro_maps: [],
       rw_maps: [],
@@ -29,17 +29,41 @@ const DEFAULT_SANDBOX = {
 };
 
 function commandExists(command, env = process.env) {
-  const envPath = env.PATH || '';
-  const extensions = process.platform === 'win32' ? ['.exe', '.cmd', '.bat', ''] : [''];
+  try {
+    resolveCommand(command, env);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
-  for (const entry of envPath.split(path.delimiter)) {
-    if (!entry) continue;
-    for (const ext of extensions) {
-      if (fs.existsSync(path.join(entry, `${command}${ext}`))) return true;
+function resolveCommand(command, env = process.env) {
+  if (typeof command !== 'string' || command.length === 0 || command.includes('\0')) {
+    throw new Error('Sandbox binary must be a non-empty command.');
+  }
+  const extensions = process.platform === 'win32' ? ['.exe', '.cmd', '.bat', ''] : [''];
+  const hasSeparator = command.includes('/') || command.includes('\\');
+  const bases = hasSeparator
+    ? [path.resolve(command)]
+    : String(env.PATH || '')
+        .split(path.delimiter)
+        .filter(Boolean)
+        .map((entry) => path.join(entry, command));
+  for (const base of bases) {
+    for (const extension of extensions) {
+      const candidate = `${base}${extension}`;
+      try {
+        const canonical = fs.realpathSync(candidate);
+        const stat = fs.statSync(canonical);
+        if (stat.isFile() && (process.platform === 'win32' || (stat.mode & 0o111) !== 0)) {
+          return Object.freeze({ path: canonical, dev: stat.dev, ino: stat.ino, mode: stat.mode, size: stat.size, mtimeMs: stat.mtimeMs });
+        }
+      } catch {
+        // Continue searching PATH without exposing host filesystem details.
+      }
     }
   }
-
-  return false;
+  throw new Error('Sandbox binary is unavailable or not executable.');
 }
 
 function readSysctl(relPath) {
@@ -50,6 +74,20 @@ function readSysctl(relPath) {
   } catch {
     return null;
   }
+}
+
+function probeSandboxRuntime(binary, projectDir, env = process.env) {
+  const result = spawnSync(
+    binary,
+    ['--clean', '--lockdown', '--no-save-config', '--exec', '--', '/usr/bin/true'],
+    {
+      cwd: projectDir,
+      env,
+      stdio: 'ignore',
+      timeout: 10_000,
+    },
+  );
+  return Object.freeze({ ok: !result.error && result.status === 0, status: result.status });
 }
 
 function readHseosConfig(projectDir) {
@@ -178,10 +216,14 @@ function runSandbox({ projectDir, profileName, command, dryRun = false, stdio = 
   };
 }
 
-function sandboxDoctor(projectDir, env = process.env) {
+function sandboxDoctor(
+  projectDir,
+  env = process.env,
+  { forceRequired = false, runtimeProbe = probeSandboxRuntime, sysctlReader = readSysctl } = {},
+) {
   const resolved = resolveSandbox(projectDir);
   const { sandbox, parseError } = resolved;
-  const required = sandbox.required === true;
+  const required = forceRequired || sandbox.required === true;
   const checks = [];
 
   checks.push({
@@ -237,7 +279,29 @@ function sandboxDoctor(projectDir, env = process.env) {
       remedy: bwrapFound ? undefined : 'Install bubblewrap for Linux sandbox support.',
     });
 
-    const userns = readSysctl('kernel/unprivileged_userns_clone');
+    let runtimeReady = false;
+    if (providerOk && aiJailFound && bwrapFound) {
+      try {
+        const probe = runtimeProbe(resolveCommand(binary, env).path, projectDir, env);
+        runtimeReady = probe?.ok === true;
+      } catch {
+        runtimeReady = false;
+      }
+    }
+    checks.push({
+      id: 'sandbox_runtime_probe',
+      title: 'Sandbox runtime probe',
+      ok: runtimeReady,
+      required,
+      details: runtimeReady
+        ? 'A clean lockdown sandbox executed successfully'
+        : 'A clean lockdown sandbox could not execute',
+      remedy: runtimeReady
+        ? undefined
+        : 'Run ai-jail --clean --lockdown --no-save-config --exec -- /usr/bin/true and correct the reported host policy failure.',
+    });
+
+    const userns = sysctlReader('kernel/unprivileged_userns_clone');
     if (userns !== null) {
       checks.push({
         id: 'user_namespaces',
@@ -249,19 +313,22 @@ function sandboxDoctor(projectDir, env = process.env) {
       });
     }
 
-    const apparmorUserns = readSysctl('kernel/apparmor_restrict_unprivileged_userns');
+    const apparmorUserns = sysctlReader('kernel/apparmor_restrict_unprivileged_userns');
     if (apparmorUserns !== null) {
+      const apparmorReady = apparmorUserns === '0' || runtimeReady;
       checks.push({
         id: 'apparmor_userns',
         title: 'AppArmor userns restriction',
-        ok: apparmorUserns === '0',
+        ok: apparmorReady,
         required,
         details:
           apparmorUserns === '0'
             ? 'AppArmor is not restricting unprivileged user namespaces'
+            : runtimeReady
+              ? 'AppArmor restricts user namespaces globally, but the sandbox runtime probe passed'
             : 'AppArmor restricts unprivileged user namespaces; bwrap may need an explicit profile',
         remedy:
-          apparmorUserns === '0'
+          apparmorReady
             ? undefined
             : 'Install an AppArmor profile for bwrap or relax the system restriction before requiring sandbox.',
       });
@@ -326,9 +393,13 @@ function sandboxDoctorCheck(projectDir) {
 
 module.exports = {
   DEFAULT_SANDBOX,
+  buildAiJailArgs,
   buildSandboxCommand,
   commandExists,
   formatCommand,
+  getProfile,
+  resolveCommand,
+  resolveSandbox,
   runSandbox,
   sandboxDoctor,
   sandboxDoctorCheck,

@@ -19,19 +19,19 @@
 
 ## Nodes
 
-| Node | Deliverable | Depends on | Deterministic verification | Gate / stop condition |
-|---|---|---|---|---|
-| G0 | Baseline, goal graph, ADR-0022 and ADR-0023 drafts | none | ADR structure and graph references validated | Stop before architectural implementation until human acceptance |
-| G1 | Dead-code and stale-status cleanup | G0 | focused tests, lint, documentation fact tests | Stop if a consumer of a removal is found |
-| G2 | Relational append-only event ledger and schema v2 | accepted ADR-0022 | migration tests on temporary DBs; concurrent ordering; idempotency | Stop before operational data migration |
-| G3 | Rebuildable state projections and truthful reconcile/health | G2 | crash recovery, replay, high-water, and 2/14 false-green regression tests | Stop on unreconciled destructive migration |
-| G4 | Governed execution core, event schema/upcaster registry, sensitive-data allowlists, and common result envelope | G2 | policy, approval, timeout, cancel, versioned event/input/output schema, upcaster, evidence contract tests | Stop on security-policy ambiguity or an unregistered event type/version |
-| G5 | MCP 2026-07-28 adapter with bounded legacy negotiation | accepted ADR-0023, G4 | official-era request fixtures, deterministic list/cache/header tests | Stop if required consumed subset is unsupported |
-| G6 | CLI, hooks, project-state, and SWARM adapters | G3, G4 | cross-adapter parity tests and scheduler barrier/cancel tests | Stop if an adapter bypasses the execution port |
-| G7 | Capability schema v2 and exact materialization | G4 | selected set equals emitted set for every profile | Stop if mandatory baseline can be omitted |
-| G8 | Plugin normalization | G1, G7 | active plugin behavior tests and generated-source checks | Scaffold cannot remain active |
-| G9 | Compatibility retirement | G3, G5, G6, G7, G8 | migration fixtures, zero internal callers, deprecation telemetry | Human gate before deleting operational data/schema |
-| G10 | Completion audit | all | full quality gates plus requirement-by-requirement evidence | Goal remains active on weak or missing evidence |
+| Node | Deliverable                                                                                                    | Depends on            | Deterministic verification                                                                                | Gate / stop condition                                                   |
+| ---- | -------------------------------------------------------------------------------------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| G0   | Baseline, goal graph, ADR-0022 and ADR-0023 drafts                                                             | none                  | ADR structure and graph references validated                                                              | Stop before architectural implementation until human acceptance         |
+| G1   | Dead-code and stale-status cleanup                                                                             | G0                    | focused tests, lint, documentation fact tests                                                             | Stop if a consumer of a removal is found                                |
+| G2   | Relational append-only event ledger and schema v2                                                              | accepted ADR-0022     | migration tests on temporary DBs; concurrent ordering; idempotency                                        | Stop before operational data migration                                  |
+| G3   | Rebuildable state projections and truthful reconcile/health                                                    | G2                    | crash recovery, replay, high-water, and 2/14 false-green regression tests                                 | Stop on unreconciled destructive migration                              |
+| G4   | Governed execution core, event schema/upcaster registry, sensitive-data allowlists, and common result envelope | G2                    | policy, approval, timeout, cancel, versioned event/input/output schema, upcaster, evidence contract tests | Stop on security-policy ambiguity or an unregistered event type/version |
+| G5   | MCP 2026-07-28 adapter with bounded legacy negotiation                                                         | accepted ADR-0023, G4 | official-era request fixtures, deterministic list/cache/header tests                                      | Stop if required consumed subset is unsupported                         |
+| G6   | CLI, hooks, project-state, and SWARM adapters                                                                  | G3, G4                | cross-adapter parity tests and scheduler barrier/cancel tests                                             | Stop if an adapter bypasses the execution port                          |
+| G7   | Capability schema v2 and exact materialization                                                                 | G4                    | selected set equals emitted set for every profile                                                         | Stop if mandatory baseline can be omitted                               |
+| G8   | Plugin normalization                                                                                           | G1, G7                | active plugin behavior tests and generated-source checks                                                  | Scaffold cannot remain active                                           |
+| G9   | Compatibility retirement                                                                                       | G3, G5, G6, G7, G8    | migration fixtures, zero internal callers, deprecation telemetry                                          | Human gate before deleting operational data/schema                      |
+| G10  | Completion audit                                                                                               | all                   | full quality gates plus requirement-by-requirement evidence                                               | Goal remains active on weak or missing evidence                         |
 
 ## Execution waves
 
@@ -75,3 +75,14 @@
 ## Rollback
 
 Each node remains on an isolated `task/*` branch. Code nodes must include down-migration or compatibility reversal where applicable. No feature branch is merged and no task branch is removed without preserved validation evidence.
+
+## Execution checkpoint — 2026-08-23
+
+- G0–G8 are integrated in release `5df935d180cf57a36ad321a40bdb09c7552cbe35`; G9 remains active.
+- The four legacy MCP entrypoints are metered in one operational telemetry database. The deployment day is partial and excluded; the first candidate complete UTC day is 2026-08-24.
+- `compatibility-observe` monitors the active WAL through a verified private snapshot, detects missing/stale servers, incomplete hourly coverage and legacy use, and cannot authorize cutover.
+- `compatibility-observe-plan` deterministically renders a project-bound, networkless hourly systemd user-unit plan without creating evidence directories, installing units or enabling a timer.
+- `compatibility-audit` now fails closed unless the exact plugin-v1 and installer-v4 downstream release-window bundle references hash-verified local artifacts bound to the observation release; this evidence can only advance to human review.
+- `compatibility-evidence-inventory`, packer schema v2 and the audit now recollect both downstream surfaces from the exact release-pinned Git registry; fabricated inventories, envelope-only counters and rehashed invalid R/R+1 artifacts fail closed.
+- `compatibility-evidence-pack` now constructs that bundle from strict external inventories and attestations in a new private directory, deriving counts and binding R/R+1 to the canonical project observation scope; operational state, unsafe anchors and unsupported ACL semantics fail closed.
+- The initial live report has 4/4 fresh server IDs, legacy use on the excluded deployment day and 0/30 complete zero-use days. G9 and G10 remain incomplete.

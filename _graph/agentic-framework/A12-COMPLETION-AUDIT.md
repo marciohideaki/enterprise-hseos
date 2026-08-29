@@ -3,14 +3,13 @@
 **Artifact type:** Functional completion audit
 **Scope:** ADR-0024 and goal nodes A0–A12 at baseline `cf80117`
 **Governing documents:** Enterprise Constitution; ADR-0012; ADR-0022; ADR-0024; Automated Validation Rules
-**Reference harness:** DeepSeek Harness `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e` (`dsh-v0.1.1-rc.2`)
 **Status:** Completed in isolated task worktree; final gate passed; not integrated or activated
 
 ## Verdict
 
 Observed functional completion for the declared pre-activation framework scope is **100% (8/8 mandatory acceptance journeys)**. Overall goal-graph completion after A12 is **92.9% (13/14 nodes)** because A13 operational activation is deliberately incomplete and requires a separate human gate.
 
-This does not mean feature parity with the DeepSeek product. It means HSEOS now satisfies the accepted model-agnostic framework contract: it owns a bounded agent loop, durable context/session truth, governed tools, compaction, child/workflow orchestration and substitutable provider seams without owning model weights.
+This verdict is limited to the accepted HSEOS model-agnostic framework contract: a bounded agent loop, durable context/session truth, governed tools, compaction, child/workflow orchestration and substitutable provider seams without owning model weights. It makes no product-parity claim.
 
 ## Claims by evidence class
 
@@ -26,7 +25,7 @@ This does not mean feature parity with the DeepSeek product. It means HSEOS now 
 - File-backed replay/reconstruction was measured at 23, 135 and 519 session events over 25 samples per volume; the final strict gate observed p95 values of 3.755, 15.751 and 38.785 ms, database size below 1 MiB and heap growth below 128 MiB.
 - The reference CLI installs an exact keyless profile and supports durable run, cross-process resume and cancel.
 - Governed tools, compaction, child agents, workflows, ACP and hosted adapters have deterministic failure/cancellation tests.
-- Codex, Claude Code and DeepSeek hosted adapters declare L0 honestly. They are adapters, not falsely certified full runtimes.
+- Hosted and ACP adapters declare L0 honestly. They are adapters, not falsely certified full runtimes.
 
 ### Inferred
 
@@ -37,8 +36,8 @@ This does not mean feature parity with the DeepSeek product. It means HSEOS now 
 
 - Real-provider latency, cost, rate-limit and credential-manager integration.
 - Production sandbox enforcement, migration, rollback and operational telemetry under load.
-- L3/L4 conformance for hosted Codex, Claude Code or DeepSeek runtimes.
-- Conversational UI, LSP and persistent terminal breadth comparable to DeepSeek; these are provider/client capabilities, not Agent Kernel completion criteria.
+- L3/L4 conformance for hosted or external ACP runtimes.
+- Conversational UI, LSP and persistent terminal breadth; these are provider/client capabilities, not Agent Kernel completion criteria.
 
 ## Mandatory journey matrix
 
@@ -55,7 +54,7 @@ This does not mean feature parity with the DeepSeek product. It means HSEOS now 
 
 ## Reproducible completion measures
 
-No market-style percentage is assigned to HSEOS or DeepSeek because the products declare different scope. The only percentages used here have explicit denominators:
+No market-style or cross-product percentage is assigned. The only percentages used here have explicit denominators:
 
 | Measure | Numerator / denominator | Result |
 | --- | ---: | ---: |
@@ -64,7 +63,7 @@ No market-style percentage is assigned to HSEOS or DeepSeek because the products
 | A12 assembled fault/substitution/resume/cancellation/performance tests | 7 passed / 7 implemented | 100% |
 | Operational activation | 0 authorized cutovers / 1 required A13 cutover | 0% |
 
-The DeepSeek comparison is therefore qualitative and source-bound: DeepSeek remains broader in client surfaces, SDK/LSP/terminal and native sandbox integration; HSEOS is broader in governed authority, durable evidence and activation gates. Both own an agent loop. HSEOS intentionally delegates model intelligence and admits each provider only at the conformance level it proves.
+HSEOS intentionally delegates model intelligence and admits each provider only at the conformance level it proves. Completion is measured exclusively against the approved HSEOS goal graph and acceptance journeys.
 
 ## What is complete
 
@@ -75,7 +74,7 @@ The DeepSeek comparison is therefore qualitative and source-bound: DeepSeek rema
 5. General governed ToolRuntime and bounded headless AgentRuntime.
 6. Lineage-preserving compaction and checkpoint providers.
 7. Bounded subagents and parallel/pipeline WorkflowEngine.
-8. ACP, Codex, Claude Code and DeepSeek delegated runtime adapters at proven levels.
+8. ACP and hosted delegated runtime adapters at proven levels.
 9. Exact capability packaging and a keyless `hseos agent` reference surface.
 10. Coordinated root cancellation across runtime, governed tool, workflow and descendants.
 11. Persistent crash/reopen exact-next-request and bounded volume evidence sufficient to enter, but not bypass, A13.
@@ -88,7 +87,7 @@ The DeepSeek comparison is therefore qualitative and source-bound: DeepSeek rema
 | Required production sandbox | Blocker for effectful production profile | A13 provider/security configuration and smoke |
 | Hosted runtime L3/L4 | Capability limitation, explicitly reported | Future adapter-specific conformance; never emulate |
 | Real model credentials/network | Not required for keyless conformance | Optional post-activation provider smoke with separate authority |
-| DeepSeek-equivalent UI/SDK/LSP/terminal | Product breadth, not kernel blocker | Add as provider/client capabilities only when justified |
+| UI/SDK/LSP/terminal breadth | Product breadth, not kernel blocker | Add as provider/client capabilities only when justified |
 
 ## Plan to 100% of the complete goal
 

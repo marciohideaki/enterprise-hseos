@@ -148,7 +148,7 @@ SWARM is a control-plane fan-out commander. It does not absorb any of the above 
 | **G2 — Plan approval** | **Mandatory, after Plan phase** | **Human** |
 | G3 — Wave review | Conditional (BLOCKED or risk flag) | Human |
 | G4 — PR open | After Consolidate | Human (runs `gh pr create`) |
-| G5 — PR merge | After CI + explicit human approval | Human reviewer or governed closeout operator |
+| G5 — PR merge | After CI + explicit owner authorization | Repository owner or governed closeout operator |
 
 Bypass = constitution violation.
 
@@ -205,8 +205,8 @@ sqlite3 .hseos/state/project.db "SELECT kind, ts FROM as_events WHERE agent_run_
 |---|---|
 | Raw `git worktree add` instead of `worktree-manager.sh create` | Quality gates skipped; `.worktree-meta` not updated |
 | Commit without `validate-commit-msg.sh` | Forbidden trailers leak (Co-Authored-By, AI mentions) |
-| Opening PR as agent (not human) | Violates branch-protection; review process bypassed |
-| Merging PR as agent | Constitutional violation; human reviewer is mandatory |
+| Opening PR as agent (not human) | Violates the human-owned PR boundary |
+| Merging PR without explicit owner authorization | Constitutional violation; merge authority is human-owned |
 | Bypassing G2 because "the batch is small" | Governance precedent damaged; next batch becomes looser |
 | Loading `INTAKE.md` + `STUDY.md` + all `logs/` on resume | Re-inflates context; use only PLAN + STATUS + existing handoffs |
 

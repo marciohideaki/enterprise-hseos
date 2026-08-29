@@ -233,6 +233,10 @@ before(async () => {
       if (content === 'authenticated') {
         assert.equal(incoming.headers.authorization, 'Bearer ephemeral-fixture-value');
       }
+      if (content === 'protected-response') {
+        sendSse(response, [{ choices: [{ delta: { content: 'ephemeral-fixture-value' }, finish_reason: 'stop' }] }]);
+        return;
+      }
       if (content === 'retry' && retryRequests++ === 0) {
         response.writeHead(503).end();
         return;
@@ -334,6 +338,22 @@ test('resolves a declared secret reference only at request dispatch', async () =
   const events = await collect(modelProvider, request('model:http', 'request:http-auth', 'authenticated'));
   assert.equal(events.at(-1).event_type, 'completed');
   assert.deepEqual(resolvedReferences, secretManifest.secret_refs);
+  assert.doesNotMatch(JSON.stringify(events), /ephemeral-fixture-value/);
+});
+
+test('rejects a provider frame containing the resolved credential before emitting it', async () => {
+  const secretManifest = manifest('model:http');
+  secretManifest.secret_refs = [{ name: 'api-key', source_ref: 'secret://fixture/provider-key' }];
+  const modelProvider = provider({
+    manifest: secretManifest,
+    secret_resolver: async () => 'ephemeral-fixture-value',
+  });
+  const events = await collect(modelProvider, request('model:http', 'request:http-protected-response', 'protected-response'));
+  assert.deepEqual(
+    events.map((event) => event.event_type),
+    ['failed'],
+  );
+  assert.equal(events[0].payload.error_code, 'protocol_error');
   assert.doesNotMatch(JSON.stringify(events), /ephemeral-fixture-value/);
 });
 

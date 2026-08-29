@@ -17,7 +17,7 @@ State also has overlapping representations: legacy `state`, `tasks`, and `state_
 
 ADR-0002 requires a child ADR before event sourcing is activated. ADR-0003 requires the mutable write-side source of truth to be relational and all read models to be reconstructable. A standalone JSONL authority would violate ADR-0003 and lacks the transactional concurrency and projection checkpoint semantics required by the HSEOS runtime.
 
-The DeepSeek Harness evaluation identified useful execution patterns—provider isolation, bounded scheduling, exclusive barriers, cancellation, and structured lifecycle events—but those patterns must enter HSEOS through its hexagonal and governance boundaries rather than as a parallel runtime.
+HSEOS requires provider isolation, bounded scheduling, exclusive barriers, cancellation, and structured lifecycle events. These capabilities belong inside its hexagonal and governance boundaries so that no parallel execution authority can emerge.
 
 ## Decision
 
@@ -89,7 +89,7 @@ Every active tool declares an owning capability, input/output schemas, provider,
 - One transactional authority with replayable audit history.
 - Identical governance semantics across all tool surfaces.
 - Crash recovery and state-health checks can be proved through sequence checkpoints.
-- DeepSeek scheduling and provider patterns are absorbed without creating a second harness.
+- Scheduling and provider isolation remain part of the single governed HSEOS execution plane.
 - Markdown and JSONL remain useful portable views without competing for authority.
 
 ### Negative / Trade-offs
@@ -171,7 +171,7 @@ The activation change set must also update `.hseos/AGENT-MANIFEST.md`, `.hseos/w
 | Keep Markdown canonical per run | Permits multiple write authorities and cannot provide transactional cross-run invariants |
 | CRUD relational state without events | Preserves authority but does not provide the audit, replay, recovery, and lifecycle evidence required by governed execution |
 | Independent runtime per adapter | Retains policy and evidence divergence and makes correctness adapter-dependent |
-| Replace HSEOS with DeepSeek Harness | Loses HSEOS governance/domain contracts and creates a parallel source of truth instead of absorbing capabilities |
+| Introduce a second execution harness | Loses HSEOS governance/domain contracts and creates a parallel source of truth |
 
 ## References
 

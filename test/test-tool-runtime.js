@@ -382,6 +382,41 @@ test('concurrent equivalent idempotent invocations coalesce on one governed outc
   assert.equal(dispatches, 1);
 });
 
+test('an in-flight deferred tool cannot be joined from a different trace or causation', async (context) => {
+  let release;
+  const barrier = new Promise((resolve) => {
+    release = resolve;
+  });
+  const fixture = setup({
+    provider: {
+      async execute(input) {
+        await barrier;
+        return { data: { echoed: input.value, nested: { value: input.value } } };
+      },
+    },
+  });
+  context.after(() => fixture.db.close());
+  const first = fixture.tools.execute(invocation());
+  await assert.rejects(
+    () =>
+      fixture.tools.execute(
+        invocation({ invocation_id: 'invocation:trace-drift', correlation_id: 'correlation:other', causation_id: 'request:other' }),
+      ),
+    (error) => error instanceof ToolRuntimeError && error.code === 'TOOL_RUNTIME_OPERATION_ACTIVE',
+  );
+  release();
+  assert.equal((await first).status, 'succeeded');
+  const settledDrift = await fixture.tools.execute(
+    invocation({ invocation_id: 'invocation:settled-trace-drift', correlation_id: 'correlation:other', causation_id: 'request:other' }),
+  );
+  assert.equal(settledDrift.status, 'failed');
+  assert.equal(settledDrift.error.code, 'EXECUTION_IDEMPOTENCY_SCOPE_CONFLICT');
+  const operationId = deterministicOperationId('fixture.echo', 'idempotency:fixture-1');
+  const rows = fixture.ledger.readStream('execution', operationId);
+  assert.ok(rows.length > 0);
+  assert.ok(rows.every((row) => row.correlation_id === 'correlation:fixture-1'));
+});
+
 test('post-effect evidence accepted by the canonical runtime is preserved without a tighter adapter bound', async (context) => {
   const evidence = Array.from({ length: 1025 }, (_, index) => `evidence://fixture/${index}`);
   const fixture = setup({

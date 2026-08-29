@@ -37,7 +37,7 @@ This assessment is about the implemented boundary, not the trustworthiness of a 
 | T5 | Partial/crashed model stream produces false success | Recovery distinguishes unstarted, partial and terminal streams; partial streams fail closed | Provider-side effects outside governed tools cannot be reconstructed and are forbidden below L1 |
 | T6 | Context compaction deletes or rewrites evidence | Original events remain immutable; replacement has digest, accounting and ordered source IDs | Semantic quality of a non-deterministic future compactor needs provider-specific evals |
 | T7 | Child or workflow widens authority or becomes orphaned | Durable reservation/claim fencing, authority ceiling, recursive cancellation and join verification | Host process kill beyond the tested persistence boundary needs A13 operational rehearsal |
-| T8 | Capability downgrade or provider substitution weakens guarantees | Immutable registry snapshots and strict L0–L4 negotiation reject overclaim/underclaim | Hosted Codex, Claude Code and DeepSeek adapters remain honest L0 until stronger boundaries exist |
+| T8 | Capability downgrade or provider substitution weakens guarantees | Immutable registry snapshots and strict L0–L4 negotiation reject overclaim/underclaim | Hosted and ACP adapters remain honest L0 until stronger boundaries exist |
 | T9 | Filesystem alias redirects a reference tool effect | Temporary marker, regular-file checks, canonical parent, private permissions, device/inode binding and pre-effect revalidation | Reference filesystem tool is a fixture, not a general sandbox |
 | T10 | Optional sandbox is mistaken for production isolation | Capability catalog explicitly declares external `ai-jail` and fail-soft default; activation remains blocked | Material production risk: A13 must choose and verify a required sandbox policy |
 | T11 | Malformed HTTP/SSE response becomes successful session | Parser bounds frames and terminalizes protocol failures; A12 injects malformed transport and proves no `session.completed` | HTTP endpoint authenticity/TLS belongs to activated provider configuration |
@@ -61,7 +61,7 @@ This assessment is about the implemented boundary, not the trustworthiness of a 
 1. The operational state remains schema v4; pending execution/session schemas are fixture-only.
 2. The production provider allow-list, endpoints, TLS policy and secret resolver are not selected.
 3. Sandbox enforcement is optional by default and must become required for the activated effect classes.
-4. Codex, Claude Code and DeepSeek delegated adapters are L0, not L3/L4.
+4. Hosted and ACP delegated adapters are L0, not L3/L4.
 5. Migration dry-run, rollback rehearsal, G9 zero-use evidence and explicit human cutover authority belong to A13.
 
 These are not hidden implementation claims. They are hard activation gates and keep the pre-activation framework from being presented as production-active.

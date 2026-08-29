@@ -10,4 +10,6 @@ The registry creates immutable routing snapshots so an in-flight session retains
 
 The adapter does not include a vendor SDK, persist secret values or contact a provider during package initialization. Tests use a loopback fake HTTP endpoint and no real credentials.
 
+The supervised bound-kernel profile resolves a declared secret only in its host process and injects it at a pinned Unix-socket egress broker. The broker accepts one fixed provider route, rejects credential-bearing or non-HTTP(S) endpoints, forbids redirects, and never transforms request bodies. In particular, masked-file sentinels are not replaced inside prompts, tool inputs, URLs, or arbitrary headers: that broader substitution would widen authority and could copy a credential into provider-visible content. Provider-specific authentication remains a narrow host-owned header operation, while the sandboxed worker receives neither the credential nor direct TCP egress.
+
 Rollback before activation is the A3 task commit. After activation, disable the affected provider profile and retain canonical session events; do not delete session or governed execution ledgers.

@@ -1,0 +1,12 @@
+schema_version: 1
+profile_id: agent-claude-delegated-candidate
+runtime_provider_id: runtime:claude-agent-sdk
+sdk_module: /absolute/path/to/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs
+executable: /absolute/path/to/claude
+cwd: /absolute/path/to/project
+env_names:
+  - ANTHROPIC_API_KEY
+  - HOME
+  - PATH
+secret_refs:
+  - secret://claude/host-auth

@@ -22,6 +22,19 @@ _require_sqlite() {
   fi
 }
 
+_sql_literal() {
+  local value="${1-}"
+  value="${value//\'/\'\'}"
+  printf "'%s'" "$value"
+}
+
+_positive_integer() {
+  [[ "${1-}" =~ ^[1-9][0-9]*$ ]] || {
+    echo "[project-state] expected a positive integer, got: ${1-}" >&2
+    exit 1
+  }
+}
+
 _init_db() {
   mkdir -p "$(dirname "$DB")"
   sqlite3 "$DB" <<'SQL'
@@ -59,13 +72,17 @@ cmd_state_read() {
 
 cmd_state_write() {
   local key="$1" value="$2" agent="${3:-cli}"
+  local sql_key sql_value sql_agent
+  sql_key="$(_sql_literal "$key")"
+  sql_value="$(_sql_literal "$value")"
+  sql_agent="$(_sql_literal "$agent")"
   _require_sqlite
   _init_db
   sqlite3 "$DB" <<SQL
-INSERT INTO state (key, value, updated_at) VALUES ('$key', '$value', datetime('now'))
-  ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at;
 INSERT INTO state_history (key, old_value, new_value, changed_by)
-  SELECT '$key', (SELECT value FROM state WHERE key='$key'), '$value', '$agent';
+  VALUES ($sql_key, (SELECT value FROM state WHERE key=$sql_key), $sql_value, $sql_agent);
+INSERT INTO state (key, value, updated_at) VALUES ($sql_key, $sql_value, datetime('now'))
+  ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at;
 SQL
   echo "[project-state] state.$key = $value"
 }
@@ -74,7 +91,11 @@ cmd_tasks_list() {
   local status_filter=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --status) status_filter="WHERE status = '$2'"; shift 2 ;;
+      --status)
+        [[ "${2-}" =~ ^(pending|done|blocked)$ ]] || { echo "[project-state] invalid task status: ${2-}" >&2; exit 1; }
+        status_filter="WHERE status = '$2'"
+        shift 2
+        ;;
       *) shift ;;
     esac
   done
@@ -85,30 +106,41 @@ cmd_tasks_list() {
 
 cmd_tasks_add() {
   local id="$1" owner="$2" description="$3" depends="${4:-}"
+  local sql_id sql_owner sql_description sql_depends
+  sql_id="$(_sql_literal "$id")"
+  sql_owner="$(_sql_literal "$owner")"
+  sql_description="$(_sql_literal "$description")"
+  sql_depends="$(_sql_literal "$depends")"
   _require_sqlite
   _init_db
-  sqlite3 "$DB" "INSERT OR IGNORE INTO tasks (id, owner, description, depends_on) VALUES ('$id', '$owner', '$description', '$depends');"
+  sqlite3 "$DB" "INSERT OR IGNORE INTO tasks (id, owner, description, depends_on) VALUES ($sql_id, $sql_owner, $sql_description, $sql_depends);"
   echo "[project-state] task $id added (owner: $owner)"
 }
 
 cmd_tasks_done() {
   local id="$1"
+  local sql_id
+  sql_id="$(_sql_literal "$id")"
   _require_sqlite
   _init_db
-  sqlite3 "$DB" "UPDATE tasks SET status='done', updated_at=datetime('now') WHERE id='$id';"
+  sqlite3 "$DB" "UPDATE tasks SET status='done', updated_at=datetime('now') WHERE id=$sql_id;"
   echo "[project-state] task $id marked done"
 }
 
 cmd_tasks_block() {
   local id="$1" reason="${2:-}"
+  local sql_id sql_reason
+  sql_id="$(_sql_literal "$id")"
+  sql_reason="$(_sql_literal "$reason")"
   _require_sqlite
   _init_db
-  sqlite3 "$DB" "UPDATE tasks SET status='blocked', note='$reason', updated_at=datetime('now') WHERE id='$id';"
+  sqlite3 "$DB" "UPDATE tasks SET status='blocked', note=$sql_reason, updated_at=datetime('now') WHERE id=$sql_id;"
   echo "[project-state] task $id blocked: $reason"
 }
 
 cmd_history() {
   local n="${1:-20}"
+  _positive_integer "$n"
   _require_sqlite
   _init_db
   sqlite3 -column -header "$DB" "SELECT key, old_value, new_value, changed_by, changed_at FROM state_history ORDER BY changed_at DESC LIMIT $n;"

@@ -41,4 +41,4 @@ No real provider, credential, subprocess, network runtime, operational database,
 
 ## Next node
 
-After explicit human authorization and local integration of A9, A10 may implement vendor-specific Codex, Claude Code and DeepSeek adapters against this seam. No adapter may claim L1+ without proving that every classified effect crosses the governed `ToolRuntime`.
+After explicit human authorization and local integration of A9, A10 may implement hosted coding-agent and external ACP adapters against this seam. No adapter may claim L1+ without proving that every classified effect crosses the governed `ToolRuntime`.

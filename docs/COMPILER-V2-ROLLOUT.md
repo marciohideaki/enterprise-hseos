@@ -94,7 +94,7 @@ This is coordinated, multi-wave parallel work. It runs under **SWARM** via the
   `validate-commit-msg.sh` (conventional, no AI attribution / co-author trailers)
   on every commit, enforced by the `.husky` pre-commit + commit-msg gates.
 - `quality-gates.sh --phase code` must pass (lint + full `npm test`).
-- Human reviewer merges; no self-approval. Branch protection on `master`
+- Repository owner authorizes merge; no autonomous agent merge. Branch protection on `master`
   (required checks `test (20.x)`, `test (22.x)`, `Standalone clean-env smoke`).
 - **Gate G2:** `PLAN.md` for the wave is approved before any task executes.
 

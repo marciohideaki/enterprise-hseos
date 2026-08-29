@@ -3,9 +3,11 @@ const path = require('node:path');
 const yaml = require('yaml');
 const { getProjectRoot } = require('./project-root');
 
-const CAPABILITY_DIR = path.join('.agents', 'capabilities');
+const CANONICAL_CAPABILITY_DIR = path.join('.enterprise', 'governance', 'capabilities');
+const COMPILED_CAPABILITY_DIR = path.join('.agents', 'capabilities');
 const PROFILES_FILE = 'profiles.yaml';
 const COMPONENTS_FILE = 'components.yaml';
+const SURFACES_FILE = 'surfaces.yaml';
 const AGENT_MANIFEST = path.join('.agents', 'manifest.yaml');
 const ADAPTERS_DIR = path.join('.agents', 'adapters');
 const CAPABILITY_SCHEMA_VERSION = '2.0';
@@ -24,6 +26,8 @@ const COMPONENT_KEYS = new Set([
   'skills',
   'install_paths',
 ]);
+const SURFACE_CLASSIFICATIONS = new Set(['core', 'module', 'sidecar', 'candidate', 'compatibility']);
+const SURFACE_DISPOSITIONS = new Set(['active', 'opt-in', 'pre-activation', 'retiring']);
 
 function uniq(values) {
   return [...new Set((values || []).map((value) => String(value).trim()).filter(Boolean))];
@@ -185,10 +189,24 @@ function validateCapabilityDocuments(profileData, componentData) {
       if (!['kernel', 'hosted'].includes(profile.agent.execution_mode)) {
         throw new Error(`Invalid capability schema v2: profile ${profileId}.agent.execution_mode is invalid`);
       }
-      for (const field of ['model_provider_id', 'runtime_provider_id']) {
-        if (typeof profile.agent[field] !== 'string' || !/^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$/.test(profile.agent[field])) {
-          throw new Error(`Invalid capability schema v2: profile ${profileId}.agent.${field} is malformed`);
+      if (
+        typeof profile.agent.runtime_provider_id !== 'string' ||
+        !/^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$/.test(profile.agent.runtime_provider_id)
+      ) {
+        throw new Error(`Invalid capability schema v2: profile ${profileId}.agent.runtime_provider_id is malformed`);
+      }
+      if (profile.agent.execution_mode === 'kernel') {
+        if (
+          typeof profile.agent.model_provider_id !== 'string' ||
+          !/^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$/.test(profile.agent.model_provider_id)
+        ) {
+          throw new Error(`Invalid capability schema v2: profile ${profileId}.agent.model_provider_id is required for kernel execution`);
         }
+        if (profile.agent.runtime_provider_id !== 'runtime:hseos-kernel') {
+          throw new Error(`Invalid capability schema v2: profile ${profileId}.agent kernel execution requires runtime:hseos-kernel`);
+        }
+      } else if (profile.agent.model_provider_id !== undefined) {
+        throw new Error(`Invalid capability schema v2: profile ${profileId}.agent hosted execution cannot select a model provider`);
       }
       assertStringList(profile.agent.secret_refs, `profile ${profileId}.agent.secret_refs`, { required: true });
     }
@@ -198,12 +216,120 @@ function validateCapabilityDocuments(profileData, componentData) {
   }
 }
 
+function validateSurfaceDocument(surfaceData, componentData) {
+  assertObject(surfaceData, 'surface lifecycle document');
+  assertExactKeys(
+    surfaceData,
+    new Set(['schema_version', 'classifications', 'dispositions', 'component_classes', 'standalone_surfaces']),
+    'surface lifecycle document',
+  );
+  if (String(surfaceData.schema_version) !== '1.0') {
+    throw new Error(`Unsupported surface lifecycle schema: ${surfaceData.schema_version || 'missing'} (expected 1.0)`);
+  }
+  assertStringList(surfaceData.classifications, 'surface classifications', { required: true });
+  assertStringList(surfaceData.dispositions, 'surface dispositions', { required: true });
+  if (
+    surfaceData.classifications.some((value) => !SURFACE_CLASSIFICATIONS.has(value)) ||
+    surfaceData.classifications.length !== SURFACE_CLASSIFICATIONS.size
+  ) {
+    throw new Error('Invalid surface lifecycle schema: classifications must declare the complete closed vocabulary');
+  }
+  if (
+    surfaceData.dispositions.some((value) => !SURFACE_DISPOSITIONS.has(value)) ||
+    surfaceData.dispositions.length !== SURFACE_DISPOSITIONS.size
+  ) {
+    throw new Error('Invalid surface lifecycle schema: dispositions must declare the complete closed vocabulary');
+  }
+  assertObject(surfaceData.component_classes, 'surface component_classes');
+  const componentIds = new Set(componentData.components.map((component) => component.id));
+  const classifiedIds = new Set(Object.keys(surfaceData.component_classes));
+  const missing = [...componentIds].filter((id) => !classifiedIds.has(id));
+  const unknown = [...classifiedIds].filter((id) => !componentIds.has(id));
+  if (missing.length > 0 || unknown.length > 0) {
+    throw new Error(
+      `Invalid surface lifecycle schema: component coverage mismatch (missing: ${missing.join(', ') || 'none'}; unknown: ${unknown.join(', ') || 'none'})`,
+    );
+  }
+  for (const [componentId, classification] of Object.entries(surfaceData.component_classes)) {
+    if (!SURFACE_CLASSIFICATIONS.has(classification)) {
+      throw new Error(`Invalid surface lifecycle schema: ${componentId} has unknown classification ${classification}`);
+    }
+  }
+  for (const requiredId of REQUIRED_BASELINE_IDS) {
+    if (surfaceData.component_classes[requiredId] !== 'core') {
+      throw new Error(`Invalid surface lifecycle schema: required baseline ${requiredId} must be core`);
+    }
+  }
+  if (!Array.isArray(surfaceData.standalone_surfaces)) {
+    throw new TypeError('Invalid surface lifecycle schema: standalone_surfaces must be a list');
+  }
+  const surfaceIds = new Set();
+  const surfacePaths = new Set();
+  for (const [index, surface] of surfaceData.standalone_surfaces.entries()) {
+    const label = `standalone_surfaces[${index}]`;
+    assertObject(surface, label);
+    assertExactKeys(surface, new Set(['id', 'classification', 'disposition', 'contract', 'paths']), label);
+    if (typeof surface.id !== 'string' || !/^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$/.test(surface.id) || surfaceIds.has(surface.id)) {
+      throw new Error(`Invalid surface lifecycle schema: ${label}.id is malformed or duplicated`);
+    }
+    surfaceIds.add(surface.id);
+    if (!SURFACE_CLASSIFICATIONS.has(surface.classification) || !SURFACE_DISPOSITIONS.has(surface.disposition)) {
+      throw new Error(`Invalid surface lifecycle schema: ${surface.id} has an invalid classification or disposition`);
+    }
+    if (!surface.id.startsWith(`${surface.classification}:`)) {
+      throw new Error(`Invalid surface lifecycle schema: ${surface.id} does not match its classification`);
+    }
+    const requiredDisposition = { sidecar: 'opt-in', candidate: 'pre-activation', compatibility: 'retiring' }[surface.classification];
+    if (requiredDisposition && surface.disposition !== requiredDisposition) {
+      throw new Error(`Invalid surface lifecycle schema: ${surface.id} must use disposition ${requiredDisposition}`);
+    }
+    if (typeof surface.contract !== 'string' || !surface.contract.trim()) {
+      throw new Error(`Invalid surface lifecycle schema: ${surface.id} requires a contract`);
+    }
+    assertStringList(surface.paths, `${surface.id}.paths`, { required: true });
+    for (const surfacePath of surface.paths) {
+      if (path.isAbsolute(surfacePath) || path.win32.isAbsolute(surfacePath) || surfacePath.split(/[\\/]/).includes('..')) {
+        throw new Error(`Invalid surface lifecycle schema: ${surface.id} has unsafe path ${surfacePath}`);
+      }
+      if (surfacePaths.has(surfacePath)) {
+        throw new Error(`Invalid surface lifecycle schema: path ${surfacePath} has multiple owners`);
+      }
+      surfacePaths.add(surfacePath);
+    }
+  }
+}
+
+function synthesizeLegacySurfaceDocument(componentData) {
+  return {
+    schema_version: '1.0',
+    classifications: [...SURFACE_CLASSIFICATIONS],
+    dispositions: [...SURFACE_DISPOSITIONS],
+    component_classes: Object.fromEntries(
+      (componentData.components || []).map((component) => [
+        component.id,
+        REQUIRED_BASELINE_IDS.includes(component.id) ? 'core' : 'compatibility',
+      ]),
+    ),
+    standalone_surfaces: [],
+  };
+}
+
 function capabilityPaths(root = getProjectRoot()) {
-  const base = path.join(root, CAPABILITY_DIR);
+  const canonicalBase = path.join(root, CANONICAL_CAPABILITY_DIR);
+  const compiledBase = path.join(root, COMPILED_CAPABILITY_DIR);
+  const canonicalComplete = [PROFILES_FILE, COMPONENTS_FILE, SURFACES_FILE].every((fileName) =>
+    fs.existsSync(path.join(canonicalBase, fileName)),
+  );
+  const base = canonicalComplete ? canonicalBase : compiledBase;
+  const legacyCompiled = !canonicalComplete && !fs.existsSync(path.join(compiledBase, SURFACES_FILE));
   return {
     base,
+    sourceKind: canonicalComplete ? 'canonical' : legacyCompiled ? 'compiled-legacy-compatibility' : 'compiled-compatibility',
+    canonicalBase,
+    compiledBase,
     profiles: path.join(base, PROFILES_FILE),
     components: path.join(base, COMPONENTS_FILE),
+    surfaces: path.join(base, SURFACES_FILE),
     manifest: path.join(root, AGENT_MANIFEST),
     adapters: path.join(root, ADAPTERS_DIR),
   };
@@ -261,10 +387,19 @@ function loadCapabilityCatalog(root = getProjectRoot()) {
   const profileData = readYaml(paths.profiles, {});
   const componentData = readYaml(paths.components, {});
   validateCapabilityDocuments(profileData, componentData);
+  const surfaceData = fs.existsSync(paths.surfaces)
+    ? readYaml(paths.surfaces, {})
+    : paths.sourceKind === 'compiled-legacy-compatibility'
+      ? synthesizeLegacySurfaceDocument(componentData)
+      : {};
+  validateSurfaceDocument(surfaceData, componentData);
   const staticComponents = Array.isArray(componentData.components) ? componentData.components : [];
   const skillEntries = loadSkillEntries(root);
   const syntheticSkillComponents = buildSyntheticSkillComponents(root, skillEntries);
-  const components = [...staticComponents, ...syntheticSkillComponents];
+  const components = [
+    ...staticComponents.map((component) => ({ ...component, surface_class: surfaceData.component_classes[component.id] })),
+    ...syntheticSkillComponents.map((component) => ({ ...component, surface_class: 'module' })),
+  ];
   const skillIds = new Set(skillEntries.map((skill) => skill.id));
   const duplicateComponentIds = components.map((component) => component.id).filter((id, index, ids) => ids.indexOf(id) !== index);
   if (duplicateComponentIds.length > 0) {
@@ -280,11 +415,13 @@ function loadCapabilityCatalog(root = getProjectRoot()) {
   return {
     root,
     schemaVersion: CAPABILITY_SCHEMA_VERSION,
+    sourceKind: paths.sourceKind,
     paths,
     profiles: profileData.profiles || {},
     components,
     componentFamilies: componentData.component_families || [],
     hookProfiles: componentData.hook_profiles || {},
+    standaloneSurfaces: surfaceData.standalone_surfaces || [],
     skills: skillEntries,
   };
 }
@@ -373,6 +510,7 @@ function resolveCapabilityPlan(options = {}) {
       required: Boolean(component.required),
       synthetic: Boolean(component.synthetic),
       prerequisites: component.prerequisites || [],
+      surface_class: component.surface_class,
     })),
     modules,
     tools,
@@ -381,7 +519,7 @@ function resolveCapabilityPlan(options = {}) {
     materialization: {
       mode: 'selected-only',
       selected_skills: selectedSkills,
-      selected_model_providers: profile?.agent ? [profile.agent.model_provider_id] : [],
+      selected_model_providers: profile?.agent?.model_provider_id ? [profile.agent.model_provider_id] : [],
       selected_runtime_providers: profile?.agent ? [profile.agent.runtime_provider_id] : [],
       secret_refs: profile?.agent?.secret_refs || [],
     },
@@ -434,6 +572,8 @@ module.exports = {
   loadCapabilityCatalog,
   parseCsv,
   resolveCapabilityPlan,
+  synthesizeLegacySurfaceDocument,
   validateCapabilityDocuments,
+  validateSurfaceDocument,
   writeCapabilitySelection,
 };

@@ -276,7 +276,7 @@ for (const spec of SERVERS) {
       assert.equal(response.result.structuredContent.ok, true);
       assert.deepEqual(lifecycle(databasePath), ['ExecutionAuthorized', 'ExecutionStarted', 'ExecutionSucceeded']);
       const db = new Database(databasePath, { readonly: true });
-      assert.equal(db.pragma('user_version', { simple: true }), 7);
+      assert.equal(db.pragma('user_version', { simple: true }), 9);
       const authorized = db.prepare("SELECT actor_json, payload_json FROM execution_events WHERE event_type = 'ExecutionAuthorized'").get();
       const actor = JSON.parse(authorized.actor_json);
       const payload = JSON.parse(authorized.payload_json);

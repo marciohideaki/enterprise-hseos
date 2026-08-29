@@ -3,7 +3,7 @@
 **Status:** completed in isolated task worktree; not integrated
 **Baseline:** `dfc6116`
 **Authority:** explicit human response, “Retome e prossiga”
-**Scope:** Codex, Claude Code and DeepSeek Harness adapters for the HSEOS `RuntimeProvider` port
+**Scope:** Hosted coding-agent and external ACP adapters for the HSEOS `RuntimeProvider` port
 
 ## Outcome
 
@@ -11,7 +11,7 @@ HSEOS now exposes three honest, model-neutral hosted runtime adapters without im
 
 - Codex is represented by an injected app-server driver and a `stdio`, L0 manifest.
 - Claude Code is represented by an injected Agent SDK driver and a `process`, L0 manifest.
-- DeepSeek Harness specializes the stable ACP v1 bridge and does not vendor Cordis, MCP or DeepSeek packages.
+- The external process adapter specializes the stable ACP v1 bridge and does not vendor another runtime or MCP server.
 
 All manifests are immutable, secretless and limited to `instructions`. No adapter claims governed tools, lifecycle conformance, replay, sandbox or telemetry. The host owns native process/SDK composition and credential resolution; this task accessed no credentials and performed no external provider execution.
 
@@ -29,7 +29,7 @@ Final independent verdict: `READY`. No residual BLOCKER, HIGH or MEDIUM finding 
 - `npm run test:agentic-contracts` — 9/9.
 - `npm run test:compatibility` — 7/7.
 - `npm test` — passed on the stable final diff.
-- Clean temporary tarball install of contracts and runtime providers — passed; all Codex, Claude Code, DeepSeek Harness and ACP exports loaded.
+- Clean temporary tarball install of contracts and runtime providers — passed; all hosted and ACP exports loaded.
 - Secret/vendor scan — no vendor, Cordis or MCP import; no credential material; manifests use `secret_refs: []`.
 - Independent reliability review — `READY`.
 - `npm run lint -- --quiet` and `git diff --check` — passed.

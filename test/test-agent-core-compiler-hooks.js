@@ -11,6 +11,7 @@ const os = require('node:os');
 const yaml = require('yaml');
 const agentCoreCommand = require('../tools/cli/commands/agent-core');
 const { AgentCoreCompiler } = require('../tools/cli/installers/lib/core/agent-core-compiler');
+const { validateHookRegistryDocument } = require('../tools/cli/installers/lib/core/agent-core-compiler/sources/hooks-source');
 
 let passed = 0;
 let failed = 0;
@@ -93,6 +94,43 @@ async function testClaudeHookAdapterUsesActiveRegistryEntries() {
   });
 }
 
+function testCanonicalHookRegistryRequiresExplicitStatus() {
+  const registryPath = path.join(__dirname, '..', '.enterprise', 'governance', 'hooks', 'registry.yaml');
+  const registry = yaml.parse(fs.readFileSync(registryPath, 'utf8'));
+  const result = validateHookRegistryDocument(registry);
+  assertPass('canonical hook registry uses strict schema v2', result.strict && result.schemaVersion === '2.0');
+  assertPass(
+    'every canonical hook declares status',
+    registry.hooks.every((hook) => hook.status),
+  );
+  const legacySessionHook = registry.hooks.find((hook) => hook.id === 'sessionstart-all-session-track-register-machine-store');
+  const projectSessionHook = registry.hooks.find((hook) => hook.id === 'sessionstart-all-session-track-register-project-store');
+  assertPass(
+    'session registration keeps the old id deprecated and activates the project-store id',
+    legacySessionHook?.status === 'deprecated' && projectSessionHook?.status === 'active',
+  );
+
+  const missingStatus = structuredClone(registry);
+  delete missingStatus.hooks[0].status;
+  let rejected = false;
+  try {
+    validateHookRegistryDocument(missingStatus);
+  } catch (error) {
+    rejected = /explicit status/.test(error.message);
+  }
+  assertPass('strict hook schema rejects omitted status', rejected);
+
+  const legacy = { schema_version: '1.0', hooks: [{ ...registry.hooks[0] }] };
+  delete legacy.hooks[0].status;
+  let legacyAccepted = true;
+  try {
+    validateHookRegistryDocument(legacy);
+  } catch {
+    legacyAccepted = false;
+  }
+  assertPass('legacy hook schema remains a bounded compatibility input', legacyAccepted);
+}
+
 async function testAgentCoreCompileCommandEmitsClaudeAdapter() {
   await withTempDir(async (tempDir) => {
     await agentCoreCommand.action('compile', {
@@ -136,6 +174,7 @@ async function testAgentCoreCompileCommandEmitsCodexAdapter() {
           {
             id: 'hseos-governance',
             transport: 'stdio',
+            client_enabled: false,
             binary_resolver: [{ path: 'tools/mcp-hseos-governance/index.js', runtime: 'node' }],
           },
         ],
@@ -157,6 +196,7 @@ async function testAgentCoreCompileCommandEmitsCodexAdapter() {
       fs.existsSync(codexConfigPath) && config.includes('[features]') && config.includes('[mcp_servers."hseos-governance"]'),
       config,
     );
+    assertPass('agent-core compile preserves canonical MCP client activation', config.includes('enabled = false'), config);
     assertPass('agent-core compile --target codex emits hook metadata', Array.isArray(hooksMeta.hooks), JSON.stringify(hooksMeta));
   });
 }
@@ -484,6 +524,7 @@ async function testUnknownPlatformTargetIsRejected() {
 
 async function run() {
   console.log('Agent core compiler hook adapter tests');
+  testCanonicalHookRegistryRequiresExplicitStatus();
   await testClaudeHookAdapterUsesActiveRegistryEntries();
   await testAgentCoreCompileCommandEmitsClaudeAdapter();
   await testAgentCoreCompileCommandEmitsCodexAdapter();

@@ -69,12 +69,38 @@ function isSafeRuntimeIdentifier(value) {
   return typeof value === 'string' && value.length > 0 && value.length <= 1024 && !/\s|[\u0000-\u001f\u007f]/u.test(value);
 }
 
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
+  if (isRecord(value)) {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
 function validateDriver(driver) {
   const methods = ['create', 'send', 'resume', 'cancel', 'dispose', 'close'];
   if (!driver || methods.some((method) => typeof driver[method] !== 'function')) {
     throw new RuntimeProviderError(`hosted driver requires ${methods.join(', ')}`, 'invalid_request');
   }
   return driver;
+}
+
+function createHostedRuntimeManifest(adapterId, providerId, providerVersion = '1.0.0') {
+  const descriptor = HOSTED_RUNTIME_ADAPTERS[adapterId];
+  if (!descriptor) throw new RuntimeProviderError('hosted adapter_id is unknown', 'invalid_request');
+  return parseContract(RuntimeProviderManifestSchema, {
+    schema_version: CONTRACT_SCHEMA_VERSION,
+    provider_type: 'runtime',
+    provider_id: providerId,
+    provider_version: providerVersion,
+    conformance_level: descriptor.conformance_level,
+    capabilities: descriptor.capabilities,
+    transport: descriptor.transport,
+    secret_refs: [],
+  }, `${adapterId} runtime provider manifest`);
 }
 
 function operation(providerId, session, terminal = session.terminal) {
@@ -111,16 +137,7 @@ class HostedInstructionsRuntimeProvider {
     this.driver = validateDriver(driver);
     this.defaultCwd = path.normalize(default_cwd);
     this.clock = clock;
-    this.providerManifest = parseContract(RuntimeProviderManifestSchema, {
-      schema_version: CONTRACT_SCHEMA_VERSION,
-      provider_type: 'runtime',
-      provider_id,
-      provider_version,
-      conformance_level: descriptor.conformance_level,
-      capabilities: descriptor.capabilities,
-      transport: descriptor.transport,
-      secret_refs: [],
-    }, `${adapter_id} runtime provider manifest`);
+    this.providerManifest = createHostedRuntimeManifest(adapter_id, provider_id, provider_version);
   }
 
   manifest(inputValue) {
@@ -184,24 +201,7 @@ class HostedInstructionsRuntimeProvider {
         }
         throw new RuntimeProviderError('hosted runtime reused a session identity', 'protocol_error');
       }
-      const session = {
-        sessionId: input.spec.session_id,
-        runtimeSessionId,
-        sequence: 0,
-        events: [],
-        bytes: 0,
-        maxEvents: Math.min(MAX_HOSTED_EVENTS, Math.max(3, input.spec.limits.max_tokens)),
-        maxBytes: Math.min(MAX_HOSTED_STREAM_BYTES, Math.max(4096, input.spec.limits.max_tokens * 16)),
-        maxInputBytes: Math.min(MAX_HOSTED_INPUT_BYTES, Math.max(1024, input.spec.limits.max_tokens * 16)),
-        maxDurationMs: input.spec.limits.max_duration_ms,
-        resumable: response.resumable,
-        activeTurn: null,
-        loading: false,
-        deadline: null,
-        controller: new AbortController(),
-        terminal: false,
-        waiters: new Set(),
-      };
+      const session = this.#newSession(input.spec, runtimeSessionId, 0, response.resumable);
       this.#sessions.set(session.sessionId, session);
       this.#runtimeIds.add(runtimeSessionId);
       adopted = true;
@@ -251,12 +251,37 @@ class HostedInstructionsRuntimeProvider {
   async resume(inputValue) {
     const input = this.#input('resume', inputValue);
     this.#available();
-    const session = this.#resolve(input);
+    let session = this.#sessions.get(input.session_id);
+    const restoring = session === undefined;
+    if (restoring) {
+      if (!input.spec) {
+        throw new RuntimeProviderError('durable session spec is required to reattach a hosted session', 'invalid_request');
+      }
+      if (this.#pending.has(input.session_id) || this.#runtimeIds.has(input.runtime_session_id)) {
+        throw new RuntimeProviderError('hosted session identity is already reserved', 'invalid_request');
+      }
+      if (this.#runtimeIds.size + this.#pending.size >= MAX_HOSTED_SESSIONS) {
+        throw new RuntimeProviderError('hosted session limit reached', 'rate_limited');
+      }
+      session = this.#newSession(input.spec, input.runtime_session_id, input.expected_sequence, true);
+      session.loading = true;
+      this.#pending.add(input.session_id);
+      this.#sessions.set(input.session_id, session);
+      this.#runtimeIds.add(input.runtime_session_id);
+    } else {
+      if (session.runtimeSessionId !== input.runtime_session_id) {
+        throw new RuntimeProviderError('hosted session identity mismatch', 'invalid_request');
+      }
+      if (input.spec && stableJson(input.spec) !== stableJson(session.spec)) {
+        throw new RuntimeProviderError('durable session spec does not match the hosted session', 'invalid_request');
+      }
+    }
     if (!session.resumable) throw new RuntimeProviderError('hosted adapter does not support resume', 'capability_unavailable');
     if (session.terminal || session.activeTurn || session.loading || input.expected_sequence !== session.sequence) {
-      throw new RuntimeProviderError('hosted session cannot resume at this sequence', 'invalid_request');
+      if (!restoring) throw new RuntimeProviderError('hosted session cannot resume at this sequence', 'invalid_request');
     }
     session.loading = true;
+    let resumed = false;
     try {
       const response = onlyKeys(
         await this.#bounded(Promise.resolve().then(() => this.driver.resume({
@@ -275,6 +300,7 @@ class HostedInstructionsRuntimeProvider {
         this.#fail(session, new RuntimeProviderError('hosted resume weakened the effect boundary', 'policy_denied'));
         throw new RuntimeProviderError('hosted resume weakened the effect boundary', 'policy_denied');
       }
+      resumed = true;
     } catch (error) {
       void this.#safeDriver('cancel', { runtime_session_id: session.runtimeSessionId, reason: 'protocol_error' });
       const normalized = error instanceof RuntimeProviderError
@@ -284,6 +310,13 @@ class HostedInstructionsRuntimeProvider {
       throw normalized;
     } finally {
       session.loading = false;
+      if (restoring) {
+        this.#pending.delete(input.session_id);
+        if (!resumed && this.#sessions.get(input.session_id) === session) {
+          this.#sessions.delete(input.session_id);
+          this.#runtimeIds.delete(input.runtime_session_id);
+        }
+      }
     }
     return operation(this.providerManifest.provider_id, session, false);
   }
@@ -359,6 +392,30 @@ class HostedInstructionsRuntimeProvider {
     const session = this.#sessions.get(input.session_id);
     if (!session || session.runtimeSessionId !== input.runtime_session_id) throw new RuntimeProviderError('hosted session identity mismatch', 'invalid_request');
     return session;
+  }
+
+  #newSession(spec, runtimeSessionId, sequence, resumable) {
+    const cwdValue = typeof spec.metadata.cwd === 'string' ? spec.metadata.cwd : this.defaultCwd;
+    if (!path.isAbsolute(cwdValue)) throw new RuntimeProviderError('hosted cwd must be absolute', 'invalid_request');
+    return {
+      sessionId: spec.session_id,
+      runtimeSessionId,
+      spec,
+      sequence,
+      events: [],
+      bytes: 0,
+      maxEvents: Math.min(MAX_HOSTED_EVENTS, Math.max(3, spec.limits.max_tokens)),
+      maxBytes: Math.min(MAX_HOSTED_STREAM_BYTES, Math.max(4096, spec.limits.max_tokens * 16)),
+      maxInputBytes: Math.min(MAX_HOSTED_INPUT_BYTES, Math.max(1024, spec.limits.max_tokens * 16)),
+      maxDurationMs: spec.limits.max_duration_ms,
+      resumable,
+      activeTurn: null,
+      loading: false,
+      deadline: null,
+      controller: new AbortController(),
+      terminal: false,
+      waiters: new Set(),
+    };
   }
 
   #driverEvent(session, turnId, value) {
@@ -538,4 +595,5 @@ module.exports = {
   ClaudeCodeRuntimeProvider,
   CodexRuntimeProvider,
   HostedInstructionsRuntimeProvider,
+  createHostedRuntimeManifest,
 };

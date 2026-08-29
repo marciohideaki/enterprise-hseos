@@ -358,6 +358,34 @@ test('delegated runtime events are untrusted strict boundary input', () => {
   );
 });
 
+test('runtime resume optionally carries an identity-bound delegated spec for process reattachment', () => {
+  const spec = clone(fixtures.delegatedSession);
+  const input = {
+    schema_version: 1,
+    command: 'resume',
+    provider_id: spec.execution.runtime_provider_id,
+    runtime_session_id: 'External/Fixture-1',
+    session_id: spec.session_id,
+    expected_sequence: 4,
+    spec,
+  };
+  assert.deepEqual(validatePortInput('RuntimeProvider', 'resume', input), input);
+
+  assert.throws(
+    () => validatePortInput('RuntimeProvider', 'resume', { ...input, session_id: 'session:forged' }),
+    (error) => error instanceof AgentContractError && error.details.issues.some((issue) => issue.message === 'resume session identity mismatch'),
+  );
+  assert.throws(
+    () => validatePortInput('RuntimeProvider', 'resume', { ...input, provider_id: 'runtime:forged' }),
+    (error) => error instanceof AgentContractError && error.details.issues.some((issue) => issue.message === 'resume provider identity mismatch'),
+  );
+  assert.throws(
+    () => validatePortInput('RuntimeProvider', 'resume', { ...input, spec: fixtures.kernelSession }),
+    (error) =>
+      error instanceof AgentContractError && error.details.issues.some((issue) => issue.message === 'runtime resume requires delegated execution'),
+  );
+});
+
 test('port inputs, resolved results, stream items and errors are executable contracts', async () => {
   const inputByPort = {
     AgentRuntime: {

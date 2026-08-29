@@ -33,7 +33,6 @@ function strictJson(value) {
 }
 
 function actionDirectory(commandName, options) {
-  if (commandName === 'state-session') return path.resolve(options.directory || os.homedir());
   return path.resolve(options.directory || process.cwd());
 }
 
@@ -104,7 +103,11 @@ async function runGovernedCliAction(commandName, originalAction, originalArgumen
       tool,
       {
         name: tool,
-        inputSchema: { type: 'object', required: ['arguments', 'options'], properties: { arguments: { type: 'array' }, options: { type: 'object' } } },
+        inputSchema: {
+          type: 'object',
+          required: ['arguments', 'options'],
+          properties: { arguments: { type: 'array' }, options: { type: 'object' } },
+        },
       },
     ],
   ]);

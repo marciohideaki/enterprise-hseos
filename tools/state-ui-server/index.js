@@ -2,7 +2,7 @@
  * HSEOS State UI Server — read-only side-car exposing the agent-state kanban over HTTP+SSE.
  *
  * Polls the SQLite store every N ms, computes a SHA1 of the snapshot, and pushes diffs
- * to connected EventSource clients. Bind 127.0.0.1 only — never exposed externally.
+ * to connected EventSource clients. The server binds only to loopback.
  *
  * Start: hseos state-ui start
  * Port:  --port=N (default 3200)
@@ -31,13 +31,28 @@ const WEB_DIR = path.join(__dirname, 'web');
 
 function parseArgs() {
   const args = process.argv.slice(2);
-  const port = Number.parseInt(args.find((a) => a.startsWith('--port='))?.split('=')[1] ?? DEFAULT_PORT, 10);
+  const integerArg = (name, fallback) => {
+    const text = args.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? String(fallback);
+    if (!/^[0-9]+$/.test(text)) throw new Error(`${name} must be an integer`);
+    return Number(text);
+  };
+  const port = integerArg('port', DEFAULT_PORT);
   const dbPath = args.find((a) => a.startsWith('--db='))?.split('=')[1] || process.env.HSEOS_STATE_DB || DEFAULT_DB;
   const registry = args.find((a) => a.startsWith('--registry='))?.split('=')[1] || null;
   const host = args.find((a) => a.startsWith('--host='))?.split('=')[1] || '127.0.0.1';
-  const pollMs = Number.parseInt(args.find((a) => a.startsWith('--poll-ms='))?.split('=')[1] ?? DEFAULT_POLL_MS, 10);
-  const staleMinutes = Number.parseInt(args.find((a) => a.startsWith('--stale-minutes='))?.split('=')[1] ?? 10, 10);
-  return { port, host, dbPath, pollMs, staleMinutes, registry };
+  const pollMs = integerArg('poll-ms', DEFAULT_POLL_MS);
+  const staleMinutes = integerArg('stale-minutes', 10);
+  const authTokenEnv = args.find((a) => a.startsWith('--auth-token-env='))?.slice('--auth-token-env='.length) || null;
+  const instanceId = args.find((a) => a.startsWith('--instance-id='))?.slice('--instance-id='.length) || crypto.randomUUID();
+  if (!Number.isInteger(port) || port < 1 || port > 65_535) throw new Error('port must be an integer from 1 to 65535');
+  if (!Number.isInteger(pollMs) || pollMs < 100 || pollMs > 60_000) throw new Error('poll-ms must be an integer from 100 to 60000');
+  if (!Number.isInteger(staleMinutes) || staleMinutes < 1) throw new Error('stale-minutes must be a positive integer');
+  if (authTokenEnv && !/^[A-Z_][A-Z0-9_]*$/.test(authTokenEnv)) throw new Error('auth-token-env must be an environment variable name');
+  const authToken = authTokenEnv ? process.env[authTokenEnv] : null;
+  if (authTokenEnv && !authToken) throw new Error(`authentication environment variable ${authTokenEnv} is not populated`);
+  if (authToken && authToken.length < 16) throw new Error('authentication token must contain at least 16 characters');
+  if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(instanceId)) throw new Error('instance-id must be a UUID');
+  return { port, host, dbPath, pollMs, staleMinutes, registry, authToken, authTokenEnv, instanceId };
 }
 
 const MIME = {
@@ -51,7 +66,23 @@ function checksum(snapshot) {
   return crypto.createHash('sha1').update(JSON.stringify(snapshot)).digest('hex');
 }
 
-function start({ port, host = '127.0.0.1', dbPath, pollMs, staleMinutes, registry: registryPath }) {
+function isLoopback(host) {
+  return ['127.0.0.1', 'localhost', '::1'].includes(host);
+}
+
+function start({
+  port,
+  host = '127.0.0.1',
+  dbPath,
+  pollMs,
+  staleMinutes,
+  registry: registryPath,
+  authToken = null,
+  instanceId = crypto.randomUUID(),
+}) {
+  if (!isLoopback(host)) throw new Error('state-ui binds only to loopback; use a TLS reverse proxy for remote access');
+  if (authToken && authToken.length < 16) throw new Error('authentication token must contain at least 16 characters');
+  if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(instanceId)) throw new Error('instance-id must be a UUID');
   const isCentral = Boolean(registryPath);
   let db = null;
   let loadedRegistry = null;
@@ -65,19 +96,9 @@ function start({ port, host = '127.0.0.1', dbPath, pollMs, staleMinutes, registr
     console.log(`[state-ui] central mode — registry: ${loadedRegistry._path}`);
     console.log(`[state-ui] tracking ${loadedRegistry.projects.length} project(s)`);
   } else {
-    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-    db = new Database(dbPath, { readonly: false, fileMustExist: false });
-    db.pragma('journal_mode = WAL');
+    if (!fs.existsSync(dbPath)) throw new Error(`state database does not exist: ${dbPath}`);
+    db = new Database(dbPath, { readonly: true, fileMustExist: true });
     db.pragma('busy_timeout = 5000');
-    // Apply schema if absent (idempotent migrations). Otherwise takeSnapshot
-    // crashes querying as_runs on a fresh DB.
-    try {
-      const { runMigrations } = require('../mcp-project-state/lib/migrations');
-      const migrationsDir = path.join(__dirname, '..', 'mcp-project-state', 'migrations');
-      runMigrations(db, migrationsDir, { log: () => {} });
-    } catch (error) {
-      console.error('[state-ui] migration error:', error.message);
-    }
   }
 
   const sseClients = new Set();
@@ -122,16 +143,22 @@ function start({ port, host = '127.0.0.1', dbPath, pollMs, staleMinutes, registr
     const url = req.url.split('?')[0];
 
     if (url === '/health') {
-      const meta = isCentral
-        ? {
-            mode: 'central',
-            projects: loadedRegistry?.projects?.length || 0,
-            projects_ok: lastSnapshot?.projects_meta?.filter((p) => p.db_status === 'ok').length || 0,
-          }
-        : { mode: 'single' };
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ status: 'ok', server: 'hseos-state-ui', clients: sseClients.size, ...meta }));
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify({ status: 'ok', server: 'hseos-state-ui', instance_id: instanceId }));
       return;
+    }
+
+    if (authToken) {
+      const supplied = req.headers.authorization || '';
+      const expected = `Bearer ${authToken}`;
+      const suppliedBuffer = Buffer.from(supplied);
+      const expectedBuffer = Buffer.from(expected);
+      const authorized = suppliedBuffer.length === expectedBuffer.length && crypto.timingSafeEqual(suppliedBuffer, expectedBuffer);
+      if (!authorized) {
+        res.writeHead(401, { 'Content-Type': 'application/json', 'WWW-Authenticate': 'Bearer' });
+        res.end(JSON.stringify({ error: 'unauthorized' }));
+        return;
+      }
     }
 
     if (url === '/api/state') {
@@ -159,8 +186,9 @@ function start({ port, host = '127.0.0.1', dbPath, pollMs, staleMinutes, registr
     }
 
     if (url.startsWith('/assets/')) {
-      const file = path.join(WEB_DIR, url.replace('/assets/', ''));
-      if (!file.startsWith(WEB_DIR) || !fs.existsSync(file)) {
+      const file = path.resolve(WEB_DIR, url.slice('/assets/'.length));
+      const webBoundary = `${path.resolve(WEB_DIR)}${path.sep}`;
+      if (!file.startsWith(webBoundary) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
         res.writeHead(404);
         res.end('not found');
         return;
@@ -176,9 +204,6 @@ function start({ port, host = '127.0.0.1', dbPath, pollMs, staleMinutes, registr
   });
 
   server.listen(port, host, () => {
-    if (host !== '127.0.0.1' && host !== 'localhost') {
-      console.warn(`[state-ui] WARNING: binding to ${host} exposes the kanban — no auth, read-only`);
-    }
     console.log(`[state-ui] listening on http://${host}:${port}`);
     if (isCentral) console.log(`[state-ui] mode=central registry=${registryPath} poll=${pollMs}ms`);
     else console.log(`[state-ui] mode=single db=${dbPath} poll=${pollMs}ms stale=${staleMinutes}min`);
@@ -217,4 +242,4 @@ if (require.main === module) {
   start(parseArgs());
 }
 
-module.exports = { start };
+module.exports = { isLoopback, parseArgs, start };

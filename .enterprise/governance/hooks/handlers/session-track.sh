@@ -7,9 +7,8 @@
 # Status:    active (self-suppresses when the hseos CLI or jq is absent)
 #
 # Purpose:
-#   Register EVERY Claude Code session in the machine-wide agent-state store
-#   ($HOME/.hseos/state/project.db, table as_sessions) — hseos-launched or not —
-#   so kanban/fleet views and the Jinx brain-bridge see all live activity.
+#   Register project-scoped sessions in that project's agent-state store so
+#   local kanban and explicitly configured fleet views can observe activity.
 #   Unlike state-emit-hook.sh this does NOT require HSEOS_CURRENT_RUN_ID:
 #   plain terminal sessions are exactly the ones that were invisible before.
 #
@@ -52,6 +51,9 @@ SESSION_ID="$(jq -r '.session_id // empty' <<<"$INPUT" 2>/dev/null || true)"
 [[ -z "$SESSION_ID" ]] && exit 0
 EVENT="$(jq -r '.hook_event_name // empty' <<<"$INPUT" 2>/dev/null || true)"
 CWD="$(jq -r '.cwd // empty' <<<"$INPUT" 2>/dev/null || true)"
+[[ "$CWD" != /* ]] && exit 0
+SESSION_ROOT="$(git -C "$CWD" rev-parse --show-toplevel 2>/dev/null || true)"
+[[ -z "$SESSION_ROOT" ]] && exit 0
 
 case "$EVENT" in
   SessionStart) ACTION="register" ;;
@@ -59,10 +61,11 @@ case "$EVENT" in
   *)            ACTION="heartbeat" ;;  # UserPromptSubmit, Stop, unknown
 esac
 
-ARGS=(state-session "$ACTION" --silent --session "$SESSION_ID" --service claude-code)
+ARGS=(state-session "$ACTION" --silent --directory "$SESSION_ROOT" --session "$SESSION_ID" --service claude-code)
 [[ -n "$CWD" ]] && ARGS+=(--cwd "$CWD")
 
-# Fully detached, capped, silent — the hook must never slow the session down.
-( timeout 5s "${HSEOS_COMMAND[@]}" "${ARGS[@]}" >/dev/null 2>&1 ) &
+# Fully detached, capped, silent — survive hosts that terminate the hook's
+# process group while never slowing the triggering session down.
+nohup timeout 5s "${HSEOS_COMMAND[@]}" "${ARGS[@]}" </dev/null >/dev/null 2>&1 &
 
 exit 0

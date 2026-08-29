@@ -12,21 +12,21 @@ O HSEOS (Hideaki Software Engineering Operating System) é um framework instituc
 
 Números do sistema (estado atual):
 
-| Dimensão | Quantidade |
-|---|---|
-| Agentes registrados no manifest | 16 (14 roster + ATLAS + HSEOS-MASTER) |
-| Skills governadas | 49 |
-| Hooks no registry neutro | 28 (26 ativos, 2 inativos opt-in) — fonte canônica em `.enterprise/governance/hooks/` desde o ciclo 02 |
-| Handlers portáveis de hook | 22 scripts `.sh` (incl. `_ado-lib.sh` e o swarm-gate canônico) + README — 23 arquivos hash-pinned no manifest |
-| Workflows | 38 `workflow.md` em `.hseos/workflows/` (7 registrados com contrato completo em `registry.yaml`) |
-| Comandos CLI `hseos` | ~21 (auto-discovery em `tools/cli/commands/`) |
-| Servidores MCP nativos | 4 (+ 5 market-standard + 5 enterprise via bundles) |
-| Adapters de IDE/plataforma | 19 no installer; 3 com spec declarativa completa (claude-code, codex, goose) |
-| Perfis de capability | 7 (`minimal`→`full`) · 4 hook profiles · 26 componentes + sintéticos `skill:*` |
-| ADRs | 16 (14 Accepted; 0004/0005 são templates "Proposed" — ratificação em lote 2026-07-08) |
-| Standards normativos | 13 core + 16 cross-cutting + 7 stacks × 10 docs |
-| Políticas | 12 |
-| Testes | 32 arquivos JS + 5 shell — todos encadeados no `npm test` desde o ciclo 01 (zero órfãos de CI) |
+| Dimensão                        | Quantidade                                                                                                    |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Agentes registrados no manifest | 16 (14 roster + ATLAS + HSEOS-MASTER)                                                                         |
+| Skills governadas               | 49                                                                                                            |
+| Hooks no registry neutro        | 28 (26 ativos, 2 inativos opt-in) — fonte canônica em `.enterprise/governance/hooks/` desde o ciclo 02        |
+| Handlers portáveis de hook      | 22 scripts `.sh` (incl. `_ado-lib.sh` e o swarm-gate canônico) + README — 23 arquivos hash-pinned no manifest |
+| Workflows                       | 38 `workflow.md` em `.hseos/workflows/` (7 registrados com contrato completo em `registry.yaml`)              |
+| Comandos CLI `hseos`            | ~21 (auto-discovery em `tools/cli/commands/`)                                                                 |
+| Servidores MCP nativos          | 4 (+ 5 market-standard + 5 enterprise via bundles)                                                            |
+| Adapters de IDE/plataforma      | 19 no installer; 3 com spec declarativa completa (claude-code, codex, goose)                                  |
+| Perfis de capability            | 7 (`minimal`→`full`) · 4 hook profiles · 26 componentes + sintéticos `skill:*`                                |
+| ADRs                            | 16 (14 Accepted; 0004/0005 são templates "Proposed" — ratificação em lote 2026-07-08)                         |
+| Standards normativos            | 13 core + 16 cross-cutting + 7 stacks × 10 docs                                                               |
+| Políticas                       | 12                                                                                                            |
+| Testes                          | 32 arquivos JS + 5 shell — todos encadeados no `npm test` desde o ciclo 01 (zero órfãos de CI)                |
 
 ---
 
@@ -46,7 +46,7 @@ Números do sistema (estado atual):
 ```
 
 - **`.enterprise/`** — fonte institucional. Só aqui se edita governança.
-- **`.agents/`** — saída do compiler: vendor-neutral, portável, com hashes SHA-256 pinados em `manifest.yaml`. *Read-only para humanos.*
+- **`.agents/`** — saída do compiler: vendor-neutral, portável, com hashes SHA-256 pinados em `manifest.yaml`. _Read-only para humanos._
 - **`.claude/`, `.codex/`, …** — adapters por ferramenta, derivados de `.agents/`. Nunca são fonte.
 - **`.hseos/`** — runtime: definições de agente executáveis, workflows, configuração (`hseos.config.yaml`), estado (SQLite) e runs.
 
@@ -76,18 +76,18 @@ Outras seções load-bearing: §3 hierarquia documental (Constitution > core > c
 
 ### 3.2 Standards core (`.specs/core/`, 13 documentos — invariantes organizacionais)
 
-| Standard | Regras-chave | Por que existe |
-|---|---|---|
-| AGENT RULES STANDARD (AR-01..57) | AR-08 Clean Architecture; AR-17 DB relacional como fonte de verdade; AR-23 Outbox obrigatório; AR-52 commits sem menção a IA; AR-55..57 roteamento de modelo (Sonnet default, escalação >20% = decomposição errada) | Contrato comportamental único para qualquer agente em qualquer stack |
-| Hexagonal & Clean Architecture (HA-01..29) | Dependency Rule inviolável (HA-19); compliance via skill `ddd-boundary-check` (HA-26) | Múltiplas arquiteturas coexistindo aumentavam custo de onboarding (ADR-0001) |
-| CQRS (CQ-01..35) | Commands mutam / queries leem; DTOs tipados, nunca modelo de banco cru | Resolveu contradição AR-17 × CQ-17 (ADR-0003) |
-| Event Sourcing (ES-01..54) | Opt-in por ADR; eventos imutáveis; correção = evento compensatório | Overhead de ES desproporcional sem necessidade de histórico (ADR-0002) |
-| Saga (SG-01..43) | Compensation Map obrigatório; sem ele, saga não vai a produção (SG-43) | Sagas sem compensação documentada = falha operacional garantida |
-| Microservices (MS-01..50) | 1 BC = 1 serviço; DB compartilhado proibido; `/health` `/ready` `/metrics`; mTLS | Isolamento de bounded context como propriedade estrutural |
-| SOLID & Craftsmanship (SP-01..90) | 6 anti-patterns nomeados; complexidade ciclomática ≤10; waivers via ADR (nunca para SP-41/42/44/68) | Base de qualidade de código com exemplos em 4 linguagens |
-| Git Flow & Release | Regex de termos proibidos em commit `(?i)\b(ai|ia|gpt|chatgpt|claude|copilot|hseos|...)\b` | Histórico git público sem atribuição de metodologia/IA |
-| Deprecation & Sunset (DS-01..22) | APIs 90 dias, eventos/mobile 180+; sunset quebrante = ADR | Mudanças quebrantes previsíveis |
-| + Engineering Governance, Engineering Playbook (Eval-First Loop, Subagent-Driven Development, Scope Lock/Known Gaps), Naming v2.0, Quality Gates (BLOCKING vs WARNING) | | |
+| Standard                                                                                                                                                               | Regras-chave                                                                                                                                                                                                        | Por que existe                                                               |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | --- | ------- | ------ | ------- | ----- | ------- | ------------------------------------------------------ |
+| AGENT RULES STANDARD (AR-01..57)                                                                                                                                       | AR-08 Clean Architecture; AR-17 DB relacional como fonte de verdade; AR-23 Outbox obrigatório; AR-52 commits sem menção a IA; AR-55..57 roteamento de modelo (Sonnet default, escalação >20% = decomposição errada) | Contrato comportamental único para qualquer agente em qualquer stack         |
+| Hexagonal & Clean Architecture (HA-01..29)                                                                                                                             | Dependency Rule inviolável (HA-19); compliance via skill `ddd-boundary-check` (HA-26)                                                                                                                               | Múltiplas arquiteturas coexistindo aumentavam custo de onboarding (ADR-0001) |
+| CQRS (CQ-01..35)                                                                                                                                                       | Commands mutam / queries leem; DTOs tipados, nunca modelo de banco cru                                                                                                                                              | Resolveu contradição AR-17 × CQ-17 (ADR-0003)                                |
+| Event Sourcing (ES-01..54)                                                                                                                                             | Opt-in por ADR; eventos imutáveis; correção = evento compensatório                                                                                                                                                  | Overhead de ES desproporcional sem necessidade de histórico (ADR-0002)       |
+| Saga (SG-01..43)                                                                                                                                                       | Compensation Map obrigatório; sem ele, saga não vai a produção (SG-43)                                                                                                                                              | Sagas sem compensação documentada = falha operacional garantida              |
+| Microservices (MS-01..50)                                                                                                                                              | 1 BC = 1 serviço; DB compartilhado proibido; `/health` `/ready` `/metrics`; mTLS                                                                                                                                    | Isolamento de bounded context como propriedade estrutural                    |
+| SOLID & Craftsmanship (SP-01..90)                                                                                                                                      | 6 anti-patterns nomeados; complexidade ciclomática ≤10; waivers via ADR (nunca para SP-41/42/44/68)                                                                                                                 | Base de qualidade de código com exemplos em 4 linguagens                     |
+| Git Flow & Release                                                                                                                                                     | Regex de termos proibidos em commit `(?i)\b(ai                                                                                                                                                                      | ia                                                                           | gpt | chatgpt | claude | copilot | hseos | ...)\b` | Histórico git público sem atribuição de metodologia/IA |
+| Deprecation & Sunset (DS-01..22)                                                                                                                                       | APIs 90 dias, eventos/mobile 180+; sunset quebrante = ADR                                                                                                                                                           | Mudanças quebrantes previsíveis                                              |
+| + Engineering Governance, Engineering Playbook (Eval-First Loop, Subagent-Driven Development, Scope Lock/Known Gaps), Naming v2.0, Quality Gates (BLOCKING vs WARNING) |                                                                                                                                                                                                                     |                                                                              |
 
 ### 3.3 Standards cross-cutting (`.specs/cross/`, 16 — 15 mandatórios + 1 opt-in)
 
@@ -101,20 +101,20 @@ CSharp, Cpp, Flutter, Go, Java, PHP, ReactNative — template idêntico (Archite
 
 ### 3.5 Políticas (`.enterprise/policies/` + `governance/policies/`, 12)
 
-| Política | Regula | Racional |
-|---|---|---|
-| `adr-policy.md` | Quando ADR é obrigatório | "No significant decision may remain implicit" |
-| `skill-consumption.md` | Protocolo 3 tiers (Registry→QUICK→FULL), RP-SK-01..09 | Carregar a skill errada ou demais = poluição de contexto |
-| `specification-consumption.md` | Hierarquia Canonical > Anchors > Mappings > Views | "Parar por conflito é resultado de governança bem-sucedida, não falha" |
-| `shared-infrastructure.md` | Infra compartilhada obrigatória (`shared-*` local / `platform-shared-dev` k3s), mapa de 14 serviços | Evita proliferação de postgres/redis per-project e conflitos de porta |
-| `sharding-policy.md` | Gatilhos e modelo canônico de sharding | Documentos grandes degradam consumo por agente |
-| `automated-validation.md` | Validação estrutural de todo output de agente | Falha estrutural = rejeitado antes de revisão humana |
-| `documentation-policy.md` | Docs as code; "No Shallow Documentation" | Doc é artefato de engenharia de primeira classe |
-| `exceptions.md` | Desvios via `EXC-XXXX` com expiração | Sem auto-aprovação por agente; exceção expirada é inválida |
-| `pre-flight-checks.md` | Checklist pré-execução | Execução sem pre-flight = output inválido |
-| `minimal-wiring.md` | Uma linha de wiring de governança em prompts | Proíbe hardcode de paths internos em prompts |
-| `standards-adoption-metrics.md` | Scorecard 8 dimensões ponderadas; <75 = feature freeze | Compliance mensurável, não aspiracional |
-| `architecture-boundaries.md` | Fronteiras DDD mandatórias | Anti-padrões proibidos (Shared Domain Model, domínio com ORM) |
+| Política                        | Regula                                                                                              | Racional                                                               |
+| ------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `adr-policy.md`                 | Quando ADR é obrigatório                                                                            | "No significant decision may remain implicit"                          |
+| `skill-consumption.md`          | Protocolo 3 tiers (Registry→QUICK→FULL), RP-SK-01..09                                               | Carregar a skill errada ou demais = poluição de contexto               |
+| `specification-consumption.md`  | Hierarquia Canonical > Anchors > Mappings > Views                                                   | "Parar por conflito é resultado de governança bem-sucedida, não falha" |
+| `shared-infrastructure.md`      | Infra compartilhada obrigatória (`shared-*` local / `platform-shared-dev` k3s), mapa de 14 serviços | Evita proliferação de postgres/redis per-project e conflitos de porta  |
+| `sharding-policy.md`            | Gatilhos e modelo canônico de sharding                                                              | Documentos grandes degradam consumo por agente                         |
+| `automated-validation.md`       | Validação estrutural de todo output de agente                                                       | Falha estrutural = rejeitado antes de revisão humana                   |
+| `documentation-policy.md`       | Docs as code; "No Shallow Documentation"                                                            | Doc é artefato de engenharia de primeira classe                        |
+| `exceptions.md`                 | Desvios via `EXC-XXXX` com expiração                                                                | Sem auto-aprovação por agente; exceção expirada é inválida             |
+| `pre-flight-checks.md`          | Checklist pré-execução                                                                              | Execução sem pre-flight = output inválido                              |
+| `minimal-wiring.md`             | Uma linha de wiring de governança em prompts                                                        | Proíbe hardcode de paths internos em prompts                           |
+| `standards-adoption-metrics.md` | Scorecard 8 dimensões ponderadas; <75 = feature freeze                                              | Compliance mensurável, não aspiracional                                |
+| `architecture-boundaries.md`    | Fronteiras DDD mandatórias                                                                          | Anti-padrões proibidos (Shared Domain Model, domínio com ORM)          |
 
 ### 3.6 Governança de execução (`governance/execution-governance.md` + `AGENTS.md` §4-§9)
 
@@ -124,24 +124,24 @@ Regras git que **sobrescrevem defaults do sistema**: nunca commit em main/master
 
 ## 4. Decisões — ADRs (`.specs/decisions/`, 16)
 
-| ADR | Título | Status | Essência |
-|---|---|---|---|
-| 0001 | Hexagonal obrigatória | Accepted | Ports & Adapters default para backend |
-| 0002 | Event Sourcing opt-in | Accepted | ES só com ADR por serviço |
-| 0003 | CQRS: DB relacional como verdade | Accepted | Read models reconstruíveis, nunca escritos diretamente |
-| 0004 | Flutter Architecture | Proposed (template vazio) | Rebaixado no ciclo 01 — arquivo é template sem conteúdo Flutter |
-| 0005 | Performance Activation Template | Proposed (template de ativação) | Status alinhado no ciclo 01 — template por serviço, não decisão fechada |
-| 0006 | **Standalone Architecture v2.0** | **Accepted (2026-07-08)** | 7 invariantes P1-P7; raiz de dependência de quase tudo pós-2026 |
-| 0007 | Compiler v2 multi-adapter | **Accepted (2026-07-08)** | AdapterContract declarativo + SDK BYOA |
-| 0008 | MCP 3-tier bundles | **Accepted (2026-07-08)** | core/extended/enterprise em `.agents/mcp/` |
-| 0009 | Plugin Marketplace dual-format | **Accepted (2026-07-08)** | Emissão simultânea Anthropic + Codex |
-| 0010 | OTel Collector compartilhado | **Accepted (2026-07-08)** | `otel-collector-shared` em `platform-shared-dev` |
-| 0011 | Módulo ADO-Ops | **Accepted** | Feature-flag `ado.enabled`; ADO-first via gate G1; agente ATLAS |
-| 0012 | Sandboxing opcional | **Accepted (2026-07-08)** | Provider externo `ai-jail` (GPL não absorvido no core MIT) |
-| 0013 | PR Closeout & Branch Lifecycle | **Accepted** | `hseos pr closeout --approved`; merge só com humano |
-| 0014 | Telemetry Export Bridge | **Accepted** | TEE OTLP/Loki opt-in; SQLite permanece canônico |
-| 0015 | dev-squad Canonical Authority | **Accepted** | 4 tiers de autoridade; Gate 7 em `quality-gates.sh` + CI |
-| 0016 | **Capability Packaging** | **Accepted (2026-07-08)** | Assunto do branch atual (ver §10) |
+| ADR  | Título                           | Status                          | Essência                                                                |
+| ---- | -------------------------------- | ------------------------------- | ----------------------------------------------------------------------- |
+| 0001 | Hexagonal obrigatória            | Accepted                        | Ports & Adapters default para backend                                   |
+| 0002 | Event Sourcing opt-in            | Accepted                        | ES só com ADR por serviço                                               |
+| 0003 | CQRS: DB relacional como verdade | Accepted                        | Read models reconstruíveis, nunca escritos diretamente                  |
+| 0004 | Flutter Architecture             | Proposed (template vazio)       | Rebaixado no ciclo 01 — arquivo é template sem conteúdo Flutter         |
+| 0005 | Performance Activation Template  | Proposed (template de ativação) | Status alinhado no ciclo 01 — template por serviço, não decisão fechada |
+| 0006 | **Standalone Architecture v2.0** | **Accepted (2026-07-08)**       | 7 invariantes P1-P7; raiz de dependência de quase tudo pós-2026         |
+| 0007 | Compiler v2 multi-adapter        | **Accepted (2026-07-08)**       | AdapterContract declarativo + SDK BYOA                                  |
+| 0008 | MCP 3-tier bundles               | **Accepted (2026-07-08)**       | core/extended/enterprise em `.agents/mcp/`                              |
+| 0009 | Plugin Marketplace dual-format   | **Accepted (2026-07-08)**       | Emissão simultânea Anthropic + Codex                                    |
+| 0010 | OTel Collector compartilhado     | **Accepted (2026-07-08)**       | `otel-collector-shared` em `platform-shared-dev`                        |
+| 0011 | Módulo ADO-Ops                   | **Accepted**                    | Feature-flag `ado.enabled`; ADO-first via gate G1; agente ATLAS         |
+| 0012 | Sandboxing opcional              | **Accepted (2026-07-08)**       | Provider externo `ai-jail` (GPL não absorvido no core MIT)              |
+| 0013 | PR Closeout & Branch Lifecycle   | **Accepted**                    | `hseos pr closeout --approved`; merge só com humano                     |
+| 0014 | Telemetry Export Bridge          | **Accepted**                    | TEE OTLP/Loki opt-in; SQLite permanece canônico                         |
+| 0015 | dev-squad Canonical Authority    | **Accepted**                    | 4 tiers de autoridade; Gate 7 em `quality-gates.sh` + CI                |
+| 0016 | **Capability Packaging**         | **Accepted (2026-07-08)**       | Assunto do branch atual (ver §10)                                       |
 
 **Nota de ratificação (ciclo 01):** a onda "Standalone v2.0" (0006-0010, 0012, 0016) foi ratificada em lote em 2026-07-08 com aprovação humana explícita — já estava implementada e enforçada em CI. 0004/0005 foram rebaixados/alinhados como templates (não são decisões fechadas). A seção `## Authority` exigida pelo ADR-0015 no dev-squad SKILL.md fonte foi adicionada, e o follow-up do ADR-0015 (promover o job `governance` a required check) foi cumprido.
 
@@ -153,24 +153,24 @@ Regras git que **sobrescrevem defaults do sistema**: nunca commit em main/master
 
 Cada agente = `*.agent.yaml` em `.hseos/agents/` (persona, `tool_policy`, menu→workflows) + par `authority.md`/`constraints.md` em `.enterprise/agents/<code>/` (correspondência 1:1 verificada). Todos carregam as mesmas 7 "Mandatory Governance Clauses".
 
-| Code | Título | Domínio | tool_policy | Por que existe |
-|---|---|---|---|---|
-| NYX | Intelligence Broker | Discovery | read-only + artifacts | Elicitação de requisitos sem inventar gaps — recebe a delegação "invent missing requirements" |
-| VECTOR | Mission Architect | Planning | write-safe (docs) | PRD, escopo, épicos/stories; mudança de escopo passa por ele |
-| CIPHER | Systems Architect | Solutioning | write-safe (docs) | Arquitetura e drafts de ADR; **nunca aprova ADR, só drafta** |
-| PRISM | Interface Weaver | Experience | read-only + artifacts | UX/acessibilidade como fase formal, não afterthought |
-| RAZOR | Sprint Commander | Coordination | write-safe (docs) | Stories/sprints; sharding de stories cross-domain |
-| GHOST | Code Executor | Execution | write-safe (sem git destrutivo) | Implementação TDD; Self-Review Gate antes de handoff; "Almost passing is failing" |
-| GLITCH | Chaos Engineer | Validation | write-safe | Reality Checker Mode cético; Deploy Gate de 3 aprovações (técnica=GLITCH, sistema=CIPHER/ORBIT, negócio=humano) |
-| QUILL | Knowledge Scribe | Knowledge | write-safe (docs) | Documentação sem sumarização com perda; sidecar "Paige" (tech-writer) |
-| ORBIT | Flow Conductor | Orchestration | write-safe (docs) | Sequencia fases, persiste run-state; **não pode avançar fase com Reality Check FAIL** |
-| BLITZ | Solo Protocol | Autonomy | write-safe | Fluxo comprimido solo (1 sessão); destino de "single story sem paralelização" |
-| FORGE | Release Engineer | DevOps | **admin** (confirm_before rm-rf/kubectl-delete/migration) | Publica artefatos com evidência imutável (tag/digest/SHA); 1º elo FORGE→KUBE→SABLE |
-| KUBE | K8s Delivery Operator | GitOps | admin | Atualiza manifests GitOps + PR + sync ArgoCD; nunca `prune:true` em infra; 2º elo |
-| SABLE | Runtime Operator | Operations | admin | Verifica rollout/health/smoke; **único auditor de governança de IA** (spend caps, FinOps); 3º elo |
-| SWARM | Parallel Execution Commander | Parallel Orchestration | write-safe (sem push/merge) | Decompõe batch heterogêneo em waves worktree-isoladas; orquestra, nunca executa ops destrutivas |
-| ATLAS | ADO Lifecycle | ado-orchestration | read-mostly (MCP ADO) | Tracking Azure DevOps plano→sync→close; só ativa com `ado.enabled: true` |
-| HSEOS-MASTER | Meta/bootstrap | — | — | Executor raiz de tarefas genéricas do módulo `core` (não faz parte do fluxo de delivery) |
+| Code         | Título                       | Domínio                | tool_policy                                               | Por que existe                                                                                                  |
+| ------------ | ---------------------------- | ---------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| NYX          | Intelligence Broker          | Discovery              | read-only + artifacts                                     | Elicitação de requisitos sem inventar gaps — recebe a delegação "invent missing requirements"                   |
+| VECTOR       | Mission Architect            | Planning               | write-safe (docs)                                         | PRD, escopo, épicos/stories; mudança de escopo passa por ele                                                    |
+| CIPHER       | Systems Architect            | Solutioning            | write-safe (docs)                                         | Arquitetura e drafts de ADR; **nunca aprova ADR, só drafta**                                                    |
+| PRISM        | Interface Weaver             | Experience             | read-only + artifacts                                     | UX/acessibilidade como fase formal, não afterthought                                                            |
+| RAZOR        | Sprint Commander             | Coordination           | write-safe (docs)                                         | Stories/sprints; sharding de stories cross-domain                                                               |
+| GHOST        | Code Executor                | Execution              | write-safe (sem git destrutivo)                           | Implementação TDD; Self-Review Gate antes de handoff; "Almost passing is failing"                               |
+| GLITCH       | Chaos Engineer               | Validation             | write-safe                                                | Reality Checker Mode cético; Deploy Gate de 3 aprovações (técnica=GLITCH, sistema=CIPHER/ORBIT, negócio=humano) |
+| QUILL        | Knowledge Scribe             | Knowledge              | write-safe (docs)                                         | Documentação sem sumarização com perda; sidecar "Paige" (tech-writer)                                           |
+| ORBIT        | Flow Conductor               | Orchestration          | write-safe (docs)                                         | Sequencia fases, persiste run-state; **não pode avançar fase com Reality Check FAIL**                           |
+| BLITZ        | Solo Protocol                | Autonomy               | write-safe                                                | Fluxo comprimido solo (1 sessão); destino de "single story sem paralelização"                                   |
+| FORGE        | Release Engineer             | DevOps                 | **admin** (confirm_before rm-rf/kubectl-delete/migration) | Publica artefatos com evidência imutável (tag/digest/SHA); 1º elo FORGE→KUBE→SABLE                              |
+| KUBE         | K8s Delivery Operator        | GitOps                 | admin                                                     | Atualiza manifests GitOps + PR + sync ArgoCD; nunca `prune:true` em infra; 2º elo                               |
+| SABLE        | Runtime Operator             | Operations             | admin                                                     | Verifica rollout/health/smoke; **único auditor de governança de IA** (spend caps, FinOps); 3º elo               |
+| SWARM        | Parallel Execution Commander | Parallel Orchestration | write-safe (sem push/merge)                               | Decompõe batch heterogêneo em waves worktree-isoladas; orquestra, nunca executa ops destrutivas                 |
+| ATLAS        | ADO Lifecycle                | ado-orchestration      | read-mostly (MCP ADO)                                     | Tracking Azure DevOps plano→sync→close; só ativa com `ado.enabled: true`                                        |
+| HSEOS-MASTER | Meta/bootstrap               | —                      | —                                                         | Executor raiz de tarefas genéricas do módulo `core` (não faz parte do fluxo de delivery)                        |
 
 **Racional da gradação de tool_policy:** discovery/UX são read-only (só produzem artefatos); planejamento/coordenação/conhecimento escrevem docs mas não código/git; execução escreve código sem operações git destrutivas; DevOps/GitOps/Runtime têm `admin` porque tocam infraestrutura real — mas com `confirm_before` nas operações irreversíveis. A autoridade cresce junto com a proximidade de produção, e o gate humano cresce junto.
 
@@ -187,16 +187,16 @@ Cada agente = `*.agent.yaml` em `.hseos/agents/` (persona, `tool_policy`, menu�
 
 ### 6.1 Registrados com contrato completo (`.hseos/workflows/registry.yaml`, 7)
 
-| Workflow | Owner | Por que existe |
-|---|---|---|
+| Workflow             | Owner | Por que existe                                                                                                                                   |
+| -------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `delivery-readiness` | ORBIT | Gate de pré-condições (repo, config, constituição, CLIs) — nenhum fluxo orquestrado começa sem validação; cada check tem `prepare:` com correção |
-| `epic-delivery` | ORBIT | Pipeline completo de 12 fases com state persistido (`.hseos/data/runs/epic-<id>/state.yaml`) e gates por fase |
-| `dev-squad` | SWARM | Ver §6.3 — o workflow mais elaborado |
-| `release-publish` | FORGE | freeze→ci-detect→publish→verify; hard-fail sem evidência de publicação |
-| `kube-deploy` | KUBE | Detecção de perfil GitOps (`kube-profile.yaml`: `centralized` ativo / `app-paired` documentado) → kustomize edit → PR → poll ArgoCD → handoff |
-| `runtime-deploy` | SABLE | handoff-verify→rollout→smoke→regression; SABLE nunca re-dispara deploy, só verifica e escala |
-| `state-tracking` | SWARM | Observabilidade SQLite (ver §11); "nunca bloqueia delivery por observabilidade indisponível" |
-| `ado-ops` | ATLAS | Lifecycle ADO feature-flagged (exit 0 silencioso quando desligado) |
+| `epic-delivery`      | ORBIT | Pipeline completo de 12 fases com state persistido (`.hseos/data/runs/epic-<id>/state.yaml`) e gates por fase                                    |
+| `dev-squad`          | SWARM | Ver §6.3 — o workflow mais elaborado                                                                                                             |
+| `release-publish`    | FORGE | freeze→ci-detect→publish→verify; hard-fail sem evidência de publicação                                                                           |
+| `kube-deploy`        | KUBE  | Detecção de perfil GitOps (`kube-profile.yaml`: `centralized` ativo / `app-paired` documentado) → kustomize edit → PR → poll ArgoCD → handoff    |
+| `runtime-deploy`     | SABLE | handoff-verify→rollout→smoke→regression; SABLE nunca re-dispara deploy, só verifica e escala                                                     |
+| `state-tracking`     | SWARM | Observabilidade SQLite (ver §11); "nunca bloqueia delivery por observabilidade indisponível"                                                     |
+| `ado-ops`            | ATLAS | Lifecycle ADO feature-flagged (exit 0 silencioso quando desligado)                                                                               |
 
 ### 6.2 Fases numeradas (pipeline padrão) + auxiliares
 
@@ -234,7 +234,7 @@ Registro canônico: `.enterprise/governance/agent-skills/SKILLS-REGISTRY.md` (v1
 
 **E. Orquestração/docs/pesquisa (5):** `dev-squad` (canônica via ADR-0015), `doc-project` (README bilíngue EN+PT-BR), `repo-radar` (avaliação de repos com fallback sem Axon), `rfc`, `tech-research`.
 
-**Racional da separação em famílias:** as skills A são *checagens* (podem rodar em qualquer código); as B governam o *próprio processo do agente*; C/D são *integrações* com superfícies externas (ADO, GitOps); E são *protocolos executáveis*. O capability packaging (§10) agrupa exatamente sobre essas famílias.
+**Racional da separação em famílias:** as skills A são _checagens_ (podem rodar em qualquer código); as B governam o _próprio processo do agente_; C/D são _integrações_ com superfícies externas (ADO, GitOps); E são _protocolos executáveis_. O capability packaging (§10) agrupa exatamente sobre essas famílias.
 
 ---
 
@@ -249,6 +249,7 @@ Registro canônico: `.enterprise/governance/agent-skills/SKILLS-REGISTRY.md` (v1
 ### 8.2 Inventário funcional (por evento)
 
 **PreToolUse (bloqueantes):**
+
 - `swarm-gate.sh` (Agent) — o guardião do dev-squad: roteamento de modelo (execução sem `model` → ask; Opus em execução sem opt-in → ask), dicionário de ~20 skills com sugestão, e gate SWARM (bloqueia dispatch paralelo sem run ativo).
 - `claude-md-guard.sh` (Write|Edit) — nega edição direta de `CLAUDE.md`; redireciona para `AGENTS.md` (ADR-0006: CLAUDE.md é ponteiro de compatibilidade).
 - `code-index-guard.sh` (Grep|Glob) — quando existe índice Axon pronto, pede confirmação e recomenda `get_context_capsule`/`get_skeleton` (economia 76-98% de tokens); escape `HSEOS_BYPASS_INDEX=1`; permite silenciosamente se não há índice (P6).
@@ -271,26 +272,26 @@ Registro canônico: `.enterprise/governance/agent-skills/SKILLS-REGISTRY.md` (v1
 
 ### 9.1 CLI `hseos` (`tools/cli/`, Commander.js, auto-discovery de comandos)
 
-| Grupo | Comandos | Por que existe |
-|---|---|---|
-| Instalação | `install` (perfis/componentes/skills/tools/RTK/dashboard/second-brain), `install-plan` (dry-run auditável), `uninstall`, `status` | Onboarding com intenção de instalação revisável (ADR-0016) |
-| Núcleo compilado | `agent-core compile\|verify\|audit\|doctor` (multi-adapter via `--target`) | Compila `.enterprise`→`.agents`→adapters; self-verification de integridade/drift |
-| Governança de PR | `pr closeout --approved` | Merge governado: exige aprovação humana + checks 100% verdes + branch não-protegida; cleanup restrito a `feature/*` (ADR-0013) |
-| Workflow | `workflow list/validate/init/status/sync/resume/advance/batch/gate/story-*` | Motor genérico YAML-driven; checks tipados; ledger `sprint-status.yaml` |
-| Estado | `state start/stop/status`, `state-emit/list/describe/render/purge/snapshot/stale-sweep` | Instrumentação SQLite sem exigir servidor MCP rodando |
-| Kanban | `kanban [--watch]` (ASCII), `state-ui` (web :3200 loopback), `kanban-central` (multi-projeto :3210, registry `~/.hseos/projects.json`) | Visibilidade de runs para humanos, do terminal ao browser |
-| Módulos/plugins | `plugin list/install/remove/doctor` (dual-format), `brain status/sync`, `sandbox doctor/run` (ai-jail, perfis standard/lockdown) | Extensões e integrações opt-in com degradação graciosa |
+| Grupo            | Comandos                                                                                                                               | Por que existe                                                                                                                 |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Instalação       | `install` (perfis/componentes/skills/tools/RTK/dashboard/second-brain), `install-plan` (dry-run auditável), `uninstall`, `status`      | Onboarding com intenção de instalação revisável (ADR-0016)                                                                     |
+| Núcleo compilado | `agent-core compile\|verify\|audit\|doctor` (multi-adapter via `--target`)                                                             | Compila `.enterprise`→`.agents`→adapters; self-verification de integridade/drift                                               |
+| Governança de PR | `pr closeout --approved`                                                                                                               | Merge governado: exige aprovação humana + checks 100% verdes + branch não-protegida; cleanup restrito a `feature/*` (ADR-0013) |
+| Workflow         | `workflow list/validate/init/status/sync/resume/advance/batch/gate/story-*`                                                            | Motor genérico YAML-driven; checks tipados; ledger `sprint-status.yaml`                                                        |
+| Estado           | `state start/stop/status`, `state-emit/list/describe/render/purge/snapshot/stale-sweep`                                                | Instrumentação SQLite sem exigir servidor MCP rodando                                                                          |
+| Kanban           | `kanban [--watch]` (ASCII), `state-ui` (web :3200 loopback), `kanban-central` (multi-projeto :3210, registro `.hseos/config/projects.json`) | Visibilidade de runs para humanos, do terminal ao browser                                                                      |
+| Módulos/plugins  | `plugin list/install/remove/doctor` (dual-format), `brain status/sync`, `sandbox doctor/run` (ai-jail, perfis standard/lockdown)       | Extensões e integrações opt-in com degradação graciosa                                                                         |
 
 Subsistema de instalação (`tools/cli/installers/`): orquestrador de 3.8k linhas + **19 adapters de IDE** (`platform-codes.yaml`: claude-code e cursor "preferred"; handlers bespoke para codex/github-copilot/kilo/rovodev; genérico config-driven para o resto, com `ancestor_conflict_check` para evitar instalação duplicada em diretórios aninhados).
 
 ### 9.2 Servidores MCP nativos (`tools/mcp-*`)
 
-| Server | Porta | Status | Tools | Por que existe |
-|---|---|---|---|---|
-| `mcp-project-state` | 3100 | **implemented** | runs/tasks/events/handoffs sobre schema `as_*` + FTS5 | Estado de execução queryável por agente ("qual agente tocou auth nos últimos 30 runs") |
-| `mcp-hseos-governance` | 3101 | **implemented** | query_constitution, validate_adr, check_authority, list_skills, list_workflows | Governança consultável via MCP em vez de leitura de arquivos |
-| `mcp-hseos-swarm` | 3102 | **implemented** | plan_squad, dispatch_wave, consolidate_handoff, get_run_state, list_runs | Protocolo dev-squad como API sobre os artefatos de run; a normalização com o estado relacional está proposta no ADR-0022 |
-| `mcp-axon-bridge` | 3103 | **implemented** | code_search, dep_graph, get_skeleton, get_overview, memory_search, run_pipeline | Wrapper portável do Axon com resolução de binário e fallback no-op (`fallback:true`) — P5/P6 |
+| Server                 | Porta | Status          | Tools                                                                           | Por que existe                                                                                                           |
+| ---------------------- | ----- | --------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `mcp-project-state`    | 3100  | **implemented** | runs/tasks/events/handoffs sobre schema `as_*` + FTS5                           | Estado de execução queryável por agente ("qual agente tocou auth nos últimos 30 runs")                                   |
+| `mcp-hseos-governance` | 3101  | **implemented** | query_constitution, validate_adr, check_authority, list_skills, list_workflows  | Governança consultável via MCP em vez de leitura de arquivos                                                             |
+| `mcp-hseos-swarm`      | 3102  | **implemented** | plan_squad, dispatch_wave, consolidate_handoff, get_run_state, list_runs        | Protocolo dev-squad como API sobre os artefatos de run; a normalização com o estado relacional está proposta no ADR-0022 |
+| `mcp-axon-bridge`      | 3103  | **implemented** | code_search, dep_graph, get_skeleton, get_overview, memory_search, run_pipeline | Wrapper portável do Axon com resolução de binário e fallback no-op (`fallback:true`) — P5/P6                             |
 
 Bundles (ADR-0008, `.agents/mcp/bundles/`): **core** (sempre: governance, state, filesystem), **extended** (opt-in: swarm, axon-bridge, sequential-thinking, fetch, memory), **enterprise** (opt-in + secrets via env: github, postgres SELECT-only, kubernetes read-mostly, sentry, azure-devops com regras operacionais embutidas — "nunca criar com State=Closed", ≤10 chamadas/turno). Ativos: `[core, extended]`.
 
@@ -308,7 +309,7 @@ Bundles (ADR-0008, `.agents/mcp/bundles/`): **core** (sempre: governance, state,
 ### 9.5 Enforcement em camadas (defesa em profundidade)
 
 1. **Tempo real** — hooks PreToolUse (swarm-gate, claude-md-guard, branch-guard, code-index-guard).
-2. **Pré-commit local** — `.husky/pre-commit` (check-branch + quality-gates `--phase code`) e `.husky/commit-msg` (validate-commit-msg). *Bypassável com `--no-verify` (proibido por diretiva).*
+2. **Pré-commit local** — `.husky/pre-commit` (check-branch + quality-gates `--phase code`) e `.husky/commit-msg` (validate-commit-msg). _Bypassável com `--no-verify` (proibido por diretiva)._
 3. **CI não-bypassável** — `ci.yaml` (matrix Node 20/22, suíte completa + job `governance` com quality-gates `--phase doc`); `standalone-smoke.yaml` (container limpo, invariantes P5/P6 por grep + testes); `release.yaml` (publish só via tag `v*` com suíte verde).
 4. **Server-side** — branch protection declarativa aplicada por script (status checks obrigatórios, 1 approval, sem force-push).
 
@@ -318,12 +319,12 @@ Bundles (ADR-0008, `.agents/mcp/bundles/`): **core** (sempre: governance, state,
 
 ## 10. Capability Packaging (ADR-0016 — o trabalho deste branch)
 
-**Problema:** o instalador expunha seleção de módulos/tools, mas não uma forma de primeira classe de selecionar uma *superfície de capacidade* coerente — intenção de instalação difícil de auditar.
+**Problema:** o instalador expunha seleção de módulos/tools, mas não uma forma de primeira classe de selecionar uma _superfície de capacidade_ coerente — intenção de instalação difícil de auditar.
 
 **Solução (aditiva — não substitui Constituição/gates/worktree):**
 
-- `.agents/capabilities/components.yaml` — schema v2 com 26 componentes estáticos + sintéticos, em 6 famílias: `baseline:*` (3, `required:true` e injetados pelo resolver — governance, entrypoints, skills-registry; **irremovíveis**), `runtime:*` (4), `capability:*` (12), `adapter:*` (3), `extra:*` (4) e `skill:*` sintéticos; a autoridade das skills permanece em `.enterprise/`.
-- `.agents/capabilities/profiles.yaml` — 7 perfis: `minimal` (advisory), `developer` (**default**, standard), `governance`/`gitops`/`ado` (strict), `solo` (standard), `full` (ci, único com adapter goose).
+- `.enterprise/governance/capabilities/components.yaml` — fonte canônica schema v2 com componentes estáticos + sintéticos, nas famílias `baseline:*`, `runtime:*`, `capability:*`, `adapter:*`, `extra:*` e `skill:*`; `.agents/capabilities/` é saída compilada.
+- `.enterprise/governance/capabilities/profiles.yaml` — fonte canônica dos perfis de instalação e seleção de hooks; o compilador mantém a cópia portátil em `.agents/capabilities/`.
 - `tools/cli/lib/capability-catalog.js` — validação fail-closed do schema v2, `loadCapabilityCatalog` / `resolveCapabilityPlan` (sempre inclui o baseline obrigatório, rejeita referências/campos inválidos e retorna seleção determinística) / `loadAdapterMatrix` / `writeCapabilitySelection`. O compiler recebe somente `plan.skills`, reconcilia resíduos de perfis anteriores e falha se seleção e emissão divergirem.
 - CLI: `hseos install-plan --profile <id> [--json|--list-*|--adapters]` (dry-run) e `hseos install --profile/--components/--skills/--hook-profile`.
 - Testes: `test/test-capability-catalog.js` (integridade referencial perfil→componente→skill, resolução, flags).
@@ -348,45 +349,30 @@ Bundles (ADR-0008, `.agents/mcp/bundles/`): **core** (sempre: governance, state,
 
 Um `git stash pop` conflitante foi commitado sem resolução nos commits de decom de 2026-06-08 (`d4ceb94` etc.), deixando **8 arquivos com marcadores de conflito no HEAD**. Todos resolvidos com base em evidência:
 
-| Arquivo | Resolução | Evidência |
-|---|---|---|
-| `.claude/settings.local.json` | União das permissões dos dois lados | Ambos os lados eram allowlists já aprovadas |
-| `package.json` | Lado upstream (suíte completa) | Todos os arquivos de teste referenciados existem em `test/` |
-| `.claude/hooks.json` | Lado upstream (`matcher: "*"`) | Lado stashed duplicava `plan-lint.sh` já resolvido adiante e usava matcher inválido `""` — **JSON inválido desativava todos os hooks** |
-| `.agents/hooks/registry.yaml` (2 blocos) | Comentários Wave 4 (stashed) | Conteúdo funcional idêntico nos dois lados |
-| `.agents/skills/{ai-observability,dev-squad}/SKILL.md` | **Merge**: trigger/skip (stashed) + versão (upstream) | Upstream regrediu o schema (perdeu trigger/skip presente nas outras 47 skills) mas avançou a versão |
-| `tools/cli/commands/agent-core.js` (2 blocos) | Lado upstream | Lado stashed causaria `ReferenceError: extraNote` |
-| `tools/cli/installers/lib/core/agent-core-compiler.js` | Shim de 3 linhas (upstream) | Pacote modular Compiler v2 existe completo em `agent-core-compiler/` — **o conflito quebrava `hseos install`, `agent-core` e `plugin` inteiros** |
+| Arquivo                                                | Resolução                                             | Evidência                                                                                                                                        |
+| ------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `.claude/settings.local.json`                          | União das permissões dos dois lados                   | Ambos os lados eram allowlists já aprovadas                                                                                                      |
+| `package.json`                                         | Lado upstream (suíte completa)                        | Todos os arquivos de teste referenciados existem em `test/`                                                                                      |
+| `.claude/hooks.json`                                   | Lado upstream (`matcher: "*"`)                        | Lado stashed duplicava `plan-lint.sh` já resolvido adiante e usava matcher inválido `""` — **JSON inválido desativava todos os hooks**           |
+| `.agents/hooks/registry.yaml` (2 blocos)               | Comentários Wave 4 (stashed)                          | Conteúdo funcional idêntico nos dois lados                                                                                                       |
+| `.agents/skills/{ai-observability,dev-squad}/SKILL.md` | **Merge**: trigger/skip (stashed) + versão (upstream) | Upstream regrediu o schema (perdeu trigger/skip presente nas outras 47 skills) mas avançou a versão                                              |
+| `tools/cli/commands/agent-core.js` (2 blocos)          | Lado upstream                                         | Lado stashed causaria `ReferenceError: extraNote`                                                                                                |
+| `tools/cli/installers/lib/core/agent-core-compiler.js` | Shim de 3 linhas (upstream)                           | Pacote modular Compiler v2 existe completo em `agent-core-compiler/` — **o conflito quebrava `hseos install`, `agent-core` e `plugin` inteiros** |
 
 Validação: JSON/YAML/`node --check` verdes em todos; `require()` da cadeia do compiler OK; zero marcadores restantes no repo.
 
 ### 12.2 Pendências e gaps (priorizados)
 
 **P1 — decisão/ratificação**
+
 1. ~~ADRs 0006-0010, 0012, 0016 "Proposed"~~ ✔ **resolvido (ciclo 01, aprovação humana)**: ratificados em lote como Accepted (2026-07-08) — arquivos + `_INDEX.md`.
 2. ~~ADR-0004/0005 divergentes~~ ✔ **resolvido (ciclo 01)**: 0004 rebaixado para "Proposed (empty template)"; 0005 alinhado como "Proposed (activation template)" no índice.
 
-**P2 — drift e duplicação**
-3. ~~Dois `swarm-gate.sh` coexistem~~ ✔ **resolvido (ciclo 01, aprovação humana)**: registry/adapters fiados ao handler canônico `.agents/hooks/handlers/swarm-gate.sh` (model routing + skill-check + gate dev-squad); `scripts/governance/swarm-gate.sh` removido; smoke-test 4/4 cenários; a regra "executor não herda Opus sem opt-in" agora RODA de fato.
-4. ~~`platform-codes.yaml` duplicado com drift~~ ✔ **resolvido (ciclo 01)**: par raiz (`tools/platform-codes.yaml` + `tools/cli/lib/platform-codes.js`) era código morto desde o commit inicial — removido; cópia viva única em `installers/lib/ide/`.
-5. `.claude/` incompleto vs spec do adapter — **hipótese parcialmente falsificada (ciclo 01)**: `agent-core compile` emite apenas `hooks.json` (e `.codex/hseos-hooks.json`); `settings.json`/`commands/`/`skills/`/`.mcp.json` são responsabilidade do `hseos install`, não do compile.
-6. ~~Skills com cópias divergentes no plugin `hseos-security-guidance`~~ **hipótese falsificada (ciclo 09)**: os arquivos do plugin são *stubs de ativação* em formato de plugin (`tier: 2`, `load_strategy: trigger`, `triggers[]` plural — compatível agentskills.io; ~30 linhas), não cópias da skill canônica (~160 linhas) — divergência por design, o nome `SKILL.md` igual é que confundia. Resíduo real: a `description` dos stubs é a versão antiga da canônica; melhoria futura = derivar stubs da canônica na emissão do plugin.
-7. ~~Registry de skills declara só Tier 1 para `inter-agent-comms` e `policy-layer`~~ ✔ **resolvido (ciclo 01)**: Tier 2 declarado no `SKILLS-REGISTRY.md`.
-8. SQLite e run-dirs contêm dados de **outros projetos** (`cambio-real`, `ecp`, `design-system-*`) — confirmar se o uso cross-projeto é intencional ou drift.
+**P2 — drift e duplicação** 3. ~~Dois `swarm-gate.sh` coexistem~~ ✔ **resolvido (ciclo 01, aprovação humana)**: registry/adapters fiados ao handler canônico `.agents/hooks/handlers/swarm-gate.sh` (model routing + skill-check + gate dev-squad); `scripts/governance/swarm-gate.sh` removido; smoke-test 4/4 cenários; a regra "executor não herda Opus sem opt-in" agora RODA de fato. 4. ~~`platform-codes.yaml` duplicado com drift~~ ✔ **resolvido (ciclo 01)**: par raiz (`tools/platform-codes.yaml` + `tools/cli/lib/platform-codes.js`) era código morto desde o commit inicial — removido; cópia viva única em `installers/lib/ide/`. 5. `.claude/` incompleto vs spec do adapter — **hipótese parcialmente falsificada (ciclo 01)**: `agent-core compile` emite apenas `hooks.json` (e `.codex/hseos-hooks.json`); `settings.json`/`commands/`/`skills/`/`.mcp.json` são responsabilidade do `hseos install`, não do compile. 6. ~~Skills com cópias divergentes no plugin `hseos-security-guidance`~~ **hipótese falsificada (ciclo 09)**: os arquivos do plugin são _stubs de ativação_ em formato de plugin (`tier: 2`, `load_strategy: trigger`, `triggers[]` plural — compatível agentskills.io; ~30 linhas), não cópias da skill canônica (~160 linhas) — divergência por design, o nome `SKILL.md` igual é que confundia. Resíduo real: a `description` dos stubs é a versão antiga da canônica; melhoria futura = derivar stubs da canônica na emissão do plugin. 7. ~~Registry de skills declara só Tier 1 para `inter-agent-comms` e `policy-layer`~~ ✔ **resolvido (ciclo 01)**: Tier 2 declarado no `SKILLS-REGISTRY.md`. 8. SQLite e run-dirs contêm dados de **outros projetos** (`cambio-real`, `ecp`, `design-system-*`) — confirmar se o uso cross-projeto é intencional ou drift.
 
-**P3 — documentação**
-9. ~~README badges/contagens/comandos~~ ✔ **parcialmente resolvido (ciclo 01)**: badges 16/49, roster +ATLAS, 4 servers MCP, comandos fantasma corrigidos (`hseos validate`→`status`; `verify`→`agent-core verify`), paths `tools/mcp-*/index.js`. Pendentes: `docs/getting-started.md`; `docs/skills.md` cobre ~29 de 49 skills.
-10. ~~ATLAS ausente do `AGENT-MANIFEST.md`~~ ✔ **resolvido (ciclo 01)**: entrada ATLAS adicionada a `.hseos/AGENT-MANIFEST.md`; também criados `docs/agents/atlas.md` + linhas de roster/authority em `docs/agents/README.md`.
-11. `docs/sandbox.md` e `docs/ado-ops/` órfãos de navegação (não linkados nos READMEs).
-12. `shared-infrastructure.md` documenta hostname Keycloak legado (pré-diretiva 3e de 2026-06-25).
-13. ~~Gap de doc para capability packaging~~ ✔ **resolvido (ciclo 01)**: `docs/capabilities.md` criado (perfis, componentes, pré-requisitos, extras opt-in) + linkado em `docs/README.md` e no README principal (seção "capability profile" na instalação). Espelho PT-BR permanece pendente. Bônus da mesma rodada: 7 skills órfãs de família ganharam lar no catálogo (+`capability:research`), campo `prerequisites:` adicionado aos componentes com dependência externa (ADO, sandbox, gitops, telemetria, MCP, second-brain, research), `install-plan` exibe pré-requisitos, perfil `full` completado (faltavam readiness/solo/research), e teste de invariante impede skills órfãs futuras (22/22).
+**P3 — documentação** 9. ~~README badges/contagens/comandos~~ ✔ **parcialmente resolvido (ciclo 01)**: badges 16/49, roster +ATLAS, 4 servers MCP, comandos fantasma corrigidos (`hseos validate`→`status`; `verify`→`agent-core verify`), paths `tools/mcp-*/index.js`. Pendentes: `docs/getting-started.md`; `docs/skills.md` cobre ~29 de 49 skills. 10. ~~ATLAS ausente do `AGENT-MANIFEST.md`~~ ✔ **resolvido (ciclo 01)**: entrada ATLAS adicionada a `.hseos/AGENT-MANIFEST.md`; também criados `docs/agents/atlas.md` + linhas de roster/authority em `docs/agents/README.md`. 11. `docs/sandbox.md` e `docs/ado-ops/` órfãos de navegação (não linkados nos READMEs). 12. `shared-infrastructure.md` documenta hostname Keycloak legado (pré-diretiva 3e de 2026-06-25). 13. ~~Gap de doc para capability packaging~~ ✔ **resolvido (ciclo 01)**: `docs/capabilities.md` criado (perfis, componentes, pré-requisitos, extras opt-in) + linkado em `docs/README.md` e no README principal (seção "capability profile" na instalação). Espelho PT-BR permanece pendente. Bônus da mesma rodada: 7 skills órfãs de família ganharam lar no catálogo (+`capability:research`), campo `prerequisites:` adicionado aos componentes com dependência externa (ADO, sandbox, gitops, telemetria, MCP, second-brain, research), `install-plan` exibe pré-requisitos, perfil `full` completado (faltavam readiness/solo/research), e teste de invariante impede skills órfãs futuras (22/22).
 
-**P4 — higiene**
-14. ~~Testes órfãos de CI~~ ✔ **resolvido (ciclo 01)**: 8 testes promovidos ao `npm test` (incl. `test-mcp-agent-state.js`, que faltava nesta lista); `test-state-purge.js` tinha 2 defeitos reais de apodrecimento (replay de migrations sem `user_version` + asserção incorreta) — corrigidos, purge CLI confirmado correto.
-15. ~~`.claude/settings.local.json` versionado~~ ✔ **resolvido (ciclo 01)**: untracked + gitignored.
-16. ~~Diretório órfão `.enterprise/constitution/`~~ ✔ **resolvido (ciclo 01)**: removido (README-esqueleto que se autodeclarava autoridade constitucional); `governance-checklist.md` corrigido para `.specs/constitution/`. Pendentes: maquinaria de Replay Mode instrumentada mas nunca usada; registro de exceções vazio (positivo).
-17. ~~Bugs conhecidos não corrigidos~~ **atualizado (ciclo 01, verificação dos mapeadores)**: dos 3 bugs de `worktree-manager.sh` do WAVE-1-REPORT, #1 (checkout no repo principal) e #3 (tipo de merge inválido) **já estavam corrigidos** no código atual; só #2 segue real (`gate_code` decide rodar por staged files mas linta o repo inteiro). `xml-handler.js#injectActivationSimple` (ReferenceError, chamado por `_base-ide.js:508`) ✔ **corrigido no ciclo 01** (método removido + call site limpo).
-18. Índice Axon stale (2026-05-25) com `sync-requested` pendente.
+**P4 — higiene** 14. ~~Testes órfãos de CI~~ ✔ **resolvido (ciclo 01)**: 8 testes promovidos ao `npm test` (incl. `test-mcp-agent-state.js`, que faltava nesta lista); `test-state-purge.js` tinha 2 defeitos reais de apodrecimento (replay de migrations sem `user_version` + asserção incorreta) — corrigidos, purge CLI confirmado correto. 15. ~~`.claude/settings.local.json` versionado~~ ✔ **resolvido (ciclo 01)**: untracked + gitignored. 16. ~~Diretório órfão `.enterprise/constitution/`~~ ✔ **resolvido (ciclo 01)**: removido (README-esqueleto que se autodeclarava autoridade constitucional); `governance-checklist.md` corrigido para `.specs/constitution/`. Pendentes: maquinaria de Replay Mode instrumentada mas nunca usada; registro de exceções vazio (positivo). 17. ~~Bugs conhecidos não corrigidos~~ **atualizado (ciclo 01, verificação dos mapeadores)**: dos 3 bugs de `worktree-manager.sh` do WAVE-1-REPORT, #1 (checkout no repo principal) e #3 (tipo de merge inválido) **já estavam corrigidos** no código atual; só #2 segue real (`gate_code` decide rodar por staged files mas linta o repo inteiro). `xml-handler.js#injectActivationSimple` (ReferenceError, chamado por `_base-ide.js:508`) ✔ **corrigido no ciclo 01** (método removido + call site limpo). 18. Índice Axon stale (2026-05-25) com `sync-requested` pendente.
 
 ### 12.3 Ciclo 01 do goal "Evolução contínua" (2026-07-08) — resumo
 
@@ -416,4 +402,4 @@ Relatórios completos em `docs/goals/reports/2026-07-08-ciclo-0{2..9}.md`. Resum
 
 ---
 
-*Documento vivo. Quando promovido a documentação oficial, gerar a versão EN em `docs/` e linkar em `docs/README.md`, conforme CONTRIBUTING (§Documentation).*
+_Documento vivo. Quando promovido a documentação oficial, gerar a versão EN em `docs/` e linkar em `docs/README.md`, conforme CONTRIBUTING (§Documentation)._

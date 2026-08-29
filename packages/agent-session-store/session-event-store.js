@@ -2,6 +2,7 @@
 
 const { createHash } = require('node:crypto');
 const { AgentSessionSpecSchema, IdentifierSchema, SessionEventSchema, deepFreeze, parseContract } = require('../agent-runtime-contracts');
+const { canonicalTraceId, createTraceContext } = require('../agent-trace-lineage');
 const { buildRecoveryPlan, reconstructModelRequest, replaySessionEvents } = require('./replay');
 
 const AGGREGATE_TYPE = 'agent_session';
@@ -150,6 +151,56 @@ function hydrateSessionEvent(row) {
   return event;
 }
 
+function assertUniformSessionTrace(rows) {
+  const durableCorrelation = rows[0]?.correlation_id || null;
+  if (durableCorrelation && rows.some((row) => row.correlation_id !== durableCorrelation)) {
+    throw new SessionEventStoreError('session trace lineage is fragmented', 'AGENT_SESSION_TRACE_FRAGMENTED');
+  }
+  return durableCorrelation;
+}
+
+function assertSessionCausation(ledger, rows, events) {
+  if (rows.length === 0) return;
+  const spec = events[0].payload.spec;
+  if (spec.parent_session_id === null) {
+    if (rows[0].causation_id !== `session-root:${events[0].session_id}`) {
+      throw new SessionEventStoreError('root session causation anchor is invalid', 'AGENT_SESSION_CAUSATION_FRAGMENTED');
+    }
+  } else {
+    const parentRows = ledger.readStream(AGGREGATE_TYPE, spec.parent_session_id);
+    const parentEvents = parentRows.map(hydrateSessionEvent);
+    const attachmentIndex = parentEvents.findIndex(
+      (event) =>
+        event.event_type === 'child.attached' &&
+        event.event_id === rows[0].causation_id &&
+        event.payload.child_session_id === events[0].session_id,
+    );
+    const forkEvent = events[1];
+    const attachmentRow = parentRows[attachmentIndex];
+    const branchEvent = forkEvent && parentEvents[forkEvent.payload?.parent_sequence - 1];
+    if (
+      attachmentIndex < 0 ||
+      canonicalTraceId(attachmentRow.correlation_id) !== canonicalTraceId(rows[0].correlation_id) ||
+      (Number.isSafeInteger(rows[0].position) && attachmentRow.position >= rows[0].position) ||
+      forkEvent?.event_type !== 'session.forked' ||
+      forkEvent.payload.parent_session_id !== spec.parent_session_id ||
+      !branchEvent ||
+      attachmentRow.causation_id !== branchEvent.event_id
+    ) {
+      throw new SessionEventStoreError('child session causation anchor is invalid', 'AGENT_SESSION_CAUSATION_FRAGMENTED');
+    }
+  }
+  const earlierEventIds = new Set();
+  for (const [index, row] of rows.entries()) {
+    const previousEventId = events[index - 1]?.event_id;
+    const isForkAttachment = events[index]?.event_type === 'child.attached' && earlierEventIds.has(row.causation_id);
+    if (index > 0 && row.causation_id !== previousEventId && !isForkAttachment) {
+      throw new SessionEventStoreError('session event causation does not continue durable lineage', 'AGENT_SESSION_CAUSATION_FRAGMENTED');
+    }
+    earlierEventIds.add(events[index].event_id);
+  }
+}
+
 class RelationalSessionEventStore {
   constructor({ ledger, actor = { type: 'hseos', id: 'agent-kernel' } }) {
     if (
@@ -170,7 +221,10 @@ class RelationalSessionEventStore {
     Object.freeze(this);
   }
 
-  _prepareAppend({ session_id, expected_version, events, correlation_id = session_id, causation_id = null, actor = this.actor }) {
+  _prepareAppend(
+    { session_id, expected_version, events, correlation_id, causation_id = null, actor = this.actor },
+    { pendingParentRequest = null } = {},
+  ) {
     const parsedSessionId = parseContract(IdentifierSchema, session_id, 'session id');
     if (!Number.isInteger(expected_version) || expected_version < 0) {
       throw new SessionEventStoreError('expected_version must be a non-negative integer');
@@ -190,7 +244,18 @@ class RelationalSessionEventStore {
     const eventIds = new Set(parsedEvents.map((event) => event.event_id));
     if (eventIds.size !== parsedEvents.length) throw new SessionEventStoreError('event identifiers must be unique within an append');
 
-    const currentEvents = this.readSession(parsedSessionId);
+    const currentRows = this.ledger.readStream(AGGREGATE_TYPE, parsedSessionId);
+    const currentEvents = currentRows.map(hydrateSessionEvent);
+    const durableCorrelation = assertUniformSessionTrace(currentRows);
+    assertSessionCausation(this.ledger, currentRows, currentEvents);
+    let resolvedCorrelation = durableCorrelation;
+    if (durableCorrelation) {
+      if (correlation_id !== undefined && canonicalTraceId(correlation_id) !== canonicalTraceId(durableCorrelation)) {
+        throw new SessionEventStoreError('append cannot replace the durable session trace', 'AGENT_SESSION_TRACE_FRAGMENTED');
+      }
+    } else {
+      resolvedCorrelation = canonicalTraceId(correlation_id || parsedSessionId);
+    }
     if (currentEvents.length === expected_version) {
       replaySessionEvents([...currentEvents, ...parsedEvents]);
     } else if (
@@ -204,17 +269,56 @@ class RelationalSessionEventStore {
         current_version: currentEvents.length,
       });
     }
+    const firstCausationId = causation_id || currentEvents[expected_version - 1]?.event_id || `session-root:${parsedSessionId}`;
+    if (expected_version === 0) {
+      const spec = parsedEvents[0].payload.spec;
+      if (spec.parent_session_id === null) {
+        if (firstCausationId !== `session-root:${parsedSessionId}`) {
+          throw new SessionEventStoreError('root session causation anchor is invalid', 'AGENT_SESSION_CAUSATION_FRAGMENTED');
+        }
+      } else {
+        const forkEvent = parsedEvents[1];
+        const parentRows = this.ledger.readStream(AGGREGATE_TYPE, spec.parent_session_id);
+        const parentEvents = parentRows.map(hydrateSessionEvent);
+        const candidates = parentRows.map((row, index) => ({ row, event: parentEvents[index] }));
+        if (pendingParentRequest) {
+          candidates.push(
+            ...pendingParentRequest.events.map((row) => ({
+              row,
+              event: parseContract(SessionEventSchema, JSON.parse(row.payload.session_event_json), 'pending parent session event'),
+            })),
+          );
+        }
+        const attachment = candidates.find(
+          ({ event }) =>
+            event.event_type === 'child.attached' &&
+            event.event_id === firstCausationId &&
+            event.payload.child_session_id === parsedSessionId,
+        );
+        const branchEvent = forkEvent && parentEvents[forkEvent.payload?.parent_sequence - 1];
+        if (
+          forkEvent?.event_type !== 'session.forked' ||
+          forkEvent.payload.parent_session_id !== spec.parent_session_id ||
+          !attachment ||
+          canonicalTraceId(attachment.row.correlation_id) !== canonicalTraceId(resolvedCorrelation) ||
+          !branchEvent ||
+          attachment.row.causation_id !== branchEvent.event_id
+        ) {
+          throw new SessionEventStoreError('child session causation anchor is invalid', 'AGENT_SESSION_CAUSATION_FRAGMENTED');
+        }
+      }
+    }
     return {
       aggregate_type: AGGREGATE_TYPE,
       aggregate_id: parsedSessionId,
       expected_version,
-      events: parsedEvents.map((event) => ({
+      events: parsedEvents.map((event, index) => ({
         event_id: ledgerEventId(parsedSessionId, event.event_id),
         event_type: LEDGER_EVENT_TYPE,
         schema_version: 1,
         occurred_at: canonicalTimestamp(event.occurred_at),
-        correlation_id,
-        causation_id: causation_id || event.event_id,
+        correlation_id: resolvedCorrelation,
+        causation_id: index === 0 ? firstCausationId : parsedEvents[index - 1].event_id,
         actor: parsedActor,
         operation_id: event.event_type === 'tool.operation_linked' ? event.payload.operation_id : null,
         payload: { session_event_json: stableJson(event) },
@@ -238,7 +342,11 @@ class RelationalSessionEventStore {
 
   readSession(sessionId, options) {
     const parsedSessionId = parseContract(IdentifierSchema, sessionId, 'session id');
-    return deepFreeze(this.ledger.readStream(AGGREGATE_TYPE, parsedSessionId, options).map(hydrateSessionEvent));
+    const rows = this.ledger.readStream(AGGREGATE_TYPE, parsedSessionId, options);
+    assertUniformSessionTrace(rows);
+    const events = rows.map(hydrateSessionEvent);
+    if (!options || options.from_version === undefined || options.from_version === 1) assertSessionCausation(this.ledger, rows, events);
+    return deepFreeze(events);
   }
 
   readGlobal({ after_position = 0, limit = 100 } = {}) {
@@ -254,6 +362,20 @@ class RelationalSessionEventStore {
     return replaySessionEvents(this.readSession(sessionId, { from_version: 1, to_version }));
   }
 
+  traceContext(sessionId) {
+    const parsedSessionId = parseContract(IdentifierSchema, sessionId, 'session id');
+    const rows = this.ledger.readStream(AGGREGATE_TYPE, parsedSessionId);
+    if (rows.length === 0) throw new SessionEventStoreError('session trace does not exist', 'AGENT_SESSION_TRACE_NOT_FOUND');
+    const events = rows.map(hydrateSessionEvent);
+    const correlationId = assertUniformSessionTrace(rows);
+    assertSessionCausation(this.ledger, rows, events);
+    return deepFreeze({
+      ...createTraceContext(correlationId, events.at(-1).event_id),
+      session_id: parsedSessionId,
+      correlation_id: correlationId,
+    });
+  }
+
   reconstructRequest(sessionId, options) {
     return reconstructModelRequest(this.readSession(sessionId), options);
   }
@@ -262,7 +384,16 @@ class RelationalSessionEventStore {
     return buildRecoveryPlan(this.readSession(sessionId));
   }
 
-  forkSession({ parent_session_id, parent_sequence, child_spec, child_request = null, event_ids, occurred_at, correlation_id, actor = this.actor }) {
+  forkSession({
+    parent_session_id,
+    parent_sequence,
+    child_spec,
+    child_request = null,
+    event_ids,
+    occurred_at,
+    correlation_id,
+    actor = this.actor,
+  }) {
     const sourceEvents = this.readSession(parent_session_id, { from_version: 1, to_version: parent_sequence });
     const sourceState = replaySessionEvents(sourceEvents);
     if (sourceState.current_sequence !== parent_sequence) {
@@ -303,11 +434,15 @@ class RelationalSessionEventStore {
       throw new SessionEventStoreError('parent session child limit is exhausted', 'AGENT_SESSION_CHILD_LIMIT_EXCEEDED');
     }
     const attachmentSequence = existingAttachment ? existingAttachment.sequence : currentParentEvents.length + 1;
+    const parentTrace = this.traceContext(parent_session_id);
+    if (correlation_id !== undefined && canonicalTraceId(correlation_id) !== parentTrace.trace_id) {
+      throw new SessionEventStoreError('fork cannot replace the parent trace', 'AGENT_SESSION_TRACE_FRAGMENTED');
+    }
     const parentRequest = this._prepareAppend({
       session_id: parent_session_id,
       expected_version: attachmentSequence - 1,
-      correlation_id: correlation_id || parent_session_id,
-      causation_id: event_ids.attached,
+      correlation_id: parentTrace.trace_id,
+      causation_id: sourceEvents.at(-1).event_id,
       actor,
       events: [
         {
@@ -352,14 +487,17 @@ class RelationalSessionEventStore {
         payload: child_request,
       });
     }
-    const childRequest = this._prepareAppend({
-      session_id: spec.session_id,
-      expected_version: 0,
-      correlation_id: correlation_id || parent_session_id,
-      causation_id: event_ids.created,
-      actor,
-      events: childEvents,
-    });
+    const childRequest = this._prepareAppend(
+      {
+        session_id: spec.session_id,
+        expected_version: 0,
+        correlation_id: parentTrace.trace_id,
+        causation_id: event_ids.attached,
+        actor,
+        events: childEvents,
+      },
+      { pendingParentRequest: parentRequest },
+    );
     const [parentResult, childResult] = this.ledger.appendBatch([parentRequest, childRequest]);
     return deepFreeze({ parent: this._formatResult(parentResult), child: this._formatResult(childResult) });
   }
@@ -369,7 +507,7 @@ function isRelationalSessionEventStore(value) {
   return (
     RELATIONAL_SESSION_STORES.has(value) &&
     Object.getPrototypeOf(value) === RelationalSessionEventStore.prototype &&
-    ['append', 'readSession', 'readGlobal', 'replay', 'reconstructRequest', 'recoveryPlan', 'forkSession'].every(
+    ['append', 'readSession', 'readGlobal', 'replay', 'traceContext', 'reconstructRequest', 'recoveryPlan', 'forkSession'].every(
       (method) => value[method] === RelationalSessionEventStore.prototype[method],
     )
   );

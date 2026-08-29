@@ -65,9 +65,12 @@ function requestBody(input, manifest) {
   };
 }
 
-async function* parseSse(body) {
+async function* parseSse(body, { reject_values = [] } = {}) {
   if (!body || typeof body[Symbol.asyncIterator] !== 'function') {
     throw new ModelProviderError('response body is not a stream', 'protocol_error');
+  }
+  if (!Array.isArray(reject_values) || reject_values.some((value) => typeof value !== 'string' || value.length === 0)) {
+    throw new ModelProviderError('SSE rejection values are invalid', 'invalid_request');
   }
   const decoder = new TextDecoder();
   let buffer = '';
@@ -90,6 +93,9 @@ async function* parseSse(body) {
       if (data === '[DONE]') {
         yield null;
         return;
+      }
+      if (reject_values.some((value) => data.includes(value))) {
+        throw new ModelProviderError('provider response contains a protected value', 'protocol_error');
       }
       try {
         yield JSON.parse(data);
@@ -227,8 +233,9 @@ class OpenAICompatibleModelProvider {
           for (let attempt = 1; attempt <= provider.maxAttempts; attempt++) {
             try {
               const headers = { accept: 'text/event-stream', 'content-type': 'application/json' };
+              let secret = null;
               if (provider.providerManifest.secret_refs.length > 0) {
-                const secret = await abortable(
+                secret = await abortable(
                   provider.secretResolver(provider.secretReference, { signal: controller.signal }),
                   controller.signal,
                 );
@@ -250,7 +257,7 @@ class OpenAICompatibleModelProvider {
               const providerResponseRef = responseReference(response, input.request_id);
               const toolIds = new Map();
               let completedReason = null;
-              for await (const chunk of parseSse(response.body)) {
+              for await (const chunk of parseSse(response.body, { reject_values: secret ? [secret] : [] })) {
                 if (chunk === null) {
                   yield streamEvent(provider.providerManifest.provider_id, input.request_id, sequence++, 'completed', {
                     finish_reason: completedReason || 'stop',

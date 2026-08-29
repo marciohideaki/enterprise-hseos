@@ -46,7 +46,14 @@ function toolContract(overrides = {}) {
   };
 }
 
-function setup({ contract = toolContract(), provider = null, approvalResolver = null, policy = null, authority = null, clock = null } = {}) {
+function setup({
+  contract = toolContract(),
+  provider = null,
+  approvalResolver = null,
+  policy = null,
+  authority = null,
+  clock = null,
+} = {}) {
   const db = new Database(':memory:');
   db.pragma('foreign_keys = ON');
   runMigrations(db, MIGRATIONS_DIR, { log: () => {} });
@@ -73,14 +80,16 @@ function setup({ contract = toolContract(), provider = null, approvalResolver = 
     event_registry: eventRegistry,
     ledger,
     approval_store: approvals,
-    authority: authority || { async evaluate() { return { allowed: true }; } },
-    policy:
-      policy ||
-      {
-        async evaluate() {
-          return { allowed: true, requires_approval: false, policy_version: contract.policy_version, warnings: [] };
-        },
+    authority: authority || {
+      async evaluate() {
+        return { allowed: true };
       },
+    },
+    policy: policy || {
+      async evaluate() {
+        return { allowed: true, requires_approval: false, policy_version: contract.policy_version, warnings: [] };
+      },
+    },
     providers,
     approval_resolver: approvalResolver,
     projector,
@@ -124,7 +133,7 @@ test('fixture applies immutable approval migration 007 while the operational run
     runMigrations(db, MIGRATIONS_DIR, { log: () => {} });
     assert.equal(db.pragma('user_version', { simple: true }), 4);
     applyExecutionLedgerFixtureSchema(db);
-    assert.equal(db.pragma('user_version', { simple: true }), 7);
+    assert.equal(db.pragma('user_version', { simple: true }), 9);
     assert.equal(db.prepare(`SELECT COUNT(*) AS count FROM sqlite_master WHERE name = 'execution_approvals'`).get().count, 1);
     db.pragma('foreign_keys = OFF');
     assert.throws(
@@ -320,9 +329,22 @@ test('input, authority, and policy failures are fail-closed before ledger/provid
   for (const scenario of ['input', 'authority', 'policy']) {
     let calls = 0;
     const fixture = setup({
-      provider: { async execute() { calls++; return { data: { echoed: 'unexpected' } }; } },
-      authority: { async evaluate() { return { allowed: scenario !== 'authority' }; } },
-      policy: { async evaluate() { return { allowed: scenario !== 'policy', policy_version: 'policy-v1' }; } },
+      provider: {
+        async execute() {
+          calls++;
+          return { data: { echoed: 'unexpected' } };
+        },
+      },
+      authority: {
+        async evaluate() {
+          return { allowed: scenario !== 'authority' };
+        },
+      },
+      policy: {
+        async evaluate() {
+          return { allowed: scenario !== 'policy', policy_version: 'policy-v1' };
+        },
+      },
     });
     try {
       const result = await fixture.runtime.execute(request(scenario === 'input' ? { input: { value: 42 } } : {}));
@@ -359,7 +381,14 @@ test('reserved optional-warning failure mode fails closed before provider or led
 
 test('provided invalid idempotency keys are rejected instead of replaced', async () => {
   let calls = 0;
-  const fixture = setup({ provider: { async execute() { calls++; return { data: { echoed: 'unexpected' } }; } } });
+  const fixture = setup({
+    provider: {
+      async execute() {
+        calls++;
+        return { data: { echoed: 'unexpected' } };
+      },
+    },
+  });
   try {
     for (const idempotency_key of ['', 0, null]) {
       const result = await fixture.runtime.execute(request({ idempotency_key }));
@@ -373,14 +402,16 @@ test('provided invalid idempotency keys are rejected instead of replaced', async
 });
 
 test('invalid actor, resource scope, or signal fails before durable facts', async () => {
-  for (const invalid of [
-    { actor: {} },
-    { actor: { id: '', type: 'human' } },
-    { resource_scope: {} },
-    { signal: { aborted: false } },
-  ]) {
+  for (const invalid of [{ actor: {} }, { actor: { id: '', type: 'human' } }, { resource_scope: {} }, { signal: { aborted: false } }]) {
     let calls = 0;
-    const fixture = setup({ provider: { async execute() { calls++; return { data: { echoed: 'unexpected' } }; } } });
+    const fixture = setup({
+      provider: {
+        async execute() {
+          calls++;
+          return { data: { echoed: 'unexpected' } };
+        },
+      },
+    });
     try {
       const result = await fixture.runtime.execute(request(invalid));
       assert.equal(result.error.code, 'EXECUTION_REQUEST_INVALID');
@@ -399,8 +430,17 @@ test('malformed policy approval and warning fields fail closed before effects', 
   ]) {
     let calls = 0;
     const fixture = setup({
-      policy: { async evaluate() { return policyResult; } },
-      provider: { async execute() { calls++; return { data: { echoed: 'unexpected' } }; } },
+      policy: {
+        async evaluate() {
+          return policyResult;
+        },
+      },
+      provider: {
+        async execute() {
+          calls++;
+          return { data: { echoed: 'unexpected' } };
+        },
+      },
     });
     try {
       const result = await fixture.runtime.execute(request());
@@ -420,7 +460,12 @@ test('explicit approval is immutable, operation-bound, consumed once, and replay
   const contract = toolContract({ reversibility: 'irreversible_mutation', requires_approval: true });
   const fixture = setup({
     contract,
-    provider: { async execute(input) { calls++; return { data: { echoed: input.value } }; } },
+    provider: {
+      async execute(input) {
+        calls++;
+        return { data: { echoed: input.value } };
+      },
+    },
     approvalResolver: async (operation) => {
       resolverCalls++;
       return issueApproval(approvals, operation).approval_id;
@@ -479,10 +524,7 @@ test('approval records reject lossy JSON and sensitive scope data', () => {
       policy_version: 'policy-v1',
       evidence_ref: 'evidence://approval',
     };
-    assert.throws(
-      () => fixture.approvals.issue({ ...base, authorizer: { id: 'approver', metadata: { value: undefined } } }),
-      /non-JSON/,
-    );
+    assert.throws(() => fixture.approvals.issue({ ...base, authorizer: { id: 'approver', metadata: { value: undefined } } }), /non-JSON/);
     assert.throws(
       () => fixture.approvals.issue({ ...base, approval_id: randomUUID(), resource_scope: { project: 'fixture', apiKey: 'x' } }),
       (error) => error.code === 'EXECUTION_APPROVAL_SENSITIVE_DATA',
@@ -498,7 +540,12 @@ test('expired or scope-mismatched approvals cannot dispatch', async () => {
     let approvals;
     const fixture = setup({
       contract: toolContract({ requires_approval: true }),
-      provider: { async execute() { calls++; return { data: { echoed: 'unexpected' } }; } },
+      provider: {
+        async execute() {
+          calls++;
+          return { data: { echoed: 'unexpected' } };
+        },
+      },
       approvalResolver: async (operation) => {
         const overrides =
           scenario === 'expired'
@@ -527,7 +574,12 @@ test('denied, wrong-policy, not-active, and reused approvals fail before dispatc
     let approvals;
     const fixture = setup({
       contract: toolContract({ requires_approval: true }),
-      provider: { async execute() { calls++; return { data: { echoed: 'unexpected' } }; } },
+      provider: {
+        async execute() {
+          calls++;
+          return { data: { echoed: 'unexpected' } };
+        },
+      },
       approvalResolver: async (operation) => {
         const overridesByScenario = {
           denied: { decision: 'denied' },
@@ -560,10 +612,7 @@ test('denied, wrong-policy, not-active, and reused approvals fail before dispatc
       assert.equal(result.error.code, expectedCodes[scenario]);
       assert.equal(calls, 0);
       assert.equal(fixture.ledger.readGlobal().length, 0);
-      assert.equal(
-        fixture.db.prepare(`SELECT COUNT(*) AS count FROM execution_approval_uses`).get().count,
-        scenario === 'reused' ? 1 : 0,
-      );
+      assert.equal(fixture.db.prepare(`SELECT COUNT(*) AS count FROM execution_approval_uses`).get().count, scenario === 'reused' ? 1 : 0);
     } finally {
       fixture.db.close();
     }
@@ -575,7 +624,12 @@ test('approval consumption rolls back atomically when pre-effect facts cannot co
   let approvals;
   const fixture = setup({
     contract: toolContract({ requires_approval: true }),
-    provider: { async execute() { calls++; return { data: { echoed: 'unexpected' } }; } },
+    provider: {
+      async execute() {
+        calls++;
+        return { data: { echoed: 'unexpected' } };
+      },
+    },
     approvalResolver: async (operation) => issueApproval(approvals, operation).approval_id,
   });
   approvals = fixture.approvals;
@@ -630,7 +684,12 @@ test('approval delay cannot extend the absolute execution deadline', async () =>
   const fixture = setup({
     contract: toolContract({ requires_approval: true, timeout_ms: 100 }),
     clock: { now: () => current },
-    provider: { async execute() { calls++; return { data: { echoed: 'unexpected' } }; } },
+    provider: {
+      async execute() {
+        calls++;
+        return { data: { echoed: 'unexpected' } };
+      },
+    },
     approvalResolver: async (operation) => {
       const approval = issueApproval(approvals, operation, { expires_at: '2026-08-21T05:03:00.000Z' });
       current = '2026-08-21T05:02:00.000Z';
@@ -667,7 +726,10 @@ test('terminal append failure after provider success stays in doubt and is never
   try {
     const first = await fixture.runtime.execute(request());
     assert.equal(first.error.code, 'EXECUTION_OUTCOME_IN_DOUBT');
-    assert.deepEqual(fixture.ledger.readGlobal().map((event) => event.event_type), ['ExecutionAuthorized', 'ExecutionStarted']);
+    assert.deepEqual(
+      fixture.ledger.readGlobal().map((event) => event.event_type),
+      ['ExecutionAuthorized', 'ExecutionStarted'],
+    );
     const replay = await fixture.runtime.execute(request());
     assert.equal(replay.error.code, 'EXECUTION_OUTCOME_IN_DOUBT');
     assert.equal(calls, 1);
@@ -681,10 +743,7 @@ test('same idempotency key cannot cross actor, resource, or contract policy scop
   try {
     const first = await fixture.runtime.execute(request());
     assert.equal(first.ok, true);
-    for (const changed of [
-      { actor: { id: 'human-2', type: 'human' } },
-      { resource_scope: { project: 'different' } },
-    ]) {
+    for (const changed of [{ actor: { id: 'human-2', type: 'human' } }, { resource_scope: { project: 'different' } }]) {
       const replay = await fixture.runtime.execute(request(changed));
       assert.equal(replay.ok, false);
       assert.equal(replay.error.code, 'EXECUTION_IDEMPOTENCY_SCOPE_CONFLICT');
@@ -694,11 +753,33 @@ test('same idempotency key cannot cross actor, resource, or contract policy scop
   }
 });
 
+test('replay rejects trace or causation drift in any persisted operation fact', async () => {
+  const fixture = setup();
+  try {
+    const first = await fixture.runtime.execute(request());
+    assert.equal(first.ok, true);
+    const readStream = fixture.ledger.readStream.bind(fixture.ledger);
+    fixture.ledger.readStream = (...args) => {
+      const rows = readStream(...args);
+      return rows.map((row, index) => (index === rows.length - 1 ? { ...row, correlation_id: 'forged-terminal-trace' } : row));
+    };
+    const replay = await fixture.runtime.execute(request());
+    assert.equal(replay.ok, false);
+    assert.equal(replay.error.code, 'EXECUTION_IDEMPOTENCY_SCOPE_CONFLICT');
+  } finally {
+    fixture.db.close();
+  }
+});
+
 test('malformed provider evidence is terminally rejected after dispatch', async () => {
   for (const reversibility of ['read_only', 'idempotent_mutation']) {
     const fixture = setup({
       contract: toolContract({ reversibility }),
-      provider: { async execute() { return { data: { echoed: 'hello' }, evidence: 'not-an-array' }; } },
+      provider: {
+        async execute() {
+          return { data: { echoed: 'hello' }, evidence: 'not-an-array' };
+        },
+      },
     });
     try {
       const result = await fixture.runtime.execute(request({ idempotency_key: `bad-evidence-${reversibility}` }));
@@ -735,7 +816,13 @@ test('malformed provider error receipt is omitted while outcome remains durable'
 });
 
 test('primitive provider throws still record a terminal outcome', async () => {
-  const fixture = setup({ provider: { async execute() { throw 'primitive failure'; } } });
+  const fixture = setup({
+    provider: {
+      async execute() {
+        throw 'primitive failure';
+      },
+    },
+  });
   try {
     const result = await fixture.runtime.execute(request());
     assert.equal(result.ok, false);
@@ -770,7 +857,12 @@ test('a provider without idempotency support forces explicit approval', async ()
   let calls = 0;
   const fixture = setup({
     contract: toolContract({ reversibility: 'idempotent_mutation', provider_accepts_idempotency: false }),
-    provider: { async execute() { calls++; return { data: { echoed: 'unexpected' } }; } },
+    provider: {
+      async execute() {
+        calls++;
+        return { data: { echoed: 'unexpected' } };
+      },
+    },
   });
   try {
     const result = await fixture.runtime.execute(request());
@@ -814,7 +906,12 @@ test('cooperative execution records a durable cancellation before provider dispa
       requires_approval: true,
       reversibility: 'irreversible_mutation',
     }),
-    provider: { async execute() { calls++; return { data: { echoed: 'unexpected' } }; } },
+    provider: {
+      async execute() {
+        calls++;
+        return { data: { echoed: 'unexpected' } };
+      },
+    },
   });
   try {
     const port = createGovernedExecutionPort(fixture.runtime);
@@ -837,7 +934,11 @@ test('cooperative execution records a durable cancellation before provider dispa
 test('queued cancellation still fails closed on authority and policy denial', async () => {
   for (const boundary of ['authority', 'policy']) {
     const fixture = setup({
-      [boundary]: { async evaluate() { return { allowed: false, policy_version: 'policy-v1' }; } },
+      [boundary]: {
+        async evaluate() {
+          return { allowed: false, policy_version: 'policy-v1' };
+        },
+      },
     });
     try {
       const result = await createGovernedExecutionPort(fixture.runtime).cancelQueued(request());
@@ -853,7 +954,11 @@ test('output contract failure is failed for reads and uncertain for mutations', 
   for (const reversibility of ['read_only', 'idempotent_mutation']) {
     const fixture = setup({
       contract: toolContract({ reversibility }),
-      provider: { async execute() { return { data: { wrong: true } }; } },
+      provider: {
+        async execute() {
+          return { data: { wrong: true } };
+        },
+      },
     });
     try {
       const result = await fixture.runtime.execute(request({ idempotency_key: `invalid-output-${reversibility}` }));
@@ -880,8 +985,16 @@ test('runtime rejects a ledger not bound to the exact fail-closed event registry
           event_registry: createExecutionEventRegistry(),
           ledger: new ExecutionEventLedger(db),
           approval_store: new ExecutionApprovalStore(db),
-          authority: { evaluate() { return { allowed: true }; } },
-          policy: { evaluate() { return { allowed: true, policy_version: 'policy-v1' }; } },
+          authority: {
+            evaluate() {
+              return { allowed: true };
+            },
+          },
+          policy: {
+            evaluate() {
+              return { allowed: true, policy_version: 'policy-v1' };
+            },
+          },
           providers: new Map(),
         }),
       (error) => error.code === 'EXECUTION_EVENT_REGISTRY_BOUNDARY_MISSING',
@@ -902,8 +1015,16 @@ test('runtime rejects approval and ledger stores on different SQLite connections
           event_registry: first.eventRegistry,
           ledger: first.ledger,
           approval_store: second.approvals,
-          authority: { evaluate() { return { allowed: true }; } },
-          policy: { evaluate() { return { allowed: true, policy_version: 'policy-v1' }; } },
+          authority: {
+            evaluate() {
+              return { allowed: true };
+            },
+          },
+          policy: {
+            evaluate() {
+              return { allowed: true, policy_version: 'policy-v1' };
+            },
+          },
           providers: first.providers,
         }),
       (error) => error.code === 'EXECUTION_APPROVAL_LEDGER_TRANSACTION_MISMATCH',

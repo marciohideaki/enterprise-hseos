@@ -33,6 +33,17 @@ function isRecord(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
+  if (isRecord(value)) {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
 function assertRecord(value, label) {
   if (!isRecord(value)) throw new RuntimeProviderError(`${label} is malformed`, 'protocol_error');
   return value;
@@ -175,6 +186,23 @@ function validatePeer(peer) {
   return peer;
 }
 
+function createAcpRuntimeManifest(providerId, providerVersion = '1.0.0') {
+  return parseContract(
+    RuntimeProviderManifestSchema,
+    {
+      schema_version: CONTRACT_SCHEMA_VERSION,
+      provider_type: 'runtime',
+      provider_id: providerId,
+      provider_version: providerVersion,
+      conformance_level: 'L0',
+      capabilities: ['instructions'],
+      transport: 'acp',
+      secret_refs: [],
+    },
+    'ACP runtime provider manifest',
+  );
+}
+
 class AcpRuntimeProvider {
   #closeController = new AbortController();
   #disposed = false;
@@ -184,7 +212,14 @@ class AcpRuntimeProvider {
   #runtimeSessions = new Set();
   #unsubscribe;
 
-  constructor({ provider_id, provider_version = '1.0.0', peer, default_cwd, clock = () => new Date().toISOString() }) {
+  constructor({
+    provider_id,
+    provider_version = '1.0.0',
+    peer,
+    default_cwd,
+    effect_boundary_attestation,
+    clock = () => new Date().toISOString(),
+  }) {
     this.peer = validatePeer(peer);
     if (typeof clock !== 'function') throw new RuntimeProviderError('clock must be a function', 'invalid_request');
     if (typeof default_cwd !== 'string' || !path.isAbsolute(default_cwd)) {
@@ -192,20 +227,20 @@ class AcpRuntimeProvider {
     }
     this.clock = clock;
     this.defaultCwd = default_cwd;
-    this.providerManifest = parseContract(
-      RuntimeProviderManifestSchema,
-      {
-        schema_version: CONTRACT_SCHEMA_VERSION,
-        provider_type: 'runtime',
-        provider_id,
-        provider_version,
-        conformance_level: 'L0',
-        capabilities: ['instructions'],
-        transport: 'acp',
-        secret_refs: [],
-      },
-      'ACP runtime provider manifest',
-    );
+    if (effect_boundary_attestation !== undefined) {
+      const attestation = assertRecord(effect_boundary_attestation, 'ACP effect boundary attestation');
+      assertOnlyKeys(attestation, ['effect_boundary', 'evidence_ref', 'lifecycle'], 'ACP effect boundary attestation');
+      if (
+        attestation.effect_boundary !== 'instructions_only' ||
+        attestation.lifecycle !== 'one_shot' ||
+        typeof attestation.evidence_ref !== 'string' ||
+        !/^sha256:[a-f0-9]{64}$/.test(attestation.evidence_ref)
+      ) {
+        throw new RuntimeProviderError('ACP effect boundary attestation is malformed', 'invalid_request');
+      }
+      this.effectBoundaryAttestation = deepFreeze(structuredClone(attestation));
+    }
+    this.providerManifest = createAcpRuntimeManifest(provider_id, provider_version);
     this.#unsubscribe = this.peer.subscribe({
       notification: (method, params) => this.#onNotification(method, params),
       request: (method, params) => this.#onRequest(method, params),
@@ -299,19 +334,51 @@ class AcpRuntimeProvider {
   async resume(inputValue) {
     const input = this.#input('resume', inputValue);
     this.#available();
-    const existing = this.#sessions.get(input.session_id);
-    if (!existing || existing.runtimeSessionId !== input.runtime_session_id) this.#sessionError();
+    let existing = this.#sessions.get(input.session_id);
+    const restoring = existing === undefined;
+    if (restoring) {
+      if (!input.spec) {
+        throw new RuntimeProviderError('durable session spec is required to reattach an ACP session', 'invalid_request');
+      }
+      await this.#boundedRequest(this.#initialize(), input.spec.limits.max_duration_ms, 'ACP initialize');
+      this.#available();
+      if (!this.agentCapabilities.loadSession) {
+        throw new RuntimeProviderError('ACP agent does not support session/load', 'capability_unavailable');
+      }
+      if (this.#pendingSessions.has(input.session_id) || this.#runtimeSessions.has(input.runtime_session_id)) {
+        throw new RuntimeProviderError('ACP session identity is already reserved', 'invalid_request');
+      }
+      if (this.#sessions.size + this.#pendingSessions.size >= MAX_SESSIONS) {
+        throw new RuntimeProviderError('ACP session limit reached', 'rate_limited');
+      }
+      existing = this.#newSession(input.spec, input.runtime_session_id, this.#cwd(input.spec), input.expected_sequence);
+      existing.loading = true;
+      this.#pendingSessions.add(input.session_id);
+      this.#sessions.set(input.session_id, existing);
+      this.#runtimeSessions.add(input.runtime_session_id);
+    } else {
+      if (existing.runtimeSessionId !== input.runtime_session_id) this.#sessionError();
+      if (input.spec && stableJson(input.spec) !== stableJson(existing.spec)) {
+        throw new RuntimeProviderError('durable session spec does not match the ACP session', 'invalid_request');
+      }
+    }
     if (existing.terminal || existing.activeTurn || existing.loading) {
-      throw new RuntimeProviderError('ACP session cannot resume concurrently', 'invalid_request');
+      if (!restoring) throw new RuntimeProviderError('ACP session cannot resume concurrently', 'invalid_request');
     }
     if (existing.sequence !== input.expected_sequence) {
       throw new RuntimeProviderError('resume sequence does not match durable expectation', 'invalid_request');
     }
-    if (!this.agentCapabilities.loadSession) {
+    if (!this.agentCapabilities?.loadSession) {
+      if (!restoring && this.effectBoundaryAttestation?.lifecycle === 'one_shot') {
+        return operation(this.providerManifest.provider_id, existing.runtimeSessionId, existing.sessionId, true, false, [
+          this.effectBoundaryAttestation.evidence_ref,
+        ]);
+      }
       throw new RuntimeProviderError('ACP agent does not support session/load', 'capability_unavailable');
     }
     const deadlineAt = Date.now() + existing.maxDurationMs;
     existing.loading = true;
+    let resumed = false;
     try {
       const response = assertRecord(
         await this.#boundedRequest(
@@ -328,12 +395,20 @@ class AcpRuntimeProvider {
       if (this.#sessions.get(existing.sessionId) !== existing || existing.terminal) {
         throw new RuntimeProviderError('ACP session changed while resume was in flight', 'cancelled');
       }
+      resumed = true;
     } catch (error) {
       void this.#safeNotify('session/cancel', { sessionId: existing.runtimeSessionId });
       this.#fail(existing, error);
       throw error;
     } finally {
       existing.loading = false;
+      if (restoring) {
+        this.#pendingSessions.delete(input.session_id);
+        if (!resumed && this.#sessions.get(input.session_id) === existing) {
+          this.#sessions.delete(input.session_id);
+          this.#runtimeSessions.delete(input.runtime_session_id);
+        }
+      }
     }
     return operation(this.providerManifest.provider_id, existing.runtimeSessionId, existing.sessionId, true, existing.terminal);
   }
@@ -498,7 +573,7 @@ class AcpRuntimeProvider {
           assertOptionalImplementation(response.agentInfo, 'initialize agentInfo');
           assertOptionalMeta(response._meta, 'initialize response');
           const hseos = isRecord(capabilities._meta) && isRecord(capabilities._meta.hseos) ? capabilities._meta.hseos : null;
-          if (!hseos || hseos.effectBoundary !== 'instructions_only') {
+          if ((!hseos || hseos.effectBoundary !== 'instructions_only') && !this.effectBoundaryAttestation) {
             throw new RuntimeProviderError('ACP peer did not attest the instructions-only effect boundary', 'policy_denied');
           }
           this.agentCapabilities = deepFreeze({ loadSession: capabilities.loadSession === true });
@@ -516,6 +591,7 @@ class AcpRuntimeProvider {
     return {
       sessionId: spec.session_id,
       runtimeSessionId,
+      spec,
       cwd,
       sequence,
       events: [],
@@ -843,4 +919,5 @@ module.exports = {
   NOTIFY_SETTLE_TIMEOUT_MS,
   AcpRuntimeProvider,
   RuntimeProviderError,
+  createAcpRuntimeManifest,
 };
