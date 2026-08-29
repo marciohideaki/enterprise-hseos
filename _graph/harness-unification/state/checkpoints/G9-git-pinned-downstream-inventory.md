@@ -1,9 +1,9 @@
 # G9 Git-Pinned Downstream Inventory Checkpoint
 
-**Artifact type:** Governed goal checkpoint  
-**Scope:** Networkless, Git-pinned collection and revalidation of installer and plugin compatibility evidence  
-**Status:** Collection and verification capability complete; real downstream registry and live bundle remain absent  
-**Governing documents:** Enterprise Constitution; ADR-0022; ADR-0023; automated-validation policy  
+**Artifact type:** Governed goal checkpoint
+**Scope:** Networkless, Git-pinned collection and revalidation of installer and plugin compatibility evidence
+**Status:** Collection and verification capability complete; real downstream registry and live bundle remain absent
+**Governing documents:** Enterprise Constitution; ADR-0022; ADR-0023; automated-validation policy
 **Authority:** Local evidence collection and packaging only; no remote mutation, compatibility removal or cutover
 
 ## Gap closed

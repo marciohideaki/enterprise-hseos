@@ -1,8 +1,8 @@
 # G9 Evidence Scope Binding Checkpoint
 
-**Artifact type:** Governed goal checkpoint  
-**Scope:** Prevent cross-release or cross-target evidence-chain continuity  
-**Status:** Implementation complete; operational capture not deployed  
+**Artifact type:** Governed goal checkpoint
+**Scope:** Prevent cross-release or cross-target evidence-chain continuity
+**Status:** Implementation complete; operational capture not deployed
 **Authority:** Evidence integrity only; no compatibility, schema, protocol or runtime cutover
 
 ## Gap

@@ -1,8 +1,8 @@
 # G9 Durable Observation Capture Checkpoint
 
-**Artifact type:** Governed goal checkpoint  
-**Scope:** Recurring-friendly persistence of compatibility observation evidence  
-**Status:** Implementation complete; operational scheduling not deployed  
+**Artifact type:** Governed goal checkpoint
+**Scope:** Recurring-friendly persistence of compatibility observation evidence
+**Status:** Implementation complete; operational scheduling not deployed
 **Authority:** Evidence capture only; no compatibility, schema, protocol or runtime cutover
 
 ## Capability

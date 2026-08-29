@@ -1,9 +1,9 @@
 # G9 Downstream Evidence Gate Checkpoint
 
-**Artifact type:** Governed goal checkpoint  
-**Scope:** Downstream plugin and installer compatibility release-window evidence  
-**Status:** Audit capability complete; downstream bundle and cutover remain absent  
-**Governing documents:** Enterprise Constitution; ADR-0022; ADR-0023; automated-validation policy  
+**Artifact type:** Governed goal checkpoint
+**Scope:** Downstream plugin and installer compatibility release-window evidence
+**Status:** Audit capability complete; downstream bundle and cutover remain absent
+**Governing documents:** Enterprise Constitution; ADR-0022; ADR-0023; automated-validation policy
 **Authority:** Evidence validation only; no installation, migration, compatibility removal or cutover
 
 ## False green closed

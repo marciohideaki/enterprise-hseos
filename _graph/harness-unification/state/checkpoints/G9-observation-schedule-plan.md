@@ -1,9 +1,9 @@
 # G9 Observation Schedule Plan Checkpoint
 
-**Artifact type:** Governed goal checkpoint  
-**Scope:** Deterministic recurring observation deployment plan  
-**Status:** Plan capability complete; no unit installed or enabled  
-**Governing documents:** Enterprise Constitution; ADR-0022; ADR-0023; automated-validation policy  
+**Artifact type:** Governed goal checkpoint
+**Scope:** Deterministic recurring observation deployment plan
+**Status:** Plan capability complete; no unit installed or enabled
+**Governing documents:** Enterprise Constitution; ADR-0022; ADR-0023; automated-validation policy
 **Authority:** Plan-only; operational deployment and cutover remain unauthorized
 
 ## Capability

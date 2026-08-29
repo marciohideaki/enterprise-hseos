@@ -1,7 +1,7 @@
 # A10/A11 Checkpoint — Direct Codex App Server Driver and Delegated CLI
 
-**Status:** In progress  
-**Recorded:** 2026-08-24  
+**Status:** In progress
+**Recorded:** 2026-08-24
 **Authority:** User instruction to continue the accepted ADR-0024 goal; no operational activation inferred.
 
 ## Delivered

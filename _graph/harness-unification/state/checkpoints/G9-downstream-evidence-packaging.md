@@ -1,9 +1,9 @@
 # G9 Downstream Evidence Packaging Checkpoint
 
-**Artifact type:** Governed goal checkpoint  
-**Scope:** Non-operational packaging of downstream plugin and installer release-window evidence  
-**Status:** Packaging capability complete; real source artifacts and live bundle remain absent  
-**Governing documents:** Enterprise Constitution; ADR-0022; ADR-0023; automated-validation policy  
+**Artifact type:** Governed goal checkpoint
+**Scope:** Non-operational packaging of downstream plugin and installer release-window evidence
+**Status:** Packaging capability complete; real source artifacts and live bundle remain absent
+**Governing documents:** Enterprise Constitution; ADR-0022; ADR-0023; automated-validation policy
 **Authority:** Local evidence packaging only; no operational state write, compatibility removal or cutover
 
 ## Gap closed
