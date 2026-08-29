@@ -1,0 +1,31 @@
+{
+  "name": "@hseos/runtime-providers",
+  "version": "1.0.0",
+  "description": "Fail-closed RuntimeProvider bridges for HSEOS",
+  "keywords": [
+    "hseos",
+    "agents",
+    "runtime",
+    "acp",
+    "codex",
+    "claude-code",
+    "deepseek-harness"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marciohideaki/hseos.git",
+    "directory": "packages/runtime-providers"
+  },
+  "license": "MIT",
+  "main": "index.js",
+  "dependencies": {
+    "@hseos/agent-runtime-contracts": "^1.0.0",
+    "yaml": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -10,25 +10,25 @@
 
 const path = require('node:path');
 const fs = require('node:fs');
-const { createHttpServer, createMessageHandler, startStdioServer } = require('../lib/mcp-transport');
-
-let Database;
-try {
-  Database = require('better-sqlite3');
-} catch {
-  console.error('[project-state] better-sqlite3 not found. Install with: npm install better-sqlite3');
-  process.exit(1);
-}
+const { startNativeMcpServer } = require('../lib/governed-execution/native-mcp-server');
+const { startLegacyMcpServer } = require('../lib/legacy-mcp-server');
+const { openOperationalStateDatabase } = require('./lib/operational-state-db');
+const { LEGACY_TOOLS } = require('./tool-catalog');
 
 const DEFAULT_PORT = 3100;
 const DEFAULT_DB = path.join(process.cwd(), '.hseos', 'state', 'project.db');
 
 function parseArgs() {
   const args = process.argv.slice(2);
-  const port = parseInt(args.find((a) => a.startsWith('--port='))?.split('=')[1] || DEFAULT_PORT);
+  const portText = args.find((a) => a.startsWith('--port='))?.slice('--port='.length) || String(DEFAULT_PORT);
+  if (!/^[0-9]+$/.test(portText)) throw new Error('port must be an integer from 1 to 65535');
+  const port = Number(portText);
+  if (!Number.isSafeInteger(port) || port < 1 || port > 65_535) throw new Error('port must be an integer from 1 to 65535');
   const dbPath = args.find((a) => a.startsWith('--db='))?.split('=')[1] || process.env.HSEOS_STATE_DB || DEFAULT_DB;
+  const instanceId = args.find((a) => a.startsWith('--instance-id='))?.slice('--instance-id='.length) || null;
+  if (instanceId !== null && !/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(instanceId)) throw new Error('instance-id must be a UUID');
   const mode = args.includes('--http') || args.some((a) => a.startsWith('--port=')) ? 'http' : 'stdio';
-  return { dbPath, mode, port };
+  return { dbPath, instanceId, mode, port };
 }
 
 function loadDynamicTools() {
@@ -71,52 +71,10 @@ function logToStderr(level, msg) {
   console.error(`[project-state:${level}] ${msg}`);
 }
 
-function initDb(dbPath, { log = logToStderr } = {}) {
-  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-  const db = new Database(dbPath);
-
-  db.pragma('journal_mode = WAL');
-  db.pragma('busy_timeout = 5000');
-  db.pragma('foreign_keys = ON');
-
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS state (
-      key TEXT PRIMARY KEY,
-      value TEXT NOT NULL,
-      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS tasks (
-      id TEXT PRIMARY KEY,
-      owner TEXT NOT NULL,
-      description TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'pending',
-      depends_on TEXT,
-      note TEXT,
-      created_at TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS state_history (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      key TEXT NOT NULL,
-      old_value TEXT,
-      new_value TEXT NOT NULL,
-      changed_by TEXT NOT NULL,
-      changed_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-  `);
-
-  const { runMigrations } = require('./lib/migrations');
-  runMigrations(db, path.join(__dirname, 'migrations'), { log });
-
-  return db;
-}
-
-function handleTool(db, name, args) {
+function handleTool(db, name, args, context) {
   // Dynamic tools (loaded from ./tools/*.js) take precedence over the legacy switch.
   if (dynamicTools.has(name)) {
-    return dynamicTools.get(name).handler(db, args, getDal(db));
+    return dynamicTools.get(name).handler(db, args, getDal(db), context);
   }
   switch (name) {
     case 'state_read': {
@@ -183,70 +141,16 @@ function handleTool(db, name, args) {
       return { history: rows, count: rows.length };
     }
 
+    case 'scheduler_sweep_orphans': {
+      const { sweepOrphans } = require('./lib/stale-detector');
+      return sweepOrphans(db, args.stale_minutes);
+    }
+
     default: {
       throw new Error(`Unknown tool: ${name}`);
     }
   }
 }
-
-const LEGACY_TOOLS = [
-  { name: 'state_read', description: 'Get current project state', inputSchema: { type: 'object', properties: {} } },
-  {
-    name: 'state_write',
-    description: 'Update state fields atomically',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        fields: { type: 'object', description: 'Key-value pairs to write' },
-        agent: { type: 'string', description: 'Agent code writing the state' },
-      },
-      required: ['fields'],
-    },
-  },
-  {
-    name: 'tasks_list',
-    description: 'List tasks with optional status filter',
-    inputSchema: {
-      type: 'object',
-      properties: { status: { type: 'string', enum: ['pending', 'done', 'blocked'] } },
-    },
-  },
-  {
-    name: 'tasks_add',
-    description: 'Add a new task to the backlog',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        id: { type: 'string' },
-        owner: { type: 'string' },
-        description: { type: 'string' },
-        depends: { type: 'array', items: { type: 'string' } },
-      },
-      required: ['id', 'owner', 'description'],
-    },
-  },
-  {
-    name: 'tasks_update',
-    description: 'Update task status',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        id: { type: 'string' },
-        status: { type: 'string', enum: ['pending', 'done', 'blocked'] },
-        note: { type: 'string' },
-      },
-      required: ['id', 'status'],
-    },
-  },
-  {
-    name: 'state_history',
-    description: 'Get recent state change history',
-    inputSchema: {
-      type: 'object',
-      properties: { n: { type: 'integer', description: 'Number of records (default 20)' } },
-    },
-  },
-];
 
 function listTools() {
   const dynamicDescriptors = [...dynamicTools.values()].map((t) => ({
@@ -257,54 +161,77 @@ function listTools() {
   return [...LEGACY_TOOLS, ...dynamicDescriptors];
 }
 
-const { dbPath, mode, port } = parseArgs();
-const db = initDb(dbPath, { log: logToStderr });
-let server = null;
+const { dbPath, instanceId, mode, port } = parseArgs();
+const toolMap = new Map(listTools().map((tool) => [tool.name, tool]));
+const fixtureActivation = process.env.NODE_ENV === 'test' && process.env.HSEOS_GOVERNED_EXECUTION_FIXTURE === '1';
+let runtimeHandle;
+let operationalDb = null;
+if (fixtureActivation) {
+  toolMap.set('scheduler_sweep_orphans', {
+    name: 'scheduler_sweep_orphans',
+    description: 'Internal governed stale-heartbeat sweep',
+    inputSchema: {
+      type: 'object',
+      properties: { stale_minutes: { type: 'integer', minimum: 1, maximum: 1440 } },
+      required: ['stale_minutes'],
+      additionalProperties: false,
+    },
+  });
+  runtimeHandle = startNativeMcpServer({
+    serverId: 'project_state',
+    tools: toolMap,
+    mode,
+    port,
+    dbPath,
+    health: instanceId ? { instance_id: instanceId } : {},
+    invokeTool(name, args, context) {
+      return handleTool(runtimeHandle.db, name, args, context);
+    },
+    log: (message) => logToStderr('info', message),
+  });
+} else {
+  operationalDb = openOperationalStateDatabase(dbPath, { log: logToStderr });
+  runtimeHandle = startLegacyMcpServer({
+    serverId: 'project_state',
+    serverName: 'hseos-project-state',
+    tools: toolMap,
+    mode,
+    port,
+    projectDirectory: process.cwd(),
+    stateDatabasePath: dbPath,
+    wrapHttpResults: false,
+    health: {
+      schema_version: operationalDb.pragma('user_version', { simple: true }),
+      tools: toolMap.size,
+      ...(instanceId ? { instance_id: instanceId } : {}),
+    },
+    invokeTool(name, args) {
+      return handleTool(operationalDb, name, args);
+    },
+    log: (message) => logToStderr('info', message),
+  });
+}
 
 // Start in-process scheduler (stale-orphan sweep every 5min) if available.
 let stopScheduler = null;
 try {
+  if (!fixtureActivation) throw new Error('legacy compatibility mode does not run governed background mutations');
   const { startScheduler } = require('./lib/scheduler');
-  stopScheduler = startScheduler(db, { log: logToStderr, staleMinutes: 10 });
+  stopScheduler = startScheduler(runtimeHandle.execution.scheduler, {
+    dbPath,
+    log: logToStderr,
+    project: process.cwd(),
+    staleMinutes: 10,
+  });
 } catch {
   // Scheduler is optional — server works without it.
 }
 
-function createProjectStateHandler({ wrapToolResults }) {
-  return createMessageHandler({
-    serverInfo: { name: 'hseos-project-state', version: '1.0.0' },
-    tools: listTools(),
-    wrapToolResults,
-    callTool(name, args) {
-      return handleTool(db, name, args);
-    },
-  });
-}
-
-if (mode === 'http') {
-  const handleMessage = createProjectStateHandler({ wrapToolResults: false });
-  server = createHttpServer(handleMessage, { status: 'ok', server: 'hseos-project-state' });
-  server.listen(port, '127.0.0.1', () => {
-    console.error(`[project-state] MCP server listening on http://127.0.0.1:${port}`);
-    console.error(`[project-state] Database: ${dbPath}`);
-    console.error(`[project-state] Dynamic tools loaded: ${dynamicTools.size}`);
-  });
-} else {
-  const handleMessage = createProjectStateHandler({ wrapToolResults: true });
-  console.error(`[project-state] MCP stdio server ready. Database: ${dbPath}`);
-  console.error(`[project-state] Dynamic tools loaded: ${dynamicTools.size}`);
-  startStdioServer(handleMessage);
-}
-
-function shutdown() {
+async function shutdown() {
   if (stopScheduler) stopScheduler();
-  if (server) server.close();
-  try {
-    db.close();
-  } catch {
-    /* ignore */
-  }
+  await runtimeHandle.close();
+  if (operationalDb?.open) operationalDb.close();
   process.exit(0);
 }
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
+process.on('SIGTERM', () => void shutdown());
+process.on('SIGINT', () => void shutdown());

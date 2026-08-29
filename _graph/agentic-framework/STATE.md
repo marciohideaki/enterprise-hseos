@@ -1,0 +1,88 @@
+# Agentic Framework State
+
+**Artifact type:** Governed goal state
+**Scope:** Model-agnostic HSEOS Agent Framework and A13 operational activation evidence
+**Governing documents:** Enterprise Constitution; ADR-0024; ADR Policy; Automated Validation Rules
+
+- **Status:** A0 completed; A1–A12 and A14–A22 completed; A13 in progress with migration/rollback/profile rehearsal passed and operational cutover still blocked
+- **Current node:** A13 — evidence collection; no operational activation
+- **Baseline:** `d7886b571a7b`
+- **Observed:** HSEOS has a model-neutral Agent Kernel, a non-operational reference profile and an explicit OpenAI-compatible activation candidate; production activation remains gated
+- **Accepted decision:** ADR-0024, explicitly approved by the human authority on 2026-08-21
+- **Architectural gate:** satisfied; implementation remains bounded by the A1–A13 graph
+- **Validation:** real no-network Unix-broker profile and cross-process state promotion pass on `ai-jail`/`bwrap`; live hosted-provider smokes passed; sandbox `7/7`; A13 supervisor `6/6`; broker/snapshot `6/6`; ACP one-shot public profile `6/6`; bound kernel `6/6`; reference `8/8`; model providers `16/16`; capability packaging `112/112`
+- **Evidence:** `state/checkpoints/A0-foundation-readiness.md`; `state/checkpoints/A0-completion.md`; `state/checkpoints/A1-contracts.md`; `state/checkpoints/A6-agent-runtime.md`; `state/checkpoints/A7-compaction-checkpoints.md`; `state/checkpoints/A8-subagents-workflows.md`; `state/checkpoints/A9-runtime-provider-acp.md`; `state/checkpoints/A10-hosted-runtime-adapters.md`
+- **Next reversible action:** continue collecting complete zero-use G9 days; publication of the owner-approved registry in a new release and collection of real R/R+1 evidence require a separately authorized release unit
+- **A13 rehearsal:** real schema-v4 state rehearsed through a verified WAL snapshot; v7 migration, v4 rollback, legacy-table preservation, source immutability and candidate provider contract passed
+- **A13 provider binding:** strict YAML binding, immutable registry snapshot, late pluggable secret resolution and sandbox-gated optional probe implemented; structural validation performs no secret/network access
+- **A13 bound kernel:** common temporary assembly now drives both the scripted reference and an immutable OpenAI-compatible binding; run/resume/cancel, governed tool effects, durable sandbox evidence and provider substitution pass against fake endpoints
+- **A13 sandbox supervisor:** the public `hseos agent` surface selects the candidate profile only through a fail-closed `ai-jail` worker; exact lockdown configuration and binary digest are durably bound across run/resume/cancel
+- **A13 required sandbox runtime:** `ai-jail 1.20.0` and Ubuntu `bubblewrap 0.9.0` execute a real clean lockdown probe; a scoped AppArmor profile preserves the global user-namespace restriction while enabling `bwrap`; the doctor now verifies effective execution rather than binary presence alone
+- **A13 exact sandbox profile:** supervisors now execute the exact configured profile before secret access; real `ai-jail 1.20.0` rejects restricted TCP egress and requires unrestricted `--network`, so the networked candidate remains fail-closed pending an egress decision/backend
+- **A14 restricted egress:** the raw-provider candidate now uses a supervisor-owned Unix socket with no sandbox network; endpoint/route/credential ownership, bounded transport, secret-free worker execution and digested cross-process state promotion passed on real `ai-jail`/`bwrap`
+- **A15–A20 Claude Code hardening:** all seven selected proposals are dispositioned and tested; six are fully adopted, while generic credential sentinel substitution is rejected in favor of the narrower A19 broker boundary
+- **A21 integrated evidence:** exact seven-proposal conformance across six implementation cores, full repository gate and independent trace-lineage refutation passed; its SQLite schema-v4 proof is ephemeral, while live-state non-mutation remains A13/A14 evidence
+- **A22 provider conformance:** hosted profiles own only their runtime provider; the canonical matrix binds every selected provider to its exact manifest, binding template and stable suite bytes, rejects injected certification inputs, and cannot authorize activation
+- **A22 integration:** human-authorized local merge `35c1371`; no push, migration, provider activation or compatibility cutover performed
+- **A22 worktree:** removed after verified integration; task commit `d5301ba` remains reachable from the merge
+- **A10–A11 live delegated providers:** authenticated Codex CLI `0.149.0` and Claude Code `2.1.241` requests completed through `hseos agent run`; first-turn provider continuity, current Codex app-server v2 sandbox spelling and Claude SDK rate-limit events are covered by regressions
+- **A10–A11 live lifecycle boundary:** one-turn `run` is proven and is now the only public lifecycle advertised by the direct Codex profile; raw app-server does not persist a pre-turn rollout, so `create-only`, cross-process resume and post-process cancel fail closed
+- **A13 ACP one-shot public profile:** the hash-bound tool-free ACP composition is exposed as an honest sandbox-required `run`-only candidate; deterministic create+prompt persists terminal truth while unsupported lifecycle actions fail closed
+- **A13 remaining gates:** 30 complete G9 zero-use days; final stable audit; explicit human cutover authorization
+- **A13 downstream preparation:** authenticated enumeration of all 73 active `HideakiSolutions` GitHub repositories plus 28 personal-owner repositories corrected the candidate set to five by adding `cambio-real`; four layouts are state-only, one is migrated-layout and no plugin-v1 consumer was found. The `platform-gitops` SSH alias resolves to its canonical GitHub identity, but collection still requires an explicit-URL checkout. Owner-approved perimeter/membership, a published release-bound complete registry and real R/R+1 artifacts remain absent
+- **A13 downstream disposition:** the owner approved the enumerated perimeter and classified four state-only layouts as non-consumers; `platform-gitops` is the sole installer consumer and there are zero plugin-v1 consumers. Exact complete registry bytes and explicit-URL binding strategy are reviewable, but `5df935d` lacks the blob and no R+1 is published; push/release remains prohibited
+- **A12 integration:** human-authorized local merge `6f69386`; no push, migration or activation performed
+- **A12 worktree:** removed after integration; task commit `6c40e52`
+- **A11 integration:** human-authorized local merge `cf80117`; no push or activation performed
+- **A11 worktree:** removed after integration; task commit `c10d843`
+- **A10 integration:** human-authorized local merge `56cf90b`; no push or activation performed
+- **A10 worktree:** removed after integration; task commit `3200f26`
+- **A9 integration:** human-authorized local merge `dfc6116`; no push or activation performed
+- **A9 worktree:** `task/agentic-runtime-provider-acp` at baseline `fb63a28`
+- **A8 integration:** human-authorized local merge `fb63a28`; no push or activation performed
+- **A8 worktree:** removed after integration; task commit `644e128`
+- **A7 integration:** human-authorized local merge `9fca10b`; no push or activation performed
+- **A7 worktree:** `task/agentic-compaction-checkpoints` at baseline `dbd7e6d`
+- **A6 integration:** human-authorized local merge `dbd7e6d`; no push or activation performed
+- **A6 worktree:** `task/agentic-runtime-loop` at baseline `fe47e01`
+- **A5 integration:** human-authorized local merge `fe47e01`; no push or activation performed
+- **A5 worktree:** `task/agentic-tool-runtime` at baseline `46c0eb7`
+- **A4 integration:** human-authorized local merge `46c0eb7`; no push or activation performed
+- **A3 worktree:** `task/agentic-model-providers` at baseline `3910bd2`
+- **A2 worktree:** `task/agentic-session-event-store` at baseline `d4eea01`
+- **A1 deterministic evidence:** `npm run test:agentic-contracts` passes 9/9; strict gate `0 failures / 0 warnings`; independent verifier `READY`
+- **A2 deterministic evidence:** session store `7/7`; contract suite `9/9`; ledger regression suite `12/12`; strict gate `0 failures / 0 warnings`
+- **A2 independent evidence:** `READY`; no residual BLOCKER/HIGH/MEDIUM after adversarial concurrency, hierarchy, secret, SQL and package probes
+- **A3 deterministic evidence:** model providers `14/14`; contract suite `9/9`; session-store regression `7/7`; strict gate `0 failures / 0 warnings`
+- **A3 independent evidence:** `READY`; no residual BLOCKER/HIGH/MEDIUM after lifecycle, protocol, capability, limit, credential-leak and packaging probes
+- **A4 deterministic evidence:** context `9/9`; contracts `9/9`; session store `7/7`; model providers `14/14`; full `npm test`; strict gate `0 failures / 1 unrelated pre-existing warning`
+- **A4 independent evidence:** `READY`; 10 reported boundary bypasses and no-usage session accounting revalidated with no residual BLOCKER/HIGH/MEDIUM
+- **A5 deterministic evidence:** ToolRuntime `11/11`; contracts `9/9`; governed entrypoint/native wiring `15/15`; full `npm test`; strict gate `0 failures / 1 unrelated pre-existing warning`
+- **A5 independent evidence:** six adversarial findings corrected and encoded as regressions; independent test-only rerun `11/11`; broader final reruns blocked by the verifier platform safety filter and therefore not claimed as `READY`
+- **A6 deterministic evidence:** AgentRuntime `11/11`; session store `9/9`; contracts `9/9`; model providers `15/15`; context `9/9`; ToolRuntime `11/11`; canonical full gate passed
+- **A6 independent evidence:** `READY`; restarted cancellation, terminal legacy replay, partial legacy settlement and strict terminal causality revalidated with no residual BLOCKER/HIGH/MEDIUM
+- **A7 deterministic evidence:** compaction `10/10`; AgentRuntime `12/12`; context `10/10`; session store `9/9`; contracts `9/9`; clean package install; canonical full gate passed
+- **A7 independent evidence:** `READY`; crash retry, snapshot immutability, accounting/provenance, secret rejection, manifest caps and UTF-8 counter semantics revalidated with no residual material finding
+- **A8 deterministic evidence:** orchestration `13/13`; contracts `9/9`; session store `9/9`; AgentRuntime `12/12`; clean package install; full `npm test`; strict gate `0 failures / 1 unrelated pre-existing warning`
+- **A8 independent evidence:** `READY`; file-backed two-connection concurrency, durable leases, claim fencing, crash resume, join truth, recursive cancellation, limits and teardown revalidated with no residual material finding
+- **A9 deterministic evidence:** runtime providers `22/22`; focused integrated suites `76/76`; contracts `9/9`; compatibility `7/7`; clean package install; full `npm test`; strict gate `0 failures / 1 unrelated pre-existing warning`
+- **A9 independent evidence:** `READY`; ten focused reliability repros, package install and secret scan revalidated with no residual blocker/high/medium finding
+- **A10 deterministic evidence:** runtime providers `44/44`; contracts `9/9`; compatibility `7/7`; clean package install; full `npm test`; lint and diff checks passed; strict gate `0 failures / 1 unrelated pre-existing warning`
+- **A10 independent evidence:** `READY`; owner collision, close/create, malformed events, resume races, immediate/late create ABA, dispose ABA, generational release fences and bounded tombstone overflow revalidated with no residual blocker/high/medium finding
+- **A10 ACP process evidence:** bounded ACP JSON-RPC/stdio transport passes 54/54 runtime-provider tests; missing effect attestation fails `policy_denied`; missing `loadSession` fails `capability_unavailable`; no public profile is overclaimed
+- **A10 ACP composition evidence:** exact tool-free configuration, link rejection, SHA-256 attestation and same-process one-shot reattachment pass 63/63 runtime-provider tests; cross-process lifecycle remains unavailable
+- **A11 deterministic evidence:** CLI/reference `8/8`; capabilities `92/92`; AgentRuntime `12/12`; ledger/projection `26/26`; clean tarball assembled smoke persisted 17 events; full `npm test`; strict gate `0 failures / 1 unrelated pre-existing warning`
+- **A11 independent evidence:** initial `NOT READY` workspace-link escape and mutable cross-process manifest were corrected and encoded as regressions; final verdict `READY`
+- **A12 deterministic evidence:** provider substitution, malformed transport, coordinated cancel-tree, non-settling workflow, terminal correlation, persistent exact resume and scaled file-backed replay `7/7`; orchestration `13/13`; final full `npm test` passed through the strict worktree-manager gate
+- **A12 independent evidence:** initial `NOT READY` findings for incomplete assembled cancel/resume/performance evidence, sequential cancellation blocking and terminal relabeling were corrected and encoded as regressions; final verdict `READY` with no residual blocker/high/medium finding
+- **A13 deterministic evidence:** activation rehearsal `4/4`; compatibility `12/12`; capabilities `97/97`; model providers `15/15`; real state v4→v7→v4 rehearsal passed without changing DB/WAL/SHM fingerprints
+- **A13 provider-binding evidence:** binding suite `8/8`; in-memory/file bypass, links, URL credentials, secret timing, sandbox-before-network and sanitized failure covered
+- **A13 bound-kernel evidence:** bound runtime `6/6`; reference regression `8/8`; binding regression `8/8`; two distinct bindings, tool continuation, persistent reopen, cancel, tamper/confinement rejection and secret-free artifacts covered
+- **A13 supervisor evidence:** supervisor `5/5`; model providers `16/16`; separate worker processes, minimal environment, sandbox drift, unavailable backend, CLI fail-closed and provider credential reflection covered
+- **A13 required sandbox evidence:** sandbox `7/7`; real clean lockdown smoke passed; `forceRequired` reports zero errors while the global AppArmor restriction remains enabled; installed-but-broken runtime regression fails closed
+- **A14 restricted-egress evidence:** real networkless OpenAI-compatible tool loop and cross-process create/resume passed; upstream credential remained supervisor-owned; broker route/override tests and compressed state snapshot integrity/promotion tests passed
+- **A10–A11 live-provider evidence:** Codex and Claude exact-marker runs completed with only canonical start/message/completion facts; no tool/effect event and no resolved credential value persisted
+- **A22 deterministic evidence:** canonical conformance `8/8`; capability catalog `115/115`; delegated clients `20/20`; runtime/adapters `63/63`; strict gate `0 failures / 1 historical warning`
+- **A22 independent evidence:** `READY`; no residual blocker/high/medium after canonical-input injection, profile swaps, binding drift, descriptor TOCTOU and Node 20/22 runner compatibility probes
+- **Evidence:** `_graph/agentic-framework/state/checkpoints/A2-session-event-store.md`; `_graph/agentic-framework/state/checkpoints/A3-model-providers.md`; `_graph/agentic-framework/state/checkpoints/A4-context-assembler.md`; `_graph/agentic-framework/state/checkpoints/A5-tool-runtime.md`; `_graph/agentic-framework/state/checkpoints/A6-agent-runtime.md`; `_graph/agentic-framework/state/checkpoints/A7-compaction-checkpoints.md`; `_graph/agentic-framework/state/checkpoints/A8-subagents-workflows.md`; `_graph/agentic-framework/state/checkpoints/A9-runtime-provider-acp.md`; `_graph/agentic-framework/state/checkpoints/A10-hosted-runtime-adapters.md`; `_graph/agentic-framework/state/checkpoints/A11-capability-cli-reference.md`; `_graph/agentic-framework/state/checkpoints/A12-completion-audit.md`; `_graph/agentic-framework/state/checkpoints/A15-A20-claude-code-hardening.md`; `_graph/agentic-framework/state/checkpoints/A21-claude-code-hardening-closeout.md`; `_graph/agentic-framework/state/checkpoints/A22-provider-conformance-matrix.md`
+- **Operational constraint:** the sandbox-supervised raw-provider candidate is now exercised only against an ephemeral local OpenAI-compatible bridge; no production raw-provider endpoint was activated. G9 compatibility evidence and separate human authorization remain prerequisites for activation, together with the final stable audit

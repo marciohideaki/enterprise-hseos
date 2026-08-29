@@ -1,0 +1,28 @@
+{
+  "name": "@hseos/agent-session-store",
+  "version": "1.0.0",
+  "description": "Relational event store and deterministic replay for HSEOS agent sessions",
+  "keywords": [
+    "hseos",
+    "agents",
+    "sessions",
+    "event-store"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marciohideaki/hseos.git",
+    "directory": "packages/agent-session-store"
+  },
+  "license": "MIT",
+  "main": "index.js",
+  "dependencies": {
+    "@hseos/agent-runtime-contracts": "^1.0.0",
+    "@hseos/agent-trace-lineage": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

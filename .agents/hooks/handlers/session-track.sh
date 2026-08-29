@@ -7,9 +7,8 @@
 # Status:    active (self-suppresses when the hseos CLI or jq is absent)
 #
 # Purpose:
-#   Register EVERY Claude Code session in the machine-wide agent-state store
-#   ($HOME/.hseos/state/project.db, table as_sessions) — hseos-launched or not —
-#   so kanban/fleet views and the Jinx brain-bridge see all live activity.
+#   Register project-scoped sessions in that project's agent-state store so
+#   local kanban and explicitly configured fleet views can observe activity.
 #   Unlike state-emit-hook.sh this does NOT require HSEOS_CURRENT_RUN_ID:
 #   plain terminal sessions are exactly the ones that were invisible before.
 #
@@ -26,14 +25,35 @@
 set -u
 
 command -v jq >/dev/null 2>&1 || exit 0
-HSEOS_BIN="$(command -v hseos 2>/dev/null || true)"
-[[ -z "$HSEOS_BIN" ]] && exit 0
+HSEOS_COMMAND=()
+REPO_ROOT="$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel 2>/dev/null || true)"
+LOCAL_CLI="$REPO_ROOT/tools/cli/hseos-cli.js"
+LOCAL_BIN="$REPO_ROOT/node_modules/.bin/hseos"
+if [[ -n "$REPO_ROOT" && -f "$LOCAL_CLI" ]]; then
+  HSEOS_COMMAND=(node "$LOCAL_CLI")
+elif [[ -n "$REPO_ROOT" && -x "$LOCAL_BIN" ]]; then
+  RESOLVED_BIN="$(realpath -e "$LOCAL_BIN" 2>/dev/null || true)"
+  [[ "$RESOLVED_BIN" == "$REPO_ROOT/node_modules/"* ]] && HSEOS_COMMAND=("$LOCAL_BIN")
+elif [[ "${HSEOS_CLI_PATH:-}" == /* && -f "${HSEOS_CLI_PATH:-}" ]]; then
+  RESOLVED_CLI="$(realpath -e "$HSEOS_CLI_PATH" 2>/dev/null || true)"
+  CLI_OWNER="$(stat -c '%u' "$RESOLVED_CLI" 2>/dev/null || true)"
+  CLI_MODE="$(stat -c '%a' "$RESOLVED_CLI" 2>/dev/null || true)"
+  CURRENT_UID="$(id -u)"
+  if [[ -n "$RESOLVED_CLI" && ( "$CLI_OWNER" == "$CURRENT_UID" || "$CLI_OWNER" == "0" ) ]] &&
+    [[ "$CLI_MODE" =~ ^[0-7]+$ ]] && (( (8#$CLI_MODE & 022) == 0 )); then
+    if [[ "$RESOLVED_CLI" == *.js ]]; then HSEOS_COMMAND=(node "$RESOLVED_CLI"); elif [[ -x "$RESOLVED_CLI" ]]; then HSEOS_COMMAND=("$RESOLVED_CLI"); fi
+  fi
+fi
+[[ ${#HSEOS_COMMAND[@]} -eq 0 ]] && exit 0
 
 INPUT="$(cat 2>/dev/null || true)"
 SESSION_ID="$(jq -r '.session_id // empty' <<<"$INPUT" 2>/dev/null || true)"
 [[ -z "$SESSION_ID" ]] && exit 0
 EVENT="$(jq -r '.hook_event_name // empty' <<<"$INPUT" 2>/dev/null || true)"
 CWD="$(jq -r '.cwd // empty' <<<"$INPUT" 2>/dev/null || true)"
+[[ "$CWD" != /* ]] && exit 0
+SESSION_ROOT="$(git -C "$CWD" rev-parse --show-toplevel 2>/dev/null || true)"
+[[ -z "$SESSION_ROOT" ]] && exit 0
 
 case "$EVENT" in
   SessionStart) ACTION="register" ;;
@@ -41,10 +61,11 @@ case "$EVENT" in
   *)            ACTION="heartbeat" ;;  # UserPromptSubmit, Stop, unknown
 esac
 
-ARGS=(state-session "$ACTION" --silent --session "$SESSION_ID" --service claude-code)
+ARGS=(state-session "$ACTION" --silent --directory "$SESSION_ROOT" --session "$SESSION_ID" --service claude-code)
 [[ -n "$CWD" ]] && ARGS+=(--cwd "$CWD")
 
-# Fully detached, capped, silent — the hook must never slow the session down.
-( timeout 5s "$HSEOS_BIN" "${ARGS[@]}" >/dev/null 2>&1 ) &
+# Fully detached, capped, silent — survive hosts that terminate the hook's
+# process group while never slowing the triggering session down.
+nohup timeout 5s "${HSEOS_COMMAND[@]}" "${ARGS[@]}" </dev/null >/dev/null 2>&1 &
 
 exit 0

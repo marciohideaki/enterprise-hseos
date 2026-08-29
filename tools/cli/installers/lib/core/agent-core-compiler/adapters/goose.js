@@ -46,6 +46,10 @@ class GooseAdapter {
   }
 
   async emit(sources, outputDir) {
+    // Goose mirrors are compiler-owned. Clear them before emission so a
+    // narrower capability profile cannot retain stale skills or agents.
+    await fs.remove(path.join(outputDir, '.goose', 'skills'));
+    await fs.remove(path.join(outputDir, '.goose', 'agents'));
     await fs.ensureDir(path.join(outputDir, '.goose', 'skills'));
     await fs.ensureDir(path.join(outputDir, '.goose', 'agents'));
 

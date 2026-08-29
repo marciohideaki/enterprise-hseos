@@ -5,9 +5,8 @@
  * just hseos-orchestrated runs — plain terminal sessions register here via the
  * session-track.sh hook so kanban/fleet views can show all activity.
  *
- * Unlike run-scoped state commands, the default store is the MACHINE store
- * (`$HOME/.hseos/state/project.db`): sessions are host-scoped, not project-
- * scoped, and fleet readers (e.g. the Jinx brain-bridge) read the HOME store.
+ * Session state is project-scoped by default. Cross-project fleet aggregation
+ * belongs to the optional central side-car and its explicit registry.
  */
 
 const os = require('node:os');
@@ -50,10 +49,9 @@ function tabulate(rows, columns) {
 
 module.exports = {
   command: 'state-session <action>',
-  description:
-    'Track live agent sessions in the machine store (register/heartbeat/end/list/sweep) — any agent, hseos-launched or not.',
+  description: 'Track live agent sessions in a project store (register/heartbeat/end/list/sweep).',
   options: [
-    ['--directory <path>', 'Store root (default: $HOME — the machine-wide store)'],
+    ['--directory <path>', 'Project store root (default: current directory)'],
     ['--session <id>', 'Session id (UUID from the agent harness)'],
     ['--parent <id>', 'Parent session id (subagent dispatch)'],
     ['--cwd <path>', 'Working directory of the session'],
@@ -67,7 +65,7 @@ module.exports = {
     ['--silent', 'Suppress non-error output'],
   ],
   action: (action, options) => {
-    const directory = path.resolve(options.directory || os.homedir());
+    const directory = path.resolve(options.directory || process.cwd());
     const ctx = openState(directory);
     if (!ctx) {
       if (!options.silent) console.log('(better-sqlite3 not installed; state-session is a no-op)');

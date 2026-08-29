@@ -1144,6 +1144,7 @@ class Installer {
           message('Compiling agent core...');
           const agentCoreStats = await this.agentCoreCompiler.compile(projectDir, hseosDir, {
             platforms: config.ides || [],
+            selectedSkills: config.capabilityPlan ? config.capabilityPlan.skills : undefined,
           });
           addResult(
             'Agent core',

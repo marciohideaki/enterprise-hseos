@@ -10,22 +10,15 @@ adapters:
     skills: .agents/skills
     settings: .codex/config.toml
     hooks: .codex/hseos-hooks.json
-  goose:
-    config: .goose/config.yaml
-    skills: .goose/skills
-    agents: .goose/agents
-    hooks_metadata: .goose/hooks-metadata.json
 platforms:
   - claude-code
   - codex
-  - goose
 counts:
   skills: 52
-  hooks: 32
+  hooks: 33
   commands: 9
   handlers: 24
   agents: 16
-  plugins: 4
   mcp_servers: 8
 skills:
   - name: accessibility
@@ -117,7 +110,7 @@ skills:
     source: .enterprise/governance/agent-skills/dev-squad/SKILL.md
     quick: .enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md
     output: .agents/skills/dev-squad/SKILL.md
-    hash: 24d345dc52767147fcadbe378219787601f2f1ea9175b4f0795e9b5a59a1a598
+    hash: 11c58373efad1130d2943fcab42b92415dcfdd6ec7210f6580931737128dcae6
   - name: doc-project
     source: .enterprise/governance/agent-skills/doc-project/SKILL.md
     quick: .enterprise/governance/agent-skills/doc-project/SKILL-QUICK.md
@@ -162,7 +155,7 @@ skills:
     source: .enterprise/governance/agent-skills/inter-agent-comms/SKILL.md
     quick: .enterprise/governance/agent-skills/inter-agent-comms/SKILL-QUICK.md
     output: .agents/skills/inter-agent-comms/SKILL.md
-    hash: 4d388ec1c36a6774aaa31eb1a7d271d6a8f18f18256e103d31578016d0da302f
+    hash: b514e21479ae6727f07ba770696456775cc9bc0a2b9d194af47edf365cf3d987
   - name: mcp-governance
     source: .enterprise/governance/agent-skills/mcp-governance/SKILL.md
     quick: .enterprise/governance/agent-skills/mcp-governance/SKILL-QUICK.md
@@ -207,7 +200,7 @@ skills:
     source: .enterprise/governance/agent-skills/release-control/SKILL.md
     quick: .enterprise/governance/agent-skills/release-control/SKILL-QUICK.md
     output: .agents/skills/release-control/SKILL.md
-    hash: a2a37939a2cd397066b19c5db585d31df3a5afa1d54b3bef8b7394c7d58ef536
+    hash: 065d891556b1386b4c4568937d6182444ed042b5913b98a479b55421fc28b1ed
   - name: repo-radar
     source: .enterprise/governance/agent-skills/repo-radar/SKILL.md
     quick: .enterprise/governance/agent-skills/repo-radar/SKILL-QUICK.md
@@ -434,6 +427,11 @@ hooks:
     matcher: "*"
     platform_support:
       - claude-code
+  - id: sessionstart-all-session-track-register-project-store
+    event: SessionStart
+    matcher: "*"
+    platform_support:
+      - claude-code
   - id: userpromptsubmit-all-session-track-heartbeat
     event: UserPromptSubmit
     matcher: "*"
@@ -489,7 +487,7 @@ commands:
 handlers:
   - file: .agents/hooks/handlers/README.md
     source: .enterprise/governance/hooks/handlers/README.md
-    sha256: b16326522aa26e293be70b3a94c8d7056e40e28a9a2a564e6a90615a97d9bc38
+    sha256: 91be729bb6597cad23989be76bfe08cca9ceacbba79a4f7d1336059ad576be24
   - file: .agents/hooks/handlers/_ado-lib.sh
     source: .enterprise/governance/hooks/handlers/_ado-lib.sh
     sha256: bd2dbb5881fc0b01b6c0fbe3f71fba72305c9c93af60ebfe0def42e4536e2b33
@@ -546,7 +544,7 @@ handlers:
     sha256: c331a2ff08666b2f13a4caa6b2a6e0405275654b5ea27788bcb00e7d53a9705b
   - file: .agents/hooks/handlers/session-track.sh
     source: .enterprise/governance/hooks/handlers/session-track.sh
-    sha256: 210a6085fd1a688ed31b1b93ab9b6ef56a233e0d739059be4d542a678255a011
+    sha256: 4b05d14c7cf1f8ab69544e78b6d2f59976b9bcda77d06b853f3b15d865a6c7d0
   - file: .agents/hooks/handlers/suggest-skill.sh
     source: .enterprise/governance/hooks/handlers/suggest-skill.sh
     sha256: 87153f5431a380150acebd00f13ac75987c52f50112869965766f391bc00f0db
@@ -608,22 +606,13 @@ agents:
   - code: VECTOR
     file: .hseos/agents/vector.agent.yaml
     sha256: 2581c74190ce6bb293284f4a48d67651031667976e11c666b1622f999b5871bf
-plugins:
-  - id: hseos-skill-creator
-    version: 0.1.0
-  - id: hseos-hookify
-    version: 0.1.0
-  - id: hseos-pr-review
-    version: 0.1.0
-    extends: official:pr-review-toolkit@1.2.0
-  - id: hseos-security-guidance
-    version: 0.1.0
 mcp_bundles_active:
   - core
   - extended
 mcp_servers:
   - id: axon-bridge
     transport: http
+    client_enabled: true
     binary: tools/mcp-axon-bridge/index.js
     runtime: node
     bundle: extended
@@ -636,6 +625,7 @@ mcp_servers:
       - run_pipeline
   - id: fetch
     transport: stdio
+    client_enabled: true
     binary: "@modelcontextprotocol/server-fetch"
     runtime: npx
     bundle: extended
@@ -643,6 +633,7 @@ mcp_servers:
       - fetch_url
   - id: filesystem
     transport: stdio
+    client_enabled: true
     binary: "@modelcontextprotocol/server-filesystem"
     runtime: npx
     bundle: core
@@ -653,6 +644,7 @@ mcp_servers:
       - search_files
   - id: hseos-governance
     transport: stdio
+    client_enabled: false
     binary: tools/mcp-hseos-governance/index.js
     runtime: node
     bundle: core
@@ -664,6 +656,7 @@ mcp_servers:
       - list_workflows
   - id: hseos-state-tracking
     transport: stdio
+    client_enabled: false
     binary: tools/mcp-project-state/index.js
     runtime: node
     bundle: core
@@ -675,6 +668,7 @@ mcp_servers:
       - search_events
   - id: hseos-swarm
     transport: stdio
+    client_enabled: false
     binary: tools/mcp-hseos-swarm/index.js
     runtime: node
     bundle: extended
@@ -686,6 +680,7 @@ mcp_servers:
       - list_runs
   - id: memory
     transport: stdio
+    client_enabled: true
     binary: "@modelcontextprotocol/server-memory"
     runtime: npx
     bundle: extended
@@ -695,6 +690,7 @@ mcp_servers:
       - delete_memory
   - id: sequential-thinking
     transport: stdio
+    client_enabled: true
     binary: "@modelcontextprotocol/server-sequential-thinking"
     runtime: npx
     bundle: extended

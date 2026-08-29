@@ -1,0 +1,30 @@
+schema_version: "1.0"
+profile_id: agent-openai-compatible-candidate
+status: pre-activation
+operational: false
+execution:
+  mode: kernel
+  model_provider_id: model:openai-compatible
+  runtime_provider_id: runtime:hseos-kernel
+provider:
+  protocol: openai-compatible-sse
+  base_url_ref: config://hseos/model-provider-base-url
+  model_ref: config://hseos/model-provider-model
+  secret_refs:
+    - name: api-key
+      source_ref: secret://hseos/model-provider-api-key
+sandbox:
+  provider: ai-jail
+  required: true
+  default_profile: lockdown
+activation:
+  authorized: false
+  requires:
+    - ADR-0022
+    - ADR-0023
+    - ADR-0024
+    - migration-and-rollback-rehearsal
+    - required-sandbox-readiness
+    - provider-environment-validation
+    - g9-zero-legacy-window
+    - explicit-human-cutover

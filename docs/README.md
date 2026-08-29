@@ -15,44 +15,46 @@ The goal: AI agents multiply engineering capacity without degrading quality, sec
 
 ## Navigation
 
-| Document | What you'll find |
-|---|---|
-| [getting-started.md](getting-started.md) | Day 1 setup — install CLI, configure project, first commands |
-| [capabilities.md](capabilities.md) | Capability profiles/components (ADR-0016) — what installs what, prerequisites, opt-in extras |
-| [agents/](agents/) | Every agent: what it does, when to activate it, what it cannot do |
-| [workflows.md](workflows.md) | The 6 delivery workflows — phases, human touchpoints, how to resume |
-| [skills.md](skills.md) | Governance skills catalog — what gets enforced, when, and why |
-| [LOOP-GRAPHS-MANUAL.md](LOOP-GRAPHS-MANUAL.md) | Loop graphs usage manual — objective → gap-map → compiled `workflow.js`, governed loops, state versioning/resume, verification, cost |
-| [RUNNING-GOVERNED-LOOPS.md](RUNNING-GOVERNED-LOOPS.md) | Governed loop operations — proven step-by-step (worktree, loop-guard, iterate, close) |
-| [state-tracking.md](state-tracking.md) | SQLite state layer, CLI commands, web kanban, MCP tools (v2.0.0) |
-| [sandbox.md](sandbox.md) | Optional OS-level sandboxing for agent commands through external ai-jail |
-| [ADAPTER-GUIDE.md](ADAPTER-GUIDE.md) | BYOA adapter authoring — `@hseos/adapter-sdk` + Goose reference |
-| [MIGRATION-GUIDE-v1-to-v2.md](MIGRATION-GUIDE-v1-to-v2.md) | Upgrading from v1.x to v2.0.0 |
-| [troubleshooting.md](troubleshooting.md) | FAQ, common errors, and debugging guides |
-| [ado-ops/](ado-ops/) | Azure DevOps module — ATLAS agent, hooks, feature flag, tests |
-| [pt-br/](pt-br/) | Documentação em Português (BR) |
+| Document                                                   | What you'll find                                                                                                                     |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| [getting-started.md](getting-started.md)                   | Day 1 setup — install CLI, configure project, first commands                                                                         |
+| [capabilities.md](capabilities.md)                         | Capability profiles/components (ADR-0016) — what installs what, prerequisites, opt-in extras                                         |
+| [plugins.md](plugins.md)                                   | Plugin authority, schema v2, activation gates, generated views, install/remove lifecycle                                             |
+| [agents/](agents/)                                         | Every agent: what it does, when to activate it, what it cannot do                                                                    |
+| [workflows.md](workflows.md)                               | The 6 delivery workflows — phases, human touchpoints, how to resume                                                                  |
+| [skills.md](skills.md)                                     | Governance skills catalog — what gets enforced, when, and why                                                                        |
+| [LOOP-GRAPHS-MANUAL.md](LOOP-GRAPHS-MANUAL.md)             | Loop graphs usage manual — objective → gap-map → compiled `workflow.js`, governed loops, state versioning/resume, verification, cost |
+| [RUNNING-GOVERNED-LOOPS.md](RUNNING-GOVERNED-LOOPS.md)     | Governed loop operations — proven step-by-step (worktree, loop-guard, iterate, close)                                                |
+| [state-tracking.md](state-tracking.md)                     | SQLite state layer, CLI commands, web kanban, MCP tools (v3.0.0)                                                                     |
+| [sandbox.md](sandbox.md)                                   | Optional OS-level sandboxing for agent commands through external ai-jail                                                             |
+| [ADAPTER-GUIDE.md](ADAPTER-GUIDE.md)                       | BYOA adapter authoring — `@hseos/adapter-sdk` + Goose reference                                                                      |
+| [MIGRATION-GUIDE-v1-to-v2.md](MIGRATION-GUIDE-v1-to-v2.md) | Upgrading from v1.x to v2.0.0                                                                                                        |
+| [MIGRATION-GUIDE-v2-to-v3.md](MIGRATION-GUIDE-v2-to-v3.md) | Project-scoped state, side-car security, and catalog contracts in v3.0.0                                                             |
+| [troubleshooting.md](troubleshooting.md)                   | FAQ, common errors, and debugging guides                                                                                             |
+| [ado-ops/](ado-ops/)                                       | Azure DevOps module — ATLAS agent, hooks, feature flag, tests                                                                        |
+| [pt-br/](pt-br/)                                           | Documentação em Português (BR)                                                                                                       |
 
 ---
 
 ## The 14 Agents at a Glance
 
-| Code | Title | Domain |
-|---|---|---|
-| **NYX** | Intelligence Broker | Research, requirements elicitation, domain analysis |
-| **VECTOR** | Mission Architect | PRDs, epics, stories, product scope |
-| **CIPHER** | Systems Architect | Architecture, system design, ADRs |
-| **PRISM** | Interface Weaver | UX design, interaction flows, design systems |
-| **RAZOR** | Sprint Commander | Sprint planning, story preparation, backlog |
-| **GHOST** | Code Executor | Implementation, TDD, story execution |
-| **GLITCH** | Chaos Engineer | Test automation, quality gates, coverage |
-| **BLITZ** | Solo Protocol | Full-stack solo delivery at speed |
-| **QUILL** | Knowledge Scribe | Technical documentation, API docs, guides |
-| **ORBIT** | Flow Conductor | Multi-agent workflow orchestration |
-| **FORGE** | Release Engineer | Artifact publication, CI/CD, build promotion |
-| **KUBE** | Kubernetes Delivery Operator | GitOps manifest updates, ArgoCD sync |
-| **SABLE** | Runtime Operator | Rollout verification, pod health, smoke tests |
-| **SWARM** | Parallel Execution Commander | Heterogeneous batch fan-out under worktree isolation |
-| **ATLAS** | ADO Lifecycle Orchestrator | Azure DevOps plan→sync→close tracking (feature-flagged: `ado.enabled`) |
+| Code       | Title                        | Domain                                                                 |
+| ---------- | ---------------------------- | ---------------------------------------------------------------------- |
+| **NYX**    | Intelligence Broker          | Research, requirements elicitation, domain analysis                    |
+| **VECTOR** | Mission Architect            | PRDs, epics, stories, product scope                                    |
+| **CIPHER** | Systems Architect            | Architecture, system design, ADRs                                      |
+| **PRISM**  | Interface Weaver             | UX design, interaction flows, design systems                           |
+| **RAZOR**  | Sprint Commander             | Sprint planning, story preparation, backlog                            |
+| **GHOST**  | Code Executor                | Implementation, TDD, story execution                                   |
+| **GLITCH** | Chaos Engineer               | Test automation, quality gates, coverage                               |
+| **BLITZ**  | Solo Protocol                | Full-stack solo delivery at speed                                      |
+| **QUILL**  | Knowledge Scribe             | Technical documentation, API docs, guides                              |
+| **ORBIT**  | Flow Conductor               | Multi-agent workflow orchestration                                     |
+| **FORGE**  | Release Engineer             | Artifact publication, CI/CD, build promotion                           |
+| **KUBE**   | Kubernetes Delivery Operator | GitOps manifest updates, ArgoCD sync                                   |
+| **SABLE**  | Runtime Operator             | Rollout verification, pod health, smoke tests                          |
+| **SWARM**  | Parallel Execution Commander | Heterogeneous batch fan-out under worktree isolation                   |
+| **ATLAS**  | ADO Lifecycle Orchestrator   | Azure DevOps plan→sync→close tracking (feature-flagged: `ado.enabled`) |
 
 ---
 
@@ -87,6 +89,7 @@ Every agent is a Claude Code subagent command. In your project, after `hseos ins
 ```
 
 Or start the orchestrated epic delivery pipeline:
+
 ```bash
 /orbit
 # Then type: ED    (Epic Delivery)

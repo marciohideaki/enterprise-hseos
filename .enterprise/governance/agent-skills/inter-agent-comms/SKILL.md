@@ -197,7 +197,7 @@ This boundary prevents the model from treating external content as instructions.
 | Agent didn't act on handoff | State file not read at startup | Add state file to bootstrap reads |
 | Agent acted on stale state | Ran without reading latest output | Always read state file, check timestamp |
 | claude-peers session not found | Session ended or not started | Fall back to state file method |
-| Gate timeout | Human reviewer unavailable | Escalate to workflow owner |
+| Gate timeout | Workflow owner unavailable | Preserve state and wait for explicit owner authorization |
 | Specialist returned NEEDS_CONTEXT | Task text was a file reference, not inline | Always inline full task text in dispatch |
 
 ---

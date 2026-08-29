@@ -74,6 +74,7 @@ async function loadMcpServers(root, agentsDirName = '.agents') {
         command: commandSpec.command,
         args: commandSpec.args || [],
         env: server.env || {},
+        enabled: server.client_enabled !== false,
       });
     }
   }
@@ -89,7 +90,7 @@ function buildCodexConfigToml({ mcpServers = [] }) {
     if (server.args.length > 0) {
       serverLines.push(`args = ${tomlArray(server.args)}`);
     }
-    serverLines.push('enabled = true', 'startup_timeout_sec = 20');
+    serverLines.push(`enabled = ${server.enabled === false ? 'false' : 'true'}`, 'startup_timeout_sec = 20');
     lines.push(...serverLines);
 
     const envEntries = Object.entries(server.env || {});

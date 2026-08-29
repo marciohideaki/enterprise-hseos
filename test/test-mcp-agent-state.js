@@ -53,7 +53,7 @@ function rpc(port, method, params = {}) {
       {
         host: '127.0.0.1',
         port,
-        path: '/',
+        path: '/mcp',
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Content-Length': body.length },
         timeout: 4000,
@@ -77,6 +77,12 @@ function rpc(port, method, params = {}) {
     req.write(body);
     req.end();
   });
+}
+
+function toolData(result) {
+  const envelope = result.structuredContent || JSON.parse(result.content[0].text);
+  if (!envelope.ok) throw new Error(`${envelope.error.code}: ${envelope.error.message}`);
+  return envelope.data.result;
 }
 
 function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
@@ -103,6 +109,7 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
   const port = pickPort();
 
   const child = spawn(process.execPath, [MCP_SERVER, `--port=${port}`, `--db=${dbPath}`], {
+    env: { ...process.env, HSEOS_GOVERNED_EXECUTION_FIXTURE: '1', NODE_ENV: 'test' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   child.on('error', (e) => console.error('spawn error', e));
@@ -130,18 +137,18 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
         name: 'run_create',
         arguments: { id: 'R-mcp-1', workflow_id: 'dev-squad', project: tmp },
       });
-      const list = await rpc(port, 'tools/call', { name: 'runs_list', arguments: {} });
+      const list = toolData(await rpc(port, 'tools/call', { name: 'runs_list', arguments: {} }));
       if (!list.runs || list.runs.length === 0) throw new Error('runs_list empty after create');
       if (!list.runs.some((r) => r.id === 'R-mcp-1')) throw new Error('R-mcp-1 missing from runs_list');
     });
 
     await it('agent_runs_list filters by run_id', async () => {
-      const result = await rpc(port, 'tools/call', { name: 'agent_runs_list', arguments: { run_id: 'R-mcp-1' } });
+      const result = toolData(await rpc(port, 'tools/call', { name: 'agent_runs_list', arguments: { run_id: 'R-mcp-1' } }));
       if (!Array.isArray(result.agent_runs)) throw new Error('agent_runs not array');
     });
 
     await it('orphans_list shape', async () => {
-      const result = await rpc(port, 'tools/call', { name: 'orphans_list', arguments: { stale_minutes: 5 } });
+      const result = toolData(await rpc(port, 'tools/call', { name: 'orphans_list', arguments: { stale_minutes: 5 } }));
       if (!Array.isArray(result.orphans)) throw new Error('orphans not array');
       if (result.stale_minutes !== 5) throw new Error('stale_minutes echo mismatch');
     });

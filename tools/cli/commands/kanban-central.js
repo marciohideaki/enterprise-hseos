@@ -2,14 +2,24 @@
  * `hseos kanban-central` — manage and run the central multi-project kanban.
  *
  * Lifecycle mirrors `tools/cli/commands/state-ui.js`. Adds register/deregister/list
- * subcommands that mutate `~/.hseos/projects.json`.
+ * subcommands that mutate an explicit project-scoped registry.
  */
 
 const path = require('node:path');
-const { spawn, execSync } = require('node:child_process');
+const { spawn } = require('node:child_process');
 const fs = require('fs-extra');
+const {
+  createInstanceRecord,
+  healthCheck,
+  inspectInstance,
+  instanceRecordPath,
+  parsePort,
+  stopInstance,
+  writeInstanceRecord,
+} = require('../lib/sidecar-lifecycle');
 
 const SERVER = path.join(__dirname, '..', '..', 'state-ui-server', 'index.js');
+const SERVER_ID = 'hseos-state-ui';
 const { loadRegistry, saveRegistry, addProject, removeProject, validate, registryPath } = require('../../state-ui-server/lib/registry');
 
 async function loadConfig(directory) {
@@ -24,15 +34,6 @@ async function loadConfig(directory) {
     }
   }
   return {};
-}
-
-function isRunning(port) {
-  try {
-    execSync(`curl -fs http://127.0.0.1:${port}/health`, { stdio: 'ignore', timeout: 2000 });
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 function cmdRegister(options, target) {
@@ -79,44 +80,66 @@ function cmdList(options) {
 async function cmdStart(options) {
   const directory = path.resolve(options.directory || process.cwd());
   const config = await loadConfig(directory);
-  const port = options.port || config.central_port || 3210;
+  const port = parsePort(options.port, config.central_port || 3210);
   const host = options.host || config.central_host || '127.0.0.1';
+  const authTokenEnv = options.authTokenEnv || config.central_auth_token_env || null;
+  const authToken = authTokenEnv ? process.env[authTokenEnv] : null;
   const pollMs = options.pollMs || config.web_poll_ms || 1000;
   const staleMinutes = options.staleMinutes || config.stale_minutes || 10;
   const reg = registryPath(options.registry);
+  const recordPath = instanceRecordPath(directory, 'kanban-central');
+  const expected = { server: SERVER_ID, entrypoint: SERVER };
 
-  if (isRunning(port)) {
+  const existing = await inspectInstance(recordPath, expected);
+  if (existing.state === 'running') {
     console.log(`[kanban-central] already running on http://${host}:${port}`);
     return;
   }
-  const child = spawn(
-    process.execPath,
-    [SERVER, `--port=${port}`, `--host=${host}`, `--registry=${reg}`, `--poll-ms=${pollMs}`, `--stale-minutes=${staleMinutes}`],
-    { detached: true, stdio: 'ignore' },
-  );
+  if (existing.state === 'unhealthy') {
+    throw new Error(`recorded kanban-central process ${existing.record.pid} is running but failed its identity health check`);
+  }
+  if (!['127.0.0.1', 'localhost', '::1'].includes(host)) {
+    throw new Error('kanban-central binds only to loopback; use a TLS reverse proxy for remote access');
+  }
+  if (authTokenEnv && !authToken) {
+    throw new Error(`authentication environment variable ${authTokenEnv} is not populated`);
+  }
+  const record = createInstanceRecord({ server: SERVER_ID, entrypoint: SERVER, port, host });
+  const serverArgs = [
+    SERVER,
+    `--port=${port}`,
+    `--host=${host}`,
+    `--registry=${reg}`,
+    `--poll-ms=${pollMs}`,
+    `--stale-minutes=${staleMinutes}`,
+    `--instance-id=${record.instanceId}`,
+  ];
+  if (authTokenEnv) serverArgs.push(`--auth-token-env=${authTokenEnv}`);
+  const child = spawn(process.execPath, serverArgs, { detached: true, stdio: 'ignore' });
+  writeInstanceRecord(recordPath, { ...record, pid: child.pid });
   child.unref();
   await new Promise((r) => setTimeout(r, 400));
-  if (isRunning(port)) console.log(`[kanban-central] started on http://${host}:${port} (PID ${child.pid})`);
+  if (await healthCheck(record)) console.log(`[kanban-central] started on http://${host}:${port} (PID ${child.pid})`);
   else console.log(`[kanban-central] started in background (PID ${child.pid}); not yet responding on ${port}`);
 }
 
 async function cmdStop(options) {
-  const config = await loadConfig(path.resolve(options.directory || process.cwd()));
-  const port = options.port || config.central_port || 3210;
-  try {
-    execSync(`lsof -ti tcp:${port} | xargs -r kill -15`, { stdio: 'ignore' });
-    console.log(`[kanban-central] sent SIGTERM to processes on port ${port}`);
-  } catch {
-    console.log('[kanban-central] no process found to stop');
+  const directory = path.resolve(options.directory || process.cwd());
+  const recordPath = instanceRecordPath(directory, 'kanban-central');
+  if ((await stopInstance(recordPath, { server: SERVER_ID, entrypoint: SERVER })) > 0) {
+    console.log('[kanban-central] sent SIGTERM to the verified managed instance');
+  } else {
+    console.log('[kanban-central] no managed instance found to stop');
   }
 }
 
 async function cmdStatus(options) {
-  const config = await loadConfig(path.resolve(options.directory || process.cwd()));
-  const port = options.port || config.central_port || 3210;
-  if (isRunning(port)) console.log(`[kanban-central] running on http://127.0.0.1:${port}`);
+  const directory = path.resolve(options.directory || process.cwd());
+  const recordPath = instanceRecordPath(directory, 'kanban-central');
+  const instance = await inspectInstance(recordPath, { server: SERVER_ID, entrypoint: SERVER });
+  if (instance.state === 'running') console.log(`[kanban-central] running on http://${instance.record.host}:${instance.record.port}`);
   else {
-    console.log('[kanban-central] not running');
+    console.log(`[kanban-central] ${instance.state === 'unhealthy' ? 'managed process is unhealthy' : 'not running'}`);
     process.exit(1);
   }
 }
@@ -126,23 +149,31 @@ module.exports = {
   description: 'Manage the central multi-project kanban (register/deregister/list/start/stop/status).',
   options: [
     ['--directory <path>', 'Project directory for config lookup (default: cwd)'],
-    ['--registry <path>', 'Registry JSON path (default: ~/.hseos/projects.json)'],
+    ['--registry <path>', 'Registry JSON path (default: .hseos/config/projects.json)'],
     ['--id <id>', 'Project id (register only)'],
     ['--label <label>', 'Project display label (register only)'],
     ['--color <hex>', 'Project color hex (register only)'],
     ['--port <port>', 'Central server port'],
-    ['--host <host>', 'Bind interface'],
+    ['--host <host>', 'Loopback bind interface (remote access requires a reverse proxy)'],
+    ['--auth-token-env <name>', 'Environment variable containing the bearer token'],
     ['--poll-ms <ms>', 'Snapshot poll interval'],
     ['--stale-minutes <n>', 'Orphan threshold'],
   ],
   action: async (action, target, options) => {
+    const directory = path.resolve(options.directory || process.cwd());
+    const config = await loadConfig(directory);
+    const effectiveOptions = {
+      ...options,
+      directory,
+      registry: options.registry || config.central_registry || path.join(directory, '.hseos', 'config', 'projects.json'),
+    };
     switch (action) {
       case 'register': {
         if (!target) {
           console.error('register requires <path>');
           process.exit(1);
         }
-        cmdRegister(options, target);
+        cmdRegister(effectiveOptions, target);
         break;
       }
       case 'deregister': {
@@ -150,23 +181,23 @@ module.exports = {
           console.error('deregister requires <id>');
           process.exit(1);
         }
-        cmdDeregister(options, target);
+        cmdDeregister(effectiveOptions, target);
         break;
       }
       case 'list': {
-        cmdList(options);
+        cmdList(effectiveOptions);
         break;
       }
       case 'start': {
-        await cmdStart(options);
+        await cmdStart(effectiveOptions);
         break;
       }
       case 'stop': {
-        await cmdStop(options);
+        await cmdStop(effectiveOptions);
         break;
       }
       case 'status': {
-        await cmdStatus(options);
+        await cmdStatus(effectiveOptions);
         break;
       }
       default: {

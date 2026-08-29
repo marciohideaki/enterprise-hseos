@@ -60,18 +60,24 @@ fi
 # Build payload
 PAYLOAD=$(printf '{"event":"%s","tool":"%s"}' "$HOOK_EVENT" "$TOOL_NAME")
 
-# Locate hseos CLI: prefer global, then npx as fallback.
-HSEOS_BIN="$(command -v hseos 2>/dev/null || true)"
-if [[ -z "$HSEOS_BIN" ]]; then
-  HSEOS_BIN="npx --yes hseos"
+# Resolve only an explicitly supplied or repository-pinned CLI. Hooks never
+# execute an arbitrary global binary or download unpinned code.
+HSEOS_COMMAND=()
+if [[ "${NODE_ENV:-}" == "test" && -n "${HSEOS_CLI_PATH:-}" && -f "$HSEOS_CLI_PATH" ]]; then
+  if [[ "$HSEOS_CLI_PATH" == *.js ]]; then HSEOS_COMMAND=(node "$HSEOS_CLI_PATH"); else HSEOS_COMMAND=("$HSEOS_CLI_PATH"); fi
+else
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+  LOCAL_CLI="$PROJECT_ROOT/tools/cli/hseos-cli.js"
+  [[ -f "$LOCAL_CLI" ]] && HSEOS_COMMAND=(node "$LOCAL_CLI")
 fi
+[[ ${#HSEOS_COMMAND[@]} -eq 0 ]] && exit 0
 
 # Best-effort, fully detached, suppress all output. 5s soft cap.
 ARGS=(state-emit "$KIND" --silent --run "$RUN_ID" --agent "${AGENT:-unknown}" --payload "$PAYLOAD")
 [[ -n "$TASK_ID" ]] && ARGS+=(--task "$TASK_ID")
 
-# shellcheck disable=SC2086
-( timeout 5s $HSEOS_BIN "${ARGS[@]}" >/dev/null 2>&1 ) &
+( timeout 5s "${HSEOS_COMMAND[@]}" "${ARGS[@]}" >/dev/null 2>&1 ) &
 
 # Always exit 0 — hook never blocks the tool that triggered it.
 exit 0

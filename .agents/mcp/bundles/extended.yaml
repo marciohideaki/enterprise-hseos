@@ -8,6 +8,7 @@ required: false
 
 servers:
   - id: hseos-swarm
+    client_enabled: false # G9 observation: definitions remain available but clients must not launch them
     transport: stdio
     binary_resolver:
       - path: tools/mcp-hseos-swarm/index.js

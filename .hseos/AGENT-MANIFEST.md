@@ -168,13 +168,11 @@ The state-tracking subsystem (Sprint 1-2 of project plan, ADR `_decisions/2026-0
 - **MCP server** (port 3100) — JSON-RPC tools (`runs_list`, `agent_runs_list`, `orphans_list`, `events_search`, `handoffs_list`, …) for cross-session queries.
 - **Web SSE side-cars** — per-project (`hseos state-ui start`, port 3200) and central multi-project (`hseos kanban-central start`, port 3210).
 
-SWARM (and other agents) emit structured events at 5 phase boundaries via `hseos state-emit` when `HSEOS_CURRENT_RUN_ID` is set — see `.agents/skills/dev-squad/SKILL.md` "State emission contract" section. Failure of emission never blocks execution (best-effort).
+SWARM (and other agents) emit structured events at phase boundaries via `hseos state-emit` when `HSEOS_CURRENT_RUN_ID` is set — see `.agents/skills/dev-squad/SKILL.md`. Markdown files are compatibility renders for resume and human review; they do not hold mutation authority over relational state.
 
-**Canonicity policy (post-Wave 5):**
-- *Single-run scope:* markdown run-dir is canonical (resume + human review).
-- *Cross-run / cross-project scope:* SQLite is canonical (orphan detection, kanban, FTS5 queries).
+ADR-0022's execution ledger and unified adapters are implemented behind an activation gate. Before a release can enable them, the accepted compatibility-window and migration-evidence conditions must pass. Once activated, a required ledger/policy failure is fail-closed; only optional telemetry and indexes may degrade with warnings.
 
-In-process scheduler (when MCP server runs) sweeps orphans every 5 minutes, marking running agent_runs whose `last_heartbeat_at` is older than `stale_minutes` (default 10). Manual sweep via `hseos state-stale-sweep`.
+The in-process stale sweep and manual `hseos state-stale-sweep` share the governed execution scheduler; neither may mutate `as_agent_runs` without durable lifecycle facts after activation.
 
 ---
 

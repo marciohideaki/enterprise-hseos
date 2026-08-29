@@ -14,10 +14,13 @@ function read(relativePath) {
 
 const cases = [
   {
-    name: 'worktree-manager validates the task worktree script',
+    name: 'worktree-manager validates from inside the task worktree',
     fn: () => {
       const script = read('scripts/governance/worktree-manager.sh');
-      assert.match(script, /bash "\$\{wt_path\}\/scripts\/governance\/quality-gates\.sh"/);
+      const validation = script.slice(script.indexOf('cmd_validate()'), script.indexOf('cmd_commit()'));
+      assert.match(validation, /cd "\$\{wt_path\}"/);
+      assert.match(validation, /env -u REPO_ROOT .*bash "\.\/scripts\/governance\/quality-gates\.sh"/);
+      assert.doesNotMatch(validation, /bash "\$\{wt_path\}\/scripts\/governance\/quality-gates\.sh"/);
     },
   },
   {
@@ -37,7 +40,7 @@ const cases = [
       assert.ok(master, 'master branch protection entry missing');
       assert.strictEqual(master.protection.allow_force_pushes, false);
       assert.strictEqual(master.protection.allow_deletions, false);
-      assert.strictEqual(master.protection.required_pull_request_reviews.required_approving_review_count, 1);
+      assert.strictEqual(master.protection.required_pull_request_reviews, null);
     },
   },
   {
@@ -82,6 +85,31 @@ const cases = [
       for (const pattern of config.branch_naming.allowed_patterns) {
         const prefix = pattern.replace('/*', '/');
         assert.ok(script.includes(prefix), `check-branch.sh missing ${prefix}`);
+      }
+    },
+  },
+  {
+    name: 'every workflow that runs the full suite installs the required isolation backend first',
+    fn: () => {
+      const workflows = ['.github/workflows/ci.yaml', '.github/workflows/standalone-smoke.yaml', '.github/workflows/release.yaml'];
+      for (const workflowPath of workflows) {
+        const workflow = yaml.parse(read(workflowPath));
+        for (const [jobName, job] of Object.entries(workflow.jobs)) {
+          const steps = job.steps ?? [];
+          const testIndex = steps.findIndex((step) => typeof step.run === 'string' && step.run.includes('npm test'));
+          if (testIndex === -1) continue;
+          const backendIndex = steps.findIndex(
+            (step) => typeof step.run === 'string' && step.run.includes('bubblewrap'),
+          );
+          const userNamespaceIndex = steps.findIndex(
+            (step) =>
+              typeof step.run === 'string' && step.run.includes('kernel.apparmor_restrict_unprivileged_userns=0'),
+          );
+          assert.ok(backendIndex !== -1, `${workflowPath}:${jobName} does not install bubblewrap`);
+          assert.ok(backendIndex < testIndex, `${workflowPath}:${jobName} installs bubblewrap after npm test`);
+          assert.ok(userNamespaceIndex !== -1, `${workflowPath}:${jobName} does not enable user namespaces`);
+          assert.ok(userNamespaceIndex < testIndex, `${workflowPath}:${jobName} enables user namespaces after npm test`);
+        }
       }
     },
   },

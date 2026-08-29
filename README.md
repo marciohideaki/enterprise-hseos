@@ -1,6 +1,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI](https://github.com/marciohideaki/hseos/actions/workflows/standalone-smoke.yaml/badge.svg)](https://github.com/marciohideaki/hseos/actions)
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](package.json)
 [![Node](https://img.shields.io/badge/node-%3E%3D20-green.svg)](https://nodejs.org)
 [![Agents](https://img.shields.io/badge/agents-16-purple.svg)](.hseos/agents/)
 [![Skills](https://img.shields.io/badge/skills-52-orange.svg)](.enterprise/governance/agent-skills/)
@@ -12,9 +12,13 @@
   </picture>
 </p>
 
-> *"Where human intent becomes institutional intelligence."*
+> _"Where human intent becomes institutional intelligence."_
 
 **A spec-driven, AI-assisted development framework combining architecture governance, cyberpunk agents, 52 skills, MCPs and engineering workflows.**
+
+> Upgrading from v2.x? Review the
+> [v3 migration guide](docs/MIGRATION-GUIDE-v2-to-v3.md) before moving state,
+> exposing the web side-car, or recompiling catalogs.
 
 ---
 
@@ -130,23 +134,23 @@ Each step is governed by skills loaded automatically from the registry. Agents c
 
 ## Agent Roster
 
-| Code | Name | Role | Domain |
-|------|------|------|--------|
-| `NYX` | Intelligence Broker | Business Analysis & Requirements | Discovery |
-| `VECTOR` | Mission Architect | Product Vision & PRD Ownership | Planning |
-| `CIPHER` | Systems Architect | Technical Design & Architecture | Solutioning |
-| `GHOST` | Code Executor | Story Implementation & TDD | Execution |
-| `RAZOR` | Sprint Commander | Sprint Planning & Story Preparation | Coordination |
-| `GLITCH` | Chaos Engineer | QA, Testing & Risk Discovery | Validation |
-| `PRISM` | Interface Weaver | UX Research & Interaction Design | Experience |
-| `BLITZ` | Solo Protocol | Full-stack Solo Dev Fast Flow | Autonomy |
-| `QUILL` | Knowledge Scribe | Technical Documentation | Knowledge |
-| `ORBIT` | Flow Conductor | Multi-agent Delivery Orchestration | Orchestration |
-| `FORGE` | Release Engineer | DevOps, CI Artifact Promotion & Publication | DevOps |
-| `KUBE` | Kubernetes Delivery Operator | GitOps Manifest Update, PR & ArgoCD Sync | GitOps |
-| `SABLE` | Runtime Operator | Rollout Verification & Runtime Smoke | Operations |
-| `SWARM` | Parallel Execution Commander | Heterogeneous Batch Decomposition & Worktree-Isolated Fan-Out | Parallelism |
-| `ATLAS` | ADO Lifecycle Orchestrator | Azure DevOps Plan→Sync→Close Tracking (feature-flagged via `ado.enabled`) | ADO Ops |
+| Code     | Name                         | Role                                                                      | Domain        |
+| -------- | ---------------------------- | ------------------------------------------------------------------------- | ------------- |
+| `NYX`    | Intelligence Broker          | Business Analysis & Requirements                                          | Discovery     |
+| `VECTOR` | Mission Architect            | Product Vision & PRD Ownership                                            | Planning      |
+| `CIPHER` | Systems Architect            | Technical Design & Architecture                                           | Solutioning   |
+| `GHOST`  | Code Executor                | Story Implementation & TDD                                                | Execution     |
+| `RAZOR`  | Sprint Commander             | Sprint Planning & Story Preparation                                       | Coordination  |
+| `GLITCH` | Chaos Engineer               | QA, Testing & Risk Discovery                                              | Validation    |
+| `PRISM`  | Interface Weaver             | UX Research & Interaction Design                                          | Experience    |
+| `BLITZ`  | Solo Protocol                | Full-stack Solo Dev Fast Flow                                             | Autonomy      |
+| `QUILL`  | Knowledge Scribe             | Technical Documentation                                                   | Knowledge     |
+| `ORBIT`  | Flow Conductor               | Multi-agent Delivery Orchestration                                        | Orchestration |
+| `FORGE`  | Release Engineer             | DevOps, CI Artifact Promotion & Publication                               | DevOps        |
+| `KUBE`   | Kubernetes Delivery Operator | GitOps Manifest Update, PR & ArgoCD Sync                                  | GitOps        |
+| `SABLE`  | Runtime Operator             | Rollout Verification & Runtime Smoke                                      | Operations    |
+| `SWARM`  | Parallel Execution Commander | Heterogeneous Batch Decomposition & Worktree-Isolated Fan-Out             | Parallelism   |
+| `ATLAS`  | ADO Lifecycle Orchestrator   | Azure DevOps Plan→Sync→Close Tracking (feature-flagged via `ado.enabled`) | ADO Ops       |
 
 > Plus `HSEOS-MASTER` (`src/core/agents/hseos-master.agent.yaml`) — the meta/bootstrap executor for generic `core`-module tasks, outside the delivery flow.
 
@@ -154,14 +158,14 @@ Each step is governed by skills loaded automatically from the registry. Agents c
 
 ## Prerequisites
 
-| Tool | Version | Required | Notes |
-|------|---------|----------|-------|
-| Node.js | ≥ 20 | ✅ | Runtime for HSEOS CLI |
-| Git | ≥ 2.30 | ✅ | Hooks require modern git |
-| Claude Code CLI | latest | ✅ | `npm install -g @anthropic-ai/claude-code` |
-| kubectl | ≥ 1.28 | ⚠️ | Required for KUBE agent only |
-| ArgoCD CLI | ≥ 2.9 | ⚠️ | Required for GitOps workflows |
-| Docker | ≥ 24 | ⚠️ | Required for FORGE agent |
+| Tool            | Version | Required | Notes                                      |
+| --------------- | ------- | -------- | ------------------------------------------ |
+| Node.js         | ≥ 20    | ✅       | Runtime for HSEOS CLI                      |
+| Git             | ≥ 2.30  | ✅       | Hooks require modern git                   |
+| Claude Code CLI | latest  | ✅       | `npm install -g @anthropic-ai/claude-code` |
+| kubectl         | ≥ 1.28  | ⚠️       | Required for KUBE agent only               |
+| ArgoCD CLI      | ≥ 2.9   | ⚠️       | Required for GitOps workflows              |
+| Docker          | ≥ 24    | ⚠️       | Required for FORGE agent                   |
 
 ---
 
@@ -174,6 +178,7 @@ npx hseos install
 ```
 
 This sets up:
+
 - `.claude/commands/` — agent commands as Claude Code slash commands (one file per agent + helpers)
 - `.claude/hooks.json` — Claude Code `PreToolUse` / `UserPromptSubmit` hooks (skill suggestion, CLAUDE.md guard, SWARM gate)
 - `.codex/config.toml` + `.codex/hseos-hooks.json` — Codex adapter (when `codex` is in `--tools`)
@@ -185,8 +190,10 @@ This sets up:
 
 ### 1b. Pick a capability profile (optional — `developer` is the default)
 
-Installation is driven by an auditable capability catalog (ADR-0016). Profiles: `minimal`,
-`developer` (default), `governance`, `gitops`, `ado`, `solo`, `full`. The governance baseline
+Installation is driven by an auditable capability catalog (ADR-0016). General profiles include
+`minimal`, `developer` (default), `governance`, `gitops`, `ado`, `solo`, and `full`. Agent runtime
+candidates additionally include `agent-reference`, `agent-openai-compatible-candidate`,
+the delegated hosted-agent candidates, and a sandboxed ACP one-shot candidate. The governance baseline
 is always included and cannot be deselected; components with external prerequisites (ADO,
 sandbox, telemetry, axon-bridge, second-brain) are optional and degrade gracefully when unmet.
 
@@ -195,6 +202,7 @@ npx hseos install-plan --list-profiles     # discover profiles
 npx hseos install-plan --profile gitops    # dry-run: components, skills, paths, prerequisites
 npx hseos install --profile developer      # install a profile
 npx hseos install --skills pr-review,rfc   # or baseline + individual skills
+npx hseos agent-provider-conformance --verify --require-ready # verify selected provider manifests and suites
 ```
 
 See [`docs/capabilities.md`](docs/capabilities.md) for the full profile/component/prerequisite reference.
@@ -228,6 +236,7 @@ npx hseos agent-core verify   # hash-pinned integrity of compiled artifacts
 ## Quick Start
 
 ### For AI Agents
+
 > Read `CLAUDE.md` first — always.
 
 ### For Humans — First Session
@@ -246,6 +255,7 @@ cat AGENTS.md
 ### Engineering Flows
 
 **Standard delivery:**
+
 ```
 NYX (discover) → VECTOR (plan) → CIPHER (architect) → PRISM (ux)
 → RAZOR (sprint prep) → GHOST (implement) → GLITCH (validate)
@@ -253,11 +263,13 @@ NYX (discover) → VECTOR (plan) → CIPHER (architect) → PRISM (ux)
 ```
 
 **Solo / fast delivery:**
+
 ```
 BLITZ → FORGE → KUBE → SABLE
 ```
 
 **Orchestrated epic:**
+
 ```bash
 # Inspect workflows
 hseos workflow list
@@ -276,18 +288,18 @@ hseos workflow advance
 
 52 skills auto-loaded from the registry based on task context. **You never load skills manually** — agents match triggers and load the minimum tier needed.
 
-| Domain | Skills |
-|--------|--------|
-| Code Quality | `commit-hygiene`, `sanitize-comments`, `simplicity-first`, `naming-conventions` |
-| Architecture | `ddd-boundary-check`, `breaking-change-detection`, `adr-compliance`, `spec-driven` |
-| Security | `secure-coding`, `threat-modeling`, `policy-layer` |
-| Testing | `test-coverage`, `self-verification`, `verification-before-completion` |
-| Observability | `observability-compliance`, `ai-observability` |
-| DevOps / GitOps | `gitops-deploy`, `gitops-add-service`, `gitops-new-project` |
-| Documentation | `documentation-completeness`, `doc-project` |
-| Multi-agent | `multi-agent-orchestration`, `inter-agent-comms`, `dev-squad` |
-| Research / Design | `tech-research`, `rfc`, `repo-radar` |
-| Session | `session-handoff`, `context-compression`, `context-engineering` |
+| Domain            | Skills                                                                             |
+| ----------------- | ---------------------------------------------------------------------------------- |
+| Code Quality      | `commit-hygiene`, `sanitize-comments`, `simplicity-first`, `naming-conventions`    |
+| Architecture      | `ddd-boundary-check`, `breaking-change-detection`, `adr-compliance`, `spec-driven` |
+| Security          | `secure-coding`, `threat-modeling`, `policy-layer`                                 |
+| Testing           | `test-coverage`, `self-verification`, `verification-before-completion`             |
+| Observability     | `observability-compliance`, `ai-observability`                                     |
+| DevOps / GitOps   | `gitops-deploy`, `gitops-add-service`, `gitops-new-project`                        |
+| Documentation     | `documentation-completeness`, `doc-project`                                        |
+| Multi-agent       | `multi-agent-orchestration`, `inter-agent-comms`, `dev-squad`                      |
+| Research / Design | `tech-research`, `rfc`, `repo-radar`                                               |
+| Session           | `session-handoff`, `context-compression`, `context-engineering`                    |
 
 See full catalog: [`docs/skills.md`](docs/skills.md) · Registry: [`.enterprise/governance/agent-skills/SKILLS-REGISTRY.md`](.enterprise/governance/agent-skills/SKILLS-REGISTRY.md)
 
@@ -367,33 +379,33 @@ hseos/
 
 ## Governance Layers
 
-| Layer | Location | Purpose |
-|-------|----------|---------|
-| Constitution | `.enterprise/.specs/constitution/` | Supreme law — all agents read this first |
-| Core Standards | `.enterprise/.specs/core/` | Org-wide invariants (naming, structure) |
-| Cross-Cutting | `.enterprise/.specs/cross/` | Security, observability, data governance |
-| Stack Standards | `.enterprise/.specs/<Stack>/` | Language/framework specifics |
-| ADRs | `.enterprise/.specs/decisions/` | Traceable architectural decisions |
-| Agent Authority | `.enterprise/agents/<code>/` | Per-agent scope and hard limits |
-| Skills | `.enterprise/governance/agent-skills/` | 52 tiered skills, trigger-loaded |
+| Layer           | Location                               | Purpose                                  |
+| --------------- | -------------------------------------- | ---------------------------------------- |
+| Constitution    | `.enterprise/.specs/constitution/`     | Supreme law — all agents read this first |
+| Core Standards  | `.enterprise/.specs/core/`             | Org-wide invariants (naming, structure)  |
+| Cross-Cutting   | `.enterprise/.specs/cross/`            | Security, observability, data governance |
+| Stack Standards | `.enterprise/.specs/<Stack>/`          | Language/framework specifics             |
+| ADRs            | `.enterprise/.specs/decisions/`        | Traceable architectural decisions        |
+| Agent Authority | `.enterprise/agents/<code>/`           | Per-agent scope and hard limits          |
+| Skills          | `.enterprise/governance/agent-skills/` | 52 tiered skills, trigger-loaded         |
 
 ---
 
 ## Comparison Matrix
 
-| Capability | HSEOS | GitHub Copilot | Cursor | Raw Claude Code |
-|-----------|-------|---------------|--------|----------------|
-| Governance constitution | ✅ immutable | ❌ | ❌ | ❌ |
-| Named agent roles | ✅ 15 agents | ❌ | ❌ | ❌ |
-| Tiered skill registry | ✅ 52 skills | ❌ | ❌ | ❌ |
-| Pre-commit enforcement | ✅ husky hooks | ❌ | ❌ | ❌ |
-| ADR tracking | ✅ built-in | ❌ | ❌ | ❌ |
-| GitOps deploy workflow | ✅ KUBE agent | ❌ | ❌ | ❌ |
-| Multi-agent orchestration | ✅ ORBIT | ❌ | ❌ | partial |
-| HITL gates | ✅ structural | ❌ | ❌ | manual |
-| Multi-tool support | ✅ 8+ tools | Copilot only | Cursor only | Claude only |
-| Context session continuity | ✅ skills | ❌ | partial | partial |
-| Solo fast-track mode | ✅ BLITZ | ✅ | ✅ | ✅ |
+| Capability                 | HSEOS          | GitHub Copilot | Cursor      | Raw Claude Code |
+| -------------------------- | -------------- | -------------- | ----------- | --------------- |
+| Governance constitution    | ✅ immutable   | ❌             | ❌          | ❌              |
+| Named agent roles          | ✅ 15 agents   | ❌             | ❌          | ❌              |
+| Tiered skill registry      | ✅ 52 skills   | ❌             | ❌          | ❌              |
+| Pre-commit enforcement     | ✅ husky hooks | ❌             | ❌          | ❌              |
+| ADR tracking               | ✅ built-in    | ❌             | ❌          | ❌              |
+| GitOps deploy workflow     | ✅ KUBE agent  | ❌             | ❌          | ❌              |
+| Multi-agent orchestration  | ✅ ORBIT       | ❌             | ❌          | partial         |
+| HITL gates                 | ✅ structural  | ❌             | ❌          | manual          |
+| Multi-tool support         | ✅ 8+ tools    | Copilot only   | Cursor only | Claude only     |
+| Context session continuity | ✅ skills      | ❌             | partial     | partial         |
+| Solo fast-track mode       | ✅ BLITZ       | ✅             | ✅          | ✅              |
 
 ---
 
@@ -401,27 +413,37 @@ hseos/
 
 ### What shipped in v2.0.0 (all waves complete)
 
-| Wave | Description | Status |
-|---|---|---|
-| W0 | Foundation: decouple from global `~/.claude` — standalone install | ✅ |
-| W1 | Agent skills + hook registry neutralization — vendor-neutral | ✅ |
-| W2 | Compiler v2 modular pipeline (sources / adapters / lib / manifest) | ✅ |
-| W3 | 3 native MCP servers (governance :3101, swarm :3102, axon-bridge :3103) | ✅ |
-| W4 | Hook handlers implementation — 8 active handlers | ✅ |
-| W5 | Plugin marketplace + dual-format emit (`.claude-plugin/` + `.codex-plugin/`) | ✅ |
-| W6 | Self-verification suite (verify / audit / doctor — 12 tests) | ✅ |
-| W7 | `@hseos/adapter-sdk` + Goose BYOA reference adapter — 37 tests | ✅ |
-| W8 | Bilingual docs + CI matrix + migration guide + smithery.yaml | ✅ |
-| W9 | Release v2.0.0 — version bump, CHANGELOG, tag | ✅ |
+| Wave | Description                                                             | Status                                   |
+| ---- | ----------------------------------------------------------------------- | ---------------------------------------- |
+| W0   | Foundation: decouple from global `~/.claude` — standalone install       | ✅                                       |
+| W1   | Agent skills + hook registry neutralization — vendor-neutral            | ✅                                       |
+| W2   | Compiler v2 modular pipeline (sources / adapters / lib / manifest)      | ✅                                       |
+| W3   | 3 native MCP servers (governance :3101, swarm :3102, axon-bridge :3103) | ✅                                       |
+| W4   | Hook handlers implementation — 8 active handlers                        | ✅                                       |
+| W5   | Plugin marketplace + dual-format emitter infrastructure                 | ✅ infrastructure; candidates scaffolded |
+| W6   | Self-verification suite (verify / audit / doctor — 12 tests)            | ✅                                       |
+| W7   | `@hseos/adapter-sdk` + Goose BYOA reference adapter — 37 tests          | ✅                                       |
+| W8   | Bilingual docs + CI matrix + migration guide + smithery.yaml            | ✅                                       |
+| W9   | Release v2.0.0 — version bump, CHANGELOG, tag                           | ✅                                       |
 
 ### Post-v2.0 backlog
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| `dev-squad` SessionStart env injection (`HSEOS_CURRENT_*` vars) | 📋 Planned | Finding #5 from pós-release audit |
-| Visual governance editor | 📋 Planned | Web UI over constitution specs |
-| Smithery registry submission | ⛔ Opted out | Private / institutional use only |
-| NPM publish `@hseos/*` packages | ⛔ Opted out | Internal use; install via git/path |
+| Feature                                                         | Status       | Notes                              |
+| --------------------------------------------------------------- | ------------ | ---------------------------------- |
+| `dev-squad` SessionStart env injection (`HSEOS_CURRENT_*` vars) | 📋 Planned   | Finding #5 from pós-release audit  |
+| Visual governance editor                                        | 📋 Planned   | Web UI over constitution specs     |
+| Smithery registry submission                                    | ⛔ Opted out | Private / institutional use only   |
+| NPM publish `@hseos/*` packages                                 | ⛔ Opted out | Internal use; install via git/path |
+
+---
+
+## Package Surface
+
+The root package uses an explicit allowlist for standalone runtime,
+governance, workflows, source modules, and CLI tooling. Tests, run histories,
+internal graph evidence, CI files, and logs stay repository-only. The package
+surface is verified during `npm test` with bounded file-count and unpacked-size
+contracts.
 
 ---
 
@@ -432,8 +454,12 @@ HSEOS ships `@hseos/adapter-sdk` (`packages/adapter-sdk/`) — a minimal base cl
 ```javascript
 const { AdapterBase } = require('@hseos/adapter-sdk');
 class MyAdapter extends AdapterBase {
-  static get id() { return 'my-tool'; }
-  async emit(sources, outputDir) { /* write platform files */ }
+  static get id() {
+    return 'my-tool';
+  }
+  async emit(sources, outputDir) {
+    /* write platform files */
+  }
 }
 module.exports = MyAdapter;
 ```
@@ -450,19 +476,21 @@ Install a third-party adapter via npm (`npm install @hseos/adapter-my-tool`) —
   <img src="docs/assets/plugin-marketplace.png" alt="HSEOS plugin marketplace — install flow and dual-format emit" width="90%" />
 </p>
 
-HSEOS ships 4 built-in plugins and a dual-format emitter (`.claude-plugin/` + `.codex-plugin/`):
+HSEOS ships the dual-format marketplace infrastructure. The four catalog candidates are
+currently `scaffolded`: they are visible in `plugin list`, but are not emitted or installable
+until their behavior tests pass.
 
-| Plugin | Purpose |
-|---|---|
-| `hseos-skill-creator` | Scaffold SKILL.md+QUICK.md with HSEOS frontmatter via `/skill-new` |
-| `hseos-hookify` | Author hooks in neutral registry format with adapter dispatch |
-| `hseos-pr-review` | HSEOS commit-hygiene + PR review (`/pr-review`, `/pr-lint`) |
-| `hseos-security-guidance` | Threat modeling + dependency audit skill activations |
+| Plugin                    | Purpose                                                            |
+| ------------------------- | ------------------------------------------------------------------ |
+| `hseos-skill-creator`     | Scaffold SKILL.md+QUICK.md with HSEOS frontmatter via `/skill-new` |
+| `hseos-hookify`           | Author hooks in neutral registry format with adapter dispatch      |
+| `hseos-pr-review`         | HSEOS commit-hygiene + PR review (`/pr-review`, `/pr-lint`)        |
+| `hseos-security-guidance` | Threat modeling + dependency audit skill activations               |
 
 ```bash
 hseos plugin list              # show marketplace catalog
-hseos plugin install <id>      # install to .claude-plugin/ + .codex-plugin/
-hseos plugin doctor            # conformance check all installed plugins
+hseos plugin install <id>      # accepts only status: active
+hseos plugin doctor            # validates active entries; reports inactive candidates
 ```
 
 ---
@@ -481,9 +509,14 @@ hseos kanban                            # ASCII kanban in terminal
 A web side-car (port `:3200`) serves a real-time kanban board via HTTP + SSE:
 
 ```bash
-hseos state-ui                           # start kanban server at localhost:3200
-hseos state-ui --host 0.0.0.0           # LAN / Tailscale accessible
+hseos state-ui start                     # loopback kanban at localhost:3200
+export HSEOS_STATE_UI_TOKEN='replace-with-a-long-random-token'
+hseos state-ui start --auth-token-env HSEOS_STATE_UI_TOKEN
 ```
+
+Direct non-loopback HTTP is rejected. Remote browser access requires an
+authenticated TLS reverse proxy forwarding to the loopback side-car; the proxy
+can inject the configured bearer header.
 
 The `state-emit-hook.sh` shim is wired as a Claude Code `SessionStart` hook and auto-detects the active run from SQLite — no `HSEOS_CURRENT_RUN_ID` env required.
 
@@ -499,12 +532,12 @@ See [`docs/state-tracking.md`](docs/state-tracking.md) for the full reference.
 
 HSEOS ships four native MCP servers, each with dedicated toolsets:
 
-| Server | Port | Description |
-|--------|------|-------------|
-| `hseos-project-state` | 3100 | Agent run/task/event/handoff state over SQLite (`as_*` schema + FTS5) |
-| `hseos-governance` | 3101 | Constitution queries, ADR lookup, spec validation, quality gate status |
-| `hseos-swarm` | 3102 | Worktree management, parallel task dispatch, run state coordination |
-| `hseos-axon-bridge` | 3103 | Knowledge graph bridge — links HSEOS runs to Axon memory capsules |
+| Server                | Port | Description                                                            |
+| --------------------- | ---- | ---------------------------------------------------------------------- |
+| `hseos-project-state` | 3100 | Agent run/task/event/handoff state over SQLite (`as_*` schema + FTS5)  |
+| `hseos-governance`    | 3101 | Constitution queries, ADR lookup, spec validation, quality gate status |
+| `hseos-swarm`         | 3102 | Worktree management, parallel task dispatch, run state coordination    |
+| `hseos-axon-bridge`   | 3103 | Knowledge graph bridge — links HSEOS runs to Axon memory capsules      |
 
 Add to your Claude Code MCP config:
 
@@ -580,7 +613,7 @@ MIT — Hideaki Solutions
 
 ---
 
-*HSEOS is institutional software. Built for teams that take engineering seriously.*
+_HSEOS is institutional software. Built for teams that take engineering seriously._
 
 ---
 
@@ -608,6 +641,7 @@ npx hseos install --no-git-hooks   # pula o pre-commit hook
 ```
 
 O instalador cria, por padrão:
+
 - `.claude/commands/` + `.claude/hooks.json` (quando `claude-code` está nos adapters)
 - `.codex/config.toml` + `.codex/hseos-hooks.json` (quando `codex` está nos adapters)
 - `.hseos/` (config, módulos, manifest de instalação)
@@ -628,37 +662,37 @@ O instalador cria, por padrão:
 
 ### Agentes disponíveis
 
-| Código | Nome | Papel |
-|--------|------|-------|
-| `NYX` | Intelligence Broker | Análise de negócio e requisitos |
-| `VECTOR` | Mission Architect | Visão de produto e PRD |
-| `CIPHER` | Systems Architect | Design técnico e arquitetura |
-| `GHOST` | Code Executor | Implementação de stories com TDD |
-| `RAZOR` | Sprint Commander | Planejamento de sprint |
-| `GLITCH` | Chaos Engineer | QA, testes e descoberta de riscos |
-| `PRISM` | Interface Weaver | UX e design de interação |
-| `BLITZ` | Solo Protocol | Fast flow para desenvolvimento solo |
-| `QUILL` | Knowledge Scribe | Documentação técnica |
-| `ORBIT` | Flow Conductor | Orquestração de entrega multi-agente |
-| `FORGE` | Release Engineer | DevOps, CI e publicação de artefatos |
-| `KUBE` | Kubernetes Operator | GitOps manifest update, PR e ArgoCD |
-| `SABLE` | Runtime Operator | Verificação de rollout e smoke tests |
-| `SWARM` | Parallel Execution Commander | Batch heterogêneo paralelo (worktree-isolated) |
+| Código   | Nome                         | Papel                                          |
+| -------- | ---------------------------- | ---------------------------------------------- |
+| `NYX`    | Intelligence Broker          | Análise de negócio e requisitos                |
+| `VECTOR` | Mission Architect            | Visão de produto e PRD                         |
+| `CIPHER` | Systems Architect            | Design técnico e arquitetura                   |
+| `GHOST`  | Code Executor                | Implementação de stories com TDD               |
+| `RAZOR`  | Sprint Commander             | Planejamento de sprint                         |
+| `GLITCH` | Chaos Engineer               | QA, testes e descoberta de riscos              |
+| `PRISM`  | Interface Weaver             | UX e design de interação                       |
+| `BLITZ`  | Solo Protocol                | Fast flow para desenvolvimento solo            |
+| `QUILL`  | Knowledge Scribe             | Documentação técnica                           |
+| `ORBIT`  | Flow Conductor               | Orquestração de entrega multi-agente           |
+| `FORGE`  | Release Engineer             | DevOps, CI e publicação de artefatos           |
+| `KUBE`   | Kubernetes Operator          | GitOps manifest update, PR e ArgoCD            |
+| `SABLE`  | Runtime Operator             | Verificação de rollout e smoke tests           |
+| `SWARM`  | Parallel Execution Commander | Batch heterogêneo paralelo (worktree-isolated) |
 
 ### Roadmap v2.0.0 (todas as waves concluídas)
 
-| Wave | Descrição | Status |
-|---|---|---|
-| W0 | Fundação: desacoplar do `~/.claude` global | ✅ |
-| W1 | Agent skills + neutralização do hook registry | ✅ |
-| W2 | Compiler v2 pipeline modular | ✅ |
-| W3 | 3 servidores MCP nativos HSEOS | ✅ |
-| W4 | Implementação dos hook handlers — 8 handlers ativos | ✅ |
-| W5 | Plugin marketplace + emissão dual-format | ✅ |
-| W6 | Auto-verificação (verify/audit/doctor — 12 testes) | ✅ |
-| W7 | `@hseos/adapter-sdk` + adaptador Goose BYOA — 37 testes | ✅ |
-| W8 | Docs bilíngues + CI matrix + guia de migração | ✅ |
-| W9 | Release v2.0.0 | ✅ |
+| Wave | Descrição                                               | Status |
+| ---- | ------------------------------------------------------- | ------ |
+| W0   | Fundação: desacoplar do `~/.claude` global              | ✅     |
+| W1   | Agent skills + neutralização do hook registry           | ✅     |
+| W2   | Compiler v2 pipeline modular                            | ✅     |
+| W3   | 3 servidores MCP nativos HSEOS                          | ✅     |
+| W4   | Implementação dos hook handlers — 8 handlers ativos     | ✅     |
+| W5   | Plugin marketplace + emissão dual-format                | ✅     |
+| W6   | Auto-verificação (verify/audit/doctor — 12 testes)      | ✅     |
+| W7   | `@hseos/adapter-sdk` + adaptador Goose BYOA — 37 testes | ✅     |
+| W8   | Docs bilíngues + CI matrix + guia de migração           | ✅     |
+| W9   | Release v2.0.0                                          | ✅     |
 
 ### State Tracking
 
@@ -666,7 +700,7 @@ O HSEOS inclui uma camada de estado baseada em SQLite em `.hseos/state/project.d
 
 ```bash
 hseos kanban          # Kanban ASCII no terminal
-hseos state-ui        # Servidor web com kanban em tempo real (localhost:3200)
+hseos state-ui start  # Servidor web com kanban em tempo real (localhost:3200)
 hseos verify          # Verificação de integridade
 hseos doctor          # Relatório de saúde completo
 ```
@@ -680,8 +714,12 @@ O HSEOS inclui `@hseos/adapter-sdk` (`packages/adapter-sdk/`) — uma classe bas
 ```javascript
 const { AdapterBase } = require('@hseos/adapter-sdk');
 class MeuAdapter extends AdapterBase {
-  static get id() { return 'minha-ferramenta'; }
-  async emit(sources, outputDir) { /* escreve arquivos da plataforma */ }
+  static get id() {
+    return 'minha-ferramenta';
+  }
+  async emit(sources, outputDir) {
+    /* escreve arquivos da plataforma */
+  }
 }
 module.exports = MeuAdapter;
 ```
@@ -692,19 +730,21 @@ Instale um adapter de terceiros via npm (`npm install @hseos/adapter-minha-ferra
 
 ### Plugin Marketplace
 
-O HSEOS inclui 4 plugins nativos e um emissor dual-format (`.claude-plugin/` + `.codex-plugin/`):
+O HSEOS inclui a infraestrutura de marketplace dual-format. Os quatro candidatos do
+catálogo estão `scaffolded`: aparecem em `plugin list`, mas não são emitidos nem instaláveis
+até passarem por testes de comportamento.
 
-| Plugin | Finalidade |
-|---|---|
-| `hseos-skill-creator` | Gera SKILL.md+QUICK.md com frontmatter HSEOS via `/skill-new` |
-| `hseos-hookify` | Cria hooks em formato neutro de registry com dispatch por adapter |
-| `hseos-pr-review` | Higiene de commits HSEOS + revisão de PR (`/pr-review`, `/pr-lint`) |
+| Plugin                    | Finalidade                                                          |
+| ------------------------- | ------------------------------------------------------------------- |
+| `hseos-skill-creator`     | Gera SKILL.md+QUICK.md com frontmatter HSEOS via `/skill-new`       |
+| `hseos-hookify`           | Cria hooks em formato neutro de registry com dispatch por adapter   |
+| `hseos-pr-review`         | Higiene de commits HSEOS + revisão de PR (`/pr-review`, `/pr-lint`) |
 | `hseos-security-guidance` | Ativações de skill para threat modeling + auditoria de dependências |
 
 ```bash
 hseos plugin list              # exibir catálogo do marketplace
-hseos plugin install <id>      # instalar em .claude-plugin/ + .codex-plugin/
-hseos plugin doctor            # verificar conformidade dos plugins instalados
+hseos plugin install <id>      # aceita somente status: active
+hseos plugin doctor            # valida ativos e informa candidatos inativos
 ```
 
 ### Links

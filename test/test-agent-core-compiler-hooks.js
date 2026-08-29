@@ -11,6 +11,7 @@ const os = require('node:os');
 const yaml = require('yaml');
 const agentCoreCommand = require('../tools/cli/commands/agent-core');
 const { AgentCoreCompiler } = require('../tools/cli/installers/lib/core/agent-core-compiler');
+const { validateHookRegistryDocument } = require('../tools/cli/installers/lib/core/agent-core-compiler/sources/hooks-source');
 
 let passed = 0;
 let failed = 0;
@@ -93,6 +94,43 @@ async function testClaudeHookAdapterUsesActiveRegistryEntries() {
   });
 }
 
+function testCanonicalHookRegistryRequiresExplicitStatus() {
+  const registryPath = path.join(__dirname, '..', '.enterprise', 'governance', 'hooks', 'registry.yaml');
+  const registry = yaml.parse(fs.readFileSync(registryPath, 'utf8'));
+  const result = validateHookRegistryDocument(registry);
+  assertPass('canonical hook registry uses strict schema v2', result.strict && result.schemaVersion === '2.0');
+  assertPass(
+    'every canonical hook declares status',
+    registry.hooks.every((hook) => hook.status),
+  );
+  const legacySessionHook = registry.hooks.find((hook) => hook.id === 'sessionstart-all-session-track-register-machine-store');
+  const projectSessionHook = registry.hooks.find((hook) => hook.id === 'sessionstart-all-session-track-register-project-store');
+  assertPass(
+    'session registration keeps the old id deprecated and activates the project-store id',
+    legacySessionHook?.status === 'deprecated' && projectSessionHook?.status === 'active',
+  );
+
+  const missingStatus = structuredClone(registry);
+  delete missingStatus.hooks[0].status;
+  let rejected = false;
+  try {
+    validateHookRegistryDocument(missingStatus);
+  } catch (error) {
+    rejected = /explicit status/.test(error.message);
+  }
+  assertPass('strict hook schema rejects omitted status', rejected);
+
+  const legacy = { schema_version: '1.0', hooks: [{ ...registry.hooks[0] }] };
+  delete legacy.hooks[0].status;
+  let legacyAccepted = true;
+  try {
+    validateHookRegistryDocument(legacy);
+  } catch {
+    legacyAccepted = false;
+  }
+  assertPass('legacy hook schema remains a bounded compatibility input', legacyAccepted);
+}
+
 async function testAgentCoreCompileCommandEmitsClaudeAdapter() {
   await withTempDir(async (tempDir) => {
     await agentCoreCommand.action('compile', {
@@ -136,6 +174,7 @@ async function testAgentCoreCompileCommandEmitsCodexAdapter() {
           {
             id: 'hseos-governance',
             transport: 'stdio',
+            client_enabled: false,
             binary_resolver: [{ path: 'tools/mcp-hseos-governance/index.js', runtime: 'node' }],
           },
         ],
@@ -157,6 +196,7 @@ async function testAgentCoreCompileCommandEmitsCodexAdapter() {
       fs.existsSync(codexConfigPath) && config.includes('[features]') && config.includes('[mcp_servers."hseos-governance"]'),
       config,
     );
+    assertPass('agent-core compile preserves canonical MCP client activation', config.includes('enabled = false'), config);
     assertPass('agent-core compile --target codex emits hook metadata', Array.isArray(hooksMeta.hooks), JSON.stringify(hooksMeta));
   });
 }
@@ -243,6 +283,26 @@ async function testAgentCoreCompileRegistersPlugins() {
   await withTempDir(async (tempDir) => {
     const pluginsDir = path.join(tempDir, '.agents', 'plugins');
     fs.mkdirSync(pluginsDir, { recursive: true });
+    for (const id of ['hseos-skill-creator', 'hseos-pr-review']) {
+      const definitionDir = path.join(pluginsDir, 'definitions', id);
+      fs.mkdirSync(path.join(definitionDir, 'commands'), { recursive: true });
+      fs.mkdirSync(path.join(definitionDir, 'tests'), { recursive: true });
+      fs.writeFileSync(path.join(definitionDir, 'README.md'), `# ${id}\n`);
+      fs.writeFileSync(path.join(definitionDir, 'commands', 'run.md'), `# ${id}\n`);
+      fs.writeFileSync(path.join(definitionDir, 'tests', 'behavior.test.js'), `'use strict';\n`);
+      fs.writeFileSync(
+        path.join(definitionDir, 'plugin.yaml'),
+        yaml.stringify({
+          id,
+          version: '0.1.0',
+          description: id,
+          license: 'MIT',
+          extends: id === 'hseos-pr-review' ? 'official:pr-review-toolkit@1.2.0' : '',
+          surfaces: { commands: ['commands/run.md'] },
+          verification: { conformance_tests: 'tests/' },
+        }),
+      );
+    }
     fs.writeFileSync(
       path.join(pluginsDir, 'registry.yaml'),
       yaml.stringify({
@@ -250,6 +310,7 @@ async function testAgentCoreCompileRegistersPlugins() {
         plugins: [
           { id: 'hseos-skill-creator', version: '0.1.0', status: 'active', extends: '' },
           { id: 'hseos-pr-review', version: '0.1.0', status: 'active', extends: 'official:pr-review-toolkit@1.2.0' },
+          { id: 'hseos-future-plugin', version: '0.1.0', status: 'scaffolded', extends: '' },
         ],
       }),
     );
@@ -257,6 +318,7 @@ async function testAgentCoreCompileRegistersPlugins() {
     await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
     const manifest = yaml.parse(fs.readFileSync(path.join(tempDir, '.agents', 'manifest.yaml'), 'utf8'));
     const plugins = manifest.plugins || [];
+    const marketplace = JSON.parse(fs.readFileSync(path.join(tempDir, '.claude-plugin', 'marketplace.json'), 'utf8'));
 
     assertPass(
       'manifest registers plugins with counts.plugins',
@@ -269,6 +331,81 @@ async function testAgentCoreCompileRegistersPlugins() {
         plugins.find((p) => p.id === 'hseos-skill-creator')?.extends === undefined,
       JSON.stringify(plugins),
     );
+    assertPass(
+      'inactive plugin candidates are omitted from the compiled manifest',
+      !plugins.some((p) => p.id === 'hseos-future-plugin'),
+      JSON.stringify(plugins),
+    );
+    assertPass(
+      'compiler emits only active plugin definitions to the platform marketplace',
+      marketplace.plugins.length === 2 && !marketplace.plugins.some((p) => p.id === 'hseos-future-plugin'),
+      JSON.stringify(marketplace.plugins),
+    );
+  });
+}
+
+async function testAgentCoreCompileRejectsActivePluginWithoutDefinition() {
+  await withTempDir(async (tempDir) => {
+    const pluginsDir = path.join(tempDir, '.agents', 'plugins');
+    fs.mkdirSync(pluginsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(pluginsDir, 'registry.yaml'),
+      yaml.stringify({
+        version: '2.0',
+        plugins: [{ id: 'missing-definition', version: '1.0.0', status: 'active' }],
+      }),
+    );
+
+    let error;
+    try {
+      await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+    } catch (error_) {
+      error = error_;
+    }
+
+    assertPass(
+      'compile fails closed when an active plugin has no definition',
+      error && /missing definition/.test(error.message),
+      error && error.message,
+    );
+    assertPass('failed compile does not write a manifest', !fs.existsSync(path.join(tempDir, '.agents', 'manifest.yaml')));
+    assertPass('failed compile does not write a marketplace', !fs.existsSync(path.join(tempDir, '.claude-plugin', 'marketplace.json')));
+  });
+}
+
+async function testAgentCoreCompileRejectsFailingPluginConformance() {
+  await withTempDir(async (tempDir) => {
+    const pluginDir = path.join(tempDir, '.agents', 'plugins', 'definitions', 'broken-plugin');
+    fs.mkdirSync(path.join(pluginDir, 'commands'), { recursive: true });
+    fs.mkdirSync(path.join(pluginDir, 'tests'), { recursive: true });
+    fs.writeFileSync(path.join(pluginDir, 'README.md'), '# Broken plugin\n');
+    fs.writeFileSync(path.join(pluginDir, 'commands', 'run.md'), '# Run\n');
+    fs.writeFileSync(path.join(pluginDir, 'tests', 'behavior.test.js'), "require('node:assert').fail('fixture failure');\n");
+    fs.writeFileSync(
+      path.join(pluginDir, 'plugin.yaml'),
+      yaml.stringify({
+        id: 'broken-plugin',
+        version: '1.0.0',
+        description: 'Broken behavior fixture',
+        license: 'MIT',
+        surfaces: { commands: ['commands/run.md'] },
+        verification: { conformance_tests: 'tests/' },
+      }),
+    );
+    fs.writeFileSync(
+      path.join(tempDir, '.agents', 'plugins', 'registry.yaml'),
+      yaml.stringify({ plugins: [{ id: 'broken-plugin', version: '1.0.0', status: 'active' }] }),
+    );
+
+    let error;
+    try {
+      await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+    } catch (error_) {
+      error = error_;
+    }
+    assertPass('compile rejects an active plugin with failing behavior tests', Boolean(error));
+    assertPass('failed conformance writes no manifest', !fs.existsSync(path.join(tempDir, '.agents', 'manifest.yaml')));
+    assertPass('failed conformance writes no marketplace', !fs.existsSync(path.join(tempDir, '.claude-plugin', 'marketplace.json')));
   });
 }
 
@@ -387,6 +524,7 @@ async function testUnknownPlatformTargetIsRejected() {
 
 async function run() {
   console.log('Agent core compiler hook adapter tests');
+  testCanonicalHookRegistryRequiresExplicitStatus();
   await testClaudeHookAdapterUsesActiveRegistryEntries();
   await testAgentCoreCompileCommandEmitsClaudeAdapter();
   await testAgentCoreCompileCommandEmitsCodexAdapter();
@@ -395,6 +533,8 @@ async function run() {
   await testClaudeMdNotEmittedWithoutClaudeCode();
   await testAgentCoreCompileRegistersAgents();
   await testAgentCoreCompileRegistersPlugins();
+  await testAgentCoreCompileRejectsActivePluginWithoutDefinition();
+  await testAgentCoreCompileRejectsFailingPluginConformance();
   await testAgentCoreCompileRegistersMcpServers();
   await testManifestOmitsCatalogsWhenAbsent();
   await testAgentCoreCompileEmitsGooseAdapterAndTruthfulManifest();

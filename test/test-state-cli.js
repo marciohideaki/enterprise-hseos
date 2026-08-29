@@ -24,6 +24,9 @@ if (!Database) {
 
 const REPO_ROOT = path.join(__dirname, '..');
 const HSEOS_CLI = path.join(REPO_ROOT, 'tools', 'cli', 'hseos-cli.js');
+const { runMigrations } = require('../tools/mcp-project-state/lib/migrations');
+const MIGRATIONS_DIR = path.join(REPO_ROOT, 'tools', 'mcp-project-state', 'migrations');
+const PENDING_MIGRATIONS_DIR = path.join(REPO_ROOT, 'tools', 'mcp-project-state', 'migrations-pending-activation');
 
 let pass = 0;
 let fail = 0;
@@ -48,20 +51,136 @@ function runCli(args, opts = {}) {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
     timeout: 15_000,
+    env: { ...process.env, HSEOS_GOVERNED_EXECUTION_FIXTURE: '1', NODE_ENV: 'test' },
     ...opts,
   });
 }
 
 console.log('State CLI smoke tests');
 
+it('state rejects command-shaped ports before invoking a process', () => {
+  const dir = makeTempDir();
+  const marker = path.join(dir, 'injection-marker');
+  const result = runCli(['state', 'stop', '--directory', dir, '--port', `3100;touch ${marker}`], {
+    env: { ...process.env, HSEOS_DISABLE_UPDATE_CHECK: '1', NODE_ENV: 'test' },
+  });
+  if (result.status === 0) throw new Error('command-shaped port unexpectedly succeeded');
+  if (fs.existsSync(marker)) throw new Error('port input reached a shell');
+  if (!result.stderr.includes('port must be an integer')) throw new Error(`unexpected error: ${result.stderr}`);
+});
+
+it('state validates the complete TCP port range', () => {
+  for (const port of ['0', '65536', '-1', '3.1', '']) {
+    const result = runCli(['state', 'status', '--port', port], {
+      env: { ...process.env, HSEOS_DISABLE_UPDATE_CHECK: '1', NODE_ENV: 'test' },
+    });
+    if (result.status === 0 || !result.stderr.includes('port must be an integer')) {
+      throw new Error(`invalid port ${JSON.stringify(port)} was accepted: ${result.stderr}`);
+    }
+  }
+});
+
+it('legacy state SQL input is escaped instead of executed', () => {
+  const sqlite = spawnSync('sh', ['-c', 'command -v sqlite3'], { encoding: 'utf8' });
+  if (sqlite.status !== 0) return;
+  const dir = makeTempDir();
+  const script = path.join(REPO_ROOT, 'tools', 'cli-project-state', 'project-state.sh');
+  const dbPath = path.join(dir, 'project.db');
+  const key = "owner'); DROP TABLE state; --";
+  const result = spawnSync('bash', [script, 'state', 'write', key, "value'with-quote"], {
+    encoding: 'utf8',
+    cwd: dir,
+    env: { ...process.env, HSEOS_STATE_DB: dbPath },
+  });
+  if (result.status !== 0) throw new Error(`escaped write failed: ${result.stderr}`);
+  const db = new Database(dbPath, { readonly: true });
+  const row = db.prepare('SELECT value FROM state WHERE key = ?').get(key);
+  const table = db.prepare("SELECT COUNT(*) AS count FROM sqlite_master WHERE type='table' AND name='state'").get();
+  db.close();
+  if (table.count !== 1 || row?.value !== "value'with-quote") throw new Error('SQL literal was not preserved safely');
+});
+
+it('production CLI preserves v4 behavior and records legacy transition usage', () => {
+  const dir = makeTempDir();
+  const result = spawnSync(process.execPath, [HSEOS_CLI, 'state-emit', 'start', '--directory', dir, '--run', 'R-gated', '--silent'], {
+    encoding: 'utf8',
+    env: { ...process.env, NODE_ENV: 'production' },
+  });
+  if (result.status !== 0) throw new Error(`legacy compatibility failed, exit ${result.status}: ${result.stderr}`);
+  const dbPath = path.join(dir, '.hseos', 'state', 'project.db');
+  const db = new Database(dbPath, { readonly: true });
+  if (db.pragma('user_version', { simple: true }) !== 4) throw new Error('production CLI activated pending schema');
+  if (db.prepare("SELECT COUNT(*) AS count FROM sqlite_master WHERE name = 'execution_events'").get().count !== 0) {
+    throw new Error('production CLI created governed execution tables');
+  }
+  db.close();
+  const usage = new Database(path.join(dir, '.hseos', 'state', 'mcp-legacy-usage.db'), { readonly: true });
+  const count = usage.prepare("SELECT SUM(request_count) AS count FROM mcp_legacy_usage_daily WHERE server_id = 'cli'").get().count;
+  usage.close();
+  if (count !== 1) throw new Error(`expected one metered CLI call, got ${count}`);
+});
+
+it('production CLI rejects a pre-existing pending execution schema', () => {
+  const dir = makeTempDir();
+  const dbPath = path.join(dir, '.hseos', 'state', 'project.db');
+  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+  const db = new Database(dbPath);
+  runMigrations(db, MIGRATIONS_DIR, { log: () => {} });
+  runMigrations(db, PENDING_MIGRATIONS_DIR, { log: () => {} });
+  db.close();
+  const result = spawnSync(process.execPath, [HSEOS_CLI, 'state-list', '--directory', dir, '--json'], {
+    encoding: 'utf8',
+    env: { ...process.env, NODE_ENV: 'production' },
+  });
+  if (result.status === 0 || !result.stderr.includes('EXECUTION_ACTIVATION_PENDING')) {
+    throw new Error(`expected pending-schema rejection, exit ${result.status}: ${result.stderr}`);
+  }
+});
+
 it('state-emit creates db file and inserts event', () => {
   const dir = makeTempDir();
-  const result = runCli(['state-emit', 'start', '--directory', dir, '--run', 'R-test', '--task', 'T1', '--agent', 'tester', '--silent']);
+  const result = runCli(['state-emit', 'start', '--directory', dir, '--run', 'R-test', '--task', 'T1', '--agent', 'tester', '--silent'], {
+    env: { ...process.env, HSEOS_GOVERNED_EXECUTION_FIXTURE: '1', NODE_ENV: 'test', USER: 'self-asserted-attacker' },
+  });
   if (result.status !== 0) {
     throw new Error(`exit ${result.status}: ${result.stderr || result.stdout}`);
   }
   const dbPath = path.join(dir, '.hseos', 'state', 'project.db');
   if (!fs.existsSync(dbPath)) throw new Error('db not created');
+  const db = new Database(dbPath, { readonly: true });
+  const lifecycle = db
+    .prepare(`SELECT event_type FROM execution_events ORDER BY position`)
+    .all()
+    .map((event) => event.event_type);
+  const actor = JSON.parse(db.prepare("SELECT actor_json FROM execution_events WHERE event_type = 'ExecutionAuthorized'").get().actor_json);
+  db.close();
+  if (JSON.stringify(lifecycle) !== JSON.stringify(['ExecutionAuthorized', 'ExecutionStarted', 'ExecutionSucceeded'])) {
+    throw new Error(`missing governed lifecycle: ${JSON.stringify(lifecycle)}`);
+  }
+  if (actor.id.includes('self-asserted-attacker') || actor.type !== 'local_process')
+    throw new Error(`untrusted CLI actor: ${JSON.stringify(actor)}`);
+});
+
+it('state-emit cannot write state when the governed pre-effect append fails', () => {
+  const dir = makeTempDir();
+  const dbPath = path.join(dir, '.hseos', 'state', 'project.db');
+  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+  const db = new Database(dbPath);
+  runMigrations(db, MIGRATIONS_DIR, { log: () => {} });
+  runMigrations(db, PENDING_MIGRATIONS_DIR, { log: () => {} });
+  db.exec(`
+    CREATE TRIGGER reject_cli_execution_start
+    BEFORE INSERT ON execution_events WHEN NEW.event_type = 'ExecutionStarted'
+    BEGIN SELECT RAISE(ABORT, 'injected CLI pre-effect failure'); END;
+  `);
+  db.close();
+  const result = runCli(['state-emit', 'start', '--directory', dir, '--run', 'R-blocked', '--silent']);
+  if (result.status === 0) throw new Error('state-emit unexpectedly succeeded');
+  const verify = new Database(dbPath, { readonly: true });
+  const runs = verify.prepare(`SELECT COUNT(*) AS count FROM as_runs WHERE id = 'R-blocked'`).get().count;
+  const events = verify.prepare(`SELECT COUNT(*) AS count FROM execution_events`).get().count;
+  verify.close();
+  if (runs !== 0 || events !== 0) throw new Error(`bypass detected: runs=${runs}, execution_events=${events}`);
 });
 
 it('state-list returns the row from state-emit', () => {

@@ -1,0 +1,28 @@
+schema_version: "1.0"
+binding_id: provider-binding:openai-compatible-example
+profile_id: agent-openai-compatible-candidate
+adapter: openai-compatible-sse
+provider:
+  provider_id: model:openai-compatible
+  provider_version: 1.0.0
+  base_url: https://api.example.invalid/v1
+  model: organization/model
+  capabilities:
+    - text_generation
+    - streaming
+    - tool_calls
+    - usage
+    - cancellation
+  limits:
+    context_tokens: 32768
+    max_output_tokens: 4096
+    max_parallel_requests: 4
+  secret_refs:
+    - name: api-key
+      source_ref: env://HSEOS_MODEL_PROVIDER_API_KEY
+transport:
+  max_attempts: 2
+  retry_delay_ms: 250
+activation:
+  operational: false
+  authorized: false

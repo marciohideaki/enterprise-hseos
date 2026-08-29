@@ -1,7 +1,7 @@
 # Enterprise Documentation Policy
-**Status:** Mandatory  
-**Scope:** All documentation produced or modified by humans or Enterprise agents  
-**Version:** 1.0  
+**Status:** Mandatory
+**Scope:** All documentation produced or modified by humans or Enterprise agents
+**Version:** 1.1
 
 ---
 
@@ -112,7 +112,29 @@ Any change to documentation MUST:
 
 ---
 
-## 10. Agent Enforcement Rules
+## 10. Provider-Neutral Provenance
+
+HSEOS documentation MUST describe capabilities from HSEOS-owned requirements,
+contracts, decisions, and reproducible evidence.
+
+Documentation MUST NOT:
+
+- attribute an HSEOS capability to the implementation of an external harness or framework;
+- describe HSEOS work as a port, fork, copy, adaptation, or absorption of an external harness or framework;
+- include provider or product references that a human authority has designated as restricted;
+- use cross-product parity as evidence of HSEOS completeness.
+
+Provider protocols and integration boundaries MAY be documented generically
+when required for operation. Runtime-only identifiers remain implementation
+details and MUST NOT be promoted into narrative documentation when a neutral
+description is sufficient.
+
+This rule and the one-time redaction exception for affected accepted ADRs are
+governed by ADR-0025.
+
+---
+
+## 11. Agent Enforcement Rules
 AI Agents MUST:
 
 - Treat documentation as authoritative
@@ -127,7 +149,7 @@ AI Agents MUST NOT:
 
 ---
 
-## 11. Review & Quality Bar
+## 12. Review & Quality Bar
 Documentation is considered acceptable ONLY if:
 
 - A reviewer can execute or validate work based on it
@@ -139,7 +161,7 @@ If documentation cannot support execution, it is incomplete.
 
 ---
 
-## 12. Acceptance
+## 13. Acceptance
 All contributors (human or AI) are bound by this policy.
 
 **End of Policy**

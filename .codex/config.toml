@@ -6,13 +6,13 @@ rmcp_client = true
 [mcp_servers."hseos-governance"]
 command = "node"
 args = ["tools/mcp-hseos-governance/index.js"]
-enabled = true
+enabled = false
 startup_timeout_sec = 20
 
 [mcp_servers."hseos-state-tracking"]
 command = "node"
 args = ["tools/mcp-project-state/index.js"]
-enabled = true
+enabled = false
 startup_timeout_sec = 20
 
 [mcp_servers."hseos-state-tracking".env]

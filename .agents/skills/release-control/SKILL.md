@@ -68,7 +68,7 @@ Every release MUST be assigned a risk level before promotion to production:
 | **High** | Breaking changes, data migrations, schema changes, major dependency upgrades, security patches, infrastructure changes |
 
 - RC-13: Risk level MUST be declared in the release PR or release notes.
-- RC-14: Risk level MUST be agreed upon by the release author and at least one reviewer.
+- RC-14: Risk level MUST receive explicit repository-owner acceptance recorded in the release evidence.
 
 ---
 

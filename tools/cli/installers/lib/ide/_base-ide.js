@@ -627,19 +627,6 @@ class BaseIdeSetup {
   }
 
   /**
-   * Flatten a relative path to a single filename for flat slash command naming
-   * @deprecated Use toColonPath() or toDashPath() from shared/path-utils.js instead
-   * Example: 'module/agents/name.md' -> 'hseos-module-agents-name.md'
-   * Used by IDEs that ignore directory structure for slash commands (e.g., Antigravity, Codex)
-   * @param {string} relativePath - Relative path to flatten
-   * @returns {string} Flattened filename with 'hseos-' prefix
-   */
-  flattenFilename(relativePath) {
-    const sanitized = relativePath.replaceAll(/[/\\]/g, '-');
-    return `hseos-${sanitized}`;
-  }
-
-  /**
    * Create agent configuration file
    * @param {string} hseosDir - HSEOS installation directory
    * @param {Object} agent - Agent information

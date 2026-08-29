@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "source": "anthropics/claude-code",
+  "proposals": [
+    {
+      "id": 1,
+      "title": "Formal permission lattice",
+      "verdict": "adopted",
+      "suite": "test:agent-policy-lattice",
+      "module": "packages/agent-policy-lattice",
+      "exports": ["evaluatePermissionLattice"]
+    },
+    {
+      "id": 2,
+      "title": "Transitive isolation",
+      "verdict": "adopted",
+      "suite": "test:agent-transitive-isolation",
+      "module": "packages/agent-isolation-attestation",
+      "exports": ["createIsolationPolicy", "runTransitiveIsolationJourney"]
+    },
+    {
+      "id": 3,
+      "title": "Provider-neutral agent messaging",
+      "verdict": "adopted",
+      "suite": "test:agent-message-transport",
+      "module": "packages/agent-message-transport",
+      "exports": ["LocalAgentMessageRelay", "SqliteAgentMessageStore"]
+    },
+    {
+      "id": 4,
+      "title": "Hosted worker lifecycle",
+      "verdict": "adopted",
+      "suite": "test:delegated-runtime-host",
+      "module": "packages/delegated-runtime-host",
+      "exports": ["DelegatedRuntimeHost", "DelegatedRuntimeStore"]
+    },
+    {
+      "id": 5,
+      "title": "Configuration and provenance lattice",
+      "verdict": "adopted",
+      "suite": "test:agent-policy-lattice",
+      "module": "packages/agent-policy-lattice",
+      "exports": ["resolveConfiguration"]
+    },
+    {
+      "id": 6,
+      "title": "Egress credential transformer",
+      "implemented_capability": "supervisor-owned credential injection",
+      "verdict": "partially_adopted",
+      "suite": "test:provider-egress-broker",
+      "module": "tools/cli/lib/provider-egress-broker.js",
+      "exports": ["startProviderEgressBroker"],
+      "rejected": "generic sentinel substitution"
+    },
+    {
+      "id": 7,
+      "title": "Continuous trace lineage",
+      "verdict": "adopted",
+      "suite": "test:agent-trace-lineage",
+      "module": "packages/agent-trace-lineage",
+      "exports": ["canonicalTraceId", "createTraceContext"]
+    }
+  ]
+}

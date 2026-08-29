@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { loadWorkflowCatalog } = require('../../cli/lib/workflow-catalog');
 
 // lib/ → mcp-hseos-governance/ → tools/ → worktree root
 const REPO_ROOT = path.join(__dirname, '..', '..', '..');
@@ -86,35 +87,23 @@ function listSkills(filter, tier) {
 }
 
 function listWorkflows(profile) {
-  const registryPath = path.join(REPO_ROOT, '.hseos', 'workflows', 'registry.yaml');
-  if (!fs.existsSync(registryPath)) return { workflows: [], error: 'workflows registry.yaml not found' };
-  const yaml = read(registryPath);
-  const workflows = [];
-  if (!yaml) return { workflows };
-
-  let currentId = null;
-  let currentOwner = null;
-  let currentPhases = [];
-
-  for (const line of yaml.split('\n')) {
-    const idMatch = line.match(/^\s{2}(\S+):/);
-    if (idMatch && !line.trim().startsWith('-') && !line.includes(': ')) {
-      if (currentId) workflows.push({ id: currentId, owner: currentOwner, phases: currentPhases });
-      currentId = idMatch[1];
-      currentOwner = null;
-      currentPhases = [];
-    }
-    const ownerMatch = line.match(/owner:\s*(.+)/);
-    if (ownerMatch) currentOwner = ownerMatch[1].trim();
-    const phaseMatch = line.match(/^\s+-\s+(.+)/);
-    if (phaseMatch && currentId) currentPhases.push(phaseMatch[1].trim());
-  }
-  if (currentId) workflows.push({ id: currentId, owner: currentOwner, phases: currentPhases });
-
-  const filtered = profile
-    ? workflows.filter((w) => w.owner?.toLowerCase().includes(profile.toLowerCase()) || w.id.includes(profile))
-    : workflows;
-  return { workflows: filtered, total: filtered.length };
+  const keyword = typeof profile === 'string' ? profile.trim().toLowerCase() : '';
+  const workflows = loadWorkflowCatalog(REPO_ROOT)
+    .filter(
+      (workflow) =>
+        !keyword ||
+        workflow.profiles.some((candidate) => candidate.toLowerCase() === keyword) ||
+        workflow.owner.toLowerCase().includes(keyword) ||
+        workflow.id.toLowerCase().includes(keyword),
+    )
+    .map((workflow) => ({
+      id: workflow.id,
+      kind: workflow.kind,
+      owner: workflow.owner,
+      profiles: workflow.profiles,
+      phases: (workflow.phases || []).map((phase) => phase.id),
+    }));
+  return { workflows, total: workflows.length };
 }
 
 module.exports = { readConstitution, listAdrs, readAuthority, listSkills, listWorkflows };

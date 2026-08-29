@@ -1,0 +1,23 @@
+{
+  "name": "@hseos/agent-runtime",
+  "version": "1.0.0",
+  "description": "Bounded headless AgentRuntime loop for the model-agnostic HSEOS Agent Kernel",
+  "keywords": ["hseos", "agents", "runtime", "kernel"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marciohideaki/hseos.git",
+    "directory": "packages/agent-runtime"
+  },
+  "license": "MIT",
+  "main": "index.js",
+  "dependencies": {
+    "@hseos/agent-compaction": "^1.0.0",
+    "@hseos/agent-context": "^1.0.0",
+    "@hseos/agent-runtime-contracts": "^1.0.0",
+    "@hseos/agent-session-store": "^1.0.0",
+    "@hseos/model-providers": "^1.0.0",
+    "@hseos/tool-runtime": "^1.0.0"
+  },
+  "engines": { "node": ">=20.0.0" },
+  "publishConfig": { "access": "public" }
+}

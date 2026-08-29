@@ -7,8 +7,11 @@
  */
 
 const path = require('node:path');
+const fs = require('node:fs');
+const os = require('node:os');
 const http = require('node:http');
 const { spawn } = require('node:child_process');
+const { MCP_LEGACY_PROTOCOL_VERSION } = require('../tools/lib/mcp-protocol');
 
 const REPO_ROOT = path.join(__dirname, '..');
 const SERVER = path.join(REPO_ROOT, 'tools', 'mcp-axon-bridge', 'index.js');
@@ -32,13 +35,17 @@ function pickPort() {
 }
 
 function rpc(port, method, params = {}) {
+  const normalizedParams =
+    method === 'initialize'
+      ? { protocolVersion: MCP_LEGACY_PROTOCOL_VERSION, clientInfo: { name: 'axon-test', version: '1.0.0' }, ...params }
+      : params;
   return new Promise((resolve, reject) => {
-    const body = JSON.stringify({ jsonrpc: '2.0', id: Date.now(), method, params });
+    const body = JSON.stringify({ jsonrpc: '2.0', id: Date.now(), method, params: normalizedParams });
     const req = http.request(
       {
         host: '127.0.0.1',
         port,
-        path: '/',
+        path: '/mcp',
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Content-Length': body.length },
         timeout: 8000,
@@ -64,6 +71,13 @@ function rpc(port, method, params = {}) {
   });
 }
 
+function toolData(result) {
+  const envelope = result.structuredContent || JSON.parse(result.content[0].text);
+  if (!Object.hasOwn(envelope, 'ok')) return envelope;
+  if (!envelope.ok) throw new Error(`${envelope.error.code}: ${envelope.error.message}`);
+  return envelope.data.result;
+}
+
 function waitFor(predicate, { timeoutMs = 6000, intervalMs = 100 } = {}) {
   return new Promise((resolve, reject) => {
     const t0 = Date.now();
@@ -84,9 +98,16 @@ function waitFor(predicate, { timeoutMs = 6000, intervalMs = 100 } = {}) {
   console.log('mcp-axon-bridge smoke test (fallback mode)');
 
   const port = pickPort();
+  const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-axon-state-'));
   const child = spawn(process.execPath, [SERVER, `--port=${port}`], {
+    cwd: stateDir,
     stdio: ['ignore', 'pipe', 'pipe'],
-    env: { ...process.env, AXON_BIN: '/nonexistent-axon-binary' },
+    env: {
+      ...process.env,
+      AXON_BIN: '/nonexistent-axon-binary',
+      HSEOS_STATE_DB: path.join(stateDir, 'project.db'),
+      NODE_ENV: 'production',
+    },
   });
   child.on('error', (e) => console.error('spawn error', e));
 
@@ -127,7 +148,7 @@ function waitFor(predicate, { timeoutMs = 6000, intervalMs = 100 } = {}) {
     for (const { name, arguments: args } of FALLBACK_CASES) {
       await it(`${name} returns fallback:true (no binary)`, async () => {
         const r = await rpc(port, 'tools/call', { name, arguments: args });
-        const result = JSON.parse(r.content[0].text);
+        const result = toolData(r);
         if (result.fallback !== true) throw new Error(`expected fallback:true, got ${JSON.stringify(result)}`);
         if (!Array.isArray(result.results)) throw new Error('results is not array');
       });
@@ -136,6 +157,7 @@ function waitFor(predicate, { timeoutMs = 6000, intervalMs = 100 } = {}) {
     child.kill('SIGTERM');
     await new Promise((r) => setTimeout(r, 200));
     if (!child.killed) child.kill('SIGKILL');
+    fs.rmSync(stateDir, { recursive: true, force: true });
   }
 
   console.log(`\n${pass} passed, ${fail} failed`);
