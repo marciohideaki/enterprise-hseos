@@ -1,0 +1,7 @@
+schema_version: repository-contract/v1
+repository_id: 7f9f9b79-638c-4138-9a29-8a2406ad9fb8
+identity:
+  remotes:
+    - github.com/marciohideaki/enterprise-hseos
+capabilities:
+  manifest: .agents/capabilities/components.yaml
