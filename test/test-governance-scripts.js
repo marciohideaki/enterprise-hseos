@@ -88,6 +88,25 @@ const cases = [
       }
     },
   },
+  {
+    name: 'every workflow that runs the full suite installs the required isolation backend first',
+    fn: () => {
+      const workflows = ['.github/workflows/ci.yaml', '.github/workflows/standalone-smoke.yaml', '.github/workflows/release.yaml'];
+      for (const workflowPath of workflows) {
+        const workflow = yaml.parse(read(workflowPath));
+        for (const [jobName, job] of Object.entries(workflow.jobs)) {
+          const steps = job.steps ?? [];
+          const testIndex = steps.findIndex((step) => typeof step.run === 'string' && step.run.includes('npm test'));
+          if (testIndex === -1) continue;
+          const backendIndex = steps.findIndex(
+            (step) => typeof step.run === 'string' && step.run.includes('bubblewrap'),
+          );
+          assert.ok(backendIndex !== -1, `${workflowPath}:${jobName} does not install bubblewrap`);
+          assert.ok(backendIndex < testIndex, `${workflowPath}:${jobName} installs bubblewrap after npm test`);
+        }
+      }
+    },
+  },
 ];
 
 let passed = 0;

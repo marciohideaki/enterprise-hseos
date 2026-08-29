@@ -30,7 +30,7 @@ jobs:
           test ! -d /opt/hideakisolutions  || { echo "FAIL: vault path leaked"; exit 1; }
 
       - name: Install system dependencies
-        run: apt-get update -qq && apt-get install -y -qq jq
+        run: apt-get update -qq && apt-get install -y -qq bubblewrap jq
 
       - name: Mark workspace as safe for git
         # The container user differs from the checkout owner; without this,
