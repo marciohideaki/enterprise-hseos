@@ -18,7 +18,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: npm
       - name: Install isolation backend
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq bubblewrap
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - run: npm ci
       - run: npm test
 

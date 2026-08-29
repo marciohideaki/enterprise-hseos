@@ -101,8 +101,14 @@ const cases = [
           const backendIndex = steps.findIndex(
             (step) => typeof step.run === 'string' && step.run.includes('bubblewrap'),
           );
+          const userNamespaceIndex = steps.findIndex(
+            (step) =>
+              typeof step.run === 'string' && step.run.includes('kernel.apparmor_restrict_unprivileged_userns=0'),
+          );
           assert.ok(backendIndex !== -1, `${workflowPath}:${jobName} does not install bubblewrap`);
           assert.ok(backendIndex < testIndex, `${workflowPath}:${jobName} installs bubblewrap after npm test`);
+          assert.ok(userNamespaceIndex !== -1, `${workflowPath}:${jobName} does not enable user namespaces`);
+          assert.ok(userNamespaceIndex < testIndex, `${workflowPath}:${jobName} enables user namespaces after npm test`);
         }
       }
     },

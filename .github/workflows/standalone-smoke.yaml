@@ -14,13 +14,17 @@ jobs:
   standalone-smoke:
     name: "Standalone clean-env smoke (node:20)"
     runs-on: ubuntu-latest
-    container:
-      image: node:20
     timeout-minutes: 10
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: npm
 
       - name: Assert no host agent state mounted
         run: |
@@ -30,7 +34,10 @@ jobs:
           test ! -d /opt/hideakisolutions  || { echo "FAIL: vault path leaked"; exit 1; }
 
       - name: Install system dependencies
-        run: apt-get update -qq && apt-get install -y -qq bubblewrap jq
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq bubblewrap jq
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
       - name: Mark workspace as safe for git
         # The container user differs from the checkout owner; without this,
