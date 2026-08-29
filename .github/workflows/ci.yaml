@@ -17,6 +17,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
+      - name: Install isolation backend
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq bubblewrap
       - run: npm ci
       - run: npm test
 
