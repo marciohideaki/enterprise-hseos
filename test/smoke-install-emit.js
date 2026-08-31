@@ -13,6 +13,7 @@ const assert = require('node:assert/strict');
 const { Installer } = require('../tools/cli/installers/lib/core/installer');
 const { AgentCoreCompiler } = require('../tools/cli/installers/lib/core/agent-core-compiler');
 const { getProjectRoot } = require('../tools/cli/lib/project-root');
+const uninstallCommand = require('../tools/cli/commands/uninstall');
 
 let passed = 0;
 function check(label, fn) {
@@ -54,7 +55,19 @@ function check(label, fn) {
     const hookNoGit = await installer.installPreCommitHook(NOGIT_DIR);
     check('pre-commit hook reports no-git without .git/', () => assert.equal(hookNoGit.status, 'no-git'));
 
-    // 3. compile emits the root entrypoints: AGENTS.md + the Claude Code pointer
+    // 3. Project config — a fresh headless install has no pre-existing root
+    // config, so the state writer must create it before adding its section.
+    const stateManagement = { mode: 'skill-only', db_path: '.hseos/state/project.db', mcp_port: 3100 };
+    await installer.writeStateManagementConfig(NOGIT_DIR, stateManagement);
+    const projectConfigPath = path.join(NOGIT_DIR, '.hseos', 'config', 'hseos.config.yaml');
+    check('state configuration creates a missing project config', () => assert.ok(fs.existsSync(projectConfigPath)));
+    const projectConfig = require('yaml').parse(await fs.readFile(projectConfigPath, 'utf8'));
+    check('fresh project config contains the selected state mode', () => assert.deepEqual(projectConfig.state_management, stateManagement));
+
+    const uninstallYesOption = uninstallCommand.options.find((option) => option[0].includes('--yes'))?.[1] || '';
+    check('uninstall contract explicitly preserves portable governance', () => assert.match(uninstallYesOption, /portable governance/i));
+
+    // 4. compile emits the root entrypoints: AGENTS.md + the Claude Code pointer
     const hseosDir = path.join(TEST_DIR, '.hseos');
     await fs.ensureDir(hseosDir);
     const compiler = new AgentCoreCompiler();
@@ -71,7 +84,7 @@ function check(label, fn) {
     const claudeMd = await fs.readFile(claudeMdPath, 'utf8');
     check('the pointer routes to AGENTS.md', () => assert.match(claudeMd, /Read `AGENTS\.md`/));
 
-    // 4. Idempotency — a pre-existing entrypoint must survive re-compile
+    // 5. Idempotency — a pre-existing entrypoint must survive re-compile
     const custom = '# CUSTOM\n\nUser-authored content that must survive re-install.\n';
     await fs.writeFile(agentsMdPath, custom, 'utf8');
     await fs.writeFile(claudeMdPath, custom, 'utf8');

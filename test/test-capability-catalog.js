@@ -7,6 +7,7 @@
 
 const path = require('node:path');
 const os = require('node:os');
+const { spawnSync } = require('node:child_process');
 const fs = require('fs-extra');
 const yaml = require('yaml');
 const {
@@ -22,6 +23,7 @@ const { syncCapabilityCatalog } = require('../tools/cli/installers/lib/core/agen
 const installCommand = require('../tools/cli/commands/install');
 
 const REPO_ROOT = path.join(__dirname, '..');
+const HSEOS_CLI = path.join(REPO_ROOT, 'tools', 'cli', 'hseos-cli.js');
 
 let passed = 0;
 let failed = 0;
@@ -464,6 +466,43 @@ function testAdapterMatrix() {
   );
 }
 
+function testInstallPlanJsonIsMachineReadable() {
+  for (const selector of ['--list-profiles', '--list-components', '--list-skills', '--adapters']) {
+    const result = spawnSync(process.execPath, [HSEOS_CLI, 'install-plan', '--directory', REPO_ROOT, selector, '--json'], {
+      encoding: 'utf8',
+    });
+    let parsed = null;
+    try {
+      parsed = JSON.parse(result.stdout);
+    } catch {
+      parsed = null;
+    }
+    assertPass(
+      `install-plan ${selector} emits undecorated JSON`,
+      result.status === 0 && parsed !== null,
+      `status=${result.status} stdout=${JSON.stringify(result.stdout.slice(0, 80))}`,
+    );
+  }
+}
+
+async function testCompilerMaterializesAdapterMatrix() {
+  const target = await fs.mkdtemp(path.join(os.tmpdir(), 'hseos-adapter-matrix-'));
+  try {
+    const hseosDir = path.join(target, '.hseos');
+    await fs.ensureDir(hseosDir);
+    const compiler = new AgentCoreCompiler();
+    await compiler.compile(target, hseosDir, { sourceRoot: REPO_ROOT, platforms: [] });
+    const adapterIds = loadAdapterMatrix(target).map((adapter) => adapter.id);
+    assertPass(
+      'compiler materializes the portable adapter matrix for consumers',
+      ['claude-code', 'codex', 'goose'].every((id) => adapterIds.includes(id)),
+      adapterIds.join(','),
+    );
+  } finally {
+    await fs.remove(target);
+  }
+}
+
 function testInstallCommandOptions() {
   const optionFlags = installCommand.options.map((option) => option[0]).join('\n');
   assertPass('install command exposes capability profile option', optionFlags.includes('--profile <id>'));
@@ -637,6 +676,8 @@ async function run() {
   testResolveSkillOnlyPlan();
   testEquivalentSelectionsResolveDeterministically();
   testAdapterMatrix();
+  testInstallPlanJsonIsMachineReadable();
+  await testCompilerMaterializesAdapterMatrix();
   testInstallCommandOptions();
   testExtrasArePureOptIn();
   testApplyExtrasFromPlanMapsFlags();

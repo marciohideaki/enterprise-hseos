@@ -7,9 +7,9 @@ const installer = new Installer();
 
 module.exports = {
   command: 'uninstall',
-  description: 'Remove HSEOS installation from the current project',
+  description: 'Remove the managed HSEOS runtime while preserving portable project governance',
   options: [
-    ['-y, --yes', 'Remove all HSEOS components without prompting (preserves user artifacts)'],
+    ['-y, --yes', 'Remove managed runtime and IDE integrations without prompting; preserve portable governance and user artifacts'],
     ['--directory <path>', 'Project directory (default: current directory)'],
   ],
   action: async (options) => {
@@ -82,7 +82,7 @@ module.exports = {
           options: [
             {
               value: 'modules',
-              label: `HSEOS Modules & data (${installer.hseosFolderName}/)`,
+              label: `HSEOS runtime modules & data (${installer.hseosFolderName}/)`,
               hint: 'Core installation, agents, workflows, config',
             },
             { value: 'ide', label: 'IDE integrations', hint: ides || 'No IDEs configured' },
@@ -146,6 +146,7 @@ module.exports = {
       if (removeModules) summary.push('Modules & data removed');
       if (removeOutputFolder) summary.push('User artifacts removed');
       if (!removeOutputFolder) summary.push(`User artifacts preserved in ${outputFolder}/`);
+      summary.push('Portable project governance preserved (.agents/, .enterprise/, AGENTS.md, plugin catalogs)');
 
       await prompts.note(summary.join('\n'), 'Summary');
       await prompts.outro('To reinstall, run: npx hseos install');
