@@ -101,7 +101,7 @@ module.exports = {
     if (options.listProfiles) {
       const profiles = Object.entries(catalog.profiles).map(([id, profile]) => ({ id, ...profile }));
       if (options.json) {
-        await prompts.log.message(JSON.stringify({ profiles }, null, 2));
+        console.log(JSON.stringify({ profiles }, null, 2));
       } else {
         await prompts.log.message(renderProfiles(catalog));
       }
@@ -111,7 +111,7 @@ module.exports = {
     if (options.listComponents) {
       const components = catalog.components.filter((component) => !options.family || component.family === options.family);
       if (options.json) {
-        await prompts.log.message(JSON.stringify({ components }, null, 2));
+        console.log(JSON.stringify({ components }, null, 2));
       } else {
         await prompts.log.message(renderComponents(catalog, options.family));
       }
@@ -121,7 +121,7 @@ module.exports = {
     if (options.listSkills) {
       const skills = catalog.skills.map((skill) => skill.id);
       if (options.json) {
-        await prompts.log.message(JSON.stringify({ skills }, null, 2));
+        console.log(JSON.stringify({ skills }, null, 2));
       } else {
         await prompts.log.message(renderList('Skill selectors', skills));
       }
@@ -131,7 +131,7 @@ module.exports = {
     if (options.adapters) {
       const adapters = loadAdapterMatrix(root);
       if (options.json) {
-        await prompts.log.message(JSON.stringify({ adapters }, null, 2));
+        console.log(JSON.stringify({ adapters }, null, 2));
       } else {
         await prompts.log.message(renderAdapterMatrix(adapters));
       }
@@ -149,7 +149,7 @@ module.exports = {
     });
 
     if (options.json) {
-      await prompts.log.message(JSON.stringify({ plan }, null, 2));
+      console.log(JSON.stringify({ plan }, null, 2));
     } else {
       await prompts.log.message(renderPlan(plan));
     }
