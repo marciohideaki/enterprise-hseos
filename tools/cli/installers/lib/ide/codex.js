@@ -280,6 +280,25 @@ class CodexSetup extends BaseIdeSetup {
       return;
     }
 
+    const manifestPath = path.join(path.dirname(destDir), 'manifest.yaml');
+    const compilerOwnedSkills = new Set();
+    if (await fs.pathExists(manifestPath)) {
+      try {
+        const manifest = yaml.parse(await fs.readFile(manifestPath, 'utf8')) || {};
+        if (!Array.isArray(manifest.skills)) {
+          throw new TypeError('skills must be an array');
+        }
+        for (const skill of manifest.skills) {
+          if (skill && typeof skill.name === 'string') compilerOwnedSkills.add(skill.name);
+        }
+      } catch (error) {
+        if (!options.silent) {
+          await prompts.log.warn(`Warning: Could not verify compiler-owned skills from ${manifestPath}: ${error.message}`);
+        }
+        return;
+      }
+    }
+
     let entries;
     try {
       entries = await fs.readdir(destDir);
@@ -297,6 +316,9 @@ class CodexSetup extends BaseIdeSetup {
         continue;
       }
       if (!entry.startsWith('hseos')) {
+        continue;
+      }
+      if (compilerOwnedSkills.has(entry)) {
         continue;
       }
 
