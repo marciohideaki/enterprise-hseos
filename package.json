@@ -12,13 +12,13 @@
     "hseos",
     "hideaki"
   ],
-  "homepage": "https://github.com/marciohideaki/hseos#readme",
+  "homepage": "https://github.com/marciohideaki/enterprise-hseos#readme",
   "bugs": {
-    "url": "https://github.com/marciohideaki/hseos/issues"
+    "url": "https://github.com/marciohideaki/enterprise-hseos/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/marciohideaki/hseos.git"
+    "url": "git+https://github.com/marciohideaki/enterprise-hseos.git"
   },
   "license": "MIT",
   "author": "Marcio Hideaki",
@@ -132,23 +132,23 @@
     ]
   },
   "dependencies": {
-    "@clack/core": "^1.0.0",
-    "@clack/prompts": "^1.0.0",
-    "@kayvan/markdown-tree-parser": "^1.6.1",
-    "ajv": "^8.20.0",
-    "better-sqlite3": "^12.9.0",
-    "chalk": "^4.1.2",
-    "commander": "^14.0.0",
-    "csv-parse": "^6.1.0",
-    "fs-extra": "^11.3.0",
-    "glob": "^11.0.3",
-    "ignore": "^7.0.5",
-    "js-yaml": "^4.1.0",
-    "picocolors": "^1.1.1",
-    "semver": "^7.6.3",
-    "xml2js": "^0.6.2",
-    "yaml": "^2.7.0",
-    "zod": "^4.3.6"
+    "@clack/core": "1.0.0",
+    "@clack/prompts": "1.0.0",
+    "@kayvan/markdown-tree-parser": "1.6.1",
+    "ajv": "8.20.0",
+    "better-sqlite3": "12.9.0",
+    "chalk": "4.1.2",
+    "commander": "14.0.2",
+    "csv-parse": "6.1.0",
+    "fs-extra": "11.3.3",
+    "glob": "13.0.6",
+    "ignore": "7.0.5",
+    "js-yaml": "4.3.1",
+    "picocolors": "1.1.1",
+    "semver": "7.7.3",
+    "xml2js": "0.6.2",
+    "yaml": "2.9.0",
+    "zod": "4.3.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
