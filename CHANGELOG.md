@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.3] — 2026-08-31
+
+### Breaking Changes
+
+- None.
+
+### Fixed
+
+- Adapter launcher cleanup now preserves every compiler-owned skill declared in
+  the portable manifest, preventing selected-adapter installs from reporting a
+  missing governed skill. ([PR #135](https://github.com/marciohideaki/enterprise-hseos/pull/135))
+- Cleanup fails safely when an existing manifest cannot establish skill
+  ownership. ([PR #135](https://github.com/marciohideaki/enterprise-hseos/pull/135))
+
 ## [3.0.2] — 2026-08-31
 
 ### Breaking Changes
