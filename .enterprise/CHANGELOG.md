@@ -1,5 +1,16 @@
 # CHANGELOG — HSEOS
 
+## [3.0.3] — 2026-08-31
+
+**Status:** Release candidate; GitHub prerelease pending
+
+**Type:** Adapter skill ownership correction
+
+Adapter-generated launcher cleanup now honors the portable manifest as the
+compiler ownership boundary. Selected-adapter installations retain all governed
+skills and pass integrity, drift, and doctor checks. See
+[PR #135](https://github.com/marciohideaki/enterprise-hseos/pull/135).
+
 ## [3.0.2] — 2026-08-31
 
 **Status:** Release candidate; GitHub prerelease pending
