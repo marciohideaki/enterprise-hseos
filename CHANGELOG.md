@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.2] — 2026-08-31
+
+### Breaking Changes
+
+- None.
+
+### Fixed
+
+- Fresh headless installs now create the project configuration before writing
+  state and optional feature sections. ([PR #134](https://github.com/marciohideaki/enterprise-hseos/pull/134))
+- `install-plan --json` now emits undecorated machine-readable JSON for plans,
+  catalogs, skills, profiles, and adapters. ([PR #134](https://github.com/marciohideaki/enterprise-hseos/pull/134))
+- Consumer compilation now materializes the portable adapter catalog, and
+  `doctor` validates exactly the adapters selected in the manifest. ([PR #134](https://github.com/marciohideaki/enterprise-hseos/pull/134))
+- Uninstall help and summaries now state that managed runtime data is removed
+  while portable project governance is preserved. ([PR #134](https://github.com/marciohideaki/enterprise-hseos/pull/134))
+
 ## [3.0.1] — 2026-08-31
 
 ### Fixed

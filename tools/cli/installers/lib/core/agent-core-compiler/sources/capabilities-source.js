@@ -7,6 +7,7 @@ const { validateCapabilityDocuments, validateSurfaceDocument } = require('../../
 
 const CANONICAL_CAPABILITIES_DIR = path.join('.enterprise', 'governance', 'capabilities');
 const REQUIRED_CAPABILITY_FILES = ['profiles.yaml', 'components.yaml', 'surfaces.yaml'];
+const REQUIRED_ADAPTER_FILES = ['_schema.yaml', 'claude-code.yaml', 'codex.yaml', 'goose.yaml'];
 
 function assertCapabilitySource(directory) {
   const documents = {};
@@ -112,11 +113,50 @@ async function syncCapabilityCatalog(root, sourceRoot, agentsDirName = '.agents'
   return { mode, source, target };
 }
 
+async function syncAdapterCatalog(root, sourceRoot, agentsDirName = '.agents') {
+  const target = path.join(root, agentsDirName, 'adapters');
+  const source = path.join(sourceRoot, agentsDirName, 'adapters');
+  if (!(await fs.pathExists(source))) {
+    if (await fs.pathExists(target)) return { mode: 'target-only', source: target, target };
+    return { mode: 'absent', source: null, target };
+  }
+  for (const fileName of REQUIRED_ADAPTER_FILES) {
+    if (!(await fs.pathExists(path.join(source, fileName)))) {
+      throw new Error(`Adapter catalog source is incomplete: missing ${path.join(source, fileName)}`);
+    }
+  }
+  if (path.resolve(source) === path.resolve(target)) return { mode: 'source-target', source, target };
+
+  const parent = path.dirname(target);
+  await fs.ensureDir(parent);
+  const transactionDir = await fs.mkdtemp(path.join(parent, '.adapters-sync-'));
+  const staged = path.join(transactionDir, 'staged');
+  const previous = path.join(transactionDir, 'previous');
+  let previousMoved = false;
+  try {
+    await fs.copy(source, staged, { overwrite: true, errorOnExist: false });
+    if (await fs.pathExists(target)) {
+      await fs.move(target, previous);
+      previousMoved = true;
+    }
+    await fs.move(staged, target);
+    if (previousMoved) await fs.remove(previous);
+  } catch (error) {
+    if (previousMoved && (await fs.pathExists(target))) await fs.remove(target);
+    if (previousMoved && (await fs.pathExists(previous))) await fs.move(previous, target);
+    throw new Error(`Adapter catalog synchronization failed: ${error.message}`);
+  } finally {
+    await fs.remove(transactionDir);
+  }
+  return { mode: 'source-root', source, target };
+}
+
 module.exports = {
   CANONICAL_CAPABILITIES_DIR,
   REQUIRED_CAPABILITY_FILES,
   assertCapabilitySource,
   assertCompatibleCapabilitySource,
   synthesizeLegacySurfaces,
+  syncAdapterCatalog,
   syncCapabilityCatalog,
 };

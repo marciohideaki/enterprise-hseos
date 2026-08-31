@@ -263,34 +263,81 @@ async function checkMcpBundles(projectDir) {
 }
 
 async function checkAdaptersCompiled(projectDir) {
-  const claudeHooksPath = path.join(projectDir, '.claude', 'hooks.json');
-  if (!(await fs.pathExists(claudeHooksPath))) {
+  const manifestPath = path.join(projectDir, '.agents', 'manifest.yaml');
+  let platforms = [];
+  try {
+    const manifest = yaml.parse(await fs.readFile(manifestPath, 'utf8')) || {};
+    platforms = Array.isArray(manifest.platforms) ? manifest.platforms : [];
+  } catch (error) {
     return {
       id: 'adapters_compiled',
       title: 'Adapters compiled',
       ok: false,
-      details: '.claude/hooks.json not found',
-      remedy: 'Run `hseos agent-core compile --target claude-code` to emit platform adapters.',
+      details: `Cannot inspect selected adapters: ${error.message}`,
+      remedy: 'Run `hseos agent-core compile` to regenerate the portable manifest.',
     };
   }
-  try {
-    const raw = await fs.readFile(claudeHooksPath, 'utf8');
-    JSON.parse(raw);
+  if (platforms.length === 0) {
     return {
       id: 'adapters_compiled',
       title: 'Adapters compiled',
       ok: true,
-      details: '.claude/hooks.json present and valid JSON',
-    };
-  } catch {
-    return {
-      id: 'adapters_compiled',
-      title: 'Adapters compiled',
-      ok: false,
-      details: '.claude/hooks.json exists but is not valid JSON',
-      remedy: 'Run `hseos agent-core compile --target claude-code` to regenerate.',
+      details: 'No platform adapters selected — skipped',
     };
   }
+  const surfaces = {
+    'claude-code': [
+      { file: '.claude/hooks.json', format: 'json' },
+      { file: 'CLAUDE.md', format: 'text' },
+    ],
+    codex: [
+      { file: '.codex/config.toml', format: 'text' },
+      { file: '.codex/hseos-hooks.json', format: 'json' },
+    ],
+    goose: [{ file: '.goose/config.yaml', format: 'yaml' }],
+  };
+  for (const platform of platforms) {
+    if (!surfaces[platform]) {
+      return {
+        id: 'adapters_compiled',
+        title: 'Adapters compiled',
+        ok: false,
+        details: `Unknown selected platform adapter: ${platform}`,
+        remedy: 'Run `hseos agent-core compile` with a supported target.',
+      };
+    }
+    for (const surface of surfaces[platform]) {
+      const filePath = path.join(projectDir, surface.file);
+      if (!(await fs.pathExists(filePath))) {
+        return {
+          id: 'adapters_compiled',
+          title: 'Adapters compiled',
+          ok: false,
+          details: `${surface.file} not found for selected adapter ${platform}`,
+          remedy: `Run \`hseos agent-core compile --target ${platform}\` to emit the selected adapter.`,
+        };
+      }
+      try {
+        const raw = await fs.readFile(filePath, 'utf8');
+        if (surface.format === 'json') JSON.parse(raw);
+        if (surface.format === 'yaml') yaml.parse(raw);
+      } catch {
+        return {
+          id: 'adapters_compiled',
+          title: 'Adapters compiled',
+          ok: false,
+          details: `${surface.file} is not valid ${surface.format.toUpperCase()}`,
+          remedy: `Run \`hseos agent-core compile --target ${platform}\` to regenerate.`,
+        };
+      }
+    }
+  }
+  return {
+    id: 'adapters_compiled',
+    title: 'Adapters compiled',
+    ok: true,
+    details: `Selected platform adapters are present and valid: ${platforms.join(', ')}`,
+  };
 }
 
 async function checkGovernanceBaseline(projectDir) {

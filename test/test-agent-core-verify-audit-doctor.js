@@ -187,8 +187,13 @@ async function testAuditAdapterDrift() {
 async function testDoctorFullProject() {
   await withTempDir(async (dir) => {
     scaffoldMinimalProject(dir);
+    fs.writeFileSync(
+      path.join(dir, '.agents', 'manifest.yaml'),
+      yaml.stringify({ version: '2.0', skills: [], platforms: ['claude-code'] }),
+    );
     fs.mkdirSync(path.join(dir, '.claude'), { recursive: true });
     fs.writeFileSync(path.join(dir, '.claude', 'hooks.json'), JSON.stringify({ hooks: {} }));
+    fs.writeFileSync(path.join(dir, 'CLAUDE.md'), '# Adapter entrypoint\n');
 
     const result = await runDoctor(dir);
     assertPass('doctor passes on minimal valid project', result.ok, JSON.stringify(result.checks.filter((c) => !c.ok)));
@@ -197,6 +202,33 @@ async function testDoctorFullProject() {
       'doctor includes optional sandbox runtime check',
       result.checks.some((c) => c.id === 'sandbox_runtime' && c.ok),
       JSON.stringify(result.checks),
+    );
+  });
+}
+
+async function testDoctorRequiresEverySelectedPlatformAdapter() {
+  await withTempDir(async (dir) => {
+    scaffoldMinimalProject(dir);
+    fs.writeFileSync(path.join(dir, '.agents', 'manifest.yaml'), yaml.stringify({ version: '2.0', skills: [], platforms: ['codex'] }));
+    const result = await runDoctor(dir);
+    const adapterCheck = result.checks.find((check) => check.id === 'adapters_compiled');
+    assertPass(
+      'doctor fails when a selected platform adapter is missing',
+      Boolean(adapterCheck && !adapterCheck.ok && adapterCheck.details.includes('.codex/config.toml')),
+      JSON.stringify(adapterCheck),
+    );
+  });
+}
+
+async function testDoctorWithoutSelectedPlatformAdapters() {
+  await withTempDir(async (dir) => {
+    scaffoldMinimalProject(dir);
+    const result = await runDoctor(dir);
+    const adapterCheck = result.checks.find((check) => check.id === 'adapters_compiled');
+    assertPass(
+      'doctor accepts a valid installation with no selected platform adapters',
+      Boolean(adapterCheck?.ok),
+      JSON.stringify(adapterCheck),
     );
   });
 }
@@ -329,6 +361,8 @@ async function run() {
   await testAuditAdapterDrift();
   await testAuditTriangularVerdicts();
   await testDoctorFullProject();
+  await testDoctorWithoutSelectedPlatformAdapters();
+  await testDoctorRequiresEverySelectedPlatformAdapter();
   await testDoctorMissingPaths();
   await testDoctorSkillsConsistency();
   await testDoctorResolvesGitRootHookScripts();
