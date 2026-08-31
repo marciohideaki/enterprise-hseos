@@ -1,5 +1,17 @@
 # CHANGELOG — HSEOS
 
+## [3.0.2] — 2026-08-31
+
+**Status:** Release candidate; GitHub prerelease pending
+
+**Type:** CLI installation lifecycle correction
+
+Fresh installs now bootstrap their project configuration, machine-facing plan
+commands emit clean JSON, consumer builds receive the adapter catalog, and the
+doctor verifies only selected adapters. Uninstall remains deliberately
+non-destructive to portable project governance. See
+[PR #134](https://github.com/marciohideaki/enterprise-hseos/pull/134).
+
 ## [3.0.1] — 2026-08-31
 
 **Status:** Release candidate; GitHub prerelease pending
