@@ -32,9 +32,13 @@ jobs:
           mkdir -p dist release-smoke
           npm pack --pack-destination dist
           npm sbom --sbom-format cyclonedx > "dist/hseos-${release_version}.cdx.json"
-          sha256sum \
-            "dist/hseos-${release_version}.tgz" \
-            "dist/hseos-${release_version}.cdx.json" > dist/SHA256SUMS
+          (
+            cd dist
+            sha256sum \
+              "hseos-${release_version}.tgz" \
+              "hseos-${release_version}.cdx.json" > SHA256SUMS
+            sha256sum -c SHA256SUMS
+          )
           npm install --prefix release-smoke "${GITHUB_WORKSPACE}/dist/hseos-${release_version}.tgz"
           "${GITHUB_WORKSPACE}/release-smoke/node_modules/.bin/hseos" --help
       - name: Create GitHub prerelease
@@ -48,4 +52,4 @@ jobs:
             --verify-tag \
             --prerelease \
             --title "${GITHUB_REF_NAME}" \
-            --notes-file docs/releases/v3.0.0.md
+            --notes-file "docs/releases/${GITHUB_REF_NAME}.md"

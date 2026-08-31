@@ -195,6 +195,12 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
       if (Object.keys(body).sort().join(',') !== 'instance_id,server,status') throw new Error('health response exposes runtime data');
     });
 
+    await it('GET /favicon.ico is an unauthenticated console-clean no-content response', async () => {
+      const response = await fetchResponse(port, '/favicon.ico');
+      if (response.statusCode !== 204) throw new Error(`status ${response.statusCode}`);
+      if (response.body !== '') throw new Error('favicon response unexpectedly contains a body');
+    });
+
     await it('GET /api/state returns snapshot shape', async () => {
       const snap = await fetchJson(port, '/api/state', token);
       const required = ['ts', 'runs', 'tasks', 'agentRuns', 'events', 'orphans', 'counts', 'stale_minutes'];

@@ -1,5 +1,16 @@
 # CHANGELOG — HSEOS
 
+## [3.0.1] — 2026-08-31
+
+**Status:** Release candidate; GitHub prerelease pending
+
+**Type:** Staging validation correction
+
+The GitHub artifact now provides directly verifiable, asset-relative checksums,
+selects release evidence from the exact version tag, and renders the state UI
+without a favicon-related browser console error. The v3.0.0 prerelease remains
+immutable staging evidence and is not eligible for stable promotion.
+
 ## [3.0.0] — 2026-08-28
 
 **Status:** Release candidate; GitHub prerelease pending

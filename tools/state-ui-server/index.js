@@ -148,6 +148,12 @@ function start({
       return;
     }
 
+    if (url === '/favicon.ico') {
+      res.writeHead(204, { 'Cache-Control': 'public, max-age=86400' });
+      res.end();
+      return;
+    }
+
     if (authToken) {
       const supplied = req.headers.authorization || '';
       const expected = `Bearer ${authToken}`;
