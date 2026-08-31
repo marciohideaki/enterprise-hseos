@@ -2,7 +2,7 @@
 
 ## [3.0.0] — 2026-08-28
 
-**Status:** Stable
+**Status:** Release candidate; GitHub prerelease pending
 
 **Type:** Project isolation and contract hardening
 
@@ -10,6 +10,9 @@
 non-loopback state UI access is rejected, and canonical workflow/capability
 catalogs use the new explicit contracts. See
 [`docs/MIGRATION-GUIDE-v2-to-v3.md`](../docs/MIGRATION-GUIDE-v2-to-v3.md).
+
+The public distribution is a checksum-bound `npm pack` tarball attached to the
+GitHub release. npm registry publication is intentionally outside this release.
 
 Compatibility readers preserve version 1 workflow catalogs and compiled
 capability catalogs without surface metadata during the v3 migration window.
