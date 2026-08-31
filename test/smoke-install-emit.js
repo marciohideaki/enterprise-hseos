@@ -12,6 +12,7 @@ const assert = require('node:assert/strict');
 
 const { Installer } = require('../tools/cli/installers/lib/core/installer');
 const { AgentCoreCompiler } = require('../tools/cli/installers/lib/core/agent-core-compiler');
+const { CodexSetup } = require('../tools/cli/installers/lib/ide/codex');
 const { getProjectRoot } = require('../tools/cli/lib/project-root');
 const uninstallCommand = require('../tools/cli/commands/uninstall');
 
@@ -84,7 +85,16 @@ function check(label, fn) {
     const claudeMd = await fs.readFile(claudeMdPath, 'utf8');
     check('the pointer routes to AGENTS.md', () => assert.match(claudeMd, /Read `AGENTS\.md`/));
 
-    // 5. Idempotency — a pre-existing entrypoint must survive re-compile
+    // 5. Codex cleanup owns generated launchers, not compiler-governed skills.
+    const skillsDir = path.join(TEST_DIR, '.agents', 'skills');
+    const governedSkill = path.join(skillsDir, 'hseos-goal-loop', 'SKILL.md');
+    const staleLauncher = path.join(skillsDir, 'hseos-stale-launcher', 'SKILL.md');
+    await fs.outputFile(staleLauncher, 'stale generated launcher\n', 'utf8');
+    await new CodexSetup().clearOldHseosSkills(skillsDir, { silent: true });
+    check('Codex cleanup preserves compiler-governed hseos skills', () => assert.ok(fs.existsSync(governedSkill)));
+    check('Codex cleanup removes stale generated launchers', () => assert.ok(!fs.existsSync(staleLauncher)));
+
+    // 6. Idempotency — a pre-existing entrypoint must survive re-compile
     const custom = '# CUSTOM\n\nUser-authored content that must survive re-install.\n';
     await fs.writeFile(agentsMdPath, custom, 'utf8');
     await fs.writeFile(claudeMdPath, custom, 'utf8');
