@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.1] — 2026-08-31
+
+### Fixed
+
+- Release checksums now contain asset-relative filenames and verify directly after a standard GitHub release download.
+- Release notes are selected from the pushed version tag instead of a hard-coded version path.
+- The state UI answers the browser favicon request without authentication or a console-visible 404.
+
 ## [3.0.0] — 2026-08-31
 
 ### Breaking Changes
