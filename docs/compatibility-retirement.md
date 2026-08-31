@@ -188,13 +188,13 @@ The pinned `.hseos/compatibility/downstream-consumers.json` blob has this canoni
 }
 ```
 
-The tracked registry intentionally ships with `completeness_status: "pending"` and an empty
-consumer list, so a repository-local default can never prove the downstream universe complete.
-Collection is allowed only from a release commit that changes the status to `complete`; that
-registry commit must be the exact SHA in the canonical observation-release manifest. Local
-repository bindings must form a one-to-one remote match with the pinned registry. Collection is
-networkless: Git objects and configured remotes are verified locally, while publication and
-reachability of those commits at the declared remotes remain explicit human-verification items.
+The tracked registry may advance to `completeness_status: "complete"` only after the owner approves
+the enumerated business perimeter and every installer/plugin membership disposition. That source
+state does not by itself authorize collection: the registry commit must be published as the exact
+SHA in the canonical observation-release manifest. Local repository bindings must form a one-to-one
+remote match with the pinned registry. Collection is networkless: Git objects and configured remotes
+are verified locally, while publication and reachability of those commits at the declared remotes
+remain explicit human-verification items.
 
 The collector classifies installer layouts with the same v4 discriminator as the runtime and
 validates plugin registries through the canonical strict registry validator. It emits one inventory

@@ -1,6 +1,17 @@
 {
   "schema_version": 1,
   "scope": "hseos-downstream-compatibility",
-  "completeness_status": "pending",
-  "consumers": []
+  "completeness_status": "complete",
+  "consumers": [
+    {
+      "repository_remote": "ssh://git@github.com/HideakiSolutions/platform-gitops.git",
+      "commit_sha": "bd6c14647b887bfc75d9434198fd7e32037d709d",
+      "surfaces": [
+        {
+          "surface_id": "installer-v4-detection",
+          "evidence_path": ".hseos"
+        }
+      ]
+    }
+  ]
 }
