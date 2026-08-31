@@ -98,12 +98,9 @@ const cases = [
           const steps = job.steps ?? [];
           const testIndex = steps.findIndex((step) => typeof step.run === 'string' && step.run.includes('npm test'));
           if (testIndex === -1) continue;
-          const backendIndex = steps.findIndex(
-            (step) => typeof step.run === 'string' && step.run.includes('bubblewrap'),
-          );
+          const backendIndex = steps.findIndex((step) => typeof step.run === 'string' && step.run.includes('bubblewrap'));
           const userNamespaceIndex = steps.findIndex(
-            (step) =>
-              typeof step.run === 'string' && step.run.includes('kernel.apparmor_restrict_unprivileged_userns=0'),
+            (step) => typeof step.run === 'string' && step.run.includes('kernel.apparmor_restrict_unprivileged_userns=0'),
           );
           assert.ok(backendIndex !== -1, `${workflowPath}:${jobName} does not install bubblewrap`);
           assert.ok(backendIndex < testIndex, `${workflowPath}:${jobName} installs bubblewrap after npm test`);
@@ -111,6 +108,20 @@ const cases = [
           assert.ok(userNamespaceIndex < testIndex, `${workflowPath}:${jobName} enables user namespaces after npm test`);
         }
       }
+    },
+  },
+  {
+    name: 'release assets have portable checksums and version-bound notes',
+    fn: () => {
+      const workflow = yaml.parse(read('.github/workflows/release.yaml'));
+      const steps = workflow.jobs.publish.steps;
+      const build = steps.find((step) => step.name === 'Build immutable release artifact');
+      const publish = steps.find((step) => step.name === 'Create GitHub prerelease');
+      assert.ok(build?.run.includes('cd dist'), 'checksum generation does not enter the asset directory');
+      assert.match(build.run, /sha256sum[\s\\]+\n\s+"hseos-\$\{release_version\}\.tgz"/);
+      assert.doesNotMatch(build.run, /sha256sum[\s\S]*?"dist\/hseos-/);
+      assert.ok(build.run.includes('sha256sum -c SHA256SUMS'), 'workflow does not verify its generated checksums');
+      assert.ok(publish?.run.includes('docs/releases/${GITHUB_REF_NAME}.md'), 'release notes are hard-coded');
     },
   },
 ];
