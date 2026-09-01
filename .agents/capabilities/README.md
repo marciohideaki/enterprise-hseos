@@ -140,3 +140,19 @@ pre-activation L0 surface: observed effect-bearing items fail closed.
 - Keep hook handlers in `.agents/hooks/handlers/`.
 - Keep governed skill authority in `.enterprise/governance/agent-skills/`.
 - Do not duplicate skill content into capability manifests.
+
+## Capability Graph Discovery
+
+The capability graph and discovery corpus are distinct governance surfaces:
+
+- `registry.yaml` composes repository-owned graph fragments after deterministic validation.
+- `reference-corpus.json` pins the portfolio sources that capability discovery must inspect. It is discovery-only and cannot establish ownership, publication, or adoption.
+- `schemas/` defines the machine contracts for both surfaces.
+
+```bash
+node scripts/governance/validate-capability-graph.js --json
+node scripts/governance/validate-capability-reference-corpus.js --json
+node scripts/governance/validate-capability-reference-corpus.js --query messaging.event-envelope
+```
+
+Use `--repository-root repo.id=/absolute/path --require-all` to verify every pinned source. Candidate coverage is not adoption: verified consumption requires a repository-owned fragment, an immutable package version, and installation evidence.

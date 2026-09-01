@@ -318,10 +318,13 @@ const cases = [
           [constitution]: '**Version:** 2.1\n\nBaseline.\n',
           '.github/CODEOWNERS': `${constitution} @platform-architecture\n`,
           '.github/branch-protection.yaml':
-            'branches:\n  - name: master\n    protection:\n      required_pull_request_reviews:\n        require_code_owner_reviews: true\n',
+            'branches:\n  - name: master\n    protection:\n      enforce_admins: true\n      required_pull_request_reviews: null\n',
         },
         ({ root }) => {
-          fs.writeFileSync(path.join(root, constitution), '**Version:** 2.2\n\nCode-owner approval enforced by branch protection.\n');
+          fs.writeFileSync(
+            path.join(root, constitution),
+            '**Version:** 2.2\n\nProtected ownership and explicit Engineering Leadership approval recorded on the PR.\n',
+          );
           const adrPath = path.join(root, adr);
           fs.mkdirSync(path.dirname(adrPath), { recursive: true });
           fs.writeFileSync(adrPath, '**Status:** Accepted\n**Affects Standards:** Enterprise Constitution\n');

@@ -1,0 +1,62 @@
+schema_version: 1.0.0
+graph_id: hideaki.enterprise-capabilities
+authority:
+  constitution_version: "2.2"
+  constitution_path: .enterprise/.specs/constitution/Enterprise-Constitution.md
+  adr: adr.0033
+fragment_schema:
+  version: 1.0.0
+  path: .enterprise/governance/capabilities/schemas/capability-graph-fragment.schema.json
+semantic_discovery:
+  authority: advisory
+  canonical_mutation: false
+  allowed_findings:
+    - CandidateEdge
+    - DriftFinding
+fragments:
+  - id: fragment.enterprise-hseos
+    repository: repo.enterprise-hseos
+    path: .enterprise/governance/capabilities/fragments/enterprise-hseos.yaml
+    revision: same-commit
+    enforcement: enforced
+    source:
+      kind: local
+    validation:
+      mode: local
+      command: node scripts/governance/validate-capability-graph.js
+  - id: fragment.platform-core
+    repository: repo.platform-core
+    path: .platform/capability-graph.fragment.json
+    revision: 86ffef7f118a925bb2993eadfb3ec05eea0ccff8
+    enforcement: enforced
+    source:
+      kind: git
+      uri: https://github.com/hideakisolutions/platform-core.git
+    validation:
+      mode: delegated
+      command: npm run validate:capability-graph
+      workflow_path: .github/workflows/validate.yml
+  - id: fragment.backend-core
+    repository: repo.backend-core
+    path: .platform/capability-graph.fragment.json
+    revision: 1394444be20fdaa8a9fcfa7229df2aa59768c992
+    enforcement: enforced
+    source:
+      kind: git
+      uri: https://github.com/hideakisolutions/backend-core.git
+    validation:
+      mode: delegated
+      command: npm run validate:capability-graph
+      workflow_path: .github/workflows/validate.yml
+  - id: fragment.cambio-real-v2
+    repository: repo.cambio-real-v2
+    path: .platform/capability-graph.fragment.json
+    revision: 2124528f61803ced593c3415f4714db22fba63e0
+    enforcement: enforced
+    source:
+      kind: git
+      uri: https://github.com/cambioreal/cambio-real-v2.git
+    validation:
+      mode: delegated
+      command: node scripts/validate-platform-event-envelope.mjs
+      workflow_path: .github/workflows/validate-platform-capability.yml

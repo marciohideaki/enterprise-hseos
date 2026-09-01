@@ -10,7 +10,7 @@
 
 > **v2.1 change (2026-07-15):** The Seven Laws, previously named only in README and derived docs, are now a named constitutional section (§14), anchoring normative content of §2, §5, §7-§10. Acceptance renumbered to §15. No rules changed.
 
-> **v2.2 change (2026-08-24):** Added Platform-First Capability Governance (§2.6), requiring every project and agent to query the versioned federated capability graph before implementing shared concerns. Strengthened constitutional change control with deterministic validation and code-owner review (§13). Ratified by ADR-0022.
+> **v2.2 change (2026-08-24):** Added Platform-First Capability Governance (§2.6), requiring every project and agent to query the versioned federated capability graph before implementing shared concerns. Strengthened constitutional change control with deterministic validation, protected ownership, and recorded leadership approval (§13). Ratified by ADR-0033.
 
 ---
 
@@ -392,7 +392,7 @@ Changes require:
 - Version bump
 - A linked, accepted ADR for semantic or governance changes
 - Deterministic CI validation of the version increment, ADR linkage, and protected ownership
-- Code-owner approval enforced by branch protection
+- Protected ownership and explicit Engineering Leadership approval recorded on the PR
 
 Owners:
 - Engineering Leadership

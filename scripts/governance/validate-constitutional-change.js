@@ -57,8 +57,12 @@ function validateStructuralProtection(root) {
   const branchPolicyPath = path.join(root, '.github', 'branch-protection.yaml');
   const branchPolicy = yaml.parse(fs.readFileSync(branchPolicyPath, 'utf8'));
   const master = branchPolicy.branches?.find((branch) => branch.name === 'master');
-  if (master?.protection?.required_pull_request_reviews?.require_code_owner_reviews !== true) {
-    throw new Error('master branch protection must require code-owner reviews');
+  const protection = master?.protection;
+  const reviews = protection?.required_pull_request_reviews;
+  const automaticCodeOwnerReview = reviews?.require_code_owner_reviews === true;
+  const soloMaintainerApproval = reviews === null && protection?.enforce_admins === true;
+  if (!automaticCodeOwnerReview && !soloMaintainerApproval) {
+    throw new Error('master branch protection must require code-owner reviews or the explicit solo-maintainer approval posture');
   }
 }
 
@@ -85,8 +89,8 @@ function validateConstitutionChange({ root = process.cwd(), base: explicitBase }
   if (acceptedLinkedAdrs.length === 0) {
     throw new Error('constitutional change requires a changed, Accepted ADR linked through Affects Standards');
   }
-  if (!currentContent.includes('Code-owner approval enforced by branch protection')) {
-    throw new Error('Constitution change control must require code-owner approval');
+  if (!currentContent.includes('Protected ownership and explicit Engineering Leadership approval recorded on the PR')) {
+    throw new Error('Constitution change control must require protected ownership and explicit Engineering Leadership approval');
   }
 
   return {

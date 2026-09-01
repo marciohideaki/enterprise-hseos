@@ -17,7 +17,7 @@ counts:
   skills: 53
   hooks: 35
   commands: 9
-  handlers: 25
+  handlers: 26
   agents: 16
   mcp_servers: 8
 skills:

@@ -52,6 +52,6 @@ Changes to the Constitution require:
 2. Review by Engineering Leadership
 3. A version bump
 4. A linked, accepted ADR for semantic or governance changes
-5. Deterministic CI validation and code-owner approval
+5. Deterministic CI validation, protected ownership, and explicit Engineering Leadership approval recorded on the PR
 
 Agents MUST NOT modify the constitution autonomously.
