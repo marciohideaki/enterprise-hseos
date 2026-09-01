@@ -117,13 +117,15 @@ class PostgresGovernanceRepository {
         );
       }
       await client.query(
-        'INSERT INTO hseos_governance.audit_events(audit_event_id, organization_id, event_type, aggregate_type, aggregate_id, actor, payload, occurred_at) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8)',
+        'INSERT INTO hseos_governance.audit_events(audit_event_id, organization_id, event_type, aggregate_type, aggregate_id, correlation_id, causation_id, actor, payload, occurred_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10)',
         [
           mutation.auditEvent.audit_event_id,
           mutation.auditEvent.organization_id,
           mutation.auditEvent.event_type,
           mutation.auditEvent.aggregate_type,
           mutation.auditEvent.aggregate_id,
+          mutation.auditEvent.correlation_id,
+          mutation.auditEvent.causation_id,
           JSON.stringify(mutation.auditEvent.actor),
           JSON.stringify(mutation.auditEvent.payload),
           mutation.auditEvent.occurred_at,
@@ -466,13 +468,15 @@ class PostgresGovernanceRepository {
         [organizationId, prepared.plan.repository_id, prepared.batch_id, prepared.occurred_at],
       );
       await client.query(
-        'INSERT INTO hseos_governance.audit_events(audit_event_id, organization_id, event_type, aggregate_type, aggregate_id, actor, payload, occurred_at) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8)',
+        'INSERT INTO hseos_governance.audit_events(audit_event_id, organization_id, event_type, aggregate_type, aggregate_id, correlation_id, causation_id, actor, payload, occurred_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10)',
         [
           prepared.audit_event_id,
           organizationId,
           'catalog.import.completed',
           'import_batch',
           prepared.batch_id,
+          prepared.correlation_id,
+          prepared.causation_id,
           JSON.stringify(prepared.actor),
           JSON.stringify({ plan_id: prepared.plan.plan_id, batch_key: prepared.plan.batch_key }),
           prepared.occurred_at,
@@ -578,13 +582,15 @@ class PostgresGovernanceRepository {
         [prepared.organization_id, prepared.batch_id, JSON.stringify(report), prepared.occurred_at],
       );
       await client.query(
-        'INSERT INTO hseos_governance.audit_events(audit_event_id, organization_id, event_type, aggregate_type, aggregate_id, actor, payload, occurred_at) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8)',
+        'INSERT INTO hseos_governance.audit_events(audit_event_id, organization_id, event_type, aggregate_type, aggregate_id, correlation_id, causation_id, actor, payload, occurred_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10)',
         [
           prepared.audit_event_id,
           prepared.organization_id,
           'catalog.import.rolled-back',
           'import_batch',
           prepared.batch_id,
+          prepared.correlation_id,
+          prepared.causation_id,
           JSON.stringify(prepared.actor),
           JSON.stringify({ restored_batch_id: batch.previous_batch_id }),
           prepared.occurred_at,
@@ -652,7 +658,7 @@ class PostgresGovernanceRepository {
     const parsedOrganizationId = parseRepositoryIdentifier(organizationId, 'organization id');
     return this._readTenant(
       parsedOrganizationId,
-      'SELECT audit_event_id, organization_id, event_type, aggregate_type, aggregate_id, actor, payload, occurred_at FROM hseos_governance.audit_events WHERE organization_id = $1 ORDER BY occurred_at, audit_event_id',
+      'SELECT audit_event_id, organization_id, event_type, aggregate_type, aggregate_id, correlation_id, causation_id, actor, payload, occurred_at FROM hseos_governance.audit_events WHERE organization_id = $1 ORDER BY occurred_at, audit_event_id',
       [parsedOrganizationId],
     );
   }

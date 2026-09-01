@@ -34,6 +34,7 @@ test('published package exposes runtime and governance assets only', () => {
     'packages/managed-governance-contracts/index.js',
     'packages/managed-governance-client/index.js',
     'tools/managed-governance-control-plane/server.js',
+    'tools/managed-governance-control-plane/migrations/0003_audit_correlation.sql',
     'tools/managed-governance-control-plane/public/index.html',
     'packages/agent-runtime/index.js',
     'src/core/agents/hseos-master.agent.yaml',
@@ -48,6 +49,6 @@ test('published package exposes runtime and governance assets only', () => {
     assert.ok(!/\.(?:db|sqlite|pem|key)$/i.test(file), `state or key material published: ${file}`);
     assert.ok(!/(?:^|\/)(?:\.env|managed-governance\.json)$/i.test(file), `runtime configuration published: ${file}`);
   }
-  assert.ok(packed.entryCount < 1300, `package entry count is not bounded: ${packed.entryCount}`);
+  assert.ok(packed.entryCount < 1310, `package entry count is not bounded: ${packed.entryCount}`);
   assert.ok(packed.unpackedSize < 22_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);
 });

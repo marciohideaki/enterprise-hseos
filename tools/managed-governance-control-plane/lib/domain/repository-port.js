@@ -171,6 +171,8 @@ function prepareEnsureOrganizationCommand(command, options = {}) {
     command_digest: digestCanonical(prepared),
     occurred_at: repositoryClock(options),
     audit_event_id: randomUUID(),
+    correlation_id: randomUUID(),
+    causation_id: null,
     outbox_message_id: randomUUID(),
   });
 }
@@ -290,6 +292,8 @@ function prepareImportBatchCommand(command, options = {}) {
     batch_id: randomUUID(),
     occurred_at: repositoryClock(options),
     audit_event_id: randomUUID(),
+    correlation_id: randomUUID(),
+    causation_id: null,
     outbox_message_id: randomUUID(),
   });
 }
@@ -308,6 +312,8 @@ function prepareRollbackImportCommand(command, options = {}) {
     command_digest: digestCanonical(prepared),
     occurred_at: repositoryClock(options),
     audit_event_id: randomUUID(),
+    correlation_id: randomUUID(),
+    causation_id: null,
     outbox_message_id: randomUUID(),
   });
 }
@@ -331,6 +337,8 @@ function buildOrganizationMutation(prepared, existingOrganization = null) {
     event_type: 'organization.ensured',
     aggregate_type: 'organization',
     aggregate_id: prepared.organization_id,
+    correlation_id: prepared.correlation_id,
+    causation_id: prepared.causation_id,
     actor: prepared.actor,
     payload: { slug: organization.slug, display_name: organization.display_name },
     occurred_at: prepared.occurred_at,

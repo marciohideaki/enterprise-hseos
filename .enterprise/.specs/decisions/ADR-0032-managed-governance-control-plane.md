@@ -144,7 +144,7 @@ history, deterministic runtime inputs, offline snapshots and a reversible shadow
 - [x] Approved by explicit designated human authority on 2026-09-01 for `managed-shadow`
 - [ ] Threat model reviewed with no critical or high finding open
 - [ ] Affected standards updated to reference this ADR
-- [ ] Managed surface lifecycle entries accepted
+- [x] Managed surface lifecycle entries accepted for the approved shadow scope
 - [ ] Activation date recorded separately
 - [ ] Review date set after the managed-shadow observation window
 
