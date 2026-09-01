@@ -1,6 +1,6 @@
 # Managed Governance Control Plane — Design
 
-**Status:** Draft
+**Status:** Approved for `managed-shadow` implementation on 2026-09-01
 **Date:** 2026-09-01
 **Specification:** `spec.md`
 **ADR:** `.enterprise/.specs/decisions/ADR-0032-managed-governance-control-plane.md`
@@ -553,7 +553,7 @@ rollback deactivates an import batch while retaining audit. Portable execution i
 
 ## ADRs
 
-- `ADR-0032-managed-governance-control-plane.md` — Proposed; required before implementation.
+- `ADR-0032-managed-governance-control-plane.md` — Accepted for `managed-shadow` implementation.
 - ADR-0001 — Hexagonal boundary.
 - ADR-0002/0003 — transactional CRUD and relational authority.
 - ADR-0006/0007/0008 — standalone, compiler and project-local MCP boundaries.

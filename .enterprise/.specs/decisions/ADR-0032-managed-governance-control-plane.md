@@ -2,8 +2,8 @@
 
 ## Status
 
-Proposed on 2026-09-01. Non-authoritative until explicit human approval changes this status to
-Accepted.
+Accepted on 2026-09-01 by explicit human authorization for implementation in
+`managed-shadow` mode. This approval does not authorize `managed-enforced`.
 
 ## Context
 
@@ -25,8 +25,7 @@ silently changing the current v3 contract.
 
 ## Decision
 
-If this ADR is accepted, HSEOS will add an optional managed governance bounded context with these
-authority boundaries:
+HSEOS will add an optional managed governance bounded context with these authority boundaries:
 
 1. Published Constitution, standards, policies, decisions and canonical catalogs remain normative
    in an institutional Git repository.
@@ -56,8 +55,8 @@ authority boundaries:
     compatibility surface throughout v3.
 
 The first implementation may include contracts, migrations, importer, read-only query surfaces,
-schema-driven drafting and shadow comparison after this ADR is accepted. It must not remove or
-weaken existing portable authority.
+schema-driven drafting and shadow comparison. It must not remove or weaken existing portable
+authority.
 
 ## Alternatives Considered
 
@@ -142,7 +141,7 @@ history, deterministic runtime inputs, offline snapshots and a reversible shadow
 
 ## Compliance
 
-- [ ] Approved by Engineering Leadership or explicit designated human authority
+- [x] Approved by explicit designated human authority on 2026-09-01 for `managed-shadow`
 - [ ] Threat model reviewed with no critical or high finding open
 - [ ] Affected standards updated to reference this ADR
 - [ ] Managed surface lifecycle entries accepted

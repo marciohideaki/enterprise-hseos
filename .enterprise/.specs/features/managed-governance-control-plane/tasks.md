@@ -1,8 +1,9 @@
 # Managed Governance Control Plane — Task Contracts
 
-**Status:** Draft
+**Status:** Approved for `managed-shadow` implementation on 2026-09-01
 **Execution rule:** sequential, isolated worktree per task, one verified task per commit
-**Activation gate:** implementation tasks T01–T12 require ADR-0032 to be Accepted
+**Activation gate:** satisfied by explicit human acceptance of ADR-0032 on 2026-09-01;
+`managed-enforced` remains prohibited
 
 The task order is intentionally sequential. A task may start only after all dependencies are merged
 into `feature/managed-governance-control-plane` and its input files exist at the declared versions.
