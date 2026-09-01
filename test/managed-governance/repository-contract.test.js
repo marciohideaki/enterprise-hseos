@@ -34,7 +34,10 @@ async function runRepositoryContract(context, createRepository, label) {
     assert.equal(result.organization.organization_id, organizationId);
     assert.equal(Object.isFrozen(result), true);
     assert.deepEqual(await repository.getOrganization(organizationId), result.organization);
-    assert.equal((await repository.listAuditEvents(organizationId)).length, 1);
+    const auditEvents = await repository.listAuditEvents(organizationId);
+    assert.equal(auditEvents.length, 1);
+    assert.match(auditEvents[0].correlation_id, /^[a-f0-9-]{36}$/);
+    assert.equal(auditEvents[0].causation_id, null);
     assert.equal((await repository.listOutboxMessages(organizationId)).length, 1);
     assert.equal((await repository.getCommandReceipt(organizationId, 'organization-create')).command_digest.length, 71);
   });
@@ -86,7 +89,7 @@ if (require.main === module) {
   test('migration reader pins bounded regular files and rejects link aliases', async () => {
     const migrationsDirectory = path.resolve(__dirname, '../../tools/managed-governance-control-plane/migrations');
     const migrations = await readMigrations(migrationsDirectory);
-    assert.equal(migrations.length, 2);
+    assert.equal(migrations.length, 3);
     assert.equal(Object.isFrozen(migrations), true);
     assert.match(migrations[0].checksum, /^sha256:[a-f0-9]{64}$/);
 

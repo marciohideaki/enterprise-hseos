@@ -63,3 +63,35 @@ Managed drafts and database state do not silently replace published repository g
 Publication produces reviewable Git artifacts, and merge remains a separate human decision.
 Rollback disables the project binding or sidecar while portable governance continues unchanged;
 catalog history and audit evidence remain append-only.
+
+## Data and operational boundaries
+
+The first delivery is an opt-in, loopback-only shadow capability and does not define a production
+database profile. A production profile must be approved separately before non-loopback exposure or
+use with institutional data. Until that approval:
+
+- identifiers used in audit records are technical, pseudonymous actor references;
+- bearer credentials, secret values and personal content are forbidden in bindings, snapshots,
+  logs, metrics and audit metadata;
+- audit and outbox retention is not shortened automatically; deletion requires a separately
+  approved retention schedule and evidence-preserving procedure;
+- PostgreSQL backup, restore, recovery-point and recovery-time targets remain deployment-owned and
+  are not represented as active HSEOS capabilities;
+- structured operational telemetry remains a deployment integration requirement. The local shell
+  exposes health state but does not claim production logging or metrics readiness.
+
+## Non-interactive validation commands
+
+The following commands validate the implemented data lifecycle without activating a managed
+deployment:
+
+```bash
+node --test test/managed-governance/postgres.integration.test.js
+node --test test/managed-governance/import-apply.test.js test/managed-governance/seed-current-governance.test.js
+node --test test/managed-governance/conformance.test.js test/managed-governance/security.test.js
+```
+
+The PostgreSQL integration command runs migrations, seed/import, idempotent retry, tenant isolation
+and batch rollback when `HSEOS_GOVERNANCE_TEST_DATABASE_URL` points to an ephemeral test database;
+otherwise it reports an explicit skip. Backup restore is deliberately not advertised as executable
+until a production database profile and recovery runbook receive separate approval.
