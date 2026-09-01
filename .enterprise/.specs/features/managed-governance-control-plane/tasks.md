@@ -176,11 +176,18 @@ tasks:
       dependencies: [T02, T03]
     output_contract:
       files:
+        - .enterprise/.specs/features/managed-governance-control-plane/tasks.md
+        - package.json
         - tools/managed-governance-control-plane/lib/application/import-catalog.js
         - tools/managed-governance-control-plane/lib/application/rollback-import.js
         - tools/managed-governance-control-plane/lib/application/catalog-parity.js
+        - tools/managed-governance-control-plane/lib/domain/repository-port.js
+        - tools/managed-governance-control-plane/lib/infrastructure/memory/governance-repository.js
+        - tools/managed-governance-control-plane/lib/infrastructure/postgres/governance-repository.js
+        - tools/managed-governance-control-plane/migrations/0002_catalog_source_snapshots.sql
         - test/managed-governance/import-apply.test.js
         - test/managed-governance/seed-current-governance.test.js
+        - test/managed-governance/postgres.integration.test.js
       artifacts:
         - one seed path shared with ongoing synchronization
         - deterministic parity and rollback reports
