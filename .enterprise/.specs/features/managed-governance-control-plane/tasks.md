@@ -125,6 +125,9 @@ tasks:
       dependencies: [T01]
     output_contract:
       files:
+        - .enterprise/.specs/features/managed-governance-control-plane/tasks.md
+        - package.json
+        - package-lock.json
         - tools/managed-governance-control-plane/package.json
         - tools/managed-governance-control-plane/lib/domain/repository-port.js
         - tools/managed-governance-control-plane/lib/infrastructure/memory/governance-repository.js
