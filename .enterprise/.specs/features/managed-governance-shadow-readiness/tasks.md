@@ -16,7 +16,7 @@ tasks:
           '.enterprise/.specs/features/managed-governance-shadow-readiness/spec.md',
           '.enterprise/.specs/features/managed-governance-shadow-readiness/design.md',
           '.enterprise/.specs/decisions/ADR-0032-managed-governance-control-plane.md',
-          '.agents/capabilities/surfaces.yaml',
+          '.enterprise/governance/capabilities/surfaces.yaml',
         ]
       data: ['FR-019 through FR-024', 'ADR-0030 lifecycle rules']
       dependencies: []
@@ -24,6 +24,7 @@ tasks:
       files:
         [
           '.enterprise/.specs/decisions/ADR-0032-managed-governance-control-plane.md',
+          '.enterprise/governance/capabilities/surfaces.yaml',
           '.agents/capabilities/surfaces.yaml',
           'test/capability-profile.test.js',
         ]
@@ -33,6 +34,7 @@ tasks:
       [
         'ADR states non-loopback changes reachability only',
         'surface lifecycle is explicit and reversible',
+        'compiled surfaces match the canonical enterprise source',
         'managed-enforced remains unavailable',
       ]
     execution_mode: isolated
