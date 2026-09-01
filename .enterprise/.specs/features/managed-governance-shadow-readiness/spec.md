@@ -1,6 +1,6 @@
 # Managed Governance Shadow Readiness — Feature Specification
 
-**Status:** Proposed
+**Status:** Specified — human decisions resolved on 2026-09-01
 **Target:** first feature release after the v3.3.x correction line
 **Authority posture:** `managed-shadow` only; repository governance remains authoritative
 **Related decision:** ADR-0032
@@ -32,16 +32,18 @@ scope.
   plane, importer, release verifier and session preflight.
 - Add operator-verifiable backup/restore rehearsal contracts and runbook templates without claiming
   ownership of the PostgreSQL service.
+- Add an opt-in authenticated shared-network profile with explicit bind address, deny-by-default
+  client allowlist and separate administrative and read-only access policies.
 - Define the evidence bundle and explicit human gates required before any later proposal may request
-  non-loopback exposure or `managed-enforced` activation.
+  `managed-enforced` activation.
 
 ## Out of Scope
 
 - Activating, implementing or silently approximating `managed-enforced`.
 - Treating PostgreSQL, MCP responses, drafts or unsigned snapshots as normative governance.
 - Removing repository-owned Constitution, policies, standards, ADRs, skills or portable adapters.
-- Binding the sidecar to a non-loopback address, publishing it directly to a shared network, or
-  defining a production ingress profile.
+- Public-Internet exposure, implicit LAN trust, an empty or wildcard client allowlist, and an
+  HSEOS-owned production ingress profile.
 - Installing or operating PostgreSQL, a secret manager, PKI, backup infrastructure, telemetry
   backend or Git hosting service.
 - Holding private signing keys or database credentials in HSEOS-managed files.
@@ -103,12 +105,26 @@ scope.
   snapshot, database or policy effects.
 - **FR-018:** Disabling the managed binding or sidecar MUST restore portable-only operation without
   reversing migrations or deleting managed evidence.
+- **FR-019:** Portable and managed-shadow installations MUST bind to loopback unless an operator
+  explicitly selects the shared-network profile.
+- **FR-020:** The shared-network profile MUST require an explicit listen address, non-empty IP/CIDR
+  client allowlist, authentication, transport-protection contract, bounded rate limits and audit.
+- **FR-021:** Binding to all interfaces MUST fail closed unless every FR-020 control is valid; an empty,
+  malformed or wildcard allowlist MUST never degrade to allow-all.
+- **FR-022:** Administrative console mutations and read-only MCP/query traffic MUST have separate
+  access-policy scopes, even when they use the same allowlisted source address.
+- **FR-023:** A reverse proxy MUST be ignored as a source-identity authority unless its address and
+  forwarding contract are explicitly trusted; untrusted forwarding headers MUST NOT affect access.
+- **FR-024:** Every enabled adapter MUST emit a preflight receipt through either a native session-start
+  event or the portable bootstrap before its first task action. Coverage MUST be calculated per
+  adapter and MUST remain advisory in `managed-shadow`.
 
 ## Non-Functional Requirements
 
 - **NFR-001 — Security:** Threat modeling MUST cover the signer boundary, tenant isolation, console
-  authentication, publication artifact handoff, snapshot substitution and observation poisoning.
-  No Critical or High finding may remain open before a shared-network profile is proposed.
+  authentication, network allowlist, trusted-proxy boundary, publication artifact handoff, snapshot
+  substitution and observation poisoning. No Critical or High finding may remain open before the
+  shared-network profile is activated.
 - **NFR-002 — Data isolation:** Every new mutable tenant table MUST contain `organization_id`, enforce
   PostgreSQL RLS and pass cross-tenant denial tests using the runtime role.
 - **NFR-003 — Resilience:** Online shadow queries MUST preserve the existing bounded timeout, retry,
@@ -119,17 +135,22 @@ scope.
 - **NFR-005 — Observability:** Metrics and audit events MUST use bounded-cardinality identifiers and
   expose latency, failure, drift, freshness, outbox lag and recovery-rehearsal results without
   document bodies or secret values.
-- **NFR-006 — Performance:** Release lookup and session preflight MUST retain explicit latency and
-  response-size budgets. Exact thresholds are a design input and cannot be inferred in this spec.
+- **NFR-006 — Performance:** Session preflight latency MUST remain at or below 500 ms at p95 during
+  the readiness window. Release lookup and every response MUST retain explicit latency and size
+  budgets defined in design.
 - **NFR-007 — Accessibility:** New console surfaces MUST preserve keyboard operation, visible focus,
   error summaries and WCAG 2.1 AA contrast requirements.
 - **NFR-008 — Compatibility:** Portable mode and all existing v3 public contracts MUST remain
   backward compatible. Every new wire contract MUST be versioned and reject unknown versions.
 - **NFR-009 — Recoverability:** Backup and restore remain operator-owned; HSEOS MUST verify evidence
   without claiming an RPO or RTO not supplied by the deployment profile.
-- **NFR-010 — Deployment neutrality:** Configuration MUST contain identifiers and environment-variable
-  names only. No hostname, credential, tenant, filesystem path or infrastructure topology may be
-  hard coded for the current environment.
+- **NFR-010 — Deployment neutrality:** Secret fields MUST contain environment-variable or external
+  key references only. Bind addresses, ports, tenant identifiers, allowed clients and operational
+  targets MUST be explicit deployment configuration; none may be hard coded as package defaults for
+  the current environment.
+- **NFR-011 — Observation completeness:** Readiness MUST require 30 consecutive days, receipts from
+  at least 95% of eligible sessions, daily evidence from every active repository and zero unresolved
+  drift or invalid-contract outcome. Remote unavailability MUST NOT count as equivalence.
 
 ## Constraints
 
@@ -139,8 +160,9 @@ scope.
 - ADR-0006 requires portable operation with no home-directory or external-vault dependency.
 - ADR-0030 requires every new surface to declare lifecycle, authority and rollback.
 - Heavy build, database, package, publish and rollout validation remains sequential by default.
-- The feature cannot advance to design while the open questions below are unresolved or explicitly
-  accepted as risks by a human authority.
+- Shared-network access changes transport reachability only; it does not change governance authority.
+- The current deployment intends to configure `192.168.5.0/24`; this value is deployment state and
+  MUST NOT become a package default, fixture assumption or portable artifact requirement.
 
 ## Acceptance Evidence for the Feature
 
@@ -153,27 +175,28 @@ scope.
 - Restore rehearsal proves the declared evidence set on a disposable database.
 - Portable regression proves managed configuration and service outages never block local authority.
 - A readiness report remains advisory and explicitly states that it cannot authorize enforcement or
-  shared-network exposure.
+  broaden its own network allowlist.
+- Shared-network security tests prove default loopback, CIDR denial, authentication, scope separation,
+  trusted-proxy handling, rate limiting and audit before the deployment enables its LAN profile.
 
-## Open Questions
+## Resolved Decisions
 
-1. Which external signing mechanism, algorithms and key-rotation policy are approved for the first
-   release publisher implementation?
-2. What latency, availability, observation-window coverage and freshness thresholds should the
-   readiness report evaluate?
-3. Which deployment profile owns RPO, RTO, retention and the disposable restore target used by the
-   rehearsal?
-4. Should publication output be a filesystem patch bundle, a provider-neutral Git bundle, or both?
-5. Is authenticated non-loopback `managed-shadow` exposure a later feature under a separate ADR, or
-   should this feature only produce its threat model and activation prerequisites?
-6. Which adapters must provide native session-start evidence before the observation window can be
-   considered representative?
+1. Signing uses a plug-in external signer port. HSEOS never receives or stores the private key.
+2. Readiness uses the NFR-006 and NFR-011 latency, duration, coverage and parity thresholds.
+3. Each deployment owns and declares RPO, RTO, retention and the disposable restore target; HSEOS
+   validates the declaration and evidence without operating the production database.
+4. Publication initially emits only a deterministic patch bundle with manifest, changed files,
+   digests, provenance, application instructions and rollback instructions.
+5. This feature includes an opt-in authenticated shared-network profile under FR-019 through FR-023.
+   Loopback remains the default and public-Internet exposure remains out of scope.
+6. Every enabled adapter must provide evidence. Claude Code uses its native session-start hook;
+   Codex and adapters without a native event use the portable pre-task bootstrap. Coverage is
+   evaluated per adapter and remains advisory.
 
 ## Proposed Release Sequence
 
 1. **v3.3.x correction:** isolate test runtime state and exclude `.hseos/state/**` from the package.
-2. **Next feature release:** implement this shadow-readiness specification after resolving its open
-   questions and producing design/task artifacts.
+2. **Next feature release:** design and implement this resolved shadow-readiness specification.
 3. **Observation gate:** run the approved evidence window with no authority change.
-4. **Future decision:** evaluate a separate ADR for authenticated network exposure or enforcement;
-   neither outcome is implied by successful shadow observation.
+4. **Future decision:** evaluate a separate ADR for enforcement; successful shadow observation and
+   authenticated LAN access do not imply enforcement authority.
