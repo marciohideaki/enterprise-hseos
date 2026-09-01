@@ -463,6 +463,8 @@ tasks:
       dependencies: [T01, T05, T06]
     output_contract:
       files:
+        - .enterprise/.specs/features/managed-governance-control-plane/tasks.md
+        - package.json
         - packages/managed-governance-client/package.json
         - packages/managed-governance-client/index.js
         - packages/managed-governance-client/client.js
