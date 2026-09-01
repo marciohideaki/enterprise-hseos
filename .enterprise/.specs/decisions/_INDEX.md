@@ -31,6 +31,7 @@
 | [ADR-0020](./ADR-0020-provider-loop-cross-cutting-directives.md) | Cross-cutting directives from the provider-gateway loop | Accepted (2026-07-18) | CI/CD Pipeline, Advanced Testing Strategy (AT-32/AT-56), Security & Identity |
 | [ADR-0021](./ADR-0021-brand-variants-via-design-tokens.md) | Brand Variants via Design Tokens, Not Forked Frontends | Proposed | SOLID (§6 DRY), CI/CD Pipeline (CI-43, CI-53), frontend repo topology |
 | [ADR-0022](./ADR-0022-federated-platform-capability-graph.md) | Federated Platform Capability Graph and Platform-First Intake | Accepted (2026-08-24) | Constitution, core standards, specification consumption, automated validation, agent instructions |
+| [ADR-0024](./ADR-0024-capability-reuse-enforcement.md) | Capability Reuse Enforcement Complementing the Capability Graph | Proposed | Capability Graph, write-time hook, merge ratchet, Core Registry projection |
 
 ---
 
