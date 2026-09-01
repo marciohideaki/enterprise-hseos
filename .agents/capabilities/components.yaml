@@ -117,9 +117,7 @@ components:
     prerequisites:
       - "selection records install intent only; an explicit repository binding and endpoint are still required before any managed query"
       - "local repository governance remains authoritative; managed enforcement is reserved and unavailable"
-    modules:
-      - managed-governance-contracts
-      - managed-governance-client
+    modules: []
     tools: []
     install_paths:
       - packages/managed-governance-contracts/

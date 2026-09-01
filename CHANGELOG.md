@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] — 2026-09-01
+
+### Breaking Changes
+
+- None. Portable repository governance remains authoritative and no built-in
+  profile activates managed governance. ([PR #136](https://github.com/marciohideaki/enterprise-hseos/pull/136))
+
+### Added
+
+- Optional managed-governance contracts, deterministic import, PostgreSQL
+  migrations, seed/sync, policy resolution, shadow client and verified local
+  snapshots. ([PR #136](https://github.com/marciohideaki/enterprise-hseos/pull/136))
+- Loopback-only control-plane shell with versioned HTTP and CLI surfaces,
+  schema-driven console and read-only MCP queries. ([PR #136](https://github.com/marciohideaki/enterprise-hseos/pull/136))
+- Conformance, security and performance suites covering tenant isolation,
+  replay protection, input bounds, parity and unavailable enforcement.
+  ([PR #136](https://github.com/marciohideaki/enterprise-hseos/pull/136))
+
+### Changed
+
+- Installation documentation now uses checksum-verified GitHub release assets
+  instead of an unavailable npm package. ([PR #136](https://github.com/marciohideaki/enterprise-hseos/pull/136))
+
+### Fixed
+
+- `install-plan` now resolves the catalog shipped with the CLI when invoked
+  from an empty consumer repository. ([PR #136](https://github.com/marciohideaki/enterprise-hseos/pull/136))
+- Selecting the managed-governance client no longer asks the module installer
+  to locate nonexistent module sources. ([PR #136](https://github.com/marciohideaki/enterprise-hseos/pull/136))
+
+### Security
+
+- `managed-enforced` remains a reserved value that returns
+  `enforcement_unavailable` without network, cache or mutation effects.
+  ([PR #136](https://github.com/marciohideaki/enterprise-hseos/pull/136))
+
 ## [3.0.3] — 2026-08-31
 
 ### Breaking Changes

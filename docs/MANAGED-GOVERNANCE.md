@@ -7,13 +7,13 @@ and the managed result is observational.
 
 ## Lifecycle boundaries
 
-| Surface | Lifecycle | Authority |
-| --- | --- | --- |
-| Contracts and client | Opt-in module | Validates bindings, queries shadow decisions, and reads a bounded last-known-good snapshot |
-| Preflight | Pre-activation candidate | Reports parity or degradation; it cannot block local execution |
-| Control plane | Opt-in sidecar | Owns relational managed state behind versioned application ports |
-| Console | Opt-in sidecar | Uses the HTTP API only and has no database or Git credentials |
-| Repository files | Active portable path | Remain the published governance authority for this delivery |
+| Surface              | Lifecycle                | Authority                                                                                  |
+| -------------------- | ------------------------ | ------------------------------------------------------------------------------------------ |
+| Contracts and client | Opt-in module            | Validates bindings, queries shadow decisions, and reads a bounded last-known-good snapshot |
+| Preflight            | Pre-activation candidate | Reports parity or degradation; it cannot block local execution                             |
+| Control plane        | Opt-in sidecar           | Owns relational managed state behind versioned application ports                           |
+| Console              | Opt-in sidecar           | Uses the HTTP API only and has no database or Git credentials                              |
+| Repository files     | Active portable path     | Remain the published governance authority for this delivery                                |
 
 The reserved enforcement mode is accepted only as a wire-compatible value. It returns
 `enforcement_unavailable`, performs no managed enforcement, and requires a separate future approval
@@ -30,6 +30,73 @@ hseos install --components runtime:managed-governance-client
 
 Selection records install intent. It does not create a database, start a sidecar, write a binding,
 or activate a policy mode.
+
+## Release installation and quick verification
+
+Install the immutable GitHub asset before selecting the optional client:
+
+```bash
+release_version=3.1.0
+release_dir="$(mktemp -d)"
+gh release download "v${release_version}" --repo marciohideaki/enterprise-hseos --dir "${release_dir}"
+(cd "${release_dir}" && sha256sum -c SHA256SUMS)
+npm install --global "${release_dir}/hseos-${release_version}.tgz"
+hseos --version
+hseos install-plan --components runtime:managed-governance-client --json
+```
+
+The expected version is `3.1.0`. The plan must list
+`runtime:managed-governance-client`; it must not select a managed profile or
+start a sidecar. Apply the client to a project only after reviewing that plan:
+
+```bash
+hseos install --directory . --components runtime:managed-governance-client
+hseos status
+```
+
+For a non-interactive smoke in a disposable repository, make every side effect
+explicit:
+
+```bash
+hseos install --directory . \
+  --components runtime:managed-governance-client \
+  --tools none \
+  --no-git-hooks \
+  --yes
+```
+
+This still installs the mandatory portable baseline and records the optional
+component in `.hseos/config/capability-selection.yaml`. The managed client
+libraries remain owned by the verified global HSEOS distribution; they are not
+copied into the consumer repository as standalone modules.
+
+### Local console smoke
+
+The packaged console can be exercised without a database as a loopback-only
+shell. This proves the installed assets and network boundary, not database
+readiness:
+
+```bash
+hseos governance server start --bind 127.0.0.1 --port 4319 --json
+```
+
+Open `http://127.0.0.1:4319/` in a browser. `/health` intentionally reports
+`configuration_required` until a separately approved database-backed
+composition supplies migrations, repositories, authentication and projections.
+Stop the foreground process with `Ctrl+C`.
+
+### What installation deliberately does not do
+
+- create or alter a shared PostgreSQL database;
+- apply migrations `0001` through `0003`;
+- seed institutional governance or create a project binding;
+- expose the console outside loopback;
+- activate `managed-shadow` for a repository;
+- activate the reserved enforcement mode.
+
+This separation keeps package installation reversible. Database provisioning,
+credentials, retention, backup/restore and production telemetry belong to a
+separately approved operational profile.
 
 ## Project binding
 
@@ -63,6 +130,11 @@ Managed drafts and database state do not silently replace published repository g
 Publication produces reviewable Git artifacts, and merge remains a separate human decision.
 Rollback disables the project binding or sidecar while portable governance continues unchanged;
 catalog history and audit evidence remain append-only.
+
+To roll back the CLI in this environment, download and verify `v3.0.3` with the
+same procedure above, then install `hseos-3.0.3.tgz` globally. Disabling the
+optional binding or sidecar is sufficient to restore portable-only behavior;
+do not reverse applied migrations.
 
 ## Data and operational boundaries
 
