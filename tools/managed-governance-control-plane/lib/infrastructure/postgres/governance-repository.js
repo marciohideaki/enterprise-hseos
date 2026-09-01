@@ -2,11 +2,16 @@
 
 const { randomUUID } = require('node:crypto');
 const { deepFreeze } = require('../../../../../packages/managed-governance-contracts');
+const { buildImportReport } = require('../../application/catalog-parity');
 const {
   GovernanceRepositoryError,
+  artifactMaterialization,
   buildOrganizationMutation,
   parseRepositoryIdentifier,
+  parseRepositoryUuid,
   prepareEnsureOrganizationCommand,
+  prepareImportBatchCommand,
+  prepareRollbackImportCommand,
 } = require('../../domain/repository-port');
 
 function freezeRows(rows) {
@@ -151,6 +156,457 @@ class PostgresGovernanceRepository {
     });
   }
 
+  async _insertReceipt(client, prepared, result, organizationId = prepared.plan?.organization_id) {
+    await client.query(
+      'INSERT INTO hseos_governance.command_receipts(command_receipt_id, organization_id, idempotency_key, command_digest, result, created_at) VALUES ($1, $2, $3, $4, $5::jsonb, $6)',
+      [randomUUID(), organizationId, prepared.idempotency_key, prepared.command_digest, JSON.stringify(result), prepared.occurred_at],
+    );
+  }
+
+  async applyImportBatch(command) {
+    const prepared = prepareImportBatchCommand(command, { clock: this.clock });
+    const organizationId = prepared.plan.organization_id;
+    return this._transaction(organizationId, async (client) => {
+      await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [
+        JSON.stringify([organizationId, prepared.plan.repository_id, 'catalog-import']),
+      ]);
+      const receiptResult = await client.query(
+        'SELECT command_digest, result FROM hseos_governance.command_receipts WHERE organization_id = $1 AND idempotency_key = $2',
+        [organizationId, prepared.idempotency_key],
+      );
+      const receipt = receiptResult.rows[0];
+      if (receipt) {
+        if (receipt.command_digest !== prepared.command_digest) {
+          throw new GovernanceRepositoryError(
+            'idempotency key was already used for a different command',
+            'MANAGED_GOVERNANCE_IDEMPOTENCY_CONFLICT',
+          );
+        }
+        return deepFreeze(structuredClone(receipt.result));
+      }
+      const existingBatchResult = await client.query(
+        'SELECT import_batch_id, report, active FROM hseos_governance.import_batches WHERE organization_id = $1 AND batch_key = $2',
+        [organizationId, prepared.plan.batch_key],
+      );
+      if (existingBatchResult.rows[0]) {
+        const existingBatch = existingBatchResult.rows[0];
+        const report = existingBatch.active
+          ? buildImportReport({
+              batchId: existingBatch.import_batch_id,
+              plan: prepared.plan,
+              status: 'completed',
+              startedAt: new Date(existingBatch.report.started_at).toISOString(),
+              completedAt: new Date(existingBatch.report.completed_at).toISOString(),
+              activeBatch: true,
+            })
+          : deepFreeze(structuredClone(existingBatch.report));
+        await this._insertReceipt(client, prepared, report);
+        return report;
+      }
+
+      const repositoryResult = await client.query(
+        'SELECT repository_pk, canonical_remote, active_batch_id, created_at FROM hseos_governance.repositories WHERE organization_id = $1 AND repository_id = $2 FOR UPDATE',
+        [organizationId, prepared.plan.repository_id],
+      );
+      let repository = repositoryResult.rows[0];
+      if (repository && repository.canonical_remote !== prepared.canonical_remote) {
+        throw new GovernanceRepositoryError('repository remote differs from its durable identity', 'MANAGED_GOVERNANCE_CONFLICT');
+      }
+      if (!repository) {
+        repository = {
+          repository_pk: randomUUID(),
+          canonical_remote: prepared.canonical_remote,
+          active_batch_id: null,
+          created_at: prepared.occurred_at,
+        };
+        await client.query(
+          'INSERT INTO hseos_governance.repositories(repository_pk, organization_id, repository_id, canonical_remote, active_batch_id, created_at, updated_at) VALUES ($1, $2, $3, $4, NULL, $5, $5)',
+          [repository.repository_pk, organizationId, prepared.plan.repository_id, prepared.canonical_remote, prepared.occurred_at],
+        );
+      }
+
+      const previousSnapshotsResult = repository.active_batch_id
+        ? await client.query(
+            `SELECT s.source_path, s.artifact_id, s.artifact_type, s.classification_status,
+                    s.content_digest, s.artifact_version_id, v.version
+               FROM hseos_governance.catalog_source_snapshots s
+               LEFT JOIN hseos_governance.artifact_versions v
+                 ON v.organization_id = s.organization_id AND v.artifact_version_id = s.artifact_version_id
+              WHERE s.organization_id = $1 AND s.import_batch_id = $2
+              ORDER BY s.source_path`,
+            [organizationId, repository.active_batch_id],
+          )
+        : { rows: [] };
+      const previousSnapshots = freezeRows(previousSnapshotsResult.rows);
+      const previousByPath = new Map(previousSnapshots.map((snapshot) => [snapshot.source_path, snapshot]));
+      const entryByPath = new Map(prepared.entries.map((entry) => [entry.source_path, entry]));
+      await client.query(
+        `INSERT INTO hseos_governance.import_batches(
+           import_batch_id, organization_id, repository_id, batch_key, idempotency_key, source_commit,
+           importer_version, source_profile_digest, status, active, started_at, previous_batch_id, plan
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'applying', false, $9, $10, $11::jsonb)`,
+        [
+          prepared.batch_id,
+          organizationId,
+          prepared.plan.repository_id,
+          prepared.plan.batch_key,
+          prepared.idempotency_key,
+          prepared.plan.source_commit,
+          prepared.plan.importer_version,
+          prepared.plan.source_profile_digest,
+          prepared.occurred_at,
+          repository.active_batch_id,
+          JSON.stringify(prepared.plan),
+        ],
+      );
+
+      const nextSnapshots = [];
+      for (const item of prepared.plan.items) {
+        const importBatchItemId = randomUUID();
+        await client.query(
+          `INSERT INTO hseos_governance.import_batch_items(
+             import_batch_item_id, organization_id, import_batch_id, source_path, artifact_id,
+             action, classification_status, content_digest, issues, created_at
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10)`,
+          [
+            importBatchItemId,
+            organizationId,
+            prepared.batch_id,
+            item.source_path,
+            item.artifact_id,
+            item.action,
+            item.classification_status,
+            item.content_digest,
+            JSON.stringify(item.issues),
+            prepared.occurred_at,
+          ],
+        );
+        if (item.action === 'deactivate') continue;
+        const entry = entryByPath.get(item.source_path);
+        const previous =
+          previousByPath.get(item.source_path) ||
+          (item.previous_source_path ? previousByPath.get(item.previous_source_path) : null) ||
+          previousSnapshots.find(
+            (snapshot) => snapshot.artifact_id === item.artifact_id && snapshot.content_digest === item.content_digest,
+          );
+        let artifactVersionId = null;
+        if (['noop', 'rename'].includes(item.action)) {
+          if (!previous?.artifact_version_id) {
+            throw new GovernanceRepositoryError('import plan references missing prior content', 'MANAGED_GOVERNANCE_IMPORT_PLAN_STALE');
+          }
+          artifactVersionId = previous.artifact_version_id;
+        } else if (item.artifact_id) {
+          const materialization = artifactMaterialization(entry);
+          const artifactResult = await client.query(
+            'SELECT artifact_pk, slug, created_at, current_version FROM hseos_governance.governance_artifacts WHERE organization_id = $1 AND artifact_id = $2 FOR UPDATE',
+            [organizationId, item.artifact_id],
+          );
+          const artifact = artifactResult.rows[0];
+          if (!artifact) {
+            await client.query(
+              `INSERT INTO hseos_governance.governance_artifacts(
+                 artifact_pk, organization_id, artifact_id, artifact_type, namespace, slug, title,
+                 lifecycle_status, current_version, created_at, updated_at
+               ) VALUES ($1, $2, $3, $4, 'imported', $5, $6, $7, NULL, $8, $8)`,
+              [
+                randomUUID(),
+                organizationId,
+                item.artifact_id,
+                item.artifact_type,
+                materialization.slug,
+                materialization.title,
+                item.action === 'review' ? 'draft' : 'published',
+                prepared.occurred_at,
+              ],
+            );
+          }
+          const versionResult = await client.query(
+            'SELECT artifact_version_id, version FROM hseos_governance.artifact_versions WHERE organization_id = $1 AND artifact_id = $2 AND content_digest = $3',
+            [organizationId, item.artifact_id, item.content_digest],
+          );
+          let version = versionResult.rows[0];
+          if (!version) {
+            const maximumVersionResult = await client.query(
+              'SELECT COALESCE(MAX(version), 0)::integer AS maximum_version FROM hseos_governance.artifact_versions WHERE organization_id = $1 AND artifact_id = $2',
+              [organizationId, item.artifact_id],
+            );
+            const nextVersion = maximumVersionResult.rows[0].maximum_version + 1;
+            version = { artifact_version_id: randomUUID(), version: nextVersion };
+            await client.query(
+              `INSERT INTO hseos_governance.artifact_versions(
+                 artifact_version_id, organization_id, artifact_id, version, raw_content, structured_content,
+                 content_digest, source_repository_id, source_path, source_commit, source_section,
+                 classification_status, import_batch_id, active, created_at
+               ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10, NULL, $11, $12, true, $13)`,
+              [
+                version.artifact_version_id,
+                organizationId,
+                item.artifact_id,
+                version.version,
+                entry.raw_content,
+                JSON.stringify(materialization.structured_content),
+                item.content_digest,
+                prepared.plan.repository_id,
+                item.source_path,
+                prepared.plan.source_commit,
+                item.classification_status,
+                prepared.batch_id,
+                prepared.occurred_at,
+              ],
+            );
+          }
+          artifactVersionId = version.artifact_version_id;
+          await client.query(
+            `UPDATE hseos_governance.governance_artifacts
+                SET artifact_type = $3, title = $4, lifecycle_status = $5, current_version = $6, updated_at = $7
+              WHERE organization_id = $1 AND artifact_id = $2`,
+            [
+              organizationId,
+              item.artifact_id,
+              item.artifact_type,
+              materialization.title,
+              item.action === 'review' ? 'draft' : 'published',
+              version.version,
+              prepared.occurred_at,
+            ],
+          );
+        }
+        if (item.action === 'review') {
+          await client.query(
+            `INSERT INTO hseos_governance.review_queue(
+               review_item_id, organization_id, import_batch_item_id, status, reason_code, resolution, created_at
+             ) VALUES ($1, $2, $3, 'open', 'classification_required', NULL, $4)`,
+            [randomUUID(), organizationId, importBatchItemId, prepared.occurred_at],
+          );
+        }
+        const snapshot = {
+          catalog_source_snapshot_id: randomUUID(),
+          source_path: item.source_path,
+          artifact_id: item.artifact_id,
+          artifact_type: item.artifact_type,
+          classification_status: item.classification_status,
+          content_digest: item.content_digest,
+          artifact_version_id: artifactVersionId,
+        };
+        nextSnapshots.push(snapshot);
+        await client.query(
+          `INSERT INTO hseos_governance.catalog_source_snapshots(
+             catalog_source_snapshot_id, organization_id, repository_id, import_batch_id, source_path,
+             artifact_id, artifact_type, classification_status, content_digest, artifact_version_id, created_at
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+          [
+            snapshot.catalog_source_snapshot_id,
+            organizationId,
+            prepared.plan.repository_id,
+            prepared.batch_id,
+            snapshot.source_path,
+            snapshot.artifact_id,
+            snapshot.artifact_type,
+            snapshot.classification_status,
+            snapshot.content_digest,
+            snapshot.artifact_version_id,
+            prepared.occurred_at,
+          ],
+        );
+      }
+
+      const nextArtifactIds = new Set(nextSnapshots.map((snapshot) => snapshot.artifact_id).filter(Boolean));
+      for (const snapshot of nextSnapshots) {
+        if (!snapshot.artifact_id || !snapshot.artifact_version_id) continue;
+        const version = previousSnapshots.find((previous) => previous.artifact_version_id === snapshot.artifact_version_id)?.version;
+        const persistedVersion =
+          version ||
+          (
+            await client.query(
+              'SELECT version FROM hseos_governance.artifact_versions WHERE organization_id = $1 AND artifact_version_id = $2',
+              [organizationId, snapshot.artifact_version_id],
+            )
+          ).rows[0]?.version;
+        await client.query(
+          `UPDATE hseos_governance.governance_artifacts
+              SET current_version = $3, lifecycle_status = $4, updated_at = $5
+            WHERE organization_id = $1 AND artifact_id = $2`,
+          [
+            organizationId,
+            snapshot.artifact_id,
+            persistedVersion,
+            snapshot.classification_status === 'classified' ? 'published' : 'draft',
+            prepared.occurred_at,
+          ],
+        );
+      }
+      for (const previous of previousSnapshots) {
+        if (previous.artifact_id && !nextArtifactIds.has(previous.artifact_id)) {
+          await client.query(
+            "UPDATE hseos_governance.governance_artifacts SET lifecycle_status = 'deprecated', updated_at = $3 WHERE organization_id = $1 AND artifact_id = $2",
+            [organizationId, previous.artifact_id, prepared.occurred_at],
+          );
+        }
+      }
+      if (repository.active_batch_id) {
+        await client.query(
+          'UPDATE hseos_governance.import_batches SET active = false WHERE organization_id = $1 AND import_batch_id = $2',
+          [organizationId, repository.active_batch_id],
+        );
+      }
+      const report = buildImportReport({
+        batchId: prepared.batch_id,
+        plan: prepared.plan,
+        status: 'completed',
+        startedAt: prepared.occurred_at,
+        completedAt: prepared.occurred_at,
+        activeBatch: true,
+      });
+      await client.query(
+        "UPDATE hseos_governance.import_batches SET status = 'completed', active = true, completed_at = $3, report = $4::jsonb WHERE organization_id = $1 AND import_batch_id = $2",
+        [organizationId, prepared.batch_id, prepared.occurred_at, JSON.stringify(report)],
+      );
+      await client.query(
+        'UPDATE hseos_governance.repositories SET active_batch_id = $3, updated_at = $4 WHERE organization_id = $1 AND repository_id = $2',
+        [organizationId, prepared.plan.repository_id, prepared.batch_id, prepared.occurred_at],
+      );
+      await client.query(
+        'INSERT INTO hseos_governance.audit_events(audit_event_id, organization_id, event_type, aggregate_type, aggregate_id, actor, payload, occurred_at) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8)',
+        [
+          prepared.audit_event_id,
+          organizationId,
+          'catalog.import.completed',
+          'import_batch',
+          prepared.batch_id,
+          JSON.stringify(prepared.actor),
+          JSON.stringify({ plan_id: prepared.plan.plan_id, batch_key: prepared.plan.batch_key }),
+          prepared.occurred_at,
+        ],
+      );
+      await client.query(
+        'INSERT INTO hseos_governance.outbox_messages(outbox_message_id, organization_id, topic, aggregate_type, aggregate_id, payload, created_at) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)',
+        [
+          prepared.outbox_message_id,
+          organizationId,
+          'governance.catalog.imported',
+          'import_batch',
+          prepared.batch_id,
+          JSON.stringify({ audit_event_id: prepared.audit_event_id, plan_id: prepared.plan.plan_id }),
+          prepared.occurred_at,
+        ],
+      );
+      await this._insertReceipt(client, prepared, report);
+      return report;
+    });
+  }
+
+  async rollbackImportBatch(command) {
+    const prepared = prepareRollbackImportCommand(command, { clock: this.clock });
+    return this._transaction(prepared.organization_id, async (client) => {
+      await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [
+        JSON.stringify([prepared.organization_id, prepared.repository_id, 'catalog-import']),
+      ]);
+      const receiptResult = await client.query(
+        'SELECT command_digest, result FROM hseos_governance.command_receipts WHERE organization_id = $1 AND idempotency_key = $2',
+        [prepared.organization_id, prepared.idempotency_key],
+      );
+      if (receiptResult.rows[0]) {
+        if (receiptResult.rows[0].command_digest !== prepared.command_digest) {
+          throw new GovernanceRepositoryError('idempotency key conflicts with another command', 'MANAGED_GOVERNANCE_IDEMPOTENCY_CONFLICT');
+        }
+        return deepFreeze(structuredClone(receiptResult.rows[0].result));
+      }
+      const repositoryResult = await client.query(
+        'SELECT active_batch_id FROM hseos_governance.repositories WHERE organization_id = $1 AND repository_id = $2 FOR UPDATE',
+        [prepared.organization_id, prepared.repository_id],
+      );
+      const batchResult = await client.query(
+        'SELECT previous_batch_id, plan, report FROM hseos_governance.import_batches WHERE organization_id = $1 AND import_batch_id = $2 FOR UPDATE',
+        [prepared.organization_id, prepared.batch_id],
+      );
+      const repository = repositoryResult.rows[0];
+      const batch = batchResult.rows[0];
+      if (!repository || !batch || repository.active_batch_id !== prepared.batch_id || !batch.previous_batch_id) {
+        throw new GovernanceRepositoryError('active import batch cannot be rolled back', 'MANAGED_GOVERNANCE_CONFLICT');
+      }
+      const previousSnapshots = await client.query(
+        `SELECT s.artifact_id, v.version
+           FROM hseos_governance.catalog_source_snapshots s
+           LEFT JOIN hseos_governance.artifact_versions v
+             ON v.organization_id = s.organization_id AND v.artifact_version_id = s.artifact_version_id
+          WHERE s.organization_id = $1 AND s.import_batch_id = $2`,
+        [prepared.organization_id, batch.previous_batch_id],
+      );
+      const restoredArtifactIds = new Set();
+      for (const snapshot of previousSnapshots.rows) {
+        if (!snapshot.artifact_id || restoredArtifactIds.has(snapshot.artifact_id)) continue;
+        restoredArtifactIds.add(snapshot.artifact_id);
+        await client.query(
+          "UPDATE hseos_governance.governance_artifacts SET current_version = $3, lifecycle_status = 'published', updated_at = $4 WHERE organization_id = $1 AND artifact_id = $2",
+          [prepared.organization_id, snapshot.artifact_id, snapshot.version, prepared.occurred_at],
+        );
+      }
+      const currentArtifacts = await client.query(
+        'SELECT DISTINCT artifact_id FROM hseos_governance.catalog_source_snapshots WHERE organization_id = $1 AND import_batch_id = $2 AND artifact_id IS NOT NULL',
+        [prepared.organization_id, prepared.batch_id],
+      );
+      for (const { artifact_id: artifactId } of currentArtifacts.rows) {
+        if (!restoredArtifactIds.has(artifactId)) {
+          await client.query(
+            "UPDATE hseos_governance.governance_artifacts SET lifecycle_status = 'deprecated', updated_at = $3 WHERE organization_id = $1 AND artifact_id = $2",
+            [prepared.organization_id, artifactId, prepared.occurred_at],
+          );
+        }
+      }
+      await client.query(
+        "UPDATE hseos_governance.import_batches SET status = 'rolled-back', active = false WHERE organization_id = $1 AND import_batch_id = $2",
+        [prepared.organization_id, prepared.batch_id],
+      );
+      await client.query('UPDATE hseos_governance.import_batches SET active = true WHERE organization_id = $1 AND import_batch_id = $2', [
+        prepared.organization_id,
+        batch.previous_batch_id,
+      ]);
+      await client.query(
+        'UPDATE hseos_governance.repositories SET active_batch_id = $3, updated_at = $4 WHERE organization_id = $1 AND repository_id = $2',
+        [prepared.organization_id, prepared.repository_id, batch.previous_batch_id, prepared.occurred_at],
+      );
+      const report = buildImportReport({
+        batchId: prepared.batch_id,
+        plan: batch.plan,
+        status: 'rolled-back',
+        startedAt: new Date(batch.report.started_at).toISOString(),
+        completedAt: prepared.occurred_at,
+        activeBatch: false,
+      });
+      await client.query(
+        'UPDATE hseos_governance.import_batches SET report = $3::jsonb, completed_at = $4 WHERE organization_id = $1 AND import_batch_id = $2',
+        [prepared.organization_id, prepared.batch_id, JSON.stringify(report), prepared.occurred_at],
+      );
+      await client.query(
+        'INSERT INTO hseos_governance.audit_events(audit_event_id, organization_id, event_type, aggregate_type, aggregate_id, actor, payload, occurred_at) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8)',
+        [
+          prepared.audit_event_id,
+          prepared.organization_id,
+          'catalog.import.rolled-back',
+          'import_batch',
+          prepared.batch_id,
+          JSON.stringify(prepared.actor),
+          JSON.stringify({ restored_batch_id: batch.previous_batch_id }),
+          prepared.occurred_at,
+        ],
+      );
+      await client.query(
+        'INSERT INTO hseos_governance.outbox_messages(outbox_message_id, organization_id, topic, aggregate_type, aggregate_id, payload, created_at) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)',
+        [
+          prepared.outbox_message_id,
+          prepared.organization_id,
+          'governance.catalog.rollback',
+          'import_batch',
+          prepared.batch_id,
+          JSON.stringify({ audit_event_id: prepared.audit_event_id, restored_batch_id: batch.previous_batch_id }),
+          prepared.occurred_at,
+        ],
+      );
+      await this._insertReceipt(client, prepared, report, prepared.organization_id);
+      return report;
+    });
+  }
+
   async _readTenant(organizationId, query, parameters) {
     return this._transaction(organizationId, async (client) => freezeRows((await client.query(query, parameters)).rows));
   }
@@ -174,6 +630,22 @@ class PostgresGovernanceRepository {
       [parsedOrganizationId, parsedIdempotencyKey],
     );
     return rows[0] || null;
+  }
+
+  async listCatalogEntries(organizationId, repositoryId) {
+    const parsedOrganizationId = parseRepositoryIdentifier(organizationId, 'organization id');
+    const parsedRepositoryId = parseRepositoryUuid(repositoryId, 'repository id');
+    return this._readTenant(
+      parsedOrganizationId,
+      `SELECT s.source_path, s.artifact_id, s.artifact_type, s.classification_status,
+              s.content_digest, s.artifact_version_id
+         FROM hseos_governance.repositories r
+         JOIN hseos_governance.catalog_source_snapshots s
+           ON s.organization_id = r.organization_id AND s.import_batch_id = r.active_batch_id
+        WHERE r.organization_id = $1 AND r.repository_id = $2
+        ORDER BY s.source_path`,
+      [parsedOrganizationId, parsedRepositoryId],
+    );
   }
 
   async listAuditEvents(organizationId) {
