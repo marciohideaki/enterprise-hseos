@@ -1,10 +1,10 @@
 # Managed Governance Control Plane — Feature Specification
 
-**Status:** Draft
+**Status:** Approved for `managed-shadow` implementation on 2026-09-01
 **Owner:** Platform Governance
 **Date:** 2026-09-01
 **Related RFC:** `_pipeline/rfc-managed-governance-control-plane.md`
-**Decision gate:** ADR-0032 must be accepted before implementation tasks start
+**Decision gate:** Satisfied by explicit human acceptance of ADR-0032 on 2026-09-01
 
 ## Purpose
 
