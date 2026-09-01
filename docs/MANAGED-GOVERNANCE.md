@@ -36,7 +36,7 @@ or activate a policy mode.
 Install the immutable GitHub asset before selecting the optional client:
 
 ```bash
-release_version=3.2.1
+release_version=3.2.2
 release_dir="$(mktemp -d)"
 gh release download "v${release_version}" --repo marciohideaki/enterprise-hseos --dir "${release_dir}"
 (cd "${release_dir}" && sha256sum -c SHA256SUMS)
@@ -50,7 +50,7 @@ only for an intentionally system-managed, non-writable prefix. With NVM, fnm,
 asdf, Volta, or a user-owned prefix, install without `sudo` and keep all
 subsequent `npm root --global` and `hseos` commands in that same runtime context.
 
-The expected version is `3.2.1`. The plan must list
+The expected version is `3.2.2`. The plan must list
 `runtime:managed-governance-client`; it must not select a managed profile or
 start a sidecar. Apply the client to a project only after reviewing that plan:
 
@@ -73,7 +73,10 @@ hseos install --directory . \
 This still installs the mandatory portable baseline and records the optional
 component in `.hseos/config/capability-selection.yaml`. The managed client
 libraries remain owned by the verified global HSEOS distribution; they are not
-copied into the consumer repository as standalone modules.
+copied into the consumer repository as standalone modules. The installer does
+materialize the portable `.enterprise/` governance source and
+`.hseos/workflows/` registry required by the importer, preserving either tree
+when it already exists.
 
 ## End-to-end PostgreSQL installation
 
@@ -139,11 +142,26 @@ Use the environment names declared in your configuration; the names above are
 only the packaged example. Prefer a process supervisor or secret manager over
 interactive exports outside disposable development environments.
 
-### 4. Commit the installed governance source
+### 4. Verify repository identity and commit the installed governance source
 
 The importer accepts only a verified `repository-contract.yaml`, a fixed Git
 commit and clean canonical governance roots. Review and commit the files created
 by `hseos install` through the repository's normal governed workflow before seed.
+The contract is project-owned and is deliberately not copied from the HSEOS
+package: it must contain the target repository's stable UUID, normalized remote
+identity, and `.agents/capabilities/components.yaml` manifest reference. Validate
+it before setup:
+
+```bash
+node "$(npm root --global)/hseos/scripts/governance/validate-repository-contract.js"
+git status --short
+git rev-parse --verify HEAD
+```
+
+If the target does not yet have this contract or validation command, establish
+repository identity through the target organization's governed bootstrap before
+continuing. Do not reuse the package repository's identity or invent one during
+an unattended install.
 
 ### 5. Apply migrations, seed and binding idempotently
 

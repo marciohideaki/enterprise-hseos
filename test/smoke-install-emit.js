@@ -1,9 +1,9 @@
 'use strict';
 
-// Smoke test for the install emitters: .enterprise/ overlay scaffold, the
-// pre-commit hook, and the root entrypoint files (AGENTS.md + the Claude Code
-// pointer). Wired into `npm test` via `test:smoke-install`. Uses OS temp dirs
-// so it runs cross-platform in CI.
+// Smoke test for the install emitters: portable governance source scaffolds,
+// the pre-commit hook, and the root entrypoint files (AGENTS.md + the Claude
+// Code pointer). Wired into `npm test` via `test:smoke-install`. Uses OS temp
+// dirs so it runs cross-platform in CI.
 
 const path = require('node:path');
 const os = require('node:os');
@@ -42,6 +42,18 @@ function check(label, fn) {
 
     const overlaySelf = await installer.installEnterpriseOverlay(sourceRoot, sourceRoot);
     check('overlay self-target is a no-op', () => assert.equal(overlaySelf.status, 'skipped-self'));
+
+    const workflows = await installer.installGovernanceWorkflowOverlay(TEST_DIR, sourceRoot);
+    check('workflow overlay first call copies', () => assert.equal(workflows.status, 'copied'));
+    check('workflow overlay copies the governed registry', () =>
+      assert.ok(fs.existsSync(path.join(TEST_DIR, '.hseos', 'workflows', 'registry.yaml'))),
+    );
+
+    const workflows2 = await installer.installGovernanceWorkflowOverlay(TEST_DIR, sourceRoot);
+    check('workflow overlay re-run preserves existing', () => assert.equal(workflows2.status, 'preserved'));
+
+    const workflowsSelf = await installer.installGovernanceWorkflowOverlay(sourceRoot, sourceRoot);
+    check('workflow overlay self-target is a no-op', () => assert.equal(workflowsSelf.status, 'skipped-self'));
 
     // 2. installPreCommitHook — fresh install, idempotency, no-git case
     const hook = await installer.installPreCommitHook(TEST_DIR);
