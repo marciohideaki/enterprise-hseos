@@ -50,8 +50,7 @@ function tabulate(rows, columns) {
 
 module.exports = {
   command: 'state-session <action>',
-  description:
-    'Track live agent sessions in the machine store (register/heartbeat/end/list/sweep) — any agent, hseos-launched or not.',
+  description: 'Track live agent sessions in the machine store (register/heartbeat/end/list/sweep) — any agent, hseos-launched or not.',
   options: [
     ['--directory <path>', 'Store root (default: $HOME — the machine-wide store)'],
     ['--session <id>', 'Session id (UUID from the agent harness)'],
