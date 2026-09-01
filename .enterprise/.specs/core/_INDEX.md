@@ -25,7 +25,7 @@
 | [Event Sourcing Standard.md](./Event%20Sourcing%20Standard.md) | Event-driven state management | Opt-in; event log as source of truth |
 | [Saga Pattern Standard.md](./Saga%20Pattern%20Standard.md) | Distributed transaction coordination | Choreography vs orchestration |
 | [SOLID Principles & Software Craftsmanship Standard.md](./SOLID%20Principles%20%26%20Software%20Craftsmanship%20Standard.md) | SOLID, DRY, KISS, YAGNI, Law of Demeter, Composition over Inheritance | SP-01 to SP-90 |
-| [Platform Capability Governance Standard.md](./Platform%20Capability%20Governance%20Standard.md) | Platform-first intake, typed capability graph, federation, lifecycle, and validation | Constitution §2.6; ADR-0022 |
+| [Platform Capability Governance Standard.md](./Platform%20Capability%20Governance%20Standard.md) | Platform-first intake, typed capability graph, federation, lifecycle, and validation | Constitution §2.6; ADR-0033 |
 
 ---
 

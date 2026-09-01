@@ -3,7 +3,7 @@ graph_id: hideaki.enterprise-capabilities
 authority:
   constitution_version: "2.2"
   constitution_path: .enterprise/.specs/constitution/Enterprise-Constitution.md
-  adr: adr.0022
+  adr: adr.0033
 fragment_schema:
   version: 1.0.0
   path: .enterprise/governance/capabilities/schemas/capability-graph-fragment.schema.json

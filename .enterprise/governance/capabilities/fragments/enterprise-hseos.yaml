@@ -41,11 +41,11 @@ nodes:
     name: Capability Graph Governance Tests
     lifecycle: available
     path: test/test-capability-graph-governance.js
-  - id: adr.0022
+  - id: adr.0033
     type: Adr
     name: Federated Platform Capability Graph and Platform-First Intake
     lifecycle: available
-    path: .enterprise/.specs/decisions/ADR-0022-federated-platform-capability-graph.md
+    path: .enterprise/.specs/decisions/ADR-0033-federated-platform-capability-graph.md
   - id: evidence.capability-graph.policy
     type: Evidence
     name: Capability Graph Policy
@@ -87,9 +87,9 @@ edges:
     from: testsuite.capability-graph
     to: owner.platform-architecture
     repository: repo.enterprise-hseos
-  - id: edge.adr.0022.owned-by.platform-architecture
+  - id: edge.adr.0033.owned-by.platform-architecture
     type: OWNED_BY
-    from: adr.0022
+    from: adr.0033
     to: owner.platform-architecture
     repository: repo.enterprise-hseos
   - id: edge.capability.capability-graph.defined-by.registry-v1
@@ -130,7 +130,7 @@ edges:
   - id: edge.capability.capability-graph.governed-by.adr-0022
     type: GOVERNED_BY
     from: capability.governance.capability-graph
-    to: adr.0022
+    to: adr.0033
     repository: repo.enterprise-hseos
     evidence:
       - evidence.capability-graph.policy

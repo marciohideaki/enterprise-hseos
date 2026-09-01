@@ -4,7 +4,7 @@
 **Version:** 1.1.0
 **Effective:** 2026-08-24
 **Scope:** All repositories, projects, modules, packages, contracts, and agents
-**Authority:** Enterprise Constitution §2.6 and ADR-0022
+**Authority:** Enterprise Constitution §2.6 and ADR-0033
 
 ## 1. Purpose
 
@@ -137,6 +137,6 @@ non-compliant.
 
 - Enterprise Constitution §§2.1, 2.5, 2.6, 5, 7-10, 13-14
 - ADR-0016 Capability Packaging and Install Planning
-- ADR-0022 Federated Platform Capability Graph and Platform-First Intake
+- ADR-0033 Federated Platform Capability Graph and Platform-First Intake
 - `.enterprise/policies/capability-graph.md`
 - `.enterprise/policies/automated-validation.md`

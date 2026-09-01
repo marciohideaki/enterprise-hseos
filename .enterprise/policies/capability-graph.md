@@ -4,7 +4,7 @@
 **Version:** 1.1.0
 **Effective:** 2026-08-24
 **Scope:** All Hideaki repositories, projects, and agents
-**Authority:** Enterprise Constitution §2.6; Platform Capability Governance Standard; ADR-0022
+**Authority:** Enterprise Constitution §2.6; Platform Capability Governance Standard; ADR-0033
 
 ## Rule
 
@@ -114,5 +114,5 @@ owning repository's normal PR lifecycle and quality gates.
 
 - `.enterprise/.specs/constitution/Enterprise-Constitution.md` §2.6
 - `.enterprise/.specs/core/Platform Capability Governance Standard.md`
-- `.enterprise/.specs/decisions/ADR-0022-federated-platform-capability-graph.md`
+- `.enterprise/.specs/decisions/ADR-0033-federated-platform-capability-graph.md`
 - `.enterprise/policies/automated-validation.md`

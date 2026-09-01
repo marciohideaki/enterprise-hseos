@@ -312,7 +312,7 @@ const cases = [
     name: 'current constitutional amendment is linked and protected',
     fn: () => {
       const constitution = '.enterprise/.specs/constitution/Enterprise-Constitution.md';
-      const adr = '.enterprise/.specs/decisions/ADR-0022-capability-graph.md';
+      const adr = '.enterprise/.specs/decisions/ADR-0033-federated-platform-capability-graph.md';
       withGitFixture(
         {
           [constitution]: '**Version:** 2.1\n\nBaseline.\n',
@@ -330,7 +330,7 @@ const cases = [
           assert.strictEqual(result.changed, true);
           assert.strictEqual(result.previous_version, '2.1');
           assert.strictEqual(result.version, '2.2');
-          assert.ok(result.adrs.some((file) => file.includes('ADR-0022')));
+          assert.ok(result.adrs.some((file) => file.includes('ADR-0033')));
         },
       );
     },

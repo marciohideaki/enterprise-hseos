@@ -15,7 +15,7 @@
       "properties": {
         "constitution_version": { "const": "2.2" },
         "constitution_path": { "$ref": "#/$defs/path" },
-        "adr": { "const": "adr.0022" }
+        "adr": { "const": "adr.0033" }
       }
     },
     "fragment_schema": {

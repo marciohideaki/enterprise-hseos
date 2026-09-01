@@ -168,7 +168,7 @@ function validateRegistry(registry, root) {
     'registry.authority',
   );
   if (registry.authority.constitution_version !== '2.2') fail('registry must bind to Constitution v2.2');
-  if (registry.authority.adr !== 'adr.0022') fail('registry must bind to ADR-0022');
+  if (registry.authority.adr !== 'adr.0033') fail('registry must bind to ADR-0033');
   const constitutionPath = safeResolve(root, registry.authority.constitution_path, 'constitution_path');
   if (!fs.existsSync(constitutionPath)) fail(`constitution does not exist: ${registry.authority.constitution_path}`);
 
