@@ -381,12 +381,12 @@ The initial `enterprise-hseos/v1` profile allowlists:
 - `.enterprise/.specs/constitution/**/*.md`;
 - `.enterprise/.specs/core/**/*.md`;
 - `.enterprise/.specs/cross/**/*.md`;
-- `.enterprise/.specs/stacks/**/*.md`;
+- `.enterprise/.specs/{CSharp,Cpp,Flutter,Go,Java,PHP,ReactNative}/**/*.md`;
 - `.enterprise/.specs/decisions/ADR-*.md`;
 - `.enterprise/policies/**/*.md`;
 - `.enterprise/governance/capabilities/**/*.{yaml,yml,json}`;
 - `.enterprise/governance/hooks/**/*.{yaml,yml,sh,js}`;
-- `.enterprise/governance/workflows/**/*.{yaml,yml,md}`;
+- `.hseos/workflows/registry.yaml` and `.hseos/workflows/**/workflow.md`;
 - `.enterprise/governance/agent-skills/**/SKILL.md`.
 
 Generated `.agents/`, logs, worktrees, archives and external paths are excluded.
