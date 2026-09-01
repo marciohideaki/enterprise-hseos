@@ -1,0 +1,137 @@
+schema_version: 1.0.0
+fragment_id: fragment.enterprise-hseos
+repository: repo.enterprise-hseos
+nodes:
+  - id: owner.platform-architecture
+    type: Owner
+    name: Platform Architecture Owners
+    lifecycle: available
+  - id: repo.enterprise-hseos
+    type: Repository
+    name: enterprise-hseos
+    lifecycle: available
+  - id: capability.governance.capability-graph
+    type: Capability
+    name: Federated Platform Capability Graph Governance
+    lifecycle: available
+  - id: contract.capability-graph.registry.v1
+    type: Contract
+    name: Capability Graph Registry Schema v1
+    lifecycle: available
+    version: 1.0.0
+    path: .enterprise/governance/capabilities/schemas/capability-graph-registry.schema.json
+  - id: contract.capability-graph.fragment.v1
+    type: Contract
+    name: Capability Graph Fragment Schema v1
+    lifecycle: available
+    version: 1.0.0
+    path: .enterprise/governance/capabilities/schemas/capability-graph-fragment.schema.json
+  - id: module.capability-graph.validator
+    type: Module
+    name: Deterministic Capability Graph Validator
+    lifecycle: available
+    path: scripts/governance/validate-capability-graph.js
+  - id: module.constitution-change.validator
+    type: Module
+    name: Constitutional Change Validator
+    lifecycle: available
+    path: scripts/governance/validate-constitutional-change.js
+  - id: testsuite.capability-graph
+    type: TestSuite
+    name: Capability Graph Governance Tests
+    lifecycle: available
+    path: test/test-capability-graph-governance.js
+  - id: adr.0033
+    type: Adr
+    name: Federated Platform Capability Graph and Platform-First Intake
+    lifecycle: available
+    path: .enterprise/.specs/decisions/ADR-0033-federated-platform-capability-graph.md
+  - id: evidence.capability-graph.policy
+    type: Evidence
+    name: Capability Graph Policy
+    lifecycle: available
+    path: .enterprise/policies/capability-graph.md
+edges:
+  - id: edge.repo.enterprise-hseos.owned-by.platform-architecture
+    type: OWNED_BY
+    from: repo.enterprise-hseos
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.capability.capability-graph.owned-by.platform-architecture
+    type: OWNED_BY
+    from: capability.governance.capability-graph
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.contract.registry-v1.owned-by.platform-architecture
+    type: OWNED_BY
+    from: contract.capability-graph.registry.v1
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.contract.fragment-v1.owned-by.platform-architecture
+    type: OWNED_BY
+    from: contract.capability-graph.fragment.v1
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.module.graph-validator.owned-by.platform-architecture
+    type: OWNED_BY
+    from: module.capability-graph.validator
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.module.constitution-validator.owned-by.platform-architecture
+    type: OWNED_BY
+    from: module.constitution-change.validator
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.testsuite.capability-graph.owned-by.platform-architecture
+    type: OWNED_BY
+    from: testsuite.capability-graph
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.adr.0033.owned-by.platform-architecture
+    type: OWNED_BY
+    from: adr.0033
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.capability.capability-graph.defined-by.registry-v1
+    type: DEFINED_BY
+    from: capability.governance.capability-graph
+    to: contract.capability-graph.registry.v1
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.capability-graph.policy
+  - id: edge.capability.capability-graph.defined-by.fragment-v1
+    type: DEFINED_BY
+    from: capability.governance.capability-graph
+    to: contract.capability-graph.fragment.v1
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.capability-graph.policy
+  - id: edge.capability.capability-graph.implemented-by.graph-validator
+    type: IMPLEMENTED_BY
+    from: capability.governance.capability-graph
+    to: module.capability-graph.validator
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.capability-graph.policy
+  - id: edge.capability.capability-graph.implemented-by.constitution-validator
+    type: IMPLEMENTED_BY
+    from: capability.governance.capability-graph
+    to: module.constitution-change.validator
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.capability-graph.policy
+  - id: edge.capability.capability-graph.validated-by.tests
+    type: VALIDATED_BY
+    from: capability.governance.capability-graph
+    to: testsuite.capability-graph
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.capability-graph.policy
+  - id: edge.capability.capability-graph.governed-by.adr-0022
+    type: GOVERNED_BY
+    from: capability.governance.capability-graph
+    to: adr.0033
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.capability-graph.policy
+findings: []

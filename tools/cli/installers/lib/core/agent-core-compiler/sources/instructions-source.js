@@ -36,6 +36,14 @@ If two instructions conflict, stop and ask for a human decision. Do not average 
 - Run repository quality gates before any commit.
 - When \`.hseos/config/managed-governance.json\` exists and the active adapter has no native \`SessionStart\` event, run \`hseos governance session preflight --json\` once before the first task action. The managed-shadow result is advisory; local governance remains authoritative.
 
+## Platform-First Capability Intake
+
+- Before implementing shared, platform, cross-cutting, provider, partner, client, contract, schema, request/response, or error-catalog concerns, query the versioned capability graph with \`node scripts/governance/validate-capability-graph.js --query <id-or-term>\`.
+- Prefer consuming an existing contract and versioned package. If needed, extend only through its declared extension point. Promote genuinely new shared needs through the governed capability-intake flow.
+- Never create a parallel local implementation without an approved, expiring exception.
+- Treat semantic search, FalkorDB, Qdrant, dashboards, and generated catalogs as advisory projections. Git-hosted graph fragments are authoritative and semantic findings require human review before canonical promotion.
+- Governing sources: Enterprise Constitution §2.6, \`.enterprise/.specs/core/Platform Capability Governance Standard.md\`, \`.enterprise/policies/capability-graph.md\`, and ADR-0033.
+
 ## Platform Adapters
 
 - Codex reads \`AGENTS.md\` and discovers skills under \`${agentsDirName}/skills\`.

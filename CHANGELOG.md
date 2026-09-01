@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Proposed `capability-reuse` policy and ADR-0034: complementary core-first enforcement that retains the Capability Graph as the sole discovery and ownership authority.
+
 ## [3.3.1] — 2026-09-01
 
 ### Breaking Changes

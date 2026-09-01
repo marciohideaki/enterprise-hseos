@@ -33,6 +33,7 @@ jobs:
           # Full history so the commit-hygiene gate can scan the PR range
           # (origin/<base>..HEAD) in addition to the HEAD commit message.
           fetch-depth: 0
+      - run: npm ci
       # Server-side enforcement of the HSEOS governance gates (ADR-0015 Gate 7
       # included). The local .husky/pre-commit hook is bypassable with
       # --no-verify; this job is the non-bypassable PR-time enforcement point

@@ -18,6 +18,7 @@ Policies are **enforceable rules**, not recommendations or best-practice guides.
 |---|---|---|
 | `adr-policy.md` | How ADRs are created, approved, and maintained | All contributors |
 | `automated-validation.md` | What checks run automatically in CI/CD | CI/CD pipelines |
+| `capability-reuse.md` | Core-first reuse decision, write-time enforcement, and merge ratchet | Contributors, agents, CI/CD |
 | `documentation-policy.md` | What must be documented and how | All contributors |
 | `exceptions.md` | How deviations are approved, scoped, and expired | All contributors |
 | `minimal-wiring.md` | Minimum required connections between governance artifacts | Agents |
@@ -43,6 +44,10 @@ Governs the `../exceptions/` directory. Any deviation from a standard requires:
 - An approved exception document (`EXC-XXXX-<title>.md`) in `../exceptions/`
 - Named affected standards, risk assessment, and expiration date
 - Agents refuse execution if a required exception is absent
+
+### `capability-reuse.md`
+Complements the Capability Graph: the graph remains canonical for discovery and ownership;
+this policy requires the reuse decision and defines its write-time and merge-time enforcement.
 
 ### `standards-adoption-metrics.md`
 Defines the 8-dimension scorecard for quarterly compliance measurement:

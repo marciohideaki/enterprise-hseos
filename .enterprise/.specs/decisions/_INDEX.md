@@ -41,6 +41,8 @@
 | [ADR-0030](./ADR-0030-surface-lifecycle-contract.md)                | Surface Lifecycle Contract                                                 | Accepted (2026-08-28)               | capability catalog, install plans, module and sidecar boundaries                      |
 | [ADR-0031](./ADR-0031-v3-contract-migration-boundary.md)            | v3 Contract Migration Boundary                                             | Accepted (2026-08-28)               | package version, catalog compatibility, state and side-car migration                  |
 | [ADR-0032](./ADR-0032-managed-governance-control-plane.md)          | Managed Governance Control Plane with Signed Release Boundary              | Accepted (2026-09-01)               | governance catalog, PostgreSQL control plane, releases, MCP and console               |
+| [ADR-0033](./ADR-0033-federated-platform-capability-graph.md)       | Federated Platform Capability Graph and Platform-First Intake              | Proposed                            | Constitution, core standards, specification consumption, automated validation         |
+| [ADR-0034](./ADR-0034-capability-reuse-enforcement.md)              | Capability Reuse Enforcement Complementing the Capability Graph            | Proposed                            | Capability Graph, write-time hook, merge ratchet, Core Registry projection            |
 
 ---
 

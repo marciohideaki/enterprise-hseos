@@ -383,10 +383,11 @@ components:
   - id: capability:readiness
     family: capability
     name: Enterprise Readiness
-    description: Enterprise readiness, accessibility compliance, core drift, and self-verification checks.
+    description: Enterprise readiness, accessibility compliance, capability reuse, core drift, and self-verification checks.
     skills:
       - enterprise-readiness-audit
       - accessibility
+      - capability-check
       - core-drift
       - self-verification
       - verification-before-completion

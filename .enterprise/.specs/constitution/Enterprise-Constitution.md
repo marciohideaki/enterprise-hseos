@@ -1,6 +1,6 @@
 # Enterprise Constitution
 
-**Version:** 2.1
+**Version:** 2.2
 **Status:** Active
 **Scope:** All repositories and projects under this organization
 **Source of Truth:** GitHub (repository content)
@@ -9,6 +9,8 @@
 > **v2.0 change:** Merged from previous two-document structure (Constitution v1.0 + Addendum v1.0) into a single authoritative document. Removed framework-specific branding. All rules are preserved.
 
 > **v2.1 change (2026-07-15):** The Seven Laws, previously named only in README and derived docs, are now a named constitutional section (§14), anchoring normative content of §2, §5, §7-§10. Acceptance renumbered to §15. No rules changed.
+
+> **v2.2 change (2026-08-24):** Added Platform-First Capability Governance (§2.6), requiring every project and agent to query the versioned federated capability graph before implementing shared concerns. Strengthened constitutional change control with deterministic validation, protected ownership, and recorded leadership approval (§13). Ratified by ADR-0033.
 
 ---
 
@@ -65,6 +67,25 @@ Sharding rules:
 - Architecture, patterns, and stack decisions are defined by the Engineering Team.
 - Agents MUST follow existing architecture standards and templates.
 - Agents may propose improvements ONLY as a suggestion + ADR draft, never as a silent replacement.
+
+### 2.6 Platform-First Capability Governance
+
+- Before implementing any shared, platform, cross-cutting, provider, partner, client,
+  contract, schema, request/response, or error-catalog concern, every project and agent MUST
+  query the canonical, versioned Platform Capability Graph.
+- If an applicable capability exists, consumers MUST reuse its contract and versioned
+  package or declared integration surface. Extension through the owning capability's
+  explicit extension point takes precedence over a parallel local implementation.
+- A genuinely new shared need MUST enter the governed capability-intake flow: discovery,
+  ownership decision, neutral contract, implementation projection, conformance evidence,
+  and graph registration.
+- Local duplication is forbidden unless an approved, versioned exception identifies its
+  owner, rationale, scope, expiry, and migration path.
+- Git-hosted graph sources are authoritative. Semantic search, graph databases, vector
+  stores, dashboards, generated catalogs, and agent context are derived discovery
+  projections and MUST NOT create or alter canonical graph relationships autonomously.
+- The graph vocabulary, lifecycle, validation, federation, and exception mechanics are
+  governed by the Platform Capability Governance Standard and ADR-0022.
 
 ---
 
@@ -369,6 +390,9 @@ Changes require:
 - Explicit PR
 - Review by Engineering Leadership (or appointed owners)
 - Version bump
+- A linked, accepted ADR for semantic or governance changes
+- Deterministic CI validation of the version increment, ADR linkage, and protected ownership
+- Protected ownership and explicit Engineering Leadership approval recorded on the PR
 
 Owners:
 - Engineering Leadership
