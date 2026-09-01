@@ -62,9 +62,9 @@ function openOperationalStateDatabase(
   fs.mkdirSync(path.dirname(databasePath), { recursive: true });
   const db = new Database(databasePath);
   try {
+    db.pragma('busy_timeout = 5000');
     if (!activatePendingFixture) assertOperationalSchemaBoundary(db);
     db.pragma('journal_mode = WAL');
-    db.pragma('busy_timeout = 5000');
     db.pragma('foreign_keys = ON');
     db.exec(`
     CREATE TABLE IF NOT EXISTS state (

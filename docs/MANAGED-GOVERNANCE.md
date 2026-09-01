@@ -36,7 +36,7 @@ or activate a policy mode.
 Install the immutable GitHub asset before selecting the optional client:
 
 ```bash
-release_version=3.1.0
+release_version=3.1.1
 release_dir="$(mktemp -d)"
 gh release download "v${release_version}" --repo marciohideaki/enterprise-hseos --dir "${release_dir}"
 (cd "${release_dir}" && sha256sum -c SHA256SUMS)
@@ -45,7 +45,7 @@ hseos --version
 hseos install-plan --components runtime:managed-governance-client --json
 ```
 
-The expected version is `3.1.0`. The plan must list
+The expected version is `3.1.1`. The plan must list
 `runtime:managed-governance-client`; it must not select a managed profile or
 start a sidecar. Apply the client to a project only after reviewing that plan:
 
