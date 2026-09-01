@@ -52,8 +52,8 @@ test(
     try {
       const first = await migrate(pool);
       const second = await migrate(pool);
-      assert.equal(first.current_version, '0003');
-      assert.deepEqual(second, { applied: [], current_version: '0003' });
+      assert.equal(first.current_version, '0004');
+      assert.deepEqual(second, { applied: [], current_version: '0004' });
 
       await context.test('creates every core table with fail-closed tenant RLS', async () => {
         const expectedTables = [
@@ -308,37 +308,42 @@ test(
           );
           await client.query('ROLLBACK');
 
-          const outbox = await pool.query(
-            'SELECT outbox_message_id, organization_id FROM hseos_governance.outbox_messages ORDER BY created_at LIMIT 1',
+          const organization = await pool.query(
+            'SELECT organization_id FROM hseos_governance.organizations ORDER BY organization_id LIMIT 1',
           );
-          assert.equal(outbox.rows.length, 1);
+          assert.equal(organization.rows.length, 1);
+          const outboxMessageId = crypto.randomUUID();
+          await pool.query(
+            `INSERT INTO hseos_governance.outbox_messages(
+               outbox_message_id, organization_id, topic, aggregate_type, aggregate_id, payload, created_at
+             ) VALUES ($1::uuid, $2, 'immutability.test', 'test', $1::text, '{}'::jsonb, CURRENT_TIMESTAMP)`,
+            [outboxMessageId, organization.rows[0].organization_id],
+          );
           await client.query('BEGIN');
           await client.query('SET LOCAL ROLE hseos_governance_application');
-          await client.query("SELECT set_config('app.organization_id', $1, true)", [outbox.rows[0].organization_id]);
+          await client.query("SELECT set_config('app.organization_id', $1, true)", [organization.rows[0].organization_id]);
           await assert.rejects(
-            client.query("UPDATE hseos_governance.outbox_messages SET topic = 'tampered' WHERE outbox_message_id = $1", [
-              outbox.rows[0].outbox_message_id,
-            ]),
+            client.query("UPDATE hseos_governance.outbox_messages SET topic = 'tampered' WHERE outbox_message_id = $1", [outboxMessageId]),
             (error) => error.code === '55000',
           );
           await client.query('ROLLBACK');
 
           await client.query('BEGIN');
           await client.query('SET LOCAL ROLE hseos_governance_application');
-          await client.query("SELECT set_config('app.organization_id', $1, true)", [outbox.rows[0].organization_id]);
+          await client.query("SELECT set_config('app.organization_id', $1, true)", [organization.rows[0].organization_id]);
           await client.query(
             'UPDATE hseos_governance.outbox_messages SET delivered_at = CURRENT_TIMESTAMP, delivery_attempts = delivery_attempts + 1 WHERE outbox_message_id = $1',
-            [outbox.rows[0].outbox_message_id],
+            [outboxMessageId],
           );
           await client.query('COMMIT');
 
           await client.query('BEGIN');
           await client.query('SET LOCAL ROLE hseos_governance_application');
-          await client.query("SELECT set_config('app.organization_id', $1, true)", [outbox.rows[0].organization_id]);
+          await client.query("SELECT set_config('app.organization_id', $1, true)", [organization.rows[0].organization_id]);
           await assert.rejects(
             client.query(
               'UPDATE hseos_governance.outbox_messages SET delivery_attempts = delivery_attempts + 1 WHERE outbox_message_id = $1',
-              [outbox.rows[0].outbox_message_id],
+              [outboxMessageId],
             ),
             (error) => error.code === '55000',
           );

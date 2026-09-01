@@ -44,6 +44,12 @@ production readiness.
 | FR-030 | Passing | `repository-contract.test.js`, `postgres.integration.test.js`: ordered immutable migrations |
 | FR-031 | Passing | `test-capability-catalog.js`: opt-in module, candidate preflight and sidecar classifications |
 | FR-032 | Passing | Full enforced quality gates include the portable suite with no managed profile selected |
+| FR-033 | Passing | `installation.test.js`: strict project configuration resolves credentials only through named environment variables |
+| FR-034 | Passing | `installation.test.js`, `postgres.integration.test.js`: setup orders migration, role grant, seed and binding generation |
+| FR-035 | Passing | `installation.test.js`: setup writes stable binding and query configuration artifacts with private permissions |
+| FR-036 | Passing | `installation.test.js`, `composition.js`: setup and server share one strict configuration loader |
+| FR-037 | Passing | `installation.test.js`, `http.test.js`: database-backed health and catalog projections are served through HTTP |
+| FR-038 | Passing | `docs/MANAGED-GOVERNANCE.md` and `docs/pt-br/governanca-gerenciada.md`: reproducible end-to-end validation procedure |
 
 ## Non-functional requirements
 
@@ -67,6 +73,10 @@ production readiness.
 | NFR-016 | Passing | Unit/contract suites use memory ports; PostgreSQL suite is configuration-gated |
 | NFR-017 | Not activated | Migration/seed/rollback are executable; production backup/restore awaits an approved database profile and runbook |
 | NFR-018 | Passing | `security.test.js`, `cli.test.js`, `server.js`: loopback-only binding |
+| NFR-019 | Passing | `installation.test.js`, `test-package-surface.js`: no deployment-specific host, database, organization or credential is distributed |
+| NFR-020 | Passing | `installation.test.js`: generated files are private, deterministic and contain no resolved secret value |
+| NFR-021 | Passing | `configuration.js`, capability catalog tests: PostgreSQL is operator-supplied and the sidecar remains opt-in |
+| NFR-022 | Passing | `installation.test.js`, `postgres.integration.test.js`: repeated setup and migration are idempotent |
 
 ## Adversarial closure
 

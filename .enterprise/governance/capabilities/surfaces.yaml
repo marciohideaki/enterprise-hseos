@@ -59,6 +59,8 @@ standalone_surfaces:
     contract: Owns relational managed state behind application ports; it is omitted from baseline activation and binds to loopback by default.
     paths:
       - tools/managed-governance-control-plane/server.js
+      - tools/managed-governance-control-plane/composition.js
+      - tools/managed-governance-control-plane/config.example.json
       - tools/managed-governance-control-plane/lib/
       - tools/managed-governance-control-plane/migrations/
       - tools/managed-governance-control-plane/package.json

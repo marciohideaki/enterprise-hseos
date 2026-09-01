@@ -15,13 +15,23 @@
 
 ## Passo 1 — Instale o HSEOS no seu projeto
 
-A partir da raiz do seu projeto:
+Instale o GitHub Release verificado por checksum conforme o
+[`README.md`](../../README.md#installation). O HSEOS não está publicado no npm
+com o nome sem escopo; portanto, não use `npx hseos`.
+
+Antes da instalação global, consulte `npm prefix --global`. Use `sudo` somente
+quando o prefixo for deliberadamente gerenciado pelo sistema e não puder ser
+gravado pelo administrador atual. Instalações do Node gerenciadas pelo usuário,
+como NVM, fnm, asdf e Volta, devem ser atualizadas sem `sudo`.
+
+Depois, a partir da raiz do seu projeto:
 
 ```bash
-npx hseos install
+hseos install
 ```
 
 Isso configura:
+
 - `.claude/commands/` — todos os 14 comandos de agente (ativados como slash commands do Claude Code)
 - `.enterprise/` — specs de governança, arquivos de autoridade dos agentes, biblioteca de skills
 - `.hseos/` — configurações de agentes, definições de workflow, config local
@@ -32,12 +42,16 @@ Isso configura:
 Por padrão, `hseos install` configura Claude Code e Cursor. Para personalizar:
 
 ```bash
-npx hseos install --tools claude-code,codex,gemini
-npx hseos install --tools claude-code          # somente Claude Code
-npx hseos install --tools none                 # pular setup de IDE, somente arquivos de governança
+hseos install --tools claude-code,codex,gemini
+hseos install --tools claude-code          # somente Claude Code
+hseos install --tools none                 # pular setup de IDE, somente arquivos de governança
 ```
 
 Ferramentas suportadas: `claude-code`, `cursor`, `windsurf`, `gemini`, `codex`, `antigravity`, `github-copilot`, `cline` e outras.
+
+Para o control plane `managed-shadow` opcional com PostgreSQL, conclua primeiro
+a instalação portátil e siga
+[`governanca-gerenciada.md`](governanca-gerenciada.md).
 
 ---
 
@@ -59,35 +73,36 @@ Após a instalação, leia nesta ordem:
 
 Os agentes com os quais você mais vai interagir:
 
-| Agente | Quando usar |
-|---|---|
-| **RAZOR** | Iniciando uma sprint — preparação de histórias e planejamento de sprint |
-| **GHOST** | Implementando uma história — execução com TDD |
-| **GLITCH** | Validando cobertura e qualidade antes do PR |
-| **QUILL** | Escrevendo ou atualizando documentação |
+| Agente     | Quando usar                                                             |
+| ---------- | ----------------------------------------------------------------------- |
+| **RAZOR**  | Iniciando uma sprint — preparação de histórias e planejamento de sprint |
+| **GHOST**  | Implementando uma história — execução com TDD                           |
+| **GLITCH** | Validando cobertura e qualidade antes do PR                             |
+| **QUILL**  | Escrevendo ou atualizando documentação                                  |
 
 Fluxo diário típico:
+
 ```
 RAZOR (preparar história) → GHOST (implementar) → GLITCH (validar) → QUILL (documentar) → PR
 ```
 
 ### Se você é tech lead ou arquiteto
 
-| Agente | Quando usar |
-|---|---|
-| **NYX** | Pesquisa, análise de domínio, elicitação de requisitos |
-| **VECTOR** | Autoria de PRD e epics |
-| **CIPHER** | Design de arquitetura, rascunho de ADR, verificação de fronteiras |
-| **ORBIT** | Iniciando uma entrega orquestrada de epic |
-| **SWARM** | Entregando um lote heterogêneo (3+ tarefas independentes) em ondas paralelas com isolamento por worktree |
+| Agente     | Quando usar                                                                                              |
+| ---------- | -------------------------------------------------------------------------------------------------------- |
+| **NYX**    | Pesquisa, análise de domínio, elicitação de requisitos                                                   |
+| **VECTOR** | Autoria de PRD e epics                                                                                   |
+| **CIPHER** | Design de arquitetura, rascunho de ADR, verificação de fronteiras                                        |
+| **ORBIT**  | Iniciando uma entrega orquestrada de epic                                                                |
+| **SWARM**  | Entregando um lote heterogêneo (3+ tarefas independentes) em ondas paralelas com isolamento por worktree |
 
 ### Se você é engenheiro de plataforma/DevOps
 
-| Agente | Quando usar |
-|---|---|
+| Agente    | Quando usar                                           |
+| --------- | ----------------------------------------------------- |
 | **FORGE** | Publicação de artefatos de release, promoção de build |
-| **KUBE** | Atualizações de manifesto GitOps, deploys no ArgoCD |
-| **SABLE** | Verificação de runtime pós-deploy, smoke tests |
+| **KUBE**  | Atualizações de manifesto GitOps, deploys no ArgoCD   |
+| **SABLE** | Verificação de runtime pós-deploy, smoke tests        |
 
 ---
 
@@ -119,12 +134,12 @@ Digite `SP` para Sprint Planning. RAZOR vai guiar você pelo checklist de pronti
 
 O HSEOS aplica estas regras automaticamente via git hooks:
 
-| Regra | O que significa |
-|---|---|
-| Sem commits diretos em `main`/`master` | Trabalhe sempre em um branch de feature |
-| Sem force push em branches protegidos | Use PRs |
-| Sem atribuição de ferramentas de IA em mensagens de commit | `Co-authored-by: Claude` será rejeitado |
-| Formato de conventional commit obrigatório | `feat:`, `fix:`, `chore:`, `docs:`, etc. |
+| Regra                                                      | O que significa                          |
+| ---------------------------------------------------------- | ---------------------------------------- |
+| Sem commits diretos em `main`/`master`                     | Trabalhe sempre em um branch de feature  |
+| Sem force push em branches protegidos                      | Use PRs                                  |
+| Sem atribuição de ferramentas de IA em mensagens de commit | `Co-authored-by: Claude` será rejeitado  |
+| Formato de conventional commit obrigatório                 | `feat:`, `fix:`, `chore:`, `docs:`, etc. |
 
 Se um commit for rejeitado, leia a mensagem de erro — ela vai indicar exatamente qual regra foi violada e como corrigir.
 
@@ -147,12 +162,12 @@ Se um gate falhar, o commit é rejeitado com a mensagem de falha específica. Co
 
 ## Obtendo ajuda
 
-| Dúvida | Onde procurar |
-|---|---|
-| O que o agente X faz? | `docs/agents/<nome>.md` |
-| Como o workflow Y funciona? | `docs/workflows.md` |
-| O que a skill Z aplica? | `docs/skills.md` |
-| Quais são as regras de arquitetura? | `.enterprise/.specs/constitution/` |
-| Quais decisões foram tomadas? | `.enterprise/agents/<código>/authority.md` |
-| Como adicionar uma nova skill? | `.enterprise/governance/agent-skills/README.md` |
-| Como adotar padrões externos? | `.enterprise/governance/skills-adoption-guide.md` |
+| Dúvida                              | Onde procurar                                     |
+| ----------------------------------- | ------------------------------------------------- |
+| O que o agente X faz?               | `docs/agents/<nome>.md`                           |
+| Como o workflow Y funciona?         | `docs/workflows.md`                               |
+| O que a skill Z aplica?             | `docs/skills.md`                                  |
+| Quais são as regras de arquitetura? | `.enterprise/.specs/constitution/`                |
+| Quais decisões foram tomadas?       | `.enterprise/agents/<código>/authority.md`        |
+| Como adicionar uma nova skill?      | `.enterprise/governance/agent-skills/README.md`   |
+| Como adotar padrões externos?       | `.enterprise/governance/skills-adoption-guide.md` |

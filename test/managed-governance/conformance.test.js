@@ -109,7 +109,7 @@ test('verification matrix accounts for every functional and non-functional requi
     'utf8',
   );
   const identifiers = [...spec.matchAll(/\*\*((?:FR|NFR)-\d{3}):\*\*/g)].map((match) => match[1]);
-  assert.equal(identifiers.length, 50);
+  assert.equal(identifiers.length, 60);
   for (const identifier of identifiers) {
     assert.match(matrix, new RegExp(`\\| ${identifier} \\|`), `${identifier} is absent from the verification matrix`);
   }

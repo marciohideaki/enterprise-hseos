@@ -185,6 +185,12 @@ hseos --version
 hseos install
 ```
 
+Use `sudo` only when `npm prefix --global` identifies a system-owned prefix that
+the current administrator cannot write. Do not use `sudo` with NVM, fnm, asdf,
+Volta, or another user-managed Node installation; it selects the wrong runtime
+context and can leave root-owned files in the user's package directory. Run the
+verification commands with the same Node/npm context used for installation.
+
 The release is installed from the exact tarball covered by `SHA256SUMS`; HSEOS
 is not currently published under the unscoped `hseos` name on npm. Reinstall
 the previous verified GitHub asset to roll back.
@@ -242,6 +248,14 @@ hseos agent-core verify   # hash-pinned integrity of compiled artifacts
 ```
 
 `status` reports the installation manifest and installed modules; `agent-core verify` validates every compiled skill/agent against the hashes pinned in `.agents/manifest.yaml`.
+
+### 4. Optional PostgreSQL managed-shadow control plane
+
+The package includes a vendor-neutral, opt-in setup flow for an operator-supplied
+PostgreSQL service. It applies migrations, seeds the current governance, writes
+the project binding, starts the loopback control plane/UI and configures read-only
+MCP access without persisting secrets. See
+[`docs/MANAGED-GOVERNANCE.md`](docs/MANAGED-GOVERNANCE.md) for the complete procedure.
 
 ---
 
