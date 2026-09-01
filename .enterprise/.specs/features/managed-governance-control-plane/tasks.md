@@ -416,9 +416,14 @@ tasks:
       dependencies: [T05, T06]
     output_contract:
       files:
-        - tools/mcp-hseos-governance/server.js
+        - .enterprise/.specs/features/managed-governance-control-plane/design.md
+        - .enterprise/.specs/features/managed-governance-control-plane/tasks.md
+        - package.json
+        - tools/mcp-hseos-governance/index.js
+        - tools/managed-governance-control-plane/lib/interfaces/http/router.js
         - tools/mcp-hseos-governance/lib/governance-query-adapter.js
         - test/managed-governance/mcp.test.js
+        - test/managed-governance/http.test.js
         - test/test-mcp-hseos-governance.js
       artifacts:
         - backward-compatible legacy tools

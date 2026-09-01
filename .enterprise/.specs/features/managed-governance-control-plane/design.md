@@ -252,6 +252,11 @@ The sidecar binds to `127.0.0.1` by default.
 | `GET`   | `/api/v1/artifacts/{id}`                  | Artifact with selected immutable version   |
 | `GET`   | `/api/v1/artifacts/{id}/versions`         | Version history                            |
 | `GET`   | `/api/v1/rules`                           | Filtered rule list                         |
+| `GET`   | `/api/v1/context`                         | Effective read-only governance context     |
+| `GET`   | `/api/v1/releases/{id}`                   | Immutable release manifest                 |
+| `POST`  | `/api/v1/releases/diff`                   | Deterministic read-only release comparison |
+| `POST`  | `/api/v1/snapshots/verify`                | Read-only snapshot integrity result        |
+| `GET`   | `/api/v1/session/status`                  | Managed-shadow readiness and status        |
 | `POST`  | `/api/v1/policy/evaluate`                 | Structured shadow decision and explanation |
 | `POST`  | `/api/v1/imports/plan`                    | Read-only deterministic import plan        |
 | `POST`  | `/api/v1/imports`                         | Apply an idempotent import batch           |
