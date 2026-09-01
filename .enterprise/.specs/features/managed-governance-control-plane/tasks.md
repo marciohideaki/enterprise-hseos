@@ -274,6 +274,8 @@ tasks:
       dependencies: [T04, T05]
     output_contract:
       files:
+        - .enterprise/.specs/features/managed-governance-control-plane/tasks.md
+        - package.json
         - tools/managed-governance-control-plane/server.js
         - tools/managed-governance-control-plane/lib/interfaces/http/router.js
         - tools/managed-governance-control-plane/lib/interfaces/http/envelope.js
