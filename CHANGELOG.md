@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Proposed `capability-reuse` policy and ADR-0024: complementary core-first enforcement that retains the Capability Graph as the sole discovery and ownership authority.
 - N1 pilot loop executed to stop condition (2026-07-24, PR #121): 8/8 budget, 2 genuine REPROVADO verdicts, deliberate rollback test, zero anchors touched, deterministic verifier 4/4 PASS at close. Heartbeat versioned at `.hseos/loops/pilot-n1/`.
 - `docs/RUNNING-GOVERNED-LOOPS.md` — proven end-to-end flow for running a governed loop (worktree → loop-guard → iterate/verify → commit/tag → PR → merge → hygiene).
 - `docs/LOOP-GRAPHS-MANUAL.md` — full usage manual for loop graphs: mental model, component map, route selection (compiled workflow / governed loop / dev-squad), state versioning and resume, verification protocol, cost rules, authority gates, troubleshooting, worked example.
