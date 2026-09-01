@@ -26,7 +26,7 @@ tasks:
           '.enterprise/.specs/decisions/ADR-0032-managed-governance-control-plane.md',
           '.enterprise/governance/capabilities/surfaces.yaml',
           '.agents/capabilities/surfaces.yaml',
-          'test/capability-profile.test.js',
+          'test/test-capability-catalog.js',
         ]
       artifacts: ['accepted lifecycle amendment', 'network profile remains opt-in']
     constraints: ['No enforcement activation', 'Loopback remains default', 'No environment CIDR in canonical catalog']
@@ -41,9 +41,9 @@ tasks:
     verify_step:
       {
         type: automated,
-        command: 'npm run test:capability-profile',
+        command: 'npm run test:capabilities',
         expected: '0 failed',
-        fallback: 'node test/capability-profile.test.js',
+        fallback: 'node test/test-capability-catalog.js',
         on_failure: retry_once_then_escalate,
       }
 
