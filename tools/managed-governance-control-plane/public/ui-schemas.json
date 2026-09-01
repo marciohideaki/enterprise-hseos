@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "authoring_types": {
+    "rule": {
+      "label": "Rule",
+      "fields": [
+        { "name": "title", "label": "Rule title", "type": "text", "required": true, "max_length": 160 },
+        { "name": "action", "label": "Governed action", "type": "text", "required": true, "max_length": 160 },
+        { "name": "effect", "label": "Effect", "type": "select", "required": true, "options": ["deny", "require_approval", "allow"] },
+        { "name": "scope", "label": "Repository scope", "type": "text", "required": true, "max_length": 160 }
+      ]
+    },
+    "standard": {
+      "label": "Standard",
+      "fields": [
+        { "name": "title", "label": "Standard title", "type": "text", "required": true, "max_length": 160 },
+        { "name": "statement", "label": "Normative statement", "type": "textarea", "required": true, "max_length": 4000 }
+      ]
+    },
+    "contract": {
+      "label": "Contract",
+      "fields": [
+        { "name": "title", "label": "Contract title", "type": "text", "required": true, "max_length": 160 },
+        { "name": "schema_version", "label": "Schema version", "type": "number", "required": true, "min": 1, "max": 1 },
+        { "name": "body", "label": "Contract body", "type": "textarea", "required": true, "max_length": 8000 }
+      ]
+    },
+    "stack": {
+      "label": "Stack profile",
+      "fields": [
+        { "name": "title", "label": "Profile name", "type": "text", "required": true, "max_length": 160 },
+        { "name": "runtime", "label": "Runtime", "type": "text", "required": true, "max_length": 160 },
+        { "name": "constraints", "label": "Constraints", "type": "textarea", "required": true, "max_length": 4000 }
+      ]
+    }
+  }
+}

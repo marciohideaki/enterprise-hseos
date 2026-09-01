@@ -2,16 +2,25 @@
 
 const http = require('node:http');
 const { createHttpRouter } = require('./lib/interfaces/http/router');
+const { createStaticAssetHandler } = require('./lib/interfaces/http/static-assets');
 
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', '::1']);
 
 function createManagedGovernanceServer(options = {}) {
   const repository = options.repository || null;
   const router = createHttpRouter(options);
+  const serveStatic = options.serveStatic || createStaticAssetHandler(options);
   const sockets = new Map();
   let state = 'created';
   let closePromise = null;
   const server = http.createServer({ requestTimeout: 10_000, headersTimeout: 10_000, keepAliveTimeout: 5000 }, (request, response) => {
+    try {
+      if (serveStatic(request, response)) return;
+    } catch {
+      response.writeHead(500, { 'content-type': 'text/plain; charset=utf-8', 'x-content-type-options': 'nosniff' });
+      response.end('Console asset unavailable');
+      return;
+    }
     const socket = request.socket;
     sockets.set(socket, (sockets.get(socket) || 0) + 1);
     let settled = false;

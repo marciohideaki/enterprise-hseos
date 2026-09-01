@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>HSEOS Governance Desk</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#workspace">Skip to governance workspace</a>
+    <header class="masthead">
+      <div>
+        <p class="eyebrow">Managed governance · shadow review</p>
+        <h1>Governance desk</h1>
+      </div>
+      <div class="health" aria-live="polite"><span class="health-dot"></span><span id="health-label">Checking control plane</span></div>
+    </header>
+    <div class="shell">
+      <nav aria-label="Governance desk">
+        <a href="#overview">Overview</a><a href="#catalog">Catalog</a><a href="#author">Author</a><a href="#simulate">Simulate</a
+        ><a href="#audit">Audit</a>
+      </nav>
+      <main id="workspace">
+        <section id="overview" class="overview" aria-labelledby="overview-title">
+          <div>
+            <p class="section-label">Current posture</p>
+            <h2 id="overview-title">Local authority remains decisive.</h2>
+            <p>Managed results are compared and recorded. They do not change the local decision.</p>
+          </div>
+          <dl>
+            <div>
+              <dt>Mode</dt>
+              <dd>managed-shadow</dd>
+            </div>
+            <div>
+              <dt>Catalog</dt>
+              <dd id="catalog-state">Loading</dd>
+            </div>
+            <div>
+              <dt>Projection</dt>
+              <dd id="projection-state">Loading</dd>
+            </div>
+          </dl>
+        </section>
+        <section id="catalog" aria-labelledby="catalog-title">
+          <header class="section-head">
+            <div>
+              <p class="section-label">Catalog</p>
+              <h2 id="catalog-title">Governance artifacts</h2>
+            </div>
+            <button id="refresh-artifacts" type="button">Refresh artifacts</button>
+          </header>
+          <div id="artifact-status" class="status" role="status">Loading artifacts…</div>
+          <div id="artifact-list" class="artifact-list" aria-live="polite"></div>
+        </section>
+        <section id="author" aria-labelledby="author-title">
+          <header class="section-head">
+            <div>
+              <p class="section-label">Controlled authoring</p>
+              <h2 id="author-title">Prepare a governed change</h2>
+            </div>
+          </header>
+          <div id="form-errors" class="error-summary" role="alert" tabindex="-1" hidden></div>
+          <form id="draft-form" novalidate>
+            <label for="authoring-type">Artifact type</label
+            ><select id="authoring-type" name="artifact_type"></select>
+            <div id="schema-fields" class="schema-fields"></div>
+            <label for="access-token">Session access token</label
+            ><input id="access-token" type="password" autocomplete="off" aria-describedby="token-help" />
+            <small id="token-help">Held only in this page and sent to the loopback control plane.</small>
+            <div class="actions">
+              <button type="submit">Save draft</button
+              ><button id="prepare-review" type="button" class="secondary" disabled>Prepare review package</button>
+            </div>
+          </form>
+        </section>
+        <section id="simulate" aria-labelledby="simulate-title">
+          <header class="section-head">
+            <div>
+              <p class="section-label">Decision preview</p>
+              <h2 id="simulate-title">Trace policy precedence</h2>
+            </div>
+            <button id="run-simulation" type="button">Run simulation</button>
+          </header>
+          <label for="simulation-context">Action context (JSON)</label
+          ><textarea id="simulation-context" rows="7">{"action":"git.commit","resource":{"type":"git-branch","branch":"main"}}</textarea>
+          <div class="precedence" aria-label="Policy precedence trace">
+            <div><b>Constitution</b><span>Highest authority</span></div>
+            <div><b>Enterprise policy</b><span>Organization scope</span></div>
+            <div><b>Project contract</b><span>Repository scope</span></div>
+            <div class="decision">
+              <b id="decision-label">Awaiting simulation</b><span id="decision-detail">Selected sources will appear here.</span>
+            </div>
+          </div>
+        </section>
+        <section id="audit" aria-labelledby="audit-title">
+          <header class="section-head">
+            <div>
+              <p class="section-label">Evidence</p>
+              <h2 id="audit-title">Audit trail</h2>
+            </div>
+            <button id="load-audit" type="button">Load audit</button>
+          </header>
+          <div id="audit-list" class="status">Audit access requires a session token.</div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
