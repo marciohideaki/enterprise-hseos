@@ -1,0 +1,14 @@
+{
+  "name": "@hseos/managed-governance-control-plane",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Optional managed governance control-plane sidecar",
+  "type": "commonjs",
+  "main": "lib/domain/repository-port.js",
+  "dependencies": {
+    "pg": "8.16.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
