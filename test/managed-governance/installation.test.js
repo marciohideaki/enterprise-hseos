@@ -139,11 +139,14 @@ test('setup migrates, seeds and writes stable secret-free managed-shadow files',
   };
   const first = await installManagedGovernance(options);
   const second = await installManagedGovernance(options);
+  const delegated = await installManagedGovernance({ ...options, actorId: 'replacement-operator' });
   assert.equal(first.status, 'ready');
-  assert.deepEqual(grants, ['GRANT hseos_governance_application TO "runtime"', 'GRANT hseos_governance_application TO "runtime"']);
+  assert.equal(grants.length, 3);
+  assert.ok(grants.every((statement) => statement === 'GRANT hseos_governance_application TO "runtime"'));
   assert.equal(first.artifact_count, 1);
   assert.deepEqual(second.migration.applied, []);
   assert.equal(second.import.counts.unchanged, 1);
+  assert.equal(delegated.import.counts.unchanged, 1);
 
   const bindingPath = path.join(root, first.binding_path);
   const queryPath = path.join(root, first.query_config_path);

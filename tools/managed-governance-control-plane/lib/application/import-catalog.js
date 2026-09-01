@@ -1,5 +1,6 @@
 'use strict';
 
+const { digestCanonical } = require('../../../../packages/managed-governance-contracts');
 const { assertGovernanceRepository } = require('../domain/repository-port');
 const { buildImportPlan } = require('../domain/import-plan');
 const { catalogParity } = require('./catalog-parity');
@@ -18,12 +19,14 @@ class ImportCatalogService {
     return { discovery, plan };
   }
 
-  async apply({ discovery, plan, actor, idempotencyKey = plan.plan_id, canonicalRemote }) {
+  async apply({ discovery, plan, actor, idempotencyKey, canonicalRemote }) {
+    const commandKey =
+      idempotencyKey || `catalog-import:${digestCanonical({ plan_id: plan.plan_id, actor, canonical_remote: canonicalRemote }).slice(7)}`;
     const report = await this.repository.applyImportBatch({
       discovery,
       plan,
       actor,
-      idempotency_key: idempotencyKey,
+      idempotency_key: commandKey,
       canonical_remote: canonicalRemote,
     });
     return { report, parity: catalogParity(plan, report) };
@@ -33,7 +36,12 @@ class ImportCatalogService {
     const { discovery, plan } = await this.plan({ organizationId, importerVersion });
     await this.repository.ensureOrganization({
       organization_id: organizationId,
-      idempotency_key: `catalog-seed-org:${discovery.repository_id.replaceAll('-', '')}`,
+      idempotency_key: `catalog-seed-org:${digestCanonical({
+        organization_id: organizationId,
+        repository_id: discovery.repository_id,
+        actor,
+        organization: { slug: organizationId, display_name: organizationDisplayName },
+      }).slice(7)}`,
       actor,
       organization: { slug: organizationId, display_name: organizationDisplayName },
     });
