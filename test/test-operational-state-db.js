@@ -11,7 +11,20 @@ const Database = require('better-sqlite3');
 
 const { openOperationalStateDatabase } = require('../tools/mcp-project-state/lib/operational-state-db');
 
-if (process.argv[2] === '--migration-worker') {
+if (process.argv[2] === '--lock-holder') {
+  const databasePath = process.argv[3];
+  const releaseSignal = process.argv[4];
+  const db = new Database(databasePath);
+  db.pragma('busy_timeout = 5000');
+  db.exec('BEGIN EXCLUSIVE');
+  process.stdout.write('locked\n');
+  const waitForRelease = () => {
+    if (!fs.existsSync(releaseSignal)) return setTimeout(waitForRelease, 5);
+    db.exec('COMMIT');
+    db.close();
+  };
+  waitForRelease();
+} else if (process.argv[2] === '--migration-worker') {
   const databasePath = process.argv[3];
   const startSignal = process.argv[4];
   const waitForSignal = () => {
@@ -37,6 +50,28 @@ if (process.argv[2] === '--migration-worker') {
         else reject(new Error(`migration worker exited ${code}: ${stderr}`));
       });
     });
+  }
+
+  function runLockHolder(databasePath, releaseSignal) {
+    const child = spawn(process.execPath, [__filename, '--lock-holder', databasePath, releaseSignal], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const locked = new Promise((resolve, reject) => {
+      child.once('error', reject);
+      child.stdout.once('data', resolve);
+    });
+    const completed = new Promise((resolve, reject) => {
+      let stderr = '';
+      child.stderr.on('data', (chunk) => {
+        stderr += chunk;
+      });
+      child.once('error', reject);
+      child.once('exit', (code) => {
+        if (code === 0) resolve();
+        else reject(new Error(`lock holder exited ${code}: ${stderr}`));
+      });
+    });
+    return { locked, completed };
   }
 
   test('operational database remains at schema v4 without fixture activation', (t) => {
@@ -100,6 +135,25 @@ if (process.argv[2] === '--migration-worker') {
     } finally {
       db.close();
     }
+  });
+
+  test('startup waits for an existing SQLite writer before applying connection pragmas', async (t) => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-operational-lock-'));
+    const databasePath = path.join(directory, 'project.db');
+    const startSignal = path.join(directory, 'start');
+    const releaseSignal = path.join(directory, 'release');
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+
+    const initial = openOperationalStateDatabase(databasePath);
+    initial.close();
+
+    const holder = runLockHolder(databasePath, releaseSignal);
+    await holder.locked;
+    const worker = runWorker(databasePath, startSignal);
+    fs.writeFileSync(startSignal, 'go');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fs.writeFileSync(releaseSignal, 'go');
+    await Promise.all([holder.completed, worker]);
   });
 
   test('pending fixtures reject direct, symlinked, and hard-linked escape paths', (t) => {
