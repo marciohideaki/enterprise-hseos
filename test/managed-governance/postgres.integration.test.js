@@ -145,6 +145,7 @@ test(
           canonicalRemote: 'https://example.invalid/postgres-import.git',
         });
         const firstCatalog = await repository.listCatalogEntries(organizationId, repositoryId);
+        assert.equal((await repository.getCatalogProjectionMetadata(organizationId, repositoryId)).source_commit, 'a'.repeat(40));
         const repeatedPlan = await service.plan({ organizationId, importerVersion: '1.0.0' });
         const repeated = await service.apply({
           ...repeatedPlan,
@@ -162,6 +163,7 @@ test(
           canonicalRemote: 'https://example.invalid/postgres-import.git',
         });
         const secondCatalog = await repository.listCatalogEntries(organizationId, repositoryId);
+        assert.equal((await repository.getCatalogProjectionMetadata(organizationId, repositoryId)).source_commit, 'b'.repeat(40));
         assert.notEqual(secondCatalog[0].artifact_version_id, firstCatalog[0].artifact_version_id);
         const versions = await pool.query(
           'SELECT count(*)::integer AS count FROM hseos_governance.artifact_versions WHERE organization_id = $1',
@@ -177,6 +179,7 @@ test(
           actor,
           idempotencyKey: 'rollback-import-batch',
         });
+        assert.equal((await repository.getCatalogProjectionMetadata(organizationId, repositoryId)).source_commit, 'a'.repeat(40));
         assert.deepEqual(await repository.listCatalogEntries(organizationId, repositoryId), firstCatalog);
         const immutableVersions = await pool.query(
           'SELECT count(*)::integer AS count FROM hseos_governance.artifact_versions WHERE organization_id = $1',

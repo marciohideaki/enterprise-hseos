@@ -174,7 +174,7 @@ Each step is governed by skills loaded automatically from the registry. Agents c
 ### 1. Install the verified GitHub release
 
 ```bash
-release_version=3.2.2
+release_version=3.3.0
 release_dir="$(mktemp -d)"
 gh release download "v${release_version}" \
   --repo marciohideaki/enterprise-hseos \
@@ -256,6 +256,8 @@ PostgreSQL service. It applies migrations, seeds the current governance, writes
 the project binding, starts the loopback control plane/UI and configures read-only
 MCP access without persisting secrets. See
 [`docs/MANAGED-GOVERNANCE.md`](docs/MANAGED-GOVERNANCE.md) for the complete procedure.
+When configured, a non-blocking session preflight compares the local Constitution with the active
+catalog projection; adapters without native `SessionStart` support use the documented CLI fallback.
 
 ---
 
@@ -662,7 +664,7 @@ O framework resolve um problema específico: ferramentas de IA são ágeis mas d
 ### Instalação rápida
 
 ```bash
-versao_release=3.2.2
+versao_release=3.3.0
 diretorio_release="$(mktemp -d)"
 gh release download "v${versao_release}" \
   --repo marciohideaki/enterprise-hseos \

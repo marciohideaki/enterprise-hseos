@@ -34,6 +34,7 @@ If two instructions conflict, stop and ask for a human decision. Do not average 
 - Stacked \`feature/*\` branch chains are allowed only for real dependency sequencing; each link must declare its upstream base, use \`task/*\` worktrees for commits, and merge from base to tip.
 - Never add AI attribution or co-author trailers to commits.
 - Run repository quality gates before any commit.
+- When \`.hseos/config/managed-governance.json\` exists and the active adapter has no native \`SessionStart\` event, run \`hseos governance session preflight --json\` once before the first task action. The managed-shadow result is advisory; local governance remains authoritative.
 
 ## Platform Adapters
 

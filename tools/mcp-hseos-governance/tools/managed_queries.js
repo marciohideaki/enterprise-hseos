@@ -75,6 +75,12 @@ function createManagedQueryTools(portFactory = createProjectGovernanceQueryAdapt
       ['snapshot_id'],
     ),
     tool('get_governance_session_status', 'Read managed-shadow session and sidecar readiness', 'getGovernanceSessionStatus', portFactory),
+    tool(
+      'get_governance_session_preflight',
+      'Compare the local Constitution with the managed-shadow catalog without changing authority',
+      'getGovernanceSessionPreflight',
+      portFactory,
+    ),
   ];
 }
 

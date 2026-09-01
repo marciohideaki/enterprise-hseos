@@ -65,6 +65,24 @@ test('all top-level schemas reject unsupported versions and unknown fields', () 
   }
 });
 
+test('session preflight status, reason and parity fields cannot diverge', () => {
+  const fixture = clone(validFixtures.ManagedGovernanceSessionPreflightSchema);
+  assertContractError(
+    () =>
+      contracts.parseContract(
+        contracts.ManagedGovernanceSessionPreflightSchema,
+        { ...fixture, status: 'drift_detected' },
+        'preflight reason mismatch',
+      ),
+    'preflight reason mismatch',
+  );
+  fixture.constitution.matched = false;
+  assertContractError(
+    () => contracts.parseContract(contracts.ManagedGovernanceSessionPreflightSchema, fixture, 'preflight parity mismatch'),
+    'preflight parity mismatch',
+  );
+});
+
 test('canonical JSON is lexically ordered and digest-stable', () => {
   const left = { z: 3, a: { y: true, x: [null, 'é'] } };
   const right = { a: { x: [null, 'é'], y: true }, z: 3 };

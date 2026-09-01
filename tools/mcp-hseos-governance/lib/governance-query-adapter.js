@@ -133,7 +133,7 @@ function createProjectGovernanceQueryAdapter(options = {}) {
     const config = loadProjectConfiguration(projectRoot);
     return transport(config.endpoint, method, pathname, body);
   };
-  return Object.freeze({
+  const adapter = {
     getEffectiveGovernanceContext: (input) =>
       query('GET', `/api/v1/context?limit=100&repository_id=${encodeURIComponent(input.repository_id)}`),
     evaluateGovernedAction: (input) => query('POST', '/api/v1/policy/evaluate', input.context),
@@ -143,7 +143,14 @@ function createProjectGovernanceQueryAdapter(options = {}) {
     diffGovernanceReleases: (input) => query('POST', '/api/v1/releases/diff', input),
     verifyGovernanceSnapshot: (input) => query('POST', '/api/v1/snapshots/verify', input),
     getGovernanceSessionStatus: () => query('GET', '/api/v1/session/status'),
-  });
+    getGovernanceSessionPreflight: () =>
+      require('../../../packages/managed-governance-client/session-preflight').runManagedGovernanceSessionPreflight({
+        projectRoot,
+        persist: false,
+        queryAdapter: adapter,
+      }),
+  };
+  return Object.freeze(adapter);
 }
 
 module.exports = {

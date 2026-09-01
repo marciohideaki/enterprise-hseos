@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { createManagedGovernanceServer, LOOPBACK_HOSTS } = require('../../../managed-governance-control-plane/server');
 const { createDatabaseBackedControlPlane, installManagedGovernance } = require('../../../managed-governance-control-plane/composition');
+const { runManagedGovernanceSessionPreflight } = require('../../../../packages/managed-governance-client/session-preflight');
 const { commandError, renderEnvelope } = require('./output');
 
 const DEFAULT_ENDPOINT = 'http://127.0.0.1:4319';
@@ -174,6 +175,7 @@ function mutationCredentials(options, environment) {
 function createManagedGovernanceAction(dependencies = {}) {
   const request = dependencies.request || defaultRequest;
   const startServer = dependencies.startServer || defaultStartServer;
+  const sessionPreflight = dependencies.sessionPreflight || runManagedGovernanceSessionPreflight;
   const environment = dependencies.environment || process.env;
 
   return async function managedGovernanceAction(area, action, options = {}) {
@@ -209,6 +211,17 @@ function createManagedGovernanceAction(dependencies = {}) {
         });
       } else if (area === 'policy' && action === 'evaluate') {
         envelope = await request({ endpoint, method: 'POST', pathname: '/api/v1/policy/evaluate', body: readContext(options.context) });
+      } else if (area === 'session' && action === 'preflight') {
+        const result = await sessionPreflight({ projectRoot: process.cwd(), persist: true });
+        const warning = result.status === 'equivalent' || result.status === 'not_configured' ? [] : [result.reason_code];
+        envelope = {
+          schema_version: 1,
+          ok: true,
+          data: result,
+          error: null,
+          evidence: result.evidence_path ? [{ type: 'file', path: result.evidence_path }] : [],
+          warnings: warning,
+        };
       } else if (area === 'setup' && action === 'install') {
         if (!options.databaseConfig) throw new ManagedGovernanceCliError('--database-config is required for setup install');
         const configPath = path.resolve(options.databaseConfig);
