@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.hideakiservicos.com/hseos/capability-graph-registry/1.0.0",
+  "title": "Federated Platform Capability Graph Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "graph_id", "authority", "fragment_schema", "semantic_discovery", "fragments"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "graph_id": { "$ref": "#/$defs/id" },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["constitution_version", "constitution_path", "adr"],
+      "properties": {
+        "constitution_version": { "const": "2.2" },
+        "constitution_path": { "$ref": "#/$defs/path" },
+        "adr": { "const": "adr.0033" }
+      }
+    },
+    "fragment_schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "path"],
+      "properties": {
+        "version": { "const": "1.0.0" },
+        "path": { "$ref": "#/$defs/path" }
+      }
+    },
+    "semantic_discovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority", "canonical_mutation", "allowed_findings"],
+      "properties": {
+        "authority": { "const": "advisory" },
+        "canonical_mutation": { "const": false },
+        "allowed_findings": {
+          "type": "array",
+          "prefixItems": [{ "const": "CandidateEdge" }, { "const": "DriftFinding" }],
+          "items": false
+        }
+      }
+    },
+    "fragments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "repository", "path", "revision", "enforcement", "source", "validation"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "repository": { "$ref": "#/$defs/id" },
+          "path": { "$ref": "#/$defs/path" },
+          "revision": { "type": "string", "minLength": 1 },
+          "enforcement": { "enum": ["enforced", "report-only"] },
+          "exception": { "$ref": "#/$defs/id" },
+          "source": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["kind"],
+                "properties": { "kind": { "const": "local" } }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["kind", "uri"],
+                "properties": {
+                  "kind": { "const": "git" },
+                  "uri": { "type": "string", "format": "uri", "pattern": "^https://" }
+                }
+              }
+            ]
+          },
+          "validation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["mode", "command"],
+            "properties": {
+              "mode": { "enum": ["local", "delegated"] },
+              "command": { "type": "string", "minLength": 1 },
+              "workflow_path": { "$ref": "#/$defs/path" }
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "enforcement": { "const": "report-only" } } },
+            "then": { "required": ["exception"] },
+            "else": { "not": { "required": ["exception"] } }
+          },
+          {
+            "if": { "properties": { "source": { "properties": { "kind": { "const": "git" } } } } },
+            "then": {
+              "properties": {
+                "revision": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+                "validation": {
+                  "properties": { "mode": { "const": "delegated" } },
+                  "required": ["workflow_path"]
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "revision": { "const": "same-commit" },
+                "validation": { "properties": { "mode": { "const": "local" } } }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+      "minLength": 3,
+      "maxLength": 160
+    },
+    "path": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._ -]+(?:/[A-Za-z0-9._ -]+)*$"
+    }
+  }
+}

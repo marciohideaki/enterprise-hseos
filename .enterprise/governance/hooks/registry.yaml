@@ -6,6 +6,18 @@ version: "2.0"
 schema_version: "2.0"
 handlers_dir: .agents/hooks/handlers
 hooks:
+  - id: pretooluse-write-edit-capability-intake-guard
+    event: PreToolUse
+    matcher: Write|Edit
+    type: command
+    command: bash .agents/hooks/handlers/capability-intake-guard.sh
+    timeout: 5
+    blocking: true
+    status: pending
+    description: Require a valid capability-reuse intake before a qualifying exported capability is introduced
+    platform_support:
+      - claude-code
+    fallback: Run `hseos capability-check <symbol|file>` in Codex and CI until the adapter hook is activated.
   - id: pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global
     event: PreToolUse
     matcher: Agent

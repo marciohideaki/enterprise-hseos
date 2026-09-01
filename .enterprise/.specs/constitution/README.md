@@ -8,13 +8,13 @@
 
 | File | Purpose |
 |---|---|
-| `Enterprise-Constitution.md` | The single, authoritative governance constitution (v2.0) |
+| `Enterprise-Constitution.md` | The single, authoritative governance constitution (v2.2) |
 
 That's it. One document. No addendums, no splits.
 
 ---
 
-## About the Constitution (v2.0)
+## About the Constitution (v2.2)
 
 The `Enterprise-Constitution.md` is the **highest-authority document** in the entire governance overlay. Everything else — core standards, cross-cutting standards, stack standards, ADRs — derives its authority from or must comply with this document.
 
@@ -50,6 +50,8 @@ The constitution defines (in order of sections):
 Changes to the Constitution require:
 1. An explicit PR
 2. Review by Engineering Leadership
-3. A version bump (v2.0 → v2.1 etc.)
+3. A version bump
+4. A linked, accepted ADR for semantic or governance changes
+5. Deterministic CI validation, protected ownership, and explicit Engineering Leadership approval recorded on the PR
 
 Agents MUST NOT modify the constitution autonomously.
