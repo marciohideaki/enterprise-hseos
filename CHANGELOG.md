@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.1] — 2026-09-01
+
+### Breaking Changes
+
+- None.
+
+### Fixed
+
+- SQLite startup now configures bounded lock waiting before connection pragmas
+  or schema reads, preventing concurrent project-state initialization from
+  failing intermittently with `SQLITE_BUSY`.
+- Release installation examples now select the published patch artifact.
+
 ## [3.1.0] — 2026-09-01
 
 ### Breaking Changes
