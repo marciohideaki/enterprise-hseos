@@ -109,7 +109,7 @@
     "test:mcp-2026": "node --test test/test-mcp-2026-adapter.js",
     "test:mcp-axon-bridge": "node test/test-mcp-axon-bridge.js",
     "test:mcp-contract": "node test/test-mcp-contract.js",
-    "test:mcp-governance": "node test/test-mcp-hseos-governance.js",
+    "test:mcp-governance": "node test/test-mcp-hseos-governance.js && node --test test/managed-governance/mcp.test.js",
     "test:mcp-project-state": "node test/test-mcp-agent-state.js",
     "test:mcp-stdio": "node test/test-mcp-stdio.js",
     "test:mcp-swarm": "node test/test-mcp-hseos-swarm.js",
