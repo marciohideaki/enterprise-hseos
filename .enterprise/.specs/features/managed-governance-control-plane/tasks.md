@@ -323,6 +323,9 @@ tasks:
       dependencies: [T04, T05, T06]
     output_contract:
       files:
+        - .enterprise/.specs/features/managed-governance-control-plane/tasks.md
+        - package.json
+        - tools/cli/commands/governance.js
         - tools/cli/lib/managed-governance/commands.js
         - tools/cli/lib/managed-governance/output.js
         - tools/cli/hseos-cli.js
