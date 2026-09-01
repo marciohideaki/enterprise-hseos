@@ -1,0 +1,17 @@
+{
+  "name": "@hseos/managed-governance-client",
+  "version": "0.1.0",
+  "description": "Optional managed-shadow governance client for HSEOS",
+  "license": "MIT",
+  "main": "index.js",
+  "dependencies": {
+    "@hseos/managed-governance-contracts": "^0.1.0",
+    "yaml": "^2.8.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
