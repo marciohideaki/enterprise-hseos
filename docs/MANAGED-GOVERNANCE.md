@@ -36,7 +36,7 @@ or activate a policy mode.
 Install the immutable GitHub asset before selecting the optional client:
 
 ```bash
-release_version=3.2.1
+release_version=3.2.2
 release_dir="$(mktemp -d)"
 gh release download "v${release_version}" --repo marciohideaki/enterprise-hseos --dir "${release_dir}"
 (cd "${release_dir}" && sha256sum -c SHA256SUMS)
@@ -50,7 +50,7 @@ only for an intentionally system-managed, non-writable prefix. With NVM, fnm,
 asdf, Volta, or a user-owned prefix, install without `sudo` and keep all
 subsequent `npm root --global` and `hseos` commands in that same runtime context.
 
-The expected version is `3.2.1`. The plan must list
+The expected version is `3.2.2`. The plan must list
 `runtime:managed-governance-client`; it must not select a managed profile or
 start a sidecar. Apply the client to a project only after reviewing that plan:
 
