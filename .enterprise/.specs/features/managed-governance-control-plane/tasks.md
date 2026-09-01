@@ -33,6 +33,7 @@ tasks:
         - packages/managed-governance-contracts/schemas.js
         - packages/managed-governance-contracts/canonical-json.js
         - packages/managed-governance-contracts/README.md
+        - package.json
         - test/managed-governance/contracts.test.js
         - test/managed-governance/fixtures/contracts-valid.json
         - test/managed-governance/fixtures/contracts-invalid.json
@@ -54,7 +55,7 @@ tasks:
     execution_mode: isolated
     verify_step:
       type: automated
-      command: node --test test/managed-governance/contracts.test.js
+      command: npm run test:managed-governance-contracts
       expected: 0 failed and all contract fixtures exercised
       fallback: node -e "require('./packages/managed-governance-contracts')"
       on_failure: retry_once_then_escalate

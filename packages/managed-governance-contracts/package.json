@@ -1,0 +1,27 @@
+{
+  "name": "@hseos/managed-governance-contracts",
+  "version": "0.1.0",
+  "description": "Versioned contracts for the HSEOS managed governance control plane",
+  "keywords": [
+    "hseos",
+    "governance",
+    "contracts",
+    "policy"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marciohideaki/enterprise-hseos.git",
+    "directory": "packages/managed-governance-contracts"
+  },
+  "license": "MIT",
+  "main": "index.js",
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
