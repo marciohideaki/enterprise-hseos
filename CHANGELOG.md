@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.2] — 2026-09-01
+
+### Breaking Changes
+
+- None. Existing project-owned governance sources are preserved and managed
+  governance remains optional, loopback-only and shadow-only. ([PR #140](https://github.com/marciohideaki/enterprise-hseos/pull/140))
+
+### Fixed
+
+- Fresh installations now materialize the portable `.hseos/workflows` source
+  registry required by the managed-governance importer, allowing the documented
+  install-to-setup flow to complete without package-repository assumptions.
+  ([PR #140](https://github.com/marciohideaki/enterprise-hseos/pull/140))
+
+### Documentation
+
+- The installation guide now makes repository identity an explicit project-owned
+  prerequisite and forbids inheriting the package repository's identity.
+  ([PR #140](https://github.com/marciohideaki/enterprise-hseos/pull/140))
+
 ## [3.2.1] — 2026-09-01
 
 ### Breaking Changes
