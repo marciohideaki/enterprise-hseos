@@ -8,7 +8,8 @@ PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 
 if [[ -x "$PROJECT_ROOT/node_modules/.bin/hseos" ]]; then
   COMMAND=("$PROJECT_ROOT/node_modules/.bin/hseos")
-elif [[ -f "$PROJECT_ROOT/tools/cli/hseos-cli.js" ]]; then
+elif [[ -f "$PROJECT_ROOT/tools/cli/hseos-cli.js" ]] &&
+  (cd "$PROJECT_ROOT" && node "$PROJECT_ROOT/tools/cli/hseos-cli.js" --version >/dev/null 2>&1); then
   COMMAND=(node "$PROJECT_ROOT/tools/cli/hseos-cli.js")
 elif command -v hseos >/dev/null 2>&1; then
   COMMAND=(hseos)

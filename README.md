@@ -174,7 +174,7 @@ Each step is governed by skills loaded automatically from the registry. Agents c
 ### 1. Install the verified GitHub release
 
 ```bash
-release_version=3.3.0
+release_version=3.3.1
 release_dir="$(mktemp -d)"
 gh release download "v${release_version}" \
   --repo marciohideaki/enterprise-hseos \
@@ -664,7 +664,7 @@ O framework resolve um problema específico: ferramentas de IA são ágeis mas d
 ### Instalação rápida
 
 ```bash
-versao_release=3.3.0
+versao_release=3.3.1
 diretorio_release="$(mktemp -d)"
 gh release download "v${versao_release}" \
   --repo marciohideaki/enterprise-hseos \

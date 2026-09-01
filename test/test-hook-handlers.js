@@ -1084,6 +1084,28 @@ function testManagedGovernancePreflight() {
       drift.ok && /drift_detected/.test(drift.stdout) && /Local Constitution remains authoritative/.test(drift.stdout),
       drift.stdout,
     );
+
+    fs.rmSync(binDir, { recursive: true, force: true });
+    const sourceCli = path.join(tempDir, 'tools', 'cli', 'hseos-cli.js');
+    fs.mkdirSync(path.dirname(sourceCli), { recursive: true });
+    fs.writeFileSync(sourceCli, '#!/usr/bin/env node\nprocess.exit(1);\n');
+    const fallbackBinDir = path.join(tempDir, 'fallback-bin');
+    fs.mkdirSync(fallbackBinDir);
+    const globalCli = path.join(fallbackBinDir, 'hseos');
+    fs.writeFileSync(
+      globalCli,
+      `#!/usr/bin/env bash\nprintf '%s\\n' '{"schema_version":1,"ok":true,"data":{"status":"equivalent","reason_code":"managed_shadow.constitution_equivalent"},"error":null,"evidence":[],"warnings":[]}'\n`,
+    );
+    fs.chmodSync(globalCli, 0o755);
+    const fallback = runHandler(handler, [], {
+      cwd: tempDir,
+      env: { ...process.env, PATH: `${fallbackBinDir}:${process.env.PATH}` },
+    });
+    assertPass(
+      'managed-governance-preflight.sh falls back to a working global CLI when source dependencies are unavailable',
+      fallback.ok && fallback.stdout.trim() === '',
+      fallback.stdout,
+    );
   });
 }
 
