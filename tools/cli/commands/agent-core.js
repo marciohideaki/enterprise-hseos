@@ -24,6 +24,10 @@ function resolvePlatforms(target) {
 }
 
 async function runCompile(projectDir, options) {
+  if (options.check) {
+    await runCompileCheck(projectDir);
+    return;
+  }
   const hseosDir = path.join(projectDir, '.hseos');
   const compiler = new AgentCoreCompiler();
   const platforms = resolvePlatforms(options.target);
@@ -37,6 +41,31 @@ async function runCompile(projectDir, options) {
   const extraNote = extra.length > 0 ? `, ${extra.join(', ')}` : '';
   await prompts.log.success(
     `Agent core compiled: ${result.skills} skills, ${result.hooks} hooks, ${result.commands} commands${extraNote} -> ${result.manifest}`,
+  );
+}
+
+async function runCompileCheck(projectDir) {
+  const integrity = await runIntegrity(projectDir);
+  const audit = await runAudit(projectDir);
+  const failedChecks = [...integrity.checks, ...audit.checks].filter((check) => !check.ok);
+
+  for (const check of [...integrity.checks, ...audit.checks]) {
+    if (check.ok) {
+      await prompts.log.success(statusLine(check));
+    } else {
+      await prompts.log.error(statusLine(check));
+    }
+  }
+
+  if (failedChecks.length > 0) {
+    await prompts.log.error(
+      `compile --check: ${failedChecks.length} check(s) failed — run \`hseos agent-core compile\` to regenerate.`,
+    );
+    throw new Error(`hseos agent-core compile --check failed: ${failedChecks.length} check(s)`);
+  }
+
+  await prompts.log.success(
+    `compile --check: ${integrity.checks.length + audit.checks.length} check(s) passed; no files were written.`,
   );
 }
 
@@ -111,6 +140,7 @@ module.exports = {
   options: [
     ['--directory <path>', 'Project directory (default: current directory)'],
     ['--target <id>', 'Adapter target id (default: all). One of claude-code, codex, goose, all'],
+    ['--check', 'Verify generated artifacts and source drift without writing files'],
   ],
   action: async (action, options = {}) => {
     if (!SUPPORTED_ACTIONS.has(action)) {
