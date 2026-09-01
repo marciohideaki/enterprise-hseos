@@ -75,9 +75,7 @@ class AgentStateDAL {
         `SELECT * FROM as_sessions WHERE status = 'active'
          ORDER BY COALESCE(last_seen_at, started_at) DESC LIMIT ?`,
       ),
-      listRecentSessions: db.prepare(
-        `SELECT * FROM as_sessions ORDER BY COALESCE(last_seen_at, started_at) DESC LIMIT ?`,
-      ),
+      listRecentSessions: db.prepare(`SELECT * FROM as_sessions ORDER BY COALESCE(last_seen_at, started_at) DESC LIMIT ?`),
       sweepOrphanSessions: db.prepare(
         `UPDATE as_sessions SET status = 'orphaned', ended_at = datetime('now')
          WHERE status = 'active'
