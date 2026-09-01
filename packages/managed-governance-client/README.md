@@ -10,3 +10,8 @@ age bound and are always marked degraded.
 
 The reserved enforcement mode parses for forward compatibility but returns
 `enforcement_unavailable`; it performs no network request and cannot activate enforcement.
+
+`runManagedGovernanceSessionPreflight` compares the securely normalized local Constitution and
+repository identity with the active managed catalog. CLI and session-hook callers may atomically
+record the latest result under project-local runtime state; MCP callers disable persistence. Drift,
+invalid local contracts and control-plane outages are always advisory in `managed-shadow`.

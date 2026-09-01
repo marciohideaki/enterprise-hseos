@@ -100,12 +100,28 @@ origem publica UI, `/health` e `/api/v1/*`. Binding não-loopback e
 curl --fail --silent http://127.0.0.1:4319/health
 curl --fail --silent 'http://127.0.0.1:4319/api/v1/artifacts?limit=50'
 hseos governance catalog status --endpoint http://127.0.0.1:4319 --json
+hseos governance session preflight --json
 hseos status
 ```
 
 O health deve retornar migrations e projeção `current`, `ready: true`, modo
 `managed-shadow` e quantidade de artefatos maior que zero. O MCP consulta somente
 o endpoint gravado no projeto e não recebe credenciais do PostgreSQL.
+
+O preflight de sessão normaliza a Constituição local com as mesmas regras do
+importador e compara identidade do repositório e digest com a projeção ativa do
+catálogo. Os estados possíveis são `equivalent`, `drift_detected`,
+`remote_unavailable`, `invalid_local_contract` e `not_configured`. Todos são
+consultivos em `managed-shadow`: os arquivos locais continuam autoritativos. A
+CLI registra somente a evidência mais recente, sem segredos, em
+`.hseos/state/managed-governance/session-preflight.json`.
+
+No Claude Code, o adapter compilado executa o preflight por um hook
+`SessionStart` não bloqueante. No Codex e em adapters sem evento nativo de início
+de sessão, execute o comando uma vez antes da primeira ação. A ferramenta MCP
+read-only `get_governance_session_preflight` aplica a mesma comparação sem
+persistir evidência. O hook não inicia PostgreSQL nem o sidecar; indisponibilidade
+remota gera alerta e nunca bloqueia a sessão.
 
 Backup, restore, retenção, rotação de segredos, telemetria de produção e eventual
 proxy TLS permanecem responsabilidades da plataforma que fornece o PostgreSQL.

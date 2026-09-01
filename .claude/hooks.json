@@ -161,6 +161,12 @@
           },
           {
             "type": "command",
+            "command": "bash .agents/hooks/handlers/managed-governance-preflight.sh",
+            "timeout": 5,
+            "description": "Compare the local Constitution with the configured managed-shadow projection at session start."
+          },
+          {
+            "type": "command",
             "command": "bash .agents/hooks/handlers/ado-inbox-check.sh",
             "timeout": 3,
             "description": "ADO inbox check: warns at session start if pending tag-close events exist in .hseos/runs/ado-ops/inbox/. Advisory only — directs user to run /atlas close. Exits silently when ado.enabled=false."

@@ -38,6 +38,7 @@ test('managed MCP catalog is read-only, strict and complete', () => {
     'diff_governance_releases',
     'verify_governance_snapshot',
     'get_governance_session_status',
+    'get_governance_session_preflight',
   ]);
   for (const entry of managedQueryModule) {
     assert.equal(entry.inputSchema.additionalProperties, false);
@@ -93,6 +94,25 @@ test('MCP and CLI preserve the same managed-shadow decision without retaining re
   assert.deepEqual(first, decision);
   assert.deepEqual(second, decision);
   assert.deepEqual(cliResult.envelope.data, decision);
+  assert.equal(factoryCalls, 2);
+});
+
+test('managed session preflight is exposed as a stateless read-only MCP query', async () => {
+  let factoryCalls = 0;
+  const expected = {
+    schema_version: 1,
+    mode: 'managed-shadow',
+    status: 'equivalent',
+    reason_code: 'managed_shadow.constitution_equivalent',
+    blocking: false,
+  };
+  const tools = createManagedQueryTools(() => {
+    factoryCalls += 1;
+    return { getGovernanceSessionPreflight: async () => structuredClone(expected) };
+  });
+  const preflight = tools.find((entry) => entry.name === 'get_governance_session_preflight');
+  assert.deepEqual(await preflight.handler(null, {}), expected);
+  assert.deepEqual(await preflight.handler(null, {}), expected);
   assert.equal(factoryCalls, 2);
 });
 

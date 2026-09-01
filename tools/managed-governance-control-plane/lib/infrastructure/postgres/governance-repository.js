@@ -663,6 +663,21 @@ class PostgresGovernanceRepository {
     );
   }
 
+  async getCatalogProjectionMetadata(organizationId, repositoryId) {
+    const parsedOrganizationId = parseRepositoryIdentifier(organizationId, 'organization id');
+    const parsedRepositoryId = parseRepositoryUuid(repositoryId, 'repository id');
+    const rows = await this._readTenant(
+      parsedOrganizationId,
+      `SELECT b.import_batch_id AS batch_id, b.source_commit
+         FROM hseos_governance.repositories r
+         JOIN hseos_governance.import_batches b
+           ON b.organization_id = r.organization_id AND b.import_batch_id = r.active_batch_id
+        WHERE r.organization_id = $1 AND r.repository_id = $2`,
+      [parsedOrganizationId, parsedRepositoryId],
+    );
+    return rows[0] || null;
+  }
+
   async listAuditEvents(organizationId) {
     const parsedOrganizationId = parseRepositoryIdentifier(organizationId, 'organization id');
     return this._readTenant(

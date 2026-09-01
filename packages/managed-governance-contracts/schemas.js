@@ -272,6 +272,70 @@ const ManagedGovernanceBindingSchema = strictObject({
   created_at: TimestampSchema,
 });
 
+const ManagedGovernanceSessionPreflightSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  mode: z.literal('managed-shadow'),
+  status: z.enum(['equivalent', 'drift_detected', 'remote_unavailable', 'invalid_local_contract', 'not_configured']),
+  reason_code: z.enum([
+    'managed_shadow.constitution_equivalent',
+    'managed_shadow.constitution_drift',
+    'managed_shadow.repository_identity_drift',
+    'managed_shadow.remote_unavailable',
+    'managed_shadow.local_contract_invalid',
+    'managed_shadow.not_configured',
+  ]),
+  blocking: z.literal(false),
+  authoritative_source: z.literal('local'),
+  repository_id: UuidSchema.nullable(),
+  checked_at: TimestampSchema,
+  constitution: strictObject({
+    source_path: z.literal('.enterprise/.specs/constitution/Enterprise-Constitution.md'),
+    local_digest: DigestSchema.nullable(),
+    remote_digest: DigestSchema.nullable(),
+    matched: z.boolean().nullable(),
+  }),
+  remote: strictObject({
+    status: z.enum(['not_checked', 'available', 'unavailable']),
+    source_commit: GitObjectIdSchema.nullable(),
+  }),
+  evidence_path: z.literal('.hseos/state/managed-governance/session-preflight.json').nullable(),
+}).superRefine((value, context) => {
+  const allowedReasons = {
+    equivalent: ['managed_shadow.constitution_equivalent'],
+    drift_detected: ['managed_shadow.constitution_drift', 'managed_shadow.repository_identity_drift'],
+    remote_unavailable: ['managed_shadow.remote_unavailable'],
+    invalid_local_contract: ['managed_shadow.local_contract_invalid'],
+    not_configured: ['managed_shadow.not_configured'],
+  };
+  if (!allowedReasons[value.status].includes(value.reason_code)) {
+    context.addIssue({ code: 'custom', path: ['reason_code'], message: 'reason code does not match preflight status' });
+  }
+  if (['equivalent', 'drift_detected'].includes(value.status)) {
+    if (
+      value.repository_id === null ||
+      value.constitution.local_digest === null ||
+      value.constitution.remote_digest === null ||
+      value.constitution.matched === null ||
+      value.remote.status !== 'available' ||
+      value.remote.source_commit === null
+    ) {
+      context.addIssue({ code: 'custom', message: 'completed remote comparison requires identity, digests and source commit' });
+    }
+  }
+  if (value.status === 'equivalent' && value.constitution.matched !== true) {
+    context.addIssue({ code: 'custom', path: ['constitution', 'matched'], message: 'equivalent status requires a match' });
+  }
+  if (value.status === 'drift_detected' && value.constitution.matched !== false) {
+    context.addIssue({ code: 'custom', path: ['constitution', 'matched'], message: 'drift status requires a mismatch' });
+  }
+  if (value.status === 'remote_unavailable' && value.remote.status !== 'unavailable') {
+    context.addIssue({ code: 'custom', path: ['remote', 'status'], message: 'unavailable status requires degraded remote state' });
+  }
+  if (['invalid_local_contract', 'not_configured'].includes(value.status) && value.remote.status !== 'not_checked') {
+    context.addIssue({ code: 'custom', path: ['remote', 'status'], message: 'local-only status cannot claim a remote query' });
+  }
+});
+
 const GovernanceReleaseItemSchema = strictObject({
   artifact_id: IdentifierSchema,
   artifact_version_id: UuidSchema,
@@ -511,6 +575,7 @@ module.exports = {
   ImportPlanSchema,
   ImportReportSchema,
   ManagedGovernanceBindingSchema,
+  ManagedGovernanceSessionPreflightSchema,
   ManagedGovernanceContractError,
   MAX_COLLECTION_ITEMS,
   MAX_IDENTIFIER_BYTES,

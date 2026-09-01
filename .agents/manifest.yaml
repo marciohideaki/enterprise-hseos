@@ -15,9 +15,9 @@ platforms:
   - codex
 counts:
   skills: 52
-  hooks: 33
+  hooks: 34
   commands: 9
-  handlers: 24
+  handlers: 25
   agents: 16
   mcp_servers: 8
 skills:
@@ -322,6 +322,11 @@ hooks:
     matcher: "*"
     platform_support:
       - claude-code
+  - id: sessionstart-all-managed-governance-preflight-advisory
+    event: SessionStart
+    matcher: "*"
+    platform_support:
+      - claude-code
   - id: stop-all-emit-agent-state-complete-event-when-claude-session-ends-best-effort-non-blocking
     event: Stop
     matcher: "*"
@@ -487,7 +492,7 @@ commands:
 handlers:
   - file: .agents/hooks/handlers/README.md
     source: .enterprise/governance/hooks/handlers/README.md
-    sha256: 91be729bb6597cad23989be76bfe08cca9ceacbba79a4f7d1336059ad576be24
+    sha256: 538220b58e28cf4afbcff676c79abaf7208620bf1f459fcb67517ffac959e192
   - file: .agents/hooks/handlers/_ado-lib.sh
     source: .enterprise/governance/hooks/handlers/_ado-lib.sh
     sha256: bd2dbb5881fc0b01b6c0fbe3f71fba72305c9c93af60ebfe0def42e4536e2b33
@@ -524,6 +529,9 @@ handlers:
   - file: .agents/hooks/handlers/code-index-post-edit.sh
     source: .enterprise/governance/hooks/handlers/code-index-post-edit.sh
     sha256: c8e1b0aa0dad1375ce4d4375ea8090ef825ad09cff2f3a0a91361ccf36ba2791
+  - file: .agents/hooks/handlers/managed-governance-preflight.sh
+    source: .enterprise/governance/hooks/handlers/managed-governance-preflight.sh
+    sha256: 2e7af1e5e73647d48c9162415739101587ce13452a41266d768eff605edd47c8
   - file: .agents/hooks/handlers/on-notification.sh
     source: .enterprise/governance/hooks/handlers/on-notification.sh
     sha256: f832358bdb190040e962492b10a1bd56ba9cf57b4339721512eedef4f3d77262

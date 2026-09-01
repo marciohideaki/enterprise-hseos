@@ -82,6 +82,16 @@
       "codex_equivalent": "portable-handler-script"
     },
     {
+      "id": "sessionstart-all-managed-governance-preflight-advisory",
+      "event": "SessionStart",
+      "matcher": "*",
+      "command": "bash .agents/hooks/handlers/managed-governance-preflight.sh",
+      "blocking": false,
+      "description": "Compare the local Constitution with the configured managed-shadow projection at session start.",
+      "fallback": "Run `hseos governance session preflight --json` once at session start when managed governance is configured.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
       "id": "stop-all-emit-agent-state-complete-event-when-claude-session-ends-best-effort-non-blocking",
       "event": "Stop",
       "matcher": "*",

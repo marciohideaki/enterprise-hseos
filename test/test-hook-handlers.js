@@ -1048,6 +1048,45 @@ function testSessionTrackInstalledConsumer() {
   });
 }
 
+function testManagedGovernancePreflight() {
+  const source = path.join(HANDLERS_DIR, 'managed-governance-preflight.sh');
+  assertPass('managed-governance-preflight.sh exists', fs.existsSync(source), source);
+  if (!fs.existsSync(source)) return;
+  assertPass('managed-governance-preflight.sh is executable', (fs.statSync(source).mode & 0o111) !== 0);
+  withTempDir((tempDir) => {
+    execFileSync('git', ['init', '--quiet'], { cwd: tempDir });
+    const handlerDir = path.join(tempDir, '.agents', 'hooks', 'handlers');
+    const binDir = path.join(tempDir, 'node_modules', '.bin');
+    fs.mkdirSync(handlerDir, { recursive: true });
+    fs.mkdirSync(binDir, { recursive: true });
+    const handler = path.join(handlerDir, 'managed-governance-preflight.sh');
+    fs.copyFileSync(source, handler);
+    fs.chmodSync(handler, 0o755);
+
+    const unconfigured = runHandler(handler, [], { cwd: tempDir });
+    assertPass(
+      'managed-governance-preflight.sh self-suppresses when unconfigured',
+      unconfigured.ok && unconfigured.stdout.trim() === '',
+      unconfigured.stdout,
+    );
+
+    fs.mkdirSync(path.join(tempDir, '.hseos', 'config'), { recursive: true });
+    fs.writeFileSync(path.join(tempDir, '.hseos', 'config', 'managed-governance.json'), '{}\n');
+    const localCli = path.join(binDir, 'hseos');
+    fs.writeFileSync(
+      localCli,
+      `#!/usr/bin/env bash\nprintf '%s\\n' '{"schema_version":1,"ok":true,"data":{"status":"drift_detected","reason_code":"managed_shadow.constitution_drift"},"error":null,"evidence":[],"warnings":[]}'\n`,
+    );
+    fs.chmodSync(localCli, 0o755);
+    const drift = runHandler(handler, [], { cwd: tempDir });
+    assertPass(
+      'managed-governance-preflight.sh reports drift without blocking',
+      drift.ok && /drift_detected/.test(drift.stdout) && /Local Constitution remains authoritative/.test(drift.stdout),
+      drift.stdout,
+    );
+  });
+}
+
 // =============================================================================
 // Run
 // =============================================================================
@@ -1063,6 +1102,7 @@ testSessionEnd();
 testSuggestSkill();
 testCodeIndexGuard();
 testSessionTrackInstalledConsumer();
+testManagedGovernancePreflight();
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed === 0 ? 0 : 1);

@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0] — 2026-09-01
+
+### Breaking Changes
+
+- None. Existing CLI commands, HTTP routes, MCP tools and portable Markdown
+  governance remain compatible and authoritative. ([PR #141](https://github.com/marciohideaki/enterprise-hseos/pull/141))
+
+### Added
+
+- `hseos governance session preflight` now compares repository identity and the
+  normalized local Constitution digest with the active managed-shadow catalog,
+  returning a strict non-blocking result and private project-local evidence.
+  ([PR #141](https://github.com/marciohideaki/enterprise-hseos/pull/141))
+- The governance MCP exposes the additive read-only
+  `get_governance_session_preflight` tool, while supported adapters receive a
+  non-blocking `SessionStart` hook and other adapters receive an explicit CLI
+  fallback. ([PR #141](https://github.com/marciohideaki/enterprise-hseos/pull/141))
+
+### Changed
+
+- Effective-context provenance now reports the source commit of the active
+  catalog batch instead of the sidecar checkout commit, preserving accurate
+  drift evidence. ([PR #141](https://github.com/marciohideaki/enterprise-hseos/pull/141))
+
+### Security
+
+- Constitution reads reject links, unstable files, oversized content and
+  invalid UTF-8; evidence publication rejects linked runtime ancestors and uses
+  private atomic replacement. ([PR #141](https://github.com/marciohideaki/enterprise-hseos/pull/141))
+
+### Documentation
+
+- English and Portuguese managed-governance guides now document session
+  reconciliation states, evidence, hook behavior, MCP usage and the manual
+  fallback lifecycle. ([PR #141](https://github.com/marciohideaki/enterprise-hseos/pull/141))
+
 ## [3.2.2] — 2026-09-01
 
 ### Breaking Changes

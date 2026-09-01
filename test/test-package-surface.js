@@ -34,6 +34,7 @@ test('published package exposes runtime and governance assets only', () => {
     'scripts/governance/quality-gates.sh',
     'packages/managed-governance-contracts/index.js',
     'packages/managed-governance-client/index.js',
+    'packages/managed-governance-client/session-preflight.js',
     'tools/managed-governance-control-plane/server.js',
     'tools/managed-governance-control-plane/composition.js',
     'tools/managed-governance-control-plane/config.example.json',
@@ -53,6 +54,6 @@ test('published package exposes runtime and governance assets only', () => {
     assert.ok(!/\.(?:db|sqlite|pem|key)$/i.test(file), `state or key material published: ${file}`);
     assert.ok(!/(?:^|\/)(?:\.env|managed-governance\.json)$/i.test(file), `runtime configuration published: ${file}`);
   }
-  assert.ok(packed.entryCount < 1310, `package entry count is not bounded: ${packed.entryCount}`);
+  assert.ok(packed.entryCount < 1320, `package entry count is not bounded: ${packed.entryCount}`);
   assert.ok(packed.unpackedSize < 22_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);
 });

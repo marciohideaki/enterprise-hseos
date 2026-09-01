@@ -178,18 +178,25 @@ async function createDatabaseBackedControlPlane(options = {}) {
   const repository = options.repository || new PostgresGovernanceRepository({ pool, closePool: !options.runtimePool });
   const importer = new ImportCatalogService({ repository, source });
   const entries = () => repository.listCatalogEntries(configuration.organization.id, discovery.repository_id);
+  const projectionMetadata = () =>
+    typeof repository.getCatalogProjectionMetadata === 'function'
+      ? repository.getCatalogProjectionMetadata(configuration.organization.id, discovery.repository_id)
+      : Promise.resolve(null);
   const services = {
     health: () => databaseHealth(pool, repository, configuration, discovery.repository_id),
     listArtifacts: async (input) => (await entries()).slice(0, input.page.limit),
     getArtifact: async (input) => (await entries()).find((entry) => entry.artifact_id === input.id) || null,
     listArtifactVersions: async (input) => (await entries()).filter((entry) => entry.artifact_id === input.id).slice(0, input.page.limit),
     listRules: async () => [],
-    getEffectiveContext: async () => ({
-      mode: 'managed-shadow',
-      repository_id: discovery.repository_id,
-      source_commit: discovery.source_commit,
-      artifacts: await entries(),
-    }),
+    getEffectiveContext: async () => {
+      const metadata = await projectionMetadata();
+      return {
+        mode: 'managed-shadow',
+        repository_id: discovery.repository_id,
+        source_commit: metadata?.source_commit || discovery.source_commit,
+        artifacts: await entries(),
+      };
+    },
     getRelease: async () => null,
     diffReleases: async () => ({ status: 'unavailable', reason_code: 'release.not_published' }),
     verifySnapshot: async () => ({ status: 'unavailable', reason_code: 'snapshot.not_supplied' }),
