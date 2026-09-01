@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.1] — 2026-09-01
+
+### Breaking Changes
+
+- None. The managed-governance session preflight remains advisory, opt-in and
+  backward compatible. ([PR #142](https://github.com/marciohideaki/enterprise-hseos/pull/142))
+
+### Fixed
+
+- The session-start hook now verifies that an in-repository source CLI can
+  start before selecting it, allowing a verified global HSEOS installation to
+  handle preflight when a clean source checkout has no installed dependencies.
+  ([PR #142](https://github.com/marciohideaki/enterprise-hseos/pull/142))
+
 ## [3.3.0] — 2026-09-01
 
 ### Breaking Changes
