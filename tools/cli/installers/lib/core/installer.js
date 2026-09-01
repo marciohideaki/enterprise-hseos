@@ -1404,35 +1404,51 @@ class Installer {
       // Scaffold .enterprise/ overlay from the HSEOS source repo. Without this,
       // `hseos doctor` checks for `.enterprise/.specs/constitution` and fails
       // on every fresh install. Idempotent + self-safe (see method JSDoc).
-      postIdeTasks.push({
-        title: 'Scaffolding .enterprise/ overlay',
-        task: async () => {
-          const sourceRoot = path.resolve(getProjectRoot());
-          const overlay = await this.installEnterpriseOverlay(projectDir, sourceRoot);
-          switch (overlay.status) {
-            case 'copied': {
-              addResult('Enterprise overlay', 'ok', overlay.detail);
-              break;
+      postIdeTasks.push(
+        {
+          title: 'Scaffolding .enterprise/ overlay',
+          task: async () => {
+            const sourceRoot = path.resolve(getProjectRoot());
+            const overlay = await this.installEnterpriseOverlay(projectDir, sourceRoot);
+            switch (overlay.status) {
+              case 'copied': {
+                addResult('Enterprise overlay', 'ok', overlay.detail);
+                break;
+              }
+              case 'preserved': {
+                addResult('Enterprise overlay', 'ok', overlay.detail);
+                break;
+              }
+              case 'skipped-self': {
+                addResult('Enterprise overlay', 'ok', overlay.detail);
+                break;
+              }
+              case 'missing-source': {
+                addResult('Enterprise overlay', 'warn', overlay.detail);
+                break;
+              }
+              default: {
+                addResult('Enterprise overlay', 'warn', overlay.detail || 'unknown status');
+              }
             }
-            case 'preserved': {
-              addResult('Enterprise overlay', 'ok', overlay.detail);
-              break;
-            }
-            case 'skipped-self': {
-              addResult('Enterprise overlay', 'ok', overlay.detail);
-              break;
-            }
-            case 'missing-source': {
-              addResult('Enterprise overlay', 'warn', overlay.detail);
-              break;
-            }
-            default: {
-              addResult('Enterprise overlay', 'warn', overlay.detail || 'unknown status');
-            }
-          }
-          return `Enterprise overlay: ${overlay.status}`;
+            return `Enterprise overlay: ${overlay.status}`;
+          },
         },
-      });
+        // The managed governance source profile includes the portable workflow
+        // registry alongside .enterprise/. A fresh consumer therefore needs the
+        // registry materialized before `governance setup install` can discover a
+        // complete, Git-pinned source tree.
+        {
+          title: 'Scaffolding governance workflow registry',
+          task: async () => {
+            const sourceRoot = path.resolve(getProjectRoot());
+            const overlay = await this.installGovernanceWorkflowOverlay(projectDir, sourceRoot);
+            const resultStatus = ['copied', 'preserved', 'skipped-self'].includes(overlay.status) ? 'ok' : 'warn';
+            addResult('Governance workflows', resultStatus, overlay.detail);
+            return `Governance workflows: ${overlay.status}`;
+          },
+        },
+      );
 
       // Install pre-commit hook that runs governance/quality-gates.sh when
       // present. Honour `--no-git-hooks` opt-out. Silently no-ops when the
@@ -3718,6 +3734,30 @@ fi
 
     await fs.copy(source, target, { overwrite: false, errorOnExist: false });
     return { status: 'copied', detail: 'overlay scaffolded from HSEOS source' };
+  }
+
+  /**
+   * Copy the portable governance workflow registry required by the managed
+   * governance source profile. Existing project workflows are never replaced.
+   *
+   * @returns {Promise<{status: 'copied'|'preserved'|'skipped-self'|'missing-source', detail: string}>}
+   */
+  async installGovernanceWorkflowOverlay(projectDir, sourceRoot) {
+    const target = path.join(projectDir, '.hseos', 'workflows');
+    const source = path.join(sourceRoot, '.hseos', 'workflows');
+
+    if (path.resolve(projectDir) === path.resolve(sourceRoot)) {
+      return { status: 'skipped-self', detail: 'install target is the HSEOS source repo' };
+    }
+    if (await fs.pathExists(target)) {
+      return { status: 'preserved', detail: '.hseos/workflows already present' };
+    }
+    if (!(await fs.pathExists(source))) {
+      return { status: 'missing-source', detail: `source workflow registry not found at ${source}` };
+    }
+
+    await fs.copy(source, target, { overwrite: false, errorOnExist: false });
+    return { status: 'copied', detail: 'portable workflow registry scaffolded from HSEOS source' };
   }
 
   /**
