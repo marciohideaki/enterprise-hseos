@@ -3,7 +3,9 @@
 ## Status
 
 Accepted on 2026-09-01 by explicit human authorization for implementation in
-`managed-shadow` mode. This approval does not authorize `managed-enforced`.
+`managed-shadow` mode. Authenticated shared-network shadow access was additionally
+authorized on 2026-09-01 under an explicit deny-by-default client allowlist. These
+approvals do not authorize `managed-enforced`.
 
 ## Context
 
@@ -53,6 +55,11 @@ HSEOS will add an optional managed governance bounded context with these authori
 10. The managed client is an opt-in module; preflight is a pre-activation candidate; control plane
     and console are opt-in sidecars. The file governance reader remains an active portable
     compatibility surface throughout v3.
+11. Loopback remains the default listener. An operator may explicitly select a shared-network
+    shadow profile only with a non-empty IP/CIDR allowlist, authentication, transport protection,
+    scoped query/admin authority, bounded rate limits and access audit. Network reachability never
+    changes governance authority, and invalid or allow-all admission configuration fails before the
+    listener opens.
 
 The first implementation may include contracts, migrations, importer, read-only query surfaces,
 schema-driven drafting and shadow comparison. It must not remove or weaken existing portable
@@ -109,6 +116,7 @@ history, deterministic runtime inputs, offline snapshots and a reversible shadow
 | Importer misclassifies prose                  | Preserve raw content; only deterministic structured sources become executable; review queue otherwise |
 | Cross-tenant data exposure                    | `organization_id`, fail-closed RLS, separate roles and tenant isolation tests                         |
 | Control-plane outage blocks work              | Portable default; shadow degrades to valid snapshot; enforced mode requires separate activation       |
+| Shared-network exposure broadens attack scope | Loopback default; explicit allowlist, authentication, transport protection, scope, rate and audit gates |
 | Adapter bypass                                | Per-adapter conformance and no enforced claim without blocking prelaunch evidence                     |
 | Acceptance is confused with approval          | Separate contracts, scopes, reason codes and audit events                                             |
 | Package surface expands baseline              | Opt-in module/sidecar classifications and package-surface tests                                       |
@@ -133,7 +141,8 @@ history, deterministic runtime inputs, offline snapshots and a reversible shadow
 ## Mitigations
 
 - Start with deterministic import and `managed-shadow` only.
-- Keep all new surfaces opt-in and loopback-only by default.
+- Keep all new surfaces opt-in and loopback by default; shared-network shadow access fails closed
+  unless every approved admission control is configured.
 - Require threat modeling before non-loopback or enforced activation.
 - Require valid/invalid fixtures, PostgreSQL isolation tests and portable regression tests.
 - Keep publication, merge and activation as distinct human decisions.
@@ -145,6 +154,7 @@ history, deterministic runtime inputs, offline snapshots and a reversible shadow
 - [ ] Threat model reviewed with no critical or high finding open
 - [ ] Affected standards updated to reference this ADR
 - [x] Managed surface lifecycle entries accepted for the approved shadow scope
+- [x] Shared-network lifecycle boundary accepted for implementation with activation gates
 - [ ] Activation date recorded separately
 - [ ] Review date set after the managed-shadow observation window
 

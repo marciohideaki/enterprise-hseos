@@ -56,7 +56,7 @@ standalone_surfaces:
   - id: sidecar:managed-governance-control-plane
     classification: sidecar
     disposition: opt-in
-    contract: Owns relational managed state behind application ports; it is omitted from baseline activation and binds to loopback by default.
+    contract: Owns relational managed state behind application ports; it is omitted from baseline activation and binds to loopback by default. Authenticated shared-network shadow access is an explicit deny-by-default subprofile whose allowlist, transport, scoped authorization, rate and audit gates cannot change governance authority.
     paths:
       - tools/managed-governance-control-plane/server.js
       - tools/managed-governance-control-plane/composition.js
