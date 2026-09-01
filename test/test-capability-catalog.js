@@ -485,6 +485,30 @@ function testInstallPlanJsonIsMachineReadable() {
   }
 }
 
+function testInstallPlanUsesDistributedCatalogOutsideRepository() {
+  const emptyProject = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-install-plan-empty-'));
+  try {
+    const result = spawnSync(process.execPath, [HSEOS_CLI, 'install-plan', '--components', 'runtime:managed-governance-client', '--json'], {
+      cwd: emptyProject,
+      encoding: 'utf8',
+      env: { ...process.env, HSEOS_DISABLE_UPDATE_CHECK: '1' },
+    });
+    let parsed = null;
+    try {
+      parsed = JSON.parse(result.stdout);
+    } catch {
+      parsed = null;
+    }
+    assertPass(
+      'install-plan resolves the distributed catalog from an empty consumer repository',
+      result.status === 0 && parsed?.plan?.components?.some((component) => component.id === 'runtime:managed-governance-client'),
+      `status=${result.status} stderr=${JSON.stringify(result.stderr.slice(0, 160))}`,
+    );
+  } finally {
+    fs.removeSync(emptyProject);
+  }
+}
+
 async function testCompilerMaterializesAdapterMatrix() {
   const target = await fs.mkdtemp(path.join(os.tmpdir(), 'hseos-adapter-matrix-'));
   try {
@@ -533,6 +557,47 @@ function testExtrasArePureOptIn() {
     }
   }
   assertPass('no profile bundles an extra (pure opt-in invariant)', offenders.length === 0, offenders.join(','));
+}
+
+function testManagedGovernanceSurfacesArePureOptIn() {
+  const catalog = loadCapabilityCatalog(REPO_ROOT);
+  const component = catalog.components.find((entry) => entry.id === 'runtime:managed-governance-client');
+  assertPass(
+    'managed governance client is an opt-in module with bounded package paths',
+    component?.surface_class === 'module' &&
+      component.modules.length === 0 &&
+      component.install_paths.includes('packages/managed-governance-contracts/') &&
+      component.install_paths.includes('packages/managed-governance-client/'),
+    JSON.stringify(component),
+  );
+
+  const bundled = Object.entries(catalog.profiles)
+    .filter(([, profile]) => profile.components.includes('runtime:managed-governance-client'))
+    .map(([profileId]) => profileId);
+  assertPass('no profile activates managed governance implicitly', bundled.length === 0, bundled.join(','));
+
+  const portablePlan = resolveCapabilityPlan({ root: REPO_ROOT, profile: 'developer' });
+  const managedPlan = resolveCapabilityPlan({ root: REPO_ROOT, components: ['runtime:managed-governance-client'] });
+  assertPass(
+    'portable plan omits managed surfaces unless explicitly selected',
+    !portablePlan.components.some((entry) => entry.id === 'runtime:managed-governance-client') &&
+      managedPlan.components.some((entry) => entry.id === 'runtime:managed-governance-client'),
+  );
+
+  const lifecycle = new Map(catalog.standaloneSurfaces.map((surface) => [surface.id, surface]));
+  const preflight = lifecycle.get('candidate:managed-governance-preflight');
+  const controlPlane = lifecycle.get('sidecar:managed-governance-control-plane');
+  const consoleSurface = lifecycle.get('sidecar:managed-governance-console');
+  assertPass(
+    'preflight remains a pre-activation candidate',
+    preflight?.classification === 'candidate' && preflight.disposition === 'pre-activation',
+    JSON.stringify(preflight),
+  );
+  assertPass(
+    'control plane and console remain opt-in sidecars',
+    [controlPlane, consoleSurface].every((surface) => surface?.classification === 'sidecar' && surface.disposition === 'opt-in'),
+    JSON.stringify([controlPlane, consoleSurface]),
+  );
 }
 
 function testApplyExtrasFromPlanMapsFlags() {
@@ -677,9 +742,11 @@ async function run() {
   testEquivalentSelectionsResolveDeterministically();
   testAdapterMatrix();
   testInstallPlanJsonIsMachineReadable();
+  testInstallPlanUsesDistributedCatalogOutsideRepository();
   await testCompilerMaterializesAdapterMatrix();
   testInstallCommandOptions();
   testExtrasArePureOptIn();
+  testManagedGovernanceSurfacesArePureOptIn();
   testApplyExtrasFromPlanMapsFlags();
   await testEveryProfileMaterializesExactlySelectedSkills();
 

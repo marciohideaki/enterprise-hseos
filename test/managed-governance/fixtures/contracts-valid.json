@@ -1,0 +1,271 @@
+{
+  "GovernanceArtifactSchema": {
+    "schema_version": 1,
+    "artifact_id": "enterprise-constitution",
+    "organization_id": "hideaki-solutions",
+    "artifact_type": "constitution",
+    "namespace": "enterprise.governance",
+    "slug": "enterprise-constitution",
+    "title": "Enterprise Constitution",
+    "lifecycle_status": "published",
+    "current_version": 1
+  },
+  "ArtifactVersionSchema": {
+    "schema_version": 1,
+    "artifact_version_id": "11111111-1111-4111-8111-111111111111",
+    "artifact_id": "enterprise-constitution",
+    "organization_id": "hideaki-solutions",
+    "version": 1,
+    "raw_content": "# Enterprise Constitution\n",
+    "structured_content": {
+      "headings": ["Enterprise Constitution"]
+    },
+    "content_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "source": {
+      "repository_id": "7f9f9b79-638c-4138-9a29-8a2406ad9fb8",
+      "path": ".enterprise/.specs/constitution/Enterprise-Constitution.md",
+      "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "section": "document"
+    },
+    "classification_status": "classified",
+    "created_at": "2026-09-01T00:00:00Z"
+  },
+  "GovernanceRelationSchema": {
+    "schema_version": 1,
+    "relation_id": "22222222-2222-4222-8222-222222222222",
+    "organization_id": "hideaki-solutions",
+    "source_artifact_id": "enterprise-constitution",
+    "target_artifact_id": "git-branch-policy",
+    "relation_kind": "constrains",
+    "source": {
+      "repository_id": "7f9f9b79-638c-4138-9a29-8a2406ad9fb8",
+      "path": ".enterprise/.specs/constitution/Enterprise-Constitution.md",
+      "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "section": "git-rules"
+    },
+    "created_at": "2026-09-01T00:00:00Z"
+  },
+  "GovernanceRuleSchema": {
+    "schema_version": 1,
+    "rule_id": "git.protected-branch.no-direct-write",
+    "organization_id": "hideaki-solutions",
+    "kind": "prohibition",
+    "subject": {
+      "actor_types": ["human", "agent", "automation"],
+      "roles": []
+    },
+    "action": "git.commit",
+    "resource": {
+      "type": "git-branch",
+      "identifiers": []
+    },
+    "scope": {
+      "organizations": ["hideaki-solutions"],
+      "repositories": ["*"],
+      "environments": [],
+      "branches": ["main", "master", "develop"],
+      "stacks": [],
+      "capabilities": []
+    },
+    "conditions": [],
+    "effect": "deny",
+    "priority": 900,
+    "obligations": [],
+    "enforcement_points": ["preflight", "hook", "cli"],
+    "source": {
+      "artifact_id": "enterprise-constitution",
+      "artifact_version": 1,
+      "locator": "git-rules"
+    }
+  },
+  "ManagedGovernanceBindingSchema": {
+    "schema_version": 1,
+    "contract": "managed-governance-binding/v1",
+    "binding_id": "33333333-3333-4333-8333-333333333333",
+    "mode": "managed-shadow",
+    "repository_id": "7f9f9b79-638c-4138-9a29-8a2406ad9fb8",
+    "organization_id": "hideaki-solutions",
+    "control_plane_ref": "managed-control-plane-primary",
+    "issuer": "hideaki-governance",
+    "trusted_key_ids": ["governance-signing-2026"],
+    "failure_policy": "cached-fail-closed",
+    "max_snapshot_age_seconds": 86400,
+    "created_at": "2026-09-01T00:00:00Z"
+  },
+  "GovernanceReleaseSchema": {
+    "schema_version": 1,
+    "release_id": "governance-release-1",
+    "sequence": 1,
+    "source_repository_id": "7f9f9b79-638c-4138-9a29-8a2406ad9fb8",
+    "source_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "previous_release_digest": null,
+    "content_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "items": [
+      {
+        "artifact_id": "enterprise-constitution",
+        "artifact_version_id": "11111111-1111-4111-8111-111111111111",
+        "artifact_type": "constitution",
+        "content_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ],
+    "issued_at": "2026-09-01T00:00:00Z",
+    "effective_at": "2026-09-01T01:00:00Z",
+    "expires_at": "2027-09-01T00:00:00Z",
+    "sunset_at": null,
+    "change_class": "compatible",
+    "runtime_min_version": "3.0.3",
+    "runtime_max_version": null,
+    "issuer": "hideaki-governance",
+    "signature": {
+      "algorithm": "ed25519",
+      "key_id": "governance-signing-2026",
+      "value": "c2lnbmF0dXJl"
+    }
+  },
+  "GovernanceSnapshotSchema": {
+    "schema_version": 1,
+    "snapshot_id": "44444444-4444-4444-8444-444444444444",
+    "organization_id": "hideaki-solutions",
+    "repository_id": "7f9f9b79-638c-4138-9a29-8a2406ad9fb8",
+    "release_id": "governance-release-1",
+    "release_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "binding_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "policy_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "effective_scope": {
+      "mode": "managed-shadow"
+    },
+    "artifacts": [
+      {
+        "artifact_id": "enterprise-constitution",
+        "artifact_version_id": "11111111-1111-4111-8111-111111111111",
+        "content_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ],
+    "rules": [],
+    "adapter_digests": {
+      "codex": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    "issued_at": "2026-09-01T00:00:00Z",
+    "expires_at": "2026-09-02T00:00:00Z",
+    "issuer": "hideaki-governance",
+    "signature": {
+      "algorithm": "ed25519",
+      "key_id": "governance-signing-2026",
+      "value": "c2lnbmF0dXJl"
+    }
+  },
+  "GovernanceAcceptanceSchema": {
+    "schema_version": 1,
+    "acceptance_id": "55555555-5555-4555-8555-555555555555",
+    "organization_id": "hideaki-solutions",
+    "repository_id": "7f9f9b79-638c-4138-9a29-8a2406ad9fb8",
+    "subject_ref": "subject:maintainer",
+    "release_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "policy_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "diff_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "decision": "accepted",
+    "method": "interactive",
+    "authentication_evidence_ref": "audit:authentication:1",
+    "decided_at": "2026-09-01T00:00:00Z",
+    "expires_at": "2027-09-01T00:00:00Z"
+  },
+  "GovernanceSessionLeaseSchema": {
+    "schema_version": 1,
+    "lease_id": "66666666-6666-4666-8666-666666666666",
+    "organization_id": "hideaki-solutions",
+    "repository_id": "7f9f9b79-638c-4138-9a29-8a2406ad9fb8",
+    "subject_ref": "subject:maintainer",
+    "session_fingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "release_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "policy_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "binding_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "issued_at": "2026-09-01T00:00:00Z",
+    "expires_at": "2026-09-01T01:00:00Z",
+    "enforcement_level": "shadow",
+    "capability_ceiling": ["governance.read"],
+    "restrictions": [],
+    "nonce": "nonce_1",
+    "issuer": "hideaki-governance",
+    "signature": {
+      "algorithm": "ed25519",
+      "key_id": "governance-signing-2026",
+      "value": "c2lnbmF0dXJl"
+    }
+  },
+  "GovernanceDecisionSchema": {
+    "schema_version": 1,
+    "decision": "deny",
+    "reason_code": "protected_branch_direct_write",
+    "policy_version": "governance-release-1",
+    "release_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "obligations": [],
+    "evidence": [
+      {
+        "code": "rule.selected",
+        "reference": "git.protected-branch.no-direct-write",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ],
+    "warnings": []
+  },
+  "ImportPlanSchema": {
+    "schema_version": 1,
+    "plan_id": "sha256:1212121212121212121212121212121212121212121212121212121212121212",
+    "batch_key": "sha256:1313131313131313131313131313131313131313131313131313131313131313",
+    "organization_id": "hideaki-solutions",
+    "repository_id": "7f9f9b79-638c-4138-9a29-8a2406ad9fb8",
+    "source_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "importer_version": "1.0.0",
+    "source_profile": "enterprise-hseos:v1",
+    "source_profile_digest": "sha256:1414141414141414141414141414141414141414141414141414141414141414",
+    "generated_at": "2026-09-01T00:00:00Z",
+    "items": [
+      {
+        "source_path": ".enterprise/.specs/constitution/Enterprise-Constitution.md",
+        "artifact_id": "enterprise-constitution",
+        "artifact_type": "constitution",
+        "classification_status": "classified",
+        "content_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "action": "create",
+        "previous_source_path": null,
+        "issues": []
+      }
+    ],
+    "issues": []
+  },
+  "ImportReportSchema": {
+    "schema_version": 1,
+    "batch_id": "77777777-7777-4777-8777-777777777777",
+    "plan_id": "sha256:1212121212121212121212121212121212121212121212121212121212121212",
+    "batch_key": "sha256:1313131313131313131313131313131313131313131313131313131313131313",
+    "organization_id": "hideaki-solutions",
+    "repository_id": "7f9f9b79-638c-4138-9a29-8a2406ad9fb8",
+    "status": "completed",
+    "started_at": "2026-09-01T00:00:00Z",
+    "completed_at": "2026-09-01T00:01:00Z",
+    "active_batch": true,
+    "counts": {
+      "discovered": 1,
+      "classified": 1,
+      "partial": 0,
+      "unclassified": 0,
+      "created": 1,
+      "versioned": 0,
+      "unchanged": 0,
+      "review_required": 0
+    },
+    "items": [
+      {
+        "source_path": ".enterprise/.specs/constitution/Enterprise-Constitution.md",
+        "artifact_id": "enterprise-constitution",
+        "artifact_type": "constitution",
+        "classification_status": "classified",
+        "content_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "action": "create",
+        "previous_source_path": null,
+        "issues": []
+      }
+    ],
+    "issues": []
+  }
+}

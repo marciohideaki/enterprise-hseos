@@ -2,7 +2,7 @@
 
 /**
  * MCP round-trip smoke test for mcp-hseos-governance.
- * Spawns the server, verifies 5 tools are listed, calls each tool with minimal input.
+ * Spawns the server, verifies legacy and managed read-only tools, and calls each legacy tool.
  */
 
 const path = require('node:path');
@@ -118,14 +118,25 @@ function waitFor(predicate, { timeoutMs = 6000, intervalMs = 100 } = {}) {
       }
     });
 
-    await it('tools/list returns 5 tools', async () => {
+    await it('tools/list preserves 5 legacy tools and adds 8 managed read-only tools', async () => {
       const r = await rpc(port, 'tools/list', {});
       const names = new Set(r.tools.map((t) => t.name));
       const expected = ['query_constitution', 'validate_adr', 'check_authority', 'list_skills', 'list_workflows'];
       for (const name of expected) {
         if (!names.has(name)) throw new Error(`missing tool: ${name}`);
       }
-      if (r.tools.length !== 5) throw new Error(`expected 5 tools, got ${r.tools.length}`);
+      const managed = [
+        'get_effective_governance_context',
+        'evaluate_governed_action',
+        'explain_governance_decision',
+        'get_governance_artifact',
+        'get_governance_release',
+        'diff_governance_releases',
+        'verify_governance_snapshot',
+        'get_governance_session_status',
+      ];
+      for (const name of managed) if (!names.has(name)) throw new Error(`missing managed tool: ${name}`);
+      if (r.tools.length !== 13) throw new Error(`expected 13 tools, got ${r.tools.length}`);
     });
 
     await it('initialize handshake', async () => {

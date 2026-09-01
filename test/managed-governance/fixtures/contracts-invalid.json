@@ -1,0 +1,90 @@
+[
+  {
+    "label": "unsupported schema version",
+    "schema": "GovernanceArtifactSchema",
+    "patch": {
+      "schema_version": 2
+    }
+  },
+  {
+    "label": "unknown top-level field",
+    "schema": "GovernanceArtifactSchema",
+    "patch": {
+      "unexpected": true
+    }
+  },
+  {
+    "label": "invalid digest",
+    "schema": "ArtifactVersionSchema",
+    "patch": {
+      "content_digest": "sha256:not-a-digest"
+    }
+  },
+  {
+    "label": "self relation",
+    "schema": "GovernanceRelationSchema",
+    "patch": {
+      "target_artifact_id": "enterprise-constitution"
+    }
+  },
+  {
+    "label": "duplicate rule actor",
+    "schema": "GovernanceRuleSchema",
+    "path": ["subject", "actor_types"],
+    "value": ["human", "human"]
+  },
+  {
+    "label": "credential-shaped control plane URL",
+    "schema": "ManagedGovernanceBindingSchema",
+    "patch": {
+      "control_plane_ref": "https://user:password@governance.internal"
+    }
+  },
+  {
+    "label": "release expires before effective date",
+    "schema": "GovernanceReleaseSchema",
+    "patch": {
+      "expires_at": "2026-08-31T00:00:00Z"
+    }
+  },
+  {
+    "label": "snapshot bad repository identity",
+    "schema": "GovernanceSnapshotSchema",
+    "patch": {
+      "repository_id": "not-a-uuid"
+    }
+  },
+  {
+    "label": "acceptance expires before decision",
+    "schema": "GovernanceAcceptanceSchema",
+    "patch": {
+      "expires_at": "2026-08-31T00:00:00Z"
+    }
+  },
+  {
+    "label": "lease nonce contains whitespace",
+    "schema": "GovernanceSessionLeaseSchema",
+    "patch": {
+      "nonce": "not valid"
+    }
+  },
+  {
+    "label": "decision uses unknown semantic",
+    "schema": "GovernanceDecisionSchema",
+    "patch": {
+      "decision": "maybe"
+    }
+  },
+  {
+    "label": "import path traverses repository",
+    "schema": "ImportPlanSchema",
+    "path": ["items", 0, "source_path"],
+    "value": "../outside.md"
+  },
+  {
+    "label": "import report count mismatch",
+    "schema": "ImportReportSchema",
+    "path": ["counts", "discovered"],
+    "value": 2
+  }
+]

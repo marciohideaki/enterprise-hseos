@@ -51,7 +51,7 @@ HSEOS is the **Hideaki Software Engineering Operating System** — an institutio
 
 It solves a specific problem: most AI coding tools are eager but ungoverned. They write code, make assumptions, and forget context between sessions. HSEOS treats the AI as an **executor** that operates inside an immutable governance layer — constitutional rules, tiered authority boundaries, spec-driven decision gates, and quality hooks that run before every commit.
 
-HSEOS scales from a single developer with a local `npx hseos install` to a multi-team enterprise with dedicated agent squads (NYX, VECTOR, CIPHER, GHOST, RAZOR, ORBIT…) each with explicit, auditable scope.
+HSEOS scales from a single developer with a local `hseos install` to a multi-team enterprise with dedicated agent squads (NYX, VECTOR, CIPHER, GHOST, RAZOR, ORBIT…) each with explicit, auditable scope.
 
 ---
 
@@ -171,11 +171,23 @@ Each step is governed by skills loaded automatically from the registry. Agents c
 
 ## Installation
 
-### 1. Install HSEOS in your project
+### 1. Install the verified GitHub release
 
 ```bash
-npx hseos install
+release_version=3.1.0
+release_dir="$(mktemp -d)"
+gh release download "v${release_version}" \
+  --repo marciohideaki/enterprise-hseos \
+  --dir "${release_dir}"
+(cd "${release_dir}" && sha256sum -c SHA256SUMS)
+npm install --global "${release_dir}/hseos-${release_version}.tgz"
+hseos --version
+hseos install
 ```
+
+The release is installed from the exact tarball covered by `SHA256SUMS`; HSEOS
+is not currently published under the unscoped `hseos` name on npm. Reinstall
+the previous verified GitHub asset to roll back.
 
 This sets up:
 
@@ -198,11 +210,11 @@ is always included and cannot be deselected; components with external prerequisi
 sandbox, telemetry, axon-bridge, second-brain) are optional and degrade gracefully when unmet.
 
 ```bash
-npx hseos install-plan --list-profiles     # discover profiles
-npx hseos install-plan --profile gitops    # dry-run: components, skills, paths, prerequisites
-npx hseos install --profile developer      # install a profile
-npx hseos install --skills pr-review,rfc   # or baseline + individual skills
-npx hseos agent-provider-conformance --verify --require-ready # verify selected provider manifests and suites
+hseos install-plan --list-profiles     # discover profiles
+hseos install-plan --profile gitops    # dry-run: components, skills, paths, prerequisites
+hseos install --profile developer      # install a profile
+hseos install --skills pr-review,rfc   # or baseline + individual skills
+hseos agent-provider-conformance --verify --require-ready # verify selected provider manifests and suites
 ```
 
 See [`docs/capabilities.md`](docs/capabilities.md) for the full profile/component/prerequisite reference.
@@ -211,13 +223,13 @@ See [`docs/capabilities.md`](docs/capabilities.md) for the full profile/componen
 
 ```bash
 # Claude Code only (default)
-npx hseos install --tools claude-code
+hseos install --tools claude-code
 
 # Multiple tools
-npx hseos install --tools claude-code,codex,gemini
+hseos install --tools claude-code,codex,gemini
 
 # Governance files only (no IDE setup)
-npx hseos install --tools none
+hseos install --tools none
 ```
 
 Supported tools: `claude-code`, `cursor`, `windsurf`, `gemini`, `codex`, `antigravity`, `github-copilot`, `cline`
@@ -225,8 +237,8 @@ Supported tools: `claude-code`, `cursor`, `windsurf`, `gemini`, `codex`, `antigr
 ### 3. Verify installation
 
 ```bash
-npx hseos status              # installation status + module versions
-npx hseos agent-core verify   # hash-pinned integrity of compiled artifacts
+hseos status              # installation status + module versions
+hseos agent-core verify   # hash-pinned integrity of compiled artifacts
 ```
 
 `status` reports the installation manifest and installed modules; `agent-core verify` validates every compiled skill/agent against the hashes pinned in `.agents/manifest.yaml`.
@@ -636,9 +648,22 @@ O framework resolve um problema específico: ferramentas de IA são ágeis mas d
 ### Instalação rápida
 
 ```bash
-npx hseos install                  # instala tudo
-npx hseos install --no-git-hooks   # pula o pre-commit hook
+versao_release=3.1.0
+diretorio_release="$(mktemp -d)"
+gh release download "v${versao_release}" \
+  --repo marciohideaki/enterprise-hseos \
+  --dir "${diretorio_release}"
+(cd "${diretorio_release}" && sha256sum -c SHA256SUMS)
+npm install --global "${diretorio_release}/hseos-${versao_release}.tgz"
+hseos --version
+hseos install                       # instala o perfil padrão
+hseos install --no-git-hooks        # opção sem pre-commit hook
 ```
+
+A distribuição oficial atual é o artefato imutável da release no GitHub. O
+pacote sem escopo `hseos` não está publicado no npm; por isso `npx hseos` não é
+um caminho de instalação suportado. Para rollback, reinstale o asset verificado
+da versão anterior.
 
 O instalador cria, por padrão:
 

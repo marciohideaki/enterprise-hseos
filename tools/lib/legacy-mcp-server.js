@@ -121,9 +121,16 @@ function startLegacyMcpServer({
   let stdio = null;
   if (mode === 'http') {
     server = createHttpServer(createHandler(wrapHttpResults), {
-      status: 'ok', server: serverName, protocol: MCP_PROTOCOL_VERSION, compatibility_mode: 'legacy-metered', ...health,
+      status: 'ok',
+      server: serverName,
+      protocol: MCP_PROTOCOL_VERSION,
+      compatibility_mode: 'legacy-metered',
+      ...health,
     });
-    server.listen(port, '127.0.0.1', () => log(`[${serverId}] legacy MCP compatibility listening on http://127.0.0.1:${port}`));
+    server.listen(port, '127.0.0.1', () => {
+      const address = server.address();
+      log(`[${serverId}] legacy MCP compatibility listening on http://127.0.0.1:${address.port}`);
+    });
   } else {
     stdio = startStdioServer(createHandler(true));
     log(`[${serverId}] legacy MCP compatibility stdio ready; tools=${tools.size}`);

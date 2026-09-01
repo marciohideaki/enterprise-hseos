@@ -1,6 +1,7 @@
 const path = require('node:path');
 const prompts = require('../lib/prompts');
 const { loadAdapterMatrix, loadCapabilityCatalog, parseCsv, resolveCapabilityPlan } = require('../lib/capability-catalog');
+const { getProjectRoot } = require('../lib/project-root');
 
 function renderList(title, values) {
   if (!values || values.length === 0) return `${title}: (none)`;
@@ -95,7 +96,7 @@ module.exports = {
     ['--json', 'Emit JSON'],
   ],
   action: async (options = {}) => {
-    const root = path.resolve(options.directory || process.cwd());
+    const root = options.directory ? path.resolve(options.directory) : getProjectRoot();
     const catalog = loadCapabilityCatalog(root);
 
     if (options.listProfiles) {

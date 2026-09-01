@@ -110,6 +110,19 @@ components:
       - tools/mcp-project-state/
       - tools/mcp-axon-bridge/
 
+  - id: runtime:managed-governance-client
+    family: runtime
+    name: Managed Governance Shadow Client
+    description: Optional project-scoped contracts, binding validation, shadow comparison, and bounded last-known-good snapshot support.
+    prerequisites:
+      - "selection records install intent only; an explicit repository binding and endpoint are still required before any managed query"
+      - "local repository governance remains authoritative; managed enforcement is reserved and unavailable"
+    modules: []
+    tools: []
+    install_paths:
+      - packages/managed-governance-contracts/
+      - packages/managed-governance-client/
+
   - id: runtime:agent-kernel
     family: runtime
     name: Model-agnostic Agent Kernel
