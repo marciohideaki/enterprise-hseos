@@ -6,16 +6,17 @@
 
 The canonical directory currently contains the following core handler families:
 
-| Handler | Source | Event | Purpose |
-|---|---|---|---|
-| `plan-lint.sh` | PostToolUse (Write\|Edit) | Lint parallel-flow plans for a missing execution protocol |
-| `pre-compact.sh` | PreCompact | Snapshot critical context before compaction |
-| `on-prompt-submit.sh` | UserPromptSubmit | Capture project-scoped prompt context and advisories |
-| `session-end.sh`, `session-track.sh` | Session lifecycle | Track sessions and optionally bridge second-brain state |
-| `suggest-skill.sh` | PreToolUse (Agent) | Recommend governed skills before agent dispatch |
-| `code-index-guard.sh`, `code-index-post-edit.sh` | Pre/Post tool use | Enforce and refresh the configured project-local code index |
-| `swarm-gate.sh`, `claude-md-guard.sh`, ADO guards | PreToolUse | Enforce blocking governance decisions declared by the registry |
-| `telemetry-export-*.sh` | PostToolUse/Stop | Export optional telemetry without becoming state authority |
+| Handler                                           | Source                    | Event                                                                              | Purpose |
+| ------------------------------------------------- | ------------------------- | ---------------------------------------------------------------------------------- | ------- |
+| `plan-lint.sh`                                    | PostToolUse (Write\|Edit) | Lint parallel-flow plans for a missing execution protocol                          |
+| `pre-compact.sh`                                  | PreCompact                | Snapshot critical context before compaction                                        |
+| `on-prompt-submit.sh`                             | UserPromptSubmit          | Capture project-scoped prompt context and advisories                               |
+| `session-end.sh`, `session-track.sh`              | Session lifecycle         | Track sessions and optionally bridge second-brain state                            |
+| `managed-governance-preflight.sh`                 | SessionStart              | Compare the local Constitution with the managed-shadow projection without blocking |
+| `suggest-skill.sh`                                | PreToolUse (Agent)        | Recommend governed skills before agent dispatch                                    |
+| `code-index-guard.sh`, `code-index-post-edit.sh`  | Pre/Post tool use         | Enforce and refresh the configured project-local code index                        |
+| `swarm-gate.sh`, `claude-md-guard.sh`, ADO guards | PreToolUse                | Enforce blocking governance decisions declared by the registry                     |
+| `telemetry-export-*.sh`                           | PostToolUse/Stop          | Export optional telemetry without becoming state authority                         |
 
 `scripts/governance/state-emit-hook.sh` and `quality-gates.sh` remain explicit runtime/governance entrypoints. They are not pending handler migrations. Registry commands are authored in `.enterprise/governance/hooks/registry.yaml` and compiled atomically for each adapter.
 
@@ -31,12 +32,12 @@ The canonical directory currently contains the following core handler families:
 
 Four additional handlers were introduced by the telemetry-swarm-coherence run (20260603):
 
-| Handler | Event | Status | Purpose |
-|---|---|---|---|
-| `telemetry-export-tool.sh` | PostToolUse | active (env-gated) | Opt-in OTLP metrics TEE (`OTEL_EXPORTER_OTLP_ENDPOINT` or `HSEOS_OTEL_EXPORT=1`). Self-suppresses when unset. SQLite remains canonical. |
-| `telemetry-export-session.sh` | Stop | active (env-gated) | Opt-in OTLP/Loki session-ended log export (`OTEL_EXPORTER_OTLP_ENDPOINT` or `HSEOS_LOKI_ENDPOINT`). Self-suppresses when unset. |
-| `rtk-rewrite.sh` | PreToolUse/Bash | **inactive** | OPTIONAL token-saving rewrite via `rtk` binary. Activate by setting `status: active` in registry + recompile. No-ops silently when `rtk` absent. |
-| `build-resource-guard.sh` | PreToolUse/Bash | **inactive** | OPT-IN build parallelism cap via `HSEOS_BUILD_MAX_JOBS`. Activate by setting the env var + `status: active` + recompile. No-op by default. |
+| Handler                       | Event           | Status             | Purpose                                                                                                                                          |
+| ----------------------------- | --------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `telemetry-export-tool.sh`    | PostToolUse     | active (env-gated) | Opt-in OTLP metrics TEE (`OTEL_EXPORTER_OTLP_ENDPOINT` or `HSEOS_OTEL_EXPORT=1`). Self-suppresses when unset. SQLite remains canonical.          |
+| `telemetry-export-session.sh` | Stop            | active (env-gated) | Opt-in OTLP/Loki session-ended log export (`OTEL_EXPORTER_OTLP_ENDPOINT` or `HSEOS_LOKI_ENDPOINT`). Self-suppresses when unset.                  |
+| `rtk-rewrite.sh`              | PreToolUse/Bash | **inactive**       | OPTIONAL token-saving rewrite via `rtk` binary. Activate by setting `status: active` in registry + recompile. No-ops silently when `rtk` absent. |
+| `build-resource-guard.sh`     | PreToolUse/Bash | **inactive**       | OPT-IN build parallelism cap via `HSEOS_BUILD_MAX_JOBS`. Activate by setting the env var + `status: active` + recompile. No-op by default.       |
 
 The telemetry pair (`telemetry-export-tool.sh` and `telemetry-export-session.sh`) are `active` in the registry and compiled into `.claude/hooks.json`, but they are inert by default because they exit immediately when no OTLP or Loki endpoint is configured. The two adapters (`rtk-rewrite.sh` and `build-resource-guard.sh`) are `inactive` and are not compiled into `.claude/hooks.json` until explicitly activated.
 

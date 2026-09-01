@@ -92,6 +92,27 @@
     "max_snapshot_age_seconds": 86400,
     "created_at": "2026-09-01T00:00:00Z"
   },
+  "ManagedGovernanceSessionPreflightSchema": {
+    "schema_version": 1,
+    "mode": "managed-shadow",
+    "status": "equivalent",
+    "reason_code": "managed_shadow.constitution_equivalent",
+    "blocking": false,
+    "authoritative_source": "local",
+    "repository_id": "7f9f9b79-638c-4138-9a29-8a2406ad9fb8",
+    "checked_at": "2026-09-01T00:00:00Z",
+    "constitution": {
+      "source_path": ".enterprise/.specs/constitution/Enterprise-Constitution.md",
+      "local_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "remote_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "matched": true
+    },
+    "remote": {
+      "status": "available",
+      "source_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "evidence_path": ".hseos/state/managed-governance/session-preflight.json"
+  },
   "GovernanceReleaseSchema": {
     "schema_version": 1,
     "release_id": "governance-release-1",

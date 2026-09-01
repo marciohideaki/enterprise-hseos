@@ -36,7 +36,7 @@ or activate a policy mode.
 Install the immutable GitHub asset before selecting the optional client:
 
 ```bash
-release_version=3.2.2
+release_version=3.3.0
 release_dir="$(mktemp -d)"
 gh release download "v${release_version}" --repo marciohideaki/enterprise-hseos --dir "${release_dir}"
 (cd "${release_dir}" && sha256sum -c SHA256SUMS)
@@ -50,7 +50,7 @@ only for an intentionally system-managed, non-writable prefix. With NVM, fnm,
 asdf, Volta, or a user-owned prefix, install without `sudo` and keep all
 subsequent `npm root --global` and `hseos` commands in that same runtime context.
 
-The expected version is `3.2.2`. The plan must list
+The expected version is `3.3.0`. The plan must list
 `runtime:managed-governance-client`; it must not select a managed profile or
 start a sidecar. Apply the client to a project only after reviewing that plan:
 
@@ -199,6 +199,7 @@ with `Ctrl+C`. Non-loopback binding and `managed-enforced` remain unavailable.
 curl --fail --silent http://127.0.0.1:4319/health
 curl --fail --silent 'http://127.0.0.1:4319/api/v1/artifacts?limit=50'
 hseos governance catalog status --endpoint http://127.0.0.1:4319 --json
+hseos governance session preflight --json
 hseos status
 ```
 
@@ -206,6 +207,21 @@ Successful health reports migration state `current`, projection state `current`,
 `ready: true`, `mode: managed-shadow` and a non-zero artifact count. The MCP
 adapter reads the generated project-local endpoint and never receives database
 credentials.
+
+The session preflight securely normalizes the local Constitution with the same
+rules as the importer, reads the active catalog projection through the loopback
+query port, and compares repository identity plus digest. It returns one of
+`equivalent`, `drift_detected`, `remote_unavailable`, `invalid_local_contract`
+or `not_configured`. Every outcome is advisory in `managed-shadow`; local files
+remain authoritative. The CLI stores only the latest secret-free evidence at
+`.hseos/state/managed-governance/session-preflight.json`.
+
+Claude Code receives the check through the generated non-blocking
+`SessionStart` hook. Codex and adapters without a native session-start event
+must run the command once before the first task action. The read-only MCP tool
+`get_governance_session_preflight` performs the same comparison without writing
+evidence. The hook does not start PostgreSQL or the sidecar; an unavailable
+service is reported as `remote_unavailable` and never blocks the session.
 
 ### What remains operator-owned
 
@@ -249,8 +265,8 @@ Publication produces reviewable Git artifacts, and merge remains a separate huma
 Rollback disables the project binding or sidecar while portable governance continues unchanged;
 catalog history and audit evidence remain append-only.
 
-To roll back the CLI in this environment, download and verify `v3.0.3` with the
-same procedure above, then install `hseos-3.0.3.tgz` globally. Disabling the
+To roll back the CLI in this environment, download and verify `v3.2.2` with the
+same procedure above, then install `hseos-3.2.2.tgz` globally. Disabling the
 optional binding or sidecar is sufficient to restore portable-only behavior;
 do not reverse applied migrations.
 

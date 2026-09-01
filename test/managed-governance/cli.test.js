@@ -154,6 +154,27 @@ test('human output projects the same envelope and retains remote error codes', a
   assert.equal(result.exitCode, 1);
 });
 
+test('session preflight keeps every managed-shadow outcome advisory', async () => {
+  for (const status of ['equivalent', 'drift_detected', 'remote_unavailable', 'invalid_local_contract', 'not_configured']) {
+    const run = createManagedGovernanceAction({
+      sessionPreflight: async () => ({
+        schema_version: 1,
+        mode: 'managed-shadow',
+        status,
+        reason_code: `managed_shadow.${status}`,
+        blocking: false,
+        authoritative_source: 'local',
+        evidence_path: '.hseos/state/managed-governance/session-preflight.json',
+      }),
+    });
+    const result = await run('session', 'preflight', { json: true });
+    assert.equal(result.envelope.ok, true);
+    assert.equal(result.exitCode, undefined);
+    assert.equal(result.envelope.data.status, status);
+    assert.equal(result.envelope.data.blocking, false);
+  }
+});
+
 test('database configuration rejects unsafe permissions and token header characters', async () => {
   const unsafeConfig = path.join(temporaryDirectory, 'unsafe-database.json');
   fs.writeFileSync(unsafeConfig, '{}\n', { mode: 0o644 });

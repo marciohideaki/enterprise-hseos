@@ -447,6 +447,15 @@ class MemoryGovernanceRepository {
     );
   }
 
+  async getCatalogProjectionMetadata(organizationId, repositoryId) {
+    this._assertOpen();
+    const parsedOrganizationId = parseRepositoryIdentifier(organizationId, 'organization id');
+    const parsedRepositoryId = parseRepositoryUuid(repositoryId, 'repository id');
+    const repository = this.repositories.get(this._repositoryKey(parsedOrganizationId, parsedRepositoryId));
+    const batch = repository?.active_batch_id ? this.importBatches.get(repository.active_batch_id) : null;
+    return batch ? deepFreeze({ batch_id: batch.import_batch_id, source_commit: batch.plan.source_commit }) : null;
+  }
+
   async getOrganization(organizationId) {
     this._assertOpen();
     const parsedOrganizationId = parseRepositoryIdentifier(organizationId, 'organization id');

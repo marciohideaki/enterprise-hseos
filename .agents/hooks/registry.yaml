@@ -105,6 +105,18 @@ hooks:
     platform_support:
       - claude-code
     fallback: Use repository scripts or quality gates when the target platform has no native hook event.
+  - id: sessionstart-all-managed-governance-preflight-advisory
+    event: SessionStart
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/managed-governance-preflight.sh
+    timeout: 5
+    blocking: false
+    status: active
+    description: Compare the local Constitution with the configured managed-shadow projection at session start.
+    platform_support:
+      - claude-code
+    fallback: Run `hseos governance session preflight --json` once at session start when managed governance is configured.
   - id: stop-all-emit-agent-state-complete-event-when-claude-session-ends-best-effort-non-blocking
     event: Stop
     matcher: "*"

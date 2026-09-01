@@ -1,6 +1,9 @@
 # `mcp-hseos-governance` — HSEOS Governance MCP Server
 
-> **Status: implemented.** All five tools live, covered by `test/test-mcp-hseos-governance.js` in `npm test`. Declared in `.agents/mcp/bundles/core.yaml`.
+> **Status: implemented.** Five portable tools are always usable. Nine additional read-only
+> managed-shadow tools are declared by the server and require the project-local optional control
+> plane configuration when called. The server is declared in `.agents/mcp/bundles/core.yaml` and
+> covered by the MCP and managed-governance suites in `npm test`.
 
 ## Purpose
 
@@ -8,17 +11,34 @@ Expose HSEOS governance queries via the Model Context Protocol so any MCP-aware 
 
 ## Tools
 
-| Tool | Input | Output |
-|---|---|---|
-| `query_constitution` | `{ article: string }` | Article text + paths |
-| `validate_adr` | `{ change_kind: string }` | `{ required: bool, reason: string }` |
-| `check_authority` | `{ agent_code: string }` | `authority.md + constraints.md` content |
-| `list_skills` | `{ filter?: string, tier?: 1\|2 }` | Skill catalog (id, description, tier) |
-| `list_workflows` | `{ profile?: string }` | Workflow catalog (id, owner, phases) |
+| Tool                 | Input                              | Output                                  |
+| -------------------- | ---------------------------------- | --------------------------------------- |
+| `query_constitution` | `{ article: string }`              | Article text + paths                    |
+| `validate_adr`       | `{ change_kind: string }`          | `{ required: bool, reason: string }`    |
+| `check_authority`    | `{ agent_code: string }`           | `authority.md + constraints.md` content |
+| `list_skills`        | `{ filter?: string, tier?: 1\|2 }` | Skill catalog (id, description, tier)   |
+| `list_workflows`     | `{ profile?: string }`             | Workflow catalog (id, owner, phases)    |
+
+Managed-shadow queries use the same project-local MCP server and the loopback endpoint in
+`.hseos/config/managed-governance.json`:
+
+| Tool                               | Purpose                                                                |
+| ---------------------------------- | ---------------------------------------------------------------------- |
+| `get_effective_governance_context` | Read the active structured catalog projection                          |
+| `evaluate_governed_action`         | Evaluate a shadow action without changing local authority              |
+| `explain_governance_decision`      | Explain a shadow decision                                              |
+| `get_governance_artifact`          | Read one projected artifact                                            |
+| `get_governance_release`           | Read one immutable release when published                              |
+| `diff_governance_releases`         | Compare two published releases                                         |
+| `verify_governance_snapshot`       | Verify a supplied snapshot reference                                   |
+| `get_governance_session_status`    | Read sidecar and projection readiness                                  |
+| `get_governance_session_preflight` | Compare local and remote Constitution digests without persisting state |
 
 ## Why an MCP server, not a Bash script
 
-Bash scripts only work in shell-capable adapter environments. An MCP server is consumable by every MCP-aware coding agent in the 2026 ecosystem (12,000+ servers reachable). Tool calls are also cacheable on the host side — far cheaper than re-reading `.enterprise/.specs/` markdown on every invocation.
+Bash scripts only work in shell-capable adapter environments. The MCP server gives MCP-aware agents
+a typed, bounded query surface without requiring the full governance tree to be loaded for every
+focused lookup. Markdown remains the portable source and session bootstrap authority.
 
 ## Implementation
 
@@ -31,6 +51,6 @@ Bash scripts only work in shell-capable adapter environments. An MCP server is c
 
 ## Acceptance
 
-- [x] All five tools implemented and tested
+- [x] Five portable and nine optional managed-shadow tools implemented and tested
 - [ ] `hseos mcp doctor` (Wave 6) reports server reachable
 - [ ] Published as `@hseos/mcp-server-governance` on npm and Smithery
