@@ -19,13 +19,23 @@
 
 ## Step 1 — Install HSEOS in your project
 
-From the root of your project:
+Install the checksum-verified GitHub release as described in the root
+[`README.md`](../README.md#installation). HSEOS is not published under the
+unscoped npm package name, so do not use `npx hseos`.
+
+Before the global install, inspect `npm prefix --global`. Use `sudo` only for an
+intentionally system-owned prefix that is not writable by the current
+administrator. User-managed Node installations such as NVM, fnm, asdf, and
+Volta must be installed without `sudo`.
+
+Then, from the root of your project:
 
 ```bash
-npx hseos install
+hseos install
 ```
 
 This sets up:
+
 - `.claude/commands/` — all 14 agent commands (activated as Claude Code slash commands)
 - `.enterprise/` — governance specs, agent authority files, skill library
 - `.hseos/` — agent configurations, workflow definitions, local config
@@ -36,12 +46,15 @@ This sets up:
 By default, `hseos install` configures Claude Code and Cursor. To customize:
 
 ```bash
-npx hseos install --tools claude-code,codex,gemini
-npx hseos install --tools claude-code          # Claude Code only
-npx hseos install --tools none                 # skip IDE setup, governance files only
+hseos install --tools claude-code,codex,gemini
+hseos install --tools claude-code          # Claude Code only
+hseos install --tools none                 # skip IDE setup, governance files only
 ```
 
 Supported tools: `claude-code`, `cursor`, `windsurf`, `gemini`, `codex`, `antigravity`, `github-copilot`, `cline`, and more.
+
+For the optional PostgreSQL-backed managed-shadow control plane, complete the
+portable installation first, then follow [`MANAGED-GOVERNANCE.md`](MANAGED-GOVERNANCE.md).
 
 ---
 
@@ -63,34 +76,35 @@ After install, read these in order:
 
 The agents you'll interact with most:
 
-| Agent | When you use it |
-|---|---|
-| **RAZOR** | Starting a sprint — story preparation and sprint planning |
-| **GHOST** | Implementing a story — TDD execution |
-| **GLITCH** | Validating coverage and quality before PR |
-| **QUILL** | Writing or updating documentation |
+| Agent      | When you use it                                           |
+| ---------- | --------------------------------------------------------- |
+| **RAZOR**  | Starting a sprint — story preparation and sprint planning |
+| **GHOST**  | Implementing a story — TDD execution                      |
+| **GLITCH** | Validating coverage and quality before PR                 |
+| **QUILL**  | Writing or updating documentation                         |
 
 Typical daily flow:
+
 ```
 RAZOR (prepare story) → GHOST (implement) → GLITCH (validate) → QUILL (document) → PR
 ```
 
 ### If you are a tech lead or architect
 
-| Agent | When you use it |
-|---|---|
-| **NYX** | Research, domain analysis, requirements elicitation |
-| **VECTOR** | PRD and epic authoring |
-| **CIPHER** | Architecture design, ADR drafting, boundary checks |
-| **ORBIT** | Kicking off an orchestrated epic delivery |
-| **SWARM** | Shipping a heterogeneous batch (3+ independent tasks) in parallel waves with worktree isolation |
+| Agent      | When you use it                                                                                 |
+| ---------- | ----------------------------------------------------------------------------------------------- |
+| **NYX**    | Research, domain analysis, requirements elicitation                                             |
+| **VECTOR** | PRD and epic authoring                                                                          |
+| **CIPHER** | Architecture design, ADR drafting, boundary checks                                              |
+| **ORBIT**  | Kicking off an orchestrated epic delivery                                                       |
+| **SWARM**  | Shipping a heterogeneous batch (3+ independent tasks) in parallel waves with worktree isolation |
 
 ### If you are a platform/DevOps engineer
 
-| Agent | When you use it |
-|---|---|
+| Agent     | When you use it                               |
+| --------- | --------------------------------------------- |
 | **FORGE** | Publishing release artifacts, build promotion |
-| **KUBE** | GitOps manifest updates, ArgoCD deploys |
+| **KUBE**  | GitOps manifest updates, ArgoCD deploys       |
 | **SABLE** | Runtime verification post-deploy, smoke tests |
 
 ---
@@ -123,12 +137,12 @@ Type `SP` for Sprint Planning. RAZOR will walk you through the sprint readiness 
 
 HSEOS enforces these automatically via git hooks:
 
-| Rule | What it means |
-|---|---|
-| No direct commits to `main`/`master` | Always work on a feature branch |
-| No force push to protected branches | Use PRs |
+| Rule                                      | What it means                             |
+| ----------------------------------------- | ----------------------------------------- |
+| No direct commits to `main`/`master`      | Always work on a feature branch           |
+| No force push to protected branches       | Use PRs                                   |
 | No AI tool attribution in commit messages | `Co-authored-by: Claude` will be rejected |
-| Conventional commit format required | `feat:`, `fix:`, `chore:`, `docs:`, etc. |
+| Conventional commit format required       | `feat:`, `fix:`, `chore:`, `docs:`, etc.  |
 
 If a commit is rejected, read the error message — it will tell you exactly which rule was violated and how to fix it.
 
@@ -151,12 +165,12 @@ If a gate fails, the commit is rejected with the specific failure message. Fix t
 
 ## Getting help
 
-| Question | Where to look |
-|---|---|
-| What does agent X do? | `docs/agents/<name>.md` |
-| How does workflow Y work? | `docs/workflows.md` |
-| What does skill Z enforce? | `docs/skills.md` |
-| What are the architecture rules? | `.enterprise/.specs/constitution/` |
-| What decisions have been made? | `.enterprise/agents/<code>/authority.md` |
-| How to add a new skill? | `.enterprise/governance/agent-skills/README.md` |
-| How to adopt external patterns? | `.enterprise/governance/skills-adoption-guide.md` |
+| Question                         | Where to look                                     |
+| -------------------------------- | ------------------------------------------------- |
+| What does agent X do?            | `docs/agents/<name>.md`                           |
+| How does workflow Y work?        | `docs/workflows.md`                               |
+| What does skill Z enforce?       | `docs/skills.md`                                  |
+| What are the architecture rules? | `.enterprise/.specs/constitution/`                |
+| What decisions have been made?   | `.enterprise/agents/<code>/authority.md`          |
+| How to add a new skill?          | `.enterprise/governance/agent-skills/README.md`   |
+| How to adopt external patterns?  | `.enterprise/governance/skills-adoption-guide.md` |

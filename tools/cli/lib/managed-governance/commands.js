@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { createManagedGovernanceServer, LOOPBACK_HOSTS } = require('../../../managed-governance-control-plane/server');
+const { createDatabaseBackedControlPlane, installManagedGovernance } = require('../../../managed-governance-control-plane/composition');
 const { commandError, renderEnvelope } = require('./output');
 
 const DEFAULT_ENDPOINT = 'http://127.0.0.1:4319';
@@ -88,7 +89,10 @@ async function defaultRequest({ endpoint, method, pathname, body, token, actor }
   const headers = {};
   if (body !== undefined) headers['content-type'] = 'application/json';
   if (token) headers.authorization = `Bearer ${token}`;
-  if (actor) headers['x-hseos-actor-id'] = actor;
+  if (actor) {
+    headers['x-hseos-actor-id'] = actor;
+    headers['x-hseos-actor-type'] = 'automation';
+  }
   // eslint-disable-next-line n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line
   const response = await fetch(`${endpoint}${pathname}`, {
     method,
@@ -120,7 +124,22 @@ async function defaultRequest({ endpoint, method, pathname, body, token, actor }
   return envelope;
 }
 
-async function defaultStartServer({ host, port }) {
+async function defaultStartServer({ host, port, configPath, projectRoot, environment }) {
+  if (configPath) {
+    const composition = await createDatabaseBackedControlPlane({
+      projectRoot,
+      configPath,
+      environment,
+    });
+    const address = await composition.server.listen({
+      host: composition.configuration.control_plane.host,
+      port: composition.configuration.control_plane.port,
+    });
+    const stop = async () => composition.server.close();
+    process.once('SIGINT', stop);
+    process.once('SIGTERM', stop);
+    return { address, server: composition.server };
+  }
   const server = createManagedGovernanceServer({
     services: {
       health: async () => ({
@@ -190,17 +209,47 @@ function createManagedGovernanceAction(dependencies = {}) {
         });
       } else if (area === 'policy' && action === 'evaluate') {
         envelope = await request({ endpoint, method: 'POST', pathname: '/api/v1/policy/evaluate', body: readContext(options.context) });
+      } else if (area === 'setup' && action === 'install') {
+        if (!options.databaseConfig) throw new ManagedGovernanceCliError('--database-config is required for setup install');
+        const configPath = path.resolve(options.databaseConfig);
+        regularFile(configPath, '--database-config', MAX_CONTEXT_BYTES, true);
+        const actor = parseIdentifier(options.actor, 'actor');
+        const result = await installManagedGovernance({
+          projectRoot: process.cwd(),
+          configPath,
+          environment,
+          actorId: actor,
+          canonicalRemote: options.canonicalRemote,
+        });
+        envelope = {
+          schema_version: 1,
+          ok: true,
+          data: result,
+          error: null,
+          evidence: [],
+          warnings: ['managed-shadow only; repository governance remains authoritative'],
+        };
       } else if (area === 'server' && action === 'start') {
         const host = options.bind || '127.0.0.1';
         if (!LOOPBACK_HOSTS.has(host)) throw new ManagedGovernanceCliError('server bind must be a loopback address');
-        const result = await startServer({ host, port: parsePort(options.port) });
+        const configPath = options.databaseConfig ? path.resolve(options.databaseConfig) : null;
+        if (configPath) regularFile(configPath, '--database-config', MAX_CONTEXT_BYTES, true);
+        const result = configPath
+          ? await startServer({
+              host,
+              port: parsePort(options.port),
+              configPath,
+              projectRoot: process.cwd(),
+              environment,
+            })
+          : await startServer({ host, port: parsePort(options.port) });
         envelope = {
           schema_version: 1,
           ok: true,
           data: { host, port: result.address.port, state: 'listening' },
           error: null,
           evidence: [],
-          warnings: ['database-backed capabilities require explicit sidecar composition'],
+          warnings: configPath ? [] : ['database-backed capabilities require explicit sidecar composition'],
         };
       } else {
         throw new ManagedGovernanceCliError('unsupported governance command');

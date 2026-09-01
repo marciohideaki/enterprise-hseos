@@ -593,6 +593,68 @@ tasks:
       expected: all mandatory gates pass and verification matrix is complete
       fallback: node --test test/managed-governance/conformance.test.js test/managed-governance/security.test.js
       on_failure: retry_once_then_escalate
+
+  - id: T13
+    name: Implement vendor-neutral end-to-end managed-shadow installation
+    description: >-
+      Add a strict sidecar configuration contract, public setup command and database-backed server
+      composition; migrate and seed an operator-supplied PostgreSQL database, generate the binding
+      and MCP endpoint configuration, document the full lifecycle and validate a packaged install.
+    estimated_scope: Large
+    input_contract:
+      files:
+        - .enterprise/.specs/features/managed-governance-control-plane/spec.md
+        - .enterprise/.specs/features/managed-governance-control-plane/design.md
+        - .enterprise/.specs/decisions/ADR-0032-managed-governance-control-plane.md
+        - .enterprise/policies/shared-infrastructure.md
+        - tools/managed-governance-control-plane/lib/infrastructure/postgres/migrator.js
+        - tools/managed-governance-control-plane/lib/infrastructure/postgres/governance-repository.js
+        - tools/cli/lib/managed-governance/commands.js
+      data:
+        - FR-033 through FR-038
+        - NFR-019 through NFR-022
+      dependencies: [T12]
+    output_contract:
+      files:
+        - .enterprise/.specs/features/managed-governance-control-plane/spec.md
+        - .enterprise/.specs/features/managed-governance-control-plane/design.md
+        - .enterprise/.specs/features/managed-governance-control-plane/tasks.md
+        - package.json
+        - package-lock.json
+        - tools/managed-governance-control-plane/lib/configuration.js
+        - tools/managed-governance-control-plane/composition.js
+        - tools/cli/commands/governance.js
+        - tools/cli/lib/managed-governance/commands.js
+        - test/managed-governance/installation.test.js
+        - docs/MANAGED-GOVERNANCE.md
+        - docs/getting-started.md
+        - docs/pt-br/primeiros-passos.md
+        - docs/README.md
+      artifacts:
+        - strict secret-free sidecar configuration contract
+        - idempotent migrate, seed and binding setup flow
+        - database-backed loopback control plane and console
+        - verified package installation runbook
+    constraints:
+      - No managed-enforced activation
+      - No hard-coded organization, database, endpoint, container or workspace values
+      - No stateful service is started or installed by the package
+      - Secret values remain environment-only
+      - Existing portable installation remains unchanged
+    acceptance_criteria:
+      - Configuration rejects unknown fields, inline credentials and absent environment references
+      - Setup applies migrations and the current seed, then repeats as a no-op
+      - Generated files contain no secret and match repository identity
+      - Database-backed health is ready and the console lists the seeded catalog
+      - MCP reads the generated project-local endpoint configuration
+      - A packed global installation completes the documented flow against supplied PostgreSQL
+    execution_mode: isolated
+    verify_step:
+      type: compound
+      command: npm run test:managed-governance-installation && npm test
+      expected: focused installation tests and complete suite exit 0
+      fallback: node --test test/managed-governance/installation.test.js
+      on_failure: retry_once_then_escalate
 ```
 
 ## Traceability
@@ -604,10 +666,12 @@ tasks:
 | FR-016–FR-021     | T06, T08                |
 | FR-022–FR-027     | T05, T09, T10           |
 | FR-028–FR-032     | T03, T11, T12           |
+| FR-033–FR-038     | T13                     |
 | NFR-001–NFR-005   | T02, T03, T06, T08, T12 |
 | NFR-006–NFR-008   | T01, T02, T04, T12      |
 | NFR-009–NFR-012   | T03, T04, T10, T12      |
 | NFR-013–NFR-018   | T03, T06, T08, T12      |
+| NFR-019–NFR-022   | T13                     |
 
 ## Stop Conditions
 

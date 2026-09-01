@@ -36,6 +36,12 @@ The first delivery includes:
 - managed-shadow bindings and parity reporting;
 - audit and outbox records for every control-plane mutation;
 - migration, seed, rollback and conformance tests.
+- a vendor-neutral, project-scoped installation contract that resolves database and authentication
+  secrets only from explicitly named environment variables;
+- an idempotent setup command that validates configuration, applies migrations, seeds the canonical
+  catalog, writes the managed-shadow binding and prepares the MCP endpoint configuration;
+- a database-backed sidecar composition that serves health, catalog, audit and managed-shadow query
+  surfaces through the existing HTTP API and console.
 
 ## Out of Scope
 
@@ -51,6 +57,11 @@ The first delivery does not:
 - implement production identity federation, KMS/HSM custody or multi-region disaster recovery;
 - migrate execution-ledger tables into the governance database;
 - provide a breaking replacement for the current five governance MCP tools.
+- embed organization names, database names, ports, container runtimes, workspace paths or
+  environment-specific infrastructure conventions in the distributed package;
+- provision a project-local PostgreSQL service or silently create a database with ambient
+  credentials;
+- expose the first operational profile outside loopback.
 
 ## Actors
 
@@ -146,6 +157,19 @@ The first delivery does not:
   candidate, and control plane and console as opt-in sidecars.
 - **FR-032:** The portable governance path MUST pass its existing conformance suite with the managed
   feature disabled.
+- **FR-033:** The setup command MUST load a strict, project-scoped sidecar configuration whose secret
+  fields are environment-variable references and MUST reject inline credentials and unknown fields.
+- **FR-034:** Setup MUST execute preflight, migrations, seed/import and binding generation in that
+  order, MUST be idempotent, and MUST stop without claiming readiness when any stage fails.
+- **FR-035:** Setup MUST write `managed-governance-binding/v1` and the read-only MCP endpoint
+  configuration atomically without changing `repository-contract/v1` or activating
+  `managed-enforced`.
+- **FR-036:** The database-backed sidecar MUST use the same configuration contract as setup and MUST
+  report migration, catalog projection and repository identity readiness through `/health`.
+- **FR-037:** The database-backed sidecar MUST expose the seeded catalog and audit projection to the
+  console and read-only MCP adapter without disclosing database or authentication secrets.
+- **FR-038:** Operators MUST be able to validate the complete installation using documented,
+  non-interactive health, catalog, MCP configuration and PostgreSQL receipt checks.
 
 ## Non-Functional Requirements
 
@@ -198,6 +222,15 @@ The first delivery does not:
   non-interactive commands.
 - **NFR-018:** The control plane MUST bind to loopback by default and require an explicit secure
   profile for non-loopback exposure.
+- **NFR-019:** The package MUST remain deployment-agnostic: no distributed default may depend on
+  Docker, Kubernetes, a fixed hostname, a fixed database or organization name, a home directory or
+  a workspace-specific absolute path.
+- **NFR-020:** Configuration and generated binding files MUST contain no secret values and MUST be
+  written atomically with restrictive permissions.
+- **NFR-021:** Database provisioning MUST consume an operator-supplied PostgreSQL endpoint; it MUST
+  never start or install a stateful service.
+- **NFR-022:** A repeated setup against the same source commit MUST apply zero migrations, create zero
+  artifact versions and preserve the same active catalog batch.
 
 ## Constraints
 
@@ -225,6 +258,8 @@ The first delivery does not:
 | Audit retention      | Configurable; reference profile uses 365 days, without implementing destructive purge in this delivery                      |
 | Adapter activation   | Shadow only; no adapter may claim enforced support                                                                          |
 | Revocation objective | Assignment/revocation propagation target <= 5 minutes in the reference profile                                              |
+| Operational setup    | Strict project-local config, env-referenced secrets, idempotent migrate/seed/bind, loopback sidecar                         |
+| Infrastructure       | Consume an operator-provided PostgreSQL service; never infer or start environment-specific infrastructure                   |
 
 ## Open Questions
 

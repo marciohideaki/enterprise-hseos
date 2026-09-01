@@ -89,7 +89,10 @@ if (require.main === module) {
   test('migration reader pins bounded regular files and rejects link aliases', async () => {
     const migrationsDirectory = path.resolve(__dirname, '../../tools/managed-governance-control-plane/migrations');
     const migrations = await readMigrations(migrationsDirectory);
-    assert.equal(migrations.length, 3);
+    assert.deepEqual(
+      migrations.map((migration) => migration.version),
+      ['0001', '0002', '0003', '0004'],
+    );
     assert.equal(Object.isFrozen(migrations), true);
     assert.match(migrations[0].checksum, /^sha256:[a-f0-9]{64}$/);
 

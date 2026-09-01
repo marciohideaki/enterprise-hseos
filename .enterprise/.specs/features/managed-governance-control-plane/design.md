@@ -87,7 +87,9 @@ packages/managed-governance-client/
 tools/managed-governance-control-plane/
   package.json
   server.js
+  composition.js
   lib/
+    configuration.js
     application/
     domain/
     infrastructure/postgres/
@@ -296,10 +298,56 @@ hseos governance catalog status --json
 hseos governance artifact list --type policy --json
 hseos governance policy evaluate --context context.json --json
 hseos governance server start --bind 127.0.0.1 --port 4319
+hseos governance setup install --database-config .hseos/config/managed-governance-sidecar.json --actor operator --json
 ```
 
 `--plan` performs no writes. `--apply` requires an explicit database configuration and actor
 identity. Output uses the same envelope as HTTP/MCP.
+
+### Operational setup contract
+
+The distributed package has no infrastructure-specific defaults. A strict project-local JSON
+document supplies only portable metadata and environment-variable references:
+
+```json
+{
+  "schema_version": 1,
+  "mode": "managed-shadow",
+  "database": {
+    "migration_connection_string_env": "HSEOS_GOVERNANCE_MIGRATION_DATABASE_URL",
+    "runtime_connection_string_env": "HSEOS_GOVERNANCE_RUNTIME_DATABASE_URL",
+    "max_connections": 10,
+    "connection_timeout_ms": 5000,
+    "idle_timeout_ms": 30000,
+    "statement_timeout_ms": 15000,
+    "ssl": false
+  },
+  "organization": {
+    "id": "example-organization",
+    "display_name": "Example Organization"
+  },
+  "control_plane": {
+    "host": "127.0.0.1",
+    "port": 4319,
+    "authentication_token_env": "HSEOS_GOVERNANCE_TOKEN"
+  },
+  "binding": {
+    "issuer": "example-issuer",
+    "trusted_key_ids": ["example-key"]
+  }
+}
+```
+
+Names and endpoint values above are illustrative, not package defaults. The setup command resolves
+the database URL and development token from the named environment variables, validates the current
+repository identity, applies immutable migrations, seeds through `ImportCatalogService`, and writes
+the binding plus `.hseos/config/managed-governance.json` atomically. No secret value is persisted.
+
+The sidecar composition loads the same document, creates the PostgreSQL pool and repository adapter,
+and wires health, catalog, audit, session-status and read-only policy/query services into the HTTP
+router. Loopback is the only accepted first-generation network profile. Database creation is an
+operator-owned prerequisite because the package cannot infer whether PostgreSQL is local, shared,
+cluster-managed or externally managed.
 
 ### MCP evolution
 
@@ -530,6 +578,8 @@ No raw governance content, secret, session lease or direct personal identifier i
 5. Enable the read-only console on loopback.
 6. Enable CLI/API shadow queries.
 7. Leave all assignments non-blocking.
+8. Generate and verify the project-local managed-shadow binding and MCP endpoint configuration.
+9. Start the database-backed sidecar and require ready health plus catalog parity before handoff.
 
 Rollback disables the sidecar and managed binding. Database migrations use forward fixes; data
 rollback deactivates an import batch while retaining audit. Portable execution is unaffected.
@@ -555,6 +605,9 @@ rollback deactivates an import batch while retaining audit. Portable execution i
 - console DOM/accessibility smoke tests;
 - portable regression suite with managed mode absent;
 - documentation-neutrality and package-surface tests.
+- strict configuration tests for unknown fields, inline secrets, unsafe files and missing env refs;
+- end-to-end setup tests proving migration/seed/binding idempotency and database-backed health;
+- package-install smoke using only public CLI entrypoints and an operator-supplied PostgreSQL URL.
 
 ## ADRs
 

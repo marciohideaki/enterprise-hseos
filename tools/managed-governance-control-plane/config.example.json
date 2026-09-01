@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "mode": "managed-shadow",
+  "database": {
+    "migration_connection_string_env": "HSEOS_GOVERNANCE_MIGRATION_DATABASE_URL",
+    "runtime_connection_string_env": "HSEOS_GOVERNANCE_RUNTIME_DATABASE_URL",
+    "max_connections": 10,
+    "connection_timeout_ms": 5000,
+    "idle_timeout_ms": 30000,
+    "statement_timeout_ms": 15000,
+    "ssl": false
+  },
+  "organization": {
+    "id": "example-organization",
+    "display_name": "Example Organization"
+  },
+  "control_plane": {
+    "host": "127.0.0.1",
+    "port": 4319,
+    "authentication_token_env": "HSEOS_GOVERNANCE_TOKEN"
+  },
+  "binding": {
+    "control_plane_ref": "example-control-plane",
+    "issuer": "example-issuer",
+    "trusted_key_ids": ["example-signing-key"],
+    "max_snapshot_age_seconds": 86400
+  }
+}
