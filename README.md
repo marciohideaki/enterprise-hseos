@@ -174,7 +174,7 @@ Each step is governed by skills loaded automatically from the registry. Agents c
 ### 1. Install the verified GitHub release
 
 ```bash
-release_version=3.1.1
+release_version=3.2.0
 release_dir="$(mktemp -d)"
 gh release download "v${release_version}" \
   --repo marciohideaki/enterprise-hseos \
@@ -184,6 +184,12 @@ npm install --global "${release_dir}/hseos-${release_version}.tgz"
 hseos --version
 hseos install
 ```
+
+Use `sudo` only when `npm prefix --global` identifies a system-owned prefix that
+the current administrator cannot write. Do not use `sudo` with NVM, fnm, asdf,
+Volta, or another user-managed Node installation; it selects the wrong runtime
+context and can leave root-owned files in the user's package directory. Run the
+verification commands with the same Node/npm context used for installation.
 
 The release is installed from the exact tarball covered by `SHA256SUMS`; HSEOS
 is not currently published under the unscoped `hseos` name on npm. Reinstall
@@ -242,6 +248,14 @@ hseos agent-core verify   # hash-pinned integrity of compiled artifacts
 ```
 
 `status` reports the installation manifest and installed modules; `agent-core verify` validates every compiled skill/agent against the hashes pinned in `.agents/manifest.yaml`.
+
+### 4. Optional PostgreSQL managed-shadow control plane
+
+The package includes a vendor-neutral, opt-in setup flow for an operator-supplied
+PostgreSQL service. It applies migrations, seeds the current governance, writes
+the project binding, starts the loopback control plane/UI and configures read-only
+MCP access without persisting secrets. See
+[`docs/MANAGED-GOVERNANCE.md`](docs/MANAGED-GOVERNANCE.md) for the complete procedure.
 
 ---
 
@@ -648,7 +662,7 @@ O framework resolve um problema específico: ferramentas de IA são ágeis mas d
 ### Instalação rápida
 
 ```bash
-versao_release=3.1.1
+versao_release=3.2.0
 diretorio_release="$(mktemp -d)"
 gh release download "v${versao_release}" \
   --repo marciohideaki/enterprise-hseos \

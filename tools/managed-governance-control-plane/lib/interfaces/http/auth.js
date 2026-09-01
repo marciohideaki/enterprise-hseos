@@ -1,5 +1,7 @@
 'use strict';
 
+const crypto = require('node:crypto');
+
 const ACTOR_TYPES = new Set(['human', 'agent', 'automation', 'service']);
 const IDENTIFIER = /^[a-z0-9][a-z0-9._:-]{0,159}$/;
 
@@ -56,6 +58,36 @@ function createDevelopmentAuth(options = {}) {
   });
 }
 
+function createBearerAuth(options = {}) {
+  const expectedToken = options.token;
+  if (typeof expectedToken !== 'string' || expectedToken.length < 16 || expectedToken.length > 512) {
+    throw new TypeError('bearer authentication requires a bounded token');
+  }
+  const expected = Buffer.from(expectedToken, 'utf8');
+  return Object.freeze({
+    async authenticate(request) {
+      const authorization = request.headers.authorization;
+      if (typeof authorization !== 'string' || !authorization.startsWith('Bearer ')) throw new HttpAuthenticationError();
+      const supplied = Buffer.from(authorization.slice(7), 'utf8');
+      if (supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) throw new HttpAuthenticationError();
+      const roles =
+        typeof request.headers['x-hseos-actor-roles'] === 'string'
+          ? request.headers['x-hseos-actor-roles']
+              .split(',')
+              .map((role) => role.trim())
+              .filter(Boolean)
+          : [];
+      const actor = validActor({
+        type: request.headers['x-hseos-actor-type'],
+        id: request.headers['x-hseos-actor-id'],
+        roles,
+      });
+      if (!actor) throw new HttpAuthenticationError('actor context is invalid');
+      return actor;
+    },
+  });
+}
+
 const denyAnonymousAuth = Object.freeze({
   async authenticate() {
     throw new HttpAuthenticationError();
@@ -64,6 +96,7 @@ const denyAnonymousAuth = Object.freeze({
 
 module.exports = {
   HttpAuthenticationError,
+  createBearerAuth,
   createDevelopmentAuth,
   createStaticAuth,
   denyAnonymousAuth,

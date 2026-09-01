@@ -627,6 +627,15 @@ class PostgresGovernanceRepository {
     return rows[0] || null;
   }
 
+  async listMigrationVersions(organizationId) {
+    const parsedOrganizationId = parseRepositoryIdentifier(organizationId, 'organization id');
+    return this._readTenant(
+      parsedOrganizationId,
+      'SELECT version, name, checksum, applied_at FROM hseos_governance.schema_migrations ORDER BY version',
+      [],
+    );
+  }
+
   async getCommandReceipt(organizationId, idempotencyKey) {
     const parsedOrganizationId = parseRepositoryIdentifier(organizationId, 'organization id');
     const parsedIdempotencyKey = parseRepositoryIdentifier(idempotencyKey, 'idempotency key');
