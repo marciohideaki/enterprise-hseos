@@ -19,6 +19,7 @@ component_classes:
   runtime:state: core
   runtime:workflows: core
   runtime:mcp: module
+  runtime:managed-governance-client: module
   runtime:agent-kernel: core
   runtime:agent-reference: candidate
   runtime:agent-openai-compatible: candidate
@@ -46,6 +47,27 @@ component_classes:
   adapter:goose: module
 
 standalone_surfaces:
+  - id: candidate:managed-governance-preflight
+    classification: candidate
+    disposition: pre-activation
+    contract: Shadow preflight may report parity and degradation but cannot block local execution or claim enforcement readiness.
+    paths:
+      - packages/managed-governance-client/client.js
+  - id: sidecar:managed-governance-control-plane
+    classification: sidecar
+    disposition: opt-in
+    contract: Owns relational managed state behind application ports; it is omitted from baseline activation and binds to loopback by default.
+    paths:
+      - tools/managed-governance-control-plane/server.js
+      - tools/managed-governance-control-plane/lib/
+      - tools/managed-governance-control-plane/migrations/
+      - tools/managed-governance-control-plane/package.json
+  - id: sidecar:managed-governance-console
+    classification: sidecar
+    disposition: opt-in
+    contract: Uses only the control-plane HTTP API, holds no database credentials, and cannot mutate Git or local governance directly.
+    paths:
+      - tools/managed-governance-control-plane/public/
   - id: module:hsm
     classification: module
     disposition: opt-in

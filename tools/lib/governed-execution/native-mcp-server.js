@@ -133,7 +133,10 @@ function startNativeMcpServer({ serverId, tools, invokeTool, mode, port, dbPath,
       tools: tools.size,
       ...health,
     });
-    server.listen(port, '127.0.0.1', () => log(`[${serverId}] governed MCP listening on http://127.0.0.1:${port}/mcp`));
+    server.listen(port, '127.0.0.1', () => {
+      const address = server.address();
+      log(`[${serverId}] governed MCP listening on http://127.0.0.1:${address.port}/mcp`);
+    });
   } else {
     stdio = startMcp2026Stdio(adapter);
     log(`[${serverId}] governed MCP stdio ready; tools=${tools.size}`);
