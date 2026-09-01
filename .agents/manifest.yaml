@@ -14,8 +14,8 @@ platforms:
   - claude-code
   - codex
 counts:
-  skills: 52
-  hooks: 34
+  skills: 53
+  hooks: 35
   commands: 9
   handlers: 25
   agents: 16
@@ -76,6 +76,11 @@ skills:
     quick: .enterprise/governance/agent-skills/architecture/ddd-boundary-check/SKILL-QUICK.md
     output: .agents/skills/architecture-ddd-boundary-check/SKILL.md
     hash: b3f4f6767d813705bfe20c395299cd0d55b5baebf5d6470a305dc4bacb63edf6
+  - name: capability-check
+    source: .enterprise/governance/agent-skills/capability-check/SKILL.md
+    quick: .enterprise/governance/agent-skills/capability-check/SKILL-QUICK.md
+    output: .agents/skills/capability-check/SKILL.md
+    hash: 77468b740e86c447d5c822ddd01c4bc263a3cc29259e9dae43b4f90f99f88b9b
   - name: commit-hygiene
     source: .enterprise/governance/agent-skills/commit-hygiene/SKILL.md
     quick: .enterprise/governance/agent-skills/commit-hygiene/SKILL-QUICK.md
@@ -282,6 +287,11 @@ skills:
     output: .agents/skills/verifier/SKILL.md
     hash: 2cd7e9511e7c254ad42cdc4f241efcafffd58688bb178e37302f6dfa94539da9
 hooks:
+  - id: pretooluse-write-edit-capability-intake-guard
+    event: PreToolUse
+    matcher: Write|Edit
+    platform_support:
+      - claude-code
   - id: pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global
     event: PreToolUse
     matcher: Agent
@@ -520,6 +530,9 @@ handlers:
   - file: .agents/hooks/handlers/build-resource-guard.sh
     source: .enterprise/governance/hooks/handlers/build-resource-guard.sh
     sha256: a0eba699e3f0a61a8de38694d3fcb0c93013769f7304115e1ddb7465ed94577d
+  - file: .agents/hooks/handlers/capability-intake-guard.sh
+    source: .enterprise/governance/hooks/handlers/capability-intake-guard.sh
+    sha256: ae6922f3976de508c5a8c44018d17a9833b0bf5c805551b9eb615c0606f216df
   - file: .agents/hooks/handlers/claude-md-guard.sh
     source: .enterprise/governance/hooks/handlers/claude-md-guard.sh
     sha256: fb0b8631bb316c43702ff652f32ed87e80c9eff24cb27c117517d4a22848a6dc
