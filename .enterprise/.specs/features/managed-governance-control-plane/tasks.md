@@ -228,6 +228,8 @@ tasks:
       dependencies: [T01, T03]
     output_contract:
       files:
+        - .enterprise/.specs/features/managed-governance-control-plane/tasks.md
+        - package.json
         - tools/managed-governance-control-plane/lib/domain/policy-resolver.js
         - tools/managed-governance-control-plane/lib/application/evaluate-policy.js
         - tools/managed-governance-control-plane/lib/application/compare-shadow-decision.js
