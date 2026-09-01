@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.1] — 2026-09-01
+
+### Breaking Changes
+
+- None. The patch preserves all managed-shadow contracts and keeps repository
+  governance authoritative. ([PR #139](https://github.com/marciohideaki/enterprise-hseos/pull/139))
+
+### Fixed
+
+- Managed-governance setup now derives default idempotency keys from the exact
+  actor-bound seed/import command, allowing a different authorized operator to
+  repeat setup without colliding with a prior valid receipt while preserving
+  strict conflicting-reuse rejection. ([PR #139](https://github.com/marciohideaki/enterprise-hseos/pull/139))
+
 ## [3.2.0] — 2026-09-01
 
 ### Breaking Changes
