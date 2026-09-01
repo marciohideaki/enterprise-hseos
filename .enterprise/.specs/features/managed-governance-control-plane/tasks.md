@@ -70,17 +70,20 @@ tasks:
       files:
         - .enterprise/.specs/features/managed-governance-control-plane/design.md
         - packages/managed-governance-contracts/index.js
-        - tools/cli/lib/repository-identity.js
+        - scripts/governance/validate-repository-contract.js
       data:
         - FR-008 through FR-015
         - Import and Seed Design source allowlist
       dependencies: [T01]
     output_contract:
       files:
+        - .enterprise/.specs/features/managed-governance-control-plane/design.md
+        - .enterprise/.specs/features/managed-governance-control-plane/tasks.md
         - tools/managed-governance-control-plane/lib/domain/import-plan.js
         - tools/managed-governance-control-plane/lib/infrastructure/git/governance-source.js
         - tools/managed-governance-control-plane/lib/infrastructure/git/source-profiles.js
         - tools/managed-governance-control-plane/lib/infrastructure/git/classifiers.js
+        - package.json
         - test/managed-governance/import-plan.test.js
       artifacts:
         - deterministic read-only ImportPlan
