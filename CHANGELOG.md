@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0] — 2026-09-01
+
+### Breaking Changes
+
+- None. Repository governance remains authoritative, the managed integration
+  remains opt-in, and `managed-enforced` remains unavailable. ([PR #138](https://github.com/marciohideaki/enterprise-hseos/pull/138))
+
+### Added
+
+- Deployment-agnostic managed-shadow setup now performs PostgreSQL migrations,
+  deterministic governance seed, role binding and secret-free project binding
+  generation. ([PR #138](https://github.com/marciohideaki/enterprise-hseos/pull/138))
+- The optional loopback control plane can now serve the PostgreSQL-backed health,
+  catalog, audit and console surfaces from the same strict configuration contract.
+  ([PR #138](https://github.com/marciohideaki/enterprise-hseos/pull/138))
+- English and Portuguese runbooks now cover package installation, PostgreSQL
+  provisioning, conditional `sudo` use, idempotent setup and live validation.
+  ([PR #138](https://github.com/marciohideaki/enterprise-hseos/pull/138))
+
+### Changed
+
+- PostgreSQL support is packaged as an optional runtime dependency and remains
+  inactive unless the managed-governance client is explicitly selected.
+  ([PR #138](https://github.com/marciohideaki/enterprise-hseos/pull/138))
+
+### Security
+
+- Runtime credentials are resolved only from named environment variables;
+  generated project files are private and contain no resolved secret values.
+  ([PR #138](https://github.com/marciohideaki/enterprise-hseos/pull/138))
+
 ## [3.1.1] — 2026-09-01
 
 ### Breaking Changes
