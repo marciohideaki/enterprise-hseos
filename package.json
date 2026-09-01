@@ -41,6 +41,7 @@
     "!.enterprise/.specs/specs.zip",
     ".hseos/**",
     "!.hseos/runs/**",
+    "docs/MANAGED-GOVERNANCE.md",
     "packages/**",
     "scripts/**",
     "src/**",

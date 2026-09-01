@@ -92,39 +92,41 @@ function probeStdio(server) {
 
 function httpRpc(port, payload) {
   return new Promise((resolve, reject) => {
-    const req = http.request({
-      host: '127.0.0.1',
-      port,
-      path: '/mcp',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'mcp-protocol-version': MCP_MODERN_PROTOCOL_VERSION,
-        'mcp-method': payload.method,
-        ...(payload.params?.name ? { 'mcp-name': payload.params.name } : {}),
+    const req = http.request(
+      {
+        host: '127.0.0.1',
+        port,
+        path: '/mcp',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'mcp-protocol-version': MCP_MODERN_PROTOCOL_VERSION,
+          'mcp-method': payload.method,
+          ...(payload.params?.name ? { 'mcp-name': payload.params.name } : {}),
+        },
       },
-    }, (res) => {
-      let body = '';
-      res.setEncoding('utf8');
-      res.on('data', (chunk) => (body += chunk));
-      res.on('end', () => {
-        try {
-          resolve(JSON.parse(body));
-        } catch (error) {
-          reject(error);
-        }
-      });
-    });
+      (res) => {
+        let body = '';
+        res.setEncoding('utf8');
+        res.on('data', (chunk) => (body += chunk));
+        res.on('end', () => {
+          try {
+            resolve(JSON.parse(body));
+          } catch (error) {
+            reject(error);
+          }
+        });
+      },
+    );
     req.on('error', reject);
     req.end(JSON.stringify(payload));
   });
 }
 
 function probeAxonBridgeHttp() {
-  const port = 3900 + (process.pid % 90);
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-mcp-contract-axon-'));
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [path.join(REPO_ROOT, 'tools', 'mcp-axon-bridge', 'index.js'), `--port=${port}`], {
+    const child = spawn(process.execPath, [path.join(REPO_ROOT, 'tools', 'mcp-axon-bridge', 'index.js'), '--port=0'], {
       cwd: REPO_ROOT,
       stdio: ['ignore', 'pipe', 'pipe'],
       env: {
@@ -134,16 +136,36 @@ function probeAxonBridgeHttp() {
         NODE_ENV: 'test',
       },
     });
-    const timeout = setTimeout(() => {
+    let completed = false;
+    let probing = false;
+    let stdout = '';
+    let stderr = '';
+    const cleanup = () => fs.rmSync(tmp, { recursive: true, force: true });
+    const fail = (error) => {
+      if (completed) return;
+      completed = true;
+      clearTimeout(timeout);
       child.kill();
-      reject(new Error('axon-bridge did not start listening within 10s'));
+      cleanup();
+      reject(error);
+    };
+    const timeout = setTimeout(() => {
+      fail(new Error(`axon-bridge did not start listening within 10s${stderr ? `: ${stderr.slice(-500)}` : ''}`));
     }, 10_000);
 
     child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', (chunk) => {
+      stderr = `${stderr}${chunk}`.slice(-2000);
+    });
     child.stdout.on('data', async (chunk) => {
-      if (!chunk.includes('listening')) return;
+      stdout = `${stdout}${chunk}`.slice(-2000);
+      const match = stdout.match(/governed MCP listening on http:\/\/127\.0\.0\.1:(\d+)\/mcp/);
+      if (!match || probing || completed) return;
+      probing = true;
       clearTimeout(timeout);
       try {
+        const port = Number(match[1]);
         const meta = {
           [PROTOCOL_VERSION_META_KEY]: MCP_MODERN_PROTOCOL_VERSION,
           [CLIENT_INFO_META_KEY]: { name: 'contract-test', version: '1.0.0' },
@@ -156,17 +178,20 @@ function probeAxonBridgeHttp() {
           params: { _meta: meta },
         });
         const list = await httpRpc(port, { jsonrpc: '2.0', id: 2, method: 'tools/list', params: { _meta: meta } });
+        completed = true;
         resolve({ init: init.result, tools: list.result?.tools || [] });
       } catch (error) {
-        reject(error);
+        fail(error);
       } finally {
         child.kill();
-        fs.rmSync(tmp, { recursive: true, force: true });
       }
     });
-    child.on('error', (error) => {
-      clearTimeout(timeout);
-      reject(error);
+    child.on('error', fail);
+    child.on('close', (code, signal) => {
+      cleanup();
+      if (!completed) {
+        fail(new Error(`axon-bridge exited before listening (code=${code}, signal=${signal})${stderr ? `: ${stderr.slice(-500)}` : ''}`));
+      }
     });
   });
 }

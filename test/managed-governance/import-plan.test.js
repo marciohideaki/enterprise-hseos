@@ -21,6 +21,7 @@ const {
   assertRealDirectory,
   secureReadRegularFile,
 } = require('../../tools/managed-governance-control-plane/lib/infrastructure/git/governance-source');
+const { createCommittedGovernanceFixture, git } = require('./git-fixture');
 
 const REPOSITORY_ROOT = path.resolve(__dirname, '../..');
 const ORGANIZATION_ID = 'hideaki-solutions';
@@ -53,21 +54,18 @@ function existingEntry(entry, overrides = {}) {
   };
 }
 
-function git(directory, arguments_) {
-  return execFileSync('git', ['-C', directory, ...arguments_], {
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-  }).trim();
-}
-
 describe('managed governance source discovery', () => {
   let discovery;
+  let repository;
   let statusBefore;
 
   before(async () => {
-    statusBefore = git(REPOSITORY_ROOT, ['status', '--porcelain=v1', '--untracked-files=all']);
-    discovery = await new GitGovernanceSource({ repositoryRoot: REPOSITORY_ROOT }).discover();
+    repository = createCommittedGovernanceFixture(REPOSITORY_ROOT);
+    statusBefore = git(repository, ['status', '--porcelain=v1', '--untracked-files=all']);
+    discovery = await new GitGovernanceSource({ repositoryRoot: repository }).discover();
   });
+
+  after(() => fs.rmSync(repository, { recursive: true, force: true }));
 
   test('accounts for every allowlisted governance family in the current repository', () => {
     const types = new Set(discovery.entries.map((entry) => entry.classification.artifact_type));
@@ -83,13 +81,13 @@ describe('managed governance source discovery', () => {
   });
 
   test('produces a byte-identical plan for the same tree and commit without writes', async () => {
-    const secondDiscovery = await new GitGovernanceSource({ repositoryRoot: REPOSITORY_ROOT }).discover();
+    const secondDiscovery = await new GitGovernanceSource({ repositoryRoot: repository }).discover();
     const input = { organizationId: ORGANIZATION_ID, importerVersion: IMPORTER_VERSION };
     const firstPlan = buildImportPlan({ ...input, discovery });
     const secondPlan = buildImportPlan({ ...input, discovery: secondDiscovery });
     assert.equal(serializeImportPlan(firstPlan), serializeImportPlan(secondPlan));
     assert.equal(firstPlan.items.length, discovery.entries.length);
-    assert.equal(git(REPOSITORY_ROOT, ['status', '--porcelain=v1', '--untracked-files=all']), statusBefore);
+    assert.equal(git(repository, ['status', '--porcelain=v1', '--untracked-files=all']), statusBefore);
   });
 });
 
