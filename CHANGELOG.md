@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.4.1] — 2026-09-02
+
+### Breaking Changes
+
+- None. This release distributes the previously approved capability-intake
+  enforcement state without changing the intake contract. ([PR #150](https://github.com/marciohideaki/enterprise-hseos/pull/150))
+
+### Changed
+
+- The compiled `capability-intake-guard` is active and blocking for qualifying
+  `Write|Edit` operations; Codex and CI retain the explicit CLI fallback where
+  no native PreToolUse event exists. ([PR #150](https://github.com/marciohideaki/enterprise-hseos/pull/150))
+
 ## [3.4.0] — 2026-09-02
 
 ### Breaking Changes
