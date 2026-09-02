@@ -29,8 +29,28 @@ async function it(name, fn) {
   }
 }
 
-function pickPort() {
-  return 3800 + Math.floor(Math.random() * 200);
+function waitForServerPort(child, { timeoutMs = 6000 } = {}) {
+  return new Promise((resolve, reject) => {
+    let output = '';
+    const timeout = setTimeout(() => reject(new Error(`timeout waiting for server port${output ? `: ${output.slice(-500)}` : ''}`)), timeoutMs);
+    const onData = (chunk) => {
+      output = `${output}${chunk}`.slice(-2000);
+      const match = output.match(/listening on http:\/\/127\.0\.0\.1:(\d+)/);
+      if (!match) return;
+      clearTimeout(timeout);
+      resolve(Number(match[1]));
+    };
+    child.stdout.on('data', onData);
+    child.stderr.on('data', onData);
+    child.once('error', (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
+    child.once('exit', (code, signal) => {
+      clearTimeout(timeout);
+      reject(new Error(`server exited before listening (code=${code}, signal=${signal})${output ? `: ${output.slice(-500)}` : ''}`));
+    });
+  });
 }
 
 function rpc(port, method, params = {}) {
@@ -96,9 +116,8 @@ function waitFor(predicate, { timeoutMs = 6000, intervalMs = 100 } = {}) {
 (async () => {
   console.log('mcp-hseos-swarm smoke test');
 
-  const port = pickPort();
   const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-swarm-state-'));
-  const child = spawn(process.execPath, [SERVER, `--port=${port}`], {
+  const child = spawn(process.execPath, [SERVER, '--port=0'], {
     cwd: stateDir,
     stdio: ['ignore', 'pipe', 'pipe'],
     env: {
@@ -112,6 +131,7 @@ function waitFor(predicate, { timeoutMs = 6000, intervalMs = 100 } = {}) {
   let testRunId = null;
 
   try {
+    const port = await waitForServerPort(child);
     await waitFor(async () => {
       try {
         const r = await rpc(port, 'tools/list', {});
