@@ -2,6 +2,16 @@
   "notice": "Codex does not consume Claude hook JSON. HSEOS keeps hook scripts portable and records intent here for audit/manual fallback.",
   "hooks": [
     {
+      "id": "pretooluse-write-edit-capability-intake-guard",
+      "event": "PreToolUse",
+      "matcher": "Write|Edit",
+      "command": "bash .agents/hooks/handlers/capability-intake-guard.sh",
+      "blocking": true,
+      "description": "Require a valid capability-reuse intake before a qualifying exported capability is introduced",
+      "fallback": "Run `hseos capability-check <symbol|file>` in Codex and CI where no native PreToolUse adapter exists.",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
       "id": "pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global",
       "event": "PreToolUse",
       "matcher": "Agent",

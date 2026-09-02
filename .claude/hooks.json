@@ -2,6 +2,23 @@
   "hooks": {
     "PreToolUse": [
       {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/capability-intake-guard.sh",
+            "timeout": 5,
+            "description": "Require a valid capability-reuse intake before a qualifying exported capability is introduced"
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/claude-md-guard.sh \"$CLAUDE_TOOL_FILE_PATH\"",
+            "timeout": 3,
+            "description": "Block direct writes/edits to CLAUDE.md; route durable agent rules to AGENTS.md"
+          }
+        ]
+      },
+      {
         "matcher": "Agent",
         "hooks": [
           {
@@ -21,17 +38,6 @@
             "command": "bash .agents/hooks/handlers/ado-preflight-gate.sh",
             "timeout": 5,
             "description": "ADO-first gate: warns when Agent dev-squad dispatch has no ADO mapping in PLAN.md. Exits silently when ado.enabled=false."
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .agents/hooks/handlers/claude-md-guard.sh \"$CLAUDE_TOOL_FILE_PATH\"",
-            "timeout": 3,
-            "description": "Block direct writes/edits to CLAUDE.md; route durable agent rules to AGENTS.md"
           }
         ]
       },

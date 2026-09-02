@@ -10,9 +10,15 @@ adapters:
     skills: .agents/skills
     settings: .codex/config.toml
     hooks: .codex/hseos-hooks.json
+  goose:
+    config: .goose/config.yaml
+    skills: .goose/skills
+    agents: .goose/agents
+    hooks_metadata: .goose/hooks-metadata.json
 platforms:
   - claude-code
   - codex
+  - goose
 counts:
   skills: 53
   hooks: 35
