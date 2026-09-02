@@ -7,9 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.4.0] — 2026-09-02
+
+### Breaking Changes
+
+- None. Existing agent-core compilation remains compatible; `--check` is an
+  additive, non-mutating verification mode. ([PR #148](https://github.com/marciohideaki/enterprise-hseos/pull/148))
+
 ### Added
 
-- Proposed `capability-reuse` policy and ADR-0034: complementary core-first enforcement that retains the Capability Graph as the sole discovery and ownership authority.
+- `capability-reuse` policy and ADR-0034: complementary core-first enforcement
+  that retains the Capability Graph as the sole discovery and ownership
+  authority. ([PR #147](https://github.com/marciohideaki/enterprise-hseos/pull/147))
+- `hseos agent-core compile --check`, which verifies generated artifacts and
+  source/output drift without writing files. ([PR #148](https://github.com/marciohideaki/enterprise-hseos/pull/148))
+
 
 ## [3.3.1] — 2026-09-01
 
