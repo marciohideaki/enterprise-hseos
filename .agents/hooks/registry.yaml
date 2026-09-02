@@ -16,11 +16,11 @@ hooks:
     command: bash .agents/hooks/handlers/capability-intake-guard.sh
     timeout: 5
     blocking: true
-    status: pending
+    status: active
     description: Require a valid capability-reuse intake before a qualifying exported capability is introduced
     platform_support:
       - claude-code
-    fallback: Run `hseos capability-check <symbol|file>` in Codex and CI until the adapter hook is activated.
+    fallback: Run `hseos capability-check <symbol|file>` in Codex and CI where no native PreToolUse adapter exists.
   - id: pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global
     event: PreToolUse
     matcher: Agent
