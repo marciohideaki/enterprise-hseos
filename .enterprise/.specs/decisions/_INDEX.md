@@ -44,6 +44,7 @@
 | [ADR-0033](./ADR-0033-federated-platform-capability-graph.md)       | Federated Platform Capability Graph and Platform-First Intake              | Proposed                            | Constitution, core standards, specification consumption, automated validation         |
 | [ADR-0034](./ADR-0034-capability-reuse-enforcement.md)              | Capability Reuse Enforcement Complementing the Capability Graph            | Proposed                            | Capability Graph, write-time hook, merge ratchet, Core Registry projection            |
 | [ADR-0035](./ADR-0035-enforcement-boundary-doctrine.md)             | Explicit Enforcement-Boundary Doctrine and In-Process Guardrail Hardening  | Proposed                            | AGENTS.md §4 execution governance, hook registry, anchor-guard, state-emit, ADR-0016, ADR-0023 |
+| [ADR-0036](./ADR-0036-platform-capability-contract-pattern.md)      | Platform Capability Contract Pattern (PCCP)                                | Proposed                            | capability governance, graph schema, intake, conformance, templates, publication policy |
 
 ---
 
