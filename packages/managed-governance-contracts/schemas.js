@@ -141,8 +141,10 @@ const SourceReferenceSchema = strictObject({
   section: ReferenceSchema.optional(),
 });
 
+const SIGNATURE_ALGORITHMS = Object.freeze(['ed25519', 'ecdsa-p256-sha256']);
+
 const SignatureSchema = strictObject({
-  algorithm: z.enum(['ed25519', 'ecdsa-p256-sha256']),
+  algorithm: z.enum(SIGNATURE_ALGORITHMS),
   key_id: IdentifierSchema,
   value: boundedString(1024).regex(/^[A-Za-z0-9_-]+={0,2}$/),
 });
@@ -519,6 +521,259 @@ const ImportReportSchema = strictObject({
   }
 });
 
+// --- T02: strict shadow-readiness contracts (release signing, patch publication, ---
+// --- shadow receipts, readiness, shared-network admission, recovery rehearsal). ---
+// Additive to the schemas above; nothing here renames or narrows an existing export.
+
+const ENV_VAR_REFERENCE_PATTERN = /^[A-Z][A-Z0-9_]*$/;
+const EnvVarReferenceSchema = boundedString(256).regex(ENV_VAR_REFERENCE_PATTERN);
+
+const IPV4_CIDR_PATTERN =
+  /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}\/(3[0-2]|[12]?\d)$/;
+const IPV6_CIDR_PATTERN = /^[0-9A-Fa-f:]+\/(12[0-8]|1[01]\d|[1-9]?\d)$/;
+const ALLOW_ALL_CIDRS = Object.freeze(['0.0.0.0/0', '::/0']);
+
+const CidrSchema = boundedString(64).superRefine((value, context) => {
+  const isIpv4 = IPV4_CIDR_PATTERN.test(value);
+  const isIpv6 = !isIpv4 && value.includes(':') && IPV6_CIDR_PATTERN.test(value);
+  if (!isIpv4 && !isIpv6) {
+    context.addIssue({ code: 'custom', message: 'value is not a valid IPv4 or IPv6 CIDR' });
+    return;
+  }
+  if (ALLOW_ALL_CIDRS.includes(value)) {
+    context.addIssue({ code: 'custom', message: 'wildcard allow-all CIDR is forbidden' });
+  }
+});
+
+const HostAddressSchema = boundedString(255).regex(/^[A-Za-z0-9.:-]+$/);
+
+const RECEIPT_STATUSES = Object.freeze(['equivalent', 'drift_detected', 'remote_unavailable', 'invalid_local_contract', 'not_configured']);
+const NETWORK_PROFILES = Object.freeze(['loopback', 'shared-network']);
+const TRANSPORT_MODES = Object.freeze(['direct-tls', 'terminated-upstream']);
+
+const GovernanceReleaseManifestSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  contract: z.literal('governance-release-manifest/v1'),
+  release_id: IdentifierSchema,
+  sequence: z.number().int().positive(),
+  source_repository_id: UuidSchema,
+  source_commit: GitObjectIdSchema,
+  approved_tag: ReferenceSchema,
+  previous_release_digest: DigestSchema.nullable(),
+  manifest_digest: DigestSchema,
+  items: uniqueArray(GovernanceReleaseItemSchema, 1, MAX_COLLECTION_ITEMS),
+  issued_at: TimestampSchema,
+  effective_at: TimestampSchema,
+  expires_at: TimestampSchema,
+  sunset_at: TimestampSchema.nullable(),
+  change_class: z.enum(CHANGE_CLASSES),
+  runtime_min_version: SemverSchema,
+  runtime_max_version: SemverSchema.nullable(),
+  issuer: IdentifierSchema,
+}).superRefine(temporalOrder(['issued_at', 'effective_at', 'expires_at', 'sunset_at']));
+
+const ExternalSignerBindingSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  contract: z.literal('external-signer-binding/v1'),
+  signer_id: IdentifierSchema,
+  algorithm: z.enum(SIGNATURE_ALGORITHMS),
+  key_id: IdentifierSchema,
+  public_key_ref_env: EnvVarReferenceSchema,
+});
+
+const ExternalSignatureEvidenceSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  contract: z.literal('external-signature-evidence/v1'),
+  signer_id: IdentifierSchema,
+  algorithm: z.enum(SIGNATURE_ALGORITHMS),
+  key_id: IdentifierSchema,
+  signed_digest: DigestSchema,
+  value: boundedString(1024).regex(/^[A-Za-z0-9_-]+={0,2}$/),
+  signed_at: TimestampSchema,
+});
+
+const PatchFileOperationSchema = strictObject({
+  operation: z.enum(['create', 'update', 'delete']),
+  path: RelativePathSchema,
+  content_digest: DigestSchema.nullable(),
+});
+
+const PatchPublicationBundleManifestSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  contract: z.literal('patch-publication-bundle-manifest/v1'),
+  bundle_id: UuidSchema,
+  publication_request_ref: ReferenceSchema,
+  source_repository_id: UuidSchema,
+  base_commit: GitObjectIdSchema,
+  manifest_digest: DigestSchema,
+  patch_digest: DigestSchema,
+  file_operations: uniqueArray(PatchFileOperationSchema, 1, MAX_COLLECTION_ITEMS),
+  application_instructions: boundedString(MAX_STRUCTURED_CONTENT_BYTES),
+  rollback_instructions: boundedString(MAX_STRUCTURED_CONTENT_BYTES),
+  generated_by: IdentifierSchema,
+  generated_at: TimestampSchema,
+}).superRefine((value, context) => {
+  const seenPaths = new Set();
+  for (const [index, op] of value.file_operations.entries()) {
+    if (seenPaths.has(op.path)) {
+      context.addIssue({ code: 'custom', path: ['file_operations', index, 'path'], message: 'duplicate file path in bundle' });
+    }
+    seenPaths.add(op.path);
+    if (op.operation === 'delete' && op.content_digest !== null) {
+      context.addIssue({ code: 'custom', path: ['file_operations', index, 'content_digest'], message: 'delete operation must not carry a content digest' });
+    }
+    if (op.operation !== 'delete' && op.content_digest === null) {
+      context.addIssue({ code: 'custom', path: ['file_operations', index, 'content_digest'], message: `${op.operation} operation requires a content digest` });
+    }
+  }
+});
+
+const ShadowReceiptSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  contract: z.literal('shadow-receipt/v1'),
+  receipt_id: UuidSchema,
+  organization_id: IdentifierSchema,
+  repository_id: UuidSchema,
+  adapter: IdentifierSchema,
+  session_fingerprint: DigestSchema,
+  local_digest: DigestSchema.nullable(),
+  remote_digest: DigestSchema.nullable(),
+  release_digest: DigestSchema.nullable(),
+  status: z.enum(RECEIPT_STATUSES),
+  reason_code: IdentifierSchema,
+  observed_at: TimestampSchema,
+});
+
+const ReadinessReportSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  contract: z.literal('readiness-report/v1'),
+  report_id: UuidSchema,
+  organization_id: IdentifierSchema,
+  window_start: TimestampSchema,
+  window_end: TimestampSchema,
+  window_days: z.literal(30),
+  eligible_sessions: z.number().int().nonnegative(),
+  covered_sessions: z.number().int().nonnegative(),
+  repositories_covered: uniqueArray(UuidSchema, 0, MAX_COLLECTION_ITEMS),
+  repositories_missing_evidence: uniqueArray(UuidSchema, 0, MAX_COLLECTION_ITEMS),
+  adapters_covered: uniqueArray(IdentifierSchema, 0, 64),
+  adapters_missing_evidence: uniqueArray(IdentifierSchema, 0, 64),
+  preflight_latency_p95_ms: z.number().nonnegative(),
+  open_drift_count: z.number().int().nonnegative(),
+  open_invalid_contract_count: z.number().int().nonnegative(),
+  remote_unavailable_samples: z.number().int().nonnegative(),
+  signer_evidence_current: z.boolean(),
+  recovery_evidence_current: z.boolean(),
+  threat_model_evidence_current: z.boolean(),
+  rollback_evidence_current: z.boolean(),
+  ready: z.boolean(),
+  authorizes_enforcement: z.literal(false),
+  evaluated_at: TimestampSchema,
+}).superRefine((value, context) => {
+  if (value.covered_sessions > value.eligible_sessions) {
+    context.addIssue({ code: 'custom', path: ['covered_sessions'], message: 'covered sessions cannot exceed eligible sessions' });
+  }
+  if (Date.parse(value.window_start) > Date.parse(value.window_end)) {
+    context.addIssue({ code: 'custom', path: ['window_end'], message: 'window_end must not precede window_start' });
+  }
+  if (!value.ready) return;
+  const coverageRatio = value.eligible_sessions === 0 ? 1 : value.covered_sessions / value.eligible_sessions;
+  const readyRequirements = [
+    [coverageRatio >= 0.95, 'ready report requires at least 95% covered sessions'],
+    [value.repositories_missing_evidence.length === 0, 'ready report cannot have repositories missing evidence'],
+    [value.adapters_missing_evidence.length === 0, 'ready report cannot have adapters missing evidence'],
+    [value.preflight_latency_p95_ms <= 500, 'ready report requires preflight p95 at or below 500ms'],
+    [value.open_drift_count === 0, 'ready report cannot have open drift'],
+    [value.open_invalid_contract_count === 0, 'ready report cannot have open invalid-contract outcomes'],
+    [value.signer_evidence_current, 'ready report requires current signer evidence'],
+    [value.recovery_evidence_current, 'ready report requires current recovery evidence'],
+    [value.threat_model_evidence_current, 'ready report requires current threat-model evidence'],
+    [value.rollback_evidence_current, 'ready report requires current rollback evidence'],
+  ];
+  for (const [satisfied, message] of readyRequirements) {
+    if (!satisfied) context.addIssue({ code: 'custom', path: ['ready'], message });
+  }
+});
+
+const ManagedNetworkTransportSchema = strictObject({
+  mode: z.enum(TRANSPORT_MODES),
+  certificate_ref_env: EnvVarReferenceSchema,
+  private_key_ref_env: EnvVarReferenceSchema,
+});
+
+const ManagedNetworkAuthenticationSchema = strictObject({
+  query_token_env: EnvVarReferenceSchema,
+  admin_token_env: EnvVarReferenceSchema,
+});
+
+const ManagedNetworkRateLimitsSchema = strictObject({
+  query_requests_per_minute: z.number().int().positive().max(100_000),
+  admin_requests_per_minute: z.number().int().positive().max(100_000),
+});
+
+const ManagedNetworkProfileSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  contract: z.literal('managed-network-profile/v1'),
+  profile: z.enum(NETWORK_PROFILES),
+  listen_host: HostAddressSchema.nullable(),
+  port: z.number().int().min(1).max(65_535).nullable(),
+  allowed_clients: uniqueArray(CidrSchema, 0, MAX_COLLECTION_ITEMS),
+  trusted_proxies: uniqueArray(CidrSchema, 0, MAX_COLLECTION_ITEMS),
+  transport: ManagedNetworkTransportSchema.nullable(),
+  authentication: ManagedNetworkAuthenticationSchema.nullable(),
+  rate_limits: ManagedNetworkRateLimitsSchema.nullable(),
+}).superRefine((value, context) => {
+  if (value.profile !== 'shared-network') return;
+  if (value.listen_host === null || value.port === null) {
+    context.addIssue({ code: 'custom', message: 'shared-network profile requires an explicit listen host and port' });
+  }
+  if (value.allowed_clients.length === 0) {
+    context.addIssue({ code: 'custom', path: ['allowed_clients'], message: 'shared-network profile requires a non-empty client allowlist' });
+  }
+  if (value.transport === null || value.authentication === null || value.rate_limits === null) {
+    context.addIssue({ code: 'custom', message: 'shared-network profile requires transport, authentication and rate limits' });
+  }
+});
+
+const RecoveryProfileSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  contract: z.literal('recovery-profile/v1'),
+  profile_id: IdentifierSchema,
+  rpo_seconds: z.number().int().positive(),
+  rto_seconds: z.number().int().positive(),
+  retention_days: z.number().int().positive(),
+  declared_by: IdentifierSchema,
+  declared_at: TimestampSchema,
+});
+
+const RecoveryRehearsalEvidenceSchema = strictObject({
+  schema_version: z.literal(CONTRACT_SCHEMA_VERSION),
+  contract: z.literal('recovery-rehearsal-evidence/v1'),
+  rehearsal_id: UuidSchema,
+  recovery_profile_digest: DigestSchema,
+  disposable_target_ref: ReferenceSchema,
+  disposable_target_confirmed: z.literal(true),
+  measured_rpo_seconds: z.number().nonnegative(),
+  measured_rto_seconds: z.number().nonnegative(),
+  tenant_isolation_verified: z.boolean(),
+  active_catalog_verified: z.boolean(),
+  release_signatures_verified: z.boolean(),
+  audit_history_append_only_verified: z.boolean(),
+  within_declared_profile: z.boolean(),
+  rehearsed_at: TimestampSchema,
+}).superRefine((value, context) => {
+  if (!value.within_declared_profile) return;
+  const verified = [
+    value.tenant_isolation_verified,
+    value.active_catalog_verified,
+    value.release_signatures_verified,
+    value.audit_history_append_only_verified,
+  ];
+  if (!verified.every(Boolean)) {
+    context.addIssue({ code: 'custom', path: ['within_declared_profile'], message: 'within_declared_profile requires every evidence check to pass' });
+  }
+});
+
 function deepFreeze(value) {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
   for (const nested of Object.values(value)) deepFreeze(nested);
@@ -560,11 +815,14 @@ module.exports = {
   DECISIONS,
   DigestSchema,
   ENFORCEMENT_POINTS,
+  ExternalSignatureEvidenceSchema,
+  ExternalSignerBindingSchema,
   GOVERNANCE_MODES,
   GovernanceAcceptanceSchema,
   GovernanceArtifactSchema,
   GovernanceDecisionSchema,
   GovernanceRelationSchema,
+  GovernanceReleaseManifestSchema,
   GovernanceReleaseSchema,
   GovernanceRuleSchema,
   GovernanceSessionLeaseSchema,
@@ -577,20 +835,30 @@ module.exports = {
   ManagedGovernanceBindingSchema,
   ManagedGovernanceSessionPreflightSchema,
   ManagedGovernanceContractError,
+  ManagedNetworkProfileSchema,
   MAX_COLLECTION_ITEMS,
   MAX_IDENTIFIER_BYTES,
   MAX_IMPORT_ITEMS,
   MAX_RAW_CONTENT_BYTES,
   MAX_REFERENCE_BYTES,
   MAX_STRUCTURED_CONTENT_BYTES,
+  NETWORK_PROFILES,
+  PatchPublicationBundleManifestSchema,
+  RECEIPT_STATUSES,
   RELATION_KINDS,
   RULE_EFFECTS,
   RULE_KINDS,
+  ReadinessReportSchema,
+  RecoveryProfileSchema,
+  RecoveryRehearsalEvidenceSchema,
   ReferenceSchema,
   RelativePathSchema,
+  SIGNATURE_ALGORITHMS,
   SemverSchema,
+  ShadowReceiptSchema,
   SignatureSchema,
   SourceReferenceSchema,
+  TRANSPORT_MODES,
   TimestampSchema,
   UuidSchema,
   deepFreeze,

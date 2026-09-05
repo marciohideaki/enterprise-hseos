@@ -248,6 +248,62 @@ test('import reports must account for every discovered source', () => {
   assertContractError(() => contracts.parseContract(contracts.ImportReportSchema, missingItem), 'item accounting');
 });
 
+test('readiness report ready flag requires every readiness-algorithm condition, not just one', () => {
+  const base = clone(validFixtures.ReadinessReportSchema);
+  assert.doesNotThrow(() => contracts.parseContract(contracts.ReadinessReportSchema, base));
+
+  const violations = [
+    ['covered_sessions', 189],
+    ['repositories_missing_evidence', ['7f9f9b79-638c-4138-9a29-8a2406ad9fb8']],
+    ['adapters_missing_evidence', ['codex']],
+    ['preflight_latency_p95_ms', 501],
+    ['open_drift_count', 1],
+    ['open_invalid_contract_count', 1],
+    ['signer_evidence_current', false],
+    ['recovery_evidence_current', false],
+    ['threat_model_evidence_current', false],
+    ['rollback_evidence_current', false],
+  ];
+  for (const [field, value] of violations) {
+    const report = clone(base);
+    report[field] = value;
+    assertContractError(() => contracts.parseContract(contracts.ReadinessReportSchema, report), `ready report violation: ${field}`);
+  }
+
+  const notReady = clone(base);
+  notReady.ready = false;
+  notReady.open_drift_count = 3;
+  assert.doesNotThrow(() => contracts.parseContract(contracts.ReadinessReportSchema, notReady), 'a non-ready report may report open findings');
+});
+
+test('managed network profile enforces deny-by-default admission for shared-network', () => {
+  const base = clone(validFixtures.ManagedNetworkProfileSchema);
+  assert.doesNotThrow(() => contracts.parseContract(contracts.ManagedNetworkProfileSchema, base));
+
+  const loopback = { ...base, profile: 'loopback', listen_host: null, port: null, allowed_clients: [], transport: null, authentication: null, rate_limits: null };
+  assert.doesNotThrow(() => contracts.parseContract(contracts.ManagedNetworkProfileSchema, loopback));
+
+  for (const wildcard of ['0.0.0.0/0', '::/0']) {
+    const widened = clone(base);
+    widened.allowed_clients = [wildcard];
+    assertContractError(() => contracts.parseContract(contracts.ManagedNetworkProfileSchema, widened), `wildcard CIDR ${wildcard}`);
+  }
+
+  for (const malformed of ['not-a-cidr', '192.168.5.0', '192.168.5.0/33', '192.168.5.0/-1']) {
+    const invalid = clone(base);
+    invalid.allowed_clients = [malformed];
+    assertContractError(() => contracts.parseContract(contracts.ManagedNetworkProfileSchema, invalid), `malformed CIDR ${malformed}`);
+  }
+
+  const noAllowlist = clone(base);
+  noAllowlist.allowed_clients = [];
+  assertContractError(() => contracts.parseContract(contracts.ManagedNetworkProfileSchema, noAllowlist), 'empty allowlist on shared-network');
+
+  const missingControls = clone(base);
+  missingControls.transport = null;
+  assertContractError(() => contracts.parseContract(contracts.ManagedNetworkProfileSchema, missingControls), 'shared-network without transport');
+});
+
 test('contract parser normalizes schema evaluation failures without leaking values', () => {
   const explodingSchema = {
     safeParse() {

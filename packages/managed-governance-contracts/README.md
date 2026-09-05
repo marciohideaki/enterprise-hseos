@@ -6,6 +6,19 @@ The package contains strict Zod schemas for artifacts, immutable versions, relat
 bindings, releases, snapshots, acceptance receipts, session leases, decisions and import plans. It
 also provides deterministic canonical JSON and SHA-256 digest helpers.
 
+Shadow-readiness contracts (`GovernanceReleaseManifestSchema`, `ExternalSignerBindingSchema`,
+`ExternalSignatureEvidenceSchema`, `PatchPublicationBundleManifestSchema`, `ShadowReceiptSchema`,
+`ReadinessReportSchema`, `ManagedNetworkProfileSchema`, `RecoveryProfileSchema`,
+`RecoveryRehearsalEvidenceSchema`) add the wire shapes for release signing, deterministic patch
+publication, cross-adapter shadow receipts, the 30-day readiness projection, the shared-network
+admission profile and recovery rehearsal evidence. They carry the same `schema_version`/unknown-field
+rejection guarantees as every other contract in this package, plus schema-level invariants specific
+to their own risk: a `ReadinessReportSchema` can never set `authorizes_enforcement` to anything but
+`false`; a `ManagedNetworkProfileSchema` in `shared-network` mode rejects an empty, malformed or
+allow-all (`0.0.0.0/0`, `::/0`) client allowlist instead of silently widening it; a
+`RecoveryRehearsalEvidenceSchema` cannot claim `within_declared_profile` without every evidence check
+passing, and must explicitly confirm its target is disposable.
+
 ## Contract boundary
 
 - Every top-level contract requires `schema_version: 1`.
