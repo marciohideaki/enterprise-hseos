@@ -9,6 +9,7 @@ const { test } = require('node:test');
 const { digestCanonical } = require('../../packages/managed-governance-contracts');
 const { createManagedGovernanceClient, createSnapshotStore } = require('../../packages/managed-governance-client');
 const { REPOSITORY_ID, decision, snapshot } = require('./client-fixtures');
+const { CONSTITUTION_PATH, digestConstitution, runManagedGovernanceSessionPreflight } = require('../../packages/managed-governance-client/session-preflight');
 
 function binding() {
   return {
@@ -90,4 +91,60 @@ test('online shadow resolution stays below the 2 s p95 budget on the reference f
     assert.equal(result.transport.status, 'online');
   }
   assert.ok(percentile95(samples) <= 2000, `online p95 ${percentile95(samples).toFixed(2)} ms exceeded 2000 ms`);
+});
+
+// NFR-006's 500 ms p95 budget covers the actual entry point every adapter's session-start hook
+// calls -- runManagedGovernanceSessionPreflight's full local-vs-remote comparison and evidence
+// persistence -- not just the lower-level client transport the two tests above already cover.
+test('session preflight stays below the 500 ms p95 budget on the reference fixture', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-governance-preflight-performance-'));
+  const constitution = '# Constitution\n\nLocal authority.\n';
+  const digest = digestConstitution(constitution);
+  fs.mkdirSync(path.join(directory, '.agents', 'capabilities'), { recursive: true });
+  fs.writeFileSync(path.join(directory, '.agents', 'capabilities', 'components.yaml'), 'schema_version: 1\n');
+  fs.writeFileSync(
+    path.join(directory, 'repository-contract.yaml'),
+    `schema_version: repository-contract/v1\nrepository_id: ${REPOSITORY_ID}\nidentity:\n  remotes:\n    - example.test/repository\ncapabilities:\n  manifest: .agents/capabilities/components.yaml\n`,
+  );
+  fs.mkdirSync(path.join(directory, '.hseos', 'config'), { recursive: true });
+  fs.writeFileSync(
+    path.join(directory, '.hseos', 'config', 'managed-governance.json'),
+    '{"schema_version":1,"mode":"managed-shadow","endpoint":"http://127.0.0.1:4319"}\n',
+  );
+  fs.writeFileSync(
+    path.join(directory, '.hseos', 'config', 'managed-governance-binding.json'),
+    `${JSON.stringify({
+      schema_version: 1,
+      contract: 'managed-governance-binding/v1',
+      binding_id: '33333333-3333-4333-8333-333333333333',
+      mode: 'managed-shadow',
+      repository_id: REPOSITORY_ID,
+      organization_id: 'example-organization',
+      control_plane_ref: 'managed-control-plane-primary',
+      issuer: 'example-governance',
+      trusted_key_ids: ['governance-signing-2026'],
+      failure_policy: 'cached-fail-closed',
+      max_snapshot_age_seconds: 86_400,
+      created_at: '2026-09-01T00:00:00Z',
+    })}\n`,
+  );
+  fs.mkdirSync(path.join(directory, path.dirname(CONSTITUTION_PATH)), { recursive: true });
+  fs.writeFileSync(path.join(directory, CONSTITUTION_PATH), constitution);
+  const remote = { mode: 'managed-shadow', repository_id: REPOSITORY_ID, source_commit: 'a'.repeat(40), artifacts: [{ source_path: CONSTITUTION_PATH.split(path.sep).join('/'), content_digest: digest }] };
+  try {
+    const samples = [];
+    for (let index = 0; index < 50; index += 1) {
+      const started = performance.now();
+      const result = await runManagedGovernanceSessionPreflight({
+        projectRoot: directory,
+        clock: () => new Date('2026-09-05T12:00:00.000Z'),
+        queryAdapter: { getEffectiveGovernanceContext: async () => remote },
+      });
+      samples.push(performance.now() - started);
+      assert.equal(result.status, 'equivalent');
+    }
+    assert.ok(percentile95(samples) <= 500, `session preflight p95 ${percentile95(samples).toFixed(2)} ms exceeded 500 ms`);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
 });

@@ -1,11 +1,39 @@
 'use strict';
 
 const http = require('node:http');
+const https = require('node:https');
+const tls = require('node:tls');
 const { createHttpRouter } = require('./lib/interfaces/http/router');
 const { createStaticAssetHandler } = require('./lib/interfaces/http/static-assets');
 const { createNetworkAdmission } = require('./lib/network/admission');
 
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', '::1']);
+const MAX_PEM_BYTES = 32 * 1024;
+
+// FR-020's "transport-protection contract" is a real control, not a declared-but-inert config
+// field: a shared-network profile whose transport.mode is 'direct-tls' gets its listener actually
+// wrapped in TLS using the certificate and private key the referenced environment variables hold
+// (never a literal in configuration -- NFR-010). 'terminated-upstream' keeps this server on plain
+// HTTP deliberately: that mode declares TLS is terminated by an operator-controlled reverse proxy
+// in front of it, a topology this process cannot see or enforce itself.
+function resolveTlsCredentials(transport, environment) {
+  const certificatePem = environment[transport.certificate_ref_env];
+  const privateKeyPem = environment[transport.private_key_ref_env];
+  if (typeof certificatePem !== 'string' || certificatePem.length === 0 || Buffer.byteLength(certificatePem, 'utf8') > MAX_PEM_BYTES) {
+    throw new Error(`managed governance direct-tls certificate is required in ${transport.certificate_ref_env}`);
+  }
+  if (typeof privateKeyPem !== 'string' || privateKeyPem.length === 0 || Buffer.byteLength(privateKeyPem, 'utf8') > MAX_PEM_BYTES) {
+    throw new Error(`managed governance direct-tls private key is required in ${transport.private_key_ref_env}`);
+  }
+  try {
+    // Fails closed on a malformed PEM pair or a certificate/key that don't match -- exactly the
+    // class of misconfiguration that must never reach an actual open socket.
+    tls.createSecureContext({ cert: certificatePem, key: privateKeyPem });
+  } catch (error) {
+    throw new Error(`managed governance direct-tls certificate/key pair is invalid: ${error.message}`);
+  }
+  return { cert: certificatePem, key: privateKeyPem };
+}
 
 // Portable and managed-shadow installations bind to loopback by default (FR-019); a caller must
 // pass an explicit shared-network options.networkProfile to change that. Never a package CIDR
@@ -23,17 +51,25 @@ const DEFAULT_LOOPBACK_PROFILE = Object.freeze({
 });
 
 function createManagedGovernanceServer(options = {}) {
-  // Validated -- and therefore able to throw on an incomplete or wildcard shared-network profile
-  // -- before this function does anything else: before http.createServer() is even called, let
-  // alone before listen() could open a socket.
-  const admission = createNetworkAdmission(options.networkProfile || DEFAULT_LOOPBACK_PROFILE);
+  // Validated -- and therefore able to throw on an incomplete or wildcard shared-network profile,
+  // or an invalid direct-tls certificate/key pair -- before this function does anything else:
+  // before http.createServer()/https.createServer() is even called, let alone before listen()
+  // could open a socket.
+  const networkProfile = options.networkProfile || DEFAULT_LOOPBACK_PROFILE;
+  const admission = createNetworkAdmission(networkProfile);
+  const transport = admission.profile === 'shared-network' ? networkProfile.transport : null;
+  const tlsCredentials = transport?.mode === 'direct-tls' ? resolveTlsCredentials(transport, options.environment || process.env) : null;
   const repository = options.repository || null;
   const router = createHttpRouter(options);
   const serveStatic = options.serveStatic || createStaticAssetHandler(options);
   const sockets = new Map();
   let state = 'created';
   let closePromise = null;
-  const server = http.createServer({ requestTimeout: 10_000, headersTimeout: 10_000, keepAliveTimeout: 5000 }, (request, response) => {
+  const serverOptions = tlsCredentials
+    ? { requestTimeout: 10_000, headersTimeout: 10_000, keepAliveTimeout: 5000, ...tlsCredentials }
+    : { requestTimeout: 10_000, headersTimeout: 10_000, keepAliveTimeout: 5000 };
+  const createServer = tlsCredentials ? https.createServer : http.createServer;
+  const server = createServer(serverOptions, (request, response) => {
     try {
       if (serveStatic(request, response)) return;
     } catch {
