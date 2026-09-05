@@ -52,8 +52,8 @@ test(
     try {
       const first = await migrate(pool);
       const second = await migrate(pool);
-      assert.equal(first.current_version, '0005');
-      assert.deepEqual(second, { applied: [], current_version: '0005' });
+      assert.equal(first.current_version, '0006');
+      assert.deepEqual(second, { applied: [], current_version: '0006' });
 
       await context.test('creates every core table with fail-closed tenant RLS', async () => {
         const expectedTables = [

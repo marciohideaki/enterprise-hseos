@@ -1,9 +1,17 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const { test } = require('node:test');
 const { createDraftManager } = require('../../tools/managed-governance-control-plane/lib/application/manage-draft');
 const { createPublicationRequester } = require('../../tools/managed-governance-control-plane/lib/application/request-publication');
+const { diffGovernanceReleases, getGovernanceRelease } = require('../../tools/managed-governance-control-plane/lib/application/query-release');
+const { verifyGovernanceSnapshot } = require('../../tools/managed-governance-control-plane/lib/application/verify-snapshot');
+const { publishGovernanceRelease, requestExternalSignature } = require('../../tools/managed-governance-control-plane/lib/application/publish-release');
+const { planGovernanceRelease } = require('../../tools/managed-governance-control-plane/lib/application/plan-release');
+const { ImportCatalogService } = require('../../tools/managed-governance-control-plane/lib/application/import-catalog');
+const { classifySource } = require('../../tools/managed-governance-control-plane/lib/infrastructure/git/classifiers');
+const { MemoryGovernanceRepository } = require('../../tools/managed-governance-control-plane/lib/infrastructure/memory/governance-repository');
 const { createDevelopmentAuth, createStaticAuth } = require('../../tools/managed-governance-control-plane/lib/interfaces/http/auth');
 const { ROUTES, mapError } = require('../../tools/managed-governance-control-plane/lib/interfaces/http/router');
 const { createManagedGovernanceServer } = require('../../tools/managed-governance-control-plane/server');
@@ -266,4 +274,146 @@ test('draft and publication application ports preserve authenticated context', a
   assert.ok(calls.every((call) => call.context === context));
   assert.throws(() => createDraftManager({}), /requires create/);
   assert.throws(() => createPublicationRequester({}), /requires request/);
+});
+
+function contentDigest(content) {
+  return `sha256:${crypto.createHash('sha256').update(content, 'utf8').digest('hex')}`;
+}
+
+function discoveredEntry(sourcePath, rawContent) {
+  const normalizedContent = rawContent.replaceAll(/\r\n?/g, '\n');
+  const base = {
+    source_path: sourcePath,
+    source_kind: 'policy',
+    raw_content: rawContent,
+    normalized_content: normalizedContent,
+    content_digest: contentDigest(normalizedContent),
+  };
+  return { ...base, classification: classifySource(base) };
+}
+
+async function seedPublishedRelease({
+  organizationId,
+  repository,
+  repositoryId,
+  releaseId,
+  sequence,
+  issuedAt = '2026-09-05T00:00:00Z',
+  effectiveAt = issuedAt,
+  expiresAt,
+}) {
+  const actor = { type: 'automation', id: 'http-release-test' };
+  const binding = {
+    schema_version: 1,
+    contract: 'external-signer-binding/v1',
+    signer_id: 'http-test-signer',
+    algorithm: 'ed25519',
+    key_id: 'http-test-key-2026',
+    public_key_ref_env: 'HSEOS_HTTP_TEST_SIGNER_PUBLIC_KEY',
+  };
+  const manifest = await planGovernanceRelease(
+    {
+      organizationId,
+      repositoryId,
+      releaseId,
+      sequence,
+      sourceCommit: 'a'.repeat(40),
+      approvedTag: `v1.0.${sequence}`,
+      previousReleaseDigest: null,
+      issuedAt,
+      effectiveAt,
+      expiresAt,
+      sunsetAt: null,
+      changeClass: 'compatible',
+      runtimeMinVersion: '3.4.1',
+      runtimeMaxVersion: null,
+      issuer: 'http-release-test',
+    },
+    { repository },
+  );
+  const evidence = await requestExternalSignature(manifest, { async sign(digest) { return { value: Buffer.from(`fake-${digest}`).toString('base64url') }; } }, binding);
+  return { published: await publishGovernanceRelease({ organizationId, actor, manifest, evidence, binding }, { repository }), binding };
+}
+
+test('release query and snapshot verification are backed by real repository state, not stubs', async () => {
+  const organizationId = `http-release-${crypto.randomBytes(6).toString('hex')}`;
+  const repositoryId = crypto.randomUUID();
+  const repository = new MemoryGovernanceRepository({ clock: () => new Date('2026-09-05T00:00:00.000Z') });
+  const source = {
+    async discover() {
+      return {
+        schema_version: 1,
+        repository_id: repositoryId,
+        source_commit: 'a'.repeat(40),
+        source_timestamp: '2026-09-05T00:00:00.000Z',
+        source_profile: 'enterprise-hseos:v1',
+        source_profile_digest: contentDigest('http-release-profile'),
+        entries: [discoveredEntry('policies/a.md', '# Policy A\n')],
+      };
+    },
+  };
+  await new ImportCatalogService({ repository, source }).seedCurrent({
+    organizationId,
+    organizationDisplayName: 'HTTP Release Test',
+    importerVersion: '1.0.0',
+    actor: { type: 'automation', id: 'http-release-test' },
+    canonicalRemote: 'https://example.invalid/http-release-test.git',
+  });
+  const { published, binding } = await seedPublishedRelease({
+    organizationId,
+    repository,
+    repositoryId,
+    releaseId: 'http-release-1',
+    sequence: 1,
+    expiresAt: '2027-09-05T00:00:00Z',
+  });
+
+  const services = {
+    getRelease: (input) => getGovernanceRelease({ organizationId, releaseId: input.id }, { repository }),
+    diffReleases: (input) =>
+      diffGovernanceReleases({ organizationId, baseReleaseId: input.base_release_id, targetReleaseId: input.target_release_id }, { repository }),
+    verifySnapshot: (input) => verifyGovernanceSnapshot({ organizationId, snapshotId: input.snapshot_id, binding }, { repository }),
+  };
+  const { server, baseUrl } = await startServer({ services });
+  try {
+    const getExisting = await request(baseUrl, 'GET', `/api/v1/releases/${encodeURIComponent(published.release_id)}`);
+    assert.equal(getExisting.response.status, 200);
+    assert.equal(getExisting.envelope.data.manifest_digest, published.manifest_digest);
+    assert.equal(getExisting.envelope.data.items.length, 1);
+
+    const getMissing = await request(baseUrl, 'GET', '/api/v1/releases/does-not-exist');
+    assert.equal(getMissing.response.status, 404);
+    assert.equal(getMissing.envelope.error.code, 'not_found');
+
+    const verifyValid = await request(baseUrl, 'POST', '/api/v1/snapshots/verify', { snapshot_id: published.release_id });
+    assert.equal(verifyValid.response.status, 200);
+    assert.equal(verifyValid.envelope.data.valid, true);
+
+    const verifyMissing = await request(baseUrl, 'POST', '/api/v1/snapshots/verify', { snapshot_id: 'does-not-exist' });
+    assert.equal(verifyMissing.response.status, 404);
+
+    const secondRelease = await seedPublishedRelease({
+      organizationId,
+      repository,
+      repositoryId,
+      releaseId: 'http-release-2',
+      sequence: 1,
+      issuedAt: '2026-08-01T00:00:00Z',
+      effectiveAt: '2026-08-01T00:00:00Z',
+      expiresAt: '2026-08-15T00:00:00Z',
+    });
+    const verifyExpired = await request(baseUrl, 'POST', '/api/v1/snapshots/verify', { snapshot_id: secondRelease.published.release_id });
+    assert.equal(verifyExpired.response.status, 400);
+    assert.equal(verifyExpired.envelope.error.code, 'invalid_request');
+
+    const diff = await request(baseUrl, 'POST', '/api/v1/releases/diff', {
+      base_release_id: published.release_id,
+      target_release_id: secondRelease.published.release_id,
+    });
+    assert.equal(diff.response.status, 200);
+    assert.equal(diff.envelope.data.digest_changed, true);
+    assert.deepEqual(Object.keys(diff.envelope.data.items), ['added', 'removed', 'changed']);
+  } finally {
+    await server.close();
+  }
 });

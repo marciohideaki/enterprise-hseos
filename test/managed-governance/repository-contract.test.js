@@ -329,7 +329,7 @@ if (require.main === module) {
     const migrations = await readMigrations(migrationsDirectory);
     assert.deepEqual(
       migrations.map((migration) => migration.version),
-      ['0001', '0002', '0003', '0004', '0005'],
+      ['0001', '0002', '0003', '0004', '0005', '0006'],
     );
     assert.equal(Object.isFrozen(migrations), true);
     assert.match(migrations[0].checksum, /^sha256:[a-f0-9]{64}$/);

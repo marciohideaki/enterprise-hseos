@@ -5,6 +5,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { parseContract, ManagedGovernanceBindingSchema } = require('../../packages/managed-governance-contracts');
 const { ImportCatalogService } = require('./lib/application/import-catalog');
+const { diffGovernanceReleases, getGovernanceRelease } = require('./lib/application/query-release');
+const { verifyGovernanceSnapshot } = require('./lib/application/verify-snapshot');
 const { evaluatePolicy } = require('./lib/application/evaluate-policy');
 const { loadSidecarConfiguration } = require('./lib/configuration');
 const { GitGovernanceSource } = require('./lib/infrastructure/git/governance-source');
@@ -197,9 +199,17 @@ async function createDatabaseBackedControlPlane(options = {}) {
         artifacts: await entries(),
       };
     },
-    getRelease: async () => null,
-    diffReleases: async () => ({ status: 'unavailable', reason_code: 'release.not_published' }),
-    verifySnapshot: async () => ({ status: 'unavailable', reason_code: 'snapshot.not_supplied' }),
+    getRelease: (input) => getGovernanceRelease({ organizationId: configuration.organization.id, releaseId: input.id }, { repository }),
+    diffReleases: (input) =>
+      diffGovernanceReleases(
+        { organizationId: configuration.organization.id, baseReleaseId: input.base_release_id, targetReleaseId: input.target_release_id },
+        { repository },
+      ),
+    verifySnapshot: (input) =>
+      verifyGovernanceSnapshot(
+        { organizationId: configuration.organization.id, snapshotId: input.snapshot_id, binding: configuration.binding },
+        { repository },
+      ),
     getSessionStatus: () => databaseHealth(pool, repository, configuration, discovery.repository_id),
     evaluatePolicy: async (input) =>
       evaluatePolicy({
