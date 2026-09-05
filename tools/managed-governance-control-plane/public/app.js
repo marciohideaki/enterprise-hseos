@@ -166,5 +166,17 @@ byId('load-audit').addEventListener('click', async () => {
   }
 });
 
+byId('load-readiness').addEventListener('click', async () => {
+  try {
+    const readiness = await api('/api/v1/readiness');
+    text(byId('readiness-window'), `${readiness.window_start} → ${readiness.window_end}`);
+    text(byId('readiness-status'), readiness.evaluated ? (readiness.ready ? 'Ready (advisory only)' : 'Not ready') : 'Not yet evaluated');
+    text(byId('readiness-detail'), readiness.report ? JSON.stringify(readiness.report, null, 2) : 'No readiness evaluation has run for this window yet.');
+  } catch (error) {
+    text(byId('readiness-status'), 'Check failed');
+    text(byId('readiness-detail'), error.message);
+  }
+});
+
 byId('refresh-artifacts').addEventListener('click', loadArtifacts);
 Promise.all([loadSchemas(), loadHealth(), loadArtifacts()]).catch(showError);

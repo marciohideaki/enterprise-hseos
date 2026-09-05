@@ -39,6 +39,7 @@ test('managed MCP catalog is read-only, strict and complete', () => {
     'verify_governance_snapshot',
     'get_governance_session_status',
     'get_governance_session_preflight',
+    'get_governance_readiness',
   ]);
   for (const entry of managedQueryModule) {
     assert.equal(entry.inputSchema.additionalProperties, false);

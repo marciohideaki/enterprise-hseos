@@ -8,6 +8,8 @@ const { ImportCatalogService } = require('./lib/application/import-catalog');
 const { diffGovernanceReleases, getGovernanceRelease } = require('./lib/application/query-release');
 const { verifyGovernanceSnapshot } = require('./lib/application/verify-snapshot');
 const { evaluatePolicy } = require('./lib/application/evaluate-policy');
+const { getCurrentReadiness } = require('./lib/application/query-readiness');
+const { recordShadowReceipt } = require('./lib/application/record-shadow-receipt');
 const { loadSidecarConfiguration } = require('./lib/configuration');
 const { GitGovernanceSource } = require('./lib/infrastructure/git/governance-source');
 const { PostgresGovernanceRepository } = require('./lib/infrastructure/postgres/governance-repository');
@@ -228,6 +230,28 @@ async function createDatabaseBackedControlPlane(options = {}) {
       });
     },
     listAudit: async (input) => (await repository.listAuditEvents(configuration.organization.id)).slice(0, input.page.limit),
+    getReadiness: () => getCurrentReadiness({ organizationId: configuration.organization.id, asOf: new Date().toISOString() }, { repository }),
+    // Not an administrative mutation: this is the routine, frequent, low-privilege telemetry a
+    // session's own preflight submits about itself (FR-009/FR-024), not a governance content
+    // change -- it stays query-scoped like getEffectiveContext, never gated behind the admin
+    // credential every drafting/publication route requires.
+    recordReceipt: (input, context) =>
+      recordShadowReceipt(
+        {
+          organizationId: configuration.organization.id,
+          actor: context.actor || { type: 'automation', id: 'session-preflight' },
+          repositoryId: input.repository_id,
+          adapter: input.adapter,
+          sessionFingerprint: input.session_fingerprint,
+          localDigest: input.local_digest ?? null,
+          remoteDigest: input.remote_digest ?? null,
+          releaseDigest: input.release_digest ?? null,
+          status: input.status,
+          reasonCode: input.reason_code,
+          observedAt: input.observed_at,
+        },
+        { repository },
+      ),
   };
   const server = createManagedGovernanceServer({
     services,

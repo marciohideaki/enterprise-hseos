@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 # Managed-shadow session preflight. Advisory and project-scoped by contract.
+# This is Claude Code's native session-start event for FR-024: the underlying CLI call also
+# reports a bounded shadow receipt for the claude-code adapter (best-effort; a failed report
+# never affects this hook's own advisory outcome). An adapter without a native session-start
+# hook runs the identical CLI command manually, with its own --adapter value, as the portable
+# bootstrap before its first task action.
 set -u
 
 PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
@@ -19,9 +24,9 @@ else
 fi
 
 if command -v timeout >/dev/null 2>&1; then
-  OUTPUT="$(cd "$PROJECT_ROOT" && timeout 4s "${COMMAND[@]}" governance session preflight --json 2>/dev/null)" || OUTPUT=""
+  OUTPUT="$(cd "$PROJECT_ROOT" && timeout 4s "${COMMAND[@]}" governance session preflight --adapter claude-code --json 2>/dev/null)" || OUTPUT=""
 else
-  OUTPUT="$(cd "$PROJECT_ROOT" && "${COMMAND[@]}" governance session preflight --json 2>/dev/null)" || OUTPUT=""
+  OUTPUT="$(cd "$PROJECT_ROOT" && "${COMMAND[@]}" governance session preflight --adapter claude-code --json 2>/dev/null)" || OUTPUT=""
 fi
 
 if [[ -z "$OUTPUT" ]]; then

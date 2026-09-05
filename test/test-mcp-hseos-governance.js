@@ -118,7 +118,7 @@ function waitFor(predicate, { timeoutMs = 6000, intervalMs = 100 } = {}) {
       }
     });
 
-    await it('tools/list preserves 5 legacy tools and adds 9 managed read-only tools', async () => {
+    await it('tools/list preserves 5 legacy tools and adds 10 managed read-only tools', async () => {
       const r = await rpc(port, 'tools/list', {});
       const names = new Set(r.tools.map((t) => t.name));
       const expected = ['query_constitution', 'validate_adr', 'check_authority', 'list_skills', 'list_workflows'];
@@ -135,9 +135,10 @@ function waitFor(predicate, { timeoutMs = 6000, intervalMs = 100 } = {}) {
         'verify_governance_snapshot',
         'get_governance_session_status',
         'get_governance_session_preflight',
+        'get_governance_readiness',
       ];
       for (const name of managed) if (!names.has(name)) throw new Error(`missing managed tool: ${name}`);
-      if (r.tools.length !== 14) throw new Error(`expected 14 tools, got ${r.tools.length}`);
+      if (r.tools.length !== 15) throw new Error(`expected 15 tools, got ${r.tools.length}`);
     });
 
     await it('initialize handshake', async () => {

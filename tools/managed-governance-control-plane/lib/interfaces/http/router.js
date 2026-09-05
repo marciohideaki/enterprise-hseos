@@ -29,6 +29,8 @@ const ROUTES = Object.freeze([
   { method: 'POST', pattern: /^\/api\/v1\/releases\/diff$/, handler: 'diffReleases', body: true },
   { method: 'POST', pattern: /^\/api\/v1\/snapshots\/verify$/, handler: 'verifySnapshot', body: true },
   { method: 'GET', pattern: /^\/api\/v1\/session\/status$/, handler: 'getSessionStatus' },
+  { method: 'GET', pattern: /^\/api\/v1\/readiness$/, handler: 'getReadiness' },
+  { method: 'POST', pattern: /^\/api\/v1\/shadow-receipts$/, handler: 'recordReceipt', body: true },
   { method: 'POST', pattern: /^\/api\/v1\/policy\/evaluate$/, handler: 'evaluatePolicy', body: true },
   { method: 'POST', pattern: /^\/api\/v1\/imports\/plan$/, handler: 'planImport', body: true },
   { method: 'POST', pattern: /^\/api\/v1\/imports$/, handler: 'applyImport', body: true, protected: true },
@@ -109,6 +111,7 @@ function mapError(error) {
     ['MANAGED_GOVERNANCE_SNAPSHOT_NOT_YET_VALID', 'invalid_request'],
     ['MANAGED_GOVERNANCE_SNAPSHOT_TAMPERED', 'invalid_request'],
     ['MANAGED_GOVERNANCE_SNAPSHOT_UNTRUSTED_SIGNER', 'invalid_request'],
+    ['MANAGED_GOVERNANCE_READINESS_QUERY_INVALID', 'invalid_request'],
   ]);
   const code = mappings.get(error?.code) || 'internal_error';
   const publicMessages = {

@@ -550,7 +550,7 @@ handlers:
     sha256: c8e1b0aa0dad1375ce4d4375ea8090ef825ad09cff2f3a0a91361ccf36ba2791
   - file: .agents/hooks/handlers/managed-governance-preflight.sh
     source: .enterprise/governance/hooks/handlers/managed-governance-preflight.sh
-    sha256: 3d3d471e4df023dfc55d5860efc6ea41f6d4e0362b1ce230292ad4c1815f8ded
+    sha256: 2f067333688c969dc476f24480d83f7151682ccd559cdff07cbac3e4fe685961
   - file: .agents/hooks/handlers/on-notification.sh
     source: .enterprise/governance/hooks/handlers/on-notification.sh
     sha256: f832358bdb190040e962492b10a1bd56ba9cf57b4339721512eedef4f3d77262
