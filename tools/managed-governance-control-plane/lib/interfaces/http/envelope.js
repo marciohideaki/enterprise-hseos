@@ -9,6 +9,7 @@ const ERROR_STATUS = Object.freeze({
   not_found: 404,
   conflict: 409,
   request_too_large: 413,
+  rate_limited: 429,
   migration_required: 503,
   database_unavailable: 503,
   import_failed: 422,

@@ -1,8 +1,10 @@
 'use strict';
 
+const crypto = require('node:crypto');
 const { canonicalize } = require('../../../../../packages/managed-governance-contracts');
 const { errorEnvelope, sendJson, statusForError, successEnvelope } = require('./envelope');
 const { HttpAuthenticationError, denyAnonymousAuth } = require('./auth');
+const { AmbiguousForwardingChainError, resolveClientAddress } = require('../../network/trusted-proxy');
 
 const DEFAULT_BODY_LIMIT = 1024 * 1024;
 const DEFAULT_TIMEOUT_MS = 5000;
@@ -118,11 +120,112 @@ function mapError(error) {
   return { code, message: publicMessages[code] || error.message };
 }
 
+function timingSafeEqualStrings(left, right) {
+  if (typeof left !== 'string' || typeof right !== 'string') return false;
+  const bufferLeft = Buffer.from(left, 'utf8');
+  const bufferRight = Buffer.from(right, 'utf8');
+  if (bufferLeft.length !== bufferRight.length) return false;
+  return crypto.timingSafeEqual(bufferLeft, bufferRight);
+}
+
+// FR-020/FR-022/FR-023: this is the shared-network hardening pipeline. It is entirely opt-in --
+// every option it reads (networkAuthentication, rateLimiter, trustedProxyCidrs, publicOrigin)
+// defaults to absent, and when networkAuthentication is absent this function does nothing at
+// all, leaving loopback/dev-mode callers (every existing caller of createHttpRouter, none of
+// which pass these options) on the exact behavior they had before T10. Only a caller that
+// explicitly wires shared-network authentication opts into admission-sequence steps 3, 5, 6 and
+// 7 (trusted-proxy resolution, rate limiting, scoped authentication and access audit); step 4
+// (allowlist matching) already ran at the raw socket in T09's admission and is never repeated
+// here against a header-derived address.
+async function enforceNetworkHardening({ request, response, routeEntry, hardening }) {
+  const { networkAuthentication, rateLimiter, trustedProxyCidrs, publicOrigin, onNetworkAccessAudit } = hardening;
+  const scope = routeEntry.protected ? 'admin' : 'query';
+
+  const audit = async (clientIdentifier, outcome, denyReason) => {
+    if (!onNetworkAccessAudit) return;
+    try {
+      await onNetworkAccessAudit({
+        route_scope: scope,
+        client_identifier: clientIdentifier,
+        outcome,
+        deny_reason: denyReason,
+        path: request.url,
+      });
+    } catch {
+      // Auditing is best-effort observability, never a gate: a broken audit sink must not turn
+      // into either a crashed request or (worse) a silently-bypassed admission decision.
+    }
+  };
+
+  let clientAddress;
+  try {
+    clientAddress = resolveClientAddress({
+      directPeer: request.socket.remoteAddress,
+      forwardedForHeader: request.headers['x-forwarded-for'],
+      trustedProxyCidrs: trustedProxyCidrs || [],
+    }).address;
+  } catch (error) {
+    if (error instanceof AmbiguousForwardingChainError) {
+      await audit(null, 'deny', 'ambiguous_forwarding_chain');
+      throw new HttpAdapterError('client address could not be determined', 'policy_denied');
+    }
+    throw error;
+  }
+
+  if (publicOrigin) {
+    const origin = request.headers.origin;
+    if (typeof origin === 'string' && origin !== publicOrigin) {
+      await audit(clientAddress, 'deny', 'origin_mismatch');
+      throw new HttpAdapterError('origin is not permitted', 'policy_denied');
+    }
+  }
+
+  if (rateLimiter) {
+    const decision = rateLimiter.check(scope, clientAddress);
+    if (!decision.allowed) {
+      await audit(clientAddress, 'deny', 'rate_limited');
+      throw new HttpAdapterError('rate limit exceeded', 'rate_limited');
+    }
+  }
+
+  let actor;
+  try {
+    actor = await networkAuthentication.authenticate(request, scope);
+  } catch (error) {
+    await audit(clientAddress, 'deny', 'unauthorized');
+    throw error;
+  }
+
+  // State-changing admin routes require the CSRF token derived from the very admin credential
+  // that just authenticated -- a header a naive cross-site form submission cannot attach, only
+  // JavaScript that already holds the admin bearer token can.
+  if (routeEntry.protected && request.method !== 'GET') {
+    const expected = networkAuthentication.csrfTokenForScope('admin');
+    const supplied = request.headers['x-hseos-csrf-token'];
+    if (!timingSafeEqualStrings(Array.isArray(supplied) ? null : supplied, expected)) {
+      await audit(clientAddress, 'deny', 'csrf_mismatch');
+      throw new HttpAdapterError('CSRF token is missing or invalid', 'policy_denied');
+    }
+  }
+
+  const csrfToken = networkAuthentication.csrfTokenForScope(scope);
+  if (csrfToken) response.setHeader('x-hseos-csrf-token', csrfToken);
+
+  return actor;
+}
+
 function createHttpRouter(options = {}) {
   const services = options.services || {};
   const auth = options.auth || denyAnonymousAuth;
   const maximumBodyBytes = options.maximumBodyBytes || DEFAULT_BODY_LIMIT;
   const timeoutMs = options.timeoutMs || DEFAULT_TIMEOUT_MS;
+  const hardening = {
+    networkAuthentication: options.networkAuthentication || null,
+    rateLimiter: options.rateLimiter || null,
+    trustedProxyCidrs: options.trustedProxyCidrs || [],
+    publicOrigin: options.publicOrigin || null,
+    onNetworkAccessAudit: options.onNetworkAccessAudit || null,
+  };
   if (!Number.isSafeInteger(maximumBodyBytes) || maximumBodyBytes < 1024 || maximumBodyBytes > 2 * 1024 * 1024) {
     throw new TypeError('maximumBodyBytes is invalid');
   }
@@ -141,7 +244,11 @@ function createHttpRouter(options = {}) {
       if (!routeEntry) throw new HttpAdapterError('route was not found', 'not_found');
       const match = routeEntry.pattern.exec(url.pathname);
       let actor = null;
-      if (routeEntry.protected) actor = await auth.authenticate(request);
+      if (hardening.networkAuthentication) {
+        actor = await enforceNetworkHardening({ request, response, routeEntry, hardening });
+      } else if (routeEntry.protected) {
+        actor = await auth.authenticate(request);
+      }
       const body = routeEntry.body ? await readJsonBody(request, maximumBodyBytes) : null;
       const input = body ? { ...body } : {};
       if (routeEntry.id) {
