@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { ManagedNetworkProfileSchema, parseContract } = require('../../../packages/managed-governance-contracts');
 const { GovernanceRepositoryError } = require('./domain/repository-port');
 
 const DEFAULT_CONFIG_PATH = path.join('.hseos', 'config', 'managed-governance-sidecar.json');
@@ -75,13 +76,69 @@ function requiredEnvironment(environment, name, label, maximumBytes) {
   return value;
 }
 
+// The "network" section is entirely optional deployment configuration -- its absence is the
+// package default (loopback), and its presence is always an explicit operator choice, never
+// defaulted to a CIDR of any kind. Parsing routes through the same ManagedNetworkProfileSchema
+// the wire contract uses (packages/managed-governance-contracts), so a malformed or wildcard
+// allowlist entry is rejected here with the exact same rules FR-020/FR-021 already codify, not a
+// second, potentially divergent notion of "valid".
+function defaultLoopbackNetworkProfile() {
+  return parseContract(
+    ManagedNetworkProfileSchema,
+    {
+      schema_version: 1,
+      contract: 'managed-network-profile/v1',
+      profile: 'loopback',
+      listen_host: null,
+      port: null,
+      allowed_clients: [],
+      trusted_proxies: [],
+      transport: null,
+      authentication: null,
+      rate_limits: null,
+    },
+    'network profile',
+  );
+}
+
+function parseNetworkProfileConfig(rawNetwork) {
+  const network = exactKeys(
+    rawNetwork,
+    ['profile', 'listen_host', 'port', 'allowed_clients', 'trusted_proxies', 'transport', 'authentication', 'rate_limits'],
+    'network configuration',
+  );
+  let profile;
+  try {
+    profile = parseContract(
+      ManagedNetworkProfileSchema,
+      {
+        schema_version: 1,
+        contract: 'managed-network-profile/v1',
+        profile: network.profile,
+        listen_host: network.listen_host ?? null,
+        port: network.port ?? null,
+        allowed_clients: network.allowed_clients ?? [],
+        trusted_proxies: network.trusted_proxies ?? [],
+        transport: network.transport ?? null,
+        authentication: network.authentication ?? null,
+        rate_limits: network.rate_limits ?? null,
+      },
+      'network profile',
+    );
+  } catch (error) {
+    throw configurationError(`network configuration is invalid: ${error.message}`);
+  }
+  return profile;
+}
+
 function loadSidecarConfiguration(configPath, options = {}) {
   const { absolute, value } = readSecureJson(configPath);
   const environment = options.environment || process.env;
-  exactKeys(value, ['schema_version', 'mode', 'database', 'organization', 'control_plane', 'binding'], 'sidecar configuration');
+  exactKeys(value, ['schema_version', 'mode', 'database', 'organization', 'control_plane', 'binding', 'network'], 'sidecar configuration');
   if (value.schema_version !== 1 || value.mode !== 'managed-shadow') {
     throw configurationError('sidecar configuration supports only schema version 1 in managed-shadow mode');
   }
+  const network = value.network === undefined ? defaultLoopbackNetworkProfile() : parseNetworkProfileConfig(value.network);
 
   const database = exactKeys(
     value.database,
@@ -133,7 +190,15 @@ function loadSidecarConfiguration(configPath, options = {}) {
   }
 
   const controlPlane = exactKeys(value.control_plane, ['host', 'port', 'authentication_token_env'], 'control-plane configuration');
-  if (!LOOPBACK_HOSTS.has(controlPlane.host)) throw configurationError('control-plane host must be loopback');
+  if (network.profile === 'loopback') {
+    if (!LOOPBACK_HOSTS.has(controlPlane.host)) throw configurationError('control-plane host must be loopback');
+  } else if (controlPlane.host !== network.listen_host || controlPlane.port !== network.port) {
+    // FR-021: 0.0.0.0 (or any other shared-network host) is accepted only after the exact same
+    // complete validation as any other host -- there is no separate "just trust control_plane"
+    // path. Requiring control_plane and network to agree keeps a single source of truth for
+    // where the server actually binds; it never lets one section quietly widen the other.
+    throw configurationError('control-plane host and port must match the shared-network profile listener');
+  }
   const port = boundedInteger(controlPlane.port, 'control-plane port', 1, 65_535);
   const tokenEnvironment = environmentReference(controlPlane.authentication_token_env, 'authentication token environment reference');
   const token = requiredEnvironment(environment, tokenEnvironment, 'authentication token', 512);
@@ -150,7 +215,7 @@ function loadSidecarConfiguration(configPath, options = {}) {
   const trustedKeyIds = binding.trusted_key_ids.map((keyId) => identifier(keyId, 'binding trusted key id'));
   if (new Set(trustedKeyIds).size !== trustedKeyIds.length) throw configurationError('binding trusted key ids contain duplicates');
 
-  const endpointHost = controlPlane.host === '::1' ? '[::1]' : controlPlane.host;
+  const endpointHost = controlPlane.host.includes(':') ? `[${controlPlane.host}]` : controlPlane.host;
   return Object.freeze({
     config_path: absolute,
     mode: value.mode,
@@ -190,6 +255,7 @@ function loadSidecarConfiguration(configPath, options = {}) {
       trusted_key_ids: Object.freeze(trustedKeyIds),
       max_snapshot_age_seconds: boundedInteger(binding.max_snapshot_age_seconds, 'binding snapshot age', 60, 604_800),
     }),
+    network,
   });
 }
 
