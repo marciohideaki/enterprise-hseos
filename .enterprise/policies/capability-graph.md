@@ -1,17 +1,19 @@
 # Policy: Federated Platform Capability Graph
 
 **Status:** Canonical
-**Version:** 1.1.0
+**Version:** 2.0.0-draft
 **Effective:** 2026-08-24
 **Scope:** All Hideaki repositories, projects, and agents
 **Authority:** Enterprise Constitution §2.6; Platform Capability Governance Standard; ADR-0033
+
+> PCCP enforcement is pending the explicit ADR-0023/schema-2.0 human activation gate.
 
 ## Rule
 
 Every repository that owns or consumes a shared capability MUST participate in the
 versioned capability-graph federation. Before creating a local implementation, the actor
-MUST query the graph and record one intake outcome: `consume`, `extend`, `promote`, or
-`exception`.
+MUST query the graph and record one intake outcome: `consume`, `extend`, `promote`,
+`keep-local`, or `exception`.
 
 ## Canonical artifacts
 
@@ -88,12 +90,26 @@ CI MUST fail on:
 - paths escaping a repository root;
 - canonical semantic auto-promotion;
 - registry/fragment revision drift in enforced mode.
+- any deferred or unreachable registered fragment in official CI/release composition;
 - invalid edge endpoint types or untracked semantic relationships;
 - source-only packages presented as published or adopted;
 - `CONSUMED_BY` claims without a package, published artifact version and verified-install
   evidence.
 - reference sources with mutable revisions, mismatched origin, missing pinned evidence,
   unknown capabilities, or authority/adoption claims.
+- PCCP projections without a canonical contract dependency;
+- adapters without an implemented port contract;
+- packages/modules/adapters without their mandatory role/kind classifier;
+- reference implementations presented as production-ready;
+- official conformance gates that pass or skip when a canonical schema is unavailable;
+- product-to-core or Platform-Core-to-stack-adapter dependency inversion;
+- immutable-artifact consumption without an exact version;
+- breaking contract changes without a major version, migration guide, compatibility
+  evidence, and rollback.
+- changed JSON Schema contracts without an authenticated immutable baseline and automatic
+  compatibility diff; author-declared `change_kind` alone is insufficient.
+- initial Contract claims without immutable immediate-parent evidence proving the exact ID
+  was absent from the same fragment immediately before the authoritative revision.
 
 Repository reconciliation is progressively enforced. Legacy gaps require explicit,
 time-bounded migration exceptions; environment flags are not exceptions.

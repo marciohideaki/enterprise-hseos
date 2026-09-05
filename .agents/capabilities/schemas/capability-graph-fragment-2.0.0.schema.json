@@ -1,0 +1,309 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.hideakiservicos.com/hseos/capability-graph-fragment/2.0.0",
+  "title": "Federated Platform Capability Graph Fragment — PCCP candidate",
+  "description": "Proposed breaking successor to schema 1.0.0; activation requires ADR-0036 approval.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "fragment_id", "repository", "nodes", "edges", "findings"],
+  "properties": {
+    "schema_version": { "const": "2.0.0" },
+    "fragment_id": { "$ref": "#/$defs/id" },
+    "repository": { "$ref": "#/$defs/id" },
+    "nodes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/node" } },
+    "edges": { "type": "array", "items": { "$ref": "#/$defs/edge" } },
+    "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+      "minLength": 3,
+      "maxLength": 160
+    },
+    "path": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._ -]+(?:/[A-Za-z0-9._ -]+)*$"
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "name", "lifecycle"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": {
+          "enum": [
+            "Capability",
+            "Contract",
+            "Package",
+            "ArtifactVersion",
+            "Repository",
+            "Project",
+            "Module",
+            "Consumer",
+            "Adapter",
+            "Provider",
+            "PartnerApi",
+            "ErrorCatalog",
+            "Adr",
+            "Owner",
+            "Evidence",
+            "TestSuite",
+            "Exception"
+          ]
+        },
+        "name": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "lifecycle": { "enum": ["proposed", "available", "deprecated", "retired"] },
+        "path": { "$ref": "#/$defs/path" },
+        "uri": { "type": "string", "format": "uri" },
+        "version": { "type": "string", "minLength": 1 },
+        "kind": { "type": "string" },
+        "direction": { "enum": ["provided", "required", "not-applicable"] },
+        "role": { "type": "string" },
+        "expires_on": { "type": "string", "format": "date" },
+        "rationale": { "type": "string", "minLength": 1 },
+        "scope": { "type": "string", "minLength": 1 },
+        "migration_path": { "$ref": "#/$defs/path" },
+        "attributes": { "type": "object" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "type": { "enum": ["Repository", "Project"] } },
+            "required": ["type"]
+          },
+          "then": {
+            "required": ["attributes"],
+            "properties": {
+              "attributes": {
+                "type": "object",
+                "required": ["ownership_layer"],
+                "properties": {
+                  "ownership_layer": {
+                    "enum": ["platform-core", "stack-core", "product", "external"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "Contract" } }, "required": ["type"] },
+          "then": {
+            "required": ["kind", "direction", "attributes"],
+            "properties": {
+              "kind": { "enum": ["data", "behavioral", "api", "event", "configuration", "error-catalog", "port"] },
+              "direction": { "enum": ["provided", "required", "not-applicable"] },
+              "attributes": {
+                "type": "object",
+                "properties": {
+                  "initial_contract": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["repository_uri", "parent_revision", "fragment_path", "parent_state"],
+                    "properties": {
+                      "repository_uri": { "type": "string", "format": "uri" },
+                      "parent_revision": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+                      "fragment_path": { "$ref": "#/$defs/path" },
+                      "parent_state": { "enum": ["present", "absent"] },
+                      "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+                    },
+                    "if": { "properties": { "parent_state": { "const": "present" } }, "required": ["parent_state"] },
+                    "then": { "required": ["sha256"] },
+                    "else": { "not": { "required": ["sha256"] } }
+                  },
+                  "change_kind": { "enum": ["additive", "breaking"] },
+                  "rollback_path": { "$ref": "#/$defs/path" },
+                  "compatibility_evidence": { "$ref": "#/$defs/path" },
+                  "compatibility_baseline": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["contract_id", "repository_uri", "revision", "fragment_path", "path", "sha256"],
+                    "properties": {
+                      "contract_id": { "$ref": "#/$defs/id" },
+                      "repository_uri": { "type": "string", "format": "uri" },
+                      "revision": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+                      "fragment_path": { "$ref": "#/$defs/path" },
+                      "path": { "$ref": "#/$defs/path" },
+                      "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+                    }
+                  }
+                },
+                "oneOf": [
+                  {
+                    "required": ["initial_contract"],
+                    "not": { "required": ["compatibility_baseline"] }
+                  },
+                  {
+                    "required": ["compatibility_baseline"],
+                    "not": { "required": ["initial_contract"] }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "Module" } }, "required": ["type"] },
+          "then": {
+            "oneOf": [
+              {
+                "required": ["role"],
+                "properties": {
+                  "role": { "enum": ["specification", "policy", "reference-implementation", "conformance-suite"] }
+                }
+              },
+              {
+                "required": ["rationale", "migration_path", "attributes"],
+                "not": { "required": ["role"] },
+                "properties": {
+                  "lifecycle": { "enum": ["deprecated", "retired"] },
+                  "rationale": { "type": "string", "minLength": 1 },
+                  "migration_path": { "$ref": "#/$defs/path" },
+                  "attributes": {
+                    "type": "object",
+                    "required": ["representation_migrated_to", "rollback_path", "compatibility_evidence"],
+                    "properties": {
+                      "representation_migrated_to": { "$ref": "#/$defs/id" },
+                      "rollback_path": { "$ref": "#/$defs/path" },
+                      "compatibility_evidence": { "$ref": "#/$defs/path" }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "Package" } }, "required": ["type"] },
+          "then": {
+            "required": ["role", "attributes"],
+            "properties": {
+              "role": { "enum": ["abstractions", "projection", "implementation", "adapter", "composition"] },
+              "attributes": {
+                "type": "object",
+                "required": ["distribution_state", "publication_state"],
+                "properties": {
+                  "distribution_state": { "enum": ["source-only", "ci-validated", "published"] },
+                  "publication_state": { "enum": ["unpublished", "published"] }
+                },
+                "not": {
+                  "anyOf": [{ "required": ["installation_state"] }, { "required": ["adoption_state"] }]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "Adapter" } }, "required": ["type"] },
+          "then": {
+            "required": ["kind"],
+            "properties": {
+              "kind": { "enum": ["persistence", "messaging", "policy-engine", "identity", "cache", "provider", "transport"] }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "ArtifactVersion" } }, "required": ["type"] },
+          "then": {
+            "required": ["version", "attributes"],
+            "properties": {
+              "version": {
+                "type": "string",
+                "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+              },
+              "attributes": {
+                "type": "object",
+                "required": ["immutable"],
+                "properties": { "immutable": { "const": true } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "Consumer" } }, "required": ["type"] },
+          "then": {
+            "required": ["attributes"],
+            "properties": {
+              "attributes": {
+                "type": "object",
+                "required": ["installation_state", "adoption_state"],
+                "properties": {
+                  "installation_state": { "enum": ["not-installed", "verified-install"] },
+                  "adoption_state": { "enum": ["not-adopted", "adopted"] },
+                  "artifact_version_id": { "$ref": "#/$defs/id" }
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": { "installation_state": { "const": "verified-install" } },
+                      "required": ["installation_state"]
+                    },
+                    "then": { "required": ["artifact_version_id"] }
+                  },
+                  {
+                    "if": {
+                      "properties": { "adoption_state": { "const": "adopted" } },
+                      "required": ["adoption_state"]
+                    },
+                    "then": {
+                      "required": ["artifact_version_id"],
+                      "properties": { "installation_state": { "const": "verified-install" } }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "Exception" } }, "required": ["type"] },
+          "then": { "required": ["expires_on", "rationale", "scope", "migration_path"] }
+        }
+      ]
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "from", "to", "repository"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": {
+          "enum": [
+            "DEFINED_BY",
+            "OWNED_BY",
+            "IMPLEMENTED_BY",
+            "CONSUMED_BY",
+            "EXTENDED_BY",
+            "VALIDATED_BY",
+            "PUBLISHED_AS",
+            "GOVERNED_BY",
+            "DEPENDS_ON",
+            "SUPERSEDES",
+            "EXCEPTED_BY"
+          ]
+        },
+        "from": { "$ref": "#/$defs/id" },
+        "to": { "$ref": "#/$defs/id" },
+        "repository": { "$ref": "#/$defs/id" },
+        "evidence": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "status", "sources", "reason", "provenance"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "kind": { "enum": ["CandidateEdge", "DriftFinding"] },
+        "status": { "enum": ["pending-review", "rejected", "promoted"] },
+        "sources": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+        "reason": { "type": "string", "minLength": 1 },
+        "score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "provenance": { "type": "string", "minLength": 1 },
+        "review_evidence": { "$ref": "#/$defs/id" },
+        "promoted_edge_id": { "$ref": "#/$defs/id" }
+      }
+    }
+  }
+}

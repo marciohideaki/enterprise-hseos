@@ -1,0 +1,49 @@
+[
+  { "id": "missing-owner", "expected": "exactly one OWNED_BY" },
+  { "id": "available-without-contract", "expected": "missing a canonical Contract definition" },
+  { "id": "available-without-specification", "expected": "missing a specification Module definition" },
+  { "id": "available-without-implementation", "expected": "missing IMPLEMENTED_BY" },
+  { "id": "available-without-conformance", "expected": "missing VALIDATED_BY" },
+  { "id": "projection-without-contract", "expected": "must DEPENDS_ON a canonical Contract" },
+  { "id": "adapter-without-port", "expected": "must DEPENDS_ON a port Contract" },
+  { "id": "package-without-role", "expected": "role is required" },
+  {
+    "id": "legacy-projection-tombstone-without-supersedes",
+    "expected": "requires exactly one matching projection Package SUPERSEDES edge"
+  },
+  {
+    "id": "cross-type-supersedes-wrong-package-role",
+    "expected": "cross-type SUPERSEDES is restricted"
+  },
+  {
+    "id": "active-legacy-projection-tombstone",
+    "expected": "governed legacy projection tombstone"
+  },
+  { "id": "reference-implementation-production-ready", "expected": "cannot be production-ready" },
+  { "id": "relationship-without-evidence", "expected": "requires tracked evidence" },
+  { "id": "dependency-cycle", "expected": "cycle detected" },
+  { "id": "product-to-core-inversion", "expected": "ownership inversion" },
+  { "id": "source-only-published", "expected": "cannot be PUBLISHED_AS" },
+  {
+    "id": "baseline-does-not-match-contract-path",
+    "expected": "baseline must identify the exact Contract id and canonical path"
+  },
+  {
+    "id": "declared-breaking-with-unrelated-baseline",
+    "expected": "baseline must identify the exact Contract id and canonical path"
+  },
+  { "id": "published-presented-as-adopted", "expected": "Package cannot carry consumer installation or adoption state" },
+  { "id": "node-without-traceable-evidence", "expected": "has no traceable path, URI, or evidenced relationship" }
+  ,
+  { "id": "implementation-is-specification", "expected": "target is not an implementation" },
+  { "id": "published-distribution-unpublished", "expected": "must claim publication_state=published" },
+  { "id": "repository-without-ownership-layer", "expected": "ownership_layer is required" }
+  ,
+  { "id": "published-without-artifact", "expected": "requires PUBLISHED_AS ArtifactVersion evidence" },
+  { "id": "adopted-without-installation", "expected": "adoption requires installation_state=verified-install" }
+  ,
+  {
+    "id": "verified-install-without-publication-chain",
+    "expected": "verified installation has no package dependency publishing"
+  }
+]

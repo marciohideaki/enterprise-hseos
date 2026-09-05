@@ -1,10 +1,13 @@
 # Platform Capability Governance Standard
 
 **Status:** Mandatory
-**Version:** 1.1.0
+**Version:** 2.0.0-draft
 **Effective:** 2026-08-24
 **Scope:** All repositories, projects, modules, packages, contracts, and agents
 **Authority:** Enterprise Constitution §2.6 and ADR-0033
+
+> PCCP additions are proposed by ADR-0023 and are not active until the owner accepts that
+> ADR and activates graph schema 2.0/intake v3. Existing v1.1 obligations remain in force.
 
 ## 1. Purpose
 
@@ -17,6 +20,26 @@ validating, and retiring shared capabilities without creating local competing tr
 Every graph entity and relationship MUST have an immutable, globally unique, lowercase
 identifier. Renaming a display label MUST NOT change the identifier. Replacement uses a
 `SUPERSEDES` edge and the deprecation lifecycle; identifiers are never recycled.
+
+### 2.1 Platform Capability Contract Pattern
+
+PCCP's dependency direction is Specification -> Contracts/Ports -> Policies -> Stack
+Projections -> Technology Adapters -> Application Composition. Reverse dependencies are
+forbidden. Products depend on stack cores, stack cores depend on Platform Core, adapters
+depend on ports/contracts, Core never depends on products, and Platform Core never depends
+on stack adapters.
+
+Use validated classifiers instead of parallel node types: `Contract.kind` is `data`,
+`behavioral`, `api`, `event`, `configuration`, `error-catalog`, or `port`; port direction is
+`provided` or `required` (otherwise `not-applicable`); `Module.role` is `specification`,
+`policy`, `reference-implementation`, or `conformance-suite`; `Package.role` is
+`abstractions`, `projection`, `implementation`, `adapter`, or `composition`; and
+`Adapter.kind` is `persistence`, `messaging`, `policy-engine`, `identity`, `cache`,
+`provider`, or `transport`.
+
+A projection MUST depend on its canonical contract. An adapter MUST depend on a port
+contract. A reference implementation MUST NOT claim production readiness. Concrete choices
+belong only to an application composition root.
 
 ## 3. Canonical node types
 
@@ -40,22 +63,32 @@ Edges MUST reference existing nodes. `DEPENDS_ON` cycles are forbidden. Relation
 cannot be derived directly from tracked repository structure MUST reference an `Evidence`
 node.
 
-Edge endpoints are typed: a capability is `DEFINED_BY` a contract or error catalog,
-`IMPLEMENTED_BY` a package or module, `EXTENDED_BY` an adapter, and `CONSUMED_BY` a
-consumer; `PUBLISHED_AS` links a package to an artifact version. `VALIDATED_BY` always
-targets a test suite, `GOVERNED_BY` an ADR, and `EXCEPTED_BY` an exception.
+Edge endpoints are typed: a capability is `DEFINED_BY` both canonical contracts and a
+`Module(role=specification)` (with error catalogs where applicable); `IMPLEMENTED_BY` may
+target a `Module(role=policy|reference-implementation)`, a
+`Package(role=implementation|adapter)`, or an `Adapter`. A projection or specification is
+never implementation evidence. `EXTENDED_BY` targets an adapter and `CONSUMED_BY` a
+consumer; `PUBLISHED_AS` links a package to an immutable artifact version. `VALIDATED_BY`
+always targets a test suite, `GOVERNED_BY` an ADR, and `EXCEPTED_BY` an exception.
 
 `source-only`, local-path and local-tarball dependencies are compatibility evidence. They
 MUST NOT carry `PUBLISHED_AS` or `CONSUMED_BY`. A `CONSUMED_BY` edge is valid only when the
-consumer records `adoption_state=verified-install` plus the installed `ArtifactVersion`,
-depends on the package, and that package publishes the same artifact version.
+consumer separately records `installation_state=verified-install` and
+`adoption_state=adopted`, retains the installed immutable `ArtifactVersion`, depends on the
+package, and that package publishes the same artifact version. A Consumer may record
+`verified-install` with `not-adopted` before real use is proven; `CONSUMED_BY` requires the
+later `adopted` state. Packages never carry consumer installation or adoption state. A
+Package declaring `published` MUST have an evidenced `PUBLISHED_AS` edge to an immutable
+ArtifactVersion.
 
 ## 5. Lifecycle
 
 Canonical lifecycle states are `proposed`, `available`, `deprecated`, and `retired`.
 
 - `proposed`: discovery and contract design only; not consumable as a stable platform API.
-- `available`: owner, contract or explicit exemption, implementation, and validation exist.
+- `available`: owner, specification module, canonical contract, implementation, and
+  conformance validation exist. An exception may govern a temporary deviation but cannot
+  manufacture missing availability evidence.
 - `deprecated`: still consumable inside a declared migration window.
 - `retired`: no new consumption; retained for audit and supersedence history.
 
@@ -78,10 +111,20 @@ Before implementing a potentially shared concern, a human or agent MUST record:
 
 1. exact lookup by identifier, contract, package, owner, and error catalog;
 2. semantic discovery of adjacent or duplicate capabilities;
-3. an outcome: `consume`, `extend`, `promote`, or `exception`;
+3. an outcome: `consume`, `extend`, `promote`, `keep-local`, or `exception`;
 4. the governing capability and contract when consuming or extending;
 5. owner, neutral contract, projections, and conformance plan when promoting;
 6. an approved exception when local duplication is unavoidable.
+
+Promotion additionally records capability ID, owner, specification, contracts,
+provided/required ports, policies, planned projections, known adapters, reference
+implementation, conformance suite, candidate consumers, compatibility, failure mode,
+deterministic verification, rollback, graph update, publication, and adoption plans.
+
+`consume` requires a published immutable artifact and verified installation. `extend`
+requires a documented port or adapter boundary. `promote` requires two real consumers or an
+accepted strategic ADR. `keep-local` and `exception` require owner, scope, approval, expiry,
+and migration; keep-local additionally declares a product-local boundary.
 
 Lack of a semantic index does not authorize local implementation. Exact graph lookup and
 the deterministic intake contract remain mandatory.
@@ -98,6 +141,10 @@ the affected capability.
 
 Semantic discovery is advisory. It may create reviewable `CandidateEdge` and `DriftFinding`
 records but MUST NOT mutate canonical nodes or edges.
+
+Official CI/release conformance fails when a canonical schema is unavailable. Development
+mode may emit an explicit skipped diagnostic, but it is never an official gate. Every
+conformance suite carries positive and negative fixtures.
 
 ### 8.1 Portfolio reference corpus
 
@@ -129,6 +176,10 @@ projections and MUST NOT maintain independent copies of this rule.
 A capability is not `available` solely because documentation or code exists. Availability
 requires a versioned contract or approved exemption, an implementation surface, ownership,
 and positive plus negative conformance evidence.
+
+Repository, contract, package, and immutable artifact versions are distinct SemVer 2.0
+surfaces. Experimental `0.0.1 -> 0.0.2` is a patch increment. Publication policy includes
+npm, Maven, Go modules, and NuGet; publication never implies installation or adoption.
 
 Violations require an ADR or a time-bounded exception. Silent local copies are
 non-compliant.

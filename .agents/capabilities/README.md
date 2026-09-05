@@ -148,11 +148,17 @@ The capability graph and discovery corpus are distinct governance surfaces:
 - `registry.yaml` composes repository-owned graph fragments after deterministic validation.
 - `reference-corpus.json` pins the portfolio sources that capability discovery must inspect. It is discovery-only and cannot establish ownership, publication, or adoption.
 - `schemas/` defines the machine contracts for both surfaces.
+- `schemas/capability-graph-fragment-2.0.0.schema.json` is the non-active PCCP candidate;
+  schema 1.0 remains the registry pin until the ADR-0036 human gate.
 
 ```bash
 node scripts/governance/validate-capability-graph.js --json
 node scripts/governance/validate-capability-reference-corpus.js --json
 node scripts/governance/validate-capability-reference-corpus.js --query messaging.event-envelope
 ```
+
+Local graph discovery may report explicitly deferred delegated fragments. Official
+CI/release composition MUST pass `--require-all-fragments` and provide a checkout for every
+registered immutable revision; a partial graph is never an official green gate.
 
 Use `--repository-root repo.id=/absolute/path --require-all` to verify every pinned source. Candidate coverage is not adoption: verified consumption requires a repository-owned fragment, an immutable package version, and installation evidence.
