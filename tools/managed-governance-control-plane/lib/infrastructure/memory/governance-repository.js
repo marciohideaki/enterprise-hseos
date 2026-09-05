@@ -6,13 +6,65 @@ const { buildImportReport } = require('../../application/catalog-parity');
 const {
   GovernanceRepositoryError,
   artifactMaterialization,
+  buildEvidenceMutation,
   buildOrganizationMutation,
   parseRepositoryIdentifier,
   parseRepositoryUuid,
   prepareEnsureOrganizationCommand,
   prepareImportBatchCommand,
+  prepareRecordNetworkAccessAuditCommand,
+  prepareRecordPatchBundleCommand,
+  prepareRecordReadinessEvaluationCommand,
+  prepareRecordRecoveryRehearsalCommand,
+  prepareRecordReleaseAttemptCommand,
+  prepareRecordShadowReceiptCommand,
   prepareRollbackImportCommand,
 } = require('../../domain/repository-port');
+
+const EVIDENCE_KINDS = Object.freeze({
+  releasePublicationAttempts: {
+    storeKey: 'releasePublicationAttempts',
+    idField: 'release_publication_attempt_id',
+    eventType: 'governance.release_publication_attempt.recorded',
+    aggregateType: 'release_publication_attempt',
+    topic: 'governance.release_publication_attempt.recorded',
+  },
+  patchPublicationBundles: {
+    storeKey: 'patchPublicationBundles',
+    idField: 'patch_publication_bundle_id',
+    eventType: 'governance.patch_publication_bundle.generated',
+    aggregateType: 'patch_publication_bundle',
+    topic: 'governance.patch_publication_bundle.generated',
+  },
+  shadowReceipts: {
+    storeKey: 'shadowReceipts',
+    idField: 'shadow_receipt_id',
+    eventType: 'governance.shadow_receipt.recorded',
+    aggregateType: 'shadow_receipt',
+    topic: 'governance.shadow_receipt.recorded',
+  },
+  readinessEvaluations: {
+    storeKey: 'readinessEvaluations',
+    idField: 'readiness_evaluation_id',
+    eventType: 'governance.readiness_evaluated',
+    aggregateType: 'readiness_evaluation',
+    topic: 'governance.readiness_evaluated',
+  },
+  recoveryRehearsals: {
+    storeKey: 'recoveryRehearsals',
+    idField: 'recovery_rehearsal_id',
+    eventType: 'governance.recovery_rehearsed',
+    aggregateType: 'recovery_rehearsal',
+    topic: 'governance.recovery_rehearsed',
+  },
+  networkAccessAudit: {
+    storeKey: 'networkAccessAudit',
+    idField: 'network_access_audit_id',
+    eventType: 'governance.network_access_denied_or_allowed',
+    aggregateType: 'network_access_audit',
+    topic: 'governance.network_access.audited',
+  },
+});
 
 function clone(value) {
   return value === null || value === undefined ? value : structuredClone(value);
@@ -31,6 +83,12 @@ class MemoryGovernanceRepository {
     this.importBatches = new Map();
     this.batchKeys = new Map();
     this.catalogSnapshots = new Map();
+    this.releasePublicationAttempts = new Map();
+    this.patchPublicationBundles = new Map();
+    this.shadowReceipts = new Map();
+    this.readinessEvaluations = new Map();
+    this.recoveryRehearsals = new Map();
+    this.networkAccessAudit = new Map();
     this.closed = false;
     this.queue = Promise.resolve();
   }
@@ -481,6 +539,93 @@ class MemoryGovernanceRepository {
     this._assertOpen();
     const parsedOrganizationId = parseRepositoryIdentifier(organizationId, 'organization id');
     return deepFreeze(clone(this.outboxMessages.filter((message) => message.organization_id === parsedOrganizationId)));
+  }
+
+  async _recordEvidence(kind, prepared) {
+    this._assertOpen();
+    const config = EVIDENCE_KINDS[kind];
+    return this._enqueue(async () => {
+      this._assertOpen();
+      const store = this[config.storeKey];
+      const existing = store.get(prepared.natural_key);
+      if (existing) {
+        if (existing.command_digest !== prepared.command_digest) {
+          throw new GovernanceRepositoryError(
+            'evidence was already recorded with different content',
+            'MANAGED_GOVERNANCE_IDEMPOTENCY_CONFLICT',
+          );
+        }
+        return deepFreeze(clone(existing.record));
+      }
+      const mutation = buildEvidenceMutation({
+        kind,
+        prepared,
+        record: prepared.record,
+        eventType: config.eventType,
+        aggregateType: config.aggregateType,
+        topic: config.topic,
+      });
+      store.set(prepared.natural_key, { command_digest: prepared.command_digest, record: clone(mutation.record) });
+      this.auditEvents.push(clone(mutation.auditEvent));
+      this.outboxMessages.push(clone(mutation.outboxMessage));
+      return deepFreeze(clone(mutation.record));
+    });
+  }
+
+  async _getEvidence(kind, organizationId, id) {
+    this._assertOpen();
+    const config = EVIDENCE_KINDS[kind];
+    const parsedOrganizationId = parseRepositoryIdentifier(organizationId, 'organization id');
+    for (const entry of this[config.storeKey].values()) {
+      if (entry.record.organization_id === parsedOrganizationId && entry.record[config.idField] === id) {
+        return deepFreeze(clone(entry.record));
+      }
+    }
+    return null;
+  }
+
+  async recordReleasePublicationAttempt(command) {
+    return this._recordEvidence('releasePublicationAttempts', prepareRecordReleaseAttemptCommand(command, { clock: this.clock }));
+  }
+
+  async getReleasePublicationAttempt(organizationId, releasePublicationAttemptId) {
+    return this._getEvidence('releasePublicationAttempts', organizationId, releasePublicationAttemptId);
+  }
+
+  async recordPatchPublicationBundle(command) {
+    return this._recordEvidence('patchPublicationBundles', prepareRecordPatchBundleCommand(command, { clock: this.clock }));
+  }
+
+  async getPatchPublicationBundle(organizationId, patchPublicationBundleId) {
+    return this._getEvidence('patchPublicationBundles', organizationId, patchPublicationBundleId);
+  }
+
+  async recordShadowReceipt(command) {
+    return this._recordEvidence('shadowReceipts', prepareRecordShadowReceiptCommand(command, { clock: this.clock }));
+  }
+
+  async getShadowReceipt(organizationId, shadowReceiptId) {
+    return this._getEvidence('shadowReceipts', organizationId, shadowReceiptId);
+  }
+
+  async recordReadinessEvaluation(command) {
+    return this._recordEvidence('readinessEvaluations', prepareRecordReadinessEvaluationCommand(command, { clock: this.clock }));
+  }
+
+  async getReadinessEvaluation(organizationId, readinessEvaluationId) {
+    return this._getEvidence('readinessEvaluations', organizationId, readinessEvaluationId);
+  }
+
+  async recordRecoveryRehearsal(command) {
+    return this._recordEvidence('recoveryRehearsals', prepareRecordRecoveryRehearsalCommand(command, { clock: this.clock }));
+  }
+
+  async getRecoveryRehearsal(organizationId, recoveryRehearsalId) {
+    return this._getEvidence('recoveryRehearsals', organizationId, recoveryRehearsalId);
+  }
+
+  async recordNetworkAccessAudit(command) {
+    return this._recordEvidence('networkAccessAudit', prepareRecordNetworkAccessAuditCommand(command, { clock: this.clock }));
   }
 
   async close() {

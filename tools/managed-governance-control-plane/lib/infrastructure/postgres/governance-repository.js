@@ -11,6 +11,12 @@ const {
   parseRepositoryUuid,
   prepareEnsureOrganizationCommand,
   prepareImportBatchCommand,
+  prepareRecordNetworkAccessAuditCommand,
+  prepareRecordPatchBundleCommand,
+  prepareRecordReadinessEvaluationCommand,
+  prepareRecordRecoveryRehearsalCommand,
+  prepareRecordReleaseAttemptCommand,
+  prepareRecordShadowReceiptCommand,
   prepareRollbackImportCommand,
 } = require('../../domain/repository-port');
 
@@ -694,6 +700,206 @@ class PostgresGovernanceRepository {
       'SELECT outbox_message_id, organization_id, topic, aggregate_type, aggregate_id, payload, created_at, delivered_at FROM hseos_governance.outbox_messages WHERE organization_id = $1 ORDER BY created_at, outbox_message_id',
       [parsedOrganizationId],
     );
+  }
+
+  async _insertAuditAndOutbox(client, prepared, eventType, aggregateType, topic) {
+    await client.query(
+      'INSERT INTO hseos_governance.audit_events(audit_event_id, organization_id, event_type, aggregate_type, aggregate_id, correlation_id, causation_id, actor, payload, occurred_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9::jsonb, $10)',
+      [
+        prepared.audit_event_id,
+        prepared.organization_id,
+        eventType,
+        aggregateType,
+        prepared.record_id,
+        prepared.correlation_id,
+        prepared.causation_id,
+        JSON.stringify(prepared.actor),
+        JSON.stringify({ kind: aggregateType, record_id: prepared.record_id }),
+        prepared.occurred_at,
+      ],
+    );
+    await client.query(
+      'INSERT INTO hseos_governance.outbox_messages(outbox_message_id, organization_id, topic, aggregate_type, aggregate_id, payload, created_at) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)',
+      [
+        prepared.outbox_message_id,
+        prepared.organization_id,
+        topic,
+        aggregateType,
+        prepared.record_id,
+        JSON.stringify({ audit_event_id: prepared.audit_event_id, record_id: prepared.record_id }),
+        prepared.occurred_at,
+      ],
+    );
+  }
+
+  // Idempotency is resolved through the same command_receipts table ensureOrganization and
+  // applyImportBatch use, keyed by the evidence's natural key instead of a caller-supplied
+  // idempotency_key. The receipt stores the digest and result as originally computed, so a
+  // retry never re-derives a digest from a row PostgreSQL has round-tripped (numeric columns
+  // come back as strings, not numbers, which would otherwise make canonical re-digesting of a
+  // fetched row silently diverge from the digest computed at write time).
+  async _recordEvidenceRow({ prepared, table, columns, jsonColumns, eventType, aggregateType, topic }) {
+    return this._transaction(prepared.organization_id, async (client) => {
+      await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [prepared.natural_key]);
+      const receiptResult = await client.query(
+        'SELECT command_digest, result FROM hseos_governance.command_receipts WHERE organization_id = $1 AND idempotency_key = $2',
+        [prepared.organization_id, prepared.natural_key],
+      );
+      const receipt = receiptResult.rows[0];
+      if (receipt) {
+        if (receipt.command_digest !== prepared.command_digest) {
+          throw new GovernanceRepositoryError(
+            'evidence was already recorded with different content',
+            'MANAGED_GOVERNANCE_IDEMPOTENCY_CONFLICT',
+          );
+        }
+        return deepFreeze(structuredClone(receipt.result));
+      }
+      const values = columns.map((column) => {
+        const value = prepared.record[column];
+        return jsonColumns.has(column) ? JSON.stringify(value) : value;
+      });
+      const placeholders = columns.map((column, index) => (jsonColumns.has(column) ? `$${index + 1}::jsonb` : `$${index + 1}`));
+      const insertResult = await client.query(
+        `INSERT INTO hseos_governance.${table}(${columns.join(', ')}) VALUES (${placeholders.join(', ')}) RETURNING *`,
+        values,
+      );
+      await this._insertAuditAndOutbox(client, prepared, eventType, aggregateType, topic);
+      const record = freezeRows(insertResult.rows)[0];
+      await client.query(
+        'INSERT INTO hseos_governance.command_receipts(command_receipt_id, organization_id, idempotency_key, command_digest, result, created_at) VALUES ($1, $2, $3, $4, $5::jsonb, $6)',
+        [randomUUID(), prepared.organization_id, prepared.natural_key, prepared.command_digest, JSON.stringify(record), prepared.occurred_at],
+      );
+      return record;
+    });
+  }
+
+  async recordReleasePublicationAttempt(command) {
+    const prepared = prepareRecordReleaseAttemptCommand(command, { clock: this.clock });
+    return this._recordEvidenceRow({
+      prepared,
+      table: 'release_publication_attempts',
+      columns: Object.keys(prepared.record),
+      jsonColumns: new Set(),
+      eventType: 'governance.release_publication_attempt.recorded',
+      aggregateType: 'release_publication_attempt',
+      topic: 'governance.release_publication_attempt.recorded',
+    });
+  }
+
+  async getReleasePublicationAttempt(organizationId, releasePublicationAttemptId) {
+    const parsedOrganizationId = parseRepositoryIdentifier(organizationId, 'organization id');
+    const rows = await this._readTenant(
+      parsedOrganizationId,
+      'SELECT * FROM hseos_governance.release_publication_attempts WHERE organization_id = $1 AND release_publication_attempt_id = $2',
+      [parsedOrganizationId, releasePublicationAttemptId],
+    );
+    return rows[0] || null;
+  }
+
+  async recordPatchPublicationBundle(command) {
+    const prepared = prepareRecordPatchBundleCommand(command, { clock: this.clock });
+    return this._recordEvidenceRow({
+      prepared,
+      table: 'patch_publication_bundles',
+      columns: Object.keys(prepared.record),
+      jsonColumns: new Set(['file_operations']),
+      eventType: 'governance.patch_publication_bundle.generated',
+      aggregateType: 'patch_publication_bundle',
+      topic: 'governance.patch_publication_bundle.generated',
+    });
+  }
+
+  async getPatchPublicationBundle(organizationId, patchPublicationBundleId) {
+    const parsedOrganizationId = parseRepositoryIdentifier(organizationId, 'organization id');
+    const rows = await this._readTenant(
+      parsedOrganizationId,
+      'SELECT * FROM hseos_governance.patch_publication_bundles WHERE organization_id = $1 AND patch_publication_bundle_id = $2',
+      [parsedOrganizationId, patchPublicationBundleId],
+    );
+    return rows[0] || null;
+  }
+
+  async recordShadowReceipt(command) {
+    const prepared = prepareRecordShadowReceiptCommand(command, { clock: this.clock });
+    return this._recordEvidenceRow({
+      prepared,
+      table: 'shadow_receipts',
+      columns: Object.keys(prepared.record),
+      jsonColumns: new Set(),
+      eventType: 'governance.shadow_receipt.recorded',
+      aggregateType: 'shadow_receipt',
+      topic: 'governance.shadow_receipt.recorded',
+    });
+  }
+
+  async getShadowReceipt(organizationId, shadowReceiptId) {
+    const parsedOrganizationId = parseRepositoryIdentifier(organizationId, 'organization id');
+    const rows = await this._readTenant(
+      parsedOrganizationId,
+      'SELECT * FROM hseos_governance.shadow_receipts WHERE organization_id = $1 AND shadow_receipt_id = $2',
+      [parsedOrganizationId, shadowReceiptId],
+    );
+    return rows[0] || null;
+  }
+
+  async recordReadinessEvaluation(command) {
+    const prepared = prepareRecordReadinessEvaluationCommand(command, { clock: this.clock });
+    return this._recordEvidenceRow({
+      prepared,
+      table: 'readiness_evaluations',
+      columns: Object.keys(prepared.record),
+      jsonColumns: new Set(['repositories_covered', 'repositories_missing_evidence', 'adapters_covered', 'adapters_missing_evidence']),
+      eventType: 'governance.readiness_evaluated',
+      aggregateType: 'readiness_evaluation',
+      topic: 'governance.readiness_evaluated',
+    });
+  }
+
+  async getReadinessEvaluation(organizationId, readinessEvaluationId) {
+    const parsedOrganizationId = parseRepositoryIdentifier(organizationId, 'organization id');
+    const rows = await this._readTenant(
+      parsedOrganizationId,
+      'SELECT * FROM hseos_governance.readiness_evaluations WHERE organization_id = $1 AND readiness_evaluation_id = $2',
+      [parsedOrganizationId, readinessEvaluationId],
+    );
+    return rows[0] || null;
+  }
+
+  async recordRecoveryRehearsal(command) {
+    const prepared = prepareRecordRecoveryRehearsalCommand(command, { clock: this.clock });
+    return this._recordEvidenceRow({
+      prepared,
+      table: 'recovery_rehearsals',
+      columns: Object.keys(prepared.record),
+      jsonColumns: new Set(),
+      eventType: 'governance.recovery_rehearsed',
+      aggregateType: 'recovery_rehearsal',
+      topic: 'governance.recovery_rehearsed',
+    });
+  }
+
+  async getRecoveryRehearsal(organizationId, recoveryRehearsalId) {
+    const parsedOrganizationId = parseRepositoryIdentifier(organizationId, 'organization id');
+    const rows = await this._readTenant(
+      parsedOrganizationId,
+      'SELECT * FROM hseos_governance.recovery_rehearsals WHERE organization_id = $1 AND recovery_rehearsal_id = $2',
+      [parsedOrganizationId, recoveryRehearsalId],
+    );
+    return rows[0] || null;
+  }
+
+  async recordNetworkAccessAudit(command) {
+    const prepared = prepareRecordNetworkAccessAuditCommand(command, { clock: this.clock });
+    return this._recordEvidenceRow({
+      prepared,
+      table: 'network_access_audit',
+      columns: Object.keys(prepared.record),
+      jsonColumns: new Set(),
+      eventType: 'governance.network_access.audited',
+      aggregateType: 'network_access_audit',
+      topic: 'governance.network_access.audited',
+    });
   }
 
   async close() {

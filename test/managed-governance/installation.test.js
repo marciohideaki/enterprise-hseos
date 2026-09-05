@@ -177,7 +177,7 @@ test('database-backed composition reports ready health and serves the seeded cat
   });
   const pool = {
     async query() {
-      return { rows: [{ version: '0001' }, { version: '0002' }, { version: '0003' }, { version: '0004' }] };
+      return { rows: [{ version: '0001' }, { version: '0002' }, { version: '0003' }, { version: '0004' }, { version: '0005' }] };
     },
   };
   const composition = await createDatabaseBackedControlPlane({

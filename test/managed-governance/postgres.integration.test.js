@@ -52,8 +52,8 @@ test(
     try {
       const first = await migrate(pool);
       const second = await migrate(pool);
-      assert.equal(first.current_version, '0004');
-      assert.deepEqual(second, { applied: [], current_version: '0004' });
+      assert.equal(first.current_version, '0005');
+      assert.deepEqual(second, { applied: [], current_version: '0005' });
 
       await context.test('creates every core table with fail-closed tenant RLS', async () => {
         const expectedTables = [
@@ -71,18 +71,24 @@ test(
           'governance_rules',
           'import_batch_items',
           'import_batches',
+          'network_access_audit',
           'organizations',
           'outbox_messages',
+          'patch_publication_bundles',
           'project_assignments',
           'projection_checkpoints',
           'publication_requests',
+          'readiness_evaluations',
+          'recovery_rehearsals',
           'release_items',
+          'release_publication_attempts',
           'release_signatures',
           'repositories',
           'review_queue',
           'revocations',
           'rule_scopes',
           'session_leases',
+          'shadow_receipts',
           'subjects',
         ];
         const tables = await pool.query(
@@ -115,6 +121,130 @@ test(
         async () => new PostgresGovernanceRepository({ pool, clock: () => new Date('2026-09-01T00:00:00.000Z') }),
         'postgres',
       );
+
+      await context.test('persists repository-scoped shadow-readiness evidence with real cross-tenant RLS denial', async () => {
+        const suffix = crypto.randomBytes(6).toString('hex');
+        const organizationId = `pg-evidence-${suffix}`;
+        const otherOrganizationId = `pg-evidence-other-${suffix}`;
+        const repositoryId = crypto.randomUUID();
+        const actor = { type: 'automation', id: 'postgres-evidence-test' };
+        const repository = new PostgresGovernanceRepository({ pool, clock: () => new Date('2026-09-05T00:00:00.000Z') });
+        try {
+          await repository.ensureOrganization({
+            organization_id: organizationId,
+            idempotency_key: 'evidence-org-create',
+            actor,
+            organization: { slug: organizationId, display_name: 'Evidence Test Org' },
+          });
+          await repository.ensureOrganization({
+            organization_id: otherOrganizationId,
+            idempotency_key: 'evidence-org-create-other',
+            actor,
+            organization: { slug: otherOrganizationId, display_name: 'Evidence Test Org (Other)' },
+          });
+          await pool.query(
+            `INSERT INTO hseos_governance.repositories(repository_pk, organization_id, repository_id, canonical_remote, created_at, updated_at)
+             VALUES (gen_random_uuid(), $1, $2, 'https://example.invalid/evidence-repo.git', now(), now())`,
+            [organizationId, repositoryId],
+          );
+
+          const manifest = {
+            schema_version: 1,
+            contract: 'governance-release-manifest/v1',
+            release_id: 'postgres-integration-release',
+            sequence: 1,
+            source_repository_id: repositoryId,
+            source_commit: 'e'.repeat(40),
+            approved_tag: 'v0.0.1-postgres-integration',
+            previous_release_digest: null,
+            manifest_digest: contentDigest(`${organizationId}-manifest`),
+            items: [
+              {
+                artifact_id: 'enterprise-constitution',
+                artifact_version_id: crypto.randomUUID(),
+                artifact_type: 'constitution',
+                content_digest: contentDigest(`${organizationId}-constitution`),
+              },
+            ],
+            issued_at: '2026-09-05T00:00:00Z',
+            effective_at: '2026-09-05T01:00:00Z',
+            expires_at: '2027-09-05T00:00:00Z',
+            sunset_at: null,
+            change_class: 'compatible',
+            runtime_min_version: '3.4.1',
+            runtime_max_version: null,
+            issuer: 'postgres-integration-test',
+          };
+          const attemptCommand = {
+            organization_id: organizationId,
+            actor,
+            manifest,
+            stage: 'planned',
+            signer_id: null,
+            signature_algorithm: null,
+            signed_digest: null,
+            rejection_reason: null,
+          };
+          const attempt = await repository.recordReleasePublicationAttempt(attemptCommand);
+          assert.equal(attempt.stage, 'planned');
+          const idempotentAttempt = await repository.recordReleasePublicationAttempt(attemptCommand);
+          assert.deepEqual(idempotentAttempt, attempt);
+          await assert.rejects(
+            repository.recordReleasePublicationAttempt({ ...attemptCommand, manifest: { ...manifest, sequence: 2 } }),
+            (error) => error.code === 'MANAGED_GOVERNANCE_IDEMPOTENCY_CONFLICT',
+          );
+          assert.equal(await repository.getReleasePublicationAttempt(otherOrganizationId, attempt.release_publication_attempt_id), null);
+
+          const receipt = {
+            schema_version: 1,
+            contract: 'shadow-receipt/v1',
+            receipt_id: crypto.randomUUID(),
+            organization_id: organizationId,
+            repository_id: repositoryId,
+            adapter: 'claude-code',
+            session_fingerprint: contentDigest(`${organizationId}-session`),
+            local_digest: contentDigest(`${organizationId}-local`),
+            remote_digest: contentDigest(`${organizationId}-local`),
+            release_digest: manifest.manifest_digest,
+            status: 'equivalent',
+            reason_code: 'managed_shadow.constitution_equivalent',
+            observed_at: '2026-09-05T00:15:00Z',
+          };
+          const recordedReceipt = await repository.recordShadowReceipt({ organization_id: organizationId, actor, receipt });
+          assert.equal(recordedReceipt.status, 'equivalent');
+          assert.equal(await repository.getShadowReceipt(otherOrganizationId, receipt.receipt_id), null, 'cross-tenant RLS must hide the row');
+
+          const bundle = {
+            schema_version: 1,
+            contract: 'patch-publication-bundle-manifest/v1',
+            bundle_id: crypto.randomUUID(),
+            publication_request_ref: 'postgres-integration-request',
+            source_repository_id: repositoryId,
+            base_commit: 'f'.repeat(40),
+            manifest_digest: contentDigest(`${organizationId}-bundle-manifest`),
+            patch_digest: contentDigest(`${organizationId}-bundle-patch`),
+            file_operations: [
+              { operation: 'create', path: 'docs/new-file.md', content_digest: contentDigest(`${organizationId}-file`) },
+              { operation: 'delete', path: 'docs/old-file.md', content_digest: null },
+            ],
+            application_instructions: 'Apply with git apply from the repository root.',
+            rollback_instructions: 'Revert with git apply --reverse.',
+            generated_by: 'postgres-integration-test',
+            generated_at: '2026-09-05T00:10:00Z',
+          };
+          const recordedBundle = await repository.recordPatchPublicationBundle({ organization_id: organizationId, actor, bundle });
+          assert.deepEqual(recordedBundle.file_operations, bundle.file_operations);
+          assert.equal(await repository.getPatchPublicationBundle(otherOrganizationId, bundle.bundle_id), null);
+
+          const auditEvents = await repository.listAuditEvents(organizationId);
+          const evidenceEventTypes = new Set(auditEvents.map((event) => event.event_type));
+          assert.ok(evidenceEventTypes.has('governance.release_publication_attempt.recorded'));
+          assert.ok(evidenceEventTypes.has('governance.shadow_receipt.recorded'));
+          assert.ok(evidenceEventTypes.has('governance.patch_publication_bundle.generated'));
+        } finally {
+          await repository.close();
+        }
+      });
 
       await context.test('applies, repeats, versions and rolls back a catalog transactionally', async () => {
         const suffix = crypto.randomBytes(6).toString('hex');
