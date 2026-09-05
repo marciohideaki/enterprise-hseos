@@ -69,6 +69,15 @@ test('console consumes only HTTP routes and contains no database or direct Git m
   assert.doesNotMatch(fs.readFileSync(path.join(PUBLIC, 'index.html'), 'utf8'), /managed-enforced/);
 });
 
+test('console shows the same readiness report exposed to CLI and MCP, and never claims it authorizes enforcement', () => {
+  const script = fs.readFileSync(path.join(PUBLIC, 'app.js'), 'utf8');
+  const html = fs.readFileSync(path.join(PUBLIC, 'index.html'), 'utf8');
+  assert.match(script, /\/api\/v1\/readiness/);
+  assert.match(html, /id="readiness-window"/);
+  assert.match(html, /id="readiness-status"/);
+  assert.match(html, /non-authorizing/i);
+});
+
 test('console echoes the CSRF token back only on state-changing requests, never on reads', () => {
   const script = fs.readFileSync(path.join(PUBLIC, 'app.js'), 'utf8');
   assert.match(script, /x-hseos-csrf-token/i);

@@ -17,6 +17,50 @@ const DIGEST_PATTERN = /^sha256:[a-f0-9]{64}$/;
 const GIT_OBJECT_PATTERN = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_REMOTE_ARTIFACTS = 20_000;
+const DEFAULT_ADAPTER = 'claude-code';
+// FR-024: a receipt only counts as evidence when it can be attributed to a specific repository.
+// "not_configured" and "invalid_local_contract" mean the local project state itself couldn't be
+// read reliably enough to know which repository this even is -- there is nothing honest to
+// attribute a receipt to, so none is submitted for those two outcomes (this is also, structurally,
+// why they are excluded from evaluate-readiness.js's CONCLUSIVE_STATUSES).
+const RECEIPT_ELIGIBLE_STATUSES = new Set(['equivalent', 'drift_detected', 'remote_unavailable']);
+
+function sha256Hex(text) {
+  return `sha256:${crypto.createHash('sha256').update(text, 'utf8').digest('hex')}`;
+}
+
+// No adapter in this codebase yet exposes a stable session identifier, so one is derived from
+// what IS known and stable for the duration of a single preflight check: which repository,
+// which adapter, what the local Constitution digest was, and the current minute. This makes a
+// retried call within the same minute idempotent-safe against T07's command_receipts pattern
+// (same identity -> same receipt_id) without inventing session-id plumbing no adapter provides.
+function defaultSessionFingerprint({ repositoryId, adapter, localDigest, timestamp }) {
+  return sha256Hex(`${repositoryId}:${adapter}:${localDigest}:${timestamp.slice(0, 16)}`);
+}
+
+// Never blocks and never throws: FR-024 coverage is advisory in managed-shadow, and NFR-003
+// requires shadow evidence to degrade under outage without blocking portable execution. A
+// receipt-submission failure (server unreachable, endpoint misconfigured) must never surface as
+// a session preflight failure -- the local comparison result already returned successfully.
+async function submitReceiptBestEffort({ receiptRecorder, adapter, sessionFingerprint, result }) {
+  if (!receiptRecorder || !RECEIPT_ELIGIBLE_STATUSES.has(result.status)) return;
+  try {
+    await receiptRecorder.submitShadowReceipt({
+      repository_id: result.repository_id,
+      adapter,
+      session_fingerprint:
+        sessionFingerprint || defaultSessionFingerprint({ repositoryId: result.repository_id, adapter, localDigest: result.constitution.local_digest, timestamp: result.checked_at }),
+      local_digest: result.constitution.local_digest,
+      remote_digest: result.constitution.remote_digest,
+      release_digest: null,
+      status: result.status,
+      reason_code: result.reason_code,
+      observed_at: result.checked_at,
+    });
+  } catch {
+    // Best-effort: see function comment above.
+  }
+}
 
 function secureReadUtf8(filePath, maximumBytes) {
   const absolute = path.resolve(filePath);
@@ -238,6 +282,12 @@ async function runManagedGovernanceSessionPreflight(options = {}) {
     }
   }
   const parsed = parseContract(ManagedGovernanceSessionPreflightSchema, result, 'managed governance session preflight');
+  await submitReceiptBestEffort({
+    receiptRecorder: options.receiptRecorder,
+    adapter: options.adapter || DEFAULT_ADAPTER,
+    sessionFingerprint: options.sessionFingerprint,
+    result: parsed,
+  });
   return persist ? persistEvidence(projectRoot, parsed) : parsed;
 }
 
@@ -245,8 +295,10 @@ module.exports = {
   BINDING_PATH,
   CONFIG_PATH,
   CONSTITUTION_PATH,
+  DEFAULT_ADAPTER,
   EVIDENCE_PATH,
   compareRemoteContext,
+  defaultSessionFingerprint,
   digestConstitution,
   ensurePrivateProjectDirectory,
   loadLocalContext,

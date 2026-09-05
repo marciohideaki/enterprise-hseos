@@ -280,7 +280,15 @@ function createManagedGovernanceAction(dependencies = {}) {
       } else if (area === 'policy' && action === 'evaluate') {
         envelope = await request({ endpoint, method: 'POST', pathname: '/api/v1/policy/evaluate', body: readContext(options.context) });
       } else if (area === 'session' && action === 'preflight') {
-        const result = await sessionPreflight({ projectRoot: process.cwd(), persist: true });
+        // This is FR-024's "portable bootstrap" as well as Claude Code's native session-start
+        // hook target: the same command, invoked either automatically by a hook or manually by
+        // any adapter without one (Codex, etc, via --adapter), before that adapter's first task
+        // action. --adapter is explicit so a receipt is never silently attributed to the wrong
+        // adapter; the default matches the hook's own caller (Claude Code) when omitted.
+        const adapter = options.adapter ? parseIdentifier(options.adapter, 'adapter') : undefined;
+        const queryModule = require('../../../mcp-hseos-governance/lib/governance-query-adapter');
+        const receiptRecorder = queryModule.createProjectGovernanceQueryAdapter({ projectRoot: process.cwd() });
+        const result = await sessionPreflight({ projectRoot: process.cwd(), persist: true, adapter, receiptRecorder });
         const warning = result.status === 'equivalent' || result.status === 'not_configured' ? [] : [result.reason_code];
         envelope = {
           schema_version: 1,
@@ -290,6 +298,8 @@ function createManagedGovernanceAction(dependencies = {}) {
           evidence: result.evidence_path ? [{ type: 'file', path: result.evidence_path }] : [],
           warnings: warning,
         };
+      } else if (area === 'readiness' && action === 'status') {
+        envelope = await request({ endpoint, method: 'GET', pathname: '/api/v1/readiness' });
       } else if (area === 'setup' && action === 'install') {
         if (!options.databaseConfig) throw new ManagedGovernanceCliError('--database-config is required for setup install');
         const configPath = path.resolve(options.databaseConfig);

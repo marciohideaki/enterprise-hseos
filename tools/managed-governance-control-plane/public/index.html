@@ -20,7 +20,7 @@
     <div class="shell">
       <nav aria-label="Governance desk">
         <a href="#overview">Overview</a><a href="#catalog">Catalog</a><a href="#author">Author</a><a href="#simulate">Simulate</a
-        ><a href="#audit">Audit</a>
+        ><a href="#audit">Audit</a><a href="#readiness">Readiness</a>
       </nav>
       <main id="workspace">
         <section id="overview" class="overview" aria-labelledby="overview-title">
@@ -104,6 +104,27 @@
             <button id="load-audit" type="button">Load audit</button>
           </header>
           <div id="audit-list" class="status">Audit access requires a session token.</div>
+        </section>
+        <section id="readiness" aria-labelledby="readiness-title">
+          <header class="section-head">
+            <div>
+              <p class="section-label">Observation</p>
+              <h2 id="readiness-title">Shadow readiness</h2>
+            </div>
+            <button id="load-readiness" type="button">Check readiness</button>
+          </header>
+          <p>Non-authorizing: this report never enables managed enforcement on its own.</p>
+          <dl>
+            <div>
+              <dt>Window</dt>
+              <dd id="readiness-window">Not checked yet</dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd id="readiness-status">Not checked yet</dd>
+            </div>
+          </dl>
+          <div id="readiness-detail" class="status" aria-live="polite"></div>
         </section>
       </main>
     </div>

@@ -26,6 +26,7 @@ module.exports = {
     ['--restore-started-at <timestamp>', 'ISO-8601 timestamp the operator started the disposable-target restore'],
     ['--restore-completed-at <timestamp>', 'ISO-8601 timestamp the operator finished the disposable-target restore'],
     ['--expected-release-id <id>', 'Published release id whose signature evidence must survive restoration'],
+    ['--adapter <name>', 'Adapter identity reporting a session preflight receipt (default: claude-code)'],
     ['--json', 'Emit the canonical machine-readable envelope'],
   ],
   action: async (area, action, options) => {

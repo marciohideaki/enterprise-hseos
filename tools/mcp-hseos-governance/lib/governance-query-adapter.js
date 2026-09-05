@@ -148,7 +148,12 @@ function createProjectGovernanceQueryAdapter(options = {}) {
         projectRoot,
         persist: false,
         queryAdapter: adapter,
+        // Deliberately no receiptRecorder: MCP stays read-only (FR-006/ADR-0023) even though
+        // this adapter object also implements submitShadowReceipt for the CLI/hook path below --
+        // the two capabilities are opted into separately by different callers, never coupled.
       }),
+    getGovernanceReadiness: () => query('GET', '/api/v1/readiness'),
+    submitShadowReceipt: (receipt) => query('POST', '/api/v1/shadow-receipts', receipt),
   };
   return Object.freeze(adapter);
 }
