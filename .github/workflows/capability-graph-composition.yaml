@@ -24,24 +24,39 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      # Cross-org checkouts need a PAT with read access to these repositories -- the default
+      # GITHUB_TOKEN cannot see outside this repository. CAPABILITY_GRAPH_CROSS_REPO_PAT is
+      # provisioned from pass (github/cambioreal-gitops-pat), verified 2026-09-05 to read all
+      # three repositories below.
       - uses: actions/checkout@v4
         with:
           repository: HideakiSolutions/platform-core
           ref: 86ffef7f118a925bb2993eadfb3ec05eea0ccff8
           path: dependencies/platform-core
           fetch-depth: 0
+          token: ${{ secrets.CAPABILITY_GRAPH_CROSS_REPO_PAT }}
+      # backend-core's original pin (1394444b...) is unreachable as of 2026-09-05 -- verified
+      # against the live repository, not assumed. Repinned to that repository's own current
+      # main HEAD as the least-arbitrary available choice; this is not a claim that this
+      # commit declares a capability-graph fragment yet (Human gate item 4 in ADR-0036 still
+      # requires each repository to record its own immutable fragment revision).
       - uses: actions/checkout@v4
         with:
           repository: HideakiSolutions/backend-core
-          ref: 1394444be20fdaa8a9fcfa7229df2aa59768c992
+          ref: 26fb2bed386d7c14c0d70ac4fd5d3c965eed46e5
           path: dependencies/backend-core
           fetch-depth: 0
+          token: ${{ secrets.CAPABILITY_GRAPH_CROSS_REPO_PAT }}
+      # cambio-real-v2's original pin (2124528f...) is unreachable as of 2026-09-05, matching
+      # the gap already on record from 2026-08-27. Repinned to current main HEAD; same caveat
+      # as backend-core above applies.
       - uses: actions/checkout@v4
         with:
           repository: cambioreal/cambio-real-v2
-          ref: 2124528f61803ced593c3415f4714db22fba63e0
+          ref: c826f6babc9d0be01ad7347473228a214eb90620
           path: dependencies/cambio-real-v2
           fetch-depth: 0
+          token: ${{ secrets.CAPABILITY_GRAPH_CROSS_REPO_PAT }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24

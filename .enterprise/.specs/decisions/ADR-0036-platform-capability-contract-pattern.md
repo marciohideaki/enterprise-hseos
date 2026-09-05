@@ -1,6 +1,9 @@
 # ADR-0036 — Platform Capability Contract Pattern (PCCP)
 
-**Status:** Proposed — no normative activation without owner approval
+**Status:** Accepted (2026-09-05) — the PCCP proposal and its taxonomy are accepted as the
+target design. Graph schema 2.0 and intake v3 remain review candidates, not active: the
+registry pin, enforcement, and migration/activation order are a separate, still-pending gate
+(see Human gate below). Accepting this ADR authorizes no normative activation on its own.
 **Date:** 2026-08-26
 **Authors:** Platform Architecture Owners (proposal prepared for review)
 **Affects Standards:** Platform Capability Governance Standard, capability graph schema,
@@ -114,7 +117,7 @@ invalid and no commit is required to contain its own SHA.
 
 ## Human gate
 
-- [ ] Platform Architecture Owner accepts ADR-0036.
+- [x] Platform Architecture Owner accepts ADR-0036 (2026-09-05).
 - [ ] Owner approves graph schema 2.0 and intake v3 activation/migration order.
 - [ ] CODEOWNER review and protected-branch checks pass.
 - [ ] Immutable fragment revisions are recorded after repository changes exist.

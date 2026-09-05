@@ -6,8 +6,9 @@
 **Scope:** All repositories, projects, modules, packages, contracts, and agents
 **Authority:** Enterprise Constitution §2.6 and ADR-0033
 
-> PCCP additions are proposed by ADR-0023 and are not active until the owner accepts that
-> ADR and activates graph schema 2.0/intake v3. Existing v1.1 obligations remain in force.
+> PCCP additions are accepted by ADR-0036 (2026-09-05) as the target design, but are not
+> active until the owner separately approves graph schema 2.0/intake v3 activation.
+> Existing v1.1 obligations remain in force.
 
 ## 1. Purpose
 
