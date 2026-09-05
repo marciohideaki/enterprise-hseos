@@ -125,3 +125,68 @@ remota gera alerta e nunca bloqueia a sessão.
 
 Backup, restore, retenção, rotação de segredos, telemetria de produção e eventual
 proxy TLS permanecem responsabilidades da plataforma que fornece o PostgreSQL.
+
+## 8. Implantação em rede compartilhada (LAN)
+
+O loopback continua sendo o padrão em toda instalação, mesmo já configurada com
+PostgreSQL. Acesso em rede compartilhada é um opt-in explícito adicional no
+mesmo `.hseos/config/managed-governance-sidecar.json`; nunca muda a autoridade
+de governança nem ativa `managed-enforced`, que permanece indisponível
+independentemente do perfil de rede.
+
+Adicione uma seção `network`. Todo valor abaixo é estado de implantação, nunca
+um padrão do pacote — o CIDR mostrado é ilustrativo; o valor aprovado para uma
+implantação específica só é decidido e aplicado depois que o checklist de
+ativação abaixo passar:
+
+```json
+{
+  "network": {
+    "profile": "shared-network",
+    "listen_host": "192.168.5.70",
+    "port": 4319,
+    "allowed_clients": ["192.168.5.0/24"],
+    "trusted_proxies": [],
+    "transport": {
+      "mode": "direct-tls",
+      "certificate_ref_env": "HSEOS_GOVERNANCE_TLS_CERTIFICATE",
+      "private_key_ref_env": "HSEOS_GOVERNANCE_TLS_PRIVATE_KEY"
+    },
+    "authentication": {
+      "query_token_env": "HSEOS_GOVERNANCE_QUERY_TOKEN",
+      "admin_token_env": "HSEOS_GOVERNANCE_ADMIN_TOKEN"
+    },
+    "rate_limits": { "query_requests_per_minute": 120, "admin_requests_per_minute": 30 }
+  }
+}
+```
+
+`control_plane.host`/`port` devem ser idênticos a `network.listen_host`/`port`.
+`allowed_clients` exige CIDRs específicos e não-vazios — uma lista vazia ou uma
+rede allow-all (`0.0.0.0/0`, `::/0`) é rejeitada. `trusted_proxies` fica vazio a
+menos que um proxy reverso específico seja deliberadamente confiável para
+`X-Forwarded-For`; qualquer outro cabeçalho de encaminhamento é ignorado, e uma
+cadeia multi-hop ambígua é rejeitada em vez de adivinhada.
+
+`transport.mode` é `direct-tls` (o próprio sidecar termina TLS com o
+certificado/chave privada referenciados, nunca um caminho de arquivo ou valor
+literal na configuração) ou `terminated-upstream` (um proxy reverso externo já
+confiável termina TLS; o sidecar continua em HTTP puro nesse modo, de
+propósito). `authentication` exige dois tokens distintos e delimitados — um
+para consulta, outro para administração — sem sobreposição de escopo em
+nenhuma direção.
+
+### Checklist de ativação
+
+Aplique o perfil de rede compartilhada só depois que cada item abaixo passar
+para a implantação alvo, nesta ordem:
+
+1. **Threat model** (`threat-model.md`) sem nenhum achado Critical/High aberto.
+2. **Rehearsal de instalação empacotada**: `npm run test:package-surface && node --test test/managed-governance/installation.test.js` passando contra a versão exata do pacote a ser implantada.
+3. **Prova de admissão LAN**: o CIDR real de `allowed_clients` da implantação admite um cliente dentro dele e nega um fora — confirme que o CIDR declarado corresponde exatamente à sub-rede real dos clientes.
+4. **Atualize e reinicie**: só então edite o `managed-governance-sidecar.json` real da implantação com a seção `network` acima, exporte as variáveis novas, e reinicie `hseos governance server start`.
+5. **Observação começa**: a janela de observação de 30 dias começa a contar a partir do primeiro preflight/receipt real contra a implantação em rede compartilhada — nunca a partir da edição do arquivo de configuração. Um relatório sem 30 dias consecutivos de evidência reporta honestamente `evaluated: false`, nunca um valor inventado.
+
+Desabilitar a seção `network` (ou não incluí-la) restaura o binding somente-loopback
+na próxima reinicialização, sem reverter migrations nem apagar evidência já
+registrada.

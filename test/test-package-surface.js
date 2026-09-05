@@ -47,7 +47,9 @@ test('published package exposes runtime and governance assets only', () => {
     assert.ok(files.has(required), `missing required package asset: ${required}`);
   }
 
-  const forbiddenPrefixes = ['test/', '_graph/', '.hseos/runs/', '.github/', '.logs/'];
+  // `.hseos/state/` absence is an explicit acceptance-evidence requirement (managed-shadow-readiness
+  // spec.md), not incidental: package.json's `files` field excludes it deliberately (`!.hseos/state/**`).
+  const forbiddenPrefixes = ['test/', '_graph/', '.hseos/runs/', '.hseos/state/', '.github/', '.logs/'];
   for (const file of files) {
     assert.ok(!forbiddenPrefixes.some((prefix) => file.startsWith(prefix)), `internal artifact published: ${file}`);
     assert.notEqual(file, '.enterprise/.specs/specs.zip');
