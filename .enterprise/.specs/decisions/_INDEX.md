@@ -45,6 +45,7 @@
 | [ADR-0034](./ADR-0034-capability-reuse-enforcement.md)              | Capability Reuse Enforcement Complementing the Capability Graph            | Proposed                            | Capability Graph, write-time hook, merge ratchet, Core Registry projection            |
 | [ADR-0035](./ADR-0035-enforcement-boundary-doctrine.md)             | Explicit Enforcement-Boundary Doctrine and In-Process Guardrail Hardening  | Proposed                            | AGENTS.md §4 execution governance, hook registry, anchor-guard, state-emit, ADR-0016, ADR-0023 |
 | [ADR-0036](./ADR-0036-platform-capability-contract-pattern.md)      | Platform Capability Contract Pattern (PCCP)                                | Accepted (2026-09-05)               | capability governance, graph schema, intake, conformance, templates, publication policy |
+| [ADR-0037](./ADR-0037-operational-contracts-v1.md)                  | Operational Contracts v1                                                   | Proposed                            | HSEOS runtime state, agent-state observability, evidence, session continuity |
 
 ---
 
