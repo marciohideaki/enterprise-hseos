@@ -30,8 +30,14 @@
   {
     "label": "duplicate rule actor",
     "schema": "GovernanceRuleSchema",
-    "path": ["subject", "actor_types"],
-    "value": ["human", "human"]
+    "path": [
+      "subject",
+      "actor_types"
+    ],
+    "value": [
+      "human",
+      "human"
+    ]
   },
   {
     "label": "credential-shaped control plane URL",
@@ -78,13 +84,121 @@
   {
     "label": "import path traverses repository",
     "schema": "ImportPlanSchema",
-    "path": ["items", 0, "source_path"],
+    "path": [
+      "items",
+      0,
+      "source_path"
+    ],
     "value": "../outside.md"
   },
   {
     "label": "import report count mismatch",
     "schema": "ImportReportSchema",
-    "path": ["counts", "discovered"],
+    "path": [
+      "counts",
+      "discovered"
+    ],
     "value": 2
+  },
+  {
+    "label": "release manifest tag is not a bounded reference",
+    "schema": "GovernanceReleaseManifestSchema",
+    "patch": {
+      "approved_tag": ""
+    }
+  },
+  {
+    "label": "signature evidence uses an unlisted algorithm",
+    "schema": "ExternalSignatureEvidenceSchema",
+    "patch": {
+      "algorithm": "rsa-pss-sha256"
+    }
+  },
+  {
+    "label": "patch bundle delete operation carries a content digest",
+    "schema": "PatchPublicationBundleManifestSchema",
+    "path": [
+      "file_operations",
+      1,
+      "content_digest"
+    ],
+    "value": "sha256:7115779caeac3692015d856f19d93928b866c2d7fe3038c61ae453dc3075cef9"
+  },
+  {
+    "label": "patch bundle has duplicate file paths",
+    "schema": "PatchPublicationBundleManifestSchema",
+    "path": [
+      "file_operations",
+      1,
+      "path"
+    ],
+    "value": ".enterprise/.specs/decisions/ADR-0035-enforcement-boundary-doctrine.md"
+  },
+  {
+    "label": "shadow receipt uses an unknown status",
+    "schema": "ShadowReceiptSchema",
+    "patch": {
+      "status": "suspicious"
+    }
+  },
+  {
+    "label": "readiness report claims ready with covered sessions under 95 percent",
+    "schema": "ReadinessReportSchema",
+    "patch": {
+      "covered_sessions": 100
+    }
+  },
+  {
+    "label": "readiness report claims ready with an open drift outcome",
+    "schema": "ReadinessReportSchema",
+    "patch": {
+      "open_drift_count": 1
+    }
+  },
+  {
+    "label": "readiness report cannot authorize enforcement",
+    "schema": "ReadinessReportSchema",
+    "patch": {
+      "authorizes_enforcement": true
+    }
+  },
+  {
+    "label": "network profile shared-network with empty allowlist",
+    "schema": "ManagedNetworkProfileSchema",
+    "patch": {
+      "allowed_clients": []
+    }
+  },
+  {
+    "label": "network profile shared-network with allow-all CIDR",
+    "schema": "ManagedNetworkProfileSchema",
+    "patch": {
+      "allowed_clients": [
+        "0.0.0.0/0"
+      ]
+    }
+  },
+  {
+    "label": "network profile transport env reference is not uppercase",
+    "schema": "ManagedNetworkProfileSchema",
+    "path": [
+      "transport",
+      "certificate_ref_env"
+    ],
+    "value": "hseos_governance_tls_certificate"
+  },
+  {
+    "label": "recovery rehearsal does not confirm a disposable target",
+    "schema": "RecoveryRehearsalEvidenceSchema",
+    "patch": {
+      "disposable_target_confirmed": false
+    }
+  },
+  {
+    "label": "recovery rehearsal claims within-profile without full evidence",
+    "schema": "RecoveryRehearsalEvidenceSchema",
+    "patch": {
+      "tenant_isolation_verified": false
+    }
   }
 ]

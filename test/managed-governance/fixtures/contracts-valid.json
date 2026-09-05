@@ -18,7 +18,9 @@
     "version": 1,
     "raw_content": "# Enterprise Constitution\n",
     "structured_content": {
-      "headings": ["Enterprise Constitution"]
+      "headings": [
+        "Enterprise Constitution"
+      ]
     },
     "content_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "source": {
@@ -51,7 +53,11 @@
     "organization_id": "hideaki-solutions",
     "kind": "prohibition",
     "subject": {
-      "actor_types": ["human", "agent", "automation"],
+      "actor_types": [
+        "human",
+        "agent",
+        "automation"
+      ],
       "roles": []
     },
     "action": "git.commit",
@@ -60,10 +66,18 @@
       "identifiers": []
     },
     "scope": {
-      "organizations": ["hideaki-solutions"],
-      "repositories": ["*"],
+      "organizations": [
+        "hideaki-solutions"
+      ],
+      "repositories": [
+        "*"
+      ],
       "environments": [],
-      "branches": ["main", "master", "develop"],
+      "branches": [
+        "main",
+        "master",
+        "develop"
+      ],
       "stacks": [],
       "capabilities": []
     },
@@ -71,7 +85,11 @@
     "effect": "deny",
     "priority": 900,
     "obligations": [],
-    "enforcement_points": ["preflight", "hook", "cli"],
+    "enforcement_points": [
+      "preflight",
+      "hook",
+      "cli"
+    ],
     "source": {
       "artifact_id": "enterprise-constitution",
       "artifact_version": 1,
@@ -87,7 +105,9 @@
     "organization_id": "hideaki-solutions",
     "control_plane_ref": "managed-control-plane-primary",
     "issuer": "hideaki-governance",
-    "trusted_key_ids": ["governance-signing-2026"],
+    "trusted_key_ids": [
+      "governance-signing-2026"
+    ],
     "failure_policy": "cached-fail-closed",
     "max_snapshot_age_seconds": 86400,
     "created_at": "2026-09-01T00:00:00Z"
@@ -203,7 +223,9 @@
     "issued_at": "2026-09-01T00:00:00Z",
     "expires_at": "2026-09-01T01:00:00Z",
     "enforcement_level": "shadow",
-    "capability_ceiling": ["governance.read"],
+    "capability_ceiling": [
+      "governance.read"
+    ],
     "restrictions": [],
     "nonce": "nonce_1",
     "issuer": "hideaki-governance",
@@ -288,5 +310,172 @@
       }
     ],
     "issues": []
+  },
+  "GovernanceReleaseManifestSchema": {
+    "schema_version": 1,
+    "contract": "governance-release-manifest/v1",
+    "release_id": "governance-release-2",
+    "sequence": 2,
+    "source_repository_id": "7f9f9b79-638c-4138-9a29-8a2406ad9fb8",
+    "source_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "approved_tag": "v3.4.2",
+    "previous_release_digest": "sha256:07bf7932f601226edfe958da87b2e51f9ac19699649304db8b64d2f9da1c2c6b",
+    "manifest_digest": "sha256:8609f1753a27537fa5ea65336ba11cdfbc364f9430995d7e3039b6d3b0a31a27",
+    "items": [
+      {
+        "artifact_id": "enterprise-constitution",
+        "artifact_version_id": "11111111-1111-4111-8111-111111111111",
+        "artifact_type": "constitution",
+        "content_digest": "sha256:447ea419f3ab32708acac24267cdc53fbaf0e1729eddf2b25756b2e41148ccfd"
+      }
+    ],
+    "issued_at": "2026-09-05T00:00:00Z",
+    "effective_at": "2026-09-05T01:00:00Z",
+    "expires_at": "2027-09-05T00:00:00Z",
+    "sunset_at": null,
+    "change_class": "compatible",
+    "runtime_min_version": "3.4.1",
+    "runtime_max_version": null,
+    "issuer": "hideaki-governance"
+  },
+  "ExternalSignerBindingSchema": {
+    "schema_version": 1,
+    "contract": "external-signer-binding/v1",
+    "signer_id": "governance-hsm-1",
+    "algorithm": "ed25519",
+    "key_id": "governance-signing-2026",
+    "public_key_ref_env": "HSEOS_GOVERNANCE_SIGNER_PUBLIC_KEY"
+  },
+  "ExternalSignatureEvidenceSchema": {
+    "schema_version": 1,
+    "contract": "external-signature-evidence/v1",
+    "signer_id": "governance-hsm-1",
+    "algorithm": "ed25519",
+    "key_id": "governance-signing-2026",
+    "signed_digest": "sha256:8609f1753a27537fa5ea65336ba11cdfbc364f9430995d7e3039b6d3b0a31a27",
+    "value": "c2lnbmF0dXJl",
+    "signed_at": "2026-09-05T00:05:00Z"
+  },
+  "PatchPublicationBundleManifestSchema": {
+    "schema_version": 1,
+    "contract": "patch-publication-bundle-manifest/v1",
+    "bundle_id": "22222222-2222-4222-8222-222222222222",
+    "publication_request_ref": "publication-request-1",
+    "source_repository_id": "7f9f9b79-638c-4138-9a29-8a2406ad9fb8",
+    "base_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "manifest_digest": "sha256:0d6ad541be083b1ac6c9b3d4a981efa6bb793c48c667c074fa18b81dee84fda0",
+    "patch_digest": "sha256:40763965e16eba143e027e409573a8386f852211cd6ceb42354c8dfe5cc11f17",
+    "file_operations": [
+      {
+        "operation": "update",
+        "path": ".enterprise/.specs/decisions/ADR-0035-enforcement-boundary-doctrine.md",
+        "content_digest": "sha256:033f3c7acad19b43b794f6b5550613305d46758673c1eb5a55765da0b3d1a00f"
+      },
+      {
+        "operation": "delete",
+        "path": "docs/obsolete-note.md",
+        "content_digest": null
+      }
+    ],
+    "application_instructions": "Apply the patch with git apply from the repository root.",
+    "rollback_instructions": "Revert with git apply --reverse using the same patch file.",
+    "generated_by": "managed-governance-control-plane",
+    "generated_at": "2026-09-05T00:10:00Z"
+  },
+  "ShadowReceiptSchema": {
+    "schema_version": 1,
+    "contract": "shadow-receipt/v1",
+    "receipt_id": "33333333-3333-4333-8333-333333333333",
+    "organization_id": "hideaki-solutions",
+    "repository_id": "7f9f9b79-638c-4138-9a29-8a2406ad9fb8",
+    "adapter": "claude-code",
+    "session_fingerprint": "sha256:84097828fc31a8c8d29210df48901a85de7fd013f686b17be77d1be29cb7a98b",
+    "local_digest": "sha256:199cb119d3a75fb3df830b1d35280d1e97cd0415cfd84d669f1586addf71993e",
+    "remote_digest": "sha256:199cb119d3a75fb3df830b1d35280d1e97cd0415cfd84d669f1586addf71993e",
+    "release_digest": "sha256:8609f1753a27537fa5ea65336ba11cdfbc364f9430995d7e3039b6d3b0a31a27",
+    "status": "equivalent",
+    "reason_code": "managed_shadow.constitution_equivalent",
+    "observed_at": "2026-09-05T00:15:00Z"
+  },
+  "ReadinessReportSchema": {
+    "schema_version": 1,
+    "contract": "readiness-report/v1",
+    "report_id": "44444444-4444-4444-8444-444444444444",
+    "organization_id": "hideaki-solutions",
+    "window_start": "2026-08-06T00:00:00Z",
+    "window_end": "2026-09-05T00:00:00Z",
+    "window_days": 30,
+    "eligible_sessions": 200,
+    "covered_sessions": 196,
+    "repositories_covered": [
+      "7f9f9b79-638c-4138-9a29-8a2406ad9fb8"
+    ],
+    "repositories_missing_evidence": [],
+    "adapters_covered": [
+      "claude-code",
+      "codex"
+    ],
+    "adapters_missing_evidence": [],
+    "preflight_latency_p95_ms": 240,
+    "open_drift_count": 0,
+    "open_invalid_contract_count": 0,
+    "remote_unavailable_samples": 1,
+    "signer_evidence_current": true,
+    "recovery_evidence_current": true,
+    "threat_model_evidence_current": true,
+    "rollback_evidence_current": true,
+    "ready": true,
+    "authorizes_enforcement": false,
+    "evaluated_at": "2026-09-05T00:20:00Z"
+  },
+  "ManagedNetworkProfileSchema": {
+    "schema_version": 1,
+    "contract": "managed-network-profile/v1",
+    "profile": "shared-network",
+    "listen_host": "192.168.5.70",
+    "port": 4319,
+    "allowed_clients": [
+      "192.168.5.0/24"
+    ],
+    "trusted_proxies": [],
+    "transport": {
+      "mode": "direct-tls",
+      "certificate_ref_env": "HSEOS_GOVERNANCE_TLS_CERTIFICATE",
+      "private_key_ref_env": "HSEOS_GOVERNANCE_TLS_PRIVATE_KEY"
+    },
+    "authentication": {
+      "query_token_env": "HSEOS_GOVERNANCE_QUERY_TOKEN",
+      "admin_token_env": "HSEOS_GOVERNANCE_ADMIN_TOKEN"
+    },
+    "rate_limits": {
+      "query_requests_per_minute": 120,
+      "admin_requests_per_minute": 30
+    }
+  },
+  "RecoveryProfileSchema": {
+    "schema_version": 1,
+    "contract": "recovery-profile/v1",
+    "profile_id": "managed-governance-primary",
+    "rpo_seconds": 900,
+    "rto_seconds": 3600,
+    "retention_days": 35,
+    "declared_by": "platform-governance-owner",
+    "declared_at": "2026-09-01T00:00:00Z"
+  },
+  "RecoveryRehearsalEvidenceSchema": {
+    "schema_version": 1,
+    "contract": "recovery-rehearsal-evidence/v1",
+    "rehearsal_id": "55555555-5555-4555-8555-555555555555",
+    "recovery_profile_digest": "sha256:3675ad8e6003f1e429c5292ec44b6a29575c8949d965a21a908b8de72d6d6039",
+    "disposable_target_ref": "disposable-restore-2026-09-05",
+    "disposable_target_confirmed": true,
+    "measured_rpo_seconds": 600,
+    "measured_rto_seconds": 2400,
+    "tenant_isolation_verified": true,
+    "active_catalog_verified": true,
+    "release_signatures_verified": true,
+    "audit_history_append_only_verified": true,
+    "within_declared_profile": true,
+    "rehearsed_at": "2026-09-05T00:30:00Z"
   }
 }
