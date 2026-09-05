@@ -20,6 +20,12 @@ module.exports = {
     ['--context <path>', 'Policy evaluation context JSON file'],
     ['--bind <address>', 'Shell-only server loopback bind address'],
     ['--port <port>', 'Shell-only server port (default: 4319)'],
+    ['--profile <path>', 'Declared RecoveryProfile/v1 JSON file for a recovery rehearsal'],
+    ['--disposable-target-env <name>', 'Environment variable holding the disposable recovery target connection string'],
+    ['--confirm-disposable-target', 'Explicitly confirm the recovery target is disposable, not operational'],
+    ['--restore-started-at <timestamp>', 'ISO-8601 timestamp the operator started the disposable-target restore'],
+    ['--restore-completed-at <timestamp>', 'ISO-8601 timestamp the operator finished the disposable-target restore'],
+    ['--expected-release-id <id>', 'Published release id whose signature evidence must survive restoration'],
     ['--json', 'Emit the canonical machine-readable envelope'],
   ],
   action: async (area, action, options) => {

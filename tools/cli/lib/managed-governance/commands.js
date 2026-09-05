@@ -5,6 +5,11 @@ const path = require('node:path');
 const { createManagedGovernanceServer, LOOPBACK_HOSTS } = require('../../../managed-governance-control-plane/server');
 const { createDatabaseBackedControlPlane, installManagedGovernance } = require('../../../managed-governance-control-plane/composition');
 const { runManagedGovernanceSessionPreflight } = require('../../../../packages/managed-governance-client/session-preflight');
+const { loadSidecarConfiguration } = require('../../../managed-governance-control-plane/lib/configuration');
+const { GitGovernanceSource } = require('../../../managed-governance-control-plane/lib/infrastructure/git/governance-source');
+const { PostgresGovernanceRepository } = require('../../../managed-governance-control-plane/lib/infrastructure/postgres/governance-repository');
+const { createPostgresPool } = require('../../../managed-governance-control-plane/lib/infrastructure/postgres/pool');
+const { createPostgresDisposableTargetInspector, runRecoveryRehearsal } = require('../../../managed-governance-control-plane/lib/application/rehearse-recovery');
 const { commandError, renderEnvelope } = require('./output');
 
 const DEFAULT_ENDPOINT = 'http://127.0.0.1:4319';
@@ -70,20 +75,82 @@ function regularFile(filePath, label, maximumBytes = null, ownerOnly = false) {
   return metadata;
 }
 
-function readContext(contextPath) {
-  if (!contextPath) throw new ManagedGovernanceCliError('--context is required');
-  const absolute = path.resolve(contextPath);
-  regularFile(absolute, 'context', MAX_CONTEXT_BYTES);
+function readJsonFile(filePath, label, flagName) {
+  if (!filePath) throw new ManagedGovernanceCliError(`${flagName} is required`);
+  const absolute = path.resolve(filePath);
+  regularFile(absolute, label, MAX_CONTEXT_BYTES);
   let value;
   try {
     value = JSON.parse(fs.readFileSync(absolute, 'utf8'));
   } catch {
-    throw new ManagedGovernanceCliError('context must contain valid JSON');
+    throw new ManagedGovernanceCliError(`${label} must contain valid JSON`);
   }
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new ManagedGovernanceCliError('context must contain a JSON object');
+    throw new ManagedGovernanceCliError(`${label} must contain a JSON object`);
   }
   return value;
+}
+
+function readContext(contextPath) {
+  return readJsonFile(contextPath, 'context', '--context');
+}
+
+function readProfile(profilePath) {
+  return readJsonFile(profilePath, 'recovery profile', '--profile');
+}
+
+function environmentReferenceOption(value, label, flagName) {
+  if (typeof value !== 'string' || !/^[A-Z][A-Z0-9_]{0,127}$/.test(value)) {
+    throw new ManagedGovernanceCliError(`${flagName} is required and must be an environment variable name`);
+  }
+  return value;
+}
+
+function isoTimestampOption(value, flagName) {
+  if (typeof value !== 'string' || Number.isNaN(Date.parse(value))) {
+    throw new ManagedGovernanceCliError(`${flagName} must be an ISO-8601 timestamp`);
+  }
+  return value;
+}
+
+async function defaultRehearseRecovery({
+  projectRoot,
+  configPath,
+  environment,
+  actorId,
+  profile,
+  expectedReleaseId,
+  disposableTargetEnv,
+  confirmDisposableTarget,
+  restoreStartedAt,
+  restoreCompletedAt,
+}) {
+  const configuration = loadSidecarConfiguration(configPath, { environment });
+  const source = new GitGovernanceSource({ repositoryRoot: projectRoot });
+  const discovery = await source.discover();
+  const pool = createPostgresPool(configuration.database.runtime);
+  const repository = new PostgresGovernanceRepository({ pool, closePool: true });
+  try {
+    return await runRecoveryRehearsal(
+      {
+        organizationId: configuration.organization.id,
+        actor: { type: 'automation', id: actorId },
+        repositoryId: discovery.repository_id,
+        profile,
+        expectedReleaseId: expectedReleaseId || null,
+        // confirmDisposableTarget is never assumed true -- it only reflects whatever the
+        // operator actually passed on the command line (--confirm-disposable-target).
+        disposableTarget: { connectionStringEnv: disposableTargetEnv, confirmed: confirmDisposableTarget === true },
+        operationalConnectionStringEnvs: [configuration.database.migration_connection_string_env, configuration.database.runtime_connection_string_env],
+        restoreStartedAt,
+        restoreCompletedAt,
+        rehearsedAt: new Date().toISOString(),
+      },
+      { repository, disposableTargetInspector: createPostgresDisposableTargetInspector(), environment },
+    );
+  } finally {
+    await repository.close();
+  }
 }
 
 async function defaultRequest({ endpoint, method, pathname, body, token, actor }) {
@@ -176,6 +243,7 @@ function createManagedGovernanceAction(dependencies = {}) {
   const request = dependencies.request || defaultRequest;
   const startServer = dependencies.startServer || defaultStartServer;
   const sessionPreflight = dependencies.sessionPreflight || runManagedGovernanceSessionPreflight;
+  const rehearseRecovery = dependencies.rehearseRecovery || defaultRehearseRecovery;
   const environment = dependencies.environment || process.env;
 
   return async function managedGovernanceAction(area, action, options = {}) {
@@ -242,6 +310,35 @@ function createManagedGovernanceAction(dependencies = {}) {
           evidence: [],
           warnings: ['managed-shadow only; repository governance remains authoritative'],
         };
+      } else if (area === 'recovery' && action === 'rehearse') {
+        if (!options.databaseConfig) throw new ManagedGovernanceCliError('--database-config is required for recovery rehearse');
+        const configPath = path.resolve(options.databaseConfig);
+        regularFile(configPath, '--database-config', MAX_CONTEXT_BYTES, true);
+        const actor = parseIdentifier(options.actor, 'actor');
+        const profile = readProfile(options.profile);
+        const disposableTargetEnv = environmentReferenceOption(options.disposableTargetEnv, 'disposable target environment reference', '--disposable-target-env');
+        const restoreStartedAt = isoTimestampOption(options.restoreStartedAt, '--restore-started-at');
+        const restoreCompletedAt = isoTimestampOption(options.restoreCompletedAt, '--restore-completed-at');
+        const result = await rehearseRecovery({
+          projectRoot: process.cwd(),
+          configPath,
+          environment,
+          actorId: actor,
+          profile,
+          expectedReleaseId: options.expectedReleaseId || null,
+          disposableTargetEnv,
+          confirmDisposableTarget: Boolean(options.confirmDisposableTarget),
+          restoreStartedAt,
+          restoreCompletedAt,
+        });
+        envelope = {
+          schema_version: 1,
+          ok: true,
+          data: result,
+          error: null,
+          evidence: [],
+          warnings: result.within_declared_profile ? [] : ['rehearsal did not meet the declared recovery profile'],
+        };
       } else if (area === 'server' && action === 'start') {
         const host = options.bind || '127.0.0.1';
         if (!LOOPBACK_HOSTS.has(host)) throw new ManagedGovernanceCliError('server bind must be a loopback address');
@@ -282,9 +379,11 @@ module.exports = {
   MAX_CONTEXT_BYTES,
   ManagedGovernanceCliError,
   createManagedGovernanceAction,
+  defaultRehearseRecovery,
   defaultRequest,
   parseEndpoint,
   parsePort,
-  regularFile,
   readContext,
+  readProfile,
+  regularFile,
 };
