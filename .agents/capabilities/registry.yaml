@@ -31,7 +31,7 @@ fragments:
     enforcement: enforced
     source:
       kind: git
-      uri: https://github.com/hideakisolutions/platform-core.git
+      uri: https://github.com/HideakiSolutions/platform-core.git
     validation:
       mode: delegated
       command: npm run validate:capability-graph
@@ -43,7 +43,7 @@ fragments:
     enforcement: enforced
     source:
       kind: git
-      uri: https://github.com/hideakisolutions/backend-core.git
+      uri: https://github.com/HideakiSolutions/backend-core.git
     validation:
       mode: delegated
       command: npm run validate:capability-graph
