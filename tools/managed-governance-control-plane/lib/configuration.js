@@ -266,4 +266,5 @@ module.exports = {
   MAX_CONFIG_BYTES,
   loadSidecarConfiguration,
   readSecureJson,
+  requiredEnvironment,
 };

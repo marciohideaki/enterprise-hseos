@@ -231,6 +231,99 @@ service is reported as `remote_unavailable` and never blocks the session.
 - production identity federation, telemetry and signing-key custody;
 - Git review and merge of publication artifacts.
 
+## Shared-network (LAN) deployment
+
+Loopback remains the default for every installation, including one that already completed the
+PostgreSQL setup above. Shared-network access is a separate, explicit opt-in that an operator adds to
+the same `.hseos/config/managed-governance-sidecar.json`; it never changes governance authority or
+enables `managed-enforced`, which remains unavailable regardless of network profile.
+
+### Configuration
+
+Add a `network` section. Every value below is deployment state, not a package default — the CIDR
+shown is illustrative; the approved value for a specific deployment is decided and applied only
+after the activation checklist passes.
+
+```json
+{
+  "network": {
+    "profile": "shared-network",
+    "listen_host": "192.168.5.70",
+    "port": 4319,
+    "allowed_clients": ["192.168.5.0/24"],
+    "trusted_proxies": [],
+    "transport": {
+      "mode": "direct-tls",
+      "certificate_ref_env": "HSEOS_GOVERNANCE_TLS_CERTIFICATE",
+      "private_key_ref_env": "HSEOS_GOVERNANCE_TLS_PRIVATE_KEY"
+    },
+    "authentication": {
+      "query_token_env": "HSEOS_GOVERNANCE_QUERY_TOKEN",
+      "admin_token_env": "HSEOS_GOVERNANCE_ADMIN_TOKEN"
+    },
+    "rate_limits": { "query_requests_per_minute": 120, "admin_requests_per_minute": 30 }
+  }
+}
+```
+
+`control_plane.host` and `control_plane.port` must match `network.listen_host` and `network.port`
+exactly; a mismatch fails configuration loading before any socket opens. `allowed_clients` must be a
+non-empty list of specific CIDRs — an empty list or an allow-all network (`0.0.0.0/0`, `::/0`) is
+rejected. `trusted_proxies` stays empty unless a specific reverse proxy's own address is intentionally
+trusted to supply `X-Forwarded-For`; any other forwarding header is ignored, and an ambiguous
+multi-hop chain is rejected rather than guessed at.
+
+`transport.mode` is either:
+
+- `direct-tls` — the sidecar itself terminates TLS using the certificate and private key the two
+  referenced environment variables hold (PEM content, never a file path or literal in configuration);
+  an invalid or mismatched pair fails closed before the listener opens.
+- `terminated-upstream` — an external, already-trusted reverse proxy terminates TLS; the sidecar
+  itself still listens on plain HTTP on `listen_host`/`port`, because encrypting that hop is that
+  proxy's declared responsibility, not this process's.
+
+`authentication` requires two distinct, bounded tokens: `query_token_env` authorizes read-mostly
+routes (including the console and MCP query traffic), `admin_token_env` authorizes drafting and
+publication mutations plus the CSRF token those mutations require. Neither token authorizes the
+other's scope in either direction. Export both, plus the transport secrets if `direct-tls` is used, the
+same way the PostgreSQL credentials above are exported — to the process environment only, never into
+configuration or version control.
+
+### Activation checklist
+
+Apply the shared-network profile only after every one of these gates passes for the target
+deployment, in order:
+
+1. **Threat model.** `.enterprise/.specs/features/managed-governance-shadow-readiness/threat-model.md`
+   records zero open Critical or High finding. Re-run its verification if any network, authentication
+   or transport code has changed since.
+2. **Packed-install rehearsal.** `npm run test:package-surface && node --test test/managed-governance/installation.test.js`
+   passes against the exact package version being deployed, proving the artifact ships no
+   `.hseos/state`, no default `.env`, and runs standalone once extracted and installed.
+3. **LAN admission proof.** The deployment's actual `allowed_clients` CIDR admits a client inside it
+   and denies one outside it. `installation.test.js` proves this pattern end to end through the real
+   composition wiring; before enabling the profile against a real network, confirm the declared CIDR
+   matches the deployment's actual client subnet and excludes anything broader.
+4. **Update and restart.** Only then edit the deployment's own
+   `.hseos/config/managed-governance-sidecar.json` to add the `network` section above with the
+   deployment's real values, export the new environment variables, and restart
+   `hseos governance server start`. Binding to `0.0.0.0` is accepted on exactly the same terms as any
+   other shared-network host — it is never a shortcut past the allowlist.
+5. **Observation begins.** The 30-day readiness observation window (`hseos governance readiness
+   status`) starts counting from the first session preflight and receipt submitted against the live
+   shared-network deployment — not from when the configuration file was edited. No step here
+   retroactively fabricates observation history; a report that has not yet accumulated 30 consecutive
+   days of evidence honestly reports `evaluated: false`, never a guessed value.
+
+### What shared-network does not change
+
+- `managed-enforced` still returns `enforcement_unavailable` before any network, snapshot, database or
+  policy effect — reachability never implies authority.
+- Repository files remain the published governance authority; the console and API surfaces stay
+  read/query plus reviewable draft and publication-request flows, never a second source of truth.
+- Disabling the `network` section (or reverting to no `network` section at all) restores loopback-only
+  binding on the next restart without reversing migrations or deleting recorded evidence.
+
 ## Project binding
 
 A consumer supplies an explicit project-local binding and proves it against
@@ -272,9 +365,10 @@ do not reverse applied migrations.
 
 ## Data and operational boundaries
 
-The first delivery is an opt-in, loopback-only shadow capability. It defines a portable operational
-configuration but not a production platform topology. A production profile must be approved
-separately before non-loopback exposure. Until that approval:
+Loopback remains the default for every installation. Shared-network access is available as a
+separate, explicit opt-in gated by the activation checklist above; it is a `managed-shadow` LAN
+deployment, not a production platform topology, and it never activates `managed-enforced`. Whether
+loopback-only or shared-network:
 
 - identifiers used in audit records are technical, pseudonymous actor references;
 - bearer credentials, secret values and personal content are forbidden in bindings, snapshots,

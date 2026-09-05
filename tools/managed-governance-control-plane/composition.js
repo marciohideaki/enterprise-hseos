@@ -3,20 +3,64 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
-const { parseContract, ManagedGovernanceBindingSchema } = require('../../packages/managed-governance-contracts');
+const { digestCanonical, parseContract, ManagedGovernanceBindingSchema } = require('../../packages/managed-governance-contracts');
 const { ImportCatalogService } = require('./lib/application/import-catalog');
 const { diffGovernanceReleases, getGovernanceRelease } = require('./lib/application/query-release');
 const { verifyGovernanceSnapshot } = require('./lib/application/verify-snapshot');
 const { evaluatePolicy } = require('./lib/application/evaluate-policy');
 const { getCurrentReadiness } = require('./lib/application/query-readiness');
 const { recordShadowReceipt } = require('./lib/application/record-shadow-receipt');
-const { loadSidecarConfiguration } = require('./lib/configuration');
+const { loadSidecarConfiguration, requiredEnvironment } = require('./lib/configuration');
 const { GitGovernanceSource } = require('./lib/infrastructure/git/governance-source');
 const { PostgresGovernanceRepository } = require('./lib/infrastructure/postgres/governance-repository');
 const { migrate, readMigrations } = require('./lib/infrastructure/postgres/migrator');
 const { createPostgresPool } = require('./lib/infrastructure/postgres/pool');
 const { createBearerAuth } = require('./lib/interfaces/http/auth');
+const { createNetworkAuthentication } = require('./lib/network/authentication');
+const { createRateLimiter } = require('./lib/network/rate-limit');
 const { createManagedGovernanceServer } = require('./server');
+
+const NETWORK_AUDIT_ACTOR = Object.freeze({ type: 'automation', id: 'network-admission', roles: [] });
+
+// FR-020/FR-022: composing the shared-network profile is deployment configuration, not a second
+// notion of authentication -- loopback's `network.authentication` is always null (see
+// lib/configuration.js's defaultLoopbackNetworkProfile), so this only ever runs for an operator's
+// explicit shared-network selection, never as a hidden default.
+function buildNetworkHardening(network, environment) {
+  if (network.profile !== 'shared-network') return { networkAuthentication: null, rateLimiter: null };
+  const networkAuthentication = createNetworkAuthentication({
+    queryToken: requiredEnvironment(environment, network.authentication.query_token_env, 'shared-network query token', 512),
+    adminToken: requiredEnvironment(environment, network.authentication.admin_token_env, 'shared-network admin token', 512),
+  });
+  const rateLimiter = createRateLimiter({
+    limitsByScope: {
+      query: network.rate_limits.query_requests_per_minute,
+      admin: network.rate_limits.admin_requests_per_minute,
+    },
+  });
+  return { networkAuthentication, rateLimiter };
+}
+
+// Design.md admission sequence step 7: append a bounded access audit fact after every hardening
+// decision. Allowlist matching itself already happened at the raw socket before the HTTP layer
+// ever ran (T09) and is not repeated here, so `matched_allowlist_rule` is not yet known at this
+// layer. Raw client IPs are not retained absent a deployment retention profile this feature does
+// not yet define -- only the resolved, already-bounded client identifier is kept (design.md).
+function networkAccessAuditSink(repository, organizationId) {
+  return async (event) => {
+    await repository.recordNetworkAccessAudit({
+      organization_id: organizationId,
+      actor: NETWORK_AUDIT_ACTOR,
+      client_identifier: event.client_identifier || 'unknown',
+      raw_client_ip: null,
+      route_scope: event.route_scope,
+      matched_allowlist_rule: null,
+      outcome: event.outcome,
+      deny_reason: event.deny_reason ?? null,
+      evidence_digest: digestCanonical(event),
+    });
+  };
+}
 
 const BINDING_PATH = path.join('.hseos', 'config', 'managed-governance-binding.json');
 const QUERY_CONFIG_PATH = path.join('.hseos', 'config', 'managed-governance.json');
@@ -253,10 +297,18 @@ async function createDatabaseBackedControlPlane(options = {}) {
         { repository },
       ),
   };
+  const environment = options.environment || process.env;
+  const { networkAuthentication, rateLimiter } = buildNetworkHardening(configuration.network, environment);
   const server = createManagedGovernanceServer({
     services,
     auth: createBearerAuth({ token: configuration.control_plane.token }),
     repository,
+    networkProfile: configuration.network,
+    networkAuthentication,
+    rateLimiter,
+    trustedProxyCidrs: configuration.network.trusted_proxies,
+    onNetworkAccessAudit: networkAccessAuditSink(repository, configuration.organization.id),
+    environment,
   });
   return Object.freeze({ configuration, discovery, repository, server });
 }
