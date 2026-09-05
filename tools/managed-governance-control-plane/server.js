@@ -3,10 +3,30 @@
 const http = require('node:http');
 const { createHttpRouter } = require('./lib/interfaces/http/router');
 const { createStaticAssetHandler } = require('./lib/interfaces/http/static-assets');
+const { createNetworkAdmission } = require('./lib/network/admission');
 
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', '::1']);
 
+// Portable and managed-shadow installations bind to loopback by default (FR-019); a caller must
+// pass an explicit shared-network options.networkProfile to change that. Never a package CIDR
+// default -- this is the ONLY built-in profile, and it carries no allowlist at all because
+// loopback admission never consults one (see lib/network/admission.js).
+const DEFAULT_LOOPBACK_PROFILE = Object.freeze({
+  profile: 'loopback',
+  listen_host: null,
+  port: null,
+  allowed_clients: [],
+  trusted_proxies: [],
+  transport: null,
+  authentication: null,
+  rate_limits: null,
+});
+
 function createManagedGovernanceServer(options = {}) {
+  // Validated -- and therefore able to throw on an incomplete or wildcard shared-network profile
+  // -- before this function does anything else: before http.createServer() is even called, let
+  // alone before listen() could open a socket.
+  const admission = createNetworkAdmission(options.networkProfile || DEFAULT_LOOPBACK_PROFILE);
   const repository = options.repository || null;
   const router = createHttpRouter(options);
   const serveStatic = options.serveStatic || createStaticAssetHandler(options);
@@ -35,7 +55,15 @@ function createManagedGovernanceServer(options = {}) {
     response.once('close', settle);
     router(request, response).catch(() => response.destroy());
   });
+  // Admission runs on the raw TCP connection, before any HTTP request line is even parsed --
+  // "disallowed peers never reach handlers" (T09 acceptance criterion) means never, not "never
+  // past routing." A denied peer's socket never enters the bookkeeping map at all.
   server.on('connection', (socket) => {
+    const decision = admission.admit(socket.remoteAddress);
+    if (!decision.allow) {
+      socket.destroy();
+      return;
+    }
     sockets.set(socket, 0);
     socket.once('close', () => sockets.delete(socket));
   });
@@ -51,7 +79,13 @@ function createManagedGovernanceServer(options = {}) {
       if (state !== 'created') throw new Error('managed governance server can only listen once');
       const host = listenOptions.host || '127.0.0.1';
       const port = listenOptions.port === undefined ? 0 : listenOptions.port;
-      if (!LOOPBACK_HOSTS.has(host)) throw new Error('managed governance server requires a loopback host');
+      if (admission.profile === 'loopback') {
+        if (!LOOPBACK_HOSTS.has(host)) throw new Error('managed governance server requires a loopback host');
+      } else if (host !== admission.listenHost || listenOptions.port !== admission.listenPort) {
+        // 0.0.0.0 is accepted here on exactly the same terms as any other shared-network host --
+        // it is never a shortcut past the profile's own validated listen_host/port.
+        throw new Error('managed governance server host and port must match the shared-network profile listener');
+      }
       if (!Number.isSafeInteger(port) || port < 0 || port > 65_535) throw new Error('managed governance server port is invalid');
       await new Promise((resolve, reject) => {
         server.once('error', reject);
@@ -80,4 +114,4 @@ function createManagedGovernanceServer(options = {}) {
   });
 }
 
-module.exports = { LOOPBACK_HOSTS, createManagedGovernanceServer };
+module.exports = { DEFAULT_LOOPBACK_PROFILE, LOOPBACK_HOSTS, createManagedGovernanceServer };
