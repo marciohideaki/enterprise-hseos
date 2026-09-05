@@ -3,16 +3,24 @@
 /* global document */
 /* eslint-disable n/no-unsupported-features/node-builtins -- this file executes in the browser */
 
-const state = { schemas: null, draftId: null };
+const state = { schemas: null, draftId: null, csrfToken: null };
 const byId = (id) => document.querySelector(`#${id}`);
+const STATE_CHANGING_METHODS = new Set(['POST', 'PATCH', 'PUT', 'DELETE']);
 
 async function api(path, options = {}) {
   const token = byId('access-token')?.value;
+  const method = (options.method || 'GET').toUpperCase();
   const headers = {
     ...(options.body ? { 'content-type': 'application/json' } : {}),
     ...(token ? { authorization: `Bearer ${token}` } : {}),
+    // Only echoed on state-changing calls: a shared-network admin session's CSRF token is bound
+    // to the admin bearer credential, and is only ever required where design.md's browser
+    // boundary requires it. Nothing before the first authenticated response has a value to send.
+    ...(STATE_CHANGING_METHODS.has(method) && state.csrfToken ? { 'x-hseos-csrf-token': state.csrfToken } : {}),
   };
   const response = await fetch(path, { ...options, headers, body: options.body ? JSON.stringify(options.body) : undefined });
+  const csrfToken = response.headers.get('x-hseos-csrf-token');
+  if (csrfToken) state.csrfToken = csrfToken;
   const envelope = await response.json();
   if (!response.ok || !envelope.ok) throw new Error(envelope.error?.message || 'Control-plane request failed');
   return envelope.data;

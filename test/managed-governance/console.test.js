@@ -68,3 +68,10 @@ test('console consumes only HTTP routes and contains no database or direct Git m
   assert.doesNotMatch(script, /postgres|database[_-]url|child_process|git push|\.git\//i);
   assert.doesNotMatch(fs.readFileSync(path.join(PUBLIC, 'index.html'), 'utf8'), /managed-enforced/);
 });
+
+test('console echoes the CSRF token back only on state-changing requests, never on reads', () => {
+  const script = fs.readFileSync(path.join(PUBLIC, 'app.js'), 'utf8');
+  assert.match(script, /x-hseos-csrf-token/i);
+  assert.match(script, /STATE_CHANGING_METHODS/);
+  assert.doesNotMatch(script, /localStorage|document\.cookie/i);
+});
