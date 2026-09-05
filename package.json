@@ -41,6 +41,7 @@
     "!.enterprise/.specs/specs.zip",
     ".hseos/**",
     "!.hseos/runs/**",
+    "!.hseos/state/**",
     "docs/MANAGED-GOVERNANCE.md",
     "docs/pt-br/governanca-gerenciada.md",
     "packages/**",
