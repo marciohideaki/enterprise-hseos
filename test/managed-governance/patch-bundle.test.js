@@ -177,7 +177,10 @@ test('unsafe destinations fail before any write: symlinked parent, missing paren
 
 test('generatePatchBundle rejects path traversal, absolute paths and duplicate paths', async () => {
   const { repository, request } = await baseRequest();
-  for (const badPath of ['../outside.md', '/absolute.md', 'docs/../../escape.md', 'docs//double-slash.md']) {
+  // assertRelativePath (generate-patch-bundle.js) rejects traversal/absolute/space paths before
+  // a manifest is ever built; a NUL byte instead survives that check (it targets whitespace, not
+  // control characters) and is caught one layer down by RelativePathSchema's own NUL guard.
+  for (const badPath of ['../outside.md', '/absolute.md', 'docs/../../escape.md', 'docs//double-slash.md', 'docs/has space.md']) {
     await assert.rejects(
       generatePatchBundle(
         { ...request, changes: [{ path: badPath, operation: 'create', after: 'x' }], destination: tempDestination('bad-path') },
@@ -187,6 +190,13 @@ test('generatePatchBundle rejects path traversal, absolute paths and duplicate p
       badPath,
     );
   }
+  await assert.rejects(
+    generatePatchBundle(
+      { ...request, changes: [{ path: `docs/has\0nul.md`, operation: 'create', after: 'x' }], destination: tempDestination('bad-path-nul') },
+      { repository },
+    ),
+    (error) => error.code === 'MANAGED_GOVERNANCE_CONTRACT_INVALID',
+  );
   await assert.rejects(
     generatePatchBundle(
       {
