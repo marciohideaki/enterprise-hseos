@@ -6,7 +6,8 @@
 **Scope:** All Hideaki repositories, projects, and agents
 **Authority:** Enterprise Constitution §2.6; Platform Capability Governance Standard; ADR-0033
 
-> PCCP enforcement is pending the explicit ADR-0023/schema-2.0 human activation gate.
+> PCCP is accepted by ADR-0036 (2026-09-05); enforcement is pending the separate,
+> explicit schema-2.0 human activation gate.
 
 ## Rule
 

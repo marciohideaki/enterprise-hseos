@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.hideakiservicos.com/hseos/capability-graph-fragment/2.0.0",
   "title": "Federated Platform Capability Graph Fragment — PCCP candidate",
-  "description": "Proposed breaking successor to schema 1.0.0; activation requires ADR-0036 approval.",
+  "description": "Breaking successor to schema 1.0.0, accepted as target design by ADR-0036; activation still requires a separate schema-2.0 human gate.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "fragment_id", "repository", "nodes", "edges", "findings"],
