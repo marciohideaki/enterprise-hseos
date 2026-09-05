@@ -780,7 +780,7 @@ class PostgresGovernanceRepository {
       prepared,
       table: 'release_publication_attempts',
       columns: Object.keys(prepared.record),
-      jsonColumns: new Set(),
+      jsonColumns: new Set(['items']),
       eventType: 'governance.release_publication_attempt.recorded',
       aggregateType: 'release_publication_attempt',
       topic: 'governance.release_publication_attempt.recorded',
@@ -793,6 +793,18 @@ class PostgresGovernanceRepository {
       parsedOrganizationId,
       'SELECT * FROM hseos_governance.release_publication_attempts WHERE organization_id = $1 AND release_publication_attempt_id = $2',
       [parsedOrganizationId, releasePublicationAttemptId],
+    );
+    return rows[0] || null;
+  }
+
+  async getPublishedRelease(organizationId, releaseId) {
+    const parsedOrganizationId = parseRepositoryIdentifier(organizationId, 'organization id');
+    const rows = await this._readTenant(
+      parsedOrganizationId,
+      `SELECT * FROM hseos_governance.release_publication_attempts
+        WHERE organization_id = $1 AND release_id = $2 AND stage = 'published'
+        ORDER BY sequence DESC LIMIT 1`,
+      [parsedOrganizationId, releaseId],
     );
     return rows[0] || null;
   }

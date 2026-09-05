@@ -592,6 +592,18 @@ class MemoryGovernanceRepository {
     return this._getEvidence('releasePublicationAttempts', organizationId, releasePublicationAttemptId);
   }
 
+  async getPublishedRelease(organizationId, releaseId) {
+    this._assertOpen();
+    const parsedOrganizationId = parseRepositoryIdentifier(organizationId, 'organization id');
+    let best = null;
+    for (const entry of this.releasePublicationAttempts.values()) {
+      const record = entry.record;
+      if (record.organization_id !== parsedOrganizationId || record.release_id !== releaseId || record.stage !== 'published') continue;
+      if (!best || record.sequence > best.sequence) best = record;
+    }
+    return best ? deepFreeze(clone(best)) : null;
+  }
+
   async recordPatchPublicationBundle(command) {
     return this._recordEvidence('patchPublicationBundles', prepareRecordPatchBundleCommand(command, { clock: this.clock }));
   }

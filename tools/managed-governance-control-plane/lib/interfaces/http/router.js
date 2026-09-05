@@ -102,6 +102,11 @@ function mapError(error) {
     ['MANAGED_GOVERNANCE_POLICY_INVALID', 'invalid_request'],
     ['MANAGED_GOVERNANCE_POLICY_DENIED', 'policy_denied'],
     ['MANAGED_GOVERNANCE_REPOSITORY_CLOSED', 'database_unavailable'],
+    ['MANAGED_GOVERNANCE_SNAPSHOT_INVALID', 'invalid_request'],
+    ['MANAGED_GOVERNANCE_SNAPSHOT_EXPIRED', 'invalid_request'],
+    ['MANAGED_GOVERNANCE_SNAPSHOT_NOT_YET_VALID', 'invalid_request'],
+    ['MANAGED_GOVERNANCE_SNAPSHOT_TAMPERED', 'invalid_request'],
+    ['MANAGED_GOVERNANCE_SNAPSHOT_UNTRUSTED_SIGNER', 'invalid_request'],
   ]);
   const code = mappings.get(error?.code) || 'internal_error';
   const publicMessages = {

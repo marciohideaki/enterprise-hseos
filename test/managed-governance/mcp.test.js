@@ -59,6 +59,9 @@ test('query adapter loads only project-local managed-shadow configuration and ma
   await adapter.getEffectiveGovernanceContext({ repository_id: 'repository-1' });
   await adapter.evaluateGovernedAction({ context: { action: 'read' } });
   await adapter.getGovernanceArtifact({ artifact_id: 'policy:one' });
+  await adapter.getGovernanceRelease({ release_id: 'release-1' });
+  await adapter.diffGovernanceReleases({ base_release_id: 'release-1', target_release_id: 'release-2' });
+  await adapter.verifyGovernanceSnapshot({ snapshot_id: 'release-1' });
   await adapter.getGovernanceSessionStatus({});
   assert.deepEqual(
     calls.map(({ method, pathname }) => [method, pathname]),
@@ -66,10 +69,15 @@ test('query adapter loads only project-local managed-shadow configuration and ma
       ['GET', '/api/v1/context?limit=100&repository_id=repository-1'],
       ['POST', '/api/v1/policy/evaluate'],
       ['GET', '/api/v1/artifacts/policy%3Aone'],
+      ['GET', '/api/v1/releases/release-1'],
+      ['POST', '/api/v1/releases/diff'],
+      ['POST', '/api/v1/snapshots/verify'],
       ['GET', '/api/v1/session/status'],
     ],
   );
   assert.deepEqual(calls[1].body, { action: 'read' });
+  assert.deepEqual(calls[4].body, { base_release_id: 'release-1', target_release_id: 'release-2' });
+  assert.deepEqual(calls[5].body, { snapshot_id: 'release-1' });
 });
 
 test('MCP and CLI preserve the same managed-shadow decision without retaining request state', async () => {
