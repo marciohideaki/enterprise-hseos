@@ -17,22 +17,31 @@ jobs:
   compose:
     runs-on: ubuntu-latest
     steps:
+      # fetch-depth: 0 (full history) on every checkout: the initial-Contract rule proves an
+      # ID was absent from the immediate PARENT of the authoritative revision -- a shallow
+      # (depth-1) checkout has no parent commit to prove that against, and the validator fails
+      # closed rather than silently deepening the fetch on a security-relevant code path.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/checkout@v4
         with:
           repository: HideakiSolutions/platform-core
           ref: 86ffef7f118a925bb2993eadfb3ec05eea0ccff8
           path: dependencies/platform-core
+          fetch-depth: 0
       - uses: actions/checkout@v4
         with:
           repository: HideakiSolutions/backend-core
           ref: 1394444be20fdaa8a9fcfa7229df2aa59768c992
           path: dependencies/backend-core
+          fetch-depth: 0
       - uses: actions/checkout@v4
         with:
           repository: cambioreal/cambio-real-v2
           ref: 2124528f61803ced593c3415f4714db22fba63e0
           path: dependencies/cambio-real-v2
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 24

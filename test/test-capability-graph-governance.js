@@ -19,6 +19,19 @@ const { isGreater, parseVersion, validateConstitutionChange } = require('../scri
 
 const REPO_ROOT = path.join(__dirname, '..');
 
+// CI checkouts are shallow by default (fetch-depth: 1), so HEAD^ does not exist there even
+// though it always does in a normal developer clone. Deepen on demand instead of assuming
+// full history -- this keeps the fixture honest (a real immutable prior revision, not a
+// fabricated one) without requiring every caller of this suite to configure its checkout.
+function immediateParentRevision(root) {
+  try {
+    return execFileSync('git', ['rev-parse', '--verify', 'HEAD^'], { cwd: root, encoding: 'utf8' }).trim();
+  } catch {
+    execFileSync('git', ['fetch', '--unshallow', 'origin'], { cwd: root, encoding: 'utf8', stdio: 'pipe' });
+    return execFileSync('git', ['rev-parse', '--verify', 'HEAD^'], { cwd: root, encoding: 'utf8' }).trim();
+  }
+}
+
 function clone(value) {
   return structuredClone(value);
 }
@@ -243,7 +256,7 @@ const cases = [
       const introductionFragmentPath = '.enterprise/governance/capabilities/fragments/enterprise-hseos.yaml';
       const repositoryUri = execFileSync('git', ['remote', 'get-url', 'origin'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
       const baselinePath = '.enterprise/governance/capabilities/schemas/capability-graph-fragment.schema.json';
-      const baselineRevision = execFileSync('git', ['rev-parse', 'HEAD^'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
+      const baselineRevision = immediateParentRevision(REPO_ROOT);
       const baselineContents = execFileSync('git', ['show', `${baselineRevision}:${baselinePath}`], { cwd: REPO_ROOT, encoding: 'utf8' });
       const compatibilityBaseline = {
         contract_id: 'contract.capability-graph.fragment.v1',
