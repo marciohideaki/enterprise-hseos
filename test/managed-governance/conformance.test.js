@@ -102,6 +102,33 @@ test('reserved managed enforcement remains an unavailable no-side-effect state',
   assert.equal(effects, 0);
 });
 
+// NFR-003: a control-plane outage with no usable cached snapshot must degrade shadow evaluation
+// to the local decision, never block it. This is the "portable outage" invariant the threat model
+// requires alongside the "enforcement unavailable" one above -- the two failure axes (managed-shadow
+// with no fallback, managed-enforced entirely) both leave the portable local result authoritative.
+test('a total control-plane outage with no cached snapshot leaves the local decision authoritative and unblocked', async () => {
+  const localResult = { allowed: true, decision: 'input_required' };
+  const client = createManagedGovernanceClient({
+    binding: binding('managed-shadow'),
+    repositoryId: REPOSITORY_ID,
+    endpoint: 'https://governance.example.invalid',
+    snapshotStore: {
+      load: () => {
+        throw new Error('no snapshot has ever been promoted');
+      },
+    },
+    maximumRetries: 0,
+    fetchImpl: async () => {
+      throw new Error('control plane is unreachable');
+    },
+  });
+  const result = await client.resolveShadow({ localResult, policyInput: { action: 'repository.push' } });
+  assert.equal(result.transport.status, 'degraded_unavailable');
+  assert.equal(result.authoritative_source, 'local');
+  assert.deepEqual(result.result, localResult);
+  assert.equal(result.parity, null);
+});
+
 test('verification matrix accounts for every functional and non-functional requirement', () => {
   const spec = fs.readFileSync(path.join(ROOT, '.enterprise/.specs/features/managed-governance-control-plane/spec.md'), 'utf8');
   const matrix = fs.readFileSync(

@@ -28,7 +28,10 @@ function sharedNetworkProfile(overrides = {}) {
     port: 4319,
     allowed_clients: ['192.168.5.0/24'],
     trusted_proxies: [],
-    transport: { mode: 'direct-tls', certificate_ref_env: 'HSEOS_TEST_TLS_CERT', private_key_ref_env: 'HSEOS_TEST_TLS_KEY' },
+    // terminated-upstream here: these tests exercise admission (allowlist/peer resolution), not
+    // transport encryption -- direct-tls enforcement has its own dedicated real-certificate tests
+    // in security.test.js.
+    transport: { mode: 'terminated-upstream', certificate_ref_env: 'HSEOS_TEST_TLS_CERT', private_key_ref_env: 'HSEOS_TEST_TLS_KEY' },
     authentication: { query_token_env: 'HSEOS_TEST_QUERY_TOKEN', admin_token_env: 'HSEOS_TEST_ADMIN_TOKEN' },
     rate_limits: { query_requests_per_minute: 120, admin_requests_per_minute: 30 },
     ...overrides,
