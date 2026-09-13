@@ -46,6 +46,7 @@
 | [ADR-0035](./ADR-0035-enforcement-boundary-doctrine.md)             | Explicit Enforcement-Boundary Doctrine and In-Process Guardrail Hardening  | Proposed                            | AGENTS.md §4 execution governance, hook registry, anchor-guard, state-emit, ADR-0016, ADR-0023 |
 | [ADR-0036](./ADR-0036-platform-capability-contract-pattern.md)      | Platform Capability Contract Pattern (PCCP)                                | Accepted (2026-09-05)               | capability governance, graph schema, intake, conformance, templates, publication policy |
 | [ADR-0037](./ADR-0037-operational-contracts-v1.md)                  | Operational Contracts v1                                                   | Proposed                            | HSEOS runtime state, agent-state observability, evidence, session continuity |
+| [ADR-0039](./ADR-0039-backstage-governed-projection.md)            | Backstage as a Governed Projection of the Platform Capability Graph        | Accepted (2026-09-13)               | Platform Capability Governance §3/§4/§5/§6, API Management & Versioning, Code & API Documentation |
 
 ---
 
