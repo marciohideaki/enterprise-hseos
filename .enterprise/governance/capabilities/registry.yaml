@@ -63,7 +63,7 @@ fragments:
   - id: fragment.talent-forge-platform
     repository: repo.talent-forge-platform
     path: .platform/capability-graph.fragment.json
-    revision: bc64abc1653cec5ae952d81de1315b6242b9a904
+    revision: 9cbd06aef60763ab4535e69587f8ae7a3874e707
     enforcement: enforced
     source:
       kind: git
@@ -75,7 +75,7 @@ fragments:
   - id: fragment.talent-forge-web
     repository: repo.talent-forge-web
     path: .platform/capability-graph.fragment.json
-    revision: b3fec078cc3c5a2ede091e44e27035e79e74b92f
+    revision: e3c55fc66e2428bf103eb1035a30efa9902a067c
     enforcement: enforced
     source:
       kind: git
