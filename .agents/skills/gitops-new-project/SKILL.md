@@ -106,7 +106,7 @@ metadata:
 spec:
   project: <project>
   source:
-    repoURL: git@github.com:HideakiSolutions/platform-gitops.git
+    repoURL: git@github.com:Hideaki-Solutions-Infrastructure/platform-gitops.git
     targetRevision: develop
     path: <project>/services/overlays/<env>
   destination:
@@ -130,7 +130,7 @@ metadata:
 spec:
   project: <project>
   source:
-    repoURL: git@github.com:HideakiSolutions/platform-gitops.git
+    repoURL: git@github.com:Hideaki-Solutions-Infrastructure/platform-gitops.git
     targetRevision: develop
     path: <project>/infra/overlays/<env>
   destination:
@@ -158,7 +158,7 @@ metadata:
 spec:
   description: Projeto <project> - acesso restrito
   sourceRepos:
-    - git@github.com:HideakiSolutions/platform-gitops.git
+    - git@github.com:Hideaki-Solutions-Infrastructure/platform-gitops.git
   destinations:
     - namespace: <project>-*
       server: https://kubernetes.default.svc
