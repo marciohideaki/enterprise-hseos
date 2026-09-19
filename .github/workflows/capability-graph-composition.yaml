@@ -57,6 +57,23 @@ jobs:
           path: dependencies/cambio-real-v2
           fetch-depth: 0
           token: ${{ secrets.CAPABILITY_GRAPH_CROSS_REPO_PAT }}
+      # Talent Forge entra na federacao em 2026-09-18. Os dois repositorios sao privados na
+      # organizacao Talent-Forge: o CAPABILITY_GRAPH_CROSS_REPO_PAT precisa de leitura nela,
+      # o que NAO estava no escopo verificado em 2026-09-05 (tres repositorios apenas).
+      - uses: actions/checkout@v4
+        with:
+          repository: Talent-Forge/talent-forge-platform
+          ref: bc64abc1653cec5ae952d81de1315b6242b9a904
+          path: dependencies/talent-forge-platform
+          fetch-depth: 0
+          token: ${{ secrets.CAPABILITY_GRAPH_CROSS_REPO_PAT }}
+      - uses: actions/checkout@v4
+        with:
+          repository: Talent-Forge/talent-forge-web
+          ref: b3fec078cc3c5a2ede091e44e27035e79e74b92f
+          path: dependencies/talent-forge-web
+          fetch-depth: 0
+          token: ${{ secrets.CAPABILITY_GRAPH_CROSS_REPO_PAT }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -69,4 +86,6 @@ jobs:
           --repository-root repo.platform-core=${{ github.workspace }}/dependencies/platform-core
           --repository-root repo.backend-core=${{ github.workspace }}/dependencies/backend-core
           --repository-root repo.cambio-real-v2=${{ github.workspace }}/dependencies/cambio-real-v2
+          --repository-root repo.talent-forge-platform=${{ github.workspace }}/dependencies/talent-forge-platform
+          --repository-root repo.talent-forge-web=${{ github.workspace }}/dependencies/talent-forge-web
           --json
