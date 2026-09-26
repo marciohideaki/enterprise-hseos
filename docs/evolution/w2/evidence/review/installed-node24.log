@@ -1,0 +1,31 @@
+{
+  "node": "v24.15.0",
+  "installed": "/build/tmp/hseos-w2-installed-m0sWGY/consumer24/node_modules/hseos",
+  "outside_checkout": true,
+  "operational": false,
+  "real_models": false,
+  "task_id": "922ac04b-7188-4550-9770-557df82a5dd4",
+  "terminals": [
+    {
+      "id": "294e458d-8068-44a6-9c55-e2fbcc9ddf14",
+      "mode": "pty",
+      "output": "TTY=True\r\npty-once\r\nOBSERVED=pty-once\r\n",
+      "next_cursor": 15,
+      "status": "terminated"
+    },
+    {
+      "id": "d0262927-a296-4844-9278-db65a10d4f2d",
+      "mode": "job",
+      "output": "TTY=False\nOBSERVED=job-once\n",
+      "next_cursor": 12,
+      "status": "terminated"
+    }
+  ],
+  "interfaces": [
+    "installed CLI server",
+    "CLI terminal-command",
+    "JS SDK",
+    "Python SDK",
+    "authenticated HTTP"
+  ]
+}

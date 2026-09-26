@@ -1,0 +1,38 @@
+✔ authenticated HTTP, JS, Python and CLI share terminal identity and cursor (2611.790849ms)
+✔ control reserves parent budget and exposes durable cursor without replaying input (2364.156258ms)
+✔ CAS, command authorization, mode and finite shared budget fail closed (2168.298223ms)
+✔ receipt loss never repeats effect and requires explicit digest-bound reconciliation (1919.099774ms)
+✔ concurrent sessions isolate output and parent cancellation drains all children (2190.753523ms)
+✔ SIGKILL before-intent: recovery never respawns and cancellation drains resources (2072.973066ms)
+✔ SIGKILL after-intent: recovery never respawns and cancellation drains resources (2728.384053ms)
+✔ SIGKILL after-prepared: recovery never respawns and cancellation drains resources (2502.24946ms)
+✔ SIGKILL before-receipt: recovery never respawns and cancellation drains resources (2765.274735ms)
+✔ SIGKILL after-receipt: recovery never respawns and cancellation drains resources (2765.484224ms)
+✔ SIGKILL input-receipt: recovery never respawns and cancellation drains resources (2701.94479ms)
+✔ cancel during remote recovery fences dispatch and preserves other sessions (1934.13602ms)
+✔ job pipes accept input and EOF; output has bounded binary frames (132.909982ms)
+✔ PTY exposes tty, resize and input without a host shell (225.792932ms)
+✔ pause freezes all descendants and continue resumes; interrupt settles (306.417171ms)
+✔ deadline includes paused time and drains detached descendants (422.779704ms)
+✔ output cap stops producers; parent EOF terminates a live tree (233.301776ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 32176.401024
+--------------------------------------|---------|----------|---------|---------|--------------------
+File                                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s  
+--------------------------------------|---------|----------|---------|---------|--------------------
+All files                             |   83.75 |    86.69 |   85.71 |   83.75 |                    
+ packages/agent-isolation-attestation |   90.47 |    68.75 |   85.71 |   90.47 |                    
+  terminal-executor.js                |   90.47 |    68.75 |   85.71 |   90.47 | ...170-171,176-178 
+ packages/control-sdk                 |   78.48 |    72.22 |   66.66 |   78.48 |                    
+  index.js                            |   78.48 |    72.22 |   66.66 |   78.48 | 55-56,61-64,66-76  
+ tools/cli/lib                        |   81.98 |    91.66 |   94.73 |   81.98 |                    
+  terminal-attach.js                  |       0 |        0 |       0 |       0 | 1-79               
+  terminal-budget.js                  |    91.3 |    83.33 |     100 |    91.3 | 41-44              
+  terminal-control.js                 |   98.88 |     92.9 |     100 |   98.88 | 138-140,282        
+--------------------------------------|---------|----------|---------|---------|--------------------

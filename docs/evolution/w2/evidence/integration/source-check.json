@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-09-26T07:40:23.193206+00:00",
+  "reviewed_source_tree": "c0fb0a8b4945485c08d02241b82e1a507b159670",
+  "upstream_commit": "954943456bc7f2ed27657501c9910b2e07ef1516",
+  "review_artifacts_checked": 32,
+  "review_artifact_mismatches": [],
+  "matrix_sources_checked": 2155,
+  "matrix_differences": {
+    ".github/workflows/ci.yaml": "Documented CI support for feature PRs, delegated cgroup and exact matrix runtime at /usr/bin/node.",
+    ".specs/features/harness-w2/tasks.md": "Post-matrix documentation; digest verified against review receipt.",
+    "docs/evolution/w2/REVIEW.md": "Post-matrix documentation; digest verified against review receipt."
+  },
+  "additional_integration_files": [
+    ".github/scripts/enable-test-cgroup.mjs",
+    "docs/evolution/INTEGRATION.md",
+    "docs/evolution/w2/evidence/integration/source-check.json",
+    "docs/evolution/w2/evidence/integration/w1-ci-checks.json"
+  ],
+  "validation_status": "source_and_artifact_integrity_verified; integration gates and CI pending",
+  "upstream_pr": 178
+}

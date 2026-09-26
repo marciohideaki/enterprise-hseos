@@ -1,0 +1,31 @@
+{
+  "node": "v22.23.3",
+  "installed": "/build/tmp/hseos-w2-installed-EL98f0/consumer22/node_modules/hseos",
+  "outside_checkout": true,
+  "operational": false,
+  "real_models": false,
+  "task_id": "a6f0ba0c-89cc-4804-b730-ded9b417e902",
+  "terminals": [
+    {
+      "id": "33ce4be3-ac55-49cb-b4bc-67a0be778137",
+      "mode": "pty",
+      "output": "TTY=True\r\npty-once\r\nOBSERVED=pty-once\r\n",
+      "next_cursor": 14,
+      "status": "terminated"
+    },
+    {
+      "id": "2f8baab5-aa4c-4019-978f-1c04d50bf9b3",
+      "mode": "job",
+      "output": "TTY=False\nOBSERVED=job-once\n",
+      "next_cursor": 12,
+      "status": "terminated"
+    }
+  ],
+  "interfaces": [
+    "installed CLI server",
+    "CLI terminal-command",
+    "JS SDK",
+    "Python SDK",
+    "authenticated HTTP"
+  ]
+}

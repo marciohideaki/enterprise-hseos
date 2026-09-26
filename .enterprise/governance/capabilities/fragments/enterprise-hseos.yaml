@@ -96,6 +96,16 @@ nodes:
     name: W1 reuse and conformance intake
     path: docs/decisions/harness-w1-intake.md
     lifecycle: proposed
+  - id: testsuite.hseos.terminals
+    type: TestSuite
+    name: Terminal lifecycle and crash boundary tests
+    path: test/test-terminal-control.js
+    lifecycle: proposed
+  - id: evidence.hseos.w2-intake
+    type: Evidence
+    name: W2 terminal reuse and conformance intake
+    path: docs/decisions/harness-w2-intake.md
+    lifecycle: proposed
 edges:
   - id: edge.repo.enterprise-hseos.owned-by.platform-architecture
     type: OWNED_BY
@@ -266,4 +276,21 @@ edges:
     repository: repo.enterprise-hseos
     evidence:
       - evidence.hseos.w1-intake
+  - id: edge.testsuite.hseos.terminals.owner
+    type: OWNED_BY
+    from: testsuite.hseos.terminals
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.evidence.hseos.w2-intake.owner
+    type: OWNED_BY
+    from: evidence.hseos.w2-intake
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.hseos.w2.testsuite.hseos.terminals
+    type: VALIDATED_BY
+    from: capability.hseos.project-engineering
+    to: testsuite.hseos.terminals
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.hseos.w2-intake
 findings: []

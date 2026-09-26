@@ -1,0 +1,33 @@
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const { spawnSync } = require('node:child_process');
+const { createHash } = require('node:crypto');
+const root = process.cwd();
+const logs = path.join(root, '.logs/validation/w2-review');
+const destination = fs.mkdtempSync('/build/tmp/hseos-w2-installed-');
+const versions = [['24', '/workspace/local/sdk/nvm/versions/node/v24.15.0/bin'], ['22', '/build/tmp/hseos-w1-node/node-v22.23.3-linux-x64/bin']];
+function execute(label, args, cwd, env) {
+  const out = fs.openSync(path.join(logs, label + '.log'), 'w');
+  const err = fs.openSync(path.join(logs, label + '.stderr.log'), 'w');
+  const started = new Date().toISOString();
+  const result = spawnSync(args[0], args.slice(1), { cwd, env, stdio: ['ignore', out, err] });
+  fs.closeSync(out);
+  fs.closeSync(err);
+  fs.writeFileSync(path.join(logs, label + '.result.json'), JSON.stringify({ started_at: started, finished_at: new Date().toISOString(), exit_code: result.status, sequential: true }, null, 2) + '\n');
+  process.stdout.write(`${label}: ${result.status}\n`);
+  if (result.status !== 0) throw new Error(`${label} failed`);
+}
+const env24 = { ...process.env, PATH: versions[0][1] + ':' + process.env.PATH, TMPDIR: '/tmp', MAKEFLAGS: '-j1' };
+execute('pack', ['nice', '-n', '10', 'npm', 'pack', '--json', '--ignore-scripts', '--pack-destination', destination], root, env24);
+const packageInfo = JSON.parse(fs.readFileSync(path.join(logs, 'pack.log'), 'utf8'))[0];
+const tarball = path.join(destination, packageInfo.filename);
+fs.writeFileSync(path.join(logs, 'package-receipt.json'), JSON.stringify({ tarball, sha256: createHash('sha256').update(fs.readFileSync(tarball)).digest('hex'), size: fs.statSync(tarball).size, source_manifest_sha256: createHash('sha256').update(fs.readFileSync(path.join(logs, 'matrix-sources.json'))).digest('hex') }, null, 2) + '\n');
+for (const [version, runtime] of versions) {
+  const consumer = path.join(destination, 'consumer' + version);
+  fs.mkdirSync(consumer);
+  fs.writeFileSync(path.join(consumer, 'package.json'), '{"name":"hseos-terminal-installation-test","private":true}\n');
+  const env = { ...env24, PATH: runtime + ':' + process.env.PATH };
+  execute('install-node' + version, ['nice', '-n', '10', 'npm', 'install', '--offline', '--omit=dev', '--no-audit', '--no-fund', tarball], consumer, env);
+  execute('installed-node' + version, ['systemd-run', '--user', '--scope', '--quiet', '-p', 'Delegate=yes', 'nice', '-n', '10', 'node', path.join(logs, 'installed-smoke.cjs'), consumer], consumer, env);
+}

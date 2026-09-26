@@ -1,0 +1,107 @@
+import datetime, hashlib, json, os, pathlib, re, shutil, subprocess, tempfile
+
+root = pathlib.Path.cwd()
+logs = root / '.logs/validation/w2'
+evidence = root / 'docs/evolution/w2/evidence'
+baseline = json.loads((evidence / 'baseline.json').read_text())
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+def save(path, value):
+    path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + '\n')
+def git(*args, env=None, cwd=root):
+    return subprocess.check_output(['git', *args], cwd=cwd, env=env).decode().strip()
+
+w1 = root.parent / 'hseos-evolution-w1'
+assert all((w1 / p).is_file() and sha(w1 / p) == h for p, h in baseline['files'].items())
+w1index = pathlib.Path(git('rev-parse', '--git-path', 'index', cwd=w1))
+assert sha(w1index) == baseline['w1_index_sha256']
+assert sha(w1 / '.logs/validation/w1/wave1-delta.patch') == baseline['w1_patch_sha256']
+assert git('write-tree') == baseline['imported_w1_tree']
+assert git('rev-parse', 'HEAD') == baseline['git_base']
+v4 = json.loads((root / 'docs/evolution/baseline.json').read_text())
+v4root = root.parent / v4['source_worktree']
+assert all(sha(v4root / p) == h for p,h in v4['files'].items())
+w0sources = json.loads((root / 'docs/evolution/evidence/w0-closeout/sources.json').read_text())
+assert all(sha(root.parent / 'hseos-evolution-w0' / p) == h for p,h in w0sources.items())
+
+matrix = json.loads((logs / 'matrix-sources.json').read_text())
+names = sorted(set(git('ls-files', '--cached', '--others', '--exclude-standard', '-z').split('\0')) - {''})
+sources = {p: sha(root / p) for p in names if (root / p).is_file() and not p.startswith('docs/evolution/w2/evidence/')}
+post_matrix = {p: h for p, h in sources.items() if matrix.get(p) != h}
+assert all(p.startswith(('docs/', '.specs/')) for p in post_matrix), post_matrix
+assert not (set(matrix) - set(sources))
+delta = {p: h for p, h in sources.items() if baseline['files'].get(p) != h}
+save(evidence / 'sources.json', delta)
+shutil.copy2(logs / 'matrix-sources.json', evidence / 'matrix-sources.json')
+
+checks = {}
+for version in ['24', '22']:
+    for stage in ['full', 'kernel']:
+        label = f'{stage}-node{version}-final'
+        result = json.loads((logs / (label + '.json')).read_text())
+        assert result['exit_code'] == 0
+        assert result['source_manifest_sha256'] == sha(logs / 'matrix-sources.json')
+        text = (logs / (label + '.log')).read_text()
+        result['counts'] = {name: sum(map(int, re.findall(r'(?:ℹ |# )' + name + r' (\d+)', text))) for name in ['tests','pass','fail','skipped']}
+        assert result['counts']['tests'] > 0
+        assert result['counts']['fail'] == result['counts']['skipped'] == 0
+        if stage == 'kernel':
+            coverage = json.loads((logs / f'coverage-node{version}-final.json').read_text())
+            result['coverage'] = coverage['total']
+            assert all(v['lines']['pct'] >= 90 and v['branches']['pct'] >= 80 for k,v in coverage.items() if k != 'total')
+        checks[label] = result
+for label in ['pack','install-node24','installed-node24','install-node22','installed-node22','sdk-types','final-static']:
+    result = json.loads((logs / (label + '.result.json')).read_text())
+    assert result['exit_code'] == 0
+    checks[label] = result
+
+with tempfile.TemporaryDirectory(prefix='hseos-w2-final-index-') as directory:
+    env = dict(os.environ, GIT_INDEX_FILE=directory + '/index')
+    git('read-tree', baseline['imported_w1_tree'], env=env)
+    git('add', '-A', '--', '.', ':!docs/evolution/w2/evidence', env=env)
+    tree = git('write-tree', env=env)
+    patch = logs / 'wave2-delta.patch'
+    patch.write_bytes(subprocess.check_output(['git','diff','--binary',baseline['imported_w1_tree'],tree],cwd=root,env=env))
+    git('read-tree', baseline['imported_w1_tree'], env=env)
+    git('apply','--cached',str(patch),env=env)
+    assert git('write-tree',env=env) == tree
+    separation = dict(imported_w1_index=baseline['imported_w1_tree'], review_tree_without_receipts=tree,
+        wave2_patch_sha256=sha(patch), patch_reconstructed=True, real_index_unchanged=True,
+        original_w1_files_preserved=len(baseline['files']), original_w1_index_unchanged=True,
+        original_v4_files_preserved=len(v4['files']), original_w0_sources_preserved=len(w0sources),
+        original_w1_patch_unchanged=True, immediate_upstream=baseline['upstream'],
+        feature=baseline['feature'], task_branch=git('branch','--show-current'), base_commit=baseline['git_base'],
+        commits_created=False, branches_integrated=False)
+save(evidence / 'git-separation.json', separation)
+
+for path in sorted(logs.iterdir()):
+    if path.is_file() and path.suffix in ['.log','.json'] and path.name != 'matrix-sources.json':
+        shutil.copy2(path, evidence / path.name)
+    elif path.is_file() and path.suffix in ['.py','.cjs','.ts']:
+        shutil.copy2(path, evidence / (path.name + '.txt'))
+
+formatter = ['/workspace/local/sdk/nvm/versions/node/v24.15.0/bin/node', '../../node_modules/prettier/bin/prettier.cjs', '--write']
+formatted = [str(p) for p in sorted(evidence.glob('*.json')) if p.name not in ['baseline.json', 'matrix-sources.json', 'sources.json', 'receipt.json']]
+subprocess.run([*formatter, *formatted], check=True, stdout=subprocess.DEVNULL)
+
+receipt = dict(schema_version=1, timestamp=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    status='verified_linux_candidate_w2', base_commit=baseline['git_base'],
+    states=dict(deterministic='verified', installed_consumers='verified_local_cli_js_python_and_typescript_contract',
+                real_models='not_certified', operational='not_activated'),
+    execution=dict(sequential=True, subagents=False, test_concurrency=1, delegated_test_scope=True),
+    checks=checks, matrix_sources_sha256=sha(evidence / 'matrix-sources.json'),
+    sources_manifest_sha256=sha(evidence / 'sources.json'), post_matrix_documentation_changes=post_matrix,
+    git=separation, operational=dict(schema_candidate=11, schema_operational=4, migrated=False, published=False, global_install=False),
+    limitations=['Linux with delegated cgroup v2/bwrap/seccomp and Python pidfd support required',
+        'Terminals admitted before model execution; readonly workspace and no network',
+        'Controller death drains processes; recovery does not continue or rerun them',
+        'Fixture retention is not certified across cleanup or reboot',
+        'c8 measures JavaScript only; Python broker exercised by real subprocess tests',
+        'Existing template-placeholder warning retained; remote CI and models not certified'],
+    failed_attempts=dict(pty_controlling='Missing cgroup delegation in resumed login session; rerun in delegated scope',
+        kernel_node24_attempt1='Temporary review index leaked into Git fixtures; runner now clears Git-local environment',
+        pack_attempt1='Packaging passed but its JSON parser received mixed stderr/stdout; split streams and reran packaging'))
+receipt['artifacts'] = {p.name: sha(p) for p in sorted(evidence.iterdir()) if p.is_file() and p.name != 'receipt.json'}
+save(evidence / 'receipt.json', receipt)
+subprocess.run([*formatter, str(evidence / 'receipt.json')], check=True, stdout=subprocess.DEVNULL)
+print(json.dumps({'sources':len(delta),'checks':len(checks),'git':separation},indent=2))

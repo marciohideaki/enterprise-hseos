@@ -212,6 +212,15 @@ function assemble(handle, created, { environment, fetchImpl } = {}) {
         : null,
     execution_policy: {
       async evaluate({ contract: tool }) {
+        const used = Object.keys(assembly.sessionStore.replay(sessionId).tool_invocations).length;
+        const reserved = require('./terminal-budget').terminalBudget(handle.db, readIdentity(handle.directory)).count;
+        if (used + reserved > contract.limits.max_tool_calls)
+          return {
+            allowed: false,
+            requires_approval: false,
+            policy_version: tool.policy_version,
+            warnings: ['Task tool budget includes terminal reservations.'],
+          };
         if (new EngineeringTaskState(handle.db, readIdentity(handle.directory)).read().uncertainty)
           return {
             allowed: false,
@@ -552,6 +561,8 @@ async function inspectEngineeringTask({
       const { report } = await require('./engineering-reconciliation').inspectReconciliation(task, assembly, attestExecutor);
       return { ...summary(handle, id, task, assembly), reconciliation: report, questions: report.questions };
     }
+    if (['resume', 'cancel', 'reconcile'].includes(action))
+      require('./terminal-budget').assertTerminalsSettled(handle.db, id, action === 'cancel');
     if (action === 'resume' && expectedSequence !== state.version) throw new Error('Expected task sequence is required');
     if (state.started) {
       if (action === 'cancel') {
