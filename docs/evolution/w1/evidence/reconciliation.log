@@ -1,0 +1,41 @@
+✔ a committed write interrupted before its receipt is reconciled without repeating the effect (6658.377877ms)
+✔ unexplained changes always ask, reject stale decisions, and continue only after explicit current-state confirmation (8046.380674ms)
+✔ workflow recovery composes reconciliation without repeating the interrupted write (6759.85985ms)
+✔ interrupted command asks before abandoning the attempt and preserves its budget (8377.084714ms)
+✔ interrupted model asks before abandoning the attempt and preserves its budget (8239.858995ms)
+✖ a project patch interrupted after its effect requires a decision and is never automatically repeated (52.639075ms)
+✖ a completed patch receipt explains its change when a later command is interrupted (53.796694ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 5
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38882.003601
+
+✖ failing tests:
+
+test at test/test-engineering-reconciliation.js:185:1
+✖ a project patch interrupted after its effect requires a decision and is never automatically repeated (52.639075ms)
+  TypeError: Cannot assign to read only property 'max_tokens' of object '#<Object>'
+      at interruptedWrite (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-engineering-reconciliation.js:20:38)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-engineering-reconciliation.js:186:3)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at test/test-engineering-reconciliation.js:212:1
+✖ a completed patch receipt explains its change when a later command is interrupted (53.796694ms)
+  TypeError: Cannot assign to read only property 'max_tokens' of object '#<Object>'
+      at interruptedWrite (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-engineering-reconciliation.js:20:38)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-engineering-reconciliation.js:213:3)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)

@@ -318,7 +318,7 @@ function assertBinding(policy) {
   assertWorkspaceTypes(policy.host_workspace);
 }
 
-function sandboxArguments(policy, environment, command, readonlyWorkspace = false) {
+function sandboxArguments(policy, environment, command, readonlyWorkspace = false, hostNode = false) {
   return [
     '--unshare-all',
     '--die-with-parent',
@@ -332,6 +332,7 @@ function sandboxArguments(policy, environment, command, readonlyWorkspace = fals
     '/dev',
     '--tmpfs',
     '/tmp',
+    ...(hostNode ? ['--ro-bind', '/proc/self/fd/4', '/hseos-runtime/node'] : []),
     readonlyWorkspace ? '--ro-bind' : '--bind',
     policy.host_workspace,
     '/workspace',
@@ -347,15 +348,17 @@ function sandboxArguments(policy, environment, command, readonlyWorkspace = fals
 }
 
 // This boundary accepts only nominal supervisor-created policies, never model mounts.
-function prepareIsolatedExecution(policy, command) {
+function prepareIsolatedExecution(policy, command, hostNode = false) {
   if (!POLICIES.has(policy)) throw new AgentIsolationAttestationError('isolation policy is not supervisor-owned');
   assertBinding(policy);
   if (!Array.isArray(command) || command.length === 0 || command.some((part) => typeof part !== 'string' || part.includes('\0'))) {
     throw new AgentIsolationAttestationError('invalid execution command');
   }
+  if (typeof hostNode !== 'boolean' || (hostNode && command[0] !== '/usr/bin/node'))
+    throw new AgentIsolationAttestationError('invalid host runtime selection');
   return {
     binary: policy.backend_binding.path,
-    args: sandboxArguments(policy, {}, command, true),
+    args: sandboxArguments(policy, {}, hostNode ? ['/hseos-runtime/node', ...command.slice(1)] : command, true, hostNode),
     seccomp: seccompNetworklessProgram(),
     policy_digest: policy.policy_digest,
   };

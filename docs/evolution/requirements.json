@@ -33,8 +33,8 @@
       "name": "Contrato objetivo/aceite/escopo",
       "source_row": 2,
       "baseline_observation": "C: contrato estrito na engenharia",
-      "implementation": ["tools/cli/lib/engineering-task-contract.js"],
-      "tests": ["test/test-engineering-task-contract.js"],
+      "implementation": ["tools/cli/lib/engineering-task-contract.js", "tools/cli/lib/engineering-workspace.js"],
+      "tests": ["test/test-engineering-task-contract.js", "test/test-engineering-project.js"],
       "wave": 1,
       "dependencies": ["W0"],
       "requirements": [
@@ -44,9 +44,9 @@
           "verification": "Rejeitar alteração do aceite, baseline divergente e versão desconhecida; ler v1."
         }
       ],
-      "gap": "Contrato disponível é v1 e limita-se a fixtures.",
+      "gap": "Contrato v2 implementado para projetos locais; matriz W1 e instalação externa verificadas.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
+        "deterministic": "verified_w1_scope_only",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
       }
@@ -56,8 +56,8 @@
       "name": "Trabalhar em código",
       "source_row": 3,
       "baseline_observation": "C: leitura/escrita/comandos Node/Python delimitados",
-      "implementation": ["tools/cli/lib/engineering-tools.js"],
-      "tests": ["test/test-engineering-task-runtime.js"],
+      "implementation": ["tools/cli/lib/engineering-tools.js", "tools/cli/lib/engineering-workspace.js"],
+      "tests": ["test/test-engineering-task-runtime.js", "test/test-engineering-workspace.js", "test/test-project-examples.js"],
       "wave": 1,
       "dependencies": ["W0"],
       "requirements": [
@@ -67,9 +67,9 @@
           "verification": "Exercitar busca, diff, patch e Git; rejeitar acesso fora de escopo e edição concorrente."
         }
       ],
-      "gap": "Ferramentas atuais delimitam fixtures; jornada em repositórios reais pendente.",
+      "gap": "Projetos Node/TS e Python exercitados localmente; instalação externa W1 verificada. LSP e depuração permanecem W5.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
+        "deterministic": "verified_w1_scope_only",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
       }
@@ -102,8 +102,8 @@
       "name": "Política e aprovação",
       "source_row": 5,
       "baseline_observation": "C: deny/ask, aprovação vinculada, autoridade não ampliável",
-      "implementation": ["packages/agent-policy-lattice/index.js"],
-      "tests": ["test/test-agent-policy-lattice.js"],
+      "implementation": ["packages/agent-policy-lattice/index.js", "tools/cli/lib/engineering-control.js"],
+      "tests": ["test/test-agent-policy-lattice.js", "test/test-engineering-control.js"],
       "wave": 1,
       "dependencies": ["W0"],
       "requirements": [
@@ -113,9 +113,9 @@
           "verification": "Alterar baseline após aprovação; a operação deve exigir nova decisão."
         }
       ],
-      "gap": "Aplicação de patches e autorização de múltiplos clientes pendentes.",
+      "gap": "Apply explícito com baseline e idempotência implementado; autorização multiusuário por projeto permanece W7.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
+        "deterministic": "verified_w1_scope_only",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
       }
@@ -194,8 +194,8 @@
       "name": "Aceite independente",
       "source_row": 9,
       "baseline_observation": "C: três verificadores protegidos concretos",
-      "implementation": ["tools/cli/lib/engineering-verifier.js"],
-      "tests": ["test/test-engineering-task-runtime.js"],
+      "implementation": ["tools/cli/lib/engineering-verifier.js", "tools/cli/lib/engineering-project-verifier.js"],
+      "tests": ["test/test-engineering-task-runtime.js", "test/test-engineering-project.js"],
       "wave": 1,
       "dependencies": ["W0"],
       "requirements": [
@@ -205,9 +205,9 @@
           "verification": "Tarefa correta passa; resposta vazia, erro e adulteração do verificador falham."
         }
       ],
-      "gap": "Três verificadores de fixtures; registro extensível e consumidores reais pendentes.",
+      "gap": "Registry v2 Node/TS/Python/web estático implementado; browser e verificação TypeScript completa não demonstrados.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
+        "deterministic": "verified_w1_scope_only",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
       }
@@ -217,8 +217,8 @@
       "name": "Correção após rejeição",
       "source_row": 10,
       "baseline_observation": "C: diagnóstico obrigatório, teto e reverificação",
-      "implementation": ["tools/cli/lib/engineering-task-runtime.js"],
-      "tests": ["test/test-engineering-corrections.js"],
+      "implementation": ["tools/cli/lib/engineering-task-runtime.js", "tools/cli/lib/engineering-reconciliation.js"],
+      "tests": ["test/test-engineering-corrections.js", "test/test-project-examples.js", "test/test-engineering-reconciliation.js"],
       "wave": 1,
       "dependencies": ["W0"],
       "requirements": [
@@ -228,9 +228,9 @@
           "verification": "Reprovar, corrigir e reverificar; diagnóstico insuficiente e teto esgotado bloqueiam."
         }
       ],
-      "gap": "Generalizar para contrato v2 e demonstrar com modelos reais.",
+      "gap": "Correção v2 e recuperação de patch exercitadas deterministicamente; campanhas com modelos reais pendentes.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
+        "deterministic": "verified_w1_scope_only",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
       }
@@ -424,8 +424,13 @@
       "name": "Estado/observabilidade",
       "source_row": 19,
       "baseline_observation": "C: ledger, lineage W3C, snapshots, CLI/sidecars",
-      "implementation": ["tools/mcp-project-state/lib/execution-ledger-schema.js"],
-      "tests": ["test/test-execution-event-ledger.js"],
+      "implementation": [
+        "tools/mcp-project-state/lib/execution-ledger-schema.js",
+        "tools/cli/lib/engineering-control.js",
+        "tools/cli/lib/engineering-control-http.js",
+        "packages/control-sdk/index.js"
+      ],
+      "tests": ["test/test-execution-event-ledger.js", "test/test-engineering-control.js"],
       "wave": 1,
       "dependencies": ["W0"],
       "requirements": [
@@ -435,9 +440,9 @@
           "verification": "Consultar tarefa e orçamento por interfaces distintas; mutação idempotente não duplica efeito."
         }
       ],
-      "gap": "API de controle, SDK JS/TS e Python e IDE pendentes.",
+      "gap": "CLI/API/SDK compartilham controle local candidato; IDE e ativação operacional pendentes.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
+        "deterministic": "verified_w1_scope_only",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
       }

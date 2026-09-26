@@ -376,6 +376,43 @@
       "source_sha256": "b69ecc5c7cc83eef05f59826c996e435826d028b21ade2de033491c768915ef6"
     },
     {
+      "filename": "control.js",
+      "command": "control <action>",
+      "description": "Local versioned engineering control API and client",
+      "options": [
+        [
+          "--config <path>",
+          "Server configuration with workspace allowlist and binding references"
+        ],
+        [
+          "--state <path>",
+          "Existing local candidate control ledger"
+        ],
+        [
+          "--url <url>",
+          "Loopback server URL"
+        ],
+        [
+          "--request <path>",
+          "Versioned JSON command"
+        ],
+        [
+          "--resource <id>",
+          "Task resource UUID"
+        ],
+        [
+          "--view <view>",
+          "status, evidence, review or session"
+        ],
+        [
+          "--after <cursor>",
+          "Event cursor"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "4bca8b23c62471d2a648b3ae93d8d6473ec6aee248f78b736b95b665dcc9481d"
+    },
+    {
       "filename": "governance-context.js",
       "command": "governance-context",
       "description": "Resolve global governance before declaring standards or capabilities absent",

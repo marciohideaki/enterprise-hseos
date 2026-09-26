@@ -18,7 +18,7 @@ const { createExecutionLedgerFileFixture, openExecutionLedgerFileFixture } = req
 const { assembleTemporaryKernel } = require('./temporary-kernel-assembly');
 const { readEngineeringTask } = require('./engineering-task-contract');
 const { createEngineeringTools, ENGINEERING_TOOL_NAMES } = require('./engineering-tools');
-const { attestEngineeringVerifier, verifyEngineeringTask } = require('./engineering-verifier');
+const { attestEngineeringVerifier, verifyEngineeringTask } = require('./engineering-project-verifier');
 const { EngineeringTaskState, engineeringDigest } = require('./engineering-task-state');
 const { evaluatePermissionLattice } = require('../../../packages/agent-policy-lattice');
 
@@ -219,7 +219,7 @@ function assemble(handle, created, { environment, fetchImpl } = {}) {
             policy_version: tool.policy_version,
             warnings: ['Human clarification is required before further tool dispatch.'],
           };
-        if (tool.name === 'engineering.write') {
+        if (['engineering.write', 'engineering.patch'].includes(tool.name)) {
           const task = new EngineeringTaskState(handle.db, readIdentity(handle.directory)).read();
           const review = task.reviews.at(-1);
           const expectedDigest =
@@ -307,7 +307,7 @@ function summary(handle, id, task, assembly) {
   const session = store.readSession(state.created.session_id).length > 0 ? store.replay(state.created.session_id) : null;
   return {
     schema_version: 1,
-    profile: 'disposable-engineering-candidate',
+    profile: state.created.contract.execution_profile,
     task_run_id: id,
     task_id: state.created.contract.task_id,
     state: handle.directory,

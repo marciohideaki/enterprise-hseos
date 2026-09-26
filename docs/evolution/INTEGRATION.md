@@ -41,3 +41,12 @@ merge; não usar bypass ou reescrita de refs protegidas.
 Referências: AGENTS.md §§4–9, ADR-0017, plano `docs/evolution/PLAN.md`, recibos
 W0/W1/W2. W3 mantém aceite real separado da validação determinística e requer
 bindings e orçamento finito para campanhas reais.
+
+## W1 consolidada
+
+Task `hseos-integrate-w1`: delta da árvore W1
+`0a3dbeecc043127438a9aa16eeb689bf6bc57deb` sobre a base importada W0.
+Os ajustes de CI e este registro da fundação são preservados.
+Upstream imediato: `feature/hseos-evolution-foundation`; dependente: W2.
+O recibo original W1 continua histórico; a validação de integração e os hooks
+incidem no conteúdo commitado.

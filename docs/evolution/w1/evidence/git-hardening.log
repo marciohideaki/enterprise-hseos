@@ -1,0 +1,58 @@
+✔ CLI, JavaScript, Python and HTTP share identity, task results and replayable event cursors (3149.37463ms)
+✔ authenticated control rejects wrong identity, origins, workspace escalation and stale commands (1262.022726ms)
+✔ an intent without receipt is not automatically dispatched again (1224.361805ms)
+✖ review binds approval to Git baseline and only explicit apply modifies the source project (2698.802838ms)
+✔ concurrent source edits invalidate the prior review and are preserved (2613.218033ms)
+✔ public preparation pins the current workspace and cannot expand the server allowlist (84.191207ms)
+✔ workflows reuse the same API control and aggregate kernel budget (2962.73715ms)
+✔ HTTP rejects malformed, oversized and unsupported requests without exposing internal errors (1267.923597ms)
+✔ SDK rejects remote endpoints, malformed cursors and invalid query views (0.499128ms)
+✔ candidate edits after approval invalidate review without applying unverified bytes (2567.39904ms)
+✔ control rejects model ambiguity, unknown bindings and duplicate resources before effects (1275.224385ms)
+✖ Git application never invokes configured filesystem monitors or external diff commands (2710.942888ms)
+✔ workspace boundary handles root-link without following an unsafe path (62.321013ms)
+✔ workspace boundary handles root-file without following an unsafe path (35.244353ms)
+✔ workspace boundary handles file-directory without following an unsafe path (34.90717ms)
+✔ workspace boundary handles budget without following an unsafe path (51.778327ms)
+✔ workspace boundary handles traversal without following an unsafe path (34.189146ms)
+✔ workspace boundary handles missing-file without following an unsafe path (37.71314ms)
+✔ workspace boundary handles missing-parent without following an unsafe path (43.700146ms)
+✔ workspace boundary handles parent-link without following an unsafe path (33.132062ms)
+✔ a file edited between read and stat cannot enter the baseline (44.325885ms)
+✔ changing the workspace directory after reads invalidates its identity (35.700121ms)
+✔ project hydration rejects supplied file content even with the correct declared baseline (57.468355ms)
+✔ whole-file patches round-trip creation, deletion, empty files and newline boundaries through Git (45.184007ms)
+✔ project snapshots reject Git conversion filters before any project extension can execute (56.036471ms)
+✔ project Git worktree redirection cannot change the declared workspace authority (37.956842ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 24
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 23682.158118
+
+✖ failing tests:
+
+test at test/test-engineering-control.js:153:1
+✖ review binds approval to Git baseline and only explicit apply modifies the source project (2698.802838ms)
+  Error: CONTROL_REQUEST_REJECTED
+      at ControlClient.request (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/packages/control-sdk/index.js:28:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-engineering-control.js:161:19)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    code: 'CONTROL_REQUEST_REJECTED'
+  }
+
+test at test/test-engineering-control.js:295:1
+✖ Git application never invokes configured filesystem monitors or external diff commands (2710.942888ms)
+  Error: CONTROL_REQUEST_REJECTED
+      at ControlClient.request (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/packages/control-sdk/index.js:28:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-engineering-control.js:306:6)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    code: 'CONTROL_REQUEST_REJECTED'
+  }

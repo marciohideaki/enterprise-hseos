@@ -100,3 +100,4 @@ The following entries are ADR templates or placeholders for optional activation.
 - [ADR-0042 — Kernel v4 e capacidades opcionais](ADR-0042-v4-kernel-and-optional-capabilities.md) — implementação candidata autorizada, ativação separada.
 
 - [ADR-0043 — Evolução do harness e IDE Code OSS](ADR-0043-harness-evolution.md) — draft; implementação por ondas, certificação e ativação separadas.
+- [ADR-0044 — Contrato de projeto e controle local](ADR-0044-project-engineering-control.md) — draft; W1 candidata, ativação separada.

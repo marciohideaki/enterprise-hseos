@@ -1,0 +1,654 @@
+147383 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147383, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147402 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147402, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147419 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147419, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147422 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147422, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147428 +++ exited with 0 +++
+147427 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147428, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147429 +++ exited with 0 +++
+147427 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147427, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147432 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147432, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147433 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147433, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147436 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147436, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147437 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147437, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147438 +++ exited with 0 +++
+147353 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147438, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147439 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147439, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147443 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147443, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147446 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147446, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147447 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147447, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147448 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147448, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147451 +++ exited with 0 +++
+147449 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147451, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147452 +++ exited with 0 +++
+147449 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147449, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147453 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147453, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147454 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147454, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147455 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147455, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147456 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147456, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147457 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147457, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147458 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147458, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147480 +++ exited with 0 +++
+147352 connect(22, {sa_family=AF_INET, sin_port=htons(43759), sin_addr=inet_addr("127.0.0.1")}, 16) = -1 EINPROGRESS (Operation now in progress)
+147481 +++ exited with 0 +++
+147462 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147481, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147482 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147482, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147483 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147483, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147487 +++ exited with 0 +++
+147486 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147488 +++ exited with 0 +++
+147486 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147489 +++ exited with 0 +++
+147486 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147490 +++ killed by SIGSYS (core dumped) +++
+147486 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147494 +++ exited with 0 +++
+147495 +++ exited with 0 +++
+147497 +++ exited with 0 +++
+147498 +++ exited with 0 +++
+147496 +++ exited with 0 +++
+147486 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147486 +++ exited with 0 +++
+147484 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147484, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147485 +++ exited with 0 +++
+147502 +++ exited with 0 +++
+147501 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147503 +++ exited with 0 +++
+147501 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=2 /* 0.02 s */, si_stime=0} ---
+147504 +++ exited with 0 +++
+147501 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147505 +++ killed by SIGSYS (core dumped) +++
+147501 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147511 +++ exited with 0 +++
+147512 +++ exited with 0 +++
+147515 +++ exited with 0 +++
+147513 +++ exited with 0 +++
+147514 +++ exited with 0 +++
+147501 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147501 +++ exited with 0 +++
+147500 +++ exited with 0 +++
+147499 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147499, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147519 +++ exited with 0 +++
+147518 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147520 +++ exited with 0 +++
+147518 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=2 /* 0.02 s */, si_stime=0} ---
+147521 +++ exited with 0 +++
+147518 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147522 +++ killed by SIGSYS (core dumped) +++
+147518 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147525 +++ exited with 0 +++
+147526 +++ exited with 0 +++
+147529 +++ exited with 0 +++
+147527 +++ exited with 0 +++
+147528 +++ exited with 0 +++
+147518 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147518 +++ exited with 0 +++
+147516 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147516, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147517 +++ exited with 0 +++
+147533 +++ exited with 0 +++
+147532 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147534 +++ exited with 0 +++
+147532 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147537 +++ exited with 0 +++
+147532 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=2 /* 0.02 s */, si_stime=0} ---
+147538 +++ killed by SIGSYS (core dumped) +++
+147532 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147544 +++ exited with 0 +++
+147545 +++ exited with 0 +++
+147548 +++ exited with 0 +++
+147546 +++ exited with 0 +++
+147547 +++ exited with 0 +++
+147532 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147532 +++ exited with 0 +++
+147530 +++ exited with 0 +++
+147462 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147530, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147531 +++ exited with 0 +++
+147552 +++ exited with 0 +++
+147551 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147553 +++ exited with 0 +++
+147551 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147554 +++ exited with 0 +++
+147551 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147555 +++ killed by SIGSYS (core dumped) +++
+147551 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147557 +++ exited with 0 +++
+147558 +++ exited with 0 +++
+147563 +++ exited with 0 +++
+147559 +++ exited with 0 +++
+147560 +++ exited with 0 +++
+147551 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147551 +++ exited with 0 +++
+147549 +++ exited with 0 +++
+147550 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147549, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147564 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+147564 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+147566 +++ exited with 0 +++
+147565 +++ exited with 0 +++
+147564 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147564, si_uid=1000, si_status=0, si_utime=0, si_stime=1 /* 0.01 s */} ---
+147569 connect(21, {sa_family=AF_INET, sin_port=htons(43759), sin_addr=inet_addr("127.0.0.1")}, 16) = -1 EINPROGRESS (Operation now in progress)
+147578 +++ exited with 0 +++
+147582 +++ exited with 0 +++
+147581 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147583 +++ exited with 0 +++
+147581 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147584 +++ exited with 0 +++
+147581 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147587 +++ killed by SIGSYS (core dumped) +++
+147581 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147592 +++ exited with 0 +++
+147593 +++ exited with 0 +++
+147596 +++ exited with 0 +++
+147594 +++ exited with 0 +++
+147595 +++ exited with 0 +++
+147581 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147581 +++ exited with 0 +++
+147579 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147579, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147580 +++ exited with 0 +++
+147603 +++ exited with 0 +++
+147602 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147604 +++ exited with 0 +++
+147602 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=2 /* 0.02 s */, si_stime=0} ---
+147605 +++ exited with 0 +++
+147602 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147606 +++ killed by SIGSYS (core dumped) +++
+147602 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147609 +++ exited with 0 +++
+147610 +++ exited with 0 +++
+147613 +++ exited with 0 +++
+147611 +++ exited with 0 +++
+147612 +++ exited with 0 +++
+147602 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147602 +++ exited with 0 +++
+147597 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147597, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147601 +++ exited with 0 +++
+147619 +++ exited with 0 +++
+147616 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147620 +++ exited with 0 +++
+147616 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147621 +++ exited with 0 +++
+147616 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147623 +++ killed by SIGSYS (core dumped) +++
+147616 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147629 +++ exited with 0 +++
+147630 +++ exited with 0 +++
+147633 +++ exited with 0 +++
+147631 +++ exited with 0 +++
+147632 +++ exited with 0 +++
+147616 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147616 +++ exited with 0 +++
+147614 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147614, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147615 +++ exited with 0 +++
+147637 +++ exited with 0 +++
+147636 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147639 +++ exited with 0 +++
+147636 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147640 +++ exited with 0 +++
+147636 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147641 +++ killed by SIGSYS (core dumped) +++
+147636 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=0, si_stime=0} ---
+147679 +++ exited with 0 +++
+147680 +++ exited with 0 +++
+147683 +++ exited with 0 +++
+147681 +++ exited with 0 +++
+147682 +++ exited with 0 +++
+147636 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147636 +++ exited with 0 +++
+147634 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147634, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147635 +++ killed by SIGKILL +++
+147689 +++ exited with 0 +++
+147688 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147690 +++ exited with 0 +++
+147688 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147691 +++ exited with 0 +++
+147688 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=2 /* 0.02 s */, si_stime=0} ---
+147692 +++ killed by SIGSYS (core dumped) +++
+147688 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147721 +++ exited with 0 +++
+147722 +++ exited with 0 +++
+147725 +++ exited with 0 +++
+147723 +++ exited with 0 +++
+147724 +++ exited with 0 +++
+147688 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147688 +++ exited with 0 +++
+147684 +++ exited with 0 +++
+147685 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147684, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147726 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+147726 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+147758 +++ exited with 0 +++
+147726 +++ exited with 0 +++
+147727 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147726, si_uid=1000, si_status=0, si_utime=0, si_stime=1 /* 0.01 s */} ---
+147773 connect(5, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+147773 connect(5, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+147779 +++ exited with 0 +++
+147783 +++ exited with 0 +++
+147782 +++ exited with 0 +++
+147780 +++ exited with 0 +++
+147778 +++ exited with 0 +++
+147787 +++ exited with 0 +++
+147777 +++ exited with 0 +++
+147773 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147773, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147776 +++ exited with 0 +++
+147791 connect(5, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+147791 connect(5, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+147797 +++ exited with 0 +++
+147795 +++ exited with 0 +++
+147798 +++ exited with 0 +++
+147796 +++ exited with 0 +++
+147794 +++ exited with 0 +++
+147799 +++ exited with 0 +++
+147793 +++ exited with 0 +++
+147792 +++ exited with 0 +++
+147791 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147791, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147804 connect(5, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+147804 connect(5, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+147809 +++ exited with 0 +++
+147808 +++ exited with 0 +++
+147811 +++ exited with 0 +++
+147810 +++ exited with 0 +++
+147807 +++ exited with 0 +++
+147812 +++ exited with 0 +++
+147806 +++ exited with 0 +++
+147804 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147804, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147805 +++ exited with 0 +++
+147816 connect(5, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+147816 connect(5, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+147824 +++ exited with 0 +++
+147823 +++ exited with 0 +++
+147821 +++ exited with 0 +++
+147822 +++ exited with 0 +++
+147820 +++ exited with 0 +++
+147825 +++ exited with 0 +++
+147818 +++ exited with 0 +++
+147817 +++ exited with 0 +++
+147816 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147816, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147576 +++ exited with 0 +++
+147575 +++ exited with 0 +++
+147572 +++ exited with 0 +++
+147573 +++ exited with 0 +++
+147574 +++ exited with 0 +++
+147577 +++ exited with 0 +++
+147569 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147569, si_uid=1000, si_status=0, si_utime=11 /* 0.11 s */, si_stime=3 /* 0.03 s */} ---
+147352 connect(22, {sa_family=AF_INET, sin_port=htons(43759), sin_addr=inet_addr("127.0.0.1")}, 16) = -1 EINPROGRESS (Operation now in progress)
+147828 connect(3, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+147828 connect(3, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+147828 connect(3, {sa_family=AF_INET, sin_port=htons(43759), sin_addr=inet_addr("127.0.0.1")}, 16) = -1 EINPROGRESS (Operation now in progress)
+147828 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147828, si_uid=1000, si_status=0, si_utime=9 /* 0.09 s */, si_stime=2 /* 0.02 s */} ---
+147352 connect(24, {sa_family=AF_INET, sin_port=htons(43759), sin_addr=inet_addr("127.0.0.1")}, 16) = -1 EINPROGRESS (Operation now in progress)
+147833 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147833, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147834 +++ exited with 0 +++
+147462 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147834, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147835 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147835, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147838 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147838, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147839 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147839, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147840 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147840, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147842 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147842, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147843 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147843, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147844 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147844, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147845 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147845, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147846 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147846, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147847 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147847, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147848 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147848, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147849 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147849, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147850 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147850, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147853 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147853, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147854 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147854, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147855 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147855, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147858 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147858, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147859 +++ exited with 0 +++
+147462 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147859, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147861 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147861, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147863 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147863, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147864 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147864, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147865 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147865, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147869 +++ exited with 0 +++
+147868 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147870 +++ exited with 0 +++
+147868 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147871 +++ exited with 0 +++
+147868 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147874 +++ killed by SIGSYS (core dumped) +++
+147868 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147876 +++ exited with 0 +++
+147877 +++ exited with 0 +++
+147880 +++ exited with 0 +++
+147878 +++ exited with 0 +++
+147879 +++ exited with 0 +++
+147868 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147868 +++ exited with 0 +++
+147866 +++ exited with 0 +++
+147462 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147866, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147867 +++ exited with 0 +++
+147884 +++ exited with 0 +++
+147883 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147885 +++ exited with 0 +++
+147883 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147888 +++ exited with 0 +++
+147883 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147891 +++ killed by SIGSYS (core dumped) +++
+147883 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147894 +++ exited with 0 +++
+147893 +++ exited with 0 +++
+147897 +++ exited with 0 +++
+147895 +++ exited with 0 +++
+147896 +++ exited with 0 +++
+147883 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=8, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147883 +++ exited with 0 +++
+147881 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147881, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147882 +++ killed by SIGKILL +++
+147901 +++ exited with 0 +++
+147900 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147902 +++ exited with 0 +++
+147900 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147903 +++ exited with 0 +++
+147900 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=2 /* 0.02 s */, si_stime=0} ---
+147906 +++ killed by SIGSYS (core dumped) +++
+147900 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=2 /* 0.02 s */, si_stime=0} ---
+147908 +++ exited with 0 +++
+147909 +++ exited with 0 +++
+147912 +++ exited with 0 +++
+147910 +++ exited with 0 +++
+147911 +++ exited with 0 +++
+147900 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147900 +++ exited with 0 +++
+147898 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147898, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147899 +++ exited with 0 +++
+147918 +++ exited with 0 +++
+147917 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147919 +++ exited with 0 +++
+147917 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147922 +++ exited with 0 +++
+147917 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147923 +++ killed by SIGSYS (core dumped) +++
+147917 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147925 +++ exited with 0 +++
+147926 +++ exited with 0 +++
+147929 +++ exited with 0 +++
+147927 +++ exited with 0 +++
+147928 +++ exited with 0 +++
+147917 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147917 +++ exited with 0 +++
+147913 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147913, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147914 +++ exited with 0 +++
+147936 +++ exited with 0 +++
+147935 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147937 +++ exited with 0 +++
+147935 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=2 /* 0.02 s */, si_stime=0} ---
+147938 +++ exited with 0 +++
+147935 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=2 /* 0.02 s */, si_stime=0} ---
+147939 +++ killed by SIGSYS (core dumped) +++
+147935 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147945 +++ exited with 0 +++
+147946 +++ exited with 0 +++
+147949 +++ exited with 0 +++
+147947 +++ exited with 0 +++
+147948 +++ exited with 0 +++
+147935 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147935 +++ exited with 0 +++
+147931 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147931, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147934 +++ killed by SIGKILL +++
+147950 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+147950 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+147952 +++ exited with 0 +++
+147950 +++ exited with 0 +++
+147951 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147950, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147957 connect(21, {sa_family=AF_INET, sin_port=htons(43759), sin_addr=inet_addr("127.0.0.1")}, 16) = -1 EINPROGRESS (Operation now in progress)
+147966 +++ exited with 0 +++
+147973 +++ exited with 0 +++
+147972 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147974 +++ exited with 0 +++
+147972 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147977 +++ exited with 0 +++
+147972 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147979 +++ killed by SIGSYS (core dumped) +++
+147972 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=0} ---
+147985 +++ exited with 0 +++
+147986 +++ exited with 0 +++
+147989 +++ exited with 0 +++
+147987 +++ exited with 0 +++
+147988 +++ exited with 0 +++
+147972 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147972 +++ exited with 0 +++
+147970 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147970, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147971 +++ exited with 0 +++
+147993 +++ exited with 0 +++
+147992 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147994 +++ exited with 0 +++
+147992 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+147997 +++ exited with 0 +++
+147992 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+148000 +++ killed by SIGSYS (core dumped) +++
+147992 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=0} ---
+148003 +++ exited with 0 +++
+148004 +++ exited with 0 +++
+148007 +++ exited with 0 +++
+148005 +++ exited with 0 +++
+148006 +++ exited with 0 +++
+147992 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147992 +++ exited with 0 +++
+147991 +++ exited with 0 +++
+147990 +++ exited with 0 +++
+147462 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147990, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148019 +++ exited with 0 +++
+148018 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148022 +++ exited with 0 +++
+148018 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+148057 +++ exited with 0 +++
+148018 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+148060 +++ killed by SIGSYS (core dumped) +++
+148018 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=0} ---
+148062 +++ exited with 0 +++
+148063 +++ exited with 0 +++
+148067 +++ exited with 0 +++
+148064 +++ exited with 0 +++
+148065 +++ exited with 0 +++
+148018 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148018 +++ exited with 0 +++
+148008 +++ exited with 0 +++
+148017 +++ killed by SIGKILL +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148008, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148073 +++ exited with 0 +++
+148072 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148074 +++ exited with 0 +++
+148072 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+148078 +++ exited with 0 +++
+148072 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+148079 +++ killed by SIGSYS (core dumped) +++
+148072 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=0} ---
+148081 +++ exited with 0 +++
+148082 +++ exited with 0 +++
+148085 +++ exited with 0 +++
+148083 +++ exited with 0 +++
+148084 +++ exited with 0 +++
+148072 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148072 +++ exited with 0 +++
+148068 +++ exited with 0 +++
+147462 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148068, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148071 +++ exited with 0 +++
+148091 +++ exited with 0 +++
+148090 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=3, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148092 +++ exited with 0 +++
+148090 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=4, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+148093 +++ exited with 0 +++
+148090 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=5, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+148094 +++ killed by SIGSYS (core dumped) +++
+148090 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_DUMPED, si_pid=6, si_uid=1000, si_status=SIGSYS, si_utime=1 /* 0.01 s */, si_stime=0} ---
+148100 +++ exited with 0 +++
+148101 +++ exited with 0 +++
+148104 +++ exited with 0 +++
+148102 +++ exited with 0 +++
+148103 +++ exited with 0 +++
+148090 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=7, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148090 +++ exited with 0 +++
+148086 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148086, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148087 +++ exited with 0 +++
+148105 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+148105 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+148107 +++ exited with 0 +++
+148105 +++ exited with 0 +++
+148106 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148105, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+148108 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+148108 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+148112 +++ exited with 0 +++
+148108 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148108, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=0} ---
+148111 +++ killed by SIGKILL +++
+148117 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+148117 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+148119 +++ exited with 0 +++
+148118 +++ exited with 0 +++
+148117 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148117, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148122 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+148122 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+148125 +++ exited with 0 +++
+148122 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148122, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+148124 +++ exited with 0 +++
+148126 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+148126 connect(4, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+148128 +++ exited with 0 +++
+148126 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148126, si_uid=1000, si_status=0, si_utime=1 /* 0.01 s */, si_stime=1 /* 0.01 s */} ---
+148127 +++ exited with 0 +++
+147960 +++ exited with 0 +++
+147962 +++ exited with 0 +++
+147959 +++ exited with 0 +++
+147961 +++ exited with 0 +++
+147958 +++ exited with 0 +++
+147963 +++ exited with 0 +++
+147957 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147957, si_uid=1000, si_status=0, si_utime=14 /* 0.14 s */, si_stime=2 /* 0.02 s */} ---
+147352 connect(22, {sa_family=AF_INET, sin_port=htons(43759), sin_addr=inet_addr("127.0.0.1")}, 16) = -1 EINPROGRESS (Operation now in progress)
+148170 connect(3, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+148170 connect(3, {sa_family=AF_UNIX, sun_path="/var/run/nscd/socket"}, 110) = -1 ENOENT (No such file or directory)
+148170 connect(3, {sa_family=AF_INET, sin_port=htons(43759), sin_addr=inet_addr("127.0.0.1")}, 16) = -1 EINPROGRESS (Operation now in progress)
+148170 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148170, si_uid=1000, si_status=0, si_utime=7 /* 0.07 s */, si_stime=1 /* 0.01 s */} ---
+147352 connect(24, {sa_family=AF_INET, sin_port=htons(43759), sin_addr=inet_addr("127.0.0.1")}, 16) = -1 EINPROGRESS (Operation now in progress)
+148172 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148172, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148173 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148173, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148174 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148174, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148177 +++ exited with 0 +++
+147462 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148177, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148178 +++ exited with 0 +++
+147462 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148178, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148179 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148179, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148180 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148180, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148188 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148188, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148189 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148189, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148191 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148191, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148192 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148192, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148193 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148193, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148194 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148194, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148195 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148195, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148196 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148196, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148197 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148197, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148198 +++ exited with 0 +++
+147462 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148198, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148199 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148199, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148200 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148200, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148201 +++ exited with 0 +++
+147459 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148201, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+148202 +++ exited with 0 +++
+147462 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=148202, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+147459 --- SIGTERM {si_signo=SIGTERM, si_code=SI_USER, si_pid=147352, si_uid=1000} ---
+147464 +++ exited with 0 +++
+147466 +++ exited with 0 +++
+147463 +++ exited with 0 +++
+147465 +++ exited with 0 +++
+147462 +++ exited with 0 +++
+147467 +++ exited with 0 +++
+147459 +++ exited with 0 +++
+147352 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=147459, si_uid=1000, si_status=0, si_utime=248 /* 2.48 s */, si_stime=50 /* 0.50 s */} ---
+147357 +++ exited with 0 +++
+147354 +++ exited with 0 +++
+147355 +++ exited with 0 +++
+147356 +++ exited with 0 +++
+147353 +++ exited with 0 +++
+147358 +++ exited with 0 +++
+147352 +++ exited with 0 +++

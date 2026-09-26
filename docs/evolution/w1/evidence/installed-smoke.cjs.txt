@@ -1,0 +1,32 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const {spawn,execFile}=require('node:child_process');const run=require('node:util').promisify(execFile);const {randomUUID}=require('node:crypto');
+const consumer=path.resolve(process.argv[2]),installed=path.join(consumer,'node_modules/hseos');
+const {createProjectExample}=require(path.join(installed,'tools/examples/project-task'));
+const {ControlClient}=require(path.join(installed,'packages/control-sdk'));
+const credential='ephemeral-installation-conformance-fixture-not-for-production';
+const env={PATH:process.env.PATH,TMPDIR:'/tmp',HSEOS_DISABLE_UPDATE_CHECK:'1',HSEOS_CONTROL_CREDENTIAL:credential};
+const cli=path.join(installed,'tools/cli/hseos-cli.js');
+const command=(id,action,seq,input={})=>({schema_version:1,command_id:randomUUID(),resource_id:id,expected_sequence:seq,action,input});
+(async()=>{
+ const examples=['typescript-report','python-inventory'].map(name=>createProjectExample(name,consumer,{correction:true}));
+ const config=path.join(consumer,'control.json');fs.writeFileSync(config,JSON.stringify({workspaces:examples.map(e=>e.contract.workspace.root)}));
+ const server=spawn(process.execPath,[cli,'control','serve','--config',config],{cwd:consumer,env,stdio:['ignore','pipe','pipe']});let stderr='';server.stderr.on('data',d=>stderr+=d);
+ const exit=new Promise(resolve=>server.once('exit',(code,signal)=>resolve({code,signal})));let ready;
+ try {
+ ready=await new Promise((resolve,reject)=>{let buffer='';const timer=setTimeout(()=>reject(Error('Server did not start: '+stderr)),15000);server.once('exit',()=>{clearTimeout(timer);reject(Error('Server exited: '+stderr))});server.stdout.on('data',d=>{buffer+=d;if(buffer.includes('\n')){clearTimeout(timer);resolve(JSON.parse(buffer.split('\n')[0]))}})});
+ assert.equal(ready.operational,false);const client=new ControlClient({url:ready.url,credential});const results=[];
+ for(const example of examples){const id=randomUUID();const created=await client.execute(command(id,'create',0,example));
+ const resume=command(id,'resume',created.current_sequence),request=path.join(consumer,`${example.contract.task_id}-resume.json`);fs.writeFileSync(request,JSON.stringify(resume));
+ const cliResult=await run(process.execPath,[cli,'control','command','--url',ready.url,'--request',request],{cwd:consumer,env,timeout:120000,maxBuffer:4*1024*1024});
+ const result=JSON.parse(cliResult.stdout);assert.equal(result.task_result,'approved',cliResult.stdout);assert.equal(result.correction_reviews[0].approved,false);assert.equal(result.correction_diagnoses.length,1);assert.deepEqual(await client.execute(resume),result);
+ const python=await run('/usr/bin/python3',['-B','-c',"import sys,os,json;sys.path.insert(0,sys.argv[1]);from hseos_control import ControlClient;print(json.dumps(ControlClient(sys.argv[2],os.environ['HSEOS_CONTROL_CREDENTIAL']).execute(json.load(open(sys.argv[3])))))",path.join(installed,'packages/control-sdk'),ready.url,request],{cwd:consumer,env,timeout:10000});assert.deepEqual(JSON.parse(python.stdout),result);
+ assert.equal((await client.query(id,'session')).status,'completed');const evidence=await client.query(id,'evidence');assert.equal(evidence.verification.result,'approved');
+ const review=await client.query(id,'review');assert.equal(review.baseline_valid,true);assert.ok(review.patch.length>0);
+ assert.equal((await client.execute(command(id,'apply',result.current_sequence,{review_sha256:review.review_sha256}))).applied,true);
+ let cursor=0,count=0;for(;;){const page=await client.events(id,{after:cursor,limit:10});count+=page.events.length;if(!page.events.length)break;assert.ok(page.next_cursor>cursor);cursor=page.next_cursor;}
+ results.push({project:example.contract.task_id,result:result.task_result,corrections:result.correction_reviews.length,task_run_id:result.task_run_id,contract_sha256:result.contract_sha256,files_sha256:evidence.artifacts.files_sha256,verification:evidence.verification,review_sha256:review.review_sha256,applied:true,events:count});
+ }
+ console.log(JSON.stringify({node:process.version,installed,outside_checkout:true,projects:results,interfaces:['CLI server','CLI command','JS SDK','Python SDK','HTTP'],operational:false,real_model:false},null,2));
+ }finally{server.kill('SIGTERM');const stopped=await exit;assert.equal(stopped.code,0,stderr);if(ready){const {EngineeringControl}=require(path.join(installed,'tools/cli/lib/engineering-control'));const control=new EngineeringControl({state:ready.state});const children=control.ledger.readGlobal({limit:1000,aggregate_type:'control_task'}).filter(e=>e.payload.kind==='registered').map(e=>e.payload.state_directory);control.close();for(const directory of [...children,ready.state])fs.rmSync(directory,{recursive:true,force:true});}}
+})().catch(error=>{console.error(error);process.exitCode=1});

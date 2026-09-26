@@ -9,7 +9,8 @@ const { executeIsolatedCommand } = require('../../../packages/agent-isolation-at
 const { parseEngineeringTask } = require('./engineering-task-contract');
 
 const hash = (value) => createHash('sha256').update(value).digest('hex');
-const NAMES = Object.freeze(['engineering.read', 'engineering.write', 'engineering.command', 'engineering.diagnose']);
+const LEGACY_NAMES = Object.freeze(['engineering.read', 'engineering.write', 'engineering.command', 'engineering.diagnose']);
+const NAMES = Object.freeze([...LEGACY_NAMES, 'engineering.search', 'engineering.patch', 'engineering.diff']);
 
 class EngineeringToolError extends Error {
   constructor(message, code = 'ENGINEERING_SCOPE_DENIED') {
@@ -104,9 +105,15 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
     if (remaining < 1) throw new EngineeringToolError('Task duration budget exhausted');
     const invocation = executeIsolatedCommand({
       policy,
+      host_node: contract.schema_version === 2 && declared.runtime === 'node',
       command:
         declared.runtime === 'node'
-          ? ['/usr/bin/node', `./${declared.entrypoint}`, ...declared.args]
+          ? [
+              '/usr/bin/node',
+              ...(contract.schema_version === 2 ? ['--experimental-strip-types'] : []),
+              `./${declared.entrypoint}`,
+              ...declared.args,
+            ]
           : ['/usr/bin/python3', '-I', '-B', `./${declared.entrypoint}`, ...declared.args],
       timeout_ms: Math.min(remaining, 300_000),
       max_output_bytes: contract.max_output_bytes,
@@ -157,14 +164,57 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
       return onDiagnosis(value, files);
     },
   ];
-  const bundles = NAMES.map((name, index) => ({
+  const names = contract.schema_version === 2 ? NAMES : LEGACY_NAMES;
+  if (contract.schema_version === 2) {
+    inputs.push(
+      z.object({ text: z.string().min(1).max(1024), limit: z.number().int().min(1).max(100) }).strict(),
+      z
+        .object({
+          path: z.enum(contract.scope.write),
+          expected_sha256: z.string().regex(/^[a-f0-9]{64}$/),
+          before: z.string().min(1).max(contract.max_artifact_bytes),
+          after: z.string().max(contract.max_artifact_bytes),
+        })
+        .strict(),
+      z.object({}).strict(),
+    );
+    handlers.push(
+      ({ text, limit }) => {
+        const matches = [];
+        for (const file of snapshot()) {
+          const lines = (file.content || '').split('\n');
+          for (let index = 0; index < lines.length && matches.length < limit; index++) {
+            if (lines[index].includes(text)) matches.push({ path: file.path, line: index + 1, text: lines[index].slice(0, 2048) });
+          }
+        }
+        return { matches };
+      },
+      ({ path: relative, expected_sha256, before, after }) => {
+        const current = read(relative);
+        if (current.sha256 !== expected_sha256 || current.content === null || current.content.split(before).length !== 2)
+          throw new EngineeringToolError('Patch precondition changed or match is ambiguous', 'ENGINEERING_EFFECT_RECONCILIATION_REQUIRED');
+        return write({ path: relative, expected_sha256, content: current.content.replace(before, () => after) });
+      },
+      () => ({
+        baseline_sha: contract.baseline_sha,
+        changes: snapshot()
+          .filter((file) => file.sha256 !== (contract.initial_files.find((initial) => initial.path === file.path)?.sha256 || null))
+          .map((file) => ({
+            path: file.path,
+            before: contract.initial_files.find((initial) => initial.path === file.path)?.content ?? null,
+            after: file.content,
+          })),
+      }),
+    );
+  }
+  const bundles = names.map((name, index) => ({
     contract: {
       name,
       capability: name,
       provider: `${name}-provider`,
       authority: 'engineering.disposable',
       policy_version: 'engineering-v1',
-      reversibility: index === 1 ? 'idempotent_mutation' : 'read_only',
+      reversibility: index === 1 || index === 5 ? 'idempotent_mutation' : 'read_only',
       cancellation_policy: 'cooperative',
       failure_mode: 'fail_closed',
       timeout_ms: Math.min(contract.limits.max_duration_ms + 5000, 3_600_000),

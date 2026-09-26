@@ -1,0 +1,22 @@
+✔ candidate profile is explicit, key-referenced, sandbox-required and still non-operational (178.360448ms)
+✔ rehearsal migrates and discards a private candidate, restores v4 and leaves source byte-identical (75.669967ms)
+✔ rehearsal rejects link aliases and live SQLite sidecars before making a copy (4.847451ms)
+✔ explicit live mode checkpoints a verified WAL snapshot without opening or changing the operational database (64.344303ms)
+✔ retired IDE compatibility has zero internal callers while gated runtime compatibility remains visible (79.937979ms)
+✔ caller scan detects aliases, double-quoted state methods, and runtime callers under src (1.899971ms)
+✔ migration dry-run upgrades only a temporary copy and preserves every legacy table (21.448152ms)
+✔ read-only telemetry evidence can become ready but never bypasses active callers or human authorization (346.068817ms)
+✔ downstream release evidence is strict, scope-bound, integrity-checked, and never authorizes cutover (21.688203ms)
+✔ descriptor-bound evidence read rejects a pathname swapped during artifact verification (3.021662ms)
+✔ audit rejects a structurally valid but fabricated bundle before the human gate (317.025255ms)
+✔ sparse daily telemetry cannot produce a false green (16.916475ms)
+✔ invalid hour labels and direct usage rows cannot forge zero-use readiness (467.884513ms)
+✔ dry-run rejects links and live SQLite sidecars before opening operational state (7.786171ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1937.837147

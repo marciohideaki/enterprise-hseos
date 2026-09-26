@@ -12,9 +12,11 @@ const { openExecutionLedgerFileFixture } = require('../tools/mcp-project-state/l
 const { ExecutionEventLedger } = require('../tools/mcp-project-state/lib/execution-event-ledger');
 const { RelationalSessionEventStore } = require('../packages/agent-session-store');
 
-async function interruptedWrite(run, workflow = false, crashMode = 'write') {
+async function interruptedWrite(run, workflow = false, crashMode = 'write', project = false) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-reconcile-'));
-  const example = structuredClone(createEngineeringExample('addition'));
+  const example = project
+    ? structuredClone(require('../tools/examples/project-task').createProjectExample('typescript-report', directory))
+    : structuredClone(createEngineeringExample('addition'));
   example.contract.limits.max_tokens = 500_000;
   example.contract.limits.max_duration_ms = 120_000;
   fs.writeFileSync(path.join(directory, 'task.json'), JSON.stringify(example.contract));
@@ -48,7 +50,7 @@ async function interruptedWrite(run, workflow = false, crashMode = 'write') {
       if (${JSON.stringify(crashMode)}==='command') {
         const executor=require(${JSON.stringify(path.resolve(__dirname, '../packages/agent-isolation-attestation/executor'))});
         const execute=executor.executeIsolatedCommand;
-        executor.executeIsolatedCommand=async function(input) {const result=await execute(input); if(input.command.includes('./add.js')) process.kill(process.pid,'SIGKILL');return result;};
+        executor.executeIsolatedCommand=async function(input) {const result=await execute(input); if(input.command.includes('./add.js') || input.command.includes('./scripts/check.ts')) process.kill(process.pid,'SIGKILL');return result;};
       }
       require(${JSON.stringify(path.resolve(__dirname, workflow ? '../tools/cli/lib/engineering-workflow-runtime' : '../tools/cli/lib/engineering-task-runtime'))}).${workflow ? 'inspectEngineeringWorkflow' : 'inspectEngineeringTask'}({state:${JSON.stringify(created.state)},action:'resume',expectedSequence:${created.current_sequence}}).catch(error=>{console.error(error);process.exitCode=1;});
     `;
@@ -179,3 +181,43 @@ for (const crashMode of ['command', 'model']) {
       crashMode,
     ));
 }
+
+test('a project patch interrupted after its effect requires a decision and is never automatically repeated', () =>
+  interruptedWrite(
+    async (created) => {
+      const preview = await inspectEngineeringTask({ state: created.state, action: 'reconcile' });
+      assert.ok(preview.questions.some((question) => question.includes('patch')));
+      assert.equal(preview.reconciliation.verification.approved, true);
+      const blocked = await inspectEngineeringTask({ state: created.state, action: 'resume', expectedSequence: preview.current_sequence });
+      assert.equal(blocked.reason, 'effect-reconciliation-required');
+      const result = await inspectEngineeringTask({
+        state: created.state,
+        action: 'resume',
+        expectedSequence: blocked.current_sequence,
+        reconciliationDecision: {
+          report_sha256: blocked.reconciliation.sha256,
+          decision: 'continue-from-observed-state',
+          answer: 'Continue using the observed files; do not repeat the uncertain patch.',
+        },
+      });
+      assert.equal(result.task_result, 'approved', JSON.stringify(result));
+      const state = session(created.state, created.session_id);
+      assert.equal(Object.values(state.tool_invocations).filter((tool) => tool.name === 'engineering.patch').length, 1);
+    },
+    false,
+    'write',
+    true,
+  ));
+
+test('a completed patch receipt explains its change when a later command is interrupted', () =>
+  interruptedWrite(
+    async (created) => {
+      const preview = await inspectEngineeringTask({ state: created.state, action: 'reconcile' });
+      assert.equal(preview.reconciliation.verification.approved, true);
+      assert.ok(preview.questions.length > 0);
+      assert.ok(!preview.questions.some((question) => question.includes('mudou em relação aos efeitos')));
+    },
+    false,
+    'command',
+    true,
+  ));

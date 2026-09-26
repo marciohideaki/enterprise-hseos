@@ -1,0 +1,16 @@
+import os,pathlib,subprocess,json
+root=pathlib.Path.cwd();logs=root/'.logs/validation/w1'
+for version,runtime in [('24','/workspace/local/sdk/nvm/versions/node/v24.15.0/bin'),('22','/build/tmp/hseos-w1-node/node-v22.23.3-linux-x64/bin')]:
+ local=root/'node_modules';assert not local.exists() and not local.is_symlink()
+ if version=='22':local.symlink_to('/build/tmp/hseos-w0-closeout-cofvlsrb/consumer22/node_modules',target_is_directory=True)
+ try:
+  env=os.environ.copy();env.update(PATH=runtime+':'+str(root.parent.parent/'node_modules/.bin')+':'+env['PATH'],TMPDIR='/tmp')
+  print('Starting critical coverage Node '+version,flush=True)
+  with (logs/f'kernel-coverage-node{version}.log').open('w') as output:
+   result=subprocess.run(['nice','-n','10','npm','run','test:kernel-coverage'],cwd=root,env=env,stdout=output,stderr=subprocess.STDOUT)
+  print('Node '+version+' kernel coverage exit '+str(result.returncode),flush=True)
+  if result.returncode==0:(logs/f'coverage-node{version}.json').write_bytes((root/'.logs/validation/kernel-coverage/coverage-summary.json').read_bytes())
+  (logs/f'kernel-node{version}.result.json').write_text(json.dumps({'exit_code':result.returncode,'sequential':True})+'\n')
+  if result.returncode:break
+ finally:
+  if version=='22':local.unlink()

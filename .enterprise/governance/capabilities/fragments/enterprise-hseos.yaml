@@ -51,6 +51,51 @@ nodes:
     name: Capability Graph Policy
     lifecycle: available
     path: .enterprise/policies/capability-graph.md
+  - id: capability.hseos.project-engineering
+    type: Capability
+    name: HSEOS project engineering candidate
+    path: .specs/features/harness-w1/spec.md
+    lifecycle: proposed
+  - id: contract.hseos.project-task.v2
+    type: Contract
+    name: Project task contract v2
+    path: tools/cli/lib/engineering-task-contract.js
+    lifecycle: proposed
+  - id: contract.hseos.control.v1
+    type: Contract
+    name: Local engineering control v1
+    path: docs/engineering-control-api.md
+    lifecycle: proposed
+  - id: module.hseos.project-engineering
+    type: Module
+    name: Project verifier and workspace composition
+    path: tools/cli/lib/engineering-project-verifier.js
+    lifecycle: proposed
+  - id: module.hseos.control
+    type: Module
+    name: Engineering control service
+    path: tools/cli/lib/engineering-control.js
+    lifecycle: proposed
+  - id: package.hseos.control-sdk
+    type: Package
+    name: HSEOS local control SDK (source only)
+    path: packages/control-sdk/package.json
+    lifecycle: proposed
+  - id: testsuite.hseos.project-engineering
+    type: TestSuite
+    name: Project acceptance and isolation tests
+    path: test/test-engineering-project.js
+    lifecycle: proposed
+  - id: testsuite.hseos.control
+    type: TestSuite
+    name: CLI API and SDK conformance tests
+    path: test/test-engineering-control.js
+    lifecycle: proposed
+  - id: evidence.hseos.w1-intake
+    type: Evidence
+    name: W1 reuse and conformance intake
+    path: docs/decisions/harness-w1-intake.md
+    lifecycle: proposed
 edges:
   - id: edge.repo.enterprise-hseos.owned-by.platform-architecture
     type: OWNED_BY
@@ -134,4 +179,91 @@ edges:
     repository: repo.enterprise-hseos
     evidence:
       - evidence.capability-graph.policy
+  - id: edge.capability.hseos.project-engineering.owner
+    type: OWNED_BY
+    from: capability.hseos.project-engineering
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.contract.hseos.project-task.v2.owner
+    type: OWNED_BY
+    from: contract.hseos.project-task.v2
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.contract.hseos.control.v1.owner
+    type: OWNED_BY
+    from: contract.hseos.control.v1
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.module.hseos.project-engineering.owner
+    type: OWNED_BY
+    from: module.hseos.project-engineering
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.module.hseos.control.owner
+    type: OWNED_BY
+    from: module.hseos.control
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.package.hseos.control-sdk.owner
+    type: OWNED_BY
+    from: package.hseos.control-sdk
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.testsuite.hseos.project-engineering.owner
+    type: OWNED_BY
+    from: testsuite.hseos.project-engineering
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.testsuite.hseos.control.owner
+    type: OWNED_BY
+    from: testsuite.hseos.control
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.evidence.hseos.w1-intake.owner
+    type: OWNED_BY
+    from: evidence.hseos.w1-intake
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.hseos.w1.contract.hseos.project-task.v2
+    type: DEFINED_BY
+    from: capability.hseos.project-engineering
+    to: contract.hseos.project-task.v2
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.hseos.w1-intake
+  - id: edge.hseos.w1.contract.hseos.control.v1
+    type: DEFINED_BY
+    from: capability.hseos.project-engineering
+    to: contract.hseos.control.v1
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.hseos.w1-intake
+  - id: edge.hseos.w1.module.hseos.project-engineering
+    type: IMPLEMENTED_BY
+    from: capability.hseos.project-engineering
+    to: module.hseos.project-engineering
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.hseos.w1-intake
+  - id: edge.hseos.w1.module.hseos.control
+    type: IMPLEMENTED_BY
+    from: capability.hseos.project-engineering
+    to: module.hseos.control
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.hseos.w1-intake
+  - id: edge.hseos.w1.testsuite.hseos.project-engineering
+    type: VALIDATED_BY
+    from: capability.hseos.project-engineering
+    to: testsuite.hseos.project-engineering
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.hseos.w1-intake
+  - id: edge.hseos.w1.testsuite.hseos.control
+    type: VALIDATED_BY
+    from: capability.hseos.project-engineering
+    to: testsuite.hseos.control
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.hseos.w1-intake
 findings: []
