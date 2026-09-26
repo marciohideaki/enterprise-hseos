@@ -3,7 +3,7 @@
 const { createHash, randomUUID } = require('node:crypto');
 const { engineeringDigest } = require('./engineering-task-state');
 const { isExecutorOwnerAlive, reapExecutorOwner } = require('../../../packages/agent-isolation-attestation/executor');
-const { verifyEngineeringTask } = require('./engineering-verifier');
+const { verifyEngineeringTask } = require('./engineering-project-verifier');
 const { accountSessionTokens } = require('../../../packages/agent-context/token-counter');
 
 const hash = (value) => createHash('sha256').update(value).digest('hex');
@@ -103,6 +103,25 @@ async function inspectReconciliation(task, assembly, attest) {
             );
           if (applied) expected.set(execution.input.path, post);
           settlements.push({ execution, status: applied ? 'succeeded' : 'failed', result: file || null, turn_id: turnId });
+        }
+      } else if (execution.name === 'engineering.patch') {
+        if (
+          !pending &&
+          execution.outcome.status === 'succeeded' &&
+          (!baseline || execution.completed_event_sequence > baseline.session_sequence)
+        ) {
+          const receipt = execution.outcome.result;
+          if (receipt?.path !== execution.input.path || typeof receipt.content !== 'string' || hash(receipt.content) !== receipt.sha256)
+            throw new Error('Patch receipt does not match its artifact');
+          expected.set(receipt.path, receipt.sha256);
+        }
+        if (pending) {
+          const file = observed.get(execution.input.path);
+          ask(
+            `patch:${execution.invocation_id}`,
+            `O recibo do patch no arquivo ${execution.input.path} não foi confirmado. Você autoriza continuar a partir do estado observado sem repetir o patch?`,
+          );
+          settlements.push({ execution, status: 'failed', result: file || null, turn_id: turnId });
         }
       } else if (pending) {
         if (execution.name !== 'engineering.read')

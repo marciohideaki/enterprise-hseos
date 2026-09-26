@@ -1,0 +1,52 @@
+✔ CLI, JavaScript, Python and HTTP share identity, task results and replayable event cursors (3998.727912ms)
+✔ authenticated control rejects wrong identity, origins, workspace escalation and stale commands (1527.181599ms)
+✔ an intent without receipt is not automatically dispatched again (1409.548624ms)
+✔ review binds approval to Git baseline and only explicit apply modifies the source project (3439.060752ms)
+✔ concurrent source edits invalidate the prior review and are preserved (3267.81719ms)
+✔ public preparation pins the current workspace and cannot expand the server allowlist (78.107024ms)
+✔ workflows reuse the same API control and aggregate kernel budget (3646.147299ms)
+✔ HTTP rejects malformed, oversized and unsupported requests without exposing internal errors (1449.138778ms)
+✔ SDK rejects remote endpoints, malformed cursors and invalid query views (1.076928ms)
+✔ candidate edits after approval invalidate review without applying unverified bytes (3117.406318ms)
+✔ control rejects model ambiguity, unknown bindings and duplicate resources before effects (1514.254615ms)
+✔ v2 snapshots a Git project and preserves its immutable input after external edits (65.166836ms)
+✔ v2 refuses links, invalid UTF-8, changed Git baseline and embedded substitution (271.554354ms)
+✔ project acceptance and verifier inputs cannot drift after pinning (71.462443ms)
+✔ protected verifier executes Node multi-file inside isolation (1780.829061ms)
+✔ protected verifier executes TypeScript inside isolation (1619.365727ms)
+✔ protected verifier executes Python multi-file inside isolation (1526.045713ms)
+✔ protected verifier executes web static content inside isolation (1740.696026ms)
+✔ protected verifier executes incorrect delivery inside isolation (1895.093114ms)
+✔ project search, preconditioned patch and diff share governed task execution (1861.058735ms)
+✔ workspace boundary handles root-link without following an unsafe path (46.02543ms)
+✔ workspace boundary handles root-file without following an unsafe path (45.454547ms)
+✔ workspace boundary handles file-directory without following an unsafe path (50.569489ms)
+✔ workspace boundary handles budget without following an unsafe path (45.32628ms)
+✔ workspace boundary handles traversal without following an unsafe path (54.7639ms)
+✔ workspace boundary handles missing-file without following an unsafe path (31.024708ms)
+✔ workspace boundary handles missing-parent without following an unsafe path (43.367052ms)
+✔ workspace boundary handles parent-link without following an unsafe path (30.588607ms)
+✔ a file edited between read and stat cannot enter the baseline (49.973245ms)
+✔ changing the workspace directory after reads invalidates its identity (26.976896ms)
+✔ project hydration rejects supplied file content even with the correct declared baseline (54.280347ms)
+✔ whole-file patches round-trip creation, deletion, empty files and newline boundaries through Git (30.513514ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 37029.579962
+----------------------------------|---------|----------|---------|---------|------------------------
+File                              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s      
+----------------------------------|---------|----------|---------|---------|------------------------
+All files                         |   99.69 |    91.34 |     100 |   99.69 |                        
+ packages/control-sdk             |     100 |    97.05 |     100 |     100 |                        
+  index.js                        |     100 |    97.05 |     100 |     100 | 28                     
+ tools/cli/lib                    |   99.67 |    90.64 |     100 |   99.67 |                        
+  engineering-control-http.js     |     100 |    90.19 |     100 |     100 | 8,12,21,41,64          
+  engineering-control.js          |     100 |    88.04 |     100 |     100 | ...173-174,178,203,212 
+  engineering-project-verifier.js |   98.11 |    80.64 |     100 |   98.11 | 94-95                  
+  engineering-workspace.js        |     100 |    96.15 |     100 |     100 | 55,159,164,180         
+----------------------------------|---------|----------|---------|---------|------------------------

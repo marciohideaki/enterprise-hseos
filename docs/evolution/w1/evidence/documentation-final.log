@@ -1,0 +1,13 @@
+✔ comparison exception remains bounded and never permits derivation claims (2.756173ms)
+✔ documentation remains provider-neutral and HSEOS-owned (110.240476ms)
+✔ every authored package source is linted with correctness rules enabled (1032.308562ms)
+✔ coverage counts unexecuted critical files and enforces per-file 90/80 (0.34544ms)
+✔ comparison inventory covers every source family and points to real sources and tests (5.489114ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1534.243685

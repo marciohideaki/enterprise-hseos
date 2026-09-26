@@ -1,5 +1,7 @@
 # Estado da evolução — 2026-09-25
 
+Onda 1 implementada e verificada deterministicamente: [estado específico](w1/STATUS.md).
+
 **Onda 0 implementada e verificada deterministicamente. O programa W0–W8 não está concluído.**
 Verificação mais recente: [W0-CLOSEOUT.md](W0-CLOSEOUT.md).
 Implementação local ainda sem commit, merge, publicação ou ativação. Não há
@@ -102,7 +104,8 @@ conforme PLAN; W1–W8 não são critérios adicionais de fechamento de W0.
 | Marco | Determinístico | Consumidores reais | Operacional |
 |---|---|---|---|
 | W0 | implementado e verificado; matriz integral e cobertura aprovadas | CLI instalada com jornadas locais verificada; providers reais não certificados | não ativado |
-| W1–W8 | não implementados nesta task | não certificado | não autorizado |
+| W1 | implementada e verificada; ver estado específico | CLI/API/SDK instalados verificados; modelos reais não certificados | não ativado |
+| W2–W8 | não implementados nesta task | não certificado | não autorizado |
 
 ## Revisão adversarial
 

@@ -1,0 +1,10 @@
+✔ a project patch interrupted after its effect requires a decision and is never automatically repeated (8514.336399ms)
+✔ a completed patch receipt explains its change when a later command is interrupted (4985.099176ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14189.370874

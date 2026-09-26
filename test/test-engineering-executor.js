@@ -226,3 +226,28 @@ test('persistent busy cleanup is uncertain and never confirms completion', () =>
       if (blockedGroup) original(blockedGroup);
     }
   }));
+
+test('project runtime mounts only the controller executable read-only without inheriting its environment', () =>
+  fixture(async ({ execute }) => {
+    const result = await execute(
+      [
+        '/usr/bin/node',
+        '-e',
+        `
+      const fs = require('node:fs');
+      let denied = false;
+      try { fs.writeFileSync(process.execPath, 'replace'); } catch(e) { denied = e.code === 'EROFS'; }
+      console.log(JSON.stringify({ version:process.version, denied, hostDirectory:fs.existsSync(${JSON.stringify(path.dirname(process.execPath))}), env:Object.keys(process.env) }));
+    `,
+      ],
+      { host_node: true },
+    );
+    assert.equal(result.status, 'succeeded', result.stderr);
+    const output = JSON.parse(result.stdout);
+    assert.equal(output.version, process.version);
+    assert.equal(output.denied, true);
+    assert.equal(output.hostDirectory, path.dirname(process.execPath) === '/usr/bin');
+    assert.deepEqual(output.env, ['PATH', 'PWD']);
+    assert.equal(result.runtime_source, 'controller-executable-readonly');
+    await assert.rejects(execute(['/usr/bin/python3', '-V'], { host_node: true }), /runtime selection/);
+  }));

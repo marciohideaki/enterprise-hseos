@@ -1,6 +1,6 @@
 # Evolução do harness HSEOS
 
-Artefatos: plano de execução, inventário verificável e recibos da onda 0.
+Artefatos: plano de execução, inventário verificável e recibos das ondas 0 e 1.
 Autoridade: plano fornecido pelo usuário em 2026-09-25; Constituição 2.2,
 AGENTS.md, governance-discovery, automated-validation e ADR-0043.
 
@@ -30,3 +30,5 @@ Glossário: baseline = conteúdo fixado para comparação; recibo = resultado
 vinculado à revisão; binding = combinação declarada de backend, transporte,
 autenticação e cobrança. Implementação, consumidor real e ativação são estados
 separados.
+
+- [Onda 1 — implementação e evidências](w1/STATUS.md)

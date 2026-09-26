@@ -128,7 +128,7 @@ async function removeDrainedGroup(directory) {
 }
 
 /** Execute an exact contract command. Workspace mutations go through scoped tools. */
-async function executeIsolatedCommand({ policy, command, timeout_ms, max_output_bytes, signal }) {
+async function executeIsolatedCommand({ policy, command, timeout_ms, max_output_bytes, signal, host_node = false }) {
   if (
     !Number.isSafeInteger(timeout_ms) ||
     timeout_ms < 1 ||
@@ -140,11 +140,16 @@ async function executeIsolatedCommand({ policy, command, timeout_ms, max_output_
     throw new EngineeringIsolationError('Finite execution limits are required');
   }
   if (signal?.aborted) return { status: 'cancelled', exit_code: null, stdout: '', stderr: '', descendants_terminated: true };
-  const launch = prepareIsolatedExecution(policy, command);
+  const launch = prepareIsolatedExecution(policy, command, host_node);
   let group;
   let fd;
   let temporary;
+  let runtimeFd;
   try {
+    if (host_node) {
+      runtimeFd = fs.openSync(fs.realpathSync(process.execPath), fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+      if (!fs.fstatSync(runtimeFd).isFile()) throw new EngineeringIsolationError('Unsafe host runtime');
+    }
     group = createResourceGroup();
     temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-executor-filter-'));
     const filename = path.join(temporary, 'filter');
@@ -170,7 +175,7 @@ async function executeIsolatedCommand({ policy, command, timeout_ms, max_output_
         ],
         {
           env: {},
-          stdio: ['ignore', 'pipe', 'pipe', fd],
+          stdio: ['ignore', 'pipe', 'pipe', fd, ...(host_node ? [runtimeFd] : [])],
           detached: true,
         },
       );
@@ -240,6 +245,7 @@ async function executeIsolatedCommand({ policy, command, timeout_ms, max_output_
       descendants_terminated: true,
       policy_digest: launch.policy_digest,
       workspace_access: 'read_only',
+      ...(host_node ? { runtime_version: process.version, runtime_source: 'controller-executable-readonly' } : {}),
       limits: { processes: 32, memory_bytes: 268_435_456, output_bytes: max_output_bytes, duration_ms: timeout_ms },
     };
   } catch (error) {
@@ -247,6 +253,7 @@ async function executeIsolatedCommand({ policy, command, timeout_ms, max_output_
     throw new EngineeringIsolationError('The isolated executor prerequisites or launch failed');
   } finally {
     if (fd !== undefined) fs.closeSync(fd);
+    if (runtimeFd !== undefined) fs.closeSync(runtimeFd);
     if (temporary) fs.rmdirSync(temporary);
     if (group) {
       await removeDrainedGroup(group);

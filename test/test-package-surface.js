@@ -20,6 +20,14 @@ test('published package exposes runtime and governance assets only', () => {
   const packed = packageFiles();
   const files = new Set(packed.files.map((file) => file.path));
   for (const required of [
+    'tools/cli/commands/control.js',
+    'tools/cli/lib/engineering-project-verifier.js',
+    'tools/cli/lib/engineering-workspace.js',
+    'tools/examples/project-task.js',
+    'packages/control-sdk/index.js',
+    'packages/control-sdk/index.d.ts',
+    'packages/control-sdk/hseos_control.py',
+    'docs/engineering-control-api.md',
     'LICENSE',
     'tools/hseos-npx-wrapper.js',
     'tools/cli/hseos-cli.js',
@@ -56,10 +64,9 @@ test('published package exposes runtime and governance assets only', () => {
     assert.ok(!/\.(?:db|sqlite|pem|key)$/i.test(file), `state or key material published: ${file}`);
     assert.ok(!/(?:^|\/)(?:\.env|managed-governance\.json)$/i.test(file), `runtime configuration published: ${file}`);
   }
-  // Bound tracks intentional package growth, not a security invariant (those are the explicit
-  // state/key/config regex checks above). Bumped for T05 (1350 entries: 2 new application
-  // files + migration 0006) with headroom for the remaining managed-shadow-readiness tasks
-  // (T06-T13), each of which adds a handful of files to this same package.
-  assert.ok(packed.entryCount < 1400, `package entry count is not bounded: ${packed.entryCount}`);
+  // W0 contains 1399 entries. W1 adds the control SDK, project composition,
+  // example, migration and documentation; reserve at most 21 additional assets.
+  // State/key/config exclusions above remain independent security invariants.
+  assert.ok(packed.entryCount < 1420, `package entry count is not bounded: ${packed.entryCount}`);
   assert.ok(packed.unpackedSize < 22_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);
 });

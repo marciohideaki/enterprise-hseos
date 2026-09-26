@@ -1,0 +1,12 @@
+{
+  "24": {
+    "inet_connect_calls": 9,
+    "non_loopback_attempts": [],
+    "controller_network_namespace_isolated": false
+  },
+  "22": {
+    "inet_connect_calls": 9,
+    "non_loopback_attempts": [],
+    "controller_network_namespace_isolated": false
+  }
+}

@@ -9,7 +9,8 @@
     "packages/agent-compaction/**/*.js",
     "packages/agent-isolation-attestation/**/*.js",
     "tools/cli/lib/engineering-*.js",
-    "tools/cli/lib/provider-egress-broker.js"
+    "tools/cli/lib/provider-egress-broker.js",
+    "packages/control-sdk/**/*.js"
   ],
   "exclude": ["**/node_modules/**", "test/**"],
   "reporter": ["text", "json-summary", "json"],

@@ -1,0 +1,701 @@
+[0;34m[INFO][0m HSEOS Quality Gates — Phase: full
+[0;34m[INFO][0m Repository: /workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1
+[0;34m[INFO][0m Log: /workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/.logs/validation/gate-20260925T234558.log
+
+[0;34m[INFO][0m Gate 0: Enforcement Flags
+[0;32m[PASS][0m VALIDATION_ENFORCED=true
+[0;34m[INFO][0m Gate 1: Governance Structure
+[0;32m[PASS][0m Exists: .enterprise/.specs/constitution/Enterprise-Constitution.md
+[0;32m[PASS][0m Exists: .enterprise/policies/automated-validation.md
+[0;32m[PASS][0m Exists: CLAUDE.md
+[0;32m[PASS][0m Exists: AGENTS.md
+[0;32m[PASS][0m Dir exists: .enterprise/agents
+[0;32m[PASS][0m Dir exists: .enterprise/governance
+[0;32m[PASS][0m Dir exists: .enterprise/policies
+[0;32m[PASS][0m Dir exists: .logs/runs
+[0;32m[PASS][0m Dir exists: .logs/validation
+[0;32m[PASS][0m Dir exists: .logs/summaries
+[0;34m[INFO][0m Gate 1.1: Governance Anchors and Capability Graph
+[0;32m[PASS][0m Constitutional change control: passed
+[0;32m[PASS][0m Federated capability graph: passed
+[0;32m[PASS][0m Capability reference corpus: passed
+[0;34m[INFO][0m Gate 7: Canonical Source Invariant (ADR-0015)
+[0;32m[PASS][0m No external skill-mirror canonical references in runtime assets
+[0;34m[INFO][0m Gate 2: Documentation Quality
+[1;33m[WARN][0m Unresolved placeholders (2) in: src/hsm/workflows/3-solutioning/create-epics-and-stories/templates/epics-template.md
+[0;34m[INFO][0m markdownlint not available — skipping markdown syntax check
+[0;34m[INFO][0m Gate 3: Code Quality
+[0;34m[INFO][0m Detected Node.js project changes in scope
+[0;32m[PASS][0m Lint: passed
+✔ every authored package source is linted with correctness rules enabled (586.809251ms)
+✔ coverage counts unexecuted critical files and enforces per-file 90/80 (0.261507ms)
+✔ comparison inventory covers every source family and points to real sources and tests (3.542011ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 769.946203
+✔ tests detect removal of the authority guard (368.008025ms)
+✔ tests detect removal of the budget guard (392.692028ms)
+✔ tests detect removal of the recovery guard (521.208487ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1332.004198
+  PASS  atlas.agent.yaml
+  PASS  blitz.agent.yaml
+  PASS  cipher.agent.yaml
+  PASS  forge.agent.yaml
+  PASS  ghost.agent.yaml
+  PASS  glitch.agent.yaml
+  PASS  kube.agent.yaml
+  PASS  nyx.agent.yaml
+  PASS  orbit.agent.yaml
+  PASS  prism.agent.yaml
+  PASS  quill.agent.yaml
+  PASS  razor.agent.yaml
+  PASS  sable.agent.yaml
+  PASS  swarm.agent.yaml
+  PASS  vector.agent.yaml
+
+Agent schema tests: 15 passed, 0 failed
+✔ every valid fixture parses through its exported schema and is deeply frozen (20.127734ms)
+✔ every invalid fixture fails closed with normalized contract evidence (5.044006ms)
+✔ all top-level schemas reject unsupported versions and unknown fields (4.474171ms)
+✔ session preflight status, reason and parity fields cannot diverge (0.278453ms)
+✔ canonical JSON is lexically ordered and digest-stable (0.525717ms)
+✔ canonical JSON rejects lossy, executable and ambiguous JavaScript values (0.394447ms)
+✔ identifier, raw content and structured content byte limits are enforced (10.910505ms)
+✔ closed vocabularies reject semantic widening (1.328696ms)
+✔ collection, timestamp and semantic-version boundaries are explicit (1.163899ms)
+✔ rule conditions enforce operator-specific data without executable expressions (3.266601ms)
+✔ duplicate arrays, reversed time and unsafe paths fail closed (0.878034ms)
+✔ import reports must account for every discovered source (0.720202ms)
+✔ readiness report ready flag requires every readiness-algorithm condition, not just one (1.196389ms)
+✔ managed network profile enforces deny-by-default admission for shared-network (1.253947ms)
+✔ contract parser normalizes schema evaluation failures without leaking values (0.17466ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 172.95312
+▶ managed governance source discovery
+  ✔ accounts for every allowlisted governance family in the current repository (1.154511ms)
+  ✔ produces a byte-identical plan for the same tree and commit without writes (255.285473ms)
+✔ managed governance source discovery (691.484405ms)
+▶ secure governance source reads
+  ✔ reads a regular UTF-8 file and normalizes line endings for its digest (2.427212ms)
+  ✔ rejects path escape before content is read (0.668284ms)
+  ✔ rejects source directories reached through symbolic-link ancestors (1.04443ms)
+  ✔ rejects symbolic links, hard links, special files, oversized data and invalid UTF-8 (7.494899ms)
+  ✔ rejects dirty canonical Git roots (23.289436ms)
+✔ secure governance source reads (35.71361ms)
+▶ classification and pure import planning
+  ✔ rejects discovery limits above the closed source profile (0.224554ms)
+  ✔ preserves ambiguous prose as unclassified metadata and never emits a rule (0.189376ms)
+  ✔ preserves invalid structured content for review (1.366689ms)
+  ✔ plans create, no-op, version, rename, review and deactivate deterministically (1.576881ms)
+  ✔ does not consume an existing path that is present later in discovery as a rename (0.280303ms)
+  ✔ makes ambiguous renames review-only and preserves prior entries for deactivation review (0.282608ms)
+  ✔ binds plan identity to repository, commit, importer and source profile (0.813303ms)
+✔ classification and pure import planning (5.049184ms)
+ℹ tests 14
+ℹ suites 3
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 870.489183
+✔ every designed endpoint returns the canonical v1 envelope (70.033623ms)
+✔ mutations and audit reject anonymous requests while read-only planning stays available (8.182993ms)
+✔ routing, pagination, body limits and domain failures use stable error codes (4.995692ms)
+✔ health carries distinct migration and projection readiness without flattening state (2.12498ms)
+✔ deadline aborts a non-settling handler with a stable timeout (103.287174ms)
+✔ invalid or cyclic service output fails as a sanitized internal error (2.168761ms)
+✔ graceful shutdown drains an active request and closes repository resources once (2.697253ms)
+✔ server refuses non-loopback binding (0.490055ms)
+✔ development authentication requires both explicit configuration and the environment gate (0.282775ms)
+✔ draft and publication application ports preserve authenticated context (0.44998ms)
+✔ release query and snapshot verification are backed by real repository state, not stubs (18.555518ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 342.726183
+✔ all documented read commands map to their versioned HTTP application ports (2.192131ms)
+✔ plan is deterministic and performs no local mutation (0.334262ms)
+✔ apply requires explicit database reference, actor and authentication and repeats the same request (0.791064ms)
+✔ server start defaults to loopback and port 4319 (0.39036ms)
+✔ invalid commands, modes, files, filters and network boundaries fail closed (0.913586ms)
+✔ human output projects the same envelope and retains remote error codes (0.222084ms)
+✔ session preflight keeps every managed-shadow outcome advisory (0.872563ms)
+✔ database configuration rejects unsafe permissions and token header characters (0.389414ms)
+✔ the main CLI exposes managed governance help without update-network access (38.123927ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 195.638593
+✔ console routes serve exact local assets with strict browser policy (44.923765ms)
+✔ versioned UI schema covers every supported authoring type with bounded fields (0.756135ms)
+✔ DOM smoke has landmarks, labels, keyboard focus, errors and reduced-motion support (0.228009ms)
+✔ console consumes only HTTP routes and contains no database or direct Git mutation path (0.271365ms)
+✔ console shows the same readiness report exposed to CLI and MCP, and never claims it authorizes enforcement (0.25498ms)
+✔ console echoes the CSRF token back only on state-changing requests, never on reads (0.199831ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 195.017348
+✔ resolution is deterministic and a lower allow cannot widen a constitutional deny (6.46929ms)
+✔ same-precedence contradictions fail closed according to action class (8.323947ms)
+✔ only a current approved exception may explicitly widen a restrictive result (1.340529ms)
+✔ governance acceptance never satisfies an operational approval obligation (2.222357ms)
+✔ scope, pure predicates and bounded wildcard matching select only exact candidates (1.396ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 129.128339
+✔ managed-shadow records a mismatch with both digests and preserves the local result (3.237568ms)
+✔ managed-shadow reports semantic parity without creating mismatch evidence (0.313206ms)
+✔ approval-required local results map to input_required without changing authority (0.255932ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 109.886598
+✔ binding loader proves repository identity and rejects secret-bearing input before network access (10.763997ms)
+✔ online shadow compares decisions while local authority remains unchanged (2.076605ms)
+✔ valid last-known-good snapshot supports degraded shadow without blocking (5.052881ms)
+✔ reserved enforcement mode fails before network or cache access (0.317628ms)
+✔ bounded retries and circuit states produce typed degraded results (1.11525ms)
+✔ timeout remains bounded when an injected transport ignores abort (101.446568ms)
+✔ chunked control-plane responses are bounded independently of content-length (0.425989ms)
+✔ session preflight reports equivalence and atomically persists bounded evidence (13.816793ms)
+✔ session preflight accepts the bounded full catalog projection (2.034896ms)
+✔ session preflight distinguishes digest and repository identity drift (2.96049ms)
+✔ session preflight degrades remote failures and malformed projections without blocking (4.20111ms)
+✔ session preflight fails local identity divergence before querying remote (2.287744ms)
+✔ session preflight rejects an unsafe query configuration before network access (0.9735ms)
+✔ session preflight rejects invalid UTF-8 Constitution bytes before network access (1.556797ms)
+✔ session preflight never creates evidence through a symlinked runtime ancestor (2.164775ms)
+✔ session preflight reports an unconfigured project without network access (0.375982ms)
+✔ promotion is atomic, private and digest-verified (7.599971ms)
+✔ corrupt, expired and identity-mismatched snapshots are never valid (1.172279ms)
+✔ verifyGovernanceSnapshot accepts a currently valid, trusted, unexpired release (8.99484ms)
+✔ verifyGovernanceSnapshot fails closed for a missing release (0.354561ms)
+✔ verifyGovernanceSnapshot rejects replay of an expired release (1.99215ms)
+✔ verifyGovernanceSnapshot rejects a release that is not yet effective (1.960333ms)
+✔ verifyGovernanceSnapshot rejects a signer that is not in the trusted binding (1.800074ms)
+✔ verifyGovernanceSnapshot rejects a substituted signed digest that does not bind to the manifest (2.809442ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 556.35601
+▶ managed governance catalog synchronization
+  ✔ applies create, review, version, rename and deactivate with exact parity (15.053573ms)
+  ✔ rejects forged plan identity and altered source bytes before persistence (1.368075ms)
+✔ managed governance catalog synchronization (17.17845ms)
+ℹ tests 2
+ℹ suites 1
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 147.361077
+✔ current canonical governance seeds through the normal import path and then no-ops (763.953065ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 915.094549
+▶ in-memory governance repository satisfies the v1 port contract
+  ✔ commits domain state, audit, outbox and receipt atomically (4.066313ms)
+  ✔ returns the original result for an exact idempotent retry (0.484178ms)
+  ✔ rejects conflicting idempotency reuse without partial writes (0.613713ms)
+  ✔ serializes concurrent retries to one committed mutation (0.395874ms)
+  ✔ records a readiness evaluation idempotently and never authorizes enforcement (3.737114ms)
+  ✔ records a recovery rehearsal idempotently and requires a confirmed disposable target (1.213141ms)
+  ✔ records network access audit events with a deny reason required only on denial (0.658138ms)
+  ✔ keeps tenant reads isolated and closes explicitly (0.255269ms)
+✔ in-memory governance repository satisfies the v1 port contract (13.309895ms)
+✔ in-memory repository records repository-scoped shadow-readiness evidence idempotently (4.775206ms)
+✔ migration reader pins bounded regular files and rejects link aliases (9.691085ms)
+✔ pool configuration is closed, bounded and does not load a driver when injected (0.398673ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 139.956073
+▶ PostgreSQL migration and repository integration
+  ✔ creates every core table with fail-closed tenant RLS (22.789795ms)
+  ✔ commits domain state, audit, outbox and receipt atomically (73.919324ms)
+  ✔ returns the original result for an exact idempotent retry (31.743216ms)
+  ✔ rejects conflicting idempotency reuse without partial writes (30.822349ms)
+  ✔ serializes concurrent retries to one committed mutation (47.440735ms)
+  ✔ records a readiness evaluation idempotently and never authorizes enforcement (58.998222ms)
+  ✔ records a recovery rehearsal idempotently and requires a confirmed disposable target (33.271697ms)
+  ✔ records network access audit events with a deny reason required only on denial (38.376734ms)
+  ✔ keeps tenant reads isolated and closes explicitly (14.94069ms)
+  ✔ persists repository-scoped shadow-readiness evidence with real cross-tenant RLS denial (152.416089ms)
+  ✔ applies, repeats, versions and rolls back a catalog transactionally (255.078336ms)
+  ✔ preserves the prior active catalog when import audit persistence fails (156.57979ms)
+  ✔ rolls back domain state when the paired audit write fails (30.741313ms)
+  ✔ database roles and immutable records are enforced by PostgreSQL (42.746132ms)
+✔ PostgreSQL migration and repository integration (1049.63918ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1182.915493
+✔ HTTP, CLI and MCP expose the same decision semantics from the shared application result (87.307577ms)
+✔ reserved managed enforcement remains an unavailable no-side-effect state (2.945151ms)
+✔ a total control-plane outage with no cached snapshot leaves the local decision authoritative and unblocked (1.334083ms)
+✔ verification matrix accounts for every functional and non-functional requirement (1.008441ms)
+✔ cached shadow preflight stays below the 250 ms p95 budget on the reference fixture (27.642285ms)
+✔ online shadow resolution stays below the 2 s p95 budget on the reference fixture (6.085376ms)
+✔ session preflight stays below the 500 ms p95 budget on the reference fixture (72.79103ms)
+✔ tenant isolation and replay protection fail closed without cross-tenant mutation (5.084987ms)
+✔ source and contract paths reject traversal, symbolic links and external content (5.251155ms)
+.+....+.....+++++++++++++++++++++++++++++++++++++++*....+........+............+.......+..+.+..+...+............+.+......+......+...+..+...+++++++++++++++++++++++++++++++++++++++*............+....+.........+..+......+.......+...+...+..+.......+............+...+..+..........+......+.....+..................+..........+.....+.+......+..+.............+............+...+..+.+..+....+...........+.......+......+.....+.+........+...............+......+............+....+......+............+.....+............+.............+...+.................+.......+......+..+.+............+..+...+.......+..+......+...+......+.+............+..+.........+....+...+.........+.....+.+..+...............+......+.+...+...........+.+.....+......+...+.......+..+..........+.....+.+......+...............+....................+.+..+......+....+..+.+........+....+......+..+...+.........+...+.......+..+......+...+.+........+......+....+..+.+...+......+...............+........+...++++++
+..+++++++++++++++++++++++++++++++++++++++*....+....+..+.......+..+...+++++++++++++++++++++++++++++++++++++++*....+...+............+.+........+....+.....+.+.........+......+..+..........+...+.....+.+...+...+........+.........+.+..............+............+.+.................+.+......+...........+...+....+.....+.......+...+...++++++
+-----
+✔ HTTP input limits, route injection and malformed JSON fail before application execution (59.2806ms)
+✔ control-plane refuses non-loopback exposure (0.412069ms)
+..+.+...........+......+...............+....+.....+...+.+.....+.......+.....+++++++++++++++++++++++++++++++++++++++*.+..+.............+......+.....+.+..+...+++++++++++++++++++++++++++++++++++++++*......+.........+..+.......+...+.....+....+...+..+....+............+........+......+...+......+.......+..+.+..+....+.....+......+.......+..+.+...+.........+.....+.......+........+......+.+...........+.......+......+.....+.+......+..+...+....+......+........+......+....+..+............+...............+.............+.....+.......+.....+.+...........+....++++++
+..+....+.........+.....+......+......+...+....+..+++++++++++++++++++++++++++++++++++++++*.+.....+..........+..+.......+.........+++++++++++++++++++++++++++++++++++++++*....+......+...........................+..+..........+...+...+......+.....+....+.........+..+...+..........+..+.........+....+.....+.+..+....+...........+.......+............+.....+.........+.......+.........++++++
+-----
+....+...+.........+..+....+............+..+.+++++++++++++++++++++++++++++++++++++++*.+...............+.......+...+..................+++++++++++++++++++++++++++++++++++++++*.......+...+..+.........+..........+.........+..+...+..................+...+......+..........+........+...+....+..............+....+........+..........+...+.........+..+...+.++++++
+......+..+...+.+.....+.+...+........+++++++++++++++++++++++++++++++++++++++*...+++++++++++++++++++++++++++++++++++++++*.+...+...+..+...+....+.....+.......+...............+...+..+...+......+......+.+...+.........+.................+......+....+......+...+..+...+......................+..+.......+......+..+.............+............++++++
+-----
+✔ a direct-tls shared-network profile actually wraps its listener in TLS, not merely declares it (104.457039ms)
+✔ direct-tls fails closed before any socket opens when the certificate or key is missing or invalid (79.383672ms)
+.....+++++++++++++++++++++++++++++++++++++++*.+..+....+.........+.....+......+.........+.+...............+...........+...+......+.+.....+...+.......+......+++++++++++++++++++++++++++++++++++++++*..+...+...+...+..........+..+.......+...+.........+.........+..+....+...+...........+...............+.......+..+.+.........+.....+...+...+......................+...+...........+.........+..........+.....+.+........+.+...........+.+..+.......+...........+....+...+...+...+............+.....+....+...+......+.....+...................+..+....+...........+.+..+...+.......+..+...+......+....+......+.....+.......+..................+.....+....+......+............+..+.+.....+.+.....+.+....................+.......+...+.....+...+......+......+.........+...+......+.......+..+.......+.....+...+.............+...+...........+.+............+........+.......+..+.+.........+...+........+.............+..+....+...+...+..+.+...........+.+...+......+...+..+.............+..+.+...+.........+.....+...+....+.............................+....+...........+.+.....+.........+....+...........+.+..............+....+.................+....+..+....+...+.....+...+.........+.+..+.+...........+......++++++
+.....+...+.+......+.....+...+.+...+..+..........+...........+....+......+..............+....+++++++++++++++++++++++++++++++++++++++*........+++++++++++++++++++++++++++++++++++++++*.....+......+....+..+.+..+...+............................+..+.............+..+...+.......++++++
+-----
+✔ terminated-upstream deliberately keeps this server on plain HTTP -- TLS is an external reverse-proxy responsibility for that mode (3.790254ms)
+✔ a perfectly valid admin credential never substitutes for network admission -- the two controls are independent (70.781862ms)
+✔ audit and outbox payloads are bounded to identifiers, never the record content, no matter how large or secret-shaped that content is (0.765897ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1045.904394
+✔ sidecar configuration is strict, environment-referenced and deployment-agnostic (4.725451ms)
+✔ setup migrates, seeds and writes stable secret-free managed-shadow files (18.685914ms)
+✔ database-backed composition reports ready health and serves the seeded catalog (71.146287ms)
+✔ a fresh install with no network section still enforces loopback-only binding through the full composition (3.662853ms)
+✔ a deployed shared-network profile, wired through the real composition, admits an allowlisted LAN client and denies one outside it (27.366778ms)
+✔ the approved deployment CIDR 192.168.5.0/24 admits an in-range client and denies every out-of-range one (0.443474ms)
+✔ the packed npm artifact ships no .hseos/state and runs the installed CLI from the extracted package alone (12999.689454ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13319.092964
+✔ planGovernanceRelease produces a byte-identical manifest for the same input (13.265717ms)
+✔ planGovernanceRelease rejects a source commit that is not the active imported catalog (2.502427ms)
+✔ planGovernanceRelease rejects an organization with no active imported catalog (0.288178ms)
+✔ requestExternalSignature passes only the digest and public binding to the signer, never the manifest (3.869118ms)
+✔ the signature evidence always echoes the requested algorithm, never whatever the signer claims (2.165054ms)
+✔ requestExternalSignature rejects a signer that does not implement sign() (6.085505ms)
+✔ requestExternalSignature rejects a malformed signer response (2.688065ms)
+✔ publishGovernanceRelease records a published attempt bound to the manifest and signer (4.3206ms)
+✔ publishGovernanceRelease persists nothing when the signature does not verify (2.524705ms)
+✔ publishGovernanceRelease rejects evidence signed for a different binding (3.291556ms)
+✔ publishing the same manifest and evidence twice is idempotent, and a different manifest at the same stage conflicts (2.451659ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 217.459989
+✔ generatePatchBundle produces a byte-identical bundle_id, manifest_digest and patch for the same request (34.538118ms)
+✔ generatePatchBundle produces a different bundle_id for a substantively different request (17.686946ms)
+✔ every file operation is accounted for with the correct content digest, including deletions (12.407333ms)
+✔ the generated patch is a real unified diff that git apply accepts (18.666744ms)
+✔ generatePatchBundle never touches git state — no commit, push, merge or tag (15.148056ms)
+✔ a re-run to the same destination is refused before any write, and the bundle is durable via the repository (26.938225ms)
+✔ unsafe destinations fail before any write: symlinked parent, missing parent, existing path (0.756525ms)
+✔ generatePatchBundle rejects path traversal, absolute paths and duplicate paths (8.335019ms)
+✔ generatePatchBundle rejects operations whose before/after content contradicts the operation (1.018643ms)
+✔ computeFileDiff and buildUnifiedPatch are pure helpers usable outside the full bundle flow (8.482505ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 272.659267
+✔ recordShadowReceipt is idempotent by adapter/session identity, not by receipt content (6.390434ms)
+✔ recordShadowReceipt derives receipt_id from identity, independent of digests or status (0.780923ms)
+✔ evaluateShadowReadiness reports ready when every day has conclusive evidence (12.31084ms)
+✔ a re-evaluation of the same window with different evidence is a real conflict, not a silent overwrite (7.789554ms)
+✔ missing days are explicit and block readiness even when the aggregate ratio looks fine (4.613817ms)
+✔ adapters missing evidence block readiness independent of repository coverage (5.666664ms)
+✔ remote-unavailable receipts are recorded and reported but never count as coverage or equivalence (4.949454ms)
+✔ a window where every session is remote-unavailable is never ready, regardless of every other flag (4.883362ms)
+✔ open drift and invalid-contract outcomes block readiness even with full coverage (4.832115ms)
+✔ p95 preflight latency above 500ms fails readiness even with perfect coverage (4.153209ms)
+✔ missing latency telemetry for a covered window fails closed instead of reporting an implausible 0ms p95 (3.77291ms)
+✔ stale supporting evidence (signer, recovery, threat-model, rollback) blocks readiness independently (15.809533ms)
+✔ the window must be exactly 30 consecutive completed UTC days (3.595516ms)
+✔ percentile95 is exact at small sample sizes (0.082039ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 200.609698
+✔ runRecoveryRehearsal refuses an unconfirmed disposable target before touching the environment or the inspector (10.559864ms)
+✔ runRecoveryRehearsal rejects an operational-target alias before ever calling the inspector (1.999023ms)
+✔ connectionIdentity normalizes loopback hosts and default ports (0.243661ms)
+✔ a fully verified rehearsal within the declared profile is ready and persisted (3.946146ms)
+✔ measured_rpo_seconds reflects the gap between the operational and disposable audit history (1.94999ms)
+✔ a disposable target with no restored audit history fails closed instead of reporting a fabricated measurement (1.502494ms)
+✔ tenant isolation, active catalog and audit append-only failures each independently block within_declared_profile (2.791285ms)
+✔ release signature verification compares the disposable target against the operational published release (6.273712ms)
+✔ an unexpected published release on the disposable target when none was expected fails verification (1.956238ms)
+✔ measured values exceeding the declared profile block within_declared_profile even when every check passes (1.337743ms)
+✔ restore completed at cannot precede restore started at (0.986148ms)
+✔ each rehearsal is a fresh, independently recorded event -- rerunning is not idempotent-deduplicated (1.130267ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 179.12104
+✔ parseCidr accepts valid IPv4 and IPv6 CIDRs and rejects malformed ones (8.791778ms)
+✔ ipFamily classifies IPv4, IPv6 and IPv4-mapped IPv6 addresses, and rejects garbage (0.233754ms)
+✔ buildAllowlist matches an IPv4 CIDR against the IPv4-mapped IPv6 form of the same address (0.848988ms)
+✔ buildAllowlist keeps IPv4 and IPv6 rules family-isolated outside the mapped-address bridge (0.254801ms)
+✔ buildAllowlist fails closed on an unparseable peer address instead of throwing (0.20003ms)
+✔ assertNetworkProfile forbids an empty allowlist and a wildcard allow-all entry (0.490607ms)
+✔ assertNetworkProfile forbids an incomplete listener even when bound to 0.0.0.0 (0.424717ms)
+✔ createNetworkAdmission for the loopback profile admits only loopback peers, including the mapped form (0.364568ms)
+✔ createNetworkAdmission for a shared-network profile admits allowlisted peers and denies everyone else (0.29182ms)
+✔ createManagedGovernanceServer refuses to construct at all on an invalid shared-network profile (0.612128ms)
+✔ listen() still requires a loopback host under the default profile (1.192301ms)
+✔ listen() requires the shared-network host and port to match the validated profile exactly (0.459159ms)
+✔ a peer outside the allowlist is destroyed at the socket before any HTTP handler runs (40.446169ms)
+✔ a peer inside the allowlist reaches the real HTTP handler, including via the IPv4-mapped IPv6 form (13.262734ms)
+✔ loadSidecarConfiguration defaults to the loopback profile when no network section is present (2.739778ms)
+✔ loadSidecarConfiguration accepts a shared-network section whose control_plane host and port agree with it (1.470532ms)
+✔ loadSidecarConfiguration rejects a control_plane host that disagrees with the shared-network listener (0.676781ms)
+✔ loadSidecarConfiguration rejects an empty or wildcard allowlist and an incomplete shared-network listener (1.617488ms)
+✔ loadSidecarConfiguration rejects an unknown field inside the network section (0.324566ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 211.612924
+✔ a query-scoped route accepts only the query token, never the admin token (56.723233ms)
+✔ an admin-scoped route accepts only the admin token, never the query token -- scope confusion fails both ways (19.391231ms)
+✔ admin mutations require a valid CSRF token; admin reads do not (16.328241ms)
+✔ the CSRF token is only ever issued to the admin scope, never to query traffic (5.782954ms)
+✔ rate-limit denial is enforced per scope and audited without leaking any secret (18.162852ms)
+✔ rate limits are tracked independently per scope, so exhausting query never blocks admin (6.482651ms)
+✔ no response ever carries a wildcard or reflected CORS header (3.549104ms)
+✔ a request whose Origin disagrees with the configured public origin is denied (3.06393ms)
+✔ end to end: a spoofed X-Forwarded-For from an untrusted real peer never escapes its own rate-limit bucket (3.525985ms)
+✔ end to end: distinct clients behind a genuinely trusted proxy each get their own rate-limit bucket (4.371572ms)
+✔ end to end: a multi-hop X-Forwarded-For behind a trusted proxy is denied outright, not guessed at (2.15766ms)
+✔ an unconfigured hardening pipeline (no networkAuthentication) preserves the pre-T10 loopback behavior exactly (3.158481ms)
+✔ resolveClientAddress ignores a forwarded claim from an untrusted direct peer entirely (0.138023ms)
+✔ resolveClientAddress trusts a single-hop forwarded claim only from a trusted proxy (0.085636ms)
+✔ resolveClientAddress fails closed on an ambiguous multi-hop chain, even behind a trusted proxy (0.382281ms)
+✔ createNetworkAuthentication refuses to construct with identical query and admin tokens (0.095634ms)
+✔ createRateLimiter bounds tracked-key cardinality regardless of how many distinct keys are seen (0.150337ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 299.371762
+✔ CLI (HTTP fetch), the query adapter and the MCP tool all return the exact same readiness report (126.843096ms)
+✔ an enabled adapter with no submitted receipt keeps the whole report not ready, across every surface (25.51511ms)
+✔ a window with no evaluation at all is reported honestly as not-yet-evaluated, never guessed at (5.927757ms)
+✔ the portable bootstrap emits a receipt for an adapter with no native session-start event, before any task action (22.94172ms)
+✔ receipt submission never blocks or fails the local preflight result when the receiptRecorder itself fails (2.812542ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 371.616658
+  PASS  .hseos/AGENT-MANIFEST.md
+  PASS  .hseos/config/hseos.config.yaml
+  PASS  .enterprise/.specs/constitution/Enterprise-Constitution.md
+  PASS  .agents/instructions/PROJECT.md
+  PASS  .agents/hooks/registry.yaml
+  PASS  .agents/manifest.yaml
+  PASS  .agents/skills/secure-coding/SKILL.md
+  PASS  CLAUDE.md
+  PASS  AGENTS.md
+  PASS  .codex/config.toml
+  PASS  .codex/hseos-hooks.json
+  PASS  .hseos/agents/nyx.agent.yaml
+  PASS  .hseos/agents/vector.agent.yaml
+  PASS  .hseos/agents/cipher.agent.yaml
+  PASS  .hseos/agents/ghost.agent.yaml
+  PASS  .hseos/agents/razor.agent.yaml
+  PASS  .hseos/agents/glitch.agent.yaml
+  PASS  .hseos/agents/prism.agent.yaml
+  PASS  .hseos/agents/blitz.agent.yaml
+  PASS  .hseos/agents/quill.agent.yaml
+  PASS  .hseos/agents/orbit.agent.yaml
+  PASS  .hseos/agents/forge.agent.yaml
+  PASS  .hseos/agents/kube.agent.yaml
+  PASS  .hseos/agents/sable.agent.yaml
+  PASS  hseos.config.yaml is valid YAML
+  PASS  .agents/manifest.yaml has portable adapters and skills
+  PASS  .codex/config.toml exposes HSEOS MCP servers
+  PASS  .codex/hseos-hooks.json has hook metadata
+
+Installation tests: 28 passed, 0 failed
+installer idempotency primitive tests
+  PASS  missing dest → created
+  PASS  identical → in-sync
+  PASS  modified dest without recordedHash → preserved-modified
+  PASS  overwriteModified → updated
+  PASS  recordedHash == dest (untouched by user) → updated
+  PASS  recordedHash == source (only user moved) → preserved-modified
+  PASS  both sides moved → conflict-preserved
+  PASS  syncDirectory: new file created
+  PASS  syncDirectory: identical file in-sync
+  PASS  syncDirectory: modified file preserved (never mtime-clobbered)
+  PASS  syncDirectory: orphan removed
+  PASS  syncDirectory: recordedHashes lets untouched-by-user file update
+  PASS  syncModule: user-modified file preserved even with newer source mtime
+  PASS  syncModule: identical file untouched, not reported preserved
+
+File-sync tests: 14 passed, 0 failed
+  PASS  no .hseos: expected=false actual=false
+  PASS  modern v2.0 install: expected=false actual=false
+  PASS  real legacy v4 (_cfg): expected=true actual=true
+  PASS  non-standard .hseos (no markers): expected=true actual=true
+  PASS  mid-migration (_cfg + _config): expected=true actual=true
+
+Detector legacy v4 tests: 5 passed, 0 failed
+AgentStateDAL smoke tests
+  ✓ migrations apply cleanly to in-memory db
+  ✓ createRun + describeRun roundtrip
+  ✓ createTask + claimTask atomic flow
+  ✓ emitEvent + searchEvents (FTS5)
+  ✓ listOrphans returns running agent_runs without recent heartbeat
+  ✓ createSession + claimWorktree atomic across sessions
+  ✓ listSessionRuns returns runs attached to a session
+
+7 passed, 0 failed
+✖ operational runner stays at v4 and the gated fixture migration creates schema v2 (7.361061ms)
+✔ fixture schema gate rejects an operational database path (0.371761ms)
+✔ fixture schema gate rejects symlink and hardlink aliases under /tmp (0.698262ms)
+✔ compare-and-append produces monotonic stream versions and global positions (8.863096ms)
+✔ a failure on the second row rolls back the complete append batch (4.859267ms)
+✔ stale expected_version fails with a typed conflict and no implicit retry (4.808004ms)
+✔ an exact event-id retry is idempotent while changed or partial reuse fails (5.221104ms)
+✔ append metrics are dimensioned by aggregate type and defensively copied (4.196536ms)
+✔ ledger rows reject update/delete/replace and sensitive payload fields (4.967551ms)
+✔ payload and actor require strict lossless JSON values (5.142568ms)
+✔ ES-10 identifiers and timestamps fail closed (4.238876ms)
+✔ concurrent connections yield unique monotonic sequences with explicit caller retry (186.104074ms)
+✖ fixture schema includes projection migration 006 while operational runner remains v4 (9.820392ms)
+✔ execution applicator is pure and deterministic (0.79087ms)
+✔ rebuild creates and atomically activates a complete generation (10.070182ms)
+✔ crash after apply but before checkpoint rolls back and reconcile catches up exactly once (7.148851ms)
+✔ failed side-by-side rebuild leaves the previous active generation visible (7.465638ms)
+✔ a successful side-by-side rebuild switches generations only at full high-water (7.40723ms)
+✔ health rejects false-green coverage even when checkpoint reaches high-water (9.016991ms)
+✔ health rejects equal-count projections with stale aggregate versions (8.722463ms)
+✔ health rejects semantically altered rows with matching version and position (6.175662ms)
+✔ an ineligible candidate cannot retire the active generation (5.904559ms)
+✔ a stale worker batch cannot regress an advanced checkpoint (7.728002ms)
+✔ health reports a checkpoint ahead of the ledger instead of false ok (7.527829ms)
+✔ an incompatible active projection fails health and reads closed (9.063554ms)
+✔ an incompatible candidate cannot be activated (7.528539ms)
+✖ fixture applies immutable approval migration 007 while the operational runner stays at v4 (12.03055ms)
+✔ event registry rejects unknown/current-invalid facts and deterministically upcasts history (3.792701ms)
+✔ event registry refuses schema fields without explicit classification (0.31465ms)
+✔ runtime seals tool and event registries against post-start injection (12.978817ms)
+✔ runtime commits authorized and started facts before provider dispatch and returns one envelope (15.338323ms)
+✔ input, authority, and policy failures are fail-closed before ledger/provider effects (22.800845ms)
+✔ reserved optional-warning failure mode fails closed before provider or ledger effects (7.138071ms)
+✔ provided invalid idempotency keys are rejected instead of replaced (7.507257ms)
+✔ invalid actor, resource scope, or signal fails before durable facts (25.14103ms)
+✔ malformed policy approval and warning fields fail closed before effects (13.160735ms)
+✔ explicit approval is immutable, operation-bound, consumed once, and replay does not redispatch (9.697994ms)
+✔ approval records reject lossy JSON and sensitive scope data (7.452935ms)
+✔ expired or scope-mismatched approvals cannot dispatch (13.436368ms)
+✔ denied, wrong-policy, not-active, and reused approvals fail before dispatch (28.615316ms)
+✔ approval consumption rolls back atomically when pre-effect facts cannot commit (7.857496ms)
+✔ deadline after dispatch records uncertain outcome and same idempotency key never redispatches (18.03301ms)
+✔ approval delay cannot extend the absolute execution deadline (8.303135ms)
+✔ terminal append failure after provider success stays in doubt and is never automatically replayed (13.601118ms)
+✔ same idempotency key cannot cross actor, resource, or contract policy scope (8.650352ms)
+✔ replay rejects trace or causation drift in any persisted operation fact (8.170338ms)
+✔ malformed provider evidence is terminally rejected after dispatch (15.361785ms)
+✔ malformed provider error receipt is omitted while outcome remains durable (7.869427ms)
+✔ primitive provider throws still record a terminal outcome (8.146281ms)
+✔ retryable provider failure remains retryable on immediate response and replay (8.193604ms)
+✔ a provider without idempotency support forces explicit approval (6.880651ms)
+✔ non-cancellable execution ignores a pre-aborted caller signal (8.55588ms)
+✔ cooperative execution records a durable cancellation before provider dispatch (8.966443ms)
+✔ queued cancellation still fails closed on authority and policy denial (13.853223ms)
+✔ output contract failure is failed for reads and uncertain for mutations (16.716598ms)
+✔ runtime rejects a ledger not bound to the exact fail-closed event registry (6.619931ms)
+✔ runtime rejects approval and ledger stores on different SQLite connections (13.243285ms)
+✔ the registry-bound ledger rejects direct unregistered execution facts (6.241597ms)
+✔ a default ledger also fails closed on unregistered execution facts (4.918888ms)
+✔ operational database remains at schema v4 without fixture activation (9.216597ms)
+✔ production rejects a pre-existing pending schema even when its version is disguised (8.97588ms)
+✖ concurrent gated fixture startups serialize pending schema migration through version 10 (82.528357ms)
+✔ startup waits for an existing SQLite writer before applying connection pragmas (117.911547ms)
+✔ pending fixtures reject direct, symlinked, and hard-linked escape paths (2.213109ms)
+ℹ tests 64
+ℹ suites 0
+ℹ pass 60
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1274.978354
+
+✖ failing tests:
+
+test at test/test-execution-event-ledger.js:69:1
+✖ operational runner stays at v4 and the gated fixture migration creates schema v2 (7.361061ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  11 !== 10
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-execution-event-ledger.js:77:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 11,
+    expected: 10,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/test-execution-projections.js:60:1
+✖ fixture schema includes projection migration 006 while operational runner remains v4 (9.820392ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  11 !== 10
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-execution-projections.js:66:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 11,
+    expected: 10,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/test-governed-execution-runtime.js:130:1
+✖ fixture applies immutable approval migration 007 while the operational runner stays at v4 (12.03055ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  11 !== 10
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-governed-execution-runtime.js:136:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 11,
+    expected: 10,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/test-operational-state-db.js:109:3
+✖ concurrent gated fixture startups serialize pending schema migration through version 10 (82.528357ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  11 !== 10
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-operational-state-db.js:121:14)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 11,
+    expected: 10,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+[0;31m[FAIL][0m Tests: FAILED
+[0;34m[INFO][0m No staged agent-schema-sensitive changes — skipping schema validation

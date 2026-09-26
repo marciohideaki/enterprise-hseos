@@ -59,6 +59,48 @@ const schema = strictObject({
   rollback: z.literal('discard-disposable-workspace'),
 });
 
+const projectPath = z
+  .string()
+  .min(1)
+  .max(240)
+  .regex(/^[a-zA-Z0-9_][a-zA-Z0-9._-]*(?:\/[a-zA-Z0-9_][a-zA-Z0-9._-]*)*$/);
+const projectPaths = z.array(projectPath).min(1).max(64);
+const projectSchema = schema.extend({
+  initial_files: z.array(file.extend({ path: projectPath })).max(64),
+  scope: strictObject({ read: projectPaths, write: projectPaths }),
+  commands: z
+    .array(command.extend({ entrypoint: projectPath }))
+    .min(1)
+    .max(16),
+  schema_version: z.literal(2),
+  execution_profile: z.literal('managed-project'),
+  workspace: strictObject({
+    root: z
+      .string()
+      .min(1)
+      .max(4096)
+      .refine((value) => value.startsWith('/') && !value.includes('\0')),
+    files_sha256: hash,
+  }),
+  verifier: strictObject({
+    reference: z.enum(['verifier://project/node-module-v1', 'verifier://project/python-module-v1', 'verifier://project/web-content-v1']),
+    sha256: hash,
+    acceptance_ids: ids,
+    checks: z
+      .array(
+        strictObject({
+          path: projectPath,
+          export_name: z.string().regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/),
+          args: z.array(z.json()).max(16),
+          expected: z.json(),
+        }),
+      )
+      .min(1)
+      .max(64),
+  }),
+});
+const versionedSchema = z.discriminatedUnion('schema_version', [schema, projectSchema]);
+
 class EngineeringTaskContractError extends Error {
   constructor() {
     super('Engineering task contract is invalid, unbounded, inconsistent, or changed while reading.');
@@ -76,7 +118,7 @@ function unique(values) {
 }
 
 function parseEngineeringTask(value) {
-  const parsed = schema.safeParse(value);
+  const parsed = versionedSchema.safeParse(value);
   requireCondition(parsed.success);
   const contract = parsed.data;
   requireCondition(Buffer.byteLength(canonicalJson(contract)) <= MAX_BYTES);
@@ -119,6 +161,16 @@ function parseEngineeringTask(value) {
   for (const item of contract.commands) requireCondition(readPaths.has(item.entrypoint));
   requireCondition(Object.values(contract.limits).every(Number.isSafeInteger));
   requireCondition(contract.limits.max_children === 0 && contract.limits.max_workflow_steps === 0);
+  if (contract.schema_version === 2) {
+    for (const check of contract.verifier.checks) requireCondition(readPaths.has(check.path));
+    if (contract.initial_files.length > 0) {
+      const byPath = new Map(contract.initial_files.map((item) => [item.path, item.sha256]));
+      requireCondition(
+        sha(canonicalJson(contract.scope.read.map((path) => ({ path, sha256: byPath.get(path) || null })))) ===
+          contract.workspace.files_sha256,
+      );
+    }
+  }
   return deepFreeze(contract);
 }
 
@@ -141,7 +193,8 @@ function readEngineeringTask(filename) {
         current.dev === before.dev &&
         !current.isSymbolicLink(),
     );
-    const contract = parseEngineeringTask(JSON.parse(buffer.subarray(0, bytes).toString('utf8')));
+    let contract = parseEngineeringTask(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(buffer.subarray(0, bytes))));
+    if (contract.schema_version === 2) contract = parseEngineeringTask(require('./engineering-workspace').hydrateProjectTask(contract));
     return deepFreeze({ contract, sha256: sha(canonicalJson(contract)) });
   } catch {
     throw new EngineeringTaskContractError();
