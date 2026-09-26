@@ -348,17 +348,26 @@ function sandboxArguments(policy, environment, command, readonlyWorkspace = fals
 }
 
 // This boundary accepts only nominal supervisor-created policies, never model mounts.
-function prepareIsolatedExecution(policy, command, hostNode = false) {
+function prepareIsolatedExecution(policy, command, hostNode = false, terminal = false) {
   if (!POLICIES.has(policy)) throw new AgentIsolationAttestationError('isolation policy is not supervisor-owned');
   assertBinding(policy);
   if (!Array.isArray(command) || command.length === 0 || command.some((part) => typeof part !== 'string' || part.includes('\0'))) {
     throw new AgentIsolationAttestationError('invalid execution command');
   }
-  if (typeof hostNode !== 'boolean' || (hostNode && command[0] !== '/usr/bin/node'))
+  if (typeof terminal !== 'boolean' || typeof hostNode !== 'boolean' || (hostNode && command[0] !== '/usr/bin/node'))
     throw new AgentIsolationAttestationError('invalid host runtime selection');
+  let executable = hostNode ? ['/hseos-runtime/node', ...command.slice(1)] : command;
+  if (terminal)
+    executable = [
+      '/usr/bin/python3',
+      '-I',
+      '-c',
+      'import os,sys,fcntl,termios\nif os.getsid(0) != os.getpid(): os.setsid()\nfcntl.ioctl(0,termios.TIOCSCTTY,0)\nos.execve(sys.argv[1],sys.argv[1:],dict(os.environ))',
+      ...executable,
+    ];
   return {
     binary: policy.backend_binding.path,
-    args: sandboxArguments(policy, {}, hostNode ? ['/hseos-runtime/node', ...command.slice(1)] : command, true, hostNode),
+    args: sandboxArguments(policy, {}, executable, true, hostNode),
     seccomp: seccompNetworklessProgram(),
     policy_digest: policy.policy_digest,
   };

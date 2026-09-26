@@ -66,3 +66,28 @@ comandos contratados e a fronteira de isolamento. Não há alteração de runtim
 verificadores ou dependências do host local. A execução com ambiente incompleto
 foi cancelada antes de repetir o mesmo defeito no outro runtime; a nova CI deve
 validar ambos os jobs completos.
+
+## W2 revisada
+
+Task `hseos-integrate-w2`: árvore revisada
+`c0fb0a8b4945485c08d02241b82e1a507b159670`, preservando os ajustes de integração
+da fundação e o registro W1. Upstream original: `feature/hseos-evolution-w1-engineering`;
+após o closeout W1, a PR W2 passa a apontar para `feature/hseos-evolution-foundation`.
+Dependente: W3, ainda sem campanha real certificada.
+
+A revisão funcional encontrou e corrigiu três falhas no attach de terminal:
+limpeza incompleta quando raw mode falhava, dispatch de input enfileirado após
+falha anterior e descarte silencioso de ACK parcial. As regressões falharam
+antes das correções e passaram depois. A matriz revisada executou 917 testes
+integralmente e 443 testes críticos em cada Node 22/24, além de instalação
+externa CLI/HTTP/SDKs e PTY/job. Recibo próprio em
+`docs/evolution/w2/evidence/review/receipt.json`; recibos anteriores preservados.
+
+A conferência W1 detectou ausência dos wrappers Husky no worktree novo, apesar
+do gate explícito completo já ter passado. Os wrappers foram inicializados e
+o pre-commit executado sobre o commit exato antes da PR. W2 inicializa e verifica
+os wrappers antes dos gates/commit. Não houve uso de bypass.
+
+W1 integrada por PR #178 com checks verdes em Node 22/24, governança e composição.
+Commit de integração na fundação: `954943456bc7f2ed27657501c9910b2e07ef1516`. A task W2 avançou por
+fast-forward até essa base; sua PR aponta diretamente à fundação.

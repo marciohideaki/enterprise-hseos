@@ -66,6 +66,7 @@ class EngineeringControl {
     this.workspaces = workspaces.map((root) => fs.realpathSync(root));
     this.bindings = Object.freeze({ ...bindings });
     this.active = new Set();
+    this.terminals = new (require('./terminal-control').TerminalControl)(this);
   }
   prepare(value) {
     if (!value || value.schema_version !== 2 || !this.workspaces.includes(value.workspace?.root))
@@ -76,7 +77,8 @@ class EngineeringControl {
     return this.handle.directory;
   }
   close() {
-    if (this.active.size > 0) throw new ControlError('CONTROL_EXECUTION_ACTIVE');
+    if (this.active.size > 0 || this.terminals.active.size > 0 || this.terminals.inflight.size > 0)
+      throw new ControlError('CONTROL_EXECUTION_ACTIVE');
     this.handle.close();
   }
   rows(id) {
@@ -236,6 +238,12 @@ class EngineeringControl {
           break;
         }
         case 'apply': {
+          const parent = this.terminals.parent(command.resource_id);
+          try {
+            require('./terminal-budget').assertTerminalsSettled(parent.handle.db, parent.id);
+          } finally {
+            parent.handle.close();
+          }
           if (this.kind(command.resource_id) !== 'task') throw new ControlError('CONTROL_VIEW_UNAVAILABLE');
           const evidence = await inspectEngineeringTask({ state: this.location(command.resource_id), action: 'evidence' });
           result = { resource_id: command.resource_id, ...applyProjectResult(evidence, input.review_sha256) };
@@ -243,6 +251,8 @@ class EngineeringControl {
           break;
         }
         default: {
+          if (command.action === 'cancel' && this.kind(command.resource_id) === 'task')
+            await this.terminals.cancelTask(command.resource_id);
           const value = await (this.kind(command.resource_id) === 'workflow' ? inspectEngineeringWorkflow : inspectEngineeringTask)({
             state: this.location(command.resource_id),
             action: command.action,

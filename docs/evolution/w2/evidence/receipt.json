@@ -1,0 +1,330 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-09-26T05:40:26.976709+00:00",
+  "status": "verified_linux_candidate_w2",
+  "base_commit": "a8423081934d64538d71ef8289f072d51566a870",
+  "states": {
+    "deterministic": "verified",
+    "installed_consumers": "verified_local_cli_js_python_and_typescript_contract",
+    "real_models": "not_certified",
+    "operational": "not_activated"
+  },
+  "execution": {
+    "sequential": true,
+    "subagents": false,
+    "test_concurrency": 1,
+    "delegated_test_scope": true
+  },
+  "checks": {
+    "full-node24-final": {
+      "node": "24",
+      "stage": "full",
+      "started_at": "2026-09-26T04:59:58.130Z",
+      "finished_at": "2026-09-26T05:07:18.279Z",
+      "exit_code": 0,
+      "signal": null,
+      "source_manifest_sha256": "d1e871e265a699179e4f3f8dcb057755a862bb2cedb9c7611e48facfa6b6586b",
+      "sequential": true,
+      "test_concurrency": 1,
+      "delegated_test_scope": true,
+      "postgres_integration": true,
+      "counts": {
+        "tests": 914,
+        "pass": 914,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    "kernel-node24-final": {
+      "node": "24",
+      "stage": "kernel",
+      "started_at": "2026-09-26T05:11:08.321Z",
+      "finished_at": "2026-09-26T05:15:39.367Z",
+      "exit_code": 0,
+      "signal": null,
+      "source_manifest_sha256": "d1e871e265a699179e4f3f8dcb057755a862bb2cedb9c7611e48facfa6b6586b",
+      "sequential": true,
+      "test_concurrency": 1,
+      "delegated_test_scope": true,
+      "postgres_integration": false,
+      "counts": {
+        "tests": 440,
+        "pass": 440,
+        "fail": 0,
+        "skipped": 0
+      },
+      "coverage": {
+        "lines": {
+          "total": 9992,
+          "covered": 9556,
+          "skipped": 0,
+          "pct": 95.63
+        },
+        "statements": {
+          "total": 9992,
+          "covered": 9556,
+          "skipped": 0,
+          "pct": 95.63
+        },
+        "functions": {
+          "total": 381,
+          "covered": 373,
+          "skipped": 0,
+          "pct": 97.9
+        },
+        "branches": {
+          "total": 3399,
+          "covered": 3007,
+          "skipped": 0,
+          "pct": 88.46
+        },
+        "branchesTrue": {
+          "total": 0,
+          "covered": 0,
+          "skipped": 0,
+          "pct": 100
+        }
+      }
+    },
+    "full-node22-final": {
+      "node": "22",
+      "stage": "full",
+      "started_at": "2026-09-26T05:15:39.367Z",
+      "finished_at": "2026-09-26T05:24:50.047Z",
+      "exit_code": 0,
+      "signal": null,
+      "source_manifest_sha256": "d1e871e265a699179e4f3f8dcb057755a862bb2cedb9c7611e48facfa6b6586b",
+      "sequential": true,
+      "test_concurrency": 1,
+      "delegated_test_scope": true,
+      "postgres_integration": true,
+      "counts": {
+        "tests": 914,
+        "pass": 914,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    "kernel-node22-final": {
+      "node": "22",
+      "stage": "kernel",
+      "started_at": "2026-09-26T05:24:50.051Z",
+      "finished_at": "2026-09-26T05:29:26.597Z",
+      "exit_code": 0,
+      "signal": null,
+      "source_manifest_sha256": "d1e871e265a699179e4f3f8dcb057755a862bb2cedb9c7611e48facfa6b6586b",
+      "sequential": true,
+      "test_concurrency": 1,
+      "delegated_test_scope": true,
+      "postgres_integration": false,
+      "counts": {
+        "tests": 440,
+        "pass": 440,
+        "fail": 0,
+        "skipped": 0
+      },
+      "coverage": {
+        "lines": {
+          "total": 9992,
+          "covered": 9556,
+          "skipped": 0,
+          "pct": 95.63
+        },
+        "statements": {
+          "total": 9992,
+          "covered": 9556,
+          "skipped": 0,
+          "pct": 95.63
+        },
+        "functions": {
+          "total": 381,
+          "covered": 373,
+          "skipped": 0,
+          "pct": 97.9
+        },
+        "branches": {
+          "total": 3399,
+          "covered": 3007,
+          "skipped": 0,
+          "pct": 88.46
+        },
+        "branchesTrue": {
+          "total": 0,
+          "covered": 0,
+          "skipped": 0,
+          "pct": 100
+        }
+      }
+    },
+    "pack": {
+      "started_at": "2026-09-26T05:30:29.768Z",
+      "finished_at": "2026-09-26T05:30:33.685Z",
+      "exit_code": 0,
+      "sequential": true
+    },
+    "install-node24": {
+      "started_at": "2026-09-26T05:30:33.703Z",
+      "finished_at": "2026-09-26T05:30:41.320Z",
+      "exit_code": 0,
+      "sequential": true
+    },
+    "installed-node24": {
+      "started_at": "2026-09-26T05:30:41.322Z",
+      "finished_at": "2026-09-26T05:30:44.931Z",
+      "exit_code": 0,
+      "sequential": true
+    },
+    "install-node22": {
+      "started_at": "2026-09-26T05:30:44.932Z",
+      "finished_at": "2026-09-26T05:30:48.936Z",
+      "exit_code": 0,
+      "sequential": true
+    },
+    "installed-node22": {
+      "started_at": "2026-09-26T05:30:48.937Z",
+      "finished_at": "2026-09-26T05:30:52.543Z",
+      "exit_code": 0,
+      "sequential": true
+    },
+    "sdk-types": {
+      "started_at": "2026-09-26T05:29:49.361560+00:00",
+      "finished_at": "2026-09-26T05:29:50.215112+00:00",
+      "exit_code": 0,
+      "sequential": true,
+      "commands": [
+        [
+          "node",
+          "../../node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "--strict",
+          "--lib",
+          "es2023,dom",
+          "--skipLibCheck",
+          "--module",
+          "node16",
+          "--moduleResolution",
+          "node16",
+          ".logs/validation/w2/sdk-check.ts"
+        ]
+      ]
+    },
+    "final-static": {
+      "started_at": "2026-09-26T05:39:53.658350+00:00",
+      "finished_at": "2026-09-26T05:40:10.411177+00:00",
+      "exit_code": 0,
+      "sequential": true,
+      "commands": [
+        ["npm", "run", "format:check"],
+        ["node", "--test", "--test-concurrency=1", "test/test-kernel-quality-surface.js"],
+        ["bash", "scripts/governance/quality-gates.sh", "--phase", "ci"]
+      ]
+    }
+  },
+  "matrix_sources_sha256": "d1e871e265a699179e4f3f8dcb057755a862bb2cedb9c7611e48facfa6b6586b",
+  "sources_manifest_sha256": "7197957b45edb53bf36b6fe5121f216516f19d50b6526cbac32abe079d2dd92a",
+  "post_matrix_documentation_changes": {
+    ".specs/features/harness-w2/design.md": "2b6f63871545f59240b7220fbe90f515f94045d375b24fcc819415f8ba491c53",
+    ".specs/features/harness-w2/tasks.md": "2b8945be556f167ac39ec465be62eac5fb42e56208dd7e0ad05fed49255bc91b",
+    "docs/decisions/harness-w2-intake.md": "9e5de6bfd6a12ca440e3fccfe6fb6680199f48ec84db9cd8d3def2a5003210fc",
+    "docs/engineering-control-api.md": "e03c48240ac8cb1e41fcfe2694c54163986ba373e8781a13e5a4bab5d8bd1da3",
+    "docs/evolution/STATUS.md": "24b9b92148fef52c679254e9ce6bbeac8a2e2f58df5d116bbeb6e1502c456ccd",
+    "docs/evolution/requirements.json": "0b3331727d0539d6b7eddbcc73545750286548aee9002ef6b82ae9ace2528606",
+    "docs/evolution/w2/STATUS.md": "61b51afa508ebda0ae44cf98980ca017e11b5e65161a4de820a0f40d46492acb"
+  },
+  "git": {
+    "imported_w1_index": "0a3dbeecc043127438a9aa16eeb689bf6bc57deb",
+    "review_tree_without_receipts": "644f266a832a36f4a370a21b14d3fdd6b60819cc",
+    "wave2_patch_sha256": "b8a84ef9f3d039c327a7926b2fc7cf2ba32484e3f941ff607dfe4adb2eb27566",
+    "patch_reconstructed": true,
+    "real_index_unchanged": true,
+    "original_w1_files_preserved": 2139,
+    "original_w1_index_unchanged": true,
+    "original_v4_files_preserved": 1956,
+    "original_w0_sources_preserved": 839,
+    "original_w1_patch_unchanged": true,
+    "immediate_upstream": "feature/hseos-evolution-w1-engineering",
+    "feature": "feature/hseos-evolution-w2-terminals",
+    "task_branch": "task/hseos-evolution-w2",
+    "base_commit": "a8423081934d64538d71ef8289f072d51566a870",
+    "commits_created": false,
+    "branches_integrated": false
+  },
+  "operational": {
+    "schema_candidate": 11,
+    "schema_operational": 4,
+    "migrated": false,
+    "published": false,
+    "global_install": false
+  },
+  "limitations": [
+    "Linux with delegated cgroup v2/bwrap/seccomp and Python pidfd support required",
+    "Terminals admitted before model execution; readonly workspace and no network",
+    "Controller death drains processes; recovery does not continue or rerun them",
+    "Fixture retention is not certified across cleanup or reboot",
+    "c8 measures JavaScript only; Python broker exercised by real subprocess tests",
+    "Existing template-placeholder warning retained; remote CI and models not certified"
+  ],
+  "failed_attempts": {
+    "pty_controlling": "Missing cgroup delegation in resumed login session; rerun in delegated scope",
+    "kernel_node24_attempt1": "Temporary review index leaked into Git fixtures; runner now clears Git-local environment",
+    "pack_attempt1": "Packaging passed but its JSON parser received mixed stderr/stdout; split streams and reran packaging"
+  },
+  "artifacts": {
+    "baseline.json": "df32acc6105a37f7ae622cb59acfb237e8fab152fc283c8235e32da65730a70e",
+    "coverage-node22-final.json": "3f6a05bbc83292a86092e67f3d7ca0183fdaea7d182fd6a775484cab1139998c",
+    "coverage-node24-final.json": "4cc3d267f976c31d40490a8170bc89621bbe97e19e84110f270f3be5de27b53b",
+    "coverage-tests.log": "61b79e73dd64fbbb7f78d6badf59622361c22dbdaeaa3e51572596ec2d49d8c6",
+    "executor-fixed.log": "f8f5b00021aba1863552ba8d64bc6a1f176f082cfc14033a619d0707ef69b489",
+    "final-checks.py.txt": "a23fb2188aff1c7dadfaa23bd944b2d2a0bd75d6f0adce078ef0eccc739fa08c",
+    "final-static-format-attempt.log": "258f44a029eb266e2ae7b81c673a73d5830b2ee7bfedfd93acab4f123d79392c",
+    "final-static.log": "fb437628d91314483075f4183dccc1d1fd996ce7cb0bba94750cb70431421d8e",
+    "final-static.result.json": "f9439aff8e5a456d080a24b228a37b287b4ce8bf5c963da9175251c4d16f939c",
+    "finalize-evidence.py.txt": "8b3235350302ae40413170f1f6b5c35aa6854b7733bdc17a5163ce1d8353fc22",
+    "format-final.log": "d2e1aea7716e1afaae196ebdb85b7cb6697a1da6fcf5e755920a0f9adec17eff",
+    "full-node22-final.json": "69d400bb25a66e179e493f8f2a99e6c763c13f7c8788c8bdafd3092bf86bc1c1",
+    "full-node22-final.log": "c75b720289d9377ae48af2ff7c3bd7e948aa90120f53603865fd13cadc3b74c0",
+    "full-node24-final.json": "f1991e6944f9e929a2b5883a9ab3c961ca28a32cda9b3f4bd776f6c9e690a41f",
+    "full-node24-final.log": "b92b3eb36d6c7be8eefb0b863c4889a82da31e6f5666a970f0a31eba55212941",
+    "git-separation.json": "f03145fc60a20c7ec51f3fdb19210b6bad2005c682827fa6eb36d3003da4426c",
+    "initial-coverage.log": "3624421a5e9c9b2acd756e2c47ba27ebc4e36449365c453c6b1cbb4d28abcb4b",
+    "install-matrix.cjs.txt": "5370d2ff20da7b51ad94405ea387d92adf6178633a4bed936b49c532e6c5a791",
+    "install-node22.log": "b4fad60ec46c4277ac5c6a3e0af4eacf44f7fec0efb182b37b64ad3502d5033b",
+    "install-node22.result.json": "12435c1fcc79f665766072bb66d32965071b8fccd52ef5dcaef31b26b34dd8ec",
+    "install-node22.stderr.log": "fe49a93af7f6a5072c3a3ef65019009ce521808d6b5a32810ad9a6a433f4524d",
+    "install-node24.log": "812d57a046a871545565985bc68eeefae88feef20b67b5133be3488e94ed2d5b",
+    "install-node24.result.json": "a247bfe36ad3a4d245b2700ff423302428197495bf3a4b9bf1f1114ba250ecea",
+    "install-node24.stderr.log": "fe49a93af7f6a5072c3a3ef65019009ce521808d6b5a32810ad9a6a433f4524d",
+    "installed-node22.log": "10247be567e43af13d39e127f6a350ae0a9d9a175d046d9f40d73b0c1b79ed9a",
+    "installed-node22.result.json": "79f2f327bac6c4950d57dc4c48235516239c4774d3b33f43db1804fa3a7ffd20",
+    "installed-node22.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "installed-node24.log": "d426034cb58ad95b5b9b00ed1155da41512c62e59c512d1a5abd5491a170938b",
+    "installed-node24.result.json": "cdf80055e1891013239a5fe7c3ddf44b92982ee3d78bbca98ae883d9ee5f2672",
+    "installed-node24.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "installed-smoke.cjs.txt": "16d742f7b373c5eabbd8675e374a53a17c3e0da87415f698b2e804c336ac91a4",
+    "kernel-node22-final.json": "012a89dc171188ac2b191a3fda09abd2ab4de7eff03a8247f90eb26216e3d337",
+    "kernel-node22-final.log": "0d504d63ac2cbeab0491eccf5d39049e603024b6012be7c47ba39fb87a73586c",
+    "kernel-node24-final-attempt1.json": "358d088f1cc502792e78c49730ee0f1cd7928a8bee2efa4dd32c828bca81425a",
+    "kernel-node24-final-attempt1.log": "015d4ab23d9e0bf54dfa464886d07ed76ab77f20ed7e8e99055db61277090c35",
+    "kernel-node24-final.json": "0e91ffe17a2a69076b1aa3343742602d4ecb2b56d235dcc092aec02f1936c2ea",
+    "kernel-node24-final.log": "0086f47085d2f4b48b5711705ee2aadf9b341565b24c889003149ad3f4a41fe8",
+    "kernel-node24.log": "696af0d82d3b0d17b9ca51392b2e64f0c62314c125840143d8a022d838185850",
+    "kernel24-sources.json": "c39182cd8374cbb387502e3e44aae1cf8ef8fda99729da65e17164e5a602f534",
+    "lint.log": "cc6b4feb435484d113b62528c9012176a6894f5a0bad6bf6fe1b92944acc7514",
+    "matrix-sources.json": "d1e871e265a699179e4f3f8dcb057755a862bb2cedb9c7611e48facfa6b6586b",
+    "pack-attempt1.log": "2ff249dfb51999efab221e0ed5e4efb28a13246c9a7028a06b6499a858171ca0",
+    "pack.log": "2b2d04cef61bb35f5ef531d6e6edb5a44315fc43d674c4914c8cbf64dc117713",
+    "pack.result.json": "dacda81a08c7b1170b77838edffa3d0863c3ac5189cbdbbe7fdfb5ea6d9f3647",
+    "pack.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "package-receipt.json": "3f7d4711a43b80f8684b34e51def32ad50a43de867432e405853adc536f7d0ad",
+    "postgres-forward.log": "d81532d62b2cfa35e9beed220dba187e857ffb3c6e0244a9463d399bbc7db3e3",
+    "pty-controlling.log": "51786e33e6f74632a071515664bb270d099076452e48e520468cc3138bfc4861",
+    "pty-delegated.log": "a547ba0d24075b819185691808adb0dbe0312375fbcd67067bb7736cbe64d5ef",
+    "sdk-check.ts.txt": "73d8d8ea1e1b301ef73f3927a72fbb4c02a9537f1070979a91e469cb17883cc3",
+    "sdk-types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sdk-types.result.json": "aa72141951ecf217a395a19d4d24acdae5a46c6581f6578f943eb0f43472ad96",
+    "signal-identity.log": "5a765a2db532e333ed86aa720dfafef934a02a9badb10db35325fbf8e176984d",
+    "sources.json": "7197957b45edb53bf36b6fe5121f216516f19d50b6526cbac32abe079d2dd92a",
+    "validate-matrix.cjs.txt": "9883902457decbc170a04adb0b504ecfe7969ce424dbe9326586576990013179",
+    "vault-receipt.json": "da1b00dff8ed268961ec3d7204a10e5f7d139a3790e17f9c045f8669a9140b1a"
+  }
+}

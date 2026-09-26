@@ -32,6 +32,25 @@ class ControlClient {
       return value;
     };
   }
+  terminal(command) {
+    return this.request('/v1/terminals/commands', command);
+  }
+  terminalQuery(resourceId) {
+    if (!/^[a-f0-9-]{36}$/.test(resourceId)) throw new Error('Invalid terminal query');
+    return this.request(`/v1/terminals/${resourceId}`);
+  }
+  terminalEvents(resourceId, { after = 0, limit = 100 } = {}) {
+    if (
+      !/^[a-f0-9-]{36}$/.test(resourceId) ||
+      !Number.isSafeInteger(after) ||
+      after < 0 ||
+      !Number.isInteger(limit) ||
+      limit < 1 ||
+      limit > 1000
+    )
+      throw new Error('Invalid terminal cursor');
+    return this.request(`/v1/terminals/${resourceId}/events?after=${after}&limit=${limit}`);
+  }
   prepare(contract) {
     return this.request('/v1/prepare', contract);
   }

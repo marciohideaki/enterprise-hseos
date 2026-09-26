@@ -1,0 +1,20 @@
+import datetime, json, os, pathlib, subprocess, sys, tempfile
+root=pathlib.Path.cwd()
+logs=root/'.logs/validation/w2'
+env=dict(os.environ, PATH='/workspace/local/sdk/nvm/versions/node/v24.15.0/bin:'+os.environ['PATH'], TMPDIR='/tmp', VALIDATION_ENFORCED='true')
+label=sys.argv[1]
+commands={
+ 'sdk-types':[['node','../../node_modules/typescript/bin/tsc','--noEmit','--strict','--lib','es2023,dom','--skipLibCheck','--module','node16','--moduleResolution','node16','.logs/validation/w2/sdk-check.ts']],
+ 'final-static':[['npm','run','format:check'],['node','--test','--test-concurrency=1','test/test-kernel-quality-surface.js'],['bash','scripts/governance/quality-gates.sh','--phase','ci']]
+}[label]
+started=datetime.datetime.now(datetime.timezone.utc).isoformat()
+with tempfile.TemporaryDirectory(prefix='hseos-w2-static-index-') as d:
+ env['GIT_INDEX_FILE']=d+'/index'
+ subprocess.run(['git','read-tree','0a3dbeecc043127438a9aa16eeb689bf6bc57deb'],env=env,check=True)
+ subprocess.run(['git','add','-A','--','.'],env=env,check=True)
+ with (logs/(label+'.log')).open('w') as out:
+  for command in commands:
+   result=subprocess.run(['nice','-n','10',*command],env=env,stdout=out,stderr=out)
+   if result.returncode: break
+ (logs/(label+'.result.json')).write_text(json.dumps(dict(started_at=started,finished_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),exit_code=result.returncode,sequential=True,commands=commands),indent=2)+'\n')
+sys.exit(result.returncode)

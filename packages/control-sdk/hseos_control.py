@@ -50,3 +50,16 @@ class ControlClient:
         if not re.fullmatch(r"[a-f0-9-]{36}", resource_id) or type(after) is not int or after < 0 or type(limit) is not int or not 1 <= limit <= 1000:
             raise ValueError("Invalid event cursor")
         return self._request("/v1/tasks/" + resource_id + "/events?" + urllib.parse.urlencode({"after": after, "limit": limit}))
+
+    def terminal(self, command):
+        return self._request("/v1/terminals/commands", command)
+
+    def terminal_query(self, resource_id):
+        if not re.fullmatch(r"[a-f0-9-]{36}", resource_id):
+            raise ValueError("Invalid terminal query")
+        return self._request("/v1/terminals/" + resource_id)
+
+    def terminal_events(self, resource_id, after=0, limit=100):
+        if not re.fullmatch(r"[a-f0-9-]{36}", resource_id) or type(after) is not int or after < 0 or type(limit) is not int or not 1 <= limit <= 1000:
+            raise ValueError("Invalid terminal cursor")
+        return self._request("/v1/terminals/" + resource_id + "/events?" + urllib.parse.urlencode({"after": after, "limit": limit}))

@@ -47,6 +47,7 @@ module.exports = {
         process.once('SIGINT', stop);
       });
       await server.close();
+      await control.terminals.shutdown();
       control.close();
       return;
     }
@@ -54,6 +55,22 @@ module.exports = {
     const client = new ControlClient({ url: options.url, credential });
     let result;
     switch (action) {
+      case 'terminal-attach': {
+        await require('../lib/terminal-attach').attachTerminal(client, options.resource, { after: Number(options.after || 0) });
+        return;
+      }
+      case 'terminal-command': {
+        result = await client.terminal(JSON.parse(fs.readFileSync(options.request, 'utf8')));
+        break;
+      }
+      case 'terminal-query': {
+        result = await client.terminalQuery(options.resource);
+        break;
+      }
+      case 'terminal-events': {
+        result = await client.terminalEvents(options.resource, { after: Number(options.after || 0) });
+        break;
+      }
       case 'prepare': {
         result = await client.prepare(JSON.parse(fs.readFileSync(options.request, 'utf8')));
         break;

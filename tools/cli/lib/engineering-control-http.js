@@ -21,7 +21,11 @@ async function startControlServer({ control, credential, port = 0 }) {
       if (request.headers.origin || !/^127\.0\.0\.1:\d+$/.test(request.headers.host || ''))
         return send(403, { error: 'CONTROL_ORIGIN_DENIED' });
       const url = new URL(request.url, 'http://127.0.0.1');
-      if (request.method === 'POST' && ['/v1/commands', '/v1/prepare'].includes(url.pathname) && url.search === '') {
+      if (
+        request.method === 'POST' &&
+        ['/v1/commands', '/v1/prepare', '/v1/terminals/commands'].includes(url.pathname) &&
+        url.search === ''
+      ) {
         if (request.headers['content-type']?.split(';')[0] !== 'application/json') return send(415, { error: 'CONTROL_JSON_REQUIRED' });
         const parts = [];
         let bytes = 0;
@@ -31,7 +35,30 @@ async function startControlServer({ control, credential, port = 0 }) {
           parts.push(part);
         }
         const body = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(parts)));
-        return send(200, url.pathname === '/v1/prepare' ? control.prepare(body) : await control.execute(body));
+        return send(
+          200,
+          url.pathname === '/v1/prepare'
+            ? control.prepare(body)
+            : url.pathname === '/v1/terminals/commands'
+              ? await control.terminals.execute(body)
+              : await control.execute(body),
+        );
+      }
+      const terminal = /^\/v1\/terminals\/([a-f0-9-]{36})(?:\/(events))?$/.exec(url.pathname);
+      if (request.method === 'GET' && terminal) {
+        if (terminal[2]) {
+          if ([...url.searchParams.keys()].some((name) => !['after', 'limit'].includes(name)))
+            return send(400, { error: 'CONTROL_QUERY_INVALID' });
+          return send(
+            200,
+            control.terminals.events(terminal[1], {
+              after: Number(url.searchParams.get('after') || 0),
+              limit: Number(url.searchParams.get('limit') || 100),
+            }),
+          );
+        }
+        if (url.search) return send(400, { error: 'CONTROL_QUERY_INVALID' });
+        return send(200, control.terminals.query(terminal[1]));
       }
       const match = /^\/v1\/tasks\/([a-f0-9-]{36})(?:\/(evidence|review|events|session))?$/.exec(url.pathname);
       if (request.method === 'GET' && match) {

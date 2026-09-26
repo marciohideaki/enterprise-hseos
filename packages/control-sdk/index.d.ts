@@ -1,3 +1,28 @@
+export type TerminalAction =
+  | 'open'
+  | 'input'
+  | 'resize'
+  | 'pause'
+  | 'continue'
+  | 'interrupt'
+  | 'eof'
+  | 'terminate'
+  | 'recover'
+  | 'reconcile';
+export interface TerminalCommand extends Omit<ControlCommand, 'action'> {
+  action: TerminalAction;
+}
+export interface TerminalStatus {
+  resource_id: string;
+  task_id: string;
+  current_sequence: number;
+  mode: 'pty' | 'job';
+  status: string;
+  descendants_terminated: boolean;
+  uncertain_commands: string[];
+  outcome_uncertain: boolean;
+  report_sha256: string;
+}
 export type ControlAction = 'create' | 'create_workflow' | 'resume' | 'cancel' | 'reconcile' | 'apply';
 export interface ControlCommand {
   schema_version: 1;
@@ -28,6 +53,12 @@ export interface WorkflowStatus {
 }
 export class ControlClient {
   constructor(options: { url: string; credential: string; fetchImpl?: typeof fetch });
+  terminal(command: TerminalCommand): Promise<Record<string, unknown>>;
+  terminalQuery(resourceId: string): Promise<TerminalStatus>;
+  terminalEvents(
+    resourceId: string,
+    options?: { after?: number; limit?: number },
+  ): Promise<{ resource_id: string; events: Record<string, unknown>[]; next_cursor: number }>;
   prepare(contract: Record<string, unknown>): Promise<Record<string, unknown>>;
   execute(command: ControlCommand): Promise<Record<string, unknown>>;
   query(resourceId: string, view?: 'status'): Promise<TaskStatus | WorkflowStatus>;

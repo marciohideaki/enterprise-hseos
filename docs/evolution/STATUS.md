@@ -1,4 +1,9 @@
-# Estado da evolução — 2026-09-25
+# Estado da evolução — 2026-09-26
+
+Onda 2 implementada e verificada como candidata Linux: [estado específico](w2/STATUS.md).
+Matriz Node 22/24: 914 testes integrais e 440 críticos por versão, cobertura
+95,63% linhas / 88,46% branches, instalações externas e protocolo de crash
+verificados. Modelos reais não certificados; operacional não ativado.
 
 Onda 1 implementada e verificada deterministicamente: [estado específico](w1/STATUS.md).
 
@@ -96,8 +101,8 @@ e os recibos completos estão em [W0-CLOSEOUT.md](W0-CLOSEOUT.md).
 A matriz crítica limpa, cobertura 90/80 por arquivo e instalações externas
 estão verificadas. Baseline e índice da candidata preservados; patches de
 importação e W0 separados e reconstituídos para revisão. Entrega local sem
-commit, PR, merge, publicação ou ativação. O próximo trabalho funcional é W1,
-conforme PLAN; W1–W8 não são critérios adicionais de fechamento de W0.
+commit, PR, merge, publicação ou ativação. No fechamento W0, o próximo trabalho
+funcional era W1; W1–W8 não eram critérios adicionais de fechamento de W0.
 
 ## Três estados
 
@@ -105,7 +110,8 @@ conforme PLAN; W1–W8 não são critérios adicionais de fechamento de W0.
 |---|---|---|---|
 | W0 | implementado e verificado; matriz integral e cobertura aprovadas | CLI instalada com jornadas locais verificada; providers reais não certificados | não ativado |
 | W1 | implementada e verificada; ver estado específico | CLI/API/SDK instalados verificados; modelos reais não certificados | não ativado |
-| W2–W8 | não implementados nesta task | não certificado | não autorizado |
+| W2 | implementada e verificada; matriz 22/24 e crash/recuperação | CLI/API/SDK instalados verificados; modelos reais não certificados | não ativado |
+| W3–W8 | não implementados nesta task | não certificado | não autorizado |
 
 ## Revisão adversarial
 
