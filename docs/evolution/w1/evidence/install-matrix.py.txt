@@ -1,0 +1,15 @@
+import os,pathlib,subprocess,tempfile,json
+root=pathlib.Path.cwd();logs=root/'.logs/validation/w1';destination=pathlib.Path(tempfile.mkdtemp(prefix='hseos-w1-installed-',dir='/build/tmp'));(logs/'installed-location.txt').write_text(str(destination)+'\n')
+base_env=os.environ.copy();base_env.update(PATH='/workspace/local/sdk/nvm/versions/node/v24.15.0/bin:'+base_env['PATH'],TMPDIR='/tmp')
+with (logs/'pack.json').open('w') as output,(logs/'pack.err').open('w') as error:
+ subprocess.run(['nice','-n','10','npm','pack','--json','--ignore-scripts','--pack-destination',str(destination)],env=base_env,stdout=output,stderr=error,check=True)
+package=json.loads((logs/'pack.json').read_text())[0];tarball=destination/package['filename'];print('Packed '+str(tarball),flush=True)
+for version,runtime in [('24','/workspace/local/sdk/nvm/versions/node/v24.15.0/bin'),('22','/build/tmp/hseos-w1-node/node-v22.23.3-linux-x64/bin')]:
+ consumer=destination/('consumer'+version);consumer.mkdir();(consumer/'package.json').write_text('{"name":"hseos-installed-consumer","private":true}')
+ env=os.environ.copy();env.update(PATH=runtime+':'+env['PATH'],TMPDIR='/tmp',npm_config_jobs='1',HUSKY='0')
+ with (logs/f'install-node{version}.log').open('w') as out:
+  subprocess.run(['nice','-n','10','npm','install','--offline','--omit=dev','--no-audit','--no-fund',str(tarball)],cwd=consumer,env=env,stdout=out,stderr=subprocess.STDOUT,check=True)
+ print('Installed Node '+version,flush=True)
+ with (logs/f'installed-node{version}.json').open('w') as out,(logs/f'installed-node{version}.err').open('w') as err:
+  subprocess.run(['nice','-n','10','strace','-f','-e','trace=connect','-o',str(logs/f'installed-node{version}.network'),'node',str(logs/'installed-smoke.cjs'),str(consumer)],cwd=consumer,env=env,stdout=out,stderr=err,check=True)
+ print('Validated installed projects Node '+version,flush=True)

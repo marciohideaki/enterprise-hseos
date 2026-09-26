@@ -33,6 +33,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
+      - name: Bind the selected Node runtime for legacy executor commands
+        run: |
+          selected_node="$(command -v node)"
+          sudo install -m 0755 "$selected_node" /usr/bin/node
+          test "$(sha256sum "$selected_node" | cut -d ' ' -f 1)" = "$(sha256sum /usr/bin/node | cut -d ' ' -f 1)"
       - name: Install isolation backend
         run: |
           sudo apt-get update -qq

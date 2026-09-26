@@ -11,7 +11,7 @@ const { createExecutionLedgerFileFixture, openExecutionLedgerFileFixture } = req
 const { RelationalSessionEventStore } = require('../../../packages/agent-session-store');
 const { ExecutionEventLedger } = require('../../mcp-project-state/lib/execution-event-ledger');
 const { parseEngineeringTask } = require('./engineering-task-contract');
-const { attestEngineeringVerifier } = require('./engineering-verifier');
+const { attestEngineeringVerifier } = require('./engineering-project-verifier');
 const { EngineeringTaskState, engineeringDigest } = require('./engineering-task-state');
 const {
   createEngineeringTaskWorkspace,
@@ -291,7 +291,12 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
 }
 
 async function runEngineeringWorkflow({ definition: value, createOnly = false, environment, fetchImpl }) {
-  const { definition } = parseEngineeringWorkflow(value);
+  const materialized = structuredClone(value);
+  for (const task of materialized.tasks || []) {
+    if (task.contract?.schema_version === 2)
+      task.contract = require('./engineering-workspace').hydrateProjectTask(parseEngineeringTask(task.contract));
+  }
+  const { definition } = parseEngineeringWorkflow(materialized);
   const handle = createExecutionLedgerFileFixture();
   let assembly;
   try {
@@ -439,6 +444,14 @@ async function inspectEngineeringWorkflow({
     const parent = store.replay(manifest.parent_session_id);
     if (parent.spec.metadata.manifest_sha256 !== engineeringDigest(manifest)) throw new Error('Workflow manifest digest mismatch');
     const reservation = parent.workflow_reservations[manifest.definition.workflow_id];
+    if (action === 'evidence')
+      return {
+        ...workflowSummary(handle, manifest, store),
+        evidence: manifest.tasks.map((entry) => {
+          const state = new EngineeringTaskState(handle.db, entry.task_run_id).read();
+          return { id: entry.id, contract: state.created.contract, artifacts: state.snapshot || null, verification: state.result || null };
+        }),
+      };
     if (action === 'status' || reservation?.released || parent.terminal_event) return workflowSummary(handle, manifest, store);
     const inspectInterrupted = async () => {
       assembly ||= assembleEngineeringWorkflow(handle, manifest, { environment, fetchImpl, reconciliationDecisions });

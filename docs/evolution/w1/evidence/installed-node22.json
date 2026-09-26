@@ -1,0 +1,66 @@
+{
+  "node": "v22.23.3",
+  "installed": "/build/tmp/hseos-w1-installed-a_id6zf1/consumer22/node_modules/hseos",
+  "outside_checkout": true,
+  "projects": [
+    {
+      "project": "typescript-report",
+      "result": "approved",
+      "corrections": 2,
+      "task_run_id": "a94242c5-2e86-41ae-9ab5-9d702ad05a33",
+      "contract_sha256": "73f0c2c3a6f2ad724d47cf8e496eab4572c1779ad21f7faaf0dbfcacf3645d5a",
+      "files_sha256": "78bac4753d1547df31815b4530bbe267b95328f932637d0b3e4958a8dd513823",
+      "verification": {
+        "kind": "result",
+        "result": "approved",
+        "reason": "criteria-satisfied",
+        "evidence": {
+          "approved": true,
+          "contract_sha256": "73f0c2c3a6f2ad724d47cf8e496eab4572c1779ad21f7faaf0dbfcacf3645d5a",
+          "descendants_terminated": true,
+          "files_sha256": "78bac4753d1547df31815b4530bbe267b95328f932637d0b3e4958a8dd513823",
+          "isolation_digest": "64a73502c8dcc4fe5b7c3707d1cf0e96fa7bbb83f91bd2339c7f6ed3f272732a",
+          "reason": "criteria-satisfied",
+          "schema_version": 1,
+          "session_id": "session:35ff6298-abee-4a33-82ed-5fabdf3af440",
+          "verifier_sha256": "ecd09c79da78655f2bd84b0d6c0f3162b8dba2b0b99c6352106781a172e753bf",
+          "workspace_access": "read_only"
+        }
+      },
+      "review_sha256": "8d546a72b9559322a2851af7bfdf33fd9c27b729b486977e301551474bb47954",
+      "applied": true,
+      "events": 67
+    },
+    {
+      "project": "python-inventory",
+      "result": "approved",
+      "corrections": 2,
+      "task_run_id": "7e28ad6c-6186-491a-9ffa-a9b1ec7367fb",
+      "contract_sha256": "c6ecf1def325f2152f3b72b2fc81e7f761bd970e5fd6e2f703b53ba736bddb1d",
+      "files_sha256": "dffd87ed6a8509c9763386e5a4457675704dbddcf9cb8bb89414b8833a9ec84e",
+      "verification": {
+        "kind": "result",
+        "result": "approved",
+        "reason": "criteria-satisfied",
+        "evidence": {
+          "approved": true,
+          "contract_sha256": "c6ecf1def325f2152f3b72b2fc81e7f761bd970e5fd6e2f703b53ba736bddb1d",
+          "descendants_terminated": true,
+          "files_sha256": "dffd87ed6a8509c9763386e5a4457675704dbddcf9cb8bb89414b8833a9ec84e",
+          "isolation_digest": "cf0808c506853e854cbe6bb63357792abd542d0eb2c1b8a8e3740f9324129532",
+          "reason": "criteria-satisfied",
+          "schema_version": 1,
+          "session_id": "session:8f64710d-fc97-4cd3-b7fc-32a6ac5f7f20",
+          "verifier_sha256": "026c4eee24f451a08120014760d90224366ecb05071c6ff13a2cf64f16b99b5f",
+          "workspace_access": "read_only"
+        }
+      },
+      "review_sha256": "7eb9febb19ad015d2e272bdf1f36fff5b06011a3ac8fd25953aaa9e0f9e27ff3",
+      "applied": true,
+      "events": 67
+    }
+  ],
+  "interfaces": ["CLI server", "CLI command", "JS SDK", "Python SDK", "HTTP"],
+  "operational": false,
+  "real_model": false
+}
