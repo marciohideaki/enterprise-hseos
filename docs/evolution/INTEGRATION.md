@@ -50,3 +50,19 @@ Os ajustes de CI e este registro da fundação são preservados.
 Upstream imediato: `feature/hseos-evolution-foundation`; dependente: W2.
 O recibo original W1 continua histórico; a validação de integração e os hooks
 incidem no conteúdo commitado.
+
+## Correção do ambiente de CI W1
+
+A execução hospedada `36226243009`, PR #178, comprovou o setup de cgroup mas
+falhou nos testes v1 que chamam `/usr/bin/node`: o binário do setup-node fica
+fora desse caminho no runner. O erro direto foi `bwrap: execvp /usr/bin/node:
+No such file or directory`; verificação v2 com runtime explicitamente fixado
+passou na mesma execução.
+
+Task `hseos-ci-node-runtime` disponibiliza uma cópia do binário selecionado pela
+matriz em `/usr/bin/node` no runner descartável e exige igualdade SHA-256.
+Assim, as fixtures legadas também executam exatamente Node 22/24, mantendo os
+comandos contratados e a fronteira de isolamento. Não há alteração de runtime,
+verificadores ou dependências do host local. A execução com ambiente incompleto
+foi cancelada antes de repetir o mesmo defeito no outro runtime; a nova CI deve
+validar ambos os jobs completos.
