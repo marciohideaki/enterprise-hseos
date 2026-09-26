@@ -34,6 +34,7 @@ function exact(value, allowed, label) {
 }
 
 function text(value, label, maximum = 4096) {
+  // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
   if (typeof value !== 'string' || value.length === 0 || Buffer.byteLength(value, 'utf8') > maximum || /[\u0000\r\n]/u.test(value)) {
     throw new RuntimeProviderError(`${label} is malformed`, 'invalid_request');
   }
@@ -90,7 +91,8 @@ class AppServerConnection {
     this.onFailure = onFailure;
     this.child = spawn_process(executable, args, {
       cwd,
-      env,
+      // Node normalizes the child environment in place (including coverage).
+      env: { ...env },
       shell: false,
       windowsHide: true,
       stdio: ['pipe', 'pipe', 'ignore'],

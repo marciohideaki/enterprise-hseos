@@ -421,6 +421,9 @@ test('compact pressure atomically records exact lineage and a byte-reconstructab
     const input = assemblyInput(spec, history.turn, {
       expected_version: history.expectedVersion,
       current_turn: { source_ref: `session-event://${history.currentEventId}`, message: history.turn },
+      runtime_context: [
+        source('task-contract://protected-criteria', 'Goal: implement add. Constraint: workspace only. Acceptance: add(2, 3) equals 5.'),
+      ],
       overflow_policy: 'compact',
       compaction_provider_id: 'compaction:context-fixture',
       compaction_id: 'compaction:context-history',
@@ -433,6 +436,12 @@ test('compact pressure atomically records exact lineage and a byte-reconstructab
       compactionRuntime: compaction.runtime,
     }).assembleAndRecord(input);
     assert.equal(result.compaction_event.event_type, 'compaction.completed');
+    assert.ok(
+      result.request.messages.some((message) =>
+        message.content.includes('Goal: implement add. Constraint: workspace only. Acceptance: add(2, 3) equals 5.'),
+      ),
+    );
+    assert.ok(result.source_refs.includes('task-contract://protected-criteria'));
     assert.deepEqual(
       compacted.store
         .readSession(spec.session_id)

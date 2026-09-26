@@ -73,9 +73,9 @@ const SecretReferencesSchema = z.array(SecretReferenceSchema).superRefine((refer
 
 function deriveRuntimeConformanceLevel(capabilities) {
   const capabilitySet = new Set(capabilities);
-  return [...CONFORMANCE_LEVELS]
-    .reverse()
-    .find((level) => CONFORMANCE_REQUIREMENTS[level].every((capability) => capabilitySet.has(capability)));
+  return CONFORMANCE_LEVELS.toReversed().find((level) =>
+    CONFORMANCE_REQUIREMENTS[level].every((capability) => capabilitySet.has(capability)),
+  );
 }
 
 const ModelProviderManifestSchema = strictObject({

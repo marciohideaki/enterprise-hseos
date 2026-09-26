@@ -1,0 +1,15 @@
+✔ A0 publishes every governed and sharded artifact (1.048845ms)
+✔ ADR-0024 is accepted and contains every mandatory section (0.570733ms)
+✔ ADR index and graph index reference the canonical artifacts (0.355809ms)
+✔ goal graph has an acyclic proof and activation tail (2.030229ms)
+✔ state declares governance metadata and advances only after approval (0.664618ms)
+✔ event stream is valid, unique and records governance metadata (0.828229ms)
+✔ documentation remains provider-neutral and HSEOS-owned (72.726505ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 201.568214

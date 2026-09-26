@@ -1,0 +1,104 @@
+
+> hseos@4.0.0-rc.0 test:hooks
+> node test/test-hook-handlers.js && node test/test-blocking-hooks.js
+
+Hook handler integration tests
+  PASS  plan-lint.sh exists
+  PASS  plan-lint.sh is executable
+  PASS  plan-lint.sh with no arg exits 0 silently
+  PASS  plan-lint.sh on non-plan file exits 0 silently
+  PASS  plan-lint.sh on plan with <3 signals exits 0 silently
+  PASS  plan-lint.sh on parallel plan WITH Execution Protocol exits 0 silently
+  PASS  plan-lint.sh on parallel plan WITHOUT Execution Protocol exits 0 with warning
+  PASS  plan-lint.sh is idempotent (same stdout on second run)
+  PASS  plan-lint.sh accepts relative plans/*.md paths
+  PASS  plan-lint.sh works with registry CLAUDE_TOOL_FILE_PATH command shape
+  PASS  code-index-post-edit.sh exists
+  PASS  code-index-post-edit.sh is executable
+  PASS  code-index-post-edit.sh with no arg exits 0 silently
+  PASS  code-index-post-edit.sh with no provider marker is silent no-op
+  PASS  code-index-post-edit.sh with axon marker exits 0
+  PASS  code-index-post-edit.sh axon: pending-writes.txt created
+  PASS  code-index-post-edit.sh axon: queue contains the edited file path
+  PASS  code-index-post-edit.sh axon: idempotent append (provider dedupes)
+  PASS  claude-md-guard.sh exists
+  PASS  claude-md-guard.sh is executable
+  PASS  claude-md-guard.sh with no arg exits 0 silently
+  PASS  claude-md-guard.sh allows AGENTS.md
+  PASS  claude-md-guard.sh blocks CLAUDE.md with deny JSON
+  PASS  on-notification.sh exists
+  PASS  on-notification.sh is executable
+  PASS  on-notification.sh respects HSEOS_NOTIFICATION_SILENT=1 (silent exit 0)
+  PASS  on-notification.sh exits 0 with default args
+  PASS  on-notification.sh with no arg exits 0
+  PASS  on-notification.sh is idempotent (same exit on second run)
+  PASS  pre-compact.sh exists
+  PASS  pre-compact.sh is executable
+  PASS  pre-compact.sh outside HSEOS project is silent no-op
+  PASS  pre-compact.sh inside HSEOS project exits 0
+  PASS  pre-compact.sh writes PRE-COMPACT.md to .hseos/runs/sessions/<id>/
+  PASS  pre-compact.sh snapshot contains required sections
+  PASS  pre-compact.sh embeds user-authored notes into snapshot
+  PASS  pre-compact.sh consumes (removes) the user notes file after embedding
+  PASS  on-prompt-submit.sh exists
+  PASS  on-prompt-submit.sh is executable
+  PASS  on-prompt-submit.sh outside HSEOS project is silent no-op
+  PASS  on-prompt-submit.sh inside HSEOS project exits 0
+  PASS  on-prompt-submit.sh creates .hseos/runs/sessions/<id>/prompts/
+  PASS  on-prompt-submit.sh writes one prompt file
+  PASS  on-prompt-submit.sh prompt file contains the prompt
+  PASS  on-prompt-submit.sh with empty stdin is silent no-op
+  PASS  on-prompt-submit.sh with empty stdin does not create prompts dir
+  PASS  on-prompt-submit.sh emits SWARM advisory on /plan with heterogeneous signals
+  PASS  on-prompt-submit.sh skips SWARM advisory on simple /plan (no heterogeneous signals)
+  PASS  session-end.sh exists
+  PASS  session-end.sh is executable
+  PASS  session-end.sh outside HSEOS project is silent no-op
+  PASS  session-end.sh inside HSEOS exits 0 (Tier 1 only)
+  PASS  session-end.sh writes SESSION-END.md marker
+  PASS  session-end.sh marker contains required sections
+  PASS  session-end.sh with enabled:false skips Tier 2 (vault untouched)
+  PASS  session-end.sh enabled:false: vault activity-log NOT modified
+  PASS  session-end.sh enabled:false: .needs-end-session flag NOT created
+  PASS  session-end.sh with enabled:true exits 0 (Tier 1 + 2)
+  PASS  session-end.sh enabled:true: vault activity-log appended
+  PASS  session-end.sh enabled:true: .needs-end-session flag created
+  PASS  suggest-skill.sh exists
+  PASS  suggest-skill.sh is executable
+  PASS  suggest-skill.sh outside HSEOS project is silent no-op
+  PASS  suggest-skill.sh emits advisory when prompt matches a skill trigger
+  PASS  suggest-skill.sh advisory does not include unrelated skills
+  PASS  suggest-skill.sh silent when no skill triggers match
+  PASS  suggest-skill.sh with empty stdin is silent no-op
+  PASS  code-index-guard.sh exists
+  PASS  code-index-guard.sh is executable
+  PASS  code-index-guard.sh with no provider → silent allow
+  PASS  code-index-guard.sh with provider but no index → silent allow
+  PASS  code-index-guard.sh with provider+index on Grep → emits blocking JSON
+  PASS  code-index-guard.sh with provider+index on Glob → emits blocking JSON
+  PASS  code-index-guard.sh respects HSEOS_BYPASS_INDEX=1 (silent allow)
+  PASS  code-index-guard.sh ignores non-Grep/Glob tools
+  PASS  session-track.sh exists
+  PASS  session-track.sh detaches outside the host process group
+  PASS  session-track.sh uses the project-local installed hseos binary
+  PASS  managed-governance-preflight.sh exists
+  PASS  managed-governance-preflight.sh is executable
+  PASS  managed-governance-preflight.sh self-suppresses when unconfigured
+  PASS  managed-governance-preflight.sh reports drift without blocking
+  PASS  managed-governance-preflight.sh falls back to a working global CLI when source dependencies are unavailable
+
+83 passed, 0 failed
+blocking-hooks behavior tests
+  PASS  swarm-gate: execution agent without model → ask (missing sonnet)
+  PASS  swarm-gate: execution agent with model=sonnet → allow
+  PASS  swarm-gate: execution agent with model=opus (no strategic opt-in) → ask
+  PASS  swarm-gate: dev-squad pattern without active run → ask (blocking gate)
+  PASS  swarm-gate: dev-squad pattern with active-run flag → allow (bypass)
+  PASS  claude-md-guard: CLAUDE.md path argument → deny
+  PASS  claude-md-guard: CLAUDE.md via stdin payload → deny
+  PASS  claude-md-guard: non-CLAUDE.md path → silent allow (exit 0, no decision)
+  PASS  ado-branch-guard: push to trunk with ado.enabled → blocked (exit 2)
+  PASS  ado-branch-guard: push to feature branch → allowed (exit 0)
+  PASS  ado-branch-guard: feature flag off → silent no-op even for trunk push
+
+Blocking-hook tests: 11 passed, 0 failed

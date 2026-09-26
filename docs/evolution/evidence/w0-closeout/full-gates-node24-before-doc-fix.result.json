@@ -1,0 +1,9 @@
+{
+  "node": "24",
+  "started_at": "2026-09-25T22:11:12.568907+00:00",
+  "finished_at": "2026-09-25T22:18:56.126162+00:00",
+  "exit_code": 1,
+  "sequential": true,
+  "nice": 10,
+  "postgres_integration": true
+}

@@ -1,0 +1,630 @@
+{
+  "schema_version": 1,
+  "source": {
+    "path": "docs/evolution/COMPARISON-2026-09-25.md",
+    "sha256": "5e3ab59ee849f79a9729dad09aa2767c3de784407ab6a6c3eb9561ad4dc163ae"
+  },
+  "families": [
+    {
+      "id": "F01",
+      "name": "Loop e lifecycle",
+      "source_row": 1,
+      "baseline_observation": "C: loop próprio, limites e eventos",
+      "implementation": ["packages/agent-runtime/runtime.js"],
+      "tests": ["test/test-agent-runtime.js"],
+      "wave": 2,
+      "dependencies": ["W1"],
+      "requirements": [
+        {
+          "id": "F01-R1",
+          "acceptance": "Encerrar, interromper e retomar preservando identidade e sem repetir efeitos.",
+          "verification": "Injetar crash antes/depois do efeito e do recibo; verificar ledger e processos."
+        }
+      ],
+      "gap": "Terminais e recuperação em todas as fronteiras ainda precisam de campanha.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F02",
+      "name": "Contrato objetivo/aceite/escopo",
+      "source_row": 2,
+      "baseline_observation": "C: contrato estrito na engenharia",
+      "implementation": ["tools/cli/lib/engineering-task-contract.js"],
+      "tests": ["test/test-engineering-task-contract.js"],
+      "wave": 1,
+      "dependencies": ["W0"],
+      "requirements": [
+        {
+          "id": "F02-R1",
+          "acceptance": "Contrato v2 representa workspace real, baseline, aceite e verificadores fixados.",
+          "verification": "Rejeitar alteração do aceite, baseline divergente e versão desconhecida; ler v1."
+        }
+      ],
+      "gap": "Contrato disponível é v1 e limita-se a fixtures.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F03",
+      "name": "Trabalhar em código",
+      "source_row": 3,
+      "baseline_observation": "C: leitura/escrita/comandos Node/Python delimitados",
+      "implementation": ["tools/cli/lib/engineering-tools.js"],
+      "tests": ["test/test-engineering-task-runtime.js"],
+      "wave": 1,
+      "dependencies": ["W0"],
+      "requirements": [
+        {
+          "id": "F03-R1",
+          "acceptance": "Resolver implementação e regressão em projetos Node/TypeScript e Python reais.",
+          "verification": "Exercitar busca, diff, patch e Git; rejeitar acesso fora de escopo e edição concorrente."
+        }
+      ],
+      "gap": "Ferramentas atuais delimitam fixtures; jornada em repositórios reais pendente.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F04",
+      "name": "Gateway de tools",
+      "source_row": 4,
+      "baseline_observation": "C: único caminho governado na composição",
+      "implementation": ["packages/tool-runtime/index.js"],
+      "tests": ["test/test-tool-runtime.js"],
+      "wave": 4,
+      "dependencies": ["W3"],
+      "requirements": [
+        {
+          "id": "F04-R1",
+          "acceptance": "Todas as ferramentas e plugins passam pelo gateway com autoridade limitada.",
+          "verification": "Plugin desconhecido e tentativa de ampliar permissões são negados antes do efeito."
+        }
+      ],
+      "gap": "Novos pontos de extensão precisam de consumidores e conformance.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F05",
+      "name": "Política e aprovação",
+      "source_row": 5,
+      "baseline_observation": "C: deny/ask, aprovação vinculada, autoridade não ampliável",
+      "implementation": ["packages/agent-policy-lattice/index.js"],
+      "tests": ["test/test-agent-policy-lattice.js"],
+      "wave": 1,
+      "dependencies": ["W0"],
+      "requirements": [
+        {
+          "id": "F05-R1",
+          "acceptance": "Aprovação é vinculada à operação, identidade e baseline atuais.",
+          "verification": "Alterar baseline após aprovação; a operação deve exigir nova decisão."
+        }
+      ],
+      "gap": "Aplicação de patches e autorização de múltiplos clientes pendentes.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F06",
+      "name": "Agendamento de efeitos",
+      "source_row": 6,
+      "baseline_observation": "C: scheduler limitado e barreiras",
+      "implementation": ["packages/agent-orchestration/workflow-engine.js"],
+      "tests": ["test/test-agent-orchestration.js"],
+      "wave": 4,
+      "dependencies": ["W3"],
+      "requirements": [
+        {
+          "id": "F06-R1",
+          "acceptance": "Jobs e dependências mantêm ownership e orçamento através de reinícios.",
+          "verification": "Reiniciar scheduler com job em voo e dois clientes; nenhum efeito duplicado."
+        }
+      ],
+      "gap": "Agendamento persistente de jobs ainda não certificado.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F07",
+      "name": "Sandbox",
+      "source_row": 7,
+      "baseline_observation": "C: engenharia Linux bwrap/seccomp/cgroup, sem fallback",
+      "implementation": ["packages/agent-isolation-attestation/executor.js"],
+      "tests": ["test/test-engineering-executor.js"],
+      "wave": 7,
+      "dependencies": ["W6"],
+      "requirements": [
+        {
+          "id": "F07-R1",
+          "acceptance": "Código não confiável permanece isolado, inclusive descendentes.",
+          "verification": "Negar rede e arquivos não autorizados, limitar recursos e confirmar teardown por SO."
+        }
+      ],
+      "gap": "Implementação Linux; execução nativa macOS/Windows não certificada.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F08",
+      "name": "Segredos/egress",
+      "source_row": 8,
+      "baseline_observation": "C: broker, segredo fora do executor, destino fixo",
+      "implementation": ["tools/cli/lib/provider-egress-broker.js"],
+      "tests": ["test/test-provider-egress-broker.js"],
+      "wave": 3,
+      "dependencies": ["W2"],
+      "requirements": [
+        {
+          "id": "F08-R1",
+          "acceptance": "Segredos não entram em prompts, workspace, logs ou artefatos.",
+          "verification": "Expirar login e sobrepor credencial de ambiente; bloquear mudança silenciosa de cobrança."
+        }
+      ],
+      "gap": "Bindings oficiais por conta e cotas precisam de ensaios reais.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F09",
+      "name": "Aceite independente",
+      "source_row": 9,
+      "baseline_observation": "C: três verificadores protegidos concretos",
+      "implementation": ["tools/cli/lib/engineering-verifier.js"],
+      "tests": ["test/test-engineering-task-runtime.js"],
+      "wave": 1,
+      "dependencies": ["W0"],
+      "requirements": [
+        {
+          "id": "F09-R1",
+          "acceptance": "Registro protegido aceita Node/TypeScript, Python e web sem importar código do projeto.",
+          "verification": "Tarefa correta passa; resposta vazia, erro e adulteração do verificador falham."
+        }
+      ],
+      "gap": "Três verificadores de fixtures; registro extensível e consumidores reais pendentes.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F10",
+      "name": "Correção após rejeição",
+      "source_row": 10,
+      "baseline_observation": "C: diagnóstico obrigatório, teto e reverificação",
+      "implementation": ["tools/cli/lib/engineering-task-runtime.js"],
+      "tests": ["test/test-engineering-corrections.js"],
+      "wave": 1,
+      "dependencies": ["W0"],
+      "requirements": [
+        {
+          "id": "F10-R1",
+          "acceptance": "Correções exigem diagnóstico e gastam o orçamento acumulado original.",
+          "verification": "Reprovar, corrigir e reverificar; diagnóstico insuficiente e teto esgotado bloqueiam."
+        }
+      ],
+      "gap": "Generalizar para contrato v2 e demonstrar com modelos reais.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F11",
+      "name": "Reconciliação de efeitos incertos",
+      "source_row": 11,
+      "baseline_observation": "C: inspeciona/reverifica/pergunta; resposta ligada ao estado",
+      "implementation": ["tools/cli/lib/engineering-reconciliation.js"],
+      "tests": ["test/test-engineering-reconciliation.js"],
+      "wave": 2,
+      "dependencies": ["W1"],
+      "requirements": [
+        {
+          "id": "F11-R1",
+          "acceptance": "Incerteza residual exige pergunta com resposta vinculada ao estado atual.",
+          "verification": "Perder recibo, editar concorrentemente e cancelar durante recuperação; não repetir efeito."
+        }
+      ],
+      "gap": "Ampliar para terminais, clientes remotos e efeitos das novas ferramentas.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F12",
+      "name": "Subagentes/workflows",
+      "source_row": 12,
+      "baseline_observation": "C: DAG delimitado, claims, join, cancelamento",
+      "implementation": ["packages/agent-orchestration/local-subagent-provider.js"],
+      "tests": ["test/test-engineering-workflow-runtime.js"],
+      "wave": 4,
+      "dependencies": ["W3"],
+      "requirements": [
+        {
+          "id": "F12-R1",
+          "acceptance": "DAG, subagentes e descendentes dinâmicos preservam autoridade e estado.",
+          "verification": "Falha de módulo, disputa de retomada e cancelamento transitivo deixam zero órfãos."
+        }
+      ],
+      "gap": "Descendentes dinâmicos e jobs agendados ainda não certificados.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F13",
+      "name": "Orçamento",
+      "source_row": 13,
+      "baseline_observation": "C: reserva, débito e liberação na árvore; sem reset",
+      "implementation": ["packages/agent-orchestration/execution-supervisor.js"],
+      "tests": ["test/test-agent-orchestration.js"],
+      "wave": 4,
+      "dependencies": ["W3"],
+      "requirements": [
+        {
+          "id": "F13-R1",
+          "acceptance": "Clientes e descendentes compartilham teto agregado sem reset por troca de backend.",
+          "verification": "Concorrer reservas e retomar em outro backend; consumo total nunca excede teto."
+        }
+      ],
+      "gap": "Campanha concorrente com bindings reais pendente.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F14",
+      "name": "Contexto",
+      "source_row": 14,
+      "baseline_observation": "C: precedência, fonte e request persistido",
+      "implementation": ["packages/agent-context/context-assembler.js"],
+      "tests": ["test/test-agent-context.js"],
+      "wave": 5,
+      "dependencies": ["W4"],
+      "requirements": [
+        {
+          "id": "F14-R1",
+          "acceptance": "Contexto recuperado e memória mantêm fonte e autoridade declaradas.",
+          "verification": "Dados externos não ampliam política; recuperação multimodal conserva proveniência."
+        }
+      ],
+      "gap": "Contexto multimodal e memória ampliada precisam de consumidores.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F15",
+      "name": "Compactação",
+      "source_row": 15,
+      "baseline_observation": "C: lineage, substituição exata e originais recuperáveis",
+      "implementation": ["packages/agent-compaction/index.js"],
+      "tests": ["test/test-agent-compaction.js"],
+      "wave": 5,
+      "dependencies": ["W4"],
+      "requirements": [
+        {
+          "id": "F15-R1",
+          "acceptance": "Compactação, retomada e fork preservam critérios e lineage.",
+          "verification": "Combinar compactação, crash, resume e fork; comparar com histórico integral."
+        }
+      ],
+      "gap": "Cenário combinado deve ser demonstrado além dos testes individuais.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F16",
+      "name": "Persistência/replay",
+      "source_row": 16,
+      "baseline_observation": "C: ledger relacional e replay integral/incremental",
+      "implementation": ["packages/agent-session-store/replay.js"],
+      "tests": ["test/test-agent-session-store.js"],
+      "wave": 2,
+      "dependencies": ["W1"],
+      "requirements": [
+        {
+          "id": "F16-R1",
+          "acceptance": "Ledger continua canônico; projeções e cursores recuperam eventos sem duplicação.",
+          "verification": "Comparar replay incremental/integral; rollback e desconexão não perdem eventos."
+        }
+      ],
+      "gap": "API com cursor e acesso remoto sem SQLite compartilhado pendentes.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F17",
+      "name": "Model providers",
+      "source_row": 17,
+      "baseline_observation": "C: contratos neutros; scripted e OpenAI-compatible",
+      "implementation": ["packages/model-providers/index.js"],
+      "tests": ["test/test-model-providers.js"],
+      "wave": 3,
+      "dependencies": ["W2"],
+      "requirements": [
+        {
+          "id": "F17-R1",
+          "acceptance": "Bindings locais/remotos declaram transporte, autenticação, cobrança e cotas.",
+          "verification": "Confirmar backend efetivo e precedência de credenciais; desconhecido não é ilimitado."
+        }
+      ],
+      "gap": "Declarações versionadas e certificação de todos os bindings pendentes.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F18",
+      "name": "Runtime providers externos",
+      "source_row": 18,
+      "baseline_observation": "C: contratos próprios, candidatos L0/run-only conforme adapter",
+      "implementation": ["packages/runtime-providers/index.js"],
+      "tests": ["test/test-runtime-providers.js"],
+      "wave": 3,
+      "dependencies": ["W2"],
+      "requirements": [
+        {
+          "id": "F18-R1",
+          "acceptance": "Quatro ecossistemas executam a jornada ou atuam como clientes explícitos do kernel.",
+          "verification": "Rodar mesma tarefa e recuperação em cada integração; registrar controles indisponíveis."
+        }
+      ],
+      "gap": "Antigravity e classificação oficial por binding pendentes.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F19",
+      "name": "Estado/observabilidade",
+      "source_row": 19,
+      "baseline_observation": "C: ledger, lineage W3C, snapshots, CLI/sidecars",
+      "implementation": ["tools/mcp-project-state/lib/execution-ledger-schema.js"],
+      "tests": ["test/test-execution-event-ledger.js"],
+      "wave": 1,
+      "dependencies": ["W0"],
+      "requirements": [
+        {
+          "id": "F19-R1",
+          "acceptance": "CLI/API/SDK/IDE expõem estado e evidências com as mesmas identidades.",
+          "verification": "Consultar tarefa e orçamento por interfaces distintas; mutação idempotente não duplica efeito."
+        }
+      ],
+      "gap": "API de controle, SDK JS/TS e Python e IDE pendentes.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F20",
+      "name": "MCP",
+      "source_row": 20,
+      "baseline_observation": "C: servidores e execução governada",
+      "implementation": ["tools/mcp-hseos-governance/index.js"],
+      "tests": ["test/test-mcp-hseos-governance.js"],
+      "wave": 5,
+      "dependencies": ["W4"],
+      "requirements": [
+        {
+          "id": "F20-R1",
+          "acceptance": "MCP permanece subordinado ao gateway e contratos versionados.",
+          "verification": "Servidor malformado, ferramenta desconhecida e acesso fora do escopo são negados."
+        }
+      ],
+      "gap": "Conformance das ferramentas ampliadas precisa de consumidores reais.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F21",
+      "name": "Perfis/instalação",
+      "source_row": 21,
+      "baseline_observation": "C: catálogo, dependências, materialização seletiva e lazy loading",
+      "implementation": ["tools/cli/lib/capability-catalog.js"],
+      "tests": ["test/test-capability-catalog.js"],
+      "wave": 4,
+      "dependencies": ["W3"],
+      "requirements": [
+        {
+          "id": "F21-R1",
+          "acceptance": "Perfis resolvem dependências, compatibilidade e carregamento sob demanda.",
+          "verification": "Instalar fora do checkout e operar offline; módulos não selecionados não inicializam."
+        }
+      ],
+      "gap": "Ensaios de perfis novos e atualização/rollback pendentes.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F22",
+      "name": "Extensões",
+      "source_row": 22,
+      "baseline_observation": "C: skills/hooks/plugins/BYOA e compilação multiadapter",
+      "implementation": ["packages/adapter-sdk/index.js"],
+      "tests": ["test/test-plugin-marketplace.js"],
+      "wave": 4,
+      "dependencies": ["W3"],
+      "requirements": [
+        {
+          "id": "F22-R1",
+          "acceptance": "Plugins de ferramentas, providers e contexto usam extensões explícitas.",
+          "verification": "Adicionar módulo sem mudança no kernel; falha de plugin não amplia autoridade."
+        }
+      ],
+      "gap": "Contratos de plugins e catálogo certificado de extensões da IDE pendentes.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F23",
+      "name": "Governança de engenharia",
+      "source_row": 23,
+      "baseline_observation": "C: autoridade, ADRs, worktrees e gates Git/PR",
+      "implementation": ["scripts/governance/quality-gates.sh"],
+      "tests": ["test/test-governance-scripts.js"],
+      "wave": 0,
+      "dependencies": [],
+      "requirements": [
+        {
+          "id": "F23-R1",
+          "acceptance": "Lint cobre todo kernel e evidência é vinculada à revisão examinada.",
+          "verification": "Introduzir variável indefinida em cada superfície e garantir falha do lint."
+        }
+      ],
+      "gap": "Cobertura mínima 90/80 e mutação das decisões precisam de evidência.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F24",
+      "name": "Managed governance",
+      "source_row": 24,
+      "baseline_observation": "C: sidecar shadow, catálogo, releases e auditoria",
+      "implementation": ["packages/managed-governance-client/client.js"],
+      "tests": ["test/managed-governance/client.test.js"],
+      "wave": 7,
+      "dependencies": ["W6"],
+      "requirements": [
+        {
+          "id": "F24-R1",
+          "acceptance": "Serviços auxiliares continuam opcionais e isolam usuários e projetos.",
+          "verification": "Operar kernel sem sidecars; usuário sem autorização não acessa outro projeto."
+        }
+      ],
+      "gap": "Identidade e autorização por projeto na API de controle pendentes.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F25",
+      "name": "UX/serviços auxiliares",
+      "source_row": 25,
+      "baseline_observation": "CLI/kanban/state UI; ainda limitada para coding geral",
+      "implementation": ["tools/cli/hseos-cli.js"],
+      "tests": ["test/test-v4-lazy-cli.js"],
+      "wave": 6,
+      "dependencies": ["W5"],
+      "requirements": [
+        {
+          "id": "F25-R1",
+          "acceptance": "IDE Code OSS usa API externa ao Electron e preserva trabalho ao fechar a UI.",
+          "verification": "Jornada Linux completa; build upstream fixado, atualização e rollback reproduzíveis."
+        }
+      ],
+      "gap": "IDE, revisão de artefatos e terminais integrados ainda não implementados nesta base.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F26",
+      "name": "Mensageria entre agentes",
+      "source_row": 26,
+      "baseline_observation": "C experimental, fora do perfil padrão",
+      "implementation": ["packages/agent-message-transport/index.js"],
+      "tests": ["test/test-agent-message-transport.js"],
+      "wave": 7,
+      "dependencies": ["W6"],
+      "requirements": [
+        {
+          "id": "F26-R1",
+          "acceptance": "Transporte interagentes só é certificado com consumidores e recuperação.",
+          "verification": "Desconectar trabalhador remoto e revogar autoridade; nenhum efeito não autorizado."
+        }
+      ],
+      "gap": "Experimental na candidata; consumidores e ensaios próprios pendentes.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    },
+    {
+      "id": "F27",
+      "name": "Conformance/migração",
+      "source_row": 27,
+      "baseline_observation": "C: replay, contratos, providers, ensaio de ativação/rollback",
+      "implementation": ["tools/lib/agentic-activation-rehearsal.js"],
+      "tests": ["test/test-agentic-activation-rehearsal.js"],
+      "wave": 8,
+      "dependencies": ["W7"],
+      "requirements": [
+        {
+          "id": "F27-R1",
+          "acceptance": "Distribuição preserva históricos e demonstra paridade sem alegar ganhos inconclusivos.",
+          "verification": "18 rodadas iniciais; depois ≥30 tarefas ×3; rollback preserva ledger e bloqueia schema incompatível."
+        }
+      ],
+      "gap": "Campanhas reais, intervalos de confiança, pacotes e decisão de ativação pendentes.",
+      "status": {
+        "deterministic": "not_verified_for_evolution",
+        "real_consumers": "not_verified",
+        "operational": "not_authorized"
+      }
+    }
+  ]
+}

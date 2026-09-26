@@ -27,6 +27,7 @@ function exact(value, allowed, label) {
 }
 
 function nonEmpty(value, label, maximum = 1024) {
+  // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
   if (typeof value !== 'string' || value.length === 0 || Buffer.byteLength(value, 'utf8') > maximum || /[\u0000\r\n]/u.test(value)) {
     throw new RuntimeProviderError(`${label} is malformed`, 'invalid_request');
   }
@@ -42,7 +43,7 @@ function regularCanonicalFile(filenameValue) {
   if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1 || fs.realpathSync(filename) !== filename) {
     throw new RuntimeProviderError('DeepSeek composition must be a canonical regular file', 'invalid_request');
   }
-  if (stat.size < 1 || stat.size > 262_144) {
+  if (stat.size === 0 || stat.size > 262_144) {
     throw new RuntimeProviderError('DeepSeek composition size is invalid', 'invalid_request');
   }
   return filename;

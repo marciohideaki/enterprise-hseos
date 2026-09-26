@@ -1,0 +1,32 @@
+
+> hseos@3.4.2 test:sandbox
+> node test/test-sandbox-cli.js && node --test test/test-engineering-sandbox-check.js
+
+Sandbox CLI tests
+  ✓ builds standard ai-jail command with HSEOS safe defaults
+  ✓ sandbox doctor passes when ai-jail is missing but required=false
+  ✓ sandbox doctor fails when ai-jail is missing and required=true
+  ✓ required doctor accepts a functional bwrap profile without weakening the global AppArmor sysctl
+  ✓ required doctor rejects installed binaries when the clean lockdown probe fails
+  ✓ hseos sandbox run --dry-run prints command and does not require ai-jail
+  ✓ hseos sandbox doctor --json returns structured output
+
+7 passed, 0 failed
+✔ missing backend fails before any probe (0.961742ms)
+✔ exit zero and claimed writes do not prove an effect (1.922611ms)
+✔ confirmed effects pass only prerequisites with fixed commands and cleared environment (1.392896ms)
+✔ rejects symlink despite a successful-looking effect (0.882239ms)
+✔ rejects hardlink despite a successful-looking effect (0.737606ms)
+✔ rejects control-modification despite a successful-looking effect (0.899503ms)
+✔ rejects visible-control despite a successful-looking effect (0.608223ms)
+✔ rejects invalid-report despite a successful-looking effect (1.00476ms)
+✔ rejects timeout despite a successful-looking effect (0.63074ms)
+✔ public CLI fails closed against a backend that merely exits zero (277.306207ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 354.259379

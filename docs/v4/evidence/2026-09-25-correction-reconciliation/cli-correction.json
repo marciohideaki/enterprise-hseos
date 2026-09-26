@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "profile": "disposable-engineering-candidate",
+  "task_run_id": "25a6ba38-6749-4165-8982-5c4d195e5d51",
+  "task_id": "example-correction",
+  "state": "/tmp/hseos-ledger-fixture-ZkqSkw",
+  "session_id": "session:3ff449a9-31f5-486d-b18f-ad2ca1dc3d02",
+  "status": "completed",
+  "task_result": "approved",
+  "reason": "criteria-satisfied",
+  "current_sequence": 9,
+  "contract_sha256": "1c24bcec8a7eb9dd7a9b7c11e61050bcf0131a581fee640d2a1ce1e06fb068b7",
+  "token_accounting": {
+    "reported_input_tokens": 2,
+    "reported_output_tokens": 2,
+    "conservative_estimate_tokens": 59864,
+    "total_tokens": 59868,
+    "estimate_counter": "token-counter:utf8-byte-upper-bound"
+  },
+  "correction_reviews": [
+    {
+      "kind": "review",
+      "step_id": "step:05642dc42bd48643337bffe8b59fa23b6dfa7b5b",
+      "approved": false,
+      "reason": "criteria-not-satisfied",
+      "files_sha256": "1f6233233c22dd03810edb8dc2afb8e1e15bb14fda6d824269830935f61140dd",
+      "correction_requested": true
+    },
+    {
+      "kind": "review",
+      "step_id": "step:8574e8436efbd7a4977ab68adea1691d479db0a8",
+      "approved": true,
+      "reason": "criteria-satisfied",
+      "files_sha256": "3d595d023ae2f571120d1c4c00463edcd9c1780c7b2f5780a93b6c3830e29d86",
+      "correction_requested": false
+    }
+  ],
+  "correction_diagnoses": [
+    {
+      "kind": "diagnosis",
+      "review_step_id": "step:05642dc42bd48643337bffe8b59fa23b6dfa7b5b",
+      "files_sha256": "1f6233233c22dd03810edb8dc2afb8e1e15bb14fda6d824269830935f61140dd",
+      "cause": "Constant output violates the addition requirement.",
+      "correction": "Compute the sum using both arguments, then run the authorized check.",
+      "requirement_ids": ["r1"]
+    }
+  ],
+  "questions": [],
+  "operational_authorized": false
+}

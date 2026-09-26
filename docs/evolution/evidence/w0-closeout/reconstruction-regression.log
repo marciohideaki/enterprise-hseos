@@ -1,0 +1,27 @@
+✔ session and governed-operation aggregates share relational global ordering without sharing authority (22.397943ms)
+✔ append and replay enforce one contiguous immutable session lifecycle (39.186484ms)
+✔ model request reconstruction is canonical, immutable and source-linked (11.957391ms)
+✔ crash recovery survives process reopen and exact append retry is idempotent (12.26214ms)
+✔ fork records immutable lineage and cannot widen authority, policy or resource limits (30.95187ms)
+✔ fork parent attachment and child creation commit atomically (16.792744ms)
+✔ root, resumed appends, and forked children retain one durable trace (17.911027ms)
+✔ replay fails closed when persisted trace lineage is fragmented (7.994386ms)
+✔ replay fails closed when persisted causation does not reference earlier lineage (6.899685ms)
+✔ root and child creation require verifiable causation anchors (5.739886ms)
+✔ gaps, foreign model streams and forged relational envelopes fail closed (9.302403ms)
+✔ session success cannot contradict a failed model terminal event (11.555153ms)
+✔ session cancellation terminal must exactly match its durable non-deadline request (11.746519ms)
+✔ incremental replay preserves full replay and rejects forged checkpoints (8.926511ms)
+✔ transaction rollback cannot retain an uncommitted replay checkpoint (10.200485ms)
+✔ replay rejects forged ordering, authority and context provenance (4.393212ms)
+✔ tool deltas preserve identity and require complete object arguments (0.633479ms)
+✔ replay rejects gaps, foreign lineage, stale resume and streams without matching requests (3.311997ms)
+✔ request reconstruction consumes only reducer checkpoints and follows later durable turns (10.746602ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 480.751141

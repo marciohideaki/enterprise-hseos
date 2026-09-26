@@ -70,7 +70,6 @@ function organizationCommand(organizationId, idempotencyKey, displayName = 'Secu
 }
 
 async function rawRequest(endpoint, pathname, body) {
-  // eslint-disable-next-line n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line
   const response = await fetch(`${endpoint}${pathname}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -144,7 +143,7 @@ test('HTTP input limits, route injection and malformed JSON fail before applicat
     const malformed = await rawRequest(endpoint, '/api/v1/policy/evaluate', '{"unterminated":');
     assert.equal(malformed.response.status, 400);
     assert.equal(malformed.envelope.error.code, 'invalid_request');
-    // eslint-disable-next-line n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line
+
     const injected = await fetch(`${endpoint}/api/v1/artifacts/%2F..%2Fsecret`);
     assert.equal(injected.status, 400);
     assert.equal((await injected.json()).error.code, 'invalid_request');
@@ -243,7 +242,7 @@ test('terminated-upstream deliberately keeps this server on plain HTTP -- TLS is
   });
   try {
     const address = await server.listen({ host: '::', port: 0 });
-    // eslint-disable-next-line n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line
+
     const response = await fetch(`http://127.0.0.1:${address.port}/health`);
     assert.equal(response.status, 200);
   } finally {

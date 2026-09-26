@@ -266,7 +266,7 @@ for (const spec of SERVERS) {
       assert.equal(response.result.structuredContent.ok, true);
       assert.deepEqual(lifecycle(databasePath), ['ExecutionAuthorized', 'ExecutionStarted', 'ExecutionSucceeded']);
       const db = new Database(databasePath, { readonly: true });
-      assert.equal(db.pragma('user_version', { simple: true }), 9);
+      assert.equal(db.pragma('user_version', { simple: true }), 10);
       const authorized = db.prepare("SELECT actor_json, payload_json FROM execution_events WHERE event_type = 'ExecutionAuthorized'").get();
       const actor = JSON.parse(authorized.actor_json);
       const payload = JSON.parse(authorized.payload_json);
@@ -396,6 +396,7 @@ test('operational output validation rejects lossy provider values before success
   const execution = createOperationalExecution({
     db,
     serverId: 'fixture',
+    toolGovernance: { invalid_output: { reversibility: 'read_only' } },
     tools: new Map([['invalid_output', { name: 'invalid_output', inputSchema: { type: 'object' } }]]),
     invokeTool() {
       return { missing: undefined, not_a_number: Number.NaN };
@@ -421,4 +422,25 @@ test('operational output validation rejects lossy provider values before success
     await execution.scheduler.close({ cancelQueued: true, cancelRunning: true });
     db.close();
   }
+});
+
+test('unclassified tools are denied before runtime construction or provider invocation', () => {
+  let invoked = false;
+  assert.throws(
+    () =>
+      createOperationalExecution({
+        db: {
+          prepare() {
+            throw new Error('Database should not be reached');
+          },
+        },
+        serverId: 'fixture',
+        tools: new Map([['unknown', { name: 'unknown', inputSchema: { type: 'object' } }]]),
+        invokeTool() {
+          invoked = true;
+        },
+      }),
+    /Explicit execution governance is required/,
+  );
+  assert.equal(invoked, false);
 });

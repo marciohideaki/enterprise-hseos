@@ -21,6 +21,7 @@ const COMPONENT_KEYS = new Set([
   'description',
   'required',
   'prerequisites',
+  'depends_on',
   'modules',
   'tools',
   'skills',
@@ -133,7 +134,7 @@ function validateCapabilityDocuments(profileData, componentData) {
     if (component.required !== undefined && typeof component.required !== 'boolean') {
       throw new Error(`Invalid capability schema v2: ${component.id}.required must be boolean`);
     }
-    for (const field of ['prerequisites', 'modules', 'tools', 'skills', 'install_paths']) {
+    for (const field of ['prerequisites', 'depends_on', 'modules', 'tools', 'skills', 'install_paths']) {
       assertStringList(component[field], `${component.id}.${field}`);
     }
     for (const installPath of component.install_paths || []) {
@@ -142,6 +143,20 @@ function validateCapabilityDocuments(profileData, componentData) {
       }
     }
   }
+
+  const dependencies = new Map(componentData.components.map((component) => [component.id, component.depends_on || []]));
+  const visiting = new Set();
+  const visited = new Set();
+  function validateDependencies(id) {
+    if (!componentIds.has(id)) throw new Error(`Invalid capability dependency: unknown component ${id}`);
+    if (visiting.has(id)) throw new Error(`Invalid capability dependency cycle at ${id}`);
+    if (visited.has(id)) return;
+    visiting.add(id);
+    for (const dependency of dependencies.get(id)) validateDependencies(dependency);
+    visiting.delete(id);
+    visited.add(id);
+  }
+  for (const id of componentIds) validateDependencies(id);
 
   const requiredIds = componentData.components
     .filter((component) => component.required)
@@ -478,7 +493,20 @@ function resolveCapabilityPlan(options = {}) {
   const componentMap = indexById(catalog.components);
   assertKnownComponents(componentMap, componentIds);
 
-  const selectedComponents = componentIds.map((id) => componentMap.get(id));
+  const resolved = new Set();
+  const visiting = new Set();
+  function visit(id) {
+    if (resolved.has(id)) return;
+    if (visiting.has(id)) throw new Error(`Capability dependency cycle: ${id}`);
+    const component = componentMap.get(id);
+    if (!component) throw new Error(`Unknown capability dependency: ${id}`);
+    visiting.add(id);
+    for (const dependency of component.depends_on || []) visit(dependency);
+    visiting.delete(id);
+    resolved.add(id);
+  }
+  for (const id of componentIds) visit(id);
+  const selectedComponents = [...resolved].sort().map((id) => componentMap.get(id));
   const selectedSkills = uniq(selectedComponents.flatMap((component) => component.skills || [])).sort();
   assertKnownSkills(selectedSkills, catalog.skills);
 
@@ -564,12 +592,72 @@ function writeCapabilitySelection(projectDir, plan) {
   return targetPath;
 }
 
+async function materializeCapabilityPlan({ directory, profile, root = getProjectRoot() }) {
+  if (!['minimal', 'disposable-engineering-candidate'].includes(profile))
+    throw new Error('Selected-only materialization supports minimal and disposable-engineering-candidate profiles');
+  const plan = resolveCapabilityPlan({ root, profile });
+  const target = path.resolve(directory);
+  fs.mkdirSync(target, { recursive: true });
+  if (fs.realpathSync(target) !== target) throw new Error('Capability target must not traverse symlinks');
+  const outputs = ['.enterprise', '.agents', '.hseos', '.codex', '.claude', 'AGENTS.md', 'CLAUDE.md'];
+  if (outputs.some((name) => fs.existsSync(path.join(target, name))))
+    throw new Error('Selected-only materialization requires a fresh consumer governance surface; existing state is preserved');
+  const staging = fs.mkdtempSync(path.join(target, '.hseos-materialize-'));
+  const copied = [];
+  try {
+    const copy = require('fs-extra');
+    for (const relative of plan.install_paths.filter((entry) => entry.startsWith('.enterprise/'))) {
+      const source = path.join(root, relative);
+      if (!fs.existsSync(source)) throw new Error(`Selected governance artifact is missing: ${relative}`);
+      await copy.copy(source, path.join(staging, relative), { dereference: false });
+      copied.push(relative);
+    }
+    // Runtime modules are consumed in-place from the coordinated npm distribution.
+    // Only selected governance/adapters are materialized in the project.
+    const configDir = path.join(staging, '.hseos', 'config');
+    fs.mkdirSync(configDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(configDir, 'hseos.config.yaml'),
+      yaml.stringify({ standalone: true, mcp_bundles_active: [], plugins_active: [] }),
+    );
+    const { AgentCoreCompiler } = require('../installers/lib/core/agent-core-compiler');
+    const compiled = await new AgentCoreCompiler().compile(staging, path.join(staging, '.hseos'), {
+      sourceRoot: root,
+      platforms: plan.tools,
+      selectedSkills: plan.skills,
+      selectedComponents: plan.components.map((component) => component.id),
+    });
+    writeCapabilitySelection(staging, plan);
+    for (const name of outputs) {
+      const staged = path.join(staging, name);
+      if (fs.existsSync(staged)) {
+        if (fs.existsSync(path.join(target, name))) throw new Error('Consumer changed during materialization');
+        fs.renameSync(staged, path.join(target, name));
+      }
+    }
+    return {
+      schema_version: 1,
+      profile,
+      directory: target,
+      components: plan.components.map((component) => component.id),
+      skills: compiled.skills,
+      hooks: compiled.hooks,
+      mcp_servers: compiled.mcpServers,
+      runtime_location: 'installed-distribution',
+      copied,
+    };
+  } finally {
+    fs.rmSync(staging, { recursive: true, force: true });
+  }
+}
+
 module.exports = {
   CAPABILITY_SCHEMA_VERSION,
   REQUIRED_BASELINE_IDS,
   buildSyntheticSkillComponents,
   loadAdapterMatrix,
   loadCapabilityCatalog,
+  materializeCapabilityPlan,
   parseCsv,
   resolveCapabilityPlan,
   synthesizeLegacySurfaceDocument,

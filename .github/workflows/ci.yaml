@@ -3,14 +3,16 @@ on:
   push:
     branches: [master]
   pull_request:
-    branches: [master]
+    branches: [master, "feature/**"]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 1
+      fail-fast: false
       matrix:
-        node-version: ["20.x", "22.x"]
+        node-version: ["22.x", "24.x"]
     services:
       postgres:
         image: postgres:18
@@ -37,9 +39,18 @@ jobs:
           sudo apt-get install -y -qq bubblewrap
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - run: npm ci
-      - run: npm test
+      - name: Tests and critical coverage in a delegated cgroup
+        run: |
+          sudo systemd-run --wait --collect --pipe --service-type=exec \
+            --uid="$(id -u)" --gid="$(id -g)" \
+            --property=Delegate=yes --property=DelegateSubgroup=tests \
+            --working-directory="$PWD" \
+            --setenv="PATH=$PATH" --setenv="HOME=$HOME" --setenv=CI=true \
+            --setenv="HSEOS_GOVERNANCE_TEST_DATABASE_URL=$HSEOS_GOVERNANCE_TEST_DATABASE_URL" \
+            bash -c 'node .github/scripts/enable-test-cgroup.mjs && npm test && npm run test:kernel-coverage'
 
   governance:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

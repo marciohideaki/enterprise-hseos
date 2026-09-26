@@ -1,0 +1,12 @@
+✔ documentation remains provider-neutral and HSEOS-owned (250.854173ms)
+✔ invalid creation never poisons the durable stream (65.722204ms)
+✔ snapshots require complete unique scope and accurate content digests (32.738707ms)
+✔ approval requires versioned proof bound to contract, artifacts, session and isolation (48.790855ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 708.574459

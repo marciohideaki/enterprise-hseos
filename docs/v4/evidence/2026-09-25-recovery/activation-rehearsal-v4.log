@@ -1,0 +1,12 @@
+✔ candidate profile is explicit, key-referenced, sandbox-required and still non-operational (146.026334ms)
+✔ rehearsal migrates and discards a private candidate, restores v4 and leaves source byte-identical (65.296557ms)
+✔ rehearsal rejects link aliases and live SQLite sidecars before making a copy (8.76622ms)
+✔ explicit live mode checkpoints a verified WAL snapshot without opening or changing the operational database (64.753566ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 494.368188

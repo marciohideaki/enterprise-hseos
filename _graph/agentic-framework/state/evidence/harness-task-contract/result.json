@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "task_id": "harness-task-contract",
+  "baseline": "a8423081934d64538d71ef8289f072d51566a870",
+  "at": "2026-09-20T06:41:57.921700+00:00",
+  "authority": {
+    "accepted_adr_0040_source_commit": "96548e3f258f7cd5488102ce7f74b7746285579b",
+    "scope": "structural validation only",
+    "merge": false,
+    "activation": false
+  },
+  "engineering": {
+    "task_validation": "implemented",
+    "execution": "not-implemented",
+    "contract_and_cli_tests_exit": 0,
+    "public_validation_exit": 0
+  },
+  "real_providers": "not-executed",
+  "real_consumers": "not-executed",
+  "operational_activation": false,
+  "full_gate": {
+    "failures": 0,
+    "warnings": 1,
+    "exit_code": 0,
+    "log": "/workspace/github/marciohideaki/enterprise-hseos/.logs/validation/harness-task-contract-full.log",
+    "sha256": "19bf38fab8c5300095c24c27b418ba32925e3588f757b6f059f76ca62ee8ccbd"
+  },
+  "artifacts": {
+    "public-receipt.json": "5b137481fd99cbc45481c3a5d0af5427699087eac7bd9999a7838736269519cf",
+    "contract-and-cli-tests.txt": "f7e9b51a4f33e563b38ccfc041392277dc426a711287233d84afec39952e7908"
+  },
+  "control_limitation": "Native Husky shims absent in isolated worktrees; explicit worktree-manager gates, branch and commit-message checks required; no hooks disabled.",
+  "boundary_reassessment": "H4 proves only host-mounted workspace read-only. A fixed actual ai-jail lockdown probe wrote and read a file in private /tmp. Therefore global backend incapability and mandatory ADR-0041 approval are not established."
+}

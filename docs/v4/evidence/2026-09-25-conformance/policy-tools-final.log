@@ -1,0 +1,44 @@
+✔ delivery and acknowledgement are durable before returning and survive reopen (13.53708ms)
+✔ hold, refuse, flush, and TTL expiration are explicit durable states (10.103701ms)
+✔ an acknowledgement at or after TTL expires the message and fails closed (4.324916ms)
+✔ dedup replays exact messages and rejects conflicting reuse (4.047102ms)
+✔ bounded inbox, sender rate, and reentrant policy checks cannot race the append (10.355944ms)
+✔ a second SQLite connection cannot interleave a send inside the policy transaction (5.440237ms)
+✔ message boundary is text-only and inherited request shapes fail closed (2.295225ms)
+✔ persisted payload and identity drift are rejected during reconstruction (3.479656ms)
+✔ one-shot idle notifications require authorization and subscription IDs never replay (3.041856ms)
+✔ dedicated fixture gate rejects arbitrary application databases before DDL (1.151793ms)
+✔ relay clock cannot regress (1.934589ms)
+✔ relay port is nominal and provider-neutral adapters are explicitly registered (3.135142ms)
+✔ constitutional and mandatory denies survive bypass mode and provider callbacks (2.279122ms)
+✔ ask precedes mode, allow, and provider callback (0.320082ms)
+✔ provider callback can narrow but never runs after a deny or ask (0.251592ms)
+✔ configuration precedence and restrictive merge kinds are deterministic (0.954673ms)
+✔ child agents can narrow but cannot widen parent authority (0.854609ms)
+✔ malformed modes, rules, configuration values, and authority fail closed (0.606487ms)
+✔ five sandboxed process roles prove one transitive filesystem, network, and environment boundary (1132.218125ms)
+✔ plain forged policies cannot invoke or claim the supervisor-owned journey (1.10295ms)
+✔ a protected inode hard-linked into the worktree invalidates the binding before sandbox launch (0.685733ms)
+✔ a checkout root that overlaps required system mounts is rejected (0.317491ms)
+✔ a host Unix socket exposed inside the worktree fails before any sandbox role launches (3.116005ms)
+✔ main checkout aliases, empty protection, unknown fields, and workspace protection fail closed (0.634949ms)
+✔ registry exposes deterministic model definitions only when backed by the exact governed contract (5.71702ms)
+✔ published runtime source has no provider dispatch or internal governed-runtime import (0.502195ms)
+✔ ToolRuntime rejects scheduler contract drift and satisfies the versioned port shape (17.753529ms)
+✔ governed execution preserves pre, guard, approval, dispatch, post and durable result ordering (22.570684ms)
+✔ approval denial cannot dispatch a classified effect (8.102945ms)
+✔ settled retries reuse the governed operation without a second dispatch (17.968771ms)
+✔ concurrent equivalent idempotent invocations coalesce on one governed outcome (11.581393ms)
+✔ an in-flight deferred tool cannot be joined from a different trace or causation (12.177179ms)
+✔ post-effect evidence accepted by the canonical runtime is preserved without a tighter adapter bound (13.696241ms)
+✔ deadline and active cancellation settle through governed terminal outcomes (41.173568ms)
+✔ session disposal reports non-cancellable work without waiting or suppressing its outcome (11.010593ms)
+✔ duplicate active calls, unknown tools and malformed outcomes fail closed (7.884174ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2200.714446

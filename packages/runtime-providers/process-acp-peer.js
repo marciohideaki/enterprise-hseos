@@ -15,6 +15,7 @@ function record(value) {
 }
 
 function text(value, label, maximum = 4096) {
+  // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
   if (typeof value !== 'string' || value.length === 0 || Buffer.byteLength(value, 'utf8') > maximum || /[\u0000\r\n]/u.test(value)) {
     throw new RuntimeProviderError(`${label} is malformed`, 'invalid_request');
   }
@@ -185,7 +186,7 @@ class ProcessAcpPeer {
       this.#write({ jsonrpc: '2.0', id: message.id, result });
     } catch {
       try {
-        this.#write({ jsonrpc: '2.0', id: message.id, error: { code: -32603, message: 'ACP client rejected request' } });
+        this.#write({ jsonrpc: '2.0', id: message.id, error: { code: -32_603, message: 'ACP client rejected request' } });
       } finally {
         this.#protocolFailure('ACP request violated the peer contract');
       }

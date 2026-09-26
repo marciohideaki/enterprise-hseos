@@ -211,15 +211,14 @@ test('database-backed composition reports ready health and serves the seeded cat
   const address = await composition.server.listen();
   const endpoint = `http://127.0.0.1:${address.port}`;
   try {
-    // eslint-disable-next-line n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line
     const health = await (await fetch(`${endpoint}/health`)).json();
     assert.equal(health.data.ready, true);
     assert.equal(health.data.projection.artifacts, 1);
-    // eslint-disable-next-line n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line
+
     const artifacts = await (await fetch(`${endpoint}/api/v1/artifacts?limit=50`)).json();
     assert.equal(artifacts.data.length, 1);
     assert.equal(artifacts.data[0].artifact_type, 'policy');
-    // eslint-disable-next-line n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line
+
     const context = await (await fetch(`${endpoint}/api/v1/context?repository_id=${REPOSITORY_ID}`)).json();
     assert.equal(context.data.source_commit, 'a'.repeat(40));
   } finally {
@@ -315,7 +314,6 @@ test('a fresh install with no network section still enforces loopback-only bindi
 test('a deployed shared-network profile, wired through the real composition, admits an allowlisted LAN client and denies one outside it', async () => {
   const inside = await composedSharedNetworkServer(['127.0.0.1/32']);
   try {
-    // eslint-disable-next-line n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line
     const response = await fetch(`http://127.0.0.1:${inside.port}/health`, {
       headers: {
         authorization: `Bearer ${inside.environment.TEST_SHARED_QUERY_TOKEN}`,
@@ -334,7 +332,6 @@ test('a deployed shared-network profile, wired through the real composition, adm
   const outside = await composedSharedNetworkServer([DEPLOYMENT_CIDR]);
   try {
     await assert.rejects(
-      // eslint-disable-next-line n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line
       fetch(`http://127.0.0.1:${outside.port}/health`, {
         headers: { authorization: `Bearer ${outside.environment.TEST_SHARED_QUERY_TOKEN}` },
         signal: AbortSignal.timeout(2000),

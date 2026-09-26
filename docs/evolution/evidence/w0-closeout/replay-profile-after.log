@@ -1,0 +1,10 @@
+✔ persistent replay scales within explicit latency, storage, and memory bounds (8465.430141ms)
+ℹ {"metrics":[{"volume":16,"event_count":23,"p50_ms":0.218,"p95_ms":0.316,"max_ms":2.031,"replay_p95_ms":0.071,"reconstruction_p95_ms":0.241,"cpu_p95_ms":0.337,"database_bytes":270336},{"volume":128,"event_count":135,"p50_ms":0.872,"p95_ms":0.96,"max_ms":7.03,"replay_p95_ms":0.082,"reconstruction_p95_ms":0.878,"cpu_p95_ms":0.955,"database_bytes":417792},{"volume":512,"event_count":519,"p50_ms":1.772,"p95_ms":3.596,"max_ms":38.852,"replay_p95_ms":0.218,"reconstruction_p95_ms":3.354,"cpu_p95_ms":3.618,"database_bytes":901120}],"heap_growth_bytes":57019032}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8752.86603

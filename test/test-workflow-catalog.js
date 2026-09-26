@@ -18,13 +18,13 @@ function registryDocument() {
   return yaml.parse(fs.readFileSync(path.join(REPO_ROOT, '.hseos', 'workflows', 'registry.yaml'), 'utf8'));
 }
 
-test('workflow catalog distinguishes executable workflows from side-car subsystems', () => {
+test('workflow catalog distinguishes methodology recipes from side-car subsystems', () => {
   const workflows = loadWorkflowCatalog(REPO_ROOT);
   assert.equal(workflows.length, 8);
   assert.equal(workflows.find((workflow) => workflow.id === 'state-tracking').kind, 'subsystem');
   assert.ok(
     workflows
-      .filter((workflow) => workflow.kind === 'executable')
+      .filter((workflow) => workflow.kind === 'recipe')
       .every((workflow) => workflow.execution_mode === 'sequential' && workflow.phases.length > 0),
   );
 });
@@ -69,7 +69,7 @@ test('workflow schema accepts and deterministically normalizes the bounded v1 ca
   assert.ok(
     workflows
       .filter((workflow) => workflow.id !== 'state-tracking')
-      .every((workflow) => workflow.kind === 'executable' && workflow.execution_mode === 'sequential'),
+      .every((workflow) => workflow.kind === 'recipe' && workflow.execution_mode === 'sequential'),
   );
 });
 

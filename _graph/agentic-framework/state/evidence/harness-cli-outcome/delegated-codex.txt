@@ -1,0 +1,15 @@
+✔ delegated Codex capability plan selects the direct runtime and no raw model implementation (98.638811ms)
+✔ public delegated Codex CLI rejects create-only before spawning app-server (490.838638ms)
+✔ public delegated Codex run keeps the first turn attached to the newly created thread (1629.454719ms)
+✔ public delegated Codex CLI rejects resume and cancel as unavailable capabilities (1030.46937ms)
+✔ delegated Codex run-only rejection takes precedence over lifecycle arguments (505.417949ms)
+✔ delegated Codex durable manifest contains no resolved environment value (1576.222357ms)
+✔ public delegated Codex rejects resume before inspecting durable state (506.736446ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5848.15209

@@ -169,7 +169,7 @@ async function defaultRequest({ endpoint, method, pathname, body, token, actor }
     headers['x-hseos-actor-id'] = actor;
     headers['x-hseos-actor-type'] = 'automation';
   }
-  // eslint-disable-next-line n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line
+
   const response = await fetch(`${endpoint}${pathname}`, {
     method,
     headers,

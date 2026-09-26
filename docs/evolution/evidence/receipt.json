@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-09-25T20:14:57.091235+00:00",
+  "status": "partial-wave-0",
+  "base_commit": "a8423081934d64538d71ef8289f072d51566a870",
+  "task_branch": "task/hseos-evolution-w0",
+  "feature_base": "feature/hseos-evolution-w0-quality",
+  "baseline_preserved": true,
+  "baseline_files_verified": 1956,
+  "runtime": "v24.15.0",
+  "dependencies": "Existing checkout node_modules resolved from parent; no fresh installation claimed.",
+  "checks": {
+    "focused_regression": {
+      "passed": 326,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0
+    },
+    "quality_surface": {
+      "passed": 3,
+      "failed": 0,
+      "exit_code": 0
+    },
+    "lint": {
+      "exit_code": 0
+    },
+    "format": {
+      "exit_code": 0
+    },
+    "coverage": {
+      "exit_code": 1,
+      "below_threshold": [
+        "packages/agent-compaction/deterministic-provider.js",
+        "packages/agent-compaction/provider-registry.js",
+        "packages/agent-compaction/runtime.js",
+        "packages/agent-isolation-attestation/executor.js",
+        "packages/agent-isolation-attestation/index.js",
+        "packages/agent-orchestration/execution-supervisor.js",
+        "packages/agent-orchestration/local-subagent-provider.js",
+        "packages/agent-orchestration/workflow-engine.js",
+        "packages/agent-runtime/runtime.js",
+        "packages/agent-runtime/schemas.js",
+        "packages/agent-session-store/replay.js",
+        "packages/tool-runtime/registry.js",
+        "tools/cli/lib/engineering-reconciliation.js",
+        "tools/cli/lib/engineering-tools.js"
+      ],
+      "total": {
+        "lines": {
+          "total": 8369,
+          "covered": 7500,
+          "skipped": 0,
+          "pct": 89.61
+        },
+        "statements": {
+          "total": 8369,
+          "covered": 7500,
+          "skipped": 0,
+          "pct": 89.61
+        },
+        "functions": {
+          "total": 306,
+          "covered": 291,
+          "skipped": 0,
+          "pct": 95.09
+        },
+        "branches": {
+          "total": 2421,
+          "covered": 1936,
+          "skipped": 0,
+          "pct": 79.96
+        },
+        "branchesTrue": {
+          "total": 0,
+          "covered": 0,
+          "skipped": 0,
+          "pct": 100
+        }
+      }
+    },
+    "full_suite": "not_run",
+    "full_quality_gates": "not_run",
+    "node22_evolution": "not_verified",
+    "external_installation": "not_verified",
+    "hosted_ci": "not_run",
+    "real_providers": "not_run",
+    "activation": "not_authorized"
+  },
+  "resource_constraint": {
+    "physical_cores": 6,
+    "observation": "17:14:57 up 2 days,  5:09,  1 user,  load average: 14.26, 15.62, 14.99",
+    "rule": "Global AGENTS.md section 3f: full suites cannot start when 1-minute load exceeds physical cores."
+  },
+  "format_only_after_regression": {
+    "paths": [
+      "test/managed-governance/conformance.test.js",
+      "test/managed-governance/console.test.js",
+      "test/managed-governance/http.test.js",
+      "test/managed-governance/installation.test.js",
+      "test/managed-governance/network-admission.test.js",
+      "test/managed-governance/network-security.test.js",
+      "test/managed-governance/security.test.js",
+      "tools/mcp-hseos-governance/lib/governance-query-adapter.js"
+    ],
+    "verification": "AST equality against staged baseline verified with espree; executable syntax unchanged.",
+    "final_sha256": {
+      "test/managed-governance/conformance.test.js": "665c33de783f8ba4f0d9c1a6fd0733c56ac1f37c68c5f1ec646f7cb4945ff385",
+      "test/managed-governance/console.test.js": "f51c88d7c5575b6f8d06718f320e67dc049739826c917d2da3cc9604d10d5795",
+      "test/managed-governance/http.test.js": "77e34c4920f1c23bea969e663533886e1d2a5f7ec17b578050b7d4eed0dad417",
+      "test/managed-governance/installation.test.js": "61854ba5ba7ac273623f1a0da7b79e0190193c58a7b133dd6a46125beac2e48f",
+      "test/managed-governance/network-admission.test.js": "d0e88cb40c4e3b001dc2bb4f748bae6ce87d349742e922595f4be2368b5f38bf",
+      "test/managed-governance/network-security.test.js": "cabd5af3d54dd4c6b5828f9132269994fd36f7a45ad17d39d087963f622d4dae",
+      "test/managed-governance/security.test.js": "3b62d65bbacb13d73520da8a2a87ec086c001f243dfbc18a1e290fcf9fbf9afd",
+      "tools/mcp-hseos-governance/lib/governance-query-adapter.js": "daf72542cd0705e47da605a79db9eca3cad9148a2ca9dded7b993268cd181f2d"
+    }
+  },
+  "sources_manifest": "examined-sources-final.json",
+  "artifacts": {
+    "coverage-gate-final.log": "1a5f50cc1da875bce8c681cace8b1d7840a1586a432e3fcb9b849fe4dd42e45d",
+    "coverage-summary.json": "a9f925cb4fc8e0e07964a85c2e2b0257316c9b1949f2ad714d68d89c1e564092",
+    "driver-green.log": "e78744371c6e9ce8356824199550342d4b7c57342aa33dfedae4cae0f6b4d2cf",
+    "driver-red.log": "a60a16823500f5fbd5e7576a20247d8bbd3c956fcb75fa034ae0677798e5cfe1",
+    "examined-sources-final.json": "6f5215bcb4999664f18e513c573283b675291b41fdadc2a8b9daf8cee62ff4c7",
+    "final-regression.log": "dd617cf3a75b5fb975e2194dfd7632fe6735b6b4828bfeafbe0980690868448f",
+    "format-verified.log": "d2e1aea7716e1afaae196ebdb85b7cb6697a1da6fcf5e755920a0f9adec17eff",
+    "lint-final.log": "cc6b4feb435484d113b62528c9012176a6894f5a0bad6bf6fe1b92944acc7514",
+    "quality-final.log": "f85abc5bf2f0486080dc12422cae1f1be9908055faebbea0edede47366dfbf1d"
+  }
+}

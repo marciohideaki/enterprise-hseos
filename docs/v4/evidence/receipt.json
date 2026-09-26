@@ -1,0 +1,27 @@
+{
+  "cli.tap": {
+    "sha256": "61a602692643e930bdddaffd5cca850ef6715e619f711f57182c2f3cfd8b7119"
+  },
+  "contracts-and-diagnostic.tap": {
+    "sha256": "f9b7b5e7bfb80b5b5b85662cdabc93c31e579c243164ba857b1a74bf894da291"
+  },
+  "isolation.tap": {
+    "sha256": "03d28f6c02350a2c866c56617dae3f23f5e1c3367bbdf251d97485015a1ef34a"
+  },
+  "lint.txt": {
+    "sha256": "dddf56f93b2a32f6606e1a7ed397282392f48f4ca8f52ab1672f8b9ebee89316"
+  },
+  "governance-gates.txt": {
+    "sha256": "bd2082405261a43c6fb0c389ca0b3fc97c6be6c565fea3020648c83f28ac446d"
+  },
+  "package": {
+    "filename": "hseos-3.4.2.tgz",
+    "size": 2340607,
+    "unpackedSize": 8522780,
+    "shasum": "b77b7947ab22c447e8612aa7d6767ff753d9f0e4",
+    "integrity": "sha512-r2aij9pk9DjHDmBcBpv2omhiXhuSk9MbUVaWi0TD6bZrMw7Jh+ne407Hsdv9sJm+wyMRFbHOdIc3x4XRjPLQTg==",
+    "scope": "local pack; clean external installation not verified"
+  },
+  "status": "incomplete",
+  "full_suite": "not run: host load above 6 physical cores"
+}

@@ -16,3 +16,9 @@ test/template-test-generator/
 # Vendor / lockfiles
 node_modules/
 package-lock.json
+
+# Immutable evidence receipts and exact compiler output have their own integrity checks
+_graph/**/evidence/
+docs/evidence/
+docs/v4/evidence/
+tools/cli/command-manifest.json

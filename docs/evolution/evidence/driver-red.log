@@ -1,0 +1,24 @@
+✖ process normalization cannot mutate the frozen driver environment (1.793196ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 226.930619
+
+✖ failing tests:
+
+test at test/test-codex-app-server-driver.js:279:1
+✖ process normalization cannot mutate the frozen driver environment (1.793196ms)
+  TypeError: Cannot add property HSEOS_PROCESS_PROBE, object is not extensible
+      at spawn_process (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/test/test-codex-app-server-driver.js:288:39)
+      at new AppServerConnection (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/packages/runtime-providers/codex-app-server-driver.js:92:18)
+      at #connection (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/packages/runtime-providers/codex-app-server-driver.js:367:24)
+      at CodexAppServerDriver.create (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/packages/runtime-providers/codex-app-server-driver.js:224:46)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/test/test-codex-app-server-driver.js:293:20)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17)

@@ -1,0 +1,6 @@
+{
+  "changed_members_since_installed_smoke": ["package/.enterprise/.specs/decisions/ADR-0043-harness-evolution.md"],
+  "executable_members_unchanged": true,
+  "sha256": "6f37de44b8a7001ca92f16a34ac809e0c6c0042a9b5a65299d10da9c45badada",
+  "path": "/build/tmp/hseos-w0-final-package/hseos-4.0.0-rc.0.tgz"
+}

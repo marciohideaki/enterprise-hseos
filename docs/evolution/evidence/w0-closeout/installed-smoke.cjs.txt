@@ -1,0 +1,18 @@
+'use strict';
+const fs=require('node:fs'); const path=require('node:path'); const assert=require('node:assert/strict'); const {spawnSync}=require('node:child_process');
+const root=__dirname; const consumer=path.join(root,process.argv[2] || 'consumer22'); const installed=path.join(consumer,'node_modules/hseos');
+const {createEngineeringExample,createEngineeringWorkflowExample}=require(path.join(installed,'tools/examples/engineering-task'));
+const cli=path.join(consumer,'node_modules/.bin/hseos');
+const run=args=>{const p=spawnSync(process.execPath,[cli,...args],{cwd:consumer,env:{PATH:process.env.PATH,TMPDIR:'/tmp',HSEOS_DISABLE_UPDATE_CHECK:'1'},encoding:'utf8',timeout:60000,maxBuffer:4*1024*1024});assert.equal(p.status,0,p.stdout+p.stderr);return JSON.parse(p.stdout);};
+const networkIsolated=process.env.HSEOS_OFFLINE_SMOKE==='1';
+if(networkIsolated) assert.equal(fs.readFileSync('/proc/net/route','utf8').trim().split('\n').length,1);
+const tasks=[];
+for(const name of ['addition','clamp','unique','correction']){
+ const example=createEngineeringExample(name); const contract=path.join(consumer,`${name}-task.json`); const responses=path.join(consumer,`${name}-responses.json`);
+ fs.writeFileSync(contract,JSON.stringify(example.contract));fs.writeFileSync(responses,JSON.stringify(example.responses));
+ const result=run(['agent','run','--task-contract',contract,'--scripted-responses',responses,'--json']);assert.equal(result.task_result,'approved');
+ const status=run(['agent','status','--profile','disposable-engineering-candidate','--state',result.state,'--json']);assert.deepEqual(status,result);tasks.push(result);
+}
+const definition=path.join(consumer,'workflow.json');fs.writeFileSync(definition,JSON.stringify(createEngineeringWorkflowExample()));
+const workflow=run(['workflow','run','--definition',definition,'--json']);assert.equal(workflow.status,'completed');assert.ok(workflow.tasks.every(t=>t.result==='approved'));assert.deepEqual(run(['workflow','status','--state',workflow.state,'--json']),workflow);
+console.log(JSON.stringify({node:process.version,installed,outside_checkout:true,network_isolated:networkIsolated,network_namespace:fs.readlinkSync('/proc/self/ns/net'),task_results:tasks.map(t=>({task:t.task_id,result:t.task_result,corrections:t.correction_reviews.length})),workflow_result:workflow.status,workflow_tasks:workflow.tasks.length},null,2));

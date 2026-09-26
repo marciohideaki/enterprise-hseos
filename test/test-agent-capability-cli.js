@@ -4,10 +4,12 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { execFileSync } = require('node:child_process');
+const { execFileSync, spawnSync } = require('node:child_process');
 const { test } = require('node:test');
 
 const { resolveCapabilityPlan } = require('../tools/cli/lib/capability-catalog');
+const { RelationalSessionEventStore } = require('../packages/agent-session-store');
+const { ExecutionEventLedger } = require('../tools/mcp-project-state/lib/execution-event-ledger');
 const {
   ExecutionLedgerActivationError,
   openExecutionLedgerFileFixture,
@@ -22,6 +24,7 @@ function cli(...args) {
     encoding: 'utf8',
     env: {
       PATH: process.env.PATH,
+      TMPDIR: os.tmpdir(),
       HSEOS_DISABLE_UPDATE_CHECK: '1',
     },
   });
@@ -32,6 +35,134 @@ function cleanupState(state) {
   const handle = openExecutionLedgerFileFixture(state);
   handle.cleanup();
 }
+
+test('failed durable sessions return a failing CLI exit code without rewriting evidence', () => {
+  const created = cli('run', '--create-only');
+  const handle = openExecutionLedgerFileFixture(created.state);
+  try {
+    const store = new RelationalSessionEventStore({ ledger: new ExecutionEventLedger(handle.db) });
+    store.append({
+      session_id: created.session_id,
+      expected_version: created.current_sequence,
+      events: [
+        {
+          schema_version: 1,
+          event_id: 'event:cli-failed-fixture',
+          session_id: created.session_id,
+          sequence: created.current_sequence + 1,
+          occurred_at: new Date().toISOString(),
+          event_type: 'session.failed',
+          payload: { error_code: 'budget_exceeded', message: 'fixture budget exhausted', retryable: false },
+        },
+      ],
+    });
+    const before = store.readSession(created.session_id);
+    for (const json of [true, false]) {
+      const result = spawnSync(
+        process.execPath,
+        [
+          CLI,
+          'agent',
+          'resume',
+          '--state',
+          created.state,
+          '--expected-sequence',
+          String(created.current_sequence + 1),
+          ...(json ? ['--json'] : []),
+        ],
+        {
+          cwd: ROOT,
+          encoding: 'utf8',
+          env: { PATH: process.env.PATH, TMPDIR: os.tmpdir(), HSEOS_DISABLE_UPDATE_CHECK: '1' },
+        },
+      );
+      assert.equal(result.error, undefined);
+      assert.equal(result.status, 1, result.stdout);
+      if (json) {
+        const output = JSON.parse(result.stdout);
+        assert.equal(output.status, 'failed');
+        assert.equal(output.state, created.state);
+        assert.equal(output.world_state, null);
+      } else assert.match(result.stdout, /status: failed/);
+      assert.deepEqual(store.readSession(created.session_id), before);
+    }
+  } finally {
+    handle.cleanup();
+  }
+});
+
+test('resuming a cancelled session fails while explicit cancellation remains successful', () => {
+  const created = cli('run', '--create-only');
+  try {
+    const cancelled = cli('cancel', '--state', created.state);
+    assert.equal(cancelled.status, 'cancelled');
+    const result = spawnSync(
+      process.execPath,
+      [CLI, 'agent', 'resume', '--state', created.state, '--expected-sequence', String(cancelled.current_sequence), '--json'],
+      {
+        cwd: ROOT,
+        encoding: 'utf8',
+        env: { PATH: process.env.PATH, TMPDIR: os.tmpdir(), HSEOS_DISABLE_UPDATE_CHECK: '1' },
+      },
+    );
+    assert.equal(result.error, undefined);
+    assert.equal(result.status, 1, result.stdout);
+    assert.equal(JSON.parse(result.stdout).status, 'cancelled');
+    assert.equal(JSON.parse(result.stdout).current_sequence, cancelled.current_sequence);
+  } finally {
+    cleanupState(created.state);
+  }
+});
+
+test('reference completion rejects a real failed write instead of claiming the requested effect', () => {
+  const created = cli('run', '--create-only', '--value', 'must-not-be-claimed');
+  const output = path.join(created.state, 'workspace', 'world-state.json');
+  try {
+    fs.mkdirSync(output);
+    const child = spawnSync(
+      process.execPath,
+      [
+        CLI,
+        'agent',
+        'resume',
+        '--state',
+        created.state,
+        '--expected-sequence',
+        String(created.current_sequence),
+        '--message',
+        'persist the requested state',
+        '--json',
+      ],
+      {
+        cwd: ROOT,
+        encoding: 'utf8',
+        env: { PATH: process.env.PATH, TMPDIR: os.tmpdir(), HSEOS_DISABLE_UPDATE_CHECK: '1' },
+      },
+    );
+    assert.equal(child.error, undefined);
+    const result = JSON.parse(child.stdout);
+    assert.equal(result.status, 'failed');
+    assert.equal(result.terminal, true);
+    assert.equal(result.output, '');
+    assert.equal(result.world_state, null);
+    assert.ok(fs.statSync(output).isDirectory(), 'the requested state was not written');
+    const handle = openExecutionLedgerFileFixture(created.state);
+    try {
+      const store = new RelationalSessionEventStore({ ledger: new ExecutionEventLedger(handle.db) });
+      const events = store.readSession(created.session_id);
+      assert.equal(events.filter((event) => event.event_type === 'tool.execution.started').length, 1);
+      const failedTool = events.find((event) => event.event_type === 'tool.execution.completed');
+      assert.equal(failedTool.payload.outcome.status, 'uncertain');
+      assert.equal(failedTool.payload.outcome.error.code, 'EXECUTION_OUTCOME_IN_DOUBT');
+      assert.equal(events.at(-1).event_type, 'session.failed');
+      assert.equal(events.at(-1).payload.error_code, 'tool_failed');
+    } finally {
+      handle.close();
+    }
+  } finally {
+    cleanupState(created.state);
+  }
+});
 
 test('agent-reference capability plan selects exactly one keyless model and kernel runtime', () => {
   const plan = resolveCapabilityPlan({ root: ROOT, profile: 'agent-reference' });

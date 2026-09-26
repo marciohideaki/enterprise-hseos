@@ -1,0 +1,54 @@
+✖ failed durable sessions return a failing CLI exit code without rewriting evidence (1115.30773ms)
+✖ resuming a cancelled session fails while explicit cancellation remains successful (1652.251574ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3075.910124
+
+✖ failing tests:
+
+test at test/test-agent-capability-cli.js:38:1
+✖ failed durable sessions return a failing CLI exit code without rewriting evidence (1115.30773ms)
+  AssertionError [ERR_ASSERTION]: {"schema_version":1,"profile":"agent-reference","state":"/tmp/hseos-ledger-fixture-tXtBTA","session_id":"session:cd5eb584-e035-457a-beed-4c6d5a5526b9","status":"failed","terminal":true,"current_sequence":2,"operation":"resume","output":"","world_state":null}
+  
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/harness-cli-outcome/test/test-agent-capability-cli.js:63:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/test-agent-capability-cli.js:77:1
+✖ resuming a cancelled session fails while explicit cancellation remains successful (1652.251574ms)
+  AssertionError [ERR_ASSERTION]: {"schema_version":1,"profile":"agent-reference","state":"/tmp/hseos-ledger-fixture-FeT9OA","session_id":"session:f906b304-9386-4be4-85d6-db467e703257","status":"cancelled","terminal":true,"current_sequence":3,"operation":"resume","output":"","world_state":null}
+  
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/harness-cli-outcome/test/test-agent-capability-cli.js:87:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

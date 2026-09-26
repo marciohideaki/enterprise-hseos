@@ -1,0 +1,14 @@
+{
+  "baseline_files_preserved": 1956,
+  "baseline_index_preserved": true,
+  "base_commit": "a8423081934d64538d71ef8289f072d51566a870",
+  "baseline_tree": "7f4676b80505918583cdbef3577c8f88807e9fca",
+  "review_tree_without_latest_receipt": "27270e7f6d985375c60fcd10968d23dc2cc34da2",
+  "candidate_patch_sha256": "17c5f84c696481d58f409acb082adfcdc15ef715debe1df23092efe670908920",
+  "wave0_patch_sha256": "762793957fd402231dccfd7922b0a4456d3fbbc44471f6ebdd4cf37b4a07c999",
+  "patch_location": ".logs/validation/w0-closeout",
+  "receipt_excluded_from_delta": "docs/evolution/evidence/w0-closeout",
+  "actual_index_preserved": true,
+  "committed": false,
+  "patch_chain_reconstructed_exact_tree": true
+}

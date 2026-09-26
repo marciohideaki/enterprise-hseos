@@ -49,7 +49,6 @@ async function startServer(options = {}) {
 }
 
 async function request(baseUrl, method, pathname, body) {
-  // eslint-disable-next-line n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line
   const response = await fetch(`${baseUrl}${pathname}`, {
     method,
     headers: body === undefined ? {} : { 'content-type': 'application/json' },

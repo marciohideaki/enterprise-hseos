@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-25",
+  "branch": "task/hseos-v4-consolidation",
+  "package": {
+    "filename": "hseos-4.0.0-rc.0.tgz",
+    "shasum": "fc32e93805f2d92ced6cfdd9c7f1903c46d665b7",
+    "integrity": "sha512-wtzouOCECYaUiTaHBe0WumKgBKgPCa54f99HDjEJrBRqE3nWeheO4GGWyWrs/9E0kwgU9olsY/cEFbJj7dZvLA==",
+    "size": 2371887,
+    "unpackedSize": 8645783
+  },
+  "fixes": [
+    {
+      "component": "hook test helper",
+      "cause": "Node stdin EPIPE with child status 0 and no signal; reproduced 6/200 before fix",
+      "behavior": "accept only successful early pipe closure; all other errors fail"
+    },
+    {
+      "component": "isolated executor resource cleanup",
+      "cause": "EBUSY removing empty cgroup after interrupted worker",
+      "behavior": "drain and remove within a shared 5-second cleanup deadline; persistent busy state raises ENGINEERING_TEARDOWN_UNCERTAIN"
+    }
+  ],
+  "verification": {
+    "hook_handler_checks": 83,
+    "blocking_hook_checks": 11,
+    "engineering_tests": 46,
+    "provider_conformance_tests": 9,
+    "nested_suite_counts_overlap": true,
+    "lint": "passed",
+    "changed_file_format": "passed",
+    "external_public_tasks_approved": 3,
+    "external_public_workflow": "completed",
+    "ci_phase": {
+      "failures": 0,
+      "warnings": 1
+    },
+    "full_gates": "fourth run failed on hook test pipe race; fixed and targeted retests passed; full rerun pending",
+    "latest_load_1m": 11.19,
+    "physical_cores": 6,
+    "real_provider_campaign": "not_run",
+    "operational_activation": "not_authorized",
+    "documentation_neutrality": "passed"
+  },
+  "evidence": [
+    {
+      "file": "full-gates-fourth.log",
+      "sha256": "6681402ad409da8d52003a2eb67689426a48028a652213169ded50eba66b35e0"
+    },
+    {
+      "file": "hooks-pipe-race-fixed.log",
+      "sha256": "011d3ff09a95085b46dcc0c20c11b5708d9413dd15fbc0585e5b73293d865c54"
+    },
+    {
+      "file": "engineering-revalidation.log",
+      "sha256": "ee9510c24ae796651162adf90d992a232971829c2874f31cb43edc86e02cba29"
+    },
+    {
+      "file": "executor-cleanup-fixed.log",
+      "sha256": "bd3afeb7dd0e33c5024faa875694d4cb55abe06c1f51591d2bfa1221e4860f1a"
+    },
+    {
+      "file": "engineering-revalidation-fixed.log",
+      "sha256": "5b1405eec2dfafe71f6f532d6ed5e007b693f61d227b7c09c0ed42906b4de945"
+    },
+    {
+      "file": "provider-conformance-revalidation.log",
+      "sha256": "15f37dbf0e7c1d544bfecb4cba26adb281a654f0c2b422ce390e2f257e382727"
+    },
+    {
+      "file": "revalidation-lint.log",
+      "sha256": "cc6b4feb435484d113b62528c9012176a6894f5a0bad6bf6fe1b92944acc7514"
+    },
+    {
+      "file": "clean-smoke.json",
+      "sha256": "d541b9bc0c067575df9773e641f737c98932944b76fa266b66440d96952c655d"
+    },
+    {
+      "file": "install.log",
+      "sha256": "9d8a6d53f53a968801780d27fb925a3bfd7878e876ae75b4610055b95e6ea275"
+    },
+    {
+      "file": "ci-gates.log",
+      "sha256": "87f538e949549f877302b86d1869cb60024bc8dd12dcbbaf9c364ad950c078fe"
+    },
+    {
+      "file": "full-gates-fourth-internal.log",
+      "sha256": "9984d7c6f18f99b82623bc7437274323fb13d86f7671eb8ede2bc5f7a82bd11e"
+    },
+    {
+      "file": "documentation-neutrality.log",
+      "sha256": "f06d078ba2274f8677701a9e1006f54894aac168da792bbba86fa89c6c675c47"
+    }
+  ]
+}

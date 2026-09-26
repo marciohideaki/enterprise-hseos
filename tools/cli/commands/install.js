@@ -1,12 +1,7 @@
 const path = require('node:path');
 const prompts = require('../lib/prompts');
-const { Installer } = require('../installers/lib/core/installer');
-const { UI } = require('../lib/ui');
 const { getProjectRoot } = require('../lib/project-root');
-const { parseCsv, resolveCapabilityPlan, writeCapabilitySelection } = require('../lib/capability-catalog');
-
-const installer = new Installer();
-const ui = new UI();
+const { parseCsv, resolveCapabilityPlan, writeCapabilitySelection, materializeCapabilityPlan } = require('../lib/capability-catalog');
 
 /**
  * Map selected `extra:*` capability components onto the corresponding install
@@ -39,6 +34,7 @@ module.exports = {
   command: 'install',
   description: 'Install HSEOS agents and framework',
   options: [
+    ['--json', 'Emit a JSON receipt for selected-only minimal/candidate materialization'],
     ['-d, --debug', 'Enable debug output for manifest generation'],
     ['--directory <path>', 'Installation directory (default: current directory)'],
     ['--modules <modules>', 'Comma-separated list of module IDs to install (e.g., "bmm,bmb")'],
@@ -70,6 +66,17 @@ module.exports = {
   ],
   action: async (options) => {
     try {
+      if (['minimal', 'disposable-engineering-candidate'].includes(options.profile)) {
+        const extras = Object.keys(options).filter((key) => !['profile', 'directory', 'yes', 'json', 'gitHooks'].includes(key));
+        if (extras.length > 0) throw new Error('Minimal/candidate materialization accepts profile, directory, yes and JSON only');
+        const receipt = await materializeCapabilityPlan({ directory: options.directory || process.cwd(), profile: options.profile });
+        console.log(options.json ? JSON.stringify(receipt) : `Materialized ${receipt.profile} in ${receipt.directory}`);
+        return receipt;
+      }
+      const { Installer } = require('../installers/lib/core/installer');
+      const { UI } = require('../lib/ui');
+      const installer = new Installer();
+      const ui = new UI();
       // Set debug flag as environment variable for all components
       if (options.debug) {
         process.env.HSEOS_DEBUG_MANIFEST = 'true';

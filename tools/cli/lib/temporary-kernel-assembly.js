@@ -54,6 +54,8 @@ function assembleTemporaryKernel({
   model_provider_snapshot,
   context_profile_resolver,
   tool_bundles = [],
+  execution_policy = null,
+  completion_review = null,
   max_concurrency = 1,
   runtime_clock = Date,
   execution_clock = { now: () => new Date().toISOString() },
@@ -80,7 +82,7 @@ function assembleTemporaryKernel({
         return { allowed: true };
       },
     },
-    policy: {
+    policy: execution_policy || {
       async evaluate({ contract }) {
         return { allowed: true, requires_approval: false, policy_version: contract.policy_version, warnings: [] };
       },
@@ -106,6 +108,7 @@ function assembleTemporaryKernel({
     tool_runtime: toolRuntime,
     context_profile_resolver,
     clock: runtime_clock,
+    completion_review,
   });
   return Object.freeze({ executionLedger, projection, runtime, sessionStore, toolRuntime });
 }

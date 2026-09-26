@@ -13,14 +13,16 @@ class CanonicalJsonError extends TypeError {
 
 function assertWellFormedString(value, path) {
   for (let index = 0; index < value.length; index += 1) {
+    // eslint-disable-next-line unicorn/prefer-code-point -- Validate UTF-16 surrogate pairs by code unit, not Unicode code point.
     const code = value.charCodeAt(index);
-    if (code >= 0xd800 && code <= 0xdbff) {
+    if (code >= 0xd8_00 && code <= 0xdb_ff) {
+      // eslint-disable-next-line unicorn/prefer-code-point -- Validate UTF-16 surrogate pairs by code unit, not Unicode code point.
       const next = value.charCodeAt(index + 1);
-      if (!(next >= 0xdc00 && next <= 0xdfff)) {
+      if (!(next >= 0xdc_00 && next <= 0xdf_ff)) {
         throw new CanonicalJsonError('string contains an unpaired high surrogate', path);
       }
       index += 1;
-    } else if (code >= 0xdc00 && code <= 0xdfff) {
+    } else if (code >= 0xdc_00 && code <= 0xdf_ff) {
       throw new CanonicalJsonError('string contains an unpaired low surrogate', path);
     }
   }
