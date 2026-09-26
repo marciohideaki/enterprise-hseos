@@ -1,0 +1,98 @@
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const { randomUUID } = require('node:crypto');
+const { spawn, execFile, execFileSync } = require('node:child_process');
+const run = require('node:util').promisify(execFile);
+const consumer = path.resolve(process.argv[2]);
+const installed = path.join(consumer, 'node_modules/hseos');
+const { createProjectExample } = require(path.join(installed, 'tools/examples/project-task'));
+const { ControlClient } = require(path.join(installed, 'packages/control-sdk'));
+const credential = 'ephemeral-terminal-installed-conformance-fixture-only';
+const env = { PATH: process.env.PATH, TMPDIR: '/tmp', HSEOS_DISABLE_UPDATE_CHECK: '1', HSEOS_CONTROL_CREDENTIAL: credential };
+const cli = path.join(installed, 'tools/cli/hseos-cli.js');
+const command = (id, action, expected_sequence, input = {}) => ({ schema_version: 1, command_id: randomUUID(), resource_id: id, expected_sequence, action, input });
+async function main() {
+  assert.ok(!installed.includes('/.worktrees/'));
+  const example = createProjectExample('python-inventory', consumer);
+  const root = example.contract.workspace.root;
+  fs.writeFileSync(path.join(root, 'terminal.py'), 'import os,sys,time\nprint("TTY="+str(os.isatty(0)),flush=True)\nline=sys.stdin.readline()\nprint("OBSERVED="+line.strip(),flush=True)\nwhile True: time.sleep(.1)\n');
+  for (const args of [['add', 'terminal.py'], ['commit', '-m', 'test(terminal): add declared interactive program']]) execFileSync('git', ['-C', root, ...args], { stdio: 'ignore' });
+  const contract = structuredClone(example.contract);
+  contract.scope.read.push('terminal.py');
+  contract.commands.push({ id: 'interactive', runtime: 'python', entrypoint: 'terminal.py', args: [] });
+  const config = path.join(consumer, 'control.json');
+  fs.writeFileSync(config, JSON.stringify({ workspaces: [root] }));
+  const server = spawn(process.execPath, [cli, 'control', 'serve', '--config', config], { cwd: consumer, env, stdio: ['ignore', 'pipe', 'pipe'] });
+  let stderr = '';
+  server.stderr.on('data', (data) => { stderr += data; });
+  const exited = new Promise((resolve) => server.once('exit', (code, signal) => resolve({ code, signal })));
+  let ready;
+  try {
+    ready = await new Promise((resolve, reject) => {
+      let buffer = '';
+      const timer = setTimeout(() => reject(new Error('Server readiness deadline')), 15000);
+      server.once('exit', () => { clearTimeout(timer); reject(new Error('Server exited before readiness: ' + stderr)); });
+      server.stdout.on('data', (data) => { buffer += data; if (buffer.includes('\n')) { clearTimeout(timer); resolve(JSON.parse(buffer.split('\n')[0])); } });
+    });
+    const client = new ControlClient({ url: ready.url, credential });
+    const taskId = randomUUID();
+    await client.execute(command(taskId, 'create', 0, { contract: await client.prepare(contract), responses: [] }));
+    const terminals = [];
+    for (const mode of ['pty', 'job']) {
+      const id = randomUUID();
+      const open = command(id, 'open', 0, { task_id: taskId, command_id: 'interactive', mode });
+      await client.terminal(open);
+      const readyDeadline = Date.now() + 5000;
+      while (!(await client.terminalEvents(id)).events.some((row) => row.payload.kind === 'output')) {
+        assert.ok(Date.now() < readyDeadline);
+        await new Promise((resolve) => setTimeout(resolve, 15));
+      }
+      const mutate = async (action, input = {}) => client.terminal(command(id, action, (await client.terminalQuery(id)).current_sequence, input));
+      if (mode === 'pty') await mutate('resize', { rows: 40, cols: 100 });
+      await mutate('pause');
+      assert.equal((await client.terminalQuery(id)).status, 'paused');
+      await mutate('continue');
+      const filename = path.join(consumer, `${mode}-input.json`);
+      const request = command(id, 'input', (await client.terminalQuery(id)).current_sequence, { data: Buffer.from(mode + '-once\n').toString('base64') });
+      fs.writeFileSync(filename, JSON.stringify(request));
+      const cliResult = await run(process.execPath, [cli, 'control', 'terminal-command', '--url', ready.url, '--request', filename], { cwd: consumer, env, timeout: 15000 });
+      assert.equal(JSON.parse(cliResult.stdout).effect.bytes, mode.length + 6);
+      assert.deepEqual(await client.terminal(request), JSON.parse(cliResult.stdout));
+      const deadline = Date.now() + 5000;
+      let output = '';
+      while (!output.includes('OBSERVED=' + mode + '-once')) {
+        assert.ok(Date.now() < deadline, output);
+        const events = await client.terminalEvents(id);
+        output = events.events.filter((row) => row.payload.kind === 'output').map((row) => Buffer.from(row.payload.data, 'base64').toString()).join('');
+        await new Promise((resolve) => setTimeout(resolve, 15));
+      }
+      assert.ok(output.includes('TTY=' + (mode === 'pty' ? 'True' : 'False')));
+      const batch = await client.terminalEvents(id);
+      const python = await run('/usr/bin/python3', ['-B', '-c', 'import json,os,sys;sys.path.insert(0,sys.argv[1]);from hseos_control import ControlClient;print(json.dumps(ControlClient(sys.argv[2],os.environ["HSEOS_CONTROL_CREDENTIAL"]).terminal_events(sys.argv[3],int(sys.argv[4]))))', path.join(installed, 'packages/control-sdk'), ready.url, id, String(batch.next_cursor)], { cwd: consumer, env, timeout: 10000 });
+      assert.equal(JSON.parse(python.stdout).events.length, 0);
+      terminals.push({ id, mode, output, next_cursor: batch.next_cursor });
+    }
+    const status = await client.query(taskId);
+    await client.execute(command(taskId, 'cancel', status.current_sequence));
+    for (const terminal of terminals) {
+      const state = await client.terminalQuery(terminal.id);
+      assert.equal(state.descendants_terminated, true);
+      terminal.status = state.status;
+    }
+    process.stdout.write(JSON.stringify({ node: process.version, installed, outside_checkout: true, operational: false, real_models: false, task_id: taskId, terminals, interfaces: ['installed CLI server', 'CLI terminal-command', 'JS SDK', 'Python SDK', 'authenticated HTTP'] }, null, 2) + '\n');
+  } finally {
+    server.kill('SIGTERM');
+    const exit = await exited;
+    assert.equal(exit.code, 0, stderr);
+    if (ready) {
+      const { EngineeringControl } = require(path.join(installed, 'tools/cli/lib/engineering-control'));
+      const control = new EngineeringControl({ state: ready.state });
+      const children = control.ledger.readGlobal({ limit: 1000, aggregate_type: 'control_task' }).filter((r) => r.payload.kind === 'registered').map((r) => r.payload.state_directory);
+      control.close();
+      for (const directory of [...children, ready.state]) fs.rmSync(directory, { recursive: true, force: true });
+    }
+  }
+}
+main().catch((error) => { process.stderr.write(String(error.stack) + '\n'); process.exitCode = 1; });

@@ -1,0 +1,11 @@
+{
+  "started_at": "2026-09-26T05:39:53.658350+00:00",
+  "finished_at": "2026-09-26T05:40:10.411177+00:00",
+  "exit_code": 0,
+  "sequential": true,
+  "commands": [
+    ["npm", "run", "format:check"],
+    ["node", "--test", "--test-concurrency=1", "test/test-kernel-quality-surface.js"],
+    ["bash", "scripts/governance/quality-gates.sh", "--phase", "ci"]
+  ]
+}

@@ -1,0 +1,2724 @@
+
+> hseos@4.0.0-rc.0 test:kernel
+> node --test --test-concurrency=1 test/test-agent-runtime.js test/test-tool-runtime.js test/test-agent-policy-lattice.js test/test-agent-transitive-isolation.js test/test-agent-session-store.js test/test-agent-compaction.js test/test-agent-orchestration.js test/test-bound-kernel-supervisor.js test/test-provider-egress-broker.js test/test-engineering-executor.js test/test-engineering-task-contract.js test/test-engineering-task-state.js test/test-engineering-task-runtime.js test/test-engineering-model.js test/test-engineering-corrections.js test/test-engineering-reconciliation.js test/test-engineering-workflow-runtime.js test/test-engineering-sandbox-check.js test/test-bound-kernel-agent.js test/test-agentic-hardening-conformance.js test/test-agent-context.js test/test-agent-runtime-contracts.js test/test-model-providers.js test/test-runtime-providers.js test/test-agent-message-transport.js test/test-delegated-runtime-host.js test/test-claude-agent-sdk-driver.js test/test-codex-app-server-driver.js test/managed-governance/contracts.test.js test/managed-governance/client.test.js test/managed-governance/snapshot.test.js test/managed-governance/session-preflight.test.js test/test-engineering-boundaries.js test/test-agentic-completion-audit.js test/test-isolation-witness-faults.js test/test-engineering-project.js test/test-engineering-control.js test/test-engineering-workspace.js test/test-project-examples.js && npm run test:terminals
+
+TAP version 13
+# Subtest: binding loader proves repository identity and rejects secret-bearing input before network access
+ok 1 - binding loader proves repository identity and rejects secret-bearing input before network access
+  ---
+  duration_ms: 18.961063
+  type: 'test'
+  ...
+# Subtest: online shadow compares decisions while local authority remains unchanged
+ok 2 - online shadow compares decisions while local authority remains unchanged
+  ---
+  duration_ms: 4.132905
+  type: 'test'
+  ...
+# Subtest: valid last-known-good snapshot supports degraded shadow without blocking
+ok 3 - valid last-known-good snapshot supports degraded shadow without blocking
+  ---
+  duration_ms: 8.055023
+  type: 'test'
+  ...
+# Subtest: reserved enforcement mode fails before network or cache access
+ok 4 - reserved enforcement mode fails before network or cache access
+  ---
+  duration_ms: 0.540243
+  type: 'test'
+  ...
+# Subtest: bounded retries and circuit states produce typed degraded results
+ok 5 - bounded retries and circuit states produce typed degraded results
+  ---
+  duration_ms: 4.632385
+  type: 'test'
+  ...
+# Subtest: timeout remains bounded when an injected transport ignores abort
+ok 6 - timeout remains bounded when an injected transport ignores abort
+  ---
+  duration_ms: 102.052077
+  type: 'test'
+  ...
+# Subtest: chunked control-plane responses are bounded independently of content-length
+ok 7 - chunked control-plane responses are bounded independently of content-length
+  ---
+  duration_ms: 0.894815
+  type: 'test'
+  ...
+# Subtest: every valid fixture parses through its exported schema and is deeply frozen
+ok 8 - every valid fixture parses through its exported schema and is deeply frozen
+  ---
+  duration_ms: 40.958567
+  type: 'test'
+  ...
+# Subtest: every invalid fixture fails closed with normalized contract evidence
+ok 9 - every invalid fixture fails closed with normalized contract evidence
+  ---
+  duration_ms: 8.97942
+  type: 'test'
+  ...
+# Subtest: all top-level schemas reject unsupported versions and unknown fields
+ok 10 - all top-level schemas reject unsupported versions and unknown fields
+  ---
+  duration_ms: 9.168949
+  type: 'test'
+  ...
+# Subtest: session preflight status, reason and parity fields cannot diverge
+ok 11 - session preflight status, reason and parity fields cannot diverge
+  ---
+  duration_ms: 0.624704
+  type: 'test'
+  ...
+# Subtest: canonical JSON is lexically ordered and digest-stable
+ok 12 - canonical JSON is lexically ordered and digest-stable
+  ---
+  duration_ms: 0.951306
+  type: 'test'
+  ...
+# Subtest: canonical JSON rejects lossy, executable and ambiguous JavaScript values
+ok 13 - canonical JSON rejects lossy, executable and ambiguous JavaScript values
+  ---
+  duration_ms: 0.541034
+  type: 'test'
+  ...
+# Subtest: identifier, raw content and structured content byte limits are enforced
+ok 14 - identifier, raw content and structured content byte limits are enforced
+  ---
+  duration_ms: 91.081821
+  type: 'test'
+  ...
+# Subtest: closed vocabularies reject semantic widening
+ok 15 - closed vocabularies reject semantic widening
+  ---
+  duration_ms: 2.647389
+  type: 'test'
+  ...
+# Subtest: collection, timestamp and semantic-version boundaries are explicit
+ok 16 - collection, timestamp and semantic-version boundaries are explicit
+  ---
+  duration_ms: 2.355025
+  type: 'test'
+  ...
+# Subtest: rule conditions enforce operator-specific data without executable expressions
+ok 17 - rule conditions enforce operator-specific data without executable expressions
+  ---
+  duration_ms: 3.752413
+  type: 'test'
+  ...
+# Subtest: duplicate arrays, reversed time and unsafe paths fail closed
+ok 18 - duplicate arrays, reversed time and unsafe paths fail closed
+  ---
+  duration_ms: 1.68284
+  type: 'test'
+  ...
+# Subtest: import reports must account for every discovered source
+ok 19 - import reports must account for every discovered source
+  ---
+  duration_ms: 0.994184
+  type: 'test'
+  ...
+# Subtest: readiness report ready flag requires every readiness-algorithm condition, not just one
+ok 20 - readiness report ready flag requires every readiness-algorithm condition, not just one
+  ---
+  duration_ms: 2.400575
+  type: 'test'
+  ...
+# Subtest: managed network profile enforces deny-by-default admission for shared-network
+ok 21 - managed network profile enforces deny-by-default admission for shared-network
+  ---
+  duration_ms: 2.038769
+  type: 'test'
+  ...
+# Subtest: contract parser normalizes schema evaluation failures without leaking values
+ok 22 - contract parser normalizes schema evaluation failures without leaking values
+  ---
+  duration_ms: 0.367197
+  type: 'test'
+  ...
+# Subtest: session preflight reports equivalence and atomically persists bounded evidence
+ok 23 - session preflight reports equivalence and atomically persists bounded evidence
+  ---
+  duration_ms: 28.949066
+  type: 'test'
+  ...
+# Subtest: session preflight accepts the bounded full catalog projection
+ok 24 - session preflight accepts the bounded full catalog projection
+  ---
+  duration_ms: 4.070358
+  type: 'test'
+  ...
+# Subtest: session preflight distinguishes digest and repository identity drift
+ok 25 - session preflight distinguishes digest and repository identity drift
+  ---
+  duration_ms: 8.984134
+  type: 'test'
+  ...
+# Subtest: session preflight degrades remote failures and malformed projections without blocking
+ok 26 - session preflight degrades remote failures and malformed projections without blocking
+  ---
+  duration_ms: 8.848294
+  type: 'test'
+  ...
+# Subtest: session preflight fails local identity divergence before querying remote
+ok 27 - session preflight fails local identity divergence before querying remote
+  ---
+  duration_ms: 3.604753
+  type: 'test'
+  ...
+# Subtest: session preflight rejects an unsafe query configuration before network access
+ok 28 - session preflight rejects an unsafe query configuration before network access
+  ---
+  duration_ms: 1.510652
+  type: 'test'
+  ...
+# Subtest: session preflight rejects invalid UTF-8 Constitution bytes before network access
+ok 29 - session preflight rejects invalid UTF-8 Constitution bytes before network access
+  ---
+  duration_ms: 3.45513
+  type: 'test'
+  ...
+# Subtest: session preflight never creates evidence through a symlinked runtime ancestor
+ok 30 - session preflight never creates evidence through a symlinked runtime ancestor
+  ---
+  duration_ms: 4.878517
+  type: 'test'
+  ...
+# Subtest: session preflight reports an unconfigured project without network access
+ok 31 - session preflight reports an unconfigured project without network access
+  ---
+  duration_ms: 0.593119
+  type: 'test'
+  ...
+# Subtest: promotion is atomic, private and digest-verified
+ok 32 - promotion is atomic, private and digest-verified
+  ---
+  duration_ms: 12.38225
+  type: 'test'
+  ...
+# Subtest: corrupt, expired and identity-mismatched snapshots are never valid
+ok 33 - corrupt, expired and identity-mismatched snapshots are never valid
+  ---
+  duration_ms: 1.747101
+  type: 'test'
+  ...
+# Subtest: verifyGovernanceSnapshot accepts a currently valid, trusted, unexpired release
+ok 34 - verifyGovernanceSnapshot accepts a currently valid, trusted, unexpired release
+  ---
+  duration_ms: 15.184056
+  type: 'test'
+  ...
+# Subtest: verifyGovernanceSnapshot fails closed for a missing release
+ok 35 - verifyGovernanceSnapshot fails closed for a missing release
+  ---
+  duration_ms: 0.408357
+  type: 'test'
+  ...
+# Subtest: verifyGovernanceSnapshot rejects replay of an expired release
+ok 36 - verifyGovernanceSnapshot rejects replay of an expired release
+  ---
+  duration_ms: 2.598644
+  type: 'test'
+  ...
+# Subtest: verifyGovernanceSnapshot rejects a release that is not yet effective
+ok 37 - verifyGovernanceSnapshot rejects a release that is not yet effective
+  ---
+  duration_ms: 2.974366
+  type: 'test'
+  ...
+# Subtest: verifyGovernanceSnapshot rejects a signer that is not in the trusted binding
+ok 38 - verifyGovernanceSnapshot rejects a signer that is not in the trusted binding
+  ---
+  duration_ms: 2.405062
+  type: 'test'
+  ...
+# Subtest: verifyGovernanceSnapshot rejects a substituted signed digest that does not bind to the manifest
+ok 39 - verifyGovernanceSnapshot rejects a substituted signed digest that does not bind to the manifest
+  ---
+  duration_ms: 2.588127
+  type: 'test'
+  ...
+# Subtest: registry snapshots isolate provider changes and reject duplicate identities
+ok 40 - registry snapshots isolate provider changes and reject duplicate identities
+  ---
+  duration_ms: 8.590241
+  type: 'test'
+  ...
+# Subtest: registry snapshots bind provider methods instead of retaining mutable method lookup
+ok 41 - registry snapshots bind provider methods instead of retaining mutable method lookup
+  ---
+  duration_ms: 12.789894
+  type: 'test'
+  ...
+# Subtest: pressure is deterministic and history compaction writes one immutable exact checkpoint
+ok 42 - pressure is deterministic and history compaction writes one immutable exact checkpoint
+  ---
+  duration_ms: 6.561156
+  type: 'test'
+  ...
+# Subtest: crash retry reconstructs the exact result from checkpoint without reinvoking provider
+ok 43 - crash retry reconstructs the exact result from checkpoint without reinvoking provider
+  ---
+  duration_ms: 6.463387
+  type: 'test'
+  ...
+# Subtest: manifest caps fail closed before input dispatch and after provider output
+ok 44 - manifest caps fail closed before input dispatch and after provider output
+  ---
+  duration_ms: 1.865215
+  type: 'test'
+  ...
+# Subtest: tool-result pruning removes result bodies while preserving identity, evidence and digest
+ok 45 - tool-result pruning removes result bodies while preserving identity, evidence and digest
+  ---
+  duration_ms: 3.893124
+  type: 'test'
+  ...
+# Subtest: runtime rejects a provider result not bound to the exact input before checkpoint persistence
+ok 46 - runtime rejects a provider result not bound to the exact input before checkpoint persistence
+  ---
+  duration_ms: 1.841273
+  type: 'test'
+  ...
+# Subtest: runtime independently verifies provider accounting and ordered tool identities
+ok 47 - runtime independently verifies provider accounting and ordered tool identities
+  ---
+  duration_ms: 4.039021
+  type: 'test'
+  ...
+# Subtest: checkpoint ids are immutable and dispose never erases evidence
+ok 48 - checkpoint ids are immutable and dispose never erases evidence
+  ---
+  duration_ms: 2.008876
+  type: 'test'
+  ...
+# Subtest: checkpoint payloads reject nested credential-bearing fields
+ok 49 - checkpoint payloads reject nested credential-bearing fields
+  ---
+  duration_ms: 0.642636
+  type: 'test'
+  ...
+# Subtest: registry rejects forged snapshots, unverifiable manifests and manifest drift
+ok 50 - registry rejects forged snapshots, unverifiable manifests and manifest drift
+  ---
+  duration_ms: 1.296856
+  type: 'test'
+  ...
+# Subtest: invalid thresholds and tiny histories cannot be represented as successful compaction
+ok 51 - invalid thresholds and tiny histories cannot be represented as successful compaction
+  ---
+  duration_ms: 1.529936
+  type: 'test'
+  ...
+# Subtest: pruning opaque tool output preserves its digest without inventing evidence or status
+ok 52 - pruning opaque tool output preserves its digest without inventing evidence or status
+  ---
+  duration_ms: 3.174173
+  type: 'test'
+  ...
+# Subtest: caller rejection cannot persist a checkpoint and a later accepted attempt can proceed
+ok 53 - caller rejection cannot persist a checkpoint and a later accepted attempt can proceed
+  ---
+  duration_ms: 5.616218
+  type: 'test'
+  ...
+# Subtest: checkpoint failure is not a cache miss and never dispatches compaction
+ok 54 - checkpoint failure is not a cache miss and never dispatches compaction
+  ---
+  duration_ms: 0.972537
+  type: 'test'
+  ...
+# Subtest: a valid checkpoint from a different compaction cannot be relabelled on recovery
+ok 55 - a valid checkpoint from a different compaction cannot be relabelled on recovery
+  ---
+  duration_ms: 2.985701
+  type: 'test'
+  ...
+# Subtest: assembles canonical precedence and records every visible source before returning
+ok 56 - assembles canonical precedence and records every visible source before returning
+  ---
+  duration_ms: 60.593173
+  type: 'test'
+  ...
+# Subtest: source order and tool order cannot change deterministic assembled messages
+ok 57 - source order and tool order cannot change deterministic assembled messages
+  ---
+  duration_ms: 36.372576
+  type: 'test'
+  ...
+# Subtest: truncate_optional keeps recent history first and durably records whole omitted sources
+ok 58 - truncate_optional keeps recent history first and durably records whole omitted sources
+  ---
+  duration_ms: 44.158617
+  type: 'test'
+  ...
+# Subtest: compact pressure atomically records exact lineage and a byte-reconstructable request
+ok 59 - compact pressure atomically records exact lineage and a byte-reconstructable request
+  ---
+  duration_ms: 61.097805
+  type: 'test'
+  ...
+# Subtest: session budget reserves output when a provider emits no usage telemetry
+ok 60 - session budget reserves output when a provider emits no usage telemetry
+  ---
+  duration_ms: 15.583466
+  type: 'test'
+  ...
+# Subtest: required or reject-policy overflow fails before any context event is appended
+ok 61 - required or reject-policy overflow fails before any context event is appended
+  ---
+  duration_ms: 13.444015
+  type: 'test'
+  ...
+# Subtest: durable turn identity, source identity and provider ownership fail closed
+ok 62 - durable turn identity, source identity and provider ownership fail closed
+  ---
+  duration_ms: 7.781532
+  type: 'test'
+  ...
+# Subtest: duplicate lineage, secret classification and nondeterministic token counters append nothing
+ok 63 - duplicate lineage, secret classification and nondeterministic token counters append nothing
+  ---
+  duration_ms: 30.59114
+  type: 'test'
+  ...
+# Subtest: requires nominal durable stores and registry-created provider snapshots
+ok 64 - requires nominal durable stores and registry-created provider snapshots
+  ---
+  duration_ms: 0.765217
+  type: 'test'
+  ...
+# Subtest: exact retries are idempotent and conservative counter uses canonical UTF-8 bytes
+ok 65 - exact retries are idempotent and conservative counter uses canonical UTF-8 bytes
+  ---
+  duration_ms: 27.846503
+  type: 'test'
+  ...
+# Subtest: delivery and acknowledgement are durable before returning and survive reopen
+ok 66 - delivery and acknowledgement are durable before returning and survive reopen
+  ---
+  duration_ms: 12.178847
+  type: 'test'
+  ...
+# Subtest: hold, refuse, flush, and TTL expiration are explicit durable states
+ok 67 - hold, refuse, flush, and TTL expiration are explicit durable states
+  ---
+  duration_ms: 10.030545
+  type: 'test'
+  ...
+# Subtest: an acknowledgement at or after TTL expires the message and fails closed
+ok 68 - an acknowledgement at or after TTL expires the message and fails closed
+  ---
+  duration_ms: 4.062141
+  type: 'test'
+  ...
+# Subtest: dedup replays exact messages and rejects conflicting reuse
+ok 69 - dedup replays exact messages and rejects conflicting reuse
+  ---
+  duration_ms: 3.981293
+  type: 'test'
+  ...
+# Subtest: bounded inbox, sender rate, and reentrant policy checks cannot race the append
+ok 70 - bounded inbox, sender rate, and reentrant policy checks cannot race the append
+  ---
+  duration_ms: 9.180617
+  type: 'test'
+  ...
+# Subtest: a second SQLite connection cannot interleave a send inside the policy transaction
+ok 71 - a second SQLite connection cannot interleave a send inside the policy transaction
+  ---
+  duration_ms: 5.353497
+  type: 'test'
+  ...
+# Subtest: message boundary is text-only and inherited request shapes fail closed
+ok 72 - message boundary is text-only and inherited request shapes fail closed
+  ---
+  duration_ms: 3.209231
+  type: 'test'
+  ...
+# Subtest: persisted payload and identity drift are rejected during reconstruction
+ok 73 - persisted payload and identity drift are rejected during reconstruction
+  ---
+  duration_ms: 5.538914
+  type: 'test'
+  ...
+# Subtest: one-shot idle notifications require authorization and subscription IDs never replay
+ok 74 - one-shot idle notifications require authorization and subscription IDs never replay
+  ---
+  duration_ms: 3.49739
+  type: 'test'
+  ...
+# Subtest: dedicated fixture gate rejects arbitrary application databases before DDL
+ok 75 - dedicated fixture gate rejects arbitrary application databases before DDL
+  ---
+  duration_ms: 1.148284
+  type: 'test'
+  ...
+# Subtest: relay clock cannot regress
+ok 76 - relay clock cannot regress
+  ---
+  duration_ms: 1.857317
+  type: 'test'
+  ...
+# Subtest: relay port is nominal and provider-neutral adapters are explicitly registered
+ok 77 - relay port is nominal and provider-neutral adapters are explicitly registered
+  ---
+  duration_ms: 3.222349
+  type: 'test'
+  ...
+# Subtest: local provider forks exact scope and joins a terminal child
+ok 78 - local provider forks exact scope and joins a terminal child
+  ---
+  duration_ms: 104.387813
+  type: 'test'
+  ...
+# Subtest: authority and resource widening fail before a child can exist
+ok 79 - authority and resource widening fail before a child can exist
+  ---
+  duration_ms: 13.596839
+  type: 'test'
+  ...
+# Subtest: provider identity fails before effects and a pre-checkpoint crash resumes the existing child
+ok 80 - provider identity fails before effects and a pre-checkpoint crash resumes the existing child
+  ---
+  duration_ms: 69.007979
+  type: 'test'
+  ...
+# Subtest: workflow executes bounded parallel and pipeline phases with durable exact checkpoints
+ok 81 - workflow executes bounded parallel and pipeline phases with durable exact checkpoints
+  ---
+  duration_ms: 204.597454
+  type: 'test'
+  ...
+# Subtest: workflow identifier cannot drift and caps fail before dispatch
+ok 82 - workflow identifier cannot drift and caps fail before dispatch
+  ---
+  duration_ms: 44.324731
+  type: 'test'
+  ...
+# Subtest: workflow cancellation cascades and returns with no orphan child
+ok 83 - workflow cancellation cascades and returns with no orphan child
+  ---
+  duration_ms: 93.250684
+  type: 'test'
+  ...
+# Subtest: workflow verifies provider join claims against durable child state
+ok 84 - workflow verifies provider join claims against durable child state
+  ---
+  duration_ms: 40.994651
+  type: 'test'
+  ...
+# Subtest: one parent cannot dispatch concurrent workflows across engine instances beyond its durable caps
+ok 85 - one parent cannot dispatch concurrent workflows across engine instances beyond its durable caps
+  ---
+  duration_ms: 95.578554
+  type: 'test'
+  ...
+# Subtest: an exact reclaim cannot preempt a live workflow on the same durable authority
+ok 86 - an exact reclaim cannot preempt a live workflow on the same durable authority
+  ---
+  duration_ms: 95.41512
+  type: 'test'
+  ...
+# Subtest: provider cancellation terminalizes the complete descendant tree
+ok 87 - provider cancellation terminalizes the complete descendant tree
+  ---
+  duration_ms: 53.304724
+  type: 'test'
+  ...
+# Subtest: join deadline cancels every child and provider parallel caps reject before fork
+ok 88 - join deadline cancels every child and provider parallel caps reject before fork
+  ---
+  duration_ms: 119.65933
+  type: 'test'
+  ...
+# Subtest: terminal unjoined children no longer consume the live parallel cap
+ok 89 - terminal unjoined children no longer consume the live parallel cap
+  ---
+  duration_ms: 125.136437
+  type: 'test'
+  ...
+# Subtest: malformed runtime result is rejected only after the child is terminalized
+ok 90 - malformed runtime result is rejected only after the child is terminalized
+  ---
+  duration_ms: 27.557009
+  type: 'test'
+  ...
+# Subtest: disposing a subagent provider drains children and rejects unrelated parent claims
+ok 91 - disposing a subagent provider drains children and rejects unrelated parent claims
+  ---
+  duration_ms: 28.579066
+  type: 'test'
+  ...
+# Subtest: workflow disposal cancels active children and leaves no resumable live claim
+ok 92 - workflow disposal cancels active children and leaves no resumable live claim
+  ---
+  duration_ms: 42.809885
+  type: 'test'
+  ...
+# Subtest: workflow scope and duration violations are rejected before child dispatch
+ok 93 - workflow scope and duration violations are rejected before child dispatch
+  ---
+  duration_ms: 13.21275
+  type: 'test'
+  ...
+# Subtest: workflow replay rejects forged reservations, claims, children and checkpoints
+ok 94 - workflow replay rejects forged reservations, claims, children and checkpoints
+  ---
+  duration_ms: 69.017659
+  type: 'test'
+  ...
+# Subtest: constitutional and mandatory denies survive bypass mode and provider callbacks
+ok 95 - constitutional and mandatory denies survive bypass mode and provider callbacks
+  ---
+  duration_ms: 2.31982
+  type: 'test'
+  ...
+# Subtest: ask precedes mode, allow, and provider callback
+ok 96 - ask precedes mode, allow, and provider callback
+  ---
+  duration_ms: 0.26697
+  type: 'test'
+  ...
+# Subtest: provider callback can narrow but never runs after a deny or ask
+ok 97 - provider callback can narrow but never runs after a deny or ask
+  ---
+  duration_ms: 0.190888
+  type: 'test'
+  ...
+# Subtest: configuration precedence and restrictive merge kinds are deterministic
+ok 98 - configuration precedence and restrictive merge kinds are deterministic
+  ---
+  duration_ms: 0.682725
+  type: 'test'
+  ...
+# Subtest: child agents can narrow but cannot widen parent authority
+ok 99 - child agents can narrow but cannot widen parent authority
+  ---
+  duration_ms: 0.687974
+  type: 'test'
+  ...
+# Subtest: malformed modes, rules, configuration values, and authority fail closed
+ok 100 - malformed modes, rules, configuration values, and authority fail closed
+  ---
+  duration_ms: 0.434563
+  type: 'test'
+  ...
+# Subtest: package exposes one immutable schema version and canonical ports
+ok 101 - package exposes one immutable schema version and canonical ports
+  ---
+  duration_ms: 2.78322
+  type: 'test'
+  ...
+# Subtest: model and runtime manifests are strict, versioned and secret-reference-only
+ok 102 - model and runtime manifests are strict, versioned and secret-reference-only
+  ---
+  duration_ms: 8.76751
+  type: 'test'
+  ...
+# Subtest: L0-L4 capability matrix prevents overclaim and negotiates without weakening
+ok 103 - L0-L4 capability matrix prevents overclaim and negotiates without weakening
+  ---
+  duration_ms: 1.73043
+  type: 'test'
+  ...
+# Subtest: agent session and command contracts choose exactly one execution owner
+ok 104 - agent session and command contracts choose exactly one execution owner
+  ---
+  duration_ms: 6.146762
+  type: 'test'
+  ...
+# Subtest: model requests and normalized stream events reject unknown provider data
+ok 105 - model requests and normalized stream events reject unknown provider data
+  ---
+  duration_ms: 13.016464
+  type: 'test'
+  ...
+# Subtest: session events preserve reconstructable request and operation ownership
+ok 106 - session events preserve reconstructable request and operation ownership
+  ---
+  duration_ms: 33.72621
+  type: 'test'
+  ...
+# Subtest: delegated runtime events are untrusted strict boundary input
+ok 107 - delegated runtime events are untrusted strict boundary input
+  ---
+  duration_ms: 49.720984
+  type: 'test'
+  ...
+# Subtest: runtime resume optionally carries an identity-bound delegated spec for process reattachment
+ok 108 - runtime resume optionally carries an identity-bound delegated spec for process reattachment
+  ---
+  duration_ms: 1.335172
+  type: 'test'
+  ...
+# Subtest: port inputs, resolved results, stream items and errors are executable contracts
+ok 109 - port inputs, resolved results, stream items and errors are executable contracts
+  ---
+  duration_ms: 25.650627
+  type: 'test'
+  ...
+# Subtest: core contract source is vendor-neutral
+ok 110 - core contract source is vendor-neutral
+  ---
+  duration_ms: 1.119479
+  type: 'test'
+  ...
+# Subtest: headless runtime satisfies the port and completes a durable multi-step governed tool journey
+ok 111 - headless runtime satisfies the port and completes a durable multi-step governed tool journey
+  ---
+  duration_ms: 141.679722
+  type: 'test'
+  ...
+# Subtest: tool-result pressure prunes bodies with lineage before a byte-exact continuation
+ok 112 - tool-result pressure prunes bodies with lineage before a byte-exact continuation
+  ---
+  duration_ms: 96.169344
+  type: 'test'
+  ...
+# Subtest: a second runtime resumes after durable tool completion without redispatch
+ok 113 - a second runtime resumes after durable tool completion without redispatch
+  ---
+  duration_ms: 71.780336
+  type: 'test'
+  ...
+# Subtest: resume fails closed instead of replaying a partially observed provider stream
+ok 114 - resume fails closed instead of replaying a partially observed provider stream
+  ---
+  duration_ms: 39.940344
+  type: 'test'
+  ...
+# Subtest: cancel after restart settles a durable zero-event model step before the session terminal
+ok 115 - cancel after restart settles a durable zero-event model step before the session terminal
+  ---
+  duration_ms: 33.724535
+  type: 'test'
+  ...
+# Subtest: resume settles a terminal legacy stream without redispatching its request
+ok 116 - resume settles a terminal legacy stream without redispatching its request
+  ---
+  duration_ms: 24.026683
+  type: 'test'
+  ...
+# Subtest: resume terminalizes a partial legacy stream before failing the session
+ok 117 - resume terminalizes a partial legacy stream before failing the session
+  ---
+  duration_ms: 26.89456
+  type: 'test'
+  ...
+# Subtest: cumulative stream caps reserve room for a durable synthetic terminal event
+ok 118 - cumulative stream caps reserve room for a durable synthetic terminal event
+  ---
+  duration_ms: 48.019062
+  type: 'test'
+  ...
+# Subtest: cancellation is durable before provider interruption and every started unit settles
+ok 119 - cancellation is durable before provider interruption and every started unit settles
+  ---
+  duration_ms: 45.637017
+  type: 'test'
+  ...
+# Subtest: duration, token, tool and implementation caps terminate without unbounded work
+ok 120 - duration, token, tool and implementation caps terminate without unbounded work
+  ---
+  duration_ms: 73.943922
+  type: 'test'
+  ...
+# Subtest: unknown sessions, delegated ownership, concurrent sends and stale resume fail closed
+ok 121 - unknown sessions, delegated ownership, concurrent sends and stale resume fail closed
+  ---
+  duration_ms: 33.477857
+  type: 'test'
+  ...
+# Subtest: runtime rejects forged and overridden durable session stores
+ok 122 - runtime rejects forged and overridden durable session stores
+  ---
+  duration_ms: 9.108635
+  type: 'test'
+  ...
+# Subtest: runtime configuration rejects malformed ports, limits and compaction profiles
+ok 123 - runtime configuration rejects malformed ports, limits and compaction profiles
+  ---
+  duration_ms: 11.103534
+  type: 'test'
+  ...
+# Subtest: create retries preserve identity and cannot replace an existing specification
+ok 124 - create retries preserve identity and cannot replace an existing specification
+  ---
+  duration_ms: 13.650972
+  type: 'test'
+  ...
+# Subtest: runtime disposal settles created sessions
+ok 125 - runtime disposal settles created sessions
+  ---
+  duration_ms: 14.416093
+  type: 'test'
+  ...
+# Subtest: runtime disposal settles active sessions
+ok 126 - runtime disposal settles active sessions
+  ---
+  duration_ms: 39.836461
+  type: 'test'
+  ...
+# Subtest: provider cancelled cannot be misreported as successful task completion
+ok 127 - provider cancelled cannot be misreported as successful task completion
+  ---
+  duration_ms: 27.802599
+  type: 'test'
+  ...
+# Subtest: provider length cannot be misreported as successful task completion
+ok 128 - provider length cannot be misreported as successful task completion
+  ---
+  duration_ms: 24.279905
+  type: 'test'
+  ...
+# Subtest: replay rejects altered model and tool intents before reproducing effects
+ok 129 - replay rejects altered model and tool intents before reproducing effects
+  ---
+  duration_ms: 126.508386
+  type: 'test'
+  ...
+# Subtest: reconciliation retains uncertain evidence and refuses identity substitution or a second settlement
+ok 130 - reconciliation retains uncertain evidence and refuses identity substitution or a second settlement
+  ---
+  duration_ms: 65.552042
+  type: 'test'
+  ...
+# Subtest: legacy terminal streams remain readable without dispatching old effects again
+ok 131 - legacy terminal streams remain readable without dispatching old effects again
+  ---
+  duration_ms: 128.485303
+  type: 'test'
+  ...
+# Subtest: session and governed-operation aggregates share relational global ordering without sharing authority
+ok 132 - session and governed-operation aggregates share relational global ordering without sharing authority
+  ---
+  duration_ms: 32.718866
+  type: 'test'
+  ...
+# Subtest: append and replay enforce one contiguous immutable session lifecycle
+ok 133 - append and replay enforce one contiguous immutable session lifecycle
+  ---
+  duration_ms: 28.430722
+  type: 'test'
+  ...
+# Subtest: model request reconstruction is canonical, immutable and source-linked
+ok 134 - model request reconstruction is canonical, immutable and source-linked
+  ---
+  duration_ms: 12.208209
+  type: 'test'
+  ...
+# Subtest: crash recovery survives process reopen and exact append retry is idempotent
+ok 135 - crash recovery survives process reopen and exact append retry is idempotent
+  ---
+  duration_ms: 20.400926
+  type: 'test'
+  ...
+# Subtest: fork records immutable lineage and cannot widen authority, policy or resource limits
+ok 136 - fork records immutable lineage and cannot widen authority, policy or resource limits
+  ---
+  duration_ms: 47.145447
+  type: 'test'
+  ...
+# Subtest: fork parent attachment and child creation commit atomically
+ok 137 - fork parent attachment and child creation commit atomically
+  ---
+  duration_ms: 12.608937
+  type: 'test'
+  ...
+# Subtest: root, resumed appends, and forked children retain one durable trace
+ok 138 - root, resumed appends, and forked children retain one durable trace
+  ---
+  duration_ms: 17.557151
+  type: 'test'
+  ...
+# Subtest: replay fails closed when persisted trace lineage is fragmented
+ok 139 - replay fails closed when persisted trace lineage is fragmented
+  ---
+  duration_ms: 7.737568
+  type: 'test'
+  ...
+# Subtest: replay fails closed when persisted causation does not reference earlier lineage
+ok 140 - replay fails closed when persisted causation does not reference earlier lineage
+  ---
+  duration_ms: 7.387193
+  type: 'test'
+  ...
+# Subtest: root and child creation require verifiable causation anchors
+ok 141 - root and child creation require verifiable causation anchors
+  ---
+  duration_ms: 10.050588
+  type: 'test'
+  ...
+# Subtest: gaps, foreign model streams and forged relational envelopes fail closed
+ok 142 - gaps, foreign model streams and forged relational envelopes fail closed
+  ---
+  duration_ms: 17.977521
+  type: 'test'
+  ...
+# Subtest: session success cannot contradict a failed model terminal event
+ok 143 - session success cannot contradict a failed model terminal event
+  ---
+  duration_ms: 17.662334
+  type: 'test'
+  ...
+# Subtest: session cancellation terminal must exactly match its durable non-deadline request
+ok 144 - session cancellation terminal must exactly match its durable non-deadline request
+  ---
+  duration_ms: 12.818826
+  type: 'test'
+  ...
+# Subtest: incremental replay preserves full replay and rejects forged checkpoints
+ok 145 - incremental replay preserves full replay and rejects forged checkpoints
+  ---
+  duration_ms: 10.157616
+  type: 'test'
+  ...
+# Subtest: transaction rollback cannot retain an uncommitted replay checkpoint
+ok 146 - transaction rollback cannot retain an uncommitted replay checkpoint
+  ---
+  duration_ms: 11.508133
+  type: 'test'
+  ...
+# Subtest: replay rejects forged ordering, authority and context provenance
+ok 147 - replay rejects forged ordering, authority and context provenance
+  ---
+  duration_ms: 5.872234
+  type: 'test'
+  ...
+# Subtest: tool deltas preserve identity and require complete object arguments
+ok 148 - tool deltas preserve identity and require complete object arguments
+  ---
+  duration_ms: 0.753059
+  type: 'test'
+  ...
+# Subtest: replay rejects gaps, foreign lineage, stale resume and streams without matching requests
+ok 149 - replay rejects gaps, foreign lineage, stale resume and streams without matching requests
+  ---
+  duration_ms: 3.948267
+  type: 'test'
+  ...
+# Subtest: request reconstruction consumes only reducer checkpoints and follows later durable turns
+ok 150 - request reconstruction consumes only reducer checkpoints and follows later durable turns
+  ---
+  duration_ms: 14.040665
+  type: 'test'
+  ...
+# Subtest: request reconstruction invalidates cached state after another connection appends a turn
+ok 151 - request reconstruction invalidates cached state after another connection appends a turn
+  ---
+  duration_ms: 19.729824
+  type: 'test'
+  ...
+# Subtest: five sandboxed process roles prove one transitive filesystem, network, and environment boundary
+ok 152 - five sandboxed process roles prove one transitive filesystem, network, and environment boundary
+  ---
+  duration_ms: 1235.073034
+  type: 'test'
+  ...
+# Subtest: plain forged policies cannot invoke or claim the supervisor-owned journey
+ok 153 - plain forged policies cannot invoke or claim the supervisor-owned journey
+  ---
+  duration_ms: 1.735563
+  type: 'test'
+  ...
+# Subtest: a protected inode hard-linked into the worktree invalidates the binding before sandbox launch
+ok 154 - a protected inode hard-linked into the worktree invalidates the binding before sandbox launch
+  ---
+  duration_ms: 1.121584
+  type: 'test'
+  ...
+# Subtest: a checkout root that overlaps required system mounts is rejected
+ok 155 - a checkout root that overlaps required system mounts is rejected
+  ---
+  duration_ms: 0.708216
+  type: 'test'
+  ...
+# Subtest: a host Unix socket exposed inside the worktree fails before any sandbox role launches
+ok 156 - a host Unix socket exposed inside the worktree fails before any sandbox role launches
+  ---
+  duration_ms: 6.907648
+  type: 'test'
+  ...
+# Subtest: main checkout aliases, empty protection, unknown fields, and workspace protection fail closed
+ok 157 - main checkout aliases, empty protection, unknown fields, and workspace protection fail closed
+  ---
+  duration_ms: 1.202324
+  type: 'test'
+  ...
+# Subtest: scripted and OpenAI-compatible providers complete the same AgentRuntime lifecycle
+ok 158 - scripted and OpenAI-compatible providers complete the same AgentRuntime lifecycle
+  ---
+  duration_ms: 194.281682
+  type: 'test'
+  ...
+# Subtest: malformed provider transport terminalizes without false success
+ok 159 - malformed provider transport terminalizes without false success
+  ---
+  duration_ms: 36.703197
+  type: 'test'
+  ...
+# Subtest: one root cancellation settles an active tool, workflow, model work, and every descendant
+ok 160 - one root cancellation settles an active tool, workflow, model work, and every descendant
+  ---
+  duration_ms: 187.172408
+  type: 'test'
+  ...
+# Subtest: a non-settling workflow cancellation cannot block root runtime and tool interruption
+ok 161 - a non-settling workflow cancellation cannot block root runtime and tool interruption
+  ---
+  duration_ms: 90.64942
+  type: 'test'
+  ...
+# Subtest: root cancellation cannot relabel a durable completed session as cancelled
+ok 162 - root cancellation cannot relabel a durable completed session as cancelled
+  ---
+  duration_ms: 30.402771
+  type: 'test'
+  ...
+# Subtest: a replacement runtime resumes the exact next model request from a reopened persistent ledger
+ok 163 - a replacement runtime resumes the exact next model request from a reopened persistent ledger
+  ---
+  duration_ms: 28.928703
+  type: 'test'
+  ...
+# Subtest: persistent replay scales within explicit latency, storage, and memory bounds
+ok 164 - persistent replay scales within explicit latency, storage, and memory bounds
+  ---
+  duration_ms: 14283.610293
+  type: 'test'
+  ...
+# {"metrics":[{"volume":16,"event_count":23,"p50_ms":0.489,"p95_ms":0.559,"max_ms":4.938,"replay_p95_ms":0.142,"reconstruction_p95_ms":0.443,"cpu_p95_ms":0.561,"database_bytes":270336},{"volume":128,"event_count":135,"p50_ms":1.284,"p95_ms":1.522,"max_ms":21.18,"replay_p95_ms":0.256,"reconstruction_p95_ms":1.274,"cpu_p95_ms":3.285,"database_bytes":417792},{"volume":512,"event_count":519,"p50_ms":4.057,"p95_ms":4.841,"max_ms":54.281,"replay_p95_ms":0.196,"reconstruction_p95_ms":4.239,"cpu_p95_ms":4.976,"database_bytes":901120}],"heap_growth_bytes":9426208}
+# Subtest: supervisor rejects malformed configuration and cancellation before durable effects
+ok 165 - supervisor rejects malformed configuration and cancellation before durable effects
+  ---
+  duration_ms: 14.090683
+  type: 'test'
+  ...
+# Subtest: supervisor detects duplicate dispatch and releases ownership after rejection
+ok 166 - supervisor detects duplicate dispatch and releases ownership after rejection
+  ---
+  duration_ms: 9.798443
+  type: 'test'
+  ...
+# Subtest: supervisor does not accept a cancellation receipt without a durable terminal
+ok 167 - supervisor does not accept a cancellation receipt without a durable terminal
+  ---
+  duration_ms: 11.336802
+  type: 'test'
+  ...
+# Subtest: supervisor reports cancellation failure even when the root has terminalized
+ok 168 - supervisor reports cancellation failure even when the root has terminalized
+  ---
+  duration_ms: 13.700125
+  type: 'test'
+  ...
+# Subtest: supervisor rejects invalid and regressing clocks rather than extending a settlement deadline
+ok 169 - supervisor rejects invalid and regressing clocks rather than extending a settlement deadline
+  ---
+  duration_ms: 25.583405
+  type: 'test'
+  ...
+# Subtest: Claude Code learning disposition is exact, complete, and executable
+ok 170 - Claude Code learning disposition is exact, complete, and executable
+  ---
+  duration_ms: 148.471314
+  type: 'test'
+  ...
+# Subtest: all adopted proposal surfaces remain provider-neutral across six implementation cores
+ok 171 - all adopted proposal surfaces remain provider-neutral across six implementation cores
+  ---
+  duration_ms: 4.411391
+  type: 'test'
+  ...
+# Subtest: hardening closeout preserves cutover gates and validates schema v4 only in ephemeral SQLite
+ok 172 - hardening closeout preserves cutover gates and validates schema v4 only in ephemeral SQLite
+  ---
+  duration_ms: 9.932917
+  type: 'test'
+  ...
+# Subtest: bound kernel runs a real provider tool loop with sandbox evidence and no persisted secret
+ok 173 - bound kernel runs a real provider tool loop with sandbox evidence and no persisted secret
+  ---
+  duration_ms: 174.480345
+  type: 'test'
+  ...
+# Subtest: bound kernel resumes across an assembly boundary with the immutable binding
+ok 174 - bound kernel resumes across an assembly boundary with the immutable binding
+  ---
+  duration_ms: 91.088269
+  type: 'test'
+  ...
+# Subtest: bound kernel can be cancelled without provider dispatch or secret resolution
+ok 175 - bound kernel can be cancelled without provider dispatch or secret resolution
+  ---
+  duration_ms: 35.548767
+  type: 'test'
+  ...
+# Subtest: different provider bindings use the same kernel assembly and preserve outcomes
+ok 176 - different provider bindings use the same kernel assembly and preserve outcomes
+  ---
+  duration_ms: 158.310343
+  type: 'test'
+  ...
+# Subtest: execution requires a lockdown attestation before fixture, secret, or network access
+ok 177 - execution requires a lockdown attestation before fixture, secret, or network access
+  ---
+  duration_ms: 11.337411
+  type: 'test'
+  ...
+# Subtest: resume rejects changed attestation, optimistic sequence, binding and workspace before effects
+ok 178 - resume rejects changed attestation, optimistic sequence, binding and workspace before effects
+  ---
+  duration_ms: 45.13552
+  type: 'test'
+  ...
+# Subtest: supervisor executes the complete provider/tool loop inside the fixed sandbox command
+ok 179 - supervisor executes the complete provider/tool loop inside the fixed sandbox command
+  ---
+  duration_ms: 770.733418
+  type: 'test'
+  ...
+# Subtest: supervisor reopens and cancels candidate sessions across sandboxed worker processes
+ok 180 - supervisor reopens and cancels candidate sessions across sandboxed worker processes
+  ---
+  duration_ms: 2179.077425
+  type: 'test'
+  ...
+# Subtest: readiness failure happens before provider secret resolution or worker launch
+ok 181 - readiness failure happens before provider secret resolution or worker launch
+  ---
+  duration_ms: 13.090176
+  type: 'test'
+  ...
+# Subtest: exact lockdown profile failure happens before provider secret resolution or worker launch
+ok 182 - exact lockdown profile failure happens before provider secret resolution or worker launch
+  ---
+  duration_ms: 87.161694
+  type: 'test'
+  ...
+# Subtest: resume rejects sandbox binary drift before model or tool effects
+ok 183 - resume rejects sandbox binary drift before model or tool effects
+  ---
+  duration_ms: 961.301826
+  type: 'test'
+  ...
+# Subtest: public candidate CLI fails closed when the real required sandbox doctor is not green
+ok 184 - public candidate CLI fails closed when the real required sandbox doctor is not green
+  ---
+  duration_ms: 365.550091
+  type: 'test'
+  ...
+# Subtest: Claude Agent SDK driver binds an explicit session and completes through the hosted L0 provider
+ok 185 - Claude Agent SDK driver binds an explicit session and completes through the hosted L0 provider
+  ---
+  duration_ms: 29.037007
+  type: 'test'
+  ...
+# Subtest: a fresh driver finds an existing transcript and resumes the exact session id
+ok 186 - a fresh driver finds an existing transcript and resumes the exact session id
+  ---
+  duration_ms: 1.849849
+  type: 'test'
+  ...
+# Subtest: Claude effect content fails closed at the hosted effect boundary
+ok 187 - Claude effect content fails closed at the hosted effect boundary
+  ---
+  duration_ms: 3.257248
+  type: 'test'
+  ...
+# Subtest: Claude unknown-effect content fails closed at the hosted effect boundary
+ok 188 - Claude unknown-effect content fails closed at the hosted effect boundary
+  ---
+  duration_ms: 1.647863
+  type: 'test'
+  ...
+# Subtest: driver cancellation aborts and closes an active Agent SDK query
+ok 189 - driver cancellation aborts and closes an active Agent SDK query
+  ---
+  duration_ms: 11.868269
+  type: 'test'
+  ...
+# Subtest: driver passes only the selected environment values to the SDK child contract
+ok 190 - driver passes only the selected environment values to the SDK child contract
+  ---
+  duration_ms: 1.334513
+  type: 'test'
+  ...
+# Subtest: driver rejects relative bindings and implicit environment keys
+ok 191 - driver rejects relative bindings and implicit environment keys
+  ---
+  duration_ms: 1.020915
+  type: 'test'
+  ...
+# Subtest: Codex app-server driver performs official initialize, thread and turn lifecycle over JSONL stdio
+ok 192 - Codex app-server driver performs official initialize, thread and turn lifecycle over JSONL stdio
+  ---
+  duration_ms: 71.026736
+  type: 'test'
+  ...
+# Subtest: a fresh driver process reattaches with thread/resume and never creates a replacement thread
+ok 193 - a fresh driver process reattaches with thread/resume and never creates a replacement thread
+  ---
+  duration_ms: 103.770382
+  type: 'test'
+  ...
+# Subtest: effect-bearing Codex items are rejected by the hosted L0 provider
+ok 194 - effect-bearing Codex items are rejected by the hosted L0 provider
+  ---
+  duration_ms: 49.748823
+  type: 'test'
+  ...
+# Subtest: an unknown future Codex item fails closed as an effect instead of widening L0
+ok 195 - an unknown future Codex item fails closed as an effect instead of widening L0
+  ---
+  duration_ms: 40.556238
+  type: 'test'
+  ...
+# Subtest: an app-server process exit settles the active hosted stream as provider unavailable
+ok 196 - an app-server process exit settles the active hosted stream as provider unavailable
+  ---
+  duration_ms: 42.800542
+  type: 'test'
+  ...
+# Subtest: driver cancellation maps to turn/interrupt and terminates the process
+ok 197 - driver cancellation maps to turn/interrupt and terminates the process
+  ---
+  duration_ms: 37.283658
+  type: 'test'
+  ...
+# Subtest: driver rejects a relative executable and an environment with non-explicit keys
+ok 198 - driver rejects a relative executable and an environment with non-explicit keys
+  ---
+  duration_ms: 1.341722
+  type: 'test'
+  ...
+# Subtest: process normalization cannot mutate the frozen driver environment
+ok 199 - process normalization cannot mutate the frozen driver environment
+  ---
+  duration_ms: 52.168633
+  type: 'test'
+  ...
+# Subtest: Codex uses the same durable host to create, reattach in a fresh process, and settle
+ok 200 - Codex uses the same durable host to create, reattach in a fresh process, and settle
+  ---
+  duration_ms: 60.747795
+  type: 'test'
+  ...
+# Subtest: Claude Code uses the same durable host to create, reattach in a fresh process, and settle
+ok 201 - Claude Code uses the same durable host to create, reattach in a fresh process, and settle
+  ---
+  duration_ms: 24.54933
+  type: 'test'
+  ...
+# Subtest: DeepSeek Harness crosses the same durable host through ACP without a provider-specific core branch
+ok 202 - DeepSeek Harness crosses the same durable host through ACP without a provider-specific core branch
+  ---
+  duration_ms: 25.214726
+  type: 'test'
+  ...
+# Subtest: cancellation reattaches after database reopen and persists terminal truth before returning
+ok 203 - cancellation reattaches after database reopen and persists terminal truth before returning
+  ---
+  duration_ms: 23.58058
+  type: 'test'
+  ...
+# Subtest: durable host fails closed on secret-bearing specs and uncertain create or dispatch gaps
+ok 204 - durable host fails closed on secret-bearing specs and uncertain create or dispatch gaps
+  ---
+  duration_ms: 18.178678
+  type: 'test'
+  ...
+# Subtest: provider manifest drift is rejected before remote reattachment
+ok 205 - provider manifest drift is rejected before remote reattachment
+  ---
+  duration_ms: 15.479659
+  type: 'test'
+  ...
+# Subtest: a durable cancellation intent is retryable while a post-dispatch failure becomes uncertain
+ok 206 - a durable cancellation intent is retryable while a post-dispatch failure becomes uncertain
+  ---
+  duration_ms: 27.167153
+  type: 'test'
+  ...
+# Subtest: worker lease heartbeat, bounded drain, park, reopen, and takeover preserve one durable session
+ok 207 - worker lease heartbeat, bounded drain, park, reopen, and takeover preserve one durable session
+  ---
+  duration_ms: 37.384628
+  type: 'test'
+  ...
+# Subtest: expired lease is orphaned before replacement and fences every stale worker operation
+ok 208 - expired lease is orphaned before replacement and fences every stale worker operation
+  ---
+  duration_ms: 17.589486
+  type: 'test'
+  ...
+# Subtest: crash during drain becomes orphaned at the defer deadline and retirement is durable
+ok 209 - crash during drain becomes orphaned at the defer deadline and retirement is durable
+  ---
+  duration_ms: 27.530605
+  type: 'test'
+  ...
+# Subtest: persisted worker facts cannot forge lease, checkpoint, expiry, or retired-worker semantics
+ok 210 - persisted worker facts cannot forge lease, checkpoint, expiry, or retired-worker semantics
+  ---
+  duration_ms: 19.261864
+  type: 'test'
+  ...
+# Subtest: the SQL catalog is sealed after registering every delegated runtime fact
+ok 211 - the SQL catalog is sealed after registering every delegated runtime fact
+  ---
+  duration_ms: 6.773643
+  type: 'test'
+  ...
+# Subtest: delegated host core contains no vendor-specific branch or adapter import
+ok 212 - delegated host core contains no vendor-specific branch or adapter import
+  ---
+  duration_ms: 0.358721
+  type: 'test'
+  ...
+# Subtest: engineering tools reject workspace substitution and forged execution policy
+ok 213 - engineering tools reject workspace substitution and forged execution policy
+  ---
+  duration_ms: 21.72908
+  type: 'test'
+  ...
+# Subtest: scoped reads reject hard links, symbolic links, invalid UTF-8 and directories
+ok 214 - scoped reads reject hard links, symbolic links, invalid UTF-8 and directories
+  ---
+  duration_ms: 9.289108
+  type: 'test'
+  ...
+# Subtest: nested scope remains confined when its parent is replaced with a symlink
+ok 215 - nested scope remains confined when its parent is replaced with a symlink
+  ---
+  duration_ms: 6.679644
+  type: 'test'
+  ...
+# Subtest: artifact budgets are aggregate and write preconditions cannot be bypassed
+ok 216 - artifact budgets are aggregate and write preconditions cannot be bypassed
+  ---
+  duration_ms: 14.465645
+  type: 'test'
+  ...
+# Subtest: decision reader accepts bounded explicit answers and rejects ambiguous files
+ok 217 - decision reader accepts bounded explicit answers and rejects ambiguous files
+  ---
+  duration_ms: 11.508584
+  type: 'test'
+  ...
+# Subtest: unknown owners, terminal tasks and exhausted budgets never permit automatic continuation
+ok 218 - unknown owners, terminal tasks and exhausted budgets never permit automatic continuation
+  ---
+  duration_ms: 2.712868
+  type: 'test'
+  ...
+# Subtest: CLI, JavaScript, Python and HTTP share identity, task results and replayable event cursors
+ok 219 - CLI, JavaScript, Python and HTTP share identity, task results and replayable event cursors
+  ---
+  duration_ms: 3452.652775
+  type: 'test'
+  ...
+# Subtest: authenticated control rejects wrong identity, origins, workspace escalation and stale commands
+ok 220 - authenticated control rejects wrong identity, origins, workspace escalation and stale commands
+  ---
+  duration_ms: 1331.683502
+  type: 'test'
+  ...
+# Subtest: an intent without receipt is not automatically dispatched again
+ok 221 - an intent without receipt is not automatically dispatched again
+  ---
+  duration_ms: 1304.16321
+  type: 'test'
+  ...
+# Subtest: review binds approval to Git baseline and only explicit apply modifies the source project
+ok 222 - review binds approval to Git baseline and only explicit apply modifies the source project
+  ---
+  duration_ms: 2922.427018
+  type: 'test'
+  ...
+# Subtest: concurrent source edits invalidate the prior review and are preserved
+ok 223 - concurrent source edits invalidate the prior review and are preserved
+  ---
+  duration_ms: 2946.501197
+  type: 'test'
+  ...
+# Subtest: public preparation pins the current workspace and cannot expand the server allowlist
+ok 224 - public preparation pins the current workspace and cannot expand the server allowlist
+  ---
+  duration_ms: 90.054729
+  type: 'test'
+  ...
+# Subtest: workflows reuse the same API control and aggregate kernel budget
+ok 225 - workflows reuse the same API control and aggregate kernel budget
+  ---
+  duration_ms: 3291.629872
+  type: 'test'
+  ...
+# Subtest: HTTP rejects malformed, oversized and unsupported requests without exposing internal errors
+ok 226 - HTTP rejects malformed, oversized and unsupported requests without exposing internal errors
+  ---
+  duration_ms: 1367.454432
+  type: 'test'
+  ...
+# Subtest: SDK rejects remote endpoints, malformed cursors and invalid query views
+ok 227 - SDK rejects remote endpoints, malformed cursors and invalid query views
+  ---
+  duration_ms: 0.662659
+  type: 'test'
+  ...
+# Subtest: candidate edits after approval invalidate review without applying unverified bytes
+ok 228 - candidate edits after approval invalidate review without applying unverified bytes
+  ---
+  duration_ms: 2900.526763
+  type: 'test'
+  ...
+# Subtest: control rejects model ambiguity, unknown bindings and duplicate resources before effects
+ok 229 - control rejects model ambiguity, unknown bindings and duplicate resources before effects
+  ---
+  duration_ms: 1354.071981
+  type: 'test'
+  ...
+# Subtest: Git application never invokes configured filesystem monitors or external diff commands
+ok 230 - Git application never invokes configured filesystem monitors or external diff commands
+  ---
+  duration_ms: 2919.376804
+  type: 'test'
+  ...
+# Subtest: protected rejection diagnoses and corrects in the original session and budget
+ok 231 - protected rejection diagnoses and corrects in the original session and budget
+  ---
+  duration_ms: 2302.837446
+  type: 'test'
+  ...
+# Subtest: a repeated rejection exhausts the correction ceiling and cannot approve
+ok 232 - a repeated rejection exhausts the correction ceiling and cannot approve
+  ---
+  duration_ms: 2125.536347
+  type: 'test'
+  ...
+# Subtest: zero correction budget never dispatches the prepared correction
+ok 233 - zero correction budget never dispatches the prepared correction
+  ---
+  duration_ms: 1502.213793
+  type: 'test'
+  ...
+# Subtest: workflow waits for corrected acceptance before running a dependent task
+ok 234 - workflow waits for corrected acceptance before running a dependent task
+  ---
+  duration_ms: 3698.682994
+  type: 'test'
+  ...
+# Subtest: correction writes are denied until a diagnosis is bound to the rejected artifacts
+ok 235 - correction writes are denied until a diagnosis is bound to the rejected artifacts
+  ---
+  duration_ms: 2066.137075
+  type: 'test'
+  ...
+# Subtest: replay rejects a correction request altered after the protected review
+ok 236 - replay rejects a correction request altered after the protected review
+  ---
+  duration_ms: 2169.763226
+  type: 'test'
+  ...
+# Subtest: Node command executes with read-only workspace, hidden controls and bounded resources
+ok 237 - Node command executes with read-only workspace, hidden controls and bounded resources
+  ---
+  duration_ms: 201.644956
+  type: 'test'
+  ...
+# Subtest: Python cannot create Internet or Unix sockets
+ok 238 - Python cannot create Internet or Unix sockets
+  ---
+  duration_ms: 57.963239
+  type: 'test'
+  ...
+# Subtest: output flooding is bounded and every descendant is drained
+ok 239 - output flooding is bounded and every descendant is drained
+  ---
+  duration_ms: 61.441646
+  type: 'test'
+  ...
+# Subtest: cancellation eliminates a detached descendant holding output pipes
+ok 240 - cancellation eliminates a detached descendant holding output pipes
+  ---
+  duration_ms: 303.567945
+  type: 'test'
+  ...
+# Subtest: parent exit drains detached descendants without waiting for their sleep
+ok 241 - parent exit drains detached descendants without waiting for their sleep
+  ---
+  duration_ms: 51.638776
+  type: 'test'
+  ...
+# Subtest: forged policies and invalid budgets fail before launch
+ok 242 - forged policies and invalid budgets fail before launch
+  ---
+  duration_ms: 1.627898
+  type: 'test'
+  ...
+# Subtest: a running command cannot exceed its wall-clock budget
+ok 243 - a running command cannot exceed its wall-clock budget
+  ---
+  duration_ms: 219.799274
+  type: 'test'
+  ...
+# Subtest: the process limit applies to the complete descendant group
+ok 244 - the process limit applies to the complete descendant group
+  ---
+  duration_ms: 66.955719
+  type: 'test'
+  ...
+# Subtest: invalid UTF-8 cannot expand captured output beyond its byte budget
+ok 245 - invalid UTF-8 cannot expand captured output beyond its byte budget
+  ---
+  duration_ms: 54.422224
+  type: 'test'
+  ...
+# Subtest: memory exhaustion remains confined to the executor group
+ok 246 - memory exhaustion remains confined to the executor group
+  ---
+  duration_ms: 215.492894
+  type: 'test'
+  ...
+# Subtest: resource cleanup retries a busy empty group before confirming completion
+ok 247 - resource cleanup retries a busy empty group before confirming completion
+  ---
+  duration_ms: 68.341713
+  type: 'test'
+  ...
+# Subtest: persistent busy cleanup is uncertain and never confirms completion
+ok 248 - persistent busy cleanup is uncertain and never confirms completion
+  ---
+  duration_ms: 5059.371726
+  type: 'test'
+  ...
+# Subtest: project runtime mounts only the controller executable read-only without inheriting its environment
+ok 249 - project runtime mounts only the controller executable read-only without inheriting its environment
+  ---
+  duration_ms: 80.702779
+  type: 'test'
+  ...
+# Subtest: bound engineering worker implements the task through the broker without persisting its credential
+ok 250 - bound engineering worker implements the task through the broker without persisting its credential
+  ---
+  duration_ms: 4963.213267
+  type: 'test'
+  ...
+# Subtest: bound engineering worker corrects a rejection through the broker without persisting its credential
+ok 251 - bound engineering worker corrects a rejection through the broker without persisting its credential
+  ---
+  duration_ms: 6007.411606
+  type: 'test'
+  ...
+# Subtest: engineering model dispatch rejects retries and missing credentials without egress
+ok 252 - engineering model dispatch rejects retries and missing credentials without egress
+  ---
+  duration_ms: 6.404153
+  type: 'test'
+  ...
+# Subtest: v2 snapshots a Git project and preserves its immutable input after external edits
+ok 253 - v2 snapshots a Git project and preserves its immutable input after external edits
+  ---
+  duration_ms: 73.212062
+  type: 'test'
+  ...
+# Subtest: v2 refuses links, invalid UTF-8, changed Git baseline and embedded substitution
+ok 254 - v2 refuses links, invalid UTF-8, changed Git baseline and embedded substitution
+  ---
+  duration_ms: 208.106189
+  type: 'test'
+  ...
+# Subtest: project acceptance and verifier inputs cannot drift after pinning
+ok 255 - project acceptance and verifier inputs cannot drift after pinning
+  ---
+  duration_ms: 35.741383
+  type: 'test'
+  ...
+# Subtest: protected verifier executes Node multi-file inside isolation
+ok 256 - protected verifier executes Node multi-file inside isolation
+  ---
+  duration_ms: 1643.459511
+  type: 'test'
+  ...
+# Subtest: protected verifier executes TypeScript inside isolation
+ok 257 - protected verifier executes TypeScript inside isolation
+  ---
+  duration_ms: 1591.197108
+  type: 'test'
+  ...
+# Subtest: protected verifier executes Python multi-file inside isolation
+ok 258 - protected verifier executes Python multi-file inside isolation
+  ---
+  duration_ms: 1433.284284
+  type: 'test'
+  ...
+# Subtest: protected verifier executes web static content inside isolation
+ok 259 - protected verifier executes web static content inside isolation
+  ---
+  duration_ms: 1499.024727
+  type: 'test'
+  ...
+# Subtest: protected verifier executes incorrect delivery inside isolation
+ok 260 - protected verifier executes incorrect delivery inside isolation
+  ---
+  duration_ms: 1797.887242
+  type: 'test'
+  ...
+# Subtest: project search, preconditioned patch and diff share governed task execution
+ok 261 - project search, preconditioned patch and diff share governed task execution
+  ---
+  duration_ms: 1717.433476
+  type: 'test'
+  ...
+# Subtest: a committed write interrupted before its receipt is reconciled without repeating the effect
+ok 262 - a committed write interrupted before its receipt is reconciled without repeating the effect
+  ---
+  duration_ms: 6640.507939
+  type: 'test'
+  ...
+# Subtest: unexplained changes always ask, reject stale decisions, and continue only after explicit current-state confirmation
+ok 263 - unexplained changes always ask, reject stale decisions, and continue only after explicit current-state confirmation
+  ---
+  duration_ms: 7770.800323
+  type: 'test'
+  ...
+# Subtest: workflow recovery composes reconciliation without repeating the interrupted write
+ok 264 - workflow recovery composes reconciliation without repeating the interrupted write
+  ---
+  duration_ms: 6861.423016
+  type: 'test'
+  ...
+# Subtest: interrupted command asks before abandoning the attempt and preserves its budget
+ok 265 - interrupted command asks before abandoning the attempt and preserves its budget
+  ---
+  duration_ms: 7995.106149
+  type: 'test'
+  ...
+# Subtest: interrupted model asks before abandoning the attempt and preserves its budget
+ok 266 - interrupted model asks before abandoning the attempt and preserves its budget
+  ---
+  duration_ms: 7925.774408
+  type: 'test'
+  ...
+# Subtest: a project patch interrupted after its effect requires a decision and is never automatically repeated
+ok 267 - a project patch interrupted after its effect requires a decision and is never automatically repeated
+  ---
+  duration_ms: 8151.677998
+  type: 'test'
+  ...
+# Subtest: a completed patch receipt explains its change when a later command is interrupted
+ok 268 - a completed patch receipt explains its change when a later command is interrupted
+  ---
+  duration_ms: 4824.116339
+  type: 'test'
+  ...
+# Subtest: missing backend fails before any probe
+ok 269 - missing backend fails before any probe
+  ---
+  duration_ms: 1.949415
+  type: 'test'
+  ...
+# Subtest: exit zero and claimed writes do not prove an effect
+ok 270 - exit zero and claimed writes do not prove an effect
+  ---
+  duration_ms: 4.164756
+  type: 'test'
+  ...
+# Subtest: confirmed effects pass only prerequisites with fixed commands and cleared environment
+ok 271 - confirmed effects pass only prerequisites with fixed commands and cleared environment
+  ---
+  duration_ms: 2.892192
+  type: 'test'
+  ...
+# Subtest: rejects symlink despite a successful-looking effect
+ok 272 - rejects symlink despite a successful-looking effect
+  ---
+  duration_ms: 1.387718
+  type: 'test'
+  ...
+# Subtest: rejects hardlink despite a successful-looking effect
+ok 273 - rejects hardlink despite a successful-looking effect
+  ---
+  duration_ms: 1.183759
+  type: 'test'
+  ...
+# Subtest: rejects control-modification despite a successful-looking effect
+ok 274 - rejects control-modification despite a successful-looking effect
+  ---
+  duration_ms: 1.293266
+  type: 'test'
+  ...
+# Subtest: rejects visible-control despite a successful-looking effect
+ok 275 - rejects visible-control despite a successful-looking effect
+  ---
+  duration_ms: 1.169142
+  type: 'test'
+  ...
+# Subtest: rejects invalid-report despite a successful-looking effect
+ok 276 - rejects invalid-report despite a successful-looking effect
+  ---
+  duration_ms: 1.200952
+  type: 'test'
+  ...
+# Subtest: rejects timeout despite a successful-looking effect
+ok 277 - rejects timeout despite a successful-looking effect
+  ---
+  duration_ms: 1.314226
+  type: 'test'
+  ...
+# Subtest: public CLI fails closed against a backend that merely exits zero
+ok 278 - public CLI fails closed against a backend that merely exits zero
+  ---
+  duration_ms: 127.212121
+  type: 'test'
+  ...
+# Subtest: validates and freezes a versioned contract without attesting the verifier or executing code
+ok 279 - validates and freezes a versioned contract without attesting the verifier or executing code
+  ---
+  duration_ms: 10.127793
+  type: 'test'
+  ...
+# Subtest: rejects source drift
+ok 280 - rejects source drift
+  ---
+  duration_ms: 1.565068
+  type: 'test'
+  ...
+# Subtest: rejects file drift
+ok 281 - rejects file drift
+  ---
+  duration_ms: 0.585277
+  type: 'test'
+  ...
+# Subtest: rejects traversal
+ok 282 - rejects traversal
+  ---
+  duration_ms: 1.209247
+  type: 'test'
+  ...
+# Subtest: rejects absolute path
+ok 283 - rejects absolute path
+  ---
+  duration_ms: 2.856163
+  type: 'test'
+  ...
+# Subtest: rejects hidden control path
+ok 284 - rejects hidden control path
+  ---
+  duration_ms: 0.582064
+  type: 'test'
+  ...
+# Subtest: rejects path prefix collision
+ok 285 - rejects path prefix collision
+  ---
+  duration_ms: 0.501923
+  type: 'test'
+  ...
+# Subtest: rejects write outside read scope
+ok 286 - rejects write outside read scope
+  ---
+  duration_ms: 0.504381
+  type: 'test'
+  ...
+# Subtest: rejects duplicate file
+ok 287 - rejects duplicate file
+  ---
+  duration_ms: 0.626767
+  type: 'test'
+  ...
+# Subtest: rejects file outside scope
+ok 288 - rejects file outside scope
+  ---
+  duration_ms: 0.510906
+  type: 'test'
+  ...
+# Subtest: rejects missing source
+ok 289 - rejects missing source
+  ---
+  duration_ms: 0.530485
+  type: 'test'
+  ...
+# Subtest: rejects uncovered requirement
+ok 290 - rejects uncovered requirement
+  ---
+  duration_ms: 0.637368
+  type: 'test'
+  ...
+# Subtest: rejects missing requirement
+ok 291 - rejects missing requirement
+  ---
+  duration_ms: 0.529021
+  type: 'test'
+  ...
+# Subtest: rejects missing acceptance
+ok 292 - rejects missing acceptance
+  ---
+  duration_ms: 0.525682
+  type: 'test'
+  ...
+# Subtest: rejects duplicate acceptance
+ok 293 - rejects duplicate acceptance
+  ---
+  duration_ms: 0.564234
+  type: 'test'
+  ...
+# Subtest: rejects unknown authority
+ok 294 - rejects unknown authority
+  ---
+  duration_ms: 0.761518
+  type: 'test'
+  ...
+# Subtest: rejects privileged source role
+ok 295 - rejects privileged source role
+  ---
+  duration_ms: 0.608575
+  type: 'test'
+  ...
+# Subtest: rejects shell command
+ok 296 - rejects shell command
+  ---
+  duration_ms: 0.664907
+  type: 'test'
+  ...
+# Subtest: rejects command outside scope
+ok 297 - rejects command outside scope
+  ---
+  duration_ms: 0.6548
+  type: 'test'
+  ...
+# Subtest: rejects unbounded retries
+ok 298 - rejects unbounded retries
+  ---
+  duration_ms: 0.759848
+  type: 'test'
+  ...
+# Subtest: rejects invalid duration
+ok 299 - rejects invalid duration
+  ---
+  duration_ms: 0.761414
+  type: 'test'
+  ...
+# Subtest: rejects unsafe integer
+ok 300 - rejects unsafe integer
+  ---
+  duration_ms: 0.416264
+  type: 'test'
+  ...
+# Subtest: rejects child budget
+ok 301 - rejects child budget
+  ---
+  duration_ms: 0.386053
+  type: 'test'
+  ...
+# Subtest: rejects oversized artifacts
+ok 302 - rejects oversized artifacts
+  ---
+  duration_ms: 0.356598
+  type: 'test'
+  ...
+# Subtest: rejects invalid rollback
+ok 303 - rejects invalid rollback
+  ---
+  duration_ms: 0.35553
+  type: 'test'
+  ...
+# Subtest: source instructions remain untrusted data and changing them invalidates the receipt
+ok 304 - source instructions remain untrusted data and changing them invalidates the receipt
+  ---
+  duration_ms: 0.932557
+  type: 'test'
+  ...
+# Subtest: linked and oversized input files are rejected before loading their contents
+ok 305 - linked and oversized input files are rejected before loading their contents
+  ---
+  duration_ms: 1.496356
+  type: 'test'
+  ...
+# Subtest: public validation emits no source contents and cannot select an execution profile
+ok 306 - public validation emits no source contents and cannot select an execution profile
+  ---
+  duration_ms: 1275.459956
+  type: 'test'
+  ...
+# Subtest: Node implementation is independently approved and survives status reopen
+ok 307 - Node implementation is independently approved and survives status reopen
+  ---
+  duration_ms: 1977.061574
+  type: 'test'
+  ...
+# Subtest: Python bug correction is independently approved
+ok 308 - Python bug correction is independently approved
+  ---
+  duration_ms: 1509.827129
+  type: 'test'
+  ...
+# Subtest: Node regression correction preserves zero values
+ok 309 - Node regression correction preserves zero values
+  ---
+  duration_ms: 1856.54983
+  type: 'test'
+  ...
+# Subtest: a completed model response without implementation fails independent verification
+ok 310 - a completed model response without implementation fails independent verification
+  ---
+  duration_ms: 2040.435048
+  type: 'test'
+  ...
+# Subtest: incorrect code cannot pass using a successful process exit
+ok 311 - incorrect code cannot pass using a successful process exit
+  ---
+  duration_ms: 2320.91245
+  type: 'test'
+  ...
+# Subtest: unknown tools never execute
+ok 312 - unknown tools never execute
+  ---
+  duration_ms: 1254.763986
+  type: 'test'
+  ...
+# Subtest: a create-only task resumes with its original budget and sequence
+ok 313 - a create-only task resumes with its original budget and sequence
+  ---
+  duration_ms: 3084.816721
+  type: 'test'
+  ...
+# Subtest: cancel persists a separate task outcome and prevents later execution
+ok 314 - cancel persists a separate task outcome and prevents later execution
+  ---
+  duration_ms: 1220.292448
+  type: 'test'
+  ...
+# Subtest: cross-process cancellation waits for the running worker to drain its executor
+ok 315 - cross-process cancellation waits for the running worker to drain its executor
+  ---
+  duration_ms: 3336.135284
+  type: 'test'
+  ...
+# Subtest: cancellation after worker interruption reaps its executor before confirming
+ok 316 - cancellation after worker interruption reaps its executor before confirming
+  ---
+  duration_ms: 3317.790173
+  type: 'test'
+  ...
+# Subtest: tampered verifier hash or acceptance is blocked before the first model turn
+ok 317 - tampered verifier hash or acceptance is blocked before the first model turn
+  ---
+  duration_ms: 29.644829
+  type: 'test'
+  ...
+# Subtest: gateway denies verifier, credential, and workspace escape paths
+ok 318 - gateway denies verifier, credential, and workspace escape paths
+  ---
+  duration_ms: 6233.944941
+  type: 'test'
+  ...
+# Subtest: interruption after model completion resumes verification without replaying effects
+ok 319 - interruption after model completion resumes verification without replaying effects
+  ---
+  duration_ms: 9529.274446
+  type: 'test'
+  ...
+# Subtest: invalid creation never poisons the durable stream
+ok 320 - invalid creation never poisons the durable stream
+  ---
+  duration_ms: 31.096205
+  type: 'test'
+  ...
+# Subtest: snapshots require complete unique scope and accurate content digests
+ok 321 - snapshots require complete unique scope and accurate content digests
+  ---
+  duration_ms: 16.748748
+  type: 'test'
+  ...
+# Subtest: approval requires versioned proof bound to contract, artifacts, session and isolation
+ok 322 - approval requires versioned proof bound to contract, artifacts, session and isolation
+  ---
+  duration_ms: 30.109816
+  type: 'test'
+  ...
+# Subtest: WorkflowEngine composes the three engineering tasks using independent outcomes
+ok 323 - WorkflowEngine composes the three engineering tasks using independent outcomes
+  ---
+  duration_ms: 5047.453381
+  type: 'test'
+  ...
+# Subtest: a completed model with a failed task prevents execution of dependent tasks
+ok 324 - a completed model with a failed task prevents execution of dependent tasks
+  ---
+  duration_ms: 1445.6733
+  type: 'test'
+  ...
+# Subtest: workflow validation rejects cycles and aggregate oversubscription before creating state
+ok 325 - workflow validation rejects cycles and aggregate oversubscription before creating state
+  ---
+  duration_ms: 12.618518
+  type: 'test'
+  ...
+# Subtest: workflow status and create-only resume use the canonical ledger
+ok 326 - workflow status and create-only resume use the canonical ledger
+  ---
+  duration_ms: 4929.394633
+  type: 'test'
+  ...
+# Subtest: workflow cancellation before execution preserves all task artifacts and prevents resume
+ok 327 - workflow cancellation before execution preserves all task artifacts and prevents resume
+  ---
+  duration_ms: 69.959248
+  type: 'test'
+  ...
+# Subtest: workflow definition identity is protected after creation
+ok 328 - workflow definition identity is protected after creation
+  ---
+  duration_ms: 38.805729
+  type: 'test'
+  ...
+# Subtest: parallel tasks share the declared aggregate budget and release unused reservations
+ok 329 - parallel tasks share the declared aggregate budget and release unused reservations
+  ---
+  duration_ms: 2938.358834
+  type: 'test'
+  ...
+# Subtest: explicit migration converts eligible definitions without touching legacy history or executing tasks
+ok 330 - explicit migration converts eligible definitions without touching legacy history or executing tasks
+  ---
+  duration_ms: 101.13629
+  type: 'test'
+  ...
+# Subtest: live workflow cancellation settles the active executor and preserves unstarted tasks
+ok 331 - live workflow cancellation settles the active executor and preserves unstarted tasks
+  ---
+  duration_ms: 2494.570446
+  type: 'test'
+  ...
+# Subtest: interrupted workflow blocks uncertain effects and cancellation drains the abandoned executor
+ok 332 - interrupted workflow blocks uncertain effects and cancellation drains the abandoned executor
+  ---
+  duration_ms: 8667.381549
+  type: 'test'
+  ...
+# Subtest: interrupted workflow reclaims only a dead owner and resumes verification without repeated effects
+ok 333 - interrupted workflow reclaims only a dead owner and resumes verification without repeated effects
+  ---
+  duration_ms: 14398.570484
+  type: 'test'
+  ...
+# Subtest: workspace boundary handles root-link without following an unsafe path
+ok 334 - workspace boundary handles root-link without following an unsafe path
+  ---
+  duration_ms: 42.012259
+  type: 'test'
+  ...
+# Subtest: workspace boundary handles root-file without following an unsafe path
+ok 335 - workspace boundary handles root-file without following an unsafe path
+  ---
+  duration_ms: 34.570007
+  type: 'test'
+  ...
+# Subtest: workspace boundary handles file-directory without following an unsafe path
+ok 336 - workspace boundary handles file-directory without following an unsafe path
+  ---
+  duration_ms: 46.116643
+  type: 'test'
+  ...
+# Subtest: workspace boundary handles budget without following an unsafe path
+ok 337 - workspace boundary handles budget without following an unsafe path
+  ---
+  duration_ms: 37.968363
+  type: 'test'
+  ...
+# Subtest: workspace boundary handles traversal without following an unsafe path
+ok 338 - workspace boundary handles traversal without following an unsafe path
+  ---
+  duration_ms: 41.499087
+  type: 'test'
+  ...
+# Subtest: workspace boundary handles missing-file without following an unsafe path
+ok 339 - workspace boundary handles missing-file without following an unsafe path
+  ---
+  duration_ms: 43.24362
+  type: 'test'
+  ...
+# Subtest: workspace boundary handles missing-parent without following an unsafe path
+ok 340 - workspace boundary handles missing-parent without following an unsafe path
+  ---
+  duration_ms: 46.035607
+  type: 'test'
+  ...
+# Subtest: workspace boundary handles parent-link without following an unsafe path
+ok 341 - workspace boundary handles parent-link without following an unsafe path
+  ---
+  duration_ms: 41.750516
+  type: 'test'
+  ...
+# Subtest: a file edited between read and stat cannot enter the baseline
+ok 342 - a file edited between read and stat cannot enter the baseline
+  ---
+  duration_ms: 40.747166
+  type: 'test'
+  ...
+# Subtest: changing the workspace directory after reads invalidates its identity
+ok 343 - changing the workspace directory after reads invalidates its identity
+  ---
+  duration_ms: 47.075397
+  type: 'test'
+  ...
+# Subtest: project hydration rejects supplied file content even with the correct declared baseline
+ok 344 - project hydration rejects supplied file content even with the correct declared baseline
+  ---
+  duration_ms: 71.480639
+  type: 'test'
+  ...
+# Subtest: whole-file patches round-trip creation, deletion, empty files and newline boundaries through Git
+ok 345 - whole-file patches round-trip creation, deletion, empty files and newline boundaries through Git
+  ---
+  duration_ms: 40.859831
+  type: 'test'
+  ...
+# Subtest: project snapshots reject Git conversion filters before any project extension can execute
+ok 346 - project snapshots reject Git conversion filters before any project extension can execute
+  ---
+  duration_ms: 47.523128
+  type: 'test'
+  ...
+# Subtest: project Git worktree redirection cannot change the declared workspace authority
+ok 347 - project Git worktree redirection cannot change the declared workspace authority
+  ---
+  duration_ms: 38.801224
+  type: 'test'
+  ...
+# Subtest: malformed or overprivileged subprocess witnesses never certify isolation
+ok 348 - malformed or overprivileged subprocess witnesses never certify isolation
+  ---
+  duration_ms: 56.928775
+  type: 'test'
+  ...
+# Subtest: policy input and execution commands fail closed before launching a process
+ok 349 - policy input and execution commands fail closed before launching a process
+  ---
+  duration_ms: 7.605755
+  type: 'test'
+  ...
+# Subtest: executor ownership cannot be inferred from missing or mismatched process facts
+ok 350 - executor ownership cannot be inferred from missing or mismatched process facts
+  ---
+  duration_ms: 3.001312
+  type: 'test'
+  ...
+# Subtest: executor rejects non-unified cgroup
+ok 351 - executor rejects non-unified cgroup
+  ---
+  duration_ms: 0.459777
+  type: 'test'
+  ...
+# Subtest: executor rejects missing controllers
+ok 352 - executor rejects missing controllers
+  ---
+  duration_ms: 0.296133
+  type: 'test'
+  ...
+# Subtest: executor rejects invalid process identity
+ok 353 - executor rejects invalid process identity
+  ---
+  duration_ms: 0.146764
+  type: 'test'
+  ...
+# Subtest: registry snapshots isolate later registrations and reject mutation and duplicates
+ok 354 - registry snapshots isolate later registrations and reject mutation and duplicates
+  ---
+  duration_ms: 9.608038
+  type: 'test'
+  ...
+# Subtest: two scripted routes produce normalized text, reasoning, tool and usage events
+ok 355 - two scripted routes produce normalized text, reasoning, tool and usage events
+  ---
+  duration_ms: 9.14066
+  type: 'test'
+  ...
+# Subtest: scripted cancellation is prompt and produces a normalized terminal event
+ok 356 - scripted cancellation is prompt and produces a normalized terminal event
+  ---
+  duration_ms: 16.536567
+  type: 'test'
+  ...
+# Subtest: provider discovery, disposal and parallel reservations fail closed
+ok 357 - provider discovery, disposal and parallel reservations fail closed
+  ---
+  duration_ms: 3.249135
+  type: 'test'
+  ...
+# Subtest: SSE parsing fails closed when one frame exceeds its fixed memory bound
+ok 358 - SSE parsing fails closed when one frame exceeds its fixed memory bound
+  ---
+  duration_ms: 8.462553
+  type: 'test'
+  ...
+# Subtest: declared capabilities and output limits are enforced before dispatch
+ok 359 - declared capabilities and output limits are enforced before dispatch
+  ---
+  duration_ms: 1.754942
+  type: 'test'
+  ...
+# Subtest: assembles fragmented SSE tool deltas, usage and opaque response evidence
+ok 360 - assembles fragmented SSE tool deltas, usage and opaque response evidence
+  ---
+  duration_ms: 68.493346
+  type: 'test'
+  ...
+# Subtest: maps canonical assistant tool calls and tool outcomes into OpenAI-compatible continuation messages
+ok 361 - maps canonical assistant tool calls and tool outcomes into OpenAI-compatible continuation messages
+  ---
+  duration_ms: 7.871632
+  type: 'test'
+  ...
+# Subtest: retries a transient failure before emission
+ok 362 - retries a transient failure before emission
+  ---
+  duration_ms: 8.071711
+  type: 'test'
+  ...
+# Subtest: resolves a declared secret reference only at request dispatch
+ok 363 - resolves a declared secret reference only at request dispatch
+  ---
+  duration_ms: 6.72565
+  type: 'test'
+  ...
+# Subtest: rejects a provider frame containing the resolved credential before emitting it
+ok 364 - rejects a provider frame containing the resolved credential before emitting it
+  ---
+  duration_ms: 6.162535
+  type: 'test'
+  ...
+# Subtest: sanitizes errors thrown by an untrusted secret resolver
+ok 365 - sanitizes errors thrown by an untrusted secret resolver
+  ---
+  duration_ms: 1.211772
+  type: 'test'
+  ...
+# Subtest: does not retry a protocol failure after emitting output
+ok 366 - does not retry a protocol failure after emitting output
+  ---
+  duration_ms: 5.820085
+  type: 'test'
+  ...
+# Subtest: invalid content and tool wire shapes fail as protocol errors without false success
+ok 367 - invalid content and tool wire shapes fail as protocol errors without false success
+  ---
+  duration_ms: 5.690852
+  type: 'test'
+  ...
+# Subtest: cancels an in-flight HTTP stream with a normalized terminal event
+ok 368 - cancels an in-flight HTTP stream with a normalized terminal event
+  ---
+  duration_ms: 4.961232
+  type: 'test'
+  ...
+# Subtest: HTTP cancellation releases an unstarted reservation without an ABA race
+ok 369 - HTTP cancellation releases an unstarted reservation without an ABA race
+  ---
+  duration_ms: 5.778905
+  type: 'test'
+  ...
+# Subtest: real typescript-report project is rejected, diagnosed, corrected and independently approved
+ok 370 - real typescript-report project is rejected, diagnosed, corrected and independently approved
+  ---
+  duration_ms: 2568.948952
+  type: 'test'
+  ...
+# Subtest: real python-inventory project is rejected, diagnosed, corrected and independently approved
+ok 371 - real python-inventory project is rejected, diagnosed, corrected and independently approved
+  ---
+  duration_ms: 2140.878833
+  type: 'test'
+  ...
+# Subtest: patch cannot bypass required diagnosis after protected rejection
+ok 372 - patch cannot bypass required diagnosis after protected rejection
+  ---
+  duration_ms: 2212.668597
+  type: 'test'
+  ...
+# Subtest: Unix broker pins endpoint and injects the supervisor-owned credential
+ok 373 - Unix broker pins endpoint and injects the supervisor-owned credential
+  ---
+  duration_ms: 91.55803
+  type: 'test'
+  ...
+# Subtest: broker rejects credential-bearing endpoints, unsafe secrets, and upstream redirects
+ok 374 - broker rejects credential-bearing endpoints, unsafe secrets, and upstream redirects
+  ---
+  duration_ms: 11.029796
+  type: 'test'
+  ...
+# Subtest: broker close destroys a partial client instead of waiting without a bound
+ok 375 - broker close destroys a partial client instead of waiting without a bound
+  ---
+  duration_ms: 4.101744
+  type: 'test'
+  ...
+# Subtest: broker close directly aborts and settles an active upstream operation
+ok 376 - broker close directly aborts and settles an active upstream operation
+  ---
+  duration_ms: 3.7339
+  type: 'test'
+  ...
+# Subtest: broker blocks an echoed credential in response headers and across streaming chunks
+ok 377 - broker blocks an echoed credential in response headers and across streaming chunks
+  ---
+  duration_ms: 6.054401
+  type: 'test'
+  ...
+# Subtest: Unix broker rejects unapproved routes and credential override headers
+ok 378 - Unix broker rejects unapproved routes and credential override headers
+  ---
+  duration_ms: 5.40763
+  type: 'test'
+  ...
+# Subtest: Unix broker rejects malformed request bodies before upstream egress
+ok 379 - Unix broker rejects malformed request bodies before upstream egress
+  ---
+  duration_ms: 4.828466
+  type: 'test'
+  ...
+# Subtest: ACP manifest reports L0 honestly and rejects negotiation for every higher level
+ok 380 - ACP manifest reports L0 honestly and rejects negotiation for every higher level
+  ---
+  duration_ms: 7.937561
+  type: 'test'
+  ...
+# Subtest: stable ACP v1 lifecycle maps text and terminal response to normalized ordered events
+ok 381 - stable ACP v1 lifecycle maps text and terminal response to normalized ordered events
+  ---
+  duration_ms: 17.103196
+  type: 'test'
+  ...
+# Subtest: L0 denies permission requests and cancels tool effects without emitting a tool call
+ok 382 - L0 denies permission requests and cancels tool effects without emitting a tool call
+  ---
+  duration_ms: 3.203009
+  type: 'test'
+  ...
+# Subtest: tool-call notifications, malformed updates and wrong session identities fail closed
+ok 383 - tool-call notifications, malformed updates and wrong session identities fail closed
+  ---
+  duration_ms: 3.881316
+  type: 'test'
+  ...
+# Subtest: version and effect-boundary negotiation reject incompatible or ungoverned peers
+ok 384 - version and effect-boundary negotiation reject incompatible or ungoverned peers
+  ---
+  duration_ms: 1.491729
+  type: 'test'
+  ...
+# Subtest: resume, cancellation and disposal preserve correlated lifecycle semantics
+ok 385 - resume, cancellation and disposal preserve correlated lifecycle semantics
+  ---
+  duration_ms: 4.917807
+  type: 'test'
+  ...
+# Subtest: ACP reattaches a durable session in a fresh provider through load without creating a remote session
+ok 386 - ACP reattaches a durable session in a fresh provider through load without creating a remote session
+  ---
+  duration_ms: 1.701862
+  type: 'test'
+  ...
+# Subtest: ACP reattachment rejects unsupported load and missing durable state without session/new
+ok 387 - ACP reattachment rejects unsupported load and missing durable state without session/new
+  ---
+  duration_ms: 1.211954
+  type: 'test'
+  ...
+# Subtest: concurrent duplicate creates reserve identity before crossing the ACP boundary
+ok 388 - concurrent duplicate creates reserve identity before crossing the ACP boundary
+  ---
+  duration_ms: 1.181264
+  type: 'test'
+  ...
+# Subtest: event budgets terminate an instruction stream before unbounded growth
+ok 389 - event budgets terminate an instruction stream before unbounded growth
+  ---
+  duration_ms: 1.890322
+  type: 'test'
+  ...
+# Subtest: a requested cancellation becomes terminal before the peer notification settles
+ok 390 - a requested cancellation becomes terminal before the peer notification settles
+  ---
+  duration_ms: 23.740391
+  type: 'test'
+  ...
+# Subtest: prompt stop reasons are strict ACP v1 values and cancelled is not reported as success
+ok 391 - prompt stop reasons are strict ACP v1 values and cancelled is not reported as success
+  ---
+  duration_ms: 8.177245
+  type: 'test'
+  ...
+# Subtest: synchronous prompt dispatch failures settle the session and do not leave an active turn
+ok 392 - synchronous prompt dispatch failures settle the session and do not leave an active turn
+  ---
+  duration_ms: 2.07409
+  type: 'test'
+  ...
+# Subtest: a correlatable malformed outer notification durably fails its active session
+ok 393 - a correlatable malformed outer notification durably fails its active session
+  ---
+  duration_ms: 6.503707
+  type: 'test'
+  ...
+# Subtest: a duplicate remote session identity quarantines its existing local owner
+ok 394 - a duplicate remote session identity quarantines its existing local owner
+  ---
+  duration_ms: 2.156687
+  type: 'test'
+  ...
+# Subtest: a malformed post-create response cancels the captured remote session
+ok 395 - a malformed post-create response cancels the captured remote session
+  ---
+  duration_ms: 0.93879
+  type: 'test'
+  ...
+# Subtest: initialize rejects malformed optional ACP v1 capability fields before session creation
+ok 396 - initialize rejects malformed optional ACP v1 capability fields before session creation
+  ---
+  duration_ms: 0.63346
+  type: 'test'
+  ...
+# Subtest: input bytes are bounded by the delegated session budget before ACP dispatch
+ok 397 - input bytes are bounded by the delegated session budget before ACP dispatch
+  ---
+  duration_ms: 1.841914
+  type: 'test'
+  ...
+# Subtest: content chunk envelope is strict while valid ACP annotations are accepted
+ok 398 - content chunk envelope is strict while valid ACP annotations are accepted
+  ---
+  duration_ms: 1.692322
+  type: 'test'
+  ...
+# Subtest: cancel settles locally when peer notification I/O never completes
+ok 399 - cancel settles locally when peer notification I/O never completes
+  ---
+  duration_ms: 26.82522
+  type: 'test'
+  ...
+# Subtest: durations above the Node timer ceiling do not overflow into an immediate timeout
+ok 400 - durations above the Node timer ceiling do not overflow into an immediate timeout
+  ---
+  duration_ms: 11.309633
+  type: 'test'
+  ...
+# Subtest: send cannot overlap an in-flight session load
+ok 401 - send cannot overlap an in-flight session load
+  ---
+  duration_ms: 2.648223
+  type: 'test'
+  ...
+# Subtest: resume cannot overlap an active prompt or another in-flight resume
+ok 402 - resume cannot overlap an active prompt or another in-flight resume
+  ---
+  duration_ms: 2.992244
+  type: 'test'
+  ...
+# Subtest: create and close settle when lifecycle request I/O never completes
+ok 403 - create and close settle when lifecycle request I/O never completes
+  ---
+  duration_ms: 66.23377
+  type: 'test'
+  ...
+# Subtest: registry exposes deterministic model definitions only when backed by the exact governed contract
+ok 404 - registry exposes deterministic model definitions only when backed by the exact governed contract
+  ---
+  duration_ms: 9.771581
+  type: 'test'
+  ...
+# Subtest: published runtime source has no provider dispatch or internal governed-runtime import
+ok 405 - published runtime source has no provider dispatch or internal governed-runtime import
+  ---
+  duration_ms: 0.73058
+  type: 'test'
+  ...
+# Subtest: ToolRuntime rejects scheduler contract drift and satisfies the versioned port shape
+ok 406 - ToolRuntime rejects scheduler contract drift and satisfies the versioned port shape
+  ---
+  duration_ms: 21.325699
+  type: 'test'
+  ...
+# Subtest: governed execution preserves pre, guard, approval, dispatch, post and durable result ordering
+ok 407 - governed execution preserves pre, guard, approval, dispatch, post and durable result ordering
+  ---
+  duration_ms: 27.574688
+  type: 'test'
+  ...
+# Subtest: approval denial cannot dispatch a classified effect
+ok 408 - approval denial cannot dispatch a classified effect
+  ---
+  duration_ms: 9.425823
+  type: 'test'
+  ...
+# Subtest: settled retries reuse the governed operation without a second dispatch
+ok 409 - settled retries reuse the governed operation without a second dispatch
+  ---
+  duration_ms: 14.020709
+  type: 'test'
+  ...
+# Subtest: concurrent equivalent idempotent invocations coalesce on one governed outcome
+ok 410 - concurrent equivalent idempotent invocations coalesce on one governed outcome
+  ---
+  duration_ms: 12.678458
+  type: 'test'
+  ...
+# Subtest: an in-flight deferred tool cannot be joined from a different trace or causation
+ok 411 - an in-flight deferred tool cannot be joined from a different trace or causation
+  ---
+  duration_ms: 13.209921
+  type: 'test'
+  ...
+# Subtest: post-effect evidence accepted by the canonical runtime is preserved without a tighter adapter bound
+ok 412 - post-effect evidence accepted by the canonical runtime is preserved without a tighter adapter bound
+  ---
+  duration_ms: 15.877945
+  type: 'test'
+  ...
+# Subtest: deadline and active cancellation settle through governed terminal outcomes
+ok 413 - deadline and active cancellation settle through governed terminal outcomes
+  ---
+  duration_ms: 44.488292
+  type: 'test'
+  ...
+# Subtest: session disposal reports non-cancellable work without waiting or suppressing its outcome
+ok 414 - session disposal reports non-cancellable work without waiting or suppressing its outcome
+  ---
+  duration_ms: 12.463736
+  type: 'test'
+  ...
+# Subtest: duplicate active calls, unknown tools and malformed outcomes fail closed
+ok 415 - duplicate active calls, unknown tools and malformed outcomes fail closed
+  ---
+  duration_ms: 10.861845
+  type: 'test'
+  ...
+# Subtest: registry fails closed without a contract resolver or with mismatched governance identity
+ok 416 - registry fails closed without a contract resolver or with mismatched governance identity
+  ---
+  duration_ms: 0.57246
+  type: 'test'
+  ...
+1..416
+# tests 416
+# suites 0
+# pass 416
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 244619.849969
+
+> hseos@4.0.0-rc.0 test:terminals
+> node --test --test-concurrency=1 test/test-terminal-executor.js test/test-terminal-control.js test/test-terminal-api.js
+
+TAP version 13
+# Subtest: authenticated HTTP, JS, Python and CLI share terminal identity and cursor
+ok 1 - authenticated HTTP, JS, Python and CLI share terminal identity and cursor
+  ---
+  duration_ms: 1882.16375
+  type: 'test'
+  ...
+# Subtest: interactive attach streams bytes, serializes input/resize, and detaches without terminate
+ok 2 - interactive attach streams bytes, serializes input/resize, and detaches without terminate
+  ---
+  duration_ms: 101.725578
+  type: 'test'
+  ...
+# Subtest: attach restores terminal on rejection and ends at the durable cursor
+ok 3 - attach restores terminal on rejection and ends at the durable cursor
+  ---
+  duration_ms: 101.464586
+  type: 'test'
+  ...
+# Subtest: control reserves parent budget and exposes durable cursor without replaying input
+ok 4 - control reserves parent budget and exposes durable cursor without replaying input
+  ---
+  duration_ms: 1508.245448
+  type: 'test'
+  ...
+# Subtest: CAS, command authorization, mode and finite shared budget fail closed
+ok 5 - CAS, command authorization, mode and finite shared budget fail closed
+  ---
+  duration_ms: 1430.104807
+  type: 'test'
+  ...
+# Subtest: receipt loss never repeats effect and requires explicit digest-bound reconciliation
+ok 6 - receipt loss never repeats effect and requires explicit digest-bound reconciliation
+  ---
+  duration_ms: 1385.420809
+  type: 'test'
+  ...
+# Subtest: concurrent sessions isolate output and parent cancellation drains all children
+ok 7 - concurrent sessions isolate output and parent cancellation drains all children
+  ---
+  duration_ms: 1504.283064
+  type: 'test'
+  ...
+# Subtest: SIGKILL before-intent: recovery never respawns and cancellation drains resources
+ok 8 - SIGKILL before-intent: recovery never respawns and cancellation drains resources
+  ---
+  duration_ms: 2050.19294
+  type: 'test'
+  ...
+# Subtest: SIGKILL after-intent: recovery never respawns and cancellation drains resources
+ok 9 - SIGKILL after-intent: recovery never respawns and cancellation drains resources
+  ---
+  duration_ms: 2138.427522
+  type: 'test'
+  ...
+# Subtest: SIGKILL after-prepared: recovery never respawns and cancellation drains resources
+ok 10 - SIGKILL after-prepared: recovery never respawns and cancellation drains resources
+  ---
+  duration_ms: 2135.862168
+  type: 'test'
+  ...
+# Subtest: SIGKILL before-receipt: recovery never respawns and cancellation drains resources
+ok 11 - SIGKILL before-receipt: recovery never respawns and cancellation drains resources
+  ---
+  duration_ms: 2197.701386
+  type: 'test'
+  ...
+# Subtest: SIGKILL after-receipt: recovery never respawns and cancellation drains resources
+ok 12 - SIGKILL after-receipt: recovery never respawns and cancellation drains resources
+  ---
+  duration_ms: 2099.442396
+  type: 'test'
+  ...
+# Subtest: SIGKILL input-receipt: recovery never respawns and cancellation drains resources
+ok 13 - SIGKILL input-receipt: recovery never respawns and cancellation drains resources
+  ---
+  duration_ms: 2242.226316
+  type: 'test'
+  ...
+# Subtest: cancel during remote recovery fences dispatch and preserves other sessions
+ok 14 - cancel during remote recovery fences dispatch and preserves other sessions
+  ---
+  duration_ms: 1498.802877
+  type: 'test'
+  ...
+# Subtest: terminal reservations reduce model tool budget and block parent while active
+ok 15 - terminal reservations reduce model tool budget and block parent while active
+  ---
+  duration_ms: 3264.314195
+  type: 'test'
+  ...
+# Subtest: parent resume cannot bypass live terminal reservations through direct runtime
+ok 16 - parent resume cannot bypass live terminal reservations through direct runtime
+  ---
+  duration_ms: 1345.661343
+  type: 'test'
+  ...
+# Subtest: job pipes accept input and EOF; output has bounded binary frames
+ok 17 - job pipes accept input and EOF; output has bounded binary frames
+  ---
+  duration_ms: 107.264248
+  type: 'test'
+  ...
+# Subtest: PTY exposes tty, resize and input without a host shell
+ok 18 - PTY exposes tty, resize and input without a host shell
+  ---
+  duration_ms: 112.29263
+  type: 'test'
+  ...
+# Subtest: pause freezes all descendants and continue resumes; interrupt settles
+ok 19 - pause freezes all descendants and continue resumes; interrupt settles
+  ---
+  duration_ms: 236.27642
+  type: 'test'
+  ...
+# Subtest: deadline includes paused time and drains detached descendants
+ok 20 - deadline includes paused time and drains detached descendants
+  ---
+  duration_ms: 411.975796
+  type: 'test'
+  ...
+# Subtest: output cap stops producers; parent EOF terminates a live tree
+ok 21 - output cap stops producers; parent EOF terminates a live tree
+  ---
+  duration_ms: 144.391485
+  type: 'test'
+  ...
+# Subtest: invalid limits and non-nominal policies cannot reach process creation
+ok 22 - invalid limits and non-nominal policies cannot reach process creation
+  ---
+  duration_ms: 0.581013
+  type: 'test'
+  ...
+# Subtest: failed preparation or durable output persistence tears down instead of retrying
+ok 23 - failed preparation or durable output persistence tears down instead of retrying
+  ---
+  duration_ms: 97.174257
+  type: 'test'
+  ...
+# Subtest: host Node descriptor is readonly and invalid control dispatch is uncertain
+ok 24 - host Node descriptor is readonly and invalid control dispatch is uncertain
+  ---
+  duration_ms: 156.272264
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 30005.587795
+--------------------------------------|---------|----------|---------|---------|--------------------
+File                                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s  
+--------------------------------------|---------|----------|---------|---------|--------------------
+All files                             |   95.63 |    88.46 |    97.9 |   95.63 |                    
+ packages/agent-compaction            |   97.97 |       93 |     100 |   97.97 |                    
+  checkpoint-provider.js              |     100 |    85.71 |     100 |     100 | 29,50,58           
+  deterministic-provider.js           |     100 |       98 |     100 |     100 | 35                 
+  index.js                            |     100 |      100 |     100 |     100 |                    
+  provider-registry.js                |     100 |      100 |     100 |     100 |                    
+  runtime.js                          |   93.63 |    87.23 |     100 |   93.63 | ...112-113,135-136 
+ packages/agent-isolation-attestation |   95.47 |    90.63 |     100 |   95.47 |                    
+  executor.js                         |   94.57 |     84.4 |     100 |   94.57 | ...234-236,274-275 
+  index.js                            |   96.14 |    93.52 |     100 |   96.14 | ...440-441,450-451 
+  terminal-executor.js                |   95.23 |    94.23 |     100 |   95.23 | ...160-162,176-178 
+ packages/agent-orchestration         |   96.72 |    89.17 |     100 |   96.72 |                    
+  execution-supervisor.js             |     100 |      100 |     100 |     100 |                    
+  index.js                            |     100 |      100 |     100 |     100 |                    
+  local-subagent-provider.js          |   97.25 |    88.76 |     100 |   97.25 | ...146-149,225-226 
+  utilities.js                        |     100 |      100 |     100 |     100 |                    
+  workflow-engine.js                  |   94.83 |    82.92 |     100 |   94.83 | ...263-264,383-384 
+ packages/agent-policy-lattice        |   96.33 |     81.3 |     100 |   96.33 |                    
+  index.js                            |   96.33 |     81.3 |     100 |   96.33 | ...175-176,203-204 
+ packages/agent-runtime               |   90.35 |    85.71 |   97.29 |   90.35 |                    
+  index.js                            |     100 |      100 |     100 |     100 |                    
+  runtime.js                          |   90.05 |    85.29 |   97.22 |   90.05 | ...-1056,1058-1067 
+  schemas.js                          |     100 |      100 |     100 |     100 |                    
+ packages/agent-session-store         |   91.75 |    89.14 |     100 |   91.75 |                    
+  index.js                            |     100 |      100 |     100 |     100 |                    
+  replay.js                           |   91.54 |    90.23 |     100 |   91.54 | ...809-810,871-872 
+  session-event-store.js              |   92.02 |    87.21 |     100 |   92.02 | ...482-483,490-491 
+ packages/control-sdk                 |     100 |     92.3 |     100 |     100 |                    
+  index.js                            |     100 |     92.3 |     100 |     100 | 28,39,51           
+ packages/tool-runtime                |   94.14 |     87.5 |    91.3 |   94.14 |                    
+  index.js                            |     100 |      100 |     100 |     100 |                    
+  registry.js                         |   91.66 |    84.61 |      90 |   91.66 | 37-38,42-43,46-49  
+  tool-runtime.js                     |   94.89 |    88.52 |    92.3 |   94.89 | ...212-213,268-269 
+ tools/cli/lib                        |   98.08 |    88.09 |   96.71 |   98.08 |                    
+  engineering-control-http.js         |     100 |     89.7 |     100 |     100 | ...,21,51-55,68,91 
+  engineering-control.js              |   99.63 |    89.81 |     100 |   99.63 | 201                
+  engineering-model.js                |     100 |       80 |     100 |     100 | 23,30-32,37        
+  engineering-project-verifier.js     |     100 |    93.33 |     100 |     100 | 34,52,68           
+  engineering-reconciliation.js       |   97.07 |    81.63 |     100 |   97.07 | 48-53,144-146      
+  engineering-sandbox-check.js        |     100 |      100 |     100 |     100 |                    
+  engineering-task-contract.js        |     100 |    96.42 |     100 |     100 | 169,201            
+  engineering-task-runtime.js         |   95.12 |    81.28 |   94.44 |   95.12 | ...590,631-632,634 
+  engineering-task-state.js           |   98.52 |    80.76 |     100 |   98.52 | 119-122            
+  engineering-tools.js                |     100 |     92.3 |     100 |     100 | ...128,195,201,204 
+  engineering-verifier.js             |     100 |       90 |     100 |     100 | 51,88              
+  engineering-workflow-runtime.js     |   97.63 |    84.57 |   88.88 |   97.63 | ...206-213,497-501 
+  engineering-workspace.js            |   98.95 |    95.32 |     100 |   98.95 | 31-32              
+  provider-egress-broker.js           |   96.28 |    86.23 |   93.75 |   96.28 | ...223-225,252-253 
+  terminal-attach.js                  |   98.73 |    92.85 |   85.71 |   98.73 | 50                 
+  terminal-budget.js                  |     100 |      100 |     100 |     100 |                    
+  terminal-control.js                 |   98.88 |    93.08 |     100 |   98.88 | 140-142,284        
+--------------------------------------|---------|----------|---------|---------|--------------------

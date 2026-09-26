@@ -1,0 +1,60 @@
+✔ authenticated HTTP, JS, Python and CLI share terminal identity and cursor (2622.08623ms)
+✔ interactive attach streams bytes, serializes input/resize, and detaches without terminate (102.330121ms)
+✔ attach restores terminal on rejection and ends at the durable cursor (101.531487ms)
+✔ control reserves parent budget and exposes durable cursor without replaying input (2232.145881ms)
+✔ CAS, command authorization, mode and finite shared budget fail closed (1835.520764ms)
+✔ receipt loss never repeats effect and requires explicit digest-bound reconciliation (2020.968405ms)
+✔ concurrent sessions isolate output and parent cancellation drains all children (2190.669048ms)
+✔ SIGKILL before-intent: recovery never respawns and cancellation drains resources (2654.707215ms)
+✔ SIGKILL after-intent: recovery never respawns and cancellation drains resources (2846.221682ms)
+✔ SIGKILL after-prepared: recovery never respawns and cancellation drains resources (2820.734437ms)
+✔ SIGKILL before-receipt: recovery never respawns and cancellation drains resources (2851.577904ms)
+✔ SIGKILL after-receipt: recovery never respawns and cancellation drains resources (3326.197799ms)
+✔ SIGKILL input-receipt: recovery never respawns and cancellation drains resources (3118.957042ms)
+✔ cancel during remote recovery fences dispatch and preserves other sessions (2060.439155ms)
+✔ terminal reservations reduce model tool budget and block parent while active (4812.140706ms)
+✔ parent resume cannot bypass live terminal reservations through direct runtime (2148.17794ms)
+✔ job pipes accept input and EOF; output has bounded binary frames (109.685781ms)
+✔ PTY exposes tty, resize and input without a host shell (138.401572ms)
+✔ pause freezes all descendants and continue resumes; interrupt settles (311.430362ms)
+✔ deadline includes paused time and drains detached descendants (424.182364ms)
+✔ output cap stops producers; parent EOF terminates a live tree (244.1954ms)
+✔ invalid limits and non-nominal policies cannot reach process creation (0.916243ms)
+✔ failed preparation or durable output persistence tears down instead of retrying (171.532119ms)
+✖ host Node descriptor is readonly and invalid control dispatch is uncertain (262.557562ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 23
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 41714.558921
+
+✖ failing tests:
+
+test at test/test-terminal-executor.js:144:1
+✖ host Node descriptor is readonly and invalid control dispatch is uncertain (262.557562ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/test/test-terminal-executor.js:150:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { code: 'ENGINEERING_TERMINAL_UNCERTAIN' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+--------------------------------------|---------|----------|---------|---------|--------------------
+File                                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s  
+--------------------------------------|---------|----------|---------|---------|--------------------
+All files                             |   97.91 |     93.6 |   96.87 |   97.91 |                    
+ packages/agent-isolation-attestation |   95.23 |    94.23 |     100 |   95.23 |                    
+  terminal-executor.js                |   95.23 |    94.23 |     100 |   95.23 | ...160-162,176-178 
+ tools/cli/lib                        |   98.96 |    93.43 |      96 |   98.96 |                    
+  terminal-attach.js                  |   98.73 |    92.85 |   85.71 |   98.73 | 50                 
+  terminal-budget.js                  |     100 |      100 |     100 |     100 |                    
+  terminal-control.js                 |   98.88 |    92.99 |     100 |   98.88 | 138-140,282        
+--------------------------------------|---------|----------|---------|---------|--------------------

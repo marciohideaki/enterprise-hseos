@@ -78,6 +78,28 @@ async function reapExecutorOwner(owner) {
   }
 }
 
+async function reapTerminalGroup(owner, directory) {
+  const parent = resourceParent();
+  const prefix = ownerPrefix(owner);
+  const name = path.basename(directory);
+  if (
+    owner.resource_parent !== parent ||
+    path.dirname(directory) !== parent ||
+    !name.startsWith(prefix) ||
+    !/^[a-f0-9-]{36}$/.test(name.slice(prefix.length))
+  )
+    throw new EngineeringIsolationError('Terminal resource identity changed');
+  try {
+    const stat = fs.lstatSync(directory);
+    if (!stat.isDirectory() || stat.isSymbolicLink() || stat.uid !== process.getuid())
+      throw new EngineeringIsolationError('Unsafe terminal group');
+  } catch (error) {
+    if (error.code === 'ENOENT') return;
+    throw error;
+  }
+  await removeDrainedGroup(directory);
+}
+
 function createResourceGroup() {
   const parent = resourceParent();
   const directory = path.join(parent, `${ownerPrefix(executorOwner())}${randomUUID()}`);
@@ -261,4 +283,13 @@ async function executeIsolatedCommand({ policy, command, timeout_ms, max_output_
   }
 }
 
-module.exports = { EngineeringIsolationError, executeIsolatedCommand, executorOwner, isExecutorOwnerAlive, reapExecutorOwner };
+module.exports = {
+  EngineeringIsolationError,
+  executeIsolatedCommand,
+  executorOwner,
+  isExecutorOwnerAlive,
+  reapExecutorOwner,
+  reapTerminalGroup,
+  createResourceGroup,
+  removeDrainedGroup,
+};

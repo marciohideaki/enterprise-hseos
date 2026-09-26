@@ -32,3 +32,4 @@ autenticação e cobrança. Implementação, consumidor real e ativação são e
 separados.
 
 - [Onda 1 — implementação e evidências](w1/STATUS.md)
+- [Onda 2 — terminais e lifecycle](w2/STATUS.md)

@@ -1,0 +1,140 @@
+✖ job pipes accept input and EOF; output has bounded binary frames (6.571866ms)
+✖ PTY exposes tty, resize and input without a host shell (2.217173ms)
+✖ pause freezes all descendants and continue resumes; interrupt settles (2.102817ms)
+✖ deadline includes paused time and drains detached descendants (2.13513ms)
+✖ output cap stops producers; parent EOF terminates a live tree (2.136713ms)
+✔ invalid limits and non-nominal policies cannot reach process creation (0.739055ms)
+✖ failed preparation or durable output persistence tears down instead of retrying (2.839357ms)
+✖ host Node descriptor is readonly and invalid control dispatch is uncertain (1.992642ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 1
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 273.207116
+
+✖ failing tests:
+
+test at test/test-terminal-executor.js:47:1
+✖ job pipes accept input and EOF; output has bounded binary frames (6.571866ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/executor.js:32:59)
+      at createResourceGroup (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/executor.js:104:18)
+      at startIsolatedTerminal (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/terminal-executor.js:37:17)
+      at fixture (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/test/test-terminal-executor.js:23:20)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/test/test-terminal-executor.js:48:36)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-terminal-executor.js:55:1
+✖ PTY exposes tty, resize and input without a host shell (2.217173ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/executor.js:32:59)
+      at createResourceGroup (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/executor.js:104:18)
+      at startIsolatedTerminal (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/terminal-executor.js:37:17)
+      at fixture (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/test/test-terminal-executor.js:23:20)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/test/test-terminal-executor.js:56:36)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-terminal-executor.js:68:1
+✖ pause freezes all descendants and continue resumes; interrupt settles (2.102817ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/executor.js:32:59)
+      at createResourceGroup (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/executor.js:104:18)
+      at startIsolatedTerminal (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/terminal-executor.js:37:17)
+      at fixture (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/test/test-terminal-executor.js:23:20)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/test/test-terminal-executor.js:69:36)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-terminal-executor.js:81:1
+✖ deadline includes paused time and drains detached descendants (2.13513ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/executor.js:32:59)
+      at createResourceGroup (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/executor.js:104:18)
+      at startIsolatedTerminal (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/terminal-executor.js:37:17)
+      at fixture (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/test/test-terminal-executor.js:23:20)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/test/test-terminal-executor.js:82:36)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-terminal-executor.js:92:1
+✖ output cap stops producers; parent EOF terminates a live tree (2.136713ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/executor.js:32:59)
+      at createResourceGroup (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/executor.js:104:18)
+      at startIsolatedTerminal (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/terminal-executor.js:37:17)
+      at fixture (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/test/test-terminal-executor.js:23:20)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/test/test-terminal-executor.js:93:23)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-terminal-executor.js:125:1
+✖ failed preparation or durable output persistence tears down instead of retrying (2.839357ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /intent persistence lost/. Input:
+  
+  'EngineeringIsolationError: A delegated parent cgroup is required'
+  
+      at async TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/test/test-terminal-executor.js:127:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: EngineeringIsolationError: A delegated parent cgroup is required
+        at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/executor.js:32:59)
+        at createResourceGroup (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/executor.js:104:18)
+        at startIsolatedTerminal (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/terminal-executor.js:37:17)
+        at fixture (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/test/test-terminal-executor.js:23:20)
+        at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/test/test-terminal-executor.js:128:5)
+        at Test.runInAsyncScope (node:async_hooks:227:14)
+        at Test.run (node:internal/test_runner/test:1201:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+        at Test.postRun (node:internal/test_runner/test:1330:19)
+        at Test.run (node:internal/test_runner/test:1258:12),
+    expected: /intent persistence lost/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at test/test-terminal-executor.js:145:1
+✖ host Node descriptor is readonly and invalid control dispatch is uncertain (1.992642ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/executor.js:32:59)
+      at createResourceGroup (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/executor.js:104:18)
+      at startIsolatedTerminal (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/packages/agent-isolation-attestation/terminal-executor.js:37:17)
+      at fixture (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/test/test-terminal-executor.js:23:20)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w2/test/test-terminal-executor.js:146:36)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }

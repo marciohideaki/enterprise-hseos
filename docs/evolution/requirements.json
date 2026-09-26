@@ -10,8 +10,12 @@
       "name": "Loop e lifecycle",
       "source_row": 1,
       "baseline_observation": "C: loop próprio, limites e eventos",
-      "implementation": ["packages/agent-runtime/runtime.js"],
-      "tests": ["test/test-agent-runtime.js"],
+      "implementation": [
+        "packages/agent-runtime/runtime.js",
+        "packages/agent-isolation-attestation/terminal-executor.js",
+        "tools/cli/lib/terminal-control.js"
+      ],
+      "tests": ["test/test-agent-runtime.js", "test/test-terminal-executor.js", "test/test-terminal-control.js"],
       "wave": 2,
       "dependencies": ["W1"],
       "requirements": [
@@ -21,10 +25,10 @@
           "verification": "Injetar crash antes/depois do efeito e do recibo; verificar ledger e processos."
         }
       ],
-      "gap": "Terminais e recuperação em todas as fronteiras ainda precisam de campanha.",
+      "gap": "W2 Linux verificada com crash, perda de recibo, pausa e cancelamento; morte do controlador drena processos, sem continuidade automática nem certificação operacional.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
-        "real_consumers": "not_verified",
+        "deterministic": "verified_w2_scope_only",
+        "real_consumers": "verified_installed_local_scope_only",
         "operational": "not_authorized"
       }
     },
@@ -240,8 +244,8 @@
       "name": "Reconciliação de efeitos incertos",
       "source_row": 11,
       "baseline_observation": "C: inspeciona/reverifica/pergunta; resposta ligada ao estado",
-      "implementation": ["tools/cli/lib/engineering-reconciliation.js"],
-      "tests": ["test/test-engineering-reconciliation.js"],
+      "implementation": ["tools/cli/lib/engineering-reconciliation.js", "tools/cli/lib/terminal-control.js"],
+      "tests": ["test/test-engineering-reconciliation.js", "test/test-terminal-control.js"],
       "wave": 2,
       "dependencies": ["W1"],
       "requirements": [
@@ -251,10 +255,10 @@
           "verification": "Perder recibo, editar concorrentemente e cancelar durante recuperação; não repetir efeito."
         }
       ],
-      "gap": "Ampliar para terminais, clientes remotos e efeitos das novas ferramentas.",
+      "gap": "W2 exige decisão explícita com digest atual para efeitos incertos de terminais; clientes instalados locais verificados. Acesso remoto W7 e modelos reais não certificados.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
-        "real_consumers": "not_verified",
+        "deterministic": "verified_w2_scope_only",
+        "real_consumers": "verified_installed_local_scope_only",
         "operational": "not_authorized"
       }
     },
@@ -355,8 +359,12 @@
       "name": "Persistência/replay",
       "source_row": 16,
       "baseline_observation": "C: ledger relacional e replay integral/incremental",
-      "implementation": ["packages/agent-session-store/replay.js"],
-      "tests": ["test/test-agent-session-store.js"],
+      "implementation": [
+        "packages/agent-session-store/replay.js",
+        "tools/cli/lib/terminal-control.js",
+        "tools/cli/lib/engineering-control-http.js"
+      ],
+      "tests": ["test/test-agent-session-store.js", "test/test-terminal-api.js", "test/test-terminal-control.js"],
       "wave": 2,
       "dependencies": ["W1"],
       "requirements": [
@@ -366,10 +374,10 @@
           "verification": "Comparar replay incremental/integral; rollback e desconexão não perdem eventos."
         }
       ],
-      "gap": "API com cursor e acesso remoto sem SQLite compartilhado pendentes.",
+      "gap": "W2 verifica reconexão com cursor pela API loopback sem SQLite compartilhado com clientes. Bytes anteriores à persistência podem se perder em crash e exigem reconciliação; retenção operacional e remoto W7 não certificados.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
-        "real_consumers": "not_verified",
+        "deterministic": "verified_w2_scope_only",
+        "real_consumers": "verified_installed_local_scope_only",
         "operational": "not_authorized"
       }
     },

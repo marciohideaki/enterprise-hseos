@@ -1,0 +1,22 @@
+{
+  "started_at": "2026-09-26T05:29:49.361560+00:00",
+  "finished_at": "2026-09-26T05:29:50.215112+00:00",
+  "exit_code": 0,
+  "sequential": true,
+  "commands": [
+    [
+      "node",
+      "../../node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--strict",
+      "--lib",
+      "es2023,dom",
+      "--skipLibCheck",
+      "--module",
+      "node16",
+      "--moduleResolution",
+      "node16",
+      ".logs/validation/w2/sdk-check.ts"
+    ]
+  ]
+}
