@@ -1,0 +1,14 @@
+✔ five sandboxed process roles prove one transitive filesystem, network, and environment boundary (705.879371ms)
+✔ plain forged policies cannot invoke or claim the supervisor-owned journey (0.784251ms)
+✔ a protected inode hard-linked into the worktree invalidates the binding before sandbox launch (0.559424ms)
+✔ a checkout root that overlaps required system mounts is rejected (0.250879ms)
+✔ a host Unix socket exposed inside the worktree fails before any sandbox role launches (2.758268ms)
+✔ main checkout aliases, empty protection, unknown fields, and workspace protection fail closed (0.53035ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 836.475361

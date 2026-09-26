@@ -32,7 +32,9 @@ components:
     modules: []
     tools: []
     install_paths:
-      - .enterprise/
+      - .enterprise/.specs/constitution/
+      - .enterprise/.specs/core/
+      - .enterprise/policies/
       - .hseos/config/hseos.config.yaml
 
   - id: baseline:entrypoints
@@ -41,9 +43,7 @@ components:
     required: true
     description: Portable project instructions and runtime-specific entrypoints.
     modules: []
-    tools:
-      - codex
-      - claude-code
+    tools: []
     install_paths:
       - AGENTS.md
       - CLAUDE.md
@@ -57,7 +57,7 @@ components:
     modules: []
     tools: []
     install_paths:
-      - .enterprise/governance/agent-skills/
+      - .enterprise/governance/agent-skills/SKILLS-REGISTRY.md
       - .agents/manifest.yaml
 
   - id: runtime:hooks
@@ -150,6 +150,24 @@ components:
       - packages/agent-runtime/
       - packages/agent-compaction/
       - packages/agent-orchestration/
+
+  - id: runtime:engineering-candidate
+    family: runtime
+    name: Disposable Engineering Candidate
+    description: Bounded Node/Python tasks, explicit model selection, protected verification and canonical workflow composition.
+    depends_on:
+      - runtime:agent-kernel
+    prerequisites:
+      - "Linux x64, bwrap and delegated cgroup v2 resource controllers; missing isolation blocks execution"
+    modules: []
+    tools: []
+    install_paths:
+      - packages/agent-isolation-attestation/
+      - packages/agent-policy-lattice/
+      - tools/cli/lib/engineering-task-runtime.js
+      - tools/cli/lib/engineering-workflow-runtime.js
+      - docs/engineering-task-contract.md
+      - docs/v4-migration.md
 
   - id: runtime:agent-reference
     family: runtime

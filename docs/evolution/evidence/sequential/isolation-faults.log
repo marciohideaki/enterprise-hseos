@@ -1,0 +1,59 @@
+✔ malformed or overprivileged subprocess witnesses never certify isolation (58.790156ms)
+✔ policy input and execution commands fail closed before launching a process (5.884885ms)
+✔ executor ownership cannot be inferred from missing or mismatched process facts (2.36464ms)
+✔ executor rejects non-unified cgroup (0.325075ms)
+✔ executor rejects missing controllers (0.392936ms)
+✔ executor rejects invalid process identity (0.143188ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 346.879696
+--------------------------------------|---------|----------|---------|---------|--------------------
+File                                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s  
+--------------------------------------|---------|----------|---------|---------|--------------------
+All files                             |   94.02 |    86.42 |   97.71 |   94.02 |                    
+ packages/agent-compaction            |   97.97 |       93 |     100 |   97.97 |                    
+  checkpoint-provider.js              |     100 |    85.71 |     100 |     100 | 29,50,58           
+  deterministic-provider.js           |     100 |       98 |     100 |     100 | 35                 
+  index.js                            |     100 |      100 |     100 |     100 |                    
+  provider-registry.js                |     100 |      100 |     100 |     100 |                    
+  runtime.js                          |   93.63 |    87.23 |     100 |   93.63 | ...112-113,135-136 
+ packages/agent-isolation-attestation |    95.5 |    89.51 |     100 |    95.5 |                    
+  executor.js                         |   94.55 |    85.86 |     100 |   94.55 | ...207-209,246-247 
+  index.js                            |   96.04 |    91.66 |     100 |   96.04 | ...428-429,438-439 
+ packages/agent-orchestration         |   96.72 |    89.14 |     100 |   96.72 |                    
+  execution-supervisor.js             |     100 |      100 |     100 |     100 |                    
+  index.js                            |     100 |      100 |     100 |     100 |                    
+  local-subagent-provider.js          |   97.25 |    88.76 |     100 |   97.25 | ...146-149,225-226 
+  utilities.js                        |     100 |      100 |     100 |     100 |                    
+  workflow-engine.js                  |   94.83 |    82.82 |     100 |   94.83 | ...263-264,383-384 
+ packages/agent-policy-lattice        |   96.33 |     81.3 |     100 |   96.33 |                    
+  index.js                            |   96.33 |     81.3 |     100 |   96.33 | ...175-176,203-204 
+ packages/agent-runtime               |   89.06 |    84.67 |   97.29 |   89.06 |                    
+  index.js                            |     100 |      100 |     100 |     100 |                    
+  runtime.js                          |   88.72 |    84.21 |   97.22 |   88.72 | ...-1056,1058-1067 
+  schemas.js                          |     100 |      100 |     100 |     100 |                    
+ packages/agent-session-store         |   87.34 |    85.03 |     100 |   87.34 |                    
+  index.js                            |     100 |      100 |     100 |     100 |                    
+  replay.js                           |   84.44 |    83.62 |     100 |   84.44 | ...904-905,907-915 
+  session-event-store.js              |   92.02 |    87.21 |     100 |   92.02 | ...482-483,490-491 
+ packages/tool-runtime                |   94.14 |     87.5 |    91.3 |   94.14 |                    
+  index.js                            |     100 |      100 |     100 |     100 |                    
+  registry.js                         |   91.66 |    84.61 |      90 |   91.66 | 37-38,42-43,46-49  
+  tool-runtime.js                     |   94.89 |    88.52 |    92.3 |   94.89 | ...212-213,268-269 
+ tools/cli/lib                        |   97.47 |    85.33 |   95.74 |   97.47 |                    
+  engineering-model.js                |     100 |       80 |     100 |     100 | 23,30-32,37        
+  engineering-reconciliation.js       |   96.88 |    82.02 |     100 |   96.88 | 48-53,125-127      
+  engineering-sandbox-check.js        |     100 |      100 |     100 |     100 |                    
+  engineering-task-contract.js        |     100 |    97.72 |     100 |     100 | 148                
+  engineering-task-runtime.js         |   95.04 |     80.3 |   94.44 |   95.04 | ...579,620-621,623 
+  engineering-task-state.js           |    98.5 |       80 |     100 |    98.5 | 119-122            
+  engineering-tools.js                |     100 |    93.58 |     100 |     100 | 65,71,95,104,121   
+  engineering-verifier.js             |     100 |       90 |     100 |     100 | 51,88              
+  engineering-workflow-runtime.js     |   97.58 |    85.14 |   88.88 |   97.58 | ...206-213,484-488 
+  provider-egress-broker.js           |   96.28 |    86.23 |   93.75 |   96.28 | ...223-225,252-253 
+--------------------------------------|---------|----------|---------|---------|--------------------

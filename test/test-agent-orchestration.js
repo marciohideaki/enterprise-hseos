@@ -647,3 +647,177 @@ test('malformed runtime result is rejected only after the child is terminalized'
   );
   assert.equal(Boolean(fixture.sessionStore.replay('session:child-malformed-runtime').terminal_event), true);
 });
+
+test('disposing a subagent provider drains children and rejects unrelated parent claims', async (context) => {
+  const fixture = setup({ delayMs: 5000 });
+  context.after(() => fixture.db.close());
+  await createParent(fixture);
+  await fixture.subagents.spawn(spawnInput('session:child-dispose'));
+  await assert.rejects(() =>
+    fixture.subagents.join({
+      schema_version: 1,
+      provider_id: 'subagent:fixture',
+      request_id: 'request:wrong-parent',
+      parent_session_id: 'session:another-parent',
+      child_session_ids: ['session:child-dispose'],
+      timeout_ms: 100,
+    }),
+  );
+  await assert.rejects(
+    () =>
+      fixture.subagents.dispose({
+        schema_version: 1,
+        provider_id: 'subagent:other',
+        request_id: 'request:wrong-dispose',
+        reason: 'wrong provider',
+      }),
+    /identity mismatch/,
+  );
+  const result = await fixture.subagents.dispose({
+    schema_version: 1,
+    provider_id: 'subagent:fixture',
+    request_id: 'request:dispose-provider',
+    reason: 'owner shutdown',
+  });
+  assert.equal(result.accepted, true);
+  assert.equal(fixture.sessionStore.replay('session:child-dispose').terminal_event.event_type, 'session.cancelled');
+});
+
+test('workflow disposal cancels active children and leaves no resumable live claim', async (context) => {
+  const fixture = setup({ delayMs: 5000 });
+  context.after(() => fixture.db.close());
+  await createParent(fixture);
+  await assert.rejects(
+    () =>
+      fixture.workflows.cancel({
+        schema_version: 1,
+        engine_id: 'workflow:fixture',
+        request_id: 'request:missing-cancel',
+        parent_session_id: 'session:parent',
+        workflow_id: 'workflow:missing',
+        reason: 'not active',
+      }),
+    { code: 'WORKFLOW_NOT_ACTIVE' },
+  );
+  const running = fixture.workflows.run(runInput(workflow([{ phase_id: 'phase:dispose', mode: 'pipeline', steps: [step('dispose')] }])));
+  await new Promise((resolve) => setImmediate(resolve));
+  const result = await fixture.workflows.dispose({
+    schema_version: 1,
+    engine_id: 'workflow:fixture',
+    request_id: 'request:dispose-engine',
+    reason: 'owner shutdown',
+  });
+  assert.equal(result.accepted, true);
+  assert.equal((await running).status, 'cancelled');
+  assert.equal(fixture.sessionStore.replay('session:child-dispose').terminal_event.event_type, 'session.cancelled');
+});
+
+test('workflow scope and duration violations are rejected before child dispatch', async (context) => {
+  const fixture = setup();
+  context.after(() => fixture.db.close());
+  await createParent(fixture, { max_children: 1 });
+  const cases = [
+    [workflow([{ phase_id: 'phase:children', mode: 'pipeline', steps: [step('a'), step('b')] }]), 'WORKFLOW_CHILD_LIMIT_EXCEEDED'],
+    [
+      workflow([{ phase_id: 'phase:duration', mode: 'pipeline', steps: [step('a')] }], { join_timeout_ms: 10_001 }),
+      'WORKFLOW_DURATION_LIMIT_EXCEEDED',
+    ],
+  ];
+  const authority = step('authority');
+  authority.child_spec.authority_ref = 'authority://other';
+  cases.push([workflow([{ phase_id: 'phase:authority', mode: 'pipeline', steps: [authority] }]), 'WORKFLOW_AUTHORITY_WIDENING']);
+  const budget = step('budget');
+  budget.child_spec.limits.max_tokens = 100_001;
+  cases.push([workflow([{ phase_id: 'phase:budget', mode: 'pipeline', steps: [budget] }]), 'WORKFLOW_LIMIT_WIDENING']);
+  for (const [definition, code] of cases) await assert.rejects(() => fixture.workflows.run(runInput(definition)), { code });
+  const unmatchedClaim = {
+    ...runInput(workflow([{ phase_id: 'phase:no-reservation', mode: 'pipeline', steps: [step('no-reservation')] }])),
+    resume_from_ref: 'session-event://event:not-a-claim',
+  };
+  await assert.rejects(() => fixture.workflows.run(unmatchedClaim), { code: 'WORKFLOW_RESUME_CLAIM_INVALID' });
+  assert.deepEqual(fixture.sessionStore.replay('session:parent').children, []);
+});
+
+test('workflow replay rejects forged reservations, claims, children and checkpoints', async (context) => {
+  const { replaySessionEvents } = require('../packages/agent-session-store');
+  const fixture = setup();
+  context.after(() => fixture.db.close());
+  await createParent(fixture);
+  await fixture.workflows.run(
+    runInput(
+      workflow([
+        { phase_id: 'phase:first', mode: 'pipeline', steps: [step('guard-first')] },
+        { phase_id: 'phase:second', mode: 'pipeline', steps: [step('guard-second')] },
+      ]),
+    ),
+  );
+  const events = fixture.sessionStore.readSession('session:parent');
+  const reject = (type, change, code, occurrence = 0) => {
+    const index = events.map((event, i) => (event.event_type === type ? i : -1)).filter((i) => i >= 0)[occurrence];
+    assert.notEqual(index, undefined, type);
+    const prefix = structuredClone(events.slice(0, index + 1));
+    change(prefix.at(-1), prefix);
+    assert.throws(() => replaySessionEvents(prefix), { code });
+  };
+  reject(
+    'workflow.reserved',
+    (event, all) => {
+      all[0].payload.spec.limits.max_workflow_steps = 0;
+    },
+    'AGENT_SESSION_WORKFLOW_STEP_LIMIT_EXCEEDED',
+  );
+  reject(
+    'workflow.reserved',
+    (event, all) => {
+      all[0].payload.spec.limits.max_children = 0;
+    },
+    'AGENT_SESSION_WORKFLOW_CHILD_LIMIT_EXCEEDED',
+  );
+  reject(
+    'workflow.phase.checkpointed',
+    (event) => {
+      event.payload.claim_ref = 'session-event://forged';
+    },
+    'AGENT_SESSION_WORKFLOW_CLAIM_INVALID',
+  );
+  reject(
+    'workflow.phase.checkpointed',
+    (event) => {
+      event.payload.child_session_ids = ['session:unattached'];
+    },
+    'AGENT_SESSION_WORKFLOW_CHILD_INVALID',
+  );
+  reject(
+    'workflow.phase.checkpointed',
+    (event) => {
+      event.payload.definition_digest = `sha256:${'b'.repeat(64)}`;
+    },
+    'AGENT_SESSION_WORKFLOW_DEFINITION_CONFLICT',
+    1,
+  );
+  reject(
+    'workflow.phase.checkpointed',
+    (event) => {
+      event.payload.phase_id = 'phase:first';
+    },
+    'AGENT_SESSION_WORKFLOW_PHASE_DUPLICATE',
+    1,
+  );
+  reject(
+    'workflow.released',
+    (event) => {
+      event.payload.claim_ref = 'session-event://forged';
+    },
+    'AGENT_SESSION_WORKFLOW_RELEASE_INVALID',
+  );
+  for (const [type, code] of [
+    ['workflow.reserved', 'AGENT_SESSION_WORKFLOW_RESERVATION_DUPLICATE'],
+    ['child.attached', 'AGENT_SESSION_DUPLICATE_CHILD'],
+  ]) {
+    const index = events.findIndex((event) => event.event_type === type);
+    const prefix = structuredClone(events.slice(0, index + 1));
+    prefix.push({ ...structuredClone(prefix.at(-1)), sequence: index + 2, event_id: randomUUID() });
+    assert.throws(() => replaySessionEvents(prefix), { code });
+  }
+  assert.deepEqual(replaySessionEvents(events), fixture.sessionStore.replay('session:parent'));
+});

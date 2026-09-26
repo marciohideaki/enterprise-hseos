@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-25",
+  "branch": "task/hseos-v4-consolidation",
+  "package": {
+    "filename": "hseos-4.0.0-rc.0.tgz",
+    "shasum": "368b3ab29f05134aff592081c3c6ddca0822c554",
+    "integrity": "sha512-r2PjrlS7vttn0cp3Rz4ri/+N1Ubh/ZB5fLtX9EL+QM3CazlJgfVNEf05nTJyBcrkCtWHxbp0+4jOkDWVuR+vNA==",
+    "size": 2371787,
+    "unpackedSize": 8645293
+  },
+  "verification": {
+    "foundation_tests": 18,
+    "policy_tools_tests": 36,
+    "provider_conformance_tests": 8,
+    "additional_profile_drift_tests": 1,
+    "counts_overlap_nested_suites": true,
+    "external_public_tasks_approved": 3,
+    "lint": "passed",
+    "ci_phase": {
+      "failures": 0,
+      "warnings": 1
+    },
+    "full_gates": "pending; host load above six physical cores",
+    "real_provider_campaign": "not_run",
+    "operational_activation": "not_authorized"
+  },
+  "change": "Register engineering profile/provider in strict inventory using the actual runtime manifest; preserve unknown-profile and drift rejection.",
+  "evidence": [
+    {
+      "file": "foundation-final.log",
+      "sha256": "6bb86a59161ab690bee591bddea473c7d7a37bacb931942171faea88da0ef0d5"
+    },
+    {
+      "file": "policy-tools-final.log",
+      "sha256": "65305d4819ba1f9667b068b9c2ce7d77ccf6b82bee28dd2f1acfc89389f27307"
+    },
+    {
+      "file": "binding-conformance-final.log",
+      "sha256": "908095161ec7a1e53c727fc4d65f7e5d08eef028c10a0da1da8a42c8c68d261e"
+    },
+    {
+      "file": "provider-conformance-fixed.log",
+      "sha256": "b2cf5fdb94f94ae0d632f64de800662560db9ff0bb8df486d08205cabf334a8a"
+    },
+    {
+      "file": "provider-profile-drift.log",
+      "sha256": "00eafccff81671ad909f5e739f838b81330bbd3c2c4b199dec58c19005ce32ef"
+    },
+    {
+      "file": "conformance-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "ci-gates.log",
+      "sha256": "752d0612d24bacdb05b8b977080d39bd78579dbc9c08b1bd4863f639b0cfd879"
+    },
+    {
+      "file": "clean-smoke.json",
+      "sha256": "eeee2516353c325b9219dbc4cd6ec359dbd69b34150d21d8614e8666dea5ae67"
+    },
+    {
+      "file": "install.log",
+      "sha256": "9d8a6d53f53a968801780d27fb925a3bfd7878e876ae75b4610055b95e6ea275"
+    }
+  ]
+}

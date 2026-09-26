@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-25",
+  "branch": "task/hseos-v4-consolidation",
+  "base": "a842308",
+  "package": {
+    "filename": "hseos-4.0.0-rc.0.tgz",
+    "shasum": "fc32e93805f2d92ced6cfdd9c7f1903c46d665b7",
+    "integrity": "sha512-wtzouOCECYaUiTaHBe0WumKgBKgPCa54f99HDjEJrBRqE3nWeheO4GGWyWrs/9E0kwgU9olsY/cEFbJj7dZvLA==",
+    "size": 2371887,
+    "unpackedSize": 8645783
+  },
+  "verification": {
+    "full_gates": {
+      "exit_code": 0,
+      "failures": 0,
+      "warnings": 1,
+      "command": "VALIDATION_ENFORCED=true ./scripts/governance/quality-gates.sh",
+      "node_version": "24.15.0",
+      "initial_load_1m": 3.29,
+      "physical_cores": 6
+    },
+    "warning": "Two preexisting placeholders in src/hsm/workflows/3-solutioning/create-epics-and-stories/templates/epics-template.md",
+    "engineering_tests": 46,
+    "provider_conformance_tests": 9,
+    "counts_overlap_full_suite": true,
+    "package_regular_files_matching_current_tree": 1397,
+    "package_differences": [],
+    "clean_install_evidence": "../2026-09-25-revalidation/clean-smoke.json",
+    "real_provider_campaign": "not_run",
+    "operational_activation": "not_authorized",
+    "after_report_update": {
+      "documentation_and_foundation_tests": 7,
+      "ci_phase_failures": 0,
+      "ci_phase_warnings": 1
+    }
+  },
+  "evidence": [
+    {
+      "file": "full-gates-fifth.log",
+      "sha256": "e2e7dd5ab43cd4cef190051379f6addeb675a6a0f176c2c6f215478e22924836"
+    },
+    {
+      "file": "gate-20260925T023729.log",
+      "sha256": "30fc952e3ba950d76610ce29ce33ceac9622578b01a97e41576c348e3d60776f"
+    },
+    {
+      "file": "final-documentation.log",
+      "sha256": "96d6cbf651ceb7f40dc3f569def50a06083c245bcdc9d43b389f6c54dc821793"
+    },
+    {
+      "file": "final-ci.log",
+      "sha256": "3800b5925b967a9cc092ab0896aaa68cd3b1f4aaaa7639c2b7d385213babb1f4"
+    }
+  ]
+}

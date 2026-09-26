@@ -1,7 +1,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI](https://github.com/marciohideaki/hseos/actions/workflows/standalone-smoke.yaml/badge.svg)](https://github.com/marciohideaki/hseos/actions)
-[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](package.json)
-[![Node](https://img.shields.io/badge/node-%3E%3D20-green.svg)](https://nodejs.org)
+[![Version](https://img.shields.io/badge/version-4.0.0--rc.0-blue.svg)](package.json)
+[![Node](https://img.shields.io/badge/node-%3E%3D22-green.svg)](https://nodejs.org)
 [![Agents](https://img.shields.io/badge/agents-16-purple.svg)](.hseos/agents/)
 [![Skills](https://img.shields.io/badge/skills-52-orange.svg)](.enterprise/governance/agent-skills/)
 
@@ -15,6 +15,10 @@
 > _"Where human intent becomes institutional intelligence."_
 
 **A spec-driven, AI-assisted development framework combining architecture governance, cyberpunk agents, 52 skills, MCPs and engineering workflows.**
+
+> This checkout prepares an unpublished v4 candidate. See the
+> [v4 task consumer and migration guide](docs/v4-migration.md) for executable examples,
+> legacy-state preservation, current limits and rollback.
 
 > Upgrading from v2.x? Review the
 > [v3 migration guide](docs/MIGRATION-GUIDE-v2-to-v3.md) before moving state,
@@ -160,7 +164,7 @@ Each step is governed by skills loaded automatically from the registry. Agents c
 
 | Tool            | Version | Required | Notes                                      |
 | --------------- | ------- | -------- | ------------------------------------------ |
-| Node.js         | ≥ 20    | ✅       | Runtime for HSEOS CLI                      |
+| Node.js         | ≥ 22    | ✅       | Runtime for HSEOS CLI                      |
 | Git             | ≥ 2.30  | ✅       | Hooks require modern git                   |
 | Claude Code CLI | latest  | ✅       | `npm install -g @anthropic-ai/claude-code` |
 | kubectl         | ≥ 1.28  | ⚠️       | Required for KUBE agent only               |

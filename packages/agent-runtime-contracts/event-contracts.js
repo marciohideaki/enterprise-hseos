@@ -230,6 +230,10 @@ const SessionEventSchema = z
   .discriminatedUnion('event_type', [
     sessionEvent('session.created', strictObject({ spec: AgentSessionSpecSchema })),
     sessionEvent('session.resumed', strictObject({ from_sequence: z.number().int().nonnegative() })),
+    sessionEvent(
+      'session.reconciled',
+      strictObject({ report_sha256: z.string().regex(/^[a-f0-9]{64}$/), reserved_tokens: z.number().int().nonnegative().safe() }),
+    ),
     sessionEvent('session.forked', strictObject({ parent_session_id: IdentifierSchema, parent_sequence: z.number().int().positive() })),
     sessionEvent('turn.started', strictObject({ turn_id: IdentifierSchema, input: AgentMessageSchema })).superRefine((event, context) => {
       if (event.payload.input.role !== 'user') {
@@ -237,6 +241,10 @@ const SessionEventSchema = z
       }
     }),
     sessionEvent('context.assembled', ContextAssembledPayloadSchema),
+    sessionEvent(
+      'model.revision.requested',
+      strictObject({ turn_id: IdentifierSchema, step_id: IdentifierSchema, feedback: z.string().min(1).max(65_536) }),
+    ),
     sessionEvent(
       'model.request.started',
       strictObject({
@@ -269,6 +277,11 @@ const SessionEventSchema = z
     ),
     sessionEvent(
       'tool.execution.completed',
+      strictObject({ turn_id: IdentifierSchema, step_id: IdentifierSchema, outcome: ToolExecutionResultSchema }),
+    ),
+
+    sessionEvent(
+      'tool.execution.reconciled',
       strictObject({ turn_id: IdentifierSchema, step_id: IdentifierSchema, outcome: ToolExecutionResultSchema }),
     ),
     sessionEvent(
@@ -373,12 +386,13 @@ const SessionEventSchema = z
     if (event.event_type === 'model.streamed' && event.payload.provider_id !== event.payload.event.provider_id) {
       context.addIssue({ code: 'custom', path: ['payload', 'event', 'provider_id'], message: 'provider identity mismatch' });
     }
-    if (event.event_type === 'model.request.started') {
-      if (event.session_id !== event.payload.request.session_id || event.payload.turn_id !== event.payload.request.turn_id) {
-        context.addIssue({ code: 'custom', path: ['payload', 'request'], message: 'model request identity mismatch' });
-      }
+    if (
+      event.event_type === 'model.request.started' &&
+      (event.session_id !== event.payload.request.session_id || event.payload.turn_id !== event.payload.request.turn_id)
+    ) {
+      context.addIssue({ code: 'custom', path: ['payload', 'request'], message: 'model request identity mismatch' });
     }
-    if (event.event_type === 'tool.execution.completed') {
+    if (['tool.execution.completed', 'tool.execution.reconciled'].includes(event.event_type)) {
       const outcome = event.payload.outcome;
       if (event.session_id !== outcome.session_id || event.payload.turn_id !== outcome.turn_id) {
         context.addIssue({ code: 'custom', path: ['payload', 'outcome'], message: 'tool outcome identity mismatch' });

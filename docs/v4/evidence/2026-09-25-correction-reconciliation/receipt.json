@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-25",
+  "branch": "task/hseos-v4-consolidation",
+  "capabilities": [
+    "protected correction with mandatory diagnosis",
+    "safe reconciliation with explicit answers to uncertainty"
+  ],
+  "package": {
+    "filename": "hseos-4.0.0-rc.0.tgz",
+    "shasum": "f3a1033b4fedd1f7e65f2e87194ce7ca2a07547b",
+    "integrity": "sha512-sdf+Gj+r513OrPO04wvvC2QHt9tg7OosEPFnArZ9Z0c+oZUZk/dZkfb2Z7rKlMfEOnh7jwRDGBAzEM5Aa4GqhQ==",
+    "size": 2380994,
+    "unpackedSize": 8687355
+  },
+  "verification": {
+    "kernel_tests": 70,
+    "engineering_integration_tests": 57,
+    "final_capability_tests": 11,
+    "installed_package_capability_tests": 11,
+    "simulated_broker_tests": 3,
+    "state_and_documentation_tests": 4,
+    "counts_overlap": true,
+    "public_cli_correction": "approved; one bound diagnosis; rejected review followed by protected approval",
+    "targeted_lint": "passed",
+    "targeted_format": "passed",
+    "cli_manifest": "passed",
+    "ci_phase": {
+      "failures": 0,
+      "warnings": 1
+    },
+    "full_suite_this_extension": "not_run: host load 15.46 exceeds six physical cores; scope reduced under global AGENTS.md section 3f",
+    "real_provider_campaign": "not_run",
+    "operational_activation": "not_authorized",
+    "commit_merge_publish": "not_performed",
+    "package_regular_files": 1398,
+    "package_changes_after_smoke": [],
+    "package_changes_note": "Only documentation follow-up may differ; runtime must match."
+  },
+  "evidence": [
+    {
+      "file": "cli-correction.json",
+      "sha256": "e437fcd4ddfb16c6f863bf7bfd751b6c6f50d99b1bf0303029a0e98f9e787572"
+    },
+    {
+      "file": "correction-broker.log",
+      "sha256": "706f6f4f29d78beba3b899607d0202ae091e052d2c40ea5331da8cab73444d1c"
+    },
+    {
+      "file": "correction-ci.log",
+      "sha256": "cab7776279e42b01f20bd49c154bc032f9322564be9ea97054aeadee579b7ec0"
+    },
+    {
+      "file": "correction-format.log",
+      "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "file": "correction-reconciliation-final.log",
+      "sha256": "65439d3c0cd4fdc4a3714fd9e7bf4316b3d3fdb5a587462dd65259d1333b5557"
+    },
+    {
+      "file": "correction-reconciliation-kernel.log",
+      "sha256": "8e1d802822a2fe41cb2c1acd20858439b1ab0e18490c127a40888dc7b60024d6"
+    },
+    {
+      "file": "correction-recovery-integrated-second.log",
+      "sha256": "73663b7677e33dd66ac425360defe75ad3e7e216a4ea0b88a27eb8fc68d81264"
+    },
+    {
+      "file": "correction-static.log",
+      "sha256": "fea89bc22163d34f373646c24fd43b57585b6394f16f376427fed4d53ee508fc"
+    },
+    {
+      "file": "external-tests.log",
+      "sha256": "e2385c6b4d01749e6fbcd29d333ba5d42418b8dc27805a9a140d5f62a3e8d5a3"
+    }
+  ]
+}

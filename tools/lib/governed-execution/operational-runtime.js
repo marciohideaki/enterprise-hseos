@@ -22,6 +22,44 @@ const MUTATION_CLASS = Object.freeze({
   tasks_add: 'idempotent_mutation',
   tasks_update: 'idempotent_mutation',
 });
+const READ_ONLY_TOOLS = Object.freeze({
+  governance: new Set([
+    'list_workflows',
+    'validate_adr',
+    'query_constitution',
+    'list_skills',
+    'check_authority',
+    'get_effective_governance_context',
+    'evaluate_governed_action',
+    'explain_governance_decision',
+    'get_governance_artifact',
+    'get_governance_release',
+    'diff_governance_releases',
+    'verify_governance_snapshot',
+    'get_governance_session_status',
+    'get_governance_session_preflight',
+    'get_governance_readiness',
+  ]),
+  swarm: new Set(['get_run_state', 'dispatch_wave', 'list_runs']),
+  axon_bridge: new Set(['code_search', 'get_skeleton', 'memory_search', 'get_overview', 'dep_graph']),
+  project_state: new Set([
+    'state_read',
+    'tasks_list',
+    'state_history',
+    'handoffs_list',
+    'handoff_get',
+    'runs_list',
+    'run_describe',
+    'events_search',
+    'agent_runs_list',
+    'orphans_list',
+  ]),
+});
+const MUTATION_SERVERS = Object.freeze({
+  swarm: new Set(['consolidate_handoff', 'plan_squad']),
+  axon_bridge: new Set(['run_pipeline']),
+  project_state: new Set(['event_emit', 'run_create', 'scheduler_sweep_orphans', 'state_write', 'tasks_add', 'tasks_update']),
+});
 const EXCLUSIVE_TOOLS = new Set(['consolidate_handoff', 'plan_squad', 'run_pipeline']);
 const IDEMPOTENT_PROVIDERS = new Set(['run_create', 'scheduler_sweep_orphans', 'tasks_add']);
 
@@ -93,7 +131,10 @@ function createOperationalExecution({ db, serverId, tools, invokeTool, maxConcur
   const providers = new Map();
   for (const [name, tool] of tools) {
     const governance = toolGovernance[name] || {};
-    const reversibility = governance.reversibility || MUTATION_CLASS[name] || 'read_only';
+    const reversibility =
+      governance.reversibility ||
+      (MUTATION_SERVERS[serverId]?.has(name) ? MUTATION_CLASS[name] : READ_ONLY_TOOLS[serverId]?.has(name) ? 'read_only' : null);
+    if (!reversibility) throw new TypeError(`Explicit execution governance is required for ${serverId}:${name}`);
     const providerName = `${serverId}:${name}`;
     contracts.register({
       name,

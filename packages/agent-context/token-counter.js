@@ -49,4 +49,46 @@ function deterministicCount(counter, canonicalText) {
   return first;
 }
 
-module.exports = { ConservativeUtf8TokenCounter, TokenCounterError, deterministicCount, validateTokenCounter };
+function accountSessionTokens(state, { excluded_turn_id } = {}) {
+  const { canonicalJson } = require('../agent-session-store');
+  let reportedInput = 0;
+  let reportedOutput = 0;
+  let estimated = state.reconciliation_reserved_tokens || 0;
+  const counter = new ConservativeUtf8TokenCounter();
+  for (const [id, turn] of Object.entries(state.turns || {})) {
+    if (id === excluded_turn_id) continue;
+    if (turn.model_steps?.length > 0) {
+      for (const step of turn.model_steps) {
+        const usage = step.model_events.filter((event) => event.event_type === 'usage');
+        if (usage.length > 0) {
+          for (const event of usage) {
+            reportedInput += event.payload.input_tokens;
+            reportedOutput += event.payload.output_tokens;
+          }
+        } else if (step.model_events.some((event) => ['completed', 'failed'].includes(event.event_type))) {
+          estimated += counter.count(canonicalJson(step.request)) + step.request.parameters.max_output_tokens;
+        }
+      }
+    } else if (turn.budget) {
+      const usage = turn.model_events.filter((event) => event.event_type === 'usage');
+      if (usage.length > 0) {
+        for (const event of usage) {
+          reportedInput += event.payload.input_tokens;
+          reportedOutput += event.payload.output_tokens;
+        }
+      } else estimated += turn.budget.input_tokens + turn.budget.reserved_output_tokens;
+    }
+  }
+  const total = reportedInput + reportedOutput + estimated;
+  if (![reportedInput, reportedOutput, estimated, total].every((value) => Number.isSafeInteger(value) && value >= 0))
+    throw new TokenCounterError('Session token usage exceeds safe accounting bounds');
+  return Object.freeze({
+    reported_input_tokens: reportedInput,
+    reported_output_tokens: reportedOutput,
+    conservative_estimate_tokens: estimated,
+    total_tokens: total,
+    estimate_counter: counter.counter_id,
+  });
+}
+
+module.exports = { accountSessionTokens, ConservativeUtf8TokenCounter, TokenCounterError, deterministicCount, validateTokenCounter };

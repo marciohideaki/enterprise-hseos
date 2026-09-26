@@ -78,10 +78,12 @@ function validateAnnotations(value) {
   if (value === undefined || value === null) return;
   const annotations = assertRecord(value, 'content annotations');
   assertOnlyKeys(annotations, ['audience', 'lastModified', 'priority', '_meta'], 'content annotations');
-  if (annotations.audience !== undefined && annotations.audience !== null) {
-    if (!Array.isArray(annotations.audience) || annotations.audience.some((role) => !['user', 'assistant'].includes(role))) {
-      throw new RuntimeProviderError('content annotations audience is malformed', 'protocol_error');
-    }
+  if (
+    annotations.audience !== undefined &&
+    annotations.audience !== null &&
+    (!Array.isArray(annotations.audience) || annotations.audience.some((role) => !['user', 'assistant'].includes(role)))
+  ) {
+    throw new RuntimeProviderError('content annotations audience is malformed', 'protocol_error');
   }
   if (annotations.lastModified !== undefined && annotations.lastModified !== null && typeof annotations.lastModified !== 'string') {
     throw new RuntimeProviderError('content annotations lastModified is malformed', 'protocol_error');
@@ -284,7 +286,8 @@ class AcpRuntimeProvider {
             if (
               isRecord(lateResponse) &&
               typeof lateResponse.sessionId === 'string' &&
-              !/\s|[\u0000-\u001f\u007f]/u.test(lateResponse.sessionId)
+              // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
+              !/\s|[\u0000-\u001F\u007F]/u.test(lateResponse.sessionId)
             ) {
               void this.#safeNotify('session/cancel', { sessionId: lateResponse.sessionId });
             }
@@ -297,7 +300,8 @@ class AcpRuntimeProvider {
       try {
         runtimeSessionId = assertString(response.sessionId, 'session/new sessionId', 1024);
         this.#available();
-        if (/\s|[\u0000-\u001f\u007f]/u.test(runtimeSessionId)) {
+        // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
+        if (/\s|[\u0000-\u001F\u007F]/u.test(runtimeSessionId)) {
           throw new RuntimeProviderError('session/new returned an invalid sessionId', 'protocol_error');
         }
         assertOnlyKeys(response, ['sessionId', 'modes', 'configOptions', '_meta'], 'session/new response');
@@ -314,7 +318,8 @@ class AcpRuntimeProvider {
           throw new RuntimeProviderError('session/new returned a duplicate sessionId', 'protocol_error');
         }
       } catch (error) {
-        if (runtimeSessionId && !/\s|[\u0000-\u001f\u007f]/u.test(runtimeSessionId)) {
+        // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
+        if (runtimeSessionId && !/\s|[\u0000-\u001F\u007F]/u.test(runtimeSessionId)) {
           await this.#safeNotify('session/cancel', { sessionId: runtimeSessionId });
         }
         throw error;
@@ -362,9 +367,8 @@ class AcpRuntimeProvider {
         throw new RuntimeProviderError('durable session spec does not match the ACP session', 'invalid_request');
       }
     }
-    if (existing.terminal || existing.activeTurn || existing.loading) {
-      if (!restoring) throw new RuntimeProviderError('ACP session cannot resume concurrently', 'invalid_request');
-    }
+    if ((existing.terminal || existing.activeTurn || existing.loading) && !restoring)
+      throw new RuntimeProviderError('ACP session cannot resume concurrently', 'invalid_request');
     if (existing.sequence !== input.expected_sequence) {
       throw new RuntimeProviderError('resume sequence does not match durable expectation', 'invalid_request');
     }
@@ -456,6 +460,7 @@ class AcpRuntimeProvider {
     if (input.from_sequence > session.sequence) {
       throw new RuntimeProviderError('event cursor is ahead of the runtime session', 'invalid_request');
     }
+    // eslint-disable-next-line unicorn/no-this-assignment -- Capture the provider owner for the returned async iterator method.
     const provider = this;
     let cursor = input.from_sequence;
     return {
@@ -634,17 +639,18 @@ class AcpRuntimeProvider {
       'ACP normalized runtime event',
     );
     const eventBytes = Buffer.byteLength(JSON.stringify(event), 'utf8');
-    if (!['runtime.session.completed', 'runtime.session.failed'].includes(eventType)) {
-      if (session.events.length + 1 >= session.maxEvents || session.eventBytes + eventBytes > session.maxEventBytes) {
-        session.sequence -= 1;
-        void this.#safeNotify('session/cancel', { sessionId: session.runtimeSessionId });
-        this.#terminate(session, 'runtime.session.failed', {
-          error_code: 'budget_exceeded',
-          message: 'ACP session exceeded its bounded event budget',
-          retryable: false,
-        });
-        return session.events.at(-1);
-      }
+    if (
+      !['runtime.session.completed', 'runtime.session.failed'].includes(eventType) &&
+      (session.events.length + 1 >= session.maxEvents || session.eventBytes + eventBytes > session.maxEventBytes)
+    ) {
+      session.sequence -= 1;
+      void this.#safeNotify('session/cancel', { sessionId: session.runtimeSessionId });
+      this.#terminate(session, 'runtime.session.failed', {
+        error_code: 'budget_exceeded',
+        message: 'ACP session exceeded its bounded event budget',
+        retryable: false,
+      });
+      return session.events.at(-1);
     }
     session.events.push(event);
     session.eventBytes += eventBytes;

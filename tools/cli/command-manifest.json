@@ -1,0 +1,1195 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "filename": "agent-activation-rehearsal.js",
+      "command": "agent-activation-rehearsal",
+      "description": "Rehearse agentic schema activation and rollback on private copies without authorizing operational cutover.",
+      "options": [
+        [
+          "--directory <path>",
+          "Project containing .hseos/state/project.db (default: current directory)"
+        ],
+        [
+          "--database <path>",
+          "Stable schema-v4 source database (overrides --directory)"
+        ],
+        [
+          "--repository <path>",
+          "HSEOS repository root (default: auto-detected)"
+        ],
+        [
+          "--live-snapshot",
+          "Allow a verified private snapshot when the source has active SQLite WAL sidecars"
+        ],
+        [
+          "--json",
+          "Output machine-readable JSON"
+        ],
+        [
+          "--require-rehearsal-ready",
+          "Exit non-zero unless migration, rollback, profile and source immutability pass"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "4445fe96aee4a5a90776af2044de4600a382c5acd9a1308814dcfaedb44af4c5"
+    },
+    {
+      "filename": "agent-core.js",
+      "command": "agent-core <action>",
+      "description": "Manage the vendor-neutral .agents core",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory (default: current directory)"
+        ],
+        [
+          "--target <id>",
+          "Adapter target id (default: all). One of claude-code, codex, goose, all"
+        ],
+        [
+          "--check",
+          "Verify generated artifacts and source drift without writing files"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "bb9635fe89395f7904c21e1ce7e9cab18da2e4bed1dec1b6215698e231a134dd"
+    },
+    {
+      "filename": "agent-provider-conformance.js",
+      "command": "agent-provider-conformance",
+      "description": "Generate the provider/profile matrix and optionally execute its hash-bound conformance suites.",
+      "options": [
+        [
+          "--repository <path>",
+          "HSEOS repository root (default: auto-detected)"
+        ],
+        [
+          "--verify",
+          "Execute every provider conformance suite"
+        ],
+        [
+          "--json",
+          "Output machine-readable JSON"
+        ],
+        [
+          "--require-ready",
+          "Exit non-zero unless every declared provider suite passed"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "4818ae43fc0c6be01203df0803817ef55bede8ed602b0635653f103e2e44fc32"
+    },
+    {
+      "filename": "agent-provider-validate.js",
+      "command": "agent-provider-validate",
+      "description": "Validate an immutable model-provider binding and optionally probe it after required sandbox checks pass.",
+      "options": [
+        [
+          "--binding <path>",
+          "Provider binding YAML (required)"
+        ],
+        [
+          "--directory <path>",
+          "Project used for environment checks (default: current directory)"
+        ],
+        [
+          "--repository <path>",
+          "HSEOS repository root (default: auto-detected)"
+        ],
+        [
+          "--probe",
+          "Resolve the declared secret and contact the provider after required sandbox checks pass"
+        ],
+        [
+          "--json",
+          "Output machine-readable JSON"
+        ],
+        [
+          "--require-ready",
+          "Exit non-zero unless the sandbox and requested provider probe pass"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "8c9b46dd4db64a599e3fc8fe84b381c763d611cf0b623a7dbd6d132cf120da91"
+    },
+    {
+      "filename": "agent.js",
+      "command": "agent <action>",
+      "description": "Run, resume, or cancel a temporary HSEOS Agent Kernel profile",
+      "options": [
+        [
+          "--task-contract <path>",
+          "Versioned disposable engineering contract for validation or candidate execution"
+        ],
+        [
+          "--scripted-responses <path>",
+          "Bounded keyless model responses for deterministic engineering fixtures"
+        ],
+        [
+          "--profile <id>",
+          "Agent profile (default: agent-reference)"
+        ],
+        [
+          "--binding <path>",
+          "Immutable provider binding for a new OpenAI-compatible candidate run"
+        ],
+        [
+          "--directory <path>",
+          "Project directory containing the required sandbox configuration"
+        ],
+        [
+          "--state <path>",
+          "Temporary state directory returned by agent run"
+        ],
+        [
+          "--session <id>",
+          "Session id for a new reference run"
+        ],
+        [
+          "--message <text>",
+          "User message for run or resume"
+        ],
+        [
+          "--value <text>",
+          "Deterministic external state value for a new run"
+        ],
+        [
+          "--create-only",
+          "Create a resumable session without starting a turn"
+        ],
+        [
+          "--expected-sequence <number>",
+          "Required optimistic sequence for resume"
+        ],
+        [
+          "--reason <text>",
+          "Cancellation reason"
+        ],
+        [
+          "--reconciliation-decision <path>",
+          "Explicit answers bound to the current reconciliation report"
+        ],
+        [
+          "--json",
+          "Emit one JSON object"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "34eaf26d1af2f53ea876b03ac8db3811e73e1b72a4c92a1420ed362f9ccf0b6b"
+    },
+    {
+      "filename": "brain.js",
+      "command": "brain <action>",
+      "description": "Manage second-brain vault integration (status, sync)",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory (default: current directory)"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "5e3ef8fe1452dd19c71d4f2398b93ae2ab0435711411229a7c37ec405848f50f"
+    },
+    {
+      "filename": "capability-check.js",
+      "command": "capability-check <query>",
+      "description": "Find governed capability candidates before implementation",
+      "options": [
+        [
+          "--directory <path>",
+          "Repository root to search (default: current directory)"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "c94706c8b1cdfc360df51275f6912d3212ad29b04aa48f786c5cce8aa165884a"
+    },
+    {
+      "filename": "compatibility-audit.js",
+      "command": "compatibility-audit",
+      "description": "Audit compatibility retirement evidence without mutating operational state.",
+      "options": [
+        [
+          "--directory <path>",
+          "Project containing .hseos/state (default: current directory)"
+        ],
+        [
+          "--repository <path>",
+          "HSEOS repository root (default: auto-detected)"
+        ],
+        [
+          "--downstream-evidence <path>",
+          "Explicit downstream release-window evidence JSON"
+        ],
+        [
+          "--as-of <timestamp>",
+          "UTC evidence cutoff (default: now)"
+        ],
+        [
+          "--json",
+          "Output machine-readable JSON"
+        ],
+        [
+          "--require-ready",
+          "Exit non-zero unless all evidence is ready for the human gate"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "5377111419cfa7ab90ca0f8192f2e1474062a6660d25098728cb052dea1b2f3c"
+    },
+    {
+      "filename": "compatibility-evidence-inventory.js",
+      "command": "compatibility-evidence-inventory",
+      "description": "Collect Git-pinned downstream compatibility inventories without network or operational state writes.",
+      "options": [
+        [
+          "--manifest <absolute-path>",
+          "Canonical downstream Git inventory manifest"
+        ],
+        [
+          "--directory <absolute-path>",
+          "Project containing the canonical G9 observation manifest"
+        ],
+        [
+          "--output-directory <absolute-path>",
+          "New private directory for immutable inventory artifacts"
+        ],
+        [
+          "--as-of <timestamp>",
+          "UTC collection cutoff (default: now)"
+        ],
+        [
+          "--json",
+          "Output the machine-readable inventory result"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "864db05a135f6c743aa4adc791c48e47c27558c1266179467661802c245a012e"
+    },
+    {
+      "filename": "compatibility-evidence-pack.js",
+      "command": "compatibility-evidence-pack",
+      "description": "Re-collect Git-pinned downstream evidence and package it without touching operational state.",
+      "options": [
+        [
+          "--manifest <absolute-path>",
+          "Canonical packaging manifest referencing the Git-pinned collector manifest"
+        ],
+        [
+          "--directory <absolute-path>",
+          "Project containing the canonical G9 observation manifest"
+        ],
+        [
+          "--output-directory <absolute-path>",
+          "New private directory for the immutable evidence bundle"
+        ],
+        [
+          "--as-of <timestamp>",
+          "UTC packaging cutoff (default: now)"
+        ],
+        [
+          "--json",
+          "Output the machine-readable packaging result"
+        ],
+        [
+          "--require-ready",
+          "Exit non-zero when legacy consumers remain"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "dd6a7205f21e4c7c091ebcca061a984d7ffa4b02b38d5558ad0d49d1c5eb1fa7"
+    },
+    {
+      "filename": "compatibility-observe-plan.js",
+      "command": "compatibility-observe-plan",
+      "description": "Render a hardened recurring observation plan without installing or enabling it.",
+      "options": [
+        [
+          "--directory <absolute-path>",
+          "Project containing .hseos/state (default: current directory)"
+        ],
+        [
+          "--evidence-directory <absolute-path>",
+          "Dedicated private evidence directory"
+        ],
+        [
+          "--node <absolute-path>",
+          "Node.js executable (default: current executable)"
+        ],
+        [
+          "--cli <absolute-path>",
+          "HSEOS CLI script (default: this installation)"
+        ],
+        [
+          "--minute-utc <minute>",
+          "Hourly UTC minute from 0 through 59 (default: 20)",
+          "20"
+        ],
+        [
+          "--json",
+          "Output the complete machine-readable plan"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "3ffeb53dad8c79edb503847f4aad7eeeb43ddb5b70d23fbaad1d032a32333d66"
+    },
+    {
+      "filename": "compatibility-observe.js",
+      "command": "compatibility-observe",
+      "description": "Monitor live compatibility telemetry read-only without claiming cutover readiness.",
+      "options": [
+        [
+          "--directory <path>",
+          "Project containing .hseos/state (default: current directory)"
+        ],
+        [
+          "--telemetry <path>",
+          "Explicit live telemetry database path"
+        ],
+        [
+          "--manifest <path>",
+          "Explicit observation release manifest path"
+        ],
+        [
+          "--as-of <timestamp>",
+          "UTC observation instant (default: now)"
+        ],
+        [
+          "--max-staleness-minutes <minutes>",
+          "Maximum heartbeat age (default: 75)",
+          "75"
+        ],
+        [
+          "--json",
+          "Output machine-readable JSON"
+        ],
+        [
+          "--evidence-directory <absolute-path>",
+          "Atomically append an immutable hash-chained JSON report"
+        ],
+        [
+          "--require-current-hour",
+          "Exit non-zero unless all required servers are present and fresh"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "b69ecc5c7cc83eef05f59826c996e435826d028b21ade2de033491c768915ef6"
+    },
+    {
+      "filename": "governance-context.js",
+      "command": "governance-context",
+      "description": "Resolve global governance before declaring standards or capabilities absent",
+      "options": [
+        [
+          "--directory <path>",
+          "Consumer directory (defaults to cwd)"
+        ],
+        [
+          "--json",
+          "Emit source hashes and explicit unverified layers"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "daf20624da2a2d22584386fd60182744b287dd3fbd9a6261dfb642ed30b8936d"
+    },
+    {
+      "filename": "governance.js",
+      "command": "governance <area> <action>",
+      "description": "Query and operate the optional managed governance control plane",
+      "options": [
+        [
+          "--plan",
+          "Build a deterministic import plan without writes"
+        ],
+        [
+          "--apply",
+          "Apply an import through the configured control plane"
+        ],
+        [
+          "--source <path>",
+          "Governance source directory (default: .enterprise)"
+        ],
+        [
+          "--endpoint <url>",
+          "Loopback control-plane endpoint"
+        ],
+        [
+          "--database-config <path>",
+          "Explicit sidecar database configuration reference"
+        ],
+        [
+          "--canonical-remote <reference>",
+          "Stable canonical source reference recorded with an import"
+        ],
+        [
+          "--actor <id>",
+          "Authenticated actor identity for mutations"
+        ],
+        [
+          "--token-env <name>",
+          "Environment variable containing the authentication token"
+        ],
+        [
+          "--type <type>",
+          "Artifact type filter"
+        ],
+        [
+          "--context <path>",
+          "Policy evaluation context JSON file"
+        ],
+        [
+          "--bind <address>",
+          "Shell-only server loopback bind address"
+        ],
+        [
+          "--port <port>",
+          "Shell-only server port (default: 4319)"
+        ],
+        [
+          "--profile <path>",
+          "Declared RecoveryProfile/v1 JSON file for a recovery rehearsal"
+        ],
+        [
+          "--disposable-target-env <name>",
+          "Environment variable holding the disposable recovery target connection string"
+        ],
+        [
+          "--confirm-disposable-target",
+          "Explicitly confirm the recovery target is disposable, not operational"
+        ],
+        [
+          "--restore-started-at <timestamp>",
+          "ISO-8601 timestamp the operator started the disposable-target restore"
+        ],
+        [
+          "--restore-completed-at <timestamp>",
+          "ISO-8601 timestamp the operator finished the disposable-target restore"
+        ],
+        [
+          "--expected-release-id <id>",
+          "Published release id whose signature evidence must survive restoration"
+        ],
+        [
+          "--adapter <name>",
+          "Adapter identity reporting a session preflight receipt (default: claude-code)"
+        ],
+        [
+          "--json",
+          "Emit the canonical machine-readable envelope"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "b4d220721917b84228be926cd8e92eab2bd5d462469733eef31897df1bb1d125"
+    },
+    {
+      "filename": "install-plan.js",
+      "command": "install-plan",
+      "description": "Inspect capability profiles, components, skills, adapters, and resolved install intent",
+      "options": [
+        [
+          "--directory <path>",
+          "Repository directory to inspect (default: current HSEOS repository)"
+        ],
+        [
+          "--profile <id>",
+          "Capability profile id"
+        ],
+        [
+          "--components <ids>",
+          "Comma-separated capability component IDs"
+        ],
+        [
+          "--skills <ids>",
+          "Comma-separated skill IDs to include as synthetic skill components"
+        ],
+        [
+          "--tools <ids>",
+          "Comma-separated tool IDs to add to the plan"
+        ],
+        [
+          "--hook-profile <id>",
+          "Hook profile override: advisory, standard, strict, ci"
+        ],
+        [
+          "--list-profiles",
+          "List available capability profiles"
+        ],
+        [
+          "--list-components",
+          "List available capability components"
+        ],
+        [
+          "--family <id>",
+          "Filter --list-components by family"
+        ],
+        [
+          "--list-skills",
+          "List synthetic skill component selectors"
+        ],
+        [
+          "--adapters",
+          "Show adapter capability matrix"
+        ],
+        [
+          "--json",
+          "Emit JSON"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "a862c6bb7ec2cdfd098127ddafc4b610ac0c7cf995c6411ddc76a1e0fcba905a"
+    },
+    {
+      "filename": "install.js",
+      "command": "install",
+      "description": "Install HSEOS agents and framework",
+      "options": [
+        [
+          "--json",
+          "Emit a JSON receipt for selected-only minimal/candidate materialization"
+        ],
+        [
+          "-d, --debug",
+          "Enable debug output for manifest generation"
+        ],
+        [
+          "--directory <path>",
+          "Installation directory (default: current directory)"
+        ],
+        [
+          "--modules <modules>",
+          "Comma-separated list of module IDs to install (e.g., \"bmm,bmb\")"
+        ],
+        [
+          "--profile <id>",
+          "Capability profile id to resolve before install"
+        ],
+        [
+          "--components <ids>",
+          "Comma-separated capability component IDs to include"
+        ],
+        [
+          "--skills <ids>",
+          "Comma-separated governed skill IDs to include as skill components"
+        ],
+        [
+          "--hook-profile <id>",
+          "Hook profile intent: advisory, standard, strict, or ci"
+        ],
+        [
+          "--tools <tools>",
+          "Comma-separated list of tool/IDE IDs to configure (e.g., \"claude-code,cursor\"). Use \"none\" to skip tool configuration."
+        ],
+        [
+          "--custom-content <paths>",
+          "Comma-separated list of paths to custom modules/agents/workflows"
+        ],
+        [
+          "--action <type>",
+          "Action type for existing installations: install, update, quick-update, or compile-agents"
+        ],
+        [
+          "--user-name <name>",
+          "Name for agents to use (default: system username)"
+        ],
+        [
+          "--communication-language <lang>",
+          "Language for agent communication (default: English)"
+        ],
+        [
+          "--document-output-language <lang>",
+          "Language for document output (default: English)"
+        ],
+        [
+          "--output-folder <path>",
+          "Output folder path relative to project root (default: .hseos-output)"
+        ],
+        [
+          "-y, --yes",
+          "Accept all defaults and skip prompts where possible"
+        ],
+        [
+          "--second-brain-path <path>",
+          "Absolute path to second-brain vault (enables integration if provided)"
+        ],
+        [
+          "--rtk",
+          "Install RTK token optimizer (intercepts CLI commands to reduce LLM token usage by 60-90%)"
+        ],
+        [
+          "--usage-dashboard [mode]",
+          "Install usage analytics dashboard. Mode: \"local\" (Python, default) or \"docker\" (Docker Compose, externally accessible)"
+        ],
+        [
+          "--no-git-hooks",
+          "Skip writing the pre-commit hook at .git/hooks/pre-commit. Default: install the hook when the target is a git working tree."
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "29aaba8f10ff56c8a8d4cbaf21681f277f4c720a64a5cd2c29a17fea10c61136"
+    },
+    {
+      "filename": "kanban-central.js",
+      "command": "kanban-central <action> [target]",
+      "description": "Manage the central multi-project kanban (register/deregister/list/start/stop/status).",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory for config lookup (default: cwd)"
+        ],
+        [
+          "--registry <path>",
+          "Registry JSON path (default: .hseos/config/projects.json)"
+        ],
+        [
+          "--id <id>",
+          "Project id (register only)"
+        ],
+        [
+          "--label <label>",
+          "Project display label (register only)"
+        ],
+        [
+          "--color <hex>",
+          "Project color hex (register only)"
+        ],
+        [
+          "--port <port>",
+          "Central server port"
+        ],
+        [
+          "--host <host>",
+          "Loopback bind interface (remote access requires a reverse proxy)"
+        ],
+        [
+          "--auth-token-env <name>",
+          "Environment variable containing the bearer token"
+        ],
+        [
+          "--poll-ms <ms>",
+          "Snapshot poll interval"
+        ],
+        [
+          "--stale-minutes <n>",
+          "Orphan threshold"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "366eece1b12c721fde59a4cb754f35ea8152088096baebced0ebe0c5cc2cb9fd"
+    },
+    {
+      "filename": "kanban.js",
+      "command": "kanban",
+      "description": "Render an ASCII kanban board of agent state. --watch loops.",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory (default: current)"
+        ],
+        [
+          "--watch",
+          "Re-render every interval until SIGINT"
+        ],
+        [
+          "--interval <ms>",
+          "Refresh interval for --watch in ms",
+          "1000"
+        ],
+        [
+          "--stale-minutes <n>",
+          "Orphan threshold in minutes",
+          "10"
+        ],
+        [
+          "--run <id>",
+          "Filter by run id"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "810f2efd52f270241280cd01723722c8eab7dd9c1fb239eb44bb86338bea3b63"
+    },
+    {
+      "filename": "plugin.js",
+      "command": "plugin <action> [plugin-id]",
+      "description": "Manage HSEOS plugins",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory (default: current directory)"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "e006e4911af8cae4d4a0ffd9ceb13bd901752612f1dba4aee5d11e7db87c9243"
+    },
+    {
+      "filename": "pr.js",
+      "command": "pr <action> [number]",
+      "description": "Governed Pull Request operations",
+      "options": [
+        [
+          "--approved",
+          "Confirm explicit human approval for governed merge"
+        ],
+        [
+          "--dry-run",
+          "Validate and print the planned closeout without executing it"
+        ],
+        [
+          "--keep-branch",
+          "Do not delete the feature branch after a safe merge"
+        ],
+        [
+          "--merge-method <method>",
+          "Merge method: merge, squash, or rebase (default: merge)",
+          "merge"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "0781868248a8234194a6303dbd2faf59b2e0c8b30d83bfb146a467c5bc1d68b1"
+    },
+    {
+      "filename": "sandbox.js",
+      "command": "sandbox <action> [command...]",
+      "description": "Inspect or run optional OS-level agent sandboxing through ai-jail",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory (default: current directory)"
+        ],
+        [
+          "--profile <name>",
+          "Sandbox profile for run (default: config default)"
+        ],
+        [
+          "--dry-run",
+          "Print the ai-jail command without executing it"
+        ],
+        [
+          "--json",
+          "Emit machine-readable doctor output"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "6b51ee4db8f7033b19c22c5c8ae6e2448f9c72ce924c0d0d589175dddb15dc06"
+    },
+    {
+      "filename": "state-describe.js",
+      "command": "state-describe <id>",
+      "description": "Describe a run (text id) or agent-run (numeric id) — counts, statuses, last events.",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory (default: current directory)"
+        ],
+        [
+          "--json",
+          "Output as JSON"
+        ]
+      ],
+      "governed": true,
+      "source_sha256": "e474a92844eec8e14dde4a944a27086216842073286da688255bdecbc4f292ad"
+    },
+    {
+      "filename": "state-emit.js",
+      "command": "state-emit <kind>",
+      "description": "Emit an agent-state event (start/heartbeat/checkpoint/complete/abort/tool_call/gate) through governed execution.",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory (default: current directory)"
+        ],
+        [
+          "--run <id>",
+          "Run id"
+        ],
+        [
+          "--task <id>",
+          "Task id"
+        ],
+        [
+          "--agent <name>",
+          "Agent name"
+        ],
+        [
+          "--payload <json>",
+          "JSON payload (string)"
+        ],
+        [
+          "--silent",
+          "Suppress non-error output"
+        ]
+      ],
+      "governed": true,
+      "source_sha256": "e18ae6e7066ac95a51a33385bebd59b5673831d75a65d186722315347091a118"
+    },
+    {
+      "filename": "state-list.js",
+      "command": "state-list",
+      "description": "List runs, agent-runs, or orphans from the agent-state store.",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory (default: current directory)"
+        ],
+        [
+          "--run <id>",
+          "Filter by run id"
+        ],
+        [
+          "--status <status>",
+          "Filter by status"
+        ],
+        [
+          "--orphans",
+          "Show running agent-runs without recent heartbeat"
+        ],
+        [
+          "--stale-minutes <n>",
+          "Threshold for orphan detection (default 10)",
+          "10"
+        ],
+        [
+          "--json",
+          "Output as JSON"
+        ]
+      ],
+      "governed": true,
+      "source_sha256": "26d784aeeafe5f01edc6b7591a7fe113e348f333c035400b403d75b87d2533c1"
+    },
+    {
+      "filename": "state-purge.js",
+      "command": "state-purge <run-id>",
+      "description": "Archive (optional) and delete a run with independent governed approval. Default is --dry-run.",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory (default: current)"
+        ],
+        [
+          "--archive",
+          "Archive run to second-brain vault before purging"
+        ],
+        [
+          "--archive-path <path>",
+          "Override archive output path"
+        ],
+        [
+          "--second-brain-path <path>",
+          "Second-brain vault root (default: $SECOND_BRAIN_PATH or skipped)"
+        ],
+        [
+          "--force",
+          "Actually delete (default is dry-run)"
+        ],
+        [
+          "--approval-id <id>",
+          "Previously recorded independent approval for this exact operation"
+        ],
+        [
+          "--idempotency-key <key>",
+          "Stable operation key bound to the approval"
+        ],
+        [
+          "--json",
+          "Print result as JSON"
+        ]
+      ],
+      "governed": true,
+      "source_sha256": "2cce88e0e6e1c7c6b2320d30834377e00ec1c0d31a56a460a2b7d3fe4e05650a"
+    },
+    {
+      "filename": "state-render.js",
+      "command": "state-render <run-id>",
+      "description": "Render PLAN/STATUS/RESUME-PROMPT markdown from SQLite for a run (read-only).",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory (default: current directory)"
+        ],
+        [
+          "--output <dir>",
+          "Output directory (default: stdout, prints PLAN only)"
+        ]
+      ],
+      "governed": true,
+      "source_sha256": "ac9fde5a6ae7245075f58d0b09f17981e9043c9437d5654a11b0e1138e5c6941"
+    },
+    {
+      "filename": "state-session.js",
+      "command": "state-session <action>",
+      "description": "Track live agent sessions in a project store (register/heartbeat/end/list/sweep).",
+      "options": [
+        [
+          "--directory <path>",
+          "Project store root (default: current directory)"
+        ],
+        [
+          "--session <id>",
+          "Session id (UUID from the agent harness)"
+        ],
+        [
+          "--parent <id>",
+          "Parent session id (subagent dispatch)"
+        ],
+        [
+          "--cwd <path>",
+          "Working directory of the session"
+        ],
+        [
+          "--service <name>",
+          "Agent service name (claude-code | codex-cli | ...)"
+        ],
+        [
+          "--host <name>",
+          "Host identity (default: os.hostname())"
+        ],
+        [
+          "--status <status>",
+          "End status: completed | killed | orphaned (default completed)"
+        ],
+        [
+          "--stale-minutes <n>",
+          "sweep: orphan active sessions idle longer than this (default 1440)"
+        ],
+        [
+          "--all",
+          "list: include ended sessions"
+        ],
+        [
+          "--limit <n>",
+          "list: max rows (default 50)"
+        ],
+        [
+          "--json",
+          "Output as JSON"
+        ],
+        [
+          "--silent",
+          "Suppress non-error output"
+        ]
+      ],
+      "governed": true,
+      "source_sha256": "a52bc06801dbf958f6613d688ba7f8a005e4db2e0f3b1995e73ef7bd3505ed6c"
+    },
+    {
+      "filename": "state-snapshot.js",
+      "command": "state-snapshot",
+      "description": "Snapshot the agent-state DB to .hseos/state/snapshots/.",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory (default: current)"
+        ],
+        [
+          "--keep <n>",
+          "Number of snapshots to retain",
+          "7"
+        ],
+        [
+          "--json",
+          "Print result as JSON"
+        ]
+      ],
+      "governed": true,
+      "source_sha256": "bcd35b92edff49ab3bcf38964270bd5ed53994981417ea1a12d090c13b6aba2a"
+    },
+    {
+      "filename": "state-stale-sweep.js",
+      "command": "state-stale-sweep",
+      "description": "Mark running agent_runs whose heartbeat is older than --stale-minutes as orphaned.",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory (default: current)"
+        ],
+        [
+          "--stale-minutes <n>",
+          "Threshold in minutes",
+          "10"
+        ],
+        [
+          "--json",
+          "Print result as JSON"
+        ]
+      ],
+      "governed": true,
+      "source_sha256": "dc45b2eb0da36ed7d6f08a6b813027c4c0669a514ede6e0253d04de030543c72"
+    },
+    {
+      "filename": "state-ui.js",
+      "command": "state-ui <action>",
+      "description": "Manage the kanban web side-car (start/stop/status).",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory (default: current)"
+        ],
+        [
+          "--port <port>",
+          "Web UI port override"
+        ],
+        [
+          "--host <host>",
+          "Loopback bind interface (remote access requires a reverse proxy)"
+        ],
+        [
+          "--auth-token-env <name>",
+          "Environment variable containing the bearer token"
+        ],
+        [
+          "--poll-ms <ms>",
+          "Snapshot poll interval in ms"
+        ],
+        [
+          "--stale-minutes <n>",
+          "Orphan threshold in minutes"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "ca53bd71eb002623bbce81cd0092a8ff475e4e44291856c328bf1bce6517a5fb"
+    },
+    {
+      "filename": "state.js",
+      "command": "state <action>",
+      "description": "Manage project state (start/stop/status MCP server)",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory (default: current directory)"
+        ],
+        [
+          "--port <port>",
+          "MCP server port override"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "2d92bbde55066880ad9baf38f48670b0dc83bdecbd97b6e18dcd70b84197c89e"
+    },
+    {
+      "filename": "status.js",
+      "command": "status",
+      "description": "Display HSEOS installation status and module versions",
+      "options": [],
+      "governed": false,
+      "source_sha256": "770285fd1c0d14e62816608df5afffacdf1c8643f57e98585df9b77ffcba1c21"
+    },
+    {
+      "filename": "uninstall.js",
+      "command": "uninstall",
+      "description": "Remove the managed HSEOS runtime while preserving portable project governance",
+      "options": [
+        [
+          "-y, --yes",
+          "Remove managed runtime and IDE integrations without prompting; preserve portable governance and user artifacts"
+        ],
+        [
+          "--directory <path>",
+          "Project directory (default: current directory)"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "b9ef786c6121bd584412086e1fa71773d44da5866d999fb06485495d3508c24a"
+    },
+    {
+      "filename": "workflow.js",
+      "command": "workflow [action] [workflowId]",
+      "description": "Execute bounded task graphs or inspect methodology recipes and legacy runs",
+      "options": [
+        [
+          "--output <path>",
+          "New JSON definition destination for explicit migration"
+        ],
+        [
+          "--definition <path>",
+          "Executable engineering workflow JSON definition"
+        ],
+        [
+          "--state <path>",
+          "Canonical workflow state directory"
+        ],
+        [
+          "--expected-sequence <number>",
+          "Optimistic sequence required for resume"
+        ],
+        [
+          "--reconciliation-decisions <path>",
+          "Explicit reconciliation answers keyed by workflow task id"
+        ],
+        [
+          "--create-only",
+          "Prepare a new workflow without executing tasks"
+        ],
+        [
+          "--json",
+          "Emit a JSON receipt"
+        ],
+        [
+          "--repo <path>",
+          "Repository for recipe readiness or legacy inspection"
+        ],
+        [
+          "--profile <profile>",
+          "Recipe readiness profile: core, release, runtime, or full",
+          "core"
+        ],
+        [
+          "--run-id <id>",
+          "Legacy v3 run identifier (read-only)"
+        ],
+        [
+          "--epic-id <id>",
+          "Retired v3 option; see the v4 migration guide"
+        ],
+        [
+          "--title <text>",
+          "Retired v3 option"
+        ],
+        [
+          "--note <text>",
+          "Retired v3 option"
+        ],
+        [
+          "--gate <name>",
+          "Retired v3 option"
+        ],
+        [
+          "--gate-status <status>",
+          "Retired v3 option"
+        ],
+        [
+          "--story-id <id>",
+          "Retired v3 option"
+        ],
+        [
+          "--story-status <status>",
+          "Retired v3 option"
+        ],
+        [
+          "--commit <sha>",
+          "Retired v3 option"
+        ],
+        [
+          "--from-phase <id>",
+          "Retired v3 option"
+        ],
+        [
+          "--dry-run",
+          "Retired v3 option"
+        ],
+        [
+          "--no-deploy",
+          "Retired v3 option"
+        ],
+        [
+          "--no-runtime",
+          "Retired v3 option"
+        ],
+        [
+          "--cooldown <seconds>",
+          "Retired v3 option"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "4ee0e8ff9960c48a247a9adaa8d2ff04b59c7f3a4728574962e29a9f11c924e9"
+    }
+  ]
+}

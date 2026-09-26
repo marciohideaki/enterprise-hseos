@@ -37,13 +37,23 @@ class LocalSubagentProvider {
   #manifest;
   #runtime;
   #store;
+  #resolveChild;
 
-  constructor({ session_store, agent_runtime, provider_id = 'subagent:local', provider_version = '1.0.0', max_parallel_children = 8 }) {
+  constructor({
+    session_store,
+    agent_runtime,
+    provider_id = 'subagent:local',
+    provider_version = '1.0.0',
+    max_parallel_children = 8,
+    resolve_child_outcome = terminalChild,
+  }) {
     if (!isRelationalSessionEventStore(session_store)) {
       throw new SubagentProviderError('local subagents require the nominal relational session store');
     }
     assertPortShape('AgentRuntime', agent_runtime);
     this.#store = session_store;
+    if (typeof resolve_child_outcome !== 'function') throw new SubagentProviderError('child outcome resolver must be callable');
+    this.#resolveChild = (id) => resolve_child_outcome(this.#store, id);
     this.#runtime = agent_runtime;
     this.#manifest = parseContract(SubagentProviderManifestSchema, {
       schema_version: CONTRACT_SCHEMA_VERSION,
@@ -63,9 +73,9 @@ class LocalSubagentProvider {
     const input = validatePortInput('SubagentProvider', 'spawn', value);
     if (input.provider_id !== this.#manifest.provider_id) throw new SubagentProviderError('provider identity mismatch');
     const existingEvents = this.#store.readSession(input.child_spec.session_id);
-    const existingState = existingEvents.length ? this.#store.replay(input.child_spec.session_id) : null;
-    const existingTerminal = existingState ? terminalChild(this.#store, input.child_spec.session_id) : null;
-    const activeNonTerminal = [...this.#active.keys()].filter((childId) => !terminalChild(this.#store, childId)).length;
+    const existingState = existingEvents.length > 0 ? this.#store.replay(input.child_spec.session_id) : null;
+    const existingTerminal = existingState ? this.#resolveChild(input.child_spec.session_id) : null;
+    const activeNonTerminal = [...this.#active.keys()].filter((childId) => !this.#resolveChild(childId)).length;
     if (!this.#active.has(input.child_spec.session_id) && !existingTerminal && activeNonTerminal >= this.#manifest.max_parallel_children) {
       throw new SubagentProviderError('parallel child cap is exhausted', 'SUBAGENT_PARALLEL_LIMIT_EXCEEDED');
     }
@@ -110,7 +120,7 @@ class LocalSubagentProvider {
       });
     }
     let task = this.#active.get(input.child_spec.session_id);
-    if (!task && !terminalChild(this.#store, input.child_spec.session_id)) {
+    if (!task && !this.#resolveChild(input.child_spec.session_id)) {
       const sendInput = {
         schema_version: CONTRACT_SCHEMA_VERSION,
         command: 'send',
@@ -150,7 +160,7 @@ class LocalSubagentProvider {
       parent_session_id: input.parent_session_id,
       child_session_id: input.child_spec.session_id,
       accepted: !fork.child.idempotent,
-      terminal: Boolean(terminalChild(this.#store, input.child_spec.session_id)),
+      terminal: Boolean(this.#resolveChild(input.child_spec.session_id)),
       event_refs: [...fork.parent.events, ...fork.child.events].map((event) => eventRef(event.event_id)),
     };
     return validatePortResult('SubagentProvider', 'spawn', result, input);
@@ -184,7 +194,7 @@ class LocalSubagentProvider {
     if (cancelReason) {
       await Promise.all(
         settleIds.map(async (childId) => {
-          if (terminalChild(this.#store, childId)) return;
+          if (this.#resolveChild(childId)) return;
           const cancelInput = {
             schema_version: CONTRACT_SCHEMA_VERSION,
             command: 'cancel',
@@ -210,14 +220,14 @@ class LocalSubagentProvider {
     if (timer) clearTimeout(timer);
     if (timedOut && !cancelReason) return this.#settle({ ...input, timeout_ms: 5000 }, 'subagent join deadline exceeded');
     const taskOutcomes = await wait;
-    const settledTree = settleIds.map((childId) => terminalChild(this.#store, childId));
-    if (settledTree.some((child) => child === null)) {
+    const settledTree = settleIds.map((childId) => this.#resolveChild(childId));
+    if (settledTree.includes(null)) {
       throw new SubagentProviderError('child did not reach a terminal state', 'SUBAGENT_ORPHAN_CHILD');
     }
     for (const childId of settleIds) this.#active.delete(childId);
     const rejected = taskOutcomes.find((outcome) => outcome.status === 'rejected');
     if (rejected) throw rejected.reason;
-    const children = input.child_session_ids.map((childId) => terminalChild(this.#store, childId));
+    const children = input.child_session_ids.map((childId) => this.#resolveChild(childId));
     return {
       schema_version: CONTRACT_SCHEMA_VERSION,
       provider_id: this.#manifest.provider_id,

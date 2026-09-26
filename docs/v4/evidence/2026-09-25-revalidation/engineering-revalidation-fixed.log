@@ -1,0 +1,58 @@
+
+> hseos@4.0.0-rc.0 test:engineering-task
+> node --test --test-concurrency=1 test/test-engineering-executor.js test/test-engineering-model.js test/test-engineering-task-state.js test/test-engineering-task-runtime.js test/test-engineering-workflow-runtime.js test/test-workflow-v4-cli.js test/test-v4-lazy-cli.js
+
+✔ Node command executes with read-only workspace, hidden controls and bounded resources (183.264675ms)
+✔ Python cannot create Internet or Unix sockets (57.287025ms)
+✔ output flooding is bounded and every descendant is drained (49.186659ms)
+✔ cancellation eliminates a detached descendant holding output pipes (304.975953ms)
+✔ parent exit drains detached descendants without waiting for their sleep (56.770234ms)
+✔ forged policies and invalid budgets fail before launch (1.458199ms)
+✔ a running command cannot exceed its wall-clock budget (207.4131ms)
+✔ the process limit applies to the complete descendant group (71.089751ms)
+✔ invalid UTF-8 cannot expand captured output beyond its byte budget (56.632923ms)
+✔ memory exhaustion remains confined to the executor group (217.922805ms)
+✔ resource cleanup retries a busy empty group before confirming completion (58.882915ms)
+✔ persistent busy cleanup is uncertain and never confirms completion (5049.19356ms)
+✔ bound engineering worker uses the broker and never persists its credential (4520.315955ms)
+✔ engineering model dispatch rejects retries and missing credentials without egress (7.527255ms)
+✔ Node implementation is independently approved and survives status reopen (1680.625857ms)
+✔ Python bug correction is independently approved (1347.634616ms)
+✔ Node regression correction preserves zero values (1556.884261ms)
+✔ a completed model response without implementation fails independent verification (1345.027337ms)
+✔ incorrect code cannot pass using a successful process exit (1501.73486ms)
+✔ unknown tools never execute (1170.167474ms)
+✔ a create-only task resumes with its original budget and sequence (2730.5191ms)
+✔ cancel persists a separate task outcome and prevents later execution (1151.904144ms)
+✔ cross-process cancellation waits for the running worker to drain its executor (2728.692436ms)
+✔ cancellation after worker interruption reaps its executor before confirming (2669.980951ms)
+✔ tampered verifier hash or acceptance is blocked before the first model turn (20.346056ms)
+✔ gateway denies verifier, credential, and workspace escape paths (4074.999135ms)
+✔ interruption after model completion resumes verification without replaying effects (5554.939232ms)
+✔ invalid creation never poisons the durable stream (22.623891ms)
+✔ snapshots require complete unique scope and accurate content digests (22.689724ms)
+✔ approval requires versioned proof bound to contract, artifacts, session and isolation (14.740278ms)
+✔ WorkflowEngine composes the three engineering tasks using independent outcomes (4633.30716ms)
+✔ a completed model with a failed task prevents execution of dependent tasks (1381.385853ms)
+✔ workflow validation rejects cycles and aggregate oversubscription before creating state (7.3178ms)
+✔ workflow status and create-only resume use the canonical ledger (4544.224894ms)
+✔ workflow cancellation before execution preserves all task artifacts and prevents resume (51.728476ms)
+✔ workflow definition identity is protected after creation (26.178483ms)
+✔ parallel tasks share the declared aggregate budget and release unused reservations (2419.701439ms)
+✔ explicit migration converts eligible definitions without touching legacy history or executing tasks (69.553057ms)
+✔ live workflow cancellation settles the active executor and preserves unstarted tasks (1729.625111ms)
+✔ interrupted workflow blocks uncertain effects and cancellation drains the abandoned executor (1686.051193ms)
+✔ interrupted workflow reclaims only a dead owner and resumes verification without repeated effects (7569.94965ms)
+✔ help and structural validation do not load optional integrations or query updates (383.223256ms)
+✔ fresh minimal and engineering materialization excludes optional implementations and services (573.543086ms)
+✔ npx wrapper preserves literal arguments without invoking a shell (85.800474ms)
+✔ public workflow CLI validates, executes and reopens a task graph (5457.134023ms)
+✔ retired YAML mutations fail with migration guidance and preserve legacy state (1010.303378ms)
+ℹ tests 46
+ℹ suites 0
+ℹ pass 46
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 71592.32739

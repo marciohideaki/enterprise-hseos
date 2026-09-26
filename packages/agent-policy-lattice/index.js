@@ -42,7 +42,7 @@ function assertRecord(value, label) {
 
 function normalizeSource(source) {
   const rank = SOURCE_PRECEDENCE.indexOf(source);
-  if (rank < 0) throw new AgentPolicyLatticeError(`unknown policy source: ${source}`);
+  if (rank === -1) throw new AgentPolicyLatticeError(`unknown policy source: ${source}`);
   return rank;
 }
 
@@ -53,7 +53,7 @@ function normalizeDecision(value, label) {
 
 function normalizeRule(rule, index) {
   assertRecord(rule, `rule ${index}`);
-  if (typeof rule.id !== 'string' || rule.id.length < 1 || rule.id.length > 256) {
+  if (typeof rule.id !== 'string' || rule.id.length === 0 || rule.id.length > 256) {
     throw new AgentPolicyLatticeError(`rule ${index} has an invalid id`);
   }
   if (!RULE_STAGES.has(rule.stage)) throw new AgentPolicyLatticeError(`rule ${rule.id} has an invalid stage`);
@@ -93,8 +93,10 @@ function evaluatePermissionLattice({ rules, execution_mode = 'default', provider
   let decidingRule = deny || ask || allow || null;
   const traceRule = (rule) => ({ stage: rule.stage, source: rule.source, rule_id: rule.id, decision: rule.decision });
   const trace = ordered.filter((rule) => rule.stage !== 'allow').map(traceRule);
-  trace.push({ stage: 'execution_mode', source: 'runtime_default', rule_id: `mode:${execution_mode}`, decision: modeDecision });
-  trace.push(...ordered.filter((rule) => rule.stage === 'allow').map(traceRule));
+  trace.push(
+    { stage: 'execution_mode', source: 'runtime_default', rule_id: `mode:${execution_mode}`, decision: modeDecision },
+    ...ordered.filter((rule) => rule.stage === 'allow').map(traceRule),
+  );
   if (decision === 'allow' && provider_callback !== null) {
     if (typeof provider_callback !== 'function') throw new AgentPolicyLatticeError('provider_callback must be a function');
     const providerDecision = normalizeDecision(provider_callback(), 'provider callback');
@@ -124,7 +126,7 @@ function resolveConfiguration(entries) {
     assertRecord(entry, `configuration entry ${index}`);
     if (
       typeof entry.key !== 'string' ||
-      entry.key.length < 1 ||
+      entry.key.length === 0 ||
       entry.key.length > 256 ||
       ['__proto__', 'prototype', 'constructor'].includes(entry.key)
     ) {
@@ -143,27 +145,43 @@ function resolveConfiguration(entries) {
     const kinds = new Set(candidates.map((entry) => entry.kind || 'replace'));
     if (kinds.size !== 1) throw new AgentPolicyLatticeError(`configuration key ${key} has incompatible merge kinds`);
     const kind = candidates[0].kind || 'replace';
-    if (kind === 'replace') resolved[key] = structuredClone(candidates[0].value);
-    else if (kind === 'deny_union') {
-      for (const entry of candidates) assertStringArray(entry.value, `${key} deny list`);
-      resolved[key] = [...new Set(candidates.flatMap((entry) => entry.value))].sort();
-    } else if (kind === 'allow_intersection') {
-      for (const entry of candidates) assertStringArray(entry.value, `${key} allow list`);
-      const sets = candidates.map((entry) => new Set(entry.value));
-      resolved[key] = [...sets[0]].filter((value) => sets.every((set) => set.has(value))).sort();
-    } else if (kind === 'limit_min') {
-      if (candidates.some((entry) => typeof entry.value !== 'number' || !Number.isFinite(entry.value) || entry.value < 0)) {
-        throw new AgentPolicyLatticeError(`${key} limits must be finite non-negative numbers`);
+    switch (kind) {
+      case 'replace': {
+        resolved[key] = structuredClone(candidates[0].value);
+        break;
       }
-      resolved[key] = Math.min(...candidates.map((entry) => entry.value));
-    } else throw new AgentPolicyLatticeError(`configuration key ${key} has an unknown merge kind`);
+      case 'deny_union': {
+        for (const entry of candidates) assertStringArray(entry.value, `${key} deny list`);
+        resolved[key] = [...new Set(candidates.flatMap((entry) => entry.value))].sort();
+
+        break;
+      }
+      case 'allow_intersection': {
+        for (const entry of candidates) assertStringArray(entry.value, `${key} allow list`);
+        const sets = candidates.map((entry) => new Set(entry.value));
+        resolved[key] = [...sets[0]].filter((value) => sets.every((set) => set.has(value))).sort();
+
+        break;
+      }
+      case 'limit_min': {
+        if (candidates.some((entry) => typeof entry.value !== 'number' || !Number.isFinite(entry.value) || entry.value < 0)) {
+          throw new AgentPolicyLatticeError(`${key} limits must be finite non-negative numbers`);
+        }
+        resolved[key] = Math.min(...candidates.map((entry) => entry.value));
+
+        break;
+      }
+      default: {
+        throw new AgentPolicyLatticeError(`configuration key ${key} has an unknown merge kind`);
+      }
+    }
     provenance[key] = candidates.map((entry) => entry.source);
   }
   return deepFreeze({ values: resolved, provenance });
 }
 
 function assertStringArray(value, label) {
-  if (!Array.isArray(value) || value.some((item) => typeof item !== 'string' || item.length < 1 || item.length > 1024)) {
+  if (!Array.isArray(value) || value.some((item) => typeof item !== 'string' || item.length === 0 || item.length > 1024)) {
     throw new AgentPolicyLatticeError(`${label} must be an array of bounded strings`);
   }
 }

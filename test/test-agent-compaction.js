@@ -370,3 +370,117 @@ test('checkpoint payloads reject nested credential-bearing fields', () => {
     (error) => error.code === 'CHECKPOINT_NOT_FOUND',
   );
 });
+
+test('registry rejects forged snapshots, unverifiable manifests and manifest drift', () => {
+  const { CompactionProviderRegistrySnapshot } = require('../packages/agent-compaction');
+  const { provider, manifest, registry } = fixture();
+  assert.throws(() => new CompactionProviderRegistrySnapshot(new Map()), /only by the registry/);
+  const snapshot = registry.snapshot();
+  assert.deepEqual(snapshot.manifests, [manifest]);
+  assert.ok(Object.isFrozen(snapshot.manifests));
+  assert.throws(() => snapshot.resolve('compaction:absent'), { code: 'COMPACTION_PROVIDER_NOT_FOUND' });
+  const wrapped = {
+    manifest() {
+      throw new Error('manifest unavailable');
+    },
+    assess: (input) => provider.assess(input),
+    compact: (input) => provider.compact(input),
+    dispose: (input) => provider.dispose(input),
+  };
+  assert.throws(() => new CompactionProviderRegistry().register(wrapped, manifest), {
+    code: 'COMPACTION_PROVIDER_MANIFEST_INVALID',
+  });
+  wrapped.manifest = (input) => provider.manifest(input);
+  assert.throws(() => new CompactionProviderRegistry().register(wrapped, { ...manifest, max_output_bytes: 1024 }), {
+    code: 'COMPACTION_PROVIDER_MANIFEST_MISMATCH',
+  });
+});
+
+test('invalid thresholds and tiny histories cannot be represented as successful compaction', () => {
+  for (const threshold_basis_points of [0, 10_001, 1.5, Number.NaN]) {
+    assert.throws(() => new DeterministicCompactionProvider({ threshold_basis_points }), /threshold/);
+  }
+  const { provider } = fixture();
+  assert.throws(() => provider.compact(compactInput({ sources: [source(0, { role: 'user', content: 'x' })] })), /too small/);
+  const disposed = provider.dispose({ schema_version: 1, request_id: 'request:dispose', provider_id: 'compaction:fixture' });
+  assert.equal(disposed.accepted, true);
+  assert.equal(disposed.request_id, 'request:dispose');
+});
+
+test('pruning opaque tool output preserves its digest without inventing evidence or status', () => {
+  const { runtime } = fixture();
+  const content = 'not a JSON document '.repeat(100);
+  const record = runtime.compact(
+    compactInput({
+      strategy: 'tool_result_prune',
+      trigger: 'tool_result_pressure',
+      sources: [source(1, { role: 'tool', tool_call_id: 'call:opaque', content })],
+    }),
+  );
+  assert.deepEqual(JSON.parse(record.replacement_messages[0].content), {
+    status: 'unknown',
+    evidence_refs: [],
+    warnings: [],
+    result_digest: digest(content),
+    pruned: true,
+  });
+  assert.equal(record.replacement_messages[0].tool_call_id, 'call:opaque');
+});
+
+test('caller rejection cannot persist a checkpoint and a later accepted attempt can proceed', () => {
+  const { runtime, checkpoint } = fixture();
+  const input = compactInput();
+  assert.throws(() => runtime.compact(input, [], () => false), { code: 'COMPACTION_REPLACEMENT_REJECTED' });
+  assert.throws(() => runtime.compact(input, [], null), { code: 'COMPACTION_REPLACEMENT_REJECTED' });
+  assert.throws(
+    () =>
+      checkpoint.get({
+        schema_version: 1,
+        provider_id: 'checkpoint:fixture',
+        checkpoint_id: input.compaction_id,
+        session_id: input.session_id,
+      }),
+    { code: 'CHECKPOINT_NOT_FOUND' },
+  );
+  assert.equal(runtime.compact(input).compaction_id, input.compaction_id);
+});
+
+test('checkpoint failure is not a cache miss and never dispatches compaction', () => {
+  const { registry } = fixture();
+  const runtime = new CompactionRuntime({
+    compaction_provider_snapshot: registry.snapshot(),
+    checkpoint_provider: {
+      get() {
+        throw Object.assign(new Error('storage unavailable'), { code: 'STORE_OFFLINE' });
+      },
+      put() {
+        assert.fail('must not replace unavailable history');
+      },
+      dispose() {},
+    },
+    checkpoint_provider_id: 'checkpoint:fixture',
+  });
+  assert.throws(
+    () => runtime.compact(compactInput()),
+    (error) => error.code === 'COMPACTION_CHECKPOINT_RECOVERY_FAILED' && error.details.cause_code === 'STORE_OFFLINE',
+  );
+});
+
+test('a valid checkpoint from a different compaction cannot be relabelled on recovery', () => {
+  const { registry, provider, checkpoint } = fixture();
+  const input = compactInput();
+  const payload = provider.compact({ ...input, compaction_id: 'compaction:another' });
+  checkpoint.put({
+    schema_version: 1,
+    provider_id: 'checkpoint:fixture',
+    checkpoint_id: input.compaction_id,
+    session_id: input.session_id,
+    payload,
+  });
+  const runtime = new CompactionRuntime({
+    compaction_provider_snapshot: registry.snapshot(),
+    checkpoint_provider: checkpoint,
+    checkpoint_provider_id: 'checkpoint:fixture',
+  });
+  assert.throws(() => runtime.compact(input), { code: 'COMPACTION_IDENTITY_MISMATCH' });
+});

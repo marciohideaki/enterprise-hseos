@@ -1,0 +1,149 @@
+✔ local provider forks exact scope and joins a terminal child (93.394299ms)
+✔ authority and resource widening fail before a child can exist (13.399289ms)
+✔ provider identity fails before effects and a pre-checkpoint crash resumes the existing child (75.450747ms)
+✔ workflow executes bounded parallel and pipeline phases with durable exact checkpoints (195.234987ms)
+✔ workflow identifier cannot drift and caps fail before dispatch (47.072875ms)
+✔ workflow cancellation cascades and returns with no orphan child (131.034927ms)
+✔ workflow verifies provider join claims against durable child state (37.374648ms)
+✔ one parent cannot dispatch concurrent workflows across engine instances beyond its durable caps (96.596735ms)
+✔ an exact reclaim cannot preempt a live workflow on the same durable authority (92.834515ms)
+✔ provider cancellation terminalizes the complete descendant tree (45.544271ms)
+✔ join deadline cancels every child and provider parallel caps reject before fork (134.580304ms)
+✔ terminal unjoined children no longer consume the live parallel cap (117.237163ms)
+✔ malformed runtime result is rejected only after the child is terminalized (28.718727ms)
+✔ disposing a subagent provider drains children and rejects unrelated parent claims (40.830107ms)
+✔ workflow disposal cancels active children and leaves no resumable live claim (31.049648ms)
+✔ workflow scope and duration violations are rejected before child dispatch (12.691177ms)
+✔ headless runtime satisfies the port and completes a durable multi-step governed tool journey (137.507736ms)
+✔ tool-result pressure prunes bodies with lineage before a byte-exact continuation (106.478954ms)
+✔ a second runtime resumes after durable tool completion without redispatch (91.273418ms)
+✔ resume fails closed instead of replaying a partially observed provider stream (27.418144ms)
+✔ cancel after restart settles a durable zero-event model step before the session terminal (30.690601ms)
+✔ resume settles a terminal legacy stream without redispatching its request (32.131486ms)
+✔ resume terminalizes a partial legacy stream before failing the session (30.836628ms)
+✔ cumulative stream caps reserve room for a durable synthetic terminal event (46.25447ms)
+✔ cancellation is durable before provider interruption and every started unit settles (52.690499ms)
+✔ duration, token, tool and implementation caps terminate without unbounded work (83.794023ms)
+✔ unknown sessions, delegated ownership, concurrent sends and stale resume fail closed (22.953439ms)
+✔ runtime rejects forged and overridden durable session stores (6.640853ms)
+✔ runtime configuration rejects malformed ports, limits and compaction profiles (11.279068ms)
+✔ create retries preserve identity and cannot replace an existing specification (13.176844ms)
+✖ runtime disposal settles created sessions (9.573445ms)
+✖ runtime disposal settles active sessions (8.065571ms)
+✖ provider cancelled cannot be misreported as successful task completion (8.211381ms)
+✖ provider length cannot be misreported as successful task completion (8.057947ms)
+✔ scripted and OpenAI-compatible providers complete the same AgentRuntime lifecycle (186.153315ms)
+✔ malformed provider transport terminalizes without false success (42.359142ms)
+✔ one root cancellation settles an active tool, workflow, model work, and every descendant (195.510636ms)
+✔ a non-settling workflow cancellation cannot block root runtime and tool interruption (82.067815ms)
+✔ root cancellation cannot relabel a durable completed session as cancelled (25.036459ms)
+✔ a replacement runtime resumes the exact next model request from a reopened persistent ledger (24.506812ms)
+✖ persistent replay scales within explicit latency, storage, and memory bounds (15174.785278ms)
+✔ supervisor rejects malformed configuration and cancellation before durable effects (10.451019ms)
+✔ supervisor detects duplicate dispatch and releases ownership after rejection (5.570102ms)
+✔ supervisor does not accept a cancellation receipt without a durable terminal (7.504655ms)
+✔ supervisor reports cancellation failure even when the root has terminalized (12.669609ms)
+✔ supervisor rejects invalid and regressing clocks rather than extending a settlement deadline (26.209539ms)
+ℹ tests 46
+ℹ suites 0
+ℹ pass 41
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18666.420192
+
+✖ failing tests:
+
+test at test/test-agent-runtime.js:933:3
+✖ runtime disposal settles created sessions (9.573445ms)
+  Error [ModelProviderError]: scripted provider requires at least two routes
+      at new ScriptedModelProvider (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/packages/model-providers/scripted-provider.js:61:13)
+      at setup (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/test/test-agent-runtime.js:224:20)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/test/test-agent-runtime.js:934:21)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    error_code: 'invalid_request',
+    retryable: false
+  }
+
+test at test/test-agent-runtime.js:933:3
+✖ runtime disposal settles active sessions (8.065571ms)
+  Error [ModelProviderError]: scripted provider requires at least two routes
+      at new ScriptedModelProvider (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/packages/model-providers/scripted-provider.js:61:13)
+      at setup (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/test/test-agent-runtime.js:224:20)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/test/test-agent-runtime.js:934:21)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    error_code: 'invalid_request',
+    retryable: false
+  }
+
+test at test/test-agent-runtime.js:959:3
+✖ provider cancelled cannot be misreported as successful task completion (8.211381ms)
+  Error [ModelProviderError]: scripted provider requires at least two routes
+      at new ScriptedModelProvider (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/packages/model-providers/scripted-provider.js:61:13)
+      at setup (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/test/test-agent-runtime.js:224:20)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/test/test-agent-runtime.js:960:21)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    error_code: 'invalid_request',
+    retryable: false
+  }
+
+test at test/test-agent-runtime.js:959:3
+✖ provider length cannot be misreported as successful task completion (8.057947ms)
+  Error [ModelProviderError]: scripted provider requires at least two routes
+      at new ScriptedModelProvider (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/packages/model-providers/scripted-provider.js:61:13)
+      at setup (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/test/test-agent-runtime.js:224:20)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/test/test-agent-runtime.js:960:21)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    error_code: 'invalid_request',
+    retryable: false
+  }
+
+test at test/test-agentic-completion-audit.js:760:1
+✖ persistent replay scales within explicit latency, storage, and memory bounds (15174.785278ms)
+  AssertionError [ERR_ASSERTION]: p95 exceeded linear event-volume envelope: {"volume":128,"event_count":135,"p50_ms":17.39,"p95_ms":40.141,"max_ms":41.937,"database_bytes":417792}
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/test/test-agentic-completion-audit.js:841:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+-----------------------------|---------|----------|---------|---------|-----------------------------
+File                         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s           
+-----------------------------|---------|----------|---------|---------|-----------------------------
+All files                    |   86.85 |    83.39 |   97.59 |   86.85 |                             
+ agent-orchestration         |   96.72 |    86.78 |     100 |   96.72 |                             
+  execution-supervisor.js    |     100 |      100 |     100 |     100 |                             
+  index.js                   |     100 |      100 |     100 |     100 |                             
+  local-subagent-provider.js |   97.25 |     86.9 |     100 |   97.25 | 51-52,146-149,225-226       
+  utilities.js               |     100 |      100 |     100 |     100 |                             
+  workflow-engine.js         |   94.83 |    78.14 |     100 |   94.83 | ...,238-239,263-264,383-384 
+ agent-runtime               |   77.51 |    78.66 |   94.59 |   77.51 |                             
+  index.js                   |     100 |      100 |     100 |     100 |                             
+  runtime.js                 |   76.82 |    77.92 |   94.44 |   76.82 | ...1067,1108-1116,1120-1121 
+  schemas.js                 |     100 |      100 |     100 |     100 |                             
+-----------------------------|---------|----------|---------|---------|-----------------------------

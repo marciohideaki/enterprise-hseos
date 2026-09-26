@@ -1,0 +1,46 @@
+✔ missing backend fails before any probe (1.774634ms)
+✔ exit zero and claimed writes do not prove an effect (3.778909ms)
+✔ confirmed effects pass only prerequisites with fixed commands and cleared environment (2.834565ms)
+✔ rejects symlink despite a successful-looking effect (1.775182ms)
+✔ rejects hardlink despite a successful-looking effect (1.191259ms)
+✔ rejects control-modification despite a successful-looking effect (5.641105ms)
+✔ rejects visible-control despite a successful-looking effect (1.465759ms)
+✔ rejects invalid-report despite a successful-looking effect (0.967523ms)
+✔ rejects timeout despite a successful-looking effect (1.068478ms)
+✔ public CLI fails closed against a backend that merely exits zero (446.838358ms)
+✔ validates and freezes a versioned contract without attesting the verifier or executing code (8.481331ms)
+✔ rejects source drift (1.82382ms)
+✔ rejects file drift (0.563389ms)
+✔ rejects traversal (0.779369ms)
+✔ rejects absolute path (0.37715ms)
+✔ rejects hidden control path (0.312469ms)
+✔ rejects path prefix collision (0.313633ms)
+✔ rejects write outside read scope (0.33013ms)
+✔ rejects duplicate file (0.409784ms)
+✔ rejects file outside scope (0.541819ms)
+✔ rejects missing source (0.296975ms)
+✔ rejects uncovered requirement (0.290272ms)
+✔ rejects missing requirement (0.282762ms)
+✔ rejects missing acceptance (0.27697ms)
+✔ rejects duplicate acceptance (0.257623ms)
+✔ rejects unknown authority (0.31286ms)
+✔ rejects privileged source role (0.325796ms)
+✔ rejects shell command (0.409932ms)
+✔ rejects command outside scope (0.385743ms)
+✔ rejects unbounded retries (0.376199ms)
+✔ rejects invalid duration (0.438916ms)
+✔ rejects unsafe integer (0.44097ms)
+✔ rejects child budget (0.336801ms)
+✔ rejects oversized artifacts (0.31327ms)
+✔ rejects invalid rollback (0.338931ms)
+✔ source instructions remain untrusted data and changing them invalidates the receipt (8.954072ms)
+✔ linked and oversized input files are rejected before loading their contents (5.517003ms)
+✔ public validation emits no source contents and cannot select an execution profile (1294.512289ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2097.898557

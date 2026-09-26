@@ -38,8 +38,6 @@ export default [
       // are dictated by Augment and can't be changed, so exclude
       // the entire directory from linting
       '.augment/**',
-      // adapter-sdk is a standalone publishable package — linted separately
-      'packages/**',
       // git worktrees created by worktree-manager — contain copies of project files
       '.worktrees/**',
       // gitignored temporary run/validation logs (AGENTS.md §10) — must not affect local gates
@@ -92,7 +90,16 @@ export default [
 
   // CLI scripts under tools/**, scripts/**, and test/**
   {
-    files: ['tools/**/*.js', 'tools/**/*.mjs', 'scripts/**/*.js', 'test/**/*.js', 'test/**/*.mjs'],
+    files: [
+      'tools/**/*.js',
+      'tools/**/*.mjs',
+      'scripts/**/*.js',
+      'test/**/*.js',
+      'test/**/*.mjs',
+      'packages/**/*.js',
+      'packages/**/*.cjs',
+      'packages/**/*.mjs',
+    ],
     rules: {
       // Allow CommonJS patterns for Node CLI scripts
       'unicorn/prefer-module': 'off',
@@ -120,6 +127,15 @@ export default [
       'unicorn/prefer-number-properties': 'off',
       'no-unreachable': 'off',
       'unicorn/text-encoding-identifier-case': 'off',
+    },
+  },
+
+  // Kernel correctness rules must remain active even when CLI scripts relax them.
+  {
+    files: ['packages/**/*.{js,cjs,mjs}'],
+    rules: {
+      'no-undef': 'error',
+      'no-unreachable': 'error',
     },
   },
 

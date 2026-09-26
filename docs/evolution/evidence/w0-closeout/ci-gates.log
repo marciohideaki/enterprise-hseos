@@ -1,0 +1,41 @@
+[0;34m[INFO][0m HSEOS Quality Gates — Phase: ci
+[0;34m[INFO][0m Repository: /workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0
+[0;34m[INFO][0m Log: /workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/.logs/validation/gate-20260925T183935.log
+
+[0;34m[INFO][0m Gate 0: Enforcement Flags
+[0;32m[PASS][0m VALIDATION_ENFORCED=true
+[0;34m[INFO][0m Gate 1: Governance Structure
+[0;32m[PASS][0m Exists: .enterprise/.specs/constitution/Enterprise-Constitution.md
+[0;32m[PASS][0m Exists: .enterprise/policies/automated-validation.md
+[0;32m[PASS][0m Exists: CLAUDE.md
+[0;32m[PASS][0m Exists: AGENTS.md
+[0;32m[PASS][0m Dir exists: .enterprise/agents
+[0;32m[PASS][0m Dir exists: .enterprise/governance
+[0;32m[PASS][0m Dir exists: .enterprise/policies
+[0;32m[PASS][0m Dir exists: .logs/runs
+[0;32m[PASS][0m Dir exists: .logs/validation
+[0;32m[PASS][0m Dir exists: .logs/summaries
+[0;34m[INFO][0m Gate 1.1: Governance Anchors and Capability Graph
+[0;32m[PASS][0m Constitutional change control: passed
+[0;32m[PASS][0m Federated capability graph: passed
+[0;32m[PASS][0m Capability reference corpus: passed
+[0;34m[INFO][0m Gate 7: Canonical Source Invariant (ADR-0015)
+[0;32m[PASS][0m No external skill-mirror canonical references in runtime assets
+[0;34m[INFO][0m Gate 2: Documentation Quality
+[1;33m[WARN][0m Unresolved placeholders (2) in: src/hsm/workflows/3-solutioning/create-epics-and-stories/templates/epics-template.md
+[0;34m[INFO][0m markdownlint not available — skipping markdown syntax check
+[0;34m[INFO][0m Gate 4: Security Scan
+[0;32m[PASS][0m No secret patterns detected in tracked files
+[0;34m[INFO][0m Gate 5: Commit Hygiene
+[0;32m[PASS][0m Commit hygiene check complete
+[0;34m[INFO][0m Gate 6: Workflow Publication Triggers
+[0;34m[INFO][0m No docs-image workflow found — skipping publication trigger gate
+
+=========================================
+  HSEOS Quality Gate Summary
+=========================================
+  FAILURES : 0
+  WARNINGS : 1
+  LOG      : /workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/.logs/validation/gate-20260925T183935.log
+=========================================
+[0;32m[PASS][0m All quality gates passed.

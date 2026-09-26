@@ -1,0 +1,19 @@
+✔ WorkflowEngine composes the three engineering tasks using independent outcomes (4581.485788ms)
+✔ a completed model with a failed task prevents execution of dependent tasks (1366.832524ms)
+✔ workflow validation rejects cycles and aggregate oversubscription before creating state (6.09742ms)
+✔ workflow status and create-only resume use the canonical ledger (4560.138027ms)
+✔ workflow cancellation before execution preserves all task artifacts and prevents resume (47.253494ms)
+✔ workflow definition identity is protected after creation (32.682413ms)
+✔ parallel tasks share the declared aggregate budget and release unused reservations (2668.53615ms)
+✔ explicit migration converts eligible definitions without touching legacy history or executing tasks (62.690841ms)
+✔ live workflow cancellation settles the active executor and preserves unstarted tasks (1722.102278ms)
+✔ interrupted workflow blocks uncertain effects and cancellation drains the abandoned executor (1726.423159ms)
+✔ interrupted workflow reclaims only a dead owner and resumes verification without repeated effects (7549.888359ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 24559.122269

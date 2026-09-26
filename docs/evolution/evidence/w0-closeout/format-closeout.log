@@ -1,0 +1,6 @@
+
+> hseos@4.0.0-rc.0 format:check
+> prettier --check "**/*.{js,cjs,mjs,json,yaml}"
+
+Checking formatting...
+All matched files use Prettier code style!

@@ -14,6 +14,43 @@ function read(relativePath) {
 
 const cases = [
   {
+    name: 'quality gate selects runtime and schema checks with large staged lists under pipefail',
+    fn: () => {
+      const script = read('scripts/governance/quality-gates.sh');
+      const gate = script.slice(script.indexOf('gate_code()'), script.indexOf('gate_security()'));
+      const directory = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'hseos-gate-scope-'));
+      try {
+        fs.writeFileSync(path.join(directory, 'package.json'), '{}');
+        fs.mkdirSync(path.join(directory, 'tools'));
+        fs.writeFileSync(path.join(directory, 'tools/validate-agent-schema.js'), '');
+        const list = path.join(directory, 'staged.txt');
+        const harness = `
+set -euo pipefail
+info() { :; }
+pass() { printf 'PASS %s\\n' "$*"; }
+record_fail() { printf 'FAIL %s\\n' "$*"; }
+git() { cat "$GATE_LIST"; }
+node() { return 0; }
+run_node_check() { printf 'CHECK %s\\n' "$*"; }
+${gate}
+gate_code
+`;
+        for (const first of ['packages/runtime/index.js', 'src/hsm/agents/example.yaml']) {
+          fs.writeFileSync(list, first + '\n' + 'docs/unchanged.md\n'.repeat(20_000));
+          const output = execFileSync('bash', ['-c', harness], {
+            encoding: 'utf8',
+            env: { ...process.env, REPO_ROOT: directory, GATE_LIST: list, LOG_FILE: path.join(directory, 'gate.log') },
+          });
+          assert.match(output, /CHECK npm run lint/);
+          assert.match(output, /CHECK npm test/);
+          if (first.startsWith('src/')) assert.match(output, /Agent schema validation: passed/);
+        }
+      } finally {
+        fs.rmSync(directory, { recursive: true, force: true });
+      }
+    },
+  },
+  {
     name: 'worktree-manager validates from inside the task worktree',
     fn: () => {
       const script = read('scripts/governance/worktree-manager.sh');

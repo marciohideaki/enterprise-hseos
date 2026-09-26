@@ -1,0 +1,31 @@
+{
+  "node": "v24.15.0",
+  "installed": "/build/tmp/hseos-w0-closeout-cofvlsrb/consumer24/node_modules/hseos",
+  "outside_checkout": true,
+  "network_isolated": false,
+  "network_namespace": "net:[4026531833]",
+  "task_results": [
+    {
+      "task": "example-addition",
+      "result": "approved",
+      "corrections": 0
+    },
+    {
+      "task": "example-clamp",
+      "result": "approved",
+      "corrections": 0
+    },
+    {
+      "task": "example-unique",
+      "result": "approved",
+      "corrections": 0
+    },
+    {
+      "task": "example-correction",
+      "result": "approved",
+      "corrections": 2
+    }
+  ],
+  "workflow_result": "completed",
+  "workflow_tasks": 3
+}

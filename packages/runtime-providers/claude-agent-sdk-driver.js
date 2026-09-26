@@ -26,7 +26,8 @@ function text(value, label, maximum = 1024) {
     typeof value !== 'string' ||
     value.length === 0 ||
     Buffer.byteLength(value, 'utf8') > maximum ||
-    /[\u0000-\u001f\u007f]/u.test(value)
+    // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
+    /[\u0000-\u001F\u007F]/u.test(value)
   ) {
     throw new RuntimeProviderError(`${label} is malformed`, 'protocol_error');
   }
@@ -219,7 +220,7 @@ class ClaudeAgentSdkDriver {
       throw new RuntimeProviderError('Claude Agent SDK emitted a malformed session message', 'protocol_error');
     }
     if (value.type === 'system' && value.subtype === 'init') {
-      if (!Array.isArray(value.tools) || value.tools.length !== 0 || value.permissionMode !== 'plan') {
+      if (!Array.isArray(value.tools) || value.tools.length > 0 || value.permissionMode !== 'plan') {
         onEvent({ type: 'effect.attempted', effect: 'sdk-init-capability-drift' });
         return 'refused';
       }

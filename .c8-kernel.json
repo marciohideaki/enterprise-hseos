@@ -1,0 +1,23 @@
+{
+  "all": true,
+  "include": [
+    "packages/agent-runtime/**/*.js",
+    "packages/tool-runtime/**/*.js",
+    "packages/agent-policy-lattice/**/*.js",
+    "packages/agent-orchestration/**/*.js",
+    "packages/agent-session-store/**/*.js",
+    "packages/agent-compaction/**/*.js",
+    "packages/agent-isolation-attestation/**/*.js",
+    "tools/cli/lib/engineering-*.js",
+    "tools/cli/lib/provider-egress-broker.js"
+  ],
+  "exclude": ["**/node_modules/**", "test/**"],
+  "reporter": ["text", "json-summary", "json"],
+  "reports-dir": ".logs/validation/kernel-coverage",
+  "temp-directory": ".logs/validation/kernel-coverage/tmp",
+  "clean": true,
+  "check-coverage": true,
+  "per-file": true,
+  "lines": 90,
+  "branches": 80
+}

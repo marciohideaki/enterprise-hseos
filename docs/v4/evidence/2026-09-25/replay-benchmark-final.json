@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "node": "v24.15.0",
+  "workload": "control events; one-event update after a warmed prefix; not a model-payload benchmark",
+  "measurements": [
+    {
+      "events": 100,
+      "full_replay_ms": 4.901904000000002,
+      "incremental_update_ms": 0.1907980000000009,
+      "incremental_events_reduced": 1,
+      "equivalent": true
+    },
+    {
+      "events": 1000,
+      "full_replay_ms": 30.764751999999987,
+      "incremental_update_ms": 0.1872250000000122,
+      "incremental_events_reduced": 1,
+      "equivalent": true
+    },
+    {
+      "events": 10000,
+      "full_replay_ms": 284.64835200000016,
+      "incremental_update_ms": 0.7943939999997838,
+      "incremental_events_reduced": 1,
+      "equivalent": true
+    }
+  ]
+}

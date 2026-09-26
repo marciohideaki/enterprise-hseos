@@ -2,7 +2,7 @@ version: 2
 schema_version: "2.0"
 workflows:
   - id: delivery-readiness
-    kind: executable
+    kind: recipe
     execution_mode: sequential
     name: Delivery Readiness
     owner: ORBIT
@@ -102,7 +102,7 @@ workflows:
         prepare: "Install kubectl or ensure deployment is performed through a supported control plane."
 
   - id: epic-delivery
-    kind: executable
+    kind: recipe
     execution_mode: sequential
     name: Epic Delivery
     owner: ORBIT
@@ -214,7 +214,7 @@ workflows:
         prepare: "Define build, lint, and test scripts or declare equivalent commands in workflow configuration."
 
   - id: release-publish
-    kind: executable
+    kind: recipe
     execution_mode: sequential
     name: Release Publish
     owner: FORGE
@@ -270,7 +270,7 @@ workflows:
         prepare: "Define CI-backed publication before adopting release automation broadly."
 
   - id: kube-deploy
-    kind: executable
+    kind: recipe
     execution_mode: sequential
     name: Kube Deploy
     owner: KUBE
@@ -357,7 +357,7 @@ workflows:
         prepare: "Install ArgoCD CLI for Application status monitoring (optional — kubectl can be used instead)."
 
   - id: runtime-deploy
-    kind: executable
+    kind: recipe
     execution_mode: sequential
     name: Runtime Deploy
     owner: SABLE
@@ -414,7 +414,7 @@ workflows:
         prepare: "Provide runtime validation assets such as smoke endpoints or browser regression tests."
 
   - id: dev-squad
-    kind: executable
+    kind: recipe
     execution_mode: sequential
     name: Dev Squad (Parallel Batch)
     owner: SWARM
@@ -553,7 +553,7 @@ workflows:
         registry: ".hseos/config/projects.json"
 
   - id: ado-ops
-    kind: executable
+    kind: recipe
     execution_mode: sequential
     name: ADO-Ops Lifecycle
     owner: ATLAS

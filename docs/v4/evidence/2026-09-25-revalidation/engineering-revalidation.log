@@ -1,0 +1,75 @@
+
+> hseos@4.0.0-rc.0 test:engineering-task
+> node --test --test-concurrency=1 test/test-engineering-executor.js test/test-engineering-model.js test/test-engineering-task-state.js test/test-engineering-task-runtime.js test/test-engineering-workflow-runtime.js test/test-workflow-v4-cli.js test/test-v4-lazy-cli.js
+
+✔ Node command executes with read-only workspace, hidden controls and bounded resources (181.378642ms)
+✔ Python cannot create Internet or Unix sockets (55.689976ms)
+✔ output flooding is bounded and every descendant is drained (45.468424ms)
+✔ cancellation eliminates a detached descendant holding output pipes (306.787138ms)
+✔ parent exit drains detached descendants without waiting for their sleep (50.917344ms)
+✔ forged policies and invalid budgets fail before launch (1.190963ms)
+✔ a running command cannot exceed its wall-clock budget (219.136549ms)
+✔ the process limit applies to the complete descendant group (78.5232ms)
+✔ invalid UTF-8 cannot expand captured output beyond its byte budget (66.807651ms)
+✔ memory exhaustion remains confined to the executor group (217.439694ms)
+✔ bound engineering worker uses the broker and never persists its credential (4471.438452ms)
+✔ engineering model dispatch rejects retries and missing credentials without egress (3.643503ms)
+✔ Node implementation is independently approved and survives status reopen (1655.177486ms)
+✔ Python bug correction is independently approved (1353.139132ms)
+✔ Node regression correction preserves zero values (1554.65715ms)
+✔ a completed model response without implementation fails independent verification (1328.222583ms)
+✔ incorrect code cannot pass using a successful process exit (1611.562708ms)
+✔ unknown tools never execute (1219.409249ms)
+✔ a create-only task resumes with its original budget and sequence (2815.85493ms)
+✔ cancel persists a separate task outcome and prevents later execution (1158.942098ms)
+✔ cross-process cancellation waits for the running worker to drain its executor (2704.597471ms)
+✖ cancellation after worker interruption reaps its executor before confirming (2642.720978ms)
+✔ tampered verifier hash or acceptance is blocked before the first model turn (21.439732ms)
+✔ gateway denies verifier, credential, and workspace escape paths (4097.475678ms)
+✔ interruption after model completion resumes verification without replaying effects (5600.413586ms)
+✔ invalid creation never poisons the durable stream (24.439195ms)
+✔ snapshots require complete unique scope and accurate content digests (24.073422ms)
+✔ approval requires versioned proof bound to contract, artifacts, session and isolation (14.562371ms)
+✔ WorkflowEngine composes the three engineering tasks using independent outcomes (4661.179137ms)
+✔ a completed model with a failed task prevents execution of dependent tasks (1363.468071ms)
+✔ workflow validation rejects cycles and aggregate oversubscription before creating state (7.106536ms)
+✔ workflow status and create-only resume use the canonical ledger (4582.837029ms)
+✔ workflow cancellation before execution preserves all task artifacts and prevents resume (52.644637ms)
+✔ workflow definition identity is protected after creation (27.913854ms)
+✔ parallel tasks share the declared aggregate budget and release unused reservations (2651.989993ms)
+✔ explicit migration converts eligible definitions without touching legacy history or executing tasks (68.538522ms)
+✔ live workflow cancellation settles the active executor and preserves unstarted tasks (1714.804546ms)
+✔ interrupted workflow blocks uncertain effects and cancellation drains the abandoned executor (1701.972031ms)
+✔ interrupted workflow reclaims only a dead owner and resumes verification without repeated effects (7546.640585ms)
+✔ help and structural validation do not load optional integrations or query updates (379.385696ms)
+✔ fresh minimal and engineering materialization excludes optional implementations and services (465.338369ms)
+✔ npx wrapper preserves literal arguments without invoking a shell (69.898586ms)
+✔ public workflow CLI validates, executes and reopens a task graph (5171.939633ms)
+✔ retired YAML mutations fail with migration guidance and preserve legacy state (1023.902087ms)
+ℹ tests 44
+ℹ suites 0
+ℹ pass 43
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 66445.414676
+
+✖ failing tests:
+
+test at test/test-engineering-task-runtime.js:218:1
+✖ cancellation after worker interruption reaps its executor before confirming (2642.720978ms)
+  Error: EBUSY: resource busy or locked, rmdir '/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/hseos-executor-1750016-13791882-fd5d9b44-ac90-4c06-94e6-891bd30df145'
+      at Object.rmdirSync (node:fs:1176:11)
+      at reapExecutorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-v4-consolidation/packages/agent-isolation-attestation/executor.js:79:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async inspectEngineeringTask (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-v4-consolidation/tools/cli/lib/engineering-task-runtime.js:411:11)
+      at async /workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-v4-consolidation/test/test-engineering-task-runtime.js:196:27
+      at async fixture (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-v4-consolidation/test/test-engineering-task-runtime.js:52:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -16,
+    code: 'EBUSY',
+    syscall: 'rmdir',
+    path: '/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/hseos-executor-1750016-13791882-fd5d9b44-ac90-4c06-94e6-891bd30df145'
+  }

@@ -1,0 +1,866 @@
+{
+  "total": {
+    "lines": {
+      "total": 8369,
+      "covered": 7952,
+      "skipped": 0,
+      "pct": 95.01
+    },
+    "statements": {
+      "total": 8369,
+      "covered": 7952,
+      "skipped": 0,
+      "pct": 95.01
+    },
+    "functions": {
+      "total": 306,
+      "covered": 299,
+      "skipped": 0,
+      "pct": 97.71
+    },
+    "branches": {
+      "total": 2677,
+      "covered": 2341,
+      "skipped": 0,
+      "pct": 87.44
+    },
+    "branchesTrue": {
+      "total": 0,
+      "covered": 0,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "packages/agent-compaction/checkpoint-provider.js": {
+    "lines": {
+      "total": 68,
+      "covered": 68,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 7,
+      "covered": 7,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 68,
+      "covered": 68,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 21,
+      "covered": 18,
+      "skipped": 0,
+      "pct": 85.71
+    }
+  },
+  "packages/agent-compaction/deterministic-provider.js": {
+    "lines": {
+      "total": 168,
+      "covered": 168,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 10,
+      "covered": 10,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 168,
+      "covered": 168,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 50,
+      "covered": 49,
+      "skipped": 0,
+      "pct": 98
+    }
+  },
+  "packages/agent-compaction/index.js": {
+    "lines": {
+      "total": 8,
+      "covered": 8,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 0,
+      "covered": 0,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 8,
+      "covered": 8,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 1,
+      "covered": 1,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "packages/agent-compaction/provider-registry.js": {
+    "lines": {
+      "total": 93,
+      "covered": 93,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 8,
+      "covered": 8,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 93,
+      "covered": 93,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 24,
+      "covered": 24,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "packages/agent-compaction/runtime.js": {
+    "lines": {
+      "total": 157,
+      "covered": 147,
+      "skipped": 0,
+      "pct": 93.63
+    },
+    "functions": {
+      "total": 8,
+      "covered": 8,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 157,
+      "covered": 147,
+      "skipped": 0,
+      "pct": 93.63
+    },
+    "branches": {
+      "total": 47,
+      "covered": 41,
+      "skipped": 0,
+      "pct": 87.23
+    }
+  },
+  "packages/agent-isolation-attestation/executor.js": {
+    "lines": {
+      "total": 257,
+      "covered": 243,
+      "skipped": 0,
+      "pct": 94.55
+    },
+    "functions": {
+      "total": 13,
+      "covered": 13,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 257,
+      "covered": 243,
+      "skipped": 0,
+      "pct": 94.55
+    },
+    "branches": {
+      "total": 93,
+      "covered": 80,
+      "skipped": 0,
+      "pct": 86.02
+    }
+  },
+  "packages/agent-isolation-attestation/index.js": {
+    "lines": {
+      "total": 455,
+      "covered": 437,
+      "skipped": 0,
+      "pct": 96.04
+    },
+    "functions": {
+      "total": 14,
+      "covered": 14,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 455,
+      "covered": 437,
+      "skipped": 0,
+      "pct": 96.04
+    },
+    "branches": {
+      "total": 156,
+      "covered": 143,
+      "skipped": 0,
+      "pct": 91.66
+    }
+  },
+  "packages/agent-orchestration/execution-supervisor.js": {
+    "lines": {
+      "total": 229,
+      "covered": 229,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 11,
+      "covered": 11,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 229,
+      "covered": 229,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 86,
+      "covered": 86,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "packages/agent-orchestration/index.js": {
+    "lines": {
+      "total": 8,
+      "covered": 8,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 0,
+      "covered": 0,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 8,
+      "covered": 8,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 1,
+      "covered": 1,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "packages/agent-orchestration/local-subagent-provider.js": {
+    "lines": {
+      "total": 291,
+      "covered": 283,
+      "skipped": 0,
+      "pct": 97.25
+    },
+    "functions": {
+      "total": 14,
+      "covered": 14,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 291,
+      "covered": 283,
+      "skipped": 0,
+      "pct": 97.25
+    },
+    "branches": {
+      "total": 89,
+      "covered": 79,
+      "skipped": 0,
+      "pct": 88.76
+    }
+  },
+  "packages/agent-orchestration/utilities.js": {
+    "lines": {
+      "total": 29,
+      "covered": 29,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 4,
+      "covered": 4,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 29,
+      "covered": 29,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 11,
+      "covered": 11,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "packages/agent-orchestration/workflow-engine.js": {
+    "lines": {
+      "total": 542,
+      "covered": 514,
+      "skipped": 0,
+      "pct": 94.83
+    },
+    "functions": {
+      "total": 17,
+      "covered": 17,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 542,
+      "covered": 514,
+      "skipped": 0,
+      "pct": 94.83
+    },
+    "branches": {
+      "total": 164,
+      "covered": 136,
+      "skipped": 0,
+      "pct": 82.92
+    }
+  },
+  "packages/agent-policy-lattice/index.js": {
+    "lines": {
+      "total": 218,
+      "covered": 210,
+      "skipped": 0,
+      "pct": 96.33
+    },
+    "functions": {
+      "total": 10,
+      "covered": 10,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 218,
+      "covered": 210,
+      "skipped": 0,
+      "pct": 96.33
+    },
+    "branches": {
+      "total": 107,
+      "covered": 87,
+      "skipped": 0,
+      "pct": 81.3
+    }
+  },
+  "packages/agent-runtime/index.js": {
+    "lines": {
+      "total": 6,
+      "covered": 6,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 0,
+      "covered": 0,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 6,
+      "covered": 6,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 1,
+      "covered": 1,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "packages/agent-runtime/runtime.js": {
+    "lines": {
+      "total": 1126,
+      "covered": 1014,
+      "skipped": 0,
+      "pct": 90.05
+    },
+    "functions": {
+      "total": 36,
+      "covered": 35,
+      "skipped": 0,
+      "pct": 97.22
+    },
+    "statements": {
+      "total": 1126,
+      "covered": 1014,
+      "skipped": 0,
+      "pct": 90.05
+    },
+    "branches": {
+      "total": 270,
+      "covered": 231,
+      "skipped": 0,
+      "pct": 85.55
+    }
+  },
+  "packages/agent-runtime/schemas.js": {
+    "lines": {
+      "total": 29,
+      "covered": 29,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 1,
+      "covered": 1,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 29,
+      "covered": 29,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 7,
+      "covered": 7,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "packages/agent-session-store/index.js": {
+    "lines": {
+      "total": 6,
+      "covered": 6,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 0,
+      "covered": 0,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 6,
+      "covered": 6,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 1,
+      "covered": 1,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "packages/agent-session-store/replay.js": {
+    "lines": {
+      "total": 958,
+      "covered": 877,
+      "skipped": 0,
+      "pct": 91.54
+    },
+    "functions": {
+      "total": 12,
+      "covered": 12,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 958,
+      "covered": 877,
+      "skipped": 0,
+      "pct": 91.54
+    },
+    "branches": {
+      "total": 379,
+      "covered": 342,
+      "skipped": 0,
+      "pct": 90.23
+    }
+  },
+  "packages/agent-session-store/session-event-store.js": {
+    "lines": {
+      "total": 577,
+      "covered": 531,
+      "skipped": 0,
+      "pct": 92.02
+    },
+    "functions": {
+      "total": 24,
+      "covered": 24,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 577,
+      "covered": 531,
+      "skipped": 0,
+      "pct": 92.02
+    },
+    "branches": {
+      "total": 219,
+      "covered": 191,
+      "skipped": 0,
+      "pct": 87.21
+    }
+  },
+  "packages/tool-runtime/index.js": {
+    "lines": {
+      "total": 6,
+      "covered": 6,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 0,
+      "covered": 0,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 6,
+      "covered": 6,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 1,
+      "covered": 1,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "packages/tool-runtime/registry.js": {
+    "lines": {
+      "total": 96,
+      "covered": 88,
+      "skipped": 0,
+      "pct": 91.66
+    },
+    "functions": {
+      "total": 10,
+      "covered": 9,
+      "skipped": 0,
+      "pct": 90
+    },
+    "statements": {
+      "total": 96,
+      "covered": 88,
+      "skipped": 0,
+      "pct": 91.66
+    },
+    "branches": {
+      "total": 26,
+      "covered": 22,
+      "skipped": 0,
+      "pct": 84.61
+    }
+  },
+  "packages/tool-runtime/tool-runtime.js": {
+    "lines": {
+      "total": 274,
+      "covered": 260,
+      "skipped": 0,
+      "pct": 94.89
+    },
+    "functions": {
+      "total": 13,
+      "covered": 12,
+      "skipped": 0,
+      "pct": 92.3
+    },
+    "statements": {
+      "total": 274,
+      "covered": 260,
+      "skipped": 0,
+      "pct": 94.89
+    },
+    "branches": {
+      "total": 61,
+      "covered": 54,
+      "skipped": 0,
+      "pct": 88.52
+    }
+  },
+  "tools/cli/lib/engineering-model.js": {
+    "lines": {
+      "total": 53,
+      "covered": 53,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 6,
+      "covered": 6,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 53,
+      "covered": 53,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 20,
+      "covered": 16,
+      "skipped": 0,
+      "pct": 80
+    }
+  },
+  "tools/cli/lib/engineering-reconciliation.js": {
+    "lines": {
+      "total": 289,
+      "covered": 280,
+      "skipped": 0,
+      "pct": 96.88
+    },
+    "functions": {
+      "total": 6,
+      "covered": 6,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 289,
+      "covered": 280,
+      "skipped": 0,
+      "pct": 96.88
+    },
+    "branches": {
+      "total": 89,
+      "covered": 73,
+      "skipped": 0,
+      "pct": 82.02
+    }
+  },
+  "tools/cli/lib/engineering-sandbox-check.js": {
+    "lines": {
+      "total": 162,
+      "covered": 162,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 3,
+      "covered": 3,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 162,
+      "covered": 162,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 31,
+      "covered": 31,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "tools/cli/lib/engineering-task-contract.js": {
+    "lines": {
+      "total": 153,
+      "covered": 153,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 6,
+      "covered": 6,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 153,
+      "covered": 153,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 44,
+      "covered": 43,
+      "skipped": 0,
+      "pct": 97.72
+    }
+  },
+  "tools/cli/lib/engineering-task-runtime.js": {
+    "lines": {
+      "total": 646,
+      "covered": 614,
+      "skipped": 0,
+      "pct": 95.04
+    },
+    "functions": {
+      "total": 18,
+      "covered": 17,
+      "skipped": 0,
+      "pct": 94.44
+    },
+    "statements": {
+      "total": 646,
+      "covered": 614,
+      "skipped": 0,
+      "pct": 95.04
+    },
+    "branches": {
+      "total": 196,
+      "covered": 157,
+      "skipped": 0,
+      "pct": 80.1
+    }
+  },
+  "tools/cli/lib/engineering-task-state.js": {
+    "lines": {
+      "total": 268,
+      "covered": 264,
+      "skipped": 0,
+      "pct": 98.5
+    },
+    "functions": {
+      "total": 5,
+      "covered": 5,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 268,
+      "covered": 264,
+      "skipped": 0,
+      "pct": 98.5
+    },
+    "branches": {
+      "total": 75,
+      "covered": 60,
+      "skipped": 0,
+      "pct": 80
+    }
+  },
+  "tools/cli/lib/engineering-tools.js": {
+    "lines": {
+      "total": 207,
+      "covered": 207,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 13,
+      "covered": 13,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 207,
+      "covered": 207,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 78,
+      "covered": 73,
+      "skipped": 0,
+      "pct": 93.58
+    }
+  },
+  "tools/cli/lib/engineering-verifier.js": {
+    "lines": {
+      "total": 115,
+      "covered": 115,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 3,
+      "covered": 3,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 115,
+      "covered": 115,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 20,
+      "covered": 18,
+      "skipped": 0,
+      "pct": 90
+    }
+  },
+  "tools/cli/lib/engineering-workflow-runtime.js": {
+    "lines": {
+      "total": 579,
+      "covered": 565,
+      "skipped": 0,
+      "pct": 97.58
+    },
+    "functions": {
+      "total": 18,
+      "covered": 16,
+      "skipped": 0,
+      "pct": 88.88
+    },
+    "statements": {
+      "total": 579,
+      "covered": 565,
+      "skipped": 0,
+      "pct": 97.58
+    },
+    "branches": {
+      "total": 200,
+      "covered": 170,
+      "skipped": 0,
+      "pct": 85
+    }
+  },
+  "tools/cli/lib/provider-egress-broker.js": {
+    "lines": {
+      "total": 296,
+      "covered": 285,
+      "skipped": 0,
+      "pct": 96.28
+    },
+    "functions": {
+      "total": 16,
+      "covered": 15,
+      "skipped": 0,
+      "pct": 93.75
+    },
+    "statements": {
+      "total": 296,
+      "covered": 285,
+      "skipped": 0,
+      "pct": 96.28
+    },
+    "branches": {
+      "total": 109,
+      "covered": 94,
+      "skipped": 0,
+      "pct": 86.23
+    }
+  }
+}

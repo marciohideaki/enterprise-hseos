@@ -13,7 +13,7 @@ const {
   validatePortInput,
   validatePortResult,
 } = require('../agent-runtime-contracts');
-const { ContextAssembler } = require('../agent-context');
+const { ContextAssembler, accountSessionTokens } = require('../agent-context');
 const { assembledToolCalls, canonicalJson, isRelationalSessionEventStore } = require('../agent-session-store');
 const { ModelProviderRegistrySnapshot } = require('../model-providers');
 const { ToolRuntime } = require('../tool-runtime');
@@ -79,19 +79,7 @@ function normalizedFailure(error) {
 }
 
 function tokenUsage(state) {
-  let total = 0;
-  for (const turn of Object.values(state.turns)) {
-    for (const step of turn.model_steps) {
-      const usage = step.model_events.filter((event) => event.event_type === 'usage');
-      if (usage.length > 0) {
-        total += usage.reduce((sum, event) => sum + event.payload.input_tokens + event.payload.output_tokens, 0);
-      } else if (step.model_events.some((event) => ['completed', 'failed'].includes(event.event_type))) {
-        total += Buffer.byteLength(canonicalJson(step.request), 'utf8') + step.request.parameters.max_output_tokens;
-      }
-      if (!Number.isSafeInteger(total)) throw new AgentRuntimeError('session token usage exceeds safe bounds');
-    }
-  }
-  return total;
+  return accountSessionTokens(state).total_tokens;
 }
 
 function assertRuntimeCaps(spec) {
@@ -116,6 +104,7 @@ class AgentRuntime {
   #store;
   #streamCaps;
   #tools;
+  #completionReview;
 
   constructor({
     session_store,
@@ -123,6 +112,7 @@ class AgentRuntime {
     tool_runtime,
     context_profile_resolver,
     compaction_runtime = null,
+    completion_review = null,
     clock = Date,
     stream_limits = {},
   }) {
@@ -156,6 +146,9 @@ class AgentRuntime {
     if (resolvedStreamCaps.max_bytes_per_step < MODEL_TERMINAL_RESERVE_BYTES * 2) {
       throw new AgentRuntimeError('max_bytes_per_step must preserve bounded room for content and a terminal event');
     }
+    if (completion_review !== null && typeof completion_review !== 'function')
+      throw new AgentRuntimeError('completion_review must be a trusted callback');
+    this.#completionReview = completion_review;
     this.#store = session_store;
     this.#providers = model_provider_snapshot;
     this.#tools = tool_runtime;
@@ -979,7 +972,51 @@ class AgentRuntime {
         if (tokenUsage(state) > state.spec.limits.max_tokens) {
           return this.#fail(state, { code: 'budget_exceeded', message: 'session token budget exhausted' }, active, 'token-budget');
         }
-        if (terminal.payload.finish_reason === 'stop') return this.#complete(state, terminal.payload.provider_response_ref, active);
+        if (terminal.payload.finish_reason === 'stop') {
+          let revision = step.revision;
+          if (!revision && this.#completionReview) {
+            const feedback = await this.#completionReview({ state, turn, step });
+            if (feedback !== null) {
+              this.#append(
+                state.session_id,
+                'model.revision.requested',
+                { turn_id: turn.turn_id, step_id: step.step_id, feedback },
+                [step.step_id, 'revision'],
+                active,
+              );
+              state = this.#store.replay(state.session_id);
+              turn = state.turns[turnId];
+              step = turn.model_steps_by_id[step.step_id];
+              revision = step.revision;
+            }
+          }
+          if (!revision) return this.#complete(state, terminal.payload.provider_response_ref, active);
+          const request = parseContract(
+            ModelRequestSchema,
+            {
+              ...step.request,
+              request_id: stableId('request', state.session_id, turn.turn_id, turn.model_steps.length),
+              messages: [
+                ...step.request.messages,
+                {
+                  role: 'assistant',
+                  content: step.model_events
+                    .filter((event) => event.event_type === 'content.delta')
+                    .map((event) => event.payload.text)
+                    .join(''),
+                },
+                { role: 'user', content: revision.feedback },
+              ],
+            },
+            'protected review continuation',
+          );
+          const manifest = this.#providers.resolve(request.provider_id, request.model).manifest;
+          if (Buffer.byteLength(canonicalJson(request)) + request.parameters.max_output_tokens > manifest.limits.context_tokens)
+            return this.#fail(state, { code: 'budget_exceeded', message: 'review continuation exceeds provider context' }, active);
+          state = this.#startStep(state, turn, request, [step.terminal_event_id, revision.event_id], active);
+          if (state.terminal_event) return state;
+          continue;
+        }
         state = await this.#executeTools(state, turn, step, active);
       }
       return this.#fail(state, { code: 'budget_exceeded', message: 'agent loop iteration cap exhausted' }, active, 'loop-cap');
@@ -1020,7 +1057,13 @@ class AgentRuntime {
     if (!existingTurn && existing.turn_order.length >= existing.spec.limits.max_turns) {
       const active = { eventIds: [] };
       const state = this.#fail(existing, { code: 'budget_exceeded', message: 'session turn limit exhausted' }, active, 'turn-budget');
-      return this.#operationResult('send', input, true, true, active.eventIds.length ? active.eventIds : [state.terminal_event.event_id]);
+      return this.#operationResult(
+        'send',
+        input,
+        true,
+        true,
+        active.eventIds.length > 0 ? active.eventIds : [state.terminal_event.event_id],
+      );
     }
     return this.#run('send', input, async (active) => {
       if (!existingTurn) {

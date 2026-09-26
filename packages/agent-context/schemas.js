@@ -19,11 +19,13 @@ const MAX_TOOL_DEFINITIONS_BYTES = 4_194_304;
 const MAX_PARAMETER_BYTES = 262_144;
 const SENSITIVE_KEY =
   /(?:^|_)(?:access_token|api_key|approval_token|auth|authentication|authorization|client_secret|cookie|credential|credentials|password|private_key|refresh_token|secret|session_cookie|set_cookie|token)$/;
-const SafeReferenceSchema = ReferenceSchema.refine((value) => !/[\s\u0000-\u001f\u007f]/u.test(value), {
+// eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
+const SafeReferenceSchema = ReferenceSchema.refine((value) => !/[\s\u0000-\u001F\u007F]/u.test(value), {
   message: 'context source references cannot contain whitespace or control characters',
 });
 const ContextTextSchema = boundedString(MAX_CONTEXT_SOURCE_BYTES).refine(
-  (value) => value.length > 0 && !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/u.test(value),
+  // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
+  (value) => value.length > 0 && !/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/u.test(value),
   { message: 'context text must be non-empty and cannot contain unsafe control characters' },
 );
 const BoundedAgentMessageSchema = AgentMessageSchema.superRefine((message, context) => {

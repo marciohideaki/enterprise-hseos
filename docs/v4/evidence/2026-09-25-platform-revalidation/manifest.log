@@ -1,0 +1,4 @@
+
+> hseos@4.0.0-rc.0 check:cli
+> node scripts/generate-cli-command-manifest.js --check
+

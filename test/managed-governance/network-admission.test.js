@@ -169,10 +169,7 @@ test('a peer outside the allowlist is destroyed at the socket before any HTTP ha
   });
   context.after(() => server.close());
   const address = await server.listen({ host: '::', port: 0 });
-  await assert.rejects(
-    // eslint-disable-next-line n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line
-    fetch(`http://127.0.0.1:${address.port}/health`, { signal: AbortSignal.timeout(2000) }),
-  );
+  await assert.rejects(fetch(`http://127.0.0.1:${address.port}/health`, { signal: AbortSignal.timeout(2000) }));
 });
 
 test('a peer inside the allowlist reaches the real HTTP handler, including via the IPv4-mapped IPv6 form', async (context) => {
@@ -183,7 +180,7 @@ test('a peer inside the allowlist reaches the real HTTP handler, including via t
   });
   context.after(() => server.close());
   const address = await server.listen({ host: '::', port: 0 });
-  // eslint-disable-next-line n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line
+
   const response = await fetch(`http://127.0.0.1:${address.port}/health`, { signal: AbortSignal.timeout(2000) });
   assert.equal(response.status, 200);
 });

@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-25",
+  "postgres_version": "16.14",
+  "node_versions": [
+    "20.20.2",
+    "22.23.3"
+  ],
+  "postgres_tests_per_version": {
+    "tests": 15,
+    "passed": 15,
+    "failed": 0,
+    "skipped": 0
+  },
+  "lint": "passed on both Node versions",
+  "full_matrix": {
+    "status": "passed",
+    "execution": "sequential; nice 10; explicit user authorization to proceed above host load threshold",
+    "Node 20.20.2": {
+      "exit_code": 0,
+      "node_tests": 799,
+      "pass": 799,
+      "fail": 0,
+      "skipped": 0
+    },
+    "Node 22.23.3": {
+      "exit_code": 0,
+      "node_tests": 799,
+      "pass": 799,
+      "fail": 0,
+      "skipped": 0
+    },
+    "scope": "Complete npm test for both versions, including real PostgreSQL integration, auxiliary shell/JS checks, schema checks and lint",
+    "first_attempt": "Node20 stopped at governance dry-run because disposable clone origin was local. Remote aligned with source; complete rerun passed. No runtime correction required."
+  },
+  "hosted_ci": "not_run: local matrix used shared PostgreSQL 16.14; hosted workflow specifies PostgreSQL 18",
+  "operational_activation": "not_performed",
+  "secret_reference": "enterprise-hseos/ci-postgres-reference",
+  "evidence": [
+    {
+      "file": "config-ci.log",
+      "sha256": "7d74527533ae3575bbe07ea6a62fea2583173a20cb0fff885a3a9aa9cff6d8d3"
+    },
+    {
+      "file": "download.log",
+      "sha256": "926f6e01634d9cb251d978735afdbf402779641a47a0a3c645940b92e5b41514"
+    },
+    {
+      "file": "final-ci.log",
+      "sha256": "06ae01024b8326ea4e02dfb25e7b8429258ef7a25d90b9119f526b7537ea8592"
+    },
+    {
+      "file": "final-documentation.log",
+      "sha256": "83333839f27e165502ea90ad567992b623b3e3fc82c2a7738b93a9656c335421"
+    },
+    {
+      "file": "install-20.log",
+      "sha256": "3bdd9553e78130f8fdebb1b3a0e203bf98697473a29b19945f1a93242edacb29"
+    },
+    {
+      "file": "install-22.log",
+      "sha256": "3bdd9553e78130f8fdebb1b3a0e203bf98697473a29b19945f1a93242edacb29"
+    },
+    {
+      "file": "lint-20.log",
+      "sha256": "cc6b4feb435484d113b62528c9012176a6894f5a0bad6bf6fe1b92944acc7514"
+    },
+    {
+      "file": "lint-22.log",
+      "sha256": "cc6b4feb435484d113b62528c9012176a6894f5a0bad6bf6fe1b92944acc7514"
+    },
+    {
+      "file": "source-parity.json",
+      "sha256": "56d488fb11e7f2df04af940c775d3a25ea747218a6559d40fa3bb1c0ea10820d"
+    },
+    {
+      "file": "test-20-local-origin-failure.log",
+      "sha256": "ec4d2c8f6729b99c0e34b81ee3962749f29490bdce8993bea58644a5408fe03a"
+    },
+    {
+      "file": "test-20.log",
+      "sha256": "3d2b1659f99688ef31d1582f4fbf17d70e33f0421abcc825140759ab966d8e73"
+    },
+    {
+      "file": "test-22.log",
+      "sha256": "5308700f88df8af2306e2ee453be595580de30c533b216349cfc9d58a870d83c"
+    },
+    {
+      "file": "test-managed-governance-postgres-20.log",
+      "sha256": "82204e102bb309b5f55d25512051bb5ba77c77059c170ac98e3c70f45fde97e1"
+    },
+    {
+      "file": "test-managed-governance-postgres-22.log",
+      "sha256": "13ce58302a3884b2417dd06e5595344e4b43073a9dbae71a22ab397b59db844f"
+    }
+  ],
+  "config_ci": {
+    "failures": 0,
+    "warnings": 1
+  },
+  "source_parity": {
+    "20": {
+      "checked_files": 1603,
+      "differences": []
+    },
+    "22": {
+      "checked_files": 1603,
+      "differences": []
+    }
+  },
+  "final_ci": {
+    "failures": 0,
+    "warnings": 1
+  }
+}

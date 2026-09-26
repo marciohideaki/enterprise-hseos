@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "version": "4.0.0-rc.0",
+  "consumer": "/tmp/hseos-v4-recovery-clean-16t_1hdn",
+  "public_bin_used": true,
+  "empty_home": true,
+  "installed_workflow_recovery": "passed",
+  "installed_simulated_broker": "passed",
+  "results": [
+    {
+      "example": "addition",
+      "receipt": {
+        "schema_version": 1,
+        "profile": "disposable-engineering-candidate",
+        "task_run_id": "0bf47684-c130-41d0-9adf-34a635a17b57",
+        "task_id": "example-addition",
+        "state": "/tmp/hseos-ledger-fixture-Kv0OVW",
+        "session_id": "session:c172ef91-c0bd-4e18-8d94-596cfd408701",
+        "status": "completed",
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "current_sequence": 4,
+        "contract_sha256": "1f401c276570d722debc9dacc6b324c5b5d3950b1765777ebeb1fb2df9ac94af",
+        "token_accounting": {
+          "reported_input_tokens": 1,
+          "reported_output_tokens": 1,
+          "conservative_estimate_tokens": 25179,
+          "total_tokens": 25181,
+          "estimate_counter": "token-counter:utf8-byte-upper-bound"
+        },
+        "operational_authorized": false
+      }
+    },
+    {
+      "example": "clamp",
+      "receipt": {
+        "schema_version": 1,
+        "profile": "disposable-engineering-candidate",
+        "task_run_id": "087007d9-c12f-4e7f-9529-66a4e5a54e37",
+        "task_id": "example-clamp",
+        "state": "/tmp/hseos-ledger-fixture-Jeupmc",
+        "session_id": "session:a6c78faf-9238-4260-a479-cbaedd003f33",
+        "status": "completed",
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "current_sequence": 4,
+        "contract_sha256": "efa1ba0634b1a2f0bea6705d87639433a94e856ed8d1551a20e1249db1b0cd17",
+        "token_accounting": {
+          "reported_input_tokens": 1,
+          "reported_output_tokens": 1,
+          "conservative_estimate_tokens": 25359,
+          "total_tokens": 25361,
+          "estimate_counter": "token-counter:utf8-byte-upper-bound"
+        },
+        "operational_authorized": false
+      }
+    },
+    {
+      "example": "unique",
+      "receipt": {
+        "schema_version": 1,
+        "profile": "disposable-engineering-candidate",
+        "task_run_id": "1ca6018f-c4c8-4e95-a3cf-f1ef74861885",
+        "task_id": "example-unique",
+        "state": "/tmp/hseos-ledger-fixture-VJkGz6",
+        "session_id": "session:dcf061db-ff56-48b5-8cad-9602d430d3fa",
+        "status": "completed",
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "current_sequence": 4,
+        "contract_sha256": "bc7212402b4c42914ff134e462d3f8bc84e525ad326ef987c354d82151eeb3d4",
+        "token_accounting": {
+          "reported_input_tokens": 1,
+          "reported_output_tokens": 1,
+          "conservative_estimate_tokens": 25427,
+          "total_tokens": 25429,
+          "estimate_counter": "token-counter:utf8-byte-upper-bound"
+        },
+        "operational_authorized": false
+      }
+    },
+    {
+      "profile": "minimal",
+      "receipt": {
+        "schema_version": 1,
+        "profile": "minimal",
+        "directory": "/tmp/hseos-v4-recovery-clean-16t_1hdn/minimal",
+        "components": [
+          "adapter:claude-code",
+          "adapter:codex",
+          "baseline:entrypoints",
+          "baseline:governance",
+          "baseline:skills-registry"
+        ],
+        "skills": 0,
+        "hooks": 0,
+        "mcp_servers": 0,
+        "runtime_location": "installed-distribution",
+        "copied": [
+          ".enterprise/.specs/constitution/",
+          ".enterprise/.specs/core/",
+          ".enterprise/governance/agent-skills/SKILLS-REGISTRY.md",
+          ".enterprise/policies/"
+        ]
+      }
+    },
+    {
+      "profile": "disposable-engineering-candidate",
+      "receipt": {
+        "schema_version": 1,
+        "profile": "disposable-engineering-candidate",
+        "directory": "/tmp/hseos-v4-recovery-clean-16t_1hdn/disposable-engineering-candidate",
+        "components": [
+          "adapter:codex",
+          "baseline:entrypoints",
+          "baseline:governance",
+          "baseline:skills-registry",
+          "runtime:agent-kernel",
+          "runtime:engineering-candidate"
+        ],
+        "skills": 0,
+        "hooks": 0,
+        "mcp_servers": 0,
+        "runtime_location": "installed-distribution",
+        "copied": [
+          ".enterprise/.specs/constitution/",
+          ".enterprise/.specs/core/",
+          ".enterprise/governance/agent-skills/SKILLS-REGISTRY.md",
+          ".enterprise/policies/"
+        ]
+      }
+    }
+  ]
+}

@@ -275,3 +275,32 @@ test('driver rejects a relative executable and an environment with non-explicit 
     fixture.cleanup();
   }
 });
+
+test('process normalization cannot mutate the frozen driver environment', async () => {
+  const fixture = temp();
+  const instance = new CodexAppServerDriver({
+    executable: process.execPath,
+    args: [FIXTURE, fixture.state, 'normal'],
+    cwd: fixture.directory,
+    env: {},
+    spawn_process(executable, args, options) {
+      // Node performs this kind of mutation when coverage is enabled.
+      options.env.HSEOS_PROCESS_PROBE = 'local-test';
+      return require('node:child_process').spawn(executable, args, options);
+    },
+  });
+  try {
+    await instance.create({
+      adapter_id: 'codex',
+      protocol: 'app-server',
+      cwd: fixture.directory,
+      limits: {},
+      effect_boundary: 'instructions_only',
+    });
+    assert.ok(Object.isFrozen(instance.env));
+    assert.deepEqual(instance.env, {});
+  } finally {
+    await instance.close();
+    fixture.cleanup();
+  }
+});

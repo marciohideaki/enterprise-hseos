@@ -1,7 +1,5 @@
 'use strict';
 
-/* eslint-disable n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line */
-
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');

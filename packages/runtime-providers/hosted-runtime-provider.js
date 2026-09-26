@@ -59,14 +59,16 @@ function onlyKeys(value, allowed, label) {
 }
 
 function identifier(value, label) {
-  if (typeof value !== 'string' || value.length === 0 || /\s|[\u0000-\u001f\u007f]/u.test(value) || value.length > 1024) {
+  // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
+  if (typeof value !== 'string' || value.length === 0 || /\s|[\u0000-\u001F\u007F]/u.test(value) || value.length > 1024) {
     throw new RuntimeProviderError(`${label} is malformed`, 'protocol_error');
   }
   return value;
 }
 
 function isSafeRuntimeIdentifier(value) {
-  return typeof value === 'string' && value.length > 0 && value.length <= 1024 && !/\s|[\u0000-\u001f\u007f]/u.test(value);
+  // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
+  return typeof value === 'string' && value.length > 0 && value.length <= 1024 && !/\s|[\u0000-\u001F\u007F]/u.test(value);
 }
 
 function stableJson(value) {
@@ -285,9 +287,8 @@ class HostedInstructionsRuntimeProvider {
       }
     }
     if (!session.resumable) throw new RuntimeProviderError('hosted adapter does not support resume', 'capability_unavailable');
-    if (session.terminal || session.activeTurn || session.loading || input.expected_sequence !== session.sequence) {
-      if (!restoring) throw new RuntimeProviderError('hosted session cannot resume at this sequence', 'invalid_request');
-    }
+    if ((session.terminal || session.activeTurn || session.loading || input.expected_sequence !== session.sequence) && !restoring)
+      throw new RuntimeProviderError('hosted session cannot resume at this sequence', 'invalid_request');
     session.loading = true;
     let resumed = false;
     try {

@@ -108,6 +108,18 @@ function testSchemaV2FailsClosed() {
   const catalog = loadCapabilityCatalog(REPO_ROOT);
 
   assertPass('catalog is validated as capability schema v2', catalog.schemaVersion === '2.0', catalog.schemaVersion);
+  for (const mode of ['unknown', 'cycle']) {
+    const invalid = structuredClone(components);
+    invalid.components[0].depends_on = [mode === 'unknown' ? 'runtime:nonexistent' : invalid.components[0].id];
+    let rejected = false;
+    try {
+      validateCapabilityDocuments(profiles, invalid);
+    } catch (error) {
+      rejected = /dependency/.test(error.message);
+    }
+    assertPass(`catalog rejects ${mode} dependencies even outside selected profiles`, rejected);
+  }
+
   assertPass(
     'profiles do not duplicate the resolver-injected baseline',
     Object.values(catalog.profiles).every((profile) => !(profile.components || []).some((id) => REQUIRED_BASELINE_IDS.includes(id))),

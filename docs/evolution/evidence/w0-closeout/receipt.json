@@ -1,0 +1,233 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-09-25T22:40:17.734340+00:00",
+  "status": "deterministically-verified",
+  "base_commit": "a8423081934d64538d71ef8289f072d51566a870",
+  "execution": {
+    "sequential": true,
+    "test_concurrency": 1,
+    "nice": 10,
+    "full_gate_load_exception": "Explicit owner reply: Execute sequencialmente; stages ran serially with nice 10."
+  },
+  "checks": {
+    "kernel_node22": {
+      "runtime": "22.23.3",
+      "passed": 374,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "coverage_clean": true
+    },
+    "session_store_node22_followup": {
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0
+    },
+    "kernel_node24": {
+      "runtime": "24.15.0",
+      "passed": 375,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "coverage_clean": true
+    },
+    "coverage": {
+      "lines": 95.01,
+      "branches": 87.44,
+      "per_file_lines_minimum": 90,
+      "per_file_branches_minimum": 80,
+      "below_threshold": []
+    },
+    "quality_and_mutations": {
+      "passed": 6,
+      "failed": 0,
+      "exit_code": 0
+    },
+    "lint": {
+      "exit_code": 0
+    },
+    "format": {
+      "exit_code": 0
+    },
+    "ci_phase": {
+      "failures": 0,
+      "warnings": 1,
+      "exit_code": 0,
+      "warning": "Existing placeholders in epics-template.md",
+      "includes_full_tests": false
+    },
+    "full_suite": {
+      "node22": {
+        "node": "22",
+        "started_at": "2026-09-25T22:29:07.430046+00:00",
+        "finished_at": "2026-09-25T22:37:04.163718+00:00",
+        "exit_code": 0,
+        "sequential": true,
+        "nice": 10,
+        "postgres_integration": true,
+        "tests": 849,
+        "pass": 849,
+        "fail": 0,
+        "skipped": 0,
+        "gate_failures": 0,
+        "gate_warnings": 1,
+        "postgres_tests": 15
+      },
+      "node24": {
+        "node": "24",
+        "started_at": "2026-09-25T22:20:34.762108+00:00",
+        "finished_at": "2026-09-25T22:29:07.429333+00:00",
+        "exit_code": 0,
+        "sequential": true,
+        "nice": 10,
+        "postgres_integration": true,
+        "tests": 849,
+        "pass": 849,
+        "fail": 0,
+        "skipped": 0,
+        "gate_failures": 0,
+        "gate_warnings": 1,
+        "postgres_tests": 15
+      }
+    },
+    "full_quality_gates": {
+      "node22": {
+        "exit_code": 0,
+        "failures": 0,
+        "warnings": 1
+      },
+      "node24": {
+        "exit_code": 0,
+        "failures": 0,
+        "warnings": 1
+      }
+    },
+    "hosted_ci": "not_run",
+    "external_installation": {
+      "node22": "four tasks approved and three-task workflow completed",
+      "node24": "four tasks approved and three-task workflow completed; network syscalls traced",
+      "provisioning": "npm install --offline using existing dependency cache",
+      "package_delta_between_node_runs": ["AGENTS.md minimum Node version; executable contents identical"]
+    },
+    "build": "Source package; no build script defined",
+    "operational_activation": "not_performed",
+    "documentation_exception": {
+      "before": {
+        "pass": 0,
+        "fail": 1
+      },
+      "after": {
+        "pass": 2,
+        "fail": 0
+      },
+      "scope": ["docs/evolution/COMPARISON-2026-09-25.md", "docs/evolution/PLAN.md"],
+      "authorization": "Owner evolution plan of 2026-09-25; recorded in ADR-0043; ADR-0025 history unchanged"
+    },
+    "full_suite_initial_attempt": {
+      "node": "24",
+      "pass": 847,
+      "fail": 1,
+      "skipped": 0,
+      "reason": "Documentation provider reference guard rejected owner-requested comparison records"
+    },
+    "final_package": {
+      "changed_members_since_installed_smoke": ["package/.enterprise/.specs/decisions/ADR-0043-harness-evolution.md"],
+      "executable_members_unchanged": true,
+      "sha256": "6f37de44b8a7001ca92f16a34ac809e0c6c0042a9b5a65299d10da9c45badada",
+      "path": "/build/tmp/hseos-w0-final-package/hseos-4.0.0-rc.0.tgz"
+    },
+    "post_documentation_checks": {
+      "format_exit_code": 0,
+      "ci_failures": 0,
+      "ci_warnings": 1,
+      "documentation_and_inventory_tests": 5,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "performance": {
+    "pre_fix_failure": "kernel-node24.log: p95 42.337ms at 135 events exceeds unchanged envelope",
+    "diagnosis": "reconstructRequest repeated full hydration/reduction despite validated replay checkpoints",
+    "change": "reuse reducer-owned checkpoint and existing store replay invalidation",
+    "before_uninstrumented_519_events_p95_ms": 49.074,
+    "after_uninstrumented_519_events_p95_ms": 3.596,
+    "after_node22_instrumented_519_events_p95_ms": 6.339,
+    "after_node24_instrumented_519_events_p95_ms": 9.128,
+    "acceptance_thresholds_changed": false
+  },
+  "network": {
+    "trace_sha256": "a2eebf4d6129c003c248d44a3417918eb78ff7a2ace5a51e359a083f4fef9b0b",
+    "inet_socket_calls": 35,
+    "inet_socket_calls_denied": 35,
+    "connect_calls": 46,
+    "successful_connect_calls": 0,
+    "unresolved_syscalls": 0,
+    "scope": "Observed installed Node24 scripted task/workflow journey; controller stayed in host network namespace; task sandbox probes were denied by seccomp."
+  },
+  "git": {
+    "baseline_files_preserved": 1956,
+    "baseline_index_preserved": true,
+    "base_commit": "a8423081934d64538d71ef8289f072d51566a870",
+    "baseline_tree": "7f4676b80505918583cdbef3577c8f88807e9fca",
+    "review_tree_without_latest_receipt": "27270e7f6d985375c60fcd10968d23dc2cc34da2",
+    "candidate_patch_sha256": "17c5f84c696481d58f409acb082adfcdc15ef715debe1df23092efe670908920",
+    "wave0_patch_sha256": "762793957fd402231dccfd7922b0a4456d3fbbc44471f6ebdd4cf37b4a07c999",
+    "patch_location": ".logs/validation/w0-closeout",
+    "receipt_excluded_from_delta": "docs/evolution/evidence/w0-closeout",
+    "actual_index_preserved": true,
+    "committed": false,
+    "patch_chain_reconstructed_exact_tree": true
+  },
+  "sources_manifest_sha256": "86c86700f6ed7b7488abe307dc8992e7b16c8bbc86514c106097ddeb09f793d0",
+  "artifacts": {
+    "changed-format.log": "7a54313722c7042a411266eaad14acd7f5a32f7fbc39377b168d2b809d07c404",
+    "changed-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "ci-closeout.log": "ffab2ca1885dd262cdb8fe36f4bfc45e697061cea128cb4e8b0ddee8d8817960",
+    "ci-gates.log": "99c998a9416e939414d601674c600e7c544c329f948b684ce7d219855c31a9c1",
+    "coverage-node22.json": "2cdef4ebe9104f7f5a65385e66dd84ee5f3d2f58e28cac2c42b4f1cec17a510f",
+    "coverage-node24.json": "213ac6a7db28f70d7126da8d4ca46af84d585c6cf9d80b6cef15662663aa9bfd",
+    "documentation-closeout.log": "317b491fd6ad27829712209f0bc62f56a75d858b43684407a67c9e72917f8ddd",
+    "documentation-neutrality-after.log": "1258f52c745e1ed9119e06347280230d8cac1542956673897aa4c0d1b7eb7581",
+    "documentation-neutrality-before.log": "2c71e492d434741a10b920ada93c16182804bc88c51c47daa1e9e3c72f7b01f7",
+    "format-closeout.log": "d2e1aea7716e1afaae196ebdb85b7cb6697a1da6fcf5e755920a0f9adec17eff",
+    "format-final.log": "d2e1aea7716e1afaae196ebdb85b7cb6697a1da6fcf5e755920a0f9adec17eff",
+    "full-gates-node22.log": "e9d7fb9a5d729af60721c5145c7ec856540e36e6b6935bbd3bd01840b0712d2a",
+    "full-gates-node22.result.json": "c93338a020cc03dba42f787fabf0ebc76e27a0033f97533ed435506129ccd049",
+    "full-gates-node24-before-doc-fix.log": "17b9d88ffefc5dd055a5a7623c1998a02df6c0e120a577d8442a461b2203fb9c",
+    "full-gates-node24-before-doc-fix.result.json": "a5ffd117b05e801d9e7c68fb7c6366e7588e6d94513c6e5ed5e89e707a378883",
+    "full-gates-node24.log": "628e310f7b62f544de18e7ec72d400553dbc38d62acd4e0bd54b29bc21dffa5c",
+    "full-gates-node24.result.json": "3dbe27dc737522cd9ce00f271ef5df319f0417a6634d6d837a3c0a138e2655d0",
+    "git-separation.json": "63f72e8a337389824f9e1866036b65b2482acc463a8cc60ca76b78a2205f0876",
+    "install-node22.log": "9d8a6d53f53a968801780d27fb925a3bfd7878e876ae75b4610055b95e6ea275",
+    "install-node24.log": "0e828cbcd7fc7e5c06a797d6a770615a4123bf92f26f2ed3ce1bd274bb967279",
+    "installed-node22-smoke.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "installed-node22-smoke.json": "79a857d4031cf80d188b79828df0c467f9bc995c809e17bc3dd09b5ba1771597",
+    "installed-node24-netns.err": "22ec28b719ddc7acd09a592c9aea4f348617380367a144e71fc120cc9bbb4f37",
+    "installed-node24-netns.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "installed-node24-offline.err": "d44ad0701a08e58c1fa804ee0270a6c651066409a1d5a4961af0ecd8db84b28d",
+    "installed-node24-offline.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "installed-node24-traced.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "installed-node24-traced.json": "e815e1b9e9f79c65d448aedfef3c2f8b801f7dbd93b174064271540afba32831",
+    "installed-smoke.cjs.txt": "0ea5a68a4c52e226ad7c925c3dbf38cf54e00e1a4ca360749f5c64c1766b3f69",
+    "kernel-node22.log": "28a116e13967c0252b80caa8976618d4d2a1ba478c421194b9dc1f1f24c782b0",
+    "kernel-node24-fixed.log": "ca0f8b959f2445da538a8583b1dbc0ee74af0f98493c07bc0d3b48d92b411eee",
+    "kernel-node24.log": "79c9cee3b94e8e64d4e0d28db1ef9ec92c06e2ff6f6625ae571eaab33e252dde",
+    "lint-final.log": "cc6b4feb435484d113b62528c9012176a6894f5a0bad6bf6fe1b92944acc7514",
+    "network-observation.json": "a50c471844fccfb45902cef257f566f83b93ce93276ff2acbf37ee35a6be6462",
+    "network.trace.gz": "2528ba37e1f41c408db9af924362d14c1a7c027387dfa8ccd45e41e489583cd5",
+    "pack-closeout.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pack-closeout.json": "6e16d97574373d5f8f26eb9f18f11a010f653bd37c53d5d20a9aaea2cc30b3e3",
+    "pack-error.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pack-final.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pack-final.json": "6619e66f272cb0945fa0682bd895c6590a7c744dd3ee68d5cbca343aebe12d1c",
+    "pack.json": "80753f2ebf6a936cd75ef640f9d14ce7627c7a4df95df14a6bf360f9f0439520",
+    "package-final-comparison.json": "a7246bbb21d76fdac7e551e1f791d9585216c9c1c905bef9448b3293e4c52dab",
+    "quality-mutations.log": "e0ca342bb59265b8dd839ddeed8e0880ef07a51f47b11042517b5e9a2fe26837",
+    "reconstruction-regression.log": "4c7e4ffde079fe311be24d79627f3a35b735a9b3da2c9b6814532dbcedab13fd",
+    "replay-profile-after.log": "47137887070a2fab6b7909add5ceb16ae8128c50b25b4faa54c18b14776ad033",
+    "replay-profile-before.log": "e8181c269eae3963c30cccf9235f84f28bbbdcbea4019c07e5dbc783dffff875",
+    "session-store-node22-final.log": "05f04f1e8d122f2fc2be200804591e39db11020379e78c159ab44ed90668424c",
+    "sources.json": "86c86700f6ed7b7488abe307dc8992e7b16c8bbc86514c106097ddeb09f793d0"
+  }
+}

@@ -31,15 +31,30 @@ class WorkflowEngine {
   #engineId;
   #provider;
   #store;
+  #resolveChild;
+  #claimLeaseMs;
 
-  constructor({ engine_id = 'workflow:local', session_store, subagent_provider, clock = { now: () => new Date() } }) {
+  constructor({
+    engine_id = 'workflow:local',
+    session_store,
+    subagent_provider,
+    clock = { now: () => new Date() },
+    resolve_child_outcome = terminalChild,
+    claim_lease_ms = null,
+  }) {
     if (!isRelationalSessionEventStore(session_store)) {
       throw new WorkflowEngineError('workflow engine requires the nominal relational session store');
     }
     assertPortShape('SubagentProvider', subagent_provider);
     if (!clock || typeof clock.now !== 'function') throw new WorkflowEngineError('workflow engine requires a clock');
+    if (claim_lease_ms !== null && (!Number.isSafeInteger(claim_lease_ms) || claim_lease_ms < 1)) {
+      throw new WorkflowEngineError('workflow claim lease must be a positive safe integer');
+    }
+    this.#claimLeaseMs = claim_lease_ms;
     this.#engineId = engine_id;
     this.#store = session_store;
+    if (typeof resolve_child_outcome !== 'function') throw new WorkflowEngineError('child outcome resolver must be callable');
+    this.#resolveChild = (id) => resolve_child_outcome(this.#store, id);
     this.#provider = subagent_provider;
     this.#clock = clock;
     const reservationAuthority = session_store.ledger.db || session_store.ledger;
@@ -146,7 +161,9 @@ class WorkflowEngine {
         if (!Number.isFinite(now) || now <= Date.parse(existing.claim_expires_at)) {
           throw new WorkflowEngineError('workflow claim is still live and cannot be reclaimed', 'WORKFLOW_CLAIM_LIVE');
         }
-        const claimExpiresAt = new Date(now + state.spec.limits.max_duration_ms).toISOString();
+        const claimExpiresAt = new Date(
+          now + Math.min(state.spec.limits.max_duration_ms, this.#claimLeaseMs ?? state.spec.limits.max_duration_ms),
+        ).toISOString();
         const claimedAt = new Date(now).toISOString();
         const reclaim = {
           schema_version: CONTRACT_SCHEMA_VERSION,
@@ -181,7 +198,9 @@ class WorkflowEngine {
     const childIds = workflow.phases.flatMap((phase) => phase.steps.map((step) => step.child_spec.session_id));
     const now = new Date(this.#clock.now()).getTime();
     if (!Number.isFinite(now)) throw new WorkflowEngineError('workflow clock returned an invalid instant');
-    const claimExpiresAt = new Date(now + state.spec.limits.max_duration_ms).toISOString();
+    const claimExpiresAt = new Date(
+      now + Math.min(state.spec.limits.max_duration_ms, this.#claimLeaseMs ?? state.spec.limits.max_duration_ms),
+    ).toISOString();
     const claimedAt = new Date(now).toISOString();
     const event = {
       schema_version: CONTRACT_SCHEMA_VERSION,
@@ -290,7 +309,7 @@ class WorkflowEngine {
     };
     const result = validatePortResult('SubagentProvider', 'join', await this.#provider.join(joinInput), joinInput);
     for (const child of result.children) {
-      const durable = terminalChild(this.#store, child.child_session_id);
+      const durable = this.#resolveChild(child.child_session_id);
       if (!durable || JSON.stringify(durable) !== JSON.stringify(child)) {
         throw new WorkflowEngineError('provider child result differs from durable session state', 'WORKFLOW_CHILD_RESULT_CONFLICT', {
           child_session_id: child.child_session_id,
@@ -303,8 +322,8 @@ class WorkflowEngine {
   async #cancelChildren(input, workflow, active, reason) {
     if (!active.teardown) {
       active.teardown = (async () => {
-        await Promise.allSettled([...active.pending]);
-        const childIds = [...active.children].filter((childId) => !terminalChild(this.#store, childId));
+        await Promise.allSettled(active.pending);
+        const childIds = [...active.children].filter((childId) => !this.#resolveChild(childId));
         if (childIds.length === 0) return [];
         const cancelInput = {
           schema_version: CONTRACT_SCHEMA_VERSION,
@@ -342,9 +361,11 @@ class WorkflowEngine {
       input,
       workflow,
       claimRef: claim.claim_ref,
-      cancelled: false,
-      reason: null,
-      children: new Set(),
+      cancelled: Boolean(parent.cancellation_request),
+      reason: parent.cancellation_request?.reason || null,
+      children: new Set(
+        parent.children.filter((id) => workflow.phases.some((phase) => phase.steps.some((step) => step.child_spec.session_id === id))),
+      ),
       pending: new Set(),
       teardown: null,
     };
@@ -353,11 +374,12 @@ class WorkflowEngine {
     const children = [];
     const evidence = [];
     try {
+      if (active.cancelled) throw new WorkflowEngineError('workflow has a durable cancellation request', 'WORKFLOW_CANCELLED');
       for (const phase of workflow.phases) {
         const checkpoint = durable.find((item) => item.phase_id === phase.phase_id);
         if (checkpoint) {
-          const settled = checkpoint.child_session_ids.map((childId) => terminalChild(this.#store, childId));
-          if (settled.some((child) => child === null)) {
+          const settled = checkpoint.child_session_ids.map((childId) => this.#resolveChild(childId));
+          if (settled.includes(null)) {
             const resumed = await this.#join(input, workflow, phase.steps);
             children.push(...resumed.children);
           } else children.push(...settled);
@@ -414,7 +436,7 @@ class WorkflowEngine {
       active.cancelled = active.cancelled || error?.code === 'WORKFLOW_CANCELLED';
       const cancelled = await this.#cancelChildren(input, workflow, active, active.reason || 'workflow teardown after failure');
       children.push(...cancelled);
-      const orphan = [...active.children].find((childId) => !terminalChild(this.#store, childId));
+      const orphan = [...active.children].find((childId) => !this.#resolveChild(childId));
       if (orphan)
         throw new WorkflowEngineError('workflow teardown left an orphan child', 'WORKFLOW_ORPHAN_CHILD', { child_session_id: orphan });
       const status = active.cancelled ? 'cancelled' : 'failed';
@@ -495,7 +517,7 @@ class WorkflowEngine {
   async dispose(value) {
     const input = validatePortInput('WorkflowEngine', 'dispose', value);
     if (input.engine_id !== this.#engineId) throw new WorkflowEngineError('workflow engine identity mismatch');
-    for (const active of [...this.#active.values()]) {
+    for (const active of this.#active.values()) {
       active.cancelled = true;
       active.reason = input.reason;
       await this.#cancelChildren(active.input, active.workflow, active, input.reason);

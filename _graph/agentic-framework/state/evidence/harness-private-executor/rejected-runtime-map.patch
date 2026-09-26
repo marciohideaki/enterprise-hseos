@@ -1,0 +1,60 @@
+diff --git a/test/test-bound-kernel-supervisor.js b/test/test-bound-kernel-supervisor.js
+index 450bf5f..9616204 100644
+--- a/test/test-bound-kernel-supervisor.js
++++ b/test/test-bound-kernel-supervisor.js
+@@ -10,7 +10,8 @@ const { test } = require('node:test');
+ 
+ const yaml = require('yaml');
+ 
+-const { runSupervisedBoundKernel } = require('../tools/cli/lib/bound-kernel-supervisor');
++const { runSupervisedBoundKernel, sandboxWithBrokerMap, validateLockdownProfile } = require('../tools/cli/lib/bound-kernel-supervisor');
++const { buildAiJailArgs, resolveSandbox } = require('../tools/cli/lib/sandbox');
+ const { openExecutionLedgerFileFixture } = require('../tools/mcp-project-state/lib/execution-ledger-schema');
+ 
+ const ROOT = path.join(__dirname, '..');
+@@ -18,6 +19,23 @@ const EXAMPLE = path.join(ROOT, '.agents', 'activation', 'provider-bindings', 'o
+ const CLI = path.join(ROOT, 'tools', 'cli', 'hseos-cli.js');
+ const SECRET = 'ephemeral-supervised-provider-secret';
+ 
++test('runtime directory is mapped read-only without admitting configured host maps', (t) => {
++  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-runtime-map-'));
++  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
++  const sandbox = resolveSandbox(directory).sandbox;
++  const mapped = sandboxWithBrokerMap(sandbox, directory);
++  assert.deepEqual(mapped.profiles.lockdown.ro_maps, [directory]);
++  assert.deepEqual(mapped.profiles.lockdown.rw_maps, []);
++  assert.deepEqual(mapped.profiles.lockdown.allow_tcp_ports, []);
++  assert.deepEqual(sandbox.profiles.lockdown.ro_maps, []);
++  const args = buildAiJailArgs({ sandbox: mapped, profileName: 'lockdown', command: [path.join(directory, 'node'), '--version'] });
++  assert.equal(args[args.indexOf('--map') + 1], directory);
++  assert.ok(!args.includes('--rw-map'));
++  assert.throws(() => validateLockdownProfile(mapped.profiles.lockdown));
++  assert.throws(() => sandboxWithBrokerMap(sandbox, '/tmp/private:/etc'));
++  assert.throws(() => sandboxWithBrokerMap(sandbox, 'relative'));
++});
++
+ function writeExecutable(filename, content) {
+   fs.writeFileSync(filename, content, { encoding: 'utf8', mode: 0o700 });
+   fs.chmodSync(filename, 0o700);
+diff --git a/tools/cli/lib/bound-kernel-supervisor.js b/tools/cli/lib/bound-kernel-supervisor.js
+index 5837f74..7d84051 100644
+--- a/tools/cli/lib/bound-kernel-supervisor.js
++++ b/tools/cli/lib/bound-kernel-supervisor.js
+@@ -105,7 +105,7 @@ function binaryDigest(binary) {
+ }
+ 
+ function sandboxWithBrokerMap(sandbox, directory) {
+-  if (typeof directory !== 'string' || !path.isAbsolute(directory)) {
++  if (typeof directory !== 'string' || !path.isAbsolute(directory) || /[:\u0000-\u001f\u007f]/.test(directory)) {
+     throw new BoundKernelSupervisorError('broker runtime directory must be absolute');
+   }
+   return {
+@@ -115,7 +115,7 @@ function sandboxWithBrokerMap(sandbox, directory) {
+       [PROFILE]: {
+         ...sandbox.profiles[PROFILE],
+         allow_tcp_ports: [],
+-        ro_maps: [],
++        ro_maps: [directory],
+         rw_maps: [],
+       },
+     },

@@ -69,6 +69,7 @@ function createSnapshotStore(options) {
       try {
         fs.unlinkSync(temporary);
       } catch (error) {
+        // eslint-disable-next-line no-unsafe-finally -- Cleanup failures must fail closed rather than report snapshot promotion success.
         if (error.code !== 'ENOENT') throw error;
       }
     }

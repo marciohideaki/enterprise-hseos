@@ -1,0 +1,135 @@
+{
+  "consumer": "/tmp/hseos-v4-retest-yijsx5jg",
+  "public_bin_used": true,
+  "empty_home": true,
+  "results": [
+    {
+      "name": "addition",
+      "receipt": {
+        "schema_version": 1,
+        "profile": "disposable-engineering-candidate",
+        "task_run_id": "36e276c0-9c57-41fc-9a93-a436ca1ba612",
+        "task_id": "example-addition",
+        "state": "/tmp/hseos-ledger-fixture-QJWhfZ",
+        "session_id": "session:ccaedf95-890e-4918-980c-0584d6fd6701",
+        "status": "completed",
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "current_sequence": 4,
+        "contract_sha256": "1f401c276570d722debc9dacc6b324c5b5d3950b1765777ebeb1fb2df9ac94af",
+        "token_accounting": {
+          "reported_input_tokens": 1,
+          "reported_output_tokens": 1,
+          "conservative_estimate_tokens": 25179,
+          "total_tokens": 25181,
+          "estimate_counter": "token-counter:utf8-byte-upper-bound"
+        },
+        "operational_authorized": false
+      }
+    },
+    {
+      "name": "clamp",
+      "receipt": {
+        "schema_version": 1,
+        "profile": "disposable-engineering-candidate",
+        "task_run_id": "aa847cb0-a4b4-4a0f-b623-25f4c3bcfaed",
+        "task_id": "example-clamp",
+        "state": "/tmp/hseos-ledger-fixture-79CIJk",
+        "session_id": "session:ea2120aa-0464-433b-b443-4ddf6c5d48ed",
+        "status": "completed",
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "current_sequence": 4,
+        "contract_sha256": "efa1ba0634b1a2f0bea6705d87639433a94e856ed8d1551a20e1249db1b0cd17",
+        "token_accounting": {
+          "reported_input_tokens": 1,
+          "reported_output_tokens": 1,
+          "conservative_estimate_tokens": 25359,
+          "total_tokens": 25361,
+          "estimate_counter": "token-counter:utf8-byte-upper-bound"
+        },
+        "operational_authorized": false
+      }
+    },
+    {
+      "name": "unique",
+      "receipt": {
+        "schema_version": 1,
+        "profile": "disposable-engineering-candidate",
+        "task_run_id": "1b3ee007-986d-454d-b225-16752e8c273d",
+        "task_id": "example-unique",
+        "state": "/tmp/hseos-ledger-fixture-BsbENP",
+        "session_id": "session:adecfa79-a31c-440b-90e6-d7ef49b43623",
+        "status": "completed",
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "current_sequence": 4,
+        "contract_sha256": "bc7212402b4c42914ff134e462d3f8bc84e525ad326ef987c354d82151eeb3d4",
+        "token_accounting": {
+          "reported_input_tokens": 1,
+          "reported_output_tokens": 1,
+          "conservative_estimate_tokens": 25427,
+          "total_tokens": 25429,
+          "estimate_counter": "token-counter:utf8-byte-upper-bound"
+        },
+        "operational_authorized": false
+      }
+    },
+    {
+      "name": "workflow",
+      "receipt": {
+        "schema_version": 1,
+        "profile": "disposable-engineering-candidate",
+        "workflow_id": "workflow:engineering-examples",
+        "state": "/tmp/hseos-ledger-fixture-HUsy3X",
+        "session_id": "session:2569fcb3-72f5-47eb-85ef-809070592f4e",
+        "current_sequence": 9,
+        "status": "completed",
+        "tasks": [
+          {
+            "id": "addition",
+            "session_id": "session:27a8faa5-26e1-4a3d-85e6-182d40b26810",
+            "task_run_id": "d0c8149b-f80a-4d40-8234-cb0422ea2199",
+            "result": "approved",
+            "reason": "criteria-satisfied"
+          },
+          {
+            "id": "clamp",
+            "session_id": "session:42ad01cc-c670-495e-aedc-f68622442ce5",
+            "task_run_id": "c09ade25-c16b-4a0d-a602-66eb5557465a",
+            "result": "approved",
+            "reason": "criteria-satisfied"
+          },
+          {
+            "id": "unique",
+            "session_id": "session:2eba13c7-4496-4777-ae18-9aa8d0b7bacf",
+            "task_run_id": "9e9b0015-97ea-42e7-ac08-7143a1af783c",
+            "result": "approved",
+            "reason": "criteria-satisfied"
+          }
+        ],
+        "budget": {
+          "max_tokens": {
+            "ceiling": 300000,
+            "spent": 75971,
+            "reserved": 0,
+            "released": 224029
+          },
+          "max_tool_calls": {
+            "ceiling": 24,
+            "spent": 6,
+            "reserved": 0,
+            "released": 18
+          },
+          "max_turns": {
+            "ceiling": 24,
+            "spent": 3,
+            "reserved": 0,
+            "released": 21
+          }
+        },
+        "operational_authorized": false
+      }
+    }
+  ]
+}

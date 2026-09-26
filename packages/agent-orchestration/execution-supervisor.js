@@ -121,7 +121,7 @@ class AgentExecutionSupervisor {
   #descendants(rootSessionId) {
     const found = [];
     const pending = [...this.#store.replay(rootSessionId).children];
-    while (pending.length) {
+    while (pending.length > 0) {
       const sessionId = pending.shift();
       found.push(sessionId);
       pending.push(...this.#store.replay(sessionId).children);
@@ -188,7 +188,7 @@ class AgentExecutionSupervisor {
     const root = this.#store.replay(value.root_session_id);
     const descendantIds = this.#descendants(value.root_session_id);
     const unsettled = descendantIds.filter((sessionId) => !this.#store.replay(sessionId).terminal_event);
-    if (!root.terminal_event || unsettled.length) {
+    if (!root.terminal_event || unsettled.length > 0) {
       throw new AgentExecutionSupervisorError('root cancellation left unsettled work', 'AGENT_EXECUTION_ORPHANED_WORK', {
         root_terminal: Boolean(root.terminal_event),
         unsettled_session_ids: unsettled,
@@ -205,7 +205,7 @@ class AgentExecutionSupervisor {
       );
     }
     const rejected = settlements.filter((settlement) => settlement.status === 'rejected');
-    if (rejected.length || workflowResults.some((result) => !['cancelled', 'completed', 'failed'].includes(result.status))) {
+    if (rejected.length > 0 || workflowResults.some((result) => !['cancelled', 'completed', 'failed'].includes(result.status))) {
       throw new AgentExecutionSupervisorError('root work settled with cancellation failures', 'AGENT_EXECUTION_CANCELLATION_FAILED', {
         rejected_count: rejected.length,
         rejection_codes: rejected.map((settlement) => settlement.reason?.code || 'unknown'),
