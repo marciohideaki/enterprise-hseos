@@ -91,3 +91,13 @@ os wrappers antes dos gates/commit. Não houve uso de bypass.
 W1 integrada por PR #178 com checks verdes em Node 22/24, governança e composição.
 Commit de integração na fundação: `954943456bc7f2ed27657501c9910b2e07ef1516`. A task W2 avançou por
 fast-forward até essa base; sua PR aponta diretamente à fundação.
+
+## Fechamento adicional de detach W2
+
+Após consolidar W2, a revisão final reproduziu input, EOF e resize admitidos
+depois de Ctrl-]. A task `hseos-w2-detach-fence` bloqueia novas mutações após
+detach e mantém o drain de input já aceito. Revisão e recibo específicos em
+`docs/evolution/w2/DETACH-REVIEW.md` e
+`docs/evolution/w2/evidence/detach/receipt.json`.
+Os 917 testes da consolidação são evidência anterior a esse ajuste; a revisão
+final acrescenta duas regressões e exige nova validação antes da PR W2.

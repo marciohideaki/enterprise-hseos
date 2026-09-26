@@ -10,6 +10,7 @@ async function attachTerminal(client, id, { after = 0, input = process.stdin, ou
   const wasRaw = input.isRaw;
   let rawModeEnabled = false;
   const mutate = (action, value = {}) => {
+    if (stopped) return;
     pending = pending
       .then(async () => {
         if (failure) return;

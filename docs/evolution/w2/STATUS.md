@@ -1,7 +1,8 @@
 # Onda 2 — terminais e lifecycle
 
-Revisão posterior autorizada: [REVIEW.md](REVIEW.md). Os resultados abaixo
-descrevem a entrega original; correções da revisão exigem recibo separado.
+Revisões posteriores autorizadas: [REVIEW.md](REVIEW.md) e
+[fechamento de detach](DETACH-REVIEW.md). Os resultados abaixo descrevem a
+entrega original; cada revisão preserva seu próprio recibo.
 
 Candidata Linux implementada e verificada deterministicamente em Node 22.23.3 e
 24.15.0. Base imediata: `feature/hseos-evolution-w1-engineering`; feature:

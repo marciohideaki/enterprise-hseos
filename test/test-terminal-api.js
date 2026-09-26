@@ -230,3 +230,41 @@ test('attach reports partial input instead of silently discarding its suffix', a
   await assert.rejects(pending, { code: 'CONTROL_TERMINAL_INPUT_PARTIAL' });
   assert.equal(calls, 1);
 });
+
+for (const prior of [false, true]) {
+  test(`detach rejects later data, EOF and resize while draining earlier input (${prior})`, async () => {
+    const { Stream } = require('node:stream');
+    const { attachTerminal } = require('../tools/cli/lib/terminal-attach');
+    const input = new Stream();
+    const output = new Stream();
+    const actions = [];
+    input.pause = () => {};
+    input.resume = () => {
+      if (prior) input.emit('data', Buffer.from('before'));
+      input.emit('data', Buffer.from([29]));
+      input.emit('data', Buffer.from('after'));
+      input.emit('end');
+      output.emit('resize');
+    };
+    output.write = () => {};
+    const client = {
+      terminalQuery: async () => ({ mode: 'pty', current_sequence: actions.length, descendants_terminated: false }),
+      terminalEvents: async () => {
+        throw new Error('Polling after immediate detach');
+      },
+      terminal: async (command) => {
+        actions.push(command);
+        return { effect: { bytes: Buffer.from(command.input.data || '', 'base64').length } };
+      },
+    };
+    await attachTerminal(client, randomUUID(), { input, output });
+    assert.deepEqual(
+      actions.map((command) => command.action),
+      prior ? ['input'] : [],
+    );
+    if (prior) assert.equal(Buffer.from(actions[0].input.data, 'base64').toString(), 'before');
+    assert.equal(input.listenerCount('data'), 0);
+    assert.equal(input.listenerCount('end'), 0);
+    assert.equal(output.listenerCount('resize'), 0);
+  });
+}

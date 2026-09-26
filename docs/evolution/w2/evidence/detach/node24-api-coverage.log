@@ -1,0 +1,22 @@
+✔ authenticated HTTP, JS, Python and CLI share terminal identity and cursor (1110.550606ms)
+✔ interactive attach streams bytes, serializes input/resize, and detaches without terminate (103.157115ms)
+✔ attach restores terminal on rejection and ends at the durable cursor (102.781222ms)
+✔ attach releases listeners when enabling raw mode fails (2.370883ms)
+✔ attach fences queued input after an uncertain command (101.665716ms)
+✔ attach reports partial input instead of silently discarding its suffix (102.082167ms)
+✔ detach rejects later data, EOF and resize while draining earlier input (false) (0.526031ms)
+✔ detach rejects later data, EOF and resize while draining earlier input (true) (0.262331ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1945.201747
+--------------------|---------|----------|---------|---------|-------------------
+File                | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+--------------------|---------|----------|---------|---------|-------------------
+All files           |   98.92 |      100 |   85.71 |   98.92 |                   
+ terminal-attach.js |   98.92 |      100 |   85.71 |   98.92 | 58                
+--------------------|---------|----------|---------|---------|-------------------
