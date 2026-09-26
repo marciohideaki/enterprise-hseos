@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: interactive attach streams bytes, serializes input/resize, and detaches without terminate
+ok 1 - interactive attach streams bytes, serializes input/resize, and detaches without terminate
+  ---
+  duration_ms: 106.524876
+  type: 'test'
+  ...
+# Subtest: attach restores terminal on rejection and ends at the durable cursor
+ok 2 - attach restores terminal on rejection and ends at the durable cursor
+  ---
+  duration_ms: 102.860118
+  type: 'test'
+  ...
+# Subtest: attach releases listeners when enabling raw mode fails
+ok 3 - attach releases listeners when enabling raw mode fails
+  ---
+  duration_ms: 0.506694
+  type: 'test'
+  ...
+# Subtest: attach fences queued input after an uncertain command
+ok 4 - attach fences queued input after an uncertain command
+  ---
+  duration_ms: 101.100325
+  type: 'test'
+  ...
+# Subtest: attach reports partial input instead of silently discarding its suffix
+ok 5 - attach reports partial input instead of silently discarding its suffix
+  ---
+  duration_ms: 103.411311
+  type: 'test'
+  ...
+# Subtest: detach rejects later data, EOF and resize while draining earlier input (false)
+ok 6 - detach rejects later data, EOF and resize while draining earlier input (false)
+  ---
+  duration_ms: 3.177176
+  type: 'test'
+  ...
+# Subtest: detach rejects later data, EOF and resize while draining earlier input (true)
+ok 7 - detach rejects later data, EOF and resize while draining earlier input (true)
+  ---
+  duration_ms: 1.706018
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 812.746995

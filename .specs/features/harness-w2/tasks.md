@@ -27,3 +27,13 @@ Medium. Aceite: regressões falham antes/passam depois, matriz integral 22/24,
 cobertura 90/80 por arquivo e recibo separado. Estado: verificado;
 `docs/evolution/w2/evidence/review/receipt.json`, 917 integrais/443 críticos por
 versão e instalações externas aprovadas.
+
+## T6 — fechamento da fila após detach
+
+A revisão final reproduziu input, EOF e resize enviados depois de Ctrl-].
+Modificar `tools/cli/lib/terminal-attach.js` para recusar novas mutações assim
+que o cliente estiver detached, drenando apenas comandos aceitos anteriormente.
+Regressões em `test/test-terminal-api.js` cobrem detach imediato e detach com
+input anterior pendente. Registrar a revisão sem reescrever os recibos históricos.
+Verify: regressões falham antes/passam depois; gates/hooks completos e CI Node 22/24
+incluindo cobertura crítica antes do closeout W2.
