@@ -1,0 +1,50 @@
+{
+  "task": "W4-02c3a",
+  "base": "7de3008",
+  "type": "deterministic-selection",
+  "verification": {
+    "Node24.15.0": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    "Node22.23.3": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "coverage": {
+    "execution-plugin-selection.js": {
+      "lines": 100,
+      "branches": 100
+    }
+  },
+  "sha256": {
+    "tools/lib/execution-plugin-selection.js": "5440c1f38252d40648194c8e6d87bf8c69ceb3f788b88b369a7df847fd066837",
+    "test/test-execution-plugin-selection.js": "87b065774b12bf7969502987ccf601e334c38283c332f7d65b064833fd02a805"
+  },
+  "gate": {
+    "Node24.15.0": "passed",
+    "failures": 0,
+    "warnings": 3,
+    "log_sha256": "931f4b3ff47b8d9a5f5e7cd8c4d01f54a2a6e7fc54df17a5d6f0df12ef2c4b0a"
+  },
+  "limitations": [
+    "No plugin effect; metadata only",
+    "No installed consumer certification",
+    "Port-specific configuration admission remains the responsibility of the host adapter",
+    "Integration with task ledger and runtime remains W4-02c3b"
+  ],
+  "independent_review": {
+    "blind": "No blocking findings; static review",
+    "confrontation": "Hashes and recorded logs checked; claims confirmed within metadata-only scope"
+  },
+  "package": {
+    "entry_count": 1445,
+    "delta": [
+      "tools/lib/execution-plugin-selection.js"
+    ],
+    "base_entry_count": 1444
+  }
+}

@@ -123,7 +123,15 @@ o validador de grafo não substitui campanha real. Indisponibilidade mantém ace
   test/test-package-surface.js e evidence/plugin-providers/*. Verificar:
   node --test --test-concurrency=1 test/test-execution-plugin-providers.js
   test/test-hosted-runtime-adapters.js test/test-model-providers.js.
-- W4-02c3: composição pinada em engineering-task-runtime/engineering-model, seleção
+- W4-02c3a (task hseos-w4-plugin-selection; depende de W4-02a): seleção durável
+  por identidade e hash de configuração/política; resolução apenas dos IDs escolhidos,
+  dependências admitidas, restauração exata e leitura sem import. Não executa ports.
+  Outputs: tools/lib/execution-plugin-selection.js, test/test-execution-plugin-selection.js,
+  package.json, .c8-kernel.json, test/test-package-surface.js, selection.md, _INDEX.md e evidence/selection/*.
+  Verificação: node --test --test-concurrency=1 test/test-execution-plugin-selection.js.
+  Critérios: atualização não muda pin, configuração/política divergente bloqueia restore,
+  versão não selecionada inerte, relocação offline preserva identidade.
+- W4-02c3b: composição pinada em engineering-task-runtime/engineering-model, seleção
   por execução e teste integrado. W4-03a depende da conclusão das três subdivisões.
 
 ## W4-03a — Persistir agregado de jobs e consultas

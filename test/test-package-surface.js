@@ -78,6 +78,7 @@ test('published package exposes runtime and governance assets only', () => {
     'tools/managed-governance-control-plane/migrations/0004_operational_health.sql',
     'tools/managed-governance-control-plane/public/index.html',
     'packages/agent-runtime/index.js',
+    'tools/lib/execution-plugin-selection.js',
     'src/core/agents/hseos-master.agent.yaml',
   ]) {
     assert.ok(files.has(required), `missing required package asset: ${required}`);
@@ -92,8 +93,8 @@ test('published package exposes runtime and governance assets only', () => {
     assert.ok(!/\.(?:db|sqlite|pem|key)$/i.test(file), `state or key material published: ${file}`);
     assert.ok(!/(?:^|\/)(?:\.env|managed-governance\.json)$/i.test(file), `runtime configuration published: ${file}`);
   }
-  // Reviewed W4 isolation inventory: execution runtime, ports, campaign bridge and two providers added to the 1439-entry base.
+  // Reviewed W4 isolation inventory: execution runtime, ports, campaign bridge, two providers and selection added to the 1439-entry base.
   // State/key/config exclusions above remain independent security invariants.
-  assert.ok(packed.entryCount <= 1444, `package entry count is not bounded: ${packed.entryCount}`);
+  assert.ok(packed.entryCount <= 1445, `package entry count is not bounded: ${packed.entryCount}`);
   assert.ok(packed.unpackedSize < 22_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);
 });
