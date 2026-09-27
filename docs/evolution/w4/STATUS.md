@@ -47,3 +47,43 @@ hashes/paths/limites, dependências pinadas e admissão nominal sem import de c�
 13 testes focados em Node22/24; marketplace 88 PASS. Cobertura e revisão em
 evidence/admission/. Gate integral anterior à revisão passou; commit depende do
 gate atualizado no hook. Instalação/execução isolada ainda é a próxima task.
+
+## W4-02a integrada / W4-02b em validação
+
+Admissão commitada em feee73c e integrada em d87d964 após gate e hook completo
+Node24, incluindo PostgreSQL compartilhado sem skip. W4-01: 344fc13/cae04c8.
+W4-02b implementa snapshot readonly, execução/CJS/ESM/conformance isolados e drain.
+13 testes focados Node22/24 passaram; evidência/revisão em evidence/isolation/.
+Gate integral Node24 passou, zero falhas, um aviso preexistente; recibo em
+evidence/isolation/full-gate-receipt.json. Hook de commit ainda revalida.
+W4-02c e W4-03–08 permanecem pendentes.
+Não houve chamada de campanha, gasto adicional, publicação ou ativação.
+
+## Ponto de retomada — 2026-09-27
+
+Task atual: `.worktrees/hseos-w4-plugin-isolation`, branch
+`task/hseos-w4-plugin-isolation`, base d87d964. Alterações staged, sem commit.
+Retomada autorizada pelo usuário ("Prossiga"). Gate integral aprovado com
+heavy-run --pin, 1 CPU lógica diferente de zero, 3 GiB e nice19. Escopo delegado
+contém controlador e cgroups dos executores sob o mesmo memory.max; probe confirmou
+3221225472 bytes e afinidade [1]. Política global §3f regra 7 aplicada.
+
+Próximo: checar carga, executar worktree-manager validate hseos-w4-plugin-isolation
+com Node24 em escopo systemd delegado; depois commit pelo manager (hook revalida),
+merge somente da task na feature e criar W4-02c. Nenhum merge de PR autorizado.
+Node24: /workspace/local/sdk/nvm/versions/node/v24.15.0/bin. Node22:
+/build/tmp/hseos-w1-node/node-v22.23.3-linux-x64/bin. Testes novos não dependem de
+SQLite nativo; matriz integral Node22 requer ABI correspondente e continua pendente.
+
+Suíte completa usa PostgreSQL compartilhado via túnel local, sem instância nova.
+Referência pass: enterprise-hseos/ci-postgres-reference; credencial existente
+platform-shared-dev/postgres-platform. Banco de testes Node24 registrado nessa
+referência, túnel 127.0.0.1:39317 para service/postgres-shared no namespace
+platform-shared-dev. Túnel desta sessão será encerrado enquanto aguarda; restabelecer
+apenas para validação. Nunca imprimir URL com senha nem executar chamadas pagas.
+
+A admissão já está commitada e integrada, com prova do hook em
+evidence/isolation/prior-admission-commit.log.gz. Não repetir essa task ou campanhas W3.
+O contrato e o runtime isolado não encerram W4: integração dos três tipos, jobs,
+DAG dinâmico, orçamento, superfícies/distribuição, consumidores/campanha real e
+matriz final seguem pendentes conforme tasks.md.

@@ -50,3 +50,18 @@ Consumidores externos reais de tool/provider/contexto são pacotes fora do check
 com recibos de instalação e jornada usando contratos públicos. Fixtures adversariais
 não contam como consumidor real. Perfil não selecionado não importa módulo nem
 inicializa processo. Atualização/rollback não altera seleção de execução já criada.
+
+## Protocolo do executor candidato (W4-02b)
+
+Entrada CJS/ESM exporta função default assíncrona ({method,input}) → JSON. O runner
+confiável roda dentro do sandbox e sela schema_version/request_id/plugin_id/digest
+na resposta; o host valida bytes, shape e identidade. Snapshot inclui somente
+bytes verificados, em plugins/<id>/, com dependências pinadas disponíveis por path
+relativo. Conflitos de versão transitivos falham antes do launch. Rede é negada.
+
+Diagnósticos fornecidos pelo plugin também exportam função default e retornam
+{passed:true}; seu resultado é explicitamente plugin-self-test, certified:false.
+Eles não substituem a conformance dos ports verificada pelo host em W4-02c nem
+a certificação do consumidor real. Código de teste externo nunca roda no host.
+O executor atual aplica 256 MiB/32 processos, limites menores ou iguais aos tetos
+admitidos. O recibo informa os limites efetivos, sem anunciar alocação maior.

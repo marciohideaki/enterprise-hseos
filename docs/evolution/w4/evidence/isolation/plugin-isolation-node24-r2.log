@@ -1,0 +1,16 @@
+✔ external code executes only from a read-only isolated snapshot with request-bound output (105.59524ms)
+✔ untrusted imports cannot access the host workspace, source directory or arbitrary private file (55.141492ms)
+✔ network creation is refused inside an external plugin (87.381118ms)
+✔ malformed output, forged identity, unsuccessful import and missing handlers fail closed (458.345217ms)
+✔ timeout and output ceilings terminate plugin descendants (378.897267ms)
+✔ cancellation drains a plugin and a detached descendant; parent exit also drains descendants (446.031108ms)
+✔ admission drift, malformed requests, expired deadlines and pre-cancellation reject before entrypoint effects (7.486241ms)
+✔ plugin-supplied conformance is isolated and cannot claim host certification (156.748769ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1935.131037

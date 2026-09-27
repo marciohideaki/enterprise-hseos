@@ -1,0 +1,27 @@
+✔ external code executes only from a read-only isolated snapshot with request-bound output (132.83598ms)
+✔ untrusted imports cannot access the host workspace, source directory or arbitrary private file (87.476026ms)
+✔ network creation is refused inside an external plugin (99.5302ms)
+✔ malformed output, forged identity, unsuccessful import and missing handlers fail closed (381.093112ms)
+✔ timeout and output ceilings terminate plugin descendants (328.378928ms)
+✔ cancellation drains a plugin and a detached descendant; parent exit also drains descendants (357.787678ms)
+✔ admission drift, malformed requests, expired deadlines and pre-cancellation reject before entrypoint effects (11.671949ms)
+✔ plugin-supplied conformance is isolated and cannot claim host certification (178.262867ms)
+✔ private snapshot remains pinned if the original plugin changes immediately before launch (108.007195ms)
+✔ invalid signal fails before launch and drain uncertainty remains distinct from plugin failure (75.358874ms)
+✔ execution snapshots pinned dependencies and refuses conflicting transitive versions (128.141766ms)
+✔ shared dependency is materialized once and ESM entrypoints remain isolated (144.100772ms)
+✔ isolation setup failure is distinct from an attempted execution with uncertain teardown (11.183812ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2273.856307
+-----------------------------|---------|----------|---------|---------|-------------------
+File                         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+-----------------------------|---------|----------|---------|---------|-------------------
+All files                    |   98.98 |    91.37 |     100 |   98.98 |
+ execution-plugin-runtime.js |   98.98 |    91.37 |     100 |   98.98 | 75-76
+-----------------------------|---------|----------|---------|---------|-------------------
