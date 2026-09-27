@@ -70,10 +70,15 @@ function getEngineeringModelManifest() {
   };
 }
 
-function assemble(handle, created, { environment, fetchImpl, extensionCatalog = {} } = {}) {
+function assemble(handle, created, { environment, fetchImpl, extensionCatalog = {}, campaigns, resourceId } = {}) {
   const { contract, responses, session_id: sessionId, deadline } = created;
   const extensions = created.extensions
-    ? createTaskExtensions({ selection: created.extensions, catalog: extensionCatalog, deadline })
+    ? createTaskExtensions({
+        selection: created.extensions,
+        catalog: extensionCatalog,
+        deadline,
+        modelSelectionId: created.plugin_model?.selection_id,
+      })
     : null;
   const policy = createIsolationPolicy({
     backend: 'bwrap',
@@ -113,14 +118,15 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
       return { recorded: true, review_step_id: review.step_id };
     },
   });
+  let modelConnection;
   const tools = {
     ...nativeTools,
     bundles: [...nativeTools.bundles, ...(extensions?.bundles || [])],
     async drain() {
-      const results = await Promise.allSettled([nativeTools.drain(), extensions?.drain()]);
+      const results = await Promise.allSettled([nativeTools.drain(), extensions?.drain(), modelConnection?.drain?.()]);
       const failed = results.find((result) => result.status === 'rejected');
       if (failed) {
-        if (failed.reason.code === 'PLUGIN_TEARDOWN_UNCERTAIN') {
+        if (['PLUGIN_TEARDOWN_UNCERTAIN', 'PLUGIN_RESULT_UNCERTAIN'].includes(failed.reason.code)) {
           const task = new EngineeringTaskState(handle.db, readIdentity(handle.directory));
           const state = task.read();
           if (!state.uncertainty && !state.result)
@@ -177,14 +183,23 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
   });
   const models = new ModelProviderRegistry();
   models.register(provider, manifest);
-  const modelConnection = created.binding
-    ? require('./engineering-model').createEngineeringModel({
-        binding: created.binding,
+  modelConnection = created.plugin_model
+    ? require('./engineering-plugin-model').restoreTaskPluginModel({
+        pin: created.plugin_model,
+        selection: created.extensions,
+        catalog: extensionCatalog,
+        campaigns,
         deadline,
-        environment,
-        fetchImpl,
+        resourceId,
       })
-    : null;
+    : created.binding
+      ? require('./engineering-model').createEngineeringModel({
+          binding: created.binding,
+          deadline,
+          environment,
+          fetchImpl,
+        })
+      : null;
   const assembly = assembleTemporaryKernel({
     db: handle.db,
     model_provider_snapshot: modelConnection?.snapshot || models.snapshot(),
@@ -340,7 +355,10 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
       memory: [],
       overflow_policy: 'reject',
       parameters: {
-        max_output_tokens: Math.min(8192, created.binding?.provider.limits.max_output_tokens || 8192),
+        max_output_tokens: Math.min(
+          8192,
+          created.plugin_model?.provider_manifest.limits.max_output_tokens || created.binding?.provider.limits.max_output_tokens || 8192,
+        ),
         temperature: null,
         stop: [],
       },
@@ -351,6 +369,7 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
 
 function summary(handle, id, task, assembly) {
   const state = task.read();
+  const { control_identity: _controlIdentity, ...pluginModel } = state.created.plugin_model || {};
   const store = assembly?.sessionStore || new RelationalSessionEventStore({ ledger: new ExecutionEventLedger(handle.db) });
   const session = store.readSession(state.created.session_id).length > 0 ? store.replay(state.created.session_id) : null;
   return {
@@ -366,6 +385,7 @@ function summary(handle, id, task, assembly) {
     current_sequence: state.version,
     contract_sha256: state.created.contract_sha256,
     ...(state.created.extensions ? { extensions: state.created.extensions } : {}),
+    ...(state.created.plugin_model ? { plugin_model: pluginModel } : {}),
     token_accounting: session ? require('../../../packages/agent-context/token-counter').accountSessionTokens(session) : null,
     correction_reviews: state.reviews || [],
     correction_diagnoses: state.diagnoses || [],
@@ -411,8 +431,8 @@ function engineeringSessionSpec(created, id, parentSessionId = null) {
     policy_ref: 'policy://engineering/v1',
     execution: {
       mode: 'kernel',
-      model_provider_id: created.binding?.provider.provider_id || MODEL,
-      model: created.binding?.provider.model || 'engineering/fixture',
+      model_provider_id: created.plugin_model?.provider_manifest.provider_id || created.binding?.provider.provider_id || MODEL,
+      model: created.plugin_model?.model || created.binding?.provider.model || 'engineering/fixture',
     },
     limits: { ...contract.limits, max_tool_calls: contract.limits.max_tool_calls - taskContextReservations(created.extensions) },
     metadata: {
@@ -435,8 +455,14 @@ async function runEngineeringTask({
   fetchImpl,
   extensionCatalog = {},
   extensionIds = [],
+  pluginModel,
+  campaigns,
+  resourceId,
 }) {
-  if (bindingPath && scriptedResponses) throw new Error('Select exactly one engineering model source');
+  if (pluginModel && !createOnly)
+    throw Object.assign(new Error('PLUGIN_TASK_REGISTRATION_REQUIRED'), { code: 'PLUGIN_TASK_REGISTRATION_REQUIRED' });
+  if ([bindingPath, scriptedResponses, pluginModel].filter(Boolean).length > 1)
+    throw new Error('Select exactly one engineering model source');
   const binding = bindingPath
     ? require('./engineering-model').validateEngineeringBinding(
         require('../../lib/agent-provider-binding').readProviderBinding(bindingPath).binding,
@@ -444,12 +470,33 @@ async function runEngineeringTask({
     : undefined;
   const { contract, sha256 } = readEngineeringTask(taskContract);
   const responses = scriptedResponses ? readResponses(scriptedResponses) : [];
-  const pinned = require('../../lib/execution-plugin-selection').pinExecutionPluginSelection(extensionCatalog, extensionIds).selection;
+  const pinned = require('../../lib/execution-plugin-selection').pinExecutionPluginSelection(
+    extensionCatalog,
+    pluginModel ? [...extensionIds, pluginModel.selection_id] : extensionIds,
+  ).selection;
   const extensions = pinned.selected.length > 0 ? pinned : undefined;
   const deadline = Date.now() + contract.limits.max_duration_ms;
   if (extensions) {
     if (taskContextReservations(extensions) > contract.limits.max_tool_calls) throw new Error('Context selection exceeds task budget');
-    await createTaskExtensions({ selection: extensions, catalog: extensionCatalog, deadline }).close();
+    await createTaskExtensions({
+      selection: extensions,
+      catalog: extensionCatalog,
+      deadline,
+      modelSelectionId: pluginModel?.selection_id,
+    }).close();
+  }
+  let pluginModelPin;
+  if (pluginModel) {
+    const candidate = require('./engineering-plugin-model').prepareTaskPluginModel({
+      reference: pluginModel,
+      selection: extensions,
+      catalog: extensionCatalog,
+      campaigns,
+      deadline,
+      resourceId,
+    });
+    pluginModelPin = candidate.pin;
+    await candidate.close();
   }
   const handle = createExecutionLedgerFileFixture();
   const id = randomUUID();
@@ -463,16 +510,17 @@ async function runEngineeringTask({
     responses,
     ...(binding ? { binding } : {}),
     ...(extensions ? { extensions } : {}),
+    ...(pluginModelPin ? { plugin_model: pluginModelPin } : {}),
   };
   let assembly;
   try {
     createEngineeringTaskWorkspace(handle, created, id);
-    if (!scriptedResponses && !binding) {
+    if (!scriptedResponses && !binding && !pluginModelPin) {
       task.append({ kind: 'result', result: 'not_executed', reason: 'no-model-provider-selected', evidence: {} }, 1);
       return summary(handle, id, task);
     }
     attestEngineeringVerifier(contract);
-    assembly = assemble(handle, created, { environment, fetchImpl, extensionCatalog });
+    assembly = assemble(handle, created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId });
     await attestExecutor(assembly.policy, created.deadline);
     await assembly.runtime.create({
       schema_version: 1,
@@ -623,6 +671,8 @@ async function inspectEngineeringTask({
   fetchImpl,
   reconciliationDecision,
   extensionCatalog = {},
+  campaigns,
+  resourceId,
 }) {
   const handle = openExecutionLedgerFileFixture(path.resolve(directory));
   let assembly;
@@ -638,8 +688,15 @@ async function inspectEngineeringTask({
         verification: state.result || null,
       };
     if (action === 'status' || (state.result && action !== 'reconcile')) return summary(handle, id, task);
+    if (state.created.plugin_model)
+      require('./engineering-plugin-model').assertTaskPluginControl({
+        pin: state.created.plugin_model,
+        campaigns,
+        resourceId,
+        directory: handle.directory,
+      });
     if (action === 'reconcile') {
-      assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog });
+      assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId });
       const { report } = await require('./engineering-reconciliation').inspectReconciliation(task, assembly, attestExecutor);
       return { ...summary(handle, id, task, assembly), reconciliation: report, questions: report.questions };
     }
@@ -650,7 +707,7 @@ async function inspectEngineeringTask({
       if (action === 'cancel') {
         if (state.owner && !isExecutorOwnerAlive(state.owner)) {
           await reapExecutorOwner(state.owner);
-          assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog });
+          assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId });
           await assembly.runtime.cancel({
             schema_version: 1,
             command: 'cancel',
@@ -670,7 +727,7 @@ async function inspectEngineeringTask({
         if (task.read().result) return summary(handle, id, task);
         return { ...summary(handle, id, task), task_result: 'blocked', reason: 'cancellation-unconfirmed' };
       }
-      assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog });
+      assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId });
       const { inspectReconciliation, applyReconciliation } = require('./engineering-reconciliation');
       const inspected = await inspectReconciliation(task, assembly, attestExecutor);
       if (!inspected.report.prerequisites_verified || (inspected.report.questions.length > 0 && !reconciliationDecision))
@@ -697,7 +754,7 @@ async function inspectEngineeringTask({
       return summary(handle, id, task, assembly);
     }
 
-    assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog });
+    assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId });
     if (action === 'cancel') {
       await assembly.runtime.cancel({
         schema_version: 1,

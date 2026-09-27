@@ -38,7 +38,7 @@ function taskContextReservations(selection) {
 }
 
 /** Compose host-owned ports without launching any external code. */
-function createTaskExtensions({ selection, catalog, deadline }) {
+function createTaskExtensions({ selection, catalog, deadline, modelSelectionId }) {
   z.number().int().positive().safe().parse(deadline);
   const resolved = restoreExecutionPluginSelection(catalog, selection);
   const ports = [];
@@ -46,6 +46,7 @@ function createTaskExtensions({ selection, catalog, deadline }) {
   const names = new Set(ENGINEERING_TOOL_NAMES);
   let sources = [];
   for (const entry of resolved.entries.filter((entry) => resolved.selection.selected.includes(entry.pin.selection_id))) {
+    if (entry.pin.kind === 'model-provider' && entry.pin.selection_id === modelSelectionId) continue;
     const context = entry.pin.kind === 'context-source';
     if (!context && entry.pin.kind !== 'tool') reject('PLUGIN_TASK_PORT_UNSUPPORTED');
     const config = configurationSchema.parse(entry.configuration);

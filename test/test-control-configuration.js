@@ -157,3 +157,10 @@ test('extension catalog remains frozen data and does not resolve unselected code
   assert.ok(Object.isFrozen(loaded.extensionCatalog.future.configuration));
   assert.equal(f.calls(), 0);
 });
+
+test('non-plugin adapters still require their explicit binding file', (t) => {
+  const f = fixture(t);
+  delete f.config.provider_control.bindings['binding:individual'].binding;
+  assert.throws(() => f.read(), { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' });
+  assert.equal(f.calls(), 0);
+});

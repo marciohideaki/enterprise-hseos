@@ -16,8 +16,9 @@ function reject(code) {
 }
 
 /** Local isolated effects are dispatched only after the existing campaign reserves them. */
-function createExecutionPluginCampaignBinding({ admission, binding_id, limits, output_schema, response_validation }) {
+function createExecutionPluginCampaignBinding({ admission, binding_id, limits, output_schema, response_validation, deadline_at }) {
   assertExecutionPluginAdmission(admission);
+  if (deadline_at !== undefined) z.number().int().positive().safe().parse(deadline_at);
   const plugin = admission.manifest;
   if (!['model-provider', 'runtime-provider'].includes(plugin.kind)) reject('PLUGIN_PORT_KIND');
   if (typeof output_schema?.safeParse !== 'function') reject('PLUGIN_OUTPUT_SCHEMA_REQUIRED');
@@ -73,6 +74,17 @@ function createExecutionPluginCampaignBinding({ admission, binding_id, limits, o
   let closed = false;
   let uncertain = false;
   const adapter = Object.freeze({
+    validateDispatch({ task_id, request_id }) {
+      const entry = pending.get(request_id);
+      return Boolean(
+        !closed &&
+        attached &&
+        entry &&
+        !entry.started &&
+        task_id === attached.task_id &&
+        (deadline_at === undefined || Date.now() < deadline_at),
+      );
+    },
     async inspect() {
       assertExecutionPluginAdmission(admission);
       return {
@@ -107,7 +119,11 @@ function createExecutionPluginCampaignBinding({ admission, binding_id, limits, o
           admission,
           request: entry.request,
           signal: combined,
-          deadline_at: Math.min(attached.campaign.query(attached.campaign_id).deadline, Date.now() + manifest.limits.max_duration_ms),
+          deadline_at: Math.min(
+            deadline_at ?? Infinity,
+            attached.campaign.query(attached.campaign_id).deadline,
+            Date.now() + manifest.limits.max_duration_ms,
+          ),
         });
       } catch (error) {
         if (error.code !== 'PLUGIN_CANCELLED') throw error;
@@ -163,6 +179,7 @@ function createExecutionPluginCampaignBinding({ admission, binding_id, limits, o
     },
     async execute(raw, { signal } = {}) {
       if (closed || !attached) reject('PLUGIN_CAMPAIGN_BINDING_REQUIRED');
+      if (deadline_at !== undefined && Date.now() >= deadline_at) reject('PLUGIN_TASK_DEADLINE');
       if (signal !== undefined && !(signal instanceof AbortSignal)) reject('PLUGIN_REQUEST_INVALID');
       if (signal?.aborted) reject('PLUGIN_CANCELLED');
       const request = requestSchema.parse(raw);
@@ -220,6 +237,10 @@ function createExecutionPluginCampaignBinding({ admission, binding_id, limits, o
         signal?.removeEventListener('abort', relay);
         pending.delete(request.request_id);
       }
+    },
+    async drain() {
+      await Promise.allSettled([...pending.values()].map((entry) => entry.promise));
+      if (uncertain) reject('PLUGIN_RESULT_UNCERTAIN');
     },
     async close() {
       closed = true;

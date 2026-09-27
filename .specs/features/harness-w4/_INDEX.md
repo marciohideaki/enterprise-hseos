@@ -16,3 +16,5 @@ Tipo: entrada de contratos. Leia spec → design → shard aplicável → tasks 
 Glossário: claim = posse cercada por fence persistente; pin = identidade/versionamento
 por digest; incerto = efeito possível sem recibo conclusivo; drain = prova de término
 de todos os descendentes; elegível = horário/dependências/admissão permitem partida.
+
+- [Composição de modelo/campanha na tarefa](task-model-composition.md)
