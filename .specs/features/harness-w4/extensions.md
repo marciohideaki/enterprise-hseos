@@ -78,3 +78,22 @@ source_ref plugin://id/version/digest/item. O assembler recebe runtime_context;
 nenhum item externo entra nas camadas de instrução.
 O owner drena o conjunto de operações em andamento antes de confirmar término;
 incerteza de teardown permanece latched mesmo após acabar a Promise.
+
+## Binding local de provider (W4-02c2a)
+
+Manifesto ProviderControl v1 preservado. v2 identifica vendor execution-plugin,
+route local, tipo model/runtime e execution_plugin id/version/manifest_sha256.
+Não representa nova família remota nem declara fonte oficial de fornecedor.
+Identidade local é o hash da seleção admitida; credencial null, custo monetário zero,
+quota externa not_applicable. Rede permanece negada. Uma futura mediação remota
+precisa do broker/binding elegível próprio e da reserva correspondente.
+
+A ponte exige instância de ProviderCampaignControl e adapter registrado por identidade.
+Antes do efeito, grava intenção por command_id, sequência original de despacho e hash do payload, pede reserva à
+campanha e exige seu recibo persistido antes de lançar plugin. Depois valida saída,
+registra resultado e hash antes do recibo de campanha. Mesma chamada e hash podem
+ler resultado confirmado após reinício; payload divergente é rejeitado. Reserva
+sem recibo confirmado permanece incerta, sem executar novamente. Nenhum saldo novo.
+Contagem local conservadora reutiliza ConservativeUtf8TokenCounter e os limites do
+binding; não declara tokens faturados por um modelo remoto. Cancelamento confirmado
+só produz recibo cancelled após drain; falha/saída inválida conservam incerteza.
