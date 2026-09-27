@@ -76,3 +76,12 @@ Node22 /build/tmp/hseos-w1-node/node-v22.23.3-linux-x64/bin. Link temporário SQ
 12.9.0 para Node22 removido após ensaio. Suíte integral usa PostgreSQL compartilhado
 via túnel 127.0.0.1:39317; pass platform-shared-dev/postgres-platform e referência
 enterprise-hseos/ci-postgres-reference. Não imprimir credenciais.
+
+## W4-02c2b integrada / W4-02c3a em validação
+
+Providers: commit 0678177, integração 7de3008, gate e hook Node24 aprovados.
+Seleção durável em .worktrees/hseos-w4-plugin-selection, base 7de3008:
+8 testes de seleção/distribuição Node22/24 passaram; cobertura 100/100.
+Revisão independente em duas passagens, sem bloqueios. Gate integral Node24 passou; hook pendente.
+Próximo: composição de tools/context/model pinados em tarefas (W4-02c3b).
+W4-03–08 continuam pendentes; sem publicação, campanha paga, PR ou ativação.
