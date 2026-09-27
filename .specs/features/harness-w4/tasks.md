@@ -107,6 +107,15 @@ o validador de grafo não substitui campanha real. Indisponibilidade mantém ace
   Verificação: node --test --test-concurrency=1 test/test-execution-plugin-adapters.js.
 - W4-02c2: providers ModelProvider/RuntimeProvider com despacho reservado na campanha,
   conformance dos ports e cancelamento; mesmo arquivo adapters ou shard específico.
+- W4-02c2a (task hseos-w4-plugin-campaign): manifesto de controle v2 para binding
+  local execution-plugin, leitura v1 preservada; ponte nominal à campanha existente,
+  intenção por hash e resultado duráveis, nenhum novo saldo. Outputs:
+  tools/lib/provider-control-manifest.js, tools/cli/lib/execution-plugin-campaign.js,
+  test/test-execution-plugin-campaign.js, package.json, .c8-kernel.json,
+  test/test-package-surface.js e evidence/plugin-campaign/*. Verificar com
+  node --test --test-concurrency=1 test/test-execution-plugin-campaign.js
+  test/test-provider-control-manifest.js test/test-provider-campaign-control.js.
+- W4-02c2b: ports ModelProvider/RuntimeProvider e conformance sobre a ponte reservada.
 - W4-02c3: composição pinada em engineering-task-runtime/engineering-model, seleção
   por execução e teste integrado. W4-03a depende da conclusão das três subdivisões.
 

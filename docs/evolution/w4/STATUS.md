@@ -59,24 +59,23 @@ evidence/isolation/full-gate-receipt.json. Hook de commit ainda revalida.
 W4-02c e W4-03–08 permanecem pendentes.
 Não houve chamada de campanha, gasto adicional, publicação ou ativação.
 
-## Ponto de retomada — W4-02c1
+## Ponto de retomada — W4-02c2a
 
-W4-02b commit 00e2881, merge b68d7cb; gate e hook completos Node24 passaram.
-Recibo do hook preservado em evidence/ports/prior-isolation-commit.log.gz.
-Task atual .worktrees/hseos-w4-plugin-ports, branch task/hseos-w4-plugin-ports.
-Tool/context ports implementados e verificados por 11 testes Node22/24, sem skips;
-100% linhas e 96,49% branches. Gate integral Node24 aprovado, zero falhas e três avisos descritos no recibo.
-Commit depende da revalidação obrigatória do hook.
-W4-02c foi subdividida em ports, providers/campanha e composição pinada; W4-03–08
-continuam pendentes. Consumidor real, campanha e ativação não certificados.
+W4-02b commit 00e2881/merge b68d7cb. W4-02c1 commit 4efbe89/merge 9a03224.
+Gates e hooks Node24 aprovados. Recibo mais recente do hook em
+ evidence/plugin-campaign/prior-ports-commit.log.gz.
+Task atual .worktrees/hseos-w4-plugin-campaign, branch task/hseos-w4-plugin-campaign.
+Ponte de campanha e manifesto v2 implementados; 42 testes Node22/24 passaram,
+sem skips; cobertura crítica acima de 90/80. Gate integral Node24 passou; zero falhas, três avisos registrados. Hook de commit ainda revalida.
+Providers ModelProvider/RuntimeProvider (c2b), composição de tarefa (c3), W4-03–08
+continuam pendentes. Sem consumidor real, chamada paga ou ativação nesta task.
 
-Recursos: autorização Prossiga e política global §3f.7; heavy-run --pin --mem 3G,
-1 CPU diferente de zero, nice19, escopo delegado com controlador e executores sob
-o mesmo teto. Node24 /workspace/local/sdk/nvm/versions/node/v24.15.0/bin;
-Node22 /build/tmp/hseos-w1-node/node-v22.23.3-linux-x64/bin. Dependência SQLite
-Node22 da mesma versão 12.9.0, link temporário removido após ensaio.
+Execução limitada: heavy-run --pin --mem 3G, 1 CPU não zero/nice19; cgroup delegado
+contém controlador e executores. Node24 /workspace/local/sdk/nvm/versions/node/v24.15.0/bin;
+Node22 /build/tmp/hseos-w1-node/node-v22.23.3-linux-x64/bin. Link temporário da mesma
+versão SQLite 12.9.0 para Node22 removido após ensaio.
 
 Validação integral usa PostgreSQL compartilhado via túnel 127.0.0.1:39317,
 service/postgres-shared em platform-shared-dev; credencial pass
 platform-shared-dev/postgres-platform e referência enterprise-hseos/ci-postgres-reference.
-Não imprimir URL com senha. Nenhum gasto adicional, publicação ou merge de PR.
+Não imprimir URL com senha. Merge de PR, publicação e ativação não autorizados.
