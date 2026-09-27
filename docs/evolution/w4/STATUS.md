@@ -39,3 +39,11 @@ ativação continuam pendentes. Contratos prontos para W4-02a.
 - AEW disponível, stack resolve sem base; aplicação/enforcement não verificados.
 - Preflight: registro vault sem modules.md/integrations.md; Axon index não encontrado;
   flag .compacted-without-end-session observada. São avisos, sem mutação de memória.
+
+## W4-02a — admissão candidata
+
+Implementados descritor estrito v1, leitura de catálogo v3 com compatibilidade v2,
+hashes/paths/limites, dependências pinadas e admissão nominal sem import de código.
+13 testes focados em Node22/24; marketplace 88 PASS. Cobertura e revisão em
+evidence/admission/. Gate integral anterior à revisão passou; commit depende do
+gate atualizado no hook. Instalação/execução isolada ainda é a próxima task.

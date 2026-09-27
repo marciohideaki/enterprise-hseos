@@ -1,0 +1,10 @@
+
+/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-admission/test/test-execution-plugin-manifest.js
+  131:71  error  `String.raw` should be used to avoid escaping `\`                                                                                       unicorn/prefer-string-raw
+  225:3   error  The 'fs.cpSync' is still an experimental feature and is not supported until Node.js 22.3.0. The configured version range is '>=22.0.0'  n/no-unsupported-features/node-builtins
+
+/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-admission/tools/lib/execution-plugin-manifest.js
+  77:7  error  Use `.length === 0` when checking length is zero  unicorn/explicit-length-check
+
+✖ 3 problems (3 errors, 0 warnings)
+  2 errors and 0 warnings potentially fixable with the `--fix` option.
