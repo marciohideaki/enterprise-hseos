@@ -115,7 +115,14 @@ o validador de grafo não substitui campanha real. Indisponibilidade mantém ace
   test/test-package-surface.js e evidence/plugin-campaign/*. Verificar com
   node --test --test-concurrency=1 test/test-execution-plugin-campaign.js
   test/test-provider-control-manifest.js test/test-provider-campaign-control.js.
-- W4-02c2b: ports ModelProvider/RuntimeProvider e conformance sobre a ponte reservada.
+- W4-02c2b (task hseos-w4-plugin-providers): ports ModelProvider/RuntimeProvider e
+  conformance sobre a ponte reservada. Outputs: tools/cli/lib/execution-plugin-model.js,
+  tools/cli/lib/execution-plugin-provider.js, packages/runtime-providers/hosted-runtime-provider.js,
+  test/test-execution-plugin-providers.js, tools/cli/lib/execution-plugin-campaign.js,
+  test/test-execution-plugin-campaign.js, package.json, .c8-kernel.json,
+  test/test-package-surface.js e evidence/plugin-providers/*. Verificar:
+  node --test --test-concurrency=1 test/test-execution-plugin-providers.js
+  test/test-hosted-runtime-adapters.js test/test-model-providers.js.
 - W4-02c3: composição pinada em engineering-task-runtime/engineering-model, seleção
   por execução e teste integrado. W4-03a depende da conclusão das três subdivisões.
 
