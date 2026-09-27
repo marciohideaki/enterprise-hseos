@@ -97,6 +97,19 @@ o validador de grafo não substitui campanha real. Indisponibilidade mantém ace
 - verify_step.expected: exit 0, zero falhas/skips; evidência ligada à revisão.
 - verify_step.on_failure: diagnosticar e corrigir; causa desconhecida bloqueia task.
 
+### Subdivisões de W4-02c
+
+- W4-02c1 (task hseos-w4-plugin-ports): bundles de ferramenta e fonte de contexto
+  pelo ToolRuntime, validação dos contratos e proveniência; drain explícito.
+  Outputs: tools/cli/lib/execution-plugin-adapters.js,
+  test/test-execution-plugin-adapters.js, package.json, .c8-kernel.json,
+  test/test-package-surface.js, docs/evolution/w4/evidence/ports/* e STATUS.md.
+  Verificação: node --test --test-concurrency=1 test/test-execution-plugin-adapters.js.
+- W4-02c2: providers ModelProvider/RuntimeProvider com despacho reservado na campanha,
+  conformance dos ports e cancelamento; mesmo arquivo adapters ou shard específico.
+- W4-02c3: composição pinada em engineering-task-runtime/engineering-model, seleção
+  por execução e teste integrado. W4-03a depende da conclusão das três subdivisões.
+
 ## W4-03a — Persistir agregado de jobs e consultas
 
 - execution_mode: isolated

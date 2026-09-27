@@ -65,3 +65,16 @@ Eles não substituem a conformance dos ports verificada pelo host em W4-02c nem
 a certificação do consumidor real. Código de teste externo nunca roda no host.
 O executor atual aplica 256 MiB/32 processos, limites menores ou iguais aos tetos
 admitidos. O recibo informa os limites efetivos, sem anunciar alocação maior.
+
+## Ports de ferramenta e contexto (W4-02c1)
+
+O host fornece contrato e definição; o plugin não define autoridade ou schemas
+executáveis. A capacidade e o nome devem estar admitidos. Nesta fronteira readonly,
+mutação, falha permissiva ou cancelamento não cooperativo são recusados. O bundle
+é registrado antes de selar ToolRuntime, preservando política, ledger e idempotência.
+Fontes de contexto também são operações governadas; retornam items id/content,
+validados no host e transformados em ContextSourceSchema, classificação internal e
+source_ref plugin://id/version/digest/item. O assembler recebe runtime_context;
+nenhum item externo entra nas camadas de instrução.
+O owner drena o conjunto de operações em andamento antes de confirmar término;
+incerteza de teardown permanece latched mesmo após acabar a Promise.
