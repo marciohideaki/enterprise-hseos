@@ -1,0 +1,36 @@
+✔ Claude Agent SDK driver binds an explicit session and completes through the hosted L0 provider (11.79619ms)
+✔ a fresh driver finds an existing transcript and resumes the exact session id (5.750377ms)
+✔ Claude effect content fails closed at the hosted effect boundary (13.800388ms)
+✔ Claude unknown-effect content fails closed at the hosted effect boundary (2.239168ms)
+✔ driver cancellation aborts and closes an active Agent SDK query (7.25946ms)
+✔ driver passes only the selected environment values to the SDK child contract (1.101174ms)
+✔ driver rejects relative bindings and implicit environment keys (0.873029ms)
+✔ Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-progress (0.969197ms)
+✔ Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-invalid (0.910156ms)
+✔ Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-foreign (0.83396ms)
+✔ Claude thinking progress is distinct from billed usage and preserves strict protocol: unknown-system (0.601838ms)
+✔ missing transcript after runtime progress cannot silently recreate a Claude session (0.522113ms)
+[hseos] DELEGATED_CLAUDE_INVALID: expected_sequence does not match delegated durable state
+[hseos] DELEGATED_CLAUDE_INVALID: delegated Claude manifest or external binding drifted
+✔ delegated Claude capability plan selects Agent SDK and no raw model implementation (52.546277ms)
+✔ public delegated Claude CLI creates and materializes the same explicit SDK session across processes (1158.576051ms)
+✔ public delegated Claude run keeps the first query attached to the newly created SDK session (729.254741ms)
+✔ public delegated Claude CLI reattaches and durably cancels an idle session (1147.898988ms)
+✔ delegated Claude resume rejects stale optimistic state before SDK dispatch (1106.205871ms)
+✔ delegated Claude manifest persists environment names but never selected values (1159.742407ms)
+✔ delegated Claude resume rejects SDK module drift before reattachment (852.98285ms)
+✔ delegated Codex capability plan selects the direct runtime and no raw model implementation (52.499243ms)
+✔ public delegated Codex CLI rejects create-only before spawning app-server (150.750422ms)
+✔ public delegated Codex run keeps the first turn attached to the newly created thread (767.429347ms)
+✔ public delegated Codex CLI rejects resume and cancel as unavailable capabilities (305.822447ms)
+✔ delegated Codex run-only rejection takes precedence over lifecycle arguments (149.913143ms)
+✔ delegated Codex durable manifest contains no resolved environment value (772.904132ms)
+✔ public delegated Codex rejects resume before inspecting durable state (149.055501ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8898.380397

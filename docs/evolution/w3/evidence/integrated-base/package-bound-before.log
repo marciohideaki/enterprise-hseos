@@ -1,0 +1,63 @@
+✔ CLI, JavaScript, Python and HTTP share identity, task results and replayable event cursors (2041.628759ms)
+✔ authenticated control rejects wrong identity, origins, workspace escalation and stale commands (812.933734ms)
+✔ an intent without receipt is not automatically dispatched again (801.308868ms)
+✔ review binds approval to Git baseline and only explicit apply modifies the source project (1752.755132ms)
+✔ concurrent source edits invalidate the prior review and are preserved (1746.698707ms)
+✔ public preparation pins the current workspace and cannot expand the server allowlist (63.89083ms)
+✔ workflows reuse the same API control and aggregate kernel budget (1950.347366ms)
+✔ HTTP rejects malformed, oversized and unsupported requests without exposing internal errors (840.990655ms)
+✔ SDK rejects remote endpoints, malformed cursors and invalid query views (0.3736ms)
+✔ candidate edits after approval invalidate review without applying unverified bytes (1752.414731ms)
+✔ control rejects model ambiguity, unknown bindings and duplicate resources before effects (879.55925ms)
+✔ Git application never invokes configured filesystem monitors or external diff commands (1877.659775ms)
+✖ published package exposes runtime and governance assets only (1665.204637ms)
+✔ campaign reserves before dispatch, replays receipts and preserves consumption after reopening (50.811971ms)
+✔ a new campaign identity cannot reuse authorization or manufacture a larger budget (20.358759ms)
+✔ ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch (19.24892ms)
+✔ receipt loss preserves the reservation and requires current-state reconciliation without retry (23.181331ms)
+✔ a second controller cannot reconcile a live dispatch and can cancel it durably (71.376093ms)
+✔ a changed binding manifest cannot replace the pinned configuration after reopening (25.659063ms)
+✔ HTTP and SDK campaign commands share authentication, cursors and durable budget (224.154119ms)
+✔ known overspend remains charged after uncertain outcome reconciliation (22.770332ms)
+✔ expired grants, stale sequences and cancellation deny new effects (22.181062ms)
+✔ unbound adapter identities and missing dispatch implementations cannot configure campaigns (19.413811ms)
+✔ a concurrent exact retry observes the committed receipt without a second dispatch (23.419249ms)
+✔ a request ceiling holds even when prior attempts report zero charge (34.53527ms)
+✔ failed inspection never consumes an authorization or leaks transport details (19.460078ms)
+✔ official routes distinguish native accounts, API and local bindings without claiming certification (6.079629ms)
+✔ route confusion, unknown quota, capability claims, secrets and unbounded reservations fail closed (2.32868ms)
+✔ binding drift is rejected and declared control evidence does not certify a real journey (0.28318ms)
+✔ authenticated HTTP, JS, Python and CLI share terminal identity and cursor (1348.073736ms)
+✔ interactive attach streams bytes, serializes input/resize, and detaches without terminate (102.308171ms)
+✔ attach restores terminal on rejection and ends at the durable cursor (101.367201ms)
+✔ attach releases listeners when enabling raw mode fails (0.641644ms)
+✔ attach fences queued input after an uncertain command (100.952883ms)
+✔ attach reports partial input instead of silently discarding its suffix (101.805502ms)
+✔ detach rejects later data, EOF and resize while draining earlier input (false) (0.63407ms)
+✔ detach rejects later data, EOF and resize while draining earlier input (true) (0.377071ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 36
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19866.920454
+
+✖ failing tests:
+
+test at test/test-package-surface.js:19:1
+✖ published package exposes runtime and governance assets only (1665.204637ms)
+  AssertionError [ERR_ASSERTION]: package entry count is not bounded: 1420
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/test/test-package-surface.js:70:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

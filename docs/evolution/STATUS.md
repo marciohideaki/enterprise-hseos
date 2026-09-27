@@ -1,4 +1,13 @@
-# Estado da evolução — 2026-09-26
+# Estado da evolução — 2026-09-27
+
+Onda 3: **entrega técnica corrente validada**, matriz/cobertura Node 22/24 e
+campanhas reais ACP/Codex, Claude e Antigravity local aprovadas.
+[Estado e limites](w3/STATUS.md), [aceite](w3/CLOSEOUT.md).
+A quarta família foi diferida pelo dono para depois de todas as fases; não
+bloqueia avanço atual e não está certificada. Entrega Git pela feature W3,
+merge da PR sujeito a autorização específica. O programa W0–W8 segue incompleto.
+
+Os checkpoints abaixo são históricos e não substituem o estado específico atual.
 
 Onda 2 implementada e verificada como candidata Linux: [estado específico](w2/STATUS.md).
 Matriz Node 22/24: 914 testes integrais e 440 críticos por versão, cobertura
@@ -25,8 +34,7 @@ certificação nova de bindings reais nem IDE entregue.
 - Guardas verificam a superfície de lint com erro injetado em memória,
   integridade/completude das 27 famílias e referências existentes. Inventário
   distingue evidência histórica, teste existente e aceite futuro.
-- Runtime mínimo dos packages/root Node 22; CI evolutiva 22/24, smoke e release
-  22. Evidências históricas Node 20/22 não foram editadas.
+- Runtime mínimo dos packages/root Node 22; CI evolutiva 22/24, smoke e release 22. Evidências históricas Node 20/22 não foram editadas.
 - Documentação da candidata distingue histórico de estado atual; plano completo
   por ondas, migração e ADR-0043 tornam as decisões rastreáveis.
 
@@ -34,15 +42,15 @@ certificação nova de bindings reais nem IDE entregue.
 
 Resultados e hashes finais registrados em [evidence/receipt.json](evidence/receipt.json).
 
-| Verificação | Resultado |
-|---|---|
-| Regressão focada, Node 24.15.0 | 326 testes passaram; zero falhas/skips |
-| Guardas de qualidade/inventário | 3 testes passaram |
-| Lint integral | passou, zero avisos |
-| Formatação integral | passou |
-| Cobertura crítica | 89,61% linhas / 79,96% branches; 14 arquivos abaixo de 90/80 |
-| Gate de cobertura por arquivo | reprovado (exit 1) |
-| Suíte integral/gates completos/Node 22/instalação externa | não executados nesta revisão |
+| Verificação                                               | Resultado                                                    |
+| --------------------------------------------------------- | ------------------------------------------------------------ |
+| Regressão focada, Node 24.15.0                            | 326 testes passaram; zero falhas/skips                       |
+| Guardas de qualidade/inventário                           | 3 testes passaram                                            |
+| Lint integral                                             | passou, zero avisos                                          |
+| Formatação integral                                       | passou                                                       |
+| Cobertura crítica                                         | 89,61% linhas / 79,96% branches; 14 arquivos abaixo de 90/80 |
+| Gate de cobertura por arquivo                             | reprovado (exit 1)                                           |
+| Suíte integral/gates completos/Node 22/instalação externa | não executados nesta revisão                                 |
 
 A instrumentação revelou ambiente congelado incompatível com a normalização
 do spawn no driver de app-server. A reprodução falhou antes do ajuste; o driver
@@ -106,12 +114,12 @@ funcional era W1; W1–W8 não eram critérios adicionais de fechamento de W0.
 
 ## Três estados
 
-| Marco | Determinístico | Consumidores reais | Operacional |
-|---|---|---|---|
-| W0 | implementado e verificado; matriz integral e cobertura aprovadas | CLI instalada com jornadas locais verificada; providers reais não certificados | não ativado |
-| W1 | implementada e verificada; ver estado específico | CLI/API/SDK instalados verificados; modelos reais não certificados | não ativado |
-| W2 | implementada e verificada; matriz 22/24 e crash/recuperação | CLI/API/SDK instalados verificados; modelos reais não certificados | não ativado |
-| W3–W8 | não implementados nesta task | não certificado | não autorizado |
+| Marco | Determinístico                                                   | Consumidores reais                                                             | Operacional    |
+| ----- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------ | -------------- |
+| W0    | implementado e verificado; matriz integral e cobertura aprovadas | CLI instalada com jornadas locais verificada; providers reais não certificados | não ativado    |
+| W1    | implementada e verificada; ver estado específico                 | CLI/API/SDK instalados verificados; modelos reais não certificados             | não ativado    |
+| W2    | implementada e verificada; matriz 22/24 e crash/recuperação      | CLI/API/SDK instalados verificados; modelos reais não certificados             | não ativado    |
+| W3–W8 | não implementados nesta task                                     | não certificado                                                                | não autorizado |
 
 ## Revisão adversarial
 

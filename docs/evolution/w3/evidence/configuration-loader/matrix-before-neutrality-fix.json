@@ -1,0 +1,9 @@
+[
+  {
+    "stage": "node24-full",
+    "started_at": "2026-09-26T15:17:35.186Z",
+    "finished_at": "2026-09-26T15:24:09.935Z",
+    "exit_code": 1,
+    "signal": null
+  }
+]

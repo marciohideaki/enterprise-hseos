@@ -1,0 +1,2703 @@
+[0;34m[INFO][0m HSEOS Quality Gates — Phase: full
+[0;34m[INFO][0m Repository: /workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype
+[0;34m[INFO][0m Log: /workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/.logs/validation/gate-20260926T123337.log
+
+[0;34m[INFO][0m Gate 0: Enforcement Flags
+[0;32m[PASS][0m VALIDATION_ENFORCED=true
+[0;34m[INFO][0m Gate 1: Governance Structure
+[0;32m[PASS][0m Exists: .enterprise/.specs/constitution/Enterprise-Constitution.md
+[0;32m[PASS][0m Exists: .enterprise/policies/automated-validation.md
+[0;32m[PASS][0m Exists: CLAUDE.md
+[0;32m[PASS][0m Exists: AGENTS.md
+[0;32m[PASS][0m Dir exists: .enterprise/agents
+[0;32m[PASS][0m Dir exists: .enterprise/governance
+[0;32m[PASS][0m Dir exists: .enterprise/policies
+[0;32m[PASS][0m Dir exists: .logs/runs
+[0;32m[PASS][0m Dir exists: .logs/validation
+[0;32m[PASS][0m Dir exists: .logs/summaries
+[0;34m[INFO][0m Gate 1.1: Governance Anchors and Capability Graph
+[0;32m[PASS][0m Constitutional change control: passed
+[0;32m[PASS][0m Federated capability graph: passed
+[0;32m[PASS][0m Capability reference corpus: passed
+[0;34m[INFO][0m Gate 7: Canonical Source Invariant (ADR-0015)
+[0;32m[PASS][0m No external skill-mirror canonical references in runtime assets
+[0;34m[INFO][0m Gate 2: Documentation Quality
+[1;33m[WARN][0m Unresolved placeholders (2) in: src/hsm/workflows/3-solutioning/create-epics-and-stories/templates/epics-template.md
+[0;34m[INFO][0m markdownlint not available — skipping markdown syntax check
+[0;34m[INFO][0m Gate 3: Code Quality
+[0;34m[INFO][0m Detected Node.js project changes in scope
+[0;32m[PASS][0m Lint: passed
+✔ every authored package source is linted with correctness rules enabled (515.812278ms)
+✔ coverage counts unexecuted critical files and enforces per-file 90/80 (0.226013ms)
+✔ comparison inventory covers every source family and points to real sources and tests (3.294133ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 679.434488
+✔ tests detect removal of the authority guard (318.070849ms)
+✔ tests detect removal of the budget guard (336.636767ms)
+✔ tests detect removal of the recovery guard (487.896388ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1191.285191
+  PASS  atlas.agent.yaml
+  PASS  blitz.agent.yaml
+  PASS  cipher.agent.yaml
+  PASS  forge.agent.yaml
+  PASS  ghost.agent.yaml
+  PASS  glitch.agent.yaml
+  PASS  kube.agent.yaml
+  PASS  nyx.agent.yaml
+  PASS  orbit.agent.yaml
+  PASS  prism.agent.yaml
+  PASS  quill.agent.yaml
+  PASS  razor.agent.yaml
+  PASS  sable.agent.yaml
+  PASS  swarm.agent.yaml
+  PASS  vector.agent.yaml
+
+Agent schema tests: 15 passed, 0 failed
+✔ every valid fixture parses through its exported schema and is deeply frozen (15.487693ms)
+✔ every invalid fixture fails closed with normalized contract evidence (4.700193ms)
+✔ all top-level schemas reject unsupported versions and unknown fields (4.36258ms)
+✔ session preflight status, reason and parity fields cannot diverge (0.278854ms)
+✔ canonical JSON is lexically ordered and digest-stable (0.513138ms)
+✔ canonical JSON rejects lossy, executable and ambiguous JavaScript values (0.399387ms)
+✔ identifier, raw content and structured content byte limits are enforced (9.647162ms)
+✔ closed vocabularies reject semantic widening (1.307557ms)
+✔ collection, timestamp and semantic-version boundaries are explicit (1.144622ms)
+✔ rule conditions enforce operator-specific data without executable expressions (2.882064ms)
+✔ duplicate arrays, reversed time and unsafe paths fail closed (0.696681ms)
+✔ import reports must account for every discovered source (0.418438ms)
+✔ readiness report ready flag requires every readiness-algorithm condition, not just one (1.014183ms)
+✔ managed network profile enforces deny-by-default admission for shared-network (1.016518ms)
+✔ contract parser normalizes schema evaluation failures without leaking values (0.164097ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 156.061056
+▶ managed governance source discovery
+  ✔ accounts for every allowlisted governance family in the current repository (0.780252ms)
+  ✔ produces a byte-identical plan for the same tree and commit without writes (261.695927ms)
+✔ managed governance source discovery (686.135564ms)
+▶ secure governance source reads
+  ✔ reads a regular UTF-8 file and normalizes line endings for its digest (2.056884ms)
+  ✔ rejects path escape before content is read (0.80776ms)
+  ✔ rejects source directories reached through symbolic-link ancestors (1.173237ms)
+  ✔ rejects symbolic links, hard links, special files, oversized data and invalid UTF-8 (5.285965ms)
+  ✔ rejects dirty canonical Git roots (19.167698ms)
+✔ secure governance source reads (29.187021ms)
+▶ classification and pure import planning
+  ✔ rejects discovery limits above the closed source profile (0.207788ms)
+  ✔ preserves ambiguous prose as unclassified metadata and never emits a rule (0.185876ms)
+  ✔ preserves invalid structured content for review (0.945816ms)
+  ✔ plans create, no-op, version, rename, review and deactivate deterministically (0.956068ms)
+  ✔ does not consume an existing path that is present later in discovery as a rename (0.150758ms)
+  ✔ makes ambiguous renames review-only and preserves prior entries for deactivation review (0.176492ms)
+  ✔ binds plan identity to repository, commit, importer and source profile (0.58567ms)
+✔ classification and pure import planning (3.437236ms)
+ℹ tests 14
+ℹ suites 3
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 850.391867
+✔ every designed endpoint returns the canonical v1 envelope (65.070002ms)
+✔ mutations and audit reject anonymous requests while read-only planning stays available (9.113173ms)
+✔ routing, pagination, body limits and domain failures use stable error codes (6.082116ms)
+✔ health carries distinct migration and projection readiness without flattening state (2.160572ms)
+✔ deadline aborts a non-settling handler with a stable timeout (104.985039ms)
+✔ invalid or cyclic service output fails as a sanitized internal error (10.038498ms)
+✔ graceful shutdown drains an active request and closes repository resources once (10.756973ms)
+✔ server refuses non-loopback binding (2.737823ms)
+✔ development authentication requires both explicit configuration and the environment gate (1.859693ms)
+✔ draft and publication application ports preserve authenticated context (2.191228ms)
+✔ release query and snapshot verification are backed by real repository state, not stubs (35.044224ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 372.884906
+✔ all documented read commands map to their versioned HTTP application ports (2.18373ms)
+✔ plan is deterministic and performs no local mutation (0.349382ms)
+✔ apply requires explicit database reference, actor and authentication and repeats the same request (0.817286ms)
+✔ server start defaults to loopback and port 4319 (0.398015ms)
+✔ invalid commands, modes, files, filters and network boundaries fail closed (0.965531ms)
+✔ human output projects the same envelope and retains remote error codes (0.221433ms)
+✔ session preflight keeps every managed-shadow outcome advisory (0.918326ms)
+✔ database configuration rejects unsafe permissions and token header characters (0.448125ms)
+✔ the main CLI exposes managed governance help without update-network access (40.629562ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 199.803837
+✔ console routes serve exact local assets with strict browser policy (43.000945ms)
+✔ versioned UI schema covers every supported authoring type with bounded fields (0.763144ms)
+✔ DOM smoke has landmarks, labels, keyboard focus, errors and reduced-motion support (0.234327ms)
+✔ console consumes only HTTP routes and contains no database or direct Git mutation path (0.277474ms)
+✔ console shows the same readiness report exposed to CLI and MCP, and never claims it authorizes enforcement (0.272444ms)
+✔ console echoes the CSRF token back only on state-changing requests, never on reads (0.211569ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 184.482907
+✔ resolution is deterministic and a lower allow cannot widen a constitutional deny (6.768333ms)
+✔ same-precedence contradictions fail closed according to action class (8.469257ms)
+✔ only a current approved exception may explicitly widen a restrictive result (1.419109ms)
+✔ governance acceptance never satisfies an operational approval obligation (1.939616ms)
+✔ scope, pure predicates and bounded wildcard matching select only exact candidates (1.412788ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 160.539295
+✔ managed-shadow records a mismatch with both digests and preserves the local result (3.151219ms)
+✔ managed-shadow reports semantic parity without creating mismatch evidence (0.284479ms)
+✔ approval-required local results map to input_required without changing authority (0.289474ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 116.616238
+✔ binding loader proves repository identity and rejects secret-bearing input before network access (10.209627ms)
+✔ online shadow compares decisions while local authority remains unchanged (2.0008ms)
+✔ valid last-known-good snapshot supports degraded shadow without blocking (4.344459ms)
+✔ reserved enforcement mode fails before network or cache access (0.299416ms)
+✔ bounded retries and circuit states produce typed degraded results (1.165128ms)
+✔ timeout remains bounded when an injected transport ignores abort (100.853876ms)
+✔ chunked control-plane responses are bounded independently of content-length (0.426359ms)
+✔ session preflight reports equivalence and atomically persists bounded evidence (14.360376ms)
+✔ session preflight accepts the bounded full catalog projection (2.17726ms)
+✔ session preflight distinguishes digest and repository identity drift (3.144393ms)
+✔ session preflight degrades remote failures and malformed projections without blocking (5.310467ms)
+✔ session preflight fails local identity divergence before querying remote (1.672636ms)
+✔ session preflight rejects an unsafe query configuration before network access (0.821127ms)
+✔ session preflight rejects invalid UTF-8 Constitution bytes before network access (1.565422ms)
+✔ session preflight never creates evidence through a symlinked runtime ancestor (2.138446ms)
+✔ session preflight reports an unconfigured project without network access (0.414438ms)
+✔ promotion is atomic, private and digest-verified (9.706928ms)
+✔ corrupt, expired and identity-mismatched snapshots are never valid (2.028117ms)
+✔ verifyGovernanceSnapshot accepts a currently valid, trusted, unexpired release (11.079558ms)
+✔ verifyGovernanceSnapshot fails closed for a missing release (0.365314ms)
+✔ verifyGovernanceSnapshot rejects replay of an expired release (2.427115ms)
+✔ verifyGovernanceSnapshot rejects a release that is not yet effective (2.638566ms)
+✔ verifyGovernanceSnapshot rejects a signer that is not in the trusted binding (2.755405ms)
+✔ verifyGovernanceSnapshot rejects a substituted signed digest that does not bind to the manifest (3.933013ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 610.9146
+▶ managed governance catalog synchronization
+  ✔ applies create, review, version, rename and deactivate with exact parity (16.406079ms)
+  ✔ rejects forged plan identity and altered source bytes before persistence (1.431534ms)
+✔ managed governance catalog synchronization (18.585585ms)
+ℹ tests 2
+ℹ suites 1
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 161.086886
+✔ current canonical governance seeds through the normal import path and then no-ops (956.484926ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1122.908491
+▶ in-memory governance repository satisfies the v1 port contract
+  ✔ commits domain state, audit, outbox and receipt atomically (5.092571ms)
+  ✔ returns the original result for an exact idempotent retry (0.533327ms)
+  ✔ rejects conflicting idempotency reuse without partial writes (0.824384ms)
+  ✔ serializes concurrent retries to one committed mutation (0.590676ms)
+  ✔ records a readiness evaluation idempotently and never authorizes enforcement (4.584733ms)
+  ✔ records a recovery rehearsal idempotently and requires a confirmed disposable target (1.84482ms)
+  ✔ records network access audit events with a deny reason required only on denial (0.935894ms)
+  ✔ keeps tenant reads isolated and closes explicitly (0.310783ms)
+✔ in-memory governance repository satisfies the v1 port contract (17.216886ms)
+✔ in-memory repository records repository-scoped shadow-readiness evidence idempotently (6.054078ms)
+✔ migration reader pins bounded regular files and rejects link aliases (15.10309ms)
+✔ pool configuration is closed, bounded and does not load a driver when injected (0.540208ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 172.651439
+▶ PostgreSQL migration and repository integration
+  ✔ creates every core table with fail-closed tenant RLS (18.86037ms)
+  ✔ commits domain state, audit, outbox and receipt atomically (78.509017ms)
+  ✔ returns the original result for an exact idempotent retry (45.180451ms)
+  ✔ rejects conflicting idempotency reuse without partial writes (31.504144ms)
+  ✔ serializes concurrent retries to one committed mutation (63.329692ms)
+  ✔ records a readiness evaluation idempotently and never authorizes enforcement (63.034659ms)
+  ✔ records a recovery rehearsal idempotently and requires a confirmed disposable target (38.711599ms)
+  ✔ records network access audit events with a deny reason required only on denial (34.792045ms)
+  ✔ keeps tenant reads isolated and closes explicitly (15.359477ms)
+  ✔ persists repository-scoped shadow-readiness evidence with real cross-tenant RLS denial (162.36839ms)
+  ✔ applies, repeats, versions and rolls back a catalog transactionally (229.410182ms)
+  ✔ preserves the prior active catalog when import audit persistence fails (130.83013ms)
+  ✔ rolls back domain state when the paired audit write fails (29.736472ms)
+  ✔ database roles and immutable records are enforced by PostgreSQL (38.766997ms)
+✔ PostgreSQL migration and repository integration (1055.644799ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1246.483801
+✔ HTTP, CLI and MCP expose the same decision semantics from the shared application result (77.591028ms)
+✔ reserved managed enforcement remains an unavailable no-side-effect state (2.820867ms)
+✔ a total control-plane outage with no cached snapshot leaves the local decision authoritative and unblocked (1.053668ms)
+✔ verification matrix accounts for every functional and non-functional requirement (0.86671ms)
+✔ cached shadow preflight stays below the 250 ms p95 budget on the reference fixture (37.730409ms)
+✔ online shadow resolution stays below the 2 s p95 budget on the reference fixture (10.274027ms)
+✔ session preflight stays below the 500 ms p95 budget on the reference fixture (93.725498ms)
+✔ tenant isolation and replay protection fail closed without cross-tenant mutation (7.353227ms)
+✔ source and contract paths reject traversal, symbolic links and external content (7.268438ms)
+....+............+.......+.....+++++++++++++++++++++++++++++++++++++++*.+.+..+++++++++++++++++++++++++++++++++++++++*...+.......+..+.+.........+..+......+...+.+......+............+..+.+..+...+....+...+.....+.+.....+..........+..............+......+.........+...+....+...+..+......+....+...+...+........+....+...+...+..+.........+.........+.......+..+.+.....+.+.....+.+..................+..+...+.........+......+............+.......+.....+.......+...+......+..+....+......+............+..+..........+......+...+..+...+......+...+......+....+...+..............+....+.........+..+...+.......+.........+............+...+.....+.+.....+.+..+......+................+...+......+..+.............+...........+...+...+.......+.................+...+.+.....+......+.+..+.+..+....+..................+..+....+.....+....+...+.....+....+........+...............+.+.....+.+.....+.+..+.+.....+.+..............+....+...+.......................+.........+............+....+.........+.....+...+....+.....+...+.......+..............+.+..............+....+...+...............+..+..........+..+....+.........+...+..+.+.........+............++++++
+.........+............+.....+...+......+......+.......+......+++++++++++++++++++++++++++++++++++++++*.........+..+.+.........+.........+..+++++++++++++++++++++++++++++++++++++++*..+....................+..........+...........+.......+..+......+......+...++++++
+-----
+✔ HTTP input limits, route injection and malformed JSON fail before application execution (64.557755ms)
+✔ control-plane refuses non-loopback exposure (0.680736ms)
+.....+.........+.....+.+......+.........+.....+...+...+...+....+.....+...+...+.+.....+.............+...+...+..+....+.........+.....+...............+.+...+.....+.+......+......+..+.+..+.........+...+...+.......+..+......+..........+...+......+........+.......+...+............+..............+......+.+...+..+...+.+...+.....+...+.......+......+.........+..+....+......+.....+......+....+........+.+......+...+.....+.......+++++++++++++++++++++++++++++++++++++++*...+++++++++++++++++++++++++++++++++++++++*.......+....+...+........+.......+..+......+.......+..+......+...+.+.........+..+...+.........+.+............+.....+...+......+.+.........+.....+...............+.............+.....+.+.........+...+..+.............+..............+.+..+.+......+......+.....+...+......+.........+....+...++++++
+.+...............+.....+......+.+.........+......+...+++++++++++++++++++++++++++++++++++++++*..........+.......+......+...+.....+.+........+.+............+..+.+..+............+......+....+......+..+...............+....+...+++++++++++++++++++++++++++++++++++++++*..+.+...........+..........+..............+....+..+.......+..+....+..+..........+.........+...............+.....+.+..+.+..+....+...+........+.........+.........+......+..........+.....+.........+.+........+.......+.....+....+...............+.....+.......+..+......+.+...+...+........+............+.......+..+.........+.+......+........+.......+..+.............+.........+.....+..........+....................+.+..+.+.........+.....+.+..+.............++++++
+-----
+..........+.....+...+...+......+......+.......+..+.+.........+...+..+++++++++++++++++++++++++++++++++++++++*.+.....+.+...........+...............+++++++++++++++++++++++++++++++++++++++*.....+...+............+.......+......++++++
+.+..+...+....+++++++++++++++++++++++++++++++++++++++*.+...+...............+..+....+.....+..........+.........+.....+.........+...+....+...+............+...+......+.....+.+...+......+.....+.+.....+.+........+++++++++++++++++++++++++++++++++++++++*...+.+......+.........+...+...............+..+....+.........+..+...+.+.....+....+...+..+......+.+.....+..........+......++++++
+-----
+✔ a direct-tls shared-network profile actually wraps its listener in TLS, not merely declares it (156.121516ms)
+✔ direct-tls fails closed before any socket opens when the certificate or key is missing or invalid (138.575255ms)
+.+............+............+...+.+.........+............+...+...+.........+.........+.....+....+........+....+.....+.+..................+.........+..+...+.+..+....+......+..+.+......+++++++++++++++++++++++++++++++++++++++*.+........+.+.....+............+...+.......+...+++++++++++++++++++++++++++++++++++++++*......+...+......+...+...............+...+....+...+...+..+.......+...+...+.........+..............+.+......+.....+....+.........+.....+....+..+...+.+.........++++++
+......+......+...............+..+.+.....+.......+...+..............+...+++++++++++++++++++++++++++++++++++++++*..+.........+.+......+........+.+......+..+...+..........+++++++++++++++++++++++++++++++++++++++*....+..+....+...+............+...............+.....+.........+......+.........+....+...............+.................+....+............+..+...+............+...............+.+.........+...+..+...+...+.+...+..+.+...............+.....+.......+.....+.+..+...+...............+.+.....+................+..+......+.+.....+...+..................+.........+.+...+......+...+.....++++++
+-----
+✔ terminated-upstream deliberately keeps this server on plain HTTP -- TLS is an external reverse-proxy responsibility for that mode (5.527843ms)
+✔ a perfectly valid admin credential never substitutes for network admission -- the two controls are independent (81.778134ms)
+✔ audit and outbox payloads are bounded to identifiers, never the record content, no matter how large or secret-shaped that content is (1.228262ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1304.793966
+✔ sidecar configuration is strict, environment-referenced and deployment-agnostic (4.993355ms)
+✔ setup migrates, seeds and writes stable secret-free managed-shadow files (19.973604ms)
+✔ database-backed composition reports ready health and serves the seeded catalog (94.237351ms)
+✔ a fresh install with no network section still enforces loopback-only binding through the full composition (2.980052ms)
+✔ a deployed shared-network profile, wired through the real composition, admits an allowlisted LAN client and denies one outside it (22.108924ms)
+✔ the approved deployment CIDR 192.168.5.0/24 admits an in-range client and denies every out-of-range one (0.277117ms)
+✔ the packed npm artifact ships no .hseos/state and runs the installed CLI from the extracted package alone (17027.559915ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17396.177751
+✔ planGovernanceRelease produces a byte-identical manifest for the same input (17.02675ms)
+✔ planGovernanceRelease rejects a source commit that is not the active imported catalog (2.469132ms)
+✔ planGovernanceRelease rejects an organization with no active imported catalog (0.323187ms)
+✔ requestExternalSignature passes only the digest and public binding to the signer, never the manifest (3.266963ms)
+✔ the signature evidence always echoes the requested algorithm, never whatever the signer claims (1.643488ms)
+✔ requestExternalSignature rejects a signer that does not implement sign() (1.601185ms)
+✔ requestExternalSignature rejects a malformed signer response (1.57554ms)
+✔ publishGovernanceRelease records a published attempt bound to the manifest and signer (2.72345ms)
+✔ publishGovernanceRelease persists nothing when the signature does not verify (1.625789ms)
+✔ publishGovernanceRelease rejects evidence signed for a different binding (2.927914ms)
+✔ publishing the same manifest and evidence twice is idempotent, and a different manifest at the same stage conflicts (1.871307ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 248.312482
+✔ generatePatchBundle produces a byte-identical bundle_id, manifest_digest and patch for the same request (26.701013ms)
+✔ generatePatchBundle produces a different bundle_id for a substantively different request (11.563886ms)
+✔ every file operation is accounted for with the correct content digest, including deletions (8.393945ms)
+✔ the generated patch is a real unified diff that git apply accepts (12.687111ms)
+✔ generatePatchBundle never touches git state — no commit, push, merge or tag (9.146983ms)
+✔ a re-run to the same destination is refused before any write, and the bundle is durable via the repository (16.369966ms)
+✔ unsafe destinations fail before any write: symlinked parent, missing parent, existing path (0.527162ms)
+✔ generatePatchBundle rejects path traversal, absolute paths and duplicate paths (4.340839ms)
+✔ generatePatchBundle rejects operations whose before/after content contradicts the operation (0.6037ms)
+✔ computeFileDiff and buildUnifiedPatch are pure helpers usable outside the full bundle flow (5.130082ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 207.469203
+✔ recordShadowReceipt is idempotent by adapter/session identity, not by receipt content (5.838371ms)
+✔ recordShadowReceipt derives receipt_id from identity, independent of digests or status (0.692813ms)
+✔ evaluateShadowReadiness reports ready when every day has conclusive evidence (9.731055ms)
+✔ a re-evaluation of the same window with different evidence is a real conflict, not a silent overwrite (7.220797ms)
+✔ missing days are explicit and block readiness even when the aggregate ratio looks fine (4.281597ms)
+✔ adapters missing evidence block readiness independent of repository coverage (4.562322ms)
+✔ remote-unavailable receipts are recorded and reported but never count as coverage or equivalence (4.733182ms)
+✔ a window where every session is remote-unavailable is never ready, regardless of every other flag (4.704369ms)
+✔ open drift and invalid-contract outcomes block readiness even with full coverage (3.820249ms)
+✔ p95 preflight latency above 500ms fails readiness even with perfect coverage (3.998088ms)
+✔ missing latency telemetry for a covered window fails closed instead of reporting an implausible 0ms p95 (3.451929ms)
+✔ stale supporting evidence (signer, recovery, threat-model, rollback) blocks readiness independently (13.923678ms)
+✔ the window must be exactly 30 consecutive completed UTC days (0.320475ms)
+✔ percentile95 is exact at small sample sizes (0.067325ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 183.791136
+✔ runRecoveryRehearsal refuses an unconfirmed disposable target before touching the environment or the inspector (9.781483ms)
+✔ runRecoveryRehearsal rejects an operational-target alias before ever calling the inspector (1.84029ms)
+✔ connectionIdentity normalizes loopback hosts and default ports (0.216472ms)
+✔ a fully verified rehearsal within the declared profile is ready and persisted (6.561911ms)
+✔ measured_rpo_seconds reflects the gap between the operational and disposable audit history (1.665068ms)
+✔ a disposable target with no restored audit history fails closed instead of reporting a fabricated measurement (1.383952ms)
+✔ tenant isolation, active catalog and audit append-only failures each independently block within_declared_profile (2.5004ms)
+✔ release signature verification compares the disposable target against the operational published release (5.492635ms)
+✔ an unexpected published release on the disposable target when none was expected fails verification (1.127173ms)
+✔ measured values exceeding the declared profile block within_declared_profile even when every check passes (1.143743ms)
+✔ restore completed at cannot precede restore started at (0.892599ms)
+✔ each rehearsal is a fresh, independently recorded event -- rerunning is not idempotent-deduplicated (1.102632ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 158.707988
+✔ parseCidr accepts valid IPv4 and IPv6 CIDRs and rejects malformed ones (5.389093ms)
+✔ ipFamily classifies IPv4, IPv6 and IPv4-mapped IPv6 addresses, and rejects garbage (0.13217ms)
+✔ buildAllowlist matches an IPv4 CIDR against the IPv4-mapped IPv6 form of the same address (0.50741ms)
+✔ buildAllowlist keeps IPv4 and IPv6 rules family-isolated outside the mapped-address bridge (0.15758ms)
+✔ buildAllowlist fails closed on an unparseable peer address instead of throwing (0.126234ms)
+✔ assertNetworkProfile forbids an empty allowlist and a wildcard allow-all entry (0.299838ms)
+✔ assertNetworkProfile forbids an incomplete listener even when bound to 0.0.0.0 (0.25901ms)
+✔ createNetworkAdmission for the loopback profile admits only loopback peers, including the mapped form (0.228147ms)
+✔ createNetworkAdmission for a shared-network profile admits allowlisted peers and denies everyone else (0.195331ms)
+✔ createManagedGovernanceServer refuses to construct at all on an invalid shared-network profile (0.388547ms)
+✔ listen() still requires a loopback host under the default profile (0.777527ms)
+✔ listen() requires the shared-network host and port to match the validated profile exactly (0.307868ms)
+✔ a peer outside the allowlist is destroyed at the socket before any HTTP handler runs (30.000476ms)
+✔ a peer inside the allowlist reaches the real HTTP handler, including via the IPv4-mapped IPv6 form (11.80435ms)
+✔ loadSidecarConfiguration defaults to the loopback profile when no network section is present (2.30012ms)
+✔ loadSidecarConfiguration accepts a shared-network section whose control_plane host and port agree with it (1.246778ms)
+✔ loadSidecarConfiguration rejects a control_plane host that disagrees with the shared-network listener (0.499316ms)
+✔ loadSidecarConfiguration rejects an empty or wildcard allowlist and an incomplete shared-network listener (1.416977ms)
+✔ loadSidecarConfiguration rejects an unknown field inside the network section (0.300224ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 164.62954
+✔ a query-scoped route accepts only the query token, never the admin token (38.924416ms)
+✔ an admin-scoped route accepts only the admin token, never the query token -- scope confusion fails both ways (12.522523ms)
+✔ admin mutations require a valid CSRF token; admin reads do not (7.459593ms)
+✔ the CSRF token is only ever issued to the admin scope, never to query traffic (2.903117ms)
+✔ rate-limit denial is enforced per scope and audited without leaking any secret (5.556247ms)
+✔ rate limits are tracked independently per scope, so exhausting query never blocks admin (4.504162ms)
+✔ no response ever carries a wildcard or reflected CORS header (5.660476ms)
+✔ a request whose Origin disagrees with the configured public origin is denied (2.334717ms)
+✔ end to end: a spoofed X-Forwarded-For from an untrusted real peer never escapes its own rate-limit bucket (2.340217ms)
+✔ end to end: distinct clients behind a genuinely trusted proxy each get their own rate-limit bucket (2.758612ms)
+✔ end to end: a multi-hop X-Forwarded-For behind a trusted proxy is denied outright, not guessed at (1.515954ms)
+✔ an unconfigured hardening pipeline (no networkAuthentication) preserves the pre-T10 loopback behavior exactly (2.23215ms)
+✔ resolveClientAddress ignores a forwarded claim from an untrusted direct peer entirely (0.114344ms)
+✔ resolveClientAddress trusts a single-hop forwarded claim only from a trusted proxy (0.080229ms)
+✔ resolveClientAddress fails closed on an ambiguous multi-hop chain, even behind a trusted proxy (0.34901ms)
+✔ createNetworkAuthentication refuses to construct with identical query and admin tokens (0.109431ms)
+✔ createRateLimiter bounds tracked-key cardinality regardless of how many distinct keys are seen (0.135697ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 197.688907
+✔ CLI (HTTP fetch), the query adapter and the MCP tool all return the exact same readiness report (61.367573ms)
+✔ an enabled adapter with no submitted receipt keeps the whole report not ready, across every surface (13.207007ms)
+✔ a window with no evaluation at all is reported honestly as not-yet-evaluated, never guessed at (3.185971ms)
+✔ the portable bootstrap emits a receipt for an adapter with no native session-start event, before any task action (13.317796ms)
+✔ receipt submission never blocks or fails the local preflight result when the receiptRecorder itself fails (1.814404ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 211.417402
+  PASS  .hseos/AGENT-MANIFEST.md
+  PASS  .hseos/config/hseos.config.yaml
+  PASS  .enterprise/.specs/constitution/Enterprise-Constitution.md
+  PASS  .agents/instructions/PROJECT.md
+  PASS  .agents/hooks/registry.yaml
+  PASS  .agents/manifest.yaml
+  PASS  .agents/skills/secure-coding/SKILL.md
+  PASS  CLAUDE.md
+  PASS  AGENTS.md
+  PASS  .codex/config.toml
+  PASS  .codex/hseos-hooks.json
+  PASS  .hseos/agents/nyx.agent.yaml
+  PASS  .hseos/agents/vector.agent.yaml
+  PASS  .hseos/agents/cipher.agent.yaml
+  PASS  .hseos/agents/ghost.agent.yaml
+  PASS  .hseos/agents/razor.agent.yaml
+  PASS  .hseos/agents/glitch.agent.yaml
+  PASS  .hseos/agents/prism.agent.yaml
+  PASS  .hseos/agents/blitz.agent.yaml
+  PASS  .hseos/agents/quill.agent.yaml
+  PASS  .hseos/agents/orbit.agent.yaml
+  PASS  .hseos/agents/forge.agent.yaml
+  PASS  .hseos/agents/kube.agent.yaml
+  PASS  .hseos/agents/sable.agent.yaml
+  PASS  hseos.config.yaml is valid YAML
+  PASS  .agents/manifest.yaml has portable adapters and skills
+  PASS  .codex/config.toml exposes HSEOS MCP servers
+  PASS  .codex/hseos-hooks.json has hook metadata
+
+Installation tests: 28 passed, 0 failed
+installer idempotency primitive tests
+  PASS  missing dest → created
+  PASS  identical → in-sync
+  PASS  modified dest without recordedHash → preserved-modified
+  PASS  overwriteModified → updated
+  PASS  recordedHash == dest (untouched by user) → updated
+  PASS  recordedHash == source (only user moved) → preserved-modified
+  PASS  both sides moved → conflict-preserved
+  PASS  syncDirectory: new file created
+  PASS  syncDirectory: identical file in-sync
+  PASS  syncDirectory: modified file preserved (never mtime-clobbered)
+  PASS  syncDirectory: orphan removed
+  PASS  syncDirectory: recordedHashes lets untouched-by-user file update
+  PASS  syncModule: user-modified file preserved even with newer source mtime
+  PASS  syncModule: identical file untouched, not reported preserved
+
+File-sync tests: 14 passed, 0 failed
+  PASS  no .hseos: expected=false actual=false
+  PASS  modern v2.0 install: expected=false actual=false
+  PASS  real legacy v4 (_cfg): expected=true actual=true
+  PASS  non-standard .hseos (no markers): expected=true actual=true
+  PASS  mid-migration (_cfg + _config): expected=true actual=true
+
+Detector legacy v4 tests: 5 passed, 0 failed
+AgentStateDAL smoke tests
+  ✓ migrations apply cleanly to in-memory db
+  ✓ createRun + describeRun roundtrip
+  ✓ createTask + claimTask atomic flow
+  ✓ emitEvent + searchEvents (FTS5)
+  ✓ listOrphans returns running agent_runs without recent heartbeat
+  ✓ createSession + claimWorktree atomic across sessions
+  ✓ listSessionRuns returns runs attached to a session
+
+7 passed, 0 failed
+✔ operational runner stays at v4 and the gated fixture migration creates schema v2 (7.029861ms)
+✔ fixture schema gate rejects an operational database path (0.316846ms)
+✔ fixture schema gate rejects symlink and hardlink aliases under /tmp (0.672109ms)
+✔ compare-and-append produces monotonic stream versions and global positions (7.473753ms)
+✔ a failure on the second row rolls back the complete append batch (4.120587ms)
+✔ stale expected_version fails with a typed conflict and no implicit retry (3.991937ms)
+✔ an exact event-id retry is idempotent while changed or partial reuse fails (4.470092ms)
+✔ append metrics are dimensioned by aggregate type and defensively copied (4.113307ms)
+✔ ledger rows reject update/delete/replace and sensitive payload fields (4.91453ms)
+✔ payload and actor require strict lossless JSON values (4.50907ms)
+✔ ES-10 identifiers and timestamps fail closed (4.030075ms)
+✔ concurrent connections yield unique monotonic sequences with explicit caller retry (149.90569ms)
+✔ fixture schema includes projection migration 006 while operational runner remains v4 (6.865921ms)
+✔ execution applicator is pure and deterministic (0.589361ms)
+✔ rebuild creates and atomically activates a complete generation (8.60745ms)
+✔ crash after apply but before checkpoint rolls back and reconcile catches up exactly once (5.636865ms)
+✔ failed side-by-side rebuild leaves the previous active generation visible (4.818153ms)
+✔ a successful side-by-side rebuild switches generations only at full high-water (5.041128ms)
+✔ health rejects false-green coverage even when checkpoint reaches high-water (6.286741ms)
+✔ health rejects equal-count projections with stale aggregate versions (4.67935ms)
+✔ health rejects semantically altered rows with matching version and position (4.237422ms)
+✔ an ineligible candidate cannot retire the active generation (4.586547ms)
+✔ a stale worker batch cannot regress an advanced checkpoint (4.327355ms)
+✔ health reports a checkpoint ahead of the ledger instead of false ok (4.154014ms)
+✔ an incompatible active projection fails health and reads closed (4.201616ms)
+✔ an incompatible candidate cannot be activated (4.452086ms)
+✔ fixture applies immutable approval migration 007 while the operational runner stays at v4 (6.956896ms)
+✔ event registry rejects unknown/current-invalid facts and deterministically upcasts history (1.996925ms)
+✔ event registry refuses schema fields without explicit classification (0.162565ms)
+✔ runtime seals tool and event registries against post-start injection (7.365885ms)
+✔ runtime commits authorized and started facts before provider dispatch and returns one envelope (9.256866ms)
+✔ input, authority, and policy failures are fail-closed before ledger/provider effects (13.917063ms)
+✔ reserved optional-warning failure mode fails closed before provider or ledger effects (4.41819ms)
+✔ provided invalid idempotency keys are rejected instead of replaced (4.568231ms)
+✔ invalid actor, resource scope, or signal fails before durable facts (17.657263ms)
+✔ malformed policy approval and warning fields fail closed before effects (8.599514ms)
+✔ explicit approval is immutable, operation-bound, consumed once, and replay does not redispatch (6.450062ms)
+✔ approval records reject lossy JSON and sensitive scope data (4.531471ms)
+✔ expired or scope-mismatched approvals cannot dispatch (9.228944ms)
+✔ denied, wrong-policy, not-active, and reused approvals fail before dispatch (18.339415ms)
+✔ approval consumption rolls back atomically when pre-effect facts cannot commit (4.825806ms)
+✔ deadline after dispatch records uncertain outcome and same idempotency key never redispatches (15.566246ms)
+✔ approval delay cannot extend the absolute execution deadline (5.150258ms)
+✔ terminal append failure after provider success stays in doubt and is never automatically replayed (6.323306ms)
+✔ same idempotency key cannot cross actor, resource, or contract policy scope (5.162273ms)
+✔ replay rejects trace or causation drift in any persisted operation fact (4.861049ms)
+✔ malformed provider evidence is terminally rejected after dispatch (9.278577ms)
+✔ malformed provider error receipt is omitted while outcome remains durable (4.77876ms)
+✔ primitive provider throws still record a terminal outcome (4.738563ms)
+✔ retryable provider failure remains retryable on immediate response and replay (4.749332ms)
+✔ a provider without idempotency support forces explicit approval (4.17987ms)
+✔ non-cancellable execution ignores a pre-aborted caller signal (4.911116ms)
+✔ cooperative execution records a durable cancellation before provider dispatch (5.29971ms)
+✔ queued cancellation still fails closed on authority and policy denial (8.297493ms)
+✔ output contract failure is failed for reads and uncertain for mutations (10.128464ms)
+✔ runtime rejects a ledger not bound to the exact fail-closed event registry (3.856063ms)
+✔ runtime rejects approval and ledger stores on different SQLite connections (8.401073ms)
+✔ the registry-bound ledger rejects direct unregistered execution facts (4.211145ms)
+✔ a default ledger also fails closed on unregistered execution facts (3.678865ms)
+✔ operational database remains at schema v4 without fixture activation (6.238385ms)
+✔ production rejects a pre-existing pending schema even when its version is disguised (6.471962ms)
+✔ concurrent gated fixture startups serialize pending schema migration through version 11 (46.980821ms)
+✔ startup waits for an existing SQLite writer before applying connection pragmas (111.673494ms)
+✔ pending fixtures reject direct, symlinked, and hard-linked escape paths (1.158104ms)
+ℹ tests 64
+ℹ suites 0
+ℹ pass 64
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 909.465277
+State CLI smoke tests
+  ✓ state rejects command-shaped ports before invoking a process
+  ✓ state validates the complete TCP port range
+  ✓ legacy state SQL input is escaped instead of executed
+  ✓ production CLI preserves v4 behavior and records legacy transition usage
+  ✓ production CLI rejects a pre-existing pending execution schema
+  ✓ state-emit creates db file and inserts event
+  ✓ state-emit cannot write state when the governed pre-effect append fails
+  ✓ state-list returns the row from state-emit
+  ✓ state-describe returns the run summary
+  ✓ state-list --orphans is empty for fresh heartbeat
+
+10 passed, 0 failed
+state-render-lib snapshot tests
+  ✓ renderPlan produces deterministic markdown with table
+  ✓ renderStatus lists tasks and agent runs
+  ✓ renderResumePrompt emits run id and source-of-truth pointer
+  ✓ renderResumePrompt elides session line when absent
+
+4 passed, 0 failed
+State UI side-car smoke
+  ✓ side-car lifecycle rejects command-shaped and out-of-range ports
+  ✓ non-loopback binding fails closed even with authentication
+  ✓ identity health check sends no bearer secret and rejects an arbitrary 200 response
+  ✓ stop refuses an instance record whose PID belongs to another process
+  ✓ single-project side-car refuses to create a missing state database
+  ✓ requests without the configured bearer token are rejected
+  ✓ GET /health exposes only unauthenticated process identity
+  ✓ GET /favicon.ico is an unauthenticated console-clean no-content response
+  ✓ GET /api/state returns snapshot shape
+  ✓ stop signals exactly the verified managed process
+
+10 passed, 0 failed
+Kanban CLI ASCII smoke
+  ✓ hseos kanban exits 0 and renders all 5 columns
+  ✓ hseos kanban shows the seeded run id
+
+2 passed, 0 failed
+state-purge smoke
+  ✓ dry-run reports counts without deleting
+  ✓ --force without independent approval fails without deleting
+  ✓ approval for one run cannot authorize purging another run
+  ✓ --force deletes the run and dependent rows
+  ✓ R-keep run is preserved (not affected by R-purge)
+
+5 passed, 0 failed
+Central kanban smoke
+  ✓ default central registry is project-scoped
+  ✓ GET /health reports only the managed instance identity
+  ✓ GET /api/state aggregates 2 project DBs
+  ✓ graceful degrade when one DB is missing
+
+4 passed, 0 failed
+[test-state-session] DAL
+  ✓ registerSession creates an active row with context
+  ✓ registerSession is idempotent and refreshes last_seen
+  ✓ registerSession re-activates an ended session (resume)
+  ✓ endSession closes and listSessions hides it unless all=true
+  ✓ sweepOrphanSessions orphans only stale active sessions
+[test-state-session] CLI
+  ✓ CLI register creates the store and the row
+  ✓ CLI heartbeat on unknown session registers it (upsert)
+  ✓ CLI end closes the session; list --all still shows it
+  ✓ CLI sweep reports orphaned count
+  ✓ CLI register without --session fails with a clean error
+
+[test-state-session] 10 passed, 0 failed
+✔ empty consumer still inherits producer discovery; enforcement is never inferred (12.029888ms)
+✔ missing producer source is incomplete even when local governance exists (1.50594ms)
+✔ empty sources fail and changed sources receive new hashes (4.662842ms)
+✔ compiled handler reloads context on repeated prompts/resume outside producer cwd (340.26065ms)
+✔ canonical registry emits prompt hook and portable instructions include fallback (42.666806ms)
+✔ dedup requires a lifecycle event, then unchanged prompts emit zero bytes (1296.735352ms)
+✔ compaction, resume, end and project round trips invalidate context (801.586677ms)
+✔ corpus and ancestor adapter changes invalidate; missing sources still block cached sessions (542.996653ms)
+✔ session and adapter isolation, JSON suppression, and absent identity fallback (540.207093ms)
+✔ corrupt or unavailable cache re-emits; expired receipts do not suppress (392.070618ms)
+✔ late receipt cannot undo compact invalidation; session names cannot escape state root (2.654539ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4081.327824
+  PASS  valid conventional commit — fix with scope
+  PASS  valid conventional commit — feat with scope
+  PASS  no type prefix — plain sentence
+  PASS  AI mention in subject
+  PASS  forbidden Co-Authored-By trailer
+  PASS  subject longer than 100 characters
+
+Commit message validator tests: 6 passed, 0 failed
+  PASS  quality gate selects runtime and schema checks with large staged lists under pipefail
+  PASS  worktree-manager validates from inside the task worktree
+  PASS  worktree-manager generated merge message is conventional
+  PASS  branch protection desired state includes master
+  PASS  branch protection apply tool emits GitHub REST payload
+  PASS  branch protection apply tool detects GitHub Actions repository
+  PASS  branch naming policy is aligned with check-branch guard
+  PASS  every workflow that runs the full suite installs the required isolation backend first
+  PASS  release assets have portable checksums and version-bound notes
+
+Governance script tests: 9 passed, 0 failed
+Solo-maintainer governance: 15 surfaces normalized, required checks preserved
+  PASS  accepts approved mergeable PR with passing checks
+  PASS  requires explicit human approval
+  PASS  rejects pending checks
+  PASS  rejects missing checks
+  PASS  rejects protected head branch
+  PASS  rejects non-mergeable PR
+
+PR closeout tests: 6 passed, 0 failed
+Hook handler integration tests
+  PASS  plan-lint.sh exists
+  PASS  plan-lint.sh is executable
+  PASS  plan-lint.sh with no arg exits 0 silently
+  PASS  plan-lint.sh on non-plan file exits 0 silently
+  PASS  plan-lint.sh on plan with <3 signals exits 0 silently
+  PASS  plan-lint.sh on parallel plan WITH Execution Protocol exits 0 silently
+  PASS  plan-lint.sh on parallel plan WITHOUT Execution Protocol exits 0 with warning
+  PASS  plan-lint.sh is idempotent (same stdout on second run)
+  PASS  plan-lint.sh accepts relative plans/*.md paths
+  PASS  plan-lint.sh works with registry CLAUDE_TOOL_FILE_PATH command shape
+  PASS  code-index-post-edit.sh exists
+  PASS  code-index-post-edit.sh is executable
+  PASS  code-index-post-edit.sh with no arg exits 0 silently
+  PASS  code-index-post-edit.sh with no provider marker is silent no-op
+  PASS  code-index-post-edit.sh with axon marker exits 0
+  PASS  code-index-post-edit.sh axon: pending-writes.txt created
+  PASS  code-index-post-edit.sh axon: queue contains the edited file path
+  PASS  code-index-post-edit.sh axon: idempotent append (provider dedupes)
+  PASS  claude-md-guard.sh exists
+  PASS  claude-md-guard.sh is executable
+  PASS  claude-md-guard.sh with no arg exits 0 silently
+  PASS  claude-md-guard.sh allows AGENTS.md
+  PASS  claude-md-guard.sh blocks CLAUDE.md with deny JSON
+  PASS  on-notification.sh exists
+  PASS  on-notification.sh is executable
+  PASS  on-notification.sh respects HSEOS_NOTIFICATION_SILENT=1 (silent exit 0)
+  PASS  on-notification.sh exits 0 with default args
+  PASS  on-notification.sh with no arg exits 0
+  PASS  on-notification.sh is idempotent (same exit on second run)
+  PASS  pre-compact.sh exists
+  PASS  pre-compact.sh is executable
+  PASS  pre-compact.sh outside HSEOS project is silent no-op
+  PASS  pre-compact.sh inside HSEOS project exits 0
+  PASS  pre-compact.sh writes PRE-COMPACT.md to .hseos/runs/sessions/<id>/
+  PASS  pre-compact.sh snapshot contains required sections
+  PASS  pre-compact.sh embeds user-authored notes into snapshot
+  PASS  pre-compact.sh consumes (removes) the user notes file after embedding
+  PASS  on-prompt-submit.sh exists
+  PASS  on-prompt-submit.sh is executable
+  PASS  on-prompt-submit.sh outside HSEOS project is silent no-op
+  PASS  on-prompt-submit.sh inside HSEOS project exits 0
+  PASS  on-prompt-submit.sh creates .hseos/runs/sessions/<id>/prompts/
+  PASS  on-prompt-submit.sh writes one prompt file
+  PASS  on-prompt-submit.sh prompt file contains the prompt
+  PASS  on-prompt-submit.sh with empty stdin is silent no-op
+  PASS  on-prompt-submit.sh with empty stdin does not create prompts dir
+  PASS  on-prompt-submit.sh emits SWARM advisory on /plan with heterogeneous signals
+  PASS  on-prompt-submit.sh skips SWARM advisory on simple /plan (no heterogeneous signals)
+  PASS  session-end.sh exists
+  PASS  session-end.sh is executable
+  PASS  session-end.sh outside HSEOS project is silent no-op
+  PASS  session-end.sh inside HSEOS exits 0 (Tier 1 only)
+  PASS  session-end.sh writes SESSION-END.md marker
+  PASS  session-end.sh marker contains required sections
+  PASS  session-end.sh with enabled:false skips Tier 2 (vault untouched)
+  PASS  session-end.sh enabled:false: vault activity-log NOT modified
+  PASS  session-end.sh enabled:false: .needs-end-session flag NOT created
+  PASS  session-end.sh with enabled:true exits 0 (Tier 1 + 2)
+  PASS  session-end.sh enabled:true: vault activity-log appended
+  PASS  session-end.sh enabled:true: .needs-end-session flag created
+  PASS  suggest-skill.sh exists
+  PASS  suggest-skill.sh is executable
+  PASS  suggest-skill.sh outside HSEOS project is silent no-op
+  PASS  suggest-skill.sh emits advisory when prompt matches a skill trigger
+  PASS  suggest-skill.sh advisory does not include unrelated skills
+  PASS  suggest-skill.sh silent when no skill triggers match
+  PASS  suggest-skill.sh with empty stdin is silent no-op
+  PASS  code-index-guard.sh exists
+  PASS  code-index-guard.sh is executable
+  PASS  code-index-guard.sh with no provider → silent allow
+  PASS  code-index-guard.sh with provider but no index → silent allow
+  PASS  code-index-guard.sh with provider+index on Grep → emits blocking JSON
+  PASS  code-index-guard.sh with provider+index on Glob → emits blocking JSON
+  PASS  code-index-guard.sh respects HSEOS_BYPASS_INDEX=1 (silent allow)
+  PASS  code-index-guard.sh ignores non-Grep/Glob tools
+  PASS  session-track.sh exists
+  PASS  session-track.sh detaches outside the host process group
+  PASS  session-track.sh uses the project-local installed hseos binary
+  PASS  managed-governance-preflight.sh exists
+  PASS  managed-governance-preflight.sh is executable
+  PASS  managed-governance-preflight.sh self-suppresses when unconfigured
+  PASS  managed-governance-preflight.sh reports drift without blocking
+  PASS  managed-governance-preflight.sh falls back to a working global CLI when source dependencies are unavailable
+
+83 passed, 0 failed
+blocking-hooks behavior tests
+  PASS  swarm-gate: execution agent without model → ask (missing sonnet)
+  PASS  swarm-gate: execution agent with model=sonnet → allow
+  PASS  swarm-gate: execution agent with model=opus (no strategic opt-in) → ask
+  PASS  swarm-gate: dev-squad pattern without active run → ask (blocking gate)
+  PASS  swarm-gate: dev-squad pattern with active-run flag → allow (bypass)
+  PASS  claude-md-guard: CLAUDE.md path argument → deny
+  PASS  claude-md-guard: CLAUDE.md via stdin payload → deny
+  PASS  claude-md-guard: non-CLAUDE.md path → silent allow (exit 0, no decision)
+  PASS  ado-branch-guard: push to trunk with ado.enabled → blocked (exit 2)
+  PASS  ado-branch-guard: push to feature branch → allowed (exit 0)
+  PASS  ado-branch-guard: feature flag off → silent no-op even for trunk push
+
+Blocking-hook tests: 11 passed, 0 failed
+
+▶ branch-guard tests
+  ✓ syntax check
+  ✓ non-push command passes
+  ✓ feature branch push allowed
+
+  Result: 3 passed | 0 failed
+
+╔══════════════════════════════════════════════╗
+║  Feature Flag Disabled — Invariant Tests     ║
+╚══════════════════════════════════════════════╝
+
+▶ ado-preflight-gate.sh (PreToolUse/Agent)
+  ✓ exit 0 when ado.enabled=false
+
+▶ ado-branch-guard.sh (PreToolUse/Bash)
+  ✓ exit 0 when ado.enabled=false (even for trunk push)
+
+▶ ado-on-plan-write.sh (PostToolUse/Write)
+  ✓ exit 0 when ado.enabled=false
+
+▶ ado-task-progress.sh (PostToolUse/Bash)
+  ✓ exit 0 when ado.enabled=false
+
+▶ ado-pr-link.sh (PostToolUse/Bash)
+  ✓ exit 0 when ado.enabled=false
+
+▶ ado-tag-close.sh (PostToolUse/Bash)
+  ✓ exit 0 when ado.enabled=false
+
+▶ No network calls (ADO_PAT not used)
+  ✓ No ADO REST calls attempted (ADO_PAT was never set)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Result: 7 passed | 0 failed
+  ✅ INVARIANT VERIFIED: all hooks silent when ado.enabled=false
+
+▶ pr-link tests
+  ✓ syntax check
+  ✓ non-PR command skipped
+
+  Result: 2 passed | 0 failed
+
+▶ preflight-gate tests
+  ✓ syntax check
+  ✓ skip for non-dev-squad agent type
+
+  Result: 2 passed | 0 failed
+
+▶ tag-close tests
+  ✓ syntax check
+  ✓ non-tag command skipped
+
+  Result: 2 passed | 0 failed
+  PASS  state-emit-hook.sh exists
+  PASS  state-emit-hook.sh is executable
+  PASS  no-context + no DB → silent exit 0
+  PASS  hook ignores arbitrary global hseos binaries
+  PASS  DB with completed run only → silent exit 0
+  PASS  active run in DB → hook exits 0
+  PASS  active run in DB → hseos called with correct --run id
+  PASS  active run in DB → kind=start passed to state-emit
+  PASS  env RUN_ID takes precedence over DB
+  PASS  PostToolUse + no context → silent exit 0
+
+State-emit hook tests: 10 passed, 0 failed
+Agent core compiler hook adapter tests
+  PASS  canonical hook registry uses strict schema v2
+  PASS  every canonical hook declares status
+  PASS  session registration keeps the old id deprecated and activates the project-store id
+  PASS  strict hook schema rejects omitted status
+  PASS  legacy hook schema remains a bounded compatibility input
+  PASS  compiler emits active plan-lint hook to Claude adapter
+  PASS  compiler excludes pending hooks from Claude adapter
+│
+◆  Agent core compiled: 53 skills, 39 hooks, 0 commands, 28 handlers -> .agents/manifest.yaml
+  PASS  agent-core compile --target claude-code emits Claude hooks adapter
+  PASS  agent-core compile emits pre-compact hook (status: active in registry)
+│
+◆  Agent core compiled: 53 skills, 39 hooks, 0 commands, 28 handlers, 1 mcp servers -> .agents/manifest.yaml
+  PASS  agent-core compile --target codex emits .codex/config.toml
+  PASS  agent-core compile preserves canonical MCP client activation
+  PASS  agent-core compile --target codex emits hook metadata
+│
+◆  Agent core compiled: 53 skills, 39 hooks, 0 commands, 28 handlers -> .agents/manifest.yaml
+  PASS  agent-core compile --target claude-code emits CLAUDE.md
+  PASS  CLAUDE.md opens with the mandatory @AGENTS.md import
+│
+◆  Agent core compiled: 53 skills, 39 hooks, 0 commands, 28 handlers -> .agents/manifest.yaml
+  PASS  pre-existing CLAUDE.md is preserved on recompile
+│
+◆  Agent core compiled: 53 skills, 39 hooks, 0 commands, 28 handlers -> .agents/manifest.yaml
+  PASS  CLAUDE.md is not emitted when claude-code is not a selected platform
+│
+◆  Agent core compiled: 53 skills, 39 hooks, 0 commands, 28 handlers, 2 agents -> .agents/manifest.yaml
+  PASS  manifest registers agents with counts.agents
+  PASS  manifest registers the peer agent code (SWARM)
+  PASS  manifest derives a code for the core agent (HSEOS-MASTER)
+  PASS  each agent entry carries code, file, and a sha256
+│
+◆  Agent core compiled: 53 skills, 39 hooks, 0 commands, 28 handlers, 2 plugins -> .agents/manifest.yaml
+  PASS  manifest registers plugins with counts.plugins
+  PASS  plugin extends is captured only when present
+  PASS  inactive plugin candidates are omitted from the compiled manifest
+  PASS  compiler emits only active plugin definitions to the platform marketplace
+  PASS  compile fails closed when an active plugin has no definition
+  PASS  failed compile does not write a manifest
+  PASS  failed compile does not write a marketplace
+  PASS  compile rejects an active plugin with failing behavior tests
+  PASS  failed conformance writes no manifest
+  PASS  failed conformance writes no marketplace
+│
+◆  Agent core compiled: 53 skills, 39 hooks, 0 commands, 28 handlers, 2 mcp servers -> .agents/manifest.yaml
+  PASS  manifest registers mcp_bundles_active from config
+  PASS  manifest enumerates servers across active bundles with counts
+  PASS  mcp server entries carry id, transport, and bundle
+│
+◆  Agent core compiled: 53 skills, 39 hooks, 0 commands, 28 handlers -> .agents/manifest.yaml
+  PASS  manifest omits agents/plugins/mcp catalogs when none are present
+  PASS  claude-code agent surface emits one markdown file per agent
+  PASS  claude-code agent file carries the frontmatter Claude Code expects
+  PASS  claude-code agent surface rejects colliding portable names
+│
+◆  Agent core compiled: 53 skills, 39 hooks, 0 commands, 28 handlers -> .agents/manifest.yaml
+  PASS  claude-code adapter mirrors the governed skills into .claude/skills
+  PASS  claude-code skill surface carries SKILL.md with real content
+  PASS  manifest advertises only claude-code surfaces that exist on disk
+│
+◆  Agent core compiled: 53 skills, 39 hooks, 0 commands, 28 handlers -> .agents/manifest.yaml
+  PASS  claude-code skill surface is reconciled, not appended
+│
+◆  Agent core compiled: 53 skills, 39 hooks, 0 commands, 28 handlers -> .agents/manifest.yaml
+  PASS  agent-core compile --target goose emits .goose/config.yaml
+  PASS  goose adapter mirrors the governed skills
+  PASS  manifest platforms record exactly the emitted platform
+  PASS  manifest adapters block is derived from emitted platforms only
+  PASS  goose adapter surface lists the emitted config path
+  PASS  compile --target cursor is rejected (no emitter behind it)
+
+Compiler hook tests: 47 passed, 0 failed
+✔ workflow catalog distinguishes methodology recipes from side-car subsystems (46.48939ms)
+✔ workflow schema fails closed on ambiguous kinds, duplicate phases, and unsafe entrypoints (68.8945ms)
+✔ workflow schema rejects invalid dependencies and executable fields on subsystems (37.312684ms)
+✔ workflow schema accepts and deterministically normalizes the bounded v1 catalog (16.588283ms)
+✔ MCP workflow discovery uses the parsed catalog and profile membership (69.759814ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 373.461768
+  PASS  catalog exposes expected capability profiles
+  PASS  developer is the default capability profile
+  PASS  catalog exposes required baseline governance component
+  PASS  catalog generates synthetic skill components
+  PASS  catalog is validated as capability schema v2
+  PASS  catalog rejects unknown dependencies even outside selected profiles
+  PASS  catalog rejects cycle dependencies even outside selected profiles
+  PASS  profiles do not duplicate the resolver-injected baseline
+  PASS  schema v2 rejects legacy schema version
+  PASS  schema v2 rejects missing mandatory baseline
+  PASS  schema v2 rejects baseline repeated inside a profile
+  PASS  schema v2 rejects hosted profile with a phantom model provider
+  PASS  schema v2 rejects kernel profile without a model provider
+  PASS  schema v2 rejects kernel profile with a delegated runtime provider
+  PASS  schema v2 rejects unknown component field
+  PASS  schema v2 rejects malformed hook profile id
+  PASS  schema v2 rejects arbitrary hook blocking mode
+  PASS  schema v2 rejects Windows absolute install path on POSIX
+  PASS  schema v2 rejects Windows UNC install path on POSIX
+  PASS  schema v2 rejects Windows root-relative install path on POSIX
+  PASS  schema v2 rejects Windows device install path on POSIX
+  PASS  resolver rejects inherited profile key constructor
+  PASS  resolver rejects inherited hook key constructor
+  PASS  resolver rejects inherited profile key toString
+  PASS  resolver rejects inherited hook key toString
+  PASS  resolver rejects inherited profile key __proto__
+  PASS  resolver rejects inherited hook key __proto__
+  PASS  every resolved component exposes a closed surface class
+  PASS  every standalone surface path exists
+  PASS  surface lifecycle rejects missing component coverage
+  PASS  surface lifecycle rejects baseline demotion
+  PASS  surface lifecycle rejects unsafe standalone path
+  PASS  surface lifecycle rejects classification and id mismatch
+  PASS  compiled capability README.md matches its canonical source
+  PASS  compiled capability profiles.yaml matches its canonical source
+  PASS  compiled capability components.yaml matches its canonical source
+  PASS  compiled capability surfaces.yaml matches its canonical source
+  PASS  catalog prefers the complete canonical source
+  PASS  compiler never synthesizes missing lifecycle metadata for a canonical source
+  PASS  catalog supports a true legacy compiled-only installation without surfaces
+  PASS  compiler upgrades a legacy generated catalog instead of returning early
+  PASS  upgraded compiled catalog passes the strict surface contract
+  PASS  all profiles reference known components
+  PASS  all capability components reference known skills
+  PASS  every governed skill belongs to at least one capability-family component
+  PASS  component prerequisites are non-empty string lists when declared
+  PASS  resolved plan carries prerequisites through to components
+  PASS  minimal profile resolves advisory hook profile
+  PASS  profile plan preserves required governance baseline
+  PASS  profile plan resolves tool targets
+  PASS  full profile activates the Goose emitter
+  PASS  skill-only plan includes requested skill
+  PASS  skill-only plan includes synthetic skill component
+  PASS  skill-only plan still includes required baseline
+  PASS  skill-only plan accepts hook profile override
+  PASS  equivalent selector sets resolve byte-equivalent plans
+  PASS  adapter matrix includes Codex and Claude Code
+  PASS  Codex adapter records portable hook metadata
+  PASS  install-plan --list-profiles emits undecorated JSON
+  PASS  install-plan --list-components emits undecorated JSON
+  PASS  install-plan --list-skills emits undecorated JSON
+  PASS  install-plan --adapters emits undecorated JSON
+  PASS  install-plan resolves the distributed catalog from an empty consumer repository
+  PASS  compiler materializes the portable adapter matrix for consumers
+  PASS  install command exposes capability profile option
+  PASS  install command exposes capability component option
+  PASS  install command exposes skill selector option
+  PASS  install command exposes hook profile option
+  PASS  catalog exposes the four installer extras
+  PASS  every extra declares prerequisites
+  PASS  no profile bundles an extra (pure opt-in invariant)
+  PASS  managed governance client is an opt-in module with bounded package paths
+  PASS  no profile activates managed governance implicitly
+  PASS  portable plan omits managed surfaces unless explicitly selected
+  PASS  preflight remains a pre-activation candidate
+  PASS  control plane and console remain opt-in sidecars
+  PASS  extra:rtk selection activates the rtk flag
+  PASS  extra:usage-dashboard selection defaults to local mode
+  PASS  extra:second-brain without path yields an advisory note
+  PASS  explicit flags always win over component selection
+  PASS  ado compiler materializes the canonical capability catalog
+  PASS  ado manifest skills equal selected skills
+  PASS  ado emitted adapters equal selected adapters
+  PASS  ado filesystem skills equal selected skills
+  PASS  ado emitted skill files equal planned install paths
+  PASS  ado retains the exact mandatory baseline
+  PASS  agent-claude-delegated-candidate compiler materializes the canonical capability catalog
+  PASS  agent-claude-delegated-candidate manifest skills equal selected skills
+  PASS  agent-claude-delegated-candidate emitted adapters equal selected adapters
+  PASS  agent-claude-delegated-candidate filesystem skills equal selected skills
+  PASS  agent-claude-delegated-candidate emitted skill files equal planned install paths
+  PASS  agent-claude-delegated-candidate retains the exact mandatory baseline
+  PASS  agent-codex-delegated-candidate compiler materializes the canonical capability catalog
+  PASS  agent-codex-delegated-candidate manifest skills equal selected skills
+  PASS  agent-codex-delegated-candidate emitted adapters equal selected adapters
+  PASS  agent-codex-delegated-candidate filesystem skills equal selected skills
+  PASS  agent-codex-delegated-candidate emitted skill files equal planned install paths
+  PASS  agent-codex-delegated-candidate retains the exact mandatory baseline
+  PASS  agent-deepseek-one-shot-candidate compiler materializes the canonical capability catalog
+  PASS  agent-deepseek-one-shot-candidate manifest skills equal selected skills
+  PASS  agent-deepseek-one-shot-candidate emitted adapters equal selected adapters
+  PASS  agent-deepseek-one-shot-candidate filesystem skills equal selected skills
+  PASS  agent-deepseek-one-shot-candidate emitted skill files equal planned install paths
+  PASS  agent-deepseek-one-shot-candidate retains the exact mandatory baseline
+  PASS  agent-openai-compatible-candidate compiler materializes the canonical capability catalog
+  PASS  agent-openai-compatible-candidate manifest skills equal selected skills
+  PASS  agent-openai-compatible-candidate emitted adapters equal selected adapters
+  PASS  agent-openai-compatible-candidate filesystem skills equal selected skills
+  PASS  agent-openai-compatible-candidate emitted skill files equal planned install paths
+  PASS  agent-openai-compatible-candidate retains the exact mandatory baseline
+  PASS  agent-reference compiler materializes the canonical capability catalog
+  PASS  agent-reference manifest skills equal selected skills
+  PASS  agent-reference emitted adapters equal selected adapters
+  PASS  agent-reference filesystem skills equal selected skills
+  PASS  agent-reference emitted skill files equal planned install paths
+  PASS  agent-reference retains the exact mandatory baseline
+  PASS  developer compiler materializes the canonical capability catalog
+  PASS  developer manifest skills equal selected skills
+  PASS  developer emitted adapters equal selected adapters
+  PASS  developer filesystem skills equal selected skills
+  PASS  developer emitted skill files equal planned install paths
+  PASS  developer retains the exact mandatory baseline
+  PASS  disposable-engineering-candidate compiler materializes the canonical capability catalog
+  PASS  disposable-engineering-candidate manifest skills equal selected skills
+  PASS  disposable-engineering-candidate emitted adapters equal selected adapters
+  PASS  disposable-engineering-candidate filesystem skills equal selected skills
+  PASS  disposable-engineering-candidate emitted skill files equal planned install paths
+  PASS  disposable-engineering-candidate retains the exact mandatory baseline
+  PASS  full compiler materializes the canonical capability catalog
+  PASS  full manifest skills equal selected skills
+  PASS  full emitted adapters equal selected adapters
+  PASS  full filesystem skills equal selected skills
+  PASS  full emitted skill files equal planned install paths
+  PASS  full retains the exact mandatory baseline
+  PASS  gitops compiler materializes the canonical capability catalog
+  PASS  gitops manifest skills equal selected skills
+  PASS  gitops emitted adapters equal selected adapters
+  PASS  gitops filesystem skills equal selected skills
+  PASS  gitops emitted skill files equal planned install paths
+  PASS  gitops retains the exact mandatory baseline
+  PASS  governance compiler materializes the canonical capability catalog
+  PASS  governance manifest skills equal selected skills
+  PASS  governance emitted adapters equal selected adapters
+  PASS  governance filesystem skills equal selected skills
+  PASS  governance emitted skill files equal planned install paths
+  PASS  governance retains the exact mandatory baseline
+  PASS  minimal compiler materializes the canonical capability catalog
+  PASS  minimal manifest skills equal selected skills
+  PASS  minimal emitted adapters equal selected adapters
+  PASS  minimal filesystem skills equal selected skills
+  PASS  minimal emitted skill files equal planned install paths
+  PASS  minimal retains the exact mandatory baseline
+  PASS  solo compiler materializes the canonical capability catalog
+  PASS  solo manifest skills equal selected skills
+  PASS  solo emitted adapters equal selected adapters
+  PASS  solo filesystem skills equal selected skills
+  PASS  solo emitted skill files equal planned install paths
+  PASS  solo retains the exact mandatory baseline
+  PASS  full profile materializes the selected Goose surface
+  PASS  profile downgrade removes previously emitted unselected skills
+  PASS  profile downgrade removes the previously compiler-owned Goose surface
+
+Capability catalog tests: 161 passed, 0 failed
+  PASS  canonical federated graph passes deterministic validation
+  PASS  official composition fails closed when any registered fragment is deferred
+  PASS  schema 2.0 is usable through the real registry entrypoint
+  PASS  verified adoption requires a published installed artifact
+  PASS  PCCP schema 2.0 classifiers and critical negative fixtures fail closed
+  PASS  automatic JSON Schema compatibility detects constraint tightening
+  PASS  delegated Git fragments require immutable revision pins
+  PASS  mapped Git fragments are loaded from their pinned commit
+  PASS  repository traversal is rejected
+  PASS  dangling graph edges fail closed
+  PASS  typed relationship endpoints fail closed
+  PASS  semantic relationships require tracked evidence
+  PASS  multiple canonical owners fail closed
+  PASS  dependency cycles fail closed
+  PASS  expired exceptions fail closed
+  PASS  semantic findings cannot auto-promote canonical edges
+  PASS  exact graph query returns typed relationships
+  PASS  constitutional versions require monotonic increase
+  PASS  current constitutional amendment is linked and protected
+
+Capability graph governance tests: 19 passed, 0 failed
+  PASS  canonical reference corpus validates as discovery-only
+  PASS  five product sentinels cover 29 of 33 migration-view capabilities
+  PASS  reference corpus cannot claim canonical mutation or adoption
+  PASS  product sentinel cannot masquerade as a contract or projection source
+  PASS  capability signals outside the migration baseline fail closed
+  PASS  mutable revisions and evidence path traversal fail closed
+  PASS  repository aliases normalize to the same immutable identity
+  PASS  pinned evidence is loaded from the Git object, not the working tree
+  PASS  exact capability query returns product and core discovery sources
+
+Capability reference corpus tests: 9 passed, 0 failed
+repository identity contract tests passed
+✔ workflow catalog distinguishes methodology recipes from side-car subsystems (45.219033ms)
+✔ workflow schema fails closed on ambiguous kinds, duplicate phases, and unsafe entrypoints (78.002852ms)
+✔ workflow schema rejects invalid dependencies and executable fields on subsystems (46.858232ms)
+✔ workflow schema accepts and deterministically normalizes the bounded v1 catalog (20.723636ms)
+✔ MCP workflow discovery uses the parsed catalog and profile membership (94.831256ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 408.178078
+---------------------|---------|----------|---------|---------|-------------------------------------
+File                 | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                   
+---------------------|---------|----------|---------|---------|-------------------------------------
+All files            |   94.28 |    75.47 |     100 |   94.28 |                                     
+ workflow-catalog.js |   94.28 |    75.47 |     100 |   94.28 | ...,150-151,153-154,180-181,202-203 
+---------------------|---------|----------|---------|---------|-------------------------------------
+  PASS  catalog exposes expected capability profiles
+  PASS  developer is the default capability profile
+  PASS  catalog exposes required baseline governance component
+  PASS  catalog generates synthetic skill components
+  PASS  catalog is validated as capability schema v2
+  PASS  catalog rejects unknown dependencies even outside selected profiles
+  PASS  catalog rejects cycle dependencies even outside selected profiles
+  PASS  profiles do not duplicate the resolver-injected baseline
+  PASS  schema v2 rejects legacy schema version
+  PASS  schema v2 rejects missing mandatory baseline
+  PASS  schema v2 rejects baseline repeated inside a profile
+  PASS  schema v2 rejects hosted profile with a phantom model provider
+  PASS  schema v2 rejects kernel profile without a model provider
+  PASS  schema v2 rejects kernel profile with a delegated runtime provider
+  PASS  schema v2 rejects unknown component field
+  PASS  schema v2 rejects malformed hook profile id
+  PASS  schema v2 rejects arbitrary hook blocking mode
+  PASS  schema v2 rejects Windows absolute install path on POSIX
+  PASS  schema v2 rejects Windows UNC install path on POSIX
+  PASS  schema v2 rejects Windows root-relative install path on POSIX
+  PASS  schema v2 rejects Windows device install path on POSIX
+  PASS  resolver rejects inherited profile key constructor
+  PASS  resolver rejects inherited hook key constructor
+  PASS  resolver rejects inherited profile key toString
+  PASS  resolver rejects inherited hook key toString
+  PASS  resolver rejects inherited profile key __proto__
+  PASS  resolver rejects inherited hook key __proto__
+  PASS  every resolved component exposes a closed surface class
+  PASS  every standalone surface path exists
+  PASS  surface lifecycle rejects missing component coverage
+  PASS  surface lifecycle rejects baseline demotion
+  PASS  surface lifecycle rejects unsafe standalone path
+  PASS  surface lifecycle rejects classification and id mismatch
+  PASS  compiled capability README.md matches its canonical source
+  PASS  compiled capability profiles.yaml matches its canonical source
+  PASS  compiled capability components.yaml matches its canonical source
+  PASS  compiled capability surfaces.yaml matches its canonical source
+  PASS  catalog prefers the complete canonical source
+  PASS  compiler never synthesizes missing lifecycle metadata for a canonical source
+  PASS  catalog supports a true legacy compiled-only installation without surfaces
+  PASS  compiler upgrades a legacy generated catalog instead of returning early
+  PASS  upgraded compiled catalog passes the strict surface contract
+  PASS  all profiles reference known components
+  PASS  all capability components reference known skills
+  PASS  every governed skill belongs to at least one capability-family component
+  PASS  component prerequisites are non-empty string lists when declared
+  PASS  resolved plan carries prerequisites through to components
+  PASS  minimal profile resolves advisory hook profile
+  PASS  profile plan preserves required governance baseline
+  PASS  profile plan resolves tool targets
+  PASS  full profile activates the Goose emitter
+  PASS  skill-only plan includes requested skill
+  PASS  skill-only plan includes synthetic skill component
+  PASS  skill-only plan still includes required baseline
+  PASS  skill-only plan accepts hook profile override
+  PASS  equivalent selector sets resolve byte-equivalent plans
+  PASS  adapter matrix includes Codex and Claude Code
+  PASS  Codex adapter records portable hook metadata
+  PASS  install-plan --list-profiles emits undecorated JSON
+  PASS  install-plan --list-components emits undecorated JSON
+  PASS  install-plan --list-skills emits undecorated JSON
+  PASS  install-plan --adapters emits undecorated JSON
+  PASS  install-plan resolves the distributed catalog from an empty consumer repository
+  PASS  compiler materializes the portable adapter matrix for consumers
+  PASS  install command exposes capability profile option
+  PASS  install command exposes capability component option
+  PASS  install command exposes skill selector option
+  PASS  install command exposes hook profile option
+  PASS  catalog exposes the four installer extras
+  PASS  every extra declares prerequisites
+  PASS  no profile bundles an extra (pure opt-in invariant)
+  PASS  managed governance client is an opt-in module with bounded package paths
+  PASS  no profile activates managed governance implicitly
+  PASS  portable plan omits managed surfaces unless explicitly selected
+  PASS  preflight remains a pre-activation candidate
+  PASS  control plane and console remain opt-in sidecars
+  PASS  extra:rtk selection activates the rtk flag
+  PASS  extra:usage-dashboard selection defaults to local mode
+  PASS  extra:second-brain without path yields an advisory note
+  PASS  explicit flags always win over component selection
+  PASS  ado compiler materializes the canonical capability catalog
+  PASS  ado manifest skills equal selected skills
+  PASS  ado emitted adapters equal selected adapters
+  PASS  ado filesystem skills equal selected skills
+  PASS  ado emitted skill files equal planned install paths
+  PASS  ado retains the exact mandatory baseline
+  PASS  agent-claude-delegated-candidate compiler materializes the canonical capability catalog
+  PASS  agent-claude-delegated-candidate manifest skills equal selected skills
+  PASS  agent-claude-delegated-candidate emitted adapters equal selected adapters
+  PASS  agent-claude-delegated-candidate filesystem skills equal selected skills
+  PASS  agent-claude-delegated-candidate emitted skill files equal planned install paths
+  PASS  agent-claude-delegated-candidate retains the exact mandatory baseline
+  PASS  agent-codex-delegated-candidate compiler materializes the canonical capability catalog
+  PASS  agent-codex-delegated-candidate manifest skills equal selected skills
+  PASS  agent-codex-delegated-candidate emitted adapters equal selected adapters
+  PASS  agent-codex-delegated-candidate filesystem skills equal selected skills
+  PASS  agent-codex-delegated-candidate emitted skill files equal planned install paths
+  PASS  agent-codex-delegated-candidate retains the exact mandatory baseline
+  PASS  agent-deepseek-one-shot-candidate compiler materializes the canonical capability catalog
+  PASS  agent-deepseek-one-shot-candidate manifest skills equal selected skills
+  PASS  agent-deepseek-one-shot-candidate emitted adapters equal selected adapters
+  PASS  agent-deepseek-one-shot-candidate filesystem skills equal selected skills
+  PASS  agent-deepseek-one-shot-candidate emitted skill files equal planned install paths
+  PASS  agent-deepseek-one-shot-candidate retains the exact mandatory baseline
+  PASS  agent-openai-compatible-candidate compiler materializes the canonical capability catalog
+  PASS  agent-openai-compatible-candidate manifest skills equal selected skills
+  PASS  agent-openai-compatible-candidate emitted adapters equal selected adapters
+  PASS  agent-openai-compatible-candidate filesystem skills equal selected skills
+  PASS  agent-openai-compatible-candidate emitted skill files equal planned install paths
+  PASS  agent-openai-compatible-candidate retains the exact mandatory baseline
+  PASS  agent-reference compiler materializes the canonical capability catalog
+  PASS  agent-reference manifest skills equal selected skills
+  PASS  agent-reference emitted adapters equal selected adapters
+  PASS  agent-reference filesystem skills equal selected skills
+  PASS  agent-reference emitted skill files equal planned install paths
+  PASS  agent-reference retains the exact mandatory baseline
+  PASS  developer compiler materializes the canonical capability catalog
+  PASS  developer manifest skills equal selected skills
+  PASS  developer emitted adapters equal selected adapters
+  PASS  developer filesystem skills equal selected skills
+  PASS  developer emitted skill files equal planned install paths
+  PASS  developer retains the exact mandatory baseline
+  PASS  disposable-engineering-candidate compiler materializes the canonical capability catalog
+  PASS  disposable-engineering-candidate manifest skills equal selected skills
+  PASS  disposable-engineering-candidate emitted adapters equal selected adapters
+  PASS  disposable-engineering-candidate filesystem skills equal selected skills
+  PASS  disposable-engineering-candidate emitted skill files equal planned install paths
+  PASS  disposable-engineering-candidate retains the exact mandatory baseline
+  PASS  full compiler materializes the canonical capability catalog
+  PASS  full manifest skills equal selected skills
+  PASS  full emitted adapters equal selected adapters
+  PASS  full filesystem skills equal selected skills
+  PASS  full emitted skill files equal planned install paths
+  PASS  full retains the exact mandatory baseline
+  PASS  gitops compiler materializes the canonical capability catalog
+  PASS  gitops manifest skills equal selected skills
+  PASS  gitops emitted adapters equal selected adapters
+  PASS  gitops filesystem skills equal selected skills
+  PASS  gitops emitted skill files equal planned install paths
+  PASS  gitops retains the exact mandatory baseline
+  PASS  governance compiler materializes the canonical capability catalog
+  PASS  governance manifest skills equal selected skills
+  PASS  governance emitted adapters equal selected adapters
+  PASS  governance filesystem skills equal selected skills
+  PASS  governance emitted skill files equal planned install paths
+  PASS  governance retains the exact mandatory baseline
+  PASS  minimal compiler materializes the canonical capability catalog
+  PASS  minimal manifest skills equal selected skills
+  PASS  minimal emitted adapters equal selected adapters
+  PASS  minimal filesystem skills equal selected skills
+  PASS  minimal emitted skill files equal planned install paths
+  PASS  minimal retains the exact mandatory baseline
+  PASS  solo compiler materializes the canonical capability catalog
+  PASS  solo manifest skills equal selected skills
+  PASS  solo emitted adapters equal selected adapters
+  PASS  solo filesystem skills equal selected skills
+  PASS  solo emitted skill files equal planned install paths
+  PASS  solo retains the exact mandatory baseline
+  PASS  full profile materializes the selected Goose surface
+  PASS  profile downgrade removes previously emitted unselected skills
+  PASS  profile downgrade removes the previously compiler-owned Goose surface
+
+Capability catalog tests: 161 passed, 0 failed
+---------------------------------------|---------|----------|---------|---------|-------------------
+File                                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+---------------------------------------|---------|----------|---------|---------|-------------------
+All files                              |   80.09 |    75.98 |    93.1 |   80.09 |                   
+ ...b/core/agent-core-compiler/sources |   87.65 |    69.56 |     100 |   87.65 |                   
+  capabilities-source.js               |   87.65 |    69.56 |     100 |   87.65 | ...25-126,145-147 
+ lib                                   |   78.26 |    77.03 |   91.66 |   78.26 |                   
+  capability-catalog.js                |   78.26 |    77.03 |   91.66 |   78.26 | ...87-593,595-652 
+---------------------------------------|---------|----------|---------|---------|-------------------
+✔ published package exposes runtime and governance assets only (1686.515634ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1732.035923
+  PASS  overlay first call copies
+  PASS  overlay copies the constitution
+  PASS  overlay re-run preserves existing
+  PASS  overlay self-target is a no-op
+  PASS  workflow overlay first call copies
+  PASS  workflow overlay copies the governed registry
+  PASS  workflow overlay re-run preserves existing
+  PASS  workflow overlay self-target is a no-op
+  PASS  pre-commit hook installs
+  PASS  pre-commit hook invokes quality-gates.sh
+  PASS  pre-commit hook declares provenance
+  PASS  pre-commit hook re-run preserves existing
+  PASS  pre-commit hook reports no-git without .git/
+  PASS  state configuration creates a missing project config
+  PASS  fresh project config contains the selected state mode
+  PASS  uninstall contract explicitly preserves portable governance
+  PASS  compile emits AGENTS.md
+  PASS  AGENTS.md has the expected header
+  PASS  AGENTS.md points at PROJECT.md
+  PASS  compile emits the root entrypoint pointer
+  PASS  the pointer imports AGENTS.md on the first line
+  PASS  Codex cleanup preserves compiler-governed hseos skills
+  PASS  Codex cleanup removes stale generated launchers
+  PASS  pre-existing AGENTS.md is not overwritten
+  PASS  pre-existing root pointer is not overwritten
+
+Install emit smoke: 25 passed, 0 failed
+Agent core verify / audit / doctor tests
+  PASS  integrity returns ok:false when manifest missing
+  PASS  integrity ok with empty skills list
+  PASS  integrity has zero checks for empty skills
+  PASS  integrity ok when hash matches
+  PASS  integrity detects hash mismatch
+  PASS  integrity ok when agent hash matches
+  PASS  integrity emits a check for the agent
+  PASS  integrity detects agent drift
+  PASS  audit detects adapter drift for missing hook
+  PASS  audit reports no drift when hook is present
+  PASS  triangular: clean compile reports in-sync verdict
+  PASS  triangular: hand-edited output verdict
+  PASS  triangular: source-edited verdict
+  PASS  doctor passes on minimal valid project
+  PASS  doctor runs all 9 checks
+  PASS  doctor includes optional sandbox runtime check
+  PASS  doctor accepts a valid installation with no selected platform adapters
+  PASS  doctor fails when a selected platform adapter is missing
+  PASS  doctor repo_structure fails on empty dir
+  PASS  doctor overall fails when structure missing
+  PASS  doctor skills_consistency fails when SKILL.md missing
+  PASS  doctor resolves hook scripts prefixed by git root command substitution
+
+Verify/audit/doctor tests: 22 passed, 0 failed
+Sandbox CLI tests
+  ✓ builds standard ai-jail command with HSEOS safe defaults
+  ✓ sandbox doctor passes when ai-jail is missing but required=false
+  ✓ sandbox doctor fails when ai-jail is missing and required=true
+  ✓ required doctor accepts a functional bwrap profile without weakening the global AppArmor sysctl
+  ✓ required doctor rejects installed binaries when the clean lockdown probe fails
+  ✓ hseos sandbox run --dry-run prints command and does not require ai-jail
+  ✓ hseos sandbox doctor --json returns structured output
+
+7 passed, 0 failed
+✔ missing backend fails before any probe (1.174274ms)
+✔ exit zero and claimed writes do not prove an effect (2.80218ms)
+✔ confirmed effects pass only prerequisites with fixed commands and cleared environment (1.981797ms)
+✔ rejects symlink despite a successful-looking effect (1.111835ms)
+✔ rejects hardlink despite a successful-looking effect (1.011523ms)
+✔ rejects control-modification despite a successful-looking effect (1.401896ms)
+✔ rejects visible-control despite a successful-looking effect (0.716369ms)
+✔ rejects invalid-report despite a successful-looking effect (1.005683ms)
+✔ rejects timeout despite a successful-looking effect (0.595994ms)
+✔ public CLI fails closed against a backend that merely exits zero (81.014712ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 184.732494
+
+=== Plugin Marketplace Tests ===
+
+1. writePluginRegistry — loads 4 plugins from registry.yaml
+  PASS  returns array
+  PASS  returns 4 plugins
+  PASS  all have ids
+  PASS  all scaffolded
+
+2-3. writePlatformPluginAdapters — emits dual-format adapters
+  PASS  .claude-plugin/marketplace.json exists
+  PASS  .codex-plugin/plugin.json exists
+  PASS  Claude marketplace has no inactive entries
+  PASS  Codex marketplace has no inactive entries
+  PASS  stale Claude installation is disabled
+  PASS  stale Codex installation is disabled
+  PASS  orphan vendor installations are quarantined from both generated trees
+  PASS  Claude-only compile still disables stale Codex plugins
+
+4. plugin doctor — passes on real definitions tree
+  PASS  doctor passes without error
+  PASS  doctor reports all four inactive candidates
+  PASS  doctor reports zero active plugins passed
+
+5. plugin install — rejects inactive candidate
+  PASS  inactive install returns a clear error
+  PASS  Claude plugin is not written
+  PASS  Codex plugin is not written
+
+6. plugin doctor — rejects active plugin without behavior tests
+  PASS  doctor rejects missing behavior tests
+
+7. plugin doctor — executes active behavior tests
+  PASS  active behavior test executed
+
+8. plugin install — materializes validated surfaces for both vendors
+  PASS  .claude-plugin install contains manifest and declared command
+  PASS  .codex-plugin install contains manifest and declared command
+
+9. plugin install — rejects failing behavior before materialization
+  PASS  failing conformance rejects install
+  PASS  failing conformance writes no vendor plugin
+
+10. plugin install — rolls back cross-vendor preparation failure
+  PASS  second-vendor preparation failure is reported
+  PASS  preparation failure leaves no partial Claude install
+  PASS  preparation failure removes Claude staging artifacts
+
+11. plugin install — rolls back both vendors when second swap fails
+  PASS  second-swap failure is reported
+  PASS  .claude-plugin previous install is restored
+  PASS  .codex-plugin previous install is restored
+
+12. plugin install — cleanup failure cannot roll back a committed install
+  PASS  .claude-plugin keeps the committed new install
+  PASS  .codex-plugin keeps the committed new install
+  PASS  cleanup failure is reported as a warning
+
+13. plugin catalog — canonical source exactly replaces generated output
+  PASS  target canonical source wins
+  PASS  generated plugin tree is byte-exact with canonical source
+  PASS  stale generated plugin file is removed
+  PASS  direct generated edit is overwritten from canonical source
+
+14. plugin catalog — schema v2 fails closed
+  PASS  schema v2 rejects unknown top-level field
+  PASS  schema v2 rejects duplicate plugin id
+  PASS  schema v2 rejects unsafe plugin id
+  PASS  schema v2 rejects unknown plugin status
+  PASS  schema v2 rejects plugin id starting with a digit
+  PASS  schema v2 rejects invalid semver
+  PASS  schema v2 rejects invalid semver prerelease
+  PASS  schema v2 rejects wrong source authority
+  PASS  schema v2 rejects unknown schema version
+  PASS  schema v2 rejects unknown marketplace field
+  PASS  schema v2 rejects unsafe emit target
+  PASS  schema v2 rejects dot-dot emit target
+  PASS  schema v2 rejects divergent emit target
+  PASS  schema v2 rejects Windows traversal emit target
+  PASS  schema v2 rejects unsupported resolution policy
+  PASS  schema v2 rejects duplicate bundle
+  PASS  schema v2 rejects empty required files
+  PASS  schema v2 rejects duplicate required file
+  PASS  schema v2 rejects traversal required file
+  PASS  schema v2 rejects empty required manifest keys
+  PASS  schema v2 rejects empty reserved id prefix
+  PASS  known schema v1 remains a bounded compatibility input
+  PASS  schema v2 accepts SemVer build metadata
+
+15. plugin conformance — rejects symlink surface escape
+  PASS  active symlink surface outside definition is rejected
+
+16. plugin remove — rejects path traversal
+  PASS  unsafe remove id is rejected
+  PASS  unsafe remove cannot delete outside vendor roots
+
+17. plugin catalog — synchronization rollback preserves previous output
+  PASS  catalog swap failure is reported
+  PASS  previous generated tree is restored
+  PASS  catalog transaction artifacts are removed
+
+18. plugin catalog — invalid canonical input preserves previous generated output
+  PASS  invalid canonical registry is rejected before publication
+  PASS  previous generated output survives validation failure
+  PASS  canonical authority rejects legacy schema v1
+  PASS  v1 canonical rejection preserves previous output
+
+19. plugin conformance — rejects README symlink escape
+  PASS  README symlink outside definition is rejected
+
+20. plugin conformance — rejects Windows traversal surface
+  PASS  Windows traversal surface is rejected cross-platform
+
+21. plugin emission — active catalog entries have complete vendor directories
+  PASS  .claude-plugin emitter writes manifest, README, and surface
+  PASS  .codex-plugin emitter writes manifest, README, and surface
+
+22. plugin doctor — rejects unknown manifest fields under schema v2
+  PASS  schema-v2 doctor rejects unknown manifest field
+
+23. plugin emission — index failure rolls back both complete vendor roots
+  PASS  Codex index failure is reported
+  PASS  Claude vendor root remains byte-identical after failed publication
+  PASS  Codex vendor root remains byte-identical after failed publication
+  PASS  failed publication leaves no transaction directories
+
+24. plugin emission — active/inactive cycles remain truthful
+  PASS  .claude-plugin final scaffold is quarantined and not active
+  PASS  .codex-plugin final scaffold is quarantined and not active
+  PASS  final vendor indices advertise no scaffolded plugin
+
+25. plugin emission — rejects stale symlink entries
+  PASS  stale vendor symlink is rejected
+  PASS  rejected stale symlink remains unmodified
+
+26. plugin emission — rejects symlinked vendor roots and plugin containers
+  PASS  vendor-root symlink is rejected
+  PASS  vendor-root rejection writes nothing outside
+  PASS  plugins-container symlink is rejected
+  PASS  plugins-container rejection writes nothing outside
+
+=== Results: 88 passed, 0 failed ===
+
+@hseos/adapter-sdk + Goose adapter tests
+
+AdapterBase
+  PASS  static id getter throws
+  PASS  static version returns string
+  PASS  static capabilities returns array
+  PASS  validate returns ok:true
+  PASS  mapHookEvent is identity
+  PASS  mapToolName is identity
+  PASS  resolvePath is identity
+
+normalizeHookEvent
+  PASS  returns mapped value
+  PASS  falls back to raw value
+  PASS  empty map returns raw
+
+resolveAdapterOutputDir
+  PASS  returns .<adapter-id> at project root
+
+checkAdapterConformance
+  PASS  conformance fails for AdapterBase (no id)
+  PASS  conformance passes for GooseAdapter
+  PASS  conformance passes for CodexAdapter
+  PASS  conformance passes for minimal subclass
+
+GooseAdapter.emit
+  PASS  static id is goose
+  PASS  static capabilities is array
+  PASS  .goose/config.yaml created
+  PASS  .goose/skills/secure-coding.md created
+  PASS  .goose/agents/ghost.yaml created
+  PASS  .goose/hooks-metadata.json created
+  PASS  agent filenames are portable kebab-case
+  PASS  narrower agent compilation removes stale output
+  PASS  ambiguous or empty normalized agent names are rejected
+  PASS  ambiguous or empty normalized agent names are rejected
+  PASS  hooks-metadata.json has hooks array
+  PASS  hooks-metadata.json contains plan-lint
+
+GooseAdapter.validate
+  PASS  validate ok with no hooks
+  PASS  validate ok with hooks (but warns)
+
+GooseAdapter.verify + clean
+  PASS  verify fails when config missing
+  PASS  verify ok after emit
+  PASS  clean removes .goose/
+  PASS  clean removes .goose/ from disk
+
+GooseAdapter path mapping
+  PASS  resolvePath maps .claude/ to .goose/
+  PASS  mapHookEvent PostToolUse returns null (unsupported)
+
+CodexAdapter.emit
+  PASS  static id is codex
+  PASS  static capabilities is array
+  PASS  .codex/config.toml created
+  PASS  .codex/hseos-hooks.json created
+  PASS  config enables rmcp_client
+  PASS  config does not embed temp project path
+  PASS  config contains HSEOS MCP server
+  PASS  hooks metadata contains active hook
+
+CodexAdapter.verify + clean
+  PASS  verify fails when Codex artifacts are missing
+  PASS  verify ok after emit
+  PASS  clean removes Codex artifacts
+  PASS  clean removes .codex/config.toml from disk
+
+CodexAdapter path mapping
+  PASS  resolvePath maps .claude/ to .codex/
+  PASS  mapHookEvent returns null (metadata fallback)
+
+BYOA discovery
+  PASS  returns empty array when no @hseos scope
+  PASS  discovers simulated BYOA adapter
+  PASS  discovered adapter has correct id
+  PASS  discovered adapter has adapterClass
+
+buildAdapterRegistry
+  PASS  registry is a Map
+  PASS  registry contains goose
+  PASS  registry contains codex
+  PASS  registry returns GooseAdapter for goose
+  PASS  registry returns CodexAdapter for codex
+
+Adapter SDK tests: 58 passed, 0 failed
+mcp-hseos-governance smoke test
+  ✓ tools/list preserves 5 legacy tools and adds 10 managed read-only tools
+  ✓ initialize handshake
+  ✓ query_constitution (no article = all)
+  ✓ validate_adr architectural = required
+  ✓ validate_adr documentation = not required
+  ✓ check_authority ghost
+  ✓ list_skills returns array
+  ✓ list_workflows returns array
+
+8 passed, 0 failed
+✔ managed MCP catalog is read-only, strict and complete (1.233798ms)
+✔ query adapter loads only project-local managed-shadow configuration and maps read routes (1.646322ms)
+✔ MCP and CLI preserve the same managed-shadow decision without retaining request state (1.623204ms)
+✔ managed session preflight is exposed as a stateless read-only MCP query (0.406012ms)
+✔ unsafe, external and non-shadow configurations fail before network access (0.928598ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 229.391677
+mcp-hseos-swarm smoke test
+  ✓ tools/list returns 5 tools
+  ✓ list_runs returns array (may be empty)
+  ✓ plan_squad creates run dir + PLAN.md
+  ✓ get_run_state returns STATUS.md content
+  ✓ list_runs includes the new run
+  ✓ dispatch_wave no-waves returns gracefully
+
+6 passed, 0 failed
+MCP agent-state expansion smoke
+  ✓ tools/list includes new agent-state tools
+  ✓ run_create + runs_list roundtrip
+  ✓ agent_runs_list filters by run_id
+  ✓ orphans_list shape
+
+4 passed, 0 failed
+mcp stdio smoke test
+  ✓ hseos-governance discovery + tools/list over stdio
+  ✓ hseos-project-state discovery + tools/list over stdio
+  ✓ hseos-swarm discovery + tools/list over stdio
+
+3 passed, 0 failed
+mcp-axon-bridge smoke test (fallback mode)
+  ✓ tools/list returns 6 tools
+  ✓ initialize handshake
+  ✓ code_search returns fallback:true (no binary)
+  ✓ dep_graph returns fallback:true (no binary)
+  ✓ memory_search returns fallback:true (no binary)
+  ✓ get_skeleton returns fallback:true (no binary)
+  ✓ get_overview returns fallback:true (no binary)
+  ✓ run_pipeline returns fallback:true (no binary)
+
+8 passed, 0 failed
+mcp cross-server contract test
+  PASS  hseos-governance: fixture supports the gated modern protocol
+  PASS  hseos-governance: discovery returns serverInfo.name
+  PASS  hseos-governance: exposes at least one tool
+  PASS  hseos-governance: tool names are unique
+  PASS  hseos-governance: every tool declares name, description and inputSchema
+  PASS  hseos-project-state: fixture supports the gated modern protocol
+  PASS  hseos-project-state: discovery returns serverInfo.name
+  PASS  hseos-project-state: exposes at least one tool
+  PASS  hseos-project-state: tool names are unique
+  PASS  hseos-project-state: every tool declares name, description and inputSchema
+  PASS  hseos-swarm: fixture supports the gated modern protocol
+  PASS  hseos-swarm: discovery returns serverInfo.name
+  PASS  hseos-swarm: exposes at least one tool
+  PASS  hseos-swarm: tool names are unique
+  PASS  hseos-swarm: every tool declares name, description and inputSchema
+  PASS  axon-bridge (http): fixture supports the gated modern protocol
+  PASS  axon-bridge (http): discovery returns serverInfo.name
+  PASS  axon-bridge (http): exposes at least one tool
+  PASS  axon-bridge (http): tool names are unique
+  PASS  axon-bridge (http): every tool declares name, description and inputSchema
+  PASS  all four servers report an identical protocolVersion
+
+MCP contract tests: 21 passed, 0 failed
+✔ MRTR state codec enforces integrity, exact operation binding, and expiry (5.15163ms)
+✔ modern discovery and tool list are stateless, deterministic, cacheable, and server-stamped (69.284263ms)
+✔ modern HTTP routing headers are required and must match the body exactly (278.574226ms)
+✔ x-mcp-header parameters are validated against nested body values before execution (270.032045ms)
+✔ x-mcp-header rejects annotations outside an exclusive properties chain (68.968914ms)
+✔ modern calls use only the governed execution port and preserve one structured envelope (268.02546ms)
+✔ advertised output schema is enforced at the adapter boundary (267.448597ms)
+✔ execution port must return the exact canonical six-field envelope (594.408084ms)
+✔ invalid input and unsupported modern lifecycle methods fail before execution (389.73236ms)
+✔ schema and request limits fail closed and external references are rejected (96.910123ms)
+✔ absolute MCP execution deadline bounds a port that never settles (1027.762524ms)
+✔ legacy era is explicit, isolated, metered, deprecated, and cannot skip initialize (33.050465ms)
+✔ legacy usage evidence survives restart in a bounded daily aggregate (6.802113ms)
+✔ legacy activation readiness requires every hour of 30 completed zero-use days from every native server (318.429799ms)
+✔ one heartbeat per day cannot produce false-green legacy readiness (18.268764ms)
+✔ durable legacy telemetry bounds identity cardinality and expires old aggregates (25.792579ms)
+✔ legacy compatibility stops at the approved sunset and keeps identity metrics bounded (80.193956ms)
+✔ legacy approval failures are explicit, deprecated, and never redispatched (109.959488ms)
+✔ approval-required calls use MRTR only for capable modern clients and bind retry state through the approval flow (458.406812ms)
+✔ HTTP transport bounds bodies and returns the same modern structured semantics (393.340599ms)
+✔ legacy HTTP subset remains stateless, deprecated, and metered during the compatibility window (214.159763ms)
+✔ HTTP missing client capability maps to protocol -32021 and status 400 (96.935961ms)
+✔ modern stdio cancellation aborts the matching in-flight request (145.75158ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5357.301442
+✔ CLI, hook, project-state, and SWARM preserve identical governed-port semantics (3.70886ms)
+✔ entrypoint context failure and malformed port output fail as canonical envelopes (0.598137ms)
+✔ all four native MCP catalogs are handler-free and call only the governed scheduler (434.848662ms)
+✔ exclusive contracts form FIFO barriers around bounded parallel work (1.281947ms)
+✔ queued cancellation settles without dispatch or provider side effects (1.648045ms)
+✔ queued cancellation is a durability barrier and persistence failure halts downstream dispatch (1.001316ms)
+✔ legacy telemetry path has one explicit central authority (1.034825ms)
+✔ legacy telemetry target cannot alias operational state or linked files (1.024741ms)
+✔ production entrypoint preserves metered legacy compatibility without pending schema activation (129.997197ms)
+✔ project-state --db keeps telemetry beside the selected database without env assistance (123.490264ms)
+✔ governance real HTTP entrypoint persists lifecycle before returning provider data (793.630541ms)
+✔ project_state real HTTP entrypoint persists lifecycle before returning provider data (792.566912ms)
+✔ swarm real HTTP entrypoint persists lifecycle before returning provider data (531.185875ms)
+✔ axon_bridge real HTTP entrypoint persists lifecycle before returning provider data (526.871513ms)
+✔ project-state provider cannot mutate when the pre-effect append fails (584.432283ms)
+✔ approval-required modern mutation completes through signed elicitation state (857.371274ms)
+✔ automatic stale sweep mutates only through the governed scheduler lifecycle (83.621134ms)
+✔ operational output validation rejects lossy provider values before success (36.065069ms)
+✔ unclassified tools are denied before runtime construction or provider invocation (0.204845ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5096.87084
+✔ retired IDE compatibility has zero internal callers while gated runtime compatibility remains visible (84.64568ms)
+✔ caller scan detects aliases, double-quoted state methods, and runtime callers under src (1.804075ms)
+✔ migration dry-run upgrades only a temporary copy and preserves every legacy table (21.134601ms)
+✔ read-only telemetry evidence can become ready but never bypasses active callers or human authorization (391.826061ms)
+✔ downstream release evidence is strict, scope-bound, integrity-checked, and never authorizes cutover (9.758411ms)
+✔ descriptor-bound evidence read rejects a pathname swapped during artifact verification (1.940953ms)
+✔ audit rejects a structurally valid but fabricated bundle before the human gate (220.482619ms)
+✔ sparse daily telemetry cannot produce a false green (11.208315ms)
+✔ invalid hour labels and direct usage rows cannot forge zero-use readiness (331.362353ms)
+✔ dry-run rejects links and live SQLite sidecars before opening operational state (4.248601ms)
+✔ collector derives both compatibility surfaces from immutable Git commits (169.32259ms)
+✔ collector reads the pinned commit and ignores later worktree mutations (130.409745ms)
+✔ collector output feeds the strict packer without losing Git provenance (450.699201ms)
+✔ strict audit re-derives legacy counters from a genuine Git-pinned bundle (402.639074ms)
+✔ public CLI emits only a non-authorizing inventory index (212.748141ms)
+✔ collector rejects substituted surface paths and output inside a consumer repository (120.578303ms)
+✔ collector and packer fail closed on unbound or manually fabricated evidence (60.168318ms)
+✔ packer publishes a byte-verified bundle derived from inventories and the observation scope (128.801854ms)
+✔ packer derives legacy consumers from the inventory and never upgrades them to ready evidence (101.656062ms)
+✔ packer rejects manually fabricated schema-v2 inventories instead of normalizing their claims (1.919796ms)
+✔ packer reopens Git repositories and rejects registry or configured-remote drift (135.851659ms)
+✔ packer binds to the complete canonical project observation scope and excludes operational state (171.061998ms)
+✔ packer fails closed for shared-writable observation anchors and platforms without ACL validation (36.810567ms)
+✔ packer refuses overwrite and non-private output parents (45.571777ms)
+✔ packer rejects source-role reuse and a release window that differs from the Git-pinned collection (212.720324ms)
+✔ CLI packages a ready bundle and --require-ready fails for truthful legacy inventory (404.478166ms)
+✔ schedule plan is deterministic, hardened, explicit, and side-effect free (3.822846ms)
+✔ schedule plan rejects path, permission, executable, and schedule ambiguity (1.979627ms)
+✔ generated user units pass the host systemd verifier when available (105.572002ms)
+✔ public CLI emits a non-authorizing JSON plan without creating evidence or units (45.114185ms)
+✔ monitor reads an active WAL without changing database bytes or claiming cutover authority (8.52284ms)
+✔ missing and stale current-hour observations fail the monitor health check (5.068337ms)
+✔ legacy use resets the consecutive complete-day sequence and remains visible today (199.544659ms)
+✔ historical same-day legacy use remains invalid while heartbeat freshness has independent timing (2.909047ms)
+✔ latest legacy use remains visible across UTC days for the retained observation window (2.603994ms)
+✔ invalid or future legacy timestamps degrade observation evidence (3.798983ms)
+✔ sparse daily heartbeats cannot produce false progress (21.652674ms)
+✔ monitor rejects symlink, hardlink, state alias, and inconsistent manifest targets (1.955048ms)
+✔ observation evidence is private, atomic, hash-chained, and cannot grant cutover (9.329857ms)
+✔ observation evidence fails closed on replay, tampering, ambiguous paths, and unsafe targets (5.316158ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4613.272434
+✔ A0 publishes every governed and sharded artifact (0.866169ms)
+✔ ADR-0024 is accepted and contains every mandatory section (0.45634ms)
+✔ ADR index and graph index reference the canonical artifacts (0.27463ms)
+✔ goal graph has an acyclic proof and activation tail (1.400448ms)
+✔ state declares governance metadata and advances only after approval (0.564123ms)
+✔ event stream is valid, unique and records governance metadata (1.192044ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 56.508765
+✔ package exposes one immutable schema version and canonical ports (1.191445ms)
+✔ model and runtime manifests are strict, versioned and secret-reference-only (4.10473ms)
+✔ L0-L4 capability matrix prevents overclaim and negotiates without weakening (0.858626ms)
+✔ agent session and command contracts choose exactly one execution owner (3.4665ms)
+✔ model requests and normalized stream events reject unknown provider data (7.856497ms)
+✔ session events preserve reconstructable request and operation ownership (17.927747ms)
+✔ delegated runtime events are untrusted strict boundary input (25.990781ms)
+✔ runtime resume optionally carries an identity-bound delegated spec for process reattachment (1.410915ms)
+✔ port inputs, resolved results, stream items and errors are executable contracts (16.38127ms)
+✔ core contract source is vendor-neutral (0.692711ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 202.237691
+✔ trace and span identities are deterministic W3C-compatible projections (1.677147ms)
+✔ trace identities fail closed on empty, whitespace, control, and oversized input (0.435128ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 58.744075
+✔ session and governed-operation aggregates share relational global ordering without sharing authority (18.383563ms)
+✔ append and replay enforce one contiguous immutable session lifecycle (17.357887ms)
+✔ model request reconstruction is canonical, immutable and source-linked (7.056824ms)
+✔ crash recovery survives process reopen and exact append retry is idempotent (9.779251ms)
+✔ fork records immutable lineage and cannot widen authority, policy or resource limits (17.533136ms)
+✔ fork parent attachment and child creation commit atomically (7.736083ms)
+✔ root, resumed appends, and forked children retain one durable trace (9.64666ms)
+✔ replay fails closed when persisted trace lineage is fragmented (5.196897ms)
+✔ replay fails closed when persisted causation does not reference earlier lineage (4.407853ms)
+✔ root and child creation require verifiable causation anchors (6.325407ms)
+✔ gaps, foreign model streams and forged relational envelopes fail closed (9.903359ms)
+✔ session success cannot contradict a failed model terminal event (10.194599ms)
+✔ session cancellation terminal must exactly match its durable non-deadline request (8.921815ms)
+✔ incremental replay preserves full replay and rejects forged checkpoints (10.527169ms)
+✔ transaction rollback cannot retain an uncommitted replay checkpoint (8.73882ms)
+✔ replay rejects forged ordering, authority and context provenance (3.327122ms)
+✔ tool deltas preserve identity and require complete object arguments (0.608184ms)
+✔ replay rejects gaps, foreign lineage, stale resume and streams without matching requests (1.970685ms)
+✔ request reconstruction consumes only reducer checkpoints and follows later durable turns (8.122655ms)
+✔ request reconstruction invalidates cached state after another connection appends a turn (10.587935ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 322.787445
+✔ registry snapshots isolate later registrations and reject mutation and duplicates (5.484374ms)
+✔ two scripted routes produce normalized text, reasoning, tool and usage events (5.295177ms)
+✔ scripted cancellation is prompt and produces a normalized terminal event (8.194459ms)
+✔ provider discovery, disposal and parallel reservations fail closed (2.392149ms)
+✔ SSE parsing fails closed when one frame exceeds its fixed memory bound (3.018772ms)
+✔ declared capabilities and output limits are enforced before dispatch (1.197332ms)
+✔ assembles fragmented SSE tool deltas, usage and opaque response evidence (40.588486ms)
+✔ maps canonical assistant tool calls and tool outcomes into OpenAI-compatible continuation messages (4.114512ms)
+✔ retries a transient failure before emission (4.451232ms)
+✔ resolves a declared secret reference only at request dispatch (2.976048ms)
+✔ rejects a provider frame containing the resolved credential before emitting it (2.724233ms)
+✔ sanitizes errors thrown by an untrusted secret resolver (0.513361ms)
+✔ does not retry a protocol failure after emitting output (2.28785ms)
+✔ invalid content and tool wire shapes fail as protocol errors without false success (4.209969ms)
+✔ cancels an in-flight HTTP stream with a normalized terminal event (3.864714ms)
+✔ HTTP cancellation releases an unstarted reservation without an ABA race (4.039893ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 249.841947
+✔ assembles canonical precedence and records every visible source before returning (36.875289ms)
+✔ source order and tool order cannot change deterministic assembled messages (16.862532ms)
+✔ truncate_optional keeps recent history first and durably records whole omitted sources (22.572864ms)
+✔ compact pressure atomically records exact lineage and a byte-reconstructable request (38.886345ms)
+✔ session budget reserves output when a provider emits no usage telemetry (12.844139ms)
+✔ required or reject-policy overflow fails before any context event is appended (10.779395ms)
+✔ durable turn identity, source identity and provider ownership fail closed (5.429237ms)
+✔ duplicate lineage, secret classification and nondeterministic token counters append nothing (14.302016ms)
+✔ requires nominal durable stores and registry-created provider snapshots (0.385968ms)
+✔ exact retries are idempotent and conservative counter uses canonical UTF-8 bytes (9.460768ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 319.02183
+✔ constitutional and mandatory denies survive bypass mode and provider callbacks (1.933011ms)
+✔ ask precedes mode, allow, and provider callback (0.163204ms)
+✔ provider callback can narrow but never runs after a deny or ask (0.157716ms)
+✔ configuration precedence and restrictive merge kinds are deterministic (0.507861ms)
+✔ child agents can narrow but cannot widen parent authority (0.521224ms)
+✔ malformed modes, rules, configuration values, and authority fail closed (0.38766ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 152.775177
+✔ five sandboxed process roles prove one transitive filesystem, network, and environment boundary (909.580711ms)
+✔ plain forged policies cannot invoke or claim the supervisor-owned journey (1.255095ms)
+✔ a protected inode hard-linked into the worktree invalidates the binding before sandbox launch (0.901566ms)
+✔ a checkout root that overlaps required system mounts is rejected (0.374763ms)
+✔ a host Unix socket exposed inside the worktree fails before any sandbox role launches (3.420712ms)
+✔ main checkout aliases, empty protection, unknown fields, and workspace protection fail closed (0.56685ms)
+✔ malformed or overprivileged subprocess witnesses never certify isolation (57.00734ms)
+✔ policy input and execution commands fail closed before launching a process (4.921975ms)
+✔ executor ownership cannot be inferred from missing or mismatched process facts (2.031953ms)
+✔ executor rejects non-unified cgroup (0.344656ms)
+✔ executor rejects missing controllers (0.256005ms)
+✔ executor rejects invalid process identity (0.160178ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1327.736822
+✔ delivery and acknowledgement are durable before returning and survive reopen (10.367475ms)
+✔ hold, refuse, flush, and TTL expiration are explicit durable states (8.496601ms)
+✔ an acknowledgement at or after TTL expires the message and fails closed (4.108648ms)
+✔ dedup replays exact messages and rejects conflicting reuse (3.764038ms)
+✔ bounded inbox, sender rate, and reentrant policy checks cannot race the append (7.71917ms)
+✔ a second SQLite connection cannot interleave a send inside the policy transaction (4.647842ms)
+✔ message boundary is text-only and inherited request shapes fail closed (2.759159ms)
+✔ persisted payload and identity drift are rejected during reconstruction (3.988064ms)
+✔ one-shot idle notifications require authorization and subscription IDs never replay (4.090835ms)
+✔ dedicated fixture gate rejects arbitrary application databases before DDL (1.441693ms)
+✔ relay clock cannot regress (2.100907ms)
+✔ relay port is nominal and provider-neutral adapters are explicitly registered (2.339834ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 223.01522
+✔ registry exposes deterministic model definitions only when backed by the exact governed contract (8.714801ms)
+✔ published runtime source has no provider dispatch or internal governed-runtime import (0.616434ms)
+✔ ToolRuntime rejects scheduler contract drift and satisfies the versioned port shape (14.729337ms)
+✔ governed execution preserves pre, guard, approval, dispatch, post and durable result ordering (21.713244ms)
+✔ approval denial cannot dispatch a classified effect (15.262007ms)
+✔ settled retries reuse the governed operation without a second dispatch (11.833141ms)
+✔ concurrent equivalent idempotent invocations coalesce on one governed outcome (11.597857ms)
+✔ an in-flight deferred tool cannot be joined from a different trace or causation (11.168441ms)
+✔ post-effect evidence accepted by the canonical runtime is preserved without a tighter adapter bound (12.4285ms)
+✔ deadline and active cancellation settle through governed terminal outcomes (45.553232ms)
+✔ session disposal reports non-cancellable work without waiting or suppressing its outcome (11.154123ms)
+✔ duplicate active calls, unknown tools and malformed outcomes fail closed (10.646861ms)
+✔ registry fails closed without a contract resolver or with mismatched governance identity (0.477792ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 391.742596
+✔ headless runtime satisfies the port and completes a durable multi-step governed tool journey (111.648097ms)
+✔ tool-result pressure prunes bodies with lineage before a byte-exact continuation (77.705685ms)
+✔ a second runtime resumes after durable tool completion without redispatch (52.215515ms)
+✔ resume fails closed instead of replaying a partially observed provider stream (24.644984ms)
+✔ cancel after restart settles a durable zero-event model step before the session terminal (23.313488ms)
+✔ resume settles a terminal legacy stream without redispatching its request (19.18025ms)
+✔ resume terminalizes a partial legacy stream before failing the session (23.58463ms)
+✔ cumulative stream caps reserve room for a durable synthetic terminal event (37.290024ms)
+✔ cancellation is durable before provider interruption and every started unit settles (31.288676ms)
+✔ duration, token, tool and implementation caps terminate without unbounded work (54.395018ms)
+✔ unknown sessions, delegated ownership, concurrent sends and stale resume fail closed (24.530382ms)
+✔ runtime rejects forged and overridden durable session stores (7.795703ms)
+✔ runtime configuration rejects malformed ports, limits and compaction profiles (9.049667ms)
+✔ create retries preserve identity and cannot replace an existing specification (10.436863ms)
+✔ runtime disposal settles created sessions (11.066257ms)
+✔ runtime disposal settles active sessions (22.206881ms)
+✔ provider cancelled cannot be misreported as successful task completion (20.164621ms)
+✔ provider length cannot be misreported as successful task completion (17.013557ms)
+✔ replay rejects altered model and tool intents before reproducing effects (66.830759ms)
+✔ reconciliation retains uncertain evidence and refuses identity substitution or a second settlement (40.544352ms)
+✔ legacy terminal streams remain readable without dispatching old effects again (107.363745ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1053.8434
+[hseos] REFERENCE_AGENT_INVALID: expected_sequence is required and must be a non-negative safe integer
+[hseos] REFERENCE_AGENT_INVALID: reference workspace is invalid: temporary workspace is not a private regular directory
+[hseos] REFERENCE_AGENT_INVALID: reference manifest differs from the durable session binding
+✔ failed durable sessions return a failing CLI exit code without rewriting evidence (808.826359ms)
+✔ resuming a cancelled session fails while explicit cancellation remains successful (752.076666ms)
+✔ reference completion rejects a real failed write instead of claiming the requested effect (589.603565ms)
+✔ agent-reference capability plan selects exactly one keyless model and kernel runtime (92.702175ms)
+✔ agent run completes a governed tool loop and exposes externally verifiable state (354.885203ms)
+✔ agent resume crosses a process boundary with optimistic sequence and then completes (636.065007ms)
+✔ agent cancel durably terminalizes a created reference session (530.771023ms)
+✔ temporary fixture reopen rejects unmarked and symlink aliases (269.8672ms)
+✔ resume requires caller-supplied optimistic sequence (473.840912ms)
+✔ resume rejects a workspace replaced by an escaping symlink before tool execution (483.794005ms)
+✔ resume rejects a reference manifest changed after durable session creation (512.362404ms)
+✔ validates and freezes a versioned contract without attesting the verifier or executing code (8.095465ms)
+✔ rejects source drift (1.398012ms)
+✔ rejects file drift (0.587921ms)
+✔ rejects traversal (1.075632ms)
+✔ rejects absolute path (0.532916ms)
+✔ rejects hidden control path (0.47513ms)
+✔ rejects path prefix collision (0.46806ms)
+✔ rejects write outside read scope (0.513926ms)
+✔ rejects duplicate file (0.645836ms)
+✔ rejects file outside scope (0.876016ms)
+✔ rejects missing source (5.336146ms)
+✔ rejects uncovered requirement (0.447279ms)
+✔ rejects missing requirement (0.658121ms)
+✔ rejects missing acceptance (0.518921ms)
+✔ rejects duplicate acceptance (0.623744ms)
+✔ rejects unknown authority (0.46742ms)
+✔ rejects privileged source role (0.678698ms)
+✔ rejects shell command (0.404082ms)
+✔ rejects command outside scope (0.515865ms)
+✔ rejects unbounded retries (0.449078ms)
+✔ rejects invalid duration (0.55476ms)
+✔ rejects unsafe integer (0.647319ms)
+✔ rejects child budget (0.389557ms)
+✔ rejects oversized artifacts (0.366807ms)
+✔ rejects invalid rollback (0.39223ms)
+✔ source instructions remain untrusted data and changing them invalidates the receipt (1.023553ms)
+✔ linked and oversized input files are rejected before loading their contents (1.39116ms)
+✔ public validation emits no source contents and cannot select an execution profile (1106.898771ms)
+ℹ tests 39
+ℹ suites 0
+ℹ pass 39
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7141.237846
+✔ engineering tools reject workspace substitution and forged execution policy (16.399739ms)
+✔ scoped reads reject hard links, symbolic links, invalid UTF-8 and directories (5.162279ms)
+✔ nested scope remains confined when its parent is replaced with a symlink (4.816732ms)
+✔ artifact budgets are aggregate and write preconditions cannot be bypassed (5.78457ms)
+✔ decision reader accepts bounded explicit answers and rejects ambiguous files (11.36234ms)
+✔ unknown owners, terminal tasks and exhausted budgets never permit automatic continuation (2.534591ms)
+✔ CLI, JavaScript, Python and HTTP share identity, task results and replayable event cursors (3044.894523ms)
+✔ authenticated control rejects wrong identity, origins, workspace escalation and stale commands (1037.043188ms)
+✔ an intent without receipt is not automatically dispatched again (1122.28277ms)
+✔ review binds approval to Git baseline and only explicit apply modifies the source project (2697.657058ms)
+✔ concurrent source edits invalidate the prior review and are preserved (2419.396993ms)
+✔ public preparation pins the current workspace and cannot expand the server allowlist (50.842064ms)
+✔ workflows reuse the same API control and aggregate kernel budget (1885.82987ms)
+✔ HTTP rejects malformed, oversized and unsupported requests without exposing internal errors (794.023456ms)
+✔ SDK rejects remote endpoints, malformed cursors and invalid query views (0.343834ms)
+✔ candidate edits after approval invalidate review without applying unverified bytes (1710.547213ms)
+✔ control rejects model ambiguity, unknown bindings and duplicate resources before effects (830.008883ms)
+✔ Git application never invokes configured filesystem monitors or external diff commands (1741.803498ms)
+✔ protected rejection diagnoses and corrects in the original session and budget (1245.059416ms)
+✔ a repeated rejection exhausts the correction ceiling and cannot approve (1186.521229ms)
+✔ zero correction budget never dispatches the prepared correction (868.739691ms)
+✔ workflow waits for corrected acceptance before running a dependent task (2053.195998ms)
+✔ correction writes are denied until a diagnosis is bound to the rejected artifacts (1131.126099ms)
+✔ replay rejects a correction request altered after the protected review (1168.369339ms)
+✔ Node command executes with read-only workspace, hidden controls and bounded resources (112.509518ms)
+✔ Python cannot create Internet or Unix sockets (41.186825ms)
+✔ output flooding is bounded and every descendant is drained (33.849809ms)
+✔ cancellation eliminates a detached descendant holding output pipes (307.318113ms)
+✔ parent exit drains detached descendants without waiting for their sleep (39.242784ms)
+✔ forged policies and invalid budgets fail before launch (0.924081ms)
+✔ a running command cannot exceed its wall-clock budget (207.926328ms)
+✔ the process limit applies to the complete descendant group (56.78987ms)
+✔ invalid UTF-8 cannot expand captured output beyond its byte budget (36.774587ms)
+✔ memory exhaustion remains confined to the executor group (170.818927ms)
+✔ resource cleanup retries a busy empty group before confirming completion (41.558503ms)
+✔ persistent busy cleanup is uncertain and never confirms completion (5077.793902ms)
+✔ project runtime mounts only the controller executable read-only without inheriting its environment (57.223294ms)
+✔ bound engineering worker implements the task through the broker without persisting its credential (2856.205132ms)
+✔ bound engineering worker corrects a rejection through the broker without persisting its credential (3400.479577ms)
+✔ engineering model dispatch rejects retries and missing credentials without egress (2.018452ms)
+✔ v2 snapshots a Git project and preserves its immutable input after external edits (44.654719ms)
+✔ v2 refuses links, invalid UTF-8, changed Git baseline and embedded substitution (120.263259ms)
+✔ project acceptance and verifier inputs cannot drift after pinning (21.599576ms)
+✔ protected verifier executes Node multi-file inside isolation (936.335063ms)
+✔ protected verifier executes TypeScript inside isolation (927.493498ms)
+✔ protected verifier executes Python multi-file inside isolation (948.471727ms)
+✔ protected verifier executes web static content inside isolation (912.234443ms)
+✔ protected verifier executes incorrect delivery inside isolation (1059.898447ms)
+✔ project search, preconditioned patch and diff share governed task execution (1001.681776ms)
+✔ a committed write interrupted before its receipt is reconciled without repeating the effect (3879.221989ms)
+✔ unexplained changes always ask, reject stale decisions, and continue only after explicit current-state confirmation (4681.87244ms)
+✔ workflow recovery composes reconciliation without repeating the interrupted write (3927.229815ms)
+✔ interrupted command asks before abandoning the attempt and preserves its budget (4626.243348ms)
+✔ interrupted model asks before abandoning the attempt and preserves its budget (4685.475024ms)
+✔ a project patch interrupted after its effect requires a decision and is never automatically repeated (4721.571565ms)
+✔ a completed patch receipt explains its change when a later command is interrupted (2844.2892ms)
+✔ Node implementation is independently approved and survives status reopen (1185.015729ms)
+✔ Python bug correction is independently approved (937.951359ms)
+✔ Node regression correction preserves zero values (1124.092797ms)
+✔ a completed model response without implementation fails independent verification (1205.832583ms)
+✔ incorrect code cannot pass using a successful process exit (1338.214869ms)
+✔ unknown tools never execute (744.932001ms)
+✔ a create-only task resumes with its original budget and sequence (1833.828984ms)
+✔ cancel persists a separate task outcome and prevents later execution (736.675811ms)
+✔ cross-process cancellation waits for the running worker to drain its executor (1980.946076ms)
+✔ cancellation after worker interruption reaps its executor before confirming (1913.105676ms)
+✔ tampered verifier hash or acceptance is blocked before the first model turn (13.223676ms)
+✔ gateway denies verifier, credential, and workspace escape paths (3708.523662ms)
+✔ interruption after model completion resumes verification without replaying effects (7284.919053ms)
+✔ invalid creation never poisons the durable stream (15.158776ms)
+✔ snapshots require complete unique scope and accurate content digests (9.737559ms)
+✔ approval requires versioned proof bound to contract, artifacts, session and isolation (9.273544ms)
+✔ WorkflowEngine composes the three engineering tasks using independent outcomes (2928.131383ms)
+✔ a completed model with a failed task prevents execution of dependent tasks (851.164996ms)
+✔ workflow validation rejects cycles and aggregate oversubscription before creating state (4.247636ms)
+✔ workflow status and create-only resume use the canonical ledger (2888.808397ms)
+✔ workflow cancellation before execution preserves all task artifacts and prevents resume (34.311636ms)
+✔ workflow definition identity is protected after creation (19.017667ms)
+✔ parallel tasks share the declared aggregate budget and release unused reservations (1660.281114ms)
+✔ explicit migration converts eligible definitions without touching legacy history or executing tasks (38.15712ms)
+✔ live workflow cancellation settles the active executor and preserves unstarted tasks (1332.577113ms)
+✔ interrupted workflow blocks uncertain effects and cancellation drains the abandoned executor (7058.813501ms)
+✔ interrupted workflow reclaims only a dead owner and resumes verification without repeated effects (10055.559653ms)
+✔ workspace boundary handles root-link without following an unsafe path (29.929605ms)
+✔ workspace boundary handles root-file without following an unsafe path (20.612604ms)
+✔ workspace boundary handles file-directory without following an unsafe path (23.881224ms)
+✔ workspace boundary handles budget without following an unsafe path (26.82791ms)
+✔ workspace boundary handles traversal without following an unsafe path (24.074618ms)
+✔ workspace boundary handles missing-file without following an unsafe path (25.139885ms)
+✔ workspace boundary handles missing-parent without following an unsafe path (24.326728ms)
+✔ workspace boundary handles parent-link without following an unsafe path (24.210065ms)
+✔ a file edited between read and stat cannot enter the baseline (24.333268ms)
+✔ changing the workspace directory after reads invalidates its identity (24.100422ms)
+✔ project hydration rejects supplied file content even with the correct declared baseline (35.497849ms)
+✔ whole-file patches round-trip creation, deletion, empty files and newline boundaries through Git (35.108788ms)
+✔ project snapshots reject Git conversion filters before any project extension can execute (30.197329ms)
+✔ project Git worktree redirection cannot change the declared workspace authority (27.038583ms)
+✔ real typescript-report project is rejected, diagnosed, corrected and independently approved (1368.364675ms)
+✔ real python-inventory project is rejected, diagnosed, corrected and independently approved (1160.617427ms)
+✔ patch cannot bypass required diagnosis after protected rejection (1231.122266ms)
+✔ help and structural validation do not load optional integrations or query updates (246.66284ms)
+✔ fresh minimal and engineering materialization excludes optional implementations and services (353.655596ms)
+✔ npx wrapper preserves literal arguments without invoking a shell (52.366949ms)
+✔ public workflow CLI validates, executes and reopens a task graph (4175.332563ms)
+✔ retired YAML mutations fail with migration guidance and preserve legacy state (641.381846ms)
+ℹ tests 105
+ℹ suites 0
+ℹ pass 105
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 138192.248742
+✔ authenticated HTTP, JS, Python and CLI share terminal identity and cursor (1039.973472ms)
+✔ interactive attach streams bytes, serializes input/resize, and detaches without terminate (101.783121ms)
+✔ attach restores terminal on rejection and ends at the durable cursor (103.238936ms)
+✔ attach releases listeners when enabling raw mode fails (2.022913ms)
+✔ attach fences queued input after an uncertain command (101.516219ms)
+✔ attach reports partial input instead of silently discarding its suffix (102.102394ms)
+✔ detach rejects later data, EOF and resize while draining earlier input (false) (2.021485ms)
+✔ detach rejects later data, EOF and resize while draining earlier input (true) (1.613747ms)
+✔ control reserves parent budget and exposes durable cursor without replaying input (889.778845ms)
+✔ CAS, command authorization, mode and finite shared budget fail closed (859.798432ms)
+✔ receipt loss never repeats effect and requires explicit digest-bound reconciliation (833.39079ms)
+✔ concurrent sessions isolate output and parent cancellation drains all children (891.490687ms)
+✔ SIGKILL before-intent: recovery never respawns and cancellation drains resources (1147.196605ms)
+✔ SIGKILL after-intent: recovery never respawns and cancellation drains resources (1178.709113ms)
+✔ SIGKILL after-prepared: recovery never respawns and cancellation drains resources (1186.024877ms)
+✔ SIGKILL before-receipt: recovery never respawns and cancellation drains resources (1197.547013ms)
+✔ SIGKILL after-receipt: recovery never respawns and cancellation drains resources (1207.555424ms)
+✔ SIGKILL input-receipt: recovery never respawns and cancellation drains resources (1215.392779ms)
+✔ cancel during remote recovery fences dispatch and preserves other sessions (851.874744ms)
+✔ terminal reservations reduce model tool budget and block parent while active (1916.511184ms)
+✔ parent resume cannot bypass live terminal reservations through direct runtime (806.182199ms)
+✔ job pipes accept input and EOF; output has bounded binary frames (66.636386ms)
+✔ PTY exposes tty, resize and input without a host shell (82.978805ms)
+✔ pause freezes all descendants and continue resumes; interrupt settles (241.744535ms)
+✔ deadline includes paused time and drains detached descendants (430.678181ms)
+✔ output cap stops producers; parent EOF terminates a live tree (101.487669ms)
+✔ invalid limits and non-nominal policies cannot reach process creation (0.474584ms)
+✔ failed preparation or durable output persistence tears down instead of retrying (73.828735ms)
+✔ host Node descriptor is readonly and invalid control dispatch is uncertain (145.479154ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17708.208472
+✔ optional Antigravity client restricts SDK tools to pinned kernel actions (158.038173ms)
+✔ loader preserves legacy configuration and constructs only registered lazy adapters (13.069659ms)
+✔ loader refuses state override, directory drift and replaced ledger before factory effects (5.371683ms)
+✔ loader preserves temporary ledger activation gate (4.471752ms)
+✔ loader validates all references and manifests before invoking any factory (5.926017ms)
+✔ loader checks observed digest and adapter interface, sanitizing factory exceptions (6.049891ms)
+✔ loader rechecks ledger identity after factory construction (4.801385ms)
+✔ loader rejects malformed, oversized, symlink and hardlink configurations (6.164504ms)
+✔ campaign reserves before dispatch, replays receipts and preserves consumption after reopening (34.952475ms)
+✔ a new campaign identity cannot reuse authorization or manufacture a larger budget (8.904271ms)
+✔ ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch (8.785522ms)
+✔ receipt loss preserves the reservation and requires current-state reconciliation without retry (12.608683ms)
+✔ a second controller cannot reconcile a live dispatch and can cancel it durably (59.577965ms)
+✔ a changed binding manifest cannot replace the pinned configuration after reopening (8.272324ms)
+✔ HTTP and SDK campaign commands share authentication, cursors and durable budget (191.788729ms)
+✔ known overspend remains charged after uncertain outcome reconciliation (11.129862ms)
+✔ expired grants, stale sequences and cancellation deny new effects (11.676839ms)
+✔ unbound adapter identities and missing dispatch implementations cannot configure campaigns (8.193953ms)
+✔ a concurrent exact retry observes the committed receipt without a second dispatch (9.423176ms)
+✔ a request ceiling holds even when prior attempts report zero charge (19.336816ms)
+✔ failed inspection never consumes an authorization or leaks transport details (6.324139ms)
+✔ official routes distinguish native accounts, API and local bindings without claiming certification (5.715599ms)
+✔ route confusion, unknown quota, capability claims, secrets and unbounded reservations fail closed (2.507216ms)
+✔ binding drift is rejected and declared control evidence does not certify a real journey (0.274703ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1288.445004
+✔ delegated Codex capability plan selects the direct runtime and no raw model implementation (48.559698ms)
+✔ public delegated Codex CLI rejects create-only before spawning app-server (144.13936ms)
+✔ public delegated Codex run keeps the first turn attached to the newly created thread (736.939418ms)
+✔ public delegated Codex CLI rejects resume and cancel as unavailable capabilities (295.77706ms)
+✔ delegated Codex run-only rejection takes precedence over lifecycle arguments (139.007926ms)
+✔ delegated Codex durable manifest contains no resolved environment value (718.80531ms)
+✔ public delegated Codex rejects resume before inspecting durable state (142.002191ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2307.050317
+[hseos] DELEGATED_CLAUDE_INVALID: expected_sequence does not match delegated durable state
+[hseos] DELEGATED_CLAUDE_INVALID: delegated Claude manifest or external binding drifted
+✔ delegated Claude capability plan selects Agent SDK and no raw model implementation (52.907814ms)
+✔ public delegated Claude CLI creates and materializes the same explicit SDK session across processes (1134.112856ms)
+✔ public delegated Claude run keeps the first query attached to the newly created SDK session (678.254079ms)
+✔ public delegated Claude CLI reattaches and durably cancels an idle session (1107.371288ms)
+✔ delegated Claude resume rejects stale optimistic state before SDK dispatch (1089.138233ms)
+✔ delegated Claude manifest persists environment names but never selected values (1089.33936ms)
+✔ delegated Claude resume rejects SDK module drift before reattachment (820.222483ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6051.866185
+✔ DeepSeek capability plan selects the external runtime and no raw model implementation (53.082058ms)
+✔ supervised DeepSeek profile completes one tool-free ACP turn under the fixed sandbox command (971.855507ms)
+✔ sandbox readiness fails before reading the DeepSeek secret or launching a worker (252.06956ms)
+✔ binding drift between authorization and worker execution fails before ACP spawn (666.406564ms)
+✔ public profile rejects unsupported lifecycle operations before execution (0.776113ms)
+✔ public supervisor rejects ACP assets outside the sandboxed project (250.084742ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2383.882946
+✔ bound kernel runs a real provider tool loop with sandbox evidence and no persisted secret (82.211809ms)
+✔ bound kernel resumes across an assembly boundary with the immutable binding (41.303249ms)
+✔ bound kernel can be cancelled without provider dispatch or secret resolution (17.663278ms)
+✔ different provider bindings use the same kernel assembly and preserve outcomes (61.218156ms)
+✔ execution requires a lockdown attestation before fixture, secret, or network access (3.106343ms)
+✔ resume rejects changed attestation, optimistic sequence, binding and workspace before effects (19.849539ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 396.730982
+✔ supervisor executes the complete provider/tool loop inside the fixed sandbox command (365.477629ms)
+✔ supervisor reopens and cancels candidate sessions across sandboxed worker processes (1071.87827ms)
+✔ readiness failure happens before provider secret resolution or worker launch (3.993161ms)
+✔ exact lockdown profile failure happens before provider secret resolution or worker launch (49.697494ms)
+✔ resume rejects sandbox binary drift before model or tool effects (488.395595ms)
+✔ public candidate CLI fails closed when the real required sandbox doctor is not green (170.341079ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2322.043873
+✔ Unix broker pins endpoint and injects the supervisor-owned credential (50.142378ms)
+✔ broker rejects credential-bearing endpoints, unsafe secrets, and upstream redirects (5.629777ms)
+✔ broker close destroys a partial client instead of waiting without a bound (1.86518ms)
+✔ broker close directly aborts and settles an active upstream operation (1.8779ms)
+✔ broker blocks an echoed credential in response headers and across streaming chunks (3.41821ms)
+✔ Unix broker rejects unapproved routes and credential override headers (2.108776ms)
+✔ Unix broker rejects malformed request bodies before upstream egress (2.294292ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 387.185821
+✔ scripted and OpenAI-compatible providers complete the same AgentRuntime lifecycle (91.898403ms)
+✔ malformed provider transport terminalizes without false success (15.390654ms)
+✔ one root cancellation settles an active tool, workflow, model work, and every descendant (81.140788ms)
+✔ a non-settling workflow cancellation cannot block root runtime and tool interruption (69.109925ms)
+✔ root cancellation cannot relabel a durable completed session as cancelled (14.944491ms)
+✔ a replacement runtime resumes the exact next model request from a reopened persistent ledger (19.424219ms)
+✔ persistent replay scales within explicit latency, storage, and memory bounds (4611.411554ms)
+ℹ {"metrics":[{"volume":16,"event_count":23,"p50_ms":0.188,"p95_ms":0.269,"max_ms":1.468,"replay_p95_ms":0.062,"reconstruction_p95_ms":0.169,"cpu_p95_ms":0.271,"database_bytes":270336},{"volume":128,"event_count":135,"p50_ms":0.44,"p95_ms":0.451,"max_ms":5.368,"replay_p95_ms":0.054,"reconstruction_p95_ms":0.402,"cpu_p95_ms":0.453,"database_bytes":417792},{"volume":512,"event_count":519,"p50_ms":1.294,"p95_ms":1.353,"max_ms":19.348,"replay_p95_ms":0.056,"reconstruction_p95_ms":1.301,"cpu_p95_ms":1.475,"database_bytes":901120}],"heap_growth_bytes":48699552}
+✔ supervisor rejects malformed configuration and cancellation before durable effects (7.379301ms)
+✔ supervisor detects duplicate dispatch and releases ownership after rejection (4.884816ms)
+✔ supervisor does not accept a cancellation receipt without a durable terminal (5.574493ms)
+✔ supervisor reports cancellation failure even when the root has terminalized (6.586593ms)
+✔ supervisor rejects invalid and regressing clocks rather than extending a settlement deadline (8.752982ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5098.915994
+✔ candidate profile is explicit, key-referenced, sandbox-required and still non-operational (87.009876ms)
+✔ rehearsal migrates and discards a private candidate, restores v4 and leaves source byte-identical (40.559721ms)
+✔ rehearsal rejects link aliases and live SQLite sidecars before making a copy (5.059033ms)
+✔ explicit live mode checkpoints a verified WAL snapshot without opening or changing the operational database (38.207807ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 319.114816
+✔ binding creates an immutable registry snapshot without loading its secret (18.493826ms)
+✔ structural validation performs no network or secret access and never claims activation (3.82751ms)
+✔ probe resolves the exact reference at dispatch and returns only normalized safe evidence (6.998313ms)
+✔ required sandbox blocks probe before secret resolution or network dispatch (2.910846ms)
+✔ missing secrets fail as sanitized provider evidence (3.564303ms)
+✔ custom secret schemes require an explicit resolver and never broaden implicitly (0.281141ms)
+✔ bindings reject aliases, unknown fields, credential URLs and weakened activation (9.976762ms)
+✔ CLI validates configuration without loading the declared environment secret (175.993053ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 378.19164
+✔ provider inventory binds every exact profile, component and provider without phantom models (62.142423ms)
+✔ swapping Codex and Claude providers between profiles fails before suite execution (21.322855ms)
+✔ engineering inventory binds the shipped provider and rejects profile drift (55.370324ms)
+✔ actual manifests and checked binding templates generate an honest provider matrix (19.748988ms)
+✔ canonical local runner verifies only the canonical provider inventory (51547.827846ms)
+✔ certifying build rejects injected runners, provider specs and catalog loaders (0.281454ms)
+✔ opened descriptor bytes are executed even when the pathname is replaced (36.726761ms)
+✔ suite mutation during execution invalidates its earlier hash (34.520558ms)
+✔ provider manifest identity and binding-template drift fail closed (36.884552ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52234.343002
+✔ registry snapshots isolate provider changes and reject duplicate identities (3.883322ms)
+✔ registry snapshots bind provider methods instead of retaining mutable method lookup (5.947517ms)
+✔ pressure is deterministic and history compaction writes one immutable exact checkpoint (2.868097ms)
+✔ crash retry reconstructs the exact result from checkpoint without reinvoking provider (4.165583ms)
+✔ manifest caps fail closed before input dispatch and after provider output (0.818754ms)
+✔ tool-result pruning removes result bodies while preserving identity, evidence and digest (1.333825ms)
+✔ runtime rejects a provider result not bound to the exact input before checkpoint persistence (0.617873ms)
+✔ runtime independently verifies provider accounting and ordered tool identities (1.587825ms)
+✔ checkpoint ids are immutable and dispose never erases evidence (0.766377ms)
+✔ checkpoint payloads reject nested credential-bearing fields (0.375559ms)
+✔ registry rejects forged snapshots, unverifiable manifests and manifest drift (0.527382ms)
+✔ invalid thresholds and tiny histories cannot be represented as successful compaction (0.552346ms)
+✔ pruning opaque tool output preserves its digest without inventing evidence or status (0.92801ms)
+✔ caller rejection cannot persist a checkpoint and a later accepted attempt can proceed (1.339727ms)
+✔ checkpoint failure is not a cache miss and never dispatches compaction (0.303901ms)
+✔ a valid checkpoint from a different compaction cannot be relabelled on recovery (0.726423ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 152.490592
+✔ local provider forks exact scope and joins a terminal child (47.858414ms)
+✔ authority and resource widening fail before a child can exist (7.099637ms)
+✔ provider identity fails before effects and a pre-checkpoint crash resumes the existing child (30.717542ms)
+✔ workflow executes bounded parallel and pipeline phases with durable exact checkpoints (94.556989ms)
+✔ workflow identifier cannot drift and caps fail before dispatch (17.501167ms)
+✔ workflow cancellation cascades and returns with no orphan child (59.699652ms)
+✔ workflow verifies provider join claims against durable child state (16.641772ms)
+✔ one parent cannot dispatch concurrent workflows across engine instances beyond its durable caps (70.49788ms)
+✔ an exact reclaim cannot preempt a live workflow on the same durable authority (89.403229ms)
+✔ provider cancellation terminalizes the complete descendant tree (45.391301ms)
+✔ join deadline cancels every child and provider parallel caps reject before fork (54.567609ms)
+✔ terminal unjoined children no longer consume the live parallel cap (65.877062ms)
+✔ malformed runtime result is rejected only after the child is terminalized (12.771859ms)
+✔ disposing a subagent provider drains children and rejects unrelated parent claims (14.831062ms)
+✔ workflow disposal cancels active children and leaves no resumable live claim (17.996735ms)
+✔ workflow scope and duration violations are rejected before child dispatch (6.195939ms)
+✔ workflow replay rejects forged reservations, claims, children and checkpoints (26.272912ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 825.988885
+✔ composition validator rejects any extra plugin, including a model-facing tool (10.878755ms)
+✔ composition validator rejects enabled workspaceContext (5.905407ms)
+✔ composition validator rejects enabled toolBash (2.175057ms)
+✔ composition validator rejects enabled toolJobs (2.233622ms)
+✔ composition validator rejects enabled goals (3.832211ms)
+✔ composition validator rejects symlink aliases (0.265051ms)
+✔ composition validator rejects hardlink aliases (0.25164ms)
+✔ Codex manifest is immutable, secretless and honestly L0 (3.906311ms)
+✔ Codex maps its injected native driver to ordered RuntimeProvider facts (9.112925ms)
+✔ Claude Code manifest is immutable, secretless and honestly L0 (0.440787ms)
+✔ Claude Code maps its injected native driver to ordered RuntimeProvider facts (0.825626ms)
+✔ hosted adapters fail closed when attestation is missing or an effect is attempted (1.630318ms)
+✔ hosted resume requires declared support and re-attests the effect boundary (1.239878ms)
+✔ Codex reattaches a durable session in a fresh provider without creating a new remote identity (0.716834ms)
+✔ Claude Code reattaches a durable session in a fresh provider without creating a new remote identity (0.64447ms)
+✔ hosted reattachment rejects missing or drifted durable specs before driver dispatch (0.614335ms)
+✔ DeepSeek Harness adapter is the ACP bridge and does not import Cordis or MCP (0.182466ms)
+✔ unknown driver events and malformed stop reasons terminate without false success (0.68142ms)
+✔ hosted adapters bound input, active turns and non-settling teardown (13.175543ms)
+✔ hosted create deadline cancels a runtime identity published late (41.59172ms)
+✔ runtime identity collision quarantines the active owner before rejecting reuse (0.885462ms)
+✔ close fences a pending create and cancels its late published identity (36.472281ms)
+✔ malformed hosted event envelope cannot be followed by false success (1.38808ms)
+✔ resume is exclusive and a concurrent cancel prevents false resume success (3.302953ms)
+✔ unconfirmed dispose quarantines the remote identity against ABA reuse (27.052521ms)
+✔ resume timeout terminalizes and cancels the potentially resumed remote session (43.994468ms)
+✔ failed create quarantines an unconfirmed published identity against ABA reuse (53.897371ms)
+✔ quarantined identities count against the fixed provider admission cap (55.526554ms)
+✔ late create identity remains quarantined when timeout compensation cannot settle (67.197528ms)
+✔ confirmed create compensation cannot release an ID beneath an older in-flight create (26.697996ms)
+✔ confirmed dispose cannot release an ID beneath an in-flight create (4.075485ms)
+✔ late tombstones cannot exceed the cap and degrade admission fail-closed (192.968333ms)
+✔ process ACP peer drives one bounded DeepSeek-compatible session over JSON-RPC stdio (35.583947ms)
+✔ tool-free DeepSeek composition yields a hash-bound one-shot effect attestation (6.475137ms)
+✔ host-verified tool-free composition compensates for the missing stock ACP metadata (30.101273ms)
+✔ stock-like DeepSeek ACP initialization without HSEOS effect attestation fails closed (26.045385ms)
+✔ DeepSeek ACP process binding rejects cross-process resume when loadSession is absent (49.838319ms)
+✔ process ACP peer answers permission requests while the provider denies the effect (24.237098ms)
+✔ process ACP peer closes on an unknown JSON-RPC response id (26.848966ms)
+✔ ACP manifest reports L0 honestly and rejects negotiation for every higher level (3.617457ms)
+✔ stable ACP v1 lifecycle maps text and terminal response to normalized ordered events (9.429043ms)
+✔ L0 denies permission requests and cancels tool effects without emitting a tool call (1.559156ms)
+✔ tool-call notifications, malformed updates and wrong session identities fail closed (1.977692ms)
+✔ version and effect-boundary negotiation reject incompatible or ungoverned peers (0.67132ms)
+✔ resume, cancellation and disposal preserve correlated lifecycle semantics (1.650812ms)
+✔ ACP reattaches a durable session in a fresh provider through load without creating a remote session (0.608318ms)
+✔ ACP reattachment rejects unsupported load and missing durable state without session/new (0.424341ms)
+✔ concurrent duplicate creates reserve identity before crossing the ACP boundary (0.484121ms)
+✔ event budgets terminate an instruction stream before unbounded growth (0.684817ms)
+✔ a requested cancellation becomes terminal before the peer notification settles (5.043303ms)
+✔ prompt stop reasons are strict ACP v1 values and cancelled is not reported as success (2.449716ms)
+✔ synchronous prompt dispatch failures settle the session and do not leave an active turn (0.61669ms)
+✔ a correlatable malformed outer notification durably fails its active session (0.582704ms)
+✔ a duplicate remote session identity quarantines its existing local owner (0.695374ms)
+✔ a malformed post-create response cancels the captured remote session (0.396219ms)
+✔ initialize rejects malformed optional ACP v1 capability fields before session creation (0.281605ms)
+✔ input bytes are bounded by the delegated session budget before ACP dispatch (1.045546ms)
+✔ content chunk envelope is strict while valid ACP annotations are accepted (0.544466ms)
+✔ cancel settles locally when peer notification I/O never completes (25.415866ms)
+✔ durations above the Node timer ceiling do not overflow into an immediate timeout (11.166976ms)
+✔ send cannot overlap an in-flight session load (0.724936ms)
+✔ resume cannot overlap an active prompt or another in-flight resume (0.984931ms)
+✔ create and close settle when lifecycle request I/O never completes (66.23879ms)
+ℹ tests 63
+ℹ suites 0
+ℹ pass 63
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1763.070557
+✔ Codex app-server driver performs official initialize, thread and turn lifecycle over JSONL stdio (36.500213ms)
+✔ a fresh driver process reattaches with thread/resume and never creates a replacement thread (48.055891ms)
+✔ effect-bearing Codex items are rejected by the hosted L0 provider (31.38794ms)
+✔ an unknown future Codex item fails closed as an effect instead of widening L0 (29.025362ms)
+✔ an app-server process exit settles the active hosted stream as provider unavailable (26.409506ms)
+✔ driver cancellation maps to turn/interrupt and terminates the process (24.980369ms)
+✔ driver rejects a relative executable and an environment with non-explicit keys (0.667568ms)
+✔ process normalization cannot mutate the frozen driver environment (25.015859ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 354.466375
+✔ Claude Agent SDK driver binds an explicit session and completes through the hosted L0 provider (11.808986ms)
+✔ a fresh driver finds an existing transcript and resumes the exact session id (1.185638ms)
+✔ Claude effect content fails closed at the hosted effect boundary (1.945231ms)
+✔ Claude unknown-effect content fails closed at the hosted effect boundary (1.097747ms)
+✔ driver cancellation aborts and closes an active Agent SDK query (3.771428ms)
+✔ driver passes only the selected environment values to the SDK child contract (0.644509ms)
+✔ driver rejects relative bindings and implicit environment keys (0.572668ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 161.495516
+✔ Codex uses the same durable host to create, reattach in a fresh process, and settle (28.368065ms)
+✔ Claude Code uses the same durable host to create, reattach in a fresh process, and settle (11.149964ms)
+✔ DeepSeek Harness crosses the same durable host through ACP without a provider-specific core branch (12.260104ms)
+✔ cancellation reattaches after database reopen and persists terminal truth before returning (10.118041ms)
+✔ durable host fails closed on secret-bearing specs and uncertain create or dispatch gaps (8.93283ms)
+✔ provider manifest drift is rejected before remote reattachment (6.858664ms)
+✔ a durable cancellation intent is retryable while a post-dispatch failure becomes uncertain (13.203194ms)
+✔ worker lease heartbeat, bounded drain, park, reopen, and takeover preserve one durable session (19.136185ms)
+✔ expired lease is orphaned before replacement and fences every stale worker operation (10.278225ms)
+✔ crash during drain becomes orphaned at the defer deadline and retirement is durable (11.511798ms)
+✔ persisted worker facts cannot forge lease, checkpoint, expiry, or retired-worker semantics (9.213836ms)
+✔ the SQL catalog is sealed after registering every delegated runtime fact (4.327564ms)
+✔ delegated host core contains no vendor-specific branch or adapter import (0.152972ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 298.134145
+✔ Claude Code learning disposition is exact, complete, and executable (75.857258ms)
+✔ all adopted proposal surfaces remain provider-neutral across six implementation cores (1.337936ms)
+✔ hardening closeout preserves cutover gates and validates schema v4 only in ephemeral SQLite (7.548573ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 144.672291
+✔ comparison exception remains bounded and never permits derivation claims (1.656172ms)
+✔ documentation remains provider-neutral and HSEOS-owned (53.248196ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 104.172325
+🔍 Scanning for agent files...
+
+Found 1 agent file(s)
+
+✅ src/core/agents/hseos-master.agent.yaml
+
+✨ All 1 agent file(s) passed validation!
+
+[0;32m[PASS][0m Tests: passed
+[0;34m[INFO][0m No staged agent-schema-sensitive changes — skipping schema validation
+[0;34m[INFO][0m Gate 4: Security Scan
+[0;32m[PASS][0m No secret patterns detected in tracked files
+[0;34m[INFO][0m Gate 5: Commit Hygiene
+[0;32m[PASS][0m Commit hygiene check complete
+[0;34m[INFO][0m Gate 6: Workflow Publication Triggers
+[0;34m[INFO][0m No docs-image workflow found — skipping publication trigger gate
+
+=========================================
+  HSEOS Quality Gate Summary
+=========================================
+  FAILURES : 0
+  WARNINGS : 1
+  LOG      : /workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/.logs/validation/gate-20260926T123337.log
+=========================================
+[0;32m[PASS][0m All quality gates passed.

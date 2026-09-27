@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "campaign_id": "f09075de-55d4-4cef-afca-b2c962299a72",
+  "authorization_id": "52548560-bb95-4082-bb37-3a6c824cc533",
+  "task_id": "04bdda23-3b59-4761-ab57-d1b60908660e",
+  "authorized_total_usd": 10,
+  "max_cost_microusd": 10000000,
+  "max_requests": 7,
+  "owner_instruction": "Execute a campanha com teto de 10 dolares",
+  "recorded_at": "2026-09-26T19:06:57.337Z",
+  "quota_exceptions": {},
+  "inference_attempts": 0,
+  "prior_campaign_id": "2829295f-ef17-4a93-bf6f-eafd607397ac",
+  "owner_reexercise_instruction": "Aprofunde a análise, corrija se necessário e revalide / reexercite",
+  "carry_forward_committed_microusd": 0,
+  "carry_forward_requests": 3
+}

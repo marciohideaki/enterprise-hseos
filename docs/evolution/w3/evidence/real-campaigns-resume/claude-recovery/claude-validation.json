@@ -1,0 +1,19 @@
+{
+  "resume_exercised": true,
+  "expected_response_hashes": [
+    true,
+    true
+  ],
+  "real_inference_calls": 2,
+  "requests": 2,
+  "committed_microusd": 1000000,
+  "authorized_microusd": 1000000,
+  "sdk_reported_cost_usd": [
+    0.003329,
+    0.0055569999999999994
+  ],
+  "scope": "Two bounded Claude API turns with real provider-session recovery; four-family campaign remains separate",
+  "global_retained_microusd": 9000000,
+  "global_remaining_microusd": 1000000,
+  "cumulative_campaign_dispatches": 26
+}

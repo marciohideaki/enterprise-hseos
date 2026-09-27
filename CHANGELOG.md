@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Candidate campaign factories for native account, API and local SDK routes, with scoped Antigravity composition, shared reservations, process drainage and receipt-bound session resume. Real-provider campaign conformance remains unverified; see [W3 candidate limits](docs/evolution/w3/ADAPTERS-CAMPAIGN.md).
+
 - Resolve producer governance independently of consumer files, inject a minimal discovery capsule only when session/project/source state changes, and keep unverified application/enforcement explicit.
 
 ## [4.0.0-rc.0] — Unpublished candidate
@@ -78,7 +80,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   authority. ([PR #147](https://github.com/marciohideaki/enterprise-hseos/pull/147))
 - `hseos agent-core compile --check`, which verifies generated artifacts and
   source/output drift without writing files. ([PR #148](https://github.com/marciohideaki/enterprise-hseos/pull/148))
-
 
 ## [3.3.1] — 2026-09-01
 

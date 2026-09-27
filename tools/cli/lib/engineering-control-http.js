@@ -23,7 +23,7 @@ async function startControlServer({ control, credential, port = 0 }) {
       const url = new URL(request.url, 'http://127.0.0.1');
       if (
         request.method === 'POST' &&
-        ['/v1/commands', '/v1/prepare', '/v1/terminals/commands'].includes(url.pathname) &&
+        ['/v1/commands', '/v1/prepare', '/v1/terminals/commands', '/v1/provider-campaigns/commands'].includes(url.pathname) &&
         url.search === ''
       ) {
         if (request.headers['content-type']?.split(';')[0] !== 'application/json') return send(415, { error: 'CONTROL_JSON_REQUIRED' });
@@ -41,8 +41,31 @@ async function startControlServer({ control, credential, port = 0 }) {
             ? control.prepare(body)
             : url.pathname === '/v1/terminals/commands'
               ? await control.terminals.execute(body)
-              : await control.execute(body),
+              : url.pathname === '/v1/provider-campaigns/commands'
+                ? await control.providerCampaigns.execute(body)
+                : await control.execute(body),
         );
+      }
+      if (request.method === 'GET' && url.pathname === '/v1/provider-bindings') {
+        if ([...url.searchParams.keys()].some((name) => name !== 'binding_id') || url.searchParams.getAll('binding_id').length !== 1)
+          return send(400, { error: 'CONTROL_QUERY_INVALID' });
+        return send(200, control.providerCampaigns.inspect(url.searchParams.get('binding_id')));
+      }
+      const campaign = /^\/v1\/provider-campaigns\/([a-f0-9-]{36})(?:\/(events))?$/.exec(url.pathname);
+      if (request.method === 'GET' && campaign) {
+        if (campaign[2]) {
+          if ([...url.searchParams.keys()].some((name) => !['after', 'limit'].includes(name)))
+            return send(400, { error: 'CONTROL_QUERY_INVALID' });
+          return send(
+            200,
+            control.providerCampaigns.events(campaign[1], {
+              after: Number(url.searchParams.get('after') || 0),
+              limit: Number(url.searchParams.get('limit') || 100),
+            }),
+          );
+        }
+        if (url.search) return send(400, { error: 'CONTROL_QUERY_INVALID' });
+        return send(200, control.providerCampaigns.query(campaign[1]));
       }
       const terminal = /^\/v1\/terminals\/([a-f0-9-]{36})(?:\/(events))?$/.exec(url.pathname);
       if (request.method === 'GET' && terminal) {

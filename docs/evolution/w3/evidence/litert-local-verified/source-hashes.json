@@ -1,0 +1,13 @@
+{
+  "packages/control-sdk/antigravity_client.py": "2c7b1af328df8677b4d9643dd67613fc90df8f3075ab628d691c5074db369a7d",
+  "packages/control-sdk/antigravity_litert.py": "8b188a69f05c4469468189a6d55d59d2c84f5d3e36bca935e951c71c1f141469",
+  "packages/control-sdk/antigravity_campaign_worker.py": "0221b1f5d2aeaaf5a24aed2f3cc3f28a4798b2c86870d66f3dd12ccf32831cd4",
+  "tools/cli/lib/provider-antigravity-adapter.js": "2cea14baa0e1b97ec1055fe0d7942174c904852c47d8e523bd4f6c325e169b67",
+  "tools/cli/lib/provider-campaign-control.js": "f234d83925e69d7d6499aa7bca4f55566bab3efc2f201a9ba522a39614055c5b",
+  "tools/cli/lib/provider-campaign-bridge.js": "30af3c64140aad8ab373b00cc83120bbd033735653a81bb1db9833bb653f0797",
+  "tools/cli/lib/provider-campaign-process.js": "450d668137e5a7dddfaad6e23a3681adf2b26617612fd186b99aea64a84666a8",
+  "test/test_antigravity_client.py": "81b98a07dac0de1892d4c148c4e14d752528c31109165700d3df59e159d8f9b3",
+  "test/test-provider-campaign-control.js": "4b37f13ab28fb9364343de01c70dbfb634a25a88c41970267731e30c84e8646f",
+  "test/test-provider-campaign-adapters.js": "eb6d47cc39272ec815cf453bea655aacf308394d60403b28d3c2cf622aafae69",
+  "test/helpers/check-antigravity-campaign-config.py": "b2ce28b34d13ee5262d64947605576baa3cb8809189a17e9ec3ac6e802e33c7f"
+}

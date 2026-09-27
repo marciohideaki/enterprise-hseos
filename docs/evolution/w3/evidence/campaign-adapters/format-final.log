@@ -1,0 +1,14 @@
+test/test-provider-campaign-adapters.js 82ms
+.specs/features/harness-w3/adr-drafts/binding-control.md 29ms
+.specs/features/harness-w3/design.md 26ms
+.specs/features/harness-w3/spec.md 8ms (unchanged)
+.specs/features/harness-w3/tasks.md 11ms
+CHANGELOG.md 36ms
+README.md 81ms (unchanged)
+docs/decisions/harness-w3-intake.md 4ms (unchanged)
+docs/evolution/w3/ADAPTERS-CAMPAIGN.md 10ms
+docs/evolution/w3/ADVERSARIAL-REVIEW.md 13ms
+docs/evolution/w3/ANTIGRAVITY-CLIENT.md 6ms
+docs/evolution/w3/BINDINGS.md 6ms
+docs/evolution/w3/CONTROL-PROTOTYPE.md 7ms
+docs/evolution/w3/STATUS.md 18ms

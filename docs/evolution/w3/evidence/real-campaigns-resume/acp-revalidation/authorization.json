@@ -1,0 +1,12 @@
+{
+  "owner_instruction": "Prossiga com a matriz integral e as campanhas reais!",
+  "global_cap_microusd": 10000000,
+  "retained_microusd": 8000000,
+  "available_microusd": 2000000,
+  "prior_campaign_dispatches": 22,
+  "prior_acp_protocol_prompts": 5,
+  "max_additional_campaign_dispatches": 2,
+  "max_additional_paid_microusd": 0,
+  "route": "account",
+  "purpose": "Revalidate current ACP transport and pinned artifact after integral regression fixes; all prior dispatches and reservations retained"
+}

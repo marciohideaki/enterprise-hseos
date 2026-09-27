@@ -33,3 +33,6 @@ separados.
 
 - [Onda 1 — implementação e evidências](w1/STATUS.md)
 - [Onda 2 — terminais e lifecycle](w2/STATUS.md)
+- [Onda 3 — adapters e campanha](w3/STATUS.md)
+- [Revalidação real e revisão adversarial](w3/LIVE-REVALIDATION.md)
+- [ACP restrito: compatibilidade, fronteira e campanha real](w3/ACP-CAMPAIGN.md)

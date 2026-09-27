@@ -1,0 +1,80 @@
+{
+  "parent": {
+    "schema_version": 1,
+    "binding_id": "binding:antigravity-local",
+    "binding_sha256": "2cd6a40b5d2f4bdf5668924068861022c2a0435dc20c804eb4d7a26cb0ef5bd9",
+    "vendor": "antigravity",
+    "provider_kind": "client",
+    "provider_version": "0.1.18",
+    "adapter": "hseos-antigravity-campaign-v1",
+    "artifact_sha256": "fa46e50ce24039e638d434ebbae969ceeea6dede9d56188cdc3e908d4498ad30",
+    "route": "local",
+    "transport": "stdio",
+    "authentication": {
+      "mode": "local",
+      "identity_kind": "local_profile",
+      "credential": null,
+      "account_sha256": null,
+      "profile_sha256": "cbd312166bfadb9a1af5376e3f8b04a98575cd1fc71e9735f343de8c1d99b4da",
+      "source": "explicit"
+    },
+    "billing": {
+      "kind": "local",
+      "currency": "USD",
+      "max_request_microusd": 0
+    },
+    "limits": {
+      "max_requests": 2,
+      "max_input_tokens": 4096,
+      "max_output_tokens": 96,
+      "max_duration_ms": 150000
+    },
+    "controls": {
+      "authority": "external_client",
+      "resume": "not_verified",
+      "cancel": "not_verified",
+      "quota": "not_applicable",
+      "evidence_sha256": null
+    }
+  },
+  "child": {
+    "schema_version": 1,
+    "binding_id": "binding:codex-child",
+    "binding_sha256": "7bc9fe0b7e76406aff7f9818552cfb763bfe215077a38ae7738b2f040b564f3e",
+    "vendor": "codex",
+    "provider_kind": "client",
+    "provider_version": "0.157.1",
+    "adapter": "hseos-codex-campaign-v1",
+    "artifact_sha256": "df131b4a80c2930f0856001908ce7cd313ed45ada1634392adbf5f36123bd92e",
+    "route": "account",
+    "transport": "stdio",
+    "authentication": {
+      "mode": "native_account",
+      "identity_kind": "account",
+      "credential": {
+        "name": "native-account",
+        "source_ref": "file:///home/annonymous/.codex/auth.json"
+      },
+      "account_sha256": "e4174663cc7e5b7717d18784908cd5861731bee2cc1888e8eadd8681c489d42d",
+      "source": "explicit"
+    },
+    "billing": {
+      "kind": "subscription",
+      "currency": "USD",
+      "max_request_microusd": 0
+    },
+    "limits": {
+      "max_requests": 2,
+      "max_input_tokens": 65536,
+      "max_output_tokens": 1024,
+      "max_duration_ms": 90000
+    },
+    "controls": {
+      "authority": "external_client",
+      "resume": "not_verified",
+      "cancel": "not_verified",
+      "quota": "observed",
+      "evidence_sha256": null
+    }
+  }
+}

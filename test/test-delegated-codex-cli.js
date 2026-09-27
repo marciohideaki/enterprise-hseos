@@ -23,6 +23,7 @@ function cli(...args) {
       encoding: 'utf8',
       env: {
         PATH: process.env.PATH,
+        TMPDIR: os.tmpdir(),
         HSEOS_DISABLE_UPDATE_CHECK: '1',
         ...(process.env.HSEOS_CODEX_TEST_VALUE ? { HSEOS_CODEX_TEST_VALUE: process.env.HSEOS_CODEX_TEST_VALUE } : {}),
       },
@@ -34,7 +35,7 @@ function cliFailure(...args) {
   const result = spawnSync(process.execPath, [CLI, 'agent', ...args, '--json'], {
     cwd: ROOT,
     encoding: 'utf8',
-    env: { PATH: process.env.PATH, HSEOS_DISABLE_UPDATE_CHECK: '1' },
+    env: { PATH: process.env.PATH, TMPDIR: os.tmpdir(), HSEOS_DISABLE_UPDATE_CHECK: '1' },
   });
   assert.notEqual(result.status, 0);
   return `${result.stdout}${result.stderr}`;

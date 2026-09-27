@@ -123,7 +123,8 @@ test('supervised DeepSeek profile completes one tool-free ACP turn under the fix
         assert.equal(binary, fs.realpathSync(project.binary));
         assert.deepEqual(args.slice(-3), ['--', process.execPath, path.join(ROOT, 'tools', 'cli', 'lib', 'delegated-deepseek-worker.js')]);
         childEnvironment = options.env;
-        return spawn(binary, args, options);
+        // The injected fixture launcher shares the test process temporary root.
+        return spawn(binary, args, { ...options, env: { ...options.env, TMPDIR: os.tmpdir() } });
       },
     },
   );
@@ -180,7 +181,8 @@ test('binding drift between authorization and worker execution fails before ACP 
           readinessCheck: readiness(),
           spawnImpl(binary, args, options) {
             fs.appendFileSync(project.composition, '\n');
-            return spawn(binary, args, options);
+            // The injected fixture launcher shares the test process temporary root.
+            return spawn(binary, args, { ...options, env: { ...options.env, TMPDIR: os.tmpdir() } });
           },
         },
       ),

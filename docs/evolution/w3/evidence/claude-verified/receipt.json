@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "scope": "Claude thinking progress compatibility, real receipt, readonly reattachment",
+  "git_head": "b9db33bfcf53681d91c64ca8a0dd42c74b0fb24c",
+  "working_tree_candidate": true,
+  "owner_authorized_additional_calls": 2,
+  "additional_calls_used": 2,
+  "global_cap_microusd": 10000000,
+  "global_dispatches": 9,
+  "global_confirmed_receipts": 4,
+  "claude_dispatches": 4,
+  "claude_confirmed_receipts": 1,
+  "global_retained_reservations_microusd": 8000000,
+  "global_uncommitted_microusd": 2000000,
+  "native_reported_claude_cost_rounded_usd": "0.009250",
+  "invoice_verified": false,
+  "final_pilot": {
+    "expected_response_hash": true,
+    "adapter_receipt_confirmed": true,
+    "control_replay_verified": true,
+    "cancelled": true,
+    "live_commands": [],
+    "unresolved_commands": []
+  },
+  "readonly_reattach": {
+    "verified": true,
+    "query_calls": 0,
+    "resumed_inference_verified": false
+  },
+  "validation": {
+    "node22": {
+      "tests": 76,
+      "failed": 0,
+      "skipped": 0
+    },
+    "node24": {
+      "tests": 76,
+      "failed": 0,
+      "skipped": 0
+    },
+    "lint": "passed",
+    "format": "passed",
+    "governance_ci": {
+      "failures": 0,
+      "warnings": 1
+    },
+    "full_matrix_repeated": false,
+    "coverage_gate_repeated": false
+  },
+  "pending": [
+    "Claude continuation with another inference",
+    "ACP credential reference",
+    "Antigravity provisioning decision and real model",
+    "operational retention validation"
+  ],
+  "source_sha256": {
+    "packages/runtime-providers/claude-agent-sdk-driver.js": "cd1054f5e7206e1ad09b809cfc290a7ddd262e14e0a1bbe54a7172952a933846",
+    "test/test-claude-agent-sdk-driver.js": "a35f15390fe6aef099c44df57381916e1fa98917ba9582aee5d6a898498b84d2",
+    "test/fixtures/fake-claude-agent-sdk.mjs": "b63968d859c2c8efbbf01bc4d0e58655903bf551c57de65dad1c48c5d8bb6156",
+    "docs/evolution/w3/CLAUDE-VERIFIED.md": "39ce97521f1680d952938ec672c165782592d8d42fc10a452f594138a662b4ef",
+    "docs/evolution/w3/STATUS.md": "e7452410e23f29af862915aff915665f24eb8b20a3ef0bae4da89b354e9c5b71",
+    "docs/evolution/w3/ADVERSARIAL-REVIEW.md": "92b3ca4a6f01fc0917c962d3bf765a49d10da8a6f3d45f2d5742c65523ad9926"
+  },
+  "evidence_sha256": {
+    "cost-summary.json": "c7210a55e7df7758a7fb6b69655cfebab6b3ab46f519cd35aa914c3e1bcf4f7c",
+    "diagnostic-authorization-intent.json": "80f8cdcfb10f1a1a6c2f3abec672453acb4dd3bb714956bc51a250cfca0cba22",
+    "diagnostic-claude-failure.json": "d7092966dcc893c3a112f14dc2d1025db17ee7b76ead1ee161e89ca00a87bd67",
+    "diagnostic-claude-grant.json": "fe874714eeee0f411b327cacad69979db6a10dd7ac88722e2f42c16fa094a3fa",
+    "diagnostic-claude-manifest.json": "3d9f71e52cc951c1a7f5c0d7a248f29d1e0eb847c13333a08911660ee691f11b",
+    "diagnostic-driver-tests-final.log": "f38487662a92c97f804c6120e9613afd0dba75d792a8d6343d355b4d72f64c05",
+    "diagnostic-driver-tests.log": "854d08cf55addfb524d5c3d57f8a382ff900428bbfc80889d28d3d36e4ba9e4a",
+    "diagnostic-native-cost-observation.json": "0aa9e192f598b68db35c481b18dd472d8afb06481f61139a45002b9438f574e1",
+    "diagnostic-prior-after.json": "cbddc98e8a6a05511fba2ab8e58d5d4eadf1ab48df3211b302a422a5285a5cd6",
+    "diagnostic-prior-before.json": "7cb1bd2499a22f210b9067773774a0f0458e67be626c5214c54e558a274dc64f",
+    "diagnostic-protocol-trace.json": "8c6bf778220d2219d67b762735e769ea8583148928f9ba73cfd3133e39fd089f",
+    "diagnostic-regression-node24.log": "aafc008063e1b57ded29beacd2bffc10961adc426031238bbba49c2845abe03b",
+    "final-authorization-intent.json": "020a256b79b87dbd4a74181e6be756b8d5361a2794133ce965fdfc63f6108a69",
+    "final-claude-grant.json": "5644473a2d9b721f8459010e99329063d4e832aaffacee1e8138746bc870452e",
+    "final-claude-manifest.json": "cb9aff75ed47fc51eccb2417dc51369a93f6554143d11dbc04805461ec031a79",
+    "final-claude-result.json": "78914afd922fd28f1fdcd218aa19aa081ede44bcbbaf4524723ed605c6df212a",
+    "final-claude-turns.jsonl": "466271113b030f301d07a35fa3faea127d41c1ef5c3a856201951f45d8124589",
+    "final-claude-validation.json": "46595430bae66481b410af6559294c7849069e9e917331803ad1208f90b5277d",
+    "final-prior-after.json": "566902cb6732a2bac8bf097de8a5f0e020957429c5669490164315d15b84e7fb",
+    "final-prior-before.json": "89fdf8014275863e8730eaaf9d56927c5a29f12126311ce87182564e5a163911",
+    "final-readonly-reattach.json": "093ca0c29333df66be39db19680ffbc2b417c862463ee884911ae7ab8ba400d2",
+    "format-check.log": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+    "governance-ci.log": "16053e3c71215d13b64d656a0e60748151ea33783c7ba0dd66dd5bac5534dfd6",
+    "lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "regression-node22.log": "3a018f0d4d13c2f5582ea41bf7c59757d10b48af0fe0df30c51470f9d5204425",
+    "sdk-contract-observation.json": "aab85f37045f8453765f46d7d98603691ea0f95be48bbcc067491b0419611215"
+  }
+}

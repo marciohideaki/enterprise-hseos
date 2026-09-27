@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "operation": "real official SDK metadata inspection through supervised worker",
+  "sdk_version": "0.1.18",
+  "profile_matches": true,
+  "inference": "not_executed",
+  "checkpoint": "placeholder; never opened as a model",
+  "real_conformance": "not_certified"
+}

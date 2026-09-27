@@ -1,0 +1,534 @@
+TAP version 13
+# Subtest: optional Antigravity client restricts SDK tools to pinned kernel actions
+ok 1 - optional Antigravity client restricts SDK tools to pinned kernel actions
+  ---
+  duration_ms: 165.232705
+  type: 'test'
+  ...
+# Subtest: Claude Agent SDK driver binds an explicit session and completes through the hosted L0 provider
+ok 2 - Claude Agent SDK driver binds an explicit session and completes through the hosted L0 provider
+  ---
+  duration_ms: 13.738954
+  type: 'test'
+  ...
+# Subtest: a fresh driver finds an existing transcript and resumes the exact session id
+ok 3 - a fresh driver finds an existing transcript and resumes the exact session id
+  ---
+  duration_ms: 1.276792
+  type: 'test'
+  ...
+# Subtest: Claude effect content fails closed at the hosted effect boundary
+ok 4 - Claude effect content fails closed at the hosted effect boundary
+  ---
+  duration_ms: 1.83872
+  type: 'test'
+  ...
+# Subtest: Claude unknown-effect content fails closed at the hosted effect boundary
+ok 5 - Claude unknown-effect content fails closed at the hosted effect boundary
+  ---
+  duration_ms: 1.340475
+  type: 'test'
+  ...
+# Subtest: driver cancellation aborts and closes an active Agent SDK query
+ok 6 - driver cancellation aborts and closes an active Agent SDK query
+  ---
+  duration_ms: 4.478359
+  type: 'test'
+  ...
+# Subtest: driver passes only the selected environment values to the SDK child contract
+ok 7 - driver passes only the selected environment values to the SDK child contract
+  ---
+  duration_ms: 0.88976
+  type: 'test'
+  ...
+# Subtest: driver rejects relative bindings and implicit environment keys
+ok 8 - driver rejects relative bindings and implicit environment keys
+  ---
+  duration_ms: 0.668428
+  type: 'test'
+  ...
+# Subtest: Codex app-server driver performs official initialize, thread and turn lifecycle over JSONL stdio
+ok 9 - Codex app-server driver performs official initialize, thread and turn lifecycle over JSONL stdio
+  ---
+  duration_ms: 36.908664
+  type: 'test'
+  ...
+# Subtest: a fresh driver process reattaches with thread/resume and never creates a replacement thread
+ok 10 - a fresh driver process reattaches with thread/resume and never creates a replacement thread
+  ---
+  duration_ms: 54.410732
+  type: 'test'
+  ...
+# Subtest: effect-bearing Codex items are rejected by the hosted L0 provider
+ok 11 - effect-bearing Codex items are rejected by the hosted L0 provider
+  ---
+  duration_ms: 26.643915
+  type: 'test'
+  ...
+# Subtest: an unknown future Codex item fails closed as an effect instead of widening L0
+ok 12 - an unknown future Codex item fails closed as an effect instead of widening L0
+  ---
+  duration_ms: 26.194581
+  type: 'test'
+  ...
+# Subtest: an app-server process exit settles the active hosted stream as provider unavailable
+ok 13 - an app-server process exit settles the active hosted stream as provider unavailable
+  ---
+  duration_ms: 26.041
+  type: 'test'
+  ...
+# Subtest: driver cancellation maps to turn/interrupt and terminates the process
+ok 14 - driver cancellation maps to turn/interrupt and terminates the process
+  ---
+  duration_ms: 25.028374
+  type: 'test'
+  ...
+# Subtest: driver rejects a relative executable and an environment with non-explicit keys
+ok 15 - driver rejects a relative executable and an environment with non-explicit keys
+  ---
+  duration_ms: 0.722562
+  type: 'test'
+  ...
+# Subtest: process normalization cannot mutate the frozen driver environment
+ok 16 - process normalization cannot mutate the frozen driver environment
+  ---
+  duration_ms: 27.881448
+  type: 'test'
+  ...
+# Subtest: loader preserves legacy configuration and constructs only registered lazy adapters
+ok 17 - loader preserves legacy configuration and constructs only registered lazy adapters
+  ---
+  duration_ms: 28.889728
+  type: 'test'
+  ...
+# Subtest: loader refuses state override, directory drift and replaced ledger before factory effects
+ok 18 - loader refuses state override, directory drift and replaced ledger before factory effects
+  ---
+  duration_ms: 19.056224
+  type: 'test'
+  ...
+# Subtest: loader preserves temporary ledger activation gate
+ok 19 - loader preserves temporary ledger activation gate
+  ---
+  duration_ms: 17.981937
+  type: 'test'
+  ...
+# Subtest: loader validates all references and manifests before invoking any factory
+ok 20 - loader validates all references and manifests before invoking any factory
+  ---
+  duration_ms: 18.577448
+  type: 'test'
+  ...
+# Subtest: loader checks observed digest and adapter interface, sanitizing factory exceptions
+ok 21 - loader checks observed digest and adapter interface, sanitizing factory exceptions
+  ---
+  duration_ms: 21.446116
+  type: 'test'
+  ...
+# Subtest: loader rechecks ledger identity after factory construction
+ok 22 - loader rechecks ledger identity after factory construction
+  ---
+  duration_ms: 16.918119
+  type: 'test'
+  ...
+# Subtest: loader rejects malformed, oversized, symlink and hardlink configurations
+ok 23 - loader rejects malformed, oversized, symlink and hardlink configurations
+  ---
+  duration_ms: 18.714087
+  type: 'test'
+  ...
+# Subtest: Node command executes with read-only workspace, hidden controls and bounded resources
+ok 24 - Node command executes with read-only workspace, hidden controls and bounded resources
+  ---
+  duration_ms: 118.193557
+  type: 'test'
+  ...
+# Subtest: Python cannot create Internet or Unix sockets
+ok 25 - Python cannot create Internet or Unix sockets
+  ---
+  duration_ms: 39.287223
+  type: 'test'
+  ...
+# Subtest: output flooding is bounded and every descendant is drained
+ok 26 - output flooding is bounded and every descendant is drained
+  ---
+  duration_ms: 36.582364
+  type: 'test'
+  ...
+# Subtest: cancellation eliminates a detached descendant holding output pipes
+ok 27 - cancellation eliminates a detached descendant holding output pipes
+  ---
+  duration_ms: 309.824064
+  type: 'test'
+  ...
+# Subtest: parent exit drains detached descendants without waiting for their sleep
+ok 28 - parent exit drains detached descendants without waiting for their sleep
+  ---
+  duration_ms: 86.329121
+  type: 'test'
+  ...
+# Subtest: forged policies and invalid budgets fail before launch
+ok 29 - forged policies and invalid budgets fail before launch
+  ---
+  duration_ms: 6.002501
+  type: 'test'
+  ...
+# Subtest: a running command cannot exceed its wall-clock budget
+ok 30 - a running command cannot exceed its wall-clock budget
+  ---
+  duration_ms: 210.083346
+  type: 'test'
+  ...
+# Subtest: the process limit applies to the complete descendant group
+ok 31 - the process limit applies to the complete descendant group
+  ---
+  duration_ms: 108.638073
+  type: 'test'
+  ...
+# Subtest: invalid UTF-8 cannot expand captured output beyond its byte budget
+ok 32 - invalid UTF-8 cannot expand captured output beyond its byte budget
+  ---
+  duration_ms: 47.376123
+  type: 'test'
+  ...
+# Subtest: memory exhaustion remains confined to the executor group
+ok 33 - memory exhaustion remains confined to the executor group
+  ---
+  duration_ms: 174.204463
+  type: 'test'
+  ...
+# Subtest: resource cleanup retries a busy empty group before confirming completion
+ok 34 - resource cleanup retries a busy empty group before confirming completion
+  ---
+  duration_ms: 47.783566
+  type: 'test'
+  ...
+# Subtest: persistent busy cleanup is uncertain and never confirms completion
+ok 35 - persistent busy cleanup is uncertain and never confirms completion
+  ---
+  duration_ms: 5042.773284
+  type: 'test'
+  ...
+# Subtest: project runtime mounts only the controller executable read-only without inheriting its environment
+ok 36 - project runtime mounts only the controller executable read-only without inheriting its environment
+  ---
+  duration_ms: 91.010883
+  type: 'test'
+  ...
+# > hseos@4.0.0-rc.0 prepare
+# > command -v husky >/dev/null 2>&1 && husky || exit 0
+# Subtest: published package exposes runtime and governance assets only
+ok 37 - published package exposes runtime and governance assets only
+  ---
+  duration_ms: 1938.675828
+  type: 'test'
+  ...
+# Subtest: real API adapter is lazy, observes selected credential and USD balance, and streams through existing egress broker
+ok 38 - real API adapter is lazy, observes selected credential and USD balance, and streams through existing egress broker
+  ---
+  duration_ms: 62.751166
+  type: 'test'
+  ...
+# Subtest: API adapter refuses credential and binding drift before network effects
+ok 39 - API adapter refuses credential and binding drift before network effects
+  ---
+  duration_ms: 8.69416
+  type: 'test'
+  ...
+# Subtest: API adapter refuses unsupported origin, insufficient reservation and expired pricing
+ok 40 - API adapter refuses unsupported origin, insufficient reservation and expired pricing
+  ---
+  duration_ms: 8.697595
+  type: 'test'
+  ...
+# Subtest: balance observation cannot invent quota or convert currencies
+ok 41 - balance observation cannot invent quota or convert currencies
+  ---
+  duration_ms: 13.945859
+  type: 'test'
+  ...
+# Subtest: missing usage, cancellation and unknown task never become successful receipts
+ok 42 - missing usage, cancellation and unknown task never become successful receipts
+  ---
+  duration_ms: 15.344795
+  type: 'test'
+  ...
+# Subtest: API adapter cancellation aborts the broker request and drains its connection
+ok 43 - API adapter cancellation aborts the broker request and drains its connection
+  ---
+  duration_ms: 8.838952
+  type: 'test'
+  ...
+# Subtest: API adapter and campaign integrate credential admission, monetary quota and reservation before dispatch
+ok 44 - API adapter and campaign integrate credential admission, monetary quota and reservation before dispatch
+  ---
+  duration_ms: 353.144747
+  type: 'test'
+  ...
+# Subtest: codex factory selects explicit identity, preserves remote quota units and receipts
+ok 45 - codex factory selects explicit identity, preserves remote quota units and receipts
+  ---
+  duration_ms: 1860.712627
+  type: 'test'
+  ...
+# Subtest: claude factory selects explicit identity, preserves remote quota units and receipts
+ok 46 - claude factory selects explicit identity, preserves remote quota units and receipts
+  ---
+  duration_ms: 1866.696442
+  type: 'test'
+  ...
+# Subtest: native preflight never replaces unknown quotas, paid credits or credentials with invented capacity
+ok 47 - native preflight never replaces unknown quotas, paid credits or credentials with invented capacity
+  ---
+  duration_ms: 2441.226752
+  type: 'test'
+  ...
+# Subtest: bridge authenticates, pins child scope, cannot replay, and works through the Python SDK component
+ok 48 - bridge authenticates, pins child scope, cannot replay, and works through the Python SDK component
+  ---
+  duration_ms: 123.520819
+  type: 'test'
+  ...
+# Subtest: bridge retains uncertainty and waits for an in-flight child before closing
+ok 49 - bridge retains uncertainty and waits for an in-flight child before closing
+  ---
+  duration_ms: 4.296939
+  type: 'test'
+  ...
+# Subtest: process supervisor returns only after descendants drain and kills startup stalls
+ok 50 - process supervisor returns only after descendants drain and kills startup stalls
+  ---
+  duration_ms: 102.799887
+  type: 'test'
+  ...
+# Subtest: Antigravity factory requires a pinned local checkpoint and proves a subordinate call occurred
+ok 51 - Antigravity factory requires a pinned local checkpoint and proves a subordinate call occurred
+  ---
+  duration_ms: 98.782302
+  type: 'test'
+  ...
+# Subtest: real worker process drives Codex and Claude protocol fixtures and refuses attempted effects
+ok 52 - real worker process drives Codex and Claude protocol fixtures and refuses attempted effects
+  ---
+  duration_ms: 667.309339
+  type: 'test'
+  ...
+# Subtest: resource profiles enforce finite memory bounds and preserve the default
+ok 53 - resource profiles enforce finite memory bounds and preserve the default
+  ---
+  duration_ms: 1.319217
+  type: 'test'
+  ...
+# Subtest: Claude cached input remains part of the admitted token usage
+ok 54 - Claude cached input remains part of the admitted token usage
+  ---
+  duration_ms: 803.14499
+  type: 'test'
+  ...
+# Subtest: campaign reserves before dispatch, replays receipts and preserves consumption after reopening
+ok 55 - campaign reserves before dispatch, replays receipts and preserves consumption after reopening
+  ---
+  duration_ms: 45.182343
+  type: 'test'
+  ...
+# Subtest: a new campaign identity cannot reuse authorization or manufacture a larger budget
+ok 56 - a new campaign identity cannot reuse authorization or manufacture a larger budget
+  ---
+  duration_ms: 22.891637
+  type: 'test'
+  ...
+# Subtest: ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch
+ok 57 - ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch
+  ---
+  duration_ms: 28.439746
+  type: 'test'
+  ...
+# Subtest: receipt loss preserves the reservation and requires current-state reconciliation without retry
+ok 58 - receipt loss preserves the reservation and requires current-state reconciliation without retry
+  ---
+  duration_ms: 28.592818
+  type: 'test'
+  ...
+# Subtest: a second controller cannot reconcile a live dispatch and can cancel it durably
+ok 59 - a second controller cannot reconcile a live dispatch and can cancel it durably
+  ---
+  duration_ms: 75.935502
+  type: 'test'
+  ...
+# Subtest: a changed binding manifest cannot replace the pinned configuration after reopening
+ok 60 - a changed binding manifest cannot replace the pinned configuration after reopening
+  ---
+  duration_ms: 32.330724
+  type: 'test'
+  ...
+# Subtest: HTTP and SDK campaign commands share authentication, cursors and durable budget
+ok 61 - HTTP and SDK campaign commands share authentication, cursors and durable budget
+  ---
+  duration_ms: 242.487914
+  type: 'test'
+  ...
+# Subtest: known overspend remains charged after uncertain outcome reconciliation
+ok 62 - known overspend remains charged after uncertain outcome reconciliation
+  ---
+  duration_ms: 25.409777
+  type: 'test'
+  ...
+# Subtest: expired grants, stale sequences and cancellation deny new effects
+ok 63 - expired grants, stale sequences and cancellation deny new effects
+  ---
+  duration_ms: 23.809036
+  type: 'test'
+  ...
+# Subtest: unbound adapter identities and missing dispatch implementations cannot configure campaigns
+ok 64 - unbound adapter identities and missing dispatch implementations cannot configure campaigns
+  ---
+  duration_ms: 21.997549
+  type: 'test'
+  ...
+# Subtest: a concurrent exact retry observes the committed receipt without a second dispatch
+ok 65 - a concurrent exact retry observes the committed receipt without a second dispatch
+  ---
+  duration_ms: 24.487836
+  type: 'test'
+  ...
+# Subtest: a request ceiling holds even when prior attempts report zero charge
+ok 66 - a request ceiling holds even when prior attempts report zero charge
+  ---
+  duration_ms: 34.515718
+  type: 'test'
+  ...
+# Subtest: failed inspection never consumes an authorization or leaks transport details
+ok 67 - failed inspection never consumes an authorization or leaks transport details
+  ---
+  duration_ms: 20.642275
+  type: 'test'
+  ...
+# Subtest: client and subordinate model reserve in one campaign before effect and preserve costs on reopen
+ok 68 - client and subordinate model reserve in one campaign before effect and preserve costs on reopen
+  ---
+  duration_ms: 29.201571
+  type: 'test'
+  ...
+# Subtest: subordinate budget cannot bypass the campaign ceiling
+ok 69 - subordinate budget cannot bypass the campaign ceiling
+  ---
+  duration_ms: 21.633152
+  type: 'test'
+  ...
+# Subtest: a child with a lost receipt retains its reservation and fences even a parent that catches its error
+ok 70 - a child with a lost receipt retains its reservation and fences even a parent that catches its error
+  ---
+  duration_ms: 30.70295
+  type: 'test'
+  ...
+# Subtest: subordinate capability expires when parent finishes and cannot target an unpinned binding
+ok 71 - subordinate capability expires when parent finishes and cannot target an unpinned binding
+  ---
+  duration_ms: 21.182874
+  type: 'test'
+  ...
+# Subtest: campaign cancellation reaches parent and child and waits for child termination
+ok 72 - campaign cancellation reaches parent and child and waits for child termination
+  ---
+  duration_ms: 26.276086
+  type: 'test'
+  ...
+# Subtest: shutdown cancels and drains a composed call before returning, and fences future effects
+ok 73 - shutdown cancels and drains a composed call before returning, and fences future effects
+  ---
+  duration_ms: 26.240002
+  type: 'test'
+  ...
+# Subtest: denied task scope is checked before resolving provider credentials or probing its API
+ok 74 - denied task scope is checked before resolving provider credentials or probing its API
+  ---
+  duration_ms: 18.671109
+  type: 'test'
+  ...
+# Subtest: shutdown aborts and waits for admission probes before the ledger can close
+ok 75 - shutdown aborts and waits for admission probes before the ledger can close
+  ---
+  duration_ms: 26.01598
+  type: 'test'
+  ...
+# Subtest: request quota cannot conceal an observed monetary deficit
+ok 76 - request quota cannot conceal an observed monetary deficit
+  ---
+  duration_ms: 18.650167
+  type: 'test'
+  ...
+# Subtest: Python Antigravity capability reaches the same campaign reservation before the subordinate effect
+ok 77 - Python Antigravity capability reaches the same campaign reservation before the subordinate effect
+  ---
+  duration_ms: 128.355453
+  type: 'test'
+  ...
+# Subtest: known session resume keeps binding, task and campaign budget pinned
+ok 78 - known session resume keeps binding, task and campaign budget pinned
+  ---
+  duration_ms: 31.188666
+  type: 'test'
+  ...
+# Subtest: unknown quota requires an explicit expiring owner exception and never overrides exhaustion
+ok 79 - unknown quota requires an explicit expiring owner exception and never overrides exhaustion
+  ---
+  duration_ms: 26.928583
+  type: 'test'
+  ...
+# Subtest: runner completes a bounded pilot, checks replay and can restart without repeating inference or resetting budget
+ok 80 - runner completes a bounded pilot, checks replay and can restart without repeating inference or resetting budget
+  ---
+  duration_ms: 52.201239
+  type: 'test'
+  ...
+# Subtest: four-family scope fails before authorization claim if families are missing
+ok 81 - four-family scope fails before authorization claim if families are missing
+  ---
+  duration_ms: 18.554253
+  type: 'test'
+  ...
+# Subtest: runner preserves uncertain effects across restart and never advances or cancels them implicitly
+ok 82 - runner preserves uncertain effects across restart and never advances or cancels them implicitly
+  ---
+  duration_ms: 25.593218
+  type: 'test'
+  ...
+# Subtest: runner rejects duplicate command identity and unexpected vendor before effects
+ok 83 - runner rejects duplicate command identity and unexpected vendor before effects
+  ---
+  duration_ms: 18.520832
+  type: 'test'
+  ...
+# Subtest: runner operates through authenticated HTTP and the public SDK
+ok 84 - runner operates through authenticated HTTP and the public SDK
+  ---
+  duration_ms: 474.971982
+  type: 'test'
+  ...
+# Subtest: official routes distinguish native accounts, API and local bindings without claiming certification
+ok 85 - official routes distinguish native accounts, API and local bindings without claiming certification
+  ---
+  duration_ms: 6.441333
+  type: 'test'
+  ...
+# Subtest: route confusion, unknown quota, capability claims, secrets and unbounded reservations fail closed
+ok 86 - route confusion, unknown quota, capability claims, secrets and unbounded reservations fail closed
+  ---
+  duration_ms: 2.635568
+  type: 'test'
+  ...
+# Subtest: binding drift is rejected and declared control evidence does not certify a real journey
+ok 87 - binding drift is rejected and declared control evidence does not certify a real journey
+  ---
+  duration_ms: 0.273279
+  type: 'test'
+  ...
+1..87
+# tests 87
+# suites 0
+# pass 87
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 20805.24112

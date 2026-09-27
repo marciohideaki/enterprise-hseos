@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-27T03:34:25.827698+00:00",
+  "status": "partial_host_and_credential_blockers",
+  "source_sha256": {
+    ".c8-kernel.json": "51faa40994a082cd07fb3d3dcc8de37bc3aa761ff28b190a5b2731309a90e216",
+    "package.json": "6173fbda88521f0ccc643ede43b1cb6c929b34a4ed0993c0e2c4361e22969f65",
+    "packages/runtime-providers/claude-agent-sdk-driver.js": "7c6a2d6c9ee84ca6fbd7015f03db87d5b30a599bc89ac91cb29f8dc8ec2c7372",
+    "packages/runtime-providers/process-acp-peer.js": "a84680376b8d1d5a1fff77177c5c393a4acdf00a16cca2235aa53e1901a4d40e",
+    "tools/cli/lib/provider-campaign-worker.js": "33870e91a8cb60d9763e62d20a9b46cf05f19e16ed622f218977cb6439227e70",
+    "tools/cli/command-manifest.json": "9068322da68670f5f4a7c90cb217e79bbfe883b52c28a9d7574ecd36bd791594",
+    "test/test-acp-campaign-boundaries.js": "9aeb421ba5f7329968997021a1ca6afe85d28b69d6729c088e9df7538683a8a0",
+    "test/test-codex-acp-peer.js": "be44a9de49cf2af4dd8d2c525a0a89eb2e6ee733fef17801814d2773478e0fd9",
+    "test/test-claude-agent-sdk-driver.js": "6a3987d1085d44b5062491130f648d854db58d2c0fd06075e2704b87ecd4b2b7",
+    "test/test-process-acp-peer.js": "a59c7d21ac9e7407ab09b2b0a047bf51b2f56c6c5f4c59b99decfec04dea2b63",
+    "test/test-delegated-codex-cli.js": "f9eda928ec0f44050daab554b0719de3f43fc659f83b5f1ed220f01548ca37fc",
+    "test/test-delegated-claude-cli.js": "77c20f7b456ebacfe9a3f3ed86ff7c521c3ab93e188b23873174b265397cc28b",
+    "test/test-delegated-deepseek-cli.js": "b1ff1656637c85c0097a8ea7c1b9d2f9cd8bcbd3a645895a85b989c3c83968f4",
+    "test/test-kernel-quality-surface.js": "027029be48f7065c664407bcb869ec0ffc4d824d9f1c2200a84ed64c4311b71a"
+  },
+  "checks": [
+    {
+      "stage": "full-node24-r4",
+      "started_at": "2026-09-27T03:11:18.304341+00:00",
+      "finished_at": "2026-09-27T03:18:26.055618+00:00",
+      "exit_code": 0
+    },
+    {
+      "stage": "coverage-node24-r2",
+      "started_at": "2026-09-27T03:18:26.055813+00:00",
+      "finished_at": "2026-09-27T03:21:50.496769+00:00",
+      "exit_code": 0
+    },
+    {
+      "stage": "full-node22",
+      "started_at": "2026-09-27T03:21:50.497294+00:00",
+      "finished_at": "2026-09-27T03:32:01.857866+00:00",
+      "exit_code": 0
+    }
+  ],
+  "coverage_node24": {
+    "files": 56,
+    "total": {
+      "lines": {
+        "total": 12484,
+        "covered": 12015,
+        "skipped": 0,
+        "pct": 96.24
+      },
+      "statements": {
+        "total": 12484,
+        "covered": 12015,
+        "skipped": 0,
+        "pct": 96.24
+      },
+      "functions": {
+        "total": 480,
+        "covered": 470,
+        "skipped": 0,
+        "pct": 97.91
+      },
+      "branches": {
+        "total": 4354,
+        "covered": 3899,
+        "skipped": 0,
+        "pct": 89.54
+      },
+      "branchesTrue": {
+        "total": 0,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 100
+      }
+    },
+    "per_file_90_80": "pass"
+  },
+  "coverage_node22": "not_started_host_load_above_6_physical_cores",
+  "host_load_at_closeout": [
+    14.52099609375,
+    14.10595703125,
+    10.7861328125
+  ],
+  "scheduler": "stopped_while_idle_no_test_interrupted",
+  "campaigns": {
+    "additional_inference_calls": 0,
+    "prior_campaign_dispatches": 22,
+    "acp": "prepared_not_executed",
+    "claude": "authorized_two_calls_combined_max_1000000_microusd_not_executed",
+    "compatible_api": "credential_reference_pending",
+    "antigravity": "deferred_to_final_stage_by_owner"
+  },
+  "budget": {
+    "cap_microusd": 10000000,
+    "historical_retained_microusd": 8000000,
+    "uncommitted_microusd": 2000000,
+    "new_spend_microusd": 0
+  },
+  "limits": [
+    "No FR07/FR08 full acceptance",
+    "No W3 commit, PR or merge",
+    "AEW application/enforcement not verified",
+    "Installed-consumer evidence remains fixture-based; see prior receipt"
+  ],
+  "secret_scan": "known_postgres_secret_and_live_token_patterns_no_match"
+}

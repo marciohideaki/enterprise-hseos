@@ -1,0 +1,9 @@
+{
+  "error": "RuntimeProvider.cancel input does not match schema v1",
+  "stack": [
+    "AgentContractError: RuntimeProvider.cancel input does not match schema v1",
+    "    at parseContract (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-runtime-contracts/common.js:101:11)",
+    "    at validatePortInput (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-runtime-contracts/ports.js:495:17)",
+    "    at #input (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/runtime-providers/acp-runtime-provider.js:536:19)"
+  ]
+}

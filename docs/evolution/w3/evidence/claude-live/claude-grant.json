@@ -1,0 +1,17 @@
+{
+  "max_requests": 2,
+  "max_cost_microusd": 4000000,
+  "deadline": 1790452256061,
+  "binding_ids": [
+    "binding:claude-live"
+  ],
+  "task_ids": [
+    "bb862dcd-f20b-4cbc-a6a5-0e43cd7efd69"
+  ],
+  "quota_exceptions": {
+    "binding:claude-live": {
+      "reason": "Owner authorized limited unknown inference quota exception: up to two calls, USD 2 each, within global USD 10.",
+      "expires_at": 1790452256061
+    }
+  }
+}

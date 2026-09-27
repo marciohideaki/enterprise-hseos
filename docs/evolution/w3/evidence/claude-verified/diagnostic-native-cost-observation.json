@@ -1,0 +1,9 @@
+[
+  {
+    "session_id": "3db0e382-5f93-4bd5-b05a-f445a3534d1a",
+    "source_sha256": "e401dc7c6391ae236f4831a2d5194b40ee20d05c15c7cb6d7f04ae09d095fe61",
+    "native_reported_cost_usd": 0.003429,
+    "cost_record_present": true,
+    "invoice_verified": false
+  }
+]

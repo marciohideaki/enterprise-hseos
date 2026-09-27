@@ -1,0 +1,17 @@
+{
+  "started_at": "2026-09-27T03:52:35.624916+00:00",
+  "load": [
+    17.8330078125,
+    13.1630859375,
+    11.669921875
+  ],
+  "approval": {
+    "authorized": true,
+    "owner_instruction": "Autorizado",
+    "scope": "node22_integral_coverage_once",
+    "cpu_quota_percent": 100,
+    "memory_max_bytes": 3221225472,
+    "nice": 19,
+    "recorded_at": "2026-09-27T03:52:34.428705+00:00"
+  }
+}

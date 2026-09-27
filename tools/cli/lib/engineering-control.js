@@ -60,13 +60,21 @@ class ControlError extends Error {
 }
 
 class EngineeringControl {
-  constructor({ state, workspaces = [], bindings = {} } = {}) {
+  constructor({ state, workspaces = [], bindings = {}, providerBindings = {}, providerAuthorizations = {} } = {}) {
     this.handle = state ? openExecutionLedgerFileFixture(path.resolve(state)) : createExecutionLedgerFileFixture();
-    this.ledger = new ExecutionEventLedger(this.handle.db);
-    this.workspaces = workspaces.map((root) => fs.realpathSync(root));
-    this.bindings = Object.freeze({ ...bindings });
-    this.active = new Set();
-    this.terminals = new (require('./terminal-control').TerminalControl)(this);
+    try {
+      this.ledger = new ExecutionEventLedger(this.handle.db);
+      this.workspaces = workspaces.map((root) => fs.realpathSync(root));
+      this.bindings = Object.freeze({ ...bindings });
+      this.active = new Set();
+      this.terminals = new (require('./terminal-control').TerminalControl)(this);
+      this.providerCampaigns = new (require('./provider-campaign-control').ProviderCampaignControl)(this, providerBindings, {
+        authorizations: providerAuthorizations,
+      });
+    } catch (error) {
+      this.handle.close();
+      throw error;
+    }
   }
   prepare(value) {
     if (!value || value.schema_version !== 2 || !this.workspaces.includes(value.workspace?.root))
@@ -77,7 +85,12 @@ class EngineeringControl {
     return this.handle.directory;
   }
   close() {
-    if (this.active.size > 0 || this.terminals.active.size > 0 || this.terminals.inflight.size > 0)
+    if (
+      this.active.size > 0 ||
+      this.terminals.active.size > 0 ||
+      this.terminals.inflight.size > 0 ||
+      this.providerCampaigns.drains.size > 0
+    )
       throw new ControlError('CONTROL_EXECUTION_ACTIVE');
     this.handle.close();
   }

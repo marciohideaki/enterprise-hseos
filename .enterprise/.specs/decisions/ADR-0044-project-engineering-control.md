@@ -54,3 +54,49 @@ não cria commits e não desfaz automaticamente edições concorrentes.
 Endurecimento da revisão candidata: Git não executa hooks/fsmonitor/diff/textconv
 externos; filtros de conversão configurados são recusados e a raiz é validada e
 fixada. A regressão adversarial e a limitação estão publicadas no relatório W1.
+
+## Adendo candidato — perfil finito do cliente nativo (2026-09-26)
+
+A campanha real encontrou esgotamento de threads no cliente nativo: o limite
+padrão de 32 também conta threads, e reproduções de inicialização ultrapassaram 128. Reutiliza-se `createResourceGroup` de `runtime:engineering-candidate`,
+registrado em `.enterprise/governance/capabilities/components.yaml`, com extensão
+opcional `pids_max` inteira entre 32 e 256. O padrão permanece 32. O adapter nativo
+fixa essa opção no digest do binding e inclui o executor no digest de artefatos;
+a inspeção e a execução recebem o mesmo perfil. O ensaio seleciona 256, memória
+512 MiB e dois CPUs por afinidade do launcher externo.
+
+Essa extensão não concede novas ferramentas nem equivale a isolamento de sistema
+de arquivos. Aumenta a quantidade máxima de threads/processos por grupo; 256 é
+um teto de ensaio, não garantia universal para versões futuras. Testes verificam
+limites inválidos, padrão, propagação, detecção de drift e remoção do grupo. As
+medições e o ensaio real ficam em `docs/evolution/w3/evidence/live-revalidation/`.
+O estado deste adendo permanece candidato, sem publicação ou ativação operacional.
+
+### Candidato: composição com cliente terminal (2026-09-26)
+
+O candidato W3 admite um cliente externo terminal como subordinado de outro
+cliente, além de um modelo. A identidade e autoridade do filho são preservadas;
+uma conta de cliente não é reclassificada como modelo. O filho não pode declarar
+subordinados, impedindo recursão e ciclos. Pai e filho precisam de autorização
+explícita no mesmo grant e reservam requests e custo no mesmo ledger. A extensão
+viabiliza Antigravity local com o adapter de conta existente, sem API paga.
+
+### Candidato: peer ACP restrito e campanha (2026-09-26)
+
+A extensão `CodexAcpPeer` normaliza somente metadados conhecidos de
+`codex-acp@1.13.1`; não altera a ponte L0 genérica. A autenticação preexistente é
+verificada pelo adapter nativo, com identidade observada e ausência de créditos
+pagos. O anúncio de login por API não autoriza login, troca de modo ou ferramentas.
+Comandos slash são recusados antes do transporte.
+
+A fronteira de efeitos usa binários fixados por SHA-256, home privado, catálogo
+restrito carregado no startup e flags sem ferramentas. Catálogo também precisa
+desativar patch, relógio e delegação; flags isoladas não bastam. Prova offline
+inspeciona `tools` e `additional_tools` e injeta chamadas forjadas. Cgroup reutiliza
+a supervisão existente, sem alegar sandbox de filesystem ou rede. Retomada usa
+somente sessões associadas ao mesmo binding pelo ledger existente. Cache de entrada
+integra o consumo total; reasoning já está contido no output nativo.
+
+O escopo de confiança inclui o binário fixado e o host controlador. A evidência não
+certifica futuras versões, agentes ACP arbitrários, L1–L4 ou quatro famílias reais.
+O adendo mantém status candidato; relatório em `docs/evolution/w3/ACP-CAMPAIGN.md`.

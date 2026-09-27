@@ -1,0 +1,15 @@
+{
+  "rejected": true,
+  "error": "CONTROL_CLIENT_USAGE_INVALID",
+  "callback_calls": 0,
+  "meter": {
+    "max_calls": 1,
+    "max_input": 128,
+    "max_output": 16,
+    "calls": 1,
+    "records": 0,
+    "input": 0,
+    "output": 0,
+    "failed": false
+  }
+}

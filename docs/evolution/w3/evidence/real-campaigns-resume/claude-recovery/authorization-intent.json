@@ -1,0 +1,14 @@
+{
+  "owner_instruction": "Prossiga com a matriz integral e as campanhas reais!",
+  "campaign_id": "87ff0eee-c8ac-4cb5-8d22-5ca1c817cbff",
+  "authorization_id": "564c621c-78a0-4466-9781-53303119b8eb",
+  "task_id": "6a1e1e5a-65af-4b7c-a7f0-4205e904bf64",
+  "max_requests": 2,
+  "max_cost_microusd": 1000000,
+  "global_cap_microusd": 10000000,
+  "retained_prior_microusd": 8000000,
+  "available_before_microusd": 2000000,
+  "max_request_microusd": 500000,
+  "planned_prior_dispatches": 24,
+  "requires_prior_acp_result": true
+}

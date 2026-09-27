@@ -1,0 +1,14 @@
+{
+  "resume_exercised": false,
+  "expected_response_hashes": [
+    true
+  ],
+  "real_inference_calls": 1,
+  "requests": 1,
+  "committed_microusd": 2000000,
+  "authorized_microusd": 2000000,
+  "sdk_reported_cost_usd": [
+    0.0033380000000000003
+  ],
+  "scope": "Single remaining Claude API call; resume and four-family campaign incomplete"
+}

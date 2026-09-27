@@ -1,0 +1,24 @@
+{
+  "reason": "Forensic copies of executed private-run scripts are documentation attachments, not shipped executable code. Preserve bytes instead of rewriting executed evidence for lint.",
+  "previous_manifest_sha256": "ac88ff2df849676bb18d8229f402135d0059fc5a1c2b875abb445ca4622955de",
+  "mapping": [
+    {
+      "executed_script_name": "acp-revalidation/campaign.cjs",
+      "archived_document_name": "acp-revalidation/campaign.cjs.txt",
+      "sha256": "87ac44f68c1f63fcaddda10345cbdafbf6ac5b445302ed22880bc26503f5c73b",
+      "bytes_changed": false
+    },
+    {
+      "executed_script_name": "claude-recovery/run-claude.cjs",
+      "archived_document_name": "claude-recovery/run-claude.cjs.txt",
+      "sha256": "35ccd18605c62a821dc60ca348c4c2f1ed76a7e48a7aecb6e99be1c32c908e2d",
+      "bytes_changed": false
+    },
+    {
+      "executed_script_name": "antigravity-last/run-local.cjs",
+      "archived_document_name": "antigravity-last/run-local.cjs.txt",
+      "sha256": "dd8a03eb9e59ef00272bb762d76fc44b9687299387f101c1d95fb46b6f204b6a",
+      "bytes_changed": false
+    }
+  ]
+}

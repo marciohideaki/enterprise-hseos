@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "scope": "One remaining Claude attempt after owner-reported account funding",
+  "global_authorized_microusd": 10000000,
+  "global_dispatches": 7,
+  "claude_dispatches": 2,
+  "claude_exception_dispatches_remaining": 0,
+  "global_retained_reservations_microusd": 4000000,
+  "global_uncommitted_microusd": 6000000,
+  "native_reported_cost_usd": 0.002483,
+  "native_expected_response_verified": true,
+  "adapter_receipt_confirmed": false,
+  "invoice_verified": false,
+  "resume_exercised": false,
+  "cancelled": true,
+  "live_commands": [],
+  "unresolved_attempts_in_this_campaign": 1,
+  "runtime_changed": false,
+  "additional_calls_authorized": false,
+  "evidence_sha256": {
+    "authorization-intent.json": "34ef35850191178ae8bd56812ae8503d8a127a7a13da1d95d6d6751dc6299348",
+    "claude-failure.json": "fee0f794d63bb3fd34f57635109b5af13eabc3639f3d88f4f2d9149ba5e7d83a",
+    "claude-final-state.json": "7cb1bd2499a22f210b9067773774a0f0458e67be626c5214c54e558a274dc64f",
+    "claude-grant.json": "0040fa46dffbc5bd531a707e277cbe7e31d489db62e3537aef3b89bbf9863f8e",
+    "claude-manifest.json": "2b224eff21bb12575db8e416d5df04ea97df9634d04e0b975bf5f6908702fe7d",
+    "native-session-observation.json": "8d4cb1ba9c0ff3f9da62c33475831b2c5c308b48ca535aa1d29ec45e85bccfa3",
+    "prior-after.json": "88042cbca22f45f8b9a32c06a95ad1c092727125753526b9a9a60b6930ae4e54",
+    "prior-before.json": "3d2017ccfd607e5f7119ea42dd0909b50d871793a0decba064aa43aba2f9f482"
+  },
+  "documents_sha256": {
+    "docs/evolution/w3/CLAUDE-FUNDED.md": "e08f03768805cf8f9e2715d646c05a98d7b85d050622c44f980b2a259c15f1b8",
+    "docs/evolution/w3/STATUS.md": "e63aa59923ddf7ec999498e91a3ba518862382ee6328ccc6f53430712330abc9"
+  }
+}

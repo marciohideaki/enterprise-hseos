@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "parent_turns": 2,
+  "child_turns": 2,
+  "same_parent_session": true,
+  "parent_model_calls": [
+    1,
+    1
+  ],
+  "child_responses_ready": [
+    true,
+    true
+  ],
+  "parent_resume_prompt_tokens": [
+    249,
+    331
+  ],
+  "usage_source": [
+    "litert_native_benchmark",
+    "litert_native_benchmark"
+  ],
+  "control_replay_verified": true,
+  "requests": 4,
+  "committed_microusd": 0,
+  "live_commands": 0,
+  "unresolved_commands": 0,
+  "cancelled": true,
+  "child_sessions": "distinct_by_design_each_subordinate_call",
+  "cumulative_campaign_dispatches": 30,
+  "global_retained_microusd": 9000000,
+  "global_remaining_microusd": 1000000
+}

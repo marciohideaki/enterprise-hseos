@@ -19,6 +19,11 @@
 > This checkout prepares an unpublished v4 candidate. See the
 > [v4 task consumer and migration guide](docs/v4-migration.md) for executable examples,
 > legacy-state preservation, current limits and rollback.
+>
+> W3 campaign adapters and the Antigravity budget bridge are candidate features.
+> See [configuration and limits](docs/evolution/w3/ADAPTERS-CAMPAIGN.md) and the
+> [adversarial review](docs/evolution/w3/ADVERSARIAL-REVIEW.md); real-provider
+> campaign conformance is not certified.
 
 > Upgrading from v2.x? Review the
 > [v3 migration guide](docs/MIGRATION-GUIDE-v2-to-v3.md) before moving state,

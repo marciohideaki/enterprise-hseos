@@ -1,0 +1,7 @@
+{
+  "base_entry_count": 1418,
+  "w3_entry_count": 1420,
+  "added": ["tools/cli/lib/provider-campaign-control.js", "tools/lib/provider-control-manifest.js"],
+  "removed": [],
+  "w3_unpacked_bytes": 8850774
+}

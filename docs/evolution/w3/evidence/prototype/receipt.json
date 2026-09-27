@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-26T08:42:55.459957+00:00",
+  "status": "partial_deterministic_prototype",
+  "base_import_tree": "b9db33bfcf53681d91c64ca8a0dd42c74b0fb24c",
+  "node24_focused": {
+    "tests": 16,
+    "passed": 16,
+    "failed": 0
+  },
+  "node22_focused": {
+    "tests": 16,
+    "passed": 16,
+    "failed": 0
+  },
+  "coverage_scope": ["tools/lib/provider-control-manifest.js", "tools/cli/lib/provider-campaign-control.js"],
+  "coverage": {
+    "lines": 100,
+    "branches": 96.53,
+    "per_file_90_80": true
+  },
+  "full_matrix": "pending",
+  "real_campaign": "not_executed",
+  "operational": "not_activated",
+  "committed": false,
+  "sources": [
+    {
+      "path": "tools/lib/provider-control-manifest.js",
+      "sha256": "e297cced0133e7451f4b8ff1c3c2fc126b28f9293a825968646a99440c7847bd"
+    },
+    {
+      "path": "tools/cli/lib/provider-campaign-control.js",
+      "sha256": "c79098b675f60662849b63ac90529315cf577c39675623dc8656c43f81d671d6"
+    },
+    {
+      "path": "tools/cli/lib/engineering-control.js",
+      "sha256": "fd353d9581854dbcee7b56d368c977be849dd779677cd44207de04ac71144597"
+    },
+    {
+      "path": "tools/cli/lib/engineering-control-http.js",
+      "sha256": "8b5fdb0eac2d37bc0cf4927e3d823cf4888b130e5f414a4ba5f226eec0e045bb"
+    },
+    {
+      "path": "tools/cli/commands/control.js",
+      "sha256": "5ba5e3da0acd183c7395ebd7d700f6cfab495feabfb32408be9dbce02d2e7801"
+    },
+    {
+      "path": "tools/cli/command-manifest.json",
+      "sha256": "7b2b6d24e7ffdef02d22648179adedfb9c02b6b1e7b154da4c233ad516a6c85b"
+    },
+    {
+      "path": "packages/control-sdk/index.js",
+      "sha256": "0cef4a3896d7a9a3ca5eeee32b0929c03ccfe4d47808713057f6935539340785"
+    },
+    {
+      "path": "packages/control-sdk/index.d.ts",
+      "sha256": "68ca2770a1b404cf3dc966f87156757ca5d8a9e404fc2df7ee783a281f9e554b"
+    },
+    {
+      "path": "packages/control-sdk/hseos_control.py",
+      "sha256": "6489d8beab9481171e83005696d251d174391b765762df3e4bc6c970eb9522f9"
+    },
+    {
+      "path": "test/helpers/provider-control.js",
+      "sha256": "e5b20d0f564bd0a86708eeb616444c2d080262ea8236f6d614abf6fbc68bac37"
+    },
+    {
+      "path": "test/test-provider-control-manifest.js",
+      "sha256": "c08ae6e3b6759d5fd9d3f4b3fbbb53e326cf0227c4ac7585d0413ec0faa97e5a"
+    },
+    {
+      "path": "test/test-provider-campaign-control.js",
+      "sha256": "3fa593448d8abeb3e7d73b0892b558c91640cd3e012595c64be3f9807ca6e0c1"
+    },
+    {
+      "path": "package.json",
+      "sha256": "28e94e2e88dde1a75edbfa9e1a0699c030feb5eb224f34b1662e08bcfa7d01c1"
+    },
+    {
+      "path": ".c8-kernel.json",
+      "sha256": "c8820fbf0c3910d7ec8aab3a1ebcc1e8c0fde0bd231dfbdacb9ec399d1e5476a"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/evolution/w3/evidence/prototype/focused-node24.log",
+      "sha256": "bb37cf09c342d39560b1c7c39a8b51074d895516dc9fc2397ad61aaf342faeee"
+    },
+    {
+      "path": "docs/evolution/w3/evidence/prototype/focused-node22.log",
+      "sha256": "a407eb676083e648ed9300b9566a5f9cc4f756ea50b4870db184f658d262d3fa"
+    },
+    {
+      "path": "docs/evolution/w3/evidence/prototype/coverage-summary.json",
+      "sha256": "d80c9eabab4044724c3e53e7ca8578e3eebb6e6201db2e46523fab3a5e64639b"
+    }
+  ],
+  "limitations": [
+    "Trusted fixture adapters only; public real-adapter configuration is pending.",
+    "Coverage measurement is scoped to the two new modules, not the full critical matrix.",
+    "This receipt does not certify SDK authentication, vendor quotas, cost or real recovery."
+  ],
+  "notes": "Node24 focused coverage remeasured after formatting on integrated W1/W2 base; Node22 final affected regression recorded separately in integrated-base."
+}

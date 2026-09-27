@@ -32,6 +32,29 @@ class ControlClient {
       return value;
     };
   }
+  bindingInspect(bindingId) {
+    if (typeof bindingId !== 'string' || !/^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$/.test(bindingId)) throw new Error('Invalid binding identity');
+    return this.request(`/v1/provider-bindings?binding_id=${encodeURIComponent(bindingId)}`);
+  }
+  campaign(command) {
+    return this.request('/v1/provider-campaigns/commands', command);
+  }
+  campaignQuery(resourceId) {
+    if (!/^[a-f0-9-]{36}$/.test(resourceId)) throw new Error('Invalid campaign query');
+    return this.request(`/v1/provider-campaigns/${resourceId}`);
+  }
+  campaignEvents(resourceId, { after = 0, limit = 100 } = {}) {
+    if (
+      !/^[a-f0-9-]{36}$/.test(resourceId) ||
+      !Number.isSafeInteger(after) ||
+      after < 0 ||
+      !Number.isInteger(limit) ||
+      limit < 1 ||
+      limit > 1000
+    )
+      throw new Error('Invalid campaign cursor');
+    return this.request(`/v1/provider-campaigns/${resourceId}/events?after=${after}&limit=${limit}`);
+  }
   terminal(command) {
     return this.request('/v1/terminals/commands', command);
   }

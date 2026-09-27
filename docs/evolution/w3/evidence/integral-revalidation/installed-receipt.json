@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "consumer_directory": "/build/tmp/hseos-w3-integral-consumer-jhve_lsd",
+  "tarball_sha256": "0514e5bffe16667619ad4d19159b418cb17edfc12458ce4791476e1a2d54814d",
+  "integrity": "sha512-+NTAwIPLI0f3FS7bvcMscoOebE4sK3jjQtJWprvUCzsVzvz4l6Dn1jhMrC2KzEHHjOCMA7fDsQWNnS18Z/LyTQ==",
+  "files": 1437,
+  "checks": [
+    {
+      "stage": "installed-pack",
+      "exit_code": 0
+    },
+    {
+      "stage": "install-node24",
+      "exit_code": 0
+    },
+    {
+      "stage": "consumer-node24",
+      "exit_code": 0
+    },
+    {
+      "stage": "optional-import-node24",
+      "exit_code": 0
+    },
+    {
+      "stage": "install-node22",
+      "exit_code": 0
+    },
+    {
+      "stage": "consumer-node22",
+      "exit_code": 0
+    },
+    {
+      "stage": "optional-import-node22",
+      "exit_code": 0
+    }
+  ],
+  "scope": "Installed CLI/HTTP/JS/Python fixture consumers and ACP boundaries; no real inference",
+  "installation": "Offline, lifecycle scripts disabled; existing ABI-matched SQLite binary copied explicitly"
+}

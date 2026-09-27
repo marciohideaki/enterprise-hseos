@@ -1,0 +1,18 @@
+✔ Codex app-server driver performs official initialize, thread and turn lifecycle over JSONL stdio (41.932284ms)
+✔ a fresh driver process reattaches with thread/resume and never creates a replacement thread (50.066431ms)
+✔ effect-bearing Codex items are rejected by the hosted L0 provider (27.561144ms)
+✔ an unknown future Codex item fails closed as an effect instead of widening L0 (29.578016ms)
+✔ an app-server process exit settles the active hosted stream as provider unavailable (27.589489ms)
+✔ driver cancellation maps to turn/interrupt and terminates the process (28.884273ms)
+✔ driver rejects a relative executable and an environment with non-explicit keys (0.725692ms)
+✔ process normalization cannot mutate the frozen driver environment (26.817656ms)
+✔ resumed Codex usage distinguishes known history from another thread: stale-usage (26.065202ms)
+✔ resumed Codex usage distinguishes known history from another thread: foreign-stale-usage (32.318445ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 430.086477

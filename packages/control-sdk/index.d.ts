@@ -1,3 +1,20 @@
+export interface CampaignCommand extends Omit<ControlCommand, 'action'> {
+  action: 'create' | 'run' | 'cancel' | 'reconcile';
+}
+export interface CampaignStatus {
+  resource_id: string;
+  current_sequence: number;
+  max_requests: number;
+  max_cost_microusd: number;
+  deadline: number;
+  requests: number;
+  committed_microusd: number;
+  cancelled: boolean;
+  unresolved_commands: string[];
+  live_commands: string[];
+  bindings: string[];
+  report_sha256: string;
+}
 export type TerminalAction =
   | 'open'
   | 'input'
@@ -53,6 +70,13 @@ export interface WorkflowStatus {
 }
 export class ControlClient {
   constructor(options: { url: string; credential: string; fetchImpl?: typeof fetch });
+  bindingInspect(bindingId: string): Promise<Record<string, unknown>>;
+  campaign(command: CampaignCommand): Promise<Record<string, unknown>>;
+  campaignQuery(resourceId: string): Promise<CampaignStatus>;
+  campaignEvents(
+    resourceId: string,
+    options?: { after?: number; limit?: number },
+  ): Promise<{ resource_id: string; events: Record<string, unknown>[]; next_cursor: number }>;
   terminal(command: TerminalCommand): Promise<Record<string, unknown>>;
   terminalQuery(resourceId: string): Promise<TerminalStatus>;
   terminalEvents(

@@ -1,0 +1,15 @@
+{
+  "owner_instruction": "Prossiga com o teste do agente ACP",
+  "max_prompts": 2,
+  "max_additional_paid_microusd": 0,
+  "global_cap_microusd": 10000000,
+  "retained_microusd": 8000000,
+  "available_microusd": 2000000,
+  "route": "account",
+  "scope": "ACP protocol pilot, not an admitted L0 runtime",
+  "input": {
+    "agent": "/build/tmp/hseos-w3-acp/node_modules/@agentclientprotocol/codex-acp/dist/index.js",
+    "binary": "/usr/local/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex",
+    "scratch": "/build/tmp/hseos-acp-pilot-inLOk2"
+  }
+}
