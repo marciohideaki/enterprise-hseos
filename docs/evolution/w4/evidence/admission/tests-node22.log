@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: inspection and dependency resolution read bytes without importing external entry or conformance code
+ok 1 - inspection and dependency resolution read bytes without importing external entry or conformance code
+  ---
+  duration_ms: 14.749231
+  type: 'test'
+  ...
+# Subtest: admission is private, versioned and fixed to identity, kind, digest, compatibility, capabilities and ceilings
+ok 2 - admission is private, versioned and fixed to identity, kind, digest, compatibility, capabilities and ceilings
+  ---
+  duration_ms: 25.809486
+  type: 'test'
+  ...
+# Subtest: content and descriptor are rechecked after admission
+ok 3 - content and descriptor are rechecked after admission
+  ---
+  duration_ms: 3.271467
+  type: 'test'
+  ...
+# Subtest: manifest rejects unknown versions, extra fields, unbounded limits and ambiguous compatibility
+ok 4 - manifest rejects unknown versions, extra fields, unbounded limits and ambiguous compatibility
+  ---
+  duration_ms: 3.090294
+  type: 'test'
+  ...
+# Subtest: manifest rejects traversal, absolute paths, duplicate dependencies and conflicting file ancestry
+ok 5 - manifest rejects traversal, absolute paths, duplicate dependencies and conflicting file ancestry
+  ---
+  duration_ms: 1.984835
+  type: 'test'
+  ...
+# Subtest: file and directory symlinks, hardlinks, missing files and special files fail closed
+ok 6 - file and directory symlinks, hardlinks, missing files and special files fail closed
+  ---
+  duration_ms: 2.822407
+  type: 'test'
+  ...
+# Subtest: oversized or malformed manifest and content are bounded
+ok 7 - oversized or malformed manifest and content are bounded
+  ---
+  duration_ms: 3.8384
+  type: 'test'
+  ...
+# Subtest: dependency resolution pins transitively, orders predecessors and rejects missing, conflicting and duplicate choices
+ok 8 - dependency resolution pins transitively, orders predecessors and rejects missing, conflicting and duplicate choices
+  ---
+  duration_ms: 2.618452
+  type: 'test'
+  ...
+# Subtest: catalog v3 retains v2 compilation metadata and never routes execution descriptors through host conformance
+ok 9 - catalog v3 retains v2 compilation metadata and never routes execution descriptors through host conformance
+  ---
+  duration_ms: 47.937703
+  type: 'test'
+  ...
+# Subtest: admission requires every pinned dependency to have a live admitted identity
+ok 10 - admission requires every pinned dependency to have a live admitted identity
+  ---
+  duration_ms: 22.99892
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 334.764828

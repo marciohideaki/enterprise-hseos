@@ -25,7 +25,10 @@ async function readRegistry(projectDir) {
   const raw = await fs.readFile(registryPath, 'utf8');
   const registry = yaml.parse(raw) || null;
   const strict = validatePluginRegistryDocument(registry);
-  Object.defineProperty(registry.plugins, 'schemaVersion', { value: strict ? '2.0' : 'legacy', enumerable: false });
+  Object.defineProperty(registry.plugins, 'schemaVersion', {
+    value: strict ? String(registry.schema_version) : 'legacy',
+    enumerable: false,
+  });
   return registry;
 }
 
@@ -58,9 +61,10 @@ async function runInstall(projectDir, pluginId) {
   if (entry.status !== 'active') {
     throw new Error(`Plugin is not installable: ${pluginId} has status ${entry.status || 'unspecified'}`);
   }
+  if (entry.type === 'execution') throw new Error('Execution plugin installation requires the isolated execution installer');
   const selectedEntries = [entry];
   Object.defineProperty(selectedEntries, 'schemaVersion', {
-    value: String(registry.schema_version) === '2.0' ? '2.0' : 'legacy',
+    value: ['2.0', '3.0'].includes(String(registry.schema_version)) ? String(registry.schema_version) : 'legacy',
     enumerable: false,
   });
   const [validatedManifest] = await loadActivePluginManifests(projectDir, selectedEntries);

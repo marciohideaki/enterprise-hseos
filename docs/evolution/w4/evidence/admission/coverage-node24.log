@@ -1,0 +1,24 @@
+✔ inspection and dependency resolution read bytes without importing external entry or conformance code (15.207958ms)
+✔ admission is private, versioned and fixed to identity, kind, digest, compatibility, capabilities and ceilings (21.308617ms)
+✔ content and descriptor are rechecked after admission (3.094039ms)
+✔ manifest rejects unknown versions, extra fields, unbounded limits and ambiguous compatibility (3.197733ms)
+✔ manifest rejects traversal, absolute paths, duplicate dependencies and conflicting file ancestry (2.302761ms)
+✔ file and directory symlinks, hardlinks, missing files and special files fail closed (2.182706ms)
+✔ oversized or malformed manifest and content are bounded (2.962385ms)
+✔ dependency resolution pins transitively, orders predecessors and rejects missing, conflicting and duplicate choices (3.127721ms)
+✔ catalog v3 retains v2 compilation metadata and never routes execution descriptors through host conformance (35.157935ms)
+✔ admission requires every pinned dependency to have a live admitted identity (7.04522ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 381.529216
+------------------------------|---------|----------|---------|---------|-------------------
+File                          | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+------------------------------|---------|----------|---------|---------|-------------------
+All files                     |     100 |    98.26 |     100 |     100 |
+ execution-plugin-manifest.js |     100 |    98.26 |     100 |     100 | 105,207
+------------------------------|---------|----------|---------|---------|-------------------

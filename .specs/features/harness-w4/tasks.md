@@ -43,6 +43,11 @@ o validador de grafo não substitui campanha real. Indisponibilidade mantém ace
   - `tools/lib/execution-plugin-manifest.js`
   - `tools/cli/installers/lib/core/agent-core-compiler/sources/plugins-source.js`
   - `test/test-execution-plugin-manifest.js`
+  - `tools/cli/commands/plugin.js`
+  - `tools/cli/command-manifest.json`
+  - `.c8-kernel.json`
+  - `package.json`
+  - `docs/evolution/w4/evidence/admission/*`
 - acceptance_criteria: Dados não importam código; v2 compatível; identidade/hash/versão/autoridade inválidos recusados.
 - verify_step.command: `node --test --test-concurrency=1 test/test-execution-plugin-manifest.js; npm run test:plugins`
 - verify_step.expected: exit 0, zero falhas/skips; evidência ligada à revisão.
