@@ -59,23 +59,20 @@ evidence/isolation/full-gate-receipt.json. Hook de commit ainda revalida.
 W4-02c e W4-03–08 permanecem pendentes.
 Não houve chamada de campanha, gasto adicional, publicação ou ativação.
 
-## Ponto de retomada — W4-02c2a
+## Ponto de retomada — W4-02c2b
 
-W4-02b commit 00e2881/merge b68d7cb. W4-02c1 commit 4efbe89/merge 9a03224.
+W4-02b 00e2881/b68d7cb; W4-02c1 4efbe89/9a03224; W4-02c2a 6253233/414d73f.
 Gates e hooks Node24 aprovados. Recibo mais recente do hook em
- evidence/plugin-campaign/prior-ports-commit.log.gz.
-Task atual .worktrees/hseos-w4-plugin-campaign, branch task/hseos-w4-plugin-campaign.
-Ponte de campanha e manifesto v2 implementados; 42 testes Node22/24 passaram,
-sem skips; cobertura crítica acima de 90/80. Gate integral Node24 passou; zero falhas, três avisos registrados. Hook de commit ainda revalida.
-Providers ModelProvider/RuntimeProvider (c2b), composição de tarefa (c3), W4-03–08
-continuam pendentes. Sem consumidor real, chamada paga ou ativação nesta task.
+ evidence/plugin-providers/prior-campaign-commit.log.gz.
+Task atual .worktrees/hseos-w4-plugin-providers, branch task/hseos-w4-plugin-providers.
+ModelProvider e RuntimeProvider L0 isolados pela ponte de campanha implementados;
+65 testes Node22/24 passaram, zero skips, cobertura crítica acima de 90/80.
+Revisão independente corrigiu validação tardia; gate integral renovado passou. Composição pública de tarefa (c3), W4-03–08
+continuam pendentes. Nenhuma chamada paga, publicação, merge de PR ou ativação.
 
-Execução limitada: heavy-run --pin --mem 3G, 1 CPU não zero/nice19; cgroup delegado
-contém controlador e executores. Node24 /workspace/local/sdk/nvm/versions/node/v24.15.0/bin;
-Node22 /build/tmp/hseos-w1-node/node-v22.23.3-linux-x64/bin. Link temporário da mesma
-versão SQLite 12.9.0 para Node22 removido após ensaio.
-
-Validação integral usa PostgreSQL compartilhado via túnel 127.0.0.1:39317,
-service/postgres-shared em platform-shared-dev; credencial pass
-platform-shared-dev/postgres-platform e referência enterprise-hseos/ci-postgres-reference.
-Não imprimir URL com senha. Merge de PR, publicação e ativação não autorizados.
+Recursos: heavy-run --pin --mem 3G; 1 CPU não zero/nice19, controlador e executores
+no mesmo cgroup delegado limitado. Node24 /workspace/local/sdk/nvm/versions/node/v24.15.0/bin;
+Node22 /build/tmp/hseos-w1-node/node-v22.23.3-linux-x64/bin. Link temporário SQLite
+12.9.0 para Node22 removido após ensaio. Suíte integral usa PostgreSQL compartilhado
+via túnel 127.0.0.1:39317; pass platform-shared-dev/postgres-platform e referência
+enterprise-hseos/ci-postgres-reference. Não imprimir credenciais.

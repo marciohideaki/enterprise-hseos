@@ -276,3 +276,22 @@ test('oversized output remains uncertain and cannot release the consumed request
   await rejects(f.port.execute(request()), 'CONTROL_OUTCOME_UNCERTAIN');
   assert.equal(f.campaigns.query(f.campaignId).requests, 1);
 });
+
+test('host response validation identity is pinned and requires a synchronous validator', async (t) => {
+  const f = await fixture(t);
+  const custom = createExecutionPluginCampaignBinding({
+    ...f.config,
+    response_validation: { contract_id: 'response-v1', validate: () => true },
+  });
+  assert.notEqual(custom.binding.manifest.binding_sha256, f.port.binding.manifest.binding_sha256);
+  assert.throws(
+    () =>
+      createExecutionPluginCampaignBinding({
+        ...f.config,
+        response_validation: { contract_id: 'response-v1' },
+      }),
+    { code: 'PLUGIN_OUTPUT_SCHEMA_REQUIRED' },
+  );
+  assert.throws(() => createExecutionPluginCampaignBinding({ ...f.config, response_validation: {} }));
+  await custom.close();
+});

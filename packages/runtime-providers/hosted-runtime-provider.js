@@ -21,6 +21,14 @@ const MAX_TIMER_DELAY_MS = 2_147_483_647;
 const DRIVER_TEARDOWN_TIMEOUT_MS = 25;
 
 const HOSTED_RUNTIME_ADAPTERS = deepFreeze({
+  'execution-plugin': {
+    adapter_id: 'execution-plugin',
+    protocol: 'isolated-json-v1',
+    transport: 'process',
+    conformance_level: 'L0',
+    capabilities: ['instructions'],
+    external_dependency: null,
+  },
   codex: {
     adapter_id: 'codex',
     protocol: 'app-server',
@@ -133,7 +141,7 @@ class HostedInstructionsRuntimeProvider {
   constructor({ adapter_id, provider_id, provider_version = '1.0.0', driver, default_cwd, clock = () => new Date().toISOString() }) {
     const descriptor = HOSTED_RUNTIME_ADAPTERS[adapter_id];
     if (!descriptor || adapter_id === 'deepseek-harness') {
-      throw new RuntimeProviderError('hosted adapter_id must be codex or claude-code', 'invalid_request');
+      throw new RuntimeProviderError('hosted adapter_id must identify an admitted instructions driver', 'invalid_request');
     }
     if (typeof default_cwd !== 'string' || !path.isAbsolute(default_cwd)) {
       throw new RuntimeProviderError('hosted default_cwd must be absolute', 'invalid_request');

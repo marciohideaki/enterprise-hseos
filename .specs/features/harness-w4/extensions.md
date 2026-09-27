@@ -97,3 +97,20 @@ sem recibo confirmado permanece incerta, sem executar novamente. Nenhum saldo no
 Contagem local conservadora reutiliza ConservativeUtf8TokenCounter e os limites do
 binding; não declara tokens faturados por um modelo remoto. Cancelamento confirmado
 só produz recibo cancelled após drain; falha/saída inválida conservam incerteza.
+
+## Ports de provider (W4-02c2b)
+
+ModelProvider adapta generate ao envelope {text,tool_calls}, com schemas existentes
+para chamadas e eventos. Manifest/discover são dados locais; streaming normalizado
+é emitido após a execução isolada concluir. Ferramentas retornadas são propostas e
+continuam exigindo ToolRuntime. Validador host model-response-v1 é fixado no digest
+do binding; nomes/capacidades e teto de saída da requisição são verificados antes
+de plugin_result/receipt. Violação mantém reserva incerta, sem conclusão ou replay
+automático. Uso local é
+estimativa conservadora, não medição de tokens remotos. Concurrency padrão 1;
+cancel/dispose aguardam a ponte antes de confirmar encerramento.
+RuntimeProvider reutiliza HostedInstructionsRuntimeProvider por um descriptor
+execution-plugin L0. Driver host cria a identidade, envia instruções pela ponte e
+recusa resume externo. Só texto pode sair do plugin; nenhuma ferramenta delegada.
+Eventos terminais e cancel/dispose/close aguardam drain do driver. Teardown incerto
+lança erro em vez de certificar um término. Novo descriptor não importa plugin no host.

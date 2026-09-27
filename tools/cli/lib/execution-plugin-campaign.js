@@ -16,19 +16,31 @@ function reject(code) {
 }
 
 /** Local isolated effects are dispatched only after the existing campaign reserves them. */
-function createExecutionPluginCampaignBinding({ admission, binding_id, limits, output_schema }) {
+function createExecutionPluginCampaignBinding({ admission, binding_id, limits, output_schema, response_validation }) {
   assertExecutionPluginAdmission(admission);
   const plugin = admission.manifest;
   if (!['model-provider', 'runtime-provider'].includes(plugin.kind)) reject('PLUGIN_PORT_KIND');
   if (typeof output_schema?.safeParse !== 'function') reject('PLUGIN_OUTPUT_SCHEMA_REQUIRED');
   const validateOutput = output_schema.safeParse.bind(output_schema);
+  let validateResponse = null;
+  if (response_validation !== undefined) {
+    IdentifierSchema.parse(response_validation?.contract_id);
+    if (typeof response_validation.validate !== 'function') reject('PLUGIN_OUTPUT_SCHEMA_REQUIRED');
+    validateResponse = response_validation.validate.bind(response_validation);
+  }
   // eslint-disable-next-line unicorn/prefer-structured-clone -- Persist only the public JSON schema, not Zod helper functions.
   const outputContract = JSON.parse(JSON.stringify(z.toJSONSchema(output_schema)));
   const selected = { id: plugin.id, version: plugin.version, manifest_sha256: admission.manifest_sha256 };
   const manifest = parseProviderControlManifest({
     schema_version: 2,
     binding_id,
-    binding_sha256: engineeringDigest({ selected, binding_id, limits, output_contract: outputContract }),
+    binding_sha256: engineeringDigest({
+      selected,
+      binding_id,
+      limits,
+      output_contract: outputContract,
+      ...(response_validation ? { response_contract: response_validation.contract_id } : {}),
+    }),
     vendor: 'execution-plugin',
     execution_plugin: selected,
     provider_kind: plugin.kind === 'model-provider' ? 'model' : 'runtime',
@@ -114,6 +126,7 @@ function createExecutionPluginCampaignBinding({ admission, binding_id, limits, o
       if (canonicalize(parsed.data) !== canonicalize(response.result)) reject('PLUGIN_PROVIDER_OUTPUT_INVALID');
       const outputTokens = counter.count(canonicalize(response.result));
       if (outputTokens > manifest.limits.max_output_tokens) reject('PLUGIN_PROVIDER_OUTPUT_LIMIT');
+      if (validateResponse && validateResponse(entry.request, response.result) !== true) reject('PLUGIN_PROVIDER_OUTPUT_INVALID');
       const evidence = engineeringDigest(response);
       attached.campaign.append(attached.campaign_id, {
         kind: 'plugin_result',
