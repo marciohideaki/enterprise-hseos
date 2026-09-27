@@ -27,7 +27,8 @@
     "packages/runtime-providers/codex-acp-launcher.js",
     "tools/cli/lib/provider-acp-adapter.js",
     "tools/cli/lib/provider-acp-worker.js",
-    "tools/lib/execution-plugin-manifest.js"
+    "tools/lib/execution-plugin-manifest.js",
+    "tools/cli/lib/execution-plugin-runtime.js"
   ],
   "exclude": ["**/node_modules/**", "test/**"],
   "reporter": ["text", "json-summary", "json"],

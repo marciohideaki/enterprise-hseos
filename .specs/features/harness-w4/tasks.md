@@ -65,6 +65,12 @@ o validador de grafo não substitui campanha real. Indisponibilidade mantém ace
 - output_contract.files:
   - `tools/cli/lib/execution-plugin-runtime.js`
   - `test/test-execution-plugin-runtime.js`
+  - `test/test-package-surface.js`
+  - `.specs/features/harness-w4/extensions.md`
+  - `.c8-kernel.json`
+  - `package.json`
+  - `docs/evolution/w4/STATUS.md`
+  - `docs/evolution/w4/evidence/isolation/*`
 - acceptance_criteria: Snapshot readonly; timeout/saída/rede/segredo/workspace negados; drain comprovado; zero import no host.
 - verify_step.command: `node --test --test-concurrency=1 test/test-execution-plugin-runtime.js`
 - verify_step.expected: exit 0, zero falhas/skips; evidência ligada à revisão.
