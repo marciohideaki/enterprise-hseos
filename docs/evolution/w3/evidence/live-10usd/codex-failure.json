@@ -1,0 +1,17 @@
+{
+  "code": "CONTROL_OUTCOME_UNCERTAIN",
+  "state": {
+    "resource_id": "3d99e1e2-047d-48a4-9c33-7a6a99e52fa2",
+    "current_sequence": 5,
+    "max_requests": 10,
+    "max_cost_microusd": 10000000,
+    "deadline": 1790447720873,
+    "requests": 1,
+    "committed_microusd": 0,
+    "cancelled": false,
+    "unresolved_commands": ["b28e9144-df39-407b-a4cf-17a78c11526a"],
+    "live_commands": [],
+    "bindings": ["binding:codex-live"],
+    "report_sha256": "8b24a3b0a7542864c1fabd1f84ce65ffc425fc22fd825420036b0177cdf8df1c"
+  }
+}

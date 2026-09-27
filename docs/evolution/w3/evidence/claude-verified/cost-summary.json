@@ -1,0 +1,34 @@
+{
+  "observations": [
+    {
+      "attempt": "initial-billing-refusal",
+      "session_id": "cb35467a-7d25-4e24-9b36-ec4cf5a40c4f",
+      "native_reported_cost_usd": 0,
+      "source_sha256": "b6f15acfe774adfd4b5cdfc9cf701c1f35a846e4940c7e46bec59ad21541de42"
+    },
+    {
+      "attempt": "funded-unconfirmed",
+      "session_id": "e745c116-6390-4b31-92fb-dfe32d5d7347",
+      "native_reported_cost_usd": 0.002483,
+      "source_sha256": "82c458556c616827a559258cbddebab240e0eb4b6b70ee82a1018c15e71d54e3"
+    },
+    {
+      "attempt": "diagnostic",
+      "session_id": "3db0e382-5f93-4bd5-b05a-f445a3534d1a",
+      "native_reported_cost_usd": 0.003429,
+      "source_sha256": "e401dc7c6391ae236f4831a2d5194b40ee20d05c15c7cb6d7f04ae09d095fe61"
+    },
+    {
+      "attempt": "verified",
+      "session_id": "169d575b-c103-45bc-b4b5-a449c330266f",
+      "native_reported_cost_usd": 0.0033380000000000003,
+      "source_sha256": "47453d8a6a6fba48950842570df4e68f3684266dd39e0ef20168408e183a6b5e"
+    }
+  ],
+  "all_four_records_present": true,
+  "native_reported_total_usd": "0.0092500000000000003",
+  "invoice_verified": false,
+  "ledger_retained_microusd": 8000000,
+  "global_cap_microusd": 10000000,
+  "global_uncommitted_microusd": 2000000
+}

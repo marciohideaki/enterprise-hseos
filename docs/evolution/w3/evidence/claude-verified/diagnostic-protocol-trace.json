@@ -1,0 +1,18 @@
+[
+  {
+    "type": "system",
+    "subtype": "init",
+    "session_id": "3db0e382-5f93-4bd5-b05a-f445a3534d1a",
+    "tools": [],
+    "permissionMode": "plan"
+  },
+  {
+    "type": "system",
+    "subtype": "thinking_tokens",
+    "session_id": "3db0e382-5f93-4bd5-b05a-f445a3534d1a"
+  },
+  {
+    "failure_name": "RuntimeProviderError",
+    "failure_message": "Claude Agent SDK emitted an unsupported message"
+  }
+]

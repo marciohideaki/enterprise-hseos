@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "profile_id": "agent-codex-delegated-candidate",
+  "runtime_provider_id": "runtime:codex-app-server",
+  "executable": "/usr/local/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex",
+  "args": [
+    "app-server",
+    "--listen",
+    "stdio://",
+    "-c",
+    "mcp_servers={\"axon\"={enabled=false},\"hseos-governance\"={enabled=false},\"hseos-state-tracking\"={enabled=false},\"hseos-swarm\"={enabled=false},\"hseos-axon-bridge\"={enabled=false},\"filesystem\"={enabled=false},\"playwright\"={enabled=false},\"mde-forge\"={enabled=false}}",
+    "-c",
+    "model_reasoning_effort=\"low\""
+  ],
+  "cwd": "/build/tmp/hseos-w3-live-codex-L5HTya",
+  "env_names": [],
+  "secret_refs": []
+}

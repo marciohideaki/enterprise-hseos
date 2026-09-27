@@ -1,0 +1,14 @@
+[
+  {
+    "stage": "pack",
+    "exit_code": 0
+  },
+  {
+    "stage": "install-node24",
+    "exit_code": 0
+  },
+  {
+    "stage": "consumer-node24",
+    "exit_code": 1
+  }
+]

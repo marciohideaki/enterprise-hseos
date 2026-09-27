@@ -1,0 +1,11 @@
+{
+  "max_requests": 7,
+  "max_cost_microusd": 10000000,
+  "deadline": 1790450517787,
+  "binding_ids": [
+    "binding:codex-live"
+  ],
+  "task_ids": [
+    "04bdda23-3b59-4761-ab57-d1b60908660e"
+  ]
+}

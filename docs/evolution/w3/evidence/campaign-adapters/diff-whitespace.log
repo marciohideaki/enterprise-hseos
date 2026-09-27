@@ -1,0 +1,468 @@
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2977: trailing whitespace.
++File                                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s  
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2979: trailing whitespace.
++All files                             |   95.99 |    89.16 |   98.09 |   95.99 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2980: trailing whitespace.
++ packages/agent-compaction            |   97.97 |       93 |     100 |   97.97 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2981: trailing whitespace.
++  checkpoint-provider.js              |     100 |    85.71 |     100 |     100 | 29,50,58           
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2982: trailing whitespace.
++  deterministic-provider.js           |     100 |       98 |     100 |     100 | 35                 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2983: trailing whitespace.
++  index.js                            |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2984: trailing whitespace.
++  provider-registry.js                |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2985: trailing whitespace.
++  runtime.js                          |   93.63 |    87.23 |     100 |   93.63 | ...112-113,135-136 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2986: trailing whitespace.
++ packages/agent-isolation-attestation |   95.47 |     90.6 |     100 |   95.47 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2987: trailing whitespace.
++  executor.js                         |   94.57 |     84.4 |     100 |   94.57 | ...234-236,274-275 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2988: trailing whitespace.
++  index.js                            |   96.14 |    93.52 |     100 |   96.14 | ...440-441,450-451 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2989: trailing whitespace.
++  terminal-executor.js                |   95.23 |    94.11 |     100 |   95.23 | ...160-162,176-178 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2990: trailing whitespace.
++ packages/agent-orchestration         |   96.72 |    89.17 |     100 |   96.72 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2991: trailing whitespace.
++  execution-supervisor.js             |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2992: trailing whitespace.
++  index.js                            |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2993: trailing whitespace.
++  local-subagent-provider.js          |   97.25 |    88.76 |     100 |   97.25 | ...146-149,225-226 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2994: trailing whitespace.
++  utilities.js                        |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2995: trailing whitespace.
++  workflow-engine.js                  |   94.83 |    82.92 |     100 |   94.83 | ...263-264,383-384 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2996: trailing whitespace.
++ packages/agent-policy-lattice        |   96.33 |     81.3 |     100 |   96.33 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2997: trailing whitespace.
++  index.js                            |   96.33 |     81.3 |     100 |   96.33 | ...175-176,203-204 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2998: trailing whitespace.
++ packages/agent-runtime               |   90.35 |    85.71 |   97.29 |   90.35 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:2999: trailing whitespace.
++  index.js                            |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3000: trailing whitespace.
++  runtime.js                          |   90.05 |    85.29 |   97.22 |   90.05 | ...-1056,1058-1067 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3001: trailing whitespace.
++  schemas.js                          |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3002: trailing whitespace.
++ packages/agent-session-store         |   91.75 |    89.16 |     100 |   91.75 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3003: trailing whitespace.
++  index.js                            |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3004: trailing whitespace.
++  replay.js                           |   91.54 |    90.26 |     100 |   91.54 | ...809-810,871-872 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3005: trailing whitespace.
++  session-event-store.js              |   92.02 |    87.21 |     100 |   92.02 | ...482-483,490-491 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3006: trailing whitespace.
++ packages/control-sdk                 |     100 |       94 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3007: trailing whitespace.
++  index.js                            |     100 |       94 |     100 |     100 | 28,62,74           
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3008: trailing whitespace.
++ packages/tool-runtime                |   94.14 |     87.5 |    91.3 |   94.14 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3009: trailing whitespace.
++  index.js                            |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3010: trailing whitespace.
++  registry.js                         |   91.66 |    84.61 |      90 |   91.66 | 37-38,42-43,46-49  
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3011: trailing whitespace.
++  tool-runtime.js                     |   94.89 |    88.52 |    92.3 |   94.89 | ...212-213,268-269 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3012: trailing whitespace.
++ tools/cli/lib                        |   98.27 |    89.47 |   97.29 |   98.27 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3013: trailing whitespace.
++  control-configuration.js            |   97.88 |    93.33 |     100 |   97.88 | 91-93              
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3014: trailing whitespace.
++  engineering-control-http.js         |     100 |     91.3 |     100 |     100 | ...62,74-78,91,114 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3015: trailing whitespace.
++  engineering-control.js              |   98.61 |    89.09 |     100 |   98.61 | 75-77,214          
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3016: trailing whitespace.
++  engineering-model.js                |     100 |       80 |     100 |     100 | 23,30-32,37        
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3017: trailing whitespace.
++  engineering-project-verifier.js     |     100 |    93.33 |     100 |     100 | 34,52,68           
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3018: trailing whitespace.
++  engineering-reconciliation.js       |   97.07 |    81.63 |     100 |   97.07 | 48-53,144-146      
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3019: trailing whitespace.
++  engineering-sandbox-check.js        |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3020: trailing whitespace.
++  engineering-task-contract.js        |     100 |    96.42 |     100 |     100 | 169,201            
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3021: trailing whitespace.
++  engineering-task-runtime.js         |   95.12 |    81.46 |   94.44 |   95.12 | ...590,631-632,634 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3022: trailing whitespace.
++  engineering-task-state.js           |   98.52 |    80.76 |     100 |   98.52 | 119-122            
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3023: trailing whitespace.
++  engineering-tools.js                |     100 |     92.3 |     100 |     100 | ...128,195,201,204 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3024: trailing whitespace.
++  engineering-verifier.js             |     100 |       90 |     100 |     100 | 51,88              
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3025: trailing whitespace.
++  engineering-workflow-runtime.js     |   97.63 |    84.57 |   88.88 |   97.63 | ...206-213,497-501 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3026: trailing whitespace.
++  engineering-workspace.js            |   98.95 |    95.32 |     100 |   98.95 | 31-32              
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3027: trailing whitespace.
++  provider-api-adapter.js             |    98.7 |    93.05 |     100 |    98.7 | 201-203            
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3028: trailing whitespace.
++  provider-campaign-control.js        |     100 |     94.9 |     100 |     100 | ...289,369,408,443 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3029: trailing whitespace.
++  provider-campaign-runner.js         |     100 |    88.88 |     100 |     100 | 56,74-75,86        
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3030: trailing whitespace.
++  provider-egress-broker.js           |   96.28 |    86.36 |   93.75 |   96.28 | ...223-225,252-253 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3031: trailing whitespace.
++  terminal-attach.js                  |   98.92 |      100 |   85.71 |   98.92 | 58                 
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3032: trailing whitespace.
++  terminal-budget.js                  |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3033: trailing whitespace.
++  terminal-control.js                 |   98.88 |    93.08 |     100 |   98.88 | 140-142,284        
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3034: trailing whitespace.
++ tools/lib                            |     100 |    92.59 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node22-critical.log:3035: trailing whitespace.
++  provider-control-manifest.js        |     100 |    92.59 |     100 |     100 | 84,89              
+docs/evolution/w3/evidence/adapters-composition/node22-full.log:2869: trailing whitespace.
++File                 | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                   
+docs/evolution/w3/evidence/adapters-composition/node22-full.log:2871: trailing whitespace.
++All files            |   94.28 |    75.47 |     100 |   94.28 |                                     
+docs/evolution/w3/evidence/adapters-composition/node22-full.log:2872: trailing whitespace.
++ workflow-catalog.js |   94.28 |    75.47 |     100 |   94.28 | ...,150-151,153-154,180-181,202-203 
+docs/evolution/w3/evidence/adapters-composition/node22-full.log:3038: trailing whitespace.
++File                                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+docs/evolution/w3/evidence/adapters-composition/node22-full.log:3040: trailing whitespace.
++All files                              |   80.09 |    75.98 |    93.1 |   80.09 |                   
+docs/evolution/w3/evidence/adapters-composition/node22-full.log:3041: trailing whitespace.
++ ...b/core/agent-core-compiler/sources |   87.65 |    69.56 |     100 |   87.65 |                   
+docs/evolution/w3/evidence/adapters-composition/node22-full.log:3042: trailing whitespace.
++  capabilities-source.js               |   87.65 |    69.56 |     100 |   87.65 | ...25-126,145-147 
+docs/evolution/w3/evidence/adapters-composition/node22-full.log:3043: trailing whitespace.
++ lib                                   |   78.26 |    77.03 |   91.66 |   78.26 |                   
+docs/evolution/w3/evidence/adapters-composition/node22-full.log:3044: trailing whitespace.
++  capability-catalog.js                |   78.26 |    77.03 |   91.66 |   78.26 | ...87-593,595-652 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:531: trailing whitespace.
++File                                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s  
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:533: trailing whitespace.
++All files                             |   95.99 |    89.16 |   98.09 |   95.99 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:534: trailing whitespace.
++ packages/agent-compaction            |   97.97 |       93 |     100 |   97.97 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:535: trailing whitespace.
++  checkpoint-provider.js              |     100 |    85.71 |     100 |     100 | 29,50,58           
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:536: trailing whitespace.
++  deterministic-provider.js           |     100 |       98 |     100 |     100 | 35                 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:537: trailing whitespace.
++  index.js                            |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:538: trailing whitespace.
++  provider-registry.js                |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:539: trailing whitespace.
++  runtime.js                          |   93.63 |    87.23 |     100 |   93.63 | ...112-113,135-136 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:540: trailing whitespace.
++ packages/agent-isolation-attestation |   95.47 |    90.63 |     100 |   95.47 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:541: trailing whitespace.
++  executor.js                         |   94.57 |     84.4 |     100 |   94.57 | ...234-236,274-275 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:542: trailing whitespace.
++  index.js                            |   96.14 |    93.52 |     100 |   96.14 | ...440-441,450-451 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:543: trailing whitespace.
++  terminal-executor.js                |   95.23 |    94.23 |     100 |   95.23 | ...160-162,176-178 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:544: trailing whitespace.
++ packages/agent-orchestration         |   96.72 |    89.17 |     100 |   96.72 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:545: trailing whitespace.
++  execution-supervisor.js             |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:546: trailing whitespace.
++  index.js                            |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:547: trailing whitespace.
++  local-subagent-provider.js          |   97.25 |    88.76 |     100 |   97.25 | ...146-149,225-226 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:548: trailing whitespace.
++  utilities.js                        |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:549: trailing whitespace.
++  workflow-engine.js                  |   94.83 |    82.92 |     100 |   94.83 | ...263-264,383-384 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:550: trailing whitespace.
++ packages/agent-policy-lattice        |   96.33 |     81.3 |     100 |   96.33 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:551: trailing whitespace.
++  index.js                            |   96.33 |     81.3 |     100 |   96.33 | ...175-176,203-204 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:552: trailing whitespace.
++ packages/agent-runtime               |   90.35 |    85.71 |   97.29 |   90.35 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:553: trailing whitespace.
++  index.js                            |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:554: trailing whitespace.
++  runtime.js                          |   90.05 |    85.29 |   97.22 |   90.05 | ...-1056,1058-1067 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:555: trailing whitespace.
++  schemas.js                          |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:556: trailing whitespace.
++ packages/agent-session-store         |   91.75 |    89.16 |     100 |   91.75 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:557: trailing whitespace.
++  index.js                            |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:558: trailing whitespace.
++  replay.js                           |   91.54 |    90.26 |     100 |   91.54 | ...809-810,871-872 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:559: trailing whitespace.
++  session-event-store.js              |   92.02 |    87.21 |     100 |   92.02 | ...482-483,490-491 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:560: trailing whitespace.
++ packages/control-sdk                 |     100 |       94 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:561: trailing whitespace.
++  index.js                            |     100 |       94 |     100 |     100 | 28,62,74           
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:562: trailing whitespace.
++ packages/tool-runtime                |   94.14 |     87.5 |    91.3 |   94.14 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:563: trailing whitespace.
++  index.js                            |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:564: trailing whitespace.
++  registry.js                         |   91.66 |    84.61 |      90 |   91.66 | 37-38,42-43,46-49  
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:565: trailing whitespace.
++  tool-runtime.js                     |   94.89 |    88.52 |    92.3 |   94.89 | ...212-213,268-269 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:566: trailing whitespace.
++ tools/cli/lib                        |   98.27 |    89.47 |   97.29 |   98.27 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:567: trailing whitespace.
++  control-configuration.js            |   97.88 |    93.33 |     100 |   97.88 | 91-93              
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:568: trailing whitespace.
++  engineering-control-http.js         |     100 |     91.3 |     100 |     100 | ...62,74-78,91,114 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:569: trailing whitespace.
++  engineering-control.js              |   98.61 |    89.09 |     100 |   98.61 | 75-77,214          
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:570: trailing whitespace.
++  engineering-model.js                |     100 |       80 |     100 |     100 | 23,30-32,37        
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:571: trailing whitespace.
++  engineering-project-verifier.js     |     100 |    93.33 |     100 |     100 | 34,52,68           
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:572: trailing whitespace.
++  engineering-reconciliation.js       |   97.07 |    81.63 |     100 |   97.07 | 48-53,144-146      
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:573: trailing whitespace.
++  engineering-sandbox-check.js        |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:574: trailing whitespace.
++  engineering-task-contract.js        |     100 |    96.42 |     100 |     100 | 169,201            
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:575: trailing whitespace.
++  engineering-task-runtime.js         |   95.12 |    81.46 |   94.44 |   95.12 | ...590,631-632,634 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:576: trailing whitespace.
++  engineering-task-state.js           |   98.52 |    80.76 |     100 |   98.52 | 119-122            
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:577: trailing whitespace.
++  engineering-tools.js                |     100 |     92.3 |     100 |     100 | ...128,195,201,204 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:578: trailing whitespace.
++  engineering-verifier.js             |     100 |       90 |     100 |     100 | 51,88              
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:579: trailing whitespace.
++  engineering-workflow-runtime.js     |   97.63 |    84.57 |   88.88 |   97.63 | ...206-213,497-501 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:580: trailing whitespace.
++  engineering-workspace.js            |   98.95 |    95.32 |     100 |   98.95 | 31-32              
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:581: trailing whitespace.
++  provider-api-adapter.js             |    98.7 |    93.05 |     100 |    98.7 | 201-203            
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:582: trailing whitespace.
++  provider-campaign-control.js        |     100 |     94.9 |     100 |     100 | ...289,369,408,443 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:583: trailing whitespace.
++  provider-campaign-runner.js         |     100 |    88.88 |     100 |     100 | 56,74-75,86        
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:584: trailing whitespace.
++  provider-egress-broker.js           |   96.28 |    86.36 |   93.75 |   96.28 | ...223-225,252-253 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:585: trailing whitespace.
++  terminal-attach.js                  |   98.92 |      100 |   85.71 |   98.92 | 58                 
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:586: trailing whitespace.
++  terminal-budget.js                  |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:587: trailing whitespace.
++  terminal-control.js                 |   98.88 |    93.08 |     100 |   98.88 | 140-142,284        
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:588: trailing whitespace.
++ tools/lib                            |     100 |    92.59 |     100 |     100 |                    
+docs/evolution/w3/evidence/adapters-composition/node24-critical.log:589: trailing whitespace.
++  provider-control-manifest.js        |     100 |    92.59 |     100 |     100 | 84,89              
+docs/evolution/w3/evidence/adapters-composition/node24-full.log:1200: trailing whitespace.
++File                 | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                   
+docs/evolution/w3/evidence/adapters-composition/node24-full.log:1202: trailing whitespace.
++All files            |   94.28 |    75.47 |     100 |   94.28 |                                     
+docs/evolution/w3/evidence/adapters-composition/node24-full.log:1203: trailing whitespace.
++ workflow-catalog.js |   94.28 |    75.47 |     100 |   94.28 | ...,150-151,153-154,180-181,202-203 
+docs/evolution/w3/evidence/adapters-composition/node24-full.log:1369: trailing whitespace.
++File                                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+docs/evolution/w3/evidence/adapters-composition/node24-full.log:1371: trailing whitespace.
++All files                              |   80.09 |    75.98 |    93.1 |   80.09 |                   
+docs/evolution/w3/evidence/adapters-composition/node24-full.log:1372: trailing whitespace.
++ ...b/core/agent-core-compiler/sources |   87.65 |    69.56 |     100 |   87.65 |                   
+docs/evolution/w3/evidence/adapters-composition/node24-full.log:1373: trailing whitespace.
++  capabilities-source.js               |   87.65 |    69.56 |     100 |   87.65 | ...25-126,145-147 
+docs/evolution/w3/evidence/adapters-composition/node24-full.log:1374: trailing whitespace.
++ lib                                   |   78.26 |    77.03 |   91.66 |   78.26 |                   
+docs/evolution/w3/evidence/adapters-composition/node24-full.log:1375: trailing whitespace.
++  capability-catalog.js                |   78.26 |    77.03 |   91.66 |   78.26 | ...87-593,595-652 
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-generated-fixture.log:1200: trailing whitespace.
++File                 | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                   
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-generated-fixture.log:1202: trailing whitespace.
++All files            |   94.28 |    75.47 |     100 |   94.28 |                                     
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-generated-fixture.log:1203: trailing whitespace.
++ workflow-catalog.js |   94.28 |    75.47 |     100 |   94.28 | ...,150-151,153-154,180-181,202-203 
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-generated-fixture.log:1369: trailing whitespace.
++File                                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-generated-fixture.log:1371: trailing whitespace.
++All files                              |   80.09 |    75.98 |    93.1 |   80.09 |                   
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-generated-fixture.log:1372: trailing whitespace.
++ ...b/core/agent-core-compiler/sources |   87.65 |    69.56 |     100 |   87.65 |                   
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-generated-fixture.log:1373: trailing whitespace.
++  capabilities-source.js               |   87.65 |    69.56 |     100 |   87.65 | ...25-126,145-147 
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-generated-fixture.log:1374: trailing whitespace.
++ lib                                   |   78.26 |    77.03 |   91.66 |   78.26 |                   
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-generated-fixture.log:1375: trailing whitespace.
++  capability-catalog.js                |   78.26 |    77.03 |   91.66 |   78.26 | ...87-593,595-652 
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-neutrality-fix.log:1200: trailing whitespace.
++File                 | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                   
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-neutrality-fix.log:1202: trailing whitespace.
++All files            |   94.28 |    75.47 |     100 |   94.28 |                                     
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-neutrality-fix.log:1203: trailing whitespace.
++ workflow-catalog.js |   94.28 |    75.47 |     100 |   94.28 | ...,150-151,153-154,180-181,202-203 
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-neutrality-fix.log:1369: trailing whitespace.
++File                                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-neutrality-fix.log:1371: trailing whitespace.
++All files                              |   80.09 |    75.98 |    93.1 |   80.09 |                   
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-neutrality-fix.log:1372: trailing whitespace.
++ ...b/core/agent-core-compiler/sources |   87.65 |    69.56 |     100 |   87.65 |                   
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-neutrality-fix.log:1373: trailing whitespace.
++  capabilities-source.js               |   87.65 |    69.56 |     100 |   87.65 | ...25-126,145-147 
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-neutrality-fix.log:1374: trailing whitespace.
++ lib                                   |   78.26 |    77.03 |   91.66 |   78.26 |                   
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-neutrality-fix.log:1375: trailing whitespace.
++  capability-catalog.js                |   78.26 |    77.03 |   91.66 |   78.26 | ...87-593,595-652 
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-neutrality-fix.log:2686: trailing whitespace.
++  
+docs/evolution/w3/evidence/configuration-loader/node24-full-before-neutrality-fix.log:2694: trailing whitespace.
++  
+docs/evolution/w3/evidence/matrix-checkpoint/node22-full.log:2869: trailing whitespace.
++File                 | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                   
+docs/evolution/w3/evidence/matrix-checkpoint/node22-full.log:2871: trailing whitespace.
++All files            |   94.28 |    75.47 |     100 |   94.28 |                                     
+docs/evolution/w3/evidence/matrix-checkpoint/node22-full.log:2872: trailing whitespace.
++ workflow-catalog.js |   94.28 |    75.47 |     100 |   94.28 | ...,150-151,153-154,180-181,202-203 
+docs/evolution/w3/evidence/matrix-checkpoint/node22-full.log:3038: trailing whitespace.
++File                                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+docs/evolution/w3/evidence/matrix-checkpoint/node22-full.log:3040: trailing whitespace.
++All files                              |   80.09 |    75.98 |    93.1 |   80.09 |                   
+docs/evolution/w3/evidence/matrix-checkpoint/node22-full.log:3041: trailing whitespace.
++ ...b/core/agent-core-compiler/sources |   87.65 |    69.56 |     100 |   87.65 |                   
+docs/evolution/w3/evidence/matrix-checkpoint/node22-full.log:3042: trailing whitespace.
++  capabilities-source.js               |   87.65 |    69.56 |     100 |   87.65 | ...25-126,145-147 
+docs/evolution/w3/evidence/matrix-checkpoint/node22-full.log:3043: trailing whitespace.
++ lib                                   |   78.26 |    77.03 |   91.66 |   78.26 |                   
+docs/evolution/w3/evidence/matrix-checkpoint/node22-full.log:3044: trailing whitespace.
++  capability-catalog.js                |   78.26 |    77.03 |   91.66 |   78.26 | ...87-593,595-652 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:512: trailing whitespace.
++File                                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s  
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:514: trailing whitespace.
++All files                             |   95.87 |    89.13 |      98 |   95.87 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:515: trailing whitespace.
++ packages/agent-compaction            |   97.97 |       93 |     100 |   97.97 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:516: trailing whitespace.
++  checkpoint-provider.js              |     100 |    85.71 |     100 |     100 | 29,50,58           
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:517: trailing whitespace.
++  deterministic-provider.js           |     100 |       98 |     100 |     100 | 35                 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:518: trailing whitespace.
++  index.js                            |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:519: trailing whitespace.
++  provider-registry.js                |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:520: trailing whitespace.
++  runtime.js                          |   93.63 |    87.23 |     100 |   93.63 | ...112-113,135-136 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:521: trailing whitespace.
++ packages/agent-isolation-attestation |   95.47 |    90.63 |     100 |   95.47 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:522: trailing whitespace.
++  executor.js                         |   94.57 |     84.4 |     100 |   94.57 | ...234-236,274-275 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:523: trailing whitespace.
++  index.js                            |   96.14 |    93.52 |     100 |   96.14 | ...440-441,450-451 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:524: trailing whitespace.
++  terminal-executor.js                |   95.23 |    94.23 |     100 |   95.23 | ...160-162,176-178 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:525: trailing whitespace.
++ packages/agent-orchestration         |   96.72 |    89.17 |     100 |   96.72 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:526: trailing whitespace.
++  execution-supervisor.js             |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:527: trailing whitespace.
++  index.js                            |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:528: trailing whitespace.
++  local-subagent-provider.js          |   97.25 |    88.76 |     100 |   97.25 | ...146-149,225-226 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:529: trailing whitespace.
++  utilities.js                        |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:530: trailing whitespace.
++  workflow-engine.js                  |   94.83 |    82.92 |     100 |   94.83 | ...263-264,383-384 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:531: trailing whitespace.
++ packages/agent-policy-lattice        |   96.33 |     81.3 |     100 |   96.33 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:532: trailing whitespace.
++  index.js                            |   96.33 |     81.3 |     100 |   96.33 | ...175-176,203-204 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:533: trailing whitespace.
++ packages/agent-runtime               |   90.35 |    85.71 |   97.29 |   90.35 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:534: trailing whitespace.
++  index.js                            |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:535: trailing whitespace.
++  runtime.js                          |   90.05 |    85.29 |   97.22 |   90.05 | ...-1056,1058-1067 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:536: trailing whitespace.
++  schemas.js                          |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:537: trailing whitespace.
++ packages/agent-session-store         |   91.75 |    89.14 |     100 |   91.75 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:538: trailing whitespace.
++  index.js                            |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:539: trailing whitespace.
++  replay.js                           |   91.54 |    90.23 |     100 |   91.54 | ...809-810,871-872 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:540: trailing whitespace.
++  session-event-store.js              |   92.02 |    87.21 |     100 |   92.02 | ...482-483,490-491 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:541: trailing whitespace.
++ packages/control-sdk                 |     100 |       94 |     100 |     100 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:542: trailing whitespace.
++  index.js                            |     100 |       94 |     100 |     100 | 28,62,74           
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:543: trailing whitespace.
++ packages/tool-runtime                |   94.14 |     87.5 |    91.3 |   94.14 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:544: trailing whitespace.
++  index.js                            |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:545: trailing whitespace.
++  registry.js                         |   91.66 |    84.61 |      90 |   91.66 | 37-38,42-43,46-49  
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:546: trailing whitespace.
++  tool-runtime.js                     |   94.89 |    88.52 |    92.3 |   94.89 | ...212-213,268-269 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:547: trailing whitespace.
++ tools/cli/lib                        |   98.22 |    89.34 |   96.95 |   98.22 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:548: trailing whitespace.
++  control-configuration.js            |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:549: trailing whitespace.
++  engineering-control-http.js         |     100 |     91.2 |     100 |     100 | ...62,74-78,91,114 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:550: trailing whitespace.
++  engineering-control.js              |   98.61 |    89.09 |     100 |   98.61 | 75-77,214          
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:551: trailing whitespace.
++  engineering-model.js                |     100 |       80 |     100 |     100 | 23,30-32,37        
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:552: trailing whitespace.
++  engineering-project-verifier.js     |     100 |    93.33 |     100 |     100 | 34,52,68           
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:553: trailing whitespace.
++  engineering-reconciliation.js       |   97.07 |    81.63 |     100 |   97.07 | 48-53,144-146      
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:554: trailing whitespace.
++  engineering-sandbox-check.js        |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:555: trailing whitespace.
++  engineering-task-contract.js        |     100 |    96.42 |     100 |     100 | 169,201            
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:556: trailing whitespace.
++  engineering-task-runtime.js         |   95.12 |    81.28 |   94.44 |   95.12 | ...590,631-632,634 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:557: trailing whitespace.
++  engineering-task-state.js           |   98.52 |    80.76 |     100 |   98.52 | 119-122            
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:558: trailing whitespace.
++  engineering-tools.js                |     100 |     92.3 |     100 |     100 | ...128,195,201,204 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:559: trailing whitespace.
++  engineering-verifier.js             |     100 |       90 |     100 |     100 | 51,88              
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:560: trailing whitespace.
++  engineering-workflow-runtime.js     |   97.63 |    84.57 |   88.88 |   97.63 | ...206-213,497-501 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:561: trailing whitespace.
++  engineering-workspace.js            |   98.95 |    95.32 |     100 |   98.95 | 31-32              
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:562: trailing whitespace.
++  provider-campaign-control.js        |     100 |       96 |     100 |     100 | ...231,278,291,314 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:563: trailing whitespace.
++  provider-egress-broker.js           |   96.28 |    86.23 |   93.75 |   96.28 | ...223-225,252-253 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:564: trailing whitespace.
++  terminal-attach.js                  |   98.92 |      100 |   85.71 |   98.92 | 58                 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:565: trailing whitespace.
++  terminal-budget.js                  |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:566: trailing whitespace.
++  terminal-control.js                 |   98.88 |    93.08 |     100 |   98.88 | 140-142,284        
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:567: trailing whitespace.
++ tools/lib                            |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-critical.log:568: trailing whitespace.
++  provider-control-manifest.js        |     100 |      100 |     100 |     100 |                    
+docs/evolution/w3/evidence/matrix-checkpoint/node24-full.log:1200: trailing whitespace.
++File                 | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                   
+docs/evolution/w3/evidence/matrix-checkpoint/node24-full.log:1202: trailing whitespace.
++All files            |   94.28 |    75.47 |     100 |   94.28 |                                     
+docs/evolution/w3/evidence/matrix-checkpoint/node24-full.log:1203: trailing whitespace.
++ workflow-catalog.js |   94.28 |    75.47 |     100 |   94.28 | ...,150-151,153-154,180-181,202-203 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-full.log:1369: trailing whitespace.
++File                                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-full.log:1371: trailing whitespace.
++All files                              |   80.09 |    75.98 |    93.1 |   80.09 |                   
+docs/evolution/w3/evidence/matrix-checkpoint/node24-full.log:1372: trailing whitespace.
++ ...b/core/agent-core-compiler/sources |   87.65 |    69.56 |     100 |   87.65 |                   
+docs/evolution/w3/evidence/matrix-checkpoint/node24-full.log:1373: trailing whitespace.
++  capabilities-source.js               |   87.65 |    69.56 |     100 |   87.65 | ...25-126,145-147 
+docs/evolution/w3/evidence/matrix-checkpoint/node24-full.log:1374: trailing whitespace.
++ lib                                   |   78.26 |    77.03 |   91.66 |   78.26 |                   
+docs/evolution/w3/evidence/matrix-checkpoint/node24-full.log:1375: trailing whitespace.
++  capability-catalog.js                |   78.26 |    77.03 |   91.66 |   78.26 | ...87-593,595-652 
+docs/evolution/w3/evidence/prototype/focused-node24.log:26: trailing whitespace.
++File                           | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s       
+docs/evolution/w3/evidence/prototype/focused-node24.log:28: trailing whitespace.
++All files                      |     100 |    96.53 |     100 |     100 |                         
+docs/evolution/w3/evidence/prototype/focused-node24.log:29: trailing whitespace.
++ cli/lib                       |     100 |       96 |     100 |     100 |                         
+docs/evolution/w3/evidence/prototype/focused-node24.log:30: trailing whitespace.
++  provider-campaign-control.js |     100 |       96 |     100 |     100 | 170,214,231,278,291,314 
+docs/evolution/w3/evidence/prototype/focused-node24.log:31: trailing whitespace.
++ lib                           |     100 |      100 |     100 |     100 |                         
+docs/evolution/w3/evidence/prototype/focused-node24.log:32: trailing whitespace.
++  provider-control-manifest.js |     100 |      100 |     100 |     100 |                         

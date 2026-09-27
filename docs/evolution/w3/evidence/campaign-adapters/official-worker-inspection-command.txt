@@ -1,0 +1,25 @@
+'use strict';
+const root='/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype';
+const fs=require('node:fs'), path=require('node:path'), os=require('node:os'), crypto=require('node:crypto');
+const {manifest}=require(root+'/test/helpers/provider-control');
+const {engineeringDigest}=require(root+'/tools/cli/lib/engineering-task-state');
+const {createAntigravityCampaignAdapter,antigravityArtifactDigest}=require(root+'/tools/cli/lib/provider-antigravity-adapter');
+(async()=>{
+ const d=fs.mkdtempSync(path.join(os.tmpdir(),'hseos-official-sdk-inspect-'));
+ try{
+  const python='/build/tmp/hseos-w3-sdk-validation/bin/python';
+  const modulePath=require('node:child_process').execFileSync(python,['-I','-c',"import importlib.util;print(importlib.util.find_spec('google.antigravity').origin)"],{encoding:'utf8'}).trim();
+  const config={python,checkpoint:path.join(d,'placeholder.litertlm'),sdk_module:modulePath,scratch:d,subordinate_binding_id:'inspection-only',max_model_calls:1,tasks:{}};
+  fs.writeFileSync(config.checkpoint,'configuration placeholder, not model weights');
+  const artifacts=[python,config.checkpoint,modulePath].map(p=>crypto.createHash('sha256').update(fs.readFileSync(fs.realpathSync(p))).digest('hex'));
+  const m=manifest('antigravity','local','client');
+  Object.assign(m,{adapter:'hseos-antigravity-campaign-v1',provider_version:'0.1.18',artifact_sha256:antigravityArtifactDigest(),binding_sha256:engineeringDigest({config,artifacts})});
+  Object.assign(m.authentication,{identity_kind:'local_profile',account_sha256:null,profile_sha256:engineeringDigest(artifacts)});
+  const file=path.join(d,'binding.json');fs.writeFileSync(file,JSON.stringify(config));
+  const adapter=createAntigravityCampaignAdapter({manifest:m,binding:file,options:{}}).adapter;
+  const observed=await adapter.inspect();
+  const result={schema_version:1,operation:'real official SDK metadata inspection through supervised worker',sdk_version:observed.provider_version,profile_matches:observed.profile_sha256===m.authentication.profile_sha256,inference:'not_executed',checkpoint:'placeholder; never opened as a model',real_conformance:'not_certified'};
+  fs.writeFileSync(root+'/docs/evolution/w3/evidence/campaign-adapters/official-worker-inspection.json',JSON.stringify(result,null,2)+'\n');
+  console.log(JSON.stringify(result));
+ }finally{fs.rmSync(d,{recursive:true,force:true});}
+})().catch(()=>{console.error('Official worker inspection failed');process.exitCode=1;});

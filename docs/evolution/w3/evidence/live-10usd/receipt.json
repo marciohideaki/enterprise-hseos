@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-26T18:32:38.438028+00:00",
+  "owner_cap_usd": 10,
+  "campaign_id": "3d99e1e2-047d-48a4-9c33-7a6a99e52fa2",
+  "authorization_id": "ed495b50-9086-42c8-bc94-4c211e14e33c",
+  "status": "blocked_after_uncertain_attempt",
+  "inference_paid_api_started": false,
+  "codex_dispatched_attempts": 1,
+  "codex_confirmed_receipts": 0,
+  "ledger_committed_microusd": 0,
+  "billing_invoice_verified": false,
+  "outcome": "uncertain; no automatic retry",
+  "root_cause": {
+    "original_override": "mcp_servers={}",
+    "inherited_mcp_count": 8,
+    "resource_limit": "pids.max=32",
+    "reproduction_pids_max_events": 357,
+    "reproduction_error": "Codex thread/start rejected; threadpool creation hit EAGAIN",
+    "correction": "disable every configured MCP explicitly and launch on CPU affinity 0,1",
+    "corrected_session_creation": "isolated successes only; unstable and not certified",
+    "original_model_dispatch": "not independently established; uncertainty retained",
+    "confirmed": "pids.max exhaustion; monitor showed 7 Node threads and 25 Codex threads",
+    "exclusive_mcp_attribution": "refuted; failures continue with explicit MCP disabling",
+    "profile_64_and_128_experiments": "diagnostic only; failures reproduced; 128 also had an isolated success",
+    "production_limit_unchanged": 32,
+    "status": "stable native profile unresolved"
+  },
+  "readiness": {
+    "codex": "account and quota observed; native initialization unstable under resource limits; reconciliation pending",
+    "claude": "pass://claude/anthropic-api-key authenticates with HTTP 200; official SDK 0.3.283 installed outside repository; owner quota exception pending",
+    "compatible_api": "no matching credential reference found among pass entry names; owner reference pending",
+    "antigravity": "no .litertlm checkpoint found under /workspace/local, /home/annonymous/.cache or /build/tmp; owner path pending"
+  },
+  "state_path": "/build/tmp/hseos-ledger-fixture-MZU7Nm",
+  "reconciliation_report_sha256": "8b24a3b0a7542864c1fabd1f84ce65ffc425fc22fd825420036b0177cdf8df1c",
+  "owner_decisions_pending": [
+    "reconciliation of uncertain attempt; any next inference also requires a stable native profile",
+    "Claude unknown inference quota exception, max two calls",
+    "compatible API credential reference and LiteRT checkpoint"
+  ],
+  "real_conformance": "not_certified",
+  "aew_activation": "not_verified",
+  "governance_ci_exit": 0,
+  "evidence_sha256": {
+    "authorization-intent.json": "8a9c09a79615126ea4709977d95e62aced6f7176196e65abdd08019a789da7d4",
+    "codex-admission.json": "61ec0bfaaba49de37b8002462c396ff7de076feb6f195f78732dedd9ed424000",
+    "codex-binding-corrected.json": "667afbb2c7d48405e661510ba16546132fa83ec3bc22e080758b50c92843ad4b",
+    "codex-failure.json": "440f7c45a662821bf51dc5635605640bdfc667d25adfda7b357348ac84679990",
+    "codex-grant.json": "e151b6feda130495c869b45033b224c8ab65b7e7b7ea2351c19715574dbfda2c",
+    "codex-manifest.json": "d3cac11f0acfb95682a8af9b6cc7cadffad7c3dbb4e13426a4a0b6f8c8e4c3af",
+    "codex-session-audit.json": "655fa99a5156e03d194eedbb14b5beb839aaa9a95a9a4349a91bd384082aa37d",
+    "corrected-session-creation.json": "f99ea0439371da4473b779aec7ad923860477a7b59aef503d447dde5a6c9436d",
+    "governance-ci.log": "a734ca9ea4228e73b99d90cc9f5eb48ddb42702dc65d0f8744d0a7083657deef",
+    "ledger-export.json": "0bb7593ae1a43d111954b9c19b3f061b6fd68418b079bca46eb3458b9b4d53c7",
+    "profile-128-experiment.json": "63618a60f3a81b638986144d50bcc295719c393aee182533b566fa7d9bf08852",
+    "profile-64-experiment.json": "5857820ed509b0cb9921a4bb5d326e1985544e99174edefdd17593a040d78aeb",
+    "profile-monitor.json": "4b085d34f467f4025fc73163f9e2fdabeb1429f4fdf0d5b79aced7da7f602039",
+    "thread-env-experiment.json": "dcc0abe197807ebcf621351a0f48cc94140f109f50b2aec5a6f3627c28ce185d",
+    "thread-inventory.json": "e958a9d5d1933c2748f610faa51d08f4e024b91a6f921f6b203259f5278ded3b"
+  }
+}

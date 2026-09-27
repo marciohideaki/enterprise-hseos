@@ -140,6 +140,7 @@ function openExecutionLedgerFileFixture(directory) {
 }
 
 module.exports = {
+  assertTemporaryFixtureDirectory,
   applyExecutionLedgerFixtureSchema,
   createExecutionLedgerFileFixture,
   openExecutionLedgerFileFixture,

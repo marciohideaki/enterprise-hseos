@@ -225,3 +225,23 @@ test('process ACP peer closes on an unknown JSON-RPC response id', async () => {
     await provider.close();
   }
 });
+
+test('process spawn may extend its environment without mutating the validated ACP environment', async () => {
+  const { spawn } = require('node:child_process');
+  const instance = new ProcessAcpPeer({
+    executable: process.execPath,
+    args: [FIXTURE, 'normal'],
+    cwd: ROOT,
+    env: { PATH: process.env.PATH },
+    spawn_process: (executable, args, options) => {
+      options.env.HSEOS_SPAWN_PROBE = 'child-only';
+      return spawn(executable, args, options);
+    },
+  });
+  try {
+    assert.ok(Object.isFrozen(instance.env));
+    assert.equal(Object.hasOwn(instance.env, 'HSEOS_SPAWN_PROBE'), false);
+  } finally {
+    await instance.close();
+  }
+});

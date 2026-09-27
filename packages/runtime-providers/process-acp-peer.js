@@ -75,7 +75,7 @@ class ProcessAcpPeer {
     if (typeof spawn_process !== 'function') throw new RuntimeProviderError('ACP process factory must be a function', 'invalid_request');
     this.child = spawn_process(this.executable, this.args, {
       cwd: this.cwd,
-      env: this.env,
+      env: { ...this.env },
       shell: false,
       windowsHide: true,
       stdio: ['pipe', 'pipe', 'ignore'],

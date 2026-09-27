@@ -1,0 +1,48 @@
+{
+  "baseRefName": "feature/hseos-evolution-foundation",
+  "headRefOid": "0f6cd4ac8cb7692d86e9d0ab93e35842cca1b208",
+  "state": "OPEN",
+  "statusCheckRollup": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-26T08:29:06Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/marciohideaki/enterprise-hseos/actions/runs/36229395929/job/108369546480",
+      "name": "test (22.x)",
+      "startedAt": "2026-09-26T08:18:46Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-26T08:19:02Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/marciohideaki/enterprise-hseos/actions/runs/36229395971/job/108369546829",
+      "name": "compose",
+      "startedAt": "2026-09-26T08:18:46Z",
+      "status": "COMPLETED",
+      "workflowName": "capability-graph-composition"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-26T08:38:13Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/marciohideaki/enterprise-hseos/actions/runs/36229395929/job/108369546663",
+      "name": "test (24.x)",
+      "startedAt": "2026-09-26T08:29:09Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-26T08:38:27Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/marciohideaki/enterprise-hseos/actions/runs/36229395929/job/108372260588",
+      "name": "governance",
+      "startedAt": "2026-09-26T08:38:15Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    }
+  ],
+  "url": "https://github.com/marciohideaki/enterprise-hseos/pull/179"
+}

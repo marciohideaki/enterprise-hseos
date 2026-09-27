@@ -1,0 +1,12 @@
+{
+  "owner_instruction": "Prossiga conforme proposto! 1 -> 2 -> 3",
+  "global_cap_microusd": 10000000,
+  "retained_microusd": 8000000,
+  "available_microusd": 2000000,
+  "prior_campaign_dispatches": 20,
+  "prior_acp_protocol_prompts": 5,
+  "max_additional_campaign_dispatches": 2,
+  "max_additional_paid_microusd": 0,
+  "route": "account",
+  "purpose": "Final pinned source: no unsupported output parameter, ancestor config rejected; prior zero-cost dispatches retained"
+}

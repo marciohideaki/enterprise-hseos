@@ -1,0 +1,38 @@
+[
+  {
+    "stage": "format-final",
+    "exit_code": 0
+  },
+  {
+    "stage": "affected-final-node24",
+    "exit_code": 0
+  },
+  {
+    "stage": "official-sdk-config",
+    "exit_code": 0
+  },
+  {
+    "stage": "official-worker-inspection",
+    "exit_code": 0
+  },
+  {
+    "stage": "cli-manifest",
+    "exit_code": 0
+  },
+  {
+    "stage": "typescript-sdk",
+    "exit_code": 0
+  },
+  {
+    "stage": "lint",
+    "exit_code": 0
+  },
+  {
+    "stage": "format-source",
+    "exit_code": 0
+  },
+  {
+    "stage": "diff-whitespace",
+    "exit_code": 2
+  }
+]

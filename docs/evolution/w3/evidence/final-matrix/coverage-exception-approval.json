@@ -1,0 +1,9 @@
+{
+  "authorized": true,
+  "owner_instruction": "Autorizado",
+  "scope": "node22_integral_coverage_once",
+  "cpu_quota_percent": 100,
+  "memory_max_bytes": 3221225472,
+  "nice": 19,
+  "recorded_at": "2026-09-27T03:52:34.428705+00:00"
+}

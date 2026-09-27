@@ -1,0 +1,17 @@
+{
+  "max_requests": 2,
+  "max_cost_microusd": 1000000,
+  "deadline": 1790481264858,
+  "binding_ids": [
+    "binding:claude-live"
+  ],
+  "task_ids": [
+    "6a1e1e5a-65af-4b7c-a7f0-4205e904bf64"
+  ],
+  "quota_exceptions": {
+    "binding:claude-live": {
+      "reason": "Owner instructed execution of real campaigns after the explicit proposal for up to two Claude calls, combined USD 1 maximum; global USD 10 unchanged and USD 8 historical reservations retained.",
+      "expires_at": 1790481264858
+    }
+  }
+}

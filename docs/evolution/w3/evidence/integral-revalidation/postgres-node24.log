@@ -1,0 +1,28 @@
+
+> hseos@4.0.0-rc.0 test:managed-governance-postgres
+> node --test --test-concurrency=1 test/managed-governance/postgres.integration.test.js
+
+▶ PostgreSQL migration and repository integration
+  ✔ creates every core table with fail-closed tenant RLS (32.319353ms)
+  ✔ commits domain state, audit, outbox and receipt atomically (97.279345ms)
+  ✔ returns the original result for an exact idempotent retry (37.219583ms)
+  ✔ rejects conflicting idempotency reuse without partial writes (32.656525ms)
+  ✔ serializes concurrent retries to one committed mutation (62.216948ms)
+  ✔ records a readiness evaluation idempotently and never authorizes enforcement (92.699815ms)
+  ✔ records a recovery rehearsal idempotently and requires a confirmed disposable target (61.034812ms)
+  ✔ records network access audit events with a deny reason required only on denial (60.484937ms)
+  ✔ keeps tenant reads isolated and closes explicitly (23.813294ms)
+  ✔ persists repository-scoped shadow-readiness evidence with real cross-tenant RLS denial (221.325757ms)
+  ✔ applies, repeats, versions and rolls back a catalog transactionally (297.324573ms)
+  ✔ preserves the prior active catalog when import audit persistence fails (223.613237ms)
+  ✔ rolls back domain state when the paired audit write fails (41.576784ms)
+  ✔ database roles and immutable records are enforced by PostgreSQL (49.388634ms)
+✔ PostgreSQL migration and repository integration (1424.176621ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1552.718356

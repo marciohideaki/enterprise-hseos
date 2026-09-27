@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-27T03:43:12.892116+00:00",
+  "status": "three_current_families_exercised_fourth_deferred_by_owner",
+  "source_sha256": {
+    ".c8-kernel.json": "51faa40994a082cd07fb3d3dcc8de37bc3aa761ff28b190a5b2731309a90e216",
+    "package.json": "6173fbda88521f0ccc643ede43b1cb6c929b34a4ed0993c0e2c4361e22969f65",
+    "packages/runtime-providers/claude-agent-sdk-driver.js": "7c6a2d6c9ee84ca6fbd7015f03db87d5b30a599bc89ac91cb29f8dc8ec2c7372",
+    "packages/runtime-providers/process-acp-peer.js": "a84680376b8d1d5a1fff77177c5c393a4acdf00a16cca2235aa53e1901a4d40e",
+    "tools/cli/lib/provider-campaign-worker.js": "33870e91a8cb60d9763e62d20a9b46cf05f19e16ed622f218977cb6439227e70",
+    "tools/cli/command-manifest.json": "9068322da68670f5f4a7c90cb217e79bbfe883b52c28a9d7574ecd36bd791594",
+    "test/test-acp-campaign-boundaries.js": "9aeb421ba5f7329968997021a1ca6afe85d28b69d6729c088e9df7538683a8a0",
+    "test/test-codex-acp-peer.js": "be44a9de49cf2af4dd8d2c525a0a89eb2e6ee733fef17801814d2773478e0fd9",
+    "test/test-claude-agent-sdk-driver.js": "6a3987d1085d44b5062491130f648d854db58d2c0fd06075e2704b87ecd4b2b7",
+    "test/test-process-acp-peer.js": "a59c7d21ac9e7407ab09b2b0a047bf51b2f56c6c5f4c59b99decfec04dea2b63",
+    "test/test-delegated-codex-cli.js": "f9eda928ec0f44050daab554b0719de3f43fc659f83b5f1ed220f01548ca37fc",
+    "test/test-delegated-claude-cli.js": "77c20f7b456ebacfe9a3f3ed86ff7c521c3ab93e188b23873174b265397cc28b",
+    "test/test-delegated-deepseek-cli.js": "b1ff1656637c85c0097a8ea7c1b9d2f9cd8bcbd3a645895a85b989c3c83968f4",
+    "test/test-kernel-quality-surface.js": "027029be48f7065c664407bcb869ec0ffc4d824d9f1c2200a84ed64c4311b71a"
+  },
+  "spec_sha256": "db7619d61de735211ee1e52fc4707b2d6a9103a5aa1a65f269fa6fd67ff1a060",
+  "acp": {
+    "schema_version": 1,
+    "real_inference_calls": 2,
+    "same_provider_session": true,
+    "response_hashes_match": [
+      true,
+      true
+    ],
+    "control_replay_verified": true,
+    "requests": 2,
+    "committed_microusd": 0,
+    "live_commands": 0,
+    "unresolved_commands": 0,
+    "cancelled": true
+  },
+  "claude": {
+    "resume_exercised": true,
+    "expected_response_hashes": [
+      true,
+      true
+    ],
+    "real_inference_calls": 2,
+    "requests": 2,
+    "committed_microusd": 1000000,
+    "authorized_microusd": 1000000,
+    "sdk_reported_cost_usd": [
+      0.003329,
+      0.0055569999999999994
+    ],
+    "scope": "Two bounded Claude API turns with real provider-session recovery; four-family campaign remains separate",
+    "global_retained_microusd": 9000000,
+    "global_remaining_microusd": 1000000,
+    "cumulative_campaign_dispatches": 26
+  },
+  "antigravity": {
+    "schema_version": 1,
+    "parent_turns": 2,
+    "child_turns": 2,
+    "same_parent_session": true,
+    "parent_model_calls": [
+      1,
+      1
+    ],
+    "child_responses_ready": [
+      true,
+      true
+    ],
+    "parent_resume_prompt_tokens": [
+      249,
+      331
+    ],
+    "usage_source": [
+      "litert_native_benchmark",
+      "litert_native_benchmark"
+    ],
+    "control_replay_verified": true,
+    "requests": 4,
+    "committed_microusd": 0,
+    "live_commands": 0,
+    "unresolved_commands": 0,
+    "cancelled": true,
+    "child_sessions": "distinct_by_design_each_subordinate_call",
+    "cumulative_campaign_dispatches": 30,
+    "global_retained_microusd": 9000000,
+    "global_remaining_microusd": 1000000
+  },
+  "budget": {
+    "cap_microusd": 10000000,
+    "historical_retained_microusd": 8000000,
+    "additional_retained_microusd": 1000000,
+    "total_retained_microusd": 9000000,
+    "remaining_microusd": 1000000,
+    "new_claude_sdk_reported_cost_usd": 0.008886,
+    "invoice_verified": false,
+    "prior_dispatches": 22,
+    "new_dispatches": 8,
+    "total_dispatches": 30,
+    "new_remote_inference_calls": 6,
+    "new_local_inference_calls": 2
+  },
+  "fourth_family": {
+    "owner_instruction": "A quarta familia s\u00f3 sera testada e validada ap\u00f3s a conclusao de todas as fases!",
+    "status": "deferred_not_passed",
+    "blocks_current_phase_advancement": false
+  },
+  "validation_pending": [
+    "integral Node22 coverage (host load above six physical cores)",
+    "Git integration and PR; no merge approval"
+  ],
+  "limits": [
+    "ACP recovery does not certify fourth family",
+    "Antigravity uses local LiteRT with native account subordinate; Gemini API not exercised",
+    "Antigravity parent resumes; subordinate sessions are distinct",
+    "SDK cost is not invoice evidence",
+    "Official local SDKs remain external prerequisites",
+    "AEW application/enforcement not verified"
+  ],
+  "secret_scan": "all five known secrets and live-token patterns absent"
+}

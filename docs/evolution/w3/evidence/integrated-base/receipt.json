@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-26T08:44:17.619344+00:00",
+  "base_commit": "b9db33bfcf53681d91c64ca8a0dd42c74b0fb24c",
+  "scope": "W3 prototype plus affected W1/W2 and package regression",
+  "nodes": {
+    "22": {
+      "tests": 37,
+      "pass": 37,
+      "fail": 0,
+      "skipped": 0
+    },
+    "24": {
+      "tests": 37,
+      "pass": 37,
+      "fail": 0,
+      "skipped": 0
+    }
+  },
+  "checks": [
+    {
+      "name": "affected-node24",
+      "exit_code": 0,
+      "started_at": "2026-09-26T08:42:55.602382+00:00",
+      "finished_at": "2026-09-26T08:43:15.201520+00:00"
+    },
+    {
+      "name": "affected-node22",
+      "exit_code": 0,
+      "started_at": "2026-09-26T08:43:15.201906+00:00",
+      "finished_at": "2026-09-26T08:43:34.775142+00:00"
+    },
+    {
+      "name": "cli-manifest",
+      "exit_code": 0,
+      "started_at": "2026-09-26T08:43:34.775361+00:00",
+      "finished_at": "2026-09-26T08:43:35.257701+00:00"
+    },
+    {
+      "name": "typescript-sdk",
+      "exit_code": 0,
+      "started_at": "2026-09-26T08:43:35.257884+00:00",
+      "finished_at": "2026-09-26T08:43:35.950777+00:00"
+    },
+    {
+      "name": "lint-changed",
+      "exit_code": 0,
+      "started_at": "2026-09-26T08:43:35.954805+00:00",
+      "finished_at": "2026-09-26T08:43:36.836125+00:00"
+    },
+    {
+      "name": "format-changed",
+      "exit_code": 0,
+      "started_at": "2026-09-26T08:43:36.836321+00:00",
+      "finished_at": "2026-09-26T08:43:37.193222+00:00"
+    }
+  ],
+  "full_w3_matrix": "pending",
+  "installed_w3_consumers": "pending",
+  "real_campaign": "not_executed",
+  "committed": false,
+  "coverage_scope": "two new modules only; see ../prototype/receipt.json",
+  "sources": [
+    {
+      "path": ".c8-kernel.json",
+      "sha256": "c8820fbf0c3910d7ec8aab3a1ebcc1e8c0fde0bd231dfbdacb9ec399d1e5476a"
+    },
+    {
+      "path": "package.json",
+      "sha256": "28e94e2e88dde1a75edbfa9e1a0699c030feb5eb224f34b1662e08bcfa7d01c1"
+    },
+    {
+      "path": "packages/control-sdk/hseos_control.py",
+      "sha256": "6489d8beab9481171e83005696d251d174391b765762df3e4bc6c970eb9522f9"
+    },
+    {
+      "path": "packages/control-sdk/index.d.ts",
+      "sha256": "68ca2770a1b404cf3dc966f87156757ca5d8a9e404fc2df7ee783a281f9e554b"
+    },
+    {
+      "path": "packages/control-sdk/index.js",
+      "sha256": "0cef4a3896d7a9a3ca5eeee32b0929c03ccfe4d47808713057f6935539340785"
+    },
+    {
+      "path": "test/helpers/provider-control.js",
+      "sha256": "e5b20d0f564bd0a86708eeb616444c2d080262ea8236f6d614abf6fbc68bac37"
+    },
+    {
+      "path": "test/test-package-surface.js",
+      "sha256": "f2e483371b65a5ea31cccf3a734b560e10c9a280816b3de8b316e322dc03b2f4"
+    },
+    {
+      "path": "test/test-provider-campaign-control.js",
+      "sha256": "3fa593448d8abeb3e7d73b0892b558c91640cd3e012595c64be3f9807ca6e0c1"
+    },
+    {
+      "path": "test/test-provider-control-manifest.js",
+      "sha256": "c08ae6e3b6759d5fd9d3f4b3fbbb53e326cf0227c4ac7585d0413ec0faa97e5a"
+    },
+    {
+      "path": "tools/cli/command-manifest.json",
+      "sha256": "7b2b6d24e7ffdef02d22648179adedfb9c02b6b1e7b154da4c233ad516a6c85b"
+    },
+    {
+      "path": "tools/cli/commands/control.js",
+      "sha256": "5ba5e3da0acd183c7395ebd7d700f6cfab495feabfb32408be9dbce02d2e7801"
+    },
+    {
+      "path": "tools/cli/lib/engineering-control-http.js",
+      "sha256": "8b5fdb0eac2d37bc0cf4927e3d823cf4888b130e5f414a4ba5f226eec0e045bb"
+    },
+    {
+      "path": "tools/cli/lib/engineering-control.js",
+      "sha256": "fd353d9581854dbcee7b56d368c977be849dd779677cd44207de04ac71144597"
+    },
+    {
+      "path": "tools/cli/lib/provider-campaign-control.js",
+      "sha256": "c79098b675f60662849b63ac90529315cf577c39675623dc8656c43f81d671d6"
+    },
+    {
+      "path": "tools/lib/provider-control-manifest.js",
+      "sha256": "e297cced0133e7451f4b8ff1c3c2fc126b28f9293a825968646a99440c7847bd"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/evolution/w3/evidence/integrated-base/affected-node22.log",
+      "sha256": "ee0d33303b623f4409332e227e489ad10cb11219213c617fae980573828ebb12"
+    },
+    {
+      "path": "docs/evolution/w3/evidence/integrated-base/affected-node24.log",
+      "sha256": "5892deeb5e77f2e590452d7212d38f85ccf18255a17efc5a76177192c5f1323e"
+    },
+    {
+      "path": "docs/evolution/w3/evidence/integrated-base/checks.json",
+      "sha256": "4d2f00e29b32424ab6eb7f232176914f1ed549d425d3798f8cb14d082fee586e"
+    },
+    {
+      "path": "docs/evolution/w3/evidence/integrated-base/cli-manifest.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/evolution/w3/evidence/integrated-base/format-changed.log",
+      "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "docs/evolution/w3/evidence/integrated-base/lint-changed.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/evolution/w3/evidence/integrated-base/package-bound-before.log",
+      "sha256": "a8f2a1c4c104bbfda3a5ceadb05a32f8805dfa5e0d426fb3152efe3eefcdc724"
+    },
+    {
+      "path": "docs/evolution/w3/evidence/integrated-base/package-delta.json",
+      "sha256": "eeadeaca4d9570016f1383337fc316640441a01ad3398e97af43b358a4846aea"
+    },
+    {
+      "path": "docs/evolution/w3/evidence/integrated-base/typescript-sdk.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/evolution/w3/evidence/integrated-base/w1-w2-integration.json",
+      "sha256": "0be833db0aff871eb844af4652b597c878413a2f71d211697edf9ca47413575a"
+    },
+    {
+      "path": "docs/evolution/w3/evidence/integrated-base/w2-ci-checks.json",
+      "sha256": "c2b6aa4d54890ab50c1446c4147c16b029573409d2cc18da63ad9d9779d87baa"
+    }
+  ]
+}

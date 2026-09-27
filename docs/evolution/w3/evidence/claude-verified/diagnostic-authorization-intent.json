@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "campaign_id": "6162469e-e543-484e-a43f-762a54ff3ac6",
+  "authorization_id": "8154b413-d62a-4cc8-b704-408f5421c029",
+  "task_id": "1b30993e-4a66-4742-8af1-ccd6f99296ed",
+  "max_cost_microusd": 2000000,
+  "max_requests": 1,
+  "global_cap_microusd": 10000000,
+  "prior_global_committed_microusd": 4000000,
+  "prior_global_dispatches": 7,
+  "prior_claude_dispatches": 2,
+  "owner_instruction": "Autorizado as duas chamadas mantendo o limite",
+  "additional_calls_authorized": 2,
+  "remaining_additional_calls_after_this": 1,
+  "instrumented_worker": true,
+  "exception_scope": "First of two additional Claude calls; USD 2 maximum each, unchanged global USD 10",
+  "recorded_at": "2026-09-26T20:17:29.151Z"
+}

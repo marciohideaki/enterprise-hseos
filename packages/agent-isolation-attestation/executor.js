@@ -100,14 +100,18 @@ async function reapTerminalGroup(owner, directory) {
   await removeDrainedGroup(directory);
 }
 
-function createResourceGroup() {
+function createResourceGroup({ memory_max_bytes = 268_435_456, pids_max = 32 } = {}) {
+  if (!Number.isSafeInteger(pids_max) || pids_max < 32 || pids_max > 256)
+    throw new EngineeringIsolationError('Invalid finite process limit');
+  if (!Number.isSafeInteger(memory_max_bytes) || memory_max_bytes < 268_435_456 || memory_max_bytes > 2_147_483_648)
+    throw new EngineeringIsolationError('Invalid finite memory limit');
   const parent = resourceParent();
   const directory = path.join(parent, `${ownerPrefix(executorOwner())}${randomUUID()}`);
   fs.mkdirSync(directory);
   try {
     for (const [name, limit] of [
-      ['pids.max', '32'],
-      ['memory.max', '268435456'],
+      ['pids.max', String(pids_max)],
+      ['memory.max', String(memory_max_bytes)],
       ['memory.swap.max', '0'],
     ]) {
       fs.writeFileSync(path.join(directory, name), limit);

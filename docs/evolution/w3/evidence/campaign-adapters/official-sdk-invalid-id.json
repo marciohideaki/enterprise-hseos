@@ -1,0 +1,7 @@
+{
+  "sdk_version": "0.1.18",
+  "observed_error": "LiteRTAgentConfig conversation_id must be at least 32 characters long, got 16",
+  "source": "official SDK configuration validation in this session",
+  "correction": "Python and adapter receipt validation require at least 32 characters; successful retest uses a UUID",
+  "inference": "not_executed"
+}
