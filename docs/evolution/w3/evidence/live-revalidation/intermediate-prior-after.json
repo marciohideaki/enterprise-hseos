@@ -1,0 +1,16 @@
+{
+  "resource_id": "3d99e1e2-047d-48a4-9c33-7a6a99e52fa2",
+  "current_sequence": 11,
+  "max_requests": 10,
+  "max_cost_microusd": 10000000,
+  "deadline": 1790447720873,
+  "requests": 1,
+  "committed_microusd": 0,
+  "cancelled": true,
+  "unresolved_commands": [],
+  "live_commands": [],
+  "bindings": [
+    "binding:codex-live"
+  ],
+  "report_sha256": "dfc50ff363d4759c8ddf80e7d943ec6401d8c25096c96eb7b2764a4b47a33f7a"
+}

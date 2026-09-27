@@ -1,0 +1,10 @@
+{
+  "owner_instruction": "Prossiga; concluir Antigravity com rota local; API depois",
+  "global_cap_microusd": 10000000,
+  "prior_retained_microusd": 8000000,
+  "available_microusd": 2000000,
+  "prior_dispatches": 11,
+  "additional_dispatches_max": 4,
+  "additional_authorized_microusd": 0,
+  "scope": "Local LiteRT parent and observed account child, no paid API calls"
+}

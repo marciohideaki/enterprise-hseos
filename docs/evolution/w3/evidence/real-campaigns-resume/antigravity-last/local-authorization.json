@@ -1,0 +1,10 @@
+{
+  "owner_instruction": "Prossiga com a matriz integral e as campanhas reais; Antigravity ao final; quarta familia somente apos todas as fases",
+  "global_cap_microusd": 10000000,
+  "prior_retained_microusd": 9000000,
+  "available_microusd": 1000000,
+  "prior_dispatches": 26,
+  "additional_dispatches_max": 4,
+  "additional_authorized_microusd": 0,
+  "scope": "Local LiteRT parent and observed account child, no paid API calls"
+}

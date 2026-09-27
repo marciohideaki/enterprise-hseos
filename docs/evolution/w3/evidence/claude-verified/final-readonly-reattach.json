@@ -1,0 +1,8 @@
+{
+  "same_session_id": true,
+  "provider_session_id": "169d575b-c103-45bc-b4b5-a449c330266f",
+  "effect_boundary": "instructions_only",
+  "query_calls": 0,
+  "reattach_verified": true,
+  "resumed_inference_verified": false
+}

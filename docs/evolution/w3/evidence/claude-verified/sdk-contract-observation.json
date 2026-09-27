@@ -1,0 +1,13 @@
+{
+  "package": "@anthropic-ai/claude-agent-sdk",
+  "version": "0.3.283",
+  "types_sha256": "8d1444fff1b7955ef385a3338b2b6fb0418d108dca61c51781eb7c24f4084b3f",
+  "type": "SDKThinkingTokensMessage",
+  "event_type": "system",
+  "subtype": "thinking_tokens",
+  "fields": [
+    "estimated_tokens",
+    "estimated_tokens_delta"
+  ],
+  "meaning": "approximate progress, not authoritative billed output_tokens"
+}

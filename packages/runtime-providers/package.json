@@ -20,7 +20,9 @@
   "main": "index.js",
   "dependencies": {
     "@hseos/agent-runtime-contracts": "^1.0.0",
-    "yaml": "^2.7.0"
+    "@hseos/agent-session-store": "^1.0.0",
+    "yaml": "^2.7.0",
+    "zod": "4.3.6"
   },
   "engines": {
     "node": ">=22.0.0"

@@ -1,0 +1,18 @@
+{
+  "resource_id": "2829295f-ef17-4a93-bf6f-eafd607397ac",
+  "current_sequence": 8,
+  "max_requests": 9,
+  "max_cost_microusd": 10000000,
+  "deadline": 1790450296242,
+  "requests": 2,
+  "committed_microusd": 0,
+  "cancelled": false,
+  "unresolved_commands": [
+    "06887300-8af6-4f50-b3f7-5d5087a72670"
+  ],
+  "live_commands": [],
+  "bindings": [
+    "binding:codex-live"
+  ],
+  "report_sha256": "b861b11b030e4c634a7fe69309d2accf519fa7254d904042dc1aaba44f52c051"
+}

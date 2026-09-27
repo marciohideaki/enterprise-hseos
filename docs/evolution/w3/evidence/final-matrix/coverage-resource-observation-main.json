@@ -1,0 +1,8 @@
+{
+  "pid": 2510934,
+  "cgroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/run-p2510922-i2477928.scope",
+  "cpu_max": "100000 100000",
+  "memory_max": "3221225472",
+  "pids_max": "512",
+  "affinity": "Cpus_allowed_list:\t0"
+}

@@ -1,0 +1,44 @@
+[
+  {
+    "name": "affected-node24",
+    "exit_code": 0,
+    "started_at": "2026-09-26T15:16:23.816420+00:00",
+    "finished_at": "2026-09-26T15:16:43.890403+00:00"
+  },
+  {
+    "name": "affected-node22",
+    "exit_code": 0,
+    "started_at": "2026-09-26T15:16:43.890654+00:00",
+    "finished_at": "2026-09-26T15:17:04.469756+00:00"
+  },
+  {
+    "name": "cli-manifest",
+    "exit_code": 1,
+    "started_at": "2026-09-26T15:17:04.470064+00:00",
+    "finished_at": "2026-09-26T15:17:04.987303+00:00"
+  },
+  {
+    "name": "cli-manifest",
+    "exit_code": 0,
+    "started_at": "2026-09-26T15:17:22.942692+00:00",
+    "finished_at": "2026-09-26T15:17:23.430147+00:00"
+  },
+  {
+    "name": "typescript-sdk",
+    "exit_code": 0,
+    "started_at": "2026-09-26T15:17:23.430352+00:00",
+    "finished_at": "2026-09-26T15:17:24.155103+00:00"
+  },
+  {
+    "name": "lint-changed",
+    "exit_code": 0,
+    "started_at": "2026-09-26T15:17:24.159277+00:00",
+    "finished_at": "2026-09-26T15:17:25.155528+00:00"
+  },
+  {
+    "name": "format-changed",
+    "exit_code": 0,
+    "started_at": "2026-09-26T15:17:25.155728+00:00",
+    "finished_at": "2026-09-26T15:17:25.600669+00:00"
+  }
+]

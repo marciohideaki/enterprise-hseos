@@ -1,0 +1,19 @@
+✔ Claude Agent SDK driver binds an explicit session and completes through the hosted L0 provider (11.754999ms)
+✔ a fresh driver finds an existing transcript and resumes the exact session id (8.195989ms)
+✔ Claude effect content fails closed at the hosted effect boundary (2.076174ms)
+✔ Claude unknown-effect content fails closed at the hosted effect boundary (1.130772ms)
+✔ driver cancellation aborts and closes an active Agent SDK query (4.147667ms)
+✔ driver passes only the selected environment values to the SDK child contract (0.960324ms)
+✔ driver rejects relative bindings and implicit environment keys (0.81189ms)
+✔ Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-progress (0.987799ms)
+✔ Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-invalid (0.885432ms)
+✔ Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-foreign (0.849232ms)
+✔ Claude thinking progress is distinct from billed usage and preserves strict protocol: unknown-system (0.666147ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 171.471552

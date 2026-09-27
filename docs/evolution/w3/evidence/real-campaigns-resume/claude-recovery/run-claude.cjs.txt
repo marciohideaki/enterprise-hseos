@@ -1,0 +1,60 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+const {randomUUID,randomBytes,createHash}=require('node:crypto');
+const {execFileSync}=require('node:child_process');
+const root=process.cwd(),dir=__dirname;
+const {engineeringDigest}=require(root+'/tools/cli/lib/engineering-task-state');
+const {EngineeringControl}=require(root+'/tools/cli/lib/engineering-control');
+const {createNativeCampaignAdapter,nativeArtifactDigest}=require(root+'/tools/cli/lib/provider-native-adapter');
+const {runCampaignProcess}=require(root+'/tools/cli/lib/provider-campaign-process');
+const {readBinding}=require(root+'/tools/cli/lib/delegated-claude-runtime');
+const {credentialFingerprint}=require(root+'/tools/cli/lib/provider-api-adapter');
+const {startControlServer}=require(root+'/tools/cli/lib/engineering-control-http');
+const {ControlClient}=require(root+'/packages/control-sdk');
+const {runProviderCampaign}=require(root+'/tools/cli/lib/provider-campaign-runner');
+function save(name,value){fs.writeFileSync(path.join(dir,name),JSON.stringify(value,null,2)+'\n',{mode:0o600});}
+(async()=>{
+ const authorization=JSON.parse(fs.readFileSync(path.join(dir,'authorization-intent.json')));
+ const prior=JSON.parse(fs.readFileSync(path.resolve('.logs/runs/w3-integral-closeout/acp-revalidation/campaign-result.json')));
+ if(prior.final.requests!==2||prior.final.committed_microusd!==0||prior.final.live_commands.length||prior.final.unresolved_commands.length)throw Error('PRIOR_CAMPAIGN_NOT_SETTLED');
+ if(authorization.retained_prior_microusd+authorization.max_cost_microusd>authorization.global_cap_microusd)throw Error('GLOBAL_BUDGET_EXCEEDED');
+ if(fs.existsSync(path.join(dir,'claude-result.json'))||fs.existsSync(path.join(dir,'claude-failure.json')))throw new Error('Completed pilot exists; no new inference allowed');
+ let metadata;
+ if(fs.existsSync(path.join(dir,'claude-run.json')))metadata=JSON.parse(fs.readFileSync(path.join(dir,'claude-run.json')));
+ else{
+  const scratch=fs.mkdtempSync(path.join(os.tmpdir(),'hseos-w3-live-claude-'));
+  const first=randomUUID();
+  metadata={scratch,plan:{schema_version:1,scope:'pilot',campaign_id:authorization.campaign_id,authorization_id:authorization.authorization_id,create_command_id:randomUUID(),cancel_command_id:randomUUID(),steps:[{command_id:first,binding_id:'binding:claude-live',task_id:authorization.task_id}]},deadline:Date.now()+900000};
+  metadata.plan.steps.push({command_id:randomUUID(),binding_id:'binding:claude-live',task_id:authorization.task_id,resume_from:first});
+  save('claude-run.json',metadata);
+ }
+ const key=execFileSync('pass',['show','claude/anthropic-api-key'],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
+ const bindingFile=path.join(metadata.scratch,'binding.json');
+ const binding={schema_version:1,profile_id:'agent-claude-delegated-candidate',runtime_provider_id:'runtime:claude-agent-sdk',executable:'/home/annonymous/.local/share/claude/versions/2.1.283',sdk_module:'/build/tmp/hseos-w3-live-claude-sdk/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs',cwd:metadata.scratch,env_names:[],secret_refs:[]};
+ const prompt='Teste de continuidade HSEOS. Nao use ferramentas, nao leia arquivos e nao execute comandos. Se esta for a primeira mensagem desta conversa, responda exatamente {"value":42,"phase":"initial"}. Se esta conversa ja tiver uma resposta sua anterior, responda exatamente {"value":43,"phase":"resumed"}. Nao use markdown nem acrescente explicacoes.';
+ const options={model:'claude-haiku-4-5-20251001',tasks:{[authorization.task_id]:{prompt}},environment:{HOME:'/home/annonymous',PATH:'/workspace/local/sdk/nvm/versions/node/v24.15.0/bin:/usr/local/bin:/usr/bin:/bin'},memory_max_bytes:536870912,pids_max:256};
+ fs.writeFileSync(bindingFile,JSON.stringify(binding));
+ const manifest={schema_version:1,binding_id:'binding:claude-live',binding_sha256:engineeringDigest({binding:readBinding(bindingFile),options}),vendor:'claude',provider_kind:'client',provider_version:'0.3.283',adapter:'hseos-claude-campaign-v1',artifact_sha256:nativeArtifactDigest(),route:'api',transport:'process',authentication:{mode:'api_key',identity_kind:'credential',credential:{name:'claude-api',source_ref:'env://ANTHROPIC_API_KEY'},account_sha256:null,credential_sha256:credentialFingerprint(key),source:'explicit'},billing:{kind:'metered',currency:'USD',max_request_microusd:500000},limits:{max_requests:2,max_input_tokens:65536,max_output_tokens:1024,max_duration_ms:120000},controls:{authority:'external_client',resume:'not_verified',cancel:'not_verified',quota:'not_verified',evidence_sha256:null}};
+ const audit=async(input)=>{const result=await runCampaignProcess(input);if(input.input.operation==='run')fs.appendFileSync(path.join(dir,'claude-turns.jsonl'),JSON.stringify({provider_session_id:result.provider_session_id,text_sha256:result.text_sha256,usage:result.usage})+'\n',{mode:0o600});return result;};
+ const configured={manifest,...createNativeCampaignAdapter({manifest,binding:bindingFile,options},{processRunner:audit,environment:{ANTHROPIC_API_KEY:key}})};
+ const grant={max_requests:authorization.max_requests,max_cost_microusd:authorization.max_cost_microusd,deadline:metadata.deadline,binding_ids:[manifest.binding_id],task_ids:[authorization.task_id],quota_exceptions:{[manifest.binding_id]:{reason:'Owner instructed execution of real campaigns after the explicit proposal for up to two Claude calls, combined USD 1 maximum; global USD 10 unchanged and USD 8 historical reservations retained.',expires_at:metadata.deadline}}};
+ const control=new EngineeringControl({...(metadata.state?{state:metadata.state}:{}),providerBindings:{[manifest.binding_id]:configured},providerAuthorizations:{[authorization.authorization_id]:grant}});
+ metadata.state=control.state;save('claude-run.json',metadata);save('claude-manifest.json',manifest);save('claude-grant.json',grant);
+ const entry='enterprise-hseos/w3-campaign-control-'+authorization.campaign_id;
+ const entries=execFileSync('pass',['ls','enterprise-hseos'],{encoding:'utf8'});
+ let credential;
+ if(entries.includes('w3-campaign-control-'+authorization.campaign_id))credential=execFileSync('pass',['show',entry],{encoding:'utf8'}).trim();
+ else{credential=randomBytes(32).toString('hex');execFileSync('pass',['insert','-m',entry],{input:credential+'\n',stdio:['pipe','pipe','pipe']});}
+ let server;
+ try{
+  server=await startControlServer({control,credential});
+  const result=await runProviderCampaign(new ControlClient({url:server.url,credential}),metadata.plan);
+  save('claude-result.json',result);
+  const turns=fs.readFileSync(path.join(dir,'claude-turns.jsonl'),'utf8').trim().split('\n').map(JSON.parse);
+  const expected=['{"value":42,"phase":"initial"}','{"value":43,"phase":"resumed"}'].map(s=>createHash('sha256').update(s).digest('hex'));
+  const validation={resume_exercised:turns.length===2&&turns[0].provider_session_id===turns[1].provider_session_id,expected_response_hashes:turns.map((t,i)=>t.text_sha256===expected[i]),real_inference_calls:turns.length,requests:result.final.requests,committed_microusd:result.final.committed_microusd,authorized_microusd:result.final.max_cost_microusd,sdk_reported_cost_usd:turns.map(t=>t.usage.total_cost_usd),scope:'Two bounded Claude API turns with real provider-session recovery; four-family campaign remains separate',global_retained_microusd:authorization.retained_prior_microusd+result.final.committed_microusd,global_remaining_microusd:authorization.global_cap_microusd-authorization.retained_prior_microusd-result.final.committed_microusd,cumulative_campaign_dispatches:authorization.planned_prior_dispatches+result.final.requests};
+  save('claude-validation.json',validation);console.log(JSON.stringify(validation));
+  if(!validation.resume_exercised||validation.expected_response_hashes.length!==2||validation.expected_response_hashes.some(v=>!v)||result.final.live_commands.length||result.final.unresolved_commands.length)process.exitCode=1;
+ }catch(error){const state=control.providerCampaigns.query(authorization.campaign_id);save('claude-failure.json',{code:error.code||error.message,state});console.log(JSON.stringify({code:error.code||error.message,requests:state.requests,unresolved_commands:state.unresolved_commands,committed_microusd:state.committed_microusd}));process.exitCode=1;}
+ finally{if(server)await server.close();await control.providerCampaigns.shutdown();control.close();}
+})().catch(error=>{console.error(JSON.stringify({code:error.code||'PILOT_SETUP_FAILED',message:/^[A-Z_]+$/.test(error.message)?error.message:'Details withheld'}));process.exitCode=1;});

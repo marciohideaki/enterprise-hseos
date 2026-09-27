@@ -1,0 +1,35 @@
+{
+  "session_id": "cb35467a-7d25-4e24-9b36-ec4cf5a40c4f",
+  "source_sha256": "b6f15acfe774adfd4b5cdfc9cf701c1f35a846e4940c7e46bec59ad21541de42",
+  "assistant_messages": [
+    {
+      "error": "billing_error",
+      "model": "<synthetic>",
+      "usage": {
+        "output_tokens_details": null,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": null,
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": null,
+        "iterations": null,
+        "speed": null
+      },
+      "content_sha256": [
+        "205cebcce8662138827c57776461f5b0358624e2cd1146f41d3e00b9c156ec76"
+      ],
+      "credit_balance_too_low": true
+    }
+  ],
+  "result": "provider billing refusal; not successful inference",
+  "invoice_verified": false
+}

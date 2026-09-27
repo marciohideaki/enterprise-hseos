@@ -1,0 +1,36 @@
+{
+  "before": {
+    "resource_id": "a53b2e3d-620f-436f-9d73-c6225671982d",
+    "current_sequence": 5,
+    "max_requests": 2,
+    "max_cost_microusd": 0,
+    "deadline": 1790472716843,
+    "requests": 1,
+    "committed_microusd": 0,
+    "cancelled": false,
+    "unresolved_commands": [
+      "217f3263-4d5d-4ad6-b713-a9795e5b409a"
+    ],
+    "live_commands": [],
+    "bindings": [
+      "binding:codex-acp"
+    ],
+    "report_sha256": "7495ae296e0078431e44aa917f1b0780fa76192e20c78be11f63099bc243ced8"
+  },
+  "after": {
+    "resource_id": "a53b2e3d-620f-436f-9d73-c6225671982d",
+    "current_sequence": 11,
+    "max_requests": 2,
+    "max_cost_microusd": 0,
+    "deadline": 1790472716843,
+    "requests": 1,
+    "committed_microusd": 0,
+    "cancelled": true,
+    "unresolved_commands": [],
+    "live_commands": [],
+    "bindings": [
+      "binding:codex-acp"
+    ],
+    "report_sha256": "cdfb28b219cbe66e1dc0d1b088d4509fa42cc1c6c8a58910fd51f2f0e259a303"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "completed": false,
+  "cancelled": true,
+  "usage": null,
+  "text_sha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+  "provider_session_id": "01a0e083-1c48-7811-b45b-d0eb4f15b592",
+  "effect_boundary_ref": "sha256:3460fb1fd021e709837d9640973177f75d6fc6c8d487c09abc3488cdd6d51567"
+}

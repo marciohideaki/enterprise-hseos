@@ -1,0 +1,616 @@
+TAP version 13
+# Subtest: pinned ACP profile negotiates known advertisements without enabling those operations
+ok 1 - pinned ACP profile negotiates known advertisements without enabling those operations
+  ---
+  duration_ms: 8.521408
+  type: 'test'
+  ...
+# Subtest: unknown capabilities and versions fail closed
+ok 2 - unknown capabilities and versions fail closed
+  ---
+  duration_ms: 1.118928
+  type: 'test'
+  ...
+# Subtest: mode or model drift fails before prompt; unsolicited metadata is rejected
+ok 3 - mode or model drift fails before prompt; unsolicited metadata is rejected
+  ---
+  duration_ms: 2.05199
+  type: 'test'
+  ...
+# Subtest: usage is bounded and tools pass through to the denying generic L0 bridge
+ok 4 - usage is bounded and tools pass through to the denying generic L0 bridge
+  ---
+  duration_ms: 5.922835
+  type: 'test'
+  ...
+# Subtest: expiry denies new work while cancellation remains possible; paid auth changes denied
+ok 5 - expiry denies new work while cancellation remains possible; paid auth changes denied
+  ---
+  duration_ms: 2.424788
+  type: 'test'
+  ...
+# Subtest: startup profile disables tool sources and pins catalog before app-server starts
+ok 6 - startup profile disables tool sources and pins catalog before app-server starts
+  ---
+  duration_ms: 0.975966
+  type: 'test'
+  ...
+# Subtest: ACP campaign accounts cached input and rejects inconsistent native totals
+ok 7 - ACP campaign accounts cached input and rejects inconsistent native totals
+  ---
+  duration_ms: 120.478148
+  type: 'test'
+  ...
+# Subtest: catalog cannot re-enable tools through model metadata despite disabled feature flags
+ok 8 - catalog cannot re-enable tools through model metadata despite disabled feature flags
+  ---
+  duration_ms: 0.343017
+  type: 'test'
+  ...
+# Subtest: private cwd cannot inherit ancestor configuration or tools
+ok 9 - private cwd cannot inherit ancestor configuration or tools
+  ---
+  duration_ms: 2.936932
+  type: 'test'
+  ...
+# Subtest: loader preserves legacy configuration and constructs only registered lazy adapters
+ok 10 - loader preserves legacy configuration and constructs only registered lazy adapters
+  ---
+  duration_ms: 60.115114
+  type: 'test'
+  ...
+# Subtest: loader refuses state override, directory drift and replaced ledger before factory effects
+ok 11 - loader refuses state override, directory drift and replaced ledger before factory effects
+  ---
+  duration_ms: 28.953365
+  type: 'test'
+  ...
+# Subtest: loader preserves temporary ledger activation gate
+ok 12 - loader preserves temporary ledger activation gate
+  ---
+  duration_ms: 31.363117
+  type: 'test'
+  ...
+# Subtest: loader validates all references and manifests before invoking any factory
+ok 13 - loader validates all references and manifests before invoking any factory
+  ---
+  duration_ms: 19.566751
+  type: 'test'
+  ...
+# Subtest: loader checks observed digest and adapter interface, sanitizing factory exceptions
+ok 14 - loader checks observed digest and adapter interface, sanitizing factory exceptions
+  ---
+  duration_ms: 26.611745
+  type: 'test'
+  ...
+# Subtest: loader rechecks ledger identity after factory construction
+ok 15 - loader rechecks ledger identity after factory construction
+  ---
+  duration_ms: 22.750612
+  type: 'test'
+  ...
+# Subtest: loader rejects malformed, oversized, symlink and hardlink configurations
+ok 16 - loader rejects malformed, oversized, symlink and hardlink configurations
+  ---
+  duration_ms: 22.832365
+  type: 'test'
+  ...
+# Subtest: composition validator rejects any extra plugin, including a model-facing tool
+ok 17 - composition validator rejects any extra plugin, including a model-facing tool
+  ---
+  duration_ms: 32.766439
+  type: 'test'
+  ...
+# Subtest: composition validator rejects enabled workspaceContext
+ok 18 - composition validator rejects enabled workspaceContext
+  ---
+  duration_ms: 4.727281
+  type: 'test'
+  ...
+# Subtest: composition validator rejects enabled toolBash
+ok 19 - composition validator rejects enabled toolBash
+  ---
+  duration_ms: 4.107343
+  type: 'test'
+  ...
+# Subtest: composition validator rejects enabled toolJobs
+ok 20 - composition validator rejects enabled toolJobs
+  ---
+  duration_ms: 2.715591
+  type: 'test'
+  ...
+# Subtest: composition validator rejects enabled goals
+ok 21 - composition validator rejects enabled goals
+  ---
+  duration_ms: 2.987008
+  type: 'test'
+  ...
+# Subtest: composition validator rejects symlink aliases
+ok 22 - composition validator rejects symlink aliases
+  ---
+  duration_ms: 0.389813
+  type: 'test'
+  ...
+# Subtest: composition validator rejects hardlink aliases
+ok 23 - composition validator rejects hardlink aliases
+  ---
+  duration_ms: 5.237066
+  type: 'test'
+  ...
+# Subtest: published package exposes runtime and governance assets only
+ok 24 - published package exposes runtime and governance assets only
+  ---
+  duration_ms: 3571.874561
+  type: 'test'
+  ...
+# Subtest: process ACP peer drives one bounded DeepSeek-compatible session over JSON-RPC stdio
+ok 25 - process ACP peer drives one bounded DeepSeek-compatible session over JSON-RPC stdio
+  ---
+  duration_ms: 64.64893
+  type: 'test'
+  ...
+# Subtest: tool-free DeepSeek composition yields a hash-bound one-shot effect attestation
+ok 26 - tool-free DeepSeek composition yields a hash-bound one-shot effect attestation
+  ---
+  duration_ms: 9.248323
+  type: 'test'
+  ...
+# Subtest: host-verified tool-free composition compensates for the missing stock ACP metadata
+ok 27 - host-verified tool-free composition compensates for the missing stock ACP metadata
+  ---
+  duration_ms: 37.733525
+  type: 'test'
+  ...
+# Subtest: stock-like DeepSeek ACP initialization without HSEOS effect attestation fails closed
+ok 28 - stock-like DeepSeek ACP initialization without HSEOS effect attestation fails closed
+  ---
+  duration_ms: 30.30206
+  type: 'test'
+  ...
+# Subtest: DeepSeek ACP process binding rejects cross-process resume when loadSession is absent
+ok 29 - DeepSeek ACP process binding rejects cross-process resume when loadSession is absent
+  ---
+  duration_ms: 72.637425
+  type: 'test'
+  ...
+# Subtest: process ACP peer answers permission requests while the provider denies the effect
+ok 30 - process ACP peer answers permission requests while the provider denies the effect
+  ---
+  duration_ms: 49.473748
+  type: 'test'
+  ...
+# Subtest: process ACP peer closes on an unknown JSON-RPC response id
+ok 31 - process ACP peer closes on an unknown JSON-RPC response id
+  ---
+  duration_ms: 36.689549
+  type: 'test'
+  ...
+# Subtest: codex factory selects explicit identity, preserves remote quota units and receipts
+ok 32 - codex factory selects explicit identity, preserves remote quota units and receipts
+  ---
+  duration_ms: 2662.193277
+  type: 'test'
+  ...
+# Subtest: claude factory selects explicit identity, preserves remote quota units and receipts
+ok 33 - claude factory selects explicit identity, preserves remote quota units and receipts
+  ---
+  duration_ms: 2632.304745
+  type: 'test'
+  ...
+# Subtest: native preflight never replaces unknown quotas, paid credits or credentials with invented capacity
+ok 34 - native preflight never replaces unknown quotas, paid credits or credentials with invented capacity
+  ---
+  duration_ms: 3323.883673
+  type: 'test'
+  ...
+# Subtest: bridge authenticates, pins child scope, cannot replay, and works through the Python SDK component
+ok 35 - bridge authenticates, pins child scope, cannot replay, and works through the Python SDK component
+  ---
+  duration_ms: 179.790018
+  type: 'test'
+  ...
+# Subtest: bridge retains uncertainty and waits for an in-flight child before closing
+ok 36 - bridge retains uncertainty and waits for an in-flight child before closing
+  ---
+  duration_ms: 11.043114
+  type: 'test'
+  ...
+# Subtest: process supervisor returns only after descendants drain and kills startup stalls
+ok 37 - process supervisor returns only after descendants drain and kills startup stalls
+  ---
+  duration_ms: 131.748079
+  type: 'test'
+  ...
+# Subtest: Antigravity factory requires a pinned local checkpoint and proves a subordinate call occurred
+ok 38 - Antigravity factory requires a pinned local checkpoint and proves a subordinate call occurred
+  ---
+  duration_ms: 283.66435
+  type: 'test'
+  ...
+# Subtest: real worker process drives Codex and Claude protocol fixtures and refuses attempted effects
+ok 39 - real worker process drives Codex and Claude protocol fixtures and refuses attempted effects
+  ---
+  duration_ms: 1987.493757
+  type: 'test'
+  ...
+# Subtest: resource profiles enforce finite memory and process bounds and preserve defaults
+ok 40 - resource profiles enforce finite memory and process bounds and preserve defaults
+  ---
+  duration_ms: 1.749589
+  type: 'test'
+  ...
+# Subtest: Claude cached input remains part of the admitted token usage
+ok 41 - Claude cached input remains part of the admitted token usage
+  ---
+  duration_ms: 1166.900814
+  type: 'test'
+  ...
+# Subtest: native resource profile is pinned and reaches inspection and execution
+ok 42 - native resource profile is pinned and reaches inspection and execution
+  ---
+  duration_ms: 2295.437991
+  type: 'test'
+  ...
+# Subtest: campaign reserves before dispatch, replays receipts and preserves consumption after reopening
+ok 43 - campaign reserves before dispatch, replays receipts and preserves consumption after reopening
+  ---
+  duration_ms: 67.521593
+  type: 'test'
+  ...
+# Subtest: a new campaign identity cannot reuse authorization or manufacture a larger budget
+ok 44 - a new campaign identity cannot reuse authorization or manufacture a larger budget
+  ---
+  duration_ms: 23.370654
+  type: 'test'
+  ...
+# Subtest: ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch
+ok 45 - ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch
+  ---
+  duration_ms: 39.010014
+  type: 'test'
+  ...
+# Subtest: receipt loss preserves the reservation and requires current-state reconciliation without retry
+ok 46 - receipt loss preserves the reservation and requires current-state reconciliation without retry
+  ---
+  duration_ms: 36.774271
+  type: 'test'
+  ...
+# Subtest: a second controller cannot reconcile a live dispatch and can cancel it durably
+ok 47 - a second controller cannot reconcile a live dispatch and can cancel it durably
+  ---
+  duration_ms: 89.504307
+  type: 'test'
+  ...
+# Subtest: a changed binding manifest cannot replace the pinned configuration after reopening
+ok 48 - a changed binding manifest cannot replace the pinned configuration after reopening
+  ---
+  duration_ms: 20.735627
+  type: 'test'
+  ...
+# Subtest: HTTP and SDK campaign commands share authentication, cursors and durable budget
+ok 49 - HTTP and SDK campaign commands share authentication, cursors and durable budget
+  ---
+  duration_ms: 306.930043
+  type: 'test'
+  ...
+# Subtest: known overspend remains charged after uncertain outcome reconciliation
+ok 50 - known overspend remains charged after uncertain outcome reconciliation
+  ---
+  duration_ms: 37.310373
+  type: 'test'
+  ...
+# Subtest: expired grants, stale sequences and cancellation deny new effects
+ok 51 - expired grants, stale sequences and cancellation deny new effects
+  ---
+  duration_ms: 31.266777
+  type: 'test'
+  ...
+# Subtest: unbound adapter identities and missing dispatch implementations cannot configure campaigns
+ok 52 - unbound adapter identities and missing dispatch implementations cannot configure campaigns
+  ---
+  duration_ms: 32.883859
+  type: 'test'
+  ...
+# Subtest: a concurrent exact retry observes the committed receipt without a second dispatch
+ok 53 - a concurrent exact retry observes the committed receipt without a second dispatch
+  ---
+  duration_ms: 37.605709
+  type: 'test'
+  ...
+# Subtest: a request ceiling holds even when prior attempts report zero charge
+ok 54 - a request ceiling holds even when prior attempts report zero charge
+  ---
+  duration_ms: 51.228151
+  type: 'test'
+  ...
+# Subtest: failed inspection never consumes an authorization or leaks transport details
+ok 55 - failed inspection never consumes an authorization or leaks transport details
+  ---
+  duration_ms: 25.721161
+  type: 'test'
+  ...
+# Subtest: client and subordinate model reserve in one campaign before effect and preserve costs on reopen
+ok 56 - client and subordinate model reserve in one campaign before effect and preserve costs on reopen
+  ---
+  duration_ms: 51.484483
+  type: 'test'
+  ...
+# Subtest: subordinate budget cannot bypass the campaign ceiling
+ok 57 - subordinate budget cannot bypass the campaign ceiling
+  ---
+  duration_ms: 26.722959
+  type: 'test'
+  ...
+# Subtest: a child with a lost receipt retains its reservation and fences even a parent that catches its error
+ok 58 - a child with a lost receipt retains its reservation and fences even a parent that catches its error
+  ---
+  duration_ms: 44.907343
+  type: 'test'
+  ...
+# Subtest: subordinate capability expires when parent finishes and cannot target an unpinned binding
+ok 59 - subordinate capability expires when parent finishes and cannot target an unpinned binding
+  ---
+  duration_ms: 31.96342
+  type: 'test'
+  ...
+# Subtest: campaign cancellation reaches parent and child and waits for child termination
+ok 60 - campaign cancellation reaches parent and child and waits for child termination
+  ---
+  duration_ms: 39.005307
+  type: 'test'
+  ...
+# Subtest: shutdown cancels and drains a composed call before returning, and fences future effects
+ok 61 - shutdown cancels and drains a composed call before returning, and fences future effects
+  ---
+  duration_ms: 35.609876
+  type: 'test'
+  ...
+# Subtest: denied task scope is checked before resolving provider credentials or probing its API
+ok 62 - denied task scope is checked before resolving provider credentials or probing its API
+  ---
+  duration_ms: 26.938658
+  type: 'test'
+  ...
+# Subtest: shutdown aborts and waits for admission probes before the ledger can close
+ok 63 - shutdown aborts and waits for admission probes before the ledger can close
+  ---
+  duration_ms: 43.558921
+  type: 'test'
+  ...
+# Subtest: request quota cannot conceal an observed monetary deficit
+ok 64 - request quota cannot conceal an observed monetary deficit
+  ---
+  duration_ms: 22.280575
+  type: 'test'
+  ...
+# Subtest: Python Antigravity capability reaches the same campaign reservation before the subordinate effect
+ok 65 - Python Antigravity capability reaches the same campaign reservation before the subordinate effect
+  ---
+  duration_ms: 172.972718
+  type: 'test'
+  ...
+# Subtest: known session resume keeps binding, task and campaign budget pinned
+ok 66 - known session resume keeps binding, task and campaign budget pinned
+  ---
+  duration_ms: 41.149329
+  type: 'test'
+  ...
+# Subtest: unknown quota requires an explicit expiring owner exception and never overrides exhaustion
+ok 67 - unknown quota requires an explicit expiring owner exception and never overrides exhaustion
+  ---
+  duration_ms: 36.677298
+  type: 'test'
+  ...
+# Subtest: quota exceptions cannot expand authorization scope or expiration
+ok 68 - quota exceptions cannot expand authorization scope or expiration
+  ---
+  duration_ms: 21.569988
+  type: 'test'
+  ...
+# Subtest: terminal account client composes without changing identity or enabling recursive children
+ok 69 - terminal account client composes without changing identity or enabling recursive children
+  ---
+  duration_ms: 33.489757
+  type: 'test'
+  ...
+# Subtest: runner completes a bounded pilot, checks replay and can restart without repeating inference or resetting budget
+ok 70 - runner completes a bounded pilot, checks replay and can restart without repeating inference or resetting budget
+  ---
+  duration_ms: 72.740261
+  type: 'test'
+  ...
+# Subtest: four-family scope fails before authorization claim if families are missing
+ok 71 - four-family scope fails before authorization claim if families are missing
+  ---
+  duration_ms: 23.920311
+  type: 'test'
+  ...
+# Subtest: runner preserves uncertain effects across restart and never advances or cancels them implicitly
+ok 72 - runner preserves uncertain effects across restart and never advances or cancels them implicitly
+  ---
+  duration_ms: 35.813326
+  type: 'test'
+  ...
+# Subtest: runner rejects duplicate command identity and unexpected vendor before effects
+ok 73 - runner rejects duplicate command identity and unexpected vendor before effects
+  ---
+  duration_ms: 19.198822
+  type: 'test'
+  ...
+# Subtest: runner operates through authenticated HTTP and the public SDK
+ok 74 - runner operates through authenticated HTTP and the public SDK
+  ---
+  duration_ms: 755.013229
+  type: 'test'
+  ...
+# Subtest: official routes distinguish native accounts, API and local bindings without claiming certification
+ok 75 - official routes distinguish native accounts, API and local bindings without claiming certification
+  ---
+  duration_ms: 8.666998
+  type: 'test'
+  ...
+# Subtest: route confusion, unknown quota, capability claims, secrets and unbounded reservations fail closed
+ok 76 - route confusion, unknown quota, capability claims, secrets and unbounded reservations fail closed
+  ---
+  duration_ms: 4.24274
+  type: 'test'
+  ...
+# Subtest: binding drift is rejected and declared control evidence does not certify a real journey
+ok 77 - binding drift is rejected and declared control evidence does not certify a real journey
+  ---
+  duration_ms: 0.467636
+  type: 'test'
+  ...
+# Subtest: ACP manifest reports L0 honestly and rejects negotiation for every higher level
+ok 78 - ACP manifest reports L0 honestly and rejects negotiation for every higher level
+  ---
+  duration_ms: 5.028304
+  type: 'test'
+  ...
+# Subtest: stable ACP v1 lifecycle maps text and terminal response to normalized ordered events
+ok 79 - stable ACP v1 lifecycle maps text and terminal response to normalized ordered events
+  ---
+  duration_ms: 13.410676
+  type: 'test'
+  ...
+# Subtest: L0 denies permission requests and cancels tool effects without emitting a tool call
+ok 80 - L0 denies permission requests and cancels tool effects without emitting a tool call
+  ---
+  duration_ms: 1.700743
+  type: 'test'
+  ...
+# Subtest: tool-call notifications, malformed updates and wrong session identities fail closed
+ok 81 - tool-call notifications, malformed updates and wrong session identities fail closed
+  ---
+  duration_ms: 3.475616
+  type: 'test'
+  ...
+# Subtest: version and effect-boundary negotiation reject incompatible or ungoverned peers
+ok 82 - version and effect-boundary negotiation reject incompatible or ungoverned peers
+  ---
+  duration_ms: 0.946404
+  type: 'test'
+  ...
+# Subtest: resume, cancellation and disposal preserve correlated lifecycle semantics
+ok 83 - resume, cancellation and disposal preserve correlated lifecycle semantics
+  ---
+  duration_ms: 2.29427
+  type: 'test'
+  ...
+# Subtest: ACP reattaches a durable session in a fresh provider through load without creating a remote session
+ok 84 - ACP reattaches a durable session in a fresh provider through load without creating a remote session
+  ---
+  duration_ms: 0.866279
+  type: 'test'
+  ...
+# Subtest: ACP reattachment rejects unsupported load and missing durable state without session/new
+ok 85 - ACP reattachment rejects unsupported load and missing durable state without session/new
+  ---
+  duration_ms: 0.655622
+  type: 'test'
+  ...
+# Subtest: concurrent duplicate creates reserve identity before crossing the ACP boundary
+ok 86 - concurrent duplicate creates reserve identity before crossing the ACP boundary
+  ---
+  duration_ms: 0.73407
+  type: 'test'
+  ...
+# Subtest: event budgets terminate an instruction stream before unbounded growth
+ok 87 - event budgets terminate an instruction stream before unbounded growth
+  ---
+  duration_ms: 1.093367
+  type: 'test'
+  ...
+# Subtest: a requested cancellation becomes terminal before the peer notification settles
+ok 88 - a requested cancellation becomes terminal before the peer notification settles
+  ---
+  duration_ms: 12.617779
+  type: 'test'
+  ...
+# Subtest: prompt stop reasons are strict ACP v1 values and cancelled is not reported as success
+ok 89 - prompt stop reasons are strict ACP v1 values and cancelled is not reported as success
+  ---
+  duration_ms: 6.529226
+  type: 'test'
+  ...
+# Subtest: synchronous prompt dispatch failures settle the session and do not leave an active turn
+ok 90 - synchronous prompt dispatch failures settle the session and do not leave an active turn
+  ---
+  duration_ms: 1.039632
+  type: 'test'
+  ...
+# Subtest: a correlatable malformed outer notification durably fails its active session
+ok 91 - a correlatable malformed outer notification durably fails its active session
+  ---
+  duration_ms: 4.430803
+  type: 'test'
+  ...
+# Subtest: a duplicate remote session identity quarantines its existing local owner
+ok 92 - a duplicate remote session identity quarantines its existing local owner
+  ---
+  duration_ms: 1.6305
+  type: 'test'
+  ...
+# Subtest: a malformed post-create response cancels the captured remote session
+ok 93 - a malformed post-create response cancels the captured remote session
+  ---
+  duration_ms: 3.870637
+  type: 'test'
+  ...
+# Subtest: initialize rejects malformed optional ACP v1 capability fields before session creation
+ok 94 - initialize rejects malformed optional ACP v1 capability fields before session creation
+  ---
+  duration_ms: 0.644216
+  type: 'test'
+  ...
+# Subtest: input bytes are bounded by the delegated session budget before ACP dispatch
+ok 95 - input bytes are bounded by the delegated session budget before ACP dispatch
+  ---
+  duration_ms: 11.158149
+  type: 'test'
+  ...
+# Subtest: content chunk envelope is strict while valid ACP annotations are accepted
+ok 96 - content chunk envelope is strict while valid ACP annotations are accepted
+  ---
+  duration_ms: 1.279566
+  type: 'test'
+  ...
+# Subtest: cancel settles locally when peer notification I/O never completes
+ok 97 - cancel settles locally when peer notification I/O never completes
+  ---
+  duration_ms: 26.278231
+  type: 'test'
+  ...
+# Subtest: durations above the Node timer ceiling do not overflow into an immediate timeout
+ok 98 - durations above the Node timer ceiling do not overflow into an immediate timeout
+  ---
+  duration_ms: 11.638056
+  type: 'test'
+  ...
+# Subtest: send cannot overlap an in-flight session load
+ok 99 - send cannot overlap an in-flight session load
+  ---
+  duration_ms: 1.654024
+  type: 'test'
+  ...
+# Subtest: resume cannot overlap an active prompt or another in-flight resume
+ok 100 - resume cannot overlap an active prompt or another in-flight resume
+  ---
+  duration_ms: 2.38092
+  type: 'test'
+  ...
+# Subtest: create and close settle when lifecycle request I/O never completes
+ok 101 - create and close settle when lifecycle request I/O never completes
+  ---
+  duration_ms: 67.897628
+  type: 'test'
+  ...
+1..101
+# tests 101
+# suites 0
+# pass 101
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 24466.388891

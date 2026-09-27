@@ -220,7 +220,7 @@ class CodexAppServerDriver {
 
   async create(input) {
     this.#available();
-    exact(input, ['adapter_id', 'protocol', 'cwd', 'limits', 'effect_boundary'], 'Codex create input');
+    exact(input, ['adapter_id', 'protocol', 'cwd', 'limits', 'effect_boundary', 'model'], 'Codex create input');
     this.#boundary(input);
     const connection = await this.#connection(input.cwd);
     try {
@@ -229,6 +229,7 @@ class CodexAppServerDriver {
         approvalPolicy: 'never',
         sandbox: 'read-only',
         serviceName: 'hseos',
+        ...(input.model === undefined ? {} : { model: text(input.model, 'Codex model', 256) }),
       });
       const runtimeSessionId = text(result?.thread?.id, 'Codex thread id', 1024);
       if (this.#sessions.has(runtimeSessionId)) throw new RuntimeProviderError('Codex reused a thread identity', 'protocol_error');
@@ -237,6 +238,18 @@ class CodexAppServerDriver {
     } catch (error) {
       connection.close();
       throw error;
+    }
+  }
+
+  async inspectAccount() {
+    this.#available();
+    const connection = await this.#connection(this.cwd);
+    try {
+      const identity = await connection.request('account/read', { refreshToken: false });
+      const quota = await connection.request('account/rateLimits/read', {});
+      return { identity, quota };
+    } finally {
+      connection.close();
     }
   }
 
@@ -250,7 +263,7 @@ class CodexAppServerDriver {
     try {
       const result = await connection.request('thread/resume', { threadId: runtimeSessionId });
       if (result?.thread?.id !== runtimeSessionId) throw new RuntimeProviderError('Codex resumed a different thread', 'protocol_error');
-      this.#sessions.set(runtimeSessionId, this.#session(connection, runtimeSessionId));
+      this.#sessions.set(runtimeSessionId, this.#session(connection, runtimeSessionId, result.thread.turns));
       return { effect_boundary: 'instructions_only' };
     } catch (error) {
       connection.close();
@@ -260,7 +273,7 @@ class CodexAppServerDriver {
 
   async send(input) {
     this.#available();
-    exact(input, ['runtime_session_id', 'turn_id', 'instruction', 'effect_boundary', 'on_event'], 'Codex send input');
+    exact(input, ['runtime_session_id', 'turn_id', 'instruction', 'effect_boundary', 'on_event', 'on_usage'], 'Codex send input');
     this.#boundary(input);
     if (typeof input.on_event !== 'function') throw new RuntimeProviderError('Codex event callback is required', 'invalid_request');
     const session = this.#resolve(input.runtime_session_id);
@@ -273,6 +286,7 @@ class CodexAppServerDriver {
       hseosTurnId: input.turn_id,
       codexTurnId: null,
       onEvent: input.on_event,
+      onUsage: input.on_usage,
       settle: null,
       started,
       startedResolve,
@@ -282,6 +296,9 @@ class CodexAppServerDriver {
     const completion = new Promise((resolve, reject) => {
       active.settle = { resolve, reject };
     });
+    // A protocol failure may reject completion before turn/start acknowledges.
+    // Keep that rejection observed while the request itself is still pending.
+    completion.catch(() => {});
     active.completion = completion;
     try {
       const result = await session.connection.request('turn/start', {
@@ -375,21 +392,40 @@ class CodexAppServerDriver {
       onFailure: (error) => this.#connectionFailure(holder.connection, error),
     });
     holder.connection = connection;
-    await connection.initialize(this.client);
+    try {
+      await connection.initialize(this.client);
+    } catch (error) {
+      connection.close();
+      throw error;
+    }
     return connection;
   }
 
-  #session(connection, runtimeSessionId) {
-    return { connection, runtimeSessionId, active: null };
+  #session(connection, runtimeSessionId, turns = []) {
+    const historicalTurns = new Set(turns.map((turn) => text(turn.id, 'Codex historical turn id', 1024)));
+    return { connection, runtimeSessionId, historicalTurns, active: null };
   }
 
   #notification(connection, method, params) {
     const session = [...this.#sessions.values()].find((candidate) => candidate.connection === connection);
     if (!session || !session.active) return;
+    // Resume can publish usage for an earlier turn after the next send has begun.
+    if (
+      method === 'thread/tokenUsage/updated' &&
+      params.threadId === session.runtimeSessionId &&
+      session.historicalTurns.has(params.turnId)
+    )
+      return;
     const notifiedTurnId = params.turnId || params.turn?.id;
     if (!session.active.codexTurnId && params.threadId === session.runtimeSessionId && typeof notifiedTurnId === 'string') {
       session.active.codexTurnId = text(notifiedTurnId, 'Codex notified turn id', 1024);
       session.active.startedResolve(true);
+    }
+    if (method === 'thread/tokenUsage/updated' && session.active.onUsage) {
+      if (params.threadId !== session.runtimeSessionId || params.turnId !== session.active.codexTurnId)
+        throw new RuntimeProviderError('Codex usage identity is malformed', 'protocol_error');
+      session.active.onUsage(params.tokenUsage);
+      return;
     }
     if (method === 'item/agentMessage/delta') {
       if (
@@ -420,6 +456,7 @@ class CodexAppServerDriver {
     }
     const active = session.active;
     active.completed = true;
+    session.historicalTurns.add(active.codexTurnId);
     session.active = null;
     const status = params.turn.status;
     if (status === 'completed') active.settle.resolve({ stop_reason: 'completed' });

@@ -1,0 +1,65 @@
+✔ Claude Agent SDK driver binds an explicit session and completes through the hosted L0 provider (11.613024ms)
+✔ a fresh driver finds an existing transcript and resumes the exact session id (5.531571ms)
+✔ Claude effect content fails closed at the hosted effect boundary (2.038699ms)
+✔ Claude unknown-effect content fails closed at the hosted effect boundary (1.086057ms)
+✔ driver cancellation aborts and closes an active Agent SDK query (3.959751ms)
+✔ driver passes only the selected environment values to the SDK child contract (0.745743ms)
+✔ driver rejects relative bindings and implicit environment keys (0.607235ms)
+✖ Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-progress (0.329386ms)
+✖ Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-invalid (0.152364ms)
+✖ Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-foreign (0.154434ms)
+✖ Claude thinking progress is distinct from billed usage and preserves strict protocol: unknown-system (0.120727ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 7
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 163.02226
+
+✖ failing tests:
+
+test at test/test-claude-agent-sdk-driver.js:247:3
+✖ Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-progress (0.329386ms)
+  ReferenceError: FIXTURE is not defined
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/test/test-claude-agent-sdk-driver.js:251:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at test/test-claude-agent-sdk-driver.js:247:3
+✖ Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-invalid (0.152364ms)
+  ReferenceError: FIXTURE is not defined
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/test/test-claude-agent-sdk-driver.js:251:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at test/test-claude-agent-sdk-driver.js:247:3
+✖ Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-foreign (0.154434ms)
+  ReferenceError: FIXTURE is not defined
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/test/test-claude-agent-sdk-driver.js:251:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at test/test-claude-agent-sdk-driver.js:247:3
+✖ Claude thinking progress is distinct from billed usage and preserves strict protocol: unknown-system (0.120727ms)
+  ReferenceError: FIXTURE is not defined
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/test/test-claude-agent-sdk-driver.js:251:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)

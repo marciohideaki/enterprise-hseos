@@ -1,0 +1,11 @@
+{
+  "max_requests": 2,
+  "max_cost_microusd": 0,
+  "deadline": 1790473697704,
+  "binding_ids": [
+    "binding:codex-acp"
+  ],
+  "task_ids": [
+    "258a8315-47ab-417f-a581-c5f2b75d48cb"
+  ]
+}

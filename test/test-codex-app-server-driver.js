@@ -304,3 +304,30 @@ test('process normalization cannot mutate the frozen driver environment', async 
     fixture.cleanup();
   }
 });
+
+for (const mode of ['stale-usage', 'foreign-stale-usage'])
+  test(`resumed Codex usage distinguishes known history from another thread: ${mode}`, async () => {
+    const fixture = temp();
+    const instance = driver(fixture, mode);
+    try {
+      await instance.resume({ runtime_session_id: 'codex-thread-1', expected_sequence: 1, effect_boundary: 'instructions_only' });
+      const usage = [];
+      const operation = instance.send({
+        runtime_session_id: 'codex-thread-1',
+        turn_id: 'test-turn',
+        instruction: 'ready',
+        effect_boundary: 'instructions_only',
+        on_event: () => {},
+        on_usage: (value) => usage.push(value),
+      });
+      if (mode === 'foreign-stale-usage') await assert.rejects(operation, /notification violated/);
+      else {
+        assert.equal((await operation).stop_reason, 'completed');
+        assert.equal(usage.length, 1);
+        assert.equal(usage[0].last.inputTokens, 5);
+      }
+    } finally {
+      await instance.close();
+      fixture.cleanup();
+    }
+  });

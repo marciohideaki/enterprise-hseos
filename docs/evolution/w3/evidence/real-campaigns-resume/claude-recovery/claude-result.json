@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "resource_id": "87ff0eee-c8ac-4cb5-8d22-5ca1c817cbff",
+  "scope": "pilot",
+  "covered_vendors": [
+    "claude"
+  ],
+  "status": "control_trial_completed",
+  "vendor_session_recovery": "not_certified",
+  "real_conformance": "not_certified",
+  "receipts": [
+    {
+      "binding_id": "binding:claude-live",
+      "task_id": "6a1e1e5a-65af-4b7c-a7f0-4205e904bf64",
+      "command_id": "2591a386-2238-4812-b607-68deaea4fcb1",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "70b0270a92dc679cd7574eff9e269a906058db78898ce68014c818e91565b330",
+        "evidence_sha256": "83035e3ece685b22184da9f37109aa926d302d4487afe29a435eb9b23548eaab",
+        "cost_microusd": null,
+        "input_tokens": 1485,
+        "output_tokens": 155,
+        "provider_session_id": "c49ef369-6f83-4e03-bc95-4dde3486ea44"
+      },
+      "control_replay_verified": true
+    },
+    {
+      "binding_id": "binding:claude-live",
+      "task_id": "6a1e1e5a-65af-4b7c-a7f0-4205e904bf64",
+      "command_id": "183db364-d7d6-4883-b93d-375fe9b12bb7",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "70b0270a92dc679cd7574eff9e269a906058db78898ce68014c818e91565b330",
+        "evidence_sha256": "d6377afbeedb8f75ee14dc623726fa5b7333ffc09bd8f284f4676de8b0519cfd",
+        "cost_microusd": null,
+        "input_tokens": 1803,
+        "output_tokens": 85,
+        "provider_session_id": "c49ef369-6f83-4e03-bc95-4dde3486ea44"
+      },
+      "control_replay_verified": true
+    }
+  ],
+  "final": {
+    "resource_id": "87ff0eee-c8ac-4cb5-8d22-5ca1c817cbff",
+    "current_sequence": 12,
+    "max_requests": 2,
+    "max_cost_microusd": 1000000,
+    "deadline": 1790481264858,
+    "requests": 2,
+    "committed_microusd": 1000000,
+    "cancelled": true,
+    "unresolved_commands": [],
+    "live_commands": [],
+    "bindings": [
+      "binding:claude-live"
+    ],
+    "report_sha256": "e655309bbdaf7c5b68f213782936673e7b3070d240f2748cee4a680ca7d96797"
+  }
+}

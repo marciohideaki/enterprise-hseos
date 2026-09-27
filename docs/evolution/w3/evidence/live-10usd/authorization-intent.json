@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "campaign_id": "3d99e1e2-047d-48a4-9c33-7a6a99e52fa2",
+  "authorization_id": "ed495b50-9086-42c8-bc94-4c211e14e33c",
+  "task_id": "04bdda23-3b59-4761-ab57-d1b60908660e",
+  "authorized_total_usd": 10,
+  "max_cost_microusd": 10000000,
+  "max_requests": 10,
+  "owner_instruction": "Execute a campanha com teto de 10 dolares",
+  "recorded_at": "2026-09-26T18:14:55.444219+00:00",
+  "quota_exceptions": {},
+  "inference_attempts": 0
+}

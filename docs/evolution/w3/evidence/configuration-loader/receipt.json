@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-26T15:18:11.358862+00:00",
+  "base_commit": "b9db33bfcf53681d91c64ca8a0dd42c74b0fb24c",
+  "scope": "candidate configuration loader and affected regression, not real adapter acceptance",
+  "node22": {
+    "tests": 44,
+    "passed": 44,
+    "failed": 0,
+    "skipped": 0
+  },
+  "node24": {
+    "tests": 44,
+    "passed": 44,
+    "failed": 0,
+    "skipped": 0
+  },
+  "loader_coverage_node24": {
+    "lines_percent": 100,
+    "branches_percent": 100,
+    "functions_percent": 100,
+    "test_count": 23,
+    "delegated_cgroup": true
+  },
+  "corrections": [
+    "Initial provider test invocation lacked delegated cgroup; corrected invocation passed all 23 tests.",
+    "CLI command manifest hash changed with control.js; regenerated manifest and check passed."
+  ],
+  "limitations": [
+    "Only temporary execution ledger fixtures permitted; operational durability not certified.",
+    "No real factory registered in CLI.",
+    "Composed client and subordinate kernel budget not implemented.",
+    "No inference or real campaign.",
+    "Full matrix separate and pending at receipt creation."
+  ],
+  "source_sha256": {
+    "tools/cli/lib/control-configuration.js": "17d5e9ad675f8426c7748349ceb9f52db09a846d3297fb53bdd42e4bd03c44d0",
+    "tools/cli/lib/provider-campaign-control.js": "e200ae8d1c929c24e24ae7b96747f23a0b39792528e9fcd40e3b63a9b981ed17",
+    "tools/cli/commands/control.js": "56c38a27537db66d917e28e5b788f6c263b5dfe06594c88a19384f8766560c7c",
+    "tools/cli/command-manifest.json": "6be48d0c1cab1ff717193f5a9d81f40f787832f79bf52b9534a7002c17c1368b",
+    "tools/mcp-project-state/lib/execution-ledger-schema.js": "505df7fdb3c2aa3a98dfb95d6b7de47b510059181de232f1d5c5afdabe141457",
+    "test/test-control-configuration.js": "09be5b5a3ca02823ebc875c0277b0dae87570e08b001ed7115e13b00454f2147",
+    "test/test-package-surface.js": "250f07fd24b89eb51ab91fe9c75920555c38186227c88b1c8a82d5875aad1093",
+    "package.json": "e4444223a45887a4ab90ba5e9d7e737393da98008184d2f269eda6259f160062",
+    ".c8-kernel.json": "af5feec0e785c9f912e615975de8a67d2cfe9793456f26ea4b988e8a661477d6"
+  }
+}

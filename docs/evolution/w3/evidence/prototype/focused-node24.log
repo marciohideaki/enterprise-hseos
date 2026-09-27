@@ -1,0 +1,33 @@
+✔ campaign reserves before dispatch, replays receipts and preserves consumption after reopening (53.818789ms)
+✔ a new campaign identity cannot reuse authorization or manufacture a larger budget (21.824641ms)
+✔ ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch (21.966432ms)
+✔ receipt loss preserves the reservation and requires current-state reconciliation without retry (25.712111ms)
+✔ a second controller cannot reconcile a live dispatch and can cancel it durably (73.963195ms)
+✔ a changed binding manifest cannot replace the pinned configuration after reopening (29.945321ms)
+✔ HTTP and SDK campaign commands share authentication, cursors and durable budget (252.264765ms)
+✔ known overspend remains charged after uncertain outcome reconciliation (25.079143ms)
+✔ expired grants, stale sequences and cancellation deny new effects (35.506092ms)
+✔ unbound adapter identities and missing dispatch implementations cannot configure campaigns (21.642755ms)
+✔ a concurrent exact retry observes the committed receipt without a second dispatch (23.155114ms)
+✔ a request ceiling holds even when prior attempts report zero charge (32.350486ms)
+✔ failed inspection never consumes an authorization or leaks transport details (18.299471ms)
+✔ official routes distinguish native accounts, API and local bindings without claiming certification (6.70898ms)
+✔ route confusion, unknown quota, capability claims, secrets and unbounded reservations fail closed (2.797495ms)
+✔ binding drift is rejected and declared control evidence does not certify a real journey (0.294269ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1235.893119
+-------------------------------|---------|----------|---------|---------|-------------------------
+File                           | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s       
+-------------------------------|---------|----------|---------|---------|-------------------------
+All files                      |     100 |    96.53 |     100 |     100 |                         
+ cli/lib                       |     100 |       96 |     100 |     100 |                         
+  provider-campaign-control.js |     100 |       96 |     100 |     100 | 170,214,231,278,291,314 
+ lib                           |     100 |      100 |     100 |     100 |                         
+  provider-control-manifest.js |     100 |      100 |     100 |     100 |                         
+-------------------------------|---------|----------|---------|---------|-------------------------

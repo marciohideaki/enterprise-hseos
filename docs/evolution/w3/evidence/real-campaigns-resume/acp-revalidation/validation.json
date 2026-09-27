@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "real_inference_calls": 2,
+  "same_provider_session": true,
+  "response_hashes_match": [
+    true,
+    true
+  ],
+  "control_replay_verified": true,
+  "requests": 2,
+  "committed_microusd": 0,
+  "live_commands": 0,
+  "unresolved_commands": 0,
+  "cancelled": true
+}

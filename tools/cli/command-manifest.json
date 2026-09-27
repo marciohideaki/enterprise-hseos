@@ -398,7 +398,11 @@
         ],
         [
           "--resource <id>",
-          "Task resource UUID"
+          "Task or campaign resource UUID"
+        ],
+        [
+          "--binding <id>",
+          "Provider binding identity"
         ],
         [
           "--view <view>",
@@ -410,7 +414,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "5e7061f6b580f2a7feb350f76042d4797678cc734da3cd091e39b52b3a8eeb65"
+      "source_sha256": "0ae41cfbb5cc1c7cacded2668315e34c06845a749f0cd058be642c11d0f46a97"
     },
     {
       "filename": "governance-context.js",

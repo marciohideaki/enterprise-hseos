@@ -1,0 +1,21 @@
+{
+  "code": "CONTROL_OUTCOME_UNCERTAIN",
+  "state": {
+    "resource_id": "6162469e-e543-484e-a43f-762a54ff3ac6",
+    "current_sequence": 5,
+    "max_requests": 1,
+    "max_cost_microusd": 2000000,
+    "deadline": 1790454749599,
+    "requests": 1,
+    "committed_microusd": 2000000,
+    "cancelled": false,
+    "unresolved_commands": [
+      "699f6769-4b46-4eeb-bcc5-bb699a49b804"
+    ],
+    "live_commands": [],
+    "bindings": [
+      "binding:claude-live"
+    ],
+    "report_sha256": "1f28223726a35a8a81ee7c4b843e306b5f3ab398acd6c54f52c4e98ce5406045"
+  }
+}

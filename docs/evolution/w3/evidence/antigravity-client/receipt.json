@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-26T14:48:43.325459+00:00",
+  "status": "component_validated_not_campaign_adapter",
+  "python_deterministic_tests": 10,
+  "node_wrapper_and_package_tests": 2,
+  "official_sdk_configuration": "passed with network and process creation forbidden",
+  "sdk_version": "0.1.18",
+  "inference": "not_executed",
+  "full_matrix": "blocked_host_capacity",
+  "parent_loader": "not_implemented",
+  "committed": false,
+  "sources": [
+    {
+      "path": "packages/control-sdk/antigravity_client.py",
+      "sha256": "7da1bcab03a60df86f489e78f087f335df7a6212409aa7b8520d3ba18aece77e"
+    },
+    {
+      "path": "test/test_antigravity_client.py",
+      "sha256": "527a443c4f6c70cec00876dd19ea3e9cdb9fe4ebb9e2e9cf01d5a9113198bb6d"
+    },
+    {
+      "path": "test/test-antigravity-client.js",
+      "sha256": "771855d7e0c3cc4ff0c942ca4b64946616e38f02d9c0eccc1a8c1f3142d9e237"
+    },
+    {
+      "path": "test/test-package-surface.js",
+      "sha256": "ca96878857cb1ac67a8f7f128d613d3c34a59c4cf1ba3194bf5093b805dd1f1c"
+    },
+    {
+      "path": "package.json",
+      "sha256": "72e3dbd57cc325dca64ec0bcaeec6d55337f7e6748897b983cb4e86db8121cc5"
+    },
+    {
+      "path": "test/helpers/check-antigravity-sdk-config.py",
+      "sha256": "969fe3dfb7d6cf20f2d3fad03cc58d4dcd9104e3db444976b324a1e98d25506e"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/evolution/w3/evidence/antigravity-client/deterministic.log",
+      "sha256": "b7e489f3d2da0fa5267da6fb24f540b5f2821cf0f867761c4a2d6b1948e2e8df"
+    },
+    {
+      "path": "docs/evolution/w3/evidence/antigravity-client/host-blocked.json",
+      "sha256": "b1e077a85d4b0938fee72ae3cfea57ad406aa11a79fd0bb79b5369bf26e3751a"
+    },
+    {
+      "path": "docs/evolution/w3/evidence/antigravity-client/official-sdk-config.json",
+      "sha256": "825f3929b476ef9300fb2657de5dea5bdd3d2b0617745897008294c324ad4329"
+    },
+    {
+      "path": "docs/evolution/w3/evidence/antigravity-client/official-sdk-config.log",
+      "sha256": "3c361f2ea9da00e4c39612345ba84de7759ea6cc28c40ef537692938b38774a0"
+    },
+    {
+      "path": "docs/evolution/w3/evidence/antigravity-client/validation-environment.txt",
+      "sha256": "67680011fe50c7a11fed1fe02efad5d986ab50ebd9c4625e2632dc69ab332e29"
+    }
+  ],
+  "node_wrapper_version": "24.15.0"
+}

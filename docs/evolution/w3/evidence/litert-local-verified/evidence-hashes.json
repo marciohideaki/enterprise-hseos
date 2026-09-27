@@ -1,0 +1,18 @@
+{
+  "authorization.json": "cff4e03429f692dbeea3a5125fd05de0e7398d69ead8e8aa709b85dd224c40bd",
+  "campaign-events.json": "e76edf4dca7a5f7b95abb96fba74c2ac5ab5caf217dc344761b9f5d8fec5273b",
+  "campaign-result.json": "59d965d8c5b7ea66379db924311da42ed83e396aa29aea651281257839758985",
+  "checkpoint.json": "ca09fc02babc1aef4ae6e811ac22f97c68846efc323c5fca12d1f6c12ec51ecd",
+  "child-turns.jsonl": "fc903eb50aedee428e7a18bd8468b1f4091d409dfe9dad3d09c1ff11006b7d32",
+  "gates-ci.log": "6205ac12ff8e4fa5d4210753d88968bd7a042fc3694e9174c57946235821e673",
+  "grant.json": "6288bc31a5ecedbaf362e229b26a3b9e044de080deceb1cc5b753ea1ba494dc7",
+  "input-overflow.json": "ebd76580a328bc5715ecc77c10b130b0f3272278c894cf5a1850e25821b260b6",
+  "manifests.json": "09f53f3f807f274ed6e0a36e1671833aaf98ab0a7888d37663b45ebe837236d0",
+  "parent-turns.jsonl": "16d01eb57670522ec6f69f3b06af16d393e11ba093fa3a71ac01b6e6e8776e2f",
+  "receipt.json": "fbe5a1f19c7a7fcb10cc3dff74626df9742b828b9ac74a3db566ab27c0076fde",
+  "regression22.log": "212be143efca60d4056690c76c33394c3b1fb7fa42c1dd4673c25037eef4d365",
+  "regression24.log": "ffdbdeebcb7ab4f12f0df33270186d0e2d031d1ee908a67fef1da5868d562ad9",
+  "sdk-configuration.json": "965750cb1847bfed6012135e7b43a8bac0f874983e616e31b2415d63ef29a88c",
+  "sdk-resume.json": "5948abf1ec4e874b1f43d8d4171e8b73894c9632aa3d2894e2cf098e3d00a892",
+  "source-hashes.json": "c6f2a7e050c54ed8e3797e08e706b11a13846426d9ef37de3c56cf7cea90c2b7"
+}

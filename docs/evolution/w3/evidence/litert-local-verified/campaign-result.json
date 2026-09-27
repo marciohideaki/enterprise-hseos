@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "resource_id": "c37af7ef-1b88-489f-8ddc-1147a67425c2",
+  "scope": "pilot",
+  "covered_vendors": ["antigravity"],
+  "status": "control_trial_completed",
+  "vendor_session_recovery": "not_certified",
+  "real_conformance": "not_certified",
+  "receipts": [
+    {
+      "binding_id": "binding:antigravity-local",
+      "task_id": "59018122-5e2c-442a-8286-e3934c1d4c9e",
+      "command_id": "7ca6c125-d123-4a45-8b7b-303d0528fd48",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "93cd49063ab8bbbe2aa11012cb2b73494ec7e8acf1fa4845f2762a2d641de55b",
+        "evidence_sha256": "828f62f1bbc2ec81243a08629c2c5c026a3b9a5afb8372433937b34d9e7d1f88",
+        "cost_microusd": 0,
+        "input_tokens": 249,
+        "output_tokens": 21,
+        "provider_session_id": "10cf5da9ca1a2e42f3c2aefacd104d57"
+      },
+      "control_replay_verified": true
+    },
+    {
+      "binding_id": "binding:antigravity-local",
+      "task_id": "59018122-5e2c-442a-8286-e3934c1d4c9e",
+      "command_id": "25088c5f-678a-467c-8185-062c8d0e75b9",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "93cd49063ab8bbbe2aa11012cb2b73494ec7e8acf1fa4845f2762a2d641de55b",
+        "evidence_sha256": "0af034ec5d2fee228c56489094597a3570e10be9704655049b7f126516703844",
+        "cost_microusd": 0,
+        "input_tokens": 331,
+        "output_tokens": 21,
+        "provider_session_id": "10cf5da9ca1a2e42f3c2aefacd104d57"
+      },
+      "control_replay_verified": true
+    }
+  ],
+  "final": {
+    "resource_id": "c37af7ef-1b88-489f-8ddc-1147a67425c2",
+    "current_sequence": 18,
+    "max_requests": 4,
+    "max_cost_microusd": 0,
+    "deadline": 1790469673342,
+    "requests": 4,
+    "committed_microusd": 0,
+    "cancelled": true,
+    "unresolved_commands": [],
+    "live_commands": [],
+    "bindings": ["binding:antigravity-local", "binding:codex-child"],
+    "report_sha256": "95cfe40791da8760e65b36a75bc00eebed0c74e160fa0daba19eee5209004796"
+  }
+}

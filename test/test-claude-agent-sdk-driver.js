@@ -242,3 +242,79 @@ test('driver rejects relative bindings and implicit environment keys', () => {
     fixture.cleanup();
   }
 });
+
+for (const prompt of ['thinking-progress', 'thinking-invalid', 'thinking-foreign', 'unknown-system'])
+  test(`Claude thinking progress is distinct from billed usage and preserves strict protocol: ${prompt}`, async () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-thinking-progress-'));
+    const instance = new ClaudeAgentSdkDriver({
+      executable: process.execPath,
+      sdk_module: SDK,
+      cwd: directory,
+      env: { HSEOS_CLAUDE_TEST_REMOTE: path.join(directory, 'remote.json') },
+    });
+    try {
+      const created = await instance.create({ cwd: directory, effect_boundary: 'instructions_only' });
+      const usage = [],
+        events = [];
+      const operation = instance.send({
+        runtime_session_id: created.runtime_session_id,
+        turn_id: 'thinking-test',
+        instruction: prompt,
+        effect_boundary: 'instructions_only',
+        on_event: (event) => events.push(event),
+        on_usage: (value) => usage.push(value),
+      });
+      if (prompt === 'thinking-progress') {
+        assert.equal((await operation).stop_reason, 'completed');
+        assert.equal(usage.length, 1);
+        assert.equal(usage[0].usage.output_tokens, 2);
+        assert.deepEqual(
+          events.map((event) => event.type),
+          ['message.delta'],
+        );
+      } else {
+        await assert.rejects(operation, /malformed|unsupported/);
+        assert.equal(usage.length, 0);
+      }
+    } finally {
+      await instance.close();
+      fs.rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+test('missing transcript after runtime progress cannot silently recreate a Claude session', async () => {
+  const fixture = temp();
+  const instance = driver(fixture);
+  try {
+    await assert.rejects(
+      instance.resume({
+        runtime_session_id: 'missing-transcript',
+        expected_sequence: 2,
+        effect_boundary: 'instructions_only',
+      }),
+      /resumed session is unavailable/,
+    );
+    await assert.rejects(
+      instance.resume({
+        runtime_session_id: 'missing-transcript',
+        expected_sequence: 1,
+        effect_boundary: 'instructions_only',
+        require_existing: true,
+      }),
+      /resumed session is unavailable/,
+    );
+    await assert.rejects(
+      instance.resume({
+        runtime_session_id: 'missing-transcript',
+        expected_sequence: 1,
+        effect_boundary: 'instructions_only',
+        require_existing: false,
+      }),
+      /explicit existing-session constraint/,
+    );
+    assert.equal(fs.existsSync(fixture.state), false);
+  } finally {
+    await instance.close();
+    fixture.cleanup();
+  }
+});

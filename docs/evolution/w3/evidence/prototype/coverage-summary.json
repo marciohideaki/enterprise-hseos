@@ -1,0 +1,21 @@
+{
+  "total": {
+    "lines": { "total": 439, "covered": 439, "skipped": 0, "pct": 100 },
+    "statements": { "total": 439, "covered": 439, "skipped": 0, "pct": 100 },
+    "functions": { "total": 12, "covered": 12, "skipped": 0, "pct": 100 },
+    "branches": { "total": 173, "covered": 167, "skipped": 0, "pct": 96.53 },
+    "branchesTrue": { "total": 0, "covered": 0, "skipped": 0, "pct": 100 }
+  },
+  "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js": {
+    "lines": { "total": 322, "covered": 322, "skipped": 0, "pct": 100 },
+    "functions": { "total": 9, "covered": 9, "skipped": 0, "pct": 100 },
+    "statements": { "total": 322, "covered": 322, "skipped": 0, "pct": 100 },
+    "branches": { "total": 150, "covered": 144, "skipped": 0, "pct": 96 }
+  },
+  "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/lib/provider-control-manifest.js": {
+    "lines": { "total": 117, "covered": 117, "skipped": 0, "pct": 100 },
+    "functions": { "total": 3, "covered": 3, "skipped": 0, "pct": 100 },
+    "statements": { "total": 117, "covered": 117, "skipped": 0, "pct": 100 },
+    "branches": { "total": 23, "covered": 23, "skipped": 0, "pct": 100 }
+  }
+}

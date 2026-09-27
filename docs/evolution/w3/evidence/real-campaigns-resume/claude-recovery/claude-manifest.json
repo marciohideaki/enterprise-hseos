@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "binding_id": "binding:claude-live",
+  "binding_sha256": "70b0270a92dc679cd7574eff9e269a906058db78898ce68014c818e91565b330",
+  "vendor": "claude",
+  "provider_kind": "client",
+  "provider_version": "0.3.283",
+  "adapter": "hseos-claude-campaign-v1",
+  "artifact_sha256": "df131b4a80c2930f0856001908ce7cd313ed45ada1634392adbf5f36123bd92e",
+  "route": "api",
+  "transport": "process",
+  "authentication": {
+    "mode": "api_key",
+    "identity_kind": "credential",
+    "credential": {
+      "name": "claude-api",
+      "source_ref": "env://ANTHROPIC_API_KEY"
+    },
+    "account_sha256": null,
+    "credential_sha256": "cd372ce212333d3c560749302ca18b2bc7839b0aa928eec2aa8e82daa765118c",
+    "source": "explicit"
+  },
+  "billing": {
+    "kind": "metered",
+    "currency": "USD",
+    "max_request_microusd": 500000
+  },
+  "limits": {
+    "max_requests": 2,
+    "max_input_tokens": 65536,
+    "max_output_tokens": 1024,
+    "max_duration_ms": 120000
+  },
+  "controls": {
+    "authority": "external_client",
+    "resume": "not_verified",
+    "cancel": "not_verified",
+    "quota": "not_verified",
+    "evidence_sha256": null
+  }
+}

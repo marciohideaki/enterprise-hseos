@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import path from 'node:path';
 
 function remotePath(options = {}) {
   return options.env?.HSEOS_CLAUDE_TEST_REMOTE || process.env.HSEOS_CLAUDE_TEST_REMOTE;
@@ -17,8 +18,8 @@ function writeState(filename, state) {
   fs.writeFileSync(filename, `${JSON.stringify(state, null, 2)}\n`);
 }
 
-export async function getSessionInfo(sessionId) {
-  const filename = remotePath();
+export async function getSessionInfo(sessionId, { dir } = {}) {
+  const filename = remotePath() || (dir ? path.join(dir, 'claude.json') : undefined);
   if (!filename) return undefined;
   const state = readState(filename);
   return state.sessions[sessionId] ? { sessionId, summary: 'fixture' } : undefined;
@@ -65,6 +66,13 @@ export function query({ prompt, options }) {
         session_id: sessionId,
         rate_limit_info: { status: 'allowed' },
       };
+      yield {
+        type: 'system',
+        subtype: prompt === 'unknown-system' ? 'unknown_progress' : 'thinking_tokens',
+        session_id: prompt === 'thinking-foreign' ? 'foreign-session' : sessionId,
+        estimated_tokens: 123,
+        estimated_tokens_delta: prompt === 'thinking-invalid' ? -1 : 123,
+      };
       if (prompt === 'wait') {
         while (!options.abortController.signal.aborted && !closed) {
           await new Promise((resolve) => setImmediate(resolve));
@@ -81,6 +89,8 @@ export function query({ prompt, options }) {
       yield {
         type: 'result',
         subtype: 'success',
+        usage: { input_tokens: 5, output_tokens: 2 },
+        total_cost_usd: 0.0001,
         is_error: false,
         permission_denials: [],
         session_id: sessionId,

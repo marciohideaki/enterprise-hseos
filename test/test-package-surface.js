@@ -19,14 +19,36 @@ function packageFiles() {
 test('published package exposes runtime and governance assets only', () => {
   const packed = packageFiles();
   const files = new Set(packed.files.map((file) => file.path));
+  assert.ok(
+    packed.files.find((file) => file.path === 'packages/runtime-providers/codex-acp-launcher.js').mode & 0o111,
+    'ACP launcher must retain executable mode',
+  );
   for (const required of [
     'tools/cli/commands/control.js',
+    'tools/cli/lib/provider-campaign-control.js',
+    'tools/cli/lib/control-configuration.js',
+    'tools/cli/lib/provider-api-adapter.js',
+    'tools/cli/lib/provider-campaign-runner.js',
+    'tools/cli/lib/provider-native-adapter.js',
+    'tools/cli/lib/provider-acp-adapter.js',
+    'tools/cli/lib/provider-acp-worker.js',
+    'packages/runtime-providers/codex-acp-peer.js',
+    'packages/runtime-providers/codex-acp-composition.js',
+    'packages/runtime-providers/codex-acp-launcher.js',
+    'packages/runtime-providers/codex-acp-profile.json',
+    'tools/cli/lib/provider-antigravity-adapter.js',
+    'tools/cli/lib/provider-campaign-worker.js',
+    'tools/cli/lib/provider-campaign-process.js',
+    'tools/cli/lib/provider-campaign-bridge.js',
+    'packages/control-sdk/antigravity_campaign_worker.py',
+    'tools/lib/provider-control-manifest.js',
     'tools/cli/lib/engineering-project-verifier.js',
     'tools/cli/lib/engineering-workspace.js',
     'tools/examples/project-task.js',
     'packages/control-sdk/index.js',
     'packages/control-sdk/index.d.ts',
     'packages/control-sdk/hseos_control.py',
+    'packages/control-sdk/antigravity_client.py',
     'docs/engineering-control-api.md',
     'LICENSE',
     'tools/hseos-npx-wrapper.js',
@@ -64,9 +86,8 @@ test('published package exposes runtime and governance assets only', () => {
     assert.ok(!/\.(?:db|sqlite|pem|key)$/i.test(file), `state or key material published: ${file}`);
     assert.ok(!/(?:^|\/)(?:\.env|managed-governance\.json)$/i.test(file), `runtime configuration published: ${file}`);
   }
-  // W0 contains 1399 entries. W1 adds the control SDK, project composition,
-  // example, migration and documentation; reserve at most 21 additional assets.
+  // Reviewed W3 inventory: 1439 entries, including six ACP assets and local LiteRT support.
   // State/key/config exclusions above remain independent security invariants.
-  assert.ok(packed.entryCount < 1420, `package entry count is not bounded: ${packed.entryCount}`);
+  assert.ok(packed.entryCount <= 1439, `package entry count is not bounded: ${packed.entryCount}`);
   assert.ok(packed.unpackedSize < 22_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);
 });

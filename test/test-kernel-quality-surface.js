@@ -43,6 +43,11 @@ test('coverage counts unexecuted critical files and enforces per-file 90/80', ()
     'packages/agent-orchestration/**/*.js',
     'tools/cli/lib/engineering-*.js',
     'tools/cli/lib/provider-egress-broker.js',
+    'packages/runtime-providers/codex-acp-peer.js',
+    'packages/runtime-providers/codex-acp-composition.js',
+    'packages/runtime-providers/codex-acp-launcher.js',
+    'tools/cli/lib/provider-acp-adapter.js',
+    'tools/cli/lib/provider-acp-worker.js',
   ])
     assert.ok(config.include.includes(entry), entry);
 });
