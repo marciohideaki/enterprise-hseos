@@ -41,6 +41,7 @@ const inputs = {
         .max(64)
         .optional(),
       binding_id: z.string().min(1).max(160).optional(),
+      plugin_model: z.object({ selection_id: IdentifierSchema, campaign_id: z.string().uuid() }).strict().optional(),
       extension_ids: z
         .array(IdentifierSchema)
         .max(128)
@@ -200,14 +201,15 @@ class EngineeringControl {
       const contract = parseEngineeringTask(input.contract);
       if (contract.schema_version !== 2 || !this.workspaces.includes(contract.workspace.root))
         throw new ControlError('CONTROL_WORKSPACE_DENIED');
-      if (input.responses && input.binding_id) throw new ControlError('CONTROL_MODEL_CONFLICT');
+      if ([input.responses, input.binding_id, input.plugin_model].filter(Boolean).length > 1)
+        throw new ControlError('CONTROL_MODEL_CONFLICT');
       if (input.binding_id && !Object.hasOwn(this.bindings, input.binding_id)) throw new ControlError('CONTROL_BINDING_UNKNOWN');
-      if (!input.responses && !input.binding_id) throw new ControlError('CONTROL_MODEL_REQUIRED');
-      if (input.extension_ids?.length) {
-        const selection = require('../../lib/execution-plugin-selection').pinExecutionPluginSelection(
-          this.extensionCatalog,
-          input.extension_ids,
-        ).selection;
+      if (!input.responses && !input.binding_id && !input.plugin_model) throw new ControlError('CONTROL_MODEL_REQUIRED');
+      if (input.extension_ids?.length || input.plugin_model) {
+        const selection = require('../../lib/execution-plugin-selection').pinExecutionPluginSelection(this.extensionCatalog, [
+          ...(input.extension_ids || []),
+          ...(input.plugin_model ? [input.plugin_model.selection_id] : []),
+        ]).selection;
         const { createTaskExtensions, taskContextReservations } = require('./engineering-task-extensions');
         if (taskContextReservations(selection) > contract.limits.max_tool_calls)
           throw new ControlError('CONTROL_EXTENSION_BUDGET_EXHAUSTED');
@@ -215,7 +217,19 @@ class EngineeringControl {
           selection,
           catalog: this.extensionCatalog,
           deadline: Date.now() + contract.limits.max_duration_ms,
+          modelSelectionId: input.plugin_model?.selection_id,
         }).close();
+        if (input.plugin_model)
+          await require('./engineering-plugin-model')
+            .prepareTaskPluginModel({
+              reference: input.plugin_model,
+              selection,
+              catalog: this.extensionCatalog,
+              campaigns: this.providerCampaigns,
+              deadline: Date.now() + contract.limits.max_duration_ms,
+              resourceId: command.resource_id,
+            })
+            .close();
       }
     } else {
       const workflow = this.kind(command.resource_id) === 'workflow';
@@ -268,6 +282,9 @@ class EngineeringControl {
             createOnly: true,
             extensionCatalog: this.extensionCatalog,
             extensionIds: input.extension_ids,
+            pluginModel: input.plugin_model,
+            campaigns: this.providerCampaigns,
+            resourceId: command.resource_id,
           });
           this.append(command.resource_id, { kind: 'registered', resource_kind: 'task', state_directory: created.state });
           result = await this.query(command.resource_id);
@@ -297,6 +314,8 @@ class EngineeringControl {
             reconciliationDecision: input.reconciliation_decision,
             reconciliationDecisions: input.reconciliation_decisions,
             extensionCatalog: this.extensionCatalog,
+            campaigns: this.providerCampaigns,
+            resourceId: command.resource_id,
           });
           const { state: _state, ...publicValue } = value;
           result = { ...publicValue, resource_id: command.resource_id };

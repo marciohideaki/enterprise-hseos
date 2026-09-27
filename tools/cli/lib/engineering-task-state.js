@@ -62,6 +62,7 @@ const eventSchema = z.discriminatedUnion('kind', [
       deadline: z.number().int().positive().safe(),
       binding: z.unknown().optional(),
       extensions: z.unknown().optional(),
+      plugin_model: z.unknown().optional(),
       responses: z.array(z.object({ name: z.string().min(1).max(160), input: z.record(z.string(), z.json()) }).strict()).max(64),
     })
     .strict(),
@@ -78,6 +79,10 @@ function reduce(state, event) {
         require('../../lib/execution-plugin-selection').parseExecutionPluginSelection(event.extensions);
         if (require('./engineering-task-extensions').taskContextReservations(event.extensions) > event.contract.limits.max_tool_calls)
           throw new Error('Context selection exceeds the original task tool budget');
+      }
+      if (event.plugin_model !== undefined) {
+        require('./engineering-plugin-model').parseTaskPluginModel(event.plugin_model, event.extensions);
+        if (event.binding || event.responses.length > 0) throw new Error('A task cannot combine model sources');
       }
       if (event.binding !== undefined) {
         require('./engineering-model').validateEngineeringBinding(event.binding);

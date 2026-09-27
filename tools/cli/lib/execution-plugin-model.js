@@ -22,7 +22,7 @@ const outputSchema = z
   .refine((value) => new Set(value.tool_calls.map((call) => call.tool_call_id)).size === value.tool_calls.length);
 const counter = new ConservativeUtf8TokenCounter();
 
-function createExecutionPluginModel({ admission, binding_id, models, limits }) {
+function createExecutionPluginModel({ admission, binding_id, models, limits, deadline_at }) {
   assertExecutionPluginAdmission(admission);
   const plugin = admission.manifest;
   if (plugin.kind !== 'model-provider' || !plugin.capabilities.includes('generate')) throw new ExecutionPluginError('PLUGIN_PORT_KIND');
@@ -50,6 +50,7 @@ function createExecutionPluginModel({ admission, binding_id, models, limits }) {
     admission,
     binding_id,
     limits,
+    deadline_at,
     output_schema: outputSchema,
     response_validation: {
       contract_id: 'model-response-v1',
@@ -191,6 +192,7 @@ function createExecutionPluginModel({ admission, binding_id, models, limits }) {
     manifest,
     binding: bridge.binding,
     attach: bridge.attach,
+    drain: bridge.drain,
     close: () => provider.dispose({ schema_version: 1, provider_id: manifest.provider_id, request_id: 'request:plugin-close' }),
   });
 }

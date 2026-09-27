@@ -134,8 +134,10 @@ o validador de grafo não substitui campanha real. Indisponibilidade mantém ace
 - W4-02c3b (task hseos-w4-task-extensions): ferramentas/contexto na tarefa e controle;
   contrato detalhado em task-extension-composition.md, incluindo reserva de slots,
   procedência, cancelamento e gate. Depende de W4-02c3a integrada.
-- W4-02c3c: modelo pinado na tarefa, vinculado à campanha existente e ao controle,
-  sem saldo novo. W4-03a depende da conclusão de W4-02c.
+- W4-02c3c (task hseos-w4-task-model): modelo pinado na tarefa, vinculado à campanha
+  existente e ao controle, sem saldo novo. Contrato/arquivos/verificação detalhados em
+  task-model-composition.md, incluindo correção da identidade do ledger.
+  W4-03a depende da conclusão de W4-02c.
 
 ## W4-03a — Persistir agregado de jobs e consultas
 

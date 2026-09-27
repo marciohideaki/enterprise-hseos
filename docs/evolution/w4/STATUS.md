@@ -103,3 +103,30 @@ atingem 90/80, novo módulo 100/100. Recibos em evidence/task-extensions/.
 
 Gate integral Node24 passou, zero falhas e um aviso de placeholder preexistente.
 Hook de commit pendente; gate bruto comprimido preservado no diretório de evidência.
+
+## W4-02c3b integrada / W4-02c3c em validação
+
+Tools/context: eb55fd6/2c06be5, gate integral e hook Node24 aprovados. Hook preservado
+em evidence/task-model/prior-task-extensions-commit.log.gz. Task atual
+.worktrees/hseos-w4-task-model, base 2c06be5. Modelo local pinado na tarefa e fachada
+compartilhando ledger/lifecycle da campanha implementados; teste de ferramenta
+corrige código sem aplicar ao checkout original. Nenhuma chamada paga.
+
+Revisão cega encontrou P1: outro ledger com UUIDs repetidos poderia substituir saldo.
+Correção fixa identidade física do controle e associação recurso/diretório; teste
+adversarial passou na rodada focada (23 PASS Node24). Revisor confirmou correção
+estática. Identidade interna é omitida do retorno público. Backup/restore/rebind
+operacional continua escopo W4-03c; relocação de controle não é presumida.
+
+Regressão anterior à correção: 180 testes passaram, mas branches de task-state
+79,51% reprovaram o mínimo 80%. Resultado não convertido em PASS. Teste de criação
+com fontes conflitantes acrescentado; revalidação final/matriz/gates pendentes.
+W4-03–08 ainda pendentes. Sem publicação, merge de PR ou ativação.
+
+Revalidação final desta task: Node24 185 PASS e Node22 87 PASS, zero falhas/skips.
+Cobertura dos nove arquivos críticos atinge 90/80 (task-state branches 81,17%).
+Gate integral/hook ainda pendentes; evidências em evidence/task-model/.
+
+Gate integral Node24 desta task passou: zero falhas e um aviso preexistente.
+Reforço de prova de processo ativo/cgroup: 15/15 PASS adicionais em Node22/24,
+confirmados pelo revisor. Hook de commit ainda pendente.

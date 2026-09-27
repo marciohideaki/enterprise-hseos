@@ -14,11 +14,12 @@ const canonicalPath = z
   .min(1)
   .max(4096)
   .refine((value) => path.isAbsolute(value));
+const controlStateIdentitySchema = z.object({ state: canonicalPath, state_identity: identity, ledger_identity: identity }).strict();
 const bindingSchema = z
   .object({
     manifest: z.unknown(),
     subordinate_binding_ids: z.array(z.string().min(1).max(160)).max(16).default([]),
-    binding: canonicalPath,
+    binding: canonicalPath.optional(),
     options: z.record(z.string(), z.json()).default({}),
   })
   .strict();
@@ -48,22 +49,26 @@ function fail(code) {
   throw error;
 }
 
+function readControlStateIdentity(state) {
+  const stat = fs.lstatSync(state, { bigint: true });
+  if (!stat.isDirectory() || stat.isSymbolicLink() || fs.realpathSync(state) !== state) fail('CONTROL_PROVIDER_STATE_DRIFT');
+  const fixture = assertTemporaryFixtureDirectory(state);
+  const ledger = fs.lstatSync(fixture.filename, { bigint: true });
+  return controlStateIdentitySchema.parse({
+    state,
+    state_identity: { device: String(stat.dev), inode: String(stat.ino) },
+    ledger_identity: { device: String(ledger.dev), inode: String(ledger.ino) },
+  });
+}
+
 function assertState(configuration, override) {
   const state = configuration.state;
   if (override !== undefined && path.resolve(override) !== state) fail('CONTROL_PROVIDER_STATE_OVERRIDE');
-  const stat = fs.lstatSync(state, { bigint: true });
-  if (
-    !stat.isDirectory() ||
-    stat.isSymbolicLink() ||
-    fs.realpathSync(state) !== state ||
-    String(stat.dev) !== configuration.state_identity.device ||
-    String(stat.ino) !== configuration.state_identity.inode
-  )
-    fail('CONTROL_PROVIDER_STATE_DRIFT');
-  const fixture = assertTemporaryFixtureDirectory(state);
-  const ledger = fs.lstatSync(fixture.filename, { bigint: true });
-  if (String(ledger.dev) !== configuration.ledger_identity.device || String(ledger.ino) !== configuration.ledger_identity.inode)
-    fail('CONTROL_PROVIDER_STATE_DRIFT');
+  const actual = readControlStateIdentity(state);
+  for (const field of ['state_identity', 'ledger_identity']) {
+    if (actual[field].device !== configuration[field].device || actual[field].inode !== configuration[field].inode)
+      fail('CONTROL_PROVIDER_STATE_DRIFT');
+  }
   return state;
 }
 
@@ -81,7 +86,8 @@ function loadControlConfiguration(filename, { state, adapterFactories = {} } = {
     result.state = assertState(settings, state);
     const declarations = Object.entries(settings.bindings).map(([id, entry]) => {
       const manifest = parseProviderControlManifest(entry.manifest);
-      if (id !== manifest.binding_id) fail('CONTROL_PROVIDER_CONFIGURATION_INVALID');
+      if (id !== manifest.binding_id || (manifest.adapter !== 'execution-plugin-v1' && !entry.binding))
+        fail('CONTROL_PROVIDER_CONFIGURATION_INVALID');
       if (!Object.hasOwn(adapterFactories, manifest.adapter) || typeof adapterFactories[manifest.adapter] !== 'function')
         fail('CONTROL_PROVIDER_ADAPTER_UNAVAILABLE');
       return { id, manifest, entry };
@@ -141,4 +147,4 @@ function loadControlConfiguration(filename, { state, adapterFactories = {} } = {
   }
 }
 
-module.exports = { loadControlConfiguration };
+module.exports = { loadControlConfiguration, readControlStateIdentity, controlStateIdentitySchema };

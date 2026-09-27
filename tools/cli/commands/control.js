@@ -22,6 +22,7 @@ module.exports = {
       const config = require('../lib/control-configuration').loadControlConfiguration(options.config, {
         state: options.state,
         adapterFactories: {
+          'execution-plugin-v1': require('../lib/engineering-plugin-model').createPluginModelCampaignAdapter,
           [require('../lib/provider-api-adapter').API_ADAPTER_ID]: require('../lib/provider-api-adapter').createApiCampaignAdapter,
           'hseos-codex-campaign-v1': require('../lib/provider-native-adapter').createNativeCampaignAdapter,
           'hseos-codex-acp-campaign-v1': require('../lib/provider-acp-adapter').createAcpCampaignAdapter,
