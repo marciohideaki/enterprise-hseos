@@ -27,6 +27,7 @@ test('published package exposes runtime and governance assets only', () => {
     'tools/cli/commands/control.js',
     'tools/cli/lib/provider-campaign-control.js',
     'tools/cli/lib/execution-plugin-runtime.js',
+    'tools/cli/lib/execution-plugin-adapters.js',
     'tools/lib/execution-plugin-manifest.js',
     'tools/cli/lib/control-configuration.js',
     'tools/cli/lib/provider-api-adapter.js',
@@ -88,8 +89,8 @@ test('published package exposes runtime and governance assets only', () => {
     assert.ok(!/\.(?:db|sqlite|pem|key)$/i.test(file), `state or key material published: ${file}`);
     assert.ok(!/(?:^|\/)(?:\.env|managed-governance\.json)$/i.test(file), `runtime configuration published: ${file}`);
   }
-  // Reviewed W4 isolation inventory: one execution runtime added to the 1439-entry base.
+  // Reviewed W4 isolation inventory: execution runtime and ports added to the 1439-entry base.
   // State/key/config exclusions above remain independent security invariants.
-  assert.ok(packed.entryCount <= 1440, `package entry count is not bounded: ${packed.entryCount}`);
+  assert.ok(packed.entryCount <= 1441, `package entry count is not bounded: ${packed.entryCount}`);
   assert.ok(packed.unpackedSize < 22_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);
 });

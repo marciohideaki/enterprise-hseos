@@ -59,31 +59,24 @@ evidence/isolation/full-gate-receipt.json. Hook de commit ainda revalida.
 W4-02c e W4-03–08 permanecem pendentes.
 Não houve chamada de campanha, gasto adicional, publicação ou ativação.
 
-## Ponto de retomada — 2026-09-27
+## Ponto de retomada — W4-02c1
 
-Task atual: `.worktrees/hseos-w4-plugin-isolation`, branch
-`task/hseos-w4-plugin-isolation`, base d87d964. Alterações staged, sem commit.
-Retomada autorizada pelo usuário ("Prossiga"). Gate integral aprovado com
-heavy-run --pin, 1 CPU lógica diferente de zero, 3 GiB e nice19. Escopo delegado
-contém controlador e cgroups dos executores sob o mesmo memory.max; probe confirmou
-3221225472 bytes e afinidade [1]. Política global §3f regra 7 aplicada.
+W4-02b commit 00e2881, merge b68d7cb; gate e hook completos Node24 passaram.
+Recibo do hook preservado em evidence/ports/prior-isolation-commit.log.gz.
+Task atual .worktrees/hseos-w4-plugin-ports, branch task/hseos-w4-plugin-ports.
+Tool/context ports implementados e verificados por 11 testes Node22/24, sem skips;
+100% linhas e 96,49% branches. Gate integral Node24 aprovado, zero falhas e três avisos descritos no recibo.
+Commit depende da revalidação obrigatória do hook.
+W4-02c foi subdividida em ports, providers/campanha e composição pinada; W4-03–08
+continuam pendentes. Consumidor real, campanha e ativação não certificados.
 
-Próximo: checar carga, executar worktree-manager validate hseos-w4-plugin-isolation
-com Node24 em escopo systemd delegado; depois commit pelo manager (hook revalida),
-merge somente da task na feature e criar W4-02c. Nenhum merge de PR autorizado.
-Node24: /workspace/local/sdk/nvm/versions/node/v24.15.0/bin. Node22:
-/build/tmp/hseos-w1-node/node-v22.23.3-linux-x64/bin. Testes novos não dependem de
-SQLite nativo; matriz integral Node22 requer ABI correspondente e continua pendente.
+Recursos: autorização Prossiga e política global §3f.7; heavy-run --pin --mem 3G,
+1 CPU diferente de zero, nice19, escopo delegado com controlador e executores sob
+o mesmo teto. Node24 /workspace/local/sdk/nvm/versions/node/v24.15.0/bin;
+Node22 /build/tmp/hseos-w1-node/node-v22.23.3-linux-x64/bin. Dependência SQLite
+Node22 da mesma versão 12.9.0, link temporário removido após ensaio.
 
-Suíte completa usa PostgreSQL compartilhado via túnel local, sem instância nova.
-Referência pass: enterprise-hseos/ci-postgres-reference; credencial existente
-platform-shared-dev/postgres-platform. Banco de testes Node24 registrado nessa
-referência, túnel 127.0.0.1:39317 para service/postgres-shared no namespace
-platform-shared-dev. Túnel desta sessão será encerrado enquanto aguarda; restabelecer
-apenas para validação. Nunca imprimir URL com senha nem executar chamadas pagas.
-
-A admissão já está commitada e integrada, com prova do hook em
-evidence/isolation/prior-admission-commit.log.gz. Não repetir essa task ou campanhas W3.
-O contrato e o runtime isolado não encerram W4: integração dos três tipos, jobs,
-DAG dinâmico, orçamento, superfícies/distribuição, consumidores/campanha real e
-matriz final seguem pendentes conforme tasks.md.
+Validação integral usa PostgreSQL compartilhado via túnel 127.0.0.1:39317,
+service/postgres-shared em platform-shared-dev; credencial pass
+platform-shared-dev/postgres-platform e referência enterprise-hseos/ci-postgres-reference.
+Não imprimir URL com senha. Nenhum gasto adicional, publicação ou merge de PR.
