@@ -147,3 +147,13 @@ test('loader rejects malformed, oversized, symlink and hardlink configurations',
     assert.throws(() => loadControlConfiguration(f.filename), { code: 'CONTROL_CONFIGURATION_INVALID' });
   }
 });
+
+test('extension catalog remains frozen data and does not resolve unselected code on load', (t) => {
+  const f = fixture(t);
+  delete f.config.provider_control;
+  f.config.extensions = { future: { directory: '/unavailable/plugin', configuration: { untouched: true } } };
+  const loaded = f.read();
+  assert.deepEqual(loaded.extensionCatalog, f.config.extensions);
+  assert.ok(Object.isFrozen(loaded.extensionCatalog.future.configuration));
+  assert.equal(f.calls(), 0);
+});

@@ -6,6 +6,7 @@ Tipo: entrada de contratos. Leia spec → design → shard aplicável → tasks 
 - [Design](design.md)
 - [Extensões](extensions.md)
 - [Seleção de extensões](selection.md)
+- [Composição de ferramentas e contexto](task-extension-composition.md)
 - [Jobs](jobs.md)
 - [Workflow](workflow.md)
 - [Verificação](verification.md)

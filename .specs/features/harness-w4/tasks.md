@@ -103,7 +103,7 @@ o validador de grafo não substitui campanha real. Indisponibilidade mantém ace
   pelo ToolRuntime, validação dos contratos e proveniência; drain explícito.
   Outputs: tools/cli/lib/execution-plugin-adapters.js,
   test/test-execution-plugin-adapters.js, package.json, .c8-kernel.json,
-  test/test-package-surface.js, docs/evolution/w4/evidence/ports/* e STATUS.md.
+  test/test-package-surface.js, docs/evolution/w4/evidence/ports/\* e STATUS.md.
   Verificação: node --test --test-concurrency=1 test/test-execution-plugin-adapters.js.
 - W4-02c2: providers ModelProvider/RuntimeProvider com despacho reservado na campanha,
   conformance dos ports e cancelamento; mesmo arquivo adapters ou shard específico.
@@ -112,7 +112,7 @@ o validador de grafo não substitui campanha real. Indisponibilidade mantém ace
   intenção por hash e resultado duráveis, nenhum novo saldo. Outputs:
   tools/lib/provider-control-manifest.js, tools/cli/lib/execution-plugin-campaign.js,
   test/test-execution-plugin-campaign.js, package.json, .c8-kernel.json,
-  test/test-package-surface.js e evidence/plugin-campaign/*. Verificar com
+  test/test-package-surface.js e evidence/plugin-campaign/\*. Verificar com
   node --test --test-concurrency=1 test/test-execution-plugin-campaign.js
   test/test-provider-control-manifest.js test/test-provider-campaign-control.js.
 - W4-02c2b (task hseos-w4-plugin-providers): ports ModelProvider/RuntimeProvider e
@@ -120,19 +120,22 @@ o validador de grafo não substitui campanha real. Indisponibilidade mantém ace
   tools/cli/lib/execution-plugin-provider.js, packages/runtime-providers/hosted-runtime-provider.js,
   test/test-execution-plugin-providers.js, tools/cli/lib/execution-plugin-campaign.js,
   test/test-execution-plugin-campaign.js, package.json, .c8-kernel.json,
-  test/test-package-surface.js e evidence/plugin-providers/*. Verificar:
+  test/test-package-surface.js e evidence/plugin-providers/\*. Verificar:
   node --test --test-concurrency=1 test/test-execution-plugin-providers.js
   test/test-hosted-runtime-adapters.js test/test-model-providers.js.
 - W4-02c3a (task hseos-w4-plugin-selection; depende de W4-02a): seleção durável
   por identidade e hash de configuração/política; resolução apenas dos IDs escolhidos,
   dependências admitidas, restauração exata e leitura sem import. Não executa ports.
   Outputs: tools/lib/execution-plugin-selection.js, test/test-execution-plugin-selection.js,
-  package.json, .c8-kernel.json, test/test-package-surface.js, selection.md, _INDEX.md e evidence/selection/*.
+  package.json, .c8-kernel.json, test/test-package-surface.js, selection.md, \_INDEX.md e evidence/selection/\*.
   Verificação: node --test --test-concurrency=1 test/test-execution-plugin-selection.js.
   Critérios: atualização não muda pin, configuração/política divergente bloqueia restore,
   versão não selecionada inerte, relocação offline preserva identidade.
-- W4-02c3b: composição pinada em engineering-task-runtime/engineering-model, seleção
-  por execução e teste integrado. W4-03a depende da conclusão das três subdivisões.
+- W4-02c3b (task hseos-w4-task-extensions): ferramentas/contexto na tarefa e controle;
+  contrato detalhado em task-extension-composition.md, incluindo reserva de slots,
+  procedência, cancelamento e gate. Depende de W4-02c3a integrada.
+- W4-02c3c: modelo pinado na tarefa, vinculado à campanha existente e ao controle,
+  sem saldo novo. W4-03a depende da conclusão de W4-02c.
 
 ## W4-03a — Persistir agregado de jobs e consultas
 

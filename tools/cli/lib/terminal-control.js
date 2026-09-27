@@ -203,7 +203,12 @@ class TerminalControl {
               )
                 reject('CONTROL_TERMINAL_COMMAND_DENIED');
               const remaining = state.created.deadline - Date.now();
-              if (remaining < 1 || terminalBudget(parent.handle.db, parent.id).count >= contract.limits.max_tool_calls)
+              if (
+                remaining < 1 ||
+                terminalBudget(parent.handle.db, parent.id).count +
+                  require('./engineering-task-extensions').taskContextReservations(state.created.extensions) >=
+                  contract.limits.max_tool_calls
+              )
                 reject('CONTROL_TERMINAL_BUDGET_EXHAUSTED');
               const policy = createIsolationPolicy({
                 backend: 'bwrap',

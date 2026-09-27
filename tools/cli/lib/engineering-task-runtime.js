@@ -24,7 +24,14 @@ const { evaluatePermissionLattice } = require('../../../packages/agent-policy-la
 
 const MANIFEST = 'engineering-task.json';
 const MODEL = 'model:engineering-scripted';
+const { createTaskExtensions, taskContextReservations } = require('./engineering-task-extensions');
 const responsesSchema = z.array(z.object({ name: z.string().min(1).max(160), input: z.record(z.string(), z.json()) }).strict()).max(64);
+
+async function settleTaskOwners(operations) {
+  const results = await Promise.allSettled(operations);
+  const failed = results.find((result) => result.status === 'rejected');
+  if (failed) throw failed.reason;
+}
 
 function readResponses(filename) {
   const fd = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK);
@@ -63,15 +70,18 @@ function getEngineeringModelManifest() {
   };
 }
 
-function assemble(handle, created, { environment, fetchImpl } = {}) {
+function assemble(handle, created, { environment, fetchImpl, extensionCatalog = {} } = {}) {
   const { contract, responses, session_id: sessionId, deadline } = created;
+  const extensions = created.extensions
+    ? createTaskExtensions({ selection: created.extensions, catalog: extensionCatalog, deadline })
+    : null;
   const policy = createIsolationPolicy({
     backend: 'bwrap',
     host_workspace: path.join(handle.directory, 'workspace'),
     main_checkout: handle.directory,
     protected_paths: [path.join(handle.directory, MANIFEST)],
   });
-  const tools = createEngineeringTools({
+  const nativeTools = createEngineeringTools({
     directory: handle.directory,
     contract,
     policy,
@@ -103,6 +113,31 @@ function assemble(handle, created, { environment, fetchImpl } = {}) {
       return { recorded: true, review_step_id: review.step_id };
     },
   });
+  const tools = {
+    ...nativeTools,
+    bundles: [...nativeTools.bundles, ...(extensions?.bundles || [])],
+    async drain() {
+      const results = await Promise.allSettled([nativeTools.drain(), extensions?.drain()]);
+      const failed = results.find((result) => result.status === 'rejected');
+      if (failed) {
+        if (failed.reason.code === 'PLUGIN_TEARDOWN_UNCERTAIN') {
+          const task = new EngineeringTaskState(handle.db, readIdentity(handle.directory));
+          const state = task.read();
+          if (!state.uncertainty && !state.result)
+            task.append(
+              { kind: 'uncertainty', question: 'O encerramento da extensão não foi comprovado; reconciliar antes de continuar.' },
+              state.version,
+            );
+        }
+        throw failed.reason;
+      }
+    },
+    assertQuiescent() {
+      nativeTools.assertQuiescent();
+      extensions?.assertQuiescent();
+    },
+  };
+  const allowedTools = new Set([...ENGINEERING_TOOL_NAMES, ...(extensions?.bundles.map((bundle) => bundle.definition.name) || [])]);
   const manifest = getEngineeringModelManifest();
   const provider = new ScriptedModelProvider({
     manifest,
@@ -213,7 +248,9 @@ function assemble(handle, created, { environment, fetchImpl } = {}) {
     execution_policy: {
       async evaluate({ contract: tool }) {
         const used = Object.keys(assembly.sessionStore.replay(sessionId).tool_invocations).length;
-        const reserved = require('./terminal-budget').terminalBudget(handle.db, readIdentity(handle.directory)).count;
+        const reserved =
+          require('./terminal-budget').terminalBudget(handle.db, readIdentity(handle.directory)).count +
+          taskContextReservations(created.extensions);
         if (used + reserved > contract.limits.max_tool_calls)
           return {
             allowed: false,
@@ -221,7 +258,8 @@ function assemble(handle, created, { environment, fetchImpl } = {}) {
             policy_version: tool.policy_version,
             warnings: ['Task tool budget includes terminal reservations.'],
           };
-        if (new EngineeringTaskState(handle.db, readIdentity(handle.directory)).read().uncertainty)
+        const taskState = new EngineeringTaskState(handle.db, readIdentity(handle.directory)).read();
+        if (!taskState.started || taskState.uncertainty || taskState.cancellation || taskState.result || Date.now() >= deadline)
           return {
             allowed: false,
             requires_approval: false,
@@ -253,8 +291,8 @@ function assemble(handle, created, { environment, fetchImpl } = {}) {
             {
               id: 'engineering:declared-tools',
               source: 'project',
-              stage: ENGINEERING_TOOL_NAMES.includes(tool.name) ? 'allow' : 'deny',
-              decision: ENGINEERING_TOOL_NAMES.includes(tool.name) ? 'allow' : 'deny',
+              stage: allowedTools.has(tool.name) ? 'allow' : 'deny',
+              decision: allowedTools.has(tool.name) ? 'allow' : 'deny',
               reason: 'Only contract-scoped engineering operations are authorized',
             },
           ],
@@ -284,6 +322,7 @@ function assemble(handle, created, { environment, fetchImpl } = {}) {
         skill: [],
       },
       runtime_context: [
+        ...(extensions?.sources || []),
         {
           source_ref: `task-contract://${engineeringDigest(contract)}/protected-criteria`,
           classification: 'internal',
@@ -307,7 +346,7 @@ function assemble(handle, created, { environment, fetchImpl } = {}) {
       },
     }),
   });
-  return { ...assembly, tools, policy, sessionId, modelConnection };
+  return { ...assembly, tools, policy, sessionId, modelConnection, extensions };
 }
 
 function summary(handle, id, task, assembly) {
@@ -322,10 +361,11 @@ function summary(handle, id, task, assembly) {
     state: handle.directory,
     session_id: state.created.session_id,
     status: session?.status || 'not_executed',
-    task_result: state.result?.result || 'not_executed',
-    reason: state.result?.reason || 'awaiting-execution',
+    task_result: state.result?.result || (state.uncertainty ? 'blocked' : 'not_executed'),
+    reason: state.result?.reason || (state.uncertainty ? 'reconciliation-required' : 'awaiting-execution'),
     current_sequence: state.version,
     contract_sha256: state.created.contract_sha256,
+    ...(state.created.extensions ? { extensions: state.created.extensions } : {}),
     token_accounting: session ? require('../../../packages/agent-context/token-counter').accountSessionTokens(session) : null,
     correction_reviews: state.reviews || [],
     correction_diagnoses: state.diagnoses || [],
@@ -374,18 +414,28 @@ function engineeringSessionSpec(created, id, parentSessionId = null) {
       model_provider_id: created.binding?.provider.provider_id || MODEL,
       model: created.binding?.provider.model || 'engineering/fixture',
     },
-    limits: contract.limits,
+    limits: { ...contract.limits, max_tool_calls: contract.limits.max_tool_calls - taskContextReservations(created.extensions) },
     metadata: {
       profile_id: 'disposable-engineering-candidate',
       task_run_id: id,
       contract_sha256: sha256,
       operational: false,
       ...(created.binding ? { binding_sha256: engineeringDigest(created.binding) } : {}),
+      ...(created.extensions ? { extension_selection_sha256: created.extensions.selection_sha256 } : {}),
     },
   };
 }
 
-async function runEngineeringTask({ taskContract, scriptedResponses, binding: bindingPath, createOnly = false, environment, fetchImpl }) {
+async function runEngineeringTask({
+  taskContract,
+  scriptedResponses,
+  binding: bindingPath,
+  createOnly = false,
+  environment,
+  fetchImpl,
+  extensionCatalog = {},
+  extensionIds = [],
+}) {
   if (bindingPath && scriptedResponses) throw new Error('Select exactly one engineering model source');
   const binding = bindingPath
     ? require('./engineering-model').validateEngineeringBinding(
@@ -394,6 +444,13 @@ async function runEngineeringTask({ taskContract, scriptedResponses, binding: bi
     : undefined;
   const { contract, sha256 } = readEngineeringTask(taskContract);
   const responses = scriptedResponses ? readResponses(scriptedResponses) : [];
+  const pinned = require('../../lib/execution-plugin-selection').pinExecutionPluginSelection(extensionCatalog, extensionIds).selection;
+  const extensions = pinned.selected.length > 0 ? pinned : undefined;
+  const deadline = Date.now() + contract.limits.max_duration_ms;
+  if (extensions) {
+    if (taskContextReservations(extensions) > contract.limits.max_tool_calls) throw new Error('Context selection exceeds task budget');
+    await createTaskExtensions({ selection: extensions, catalog: extensionCatalog, deadline }).close();
+  }
   const handle = createExecutionLedgerFileFixture();
   const id = randomUUID();
   const task = new EngineeringTaskState(handle.db, id);
@@ -402,9 +459,10 @@ async function runEngineeringTask({ taskContract, scriptedResponses, binding: bi
     contract,
     contract_sha256: sha256,
     session_id: `session:${randomUUID()}`,
-    deadline: Date.now() + contract.limits.max_duration_ms,
+    deadline,
     responses,
     ...(binding ? { binding } : {}),
+    ...(extensions ? { extensions } : {}),
   };
   let assembly;
   try {
@@ -414,7 +472,7 @@ async function runEngineeringTask({ taskContract, scriptedResponses, binding: bi
       return summary(handle, id, task);
     }
     attestEngineeringVerifier(contract);
-    assembly = assemble(handle, created, { environment, fetchImpl });
+    assembly = assemble(handle, created, { environment, fetchImpl, extensionCatalog });
     await attestExecutor(assembly.policy, created.deadline);
     await assembly.runtime.create({
       schema_version: 1,
@@ -433,8 +491,11 @@ async function runEngineeringTask({ taskContract, scriptedResponses, binding: bi
       );
     return summary(handle, id, task, assembly);
   } finally {
-    await assembly?.modelConnection?.close();
-    handle.close();
+    try {
+      await settleTaskOwners([assembly?.modelConnection?.close(), assembly?.extensions?.close()]);
+    } finally {
+      handle.close();
+    }
   }
 }
 
@@ -453,7 +514,7 @@ async function executeTask(handle, task, assembly, created, verificationOnly = f
   const controller = new AbortController();
   let cancellation;
   let operationResult;
-  const poll = setInterval(() => {
+  const observeCancellation = () => {
     if (!cancellation && task.read().cancellation) {
       controller.abort();
       const session = assembly.sessionStore.replay(created.session_id);
@@ -468,29 +529,49 @@ async function executeTask(handle, task, assembly, created, verificationOnly = f
           });
       cancellation.catch(() => {});
     }
-  }, 50);
+  };
+  const poll = setInterval(observeCancellation, 50);
   try {
     const state = assembly.sessionStore.replay(created.session_id);
     if (verificationOnly && !reconciled && state.status !== 'completed') throw new Error('Only completed sessions can resume verification');
     if (!state.terminal_event) {
-      await assembly.modelConnection?.connect();
-      operationResult = await assembly.runtime.send(
-        sendInput || {
-          schema_version: 1,
-          command: 'send',
+      try {
+        await assembly.extensions?.collect(assembly.toolRuntime, {
+          task_id: task.id,
           session_id: created.session_id,
-          turn_id: `turn:${randomUUID()}`,
-          message: {
-            role: 'user',
-            content: JSON.stringify({
-              sources: contract.sources,
-              requirements: contract.requirements,
-              acceptance: contract.acceptance,
-              scope: contract.scope,
-            }),
+          signal: controller.signal,
+        });
+      } catch (error) {
+        if (error.code !== 'PLUGIN_CANCELLED' || !task.read().cancellation) {
+          if (error.code === 'PLUGIN_TEARDOWN_UNCERTAIN' && !task.read().uncertainty)
+            task.append(
+              { kind: 'uncertainty', question: 'O encerramento da extensão não foi comprovado; reconciliar antes de continuar.' },
+              task.read().version,
+            );
+          throw error;
+        }
+      }
+      observeCancellation();
+      if (!controller.signal.aborted && !task.read().cancellation) {
+        await assembly.modelConnection?.connect();
+        operationResult = await assembly.runtime.send(
+          sendInput || {
+            schema_version: 1,
+            command: 'send',
+            session_id: created.session_id,
+            turn_id: `turn:${randomUUID()}`,
+            message: {
+              role: 'user',
+              content: JSON.stringify({
+                sources: contract.sources,
+                requirements: contract.requirements,
+                acceptance: contract.acceptance,
+                scope: contract.scope,
+              }),
+            },
           },
-        },
-      );
+        );
+      }
     }
     await assembly.tools.drain();
     assembly.tools.assertQuiescent();
@@ -541,6 +622,7 @@ async function inspectEngineeringTask({
   environment,
   fetchImpl,
   reconciliationDecision,
+  extensionCatalog = {},
 }) {
   const handle = openExecutionLedgerFileFixture(path.resolve(directory));
   let assembly;
@@ -557,7 +639,7 @@ async function inspectEngineeringTask({
       };
     if (action === 'status' || (state.result && action !== 'reconcile')) return summary(handle, id, task);
     if (action === 'reconcile') {
-      assembly = assemble(handle, state.created, { environment, fetchImpl });
+      assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog });
       const { report } = await require('./engineering-reconciliation').inspectReconciliation(task, assembly, attestExecutor);
       return { ...summary(handle, id, task, assembly), reconciliation: report, questions: report.questions };
     }
@@ -568,7 +650,7 @@ async function inspectEngineeringTask({
       if (action === 'cancel') {
         if (state.owner && !isExecutorOwnerAlive(state.owner)) {
           await reapExecutorOwner(state.owner);
-          assembly = assemble(handle, state.created, { environment, fetchImpl });
+          assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog });
           await assembly.runtime.cancel({
             schema_version: 1,
             command: 'cancel',
@@ -588,7 +670,7 @@ async function inspectEngineeringTask({
         if (task.read().result) return summary(handle, id, task);
         return { ...summary(handle, id, task), task_result: 'blocked', reason: 'cancellation-unconfirmed' };
       }
-      assembly = assemble(handle, state.created, { environment, fetchImpl });
+      assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog });
       const { inspectReconciliation, applyReconciliation } = require('./engineering-reconciliation');
       const inspected = await inspectReconciliation(task, assembly, attestExecutor);
       if (!inspected.report.prerequisites_verified || (inspected.report.questions.length > 0 && !reconciliationDecision))
@@ -615,7 +697,7 @@ async function inspectEngineeringTask({
       return summary(handle, id, task, assembly);
     }
 
-    assembly = assemble(handle, state.created, { environment, fetchImpl });
+    assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog });
     if (action === 'cancel') {
       await assembly.runtime.cancel({
         schema_version: 1,
@@ -639,9 +721,11 @@ async function inspectEngineeringTask({
     } else throw new Error('Unsupported engineering task action');
     return summary(handle, id, task, assembly);
   } finally {
-    await assembly?.tools.drain();
-    await assembly?.modelConnection?.close();
-    handle.close();
+    try {
+      await settleTaskOwners([assembly?.tools.drain(), assembly?.modelConnection?.close(), assembly?.extensions?.close()]);
+    } finally {
+      handle.close();
+    }
   }
 }
 

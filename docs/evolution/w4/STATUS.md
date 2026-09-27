@@ -23,12 +23,12 @@ ativação continuam pendentes. Contratos prontos para W4-02a.
 
 ## Matriz de entrega
 
-| Etapa         | Determinístico           | Consumidor real | Ativação       |
-| ------------- | ------------------------ | --------------- | -------------- |
+| Etapa         | Determinístico        | Consumidor real | Ativação       |
+| ------------- | --------------------- | --------------- | -------------- |
 | W4-01         | contratos verificados | não aplicável   | não autorizada |
-| W4-02 a W4-06 | pendente                 | pendente        | não autorizada |
-| W4-07         | pendente                 | pendente        | não autorizada |
-| W4-08         | pendente                 | pendente        | não autorizada |
+| W4-02 a W4-06 | pendente              | pendente        | não autorizada |
+| W4-07         | pendente              | pendente        | não autorizada |
+| W4-08         | pendente              | pendente        | não autorizada |
 
 ## Limites e continuidade
 
@@ -63,7 +63,7 @@ Não houve chamada de campanha, gasto adicional, publicação ou ativação.
 
 W4-02b 00e2881/b68d7cb; W4-02c1 4efbe89/9a03224; W4-02c2a 6253233/414d73f.
 Gates e hooks Node24 aprovados. Recibo mais recente do hook em
- evidence/plugin-providers/prior-campaign-commit.log.gz.
+evidence/plugin-providers/prior-campaign-commit.log.gz.
 Task atual .worktrees/hseos-w4-plugin-providers, branch task/hseos-w4-plugin-providers.
 ModelProvider e RuntimeProvider L0 isolados pela ponte de campanha implementados;
 65 testes Node22/24 passaram, zero skips, cobertura crítica acima de 90/80.
@@ -85,3 +85,21 @@ Seleção durável em .worktrees/hseos-w4-plugin-selection, base 7de3008:
 Revisão independente em duas passagens, sem bloqueios. Gate integral Node24 passou; hook pendente.
 Próximo: composição de tools/context/model pinados em tarefas (W4-02c3b).
 W4-03–08 continuam pendentes; sem publicação, campanha paga, PR ou ativação.
+
+## W4-02c3a integrada / W4-02c3b em validação
+
+Seleção: 9ff033c/78f27f7, gate e hook Node24 aprovados; log preservado em
+evidence/task-extensions/prior-selection-commit.log.gz.
+Task hseos-w4-task-extensions implementa tools/contexto pinados na tarefa/controle,
+reserva de contexto no teto original, proveniência, cancelamento e incerteza durável.
+20 testes focados Node22 passaram. Regressão inicial Node24 112 PASS/0 skips,
+cobertura crítica 90/80; ajustes finais em revalidação. Revisão independente em
+duas passagens sem bloqueio de código; gate e hook ainda pendentes.
+Próximo: W4-02c3c modelo/campanha na tarefa, depois W4-03–08. Sem chamada paga,
+publicação, merge de PR ou ativação.
+
+Revalidação final Node24: 113 PASS, zero falhas/skips; sete arquivos críticos
+atingem 90/80, novo módulo 100/100. Recibos em evidence/task-extensions/.
+
+Gate integral Node24 passou, zero falhas e um aviso de placeholder preexistente.
+Hook de commit pendente; gate bruto comprimido preservado no diretório de evidência.

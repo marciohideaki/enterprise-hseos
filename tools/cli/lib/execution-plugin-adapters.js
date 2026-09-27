@@ -32,8 +32,9 @@ function reject(code) {
 }
 
 /** Trusted composition only: callers register the bundle with ToolRuntime before sealing. */
-function createExecutionPluginTool({ admission, contract: value, definition: definitionValue }) {
+function createExecutionPluginTool({ admission, contract: value, definition: definitionValue, deadline_at }) {
   assertExecutionPluginAdmission(admission);
+  if (deadline_at !== undefined && (!Number.isSafeInteger(deadline_at) || deadline_at < 1)) reject('PLUGIN_PORT_CONTEXT');
   const manifest = admission.manifest;
   if (!['tool', 'context-source'].includes(manifest.kind)) reject('PLUGIN_PORT_KIND');
   const contextSource = manifest.kind === 'context-source';
@@ -77,7 +78,7 @@ function createExecutionPluginTool({ admission, contract: value, definition: def
           admission,
           request: { request_id: randomUUID(), method: contextSource ? 'context' : 'invoke', input: parsedInput },
           signal: controller.signal,
-          deadline_at: deadline,
+          deadline_at: Math.min(deadline, deadline_at ?? deadline),
         });
         let data = response.result;
         if (contextSource) {

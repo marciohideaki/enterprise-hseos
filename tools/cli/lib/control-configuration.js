@@ -26,6 +26,7 @@ const schema = z
   .object({
     workspaces: z.array(z.string()).min(1),
     bindings: z.record(z.string(), z.string()).default({}),
+    extensions: z.record(z.string(), z.json()).optional(),
     port: z.number().int().min(0).max(65_535).default(0),
     provider_control: z
       .object({
@@ -74,6 +75,7 @@ function loadControlConfiguration(filename, { state, adapterFactories = {} } = {
     if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1 || stat.size > 1_048_576) fail('CONTROL_CONFIGURATION_INVALID');
     const config = schema.parse(JSON.parse(fs.readFileSync(file, 'utf8')));
     const result = { workspaces: config.workspaces, bindings: config.bindings, port: config.port, state };
+    if (config.extensions) result.extensionCatalog = deepFreeze(config.extensions);
     if (!config.provider_control) return result;
     const settings = config.provider_control;
     result.state = assertState(settings, state);
