@@ -4,6 +4,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const { z } = require('zod');
+const { deepFreeze, IdentifierSchema } = require('../../../packages/agent-runtime-contracts');
+const { canonicalize } = require('../../../packages/managed-governance-contracts/canonical-json');
 const { ExecutionEventLedger } = require('../../mcp-project-state/lib/execution-event-ledger');
 const { createExecutionLedgerFileFixture, openExecutionLedgerFileFixture } = require('../../mcp-project-state/lib/execution-ledger-schema');
 const { engineeringDigest } = require('./engineering-task-state');
@@ -39,6 +41,11 @@ const inputs = {
         .max(64)
         .optional(),
       binding_id: z.string().min(1).max(160).optional(),
+      extension_ids: z
+        .array(IdentifierSchema)
+        .max(128)
+        .refine((ids) => new Set(ids).size === ids.length)
+        .optional(),
     })
     .strict(),
   resume: z
@@ -60,12 +67,13 @@ class ControlError extends Error {
 }
 
 class EngineeringControl {
-  constructor({ state, workspaces = [], bindings = {}, providerBindings = {}, providerAuthorizations = {} } = {}) {
+  constructor({ state, workspaces = [], bindings = {}, providerBindings = {}, providerAuthorizations = {}, extensionCatalog = {} } = {}) {
     this.handle = state ? openExecutionLedgerFileFixture(path.resolve(state)) : createExecutionLedgerFileFixture();
     try {
       this.ledger = new ExecutionEventLedger(this.handle.db);
       this.workspaces = workspaces.map((root) => fs.realpathSync(root));
       this.bindings = Object.freeze({ ...bindings });
+      this.extensionCatalog = deepFreeze(JSON.parse(canonicalize(extensionCatalog)));
       this.active = new Set();
       this.terminals = new (require('./terminal-control').TerminalControl)(this);
       this.providerCampaigns = new (require('./provider-campaign-control').ProviderCampaignControl)(this, providerBindings, {
@@ -195,6 +203,20 @@ class EngineeringControl {
       if (input.responses && input.binding_id) throw new ControlError('CONTROL_MODEL_CONFLICT');
       if (input.binding_id && !Object.hasOwn(this.bindings, input.binding_id)) throw new ControlError('CONTROL_BINDING_UNKNOWN');
       if (!input.responses && !input.binding_id) throw new ControlError('CONTROL_MODEL_REQUIRED');
+      if (input.extension_ids?.length) {
+        const selection = require('../../lib/execution-plugin-selection').pinExecutionPluginSelection(
+          this.extensionCatalog,
+          input.extension_ids,
+        ).selection;
+        const { createTaskExtensions, taskContextReservations } = require('./engineering-task-extensions');
+        if (taskContextReservations(selection) > contract.limits.max_tool_calls)
+          throw new ControlError('CONTROL_EXTENSION_BUDGET_EXHAUSTED');
+        await createTaskExtensions({
+          selection,
+          catalog: this.extensionCatalog,
+          deadline: Date.now() + contract.limits.max_duration_ms,
+        }).close();
+      }
     } else {
       const workflow = this.kind(command.resource_id) === 'workflow';
       if ((workflow && input.reconciliation_decision) || (!workflow && input.reconciliation_decisions))
@@ -244,6 +266,8 @@ class EngineeringControl {
             scriptedResponses: responsesFile,
             binding: input.binding_id ? this.bindings[input.binding_id] : undefined,
             createOnly: true,
+            extensionCatalog: this.extensionCatalog,
+            extensionIds: input.extension_ids,
           });
           this.append(command.resource_id, { kind: 'registered', resource_kind: 'task', state_directory: created.state });
           result = await this.query(command.resource_id);
@@ -272,6 +296,7 @@ class EngineeringControl {
             expectedSequence: command.expected_sequence,
             reconciliationDecision: input.reconciliation_decision,
             reconciliationDecisions: input.reconciliation_decisions,
+            extensionCatalog: this.extensionCatalog,
           });
           const { state: _state, ...publicValue } = value;
           result = { ...publicValue, resource_id: command.resource_id };

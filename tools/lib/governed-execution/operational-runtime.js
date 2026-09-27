@@ -197,4 +197,4 @@ function createOperationalExecution({ db, serverId, tools, invokeTool, maxConcur
   return Object.freeze({ approvalStore, contracts, ledger, port, projector, runtime, scheduler });
 }
 
-module.exports = { createOperationalExecution, EXCLUSIVE_TOOLS, IDEMPOTENT_PROVIDERS, MUTATION_CLASS };
+module.exports = { schemaContract, createOperationalExecution, EXCLUSIVE_TOOLS, IDEMPOTENT_PROVIDERS, MUTATION_CLASS };
