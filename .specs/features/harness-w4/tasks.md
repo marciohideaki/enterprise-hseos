@@ -250,6 +250,16 @@ Contrato detalhado: [job-dispatch-implementation.md](job-dispatch-implementation
 
 W4-04a2b integra revisões no engine. W4-04a2c integra admissão running e materialização incremental de filhos. Ambas dependem desta unidade; comandos running continuam recusados até integração completa.
 
+### W4-04a2b — Consumir definições revisadas no engine
+
+- execution_mode: isolated
+- dependencies: W4-04a2a (`1f09c3e8`; integração `6bba910d`)
+- implementation_contract: [workflow-revision-engine-implementation.md](workflow-revision-engine-implementation.md)
+- output_contract.files: `packages/agent-orchestration/workflow-engine.js`, `test/test-workflow-reservations.js`, `test/test-kernel-mutations.js`, `test/fixtures/kernel-mutation-loader.cjs`, evidência/STATUS.
+- acceptance_criteria: revisão corrente consumida em fronteira de fase; checkpoint histórico e claim preservados; release só após todas as fases correntes; definição forjada sem efeito.
+- verify_step.command: `node --test --test-concurrency=1 test/test-agent-orchestration.js test/test-workflow-reservations.js`
+- verify_step.expected: exit0, zero falhas/skips; cobertura90/80 por crítico em Node22/24.
+
 ## W4-04b — Aplicar joins, invalidação e drain transitivo
 
 - execution_mode: isolated

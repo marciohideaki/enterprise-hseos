@@ -140,6 +140,68 @@ function openStore() {
   return { db, store: new RelationalSessionEventStore({ ledger: new ExecutionEventLedger(db) }) };
 }
 
+function completedProvider(store, { onJoin = () => {} } = {}) {
+  const outcomes = new Map();
+  const spawns = [];
+  return {
+    outcomes,
+    spawns,
+    port: {
+      manifest() {
+        return {
+          schema_version: 1,
+          provider_id: 'subagent:fixture',
+          provider_version: '1.0.0',
+          capabilities: ['spawn', 'join', 'cancel'],
+          max_parallel_children: 4,
+        };
+      },
+      spawn(input) {
+        const childId = input.child_spec.session_id;
+        const state = store.replay(parent.session_id);
+        store.append({
+          session_id: parent.session_id,
+          expected_version: state.current_sequence,
+          events: [
+            event('child.attached', { child_session_id: childId, authority_ceiling_ref: parent.authority_ref }, state.current_sequence + 1),
+          ],
+        });
+        spawns.push(childId);
+        outcomes.set(childId, { child_session_id: childId, status: 'completed', outcome_ref: `outcome://${childId}` });
+        return {
+          schema_version: 1,
+          provider_id: input.provider_id,
+          request_id: input.request_id,
+          parent_session_id: input.parent_session_id,
+          child_session_id: childId,
+          accepted: true,
+          terminal: true,
+          event_refs: ['session-event://event:fixture-spawn'],
+        };
+      },
+      join(input) {
+        onJoin(input);
+        return {
+          schema_version: 1,
+          provider_id: input.provider_id,
+          request_id: input.request_id,
+          parent_session_id: input.parent_session_id,
+          all_terminal: true,
+          children: input.child_session_ids.map((id) => outcomes.get(id)),
+          evidence_refs: [],
+        };
+      },
+      cancel() {
+        throw new Error('all fixture children are already terminal');
+      },
+      dispose() {
+        throw new Error('unexpected fixture disposal');
+      },
+    },
+    resolve: (_sessionStore, id) => outcomes.get(id) || null,
+  };
+}
+
 test('revision keeps the v1 stream and original claim while pinning a new definition', () => {
   const first = definition();
   const next = appended(first);
@@ -305,7 +367,7 @@ test('independent SQLite connections serialize revision and cancellation by CAS'
   assert.equal(competing.readSession(parent.session_id).length, 4);
 });
 
-test('an in-flight revision fences the static engine before its next provider effect', async (context) => {
+test('an in-flight revision does not hide a provider failure or skip child drain', async (context) => {
   const { db, store } = openStore();
   context.after(() => db.close());
   const first = definition([{ phase_id: 'phase:first', mode: 'pipeline', steps: [step('one'), step('two')] }]);
@@ -376,31 +438,29 @@ test('an in-flight revision fences the static engine before its next provider ef
     subagent_provider: provider,
     resolve_child_outcome: () => childTerminal,
   });
-  await assert.rejects(
-    () =>
-      engine.run({
-        schema_version: 1,
-        engine_id: 'workflow:test',
-        request_id: 'request:interleaved-run',
-        parent_session_id: parent.session_id,
-        workflow: first,
-        occurred_at: timestamp,
-      }),
-    { code: 'WORKFLOW_REVISION_NOT_SUPPORTED' },
-  );
+  const outcome = await engine.run({
+    schema_version: 1,
+    engine_id: 'workflow:test',
+    request_id: 'request:interleaved-run',
+    parent_session_id: parent.session_id,
+    workflow: first,
+    occurred_at: timestamp,
+  });
+  assert.equal(outcome.status, 'failed');
   assert.equal(spawned, 1);
-  assert.equal(joined, 0);
+  assert.equal(joined, 1);
   assert.equal(cancelled, 1);
   assert.equal(childTerminal.status, 'cancelled');
   assert.equal(store.replay(parent.session_id).workflow_reservations[first.workflow_id].revision, 2);
+  assert.equal(store.replay(parent.session_id).workflow_reservations[first.workflow_id].released.status, 'failed');
 });
 
-test('revision after the final checkpoint prevents the static engine from releasing stale success', async (context) => {
+test('revision after a checkpoint executes the appended phase before release', async (context) => {
   const { db, store } = openStore();
   context.after(() => db.close());
   const first = definition();
   const next = appended(first);
-  const childId = first.phases[0].steps[0].child_spec.session_id;
+  const outcomes = new Map();
   store.append({ session_id: parent.session_id, expected_version: 0, events: [event('session.created', { spec: parent }, 1)] });
   let joined = 0;
   let injected = 0;
@@ -408,7 +468,10 @@ test('revision after the final checkpoint prevents the static engine from releas
   const originalAppend = ledger.append.bind(ledger);
   ledger.append = (request) => {
     const receipt = originalAppend(request);
-    if (request.events.some((item) => JSON.parse(item.payload.session_event_json).event_type === 'workflow.phase.checkpointed')) {
+    if (
+      !injected &&
+      request.events.some((item) => JSON.parse(item.payload.session_event_json).event_type === 'workflow.phase.checkpointed')
+    ) {
       injected += 1;
       const state = store.replay(parent.session_id);
       store.append({
@@ -433,6 +496,7 @@ test('revision after the final checkpoint prevents the static engine from releas
     },
     spawn(input) {
       const state = store.replay(parent.session_id);
+      const childId = input.child_spec.session_id;
       store.append({
         session_id: parent.session_id,
         expected_version: state.current_sequence,
@@ -440,6 +504,7 @@ test('revision after the final checkpoint prevents the static engine from releas
           event('child.attached', { child_session_id: childId, authority_ceiling_ref: parent.authority_ref }, state.current_sequence + 1),
         ],
       });
+      outcomes.set(childId, { child_session_id: childId, status: 'completed', outcome_ref: `outcome://${childId}` });
       return {
         schema_version: 1,
         provider_id: input.provider_id,
@@ -459,7 +524,7 @@ test('revision after the final checkpoint prevents the static engine from releas
         request_id: input.request_id,
         parent_session_id: input.parent_session_id,
         all_terminal: true,
-        children: [{ child_session_id: childId, status: 'completed', outcome_ref: 'outcome://completed' }],
+        children: input.child_session_ids.map((id) => outcomes.get(id)),
         evidence_refs: [],
       };
     },
@@ -474,29 +539,27 @@ test('revision after the final checkpoint prevents the static engine from releas
     engine_id: 'workflow:test',
     session_store: store,
     subagent_provider: provider,
-    resolve_child_outcome: () => ({ child_session_id: childId, status: 'completed', outcome_ref: 'outcome://completed' }),
+    resolve_child_outcome: (_sessionStore, id) => outcomes.get(id) || null,
   });
-  await assert.rejects(
-    () =>
-      engine.run({
-        schema_version: 1,
-        engine_id: 'workflow:test',
-        request_id: 'request:checkpoint-race',
-        parent_session_id: parent.session_id,
-        workflow: first,
-        occurred_at: timestamp,
-      }),
-    { code: 'WORKFLOW_REVISION_NOT_SUPPORTED' },
-  );
+  const result = await engine.run({
+    schema_version: 1,
+    engine_id: 'workflow:test',
+    request_id: 'request:checkpoint-race',
+    parent_session_id: parent.session_id,
+    workflow: first,
+    occurred_at: timestamp,
+  });
   const state = store.replay(parent.session_id);
+  assert.equal(result.status, 'completed');
   assert.equal(injected, 1);
-  assert.equal(joined, 1);
+  assert.equal(joined, 2);
   assert.equal(state.workflow_reservations[first.workflow_id].revision, 2);
-  assert.equal(state.workflow_reservations[first.workflow_id].released, null);
+  assert.equal(state.workflow_reservations[first.workflow_id].released.status, 'completed');
   assert.equal(state.workflow_checkpoints[0].definition_digest, digest(first));
+  assert.equal(state.workflow_checkpoints[1].definition_digest, digest(next));
 });
 
-test('static engine rejects persisted revision before provider manifest, even with an expired claim', async (context) => {
+test('revision-aware engine rejects a forged caller definition before provider manifest', async (context) => {
   const { db, store } = openStore();
   context.after(() => db.close());
   const first = definition();
@@ -529,47 +592,242 @@ test('static engine rejects persisted revision before provider manifest, even wi
         engine_id: 'workflow:test',
         request_id: 'request:revised-run',
         parent_session_id: parent.session_id,
-        workflow: next,
+        workflow: { ...next, join_timeout_ms: 999 },
         occurred_at: timestamp,
       }),
-    { code: 'WORKFLOW_REVISION_NOT_SUPPORTED' },
-  );
-  await assert.rejects(
-    () =>
-      engine.run({
-        schema_version: 1,
-        engine_id: 'workflow:test',
-        request_id: 'request:other-run',
-        parent_session_id: parent.session_id,
-        workflow: { ...first, workflow_id: 'workflow:other' },
-        occurred_at: timestamp,
-      }),
-    { code: 'WORKFLOW_REVISION_NOT_SUPPORTED' },
+    { code: 'WORKFLOW_DEFINITION_CONFLICT' },
   );
   assert.equal(manifests, 0);
   assert.equal(store.readSession(parent.session_id).length, 3);
-  store.append({
-    session_id: parent.session_id,
-    expected_version: 3,
-    events: [
-      event(
-        'workflow.released',
-        { workflow_id: first.workflow_id, definition_digest: digest(next), claim_ref: claim, status: 'failed' },
-        4,
-      ),
-    ],
+});
+
+test('engine reclaims an expired revised reservation and follows its durable definition', async (context) => {
+  const { db, store } = openStore();
+  context.after(() => db.close());
+  const first = definition();
+  const next = appended(first);
+  store.append({ session_id: parent.session_id, expected_version: 0, events: [...baseEvents(first), revision(first, next)] });
+  const provider = completedProvider(store);
+  const engine = new WorkflowEngine({
+    engine_id: 'workflow:test',
+    session_store: store,
+    subagent_provider: provider.port,
+    resolve_child_outcome: provider.resolve,
+    clock: { now: () => new Date(timestamp) },
   });
-  await assert.rejects(
-    () =>
-      engine.run({
-        schema_version: 1,
-        engine_id: 'workflow:test',
-        request_id: 'request:released-run',
-        parent_session_id: parent.session_id,
-        workflow: next,
-        occurred_at: timestamp,
-      }),
-    { code: 'WORKFLOW_REVISION_NOT_SUPPORTED' },
+  const result = await engine.run({
+    schema_version: 1,
+    engine_id: 'workflow:test',
+    request_id: 'request:reclaimed-revision',
+    parent_session_id: parent.session_id,
+    workflow: first,
+    occurred_at: timestamp,
+    resume_from_ref: claim,
+  });
+  assert.equal(result.status, 'completed');
+  assert.deepEqual(
+    provider.spawns,
+    next.phases.map((phase) => phase.steps[0].child_spec.session_id),
   );
-  assert.equal(manifests, 0);
+  const state = store.replay(parent.session_id);
+  assert.equal(state.workflow_reservations[first.workflow_id].claim_id, 'request:reclaimed-revision');
+  assert.equal(state.workflow_reservations[first.workflow_id].released.status, 'completed');
+  assert.deepEqual(
+    state.workflow_checkpoints.map((item) => item.definition_digest),
+    [digest(next), digest(next)],
+  );
+});
+
+test('revision during join retains the old checkpoint and executes the appended phase', async (context) => {
+  const { db, store } = openStore();
+  context.after(() => db.close());
+  const first = definition();
+  const next = appended(first);
+  store.append({ session_id: parent.session_id, expected_version: 0, events: [event('session.created', { spec: parent }, 1)] });
+  let revised = false;
+  const provider = completedProvider(store, {
+    onJoin() {
+      if (revised) return;
+      revised = true;
+      const state = store.replay(parent.session_id);
+      store.append({
+        session_id: parent.session_id,
+        expected_version: state.current_sequence,
+        events: [
+          revision(first, next, state.current_sequence + 1, { claim_ref: state.workflow_reservations[first.workflow_id].claim_ref }),
+        ],
+      });
+    },
+  });
+  const engine = new WorkflowEngine({
+    engine_id: 'workflow:test',
+    session_store: store,
+    subagent_provider: provider.port,
+    resolve_child_outcome: provider.resolve,
+  });
+  const result = await engine.run({
+    schema_version: 1,
+    engine_id: 'workflow:test',
+    request_id: 'request:revision-during-join',
+    parent_session_id: parent.session_id,
+    workflow: first,
+    occurred_at: timestamp,
+  });
+  assert.equal(result.status, 'completed');
+  assert.equal(revised, true);
+  assert.deepEqual(
+    store.replay(parent.session_id).workflow_checkpoints.map((item) => item.definition_digest),
+    [digest(first), digest(next)],
+  );
+  assert.deepEqual(
+    provider.spawns,
+    next.phases.map((phase) => phase.steps[0].child_spec.session_id),
+  );
+});
+
+test('checkpoint CAS retries after an append-only revision wins the sequence', async (context) => {
+  const { db, store } = openStore();
+  context.after(() => db.close());
+  const first = definition();
+  const next = appended(first);
+  store.append({ session_id: parent.session_id, expected_version: 0, events: [event('session.created', { spec: parent }, 1)] });
+  let injected = false;
+  const originalAppend = store.ledger.append.bind(store.ledger);
+  store.ledger.append = (request) => {
+    if (
+      !injected &&
+      request.events.some((item) => JSON.parse(item.payload.session_event_json).event_type === 'workflow.phase.checkpointed')
+    ) {
+      injected = true;
+      const state = store.replay(parent.session_id);
+      store.append({
+        session_id: parent.session_id,
+        expected_version: state.current_sequence,
+        events: [
+          revision(first, next, state.current_sequence + 1, { claim_ref: state.workflow_reservations[first.workflow_id].claim_ref }),
+        ],
+      });
+    }
+    return originalAppend(request);
+  };
+  const provider = completedProvider(store);
+  const engine = new WorkflowEngine({
+    engine_id: 'workflow:test',
+    session_store: store,
+    subagent_provider: provider.port,
+    resolve_child_outcome: provider.resolve,
+  });
+  const result = await engine.run({
+    schema_version: 1,
+    engine_id: 'workflow:test',
+    request_id: 'request:checkpoint-cas',
+    parent_session_id: parent.session_id,
+    workflow: first,
+    occurred_at: timestamp,
+  });
+  assert.equal(result.status, 'completed');
+  assert.equal(injected, true);
+  const state = store.replay(parent.session_id);
+  assert.deepEqual(
+    state.workflow_checkpoints.map((item) => item.definition_digest),
+    [digest(first), digest(next)],
+  );
+  assert.deepEqual(
+    provider.spawns,
+    next.phases.map((phase) => phase.steps[0].child_spec.session_id),
+  );
+});
+
+test('release CAS follows a revision that wins after the final old checkpoint', async (context) => {
+  const { db, store } = openStore();
+  context.after(() => db.close());
+  const first = definition();
+  const next = appended(first);
+  store.append({ session_id: parent.session_id, expected_version: 0, events: [event('session.created', { spec: parent }, 1)] });
+  let injected = false;
+  const originalAppend = store.ledger.append.bind(store.ledger);
+  store.ledger.append = (request) => {
+    if (!injected && request.events.some((item) => JSON.parse(item.payload.session_event_json).event_type === 'workflow.released')) {
+      injected = true;
+      const state = store.replay(parent.session_id);
+      store.append({
+        session_id: parent.session_id,
+        expected_version: state.current_sequence,
+        events: [
+          revision(first, next, state.current_sequence + 1, { claim_ref: state.workflow_reservations[first.workflow_id].claim_ref }),
+        ],
+      });
+    }
+    return originalAppend(request);
+  };
+  const provider = completedProvider(store);
+  const engine = new WorkflowEngine({
+    engine_id: 'workflow:test',
+    session_store: store,
+    subagent_provider: provider.port,
+    resolve_child_outcome: provider.resolve,
+  });
+  const result = await engine.run({
+    schema_version: 1,
+    engine_id: 'workflow:test',
+    request_id: 'request:release-cas',
+    parent_session_id: parent.session_id,
+    workflow: first,
+    occurred_at: timestamp,
+  });
+  assert.equal(result.status, 'completed');
+  assert.equal(injected, true);
+  const state = store.replay(parent.session_id);
+  assert.equal(state.workflow_reservations[first.workflow_id].released.status, 'completed');
+  assert.deepEqual(
+    state.workflow_checkpoints.map((item) => item.definition_digest),
+    [digest(first), digest(next)],
+  );
+  assert.deepEqual(
+    provider.spawns,
+    next.phases.map((phase) => phase.steps[0].child_spec.session_id),
+  );
+});
+
+test('durable cancellation winning the release CAS cannot become completed', async (context) => {
+  const { db, store } = openStore();
+  context.after(() => db.close());
+  const first = definition();
+  store.append({ session_id: parent.session_id, expected_version: 0, events: [event('session.created', { spec: parent }, 1)] });
+  let injected = false;
+  const originalAppend = store.ledger.append.bind(store.ledger);
+  store.ledger.append = (request) => {
+    if (!injected && request.events.some((item) => JSON.parse(item.payload.session_event_json).event_type === 'workflow.released')) {
+      injected = true;
+      const state = store.replay(parent.session_id);
+      store.append({
+        session_id: parent.session_id,
+        expected_version: state.current_sequence,
+        events: [event('session.cancellation.requested', { reason: 'stop', cascade: true, source: 'user' }, state.current_sequence + 1)],
+      });
+    }
+    return originalAppend(request);
+  };
+  const provider = completedProvider(store);
+  const engine = new WorkflowEngine({
+    engine_id: 'workflow:test',
+    session_store: store,
+    subagent_provider: provider.port,
+    resolve_child_outcome: provider.resolve,
+  });
+  const result = await engine.run({
+    schema_version: 1,
+    engine_id: 'workflow:test',
+    request_id: 'request:cancel-release-cas',
+    parent_session_id: parent.session_id,
+    workflow: first,
+    occurred_at: timestamp,
+  });
+  assert.equal(injected, true);
+  assert.equal(result.status, 'cancelled');
+  assert.equal(store.replay(parent.session_id).workflow_reservations[first.workflow_id].released.status, 'cancelled');
+  assert.equal(
+    store.readSession(parent.session_id).some((item) => item.event_type === 'workflow.released' && item.payload.status === 'completed'),
+    false,
+  );
 });

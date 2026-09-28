@@ -11,8 +11,10 @@ const cases = [
   ['workflow_initial', 'test/test-workflow-expansion.js', 'only initial v2 revision can be created'],
   ['reservation_claim', 'test/test-workflow-reservations.js', 'revision rejects stale claim'],
   ['reservation_budget', 'test/test-workflow-reservations.js', 'revision enforces original resource'],
-  ['reservation_fence', 'test/test-workflow-reservations.js', 'an in-flight revision fences'],
-  ['reservation_release', 'test/test-workflow-reservations.js', 'revision after the final checkpoint'],
+  ['reservation_fence', 'test/test-workflow-reservations.js', 'revision-aware engine rejects a forged caller definition'],
+  ['reservation_release', 'test/test-workflow-reservations.js', 'durable cancellation winning the release CAS'],
+  ['reservation_current', 'test/test-workflow-reservations.js', 'engine reclaims an expired revised reservation'],
+  ['reservation_checkpoint_cas', 'test/test-workflow-reservations.js', 'checkpoint CAS retries after an append-only revision'],
   ['task_completion', 'test/test-engineering-task-runtime.js', 'durable cancellation at model-stop'],
   ['task_cancellation', 'test/test-engineering-task-runtime.js', 'durable cancellation at tool-intent'],
   ['job_shutdown', 'test/test-job-faults.js', 'shutdown during admission cannot'],
@@ -43,5 +45,5 @@ for (const [mutation, filename, pattern] of cases)
     assert.equal(mutant.error, undefined);
     assert.equal(mutant.status, 1, mutant.stdout + mutant.stderr);
     assert.match(mutant.stdout + mutant.stderr, new RegExp(`HSEOS_TEST_MUTATION_APPLIED:${mutation}`));
-    assert.match(mutant.stdout, /ERR_ASSERTION/);
+    assert.match(mutant.stdout, mutation === 'reservation_current' ? /WORKFLOW_DEFINITION_CONFLICT/ : /ERR_ASSERTION/);
   });
