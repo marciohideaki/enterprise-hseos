@@ -1,0 +1,93 @@
+{
+  "task": "W4-04a2c",
+  "base": "1e90d2b0",
+  "node22": "22.22.1 official",
+  "node24": "24.15.0",
+  "coverage": {
+    "node22": {
+      "job-control.js": {
+        "lines": 99.6,
+        "branches": 94.01
+      },
+      "job-materialization.js": {
+        "lines": 99.39,
+        "branches": 87.77
+      },
+      "engineering-workflow-runtime.js": {
+        "lines": 98.72,
+        "branches": 85.45
+      }
+    },
+    "node24": {
+      "job-control.js": {
+        "lines": 99.6,
+        "branches": 94.01
+      },
+      "job-materialization.js": {
+        "lines": 99.39,
+        "branches": 87.77
+      },
+      "engineering-workflow-runtime.js": {
+        "lines": 98.72,
+        "branches": 85.5
+      }
+    }
+  },
+  "mutants": {
+    "node22": "18/18 rejected",
+    "node24": "18/18 rejected"
+  },
+  "gates": {
+    "node22": "PASS, zero failures, zero warnings",
+    "node24": "PASS, zero failures, one pre-existing template placeholder warning"
+  },
+  "pack_entries": 1457,
+  "skeptical_review": "Final independent read-only pass found historical serializer regression; fixed by preserving JSON.stringify initial definitions and normalizing only newly appended message content for replay comparison; no further direct regression found.",
+  "diagnostics": [
+    "Initial full focused Node22 run found revision-definition replay mismatch from nested JSON key order; semantic comparison fixed it while preserving historical serialization.",
+    "A later focused run caught the test using a pre-dispatch state for its namespace assertion; test corrected and passed.",
+    "Cancellation of older work can still settle uncertain; W4-04b must prove transitive drain."
+  ],
+  "logs": {
+    "node22_coverage": {
+      "file": "node22_coverage.log.gz",
+      "sha256": "28d8b939e84eabf75ee22e4c15c640ecbbf99c06150847196a2d6482f68cb92d",
+      "bytes": 183701
+    },
+    "node24_coverage": {
+      "file": "node24_coverage.log.gz",
+      "sha256": "99b53a459759f0eab6627eed7ef91770dd4bd2e54c859ec98e70496cc93dcdd6",
+      "bytes": 85380
+    },
+    "node22_mutations": {
+      "file": "node22_mutations.log.gz",
+      "sha256": "6d57b99890fc650e24cbafb23323458c2f514377f6167ddbdfcf933e2ef7f882",
+      "bytes": 3423
+    },
+    "node24_mutations": {
+      "file": "node24_mutations.log.gz",
+      "sha256": "febf455d9514c2a21018af4f2b1294d80dcacc69896bcd056d9e6340f19b9d78",
+      "bytes": 1572
+    },
+    "node22_gate": {
+      "file": "node22_gate.log.gz",
+      "sha256": "5ef723966bcef37e950310683e89291444e971ab0eb7d472640a8274c8cbcabd",
+      "bytes": 361034
+    },
+    "node24_gate": {
+      "file": "node24_gate.log.gz",
+      "sha256": "734c11c4caa4765e3d6c244b40f9ae341b3763d65233e42eff9d3805fa741545",
+      "bytes": 196891
+    },
+    "initial_replay_failure": {
+      "file": "initial_replay_failure.log.gz",
+      "sha256": "4eb1c389641654a8588205ab3c65107242c2d44a0a4407f6a1829db3d6288f8f",
+      "bytes": 23075
+    },
+    "fixed_targeted": {
+      "file": "fixed_targeted.log.gz",
+      "sha256": "558e33c543f5c5569ca820f473531ed2cd0db0daa9d08ead030c46144db6f8aa",
+      "bytes": 329
+    }
+  }
+}

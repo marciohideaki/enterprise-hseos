@@ -2,6 +2,7 @@
 
 const { randomUUID } = require('node:crypto');
 const { z, deepFreeze } = require('../../../packages/agent-runtime-contracts');
+const { RelationalSessionEventStore } = require('../../../packages/agent-session-store');
 const { parseJobCommand, parseJobExpansion, jobDigest } = require('../../lib/job-contract');
 const hash = z.string().regex(/^[a-f0-9]{64}$/);
 const admissionSchema = z
@@ -64,6 +65,9 @@ const expansionEventSchema = z
     admission: admissionSchema,
     admission_sha256: hash,
     at: z.number().int().nonnegative().safe(),
+    plan: z.unknown().optional(),
+    plan_sha256: hash.optional(),
+    parent_revision_event_id: z.string().optional(),
   })
   .strict();
 function assertInitialWorkflow(input) {
@@ -72,7 +76,13 @@ function assertInitialWorkflow(input) {
     reject('JOB_WORKFLOW_REVISION_INVALID');
 }
 function expandedDefinition(state, command) {
-  if (!state || state.kind !== 'workflow' || state.status !== 'queued' || state.fence || state.materialization || state.execution)
+  if (
+    !state ||
+    state.kind !== 'workflow' ||
+    state.cancellation_requested ||
+    (!(state.status === 'queued' && !state.fence && !state.materialization && !state.execution) &&
+      !(state.status === 'running' && state.materialization?.phase === 'ready' && state.execution?.phase === 'intent'))
+  )
     reject('JOB_EXPANSION_DENIED');
   const previous = state.admission.input.definition;
   if (previous.schema_version !== 2) reject('JOB_EXPANSION_DENIED');
@@ -84,7 +94,31 @@ function expandedDefinition(state, command) {
     tasks: [...previous.tasks, ...command.input.nodes],
   }).definition;
 }
-function projectExpansion(state, row, receipts) {
+function comparableWorkflowDefinition(definition, previousPhaseCount) {
+  const { canonicalJson } = require('../../../packages/agent-session-store');
+  const canonicalContent = (content) => {
+    try {
+      return canonicalJson(JSON.parse(content));
+    } catch {
+      reject('JOB_EVENT_INVALID');
+    }
+  };
+  return {
+    ...definition,
+    phases: definition.phases.map((phase, index) =>
+      index < previousPhaseCount
+        ? phase
+        : {
+            ...phase,
+            steps: phase.steps.map((step) => ({
+              ...step,
+              message: { ...step.message, content: canonicalContent(step.message.content) },
+            })),
+          },
+    ),
+  };
+}
+function projectExpansion(state, row, receipts, control) {
   const payload = expansionEventSchema.parse(row.payload);
   const command = parseJobExpansion(payload.command);
   if (
@@ -98,19 +132,76 @@ function projectExpansion(state, row, receipts) {
     payload.admission_sha256 !== jobDigest(payload.admission) ||
     payload.at !== Date.parse(row.occurred_at) ||
     payload.at < (state.transition_at || 0) ||
-    payload.at >= Date.parse(state.deadline_at)
+    payload.at >= (state.execution_deadline_at || Date.parse(state.deadline_at))
   )
     reject('JOB_EVENT_INVALID');
   const definition = expandedDefinition(state, command);
   validateAdmission({ ...command, input: { kind: 'workflow', definition: { definition } } }, payload.admission);
+  const running = state.status === 'running';
+  if (
+    running !== Boolean(payload.plan) ||
+    running !== Boolean(payload.plan_sha256) ||
+    running !== Boolean(payload.parent_revision_event_id)
+  )
+    reject('JOB_EVENT_INVALID');
+  let materialization = state.materialization;
+  if (running) {
+    const oldPlan = state.materialization.plan;
+    const plan = payload.plan;
+    const digest = require('./engineering-task-state').engineeringDigest;
+    if (
+      digest(plan) !== payload.plan_sha256 ||
+      plan.tasks.length !== definition.tasks.length ||
+      digest(plan.tasks.slice(0, oldPlan.tasks.length)) !== digest(oldPlan.tasks) ||
+      plan.manifest?.parent_session_id !== oldPlan.manifest.parent_session_id ||
+      digest(plan.manifest.tasks.slice(0, oldPlan.manifest.tasks.length)) !== digest(oldPlan.manifest.tasks)
+    )
+      reject('JOB_EVENT_INVALID');
+    const store = new RelationalSessionEventStore({ ledger: control.ledger });
+    const revision = store
+      .readSession(plan.manifest.parent_session_id)
+      .find((event) => event.event_id === payload.parent_revision_event_id);
+    if (
+      revision?.event_type !== 'workflow.revised' ||
+      revision.payload.revision !== definition.revision ||
+      digest(comparableWorkflowDefinition(revision.payload.definition, revision.payload.previous_definition.phases.length)) !==
+        digest(
+          comparableWorkflowDefinition(
+            require('./engineering-workflow-runtime').workflowDefinitionFromPlan(
+              plan,
+              revision.payload.previous_definition,
+              oldPlan.tasks.length,
+            ),
+            revision.payload.previous_definition.phases.length,
+          ),
+        ) ||
+      revision.payload.definition.phases.flatMap((phase) => phase.steps).length !== plan.tasks.length ||
+      digest(revision.payload.definition.phases.flatMap((phase) => phase.steps).map((step) => step.child_spec.session_id)) !==
+        digest(plan.tasks.map((entry) => entry.created.session_id))
+    )
+      reject('JOB_EVENT_INVALID');
+    const boundaries = state.materialization.boundaries || [
+      { count: oldPlan.tasks.length, at: state.first_started_at, plan_sha256: state.materialization.plan_sha256 },
+    ];
+    materialization = {
+      ...state.materialization,
+      original_plan_sha256: state.materialization.original_plan_sha256 || state.materialization.plan_sha256,
+      original_plan: state.materialization.original_plan || oldPlan,
+      plan,
+      plan_sha256: payload.plan_sha256,
+      boundaries: [...boundaries, { count: plan.tasks.length, at: payload.at, plan_sha256: payload.plan_sha256 }],
+    };
+  }
   const next = {
     ...state,
     definition: payload.admission.input,
     admission: payload.admission,
     admission_sha256: payload.admission_sha256,
+    ...(running ? { materialization } : {}),
     current_sequence: row.stream_sequence,
     transition_at: payload.at,
   };
+  if (running) require('./job-materialization').validatePlan(next, payload.plan);
   receipts.set(command.command_id, { digest: payload.digest, result: structuredClone(next) });
   return next;
 }
@@ -133,7 +224,7 @@ class JobControl {
     const receipts = new Map();
     for (const row of rows) {
       if (row.event_type === 'JobWorkflowExpanded') {
-        state = projectExpansion(state, row, receipts);
+        state = projectExpansion(state, row, receipts, this.control);
         continue;
       }
       if (row.event_type === 'JobExecutionRecorded') {
@@ -238,7 +329,9 @@ class JobControl {
     }
     if (!state) reject('JOB_NOT_FOUND');
     if (state.current_sequence !== command.expected_sequence) reject('CONTROL_SEQUENCE_CONFLICT');
-    if (this.now() >= Date.parse(state.deadline_at)) reject('JOB_EXPIRED');
+    if (this.now() >= (state.execution_deadline_at || Date.parse(state.deadline_at))) reject('JOB_EXPIRED');
+    if (state.status === 'running' && !require('../../../packages/agent-isolation-attestation/executor').isExecutorOwnerAlive(state.owner))
+      reject('JOB_OWNER_MISMATCH');
     return { state, definition: expandedDefinition(state, command) };
   }
   async expand(raw) {
@@ -251,6 +344,11 @@ class JobControl {
       command.resource_id,
       Date.parse(checked.state.deadline_at),
     );
+    let plan;
+    if (checked.state.status === 'running') {
+      plan = this.materializer.expansionPlan(checked.state, command, admission.input.definition, this.now());
+      this.materializer.materializeExpansion(checked.state, plan);
+    }
     return this.control.handle.db
       .transaction(() => {
         const current = this.checkExpansion(command);
@@ -260,25 +358,105 @@ class JobControl {
           if (require('./engineering-workspace').projectWorkspaceSnapshot(task.contract).sha256 !== task.contract.workspace.files_sha256)
             reject('JOB_BASELINE_DRIFT');
         const at = this.now();
-        this.control.ledger.append({
-          aggregate_type: 'control_job',
-          aggregate_id: command.resource_id,
-          expected_version: command.expected_sequence,
-          events: [
-            {
-              event_id: randomUUID(),
-              event_type: 'JobWorkflowExpanded',
-              schema_version: 1,
-              occurred_at: new Date(at).toISOString(),
-              correlation_id: command.resource_id,
-              causation_id: command.command_id,
-              actor: { type: 'hseos', id: 'local-job-control' },
-              operation_id: null,
-              evidence_refs: [],
-              payload: { command, digest: jobDigest(command), admission, admission_sha256: jobDigest(admission), at },
-            },
-          ],
+        if (current.state.status === 'running' && (this.now() >= current.state.execution_deadline_at || !plan)) reject('JOB_EXPIRED');
+        if (plan) plan = this.materializer.expansionPlan(current.state, command, admission.input.definition, at);
+        let parentRevisionEventId;
+        if (plan) {
+          const parentId = plan.manifest.parent_session_id;
+          const store = new RelationalSessionEventStore({ ledger: this.control.ledger });
+          const parent = store.replay(parentId);
+          const reservation = parent.workflow_reservations[current.definition.workflow_id];
+          if (!reservation?.claim_ref || reservation.released || parent.cancellation_request) reject('JOB_EXPANSION_DENIED');
+          const previous =
+            reservation.revisions?.at(-1)?.definition ||
+            require('./engineering-workflow-runtime').workflowDefinitionFromPlan(
+              current.state.materialization.original_plan || current.state.materialization.plan,
+            );
+          const revised = require('./engineering-workflow-runtime').workflowDefinitionFromPlan(
+            plan,
+            previous,
+            current.state.materialization.plan.tasks.length,
+          );
+          parentRevisionEventId = `event:${randomUUID()}`;
+          store.append({
+            session_id: parentId,
+            expected_version: parent.current_sequence,
+            events: [
+              {
+                schema_version: 1,
+                event_id: parentRevisionEventId,
+                session_id: parentId,
+                sequence: parent.current_sequence + 1,
+                occurred_at: new Date(at).toISOString(),
+                event_type: 'workflow.revised',
+                payload: {
+                  workflow_id: current.definition.workflow_id,
+                  claim_ref: reservation.claim_ref,
+                  revision: (reservation.revision || 1) + 1,
+                  previous_definition: previous,
+                  definition: revised,
+                },
+              },
+            ],
+          });
+        }
+        const event = (type, body) => ({
+          event_id: randomUUID(),
+          event_type: type,
+          schema_version: 1,
+          occurred_at: new Date(at).toISOString(),
+          correlation_id: command.resource_id,
+          causation_id: command.command_id,
+          actor: { type: 'hseos', id: 'local-job-control' },
+          operation_id: null,
+          evidence_refs: [],
+          payload: body,
         });
+        const requests = [
+          {
+            aggregate_type: 'control_job',
+            aggregate_id: command.resource_id,
+            expected_version: command.expected_sequence,
+            events: [
+              event('JobWorkflowExpanded', {
+                command,
+                digest: jobDigest(command),
+                admission,
+                admission_sha256: jobDigest(admission),
+                at,
+                ...(plan
+                  ? {
+                      plan,
+                      plan_sha256: require('./engineering-task-state').engineeringDigest(plan),
+                      parent_revision_event_id: parentRevisionEventId,
+                    }
+                  : {}),
+              }),
+            ],
+          },
+        ];
+        if (plan) {
+          const oldCount = current.state.materialization.plan.tasks.length;
+          const planHash = require('./engineering-task-state').engineeringDigest(plan);
+          for (const entry of plan.tasks.slice(oldCount)) {
+            const directory = require('node:path').join(this.control.state, 'jobs', command.resource_id, 'tasks', entry.task_run_id);
+            const base = { job_id: command.resource_id, resource_kind: 'task', state_directory: directory, plan_sha256: planHash };
+            requests.push({
+              aggregate_type: 'control_task',
+              aggregate_id: entry.task_run_id,
+              expected_version: 0,
+              events: [
+                event('ControlCommandRecorded', { ...base, kind: 'job_prepared' }),
+                event('ControlCommandRecorded', { ...base, kind: 'registered' }),
+              ],
+            });
+            new (require('./engineering-task-state').EngineeringTaskState)(this.control.handle.db, entry.task_run_id).append(
+              entry.created,
+              0,
+            );
+          }
+        }
+        this.control.ledger.appendBatch(requests);
         return this.query(command.resource_id);
       })
       .immediate();

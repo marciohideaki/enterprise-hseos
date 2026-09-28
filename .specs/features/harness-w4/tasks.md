@@ -260,6 +260,17 @@ W4-04a2b integra revisões no engine. W4-04a2c integra admissão running e mater
 - verify_step.command: `node --test --test-concurrency=1 test/test-agent-orchestration.js test/test-workflow-reservations.js`
 - verify_step.expected: exit0, zero falhas/skips; cobertura90/80 por crítico em Node22/24.
 
+### W4-04a2c — Materializar filhos de expansão running
+
+- execution_mode: isolated
+- dependencies: W4-04a2b (`15719b4b`; integração `1e90d2b0`)
+- implementation_contract: [workflow-running-expansion-implementation.md](workflow-running-expansion-implementation.md)
+- output_contract.files: `tools/cli/lib/job-control.js`, `tools/cli/lib/job-materialization.js`, `tools/cli/lib/engineering-workflow-runtime.js`, `test/test-workflow-expansion.js`, evidência/STATUS.
+- acceptance_criteria: append de revisão e registros de filho no mesmo SQLite CAS; IDs e snapshots existentes estáveis; janela tardia limitada pelo prazo original do pai; idempotência após reabertura; cancelamento vencedor sem publicação nem despacho novo.
+- verify_step.command: `node --test --test-concurrency=1 test/test-workflow-expansion.js test/test-job-control.js test/test-job-materialization.js test/test-job-faults.js test/test-engineering-workflow-runtime.js test/test-workflow-reservations.js`
+- verify_step.expected: exit0, zero falhas/skips em Node22/24; cobertura90/80 por arquivo crítico.
+- verify_step.on_failure: diagnosticar causa e manter recibo pendente; efeito incerto não equivale a cancelamento confirmado.
+
 ## W4-04b — Aplicar joins, invalidação e drain transitivo
 
 - execution_mode: isolated
