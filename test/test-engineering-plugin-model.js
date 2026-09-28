@@ -535,3 +535,49 @@ test('queued job pins model selection and original campaign without a launch or 
     assert.throws(() => f.control.jobs.project(f.resourceId, rows));
   }
 });
+test('job claim consults original campaign without reserving and rejects cancellation before claim', async (t) => {
+  const f = await setup(t);
+  const jobs = f.control.jobs;
+  const create = async (id) =>
+    jobs.execute({
+      schema_version: 1,
+      command_id: randomUUID(),
+      resource_id: id,
+      expected_sequence: 0,
+      action: 'create',
+      input: {
+        kind: 'task',
+        definition: { contract: f.contract, plugin_model: { selection_id: 'selected', campaign_id: f.campaignId } },
+        not_before: new Date().toISOString(),
+        deadline_at: new Date(Date.now() + 30_000).toISOString(),
+        depends_on: [],
+      },
+    });
+  const claim = (id) =>
+    jobs.worker.execute({
+      schema_version: 1,
+      command_id: randomUUID(),
+      resource_id: id,
+      expected_sequence: 1,
+      fence: 0,
+      action: 'claim',
+      lease_ms: 1000,
+    });
+  await create(f.resourceId);
+  const before = f.control.providerCampaigns.events(f.campaignId);
+  assert.equal((await claim(f.resourceId)).status, 'claimed');
+  assert.deepEqual(f.control.providerCampaigns.events(f.campaignId), before);
+  assert.equal(f.launches, 0);
+  await create(f.secondId);
+  await f.control.providerCampaigns.execute({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: f.campaignId,
+    expected_sequence: f.control.providerCampaigns.query(f.campaignId).current_sequence,
+    action: 'cancel',
+    input: {},
+  });
+  await assert.rejects(claim(f.secondId), { code: 'CONTROL_CAMPAIGN_CANCELLED' });
+  assert.equal(jobs.query(f.secondId).status, 'queued');
+  assert.equal(f.launches, 0);
+});

@@ -20,3 +20,5 @@ de todos os descendentes; elegível = horário/dependências/admissão permitem 
 - [Composição de modelo/campanha na tarefa](task-model-composition.md)
 
 - [Agregado persistente de jobs — W4-03a](job-state-implementation.md).
+
+- [Ownership e recuperação dos jobs](job-claims-implementation.md) — W4-03b.

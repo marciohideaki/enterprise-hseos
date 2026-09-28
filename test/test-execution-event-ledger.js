@@ -74,7 +74,7 @@ test('operational runner stays at v4 and the gated fixture migration creates sch
     assert.equal(db.prepare(`SELECT COUNT(*) AS count FROM sqlite_master WHERE name = 'execution_events'`).get().count, 0);
     db.prepare(`INSERT INTO as_runs (id, workflow_id, project) VALUES ('legacy-run', 'fixture', '/tmp/project')`).run();
     applyExecutionLedgerFixtureSchema(db);
-    assert.equal(db.pragma('user_version', { simple: true }), 12);
+    assert.equal(db.pragma('user_version', { simple: true }), 13);
     assert.equal(db.prepare(`SELECT COUNT(*) AS count FROM as_runs WHERE id = 'legacy-run'`).get().count, 1);
     const columns = new Set(
       db

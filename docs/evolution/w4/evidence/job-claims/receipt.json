@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "task": "W4-03b",
+  "base": "d948154",
+  "status": "full-gate-passed-commit-pending",
+  "environment": {
+    "node24": "24.15.0",
+    "node22": "22.23.3",
+    "platform": "Linux",
+    "cpu": "single nonzero CPU",
+    "memory": "3GiB",
+    "priority": "nice19"
+  },
+  "results": {
+    "node24": {
+      "tests": 282,
+      "passed": 281,
+      "failed": 1,
+      "skipped": 0,
+      "failure": "packageentry1452 exceeds1450"
+    },
+    "node22": {
+      "tests": 282,
+      "passed": 281,
+      "failed": 1,
+      "skipped": 0,
+      "failure": "packageentry1452 exceeds1450"
+    },
+    "critical_coverage": "3 files exceed90lines/80branches; see coverage-summary.json",
+    "lint": {
+      "exit_code": 0,
+      "evidence": "claims-lint-final.log.gz",
+      "tool_receipt": "exec session77093 exit0"
+    },
+    "full_gate": {
+      "exit_code": 0,
+      "failures": 0,
+      "warnings": 1,
+      "evidence": "full-gate-node24.log.gz",
+      "diagnostics": "Broken pipe in hygiene scan also recorded; not a diagnostic-free log"
+    },
+    "commit": "not attempted",
+    "post_lint_node24": {
+      "tests": 41,
+      "passed": 41,
+      "skipped": 0,
+      "critical_coverage": "worker100/91.3 andjobcontrol100/96.39"
+    },
+    "post_lint_node22": {
+      "tests": 41,
+      "passed": 41,
+      "failed": 0,
+      "skipped": 0
+    },
+    "authorized_package": {
+      "node24": "passed1/1",
+      "node22": "passed1/1",
+      "limits": "1452 entries;22MB; exclusions unchanged"
+    }
+  },
+  "source_sha256": {
+    "tools/cli/lib/job-worker.js": "c8f60318430746e1cbf00c31f8804fc9b2c85e41b0fe1d8fadffa9dad6fb36e7",
+    "tools/cli/lib/job-control.js": "7755447a6f24bb29e98d0d8f8ed798fd9c65dfad9ac91b9b767dc8a1839dcc86",
+    "tools/cli/lib/engineering-task-state.js": "f464bc7820a455feb9891679684a229d9cd6d033659e732f4566def52adc8984",
+    "tools/lib/compatibility-audit.js": "3a7854be7486bb8c37e489e8f5e88df54b0a8ce13b5b3189b81af75752e8708b",
+    "tools/lib/agentic-activation-rehearsal.js": "950120c766282896df96b901d5cacb2102e8f32d3ae4405b7804860303c8aca6",
+    "tools/mcp-project-state/migrations-pending-activation/013-job-lifecycle-events.sql": "019f604db302169e9b407764b3c011b66620e4eb1ba22170e106fbfebac1376b",
+    "test/test-job-recovery.js": "e1cc8bb9cd2a26131ca8ffa3713c3be7657c7c5227a79cea89e1d4ee452ebb11",
+    "test/helpers/job-claim-process.js": "ff89eeab782fcac646591febae817928ac44b700dfde979ea328012377b3680e",
+    "test/test-engineering-plugin-model.js": "4472333ee469ad35d34e25ff609e9ced8e89439588dbfc5ec3921ecba31fd7b7",
+    "test/test-package-surface.js": "cecffd208396a839ed95b1f57caad92ba8ab843ecac38f896302dfc440414570",
+    "package.json": "6edb14c8be6a5827d59ce216e84c6681453798d50b4aa40a4fd038e4d509ec7c",
+    ".c8-kernel.json": "0cdc57675ac19d7c7d306348c2496ed5b966d9aeaa0607411a16a811aa57be6c"
+  },
+  "limits": [
+    "queue ownership only; no materialization/dispatch",
+    "no operational migration activation",
+    "real process/cgroup tests; plugin/account inputs remain fixtures",
+    "package threshold1452 explicitly authorized; other package guards unchanged",
+    "full W4 not complete"
+  ]
+}
