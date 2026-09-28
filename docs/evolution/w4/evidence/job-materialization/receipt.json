@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "task": "W4-03c",
+  "status": "validated-awaiting-governed-commit",
+  "base": "f730ebfe254f9b33df8659571e4d0173f79c9000",
+  "branch": "task/hseos-w4-job-materialization",
+  "recorded_at": "2026-09-28T04:00:41.058015+00:00",
+  "environment": {
+    "platform": "Linux",
+    "node24": "24.15.0",
+    "node22": "22.23.3",
+    "containment": "heavy-run pinned nonzero CPU, nice19, delegated scope, MemoryMax3GiB, MemorySwapMax0, sequential",
+    "sqlite_abi22": "temporary task-local binding removed after each run"
+  },
+  "results": {
+    "node24_kernel_and_schema": {
+      "tests": 769,
+      "passed": 769,
+      "failed": 0,
+      "skipped": 0,
+      "command_exit": 1,
+      "limitation": "initial schema coverage89.88/70; runtime tests passed; supplemental tests below close this gate"
+    },
+    "node24_fixture_supplement": {
+      "tests": 19,
+      "passed": 19,
+      "command_exit": 0,
+      "coverage": "combined c8, unchanged production sources, all ten critical files exceed90/80"
+    },
+    "node22_kernel_and_schema": {
+      "tests": 776,
+      "passed": 776,
+      "failed": 0,
+      "skipped": 0,
+      "command_exit": 0,
+      "coverage": "all ten critical files exceed90/80"
+    },
+    "postcheck_node24": {
+      "tests": 44,
+      "passed": 44,
+      "failed": 0,
+      "skipped": 0,
+      "command_exit": 0,
+      "includes": "format/lint of delta; two more preparation fault boundaries; quality gate wiring; five directed mutants"
+    },
+    "postcheck_node22": {
+      "tests": 44,
+      "passed": 44,
+      "failed": 0,
+      "skipped": 0,
+      "command_exit": 0
+    },
+    "package_node24": {
+      "command_exit": 1,
+      "reason": "1454 entries exceed authorized1452"
+    },
+    "package_node22": {
+      "command_exit": 1,
+      "reason": "1454 entries exceed authorized1452"
+    },
+    "full_governance_gate": {
+      "command_exit": 0,
+      "failures": 0,
+      "warnings": 1,
+      "warning": "existing unresolved placeholders in epics template"
+    },
+    "commit": "not attempted",
+    "feature_merge": "not attempted",
+    "pr": "not opened",
+    "package_node24_after_approval": {
+      "command_exit": 0,
+      "tests": 1,
+      "passed": 1
+    },
+    "package_node22_after_approval": {
+      "command_exit": 0,
+      "tests": 1,
+      "passed": 1
+    }
+  },
+  "production_sha256": {
+    "tools/cli/lib/engineering-control.js": "12d5ca44d59cd67a0e32356ff044987c6e326a72d4c8f11b286a90fe19756756",
+    "tools/cli/lib/engineering-task-runtime.js": "ff356fd5dc199fb870d61f0fa9a77363a9707ed1f1a1386e4bc218e1fa390f4b",
+    "tools/cli/lib/engineering-task-state.js": "0982304bbfc4cc3b33ae12ece22a8537b40e0df4790ea253f5a60e56355184b1",
+    "tools/cli/lib/engineering-workflow-runtime.js": "292a1142f4de8d009260bdd407174d5f019dcc44b9ba5c2141f842e65a3eea37",
+    "tools/cli/lib/engineering-workspace.js": "c623b45c80c96c45601988261c34c25a77f5a62fd1175d177222ffafb038f140",
+    "tools/cli/lib/job-control.js": "e759974092352273cd84a53025db20fe62aaccf7ec64c71a064f55ce839159a6",
+    "tools/cli/lib/job-materialization.js": "5a4ceba9e2843db630eff2950cf26b7b74cf539a8e20af9281acba83b2509b0c",
+    "tools/cli/lib/job-worker.js": "e8a113a51d6d59d87e0f4f01a4a9b3489c6ca5400743e9564d779f7bcb961c9a",
+    "tools/cli/lib/terminal-control.js": "c9067be963d0f490b1417281c974de8c9ad2b749551b373a7f10e7c258efe130",
+    "tools/lib/agentic-activation-rehearsal.js": "bff28debbd85e19af2fde84001e05eaf634503b801992c3eca7d3f15e0780b11",
+    "tools/lib/compatibility-audit.js": "9d87c0a8312008659cba1f81b2ef945d091fe5c3baca3042479b5767742e57dc",
+    "tools/mcp-project-state/lib/execution-ledger-schema.js": "82f58c16aaa3a7d8b2898be9b7b04652169f565d3a74cd23c545b3d8ec79f203",
+    "tools/mcp-project-state/migrations-pending-activation/014-job-materialization-events.sql": "008043985eb2d0457a8b4629f5ab7227cedd44bfc989ac200100781df4712eac"
+  },
+  "source_sha256": {
+    ".c8-kernel.json": "eed253aa74f1e209a682199f3da8b296b62b042d6cebf8b8deca7190b16d07e4",
+    "package.json": "0a69c6da16923de250e434296152da25e774753d9d40ca1f0b77781a7b9de1cf",
+    "test/fixtures/kernel-mutation-loader.cjs": "c64166f88c3f20a1151a1a103948e0d9e169882156c437fdb3f18c3cfdebbcda",
+    "test/helpers/job-claim-process.js": "18e349d49c6ae14c3c90c9145ade2d874756ce7d39053b10d1fddcaf2d5989af",
+    "test/test-agentic-activation-rehearsal.js": "037fd98dc4f97f8edd0e4106a1b94ebfe82b9e6a1c48e9dd1ea07a16924e45bc",
+    "test/test-compatibility-audit.js": "23d4ea75b7fc184ed90c12579c7c7d5600f9b1eef2d0bdd4fb8a89428bc6e425",
+    "test/test-engineering-plugin-model.js": "aa9505448a151b0ba95931804c5b885273883de12233c60b84e896ce0028d928",
+    "test/test-engineering-workspace.js": "cfe07fe3bbadb3f0efe6629c434bb20d29ed738159e3edb00ea688a3986d4cce",
+    "test/test-execution-event-ledger.js": "9376525f6b75cc04a34b51e625c87ef535995e58765283f554cf06a84f8bfed6",
+    "test/test-execution-projections.js": "c9dbe01fe4880aa64941dab618ba3f812626b23c7129ce2e8287d95883533aa0",
+    "test/test-governed-execution-runtime.js": "3841d1438c1f5e948c831d2643acf3c5c5fab7ed156136da9d39713c1ee78b61",
+    "test/test-job-materialization.js": "a3727c8985ca09634ad4c8531e5e1aa171a76c9d69fe458bf2db5611e79749a5",
+    "test/test-kernel-mutations.js": "43200ecd9b5fc914d23505a91b2bbab40dd585c737ae9a2c2f58b7501b5a8d93",
+    "test/test-kernel-quality-surface.js": "9a1138d86618e332d11396edd6cea3cdbf718c19a1e2c59d734820ef8b3f07cb",
+    "test/test-native-entrypoint-wiring.js": "640e5f6252c45db0fec79559c0120f75c49114d7a8042e9f40913bef1ee9ac3c",
+    "test/test-operational-state-db.js": "d113355f1083fd1ba84f68ec0bf32de6f682f3e3872593a39b98ec016dbeb78a",
+    "test/test-package-surface.js": "86db7855dd26f6b0184675739b98302d7a47c4562faf7b53da4e96b7ce443534",
+    "tools/cli/lib/engineering-control.js": "12d5ca44d59cd67a0e32356ff044987c6e326a72d4c8f11b286a90fe19756756",
+    "tools/cli/lib/engineering-task-runtime.js": "ff356fd5dc199fb870d61f0fa9a77363a9707ed1f1a1386e4bc218e1fa390f4b",
+    "tools/cli/lib/engineering-task-state.js": "0982304bbfc4cc3b33ae12ece22a8537b40e0df4790ea253f5a60e56355184b1",
+    "tools/cli/lib/engineering-workflow-runtime.js": "292a1142f4de8d009260bdd407174d5f019dcc44b9ba5c2141f842e65a3eea37",
+    "tools/cli/lib/engineering-workspace.js": "c623b45c80c96c45601988261c34c25a77f5a62fd1175d177222ffafb038f140",
+    "tools/cli/lib/job-control.js": "e759974092352273cd84a53025db20fe62aaccf7ec64c71a064f55ce839159a6",
+    "tools/cli/lib/job-materialization.js": "5a4ceba9e2843db630eff2950cf26b7b74cf539a8e20af9281acba83b2509b0c",
+    "tools/cli/lib/job-worker.js": "e8a113a51d6d59d87e0f4f01a4a9b3489c6ca5400743e9564d779f7bcb961c9a",
+    "tools/cli/lib/terminal-control.js": "c9067be963d0f490b1417281c974de8c9ad2b749551b373a7f10e7c258efe130",
+    "tools/lib/agentic-activation-rehearsal.js": "bff28debbd85e19af2fde84001e05eaf634503b801992c3eca7d3f15e0780b11",
+    "tools/lib/compatibility-audit.js": "9d87c0a8312008659cba1f81b2ef945d091fe5c3baca3042479b5767742e57dc",
+    "tools/mcp-project-state/lib/execution-ledger-schema.js": "82f58c16aaa3a7d8b2898be9b7b04652169f565d3a74cd23c545b3d8ec79f203",
+    "tools/mcp-project-state/migrations-pending-activation/014-job-materialization-events.sql": "008043985eb2d0457a8b4629f5ab7227cedd44bfc989ac200100781df4712eac"
+  },
+  "limits": [
+    "materialization only; dispatcher/polling/settlement/backup certification remain W4-03d",
+    "deterministic fixtures, not real external consumer or eligible-account certification",
+    "no operational activation, publication, global installation or foundation merge",
+    "historical W3 receipts and monetary authorization unchanged",
+    "package limit1454 authorized after explicit request;22MB and exclusions unchanged"
+  ],
+  "governance": {
+    "producer": "e709368ead6e53ee1fd8e4428bc8913a3a4e8292",
+    "references": [
+      ".enterprise/policies/governance-discovery.md",
+      ".enterprise/.specs/constitution/Enterprise-Constitution.md",
+      ".enterprise/.specs/core/_INDEX.md",
+      ".enterprise/.specs/cross/Data Contracts & Schema Evolution Standard.md DC26\u201329",
+      "/home/annonymous/.claude/AGENTS.md \u00a73f/\u00a73h"
+    ],
+    "aew_application": "not_verified",
+    "aew_enforcement": "not_verified",
+    "axon": "root .axon empty; no index.duckdb; axon capsule returned No index found; no bootstrap performed"
+  },
+  "artifacts_sha256": {
+    "coverage-summary-node22.json": "c1419e3a61ea0405fe9ba0f7f6b2ba0feaa432b3e65041a987448889f42dabd6",
+    "coverage-summary-node24.json": "c1419e3a61ea0405fe9ba0f7f6b2ba0feaa432b3e65041a987448889f42dabd6",
+    "materialization-coverage-first.log.gz": "1f0d21ac8c565d70c2fbb2374d2dc1d873da90f68b7a8ce2d2cbd4ee8c349732",
+    "materialization-coverage-full.log.gz": "be212152b93b8e2d959a0b05cdaba630f86d38f44fba30b48246d9aea65d498a",
+    "materialization-fixture-coverage.log.gz": "e729fdb1a329ff53e69abb72a22dcca1c8547c7be99adccb994973772cded117",
+    "materialization-kernel-node22.log.gz": "6759f9046ade87ccfb156a28b4dcb58d5e61ab9e43f1b3513d169469b30ffdf1",
+    "materialization-kernel-node24.log.gz": "e2746f4faf10795d71b8fdc180a27e4166fd5c12c34ecaa18310224697d20755",
+    "materialization-node24-first.log.gz": "a6fb8f7107b12d0aa120120e6aa41d0b8c04205f48e051ae30c0833a3dba6252",
+    "materialization-node24-second.log.gz": "d2709be8d40c6f619c24d2573a482fee994fe20789d8eaee75cb7a5ce7e66c8b",
+    "materialization-node24-third.log.gz": "5d36da4ad20d8b15eed8d55bcb4c5df9d9b5a0920f5e65255ab1ee4e33311da1",
+    "materialization-package-final-node22.log.gz": "dd47ba29ebf00cc2e9721a48f324d4babb5b092b5e2a30dd10b0724e381d3769",
+    "materialization-package-final-node24.log.gz": "ad41b5648121d041ce94eab8e28d676c73214bd64b11b6c7d8a0a6d27d5ca3bf",
+    "materialization-package-node24.log.gz": "bd3f5051d5396906af7cb38ef598a2b9262df0d0ea70db3d952536c815c12d0c",
+    "materialization-postcheck22.log.gz": "254d28d7432ba681e90858a6471984ef46622d71a91f8c0c33583b3cefb3c690",
+    "materialization-postcheck24.log.gz": "792f577c7e2bada901d8a0e00cf21cd6a81b46136a6799eee7f95e8029671b07",
+    "materialization-schema-mutants-node24.log.gz": "1b43ea6dfecaaa894ee26a957d72cdb8120245a9cdab8d15b0fe28be09f30e0a",
+    "materialization-schema-node24.log.gz": "0caa17c65f92322102c57b0b1edf38a9ed29f31909271b3e6a951477c57188bf",
+    "materialization-targeted-node24.log.gz": "10fbece6ec4256f5cbf8a92f74ed2b8579fd193afc563d210237c73bd9cbefcd",
+    "package-delta.json": "7cb7df46976b8d280931c1130ed4e2a8cecd4e44ec59e467e469ccfefa782cbf",
+    "package-inventory-final.json.gz": "55fc23f6a9eecea871021bccca7735ae1aee1b132a94c2d5fdfaba109124d5f6",
+    "package-inventory.json.gz": "047653e949266f68412fd6ac72cd92cc5adaf945a4158eba759ea81e8e5eebe2",
+    "prior-job-claims-commit.log.gz": "75e6daa4a85aef253b56c68afb30af2d6b9e1c1e215279564eabbfbe80513503",
+    "full-gate-node24.log.gz": "bd6da6d9544b312dc94ee90d4f81831572f5b6bab2d181b162e501d00c152b90"
+  }
+}

@@ -68,3 +68,12 @@ consumidas uma vez por ledger. Recursos são reservados no workflow/sessão; din
 na campanha. Cancelamento ou perda de recibo não liberam reserva incerta. IDs
 correlacionam parent/child/plugin/job e impedem nova campanha para resetar saldo.
 Troca de backend exige nova admissão dentro da campanha original.
+
+## Projeção compatível da preparação03c
+
+JobLifecycleRecorded v1 mantém seu enum existente. A preparação adiciona o evento
+JobMaterializationRecorded v1 e o campo `materialization.phase` (`planned`/`ready`)
+à projeção. Durante essa subfase o status de ownership permanece `claimed`; ready
+não é sucesso nem liberação de despacho. A fase posterior03d acrescentará seus
+próprios eventos de dispatch/settlement, com compatibilidade explícita. Os estados
+conceituais acima não autorizam ampliar silenciosamente o enum de eventos antigos.
