@@ -179,3 +179,28 @@ relatório canônico. Causa ainda sob investigação; commit permanece bloqueado
 Gate integral instrumentado W4-03a: PASS, zero falhas/dois avisos. Conformance
 passou na sequência completa; falha histórica preservada com causa não comprovada.
 Hook de commit pendente. Nenhuma afirmação de certificação integral W4.
+
+W4-03a commit cbf79f2 aprovado pelo hook e integrado à feature em d948154.
+W4-03b inicia sobre essa base em task isolada; recibo do hook anterior preservado.
+
+W4-03b implementa claim/lease/fence, prazo fixo e reconciliação com drain.
+Revisão inicial P1/P2 corrigida; 40/40 focados e cobertura worker100/86,06.
+Primeira cobertura78,76 falhou e foi preservada. Validação completa Node24/22,
+gates e commit pendentes. Nenhum worker de despacho/materialização certificado.
+
+W4-03b Node24 completa281/282; falha exclusiva no teto de1450 arquivos do pacote
+(inventário1452: worker+SQL013). Três críticos90/80 aprovados. Limite não alterado;
+Node22 em curso e decisão explícita necessária antes de mudar esse threshold.
+
+W4-03b Node22 também281/282: somente limite de pacote. Após correções de lint,
+41/41 Node24 e41/41 Node22; worker100/91,30, jobs100/96,39. Lint finalPASS.
+Bloqueada revisão do teto1450→1452 para worker e migration013, pendente decisão
+explícita (AGENTS global§3h). Sem commit; demais unidades W4 continuam pendentes.
+
+Usuário autorizou explicitamente a revisão1450→1452 para os dois arquivos do
+inventário apresentado. Teto22MB e exclusões permanecem. Validação do ajuste
+e gate integral pendentes; falhas históricas mantidas sem reclassificação.
+
+Após autorização, pacote passou Node24/22. Gate integral Node24 PASS exit0,
+zero falhas/um aviso de template. Log também registra Broken pipe no scanner
+de higiene; não se afirma log sem diagnósticos. Conformance passou. Hook pendente.

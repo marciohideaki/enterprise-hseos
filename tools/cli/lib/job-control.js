@@ -62,6 +62,7 @@ class JobControl {
   constructor(control, { now = Date.now } = {}) {
     this.control = control;
     this.now = now;
+    this.worker = new (require('./job-worker').JobWorker)(this);
   }
   rows(id) {
     z.string().uuid().parse(id);
@@ -71,6 +72,10 @@ class JobControl {
     let state;
     const receipts = new Map();
     for (const row of rows) {
+      if (row.event_type === 'JobLifecycleRecorded') {
+        state = require('./job-worker').projectJobLifecycle(state, row, receipts);
+        continue;
+      }
       if (row.event_type !== 'JobCommandRecorded' || row.schema_version !== 1) reject('JOB_EVENT_INVALID');
       const payload = eventSchema.parse(row.payload);
       const command = parseJobCommand(payload.command);
@@ -96,8 +101,14 @@ class JobControl {
           admission_sha256: payload.admission_sha256,
         };
       } else {
-        if (!state || state.status !== 'queued' || payload.admission || payload.admission_sha256) reject('JOB_EVENT_INVALID');
-        state = { ...state, status: 'cancelled', current_sequence: row.stream_sequence };
+        if (!state || !['queued', 'claimed', 'recovering'].includes(state.status) || payload.admission || payload.admission_sha256)
+          reject('JOB_EVENT_INVALID');
+        state = {
+          ...state,
+          status: state.status === 'queued' ? 'cancelled' : 'cancelling',
+          cancellation_requested: true,
+          current_sequence: row.stream_sequence,
+        };
       }
       receipts.set(command.command_id, { digest: payload.digest, result: structuredClone(state) });
     }
@@ -142,7 +153,7 @@ class JobControl {
       }
       // Existing immutable dependencies cannot point to a job not yet created.
     } else if (!state) reject('JOB_NOT_FOUND');
-    else if (state.status !== 'queued') reject('JOB_TERMINAL');
+    else if (!['queued', 'claimed', 'recovering'].includes(state.status)) reject('JOB_TERMINAL');
     return null;
   }
   async execute(raw) {

@@ -282,4 +282,4 @@ class EngineeringTaskState {
   }
 }
 
-module.exports = { EngineeringTaskState, engineeringDigest: sha };
+module.exports = { EngineeringTaskState, engineeringDigest: sha, executorOwnerSchema: ownerSchema };

@@ -82,8 +82,10 @@ test('published package exposes runtime and governance assets only', () => {
     'tools/cli/lib/engineering-task-extensions.js',
     'tools/cli/lib/engineering-plugin-model.js',
     'tools/cli/lib/job-control.js',
+    'tools/cli/lib/job-worker.js',
     'tools/lib/job-contract.js',
     'tools/mcp-project-state/migrations-pending-activation/012-job-events.sql',
+    'tools/mcp-project-state/migrations-pending-activation/013-job-lifecycle-events.sql',
     'src/core/agents/hseos-master.agent.yaml',
   ]) {
     assert.ok(files.has(required), `missing required package asset: ${required}`);
@@ -98,8 +100,8 @@ test('published package exposes runtime and governance assets only', () => {
     assert.ok(!/\.(?:db|sqlite|pem|key)$/i.test(file), `state or key material published: ${file}`);
     assert.ok(!/(?:^|\/)(?:\.env|managed-governance\.json)$/i.test(file), `runtime configuration published: ${file}`);
   }
-  // Reviewed W4 isolation inventory: execution runtime, ports, campaign bridge, two providers, selection and task tool/model composition added to the 1439-entry base.
+  // Reviewed W4 inventory: owner-authorized addition of job worker and migration 013 to the 1450-entry base.
   // State/key/config exclusions above remain independent security invariants.
-  assert.ok(packed.entryCount <= 1450, `package entry count is not bounded: ${packed.entryCount}`);
+  assert.ok(packed.entryCount <= 1452, `package entry count is not bounded: ${packed.entryCount}`);
   assert.ok(packed.unpackedSize < 22_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);
 });

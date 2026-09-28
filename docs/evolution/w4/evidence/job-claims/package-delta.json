@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "base": "d948154",
+  "task": "W4-03b",
+  "status": "entry-limit-revision-authorized",
+  "entry_limit": 1452,
+  "entry_count": 1452,
+  "unpacked_size": 9086345,
+  "size_limit": 22000000,
+  "added": [
+    {
+      "path": "tools/cli/lib/job-worker.js",
+      "size": 10289,
+      "mode": 420
+    },
+    {
+      "path": "tools/mcp-project-state/migrations-pending-activation/013-job-lifecycle-events.sql",
+      "size": 403,
+      "mode": 420
+    }
+  ],
+  "temporary_files_found_in_added_entries": false,
+  "threshold_changed": true,
+  "previous_entry_limit": 1450,
+  "authorization": {
+    "source": "active user conversation",
+    "decision": "Autorizado",
+    "scope": "1450 to 1452 for reviewed worker and migration; 22MB and exclusions unchanged"
+  }
+}
