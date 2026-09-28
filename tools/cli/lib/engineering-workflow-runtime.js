@@ -217,7 +217,9 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
         return verificationOnly ? child.assembly.runtime.send(input) : result;
       } catch (error) {
         const state = child.task.read();
-        if (!state.result)
+        if (!state.result && state.cancellation && !state.started)
+          child.task.append({ kind: 'result', result: 'not_executed', reason: 'cancelled', evidence: {} }, state.version);
+        else if (!state.result)
           child.task.append(
             { kind: 'result', result: 'blocked', reason: error.code || 'engineering-execution-blocked', evidence: {} },
             state.version,

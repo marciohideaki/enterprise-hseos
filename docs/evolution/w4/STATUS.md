@@ -23,14 +23,14 @@ ativação continuam pendentes. Contratos prontos para W4-02a.
 
 ## Matriz de entrega
 
-| Etapa         | Determinístico        | Consumidor real | Ativação       |
-| ------------- | --------------------- | --------------- | -------------- |
-| W4-01         | contratos verificados | não aplicável   | não autorizada |
-| W4-02         | implementado e testado localmente | pendente | não autorizada |
-| W4-03         | 03a/03b integradas; 03c/03d pendentes | pendente | não autorizada |
-| W4-04 a W4-06 | pendente | pendente | não autorizada |
-| W4-07         | pendente              | pendente        | não autorizada |
-| W4-08         | pendente              | pendente        | não autorizada |
+| Etapa         | Determinístico                        | Consumidor real | Ativação       |
+| ------------- | ------------------------------------- | --------------- | -------------- |
+| W4-01         | contratos verificados                 | não aplicável   | não autorizada |
+| W4-02         | implementado e testado localmente     | pendente        | não autorizada |
+| W4-03         | 03a/03b integradas; 03c/03d pendentes | pendente        | não autorizada |
+| W4-04 a W4-06 | pendente                              | pendente        | não autorizada |
+| W4-07         | pendente                              | pendente        | não autorizada |
+| W4-08         | pendente                              | pendente        | não autorizada |
 
 ## Limites e continuidade
 
@@ -311,3 +311,23 @@ seguem pendentes neste registro. Sem chamada paga, ativação ou merge na founda
 
 Validação governada Node 24 passou com zero falhas e um aviso preexistente de
 placeholders em template. Hook e integração continuam pendentes neste registro.
+
+### W4-04a2a integrada; W4-04a2b em validação
+
+W4-04a2a: commit `1f09c3e8`, integração `6bba910d`; segunda tentativa do hook
+Node 24 passou com zero falhas/avisos. A primeira falha intermitente de conformidade
+de provider está preservada no recibo, junto dos ensaios dirigidos aprovados.
+
+W4-04a2b consome a cadeia persistida em fronteiras de fase, preserva digest de
+checkpoint anterior e só libera sucesso após todas as fases correntes. Revisão
+e cancelamento concorrentes com checkpoint/release usam CAS e reread do mesmo
+stream. Testes focados 31/31 em Node 22/24; 18 mutantes rejeitados em ambos;
+workflow-engine.js 93,2% linhas/81,99% branches nas duas versões. Revisão cética
+isolada confirmou a correção da corrida de cancelamento no release. Gate integral
+Node 22 oficial e validação Node 24 passaram; Node 24 registrou apenas o aviso
+preexistente de placeholders. Uma corrida de cancelamento no despacho de workflow
+foi reproduzida e corrigida: filho não iniciado termina `not_executed`, e a
+reserva observa o cancelamento durável. O cenário passou em 20 repetições
+isoladas; a cobertura final crítica segue acima de 90%/80% em Node 22/24.
+Hook e integração desta task ainda pendentes. A drenagem antes de `cancelled` é
+escopo W4-04b. Sem merge na foundation, gasto novo ou ativação operacional.

@@ -65,11 +65,6 @@ class WorkflowEngine {
   #checkpoint(input, workflow, phase, claimRef) {
     const parentId = input.parent_session_id;
     const definitionDigest = digest(workflow);
-    this.#assertClaim(input, workflow, claimRef);
-    const state = this.#store.replay(parentId);
-    if (state.workflow_reservations[workflow.workflow_id]?.definition_digest !== definitionDigest) {
-      throw new WorkflowEngineError('workflow revision changed before checkpoint', 'WORKFLOW_REVISION_NOT_SUPPORTED');
-    }
     const payload = {
       workflow_id: workflow.workflow_id,
       definition_digest: definitionDigest,
@@ -80,20 +75,43 @@ class WorkflowEngine {
       child_session_ids: phase.steps.map((step) => step.child_spec.session_id),
       checkpoint_ref: `workflow-checkpoint://${workflow.workflow_id}/${phase.phase_id}/${definitionDigest.slice(7, 23)}`,
     };
-    const event = {
-      schema_version: CONTRACT_SCHEMA_VERSION,
-      event_id: stableId('event', parentId, 'workflow.phase.checkpointed', workflow.workflow_id, phase.phase_id, definitionDigest),
-      session_id: parentId,
-      sequence: state.current_sequence + 1,
-      occurred_at: input.occurred_at,
-      event_type: 'workflow.phase.checkpointed',
-      payload,
-    };
-    const receipt = this.#store.append({ session_id: parentId, expected_version: state.current_sequence, events: [event] });
-    if (receipt.events.length !== 1 || receipt.events[0].event_id !== event.event_id) {
-      throw new WorkflowEngineError('workflow checkpoint receipt is invalid', 'WORKFLOW_CHECKPOINT_RECEIPT_INVALID');
+    for (let attempt = 0; attempt < 128; attempt += 1) {
+      this.#assertClaim(input, workflow, claimRef);
+      const state = this.#store.replay(parentId);
+      const event = {
+        schema_version: CONTRACT_SCHEMA_VERSION,
+        event_id: stableId('event', parentId, 'workflow.phase.checkpointed', workflow.workflow_id, phase.phase_id, definitionDigest),
+        session_id: parentId,
+        sequence: state.current_sequence + 1,
+        occurred_at: input.occurred_at,
+        event_type: 'workflow.phase.checkpointed',
+        payload,
+      };
+      try {
+        const receipt = this.#store.append({ session_id: parentId, expected_version: state.current_sequence, events: [event] });
+        if (receipt.events.length !== 1 || receipt.events[0].event_id !== event.event_id) {
+          throw new WorkflowEngineError('workflow checkpoint receipt is invalid', 'WORKFLOW_CHECKPOINT_RECEIPT_INVALID');
+        }
+        return { ...payload, event_id: event.event_id };
+      } catch (error) {
+        if (!['AGENT_SESSION_VERSION_CONFLICT', 'EXECUTION_STREAM_VERSION_CONFLICT'].includes(error?.code)) throw error;
+        const latest = this.#store.replay(parentId);
+        if (latest.workflow_checkpoints.some((item) => item.workflow_id === workflow.workflow_id && item.phase_id === phase.phase_id)) {
+          throw error;
+        }
+        this.#assertClaim(input, workflow, claimRef);
+      }
     }
-    return { ...payload, event_id: event.event_id };
+    throw new WorkflowEngineError('workflow checkpoint could not cross a bounded revision race', 'WORKFLOW_CHECKPOINT_CONFLICT');
+  }
+
+  #currentWorkflow(input, workflow) {
+    const reservation = this.#store.replay(input.parent_session_id).workflow_reservations[workflow.workflow_id];
+    if (!reservation?.revision) return workflow;
+    if (!reservation.revisions.some((item) => item.definition_digest === digest(workflow))) {
+      throw new WorkflowEngineError('workflow input is not in the durable revision chain', 'WORKFLOW_DEFINITION_CONFLICT');
+    }
+    return reservation.revisions.at(-1).definition;
   }
 
   #validateScope(parent, workflow, manifest) {
@@ -228,15 +246,12 @@ class WorkflowEngine {
 
   #release(input, workflow, status, claimRef) {
     const parentId = input.parent_session_id;
-    const definitionDigest = digest(workflow);
     const state = this.#store.replay(parentId);
     const reservation = state.workflow_reservations[workflow.workflow_id];
-    if (reservation?.revision > 1) {
-      throw new WorkflowEngineError('workflow revisions require a revision-aware engine', 'WORKFLOW_REVISION_NOT_SUPPORTED');
-    }
-    if (!reservation || reservation.definition_digest !== definitionDigest) {
+    if (!reservation || !this.#isPinned(reservation, workflow)) {
       throw new WorkflowEngineError('workflow has no matching durable reservation', 'WORKFLOW_RESERVATION_MISSING');
     }
+    const definitionDigest = reservation.definition_digest;
     if (reservation.claim_id !== input.request_id || reservation.claim_ref !== claimRef) {
       throw new WorkflowEngineError('workflow cannot release a claim owned by another run', 'WORKFLOW_CLAIM_LOST');
     }
@@ -245,6 +260,18 @@ class WorkflowEngine {
         throw new WorkflowEngineError('workflow release status conflicts with durable state', 'WORKFLOW_RELEASE_CONFLICT');
       }
       return reservation.released;
+    }
+    if (status === 'completed' && state.cancellation_request) {
+      throw new WorkflowEngineError('workflow was cancelled before release', 'WORKFLOW_CANCELLED');
+    }
+    if (status === 'completed') {
+      const current = reservation.revisions?.at(-1).definition || workflow;
+      const completed = new Set(
+        state.workflow_checkpoints.filter((item) => item.workflow_id === workflow.workflow_id).map((item) => item.phase_id),
+      );
+      if (current.phases.some((phase) => !completed.has(phase.phase_id))) {
+        throw new WorkflowEngineError('workflow definition advanced before release', 'WORKFLOW_DEFINITION_ADVANCED');
+      }
     }
     const event = {
       schema_version: CONTRACT_SCHEMA_VERSION,
@@ -265,14 +292,25 @@ class WorkflowEngine {
   }
 
   #assertClaim(input, workflow, claimRef) {
-    const reservation = this.#store.replay(input.parent_session_id).workflow_reservations[workflow.workflow_id];
+    const parent = this.#store.replay(input.parent_session_id);
+    const reservation = parent.workflow_reservations[workflow.workflow_id];
     if (!reservation || reservation.claim_id !== input.request_id || reservation.claim_ref !== claimRef) {
       throw new WorkflowEngineError('workflow no longer owns the durable execution claim', 'WORKFLOW_CLAIM_LOST');
     }
-    if (reservation.revision > 1 || reservation.definition_digest !== digest(workflow)) {
-      throw new WorkflowEngineError('workflow revisions require a revision-aware engine', 'WORKFLOW_REVISION_NOT_SUPPORTED');
+    if (reservation.released || parent.cancellation_request) {
+      throw new WorkflowEngineError('workflow claim is cancelled or terminal', 'WORKFLOW_CANCELLED');
+    }
+    if (!this.#isPinned(reservation, workflow)) {
+      throw new WorkflowEngineError('workflow definition is outside the durable revision chain', 'WORKFLOW_DEFINITION_CONFLICT');
     }
     return reservation;
+  }
+
+  #isPinned(reservation, workflow) {
+    const definitionDigest = digest(workflow);
+    return reservation.revisions
+      ? reservation.revisions.some((item) => item.definition_digest === definitionDigest)
+      : reservation.definition_digest === definitionDigest;
   }
 
   async #spawn(input, workflow, step, active) {
@@ -352,11 +390,9 @@ class WorkflowEngine {
   }
 
   async #execute(input) {
-    const workflow = parseContract(WorkflowDefinitionSchema, input.workflow, 'workflow definition');
+    const supplied = parseContract(WorkflowDefinitionSchema, input.workflow, 'workflow definition');
     const parent = this.#store.replay(input.parent_session_id);
-    if (Object.values(parent.workflow_reservations).some((reservation) => reservation.revision > 1)) {
-      throw new WorkflowEngineError('workflow revisions require a revision-aware engine', 'WORKFLOW_REVISION_NOT_SUPPORTED');
-    }
+    let workflow = this.#currentWorkflow(input, supplied);
     const providerQuery = {
       schema_version: CONTRACT_SCHEMA_VERSION,
       request_id: stableId('request', input.request_id, 'manifest'),
@@ -367,7 +403,16 @@ class WorkflowEngine {
     this.#validateScope(parent, workflow, manifest);
     const definitionDigest = digest(workflow);
     const durable = parent.workflow_checkpoints.filter((checkpoint) => checkpoint.workflow_id === workflow.workflow_id);
-    if (durable.some((checkpoint) => checkpoint.definition_digest !== definitionDigest)) {
+    const pinned = parent.workflow_reservations[workflow.workflow_id];
+    if (
+      durable.some(
+        (checkpoint) =>
+          !(
+            pinned?.revisions?.some((item) => item.definition_digest === checkpoint.definition_digest) ||
+            checkpoint.definition_digest === definitionDigest
+          ),
+      )
+    ) {
       throw new WorkflowEngineError('workflow identifier conflicts with a durable definition', 'WORKFLOW_DEFINITION_CONFLICT');
     }
     const claim = this.#reserve(input, workflow);
@@ -389,7 +434,33 @@ class WorkflowEngine {
     const evidence = [];
     try {
       if (active.cancelled) throw new WorkflowEngineError('workflow has a durable cancellation request', 'WORKFLOW_CANCELLED');
-      for (const phase of workflow.phases) {
+      let phaseIndex = 0;
+      while (true) {
+        workflow = this.#currentWorkflow(input, workflow);
+        if (phaseIndex === workflow.phases.length) {
+          let released;
+          try {
+            released = this.#release(input, workflow, 'completed', active.claimRef);
+          } catch (error) {
+            const latestState = this.#store.replay(input.parent_session_id);
+            if (latestState.cancellation_request) {
+              throw new WorkflowEngineError('workflow was cancelled before release', 'WORKFLOW_CANCELLED');
+            }
+            const latest = this.#currentWorkflow(input, workflow);
+            if (
+              ['WORKFLOW_DEFINITION_ADVANCED', 'AGENT_SESSION_VERSION_CONFLICT', 'EXECUTION_STREAM_VERSION_CONFLICT'].includes(
+                error?.code,
+              ) &&
+              digest(latest) !== digest(workflow)
+            ) {
+              continue;
+            }
+            throw error;
+          }
+          evidence.push(eventRef(released.event_id));
+          return { status: 'completed', phases, children, evidence };
+        }
+        const phase = workflow.phases[phaseIndex];
         const checkpoint = durable.find((item) => item.phase_id === phase.phase_id);
         if (checkpoint) {
           const settled = checkpoint.child_session_ids.map((childId) => this.#resolveChild(childId));
@@ -404,6 +475,7 @@ class WorkflowEngine {
             checkpoint_ref: checkpoint.checkpoint_ref,
           });
           evidence.push(eventRef(checkpoint.event_id));
+          phaseIndex += 1;
           continue;
         }
         if (phase.mode === 'pipeline') {
@@ -441,19 +513,20 @@ class WorkflowEngine {
           checkpoint_ref: recorded.checkpoint_ref,
         });
         evidence.push(eventRef(recorded.event_id));
+        phaseIndex += 1;
       }
-      const released = this.#release(input, workflow, 'completed', active.claimRef);
-      evidence.push(eventRef(released.event_id));
-      return { status: 'completed', phases, children, evidence };
     } catch (error) {
       if (error?.code === 'WORKFLOW_CLAIM_LOST') throw error;
-      active.cancelled = active.cancelled || error?.code === 'WORKFLOW_CANCELLED';
+      active.cancelled =
+        active.cancelled ||
+        error?.code === 'WORKFLOW_CANCELLED' ||
+        Boolean(this.#store.replay(input.parent_session_id).cancellation_request);
       const cancelled = await this.#cancelChildren(input, workflow, active, active.reason || 'workflow teardown after failure');
       children.push(...cancelled);
       const orphan = [...active.children].find((childId) => !this.#resolveChild(childId));
       if (orphan)
         throw new WorkflowEngineError('workflow teardown left an orphan child', 'WORKFLOW_ORPHAN_CHILD', { child_session_id: orphan });
-      if (error?.code === 'WORKFLOW_REVISION_NOT_SUPPORTED') throw error;
+      if (error?.code === 'WORKFLOW_DEFINITION_CONFLICT') throw error;
       const status = active.cancelled ? 'cancelled' : 'failed';
       const released = this.#release(input, workflow, status, active.claimRef);
       evidence.push(eventRef(released.event_id));
@@ -496,7 +569,7 @@ class WorkflowEngine {
         children: uniqueChildren,
         evidence_refs: result.evidence,
       },
-      input,
+      { ...input, workflow: this.#currentWorkflow(input, input.workflow) },
     );
   }
 
