@@ -319,3 +319,12 @@ test('replay rejects rehashed lifecycle forgery, unknown versions and out-of-ord
   }
   assert.equal(f.jobs.query(f.id).status, 'claimed');
 });
+
+test('two controllers repeating the same claim receive the original durable receipt', async (t) => {
+  const f = await setup(t);
+  const command = f.command();
+  const [a, b] = await Promise.all([childClaim(t, f, command), childClaim(t, f, command)]);
+  assert.ok(a.message.result, JSON.stringify(a.message));
+  assert.deepEqual(b.message.result, a.message.result);
+  assert.equal(f.jobs.rows(f.id).length, 2);
+});

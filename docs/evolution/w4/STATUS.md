@@ -229,3 +229,43 @@ Responsável autorizou prosseguir após solicitação explícita1452→1454. Lim
 22MB e exclusões de estado/segredos mantidos. Pacote passou em Node22/24. Gate integral
 Node24 passou (exit0,zero falhas,um aviso preexistente de placeholders). Commit governado
 e integração na feature são os próximos passos; W4 integral permanece em andamento.
+
+### W4-03c integrada; W4-03d em implementação
+
+Commit03c c49af0b2, merge na feature ec20d4a0; hook exit0. Log do hook preservado
+na evidência03d. Nenhum merge foundation. Dispatcher03d, migration015 e testes
+em desenvolvimento, ainda sem gate integral ou commit.
+
+### W4-03d — implementação validada, pacote bloqueado
+
+Kernel/schema Node24:819/819 antes do ajuste final de cancelamento de dependente;
+focal final54/54. Kernel/schema Node22 final:820/820. Onze críticos acima90/80;
+pós-checks22/24:10/10 cada, sete mutantes rejeitados. Lint/format exit0; hashes
+finais preservados. Revisor isolado confirmou28 hashes, sem novo bloqueador.
+
+Pacote FAIL em22/24:1456 arquivos contra limite autorizado1454; dois novos
+assets necessários são job-dispatch.js e migration015. Solicitação de decisão
+1454→1456 permanece sem resposta. Teto22MB e exclusões intactos. Sem gate
+integral, commit03d ou integração. Recibo:evidence/job-dispatch/receipt.json.
+W4-04–08, aceite real, PR e fechamento permanecem pendentes.
+
+Responsável autorizou explicitamente elevar o limite1454→1456: “Autorizado a elevar o limite do pacote”. Ajuste aplicado;22MB e exclusões preservados. Revalidação e gate03d em andamento.
+
+W4-03d gate integral Node24 PASS:exit0,zero falhas,um aviso preexistente de placeholders. npmtest integral e lint passaram após regenerar hashCLI. Evidência preservada; commit governado e integração na feature em andamento.
+
+### W4-03d — revalidação concluída; commit impedido pelo ambiente
+
+O hook anterior encontrou corrida de cancelamento (sessão completed, tarefa cancelled).
+Duas reproduções confirmaram o defeito; propagação imediata de cancelamento e saída
+tipada pela revisão corrigiram os caminhos. Os nove mutantes detectam as proteções.
+Node22:212 testesengineering+9mutantesPASS;runtime96.32%linhas/88.04%branches.
+Node24:gatefuncionalintegralPASS0falhas/1aviso; cobertura externa ao gateFAIL por
+contaminação de fontes mutadas, preservada. Após isolar a instrumentação dos mutantes:
+212 testesengineering+9mutantesPASS;runtime95.35%linhas/87.75%branches.
+
+A sessão retomada estabeleceu .git somente leitura e approval_policy=never.
+Sem novo commit03d ou merge. Fontes/evidências preservadas nesta worktree.
+Próximo: ambiente com escrita Git e isolamento disponíveis, executar commit governado
+com hooks, integrar03d e avançar04a1. Contrato04a1 preparado na worktree
+hseos-w4-workflow-revisions, sem implementação e ainda baseado emec20d4a0.
+W4 não está fechada;04–08, consumidores reais, PR e closeout continuam pendentes.

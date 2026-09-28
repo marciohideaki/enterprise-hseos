@@ -252,7 +252,7 @@ class EngineeringTaskState {
       .transaction(() => {
         const event = eventSchema.parse(value);
         if (['execution_started', 'execution_reclaimed', 'verification_reclaimed'].includes(event.kind))
-          require('./job-materialization').assertJobExecutionDenied(this.ledger.db, this.id);
+          require('./job-dispatch').assertJobRuntimeAccess(this.ledger.db, this.id);
         if (['execution_started', 'execution_reclaimed'].includes(event.kind))
           require('./terminal-budget').assertTerminalsSettled(this.ledger.db, this.id);
         const state = this.read();

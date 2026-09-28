@@ -199,6 +199,8 @@ o validador de grafo não substitui campanha real. Indisponibilidade mantém ace
 
 ## W4-03d — Integrar despacho, settlement e recuperação ao serviço
 
+Contrato detalhado: [job-dispatch-implementation.md](job-dispatch-implementation.md).
+
 - execution_mode: isolated
 - scope: Medium
 - dependencies: W4-03c

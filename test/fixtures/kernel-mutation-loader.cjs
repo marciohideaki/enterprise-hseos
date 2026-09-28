@@ -5,6 +5,14 @@ const path = require('node:path');
 const Module = require('node:module');
 
 const mutations = {
+  task_completion: [
+    'tools/cli/lib/engineering-task-runtime.js',
+    "completion_review: async ({ step }) => {\n      if (observeTaskCancellation()) throw Object.assign(new Error('Task cancelled'), { code: 'ENGINEERING_TASK_CANCELLED' });",
+    'completion_review: async ({ step }) => {\n      if (observeTaskCancellation()) return null;',
+  ],
+  task_cancellation: ['tools/cli/lib/engineering-task-runtime.js', 'function observeTaskCancellation() {', 'function observeTaskCancellation() { return false;'],
+  job_shutdown: ['tools/cli/lib/job-dispatch.js', "if (this.#closing) reject('JOB_WORKER_CLOSING');", 'if (false) {}'],
+  job_acceptance: ['tools/cli/lib/job-dispatch.js', '!approved || state.cancellation_requested', 'false'],
   job_ledger: ['tools/mcp-project-state/lib/execution-ledger-schema.js',
     'if (!identity || db.name !== fixture.filename || identity.ino !== current.ino || identity.dev !== current.dev)', 'if (false)'],
   job_preparation: ['tools/cli/lib/job-materialization.js', 'task.version > 1 ||', 'false ||'],

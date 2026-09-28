@@ -116,6 +116,7 @@ class EngineeringControl {
   close() {
     if (
       this.active.size > 0 ||
+      this.jobs.dispatcher.active > 0 ||
       this.terminals.active.size > 0 ||
       this.terminals.inflight.size > 0 ||
       this.providerCampaigns.drains.size > 0

@@ -38,6 +38,7 @@
     "tools/cli/lib/job-control.js",
     "tools/cli/lib/job-worker.js",
     "tools/cli/lib/job-materialization.js",
+    "tools/cli/lib/job-dispatch.js",
     "tools/mcp-project-state/lib/execution-ledger-schema.js"
   ],
   "exclude": ["**/node_modules/**", "test/**"],

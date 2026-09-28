@@ -43,6 +43,7 @@ test('coverage counts unexecuted critical files and enforces per-file 90/80', ()
     'packages/agent-orchestration/**/*.js',
     'tools/cli/lib/engineering-*.js',
     'tools/cli/lib/job-materialization.js',
+    'tools/cli/lib/job-dispatch.js',
     'tools/mcp-project-state/lib/execution-ledger-schema.js',
     'tools/cli/lib/provider-egress-broker.js',
     'packages/runtime-providers/codex-acp-peer.js',

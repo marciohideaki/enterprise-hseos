@@ -39,6 +39,9 @@ module.exports = {
         control.close();
         throw error;
       }
+      control.jobs.dispatcher.start({
+        onError: (error) => process.stderr.write(JSON.stringify({ schema_version: 1, component: 'jobs', error: error.code }) + '\n'),
+      });
       process.stdout.write(JSON.stringify({ schema_version: 1, url: server.url, state: control.state, operational: false }) + '\n');
       await new Promise((resolve) => {
         const stop = () => {
@@ -49,9 +52,12 @@ module.exports = {
         process.once('SIGTERM', stop);
         process.once('SIGINT', stop);
       });
+      const serverClosed = server.close();
+      serverClosed.catch(() => {});
+      await control.jobs.dispatcher.shutdown();
       await control.providerCampaigns.shutdown();
       await control.terminals.shutdown();
-      await server.close();
+      await serverClosed;
       control.close();
       return;
     }

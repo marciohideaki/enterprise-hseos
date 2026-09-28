@@ -6,6 +6,10 @@ const { spawnSync } = require('node:child_process');
 const { test } = require('node:test');
 
 const cases = [
+  ['task_completion', 'test/test-engineering-task-runtime.js', 'durable cancellation at model-stop'],
+  ['task_cancellation', 'test/test-engineering-task-runtime.js', 'durable cancellation at tool-intent'],
+  ['job_shutdown', 'test/test-job-faults.js', 'shutdown during admission cannot'],
+  ['job_acceptance', 'test/test-job-faults.js', 'replay rejects false success'],
   ['job_ledger', 'test/test-job-materialization.js', 'a second ledger cannot assemble capabilities'],
   ['job_preparation', 'test/test-job-materialization.js', 'possible task activity blocks completion'],
   ['authority', 'test/test-agent-policy-lattice.js', 'child agents can narrow but cannot widen parent authority'],
@@ -18,7 +22,8 @@ for (const [mutation, filename, pattern] of cases)
     const args = ['--test', '--test-concurrency=1', '--test-reporter=tap', `--test-name-pattern=${pattern}`, filename];
     const options = { cwd, env: { ...process.env }, encoding: 'utf8', timeout: 30_000, maxBuffer: 1024 * 1024 };
     delete options.env.HSEOS_TEST_MUTATION;
-    delete options.env.NODE_V8_COVERAGE;
+    // An absent key is re-injected by Node's spawn coverage propagation.
+    options.env.NODE_V8_COVERAGE = '';
     delete options.env.NODE_TEST_CONTEXT;
     const control = spawnSync(process.execPath, args, options);
     assert.equal(control.error, undefined);

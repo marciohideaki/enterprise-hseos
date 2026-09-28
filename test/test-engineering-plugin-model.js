@@ -591,3 +591,111 @@ test('job claim consults original campaign without reserving and rejects cancell
   assert.equal(jobs.query(f.secondId).status, 'queued');
   assert.equal(f.launches, 0);
 });
+
+async function prepareDurableJob(f) {
+  const jobs = f.control.jobs;
+  await jobs.execute({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: f.resourceId,
+    expected_sequence: 0,
+    action: 'create',
+    input: {
+      kind: 'task',
+      definition: { contract: f.contract, plugin_model: { selection_id: 'selected', campaign_id: f.campaignId } },
+      not_before: new Date().toISOString(),
+      deadline_at: new Date(Date.now() + 60_000).toISOString(),
+      depends_on: [],
+    },
+  });
+  await jobs.worker.execute({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: f.resourceId,
+    expected_sequence: 1,
+    action: 'claim',
+    fence: 0,
+    lease_ms: 1000,
+  });
+  await jobs.materializer.execute({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: f.resourceId,
+    expected_sequence: 2,
+    action: 'materialize',
+    fence: 1,
+  });
+  return jobs;
+}
+
+for (const loseReceipt of [false, true])
+  test(`durable job preserves campaign authority with receipt loss=${loseReceipt}`, async (t) => {
+    const f = await setup(t);
+    const jobs = await prepareDurableJob(f);
+    const { ProviderCampaignControl } = require('../tools/cli/lib/provider-campaign-control');
+    const append = ProviderCampaignControl.prototype.append;
+    if (loseReceipt)
+      t.mock.method(ProviderCampaignControl.prototype, 'append', function (id, payload, ...rest) {
+        if (id === f.campaignId && payload.kind === 'receipt') throw new Error('lost campaign receipt');
+        return append.call(this, id, payload, ...rest);
+      });
+    const command = {
+      schema_version: 1,
+      command_id: randomUUID(),
+      resource_id: f.resourceId,
+      expected_sequence: 4,
+      action: 'dispatch',
+      fence: 1,
+    };
+    const result = await jobs.dispatcher.execute(command);
+    assert.equal(result.status, loseReceipt ? 'uncertain' : 'succeeded');
+    const launches = f.launches;
+    assert.equal(launches, 1);
+    assert.deepEqual(await jobs.dispatcher.execute(command), result);
+    assert.equal(f.launches, launches);
+    const campaign = f.control.providerCampaigns.query(f.campaignId);
+    assert.equal(campaign.requests, 1);
+    assert.equal(campaign.committed_microusd, 0);
+    assert.equal(campaign.unresolved_commands.length, loseReceipt ? 1 : 0);
+  });
+
+test('closed plugin job backup preserves physical authority and campaign history on in-place restore', async (t) => {
+  const f = await setup(t);
+  const jobs = await prepareDurableJob(f);
+  const before = jobs.query(f.resourceId);
+  const campaign = f.control.providerCampaigns.query(f.campaignId);
+  const state = f.control.state;
+  await jobs.dispatcher.shutdown();
+  f.control.close();
+  const filename = path.join(state, 'ledger.sqlite');
+  const identity = fs.statSync(filename).ino;
+  const backup = fs.readFileSync(filename);
+  fs.writeFileSync(filename, Buffer.alloc(4096));
+  fs.writeFileSync(filename, backup);
+  assert.equal(fs.statSync(filename).ino, identity);
+  const restored = new EngineeringControl({
+    state,
+    workspaces: [f.root],
+    extensionCatalog: f.catalog,
+    providerBindings: { 'local-model': f.port.binding },
+  });
+  try {
+    assert.deepEqual(restored.jobs.query(f.resourceId), before);
+    assert.deepEqual(restored.providerCampaigns.query(f.campaignId), campaign);
+    const result = await restored.jobs.dispatcher.execute({
+      schema_version: 1,
+      command_id: randomUUID(),
+      resource_id: f.resourceId,
+      expected_sequence: 4,
+      fence: 1,
+      action: 'dispatch',
+    });
+    assert.equal(result.status, 'succeeded');
+    assert.equal(restored.providerCampaigns.query(f.campaignId).requests, 1);
+    assert.equal(f.launches, 1);
+  } finally {
+    await restored.jobs.dispatcher.shutdown();
+    await restored.providerCampaigns.shutdown();
+    restored.close();
+  }
+});

@@ -1,0 +1,168 @@
+{
+  "task": "W4-03d",
+  "status": "VALIDATED_PENDING_COMMIT_ENVIRONMENT_READ_ONLY_GIT",
+  "base_commit": "ec20d4a0",
+  "branch": "task/hseos-w4-job-dispatch",
+  "recorded_utc": "2026-09-28T05:00:11.962587+00:00",
+  "verification": {
+    "kernel_schema_node24_before_dependency_cancellation_fix": {
+      "tests": 819,
+      "fail": 0,
+      "skipped": 0,
+      "exit": 0
+    },
+    "focused_node24_final": {
+      "tests": 54,
+      "fail": 0,
+      "skipped": 0,
+      "exit": 0,
+      "dispatcher_lines": 96.08,
+      "dispatcher_branches": 86.14
+    },
+    "kernel_schema_node22_final": {
+      "tests": 820,
+      "fail": 0,
+      "skipped": 0,
+      "exit": 0,
+      "critical_files": 11,
+      "minimum_lines": 90,
+      "minimum_branches": 80
+    },
+    "postcheck_node22": {
+      "tests": 10,
+      "mutants_rejected": 7,
+      "exit": 0
+    },
+    "postcheck_node24": {
+      "tests": 10,
+      "mutants_rejected": 7,
+      "exit": 0
+    },
+    "delta_lint_format": {
+      "exit": 0,
+      "final_source_hashes_unchanged": true
+    },
+    "package_node24": {
+      "status": "PASS",
+      "exit": 0,
+      "entries": 1456,
+      "authorized_limit": 1456,
+      "prior_failure_preserved": true
+    },
+    "package_node22": {
+      "status": "PASS",
+      "exit": 0,
+      "entries": 1456,
+      "authorized_limit": 1456,
+      "prior_failure_preserved": true
+    },
+    "full_gate_node24": {
+      "exit": 0,
+      "failures": 0,
+      "warnings": 1,
+      "warning": "pre-existing template placeholders",
+      "includes": "npm test integral and lint",
+      "revision": "before cancellation fix; does not certify current source"
+    },
+    "cancellation_node22": {
+      "engineering_tests": 212,
+      "mutants_rejected": 9,
+      "fail": 0,
+      "skipped": 0,
+      "exit": 0,
+      "runtime_lines": 96.32,
+      "runtime_branches": 88.04
+    },
+    "cancellation_node24_postcheck": {
+      "lint_exit": 0,
+      "mutants_rejected": 9,
+      "exit": 0
+    },
+    "full_gate_node24_after_cancellation_fix": {
+      "functional_status": "PASS",
+      "failures": 0,
+      "warnings": 1,
+      "coverage_wrapper_status": "FAIL",
+      "runtime_lines": 63.6,
+      "runtime_branches": 62.56,
+      "cause": "Mutation subprocesses inherited coverage through Node spawn, mixing source offsets 40424, 40438 and 40347. Set explicit empty NODE_V8_COVERAGE for those subprocesses; recollect original functional coverage."
+    },
+    "cancellation_node24_clean": {
+      "engineering_tests": 212,
+      "mutants_rejected": 9,
+      "fail": 0,
+      "skipped": 0,
+      "runtime_lines": 95.35,
+      "runtime_branches": 87.75,
+      "process_exit_receipt": "unavailable after environment session replacement; completed test and coverage logs preserved"
+    }
+  },
+  "independent_review": {
+    "reviewer": "/root/review_plugin_providers",
+    "result": "no_new_blocker",
+    "hashes_verified": 28,
+    "limitations": "kernel/schema and focused validation only; backup limited to quiescent fixtures"
+  },
+  "pending": [
+    "Governed commit hooks and feature integration require writable Git metadata",
+    "W4-04 through W4-08, full cross-version suite and real consumer/account acceptance",
+    "PR and specifically authorized foundation closeout"
+  ],
+  "limits": {
+    "financial_ceiling_usd": 10,
+    "historical_reserved_usd": 9,
+    "paid_calls_in_task": 0,
+    "foundation_merge": false,
+    "publication": false,
+    "operational_activation": false,
+    "aew_application": "NOT_VERIFIED",
+    "aew_enforcement": "NOT_VERIFIED"
+  },
+  "governance": [
+    "/home/annonymous/.claude/AGENTS.md §3f/§3h",
+    "AGENTS.md §5/§8/§9",
+    "G=e709368ead6e53ee1fd8e4428bc8913a3a4e8292"
+  ],
+  "source_hashes": "dispatch-final-source-sha256.json.gz",
+  "owner_approval": "Autorizado a elevar o limite do pacote",
+  "approved_threshold_file_sha256": "c8e4ae78577219d140651b1cc9512fa6c5e8c6f94a6345d6c772a675015778ad",
+  "generated_cli_manifest": {
+    "reason": "source hash changed with control.js service dispatch integration",
+    "command": "npm run compile:cli",
+    "sha256": "40b87a72c92f2c4e19ec137eca0f40de5975c56aa24734113499c98877fa325e",
+    "delta": "control.js source_sha256 only"
+  },
+  "failed_commit": {
+    "exit": 1,
+    "test": "cross-process cancellation waits for the running worker to drain its executor",
+    "actual": "completed",
+    "expected": "cancelled",
+    "deterministic_reproductions": [
+      "tool intent before policy",
+      "model stop before completion review"
+    ],
+    "repair": "immediate canonical cancellation at policy/stream/review, typed exit from review, drain observes cancellation rejection",
+    "focused_tests": 3,
+    "focused_exit": 0
+  },
+  "source_hashes_after_cancellation_fix": "cancel-final-source-sha256.json.gz",
+  "mutation_instrumentation_file_sha256": "5dd7c536a4e71f5b0633d0fc030f3881b4f17771c85fc7051abcfb7c500ec2cb",
+  "environment_blocker": {
+    "git": "read_only",
+    "approval_policy": "never",
+    "reason": "Session resumed with managed restricted permissions; cannot write Git metadata or request escalation",
+    "next_action": "Resume in an environment permitting governed Git writes and isolated validation, then execute commit hooks and integrate task",
+    "observed_attempt": {
+      "command": "git add -- test/test-kernel-mutations.js",
+      "exit_code": 128,
+      "error": "Unable to create .git/worktrees/hseos-w4-job-dispatch/index.lock: Read-only file system",
+      "result": "No commit; HEAD remains ec20d4a0"
+    }
+  },
+  "commit_authorization": {
+    "status": "explicit_owner_approval",
+    "statement": "Esta autorizado a prosseguir com o commit",
+    "scope": "W4-03d governed commit; required hooks remain mandatory",
+    "execution_constraint": "Current managed profile makes .git read-only and disallows escalation"
+  }
+}

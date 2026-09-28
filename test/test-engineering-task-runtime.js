@@ -321,3 +321,45 @@ test('interruption after model completion resumes verification without replaying
       }
     },
   ));
+
+for (const boundary of ['tool-intent', 'model-stop'])
+  test(`durable cancellation at ${boundary} cannot complete the session`, async (t) => {
+    t.mock.timers.enable({ apis: ['setInterval'] });
+    const { EngineeringTaskState } = require('../tools/cli/lib/engineering-task-state');
+    const { ExecutionEventLedger } = require('../tools/mcp-project-state/lib/execution-event-ledger');
+    const taskAppend = EngineeringTaskState.prototype.append;
+    const sessionAppend = ExecutionEventLedger.prototype.append;
+    let requestCancellation;
+    let injected = false;
+    t.mock.method(EngineeringTaskState.prototype, 'append', function (event, version) {
+      const result = taskAppend.call(this, event, version);
+      if (event.kind === 'execution_started')
+        requestCancellation = () => this.append({ kind: 'cancellation_requested' }, this.read().version);
+      return result;
+    });
+    t.mock.method(ExecutionEventLedger.prototype, 'append', function (request) {
+      const result = sessionAppend.call(this, request);
+      if (
+        !injected &&
+        request.events.some((row) => {
+          if (row.event_type !== 'AgentSessionEventRecorded') return false;
+          const e = JSON.parse(row.payload.session_event_json);
+          return boundary === 'tool-intent'
+            ? e.event_type === 'tool.execution.started' && e.payload.name === 'engineering.command'
+            : e.event_type === 'model.streamed' &&
+                e.payload.event.event_type === 'completed' &&
+                e.payload.event.payload.finish_reason === 'stop';
+        })
+      ) {
+        injected = true;
+        requestCancellation();
+      }
+      return result;
+    });
+    await fixture({ code: 'module.exports=(a,b)=>a+b;\n' }, async (result) => {
+      assert.equal(injected, true);
+      assert.equal(result.reason, 'cancelled');
+      assert.equal(result.task_result, 'not_executed');
+      assert.equal(result.status, 'cancelled');
+    });
+  });

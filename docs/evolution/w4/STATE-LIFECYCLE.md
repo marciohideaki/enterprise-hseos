@@ -1,7 +1,7 @@
 # Ciclo de estado dos jobs W4
 
-Estado desta documentação: preparação03c em validação; despacho03d pendente.
-ADR-0045 continua Proposed; migrations012–014 são candidatas para fixtures.
+Estado desta documentação: preparação03c integrada; despacho03d em validação.
+ADR-0045 continua Proposed; migrations012–015 são candidatas para fixtures.
 Ativação operacional, publicação e instalação global são decisões separadas.
 
 O ledger do EngineeringControl mantém control_job, control_task, engineering_task e
@@ -33,6 +33,22 @@ Queries de status/evidence/session usam o handle validado do controle e vínculo
 durável. Eventos usam cursor global e filtram os agregados do recurso, sem retornar
 outros jobs do ledger. Nenhuma consulta inicializa provider ou aceita caminho do cliente.
 
-Certificação de backup/restore, polling, despacho e settlement pertence à03d e está
-pendente. Relocação não pode trocar silenciosamente control_directory da intenção.
+JobExecutionRecorded/intent precede probes, contexto e modelo. Capacidade interna
+vincula conexão, job, fence, owner e sessões ao comando persistido. Guardas revalidam
+prazo, cancelamento, baseline e identidade de campanha antes das fronteiras de efeito.
+Reservas monetárias continuam exclusivamente na campanha; ferramentas conservam os
+limites da sessão. Settlement exige resultados independentes, sessões encerradas,
+reservas próprias resolvidas e drain; ausência de prova produz uncertain.
+
+Polling é iniciado explicitamente pelo serviço, padrão um job por vez. Query/import
+não iniciam polling. Dois controladores disputam a fila pelo CAS existente. Shutdown
+fecha admissão HTTP, interrompe claims/despachos, cancela/draina owners e aguarda os
+requests ativos antes de fechar SQLite. Erro de polling interrompe o loop e é emitido
+como código sanitizado; não causa repetição automática de efeito incerto.
+
+Ensaios de backup/restore03d são limitados a fixtures quiescentes: scripted por cópia
+no mesmo path; plugin/campanha por restauração in-place preservando identidade física.
+Não certificam snapshot ativo, relocação/rebind, rewind monetário ou execução de duas
+cópias restauradas. Configuração pinada continua recusando troca de inode/ledger;
+nenhuma API de restauração operacional foi acrescentada. Relocação não pode trocar silenciosamente control_directory da intenção.
 Recibos de W3 e autorizações monetárias existentes permanecem históricos imutáveis.

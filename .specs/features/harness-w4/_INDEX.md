@@ -24,3 +24,5 @@ de todos os descendentes; elegível = horário/dependências/admissão permitem 
 - [Ownership e recuperação dos jobs](job-claims-implementation.md) — W4-03b.
 
 - [Materialização idempotente dos jobs](job-materialization-implementation.md) — W4-03c.
+
+- [Despacho e encerramento de jobs](job-dispatch-implementation.md) — W4-03d.
