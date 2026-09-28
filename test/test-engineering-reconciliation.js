@@ -221,3 +221,48 @@ test('a completed patch receipt explains its change when a later command is inte
     'command',
     true,
   ));
+for (const workflow of [false, true])
+  test(`${workflow ? 'workflow' : 'task'} reconciliation holds the writer lock before applying observed receipts`, (t) =>
+    interruptedWrite(async (created) => {
+      const inspect = workflow
+        ? require('../tools/cli/lib/engineering-workflow-runtime').inspectEngineeringWorkflow
+        : inspectEngineeringTask;
+      const { randomUUID } = require('node:crypto');
+      const { EngineeringTaskState } = require('../tools/cli/lib/engineering-task-state');
+      const other = openExecutionLedgerFileFixture(created.state);
+      other.db.pragma('busy_timeout = 0');
+      const competing = new EngineeringTaskState(other.db, randomUUID());
+      const original = EngineeringTaskState.prototype.append;
+      let attempted = 0,
+        blocked,
+        creation;
+      t.mock.method(EngineeringTaskState.prototype, 'append', function (event, sequence) {
+        if (event.kind === 'reconciliation') {
+          creation = this.read().created;
+          attempted++;
+          try {
+            competing.append(creation, 0);
+          } catch (error) {
+            blocked = error;
+          }
+        }
+        return original.call(this, event, sequence);
+      });
+      try {
+        const preview = await inspect({ state: created.state, action: 'reconcile' });
+        const result = await inspect({ state: created.state, action: 'resume', expectedSequence: preview.current_sequence });
+        assert.equal(workflow ? result.tasks[0].result : result.task_result, 'approved');
+        assert.equal(attempted, 1);
+        assert.equal(blocked?.code, 'SQLITE_BUSY');
+        competing.append(creation, 0);
+        assert.equal(competing.read().version, 1);
+        assert.equal(
+          Object.values(session(created.state, workflow ? created.tasks[0].session_id : created.session_id).tool_invocations).filter(
+            (tool) => tool.name === 'engineering.write',
+          ).length,
+          1,
+        );
+      } finally {
+        other.close();
+      }
+    }, workflow));

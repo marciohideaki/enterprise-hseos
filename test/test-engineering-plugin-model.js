@@ -489,3 +489,49 @@ test('control configuration loads a local plugin binding without an unused bindi
   assert.equal(loaded.providerBindings['local-model'].binding_sha256, f.port.binding.binding_sha256);
   assert.equal(f.launches, 0);
 });
+test('queued job pins model selection and original campaign without a launch or reservation', async (t) => {
+  const f = await setup(t);
+  const job = {
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: f.resourceId,
+    expected_sequence: 0,
+    action: 'create',
+    input: {
+      kind: 'task',
+      definition: { contract: f.contract, plugin_model: { selection_id: 'selected', campaign_id: f.campaignId } },
+      not_before: new Date().toISOString(),
+      deadline_at: new Date(Date.now() + 30_000).toISOString(),
+      depends_on: [],
+    },
+  };
+  const before = f.control.providerCampaigns.events(f.campaignId);
+  const created = await f.control.jobs.execute(job);
+  assert.equal(f.launches, 0);
+  assert.deepEqual(f.control.providerCampaigns.events(f.campaignId), before);
+  assert.equal(created.admission.plugin_model.resource_id, f.resourceId);
+  assert.deepEqual(f.control.rows(f.resourceId), []);
+  const second = new EngineeringControl({ state: f.control.state });
+  try {
+    assert.deepEqual(second.jobs.query(f.resourceId), created);
+  } finally {
+    second.close();
+  }
+  const { jobDigest } = require('../tools/lib/job-contract');
+  for (const mutate of [
+    (a) => {
+      a.plugin_model.resource_id = randomUUID();
+    },
+    (a) => {
+      a.plugin_model.campaign_id = randomUUID();
+    },
+    (a) => {
+      a.selection.selection_sha256 = '0'.repeat(64);
+    },
+  ]) {
+    const rows = f.control.jobs.rows(f.resourceId);
+    mutate(rows[0].payload.admission);
+    rows[0].payload.admission_sha256 = jobDigest(rows[0].payload.admission);
+    assert.throws(() => f.control.jobs.project(f.resourceId, rows));
+  }
+});

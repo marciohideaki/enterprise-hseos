@@ -84,7 +84,18 @@ test('actual manifests and checked binding templates generate an honest provider
 
 test('canonical local runner verifies only the canonical provider inventory', { timeout: 120_000 }, () => {
   const report = buildAgentProviderConformance({ root: ROOT, verify: true });
-  assert.equal(report.status, 'passed');
+  assert.equal(
+    report.status,
+    'passed',
+    JSON.stringify(
+      {
+        inventory_stable: report.inventory_stable,
+        providers: report.providers.map(({ provider_id, status, evidence }) => ({ provider_id, status, evidence })),
+      },
+      null,
+      2,
+    ),
+  );
   assert.equal(report.verification_mode, 'stable-local-process');
   assert.equal(report.conformance_verified, true);
   assert.equal(

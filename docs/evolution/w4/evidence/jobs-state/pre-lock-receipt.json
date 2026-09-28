@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "task": "W4-03a",
+  "base": "2b33dc9",
+  "status": "commit-blocked-snapshot-race-revalidation-pending",
+  "environment": {
+    "platform": "Linux",
+    "node24": "24.15.0",
+    "node22": "22.23.3",
+    "cpu": "single nonzero CPU",
+    "memory": "3GiB",
+    "priority": "nice 19",
+    "isolation": "delegated cgroup, bwrap, existing executor",
+    "wrapper": "heavy-run --pin --mem 3G -- systemd-run --user --scope --quiet --collect -p Delegate=yes -p MemoryMax=3G -p MemorySwapMax=0 python3 /tmp/hseos-w4-contained.py"
+  },
+  "results": {
+    "node24": {
+      "tests": 63,
+      "failures": 0,
+      "skips": 0,
+      "coverage_per_file": "90 lines / 80 branches passed",
+      "note": "63/63 repeated after lint corrections"
+    },
+    "node22": {
+      "tests": 80,
+      "failures": 0,
+      "skips": 0,
+      "note": "80/80 before mechanical lint length checks; 22/22 affected paths after lint corrections"
+    },
+    "package_surface": "passed",
+    "node22_post_lint": {
+      "tests": 22,
+      "failures": 0,
+      "skips": 0
+    },
+    "full_gate": {
+      "exit_code": 0,
+      "failures": 0,
+      "warnings": 1,
+      "warning": "pre-existing template placeholders",
+      "log": "pre-lock-full-gate-node24.log.gz"
+    },
+    "commit_hook": {
+      "exit_code": 1,
+      "test": "cross-process cancellation waits for the running worker to drain its executor",
+      "error": "SQLITE_BUSY_SNAPSHOT"
+    }
+  },
+  "limits": [
+    "candidate fixture ledger only; operational activation not authorized",
+    "no claim, dispatch, automatic retry or materialization in W4-03a",
+    "local fixture plugins; not external real-consumer certification",
+    "full W4 not complete",
+    "Prior coverage/gate apply to pre-lock-fix revision; lock fixes require new verification"
+  ],
+  "source_sha256": {
+    "tools/cli/lib/engineering-control.js": "ff2be44a909197c5c7cbc9935417383eae43e8168b340cae586b7dd806549462",
+    "tools/cli/lib/job-control.js": "b32b9de6190cd6aecabdf803c9d9bcf810374da8291286c9afb6e8eba6041d6b",
+    "tools/lib/job-contract.js": "bc1e845427d2a204e89093de78aaf403fec01ad15a9bf37ce090510e306e19a7",
+    "tools/lib/compatibility-audit.js": "f8ff5bac1ed7bec4f683160f12c6312869cd7a364351862df1b951cf5cf7e666",
+    "tools/lib/agentic-activation-rehearsal.js": "9538b247a4fbd4f79e32e90eb0ca495b65a2616bce2259bb41f19d9cce77f361",
+    "tools/mcp-project-state/migrations-pending-activation/012-job-events.sql": "523d4a95d6d755501d0e6806960994b227bd340d7f8a41c76e794a9acd1e35d0",
+    "test/test-job-control.js": "c74381b22a95e469fc745574f401343f48b3780b05cfdf8d4d500e75f1ecdfd7",
+    "test/test-engineering-plugin-model.js": "01b166e68db3a97cd4229b6f8a0ab1c75dc669c51ec764bcab95ffcade2cb08c",
+    "package.json": "9d3398ab273183b1caf88be27ea04a62367bd8fc95edfe90c2dcce22fd986455",
+    ".c8-kernel.json": "c09377795cb7ddd322b10bcee91d19323f8dc5f1c57512291ab9773d8590d9fb"
+  },
+  "commands": {
+    "node24_coverage": "node ../../node_modules/c8/bin/c8.js --all --include=tools/cli/lib/job-control.js --include=tools/lib/job-contract.js --include=tools/cli/lib/engineering-control.js --reporter=text --reporter=json-summary --reports-dir=.logs/validation/jobs-coverage --check-coverage --per-file --lines=90 --branches=80 node --test --test-concurrency=1 test/test-job-control.js test/test-engineering-control.js test/test-engineering-plugin-model.js test/test-engineering-task-extensions.js test/test-agentic-activation-rehearsal.js test/test-compatibility-audit.js",
+    "node22_regression": "node --test --test-concurrency=1 test/test-job-control.js test/test-engineering-control.js test/test-engineering-plugin-model.js test/test-engineering-task-extensions.js test/test-execution-event-ledger.js test/test-operational-state-db.js test/test-agentic-activation-rehearsal.js test/test-compatibility-audit.js",
+    "node22_post_lint": "node --test --test-concurrency=1 test/test-job-control.js test/test-engineering-control.js",
+    "package_surface": "node --test --test-concurrency=1 test/test-package-surface.js",
+    "gate": "VALIDATION_ENFORCED=true ./scripts/governance/worktree-manager.sh validate hseos-w4-jobs-state"
+  }
+}
