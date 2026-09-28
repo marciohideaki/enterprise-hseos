@@ -1,0 +1,8 @@
+{
+  "task": "W4-04a2b",
+  "commit": "15719b4b",
+  "integration": "1e90d2b0",
+  "hook_exit": 0,
+  "hook_log_sha256": "ea7bb90c8fe94a861ece80e17bcd483df4d78e61f7eec1390a1478ecc9cf7f04",
+  "next_task": "W4-04a2c"
+}

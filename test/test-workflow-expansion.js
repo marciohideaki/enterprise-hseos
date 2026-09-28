@@ -209,6 +209,131 @@ test('expanded definition is pinned by claim, materialized and dispatched once',
   await assert.rejects(f.jobs.expand(f.expand([f.node('third')])), { code: 'JOB_EXPANSION_DENIED' });
 });
 
+test('running expansion prepares a late child without changing started identities or the parent deadline', async (t) => {
+  const f = await setup(t);
+  const worker = (action, expected_sequence, extra = {}) => {
+    const { input: _, ...command } = f.envelope(action, expected_sequence);
+    return { ...command, fence: 1, ...extra };
+  };
+  await f.jobs.worker.execute(worker('claim', 1, { fence: 0, lease_ms: 1000 }));
+  await f.jobs.materializer.execute(worker('materialize', 2));
+  const before = f.jobs.query(f.id);
+  const initialTask = before.materialization.plan.tasks[0];
+  const initialDefinition = require('../tools/cli/lib/engineering-workflow-runtime').workflowDefinitionFromPlan(
+    before.materialization.plan,
+  );
+  assert.ok(initialDefinition.phases[0].steps[0].message.content.startsWith('{"sources":'));
+  const parentId = before.materialization.plan.manifest.parent_session_id;
+  const dispatch = worker('dispatch', before.current_sequence);
+  const running = f.jobs.dispatcher.execute(dispatch);
+  const { RelationalSessionEventStore } = require('../packages/agent-session-store');
+  const store = new RelationalSessionEventStore({ ledger: f.control.ledger });
+  for (let i = 0; i < 300; i++) {
+    if (f.jobs.query(f.id).status === 'running' && store.replay(parentId).workflow_reservations[f.definition.workflow_id]) break;
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+  assert.equal(f.jobs.query(f.id).status, 'running');
+  const runningState = f.jobs.query(f.id);
+  const command = f.expand([f.node('late', ['first'])]);
+  const expanded = await f.jobs.expand(command);
+  assert.equal(expanded.admission.input.definition.revision, 2);
+  assert.deepEqual(expanded.materialization.plan.tasks[0], initialTask);
+  assert.equal(expanded.execution_deadline_at, before.execution_deadline_at);
+  const late = expanded.materialization.plan.tasks[1];
+  assert.ok(late.created.deadline <= before.execution_deadline_at);
+  assert.ok(late.created.deadline >= initialTask.created.deadline);
+  const otherJobPlan = f.jobs.materializer.expansionPlan(
+    runningState,
+    { ...command, resource_id: randomUUID() },
+    expanded.admission.input.definition,
+    Date.now(),
+  );
+  assert.notEqual(otherJobPlan.tasks[1].task_run_id, late.task_run_id);
+  assert.notEqual(otherJobPlan.tasks[1].created.session_id, late.created.session_id);
+  assert.deepEqual(await f.jobs.expand(command), expanded);
+  const second = await f.jobs.expand(f.expand([f.node('later', ['late'])]));
+  assert.equal(second.admission.input.definition.revision, 3);
+  assert.deepEqual(second.materialization.plan.tasks.slice(0, 2), expanded.materialization.plan.tasks);
+  const reopened = new EngineeringControl({ state: f.control.state, workspaces: [f.root] });
+  try {
+    assert.deepEqual(reopened.jobs.query(f.id), second);
+  } finally {
+    reopened.close();
+  }
+  const result = await running;
+  assert.equal(result.status, 'succeeded', JSON.stringify(result.execution));
+  assert.equal(result.materialization.plan.tasks[1].task_run_id, late.task_run_id);
+  assert.equal(result.materialization.plan.tasks.length, 3);
+  assert.equal(store.replay(parentId).workflow_reservations[f.definition.workflow_id].revision, 3);
+});
+
+test('cancellation winning running admission cannot publish a revision or dispatch its child', async (t) => {
+  const f = await setup(t);
+  const worker = (action, expected_sequence, extra = {}) => {
+    const { input: _, ...command } = f.envelope(action, expected_sequence);
+    return { ...command, fence: 1, ...extra };
+  };
+  await f.jobs.worker.execute(worker('claim', 1, { fence: 0, lease_ms: 1000 }));
+  await f.jobs.materializer.execute(worker('materialize', 2));
+  const prepared = f.jobs.query(f.id);
+  const running = f.jobs.dispatcher.execute(worker('dispatch', prepared.current_sequence));
+  const { RelationalSessionEventStore } = require('../packages/agent-session-store');
+  const store = new RelationalSessionEventStore({ ledger: f.control.ledger });
+  const parentId = prepared.materialization.plan.manifest.parent_session_id;
+  for (let i = 0; i < 300; i++) {
+    if (f.jobs.query(f.id).status === 'running' && store.replay(parentId).workflow_reservations[f.definition.workflow_id]) break;
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+  assert.equal(f.jobs.query(f.id).status, 'running');
+  const original = f.control.admitCreation.bind(f.control);
+  f.control.admitCreation = async (...args) => {
+    const admitted = await original(...args);
+    const current = f.jobs.query(f.id);
+    await f.jobs.execute(f.envelope('cancel', current.current_sequence));
+    return admitted;
+  };
+  await assert.rejects(f.jobs.expand(f.expand([f.node('late', ['first'])])), { code: 'CONTROL_SEQUENCE_CONFLICT' });
+  const settled = await running;
+  assert.notEqual(settled.status, 'succeeded');
+  assert.equal(settled.materialization.plan.tasks.length, 1);
+  assert.equal(store.readSession(parentId).filter((event) => event.event_type === 'workflow.revised').length, 0);
+});
+
+test('failed job append rolls back the parent revision and child registration', async (t) => {
+  const f = await setup(t);
+  const worker = (action, expected_sequence, extra = {}) => {
+    const { input: _, ...command } = f.envelope(action, expected_sequence);
+    return { ...command, fence: 1, ...extra };
+  };
+  await f.jobs.worker.execute(worker('claim', 1, { fence: 0, lease_ms: 1000 }));
+  await f.jobs.materializer.execute(worker('materialize', 2));
+  const prepared = f.jobs.query(f.id);
+  const parentId = prepared.materialization.plan.manifest.parent_session_id;
+  const running = f.jobs.dispatcher.execute(worker('dispatch', prepared.current_sequence));
+  const { RelationalSessionEventStore } = require('../packages/agent-session-store');
+  const store = new RelationalSessionEventStore({ ledger: f.control.ledger });
+  for (let i = 0; i < 300; i++) {
+    if (f.jobs.query(f.id).status === 'running' && store.replay(parentId).workflow_reservations[f.definition.workflow_id]) break;
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+  assert.equal(f.jobs.query(f.id).status, 'running');
+  const original = f.control.ledger.appendBatch.bind(f.control.ledger);
+  f.control.ledger.appendBatch = (requests) => {
+    if (requests.some((request) => request.events.some((event) => event.event_type === 'JobWorkflowExpanded')))
+      throw Object.assign(new Error('injected-job-append-failure'), { code: 'INJECTED_APPEND_FAILURE' });
+    return original(requests);
+  };
+  try {
+    await assert.rejects(f.jobs.expand(f.expand([f.node('late', ['first'])])), { code: 'INJECTED_APPEND_FAILURE' });
+  } finally {
+    f.control.ledger.appendBatch = original;
+  }
+  assert.equal(store.readSession(parentId).filter((event) => event.event_type === 'workflow.revised').length, 0);
+  assert.equal(f.jobs.query(f.id).materialization.plan.tasks.length, 1);
+  const settled = await running;
+  assert.equal(settled.status, 'succeeded', JSON.stringify(settled.execution));
+});
+
 for (const winner of ['claim', 'expiry', 'baseline'])
   test(`expansion revalidates ${winner} after admission`, async (t) => {
     const f = await setup(t);

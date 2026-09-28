@@ -68,12 +68,13 @@ function validatePlan(state, plan) {
       contract.initial_files.some((f) => createHash('sha256').update(f.content).digest('hex') !== f.sha256)
     )
       reject('JOB_PLAN_INVALID');
+    const admittedAt = state.materialization?.boundaries?.find((boundary) => index < boundary.count)?.at ?? state.first_started_at;
     const expected = {
       kind: 'created',
       contract,
       contract_sha256: engineeringDigest(contract),
       session_id: created.session_id,
-      deadline: Math.min(state.execution_deadline_at, state.first_started_at + contract.limits.max_duration_ms),
+      deadline: Math.min(state.execution_deadline_at, admittedAt + contract.limits.max_duration_ms),
       responses: input.responses || [],
       ...(state.kind === 'task' && state.admission.binding ? { binding: state.admission.binding } : {}),
       ...(state.kind === 'task' && state.admission.selection ? { extensions: state.admission.selection } : {}),
@@ -314,6 +315,62 @@ class JobMaterializer {
     }
     return planSchema.parse({ schema_version: 1, control_directory: this.control.state, tasks, manifest });
   }
+  expansionPlan(state, command, definition, at) {
+    if (state.status !== 'running' || state.materialization?.phase !== 'ready' || !state.materialization.plan.manifest)
+      reject('JOB_EXPANSION_DENIED');
+    const old = state.materialization.plan;
+    const inputs = definition.tasks.slice(old.tasks.length);
+    if (inputs.length !== command.input.nodes.length) reject('JOB_PLAN_INVALID');
+    const stableUuid = (kind, id) => {
+      const hex = createHash('sha256').update(`${command.resource_id}\0${command.command_id}\0${kind}\0${id}`).digest('hex');
+      return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-5${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
+    };
+    const added = inputs.map((input) => {
+      const contract = hydrateProjectTask(input.contract);
+      return {
+        task_run_id: stableUuid('task', input.id),
+        created: {
+          kind: 'created',
+          contract,
+          contract_sha256: engineeringDigest(contract),
+          session_id: `session:${stableUuid('session', input.id)}`,
+          deadline: Math.min(state.execution_deadline_at, at + contract.limits.max_duration_ms),
+          responses: input.responses || [],
+        },
+      };
+    });
+    const tasks = [...old.tasks, ...added];
+    const hydrated = {
+      ...definition,
+      tasks: definition.tasks.map((input, index) => ({ ...input, contract: tasks[index].created.contract })),
+    };
+    const manifest = {
+      ...old.manifest,
+      definition: hydrated,
+      definition_sha256: engineeringDigest(hydrated),
+      tasks: tasks.map((entry, index) => ({
+        id: definition.tasks[index].id,
+        task_run_id: entry.task_run_id,
+        session_id: entry.created.session_id,
+      })),
+    };
+    return planSchema.parse({ schema_version: 1, control_directory: old.control_directory, tasks, manifest });
+  }
+  materializeExpansion(state, plan) {
+    const previousCount = state.materialization.plan.tasks.length;
+    for (const entry of plan.tasks.slice(previousCount)) {
+      const files = { 'engineering-task.json': JSON.stringify({ task_run_id: entry.task_run_id }) };
+      const directories = ['workspace'];
+      for (const name of entry.created.contract.scope.read) {
+        const parent = path.posix.dirname(name);
+        if (parent !== '.') directories.push(`workspace/${parent}`);
+      }
+      for (const file of entry.created.contract.initial_files) files[`workspace/${file.path}`] = file.content;
+      materializeProjectSnapshot(this.control.state, `jobs/${state.resource_id}/tasks/${entry.task_run_id}`, files, [
+        ...new Set(directories),
+      ]);
+    }
+  }
   #files(state) {
     const files = {},
       empty = [];
@@ -405,6 +462,11 @@ function resolveJobView(control, id) {
   if (plan.control_directory !== control.state) reject('JOB_PLAN_INVALID');
   validatePlan(state, plan);
   const mapping = mappings(state).find((entry) => entry.id === id);
+  const index = plan.tasks.findIndex((entry) => entry.task_run_id === id);
+  const planHash =
+    index === -1
+      ? state.materialization.original_plan_sha256 || state.materialization.plan_sha256
+      : state.materialization.boundaries?.find((boundary) => index < boundary.count)?.plan_sha256 || state.materialization.plan_sha256;
   if (
     !mapping ||
     !equal(binding, {
@@ -412,7 +474,7 @@ function resolveJobView(control, id) {
       job_id: state.resource_id,
       resource_kind: mapping.resource_kind,
       state_directory: mapping.state_directory,
-      plan_sha256: state.materialization.plan_sha256,
+      plan_sha256: planHash,
     }) ||
     !control.rows(id).some((row) => equal(row.payload, { ...binding, kind: 'registered' }))
   )
@@ -424,4 +486,11 @@ function resolveJobView(control, id) {
     taskId: id,
   };
 }
-module.exports = { JobMaterializer, projectJobMaterialization, assertPreparationOnly, assertJobExecutionDenied, resolveJobView };
+module.exports = {
+  JobMaterializer,
+  projectJobMaterialization,
+  validatePlan,
+  assertPreparationOnly,
+  assertJobExecutionDenied,
+  resolveJobView,
+};

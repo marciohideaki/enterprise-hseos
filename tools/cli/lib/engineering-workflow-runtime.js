@@ -152,24 +152,99 @@ function workflowSummary(handle, manifest, store) {
   };
 }
 
+function workflowStep(manifest, entry, created) {
+  return {
+    step_id: entry.id,
+    child_spec: engineeringSessionSpec(created, entry.task_run_id, manifest.parent_session_id),
+    turn_id: `turn:${entry.task_run_id}`,
+    message: {
+      role: 'user',
+      content: JSON.stringify({
+        sources: created.contract.sources,
+        requirements: created.contract.requirements,
+        acceptance: created.contract.acceptance,
+        scope: created.contract.scope,
+      }),
+    },
+  };
+}
+
+function workflowDefinitionFromPlan(plan, previous, oldCount = 0) {
+  const manifest = plan.manifest;
+  const parsed = parseEngineeringWorkflow(manifest.definition);
+  const byId = new Map(manifest.tasks.map((entry, index) => [entry.id, { entry, created: plan.tasks[index].created }]));
+  const phase = (ids, index) => ({
+    phase_id: `phase:${index}`,
+    mode: 'parallel',
+    steps: ids.map((id) => {
+      const value = byId.get(id);
+      return workflowStep(manifest, value.entry, value.created);
+    }),
+  });
+  if (!previous) {
+    return {
+      schema_version: 1,
+      workflow_id: manifest.definition.workflow_id,
+      subagent_provider_id: 'subagent:local',
+      max_parallelism: manifest.definition.max_parallelism,
+      join_timeout_ms: parsed.joinTimeout,
+      phases: parsed.phases.map(phase),
+    };
+  }
+  const newIds = new Set(manifest.tasks.slice(oldCount).map((entry) => entry.id));
+  const remaining = new Set(newIds);
+  const completed = new Set(manifest.tasks.slice(0, oldCount).map((entry) => entry.id));
+  const appended = [];
+  while (remaining.size > 0) {
+    const ready = manifest.definition.tasks.filter((task) => remaining.has(task.id) && task.depends_on.every((id) => completed.has(id)));
+    if (ready.length === 0) throw new Error('Workflow expansion dependency cycle');
+    appended.push(
+      phase(
+        ready.map((task) => task.id),
+        previous.phases.length + appended.length,
+      ),
+    );
+    for (const task of ready) {
+      remaining.delete(task.id);
+      completed.add(task.id);
+    }
+  }
+  return {
+    ...previous,
+    join_timeout_ms: Math.max(previous.join_timeout_ms, parsed.joinTimeout),
+    phases: [...previous.phases, ...appended],
+  };
+}
+
 function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
   const assemblies = new Map();
-  for (const entry of manifest.tasks) {
+  const attach = (entry) => {
+    if (assemblies.has(entry.session_id)) return assemblies.get(entry.session_id);
     const task = new EngineeringTaskState(handle.db, entry.task_run_id);
     const childHandle = { db: handle.db, directory: path.join(handle.directory, 'tasks', entry.task_run_id) };
-    assemblies.set(entry.session_id, {
+    const child = {
       id: entry.id,
       handle: childHandle,
       task,
       assembly: assembleEngineeringTask(childHandle, task.read().created, modelOptions),
-    });
-  }
+    };
+    assemblies.set(entry.session_id, child);
+    return child;
+  };
+  for (const entry of manifest.tasks) attach(entry);
+  const resolveAssembly = (sessionId) => {
+    if (assemblies.has(sessionId)) return assemblies.get(sessionId);
+    if (!modelOptions.jobControl) return null;
+    const current = modelOptions.jobControl.jobs.query(modelOptions.jobId);
+    const entry = current.materialization.plan.manifest.tasks.find((item) => item.session_id === sessionId);
+    return entry ? attach(entry) : null;
+  };
   const first = assemblies.values().next().value.assembly;
   const store = first.sessionStore;
   const resolveChild = (sessionStore, sessionId) => {
     const sessionOutcome = terminalChild(sessionStore, sessionId);
     if (!sessionOutcome) return null;
-    const child = assemblies.get(sessionId);
+    const child = resolveAssembly(sessionId);
     if (!child) return sessionOutcome;
     const task = child.task.read();
     if (!task.result) return null;
@@ -187,7 +262,7 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
     },
     dispose: (input) => first.runtime.dispose(input),
     async send(input) {
-      const child = assemblies.get(input.session_id);
+      const child = resolveAssembly(input.session_id);
       if (!child) throw new Error('Workflow controller does not execute model turns');
       const created = child.task.read().created;
       try {
@@ -228,7 +303,7 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
       }
     },
     async cancel(input) {
-      const child = assemblies.get(input.session_id);
+      const child = resolveAssembly(input.session_id);
       if (!child) return first.runtime.cancel(input);
       const state = child.task.read();
       if (!state.result && !state.cancellation) child.task.append({ kind: 'cancellation_requested' }, state.version);
@@ -258,37 +333,10 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
     workflow_engines: new Map([['workflow:local', engine]]),
     max_settlement_ms: 10_000,
   });
-  const byId = new Map(manifest.tasks.map((task) => [task.id, task]));
-  const parsed = parseEngineeringWorkflow(manifest.definition);
-  const workflow = {
-    schema_version: 1,
-    workflow_id: manifest.definition.workflow_id,
-    subagent_provider_id: 'subagent:local',
-    max_parallelism: manifest.definition.max_parallelism,
-    join_timeout_ms: parsed.joinTimeout,
-    phases: parsed.phases.map((ids, index) => ({
-      phase_id: `phase:${index}`,
-      mode: 'parallel',
-      steps: ids.map((id) => {
-        const entry = byId.get(id);
-        const created = assemblies.get(entry.session_id).task.read().created;
-        return {
-          step_id: id,
-          child_spec: engineeringSessionSpec(created, entry.task_run_id, manifest.parent_session_id),
-          turn_id: `turn:${entry.task_run_id}`,
-          message: {
-            role: 'user',
-            content: JSON.stringify({
-              sources: created.contract.sources,
-              requirements: created.contract.requirements,
-              acceptance: created.contract.acceptance,
-              scope: created.contract.scope,
-            }),
-          },
-        };
-      }),
-    })),
-  };
+  const workflow = workflowDefinitionFromPlan({
+    manifest,
+    tasks: manifest.tasks.map((entry) => ({ created: assemblies.get(entry.session_id).task.read().created })),
+  });
   return {
     store,
     runtime,
@@ -616,6 +664,8 @@ async function executeJobWorkflow(control, id) {
     extensionCatalog: control.extensionCatalog,
     campaigns: control.providerCampaigns,
     resourceId: id,
+    jobControl: control,
+    jobId: id,
   });
   let cancellation;
   const check = () => {
@@ -652,3 +702,4 @@ async function executeJobWorkflow(control, id) {
   }
 }
 module.exports.executeJobWorkflow = executeJobWorkflow;
+module.exports.workflowDefinitionFromPlan = workflowDefinitionFromPlan;

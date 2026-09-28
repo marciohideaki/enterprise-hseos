@@ -329,5 +329,21 @@ preexistente de placeholders. Uma corrida de cancelamento no despacho de workflo
 foi reproduzida e corrigida: filho não iniciado termina `not_executed`, e a
 reserva observa o cancelamento durável. O cenário passou em 20 repetições
 isoladas; a cobertura final crítica segue acima de 90%/80% em Node 22/24.
-Hook e integração desta task ainda pendentes. A drenagem antes de `cancelled` é
+Hook Node 24 passou; commit `15719b4b`, integração `1e90d2b0`. A drenagem antes de `cancelled` é
 escopo W4-04b. Sem merge na foundation, gasto novo ou ativação operacional.
+
+### W4-04a2c em implementação
+
+A expansão running acrescenta planos de filhos com IDs estáveis e prazo limitado
+pelo deadline original do pai. Duas revisões sucessivas sobreviveram à
+reabertura; falha injetada no append do job reverteu a revisão da sessão e os
+registros dos filhos. Cancelamento que vence a admissão não publica revisão nem
+despacha filho novo. Cobertura integral passou em Node 22 oficial e Node 24,
+sem falhas nem skips. Após revisão cética, a comparação da definição revisada
+normaliza apenas o JSON das mensagens novas; a serialização histórica das
+definições iniciais foi preservada. Cobertura dos três arquivos críticos ficou
+acima de 98,7% das linhas e 85% dos branches. Gates integrais finais passaram:
+Node 22 com zero avisos e Node 24 com um aviso preexistente de placeholders.
+Pacote permanece com 1.457 entradas. O encerramento `uncertain` de trabalho
+antigo em uma corrida e a drenagem transitiva continuam pendentes para W4-04b.
+Hook de commit e integração à feature seguem pendentes neste registro.
