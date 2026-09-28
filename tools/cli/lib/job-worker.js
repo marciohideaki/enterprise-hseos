@@ -136,7 +136,7 @@ class JobWorker {
   }
   unmaterialized(state) {
     // This queue-only recovery cannot certify effects owned by the execution aggregate.
-    if (this.control.rows(state.resource_id).length > 0) reject('JOB_OUTCOME_UNCERTAIN');
+    if (this.control.rows(state.resource_id).length > 0) require('./job-materialization').assertPreparationOnly(this.control, state);
   }
   campaign(state) {
     const pin = state.admission.plugin_model;

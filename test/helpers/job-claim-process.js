@@ -4,12 +4,29 @@ const fs = require('node:fs');
 const { spawn } = require('node:child_process');
 const { createResourceGroup } = require('../../packages/agent-isolation-attestation/executor');
 let control;
-process.on('message', async ({ state, root, command, now, survivor, foreignGroup }) => {
+process.on('message', async ({ state, root, command, now, survivor, foreignGroup, materialize, preparationFault }) => {
   if (foreignGroup) fs.writeFileSync(foreignGroup + '/cgroup.procs', String(process.pid));
   control = new EngineeringControl({ state, workspaces: [root] });
   control.jobs.now = () => now;
   try {
-    const result = await control.jobs.worker.execute(command);
+    let result = await control.jobs.worker.execute(command);
+    if (materialize) {
+      const runtime = require('../../tools/cli/lib/engineering-task-runtime');
+      const initialize = runtime.initializeJobSession;
+      if (preparationFault)
+        runtime.initializeJobSession = async (...args) => {
+          if (preparationFault === 'after-session') await initialize(...args);
+          throw new Error(`injected-${preparationFault}`);
+        };
+      result = await control.jobs.materializer.execute({
+        schema_version: 1,
+        command_id: materialize,
+        resource_id: command.resource_id,
+        expected_sequence: result.current_sequence,
+        fence: result.fence,
+        action: 'materialize',
+      });
+    }
     let group, pid;
     if (survivor) {
       group = createResourceGroup();

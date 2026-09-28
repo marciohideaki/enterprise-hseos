@@ -95,6 +95,120 @@ function hydrateProjectTask(contract) {
 
 module.exports = { projectWorkspaceSnapshot, hydrateProjectTask };
 
+/** Finish an exact preparation snapshot without following links or overwriting divergent bytes. */
+function materializeProjectSnapshot(root, relative, files, emptyDirectories = []) {
+  const valid = (value) => /^[a-zA-Z0-9_][a-zA-Z0-9._-]*(?:\/[a-zA-Z0-9_][a-zA-Z0-9._-]*)*$/.test(value);
+  if (!valid(relative) || Object.keys(files).some((name) => !valid(name)) || emptyDirectories.some((name) => !valid(name)))
+    throw new Error('Invalid preparation path');
+  if (fs.realpathSync(root) !== root) throw new Error('Unsafe preparation root');
+  const opened = new Map();
+  const identities = new Map();
+  const same = (a, b) => a.ino === b.ino && a.dev === b.dev;
+  const directory = (name) => {
+    if (opened.has(name)) return opened.get(name);
+    const parts = name.split('/');
+    const parent = name ? directory(parts.slice(0, -1).join('/')) : null;
+    const target = name ? `/proc/self/fd/${parent}/${parts.at(-1)}` : root;
+    if (name) {
+      try {
+        fs.mkdirSync(target, { mode: 0o700 });
+      } catch (error) {
+        if (error.code !== 'EEXIST') throw error;
+      }
+    }
+    const fd = fs.openSync(target, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_DIRECTORY);
+    opened.set(name, fd);
+    const stat = fs.fstatSync(fd);
+    if (stat.uid !== process.getuid()) throw new Error('Preparation directory owner changed');
+    identities.set(name, stat);
+    return fd;
+  };
+  const names = Object.keys(files);
+  const expectedDirectories = new Set(['', ...emptyDirectories]);
+  for (const name of [...names, ...emptyDirectories]) {
+    const parts = name.split('/');
+    for (let i = 1; i < parts.length; i++) expectedDirectories.add(parts.slice(0, i).join('/'));
+  }
+  const fileIdentities = new Map();
+  const validateFile = (name, create) => {
+    const bytes = Buffer.from(files[name], 'utf8');
+    const parts = name.split('/');
+    const parent = directory([relative, ...parts.slice(0, -1)].join('/'));
+    const filename = `/proc/self/fd/${parent}/${parts.at(-1)}`;
+    let fd;
+    try {
+      if (create) {
+        try {
+          fd = fs.openSync(filename, fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_WRONLY | fs.constants.O_NOFOLLOW, 0o600);
+          fs.writeFileSync(fd, bytes);
+          fs.fsyncSync(fd);
+          fs.closeSync(fd);
+          fd = undefined;
+        } catch (error) {
+          if (error.code !== 'EEXIST') throw error;
+        }
+      }
+      fd = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK);
+      const before = fs.fstatSync(fd);
+      if (
+        !before.isFile() ||
+        before.nlink !== 1 ||
+        before.uid !== process.getuid() ||
+        before.size !== bytes.length ||
+        (fileIdentities.has(name) && !same(fileIdentities.get(name), before))
+      )
+        throw new Error('Preparation file identity or size changed');
+      const actual = Buffer.alloc(bytes.length + 1);
+      const count = fs.readSync(fd, actual, 0, actual.length, 0);
+      const after = fs.fstatSync(fd),
+        linked = fs.lstatSync(filename);
+      if (
+        count !== bytes.length ||
+        !actual.subarray(0, count).equals(bytes) ||
+        after.mtimeMs !== before.mtimeMs ||
+        after.ctimeMs !== before.ctimeMs ||
+        !same(linked, before) ||
+        linked.isSymbolicLink()
+      )
+        throw new Error('Preparation file changed');
+      // A previous process may have died after writing but before syncing this file.
+      fs.fsyncSync(fd);
+      fileIdentities.set(name, before);
+    } finally {
+      if (fd !== undefined) fs.closeSync(fd);
+    }
+  };
+  try {
+    directory(relative);
+    for (const name of expectedDirectories) directory(name ? `${relative}/${name}` : relative);
+    for (const name of names) validateFile(name, true);
+    for (const prefix of expectedDirectories) {
+      const fd = directory(prefix ? `${relative}/${prefix}` : relative);
+      const expected = [...names, ...expectedDirectories]
+        .filter((name) => name && path.posix.dirname(name) === (prefix || '.'))
+        .map((name) => path.posix.basename(name))
+        .sort();
+      const actual = fs.readdirSync(`/proc/self/fd/${fd}`).sort();
+      if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error('Preparation entries changed');
+    }
+    for (const name of names) validateFile(name, false);
+    // Check every anchored directory, including intermediates outside the snapshot.
+    for (const [name, fd] of [...opened].toReversed()) {
+      const parts = name.split('/');
+      const target = name ? `/proc/self/fd/${opened.get(parts.slice(0, -1).join('/'))}/${parts.at(-1)}` : root;
+      const linked = fs.lstatSync(target);
+      if (!linked.isDirectory() || linked.isSymbolicLink() || !same(linked, identities.get(name)))
+        throw new Error('Preparation directory changed');
+      fs.fsyncSync(fd);
+    }
+    if (fs.realpathSync(root) !== root) throw new Error('Preparation root changed');
+    return path.join(root, relative);
+  } finally {
+    for (const fd of [...opened.values()].toReversed()) fs.closeSync(fd);
+  }
+}
+module.exports.materializeProjectSnapshot = materializeProjectSnapshot;
+
 function projectPatch(contract, files) {
   const originals = new Map(contract.initial_files.map((file) => [file.path, file.content]));
   const block = (content, prefix) => {

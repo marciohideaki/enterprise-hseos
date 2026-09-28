@@ -1,0 +1,18 @@
+{
+  "before": {
+    "entries": 1452,
+    "bytes": 9086345
+  },
+  "after": {
+    "entries": 1454,
+    "bytes": 9116864
+  },
+  "added": [
+    "tools/cli/lib/job-materialization.js",
+    "tools/mcp-project-state/migrations-pending-activation/014-job-materialization-events.sql"
+  ],
+  "removed": [],
+  "authorized_limit": 1454,
+  "proposed_limit": 1454,
+  "authorization": "Owner response: Prossiga at\u00e9 o fechamento da W4, following explicit 1452 to 1454 approval request"
+}

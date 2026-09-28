@@ -11,6 +11,7 @@ const BASE_MIGRATIONS_DIR = path.join(__dirname, '..', 'migrations');
 const FIXTURE_PREFIX = 'hseos-ledger-fixture-';
 const FIXTURE_MARKER = '.hseos-ledger-fixture.json';
 const FIXTURE_DATABASE = 'ledger.sqlite';
+const fixtureIdentities = new WeakMap();
 
 class ExecutionLedgerActivationError extends Error {
   constructor(databaseName) {
@@ -78,7 +79,23 @@ function assertTemporaryFixtureDirectory(directory) {
   return { directory: canonical, filename };
 }
 
-function fixtureHandle(db, directory, filename) {
+/** Validate a workspace view against the containing fixture without opening another ledger. */
+function assertExecutionLedgerView(db, directory) {
+  const resolved = fs.realpathSync(directory);
+  const relative = path.relative(fs.realpathSync(os.tmpdir()), resolved);
+  const root = path.join(fs.realpathSync(os.tmpdir()), relative.split(path.sep)[0]);
+  const fixture = assertTemporaryFixtureDirectory(root);
+  const identity = db && fixtureIdentities.get(db);
+  const current = fs.lstatSync(fixture.filename);
+  if (!identity || db.name !== fixture.filename || identity.ino !== current.ino || identity.dev !== current.dev)
+    throw Object.assign(new Error('JOB_LEDGER_MISMATCH'), { code: 'JOB_LEDGER_MISMATCH' });
+  return { directory: resolved, filename: fixture.filename };
+}
+
+function fixtureHandle(db, directory, filename, identity = fs.lstatSync(filename)) {
+  const current = fs.lstatSync(filename);
+  if (identity.ino !== current.ino || identity.dev !== current.dev) throw new ExecutionLedgerActivationError(filename);
+  fixtureIdentities.set(db, { ino: identity.ino, dev: identity.dev });
   return {
     db,
     directory,
@@ -119,6 +136,7 @@ function createExecutionLedgerFileFixture() {
 
 function openExecutionLedgerFileFixture(directory) {
   const fixture = assertTemporaryFixtureDirectory(directory);
+  const identity = fs.lstatSync(fixture.filename);
   const db = new Database(fixture.filename);
   try {
     db.pragma('foreign_keys = ON');
@@ -132,15 +150,16 @@ function openExecutionLedgerFileFixture(directory) {
         .map((row) => row.name),
     );
     if (requiredTables.some((name) => !tables.has(name))) throw new ExecutionLedgerActivationError(fixture.filename);
+    return fixtureHandle(db, fixture.directory, fixture.filename, identity);
   } catch (error) {
     db.close();
     throw error;
   }
-  return fixtureHandle(db, fixture.directory, fixture.filename);
 }
 
 module.exports = {
   assertTemporaryFixtureDirectory,
+  assertExecutionLedgerView,
   applyExecutionLedgerFixtureSchema,
   createExecutionLedgerFileFixture,
   openExecutionLedgerFileFixture,

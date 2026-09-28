@@ -130,6 +130,7 @@ class TerminalControl {
     return { resource_id: id, events: rows, next_cursor: rows.at(-1)?.stream_sequence || after };
   }
   parent(taskId) {
+    require('./job-materialization').assertJobExecutionDenied(this.control.handle.db, taskId);
     if (this.control.kind(taskId) !== 'task') reject('CONTROL_TERMINAL_PARENT_DENIED');
     const directory = this.control.location(taskId);
     const handle = openExecutionLedgerFileFixture(directory);

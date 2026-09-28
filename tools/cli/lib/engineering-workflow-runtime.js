@@ -584,6 +584,7 @@ async function inspectEngineeringWorkflow({
 }
 
 module.exports = {
+  readEngineeringWorkflowView: workflowSummary,
   parseEngineeringWorkflow,
   migrateEngineeringWorkflow,
   readEngineeringWorkflow: readDefinitionFile,

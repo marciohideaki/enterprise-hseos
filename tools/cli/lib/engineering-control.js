@@ -159,6 +159,29 @@ class EngineeringControl {
   }
   async query(id, action = 'status') {
     if (!['status', 'evidence', 'review', 'session'].includes(action)) throw new ControlError('CONTROL_QUERY_UNKNOWN');
+    const jobView = require('./job-materialization').resolveJobView(this, id);
+    if (jobView) {
+      if (action === 'review') throw new ControlError('CONTROL_VIEW_UNAVAILABLE');
+      const { RelationalSessionEventStore } = require('../../../packages/agent-session-store');
+      const store = new RelationalSessionEventStore({ ledger: this.ledger });
+      const value = jobView.manifest
+        ? require('./engineering-workflow-runtime').readEngineeringWorkflowView(jobView.handle, jobView.manifest, store)
+        : require('./engineering-task-runtime').readEngineeringTaskView(jobView.handle, id, action === 'evidence');
+      if (action === 'session') {
+        const session = store.replay(value.session_id);
+        return {
+          resource_id: id,
+          session_id: session.session_id,
+          status: session.status,
+          current_sequence: session.current_sequence,
+          terminal_event: session.terminal_event,
+          cancellation_request: session.cancellation_request,
+          children: session.children,
+        };
+      }
+      const { state: _state, ...publicValue } = value;
+      return { ...publicValue, resource_id: id };
+    }
     const workflow = this.kind(id) === 'workflow';
     if (workflow && action === 'review') throw new ControlError('CONTROL_VIEW_UNAVAILABLE');
     const value = await (workflow ? inspectEngineeringWorkflow : inspectEngineeringTask)({
@@ -188,6 +211,20 @@ class EngineeringControl {
     return { ...publicValue, resource_id: id };
   }
   events(id, { after = 0, limit = 100 } = {}) {
+    const jobView = require('./job-materialization').resolveJobView(this, id);
+    if (jobView) {
+      const plan = jobView.state.materialization.plan;
+      const tasks = jobView.manifest ? plan.tasks : plan.tasks.filter((entry) => entry.task_run_id === id);
+      const aggregates = new Set([
+        id,
+        ...tasks.flatMap((entry) => [entry.task_run_id, entry.created.session_id]),
+        ...(jobView.manifest ? [plan.manifest.parent_session_id] : []),
+      ]);
+      // A shared control ledger contains unrelated resources; never return those rows.
+      const batch = this.ledger.readGlobal({ after_position: after, limit });
+      const events = batch.filter((row) => aggregates.has(row.aggregate_id));
+      return { resource_id: id, events, next_cursor: batch.at(-1)?.position || after };
+    }
     const handle = openExecutionLedgerFileFixture(this.location(id));
     try {
       const events = new ExecutionEventLedger(handle.db).readGlobal({ after_position: after, limit });
@@ -252,6 +289,7 @@ class EngineeringControl {
   }
   async execute(raw) {
     const command = commandSchema.parse(raw);
+    require('./job-materialization').assertJobExecutionDenied(this.handle.db, command.resource_id);
     const input = inputs[command.action].parse(command.input);
     const digest = engineeringDigest(command);
     let rows = this.rows(command.resource_id);

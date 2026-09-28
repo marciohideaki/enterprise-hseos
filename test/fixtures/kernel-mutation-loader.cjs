@@ -5,6 +5,9 @@ const path = require('node:path');
 const Module = require('node:module');
 
 const mutations = {
+  job_ledger: ['tools/mcp-project-state/lib/execution-ledger-schema.js',
+    'if (!identity || db.name !== fixture.filename || identity.ino !== current.ino || identity.dev !== current.dev)', 'if (false)'],
+  job_preparation: ['tools/cli/lib/job-materialization.js', 'task.version > 1 ||', 'false ||'],
   authority: ['packages/agent-policy-lattice/index.js', 'if (widened.length > 0)', 'if (false)'],
   budget: ['packages/agent-policy-lattice/index.js', 'if (requestedLimit > parentLimit)', 'if (false)'],
   recovery: ['packages/agent-session-store/replay.js', "execution.outcome?.status !== 'uncertain'", 'false'],

@@ -566,6 +566,16 @@ test('job claim consults original campaign without reserving and rejects cancell
   await create(f.resourceId);
   const before = f.control.providerCampaigns.events(f.campaignId);
   assert.equal((await claim(f.resourceId)).status, 'claimed');
+  const prepared = await jobs.materializer.execute({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: f.resourceId,
+    expected_sequence: 2,
+    fence: 1,
+    action: 'materialize',
+  });
+  assert.equal(prepared.materialization.phase, 'ready');
+  assert.equal(prepared.materialization.plan.tasks[0].created.plugin_model.campaign_id, f.campaignId);
   assert.deepEqual(f.control.providerCampaigns.events(f.campaignId), before);
   assert.equal(f.launches, 0);
   await create(f.secondId);

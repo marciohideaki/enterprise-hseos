@@ -6,6 +6,8 @@ const { spawnSync } = require('node:child_process');
 const { test } = require('node:test');
 
 const cases = [
+  ['job_ledger', 'test/test-job-materialization.js', 'a second ledger cannot assemble capabilities'],
+  ['job_preparation', 'test/test-job-materialization.js', 'possible task activity blocks completion'],
   ['authority', 'test/test-agent-policy-lattice.js', 'child agents can narrow but cannot widen parent authority'],
   ['budget', 'test/test-agent-policy-lattice.js', 'child agents can narrow but cannot widen parent authority'],
   ['recovery', 'test/test-agent-runtime.js', 'reconciliation retains uncertain evidence'],

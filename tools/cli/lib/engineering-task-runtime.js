@@ -71,6 +71,7 @@ function getEngineeringModelManifest() {
 }
 
 function assemble(handle, created, { environment, fetchImpl, extensionCatalog = {}, campaigns, resourceId } = {}) {
+  require('../../mcp-project-state/lib/execution-ledger-schema').assertExecutionLedgerView(handle.db, handle.directory);
   const { contract, responses, session_id: sessionId, deadline } = created;
   const extensions = created.extensions
     ? createTaskExtensions({
@@ -548,6 +549,7 @@ async function runEngineeringTask({
 }
 
 async function executeTask(handle, task, assembly, created, verificationOnly = false, sendInput = null) {
+  require('./job-materialization').assertJobExecutionDenied(handle.db, task.id);
   const { contract } = created;
   const before = task.read();
   if (before.started && (!verificationOnly || isExecutorOwnerAlive(before.owner))) throw new Error('Task execution is already claimed');
@@ -688,6 +690,7 @@ async function inspectEngineeringTask({
         verification: state.result || null,
       };
     if (action === 'status' || (state.result && action !== 'reconcile')) return summary(handle, id, task);
+    require('./job-materialization').assertJobExecutionDenied(handle.db, id);
     if (state.created.plugin_model)
       require('./engineering-plugin-model').assertTaskPluginControl({
         pin: state.created.plugin_model,
@@ -792,7 +795,59 @@ module.exports = {
   inspectEngineeringTask,
   createEngineeringTaskWorkspace,
   engineeringSessionSpec,
-  assembleEngineeringTask: assemble,
+  assembleEngineeringTask(handle, created, options) {
+    require('./job-materialization').assertJobExecutionDenied(handle.db, readIdentity(handle.directory), {
+      directory: handle.directory,
+      sessionId: created.session_id,
+    });
+    return assemble(handle, created, options);
+  },
+  initializeJobSession,
+  readEngineeringTaskView(handle, id, evidence = false) {
+    const task = new EngineeringTaskState(handle.db, id);
+    const state = task.read();
+    return {
+      ...summary(handle, id, task),
+      ...(evidence ? { contract: state.created.contract, artifacts: state.snapshot || null, verification: state.result || null } : {}),
+    };
+  },
   attestEngineeringExecutor: attestExecutor,
   executeEngineeringTask: executeTask,
 };
+
+/** Closed preparation path: never exposes a runtime capable of dispatch. */
+async function initializeJobSession(control, jobId) {
+  const state = control.jobs.query(jobId);
+  if (
+    state.status !== 'claimed' ||
+    state.materialization?.phase !== 'planned' ||
+    engineeringDigest(state.owner) !== engineeringDigest(executorOwner()) ||
+    control.jobs.now() >= state.execution_deadline_at
+  )
+    throw Object.assign(new Error('JOB_DISPATCH_REQUIRED'), { code: 'JOB_DISPATCH_REQUIRED' });
+  require('./job-materialization').assertPreparationOnly(control, state);
+  const plan = state.materialization.plan;
+  const first = plan.tasks[0];
+  const directory = path.join(control.state, 'jobs', jobId, ...(plan.manifest ? ['tasks', first.task_run_id] : []));
+  const assembly = assemble({ db: control.handle.db, directory }, first.created, {
+    extensionCatalog: control.extensionCatalog,
+    campaigns: control.providerCampaigns,
+    resourceId: jobId,
+  });
+  try {
+    const spec = engineeringSessionSpec(first.created, first.task_run_id);
+    if (plan.manifest) {
+      spec.session_id = plan.manifest.parent_session_id;
+      spec.limits = plan.manifest.definition.limits;
+      spec.metadata = {
+        profile_id: 'engineering-workflow-candidate',
+        definition_sha256: plan.manifest.definition_sha256,
+        manifest_sha256: engineeringDigest(plan.manifest),
+        operational: false,
+      };
+    }
+    return await assembly.runtime.create({ schema_version: 1, command: 'create', spec });
+  } finally {
+    await settleTaskOwners([assembly.tools.drain(), assembly.modelConnection?.close(), assembly.extensions?.close()]);
+  }
+}

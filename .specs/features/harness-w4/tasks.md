@@ -177,25 +177,34 @@ o validador de grafo não substitui campanha real. Indisponibilidade mantém ace
 - verify_step.expected: exit 0, zero falhas/skips; evidência ligada à revisão.
 - verify_step.on_failure: diagnosticar e corrigir; causa desconhecida bloqueia task.
 
-## W4-03c — Materializar recurso idempotente e preparar estado persistente
+## W4-03c — Materializar recursos idempotentes no ledger compartilhado
 
 - execution_mode: isolated
 - scope: Medium
 - dependencies: W4-03b
-- input_contract.files:
-  - `.specs/features/harness-w4/design.md`
-  - `tools/mcp-project-state/lib/execution-ledger-schema.js`
-  - `tools/cli/lib/engineering-task-runtime.js`
-  - `tools/cli/lib/engineering-workflow-runtime.js`
+- implementation_contract: [job-materialization-implementation.md](job-materialization-implementation.md)
+- input_contract.files: `job-worker.js`, `engineering-control.js`, `engineering-task-runtime.js`, `engineering-workflow-runtime.js` em `tools/cli/lib/`; ledger e isolamento existentes.
 - output_contract.files:
-  - `tools/cli/lib/job-worker.js`
-  - `tools/cli/lib/engineering-control.js`
-  - `tools/cli/lib/engineering-task-runtime.js`
-  - `tools/cli/lib/engineering-workflow-runtime.js`
-  - `tools/mcp-project-state/lib/execution-ledger-schema.js`
-  - `test/test-job-faults.js`
+  - `tools/cli/lib/job-materialization.js`
+  - `tools/cli/lib/{job-control,job-worker,engineering-control,engineering-task-runtime,engineering-task-state,engineering-workflow-runtime,engineering-workspace,terminal-control}.js`
+  - `tools/mcp-project-state/migrations-pending-activation/014-job-materialization-events.sql`
+  - `test/test-job-materialization.js`
+  - `test/test-engineering-workspace.js`
   - `docs/evolution/w4/STATE-LIFECYCLE.md`
-- acceptance_criteria: Crash antes/depois de criação recupera mesmo ID; backup/restore preservam identidade; sem ativação operacional.
+  - `docs/evolution/w4/evidence/job-materialization/*`
+- acceptance_criteria: Intenção fixa IDs antes dos arquivos; crash parcial retoma mesmos IDs/prazos; registro final e recibo atômicos; views readonly compartilham ledger; entradas antigas de efeito bloqueadas desde preparação.
+- verify_step.command: `node --test --test-concurrency=1 test/test-job-materialization.js test/test-job-recovery.js test/test-engineering-workspace.js`
+- verify_step.expected: exit 0, zero falhas/skips; evidência ligada à revisão.
+- verify_step.on_failure: diagnosticar e corrigir; causa desconhecida bloqueia task.
+
+## W4-03d — Integrar despacho, settlement e recuperação ao serviço
+
+- execution_mode: isolated
+- scope: Medium
+- dependencies: W4-03c
+- input_contract.files: Contratos W4 de jobs; serviço EngineeringControl; JobWorker/JobMaterializer; runtime task/workflow e campanha existentes.
+- output_contract.files: serviço e worker existentes; `test/test-job-faults.js`; `docs/evolution/w4/STATE-LIFECYCLE.md`; evidência de worker/backup/restore.
+- acceptance_criteria: Polling com concorrência padrão1; elegibilidade antes do primeiro efeito; despacho exige claim/fence/admissão/reserva; settlement exige aceite; crash antes/depois efeito não repete incerteza; cancelamento drena árvore; backup/restore preservam identidade; sem ativação operacional.
 - verify_step.command: `node --test --test-concurrency=1 test/test-job-faults.js`
 - verify_step.expected: exit 0, zero falhas/skips; evidência ligada à revisão.
 - verify_step.on_failure: diagnosticar e corrigir; causa desconhecida bloqueia task.
@@ -204,7 +213,7 @@ o validador de grafo não substitui campanha real. Indisponibilidade mantém ace
 
 - execution_mode: isolated
 - scope: Medium
-- dependencies: W4-03c
+- dependencies: W4-03d
 - input_contract.files:
   - `.specs/features/harness-w4/design.md`
   - `tools/cli/lib/engineering-workflow-runtime.js`

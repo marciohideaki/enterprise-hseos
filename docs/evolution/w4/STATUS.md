@@ -1,6 +1,6 @@
 # W4 — estado de execução
 
-Tipo: evidência de progresso, 2026-09-27. Base 32eaef2; upstream
+Tipo: evidência de progresso, atualizado em 2026-09-28. Base 32eaef2; upstream
 feature/hseos-evolution-foundation; feature/hseos-evolution-w4.
 Governança: Constituição §§2.6/5/7, AGENTS.md, ADR-0045 Proposed.
 
@@ -26,7 +26,9 @@ ativação continuam pendentes. Contratos prontos para W4-02a.
 | Etapa         | Determinístico        | Consumidor real | Ativação       |
 | ------------- | --------------------- | --------------- | -------------- |
 | W4-01         | contratos verificados | não aplicável   | não autorizada |
-| W4-02 a W4-06 | pendente              | pendente        | não autorizada |
+| W4-02         | implementado e testado localmente | pendente | não autorizada |
+| W4-03         | 03a/03b integradas; 03c/03d pendentes | pendente | não autorizada |
+| W4-04 a W4-06 | pendente | pendente | não autorizada |
 | W4-07         | pendente              | pendente        | não autorizada |
 | W4-08         | pendente              | pendente        | não autorizada |
 
@@ -204,3 +206,26 @@ e gate integral pendentes; falhas históricas mantidas sem reclassificação.
 Após autorização, pacote passou Node24/22. Gate integral Node24 PASS exit0,
 zero falhas/um aviso de template. Log também registra Broken pipe no scanner
 de higiene; não se afirma log sem diagnósticos. Conformance passou. Hook pendente.
+
+W4-03b commit9a5129a: hook PASS exit0, integrado na feature. Recibo do hook
+anexado à task03c. Materialização em andamento; dispatcher permanece03d.
+
+W4-03c em validação: materialização partilha ledger e conserva IDs/snapshot/prazo;
+registro atômico, views readonly e bloqueio das entradas antigas. Revisão isolada
+fechou falhas de filesystem, manifesto alterável e ledger trocado; pin de inode
+acrescentado. Run final de kernel/cobertura Node24 em andamento, Node22 pendente.
+Falhas intermediárias e correções preservadas em evidence/job-materialization/REVIEW.md.
+Nenhum critério integral de W4 é declarado concluído por esta unidade.
+
+W4-03c Node22:776/776PASS, sem skips; pós-check44/44 em22 e24. Dezcríticos
+acima90/80 nasduasversões. GatepacoteFAIL emambas:1454entradas>1452;9.12MB<22MB.
+Novo inventário somente job-materialization.js e migration014. Aprovação1454
+solicitada ao usuário e pendente; thresholdintacto, semgateintegral/commit03c.
+Recibo: evidence/job-materialization/receipt.json. Despacho e restanteW4 pendentes.
+
+### W4-03c — autorização e gate integral
+
+Responsável autorizou prosseguir após solicitação explícita1452→1454. Limite aplicado;
+22MB e exclusões de estado/segredos mantidos. Pacote passou em Node22/24. Gate integral
+Node24 passou (exit0,zero falhas,um aviso preexistente de placeholders). Commit governado
+e integração na feature são os próximos passos; W4 integral permanece em andamento.
