@@ -28,3 +28,5 @@ de todos os descendentes; elegível = horário/dependências/admissão permitem 
 - [Despacho e encerramento de jobs](job-dispatch-implementation.md) — W4-03d.
 
 - [Revisões de workflow antes do claim](workflow-revisions-implementation.md) — W4-04a1.
+
+- [Revisões da reserva de sessão](workflow-reservations-implementation.md) — W4-04a2a.

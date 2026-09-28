@@ -237,6 +237,19 @@ Contrato detalhado: [job-dispatch-implementation.md](job-dispatch-implementation
   forma durável e revisões reconhecidas pelo engine, sem renumerar checkpoints.
   Pins de modelos/extensões por nó permanecem pendentes até integração própria.
 
+### W4-04a2a — Persistir revisões da reserva de sessão
+
+- execution_mode: isolated
+- dependencies: W4-04a1 (6f0129af; integração2395d845)
+- input_contract.files: `workflow-reservations-implementation.md`, `packages/agent-runtime-contracts/orchestration-contracts.js`, `packages/agent-session-store/session-event-store.js`.
+- output_contract.files: `packages/agent-runtime-contracts/event-contracts.js`, `packages/agent-session-store/replay.js`, `packages/agent-orchestration/workflow-engine.js`, `test/test-workflow-reservations.js`, `package.json`, intake/evidência/STATUS.
+- acceptance_criteria: revisão append-only com claim/CAS; tetos originais; checkpoints preservados; v1 compatível; engine recusa consumo prematuro sem efeito.
+- verify_step.command: `node --test --test-concurrency=1 test/test-workflow-reservations.js test/test-agent-session-store.js test/test-agent-runtime-contracts.js test/test-agent-orchestration.js`
+- verify_step.expected: exit0, zero falhas/skips; cobertura90/80 por crítico, Node22/24 sequenciais.
+- verify_step.on_failure: diagnosticar e corrigir; causa desconhecida bloqueia task.
+
+W4-04a2b integra revisões no engine. W4-04a2c integra admissão running e materialização incremental de filhos. Ambas dependem desta unidade; comandos running continuam recusados até integração completa.
+
 ## W4-04b — Aplicar joins, invalidação e drain transitivo
 
 - execution_mode: isolated

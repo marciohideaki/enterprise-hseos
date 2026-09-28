@@ -145,6 +145,120 @@ function assertStartedWorkSettled(state) {
   }
 }
 
+function assertWorkflowCheckpoint(checkpoint, definition) {
+  const phase = definition?.phases.find((item) => item.phase_id === checkpoint.phase_id);
+  if (
+    !phase ||
+    checkpoint.definition_digest !== digest(definition) ||
+    checkpoint.mode !== phase.mode ||
+    canonicalJson(checkpoint.completed_step_ids) !== canonicalJson(phase.steps.map((step) => step.step_id)) ||
+    canonicalJson(checkpoint.child_session_ids) !== canonicalJson(phase.steps.map((step) => step.child_spec.session_id))
+  ) {
+    throw new SessionReplayError('workflow checkpoint differs from its pinned phase', 'AGENT_SESSION_WORKFLOW_CHECKPOINT_INVALID');
+  }
+}
+
+function reviseWorkflow(state, event) {
+  const { workflow_id: workflowId, claim_ref: claimRef, revision, previous_definition: previous, definition } = event.payload;
+  const reservation = state.workflow_reservations[workflowId];
+  if (!reservation || reservation.released || reservation.claim_ref !== claimRef || state.cancellation_request) {
+    throw new SessionReplayError('workflow revision requires the active uncancelled claim', 'AGENT_SESSION_WORKFLOW_CLAIM_INVALID');
+  }
+  if (revision !== (reservation.revision || 1) + 1) {
+    throw new SessionReplayError('workflow revision must advance exactly once', 'AGENT_SESSION_WORKFLOW_REVISION_INVALID');
+  }
+  const previousSteps = previous.phases.flatMap((phase) => phase.steps);
+  if (
+    previous.workflow_id !== workflowId ||
+    definition.workflow_id !== workflowId ||
+    digest(previous) !== reservation.definition_digest ||
+    previousSteps.length !== reservation.step_count ||
+    canonicalJson(previousSteps.map((step) => step.child_spec.session_id)) !== canonicalJson(reservation.child_session_ids)
+  ) {
+    throw new SessionReplayError('workflow revision does not extend the pinned definition', 'AGENT_SESSION_WORKFLOW_DEFINITION_CONFLICT');
+  }
+  if (
+    definition.subagent_provider_id !== previous.subagent_provider_id ||
+    definition.max_parallelism !== previous.max_parallelism ||
+    definition.phases.length <= previous.phases.length ||
+    canonicalJson(definition.phases.slice(0, previous.phases.length)) !== canonicalJson(previous.phases)
+  ) {
+    throw new SessionReplayError('workflow revisions may only append phases', 'AGENT_SESSION_WORKFLOW_REVISION_RETROACTIVE');
+  }
+  const steps = definition.phases.flatMap((phase) => phase.steps);
+  const childIds = steps.map((step) => step.child_spec.session_id);
+  const others = Object.values(state.workflow_reservations).filter((item) => item.workflow_id !== workflowId);
+  const foreignChildren = new Set(others.flatMap((item) => item.child_session_ids));
+  if (childIds.some((id) => foreignChildren.has(id))) {
+    throw new SessionReplayError('workflow child identity belongs to another reservation', 'AGENT_SESSION_WORKFLOW_CHILD_INVALID');
+  }
+  const legacy = state.workflow_checkpoints.filter((item) => !state.workflow_reservations[item.workflow_id]);
+  const reservedSteps = others.reduce((sum, item) => sum + item.step_count, 0);
+  const legacySteps = legacy.reduce((sum, item) => sum + (item.completed_step_ids?.length || 1), 0);
+  if (steps.length + reservedSteps + legacySteps > state.spec.limits.max_workflow_steps) {
+    throw new SessionReplayError('workflow revision exceeds the parent step limit', 'AGENT_SESSION_WORKFLOW_STEP_LIMIT_EXCEEDED');
+  }
+  const allChildren = new Set([...state.children, ...childIds, ...others.flatMap((item) => item.child_session_ids)]);
+  if (allChildren.size > state.spec.limits.max_children) {
+    throw new SessionReplayError('workflow revision exceeds the parent child limit', 'AGENT_SESSION_WORKFLOW_CHILD_LIMIT_EXCEEDED');
+  }
+  if (
+    others.length > 0 ||
+    legacy.length > 0 ||
+    state.children.some((id) => !reservation.child_session_ids.includes(id)) ||
+    state.turn_order.length > 0 ||
+    state.operation_ids.length > 0 ||
+    Object.keys(state.tool_invocations).length > 0 ||
+    state.reconciliation_reserved_tokens ||
+    state.reconciliation_reserved_tool_calls
+  ) {
+    throw new SessionReplayError('workflow revision has unknown competing resource commitments', 'AGENT_SESSION_WORKFLOW_BUDGET_UNKNOWN');
+  }
+  for (const step of steps) {
+    if (
+      step.child_spec.session_id === state.session_id ||
+      step.child_spec.parent_session_id !== state.session_id ||
+      step.child_spec.authority_ref !== state.spec.authority_ref ||
+      step.child_spec.policy_ref !== state.spec.policy_ref
+    ) {
+      throw new SessionReplayError('workflow child changes parent authority', 'AGENT_SESSION_WORKFLOW_AUTHORITY_WIDENING');
+    }
+    for (const [name, value] of Object.entries(step.child_spec.limits)) {
+      if (value > state.spec.limits[name]) {
+        throw new SessionReplayError('workflow child widens a parent limit', 'AGENT_SESSION_WORKFLOW_LIMIT_WIDENING', { limit: name });
+      }
+    }
+  }
+  for (const name of ['max_tokens', 'max_tool_calls', 'max_turns']) {
+    if (steps.reduce((sum, step) => sum + step.child_spec.limits[name], 0) > state.spec.limits[name]) {
+      throw new SessionReplayError('workflow revision exceeds aggregate resources', 'AGENT_SESSION_WORKFLOW_RESOURCE_LIMIT_EXCEEDED', {
+        limit: name,
+      });
+    }
+  }
+  const windows = definition.phases.reduce(
+    (sum, phase) => sum + (phase.mode === 'pipeline' ? phase.steps.length : Math.ceil(phase.steps.length / definition.max_parallelism)),
+    0,
+  );
+  if (windows * definition.join_timeout_ms > state.spec.limits.max_duration_ms) {
+    throw new SessionReplayError('workflow revision exceeds original duration', 'AGENT_SESSION_WORKFLOW_DURATION_LIMIT_EXCEEDED');
+  }
+  const history = reservation.revisions || [
+    { revision: 1, definition_digest: reservation.definition_digest, definition: previous, event_id: reservation.event_id },
+  ];
+  for (const checkpoint of state.workflow_checkpoints.filter((item) => item.workflow_id === workflowId)) {
+    const pinned = history.find((item) => item.definition_digest === checkpoint.definition_digest);
+    assertWorkflowCheckpoint(checkpoint, pinned?.definition);
+  }
+  const definitionDigest = digest(definition);
+  reservation.revision = revision;
+  reservation.revisions = [...history, { revision, definition_digest: definitionDigest, definition, event_id: event.event_id }];
+  reservation.definition_digest = definitionDigest;
+  reservation.step_count = steps.length;
+  reservation.child_session_ids = childIds;
+  if (state.workflows[workflowId]) state.workflows[workflowId].definition_digest = definitionDigest;
+}
+
 const REPLAY_CHECKPOINTS = new WeakMap();
 
 function replaySessionEvents(inputEvents, { from = null } = {}) {
@@ -735,6 +849,10 @@ function replaySessionEvents(inputEvents, { from = null } = {}) {
         };
         break;
       }
+      case 'workflow.revised': {
+        reviseWorkflow(state, event);
+        break;
+      }
       case 'workflow.reclaimed': {
         const reservation = state.workflow_reservations[event.payload.workflow_id];
         if (
@@ -765,11 +883,22 @@ function replaySessionEvents(inputEvents, { from = null } = {}) {
         break;
       }
       case 'workflow.checkpointed': {
+        if (state.workflow_reservations[event.payload.workflow_id]?.revision) {
+          throw new SessionReplayError('revised workflows require pinned phase checkpoints', 'AGENT_SESSION_WORKFLOW_CHECKPOINT_INVALID');
+        }
         state.workflow_checkpoints.push({ ...event.payload, event_id: event.event_id });
         break;
       }
       case 'workflow.phase.checkpointed': {
-        if (state.workflow_reservations[event.payload.workflow_id]?.claim_ref !== event.payload.claim_ref) {
+        const reservation = state.workflow_reservations[event.payload.workflow_id];
+        if (reservation?.revision) {
+          if (reservation.released || state.cancellation_request) {
+            throw new SessionReplayError('revised workflow checkpoint requires an active claim', 'AGENT_SESSION_WORKFLOW_CLAIM_INVALID');
+          }
+          const pinned = reservation.revisions.find((item) => item.definition_digest === event.payload.definition_digest);
+          assertWorkflowCheckpoint(event.payload, pinned?.definition);
+        }
+        if (reservation?.claim_ref !== event.payload.claim_ref) {
           throw new SessionReplayError('workflow checkpoint is fenced by a different claim', 'AGENT_SESSION_WORKFLOW_CLAIM_INVALID');
         }
         if (event.payload.child_session_ids.some((childId) => !state.children.includes(childId))) {
@@ -777,11 +906,11 @@ function replaySessionEvents(inputEvents, { from = null } = {}) {
         }
         if (!state.workflows[event.payload.workflow_id]) {
           state.workflows[event.payload.workflow_id] = {
-            definition_digest: event.payload.definition_digest,
+            definition_digest: reservation?.revision ? reservation.definition_digest : event.payload.definition_digest,
             phases: [],
           };
         }
-        if (state.workflows[event.payload.workflow_id].definition_digest !== event.payload.definition_digest) {
+        if (!reservation?.revision && state.workflows[event.payload.workflow_id].definition_digest !== event.payload.definition_digest) {
           throw new SessionReplayError(
             'workflow identifier has a different durable definition',
             'AGENT_SESSION_WORKFLOW_DEFINITION_CONFLICT',
@@ -790,7 +919,6 @@ function replaySessionEvents(inputEvents, { from = null } = {}) {
         if (state.workflows[event.payload.workflow_id].phases.includes(event.payload.phase_id)) {
           throw new SessionReplayError('workflow phase is already checkpointed', 'AGENT_SESSION_WORKFLOW_PHASE_DUPLICATE');
         }
-        const reservation = state.workflow_reservations[event.payload.workflow_id];
         const completedForWorkflow = state.workflow_checkpoints
           .filter((checkpoint) => checkpoint.workflow_id === event.payload.workflow_id && checkpoint.completed_step_ids)
           .reduce((count, checkpoint) => count + checkpoint.completed_step_ids.length, 0);
