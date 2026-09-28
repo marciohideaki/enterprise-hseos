@@ -328,8 +328,8 @@ async function runActivationRehearsal({ databasePath, repositoryRoot, environmen
     const sourceUnchanged = JSON.stringify(sourceFilesBefore) === JSON.stringify(sourceFilesAfter);
     const migrationReady =
       sourceVersion === 4 &&
-      candidateVersion === 14 &&
-      migration.applied.length === 10 &&
+      candidateVersion === 15 &&
+      migration.applied.length === 11 &&
       candidateIntegrity.length === 1 &&
       candidateIntegrity[0] === 'ok' &&
       changedLegacyTables.length === 0;

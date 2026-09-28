@@ -211,7 +211,11 @@ class JobWorker {
     this.unmaterialized(state);
     const owner = ownerSchema.parse(executorOwner());
     if (command.action === 'claim') {
-      if (!this.jobs.eligibility(state.resource_id).eligible) reject('JOB_NOT_ELIGIBLE');
+      if (!this.jobs.eligibility(state.resource_id).eligible) {
+        const concurrent = this.inspect(command);
+        if (concurrent.replay) return concurrent.replay;
+        reject('JOB_NOT_ELIGIBLE');
+      }
       await this.admit(state);
       return this.#append(command, 'claimed', owner);
     }

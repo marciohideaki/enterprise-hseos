@@ -120,11 +120,27 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
     },
   });
   let modelConnection;
+  let cancellationRequest;
+  function observeTaskCancellation() {
+    if (!new EngineeringTaskState(handle.db, readIdentity(handle.directory)).read().cancellation) return false;
+    if (!cancellationRequest) {
+      cancellationRequest = assembly.runtime.cancel({
+        schema_version: 1,
+        command: 'cancel',
+        session_id: sessionId,
+        reason: 'Task cancelled',
+        cascade: true,
+      });
+      // Drain below observes rejection; attach a handler before returning to the runtime.
+      cancellationRequest.catch(() => {});
+    }
+    return true;
+  }
   const tools = {
     ...nativeTools,
     bundles: [...nativeTools.bundles, ...(extensions?.bundles || [])],
     async drain() {
-      const results = await Promise.allSettled([nativeTools.drain(), extensions?.drain(), modelConnection?.drain?.()]);
+      const results = await Promise.allSettled([nativeTools.drain(), extensions?.drain(), modelConnection?.drain?.(), cancellationRequest]);
       const failed = results.find((result) => result.status === 'rejected');
       if (failed) {
         if (['PLUGIN_TEARDOWN_UNCERTAIN', 'PLUGIN_RESULT_UNCERTAIN'].includes(failed.reason.code)) {
@@ -201,68 +217,89 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
           fetchImpl,
         })
       : null;
+  const guardedModels = new ModelProviderRegistry();
+  const snapshot = modelConnection?.snapshot || models.snapshot();
+  for (const manifest of snapshot.manifests) {
+    const entry = snapshot.resolve(manifest.provider_id);
+    const guarded = Object.fromEntries(
+      ['manifest', 'discover', 'stream', 'cancel', 'dispose'].map((method) => [
+        method,
+        (...args) => {
+          if (method === 'stream') {
+            if (observeTaskCancellation()) throw Object.assign(new Error('Task cancelled'), { code: 'ENGINEERING_TASK_CANCELLED' });
+            require('./job-dispatch').assertJobRuntimeAccess(handle.db, readIdentity(handle.directory));
+          }
+          return entry.provider[method](...args);
+        },
+      ]),
+    );
+    guardedModels.register(guarded, manifest);
+  }
   const assembly = assembleTemporaryKernel({
     db: handle.db,
-    model_provider_snapshot: modelConnection?.snapshot || models.snapshot(),
+    model_provider_snapshot: guardedModels.snapshot(),
     tool_bundles: tools.bundles,
-    completion_review:
-      contract.max_failed_corrections > 0
-        ? async ({ step }) => {
-            const task = new EngineeringTaskState(handle.db, readIdentity(handle.directory));
-            await tools.drain();
-            tools.assertQuiescent();
-            if (task.read().cancellation || task.read().uncertainty) return null;
-            const files = tools.snapshot();
-            const filesDigest = engineeringDigest(files);
-            task.append({ kind: 'snapshot', files, files_sha256: filesDigest }, task.read().version);
-            const verified = await verifyEngineeringTask({ contract, policy, deadline });
-            if (engineeringDigest(tools.snapshot()) !== filesDigest) {
-              task.append(
-                {
-                  kind: 'uncertainty',
-                  question: 'Os arquivos mudaram durante a revisão. Qual alteração deve ser investigada antes de continuar?',
-                },
-                task.read().version,
-              );
-              return null;
-            }
-            const previousCorrections = task.read().reviews.filter((review) => review.correction_requested).length;
-            const correctionRequested =
-              !verified.approved &&
-              verified.reason === 'criteria-not-satisfied' &&
-              previousCorrections < contract.max_failed_corrections &&
-              !task.read().cancellation &&
-              Date.now() < deadline;
-            if (task.read().cancellation || task.read().uncertainty) return null;
-            task.append(
-              {
-                kind: 'review',
-                step_id: step.step_id,
-                approved: verified.approved,
-                reason: verified.reason,
-                files_sha256: filesDigest,
-                correction_requested: correctionRequested,
-              },
-              task.read().version,
-            );
-            if (!correctionRequested) return null;
-            return JSON.stringify({
-              source: 'protected-engineering-review',
-              instruction:
-                'The protected verifier rejected this delivery. Diagnose the cause against the original sources, requirements and acceptance criteria. Before changing files, call engineering.diagnose with the files_sha256 from this review, cause, correction plan and requirement_ids. Inspect the current files and command evidence, explain the diagnosis, apply a scoped correction, and run authorized checks. Preserve all original policies and constraints. Do not claim acceptance; the protected verifier will recheck. If facts remain uncertain, request clarification rather than guessing.',
-              reason: verified.reason,
-              correction: previousCorrections + 1,
-              remaining_corrections: contract.max_failed_corrections - previousCorrections - 1,
-              deadline,
-              files_sha256: filesDigest,
-              artifacts: files,
-              requirements: contract.requirements,
-              acceptance: contract.acceptance,
-            });
-          }
-        : null,
+    completion_review: async ({ step }) => {
+      if (observeTaskCancellation()) throw Object.assign(new Error('Task cancelled'), { code: 'ENGINEERING_TASK_CANCELLED' });
+      if (contract.max_failed_corrections === 0) return null;
+      const task = new EngineeringTaskState(handle.db, readIdentity(handle.directory));
+      await tools.drain();
+      tools.assertQuiescent();
+      if (observeTaskCancellation()) throw Object.assign(new Error('Task cancelled'), { code: 'ENGINEERING_TASK_CANCELLED' });
+      if (task.read().uncertainty) return null;
+      const files = tools.snapshot();
+      const filesDigest = engineeringDigest(files);
+      task.append({ kind: 'snapshot', files, files_sha256: filesDigest }, task.read().version);
+      const verified = await verifyEngineeringTask({ contract, policy, deadline });
+      observeTaskCancellation();
+      if (engineeringDigest(tools.snapshot()) !== filesDigest) {
+        task.append(
+          {
+            kind: 'uncertainty',
+            question: 'Os arquivos mudaram durante a revisão. Qual alteração deve ser investigada antes de continuar?',
+          },
+          task.read().version,
+        );
+      }
+      const previousCorrections = task.read().reviews.filter((review) => review.correction_requested).length;
+      const correctionRequested =
+        !verified.approved &&
+        verified.reason === 'criteria-not-satisfied' &&
+        previousCorrections < contract.max_failed_corrections &&
+        !task.read().cancellation &&
+        Date.now() < deadline;
+      if (observeTaskCancellation()) throw Object.assign(new Error('Task cancelled'), { code: 'ENGINEERING_TASK_CANCELLED' });
+      if (task.read().uncertainty) return null;
+      task.append(
+        {
+          kind: 'review',
+          step_id: step.step_id,
+          approved: verified.approved,
+          reason: verified.reason,
+          files_sha256: filesDigest,
+          correction_requested: correctionRequested,
+        },
+        task.read().version,
+      );
+      if (!correctionRequested) return null;
+      return JSON.stringify({
+        source: 'protected-engineering-review',
+        instruction:
+          'The protected verifier rejected this delivery. Diagnose the cause against the original sources, requirements and acceptance criteria. Before changing files, call engineering.diagnose with the files_sha256 from this review, cause, correction plan and requirement_ids. Inspect the current files and command evidence, explain the diagnosis, apply a scoped correction, and run authorized checks. Preserve all original policies and constraints. Do not claim acceptance; the protected verifier will recheck. If facts remain uncertain, request clarification rather than guessing.',
+        reason: verified.reason,
+        correction: previousCorrections + 1,
+        remaining_corrections: contract.max_failed_corrections - previousCorrections - 1,
+        deadline,
+        files_sha256: filesDigest,
+        artifacts: files,
+        requirements: contract.requirements,
+        acceptance: contract.acceptance,
+      });
+    },
     execution_policy: {
       async evaluate({ contract: tool }) {
+        observeTaskCancellation();
+        require('./job-dispatch').assertJobRuntimeAccess(handle.db, readIdentity(handle.directory));
         const used = Object.keys(assembly.sessionStore.replay(sessionId).tool_invocations).length;
         const reserved =
           require('./terminal-budget').terminalBudget(handle.db, readIdentity(handle.directory)).count +
@@ -549,7 +586,7 @@ async function runEngineeringTask({
 }
 
 async function executeTask(handle, task, assembly, created, verificationOnly = false, sendInput = null) {
-  require('./job-materialization').assertJobExecutionDenied(handle.db, task.id);
+  require('./job-dispatch').assertJobRuntimeAccess(handle.db, task.id);
   const { contract } = created;
   const before = task.read();
   if (before.started && (!verificationOnly || isExecutorOwnerAlive(before.owner))) throw new Error('Task execution is already claimed');
@@ -586,6 +623,7 @@ async function executeTask(handle, task, assembly, created, verificationOnly = f
     if (verificationOnly && !reconciled && state.status !== 'completed') throw new Error('Only completed sessions can resume verification');
     if (!state.terminal_event) {
       try {
+        require('./job-dispatch').assertJobRuntimeAccess(handle.db, task.id);
         await assembly.extensions?.collect(assembly.toolRuntime, {
           task_id: task.id,
           session_id: created.session_id,
@@ -603,7 +641,9 @@ async function executeTask(handle, task, assembly, created, verificationOnly = f
       }
       observeCancellation();
       if (!controller.signal.aborted && !task.read().cancellation) {
+        require('./job-dispatch').assertJobRuntimeAccess(handle.db, task.id);
         await assembly.modelConnection?.connect();
+        require('./job-dispatch').assertJobRuntimeAccess(handle.db, task.id);
         operationResult = await assembly.runtime.send(
           sendInput || {
             schema_version: 1,
@@ -690,7 +730,7 @@ async function inspectEngineeringTask({
         verification: state.result || null,
       };
     if (action === 'status' || (state.result && action !== 'reconcile')) return summary(handle, id, task);
-    require('./job-materialization').assertJobExecutionDenied(handle.db, id);
+    require('./job-dispatch').assertJobRuntimeAccess(handle.db, id);
     if (state.created.plugin_model)
       require('./engineering-plugin-model').assertTaskPluginControl({
         pin: state.created.plugin_model,
@@ -796,7 +836,7 @@ module.exports = {
   createEngineeringTaskWorkspace,
   engineeringSessionSpec,
   assembleEngineeringTask(handle, created, options) {
-    require('./job-materialization').assertJobExecutionDenied(handle.db, readIdentity(handle.directory), {
+    require('./job-dispatch').assertJobRuntimeAccess(handle.db, readIdentity(handle.directory), {
       directory: handle.directory,
       sessionId: created.session_id,
     });
@@ -851,3 +891,36 @@ async function initializeJobSession(control, jobId) {
     await settleTaskOwners([assembly.tools.drain(), assembly.modelConnection?.close(), assembly.extensions?.close()]);
   }
 }
+
+async function executeJobTask(control, id) {
+  require('./job-dispatch').assertJobRuntimeAccess(control.handle.db, id);
+  const view = require('./job-materialization').resolveJobView(control, id);
+  if (!view || view.manifest) throw new Error('JOB_DISPATCH_REQUIRED');
+  const task = new EngineeringTaskState(control.handle.db, id);
+  const created = task.read().created;
+  const assembly = assemble(view.handle, created, {
+    extensionCatalog: control.extensionCatalog,
+    campaigns: control.providerCampaigns,
+    resourceId: id,
+  });
+  try {
+    require('./job-dispatch').assertJobRuntimeAccess(control.handle.db, id);
+    await attestExecutor(assembly.policy, created.deadline);
+    require('./job-dispatch').assertJobRuntimeAccess(control.handle.db, id);
+    await executeTask(view.handle, task, assembly, created);
+  } catch (error) {
+    if (!control.jobs.query(id).cancellation_requested) throw error;
+    await assembly.runtime.cancel({
+      schema_version: 1,
+      command: 'cancel',
+      session_id: created.session_id,
+      reason: 'Job cancelled',
+      cascade: true,
+    });
+    const state = task.read();
+    if (!state.result) task.append({ kind: 'result', result: 'not_executed', reason: 'cancelled', evidence: {} }, state.version);
+  } finally {
+    await settleTaskOwners([assembly.tools.drain(), assembly.modelConnection?.close(), assembly.extensions?.close()]);
+  }
+}
+module.exports.executeJobTask = executeJobTask;

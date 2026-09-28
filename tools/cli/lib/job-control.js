@@ -63,6 +63,7 @@ class JobControl {
     this.control = control;
     this.now = now;
     this.worker = new (require('./job-worker').JobWorker)(this);
+    this.dispatcher = new (require('./job-dispatch').JobDispatcher)(this);
     this.materializer = new (require('./job-materialization').JobMaterializer)(this);
   }
   rows(id) {
@@ -73,6 +74,10 @@ class JobControl {
     let state;
     const receipts = new Map();
     for (const row of rows) {
+      if (row.event_type === 'JobExecutionRecorded') {
+        state = require('./job-dispatch').projectJobExecution(state, row, receipts);
+        continue;
+      }
       if (row.event_type === 'JobMaterializationRecorded') {
         state = require('./job-materialization').projectJobMaterialization(state, row, receipts);
         continue;
@@ -163,6 +168,10 @@ class JobControl {
   }
   async execute(raw) {
     const command = parseJobCommand(raw);
+    if (command.action === 'cancel') {
+      const projected = this.project(command.resource_id);
+      if (projected.state?.execution) return this.dispatcher.cancel({ ...command, fence: projected.state.fence });
+    }
     const replay = this.check(command);
     if (replay) return deepFreeze(replay);
     let admission;

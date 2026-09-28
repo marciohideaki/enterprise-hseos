@@ -1,0 +1,19 @@
+{
+  "before": {
+    "entries": 1454,
+    "bytes": 9116864
+  },
+  "after": {
+    "entries": 1456,
+    "bytes": 9141678
+  },
+  "added": [
+    "tools/cli/lib/job-dispatch.js",
+    "tools/mcp-project-state/migrations-pending-activation/015-job-execution-events.sql"
+  ],
+  "removed": [],
+  "authorized_limit": 1456,
+  "proposed_limit": 1456,
+  "authorization": "explicit_owner_approval",
+  "owner_statement": "Autorizado a elevar o limite do pacote"
+}

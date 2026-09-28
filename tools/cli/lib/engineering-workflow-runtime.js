@@ -198,7 +198,9 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
           });
           return result;
         }
+        require('./job-dispatch').assertJobRuntimeAccess(child.handle.db, child.task.id);
         await attestEngineeringExecutor(child.assembly.policy, created.deadline);
+        require('./job-dispatch').assertJobRuntimeAccess(child.handle.db, child.task.id);
         const result = await executeEngineeringTask(child.handle, child.task, child.assembly, created, verificationOnly, input);
         // A completed session returns its existing receipt without any new model/tool event.
         return verificationOnly ? child.assembly.runtime.send(input) : result;
@@ -591,3 +593,48 @@ module.exports = {
   runEngineeringWorkflow,
   inspectEngineeringWorkflow,
 };
+
+async function executeJobWorkflow(control, id) {
+  const view = require('./job-materialization').resolveJobView(control, id);
+  if (!view?.manifest) throw new Error('JOB_DISPATCH_REQUIRED');
+  for (const entry of view.manifest.tasks) require('./job-dispatch').assertJobRuntimeAccess(control.handle.db, entry.task_run_id);
+  const assembly = assembleEngineeringWorkflow(view.handle, view.manifest, {
+    extensionCatalog: control.extensionCatalog,
+    campaigns: control.providerCampaigns,
+    resourceId: id,
+  });
+  let cancellation;
+  const check = () => {
+    if (!cancellation && control.jobs.query(id).cancellation_requested) {
+      cancellation = assembly.supervisor.cancelRoot({
+        schema_version: 1,
+        request_id: `cancel:${randomUUID()}`,
+        root_session_id: view.manifest.parent_session_id,
+        reason: 'Job cancelled',
+        deadline_ms: 10_000,
+      });
+      cancellation.catch(() => {});
+    }
+  };
+  const timer = setInterval(check, 25);
+  try {
+    try {
+      await executeWorkflow(assembly, view.manifest);
+    } catch (error) {
+      check();
+      if (!cancellation) throw error;
+    }
+    check();
+    if (cancellation) await cancellation;
+    for (const child of assembly.children.values()) {
+      const state = child.task.read();
+      if (!state.started && !state.result)
+        child.task.append({ kind: 'result', result: 'not_executed', reason: 'workflow-stopped', evidence: {} }, state.version);
+    }
+  } finally {
+    clearInterval(timer);
+    if (cancellation) await cancellation;
+    await assembly.drain();
+  }
+}
+module.exports.executeJobWorkflow = executeJobWorkflow;
