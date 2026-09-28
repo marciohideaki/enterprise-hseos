@@ -2,7 +2,7 @@
 
 const { randomUUID } = require('node:crypto');
 const { z, deepFreeze } = require('../../../packages/agent-runtime-contracts');
-const { parseJobCommand, jobDigest } = require('../../lib/job-contract');
+const { parseJobCommand, parseJobExpansion, jobDigest } = require('../../lib/job-contract');
 const hash = z.string().regex(/^[a-f0-9]{64}$/);
 const admissionSchema = z
   .object({
@@ -57,6 +57,64 @@ function validateAdmission(command, admission) {
   }
 }
 
+const expansionEventSchema = z
+  .object({
+    command: z.unknown(),
+    digest: hash,
+    admission: admissionSchema,
+    admission_sha256: hash,
+    at: z.number().int().nonnegative().safe(),
+  })
+  .strict();
+function assertInitialWorkflow(input) {
+  const definition = input.definition;
+  if (definition?.schema_version === 2 && (definition.revision !== 1 || definition.previous_definition_sha256 !== null))
+    reject('JOB_WORKFLOW_REVISION_INVALID');
+}
+function expandedDefinition(state, command) {
+  if (!state || state.kind !== 'workflow' || state.status !== 'queued' || state.fence || state.materialization || state.execution)
+    reject('JOB_EXPANSION_DENIED');
+  const previous = state.admission.input.definition;
+  if (previous.schema_version !== 2) reject('JOB_EXPANSION_DENIED');
+  if (jobDigest(previous) !== command.input.definition_sha256) reject('JOB_DEFINITION_CONFLICT');
+  return require('./engineering-workflow-runtime').parseEngineeringWorkflow({
+    ...previous,
+    revision: previous.revision + 1,
+    previous_definition_sha256: jobDigest(previous),
+    tasks: [...previous.tasks, ...command.input.nodes],
+  }).definition;
+}
+function projectExpansion(state, row, receipts) {
+  const payload = expansionEventSchema.parse(row.payload);
+  const command = parseJobExpansion(payload.command);
+  if (
+    !state ||
+    row.schema_version !== 1 ||
+    command.resource_id !== state.resource_id ||
+    row.stream_sequence !== state.current_sequence + 1 ||
+    command.expected_sequence !== state.current_sequence ||
+    receipts.has(command.command_id) ||
+    payload.digest !== jobDigest(command) ||
+    payload.admission_sha256 !== jobDigest(payload.admission) ||
+    payload.at !== Date.parse(row.occurred_at) ||
+    payload.at < (state.transition_at || 0) ||
+    payload.at >= Date.parse(state.deadline_at)
+  )
+    reject('JOB_EVENT_INVALID');
+  const definition = expandedDefinition(state, command);
+  validateAdmission({ ...command, input: { kind: 'workflow', definition: { definition } } }, payload.admission);
+  const next = {
+    ...state,
+    definition: payload.admission.input,
+    admission: payload.admission,
+    admission_sha256: payload.admission_sha256,
+    current_sequence: row.stream_sequence,
+    transition_at: payload.at,
+  };
+  receipts.set(command.command_id, { digest: payload.digest, result: structuredClone(next) });
+  return next;
+}
+
 /** Durable data-only queue. Dispatch and ownership are separate governed transitions. */
 class JobControl {
   constructor(control, { now = Date.now } = {}) {
@@ -74,6 +132,10 @@ class JobControl {
     let state;
     const receipts = new Map();
     for (const row of rows) {
+      if (row.event_type === 'JobWorkflowExpanded') {
+        state = projectExpansion(state, row, receipts);
+        continue;
+      }
       if (row.event_type === 'JobExecutionRecorded') {
         state = require('./job-dispatch').projectJobExecution(state, row, receipts);
         continue;
@@ -100,6 +162,7 @@ class JobControl {
         if (state || row.stream_sequence !== 1 || !payload.admission || jobDigest(payload.admission) !== payload.admission_sha256)
           reject('JOB_EVENT_INVALID');
         validateAdmission(command, payload.admission);
+        if (command.input.kind === 'workflow') assertInitialWorkflow(payload.admission.input);
         state = {
           schema_version: 1,
           resource_id: id,
@@ -135,7 +198,6 @@ class JobControl {
     if (state.status !== 'queued') return { eligible: false, reason: 'terminal' };
     if (now >= Date.parse(state.deadline_at)) return { eligible: false, reason: 'expired' };
     if (now < Date.parse(state.not_before)) return { eligible: false, reason: 'scheduled' };
-    // No success transition exists until verified settlement is implemented.
     if (state.depends_on.some((id) => this.query(id).status !== 'succeeded')) return { eligible: false, reason: 'dependencies' };
     return { eligible: true, reason: 'admission-required' };
   }
@@ -157,6 +219,7 @@ class JobControl {
     if ((state?.current_sequence || 0) !== command.expected_sequence) reject('CONTROL_SEQUENCE_CONFLICT');
     if (command.action === 'create') {
       if (state) reject('CONTROL_SEQUENCE_CONFLICT');
+      if (command.input.kind === 'workflow') assertInitialWorkflow(command.input.definition);
       for (const dependency of command.input.depends_on) {
         if (dependency === command.resource_id) reject('JOB_DEPENDENCY_INVALID');
         this.query(dependency);
@@ -165,6 +228,60 @@ class JobControl {
     } else if (!state) reject('JOB_NOT_FOUND');
     else if (!['queued', 'claimed', 'recovering'].includes(state.status)) reject('JOB_TERMINAL');
     return null;
+  }
+  checkExpansion(command) {
+    const { state, receipts } = this.project(command.resource_id);
+    const previous = receipts.get(command.command_id);
+    if (previous) {
+      if (previous.digest !== jobDigest(command)) reject('CONTROL_IDEMPOTENCY_CONFLICT');
+      return { replay: deepFreeze(previous.result) };
+    }
+    if (!state) reject('JOB_NOT_FOUND');
+    if (state.current_sequence !== command.expected_sequence) reject('CONTROL_SEQUENCE_CONFLICT');
+    if (this.now() >= Date.parse(state.deadline_at)) reject('JOB_EXPIRED');
+    return { state, definition: expandedDefinition(state, command) };
+  }
+  async expand(raw) {
+    const command = parseJobExpansion(raw);
+    const checked = this.checkExpansion(command);
+    if (checked.replay) return checked.replay;
+    const admission = await this.control.admitCreation(
+      'create_workflow',
+      { definition: checked.definition },
+      command.resource_id,
+      Date.parse(checked.state.deadline_at),
+    );
+    return this.control.handle.db
+      .transaction(() => {
+        const current = this.checkExpansion(command);
+        if (current.replay) return current.replay;
+        if (jobDigest(current.definition) !== jobDigest(admission.input.definition)) reject('JOB_DEFINITION_CONFLICT');
+        for (const task of current.definition.tasks)
+          if (require('./engineering-workspace').projectWorkspaceSnapshot(task.contract).sha256 !== task.contract.workspace.files_sha256)
+            reject('JOB_BASELINE_DRIFT');
+        const at = this.now();
+        this.control.ledger.append({
+          aggregate_type: 'control_job',
+          aggregate_id: command.resource_id,
+          expected_version: command.expected_sequence,
+          events: [
+            {
+              event_id: randomUUID(),
+              event_type: 'JobWorkflowExpanded',
+              schema_version: 1,
+              occurred_at: new Date(at).toISOString(),
+              correlation_id: command.resource_id,
+              causation_id: command.command_id,
+              actor: { type: 'hseos', id: 'local-job-control' },
+              operation_id: null,
+              evidence_refs: [],
+              payload: { command, digest: jobDigest(command), admission, admission_sha256: jobDigest(admission), at },
+            },
+          ],
+        });
+        return this.query(command.resource_id);
+      })
+      .immediate();
   }
   async execute(raw) {
     const command = parseJobCommand(raw);

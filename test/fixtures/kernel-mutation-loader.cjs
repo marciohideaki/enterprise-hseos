@@ -5,6 +5,9 @@ const path = require('node:path');
 const Module = require('node:module');
 
 const mutations = {
+  workflow_baseline: ['tools/cli/lib/job-control.js', "reject('JOB_BASELINE_DRIFT');", 'void 0;'],
+  workflow_revision: ['tools/cli/lib/job-control.js', "if (jobDigest(previous) !== command.input.definition_sha256)", 'if (false)'],
+  workflow_initial: ['tools/cli/lib/job-control.js', 'function assertInitialWorkflow(input) {', 'function assertInitialWorkflow(input) { return;'],
   task_completion: [
     'tools/cli/lib/engineering-task-runtime.js',
     "completion_review: async ({ step }) => {\n      if (observeTaskCancellation()) throw Object.assign(new Error('Task cancelled'), { code: 'ENGINEERING_TASK_CANCELLED' });",

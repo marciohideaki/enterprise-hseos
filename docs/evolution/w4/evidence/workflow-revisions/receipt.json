@@ -1,0 +1,112 @@
+{
+  "task": "W4-04a1",
+  "status": "VALIDATED_PENDING_GOVERNED_COMMIT",
+  "recorded_utc": "2026-09-28T15:51:18.319338+00:00",
+  "branch": "task/hseos-w4-workflow-revisions",
+  "base_commit": "991e721d2a7678cf839ceed59a6d75a3eb076417",
+  "scope": "Workflow v2 queued expansion before claim; no running expansion or operational activation",
+  "verification": {
+    "kernel_schema_node24": {
+      "tests": 847,
+      "pass": 847,
+      "fail": 0,
+      "skipped": 0,
+      "exit": 0
+    },
+    "kernel_schema_node22": {
+      "tests": 847,
+      "pass": 847,
+      "fail": 0,
+      "skipped": 0,
+      "exit": 0
+    },
+    "coverage": {
+      "22": {
+        "files": 12,
+        "minimum_lines": 95.21,
+        "minimum_branches": 83.14,
+        "status": "PASS"
+      },
+      "24": {
+        "files": 12,
+        "minimum_lines": 95.21,
+        "minimum_branches": 83.14,
+        "status": "PASS"
+      }
+    },
+    "mutants_node24": {
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "skipped": 0,
+      "exit": 0
+    },
+    "final_post_node22": {
+      "tests": 38,
+      "pass": 37,
+      "fail": 1,
+      "skipped": 0,
+      "exit": 1,
+      "passing": "25 expansion tests plus 12 directed mutants",
+      "failure": "package count 1457 > 1456"
+    },
+    "final_post_node24": {
+      "tests": 26,
+      "pass": 25,
+      "fail": 1,
+      "skipped": 0,
+      "exit": 1,
+      "passing": "25 expansion tests",
+      "failure": "package count 1457 > 1456"
+    },
+    "lint_format_exit": 0,
+    "diff_check_exit": 0,
+    "runtime_hashes_unchanged_between_nodes_and_final_postchecks": true,
+    "subsequent_test_change": "Valid binding max_attempts=1 must specifically reject CONTROL_BINDING_UNKNOWN; focal rerun in both Node versions",
+    "package_approved": {
+      "node22_exit": 0,
+      "node24_exit": 0,
+      "entries": 1457,
+      "authorized_limit": 1457
+    },
+    "full_gate_node24": {
+      "exit": 0,
+      "failures": 0,
+      "warnings": 1,
+      "warning": "pre-existing template placeholders",
+      "includes": "npm test and lint"
+    }
+  },
+  "package": {
+    "status": "PASS",
+    "entries": 1457,
+    "authorized_limit": 1457,
+    "requested_limit": 1457,
+    "added": [
+      "tools/mcp-project-state/migrations-pending-activation/016-job-workflow-expansion.sql"
+    ],
+    "removed": [],
+    "unpacked_bytes": 9148839,
+    "maximum_unpacked_bytes": 22000000,
+    "approval": "Owner explicitly authorized 1456 -> 1457 in active session: Autorizado!",
+    "prior_failure_preserved": true,
+    "authorization_recorded_utc": "2026-09-28T16:15:21.341084+00:00"
+  },
+  "governance": {
+    "full_gate": "PASS",
+    "commit": "NOT_CREATED",
+    "feature_integration": false,
+    "foundation_merge": false,
+    "publication": false,
+    "operational_activation": false,
+    "aew_application_enforcement": "NOT_VERIFIED"
+  },
+  "limitations": [
+    "running workflow expansion pending W4-04a2",
+    "per-node plugins/model bindings/extensions remain denied",
+    "new CLI/API/SDK surfaces pending W4-06",
+    "real eligible-account campaign pending W4-07",
+    "W4 overall is not closed"
+  ],
+  "next_action": "Complete full gate, commit through worktree-manager and integrate into feature; then update and implement W4-04a2a"
+}

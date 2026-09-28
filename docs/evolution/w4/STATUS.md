@@ -269,3 +269,31 @@ Próximo: ambiente com escrita Git e isolamento disponíveis, executar commit go
 com hooks, integrar03d e avançar04a1. Contrato04a1 preparado na worktree
 hseos-w4-workflow-revisions, sem implementação e ainda baseado emec20d4a0.
 W4 não está fechada;04–08, consumidores reais, PR e closeout continuam pendentes.
+
+### W4-03d integrada; W4-04a1 iniciada
+
+W4-03d:commit554f296c, hooks exit0; mergefeature991e721d. Bloqueio de escrita resolvido pelo responsável. Recibo de fechamento e log do hook em evidence/workflow-revisions/prior-closeout.json.
+W4-04a1 começa sobre991e721d, com contrato workflow-revisions-implementation.md. Nenhum merge na foundation ou fechamento integral da W4.
+
+### W4-04a1 — expansão queued validada; limite de pacote pendente
+
+Workflow v2 com revisões encadeadas, expansão append-only antes do claim, evento
+aditivo016 e replay/CAS preservados. Job create v1 e recibos históricos permanecem
+compatíveis. Snapshot é revalidado na transação antes de persistir a expansão.
+
+Node24 e Node22 sequenciais:847/847 kernel+schema em cada versão, zero falhas/skips.
+Doze críticos acima90/80 (mínimos95,21%linhas e83,14%branches). Doze mutantes detectados
+em cada versão. Pós-check do teste fortalecido de binding:25/25 expansão em22 e24.
+Revisor isolado confirmou fontes de produção e cobertura, sem achados abertos de código.
+
+Gate de pacote FAIL em22/24:1457>1456. Único asset acrescentado: migração016 (394bytes);
+pacote9.148.839bytes<22MB. Autorização1457 solicitada, ainda pendente; limite preservado.
+Gate integral não executado com esse bloqueio conhecido. Sem commit04a1 ou integração.
+[Recibo e continuidade](evidence/workflow-revisions/receipt.json). W4 não está fechada.
+Próximo: decisão1457, gate integral e commit governado04a1; depois04a2 e demais etapas.
+
+Responsável autorizou explicitamente1456→1457: “Autorizado!”. Limite aplicado;
+22MB e exclusões preservados. Revalidação do pacote e gate integral04a1 em andamento.
+
+W4-04a1: pacote autorizadoPASS em22/24; gate integral24PASS (exit0,zero falhas,
+um aviso preexistente de placeholders). Commit governado em andamento, sem mergefoundation.

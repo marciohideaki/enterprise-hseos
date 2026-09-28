@@ -6,6 +6,9 @@ const { spawnSync } = require('node:child_process');
 const { test } = require('node:test');
 
 const cases = [
+  ['workflow_baseline', 'test/test-workflow-expansion.js', 'expansion revalidates baseline after admission'],
+  ['workflow_revision', 'test/test-workflow-expansion.js', 'hash, CAS, idempotency, deadline'],
+  ['workflow_initial', 'test/test-workflow-expansion.js', 'only initial v2 revision can be created'],
   ['task_completion', 'test/test-engineering-task-runtime.js', 'durable cancellation at model-stop'],
   ['task_cancellation', 'test/test-engineering-task-runtime.js', 'durable cancellation at tool-intent'],
   ['job_shutdown', 'test/test-job-faults.js', 'shutdown during admission cannot'],

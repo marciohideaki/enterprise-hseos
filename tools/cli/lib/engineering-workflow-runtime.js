@@ -47,8 +47,19 @@ const definitionSchema = z
   })
   .strict();
 
+const revisionSchema = definitionSchema
+  .extend({
+    schema_version: z.literal(2),
+    revision: z.number().int().positive().safe(),
+    previous_definition_sha256: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .nullable(),
+  })
+  .refine((value) => (value.revision === 1) === (value.previous_definition_sha256 === null));
+
 function parseEngineeringWorkflow(value) {
-  const definition = definitionSchema.parse(value);
+  const definition = z.union([definitionSchema, revisionSchema]).parse(value);
   if (Buffer.byteLength(JSON.stringify(definition)) > 1_048_576) throw new Error('Workflow definition exceeds its byte budget');
   const ids = new Set(definition.tasks.map((task) => task.id));
   if (ids.size !== definition.tasks.length) throw new Error('Workflow task ids must be unique');
@@ -299,6 +310,7 @@ async function runEngineeringWorkflow({ definition: value, createOnly = false, e
       task.contract = require('./engineering-workspace').hydrateProjectTask(parseEngineeringTask(task.contract));
   }
   const { definition } = parseEngineeringWorkflow(materialized);
+  if (definition.schema_version === 2 && definition.revision !== 1) throw new Error('Workflow creation requires revision 1');
   const handle = createExecutionLedgerFileFixture();
   let assembly;
   try {
