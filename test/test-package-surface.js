@@ -81,6 +81,9 @@ test('published package exposes runtime and governance assets only', () => {
     'tools/lib/execution-plugin-selection.js',
     'tools/cli/lib/engineering-task-extensions.js',
     'tools/cli/lib/engineering-plugin-model.js',
+    'tools/cli/lib/job-control.js',
+    'tools/lib/job-contract.js',
+    'tools/mcp-project-state/migrations-pending-activation/012-job-events.sql',
     'src/core/agents/hseos-master.agent.yaml',
   ]) {
     assert.ok(files.has(required), `missing required package asset: ${required}`);
@@ -97,6 +100,6 @@ test('published package exposes runtime and governance assets only', () => {
   }
   // Reviewed W4 isolation inventory: execution runtime, ports, campaign bridge, two providers, selection and task tool/model composition added to the 1439-entry base.
   // State/key/config exclusions above remain independent security invariants.
-  assert.ok(packed.entryCount <= 1447, `package entry count is not bounded: ${packed.entryCount}`);
+  assert.ok(packed.entryCount <= 1450, `package entry count is not bounded: ${packed.entryCount}`);
   assert.ok(packed.unpackedSize < 22_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);
 });

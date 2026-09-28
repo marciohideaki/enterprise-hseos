@@ -248,35 +248,37 @@ class EngineeringTaskState {
   }
 
   append(value, expectedVersion) {
-    return this.ledger.db.transaction(() => {
-      const event = eventSchema.parse(value);
-      if (['execution_started', 'execution_reclaimed'].includes(event.kind))
-        require('./terminal-budget').assertTerminalsSettled(this.ledger.db, this.id);
-      const state = this.read();
-      if (state.version !== expectedVersion) throw new Error('Task evidence concurrency conflict');
-      // Validate the entire transition before persistence, using the same reducer as recovery.
-      reduce(state, event);
-      const previous = this.ledger.readStream('engineering_task', this.id).at(-1);
-      return this.ledger.append({
-        aggregate_type: 'engineering_task',
-        aggregate_id: this.id,
-        expected_version: expectedVersion,
-        events: [
-          {
-            event_id: randomUUID(),
-            event_type: 'EngineeringTaskEventRecorded',
-            schema_version: 1,
-            occurred_at: new Date().toISOString(),
-            correlation_id: this.id,
-            causation_id: previous?.event_id || this.id,
-            actor: { type: 'hseos', id: 'engineering-supervisor' },
-            operation_id: null,
-            payload: event,
-            evidence_refs: [],
-          },
-        ],
-      });
-    })();
+    return this.ledger.db
+      .transaction(() => {
+        const event = eventSchema.parse(value);
+        if (['execution_started', 'execution_reclaimed'].includes(event.kind))
+          require('./terminal-budget').assertTerminalsSettled(this.ledger.db, this.id);
+        const state = this.read();
+        if (state.version !== expectedVersion) throw new Error('Task evidence concurrency conflict');
+        // Validate the entire transition before persistence, using the same reducer as recovery.
+        reduce(state, event);
+        const previous = this.ledger.readStream('engineering_task', this.id).at(-1);
+        return this.ledger.append({
+          aggregate_type: 'engineering_task',
+          aggregate_id: this.id,
+          expected_version: expectedVersion,
+          events: [
+            {
+              event_id: randomUUID(),
+              event_type: 'EngineeringTaskEventRecorded',
+              schema_version: 1,
+              occurred_at: new Date().toISOString(),
+              correlation_id: this.id,
+              causation_id: previous?.event_id || this.id,
+              actor: { type: 'hseos', id: 'engineering-supervisor' },
+              operation_id: null,
+              payload: event,
+              evidence_refs: [],
+            },
+          ],
+        });
+      })
+      .immediate();
   }
 }
 

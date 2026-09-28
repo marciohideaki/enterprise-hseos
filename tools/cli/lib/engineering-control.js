@@ -60,6 +60,25 @@ const inputs = {
   apply: z.object({ review_sha256: z.string().regex(/^[a-f0-9]{64}$/) }).strict(),
 };
 
+function parseCreationInput(action, value) {
+  if (!['create', 'create_workflow'].includes(action)) throw new ControlError('CONTROL_COMMAND_UNKNOWN');
+  const input = inputs[action].parse(value);
+  if (action === 'create') {
+    const contract = parseEngineeringTask(input.contract);
+    if (contract.schema_version !== 2) throw new ControlError('CONTROL_WORKSPACE_DENIED');
+    if ([input.responses, input.binding_id, input.plugin_model].filter(Boolean).length > 1)
+      throw new ControlError('CONTROL_MODEL_CONFLICT');
+    if (!input.responses && !input.binding_id && !input.plugin_model) throw new ControlError('CONTROL_MODEL_REQUIRED');
+    return { ...input, contract };
+  }
+  const { definition } = parseEngineeringWorkflow(input.definition);
+  for (const task of definition.tasks) {
+    if (task.contract.schema_version !== 2) throw new ControlError('CONTROL_WORKSPACE_DENIED');
+    if (task.binding) throw new ControlError('CONTROL_BINDING_UNKNOWN');
+  }
+  return { definition };
+}
+
 class ControlError extends Error {
   constructor(code) {
     super(code);
@@ -76,6 +95,7 @@ class EngineeringControl {
       this.bindings = Object.freeze({ ...bindings });
       this.extensionCatalog = deepFreeze(JSON.parse(canonicalize(extensionCatalog)));
       this.active = new Set();
+      this.jobs = new (require('./job-control').JobControl)(this);
       this.terminals = new (require('./terminal-control').TerminalControl)(this);
       this.providerCampaigns = new (require('./provider-campaign-control').ProviderCampaignControl)(this, providerBindings, {
         authorizations: providerAuthorizations,
@@ -176,6 +196,60 @@ class EngineeringControl {
       handle.close();
     }
   }
+  async admitCreation(action, rawInput, resourceId, deadline) {
+    const input = parseCreationInput(action, rawInput);
+    if (action === 'create_workflow') {
+      const { definition } = input;
+      for (const task of definition.tasks) {
+        if (!this.workspaces.includes(task.contract.workspace.root)) throw new ControlError('CONTROL_WORKSPACE_DENIED');
+      }
+      return { input: { definition } };
+    } else if (action === 'create') {
+      const { contract } = input;
+      if (!this.workspaces.includes(contract.workspace.root)) throw new ControlError('CONTROL_WORKSPACE_DENIED');
+      if (input.binding_id && !Object.hasOwn(this.bindings, input.binding_id)) throw new ControlError('CONTROL_BINDING_UNKNOWN');
+      const binding = input.binding_id
+        ? require('./engineering-model').validateEngineeringBinding(
+            require('../../lib/agent-provider-binding').readProviderBinding(this.bindings[input.binding_id]).binding,
+          )
+        : undefined;
+      let selection, pluginModel;
+      if (input.extension_ids?.length || input.plugin_model) {
+        selection = require('../../lib/execution-plugin-selection').pinExecutionPluginSelection(this.extensionCatalog, [
+          ...(input.extension_ids || []),
+          ...(input.plugin_model ? [input.plugin_model.selection_id] : []),
+        ]).selection;
+        const { createTaskExtensions, taskContextReservations } = require('./engineering-task-extensions');
+        if (taskContextReservations(selection) > contract.limits.max_tool_calls)
+          throw new ControlError('CONTROL_EXTENSION_BUDGET_EXHAUSTED');
+        await createTaskExtensions({
+          selection,
+          catalog: this.extensionCatalog,
+          deadline: deadline ?? Date.now() + contract.limits.max_duration_ms,
+          modelSelectionId: input.plugin_model?.selection_id,
+        }).close();
+        if (input.plugin_model) {
+          const model = require('./engineering-plugin-model').prepareTaskPluginModel({
+            reference: input.plugin_model,
+            selection,
+            catalog: this.extensionCatalog,
+            campaigns: this.providerCampaigns,
+            deadline: deadline ?? Date.now() + contract.limits.max_duration_ms,
+            resourceId,
+          });
+          pluginModel = model.pin;
+          await model.close();
+        }
+      }
+      return {
+        input: { ...input, contract },
+        ...(selection ? { selection } : {}),
+        ...(pluginModel ? { plugin_model: pluginModel } : {}),
+        ...(binding ? { binding, binding_sha256: engineeringDigest(binding) } : {}),
+      };
+    }
+    throw new ControlError('CONTROL_COMMAND_UNKNOWN');
+  }
   async execute(raw) {
     const command = commandSchema.parse(raw);
     const input = inputs[command.action].parse(command.input);
@@ -188,49 +262,10 @@ class EngineeringControl {
       if (!done) throw new ControlError('CONTROL_OUTCOME_UNCERTAIN');
       return done.payload.result;
     }
-    if (command.action === 'create_workflow') {
+    if (command.action === 'create_workflow' || command.action === 'create') {
       if (rows.length > 0 || command.expected_sequence !== 0) throw new ControlError('CONTROL_SEQUENCE_CONFLICT');
-      const { definition } = parseEngineeringWorkflow(input.definition);
-      for (const task of definition.tasks) {
-        if (task.contract.schema_version !== 2 || !this.workspaces.includes(task.contract.workspace.root))
-          throw new ControlError('CONTROL_WORKSPACE_DENIED');
-        if (task.binding) throw new ControlError('CONTROL_BINDING_UNKNOWN');
-      }
-    } else if (command.action === 'create') {
-      if (rows.length > 0 || command.expected_sequence !== 0) throw new ControlError('CONTROL_SEQUENCE_CONFLICT');
-      const contract = parseEngineeringTask(input.contract);
-      if (contract.schema_version !== 2 || !this.workspaces.includes(contract.workspace.root))
-        throw new ControlError('CONTROL_WORKSPACE_DENIED');
-      if ([input.responses, input.binding_id, input.plugin_model].filter(Boolean).length > 1)
-        throw new ControlError('CONTROL_MODEL_CONFLICT');
-      if (input.binding_id && !Object.hasOwn(this.bindings, input.binding_id)) throw new ControlError('CONTROL_BINDING_UNKNOWN');
-      if (!input.responses && !input.binding_id && !input.plugin_model) throw new ControlError('CONTROL_MODEL_REQUIRED');
-      if (input.extension_ids?.length || input.plugin_model) {
-        const selection = require('../../lib/execution-plugin-selection').pinExecutionPluginSelection(this.extensionCatalog, [
-          ...(input.extension_ids || []),
-          ...(input.plugin_model ? [input.plugin_model.selection_id] : []),
-        ]).selection;
-        const { createTaskExtensions, taskContextReservations } = require('./engineering-task-extensions');
-        if (taskContextReservations(selection) > contract.limits.max_tool_calls)
-          throw new ControlError('CONTROL_EXTENSION_BUDGET_EXHAUSTED');
-        await createTaskExtensions({
-          selection,
-          catalog: this.extensionCatalog,
-          deadline: Date.now() + contract.limits.max_duration_ms,
-          modelSelectionId: input.plugin_model?.selection_id,
-        }).close();
-        if (input.plugin_model)
-          await require('./engineering-plugin-model')
-            .prepareTaskPluginModel({
-              reference: input.plugin_model,
-              selection,
-              catalog: this.extensionCatalog,
-              campaigns: this.providerCampaigns,
-              deadline: Date.now() + contract.limits.max_duration_ms,
-              resourceId: command.resource_id,
-            })
-            .close();
-      }
+      if (this.jobs.rows(command.resource_id).length > 0) throw new ControlError('JOB_RESOURCE_CONFLICT');
+      await this.admitCreation(command.action, input, command.resource_id);
     } else {
       const workflow = this.kind(command.resource_id) === 'workflow';
       if ((workflow && input.reconciliation_decision) || (!workflow && input.reconciliation_decisions))
@@ -253,6 +288,8 @@ class EngineeringControl {
     }
     // Claim before any effect; another client cannot silently repeat an intent.
     this.handle.db.transaction(() => {
+      if (['create', 'create_workflow'].includes(command.action) && this.jobs.rows(command.resource_id).length > 0)
+        throw new ControlError('JOB_RESOURCE_CONFLICT');
       if (this.rows(command.resource_id).length !== rows.length) throw new ControlError('CONTROL_SEQUENCE_CONFLICT');
       this.append(command.resource_id, { kind: 'intent', command_id: command.command_id, digest, action: command.action });
     })();
@@ -329,4 +366,4 @@ class EngineeringControl {
   }
 }
 
-module.exports = { EngineeringControl, ControlError };
+module.exports = { EngineeringControl, ControlError, parseCreationInput };

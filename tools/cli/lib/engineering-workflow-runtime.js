@@ -186,7 +186,7 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
           const { inspectReconciliation, applyReconciliation } = require('./engineering-reconciliation');
           const inspected = await inspectReconciliation(child.task, child.assembly, attestEngineeringExecutor);
           const decision = modelOptions.reconciliationDecisions?.[child.id];
-          const message = handle.db.transaction(() => applyReconciliation(child.task, child.assembly, inspected, decision))();
+          const message = handle.db.transaction(() => applyReconciliation(child.task, child.assembly, inspected, decision)).immediate();
           if (inspected.session.status === 'completed') {
             await executeEngineeringTask(child.handle, child.task, child.assembly, created, true, input);
             return child.assembly.runtime.send(input);

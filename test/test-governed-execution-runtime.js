@@ -133,7 +133,7 @@ test('fixture applies immutable approval migration 007 while the operational run
     runMigrations(db, MIGRATIONS_DIR, { log: () => {} });
     assert.equal(db.pragma('user_version', { simple: true }), 4);
     applyExecutionLedgerFixtureSchema(db);
-    assert.equal(db.pragma('user_version', { simple: true }), 11);
+    assert.equal(db.pragma('user_version', { simple: true }), 12);
     assert.equal(db.prepare(`SELECT COUNT(*) AS count FROM sqlite_master WHERE name = 'execution_approvals'`).get().count, 1);
     db.pragma('foreign_keys = OFF');
     assert.throws(

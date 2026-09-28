@@ -18,3 +18,5 @@ por digest; incerto = efeito possível sem recibo conclusivo; drain = prova de t
 de todos os descendentes; elegível = horário/dependências/admissão permitem partida.
 
 - [Composição de modelo/campanha na tarefa](task-model-composition.md)
+
+- [Agregado persistente de jobs — W4-03a](job-state-implementation.md).

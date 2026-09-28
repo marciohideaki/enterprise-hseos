@@ -130,3 +130,52 @@ Gate integral/hook ainda pendentes; evidências em evidence/task-model/.
 Gate integral Node24 desta task passou: zero falhas e um aviso preexistente.
 Reforço de prova de processo ativo/cgroup: 15/15 PASS adicionais em Node22/24,
 confirmados pelo revisor. Hook de commit ainda pendente.
+
+## W4-02c3c integrada / W4-03a em implementação
+
+Commit 731c8f0, merge de task 2b33dc9 na feature W4. Hook integral concluído
+com exit 0; recibo comprimido preservado em evidence/jobs-state/prior-task-model-commit.log.gz.
+Sem merge na foundation nem ativação operacional.
+
+W4-03a cria agregado control_job no ledger existente e extrai admissão compartilhada
+do controle imediato. Migration 012 somente pending-activation. Primeira rodada
+jobs/ledger/migrations: 21/22, falha de expectativa antiga de schema (11 vs 12);
+expectativas aditivas corrigidas, rodada seguinte 23/23 Node24 sem skips.
+Revisão cega apontou pin ausente do binding legado e conflito unilateral de ID;
+ambos aceitos e corrigidos, aguardando confronto e regressão completa.
+Claims, worker, materialização, orçamento integrado e superfícies permanecem pendentes.
+
+W4-03a regressão inicial: 70/75; cinco falhas por expectativa de schema candidata
+no dry-run/rehearsal. Após atualizar versão, 19/21; duas falhas remanescentes por
+contagem fixa de migrations. Causas corrigidas sem remover gates de ativação.
+Rodada final Node24: 63/63, zero skips. Cobertura por arquivo: controle 98,91%
+linhas/92,40% branches; jobs 100%/96,11%; contrato 100%/100%. Node22 em curso.
+Revisão estática encerrou achados P1/P2; confronto de evidências ainda pendente.
+
+W4-03a Node22: 80/80 e complemento pós-lint 22/22; Node24 pós-lint 63/63 com
+mesma cobertura. Confronto independente de hashes/logs aprovado sem bloqueios.
+Gate integral Node24 PASS (zero falhas, um warning de template preexistente).
+Hook de commit ainda pendente. Claims preparados em task separada, sem implementação.
+
+Hook de commit W4-03a FALHOU em cancelamento entre processos com
+SQLITE_BUSY_SNAPSHOT. Não houve commit. Reprodução determinística em duas conexões
+confirmou transação externa deferred promovendo snapshot antigo para escrita,
+apesar do ledger interno usar immediate. Mesma causa confirmada na reconciliação.
+Correção adquirirá lock externo antes de leitura, preservando CAS e sem retry.
+Revisão, cobertura Node22/24 e gate devem ser refeitos para os arquivos afetados.
+
+Correção de lock W4-03a: Node24 183/183, zero skips. Seis críticos atingiram
+90/80: controle 98,91/92,40; runtime tarefa 95,36/87,62; estado tarefa 100/82,55;
+workflow 97,63/84,79; jobs 100/96,11; contrato jobs 100/100 (linhas/branches).
+Node22 e novo gate/hook pendentes; nenhum commit efetuado nesta task.
+
+Correção de lock W4-03a: Node22 também 183/183 sem skips, sequencial após Node24.
+Receipts atualizados; novo gate/hook pendentes, sem commit ainda.
+
+Novo gate W4-03a FALHOU no conformance canônico de providers; testes de lock passaram.
+As 18 suítes isoladas pelo descriptor passaram no diagnóstico, sem certificar o
+relatório canônico. Causa ainda sob investigação; commit permanece bloqueado.
+
+Gate integral instrumentado W4-03a: PASS, zero falhas/dois avisos. Conformance
+passou na sequência completa; falha histórica preservada com causa não comprovada.
+Hook de commit pendente. Nenhuma afirmação de certificação integral W4.

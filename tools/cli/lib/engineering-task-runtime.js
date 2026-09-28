@@ -739,7 +739,7 @@ async function inspectEngineeringTask({
           questions: inspected.report.questions,
         };
       if (task.read().version !== expectedSequence) throw new Error('Task changed during reconciliation');
-      const message = handle.db.transaction(() => applyReconciliation(task, assembly, inspected, reconciliationDecision))();
+      const message = handle.db.transaction(() => applyReconciliation(task, assembly, inspected, reconciliationDecision)).immediate();
       if (inspected.session.status === 'completed') {
         await executeTask(handle, task, assembly, state.created, true);
         return summary(handle, id, task, assembly);

@@ -153,6 +153,7 @@ o validador de grafo não substitui campanha real. Indisponibilidade mantém ace
   - `tools/lib/job-contract.js`
   - `tools/mcp-project-state/migrations-pending-activation/012-job-events.sql`
   - `test/test-job-control.js`
+- implementation_contract: [job-state-implementation.md](job-state-implementation.md) detalha extração de admissão e arquivos complementares de migração/compatibilidade.
 - acceptance_criteria: Criar não executa; replay/seq/cursor determinísticos; relógio e dependências validados.
 - verify_step.command: `node --test --test-concurrency=1 test/test-job-control.js`
 - verify_step.expected: exit 0, zero falhas/skips; evidência ligada à revisão.
