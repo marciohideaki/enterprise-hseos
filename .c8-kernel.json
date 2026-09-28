@@ -5,6 +5,7 @@
     "packages/tool-runtime/**/*.js",
     "packages/agent-policy-lattice/**/*.js",
     "packages/agent-orchestration/**/*.js",
+    "packages/agent-runtime-contracts/event-contracts.js",
     "packages/agent-session-store/**/*.js",
     "packages/agent-compaction/**/*.js",
     "packages/agent-isolation-attestation/**/*.js",

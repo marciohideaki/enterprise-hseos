@@ -297,3 +297,17 @@ Responsável autorizou explicitamente1456→1457: “Autorizado!”. Limite apli
 
 W4-04a1: pacote autorizadoPASS em22/24; gate integral24PASS (exit0,zero falhas,
 um aviso preexistente de placeholders). Commit governado em andamento, sem mergefoundation.
+
+### W4-04a1 integrada; W4-04a2a em fechamento
+
+W4-04a1: commit 6f0129af, integração 2395d845. O pedido de pausa anterior ficou
+preservado em evidence/workflow-reservations/PAUSED.md; a instrução atual retomou
+a execução. W4-04a2a persiste revisões da reserva de sessão no stream existente,
+valida claim, CAS, tetos e checkpoints históricos e impede consumo pelo engine
+estático. O guard permanece até a integração W4-04a2b/c. Testes focados 56/56 e
+mutantes 16/16 em Node 22/24; cobertura crítica acima de 90/80. Gate integral
+Node 22 passou sem falhas nem avisos. Gate Node 24, hook e integração à feature
+seguem pendentes neste registro. Sem chamada paga, ativação ou merge na foundation.
+
+Validação governada Node 24 passou com zero falhas e um aviso preexistente de
+placeholders em template. Hook e integração continuam pendentes neste registro.

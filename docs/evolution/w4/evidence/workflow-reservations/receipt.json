@@ -1,0 +1,237 @@
+{
+  "task": "W4-04a2a",
+  "branch": "task/hseos-w4-workflow-reservations",
+  "base_commit": "2395d845",
+  "status": "VALIDATED_PENDING_GOVERNED_COMMIT",
+  "scope": "append-only session workflow reservation revisions, v1-compatible replay and static-engine effect guard",
+  "verification": {
+    "focused_node22": {
+      "passed": 56,
+      "failed": 0,
+      "skipped": 0
+    },
+    "focused_node24": {
+      "passed": 56,
+      "failed": 0,
+      "skipped": 0
+    },
+    "directed_mutants_node22": {
+      "killed": 16,
+      "survived": 0
+    },
+    "directed_mutants_node24": {
+      "killed": 16,
+      "survived": 0
+    },
+    "critical_coverage": {
+      "22": {
+        "workflow-engine.js": {
+          "lines_percent": 94.13,
+          "branches_percent": 83.6
+        },
+        "event-contracts.js": {
+          "lines_percent": 94.15,
+          "branches_percent": 81.81
+        },
+        "replay.js": {
+          "lines_percent": 91.52,
+          "branches_percent": 90.52
+        }
+      },
+      "24": {
+        "workflow-engine.js": {
+          "lines_percent": 94.13,
+          "branches_percent": 83.6
+        },
+        "event-contracts.js": {
+          "lines_percent": 94.15,
+          "branches_percent": 81.81
+        },
+        "replay.js": {
+          "lines_percent": 91.52,
+          "branches_percent": 90.52
+        }
+      }
+    },
+    "gate_node22": {
+      "exit": 0,
+      "failures": 0,
+      "warnings": 0
+    },
+    "worktree_validate_node24": {
+      "exit": 0,
+      "failures": 0,
+      "warnings": 1,
+      "warning": "preexisting unresolved placeholders in epics-template.md"
+    },
+    "postgres_node24": {
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0
+    },
+    "package_surface": {
+      "entry_limit": 1457,
+      "result": "PASS via integral gates",
+      "node22_pinned_npm": "10.9.9",
+      "node24_pinned_npm": "11.12.1",
+      "entries": 1457,
+      "ambient_npm_9_result": 1459,
+      "ambient_npm_9_extra": [
+        "docs/README.md",
+        "docs/pt-br/README.md"
+      ],
+      "decision": "the approved 1457 limit is unchanged; project matrix uses pinned Node22/24 npm and passes"
+    },
+    "first_commit_hook_node24": {
+      "exit": 1,
+      "failure": "canonical provider conformance: test/test-engineering-task-runtime.js exit 1; all earlier suites passed",
+      "status": "FAILED_PRESERVED"
+    },
+    "conformance_isolated_node24": {
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0
+    },
+    "conformance_rerun_node24": {
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0
+    },
+    "conformance_descriptor_node24": {
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0,
+      "environment": "canonical sanitized descriptor runner"
+    }
+  },
+  "review": "isolated static reviewer, three passes; race after await and released reservation guard corrected; no remaining static blocker",
+  "diagnostics": {
+    "initial_node24_coverage": "executor unavailable without delegated cgroup; corrected runner passed",
+    "initial_node22_coverage": "better-sqlite3 ABI mismatch; corrected isolated Node22 binary passed",
+    "historical_logs": [
+      "kernel-coverage-node24.log.gz",
+      "kernel-coverage-node22.log.gz"
+    ],
+    "ambient_npm9_package_check": "Ad-hoc npm 9.2.0 dry-run fails at 1459; two README entries differ from pinned npm10/11. Pinned matrix and integral gates pass at 1457.",
+    "first_commit_hook": "Intermittent provider conformance suite failure in first hook; exact failed nested test unavailable because canonical runner discards child stdout/stderr. Isolated suite and canonical descriptor rerun pass. No source fix inferred."
+  },
+  "governance": {
+    "feature_integration": false,
+    "foundation_merge": false,
+    "publication": false,
+    "operational_activation": false,
+    "new_paid_campaign": false,
+    "aew_application_enforcement": "NOT_VERIFIED"
+  },
+  "limitations": [
+    "W4-04a2b/c engine consumption and running expansion pending",
+    "W4-04b through W4-08 pending",
+    "real consumers and eligible binding pending"
+  ],
+  "source_sha256": {
+    ".c8-kernel.json": "1c45439dcf0c1e59479c63c8a1c7508bb9b9f8c43a4ade8490af8467eee9553c",
+    ".specs/features/harness-w4/_INDEX.md": "b533a87a66d8e9ebaefd143c24a997a94b4a3f0e71bece18b36713b130701359",
+    ".specs/features/harness-w4/tasks.md": "9644957d75a139888e3d025711000787291638775eb71bfab48b698b2fdbe357",
+    ".specs/features/harness-w4/workflow-reservations-implementation.md": "6cdfd26cb01341893f13df43f0c586f3147f313afd3a4711d839a1fded0a8e34",
+    "docs/decisions/harness-w4-workflow-reservations-intake.md": "9a1ca342543577120dd7bbccc40d6769be3d98c522e234c85f540566ed237207",
+    "package.json": "80cd16e51ef927e20742f55bf84b3da55e92113633c46e9cb29fa8f4126331b8",
+    "packages/agent-orchestration/workflow-engine.js": "2e7bc763b8fd909a1d1c8e369152361ade490e0b1e27eb047ff0cd37fe8768f8",
+    "packages/agent-runtime-contracts/event-contracts.js": "07ec65f612b52609426eef2580af42c0bace7fb07be1d0faeb943c3189be1eb1",
+    "packages/agent-session-store/replay.js": "41e8f860c8696356883e4bb0844b68f925db7150f513efdad35d01c33e3cb84b",
+    "test/fixtures/kernel-mutation-loader.cjs": "609d53321b0d027be965e0aac3aeca6c043e3ce740d95585906a4992df4ccfb4",
+    "test/test-kernel-mutations.js": "dda519c8733cc021fae94b11d5388ad213b5f9e1af284f943049e4d0d292f16d",
+    "test/test-workflow-reservations.js": "092a93dc1e54d565d2ecf60b30ff945345bd4dc33995b8c3dc863a4fb8630d20"
+  },
+  "artifacts": [
+    {
+      "path": "docs/evolution/w4/evidence/workflow-reservations/focused-node22-final.log.gz",
+      "sha256": "60b6873252c24e6c9991e926190ab52c2b21c6191df6b73c671e11e3c4e0c9c5",
+      "source_sha256": "a0c6fa2608cd50c97a5ffee9fed882210e3688dacb93884f1dffdbc754856020",
+      "source_bytes": 12459
+    },
+    {
+      "path": "docs/evolution/w4/evidence/workflow-reservations/focused-node24-final.log.gz",
+      "sha256": "5283dcf07247a33734fe2b8ad32ce96452970e05f7c69ac3ec165cffe5fa4572",
+      "source_sha256": "0e978bc83cfecdadfa513fdbf6832cfd69abf749a964c16b4f91c148f977278d",
+      "source_bytes": 5286
+    },
+    {
+      "path": "docs/evolution/w4/evidence/workflow-reservations/kernel-coverage-node22-with-contracts.log.gz",
+      "sha256": "e50685d3164dd8785c1f60314bcb23bfa9ebc17175d2fa033b907ac7a0d506a4",
+      "source_sha256": "75582ceef213274b0e23b6e22c373a64e37b0239277e2588e0312bba655f2c41",
+      "source_bytes": 182033
+    },
+    {
+      "path": "docs/evolution/w4/evidence/workflow-reservations/combined-node24.log.gz",
+      "sha256": "3f0c4d97fcb56c0c97a7447ddaf4b691145cbb8bce7afd3ebb10b7537ce84de4",
+      "source_sha256": "212b446624eaf24163d758fb6e15663fdd3419b05d873d3b323e41def0327f97",
+      "source_bytes": 9090
+    },
+    {
+      "path": "docs/evolution/w4/evidence/workflow-reservations/mutations-node22.log.gz",
+      "sha256": "82ecb8006b9f0688df4e40d1c6d7ced112d0b5744e80a63eb14e9ee6ef3b05c4",
+      "source_sha256": "c733f96c6cb6da2f16d090690376cd6296e08fae875b8708d2357615610720af",
+      "source_bytes": 3070
+    },
+    {
+      "path": "docs/evolution/w4/evidence/workflow-reservations/mutations-node24.log.gz",
+      "sha256": "0b286fcaec6d046b78db51068caab20afbb2a0f342c12a4bbe4a1c90f5d87e9a",
+      "source_sha256": "ff29312d6b8840e38545a9c1fa146cff492c87337ffce3f612fbf9b967c9d701",
+      "source_bytes": 1446
+    },
+    {
+      "path": "docs/evolution/w4/evidence/workflow-reservations/postgres-node24.log.gz",
+      "sha256": "1fc2e1accf2521a9273a21e1a5e8388e501d9a9224e1849d205b6a22a084c1df",
+      "source_sha256": "f864fb9bd2acadb09ac2417ca386690cfb65e64097d16a429510a4c747064793",
+      "source_bytes": 1564
+    },
+    {
+      "path": "docs/evolution/w4/evidence/workflow-reservations/gate-node22.log.gz",
+      "sha256": "22931db2887dc3e2f1ba38bad87495da8f4bcf65e9f28e48f6342f8b5c83ee49",
+      "source_sha256": "8b5e889f4310c2ae145c9fe19b119b190c9c9594b4c0c903d39ab463dfe8aa8b",
+      "source_bytes": 357416
+    },
+    {
+      "path": "docs/evolution/w4/evidence/workflow-reservations/validate-node24.log.gz",
+      "sha256": "a3cf144803f100e9c5ff8afcd145db06156438840159cd3713fc95c56b0454fe",
+      "source_sha256": "80d6ddd4baf3a2841a608e4e5e04db819a5e853db0fc2995381eb89c1644f14c",
+      "source_bytes": 193792
+    },
+    {
+      "path": "docs/evolution/w4/evidence/workflow-reservations/kernel-coverage-node24.log.gz",
+      "sha256": "1d5f46ab5082a7bf17f644ad5526f8ba4868e686dda153734b65451675d5f00e",
+      "source_sha256": "91a310faa7cbb64e4af7358684162e619c862b6d74f499cd39fac70df1e6f275",
+      "source_bytes": 55750
+    },
+    {
+      "path": "docs/evolution/w4/evidence/workflow-reservations/kernel-coverage-node22.log.gz",
+      "sha256": "78461ef0362356efebe5c7a16cefdac0bea4d8279c563a76bbc5e05b501d50f9",
+      "source_sha256": "3b610eecad0217290f8c24e19a127d3ca5a850930c663c5f58baecde8c28fb99",
+      "source_bytes": 112522
+    },
+    {
+      "path": "docs/evolution/w4/evidence/workflow-reservations/commit-node24.log.gz",
+      "sha256": "843cb250b53eab5a7d7550e37cd48c0af033ec3cbe3fa0551bc53ad5f6988a24",
+      "source_sha256": "4dfae19c1f19db5b499d772f1db59eefd767be01ad10128365989e633e03f139",
+      "source_bytes": 191290
+    },
+    {
+      "path": "docs/evolution/w4/evidence/workflow-reservations/conformance-isolated-node24.log.gz",
+      "sha256": "910f6061dbc01289f00cba1eeeb716791b42d4df99296e4579d2f0a17f561bdb",
+      "source_sha256": "2f4d173001cc2333a334ad3f33e86eb01c269c73dea5c11e65c9d56435e4aea1",
+      "source_bytes": 1506
+    },
+    {
+      "path": "docs/evolution/w4/evidence/workflow-reservations/conformance-rerun-node24.log.gz",
+      "sha256": "c510f4e99ab2a13bc08dfbc2dcb556644933ef2a0ea2398fe3fa20d5ff09caff",
+      "source_sha256": "a2199b7b87d6f4345222491f05e4b67f76b9191429ddcf744cb99c9afb09b46e",
+      "source_bytes": 1080
+    },
+    {
+      "path": "docs/evolution/w4/evidence/workflow-reservations/conformance-descriptor-node24.log.gz",
+      "sha256": "7e45a879719298f4607157155fc956b868cef38b3e30fe2a88e918d4bf93f3be",
+      "source_sha256": "d341d3d65864507a7dc84482caebf497a1d4720b93c47a47bf1c442598b97ce8",
+      "source_bytes": 1533
+    }
+  ]
+}

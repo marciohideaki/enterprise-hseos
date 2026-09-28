@@ -8,6 +8,10 @@ const mutations = {
   workflow_baseline: ['tools/cli/lib/job-control.js', "reject('JOB_BASELINE_DRIFT');", 'void 0;'],
   workflow_revision: ['tools/cli/lib/job-control.js', "if (jobDigest(previous) !== command.input.definition_sha256)", 'if (false)'],
   workflow_initial: ['tools/cli/lib/job-control.js', 'function assertInitialWorkflow(input) {', 'function assertInitialWorkflow(input) { return;'],
+  reservation_claim: ['packages/agent-session-store/replay.js', 'reservation.claim_ref !== claimRef || state.cancellation_request', 'false || state.cancellation_request'],
+  reservation_budget: ['packages/agent-session-store/replay.js', 'steps.reduce((sum, step) => sum + step.child_spec.limits[name], 0) > state.spec.limits[name]', 'false'],
+  reservation_fence: ['packages/agent-orchestration/workflow-engine.js', 'reservation.revision > 1 || reservation.definition_digest !== digest(workflow)', 'false'],
+  reservation_release: ['packages/agent-orchestration/workflow-engine.js', 'if (reservation?.revision > 1) {', 'if (false) {'],
   task_completion: [
     'tools/cli/lib/engineering-task-runtime.js',
     "completion_review: async ({ step }) => {\n      if (observeTaskCancellation()) throw Object.assign(new Error('Task cancelled'), { code: 'ENGINEERING_TASK_CANCELLED' });",

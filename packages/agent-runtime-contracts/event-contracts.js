@@ -14,6 +14,7 @@ const {
 } = require('./common');
 const { AgentMessageSchema, AgentSessionSpecSchema, ModelRequestSchema, ToolExecutionResultSchema } = require('./agent-contracts');
 const { CompactionProviderManifestSchema, CompactionRecordSchema } = require('./compaction-contracts');
+const { WorkflowDefinitionSchema } = require('./orchestration-contracts');
 
 const MAX_EVENT_DELTA_BYTES = 262_144;
 const MAX_RUNTIME_TOOL_INPUT_BYTES = 1_048_576;
@@ -310,6 +311,16 @@ const SessionEventSchema = z
         if (reservation.step_count !== reservation.child_session_ids.length) {
           context.addIssue({ code: 'custom', message: 'reserved step and child counts must be balanced' });
         }
+      }),
+    ),
+    sessionEvent(
+      'workflow.revised',
+      strictObject({
+        workflow_id: IdentifierSchema,
+        claim_ref: ReferenceSchema,
+        revision: z.number().int().min(2).max(Number.MAX_SAFE_INTEGER),
+        previous_definition: WorkflowDefinitionSchema,
+        definition: WorkflowDefinitionSchema,
       }),
     ),
     sessionEvent(

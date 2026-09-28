@@ -65,7 +65,11 @@ class WorkflowEngine {
   #checkpoint(input, workflow, phase, claimRef) {
     const parentId = input.parent_session_id;
     const definitionDigest = digest(workflow);
+    this.#assertClaim(input, workflow, claimRef);
     const state = this.#store.replay(parentId);
+    if (state.workflow_reservations[workflow.workflow_id]?.definition_digest !== definitionDigest) {
+      throw new WorkflowEngineError('workflow revision changed before checkpoint', 'WORKFLOW_REVISION_NOT_SUPPORTED');
+    }
     const payload = {
       workflow_id: workflow.workflow_id,
       definition_digest: definitionDigest,
@@ -227,6 +231,9 @@ class WorkflowEngine {
     const definitionDigest = digest(workflow);
     const state = this.#store.replay(parentId);
     const reservation = state.workflow_reservations[workflow.workflow_id];
+    if (reservation?.revision > 1) {
+      throw new WorkflowEngineError('workflow revisions require a revision-aware engine', 'WORKFLOW_REVISION_NOT_SUPPORTED');
+    }
     if (!reservation || reservation.definition_digest !== definitionDigest) {
       throw new WorkflowEngineError('workflow has no matching durable reservation', 'WORKFLOW_RESERVATION_MISSING');
     }
@@ -262,6 +269,9 @@ class WorkflowEngine {
     if (!reservation || reservation.claim_id !== input.request_id || reservation.claim_ref !== claimRef) {
       throw new WorkflowEngineError('workflow no longer owns the durable execution claim', 'WORKFLOW_CLAIM_LOST');
     }
+    if (reservation.revision > 1 || reservation.definition_digest !== digest(workflow)) {
+      throw new WorkflowEngineError('workflow revisions require a revision-aware engine', 'WORKFLOW_REVISION_NOT_SUPPORTED');
+    }
     return reservation;
   }
 
@@ -293,7 +303,8 @@ class WorkflowEngine {
     }
   }
 
-  async #join(input, workflow, steps) {
+  async #join(input, workflow, steps, claimRef) {
+    this.#assertClaim(input, workflow, claimRef);
     const joinInput = {
       schema_version: CONTRACT_SCHEMA_VERSION,
       provider_id: workflow.subagent_provider_id,
@@ -342,13 +353,16 @@ class WorkflowEngine {
 
   async #execute(input) {
     const workflow = parseContract(WorkflowDefinitionSchema, input.workflow, 'workflow definition');
+    const parent = this.#store.replay(input.parent_session_id);
+    if (Object.values(parent.workflow_reservations).some((reservation) => reservation.revision > 1)) {
+      throw new WorkflowEngineError('workflow revisions require a revision-aware engine', 'WORKFLOW_REVISION_NOT_SUPPORTED');
+    }
     const providerQuery = {
       schema_version: CONTRACT_SCHEMA_VERSION,
       request_id: stableId('request', input.request_id, 'manifest'),
       provider_id: workflow.subagent_provider_id,
     };
     const manifest = validatePortResult('SubagentProvider', 'manifest', this.#provider.manifest(providerQuery), providerQuery);
-    const parent = this.#store.replay(input.parent_session_id);
     if (parent.terminal_event) throw new WorkflowEngineError('workflow parent is terminal', 'WORKFLOW_PARENT_TERMINAL');
     this.#validateScope(parent, workflow, manifest);
     const definitionDigest = digest(workflow);
@@ -380,7 +394,7 @@ class WorkflowEngine {
         if (checkpoint) {
           const settled = checkpoint.child_session_ids.map((childId) => this.#resolveChild(childId));
           if (settled.includes(null)) {
-            const resumed = await this.#join(input, workflow, phase.steps);
+            const resumed = await this.#join(input, workflow, phase.steps, active.claimRef);
             children.push(...resumed.children);
           } else children.push(...settled);
           phases.push({
@@ -395,7 +409,7 @@ class WorkflowEngine {
         if (phase.mode === 'pipeline') {
           for (const step of phase.steps) {
             await this.#spawn(input, workflow, step, active);
-            const joined = await this.#join(input, workflow, [step]);
+            const joined = await this.#join(input, workflow, [step], active.claimRef);
             children.push(...joined.children);
             if (joined.children.some((child) => child.status !== 'completed')) {
               throw new WorkflowEngineError(
@@ -408,7 +422,7 @@ class WorkflowEngine {
           for (let index = 0; index < phase.steps.length; index += workflow.max_parallelism) {
             const group = phase.steps.slice(index, index + workflow.max_parallelism);
             await Promise.all(group.map((step) => this.#spawn(input, workflow, step, active)));
-            const joined = await this.#join(input, workflow, group);
+            const joined = await this.#join(input, workflow, group, active.claimRef);
             children.push(...joined.children);
             if (joined.children.some((child) => child.status !== 'completed')) {
               throw new WorkflowEngineError(
@@ -439,6 +453,7 @@ class WorkflowEngine {
       const orphan = [...active.children].find((childId) => !this.#resolveChild(childId));
       if (orphan)
         throw new WorkflowEngineError('workflow teardown left an orphan child', 'WORKFLOW_ORPHAN_CHILD', { child_session_id: orphan });
+      if (error?.code === 'WORKFLOW_REVISION_NOT_SUPPORTED') throw error;
       const status = active.cancelled ? 'cancelled' : 'failed';
       const released = this.#release(input, workflow, status, active.claimRef);
       evidence.push(eventRef(released.event_id));
@@ -494,7 +509,13 @@ class WorkflowEngine {
     }
     active.cancelled = true;
     active.reason = input.reason;
-    const released = this.#release(active.input, active.workflow, 'cancelled', active.claimRef);
+    let released;
+    try {
+      released = this.#release(active.input, active.workflow, 'cancelled', active.claimRef);
+    } catch (error) {
+      await this.#cancelChildren(active.input, active.workflow, active, input.reason);
+      throw error;
+    }
     const children = await this.#cancelChildren(active.input, active.workflow, active, input.reason);
     return validatePortResult(
       'WorkflowEngine',
