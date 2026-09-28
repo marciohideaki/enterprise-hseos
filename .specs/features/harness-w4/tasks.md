@@ -229,6 +229,14 @@ Contrato detalhado: [job-dispatch-implementation.md](job-dispatch-implementation
 - verify_step.expected: exit 0, zero falhas/skips; evidência ligada à revisão.
 - verify_step.on_failure: diagnosticar e corrigir; causa desconhecida bloqueia task.
 
+### Subdivisões de W4-04a
+
+- W4-04a1: workflow v2 e expansão queued com evento aditivo, cadeia de hashes,
+  CAS, recibos e limites imutáveis. Contrato: workflow-revisions-implementation.md.
+- W4-04a2: expansão running com reserva incremental, novos filhos preparados de
+  forma durável e revisões reconhecidas pelo engine, sem renumerar checkpoints.
+  Pins de modelos/extensões por nó permanecem pendentes até integração própria.
+
 ## W4-04b — Aplicar joins, invalidação e drain transitivo
 
 - execution_mode: isolated

@@ -184,7 +184,7 @@ test('migration dry-run upgrades only a temporary copy and preserves every legac
   const result = await migrationDryRun(databasePath, ROOT);
   assert.equal(result.ready, true);
   assert.equal(result.source_version, 4);
-  assert.equal(result.target_version, 15);
+  assert.equal(result.target_version, 16);
   assert.deepEqual(result.applied, [
     '005-governed-execution-ledger-v2.sql',
     '006-execution-projections.sql',
@@ -197,6 +197,7 @@ test('migration dry-run upgrades only a temporary copy and preserves every legac
     '013-job-lifecycle-events.sql',
     '014-job-materialization-events.sql',
     '015-job-execution-events.sql',
+    '016-job-workflow-expansion.sql',
   ]);
   assert.deepEqual(result.changed_legacy_tables, []);
   assert.equal(result.operational_unchanged, true);

@@ -1,12 +1,19 @@
 # Ciclo de estado dos jobs W4
 
-Estado desta documentação: preparação03c integrada; despacho03d em validação.
-ADR-0045 continua Proposed; migrations012–015 são candidatas para fixtures.
+Estado desta documentação: preparação03c e despacho03d integrados; expansão04a1 em validação.
+ADR-0045 continua Proposed; migrations012–016 são candidatas para fixtures.
 Ativação operacional, publicação e instalação global são decisões separadas.
 
 O ledger do EngineeringControl mantém control_job, control_task, engineering_task e
 sessões. Arquivos em jobs/<UUID> são views desse ledger: não são novos ledgers nem
 novas autorizações financeiras. Nunca reabrir essas views como fixtures independentes.
+
+Antes do claim, jobs workflow v2 podem receber JobWorkflowExpanded. O comando fixa
+o hash anterior, acrescenta nós e revalida o DAG completo sob os limites originais.
+CAS, prazo e snapshots são conferidos novamente antes do append. A revisão e sua
+admissão são persistidas atomicamente; recibos anteriores continuam imutáveis. Claim
+fixa a revisão para materialização e despacho. Expansão após claim permanece recusada
+nesta unidade; expansão running e seleção de extensões por nó dependem das próximas tasks.
 
 1. JobCommandRecorded cria a fila sem executar trabalho. Elegibilidade respeita
    horário UTC, dependências, prazo e admissão.

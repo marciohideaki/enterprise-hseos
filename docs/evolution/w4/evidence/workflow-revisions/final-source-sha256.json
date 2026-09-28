@@ -1,0 +1,21 @@
+{
+  "package.json": "a43f58e0ba81feb36aef0654807e18d723637850769c31eb99427c16e29b4c2e",
+  "test/fixtures/kernel-mutation-loader.cjs": "f51d003ec60d5c42bf098c67dd93a65f04e427f161c5f76f546b69587308f068",
+  "test/helpers/job-expansion-process.js": "40ec0a459ee656de841cc098e7ef6aec40b143a3b3217456890f3fdb728a9fb1",
+  "test/test-agentic-activation-rehearsal.js": "0ef9de288c5f8f7be31a5b572831cd8715d20a457951b0ea7a0f00d8b3ecad0b",
+  "test/test-compatibility-audit.js": "fca75cefd4c6e23e42ad82253a26fa82b4df7b7ced12d5b348cba1b8a8f65a5f",
+  "test/test-execution-event-ledger.js": "7c53e36ae1cb65146be612e0698c267e899a29b66f8b2fdbcb08bb814fee1fc4",
+  "test/test-execution-projections.js": "6fb5fbc69ef6204ba687129b85cf1651cdc15cbda9cabef2b57bb8d8cfa4fe81",
+  "test/test-governed-execution-runtime.js": "9f14feb1870a3119d5c5e6d7abda407b918ee221d59f192e0a2062c541d88951",
+  "test/test-kernel-mutations.js": "8f6095c9e70958263be269495f9bd52a3eeeef7bbaa4d0104fec1733e27e369c",
+  "test/test-native-entrypoint-wiring.js": "2442d2f8276a9dc6c32392d2d2616e23bc5a624ef2b05165c10801fb5186c5a0",
+  "test/test-operational-state-db.js": "75380fd04c9c8e5517d2a079beb0da4afa2d70be06778a4f316e299df858c77a",
+  "test/test-package-surface.js": "2b98a57ba03b8084caedfc401c2bee04f87fb49dfbdfdebfebd1a00d24e50a3c",
+  "test/test-workflow-expansion.js": "f57f17a350dd96efc64d4a3294b5c2905fe7207d94f9a0212f88a38665413118",
+  "tools/cli/lib/engineering-workflow-runtime.js": "5e5086a2749d570150d322805f750e8f28a376c759bfaadd6a2d4d63e55a99cb",
+  "tools/cli/lib/job-control.js": "8e8f87866dd93a32ea7b25159ce0fd0ee1ecf5efc90a2a951274364eacfd11fb",
+  "tools/lib/agentic-activation-rehearsal.js": "e0e9cfcef9437aa117712d259939836d6e545483a24b258b3305d24af285e1fd",
+  "tools/lib/compatibility-audit.js": "3caf9c83808c72f79ffd8c8b5a70e8aa5789c1bbc382b7c6423fd547587833ad",
+  "tools/lib/job-contract.js": "cf015b7017460f959e94f1c2b0622b7c249cb60966e360a764882d5df6900512",
+  "tools/mcp-project-state/migrations-pending-activation/016-job-workflow-expansion.sql": "611dae8af1cdba7a87606959809a343a828b0cbe46144df118575b6893e6b21b"
+}

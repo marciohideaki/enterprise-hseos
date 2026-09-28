@@ -36,4 +36,16 @@ function parseJobCommand(value) {
 function jobDigest(value) {
   return engineeringDigest(value);
 }
-module.exports = { parseJobCommand, jobCreateSchema, jobDigest };
+const expansionSchema = jobCommandSchema.extend({
+  action: z.literal('expand'),
+  input: z
+    .object({
+      definition_sha256: z.string().regex(/^[a-f0-9]{64}$/),
+      nodes: z.array(z.record(z.string(), z.json())).min(1).max(16),
+    })
+    .strict(),
+});
+function parseJobExpansion(value) {
+  return deepFreeze(expansionSchema.parse(value));
+}
+module.exports = { parseJobCommand, parseJobExpansion, jobCreateSchema, jobDigest };

@@ -26,3 +26,5 @@ de todos os descendentes; elegível = horário/dependências/admissão permitem 
 - [Materialização idempotente dos jobs](job-materialization-implementation.md) — W4-03c.
 
 - [Despacho e encerramento de jobs](job-dispatch-implementation.md) — W4-03d.
+
+- [Revisões de workflow antes do claim](workflow-revisions-implementation.md) — W4-04a1.

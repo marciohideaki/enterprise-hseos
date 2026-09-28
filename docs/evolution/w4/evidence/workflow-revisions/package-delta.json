@@ -1,0 +1,12 @@
+{
+  "before": 1456,
+  "after": 1457,
+  "added": [
+    "tools/mcp-project-state/migrations-pending-activation/016-job-workflow-expansion.sql"
+  ],
+  "removed": [],
+  "unpacked_bytes": 9148606,
+  "threshold": 1456,
+  "status": "FAIL",
+  "authorization": "pending-1457"
+}
