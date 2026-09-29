@@ -42,7 +42,7 @@ materialize project workflows or adapters.
 
 This sets up:
 
-- `.claude/commands/` — all 14 agent commands (activated as Claude Code slash commands)
+- `.claude/commands/` — agent commands and helpers for Claude Code
 - `.enterprise/` — governance specs, agent authority files, skill library
 - `.hseos/` — agent configurations, workflow definitions, local config
 - Git hooks — pre-commit quality gates (lint, schema validation, commit hygiene)
@@ -68,7 +68,7 @@ portable installation first, then follow [`MANAGED-GOVERNANCE.md`](MANAGED-GOVER
 
 After install, read these in order:
 
-1. **`CLAUDE.md`** — Seven Laws and agent roster (5 min)
+1. **`AGENTS.md`** — canonical project rules and instruction cascade (5 min); `CLAUDE.md` points Claude Code to it
 2. **`.enterprise/.specs/constitution/Enterprise-Constitution.md`** — Non-negotiable rules (10 min)
 3. **`docs/agents/`** — Browse the agents relevant to your role (see role guide below)
 
