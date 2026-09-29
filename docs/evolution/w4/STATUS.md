@@ -1,6 +1,6 @@
 # W4 — estado de execução
 
-Tipo: evidência de progresso, atualizado em 2026-09-28. Base 32eaef2; upstream
+Tipo: evidência de progresso, atualizado em 2026-09-29. Base 32eaef2; upstream
 feature/hseos-evolution-foundation; feature/hseos-evolution-w4.
 Governança: Constituição §§2.6/5/7, AGENTS.md, ADR-0045 Proposed.
 
@@ -519,3 +519,21 @@ aviso preexistente de placeholder. Hook e integração continuam pendentes neste
 registro. R1 permanece
 W4-07b: grants históricos de W3 expiraram em 26–27/09/2026, portanto
 consumidores reais e binding vigente não são certificados por esta matriz.
+
+## W4-07b — consumidores reais e campanha integrada
+
+Em 29/09/2026, quatro plugins das famílias ferramenta, provider e contexto
+foram instalados pelo tarball offline fora do checkout. `plugin doctor` validou
+quatro entradas; conformance e execução isolada passaram em Node 22 e 24. A
+jornada local ligou job→campanha de model provider→autorização→duas reservas e
+recibos→ferramenta/contexto→workflow dependente com dois filhos aprovados, com
+custo adicional zero. O cancelamento real cobriu job enfileirado; a drenagem de
+descendentes e processos em execução permanece atribuída à matriz W4-07a.
+
+O binding Codex atual foi inspecionado na mesma conta W3. Dos dois despachos
+zero-custo autorizados, o primeiro teve recibo rejeitado por limite de tokens
+configurado abaixo do uso observado; seu efeito foi reconciliado com reserva
+retida. O segundo concluiu com recibo e sem incerteza. Não há saldo de despachos
+adicionais nesta autorização. Evidência e limites estão em
+[`CONSUMERS.md`](./CONSUMERS.md) e
+[`evidence/real/verification-receipt.json`](./evidence/real/verification-receipt.json).
