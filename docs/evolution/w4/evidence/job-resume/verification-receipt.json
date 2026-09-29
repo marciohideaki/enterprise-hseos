@@ -1,0 +1,109 @@
+{
+  "task": "W4-06c",
+  "base_commit": "884dce95",
+  "branch": "task/hseos-w4-job-resume",
+  "status": "VERIFIED_BEFORE_COMMIT",
+  "scope": "Explicit public resume completes safe claimed preparation and dispatch. Existing execution intent or uncertain outcome is not replayed. Current fence and original execution deadline remain enforced.",
+  "verification": {
+    "focused_node22": {
+      "passed": 24,
+      "failed": 0
+    },
+    "surfaces_node22": {
+      "passed": 4,
+      "failed": 0
+    },
+    "coverage_node22": {
+      "all_lines": 96.81,
+      "all_branches": 90.17,
+      "job_control_lines": 99.72,
+      "job_control_branches": 89.91,
+      "job_materialization_lines": 99.39,
+      "job_materialization_branches": 87.77
+    },
+    "coverage_node24": {
+      "all_lines": 96.81,
+      "all_branches": 90.18,
+      "job_control_lines": 99.72,
+      "job_control_branches": 89.91,
+      "job_materialization_lines": 99.39,
+      "job_materialization_branches": 87.77
+    },
+    "mutants": {
+      "node22": {
+        "killed": 18,
+        "survived": 0
+      },
+      "node24": {
+        "killed": 18,
+        "survived": 0
+      }
+    },
+    "gate_node22": {
+      "failures": 0,
+      "warnings": 0
+    },
+    "gate_node24": {
+      "failures": 0,
+      "warnings": 0
+    },
+    "package_entries": 1457,
+    "manager_validate_node24": {
+      "failures": 0,
+      "warnings": 1,
+      "warning": "pre-existing docs-image workflow placeholder"
+    }
+  },
+  "review": "Isolated skeptical reviewer identified internal planned preparation gap. Takeover now preserves the exact plan and its preparation-only checks. Follow-up review found no concrete remaining blocker.",
+  "limits": {
+    "foundation_merge": false,
+    "publication": false,
+    "operational_activation": false,
+    "new_paid_campaign": false,
+    "aew_application_enforcement": "NOT_VERIFIED"
+  },
+  "artifacts": [
+    {
+      "label": "node22-coverage",
+      "path": "docs/evolution/w4/evidence/job-resume/node22-coverage.log.gz",
+      "sha256": "e44e0bb81b4e9aee45bf0c2538b54fa0ab7878ea2e86a54cca16e37594f8a37f",
+      "source_sha256": "0afce585ca76e2109689438a5cf567533010b8a1a31a697ef5dec97b2e3df238"
+    },
+    {
+      "label": "node24-coverage",
+      "path": "docs/evolution/w4/evidence/job-resume/node24-coverage.log.gz",
+      "sha256": "2b4df0fa7c6ee6290bb300f5f3d8bde8f513f54a0c323b752101abc09f2b45f7",
+      "source_sha256": "35afc759e3e7f2533abf1eedcc3f17fabd89d3587e7cbf089519b48e994815c8"
+    },
+    {
+      "label": "node22-mutations",
+      "path": "docs/evolution/w4/evidence/job-resume/node22-mutations.log.gz",
+      "sha256": "b86e3f87cdfdfe9f374306defedd905ce867caf307af23b044547c40c017abe2",
+      "source_sha256": "ec805b1e74eac6092645b0edac5a120c32f49c16e866e0f5b57993d6690c9ba7"
+    },
+    {
+      "label": "node24-mutations",
+      "path": "docs/evolution/w4/evidence/job-resume/node24-mutations.log.gz",
+      "sha256": "f1f02465872a2f5c5f2c207a6de2141b0af039ba5ca9abe9dba3df5a554b8730",
+      "source_sha256": "98fed4438be4af60103aba5d83c1d2ac0c340b1fc72974b4333e5d2a73753cfb"
+    },
+    {
+      "label": "node22-gate",
+      "path": "docs/evolution/w4/evidence/job-resume/node22-gate.log.gz",
+      "sha256": "252b6d622b4277a34424d58f8425b23ba81c6a868353776cb13df48aa3c1abbe",
+      "source_sha256": "bb421c7286a494fdee930dd97035eb190c283bc88b98e58a086f7e9885150168"
+    },
+    {
+      "label": "node24-gate",
+      "path": "docs/evolution/w4/evidence/job-resume/node24-gate.log.gz",
+      "sha256": "f3bb72e68317a65b56d682283ca7d7191859abd1b8a9d9f26b777b5978e158a3",
+      "source_sha256": "3db7a3e6ec3710c86c2fd9d2519165b63cf8636cbb8e89e0e8d2240a2f1b3784"
+    },
+    {
+      "label": "package-inventory",
+      "path": "docs/evolution/w4/evidence/job-resume/package-inventory.json.gz",
+      "sha256": "3bbc51e9b94561ca5803c8da2be53b70aa5a75103a8177519f00a6d7b026fb03",
+      "source_sha256": "4976dad23efb85b469266245b386841637e668789c03091ffc558b52c2946708"
+    }
+  ]
+}

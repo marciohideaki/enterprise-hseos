@@ -134,7 +134,7 @@ function projectJobMaterialization(state, row, receipts) {
     state.materialization &&
     (!equal(state.materialization.plan, plan) ||
       state.materialization.phase === 'ready' ||
-      (ready ? state.materialization.command_id !== command.command_id : state.materialization.fence === state.fence))
+      (ready && state.materialization.command_id !== command.command_id))
   )
     reject('JOB_EVENT_INVALID');
   if (ready && !state.materialization) reject('JOB_EVENT_INVALID');

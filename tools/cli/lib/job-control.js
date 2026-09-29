@@ -1,6 +1,6 @@
 'use strict';
 
-const { randomUUID } = require('node:crypto');
+const { randomUUID, createHash } = require('node:crypto');
 const { z, deepFreeze } = require('../../../packages/agent-runtime-contracts');
 const { RelationalSessionEventStore } = require('../../../packages/agent-session-store');
 const { parseJobCommand, parseJobExpansion, jobDigest } = require('../../lib/job-contract');
@@ -564,6 +564,7 @@ class JobControl {
   async execute(raw) {
     const command = parseJobCommand(raw);
     if (command.action === 'link_retry') reject('JOB_COMMAND_INTERNAL');
+    if (command.action === 'resume') return this.resume(command);
     if (command.action === 'reconcile') {
       const projected = this.project(command.resource_id);
       const prior = this.rows(command.resource_id).find((row) => row.payload?.command?.command_id === command.command_id);
@@ -667,6 +668,63 @@ class JobControl {
         return this.query(command.resource_id);
       })
       .immediate();
+  }
+  async resume(command) {
+    const rows = this.rows(command.resource_id);
+    const prior = rows.find((row) => row.payload?.command?.command_id === command.command_id);
+    if (prior) {
+      const recorded = prior.payload.command;
+      if (
+        prior.event_type !== 'JobExecutionRecorded' ||
+        recorded.action !== 'dispatch' ||
+        recorded.resource_id !== command.resource_id ||
+        recorded.resume_expected_sequence !== command.expected_sequence
+      )
+        reject('CONTROL_IDEMPOTENCY_CONFLICT');
+      return this.dispatcher.execute(recorded);
+    }
+    let state = this.query(command.resource_id);
+    const hex = createHash('sha256').update(`job-resume-materialize\0${command.command_id}`).digest('hex');
+    const materializationId = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-5${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
+    const preparation = rows.find((row) => row.payload?.command?.command_id === materializationId);
+    if (preparation) {
+      const recorded = preparation.payload.command;
+      if (
+        preparation.event_type !== 'JobMaterializationRecorded' ||
+        recorded.action !== 'materialize' ||
+        recorded.resource_id !== command.resource_id ||
+        recorded.expected_sequence !== command.expected_sequence
+      )
+        reject('CONTROL_IDEMPOTENCY_CONFLICT');
+      if (state.materialization?.command_id !== materializationId) reject('CONTROL_SEQUENCE_CONFLICT');
+      if (state.current_sequence !== command.expected_sequence + (state.materialization.phase === 'ready' ? 2 : 1))
+        reject('CONTROL_SEQUENCE_CONFLICT');
+      if (state.materialization.phase !== 'ready') state = await this.materializer.execute(recorded);
+    } else {
+      if (state.current_sequence !== command.expected_sequence) reject('CONTROL_SEQUENCE_CONFLICT');
+      if (state.status !== 'claimed' || state.execution || state.cancellation_requested) reject('JOB_DISPATCH_REQUIRED');
+      if (state.materialization?.phase !== 'ready') {
+        state = await this.materializer.execute({
+          schema_version: 1,
+          command_id: materializationId,
+          resource_id: command.resource_id,
+          expected_sequence: command.expected_sequence,
+          fence: state.fence,
+          action: 'materialize',
+        });
+      }
+    }
+    if (state.status !== 'claimed' || state.execution || state.cancellation_requested) reject('JOB_DISPATCH_REQUIRED');
+    if (this.now() >= state.execution_deadline_at) reject('JOB_EXPIRED');
+    return this.dispatcher.execute({
+      schema_version: 1,
+      command_id: command.command_id,
+      resource_id: command.resource_id,
+      expected_sequence: state.current_sequence,
+      fence: state.fence,
+      action: 'dispatch',
+      resume_expected_sequence: command.expected_sequence,
+    });
   }
 }
 module.exports = { JobControl };

@@ -16,6 +16,7 @@ const commandSchema = z
     fence: integer,
     action: z.enum(['dispatch', 'reconcile', 'expire', 'cancel_dependency', 'cancel']),
     input: z.object({}).strict().optional(),
+    resume_expected_sequence: integer.optional(),
   })
   .strict();
 const proofSchema = z

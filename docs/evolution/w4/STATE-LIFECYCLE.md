@@ -36,6 +36,12 @@ recibo; dono morto exige reconcile explícito antes de novo comando de preparaç
 Qualquer evento de atividade além da criação impede essa recuperação de preparação.
 Não há retry automático de efeito externo incerto.
 
+O comando público `resume` exige um job `claimed` com dono e fence atuais. Ele
+conclui uma preparação `planned` com o plano imutável, inclusive quando o polling
+interno iniciou essa preparação, e registra o despacho antes de executar. O mesmo
+ID reproduz o recibo de despacho; uma intenção de execução já registrada nunca
+é iniciada novamente. Prazo e orçamento continuam os da primeira partida.
+
 Queries de status/evidence/session usam o handle validado do controle e vínculo
 durável. Eventos usam cursor global e filtram os agregados do recurso, sem retornar
 outros jobs do ledger. Nenhuma consulta inicializa provider ou aceita caminho do cliente.

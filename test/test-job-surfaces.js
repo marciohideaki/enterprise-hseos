@@ -103,6 +103,45 @@ test('CLI, JavaScript and Python share job state, command replay and event curso
   assert.deepEqual((await f.client.jobEvents(f.id, { after: 2 })).events, []);
 });
 
+test('HTTP, CLI and Python expose explicit resume with one durable dispatch', async (t) => {
+  const f = await setup(t);
+  await f.client.job(f.create);
+  await f.control.jobs.worker.execute({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: f.id,
+    expected_sequence: 1,
+    action: 'claim',
+    fence: 0,
+    lease_ms: 1000,
+  });
+  const resume = { schema_version: 1, command_id: randomUUID(), resource_id: f.id, expected_sequence: 2, action: 'resume', input: {} };
+  const requestFile = path.join(f.directory, 'job-resume.json');
+  fs.writeFileSync(requestFile, JSON.stringify(resume));
+  const env = { ...process.env, HSEOS_CONTROL_CREDENTIAL: credential };
+  const cli = await executeFile(
+    process.execPath,
+    ['tools/cli/hseos-cli.js', 'control', 'job-command', '--url', f.server.url, '--request', requestFile],
+    { env },
+  );
+  const result = JSON.parse(cli.stdout);
+  assert.equal(result.status, 'succeeded');
+  assert.deepEqual(await f.client.job(resume), result);
+  const python = await executeFile(
+    '/usr/bin/python3',
+    [
+      '-B',
+      '-c',
+      "import json,os,sys;sys.path.insert(0,'packages/control-sdk');from hseos_control import ControlClient;print(json.dumps(ControlClient(sys.argv[1],os.environ['HSEOS_CONTROL_CREDENTIAL']).job(json.load(open(sys.argv[2])))))",
+      f.server.url,
+      requestFile,
+    ],
+    { env },
+  );
+  assert.deepEqual(JSON.parse(python.stdout), result);
+  assert.equal((await f.client.jobEvents(f.id)).events.filter((event) => event.event_type === 'JobExecutionRecorded').length, 2);
+});
+
 test('job HTTP keeps authentication, strict commands and cursor boundaries', async (t) => {
   const f = await setup(t);
   const unauthorized = await fetch(f.server.url + '/v1/jobs/' + f.id);

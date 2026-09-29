@@ -15,7 +15,7 @@ export interface CampaignStatus {
   bindings: string[];
   report_sha256: string;
 }
-export type JobAction = 'create' | 'retry' | 'cancel' | 'reconcile';
+export type JobAction = 'create' | 'retry' | 'cancel' | 'reconcile' | 'resume';
 export interface JobCommand {
   schema_version: 1;
   command_id: string;
