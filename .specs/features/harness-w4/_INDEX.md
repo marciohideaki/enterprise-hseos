@@ -32,3 +32,4 @@ de todos os descendentes; elegível = horário/dependências/admissão permitem 
 - [Revisões da reserva de sessão](workflow-reservations-implementation.md) — W4-04a2a.
 - [Consumo de revisões pelo engine](workflow-revision-engine-implementation.md) — W4-04a2b.
 - [Expansão de jobs em execução](workflow-running-expansion-implementation.md) — W4-04a2c.
+- [Drenagem antes do release da árvore](workflow-drain-implementation.md) — W4-04b1.

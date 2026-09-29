@@ -81,7 +81,7 @@ function contextProfile() {
   };
 }
 
-function setup({ delayMs = 0, providerEvents = null } = {}) {
+function setup({ delayMs = 0, providerEvents = null, completionReview = null } = {}) {
   const db = new Database(':memory:');
   db.pragma('foreign_keys = ON');
   runMigrations(db, MIGRATIONS_DIR, { log: () => {} });
@@ -138,6 +138,7 @@ function setup({ delayMs = 0, providerEvents = null } = {}) {
     model_provider_snapshot: registry.snapshot(),
     tool_runtime: tools,
     context_profile_resolver: contextProfile,
+    completion_review: completionReview,
   });
   const subagents = new LocalSubagentProvider({
     session_store: sessionStore,
@@ -710,6 +711,270 @@ test('workflow disposal cancels active children and leaves no resumable live cla
   assert.equal(result.accepted, true);
   assert.equal((await running).status, 'cancelled');
   assert.equal(fixture.sessionStore.replay('session:child-dispose').terminal_event.event_type, 'session.cancelled');
+});
+
+test('lost spawn receipt still drains the durably attached child before releasing a failed workflow', async (context) => {
+  const fixture = setup({ delayMs: 5000 });
+  context.after(() => fixture.db.close());
+  await createParent(fixture);
+  const provider = {
+    manifest: (input) => fixture.subagents.manifest(input),
+    async spawn(input) {
+      await fixture.subagents.spawn(input);
+      throw new Error('spawn receipt lost after durable fork');
+    },
+    join: (input) => fixture.subagents.join(input),
+    cancel: (input) => fixture.subagents.cancel(input),
+    dispose: (input) => fixture.subagents.dispose(input),
+  };
+  const engine = new WorkflowEngine({
+    engine_id: 'workflow:fixture',
+    session_store: fixture.sessionStore,
+    subagent_provider: provider,
+  });
+  const outcome = await engine.run(
+    runInput(workflow([{ phase_id: 'phase:lost-receipt', mode: 'pipeline', steps: [step('lost-receipt')] }])),
+  );
+  assert.equal(outcome.status, 'failed');
+  assert.equal(fixture.sessionStore.replay('session:child-lost-receipt').terminal_event.event_type, 'session.cancelled');
+  assert.equal(fixture.sessionStore.replay('session:parent').workflow_reservations['workflow:fixture-1'].released.status, 'failed');
+});
+
+test('failed drain leaves the workflow reservation active for reconciliation', async (context) => {
+  const fixture = setup({ delayMs: 5000 });
+  context.after(() => fixture.db.close());
+  await createParent(fixture);
+  const provider = {
+    manifest: (input) => fixture.subagents.manifest(input),
+    async spawn(input) {
+      await fixture.subagents.spawn(input);
+      throw new Error('spawn receipt lost after durable fork');
+    },
+    join: (input) => fixture.subagents.join(input),
+    async cancel() {
+      throw new Error('drain receipt lost');
+    },
+    dispose: (input) => fixture.subagents.dispose(input),
+  };
+  const engine = new WorkflowEngine({
+    engine_id: 'workflow:fixture',
+    session_store: fixture.sessionStore,
+    subagent_provider: provider,
+  });
+  const current = workflow([{ phase_id: 'phase:uncertain-drain', mode: 'pipeline', steps: [step('uncertain-drain')] }]);
+  await assert.rejects(engine.run(runInput(current)), /drain receipt lost/);
+  assert.equal(fixture.sessionStore.replay('session:parent').workflow_reservations[current.workflow_id].released, null);
+  await fixture.subagents.cancel({
+    schema_version: 1,
+    provider_id: 'subagent:fixture',
+    request_id: 'request:cleanup-uncertain-drain',
+    parent_session_id: 'session:parent',
+    child_session_ids: ['session:child-uncertain-drain'],
+    reason: 'test cleanup',
+  });
+});
+
+test('workflow cancellation publishes a terminal release only after child drain', async (context) => {
+  const fixture = setup({ delayMs: 5000 });
+  context.after(() => fixture.db.close());
+  await createParent(fixture);
+  let beginCancel;
+  let finishCancel;
+  const cancelStarted = new Promise((resolve) => {
+    beginCancel = resolve;
+  });
+  const cancelGate = new Promise((resolve) => {
+    finishCancel = resolve;
+  });
+  const provider = {
+    manifest: (input) => fixture.subagents.manifest(input),
+    spawn: (input) => fixture.subagents.spawn(input),
+    join: (input) => fixture.subagents.join(input),
+    async cancel(input) {
+      beginCancel();
+      await cancelGate;
+      return fixture.subagents.cancel(input);
+    },
+    dispose: (input) => fixture.subagents.dispose(input),
+  };
+  const engine = new WorkflowEngine({
+    engine_id: 'workflow:fixture',
+    session_store: fixture.sessionStore,
+    subagent_provider: provider,
+  });
+  const running = engine.run(runInput(workflow([{ phase_id: 'phase:drain', mode: 'pipeline', steps: [step('drain')] }])));
+  for (
+    let attempt = 0;
+    attempt < 200 && !fixture.sessionStore.replay('session:parent').children.includes('session:child-drain');
+    attempt += 1
+  )
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  assert.ok(fixture.sessionStore.replay('session:parent').children.includes('session:child-drain'));
+  const cancelling = engine.cancel({
+    schema_version: 1,
+    engine_id: 'workflow:fixture',
+    request_id: 'request:cancel-after-drain',
+    parent_session_id: 'session:parent',
+    workflow_id: 'workflow:fixture-1',
+    reason: 'operator cancelled',
+  });
+  await cancelStarted;
+  assert.equal(fixture.sessionStore.replay('session:parent').workflow_reservations['workflow:fixture-1'].released, null);
+  finishCancel();
+  assert.equal((await cancelling).status, 'cancelled');
+  assert.equal((await running).status, 'cancelled');
+  assert.equal(fixture.sessionStore.replay('session:child-drain').terminal_event.event_type, 'session.cancelled');
+});
+
+test('terminal child still reaches provider drain before workflow release', async (context) => {
+  const fixture = setup();
+  context.after(() => fixture.db.close());
+  await createParent(fixture);
+  let finishSpawn;
+  let beginCancel;
+  let finishCancel;
+  const spawnGate = new Promise((resolve) => {
+    finishSpawn = resolve;
+  });
+  const cancelStarted = new Promise((resolve) => {
+    beginCancel = resolve;
+  });
+  const cancelGate = new Promise((resolve) => {
+    finishCancel = resolve;
+  });
+  const provider = {
+    manifest: (input) => fixture.subagents.manifest(input),
+    async spawn(input) {
+      const receipt = await fixture.subagents.spawn(input);
+      await spawnGate;
+      return receipt;
+    },
+    join: (input) => fixture.subagents.join(input),
+    async cancel(input) {
+      beginCancel();
+      await cancelGate;
+      return fixture.subagents.cancel(input);
+    },
+    dispose: (input) => fixture.subagents.dispose(input),
+  };
+  const engine = new WorkflowEngine({
+    engine_id: 'workflow:fixture',
+    session_store: fixture.sessionStore,
+    subagent_provider: provider,
+  });
+  const current = workflow([{ phase_id: 'phase:terminal-drain', mode: 'pipeline', steps: [step('terminal-drain')] }]);
+  const running = engine.run(runInput(current));
+  for (let attempt = 0; attempt < 200 && !fixture.sessionStore.replay('session:child-terminal-drain')?.terminal_event; attempt += 1)
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  assert.equal(fixture.sessionStore.replay('session:child-terminal-drain').terminal_event.event_type, 'session.completed');
+  const cancelling = engine.cancel({
+    schema_version: 1,
+    engine_id: 'workflow:fixture',
+    request_id: 'request:cancel-terminal-drain',
+    parent_session_id: 'session:parent',
+    workflow_id: current.workflow_id,
+    reason: 'operator cancelled',
+  });
+  finishSpawn();
+  await cancelStarted;
+  assert.equal(fixture.sessionStore.replay('session:parent').workflow_reservations[current.workflow_id].released, null);
+  finishCancel();
+  assert.equal((await cancelling).status, 'cancelled');
+  assert.equal((await running).status, 'cancelled');
+});
+
+test('model completion waits for workflow release and resumes without another model request', async (context) => {
+  const fixture = setup();
+  context.after(() => fixture.db.close());
+  await createParent(fixture);
+  let finishSpawn;
+  const spawnGate = new Promise((resolve) => {
+    finishSpawn = resolve;
+  });
+  const provider = {
+    manifest: (input) => fixture.subagents.manifest(input),
+    async spawn(input) {
+      const receipt = await fixture.subagents.spawn(input);
+      await spawnGate;
+      return receipt;
+    },
+    join: (input) => fixture.subagents.join(input),
+    cancel: (input) => fixture.subagents.cancel(input),
+    dispose: (input) => fixture.subagents.dispose(input),
+  };
+  const engine = new WorkflowEngine({
+    engine_id: 'workflow:fixture',
+    session_store: fixture.sessionStore,
+    subagent_provider: provider,
+  });
+  const running = engine.run(runInput(workflow([{ phase_id: 'phase:deferred-model', mode: 'pipeline', steps: [step('deferred-model')] }])));
+  for (
+    let attempt = 0;
+    attempt < 200 && !fixture.sessionStore.replay('session:parent').workflow_reservations['workflow:fixture-1'];
+    attempt += 1
+  )
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  assert.ok(fixture.sessionStore.replay('session:parent').workflow_reservations['workflow:fixture-1']);
+  const sent = await fixture.runtime.send({
+    schema_version: 1,
+    command: 'send',
+    session_id: 'session:parent',
+    turn_id: 'turn:deferred-model-parent',
+    message: { role: 'user', content: 'complete after workflow drain' },
+  });
+  assert.equal(sent.terminal, false);
+  assert.equal(fixture.sessionStore.replay('session:parent').terminal_event, null);
+  finishSpawn();
+  assert.equal((await running).status, 'completed');
+  const before = fixture.sessionStore.replay('session:parent').current_sequence;
+  const resumed = await fixture.runtime.resume({
+    schema_version: 1,
+    command: 'resume',
+    session_id: 'session:parent',
+    expected_sequence: before,
+  });
+  assert.equal(resumed.terminal, true);
+  assert.equal(fixture.sessionStore.replay('session:parent').terminal_event.event_type, 'session.completed');
+  assert.equal(
+    fixture.sessionStore.readSession('session:parent').filter((event) => event.event_type === 'model.request.started').length,
+    1,
+  );
+});
+
+test('cancellation recorded during protected review wins over model completion', async (context) => {
+  let fixture;
+  fixture = setup({
+    completionReview({ state }) {
+      const current = fixture.sessionStore.replay(state.session_id);
+      fixture.sessionStore.append({
+        session_id: state.session_id,
+        expected_version: current.current_sequence,
+        events: [
+          {
+            schema_version: 1,
+            event_id: `event:${randomUUID()}`,
+            session_id: state.session_id,
+            sequence: current.current_sequence + 1,
+            occurred_at: new Date().toISOString(),
+            event_type: 'session.cancellation.requested',
+            payload: { reason: 'cancel during protected review', cascade: true, source: 'user' },
+          },
+        ],
+      });
+      return null;
+    },
+  });
+  context.after(() => fixture.db.close());
+  await createParent(fixture);
+  const result = await fixture.runtime.send({
+    schema_version: 1,
+    command: 'send',
+    session_id: 'session:parent',
+    turn_id: 'turn:review-cancel',
+    message: { role: 'user', content: 'finish after review' },
+  });
+  assert.equal(result.terminal, true);
+  assert.equal(fixture.sessionStore.replay('session:parent').terminal_event.event_type, 'session.cancelled');
 });
 
 test('workflow scope and duration violations are rejected before child dispatch', async (context) => {

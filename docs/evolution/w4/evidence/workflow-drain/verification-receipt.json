@@ -1,0 +1,109 @@
+{
+  "task": "W4-04b1",
+  "base": "3cb3c2ec",
+  "node22": "22.22.1 official",
+  "node24": "24.15.0",
+  "coverage": {
+    "node22": {
+      "execution-supervisor.js": {
+        "lines": 99.23,
+        "branches": 98.0
+      },
+      "local-subagent-provider.js": {
+        "lines": 96.61,
+        "branches": 89.47
+      },
+      "workflow-engine.js": {
+        "lines": 93.23,
+        "branches": 82.3
+      },
+      "replay.js": {
+        "lines": 91.57,
+        "branches": 91.08
+      },
+      "engineering-workflow-runtime.js": {
+        "lines": 98.74,
+        "branches": 84.45
+      },
+      "agent-runtime/runtime.js": {
+        "lines": 90.26,
+        "branches": 85.42
+      }
+    },
+    "node24": {
+      "execution-supervisor.js": {
+        "lines": 99.23,
+        "branches": 98.0
+      },
+      "local-subagent-provider.js": {
+        "lines": 96.61,
+        "branches": 89.47
+      },
+      "workflow-engine.js": {
+        "lines": 93.23,
+        "branches": 82.3
+      },
+      "replay.js": {
+        "lines": 91.57,
+        "branches": 91.08
+      },
+      "engineering-workflow-runtime.js": {
+        "lines": 98.74,
+        "branches": 84.45
+      },
+      "agent-runtime/runtime.js": {
+        "lines": 90.26,
+        "branches": 85.85
+      }
+    }
+  },
+  "mutants": {
+    "node22": "18/18 rejected",
+    "node24": "18/18 rejected"
+  },
+  "gates": {
+    "node22": "PASS, zero failures and skips",
+    "node24": "PASS, zero failures and skips"
+  },
+  "pack_entries": 1457,
+  "skeptical_review": "Independent read-only reviewer found no remaining blocker after cancellation, terminalization, and explicit-resume fixes.",
+  "scope": "Descendant-first cancellation, protected terminal event until workflow release, attached-child drain after lost spawn receipt, tool/model/plugin closure before release. Baseline drift and explicit linked retry remain W4-04b2.",
+  "logs": {
+    "node22_coverage": {
+      "file": "node22_coverage.log.gz",
+      "sha256": "7d13cb79c07e327e91aa7b1373f3825a4ae97d573d96bbef015edbaa6a004a53",
+      "bytes": 35607
+    },
+    "node22_mutations": {
+      "file": "node22_mutations.log.gz",
+      "sha256": "237c0bf5ca5bf4e249adc74883588036af966015b22124f309ed94fba4005cb7",
+      "bytes": 733
+    },
+    "node22_gate": {
+      "file": "node22_gate.log.gz",
+      "sha256": "dfb578406825fa39cf8e4907e496275cea9119af3835bc4422d881f10797a6b4",
+      "bytes": 68614
+    },
+    "node24_coverage": {
+      "file": "node24_coverage.log.gz",
+      "sha256": "129f66fc53f8740c4f4997bfa5536d956f1481e7fc55c145a6b85fde008cc83e",
+      "bytes": 27076
+    },
+    "node24_mutations": {
+      "file": "node24_mutations.log.gz",
+      "sha256": "6679326cdae1faa7f90d3c4c54bf68a950067a1775e4b9863b9f2d820569d662",
+      "bytes": 499
+    },
+    "node24_gate": {
+      "file": "node24_gate.log.gz",
+      "sha256": "72d8fd6a01c3e62b1fdd6dabf511cccecac8ad1f4716ff76e23ff8fcfba91e55",
+      "bytes": 54375
+    },
+    "node24_manager_validate": {
+      "file": "node24_manager_validate.log.gz",
+      "sha256": "8a5f5c943930615fbfe2d3091f18958a5df82e5d9f83d30bc0df9e9fb3490d13",
+      "bytes": 54460
+    }
+  },
+  "worktree_validation": "PASS, zero failures and skips"
+}

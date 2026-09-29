@@ -15,9 +15,9 @@ const mutations = {
   reservation_current: ['packages/agent-orchestration/workflow-engine.js', 'return reservation.revisions.at(-1).definition;', 'return workflow;'],
   reservation_checkpoint_cas: ['packages/agent-orchestration/workflow-engine.js', "['AGENT_SESSION_VERSION_CONFLICT', 'EXECUTION_STREAM_VERSION_CONFLICT'].includes(error?.code)", "['AGENT_SESSION_VERSION_CONFLICT'].includes(error?.code)"],
   task_completion: [
-    'tools/cli/lib/engineering-task-runtime.js',
-    "completion_review: async ({ step }) => {\n      if (observeTaskCancellation()) throw Object.assign(new Error('Task cancelled'), { code: 'ENGINEERING_TASK_CANCELLED' });",
-    'completion_review: async ({ step }) => {\n      if (observeTaskCancellation()) return null;',
+    'packages/agent-runtime/runtime.js',
+    "if (state.cancellation_request) return this.#settleCancellation(state, active);\n    return this.#terminalize(state, 'session.completed'",
+    "if (false) return this.#settleCancellation(state, active);\n    return this.#terminalize(state, 'session.completed'",
   ],
   task_cancellation: ['tools/cli/lib/engineering-task-runtime.js', 'function observeTaskCancellation() {', 'function observeTaskCancellation() { return false;'],
   job_shutdown: ['tools/cli/lib/job-dispatch.js', "if (this.#closing) reject('JOB_WORKER_CLOSING');", 'if (false) {}'],

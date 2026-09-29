@@ -315,6 +315,12 @@ function replaySessionEvents(inputEvents, { from = null } = {}) {
 
     state.session_id = event.session_id;
     state.current_sequence = event.sequence;
+    if (
+      ['session.cancelled', 'session.failed', 'session.completed'].includes(event.event_type) &&
+      Object.values(state.workflow_reservations).some((reservation) => !reservation.released)
+    ) {
+      throw new SessionReplayError('session cannot terminate before workflow drain', 'AGENT_SESSION_WORKFLOW_ACTIVE');
+    }
     switch (event.event_type) {
       case 'session.created': {
         state.spec = event.payload.spec;

@@ -241,6 +241,15 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
   };
   const first = assemblies.values().next().value.assembly;
   const store = first.sessionStore;
+  const drainChild = async (child) => {
+    const results = await Promise.allSettled([
+      Promise.resolve().then(() => child.assembly.tools.drain()),
+      Promise.resolve().then(() => child.assembly.modelConnection?.close()),
+      Promise.resolve().then(() => child.assembly.extensions?.close()),
+    ]);
+    const failed = results.find((result) => result.status === 'rejected');
+    if (failed) throw failed.reason;
+  };
   const resolveChild = (sessionStore, sessionId) => {
     const sessionOutcome = terminalChild(sessionStore, sessionId);
     if (!sessionOutcome) return null;
@@ -275,13 +284,16 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
           const message = handle.db.transaction(() => applyReconciliation(child.task, child.assembly, inspected, decision)).immediate();
           if (inspected.session.status === 'completed') {
             await executeEngineeringTask(child.handle, child.task, child.assembly, created, true, input);
-            return child.assembly.runtime.send(input);
+            const result = await child.assembly.runtime.send(input);
+            await drainChild(child);
+            return result;
           }
           const result = await executeEngineeringTask(child.handle, child.task, child.assembly, created, 'reconciled', {
             ...input,
             turn_id: `turn:${randomUUID()}`,
             message,
           });
+          await drainChild(child);
           return result;
         }
         require('./job-dispatch').assertJobRuntimeAccess(child.handle.db, child.task.id);
@@ -289,7 +301,9 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
         require('./job-dispatch').assertJobRuntimeAccess(child.handle.db, child.task.id);
         const result = await executeEngineeringTask(child.handle, child.task, child.assembly, created, verificationOnly, input);
         // A completed session returns its existing receipt without any new model/tool event.
-        return verificationOnly ? child.assembly.runtime.send(input) : result;
+        const response = verificationOnly ? await child.assembly.runtime.send(input) : result;
+        await drainChild(child);
+        return response;
       } catch (error) {
         const state = child.task.read();
         if (!state.result && state.cancellation && !state.started)
@@ -312,6 +326,7 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
       const result = await child.assembly.runtime.cancel(input);
       if ((!state.started || interrupted) && !state.result)
         child.task.append({ kind: 'result', result: 'not_executed', reason: 'cancelled', evidence: {} }, child.task.read().version);
+      await drainChild(child);
       return result;
     },
   };
@@ -345,10 +360,9 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
     workflow,
     children: assemblies,
     async drain() {
-      for (const child of assemblies.values()) {
-        await child.assembly.tools.drain();
-        await child.assembly.modelConnection?.close();
-      }
+      const results = await Promise.allSettled([...assemblies.values()].map(drainChild));
+      const failed = results.find((result) => result.status === 'rejected');
+      if (failed) throw failed.reason;
     },
   };
 }

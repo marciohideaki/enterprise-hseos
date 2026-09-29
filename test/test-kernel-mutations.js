@@ -15,7 +15,7 @@ const cases = [
   ['reservation_release', 'test/test-workflow-reservations.js', 'durable cancellation winning the release CAS'],
   ['reservation_current', 'test/test-workflow-reservations.js', 'engine reclaims an expired revised reservation'],
   ['reservation_checkpoint_cas', 'test/test-workflow-reservations.js', 'checkpoint CAS retries after an append-only revision'],
-  ['task_completion', 'test/test-engineering-task-runtime.js', 'durable cancellation at model-stop'],
+  ['task_completion', 'test/test-agent-orchestration.js', 'cancellation recorded during protected review'],
   ['task_cancellation', 'test/test-engineering-task-runtime.js', 'durable cancellation at tool-intent'],
   ['job_shutdown', 'test/test-job-faults.js', 'shutdown during admission cannot'],
   ['job_acceptance', 'test/test-job-faults.js', 'replay rejects false success'],
