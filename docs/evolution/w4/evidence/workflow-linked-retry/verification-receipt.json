@@ -1,0 +1,102 @@
+{
+  "task": "W4-04b2b",
+  "base": "ed050544",
+  "node22": "22.22.1 official",
+  "node24": "24.15.0",
+  "focused": "34/34 passed on Node 24; directed actual drift and retry passes",
+  "coverage": {
+    "node22": {
+      "job-control.js": {
+        "lines": 99.69,
+        "branches": 92.15
+      },
+      "job-contract.js": {
+        "lines": 100,
+        "branches": 100
+      },
+      "job-dispatch.js": {
+        "lines": 95.66,
+        "branches": 87.73
+      },
+      "engineering-task-runtime.js": {
+        "lines": 97.19,
+        "branches": 89.01
+      },
+      "engineering-workflow-runtime.js": {
+        "lines": 98.77,
+        "branches": 84.98
+      }
+    },
+    "node24": {
+      "job-control.js": {
+        "lines": 99.69,
+        "branches": 92.15
+      },
+      "job-contract.js": {
+        "lines": 100,
+        "branches": 100
+      },
+      "job-dispatch.js": {
+        "lines": 95.66,
+        "branches": 87.73
+      },
+      "engineering-task-runtime.js": {
+        "lines": 97.19,
+        "branches": 89.01
+      },
+      "engineering-workflow-runtime.js": {
+        "lines": 98.77,
+        "branches": 84.98
+      }
+    }
+  },
+  "mutants": {
+    "node22": "18/18 rejected",
+    "node24": "18/18 rejected"
+  },
+  "gates": {
+    "node22": "PASS, zero failures and warnings",
+    "node24": "PASS, zero failures"
+  },
+  "pack_entries": 1457,
+  "review": "Independent read-only skeptical review found no confirmed blocker; dynamic tests and gates completed separately.",
+  "scope": "Explicit terminal workflow retry; single CAS-linked successor; original deadline and resource budget; previous accepted nodes cannot be retried. Campaign binding reuse remains W4-05.",
+  "logs": {
+    "node22_coverage": {
+      "file": "node22_coverage.log.gz",
+      "sha256": "832b2dd192b0f669206b81ff9d1dcb46c8eb44b6eacc2366ec6dbbe549a74d1f",
+      "bytes": 35815
+    },
+    "node22_mutations": {
+      "file": "node22_mutations.log.gz",
+      "sha256": "435c353a656c3265d2509d790170e493215475dbe39047f5a7d36f5c6d6e7f0c",
+      "bytes": 672
+    },
+    "node22_gate": {
+      "file": "node22_gate.log.gz",
+      "sha256": "4acd954de31235e07382e8e21278def909276d10c2e275509ca435ed79276499",
+      "bytes": 68894
+    },
+    "node24_coverage": {
+      "file": "node24_coverage.log.gz",
+      "sha256": "fb7ea8c0157bd0a8bd331bc807709c245e69cb9f096615651088d30b95b6f883",
+      "bytes": 27234
+    },
+    "node24_mutations": {
+      "file": "node24_mutations.log.gz",
+      "sha256": "8e125b0e6866aaf5c6c8c85ee5f493331fb13ba9f2665e9887a60f9dba6f20dd",
+      "bytes": 502
+    },
+    "node24_gate": {
+      "file": "node24_gate.log.gz",
+      "sha256": "1bca25c5315be45a89fa97b89f28d6c1b2a36258d3d09b23b7a6e794b9fbc29b",
+      "bytes": 54341
+    },
+    "node24_manager_validate": {
+      "file": "node24_manager_validate.log.gz",
+      "sha256": "7b03590b79ab5a353a082aae653150219e101e15be13dd6f906704f74e4962d8",
+      "bytes": 54606
+    }
+  },
+  "worktree_validation": "PASS, zero failures; one pre-existing template placeholder warning"
+}

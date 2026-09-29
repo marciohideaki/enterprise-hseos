@@ -281,9 +281,9 @@ Subdivisão de execução:
   drenados. Contrato em [workflow-drain-implementation.md](workflow-drain-implementation.md).
 - W4-04b2a (task hseos-w4-workflow-retry): invalidação de dependentes não
   iniciados por drift de baseline, com aceite anterior preservado.
-- W4-04b2b: tentativa nova explícita e vinculada à árvore terminal, sem
-  renovação do orçamento original. O contrato de implementação desta unidade
-  será fixado após o recibo de W4-04b2a.
+- W4-04b2b (task hseos-w4-workflow-linked-retry): tentativa nova explícita
+  e vinculada à árvore terminal, sem renovação do orçamento original. Contrato
+  em [workflow-linked-retry-implementation.md](workflow-linked-retry-implementation.md).
   W4-04b só fecha após as duas unidades e a verificação conjunta.
 
 - execution_mode: isolated
