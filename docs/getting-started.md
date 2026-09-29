@@ -10,7 +10,7 @@
 
 ## Prerequisites
 
-- Node.js ≥ 20
+- Node.js ≥ 22
 - Git configured with your identity
 - Claude Code CLI installed (`npm install -g @anthropic-ai/claude-code`)
 - Access to the project repository
@@ -31,8 +31,14 @@ Volta must be installed without `sudo`.
 Then, from the root of your project:
 
 ```bash
-hseos install
+hseos install-plan --profile developer --tools claude-code,codex  # inspect before writing
+hseos install --profile developer --tools claude-code,codex
 ```
+
+`install-plan` only reports the selected files, adapters, and prerequisites.
+`install` writes project files; select `--tools codex` on that command when
+configuring only Codex for the project. A global CLI installation alone does not
+materialize project workflows or adapters.
 
 This sets up:
 

@@ -183,7 +183,7 @@ Each step is governed by skills loaded automatically from the registry. Agents c
 ### 1. Install the verified GitHub release
 
 ```bash
-release_version=3.3.1
+release_version=3.4.2
 release_dir="$(mktemp -d)"
 gh release download "v${release_version}" \
   --repo marciohideaki/enterprise-hseos \
@@ -203,6 +203,10 @@ verification commands with the same Node/npm context used for installation.
 The release is installed from the exact tarball covered by `SHA256SUMS`; HSEOS
 is not currently published under the unscoped `hseos` name on npm. Reinstall
 the previous verified GitHub asset to roll back.
+
+The `4.0.0-rc.0` W4 candidate is separate from the latest public GitHub release.
+See the [W4 guide](docs/evolution/w4/README.md) and
+[v4 migration guide](docs/v4-migration.md) before using its new CLI surfaces.
 
 This sets up:
 
@@ -538,8 +542,8 @@ HSEOS ships a lightweight SQLite-backed state layer at `.hseos/state/project.db`
 
 ```bash
 hseos state-emit start --run <run-id>   # open a run
-hseos state list                        # list recent runs
-hseos state describe <run-id>           # full run detail
+hseos state-list                        # list recent runs
+hseos state-describe <run-id>           # run detail and last events
 hseos kanban                            # ASCII kanban in terminal
 ```
 
@@ -673,7 +677,7 @@ O framework resolve um problema específico: ferramentas de IA são ágeis mas d
 ### Instalação rápida
 
 ```bash
-versao_release=3.3.1
+versao_release=3.4.2
 diretorio_release="$(mktemp -d)"
 gh release download "v${versao_release}" \
   --repo marciohideaki/enterprise-hseos \
@@ -689,6 +693,10 @@ A distribuição oficial atual é o artefato imutável da release no GitHub. O
 pacote sem escopo `hseos` não está publicado no npm; por isso `npx hseos` não é
 um caminho de instalação suportado. Para rollback, reinstale o asset verificado
 da versão anterior.
+
+A candidata W4 `4.0.0-rc.0` é separada da release pública. Consulte o
+[guia W4](docs/evolution/w4/README.md) e o
+[guia de migração v4](docs/v4-migration.md) antes de usar as novas superfícies.
 
 O instalador cria, por padrão:
 

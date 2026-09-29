@@ -132,7 +132,7 @@ async function runDoctorCmd(projectDir) {
 
 module.exports = {
   command: 'agent-core <action>',
-  description: 'Manage the vendor-neutral .agents core',
+  description: 'Manage the vendor-neutral .agents core (compile, verify, audit, doctor)',
   options: [
     ['--directory <path>', 'Project directory (default: current directory)'],
     ['--target <id>', 'Adapter target id (default: all). One of claude-code, codex, goose, all'],

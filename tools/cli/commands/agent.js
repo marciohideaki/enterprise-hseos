@@ -207,7 +207,7 @@ async function execute(action, options = {}) {
 
 module.exports = {
   command: 'agent <action>',
-  description: 'Run, resume, or cancel a temporary HSEOS Agent Kernel profile',
+  description: 'Agent actions: run, resume, cancel, validate-task, status, evidence, reconcile',
   options: [
     ['--task-contract <path>', 'Versioned disposable engineering contract for validation or candidate execution'],
     ['--scripted-responses <path>', 'Bounded keyless model responses for deterministic engineering fixtures'],
