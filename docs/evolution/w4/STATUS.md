@@ -489,3 +489,14 @@ compartilham o contrato. Revisão cética encontrou a lacuna de takeover do
 plano interno, corrigida e coberta por falha injetada. Cobertura integral,
 18/18 mutantes e gates passaram em Node 22/24 com zero falhas ou skips; pacote
 permanece em 1.457 entradas. Recibo em `evidence/job-resume/`.
+
+### W4-06d verificada antes do commit
+
+A expansão de workflow em execução agora confirma revisão e vínculos dos filhos
+antes de preparar arquivos. Concorrência/cancelamento antes do CAS não deixa
+diretórios de filhos. Falha após o commit é sinalizada como
+`JOB_PREPARATION_PENDING` e o mesmo comando completa a vista a partir do plano
+persistido. A revisão cética encontrou e ajudou a fechar a janela de órfão e
+a ambiguidade do erro pós-commit. Testes focados 29/29, cobertura crítica,
+18/18 mutantes e gates passaram em Node 22/24; pacote segue em 1.457 entradas.
+Recibo em `evidence/expansion-atomicity/`.

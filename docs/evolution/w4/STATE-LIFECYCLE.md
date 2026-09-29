@@ -42,6 +42,12 @@ interno iniciou essa preparação, e registra o despacho antes de executar. O me
 ID reproduz o recibo de despacho; uma intenção de execução já registrada nunca
 é iniciada novamente. Prazo e orçamento continuam os da primeira partida.
 
+Na expansão de workflow em execução, a revisão e os vínculos dos filhos são
+confirmados no ledger antes da criação dos arquivos. Falha de CAS não cria
+diretório de filho. Se a preparação falhar após o commit, o comando retorna
+`JOB_PREPARATION_PENDING`; repetir o mesmo ID ou resolver o filho conclui a
+vista a partir do plano persistido, sem registrar outra revisão.
+
 Queries de status/evidence/session usam o handle validado do controle e vínculo
 durável. Eventos usam cursor global e filtram os agregados do recurso, sem retornar
 outros jobs do ledger. Nenhuma consulta inicializa provider ou aceita caminho do cliente.

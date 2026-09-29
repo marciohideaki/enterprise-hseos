@@ -356,20 +356,32 @@ class JobMaterializer {
     };
     return planSchema.parse({ schema_version: 1, control_directory: old.control_directory, tasks, manifest });
   }
-  materializeExpansion(state, plan) {
-    const previousCount = state.materialization.plan.tasks.length;
-    for (const entry of plan.tasks.slice(previousCount)) {
-      const files = { 'engineering-task.json': JSON.stringify({ task_run_id: entry.task_run_id }) };
-      const directories = ['workspace'];
-      for (const name of entry.created.contract.scope.read) {
-        const parent = path.posix.dirname(name);
-        if (parent !== '.') directories.push(`workspace/${parent}`);
-      }
-      for (const file of entry.created.contract.initial_files) files[`workspace/${file.path}`] = file.content;
+  materializeExpandedChild(state, entry) {
+    const current = this.jobs.query(state.resource_id);
+    const index = current.materialization?.plan.tasks.findIndex((task) => task.task_run_id === entry.task_run_id) ?? -1;
+    if (
+      current.materialization?.plan.control_directory !== this.control.state ||
+      index < (current.materialization.original_plan?.tasks.length ?? current.materialization.plan.tasks.length) ||
+      !equal(current.materialization.plan.tasks[index], entry)
+    )
+      reject('JOB_PLAN_INVALID');
+    const files = { 'engineering-task.json': JSON.stringify({ task_run_id: entry.task_run_id }) };
+    const directories = ['workspace'];
+    for (const name of entry.created.contract.scope.read) {
+      const parent = path.posix.dirname(name);
+      if (parent !== '.') directories.push(`workspace/${parent}`);
+    }
+    for (const file of entry.created.contract.initial_files) files[`workspace/${file.path}`] = file.content;
+    const prepare = () =>
       materializeProjectSnapshot(this.control.state, `jobs/${state.resource_id}/tasks/${entry.task_run_id}`, files, [
         ...new Set(directories),
       ]);
-    }
+    if (this.control.handle.db.inTransaction) prepare();
+    else this.control.handle.db.transaction(prepare).immediate();
+  }
+  materializeExpansion(state) {
+    const originalCount = state.materialization.original_plan?.tasks.length ?? state.materialization.plan.tasks.length;
+    for (const entry of state.materialization.plan.tasks.slice(originalCount)) this.materializeExpandedChild(state, entry);
   }
   #files(state) {
     const files = {},
@@ -479,6 +491,8 @@ function resolveJobView(control, id) {
     !control.rows(id).some((row) => equal(row.payload, { ...binding, kind: 'registered' }))
   )
     reject('JOB_PLAN_INVALID');
+  if (index >= (state.materialization.original_plan?.tasks.length ?? plan.tasks.length))
+    control.jobs.materializer.materializeExpandedChild(state, plan.tasks[index]);
   return {
     handle: { db: control.handle.db, directory: mapping.state_directory },
     state,

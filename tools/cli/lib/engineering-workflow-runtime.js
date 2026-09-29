@@ -220,6 +220,13 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
   const assemblies = new Map();
   const attach = (entry) => {
     if (assemblies.has(entry.session_id)) return assemblies.get(entry.session_id);
+    if (modelOptions.jobControl) {
+      const current = modelOptions.jobControl.jobs.query(modelOptions.jobId);
+      const index = current.materialization.plan.tasks.findIndex((task) => task.task_run_id === entry.task_run_id);
+      if (index === -1) throw new Error('JOB_PLAN_INVALID');
+      if (index >= (current.materialization.original_plan?.tasks.length ?? current.materialization.plan.tasks.length))
+        modelOptions.jobControl.jobs.materializer.materializeExpandedChild(current, current.materialization.plan.tasks[index]);
+    }
     const task = new EngineeringTaskState(handle.db, entry.task_run_id);
     const childHandle = { db: handle.db, directory: path.join(handle.directory, 'tasks', entry.task_run_id) };
     const child = {

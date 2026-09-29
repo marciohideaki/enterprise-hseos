@@ -2,6 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const { fixture } = require('./helpers/engineering-project');
 const { EngineeringControl } = require('../tools/cli/lib/engineering-control');
@@ -292,11 +293,24 @@ test('cancellation winning running admission cannot publish a revision or dispat
     await f.jobs.execute(f.envelope('cancel', current.current_sequence));
     return admitted;
   };
-  await assert.rejects(f.jobs.expand(f.expand([f.node('late', ['first'])])), { code: 'CONTROL_SEQUENCE_CONFLICT' });
+  const rejected = f.expand([f.node('late', ['first'])]);
+  const candidate = f.jobs.materializer.expansionPlan(
+    f.jobs.query(f.id),
+    rejected,
+    {
+      ...f.jobs.query(f.id).admission.input.definition,
+      revision: 2,
+      previous_definition_sha256: rejected.input.definition_sha256,
+      tasks: [f.node('first'), f.node('late', ['first'])],
+    },
+    Date.now(),
+  );
+  await assert.rejects(f.jobs.expand(rejected), { code: 'CONTROL_SEQUENCE_CONFLICT' });
   const settled = await running;
   assert.notEqual(settled.status, 'succeeded');
   assert.equal(settled.materialization.plan.tasks.length, 1);
   assert.equal(store.readSession(parentId).filter((event) => event.event_type === 'workflow.revised').length, 0);
+  assert.equal(fs.existsSync(path.join(f.control.state, 'jobs', f.id, 'tasks', candidate.tasks[1].task_run_id)), false);
 });
 
 test('failed job append rolls back the parent revision and child registration', async (t) => {
@@ -317,21 +331,73 @@ test('failed job append rolls back the parent revision and child registration', 
     await new Promise((resolve) => setTimeout(resolve, 5));
   }
   assert.equal(f.jobs.query(f.id).status, 'running');
+  const rejected = f.expand([f.node('late', ['first'])]);
+  const candidate = f.jobs.materializer.expansionPlan(
+    f.jobs.query(f.id),
+    rejected,
+    {
+      ...f.jobs.query(f.id).admission.input.definition,
+      revision: 2,
+      previous_definition_sha256: rejected.input.definition_sha256,
+      tasks: [f.node('first'), f.node('late', ['first'])],
+    },
+    Date.now(),
+  );
   const original = f.control.ledger.appendBatch.bind(f.control.ledger);
   f.control.ledger.appendBatch = (requests) => {
-    if (requests.some((request) => request.events.some((event) => event.event_type === 'JobWorkflowExpanded')))
+    if (requests.some((request) => request.events.some((event) => event.event_type === 'JobWorkflowExpanded'))) {
+      assert.equal(fs.existsSync(path.join(f.control.state, 'jobs', f.id, 'tasks', candidate.tasks[1].task_run_id)), false);
       throw Object.assign(new Error('injected-job-append-failure'), { code: 'INJECTED_APPEND_FAILURE' });
+    }
     return original(requests);
   };
   try {
-    await assert.rejects(f.jobs.expand(f.expand([f.node('late', ['first'])])), { code: 'INJECTED_APPEND_FAILURE' });
+    await assert.rejects(f.jobs.expand(rejected), { code: 'INJECTED_APPEND_FAILURE' });
   } finally {
     f.control.ledger.appendBatch = original;
   }
   assert.equal(store.readSession(parentId).filter((event) => event.event_type === 'workflow.revised').length, 0);
   assert.equal(f.jobs.query(f.id).materialization.plan.tasks.length, 1);
+  assert.equal(fs.existsSync(path.join(f.control.state, 'jobs', f.id, 'tasks', candidate.tasks[1].task_run_id)), false);
   const settled = await running;
   assert.equal(settled.status, 'succeeded', JSON.stringify(settled.execution));
+});
+
+test('a committed running revision completes its files on command replay', async (t) => {
+  const f = await setup(t);
+  const worker = (action, expected_sequence, extra = {}) => {
+    const { input: _, ...command } = f.envelope(action, expected_sequence);
+    return { ...command, fence: 1, ...extra };
+  };
+  await f.jobs.worker.execute(worker('claim', 1, { fence: 0, lease_ms: 1000 }));
+  await f.jobs.materializer.execute(worker('materialize', 2));
+  const prepared = f.jobs.query(f.id);
+  const running = f.jobs.dispatcher.execute(worker('dispatch', prepared.current_sequence));
+  const { RelationalSessionEventStore } = require('../packages/agent-session-store');
+  const store = new RelationalSessionEventStore({ ledger: f.control.ledger });
+  const parentId = prepared.materialization.plan.manifest.parent_session_id;
+  for (let i = 0; i < 300; i++) {
+    if (f.jobs.query(f.id).status === 'running' && store.replay(parentId).workflow_reservations[f.definition.workflow_id]) break;
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+  assert.equal(f.jobs.query(f.id).status, 'running');
+  const command = f.expand([f.node('late', ['first'])]);
+  const original = f.jobs.materializer.materializeExpansion.bind(f.jobs.materializer);
+  f.jobs.materializer.materializeExpansion = () => {
+    throw Object.assign(new Error('interrupted after commit'), { code: 'TEST_INTERRUPTED' });
+  };
+  try {
+    await assert.rejects(f.jobs.expand(command), { code: 'JOB_PREPARATION_PENDING' });
+  } finally {
+    f.jobs.materializer.materializeExpansion = original;
+  }
+  const committed = f.jobs.query(f.id);
+  assert.equal(committed.admission.input.definition.revision, 2);
+  const replay = await f.jobs.expand(command);
+  assert.deepEqual(replay, committed);
+  const child = replay.materialization.plan.tasks[1];
+  assert.equal(fs.existsSync(path.join(f.control.state, 'jobs', f.id, 'tasks', child.task_run_id, 'engineering-task.json')), true);
+  assert.equal((await running).status, 'succeeded');
 });
 
 for (const winner of ['claim', 'expiry', 'baseline'])

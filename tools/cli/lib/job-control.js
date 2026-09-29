@@ -437,19 +437,14 @@ class JobControl {
   async expand(raw) {
     const command = parseJobExpansion(raw);
     const checked = this.checkExpansion(command);
-    if (checked.replay) return checked.replay;
+    if (checked.replay) return this.completeExpansionView(checked.replay);
     const admission = await this.control.admitCreation(
       'create_workflow',
       { definition: checked.definition },
       command.resource_id,
       Date.parse(checked.state.deadline_at),
     );
-    let plan;
-    if (checked.state.status === 'running') {
-      plan = this.materializer.expansionPlan(checked.state, command, admission.input.definition, this.now());
-      this.materializer.materializeExpansion(checked.state, plan);
-    }
-    return this.control.handle.db
+    const result = this.control.handle.db
       .transaction(() => {
         const current = this.checkExpansion(command);
         if (current.replay) return current.replay;
@@ -458,8 +453,11 @@ class JobControl {
           if (require('./engineering-workspace').projectWorkspaceSnapshot(task.contract).sha256 !== task.contract.workspace.files_sha256)
             reject('JOB_BASELINE_DRIFT');
         const at = this.now();
-        if (current.state.status === 'running' && (this.now() >= current.state.execution_deadline_at || !plan)) reject('JOB_EXPIRED');
-        if (plan) plan = this.materializer.expansionPlan(current.state, command, admission.input.definition, at);
+        if (current.state.status === 'running' && at >= current.state.execution_deadline_at) reject('JOB_EXPIRED');
+        const plan =
+          current.state.status === 'running'
+            ? this.materializer.expansionPlan(current.state, command, admission.input.definition, at)
+            : null;
         let parentRevisionEventId;
         if (plan) {
           const parentId = plan.manifest.parent_session_id;
@@ -560,6 +558,17 @@ class JobControl {
         return this.query(command.resource_id);
       })
       .immediate();
+    return this.completeExpansionView(result);
+  }
+  completeExpansionView(result) {
+    if (result.materialization?.original_plan) {
+      try {
+        this.materializer.materializeExpansion(result);
+      } catch (error) {
+        throw Object.assign(new Error('JOB_PREPARATION_PENDING', { cause: error }), { code: 'JOB_PREPARATION_PENDING' });
+      }
+    }
+    return result;
   }
   async execute(raw) {
     const command = parseJobCommand(raw);
