@@ -10,6 +10,7 @@
     "packages/agent-compaction/**/*.js",
     "packages/agent-isolation-attestation/**/*.js",
     "tools/cli/lib/engineering-*.js",
+    "tools/cli/commands/plugin.js",
     "tools/cli/lib/provider-egress-broker.js",
     "packages/control-sdk/**/*.js",
     "tools/cli/lib/terminal-*.js",

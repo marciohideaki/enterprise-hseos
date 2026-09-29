@@ -451,7 +451,7 @@ validação formal passou com um aviso preexistente de placeholder de template;
 hook e integração da unidade seguem pendentes neste registro. Nenhum efeito
 externo pago foi executado.
 
-### W4-05 integrada; W4-06a verificada antes do commit
+### W4-05 e W4-06a integradas; W4-06b verificada antes do commit
 
 W4-05: commit `6ee33054`, integração `4b11599a`; hook Node 24 passou e a
 worktree foi removida. W4-06a expõe comandos e consultas de jobs em CLI,
@@ -463,6 +463,18 @@ de owner morto. Um ensaio inicial detectou o manifesto CLI desatualizado;
 ele foi recompilado. A revisão cética confirmou o bloqueio de upload de código
 antes da persistência e a recusa de expansão pela porta pública. Cobertura,
 18/18 mutantes e gates integrais passaram em Node 22/24; pacote permanece em
-1.457 entradas. `resume` público e a corrida de materialização da expansão
-interna seguem como lacunas W4 a resolver antes de W4-08. Hook e integração
-desta unidade seguem pendentes. Sem ativação operacional.
+1.457 entradas. W4-06a: commit `e026e2c3`, integração `d85ee1ee`, hook passou e
+worktree removida. `resume` público e a corrida de materialização da expansão
+interna seguem como lacunas W4 a resolver antes de W4-08. Sem ativação
+operacional.
+
+W4-06b: instalação de plugin de execução por digest em store local, resolução
+offline de dependências e preservação de versões antigas. Revisão cética
+encontrou corrida de symlink e tratamento incorreto de plugin desabilitado no
+`doctor`; ambos foram corrigidos e retestados. O pacote real foi instalado com
+`npm --offline` fora do checkout: CLI, upgrade, rollback, `doctor` e seleção
+original passaram sem importar o módulo externo. Cobertura de `plugin.js`
+passou 92,58% linhas/81,01% branches em Node 22/24; 18/18 mutantes e gates de
+código passaram em ambas as versões, com zero falhas/avisos. Inventário segue
+1.457 entradas. Essas provas são fixtures de distribuição; os três consumidores
+reais W4-07b ainda não foram certificados. Hook e integração W4-06b pendentes.
