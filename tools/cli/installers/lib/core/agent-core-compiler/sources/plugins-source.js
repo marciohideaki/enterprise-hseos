@@ -280,6 +280,7 @@ async function loadActivePluginManifests(root, registryPlugins, agentsDirName = 
     if (entry.type === 'execution' || entry.execution !== undefined) {
       if (registryPlugins.schemaVersion !== '3.0' || entry.type !== 'execution')
         throw new Error('Execution plugins require registry schema_version 3.0');
+      if (!active) continue;
       const { inspectExecutionPlugin } = require('../../../../../../lib/execution-plugin-manifest');
       const inspected = inspectExecutionPlugin(pluginDir);
       if (
