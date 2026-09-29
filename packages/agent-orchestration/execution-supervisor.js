@@ -148,19 +148,36 @@ class AgentExecutionSupervisor {
       }
       return deadlineMs - (now - startedAt);
     };
-    const workflows = [...this.#workflowTasks.values()].filter((tracked) => tracked.input.parent_session_id === value.root_session_id);
+    const depths = new Map([[value.root_session_id, 0]]);
+    for (const sessionId of this.#descendants(value.root_session_id)) {
+      const parentId = this.#store.replay(sessionId).spec.parent_session_id;
+      depths.set(sessionId, (depths.get(parentId) || 0) + 1);
+    }
+    const workflows = [...this.#workflowTasks.values()]
+      .filter((tracked) => depths.has(tracked.input.parent_session_id))
+      .sort((left, right) => depths.get(right.input.parent_session_id) - depths.get(left.input.parent_session_id));
+    let previousCancellation = Promise.resolve();
     const workflowCancellations = workflows.map((tracked) => {
       const engine = this.#workflowEngines.get(tracked.engineId);
-      return Promise.resolve().then(() =>
-        engine.cancel({
-          schema_version: 1,
-          engine_id: tracked.engineId,
-          request_id: `${value.request_id}:${tracked.input.workflow.workflow_id}`,
-          parent_session_id: value.root_session_id,
-          workflow_id: tracked.input.workflow.workflow_id,
-          reason: value.reason,
-        }),
-      );
+      const operation = previousCancellation.then(async () => {
+        try {
+          return await engine.cancel({
+            schema_version: 1,
+            engine_id: tracked.engineId,
+            request_id: `${value.request_id}:${tracked.input.workflow.workflow_id}`,
+            parent_session_id: tracked.input.parent_session_id,
+            workflow_id: tracked.input.workflow.workflow_id,
+            reason: value.reason,
+          });
+        } catch (error) {
+          const released = this.#store.replay(tracked.input.parent_session_id).workflow_reservations[tracked.input.workflow.workflow_id]
+            ?.released;
+          if (error?.code !== 'WORKFLOW_NOT_ACTIVE' || !released) throw error;
+          return { status: released.status, workflow_id: tracked.input.workflow.workflow_id };
+        }
+      });
+      previousCancellation = operation.catch(() => {});
+      return operation;
     });
     const agentTask = this.#agentTasks.get(value.root_session_id) || null;
     const rootCancellation = Promise.resolve().then(() =>
@@ -184,7 +201,21 @@ class AgentExecutionSupervisor {
       .filter((settlement) => settlement.status === 'fulfilled')
       .map((settlement) => settlement.value);
     const rootCancellationSettlement = settlements[workflowCancellations.length + workflows.length];
-    const cancellation = rootCancellationSettlement.status === 'fulfilled' ? rootCancellationSettlement.value : null;
+    let cancellation = rootCancellationSettlement.status === 'fulfilled' ? rootCancellationSettlement.value : null;
+    if (!this.#store.replay(value.root_session_id).terminal_event) {
+      cancellation = await withDeadline(
+        Promise.resolve().then(() =>
+          this.#agentRuntime.cancel({
+            schema_version: 1,
+            command: 'cancel',
+            session_id: value.root_session_id,
+            reason: value.reason,
+            cascade: true,
+          }),
+        ),
+        remaining(),
+      );
+    }
     const root = this.#store.replay(value.root_session_id);
     const descendantIds = this.#descendants(value.root_session_id);
     const unsettled = descendantIds.filter((sessionId) => !this.#store.replay(sessionId).terminal_event);

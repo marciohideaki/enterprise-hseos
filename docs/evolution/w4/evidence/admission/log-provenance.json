@@ -1,0 +1,22 @@
+{
+  "marketplace-node24.log": {
+    "sha256_raw": "060e7d392c67197cf05bb5343071ad59e350c7a3669b7edaa9ce08e070a04863",
+    "normalization": "trailing whitespace and blank EOF lines removed; raw preserved as gzip"
+  },
+  "tests-node22.log": {
+    "sha256_raw": "8a3a3b3af8e992229d617febdd8c0b60db62a06369ff57ead10223eb6c4e8389",
+    "normalization": "trailing whitespace and blank EOF lines removed; raw preserved as gzip"
+  },
+  "lint.log": {
+    "sha256_raw": "1199e672d98e3e483259833625d91fcb6b9da3a744c703aecad61b3d4acfd3a3",
+    "normalization": "trailing whitespace and blank EOF lines removed; raw preserved as gzip"
+  },
+  "lint-final.log": {
+    "sha256_raw": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "normalization": "trailing whitespace and blank EOF lines removed; raw preserved as gzip"
+  },
+  "coverage-node24.log": {
+    "sha256_raw": "bf22de32d30fb67e6b79e5ebd2d1e26e97be576c5370576d8a9c69ba9f4164f0",
+    "normalization": "trailing whitespace and blank EOF lines removed; raw preserved as gzip"
+  }
+}

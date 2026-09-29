@@ -15,6 +15,22 @@ export interface CampaignStatus {
   bindings: string[];
   report_sha256: string;
 }
+export type JobAction = 'create' | 'retry' | 'cancel' | 'reconcile' | 'resume';
+export interface JobCommand {
+  schema_version: 1;
+  command_id: string;
+  resource_id: string;
+  expected_sequence: number;
+  action: JobAction;
+  input: Record<string, unknown>;
+}
+export interface JobStatus {
+  schema_version: 1;
+  resource_id: string;
+  current_sequence: number;
+  status: string;
+  [key: string]: unknown;
+}
 export type TerminalAction =
   | 'open'
   | 'input'
@@ -72,6 +88,12 @@ export class ControlClient {
   constructor(options: { url: string; credential: string; fetchImpl?: typeof fetch });
   bindingInspect(bindingId: string): Promise<Record<string, unknown>>;
   campaign(command: CampaignCommand): Promise<Record<string, unknown>>;
+  job(command: JobCommand): Promise<JobStatus>;
+  jobQuery(resourceId: string): Promise<JobStatus>;
+  jobEvents(
+    resourceId: string,
+    options?: { after?: number; limit?: number },
+  ): Promise<{ resource_id: string; events: Record<string, unknown>[]; next_cursor: number }>;
   campaignQuery(resourceId: string): Promise<CampaignStatus>;
   campaignEvents(
     resourceId: string,

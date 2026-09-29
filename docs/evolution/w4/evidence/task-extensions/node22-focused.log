@@ -1,0 +1,134 @@
+heavy-run: modo pinned na CPU 1, MemoryMax=3G (load1=2.30 phys=6 avail=23908MiB need=3G mem.psi=0.00 io.psi.full=0.00)
+W4 containment: /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/hseos-w4-task-ext-node22.scope memory.max= 3221225472 affinity= [1]
+TAP version 13
+# Subtest: loader preserves legacy configuration and constructs only registered lazy adapters
+ok 1 - loader preserves legacy configuration and constructs only registered lazy adapters
+  ---
+  duration_ms: 66.035207
+  type: 'test'
+  ...
+# Subtest: loader refuses state override, directory drift and replaced ledger before factory effects
+ok 2 - loader refuses state override, directory drift and replaced ledger before factory effects
+  ---
+  duration_ms: 26.50535
+  type: 'test'
+  ...
+# Subtest: loader preserves temporary ledger activation gate
+ok 3 - loader preserves temporary ledger activation gate
+  ---
+  duration_ms: 18.399905
+  type: 'test'
+  ...
+# Subtest: loader validates all references and manifests before invoking any factory
+ok 4 - loader validates all references and manifests before invoking any factory
+  ---
+  duration_ms: 19.728103
+  type: 'test'
+  ...
+# Subtest: loader checks observed digest and adapter interface, sanitizing factory exceptions
+ok 5 - loader checks observed digest and adapter interface, sanitizing factory exceptions
+  ---
+  duration_ms: 20.925155
+  type: 'test'
+  ...
+# Subtest: loader rechecks ledger identity after factory construction
+ok 6 - loader rechecks ledger identity after factory construction
+  ---
+  duration_ms: 17.066475
+  type: 'test'
+  ...
+# Subtest: loader rejects malformed, oversized, symlink and hardlink configurations
+ok 7 - loader rejects malformed, oversized, symlink and hardlink configurations
+  ---
+  duration_ms: 18.769598
+  type: 'test'
+  ...
+# Subtest: extension catalog remains frozen data and does not resolve unselected code on load
+ok 8 - extension catalog remains frozen data and does not resolve unselected code on load
+  ---
+  duration_ms: 16.142696
+  type: 'test'
+  ...
+# Subtest: create-only pins context without executing it; resume assembles provenance and spends its slot
+ok 9 - create-only pins context without executing it; resume assembles provenance and spends its slot
+  ---
+  duration_ms: 2008.16145
+  type: 'test'
+  ...
+# Subtest: selected tool runs through task gateway and consumes the session invocation limit
+ok 10 - selected tool runs through task gateway and consumes the session invocation limit
+  ---
+  duration_ms: 1150.670338
+  type: 'test'
+  ...
+# Subtest: context uses the last slot and prevents a subsequent model tool from executing
+ok 11 - context uses the last slot and prevents a subsequent model tool from executing
+  ---
+  duration_ms: 950.675967
+  type: 'test'
+  ...
+# Subtest: catalog drift on resume is rejected before effects while read-only queries need no catalog
+ok 12 - catalog drift on resume is rejected before effects while read-only queries need no catalog
+  ---
+  duration_ms: 851.25573
+  type: 'test'
+  ...
+# Subtest: confirmed context receipt can be reconstructed without another plugin launch
+ok 13 - confirmed context receipt can be reconstructed without another plugin launch
+  ---
+  duration_ms: 971.557476
+  type: 'test'
+  ...
+# Subtest: live cancellation during context collection drains the plugin and never dispatches a model
+ok 14 - live cancellation during context collection drains the plugin and never dispatches a model
+  ---
+  duration_ms: 1717.799352
+  type: 'test'
+  ...
+# Subtest: control accepts only selected IDs and terminals cannot consume context-reserved capacity
+ok 15 - control accepts only selected IDs and terminals cannot consume context-reserved capacity
+  ---
+  duration_ms: 882.145237
+  type: 'test'
+  ...
+# Subtest: invalid configuration, unsupported ports and excessive context reservation fail before a plugin effect
+ok 16 - invalid configuration, unsupported ports and excessive context reservation fail before a plugin effect
+  ---
+  duration_ms: 131.954193
+  type: 'test'
+  ...
+# Subtest: invalid and excessive context output cannot reach a model or verifier approval
+ok 17 - invalid and excessive context output cannot reach a model or verifier approval
+  ---
+  duration_ms: 2020.062137
+  type: 'test'
+  ...
+# Subtest: context approval is never auto-granted and pre-abort or expiry cannot dispatch
+ok 18 - context approval is never auto-granted and pre-abort or expiry cannot dispatch
+  ---
+  duration_ms: 1148.663246
+  type: 'test'
+  ...
+# Subtest: uncertain plugin teardown blocks acceptance and remains visible after reopening task state
+ok 19 - uncertain plugin teardown blocks acceptance and remains visible after reopening task state
+  ---
+  duration_ms: 2331.353105
+  type: 'test'
+  ...
+# > hseos@4.0.0-rc.0 prepare
+# > command -v husky >/dev/null 2>&1 && husky || exit 0
+# Subtest: published package exposes runtime and governance assets only
+ok 20 - published package exposes runtime and governance assets only
+  ---
+  duration_ms: 3442.76309
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18581.752231

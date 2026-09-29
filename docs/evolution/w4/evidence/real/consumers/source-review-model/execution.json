@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "id": "source-review-model",
+  "version": "1.0.0",
+  "kind": "model-provider",
+  "compatibility": {
+    "contract_version": 1,
+    "node_majors": [22, 24]
+  },
+  "entrypoint": "entry.cjs",
+  "files": {
+    "entry.cjs": "d53367953b7a580595a453a2af4c826428b76544034763d6aef166c8ae5f4ae2"
+  },
+  "capabilities": ["generate", "tool_calls"],
+  "limits": {
+    "timeout_ms": 3000,
+    "max_output_bytes": 65536,
+    "memory_max_bytes": 268435456,
+    "pids_max": 32
+  },
+  "dependencies": [],
+  "conformance": ["entry.cjs"]
+}

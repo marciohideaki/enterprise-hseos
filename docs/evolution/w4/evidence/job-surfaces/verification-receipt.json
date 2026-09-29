@@ -1,0 +1,104 @@
+{
+  "task": "W4-06a",
+  "base": "4b11599a",
+  "node22": "22.22.1 official",
+  "node24": "24.15.0",
+  "focused": "15/15 passed on Node 22 and Node 24",
+  "coverage": {
+    "node22": {
+      "engineering-control-http.js": {
+        "lines": 100.0,
+        "branches": 87.71
+      },
+      "job-control.js": {
+        "lines": 99.7,
+        "branches": 91.19
+      },
+      "job-materialization.js": {
+        "lines": 99.39,
+        "branches": 87.77
+      },
+      "job-contract.js": {
+        "lines": 100.0,
+        "branches": 100.0
+      }
+    },
+    "node24": {
+      "engineering-control-http.js": {
+        "lines": 100.0,
+        "branches": 87.71
+      },
+      "job-control.js": {
+        "lines": 99.7,
+        "branches": 91.19
+      },
+      "job-materialization.js": {
+        "lines": 99.39,
+        "branches": 87.77
+      },
+      "job-contract.js": {
+        "lines": 100.0,
+        "branches": 100.0
+      }
+    }
+  },
+  "mutants": {
+    "node22": "18/18 rejected",
+    "node24": "18/18 rejected"
+  },
+  "gates": {
+    "node22": "PASS, zero failures and warnings",
+    "node24": "PASS, zero failures and warnings"
+  },
+  "pack_entries": 1457,
+  "review": "Independent skeptical static review: inline code upload was initially accepted and public expand had an unsafe race; HTTP now rejects initial_files before persistence and public expand is denied. Final review found no remaining W4-06a blocker. Public resume and the internal expansion materialization race remain W4 follow-ups.",
+  "scope": "CLI, HTTP and JS/TS/Python SDK job create/retry/cancel/reconcile, state and cursor events. Same authentication, envelopes, idempotency and strict HTTP no-code boundary. No operational activation.",
+  "logs": {
+    "node22_focused": {
+      "file": "node22_focused.log.gz",
+      "sha256": "856080555437b7fe3c7a7693d462f0751c3f8b7a05ef22b304522308b4d95e42",
+      "bytes": 1125
+    },
+    "node22_coverage": {
+      "file": "node22_coverage.log.gz",
+      "sha256": "5813ecef4b4eafb8f00ca6b5915ea2073223c465df23cb466e672514e1f85fe0",
+      "bytes": 36030
+    },
+    "node22_mutations": {
+      "file": "node22_mutations.log.gz",
+      "sha256": "44c8e325c0015826cfc847959b5a3f769f63632a14b1d39f2353842c16e8741a",
+      "bytes": 733
+    },
+    "node22_gate": {
+      "file": "node22_gate.log.gz",
+      "sha256": "0e9d3ec824f9a020bb78ec660126c25f6a64f3d9b3a77ba68d6473dd9951e6bc",
+      "bytes": 69361
+    },
+    "node24_focused": {
+      "file": "node24_focused.log.gz",
+      "sha256": "541c7287153aff286747908e75a21ef98c1c39aadc652040a2d08daf56f76a13",
+      "bytes": 942
+    },
+    "node24_coverage": {
+      "file": "node24_coverage.log.gz",
+      "sha256": "2f5ea1ecfd1398f8a854a0a5946dbf804b0fee95173d7805795f6687cd4d136b",
+      "bytes": 27405
+    },
+    "node24_mutations": {
+      "file": "node24_mutations.log.gz",
+      "sha256": "10360553b91c58d77e81843396639ca35fd3bb6772b87c4d3020672d82e5c50d",
+      "bytes": 564
+    },
+    "node24_gate": {
+      "file": "node24_gate.log.gz",
+      "sha256": "92ff9ffe6bc09099a716d33fa17336cf8f757821c6091bb343172ec3e4bea592",
+      "bytes": 54816
+    },
+    "node24_manager_validate": {
+      "file": "node24_manager_validate.log.gz",
+      "sha256": "86586cfd61b8ab6aa1df2a98a1521fcef4dfb4edfb4b8584c0c048e9b525f096",
+      "bytes": 54812
+    }
+  },
+  "manager_validation": "PASS on Node 24, one existing publication-trigger placeholder warning"
+}

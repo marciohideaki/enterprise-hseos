@@ -47,8 +47,19 @@ const definitionSchema = z
   })
   .strict();
 
+const revisionSchema = definitionSchema
+  .extend({
+    schema_version: z.literal(2),
+    revision: z.number().int().positive().safe(),
+    previous_definition_sha256: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .nullable(),
+  })
+  .refine((value) => (value.revision === 1) === (value.previous_definition_sha256 === null));
+
 function parseEngineeringWorkflow(value) {
-  const definition = definitionSchema.parse(value);
+  const definition = z.union([definitionSchema, revisionSchema]).parse(value);
   if (Buffer.byteLength(JSON.stringify(definition)) > 1_048_576) throw new Error('Workflow definition exceeds its byte budget');
   const ids = new Set(definition.tasks.map((task) => task.id));
   if (ids.size !== definition.tasks.length) throw new Error('Workflow task ids must be unique');
@@ -141,24 +152,115 @@ function workflowSummary(handle, manifest, store) {
   };
 }
 
+function workflowStep(manifest, entry, created) {
+  return {
+    step_id: entry.id,
+    child_spec: engineeringSessionSpec(created, entry.task_run_id, manifest.parent_session_id),
+    turn_id: `turn:${entry.task_run_id}`,
+    message: {
+      role: 'user',
+      content: JSON.stringify({
+        sources: created.contract.sources,
+        requirements: created.contract.requirements,
+        acceptance: created.contract.acceptance,
+        scope: created.contract.scope,
+      }),
+    },
+  };
+}
+
+function workflowDefinitionFromPlan(plan, previous, oldCount = 0) {
+  const manifest = plan.manifest;
+  const parsed = parseEngineeringWorkflow(manifest.definition);
+  const byId = new Map(manifest.tasks.map((entry, index) => [entry.id, { entry, created: plan.tasks[index].created }]));
+  const phase = (ids, index) => ({
+    phase_id: `phase:${index}`,
+    mode: 'parallel',
+    steps: ids.map((id) => {
+      const value = byId.get(id);
+      return workflowStep(manifest, value.entry, value.created);
+    }),
+  });
+  if (!previous) {
+    return {
+      schema_version: 1,
+      workflow_id: manifest.definition.workflow_id,
+      subagent_provider_id: 'subagent:local',
+      max_parallelism: manifest.definition.max_parallelism,
+      join_timeout_ms: parsed.joinTimeout,
+      phases: parsed.phases.map(phase),
+    };
+  }
+  const newIds = new Set(manifest.tasks.slice(oldCount).map((entry) => entry.id));
+  const remaining = new Set(newIds);
+  const completed = new Set(manifest.tasks.slice(0, oldCount).map((entry) => entry.id));
+  const appended = [];
+  while (remaining.size > 0) {
+    const ready = manifest.definition.tasks.filter((task) => remaining.has(task.id) && task.depends_on.every((id) => completed.has(id)));
+    if (ready.length === 0) throw new Error('Workflow expansion dependency cycle');
+    appended.push(
+      phase(
+        ready.map((task) => task.id),
+        previous.phases.length + appended.length,
+      ),
+    );
+    for (const task of ready) {
+      remaining.delete(task.id);
+      completed.add(task.id);
+    }
+  }
+  return {
+    ...previous,
+    join_timeout_ms: Math.max(previous.join_timeout_ms, parsed.joinTimeout),
+    phases: [...previous.phases, ...appended],
+  };
+}
+
 function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
   const assemblies = new Map();
-  for (const entry of manifest.tasks) {
+  const attach = (entry) => {
+    if (assemblies.has(entry.session_id)) return assemblies.get(entry.session_id);
+    if (modelOptions.jobControl) {
+      const current = modelOptions.jobControl.jobs.query(modelOptions.jobId);
+      const index = current.materialization.plan.tasks.findIndex((task) => task.task_run_id === entry.task_run_id);
+      if (index === -1) throw new Error('JOB_PLAN_INVALID');
+      if (index >= (current.materialization.original_plan?.tasks.length ?? current.materialization.plan.tasks.length))
+        modelOptions.jobControl.jobs.materializer.materializeExpandedChild(current, current.materialization.plan.tasks[index]);
+    }
     const task = new EngineeringTaskState(handle.db, entry.task_run_id);
     const childHandle = { db: handle.db, directory: path.join(handle.directory, 'tasks', entry.task_run_id) };
-    assemblies.set(entry.session_id, {
+    const child = {
       id: entry.id,
       handle: childHandle,
       task,
       assembly: assembleEngineeringTask(childHandle, task.read().created, modelOptions),
-    });
-  }
+    };
+    assemblies.set(entry.session_id, child);
+    return child;
+  };
+  for (const entry of manifest.tasks) attach(entry);
+  const resolveAssembly = (sessionId) => {
+    if (assemblies.has(sessionId)) return assemblies.get(sessionId);
+    if (!modelOptions.jobControl) return null;
+    const current = modelOptions.jobControl.jobs.query(modelOptions.jobId);
+    const entry = current.materialization.plan.manifest.tasks.find((item) => item.session_id === sessionId);
+    return entry ? attach(entry) : null;
+  };
   const first = assemblies.values().next().value.assembly;
   const store = first.sessionStore;
+  const drainChild = async (child) => {
+    const results = await Promise.allSettled([
+      Promise.resolve().then(() => child.assembly.tools.drain()),
+      Promise.resolve().then(() => child.assembly.modelConnection?.close()),
+      Promise.resolve().then(() => child.assembly.extensions?.close()),
+    ]);
+    const failed = results.find((result) => result.status === 'rejected');
+    if (failed) throw failed.reason;
+  };
   const resolveChild = (sessionStore, sessionId) => {
     const sessionOutcome = terminalChild(sessionStore, sessionId);
     if (!sessionOutcome) return null;
-    const child = assemblies.get(sessionId);
+    const child = resolveAssembly(sessionId);
     if (!child) return sessionOutcome;
     const task = child.task.read();
     if (!task.result) return null;
@@ -176,7 +278,7 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
     },
     dispose: (input) => first.runtime.dispose(input),
     async send(input) {
-      const child = assemblies.get(input.session_id);
+      const child = resolveAssembly(input.session_id);
       if (!child) throw new Error('Workflow controller does not execute model turns');
       const created = child.task.read().created;
       try {
@@ -186,25 +288,36 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
           const { inspectReconciliation, applyReconciliation } = require('./engineering-reconciliation');
           const inspected = await inspectReconciliation(child.task, child.assembly, attestEngineeringExecutor);
           const decision = modelOptions.reconciliationDecisions?.[child.id];
-          const message = handle.db.transaction(() => applyReconciliation(child.task, child.assembly, inspected, decision))();
+          const message = handle.db.transaction(() => applyReconciliation(child.task, child.assembly, inspected, decision)).immediate();
           if (inspected.session.status === 'completed') {
             await executeEngineeringTask(child.handle, child.task, child.assembly, created, true, input);
-            return child.assembly.runtime.send(input);
+            const result = await child.assembly.runtime.send(input);
+            await drainChild(child);
+            return result;
           }
           const result = await executeEngineeringTask(child.handle, child.task, child.assembly, created, 'reconciled', {
             ...input,
             turn_id: `turn:${randomUUID()}`,
             message,
           });
+          await drainChild(child);
           return result;
         }
+        require('./job-dispatch').assertJobRuntimeAccess(child.handle.db, child.task.id);
         await attestEngineeringExecutor(child.assembly.policy, created.deadline);
+        require('./job-dispatch').assertJobRuntimeAccess(child.handle.db, child.task.id);
         const result = await executeEngineeringTask(child.handle, child.task, child.assembly, created, verificationOnly, input);
         // A completed session returns its existing receipt without any new model/tool event.
-        return verificationOnly ? child.assembly.runtime.send(input) : result;
+        const response = verificationOnly ? await child.assembly.runtime.send(input) : result;
+        await drainChild(child);
+        return response;
       } catch (error) {
         const state = child.task.read();
-        if (!state.result)
+        if (!state.result && error.code === 'JOB_BASELINE_DRIFT' && !state.started)
+          child.task.append({ kind: 'result', result: 'not_executed', reason: 'JOB_BASELINE_DRIFT', evidence: {} }, state.version);
+        else if (!state.result && state.cancellation && !state.started)
+          child.task.append({ kind: 'result', result: 'not_executed', reason: 'cancelled', evidence: {} }, state.version);
+        else if (!state.result)
           child.task.append(
             { kind: 'result', result: 'blocked', reason: error.code || 'engineering-execution-blocked', evidence: {} },
             state.version,
@@ -213,7 +326,7 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
       }
     },
     async cancel(input) {
-      const child = assemblies.get(input.session_id);
+      const child = resolveAssembly(input.session_id);
       if (!child) return first.runtime.cancel(input);
       const state = child.task.read();
       if (!state.result && !state.cancellation) child.task.append({ kind: 'cancellation_requested' }, state.version);
@@ -222,6 +335,7 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
       const result = await child.assembly.runtime.cancel(input);
       if ((!state.started || interrupted) && !state.result)
         child.task.append({ kind: 'result', result: 'not_executed', reason: 'cancelled', evidence: {} }, child.task.read().version);
+      await drainChild(child);
       return result;
     },
   };
@@ -243,37 +357,10 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
     workflow_engines: new Map([['workflow:local', engine]]),
     max_settlement_ms: 10_000,
   });
-  const byId = new Map(manifest.tasks.map((task) => [task.id, task]));
-  const parsed = parseEngineeringWorkflow(manifest.definition);
-  const workflow = {
-    schema_version: 1,
-    workflow_id: manifest.definition.workflow_id,
-    subagent_provider_id: 'subagent:local',
-    max_parallelism: manifest.definition.max_parallelism,
-    join_timeout_ms: parsed.joinTimeout,
-    phases: parsed.phases.map((ids, index) => ({
-      phase_id: `phase:${index}`,
-      mode: 'parallel',
-      steps: ids.map((id) => {
-        const entry = byId.get(id);
-        const created = assemblies.get(entry.session_id).task.read().created;
-        return {
-          step_id: id,
-          child_spec: engineeringSessionSpec(created, entry.task_run_id, manifest.parent_session_id),
-          turn_id: `turn:${entry.task_run_id}`,
-          message: {
-            role: 'user',
-            content: JSON.stringify({
-              sources: created.contract.sources,
-              requirements: created.contract.requirements,
-              acceptance: created.contract.acceptance,
-              scope: created.contract.scope,
-            }),
-          },
-        };
-      }),
-    })),
-  };
+  const workflow = workflowDefinitionFromPlan({
+    manifest,
+    tasks: manifest.tasks.map((entry) => ({ created: assemblies.get(entry.session_id).task.read().created })),
+  });
   return {
     store,
     runtime,
@@ -282,10 +369,9 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
     workflow,
     children: assemblies,
     async drain() {
-      for (const child of assemblies.values()) {
-        await child.assembly.tools.drain();
-        await child.assembly.modelConnection?.close();
-      }
+      const results = await Promise.allSettled([...assemblies.values()].map(drainChild));
+      const failed = results.find((result) => result.status === 'rejected');
+      if (failed) throw failed.reason;
     },
   };
 }
@@ -297,6 +383,7 @@ async function runEngineeringWorkflow({ definition: value, createOnly = false, e
       task.contract = require('./engineering-workspace').hydrateProjectTask(parseEngineeringTask(task.contract));
   }
   const { definition } = parseEngineeringWorkflow(materialized);
+  if (definition.schema_version === 2 && definition.revision !== 1) throw new Error('Workflow creation requires revision 1');
   const handle = createExecutionLedgerFileFixture();
   let assembly;
   try {
@@ -584,9 +671,69 @@ async function inspectEngineeringWorkflow({
 }
 
 module.exports = {
+  readEngineeringWorkflowView: workflowSummary,
   parseEngineeringWorkflow,
   migrateEngineeringWorkflow,
   readEngineeringWorkflow: readDefinitionFile,
   runEngineeringWorkflow,
   inspectEngineeringWorkflow,
 };
+
+async function executeJobWorkflow(control, id) {
+  const view = require('./job-materialization').resolveJobView(control, id);
+  if (!view?.manifest) throw new Error('JOB_DISPATCH_REQUIRED');
+  const assembly = assembleEngineeringWorkflow(view.handle, view.manifest, {
+    extensionCatalog: control.extensionCatalog,
+    campaigns: control.providerCampaigns,
+    resourceId: id,
+    jobControl: control,
+    jobId: id,
+  });
+  let cancellation;
+  const check = () => {
+    if (!cancellation && control.jobs.query(id).cancellation_requested) {
+      cancellation = assembly.supervisor.cancelRoot({
+        schema_version: 1,
+        request_id: `cancel:${randomUUID()}`,
+        root_session_id: view.manifest.parent_session_id,
+        reason: 'Job cancelled',
+        deadline_ms: 10_000,
+      });
+      cancellation.catch(() => {});
+    }
+  };
+  const timer = setInterval(check, 25);
+  try {
+    try {
+      await executeWorkflow(assembly, view.manifest);
+    } catch (error) {
+      check();
+      if (!cancellation) throw error;
+    }
+    check();
+    if (cancellation) await cancellation;
+    const baselineDrift = [...assembly.children.values()].some((child) => child.task.read().result?.reason === 'JOB_BASELINE_DRIFT');
+    if (baselineDrift && !assembly.store.replay(view.manifest.parent_session_id).terminal_event)
+      await assembly.supervisor.cancelRoot({
+        schema_version: 1,
+        request_id: `cancel:${randomUUID()}`,
+        root_session_id: view.manifest.parent_session_id,
+        reason: 'Workflow baseline drift',
+        deadline_ms: 10_000,
+      });
+    for (const child of assembly.children.values()) {
+      const state = child.task.read();
+      if (!state.started && !state.result)
+        child.task.append(
+          { kind: 'result', result: 'not_executed', reason: baselineDrift ? 'JOB_BASELINE_DRIFT' : 'workflow-stopped', evidence: {} },
+          state.version,
+        );
+    }
+  } finally {
+    clearInterval(timer);
+    if (cancellation) await cancellation;
+    await assembly.drain();
+  }
+}
+module.exports.executeJobWorkflow = executeJobWorkflow;
+module.exports.workflowDefinitionFromPlan = workflowDefinitionFromPlan;

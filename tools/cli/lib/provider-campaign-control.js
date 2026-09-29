@@ -89,15 +89,30 @@ function reject(code) {
 
 /** Campaign reservations extend the control ledger; adapters remain effect owners. */
 class ProviderCampaignControl {
+  #lifecycle = { active: new Map(), inspections: new Map(), inflight: new Map(), drains: new Set(), closing: false };
+  get active() {
+    return this.#lifecycle.active;
+  }
+  get inspections() {
+    return this.#lifecycle.inspections;
+  }
+  get inflight() {
+    return this.#lifecycle.inflight;
+  }
+  get drains() {
+    return this.#lifecycle.drains;
+  }
+  get closing() {
+    return this.#lifecycle.closing;
+  }
+  set closing(value) {
+    this.#lifecycle.closing = value;
+  }
+
   constructor(control, bindings = {}, { now = Date.now, authorizations = {} } = {}) {
     this.control = control;
     this.now = now;
     this.bindings = new Map();
-    this.active = new Map();
-    this.inspections = new Map();
-    this.inflight = new Map();
-    this.drains = new Set();
-    this.closing = false;
     this.authorizations = new Map(
       Object.entries(authorizations).map(([id, value]) => [z.string().uuid().parse(id), authorizationSchema.parse(value)]),
     );
@@ -113,6 +128,27 @@ class ProviderCampaignControl {
       this.bindings.set(id, { manifest, adapter: configured.adapter, subordinateIds: Object.freeze(subordinateIds) });
     }
     this.validateComposition();
+  }
+  /** Reconstruct an admitted host adapter without changing durable authority or lifecycle ownership. */
+  withBinding(configured) {
+    const id = configured?.manifest?.binding_id;
+    const current = this.bindings.get(id);
+    if (!current || engineeringDigest(current.manifest) !== engineeringDigest(configured.manifest))
+      reject('CONTROL_PROVIDER_BINDING_DRIFT');
+    const bindings = Object.fromEntries(
+      [...this.bindings].map(([key, value]) => [
+        key,
+        {
+          manifest: value.manifest,
+          binding_sha256: value.manifest.binding_sha256,
+          adapter: key === id ? configured.adapter : value.adapter,
+          subordinate_binding_ids: value.subordinateIds,
+        },
+      ]),
+    );
+    const facade = new ProviderCampaignControl(this.control, bindings, { now: this.now });
+    facade.#lifecycle = this.#lifecycle;
+    return facade;
   }
   validateComposition() {
     for (const binding of this.bindings.values()) {
@@ -176,6 +212,16 @@ class ProviderCampaignControl {
     const rows = this.rows(id),
       opened = rows.find((r) => r.payload.kind === 'opened')?.payload;
     if (!opened) reject('CONTROL_CAMPAIGN_NOT_FOUND');
+    const authorizationRows = z.string().uuid().safeParse(opened.authorization_id).success
+      ? this.control.ledger.readStream('control_provider_authorization', opened.authorization_id)
+      : [];
+    if (
+      rows.filter((row) => row.payload.kind === 'opened').length !== 1 ||
+      authorizationRows.length !== 1 ||
+      authorizationRows[0].payload.kind !== 'claimed' ||
+      authorizationRows[0].payload.campaign_id !== id
+    )
+      reject('CONTROL_CAMPAIGN_AUTHORIZATION_INVALID');
     const reserved = rows.filter((r) => r.payload.kind === 'reserved');
     const reconciled = new Set(rows.filter((r) => r.payload.kind === 'reconciled').flatMap((r) => r.payload.command_ids));
     const pending = reserved.filter(
@@ -334,6 +380,8 @@ class ProviderCampaignControl {
       binding = this.bindings.get(input.binding_id);
       if (!binding) reject('CONTROL_PROVIDER_BINDING_UNKNOWN');
       this.admitDispatch(id, input, binding, parent);
+      if (binding.adapter.validateDispatch && binding.adapter.validateDispatch({ task_id: input.task_id, request_id: commandId }) !== true)
+        reject('CONTROL_PROVIDER_DISPATCH_DENIED');
       if (this.inspections.size > 0 || [...this.active.keys()].some((activeId) => activeId !== id)) reject('CONTROL_PROVIDER_BUSY');
       const probe = new AbortController();
       const abortProbe = () => probe.abort();

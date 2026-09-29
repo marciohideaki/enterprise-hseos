@@ -1,0 +1,24 @@
+{
+  "type": "focused-verification",
+  "task": "W4-02c1",
+  "tests": 11,
+  "results": {
+    "Node22.23.3": "11 passed, zero skipped",
+    "Node24.15.0": "11 passed, zero skipped"
+  },
+  "coverage": {
+    "lines": 100,
+    "branches": 96.49
+  },
+  "critical_file": "tools/cli/lib/execution-plugin-adapters.js",
+  "sha256": "e36801f058055501596a825ccd669b083d27990d3837901f25fb310e429d37c1",
+  "node22_native_dependency": "better-sqlite3 12.9.0 from W3 Node22 consumer; temporary worktree link removed after tests",
+  "full_gate": {
+    "Node24": "passed",
+    "failures": 0,
+    "warnings": 3,
+    "log_sha256": "248012e57bae2bf24657a11be4b9591c277d6efde45cb26d06a76868988338f1"
+  },
+  "consumer_real": "pending",
+  "activation": "not authorized"
+}

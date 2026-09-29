@@ -77,3 +77,55 @@ test('approval requires versioned proof bound to contract, artifacts, session an
     task.append({ kind: 'result', result: 'not_executed', reason: 'cancelled', evidence: {} }, 4);
     assert.throws(() => task.append({ kind: 'execution_started' }, 5));
   }));
+test('cancellation acquires the writer lock before reading evidence across connections', () =>
+  fixture((task, creation) => {
+    const path = require('node:path');
+    const { openExecutionLedgerFileFixture } = require('../tools/mcp-project-state/lib/execution-ledger-schema');
+    const { ExecutionEventLedger } = require('../tools/mcp-project-state/lib/execution-event-ledger');
+    task.append(creation, 0);
+    task.append({ kind: 'execution_started' }, 1);
+    const other = openExecutionLedgerFileFixture(path.dirname(task.ledger.db.name));
+    try {
+      other.db.pragma('busy_timeout = 0');
+      const ledger = new ExecutionEventLedger(other.db),
+        id = randomUUID();
+      const request = {
+        aggregate_type: 'control_task',
+        aggregate_id: id,
+        expected_version: 0,
+        events: [
+          {
+            event_id: randomUUID(),
+            event_type: 'ControlCommandRecorded',
+            schema_version: 1,
+            occurred_at: new Date().toISOString(),
+            correlation_id: id,
+            causation_id: id,
+            actor: { type: 'hseos', id: 'competing-writer' },
+            operation_id: null,
+            payload: { kind: 'fixture-concurrent-write' },
+            evidence_refs: [],
+          },
+        ],
+      };
+      const read = task.read.bind(task);
+      let competingError;
+      task.read = () => {
+        const state = read();
+        try {
+          ledger.append(request);
+        } catch (error) {
+          competingError = error;
+        }
+        return state;
+      };
+      task.append({ kind: 'cancellation_requested' }, 2);
+      task.read = read;
+      assert.equal(competingError?.code, 'SQLITE_BUSY');
+      assert.equal(task.read().cancellation, true);
+      assert.equal(ledger.append(request).current_version, 1);
+      assert.throws(() => task.append({ kind: 'uncertainty', question: 'stale' }, 2), /concurrency conflict/);
+    } finally {
+      other.close();
+    }
+  }));

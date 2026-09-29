@@ -130,6 +130,7 @@ class TerminalControl {
     return { resource_id: id, events: rows, next_cursor: rows.at(-1)?.stream_sequence || after };
   }
   parent(taskId) {
+    require('./job-materialization').assertJobExecutionDenied(this.control.handle.db, taskId);
     if (this.control.kind(taskId) !== 'task') reject('CONTROL_TERMINAL_PARENT_DENIED');
     const directory = this.control.location(taskId);
     const handle = openExecutionLedgerFileFixture(directory);
@@ -203,7 +204,12 @@ class TerminalControl {
               )
                 reject('CONTROL_TERMINAL_COMMAND_DENIED');
               const remaining = state.created.deadline - Date.now();
-              if (remaining < 1 || terminalBudget(parent.handle.db, parent.id).count >= contract.limits.max_tool_calls)
+              if (
+                remaining < 1 ||
+                terminalBudget(parent.handle.db, parent.id).count +
+                  require('./engineering-task-extensions').taskContextReservations(state.created.extensions) >=
+                  contract.limits.max_tool_calls
+              )
                 reject('CONTROL_TERMINAL_BUDGET_EXHAUSTED');
               const policy = createIsolationPolicy({
                 backend: 'bwrap',

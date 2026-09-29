@@ -26,6 +26,12 @@ test('published package exposes runtime and governance assets only', () => {
   for (const required of [
     'tools/cli/commands/control.js',
     'tools/cli/lib/provider-campaign-control.js',
+    'tools/cli/lib/execution-plugin-runtime.js',
+    'tools/cli/lib/execution-plugin-adapters.js',
+    'tools/cli/lib/execution-plugin-campaign.js',
+    'tools/cli/lib/execution-plugin-model.js',
+    'tools/cli/lib/execution-plugin-provider.js',
+    'tools/lib/execution-plugin-manifest.js',
     'tools/cli/lib/control-configuration.js',
     'tools/cli/lib/provider-api-adapter.js',
     'tools/cli/lib/provider-campaign-runner.js',
@@ -72,6 +78,19 @@ test('published package exposes runtime and governance assets only', () => {
     'tools/managed-governance-control-plane/migrations/0004_operational_health.sql',
     'tools/managed-governance-control-plane/public/index.html',
     'packages/agent-runtime/index.js',
+    'tools/lib/execution-plugin-selection.js',
+    'tools/cli/lib/engineering-task-extensions.js',
+    'tools/cli/lib/engineering-plugin-model.js',
+    'tools/cli/lib/job-control.js',
+    'tools/cli/lib/job-worker.js',
+    'tools/lib/job-contract.js',
+    'tools/mcp-project-state/migrations-pending-activation/012-job-events.sql',
+    'tools/mcp-project-state/migrations-pending-activation/013-job-lifecycle-events.sql',
+    'tools/mcp-project-state/migrations-pending-activation/014-job-materialization-events.sql',
+    'tools/cli/lib/job-materialization.js',
+    'tools/cli/lib/job-dispatch.js',
+    'tools/mcp-project-state/migrations-pending-activation/015-job-execution-events.sql',
+    'tools/mcp-project-state/migrations-pending-activation/016-job-workflow-expansion.sql',
     'src/core/agents/hseos-master.agent.yaml',
   ]) {
     assert.ok(files.has(required), `missing required package asset: ${required}`);
@@ -86,8 +105,8 @@ test('published package exposes runtime and governance assets only', () => {
     assert.ok(!/\.(?:db|sqlite|pem|key)$/i.test(file), `state or key material published: ${file}`);
     assert.ok(!/(?:^|\/)(?:\.env|managed-governance\.json)$/i.test(file), `runtime configuration published: ${file}`);
   }
-  // Reviewed W3 inventory: 1439 entries, including six ACP assets and local LiteRT support.
+  // Reviewed W4 inventory: owner-authorized addition of migration 016 to the 1456-entry base.
   // State/key/config exclusions above remain independent security invariants.
-  assert.ok(packed.entryCount <= 1439, `package entry count is not bounded: ${packed.entryCount}`);
+  assert.ok(packed.entryCount <= 1457, `package entry count is not bounded: ${packed.entryCount}`);
   assert.ok(packed.unpackedSize < 22_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);
 });

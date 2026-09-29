@@ -1,0 +1,110 @@
+{
+  "task": "W4-06d",
+  "base_commit": "016fdc7f",
+  "branch": "task/hseos-w4-expansion-atomicity",
+  "status": "VERIFIED_BEFORE_COMMIT",
+  "scope": "Running workflow expansion commits revision and child bindings before materializing files. Failed append creates no child directory. A committed revision with interrupted file preparation reports JOB_PREPARATION_PENDING and completes from the durable plan on replay or child resolution.",
+  "verification": {
+    "focused_node24": {
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0
+    },
+    "coverage_node22": {
+      "all_lines": 96.81,
+      "all_branches": 90.14,
+      "workflow_runtime_lines": 98.78,
+      "workflow_runtime_branches": 84.94,
+      "job_control_lines": 99.72,
+      "job_control_branches": 90.02,
+      "job_materialization_lines": 99.41,
+      "job_materialization_branches": 86.88
+    },
+    "coverage_node24": {
+      "all_lines": 96.81,
+      "all_branches": 90.13,
+      "workflow_runtime_lines": 98.78,
+      "workflow_runtime_branches": 84.94,
+      "job_control_lines": 99.72,
+      "job_control_branches": 90.02,
+      "job_materialization_lines": 99.41,
+      "job_materialization_branches": 86.88
+    },
+    "mutants": {
+      "node22": {
+        "killed": 18,
+        "survived": 0
+      },
+      "node24": {
+        "killed": 18,
+        "survived": 0
+      }
+    },
+    "gate_node22": {
+      "failures": 0,
+      "warnings": 0
+    },
+    "gate_node24": {
+      "failures": 0,
+      "warnings": 0
+    },
+    "package_entries": 1457,
+    "manager_validate_node24": {
+      "failures": 0,
+      "warnings": 1,
+      "warning": "pre-existing docs-image workflow placeholder"
+    }
+  },
+  "review": "Isolated skeptical review found pre-CAS filesystem orphan, then post-commit error ambiguity. Both were corrected; final pass found no concrete blocker.",
+  "limits": {
+    "foundation_merge": false,
+    "publication": false,
+    "operational_activation": false,
+    "new_paid_campaign": false,
+    "aew_application_enforcement": "NOT_VERIFIED"
+  },
+  "artifacts": [
+    {
+      "label": "node22-coverage",
+      "path": "docs/evolution/w4/evidence/expansion-atomicity/node22-coverage.log.gz",
+      "sha256": "d384d323c00c9d949221703a66adaa285f06505a308a6c383a51db8f884c821d",
+      "source_sha256": "fb8049acda44515321818919a2d9438fbd75800835681e873735d8d36f7dc65e"
+    },
+    {
+      "label": "node24-coverage",
+      "path": "docs/evolution/w4/evidence/expansion-atomicity/node24-coverage.log.gz",
+      "sha256": "65eccccebd3df88b84c9cec97afb291400e70b5271e1aabf626c8cde507f1b63",
+      "source_sha256": "d9a88171e20e04db58f6d5b278b962aeca588c917844a04975c46e1214c53c73"
+    },
+    {
+      "label": "node22-mutations",
+      "path": "docs/evolution/w4/evidence/expansion-atomicity/node22-mutations.log.gz",
+      "sha256": "e2b68aa5b54175871736ddfacfbcc87211735715b5b4476bfc3e9c0dc57f14d1",
+      "source_sha256": "c4b52112b961f50ab95b00459d5e6bbee7398cc9f7b82ef97962de597bd184c2"
+    },
+    {
+      "label": "node24-mutations",
+      "path": "docs/evolution/w4/evidence/expansion-atomicity/node24-mutations.log.gz",
+      "sha256": "af8a5824767e55ec6f8eebc41ff6a171d5cda6a174e83122a0fee96562c68448",
+      "source_sha256": "61778552093c00a11a79dc3b41b0032a77044ba7465fa01ec1e03a95adc60116"
+    },
+    {
+      "label": "node22-gate",
+      "path": "docs/evolution/w4/evidence/expansion-atomicity/node22-gate.log.gz",
+      "sha256": "ef558760f9eafa659270c19d7f72456776b07399c21efb9eecc3e898bbdbabfe",
+      "source_sha256": "7263bfa2c822b864831f55c4a7ec028062c608cf2289bb7ae43a5bddf6d7abd3"
+    },
+    {
+      "label": "node24-gate",
+      "path": "docs/evolution/w4/evidence/expansion-atomicity/node24-gate.log.gz",
+      "sha256": "25cf18f979cabe8a2b74cac4e616d3abef3e693cc43bd37bb4a6263648dc456a",
+      "source_sha256": "5686afb0380006632d9b4df8e8e5c957e5619541b13e57e42e255b4b8a76431f"
+    },
+    {
+      "label": "package-inventory",
+      "path": "docs/evolution/w4/evidence/expansion-atomicity/package-inventory.json.gz",
+      "sha256": "f53cc4377028ecc04a8b1d2a9d05b660b779ea30e9d7a2d5138e5d6539e236b6",
+      "source_sha256": "4df83fe11300951cf73761d5da7b47476828b37383dd52a1121d8a735ce1d2d5"
+    }
+  ]
+}

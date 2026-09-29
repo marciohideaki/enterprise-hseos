@@ -8,10 +8,11 @@ module.exports = {
     ['--state <path>', 'Existing local candidate control ledger'],
     ['--url <url>', 'Loopback server URL'],
     ['--request <path>', 'Versioned JSON command'],
-    ['--resource <id>', 'Task or campaign resource UUID'],
+    ['--resource <id>', 'Task, job or campaign resource UUID'],
     ['--binding <id>', 'Provider binding identity'],
     ['--view <view>', 'status, evidence, review or session'],
     ['--after <cursor>', 'Event cursor'],
+    ['--limit <count>', 'Maximum events per page'],
   ],
   action: async (action, options = {}) => {
     const fs = require('node:fs');
@@ -22,6 +23,7 @@ module.exports = {
       const config = require('../lib/control-configuration').loadControlConfiguration(options.config, {
         state: options.state,
         adapterFactories: {
+          'execution-plugin-v1': require('../lib/engineering-plugin-model').createPluginModelCampaignAdapter,
           [require('../lib/provider-api-adapter').API_ADAPTER_ID]: require('../lib/provider-api-adapter').createApiCampaignAdapter,
           'hseos-codex-campaign-v1': require('../lib/provider-native-adapter').createNativeCampaignAdapter,
           'hseos-codex-acp-campaign-v1': require('../lib/provider-acp-adapter').createAcpCampaignAdapter,
@@ -38,6 +40,9 @@ module.exports = {
         control.close();
         throw error;
       }
+      control.jobs.dispatcher.start({
+        onError: (error) => process.stderr.write(JSON.stringify({ schema_version: 1, component: 'jobs', error: error.code }) + '\n'),
+      });
       process.stdout.write(JSON.stringify({ schema_version: 1, url: server.url, state: control.state, operational: false }) + '\n');
       await new Promise((resolve) => {
         const stop = () => {
@@ -48,9 +53,12 @@ module.exports = {
         process.once('SIGTERM', stop);
         process.once('SIGINT', stop);
       });
+      const serverClosed = server.close();
+      serverClosed.catch(() => {});
+      await control.jobs.dispatcher.shutdown();
       await control.providerCampaigns.shutdown();
       await control.terminals.shutdown();
-      await server.close();
+      await serverClosed;
       control.close();
       return;
     }
@@ -99,6 +107,18 @@ module.exports = {
     const client = new ControlClient({ url: options.url, credential });
     let result;
     switch (action) {
+      case 'job-command': {
+        result = await client.job(JSON.parse(fs.readFileSync(options.request, 'utf8')));
+        break;
+      }
+      case 'job-query': {
+        result = await client.jobQuery(options.resource);
+        break;
+      }
+      case 'job-events': {
+        result = await client.jobEvents(options.resource, { after: Number(options.after || 0), limit: Number(options.limit || 100) });
+        break;
+      }
       case 'binding-inspect': {
         result = await client.bindingInspect(options.binding);
         break;

@@ -155,3 +155,83 @@ test('project Git worktree redirection cannot change the declared workspace auth
   execFileSync('git', ['-C', f.root, 'config', 'core.worktree', f.directory]);
   assert.throws(() => projectWorkspaceSnapshot(f.contract), /Git root/);
 });
+
+const { materializeProjectSnapshot } = require('../tools/cli/lib/engineering-workspace');
+test('preparation completes only missing entries and reuses exact files', (t) => {
+  const f = fixture(t);
+  const files = { 'manifest.json': '{}', 'workspace/deep/index.js': 'pinned', 'workspace/empty.txt': '' };
+  const destination = materializeProjectSnapshot(f.directory, 'jobs/one', files, ['workspace/empty/nested']);
+  const inode = fs.statSync(path.join(destination, 'manifest.json')).ino;
+  fs.unlinkSync(path.join(destination, 'workspace/deep/index.js'));
+  assert.equal(materializeProjectSnapshot(f.directory, 'jobs/one', files, ['workspace/empty/nested']), destination);
+  assert.equal(fs.statSync(path.join(destination, 'manifest.json')).ino, inode);
+  assert.equal(fs.readFileSync(path.join(destination, 'workspace/deep/index.js'), 'utf8'), 'pinned');
+});
+for (const corruption of ['bytes', 'hardlink', 'symlink', 'directory-link', 'extra', 'traversal']) {
+  test(`preparation refuses ${corruption} without repairing divergent entries`, (t) => {
+    const f = fixture(t);
+    const files = { 'workspace/file': 'pinned' };
+    const destination = materializeProjectSnapshot(f.directory, 'jobs/one', files);
+    const file = path.join(destination, 'workspace/file');
+    if (corruption === 'bytes') fs.writeFileSync(file, 'altered');
+    if (corruption === 'hardlink') fs.linkSync(file, path.join(f.directory, 'linked'));
+    if (corruption === 'symlink') {
+      fs.unlinkSync(file);
+      fs.symlinkSync(path.join(f.root, 'index.js'), file);
+    }
+    if (corruption === 'directory-link') {
+      fs.renameSync(path.join(destination, 'workspace'), path.join(f.directory, 'moved'));
+      fs.symlinkSync(path.join(f.directory, 'moved'), path.join(destination, 'workspace'));
+    }
+    if (corruption === 'extra') fs.writeFileSync(path.join(destination, 'extra'), 'unexpected');
+    assert.throws(() => materializeProjectSnapshot(f.directory, corruption === 'traversal' ? '../escape' : 'jobs/one', files));
+    if (corruption === 'bytes') assert.equal(fs.readFileSync(file, 'utf8'), 'altered');
+  });
+}
+for (const mutation of ['delete', 'replace-directory']) {
+  test(`preparation detects ${mutation} after the first file was validated`, (t) => {
+    const f = fixture(t);
+    const files = { 'workspace/a': 'first', 'workspace/b': 'second' };
+    const destination = materializeProjectSnapshot(f.directory, 'jobs/one', files);
+    const original = fs.readSync;
+    let injected = false;
+    t.mock.method(fs, 'readSync', (fd, ...args) => {
+      const result = original(fd, ...args);
+      if (!injected && fs.readlinkSync(`/proc/self/fd/${fd}`).endsWith('/workspace/b')) {
+        injected = true;
+        if (mutation === 'delete') fs.unlinkSync(path.join(destination, 'workspace/a'));
+        else {
+          fs.renameSync(path.join(destination, 'workspace'), path.join(destination, 'previous'));
+          fs.mkdirSync(path.join(destination, 'workspace'));
+          fs.writeFileSync(path.join(destination, 'workspace/a'), 'first');
+          fs.writeFileSync(path.join(destination, 'workspace/b'), 'second');
+        }
+      }
+      return result;
+    });
+    assert.throws(() => materializeProjectSnapshot(f.directory, 'jobs/one', files));
+    assert.equal(injected, true);
+  });
+}
+test('preparation syncs existing files and every directory with bounded descriptor reuse', (t) => {
+  const f = fixture(t);
+  const deep = Array.from({ length: 30 }, () => 'nested').join('/');
+  const files = { [`${deep}/file`]: 'pinned' };
+  materializeProjectSnapshot(f.directory, 'jobs/one', files, ['empty/child']);
+  const original = fs.fsyncSync;
+  const synced = new Set();
+  let opens = 0;
+  const open = fs.openSync;
+  t.mock.method(fs, 'openSync', (...args) => {
+    opens++;
+    return open(...args);
+  });
+  t.mock.method(fs, 'fsyncSync', (fd) => {
+    synced.add(fs.readlinkSync(`/proc/self/fd/${fd}`));
+    return original(fd);
+  });
+  materializeProjectSnapshot(f.directory, 'jobs/one', files, ['empty/child']);
+  assert.ok(opens < 45, `opened ${opens} descriptors`);
+  for (const name of ['', '/jobs', '/jobs/one', '/jobs/one/empty', '/jobs/one/empty/child', `/jobs/one/${deep}/file`])
+    assert.ok(synced.has(f.directory + name), `missing fsync ${name}`);
+});

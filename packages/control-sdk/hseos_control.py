@@ -67,6 +67,19 @@ class ControlClient:
     def campaign(self, command):
         return self._request("/v1/provider-campaigns/commands", command)
 
+    def job(self, command):
+        return self._request("/v1/jobs/commands", command)
+
+    def job_query(self, resource_id):
+        if not re.fullmatch(r"[a-f0-9-]{36}", resource_id):
+            raise ValueError("Invalid job query")
+        return self._request("/v1/jobs/" + resource_id)
+
+    def job_events(self, resource_id, after=0, limit=100):
+        if not re.fullmatch(r"[a-f0-9-]{36}", resource_id) or type(after) is not int or after < 0 or type(limit) is not int or not 1 <= limit <= 1000:
+            raise ValueError("Invalid job cursor")
+        return self._request("/v1/jobs/" + resource_id + "/events?" + urllib.parse.urlencode({"after": after, "limit": limit}))
+
     def campaign_query(self, resource_id):
         if not re.fullmatch(r"[a-f0-9-]{36}", resource_id):
             raise ValueError("Invalid campaign query")

@@ -1,0 +1,21 @@
+✔ Node command executes with read-only workspace, hidden controls and bounded resources (193.998881ms)
+✔ Python cannot create Internet or Unix sockets (44.343944ms)
+✔ output flooding is bounded and every descendant is drained (33.066364ms)
+✔ cancellation eliminates a detached descendant holding output pipes (304.058217ms)
+✔ parent exit drains detached descendants without waiting for their sleep (68.45075ms)
+✔ forged policies and invalid budgets fail before launch (1.585533ms)
+✔ a running command cannot exceed its wall-clock budget (209.134822ms)
+✔ the process limit applies to the complete descendant group (127.447615ms)
+✔ invalid UTF-8 cannot expand captured output beyond its byte budget (66.519518ms)
+✔ memory exhaustion remains confined to the executor group (200.373829ms)
+✔ resource cleanup retries a busy empty group before confirming completion (63.297309ms)
+✔ persistent busy cleanup is uncertain and never confirms completion (5054.868572ms)
+✔ project runtime mounts only the controller executable read-only without inheriting its environment (88.389191ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6676.208392

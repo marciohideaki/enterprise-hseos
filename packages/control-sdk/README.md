@@ -53,3 +53,40 @@ W2 adds `terminal(command)`, `terminalQuery(id)` and `terminalEvents(id, {after,
 Python exposes `terminal`, `terminal_query` and `terminal_events`. Commands use the
 same explicit UUID/sequence/idempotency envelope; terminal output is base64.
 See `docs/engineering-control-api.md` for actions, reconciliation and candidate limits.
+
+## W4 jobs
+
+JavaScript e TypeScript oferecem `job(command)`, `jobQuery(resourceId)` e
+`jobEvents(resourceId, {after, limit})`. Python oferece `job(command)`,
+`job_query(resource_id)` e `job_events(resource_id, after=0, limit=100)`.
+O mesmo envelope com `schema_version: 1`, `command_id`, `resource_id`,
+`expected_sequence`, `action` e `input` é usado por CLI e `POST
+/v1/jobs/commands`. Ações públicas: `create`, `resume`, `cancel`, `reconcile`
+e `retry`. Expansão de workflow é interna. Guarde o comando original para
+replay; uma operação incerta exige reconciliação, sem novo ID de comando.
+
+```js
+const command = {
+  schema_version: 1,
+  command_id: randomUUID(),
+  resource_id: randomUUID(),
+  expected_sequence: 0,
+  action: 'create',
+  input: {
+    kind: 'task',
+    definition: { contract: example.contract, responses: [] },
+    not_before: new Date(Date.now() - 1000).toISOString(),
+    deadline_at: new Date(Date.now() + 60_000).toISOString(),
+    depends_on: [],
+  },
+};
+const createdJob = await client.job(command);
+const currentJob = await client.jobQuery(command.resource_id);
+const changes = await client.jobEvents(command.resource_id, { after: 0, limit: 100 });
+```
+
+O `input` completo segue o [contrato W4](../../.specs/features/harness-w4/jobs.md).
+O exemplo usa uma tarefa sem provider; vínculos com provider precisam referenciar
+campanha e autorização existentes. O cursor seguinte
+é `changes.next_cursor`; use-o na próxima consulta. As credenciais continuam
+obrigatórias, e o cliente não concede autorização financeira ou de provider.

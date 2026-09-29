@@ -398,7 +398,7 @@
         ],
         [
           "--resource <id>",
-          "Task or campaign resource UUID"
+          "Task, job or campaign resource UUID"
         ],
         [
           "--binding <id>",
@@ -411,10 +411,14 @@
         [
           "--after <cursor>",
           "Event cursor"
+        ],
+        [
+          "--limit <count>",
+          "Maximum events per page"
         ]
       ],
       "governed": false,
-      "source_sha256": "0ae41cfbb5cc1c7cacded2668315e34c06845a749f0cd058be642c11d0f46a97"
+      "source_sha256": "29a900e40dd8188e0792b4027311da3ffd03cd2bee9bb5bac2141a563f2a881d"
     },
     {
       "filename": "governance-context.js",
@@ -759,7 +763,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "e006e4911af8cae4d4a0ffd9ceb13bd901752612f1dba4aee5d11e7db87c9243"
+      "source_sha256": "8869d12d537177d223889517e9b827f9798e6cf13719a2ae0e7a272f82a1afa4"
     },
     {
       "filename": "pr.js",

@@ -35,10 +35,11 @@ const ROUTES = deepFreeze({
 });
 
 const ProviderControlManifestSchema = strictObject({
-  schema_version: z.literal(1),
+  schema_version: z.union([z.literal(1), z.literal(2)]),
   binding_id: IdentifierSchema,
   binding_sha256: hash,
-  vendor: z.enum(['codex', 'claude', 'deepseek', 'antigravity']),
+  vendor: z.enum(['codex', 'claude', 'deepseek', 'antigravity', 'execution-plugin']),
+  execution_plugin: strictObject({ id: IdentifierSchema, version: label, manifest_sha256: hash }).optional(),
   provider_kind: z.enum(['model', 'runtime', 'client']),
   provider_version: label,
   adapter: label,
@@ -74,7 +75,19 @@ const ProviderControlManifestSchema = strictObject({
   }),
 }).superRefine((value, context) => {
   const reject = (message) => context.addIssue({ code: 'custom', message });
-  const route = ROUTES[value.vendor][value.route];
+  const plugin = value.vendor === 'execution-plugin';
+  if (plugin !== (value.schema_version === 2) || plugin !== (value.execution_plugin !== undefined))
+    reject('Execution plugins require the version 2 pinned descriptor; version 1 routes remain unchanged');
+  if (
+    plugin &&
+    (value.route !== 'local' ||
+      value.transport !== 'process' ||
+      value.authentication.identity_kind !== 'local_profile' ||
+      value.authentication.profile_sha256 !== value.execution_plugin?.manifest_sha256 ||
+      value.artifact_sha256 !== value.execution_plugin?.manifest_sha256)
+  )
+    reject('Execution plugin bindings must pin a local process profile');
+  const route = plugin && value.route === 'local' ? { kinds: ['model', 'runtime'], auth: 'local' } : ROUTES[value.vendor]?.[value.route];
   if (!route?.kinds.includes(value.provider_kind) || value.authentication.mode !== route?.auth)
     reject('The selected official route has not been established for this provider kind');
   const expectedBilling = { account: 'subscription', api: 'metered', local: 'local' }[value.route];
@@ -125,7 +138,8 @@ function inspectProviderControlManifest(value, bindingSha256) {
     provider_kind: manifest.provider_kind,
     manifest_sha256: createHash('sha256').update(canonicalJson(manifest)).digest('hex'),
     configuration: 'valid',
-    official_source: ROUTES[manifest.vendor][manifest.route].source,
+    official_source: manifest.vendor === 'execution-plugin' ? null : ROUTES[manifest.vendor][manifest.route].source,
+    ...(manifest.vendor === 'execution-plugin' ? { contract_source: 'contract://hseos/execution-plugin/v1' } : {}),
     effective_authentication: 'not_observed',
     real_conformance: 'not_certified',
     operational: 'not_activated',

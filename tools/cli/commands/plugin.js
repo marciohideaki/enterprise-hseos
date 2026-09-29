@@ -1,8 +1,11 @@
 'use strict';
 
 const path = require('node:path');
+const nodeFs = require('node:fs');
 const fs = require('fs-extra');
 const yaml = require('yaml');
+const { canonicalize } = require('../../../packages/managed-governance-contracts/canonical-json');
+const { readExecutionPluginBundle } = require('../../lib/execution-plugin-manifest');
 const prompts = require('../lib/prompts');
 const {
   loadActivePluginManifests,
@@ -25,7 +28,10 @@ async function readRegistry(projectDir) {
   const raw = await fs.readFile(registryPath, 'utf8');
   const registry = yaml.parse(raw) || null;
   const strict = validatePluginRegistryDocument(registry);
-  Object.defineProperty(registry.plugins, 'schemaVersion', { value: strict ? '2.0' : 'legacy', enumerable: false });
+  Object.defineProperty(registry.plugins, 'schemaVersion', {
+    value: strict ? String(registry.schema_version) : 'legacy',
+    enumerable: false,
+  });
   return registry;
 }
 
@@ -40,6 +46,97 @@ async function runList(projectDir) {
     const statusMark = p.status === 'active' ? '✓' : '○';
     await prompts.log.message(`  ${statusMark} ${p.id}@${p.version} — ${p.description}`);
   }
+}
+
+/** Copy verified data into a content-addressed local store without loading plugin code. */
+function installExecutionPlugin(projectDir, registry, entry) {
+  const projectRoot = path.resolve(projectDir);
+  if (nodeFs.realpathSync(projectRoot) !== projectRoot) throw new Error('Plugin project root must not be a symlink');
+  const ordered = [];
+  const resolved = new Set();
+  const active = new Set();
+  const resolve = (candidate) => {
+    if (resolved.has(candidate.id)) return;
+    if (active.has(candidate.id)) throw new Error('Execution plugin dependency cycle');
+    if (candidate.status !== 'active' || candidate.type !== 'execution') throw new Error(`Execution plugin is not active: ${candidate.id}`);
+    active.add(candidate.id);
+    const source = path.join(projectRoot, '.agents', 'plugins', 'definitions', candidate.id);
+    const bundle = readExecutionPluginBundle(source);
+    if (
+      bundle.manifest.id !== candidate.id ||
+      bundle.manifest.version !== candidate.version ||
+      bundle.manifest_sha256 !== candidate.execution.manifest_sha256
+    )
+      throw new Error(`Execution plugin ${candidate.id} differs from its catalog pin`);
+    for (const dependency of bundle.manifest.dependencies) {
+      const declared = registry.plugins.find((item) => item.id === dependency.id);
+      if (!declared || declared.version !== dependency.version || declared.execution?.manifest_sha256 !== dependency.manifest_sha256)
+        throw new Error(`Execution plugin dependency is not pinned: ${dependency.id}`);
+      resolve(declared);
+    }
+    active.delete(candidate.id);
+    resolved.add(candidate.id);
+    ordered.push(bundle);
+  };
+  resolve(entry);
+
+  const store = path.join(projectRoot, '.hseos', 'plugins', 'store');
+  let cursor = projectRoot;
+  const ancestors = [];
+  for (const part of ['.hseos', 'plugins', 'store']) {
+    cursor = path.join(cursor, part);
+    if (!nodeFs.existsSync(cursor)) nodeFs.mkdirSync(cursor, { mode: 0o700 });
+    const observed = nodeFs.lstatSync(cursor);
+    if (!observed.isDirectory() || observed.uid !== process.getuid() || (observed.mode & 0o022) !== 0)
+      throw new Error('Plugin store path is unsafe');
+    ancestors.push({ path: cursor, dev: observed.dev, ino: observed.ino });
+  }
+  const identity = nodeFs.statSync(store);
+  const storeFd = nodeFs.openSync(store, nodeFs.constants.O_RDONLY | nodeFs.constants.O_DIRECTORY | nodeFs.constants.O_NOFOLLOW);
+  try {
+    const opened = nodeFs.fstatSync(storeFd);
+    if (identity.dev !== opened.dev || identity.ino !== opened.ino) throw new Error('Plugin store changed during installation');
+    for (const ancestor of ancestors) {
+      const current = nodeFs.lstatSync(ancestor.path);
+      if (!current.isDirectory() || current.dev !== ancestor.dev || current.ino !== ancestor.ino)
+        throw new Error('Plugin store changed during installation');
+    }
+    const anchoredStore = `/proc/self/fd/${storeFd}`;
+    for (const bundle of ordered) {
+      const destination = path.join(anchoredStore, bundle.manifest_sha256);
+      const verifyInstalled = () => {
+        const current = readExecutionPluginBundle(nodeFs.realpathSync(destination));
+        if (current.manifest_sha256 !== bundle.manifest_sha256) throw new Error('Installed execution plugin identity drift');
+      };
+      if (nodeFs.existsSync(destination)) verifyInstalled();
+      else {
+        const staging = nodeFs.mkdtempSync(path.join(anchoredStore, '.staging-'));
+        try {
+          nodeFs.writeFileSync(path.join(staging, 'execution.json'), canonicalize(bundle.manifest), { flag: 'wx', mode: 0o400 });
+          for (const [name, bytes] of bundle.files) {
+            const filename = path.join(staging, name);
+            nodeFs.mkdirSync(path.dirname(filename), { recursive: true, mode: 0o700 });
+            nodeFs.writeFileSync(filename, bytes, { flag: 'wx', mode: 0o400 });
+          }
+          const staged = readExecutionPluginBundle(nodeFs.realpathSync(staging));
+          if (staged.manifest_sha256 !== bundle.manifest_sha256) throw new Error('Staged execution plugin identity drift');
+          nodeFs.renameSync(staging, destination);
+        } catch (error) {
+          if (!nodeFs.existsSync(destination)) throw error;
+          verifyInstalled();
+        } finally {
+          nodeFs.rmSync(staging, { recursive: true, force: true });
+        }
+        verifyInstalled();
+      }
+    }
+    const final = nodeFs.lstatSync(store);
+    if (!final.isDirectory() || final.dev !== identity.dev || final.ino !== identity.ino)
+      throw new Error('Plugin store changed during installation');
+  } finally {
+    nodeFs.closeSync(storeFd);
+  }
+  return path.join(store, ordered.at(-1).manifest_sha256);
 }
 
 async function runInstall(projectDir, pluginId) {
@@ -58,9 +155,14 @@ async function runInstall(projectDir, pluginId) {
   if (entry.status !== 'active') {
     throw new Error(`Plugin is not installable: ${pluginId} has status ${entry.status || 'unspecified'}`);
   }
+  if (entry.type === 'execution') {
+    const installed = installExecutionPlugin(projectDir, registry, entry);
+    await prompts.log.success(`Installed execution plugin: ${pluginId}@${entry.version} (${path.basename(installed)})`);
+    return;
+  }
   const selectedEntries = [entry];
   Object.defineProperty(selectedEntries, 'schemaVersion', {
-    value: String(registry.schema_version) === '2.0' ? '2.0' : 'legacy',
+    value: ['2.0', '3.0'].includes(String(registry.schema_version)) ? String(registry.schema_version) : 'legacy',
     enumerable: false,
   });
   const [validatedManifest] = await loadActivePluginManifests(projectDir, selectedEntries);
@@ -190,10 +292,33 @@ async function runDoctor(projectDir) {
     throw new Error(`plugin doctor: active plugin conformance failed: ${error.message}`);
   }
 
-  const passed = activeManifests.length;
+  let passed = activeManifests.length;
   let failed = 0;
   let skipped = 0;
   for (const entry of registry.plugins) {
+    if (entry.type === 'execution') {
+      if (entry.status !== 'active') {
+        await prompts.log.warn(`○ ${entry.id}@${entry.version} — ${entry.status}; behavior checks skipped`);
+        skipped++;
+        continue;
+      }
+      const installed = path.join(projectDir, '.hseos', 'plugins', 'store', entry.execution.manifest_sha256);
+      try {
+        const bundle = readExecutionPluginBundle(installed);
+        if (
+          bundle.manifest_sha256 !== entry.execution.manifest_sha256 ||
+          bundle.manifest.id !== entry.id ||
+          bundle.manifest.version !== entry.version
+        )
+          throw new Error('installed identity mismatch');
+        await prompts.log.success(`✓ ${entry.id}@${entry.version} — installed bytes verified`);
+        passed++;
+      } catch (error) {
+        await prompts.log.error(`✗ ${entry.id} — ${error.code || error.message}`);
+        failed++;
+      }
+      continue;
+    }
     const manifestPath = path.join(projectDir, '.agents', 'plugins', 'definitions', entry.id, 'plugin.yaml');
     const readmePath = path.join(projectDir, '.agents', 'plugins', 'definitions', entry.id, 'README.md');
     const manifestExists = await fs.pathExists(manifestPath);

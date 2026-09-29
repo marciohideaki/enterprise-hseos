@@ -221,7 +221,7 @@ test('process supervisor returns only after descendants drain and kills startup 
   try {
     assert.equal(fs.readFileSync(`/proc/${result.pid}/stat`, 'utf8').split(') ')[1][0], 'Z');
   } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
+    if (!['ENOENT', 'ESRCH'].includes(error.code)) throw error;
   }
   await assert.rejects(
     runCampaignProcess({ args: ['-e', 'setInterval(()=>{},1000)'], input: {}, signal: new AbortController().signal, timeout_ms: 50 }),

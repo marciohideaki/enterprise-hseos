@@ -1,0 +1,55 @@
+{
+  "type": "focused-verification",
+  "task": "W4-02c2b",
+  "Node22.23.3": {
+    "passed": 65,
+    "failed": 0,
+    "skipped": 0
+  },
+  "Node24.15.0": {
+    "passed": 65,
+    "failed": 0,
+    "skipped": 0
+  },
+  "coverage": {
+    "hosted-runtime-provider.js": {
+      "lines": 92.82,
+      "branches": 82.02
+    },
+    "execution-plugin-campaign.js": {
+      "lines": 100,
+      "branches": 92.17
+    },
+    "execution-plugin-model.js": {
+      "lines": 97.47,
+      "branches": 93.1
+    },
+    "execution-plugin-provider.js": {
+      "lines": 99.23,
+      "branches": 95.45
+    }
+  },
+  "sha256": {
+    "tools/cli/lib/execution-plugin-model.js": "0428a282c9b421cc20c85dee9169ac30c93f09d5bf8903fc8ab5bd2edd3f5971",
+    "tools/cli/lib/execution-plugin-provider.js": "efe4012f32bad806c4bdc1e6847ef9c58f29b07c1195ad558147dc0d978847a4",
+    "packages/runtime-providers/hosted-runtime-provider.js": "9566b2d6b20e5b3a38e04f081b748d4e1e6e2449a2b51ad5aef7f8e91a30b7b2",
+    "tools/cli/lib/execution-plugin-campaign.js": "f46b6586567c6b5b6118c8540305de41d2febf8ed1589b7e392574f9395164f9"
+  },
+  "full_gate": {
+    "Node24.15.0": "passed",
+    "failures": 0,
+    "warnings": 1,
+    "log_sha256": "9e4654ebc5e4993d94353fb7a6756d99aac5d6db4d71149c3ec0c6138145bdef"
+  },
+  "limitations": [
+    "Deterministic local fixtures, not real consumer certification",
+    "Public task composition and integrated campaign pending",
+    "Local token counts are conservative UTF-8 estimates",
+    "Runtime L0; external resume unavailable"
+  ],
+  "superseded_evidence": "Original 52-test logs and original full gate precede independent review correction; not acceptance of this snapshot.",
+  "independent_review": {
+    "blind": "FAIL P1: request-dependent validation occurred after campaign receipt",
+    "confrontation": "Correction confirmed statically; request validation now precedes receipt; focused verification renewed"
+  }
+}

@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: external code executes only from a read-only isolated snapshot with request-bound output
+ok 1 - external code executes only from a read-only isolated snapshot with request-bound output
+  ---
+  duration_ms: 127.90823
+  type: 'test'
+  ...
+# Subtest: untrusted imports cannot access the host workspace, source directory or arbitrary private file
+ok 2 - untrusted imports cannot access the host workspace, source directory or arbitrary private file
+  ---
+  duration_ms: 91.212723
+  type: 'test'
+  ...
+# Subtest: network creation is refused inside an external plugin
+ok 3 - network creation is refused inside an external plugin
+  ---
+  duration_ms: 113.249184
+  type: 'test'
+  ...
+# Subtest: malformed output, forged identity, unsuccessful import and missing handlers fail closed
+ok 4 - malformed output, forged identity, unsuccessful import and missing handlers fail closed
+  ---
+  duration_ms: 443.178682
+  type: 'test'
+  ...
+# Subtest: timeout and output ceilings terminate plugin descendants
+ok 5 - timeout and output ceilings terminate plugin descendants
+  ---
+  duration_ms: 335.802251
+  type: 'test'
+  ...
+# Subtest: cancellation drains a plugin and a detached descendant; parent exit also drains descendants
+ok 6 - cancellation drains a plugin and a detached descendant; parent exit also drains descendants
+  ---
+  duration_ms: 305.869792
+  type: 'test'
+  ...
+# Subtest: admission drift, malformed requests, expired deadlines and pre-cancellation reject before entrypoint effects
+ok 7 - admission drift, malformed requests, expired deadlines and pre-cancellation reject before entrypoint effects
+  ---
+  duration_ms: 10.181573
+  type: 'test'
+  ...
+# Subtest: plugin-supplied conformance is isolated and cannot claim host certification
+ok 8 - plugin-supplied conformance is isolated and cannot claim host certification
+  ---
+  duration_ms: 186.488478
+  type: 'test'
+  ...
+# Subtest: private snapshot remains pinned if the original plugin changes immediately before launch
+ok 9 - private snapshot remains pinned if the original plugin changes immediately before launch
+  ---
+  duration_ms: 102.059412
+  type: 'test'
+  ...
+# Subtest: invalid signal fails before launch and drain uncertainty remains distinct from plugin failure
+ok 10 - invalid signal fails before launch and drain uncertainty remains distinct from plugin failure
+  ---
+  duration_ms: 66.873057
+  type: 'test'
+  ...
+# Subtest: execution snapshots pinned dependencies and refuses conflicting transitive versions
+ok 11 - execution snapshots pinned dependencies and refuses conflicting transitive versions
+  ---
+  duration_ms: 116.978748
+  type: 'test'
+  ...
+# Subtest: shared dependency is materialized once and ESM entrypoints remain isolated
+ok 12 - shared dependency is materialized once and ESM entrypoints remain isolated
+  ---
+  duration_ms: 122.847727
+  type: 'test'
+  ...
+# Subtest: isolation setup failure is distinct from an attempted execution with uncertain teardown
+ok 13 - isolation setup failure is distinct from an attempted execution with uncertain teardown
+  ---
+  duration_ms: 6.389996
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2230.780993

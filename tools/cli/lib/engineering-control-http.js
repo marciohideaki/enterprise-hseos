@@ -23,7 +23,9 @@ async function startControlServer({ control, credential, port = 0 }) {
       const url = new URL(request.url, 'http://127.0.0.1');
       if (
         request.method === 'POST' &&
-        ['/v1/commands', '/v1/prepare', '/v1/terminals/commands', '/v1/provider-campaigns/commands'].includes(url.pathname) &&
+        ['/v1/commands', '/v1/prepare', '/v1/terminals/commands', '/v1/provider-campaigns/commands', '/v1/jobs/commands'].includes(
+          url.pathname,
+        ) &&
         url.search === ''
       ) {
         if (request.headers['content-type']?.split(';')[0] !== 'application/json') return send(415, { error: 'CONTROL_JSON_REQUIRED' });
@@ -35,6 +37,19 @@ async function startControlServer({ control, credential, port = 0 }) {
           parts.push(part);
         }
         const body = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(parts)));
+        if (url.pathname === '/v1/jobs/commands' && ['create', 'retry'].includes(body?.action)) {
+          const kind = body.input?.kind;
+          const parsed = require('./engineering-control').parseCreationInput(
+            kind === 'task' ? 'create' : 'create_workflow',
+            body.input?.definition,
+          );
+          const contracts = kind === 'task' ? [parsed.contract] : parsed.definition.tasks.map((task) => task.contract);
+          if (contracts.some((contract) => contract.initial_files.length > 0)) {
+            const error = new Error('JOB_INLINE_CODE_DENIED');
+            error.code = 'JOB_INLINE_CODE_DENIED';
+            throw error;
+          }
+        }
         return send(
           200,
           url.pathname === '/v1/prepare'
@@ -43,7 +58,9 @@ async function startControlServer({ control, credential, port = 0 }) {
               ? await control.terminals.execute(body)
               : url.pathname === '/v1/provider-campaigns/commands'
                 ? await control.providerCampaigns.execute(body)
-                : await control.execute(body),
+                : url.pathname === '/v1/jobs/commands'
+                  ? await control.jobs.execute(body)
+                  : await control.execute(body),
         );
       }
       if (request.method === 'GET' && url.pathname === '/v1/provider-bindings') {
@@ -66,6 +83,22 @@ async function startControlServer({ control, credential, port = 0 }) {
         }
         if (url.search) return send(400, { error: 'CONTROL_QUERY_INVALID' });
         return send(200, control.providerCampaigns.query(campaign[1]));
+      }
+      const job = /^\/v1\/jobs\/([a-f0-9-]{36})(?:\/(events))?$/.exec(url.pathname);
+      if (request.method === 'GET' && job) {
+        if (job[2]) {
+          if ([...url.searchParams.keys()].some((name) => !['after', 'limit'].includes(name)))
+            return send(400, { error: 'CONTROL_QUERY_INVALID' });
+          return send(
+            200,
+            control.jobs.events(job[1], {
+              after: Number(url.searchParams.get('after') || 0),
+              limit: Number(url.searchParams.get('limit') || 100),
+            }),
+          );
+        }
+        if (url.search) return send(400, { error: 'CONTROL_QUERY_INVALID' });
+        return send(200, control.jobs.query(job[1]));
       }
       const terminal = /^\/v1\/terminals\/([a-f0-9-]{36})(?:\/(events))?$/.exec(url.pathname);
       if (request.method === 'GET' && terminal) {
@@ -97,8 +130,8 @@ async function startControlServer({ control, credential, port = 0 }) {
       }
       return send(404, { error: 'CONTROL_ROUTE_UNKNOWN' });
     } catch (error) {
-      const code = typeof error.code === 'string' && /^CONTROL_[A-Z_]+$/.test(error.code) ? error.code : 'CONTROL_REQUEST_REJECTED';
-      return send(code === 'CONTROL_TASK_NOT_FOUND' ? 404 : 409, { error: code });
+      const code = typeof error.code === 'string' && /^(?:CONTROL|JOB)_[A-Z_]+$/.test(error.code) ? error.code : 'CONTROL_REQUEST_REJECTED';
+      return send(['CONTROL_TASK_NOT_FOUND', 'JOB_NOT_FOUND'].includes(code) ? 404 : 409, { error: code });
     }
   });
   server.requestTimeout = 15_000;

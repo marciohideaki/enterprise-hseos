@@ -1,0 +1,10 @@
+heavy-run: modo pinned na CPU 1, MemoryMax=3G (load1=1.80 phys=6 avail=23424MiB need=3G mem.psi=1.08 io.psi.full=2.73)
+✔ published package exposes runtime and governance assets only (2068.191685ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2122.348723

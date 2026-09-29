@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "task": "W4-03a",
+  "base": "2b33dc9",
+  "status": "focused-and-full-gate-passed-commit-hook-pending",
+  "environment": {
+    "platform": "Linux",
+    "node24": "24.15.0",
+    "node22": "22.23.3",
+    "cpu": "single nonzero CPU",
+    "memory": "3GiB",
+    "priority": "nice 19",
+    "isolation": "delegated cgroup, bwrap, existing executor",
+    "wrapper": "heavy-run --pin --mem 3G -- systemd-run --user --scope --quiet --collect -p Delegate=yes -p MemoryMax=3G -p MemorySwapMax=0 python3 /tmp/hseos-w4-contained.py"
+  },
+  "results": {
+    "node24": {
+      "tests": 183,
+      "failures": 0,
+      "skips": 0,
+      "critical_files": 6,
+      "coverage_per_file": "90 lines / 80 branches passed"
+    },
+    "node22": {
+      "tests": 183,
+      "failures": 0,
+      "skips": 0,
+      "log": "node22-lock-regression.log"
+    },
+    "full_gate": {
+      "status": "passed",
+      "exit_code": 0,
+      "failures": 0,
+      "warnings": 2,
+      "evidence": "full-gate-node24.log.gz"
+    },
+    "commit_hook": "pending",
+    "lock_lint": {
+      "exit_code": 0,
+      "evidence": "exec session 93611 completed with exit_code 0; log contains no diagnostics"
+    },
+    "conformance_diagnostics": {
+      "descriptor_suites": 18,
+      "canonical_status": "passed",
+      "inventory_stable": true,
+      "external_runner_tests": 9,
+      "original_failure_cause": "not established",
+      "replacement_for_gate": false
+    }
+  },
+  "limits": [
+    "candidate fixture ledger only; operational activation not authorized",
+    "no claim, dispatch, automatic retry or materialization in W4-03a",
+    "local fixture plugins; not external real-consumer certification",
+    "full W4 not complete",
+    "Prior conformance failure did not reproduce in descriptor, canonical, external-runner or full-sequence diagnostics; root cause remains unproven, historical FAIL retained."
+  ],
+  "source_sha256": {
+    "tools/cli/lib/engineering-control.js": "ff2be44a909197c5c7cbc9935417383eae43e8168b340cae586b7dd806549462",
+    "tools/cli/lib/job-control.js": "b32b9de6190cd6aecabdf803c9d9bcf810374da8291286c9afb6e8eba6041d6b",
+    "tools/lib/job-contract.js": "bc1e845427d2a204e89093de78aaf403fec01ad15a9bf37ce090510e306e19a7",
+    "tools/lib/compatibility-audit.js": "f8ff5bac1ed7bec4f683160f12c6312869cd7a364351862df1b951cf5cf7e666",
+    "tools/lib/agentic-activation-rehearsal.js": "9538b247a4fbd4f79e32e90eb0ca495b65a2616bce2259bb41f19d9cce77f361",
+    "tools/mcp-project-state/migrations-pending-activation/012-job-events.sql": "523d4a95d6d755501d0e6806960994b227bd340d7f8a41c76e794a9acd1e35d0",
+    "test/test-job-control.js": "c74381b22a95e469fc745574f401343f48b3780b05cfdf8d4d500e75f1ecdfd7",
+    "test/test-engineering-plugin-model.js": "01b166e68db3a97cd4229b6f8a0ab1c75dc669c51ec764bcab95ffcade2cb08c",
+    "package.json": "9d3398ab273183b1caf88be27ea04a62367bd8fc95edfe90c2dcce22fd986455",
+    ".c8-kernel.json": "c09377795cb7ddd322b10bcee91d19323f8dc5f1c57512291ab9773d8590d9fb",
+    "tools/cli/lib/engineering-task-state.js": "ca2184a15be7b63c8a807a16bc74cc99a7739e180e804589e2862a73bca9b8fe",
+    "tools/cli/lib/engineering-task-runtime.js": "b24e6efbbe032058a451dba18a560494c3187c63d891da737b7aff925ed53be8",
+    "tools/cli/lib/engineering-workflow-runtime.js": "37ccdb2bea650170176cae8050a429018d9a402af3294bda813403e3f83da455",
+    "test/test-engineering-task-state.js": "85e56d1d523a35598346c31bce9b2f919ea7729e3ad250115ebaeb03b7bfd2ef",
+    "test/test-engineering-reconciliation.js": "1bb01effd4c792bf7578e6fa3db9b9d0e7d636245ad2a11d29bbe350b5c72920",
+    "test/test-agent-provider-conformance.js": "8077e3041d743f2f76303a352d978cc42e7749774576da9d23b16074accdca2f"
+  },
+  "commands": {
+    "node24_coverage": "node ../../node_modules/c8/bin/c8.js --all --include=tools/cli/lib/job-control.js --include=tools/lib/job-contract.js --include=tools/cli/lib/engineering-control.js --include=tools/cli/lib/engineering-task-state.js --include=tools/cli/lib/engineering-task-runtime.js --include=tools/cli/lib/engineering-workflow-runtime.js --reporter=text --reporter=json-summary --reports-dir=.logs/validation/jobs-lock-coverage --check-coverage --per-file --lines=90 --branches=80 node --test --test-concurrency=1 test/test-engineering-*.js test/test-job-control.js test/test-workflow-v4-cli.js test/test-v4-lazy-cli.js test/test-project-examples.js",
+    "node22_regression": "node --test --test-concurrency=1 test/test-engineering-*.js test/test-job-control.js test/test-workflow-v4-cli.js test/test-v4-lazy-cli.js test/test-project-examples.js",
+    "node22_post_lint": "node --test --test-concurrency=1 test/test-job-control.js test/test-engineering-control.js",
+    "package_surface": "node --test --test-concurrency=1 test/test-package-surface.js",
+    "gate": "VALIDATION_ENFORCED=true ./scripts/governance/worktree-manager.sh validate hseos-w4-jobs-state"
+  },
+  "prior_evidence": "pre-lock-receipt.json",
+  "evidence_normalization": "Trailing spaces removed from c8 text tables; test outcomes and coverage values preserved."
+}

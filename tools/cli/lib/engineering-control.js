@@ -4,6 +4,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const { z } = require('zod');
+const { deepFreeze, IdentifierSchema } = require('../../../packages/agent-runtime-contracts');
+const { canonicalize } = require('../../../packages/managed-governance-contracts/canonical-json');
 const { ExecutionEventLedger } = require('../../mcp-project-state/lib/execution-event-ledger');
 const { createExecutionLedgerFileFixture, openExecutionLedgerFileFixture } = require('../../mcp-project-state/lib/execution-ledger-schema');
 const { engineeringDigest } = require('./engineering-task-state');
@@ -39,6 +41,12 @@ const inputs = {
         .max(64)
         .optional(),
       binding_id: z.string().min(1).max(160).optional(),
+      plugin_model: z.object({ selection_id: IdentifierSchema, campaign_id: z.string().uuid() }).strict().optional(),
+      extension_ids: z
+        .array(IdentifierSchema)
+        .max(128)
+        .refine((ids) => new Set(ids).size === ids.length)
+        .optional(),
     })
     .strict(),
   resume: z
@@ -52,6 +60,25 @@ const inputs = {
   apply: z.object({ review_sha256: z.string().regex(/^[a-f0-9]{64}$/) }).strict(),
 };
 
+function parseCreationInput(action, value) {
+  if (!['create', 'create_workflow'].includes(action)) throw new ControlError('CONTROL_COMMAND_UNKNOWN');
+  const input = inputs[action].parse(value);
+  if (action === 'create') {
+    const contract = parseEngineeringTask(input.contract);
+    if (contract.schema_version !== 2) throw new ControlError('CONTROL_WORKSPACE_DENIED');
+    if ([input.responses, input.binding_id, input.plugin_model].filter(Boolean).length > 1)
+      throw new ControlError('CONTROL_MODEL_CONFLICT');
+    if (!input.responses && !input.binding_id && !input.plugin_model) throw new ControlError('CONTROL_MODEL_REQUIRED');
+    return { ...input, contract };
+  }
+  const { definition } = parseEngineeringWorkflow(input.definition);
+  for (const task of definition.tasks) {
+    if (task.contract.schema_version !== 2) throw new ControlError('CONTROL_WORKSPACE_DENIED');
+    if (task.binding) throw new ControlError('CONTROL_BINDING_UNKNOWN');
+  }
+  return { definition };
+}
+
 class ControlError extends Error {
   constructor(code) {
     super(code);
@@ -60,13 +87,15 @@ class ControlError extends Error {
 }
 
 class EngineeringControl {
-  constructor({ state, workspaces = [], bindings = {}, providerBindings = {}, providerAuthorizations = {} } = {}) {
+  constructor({ state, workspaces = [], bindings = {}, providerBindings = {}, providerAuthorizations = {}, extensionCatalog = {} } = {}) {
     this.handle = state ? openExecutionLedgerFileFixture(path.resolve(state)) : createExecutionLedgerFileFixture();
     try {
       this.ledger = new ExecutionEventLedger(this.handle.db);
       this.workspaces = workspaces.map((root) => fs.realpathSync(root));
       this.bindings = Object.freeze({ ...bindings });
+      this.extensionCatalog = deepFreeze(JSON.parse(canonicalize(extensionCatalog)));
       this.active = new Set();
+      this.jobs = new (require('./job-control').JobControl)(this);
       this.terminals = new (require('./terminal-control').TerminalControl)(this);
       this.providerCampaigns = new (require('./provider-campaign-control').ProviderCampaignControl)(this, providerBindings, {
         authorizations: providerAuthorizations,
@@ -87,6 +116,7 @@ class EngineeringControl {
   close() {
     if (
       this.active.size > 0 ||
+      this.jobs.dispatcher.active > 0 ||
       this.terminals.active.size > 0 ||
       this.terminals.inflight.size > 0 ||
       this.providerCampaigns.drains.size > 0
@@ -130,6 +160,29 @@ class EngineeringControl {
   }
   async query(id, action = 'status') {
     if (!['status', 'evidence', 'review', 'session'].includes(action)) throw new ControlError('CONTROL_QUERY_UNKNOWN');
+    const jobView = require('./job-materialization').resolveJobView(this, id);
+    if (jobView) {
+      if (action === 'review') throw new ControlError('CONTROL_VIEW_UNAVAILABLE');
+      const { RelationalSessionEventStore } = require('../../../packages/agent-session-store');
+      const store = new RelationalSessionEventStore({ ledger: this.ledger });
+      const value = jobView.manifest
+        ? require('./engineering-workflow-runtime').readEngineeringWorkflowView(jobView.handle, jobView.manifest, store)
+        : require('./engineering-task-runtime').readEngineeringTaskView(jobView.handle, id, action === 'evidence');
+      if (action === 'session') {
+        const session = store.replay(value.session_id);
+        return {
+          resource_id: id,
+          session_id: session.session_id,
+          status: session.status,
+          current_sequence: session.current_sequence,
+          terminal_event: session.terminal_event,
+          cancellation_request: session.cancellation_request,
+          children: session.children,
+        };
+      }
+      const { state: _state, ...publicValue } = value;
+      return { ...publicValue, resource_id: id };
+    }
     const workflow = this.kind(id) === 'workflow';
     if (workflow && action === 'review') throw new ControlError('CONTROL_VIEW_UNAVAILABLE');
     const value = await (workflow ? inspectEngineeringWorkflow : inspectEngineeringTask)({
@@ -159,6 +212,20 @@ class EngineeringControl {
     return { ...publicValue, resource_id: id };
   }
   events(id, { after = 0, limit = 100 } = {}) {
+    const jobView = require('./job-materialization').resolveJobView(this, id);
+    if (jobView) {
+      const plan = jobView.state.materialization.plan;
+      const tasks = jobView.manifest ? plan.tasks : plan.tasks.filter((entry) => entry.task_run_id === id);
+      const aggregates = new Set([
+        id,
+        ...tasks.flatMap((entry) => [entry.task_run_id, entry.created.session_id]),
+        ...(jobView.manifest ? [plan.manifest.parent_session_id] : []),
+      ]);
+      // A shared control ledger contains unrelated resources; never return those rows.
+      const batch = this.ledger.readGlobal({ after_position: after, limit });
+      const events = batch.filter((row) => aggregates.has(row.aggregate_id));
+      return { resource_id: id, events, next_cursor: batch.at(-1)?.position || after };
+    }
     const handle = openExecutionLedgerFileFixture(this.location(id));
     try {
       const events = new ExecutionEventLedger(handle.db).readGlobal({ after_position: after, limit });
@@ -167,8 +234,63 @@ class EngineeringControl {
       handle.close();
     }
   }
+  async admitCreation(action, rawInput, resourceId, deadline) {
+    const input = parseCreationInput(action, rawInput);
+    if (action === 'create_workflow') {
+      const { definition } = input;
+      for (const task of definition.tasks) {
+        if (!this.workspaces.includes(task.contract.workspace.root)) throw new ControlError('CONTROL_WORKSPACE_DENIED');
+      }
+      return { input: { definition } };
+    } else if (action === 'create') {
+      const { contract } = input;
+      if (!this.workspaces.includes(contract.workspace.root)) throw new ControlError('CONTROL_WORKSPACE_DENIED');
+      if (input.binding_id && !Object.hasOwn(this.bindings, input.binding_id)) throw new ControlError('CONTROL_BINDING_UNKNOWN');
+      const binding = input.binding_id
+        ? require('./engineering-model').validateEngineeringBinding(
+            require('../../lib/agent-provider-binding').readProviderBinding(this.bindings[input.binding_id]).binding,
+          )
+        : undefined;
+      let selection, pluginModel;
+      if (input.extension_ids?.length || input.plugin_model) {
+        selection = require('../../lib/execution-plugin-selection').pinExecutionPluginSelection(this.extensionCatalog, [
+          ...(input.extension_ids || []),
+          ...(input.plugin_model ? [input.plugin_model.selection_id] : []),
+        ]).selection;
+        const { createTaskExtensions, taskContextReservations } = require('./engineering-task-extensions');
+        if (taskContextReservations(selection) > contract.limits.max_tool_calls)
+          throw new ControlError('CONTROL_EXTENSION_BUDGET_EXHAUSTED');
+        await createTaskExtensions({
+          selection,
+          catalog: this.extensionCatalog,
+          deadline: deadline ?? Date.now() + contract.limits.max_duration_ms,
+          modelSelectionId: input.plugin_model?.selection_id,
+        }).close();
+        if (input.plugin_model) {
+          const model = require('./engineering-plugin-model').prepareTaskPluginModel({
+            reference: input.plugin_model,
+            selection,
+            catalog: this.extensionCatalog,
+            campaigns: this.providerCampaigns,
+            deadline: deadline ?? Date.now() + contract.limits.max_duration_ms,
+            resourceId,
+          });
+          pluginModel = model.pin;
+          await model.close();
+        }
+      }
+      return {
+        input: { ...input, contract },
+        ...(selection ? { selection } : {}),
+        ...(pluginModel ? { plugin_model: pluginModel } : {}),
+        ...(binding ? { binding, binding_sha256: engineeringDigest(binding) } : {}),
+      };
+    }
+    throw new ControlError('CONTROL_COMMAND_UNKNOWN');
+  }
   async execute(raw) {
     const command = commandSchema.parse(raw);
+    require('./job-materialization').assertJobExecutionDenied(this.handle.db, command.resource_id);
     const input = inputs[command.action].parse(command.input);
     const digest = engineeringDigest(command);
     let rows = this.rows(command.resource_id);
@@ -179,22 +301,10 @@ class EngineeringControl {
       if (!done) throw new ControlError('CONTROL_OUTCOME_UNCERTAIN');
       return done.payload.result;
     }
-    if (command.action === 'create_workflow') {
+    if (command.action === 'create_workflow' || command.action === 'create') {
       if (rows.length > 0 || command.expected_sequence !== 0) throw new ControlError('CONTROL_SEQUENCE_CONFLICT');
-      const { definition } = parseEngineeringWorkflow(input.definition);
-      for (const task of definition.tasks) {
-        if (task.contract.schema_version !== 2 || !this.workspaces.includes(task.contract.workspace.root))
-          throw new ControlError('CONTROL_WORKSPACE_DENIED');
-        if (task.binding) throw new ControlError('CONTROL_BINDING_UNKNOWN');
-      }
-    } else if (command.action === 'create') {
-      if (rows.length > 0 || command.expected_sequence !== 0) throw new ControlError('CONTROL_SEQUENCE_CONFLICT');
-      const contract = parseEngineeringTask(input.contract);
-      if (contract.schema_version !== 2 || !this.workspaces.includes(contract.workspace.root))
-        throw new ControlError('CONTROL_WORKSPACE_DENIED');
-      if (input.responses && input.binding_id) throw new ControlError('CONTROL_MODEL_CONFLICT');
-      if (input.binding_id && !Object.hasOwn(this.bindings, input.binding_id)) throw new ControlError('CONTROL_BINDING_UNKNOWN');
-      if (!input.responses && !input.binding_id) throw new ControlError('CONTROL_MODEL_REQUIRED');
+      if (this.jobs.rows(command.resource_id).length > 0) throw new ControlError('JOB_RESOURCE_CONFLICT');
+      await this.admitCreation(command.action, input, command.resource_id);
     } else {
       const workflow = this.kind(command.resource_id) === 'workflow';
       if ((workflow && input.reconciliation_decision) || (!workflow && input.reconciliation_decisions))
@@ -217,6 +327,8 @@ class EngineeringControl {
     }
     // Claim before any effect; another client cannot silently repeat an intent.
     this.handle.db.transaction(() => {
+      if (['create', 'create_workflow'].includes(command.action) && this.jobs.rows(command.resource_id).length > 0)
+        throw new ControlError('JOB_RESOURCE_CONFLICT');
       if (this.rows(command.resource_id).length !== rows.length) throw new ControlError('CONTROL_SEQUENCE_CONFLICT');
       this.append(command.resource_id, { kind: 'intent', command_id: command.command_id, digest, action: command.action });
     })();
@@ -244,6 +356,11 @@ class EngineeringControl {
             scriptedResponses: responsesFile,
             binding: input.binding_id ? this.bindings[input.binding_id] : undefined,
             createOnly: true,
+            extensionCatalog: this.extensionCatalog,
+            extensionIds: input.extension_ids,
+            pluginModel: input.plugin_model,
+            campaigns: this.providerCampaigns,
+            resourceId: command.resource_id,
           });
           this.append(command.resource_id, { kind: 'registered', resource_kind: 'task', state_directory: created.state });
           result = await this.query(command.resource_id);
@@ -272,6 +389,9 @@ class EngineeringControl {
             expectedSequence: command.expected_sequence,
             reconciliationDecision: input.reconciliation_decision,
             reconciliationDecisions: input.reconciliation_decisions,
+            extensionCatalog: this.extensionCatalog,
+            campaigns: this.providerCampaigns,
+            resourceId: command.resource_id,
           });
           const { state: _state, ...publicValue } = value;
           result = { ...publicValue, resource_id: command.resource_id };
@@ -285,4 +405,4 @@ class EngineeringControl {
   }
 }
 
-module.exports = { EngineeringControl, ControlError };
+module.exports = { EngineeringControl, ControlError, parseCreationInput };

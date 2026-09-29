@@ -1,0 +1,25 @@
+heavy-run: modo pinned na CPU 1, MemoryMax=3G (load1=1.83 phys=6 avail=23952MiB need=3G mem.psi=0.00 io.psi.full=0.00)
+W4 containment: /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/hseos-w4-task-model-drain-proof24.scope memory.max= 3221225472 affinity= [1]
+✔ create-only pins authorized model identity; resume reserves the original campaign and verifies the task (1996.918109ms)
+✔ model tool proposal is executed by the task gateway and independently accepted (1994.06647ms)
+✔ public campaign dispatch without a prepared plugin request cannot reserve or execute (50.094704ms)
+✔ model ambiguity, unauthorized task and changed association fail before effects (869.965432ms)
+✔ task cancellation drains its model without cancelling the shared campaign (2589.394257ms)
+✔ owner shutdown reaches facade requests and waits for process drain (1698.4371ms)
+✔ malformed model output preserves uncertain reservation and blocks task acceptance (1777.733608ms)
+✔ local binding loader inspects only declared selection without starting plugin code (59.312714ms)
+✔ a new controller restores the same task and campaign; catalog drift never swaps an in-flight selection (1920.823291ms)
+✔ lost campaign receipt keeps model result uncertain without replaying its process (1778.649287ms)
+✔ model binding derivation preserves exact manifest, shared lifecycle and denies new authorization (54.23011ms)
+✔ task deadline and invalid model pins fail before reserve (64.309282ms)
+✔ same UUIDs and manifests in a different ledger cannot reset the task campaign (894.457288ms)
+✔ created replay rejects mixed model authority and direct unregistered execution (927.061009ms)
+✔ control configuration loads a local plugin binding without an unused binding file or plugin effect (61.475273ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17247.641382

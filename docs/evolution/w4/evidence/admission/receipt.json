@@ -1,0 +1,99 @@
+{
+  "artifact_type": "w4-02a-focused-validation",
+  "recorded_at": "2026-09-27T16:33:03.437317+00:00",
+  "base": "cae04c8c07e9a17ae11dd63b69fdb812217d0916",
+  "source_sha256": {
+    "tools/lib/execution-plugin-manifest.js": "6a5c5ed4091382fee9904df04d7ca7189b20df3449e7817d7f5f2ec89d771809",
+    "tools/cli/installers/lib/core/agent-core-compiler/sources/plugins-source.js": "26f66240ed634517b923e08f14d627332e893de95af812b7313f81ca331e7611",
+    "tools/cli/commands/plugin.js": "911bcc3fd1722c14d4215e8681778c3d94686adfd1606d15edf75dee29161f66",
+    "test/test-execution-plugin-manifest.js": "b44fdc59a29f01e6720ed1eed4b7fa159b6383c02de846184dc869dcc933a863",
+    "package.json": "ad2a12354e39fbfe3698144c2a2ff48e42f2f31b0f4e40e92a3197d139b610b7",
+    ".c8-kernel.json": "2876680c76b19a06e29dcaabbe8c1b6f9b0a0355b0a1d1f0168ceb21909c094f"
+  },
+  "results": {
+    "node24": {
+      "tests": 11,
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0
+    },
+    "node22": {
+      "tests": 11,
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0
+    },
+    "marketplace": {
+      "passed": 88,
+      "failed": 0
+    },
+    "lint_exit_code": 0,
+    "coverage": {
+      "total": {
+        "lines": {
+          "total": 234,
+          "covered": 234,
+          "skipped": 0,
+          "pct": 100
+        },
+        "statements": {
+          "total": 234,
+          "covered": 234,
+          "skipped": 0,
+          "pct": 100
+        },
+        "functions": {
+          "total": 13,
+          "covered": 13,
+          "skipped": 0,
+          "pct": 100
+        },
+        "branches": {
+          "total": 115,
+          "covered": 113,
+          "skipped": 0,
+          "pct": 98.26
+        },
+        "branchesTrue": {
+          "total": 0,
+          "covered": 0,
+          "skipped": 0,
+          "pct": "Unknown"
+        }
+      },
+      "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-admission/tools/lib/execution-plugin-manifest.js": {
+        "lines": {
+          "total": 234,
+          "covered": 234,
+          "skipped": 0,
+          "pct": 100
+        },
+        "functions": {
+          "total": 13,
+          "covered": 13,
+          "skipped": 0,
+          "pct": 100
+        },
+        "statements": {
+          "total": 234,
+          "covered": 234,
+          "skipped": 0,
+          "pct": 100
+        },
+        "branches": {
+          "total": 115,
+          "covered": 113,
+          "skipped": 0,
+          "pct": 98.26
+        }
+      }
+    }
+  },
+  "full_gate": "pending: host load above six physical cores; awaiting resource decision or lower load",
+  "limits": [
+    "No external plugin execution implemented in this task",
+    "No jobs, workflow expansion or real campaign certified",
+    "Runtime plugin installation remains closed until isolated installer task"
+  ],
+  "raw_logs": "gzip preserves original bytes; readable logs strip trailing whitespace only"
+}

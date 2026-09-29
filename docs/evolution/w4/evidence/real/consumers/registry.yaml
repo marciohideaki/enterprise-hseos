@@ -1,0 +1,57 @@
+version: "3.0"
+schema_version: "3.0"
+source_of_truth: .enterprise/governance/plugins
+marketplace:
+  id: hseos
+  name: HSEOS Plugin Marketplace
+  description: Plugins authored against the HSEOS standalone v2.0 contract — Tier-policy
+    frontmatter, neutral hook registry, vendor-neutral skill format.
+  homepage: https://hseos.dev/plugins
+  license: MIT
+  authors:
+    - Hideaki Solutions
+conformance:
+  required_files:
+    - plugin.yaml
+    - README.md
+  required_manifest_keys:
+    - id
+    - version
+    - description
+    - license
+  reserved_id_prefix: hseos-
+resolution:
+  duplicate_id_strategy: error
+  extends_strategy: metadata_only
+plugins:
+  - id: source-audit
+    version: 1.0.0
+    status: active
+    type: execution
+    description: Checks source text size and review markers
+    execution:
+      manifest_sha256: 18a69217d9c631fa6b3ce4c4bdb8b5744e953d450fcc62c4716bb81178dcd58b
+  - id: runbook-context
+    version: 1.0.0
+    status: active
+    type: execution
+    description: Provides governed operational runbook context
+    execution:
+      manifest_sha256: 1f00d5d09cf6c062827bce490a4a714e1b3e187733046b5af9f11d570f7a0f12
+  - id: policy-verifier
+    version: 1.0.0
+    status: active
+    type: execution
+    description: Validates artifact line limits as an isolated runtime provider
+    execution:
+      manifest_sha256: 9ea0d4f088ec92ff273eb42409ea65877c5a190f7bd0426a60de862e227e56e9
+  - id: source-review-model
+    version: 1.0.0
+    status: active
+    type: execution
+    description: Reviews a source artifact through the governed audit tool
+    execution:
+      manifest_sha256: 625e4b840d158eb85afdaec34a90d67394b7cd1c92a72a1df42bbe77769fb34c
+emit_targets:
+  claude-code: .claude-plugin/marketplace.json
+  codex: .codex-plugin/plugin.json
