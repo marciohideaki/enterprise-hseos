@@ -2,7 +2,8 @@
 
 module.exports = {
   command: 'control <action>',
-  description: 'Local versioned engineering control API and client',
+  description:
+    'Engineering control actions: serve, adapters, prepare, command, query, events, job-command, job-query, job-events, binding-inspect, campaign-run, campaign-command, campaign-query, campaign-events, terminal-attach, terminal-command, terminal-query, terminal-events',
   options: [
     ['--config <path>', 'Server configuration with workspace allowlist and binding references'],
     ['--state <path>', 'Existing local candidate control ledger'],

@@ -365,7 +365,7 @@ async function runDoctor(projectDir) {
 
 module.exports = {
   command: 'plugin <action> [plugin-id]',
-  description: 'Manage HSEOS plugins',
+  description: 'Manage HSEOS plugins (list, install, remove, doctor)',
   options: [['--directory <path>', 'Project directory (default: current directory)']],
   action: async (action, pluginId, options = {}) => {
     if (!SUPPORTED_ACTIONS.has(action)) {

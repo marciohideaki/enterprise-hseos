@@ -290,7 +290,7 @@ function printValidation(workflow, repoRoot, profile, results) {
 
 module.exports = {
   command: 'workflow [action] [workflowId]',
-  description: 'Execute bounded task graphs or inspect methodology recipes and legacy runs',
+  description: 'Workflow actions: list, validate, run, status, resume, cancel, reconcile, migrate',
   options: [
     ['--output <path>', 'New JSON definition destination for explicit migration'],
     ['--definition <path>', 'Executable engineering workflow JSON definition'],

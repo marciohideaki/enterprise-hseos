@@ -40,7 +40,7 @@ async function printDoctor(result, json) {
 
 module.exports = {
   command: 'sandbox <action> [command...]',
-  description: 'Inspect or run optional OS-level agent sandboxing through ai-jail',
+  description: 'Sandbox actions: doctor, engineering-check, run',
   options: [
     ['--directory <path>', 'Project directory (default: current directory)'],
     ['--profile <name>', 'Sandbox profile for run (default: config default)'],

@@ -6,7 +6,7 @@
 
 ## Pré-requisitos
 
-- Node.js ≥ 20
+- Node.js ≥ 22
 - Git configurado com sua identidade
 - Claude Code CLI instalado (`npm install -g @anthropic-ai/claude-code`)
 - Acesso ao repositório do projeto
@@ -27,8 +27,14 @@ como NVM, fnm, asdf e Volta, devem ser atualizadas sem `sudo`.
 Depois, a partir da raiz do seu projeto:
 
 ```bash
-hseos install
+hseos install-plan --profile developer --tools claude-code,codex  # consulta, sem escrita
+hseos install --profile developer --tools claude-code,codex
 ```
+
+`install-plan` mostra componentes, arquivos e pré-requisitos; `install` grava os
+arquivos do projeto. Se quiser apenas Codex, use `--tools codex` nos
+dois comandos. A instalação global do CLI não instala automaticamente os
+workflows e adapters em cada repositório.
 
 Isso configura:
 

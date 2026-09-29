@@ -24,32 +24,37 @@ All state is stored in `.hseos/state/project.db` — a single SQLite file per pr
 ### Emit run state
 
 ```bash
-# Open a run (assigns a unique run ID)
+# Record a start event for the supplied run ID
 hseos state-emit start --run <run-id>
 
-# Advance phase
-hseos state-emit phase --run <run-id> --phase review
-
-# Close a run
-hseos state-emit stop --run <run-id>
+# Record a checkpoint with a JSON payload
+hseos state-emit checkpoint --run <run-id> --payload '{"step":"review"}'
 ```
+
+`state-emit` records an event. It does not advance or close a run merely because
+the event is named `complete` or `abort`; use the owning workflow or agent
+control operation for lifecycle changes.
 
 ### Query runs
 
 ```bash
-# List recent runs (last 20 by default)
-hseos state list
+# List recent runs (up to 100)
+hseos state-list
 
 # Filter by status
-hseos state list --status active
-hseos state list --status completed
+hseos state-list --status active
+hseos state-list --status completed
 
 # Describe a specific run
-hseos state describe <run-id>
+hseos state-describe <run-id>
 
-# Full event log for a run
-hseos state events <run-id>
+# Inspect the last 50 events for an agent run by numeric ID
+hseos state-describe <agent-run-id> --json
 ```
+
+`state-describe <run-id>` shows the last ten matching events. There is no
+`hseos state events` CLI action; the `hseos-state-tracking` MCP server exposes
+`events_search` when that server is enabled for the client.
 
 ### Kanban surfaces
 
@@ -79,11 +84,10 @@ hseos kanban-central start             # registry: .hseos/config/projects.json
 
 The `state-ui` server serves a real-time kanban at `http://localhost:3200`:
 
-- **Columns:** `intake → planning → review → done`
-- **Cards:** each card shows run ID, project, branch, phase, gate status, start time
-- **Badges:** project · branch · session context
-- **Activity feed:** right sidebar with live event stream
-- **Filters:** by project, branch, run status, agent
+- **Columns:** `Pending`, `Running`, `Completed`, `Aborted`, `Orphaned`
+- **Cards:** pending and blocked tasks; active and finished agent runs, with task/run IDs and heartbeat age
+- **Project filter:** available in the central multi-project view
+- **Summary:** run and event counts, plus the orphan threshold
 - **SSE push:** board updates automatically without page refresh
 
 The server is a side-car: it requires an existing state database, opens SQLite
@@ -119,35 +123,14 @@ export HSEOS_STATE_DB=/path/to/custom/project.db  # optional, defaults to .hseos
 
 ---
 
-## MCP Tools (hseos-swarm server, port 3102)
+## MCP Tools
 
-The `hseos-swarm` MCP server exposes state tools to agents:
-
-| Tool             | Description                      |
-| ---------------- | -------------------------------- |
-| `state_emit`     | Emit a state event for a run     |
-| `state_list`     | List recent runs with filters    |
-| `state_describe` | Get full detail for a run ID     |
-| `state_advance`  | Advance a run to the next phase  |
-| `state_close`    | Close an active run              |
-| `run_claim`      | Atomically claim an orphaned run |
-| `run_create`     | Create a new run with metadata   |
-
-Add the server to your MCP config:
-
-```json
-{
-  "mcpServers": {
-    "hseos-swarm": {
-      "command": "node",
-      "args": ["tools/mcp/hseos-swarm/server.js"],
-      "env": {
-        "HSEOS_STATE_DB": ".hseos/state/project.db"
-      }
-    }
-  }
-}
-```
+The `hseos-state-tracking` server (`tools/mcp-project-state/index.js`) exposes
+`runs_list`, `run_describe`, `run_create`, `agent_runs_list`, `orphans_list`,
+`event_emit`, `events_search`, and handoff tools. `hseos-swarm` is a separate
+server for squad planning and dispatch. Check the effective client status with
+`codex mcp list`; the repository's compiled Codex adapter may disable a server
+even when a global registration exists.
 
 ---
 
@@ -155,27 +138,27 @@ Add the server to your MCP config:
 
 ### `as_runs`
 
-| Column        | Type    | Description                                            |
-| ------------- | ------- | ------------------------------------------------------ |
-| `id`          | TEXT PK | Run identifier (e.g., `20260509-dev-squad-cleanup`)    |
-| `workflow_id` | TEXT    | Workflow that created the run                          |
-| `project`     | TEXT    | Project name                                           |
-| `phase`       | TEXT    | Current phase (`intake`, `planning`, `review`, `done`) |
-| `gate_status` | TEXT    | Last gate result (`PASS`, `FAIL`, `WARN`)              |
-| `status`      | TEXT    | Run status (`active`, `completed`, `aborted`)          |
-| `started_at`  | TEXT    | ISO timestamp                                          |
-| `ended_at`    | TEXT    | ISO timestamp (null if active)                         |
-| `session_id`  | TEXT    | Claude session that owns this run                      |
+| Column        | Type    | Description                                                         |
+| ------------- | ------- | ------------------------------------------------------------------- |
+| `id`          | TEXT PK | Run identifier (e.g., `20260509-dev-squad-cleanup`)                 |
+| `workflow_id` | TEXT    | Workflow that created the run                                       |
+| `project`     | TEXT    | Project name                                                        |
+| `phase`       | TEXT    | Current phase (`intake`, `study`, `plan`, `execute`, `consolidate`) |
+| `gate_status` | TEXT    | Gate status (initially `PENDING_G2`)                                |
+| `status`      | TEXT    | Run status (`active`, `completed`, `aborted`, `orphaned`)           |
+| `started_at`  | TEXT    | ISO timestamp                                                       |
+| `ended_at`    | TEXT    | ISO timestamp (null if active)                                      |
+| `session_id`  | TEXT    | Claude session that owns this run                                   |
 
 ### `as_events`
 
-| Column       | Type       | Description                                           |
-| ------------ | ---------- | ----------------------------------------------------- |
-| `id`         | INTEGER PK | Auto-increment                                        |
-| `run_id`     | TEXT FK    | Parent run                                            |
-| `kind`       | TEXT       | Event type (`start`, `phase`, `gate`, `stop`, `hook`) |
-| `payload`    | TEXT       | JSON blob with event details                          |
-| `created_at` | TEXT       | ISO timestamp                                         |
+| Column         | Type       | Description                                                                     |
+| -------------- | ---------- | ------------------------------------------------------------------------------- |
+| `id`           | INTEGER PK | Auto-increment                                                                  |
+| `agent_run_id` | INTEGER FK | Agent run, when the event belongs to one                                        |
+| `ts`           | TEXT       | Event timestamp                                                                 |
+| `kind`         | TEXT       | `start`, `heartbeat`, `checkpoint`, `complete`, `abort`, `tool_call`, or `gate` |
+| `payload_json` | TEXT       | JSON payload, when supplied                                                     |
 
 ---
 
@@ -187,14 +170,15 @@ If a Claude session crashes mid-run, the run stays `active` in SQLite. On the ne
 2. Emits `kind=start` to re-wire context
 3. The run continues from where it left off — no state lost
 
-To manually resume or force-close a stale run:
+To inspect a stale run and its orphaned agent executions:
 
 ```bash
-hseos state describe <run-id>          # inspect current state
-hseos state-emit stop --run <run-id>   # close cleanly
-# or
-hseos state-emit phase --run <run-id> --phase aborted
+hseos state-describe <run-id>
+hseos state-list --orphans
 ```
+
+Resume or cancel the owning agent/workflow through its governed command. An
+event emission alone cannot settle a stale run.
 
 ---
 

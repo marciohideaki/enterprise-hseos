@@ -37,7 +37,7 @@
     {
       "filename": "agent-core.js",
       "command": "agent-core <action>",
-      "description": "Manage the vendor-neutral .agents core",
+      "description": "Manage the vendor-neutral .agents core (compile, verify, audit, doctor)",
       "options": [
         [
           "--directory <path>",
@@ -53,7 +53,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "bb9635fe89395f7904c21e1ce7e9cab18da2e4bed1dec1b6215698e231a134dd"
+      "source_sha256": "48a64293b988987e667e261c65f211706ab7587a6e5ce3336722d744f6267b6e"
     },
     {
       "filename": "agent-provider-conformance.js",
@@ -116,7 +116,7 @@
     {
       "filename": "agent.js",
       "command": "agent <action>",
-      "description": "Run, resume, or cancel a temporary HSEOS Agent Kernel profile",
+      "description": "Agent actions: run, resume, cancel, validate-task, status, evidence, reconcile",
       "options": [
         [
           "--task-contract <path>",
@@ -176,7 +176,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "34eaf26d1af2f53ea876b03ac8db3811e73e1b72a4c92a1420ed362f9ccf0b6b"
+      "source_sha256": "d1b357e2a4f39e88a158412432b57382a009f414ea534e7cfcfa16f709e045d4"
     },
     {
       "filename": "brain.js",
@@ -378,7 +378,7 @@
     {
       "filename": "control.js",
       "command": "control <action>",
-      "description": "Local versioned engineering control API and client",
+      "description": "Engineering control actions: serve, adapters, prepare, command, query, events, job-command, job-query, job-events, binding-inspect, campaign-run, campaign-command, campaign-query, campaign-events, terminal-attach, terminal-command, terminal-query, terminal-events",
       "options": [
         [
           "--config <path>",
@@ -418,7 +418,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "29a900e40dd8188e0792b4027311da3ffd03cd2bee9bb5bac2141a563f2a881d"
+      "source_sha256": "faf76da832c717157bb923a4e89e7ada83b83f3e90e743b379da9350972357f4"
     },
     {
       "filename": "governance-context.js",
@@ -440,7 +440,7 @@
     {
       "filename": "governance.js",
       "command": "governance <area> <action>",
-      "description": "Query and operate the optional managed governance control plane",
+      "description": "Managed governance: catalog import/status, artifact list, policy evaluate, session preflight, readiness status, setup install, recovery rehearse, server start",
       "options": [
         [
           "--plan",
@@ -524,7 +524,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "b4d220721917b84228be926cd8e92eab2bd5d462469733eef31897df1bb1d125"
+      "source_sha256": "5b9f730a768da8d82a116c066ef64a35ca3af1490124e9bce6629607ace04059"
     },
     {
       "filename": "install-plan.js",
@@ -755,7 +755,7 @@
     {
       "filename": "plugin.js",
       "command": "plugin <action> [plugin-id]",
-      "description": "Manage HSEOS plugins",
+      "description": "Manage HSEOS plugins (list, install, remove, doctor)",
       "options": [
         [
           "--directory <path>",
@@ -763,12 +763,12 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "8869d12d537177d223889517e9b827f9798e6cf13719a2ae0e7a272f82a1afa4"
+      "source_sha256": "28e1e75487dbdb22c8444a24a85a3ebfddc5419b88964bb0f976e9223baec56e"
     },
     {
       "filename": "pr.js",
       "command": "pr <action> [number]",
-      "description": "Governed Pull Request operations",
+      "description": "Governed Pull Request closeout",
       "options": [
         [
           "--approved",
@@ -789,12 +789,12 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "0781868248a8234194a6303dbd2faf59b2e0c8b30d83bfb146a467c5bc1d68b1"
+      "source_sha256": "b668be1e2d2b4421c77d60ce5b1aa414ec0116dae5a4599302fa95a1a7c4908b"
     },
     {
       "filename": "sandbox.js",
       "command": "sandbox <action> [command...]",
-      "description": "Inspect or run optional OS-level agent sandboxing through ai-jail",
+      "description": "Sandbox actions: doctor, engineering-check, run",
       "options": [
         [
           "--directory <path>",
@@ -814,7 +814,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "6b51ee4db8f7033b19c22c5c8ae6e2448f9c72ce924c0d0d589175dddb15dc06"
+      "source_sha256": "6f1182eebc4f3b46622eea3096987a97e0f37c7e0237f2258414b032e86a4976"
     },
     {
       "filename": "state-describe.js",
@@ -1137,7 +1137,7 @@
     {
       "filename": "workflow.js",
       "command": "workflow [action] [workflowId]",
-      "description": "Execute bounded task graphs or inspect methodology recipes and legacy runs",
+      "description": "Workflow actions: list, validate, run, status, resume, cancel, reconcile, migrate",
       "options": [
         [
           "--output <path>",
@@ -1234,7 +1234,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "4ee0e8ff9960c48a247a9adaa8d2ff04b59c7f3a4728574962e29a9f11c924e9"
+      "source_sha256": "291ec80d5f9ea8787f6872b58d401cfb0adf9746e23216547069908768f60265"
     }
   ]
 }
