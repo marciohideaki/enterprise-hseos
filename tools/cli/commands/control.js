@@ -8,10 +8,11 @@ module.exports = {
     ['--state <path>', 'Existing local candidate control ledger'],
     ['--url <url>', 'Loopback server URL'],
     ['--request <path>', 'Versioned JSON command'],
-    ['--resource <id>', 'Task or campaign resource UUID'],
+    ['--resource <id>', 'Task, job or campaign resource UUID'],
     ['--binding <id>', 'Provider binding identity'],
     ['--view <view>', 'status, evidence, review or session'],
     ['--after <cursor>', 'Event cursor'],
+    ['--limit <count>', 'Maximum events per page'],
   ],
   action: async (action, options = {}) => {
     const fs = require('node:fs');
@@ -106,6 +107,18 @@ module.exports = {
     const client = new ControlClient({ url: options.url, credential });
     let result;
     switch (action) {
+      case 'job-command': {
+        result = await client.job(JSON.parse(fs.readFileSync(options.request, 'utf8')));
+        break;
+      }
+      case 'job-query': {
+        result = await client.jobQuery(options.resource);
+        break;
+      }
+      case 'job-events': {
+        result = await client.jobEvents(options.resource, { after: Number(options.after || 0), limit: Number(options.limit || 100) });
+        break;
+      }
       case 'binding-inspect': {
         result = await client.bindingInspect(options.binding);
         break;

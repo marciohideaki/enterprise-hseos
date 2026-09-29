@@ -564,6 +564,32 @@ class JobControl {
   async execute(raw) {
     const command = parseJobCommand(raw);
     if (command.action === 'link_retry') reject('JOB_COMMAND_INTERNAL');
+    if (command.action === 'reconcile') {
+      const projected = this.project(command.resource_id);
+      const prior = this.rows(command.resource_id).find((row) => row.payload?.command?.command_id === command.command_id);
+      if (prior) {
+        const recorded = prior.payload.command;
+        if (
+          recorded.action !== 'reconcile' ||
+          recorded.resource_id !== command.resource_id ||
+          recorded.expected_sequence !== command.expected_sequence
+        )
+          reject('CONTROL_IDEMPOTENCY_CONFLICT');
+        return 'lease_ms' in recorded ? this.worker.execute(recorded) : this.dispatcher.execute(recorded);
+      }
+      if (!projected.state) reject('JOB_NOT_FOUND');
+      const internal = { ...command, fence: projected.state.fence || 0 };
+      if (projected.state.execution) return this.dispatcher.execute(internal);
+      return this.worker.execute({
+        schema_version: internal.schema_version,
+        command_id: internal.command_id,
+        resource_id: internal.resource_id,
+        expected_sequence: internal.expected_sequence,
+        action: 'reconcile',
+        fence: internal.fence,
+        lease_ms: 1000,
+      });
+    }
     if (command.action === 'cancel') {
       const projected = this.project(command.resource_id);
       if (projected.state?.execution) return this.dispatcher.cancel({ ...command, fence: projected.state.fence });

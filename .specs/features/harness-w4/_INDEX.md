@@ -36,3 +36,4 @@ de todos os descendentes; elegível = horário/dependências/admissão permitem 
 - [Invalidação por drift antes do efeito](workflow-drift-implementation.md) — W4-04b2a.
 - [Tentativa explícita vinculada](workflow-linked-retry-implementation.md) — W4-04b2b.
 - [Vínculo de campanha do job](job-campaign-implementation.md) — W4-05.
+- [Superfícies de jobs](job-surfaces-implementation.md) — W4-06a.
