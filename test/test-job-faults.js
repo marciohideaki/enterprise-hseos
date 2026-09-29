@@ -100,6 +100,95 @@ for (const workflow of [false, true])
     }
   });
 
+test('baseline drift after an accepted predecessor invalidates the unstarted dependent after drain', async (t) => {
+  const f = await setup(t, { workflow: true });
+  const plan = f.jobs.query(f.id).materialization.plan;
+  const original = EngineeringTaskState.prototype.append;
+  let changed = false;
+  EngineeringTaskState.prototype.append = function (value, expectedVersion) {
+    const receipt = original.call(this, value, expectedVersion);
+    if (!changed && this.id === plan.tasks[0].task_run_id && value.kind === 'result' && value.result === 'approved') {
+      changed = true;
+      fs.writeFileSync(path.join(f.root, 'index.js'), 'module.exports = (n) => n + 9;\n');
+    }
+    return receipt;
+  };
+  t.after(() => {
+    EngineeringTaskState.prototype.append = original;
+  });
+  const result = await f.jobs.dispatcher.execute(f.command);
+  assert.equal(changed, true);
+  assert.equal(result.status, 'invalidated');
+  assert.equal(result.execution.reason, 'baseline-drift-drain-confirmed');
+  const first = new EngineeringTaskState(f.control.handle.db, plan.tasks[0].task_run_id).read();
+  const second = new EngineeringTaskState(f.control.handle.db, plan.tasks[1].task_run_id).read();
+  assert.equal(first.result.result, 'approved');
+  assert.equal(second.started, false);
+  assert.deepEqual([second.result.result, second.result.reason], ['not_executed', 'JOB_BASELINE_DRIFT']);
+  assert.deepEqual(
+    result.execution.proofs.map((proof) => proof.result),
+    ['approved', 'not_executed'],
+  );
+  const parent = new RelationalSessionEventStore({ ledger: f.control.ledger }).replay(plan.manifest.parent_session_id);
+  assert.equal(parent.workflow_reservations[plan.manifest.definition.workflow_id].released.status, 'failed');
+  assert.ok(parent.terminal_event);
+  const reopened = new EngineeringControl({ state: f.control.state, workspaces: [f.root] });
+  try {
+    assert.equal(reopened.jobs.query(f.id).status, 'invalidated');
+  } finally {
+    reopened.close();
+  }
+  const terminalRow = f.control.ledger
+    .readStream('agent_session', plan.manifest.parent_session_id)
+    .find((row) => JSON.parse(row.payload.session_event_json).event_id === parent.terminal_event.event_id);
+  const ledger = f.control.ledger;
+  const withoutTerminal = {
+    append: (...args) => ledger.append(...args),
+    appendBatch: (...args) => ledger.appendBatch(...args),
+    readGlobal: (...args) => ledger.readGlobal(...args),
+    readStream: (type, id) => ledger.readStream(type, id).filter((row) => row.event_id !== terminalRow.event_id),
+  };
+  const rows = f.jobs.rows(f.id);
+  const prior = f.jobs.project(f.id, rows.slice(0, -1));
+  const { projectJobExecution } = require('../tools/cli/lib/job-dispatch');
+  assert.throws(
+    () =>
+      projectJobExecution(prior.state, rows.at(-1), new Map(prior.receipts), {
+        control: { handle: f.control.handle, ledger: withoutTerminal },
+      }),
+    { code: 'JOB_EVENT_INVALID' },
+  );
+});
+
+test('baseline drift after dispatch intent invalidates without starting a child', async (t) => {
+  const f = await setup(t, { workflow: true });
+  const original = f.control.ledger.append;
+  let changed = false;
+  f.control.ledger.append = function (request) {
+    const receipt = original.call(this, request);
+    if (!changed && request.aggregate_type === 'control_job' && request.events[0]?.payload.phase === 'intent') {
+      changed = true;
+      fs.writeFileSync(path.join(f.root, 'index.js'), 'module.exports = (n) => n + 9;\n');
+    }
+    return receipt;
+  };
+  t.after(() => {
+    f.control.ledger.append = original;
+  });
+  const result = await f.jobs.dispatcher.execute(f.command);
+  assert.equal(changed, true);
+  assert.equal(result.status, 'invalidated');
+  for (const entry of result.materialization.plan.tasks) {
+    const state = new EngineeringTaskState(f.control.handle.db, entry.task_run_id).read();
+    assert.equal(state.started, false);
+    assert.deepEqual([state.result.result, state.result.reason], ['not_executed', 'JOB_BASELINE_DRIFT']);
+  }
+  const parent = new RelationalSessionEventStore({ ledger: f.control.ledger }).replay(
+    result.materialization.plan.manifest.parent_session_id,
+  );
+  assert.ok(parent.terminal_event);
+});
+
 test('completed model does not settle a failing independent acceptance as success', async (t) => {
   const f = await setup(t, { expected: 999 });
   const result = await f.jobs.dispatcher.execute(f.command);
@@ -191,6 +280,11 @@ test('workflow failure blocks a not-yet-started dependent and retains earlier ev
   const entries = result.materialization.plan.tasks;
   assert.equal(new EngineeringTaskState(f.control.handle.db, entries[0].task_run_id).read().result.result, 'failed');
   assert.equal(new EngineeringTaskState(f.control.handle.db, entries[1].task_run_id).read().started, false);
+  const rows = f.jobs.rows(f.id);
+  const forged = structuredClone(rows.at(-1));
+  forged.payload.outcome = 'invalidated';
+  forged.payload.reason = 'baseline-drift-drain-confirmed';
+  assert.throws(() => f.jobs.project(f.id, [...rows.slice(0, -1), forged]), { code: 'JOB_EVENT_INVALID' });
 });
 
 for (const fault of ['before-effect', 'after-effect'])

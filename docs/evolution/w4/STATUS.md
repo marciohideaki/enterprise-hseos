@@ -379,3 +379,29 @@ O pacote continua em 1.457 entradas, dentro do limite autorizado. O recibo
 detalhado está em `evidence/workflow-drain/verification-receipt.json`.
 A validação governada da worktree passou. Commit, hook e integração à feature
 ainda pendentes neste registro.
+
+### W4-04b1 integrada; W4-04b2a em implementação
+
+W4-04b1: commit `71285eec`, integração `0b420bff`; hook Node 24 passou e a
+worktree foi removida. W4-04b2 foi dividida em invalidação por drift (04b2a)
+e tentativa explícita vinculada (04b2b). A primeira unidade marca o filho
+com baseline alterado antes do efeito como `not_executed`, conserva o aceite
+anterior, drena a árvore e confirma o terminal da raiz antes do job
+`invalidated`. Um teste dirigido de DAG e um teste de evento forjado passaram
+em Node 24; cobertura, mutantes, gates, hook e integração desta unidade ainda
+pendentes. Nenhuma tentativa nova ou saldo renovado foi admitido.
+
+A corrida após `dispatch.intent`, antes da primeira montagem, também foi
+reproduzida e corrigida: o engine alcança o guard de cada filho sem iniciar
+efeitos, registra ambos como `not_executed` e só declara `invalidated` após
+terminal e drain. O teste negativo de falso drift por evento forjado passou.
+Uma revisão de recuperação acrescentou a prova do terminal da raiz à
+projeção: um recibo de `invalidated` sem esse evento é rejeitado, e o
+settlement permanece incerto se o processo cair entre release e terminal.
+Falha comprovada em outro filho tem precedência sobre drift de um dependente.
+Cobertura integral e gates governados Node 22/24 passaram com zero falhas e
+skips; 18/18 mutantes rejeitados em ambas as versões. Quatro arquivos
+críticos acima de 95% de linhas e 84% de branches. Pacote permanece em
+1.457 entradas. Recibo em `evidence/workflow-drift/verification-receipt.json`.
+Validação formal da worktree passou; registrou um aviso preexistente de dois
+placeholders em template. Hook e integração ainda pendentes.

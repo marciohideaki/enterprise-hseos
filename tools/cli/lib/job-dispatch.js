@@ -44,7 +44,7 @@ const eventSchema = z
 function reject(code) {
   throw Object.assign(new Error(code), { code });
 }
-function projectJobExecution(state, row, receipts) {
+function projectJobExecution(state, row, receipts, jobs) {
   const p = eventSchema.parse(row.payload),
     c = p.command;
   const previous = receipts.get(c.command_id);
@@ -109,13 +109,34 @@ function projectJobExecution(state, row, receipts) {
       )
         reject('JOB_EVENT_INVALID');
       const approved = p.proofs.every((x) => x.result === 'approved' && x.terminal === 'completed');
+      const parentTerminal =
+        p.outcome === 'invalidated' &&
+        state.kind === 'workflow' &&
+        jobs &&
+        new RelationalSessionEventStore({ ledger: jobs.control.ledger }).replay(state.materialization.plan.manifest.parent_session_id)
+          .terminal_event;
+      const provenDrift =
+        p.outcome === 'invalidated' &&
+        Boolean(parentTerminal) &&
+        !p.proofs.some((proof) => proof.result === 'failed') &&
+        p.proofs.some((proof) => {
+          const task = new EngineeringTaskState(jobs.control.handle.db, proof.task_id).read();
+          return (
+            !task.started &&
+            task.result?.result === 'not_executed' &&
+            task.result.reason === 'JOB_BASELINE_DRIFT' &&
+            proof.result_sha256 === digest(task.result)
+          );
+        });
       if (
         p.proofs.some((x) => x.result === 'blocked') ||
         (p.outcome === 'succeeded'
           ? !approved || state.cancellation_requested
           : p.outcome === 'cancelled'
             ? !state.cancellation_requested
-            : p.outcome !== 'failed' || approved)
+            : p.outcome === 'invalidated'
+              ? state.cancellation_requested || p.reason !== 'baseline-drift-drain-confirmed' || !provenDrift
+              : p.outcome !== 'failed' || approved)
       )
         reject('JOB_EVENT_INVALID');
     }
@@ -155,7 +176,10 @@ function assertJobRuntimeAccess(db, id, options) {
     reject('JOB_DISPATCH_REQUIRED');
   const index = state.materialization.plan.tasks.findIndex((entry) => entry.task_run_id === id);
   const contract = state.kind === 'task' ? state.admission.input.contract : state.admission.input.definition.tasks[index].contract;
-  if (require('./engineering-workspace').projectWorkspaceSnapshot(contract).sha256 !== contract.workspace.files_sha256)
+  if (
+    !options?.allowBaselineDriftForWorkflowAssembly &&
+    require('./engineering-workspace').projectWorkspaceSnapshot(contract).sha256 !== contract.workspace.files_sha256
+  )
     reject('JOB_BASELINE_DRIFT');
   const pin = state.admission.plugin_model;
   if (pin) {
@@ -258,6 +282,7 @@ class JobDispatcher {
           state,
           { payload, schema_version: 1, stream_sequence: state.current_sequence + 1 },
           jobs.project(c.resource_id).receipts,
+          jobs,
         );
         jobs.control.ledger.append({
           aggregate_type: 'control_job',
@@ -339,9 +364,31 @@ class JobDispatcher {
     const state = this.#check(c).state;
     try {
       const proofs = proofsFor(this.#jobs, state);
-      const outcome = state.cancellation_requested ? 'cancelled' : proofs.every((p) => p.result === 'approved') ? 'succeeded' : 'failed';
       if (proofs.some((p) => p.result === 'blocked')) reject('JOB_OUTCOME_UNCERTAIN');
-      return this.#append(c, 'settled', outcome, proofs, c.action === 'reconcile' ? 'owner-drain-confirmed' : 'runtime-drain-confirmed');
+      const baselineDrift = state.materialization.plan.tasks.some((entry) => {
+        const task = new EngineeringTaskState(this.#jobs.control.handle.db, entry.task_run_id).read();
+        return !task.started && task.result?.result === 'not_executed' && task.result.reason === 'JOB_BASELINE_DRIFT';
+      });
+      const outcome = state.cancellation_requested
+        ? 'cancelled'
+        : proofs.some((proof) => proof.result === 'failed')
+          ? 'failed'
+          : state.kind === 'workflow' && baselineDrift
+            ? 'invalidated'
+            : proofs.every((p) => p.result === 'approved')
+              ? 'succeeded'
+              : 'failed';
+      if (outcome === 'invalidated') {
+        const store = new RelationalSessionEventStore({ ledger: this.#jobs.control.ledger });
+        if (!store.replay(state.materialization.plan.manifest.parent_session_id).terminal_event) reject('JOB_OUTCOME_UNCERTAIN');
+      }
+      return this.#append(
+        c,
+        'settled',
+        outcome,
+        proofs,
+        baselineDrift ? 'baseline-drift-drain-confirmed' : c.action === 'reconcile' ? 'owner-drain-confirmed' : 'runtime-drain-confirmed',
+      );
     } catch (error) {
       if (error.code !== 'JOB_OUTCOME_UNCERTAIN') throw error;
       return this.#append(c, 'uncertain', 'uncertain', [], 'acceptance-or-drain-unconfirmed');

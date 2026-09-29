@@ -228,7 +228,7 @@ class JobControl {
         continue;
       }
       if (row.event_type === 'JobExecutionRecorded') {
-        state = require('./job-dispatch').projectJobExecution(state, row, receipts);
+        state = require('./job-dispatch').projectJobExecution(state, row, receipts, this);
         continue;
       }
       if (row.event_type === 'JobMaterializationRecorded') {
