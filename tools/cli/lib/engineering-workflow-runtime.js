@@ -306,7 +306,9 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
         return response;
       } catch (error) {
         const state = child.task.read();
-        if (!state.result && state.cancellation && !state.started)
+        if (!state.result && error.code === 'JOB_BASELINE_DRIFT' && !state.started)
+          child.task.append({ kind: 'result', result: 'not_executed', reason: 'JOB_BASELINE_DRIFT', evidence: {} }, state.version);
+        else if (!state.result && state.cancellation && !state.started)
           child.task.append({ kind: 'result', result: 'not_executed', reason: 'cancelled', evidence: {} }, state.version);
         else if (!state.result)
           child.task.append(
@@ -673,7 +675,6 @@ module.exports = {
 async function executeJobWorkflow(control, id) {
   const view = require('./job-materialization').resolveJobView(control, id);
   if (!view?.manifest) throw new Error('JOB_DISPATCH_REQUIRED');
-  for (const entry of view.manifest.tasks) require('./job-dispatch').assertJobRuntimeAccess(control.handle.db, entry.task_run_id);
   const assembly = assembleEngineeringWorkflow(view.handle, view.manifest, {
     extensionCatalog: control.extensionCatalog,
     campaigns: control.providerCampaigns,
@@ -704,10 +705,22 @@ async function executeJobWorkflow(control, id) {
     }
     check();
     if (cancellation) await cancellation;
+    const baselineDrift = [...assembly.children.values()].some((child) => child.task.read().result?.reason === 'JOB_BASELINE_DRIFT');
+    if (baselineDrift && !assembly.store.replay(view.manifest.parent_session_id).terminal_event)
+      await assembly.supervisor.cancelRoot({
+        schema_version: 1,
+        request_id: `cancel:${randomUUID()}`,
+        root_session_id: view.manifest.parent_session_id,
+        reason: 'Workflow baseline drift',
+        deadline_ms: 10_000,
+      });
     for (const child of assembly.children.values()) {
       const state = child.task.read();
       if (!state.started && !state.result)
-        child.task.append({ kind: 'result', result: 'not_executed', reason: 'workflow-stopped', evidence: {} }, state.version);
+        child.task.append(
+          { kind: 'result', result: 'not_executed', reason: baselineDrift ? 'JOB_BASELINE_DRIFT' : 'workflow-stopped', evidence: {} },
+          state.version,
+        );
     }
   } finally {
     clearInterval(timer);

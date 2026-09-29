@@ -839,6 +839,7 @@ module.exports = {
     require('./job-dispatch').assertJobRuntimeAccess(handle.db, readIdentity(handle.directory), {
       directory: handle.directory,
       sessionId: created.session_id,
+      allowBaselineDriftForWorkflowAssembly: options?.jobControl && options?.jobId ? true : false,
     });
     return assemble(handle, created, options);
   },
