@@ -431,3 +431,22 @@ fixado permanece em 1.457 entradas. A revisão cética isolada não encontrou
 bloqueio confirmado. Recibo e logs em `evidence/workflow-linked-retry/`.
 Validação formal passou, com um aviso preexistente de placeholder de template.
 Hook e integração seguem pendentes neste registro.
+
+### W4-04b2b integrada; W4-05 em validação
+
+W4-04b2b: commit `e61c5f55`, integração `b6282f2e`; hook Node 24 passou e a
+worktree foi removida. W4-05 reutiliza `ProviderCampaignControl` como única
+autoridade monetária. A projeção agora exige uma reclamação recíproca de
+autorização para a campanha antes de qualquer claim ou reserva. O job guarda o
+pin da campanha; o stream financeiro vincula autorização, request e reserva
+antes do adapter, e o evento de despacho do job precede o request. Os testes
+dirigidos passaram 49/49 em Node 24, incluindo recibo perdido e saldo
+comprometido após reconciliação. A revisão cética encontrou um teste de
+contrato ausente; ele foi criado, incluído no kernel e a revisão confirmou a
+correção. Cobertura crítica passou em Node 22/24 (campanha 98,83% linhas,
+94,11% branches), 18/18 mutantes foram rejeitados em cada versão e os gates
+integrais passaram com zero falhas ou skips. Pacote permanece em 1.457
+entradas. Recibo em `evidence/job-campaign/verification-receipt.json`;
+validação formal passou com um aviso preexistente de placeholder de template;
+hook e integração da unidade seguem pendentes neste registro. Nenhum efeito
+externo pago foi executado.
