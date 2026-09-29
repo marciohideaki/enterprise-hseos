@@ -46,6 +46,7 @@
     "docs/pt-br/governanca-gerenciada.md",
     "packages/**",
     "scripts/**",
+    "!scripts/governance/check-w4-mutations.js",
     "src/**",
     "tools/**",
     "docs/capabilities.md",
@@ -165,6 +166,7 @@
     "test:terminals": "node --test --test-concurrency=1 test/test-terminal-executor.js test/test-terminal-control.js test/test-terminal-api.js",
     "test:tool-runtime": "node --test --test-concurrency=1 test/test-tool-runtime.js",
     "test:verify": "node test/test-agent-core-verify-audit-doctor.js",
+    "test:w4-mutations": "node scripts/governance/check-w4-mutations.js",
     "test:workflow-contracts": "node --test --test-concurrency=1 test/test-workflow-catalog.js",
     "validate:schemas": "node tools/validate-agent-schema.js"
   },

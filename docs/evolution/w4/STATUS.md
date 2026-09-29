@@ -500,3 +500,22 @@ persistido. A revisão cética encontrou e ajudou a fechar a janela de órfão e
 a ambiguidade do erro pós-commit. Testes focados 29/29, cobertura crítica,
 18/18 mutantes e gates passaram em Node 22/24; pacote segue em 1.457 entradas.
 Recibo em `evidence/expansion-atomicity/`.
+
+### W4-07a verificada antes do commit
+
+A matriz P1–S1 passou 117/117 em Node 22.22.1 e Node 24.15.0, sem falhas ou
+skips. O verificador dirigido rejeitou 18/18 mutantes em ambas as versões,
+incluindo autorização, orçamento, reservas e recuperação. A cobertura incluiu
+73 arquivos críticos não executados por padrão: mínimo por arquivo 90,26% das
+linhas e 80% dos branches. Gates de código Node 22/24 passaram com zero falhas
+e avisos. O inventário do pacote permaneceu em 1.457 entradas; o script de
+verificação é fonte de governança e não integra o pacote runtime.
+
+Recibos, comandos, horários, hashes e limites em
+`evidence/deterministic/verification-receipt.json`. A revisão cética inicial
+apontou a falta desses recibos; o confronto final confirmou a correção do
+código de saída por artefato. A validação formal passou com zero falhas e um
+aviso preexistente de placeholder. Hook e integração continuam pendentes neste
+registro. R1 permanece
+W4-07b: grants históricos de W3 expiraram em 26–27/09/2026, portanto
+consumidores reais e binding vigente não são certificados por esta matriz.
