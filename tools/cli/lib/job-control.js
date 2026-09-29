@@ -242,6 +242,33 @@ class JobControl {
       if (row.event_type !== 'JobCommandRecorded' || row.schema_version !== 1) reject('JOB_EVENT_INVALID');
       const payload = eventSchema.parse(row.payload);
       const command = parseJobCommand(payload.command);
+      if (command.action === 'link_retry') {
+        const next = this.rows(command.input.retry_job_id)[0];
+        const retry = next?.event_type === 'JobCommandRecorded' ? parseJobCommand(next.payload.command) : null;
+        if (
+          !state ||
+          row.schema_version !== 1 ||
+          row.stream_sequence !== state.current_sequence + 1 ||
+          command.resource_id !== state.resource_id ||
+          command.expected_sequence !== state.current_sequence ||
+          payload.digest !== jobDigest(command) ||
+          payload.admission ||
+          payload.admission_sha256 ||
+          !['failed', 'invalidated', 'cancelled', 'expired'].includes(state.status) ||
+          state.retry_successor_id ||
+          command.input.retry_job_id === state.resource_id ||
+          Date.parse(row.occurred_at) < (state.transition_at || 0) ||
+          retry?.action !== 'retry' ||
+          retry.resource_id !== command.input.retry_job_id ||
+          retry.input.retry_of !== state.resource_id ||
+          retry.command_id !== command.input.retry_command_id ||
+          next.payload.digest !== jobDigest(retry) ||
+          jobDigest(retry) !== command.input.retry_digest
+        )
+          reject('JOB_EVENT_INVALID');
+        state = { ...state, retry_successor_id: command.input.retry_job_id, current_sequence: row.stream_sequence };
+        continue;
+      }
       if (
         command.resource_id !== id ||
         command.expected_sequence !== row.stream_sequence - 1 ||
@@ -249,11 +276,12 @@ class JobControl {
         receipts.has(command.command_id)
       )
         reject('JOB_EVENT_INVALID');
-      if (command.action === 'create') {
+      if (command.action === 'create' || command.action === 'retry') {
         if (state || row.stream_sequence !== 1 || !payload.admission || jobDigest(payload.admission) !== payload.admission_sha256)
           reject('JOB_EVENT_INVALID');
         validateAdmission(command, payload.admission);
         if (command.input.kind === 'workflow') assertInitialWorkflow(payload.admission.input);
+        const retry = command.action === 'retry' ? this.retryPlan(command, payload.admission, true) : null;
         state = {
           schema_version: 1,
           resource_id: id,
@@ -263,6 +291,7 @@ class JobControl {
           ...command.input,
           admission: payload.admission,
           admission_sha256: payload.admission_sha256,
+          ...(retry ? { retry_of: command.input.retry_of, retry_root_id: retry.root.resource_id } : {}),
         };
       } else {
         if (!state || !['queued', 'claimed', 'recovering'].includes(state.status) || payload.admission || payload.admission_sha256)
@@ -300,6 +329,71 @@ class JobControl {
       .slice(0, limit);
     return { resource_id: id, events, next_cursor: events.at(-1)?.stream_sequence || after };
   }
+  retryPlan(command, admission, linked = false) {
+    if (command.action !== 'retry' || command.input.kind !== 'workflow') reject('JOB_RETRY_INVALID');
+    const history = [];
+    const seen = new Set([command.resource_id]);
+    let id = command.input.retry_of;
+    while (id) {
+      if (seen.has(id) || history.length >= 128) reject('JOB_RETRY_CYCLE');
+      seen.add(id);
+      const state = this.query(id);
+      if (state.kind !== 'workflow' || !['failed', 'invalidated', 'cancelled', 'expired'].includes(state.status))
+        reject('JOB_RETRY_NOT_TERMINAL');
+      history.unshift(state);
+      id = state.retry_of;
+    }
+    const prior = history.at(-1);
+    if (linked ? prior.retry_successor_id !== command.resource_id : Boolean(prior.retry_successor_id)) reject('JOB_RETRY_CONFLICT');
+    const root = history[0];
+    const definition = admission.input.definition;
+    const original = root.admission.input.definition;
+    const deadline = Math.min(Date.parse(root.deadline_at), ...history.map((item) => item.execution_deadline_at || Infinity));
+    if (
+      (!linked && this.now() >= deadline) ||
+      command.input.deadline_at !== new Date(deadline).toISOString() ||
+      command.input.depends_on.some((dependency) => seen.has(dependency)) ||
+      definition.max_parallelism > original.max_parallelism ||
+      definition.limits.max_duration_ms > original.limits.max_duration_ms
+    )
+      reject('JOB_RETRY_BUDGET_EXCEEDED');
+    const roots = new Set(original.tasks.map((task) => task.contract.workspace.root));
+    if (definition.tasks.some((task) => !roots.has(task.contract.workspace.root))) reject('JOB_RETRY_SCOPE_DRIFT');
+    const known = new Set(history.flatMap((item) => item.admission.input.definition.tasks.map((task) => task.id)));
+    if (definition.tasks.some((task) => !known.has(task.id))) reject('JOB_RETRY_NODE_UNKNOWN');
+    const usage = { max_tokens: 0, max_turns: 0, max_tool_calls: 0, max_children: 0, max_workflow_steps: 0 };
+    const accepted = new Set();
+    const store = new RelationalSessionEventStore({ ledger: this.control.ledger });
+    const { EngineeringTaskState } = require('./engineering-task-state');
+    const { tokenUsage } = require('../../../packages/agent-runtime');
+    for (const item of history) {
+      const plan = item.materialization?.plan;
+      if (!plan) continue;
+      for (const entry of plan.manifest.tasks) {
+        const result = new EngineeringTaskState(this.control.handle.db, entry.task_run_id).read().result;
+        if (result?.result === 'approved') accepted.add(entry.id);
+      }
+      const parent = store.replay(plan.manifest.parent_session_id);
+      const visited = new Set();
+      const visit = (sessionId) => {
+        if (visited.has(sessionId)) reject('JOB_RETRY_CYCLE');
+        visited.add(sessionId);
+        const child = store.replay(sessionId);
+        if (!child.terminal_event) reject('JOB_RETRY_UNSETTLED');
+        usage.max_tokens += tokenUsage(child);
+        usage.max_turns += child.turn_order.length;
+        usage.max_tool_calls += Object.keys(child.tool_invocations).length;
+        usage.max_children++;
+        usage.max_workflow_steps++;
+        for (const descendant of child.children) visit(descendant);
+      };
+      for (const child of parent.children) visit(child);
+    }
+    if (definition.tasks.some((task) => accepted.has(task.id))) reject('JOB_RETRY_ACCEPTED_NODE');
+    for (const key of Object.keys(usage))
+      if (definition.limits[key] > original.limits[key] - usage[key]) reject('JOB_RETRY_BUDGET_EXCEEDED');
+    return { root, prior, usage, deadline };
+  }
   check(command) {
     const { state, receipts } = this.project(command.resource_id);
     const previous = receipts.get(command.command_id);
@@ -308,9 +402,15 @@ class JobControl {
       return previous.result;
     }
     if ((state?.current_sequence || 0) !== command.expected_sequence) reject('CONTROL_SEQUENCE_CONFLICT');
-    if (command.action === 'create') {
+    if (command.action === 'create' || command.action === 'retry') {
       if (state) reject('CONTROL_SEQUENCE_CONFLICT');
       if (command.input.kind === 'workflow') assertInitialWorkflow(command.input.definition);
+      if (command.action === 'retry') {
+        if (command.input.kind !== 'workflow') reject('JOB_RETRY_INVALID');
+        const prior = this.query(command.input.retry_of);
+        if (!['failed', 'invalidated', 'cancelled', 'expired'].includes(prior.status)) reject('JOB_RETRY_NOT_TERMINAL');
+        if (prior.retry_successor_id) reject('JOB_RETRY_CONFLICT');
+      }
       for (const dependency of command.input.depends_on) {
         if (dependency === command.resource_id) reject('JOB_DEPENDENCY_INVALID');
         this.query(dependency);
@@ -463,6 +563,7 @@ class JobControl {
   }
   async execute(raw) {
     const command = parseJobCommand(raw);
+    if (command.action === 'link_retry') reject('JOB_COMMAND_INTERNAL');
     if (command.action === 'cancel') {
       const projected = this.project(command.resource_id);
       if (projected.state?.execution) return this.dispatcher.cancel({ ...command, fence: projected.state.fence });
@@ -470,7 +571,7 @@ class JobControl {
     const replay = this.check(command);
     if (replay) return deepFreeze(replay);
     let admission;
-    if (command.action === 'create') {
+    if (command.action === 'create' || command.action === 'retry') {
       if (this.control.rows(command.resource_id).length > 0) reject('JOB_RESOURCE_CONFLICT');
       admission = await this.control.admitCreation(
         command.input.kind === 'task' ? 'create' : 'create_workflow',
@@ -483,8 +584,11 @@ class JobControl {
       .transaction(() => {
         const concurrent = this.check(command);
         if (concurrent) return deepFreeze(concurrent);
-        if (command.action === 'create' && this.control.rows(command.resource_id).length > 0) reject('JOB_RESOURCE_CONFLICT');
-        this.control.ledger.append({
+        if (['create', 'retry'].includes(command.action) && this.control.rows(command.resource_id).length > 0)
+          reject('JOB_RESOURCE_CONFLICT');
+        const retry = command.action === 'retry' ? this.retryPlan(command, admission) : null;
+        const at = this.now();
+        const creation = {
           aggregate_type: 'control_job',
           aggregate_id: command.resource_id,
           expected_version: command.expected_sequence,
@@ -493,7 +597,7 @@ class JobControl {
               event_id: randomUUID(),
               event_type: 'JobCommandRecorded',
               schema_version: 1,
-              occurred_at: new Date(this.now()).toISOString(),
+              occurred_at: new Date(at).toISOString(),
               correlation_id: command.resource_id,
               causation_id: command.command_id,
               actor: { type: 'hseos', id: 'local-job-control' },
@@ -502,7 +606,38 @@ class JobControl {
               payload: { command, digest: jobDigest(command), ...(admission ? { admission, admission_sha256: jobDigest(admission) } : {}) },
             },
           ],
-        });
+        };
+        if (retry) {
+          const linkCommand = {
+            schema_version: 1,
+            command_id: command.command_id,
+            resource_id: retry.prior.resource_id,
+            expected_sequence: retry.prior.current_sequence,
+            action: 'link_retry',
+            input: { retry_job_id: command.resource_id, retry_command_id: command.command_id, retry_digest: jobDigest(command) },
+          };
+          const link = {
+            event_id: randomUUID(),
+            event_type: 'JobCommandRecorded',
+            schema_version: 1,
+            occurred_at: new Date(at).toISOString(),
+            correlation_id: retry.prior.resource_id,
+            causation_id: command.command_id,
+            actor: { type: 'hseos', id: 'local-job-control' },
+            operation_id: null,
+            evidence_refs: [],
+            payload: { command: linkCommand, digest: jobDigest(linkCommand) },
+          };
+          this.control.ledger.appendBatch([
+            {
+              aggregate_type: 'control_job',
+              aggregate_id: retry.prior.resource_id,
+              expected_version: retry.prior.current_sequence,
+              events: [link],
+            },
+            creation,
+          ]);
+        } else this.control.ledger.append(creation);
         return this.query(command.resource_id);
       })
       .immediate();

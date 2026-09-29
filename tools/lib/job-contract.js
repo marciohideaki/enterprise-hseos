@@ -10,7 +10,7 @@ const jobCommandSchema = z
     command_id: uuid,
     resource_id: uuid,
     expected_sequence: z.number().int().nonnegative().safe(),
-    action: z.enum(['create', 'cancel']),
+    action: z.enum(['create', 'retry', 'cancel', 'link_retry']),
     input: z.record(z.string(), z.json()),
   })
   .strict();
@@ -30,7 +30,17 @@ const jobCreateSchema = z
 
 function parseJobCommand(value) {
   const command = jobCommandSchema.parse(value);
-  const input = command.action === 'create' ? jobCreateSchema.parse(command.input) : z.object({}).strict().parse(command.input);
+  const input =
+    command.action === 'create'
+      ? jobCreateSchema.parse(command.input)
+      : command.action === 'retry'
+        ? jobCreateSchema.extend({ retry_of: uuid }).parse(command.input)
+        : command.action === 'link_retry'
+          ? z
+              .object({ retry_job_id: uuid, retry_command_id: uuid, retry_digest: z.string().regex(/^[a-f0-9]{64}$/) })
+              .strict()
+              .parse(command.input)
+          : z.object({}).strict().parse(command.input);
   return deepFreeze({ ...command, input });
 }
 function jobDigest(value) {

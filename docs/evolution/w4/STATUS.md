@@ -405,3 +405,29 @@ críticos acima de 95% de linhas e 84% de branches. Pacote permanece em
 1.457 entradas. Recibo em `evidence/workflow-drift/verification-receipt.json`.
 Validação formal da worktree passou; registrou um aviso preexistente de dois
 placeholders em template. Hook e integração ainda pendentes.
+
+### W4-04b2a integrada; W4-04b2b em validação
+
+W4-04b2a: commit `f8a4ed54`, integração `ed050544`; hook Node 24 passou e a
+worktree foi removida. W4-04b2b acrescenta `retry` explícito, com vínculo
+atômico no stream do antecessor e um único sucessor por tentativa. O novo
+job herda o menor deadline da cadeia, desconta uso durável de recursos e
+filhos iniciados do orçamento da raiz, aceita apenas IDs ainda não aprovados
+da árvore anterior e mantém o mesmo escopo de workspace. Não usa novo tipo
+de evento: o vínculo é uma ação interna validada de `JobCommandRecorded`,
+compatível com o catálogo SQLite e o limite de pacote vigente. A suíte
+focada passou 34/34 em Node 24. Cobertura, mutantes, gates, hook e integração
+da unidade continuam pendentes; campanha/provider serão integrados na W4-05.
+Uma execução dirigida completou a nova árvore com apenas o nó pendente após
+atualizar explicitamente seu baseline e verificador; o primeiro nó permaneceu
+aceito no job anterior e não foi despachado outra vez. Um sucessor concorrente
+foi recusado e um segundo retry de uma tentativa cancelada manteve a raiz e
+o deadline originais.
+
+Matriz final W4-04b2b: cobertura e gate integral passaram em Node 22/24,
+sem falhas ou skips; 18/18 mutantes foram rejeitados em cada versão. Os
+arquivos críticos ficaram acima de 95% de linhas e 84% de branches; o pacote
+fixado permanece em 1.457 entradas. A revisão cética isolada não encontrou
+bloqueio confirmado. Recibo e logs em `evidence/workflow-linked-retry/`.
+Validação formal passou, com um aviso preexistente de placeholder de template.
+Hook e integração seguem pendentes neste registro.
