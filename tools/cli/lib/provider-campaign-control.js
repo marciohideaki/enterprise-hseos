@@ -212,6 +212,16 @@ class ProviderCampaignControl {
     const rows = this.rows(id),
       opened = rows.find((r) => r.payload.kind === 'opened')?.payload;
     if (!opened) reject('CONTROL_CAMPAIGN_NOT_FOUND');
+    const authorizationRows = z.string().uuid().safeParse(opened.authorization_id).success
+      ? this.control.ledger.readStream('control_provider_authorization', opened.authorization_id)
+      : [];
+    if (
+      rows.filter((row) => row.payload.kind === 'opened').length !== 1 ||
+      authorizationRows.length !== 1 ||
+      authorizationRows[0].payload.kind !== 'claimed' ||
+      authorizationRows[0].payload.campaign_id !== id
+    )
+      reject('CONTROL_CAMPAIGN_AUTHORIZATION_INVALID');
     const reserved = rows.filter((r) => r.payload.kind === 'reserved');
     const reconciled = new Set(rows.filter((r) => r.payload.kind === 'reconciled').flatMap((r) => r.payload.command_ids));
     const pending = reserved.filter(

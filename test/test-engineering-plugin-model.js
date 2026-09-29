@@ -592,6 +592,48 @@ test('job claim consults original campaign without reserving and rejects cancell
   assert.equal(f.launches, 0);
 });
 
+test('job claim refuses a campaign whose authorization claim is missing', async (t) => {
+  const f = await setup(t);
+  const jobs = f.control.jobs;
+  await jobs.execute({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: f.resourceId,
+    expected_sequence: 0,
+    action: 'create',
+    input: {
+      kind: 'task',
+      definition: { contract: f.contract, plugin_model: { selection_id: 'selected', campaign_id: f.campaignId } },
+      not_before: new Date().toISOString(),
+      deadline_at: new Date(Date.now() + 30_000).toISOString(),
+      depends_on: [],
+    },
+  });
+  const opened = f.control.providerCampaigns.rows(f.campaignId).find((row) => row.payload.kind === 'opened').payload;
+  const original = f.control.ledger.readStream.bind(f.control.ledger);
+  t.mock.method(f.control.ledger, 'readStream', (aggregate, id) =>
+    aggregate === 'control_provider_authorization' && id === opened.authorization_id ? [] : original(aggregate, id),
+  );
+  await assert.rejects(
+    jobs.worker.execute({
+      schema_version: 1,
+      command_id: randomUUID(),
+      resource_id: f.resourceId,
+      expected_sequence: 1,
+      action: 'claim',
+      fence: 0,
+      lease_ms: 1000,
+    }),
+    { code: 'CONTROL_CAMPAIGN_AUTHORIZATION_INVALID' },
+  );
+  assert.equal(jobs.query(f.resourceId).status, 'queued');
+  assert.equal(f.launches, 0);
+  assert.equal(
+    f.control.providerCampaigns.rows(f.campaignId).some((row) => row.payload.kind === 'reserved'),
+    false,
+  );
+});
+
 async function prepareDurableJob(f) {
   const jobs = f.control.jobs;
   await jobs.execute({
@@ -657,6 +699,21 @@ for (const loseReceipt of [false, true])
     assert.equal(campaign.requests, 1);
     assert.equal(campaign.committed_microusd, 0);
     assert.equal(campaign.unresolved_commands.length, loseReceipt ? 1 : 0);
+    const campaignRows = f.control.providerCampaigns.rows(f.campaignId);
+    const authorizationId = campaignRows.find((row) => row.payload.kind === 'opened').payload.authorization_id;
+    assert.equal(f.control.ledger.readStream('control_provider_authorization', authorizationId)[0].payload.campaign_id, f.campaignId);
+    const jobRows = jobs.rows(f.resourceId);
+    assert.equal(jobRows[0].payload.admission.plugin_model.campaign_id, f.campaignId);
+    assert.equal(
+      jobRows.some((row) => row.event_type === 'JobExecutionRecorded' && row.payload.phase === 'intent'),
+      true,
+    );
+    const requested = campaignRows.find((row) => row.payload.kind === 'plugin_request');
+    const reserved = campaignRows.find((row) => row.payload.kind === 'reserved');
+    assert.equal(requested.payload.task_id, f.resourceId);
+    assert.equal(requested.payload.command_id, reserved.payload.command_id);
+    assert.equal(requested.stream_sequence < reserved.stream_sequence, true);
+    assert.equal(reserved.payload.binding_id, jobRows[0].payload.admission.plugin_model.binding_id);
   });
 
 test('closed plugin job backup preserves physical authority and campaign history on in-place restore', async (t) => {
