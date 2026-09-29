@@ -10,7 +10,7 @@ const jobCommandSchema = z
     command_id: uuid,
     resource_id: uuid,
     expected_sequence: z.number().int().nonnegative().safe(),
-    action: z.enum(['create', 'retry', 'cancel', 'link_retry']),
+    action: z.enum(['create', 'retry', 'cancel', 'reconcile', 'link_retry']),
     input: z.record(z.string(), z.json()),
   })
   .strict();
