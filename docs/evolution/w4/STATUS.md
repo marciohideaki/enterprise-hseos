@@ -21,7 +21,10 @@ Revisão adversarial: a persistência temporária não é anunciada como operaci
 conformance externa não reutiliza host; FR01–FR08 têm tasks/células; campanhas e
 ativação continuam pendentes. Contratos prontos para W4-02a.
 
-## Matriz de entrega
+## Matriz de entrega — snapshot histórico antes de W4-03c
+
+Esta tabela preserva o estado registrado durante a execução inicial. O estado
+atual está nas seções por task abaixo e na síntese W4-08 ao fim do arquivo.
 
 | Etapa         | Determinístico                        | Consumidor real | Ativação       |
 | ------------- | ------------------------------------- | --------------- | -------------- |
@@ -32,7 +35,7 @@ ativação continuam pendentes. Contratos prontos para W4-02a.
 | W4-07         | pendente                              | pendente        | não autorizada |
 | W4-08         | pendente                              | pendente        | não autorizada |
 
-## Limites e continuidade
+## Limites e continuidade — snapshot histórico
 
 - Estado atual do controle é fixture temporária; persistência operacional não certificada.
 - US$ 10 de teto e US$ 9 reservados preservados; nenhuma chamada de campanha nesta task.
@@ -537,3 +540,36 @@ retida. O segundo concluiu com recibo e sem incerteza. Não há saldo de despach
 adicionais nesta autorização. Evidência e limites estão em
 [`CONSUMERS.md`](./CONSUMERS.md) e
 [`evidence/real/verification-receipt.json`](./evidence/real/verification-receipt.json).
+
+## W4-08 — fechamento da feature antes da PR
+
+Base desta task: integração W4-07b `79667d66`; upstream declarado:
+`feature/hseos-evolution-foundation`. A
+[rastreabilidade final](./evidence/final/traceability.md) liga FR01–FR08 a
+tasks, testes positivos e negativos e recibos. O README W4 e o SDK explicam as
+superfícies e seus limites. O fragmento do grafo registra a capacidade W4 como
+**proposed**, com dono, contrato, módulos, testes e evidência; a validação do
+grafo passou com 28 nós, 44 relações e zero findings.
+
+As suítes integrais em Node 22.22.1 e 24.15.0 passaram sequencialmente: 1.304
+testes TAP em 73 blocos por versão, zero falhas/skips, além de 88 verificações
+do catálogo. Em ambas, 73 arquivos críticos atingiram mínimo por arquivo de
+90,26% de linhas e 80% de branches. A matriz W4 rejeitou 18/18 mutantes em
+cada versão. `VALIDATION_ENFORCED=true` passou em Node 22/24 com zero falhas e
+um aviso preexistente de placeholder em template. O inventário offline permaneceu
+em **1.457 entradas**, no limite autorizado. Logs, horários, comandos e hashes
+estão em [`evidence/final/verification-receipt.json`](./evidence/final/verification-receipt.json).
+
+A primeira tentativa da suíte Node 22 encontrou o binário `better-sqlite3` de
+Node 24 fora da worktree. Após instalar dependências offline localmente, uma
+repetição expôs uma corrida no teste de leitura de `/proc` após drenagem: o
+kernel retornou `ESRCH` para um processo já ausente. A asserção passou a aceitar
+`ENOENT` e `ESRCH`; o teste dirigido passou 11/11 e a suíte integral passou na
+repetição. Essas tentativas falhas não são contadas como aprovação.
+
+Compatibilidade v1, streams e checkpoints anteriores são preservados; a
+distribuição real foi instalada fora do checkout e testou seleção fixada,
+upgrade e rollback. A campanha R1 é separada dos fixtures P1–S1. O primeiro
+despacho Codex real teve recibo rejeitado e reserva mantida; o segundo foi
+aceito, e a autorização herdada não permite outro despacho. Merge na foundation,
+publicação, instalação global e ativação operacional seguem fora desta PR.
