@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "id": "runbook-context",
+  "version": "1.0.0",
+  "kind": "context-source",
+  "compatibility": {
+    "contract_version": 1,
+    "node_majors": [22, 24]
+  },
+  "entrypoint": "entry.cjs",
+  "files": {
+    "entry.cjs": "aa3bc80c4137e11c434a7344f428bc623c19ba48016d68857848c078755d1dcb"
+  },
+  "capabilities": ["context.lookup"],
+  "limits": {
+    "timeout_ms": 3000,
+    "max_output_bytes": 65536,
+    "memory_max_bytes": 268435456,
+    "pids_max": 32
+  },
+  "dependencies": [],
+  "conformance": ["entry.cjs"]
+}

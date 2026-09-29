@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "id": "policy-verifier",
+  "version": "1.0.0",
+  "kind": "runtime-provider",
+  "compatibility": {
+    "contract_version": 1,
+    "node_majors": [22, 24]
+  },
+  "entrypoint": "entry.cjs",
+  "files": {
+    "entry.cjs": "03f99f0744f0618bd298be9901c2b24380da5817574d4e279b7fa9453d1143d1"
+  },
+  "capabilities": ["send"],
+  "limits": {
+    "timeout_ms": 3000,
+    "max_output_bytes": 65536,
+    "memory_max_bytes": 268435456,
+    "pids_max": 32
+  },
+  "dependencies": [],
+  "conformance": ["entry.cjs"]
+}
