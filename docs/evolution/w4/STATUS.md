@@ -478,3 +478,14 @@ passou 92,58% linhas/81,01% branches em Node 22/24; 18/18 mutantes e gates de
 código passaram em ambas as versões, com zero falhas/avisos. Inventário segue
 1.457 entradas. Essas provas são fixtures de distribuição; os três consumidores
 reais W4-07b ainda não foram certificados. Hook e integração W4-06b pendentes.
+
+### W4-06c verificada antes do commit
+
+O comando público `resume` conclui preparação `planned` de job `claimed`,
+inclusive quando o plano foi criado pelo polling interno, e despacha uma única
+vez com o prazo original e o fence vigente. Recibos são reproduzidos pelo mesmo ID; uma
+intenção de execução incerta não é repetida. CLI, HTTP e SDKs JS/TS/Python
+compartilham o contrato. Revisão cética encontrou a lacuna de takeover do
+plano interno, corrigida e coberta por falha injetada. Cobertura integral,
+18/18 mutantes e gates passaram em Node 22/24 com zero falhas ou skips; pacote
+permanece em 1.457 entradas. Recibo em `evidence/job-resume/`.

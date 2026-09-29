@@ -76,6 +76,112 @@ async function setup(t, { workflow = false, expected = 4, prepare = true } = {})
   const command = { schema_version: 1, command_id: randomUUID(), resource_id: id, expected_sequence: 4, action: 'dispatch', fence: 1 };
   return { ...project, control, jobs, id, command };
 }
+
+test('public resume prepares a claimed job, dispatches once and replays its receipt', async (t) => {
+  const f = await setup(t, { prepare: false });
+  const claim = await f.jobs.worker.execute({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: f.id,
+    expected_sequence: 1,
+    action: 'claim',
+    fence: 0,
+    lease_ms: 1000,
+  });
+  const resume = { schema_version: 1, command_id: randomUUID(), resource_id: f.id, expected_sequence: 2, action: 'resume', input: {} };
+  const result = await f.jobs.execute(resume);
+  assert.equal(result.status, 'succeeded');
+  assert.equal(result.execution_deadline_at, claim.execution_deadline_at);
+  const rows = f.jobs.rows(f.id);
+  assert.deepEqual(await f.jobs.execute(resume), result);
+  assert.deepEqual(f.jobs.rows(f.id), rows);
+  await assert.rejects(f.jobs.execute({ ...resume, expected_sequence: 3 }), { code: 'CONTROL_IDEMPOTENCY_CONFLICT' });
+  await assert.rejects(f.jobs.execute({ ...resume, command_id: randomUUID(), expected_sequence: result.current_sequence }), {
+    code: 'JOB_DISPATCH_REQUIRED',
+  });
+});
+
+test('public resume continues the recorded preparation without another plan', async (t) => {
+  const f = await setup(t, { prepare: false });
+  await f.jobs.worker.execute({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: f.id,
+    expected_sequence: 1,
+    action: 'claim',
+    fence: 0,
+    lease_ms: 1000,
+  });
+  const resume = { schema_version: 1, command_id: randomUUID(), resource_id: f.id, expected_sequence: 2, action: 'resume', input: {} };
+  let interrupted = false;
+  const append = EngineeringTaskState.prototype.append;
+  EngineeringTaskState.prototype.append = function (value, expectedVersion) {
+    if (!interrupted && value.kind === 'created') {
+      interrupted = true;
+      throw Object.assign(new Error('interrupted'), { code: 'TEST_INTERRUPTED' });
+    }
+    return append.call(this, value, expectedVersion);
+  };
+  try {
+    await assert.rejects(f.jobs.execute(resume), { code: 'TEST_INTERRUPTED' });
+  } finally {
+    EngineeringTaskState.prototype.append = append;
+  }
+  assert.equal(f.jobs.query(f.id).materialization.phase, 'planned');
+  const result = await f.jobs.execute(resume);
+  assert.equal(result.status, 'succeeded');
+  assert.equal(f.jobs.rows(f.id).filter((row) => row.event_type === 'JobMaterializationRecorded').length, 2);
+});
+
+test('public resume takes over an interrupted internal preparation with the same immutable plan', async (t) => {
+  const f = await setup(t, { prepare: false });
+  await f.jobs.worker.execute({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: f.id,
+    expected_sequence: 1,
+    action: 'claim',
+    fence: 0,
+    lease_ms: 1000,
+  });
+  const append = EngineeringTaskState.prototype.append;
+  let interrupted = false;
+  EngineeringTaskState.prototype.append = function (value, expectedVersion) {
+    if (!interrupted && value.kind === 'created') {
+      interrupted = true;
+      throw Object.assign(new Error('interrupted'), { code: 'TEST_INTERRUPTED' });
+    }
+    return append.call(this, value, expectedVersion);
+  };
+  try {
+    await assert.rejects(
+      f.jobs.materializer.execute({
+        schema_version: 1,
+        command_id: randomUUID(),
+        resource_id: f.id,
+        expected_sequence: 2,
+        action: 'materialize',
+        fence: 1,
+      }),
+      { code: 'TEST_INTERRUPTED' },
+    );
+  } finally {
+    EngineeringTaskState.prototype.append = append;
+  }
+  const planned = f.jobs.query(f.id);
+  const resume = {
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: f.id,
+    expected_sequence: planned.current_sequence,
+    action: 'resume',
+    input: {},
+  };
+  const result = await f.jobs.execute(resume);
+  assert.equal(result.status, 'succeeded');
+  assert.deepEqual(result.materialization.plan, planned.materialization.plan);
+  assert.deepEqual(await f.jobs.execute(resume), result);
+});
 for (const workflow of [false, true])
   test(`durable ${workflow ? 'workflow' : 'task'} dispatch settles only independent acceptance`, async (t) => {
     const f = await setup(t, { workflow });
