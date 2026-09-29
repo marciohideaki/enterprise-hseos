@@ -191,21 +191,24 @@ class LocalSubagentProvider {
   async #settle(input, cancelReason = null) {
     this.#assertChildren(input.parent_session_id, input.child_session_ids);
     const settleIds = cancelReason ? this.#cancellationOrder(input.child_session_ids) : input.child_session_ids;
+    const cancelChild = async (childId) => {
+      if (this.#resolveChild(childId)) return;
+      const cancelInput = {
+        schema_version: CONTRACT_SCHEMA_VERSION,
+        command: 'cancel',
+        session_id: childId,
+        reason: cancelReason,
+        cascade: true,
+      };
+      try {
+        const result = await this.#runtime.cancel(cancelInput);
+        validatePortResult('AgentRuntime', 'cancel', result, cancelInput);
+      } catch (error) {
+        if (error?.code !== 'AGENT_SESSION_ALREADY_TERMINAL' || !this.#resolveChild(childId)) throw error;
+      }
+    };
     if (cancelReason) {
-      await Promise.all(
-        settleIds.map(async (childId) => {
-          if (this.#resolveChild(childId)) return;
-          const cancelInput = {
-            schema_version: CONTRACT_SCHEMA_VERSION,
-            command: 'cancel',
-            session_id: childId,
-            reason: cancelReason,
-            cascade: true,
-          };
-          const result = await this.#runtime.cancel(cancelInput);
-          validatePortResult('AgentRuntime', 'cancel', result, cancelInput);
-        }),
-      );
+      await Promise.all(settleIds.map(cancelChild));
     }
     const tasks = settleIds.map((childId) => this.#active.get(childId)).filter(Boolean);
     const wait = Promise.allSettled(tasks);
@@ -220,6 +223,7 @@ class LocalSubagentProvider {
     if (timer) clearTimeout(timer);
     if (timedOut && !cancelReason) return this.#settle({ ...input, timeout_ms: 5000 }, 'subagent join deadline exceeded');
     const taskOutcomes = await wait;
+    if (cancelReason) await Promise.all(settleIds.map(cancelChild));
     const settledTree = settleIds.map((childId) => this.#resolveChild(childId));
     if (settledTree.includes(null)) {
       throw new SubagentProviderError('child did not reach a terminal state', 'SUBAGENT_ORPHAN_CHILD');

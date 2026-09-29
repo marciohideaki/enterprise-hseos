@@ -502,7 +502,7 @@ test('one root cancellation settles an active tool, workflow, model work, and ev
           steps: [
             {
               step_id: 'step:audit-child',
-              child_spec: cancellationSessionSpec('session:cancel-child', rootSpec.session_id, { max_children: 1, max_workflow_steps: 0 }),
+              child_spec: cancellationSessionSpec('session:cancel-child', rootSpec.session_id, { max_children: 1, max_workflow_steps: 1 }),
               turn_id: 'turn:audit-child',
               message: { role: 'user', content: 'wait as workflow child' },
             },
@@ -512,17 +512,36 @@ test('one root cancellation settles an active tool, workflow, model work, and ev
     },
   });
   await waitFor(() => fixture.store.readSession('session:cancel-child').some((event) => event.event_type === 'model.request.started'));
-  const childSequence = fixture.store.replay('session:cancel-child').current_sequence;
-  await fixture.subagents.spawn({
+  const nestedRun = fixture.supervisor.runWorkflow('workflow:audit-cancellation', {
     schema_version: 1,
-    provider_id: 'subagent:audit-cancellation',
-    request_id: 'request:audit-grandchild-spawn',
+    engine_id: 'workflow:audit-cancellation',
+    request_id: 'request:audit-nested-workflow-run',
     parent_session_id: 'session:cancel-child',
-    parent_sequence: childSequence,
-    child_spec: cancellationSessionSpec('session:cancel-grandchild', 'session:cancel-child', { max_children: 0, max_workflow_steps: 0 }),
-    turn_id: 'turn:audit-grandchild',
-    message: { role: 'user', content: 'wait as model-active descendant' },
     occurred_at: new Date().toISOString(),
+    workflow: {
+      schema_version: 1,
+      workflow_id: 'workflow:audit-nested-tree',
+      subagent_provider_id: 'subagent:audit-cancellation',
+      max_parallelism: 1,
+      join_timeout_ms: 20_000,
+      phases: [
+        {
+          phase_id: 'phase:audit-nested-cancel',
+          mode: 'pipeline',
+          steps: [
+            {
+              step_id: 'step:audit-grandchild',
+              child_spec: cancellationSessionSpec('session:cancel-grandchild', 'session:cancel-child', {
+                max_children: 0,
+                max_workflow_steps: 0,
+              }),
+              turn_id: 'turn:audit-grandchild',
+              message: { role: 'user', content: 'wait as model-active descendant' },
+            },
+          ],
+        },
+      ],
+    },
   });
   await waitFor(() => fixture.store.readSession('session:cancel-grandchild').some((event) => event.event_type === 'model.request.started'));
   const rootRun = fixture.supervisor.send({
@@ -542,16 +561,22 @@ test('one root cancellation settles an active tool, workflow, model work, and ev
     deadline_ms: 3000,
   });
   const elapsedMs = performance.now() - startedAt;
-  const [rootResult, workflowResult] = await Promise.all([rootRun, workflowRun]);
+  const [rootResult, workflowResult, nestedResult] = await Promise.all([rootRun, workflowRun, nestedRun]);
   assert.equal(cancelled.status, 'cancelled');
-  assert.equal(rootResult.terminal, true);
+  assert.equal(cancelled.cancellation.terminal, true);
+  assert.equal(rootResult.accepted, true);
   assert.equal(workflowResult.status, 'cancelled');
+  assert.equal(nestedResult.status, 'cancelled');
+  assert.deepEqual(cancelled.workflow_ids, ['workflow:audit-nested-tree', 'workflow:audit-root-tree']);
   assert.ok(elapsedMs < 3000, `root cancellation took ${elapsedMs.toFixed(2)}ms`);
   assert.deepEqual(cancelled.descendant_session_ids, ['session:cancel-child', 'session:cancel-grandchild']);
   for (const sessionId of [rootSpec.session_id, ...cancelled.descendant_session_ids]) {
     assert.equal(fixture.store.replay(sessionId).terminal_event.event_type, 'session.cancelled');
   }
   const rootEvents = fixture.store.readSession(rootSpec.session_id);
+  const releasedAt = rootEvents.findIndex((event) => event.event_type === 'workflow.released');
+  const terminalAt = rootEvents.findIndex((event) => event.event_type === 'session.cancelled');
+  assert.ok(releasedAt !== -1 && releasedAt < terminalAt);
   assert.equal(
     rootEvents.some((event) => event.event_type === 'tool.execution.completed'),
     true,

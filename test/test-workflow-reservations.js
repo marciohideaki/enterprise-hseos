@@ -191,8 +191,18 @@ function completedProvider(store, { onJoin = () => {} } = {}) {
           evidence_refs: [],
         };
       },
-      cancel() {
-        throw new Error('all fixture children are already terminal');
+      cancel(input) {
+        const children = input.child_session_ids.map((id) => outcomes.get(id));
+        assert.ok(children.every(Boolean));
+        return {
+          schema_version: 1,
+          provider_id: input.provider_id,
+          request_id: input.request_id,
+          parent_session_id: input.parent_session_id,
+          all_terminal: true,
+          children,
+          evidence_refs: [],
+        };
       },
       dispose() {
         throw new Error('unexpected fixture disposal');
@@ -201,6 +211,17 @@ function completedProvider(store, { onJoin = () => {} } = {}) {
     resolve: (_sessionStore, id) => outcomes.get(id) || null,
   };
 }
+
+test('session terminals are rejected while a workflow reservation is active', () => {
+  const pending = baseEvents();
+  reject(
+    [...pending, event('session.failed', { error_code: 'internal_error', message: 'failed', retryable: false }, 3)],
+    'AGENT_SESSION_WORKFLOW_ACTIVE',
+  );
+  reject([...pending, event('session.completed', { outcome_ref: 'outcome://premature' }, 3)], 'AGENT_SESSION_WORKFLOW_ACTIVE');
+  const cancellation = event('session.cancellation.requested', { reason: 'stop', cascade: true, source: 'user' }, 3);
+  reject([...pending, cancellation, event('session.cancelled', { reason: 'stop', cascade: true }, 4)], 'AGENT_SESSION_WORKFLOW_ACTIVE');
+});
 
 test('revision keeps the v1 stream and original claim while pinning a new definition', () => {
   const first = definition();
@@ -243,6 +264,19 @@ test('revision rejects stale claim, forged history, retroactive edits, cancellat
   );
   reject(
     [...base, event('session.failed', { error_code: 'internal_error', message: 'failed', retryable: false }, 3), revision(first, next, 4)],
+    'AGENT_SESSION_WORKFLOW_ACTIVE',
+  );
+  reject(
+    [
+      ...base,
+      event(
+        'workflow.released',
+        { workflow_id: first.workflow_id, definition_digest: digest(first), claim_ref: claim, status: 'failed' },
+        3,
+      ),
+      event('session.failed', { error_code: 'internal_error', message: 'failed', retryable: false }, 4),
+      revision(first, next, 5),
+    ],
     'AGENT_SESSION_ALREADY_TERMINAL',
   );
   assert.equal(SessionEventSchema.safeParse(revision(first, next, 3, { unexpected: true })).success, false);

@@ -292,6 +292,9 @@ class WorkflowEngine {
   }
 
   #assertClaim(input, workflow, claimRef) {
+    if (this.#active.get(workflow.workflow_id)?.cancelled) {
+      throw new WorkflowEngineError('workflow cancellation blocks new dispatch', 'WORKFLOW_CANCELLED');
+    }
     const parent = this.#store.replay(input.parent_session_id);
     const reservation = parent.workflow_reservations[workflow.workflow_id];
     if (!reservation || reservation.claim_id !== input.request_id || reservation.claim_ref !== claimRef) {
@@ -372,7 +375,7 @@ class WorkflowEngine {
     if (!active.teardown) {
       active.teardown = (async () => {
         await Promise.allSettled(active.pending);
-        const childIds = [...active.children].filter((childId) => !this.#resolveChild(childId));
+        const childIds = this.#knownChildren(input, workflow, active);
         if (childIds.length === 0) return [];
         const cancelInput = {
           schema_version: CONTRACT_SCHEMA_VERSION,
@@ -383,10 +386,27 @@ class WorkflowEngine {
           reason,
         };
         const result = await this.#provider.cancel(cancelInput);
-        return validatePortResult('SubagentProvider', 'cancel', result, cancelInput).children;
+        const children = validatePortResult('SubagentProvider', 'cancel', result, cancelInput).children;
+        const orphan = this.#unsettledChildren(input, workflow, active)[0];
+        if (orphan)
+          throw new WorkflowEngineError('workflow teardown left an orphan child', 'WORKFLOW_ORPHAN_CHILD', {
+            child_session_id: orphan,
+          });
+        return children;
       })();
     }
     return active.teardown;
+  }
+
+  #unsettledChildren(input, workflow, active) {
+    return this.#knownChildren(input, workflow, active).filter((id) => !this.#resolveChild(id));
+  }
+
+  #knownChildren(input, workflow, active) {
+    const parent = this.#store.replay(input.parent_session_id);
+    const reserved = new Set(parent.workflow_reservations[workflow.workflow_id]?.child_session_ids || []);
+    const children = new Set([...active.children, ...parent.children.filter((id) => reserved.has(id))]);
+    return [...children];
   }
 
   async #execute(input) {
@@ -523,7 +543,7 @@ class WorkflowEngine {
         Boolean(this.#store.replay(input.parent_session_id).cancellation_request);
       const cancelled = await this.#cancelChildren(input, workflow, active, active.reason || 'workflow teardown after failure');
       children.push(...cancelled);
-      const orphan = [...active.children].find((childId) => !this.#resolveChild(childId));
+      const orphan = this.#unsettledChildren(input, workflow, active)[0];
       if (orphan)
         throw new WorkflowEngineError('workflow teardown left an orphan child', 'WORKFLOW_ORPHAN_CHILD', { child_session_id: orphan });
       if (error?.code === 'WORKFLOW_DEFINITION_CONFLICT') throw error;
@@ -582,14 +602,8 @@ class WorkflowEngine {
     }
     active.cancelled = true;
     active.reason = input.reason;
-    let released;
-    try {
-      released = this.#release(active.input, active.workflow, 'cancelled', active.claimRef);
-    } catch (error) {
-      await this.#cancelChildren(active.input, active.workflow, active, input.reason);
-      throw error;
-    }
     const children = await this.#cancelChildren(active.input, active.workflow, active, input.reason);
+    const released = this.#release(active.input, active.workflow, 'cancelled', active.claimRef);
     return validatePortResult(
       'WorkflowEngine',
       'cancel',

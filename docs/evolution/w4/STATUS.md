@@ -347,3 +347,35 @@ Node 22 com zero avisos e Node 24 com um aviso preexistente de placeholders.
 Pacote permanece com 1.457 entradas. O encerramento `uncertain` de trabalho
 antigo em uma corrida e a drenagem transitiva continuam pendentes para W4-04b.
 Hook de commit e integração à feature seguem pendentes neste registro.
+
+### W4-04a2c integrada; W4-04b1 em implementação
+
+W4-04a2c: commit `4af7c4c0`, integração `3cb3c2ec`; hook Node 24 passou com
+zero falhas e zero avisos. A W4-04b foi dividida em duas unidades isoladas.
+W4-04b1 drena filhos anexados sem recibo de spawn, bloqueia checkpoints após
+cancelamento e fecha tools, extensões e conexão de modelo antes do join/release.
+Três testes negativos novos passaram; suíte dirigida de 72 testes em Node 24
+delegado passou antes do último teste negativo. Cobertura, revisão cética,
+gates e hook desta unidade ainda pendentes. Drift de baseline e tentativa nova
+vinculada à árvore terminal continuam para W4-04b2.
+
+### W4-04b1 — drenagem transitiva em validação
+
+O cancelamento percorre descendentes do mais profundo ao ancestral e interrompe
+a sessão raiz enquanto drena as reservas. O reducer impede evento terminal da
+sessão com reserva ativa; após o release, o supervisor confirma o terminal no
+prazo original. O engine inclui filhos anexados sem recibo de spawn e mantém a
+reserva ativa se o drain falhar. Tools, extensões e conexão de modelo fecham
+antes do resultado do filho. Testes dirigidos cobrem perda do recibo, falha de
+drenagem, corrida com conclusão do modelo e retomada explícita após release.
+A revisão cética isolada não encontrou bloqueio após as correções. Gates
+integrais Node 22/24, hook e integração à feature ainda pendentes; W4-04b2
+continua responsável por drift e nova tentativa vinculada.
+
+Node 22 e Node 24: cobertura integral e gates governados passaram com zero
+falhas/skips; 18/18 mutantes rejeitados em cada versão. Os seis arquivos
+críticos alterados excedem 90% de linhas e 80% de branches nas duas versões.
+O pacote continua em 1.457 entradas, dentro do limite autorizado. O recibo
+detalhado está em `evidence/workflow-drain/verification-receipt.json`.
+A validação governada da worktree passou. Commit, hook e integração à feature
+ainda pendentes neste registro.

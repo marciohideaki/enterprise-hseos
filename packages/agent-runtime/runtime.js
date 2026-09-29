@@ -369,7 +369,7 @@ class AgentRuntime {
       }
     }
     state = this.#store.replay(state.session_id);
-    let uncertainTool = false;
+    let uncertainTool = Object.values(state.tool_invocations).some((execution) => execution.outcome?.status === 'uncertain');
     for (const execution of Object.values(state.tool_invocations)) {
       if (execution.outcome) continue;
       uncertainTool = true;
@@ -404,46 +404,59 @@ class AgentRuntime {
       );
     }
     state = this.#store.replay(state.session_id);
+    if (Object.values(state.workflow_reservations).some((reservation) => !reservation.released)) return state;
     if (uncertainTool) {
-      this.#append(
-        state.session_id,
+      return this.#terminalize(
+        state,
         'session.failed',
         { error_code: 'tool_failed', message: 'interrupted governed tool outcome is in doubt', retryable: false },
         ['cancel-tool-uncertain'],
         active,
       );
-      return this.#store.replay(state.session_id);
     }
     if (cancellation.source === 'deadline') {
-      this.#append(
-        state.session_id,
+      return this.#terminalize(
+        state,
         'session.failed',
         { error_code: 'timeout', message: cancellation.reason, retryable: false },
         ['deadline-terminal'],
         active,
       );
     } else {
-      this.#append(
-        state.session_id,
+      return this.#terminalize(
+        state,
         'session.cancelled',
         { reason: cancellation.reason, cascade: cancellation.cascade },
         ['cancel-terminal'],
         active,
       );
     }
+  }
+
+  #terminalize(state, type, payload, identity, active) {
+    state = this.#store.replay(state.session_id);
+    if (state.terminal_event) return state;
+    if (Object.values(state.workflow_reservations).some((reservation) => !reservation.released)) return state;
+    try {
+      this.#append(state.session_id, type, payload, identity, active);
+    } catch (error) {
+      if (!['AGENT_SESSION_WORKFLOW_ACTIVE', 'AGENT_SESSION_ALREADY_TERMINAL'].includes(error?.code)) throw error;
+    }
     return this.#store.replay(state.session_id);
   }
 
   #fail(state, failure, active, identity = 'failure') {
+    state = this.#store.replay(state.session_id);
     if (state.terminal_event) return state;
-    this.#append(state.session_id, 'session.failed', normalizedFailure(failure), [identity], active);
-    return this.#store.replay(state.session_id);
+    if (state.cancellation_request) return this.#settleCancellation(state, active);
+    return this.#terminalize(state, 'session.failed', normalizedFailure(failure), [identity], active);
   }
 
   #complete(state, outcomeRef, active) {
+    state = this.#store.replay(state.session_id);
     if (state.terminal_event) return state;
-    this.#append(state.session_id, 'session.completed', { outcome_ref: outcomeRef }, ['completed'], active);
-    return this.#store.replay(state.session_id);
+    if (state.cancellation_request) return this.#settleCancellation(state, active);
+    return this.#terminalize(state, 'session.completed', { outcome_ref: outcomeRef }, ['completed'], active);
   }
 
   #assemble(state, turn, active) {
@@ -1095,7 +1108,13 @@ class AgentRuntime {
       return this.#operationResult('cancel', input, true, false, event ? [event.event_id] : []);
     }
     state = this.#settleCancellation(this.#store.replay(input.session_id), null);
-    return this.#operationResult('cancel', input, true, true, [event.event_id, state.terminal_event.event_id]);
+    return this.#operationResult(
+      'cancel',
+      input,
+      true,
+      Boolean(state.terminal_event),
+      [event?.event_id, state.terminal_event?.event_id].filter(Boolean),
+    );
   }
 
   async dispose(value) {
@@ -1113,7 +1132,13 @@ class AgentRuntime {
       return this.#operationResult('dispose', input, true, false, event ? [event.event_id] : []);
     }
     state = this.#settleCancellation(this.#store.replay(input.session_id), null);
-    return this.#operationResult('dispose', input, true, true, [event.event_id, state.terminal_event.event_id]);
+    return this.#operationResult(
+      'dispose',
+      input,
+      true,
+      Boolean(state.terminal_event),
+      [event?.event_id, state.terminal_event?.event_id].filter(Boolean),
+    );
   }
 
   snapshot() {

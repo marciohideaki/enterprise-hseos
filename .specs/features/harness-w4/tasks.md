@@ -273,6 +273,16 @@ W4-04a2b integra revisões no engine. W4-04a2c integra admissão running e mater
 
 ## W4-04b — Aplicar joins, invalidação e drain transitivo
 
+Subdivisão de execução:
+
+- W4-04b1 (task hseos-w4-workflow-drain): drenagem de filhos duravelmente
+  anexados, mesmo sem recibo de spawn; cancelamento bloqueia novos checkpoints e
+  só publica release depois de filhos, extensões, tools e conexão de modelo
+  drenados. Contrato em [workflow-drain-implementation.md](workflow-drain-implementation.md).
+- W4-04b2: invalidação de dependentes por drift de baseline, tentativa nova
+  explícita e vinculada à árvore terminal, sem renovação do orçamento original.
+  W4-04b só fecha após as duas unidades e a verificação conjunta.
+
 - execution_mode: isolated
 - scope: Medium
 - dependencies: W4-04a
