@@ -26,6 +26,12 @@ jobs:
           node-version: "22.x"
           cache: npm
 
+      - name: Bind the selected Node runtime for isolated executor commands
+        run: |
+          selected_node="$(command -v node)"
+          sudo install -m 0755 "$selected_node" /usr/bin/node
+          test "$(sha256sum "$selected_node" | cut -d ' ' -f 1)" = "$(sha256sum /usr/bin/node | cut -d ' ' -f 1)"
+
       - name: Assert no host agent state mounted
         run: |
           set -e
@@ -80,4 +86,10 @@ jobs:
           grep -q "vault_required: false" .agents/skills/second-brain/QUICK.md
 
       - name: Full test suite
-        run: npm test
+        run: |
+          sudo systemd-run --wait --collect --pipe --service-type=exec \
+            --uid="$(id -u)" --gid="$(id -g)" \
+            --property=Delegate=yes --property=DelegateSubgroup=tests \
+            --working-directory="$PWD" \
+            --setenv="PATH=$PATH" --setenv="HOME=$HOME" --setenv=CI=true \
+            bash -c 'node .github/scripts/enable-test-cgroup.mjs && npm test'

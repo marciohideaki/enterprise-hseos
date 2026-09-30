@@ -60,3 +60,27 @@ fragments:
       mode: delegated
       command: node scripts/validate-platform-event-envelope.mjs
       workflow_path: .github/workflows/validate-platform-capability.yml
+  - id: fragment.talent-forge-platform
+    repository: repo.talent-forge-platform
+    path: .platform/capability-graph.fragment.json
+    revision: 9cbd06aef60763ab4535e69587f8ae7a3874e707
+    enforcement: enforced
+    source:
+      kind: git
+      uri: https://github.com/Talent-Forge/talent-forge-platform.git
+    validation:
+      mode: delegated
+      command: python3 scripts/validate-fragment.py
+      workflow_path: .github/workflows/validate.yml
+  - id: fragment.talent-forge-web
+    repository: repo.talent-forge-web
+    path: .platform/capability-graph.fragment.json
+    revision: e3c55fc66e2428bf103eb1035a30efa9902a067c
+    enforcement: enforced
+    source:
+      kind: git
+      uri: https://github.com/Talent-Forge/talent-forge-web.git
+    validation:
+      mode: delegated
+      command: python3 scripts/validate-fragment.py
+      workflow_path: .github/workflows/validate.yml
