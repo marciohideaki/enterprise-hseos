@@ -11,8 +11,9 @@
  * this emitter a fresh install leaves Claude Code with no root entrypoint
  * pointing at AGENTS.md. This mirrors the AGENTS.md adapter.
  *
- * The emitted file opens with the `@AGENTS.md` import, which ADR-0008 §4 makes
- * mandatory: without it the runtime ignores AGENTS.md entirely.
+ * The emitted file opens with the `@AGENTS.md` import. ADR-0006 makes AGENTS.md the
+ * canonical entrypoint and CLAUDE.md a compatibility pointer; the import is how Claude
+ * Code honours that pointer, since without it the runtime ignores AGENTS.md entirely.
  *
  * Behaviour:
  *   - Only emits when the `claude-code` platform is active (CLAUDE.md is a
@@ -33,7 +34,7 @@ function buildClaudeMdContent() {
   // runtime loads it and ignores AGENTS.md by default — prose asking the agent to
   // "read AGENTS.md" does not substitute for the import, because the agent never
   // sees the instruction it is being asked to obey. Emitting the prose-only form
-  // reproduced the exact defect that ADR-0008 §4 was written to correct, in every
+  // broke the ADR-0006 contract (CLAUDE.md as a pointer to AGENTS.md) in every
   // repository scaffolded by `hseos install`.
   return `@AGENTS.md
 

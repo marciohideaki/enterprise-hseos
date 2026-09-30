@@ -95,8 +95,8 @@ function check(label, fn) {
 
     check('compile emits the root entrypoint pointer', () => assert.ok(fs.existsSync(claudeMdPath)));
     const claudeMd = await fs.readFile(claudeMdPath, 'utf8');
-    // The import is what routes; prose is not. ADR-0008 §4: with a CLAUDE.md
-    // present the runtime ignores AGENTS.md, so a file that only *mentions*
+    // The import is what routes; prose is not. ADR-0006 (CLAUDE.md is a pointer
+    // to AGENTS.md): with a CLAUDE.md present the runtime ignores AGENTS.md, so a file that only *mentions*
     // AGENTS.md routes nothing.
     check('the pointer imports AGENTS.md on the first line', () => assert.ok(claudeMd.startsWith('@AGENTS.md\n'), claudeMd.slice(0, 40)));
 
