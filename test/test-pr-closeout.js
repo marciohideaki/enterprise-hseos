@@ -11,9 +11,11 @@ function passingPr(overrides = {}) {
     mergeable: 'MERGEABLE',
     headRefName: 'feature/example',
     statusCheckRollup: [
-      { name: 'test (20.x)', status: 'COMPLETED', conclusion: 'SUCCESS' },
       { name: 'test (22.x)', status: 'COMPLETED', conclusion: 'SUCCESS' },
-      { name: 'Standalone clean-env smoke (node:20)', status: 'COMPLETED', conclusion: 'SUCCESS' },
+      { name: 'test (24.x)', status: 'COMPLETED', conclusion: 'SUCCESS' },
+      { name: 'Standalone clean-env smoke (node:22)', status: 'COMPLETED', conclusion: 'SUCCESS' },
+      { name: 'compose', status: 'COMPLETED', conclusion: 'SUCCESS' },
+      { name: 'governance', status: 'COMPLETED', conclusion: 'SUCCESS' },
     ],
     ...overrides,
   };
