@@ -1,13 +1,9 @@
 name: capability-graph-composition
 
 on:
+  # No `paths` filter: `compose` is a required status check on master, and a path-filtered
+  # workflow never reports on PRs that miss the paths, leaving them BLOCKED forever.
   pull_request:
-    paths:
-      - ".enterprise/governance/capabilities/**"
-      - ".enterprise/policies/capability-graph.md"
-      - "scripts/governance/validate-capability-graph.js"
-      - "test/test-capability-graph-governance.js"
-      - ".github/workflows/capability-graph-composition.yaml"
   workflow_dispatch: {}
 
 permissions:
