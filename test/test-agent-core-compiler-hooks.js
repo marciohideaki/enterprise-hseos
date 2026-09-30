@@ -214,7 +214,7 @@ async function testAgentCoreCompileEmitsClaudeMdPointer() {
 
     const claudeMd = fs.existsSync(claudeMdPath) ? fs.readFileSync(claudeMdPath, 'utf8') : '';
     assertPass(
-      // ADR-0008 §4: the import is the contract, not the prose. With a CLAUDE.md
+      // ADR-0006: the import is how the pointer is honoured, not the prose. With a CLAUDE.md
       // present the runtime ignores AGENTS.md by default, so a file that merely
       // *asks* the agent to read AGENTS.md routes nothing — the agent never sees
       // the request. Asserting the prose is what let the defect ship.
