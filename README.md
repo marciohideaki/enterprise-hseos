@@ -229,6 +229,7 @@ is always included and cannot be deselected; components with external prerequisi
 sandbox, telemetry, axon-bridge, second-brain) are optional and degrade gracefully when unmet.
 
 ```bash
+hseos init                             # interactive project setup with plan review
 hseos install-plan --list-profiles     # discover profiles
 hseos install-plan --profile gitops    # dry-run: components, skills, paths, prerequisites
 hseos install --profile developer      # install a profile

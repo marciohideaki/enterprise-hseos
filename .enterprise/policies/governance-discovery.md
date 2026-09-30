@@ -3,6 +3,16 @@
 Scope: agents consuming HSEOS, including globally installed runtimes.
 Authority: Constitution §2.3/§2.5, specification-consumption and automated-validation policies.
 
+When entering a new repository or a project whose HSEOS adoption is not verified,
+ask once whether the user wants HSEOS for that project. Offer `hseos init` to
+review profiles and the install plan before installation. Do not infer adoption
+from global CLI/MCP availability or from the absence of project files, and do not
+run `hseos install` solely because the repository is new. In environments whose
+global contract requires lightweight local adapters, follow that contract instead
+of duplicating the runtime into the consumer repository. If the user has already
+chosen to adopt or decline HSEOS for that project, honor that decision without
+asking again.
+
 Before the first task, after context loss or project changes, and before concluding
 that a convention, practice, package or capability is missing:
 
@@ -52,6 +62,7 @@ consumer and corpus fingerprint. No prompts or transcripts are stored.
 
 <!-- injection-capsule:start -->
 Global governance applies even without local AGENTS.md. Before decisions or absence claims, read G/.enterprise/policies/governance-discovery.md; resolve applicable rules via G/.enterprise/.specs/core/_INDEX.md and constitution/Enterprise-Constitution.md under .specs.
+On a new repository, ask once whether the user wants HSEOS; offer `hseos init` to review the plan before installation. Global availability alone does not mean project adoption.
 Reuse core packages/contracts before creating local equivalents. Inspect AEW activation separately. Unchecked application/enforcement is NOT VERIFIED, never absent. Negative findings need searched scope and source evidence.
 Load only applicable documents; preserve their references in handoffs. This capsule proves neither comprehension nor enforcement. If context was lost without lifecycle invalidation, run governance-context explicitly before proceeding.
 <!-- injection-capsule:end -->

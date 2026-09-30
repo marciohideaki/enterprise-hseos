@@ -527,6 +527,19 @@
       "source_sha256": "5b9f730a768da8d82a116c066ef64a35ca3af1490124e9bce6629607ace04059"
     },
     {
+      "filename": "init.js",
+      "command": "init",
+      "description": "Guide a new project through HSEOS profile selection, plan review, and installation",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory (default: current directory)"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "912f85e812e9970770d61227f2ae0628987d1dcb8406b0280ac70efe58d05925"
+    },
+    {
       "filename": "install-plan.js",
       "command": "install-plan",
       "description": "Inspect capability profiles, components, skills, adapters, and resolved install intent",

@@ -1,5 +1,13 @@
 # HSEOS CLI Tool
 
+## Guided project setup
+
+Run `hseos init` inside a project to choose a capability profile, review its
+components and prerequisites, and confirm before the interactive installer
+configures the project. Use `hseos init --directory <path>` for another existing
+directory. The command requires a terminal; automation should use `install-plan`
+followed by `install`.
+
 ## Capability install planning
 
 Use `hseos install-plan` to inspect the capability surface before writing files.

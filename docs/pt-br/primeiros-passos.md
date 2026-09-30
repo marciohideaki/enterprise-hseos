@@ -27,6 +27,14 @@ como NVM, fnm, asdf e Volta, devem ser atualizadas sem `sudo`.
 Depois, a partir da raiz do seu projeto:
 
 ```bash
+hseos init  # assistente interativo: perfil, plano e instalação
+```
+
+O assistente mostra os perfis, resume componentes e pré-requisitos, pede
+confirmação antes de gravar arquivos e então conduz as opções do instalador.
+Para ver o plano completo ou automatizar a instalação, use:
+
+```bash
 hseos install-plan --profile developer --tools claude-code,codex  # consulta, sem escrita
 hseos install --profile developer --tools claude-code,codex
 ```
