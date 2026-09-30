@@ -11,6 +11,8 @@ const { PENDING_MIGRATIONS_DIR } = require('./execution-ledger-schema');
 const DEFAULT_STATE_DB = path.join(process.cwd(), '.hseos', 'state', 'project.db');
 const MIGRATIONS_DIRECTORY = path.join(__dirname, '..', 'migrations');
 const OPERATIONAL_SCHEMA_VERSION = 4;
+const JOURNAL_MODE_RETRY_MS = 5000;
+const JOURNAL_MODE_RETRY_WAIT = new Int32Array(new SharedArrayBuffer(4));
 const PENDING_TABLES = Object.freeze([
   'execution_approval_uses',
   'execution_approvals',
@@ -54,6 +56,20 @@ function assertPendingFixturePath(databasePath) {
   return resolvedPath;
 }
 
+function enableWalJournalMode(db) {
+  const deadline = Date.now() + JOURNAL_MODE_RETRY_MS;
+  for (;;) {
+    try {
+      db.pragma('journal_mode = WAL');
+      return;
+    } catch (error) {
+      if (error.code !== 'SQLITE_BUSY' || Date.now() >= deadline) throw error;
+      // SQLite does not always honor busy_timeout while another process changes journal mode.
+      Atomics.wait(JOURNAL_MODE_RETRY_WAIT, 0, 0, 25);
+    }
+  }
+}
+
 function openOperationalStateDatabase(
   databasePath = process.env.HSEOS_STATE_DB || DEFAULT_STATE_DB,
   { activatePendingFixture = false, log = () => {} } = {},
@@ -64,7 +80,7 @@ function openOperationalStateDatabase(
   try {
     db.pragma('busy_timeout = 5000');
     if (!activatePendingFixture) assertOperationalSchemaBoundary(db);
-    db.pragma('journal_mode = WAL');
+    enableWalJournalMode(db);
     db.pragma('foreign_keys = ON');
     db.exec(`
     CREATE TABLE IF NOT EXISTS state (
