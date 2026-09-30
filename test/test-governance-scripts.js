@@ -92,9 +92,10 @@ gate_code
       assert.strictEqual(request.method, 'PUT');
       assert.strictEqual(request.endpoint, 'repos/marciohideaki/enterprise-hseos/branches/master/protection');
       assert.deepStrictEqual(request.body.required_status_checks.contexts, [
-        'test (20.x)',
         'test (22.x)',
-        'Standalone clean-env smoke (node:20)',
+        'test (24.x)',
+        'Standalone clean-env smoke (node:22)',
+        'compose',
         'governance',
       ]);
       assert.strictEqual(request.body.allow_force_pushes, false);
