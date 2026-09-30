@@ -1,0 +1,92 @@
+{
+  "artifact_type": "w4-02b-focused-validation",
+  "recorded_at": "2026-09-27T17:02:21.940736+00:00",
+  "base_revision": "d87d964d12f63342c9e244b59141f644cd0426e3",
+  "source_sha256": {
+    "tools/cli/lib/execution-plugin-runtime.js": "bea34498a09b51f0f426ce2693a67149b4a5a15f7d553afe6b4f235289f62733",
+    "test/test-execution-plugin-runtime.js": "0c0e4497d4491feabe11ea914cf3cd262f08caa04528417179a082fdb3103311",
+    "package.json": "3542d516a6e41cad7f9a755057de51c3d7e9531c353433475c2cde67c09d8e7d",
+    ".c8-kernel.json": "06d2894835e04f2e9b47537acf4cb68eaa7262cf12af0e8e1305c43a35ef9b58"
+  },
+  "raw_log_sha256": {
+    "plugin-isolation-node24.log": "247a3f17b893e9189a762eedac399b2360f0b16923e72d7e90b42442d32316ae",
+    "plugin-isolation-node24-r2.log": "3fe93c1638fb19ca6758eb835330030b773ace45938f3808f5140537d580a64c",
+    "plugin-isolation-final-node24.log": "cd00403237aba5bf51b2e80789e68a987f25f913a9b8db3ddc388e0d7e07f05e",
+    "plugin-isolation-node22.log": "cbda305722d3d29dc1cfb7f4b51a4439ce46594ad8ea1f4ad0f573b204b4bbed",
+    "plugin-isolation-lint-r2.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "results": {
+    "node22": {
+      "pass": 13,
+      "fail": 0,
+      "skip": 0
+    },
+    "node24": {
+      "pass": 13,
+      "fail": 0,
+      "skip": 0
+    },
+    "coverage": {
+      "total": {
+        "lines": {
+          "total": 198,
+          "covered": 196,
+          "skipped": 0,
+          "pct": 98.98
+        },
+        "statements": {
+          "total": 198,
+          "covered": 196,
+          "skipped": 0,
+          "pct": 98.98
+        },
+        "functions": {
+          "total": 6,
+          "covered": 6,
+          "skipped": 0,
+          "pct": 100
+        },
+        "branches": {
+          "total": 58,
+          "covered": 53,
+          "skipped": 0,
+          "pct": 91.37
+        },
+        "branchesTrue": {
+          "total": 0,
+          "covered": 0,
+          "skipped": 0,
+          "pct": "Unknown"
+        }
+      },
+      "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js": {
+        "lines": {
+          "total": 198,
+          "covered": 196,
+          "skipped": 0,
+          "pct": 98.98
+        },
+        "functions": {
+          "total": 6,
+          "covered": 6,
+          "skipped": 0,
+          "pct": 100
+        },
+        "statements": {
+          "total": 198,
+          "covered": 196,
+          "skipped": 0,
+          "pct": 98.98
+        },
+        "branches": {
+          "total": 58,
+          "covered": 53,
+          "skipped": 0,
+          "pct": 91.37
+        }
+      }
+    }
+  },
+  "scope": "isolated execution and plugin-supplied diagnostics; not provider integration or full W4 certification",
+  "full_gate": "pending"
+}

@@ -1,0 +1,18 @@
+✔ retired IDE compatibility has zero internal callers while gated runtime compatibility remains visible (70.13721ms)
+✔ caller scan detects aliases, double-quoted state methods, and runtime callers under src (1.618162ms)
+✔ migration dry-run upgrades only a temporary copy and preserves every legacy table (16.802622ms)
+✔ read-only telemetry evidence can become ready but never bypasses active callers or human authorization (345.118335ms)
+✔ downstream release evidence is strict, scope-bound, integrity-checked, and never authorizes cutover (14.364982ms)
+✔ descriptor-bound evidence read rejects a pathname swapped during artifact verification (2.8195ms)
+✔ audit rejects a structurally valid but fabricated bundle before the human gate (313.795814ms)
+✔ sparse daily telemetry cannot produce a false green (15.034949ms)
+✔ invalid hour labels and direct usage rows cannot forge zero-use readiness (482.155952ms)
+✔ dry-run rejects links and live SQLite sidecars before opening operational state (6.028719ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1356.10255

@@ -1,0 +1,130 @@
+TAP version 13
+# Subtest: session and governed-operation aggregates share relational global ordering without sharing authority
+ok 1 - session and governed-operation aggregates share relational global ordering without sharing authority
+  ---
+  duration_ms: 28.859863
+  type: 'test'
+  ...
+# Subtest: append and replay enforce one contiguous immutable session lifecycle
+ok 2 - append and replay enforce one contiguous immutable session lifecycle
+  ---
+  duration_ms: 26.954115
+  type: 'test'
+  ...
+# Subtest: model request reconstruction is canonical, immutable and source-linked
+ok 3 - model request reconstruction is canonical, immutable and source-linked
+  ---
+  duration_ms: 11.69505
+  type: 'test'
+  ...
+# Subtest: crash recovery survives process reopen and exact append retry is idempotent
+ok 4 - crash recovery survives process reopen and exact append retry is idempotent
+  ---
+  duration_ms: 20.223408
+  type: 'test'
+  ...
+# Subtest: fork records immutable lineage and cannot widen authority, policy or resource limits
+ok 5 - fork records immutable lineage and cannot widen authority, policy or resource limits
+  ---
+  duration_ms: 43.207112
+  type: 'test'
+  ...
+# Subtest: fork parent attachment and child creation commit atomically
+ok 6 - fork parent attachment and child creation commit atomically
+  ---
+  duration_ms: 21.421235
+  type: 'test'
+  ...
+# Subtest: root, resumed appends, and forked children retain one durable trace
+ok 7 - root, resumed appends, and forked children retain one durable trace
+  ---
+  duration_ms: 10.503399
+  type: 'test'
+  ...
+# Subtest: replay fails closed when persisted trace lineage is fragmented
+ok 8 - replay fails closed when persisted trace lineage is fragmented
+  ---
+  duration_ms: 5.648635
+  type: 'test'
+  ...
+# Subtest: replay fails closed when persisted causation does not reference earlier lineage
+ok 9 - replay fails closed when persisted causation does not reference earlier lineage
+  ---
+  duration_ms: 6.234599
+  type: 'test'
+  ...
+# Subtest: root and child creation require verifiable causation anchors
+ok 10 - root and child creation require verifiable causation anchors
+  ---
+  duration_ms: 8.42438
+  type: 'test'
+  ...
+# Subtest: gaps, foreign model streams and forged relational envelopes fail closed
+ok 11 - gaps, foreign model streams and forged relational envelopes fail closed
+  ---
+  duration_ms: 14.354143
+  type: 'test'
+  ...
+# Subtest: session success cannot contradict a failed model terminal event
+ok 12 - session success cannot contradict a failed model terminal event
+  ---
+  duration_ms: 21.784099
+  type: 'test'
+  ...
+# Subtest: session cancellation terminal must exactly match its durable non-deadline request
+ok 13 - session cancellation terminal must exactly match its durable non-deadline request
+  ---
+  duration_ms: 12.794073
+  type: 'test'
+  ...
+# Subtest: incremental replay preserves full replay and rejects forged checkpoints
+ok 14 - incremental replay preserves full replay and rejects forged checkpoints
+  ---
+  duration_ms: 7.052875
+  type: 'test'
+  ...
+# Subtest: transaction rollback cannot retain an uncommitted replay checkpoint
+ok 15 - transaction rollback cannot retain an uncommitted replay checkpoint
+  ---
+  duration_ms: 6.733101
+  type: 'test'
+  ...
+# Subtest: replay rejects forged ordering, authority and context provenance
+ok 16 - replay rejects forged ordering, authority and context provenance
+  ---
+  duration_ms: 3.065864
+  type: 'test'
+  ...
+# Subtest: tool deltas preserve identity and require complete object arguments
+ok 17 - tool deltas preserve identity and require complete object arguments
+  ---
+  duration_ms: 0.469825
+  type: 'test'
+  ...
+# Subtest: replay rejects gaps, foreign lineage, stale resume and streams without matching requests
+ok 18 - replay rejects gaps, foreign lineage, stale resume and streams without matching requests
+  ---
+  duration_ms: 2.0273
+  type: 'test'
+  ...
+# Subtest: request reconstruction consumes only reducer checkpoints and follows later durable turns
+ok 19 - request reconstruction consumes only reducer checkpoints and follows later durable turns
+  ---
+  duration_ms: 9.17186
+  type: 'test'
+  ...
+# Subtest: request reconstruction invalidates cached state after another connection appends a turn
+ok 20 - request reconstruction invalidates cached state after another connection appends a turn
+  ---
+  duration_ms: 22.567784
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 539.136907

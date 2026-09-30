@@ -1,0 +1,354 @@
+TAP version 13
+# Subtest: composition rejects replaced artifacts, aliases, ambient configuration and credential redirection
+ok 1 - composition rejects replaced artifacts, aliases, ambient configuration and credential redirection
+  ---
+  duration_ms: 8.856818
+  type: 'test'
+  ...
+# Subtest: ACP campaign re-inspects identity before every effect and preserves resume and usage
+ok 2 - ACP campaign re-inspects identity before every effect and preserves resume and usage
+  ---
+  duration_ms: 6937.495994
+  type: 'test'
+  ...
+# Subtest: worker joins containment, closes after success/resume/cancel and retains uncertain failures
+ok 3 - worker joins containment, closes after success/resume/cancel and retains uncertain failures
+  ---
+  duration_ms: 153.228268
+  type: 'test'
+  ...
+# Subtest: launcher forwards only pinned startup configuration and propagates child failures and termination
+ok 4 - launcher forwards only pinned startup configuration and propagates child failures and termination
+  ---
+  duration_ms: 40.700436
+  type: 'test'
+  ...
+# Subtest: Claude Agent SDK driver binds an explicit session and completes through the hosted L0 provider
+ok 5 - Claude Agent SDK driver binds an explicit session and completes through the hosted L0 provider
+  ---
+  duration_ms: 19.745414
+  type: 'test'
+  ...
+# Subtest: a fresh driver finds an existing transcript and resumes the exact session id
+ok 6 - a fresh driver finds an existing transcript and resumes the exact session id
+  ---
+  duration_ms: 6.002059
+  type: 'test'
+  ...
+# Subtest: Claude effect content fails closed at the hosted effect boundary
+ok 7 - Claude effect content fails closed at the hosted effect boundary
+  ---
+  duration_ms: 4.166695
+  type: 'test'
+  ...
+# Subtest: Claude unknown-effect content fails closed at the hosted effect boundary
+ok 8 - Claude unknown-effect content fails closed at the hosted effect boundary
+  ---
+  duration_ms: 1.642646
+  type: 'test'
+  ...
+# Subtest: driver cancellation aborts and closes an active Agent SDK query
+ok 9 - driver cancellation aborts and closes an active Agent SDK query
+  ---
+  duration_ms: 19.542666
+  type: 'test'
+  ...
+# Subtest: driver passes only the selected environment values to the SDK child contract
+ok 10 - driver passes only the selected environment values to the SDK child contract
+  ---
+  duration_ms: 1.573775
+  type: 'test'
+  ...
+# Subtest: driver rejects relative bindings and implicit environment keys
+ok 11 - driver rejects relative bindings and implicit environment keys
+  ---
+  duration_ms: 26.987046
+  type: 'test'
+  ...
+# Subtest: Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-progress
+ok 12 - Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-progress
+  ---
+  duration_ms: 1.496894
+  type: 'test'
+  ...
+# Subtest: Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-invalid
+ok 13 - Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-invalid
+  ---
+  duration_ms: 14.287656
+  type: 'test'
+  ...
+# Subtest: Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-foreign
+ok 14 - Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-foreign
+  ---
+  duration_ms: 1.123943
+  type: 'test'
+  ...
+# Subtest: Claude thinking progress is distinct from billed usage and preserves strict protocol: unknown-system
+ok 15 - Claude thinking progress is distinct from billed usage and preserves strict protocol: unknown-system
+  ---
+  duration_ms: 9.70224
+  type: 'test'
+  ...
+# Subtest: missing transcript after runtime progress cannot silently recreate a Claude session
+ok 16 - missing transcript after runtime progress cannot silently recreate a Claude session
+  ---
+  duration_ms: 1.836567
+  type: 'test'
+  ...
+# Subtest: pinned ACP profile negotiates known advertisements without enabling those operations
+ok 17 - pinned ACP profile negotiates known advertisements without enabling those operations
+  ---
+  duration_ms: 11.871437
+  type: 'test'
+  ...
+# Subtest: unknown capabilities and versions fail closed
+ok 18 - unknown capabilities and versions fail closed
+  ---
+  duration_ms: 1.72365
+  type: 'test'
+  ...
+# Subtest: mode or model drift fails before prompt; unsolicited metadata is rejected
+ok 19 - mode or model drift fails before prompt; unsolicited metadata is rejected
+  ---
+  duration_ms: 2.111589
+  type: 'test'
+  ...
+# Subtest: usage is bounded and tools pass through to the denying generic L0 bridge
+ok 20 - usage is bounded and tools pass through to the denying generic L0 bridge
+  ---
+  duration_ms: 6.637746
+  type: 'test'
+  ...
+# Subtest: expiry denies new work while cancellation remains possible; paid auth changes denied
+ok 21 - expiry denies new work while cancellation remains possible; paid auth changes denied
+  ---
+  duration_ms: 3.142717
+  type: 'test'
+  ...
+# Subtest: startup profile disables tool sources and pins catalog before app-server starts
+ok 22 - startup profile disables tool sources and pins catalog before app-server starts
+  ---
+  duration_ms: 0.906607
+  type: 'test'
+  ...
+# Subtest: ACP campaign accounts cached input and rejects inconsistent native totals
+ok 23 - ACP campaign accounts cached input and rejects inconsistent native totals
+  ---
+  duration_ms: 138.902276
+  type: 'test'
+  ...
+# Subtest: catalog cannot re-enable tools through model metadata despite disabled feature flags
+ok 24 - catalog cannot re-enable tools through model metadata despite disabled feature flags
+  ---
+  duration_ms: 0.530624
+  type: 'test'
+  ...
+# Subtest: private cwd cannot inherit ancestor configuration or tools
+ok 25 - private cwd cannot inherit ancestor configuration or tools
+  ---
+  duration_ms: 2.938814
+  type: 'test'
+  ...
+# Subtest: ACP session lifecycle enforces metadata identities, shape bounds and cancellation-only notifications
+ok 26 - ACP session lifecycle enforces metadata identities, shape bounds and cancellation-only notifications
+  ---
+  duration_ms: 11.620489
+  type: 'test'
+  ...
+# Subtest: ACP cannot overlap openings, retain a failed pending session or accept metadata for another opening
+ok 27 - ACP cannot overlap openings, retain a failed pending session or accept metadata for another opening
+  ---
+  duration_ms: 30.316668
+  type: 'test'
+  ...
+# [hseos] DELEGATED_CLAUDE_INVALID: expected_sequence does not match delegated durable state
+# [hseos] DELEGATED_CLAUDE_INVALID: delegated Claude manifest or external binding drifted
+# Subtest: delegated Claude capability plan selects Agent SDK and no raw model implementation
+ok 28 - delegated Claude capability plan selects Agent SDK and no raw model implementation
+  ---
+  duration_ms: 238.309847
+  type: 'test'
+  ...
+# Subtest: public delegated Claude CLI creates and materializes the same explicit SDK session across processes
+ok 29 - public delegated Claude CLI creates and materializes the same explicit SDK session across processes
+  ---
+  duration_ms: 2208.566455
+  type: 'test'
+  ...
+# Subtest: public delegated Claude run keeps the first query attached to the newly created SDK session
+ok 30 - public delegated Claude run keeps the first query attached to the newly created SDK session
+  ---
+  duration_ms: 1321.937992
+  type: 'test'
+  ...
+# Subtest: public delegated Claude CLI reattaches and durably cancels an idle session
+ok 31 - public delegated Claude CLI reattaches and durably cancels an idle session
+  ---
+  duration_ms: 2223.692297
+  type: 'test'
+  ...
+# Subtest: delegated Claude resume rejects stale optimistic state before SDK dispatch
+ok 32 - delegated Claude resume rejects stale optimistic state before SDK dispatch
+  ---
+  duration_ms: 2112.893708
+  type: 'test'
+  ...
+# Subtest: delegated Claude manifest persists environment names but never selected values
+ok 33 - delegated Claude manifest persists environment names but never selected values
+  ---
+  duration_ms: 2225.722379
+  type: 'test'
+  ...
+# Subtest: delegated Claude resume rejects SDK module drift before reattachment
+ok 34 - delegated Claude resume rejects SDK module drift before reattachment
+  ---
+  duration_ms: 1678.721787
+  type: 'test'
+  ...
+# Subtest: delegated Codex capability plan selects the direct runtime and no raw model implementation
+ok 35 - delegated Codex capability plan selects the direct runtime and no raw model implementation
+  ---
+  duration_ms: 229.91181
+  type: 'test'
+  ...
+# Subtest: public delegated Codex CLI rejects create-only before spawning app-server
+ok 36 - public delegated Codex CLI rejects create-only before spawning app-server
+  ---
+  duration_ms: 348.113815
+  type: 'test'
+  ...
+# Subtest: public delegated Codex run keeps the first turn attached to the newly created thread
+ok 37 - public delegated Codex run keeps the first turn attached to the newly created thread
+  ---
+  duration_ms: 1361.056149
+  type: 'test'
+  ...
+# Subtest: public delegated Codex CLI rejects resume and cancel as unavailable capabilities
+ok 38 - public delegated Codex CLI rejects resume and cancel as unavailable capabilities
+  ---
+  duration_ms: 728.76752
+  type: 'test'
+  ...
+# Subtest: delegated Codex run-only rejection takes precedence over lifecycle arguments
+ok 39 - delegated Codex run-only rejection takes precedence over lifecycle arguments
+  ---
+  duration_ms: 346.767846
+  type: 'test'
+  ...
+# Subtest: delegated Codex durable manifest contains no resolved environment value
+ok 40 - delegated Codex durable manifest contains no resolved environment value
+  ---
+  duration_ms: 1404.161773
+  type: 'test'
+  ...
+# Subtest: public delegated Codex rejects resume before inspecting durable state
+ok 41 - public delegated Codex rejects resume before inspecting durable state
+  ---
+  duration_ms: 331.034621
+  type: 'test'
+  ...
+# Subtest: DeepSeek capability plan selects the external runtime and no raw model implementation
+ok 42 - DeepSeek capability plan selects the external runtime and no raw model implementation
+  ---
+  duration_ms: 228.526708
+  type: 'test'
+  ...
+# Subtest: supervised DeepSeek profile completes one tool-free ACP turn under the fixed sandbox command
+ok 43 - supervised DeepSeek profile completes one tool-free ACP turn under the fixed sandbox command
+  ---
+  duration_ms: 1953.459808
+  type: 'test'
+  ...
+# Subtest: sandbox readiness fails before reading the DeepSeek secret or launching a worker
+ok 44 - sandbox readiness fails before reading the DeepSeek secret or launching a worker
+  ---
+  duration_ms: 504.626545
+  type: 'test'
+  ...
+# Subtest: binding drift between authorization and worker execution fails before ACP spawn
+ok 45 - binding drift between authorization and worker execution fails before ACP spawn
+  ---
+  duration_ms: 1320.741198
+  type: 'test'
+  ...
+# Subtest: public profile rejects unsupported lifecycle operations before execution
+ok 46 - public profile rejects unsupported lifecycle operations before execution
+  ---
+  duration_ms: 1.88406
+  type: 'test'
+  ...
+# Subtest: public supervisor rejects ACP assets outside the sandboxed project
+ok 47 - public supervisor rejects ACP assets outside the sandboxed project
+  ---
+  duration_ms: 515.873752
+  type: 'test'
+  ...
+# Subtest: process ACP peer drives one bounded DeepSeek-compatible session over JSON-RPC stdio
+ok 48 - process ACP peer drives one bounded DeepSeek-compatible session over JSON-RPC stdio
+  ---
+  duration_ms: 126.302527
+  type: 'test'
+  ...
+# Subtest: tool-free DeepSeek composition yields a hash-bound one-shot effect attestation
+ok 49 - tool-free DeepSeek composition yields a hash-bound one-shot effect attestation
+  ---
+  duration_ms: 12.903444
+  type: 'test'
+  ...
+# Subtest: host-verified tool-free composition compensates for the missing stock ACP metadata
+ok 50 - host-verified tool-free composition compensates for the missing stock ACP metadata
+  ---
+  duration_ms: 37.924634
+  type: 'test'
+  ...
+# Subtest: stock-like DeepSeek ACP initialization without HSEOS effect attestation fails closed
+ok 51 - stock-like DeepSeek ACP initialization without HSEOS effect attestation fails closed
+  ---
+  duration_ms: 43.989164
+  type: 'test'
+  ...
+# Subtest: DeepSeek ACP process binding rejects cross-process resume when loadSession is absent
+ok 52 - DeepSeek ACP process binding rejects cross-process resume when loadSession is absent
+  ---
+  duration_ms: 102.523513
+  type: 'test'
+  ...
+# Subtest: process ACP peer answers permission requests while the provider denies the effect
+ok 53 - process ACP peer answers permission requests while the provider denies the effect
+  ---
+  duration_ms: 53.429987
+  type: 'test'
+  ...
+# Subtest: process ACP peer closes on an unknown JSON-RPC response id
+ok 54 - process ACP peer closes on an unknown JSON-RPC response id
+  ---
+  duration_ms: 41.782101
+  type: 'test'
+  ...
+# Subtest: process spawn may extend its environment without mutating the validated ACP environment
+ok 55 - process spawn may extend its environment without mutating the validated ACP environment
+  ---
+  duration_ms: 3.356183
+  type: 'test'
+  ...
+1..55
+# tests 55
+# suites 0
+# pass 55
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 31314.074236
+----------------------------|---------|----------|---------|---------|-------------------
+File                        | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+----------------------------|---------|----------|---------|---------|-------------------
+All files                   |   99.07 |    98.12 |   96.42 |   99.07 |                   
+ packages/runtime-providers |     100 |     98.7 |     100 |     100 |                   
+  codex-acp-composition.js  |     100 |    98.43 |     100 |     100 | 74                
+  codex-acp-launcher.js     |     100 |      100 |     100 |     100 |                   
+  codex-acp-peer.js         |     100 |    98.76 |     100 |     100 | 233               
+ tools/cli/lib              |   97.77 |    96.55 |      90 |   97.77 |                   
+  provider-acp-adapter.js   |     100 |    97.05 |     100 |     100 | 81                
+  provider-acp-worker.js    |   95.41 |    95.83 |   66.66 |   95.41 | 125-130           
+----------------------------|---------|----------|---------|---------|-------------------

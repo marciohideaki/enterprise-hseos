@@ -12,7 +12,7 @@ This repository **is** HSEOS — the Hideaki Software Engineering Operating Syst
 itself, not a project that merely consumes it. Changes here alter the governance and
 runtime that other Hideaki projects depend on; treat them with that blast radius in mind.
 
-- **Stack:** Node.js `>=20`, npm. Lint `eslint` (`--max-warnings=0`), format `prettier`,
+- **Stack:** Node.js `>=22`, npm. Lint `eslint` (`--max-warnings=0`), format `prettier`,
   git hooks via `husky`, state in `better-sqlite3`, schema validation with `zod`,
   CLI built on `commander`.
 - **Entry points:** `bin` `hseos` → `tools/hseos-npx-wrapper.js`; main `tools/cli/hseos-cli.js`.

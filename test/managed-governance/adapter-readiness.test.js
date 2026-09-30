@@ -123,7 +123,7 @@ test('CLI (HTTP fetch), the query adapter and the MCP tool all return the exact 
   );
 
   // Surface 1: direct HTTP (what the console and CLI's generic request() helper both call).
-  // eslint-disable-next-line n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line
+
   const httpEnvelope = await (await fetch(`${baseUrl}/api/v1/readiness`)).json();
   assert.equal(httpEnvelope.ok, true);
 
@@ -201,7 +201,7 @@ test('an enabled adapter with no submitted receipt keeps the whole report not re
 
   const viaAdapter = await adapter.getGovernanceReadiness();
   const viaMcp = await mcpTool.handler(null, {});
-  // eslint-disable-next-line n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line
+
   const viaHttp = (await (await fetch(`${baseUrl}/api/v1/readiness`)).json()).data;
 
   for (const result of [viaAdapter, viaMcp, viaHttp]) {

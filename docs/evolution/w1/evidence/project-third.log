@@ -1,0 +1,16 @@
+✔ v2 snapshots a Git project and preserves its immutable input after external edits (84.120219ms)
+✔ v2 refuses links, invalid UTF-8, changed Git baseline and embedded substitution (218.259175ms)
+✔ project acceptance and verifier inputs cannot drift after pinning (59.010311ms)
+✔ protected verifier executes Node multi-file inside isolation (1727.817604ms)
+✔ protected verifier executes TypeScript inside isolation (1675.706775ms)
+✔ protected verifier executes Python multi-file inside isolation (1494.504382ms)
+✔ protected verifier executes web static content inside isolation (1474.102699ms)
+✔ protected verifier executes incorrect delivery inside isolation (1752.643283ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8749.261212

@@ -1,0 +1,1 @@
+[0;32m[anchor-guard PASS][0m nenhum caminho ancorado tocado

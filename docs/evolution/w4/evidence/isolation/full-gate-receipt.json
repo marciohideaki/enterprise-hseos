@@ -1,0 +1,22 @@
+{
+  "type": "verification",
+  "scope": "W4-02b",
+  "node": "24.15.0",
+  "result": "passed",
+  "failures": 0,
+  "warnings": 1,
+  "resource_limits": {
+    "memory_bytes": 3221225472,
+    "logical_cpus": 1,
+    "nice": 19,
+    "executor_parent": "delegated bounded scope"
+  },
+  "authorization": "user Prossiga; global AGENTS.md \u00a73f.7",
+  "command": "worktree-manager.sh validate hseos-w4-plugin-isolation",
+  "log_sha256": "b397c9a1cc56849026768282200e40a9ced4faf10c4bb7106395bc7a484dcc85",
+  "limitations": [
+    "Node22 full suite pending W4 final matrix",
+    "W4-02c onward pending",
+    "commit hook validation follows"
+  ]
+}

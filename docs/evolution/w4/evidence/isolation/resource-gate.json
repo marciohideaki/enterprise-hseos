@@ -1,0 +1,17 @@
+{
+  "recorded_at": "2026-09-27T17:03:42.128154+00:00",
+  "load_average": [
+    10.33056640625,
+    7.2939453125,
+    6.1806640625
+  ],
+  "physical_cores": 6,
+  "status": "waiting-for-lower-load-or-explicit-W4-resource-exception",
+  "requested_limits": {
+    "cpu": 1,
+    "memory_gib": 3,
+    "nice": 19
+  },
+  "authorization_received": false,
+  "gate_source": "/home/annonymous/.claude/AGENTS.md section 3f"
+}

@@ -1,0 +1,358 @@
+TAP version 13
+# Subtest: loader preserves legacy configuration and constructs only registered lazy adapters
+ok 1 - loader preserves legacy configuration and constructs only registered lazy adapters
+  ---
+  duration_ms: 39.463616
+  type: 'test'
+  ...
+# Subtest: loader refuses state override, directory drift and replaced ledger before factory effects
+ok 2 - loader refuses state override, directory drift and replaced ledger before factory effects
+  ---
+  duration_ms: 18.444288
+  type: 'test'
+  ...
+# Subtest: loader preserves temporary ledger activation gate
+ok 3 - loader preserves temporary ledger activation gate
+  ---
+  duration_ms: 18.016073
+  type: 'test'
+  ...
+# Subtest: loader validates all references and manifests before invoking any factory
+ok 4 - loader validates all references and manifests before invoking any factory
+  ---
+  duration_ms: 19.493955
+  type: 'test'
+  ...
+# Subtest: loader checks observed digest and adapter interface, sanitizing factory exceptions
+ok 5 - loader checks observed digest and adapter interface, sanitizing factory exceptions
+  ---
+  duration_ms: 20.188937
+  type: 'test'
+  ...
+# Subtest: loader rechecks ledger identity after factory construction
+ok 6 - loader rechecks ledger identity after factory construction
+  ---
+  duration_ms: 18.748859
+  type: 'test'
+  ...
+# Subtest: loader rejects malformed, oversized, symlink and hardlink configurations
+ok 7 - loader rejects malformed, oversized, symlink and hardlink configurations
+  ---
+  duration_ms: 32.371192
+  type: 'test'
+  ...
+# Subtest: real API adapter is lazy, observes selected credential and USD balance, and streams through existing egress broker
+ok 8 - real API adapter is lazy, observes selected credential and USD balance, and streams through existing egress broker
+  ---
+  duration_ms: 57.537383
+  type: 'test'
+  ...
+# Subtest: API adapter refuses credential and binding drift before network effects
+ok 9 - API adapter refuses credential and binding drift before network effects
+  ---
+  duration_ms: 10.823952
+  type: 'test'
+  ...
+# Subtest: API adapter refuses unsupported origin, insufficient reservation and expired pricing
+ok 10 - API adapter refuses unsupported origin, insufficient reservation and expired pricing
+  ---
+  duration_ms: 8.406344
+  type: 'test'
+  ...
+# Subtest: balance observation cannot invent quota or convert currencies
+ok 11 - balance observation cannot invent quota or convert currencies
+  ---
+  duration_ms: 13.466119
+  type: 'test'
+  ...
+# Subtest: missing usage, cancellation and unknown task never become successful receipts
+ok 12 - missing usage, cancellation and unknown task never become successful receipts
+  ---
+  duration_ms: 14.535026
+  type: 'test'
+  ...
+# Subtest: API adapter cancellation aborts the broker request and drains its connection
+ok 13 - API adapter cancellation aborts the broker request and drains its connection
+  ---
+  duration_ms: 7.269722
+  type: 'test'
+  ...
+# Subtest: API adapter and campaign integrate credential admission, monetary quota and reservation before dispatch
+ok 14 - API adapter and campaign integrate credential admission, monetary quota and reservation before dispatch
+  ---
+  duration_ms: 308.874129
+  type: 'test'
+  ...
+# Subtest: codex factory selects explicit identity, preserves remote quota units and receipts
+ok 15 - codex factory selects explicit identity, preserves remote quota units and receipts
+  ---
+  duration_ms: 1920.652018
+  type: 'test'
+  ...
+# Subtest: claude factory selects explicit identity, preserves remote quota units and receipts
+ok 16 - claude factory selects explicit identity, preserves remote quota units and receipts
+  ---
+  duration_ms: 1884.555208
+  type: 'test'
+  ...
+# Subtest: native preflight never replaces unknown quotas, paid credits or credentials with invented capacity
+ok 17 - native preflight never replaces unknown quotas, paid credits or credentials with invented capacity
+  ---
+  duration_ms: 2400.809742
+  type: 'test'
+  ...
+# Subtest: bridge authenticates, pins child scope, cannot replay, and works through the Python SDK component
+ok 18 - bridge authenticates, pins child scope, cannot replay, and works through the Python SDK component
+  ---
+  duration_ms: 128.249681
+  type: 'test'
+  ...
+# Subtest: bridge retains uncertainty and waits for an in-flight child before closing
+ok 19 - bridge retains uncertainty and waits for an in-flight child before closing
+  ---
+  duration_ms: 4.227104
+  type: 'test'
+  ...
+# Subtest: process supervisor returns only after descendants drain and kills startup stalls
+ok 20 - process supervisor returns only after descendants drain and kills startup stalls
+  ---
+  duration_ms: 105.348161
+  type: 'test'
+  ...
+# Subtest: Antigravity factory requires a pinned local checkpoint and proves a subordinate call occurred
+ok 21 - Antigravity factory requires a pinned local checkpoint and proves a subordinate call occurred
+  ---
+  duration_ms: 174.438865
+  type: 'test'
+  ...
+# Subtest: real worker process drives Codex and Claude protocol fixtures and refuses attempted effects
+ok 22 - real worker process drives Codex and Claude protocol fixtures and refuses attempted effects
+  ---
+  duration_ms: 1255.816174
+  type: 'test'
+  ...
+# Subtest: resource profiles enforce finite memory bounds and preserve the default
+ok 23 - resource profiles enforce finite memory bounds and preserve the default
+  ---
+  duration_ms: 1.239175
+  type: 'test'
+  ...
+# Subtest: Claude cached input remains part of the admitted token usage
+ok 24 - Claude cached input remains part of the admitted token usage
+  ---
+  duration_ms: 799.650093
+  type: 'test'
+  ...
+# Subtest: campaign reserves before dispatch, replays receipts and preserves consumption after reopening
+ok 25 - campaign reserves before dispatch, replays receipts and preserves consumption after reopening
+  ---
+  duration_ms: 49.082978
+  type: 'test'
+  ...
+# Subtest: a new campaign identity cannot reuse authorization or manufacture a larger budget
+ok 26 - a new campaign identity cannot reuse authorization or manufacture a larger budget
+  ---
+  duration_ms: 21.892051
+  type: 'test'
+  ...
+# Subtest: ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch
+ok 27 - ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch
+  ---
+  duration_ms: 27.458554
+  type: 'test'
+  ...
+# Subtest: receipt loss preserves the reservation and requires current-state reconciliation without retry
+ok 28 - receipt loss preserves the reservation and requires current-state reconciliation without retry
+  ---
+  duration_ms: 27.353355
+  type: 'test'
+  ...
+# Subtest: a second controller cannot reconcile a live dispatch and can cancel it durably
+ok 29 - a second controller cannot reconcile a live dispatch and can cancel it durably
+  ---
+  duration_ms: 77.798938
+  type: 'test'
+  ...
+# Subtest: a changed binding manifest cannot replace the pinned configuration after reopening
+ok 30 - a changed binding manifest cannot replace the pinned configuration after reopening
+  ---
+  duration_ms: 29.83104
+  type: 'test'
+  ...
+# Subtest: HTTP and SDK campaign commands share authentication, cursors and durable budget
+ok 31 - HTTP and SDK campaign commands share authentication, cursors and durable budget
+  ---
+  duration_ms: 229.48589
+  type: 'test'
+  ...
+# Subtest: known overspend remains charged after uncertain outcome reconciliation
+ok 32 - known overspend remains charged after uncertain outcome reconciliation
+  ---
+  duration_ms: 25.443014
+  type: 'test'
+  ...
+# Subtest: expired grants, stale sequences and cancellation deny new effects
+ok 33 - expired grants, stale sequences and cancellation deny new effects
+  ---
+  duration_ms: 23.79974
+  type: 'test'
+  ...
+# Subtest: unbound adapter identities and missing dispatch implementations cannot configure campaigns
+ok 34 - unbound adapter identities and missing dispatch implementations cannot configure campaigns
+  ---
+  duration_ms: 20.560389
+  type: 'test'
+  ...
+# Subtest: a concurrent exact retry observes the committed receipt without a second dispatch
+ok 35 - a concurrent exact retry observes the committed receipt without a second dispatch
+  ---
+  duration_ms: 21.822491
+  type: 'test'
+  ...
+# Subtest: a request ceiling holds even when prior attempts report zero charge
+ok 36 - a request ceiling holds even when prior attempts report zero charge
+  ---
+  duration_ms: 32.168726
+  type: 'test'
+  ...
+# Subtest: failed inspection never consumes an authorization or leaks transport details
+ok 37 - failed inspection never consumes an authorization or leaks transport details
+  ---
+  duration_ms: 19.787105
+  type: 'test'
+  ...
+# Subtest: client and subordinate model reserve in one campaign before effect and preserve costs on reopen
+ok 38 - client and subordinate model reserve in one campaign before effect and preserve costs on reopen
+  ---
+  duration_ms: 24.954328
+  type: 'test'
+  ...
+# Subtest: subordinate budget cannot bypass the campaign ceiling
+ok 39 - subordinate budget cannot bypass the campaign ceiling
+  ---
+  duration_ms: 24.496302
+  type: 'test'
+  ...
+# Subtest: a child with a lost receipt retains its reservation and fences even a parent that catches its error
+ok 40 - a child with a lost receipt retains its reservation and fences even a parent that catches its error
+  ---
+  duration_ms: 28.756288
+  type: 'test'
+  ...
+# Subtest: subordinate capability expires when parent finishes and cannot target an unpinned binding
+ok 41 - subordinate capability expires when parent finishes and cannot target an unpinned binding
+  ---
+  duration_ms: 20.171338
+  type: 'test'
+  ...
+# Subtest: campaign cancellation reaches parent and child and waits for child termination
+ok 42 - campaign cancellation reaches parent and child and waits for child termination
+  ---
+  duration_ms: 25.563989
+  type: 'test'
+  ...
+# Subtest: shutdown cancels and drains a composed call before returning, and fences future effects
+ok 43 - shutdown cancels and drains a composed call before returning, and fences future effects
+  ---
+  duration_ms: 25.112235
+  type: 'test'
+  ...
+# Subtest: denied task scope is checked before resolving provider credentials or probing its API
+ok 44 - denied task scope is checked before resolving provider credentials or probing its API
+  ---
+  duration_ms: 17.754719
+  type: 'test'
+  ...
+# Subtest: shutdown aborts and waits for admission probes before the ledger can close
+ok 45 - shutdown aborts and waits for admission probes before the ledger can close
+  ---
+  duration_ms: 25.714696
+  type: 'test'
+  ...
+# Subtest: request quota cannot conceal an observed monetary deficit
+ok 46 - request quota cannot conceal an observed monetary deficit
+  ---
+  duration_ms: 18.557066
+  type: 'test'
+  ...
+# Subtest: Python Antigravity capability reaches the same campaign reservation before the subordinate effect
+ok 47 - Python Antigravity capability reaches the same campaign reservation before the subordinate effect
+  ---
+  duration_ms: 129.59987
+  type: 'test'
+  ...
+# Subtest: known session resume keeps binding, task and campaign budget pinned
+ok 48 - known session resume keeps binding, task and campaign budget pinned
+  ---
+  duration_ms: 28.00604
+  type: 'test'
+  ...
+# Subtest: unknown quota requires an explicit expiring owner exception and never overrides exhaustion
+ok 49 - unknown quota requires an explicit expiring owner exception and never overrides exhaustion
+  ---
+  duration_ms: 26.350982
+  type: 'test'
+  ...
+# Subtest: quota exceptions cannot expand authorization scope or expiration
+ok 50 - quota exceptions cannot expand authorization scope or expiration
+  ---
+  duration_ms: 17.441047
+  type: 'test'
+  ...
+# Subtest: runner completes a bounded pilot, checks replay and can restart without repeating inference or resetting budget
+ok 51 - runner completes a bounded pilot, checks replay and can restart without repeating inference or resetting budget
+  ---
+  duration_ms: 53.281649
+  type: 'test'
+  ...
+# Subtest: four-family scope fails before authorization claim if families are missing
+ok 52 - four-family scope fails before authorization claim if families are missing
+  ---
+  duration_ms: 21.049149
+  type: 'test'
+  ...
+# Subtest: runner preserves uncertain effects across restart and never advances or cancels them implicitly
+ok 53 - runner preserves uncertain effects across restart and never advances or cancels them implicitly
+  ---
+  duration_ms: 37.877947
+  type: 'test'
+  ...
+# Subtest: runner rejects duplicate command identity and unexpected vendor before effects
+ok 54 - runner rejects duplicate command identity and unexpected vendor before effects
+  ---
+  duration_ms: 19.370443
+  type: 'test'
+  ...
+# Subtest: runner operates through authenticated HTTP and the public SDK
+ok 55 - runner operates through authenticated HTTP and the public SDK
+  ---
+  duration_ms: 490.226221
+  type: 'test'
+  ...
+# Subtest: official routes distinguish native accounts, API and local bindings without claiming certification
+ok 56 - official routes distinguish native accounts, API and local bindings without claiming certification
+  ---
+  duration_ms: 6.363813
+  type: 'test'
+  ...
+# Subtest: route confusion, unknown quota, capability claims, secrets and unbounded reservations fail closed
+ok 57 - route confusion, unknown quota, capability claims, secrets and unbounded reservations fail closed
+  ---
+  duration_ms: 2.58947
+  type: 'test'
+  ...
+# Subtest: binding drift is rejected and declared control evidence does not certify a real journey
+ok 58 - binding drift is rejected and declared control evidence does not certify a real journey
+  ---
+  duration_ms: 0.419974
+  type: 'test'
+  ...
+1..58
+# tests 58
+# suites 0
+# pass 58
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12345.877761

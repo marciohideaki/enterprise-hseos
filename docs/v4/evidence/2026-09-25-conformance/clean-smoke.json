@@ -1,0 +1,70 @@
+{
+  "consumer": "/build/tmp/hseos-v4-conformance-clean-zoyz67z6",
+  "public_bin_used": true,
+  "empty_home": true,
+  "results": [
+    {
+      "schema_version": 1,
+      "profile": "disposable-engineering-candidate",
+      "task_run_id": "bdce45c5-5cfe-4702-ab44-4b04aef44b80",
+      "task_id": "example-addition",
+      "state": "/tmp/hseos-ledger-fixture-AyMi7d",
+      "session_id": "session:339e9755-e55c-4607-aa2c-cee0d61ed7d9",
+      "status": "completed",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "current_sequence": 4,
+      "contract_sha256": "1f401c276570d722debc9dacc6b324c5b5d3950b1765777ebeb1fb2df9ac94af",
+      "token_accounting": {
+        "reported_input_tokens": 1,
+        "reported_output_tokens": 1,
+        "conservative_estimate_tokens": 25179,
+        "total_tokens": 25181,
+        "estimate_counter": "token-counter:utf8-byte-upper-bound"
+      },
+      "operational_authorized": false
+    },
+    {
+      "schema_version": 1,
+      "profile": "disposable-engineering-candidate",
+      "task_run_id": "df652677-cdab-4660-931f-6885043c1af0",
+      "task_id": "example-clamp",
+      "state": "/tmp/hseos-ledger-fixture-SWHOKu",
+      "session_id": "session:8cb460f5-5bc7-4ab7-90cb-235876303d4e",
+      "status": "completed",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "current_sequence": 4,
+      "contract_sha256": "efa1ba0634b1a2f0bea6705d87639433a94e856ed8d1551a20e1249db1b0cd17",
+      "token_accounting": {
+        "reported_input_tokens": 1,
+        "reported_output_tokens": 1,
+        "conservative_estimate_tokens": 25359,
+        "total_tokens": 25361,
+        "estimate_counter": "token-counter:utf8-byte-upper-bound"
+      },
+      "operational_authorized": false
+    },
+    {
+      "schema_version": 1,
+      "profile": "disposable-engineering-candidate",
+      "task_run_id": "5d12e028-3e3f-4690-83a2-3b2690aefa49",
+      "task_id": "example-unique",
+      "state": "/tmp/hseos-ledger-fixture-t3uZtC",
+      "session_id": "session:46296fde-28d8-42ae-a0ef-1da26625c994",
+      "status": "completed",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "current_sequence": 4,
+      "contract_sha256": "bc7212402b4c42914ff134e462d3f8bc84e525ad326ef987c354d82151eeb3d4",
+      "token_accounting": {
+        "reported_input_tokens": 1,
+        "reported_output_tokens": 1,
+        "conservative_estimate_tokens": 25427,
+        "total_tokens": 25429,
+        "estimate_counter": "token-counter:utf8-byte-upper-bound"
+      },
+      "operational_authorized": false
+    }
+  ]
+}

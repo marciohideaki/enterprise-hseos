@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-27T02:45:47.176395+00:00",
+  "status": "partial_external_blockers",
+  "source_sha256": {
+    ".c8-kernel.json": "51faa40994a082cd07fb3d3dcc8de37bc3aa761ff28b190a5b2731309a90e216",
+    "package.json": "6173fbda88521f0ccc643ede43b1cb6c929b34a4ed0993c0e2c4361e22969f65",
+    "packages/runtime-providers/claude-agent-sdk-driver.js": "7c6a2d6c9ee84ca6fbd7015f03db87d5b30a599bc89ac91cb29f8dc8ec2c7372",
+    "packages/runtime-providers/process-acp-peer.js": "a84680376b8d1d5a1fff77177c5c393a4acdf00a16cca2235aa53e1901a4d40e",
+    "tools/cli/lib/provider-campaign-worker.js": "33870e91a8cb60d9763e62d20a9b46cf05f19e16ed622f218977cb6439227e70",
+    "tools/cli/command-manifest.json": "9068322da68670f5f4a7c90cb217e79bbfe883b52c28a9d7574ecd36bd791594",
+    "test/test-acp-campaign-boundaries.js": "9aeb421ba5f7329968997021a1ca6afe85d28b69d6729c088e9df7538683a8a0",
+    "test/test-codex-acp-peer.js": "be44a9de49cf2af4dd8d2c525a0a89eb2e6ee733fef17801814d2773478e0fd9",
+    "test/test-claude-agent-sdk-driver.js": "6a3987d1085d44b5062491130f648d854db58d2c0fd06075e2704b87ecd4b2b7",
+    "test/test-process-acp-peer.js": "a59c7d21ac9e7407ab09b2b0a047bf51b2f56c6c5f4c59b99decfec04dea2b63",
+    "test/test-delegated-codex-cli.js": "f9eda928ec0f44050daab554b0719de3f43fc659f83b5f1ed220f01548ca37fc",
+    "test/test-delegated-claude-cli.js": "77c20f7b456ebacfe9a3f3ed86ff7c521c3ab93e188b23873174b265397cc28b",
+    "test/test-delegated-deepseek-cli.js": "b1ff1656637c85c0097a8ea7c1b9d2f9cd8bcbd3a645895a85b989c3c83968f4",
+    "test/test-kernel-quality-surface.js": "027029be48f7065c664407bcb869ec0ffc4d824d9f1c2200a84ed64c4311b71a"
+  },
+  "validation": {
+    "focused": {
+      "node22": 55,
+      "node24": 55,
+      "failed": 0,
+      "skipped": 0
+    },
+    "installed_consumers": {
+      "node22": 64,
+      "node24": 64,
+      "failed": 0,
+      "skipped": 0
+    },
+    "postgres_integration": {
+      "node24": 15,
+      "failed": 0,
+      "skipped": 0
+    },
+    "acp_per_file_coverage_90_80": "pass_both_runtimes",
+    "integral_matrix": "not_completed_after_fixes",
+    "integral_coverage": "not_completed_after_fix",
+    "governance_ci": {
+      "failures": 0,
+      "warnings": 1
+    },
+    "known_secret_scan": "no_match"
+  },
+  "budget": {
+    "global_cap_microusd": 10000000,
+    "retained_historical_microusd": 8000000,
+    "available_microusd": 2000000,
+    "additional_model_calls": 0,
+    "historical_campaign_dispatches": 22
+  },
+  "blockers": [
+    "host load above six physical cores; full suites deferred",
+    "Claude new-turn recovery needs additional bounded call authorization",
+    "compatible API credential reference not supplied"
+  ],
+  "pending": [
+    "real ACP campaign on current artifact after transport/native worker changes",
+    "full Node22/24 and full per-file coverage",
+    "Git task integration, PR, governed closeout"
+  ],
+  "scope_limits": [
+    "Installed consumers use protocol fixtures, not inference",
+    "SQLite native ABI artifacts were provisioned explicitly after offline install",
+    "Focused coverage does not replace integral coverage",
+    "Prior live receipts certify their recorded source snapshots only",
+    "AEW application/enforcement not verified",
+    "No W3 commit, PR or merge"
+  ]
+}

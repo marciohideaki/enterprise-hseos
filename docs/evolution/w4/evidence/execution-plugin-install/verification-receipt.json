@@ -1,0 +1,115 @@
+{
+  "task": "W4-06b",
+  "base": "d85ee1ee",
+  "node22": "22.22.1 official",
+  "node24": "24.15.0",
+  "focused": "88/88 legacy marketplace assertions and 8/8 new tests passed on Node 22 and 24",
+  "coverage": {
+    "node22": {
+      "plugin.js": {
+        "lines": 92.58,
+        "branches": 81.01
+      }
+    },
+    "node24": {
+      "plugin.js": {
+        "lines": 92.58,
+        "branches": 81.01
+      }
+    }
+  },
+  "mutants": {
+    "node22": "18/18 rejected",
+    "node24": "18/18 rejected"
+  },
+  "gates": {
+    "node22": "PASS, zero failures and warnings",
+    "node24": "PASS, zero failures and warnings"
+  },
+  "pack_entries": {
+    "node22": 1457,
+    "node24": 1457
+  },
+  "external_distribution": {
+    "npm_install": "--offline --ignore-scripts, exit 0",
+    "tarball_sha256": "1cd435500613d5c53457bcddf8d52f95b938e1a6cfe4540228394f7376a56002",
+    "tarball_bytes": 2504203,
+    "cli_exit": 0,
+    "plugin_digest": "1b8cf3f08e09c9195c94c021c022d4bfea43dd8487ffb8cc39a9ba90518a0d75",
+    "no_host_import": true,
+    "upgrade_exit": 0,
+    "rollback_exit": 0,
+    "doctor_exit": 0,
+    "original_selection_preserved": true,
+    "changed_selection_rejected": true,
+    "store_digests": [
+      "1b8cf3f08e09c9195c94c021c022d4bfea43dd8487ffb8cc39a9ba90518a0d75",
+      "701a766447fb1fd24ef7478a549112939dd24580faa1b96a257bef5383ab2ce5"
+    ]
+  },
+  "review": "Independent skeptical review identified a symlink race and inactive doctor handling. Directory fd anchoring and identity checks plus tests resolved both; final review found no blocker. Packaged external project is a distribution fixture, not a W4-07b real consumer.",
+  "scope": "Registry v3 offline installation by digest, transitively pinned dependencies, upgrade/rollback, lazy help/import and inactive version, stored bytes doctor. No operational activation.",
+  "logs": {
+    "node22_focused": {
+      "file": "node22_focused.log.gz",
+      "sha256": "eb958c74aee53740ea31bb4ad87ca2e9628b42d14ce709974fc1775085b32c61",
+      "bytes": 2296
+    },
+    "node22_coverage": {
+      "file": "node22_coverage.log.gz",
+      "sha256": "45c4aff5dec7b7f33e624e29b8f5d2ee4804a97bf4d626d8f365adbb95a02816",
+      "bytes": 38056
+    },
+    "node22_mutations": {
+      "file": "node22_mutations.log.gz",
+      "sha256": "8507731b8fe54835f8d55da5fb1e256b6ff32f197f9fdbcf0896d6af4af1a947",
+      "bytes": 730
+    },
+    "node22_gate": {
+      "file": "node22_gate.log.gz",
+      "sha256": "d826cc3555f9877e4b8131db74935dd7ef90f81842aa5ba5b91aa11622e5eedd",
+      "bytes": 70068
+    },
+    "node24_focused": {
+      "file": "node24_focused.log.gz",
+      "sha256": "87d86bd77aa4add293bf500df35e948bcc8acf72789bf0d3331036a204a4cdaa",
+      "bytes": 2190
+    },
+    "node24_coverage": {
+      "file": "node24_coverage.log.gz",
+      "sha256": "8b03a311216936023fb15c3f35c45c66732924abfe51fe298b56b075edb8b851",
+      "bytes": 29228
+    },
+    "node24_mutations": {
+      "file": "node24_mutations.log.gz",
+      "sha256": "35f48fc8615711c9f69f1dc5ccf9aac2bf3b812e331f03b5c7156ce98003f78c",
+      "bytes": 562
+    },
+    "node24_gate": {
+      "file": "node24_gate.log.gz",
+      "sha256": "d20b841a9dc1cfbff1f8987367a99afd1e22337f9ff3862acd31b19177f7919c",
+      "bytes": 55296
+    },
+    "external_package": {
+      "file": "external_package.log.gz",
+      "sha256": "ff59a418b965fa4b8e81691ff7dc2530358bce3211b84eb5aa40706d1eebd1d2",
+      "bytes": 283
+    },
+    "external_cli": {
+      "file": "external_cli.log.gz",
+      "sha256": "ba24364ed0a408d8a605a852e9073a451212c39051a95667f1f308e3bdc4b6f0",
+      "bytes": 299
+    },
+    "external_upgrade": {
+      "file": "external_upgrade.log.gz",
+      "sha256": "927ed7ccf0d588129cf40014accb9fa80c38ad9ff632fb3a5d6a1e7294f665f4",
+      "bytes": 272
+    },
+    "node24_manager_validate": {
+      "file": "node24_manager_validate.log.gz",
+      "sha256": "c1eb18edc5be988247cc7b15a223ec717912c427e9ff63d3e6540c572b7a34e6",
+      "bytes": 54940
+    }
+  },
+  "manager_validation": "PASS on Node 24, one preexisting publication-trigger placeholder warning"
+}

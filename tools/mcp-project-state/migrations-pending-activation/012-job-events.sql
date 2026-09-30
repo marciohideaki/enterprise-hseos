@@ -1,0 +1,6 @@
+-- Additive candidate job aggregate; no operational activation.
+DROP TRIGGER execution_event_schemas_no_insert;
+INSERT INTO execution_event_schemas (event_type, schema_version) VALUES ('JobCommandRecorded', 1);
+CREATE TRIGGER execution_event_schemas_no_insert
+BEFORE INSERT ON execution_event_schemas
+BEGIN SELECT RAISE(ABORT, 'execution_event_schemas changes require a migration'); END;

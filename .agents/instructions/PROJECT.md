@@ -29,6 +29,7 @@ If two instructions conflict, stop and ask for a human decision. Do not average 
 
 ## Global Governance Discovery
 
+- When entering a new repository or a project with no verified HSEOS adoption, ask once whether the user wants to use HSEOS. Offer `hseos init` to inspect profiles and an install plan; never infer adoption or run an installation solely from repository absence. Honor an adoption decision the user already made without asking again.
 - Before work, after context loss or project changes, and before any absence claim, run `hseos governance-context --directory <consumer> --json` and read the applicable producer standards.
 - Follow `.enterprise/policies/governance-discovery.md`. A missing consumer AGENTS.md, local package or search match does not establish global absence.
 - Distinguish defined, available, loaded, applied and enforced; uninspected layers remain not verified. Other producers require separate activation evidence.

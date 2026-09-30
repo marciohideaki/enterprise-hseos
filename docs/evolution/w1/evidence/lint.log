@@ -1,0 +1,18 @@
+
+> hseos@4.0.0-rc.0 lint
+> eslint . --ext .js,.cjs,.mjs,.yaml --max-warnings=0
+
+
+/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-engineering-workspace.js
+  27:7  error  Missing braces in case clause  unicorn/switch-case-braces
+  30:7  error  Missing braces in case clause  unicorn/switch-case-braces
+  34:7  error  Missing braces in case clause  unicorn/switch-case-braces
+  37:7  error  Missing braces in case clause  unicorn/switch-case-braces
+  40:7  error  Missing braces in case clause  unicorn/switch-case-braces
+  43:7  error  Missing braces in case clause  unicorn/switch-case-braces
+  46:7  error  Missing braces in case clause  unicorn/switch-case-braces
+  50:7  error  Missing braces in case clause  unicorn/switch-case-braces
+
+✖ 8 problems (8 errors, 0 warnings)
+  8 errors and 0 warnings potentially fixable with the `--fix` option.
+

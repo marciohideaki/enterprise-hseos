@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-26",
+  "scope": "Real ACP interoperability pilot; L0 admission rejected",
+  "agent": {
+    "package": "@agentclientprotocol/codex-acp",
+    "version": "1.13.1",
+    "integrity": "sha512-NAbXTb6GRReox7B+8RN9VRB+sKUqFJh5Vg7Ex7RskYCO8EsYPJKN1WJvN7mOqjCKKK9lVDrNxtP7Bp/OUKPyAg==",
+    "license": "Apache-2.0",
+    "codex_version": "codex-cli 0.157.1",
+    "codex_path_override": true
+  },
+  "checks": {
+    "initialize_protocol_1": true,
+    "read_only_mode": true,
+    "expected_response": true,
+    "process_restart_and_history_load": true,
+    "inflight_cancellation_confirmed": true,
+    "client_host_requests": 0,
+    "native_tool_notifications": 0,
+    "process_group_drained": true,
+    "l0_admitted": false
+  },
+  "budget": {
+    "route": "account",
+    "prompts_dispatched": 2,
+    "paid_api_calls": 0,
+    "additional_reserved_microusd": 0,
+    "global_cap_microusd": 10000000,
+    "historical_retained_microusd": 8000000,
+    "available_microusd": 2000000,
+    "campaign_adapter_integration": false
+  },
+  "quota_observation": {
+    "observed_at": 1790469658440,
+    "account_type": "chatgpt",
+    "ordinary_usage_allowed": true,
+    "used_percent": 19,
+    "paid_credits": false
+  },
+  "tests": {
+    "passed": 38,
+    "failed": 0,
+    "skipped": 0,
+    "runtime": "Node 24"
+  },
+  "hashes": {
+    "packages/runtime-providers/process-acp-peer.js": "5af566a252c297e36e16f3b6a54157c0935416ab6b10548ae184035cf2b2a86c",
+    "packages/runtime-providers/acp-runtime-provider.js": "cfada6e98469af1fe462f93bdfda2434afab5f23e5432cfd379ac2306c560ac8",
+    "tools/cli/lib/provider-campaign-process.js": "450d668137e5a7dddfaad6e23a3681adf2b26617612fd186b99aea64a84666a8",
+    ".logs/runs/w3-acp-real/worker.cjs": "c1f2f12d35e7bb3c584507237d6bf76083978c56257d720a4eee9c3f6c101804",
+    ".logs/runs/w3-acp-real/gate-worker.cjs": "174870d51e11d0cd8520455d60d9a1fc075e885f5a1e5f8f7a0c7acae29d8beb",
+    "/build/tmp/hseos-w3-acp/node_modules/@agentclientprotocol/codex-acp/dist/index.js": "4c1f6c00e67c2ace5a96f0e0fe6e812502a48827a403014d4b68373464f55fce",
+    "/usr/local/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex": "3e2584f3f3829a43a0495011a1cecb2facbe64a2403e2b682351fd9c2983f970"
+  },
+  "limitations": [
+    "No host-effect boundary attestation",
+    "Read-only is not instructions-only",
+    "L0 rejects capabilities before session/new",
+    "Protocol pilot does not certify campaign adapter or four-family conformance",
+    "No invoice verification"
+  ]
+}

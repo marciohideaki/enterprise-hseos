@@ -1,0 +1,11 @@
+{
+  "observed_at": 1790480284440,
+  "version": "codex-cli 0.157.1",
+  "account_type": "chatgpt",
+  "account_sha256": "e4174663cc7e5b7717d18784908cd5861731bee2cc1888e8eadd8681c489d42d",
+  "ordinary_usage_allowed": true,
+  "used_percent": 36,
+  "has_paid_credits": false,
+  "unlimited": false,
+  "inference_executed": false
+}

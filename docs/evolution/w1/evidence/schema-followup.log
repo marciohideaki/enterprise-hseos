@@ -1,0 +1,192 @@
+✔ candidate profile is explicit, key-referenced, sandbox-required and still non-operational (165.623673ms)
+✖ rehearsal migrates and discards a private candidate, restores v4 and leaves source byte-identical (77.147601ms)
+✔ rehearsal rejects link aliases and live SQLite sidecars before making a copy (8.23296ms)
+✖ explicit live mode checkpoints a verified WAL snapshot without opening or changing the operational database (83.109272ms)
+✔ retired IDE compatibility has zero internal callers while gated runtime compatibility remains visible (103.983499ms)
+✔ caller scan detects aliases, double-quoted state methods, and runtime callers under src (1.825993ms)
+✖ migration dry-run upgrades only a temporary copy and preserves every legacy table (21.161465ms)
+✖ read-only telemetry evidence can become ready but never bypasses active callers or human authorization (368.906916ms)
+✔ downstream release evidence is strict, scope-bound, integrity-checked, and never authorizes cutover (10.091194ms)
+✔ descriptor-bound evidence read rejects a pathname swapped during artifact verification (2.089582ms)
+✖ audit rejects a structurally valid but fabricated bundle before the human gate (304.642344ms)
+✔ sparse daily telemetry cannot produce a false green (14.489355ms)
+✔ invalid hour labels and direct usage rows cannot forge zero-use readiness (481.068912ms)
+✔ dry-run rejects links and live SQLite sidecars before opening operational state (4.736209ms)
+✔ operational runner stays at v4 and the gated fixture migration creates schema v2 (12.253019ms)
+✔ fixture schema gate rejects an operational database path (0.562167ms)
+✔ fixture schema gate rejects symlink and hardlink aliases under /tmp (1.298862ms)
+✔ compare-and-append produces monotonic stream versions and global positions (13.62159ms)
+✔ a failure on the second row rolls back the complete append batch (6.407719ms)
+✔ stale expected_version fails with a typed conflict and no implicit retry (4.461268ms)
+✔ an exact event-id retry is idempotent while changed or partial reuse fails (4.659262ms)
+✔ append metrics are dimensioned by aggregate type and defensively copied (5.168434ms)
+✔ ledger rows reject update/delete/replace and sensitive payload fields (14.658596ms)
+✔ payload and actor require strict lossless JSON values (7.939675ms)
+✔ ES-10 identifiers and timestamps fail closed (6.722082ms)
+✔ concurrent connections yield unique monotonic sequences with explicit caller retry (282.285499ms)
+✔ fixture schema includes projection migration 006 while operational runner remains v4 (8.973231ms)
+✔ execution applicator is pure and deterministic (0.93531ms)
+✔ rebuild creates and atomically activates a complete generation (14.130273ms)
+✔ crash after apply but before checkpoint rolls back and reconcile catches up exactly once (10.316781ms)
+✔ failed side-by-side rebuild leaves the previous active generation visible (8.095275ms)
+✔ a successful side-by-side rebuild switches generations only at full high-water (7.693012ms)
+✔ health rejects false-green coverage even when checkpoint reaches high-water (7.433962ms)
+✔ health rejects equal-count projections with stale aggregate versions (5.515379ms)
+✔ health rejects semantically altered rows with matching version and position (6.287501ms)
+✔ an ineligible candidate cannot retire the active generation (7.408085ms)
+✔ a stale worker batch cannot regress an advanced checkpoint (7.541676ms)
+✔ health reports a checkpoint ahead of the ledger instead of false ok (6.869736ms)
+✔ an incompatible active projection fails health and reads closed (8.182166ms)
+✔ an incompatible candidate cannot be activated (8.181922ms)
+✔ fixture applies immutable approval migration 007 while the operational runner stays at v4 (8.056636ms)
+✔ event registry rejects unknown/current-invalid facts and deterministically upcasts history (2.06844ms)
+✔ event registry refuses schema fields without explicit classification (0.165251ms)
+✔ runtime seals tool and event registries against post-start injection (9.503303ms)
+✔ runtime commits authorized and started facts before provider dispatch and returns one envelope (15.417022ms)
+✔ input, authority, and policy failures are fail-closed before ledger/provider effects (29.779388ms)
+✔ reserved optional-warning failure mode fails closed before provider or ledger effects (4.833866ms)
+✔ provided invalid idempotency keys are rejected instead of replaced (4.768796ms)
+✔ invalid actor, resource scope, or signal fails before durable facts (29.991139ms)
+✔ malformed policy approval and warning fields fail closed before effects (15.972088ms)
+✔ explicit approval is immutable, operation-bound, consumed once, and replay does not redispatch (7.884425ms)
+✔ approval records reject lossy JSON and sensitive scope data (4.731059ms)
+✔ expired or scope-mismatched approvals cannot dispatch (13.122915ms)
+✔ denied, wrong-policy, not-active, and reused approvals fail before dispatch (34.687188ms)
+✔ approval consumption rolls back atomically when pre-effect facts cannot commit (8.069601ms)
+✔ deadline after dispatch records uncertain outcome and same idempotency key never redispatches (18.46072ms)
+✔ approval delay cannot extend the absolute execution deadline (27.296159ms)
+✔ terminal append failure after provider success stays in doubt and is never automatically replayed (10.656931ms)
+✔ same idempotency key cannot cross actor, resource, or contract policy scope (8.288448ms)
+✔ replay rejects trace or causation drift in any persisted operation fact (5.373411ms)
+✔ malformed provider evidence is terminally rejected after dispatch (13.170795ms)
+✔ malformed provider error receipt is omitted while outcome remains durable (8.163188ms)
+✔ primitive provider throws still record a terminal outcome (8.283089ms)
+✔ retryable provider failure remains retryable on immediate response and replay (9.050901ms)
+✔ a provider without idempotency support forces explicit approval (7.633855ms)
+✔ non-cancellable execution ignores a pre-aborted caller signal (7.358475ms)
+✔ cooperative execution records a durable cancellation before provider dispatch (5.799894ms)
+✔ queued cancellation still fails closed on authority and policy denial (10.573375ms)
+✔ output contract failure is failed for reads and uncertain for mutations (17.308688ms)
+✔ runtime rejects a ledger not bound to the exact fail-closed event registry (6.88359ms)
+✔ runtime rejects approval and ledger stores on different SQLite connections (17.322545ms)
+✔ the registry-bound ledger rejects direct unregistered execution facts (5.302194ms)
+✔ a default ledger also fails closed on unregistered execution facts (3.832965ms)
+✔ legacy telemetry path has one explicit central authority (1.762927ms)
+✔ legacy telemetry target cannot alias operational state or linked files (1.562628ms)
+✔ production entrypoint preserves metered legacy compatibility without pending schema activation (215.841255ms)
+✔ project-state --db keeps telemetry beside the selected database without env assistance (127.165787ms)
+✔ governance real HTTP entrypoint persists lifecycle before returning provider data (769.647919ms)
+✔ project_state real HTTP entrypoint persists lifecycle before returning provider data (834.854994ms)
+✔ swarm real HTTP entrypoint persists lifecycle before returning provider data (579.998873ms)
+✔ axon_bridge real HTTP entrypoint persists lifecycle before returning provider data (605.811096ms)
+✔ project-state provider cannot mutate when the pre-effect append fails (784.766286ms)
+✔ approval-required modern mutation completes through signed elicitation state (965.662752ms)
+✔ automatic stale sweep mutates only through the governed scheduler lifecycle (82.838707ms)
+✔ operational output validation rejects lossy provider values before success (32.264895ms)
+✔ unclassified tools are denied before runtime construction or provider invocation (0.190845ms)
+✔ operational database remains at schema v4 without fixture activation (10.749762ms)
+✔ production rejects a pre-existing pending schema even when its version is disguised (12.442234ms)
+✔ concurrent gated fixture startups serialize pending schema migration through version 11 (82.624828ms)
+✔ startup waits for an existing SQLite writer before applying connection pragmas (120.997703ms)
+✔ pending fixtures reject direct, symlinked, and hard-linked escape paths (1.192112ms)
+ℹ tests 91
+ℹ suites 0
+ℹ pass 86
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8627.762393
+
+✖ failing tests:
+
+test at test/test-agentic-activation-rehearsal.js:49:1
+✖ rehearsal migrates and discards a private candidate, restores v4 and leaves source byte-identical (77.147601ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'rehearsal-failed'
+  - 'rehearsal-passed'
+               ^
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-agentic-activation-rehearsal.js:56:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'rehearsal-failed',
+    expected: 'rehearsal-passed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/test-agentic-activation-rehearsal.js:110:1
+✖ explicit live mode checkpoints a verified WAL snapshot without opening or changing the operational database (83.109272ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'rehearsal-failed'
+  - 'rehearsal-passed'
+               ^
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-agentic-activation-rehearsal.js:123:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'rehearsal-failed',
+    expected: 'rehearsal-passed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/test-compatibility-audit.js:179:1
+✖ migration dry-run upgrades only a temporary copy and preserves every legacy table (21.161465ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-compatibility-audit.js:185:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/test-compatibility-audit.js:208:1
+✖ read-only telemetry evidence can become ready but never bypasses active callers or human authorization (368.906916ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-compatibility-audit.js:223:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/test-compatibility-audit.js:344:1
+✖ audit rejects a structurally valid but fabricated bundle before the human gate (304.642344ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-compatibility-audit.js:366:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

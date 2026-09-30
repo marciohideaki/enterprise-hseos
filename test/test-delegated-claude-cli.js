@@ -21,7 +21,7 @@ function cli(environment, ...args) {
     execFileSync(process.execPath, [CLI, 'agent', ...args, '--json'], {
       cwd: ROOT,
       encoding: 'utf8',
-      env: { PATH: process.env.PATH, HSEOS_DISABLE_UPDATE_CHECK: '1', ...environment },
+      env: { PATH: process.env.PATH, TMPDIR: os.tmpdir(), HSEOS_DISABLE_UPDATE_CHECK: '1', ...environment },
     }).trim(),
   );
 }

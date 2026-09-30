@@ -39,15 +39,20 @@ class AgentCoreCompiler {
     const root = path.resolve(projectDir);
     const sourceRoot = path.resolve(options.sourceRoot || getProjectRoot());
     const agentsDir = path.join(root, this.agentsDirName);
+    const selectedComponents = Array.isArray(options.selectedComponents) ? new Set(options.selectedComponents) : null;
     const targetEnterpriseSkillsDir = path.join(root, ENTERPRISE_SKILLS_DIR);
     const sourceEnterpriseSkillsDir = path.join(sourceRoot, ENTERPRISE_SKILLS_DIR);
     const enterpriseSkillsDir = (await fs.pathExists(targetEnterpriseSkillsDir)) ? targetEnterpriseSkillsDir : sourceEnterpriseSkillsDir;
     await syncCapabilityCatalog(root, sourceRoot, this.agentsDirName);
     await syncAdapterCatalog(root, sourceRoot, this.agentsDirName);
-    await syncPluginCatalog(root, sourceRoot, this.agentsDirName);
-    const registryPlugins = await writePluginRegistry(root, this.agentsDirName);
-    const activePluginManifests = await loadActivePluginManifests(root, registryPlugins, this.agentsDirName);
-    await verifyActivePluginConformance(root, activePluginManifests, this.agentsDirName);
+    let registryPlugins;
+    let activePluginManifests = [];
+    if (!selectedComponents) {
+      await syncPluginCatalog(root, sourceRoot, this.agentsDirName);
+      registryPlugins = await writePluginRegistry(root, this.agentsDirName);
+      activePluginManifests = await loadActivePluginManifests(root, registryPlugins, this.agentsDirName);
+      await verifyActivePluginConformance(root, activePluginManifests, this.agentsDirName);
+    }
 
     await fs.ensureDir(agentsDir);
     await writeInstructions(root, this.agentsDirName);
@@ -82,7 +87,8 @@ class AgentCoreCompiler {
       hookSource = await resolveHooksPath(root, sourceRoot);
     }
 
-    const hooks = await this.writeHookRegistry(root, hookSource, null);
+    const includeHooks = !selectedComponents || selectedComponents.has('runtime:hooks');
+    const hooks = await this.writeHookRegistry(root, includeHooks ? hookSource : null, null);
 
     // Sync handler scripts from the enterprise source into the compiled tree and
     // hash-pin them (skills-style). Projects without the enterprise handlers dir
@@ -90,7 +96,7 @@ class AgentCoreCompiler {
     const targetHandlersDir = path.join(root, ENTERPRISE_HOOKS_DIR, 'handlers');
     const sourceHandlersDir = path.join(sourceRoot, ENTERPRISE_HOOKS_DIR, 'handlers');
     const handlersSourceDir = (await fs.pathExists(targetHandlersDir)) ? targetHandlersDir : sourceHandlersDir;
-    const handlers = await syncHandlers(root, handlersSourceDir, this.agentsDirName);
+    const handlers = includeHooks ? await syncHandlers(root, handlersSourceDir, this.agentsDirName) : [];
     const commands = await writeCommandRegistry(root, hseosDir, this.agentsDirName);
     const agents = await collectAgents(root);
     const plugins = activePluginManifests.map((plugin) => {
@@ -98,7 +104,10 @@ class AgentCoreCompiler {
       if (plugin.extends) entry.extends = plugin.extends;
       return entry;
     });
-    const mcp = await collectMcp(root, this.agentsDirName, hseosDir);
+    const mcp =
+      !selectedComponents || selectedComponents.has('runtime:mcp')
+        ? await collectMcp(root, this.agentsDirName, hseosDir)
+        : { bundles: [], servers: [] };
 
     // Adapters run after all sources are collected so cross-surface emitters
     // (Goose mirrors skills/agents/MCP bundles) receive real data. Returns the
@@ -108,7 +117,8 @@ class AgentCoreCompiler {
       agentsDirName: this.agentsDirName,
       sources: { skills, agents, mcpBundles: mcp.bundles || [] },
     });
-    await writePlatformPluginAdapters(root, registryPlugins, this.agentsDirName, emittedPlatforms, activePluginManifests);
+    if (registryPlugins)
+      await writePlatformPluginAdapters(root, registryPlugins, this.agentsDirName, emittedPlatforms, activePluginManifests);
 
     const manifest = await writeManifest(
       root,

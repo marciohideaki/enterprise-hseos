@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "status": "blocked",
+  "ready": false,
+  "operational_authorized": false,
+  "scope": "fixed-disposable-write-probes",
+  "profile": "lockdown",
+  "checks": [
+    {
+      "runtime": "node",
+      "process_ok": true,
+      "report_valid": true,
+      "workspace_write_confirmed": false,
+      "protected_marker_hidden": true,
+      "protected_marker_intact": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ok": false
+    },
+    {
+      "runtime": "python",
+      "process_ok": true,
+      "report_valid": true,
+      "workspace_write_confirmed": false,
+      "protected_marker_hidden": true,
+      "protected_marker_intact": true,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ok": false
+    }
+  ],
+  "remaining_gates": [
+    "network-and-ipc-isolation",
+    "descendant-cancellation",
+    "resource-bounds",
+    "protected-verifier",
+    "task-contract-and-snapshot",
+    "real-provider-campaign",
+    "operational-authorization"
+  ],
+  "backend_sha256": "9dbb68ebd94166423e2550c722bbde15f34ecabc3c14f5731fd355f77cc9870e",
+  "backend_unchanged": true,
+  "blocker": "sandbox-engineering-prerequisite-failed"
+}

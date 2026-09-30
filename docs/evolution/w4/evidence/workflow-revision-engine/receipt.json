@@ -1,0 +1,231 @@
+{
+  "task": "W4-04a2b",
+  "base_commit": "6bba910d",
+  "branch": "task/hseos-w4-workflow-revision-engine",
+  "status": "FULL_GATES_PASS_REVIEW_AND_COMMIT_PENDING",
+  "verification": {
+    "focused_node22": {
+      "passed": 31,
+      "failed": 0,
+      "skipped": 0
+    },
+    "focused_node24": {
+      "passed": 31,
+      "failed": 0,
+      "skipped": 0
+    },
+    "coverage": {
+      "22": {
+        "workflow-engine.js": {
+          "lines_percent": 93.23,
+          "branches_percent": 82.07
+        },
+        "event-contracts.js": {
+          "lines_percent": 94.15,
+          "branches_percent": 81.81
+        },
+        "replay.js": {
+          "lines_percent": 91.52,
+          "branches_percent": 90.76
+        }
+      },
+      "24": {
+        "workflow-engine.js": {
+          "lines_percent": 93.23,
+          "branches_percent": 81.99
+        },
+        "event-contracts.js": {
+          "lines_percent": 94.15,
+          "branches_percent": 81.81
+        },
+        "replay.js": {
+          "lines_percent": 91.52,
+          "branches_percent": 90.76
+        }
+      }
+    },
+    "mutants_node22": {
+      "killed": 18,
+      "survived": 0
+    },
+    "mutants_node24": {
+      "killed": 18,
+      "survived": 0
+    },
+    "lint": "PASS",
+    "package_surface": {
+      "entries": 1457,
+      "limit": 1457,
+      "node24": "PASS"
+    },
+    "gate_node22": {
+      "exit": 0,
+      "failures": 0,
+      "warnings": 0,
+      "runtime": "official Node.js 22.22.1, npm 10.9.4",
+      "node_tar_sha256": "9a6bc82f9b491279147219f6a18add1e18424dce90d41d2a5fcd69d4924ba3aa"
+    },
+    "validate_node24": {
+      "exit": 0,
+      "failures": 0,
+      "warnings": 1,
+      "warning": "pre-existing placeholders in epics-template.md"
+    },
+    "cancel_race_repetitions": {
+      "passed": 20,
+      "failed": 0,
+      "log": "cancel-race-fix-20.txt"
+    },
+    "format_modified": "PASS",
+    "format_repository": "FAIL: 113 pre-existing files outside task"
+  },
+  "review": {
+    "isolated_static": "PASS for W4-04a2b correction; no demonstrated regression",
+    "remaining": "W4-04b must reconcile durable children after spawn effect with lost receipt, and drain before release"
+  },
+  "diagnostics": {
+    "initial_mutant_run": "FAIL: harness expected ERR_ASSERTION but mutant produced WORKFLOW_DEFINITION_CONFLICT; expectation corrected and rerun PASS",
+    "node24_first_gate": "FAIL: cancellation during workflow dispatch became uncertain; race reproduced and fixed, final validate passed",
+    "node22_attempts": "system Node 22 lacks TypeScript; native ABI mismatch, npm 9 package count 1459 and symlink module resolution separately diagnosed; official Node 22 gate passed with 1457-entry package surface",
+    "heavy_run_lock": "a long-lived container process inherited heavy-run lock; Node 24 validation used equivalent systemd-run CPU and memory scope, sequentially"
+  },
+  "governance": {
+    "foundation_merge": false,
+    "publication": false,
+    "operational_activation": false,
+    "new_paid_campaign": false,
+    "aew_application_enforcement": "NOT_VERIFIED"
+  },
+  "source_sha256": {
+    ".specs/features/harness-w4/_INDEX.md": "09f868edd188a507646396126b71cab5c6bd631cae037761e14f389606f0e30f",
+    ".specs/features/harness-w4/tasks.md": "0b9366e2fecb3a364b1941cedf37ada2da1cdb5892941e621fad07c68c2803c6",
+    ".specs/features/harness-w4/workflow-revision-engine-implementation.md": "479c978fbcd4ba42ce3a5b60e94ebb587ec4de88611b82d3a0b07845473cbefa",
+    "packages/agent-orchestration/workflow-engine.js": "f6709a1506b186d24f5bcd8ba478016b2d79cac15bf67eb4595f66c82222fac1",
+    "test/test-workflow-reservations.js": "391000102e1a95da1fdfbb43d0d16489fafee068bfdb38884b54c812c605bbaa",
+    "test/test-kernel-mutations.js": "9a4468d088c1a3053627ebe470262591fe7dc252e32e9a14966a30007eb9adf5",
+    "test/fixtures/kernel-mutation-loader.cjs": "cd4b4297ee99d8580d8876592f546f6fe005844f671fa837d7c1729b6c832a1b",
+    "tools/cli/lib/engineering-workflow-runtime.js": "1e49046051ee9bd1d9d213e8396e8ed0ed408040e775146be068848b5aca95f6"
+  },
+  "artifacts": [
+    {
+      "label": "focused-node22",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/focused-node22.log.gz",
+      "sha256": "8fd8dc32803267e604ded6aa63e1d83151e0a71cb7e13b497942e850c7fa3361",
+      "source_sha256": "cb790b8196f6bebee9e190b7a3f472b08a623249d6384a8231b3031f3536f570"
+    },
+    {
+      "label": "focused-node24",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/focused-node24.log.gz",
+      "sha256": "03bf59b7ab7cc68a7b77b00d5d798a2d1ef184890ef68bb229c4cfa4cc0824f2",
+      "source_sha256": "98eb11688be5bea2557eec761a6c7d573a3425f650fb98b0219482111841e6aa"
+    },
+    {
+      "label": "coverage-node22",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/coverage-node22.log.gz",
+      "sha256": "4cf3c769212e6697908bd7c651747d9af524e8911e71f2c04c22e054e7e29e18",
+      "source_sha256": "4f124911744c03f7ec584cfbfb4602100f718a7989f68f69ab95415f68be9933"
+    },
+    {
+      "label": "coverage-node24",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/coverage-node24.log.gz",
+      "sha256": "e45e60949f6b7e5802fcec4507c6b3cd12e340c840ce4284533cbdd0f60e1729",
+      "source_sha256": "04c1bbe40cb97c53ac8cbca2a513a34a94cae632b5d735d736270ef7174885b3"
+    },
+    {
+      "label": "mutants-node22",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/mutants-node22.log.gz",
+      "sha256": "eed1ac287727694bc49da3bfb937362ab92d237bf19481a1b16177aa71cfd493",
+      "source_sha256": "3b318504725710ff41695611f10ef18a99e997f5def3441f2f52b12f359df22e"
+    },
+    {
+      "label": "mutants-node24",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/mutants-node24.log.gz",
+      "sha256": "453f2b7348c362bf5915b6572026d387b11b0a995ccdd14badda6e3c853d693c",
+      "source_sha256": "bd679fdcbbf0539cf86470dad0298064f78af423c8d85e8e21ee13815942e684"
+    },
+    {
+      "label": "mutants-initial-failure",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/mutants-initial-failure.log.gz",
+      "sha256": "363d67657dc2a57bba25f79ff14e2226f13355812fb72cd2d17e15625c0d33ab",
+      "source_sha256": "32faa3078d724cf7e2d8e2c9d884825ca2712f8d2dcfddc72642b4081406fa2e"
+    },
+    {
+      "label": "gate-node22",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/gate-node22.log.gz",
+      "sha256": "ff6584cc5c56d539c02f8ef1528277c35656e78294856033fedbd3951b02aeeb",
+      "source_sha256": "181325ca148287277bc0ba711ebf84ce70bfd48815346377bdb7f1c3fdd090e3"
+    },
+    {
+      "label": "gate-node22-official-final",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/gate-node22-official-final.log.gz",
+      "sha256": "cd9940e52a67767dbfaa728980065e71c14bd88db60f0da1c12565663f0e38c4",
+      "source_sha256": "a38e0fca7e1580a231c599945dadfbbcd8e355e3cb662dcee5757de1982564b8"
+    },
+    {
+      "label": "validate-node24-final",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/validate-node24-final.log.gz",
+      "sha256": "bc8d85f65e896f84e891e381df0074b792432b8f08ba9ee2cb2205d3466c2f7c",
+      "source_sha256": "7ef7147777f82439a8b4afb4abf37eef1e8cae99eb5cdf4cfe367ad9190d286c"
+    },
+    {
+      "label": "coverage-node22-final",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/coverage-node22-final.log.gz",
+      "sha256": "11441a5de328789e5b88b6e92245828f181913d8f3722aa19ec086021422e979",
+      "source_sha256": "8b5cb5ff7d4e4b1f26fbee3a63572b8f5a32b840be0ad48fa239ca8217d25cdb"
+    },
+    {
+      "label": "coverage-node24-final",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/coverage-node24-final.log.gz",
+      "sha256": "1d5c3ff2f04b29a43ab33085b70b157b8176719f0ec9264006f8b908e7687f5c",
+      "source_sha256": "4f0efeb516b45a901f0f553ee07c0e128638d2f280330125fed229ce1617e934"
+    },
+    {
+      "label": "cancel-race-repro",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/cancel-race-repro.log.gz",
+      "sha256": "06e4268c2d79f4c22bcc096c82c98b636a333de9231d8223c2f98497971976ec",
+      "source_sha256": "83bb3f90035a425a1fbfab9655626b3359b3b14e509b6b918dd5cfe5754af741"
+    },
+    {
+      "label": "node24-initial-race-failure",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/node24-initial-race-failure.log.gz",
+      "sha256": "74cec1cb8d85287ee3d249ee85bd5d8da7828243f65b7531ac198f7841da92be",
+      "source_sha256": "d567efc9dd14909fec75c84cac58dbaf10057a0d5fac4d804e0d4a8119a6806f"
+    },
+    {
+      "label": "node22-native-mismatch",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/node22-native-mismatch.log.gz",
+      "sha256": "d08cc2bb6a2c3da377e3936b17ece649c9aeda6aa9a9833b9bca19e47de029f0",
+      "source_sha256": "fd037015b311a7b68fd9f5602e09be5e0732e82148053363c8f9ce9bac4cd388"
+    },
+    {
+      "label": "node22-system-npm9-package-failure",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/node22-system-npm9-package-failure.log.gz",
+      "sha256": "35beea03c7303a8b5539a2ece0623e0bbfc2e5015019b602248cb138862c11a7",
+      "source_sha256": "052f16245919d000afd5b8c8619e12e03b703822185e4a462b800b8c420547d7"
+    },
+    {
+      "label": "node22-system-typescript-failure",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/node22-system-typescript-failure.log.gz",
+      "sha256": "ac9a0c7b18463447e3f247c791363a8f9761ad782243057a8f0877419e793079",
+      "source_sha256": "160fdcad1257d6252b84332ef2a7f6c37844dd8293568973ed50555c50a64c61"
+    },
+    {
+      "label": "node22-symlink-coverage-failure",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/node22-symlink-coverage-failure.log.gz",
+      "sha256": "7cd86c7252d2035ab5040d96567ede75cdbe9ebc3306ddbf37f226e375f2a571",
+      "source_sha256": "53809bb1a657dba489db17c60c3f63c583cac059e0ea72cb13f71d5d84db93bd"
+    },
+    {
+      "label": "lint-final",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/lint-final.log.gz",
+      "sha256": "dcdedcacecb3148d86cc988688b9da9ebf789e5b5784dc81851eaf43ace46bf8",
+      "source_sha256": "cc6b4feb435484d113b62528c9012176a6894f5a0bad6bf6fe1b92944acc7514"
+    },
+    {
+      "label": "format-global-baseline",
+      "path": "docs/evolution/w4/evidence/workflow-revision-engine/format-global-baseline.log.gz",
+      "sha256": "7b7da0212d62fde02f3e96c9b490920aeda24e93bf282a6535fab88a1b12bb10",
+      "source_sha256": "a623cb11aa74e043d54f145f72f2b8f709873c846b8278d7c814f9e2f9475c5e"
+    }
+  ]
+}

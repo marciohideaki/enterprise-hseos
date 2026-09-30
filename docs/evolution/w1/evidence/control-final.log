@@ -1,0 +1,19 @@
+✔ CLI, JavaScript, Python and HTTP share identity, task results and replayable event cursors (4314.418925ms)
+✔ authenticated control rejects wrong identity, origins, workspace escalation and stale commands (1735.685314ms)
+✔ an intent without receipt is not automatically dispatched again (1711.326763ms)
+✔ review binds approval to Git baseline and only explicit apply modifies the source project (3341.493794ms)
+✔ concurrent source edits invalidate the prior review and are preserved (3154.511729ms)
+✔ public preparation pins the current workspace and cannot expand the server allowlist (65.050632ms)
+✔ workflows reuse the same API control and aggregate kernel budget (3452.682672ms)
+✔ HTTP rejects malformed, oversized and unsupported requests without exposing internal errors (1474.461974ms)
+✔ SDK rejects remote endpoints, malformed cursors and invalid query views (0.621702ms)
+✔ candidate edits after approval invalidate review without applying unverified bytes (3172.750934ms)
+✔ control rejects model ambiguity, unknown bindings and duplicate resources before effects (1545.778754ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 24693.770118

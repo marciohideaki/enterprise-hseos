@@ -1,0 +1,40 @@
+=== HSEOS Quality Gate Run: 20260925T022116 ===
+PHASE=auto STRICT=false VALIDATION_ENFORCED=true
+
+[0;34m[INFO][0m HSEOS Quality Gates — Phase: auto
+[0;34m[INFO][0m Repository: /workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-v4-consolidation
+[0;34m[INFO][0m Log: /workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-v4-consolidation/.logs/validation/gate-20260925T022116.log
+[0;34m[INFO][0m Gate 0: Enforcement Flags
+[0;32m[PASS][0m VALIDATION_ENFORCED=true
+[0;34m[INFO][0m Gate 1: Governance Structure
+[0;32m[PASS][0m Exists: .enterprise/.specs/constitution/Enterprise-Constitution.md
+[0;32m[PASS][0m Exists: .enterprise/policies/automated-validation.md
+[0;32m[PASS][0m Exists: CLAUDE.md
+[0;32m[PASS][0m Exists: AGENTS.md
+[0;32m[PASS][0m Dir exists: .enterprise/agents
+[0;32m[PASS][0m Dir exists: .enterprise/governance
+[0;32m[PASS][0m Dir exists: .enterprise/policies
+[0;32m[PASS][0m Dir exists: .logs/runs
+[0;32m[PASS][0m Dir exists: .logs/validation
+[0;32m[PASS][0m Dir exists: .logs/summaries
+[0;34m[INFO][0m Gate 1.1: Governance Anchors and Capability Graph
+Constitution validation passed: unchanged at 2.2
+[0;32m[PASS][0m Constitutional change control: passed
+Capability graph valid: 1/4 fragments validated (3 delegated), 10 nodes, 14 edges, 0 findings
+[0;32m[PASS][0m Federated capability graph: passed
+Capability reference corpus valid: 10 sources (5 products, 5 cores)
+Product discovery coverage: 29/33
+Full reference coverage: 33/33
+Pinned evidence: 0 resolved, 10 deferred
+[0;32m[PASS][0m Capability reference corpus: passed
+[0;34m[INFO][0m Gate 7: Canonical Source Invariant (ADR-0015)
+[0;32m[PASS][0m No external skill-mirror canonical references in runtime assets
+[0;34m[INFO][0m Gate 2: Documentation Quality
+[1;33m[WARN][0m Unresolved placeholders (2) in: src/hsm/workflows/3-solutioning/create-epics-and-stories/templates/epics-template.md
+[0;34m[INFO][0m markdownlint not available — skipping markdown syntax check
+[0;34m[INFO][0m Gate 3: Code Quality
+[0;34m[INFO][0m Detected Node.js project changes in scope
+[0;32m[PASS][0m Lint: passed
+  FAIL  suggest-skill.sh outside HSEOS project is silent no-op — stdout=""
+[0;31m[FAIL][0m Tests: FAILED
+[0;34m[INFO][0m No staged agent-schema-sensitive changes — skipping schema validation

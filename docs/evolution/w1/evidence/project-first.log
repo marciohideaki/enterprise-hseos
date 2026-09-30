@@ -1,0 +1,65 @@
+✔ v2 snapshots a Git project and preserves its immutable input after external edits (78.055418ms)
+✔ v2 refuses links, invalid UTF-8, changed Git baseline and embedded substitution (201.968315ms)
+✔ project acceptance and verifier inputs cannot drift after pinning (43.148353ms)
+✔ protected verifier executes Node multi-file inside isolation (1724.321682ms)
+✖ protected verifier executes TypeScript inside isolation (2071.48002ms)
+✔ protected verifier executes Python multi-file inside isolation (1458.024676ms)
+✔ protected verifier executes web static content inside isolation (1700.562129ms)
+✔ protected verifier executes incorrect delivery inside isolation (2107.867385ms)
+✔ validates and freezes a versioned contract without attesting the verifier or executing code (10.290341ms)
+✔ rejects source drift (1.485697ms)
+✔ rejects file drift (0.804815ms)
+✔ rejects traversal (1.043222ms)
+✔ rejects absolute path (0.449067ms)
+✔ rejects hidden control path (0.310138ms)
+✔ rejects path prefix collision (0.331555ms)
+✔ rejects write outside read scope (0.342126ms)
+✔ rejects duplicate file (0.424643ms)
+✔ rejects file outside scope (0.5475ms)
+✔ rejects missing source (0.324229ms)
+✔ rejects uncovered requirement (0.29828ms)
+✔ rejects missing requirement (0.296106ms)
+✔ rejects missing acceptance (0.266068ms)
+✔ rejects duplicate acceptance (3.537966ms)
+✔ rejects unknown authority (0.557291ms)
+✔ rejects privileged source role (0.37557ms)
+✔ rejects shell command (0.334079ms)
+✔ rejects command outside scope (0.266843ms)
+✔ rejects unbounded retries (0.257002ms)
+✔ rejects invalid duration (0.319569ms)
+✔ rejects unsafe integer (0.430325ms)
+✔ rejects child budget (0.228986ms)
+✔ rejects oversized artifacts (0.200165ms)
+✔ rejects invalid rollback (0.307871ms)
+✔ source instructions remain untrusted data and changing them invalidates the receipt (0.655823ms)
+✔ linked and oversized input files are rejected before loading their contents (0.933155ms)
+✔ public validation emits no source contents and cannot select an execution profile (672.2761ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 35
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10588.559869
+
+✖ failing tests:
+
+test at test/test-engineering-project.js:138:3
+✖ protected verifier executes TypeScript inside isolation (2071.48002ms)
+  AssertionError [ERR_ASSERTION]: {"schema_version":1,"profile":"managed-project","task_run_id":"9d809018-5da5-411e-bbba-9d0ee38eecb7","task_id":"addition-fixture","state":"/tmp/hseos-ledger-fixture-rOmvNW","session_id":"session:9a7dd589-b3a8-4bf6-b803-cd8ed1bba115","status":"completed","task_result":"failed","reason":"criteria-not-satisfied","current_sequence":10,"contract_sha256":"6704808b9929e2e793c92603490e73790168b75f12c3f41888919e60c3512d40","token_accounting":{"reported_input_tokens":3,"reported_output_tokens":3,"conservative_estimate_tokens":0,"total_tokens":6,"estimate_counter":"token-counter:utf8-byte-upper-bound"},"correction_reviews":[{"kind":"review","step_id":"step:f16b2c3381ae7ebd69aca0036311f6cc49428e03","approved":false,"reason":"criteria-not-satisfied","files_sha256":"0ceb76652ace23a28f505198d39da1898e98425bd73597d107861443dc151b0c","correction_requested":true},{"kind":"review","step_id":"step:b1ee04e67467f1efe22801caab46808deae5ed6d","approved":false,"reason":"criteria-not-satisfied","files_sha256":"0ceb76652ace23a28f505198d39da1898e98425bd73597d107861443dc151b0c","correction_requested":true},{"kind":"review","step_id":"step:3cc1a66c331e33e2377bdf645c2daf075aaed4e6","approved":false,"reason":"criteria-not-satisfied","files_sha256":"0ceb76652ace23a28f505198d39da1898e98425bd73597d107861443dc151b0c","correction_requested":false}],"correction_diagnoses":[],"questions":[],"operational_authorized":false}
+  + actual - expected
+  
+  + 'failed'
+  - 'approved'
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-engineering-project.js:144:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'failed',
+    expected: 'approved',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

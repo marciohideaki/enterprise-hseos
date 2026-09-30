@@ -1,0 +1,58 @@
+✖ detach rejects later data, EOF and resize while draining earlier input (false) (2.896664ms)
+✖ detach rejects later data, EOF and resize while draining earlier input (true) (0.46091ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 396.313466
+
+✖ failing tests:
+
+test at test/test-terminal-api.js:235:3
+✖ detach rejects later data, EOF and resize while draining earlier input (false) (2.896664ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'input',
+  +   'eof',
+  +   'resize'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w2-detach-fence/test/test-terminal-api.js:259:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'input', 'eof', 'resize' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test/test-terminal-api.js:235:3
+✖ detach rejects later data, EOF and resize while draining earlier input (true) (0.46091ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'input',
+  +   'input',
+  +   'eof',
+  +   'resize'
+    ]
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w2-detach-fence/test/test-terminal-api.js:259:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'input', 'input', 'eof', 'resize' ],
+    expected: [ 'input' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

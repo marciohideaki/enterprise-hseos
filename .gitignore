@@ -18,3 +18,7 @@ node_modules/
 
 # Personal (per-user) Claude Code settings — never shared
 .claude/settings.local.json
+
+# Python SDK bytecode caches
+__pycache__/
+*.pyc

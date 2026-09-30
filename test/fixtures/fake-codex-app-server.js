@@ -46,6 +46,8 @@ readline.createInterface({ input: process.stdin, crlfDelay: Infinity }).on('line
   }
   if (message.method === 'initialized') return;
   if (!initialized) return send({ id: message.id, error: { code: -32000, message: 'Not initialized' } });
+  if (message.method === 'account/read') return result(message.id, { account: { type: 'chatgpt', email: 'fixture@example.invalid' } });
+  if (message.method === 'account/rateLimits/read') return result(message.id, { rateLimits: { limitId: 'codex', primary: { usedPercent: 20, resetsAt: Math.ceil(Date.now()/1000)+60 }, secondary: null, credits: { hasCredits: false, unlimited: false } } });
   const current = state();
   if (message.method === 'thread/start') {
     if (message.params.sandbox !== 'read-only') {
@@ -58,7 +60,7 @@ readline.createInterface({ input: process.stdin, crlfDelay: Infinity }).on('line
   if (message.method === 'thread/resume') {
     current.resumed += 1;
     save(current);
-    return result(message.id, { thread: { id: message.params.threadId } });
+    return result(message.id, { thread: { id: message.params.threadId, turns: [{ id: 'codex-turn-historical', status: 'completed' }] } });
   }
   if (message.method === 'turn/start') {
     if (message.params.sandboxPolicy?.type !== 'readOnly') {
@@ -67,6 +69,9 @@ readline.createInterface({ input: process.stdin, crlfDelay: Infinity }).on('line
     current.turns += 1;
     save(current);
     activeTurn = `codex-turn-${current.turns}`;
+    if (mode === 'stale-usage' || mode === 'foreign-stale-usage') {
+      notification('thread/tokenUsage/updated', { threadId: mode === 'foreign-stale-usage' ? 'foreign-thread' : message.params.threadId, turnId: 'codex-turn-historical', tokenUsage: { last: { inputTokens: 999, outputTokens: 999 } } });
+    }
     result(message.id, { turn: { id: activeTurn, status: 'inProgress' } });
     const identity = { threadId: message.params.threadId, turnId: activeTurn };
     if (mode === 'exit') return process.exit(23);
@@ -78,6 +83,7 @@ readline.createInterface({ input: process.stdin, crlfDelay: Infinity }).on('line
       notification('item/started', { ...identity, item: { type: 'futureEffectType', id: 'item-1' } });
       return;
     }
+    notification('thread/tokenUsage/updated', { ...identity, tokenUsage: { last: { inputTokens: 5, outputTokens: 2 }, total: { inputTokens: 5, outputTokens: 2 } } });
     notification('item/agentMessage/delta', { ...identity, itemId: 'item-1', delta: 'fixture answer' });
     if (mode !== 'wait') notification('turn/completed', { threadId: identity.threadId, turn: { id: activeTurn, status: 'completed' } });
     return;

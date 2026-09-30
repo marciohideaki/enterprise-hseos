@@ -6,7 +6,7 @@ const yaml = require('yaml');
 const { getProjectRoot } = require('./project-root');
 
 const WORKFLOW_SCHEMA_VERSION = '2.0';
-const WORKFLOW_KINDS = new Set(['executable', 'subsystem']);
+const WORKFLOW_KINDS = new Set(['recipe', 'subsystem']);
 const SUPPORTED_PROFILES = new Set(['core', 'release', 'runtime', 'full']);
 const CHECK_KINDS = new Set([
   'git_repo',
@@ -75,6 +75,11 @@ function assertExactKeys(value, allowed, label) {
 }
 
 function normalizeWorkflowCatalogDocument(document) {
+  if (Number(document?.version) === 2 && Array.isArray(document.workflows))
+    return {
+      ...document,
+      workflows: document.workflows.map((workflow) => (workflow.kind === 'executable' ? { ...workflow, kind: 'recipe' } : workflow)),
+    };
   if (Number(document?.version) !== 1 || document.schema_version !== undefined) return document;
   return {
     version: 2,
@@ -84,7 +89,7 @@ function normalizeWorkflowCatalogDocument(document) {
           const executable = Array.isArray(workflow?.phases) || Array.isArray(workflow?.checks);
           return {
             ...workflow,
-            kind: executable ? 'executable' : 'subsystem',
+            kind: executable ? 'recipe' : 'subsystem',
             ...(executable ? { execution_mode: 'sequential' } : {}),
           };
         })
@@ -142,10 +147,10 @@ function validateWorkflowCatalogDocument(document, root = getProjectRoot()) {
     }
 
     if (workflow.execution_mode !== 'sequential') {
-      throw new Error(`Executable workflow ${workflow.id} requires sequential phase execution`);
+      throw new Error(`Methodology recipe ${workflow.id} requires sequential phase execution`);
     }
     if (!Array.isArray(workflow.phases) || workflow.phases.length === 0) {
-      throw new Error(`Executable workflow ${workflow.id} requires phases`);
+      throw new Error(`Methodology recipe ${workflow.id} requires phases`);
     }
     const phaseIds = new Set();
     for (const phase of workflow.phases) {
@@ -178,7 +183,7 @@ function validateWorkflowCatalogDocument(document, root = getProjectRoot()) {
         if (workflow.batch[field] !== undefined) assertSafeRelative(workflow.batch[field], `Workflow ${workflow.id}.batch.${field}`);
       }
     }
-    if (!Array.isArray(workflow.checks)) throw new Error(`Executable workflow ${workflow.id} requires a checks list`);
+    if (!Array.isArray(workflow.checks)) throw new Error(`Methodology recipe ${workflow.id} requires a checks list`);
     const checkIds = new Set();
     for (const check of workflow.checks) {
       assertObject(check, `Workflow ${workflow.id} check`);

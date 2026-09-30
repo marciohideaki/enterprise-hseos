@@ -1,0 +1,7136 @@
+[
+  {
+    "id": "hseos@4.0.0-rc.0",
+    "name": "hseos",
+    "version": "4.0.0-rc.0",
+    "size": 2433492,
+    "unpackedSize": 8888714,
+    "shasum": "089cff1bff84320adf5c38f1febce667406a5d15",
+    "integrity": "sha512-zcYM/PjMqK07PIYgjL4/vz41CEXjAHbqNjmQMRMSs+OXSFD7rT1rOppmYXWHFrykzQ+dd8GKgkQAiHFiRh4suw==",
+    "filename": "hseos-4.0.0-rc.0.tgz",
+    "files": [
+      {
+        "path": ".agents/activation/agent-openai-compatible-candidate.yaml",
+        "size": 794,
+        "mode": 420
+      },
+      {
+        "path": ".agents/activation/provider-bindings/claude-agent-sdk.example.yaml",
+        "size": 353,
+        "mode": 420
+      },
+      {
+        "path": ".agents/activation/provider-bindings/codex-app-server.example.yaml",
+        "size": 290,
+        "mode": 420
+      },
+      {
+        "path": ".agents/activation/provider-bindings/deepseek-acp-tool-free.example.yaml",
+        "size": 503,
+        "mode": 420
+      },
+      {
+        "path": ".agents/activation/provider-bindings/deepseek-acp.example.yaml",
+        "size": 571,
+        "mode": 420
+      },
+      {
+        "path": ".agents/activation/provider-bindings/openai-compatible.example.yaml",
+        "size": 687,
+        "mode": 420
+      },
+      {
+        "path": ".agents/adapters/_schema.yaml",
+        "size": 3527,
+        "mode": 420
+      },
+      {
+        "path": ".agents/adapters/claude-code.yaml",
+        "size": 1367,
+        "mode": 420
+      },
+      {
+        "path": ".agents/adapters/codex.yaml",
+        "size": 1115,
+        "mode": 420
+      },
+      {
+        "path": ".agents/adapters/goose.yaml",
+        "size": 1299,
+        "mode": 420
+      },
+      {
+        "path": ".agents/capabilities/components.yaml",
+        "size": 19996,
+        "mode": 420
+      },
+      {
+        "path": ".agents/capabilities/fragments/enterprise-hseos.yaml",
+        "size": 10678,
+        "mode": 420
+      },
+      {
+        "path": ".agents/capabilities/profiles.yaml",
+        "size": 6003,
+        "mode": 420
+      },
+      {
+        "path": ".agents/capabilities/README.md",
+        "size": 8829,
+        "mode": 420
+      },
+      {
+        "path": ".agents/capabilities/reference-corpus.json",
+        "size": 12716,
+        "mode": 420
+      },
+      {
+        "path": ".agents/capabilities/registry.yaml",
+        "size": 2131,
+        "mode": 420
+      },
+      {
+        "path": ".agents/capabilities/schemas/capability-graph-fragment-2.0.0.schema.json",
+        "size": 12514,
+        "mode": 420
+      },
+      {
+        "path": ".agents/capabilities/schemas/capability-graph-fragment.schema.json",
+        "size": 4419,
+        "mode": 420
+      },
+      {
+        "path": ".agents/capabilities/schemas/capability-graph-registry.schema.json",
+        "size": 4369,
+        "mode": 420
+      },
+      {
+        "path": ".agents/capabilities/schemas/capability-reference-corpus.schema.json",
+        "size": 4015,
+        "mode": 420
+      },
+      {
+        "path": ".agents/capabilities/surfaces.yaml",
+        "size": 4121,
+        "mode": 420
+      },
+      {
+        "path": ".agents/commands/registry.yaml",
+        "size": 1904,
+        "mode": 420
+      },
+      {
+        "path": ".agents/hooks/handlers/_ado-lib.sh",
+        "size": 7524,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/ado-branch-guard.sh",
+        "size": 1360,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/ado-inbox-check.sh",
+        "size": 1063,
+        "mode": 420
+      },
+      {
+        "path": ".agents/hooks/handlers/ado-on-plan-write.sh",
+        "size": 805,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/ado-pr-link.sh",
+        "size": 1819,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/ado-preflight-gate.sh",
+        "size": 2070,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/ado-tag-close.sh",
+        "size": 1759,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/ado-task-progress.sh",
+        "size": 1093,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/build-resource-guard.sh",
+        "size": 5023,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/capability-intake-guard.sh",
+        "size": 2073,
+        "mode": 420
+      },
+      {
+        "path": ".agents/hooks/handlers/claude-md-guard.sh",
+        "size": 1385,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/code-index-guard.sh",
+        "size": 4107,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/code-index-post-edit.sh",
+        "size": 2411,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/governance-context-state.cjs",
+        "size": 2820,
+        "mode": 420
+      },
+      {
+        "path": ".agents/hooks/handlers/governance-context.cjs",
+        "size": 7453,
+        "mode": 420
+      },
+      {
+        "path": ".agents/hooks/handlers/managed-governance-preflight.sh",
+        "size": 2722,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/on-notification.sh",
+        "size": 2360,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/on-prompt-submit.sh",
+        "size": 4000,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/plan-lint.sh",
+        "size": 2740,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/pre-compact.sh",
+        "size": 3048,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/README.md",
+        "size": 5537,
+        "mode": 420
+      },
+      {
+        "path": ".agents/hooks/handlers/rtk-rewrite.sh",
+        "size": 3370,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/session-end.sh",
+        "size": 3755,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/session-track.sh",
+        "size": 3263,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/suggest-skill.sh",
+        "size": 5127,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/swarm-gate.sh",
+        "size": 13289,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/telemetry-export-session.sh",
+        "size": 5043,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/handlers/telemetry-export-tool.sh",
+        "size": 5320,
+        "mode": 493
+      },
+      {
+        "path": ".agents/hooks/registry.yaml",
+        "size": 20595,
+        "mode": 420
+      },
+      {
+        "path": ".agents/instructions/CAPABILITY-MATRIX.md",
+        "size": 10267,
+        "mode": 420
+      },
+      {
+        "path": ".agents/instructions/lessons/_global.md",
+        "size": 3479,
+        "mode": 420
+      },
+      {
+        "path": ".agents/instructions/PROJECT.md",
+        "size": 4133,
+        "mode": 420
+      },
+      {
+        "path": ".agents/manifest.schema.json",
+        "size": 8185,
+        "mode": 420
+      },
+      {
+        "path": ".agents/manifest.yaml",
+        "size": 34187,
+        "mode": 420
+      },
+      {
+        "path": ".agents/mcp/bundles/core.yaml",
+        "size": 2133,
+        "mode": 420
+      },
+      {
+        "path": ".agents/mcp/bundles/enterprise.yaml",
+        "size": 3695,
+        "mode": 420
+      },
+      {
+        "path": ".agents/mcp/bundles/extended.yaml",
+        "size": 3378,
+        "mode": 420
+      },
+      {
+        "path": ".agents/mcp/registry.yaml",
+        "size": 1676,
+        "mode": 420
+      },
+      {
+        "path": ".agents/plugins/_schema.yaml",
+        "size": 3226,
+        "mode": 420
+      },
+      {
+        "path": ".agents/plugins/definitions/hseos-hookify/hooks/handlers/hookify-validate.sh",
+        "size": 223,
+        "mode": 493
+      },
+      {
+        "path": ".agents/plugins/definitions/hseos-hookify/hooks/registry-fragment.yaml",
+        "size": 456,
+        "mode": 420
+      },
+      {
+        "path": ".agents/plugins/definitions/hseos-hookify/plugin.yaml",
+        "size": 323,
+        "mode": 420
+      },
+      {
+        "path": ".agents/plugins/definitions/hseos-hookify/README.md",
+        "size": 929,
+        "mode": 420
+      },
+      {
+        "path": ".agents/plugins/definitions/hseos-pr-review/commands/pr-lint.md",
+        "size": 388,
+        "mode": 420
+      },
+      {
+        "path": ".agents/plugins/definitions/hseos-pr-review/commands/pr-review.md",
+        "size": 420,
+        "mode": 420
+      },
+      {
+        "path": ".agents/plugins/definitions/hseos-pr-review/plugin.yaml",
+        "size": 376,
+        "mode": 420
+      },
+      {
+        "path": ".agents/plugins/definitions/hseos-pr-review/README.md",
+        "size": 1140,
+        "mode": 420
+      },
+      {
+        "path": ".agents/plugins/definitions/hseos-security-guidance/plugin.yaml",
+        "size": 377,
+        "mode": 420
+      },
+      {
+        "path": ".agents/plugins/definitions/hseos-security-guidance/README.md",
+        "size": 1327,
+        "mode": 420
+      },
+      {
+        "path": ".agents/plugins/definitions/hseos-security-guidance/skills/dependency-audit/SKILL.md",
+        "size": 831,
+        "mode": 420
+      },
+      {
+        "path": ".agents/plugins/definitions/hseos-security-guidance/skills/threat-modeling/SKILL.md",
+        "size": 913,
+        "mode": 420
+      },
+      {
+        "path": ".agents/plugins/definitions/hseos-skill-creator/commands/skill-new.md",
+        "size": 428,
+        "mode": 420
+      },
+      {
+        "path": ".agents/plugins/definitions/hseos-skill-creator/plugin.yaml",
+        "size": 356,
+        "mode": 420
+      },
+      {
+        "path": ".agents/plugins/definitions/hseos-skill-creator/README.md",
+        "size": 1099,
+        "mode": 420
+      },
+      {
+        "path": ".agents/plugins/registry.yaml",
+        "size": 2614,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/accessibility/QUICK.md",
+        "size": 1590,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/accessibility/SKILL.md",
+        "size": 6286,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/ado-close-wave/QUICK.md",
+        "size": 873,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/ado-close-wave/SKILL.md",
+        "size": 2897,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/ado-new-project/QUICK.md",
+        "size": 1114,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/ado-new-project/SKILL.md",
+        "size": 6817,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/ado-ops/QUICK.md",
+        "size": 1029,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/ado-ops/SKILL.md",
+        "size": 7858,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/ado-plan/QUICK.md",
+        "size": 939,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/ado-plan/SKILL.md",
+        "size": 4542,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/ado-sync/QUICK.md",
+        "size": 736,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/ado-sync/SKILL.md",
+        "size": 3140,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/adr-compliance/QUICK.md",
+        "size": 1264,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/adr-compliance/SKILL.md",
+        "size": 6829,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/agent-permissions/QUICK.md",
+        "size": 2483,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/agent-permissions/SKILL.md",
+        "size": 6451,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/ai-observability/QUICK.md",
+        "size": 3041,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/ai-observability/SKILL.md",
+        "size": 10186,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/architecture-breaking-change-detection/QUICK.md",
+        "size": 1394,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/architecture-breaking-change-detection/SKILL.md",
+        "size": 5964,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/architecture-ddd-boundary-check/QUICK.md",
+        "size": 1528,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/architecture-ddd-boundary-check/SKILL.md",
+        "size": 5822,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/capability-check/QUICK.md",
+        "size": 582,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/capability-check/SKILL.md",
+        "size": 1449,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/commit-hygiene/QUICK.md",
+        "size": 2604,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/commit-hygiene/SKILL.md",
+        "size": 7399,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/context-compression/QUICK.md",
+        "size": 3175,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/context-compression/SKILL.md",
+        "size": 11722,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/context-engineering/QUICK.md",
+        "size": 3708,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/context-engineering/SKILL.md",
+        "size": 12235,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/context-policy/QUICK.md",
+        "size": 2569,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/context-policy/SKILL.md",
+        "size": 7443,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/core-drift/QUICK.md",
+        "size": 2998,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/core-drift/SKILL.md",
+        "size": 8235,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/dependency-audit/QUICK.md",
+        "size": 1378,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/dependency-audit/SKILL.md",
+        "size": 5746,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/dev-squad/QUICK.md",
+        "size": 5083,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/dev-squad/SKILL.md",
+        "size": 13196,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/doc-project/QUICK.md",
+        "size": 3264,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/doc-project/SKILL.md",
+        "size": 16217,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/documentation-completeness/QUICK.md",
+        "size": 1638,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/documentation-completeness/SKILL.md",
+        "size": 7043,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/enterprise-readiness-audit/QUICK.md",
+        "size": 2588,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/enterprise-readiness-audit/SKILL.md",
+        "size": 12793,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/gitops-add-service/QUICK.md",
+        "size": 1597,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/gitops-add-service/SKILL.md",
+        "size": 4977,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/gitops-deploy/QUICK.md",
+        "size": 2330,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/gitops-deploy/SKILL.md",
+        "size": 4494,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/gitops-new-project/QUICK.md",
+        "size": 1854,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/gitops-new-project/SKILL.md",
+        "size": 6043,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/goal-graph/QUICK.md",
+        "size": 4583,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/goal-graph/SKILL.md",
+        "size": 15296,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/hseos-goal-loop/QUICK.md",
+        "size": 2950,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/hseos-goal-loop/SKILL.md",
+        "size": 7027,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/inter-agent-comms/QUICK.md",
+        "size": 2538,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/inter-agent-comms/SKILL.md",
+        "size": 6819,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/mcp-governance/QUICK.md",
+        "size": 2395,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/mcp-governance/SKILL.md",
+        "size": 5291,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/multi-agent-orchestration/QUICK.md",
+        "size": 2840,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/multi-agent-orchestration/SKILL.md",
+        "size": 11898,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/naming-conventions/QUICK.md",
+        "size": 2006,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/naming-conventions/SKILL.md",
+        "size": 7461,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/observability-compliance/QUICK.md",
+        "size": 1558,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/observability-compliance/SKILL.md",
+        "size": 6283,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/performance-profiling/QUICK.md",
+        "size": 1591,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/performance-profiling/SKILL.md",
+        "size": 6718,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/policy-layer/QUICK.md",
+        "size": 2690,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/policy-layer/SKILL.md",
+        "size": 6227,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/pr-review/QUICK.md",
+        "size": 2092,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/pr-review/SKILL.md",
+        "size": 14566,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/project-state/QUICK.md",
+        "size": 2430,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/project-state/SKILL.md",
+        "size": 8353,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/release-control/QUICK.md",
+        "size": 1589,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/release-control/SKILL.md",
+        "size": 5916,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/repo-radar/QUICK.md",
+        "size": 1527,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/repo-radar/SKILL.md",
+        "size": 4902,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/rfc/QUICK.md",
+        "size": 1969,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/rfc/SKILL.md",
+        "size": 4850,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/sanitize-comments/QUICK.md",
+        "size": 1708,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/sanitize-comments/SKILL.md",
+        "size": 6187,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/second-brain/QUICK.md",
+        "size": 5605,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/second-brain/SKILL.md",
+        "size": 14781,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/secure-coding/QUICK.md",
+        "size": 2924,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/secure-coding/SKILL.md",
+        "size": 16477,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/security-audit-plain-language/QUICK.md",
+        "size": 991,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/security-audit-plain-language/SKILL.md",
+        "size": 3657,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/self-verification/QUICK.md",
+        "size": 2018,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/self-verification/SKILL.md",
+        "size": 7373,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/session-handoff/QUICK.md",
+        "size": 1917,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/session-handoff/SKILL.md",
+        "size": 8522,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/simplicity-first/QUICK.md",
+        "size": 2612,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/simplicity-first/SKILL.md",
+        "size": 6930,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/spec-driven/QUICK.md",
+        "size": 1916,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/spec-driven/SKILL.md",
+        "size": 11438,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/systematic-debugging/QUICK.md",
+        "size": 1828,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/systematic-debugging/SKILL.md",
+        "size": 7004,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/tech-research/QUICK.md",
+        "size": 2127,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/tech-research/SKILL.md",
+        "size": 5477,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/test-coverage/QUICK.md",
+        "size": 1322,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/test-coverage/SKILL.md",
+        "size": 9466,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/threat-modeling/QUICK.md",
+        "size": 2547,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/threat-modeling/SKILL.md",
+        "size": 7772,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/verification-before-completion/QUICK.md",
+        "size": 2538,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/verification-before-completion/SKILL.md",
+        "size": 9358,
+        "mode": 420
+      },
+      {
+        "path": ".agents/skills/verifier/SKILL.md",
+        "size": 4462,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/_INDEX.md",
+        "size": 2705,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/constitution/Enterprise-Constitution.md",
+        "size": 15477,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/constitution/README.md",
+        "size": 2711,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/core/_INDEX.md",
+        "size": 3059,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/core/AGENT RULES STANDARD.md",
+        "size": 6063,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/core/CQRS Standard.md",
+        "size": 7821,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/core/Deprecation & Sunset Policy.md",
+        "size": 2702,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/core/Engineering Governance Standard.md",
+        "size": 618,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/core/Engineering Playbook.md",
+        "size": 3848,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/core/Event Sourcing Standard.md",
+        "size": 10868,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/core/Git Flow & Release Governance Standard.md",
+        "size": 1435,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/core/Hexagonal & Clean Architecture Standard.md",
+        "size": 9509,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/core/Microservices Architecture Standard.md",
+        "size": 8559,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/core/Naming & Conventions Standard.md",
+        "size": 2458,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/core/Platform Capability Governance Standard.md",
+        "size": 10322,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/core/Quality Gates & Compliance Standard.md",
+        "size": 338,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/core/README.md",
+        "size": 3328,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/core/Saga Pattern Standard.md",
+        "size": 11873,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/core/SOLID Principles & Software Craftsmanship Standard.md",
+        "size": 35162,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Cpp/_INDEX.md",
+        "size": 2598,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Cpp/.gitkeep",
+        "size": 0,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Cpp/C++ — Architecture Standard.md",
+        "size": 8554,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Cpp/C++ — Build & Toolchain Standard.md",
+        "size": 4043,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Cpp/C++ — Core Networking Package Specification.md",
+        "size": 6589,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Cpp/C++ — Functional Requirements (FR).md",
+        "size": 7152,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Cpp/C++ — Idiomatic Guide.md",
+        "size": 7398,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Cpp/C++ — Modern Features Standard.md",
+        "size": 20869,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Cpp/C++ — Non-Functional Requirements (NFR).md",
+        "size": 6466,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Cpp/C++ — Pull Request Checklist.md",
+        "size": 5652,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Cpp/C++ — Service Template.md",
+        "size": 10199,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Cpp/C++ — Testing Standard.md",
+        "size": 4716,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/_INDEX.md",
+        "size": 5181,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/Advanced Testing Strategy Standard.md",
+        "size": 25217,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/API Management & Versioning Standard.md",
+        "size": 31851,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/CI CD Pipeline Standard.md",
+        "size": 53175,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/Code & API Documentation Standard.md",
+        "size": 6668,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/Context-Compression-Standard.md",
+        "size": 5830,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/Context-Degradation-Monitoring-Standard.md",
+        "size": 5278,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/Data Contracts & Schema Evolution Standard.md",
+        "size": 5797,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/Data Governance & LGPD Standard.md",
+        "size": 46358,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/Memory-Architecture-Standard.md",
+        "size": 5244,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/Multi-Agent-Architecture-Standard.md",
+        "size": 6052,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/Observability Playbook.md",
+        "size": 3283,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/Performance Engineering Standard.md",
+        "size": 9707,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/README.md",
+        "size": 4545,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/Resilience Patterns Standard.md",
+        "size": 11831,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/Security & Identity Standard.md",
+        "size": 5361,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/Security Scanning & Supply Chain Standard.md",
+        "size": 25659,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/cross/Tool-Design-Governance-Standard.md",
+        "size": 7860,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/CSharp/_INDEX.md",
+        "size": 2832,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/CSharp/CSharp DotNET — Architecture Standard.md",
+        "size": 4478,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/CSharp/CSharp DotNET — Build & Toolchain Standard.md",
+        "size": 3436,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/CSharp/CSharp DotNET — Core Networking Package Specification.md",
+        "size": 6290,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/CSharp/CSharp DotNET — Functional Requirements (FR).md",
+        "size": 6959,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/CSharp/CSharp DotNET — Idiomatic Guide.md",
+        "size": 6337,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/CSharp/CSharp DotNET — Modern Features Standard.md",
+        "size": 19076,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/CSharp/CSharp DotNET — Non-Functional Requirements (NFR).md",
+        "size": 7639,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/CSharp/CSharp DotNET — Pull Request Checklist.md",
+        "size": 5142,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/CSharp/CSharp DotNET — Service + Module Template.md",
+        "size": 8334,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/CSharp/CSharp DotNET — Testing Standard.md",
+        "size": 3949,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/_INDEX.md",
+        "size": 13730,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/_TEMPLATE.md",
+        "size": 1296,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0001-hexagonal-architecture-mandatory.md",
+        "size": 2141,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0002-event-sourcing-opt-in.md",
+        "size": 2054,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0003-cqrs-with-relational-source-of-truth.md",
+        "size": 2373,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0004-flutter-architecture-decisions.md",
+        "size": 3016,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0005-performance-engineering-activation-template.md",
+        "size": 3480,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0006-standalone-architecture.md",
+        "size": 6877,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0007-compiler-v2-multi-adapter-contract.md",
+        "size": 6530,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0008-mcp-project-local-bundle-policy.md",
+        "size": 7190,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0009-plugin-marketplace.md",
+        "size": 7443,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0010-shared-otel-collector.md",
+        "size": 4856,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0011-ado-ops-module.md",
+        "size": 5591,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0012-agent-os-sandboxing.md",
+        "size": 8419,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0013-pr-closeout-and-branch-lifecycle.md",
+        "size": 6876,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0014-telemetry-export-bridge.md",
+        "size": 8797,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0015-dev-squad-canonical-authority.md",
+        "size": 10407,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0016-capability-packaging.md",
+        "size": 3954,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0017-stacked-feature-branch-chains.md",
+        "size": 3982,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0018-provider-gateway-repo-topology.md",
+        "size": 6654,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0019-mcp-post-ga-conformance.md",
+        "size": 2724,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0020-provider-loop-cross-cutting-directives.md",
+        "size": 7909,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0021-brand-variants-via-design-tokens.md",
+        "size": 9166,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0022-governed-execution-ledger.md",
+        "size": 15405,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0023-mcp-2026-stateless-adapter.md",
+        "size": 9383,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0024-model-agnostic-agent-framework.md",
+        "size": 15779,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0025-provider-neutral-documentation-provenance.md",
+        "size": 4280,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0026-canonical-capability-catalog-source.md",
+        "size": 3102,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0027-explicit-hook-and-workflow-contracts.md",
+        "size": 3203,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0028-project-scoped-observability-sidecars.md",
+        "size": 3965,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0029-bounded-package-surface.md",
+        "size": 2636,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0030-surface-lifecycle-contract.md",
+        "size": 2790,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0031-v3-contract-migration-boundary.md",
+        "size": 3445,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0032-managed-governance-control-plane.md",
+        "size": 11587,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0033-federated-platform-capability-graph.md",
+        "size": 12028,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0034-capability-reuse-enforcement.md",
+        "size": 3634,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0035-enforcement-boundary-doctrine.md",
+        "size": 21959,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0036-platform-capability-contract-pattern.md",
+        "size": 7029,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0037-operational-contracts-v1.md",
+        "size": 11574,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0038-global-governance-discovery.md",
+        "size": 2455,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0039-backstage-governed-projection.md",
+        "size": 9340,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0040-disposable-engineering-execution.md",
+        "size": 10569,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0041-engineering-executor-boundary.md",
+        "size": 6602,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0042-v4-kernel-and-optional-capabilities.md",
+        "size": 5222,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0043-harness-evolution.md",
+        "size": 4664,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/ADR-0044-project-engineering-control.md",
+        "size": 3071,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/decisions/README.md",
+        "size": 2977,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/features/managed-governance-control-plane/design.md",
+        "size": 24738,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/features/managed-governance-control-plane/spec.md",
+        "size": 17823,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/features/managed-governance-control-plane/tasks.md",
+        "size": 33762,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/features/managed-governance-control-plane/verification-matrix.md",
+        "size": 8044,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/features/managed-governance-session-preflight/design.md",
+        "size": 3517,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/features/managed-governance-session-preflight/spec.md",
+        "size": 3494,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/features/managed-governance-session-preflight/tasks.md",
+        "size": 1729,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/features/managed-governance-shadow-readiness/design.md",
+        "size": 12534,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/features/managed-governance-shadow-readiness/spec.md",
+        "size": 14439,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/features/managed-governance-shadow-readiness/tasks.md",
+        "size": 22831,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/features/managed-governance-shadow-readiness/threat-model.md",
+        "size": 14039,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/features/managed-governance-shadow-readiness/verification.md",
+        "size": 10155,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Flutter/_INDEX.md",
+        "size": 2991,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Flutter/Flutter — Architecture Standard.md",
+        "size": 3785,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Flutter/Flutter — Build & Toolchain Standard.md",
+        "size": 2760,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Flutter/Flutter — Core Networking Package Specification.md",
+        "size": 6284,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Flutter/Flutter — Feature Template.md",
+        "size": 1626,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Flutter/Flutter — Functional Requirements (FR).md",
+        "size": 6020,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Flutter/Flutter — Idiomatic Guide.md",
+        "size": 6299,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Flutter/Flutter — Modern Features Standard.md",
+        "size": 22710,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Flutter/Flutter — Non-Functional Requirements (NFR).md",
+        "size": 6973,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Flutter/Flutter — Pull Request Checklist.md",
+        "size": 4139,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Flutter/Flutter — Testing Standard.md",
+        "size": 2852,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Go/_INDEX.md",
+        "size": 2497,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Go/.gitkeep",
+        "size": 0,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Go/Go — Architecture Standard.md",
+        "size": 8332,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Go/Go — Build & Toolchain Standard.md",
+        "size": 4220,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Go/Go — Core Networking Package Specification.md",
+        "size": 4963,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Go/Go — Functional Requirements (FR).md",
+        "size": 6396,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Go/Go — Idiomatic Guide.md",
+        "size": 6995,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Go/Go — Modern Features Standard.md",
+        "size": 16233,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Go/Go — Non-Functional Requirements (NFR).md",
+        "size": 5433,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Go/Go — Pull Request Checklist.md",
+        "size": 4552,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Go/Go — Service Template.md",
+        "size": 6865,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Go/Go — Testing Standard.md",
+        "size": 5272,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Java/_INDEX.md",
+        "size": 2586,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Java/.gitkeep",
+        "size": 0,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Java/Java — Architecture Standard.md",
+        "size": 7175,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Java/Java — Build & Toolchain Standard.md",
+        "size": 4501,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Java/Java — Core Networking Package Specification.md",
+        "size": 5318,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Java/Java — Functional Requirements (FR).md",
+        "size": 6691,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Java/Java — Idiomatic Guide.md",
+        "size": 7277,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Java/Java — Modern Features Standard.md",
+        "size": 29459,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Java/Java — Non-Functional Requirements (NFR).md",
+        "size": 5708,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Java/Java — Pull Request Checklist.md",
+        "size": 4186,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Java/Java — Service Template.md",
+        "size": 7702,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/Java/Java — Testing Standard.md",
+        "size": 6081,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/PHP/_INDEX.md",
+        "size": 2550,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/PHP/.gitkeep",
+        "size": 0,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/PHP/PHP — Architecture Standard.md",
+        "size": 8073,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/PHP/PHP — Build & Toolchain Standard.md",
+        "size": 3280,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/PHP/PHP — Core Networking Package Specification.md",
+        "size": 6593,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/PHP/PHP — Functional Requirements (FR).md",
+        "size": 6521,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/PHP/PHP — Idiomatic Guide.md",
+        "size": 6061,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/PHP/PHP — Modern Features Standard.md",
+        "size": 28935,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/PHP/PHP — Non-Functional Requirements (NFR).md",
+        "size": 5373,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/PHP/PHP — Pull Request Checklist.md",
+        "size": 4210,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/PHP/PHP — Service Template.md",
+        "size": 7916,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/PHP/PHP — Testing Standard.md",
+        "size": 3962,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/ReactNative/_INDEX.md",
+        "size": 3346,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/ReactNative/React Native — Architecture Standard.md",
+        "size": 5665,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/ReactNative/React Native — Build & Toolchain Standard.md",
+        "size": 3001,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/ReactNative/React Native — Core Networking Package Specification.md",
+        "size": 6162,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/ReactNative/React Native — Feature Template.md",
+        "size": 3382,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/ReactNative/React Native — Functional Requirements (FR).md",
+        "size": 5425,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/ReactNative/React Native — Idiomatic Guide.md",
+        "size": 6697,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/ReactNative/React Native — Modern Features Standard.md",
+        "size": 22427,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/ReactNative/React Native — Non-Functional Requirements (NFR).md",
+        "size": 5338,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/ReactNative/React Native — Pull Request Checklist.md",
+        "size": 4083,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/ReactNative/React Native — Testing Standard.md",
+        "size": 3678,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/.specs/README.md",
+        "size": 3150,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/atlas/authority.md",
+        "size": 2077,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/atlas/constraints.md",
+        "size": 2035,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/blitz/authority.md",
+        "size": 4717,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/blitz/constraints.md",
+        "size": 3680,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/cipher/authority.md",
+        "size": 4826,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/cipher/constraints.md",
+        "size": 4160,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/forge/authority.md",
+        "size": 1311,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/forge/constraints.md",
+        "size": 653,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/ghost/authority.md",
+        "size": 5406,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/ghost/constraints.md",
+        "size": 3867,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/glitch/authority.md",
+        "size": 4217,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/glitch/constraints.md",
+        "size": 1882,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/kube/authority.md",
+        "size": 4408,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/kube/constraints.md",
+        "size": 3326,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/nyx/authority.md",
+        "size": 4690,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/nyx/constraints.md",
+        "size": 4107,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/orbit/authority.md",
+        "size": 1445,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/orbit/constraints.md",
+        "size": 369,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/prism/authority.md",
+        "size": 1933,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/prism/constraints.md",
+        "size": 1828,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/quill/authority.md",
+        "size": 1973,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/quill/constraints.md",
+        "size": 1838,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/razor/authority.md",
+        "size": 4156,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/razor/constraints.md",
+        "size": 2757,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/README.md",
+        "size": 598,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/sable/authority.md",
+        "size": 3512,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/sable/constraints.md",
+        "size": 328,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/swarm/authority.md",
+        "size": 2819,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/swarm/constraints.md",
+        "size": 2109,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/vector/authority.md",
+        "size": 4847,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/agents/vector/constraints.md",
+        "size": 4136,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/CHANGELOG.md",
+        "size": 7648,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/ci-cd/exception-validation.md",
+        "size": 579,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/ci-cd/governance-checklist.md",
+        "size": 1219,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/ci-cd/governance-model.md",
+        "size": 1375,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/ci-cd/README.md",
+        "size": 495,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/exceptions/EXCEPTION-TEMPLATE.md",
+        "size": 2046,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/exceptions/README.md",
+        "size": 1389,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/accessibility/SKILL-QUICK.md",
+        "size": 1590,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/accessibility/SKILL.md",
+        "size": 5922,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/ado-close-wave/SKILL-QUICK.md",
+        "size": 873,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/ado-close-wave/SKILL.md",
+        "size": 2820,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/ado-new-project/SKILL-QUICK.md",
+        "size": 1114,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/ado-new-project/SKILL.md",
+        "size": 6738,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/ado-ops/SKILL-QUICK.md",
+        "size": 1029,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/ado-ops/SKILL.md",
+        "size": 7880,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/ado-plan/SKILL-QUICK.md",
+        "size": 939,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/ado-plan/SKILL.md",
+        "size": 4470,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/ado-sync/SKILL-QUICK.md",
+        "size": 736,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/ado-sync/SKILL.md",
+        "size": 3061,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/adr-compliance/SKILL-QUICK.md",
+        "size": 1264,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/adr-compliance/SKILL.md",
+        "size": 6462,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/agent-permissions/SKILL-QUICK.md",
+        "size": 2483,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/agent-permissions/SKILL.md",
+        "size": 6182,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/ai-observability/SKILL-QUICK.md",
+        "size": 3041,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/ai-observability/SKILL.md",
+        "size": 9781,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/architecture/breaking-change-detection/SKILL-QUICK.md",
+        "size": 1394,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/architecture/breaking-change-detection/SKILL.md",
+        "size": 5525,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/architecture/ddd-boundary-check/SKILL-QUICK.md",
+        "size": 1528,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/architecture/ddd-boundary-check/SKILL.md",
+        "size": 5404,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/capability-check/SKILL-QUICK.md",
+        "size": 582,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/capability-check/SKILL.md",
+        "size": 1072,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/commit-hygiene/SKILL-QUICK.md",
+        "size": 2604,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/commit-hygiene/SKILL.md",
+        "size": 7032,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/context-compression/SKILL-QUICK.md",
+        "size": 3175,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/context-compression/SKILL.md",
+        "size": 11345,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/context-engineering/SKILL-QUICK.md",
+        "size": 3708,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/context-engineering/SKILL.md",
+        "size": 11936,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/context-policy/SKILL-QUICK.md",
+        "size": 2569,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/context-policy/SKILL.md",
+        "size": 7044,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/core-drift/SKILL-QUICK.md",
+        "size": 2998,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/core-drift/SKILL.md",
+        "size": 7848,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/dependency-audit/SKILL-QUICK.md",
+        "size": 1378,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/dependency-audit/SKILL.md",
+        "size": 5373,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md",
+        "size": 5083,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/dev-squad/SKILL.md",
+        "size": 12884,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/doc-project/SKILL-QUICK.md",
+        "size": 3264,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/doc-project/SKILL.md",
+        "size": 15973,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/documentation-completeness/SKILL-QUICK.md",
+        "size": 1638,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/documentation-completeness/SKILL.md",
+        "size": 6640,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/enterprise-readiness-audit/SKILL-QUICK.md",
+        "size": 2588,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/enterprise-readiness-audit/SKILL.md",
+        "size": 12388,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/gitops-add-service/SKILL-QUICK.md",
+        "size": 1597,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/gitops-add-service/SKILL.md",
+        "size": 4598,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/gitops-deploy/SKILL-APP-PAIRED.md",
+        "size": 3247,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/gitops-deploy/SKILL-CENTRALIZED.md",
+        "size": 2556,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/gitops-deploy/SKILL-QUICK.md",
+        "size": 2330,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/gitops-deploy/SKILL.md",
+        "size": 4114,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/gitops-new-project/SKILL-QUICK.md",
+        "size": 1854,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/gitops-new-project/SKILL.md",
+        "size": 5664,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/goal-graph/SKILL-QUICK.md",
+        "size": 4583,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/goal-graph/SKILL.md",
+        "size": 14963,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/goal-graph/templates/graph-state-layout.md",
+        "size": 3379,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/hseos-goal-loop/SKILL-QUICK.md",
+        "size": 2950,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/hseos-goal-loop/SKILL.md",
+        "size": 6679,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/inter-agent-comms/SKILL-QUICK.md",
+        "size": 2538,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/inter-agent-comms/SKILL.md",
+        "size": 6469,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/mcp-governance/SKILL-QUICK.md",
+        "size": 2395,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/mcp-governance/SKILL.md",
+        "size": 4892,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/multi-agent-orchestration/SKILL-QUICK.md",
+        "size": 2840,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/multi-agent-orchestration/SKILL.md",
+        "size": 11466,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/naming-conventions/SKILL-QUICK.md",
+        "size": 2006,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/naming-conventions/SKILL.md",
+        "size": 7082,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/observability-compliance/SKILL-QUICK.md",
+        "size": 1558,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/observability-compliance/SKILL.md",
+        "size": 5886,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/performance-profiling/SKILL-QUICK.md",
+        "size": 1591,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/performance-profiling/SKILL.md",
+        "size": 6254,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/policy-layer/SKILL-QUICK.md",
+        "size": 2690,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/policy-layer/SKILL.md",
+        "size": 5876,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/pr-review/SKILL-QUICK.md",
+        "size": 2092,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/pr-review/SKILL.md",
+        "size": 14300,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/project-state/SKILL-QUICK.md",
+        "size": 2430,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/project-state/SKILL.md",
+        "size": 7957,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/README.md",
+        "size": 3483,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/release-control/SKILL-QUICK.md",
+        "size": 1589,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/release-control/SKILL.md",
+        "size": 5542,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/repo-radar/SKILL-QUICK.md",
+        "size": 1527,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/repo-radar/SKILL.md",
+        "size": 4575,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/rfc/SKILL-QUICK.md",
+        "size": 1969,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/rfc/SKILL.md",
+        "size": 4544,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/sanitize-comments/SKILL-QUICK.md",
+        "size": 1708,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/sanitize-comments/SKILL.md",
+        "size": 5752,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/second-brain/SKILL-QUICK.md",
+        "size": 5605,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/second-brain/SKILL.md",
+        "size": 14389,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/secure-coding/SKILL-QUICK.md",
+        "size": 2924,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/secure-coding/SKILL.md",
+        "size": 16190,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/security-audit-plain-language/SKILL-QUICK.md",
+        "size": 991,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/security-audit-plain-language/SKILL.md",
+        "size": 3243,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/self-verification/SKILL-QUICK.md",
+        "size": 2018,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/self-verification/SKILL.md",
+        "size": 7004,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/session-handoff/SKILL-QUICK.md",
+        "size": 1917,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/session-handoff/SKILL.md",
+        "size": 8253,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/simplicity-first/SKILL-QUICK.md",
+        "size": 2612,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/simplicity-first/SKILL.md",
+        "size": 6632,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/SKILLS-REGISTRY.md",
+        "size": 54963,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/spec-driven/SKILL-QUICK.md",
+        "size": 1916,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/spec-driven/SKILL.md",
+        "size": 11080,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/systematic-debugging/SKILL-QUICK.md",
+        "size": 1828,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/systematic-debugging/SKILL.md",
+        "size": 6700,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/tech-research/SKILL-QUICK.md",
+        "size": 2127,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/tech-research/SKILL.md",
+        "size": 5141,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/test-coverage/SKILL-QUICK.md",
+        "size": 1322,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/test-coverage/SKILL.md",
+        "size": 9102,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/threat-modeling/SKILL-QUICK.md",
+        "size": 2547,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/threat-modeling/SKILL.md",
+        "size": 7483,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/verification-before-completion/SKILL-QUICK.md",
+        "size": 2538,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/verification-before-completion/SKILL.md",
+        "size": 9034,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/agent-skills/verifier/SKILL.md",
+        "size": 4405,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/ai-sdlc-maturity.md",
+        "size": 4455,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/audits/2026-07-22-cybernetic-audit/AUTONOMY-N1-RUNBOOK.md",
+        "size": 16747,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/autonomy/CARTA-PILOT-N1.md",
+        "size": 4195,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/autonomy/README.md",
+        "size": 6194,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/autonomy/scope-pilot-n1.txt",
+        "size": 403,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/capabilities/components.yaml",
+        "size": 19996,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/capabilities/fragments/enterprise-hseos.yaml",
+        "size": 10678,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/capabilities/profiles.yaml",
+        "size": 6003,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/capabilities/README.md",
+        "size": 8829,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/capabilities/reference-corpus.json",
+        "size": 12716,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/capabilities/registry.yaml",
+        "size": 2131,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/capabilities/schemas/capability-graph-fragment-2.0.0.schema.json",
+        "size": 12514,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/capabilities/schemas/capability-graph-fragment.schema.json",
+        "size": 4419,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/capabilities/schemas/capability-graph-registry.schema.json",
+        "size": 4369,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/capabilities/schemas/capability-reference-corpus.schema.json",
+        "size": 4015,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/capabilities/surfaces.yaml",
+        "size": 4121,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/contracts/repository-identity/v1/README.md",
+        "size": 582,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/contracts/repository-identity/v1/repository-contract.schema.json",
+        "size": 1360,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/execution-governance.md",
+        "size": 8683,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/_ado-lib.sh",
+        "size": 7524,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/ado-branch-guard.sh",
+        "size": 1360,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/ado-inbox-check.sh",
+        "size": 1063,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/ado-on-plan-write.sh",
+        "size": 805,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/ado-pr-link.sh",
+        "size": 1819,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/ado-preflight-gate.sh",
+        "size": 2070,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/ado-tag-close.sh",
+        "size": 1759,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/ado-task-progress.sh",
+        "size": 1093,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/build-resource-guard.sh",
+        "size": 5023,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/capability-intake-guard.sh",
+        "size": 2073,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/claude-md-guard.sh",
+        "size": 1385,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/code-index-guard.sh",
+        "size": 4107,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/code-index-post-edit.sh",
+        "size": 2411,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/governance-context-state.cjs",
+        "size": 2820,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/governance-context.cjs",
+        "size": 7453,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/managed-governance-preflight.sh",
+        "size": 2722,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/on-notification.sh",
+        "size": 2360,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/on-prompt-submit.sh",
+        "size": 4000,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/plan-lint.sh",
+        "size": 2740,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/pre-compact.sh",
+        "size": 3048,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/README.md",
+        "size": 5537,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/rtk-rewrite.sh",
+        "size": 3370,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/session-end.sh",
+        "size": 3755,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/session-track.sh",
+        "size": 3263,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/suggest-skill.sh",
+        "size": 5127,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/swarm-gate.sh",
+        "size": 13289,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/telemetry-export-session.sh",
+        "size": 5043,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/handlers/telemetry-export-tool.sh",
+        "size": 5320,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/hooks/README.md",
+        "size": 540,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/hooks/registry.yaml",
+        "size": 20428,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/memory-evolution-roadmap.md",
+        "size": 10366,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/plugins/_schema.yaml",
+        "size": 3226,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/plugins/definitions/hseos-hookify/hooks/handlers/hookify-validate.sh",
+        "size": 223,
+        "mode": 493
+      },
+      {
+        "path": ".enterprise/governance/plugins/definitions/hseos-hookify/hooks/registry-fragment.yaml",
+        "size": 456,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/plugins/definitions/hseos-hookify/plugin.yaml",
+        "size": 323,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/plugins/definitions/hseos-hookify/README.md",
+        "size": 929,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/plugins/definitions/hseos-pr-review/commands/pr-lint.md",
+        "size": 388,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/plugins/definitions/hseos-pr-review/commands/pr-review.md",
+        "size": 420,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/plugins/definitions/hseos-pr-review/plugin.yaml",
+        "size": 376,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/plugins/definitions/hseos-pr-review/README.md",
+        "size": 1140,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/plugins/definitions/hseos-security-guidance/plugin.yaml",
+        "size": 377,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/plugins/definitions/hseos-security-guidance/README.md",
+        "size": 1327,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/plugins/definitions/hseos-security-guidance/skills/dependency-audit/SKILL.md",
+        "size": 831,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/plugins/definitions/hseos-security-guidance/skills/threat-modeling/SKILL.md",
+        "size": 913,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/plugins/definitions/hseos-skill-creator/commands/skill-new.md",
+        "size": 428,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/plugins/definitions/hseos-skill-creator/plugin.yaml",
+        "size": 356,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/plugins/definitions/hseos-skill-creator/README.md",
+        "size": 1099,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/plugins/registry.yaml",
+        "size": 2614,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/policies/architecture-boundaries.md",
+        "size": 7223,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/README.md",
+        "size": 3885,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/references/boris-cherny-execution.md",
+        "size": 3425,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/references/README.md",
+        "size": 1219,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/references/sentry-security-review.md",
+        "size": 9206,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/references/trailofbits-differential-review.md",
+        "size": 10413,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/governance/skills-adoption-guide.md",
+        "size": 3688,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/modes/README.md",
+        "size": 415,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/modes/replay-mode.active",
+        "size": 113,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/modes/replay-mode.closure.md",
+        "size": 1854,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/modes/replay-mode.md",
+        "size": 1842,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/playbooks/agent-onboarding.md",
+        "size": 1791,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/playbooks/conceptual-lint.md",
+        "size": 3023,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/playbooks/developer-onboarding.md",
+        "size": 20445,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/playbooks/enterprise-flow.md",
+        "size": 1268,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/playbooks/escalation-rules.md",
+        "size": 2087,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/playbooks/git-workflow.md",
+        "size": 3034,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/playbooks/README.md",
+        "size": 2857,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/playbooks/repository-curation-replay.md",
+        "size": 4609,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/playbooks/repository-vitrine-checklist.md",
+        "size": 1636,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/policies/adr-policy.md",
+        "size": 4206,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/policies/automated-validation.md",
+        "size": 1263,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/policies/capability-graph.md",
+        "size": 6324,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/policies/capability-reuse.md",
+        "size": 5179,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/policies/documentation-policy.md",
+        "size": 4530,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/policies/exceptions.md",
+        "size": 1293,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/policies/governance-discovery.md",
+        "size": 4121,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/policies/minimal-wiring.md",
+        "size": 935,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/policies/pre-flight-checks.md",
+        "size": 1804,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/policies/README.md",
+        "size": 3524,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/policies/sharding-policy.md",
+        "size": 2858,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/policies/shared-infrastructure.md",
+        "size": 12470,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/policies/skill-consumption.md",
+        "size": 5744,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/policies/social-login.md",
+        "size": 4129,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/policies/specification-consumption.md",
+        "size": 4080,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/policies/standards-adoption-metrics.md",
+        "size": 4762,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/README.md",
+        "size": 5734,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/replay-analysis/40-plan/replay-plan.schema.json",
+        "size": 1459,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/replay-analysis/40-plan/replay.plan.json",
+        "size": 0,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/tooling/bootstrap/hseos-enterprise-overlay-bootstrap.ps1",
+        "size": 5840,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/tooling/bootstrap/install-global.ps1",
+        "size": 36272,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/tooling/bootstrap/README.md",
+        "size": 10257,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/tooling/README.md",
+        "size": 654,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/tooling/replay/assets/README.md",
+        "size": 2134,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/tooling/replay/pre-flight-replay-check.ps1",
+        "size": 3055,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/tooling/replay/README.md",
+        "size": 1505,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/tooling/replay/replay-assistant.ps1",
+        "size": 3595,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/tooling/replay/replay-mode-activate.ps1",
+        "size": 3068,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/tooling/replay/replay-mode-deactivate.ps1",
+        "size": 2620,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/tooling/replay/validate-commits.ps1",
+        "size": 2036,
+        "mode": 420
+      },
+      {
+        "path": ".enterprise/tooling/replay/validate-replay-plan.ps1",
+        "size": 1349,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/AGENT-MANIFEST.md",
+        "size": 8047,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/agents/atlas.agent.yaml",
+        "size": 3809,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/agents/blitz.agent.yaml",
+        "size": 2953,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/agents/cipher.agent.yaml",
+        "size": 3877,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/agents/forge.agent.yaml",
+        "size": 1810,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/agents/ghost.agent.yaml",
+        "size": 3827,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/agents/glitch.agent.yaml",
+        "size": 3863,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/agents/kube.agent.yaml",
+        "size": 3763,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/agents/nyx.agent.yaml",
+        "size": 4547,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/agents/orbit.agent.yaml",
+        "size": 2871,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/agents/prism.agent.yaml",
+        "size": 3429,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/agents/quill.agent.yaml",
+        "size": 3409,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/agents/razor.agent.yaml",
+        "size": 3599,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/agents/sable.agent.yaml",
+        "size": 1917,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/agents/swarm.agent.yaml",
+        "size": 3714,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/agents/vector.agent.yaml",
+        "size": 4285,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/compatibility/downstream-consumers.json",
+        "size": 428,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/config/hseos.config.yaml",
+        "size": 10174,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/config/kube-profile.yaml",
+        "size": 2730,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/data/run-state-templates/epic-delivery-state.yaml",
+        "size": 473,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/loops/pilot-n1/budget.txt",
+        "size": 2,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/loops/pilot-n1/heartbeat.jsonl",
+        "size": 2542,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/loops/pilot-n1/scope.txt",
+        "size": 403,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/1-discovery/create-brief/workflow.md",
+        "size": 433,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/1-discovery/domain-research/workflow.md",
+        "size": 446,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/1-discovery/market-research/workflow.md",
+        "size": 422,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/1-discovery/technical-research/workflow.md",
+        "size": 445,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/2-planning/create-prd/workflow.md",
+        "size": 406,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/2-planning/create-ux-design/workflow.md",
+        "size": 423,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/2-planning/design-system/workflow.md",
+        "size": 357,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/2-planning/edit-prd/workflow.md",
+        "size": 326,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/2-planning/ux-audit/workflow.md",
+        "size": 346,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/2-planning/validate-prd/workflow.md",
+        "size": 403,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/3-solutioning/create-architecture/workflow.md",
+        "size": 439,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/3-solutioning/create-epics-stories/workflow.md",
+        "size": 415,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/3-solutioning/draft-adr/workflow.md",
+        "size": 309,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/3-solutioning/implementation-readiness/workflow.md",
+        "size": 379,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/4-execution/code-review/workflow.md",
+        "size": 330,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/4-execution/correct-course/workflow.md",
+        "size": 347,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/4-execution/create-story/workflow.md",
+        "size": 369,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/4-execution/dev-story/workflow.md",
+        "size": 308,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/4-execution/retrospective/workflow.md",
+        "size": 355,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/4-execution/sprint-planning/workflow.md",
+        "size": 386,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/ado-ops/workflow.md",
+        "size": 5616,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/blitz-flow/quick-story/workflow.md",
+        "size": 419,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/blitz-flow/workflow.md",
+        "size": 3029,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/delivery-readiness/workflow.md",
+        "size": 1246,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/dev-squad/resume/workflow.md",
+        "size": 2927,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/dev-squad/workflow.md",
+        "size": 10895,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/document-project/workflow.md",
+        "size": 411,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/epic-delivery/workflow.md",
+        "size": 5249,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/knowledge/api-docs/workflow.md",
+        "size": 305,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/knowledge/developer-guide/workflow.md",
+        "size": 354,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/knowledge/document-project/workflow.md",
+        "size": 378,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/kube-deploy/workflow.md",
+        "size": 4924,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/README.md",
+        "size": 2138,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/registry.yaml",
+        "size": 21214,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/release-publish/workflow.md",
+        "size": 517,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/runtime-deploy/workflow.md",
+        "size": 2664,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/state-tracking/workflow.md",
+        "size": 979,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/validation/chaos-review/workflow.md",
+        "size": 335,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/validation/generate-tests/workflow.md",
+        "size": 320,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/validation/quality-gate/workflow.md",
+        "size": 331,
+        "mode": 420
+      },
+      {
+        "path": ".hseos/workflows/validation/risk-based-testing/workflow.md",
+        "size": 367,
+        "mode": 420
+      },
+      {
+        "path": "AGENTS.md",
+        "size": 11209,
+        "mode": 420
+      },
+      {
+        "path": "CHANGELOG.md",
+        "size": 16228,
+        "mode": 420
+      },
+      {
+        "path": "CLAUDE.md",
+        "size": 373,
+        "mode": 420
+      },
+      {
+        "path": "LICENSE",
+        "size": 1071,
+        "mode": 420
+      },
+      {
+        "path": "README.md",
+        "size": 39202,
+        "mode": 420
+      },
+      {
+        "path": "SECURITY.md",
+        "size": 1664,
+        "mode": 420
+      },
+      {
+        "path": "docs/capabilities.md",
+        "size": 14352,
+        "mode": 420
+      },
+      {
+        "path": "docs/engineering-control-api.md",
+        "size": 13497,
+        "mode": 420
+      },
+      {
+        "path": "docs/engineering-task-contract.md",
+        "size": 11581,
+        "mode": 420
+      },
+      {
+        "path": "docs/MANAGED-GOVERNANCE.md",
+        "size": 20364,
+        "mode": 420
+      },
+      {
+        "path": "docs/pt-br/governanca-gerenciada.md",
+        "size": 8828,
+        "mode": 420
+      },
+      {
+        "path": "docs/sandbox.md",
+        "size": 3272,
+        "mode": 420
+      },
+      {
+        "path": "docs/v4-migration.md",
+        "size": 5858,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 19710,
+        "mode": 420
+      },
+      {
+        "path": "packages/adapter-sdk/index.js",
+        "size": 4872,
+        "mode": 420
+      },
+      {
+        "path": "packages/adapter-sdk/package.json",
+        "size": 503,
+        "mode": 420
+      },
+      {
+        "path": "packages/adapter-sdk/README.md",
+        "size": 3596,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-compaction/checkpoint-provider.js",
+        "size": 2817,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-compaction/deterministic-provider.js",
+        "size": 6528,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-compaction/index.js",
+        "size": 182,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-compaction/package.json",
+        "size": 595,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-compaction/provider-registry.js",
+        "size": 3466,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-compaction/README.md",
+        "size": 1733,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-compaction/runtime.js",
+        "size": 6688,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-context/context-assembler.js",
+        "size": 20560,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-context/index.js",
+        "size": 134,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-context/package.json",
+        "size": 735,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-context/README.md",
+        "size": 2579,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-context/schemas.js",
+        "size": 7216,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-context/token-counter.js",
+        "size": 3776,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-isolation-attestation/executor.js",
+        "size": 11087,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-isolation-attestation/index.js",
+        "size": 20086,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-isolation-attestation/package.json",
+        "size": 157,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-isolation-attestation/README.md",
+        "size": 834,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-isolation-attestation/terminal-broker.py",
+        "size": 8363,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-isolation-attestation/terminal-executor.js",
+        "size": 5832,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-message-transport/index.js",
+        "size": 42699,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-message-transport/package.json",
+        "size": 153,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-message-transport/README.md",
+        "size": 1597,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-orchestration/execution-supervisor.js",
+        "size": 9797,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-orchestration/index.js",
+        "size": 184,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-orchestration/local-subagent-provider.js",
+        "size": 12043,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-orchestration/package.json",
+        "size": 621,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-orchestration/README.md",
+        "size": 2437,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-orchestration/utilities.js",
+        "size": 830,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-orchestration/workflow-engine.js",
+        "size": 24601,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-policy-lattice/index.js",
+        "size": 9372,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-policy-lattice/package.json",
+        "size": 150,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-policy-lattice/README.md",
+        "size": 788,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-runtime-contracts/agent-contracts.js",
+        "size": 7780,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-runtime-contracts/common.js",
+        "size": 3630,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-runtime-contracts/compaction-contracts.js",
+        "size": 10674,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-runtime-contracts/event-contracts.js",
+        "size": 18937,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-runtime-contracts/index.js",
+        "size": 279,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-runtime-contracts/orchestration-contracts.js",
+        "size": 7870,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-runtime-contracts/package.json",
+        "size": 582,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-runtime-contracts/ports.js",
+        "size": 24798,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-runtime-contracts/provider-contracts.js",
+        "size": 5854,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-runtime-contracts/README.md",
+        "size": 4859,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-runtime/index.js",
+        "size": 91,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-runtime/package.json",
+        "size": 783,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-runtime/README.md",
+        "size": 2055,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-runtime/runtime.js",
+        "size": 46618,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-runtime/schemas.js",
+        "size": 1481,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-session-store/index.js",
+        "size": 102,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-session-store/package.json",
+        "size": 641,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-session-store/README.md",
+        "size": 3191,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-session-store/replay.js",
+        "size": 45617,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-session-store/session-event-store.js",
+        "size": 24530,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-trace-lineage/index.js",
+        "size": 1690,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-trace-lineage/package.json",
+        "size": 530,
+        "mode": 420
+      },
+      {
+        "path": "packages/agent-trace-lineage/README.md",
+        "size": 769,
+        "mode": 420
+      },
+      {
+        "path": "packages/control-sdk/antigravity_client.py",
+        "size": 10036,
+        "mode": 420
+      },
+      {
+        "path": "packages/control-sdk/hseos_control.py",
+        "size": 4237,
+        "mode": 420
+      },
+      {
+        "path": "packages/control-sdk/index.d.ts",
+        "size": 3125,
+        "mode": 420
+      },
+      {
+        "path": "packages/control-sdk/index.js",
+        "size": 3722,
+        "mode": 420
+      },
+      {
+        "path": "packages/control-sdk/package.json",
+        "size": 162,
+        "mode": 420
+      },
+      {
+        "path": "packages/control-sdk/README.md",
+        "size": 2303,
+        "mode": 420
+      },
+      {
+        "path": "packages/delegated-runtime-host/index.js",
+        "size": 41542,
+        "mode": 420
+      },
+      {
+        "path": "packages/governed-execution/canonical-envelope.js",
+        "size": 3465,
+        "mode": 420
+      },
+      {
+        "path": "packages/governed-execution/execution-port.js",
+        "size": 1266,
+        "mode": 420
+      },
+      {
+        "path": "packages/governed-execution/index.js",
+        "size": 197,
+        "mode": 420
+      },
+      {
+        "path": "packages/governed-execution/operation-id.js",
+        "size": 374,
+        "mode": 420
+      },
+      {
+        "path": "packages/governed-execution/package.json",
+        "size": 515,
+        "mode": 420
+      },
+      {
+        "path": "packages/governed-execution/README.md",
+        "size": 903,
+        "mode": 420
+      },
+      {
+        "path": "packages/governed-execution/runtime.js",
+        "size": 31842,
+        "mode": 420
+      },
+      {
+        "path": "packages/governed-execution/scheduler.js",
+        "size": 12396,
+        "mode": 420
+      },
+      {
+        "path": "packages/managed-governance-client/binding-loader.js",
+        "size": 4860,
+        "mode": 420
+      },
+      {
+        "path": "packages/managed-governance-client/client.js",
+        "size": 10898,
+        "mode": 420
+      },
+      {
+        "path": "packages/managed-governance-client/index.js",
+        "size": 183,
+        "mode": 420
+      },
+      {
+        "path": "packages/managed-governance-client/package.json",
+        "size": 376,
+        "mode": 420
+      },
+      {
+        "path": "packages/managed-governance-client/README.md",
+        "size": 1119,
+        "mode": 420
+      },
+      {
+        "path": "packages/managed-governance-client/session-preflight.js",
+        "size": 13657,
+        "mode": 420
+      },
+      {
+        "path": "packages/managed-governance-client/snapshot-store.js",
+        "size": 5741,
+        "mode": 420
+      },
+      {
+        "path": "packages/managed-governance-contracts/canonical-json.js",
+        "size": 4688,
+        "mode": 420
+      },
+      {
+        "path": "packages/managed-governance-contracts/index.js",
+        "size": 176,
+        "mode": 420
+      },
+      {
+        "path": "packages/managed-governance-contracts/package.json",
+        "size": 593,
+        "mode": 420
+      },
+      {
+        "path": "packages/managed-governance-contracts/README.md",
+        "size": 2562,
+        "mode": 420
+      },
+      {
+        "path": "packages/managed-governance-contracts/schemas.js",
+        "size": 34422,
+        "mode": 420
+      },
+      {
+        "path": "packages/model-providers/common.js",
+        "size": 3830,
+        "mode": 420
+      },
+      {
+        "path": "packages/model-providers/index.js",
+        "size": 378,
+        "mode": 420
+      },
+      {
+        "path": "packages/model-providers/openai-compatible-provider.js",
+        "size": 21711,
+        "mode": 420
+      },
+      {
+        "path": "packages/model-providers/package.json",
+        "size": 577,
+        "mode": 420
+      },
+      {
+        "path": "packages/model-providers/README.md",
+        "size": 2148,
+        "mode": 420
+      },
+      {
+        "path": "packages/model-providers/registry.js",
+        "size": 3026,
+        "mode": 420
+      },
+      {
+        "path": "packages/model-providers/scripted-provider.js",
+        "size": 7849,
+        "mode": 420
+      },
+      {
+        "path": "packages/runtime-providers/acp-runtime-provider.js",
+        "size": 39687,
+        "mode": 420
+      },
+      {
+        "path": "packages/runtime-providers/claude-agent-sdk-driver.js",
+        "size": 12144,
+        "mode": 420
+      },
+      {
+        "path": "packages/runtime-providers/codex-app-server-driver.js",
+        "size": 17831,
+        "mode": 420
+      },
+      {
+        "path": "packages/runtime-providers/deepseek-acp-composition.js",
+        "size": 5570,
+        "mode": 420
+      },
+      {
+        "path": "packages/runtime-providers/hosted-runtime-provider.js",
+        "size": 26884,
+        "mode": 420
+      },
+      {
+        "path": "packages/runtime-providers/index.js",
+        "size": 535,
+        "mode": 420
+      },
+      {
+        "path": "packages/runtime-providers/package.json",
+        "size": 635,
+        "mode": 420
+      },
+      {
+        "path": "packages/runtime-providers/process-acp-peer.js",
+        "size": 8530,
+        "mode": 420
+      },
+      {
+        "path": "packages/runtime-providers/README.md",
+        "size": 5325,
+        "mode": 420
+      },
+      {
+        "path": "packages/tool-runtime/index.js",
+        "size": 97,
+        "mode": 420
+      },
+      {
+        "path": "packages/tool-runtime/package.json",
+        "size": 613,
+        "mode": 420
+      },
+      {
+        "path": "packages/tool-runtime/README.md",
+        "size": 2583,
+        "mode": 420
+      },
+      {
+        "path": "packages/tool-runtime/registry.js",
+        "size": 2783,
+        "mode": 420
+      },
+      {
+        "path": "packages/tool-runtime/tool-runtime.js",
+        "size": 9727,
+        "mode": 420
+      },
+      {
+        "path": "scripts/ado-doctor.sh",
+        "size": 7211,
+        "mode": 493
+      },
+      {
+        "path": "scripts/ado-install.sh",
+        "size": 6478,
+        "mode": 493
+      },
+      {
+        "path": "scripts/generate-cli-command-manifest.js",
+        "size": 1466,
+        "mode": 420
+      },
+      {
+        "path": "scripts/governance/ado-task-from-branch.sh",
+        "size": 540,
+        "mode": 493
+      },
+      {
+        "path": "scripts/governance/anchor-guard.sh",
+        "size": 2998,
+        "mode": 493
+      },
+      {
+        "path": "scripts/governance/apply-branch-protection.js",
+        "size": 4647,
+        "mode": 420
+      },
+      {
+        "path": "scripts/governance/check-branch.sh",
+        "size": 1597,
+        "mode": 493
+      },
+      {
+        "path": "scripts/governance/loop-guard.sh",
+        "size": 6993,
+        "mode": 493
+      },
+      {
+        "path": "scripts/governance/quality-gates.sh",
+        "size": 18282,
+        "mode": 493
+      },
+      {
+        "path": "scripts/governance/state-emit-hook.sh",
+        "size": 3463,
+        "mode": 493
+      },
+      {
+        "path": "scripts/governance/validate-capability-graph.js",
+        "size": 55530,
+        "mode": 420
+      },
+      {
+        "path": "scripts/governance/validate-capability-reference-corpus.js",
+        "size": 14312,
+        "mode": 420
+      },
+      {
+        "path": "scripts/governance/validate-commit-msg.sh",
+        "size": 4462,
+        "mode": 493
+      },
+      {
+        "path": "scripts/governance/validate-constitutional-change.js",
+        "size": 5713,
+        "mode": 420
+      },
+      {
+        "path": "scripts/governance/validate-repository-contract.js",
+        "size": 2562,
+        "mode": 420
+      },
+      {
+        "path": "scripts/governance/validate-skills.sh",
+        "size": 5661,
+        "mode": 493
+      },
+      {
+        "path": "scripts/governance/verify-doc-facts.sh",
+        "size": 2858,
+        "mode": 493
+      },
+      {
+        "path": "scripts/governance/worktree-manager.sh",
+        "size": 9954,
+        "mode": 493
+      },
+      {
+        "path": "scripts/social-login/provision-social-idps.sh",
+        "size": 4938,
+        "mode": 493
+      },
+      {
+        "path": "src/core/agents/hseos-master.agent.yaml",
+        "size": 1836,
+        "mode": 420
+      },
+      {
+        "path": "src/core/module-help.csv",
+        "size": 2571,
+        "mode": 420
+      },
+      {
+        "path": "src/core/module.yaml",
+        "size": 1002,
+        "mode": 420
+      },
+      {
+        "path": "src/core/tasks/editorial-review-prose.xml",
+        "size": 6322,
+        "mode": 420
+      },
+      {
+        "path": "src/core/tasks/editorial-review-structure.xml",
+        "size": 13499,
+        "mode": 420
+      },
+      {
+        "path": "src/core/tasks/help.md",
+        "size": 4365,
+        "mode": 420
+      },
+      {
+        "path": "src/core/tasks/index-docs.xml",
+        "size": 2395,
+        "mode": 420
+      },
+      {
+        "path": "src/core/tasks/review-adversarial-general.xml",
+        "size": 2308,
+        "mode": 420
+      },
+      {
+        "path": "src/core/tasks/review-edge-case-hunter.xml",
+        "size": 3752,
+        "mode": 420
+      },
+      {
+        "path": "src/core/tasks/shard-doc.xml",
+        "size": 5790,
+        "mode": 420
+      },
+      {
+        "path": "src/core/tasks/workflow.xml",
+        "size": 13093,
+        "mode": 420
+      },
+      {
+        "path": "src/core/workflows/advanced-elicitation/methods.csv",
+        "size": 9911,
+        "mode": 420
+      },
+      {
+        "path": "src/core/workflows/advanced-elicitation/workflow.xml",
+        "size": 6892,
+        "mode": 420
+      },
+      {
+        "path": "src/core/workflows/brainstorming/brain-methods.csv",
+        "size": 16265,
+        "mode": 420
+      },
+      {
+        "path": "src/core/workflows/brainstorming/steps/step-01-session-setup.md",
+        "size": 7376,
+        "mode": 420
+      },
+      {
+        "path": "src/core/workflows/brainstorming/steps/step-01b-continue.md",
+        "size": 3885,
+        "mode": 420
+      },
+      {
+        "path": "src/core/workflows/brainstorming/steps/step-02a-user-selected.md",
+        "size": 7464,
+        "mode": 420
+      },
+      {
+        "path": "src/core/workflows/brainstorming/steps/step-02b-ai-recommended.md",
+        "size": 7920,
+        "mode": 420
+      },
+      {
+        "path": "src/core/workflows/brainstorming/steps/step-02c-random-selection.md",
+        "size": 7675,
+        "mode": 420
+      },
+      {
+        "path": "src/core/workflows/brainstorming/steps/step-02d-progressive-flow.md",
+        "size": 9751,
+        "mode": 420
+      },
+      {
+        "path": "src/core/workflows/brainstorming/steps/step-03-technique-execution.md",
+        "size": 16736,
+        "mode": 420
+      },
+      {
+        "path": "src/core/workflows/brainstorming/steps/step-04-idea-organization.md",
+        "size": 10744,
+        "mode": 420
+      },
+      {
+        "path": "src/core/workflows/brainstorming/template.md",
+        "size": 245,
+        "mode": 420
+      },
+      {
+        "path": "src/core/workflows/brainstorming/workflow.md",
+        "size": 3239,
+        "mode": 420
+      },
+      {
+        "path": "src/core/workflows/party-mode/steps/step-01-agent-loading.md",
+        "size": 5177,
+        "mode": 420
+      },
+      {
+        "path": "src/core/workflows/party-mode/steps/step-02-discussion-orchestration.md",
+        "size": 6635,
+        "mode": 420
+      },
+      {
+        "path": "src/core/workflows/party-mode/steps/step-03-graceful-exit.md",
+        "size": 7116,
+        "mode": 420
+      },
+      {
+        "path": "src/core/workflows/party-mode/workflow.md",
+        "size": 5727,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/agents/blitz.agent.yaml",
+        "size": 2760,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/agents/cipher.agent.yaml",
+        "size": 3617,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/agents/forge.agent.yaml",
+        "size": 1584,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/agents/ghost.agent.yaml",
+        "size": 3634,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/agents/glitch.agent.yaml",
+        "size": 3744,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/agents/kube.agent.yaml",
+        "size": 3537,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/agents/nyx.agent.yaml",
+        "size": 4206,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/agents/orbit.agent.yaml",
+        "size": 2611,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/agents/prism.agent.yaml",
+        "size": 3162,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/agents/quill-core/tech-writer-sidecar/documentation-standards.md",
+        "size": 5869,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/agents/quill-core/tech-writer.agent.yaml",
+        "size": 4056,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/agents/quill.agent.yaml",
+        "size": 3149,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/agents/razor.agent.yaml",
+        "size": 3339,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/agents/sable.agent.yaml",
+        "size": 1617,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/agents/vector.agent.yaml",
+        "size": 4025,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/data/project-context-template.md",
+        "size": 901,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/module-help.csv",
+        "size": 9609,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/module.yaml",
+        "size": 1862,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/teams/default-party.csv",
+        "size": 11238,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/teams/team-fullstack.yaml",
+        "size": 257,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/templates/project-state/STATE.md",
+        "size": 543,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/templates/project-state/TASKS.md",
+        "size": 472,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/create-product-brief/product-brief.template.md",
+        "size": 205,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/create-product-brief/steps/step-01-init.md",
+        "size": 7163,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/create-product-brief/steps/step-01b-continue.md",
+        "size": 5966,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/create-product-brief/steps/step-02-vision.md",
+        "size": 7246,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/create-product-brief/steps/step-03-users.md",
+        "size": 7739,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/create-product-brief/steps/step-04-metrics.md",
+        "size": 8148,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/create-product-brief/steps/step-05-scope.md",
+        "size": 8381,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/create-product-brief/steps/step-06-complete.md",
+        "size": 6618,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/create-product-brief/workflow.md",
+        "size": 2967,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/domain-steps/step-01-init.md",
+        "size": 5528,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/domain-steps/step-02-domain-analysis.md",
+        "size": 8774,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/domain-steps/step-03-competitive-landscape.md",
+        "size": 9659,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/domain-steps/step-04-regulatory-focus.md",
+        "size": 7101,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/domain-steps/step-05-technical-trends.md",
+        "size": 7573,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/domain-steps/step-06-research-synthesis.md",
+        "size": 16973,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/market-steps/step-01-init.md",
+        "size": 6500,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/market-steps/step-02-customer-behavior.md",
+        "size": 9343,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/market-steps/step-03-customer-pain-points.md",
+        "size": 9659,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/market-steps/step-04-customer-decisions.md",
+        "size": 10098,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/market-steps/step-05-competitive-analysis.md",
+        "size": 5781,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/market-steps/step-06-research-completion.md",
+        "size": 19090,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/research.template.md",
+        "size": 581,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/technical-steps/step-01-init.md",
+        "size": 5721,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/technical-steps/step-02-technical-overview.md",
+        "size": 9587,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/technical-steps/step-03-integration-patterns.md",
+        "size": 10135,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/technical-steps/step-04-architectural-patterns.md",
+        "size": 7352,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/technical-steps/step-05-implementation-research.md",
+        "size": 7914,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/technical-steps/step-06-research-synthesis.md",
+        "size": 21056,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/workflow-domain-research.md",
+        "size": 2444,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/workflow-market-research.md",
+        "size": 2425,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/1-analysis/research/workflow-technical-research.md",
+        "size": 2493,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/data/domain-complexity.csv",
+        "size": 7324,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/data/prd-purpose.md",
+        "size": 7253,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/data/project-types.csv",
+        "size": 3148,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-c/step-01-init.md",
+        "size": 8092,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-c/step-01b-continue.md",
+        "size": 5485,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-c/step-02-discovery.md",
+        "size": 8588,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-c/step-02b-vision.md",
+        "size": 7162,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-c/step-02c-executive-summary.md",
+        "size": 7651,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-c/step-03-success.md",
+        "size": 9670,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-c/step-04-journeys.md",
+        "size": 9522,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-c/step-05-domain.md",
+        "size": 7406,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-c/step-06-innovation.md",
+        "size": 9157,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-c/step-07-project-type.md",
+        "size": 9241,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-c/step-08-scoping.md",
+        "size": 8259,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-c/step-09-functional.md",
+        "size": 9584,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-c/step-10-nonfunctional.md",
+        "size": 9391,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-c/step-11-polish.md",
+        "size": 8302,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-c/step-12-complete.md",
+        "size": 5155,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-e/step-e-01-discovery.md",
+        "size": 8264,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-e/step-e-01b-legacy-conversion.md",
+        "size": 6789,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-e/step-e-02-review.md",
+        "size": 7916,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-e/step-e-03-edit.md",
+        "size": 7405,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-e/step-e-04-complete.md",
+        "size": 5165,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-v/step-v-01-discovery.md",
+        "size": 7526,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-v/step-v-02-format-detection.md",
+        "size": 6662,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-v/step-v-02b-parity-check.md",
+        "size": 6571,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-v/step-v-03-density-validation.md",
+        "size": 5904,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-v/step-v-04-brief-coverage-validation.md",
+        "size": 7350,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-v/step-v-05-measurability-validation.md",
+        "size": 7269,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-v/step-v-06-traceability-validation.md",
+        "size": 7409,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-v/step-v-07-implementation-leakage-validation.md",
+        "size": 7162,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-v/step-v-08-domain-compliance-validation.md",
+        "size": 7863,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-v/step-v-09-project-type-validation.md",
+        "size": 8766,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-v/step-v-10-smart-validation.md",
+        "size": 6933,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-v/step-v-11-holistic-quality-validation.md",
+        "size": 8911,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-v/step-v-12-completeness-validation.md",
+        "size": 8376,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/steps-v/step-v-13-report-complete.md",
+        "size": 8211,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/templates/prd-template.md",
+        "size": 164,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/workflow-create-prd.md",
+        "size": 2930,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/workflow-edit-prd.md",
+        "size": 2945,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-prd/workflow-validate-prd.md",
+        "size": 2963,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-ux-design/steps/step-01-init.md",
+        "size": 5931,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-ux-design/steps/step-01b-continue.md",
+        "size": 5084,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-ux-design/steps/step-02-discovery.md",
+        "size": 6916,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-ux-design/steps/step-03-core-experience.md",
+        "size": 8453,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-ux-design/steps/step-04-emotional-response.md",
+        "size": 8513,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-ux-design/steps/step-05-inspiration.md",
+        "size": 8860,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-ux-design/steps/step-06-design-system.md",
+        "size": 9049,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-ux-design/steps/step-07-defining-experience.md",
+        "size": 8998,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-ux-design/steps/step-08-visual-foundation.md",
+        "size": 8652,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-ux-design/steps/step-09-design-directions.md",
+        "size": 8830,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-ux-design/steps/step-10-user-journeys.md",
+        "size": 8597,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-ux-design/steps/step-11-component-strategy.md",
+        "size": 8942,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-ux-design/steps/step-12-ux-patterns.md",
+        "size": 8211,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-ux-design/steps/step-13-responsive-accessibility.md",
+        "size": 9309,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-ux-design/steps/step-14-complete.md",
+        "size": 6860,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-ux-design/ux-design-template.md",
+        "size": 236,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/2-plan-workflows/create-ux-design/workflow.md",
+        "size": 1556,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/check-implementation-readiness/steps/step-01-document-discovery.md",
+        "size": 5154,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/check-implementation-readiness/steps/step-02-prd-analysis.md",
+        "size": 4615,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/check-implementation-readiness/steps/step-03-epic-coverage-validation.md",
+        "size": 4218,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/check-implementation-readiness/steps/step-04-ux-alignment.md",
+        "size": 3456,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/check-implementation-readiness/steps/step-05-epic-quality-review.md",
+        "size": 6859,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/check-implementation-readiness/steps/step-06-final-assessment.md",
+        "size": 3446,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/check-implementation-readiness/templates/readiness-report-template.md",
+        "size": 95,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/check-implementation-readiness/workflow.md",
+        "size": 3006,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-architecture/architecture-decision-template.md",
+        "size": 337,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-architecture/data/domain-complexity.csv",
+        "size": 2187,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-architecture/data/project-types.csv",
+        "size": 758,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-architecture/steps/step-01-init.md",
+        "size": 6716,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-architecture/steps/step-01b-continue.md",
+        "size": 6898,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-architecture/steps/step-02-context.md",
+        "size": 8963,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-architecture/steps/step-03-starter.md",
+        "size": 12318,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-architecture/steps/step-04-decisions.md",
+        "size": 10611,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-architecture/steps/step-05-patterns.md",
+        "size": 11260,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-architecture/steps/step-06-structure.md",
+        "size": 11519,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-architecture/steps/step-07-validation.md",
+        "size": 11978,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-architecture/steps/step-08-complete.md",
+        "size": 3169,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-architecture/workflow.md",
+        "size": 2078,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-epics-and-stories/steps/step-01-validate-prerequisites.md",
+        "size": 9099,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-epics-and-stories/steps/step-02-design-epics.md",
+        "size": 7896,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-epics-and-stories/steps/step-03-create-stories.md",
+        "size": 8450,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-epics-and-stories/steps/step-04-final-validation.md",
+        "size": 5151,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-epics-and-stories/templates/epics-template.md",
+        "size": 1049,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/3-solutioning/create-epics-and-stories/workflow.md",
+        "size": 3256,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/code-review/checklist.md",
+        "size": 1116,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/code-review/instructions.xml",
+        "size": 10488,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/code-review/workflow.yaml",
+        "size": 1875,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/correct-course/checklist.md",
+        "size": 11706,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/correct-course/instructions.md",
+        "size": 8618,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/correct-course/workflow.yaml",
+        "size": 2282,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/create-story/checklist.md",
+        "size": 14520,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/create-story/instructions.xml",
+        "size": 19052,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/create-story/template.md",
+        "size": 948,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/create-story/workflow.yaml",
+        "size": 2717,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/dev-story/checklist.md",
+        "size": 4389,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/dev-story/instructions.xml",
+        "size": 21832,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/dev-story/workflow.yaml",
+        "size": 979,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/retrospective/instructions.md",
+        "size": 60745,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/retrospective/workflow.yaml",
+        "size": 2273,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/sprint-planning/checklist.md",
+        "size": 1298,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/sprint-planning/instructions.md",
+        "size": 8061,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/sprint-planning/sprint-status-template.yaml",
+        "size": 1750,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/sprint-planning/workflow.yaml",
+        "size": 2078,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/sprint-status/instructions.md",
+        "size": 9402,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/4-implementation/sprint-status/workflow.yaml",
+        "size": 996,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/delivery-readiness/workflow.md",
+        "size": 1246,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/document-project/checklist.md",
+        "size": 10101,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/document-project/documentation-requirements.csv",
+        "size": 8076,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/document-project/instructions.md",
+        "size": 5504,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/document-project/templates/deep-dive-template.md",
+        "size": 5854,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/document-project/templates/index-template.md",
+        "size": 4511,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/document-project/templates/project-overview-template.md",
+        "size": 1952,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/document-project/templates/project-scan-report-schema.json",
+        "size": 4836,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/document-project/templates/source-tree-template.md",
+        "size": 2161,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/document-project/workflow.yaml",
+        "size": 988,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/document-project/workflows/deep-dive-instructions.md",
+        "size": 11758,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/document-project/workflows/deep-dive.yaml",
+        "size": 1247,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/document-project/workflows/full-scan-instructions.md",
+        "size": 43027,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/document-project/workflows/full-scan.yaml",
+        "size": 1240,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/epic-delivery/workflow.md",
+        "size": 2702,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/generate-project-context/project-context-template.md",
+        "size": 543,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/generate-project-context/steps/step-01-discover.md",
+        "size": 6038,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/generate-project-context/steps/step-02-generate.md",
+        "size": 9085,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/generate-project-context/steps/step-03-complete.md",
+        "size": 8122,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/generate-project-context/workflow.md",
+        "size": 1959,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-dev-new-preview/steps/step-01-clarify-and-route.md",
+        "size": 3346,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-dev-new-preview/steps/step-02-plan.md",
+        "size": 1924,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-dev-new-preview/steps/step-03-implement.md",
+        "size": 1174,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-dev-new-preview/steps/step-04-review.md",
+        "size": 4596,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-dev-new-preview/steps/step-05-present.md",
+        "size": 654,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-dev-new-preview/tech-spec-template.md",
+        "size": 3300,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-dev-new-preview/workflow.md",
+        "size": 3928,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-dev/steps/step-01-mode-detection.md",
+        "size": 5488,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-dev/steps/step-02-context-gathering.md",
+        "size": 2514,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-dev/steps/step-03-execute.md",
+        "size": 2465,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-dev/steps/step-04-self-check.md",
+        "size": 2379,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-dev/steps/step-05-adversarial-review.md",
+        "size": 3431,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-dev/steps/step-06-resolve-findings.md",
+        "size": 3080,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-dev/workflow.md",
+        "size": 1850,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-spec/steps/step-01-understand.md",
+        "size": 6793,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-spec/steps/step-02-investigate.md",
+        "size": 4649,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-spec/steps/step-03-generate.md",
+        "size": 3277,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-spec/steps/step-04-review.md",
+        "size": 7022,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-spec/tech-spec-template.md",
+        "size": 776,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/hseos-quick-flow/quick-spec/workflow.md",
+        "size": 3796,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/kube-deploy/workflow.md",
+        "size": 4924,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/qa-generate-e2e-tests/checklist.md",
+        "size": 889,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/qa-generate-e2e-tests/instructions.md",
+        "size": 2751,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/qa-generate-e2e-tests/workflow.yaml",
+        "size": 1332,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/release-publish/workflow.md",
+        "size": 517,
+        "mode": 420
+      },
+      {
+        "path": "src/hsm/workflows/runtime-deploy/workflow.md",
+        "size": 2664,
+        "mode": 420
+      },
+      {
+        "path": "src/utility/agent-components/activation-rules.txt",
+        "size": 387,
+        "mode": 420
+      },
+      {
+        "path": "src/utility/agent-components/activation-steps.txt",
+        "size": 1679,
+        "mode": 420
+      },
+      {
+        "path": "src/utility/agent-components/agent-command-header.md",
+        "size": 172,
+        "mode": 420
+      },
+      {
+        "path": "src/utility/agent-components/agent.customize.template.yaml",
+        "size": 908,
+        "mode": 420
+      },
+      {
+        "path": "src/utility/agent-components/handler-action.txt",
+        "size": 237,
+        "mode": 420
+      },
+      {
+        "path": "src/utility/agent-components/handler-data.txt",
+        "size": 238,
+        "mode": 420
+      },
+      {
+        "path": "src/utility/agent-components/handler-exec.txt",
+        "size": 350,
+        "mode": 420
+      },
+      {
+        "path": "src/utility/agent-components/handler-multi.txt",
+        "size": 956,
+        "mode": 420
+      },
+      {
+        "path": "src/utility/agent-components/handler-tmpl.txt",
+        "size": 265,
+        "mode": 420
+      },
+      {
+        "path": "src/utility/agent-components/handler-validate-workflow.txt",
+        "size": 575,
+        "mode": 420
+      },
+      {
+        "path": "src/utility/agent-components/handler-workflow.txt",
+        "size": 611,
+        "mode": 420
+      },
+      {
+        "path": "src/utility/agent-components/menu-handlers.txt",
+        "size": 147,
+        "mode": 420
+      },
+      {
+        "path": "tools/benchmarks/session-replay.js",
+        "size": 2653,
+        "mode": 420
+      },
+      {
+        "path": "tools/build-docs.mjs",
+        "size": 15800,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli-project-state/project-state.ps1",
+        "size": 5086,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli-project-state/project-state.sh",
+        "size": 5520,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/command-manifest.json",
+        "size": 36293,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/agent-activation-rehearsal.js",
+        "size": 2366,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/agent-core.js",
+        "size": 6227,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/agent-provider-conformance.js",
+        "size": 1591,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/agent-provider-validate.js",
+        "size": 2199,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/agent.js",
+        "size": 12194,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/brain.js",
+        "size": 6778,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/capability-check.js",
+        "size": 2213,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/compatibility-audit.js",
+        "size": 2790,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/compatibility-evidence-inventory.js",
+        "size": 2028,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/compatibility-evidence-pack.js",
+        "size": 2127,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/compatibility-observe-plan.js",
+        "size": 2107,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/compatibility-observe.js",
+        "size": 3898,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/control.js",
+        "size": 5221,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/governance-context.js",
+        "size": 675,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/governance.js",
+        "size": 2226,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/install-plan.js",
+        "size": 5937,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/install.js",
+        "size": 8084,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/kanban-central.js",
+        "size": 8092,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/kanban.js",
+        "size": 6791,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/plugin.js",
+        "size": 9860,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/pr.js",
+        "size": 1383,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/sandbox.js",
+        "size": 3241,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/state-describe.js",
+        "size": 4121,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/state-emit.js",
+        "size": 3914,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/state-list.js",
+        "size": 3311,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/state-purge.js",
+        "size": 6195,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/state-render.js",
+        "size": 2438,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/state-session.js",
+        "size": 5257,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/state-snapshot.js",
+        "size": 1304,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/state-stale-sweep.js",
+        "size": 1725,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/state-ui.js",
+        "size": 4966,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/state.js",
+        "size": 4482,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/status.js",
+        "size": 2072,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/uninstall.js",
+        "size": 6483,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/commands/workflow.js",
+        "size": 15498,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/external-official-modules.yaml",
+        "size": 1937,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/hseos-cli.js",
+        "size": 1202,
+        "mode": 493
+      },
+      {
+        "path": "tools/cli/installers/install-messages.yaml",
+        "size": 1006,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler.js",
+        "size": 193,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/adapters/_base.js",
+        "size": 1103,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/adapters/agents-md.js",
+        "size": 2885,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/adapters/claude-code.js",
+        "size": 6087,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/adapters/claude-md.js",
+        "size": 2883,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/adapters/codex.js",
+        "size": 6445,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/adapters/goose.js",
+        "size": 5418,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/adapters/platforms.js",
+        "size": 4271,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/adapters/plugins-emit.js",
+        "size": 7753,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/adapters/README.md",
+        "size": 1237,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/index.js",
+        "size": 8816,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/lib/byoa-discovery.js",
+        "size": 1959,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/lib/find-files.js",
+        "size": 523,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/lib/frontmatter.js",
+        "size": 394,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/lib/hash.js",
+        "size": 178,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/lib/path-resolver.js",
+        "size": 1016,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/lib/slug.js",
+        "size": 179,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/manifest/builder.js",
+        "size": 3343,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/sources/agents-source.js",
+        "size": 2730,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/sources/capabilities-source.js",
+        "size": 6872,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/sources/commands-source.js",
+        "size": 2195,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/sources/hooks-source.js",
+        "size": 8357,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/sources/instructions-source.js",
+        "size": 4640,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/sources/mcp-source.js",
+        "size": 3233,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/sources/plugins-source.js",
+        "size": 19038,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/sources/skills-source.js",
+        "size": 4947,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/verify/audit.js",
+        "size": 12012,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/verify/doctor.js",
+        "size": 13794,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/verify/integrity.js",
+        "size": 5822,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/agent-core-compiler/verify/README.md",
+        "size": 2288,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/config-collector.js",
+        "size": 48917,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/custom-module-cache.js",
+        "size": 7289,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/dependency-resolver.js",
+        "size": 24342,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/detector.js",
+        "size": 8567,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/ide-config-manager.js",
+        "size": 4651,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/installer.js",
+        "size": 151390,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/manifest-generator.js",
+        "size": 37700,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/core/manifest.js",
+        "size": 31985,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/custom/handler.js",
+        "size": 13875,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/_base-ide.js",
+        "size": 21727,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/_config-driven.js",
+        "size": 24775,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/codex.js",
+        "size": 15841,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/github-copilot.js",
+        "size": 27265,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/kilo.js",
+        "size": 9820,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/manager.js",
+        "size": 11496,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/platform-codes.js",
+        "size": 2853,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/platform-codes.yaml",
+        "size": 7007,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/rovodev.js",
+        "size": 10042,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/shared/agent-command-generator.js",
+        "size": 5261,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/shared/hseos-artifacts.js",
+        "size": 4858,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/shared/module-injections.js",
+        "size": 3598,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/shared/path-utils.js",
+        "size": 6600,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/shared/task-tool-command-generator.js",
+        "size": 11007,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/shared/workflow-command-generator.js",
+        "size": 10304,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/agent-command-template.md",
+        "size": 626,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/antigravity.md",
+        "size": 209,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/claude-agent.md",
+        "size": 614,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/claude-workflow-yaml.md",
+        "size": 782,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/claude-workflow.md",
+        "size": 233,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/default-agent.md",
+        "size": 614,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/default-task.md",
+        "size": 217,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/default-tool.md",
+        "size": 217,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/default-workflow-yaml.md",
+        "size": 782,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/default-workflow.md",
+        "size": 233,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/gemini-agent.toml",
+        "size": 718,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/gemini-task.toml",
+        "size": 344,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/gemini-tool.toml",
+        "size": 344,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/gemini-workflow-yaml.toml",
+        "size": 545,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/gemini-workflow.toml",
+        "size": 441,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/kiro-agent.md",
+        "size": 592,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/kiro-task.md",
+        "size": 170,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/kiro-tool.md",
+        "size": 170,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/kiro-workflow-yaml.md",
+        "size": 727,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/kiro-workflow.md",
+        "size": 198,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/opencode-agent.md",
+        "size": 608,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/opencode-task.md",
+        "size": 302,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/opencode-tool.md",
+        "size": 302,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/opencode-workflow-yaml.md",
+        "size": 415,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/opencode-workflow.md",
+        "size": 415,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/rovodev.md",
+        "size": 174,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/trae.md",
+        "size": 186,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/combined/windsurf-workflow.md",
+        "size": 222,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/split/.gitkeep",
+        "size": 0,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/workflow-command-template.md",
+        "size": 703,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/ide/templates/workflow-commander.md",
+        "size": 193,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/message-loader.js",
+        "size": 1967,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/modules/external-manager.js",
+        "size": 4198,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/installers/lib/modules/manager.js",
+        "size": 58468,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/activation-builder.js",
+        "size": 5650,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/agent-analyzer.js",
+        "size": 3450,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/agent-party-generator.js",
+        "size": 6951,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/agent/compiler.js",
+        "size": 16181,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/agent/installer.js",
+        "size": 21472,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/agent/template-engine.js",
+        "size": 4614,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/bound-kernel-agent-runtime.js",
+        "size": 13790,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/bound-kernel-state-snapshot.js",
+        "size": 6269,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/bound-kernel-supervisor.js",
+        "size": 18334,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/bound-kernel-worker.js",
+        "size": 5296,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/capability-catalog.js",
+        "size": 30491,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/cli-utils.js",
+        "size": 5914,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/config.js",
+        "size": 6207,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/control-configuration.js",
+        "size": 5955,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/delegated-claude-runtime.js",
+        "size": 13327,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/delegated-codex-runtime.js",
+        "size": 13859,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/delegated-deepseek-runtime.js",
+        "size": 11830,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/delegated-deepseek-supervisor.js",
+        "size": 6964,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/delegated-deepseek-worker.js",
+        "size": 2366,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/engineering-control-http.js",
+        "size": 5802,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/engineering-control.js",
+        "size": 12902,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/engineering-model.js",
+        "size": 2218,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/engineering-project-verifier.js",
+        "size": 5235,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/engineering-reconciliation.js",
+        "size": 13611,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/engineering-sandbox-check.js",
+        "size": 5276,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/engineering-task-contract.js",
+        "size": 8293,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/engineering-task-runtime.js",
+        "size": 28809,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/engineering-task-state.js",
+        "size": 10662,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/engineering-tools.js",
+        "size": 10852,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/engineering-verifier.js",
+        "size": 4761,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/engineering-workflow-runtime.js",
+        "size": 26849,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/engineering-workspace.js",
+        "size": 9752,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/file-ops.js",
+        "size": 8031,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/governed-action.js",
+        "size": 6995,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/managed-governance/commands.js",
+        "size": 17857,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/managed-governance/output.js",
+        "size": 1020,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/pr-closeout.js",
+        "size": 5186,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/project-root.js",
+        "size": 1929,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/prompts.js",
+        "size": 25091,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/provider-api-adapter.js",
+        "size": 10468,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/provider-campaign-control.js",
+        "size": 19728,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/provider-campaign-runner.js",
+        "size": 4346,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/provider-egress-broker.js",
+        "size": 10939,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/reference-agent-runtime.js",
+        "size": 12137,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/sandbox.js",
+        "size": 13227,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/sidecar-lifecycle.js",
+        "size": 6950,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/state-render-lib.js",
+        "size": 2141,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/temporary-kernel-assembly.js",
+        "size": 5063,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/temporary-state-tool.js",
+        "size": 4456,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/terminal-attach.js",
+        "size": 3077,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/terminal-budget.js",
+        "size": 1787,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/terminal-control.js",
+        "size": 15564,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/ui.js",
+        "size": 85133,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/workflow-catalog.js",
+        "size": 10623,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/xml-handler.js",
+        "size": 5254,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/xml-to-markdown.js",
+        "size": 2133,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/lib/yaml-format.js",
+        "size": 7674,
+        "mode": 493
+      },
+      {
+        "path": "tools/cli/lib/yaml-xml-builder.js",
+        "size": 19727,
+        "mode": 420
+      },
+      {
+        "path": "tools/cli/README.md",
+        "size": 2778,
+        "mode": 420
+      },
+      {
+        "path": "tools/docs/_prompt-external-modules-page.md",
+        "size": 2046,
+        "mode": 420
+      },
+      {
+        "path": "tools/docs/fix-refs.md",
+        "size": 4327,
+        "mode": 420
+      },
+      {
+        "path": "tools/examples/engineering-task.js",
+        "size": 5771,
+        "mode": 420
+      },
+      {
+        "path": "tools/examples/project-task.js",
+        "size": 7310,
+        "mode": 420
+      },
+      {
+        "path": "tools/fix-doc-links.js",
+        "size": 9302,
+        "mode": 420
+      },
+      {
+        "path": "tools/format-workflow-md.js",
+        "size": 7257,
+        "mode": 493
+      },
+      {
+        "path": "tools/hseos-npx-wrapper.js",
+        "size": 1223,
+        "mode": 493
+      },
+      {
+        "path": "tools/install-all.sh",
+        "size": 1244,
+        "mode": 493
+      },
+      {
+        "path": "tools/lib/agent-provider-binding.js",
+        "size": 12252,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/agent-provider-conformance.js",
+        "size": 22230,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/agentic-activation-rehearsal.js",
+        "size": 17006,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/compatibility-audit.js",
+        "size": 33704,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/compatibility-evidence-inventory.js",
+        "size": 26388,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/compatibility-evidence-pack.js",
+        "size": 41218,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/compatibility-observation-plan.js",
+        "size": 8361,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/compatibility-observation.js",
+        "size": 26848,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/governed-execution/canonical-envelope.js",
+        "size": 100,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/governed-execution/contract-registry.js",
+        "size": 5158,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/governed-execution/entrypoint-adapters.js",
+        "size": 3663,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/governed-execution/event-registry.js",
+        "size": 16948,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/governed-execution/execution-port.js",
+        "size": 96,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/governed-execution/native-mcp-adapters.js",
+        "size": 5040,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/governed-execution/native-mcp-server.js",
+        "size": 6876,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/governed-execution/operational-runtime.js",
+        "size": 8467,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/governed-execution/runtime.js",
+        "size": 89,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/governed-execution/scheduler.js",
+        "size": 91,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/json-schema-validation-worker.js",
+        "size": 606,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/legacy-mcp-server.js",
+        "size": 6032,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/mcp-2026-adapter.js",
+        "size": 51937,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/mcp-protocol.js",
+        "size": 976,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/mcp-transport.js",
+        "size": 3375,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/provider-control-manifest.js",
+        "size": 6381,
+        "mode": 420
+      },
+      {
+        "path": "tools/lib/xml-utils.js",
+        "size": 365,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/composition.js",
+        "size": 16753,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/config.example.json",
+        "size": 795,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/application/catalog-parity.js",
+        "size": 2172,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/application/compare-shadow-decision.js",
+        "size": 1763,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/application/evaluate-policy.js",
+        "size": 204,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/application/evaluate-readiness.js",
+        "size": 12056,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/application/generate-patch-bundle.js",
+        "size": 6822,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/application/import-catalog.js",
+        "size": 2270,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/application/manage-draft.js",
+        "size": 648,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/application/plan-release.js",
+        "size": 3932,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/application/publish-release.js",
+        "size": 2400,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/application/query-readiness.js",
+        "size": 2704,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/application/query-release.js",
+        "size": 4093,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/application/record-shadow-receipt.js",
+        "size": 2958,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/application/rehearse-recovery.js",
+        "size": 14525,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/application/request-publication.js",
+        "size": 362,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/application/rollback-import.js",
+        "size": 463,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/application/verify-snapshot.js",
+        "size": 4129,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/configuration.js",
+        "size": 11821,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/domain/external-signer-port.js",
+        "size": 4830,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/domain/import-plan.js",
+        "size": 6199,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/domain/policy-resolver.js",
+        "size": 14210,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/domain/repository-port.js",
+        "size": 30812,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/infrastructure/git/classifiers.js",
+        "size": 3880,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/infrastructure/git/governance-source.js",
+        "size": 14050,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/infrastructure/git/patch-bundle-writer.js",
+        "size": 5940,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/infrastructure/git/source-profiles.js",
+        "size": 3806,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/infrastructure/memory/governance-repository.js",
+        "size": 28223,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/infrastructure/postgres/governance-repository.js",
+        "size": 43326,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/infrastructure/postgres/migrator.js",
+        "size": 5973,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/infrastructure/postgres/pool.js",
+        "size": 3235,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/interfaces/http/auth.js",
+        "size": 3725,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/interfaces/http/envelope.js",
+        "size": 1417,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/interfaces/http/router.js",
+        "size": 15182,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/interfaces/http/static-assets.js",
+        "size": 2208,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/network/admission.js",
+        "size": 5089,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/network/authentication.js",
+        "size": 3667,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/network/ip.js",
+        "size": 3442,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/network/rate-limit.js",
+        "size": 2722,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/lib/network/trusted-proxy.js",
+        "size": 3153,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/migrations/0001_initial_control_plane.sql",
+        "size": 26039,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/migrations/0002_catalog_source_snapshots.sql",
+        "size": 3235,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/migrations/0003_audit_correlation.sql",
+        "size": 327,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/migrations/0004_operational_health.sql",
+        "size": 84,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/migrations/0005_shadow_readiness.sql",
+        "size": 9759,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/migrations/0006_release_manifest_fields.sql",
+        "size": 1121,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/package.json",
+        "size": 319,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/public/app.js",
+        "size": 7717,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/public/index.html",
+        "size": 5906,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/public/styles.css",
+        "size": 5187,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/public/ui-schemas.json",
+        "size": 1719,
+        "mode": 420
+      },
+      {
+        "path": "tools/managed-governance-control-plane/server.js",
+        "size": 7465,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-axon-bridge/index.js",
+        "size": 2136,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-axon-bridge/lib/axon-client.js",
+        "size": 1968,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-axon-bridge/lib/binary-resolver.js",
+        "size": 1203,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-axon-bridge/lib/no-op-fallback.js",
+        "size": 238,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-axon-bridge/README.md",
+        "size": 2013,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-axon-bridge/tools/code_search.js",
+        "size": 782,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-axon-bridge/tools/dep_graph.js",
+        "size": 725,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-axon-bridge/tools/get_overview.js",
+        "size": 540,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-axon-bridge/tools/get_skeleton.js",
+        "size": 713,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-axon-bridge/tools/memory_search.js",
+        "size": 671,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-axon-bridge/tools/run_pipeline.js",
+        "size": 686,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-hseos-governance/index.js",
+        "size": 1968,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-hseos-governance/lib/governance-query-adapter.js",
+        "size": 6756,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-hseos-governance/lib/spec-reader.js",
+        "size": 4078,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-hseos-governance/README.md",
+        "size": 3932,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-hseos-governance/tools/check_authority.js",
+        "size": 528,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-hseos-governance/tools/list_skills.js",
+        "size": 609,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-hseos-governance/tools/list_workflows.js",
+        "size": 458,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-hseos-governance/tools/managed_queries.js",
+        "size": 3142,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-hseos-governance/tools/query_constitution.js",
+        "size": 484,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-hseos-governance/tools/validate_adr.js",
+        "size": 1644,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-hseos-swarm/index.js",
+        "size": 1953,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-hseos-swarm/README.md",
+        "size": 2709,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-hseos-swarm/tools/consolidate_handoff.js",
+        "size": 2282,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-hseos-swarm/tools/dispatch_wave.js",
+        "size": 2223,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-hseos-swarm/tools/get_run_state.js",
+        "size": 1245,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-hseos-swarm/tools/list_runs.js",
+        "size": 1453,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-hseos-swarm/tools/plan_squad.js",
+        "size": 2075,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/index.js",
+        "size": 8608,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/lib/agent-state-dal.js",
+        "size": 19126,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/lib/archiver.js",
+        "size": 3786,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/lib/execution-approval-store.js",
+        "size": 8436,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/lib/execution-event-ledger.js",
+        "size": 17560,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/lib/execution-ledger-schema.js",
+        "size": 5476,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/lib/execution-projections.js",
+        "size": 19805,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/lib/mcp-legacy-usage-store.js",
+        "size": 11781,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/lib/migrations.js",
+        "size": 2570,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/lib/operational-state-db.js",
+        "size": 4229,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/lib/scheduler.js",
+        "size": 2797,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/lib/snapshotter.js",
+        "size": 1788,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/lib/stale-detector.js",
+        "size": 1283,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/migrations-pending-activation/005-governed-execution-ledger-v2.sql",
+        "size": 4940,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/migrations-pending-activation/006-execution-projections.sql",
+        "size": 1985,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/migrations-pending-activation/007-execution-approvals.sql",
+        "size": 2988,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/migrations-pending-activation/008-delegated-runtime-event-catalog.sql",
+        "size": 828,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/migrations-pending-activation/009-delegated-worker-lifecycle.sql",
+        "size": 671,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/migrations-pending-activation/010-engineering-task-events.sql",
+        "size": 420,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/migrations-pending-activation/011-control-command-events.sql",
+        "size": 409,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/migrations/001-agent-state-tables.sql",
+        "size": 3846,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/migrations/002-events-fts.sql",
+        "size": 1061,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/migrations/003-session-tracking.sql",
+        "size": 1501,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/migrations/004-session-context.sql",
+        "size": 700,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/tool-catalog.js",
+        "size": 1716,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/tools/agent-runs.js",
+        "size": 2226,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/tools/events.js",
+        "size": 2054,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/tools/handoffs.js",
+        "size": 1750,
+        "mode": 420
+      },
+      {
+        "path": "tools/mcp-project-state/tools/runs.js",
+        "size": 3230,
+        "mode": 420
+      },
+      {
+        "path": "tools/migrate-custom-module-paths.js",
+        "size": 3660,
+        "mode": 493
+      },
+      {
+        "path": "tools/schema/agent.js",
+        "size": 18727,
+        "mode": 420
+      },
+      {
+        "path": "tools/state-ui-server/index.js",
+        "size": 9153,
+        "mode": 420
+      },
+      {
+        "path": "tools/state-ui-server/lib/registry.js",
+        "size": 3199,
+        "mode": 420
+      },
+      {
+        "path": "tools/state-ui-server/lib/snapshot-multi.js",
+        "size": 4111,
+        "mode": 420
+      },
+      {
+        "path": "tools/state-ui-server/lib/snapshot.js",
+        "size": 4300,
+        "mode": 420
+      },
+      {
+        "path": "tools/state-ui-server/web/app.js",
+        "size": 8759,
+        "mode": 420
+      },
+      {
+        "path": "tools/state-ui-server/web/index.html",
+        "size": 1679,
+        "mode": 420
+      },
+      {
+        "path": "tools/state-ui-server/web/styles.css",
+        "size": 4190,
+        "mode": 420
+      },
+      {
+        "path": "tools/usage-dashboard/cli.py",
+        "size": 10582,
+        "mode": 420
+      },
+      {
+        "path": "tools/usage-dashboard/dashboard.py",
+        "size": 44144,
+        "mode": 420
+      },
+      {
+        "path": "tools/usage-dashboard/docker-compose.yaml",
+        "size": 843,
+        "mode": 420
+      },
+      {
+        "path": "tools/usage-dashboard/Dockerfile",
+        "size": 568,
+        "mode": 420
+      },
+      {
+        "path": "tools/usage-dashboard/scanner.py",
+        "size": 19961,
+        "mode": 420
+      },
+      {
+        "path": "tools/validate-agent-schema.js",
+        "size": 3331,
+        "mode": 420
+      },
+      {
+        "path": "tools/validate-doc-links.js",
+        "size": 12658,
+        "mode": 420
+      },
+      {
+        "path": "tools/validate-file-refs.js",
+        "size": 17888,
+        "mode": 420
+      },
+      {
+        "path": "tools/validate-svg-changes.sh",
+        "size": 11240,
+        "mode": 493
+      }
+    ],
+    "entryCount": 1424,
+    "bundled": []
+  }
+]

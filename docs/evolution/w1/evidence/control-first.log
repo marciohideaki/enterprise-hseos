@@ -1,0 +1,13 @@
+✔ CLI, JavaScript, Python and HTTP share identity, task results and replayable event cursors (10138.911657ms)
+✔ authenticated control rejects wrong identity, origins, workspace escalation and stale commands (4975.813537ms)
+✔ an intent without receipt is not automatically dispatched again (4748.727192ms)
+✔ review binds approval to Git baseline and only explicit apply modifies the source project (3780.731853ms)
+✔ concurrent source edits invalidate the prior review and are preserved (2928.74872ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 27513.279947

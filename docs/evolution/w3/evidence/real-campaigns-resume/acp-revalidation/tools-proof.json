@@ -1,0 +1,29 @@
+{
+  "offered_tools": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "rejected_calls": [
+    {
+      "id": "probe_1",
+      "output": "unsupported call: exec_command"
+    },
+    {
+      "id": "probe_2",
+      "output": "unsupported custom tool call: apply_patch"
+    },
+    {
+      "id": "probe_3",
+      "output": "unsupported call: collaboration.spawn_agent"
+    },
+    {
+      "id": "probe_4",
+      "output": "unsupported call: view_image"
+    }
+  ],
+  "witness_created": false,
+  "provider_calls": 0
+}

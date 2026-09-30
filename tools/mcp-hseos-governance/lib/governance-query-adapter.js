@@ -80,7 +80,6 @@ function loadProjectConfiguration(projectRoot = process.cwd()) {
 async function requestJson(endpoint, method, pathname, body) {
   let response;
   try {
-    // eslint-disable-next-line n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line
     response = await fetch(`${endpoint}${pathname}`, {
       method,
       headers: body === undefined ? {} : { 'content-type': 'application/json' },

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "task_id": "harness-private-executor",
+  "at": "2026-09-20T06:51:21.966629+00:00",
+  "status": "blocked",
+  "baseline": "a8423081934d64538d71ef8289f072d51566a870",
+  "observations": {
+    "private_tmp_write_read": "passed actual ai-jail lockdown Python canary",
+    "runtime_visibility_before_patch": false,
+    "runtime_visibility_after_explicit_ro_map": false,
+    "dry_run_explicit_map_present": false,
+    "runtime_probe_provider_calls": 0,
+    "candidate_correction": "rejected and reverted; no functional patch remains"
+  },
+  "rejected_patch_sha256": "ab2fea2edde74096e1a56cb7fd9d344f07c225b629d6a60174e04613a5ba5159",
+  "authority": {
+    "adr_0040": "approved candidate only",
+    "adr_0041": "unapproved alternative",
+    "active_controls_changed": false
+  },
+  "completed_independent_commits": [
+    "96548e3f258f7cd5488102ce7f74b7746285579b",
+    "868dd79036d0c911a4d8bd2126b89a7e708536ae"
+  ],
+  "required_resumption": "Provide a governed adopted-backend revision/profile that proves required runtime/broker visibility and executor separation, or explicitly decide the proposed separate executor boundary; retain private-workspace/snapshot design and all conformance gates.",
+  "artifacts": {
+    "rejected-runtime-map.patch": "ab2fea2edde74096e1a56cb7fd9d344f07c225b629d6a60174e04613a5ba5159",
+    "runtime-visibility.json": "045dda6274d5c634097fb1727cd055affbbd1015e14b5140e4f26201802185d1",
+    "reproduce.cjs": "4177687e03203af0f7fb15fe29f01acce319bd4ffe0205d7fe199d990d4d7866"
+  },
+  "reviewed_proposal": ".enterprise/.specs/decisions/ADR-0041-engineering-executor-boundary.md",
+  "documentation_neutrality": "passed",
+  "full_gate": "not-run: no functional implementation remains; H4 and H5 have separate passed full gates"
+}

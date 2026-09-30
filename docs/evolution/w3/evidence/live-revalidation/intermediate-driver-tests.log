@@ -1,0 +1,26 @@
+✔ Codex app-server driver performs official initialize, thread and turn lifecycle over JSONL stdio (39.868616ms)
+✔ a fresh driver process reattaches with thread/resume and never creates a replacement thread (50.08267ms)
+✔ effect-bearing Codex items are rejected by the hosted L0 provider (25.969791ms)
+✔ an unknown future Codex item fails closed as an effect instead of widening L0 (30.870308ms)
+✔ an app-server process exit settles the active hosted stream as provider unavailable (30.707832ms)
+✔ driver cancellation maps to turn/interrupt and terminates the process (26.985548ms)
+✔ driver rejects a relative executable and an environment with non-explicit keys (0.691179ms)
+✔ process normalization cannot mutate the frozen driver environment (27.701265ms)
+✔ resumed Codex usage distinguishes known history from another thread: stale-usage (27.417397ms)
+✔ resumed Codex usage distinguishes known history from another thread: foreign-stale-usage (24.089625ms)
+ℹ Error: Test "resumed Codex usage distinguishes known history from another thread: foreign-stale-usage" at test/test-codex-app-server-driver.js:309:3 generated asynchronous activity after the test ended. This activity created the error "RuntimeProviderError: Codex app-server notification violated the driver contract" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+✖ test/test-codex-app-server-driver.js (417.530004ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 10
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 423.591824
+
+✖ failing tests:
+
+test at test/test-codex-app-server-driver.js:1:1
+✖ test/test-codex-app-server-driver.js (417.530004ms)
+  'test failed'

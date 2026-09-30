@@ -1,7 +1,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI](https://github.com/marciohideaki/hseos/actions/workflows/standalone-smoke.yaml/badge.svg)](https://github.com/marciohideaki/hseos/actions)
-[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](package.json)
-[![Node](https://img.shields.io/badge/node-%3E%3D20-green.svg)](https://nodejs.org)
+[![Version](https://img.shields.io/badge/version-4.0.0--rc.0-blue.svg)](package.json)
+[![Node](https://img.shields.io/badge/node-%3E%3D22-green.svg)](https://nodejs.org)
 [![Agents](https://img.shields.io/badge/agents-16-purple.svg)](.hseos/agents/)
 [![Skills](https://img.shields.io/badge/skills-52-orange.svg)](.enterprise/governance/agent-skills/)
 
@@ -15,6 +15,15 @@
 > _"Where human intent becomes institutional intelligence."_
 
 **A spec-driven, AI-assisted development framework combining architecture governance, cyberpunk agents, 52 skills, MCPs and engineering workflows.**
+
+> This checkout prepares an unpublished v4 candidate. See the
+> [v4 task consumer and migration guide](docs/v4-migration.md) for executable examples,
+> legacy-state preservation, current limits and rollback.
+>
+> W3 campaign adapters and the Antigravity budget bridge are candidate features.
+> See [configuration and limits](docs/evolution/w3/ADAPTERS-CAMPAIGN.md) and the
+> [adversarial review](docs/evolution/w3/ADVERSARIAL-REVIEW.md); real-provider
+> campaign conformance is not certified.
 
 > Upgrading from v2.x? Review the
 > [v3 migration guide](docs/MIGRATION-GUIDE-v2-to-v3.md) before moving state,
@@ -160,7 +169,7 @@ Each step is governed by skills loaded automatically from the registry. Agents c
 
 | Tool            | Version | Required | Notes                                      |
 | --------------- | ------- | -------- | ------------------------------------------ |
-| Node.js         | ≥ 20    | ✅       | Runtime for HSEOS CLI                      |
+| Node.js         | ≥ 22    | ✅       | Runtime for HSEOS CLI                      |
 | Git             | ≥ 2.30  | ✅       | Hooks require modern git                   |
 | Claude Code CLI | latest  | ✅       | `npm install -g @anthropic-ai/claude-code` |
 | kubectl         | ≥ 1.28  | ⚠️       | Required for KUBE agent only               |
@@ -174,7 +183,7 @@ Each step is governed by skills loaded automatically from the registry. Agents c
 ### 1. Install the verified GitHub release
 
 ```bash
-release_version=3.3.1
+release_version=3.4.2
 release_dir="$(mktemp -d)"
 gh release download "v${release_version}" \
   --repo marciohideaki/enterprise-hseos \
@@ -194,6 +203,10 @@ verification commands with the same Node/npm context used for installation.
 The release is installed from the exact tarball covered by `SHA256SUMS`; HSEOS
 is not currently published under the unscoped `hseos` name on npm. Reinstall
 the previous verified GitHub asset to roll back.
+
+The `4.0.0-rc.0` W4 candidate is separate from the latest public GitHub release.
+See the [W4 guide](docs/evolution/w4/README.md) and
+[v4 migration guide](docs/v4-migration.md) before using its new CLI surfaces.
 
 This sets up:
 
@@ -216,6 +229,7 @@ is always included and cannot be deselected; components with external prerequisi
 sandbox, telemetry, axon-bridge, second-brain) are optional and degrade gracefully when unmet.
 
 ```bash
+hseos init                             # interactive project setup with plan review
 hseos install-plan --list-profiles     # discover profiles
 hseos install-plan --profile gitops    # dry-run: components, skills, paths, prerequisites
 hseos install --profile developer      # install a profile
@@ -529,8 +543,8 @@ HSEOS ships a lightweight SQLite-backed state layer at `.hseos/state/project.db`
 
 ```bash
 hseos state-emit start --run <run-id>   # open a run
-hseos state list                        # list recent runs
-hseos state describe <run-id>           # full run detail
+hseos state-list                        # list recent runs
+hseos state-describe <run-id>           # run detail and last events
 hseos kanban                            # ASCII kanban in terminal
 ```
 
@@ -664,7 +678,7 @@ O framework resolve um problema específico: ferramentas de IA são ágeis mas d
 ### Instalação rápida
 
 ```bash
-versao_release=3.3.1
+versao_release=3.4.2
 diretorio_release="$(mktemp -d)"
 gh release download "v${versao_release}" \
   --repo marciohideaki/enterprise-hseos \
@@ -680,6 +694,10 @@ A distribuição oficial atual é o artefato imutável da release no GitHub. O
 pacote sem escopo `hseos` não está publicado no npm; por isso `npx hseos` não é
 um caminho de instalação suportado. Para rollback, reinstale o asset verificado
 da versão anterior.
+
+A candidata W4 `4.0.0-rc.0` é separada da release pública. Consulte o
+[guia W4](docs/evolution/w4/README.md) e o
+[guia de migração v4](docs/v4-migration.md) antes de usar as novas superfícies.
 
 O instalador cria, por padrão:
 

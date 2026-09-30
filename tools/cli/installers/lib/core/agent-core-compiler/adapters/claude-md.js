@@ -7,10 +7,12 @@
  * agent rules in AGENTS.md (the vendor-neutral entrypoint); CLAUDE.md is a thin
  * compatibility pointer so Claude Code is routed to the same governance source.
  *
- * The manifest declares `adapters.claude_code.entrypoint: CLAUDE.md`, but the
- * Claude Code adapter only emits `.claude/hooks.json` and `.claude/commands`.
- * Without this emitter a fresh install leaves Claude Code with no root
- * entrypoint pointing at AGENTS.md. This mirrors the AGENTS.md adapter.
+ * The manifest declares `adapters.claude_code.entrypoint: CLAUDE.md`. Without
+ * this emitter a fresh install leaves Claude Code with no root entrypoint
+ * pointing at AGENTS.md. This mirrors the AGENTS.md adapter.
+ *
+ * The emitted file opens with the `@AGENTS.md` import, which ADR-0008 §4 makes
+ * mandatory: without it the runtime ignores AGENTS.md entirely.
  *
  * Behaviour:
  *   - Only emits when the `claude-code` platform is active (CLAUDE.md is a
@@ -27,14 +29,22 @@ const fs = require('fs-extra');
 const CLAUDE_MD = 'CLAUDE.md';
 
 function buildClaudeMdContent() {
-  return `# CLAUDE.md — Compatibility Pointer
+  // The `@AGENTS.md` import MUST be the first line. With a CLAUDE.md present the
+  // runtime loads it and ignores AGENTS.md by default — prose asking the agent to
+  // "read AGENTS.md" does not substitute for the import, because the agent never
+  // sees the instruction it is being asked to obey. Emitting the prose-only form
+  // reproduced the exact defect that ADR-0008 §4 was written to correct, in every
+  // repository scaffolded by `hseos install`.
+  return `@AGENTS.md
+
+# CLAUDE.md — Compatibility Pointer
 
 > Claude Code reads this file as the repository entry point. HSEOS keeps durable
-> agent rules in \`AGENTS.md\`; this file only routes there.
-
-Read \`AGENTS.md\` before any action in this repository. \`AGENTS.md\` is the
-canonical place for agent rules, directives, governance, and task execution
-policy.
+> agent rules in \`AGENTS.md\`, imported on the first line above.
+>
+> **Do not remove the import.** With a \`CLAUDE.md\` present the runtime ignores
+> \`AGENTS.md\` by default; a sentence asking to "read AGENTS.md" is not a
+> substitute for the import.
 
 Do not write durable instructions in \`CLAUDE.md\`. If a rule needs to change,
 update \`AGENTS.md\` instead.

@@ -1,0 +1,11 @@
+✔ real typescript-report project is rejected, diagnosed, corrected and independently approved (2530.59277ms)
+✔ real python-inventory project is rejected, diagnosed, corrected and independently approved (1985.723641ms)
+✔ patch cannot bypass required diagnosis after protected rejection (2113.939697ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7281.389936

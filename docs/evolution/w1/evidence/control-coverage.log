@@ -1,0 +1,38 @@
+✔ CLI, JavaScript, Python and HTTP share identity, task results and replayable event cursors (3356.616052ms)
+✔ authenticated control rejects wrong identity, origins, workspace escalation and stale commands (1476.00801ms)
+✔ an intent without receipt is not automatically dispatched again (1381.233437ms)
+✔ review binds approval to Git baseline and only explicit apply modifies the source project (2939.808844ms)
+✔ concurrent source edits invalidate the prior review and are preserved (2961.348063ms)
+✔ public preparation pins the current workspace and cannot expand the server allowlist (80.462154ms)
+✔ workflows reuse the same API control and aggregate kernel budget (3722.825416ms)
+✔ HTTP rejects malformed, oversized and unsupported requests without exposing internal errors (1497.61904ms)
+✔ SDK rejects remote endpoints, malformed cursors and invalid query views (0.492056ms)
+✔ v2 snapshots a Git project and preserves its immutable input after external edits (104.222362ms)
+✔ v2 refuses links, invalid UTF-8, changed Git baseline and embedded substitution (214.376989ms)
+✔ project acceptance and verifier inputs cannot drift after pinning (43.948403ms)
+✔ protected verifier executes Node multi-file inside isolation (1605.804534ms)
+✔ protected verifier executes TypeScript inside isolation (1660.853804ms)
+✔ protected verifier executes Python multi-file inside isolation (1494.535924ms)
+✔ protected verifier executes web static content inside isolation (1633.208038ms)
+✔ protected verifier executes incorrect delivery inside isolation (1843.166715ms)
+✔ project search, preconditioned patch and diff share governed task execution (1694.709654ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 29124.582946
+----------------------------------|---------|----------|---------|---------|------------------------
+File                              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s      
+----------------------------------|---------|----------|---------|---------|------------------------
+All files                         |   99.38 |    79.92 |     100 |   99.38 |                        
+ packages/control-sdk             |     100 |    97.05 |     100 |     100 |                        
+  index.js                        |     100 |    97.05 |     100 |     100 | 28                     
+ tools/cli/lib                    |   99.32 |    77.44 |     100 |   99.32 |                        
+  engineering-control-http.js     |     100 |    90.19 |     100 |     100 | 8,12,21,41,64          
+  engineering-control.js          |     100 |    79.31 |     100 |     100 | ...173-174,178,203,212 
+  engineering-project-verifier.js |   98.11 |    80.64 |     100 |   98.11 | 94-95                  
+  engineering-workspace.js        |   98.89 |    63.63 |     100 |   98.89 | 15-16                  
+----------------------------------|---------|----------|---------|---------|------------------------

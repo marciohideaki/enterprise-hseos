@@ -8,6 +8,19 @@ profiles:
       - adapter:codex
       - adapter:claude-code
 
+  disposable-engineering-candidate:
+    name: Disposable Engineering Candidate
+    description: Local bounded task execution and workflow verification without organizational integrations or provider credentials.
+    hook_profile: advisory
+    components:
+      - runtime:engineering-candidate
+      - adapter:codex
+    agent:
+      execution_mode: kernel
+      model_provider_id: model:engineering-scripted
+      runtime_provider_id: runtime:hseos-kernel
+      secret_refs: []
+
   agent-reference:
     name: Agent Framework Reference
     description: Keyless, temporary and non-operational reference assembly of the model-agnostic HSEOS Agent Kernel.

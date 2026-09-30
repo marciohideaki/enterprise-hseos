@@ -1,0 +1,7 @@
+{
+  "git-validate.log": "2fa9dc31e83965a7ed61ac0df06de46f4845b15daf00c241c7b4598adcc3fe52",
+  "git-validate-receipt.json": "7e50d3facc941f9708593410ff468f27e1c2df5d2fdcabcaebbd3c6906033bed",
+  "git-validate-script-archive-failure.log": "a672297f77b44f1dd20a7a765beae9b1b2281637900078049c463cdea68b0320",
+  "git-validate-script-archive-failure-receipt.json": "51c6c3d532802f02d2266f28679944f71273c02bf1168c7f531d2eed3e2bf9ba",
+  "archive-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

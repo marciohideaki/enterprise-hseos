@@ -1,0 +1,15 @@
+
+> hseos@4.0.0-rc.0 format:check
+> prettier --check "**/*.{js,cjs,mjs,json,yaml}"
+
+Checking formatting...
+[warn] _graph/agentic-framework/state/evidence/harness-cli-outcome/g9-live.json
+[warn] _graph/agentic-framework/state/evidence/harness-cli-outcome/result.json
+[warn] _graph/agentic-framework/state/evidence/harness-private-executor/result.json
+[warn] _graph/agentic-framework/state/evidence/harness-task-contract/public-receipt.json
+[warn] docs/evidence/governance-native-2026-09-12/summary.json
+[warn] docs/v4/evidence/2026-09-25-correction-reconciliation/receipt.json
+[warn] docs/v4/evidence/2026-09-25-recovery/clean-smoke.json
+[warn] docs/v4/evidence/2026-09-25/final-clean-smoke.json
+[warn] tools/cli/command-manifest.json
+[warn] Code style issues found in 9 files. Run Prettier with --write to fix.

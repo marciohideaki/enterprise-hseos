@@ -1,0 +1,26 @@
+✖ persistent replay scales within explicit latency, storage, and memory bounds (14298.773712ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14828.806802
+
+✖ failing tests:
+
+test at test/test-agentic-completion-audit.js:760:1
+✖ persistent replay scales within explicit latency, storage, and memory bounds (14298.773712ms)
+  AssertionError [ERR_ASSERTION]: p95 exceeded linear event-volume envelope: {"volume":128,"event_count":135,"p50_ms":11.035,"p95_ms":39.773,"max_ms":43.23,"database_bytes":417792}
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w0/test/test-agentic-completion-audit.js:841:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

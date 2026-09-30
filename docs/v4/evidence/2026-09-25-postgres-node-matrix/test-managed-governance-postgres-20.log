@@ -1,0 +1,90 @@
+
+> hseos@4.0.0-rc.0 test:managed-governance-postgres
+> node --test --test-concurrency=1 test/managed-governance/postgres.integration.test.js
+
+TAP version 13
+# Subtest: PostgreSQL migration and repository integration
+    # Subtest: creates every core table with fail-closed tenant RLS
+    ok 1 - creates every core table with fail-closed tenant RLS
+      ---
+      duration_ms: 24.916434
+      ...
+    # Subtest: commits domain state, audit, outbox and receipt atomically
+    ok 2 - commits domain state, audit, outbox and receipt atomically
+      ---
+      duration_ms: 111.076299
+      ...
+    # Subtest: returns the original result for an exact idempotent retry
+    ok 3 - returns the original result for an exact idempotent retry
+      ---
+      duration_ms: 51.202287
+      ...
+    # Subtest: rejects conflicting idempotency reuse without partial writes
+    ok 4 - rejects conflicting idempotency reuse without partial writes
+      ---
+      duration_ms: 49.817943
+      ...
+    # Subtest: serializes concurrent retries to one committed mutation
+    ok 5 - serializes concurrent retries to one committed mutation
+      ---
+      duration_ms: 69.61508
+      ...
+    # Subtest: records a readiness evaluation idempotently and never authorizes enforcement
+    ok 6 - records a readiness evaluation idempotently and never authorizes enforcement
+      ---
+      duration_ms: 70.439324
+      ...
+    # Subtest: records a recovery rehearsal idempotently and requires a confirmed disposable target
+    ok 7 - records a recovery rehearsal idempotently and requires a confirmed disposable target
+      ---
+      duration_ms: 52.552105
+      ...
+    # Subtest: records network access audit events with a deny reason required only on denial
+    ok 8 - records network access audit events with a deny reason required only on denial
+      ---
+      duration_ms: 49.886534
+      ...
+    # Subtest: keeps tenant reads isolated and closes explicitly
+    ok 9 - keeps tenant reads isolated and closes explicitly
+      ---
+      duration_ms: 27.909881
+      ...
+    # Subtest: persists repository-scoped shadow-readiness evidence with real cross-tenant RLS denial
+    ok 10 - persists repository-scoped shadow-readiness evidence with real cross-tenant RLS denial
+      ---
+      duration_ms: 221.081207
+      ...
+    # Subtest: applies, repeats, versions and rolls back a catalog transactionally
+    ok 11 - applies, repeats, versions and rolls back a catalog transactionally
+      ---
+      duration_ms: 349.517954
+      ...
+    # Subtest: preserves the prior active catalog when import audit persistence fails
+    ok 12 - preserves the prior active catalog when import audit persistence fails
+      ---
+      duration_ms: 242.920292
+      ...
+    # Subtest: rolls back domain state when the paired audit write fails
+    ok 13 - rolls back domain state when the paired audit write fails
+      ---
+      duration_ms: 37.495775
+      ...
+    # Subtest: database roles and immutable records are enforced by PostgreSQL
+    ok 14 - database roles and immutable records are enforced by PostgreSQL
+      ---
+      duration_ms: 51.648034
+      ...
+    1..14
+ok 1 - PostgreSQL migration and repository integration
+  ---
+  duration_ms: 1977.049308
+  ...
+1..1
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2171.380433

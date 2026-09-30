@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-09-25T21:12:00.279745+00:00",
+  "status": "partial-wave-0",
+  "base_commit": "a8423081934d64538d71ef8289f072d51566a870",
+  "task_branch": "task/hseos-evolution-w0",
+  "runtime": "v24.15.0",
+  "execution": {
+    "sequential": true,
+    "test_concurrency": 1,
+    "nice": 10,
+    "dependencies": "Parent checkout node_modules; not a clean install"
+  },
+  "checks": {
+    "initial_measurement": {
+      "passed": 364,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0
+    },
+    "clean_kernel_run": {
+      "passed": 372,
+      "failed": 1,
+      "skipped": 0,
+      "exit_code": 1,
+      "failure": "New replay fixture declared completion without a terminal model event; corrected only the test fixture"
+    },
+    "corrected_session_suite": {
+      "passed": 18,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "command": "c8 --config .c8-kernel.json --clean=false node --test --test-concurrency=1 test/test-agent-session-store.js"
+    },
+    "coverage": {
+      "exit_code": 0,
+      "lines": 95.01,
+      "branches": 87.48,
+      "per_file_lines_minimum": 90,
+      "per_file_branches_minimum": 80,
+      "below_threshold": [],
+      "provenance": "Clean kernel run plus corrected persistence suite on unchanged production sources; not a single all-green clean run"
+    },
+    "quality_and_mutations": {
+      "passed": 6,
+      "failed": 0,
+      "exit_code": 0,
+      "mutants_killed": ["authority", "budget", "recovery"],
+      "exhaustive_mutation_score": false
+    },
+    "lint": {
+      "exit_code": 0,
+      "warnings": 0
+    },
+    "format": {
+      "exit_code": 0
+    },
+    "full_suite": "not_run",
+    "full_quality_gates": "not_run",
+    "node22": "not_verified",
+    "external_installation": "not_verified",
+    "real_providers": "not_run"
+  },
+  "performance": {
+    "failed_runs": ["runtime.log", "replay-performance.log"],
+    "passed_runs": ["kernel-measure.log", "kernel-final.log"],
+    "thresholds_unchanged": true,
+    "stability": "not_certified"
+  },
+  "baseline": {
+    "files": 1956,
+    "mismatches": [],
+    "index_tree": "7f4676b80505918583cdbef3577c8f88807e9fca",
+    "index_preserved": true
+  },
+  "sources_manifest_sha256": "6dc6f8ca236ecda060581a9004fb4ed1df7223d1bae7ecfb24a0e93bc0cb8307",
+  "artifacts": {
+    "baseline-check.json": "dd404ef0cea6f4a05106284d5e8bfd2811c5e81a1778da3420e168837603188b",
+    "coverage-summary.json": "d33a89d524843a0949852ef9a29ba638a4815fd044765767db43cebd326b2f0e",
+    "isolation-faults.log": "f68254a6242cf8fbbb251806f6157807d888a26b769a15380fe6ae81d4c7b346",
+    "kernel-final.log": "f1fdc85dc62588c534350e55687d816afbc11fe054e54fc163cb90930a2ce6f1",
+    "kernel-measure.log": "c321dd39f236d1e8704ba60d62347e2cd4a7358c79aa7b9953e8e145121f7a5b",
+    "kernel-replay-fixed.log": "4c8c75791e994cd081ba739d84abf59eb3da4a4872b620bf7c18fc380d76daa7",
+    "lint-final.log": "cc6b4feb435484d113b62528c9012176a6894f5a0bad6bf6fe1b92944acc7514",
+    "mutations.log": "587f9df4c4fed6d860afa9b02696f3328ea8e294294d92d4c5f2d2cd577641c2",
+    "quality-final.log": "942ce1c054c0084965617c62bff4861aa2de4583a69d8c0d7f5cd7c5882c8f0c",
+    "replay-performance.log": "802af257612a6d58e2256d378977e1b1b443c84e2b8e008a32bdff9ae00ca413",
+    "runtime.log": "4abd725f851bb69ef762161cb0697d0676a8f3cbb14b20caac3a5f6bbda7ceef",
+    "sources.json": "6dc6f8ca236ecda060581a9004fb4ed1df7223d1bae7ecfb24a0e93bc0cb8307",
+    "format-final-check.log": "d2e1aea7716e1afaae196ebdb85b7cb6697a1da6fcf5e755920a0f9adec17eff"
+  }
+}

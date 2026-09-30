@@ -1,0 +1,8 @@
+import { ControlClient, TerminalCommand, TerminalStatus } from '../../../packages/control-sdk';
+async function consume(client: ControlClient, command: TerminalCommand) {
+  const receipt = await client.terminal(command);
+  const state: TerminalStatus = await client.terminalQuery(command.resource_id);
+  const page = await client.terminalEvents(command.resource_id, {after: state.current_sequence, limit: 10});
+  return { receipt, cursor: page.next_cursor, uncertain: state.outcome_uncertain };
+}
+void consume;

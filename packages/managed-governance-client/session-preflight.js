@@ -244,9 +244,7 @@ async function runManagedGovernanceSessionPreflight(options = {}) {
   const persist = options.persist !== false;
   let result;
 
-  if (!fs.existsSync(path.join(projectRoot, CONFIG_PATH))) {
-    result = baseResult('not_configured', 'managed_shadow.not_configured', timestamp);
-  } else {
+  if (fs.existsSync(path.join(projectRoot, CONFIG_PATH))) {
     let local;
     let queryAdapter;
     try {
@@ -286,6 +284,8 @@ async function runManagedGovernanceSessionPreflight(options = {}) {
         });
       }
     }
+  } else {
+    result = baseResult('not_configured', 'managed_shadow.not_configured', timestamp);
   }
   const parsed = parseContract(ManagedGovernanceSessionPreflightSchema, result, 'managed governance session preflight');
   await submitReceiptBestEffort({

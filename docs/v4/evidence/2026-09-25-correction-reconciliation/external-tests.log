@@ -1,0 +1,19 @@
+✔ protected rejection diagnoses and corrects in the original session and budget (2162.685292ms)
+✔ a repeated rejection exhausts the correction ceiling and cannot approve (2375.932927ms)
+✔ zero correction budget never dispatches the prepared correction (1471.590338ms)
+✔ workflow waits for corrected acceptance before running a dependent task (3516.257204ms)
+✔ correction writes are denied until a diagnosis is bound to the rejected artifacts (1892.791883ms)
+✔ replay rejects a correction request altered after the protected review (2046.220499ms)
+✔ a committed write interrupted before its receipt is reconciled without repeating the effect (6987.777046ms)
+✔ unexplained changes always ask, reject stale decisions, and continue only after explicit current-state confirmation (7931.199215ms)
+✔ workflow recovery composes reconciliation without repeating the interrupted write (6400.46029ms)
+✔ interrupted command asks before abandoning the attempt and preserves its budget (8125.737166ms)
+✔ interrupted model asks before abandoning the attempt and preserves its budget (8172.479594ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 51634.813905

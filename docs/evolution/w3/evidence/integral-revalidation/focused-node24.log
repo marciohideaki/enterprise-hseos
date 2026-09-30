@@ -1,0 +1,77 @@
+✔ composition rejects replaced artifacts, aliases, ambient configuration and credential redirection (9.166842ms)
+✔ ACP campaign re-inspects identity before every effect and preserves resume and usage (6564.960792ms)
+✔ worker joins containment, closes after success/resume/cancel and retains uncertain failures (195.399008ms)
+✔ launcher forwards only pinned startup configuration and propagates child failures and termination (26.822292ms)
+✔ Claude Agent SDK driver binds an explicit session and completes through the hosted L0 provider (22.964734ms)
+✔ a fresh driver finds an existing transcript and resumes the exact session id (6.180427ms)
+✔ Claude effect content fails closed at the hosted effect boundary (8.526861ms)
+✔ Claude unknown-effect content fails closed at the hosted effect boundary (1.522653ms)
+✔ driver cancellation aborts and closes an active Agent SDK query (10.826569ms)
+✔ driver passes only the selected environment values to the SDK child contract (10.165686ms)
+✔ driver rejects relative bindings and implicit environment keys (1.119957ms)
+✔ Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-progress (13.148724ms)
+✔ Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-invalid (1.128871ms)
+✔ Claude thinking progress is distinct from billed usage and preserves strict protocol: thinking-foreign (0.57763ms)
+✔ Claude thinking progress is distinct from billed usage and preserves strict protocol: unknown-system (0.917705ms)
+✔ missing transcript after runtime progress cannot silently recreate a Claude session (0.88079ms)
+✔ pinned ACP profile negotiates known advertisements without enabling those operations (15.164051ms)
+✔ unknown capabilities and versions fail closed (1.961978ms)
+✔ mode or model drift fails before prompt; unsolicited metadata is rejected (2.434184ms)
+✔ usage is bounded and tools pass through to the denying generic L0 bridge (4.179554ms)
+✔ expiry denies new work while cancellation remains possible; paid auth changes denied (15.629072ms)
+✔ startup profile disables tool sources and pins catalog before app-server starts (1.179747ms)
+✔ ACP campaign accounts cached input and rejects inconsistent native totals (130.318489ms)
+✔ catalog cannot re-enable tools through model metadata despite disabled feature flags (0.52909ms)
+✔ private cwd cannot inherit ancestor configuration or tools (3.611737ms)
+✔ ACP session lifecycle enforces metadata identities, shape bounds and cancellation-only notifications (11.561767ms)
+✔ ACP cannot overlap openings, retain a failed pending session or accept metadata for another opening (15.717501ms)
+[hseos] DELEGATED_CLAUDE_INVALID: expected_sequence does not match delegated durable state
+[hseos] DELEGATED_CLAUDE_INVALID: delegated Claude manifest or external binding drifted
+✔ delegated Claude capability plan selects Agent SDK and no raw model implementation (178.609286ms)
+✔ public delegated Claude CLI creates and materializes the same explicit SDK session across processes (2164.707393ms)
+✔ public delegated Claude run keeps the first query attached to the newly created SDK session (1425.447491ms)
+✔ public delegated Claude CLI reattaches and durably cancels an idle session (2120.97876ms)
+✔ delegated Claude resume rejects stale optimistic state before SDK dispatch (2140.800331ms)
+✔ delegated Claude manifest persists environment names but never selected values (2135.942207ms)
+✔ delegated Claude resume rejects SDK module drift before reattachment (1694.123405ms)
+✔ delegated Codex capability plan selects the direct runtime and no raw model implementation (140.102711ms)
+✔ public delegated Codex CLI rejects create-only before spawning app-server (331.684388ms)
+✔ public delegated Codex run keeps the first turn attached to the newly created thread (1383.707079ms)
+✔ public delegated Codex CLI rejects resume and cancel as unavailable capabilities (634.22424ms)
+✔ delegated Codex run-only rejection takes precedence over lifecycle arguments (286.000727ms)
+✔ delegated Codex durable manifest contains no resolved environment value (1388.1096ms)
+✔ public delegated Codex rejects resume before inspecting durable state (339.752461ms)
+✔ DeepSeek capability plan selects the external runtime and no raw model implementation (193.072388ms)
+✔ supervised DeepSeek profile completes one tool-free ACP turn under the fixed sandbox command (1880.583917ms)
+✔ sandbox readiness fails before reading the DeepSeek secret or launching a worker (467.594713ms)
+✔ binding drift between authorization and worker execution fails before ACP spawn (1316.80996ms)
+✔ public profile rejects unsupported lifecycle operations before execution (1.167002ms)
+✔ public supervisor rejects ACP assets outside the sandboxed project (462.339906ms)
+✔ process ACP peer drives one bounded DeepSeek-compatible session over JSON-RPC stdio (119.540145ms)
+✔ tool-free DeepSeek composition yields a hash-bound one-shot effect attestation (12.973435ms)
+✔ host-verified tool-free composition compensates for the missing stock ACP metadata (62.440455ms)
+✔ stock-like DeepSeek ACP initialization without HSEOS effect attestation fails closed (50.665422ms)
+✔ DeepSeek ACP process binding rejects cross-process resume when loadSession is absent (90.768124ms)
+✔ process ACP peer answers permission requests while the provider denies the effect (51.575658ms)
+✔ process ACP peer closes on an unknown JSON-RPC response id (56.959418ms)
+✔ process spawn may extend its environment without mutating the validated ACP environment (4.133921ms)
+ℹ tests 55
+ℹ suites 0
+ℹ pass 55
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 30275.958758
+----------------------------|---------|----------|---------|---------|-------------------
+File                        | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+----------------------------|---------|----------|---------|---------|-------------------
+All files                   |   99.07 |    98.12 |   96.42 |   99.07 |                   
+ packages/runtime-providers |     100 |     98.7 |     100 |     100 |                   
+  codex-acp-composition.js  |     100 |    98.43 |     100 |     100 | 74                
+  codex-acp-launcher.js     |     100 |      100 |     100 |     100 |                   
+  codex-acp-peer.js         |     100 |    98.76 |     100 |     100 | 233               
+ tools/cli/lib              |   97.77 |    96.55 |      90 |   97.77 |                   
+  provider-acp-adapter.js   |     100 |    97.05 |     100 |     100 | 81                
+  provider-acp-worker.js    |   95.41 |    95.83 |   66.66 |   95.41 | 125-130           
+----------------------------|---------|----------|---------|---------|-------------------

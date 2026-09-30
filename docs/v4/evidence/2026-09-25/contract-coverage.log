@@ -1,0 +1,195 @@
+
+> hseos@4.0.0-rc.0 test:contract-coverage
+> c8 --clean --temp-directory=.logs/validation/contract-coverage/tmp --reports-dir=.logs/validation/contract-coverage --include=tools/cli/lib/workflow-catalog.js --reporter=text --check-coverage --lines=80 --functions=80 --branches=70 --statements=80 node --test --test-concurrency=1 test/test-workflow-catalog.js && c8 --clean --temp-directory=.logs/validation/contract-coverage/tmp --reports-dir=.logs/validation/contract-coverage --include=tools/cli/lib/capability-catalog.js --include=tools/cli/installers/lib/core/agent-core-compiler/sources/capabilities-source.js --reporter=text --check-coverage --lines=80 --functions=80 --branches=70 --statements=80 node test/test-capability-catalog.js
+
+✔ workflow catalog distinguishes methodology recipes from side-car subsystems (51.532867ms)
+✔ workflow schema fails closed on ambiguous kinds, duplicate phases, and unsafe entrypoints (82.792629ms)
+✔ workflow schema rejects invalid dependencies and executable fields on subsystems (49.53439ms)
+✔ workflow schema accepts and deterministically normalizes the bounded v1 catalog (16.592672ms)
+✔ MCP workflow discovery uses the parsed catalog and profile membership (121.109115ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 453.010238
+---------------------|---------|----------|---------|---------|-------------------------------------
+File                 | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                   
+---------------------|---------|----------|---------|---------|-------------------------------------
+All files            |   94.28 |    75.47 |     100 |   94.28 |                                     
+ workflow-catalog.js |   94.28 |    75.47 |     100 |   94.28 | ...,150-151,153-154,180-181,202-203 
+---------------------|---------|----------|---------|---------|-------------------------------------
+  PASS  catalog exposes expected capability profiles
+  PASS  developer is the default capability profile
+  PASS  catalog exposes required baseline governance component
+  PASS  catalog generates synthetic skill components
+  PASS  catalog is validated as capability schema v2
+  PASS  catalog rejects unknown dependencies even outside selected profiles
+  PASS  catalog rejects cycle dependencies even outside selected profiles
+  PASS  profiles do not duplicate the resolver-injected baseline
+  PASS  schema v2 rejects legacy schema version
+  PASS  schema v2 rejects missing mandatory baseline
+  PASS  schema v2 rejects baseline repeated inside a profile
+  PASS  schema v2 rejects hosted profile with a phantom model provider
+  PASS  schema v2 rejects kernel profile without a model provider
+  PASS  schema v2 rejects kernel profile with a delegated runtime provider
+  PASS  schema v2 rejects unknown component field
+  PASS  schema v2 rejects malformed hook profile id
+  PASS  schema v2 rejects arbitrary hook blocking mode
+  PASS  schema v2 rejects Windows absolute install path on POSIX
+  PASS  schema v2 rejects Windows UNC install path on POSIX
+  PASS  schema v2 rejects Windows root-relative install path on POSIX
+  PASS  schema v2 rejects Windows device install path on POSIX
+  PASS  resolver rejects inherited profile key constructor
+  PASS  resolver rejects inherited hook key constructor
+  PASS  resolver rejects inherited profile key toString
+  PASS  resolver rejects inherited hook key toString
+  PASS  resolver rejects inherited profile key __proto__
+  PASS  resolver rejects inherited hook key __proto__
+  PASS  every resolved component exposes a closed surface class
+  PASS  every standalone surface path exists
+  PASS  surface lifecycle rejects missing component coverage
+  PASS  surface lifecycle rejects baseline demotion
+  PASS  surface lifecycle rejects unsafe standalone path
+  PASS  surface lifecycle rejects classification and id mismatch
+  PASS  compiled capability README.md matches its canonical source
+  PASS  compiled capability profiles.yaml matches its canonical source
+  PASS  compiled capability components.yaml matches its canonical source
+  PASS  compiled capability surfaces.yaml matches its canonical source
+  PASS  catalog prefers the complete canonical source
+  PASS  compiler never synthesizes missing lifecycle metadata for a canonical source
+  PASS  catalog supports a true legacy compiled-only installation without surfaces
+  PASS  compiler upgrades a legacy generated catalog instead of returning early
+  PASS  upgraded compiled catalog passes the strict surface contract
+  PASS  all profiles reference known components
+  PASS  all capability components reference known skills
+  PASS  every governed skill belongs to at least one capability-family component
+  PASS  component prerequisites are non-empty string lists when declared
+  PASS  resolved plan carries prerequisites through to components
+  PASS  minimal profile resolves advisory hook profile
+  PASS  profile plan preserves required governance baseline
+  PASS  profile plan resolves tool targets
+  PASS  full profile activates the Goose emitter
+  PASS  skill-only plan includes requested skill
+  PASS  skill-only plan includes synthetic skill component
+  PASS  skill-only plan still includes required baseline
+  PASS  skill-only plan accepts hook profile override
+  PASS  equivalent selector sets resolve byte-equivalent plans
+  PASS  adapter matrix includes Codex and Claude Code
+  PASS  Codex adapter records portable hook metadata
+  PASS  install-plan --list-profiles emits undecorated JSON
+  PASS  install-plan --list-components emits undecorated JSON
+  PASS  install-plan --list-skills emits undecorated JSON
+  PASS  install-plan --adapters emits undecorated JSON
+  PASS  install-plan resolves the distributed catalog from an empty consumer repository
+  PASS  compiler materializes the portable adapter matrix for consumers
+  PASS  install command exposes capability profile option
+  PASS  install command exposes capability component option
+  PASS  install command exposes skill selector option
+  PASS  install command exposes hook profile option
+  PASS  catalog exposes the four installer extras
+  PASS  every extra declares prerequisites
+  PASS  no profile bundles an extra (pure opt-in invariant)
+  PASS  managed governance client is an opt-in module with bounded package paths
+  PASS  no profile activates managed governance implicitly
+  PASS  portable plan omits managed surfaces unless explicitly selected
+  PASS  preflight remains a pre-activation candidate
+  PASS  control plane and console remain opt-in sidecars
+  PASS  extra:rtk selection activates the rtk flag
+  PASS  extra:usage-dashboard selection defaults to local mode
+  PASS  extra:second-brain without path yields an advisory note
+  PASS  explicit flags always win over component selection
+  PASS  ado compiler materializes the canonical capability catalog
+  PASS  ado manifest skills equal selected skills
+  PASS  ado emitted adapters equal selected adapters
+  PASS  ado filesystem skills equal selected skills
+  PASS  ado emitted skill files equal planned install paths
+  PASS  ado retains the exact mandatory baseline
+  PASS  agent-claude-delegated-candidate compiler materializes the canonical capability catalog
+  PASS  agent-claude-delegated-candidate manifest skills equal selected skills
+  PASS  agent-claude-delegated-candidate emitted adapters equal selected adapters
+  PASS  agent-claude-delegated-candidate filesystem skills equal selected skills
+  PASS  agent-claude-delegated-candidate emitted skill files equal planned install paths
+  PASS  agent-claude-delegated-candidate retains the exact mandatory baseline
+  PASS  agent-codex-delegated-candidate compiler materializes the canonical capability catalog
+  PASS  agent-codex-delegated-candidate manifest skills equal selected skills
+  PASS  agent-codex-delegated-candidate emitted adapters equal selected adapters
+  PASS  agent-codex-delegated-candidate filesystem skills equal selected skills
+  PASS  agent-codex-delegated-candidate emitted skill files equal planned install paths
+  PASS  agent-codex-delegated-candidate retains the exact mandatory baseline
+  PASS  agent-deepseek-one-shot-candidate compiler materializes the canonical capability catalog
+  PASS  agent-deepseek-one-shot-candidate manifest skills equal selected skills
+  PASS  agent-deepseek-one-shot-candidate emitted adapters equal selected adapters
+  PASS  agent-deepseek-one-shot-candidate filesystem skills equal selected skills
+  PASS  agent-deepseek-one-shot-candidate emitted skill files equal planned install paths
+  PASS  agent-deepseek-one-shot-candidate retains the exact mandatory baseline
+  PASS  agent-openai-compatible-candidate compiler materializes the canonical capability catalog
+  PASS  agent-openai-compatible-candidate manifest skills equal selected skills
+  PASS  agent-openai-compatible-candidate emitted adapters equal selected adapters
+  PASS  agent-openai-compatible-candidate filesystem skills equal selected skills
+  PASS  agent-openai-compatible-candidate emitted skill files equal planned install paths
+  PASS  agent-openai-compatible-candidate retains the exact mandatory baseline
+  PASS  agent-reference compiler materializes the canonical capability catalog
+  PASS  agent-reference manifest skills equal selected skills
+  PASS  agent-reference emitted adapters equal selected adapters
+  PASS  agent-reference filesystem skills equal selected skills
+  PASS  agent-reference emitted skill files equal planned install paths
+  PASS  agent-reference retains the exact mandatory baseline
+  PASS  developer compiler materializes the canonical capability catalog
+  PASS  developer manifest skills equal selected skills
+  PASS  developer emitted adapters equal selected adapters
+  PASS  developer filesystem skills equal selected skills
+  PASS  developer emitted skill files equal planned install paths
+  PASS  developer retains the exact mandatory baseline
+  PASS  disposable-engineering-candidate compiler materializes the canonical capability catalog
+  PASS  disposable-engineering-candidate manifest skills equal selected skills
+  PASS  disposable-engineering-candidate emitted adapters equal selected adapters
+  PASS  disposable-engineering-candidate filesystem skills equal selected skills
+  PASS  disposable-engineering-candidate emitted skill files equal planned install paths
+  PASS  disposable-engineering-candidate retains the exact mandatory baseline
+  PASS  full compiler materializes the canonical capability catalog
+  PASS  full manifest skills equal selected skills
+  PASS  full emitted adapters equal selected adapters
+  PASS  full filesystem skills equal selected skills
+  PASS  full emitted skill files equal planned install paths
+  PASS  full retains the exact mandatory baseline
+  PASS  gitops compiler materializes the canonical capability catalog
+  PASS  gitops manifest skills equal selected skills
+  PASS  gitops emitted adapters equal selected adapters
+  PASS  gitops filesystem skills equal selected skills
+  PASS  gitops emitted skill files equal planned install paths
+  PASS  gitops retains the exact mandatory baseline
+  PASS  governance compiler materializes the canonical capability catalog
+  PASS  governance manifest skills equal selected skills
+  PASS  governance emitted adapters equal selected adapters
+  PASS  governance filesystem skills equal selected skills
+  PASS  governance emitted skill files equal planned install paths
+  PASS  governance retains the exact mandatory baseline
+  PASS  minimal compiler materializes the canonical capability catalog
+  PASS  minimal manifest skills equal selected skills
+  PASS  minimal emitted adapters equal selected adapters
+  PASS  minimal filesystem skills equal selected skills
+  PASS  minimal emitted skill files equal planned install paths
+  PASS  minimal retains the exact mandatory baseline
+  PASS  solo compiler materializes the canonical capability catalog
+  PASS  solo manifest skills equal selected skills
+  PASS  solo emitted adapters equal selected adapters
+  PASS  solo filesystem skills equal selected skills
+  PASS  solo emitted skill files equal planned install paths
+  PASS  solo retains the exact mandatory baseline
+  PASS  full profile materializes the selected Goose surface
+  PASS  profile downgrade removes previously emitted unselected skills
+  PASS  profile downgrade removes the previously compiler-owned Goose surface
+
+Capability catalog tests: 161 passed, 0 failed
+---------------------------------------|---------|----------|---------|---------|-------------------
+File                                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+---------------------------------------|---------|----------|---------|---------|-------------------
+All files                              |   80.09 |    75.98 |    93.1 |   80.09 |                   
+ ...b/core/agent-core-compiler/sources |   87.65 |    69.56 |     100 |   87.65 |                   
+  capabilities-source.js               |   87.65 |    69.56 |     100 |   87.65 | ...25-126,145-147 
+ lib                                   |   78.26 |    77.03 |   91.66 |   78.26 |                   
+  capability-catalog.js                |   78.26 |    77.03 |   91.66 |   78.26 | ...87-593,595-652 
+---------------------------------------|---------|----------|---------|---------|-------------------

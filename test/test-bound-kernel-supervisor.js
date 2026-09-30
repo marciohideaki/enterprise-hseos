@@ -163,7 +163,9 @@ test('supervisor executes the complete provider/tool loop inside the fixed sandb
         assert.equal(fs.statSync(runtimeDirectory).mode & 0o777, 0o700);
         assert.equal(fs.statSync(args.at(-2)).mode & 0o777, 0o500);
         assert.equal(args.at(-1), path.join(ROOT, 'tools', 'cli', 'lib', 'bound-kernel-worker.js'));
-        childEnvironment = options.env;
+        // Node adds NODE_V8_COVERAGE to this object during spawn under c8.
+        // Snapshot the supervisor-supplied allowlist before that instrumentation.
+        childEnvironment = { ...options.env };
         return spawn(binary, args, options);
       },
     },

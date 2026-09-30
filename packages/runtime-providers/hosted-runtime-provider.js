@@ -21,6 +21,14 @@ const MAX_TIMER_DELAY_MS = 2_147_483_647;
 const DRIVER_TEARDOWN_TIMEOUT_MS = 25;
 
 const HOSTED_RUNTIME_ADAPTERS = deepFreeze({
+  'execution-plugin': {
+    adapter_id: 'execution-plugin',
+    protocol: 'isolated-json-v1',
+    transport: 'process',
+    conformance_level: 'L0',
+    capabilities: ['instructions'],
+    external_dependency: null,
+  },
   codex: {
     adapter_id: 'codex',
     protocol: 'app-server',
@@ -59,14 +67,16 @@ function onlyKeys(value, allowed, label) {
 }
 
 function identifier(value, label) {
-  if (typeof value !== 'string' || value.length === 0 || /\s|[\u0000-\u001f\u007f]/u.test(value) || value.length > 1024) {
+  // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
+  if (typeof value !== 'string' || value.length === 0 || /\s|[\u0000-\u001F\u007F]/u.test(value) || value.length > 1024) {
     throw new RuntimeProviderError(`${label} is malformed`, 'protocol_error');
   }
   return value;
 }
 
 function isSafeRuntimeIdentifier(value) {
-  return typeof value === 'string' && value.length > 0 && value.length <= 1024 && !/\s|[\u0000-\u001f\u007f]/u.test(value);
+  // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
+  return typeof value === 'string' && value.length > 0 && value.length <= 1024 && !/\s|[\u0000-\u001F\u007F]/u.test(value);
 }
 
 function stableJson(value) {
@@ -131,7 +141,7 @@ class HostedInstructionsRuntimeProvider {
   constructor({ adapter_id, provider_id, provider_version = '1.0.0', driver, default_cwd, clock = () => new Date().toISOString() }) {
     const descriptor = HOSTED_RUNTIME_ADAPTERS[adapter_id];
     if (!descriptor || adapter_id === 'deepseek-harness') {
-      throw new RuntimeProviderError('hosted adapter_id must be codex or claude-code', 'invalid_request');
+      throw new RuntimeProviderError('hosted adapter_id must identify an admitted instructions driver', 'invalid_request');
     }
     if (typeof default_cwd !== 'string' || !path.isAbsolute(default_cwd)) {
       throw new RuntimeProviderError('hosted default_cwd must be absolute', 'invalid_request');
@@ -285,9 +295,8 @@ class HostedInstructionsRuntimeProvider {
       }
     }
     if (!session.resumable) throw new RuntimeProviderError('hosted adapter does not support resume', 'capability_unavailable');
-    if (session.terminal || session.activeTurn || session.loading || input.expected_sequence !== session.sequence) {
-      if (!restoring) throw new RuntimeProviderError('hosted session cannot resume at this sequence', 'invalid_request');
-    }
+    if ((session.terminal || session.activeTurn || session.loading || input.expected_sequence !== session.sequence) && !restoring)
+      throw new RuntimeProviderError('hosted session cannot resume at this sequence', 'invalid_request');
     session.loading = true;
     let resumed = false;
     try {

@@ -312,17 +312,16 @@ const ManagedGovernanceSessionPreflightSchema = strictObject({
   if (!allowedReasons[value.status].includes(value.reason_code)) {
     context.addIssue({ code: 'custom', path: ['reason_code'], message: 'reason code does not match preflight status' });
   }
-  if (['equivalent', 'drift_detected'].includes(value.status)) {
-    if (
-      value.repository_id === null ||
+  if (
+    ['equivalent', 'drift_detected'].includes(value.status) &&
+    (value.repository_id === null ||
       value.constitution.local_digest === null ||
       value.constitution.remote_digest === null ||
       value.constitution.matched === null ||
       value.remote.status !== 'available' ||
-      value.remote.source_commit === null
-    ) {
-      context.addIssue({ code: 'custom', message: 'completed remote comparison requires identity, digests and source commit' });
-    }
+      value.remote.source_commit === null)
+  ) {
+    context.addIssue({ code: 'custom', message: 'completed remote comparison requires identity, digests and source commit' });
   }
   if (value.status === 'equivalent' && value.constitution.matched !== true) {
     context.addIssue({ code: 'custom', path: ['constitution', 'matched'], message: 'equivalent status requires a match' });

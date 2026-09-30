@@ -1,0 +1,7 @@
+
+> hseos@4.0.0-rc.0 format:check
+> prettier --check "**/*.{js,cjs,mjs,json,yaml}"
+
+Checking formatting...
+[warn] docs/evolution/requirements.json
+[warn] Code style issues found in the above file. Run Prettier with --write to fix.

@@ -570,3 +570,11 @@ test('duplicate active calls, unknown tools and malformed outcomes fail closed',
   });
   assert.equal((await active).status, 'cancelled');
 });
+
+test('registry fails closed without a contract resolver or with mismatched governance identity', () => {
+  assert.throws(() => new ToolRuntimeRegistry({ contracts: null }), /contract resolver/);
+  const registry = new ToolRuntimeRegistry({ contracts: { resolve: () => ({ name: 'fixture.other' }) } });
+  assert.throws(() => registry.register(definition()), { code: 'TOOL_RUNTIME_GOVERNANCE_MISMATCH' });
+  assert.deepEqual(registry.list(), []);
+  assert.throws(() => registry.resolve('fixture.echo'), { code: 'TOOL_RUNTIME_TOOL_NOT_FOUND' });
+});

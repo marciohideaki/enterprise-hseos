@@ -1,0 +1,8 @@
+{
+  "admitted": false,
+  "error": {
+    "message": "agentCapabilities contains unknown fields"
+  },
+  "methods": ["initialize"],
+  "inference_dispatched": false
+}

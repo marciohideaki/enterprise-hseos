@@ -101,25 +101,25 @@ function seccompNetworklessProgram() {
   }
   const instructions = [
     [0x20, 0, 0, 4],
-    [0x15, 1, 0, 0xc000003e],
-    [0x06, 0, 0, 0x80000000],
+    [0x15, 1, 0, 0xc0_00_00_3e],
+    [0x06, 0, 0, 0x80_00_00_00],
     [0x20, 0, 0, 0],
-    [0x45, 0, 1, 0x40000000],
-    [0x06, 0, 0, 0x80000000],
+    [0x45, 0, 1, 0x40_00_00_00],
+    [0x06, 0, 0, 0x80_00_00_00],
     ...NETWORK_SYSCALLS_X64.flatMap((number) => [
       [0x15, 0, 1, number],
-      [0x06, 0, 0, 0x00050001],
+      [0x06, 0, 0, 0x00_05_00_01],
     ]),
-    [0x06, 0, 0, 0x7fff0000],
+    [0x06, 0, 0, 0x7f_ff_00_00],
   ];
   const buffer = Buffer.alloc(instructions.length * 8);
-  instructions.forEach(([code, jumpTrue, jumpFalse, value], index) => {
+  for (const [index, [code, jumpTrue, jumpFalse, value]] of instructions.entries()) {
     const offset = index * 8;
     buffer.writeUInt16LE(code, offset);
     buffer.writeUInt8(jumpTrue, offset + 2);
     buffer.writeUInt8(jumpFalse, offset + 3);
     buffer.writeUInt32LE(value, offset + 4);
-  });
+  }
   return buffer;
 }
 
@@ -144,7 +144,11 @@ function assertWorkspaceTypes(workspace) {
   const mountInfo = fs.readFileSync('/proc/self/mountinfo', 'utf8');
   for (const line of mountInfo.split('\n')) {
     const fields = line.split(' ');
-    const mountPoint = fields[4]?.replaceAll('\\040', ' ').replaceAll('\\011', '\t').replaceAll('\\012', '\n').replaceAll('\\134', '\\');
+    const mountPoint = fields[4]
+      ?.replaceAll(String.raw`\040`, ' ')
+      .replaceAll(String.raw`\011`, '\t')
+      .replaceAll(String.raw`\012`, '\n')
+      .replaceAll(String.raw`\134`, '\\');
     if (mountPoint && within(workspace, mountPoint)) {
       throw new AgentIsolationAttestationError('workspace contains a nested mount', 'AGENT_ISOLATION_WORKSPACE_AUTHORITY');
     }
@@ -165,7 +169,7 @@ function createIsolationPolicy(value) {
   ) {
     throw new AgentIsolationAttestationError('main_checkout cannot overlap a sandbox system mount');
   }
-  if (!Array.isArray(value.protected_paths) || value.protected_paths.length < 1 || value.protected_paths.length > 64) {
+  if (!Array.isArray(value.protected_paths) || value.protected_paths.length === 0 || value.protected_paths.length > 64) {
     throw new AgentIsolationAttestationError('protected_paths must be a non-empty bounded array');
   }
   const protectedBindings = value.protected_paths.map((entry) => {
@@ -314,6 +318,61 @@ function assertBinding(policy) {
   assertWorkspaceTypes(policy.host_workspace);
 }
 
+function sandboxArguments(policy, environment, command, readonlyWorkspace = false, hostNode = false) {
+  return [
+    '--unshare-all',
+    '--die-with-parent',
+    '--new-session',
+    '--seccomp',
+    '3',
+    ...['/usr', '/bin', '/lib', '/lib64'].flatMap((root) => ['--ro-bind', root, root]),
+    '--proc',
+    '/proc',
+    '--dev',
+    '/dev',
+    '--tmpfs',
+    '/tmp',
+    ...(hostNode ? ['--ro-bind', '/proc/self/fd/4', '/hseos-runtime/node'] : []),
+    readonlyWorkspace ? '--ro-bind' : '--bind',
+    policy.host_workspace,
+    '/workspace',
+    '--chdir',
+    '/workspace',
+    '--clearenv',
+    '--setenv',
+    'PATH',
+    '/usr/bin:/bin',
+    ...Object.entries(environment).flatMap(([key, value]) => ['--setenv', key, value]),
+    ...command,
+  ];
+}
+
+// This boundary accepts only nominal supervisor-created policies, never model mounts.
+function prepareIsolatedExecution(policy, command, hostNode = false, terminal = false) {
+  if (!POLICIES.has(policy)) throw new AgentIsolationAttestationError('isolation policy is not supervisor-owned');
+  assertBinding(policy);
+  if (!Array.isArray(command) || command.length === 0 || command.some((part) => typeof part !== 'string' || part.includes('\0'))) {
+    throw new AgentIsolationAttestationError('invalid execution command');
+  }
+  if (typeof terminal !== 'boolean' || typeof hostNode !== 'boolean' || (hostNode && command[0] !== '/usr/bin/node'))
+    throw new AgentIsolationAttestationError('invalid host runtime selection');
+  let executable = hostNode ? ['/hseos-runtime/node', ...command.slice(1)] : command;
+  if (terminal)
+    executable = [
+      '/usr/bin/python3',
+      '-I',
+      '-c',
+      'import os,sys,fcntl,termios\nif os.getsid(0) != os.getpid(): os.setsid()\nfcntl.ioctl(0,termios.TIOCSCTTY,0)\nos.execve(sys.argv[1],sys.argv[1:],dict(os.environ))',
+      ...executable,
+    ];
+  return {
+    binary: policy.backend_binding.path,
+    args: sandboxArguments(policy, {}, executable, true, hostNode),
+    seccomp: seccompNetworklessProgram(),
+    policy_digest: policy.policy_digest,
+  };
+}
+
 function runTransitiveIsolationJourney(policy) {
   if (!POLICIES.has(policy)) throw new AgentIsolationAttestationError('isolation policy is not supervisor-owned');
   assertBinding(policy);
@@ -337,51 +396,14 @@ function runTransitiveIsolationJourney(policy) {
     for (const [index, actor] of REQUIRED_ACTORS.entries()) {
       assertBinding(policy);
       const protectedPath = policy.protected_paths[index % policy.protected_paths.length].path;
-      const args = [
-        '--unshare-all',
-        '--die-with-parent',
-        '--new-session',
-        '--seccomp',
-        '3',
-        '--ro-bind',
-        '/usr',
-        '/usr',
-        '--ro-bind',
-        '/bin',
-        '/bin',
-        '--ro-bind',
-        '/lib',
-        '/lib',
-        '--ro-bind',
-        '/lib64',
-        '/lib64',
-        '--proc',
-        '/proc',
-        '--dev',
-        '/dev',
-        '--tmpfs',
-        '/tmp',
-        '--bind',
-        policy.host_workspace,
-        '/workspace',
-        '--chdir',
-        '/workspace',
-        '--clearenv',
-        '--setenv',
-        'PATH',
-        '/usr/bin:/bin',
-        '--setenv',
-        'HSEOS_ACTOR_TYPE',
-        actor,
-        '--setenv',
-        'HSEOS_CHALLENGE',
-        challenge,
-        '/bin/bash',
-        '-c',
-        SCRIPT,
-        actor,
-        protectedPath,
-      ];
+      const args = sandboxArguments(
+        policy,
+        {
+          HSEOS_ACTOR_TYPE: actor,
+          HSEOS_CHALLENGE: challenge,
+        },
+        ['/bin/bash', '-c', SCRIPT, actor, protectedPath],
+      );
       const anonymousPath = `/proc/self/fd/${ownerFd}`;
       const verifyFd = fs.openSync(anonymousPath, 'r');
       const observedProgram = Buffer.alloc(seccompProgram.length);
@@ -436,4 +458,10 @@ function runTransitiveIsolationJourney(policy) {
   });
 }
 
-module.exports = { AgentIsolationAttestationError, REQUIRED_ACTORS, createIsolationPolicy, runTransitiveIsolationJourney };
+module.exports = {
+  AgentIsolationAttestationError,
+  REQUIRED_ACTORS,
+  createIsolationPolicy,
+  runTransitiveIsolationJourney,
+  prepareIsolatedExecution,
+};

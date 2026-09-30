@@ -1,0 +1,10 @@
+{
+  "HSEOS-GOAL-HARNESS-AUTONOMO.md": true,
+  "AGENTS.md": true,
+  ".enterprise/.specs/constitution/Enterprise-Constitution.md": true,
+  ".enterprise/.specs/decisions/ADR-0024-model-agnostic-agent-framework.md": true,
+  "scripts/governance/anchor-guard.sh": true,
+  "scripts/governance/loop-guard.sh": true,
+  "scripts/governance/quality-gates.sh": true,
+  "test/test-agent-capability-cli.js": true
+}

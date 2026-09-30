@@ -28,9 +28,17 @@ jobs:
       # GITHUB_TOKEN cannot see outside this repository. CAPABILITY_GRAPH_CROSS_REPO_PAT is
       # provisioned from pass (github/cambioreal-gitops-pat), verified 2026-09-05 to read all
       # three repositories below.
+      #
+      # Org names updated 2026-09-16: platform-core and backend-core were TRANSFERRED out of
+      # `HideakiSolutions` into `Hideaki-Solutions-Core`. These checkouts kept working on the
+      # old names only because git follows the transfer redirect -- the pinned SHAs resolve
+      # either way. That is a redirect, not an address: it disappears if a new repository is
+      # ever created under the old name, and at that point this job would silently check out
+      # the wrong tree on a security-relevant code path instead of failing. Pinned by SHA and
+      # verified against the destination on 2026-09-16 (both SHAs present).
       - uses: actions/checkout@v4
         with:
-          repository: HideakiSolutions/platform-core
+          repository: Hideaki-Solutions-Core/platform-core
           ref: 86ffef7f118a925bb2993eadfb3ec05eea0ccff8
           path: dependencies/platform-core
           fetch-depth: 0
@@ -42,7 +50,7 @@ jobs:
       # requires each repository to record its own immutable fragment revision).
       - uses: actions/checkout@v4
         with:
-          repository: HideakiSolutions/backend-core
+          repository: Hideaki-Solutions-Core/backend-core
           ref: 26fb2bed386d7c14c0d70ac4fd5d3c965eed46e5
           path: dependencies/backend-core
           fetch-depth: 0
@@ -57,6 +65,23 @@ jobs:
           path: dependencies/cambio-real-v2
           fetch-depth: 0
           token: ${{ secrets.CAPABILITY_GRAPH_CROSS_REPO_PAT }}
+      # Talent Forge entra na federacao em 2026-09-18. Os dois repositorios sao privados na
+      # organizacao Talent-Forge: o CAPABILITY_GRAPH_CROSS_REPO_PAT precisa de leitura nela,
+      # o que NAO estava no escopo verificado em 2026-09-05 (tres repositorios apenas).
+      - uses: actions/checkout@v4
+        with:
+          repository: Talent-Forge/talent-forge-platform
+          ref: bc64abc1653cec5ae952d81de1315b6242b9a904
+          path: dependencies/talent-forge-platform
+          fetch-depth: 0
+          token: ${{ secrets.CAPABILITY_GRAPH_CROSS_REPO_PAT }}
+      - uses: actions/checkout@v4
+        with:
+          repository: Talent-Forge/talent-forge-web
+          ref: b3fec078cc3c5a2ede091e44e27035e79e74b92f
+          path: dependencies/talent-forge-web
+          fetch-depth: 0
+          token: ${{ secrets.CAPABILITY_GRAPH_CROSS_REPO_PAT }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -69,4 +94,6 @@ jobs:
           --repository-root repo.platform-core=${{ github.workspace }}/dependencies/platform-core
           --repository-root repo.backend-core=${{ github.workspace }}/dependencies/backend-core
           --repository-root repo.cambio-real-v2=${{ github.workspace }}/dependencies/cambio-real-v2
+          --repository-root repo.talent-forge-platform=${{ github.workspace }}/dependencies/talent-forge-platform
+          --repository-root repo.talent-forge-web=${{ github.workspace }}/dependencies/talent-forge-web
           --json

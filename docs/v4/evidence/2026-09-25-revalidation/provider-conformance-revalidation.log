@@ -1,0 +1,21 @@
+
+> hseos@4.0.0-rc.0 test:agent-provider-conformance
+> node --test --test-concurrency=1 test/test-agent-provider-conformance.js
+
+✔ provider inventory binds every exact profile, component and provider without phantom models (110.570787ms)
+✔ swapping Codex and Claude providers between profiles fails before suite execution (43.079624ms)
+✔ engineering inventory binds the shipped provider and rejects profile drift (110.836931ms)
+✔ actual manifests and checked binding templates generate an honest provider matrix (35.510706ms)
+✔ canonical local runner verifies only the canonical provider inventory (64955.420111ms)
+✔ certifying build rejects injected runners, provider specs and catalog loaders (0.24744ms)
+✔ opened descriptor bytes are executed even when the pathname is replaced (55.377554ms)
+✔ suite mutation during execution invalidates its earlier hash (60.36489ms)
+✔ provider manifest identity and binding-template drift fail closed (72.742386ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 65725.647331

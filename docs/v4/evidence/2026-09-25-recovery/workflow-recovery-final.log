@@ -1,0 +1,32 @@
+✔ local provider forks exact scope and joins a terminal child (77.813357ms)
+✔ authority and resource widening fail before a child can exist (11.829315ms)
+✔ provider identity fails before effects and a pre-checkpoint crash resumes the existing child (52.106451ms)
+✔ workflow executes bounded parallel and pipeline phases with durable exact checkpoints (145.223451ms)
+✔ workflow identifier cannot drift and caps fail before dispatch (28.375944ms)
+✔ workflow cancellation cascades and returns with no orphan child (87.404714ms)
+✔ workflow verifies provider join claims against durable child state (25.503485ms)
+✔ one parent cannot dispatch concurrent workflows across engine instances beyond its durable caps (78.604028ms)
+✔ an exact reclaim cannot preempt a live workflow on the same durable authority (86.474474ms)
+✔ provider cancellation terminalizes the complete descendant tree (34.065657ms)
+✔ join deadline cancels every child and provider parallel caps reject before fork (94.699534ms)
+✔ terminal unjoined children no longer consume the live parallel cap (89.455351ms)
+✔ malformed runtime result is rejected only after the child is terminalized (22.331533ms)
+✔ WorkflowEngine composes the three engineering tasks using independent outcomes (4591.576797ms)
+✔ a completed model with a failed task prevents execution of dependent tasks (1384.771621ms)
+✔ workflow validation rejects cycles and aggregate oversubscription before creating state (6.734713ms)
+✔ workflow status and create-only resume use the canonical ledger (4548.314056ms)
+✔ workflow cancellation before execution preserves all task artifacts and prevents resume (56.219914ms)
+✔ workflow definition identity is protected after creation (28.120898ms)
+✔ parallel tasks share the declared aggregate budget and release unused reservations (2630.715385ms)
+✔ explicit migration converts eligible definitions without touching legacy history or executing tasks (65.57316ms)
+✔ live workflow cancellation settles the active executor and preserves unstarted tasks (1747.017362ms)
+✔ interrupted workflow blocks uncertain effects and cancellation drains the abandoned executor (1717.086565ms)
+✔ interrupted workflow reclaims only a dead owner and resumes verification without repeated effects (7443.689975ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 25496.842829

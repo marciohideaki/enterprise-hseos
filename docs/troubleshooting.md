@@ -143,7 +143,7 @@ echo $HSEOS_STATE_DB   # should be set, or defaults to .hseos/state/project.db
 ls .hseos/state/project.db
 
 # Check what runs exist
-hseos state list --status all
+hseos state-list
 ```
 
 ---
@@ -177,6 +177,7 @@ npm ci
 ### Session context is not auto-detected at SessionStart
 
 The hook requires:
+
 1. `better-sqlite3` installed (see above)
 2. An active run in `as_runs` (`status = 'active'`)
 3. The DB path is accessible (default: `.hseos/state/project.db`)
@@ -188,7 +189,7 @@ To debug:
 CLAUDE_HOOK_EVENT=SessionStart bash scripts/governance/state-emit-hook.sh
 
 # Check active runs
-hseos state list --status active
+hseos state-list --status active
 ```
 
 ---

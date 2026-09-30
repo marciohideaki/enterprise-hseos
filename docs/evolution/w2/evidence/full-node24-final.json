@@ -1,0 +1,13 @@
+{
+  "node": "24",
+  "stage": "full",
+  "started_at": "2026-09-26T04:59:58.130Z",
+  "finished_at": "2026-09-26T05:07:18.279Z",
+  "exit_code": 0,
+  "signal": null,
+  "source_manifest_sha256": "d1e871e265a699179e4f3f8dcb057755a862bb2cedb9c7611e48facfa6b6586b",
+  "sequential": true,
+  "test_concurrency": 1,
+  "delegated_test_scope": true,
+  "postgres_integration": true
+}

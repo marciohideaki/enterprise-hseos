@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "mission_id": "hseos-governed-autonomous-engineering",
+  "task_id": "harness-reference-evidence",
+  "repository_id": "7f9f9b79-638c-4138-9a29-8a2406ad9fb8",
+  "baseline": "a8423081934d64538d71ef8289f072d51566a870",
+  "status": "verified-awaiting-commit",
+  "generated_at": "2026-09-20T05:42:51.695670+00:00",
+  "dimensions": {
+    "engineering": "pending-validation",
+    "real_providers_and_consumers": "not-executed",
+    "operational_activation": "not-authorized"
+  },
+  "provider": "model:scripted-reference 1.0.0 / reference/tool-model",
+  "verification": {
+    "baseline": "1 added regression fails: completed instead of failed",
+    "correction_1": "new assertion expected failed tool but canonical outcome is uncertain; corrected to exact uncertain/error contract",
+    "focused": "9/9 passed; no-retry assertion also passed in full gate",
+    "full_gate": {
+      "exit_code": 0,
+      "failures": 0,
+      "warnings": 1,
+      "log": "/workspace/github/marciohideaki/enterprise-hseos/.logs/validation/harness-reference-evidence-full.log",
+      "sha256": "2c42f01fe9a28141f0a8b09c09f6735fc75bec2e1cab39043c892df277261b43",
+      "completed_at": "2026-09-20T05:46:13.005042+00:00"
+    },
+    "lint": 0,
+    "diff_check": 0
+  },
+  "source_sha256": {
+    "tools/cli/lib/reference-agent-runtime.js": "3fc018fa44c30b958ed524926ddb450f8e368750fc6650294c58333522a2d468",
+    "test/test-agent-capability-cli.js": "e36605616d1a10325455844b60c85e63899d6ac640453c1d91a6fdb5b1e96fbd"
+  },
+  "artifact_sha256": {
+    "green.txt": "e787be6596498351ba3744f4219647d4ed9cd759ba2db295c582f3f41a30966a",
+    "correction-1.txt": "85952d6a517952840859eeeaa55c6b1c9da4836de003462d8c3734bd8a42edce",
+    "red.txt": "2f86b5ae7319363354ad9d0161de27ffef192af0060d367d3cd6d6d797947a42"
+  },
+  "limitations": [
+    "No real model inference or software-task campaign",
+    "H1 integration remains separate; this task tests durable outcome rather than CLI exit mapping",
+    "No new authority, active policy or verifier changes",
+    "Full mission DoD remains pending"
+  ]
+}

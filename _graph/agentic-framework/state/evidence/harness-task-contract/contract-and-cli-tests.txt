@@ -1,0 +1,51 @@
+
+> hseos@3.4.2 test:agent-capability-cli
+> node --test test/test-agent-capability-cli.js test/test-engineering-task-contract.js
+
+[hseos] REFERENCE_AGENT_INVALID: expected_sequence is required and must be a non-negative safe integer
+[hseos] REFERENCE_AGENT_INVALID: reference workspace is invalid: temporary workspace is not a private regular directory
+[hseos] REFERENCE_AGENT_INVALID: reference manifest differs from the durable session binding
+✔ agent-reference capability plan selects exactly one keyless model and kernel runtime (54.087373ms)
+✔ agent run completes a governed tool loop and exposes externally verifiable state (384.954498ms)
+✔ agent resume crosses a process boundary with optimistic sequence and then completes (667.604638ms)
+✔ agent cancel durably terminalizes a created reference session (578.928208ms)
+✔ temporary fixture reopen rejects unmarked and symlink aliases (299.082529ms)
+✔ resume requires caller-supplied optimistic sequence (560.044514ms)
+✔ resume rejects a workspace replaced by an escaping symlink before tool execution (574.567544ms)
+✔ resume rejects a reference manifest changed after durable session creation (573.258809ms)
+✔ validates and freezes a versioned contract without attesting the verifier or executing code (5.085704ms)
+✔ rejects source drift (0.885325ms)
+✔ rejects file drift (0.334534ms)
+✔ rejects traversal (0.667706ms)
+✔ rejects absolute path (0.325231ms)
+✔ rejects hidden control path (0.282298ms)
+✔ rejects path prefix collision (0.343665ms)
+✔ rejects write outside read scope (0.383155ms)
+✔ rejects duplicate file (0.387337ms)
+✔ rejects file outside scope (0.488733ms)
+✔ rejects missing source (0.27184ms)
+✔ rejects uncovered requirement (0.265653ms)
+✔ rejects missing requirement (0.268169ms)
+✔ rejects missing acceptance (0.252291ms)
+✔ rejects duplicate acceptance (0.245783ms)
+✔ rejects unknown authority (0.313379ms)
+✔ rejects privileged source role (0.362561ms)
+✔ rejects shell command (0.304339ms)
+✔ rejects command outside scope (0.269628ms)
+✔ rejects unbounded retries (0.26478ms)
+✔ rejects invalid duration (0.326846ms)
+✔ rejects unsafe integer (0.3103ms)
+✔ rejects child budget (0.234408ms)
+✔ rejects oversized artifacts (0.23324ms)
+✔ rejects invalid rollback (0.240546ms)
+✔ source instructions remain untrusted data and changing them invalidates the receipt (3.080002ms)
+✔ linked and oversized input files are rejected before loading their contents (0.88821ms)
+✔ public validation emits no source contents and cannot select an execution profile (840.264036ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3773.319014

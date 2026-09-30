@@ -1,0 +1,142 @@
+
+=== Plugin Marketplace Tests ===
+
+1. writePluginRegistry — loads 4 plugins from registry.yaml
+  PASS  returns array
+  PASS  returns 4 plugins
+  PASS  all have ids
+  PASS  all scaffolded
+
+2-3. writePlatformPluginAdapters — emits dual-format adapters
+  PASS  .claude-plugin/marketplace.json exists
+  PASS  .codex-plugin/plugin.json exists
+  PASS  Claude marketplace has no inactive entries
+  PASS  Codex marketplace has no inactive entries
+  PASS  stale Claude installation is disabled
+  PASS  stale Codex installation is disabled
+  PASS  orphan vendor installations are quarantined from both generated trees
+  PASS  Claude-only compile still disables stale Codex plugins
+
+4. plugin doctor — passes on real definitions tree
+  PASS  doctor passes without error
+  PASS  doctor reports all four inactive candidates
+  PASS  doctor reports zero active plugins passed
+
+5. plugin install — rejects inactive candidate
+  PASS  inactive install returns a clear error
+  PASS  Claude plugin is not written
+  PASS  Codex plugin is not written
+
+6. plugin doctor — rejects active plugin without behavior tests
+  PASS  doctor rejects missing behavior tests
+
+7. plugin doctor — executes active behavior tests
+  PASS  active behavior test executed
+
+8. plugin install — materializes validated surfaces for both vendors
+  PASS  .claude-plugin install contains manifest and declared command
+  PASS  .codex-plugin install contains manifest and declared command
+
+9. plugin install — rejects failing behavior before materialization
+  PASS  failing conformance rejects install
+  PASS  failing conformance writes no vendor plugin
+
+10. plugin install — rolls back cross-vendor preparation failure
+  PASS  second-vendor preparation failure is reported
+  PASS  preparation failure leaves no partial Claude install
+  PASS  preparation failure removes Claude staging artifacts
+
+11. plugin install — rolls back both vendors when second swap fails
+  PASS  second-swap failure is reported
+  PASS  .claude-plugin previous install is restored
+  PASS  .codex-plugin previous install is restored
+
+12. plugin install — cleanup failure cannot roll back a committed install
+  PASS  .claude-plugin keeps the committed new install
+  PASS  .codex-plugin keeps the committed new install
+  PASS  cleanup failure is reported as a warning
+
+13. plugin catalog — canonical source exactly replaces generated output
+  PASS  target canonical source wins
+  PASS  generated plugin tree is byte-exact with canonical source
+  PASS  stale generated plugin file is removed
+  PASS  direct generated edit is overwritten from canonical source
+
+14. plugin catalog — schema v2 fails closed
+  PASS  schema v2 rejects unknown top-level field
+  PASS  schema v2 rejects duplicate plugin id
+  PASS  schema v2 rejects unsafe plugin id
+  PASS  schema v2 rejects unknown plugin status
+  PASS  schema v2 rejects plugin id starting with a digit
+  PASS  schema v2 rejects invalid semver
+  PASS  schema v2 rejects invalid semver prerelease
+  PASS  schema v2 rejects wrong source authority
+  PASS  schema v2 rejects unknown schema version
+  PASS  schema v2 rejects unknown marketplace field
+  PASS  schema v2 rejects unsafe emit target
+  PASS  schema v2 rejects dot-dot emit target
+  PASS  schema v2 rejects divergent emit target
+  PASS  schema v2 rejects Windows traversal emit target
+  PASS  schema v2 rejects unsupported resolution policy
+  PASS  schema v2 rejects duplicate bundle
+  PASS  schema v2 rejects empty required files
+  PASS  schema v2 rejects duplicate required file
+  PASS  schema v2 rejects traversal required file
+  PASS  schema v2 rejects empty required manifest keys
+  PASS  schema v2 rejects empty reserved id prefix
+  PASS  known schema v1 remains a bounded compatibility input
+  PASS  schema v2 accepts SemVer build metadata
+
+15. plugin conformance — rejects symlink surface escape
+  PASS  active symlink surface outside definition is rejected
+
+16. plugin remove — rejects path traversal
+  PASS  unsafe remove id is rejected
+  PASS  unsafe remove cannot delete outside vendor roots
+
+17. plugin catalog — synchronization rollback preserves previous output
+  PASS  catalog swap failure is reported
+  PASS  previous generated tree is restored
+  PASS  catalog transaction artifacts are removed
+
+18. plugin catalog — invalid canonical input preserves previous generated output
+  PASS  invalid canonical registry is rejected before publication
+  PASS  previous generated output survives validation failure
+  PASS  canonical authority rejects legacy schema v1
+  PASS  v1 canonical rejection preserves previous output
+
+19. plugin conformance — rejects README symlink escape
+  PASS  README symlink outside definition is rejected
+
+20. plugin conformance — rejects Windows traversal surface
+  PASS  Windows traversal surface is rejected cross-platform
+
+21. plugin emission — active catalog entries have complete vendor directories
+  PASS  .claude-plugin emitter writes manifest, README, and surface
+  PASS  .codex-plugin emitter writes manifest, README, and surface
+
+22. plugin doctor — rejects unknown manifest fields under schema v2
+  PASS  schema-v2 doctor rejects unknown manifest field
+
+23. plugin emission — index failure rolls back both complete vendor roots
+  PASS  Codex index failure is reported
+  PASS  Claude vendor root remains byte-identical after failed publication
+  PASS  Codex vendor root remains byte-identical after failed publication
+  PASS  failed publication leaves no transaction directories
+
+24. plugin emission — active/inactive cycles remain truthful
+  PASS  .claude-plugin final scaffold is quarantined and not active
+  PASS  .codex-plugin final scaffold is quarantined and not active
+  PASS  final vendor indices advertise no scaffolded plugin
+
+25. plugin emission — rejects stale symlink entries
+  PASS  stale vendor symlink is rejected
+  PASS  rejected stale symlink remains unmodified
+
+26. plugin emission — rejects symlinked vendor roots and plugin containers
+  PASS  vendor-root symlink is rejected
+  PASS  vendor-root rejection writes nothing outside
+  PASS  plugins-container symlink is rejected
+  PASS  plugins-container rejection writes nothing outside
+
+=== Results: 88 passed, 0 failed ===

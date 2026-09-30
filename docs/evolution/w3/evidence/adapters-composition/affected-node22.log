@@ -1,0 +1,396 @@
+TAP version 13
+# Subtest: optional Antigravity client restricts SDK tools to pinned kernel actions
+ok 1 - optional Antigravity client restricts SDK tools to pinned kernel actions
+  ---
+  duration_ms: 153.906421
+  type: 'test'
+  ...
+# Subtest: loader preserves legacy configuration and constructs only registered lazy adapters
+ok 2 - loader preserves legacy configuration and constructs only registered lazy adapters
+  ---
+  duration_ms: 29.230787
+  type: 'test'
+  ...
+# Subtest: loader refuses state override, directory drift and replaced ledger before factory effects
+ok 3 - loader refuses state override, directory drift and replaced ledger before factory effects
+  ---
+  duration_ms: 18.017787
+  type: 'test'
+  ...
+# Subtest: loader preserves temporary ledger activation gate
+ok 4 - loader preserves temporary ledger activation gate
+  ---
+  duration_ms: 16.550425
+  type: 'test'
+  ...
+# Subtest: loader validates all references and manifests before invoking any factory
+ok 5 - loader validates all references and manifests before invoking any factory
+  ---
+  duration_ms: 18.127785
+  type: 'test'
+  ...
+# Subtest: loader checks observed digest and adapter interface, sanitizing factory exceptions
+ok 6 - loader checks observed digest and adapter interface, sanitizing factory exceptions
+  ---
+  duration_ms: 18.75511
+  type: 'test'
+  ...
+# Subtest: loader rechecks ledger identity after factory construction
+ok 7 - loader rechecks ledger identity after factory construction
+  ---
+  duration_ms: 16.673007
+  type: 'test'
+  ...
+# Subtest: loader rejects malformed, oversized, symlink and hardlink configurations
+ok 8 - loader rejects malformed, oversized, symlink and hardlink configurations
+  ---
+  duration_ms: 18.691816
+  type: 'test'
+  ...
+# Subtest: CLI, JavaScript, Python and HTTP share identity, task results and replayable event cursors
+ok 9 - CLI, JavaScript, Python and HTTP share identity, task results and replayable event cursors
+  ---
+  duration_ms: 2024.293895
+  type: 'test'
+  ...
+# Subtest: authenticated control rejects wrong identity, origins, workspace escalation and stale commands
+ok 10 - authenticated control rejects wrong identity, origins, workspace escalation and stale commands
+  ---
+  duration_ms: 815.763944
+  type: 'test'
+  ...
+# Subtest: an intent without receipt is not automatically dispatched again
+ok 11 - an intent without receipt is not automatically dispatched again
+  ---
+  duration_ms: 803.401668
+  type: 'test'
+  ...
+# Subtest: review binds approval to Git baseline and only explicit apply modifies the source project
+ok 12 - review binds approval to Git baseline and only explicit apply modifies the source project
+  ---
+  duration_ms: 1753.454973
+  type: 'test'
+  ...
+# Subtest: concurrent source edits invalidate the prior review and are preserved
+ok 13 - concurrent source edits invalidate the prior review and are preserved
+  ---
+  duration_ms: 1762.270101
+  type: 'test'
+  ...
+# Subtest: public preparation pins the current workspace and cannot expand the server allowlist
+ok 14 - public preparation pins the current workspace and cannot expand the server allowlist
+  ---
+  duration_ms: 55.928028
+  type: 'test'
+  ...
+# Subtest: workflows reuse the same API control and aggregate kernel budget
+ok 15 - workflows reuse the same API control and aggregate kernel budget
+  ---
+  duration_ms: 1965.244628
+  type: 'test'
+  ...
+# Subtest: HTTP rejects malformed, oversized and unsupported requests without exposing internal errors
+ok 16 - HTTP rejects malformed, oversized and unsupported requests without exposing internal errors
+  ---
+  duration_ms: 804.225278
+  type: 'test'
+  ...
+# Subtest: SDK rejects remote endpoints, malformed cursors and invalid query views
+ok 17 - SDK rejects remote endpoints, malformed cursors and invalid query views
+  ---
+  duration_ms: 0.419458
+  type: 'test'
+  ...
+# Subtest: candidate edits after approval invalidate review without applying unverified bytes
+ok 18 - candidate edits after approval invalidate review without applying unverified bytes
+  ---
+  duration_ms: 1696.996557
+  type: 'test'
+  ...
+# Subtest: control rejects model ambiguity, unknown bindings and duplicate resources before effects
+ok 19 - control rejects model ambiguity, unknown bindings and duplicate resources before effects
+  ---
+  duration_ms: 830.526367
+  type: 'test'
+  ...
+# Subtest: Git application never invokes configured filesystem monitors or external diff commands
+ok 20 - Git application never invokes configured filesystem monitors or external diff commands
+  ---
+  duration_ms: 1778.077224
+  type: 'test'
+  ...
+# > hseos@4.0.0-rc.0 prepare
+# > command -v husky >/dev/null 2>&1 && husky || exit 0
+# Subtest: published package exposes runtime and governance assets only
+ok 21 - published package exposes runtime and governance assets only
+  ---
+  duration_ms: 1830.011124
+  type: 'test'
+  ...
+# Subtest: real API adapter is lazy, observes selected credential and USD balance, and streams through existing egress broker
+ok 22 - real API adapter is lazy, observes selected credential and USD balance, and streams through existing egress broker
+  ---
+  duration_ms: 56.599739
+  type: 'test'
+  ...
+# Subtest: API adapter refuses credential and binding drift before network effects
+ok 23 - API adapter refuses credential and binding drift before network effects
+  ---
+  duration_ms: 8.0683
+  type: 'test'
+  ...
+# Subtest: API adapter refuses unsupported origin, insufficient reservation and expired pricing
+ok 24 - API adapter refuses unsupported origin, insufficient reservation and expired pricing
+  ---
+  duration_ms: 8.428435
+  type: 'test'
+  ...
+# Subtest: balance observation cannot invent quota or convert currencies
+ok 25 - balance observation cannot invent quota or convert currencies
+  ---
+  duration_ms: 12.869715
+  type: 'test'
+  ...
+# Subtest: missing usage, cancellation and unknown task never become successful receipts
+ok 26 - missing usage, cancellation and unknown task never become successful receipts
+  ---
+  duration_ms: 14.461165
+  type: 'test'
+  ...
+# Subtest: API adapter cancellation aborts the broker request and drains its connection
+ok 27 - API adapter cancellation aborts the broker request and drains its connection
+  ---
+  duration_ms: 7.053415
+  type: 'test'
+  ...
+# Subtest: API adapter and campaign integrate credential admission, monetary quota and reservation before dispatch
+ok 28 - API adapter and campaign integrate credential admission, monetary quota and reservation before dispatch
+  ---
+  duration_ms: 303.111018
+  type: 'test'
+  ...
+# Subtest: campaign reserves before dispatch, replays receipts and preserves consumption after reopening
+ok 29 - campaign reserves before dispatch, replays receipts and preserves consumption after reopening
+  ---
+  duration_ms: 58.13242
+  type: 'test'
+  ...
+# Subtest: a new campaign identity cannot reuse authorization or manufacture a larger budget
+ok 30 - a new campaign identity cannot reuse authorization or manufacture a larger budget
+  ---
+  duration_ms: 22.242776
+  type: 'test'
+  ...
+# Subtest: ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch
+ok 31 - ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch
+  ---
+  duration_ms: 28.259334
+  type: 'test'
+  ...
+# Subtest: receipt loss preserves the reservation and requires current-state reconciliation without retry
+ok 32 - receipt loss preserves the reservation and requires current-state reconciliation without retry
+  ---
+  duration_ms: 28.733519
+  type: 'test'
+  ...
+# Subtest: a second controller cannot reconcile a live dispatch and can cancel it durably
+ok 33 - a second controller cannot reconcile a live dispatch and can cancel it durably
+  ---
+  duration_ms: 76.477822
+  type: 'test'
+  ...
+# Subtest: a changed binding manifest cannot replace the pinned configuration after reopening
+ok 34 - a changed binding manifest cannot replace the pinned configuration after reopening
+  ---
+  duration_ms: 36.477314
+  type: 'test'
+  ...
+# Subtest: HTTP and SDK campaign commands share authentication, cursors and durable budget
+ok 35 - HTTP and SDK campaign commands share authentication, cursors and durable budget
+  ---
+  duration_ms: 229.783458
+  type: 'test'
+  ...
+# Subtest: known overspend remains charged after uncertain outcome reconciliation
+ok 36 - known overspend remains charged after uncertain outcome reconciliation
+  ---
+  duration_ms: 23.399772
+  type: 'test'
+  ...
+# Subtest: expired grants, stale sequences and cancellation deny new effects
+ok 37 - expired grants, stale sequences and cancellation deny new effects
+  ---
+  duration_ms: 23.265021
+  type: 'test'
+  ...
+# Subtest: unbound adapter identities and missing dispatch implementations cannot configure campaigns
+ok 38 - unbound adapter identities and missing dispatch implementations cannot configure campaigns
+  ---
+  duration_ms: 19.994875
+  type: 'test'
+  ...
+# Subtest: a concurrent exact retry observes the committed receipt without a second dispatch
+ok 39 - a concurrent exact retry observes the committed receipt without a second dispatch
+  ---
+  duration_ms: 23.562697
+  type: 'test'
+  ...
+# Subtest: a request ceiling holds even when prior attempts report zero charge
+ok 40 - a request ceiling holds even when prior attempts report zero charge
+  ---
+  duration_ms: 30.68787
+  type: 'test'
+  ...
+# Subtest: failed inspection never consumes an authorization or leaks transport details
+ok 41 - failed inspection never consumes an authorization or leaks transport details
+  ---
+  duration_ms: 19.079776
+  type: 'test'
+  ...
+# Subtest: client and subordinate model reserve in one campaign before effect and preserve costs on reopen
+ok 42 - client and subordinate model reserve in one campaign before effect and preserve costs on reopen
+  ---
+  duration_ms: 26.370481
+  type: 'test'
+  ...
+# Subtest: subordinate budget cannot bypass the campaign ceiling
+ok 43 - subordinate budget cannot bypass the campaign ceiling
+  ---
+  duration_ms: 22.163597
+  type: 'test'
+  ...
+# Subtest: a child with a lost receipt retains its reservation and fences even a parent that catches its error
+ok 44 - a child with a lost receipt retains its reservation and fences even a parent that catches its error
+  ---
+  duration_ms: 26.257568
+  type: 'test'
+  ...
+# Subtest: subordinate capability expires when parent finishes and cannot target an unpinned binding
+ok 45 - subordinate capability expires when parent finishes and cannot target an unpinned binding
+  ---
+  duration_ms: 25.09859
+  type: 'test'
+  ...
+# Subtest: campaign cancellation reaches parent and child and waits for child termination
+ok 46 - campaign cancellation reaches parent and child and waits for child termination
+  ---
+  duration_ms: 26.604789
+  type: 'test'
+  ...
+# Subtest: shutdown cancels and drains a composed call before returning, and fences future effects
+ok 47 - shutdown cancels and drains a composed call before returning, and fences future effects
+  ---
+  duration_ms: 27.663854
+  type: 'test'
+  ...
+# Subtest: denied task scope is checked before resolving provider credentials or probing its API
+ok 48 - denied task scope is checked before resolving provider credentials or probing its API
+  ---
+  duration_ms: 19.17995
+  type: 'test'
+  ...
+# Subtest: runner completes a bounded pilot, checks replay and can restart without repeating inference or resetting budget
+ok 49 - runner completes a bounded pilot, checks replay and can restart without repeating inference or resetting budget
+  ---
+  duration_ms: 50.344491
+  type: 'test'
+  ...
+# Subtest: four-family scope fails before authorization claim if families are missing
+ok 50 - four-family scope fails before authorization claim if families are missing
+  ---
+  duration_ms: 18.771257
+  type: 'test'
+  ...
+# Subtest: runner preserves uncertain effects across restart and never advances or cancels them implicitly
+ok 51 - runner preserves uncertain effects across restart and never advances or cancels them implicitly
+  ---
+  duration_ms: 26.301161
+  type: 'test'
+  ...
+# Subtest: runner rejects duplicate command identity and unexpected vendor before effects
+ok 52 - runner rejects duplicate command identity and unexpected vendor before effects
+  ---
+  duration_ms: 19.652542
+  type: 'test'
+  ...
+# Subtest: runner operates through authenticated HTTP and the public SDK
+ok 53 - runner operates through authenticated HTTP and the public SDK
+  ---
+  duration_ms: 456.2149
+  type: 'test'
+  ...
+# Subtest: official routes distinguish native accounts, API and local bindings without claiming certification
+ok 54 - official routes distinguish native accounts, API and local bindings without claiming certification
+  ---
+  duration_ms: 6.467713
+  type: 'test'
+  ...
+# Subtest: route confusion, unknown quota, capability claims, secrets and unbounded reservations fail closed
+ok 55 - route confusion, unknown quota, capability claims, secrets and unbounded reservations fail closed
+  ---
+  duration_ms: 2.606392
+  type: 'test'
+  ...
+# Subtest: binding drift is rejected and declared control evidence does not certify a real journey
+ok 56 - binding drift is rejected and declared control evidence does not certify a real journey
+  ---
+  duration_ms: 0.287434
+  type: 'test'
+  ...
+# Subtest: authenticated HTTP, JS, Python and CLI share terminal identity and cursor
+ok 57 - authenticated HTTP, JS, Python and CLI share terminal identity and cursor
+  ---
+  duration_ms: 1073.360446
+  type: 'test'
+  ...
+# Subtest: interactive attach streams bytes, serializes input/resize, and detaches without terminate
+ok 58 - interactive attach streams bytes, serializes input/resize, and detaches without terminate
+  ---
+  duration_ms: 103.177942
+  type: 'test'
+  ...
+# Subtest: attach restores terminal on rejection and ends at the durable cursor
+ok 59 - attach restores terminal on rejection and ends at the durable cursor
+  ---
+  duration_ms: 103.503799
+  type: 'test'
+  ...
+# Subtest: attach releases listeners when enabling raw mode fails
+ok 60 - attach releases listeners when enabling raw mode fails
+  ---
+  duration_ms: 2.105415
+  type: 'test'
+  ...
+# Subtest: attach fences queued input after an uncertain command
+ok 61 - attach fences queued input after an uncertain command
+  ---
+  duration_ms: 102.138586
+  type: 'test'
+  ...
+# Subtest: attach reports partial input instead of silently discarding its suffix
+ok 62 - attach reports partial input instead of silently discarding its suffix
+  ---
+  duration_ms: 103.116502
+  type: 'test'
+  ...
+# Subtest: detach rejects later data, EOF and resize while draining earlier input (false)
+ok 63 - detach rejects later data, EOF and resize while draining earlier input (false)
+  ---
+  duration_ms: 2.907289
+  type: 'test'
+  ...
+# Subtest: detach rejects later data, EOF and resize while draining earlier input (true)
+ok 64 - detach rejects later data, EOF and resize while draining earlier input (true)
+  ---
+  duration_ms: 1.717907
+  type: 'test'
+  ...
+1..64
+# tests 64
+# suites 0
+# pass 64
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 21857.027485

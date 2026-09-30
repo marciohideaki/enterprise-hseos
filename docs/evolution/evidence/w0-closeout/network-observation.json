@@ -1,0 +1,9 @@
+{
+  "trace_sha256": "a2eebf4d6129c003c248d44a3417918eb78ff7a2ace5a51e359a083f4fef9b0b",
+  "inet_socket_calls": 35,
+  "inet_socket_calls_denied": 35,
+  "connect_calls": 46,
+  "successful_connect_calls": 0,
+  "unresolved_syscalls": 0,
+  "scope": "Observed installed Node24 scripted task/workflow journey; controller stayed in host network namespace; task sandbox probes were denied by seccomp."
+}

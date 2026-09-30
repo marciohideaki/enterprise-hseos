@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "binding_id": "binding:codex-acp",
+  "binding_sha256": "b196e6d87422a6875dbc8062b8b0b0be9553128e35e3067b2f6a515414542b92",
+  "vendor": "codex",
+  "provider_kind": "client",
+  "provider_version": "0.157.1",
+  "adapter": "hseos-codex-acp-campaign-v1",
+  "artifact_sha256": "45fa2ead420180b376b4e740c8124038f53e2228ee335645eab86a4042ebdefb",
+  "route": "account",
+  "transport": "stdio",
+  "authentication": {
+    "mode": "native_account",
+    "identity_kind": "account",
+    "credential": {
+      "name": "native-account",
+      "source_ref": "file:///home/annonymous/.codex/auth.json"
+    },
+    "account_sha256": "e4174663cc7e5b7717d18784908cd5861731bee2cc1888e8eadd8681c489d42d",
+    "source": "explicit"
+  },
+  "billing": {
+    "kind": "subscription",
+    "currency": "USD",
+    "max_request_microusd": 0
+  },
+  "limits": {
+    "max_requests": 2,
+    "max_input_tokens": 65536,
+    "max_output_tokens": 256,
+    "max_duration_ms": 90000
+  },
+  "controls": {
+    "authority": "external_client",
+    "resume": "not_verified",
+    "cancel": "not_verified",
+    "quota": "observed",
+    "evidence_sha256": null
+  }
+}

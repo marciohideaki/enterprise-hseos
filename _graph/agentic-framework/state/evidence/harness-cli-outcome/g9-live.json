@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-09-20T03:48:17.768Z",
+  "as_of": "2026-09-20T03:48:17.717Z",
+  "status": "observation-degraded",
+  "monitor_only": true,
+  "database_mode": "verified-read-snapshot-of-live-wal",
+  "observation_healthy": false,
+  "ready_for_cutover": false,
+  "cutover_authorized": false,
+  "operational_paths": {
+    "telemetry_database": "/workspace/github/marciohideaki/enterprise-hseos/.hseos/state/mcp-legacy-usage.db",
+    "state_database": "/workspace/github/marciohideaki/enterprise-hseos/.hseos/state/project.db",
+    "observation_manifest": "/workspace/github/marciohideaki/enterprise-hseos/.hseos/state/harness-g9-observation-release.json"
+  },
+  "manifest": {
+    "valid": false,
+    "path": "/workspace/github/marciohideaki/enterprise-hseos/.hseos/state/harness-g9-observation-release.json",
+    "errors": [
+      "observation release manifest is absent"
+    ]
+  },
+  "current": {
+    "usage_hour": "2026-09-20T03",
+    "all_servers_present": true,
+    "all_servers_fresh": true,
+    "servers": [
+      {
+        "server_id": "axon_bridge",
+        "present": true,
+        "fresh": true,
+        "age_minutes": 9.6,
+        "heartbeat_count": 3,
+        "last_observed_at": "2026-09-20T03:38:42.081Z"
+      },
+      {
+        "server_id": "governance",
+        "present": true,
+        "fresh": true,
+        "age_minutes": 1.2,
+        "heartbeat_count": 11,
+        "last_observed_at": "2026-09-20T03:47:07.369Z"
+      },
+      {
+        "server_id": "project_state",
+        "present": true,
+        "fresh": true,
+        "age_minutes": 1.2,
+        "heartbeat_count": 11,
+        "last_observed_at": "2026-09-20T03:47:07.338Z"
+      },
+      {
+        "server_id": "swarm",
+        "present": true,
+        "fresh": true,
+        "age_minutes": 1.2,
+        "heartbeat_count": 17,
+        "last_observed_at": "2026-09-20T03:47:07.341Z"
+      }
+    ],
+    "legacy_use_today": [
+      {
+        "server_id": "governance",
+        "count": 8,
+        "first_seen_at": "2026-09-20T01:29:51.172Z",
+        "last_seen_at": "2026-09-20T03:17:07.374Z"
+      },
+      {
+        "server_id": "project_state",
+        "count": 8,
+        "first_seen_at": "2026-09-20T01:29:51.136Z",
+        "last_seen_at": "2026-09-20T03:17:07.345Z"
+      },
+      {
+        "server_id": "swarm",
+        "count": 14,
+        "first_seen_at": "2026-09-20T01:29:51.135Z",
+        "last_seen_at": "2026-09-20T03:22:13.595Z"
+      }
+    ],
+    "latest_legacy_use_at": "2026-09-20T03:43:40.383Z",
+    "legacy_quiet_minutes": 4.6,
+    "integrity_errors": []
+  },
+  "progress": {
+    "required_days": 30,
+    "first_candidate_day": null,
+    "evaluated_complete_days": 0,
+    "current_consecutive_days": 0,
+    "remaining_days": 30,
+    "window_complete": false,
+    "last_evaluated_day": null,
+    "invalid_days": [],
+    "integrity_errors": []
+  }
+}

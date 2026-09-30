@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-26T15:52:51.783264+00:00",
+  "status": "partial",
+  "base_commit": "b9db33bfcf53681d91c64ca8a0dd42c74b0fb24c",
+  "results": {
+    "node24-full": {
+      "tests": 943,
+      "pass": 943,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "log_sha256": "6835c99f0b48bfa7952fc8e319c929f5fc0a3a33d5b70f741147482da5b3a674"
+    },
+    "node24-critical": {
+      "tests": 469,
+      "pass": 469,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "log_sha256": "5e5eb6756a4c055f4b2112683d1a3163ef6574a1fa3d8b6789881a87ec4153d7"
+    },
+    "node22-full": {
+      "tests": 943,
+      "pass": 943,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "log_sha256": "7498b363a2417ff6edabc244972baefb7733949c260df3ec4d677cdff9e5e7fa"
+    }
+  },
+  "coverage_node24": {
+    "lines": {
+      "total": 10631,
+      "covered": 10192,
+      "skipped": 0,
+      "pct": 95.87
+    },
+    "statements": {
+      "total": 10631,
+      "covered": 10192,
+      "skipped": 0,
+      "pct": 95.87
+    },
+    "functions": {
+      "total": 400,
+      "covered": 392,
+      "skipped": 0,
+      "pct": 98
+    },
+    "branches": {
+      "total": 3662,
+      "covered": 3264,
+      "skipped": 0,
+      "pct": 89.13
+    },
+    "branchesTrue": {
+      "total": 0,
+      "covered": 0,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "node22_critical": "not_started_host_capacity",
+  "installed_consumer": "not_executed_host_capacity; runner prepared at /build/tmp/hseos-w1-w2-integration/verify-w3-consumer.py",
+  "host_capacity": {
+    "physical_cores": 6,
+    "blocked_samples_1m": [
+      9.2,
+      10.15,
+      9.77,
+      10.28
+    ],
+    "idle_runner_terminated": true,
+    "owned_port_forward_terminated": true,
+    "node22_dependency_symlink_removed": true
+  },
+  "corrections": [
+    "Narrative references corrected to comply with ADR-0025 without extending gate exceptions.",
+    "Synthetic secret literal in rejection test replaced with generated UUID; security scanner unchanged."
+  ],
+  "remaining": [
+    "real adapters and effective identity/quota/lifecycle",
+    "composed client/subordinate kernel budget",
+    "operational durability not activated or certified",
+    "Node22 critical coverage",
+    "installed consumers",
+    "four-family real campaign requires routes, bindings and finite owner budget",
+    "commits per task and W3 PR after delivery acceptance"
+  ],
+  "source_sha256": {
+    "tools/cli/lib/control-configuration.js": "17d5e9ad675f8426c7748349ceb9f52db09a846d3297fb53bdd42e4bd03c44d0",
+    "tools/cli/lib/provider-campaign-control.js": "e200ae8d1c929c24e24ae7b96747f23a0b39792528e9fcd40e3b63a9b981ed17",
+    "tools/cli/lib/engineering-control.js": "fd353d9581854dbcee7b56d368c977be849dd779677cd44207de04ac71144597",
+    "tools/cli/lib/engineering-control-http.js": "8b5fdb0eac2d37bc0cf4927e3d823cf4888b130e5f414a4ba5f226eec0e045bb",
+    "tools/cli/commands/control.js": "56c38a27537db66d917e28e5b788f6c263b5dfe06594c88a19384f8766560c7c",
+    "tools/cli/command-manifest.json": "6be48d0c1cab1ff717193f5a9d81f40f787832f79bf52b9534a7002c17c1368b",
+    "tools/mcp-project-state/lib/execution-ledger-schema.js": "505df7fdb3c2aa3a98dfb95d6b7de47b510059181de232f1d5c5afdabe141457",
+    "tools/lib/provider-control-manifest.js": "e297cced0133e7451f4b8ff1c3c2fc126b28f9293a825968646a99440c7847bd",
+    "test/test-provider-control-manifest.js": "9bb6164ec1086ec1e62af2f9c18724e25d62ea8bb020786b874863e5a354d18e",
+    "test/test-control-configuration.js": "09be5b5a3ca02823ebc875c0277b0dae87570e08b001ed7115e13b00454f2147",
+    "test/test-provider-campaign-control.js": "3fa593448d8abeb3e7d73b0892b558c91640cd3e012595c64be3f9807ca6e0c1",
+    "test/test_antigravity_client.py": "527a443c4f6c70cec00876dd19ea3e9cdb9fe4ebb9e2e9cf01d5a9113198bb6d",
+    "packages/control-sdk/antigravity_client.py": "7da1bcab03a60df86f489e78f087f335df7a6212409aa7b8520d3ba18aece77e",
+    "packages/control-sdk/index.js": "0cef4a3896d7a9a3ca5eeee32b0929c03ccfe4d47808713057f6935539340785",
+    "packages/control-sdk/index.d.ts": "68ca2770a1b404cf3dc966f87156757ca5d8a9e404fc2df7ee783a281f9e554b",
+    "packages/control-sdk/hseos_control.py": "6489d8beab9481171e83005696d251d174391b765762df3e4bc6c970eb9522f9",
+    "package.json": "e4444223a45887a4ab90ba5e9d7e737393da98008184d2f269eda6259f160062",
+    ".c8-kernel.json": "af5feec0e785c9f912e615975de8a67d2cfe9793456f26ea4b988e8a661477d6"
+  }
+}

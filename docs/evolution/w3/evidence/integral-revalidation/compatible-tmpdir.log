@@ -1,0 +1,14 @@
+✔ DeepSeek capability plan selects the external runtime and no raw model implementation (115.371361ms)
+✔ supervised DeepSeek profile completes one tool-free ACP turn under the fixed sandbox command (1634.444074ms)
+✔ sandbox readiness fails before reading the DeepSeek secret or launching a worker (466.719546ms)
+✔ binding drift between authorization and worker execution fails before ACP spawn (1125.687061ms)
+✔ public profile rejects unsupported lifecycle operations before execution (0.74505ms)
+✔ public supervisor rejects ACP assets outside the sandboxed project (470.14165ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4107.227392

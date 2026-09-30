@@ -1,0 +1,4 @@
+Deterministic sandboxed ACP one-shot regression suite: 6 passed, 0 failed, 0 skipped.
+Provider names omitted from this documentation projection under documentation-neutrality.
+Exact command, raw artifact reference and digest are retained in result.json.
+Raw output is retained under .logs/validation; this summary is not the raw log.

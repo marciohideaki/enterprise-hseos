@@ -26,7 +26,8 @@ function text(value, label, maximum = 1024) {
     typeof value !== 'string' ||
     value.length === 0 ||
     Buffer.byteLength(value, 'utf8') > maximum ||
-    /[\u0000-\u001f\u007f]/u.test(value)
+    // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
+    /[\u0000-\u001F\u007F]/u.test(value)
   ) {
     throw new RuntimeProviderError(`${label} is malformed`, 'protocol_error');
   }
@@ -104,7 +105,9 @@ class ClaudeAgentSdkDriver {
 
   async resume(input) {
     this.#available();
-    exact(input, ['runtime_session_id', 'expected_sequence', 'effect_boundary'], 'Claude resume input');
+    exact(input, ['runtime_session_id', 'expected_sequence', 'effect_boundary', 'require_existing'], 'Claude resume input');
+    if (input.require_existing !== undefined && input.require_existing !== true)
+      throw new RuntimeProviderError('Claude resume requires an explicit existing-session constraint', 'invalid_request');
     this.#boundary(input);
     const runtimeSessionId = text(input.runtime_session_id, 'Claude session id');
     if (this.#sessions.has(runtimeSessionId)) return { effect_boundary: 'instructions_only' };
@@ -115,6 +118,9 @@ class ClaudeAgentSdkDriver {
     } catch (error) {
       throw new RuntimeProviderError('Claude session discovery failed', 'provider_unavailable', { cause: error });
     }
+    // Sequence 1 is the local started event; create-only has no provider transcript yet.
+    if (sessionInfo === undefined && (input.expected_sequence > 1 || input.require_existing === true))
+      throw new RuntimeProviderError('Claude resumed session is unavailable', 'provider_unavailable');
     this.#sessions.set(runtimeSessionId, {
       runtimeSessionId,
       mode: sessionInfo === undefined ? 'new' : 'resume',
@@ -125,7 +131,11 @@ class ClaudeAgentSdkDriver {
 
   async send(input) {
     this.#available();
-    exact(input, ['runtime_session_id', 'turn_id', 'instruction', 'effect_boundary', 'on_event'], 'Claude send input');
+    exact(
+      input,
+      ['runtime_session_id', 'turn_id', 'instruction', 'effect_boundary', 'on_event', 'on_usage', 'max_budget_usd', 'model'],
+      'Claude send input',
+    );
     this.#boundary(input);
     if (typeof input.on_event !== 'function') {
       throw new RuntimeProviderError('Claude event callback is required', 'invalid_request');
@@ -133,6 +143,8 @@ class ClaudeAgentSdkDriver {
     const session = this.#resolve(input.runtime_session_id);
     if (session.active) throw new RuntimeProviderError('Claude session already has an active turn', 'invalid_request');
     const sdk = await this.#loadSdk();
+    if (input.max_budget_usd !== undefined && (!Number.isFinite(input.max_budget_usd) || input.max_budget_usd <= 0))
+      throw new RuntimeProviderError('Claude budget must be finite and positive', 'invalid_request');
     const controller = new AbortController();
     let query;
     try {
@@ -144,6 +156,8 @@ class ClaudeAgentSdkDriver {
           cwd: this.cwd,
           env: this.env,
           maxTurns: 1,
+          ...(input.model === undefined ? {} : { model: text(input.model, 'Claude model', 256) }),
+          ...(input.max_budget_usd === undefined ? {} : { maxBudgetUsd: input.max_budget_usd }),
           pathToClaudeCodeExecutable: this.executable,
           permissionMode: 'plan',
           persistSession: true,
@@ -164,6 +178,7 @@ class ClaudeAgentSdkDriver {
     try {
       for await (const message of query) {
         stopReason = this.#message(session, input.on_event, message) || stopReason;
+        if (message.type === 'result' && input.on_usage) input.on_usage({ usage: message.usage, total_cost_usd: message.total_cost_usd });
         if (stopReason === 'refused') break;
       }
       if (!stopReason) throw new RuntimeProviderError('Claude stream ended without a result', 'protocol_error');
@@ -219,9 +234,16 @@ class ClaudeAgentSdkDriver {
       throw new RuntimeProviderError('Claude Agent SDK emitted a malformed session message', 'protocol_error');
     }
     if (value.type === 'system' && value.subtype === 'init') {
-      if (!Array.isArray(value.tools) || value.tools.length !== 0 || value.permissionMode !== 'plan') {
+      if (!Array.isArray(value.tools) || value.tools.length > 0 || value.permissionMode !== 'plan') {
         onEvent({ type: 'effect.attempted', effect: 'sdk-init-capability-drift' });
         return 'refused';
+      }
+      return;
+    }
+    if (value.type === 'system' && value.subtype === 'thinking_tokens') {
+      // Progress estimates are not authoritative billed usage.
+      if (![value.estimated_tokens, value.estimated_tokens_delta].every((count) => Number.isSafeInteger(count) && count >= 0)) {
+        throw new RuntimeProviderError('Claude thinking-token estimate is malformed', 'protocol_error');
       }
       return;
     }

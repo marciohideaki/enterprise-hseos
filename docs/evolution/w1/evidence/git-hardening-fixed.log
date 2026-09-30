@@ -1,0 +1,34 @@
+✔ CLI, JavaScript, Python and HTTP share identity, task results and replayable event cursors (3153.214892ms)
+✔ authenticated control rejects wrong identity, origins, workspace escalation and stale commands (1212.785181ms)
+✔ an intent without receipt is not automatically dispatched again (1253.105635ms)
+✔ review binds approval to Git baseline and only explicit apply modifies the source project (2768.878027ms)
+✔ concurrent source edits invalidate the prior review and are preserved (2758.377866ms)
+✔ public preparation pins the current workspace and cannot expand the server allowlist (95.261746ms)
+✔ workflows reuse the same API control and aggregate kernel budget (3222.402477ms)
+✔ HTTP rejects malformed, oversized and unsupported requests without exposing internal errors (1390.337814ms)
+✔ SDK rejects remote endpoints, malformed cursors and invalid query views (0.592068ms)
+✔ candidate edits after approval invalidate review without applying unverified bytes (3096.227094ms)
+✔ control rejects model ambiguity, unknown bindings and duplicate resources before effects (1359.825912ms)
+✔ Git application never invokes configured filesystem monitors or external diff commands (2837.004738ms)
+✔ workspace boundary handles root-link without following an unsafe path (36.142557ms)
+✔ workspace boundary handles root-file without following an unsafe path (39.361687ms)
+✔ workspace boundary handles file-directory without following an unsafe path (32.08041ms)
+✔ workspace boundary handles budget without following an unsafe path (41.754318ms)
+✔ workspace boundary handles traversal without following an unsafe path (41.100844ms)
+✔ workspace boundary handles missing-file without following an unsafe path (49.500959ms)
+✔ workspace boundary handles missing-parent without following an unsafe path (32.567802ms)
+✔ workspace boundary handles parent-link without following an unsafe path (44.270777ms)
+✔ a file edited between read and stat cannot enter the baseline (30.035089ms)
+✔ changing the workspace directory after reads invalidates its identity (45.493939ms)
+✔ project hydration rejects supplied file content even with the correct declared baseline (66.550865ms)
+✔ whole-file patches round-trip creation, deletion, empty files and newline boundaries through Git (34.449756ms)
+✔ project snapshots reject Git conversion filters before any project extension can execute (55.735978ms)
+✔ project Git worktree redirection cannot change the declared workspace authority (33.726035ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 24966.570414

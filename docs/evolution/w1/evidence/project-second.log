@@ -1,0 +1,37 @@
+✔ v2 snapshots a Git project and preserves its immutable input after external edits (73.555726ms)
+✔ v2 refuses links, invalid UTF-8, changed Git baseline and embedded substitution (180.436646ms)
+✔ project acceptance and verifier inputs cannot drift after pinning (50.571226ms)
+✔ protected verifier executes Node multi-file inside isolation (1742.480293ms)
+✖ protected verifier executes TypeScript inside isolation (2121.216958ms)
+✔ protected verifier executes Python multi-file inside isolation (1519.967481ms)
+✔ protected verifier executes web static content inside isolation (1686.711436ms)
+✔ protected verifier executes incorrect delivery inside isolation (2039.783719ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9678.471406
+
+✖ failing tests:
+
+test at test/test-engineering-project.js:138:3
+✖ protected verifier executes TypeScript inside isolation (2121.216958ms)
+  AssertionError [ERR_ASSERTION]: {"schema_version":1,"profile":"managed-project","task_run_id":"11f91086-1bc1-4db8-a96e-c89f5570b75b","task_id":"addition-fixture","state":"/tmp/hseos-ledger-fixture-So997b","session_id":"session:8da8fbff-9624-4d1a-b71f-2052a27da7e9","status":"completed","task_result":"failed","reason":"criteria-not-satisfied","current_sequence":10,"contract_sha256":"3630caff158ccd04071f552a6598c0d839414461d4cd4b714843871cc68b0b31","token_accounting":{"reported_input_tokens":3,"reported_output_tokens":3,"conservative_estimate_tokens":0,"total_tokens":6,"estimate_counter":"token-counter:utf8-byte-upper-bound"},"correction_reviews":[{"kind":"review","step_id":"step:d2d011ae9bd1e4380341923e22196d0d42b222c2","approved":false,"reason":"criteria-not-satisfied","files_sha256":"0ceb76652ace23a28f505198d39da1898e98425bd73597d107861443dc151b0c","correction_requested":true},{"kind":"review","step_id":"step:504bbbe6997fc73d08996d3f0f21beadafd9f510","approved":false,"reason":"criteria-not-satisfied","files_sha256":"0ceb76652ace23a28f505198d39da1898e98425bd73597d107861443dc151b0c","correction_requested":true},{"kind":"review","step_id":"step:553b847824a7ed92bf77b0deac1bf1a28b6500c3","approved":false,"reason":"criteria-not-satisfied","files_sha256":"0ceb76652ace23a28f505198d39da1898e98425bd73597d107861443dc151b0c","correction_requested":false}],"correction_diagnoses":[],"questions":[],"operational_authorized":false}
+  + actual - expected
+  
+  + 'failed'
+  - 'approved'
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-evolution-w1/test/test-engineering-project.js:144:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'failed',
+    expected: 'approved',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

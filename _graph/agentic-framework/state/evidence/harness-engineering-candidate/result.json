@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "task_id": "harness-engineering-candidate",
+  "baseline": "a8423081934d64538d71ef8289f072d51566a870",
+  "at": "2026-09-20T06:34:24.041051+00:00",
+  "authority": {
+    "adr_0040": "accepted by explicit owner message Aprovado!",
+    "adr_0041": "proposed; not approved",
+    "merge": false,
+    "operational_activation": false
+  },
+  "engineering": {
+    "diagnostic": "implemented",
+    "executor": "blocked",
+    "live_exit_code": 2,
+    "sandbox_tests_exit_code": 0,
+    "bwrap_conformance_exit_code": 0
+  },
+  "real_providers": "not-executed",
+  "real_consumers": "not-executed",
+  "operational_activation": "not-authorized",
+  "full_gate": {
+    "failures": 0,
+    "warnings": 1,
+    "exit_code": 0,
+    "log": "/workspace/github/marciohideaki/enterprise-hseos/.logs/validation/harness-engineering-candidate-full.log",
+    "sha256": "03e36de1335d07698da471b61b8a75cbec6f2542cee7e22cad5a41b2df74b2db"
+  },
+  "artifacts": {
+    "live-check.json": "1b8a60ff44de3e0a0ac5548570597556e505af5b96a223c2babb9d2b11d11843",
+    "bwrap-conformance.txt": "6395dddf32791a5cf99392c3747172f47f8b5f4a6dd1c68a9c4021d1482ab5d9",
+    "sandbox-tests.txt": "3f1da168dcef376b26e000297a16810ab0333a4151b5b18354f9038263b889b5"
+  },
+  "control_limitation": "Native Husky shims absent in isolated worktrees; explicit worktree-manager gates and commit-message check required; no hooks disabled."
+}

@@ -1,0 +1,11 @@
+{
+  "action": "validate",
+  "started_at": "2026-09-27T04:12:49.179135+00:00",
+  "finished_at": "2026-09-27T04:23:31.799626+00:00",
+  "exit_code": 0,
+  "resource_limits": {
+    "cpu": 1,
+    "memory_gib": 3,
+    "nice": 19
+  }
+}

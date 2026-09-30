@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-25",
+  "base": "a842308",
+  "branch": "task/hseos-v4-consolidation",
+  "version": "4.0.0-rc.0",
+  "package": {
+    "filename": "hseos-4.0.0-rc.0.tgz",
+    "shasum": "651ce8dd22b342bd183298a124b543d34dbac5df",
+    "integrity": "sha512-1U1Njf9yG5VAsBXkqMSFuwNCp+1CIQS2HOloOoctegWWfMyXsBOOCdiK+vjgoh/+emZ9C4E08hs7eoVzkg3WfA==",
+    "size": 2370089,
+    "unpackedSize": 8637990
+  },
+  "verification": {
+    "engineering_tests": 41,
+    "kernel_regression_tests": 83,
+    "capability_checks": 161,
+    "ci_phase": {
+      "failures": 0,
+      "warnings": 1,
+      "warning": "pre-existing epics template placeholders"
+    },
+    "clean_consumer": "three tasks, workflow, evidence queries, two profiles and simulated broker binding passed",
+    "full_gates": "pending: host load above six physical cores",
+    "real_provider_campaign": "not_run",
+    "operational_activation": "not_authorized"
+  },
+  "remaining": [
+    "active workflow crash reconciliation",
+    "uncertain interrupted effects remain blocked",
+    "full suite and gates",
+    "real provider campaign with authorized bindings/budget"
+  ],
+  "evidence": [
+    {
+      "file": "engineering-final-integrated.log",
+      "sha256": "860e1f7c908552458d686f7df06eb50f5c3c2a1174cb687211d0b4eddcf3f88c"
+    },
+    {
+      "file": "kernel-final-regression.log",
+      "sha256": "3d4d6ab5fb4234280422782ee045129ca8ac3cf2eaa9f6aa7d4a313cb3a7a65b"
+    },
+    {
+      "file": "contract-coverage.log",
+      "sha256": "98e0d1af3c4814c9172685e1fca868ea4ca4e14678f4de31f82438711080d911"
+    },
+    {
+      "file": "final-ci-gates.log",
+      "sha256": "1dd049f983d009ce35eb72c0f47f38efc22972af9d96ba649d7801d90c413fd4"
+    },
+    {
+      "file": "replay-benchmark-final.json",
+      "sha256": "d2641cf977846795f1e030ce798f3e33431ee61da81cf4eee3604818bf0285da"
+    },
+    {
+      "file": "final-clean-smoke.json",
+      "sha256": "7106acc4a51fe4e8baba17add38c8492099ad07e1c5f1e5e2547b6b7ca378d0e"
+    },
+    {
+      "file": "final-installed-binding.log",
+      "sha256": "98b43f4b2ae250cacf0e9e45b17e27f4884e4f8c8dc0bf295658e75004cadbd6"
+    },
+    {
+      "file": "lint-integrated.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "engineering-binding-workflow.log",
+      "sha256": "175a5616ff55bf60649f61318cbaa130d28100efb61aa04daa59ee74d97b56a5"
+    },
+    {
+      "file": "workflow-live-cancel.log",
+      "sha256": "f1aec3701734bf4b77bd620a1587cddeabf46275f7de06431de279199e897daf"
+    }
+  ]
+}

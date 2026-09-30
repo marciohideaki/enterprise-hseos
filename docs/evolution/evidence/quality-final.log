@@ -1,0 +1,15 @@
+
+> hseos@4.0.0-rc.0 test:kernel-quality
+> node --test --test-concurrency=1 test/test-kernel-quality-surface.js
+
+✔ every authored package source is linted with correctness rules enabled (929.483675ms)
+✔ coverage counts unexecuted critical files and enforces per-file 90/80 (0.390687ms)
+✔ comparison inventory covers every source family and points to real sources and tests (8.680553ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1204.763611

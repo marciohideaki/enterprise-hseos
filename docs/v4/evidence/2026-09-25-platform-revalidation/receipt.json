@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-25",
+  "branch": "task/hseos-v4-consolidation",
+  "verification": {
+    "full_gate_command": "VALIDATION_ENFORCED=true ./scripts/governance/quality-gates.sh",
+    "exit_code": 0,
+    "failures": 0,
+    "warnings": 1,
+    "warning": "Two preexisting documentation placeholders",
+    "node_version": "24.15.0",
+    "node_test_runner_reported": {
+      "tests": 785,
+      "pass": 784,
+      "fail": 0,
+      "skipped": 1,
+      "scope": "62 Node summaries; additional custom shell/JS checks also ran"
+    },
+    "postgres_integration": "skipped: HSEOS_GOVERNANCE_TEST_DATABASE_URL not set; test database reference requested from user",
+    "format": "passed after excluding integrity-bound historical evidence and exact generated CLI manifest",
+    "cli_manifest": "passed",
+    "installed_package_tests": {
+      "tests": 11,
+      "pass": 11,
+      "fail": 0
+    },
+    "public_cli": "four tasks, workflow, status and both profiles passed",
+    "package_parity": {
+      "regular_files": 1398,
+      "differences": []
+    },
+    "limitations": [
+      "PostgreSQL integration awaits authorized test database configuration",
+      "Local validation used Node 24.15.0; hosted CI Node 20/22 matrix not run in this workspace",
+      "Real provider campaign and operational activation not performed"
+    ],
+    "host": "Read-only preflight load 4.80 on six physical cores; load rose to 6.52 at gate launch; one full suite only, no overlapping heavy stages",
+    "versioning_publication": "not performed",
+    "post_documentation_ci": {
+      "failures": 0,
+      "warnings": 1
+    }
+  },
+  "package": {
+    "filename": "hseos-4.0.0-rc.0.tgz",
+    "shasum": "f3a1033b4fedd1f7e65f2e87194ce7ca2a07547b",
+    "integrity": "sha512-sdf+Gj+r513OrPO04wvvC2QHt9tg7OosEPFnArZ9Z0c+oZUZk/dZkfb2Z7rKlMfEOnh7jwRDGBAzEM5Aa4GqhQ==",
+    "size": 2380994,
+    "unpackedSize": 8687355
+  },
+  "evidence": [
+    {
+      "file": "clean-smoke.json",
+      "sha256": "3bb5f61f58d8b115816617b1ce1f5b8385f14131a134a4952f3f657795adf152"
+    },
+    {
+      "file": "external-tests.log",
+      "sha256": "46ec7cea846b92ac4a981fd5ebbcf32b8507a81f822dbd2f07a08b0b2acdfa6c"
+    },
+    {
+      "file": "format-fixed.log",
+      "sha256": "d2e1aea7716e1afaae196ebdb85b7cb6697a1da6fcf5e755920a0f9adec17eff"
+    },
+    {
+      "file": "format.log",
+      "sha256": "2a5ecb4df046b2dfcc88b861a05263470065268c98e4e0cfcb24e1f540cbd89c"
+    },
+    {
+      "file": "full-gates.log",
+      "sha256": "6f222bf321f5a875ed5801489e26e63ca8e13fe577e77dc2187841707fce2108"
+    },
+    {
+      "file": "host-start.log",
+      "sha256": "3ac6beb3735e1a8878500e86ec55807f5d1622627e3131a7333b037b36dff67b"
+    },
+    {
+      "file": "install.log",
+      "sha256": "cc3b3c6cfc45a8e671cc44ad170987c9696d54f64e49471046cd78714368ad79"
+    },
+    {
+      "file": "manifest.log",
+      "sha256": "83dd650faae4a2528ab7f4b8cc680c65b21c5ac9669be1384c58b0a17e5cc011"
+    },
+    {
+      "file": "package-parity.json",
+      "sha256": "0326f409f503fd448e6447761052cd144939c387d85fef5ac2375a716300c7b4"
+    },
+    {
+      "file": "smoke-fixed.log",
+      "sha256": "e73522d11a0036eede4ed334b78a7335d3a5a1f72d2e90ad7964272948ab3180"
+    },
+    {
+      "file": "smoke.log",
+      "sha256": "1eee46d326e762d73e260d4ae872700b64ea3d23b3541d466ab0b85747e8a7b2"
+    },
+    {
+      "file": "final-ci.log",
+      "sha256": "be7b9366f3e38f87208f1895e7e57675a9a0b175bc0ce5f4b9ac051a9fcb6ada"
+    },
+    {
+      "file": "final-doc.log",
+      "sha256": "f5ff9921f96c8ef15da24691e656bc5ad543533189ecb78ae2bf57b361a79b19"
+    }
+  ]
+}

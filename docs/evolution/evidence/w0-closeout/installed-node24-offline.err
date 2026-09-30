@@ -1,0 +1,27 @@
+node:assert:152
+  throw new AssertionError(obj);
+  ^
+
+AssertionError [ERR_ASSERTION]: {"schema_version":1,"profile":"disposable-engineering-candidate","task_run_id":"67480dcc-a7a7-4227-812b-aae24fd54256","task_id":"example-addition","state":"/tmp/hseos-ledger-fixture-p5F72Z","session_id":"session:1c7ca3d4-eec6-4c38-b4ff-5ad78862bc96","status":"not_executed","task_result":"blocked","reason":"AGENT_ISOLATION_PROBE_FAILED","current_sequence":2,"contract_sha256":"1f401c276570d722debc9dacc6b324c5b5d3950b1765777ebeb1fb2df9ac94af","token_accounting":null,"correction_reviews":[],"correction_diagnoses":[],"questions":[],"operational_authorized":false}
+
+
+1 !== 0
+
+    at run (/build/tmp/hseos-w0-closeout-cofvlsrb/smoke.cjs:6:215)
+    at Object.<anonymous> (/build/tmp/hseos-w0-closeout-cofvlsrb/smoke.cjs:13:15)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14)
+    at Object..js (node:internal/modules/cjs/loader:1961:10)
+    at Module.load (node:internal/modules/cjs/loader:1553:32)
+    at Module._load (node:internal/modules/cjs/loader:1355:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.15.0

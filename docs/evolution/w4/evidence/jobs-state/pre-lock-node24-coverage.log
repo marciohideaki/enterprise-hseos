@@ -1,0 +1,83 @@
+heavy-run: modo pinned na CPU 1, MemoryMax=3G (load1=1.25 phys=6 avail=23366MiB need=3G mem.psi=0.05 io.psi.full=0.00)
+W4 containment: /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/hseos-w4-jobs-coverage-lint.scope memory.max= 3221225472 affinity= [1]
+✔ candidate profile is explicit, key-referenced, sandbox-required and still non-operational (203.522162ms)
+✔ rehearsal migrates and discards a private candidate, restores v4 and leaves source byte-identical (104.794655ms)
+✔ rehearsal rejects link aliases and live SQLite sidecars before making a copy (17.521236ms)
+✔ explicit live mode checkpoints a verified WAL snapshot without opening or changing the operational database (125.609258ms)
+✔ retired IDE compatibility has zero internal callers while gated runtime compatibility remains visible (61.519498ms)
+✔ caller scan detects aliases, double-quoted state methods, and runtime callers under src (1.40467ms)
+✔ migration dry-run upgrades only a temporary copy and preserves every legacy table (97.103561ms)
+✔ read-only telemetry evidence can become ready but never bypasses active callers or human authorization (459.411564ms)
+✔ downstream release evidence is strict, scope-bound, integrity-checked, and never authorizes cutover (16.451947ms)
+✔ descriptor-bound evidence read rejects a pathname swapped during artifact verification (2.55693ms)
+✔ audit rejects a structurally valid but fabricated bundle before the human gate (437.812849ms)
+✔ sparse daily telemetry cannot produce a false green (23.87953ms)
+✔ invalid hour labels and direct usage rows cannot forge zero-use readiness (537.105662ms)
+✔ dry-run rejects links and live SQLite sidecars before opening operational state (34.68249ms)
+✔ CLI, JavaScript, Python and HTTP share identity, task results and replayable event cursors (2344.742003ms)
+✔ authenticated control rejects wrong identity, origins, workspace escalation and stale commands (862.967607ms)
+✔ an intent without receipt is not automatically dispatched again (853.660493ms)
+✔ review binds approval to Git baseline and only explicit apply modifies the source project (1913.08113ms)
+✔ concurrent source edits invalidate the prior review and are preserved (1863.647535ms)
+✔ public preparation pins the current workspace and cannot expand the server allowlist (68.693743ms)
+✔ workflows reuse the same API control and aggregate kernel budget (2225.162221ms)
+✔ HTTP rejects malformed, oversized and unsupported requests without exposing internal errors (895.862564ms)
+✔ SDK rejects remote endpoints, malformed cursors and invalid query views (0.678284ms)
+✔ candidate edits after approval invalidate review without applying unverified bytes (1883.666834ms)
+✔ control rejects model ambiguity, unknown bindings and duplicate resources before effects (885.687351ms)
+✔ Git application never invokes configured filesystem monitors or external diff commands (1959.258254ms)
+✔ create-only pins authorized model identity; resume reserves the original campaign and verifies the task (2053.8188ms)
+✔ model tool proposal is executed by the task gateway and independently accepted (2061.680333ms)
+✔ public campaign dispatch without a prepared plugin request cannot reserve or execute (51.084798ms)
+✔ model ambiguity, unauthorized task and changed association fail before effects (886.1234ms)
+✔ task cancellation drains its model without cancelling the shared campaign (2679.085357ms)
+✔ owner shutdown reaches facade requests and waits for process drain (1767.803573ms)
+✔ malformed model output preserves uncertain reservation and blocks task acceptance (1746.495344ms)
+✔ local binding loader inspects only declared selection without starting plugin code (57.120256ms)
+✔ a new controller restores the same task and campaign; catalog drift never swaps an in-flight selection (1939.685414ms)
+✔ lost campaign receipt keeps model result uncertain without replaying its process (1763.448052ms)
+✔ model binding derivation preserves exact manifest, shared lifecycle and denies new authorization (53.352243ms)
+✔ task deadline and invalid model pins fail before reserve (62.993324ms)
+✔ same UUIDs and manifests in a different ledger cannot reset the task campaign (905.655744ms)
+✔ created replay rejects mixed model authority and direct unregistered execution (884.305188ms)
+✔ control configuration loads a local plugin binding without an unused binding file or plugin effect (62.87377ms)
+✔ queued job pins model selection and original campaign without a launch or reservation (128.132239ms)
+✔ create-only pins context without executing it; resume assembles provenance and spends its slot (2090.075176ms)
+✔ selected tool runs through task gateway and consumes the session invocation limit (1193.586076ms)
+✔ context uses the last slot and prevents a subsequent model tool from executing (970.068437ms)
+✔ catalog drift on resume is rejected before effects while read-only queries need no catalog (859.593838ms)
+✔ confirmed context receipt can be reconstructed without another plugin launch (1009.77337ms)
+✔ live cancellation during context collection drains the plugin and never dispatches a model (1720.897825ms)
+✔ control accepts only selected IDs and terminals cannot consume context-reserved capacity (910.385397ms)
+✔ invalid configuration, unsupported ports and excessive context reservation fail before a plugin effect (162.209348ms)
+✔ invalid and excessive context output cannot reach a model or verifier approval (1881.538782ms)
+✔ context approval is never auto-granted and pre-abort or expiry cannot dispatch (870.051995ms)
+✔ uncertain plugin teardown blocks acceptance and remains visible after reopening task state (1760.899544ms)
+✔ job creation is data only, durable, temporally eligible and replayable (111.05926ms)
+✔ cancellation and idempotency preserve receipts and reject stale mutations (60.185245ms)
+✔ dependencies and strict schedule reject invalid commands without records (56.257295ms)
+✔ concurrent creates have one receipt; a job owns its future resource identity (59.046934ms)
+✔ replay rejects fabricated states and admission tampering (44.705153ms)
+✔ legacy binding is validated and pinned without initializing its provider (103.13312ms)
+✔ replay rejects invalid admission even with recalculated digests and UTC compares instants (49.974842ms)
+✔ replay cannot introduce absent or conflicting model sources (47.424743ms)
+✔ workflow definition is pinned without materializing children (49.465188ms)
+✔ resource ownership is rechecked after asynchronous admission in both directions (44.329218ms)
+ℹ tests 63
+ℹ suites 0
+ℹ pass 63
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 51499.0876
+-------------------------|---------|----------|---------|---------|-------------------
+File                     | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+-------------------------|---------|----------|---------|---------|-------------------
+All files                |   99.33 |    94.05 |     100 |   99.33 |
+ cli/lib                 |   99.28 |    93.86 |     100 |   99.28 |
+  engineering-control.js |   98.91 |     92.4 |     100 |   98.91 | 104-106,251
+  job-control.js         |     100 |    96.11 |     100 |     100 | 40,46,99,166
+ lib                     |     100 |      100 |     100 |     100 |
+  job-contract.js        |     100 |      100 |     100 |     100 |
+-------------------------|---------|----------|---------|---------|-------------------

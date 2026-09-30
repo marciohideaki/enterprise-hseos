@@ -1,0 +1,16 @@
+✔ job pipes accept input and EOF; output has bounded binary frames (125.033044ms)
+✔ PTY exposes tty, resize and input without a host shell (114.989997ms)
+✔ pause freezes all descendants and continue resumes; interrupt settles (232.247618ms)
+✔ deadline includes paused time and drains detached descendants (406.091337ms)
+✔ output cap stops producers; parent EOF terminates a live tree (158.072674ms)
+✔ invalid limits and non-nominal policies cannot reach process creation (0.805573ms)
+✔ failed preparation or durable output persistence tears down instead of retrying (97.574342ms)
+✔ host Node descriptor is readonly and invalid control dispatch is uncertain (187.360231ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1526.355401

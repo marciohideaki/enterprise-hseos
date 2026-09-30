@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "package_root": "/tmp/hseos-w4-real-consumers-20260929/project/node_modules/hseos",
+  "plugin_manifest_sha256": "9ea0d4f088ec92ff273eb42409ea65877c5a190f7bd0426a60de862e227e56e9",
+  "campaign_id": "b02f9329-892e-47ae-9617-3f2741a4fc82",
+  "authorization_id": "514ee345-4b24-47b2-ab5c-62f8bedb692e",
+  "task_id": "228ea6f9-0dfb-42c3-8bc7-2fe5c412ef41",
+  "event_types": ["runtime.session.started", "runtime.message.delta", "runtime.session.completed"],
+  "output": {
+    "artifact_sha256": "a7edd919a5ea92f54ea060058ceb7fb2fc13c02f538513ed2805313ae977fdf1",
+    "accepted": true,
+    "reason": "within_line_limit"
+  },
+  "requests": 1,
+  "committed_microusd": 0,
+  "unresolved_commands": [],
+  "campaign_event_kinds": ["opened", "intent", "done", "plugin_request", "reserved", "plugin_result", "receipt", "done"]
+}

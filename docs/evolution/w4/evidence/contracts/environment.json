@@ -1,0 +1,17 @@
+{
+  "artifact_type": "w4-contract-preflight",
+  "base_revision": "32eaef270f192fcc58056f96a3cad39c265cd455",
+  "recorded_at": "2026-09-27T16:22:11.913907+00:00",
+  "isolation_command": "systemd-run --user --scope --quiet -p Delegate=yes nice -n 10 /workspace/local/sdk/nvm/versions/node/v24.15.0/bin/node --test --test-concurrency=1 /workspace/github/marciohideaki/enterprise-hseos/test/test-engineering-executor.js",
+  "isolation_result": {
+    "exit_code": 0,
+    "tests": 13,
+    "pass": 13,
+    "fail": 0,
+    "skip": 0
+  },
+  "node24": "24.15.0",
+  "node22": "22.23.3",
+  "aew": "stack resolve failed: no database configured; application/enforcement NOT VERIFIED",
+  "scope": "inherited executor environment, not W4 feature certification"
+}

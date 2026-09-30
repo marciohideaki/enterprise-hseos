@@ -1,0 +1,4 @@
+
+> hseos@4.0.0-rc.0 lint
+> eslint . --ext .js,.cjs,.mjs,.yaml --max-warnings=0
+

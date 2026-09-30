@@ -10,7 +10,7 @@
 
 ## Prerequisites
 
-- Node.js ≥ 20
+- Node.js ≥ 22
 - Git configured with your identity
 - Claude Code CLI installed (`npm install -g @anthropic-ai/claude-code`)
 - Access to the project repository
@@ -31,12 +31,18 @@ Volta must be installed without `sudo`.
 Then, from the root of your project:
 
 ```bash
-hseos install
+hseos install-plan --profile developer --tools claude-code,codex  # inspect before writing
+hseos install --profile developer --tools claude-code,codex
 ```
+
+`install-plan` only reports the selected files, adapters, and prerequisites.
+`install` writes project files; select `--tools codex` on that command when
+configuring only Codex for the project. A global CLI installation alone does not
+materialize project workflows or adapters.
 
 This sets up:
 
-- `.claude/commands/` — all 14 agent commands (activated as Claude Code slash commands)
+- `.claude/commands/` — agent commands and helpers for Claude Code
 - `.enterprise/` — governance specs, agent authority files, skill library
 - `.hseos/` — agent configurations, workflow definitions, local config
 - Git hooks — pre-commit quality gates (lint, schema validation, commit hygiene)
@@ -62,7 +68,7 @@ portable installation first, then follow [`MANAGED-GOVERNANCE.md`](MANAGED-GOVER
 
 After install, read these in order:
 
-1. **`CLAUDE.md`** — Seven Laws and agent roster (5 min)
+1. **`AGENTS.md`** — canonical project rules and instruction cascade (5 min); `CLAUDE.md` points Claude Code to it
 2. **`.enterprise/.specs/constitution/Enterprise-Constitution.md`** — Non-negotiable rules (10 min)
 3. **`docs/agents/`** — Browse the agents relevant to your role (see role guide below)
 

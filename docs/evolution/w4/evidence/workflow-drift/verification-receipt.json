@@ -1,0 +1,113 @@
+{
+  "task": "W4-04b2a",
+  "base": "0b420bff",
+  "node22": "22.22.1 official",
+  "node24": "24.15.0",
+  "focused": "64/64 passed on Node 24; 21/21 targeted on final terminal guard",
+  "coverage": {
+    "node22": {
+      "job-control.js": {
+        "lines": 99.6,
+        "branches": 94.01
+      },
+      "job-dispatch.js": {
+        "lines": 95.66,
+        "branches": 87.78
+      },
+      "engineering-task-runtime.js": {
+        "lines": 96.22,
+        "branches": 88.73
+      },
+      "engineering-workflow-runtime.js": {
+        "lines": 98.77,
+        "branches": 84.98
+      }
+    },
+    "node24": {
+      "job-control.js": {
+        "lines": 99.6,
+        "branches": 94.01
+      },
+      "job-dispatch.js": {
+        "lines": 96.44,
+        "branches": 87.92
+      },
+      "engineering-task-runtime.js": {
+        "lines": 97.19,
+        "branches": 89.04
+      },
+      "engineering-workflow-runtime.js": {
+        "lines": 98.77,
+        "branches": 84.98
+      }
+    }
+  },
+  "mutants": {
+    "node22": "18/18 rejected",
+    "node24": "18/18 rejected"
+  },
+  "gates": {
+    "node22": "PASS, zero failures and skips",
+    "node24": "PASS, zero failures and skips"
+  },
+  "pack_entries": 1457,
+  "scope": "Baseline drift before a child effect marks it not_executed; accepted predecessors persist; root terminal and drain are required before invalidated. A real failed sibling takes precedence.",
+  "diagnostics": [
+    "Initial test exposed parent reservation release before root terminal; fixed by cancelling the root after drain.",
+    "Drift between dispatch intent and workflow assembly initially remained uncertain without a child effect; assembly now reaches the strict child guard.",
+    "Initial negative test attempted to delete an append-only ledger row and hit its SQLite trigger; replaced by a read-only filtered ledger port."
+  ],
+  "logs": {
+    "node22_coverage": {
+      "file": "node22_coverage.log.gz",
+      "sha256": "1ec51834d89f3427fdc1f4ce6f9383a3f3647cb02dc4d3c37af6b30ad1f29af3",
+      "bytes": 35633
+    },
+    "node22_mutations": {
+      "file": "node22_mutations.log.gz",
+      "sha256": "21ef24ee608f909e2ab23f56c8b8999c7118d061a39fbe910b5945c0fdc0a1bf",
+      "bytes": 667
+    },
+    "node22_gate": {
+      "file": "node22_gate.log.gz",
+      "sha256": "7a49aa19fab980b8178ce1c25557a436779157bc1743c4dc60f72ebda5ec9698",
+      "bytes": 68967
+    },
+    "node24_coverage": {
+      "file": "node24_coverage.log.gz",
+      "sha256": "bf63c1dc98a3a7d9515e35837dabffb0d58ed3d68fc4499d6c59be20f797ab66",
+      "bytes": 27112
+    },
+    "node24_mutations": {
+      "file": "node24_mutations.log.gz",
+      "sha256": "7076fe3afd7b91cc2dcf2d5fb5219f937eb07cb6eb28c99c75f848bc5ef1c13a",
+      "bytes": 502
+    },
+    "node24_gate": {
+      "file": "node24_gate.log.gz",
+      "sha256": "2815a93c7c57a2cad98791efc775f7f1a50ccc35d527ed717a963efdb839cd9c",
+      "bytes": 54531
+    },
+    "initial_root_terminal_gap": {
+      "file": "initial_root_terminal_gap.log.gz",
+      "sha256": "b237c5e0d807505eeae6b61cf8b1e167acffcbac897f27023ba397bc6a445b46",
+      "bytes": 1433
+    },
+    "initial_pre_effect_gap": {
+      "file": "initial_pre_effect_gap.log.gz",
+      "sha256": "0f149a4ed8465c53eab2e148705fd3c8798776287778a98b8e638bf171b467eb",
+      "bytes": 1459
+    },
+    "initial_negative_test_storage_trigger": {
+      "file": "initial_negative_test_storage_trigger.log.gz",
+      "sha256": "1f3147b57421bec0b344031c58e8a490adfd10a4360c0da3d807cc2722453b64",
+      "bytes": 1178
+    },
+    "node24_manager_validate": {
+      "file": "node24_manager_validate.log.gz",
+      "sha256": "159c69ed8dc82914a82a67437faa2dd55374bc3a38df13d2884d783ccd847ec6",
+      "bytes": 54586
+    }
+  },
+  "worktree_validation": "PASS, zero failures; one pre-existing template placeholder warning"
+}

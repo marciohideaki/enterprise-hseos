@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "resource_id": "448a5f7c-350e-42e3-b4f7-209109d55ec1",
+  "scope": "pilot",
+  "covered_vendors": [
+    "claude"
+  ],
+  "status": "control_trial_completed",
+  "vendor_session_recovery": "not_certified",
+  "real_conformance": "not_certified",
+  "receipts": [
+    {
+      "binding_id": "binding:claude-live",
+      "task_id": "037a77f2-0d5e-45c4-a571-8b1713d4fa39",
+      "command_id": "81fcb546-6bb5-4a0f-8991-74d381331bb8",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "0e1cd29af75e3c5beba32dea60dff848e9dc7200118207c0c9f408c65870c810",
+        "evidence_sha256": "9c4642a162156972bee063f5803a8ba8e1abfea2ea55da8aa49e8a51ecb81bfc",
+        "cost_microusd": null,
+        "input_tokens": 1479,
+        "output_tokens": 158,
+        "provider_session_id": "169d575b-c103-45bc-b4b5-a449c330266f"
+      },
+      "control_replay_verified": true
+    }
+  ],
+  "final": {
+    "resource_id": "448a5f7c-350e-42e3-b4f7-209109d55ec1",
+    "current_sequence": 9,
+    "max_requests": 1,
+    "max_cost_microusd": 2000000,
+    "deadline": 1790454894476,
+    "requests": 1,
+    "committed_microusd": 2000000,
+    "cancelled": true,
+    "unresolved_commands": [],
+    "live_commands": [],
+    "bindings": [
+      "binding:claude-live"
+    ],
+    "report_sha256": "2835e4b94791cac9c56469e1f25965351a2c26baf9cc72842f89c9a75222db40"
+  }
+}

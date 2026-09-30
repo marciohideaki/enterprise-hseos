@@ -9,6 +9,18 @@ HSEOS installation is driven by an **auditable capability catalog** instead of a
 You pick a _profile_ (or compose components/skills directly); the resolver produces a reviewable
 plan; `hseos install` materializes it. The governance baseline can never be deselected.
 
+## Agent execution outcomes
+
+`hseos agent run` and `hseos agent resume` return exit code **1** when the durable
+session is `failed` or `cancelled`. The result remains available on stdout, including
+with `--json`, so callers can inspect its status and state path. Explicit successful
+`agent cancel`, `--create-only`, and completed executions return **0**. Invalid
+arguments and runtime exceptions also return a nonzero exit code.
+
+For example, `hseos agent run --profile agent-reference --value example --json`
+executes the keyless scripted fixture. Its completion proves that reference flow;
+it does not certify a real provider, a software delivery, or operational activation.
+
 ## Concepts
 
 | Concept                           | What it is                                                                                                                                                                                                        |
@@ -105,3 +117,35 @@ hseos install --profile developer --components extra:usage-dashboard
   capability-family home**, or prerequisites are malformed.
 - **Selection is persisted** — the resolved plan is written to `.hseos/config/capability-selection.yaml`
   for audit and reproducibility only after installation succeeds.
+
+The candidate `hseos agent validate-task --task-contract task.json --json` checks a
+[disposable engineering contract](engineering-task-contract.md) without executing
+it or authorizing a provider. Structural validity is separate from execution,
+verifier attestation and operational activation.
+
+## v4 engineering candidate and selective installation
+
+`disposable-engineering-candidate` selects the kernel, engineering tools and the
+Codex adapter. `install --profile minimal` and `install --profile
+disposable-engineering-candidate` materialize only their selected governance and
+adapter artifacts into a fresh consumer. Existing governance surfaces cause a
+refusal rather than an overwrite. Runtime modules remain in the installed root
+package; they are not copied into the consumer. Other installation profiles retain
+their existing installer path and are not covered by this fresh-install guarantee.
+
+Component `depends_on` edges are resolved transitively. Unknown dependencies and
+cycles fail catalog validation, including components outside the selected profile.
+Public help and structural task validation load no optional integrations and make
+no update network request. Commands and optional model implementations load on use.
+Sidecars retain their existing separate service lifecycle.
+
+| Provider path | Inference | Tools / writing | Resume | Cancellation | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| Engineering scripted fixture | Deterministic sequence | Contract gateway / scoped writes | Before dispatch; completed-session verification | Executor descendants confirmed | Task, artifacts, protected verifier |
+| Engineering compatible binding | SSE model via existing broker | Same gateway and executor | Same bounded rules; original binding | Runtime stream and executor cancellation | Same task evidence plus session provider events |
+| Existing delegated runtimes | Owned by external runtime | External runtime capabilities | Only as declared by adapter | Only as declared by adapter | Adapter conformance; no engineering approval implied |
+
+Model preference selects an adapter/provider; it grants no kernel tool authority.
+Advisory hooks inform. Approval requests pause for a decision. Only a denial enforced
+at the gateway or executor blocks an effect; a hook name or readiness label is not
+proof of enforcement. Missing engineering isolation prerequisites block execution.

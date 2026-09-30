@@ -44,3 +44,24 @@ Profiles live in `.hseos/config/hseos.config.yaml` under `sandbox`.
 ## Preflight
 
 `hseos agent-core doctor` includes sandbox readiness. Missing `ai-jail` or `bwrap` is a warning while sandboxing is optional, and a failure only when `sandbox.required=true`.
+
+## Disposable engineering prerequisites (candidate)
+
+`hseos sandbox engineering-check --json` runs fixed Node and Python canaries in
+private disposable directories using the adopted `ai-jail` backend with `lockdown`,
+network disabled, a private home and a cleared environment. It ignores project
+sandbox configuration and rejects command/profile overrides. It does not run task
+code or contact a model provider.
+
+The supervisor verifies the actual write and the integrity of a protected marker;
+exit zero or a claimed write is insufficient. Missing runtimes/backends, malformed
+reports, timeouts, links and missing effects fail closed with exit 2. Exit 0 means
+only these prerequisites passed. `ready` and `operational_authorized` remain false:
+network/IPC isolation, cancellation of descendants, resource limits, the protected
+verifier, task snapshots and real-provider validation remain separate gates.
+
+A backend that makes the workspace read-only even with the explicit temporary
+`--rw-map` is blocked. Do not disable lockdown to make this diagnostic pass. The
+approved [ADR-0040](../.enterprise/.specs/decisions/ADR-0040-disposable-engineering-execution.md)
+requires an explicit boundary decision if the adopted backend cannot satisfy the
+engineering contract. No active execution policy is changed by this command.

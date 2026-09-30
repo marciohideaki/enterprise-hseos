@@ -74,7 +74,7 @@ test('operational runner stays at v4 and the gated fixture migration creates sch
     assert.equal(db.prepare(`SELECT COUNT(*) AS count FROM sqlite_master WHERE name = 'execution_events'`).get().count, 0);
     db.prepare(`INSERT INTO as_runs (id, workflow_id, project) VALUES ('legacy-run', 'fixture', '/tmp/project')`).run();
     applyExecutionLedgerFixtureSchema(db);
-    assert.equal(db.pragma('user_version', { simple: true }), 9);
+    assert.equal(db.pragma('user_version', { simple: true }), 16);
     assert.equal(db.prepare(`SELECT COUNT(*) AS count FROM as_runs WHERE id = 'legacy-run'`).get().count, 1);
     const columns = new Set(
       db
@@ -555,3 +555,34 @@ test('concurrent connections yield unique monotonic sequences with explicit call
     fixture.cleanup();
   }
 });
+
+for (const corruption of ['relative', 'root-file', 'nested-root', 'marker-link', 'marker-json', 'database-link', 'missing-tables']) {
+  test(`fixture view refuses ${corruption} without opening an unrelated authority`, () => {
+    const {
+      assertTemporaryFixtureDirectory,
+      openExecutionLedgerFileFixture,
+    } = require('../tools/mcp-project-state/lib/execution-ledger-schema');
+    const fixture = createExecutionLedgerFileFixture();
+    fixture.close();
+    const marker = path.join(fixture.directory, '.hseos-ledger-fixture.json');
+    try {
+      let requested = fixture.directory;
+      if (corruption === 'relative') requested = 'relative';
+      if (corruption === 'root-file') requested = fixture.filename;
+      if (corruption === 'nested-root') {
+        requested = path.join(fixture.directory, 'nested');
+        fs.mkdirSync(requested);
+      }
+      if (corruption === 'marker-link') fs.linkSync(marker, path.join(fixture.directory, 'marker-copy'));
+      if (corruption === 'marker-json') fs.writeFileSync(marker, '{');
+      if (corruption === 'database-link') fs.linkSync(fixture.filename, path.join(fixture.directory, 'database-copy'));
+      if (corruption === 'missing-tables') {
+        fs.unlinkSync(fixture.filename);
+        new Database(fixture.filename).close();
+        assert.throws(() => openExecutionLedgerFileFixture(requested), ExecutionLedgerActivationError);
+      } else assert.throws(() => assertTemporaryFixtureDirectory(requested), ExecutionLedgerActivationError);
+    } finally {
+      fixture.cleanup();
+    }
+  });
+}

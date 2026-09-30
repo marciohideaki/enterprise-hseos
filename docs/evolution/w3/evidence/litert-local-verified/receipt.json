@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-26",
+  "scope": "Local Antigravity/LiteRT campaign with terminal Codex account child, including parent resume",
+  "checks": {
+    "two_parent_receipts": true,
+    "two_child_receipts": true,
+    "same_parent_session": true,
+    "one_local_model_call_per_turn": true,
+    "native_usage_per_turn": true,
+    "child_outputs_match": true,
+    "child_reservations_link_to_parent": true,
+    "control_replay_verified": true,
+    "cancelled": true,
+    "no_live_commands": true,
+    "no_unresolved_commands": true,
+    "no_additional_reservation": true
+  },
+  "tests": {
+    "node24": 78,
+    "node22": 78,
+    "python_client": 17,
+    "failures": 0,
+    "skips": 0
+  },
+  "global_budget": {
+    "cap_microusd": 10000000,
+    "historical_retained_microusd": 8000000,
+    "additional_reserved_microusd": 0,
+    "remaining_microusd": 2000000,
+    "campaign_dispatches_cumulative": 15,
+    "new_paid_api_calls": 0
+  },
+  "limitations": [
+    "Not four-family conformance",
+    "Not filesystem sandbox certification",
+    "Terminal child sessions are new; only parent resumed in this trial",
+    "Dependency versions checked; not a full dependency-tree integrity attestation",
+    "Small model tool-use smoke, not a general quality evaluation"
+  ],
+  "validation": {
+    "eslint": "pass",
+    "diff_check": "pass",
+    "python_syntax": "pass",
+    "ci_gates": {
+      "failures": 0,
+      "warnings": 1,
+      "warning": "preexisting epic template placeholder",
+      "markdownlint": "unavailable; not run"
+    }
+  }
+}

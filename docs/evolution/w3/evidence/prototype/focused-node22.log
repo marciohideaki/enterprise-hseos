@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: campaign reserves before dispatch, replays receipts and preserves consumption after reopening
+ok 1 - campaign reserves before dispatch, replays receipts and preserves consumption after reopening
+  ---
+  duration_ms: 61.816061
+  type: 'test'
+  ...
+# Subtest: a new campaign identity cannot reuse authorization or manufacture a larger budget
+ok 2 - a new campaign identity cannot reuse authorization or manufacture a larger budget
+  ---
+  duration_ms: 27.003797
+  type: 'test'
+  ...
+# Subtest: ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch
+ok 3 - ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch
+  ---
+  duration_ms: 25.787577
+  type: 'test'
+  ...
+# Subtest: receipt loss preserves the reservation and requires current-state reconciliation without retry
+ok 4 - receipt loss preserves the reservation and requires current-state reconciliation without retry
+  ---
+  duration_ms: 29.543708
+  type: 'test'
+  ...
+# Subtest: a second controller cannot reconcile a live dispatch and can cancel it durably
+ok 5 - a second controller cannot reconcile a live dispatch and can cancel it durably
+  ---
+  duration_ms: 73.469966
+  type: 'test'
+  ...
+# Subtest: a changed binding manifest cannot replace the pinned configuration after reopening
+ok 6 - a changed binding manifest cannot replace the pinned configuration after reopening
+  ---
+  duration_ms: 24.751009
+  type: 'test'
+  ...
+# Subtest: HTTP and SDK campaign commands share authentication, cursors and durable budget
+ok 7 - HTTP and SDK campaign commands share authentication, cursors and durable budget
+  ---
+  duration_ms: 276.830584
+  type: 'test'
+  ...
+# Subtest: known overspend remains charged after uncertain outcome reconciliation
+ok 8 - known overspend remains charged after uncertain outcome reconciliation
+  ---
+  duration_ms: 31.851544
+  type: 'test'
+  ...
+# Subtest: expired grants, stale sequences and cancellation deny new effects
+ok 9 - expired grants, stale sequences and cancellation deny new effects
+  ---
+  duration_ms: 34.492211
+  type: 'test'
+  ...
+# Subtest: unbound adapter identities and missing dispatch implementations cannot configure campaigns
+ok 10 - unbound adapter identities and missing dispatch implementations cannot configure campaigns
+  ---
+  duration_ms: 23.071156
+  type: 'test'
+  ...
+# Subtest: a concurrent exact retry observes the committed receipt without a second dispatch
+ok 11 - a concurrent exact retry observes the committed receipt without a second dispatch
+  ---
+  duration_ms: 22.539934
+  type: 'test'
+  ...
+# Subtest: a request ceiling holds even when prior attempts report zero charge
+ok 12 - a request ceiling holds even when prior attempts report zero charge
+  ---
+  duration_ms: 32.203056
+  type: 'test'
+  ...
+# Subtest: failed inspection never consumes an authorization or leaks transport details
+ok 13 - failed inspection never consumes an authorization or leaks transport details
+  ---
+  duration_ms: 24.535458
+  type: 'test'
+  ...
+# Subtest: official routes distinguish native accounts, API and local bindings without claiming certification
+ok 14 - official routes distinguish native accounts, API and local bindings without claiming certification
+  ---
+  duration_ms: 7.959888
+  type: 'test'
+  ...
+# Subtest: route confusion, unknown quota, capability claims, secrets and unbounded reservations fail closed
+ok 15 - route confusion, unknown quota, capability claims, secrets and unbounded reservations fail closed
+  ---
+  duration_ms: 2.482452
+  type: 'test'
+  ...
+# Subtest: binding drift is rejected and declared control evidence does not certify a real journey
+ok 16 - binding drift is rejected and declared control evidence does not certify a real journey
+  ---
+  duration_ms: 0.282289
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1404.059632

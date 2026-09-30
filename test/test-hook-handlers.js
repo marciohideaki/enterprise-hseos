@@ -507,8 +507,10 @@ function runHandlerWithStdin(scriptPath, stdinPayload, options = {}) {
     });
     return { ok: true, stdout: output, exitCode: 0 };
   } catch (error) {
+    // A no-op hook may exit successfully before the parent finishes writing stdin.
+    // Accept only that pipe race; nonzero exits, signals and other errors still fail.
     return {
-      ok: false,
+      ok: error.code === 'EPIPE' && error.status === 0 && error.signal === null,
       stdout: error.stdout ? error.stdout.toString() : '',
       stderr: error.stderr ? error.stderr.toString() : '',
       exitCode: error.status ?? 1,

@@ -1,0 +1,26 @@
+✔ package exposes one immutable schema version and canonical ports (1.80647ms)
+✔ model and runtime manifests are strict, versioned and secret-reference-only (6.818561ms)
+✔ L0-L4 capability matrix prevents overclaim and negotiates without weakening (1.392746ms)
+✔ agent session and command contracts choose exactly one execution owner (7.443247ms)
+✔ model requests and normalized stream events reject unknown provider data (14.700462ms)
+✔ session events preserve reconstructable request and operation ownership (24.735069ms)
+✔ delegated runtime events are untrusted strict boundary input (33.53917ms)
+✔ runtime resume optionally carries an identity-bound delegated spec for process reattachment (8.818499ms)
+✔ port inputs, resolved results, stream items and errors are executable contracts (21.549323ms)
+✔ core contract source is vendor-neutral (0.996248ms)
+✔ trace and span identities are deterministic W3C-compatible projections (1.754087ms)
+✔ trace identities fail closed on empty, whitespace, control, and oversized input (0.410094ms)
+✔ A0 publishes every governed and sharded artifact (0.955668ms)
+✔ ADR-0024 is accepted and contains every mandatory section (0.502458ms)
+✔ ADR index and graph index reference the canonical artifacts (0.299238ms)
+✔ goal graph has an acyclic proof and activation tail (1.608704ms)
+✔ state declares governance metadata and advances only after approval (0.565247ms)
+✔ event stream is valid, unique and records governance metadata (1.380576ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 460.510907

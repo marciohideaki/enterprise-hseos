@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "task_id": "addition-fixture",
+  "baseline_sha": "a8423081934d64538d71ef8289f072d51566a870",
+  "sources": [
+    {
+      "id": "spec",
+      "kind": "specification",
+      "content": "Implement integer addition in a disposable JavaScript fixture.",
+      "sha256": "7bee20c9a5d8ece7c4aeea15d439cfad4ff98dd010dd95de280ed2c25dcfbb53"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "r1",
+      "description": "Return the sum of two integers.",
+      "source_ids": ["spec"]
+    }
+  ],
+  "acceptance": [
+    {
+      "id": "a1",
+      "description": "The protected verifier confirms positive, negative and zero operands.",
+      "requirement_ids": ["r1"]
+    }
+  ],
+  "initial_files": [
+    {
+      "path": "add.js",
+      "content": "module.exports = (a, b) => a - b;\n",
+      "sha256": "aa705b6a00a2f7b060977aa95f8a3c244c0a7005ab14a7aafd5deedd8d3d00ee"
+    }
+  ],
+  "scope": {
+    "read": ["add.js"],
+    "write": ["add.js"]
+  },
+  "commands": [
+    {
+      "id": "check",
+      "runtime": "node",
+      "entrypoint": "add.js",
+      "args": []
+    }
+  ],
+  "limits": {
+    "max_turns": 8,
+    "max_tokens": 100000,
+    "max_duration_ms": 60000,
+    "max_tool_calls": 8,
+    "max_children": 0,
+    "max_workflow_steps": 0
+  },
+  "max_failed_corrections": 2,
+  "max_artifact_bytes": 65536,
+  "max_output_bytes": 8192,
+  "verifier": {
+    "reference": "verifier://fixtures/integer-addition-v1",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "acceptance_ids": ["a1"]
+  },
+  "rollback": "discard-disposable-workspace",
+  "execution_profile": "disposable-engineering-candidate"
+}

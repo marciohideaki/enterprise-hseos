@@ -9,11 +9,24 @@ const { PLATFORM_SURFACES } = require('../adapters/platforms');
 // compile — the manifest must never advertise surfaces (platforms or paths)
 // the pipeline did not produce, because the instruction cascade tells agents
 // to trust it.
-function buildAdaptersBlock(platforms) {
+//
+// PLATFORM_SURFACES declares what an emitter *can* produce; whether it did is a
+// property of this compile. A surface is conditional whenever its source can be
+// empty — `.claude/agents` with no governed agents, for one — so the declared
+// set is filtered against the disk. Without this filter the manifest advertises
+// a path that does not exist, and an agent that trusts it looks in an empty
+// place and concludes the capability is absent.
+function buildAdaptersBlock(platforms, root) {
   const adapters = {};
   for (const platform of platforms || []) {
     const surfaces = PLATFORM_SURFACES[platform];
-    if (surfaces) adapters[platform.replaceAll('-', '_')] = surfaces;
+    if (!surfaces) continue;
+    const present = {};
+    for (const [key, rel] of Object.entries(surfaces)) {
+      if (root && !fs.existsSync(path.join(root, rel))) continue;
+      present[key] = rel;
+    }
+    if (Object.keys(present).length > 0) adapters[platform.replaceAll('-', '_')] = present;
   }
   return adapters;
 }
@@ -23,7 +36,7 @@ async function writeManifest(root, data, agentsDirName = '.agents') {
     version: '1.0',
     generated_by: 'hseos-agent-core-compiler',
     source_of_truth: '.agents',
-    adapters: buildAdaptersBlock(data.platforms),
+    adapters: buildAdaptersBlock(data.platforms, root),
     platforms: data.platforms,
     counts: {
       skills: data.skills.length,

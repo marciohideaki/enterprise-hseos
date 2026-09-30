@@ -1,0 +1,18 @@
+{
+  "imported_w1_index": "0a3dbeecc043127438a9aa16eeb689bf6bc57deb",
+  "review_tree_without_receipts": "644f266a832a36f4a370a21b14d3fdd6b60819cc",
+  "wave2_patch_sha256": "b8a84ef9f3d039c327a7926b2fc7cf2ba32484e3f941ff607dfe4adb2eb27566",
+  "patch_reconstructed": true,
+  "real_index_unchanged": true,
+  "original_w1_files_preserved": 2139,
+  "original_w1_index_unchanged": true,
+  "original_v4_files_preserved": 1956,
+  "original_w0_sources_preserved": 839,
+  "original_w1_patch_unchanged": true,
+  "immediate_upstream": "feature/hseos-evolution-w1-engineering",
+  "feature": "feature/hseos-evolution-w2-terminals",
+  "task_branch": "task/hseos-evolution-w2",
+  "base_commit": "a8423081934d64538d71ef8289f072d51566a870",
+  "commits_created": false,
+  "branches_integrated": false
+}

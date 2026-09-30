@@ -1,0 +1,224 @@
+{
+  "task": "W4-07a",
+  "status": "VERIFIED_BEFORE_COMMIT",
+  "base_commit": "bcdb509d",
+  "branch": "task/hseos-w4-adversarial-matrix",
+  "source_sha256": {
+    ".c8-kernel.json": "7da1d64e5b16b6e078fe8d1d2f9bca6994d7eafaab712edeaeb2654c927446c1",
+    "package.json": "a0be29f456147bfed1410cb3f49f5f3d3e5eb6958b2a3873167fcf06d78b034d",
+    "test/test-kernel-quality-surface.js": "95f05937e206ba648c06975c9cb83f313d98abc1ee3ab67fe25a18e48647a831",
+    "scripts/governance/check-w4-mutations.js": "6094f427f2c4fc0cfde5c59209c19ddda4cc8d6bdc5179054c3cd9e8d837e9b0",
+    "docs/evolution/w4/evidence/deterministic/README.md": "c7ab2b9f2a1f6235cc066c3b0ab290d94eb6be6647e18c83bc6bae7e92164828",
+    "docs/evolution/w4/STATUS.md": "cd2885adacde51c1b96f72b5ace1e12e8b4bcae8e2da29196a560529a2d54646",
+    "test/test-kernel-mutations.js": "0f9a649050a54c9d5855979ab86548887d2973cf78d98e2199772f2bffcab05f",
+    "test/fixtures/kernel-mutation-loader.cjs": "a0e764a8b4036c0f88b8a1be3043378c6a62508e449ab13cd9279b97b43ac7c1"
+  },
+  "environment": {
+    "os": "linux",
+    "arch": "x64",
+    "node22": "v22.22.1",
+    "node24": "v24.15.0",
+    "resource_scope": "systemd --user scope, MemoryMax=3G, taskset -c 1, nice 19, ionice idle; heavy-run lock held by unrelated conmon",
+    "shared_postgres": "platform-shared-dev tunnel, reference only; credential omitted"
+  },
+  "matrix": {
+    "P1": "test/test-execution-plugin-manifest.js",
+    "P2": "test/test-execution-plugin-runtime.js",
+    "J1": "test/test-job-control.js",
+    "J2": "test/test-job-recovery.js",
+    "F1": "test/test-job-faults.js",
+    "D1": "test/test-workflow-expansion.js",
+    "B1": "test/test-job-campaign.js",
+    "I1": "test/test-execution-plugin-install.js",
+    "S1": "test/test-job-surfaces.js",
+    "R1": "PENDING_W4-07b_REAL_CONSUMERS"
+  },
+  "results": {
+    "matrix": {
+      "node22": {
+        "passed": 117,
+        "failed": 0,
+        "skipped": 0
+      },
+      "node24": {
+        "passed": 117,
+        "failed": 0,
+        "skipped": 0
+      },
+      "command": "node --test --test-concurrency=1 test/test-execution-plugin-manifest.js test/test-execution-plugin-runtime.js test/test-job-control.js test/test-job-recovery.js test/test-job-faults.js test/test-workflow-expansion.js test/test-job-campaign.js test/test-execution-plugin-install.js test/test-job-surfaces.js"
+    },
+    "mutations": {
+      "node22": {
+        "rejected": 18,
+        "survived": 0,
+        "skipped": 0
+      },
+      "node24": {
+        "rejected": 18,
+        "survived": 0,
+        "skipped": 0
+      },
+      "command": "node scripts/governance/check-w4-mutations.js"
+    },
+    "coverage": {
+      "node22": {
+        "files": 73,
+        "total_lines_pct": 96.86,
+        "total_branches_pct": 90.15,
+        "minimum_lines_pct": 90.26,
+        "minimum_branches_pct": 80.0,
+        "threshold_lines_pct": 90,
+        "threshold_branches_pct": 80,
+        "unexecuted_files_included": true,
+        "per_file": true,
+        "command": "npm run test:kernel-coverage"
+      },
+      "node24": {
+        "files": 73,
+        "total_lines_pct": 96.88,
+        "total_branches_pct": 90.16,
+        "minimum_lines_pct": 90.26,
+        "minimum_branches_pct": 80.0,
+        "threshold_lines_pct": 90,
+        "threshold_branches_pct": 80,
+        "unexecuted_files_included": true,
+        "per_file": true,
+        "command": "npm run test:kernel-coverage"
+      }
+    },
+    "gates": {
+      "node22": {
+        "failures": 0,
+        "warnings": 0
+      },
+      "node24": {
+        "failures": 0,
+        "warnings": 0
+      },
+      "command": "VALIDATION_ENFORCED=true bash ./scripts/governance/quality-gates.sh --phase code"
+    },
+    "package": {
+      "entries": 1457,
+      "limit": 1457,
+      "verifier_packaged": false,
+      "command": "npm pack --dry-run --json --ignore-scripts"
+    },
+    "manager_validate_node24": {
+      "failures": 0,
+      "warnings": 1,
+      "warning": "pre-existing docs-image workflow template placeholder",
+      "command": "VALIDATION_ENFORCED=true ./scripts/governance/worktree-manager.sh validate hseos-w4-adversarial-matrix"
+    }
+  },
+  "review": "Isolated blind review found missing receipts; after artifacts were added, final confrontation found a missing per-artifact exit code. The reviewer confirmed the finding resolved.",
+  "limitations": {
+    "real_consumers": "PENDING_W4-07b",
+    "real_provider_binding": "NOT_VERIFIED",
+    "operational_activation": false,
+    "foundation_merge": false,
+    "new_paid_campaign": false,
+    "aew_application_enforcement": "NOT_VERIFIED"
+  },
+  "artifacts": [
+    {
+      "label": "w4-adversarial-node22.log",
+      "path": "docs/evolution/w4/evidence/deterministic/w4-adversarial-node22.log.gz",
+      "sha256": "757299430f7d3e41145128260c1cf0b3afc763955cb6888c9a06647787de266f",
+      "source_sha256": "26c95164f51ec2f6d8400053558c36184a363361fa7a4e82f4db4f32324c0516",
+      "source_bytes": 26133,
+      "started_at_utc": "2026-09-29T13:58:44+00:00",
+      "finished_at_utc": "2026-09-29T13:59:53.471076+00:00",
+      "exit_code": 0
+    },
+    {
+      "label": "w4-adversarial-node24.log",
+      "path": "docs/evolution/w4/evidence/deterministic/w4-adversarial-node24.log.gz",
+      "sha256": "c62869e2a9883ddcad5747add7c2c178c3db9296aae10e64dbefc8f2291e8d34",
+      "source_sha256": "046d98df6f2211fe20a47fe18cf354ef9d3df584f6db18aab66c3ea5b4c9a97c",
+      "source_bytes": 11190,
+      "started_at_utc": "2026-09-29T14:00:02+00:00",
+      "finished_at_utc": "2026-09-29T14:01:07.913997+00:00",
+      "exit_code": 0
+    },
+    {
+      "label": "w4-mutations-node22.log",
+      "path": "docs/evolution/w4/evidence/deterministic/w4-mutations-node22.log.gz",
+      "sha256": "7524184f8d3775a0b74a2824a3bc7578e4893cef6d603e570259dead6866c37c",
+      "source_sha256": "3ed09c820322609f4297867d5fde38bc5345201d493e337728d902b3195c43dc",
+      "source_bytes": 148,
+      "started_at_utc": "2026-09-29T14:01:51+00:00",
+      "finished_at_utc": "2026-09-29T14:02:17.304991+00:00",
+      "exit_code": 0
+    },
+    {
+      "label": "w4-mutations-node24.log",
+      "path": "docs/evolution/w4/evidence/deterministic/w4-mutations-node24.log.gz",
+      "sha256": "44a604231f607184baefc09af21aaa8182cbbe652f17dd5ae3a0dfe95e7e0742",
+      "source_sha256": "0d6ecc390825fd3109e916e0c19fa3ca9f02541a90fd43207da8f9072f455b9b",
+      "source_bytes": 148,
+      "started_at_utc": "2026-09-29T14:01:15+00:00",
+      "finished_at_utc": "2026-09-29T14:01:42.070502+00:00",
+      "exit_code": 0
+    },
+    {
+      "label": "w4-coverage-node22.log",
+      "path": "docs/evolution/w4/evidence/deterministic/w4-coverage-node22.log.gz",
+      "sha256": "209f3bee0ca68f11251516a0df499dfba6dc71964e63679b12ebdf02df9ada8b",
+      "source_sha256": "06ee037557105627c7545e7564361b919816d5907caee56e0e742e2b4a0b0ca3",
+      "source_bytes": 197424,
+      "started_at_utc": "2026-09-29T14:04:34+00:00",
+      "finished_at_utc": "2026-09-29T14:13:42.483133+00:00",
+      "exit_code": 0
+    },
+    {
+      "label": "w4-coverage-node24.log",
+      "path": "docs/evolution/w4/evidence/deterministic/w4-coverage-node24.log.gz",
+      "sha256": "6fab2e34824b22b7bca395b643442fa4a948818ec641137891c3388c5770ac8f",
+      "source_sha256": "e99a613c92c56f3f062302e34d21171ac4c48b5f5ec55ae155b1b3bb89ea78ca",
+      "source_bytes": 95044,
+      "started_at_utc": "2026-09-29T14:13:53+00:00",
+      "finished_at_utc": "2026-09-29T14:20:23.111377+00:00",
+      "exit_code": 0
+    },
+    {
+      "label": "w4-gate-node22.log",
+      "path": "docs/evolution/w4/evidence/deterministic/w4-gate-node22.log.gz",
+      "sha256": "368a72eb6815092708403e86d4c4008e249ce3d77daf90009bdd777a794675e2",
+      "source_sha256": "4bb550bb964fee953b6ba31167e69fc83c375eea1d4d74d56324ff9ec20c5760",
+      "source_bytes": 369057,
+      "started_at_utc": "2026-09-29T14:20:49+00:00",
+      "finished_at_utc": "2026-09-29T14:31:39.503653+00:00",
+      "exit_code": 0
+    },
+    {
+      "label": "w4-gate-node24.log",
+      "path": "docs/evolution/w4/evidence/deterministic/w4-gate-node24.log.gz",
+      "sha256": "046a4ec3176d3a8260aac6e76abc1c711b56075a11ca362bd4de5b50a7f9cde6",
+      "source_sha256": "86dced4b7dde5a753ff07f3cb3eb5336afa6b1bf89c6047564896b5bef10617a",
+      "source_bytes": 198560,
+      "started_at_utc": "2026-09-29T14:31:52+00:00",
+      "finished_at_utc": "2026-09-29T14:42:18.322474+00:00",
+      "exit_code": 0
+    },
+    {
+      "label": "w4-package-inventory.json",
+      "path": "docs/evolution/w4/evidence/deterministic/w4-package-inventory.json.gz",
+      "sha256": "af29bc823c9d87333ae48bd8bedbca8b857dc4adc5ea54f68674ac7dae056003",
+      "source_sha256": "0bf534a93af4590907505917689be45cfd5f4b160e300e165d8ee896a28fda59",
+      "source_bytes": 192229,
+      "started_at_utc": "2026-09-29T14:20:29+00:00",
+      "finished_at_utc": "2026-09-29T14:20:31.360258+00:00",
+      "exit_code": 0
+    },
+    {
+      "label": "w4-manager-validate-node24.log",
+      "path": "docs/evolution/w4/evidence/deterministic/w4-manager-validate-node24.log.gz",
+      "sha256": "f9224b90606b640aad85317c35ab8aa078ad70fa083f5ff5028c724a1ecc3f13",
+      "source_sha256": "b60f8aa4cc8d1440501307e3b584939b41fad64cdc9fe92f5468eb9157e9303e",
+      "source_bytes": 198282,
+      "started_at_utc": "2026-09-29T14:46:42+00:00",
+      "finished_at_utc": "2026-09-29T14:57:09.764679+00:00",
+      "exit_code": 0
+    }
+  ]
+}
