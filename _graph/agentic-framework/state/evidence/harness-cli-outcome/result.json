@@ -1,0 +1,337 @@
+{
+  "schema_version": 1,
+  "artifact_type": "mission-checkpoint",
+  "mission_id": "hseos-governed-autonomous-engineering",
+  "run_id": "01a0bcd5-f453-71e3-b8a2-85c55cbd4635",
+  "task_id": "harness-cli-outcome",
+  "repository_id": "7f9f9b79-638c-4138-9a29-8a2406ad9fb8",
+  "baseline": "a8423081934d64538d71ef8289f072d51566a870",
+  "revision": "uncommitted candidate",
+  "status": "in-progress",
+  "dimensions": {
+    "engineering": "in-progress",
+    "real_providers_and_consumers": "not-executed",
+    "operational_authorization_and_activation": "blocked"
+  },
+  "generated_at": "2026-09-20T03:50:45.092777+00:00",
+  "content_sha256": {
+    "tools/cli/commands/agent.js": "725169020a8ba5315a351b0d22b98ede19e93724c7576f04e07b1073cd3b798a",
+    "test/test-agent-capability-cli.js": "b982bbb0bb20b7f58066f1a7f87518f9a7897e2ae6327ea574a6d132f85dc176",
+    "docs/capabilities.md": "9ec65c5be1d231ed0d53ecf476dc991e54084bfbab27212261d9bcd1ff922722"
+  },
+  "controls": "baseline.json and control-integrity.json; original baseline unchanged",
+  "tests": [
+    {
+      "command": "node --test --test-name-pattern=\"failed durable|resuming a cancelled\" test/test-agent-capability-cli.js",
+      "cwd": "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/harness-cli-outcome",
+      "node": "v24.15.0",
+      "environment": {
+        "TMPDIR": "/tmp",
+        "HSEOS_DISABLE_UPDATE_CHECK": "1"
+      },
+      "started_at": null,
+      "ended_at": null,
+      "exit_code": 1,
+      "passed": 0,
+      "failed": 2,
+      "artifact": "red.txt",
+      "sha256": "1348c98244f39b13c4c7b1a7212d97db19c500fb0eea9c6044d5ace7246ff9e3",
+      "evidence_kind": "deterministic",
+      "expected": "reject old CLI"
+    },
+    {
+      "command": "node test/test-agent-capability-cli.js",
+      "cwd": "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/harness-cli-outcome",
+      "node": "v24.15.0",
+      "environment": {
+        "TMPDIR": "/tmp",
+        "HSEOS_DISABLE_UPDATE_CHECK": "1"
+      },
+      "started_at": null,
+      "ended_at": null,
+      "exit_code": 0,
+      "passed": 10,
+      "failed": 0,
+      "artifact": "green.txt",
+      "sha256": "e28b468c92b12ce627872a96cbc579a94872abe5856482c7f814b3c915abd1c6",
+      "evidence_kind": "deterministic",
+      "expected": "pass"
+    },
+    {
+      "command": "node test/test-delegated-codex-cli.js",
+      "cwd": "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/harness-cli-outcome",
+      "node": "v24.15.0",
+      "environment": {
+        "TMPDIR": "/tmp",
+        "HSEOS_DISABLE_UPDATE_CHECK": "1"
+      },
+      "started_at": null,
+      "ended_at": null,
+      "exit_code": 0,
+      "passed": 7,
+      "failed": 0,
+      "artifact": "delegated-codex.txt",
+      "sha256": "886f35f4f6712471b672746e5822712bdda0d615481fa5f69f458035dbe8b47c",
+      "evidence_kind": "deterministic",
+      "expected": "pass"
+    },
+    {
+      "command": "node test/test-delegated-claude-cli.js",
+      "cwd": "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/harness-cli-outcome",
+      "node": "v24.15.0",
+      "environment": {
+        "TMPDIR": "/tmp",
+        "HSEOS_DISABLE_UPDATE_CHECK": "1"
+      },
+      "started_at": null,
+      "ended_at": null,
+      "exit_code": 0,
+      "passed": 7,
+      "failed": 0,
+      "artifact": "delegated-claude.txt",
+      "sha256": "5c51377fb260dc09a1e473ceb1ba1fd22b9ea81976277c9a6d8dbcd58a55f80d",
+      "evidence_kind": "deterministic",
+      "expected": "pass"
+    },
+    {
+      "command": "node test/test-delegated-deepseek-cli.js",
+      "cwd": "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/harness-cli-outcome",
+      "node": "v24.15.0",
+      "environment": {
+        "TMPDIR": "/tmp",
+        "HSEOS_DISABLE_UPDATE_CHECK": "1"
+      },
+      "started_at": null,
+      "ended_at": null,
+      "exit_code": 0,
+      "passed": 6,
+      "failed": 0,
+      "artifact": "delegated-acp.txt",
+      "sha256": "019c78ac7a9b44771d66151e2a1c52a95944ab1064929c776bda68486a56789f",
+      "evidence_kind": "deterministic",
+      "expected": "pass",
+      "projection": "provider-neutral summary; raw_acp_log retained separately"
+    }
+  ],
+  "verification": {
+    "kind": "deterministic child-process artifact/state checks",
+    "baseline_rejected": true,
+    "independent_ci": "not-executed",
+    "full_quality_gate": {
+      "exit_code": 0,
+      "failures": 0,
+      "warnings": 1,
+      "command": "worktree-manager.sh validate harness-cli-outcome",
+      "artifact": "/workspace/github/marciohideaki/enterprise-hseos/.logs/validation/harness-cli-outcome-full-r2.log",
+      "sha256": "f9a28bf7bdb1aff6a4dfe13c2711b9af6fe882d9be64d2d524063e703a07d4ba",
+      "environment": {
+        "node": "v24.15.0",
+        "TMPDIR": "/tmp",
+        "HSEOS_DISABLE_UPDATE_CHECK": "1"
+      },
+      "completed_at": "2026-09-20T05:39:32.001013+00:00"
+    },
+    "anchor_guard_exit": 0,
+    "focused_lint_exit": 0,
+    "diff_check_exit": 0
+  },
+  "providers": {
+    "real": [],
+    "reference": "model:scripted-reference 1.0.0 / reference/tool-model",
+    "delegated": "test doubles; no hosted integration claim"
+  },
+  "eval": {
+    "required": 18,
+    "executed": 0,
+    "backend_families_required": 2,
+    "consumer_stacks_required": 2,
+    "repeats_per_task_backend": 3,
+    "budget": "not established for real provider campaign"
+  },
+  "dod": [
+    {
+      "id": "DOD-01",
+      "status": "pending-validation",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-02",
+      "status": "not-executed",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-03",
+      "status": "not-executed",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-04",
+      "status": "not-executed",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-05",
+      "status": "not-executed",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-06",
+      "status": "not-executed",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-07",
+      "status": "not-executed",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-08",
+      "status": "not-executed",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-09",
+      "status": "not-executed",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-10",
+      "status": "blocked",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-11",
+      "status": "not-executed",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-12",
+      "status": "not-executed",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-13",
+      "status": "not-executed",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-14",
+      "status": "not-executed",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-15",
+      "status": "not-executed",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-16",
+      "status": "not-executed",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-17",
+      "status": "not-executed",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-18",
+      "status": "not-executed",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-19",
+      "status": "not-executed",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-20",
+      "status": "pending-validation",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-21",
+      "status": "blocked",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-22",
+      "status": "pending-validation",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-23",
+      "status": "pending-validation",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-24",
+      "status": "blocked",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    },
+    {
+      "id": "DOD-25",
+      "status": "pending-validation",
+      "scope": "whole mission; focused H1 evidence does not satisfy whole criterion"
+    }
+  ],
+  "blockers": [
+    {
+      "scope": "real eval campaign",
+      "reason": "authorized provider bindings, finite budget and tool-capable backend families not yet established"
+    },
+    {
+      "scope": "operational activation",
+      "reason": "live G9 monitor: 0/30 complete days, current legacy use, canonical observation release manifest absent; no activation approval"
+    }
+  ],
+  "published": false,
+  "merged": false,
+  "operational_state_migrated": false,
+  "limitations": [
+    "No real software-task provider campaign",
+    "Historical log command start/end timestamps were not captured; no timestamps fabricated",
+    "No independent CI trust boundary exercised; baseline mutation verifies only these regression assertions",
+    "Full repository suite passed; separate whole-mission packaged eval campaign remains unexecuted"
+  ],
+  "artifacts_sha256": {
+    "green.txt": "e28b468c92b12ce627872a96cbc579a94872abe5856482c7f814b3c915abd1c6",
+    "baseline.json": "8371ae0759457a16684eadaec6d9f7ccb70a26597c7e85a2ecbc6d56ec2820a0",
+    "anchor.txt": "9059cf7be193340aca1e3c1964d668e2cfb0683ef789cdd4f6cba18598397f22",
+    "g9-live.json": "c9d6a44ef38a904f3d0f8ce17da62fff3f8233ab035f5165706e09b34b303bff",
+    "delegated-codex.txt": "886f35f4f6712471b672746e5822712bdda0d615481fa5f69f458035dbe8b47c",
+    "control-integrity.json": "88c48c3f011399f44662cd03759d753b0d5705daaaee81878baaade3320281e3",
+    "red.txt": "1348c98244f39b13c4c7b1a7212d97db19c500fb0eea9c6044d5ace7246ff9e3",
+    "delegated-claude.txt": "5c51377fb260dc09a1e473ceb1ba1fd22b9ea81976277c9a6d8dbcd58a55f80d",
+    "delegated-acp.txt": "019c78ac7a9b44771d66151e2a1c52a95944ab1064929c776bda68486a56789f"
+  },
+  "continuation_audit": {
+    "at": "2026-09-20T03:52:38.799506+00:00",
+    "previous_turn": "progress",
+    "candidate_revalidated": true,
+    "host_load": "00:52:38 up  2:59,  6 users,  load average: 20.93, 20.37, 14.84",
+    "provider_campaign": "binding/budget clarification pending",
+    "public_kernel_tools": [
+      "temporary.set-state"
+    ],
+    "claim_scope": "inspected bound-kernel profile only"
+  },
+  "blocked_audit": {
+    "at": "2026-09-20T03:53:31.601870+00:00",
+    "consecutive_goal_turns": 3,
+    "same_condition": "full mandatory verification cannot start under current host resource rule",
+    "host_load_1m": 19.31,
+    "physical_cores": 6,
+    "live_verification_handle": null,
+    "candidate_and_evidence_hashes": "verified",
+    "engineering": "pending-validation",
+    "resume": "Check uptime; when load permits, run bash scripts/governance/worktree-manager.sh validate harness-cli-outcome from original root with Node 24.15.0, TMPDIR=/tmp and HSEOS_DISABLE_UPDATE_CHECK=1"
+  },
+  "resumed_host_load_1m": 0.15,
+  "raw_acp_log": {
+    "path": ".logs/validation/harness-cli-acp-raw.log",
+    "sha256": "706cf43edea1c167e37d8bbff0a2aa7629310efaa05587a17bf3441111a31f37",
+    "note": "Provider-neutral summary is a derived projection, not raw output"
+  },
+  "mini_goal_status": "verified-awaiting-commit"
+}

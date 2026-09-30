@@ -1,0 +1,12 @@
+{
+  "task": "W4-04a2a",
+  "task_commit": "1f09c3e8",
+  "feature_merge": "6bba910d",
+  "hook_retry_exit": 0,
+  "hook_failures": 0,
+  "hook_warnings": 0,
+  "hook_log_sha256": "59557369a37aef737aa836a1cbb62efb085402ff34b28275cfb66b392b8f7e64",
+  "prior_hook_failure": "preserved in workflow-reservations/receipt.json and commit-node24.log.gz",
+  "foundation_merge": false,
+  "operational_activation": false
+}

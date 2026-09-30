@@ -1,0 +1,92 @@
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const os = require('node:os');
+const net = require('node:net');
+const { spawn, spawnSync, execFileSync } = require('node:child_process');
+const { createHash } = require('node:crypto');
+const root = process.cwd();
+const logs = path.join(root, '.logs/validation/w2');
+const versions = [
+  ['24', '/workspace/local/sdk/nvm/versions/node/v24.15.0/bin'],
+  ['22', '/build/tmp/hseos-w1-node/node-v22.23.3-linux-x64/bin'],
+];
+function snapshot() {
+  const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'], { encoding: 'utf8' }).split('\0');
+  return Object.fromEntries([...new Set(files)].filter((p) => p && fs.statSync(p).isFile() && !p.startsWith('docs/evolution/w2/evidence/')).sort().map((p) => [p, createHash('sha256').update(fs.readFileSync(p)).digest('hex')]));
+}
+async function main() {
+  const sources = snapshot();
+  const sourceText = JSON.stringify(sources, null, 2) + '\n';
+  fs.writeFileSync(path.join(logs, 'matrix-sources.json'), sourceText);
+  const sourceHash = createHash('sha256').update(sourceText).digest('hex');
+  const indexDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-w2-review-index-'));
+  const indexEnv = { ...process.env, GIT_INDEX_FILE: path.join(indexDir, 'index') };
+  execFileSync('git', ['read-tree', '0a3dbeecc043127438a9aa16eeb689bf6bc57deb'], { env: indexEnv });
+  execFileSync('git', ['add', '-A', '--', '.', ':!docs/evolution/w2/evidence'], { env: indexEnv });
+  const password = execFileSync('pass', ['show', 'platform-shared-dev/postgres-platform'], { encoding: 'utf8' }).split('\n')[0];
+  const socket = net.createServer();
+  await new Promise((resolve) => socket.listen(0, '127.0.0.1', resolve));
+  const port = socket.address().port;
+  await new Promise((resolve) => socket.close(resolve));
+  const forwardLog = fs.openSync(path.join(logs, 'postgres-forward.log'), 'w');
+  const forward = spawn('kubectl', ['-n', 'platform-shared-dev', 'port-forward', 'svc/postgres-shared', `${port}:5432`, '--address', '127.0.0.1'], { stdio: ['ignore', forwardLog, forwardLog] });
+  try {
+    let connected = false;
+    for (let i = 0; i < 60 && !connected; i++) {
+      connected = await new Promise((resolve) => {
+        const probe = net.connect(port, '127.0.0.1');
+        probe.once('connect', () => { probe.destroy(); resolve(true); });
+        probe.once('error', () => resolve(false));
+      });
+      if (!connected) await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    if (!connected) throw new Error('PostgreSQL test connection unavailable');
+    for (const [version, runtime] of versions) {
+      const localModules = path.join(root, 'node_modules');
+      if (version === '22') {
+        if (fs.existsSync(localModules)) throw new Error('Unexpected local dependencies');
+        fs.symlinkSync('/build/tmp/hseos-w0-closeout-cofvlsrb/consumer22/node_modules', localModules, 'dir');
+      }
+      try {
+        const env = { ...indexEnv, PATH: runtime + ':' + process.env.PATH, TMPDIR: '/tmp', VALIDATION_ENFORCED: 'true', HSEOS_GOVERNANCE_TEST_DATABASE_URL: `postgresql://platform:${encodeURIComponent(password)}@127.0.0.1:${port}/hseos_v4_ci_node22_20260925` };
+        const stages = [
+          ['full', ['bash', 'scripts/governance/quality-gates.sh', '--phase', 'full']],
+          ['kernel', ['node', '../../node_modules/c8/bin/c8.js', '--config', '.c8-kernel.json', 'npm', 'run', 'test:kernel']],
+        ];
+        for (const [stage, args] of stages) {
+          const label = `${stage}-node${version}-final`;
+          const priorPath = path.join(logs, label + '.json');
+          if (fs.existsSync(priorPath)) {
+            const prior = JSON.parse(fs.readFileSync(priorPath, 'utf8'));
+            if (prior.exit_code === 0 && prior.source_manifest_sha256 === sourceHash) {
+              process.stdout.write(`Reusing verified ${label} for identical sources\n`);
+              continue;
+            }
+            for (const extension of ['log', 'json']) fs.copyFileSync(path.join(logs, label + '.' + extension), path.join(logs, label + '-attempt1.' + extension));
+          }
+          const stageEnv = { ...env };
+          if (stage === 'kernel') {
+            for (const name of execFileSync('git', ['rev-parse', '--local-env-vars'], {encoding:'utf8'}).trim().split('\n')) delete stageEnv[name];
+          }
+          process.stdout.write(`Starting ${label}\n`);
+          const started = new Date().toISOString();
+          const output = fs.openSync(path.join(logs, label + '.log'), 'w');
+          const result = spawnSync('systemd-run', ['--user', '--scope', '--quiet', '-p', 'Delegate=yes', 'nice', '-n', '10', ...args], { env: stageEnv, cwd: root, stdio: ['ignore', output, output] });
+          fs.closeSync(output);
+          const receipt = { node: version, stage, started_at: started, finished_at: new Date().toISOString(), exit_code: result.status, signal: result.signal, source_manifest_sha256: sourceHash, sequential: true, test_concurrency: 1, delegated_test_scope: true, postgres_integration: stage === 'full' };
+          fs.writeFileSync(path.join(logs, label + '.json'), JSON.stringify(receipt, null, 2) + '\n');
+          if (stage === 'kernel' && fs.existsSync(path.join(root, '.logs/validation/kernel-coverage/coverage-summary.json'))) fs.copyFileSync(path.join(root, '.logs/validation/kernel-coverage/coverage-summary.json'), path.join(logs, `coverage-node${version}-final.json`));
+          process.stdout.write(`Finished ${label}: ${result.status}\n`);
+          if (result.status !== 0) throw new Error(`${label} failed`);
+        }
+      } finally { if (version === '22' && fs.lstatSync(localModules).isSymbolicLink()) fs.unlinkSync(localModules); }
+    }
+    if (JSON.stringify(snapshot()) !== JSON.stringify(sources)) throw new Error('Sources changed during verification');
+  } finally {
+    forward.kill('SIGTERM');
+    fs.closeSync(forwardLog);
+    fs.rmSync(indexDir, { recursive: true, force: true });
+  }
+}
+main().catch((error) => { process.stderr.write(error.message + '\n'); process.exitCode = 1; });

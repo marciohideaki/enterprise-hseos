@@ -1,0 +1,2072 @@
+
+> hseos@4.0.0-rc.0 test
+> npm run check:cli && npm run test:schemas && npm run test:managed-governance-contracts && npm run test:managed-governance-import-plan && npm run test:managed-governance-http && npm run test:managed-governance-policy-resolution && npm run test:managed-governance-shadow-parity && npm run test:managed-governance-import-apply && npm run test:managed-governance-seed && npm run test:managed-governance-repository && npm run test:managed-governance-postgres && npm run test:managed-governance-hardening && npm run test:managed-governance-installation && npm run test:managed-governance-release-publication && npm run test:managed-governance-patch-bundle && npm run test:managed-governance-readiness && npm run test:managed-governance-recovery-rehearsal && npm run test:managed-governance-network-admission && npm run test:managed-governance-network-security && npm run test:managed-governance-adapter-readiness && npm run test:install && npm run test:detector && npm run test:state && npm run test:governance && npm run test:hooks && npm run test:ado-hooks && npm run test:state-emit-hook && npm run test:compiler-hooks && npm run test:workflow-contracts && npm run test:capabilities && npm run test:capability-graph && npm run test:capability-references && npm run test:repository-identity-contract && npm run test:contract-coverage && npm run test:package-surface && npm run test:smoke-install && npm run test:verify && npm run test:sandbox && npm run test:plugins && npm run test:adapter-sdk && npm run test:mcp-governance && npm run test:mcp-swarm && npm run test:mcp-project-state && npm run test:mcp-stdio && npm run test:mcp-axon-bridge && npm run test:mcp-contract && npm run test:mcp-2026 && npm run test:entrypoints && npm run test:compatibility && npm run test:agentic-foundation && npm run test:agentic-contracts && npm run test:agent-trace-lineage && npm run test:agentic-session-store && npm run test:model-providers && npm run test:agent-context && npm run test:agent-policy-lattice && npm run test:agent-transitive-isolation && npm run test:agent-message-transport && npm run test:tool-runtime && npm run test:agent-runtime && npm run test:agent-capability-cli && npm run test:engineering-task && npm run test:delegated-codex-cli && npm run test:delegated-claude-cli && npm run test:delegated-deepseek-cli && npm run test:bound-kernel-agent && npm run test:bound-kernel-supervisor && npm run test:provider-egress-broker && npm run test:agentic-completion && npm run test:agentic-activation && npm run test:agent-provider-binding && npm run test:agent-provider-conformance && npm run test:agent-compaction && npm run test:agent-orchestration && npm run test:runtime-providers && npm run test:codex-app-server-driver && npm run test:claude-agent-sdk-driver && npm run test:delegated-runtime-host && npm run test:agentic-hardening-conformance && npm run test:documentation-neutrality && npm run validate:schemas && npm run lint
+
+
+> hseos@4.0.0-rc.0 check:cli
+> node scripts/generate-cli-command-manifest.js --check
+
+
+> hseos@4.0.0-rc.0 test:schemas
+> node test/test-agent-schema.js
+
+  PASS  atlas.agent.yaml
+  PASS  blitz.agent.yaml
+  PASS  cipher.agent.yaml
+  PASS  forge.agent.yaml
+  PASS  ghost.agent.yaml
+  PASS  glitch.agent.yaml
+  PASS  kube.agent.yaml
+  PASS  nyx.agent.yaml
+  PASS  orbit.agent.yaml
+  PASS  prism.agent.yaml
+  PASS  quill.agent.yaml
+  PASS  razor.agent.yaml
+  PASS  sable.agent.yaml
+  PASS  swarm.agent.yaml
+  PASS  vector.agent.yaml
+
+Agent schema tests: 15 passed, 0 failed
+
+> hseos@4.0.0-rc.0 test:managed-governance-contracts
+> node --test --test-concurrency=1 test/managed-governance/contracts.test.js
+
+TAP version 13
+# Subtest: every valid fixture parses through its exported schema and is deeply frozen
+ok 1 - every valid fixture parses through its exported schema and is deeply frozen
+  ---
+  duration_ms: 43.062637
+  ...
+# Subtest: every invalid fixture fails closed with normalized contract evidence
+ok 2 - every invalid fixture fails closed with normalized contract evidence
+  ---
+  duration_ms: 8.270528
+  ...
+# Subtest: all top-level schemas reject unsupported versions and unknown fields
+ok 3 - all top-level schemas reject unsupported versions and unknown fields
+  ---
+  duration_ms: 9.222068
+  ...
+# Subtest: session preflight status, reason and parity fields cannot diverge
+ok 4 - session preflight status, reason and parity fields cannot diverge
+  ---
+  duration_ms: 0.647774
+  ...
+# Subtest: canonical JSON is lexically ordered and digest-stable
+ok 5 - canonical JSON is lexically ordered and digest-stable
+  ---
+  duration_ms: 0.999154
+  ...
+# Subtest: canonical JSON rejects lossy, executable and ambiguous JavaScript values
+ok 6 - canonical JSON rejects lossy, executable and ambiguous JavaScript values
+  ---
+  duration_ms: 0.783261
+  ...
+# Subtest: identifier, raw content and structured content byte limits are enforced
+ok 7 - identifier, raw content and structured content byte limits are enforced
+  ---
+  duration_ms: 16.553627
+  ...
+# Subtest: closed vocabularies reject semantic widening
+ok 8 - closed vocabularies reject semantic widening
+  ---
+  duration_ms: 1.926969
+  ...
+# Subtest: collection, timestamp and semantic-version boundaries are explicit
+ok 9 - collection, timestamp and semantic-version boundaries are explicit
+  ---
+  duration_ms: 1.432715
+  ...
+# Subtest: rule conditions enforce operator-specific data without executable expressions
+ok 10 - rule conditions enforce operator-specific data without executable expressions
+  ---
+  duration_ms: 2.099593
+  ...
+# Subtest: duplicate arrays, reversed time and unsafe paths fail closed
+ok 11 - duplicate arrays, reversed time and unsafe paths fail closed
+  ---
+  duration_ms: 1.724399
+  ...
+# Subtest: import reports must account for every discovered source
+ok 12 - import reports must account for every discovered source
+  ---
+  duration_ms: 0.686548
+  ...
+# Subtest: readiness report ready flag requires every readiness-algorithm condition, not just one
+ok 13 - readiness report ready flag requires every readiness-algorithm condition, not just one
+  ---
+  duration_ms: 2.186823
+  ...
+# Subtest: managed network profile enforces deny-by-default admission for shared-network
+ok 14 - managed network profile enforces deny-by-default admission for shared-network
+  ---
+  duration_ms: 2.309191
+  ...
+# Subtest: contract parser normalizes schema evaluation failures without leaking values
+ok 15 - contract parser normalizes schema evaluation failures without leaking values
+  ---
+  duration_ms: 0.354001
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 355.068174
+
+> hseos@4.0.0-rc.0 test:managed-governance-import-plan
+> node --test --test-concurrency=1 test/managed-governance/import-plan.test.js
+
+TAP version 13
+# Subtest: managed governance source discovery
+    # Subtest: accounts for every allowlisted governance family in the current repository
+    ok 1 - accounts for every allowlisted governance family in the current repository
+      ---
+      duration_ms: 1.705201
+      ...
+    # Subtest: produces a byte-identical plan for the same tree and commit without writes
+    ok 2 - produces a byte-identical plan for the same tree and commit without writes
+      ---
+      duration_ms: 870.943865
+      ...
+    1..2
+ok 1 - managed governance source discovery
+  ---
+  duration_ms: 2003.532121
+  type: 'suite'
+  ...
+# Subtest: secure governance source reads
+    # Subtest: reads a regular UTF-8 file and normalizes line endings for its digest
+    ok 1 - reads a regular UTF-8 file and normalizes line endings for its digest
+      ---
+      duration_ms: 19.196783
+      ...
+    # Subtest: rejects path escape before content is read
+    ok 2 - rejects path escape before content is read
+      ---
+      duration_ms: 1.385429
+      ...
+    # Subtest: rejects source directories reached through symbolic-link ancestors
+    ok 3 - rejects source directories reached through symbolic-link ancestors
+      ---
+      duration_ms: 9.725406
+      ...
+    # Subtest: rejects symbolic links, hard links, special files, oversized data and invalid UTF-8
+    ok 4 - rejects symbolic links, hard links, special files, oversized data and invalid UTF-8
+      ---
+      duration_ms: 16.494469
+      ...
+    # Subtest: rejects dirty canonical Git roots
+    ok 5 - rejects dirty canonical Git roots
+      ---
+      duration_ms: 36.714476
+      ...
+    1..5
+ok 2 - secure governance source reads
+  ---
+  duration_ms: 84.801293
+  type: 'suite'
+  ...
+# Subtest: classification and pure import planning
+    # Subtest: rejects discovery limits above the closed source profile
+    ok 1 - rejects discovery limits above the closed source profile
+      ---
+      duration_ms: 0.405717
+      ...
+    # Subtest: preserves ambiguous prose as unclassified metadata and never emits a rule
+    ok 2 - preserves ambiguous prose as unclassified metadata and never emits a rule
+      ---
+      duration_ms: 0.415035
+      ...
+    # Subtest: preserves invalid structured content for review
+    ok 3 - preserves invalid structured content for review
+      ---
+      duration_ms: 2.039525
+      ...
+    # Subtest: plans create, no-op, version, rename, review and deactivate deterministically
+    ok 4 - plans create, no-op, version, rename, review and deactivate deterministically
+      ---
+      duration_ms: 1.480735
+      ...
+    # Subtest: does not consume an existing path that is present later in discovery as a rename
+    ok 5 - does not consume an existing path that is present later in discovery as a rename
+      ---
+      duration_ms: 0.308483
+      ...
+    # Subtest: makes ambiguous renames review-only and preserves prior entries for deactivation review
+    ok 6 - makes ambiguous renames review-only and preserves prior entries for deactivation review
+      ---
+      duration_ms: 0.331022
+      ...
+    # Subtest: binds plan identity to repository, commit, importer and source profile
+    ok 7 - binds plan identity to repository, commit, importer and source profile
+      ---
+      duration_ms: 1.191255
+      ...
+    1..7
+ok 3 - classification and pure import planning
+  ---
+  duration_ms: 6.699526
+  type: 'suite'
+  ...
+1..3
+# tests 14
+# suites 3
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2429.206818
+
+> hseos@4.0.0-rc.0 test:managed-governance-http
+> node --test --test-concurrency=1 test/managed-governance/http.test.js && npm run test:managed-governance-cli && npm run test:managed-governance-console
+
+TAP version 13
+# Subtest: every designed endpoint returns the canonical v1 envelope
+ok 1 - every designed endpoint returns the canonical v1 envelope
+  ---
+  duration_ms: 161.573806
+  ...
+# Subtest: mutations and audit reject anonymous requests while read-only planning stays available
+ok 2 - mutations and audit reject anonymous requests while read-only planning stays available
+  ---
+  duration_ms: 25.492676
+  ...
+# Subtest: routing, pagination, body limits and domain failures use stable error codes
+ok 3 - routing, pagination, body limits and domain failures use stable error codes
+  ---
+  duration_ms: 14.203297
+  ...
+# Subtest: health carries distinct migration and projection readiness without flattening state
+ok 4 - health carries distinct migration and projection readiness without flattening state
+  ---
+  duration_ms: 3.590468
+  ...
+# Subtest: deadline aborts a non-settling handler with a stable timeout
+ok 5 - deadline aborts a non-settling handler with a stable timeout
+  ---
+  duration_ms: 108.909849
+  ...
+# Subtest: invalid or cyclic service output fails as a sanitized internal error
+ok 6 - invalid or cyclic service output fails as a sanitized internal error
+  ---
+  duration_ms: 7.899889
+  ...
+# Subtest: graceful shutdown drains an active request and closes repository resources once
+ok 7 - graceful shutdown drains an active request and closes repository resources once
+  ---
+  duration_ms: 5.350621
+  ...
+# Subtest: server refuses non-loopback binding
+ok 8 - server refuses non-loopback binding
+  ---
+  duration_ms: 1.033359
+  ...
+# Subtest: development authentication requires both explicit configuration and the environment gate
+ok 9 - development authentication requires both explicit configuration and the environment gate
+  ---
+  duration_ms: 0.675266
+  ...
+# Subtest: draft and publication application ports preserve authenticated context
+ok 10 - draft and publication application ports preserve authenticated context
+  ---
+  duration_ms: 0.806672
+  ...
+# Subtest: release query and snapshot verification are backed by real repository state, not stubs
+ok 11 - release query and snapshot verification are backed by real repository state, not stubs
+  ---
+  duration_ms: 63.23966
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 635.543727
+
+> hseos@4.0.0-rc.0 test:managed-governance-cli
+> node --test --test-concurrency=1 test/managed-governance/cli.test.js
+
+TAP version 13
+# Subtest: all documented read commands map to their versioned HTTP application ports
+ok 1 - all documented read commands map to their versioned HTTP application ports
+  ---
+  duration_ms: 4.270898
+  ...
+# Subtest: plan is deterministic and performs no local mutation
+ok 2 - plan is deterministic and performs no local mutation
+  ---
+  duration_ms: 0.851627
+  ...
+# Subtest: apply requires explicit database reference, actor and authentication and repeats the same request
+ok 3 - apply requires explicit database reference, actor and authentication and repeats the same request
+  ---
+  duration_ms: 2.004974
+  ...
+# Subtest: server start defaults to loopback and port 4319
+ok 4 - server start defaults to loopback and port 4319
+  ---
+  duration_ms: 0.643368
+  ...
+# Subtest: invalid commands, modes, files, filters and network boundaries fail closed
+ok 5 - invalid commands, modes, files, filters and network boundaries fail closed
+  ---
+  duration_ms: 1.707236
+  ...
+# Subtest: human output projects the same envelope and retains remote error codes
+ok 6 - human output projects the same envelope and retains remote error codes
+  ---
+  duration_ms: 0.611522
+  ...
+# Subtest: session preflight keeps every managed-shadow outcome advisory
+ok 7 - session preflight keeps every managed-shadow outcome advisory
+  ---
+  duration_ms: 6.308963
+  ...
+# Subtest: database configuration rejects unsafe permissions and token header characters
+ok 8 - database configuration rejects unsafe permissions and token header characters
+  ---
+  duration_ms: 0.858174
+  ...
+# Subtest: the main CLI exposes managed governance help without update-network access
+ok 9 - the main CLI exposes managed governance help without update-network access
+  ---
+  duration_ms: 82.037006
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 393.376248
+
+> hseos@4.0.0-rc.0 test:managed-governance-console
+> node --test --test-concurrency=1 test/managed-governance/console.test.js
+
+TAP version 13
+# Subtest: console routes serve exact local assets with strict browser policy
+ok 1 - console routes serve exact local assets with strict browser policy
+  ---
+  duration_ms: 73.159114
+  ...
+# Subtest: versioned UI schema covers every supported authoring type with bounded fields
+ok 2 - versioned UI schema covers every supported authoring type with bounded fields
+  ---
+  duration_ms: 1.403691
+  ...
+# Subtest: DOM smoke has landmarks, labels, keyboard focus, errors and reduced-motion support
+ok 3 - DOM smoke has landmarks, labels, keyboard focus, errors and reduced-motion support
+  ---
+  duration_ms: 0.399776
+  ...
+# Subtest: console consumes only HTTP routes and contains no database or direct Git mutation path
+ok 4 - console consumes only HTTP routes and contains no database or direct Git mutation path
+  ---
+  duration_ms: 0.37015
+  ...
+# Subtest: console shows the same readiness report exposed to CLI and MCP, and never claims it authorizes enforcement
+ok 5 - console shows the same readiness report exposed to CLI and MCP, and never claims it authorizes enforcement
+  ---
+  duration_ms: 0.231142
+  ...
+# Subtest: console echoes the CSRF token back only on state-changing requests, never on reads
+ok 6 - console echoes the CSRF token back only on state-changing requests, never on reads
+  ---
+  duration_ms: 0.236238
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 402.431882
+
+> hseos@4.0.0-rc.0 test:managed-governance-policy-resolution
+> node --test --test-concurrency=1 test/managed-governance/policy-resolution.test.js
+
+TAP version 13
+# Subtest: resolution is deterministic and a lower allow cannot widen a constitutional deny
+ok 1 - resolution is deterministic and a lower allow cannot widen a constitutional deny
+  ---
+  duration_ms: 14.991633
+  ...
+# Subtest: same-precedence contradictions fail closed according to action class
+ok 2 - same-precedence contradictions fail closed according to action class
+  ---
+  duration_ms: 20.618584
+  ...
+# Subtest: only a current approved exception may explicitly widen a restrictive result
+ok 3 - only a current approved exception may explicitly widen a restrictive result
+  ---
+  duration_ms: 4.181449
+  ...
+# Subtest: governance acceptance never satisfies an operational approval obligation
+ok 4 - governance acceptance never satisfies an operational approval obligation
+  ---
+  duration_ms: 3.539528
+  ...
+# Subtest: scope, pure predicates and bounded wildcard matching select only exact candidates
+ok 5 - scope, pure predicates and bounded wildcard matching select only exact candidates
+  ---
+  duration_ms: 2.863214
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 234.262772
+
+> hseos@4.0.0-rc.0 test:managed-governance-shadow-parity
+> node --test --test-concurrency=1 test/managed-governance/shadow-parity.test.js && npm run test:managed-governance-client
+
+TAP version 13
+# Subtest: managed-shadow records a mismatch with both digests and preserves the local result
+ok 1 - managed-shadow records a mismatch with both digests and preserves the local result
+  ---
+  duration_ms: 4.302718
+  ...
+# Subtest: managed-shadow reports semantic parity without creating mismatch evidence
+ok 2 - managed-shadow reports semantic parity without creating mismatch evidence
+  ---
+  duration_ms: 0.681671
+  ...
+# Subtest: approval-required local results map to input_required without changing authority
+ok 3 - approval-required local results map to input_required without changing authority
+  ---
+  duration_ms: 0.537838
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 218.351299
+
+> hseos@4.0.0-rc.0 test:managed-governance-client
+> node --test --test-concurrency=1 test/managed-governance/client.test.js test/managed-governance/snapshot.test.js test/managed-governance/session-preflight.test.js
+
+TAP version 13
+# Subtest: binding loader proves repository identity and rejects secret-bearing input before network access
+ok 1 - binding loader proves repository identity and rejects secret-bearing input before network access
+  ---
+  duration_ms: 15.617719
+  ...
+# Subtest: online shadow compares decisions while local authority remains unchanged
+ok 2 - online shadow compares decisions while local authority remains unchanged
+  ---
+  duration_ms: 16.294467
+  ...
+# Subtest: valid last-known-good snapshot supports degraded shadow without blocking
+ok 3 - valid last-known-good snapshot supports degraded shadow without blocking
+  ---
+  duration_ms: 15.096796
+  ...
+# Subtest: reserved enforcement mode fails before network or cache access
+ok 4 - reserved enforcement mode fails before network or cache access
+  ---
+  duration_ms: 0.617867
+  ...
+# Subtest: bounded retries and circuit states produce typed degraded results
+ok 5 - bounded retries and circuit states produce typed degraded results
+  ---
+  duration_ms: 4.954394
+  ...
+# Subtest: timeout remains bounded when an injected transport ignores abort
+ok 6 - timeout remains bounded when an injected transport ignores abort
+  ---
+  duration_ms: 102.889006
+  ...
+# Subtest: chunked control-plane responses are bounded independently of content-length
+ok 7 - chunked control-plane responses are bounded independently of content-length
+  ---
+  duration_ms: 0.830956
+  ...
+# Subtest: session preflight reports equivalence and atomically persists bounded evidence
+ok 8 - session preflight reports equivalence and atomically persists bounded evidence
+  ---
+  duration_ms: 18.569002
+  ...
+# Subtest: session preflight accepts the bounded full catalog projection
+ok 9 - session preflight accepts the bounded full catalog projection
+  ---
+  duration_ms: 5.098354
+  ...
+# Subtest: session preflight distinguishes digest and repository identity drift
+ok 10 - session preflight distinguishes digest and repository identity drift
+  ---
+  duration_ms: 9.368813
+  ...
+# Subtest: session preflight degrades remote failures and malformed projections without blocking
+ok 11 - session preflight degrades remote failures and malformed projections without blocking
+  ---
+  duration_ms: 8.247425
+  ...
+# Subtest: session preflight fails local identity divergence before querying remote
+ok 12 - session preflight fails local identity divergence before querying remote
+  ---
+  duration_ms: 3.558173
+  ...
+# Subtest: session preflight rejects an unsafe query configuration before network access
+ok 13 - session preflight rejects an unsafe query configuration before network access
+  ---
+  duration_ms: 1.835615
+  ...
+# Subtest: session preflight rejects invalid UTF-8 Constitution bytes before network access
+ok 14 - session preflight rejects invalid UTF-8 Constitution bytes before network access
+  ---
+  duration_ms: 3.749125
+  ...
+# Subtest: session preflight never creates evidence through a symlinked runtime ancestor
+ok 15 - session preflight never creates evidence through a symlinked runtime ancestor
+  ---
+  duration_ms: 8.089405
+  ...
+# Subtest: session preflight reports an unconfigured project without network access
+ok 16 - session preflight reports an unconfigured project without network access
+  ---
+  duration_ms: 0.99138
+  ...
+# Subtest: promotion is atomic, private and digest-verified
+ok 17 - promotion is atomic, private and digest-verified
+  ---
+  duration_ms: 17.944962
+  ...
+# Subtest: corrupt, expired and identity-mismatched snapshots are never valid
+ok 18 - corrupt, expired and identity-mismatched snapshots are never valid
+  ---
+  duration_ms: 3.450404
+  ...
+# Subtest: verifyGovernanceSnapshot accepts a currently valid, trusted, unexpired release
+ok 19 - verifyGovernanceSnapshot accepts a currently valid, trusted, unexpired release
+  ---
+  duration_ms: 15.813748
+  ...
+# Subtest: verifyGovernanceSnapshot fails closed for a missing release
+ok 20 - verifyGovernanceSnapshot fails closed for a missing release
+  ---
+  duration_ms: 0.527579
+  ...
+# Subtest: verifyGovernanceSnapshot rejects replay of an expired release
+ok 21 - verifyGovernanceSnapshot rejects replay of an expired release
+  ---
+  duration_ms: 3.563258
+  ...
+# Subtest: verifyGovernanceSnapshot rejects a release that is not yet effective
+ok 22 - verifyGovernanceSnapshot rejects a release that is not yet effective
+  ---
+  duration_ms: 3.457905
+  ...
+# Subtest: verifyGovernanceSnapshot rejects a signer that is not in the trusted binding
+ok 23 - verifyGovernanceSnapshot rejects a signer that is not in the trusted binding
+  ---
+  duration_ms: 3.482925
+  ...
+# Subtest: verifyGovernanceSnapshot rejects a substituted signed digest that does not bind to the manifest
+ok 24 - verifyGovernanceSnapshot rejects a substituted signed digest that does not bind to the manifest
+  ---
+  duration_ms: 2.614713
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 895.888861
+
+> hseos@4.0.0-rc.0 test:managed-governance-import-apply
+> node --test --test-concurrency=1 test/managed-governance/import-apply.test.js
+
+TAP version 13
+# Subtest: managed governance catalog synchronization
+    # Subtest: applies create, review, version, rename and deactivate with exact parity
+    ok 1 - applies create, review, version, rename and deactivate with exact parity
+      ---
+      duration_ms: 28.459822
+      ...
+    # Subtest: rejects forged plan identity and altered source bytes before persistence
+    ok 2 - rejects forged plan identity and altered source bytes before persistence
+      ---
+      duration_ms: 2.635151
+      ...
+    1..2
+ok 1 - managed governance catalog synchronization
+  ---
+  duration_ms: 32.633138
+  type: 'suite'
+  ...
+1..1
+# tests 2
+# suites 1
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 242.262411
+
+> hseos@4.0.0-rc.0 test:managed-governance-seed
+> node --test --test-concurrency=1 test/managed-governance/seed-current-governance.test.js
+
+TAP version 13
+# Subtest: current canonical governance seeds through the normal import path and then no-ops
+ok 1 - current canonical governance seeds through the normal import path and then no-ops
+  ---
+  duration_ms: 1643.192121
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1879.037887
+
+> hseos@4.0.0-rc.0 test:managed-governance-repository
+> node --test --test-concurrency=1 test/managed-governance/repository-contract.test.js
+
+TAP version 13
+# Subtest: in-memory governance repository satisfies the v1 port contract
+    # Subtest: commits domain state, audit, outbox and receipt atomically
+    ok 1 - commits domain state, audit, outbox and receipt atomically
+      ---
+      duration_ms: 3.551672
+      ...
+    # Subtest: returns the original result for an exact idempotent retry
+    ok 2 - returns the original result for an exact idempotent retry
+      ---
+      duration_ms: 1.612273
+      ...
+    # Subtest: rejects conflicting idempotency reuse without partial writes
+    ok 3 - rejects conflicting idempotency reuse without partial writes
+      ---
+      duration_ms: 0.738658
+      ...
+    # Subtest: serializes concurrent retries to one committed mutation
+    ok 4 - serializes concurrent retries to one committed mutation
+      ---
+      duration_ms: 0.569092
+      ...
+    # Subtest: records a readiness evaluation idempotently and never authorizes enforcement
+    ok 5 - records a readiness evaluation idempotently and never authorizes enforcement
+      ---
+      duration_ms: 6.046609
+      ...
+    # Subtest: records a recovery rehearsal idempotently and requires a confirmed disposable target
+    ok 6 - records a recovery rehearsal idempotently and requires a confirmed disposable target
+      ---
+      duration_ms: 1.770871
+      ...
+    # Subtest: records network access audit events with a deny reason required only on denial
+    ok 7 - records network access audit events with a deny reason required only on denial
+      ---
+      duration_ms: 1.068909
+      ...
+    # Subtest: keeps tenant reads isolated and closes explicitly
+    ok 8 - keeps tenant reads isolated and closes explicitly
+      ---
+      duration_ms: 0.463689
+      ...
+    1..8
+ok 1 - in-memory governance repository satisfies the v1 port contract
+  ---
+  duration_ms: 18.299574
+  ...
+# Subtest: in-memory repository records repository-scoped shadow-readiness evidence idempotently
+ok 2 - in-memory repository records repository-scoped shadow-readiness evidence idempotently
+  ---
+  duration_ms: 6.138698
+  ...
+# Subtest: migration reader pins bounded regular files and rejects link aliases
+ok 3 - migration reader pins bounded regular files and rejects link aliases
+  ---
+  duration_ms: 33.648536
+  ...
+# Subtest: pool configuration is closed, bounded and does not load a driver when injected
+ok 4 - pool configuration is closed, bounded and does not load a driver when injected
+  ---
+  duration_ms: 0.813389
+  ...
+1..4
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 235.767229
+
+> hseos@4.0.0-rc.0 test:managed-governance-postgres
+> node --test --test-concurrency=1 test/managed-governance/postgres.integration.test.js
+
+TAP version 13
+# Subtest: PostgreSQL migration and repository integration
+    # Subtest: creates every core table with fail-closed tenant RLS
+    ok 1 - creates every core table with fail-closed tenant RLS
+      ---
+      duration_ms: 29.094525
+      ...
+    # Subtest: commits domain state, audit, outbox and receipt atomically
+    ok 2 - commits domain state, audit, outbox and receipt atomically
+      ---
+      duration_ms: 106.361256
+      ...
+    # Subtest: returns the original result for an exact idempotent retry
+    ok 3 - returns the original result for an exact idempotent retry
+      ---
+      duration_ms: 64.142971
+      ...
+    # Subtest: rejects conflicting idempotency reuse without partial writes
+    ok 4 - rejects conflicting idempotency reuse without partial writes
+      ---
+      duration_ms: 37.780983
+      ...
+    # Subtest: serializes concurrent retries to one committed mutation
+    ok 5 - serializes concurrent retries to one committed mutation
+      ---
+      duration_ms: 77.64815
+      ...
+    # Subtest: records a readiness evaluation idempotently and never authorizes enforcement
+    ok 6 - records a readiness evaluation idempotently and never authorizes enforcement
+      ---
+      duration_ms: 111.969037
+      ...
+    # Subtest: records a recovery rehearsal idempotently and requires a confirmed disposable target
+    ok 7 - records a recovery rehearsal idempotently and requires a confirmed disposable target
+      ---
+      duration_ms: 44.8583
+      ...
+    # Subtest: records network access audit events with a deny reason required only on denial
+    ok 8 - records network access audit events with a deny reason required only on denial
+      ---
+      duration_ms: 46.775446
+      ...
+    # Subtest: keeps tenant reads isolated and closes explicitly
+    ok 9 - keeps tenant reads isolated and closes explicitly
+      ---
+      duration_ms: 43.605727
+      ...
+    # Subtest: persists repository-scoped shadow-readiness evidence with real cross-tenant RLS denial
+    ok 10 - persists repository-scoped shadow-readiness evidence with real cross-tenant RLS denial
+      ---
+      duration_ms: 239.023165
+      ...
+    # Subtest: applies, repeats, versions and rolls back a catalog transactionally
+    ok 11 - applies, repeats, versions and rolls back a catalog transactionally
+      ---
+      duration_ms: 456.565572
+      ...
+    # Subtest: preserves the prior active catalog when import audit persistence fails
+    ok 12 - preserves the prior active catalog when import audit persistence fails
+      ---
+      duration_ms: 338.299474
+      ...
+    # Subtest: rolls back domain state when the paired audit write fails
+    ok 13 - rolls back domain state when the paired audit write fails
+      ---
+      duration_ms: 36.888952
+      ...
+    # Subtest: database roles and immutable records are enforced by PostgreSQL
+    ok 14 - database roles and immutable records are enforced by PostgreSQL
+      ---
+      duration_ms: 54.080241
+      ...
+    1..14
+ok 1 - PostgreSQL migration and repository integration
+  ---
+  duration_ms: 1817.699195
+  ...
+1..1
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2013.296823
+
+> hseos@4.0.0-rc.0 test:managed-governance-hardening
+> node --test --test-concurrency=1 test/managed-governance/conformance.test.js test/managed-governance/security.test.js test/managed-governance/performance.test.js
+
+TAP version 13
+# Subtest: HTTP, CLI and MCP expose the same decision semantics from the shared application result
+ok 1 - HTTP, CLI and MCP expose the same decision semantics from the shared application result
+  ---
+  duration_ms: 90.109943
+  ...
+# Subtest: reserved managed enforcement remains an unavailable no-side-effect state
+ok 2 - reserved managed enforcement remains an unavailable no-side-effect state
+  ---
+  duration_ms: 4.666351
+  ...
+# Subtest: a total control-plane outage with no cached snapshot leaves the local decision authoritative and unblocked
+ok 3 - a total control-plane outage with no cached snapshot leaves the local decision authoritative and unblocked
+  ---
+  duration_ms: 1.608832
+  ...
+# Subtest: verification matrix accounts for every functional and non-functional requirement
+ok 4 - verification matrix accounts for every functional and non-functional requirement
+  ---
+  duration_ms: 1.170582
+  ...
+# Subtest: cached shadow preflight stays below the 250 ms p95 budget on the reference fixture
+ok 5 - cached shadow preflight stays below the 250 ms p95 budget on the reference fixture
+  ---
+  duration_ms: 49.012672
+  ...
+# Subtest: online shadow resolution stays below the 2 s p95 budget on the reference fixture
+ok 6 - online shadow resolution stays below the 2 s p95 budget on the reference fixture
+  ---
+  duration_ms: 9.300021
+  ...
+# Subtest: session preflight stays below the 500 ms p95 budget on the reference fixture
+ok 7 - session preflight stays below the 500 ms p95 budget on the reference fixture
+  ---
+  duration_ms: 132.713249
+  ...
+# Subtest: tenant isolation and replay protection fail closed without cross-tenant mutation
+ok 8 - tenant isolation and replay protection fail closed without cross-tenant mutation
+  ---
+  duration_ms: 8.251207
+  ...
+# Subtest: source and contract paths reject traversal, symbolic links and external content
+ok 9 - source and contract paths reject traversal, symbolic links and external content
+  ---
+  duration_ms: 17.298943
+  ...
+# ...+.....+++++++++++++++++++++++++++++++++++++++*.+...........+......+...+...+....+...+........+....+........+..........+.....+.......+....................+...+.......+...+..+....+++++++++++++++++++++++++++++++++++++++*.......+....+..+.........+............+..........+..+...+....+...............+...+.....+...+.........+...+......+.+.....+.+...+..+...+.........+..........+...........+....+..+......+.......+.....+.+.........+...+..+......+.+...+.....+......+.........+......+.+...+........++++++
+# ..+......+...............+...+.....+......+.+...+.........+++++++++++++++++++++++++++++++++++++++*.....+...+.+.........+...+++++++++++++++++++++++++++++++++++++++*............+.......+..+......+.........+.......+..............+......+..........+.....+....+.....+....+........+.........+.+..+............+......+.......+...........+.+......++++++
+# -----
+# Subtest: HTTP input limits, route injection and malformed JSON fail before application execution
+ok 10 - HTTP input limits, route injection and malformed JSON fail before application execution
+  ---
+  duration_ms: 91.689343
+  ...
+# Subtest: control-plane refuses non-loopback exposure
+ok 11 - control-plane refuses non-loopback exposure
+  ---
+  duration_ms: 1.951965
+  ...
+# .......+...+...+....+++++++++++++++++++++++++++++++++++++++*.........+++++++++++++++++++++++++++++++++++++++*.++++++
+# ..+++++++++++++++++++++++++++++++++++++++*..+..............+...+++++++++++++++++++++++++++++++++++++++*...+......+..+............+...+............+....+.....+......+.+.....+....+...+......+.........+.....+.......+.....+....+..+...+....+...+...+..+..........+........+.+.....+..........+.....+......+....+.....+....+.....+.........+...+....+.......................+.......+...+...+.........+........+......+......+.+............+...+...+...........+....+.........+..+......+..........+...+.........+..++++++
+# -----
+# ......+......+++++++++++++++++++++++++++++++++++++++*.+++++++++++++++++++++++++++++++++++++++*...................+.+...........+....+...+...+........+...................+.....+.+.........+...+.........+...+..+....+......+.....+.+...+...........+...+......+.+...+...........+......+.............+.....+...+...+.+...+...+.........+......+....................+...+.+......+..+...+......................+.....+.+..+....+........+...+....+...+...+..++++++
+# ..+.+++++++++++++++++++++++++++++++++++++++*...+...+............+.+..+++++++++++++++++++++++++++++++++++++++*..+......+..........+..+..........+.....+....+...+.....+..........+......+..+.......+.....+.+......+.....+.+...+..+...............+...+......+.+...+..............+............+...+.............+.........+........+.......+......+...+..+....+......+........+...............+......+.+..+.+..+...........................+............+..........+........+.......+.....+...+...+....+.....+......+.......+......+..+.........+...+.............++++++
+# -----
+# Subtest: a direct-tls shared-network profile actually wraps its listener in TLS, not merely declares it
+ok 12 - a direct-tls shared-network profile actually wraps its listener in TLS, not merely declares it
+  ---
+  duration_ms: 143.358172
+  ...
+# Subtest: direct-tls fails closed before any socket opens when the certificate or key is missing or invalid
+ok 13 - direct-tls fails closed before any socket opens when the certificate or key is missing or invalid
+  ---
+  duration_ms: 126.439434
+  ...
+# ..........+...+..+.........+...+...+.........+...+.+..+.......+...........+.+...+...+++++++++++++++++++++++++++++++++++++++*...+.......+...+.....+.+........+...+++++++++++++++++++++++++++++++++++++++*...+.........+..............+......+.+...............+.....+........................+.........+.+......+.........+...+......+.....+.+.....+...+.......+.....+.+..+......+....+..+.+........+.......+..+...............+...+....+..............+.+..............+.......+............+...+..+...+....+.....+.+...+.........+.....+.......+...+........+...................+...+.....+.......+........+...+...+....+.....+......+.++++++
+# ....+............+...+....+...+..+.........+.+........+...+...+.......+..+......+++++++++++++++++++++++++++++++++++++++*.+.+...+......+......+..+++++++++++++++++++++++++++++++++++++++*...+......................+......+..+.........+...+.+.........+...+..+.......+........+.......+.........+..+.........+.+.........+.........+..+.......+..+.+.................+......+................+........+.+..............+.+...........+.+..+...+...+....+..+......+..........+...+......+...+..+......+...+.+...+......+.........+.....+............+...+.+......+........+...........................+.+...+...........+....+.........+......+..+.......+..+.+...............+........+......+......+...+.+.........++++++
+# -----
+# Subtest: terminated-upstream deliberately keeps this server on plain HTTP -- TLS is an external reverse-proxy responsibility for that mode
+ok 14 - terminated-upstream deliberately keeps this server on plain HTTP -- TLS is an external reverse-proxy responsibility for that mode
+  ---
+  duration_ms: 11.312344
+  ...
+# Subtest: a perfectly valid admin credential never substitutes for network admission -- the two controls are independent
+ok 15 - a perfectly valid admin credential never substitutes for network admission -- the two controls are independent
+  ---
+  duration_ms: 92.448021
+  ...
+# Subtest: audit and outbox payloads are bounded to identifiers, never the record content, no matter how large or secret-shaped that content is
+ok 16 - audit and outbox payloads are bounded to identifiers, never the record content, no matter how large or secret-shaped that content is
+  ---
+  duration_ms: 0.802014
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1505.905098
+
+> hseos@4.0.0-rc.0 test:managed-governance-installation
+> node --test --test-concurrency=1 test/managed-governance/installation.test.js
+
+TAP version 13
+# Subtest: sidecar configuration is strict, environment-referenced and deployment-agnostic
+ok 1 - sidecar configuration is strict, environment-referenced and deployment-agnostic
+  ---
+  duration_ms: 10.880297
+  ...
+# Subtest: setup migrates, seeds and writes stable secret-free managed-shadow files
+ok 2 - setup migrates, seeds and writes stable secret-free managed-shadow files
+  ---
+  duration_ms: 21.43311
+  ...
+# Subtest: database-backed composition reports ready health and serves the seeded catalog
+ok 3 - database-backed composition reports ready health and serves the seeded catalog
+  ---
+  duration_ms: 81.291903
+  ...
+# Subtest: a fresh install with no network section still enforces loopback-only binding through the full composition
+ok 4 - a fresh install with no network section still enforces loopback-only binding through the full composition
+  ---
+  duration_ms: 3.598841
+  ...
+# > hseos@4.0.0-rc.0 prepare
+# > command -v husky >/dev/null 2>&1 && husky || exit 0
+# > hseos@4.0.0-rc.0 prepare
+# > command -v husky >/dev/null 2>&1 && husky || exit 0
+# npm warn deprecated prebuild-install@7.1.3: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
+# Subtest: a deployed shared-network profile, wired through the real composition, admits an allowlisted LAN client and denies one outside it
+ok 5 - a deployed shared-network profile, wired through the real composition, admits an allowlisted LAN client and denies one outside it
+  ---
+  duration_ms: 28.570191
+  ...
+# Subtest: the approved deployment CIDR 192.168.5.0/24 admits an in-range client and denies every out-of-range one
+ok 6 - the approved deployment CIDR 192.168.5.0/24 admits an in-range client and denies every out-of-range one
+  ---
+  duration_ms: 0.547546
+  ...
+# Subtest: the packed npm artifact ships no .hseos/state and runs the installed CLI from the extracted package alone
+ok 7 - the packed npm artifact ships no .hseos/state and runs the installed CLI from the extracted package alone
+  ---
+  duration_ms: 17739.65129
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18144.625043
+
+> hseos@4.0.0-rc.0 test:managed-governance-release-publication
+> node --test --test-concurrency=1 test/managed-governance/release-publication.test.js
+
+TAP version 13
+# Subtest: planGovernanceRelease produces a byte-identical manifest for the same input
+ok 1 - planGovernanceRelease produces a byte-identical manifest for the same input
+  ---
+  duration_ms: 30.822324
+  ...
+# Subtest: planGovernanceRelease rejects a source commit that is not the active imported catalog
+ok 2 - planGovernanceRelease rejects a source commit that is not the active imported catalog
+  ---
+  duration_ms: 2.474629
+  ...
+# Subtest: planGovernanceRelease rejects an organization with no active imported catalog
+ok 3 - planGovernanceRelease rejects an organization with no active imported catalog
+  ---
+  duration_ms: 0.344966
+  ...
+# Subtest: requestExternalSignature passes only the digest and public binding to the signer, never the manifest
+ok 4 - requestExternalSignature passes only the digest and public binding to the signer, never the manifest
+  ---
+  duration_ms: 4.482927
+  ...
+# Subtest: the signature evidence always echoes the requested algorithm, never whatever the signer claims
+ok 5 - the signature evidence always echoes the requested algorithm, never whatever the signer claims
+  ---
+  duration_ms: 3.427619
+  ...
+# Subtest: requestExternalSignature rejects a signer that does not implement sign()
+ok 6 - requestExternalSignature rejects a signer that does not implement sign()
+  ---
+  duration_ms: 3.455157
+  ...
+# Subtest: requestExternalSignature rejects a malformed signer response
+ok 7 - requestExternalSignature rejects a malformed signer response
+  ---
+  duration_ms: 2.217271
+  ...
+# Subtest: publishGovernanceRelease records a published attempt bound to the manifest and signer
+ok 8 - publishGovernanceRelease records a published attempt bound to the manifest and signer
+  ---
+  duration_ms: 3.676478
+  ...
+# Subtest: publishGovernanceRelease persists nothing when the signature does not verify
+ok 9 - publishGovernanceRelease persists nothing when the signature does not verify
+  ---
+  duration_ms: 2.981071
+  ...
+# Subtest: publishGovernanceRelease rejects evidence signed for a different binding
+ok 10 - publishGovernanceRelease rejects evidence signed for a different binding
+  ---
+  duration_ms: 2.589996
+  ...
+# Subtest: publishing the same manifest and evidence twice is idempotent, and a different manifest at the same stage conflicts
+ok 11 - publishing the same manifest and evidence twice is idempotent, and a different manifest at the same stage conflicts
+  ---
+  duration_ms: 5.152315
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 349.030399
+
+> hseos@4.0.0-rc.0 test:managed-governance-patch-bundle
+> node --test --test-concurrency=1 test/managed-governance/patch-bundle.test.js
+
+TAP version 13
+# Subtest: generatePatchBundle produces a byte-identical bundle_id, manifest_digest and patch for the same request
+ok 1 - generatePatchBundle produces a byte-identical bundle_id, manifest_digest and patch for the same request
+  ---
+  duration_ms: 63.49405
+  ...
+# Subtest: generatePatchBundle produces a different bundle_id for a substantively different request
+ok 2 - generatePatchBundle produces a different bundle_id for a substantively different request
+  ---
+  duration_ms: 53.026157
+  ...
+# Subtest: every file operation is accounted for with the correct content digest, including deletions
+ok 3 - every file operation is accounted for with the correct content digest, including deletions
+  ---
+  duration_ms: 20.075976
+  ...
+# Subtest: the generated patch is a real unified diff that git apply accepts
+ok 4 - the generated patch is a real unified diff that git apply accepts
+  ---
+  duration_ms: 54.913832
+  ...
+# Subtest: generatePatchBundle never touches git state — no commit, push, merge or tag
+ok 5 - generatePatchBundle never touches git state — no commit, push, merge or tag
+  ---
+  duration_ms: 21.952154
+  ...
+# Subtest: a re-run to the same destination is refused before any write, and the bundle is durable via the repository
+ok 6 - a re-run to the same destination is refused before any write, and the bundle is durable via the repository
+  ---
+  duration_ms: 25.58778
+  ...
+# Subtest: unsafe destinations fail before any write: symlinked parent, missing parent, existing path
+ok 7 - unsafe destinations fail before any write: symlinked parent, missing parent, existing path
+  ---
+  duration_ms: 0.637166
+  ...
+# Subtest: generatePatchBundle rejects path traversal, absolute paths and duplicate paths
+ok 8 - generatePatchBundle rejects path traversal, absolute paths and duplicate paths
+  ---
+  duration_ms: 7.880843
+  ...
+# Subtest: generatePatchBundle rejects operations whose before/after content contradicts the operation
+ok 9 - generatePatchBundle rejects operations whose before/after content contradicts the operation
+  ---
+  duration_ms: 1.09002
+  ...
+# Subtest: computeFileDiff and buildUnifiedPatch are pure helpers usable outside the full bundle flow
+ok 10 - computeFileDiff and buildUnifiedPatch are pure helpers usable outside the full bundle flow
+  ---
+  duration_ms: 30.50413
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 530.414699
+
+> hseos@4.0.0-rc.0 test:managed-governance-readiness
+> node --test --test-concurrency=1 test/managed-governance/readiness.test.js
+
+TAP version 13
+# Subtest: recordShadowReceipt is idempotent by adapter/session identity, not by receipt content
+ok 1 - recordShadowReceipt is idempotent by adapter/session identity, not by receipt content
+  ---
+  duration_ms: 16.69734
+  ...
+# Subtest: recordShadowReceipt derives receipt_id from identity, independent of digests or status
+ok 2 - recordShadowReceipt derives receipt_id from identity, independent of digests or status
+  ---
+  duration_ms: 1.269566
+  ...
+# Subtest: evaluateShadowReadiness reports ready when every day has conclusive evidence
+ok 3 - evaluateShadowReadiness reports ready when every day has conclusive evidence
+  ---
+  duration_ms: 22.721407
+  ...
+# Subtest: a re-evaluation of the same window with different evidence is a real conflict, not a silent overwrite
+ok 4 - a re-evaluation of the same window with different evidence is a real conflict, not a silent overwrite
+  ---
+  duration_ms: 17.419593
+  ...
+# Subtest: missing days are explicit and block readiness even when the aggregate ratio looks fine
+ok 5 - missing days are explicit and block readiness even when the aggregate ratio looks fine
+  ---
+  duration_ms: 11.777295
+  ...
+# Subtest: adapters missing evidence block readiness independent of repository coverage
+ok 6 - adapters missing evidence block readiness independent of repository coverage
+  ---
+  duration_ms: 8.89618
+  ...
+# Subtest: remote-unavailable receipts are recorded and reported but never count as coverage or equivalence
+ok 7 - remote-unavailable receipts are recorded and reported but never count as coverage or equivalence
+  ---
+  duration_ms: 11.838195
+  ...
+# Subtest: a window where every session is remote-unavailable is never ready, regardless of every other flag
+ok 8 - a window where every session is remote-unavailable is never ready, regardless of every other flag
+  ---
+  duration_ms: 19.124421
+  ...
+# Subtest: open drift and invalid-contract outcomes block readiness even with full coverage
+ok 9 - open drift and invalid-contract outcomes block readiness even with full coverage
+  ---
+  duration_ms: 17.957926
+  ...
+# Subtest: p95 preflight latency above 500ms fails readiness even with perfect coverage
+ok 10 - p95 preflight latency above 500ms fails readiness even with perfect coverage
+  ---
+  duration_ms: 13.213
+  ...
+# Subtest: missing latency telemetry for a covered window fails closed instead of reporting an implausible 0ms p95
+ok 11 - missing latency telemetry for a covered window fails closed instead of reporting an implausible 0ms p95
+  ---
+  duration_ms: 9.7505
+  ...
+# Subtest: stale supporting evidence (signer, recovery, threat-model, rollback) blocks readiness independently
+ok 12 - stale supporting evidence (signer, recovery, threat-model, rollback) blocks readiness independently
+  ---
+  duration_ms: 27.370609
+  ...
+# Subtest: the window must be exactly 30 consecutive completed UTC days
+ok 13 - the window must be exactly 30 consecutive completed UTC days
+  ---
+  duration_ms: 0.622774
+  ...
+# Subtest: percentile95 is exact at small sample sizes
+ok 14 - percentile95 is exact at small sample sizes
+  ---
+  duration_ms: 0.229038
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 414.479062
+
+> hseos@4.0.0-rc.0 test:managed-governance-recovery-rehearsal
+> node --test --test-concurrency=1 test/managed-governance/recovery-rehearsal.test.js
+
+TAP version 13
+# Subtest: runRecoveryRehearsal refuses an unconfirmed disposable target before touching the environment or the inspector
+ok 1 - runRecoveryRehearsal refuses an unconfirmed disposable target before touching the environment or the inspector
+  ---
+  duration_ms: 15.702703
+  ...
+# Subtest: runRecoveryRehearsal rejects an operational-target alias before ever calling the inspector
+ok 2 - runRecoveryRehearsal rejects an operational-target alias before ever calling the inspector
+  ---
+  duration_ms: 2.497591
+  ...
+# Subtest: connectionIdentity normalizes loopback hosts and default ports
+ok 3 - connectionIdentity normalizes loopback hosts and default ports
+  ---
+  duration_ms: 0.278514
+  ...
+# Subtest: a fully verified rehearsal within the declared profile is ready and persisted
+ok 4 - a fully verified rehearsal within the declared profile is ready and persisted
+  ---
+  duration_ms: 4.171779
+  ...
+# Subtest: measured_rpo_seconds reflects the gap between the operational and disposable audit history
+ok 5 - measured_rpo_seconds reflects the gap between the operational and disposable audit history
+  ---
+  duration_ms: 2.264559
+  ...
+# Subtest: a disposable target with no restored audit history fails closed instead of reporting a fabricated measurement
+ok 6 - a disposable target with no restored audit history fails closed instead of reporting a fabricated measurement
+  ---
+  duration_ms: 1.912904
+  ...
+# Subtest: tenant isolation, active catalog and audit append-only failures each independently block within_declared_profile
+ok 7 - tenant isolation, active catalog and audit append-only failures each independently block within_declared_profile
+  ---
+  duration_ms: 3.29911
+  ...
+# Subtest: release signature verification compares the disposable target against the operational published release
+ok 8 - release signature verification compares the disposable target against the operational published release
+  ---
+  duration_ms: 8.158429
+  ...
+# Subtest: an unexpected published release on the disposable target when none was expected fails verification
+ok 9 - an unexpected published release on the disposable target when none was expected fails verification
+  ---
+  duration_ms: 3.033426
+  ...
+# Subtest: measured values exceeding the declared profile block within_declared_profile even when every check passes
+ok 10 - measured values exceeding the declared profile block within_declared_profile even when every check passes
+  ---
+  duration_ms: 6.350288
+  ...
+# Subtest: restore completed at cannot precede restore started at
+ok 11 - restore completed at cannot precede restore started at
+  ---
+  duration_ms: 6.114478
+  ...
+# Subtest: each rehearsal is a fresh, independently recorded event -- rerunning is not idempotent-deduplicated
+ok 12 - each rehearsal is a fresh, independently recorded event -- rerunning is not idempotent-deduplicated
+  ---
+  duration_ms: 4.607992
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 326.597066
+
+> hseos@4.0.0-rc.0 test:managed-governance-network-admission
+> node --test --test-concurrency=1 test/managed-governance/network-admission.test.js
+
+TAP version 13
+# Subtest: parseCidr accepts valid IPv4 and IPv6 CIDRs and rejects malformed ones
+ok 1 - parseCidr accepts valid IPv4 and IPv6 CIDRs and rejects malformed ones
+  ---
+  duration_ms: 6.762055
+  ...
+# Subtest: ipFamily classifies IPv4, IPv6 and IPv4-mapped IPv6 addresses, and rejects garbage
+ok 2 - ipFamily classifies IPv4, IPv6 and IPv4-mapped IPv6 addresses, and rejects garbage
+  ---
+  duration_ms: 0.144277
+  ...
+# Subtest: buildAllowlist matches an IPv4 CIDR against the IPv4-mapped IPv6 form of the same address
+ok 3 - buildAllowlist matches an IPv4 CIDR against the IPv4-mapped IPv6 form of the same address
+  ---
+  duration_ms: 0.555727
+  ...
+# Subtest: buildAllowlist keeps IPv4 and IPv6 rules family-isolated outside the mapped-address bridge
+ok 4 - buildAllowlist keeps IPv4 and IPv6 rules family-isolated outside the mapped-address bridge
+  ---
+  duration_ms: 0.159617
+  ...
+# Subtest: buildAllowlist fails closed on an unparseable peer address instead of throwing
+ok 5 - buildAllowlist fails closed on an unparseable peer address instead of throwing
+  ---
+  duration_ms: 0.189881
+  ...
+# Subtest: assertNetworkProfile forbids an empty allowlist and a wildcard allow-all entry
+ok 6 - assertNetworkProfile forbids an empty allowlist and a wildcard allow-all entry
+  ---
+  duration_ms: 0.347357
+  ...
+# Subtest: assertNetworkProfile forbids an incomplete listener even when bound to 0.0.0.0
+ok 7 - assertNetworkProfile forbids an incomplete listener even when bound to 0.0.0.0
+  ---
+  duration_ms: 0.270496
+  ...
+# Subtest: createNetworkAdmission for the loopback profile admits only loopback peers, including the mapped form
+ok 8 - createNetworkAdmission for the loopback profile admits only loopback peers, including the mapped form
+  ---
+  duration_ms: 0.397991
+  ...
+# Subtest: createNetworkAdmission for a shared-network profile admits allowlisted peers and denies everyone else
+ok 9 - createNetworkAdmission for a shared-network profile admits allowlisted peers and denies everyone else
+  ---
+  duration_ms: 0.41602
+  ...
+# Subtest: createManagedGovernanceServer refuses to construct at all on an invalid shared-network profile
+ok 10 - createManagedGovernanceServer refuses to construct at all on an invalid shared-network profile
+  ---
+  duration_ms: 0.444033
+  ...
+# Subtest: listen() still requires a loopback host under the default profile
+ok 11 - listen() still requires a loopback host under the default profile
+  ---
+  duration_ms: 0.892642
+  ...
+# Subtest: listen() requires the shared-network host and port to match the validated profile exactly
+ok 12 - listen() requires the shared-network host and port to match the validated profile exactly
+  ---
+  duration_ms: 0.337677
+  ...
+# Subtest: a peer outside the allowlist is destroyed at the socket before any HTTP handler runs
+ok 13 - a peer outside the allowlist is destroyed at the socket before any HTTP handler runs
+  ---
+  duration_ms: 2011.288322
+  ...
+# Subtest: a peer inside the allowlist reaches the real HTTP handler, including via the IPv4-mapped IPv6 form
+ok 14 - a peer inside the allowlist reaches the real HTTP handler, including via the IPv4-mapped IPv6 form
+  ---
+  duration_ms: 11.673563
+  ...
+# Subtest: loadSidecarConfiguration defaults to the loopback profile when no network section is present
+ok 15 - loadSidecarConfiguration defaults to the loopback profile when no network section is present
+  ---
+  duration_ms: 6.508692
+  ...
+# Subtest: loadSidecarConfiguration accepts a shared-network section whose control_plane host and port agree with it
+ok 16 - loadSidecarConfiguration accepts a shared-network section whose control_plane host and port agree with it
+  ---
+  duration_ms: 2.673795
+  ...
+# Subtest: loadSidecarConfiguration rejects a control_plane host that disagrees with the shared-network listener
+ok 17 - loadSidecarConfiguration rejects a control_plane host that disagrees with the shared-network listener
+  ---
+  duration_ms: 1.31064
+  ...
+# Subtest: loadSidecarConfiguration rejects an empty or wildcard allowlist and an incomplete shared-network listener
+ok 18 - loadSidecarConfiguration rejects an empty or wildcard allowlist and an incomplete shared-network listener
+  ---
+  duration_ms: 2.91175
+  ...
+# Subtest: loadSidecarConfiguration rejects an unknown field inside the network section
+ok 19 - loadSidecarConfiguration rejects an unknown field inside the network section
+  ---
+  duration_ms: 0.675028
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2344.572313
+
+> hseos@4.0.0-rc.0 test:managed-governance-network-security
+> node --test --test-concurrency=1 test/managed-governance/network-security.test.js
+
+TAP version 13
+# Subtest: a query-scoped route accepts only the query token, never the admin token
+ok 1 - a query-scoped route accepts only the query token, never the admin token
+  ---
+  duration_ms: 65.425891
+  ...
+# Subtest: an admin-scoped route accepts only the admin token, never the query token -- scope confusion fails both ways
+ok 2 - an admin-scoped route accepts only the admin token, never the query token -- scope confusion fails both ways
+  ---
+  duration_ms: 30.659543
+  ...
+# Subtest: admin mutations require a valid CSRF token; admin reads do not
+ok 3 - admin mutations require a valid CSRF token; admin reads do not
+  ---
+  duration_ms: 12.470322
+  ...
+# Subtest: the CSRF token is only ever issued to the admin scope, never to query traffic
+ok 4 - the CSRF token is only ever issued to the admin scope, never to query traffic
+  ---
+  duration_ms: 4.129596
+  ...
+# Subtest: rate-limit denial is enforced per scope and audited without leaking any secret
+ok 5 - rate-limit denial is enforced per scope and audited without leaking any secret
+  ---
+  duration_ms: 7.536777
+  ...
+# Subtest: rate limits are tracked independently per scope, so exhausting query never blocks admin
+ok 6 - rate limits are tracked independently per scope, so exhausting query never blocks admin
+  ---
+  duration_ms: 18.704268
+  ...
+# Subtest: no response ever carries a wildcard or reflected CORS header
+ok 7 - no response ever carries a wildcard or reflected CORS header
+  ---
+  duration_ms: 10.77497
+  ...
+# Subtest: a request whose Origin disagrees with the configured public origin is denied
+ok 8 - a request whose Origin disagrees with the configured public origin is denied
+  ---
+  duration_ms: 9.850409
+  ...
+# Subtest: end to end: a spoofed X-Forwarded-For from an untrusted real peer never escapes its own rate-limit bucket
+ok 9 - end to end: a spoofed X-Forwarded-For from an untrusted real peer never escapes its own rate-limit bucket
+  ---
+  duration_ms: 8.359657
+  ...
+# Subtest: end to end: distinct clients behind a genuinely trusted proxy each get their own rate-limit bucket
+ok 10 - end to end: distinct clients behind a genuinely trusted proxy each get their own rate-limit bucket
+  ---
+  duration_ms: 9.068527
+  ...
+# Subtest: end to end: a multi-hop X-Forwarded-For behind a trusted proxy is denied outright, not guessed at
+ok 11 - end to end: a multi-hop X-Forwarded-For behind a trusted proxy is denied outright, not guessed at
+  ---
+  duration_ms: 2.462297
+  ...
+# Subtest: an unconfigured hardening pipeline (no networkAuthentication) preserves the pre-T10 loopback behavior exactly
+ok 12 - an unconfigured hardening pipeline (no networkAuthentication) preserves the pre-T10 loopback behavior exactly
+  ---
+  duration_ms: 3.438021
+  ...
+# Subtest: resolveClientAddress ignores a forwarded claim from an untrusted direct peer entirely
+ok 13 - resolveClientAddress ignores a forwarded claim from an untrusted direct peer entirely
+  ---
+  duration_ms: 0.184054
+  ...
+# Subtest: resolveClientAddress trusts a single-hop forwarded claim only from a trusted proxy
+ok 14 - resolveClientAddress trusts a single-hop forwarded claim only from a trusted proxy
+  ---
+  duration_ms: 0.170683
+  ...
+# Subtest: resolveClientAddress fails closed on an ambiguous multi-hop chain, even behind a trusted proxy
+ok 15 - resolveClientAddress fails closed on an ambiguous multi-hop chain, even behind a trusted proxy
+  ---
+  duration_ms: 0.425147
+  ...
+# Subtest: createNetworkAuthentication refuses to construct with identical query and admin tokens
+ok 16 - createNetworkAuthentication refuses to construct with identical query and admin tokens
+  ---
+  duration_ms: 0.213491
+  ...
+# Subtest: createRateLimiter bounds tracked-key cardinality regardless of how many distinct keys are seen
+ok 17 - createRateLimiter bounds tracked-key cardinality regardless of how many distinct keys are seen
+  ---
+  duration_ms: 0.27664
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 370.05281
+
+> hseos@4.0.0-rc.0 test:managed-governance-adapter-readiness
+> node --test --test-concurrency=1 test/managed-governance/adapter-readiness.test.js
+
+TAP version 13
+# Subtest: CLI (HTTP fetch), the query adapter and the MCP tool all return the exact same readiness report
+ok 1 - CLI (HTTP fetch), the query adapter and the MCP tool all return the exact same readiness report
+  ---
+  duration_ms: 104.405001
+  ...
+# Subtest: an enabled adapter with no submitted receipt keeps the whole report not ready, across every surface
+ok 2 - an enabled adapter with no submitted receipt keeps the whole report not ready, across every surface
+  ---
+  duration_ms: 44.804584
+  ...
+# Subtest: a window with no evaluation at all is reported honestly as not-yet-evaluated, never guessed at
+ok 3 - a window with no evaluation at all is reported honestly as not-yet-evaluated, never guessed at
+  ---
+  duration_ms: 12.14257
+  ...
+# Subtest: the portable bootstrap emits a receipt for an adapter with no native session-start event, before any task action
+ok 4 - the portable bootstrap emits a receipt for an adapter with no native session-start event, before any task action
+  ---
+  duration_ms: 20.92028
+  ...
+# Subtest: receipt submission never blocks or fails the local preflight result when the receiptRecorder itself fails
+ok 5 - receipt submission never blocks or fails the local preflight result when the receiptRecorder itself fails
+  ---
+  duration_ms: 4.286472
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 416.190333
+
+> hseos@4.0.0-rc.0 test:install
+> node test/test-installation-components.js && node test/test-file-sync.js
+
+  PASS  .hseos/AGENT-MANIFEST.md
+  PASS  .hseos/config/hseos.config.yaml
+  PASS  .enterprise/.specs/constitution/Enterprise-Constitution.md
+  PASS  .agents/instructions/PROJECT.md
+  PASS  .agents/hooks/registry.yaml
+  PASS  .agents/manifest.yaml
+  PASS  .agents/skills/secure-coding/SKILL.md
+  PASS  CLAUDE.md
+  PASS  AGENTS.md
+  PASS  .codex/config.toml
+  PASS  .codex/hseos-hooks.json
+  PASS  .hseos/agents/nyx.agent.yaml
+  PASS  .hseos/agents/vector.agent.yaml
+  PASS  .hseos/agents/cipher.agent.yaml
+  PASS  .hseos/agents/ghost.agent.yaml
+  PASS  .hseos/agents/razor.agent.yaml
+  PASS  .hseos/agents/glitch.agent.yaml
+  PASS  .hseos/agents/prism.agent.yaml
+  PASS  .hseos/agents/blitz.agent.yaml
+  PASS  .hseos/agents/quill.agent.yaml
+  PASS  .hseos/agents/orbit.agent.yaml
+  PASS  .hseos/agents/forge.agent.yaml
+  PASS  .hseos/agents/kube.agent.yaml
+  PASS  .hseos/agents/sable.agent.yaml
+  PASS  hseos.config.yaml is valid YAML
+  PASS  .agents/manifest.yaml has portable adapters and skills
+  PASS  .codex/config.toml exposes HSEOS MCP servers
+  PASS  .codex/hseos-hooks.json has hook metadata
+
+Installation tests: 28 passed, 0 failed
+installer idempotency primitive tests
+  PASS  missing dest → created
+  PASS  identical → in-sync
+  PASS  modified dest without recordedHash → preserved-modified
+  PASS  overwriteModified → updated
+  PASS  recordedHash == dest (untouched by user) → updated
+  PASS  recordedHash == source (only user moved) → preserved-modified
+  PASS  both sides moved → conflict-preserved
+  PASS  syncDirectory: new file created
+  PASS  syncDirectory: identical file in-sync
+  PASS  syncDirectory: modified file preserved (never mtime-clobbered)
+  PASS  syncDirectory: orphan removed
+  PASS  syncDirectory: recordedHashes lets untouched-by-user file update
+  PASS  syncModule: user-modified file preserved even with newer source mtime
+  PASS  syncModule: identical file untouched, not reported preserved
+
+File-sync tests: 14 passed, 0 failed
+
+> hseos@4.0.0-rc.0 test:detector
+> node test/test-detector-legacy-v4.js
+
+  PASS  no .hseos: expected=false actual=false
+  PASS  modern v2.0 install: expected=false actual=false
+  PASS  real legacy v4 (_cfg): expected=true actual=true
+  PASS  non-standard .hseos (no markers): expected=true actual=true
+  PASS  mid-migration (_cfg + _config): expected=true actual=true
+
+Detector legacy v4 tests: 5 passed, 0 failed
+
+> hseos@4.0.0-rc.0 test:state
+> node test/test-agent-state-dal.js && node --test --test-concurrency=1 test/test-operational-state-db.js test/test-execution-event-ledger.js test/test-execution-projections.js test/test-governed-execution-runtime.js && node test/test-state-cli.js && node test/test-state-render-lib.js && node test/test-state-ui.js && node test/test-kanban-cli.js && node test/test-state-purge.js && node test/test-kanban-central.js && node test/test-state-session.js
+
+AgentStateDAL smoke tests
+  ✓ migrations apply cleanly to in-memory db
+  ✓ createRun + describeRun roundtrip
+  ✓ createTask + claimTask atomic flow
+  ✓ emitEvent + searchEvents (FTS5)
+  ✓ listOrphans returns running agent_runs without recent heartbeat
+  ✓ createSession + claimWorktree atomic across sessions
+  ✓ listSessionRuns returns runs attached to a session
+
+7 passed, 0 failed
+TAP version 13
+# Subtest: operational runner stays at v4 and the gated fixture migration creates schema v2
+ok 1 - operational runner stays at v4 and the gated fixture migration creates schema v2
+  ---
+  duration_ms: 12.728339
+  ...
+# Subtest: fixture schema gate rejects an operational database path
+ok 2 - fixture schema gate rejects an operational database path
+  ---
+  duration_ms: 0.500839
+  ...
+# Subtest: fixture schema gate rejects symlink and hardlink aliases under /tmp
+ok 3 - fixture schema gate rejects symlink and hardlink aliases under /tmp
+  ---
+  duration_ms: 2.798962
+  ...
+# Subtest: compare-and-append produces monotonic stream versions and global positions
+ok 4 - compare-and-append produces monotonic stream versions and global positions
+  ---
+  duration_ms: 15.342443
+  ...
+# Subtest: a failure on the second row rolls back the complete append batch
+ok 5 - a failure on the second row rolls back the complete append batch
+  ---
+  duration_ms: 7.982143
+  ...
+# Subtest: stale expected_version fails with a typed conflict and no implicit retry
+ok 6 - stale expected_version fails with a typed conflict and no implicit retry
+  ---
+  duration_ms: 6.338422
+  ...
+# Subtest: an exact event-id retry is idempotent while changed or partial reuse fails
+ok 7 - an exact event-id retry is idempotent while changed or partial reuse fails
+  ---
+  duration_ms: 5.868746
+  ...
+# Subtest: append metrics are dimensioned by aggregate type and defensively copied
+ok 8 - append metrics are dimensioned by aggregate type and defensively copied
+  ---
+  duration_ms: 4.702095
+  ...
+# Subtest: ledger rows reject update/delete/replace and sensitive payload fields
+ok 9 - ledger rows reject update/delete/replace and sensitive payload fields
+  ---
+  duration_ms: 4.909593
+  ...
+# Subtest: payload and actor require strict lossless JSON values
+ok 10 - payload and actor require strict lossless JSON values
+  ---
+  duration_ms: 6.196164
+  ...
+# Subtest: ES-10 identifiers and timestamps fail closed
+ok 11 - ES-10 identifiers and timestamps fail closed
+  ---
+  duration_ms: 6.9287
+  ...
+# Subtest: concurrent connections yield unique monotonic sequences with explicit caller retry
+ok 12 - concurrent connections yield unique monotonic sequences with explicit caller retry
+  ---
+  duration_ms: 340.53311
+  ...
+# Subtest: fixture schema includes projection migration 006 while operational runner remains v4
+ok 13 - fixture schema includes projection migration 006 while operational runner remains v4
+  ---
+  duration_ms: 14.459458
+  ...
+# Subtest: execution applicator is pure and deterministic
+ok 14 - execution applicator is pure and deterministic
+  ---
+  duration_ms: 0.99948
+  ...
+# Subtest: rebuild creates and atomically activates a complete generation
+ok 15 - rebuild creates and atomically activates a complete generation
+  ---
+  duration_ms: 11.025945
+  ...
+# Subtest: crash after apply but before checkpoint rolls back and reconcile catches up exactly once
+ok 16 - crash after apply but before checkpoint rolls back and reconcile catches up exactly once
+  ---
+  duration_ms: 8.47052
+  ...
+# Subtest: failed side-by-side rebuild leaves the previous active generation visible
+ok 17 - failed side-by-side rebuild leaves the previous active generation visible
+  ---
+  duration_ms: 7.97419
+  ...
+# Subtest: a successful side-by-side rebuild switches generations only at full high-water
+ok 18 - a successful side-by-side rebuild switches generations only at full high-water
+  ---
+  duration_ms: 8.224951
+  ...
+# Subtest: health rejects false-green coverage even when checkpoint reaches high-water
+ok 19 - health rejects false-green coverage even when checkpoint reaches high-water
+  ---
+  duration_ms: 10.734034
+  ...
+# Subtest: health rejects equal-count projections with stale aggregate versions
+ok 20 - health rejects equal-count projections with stale aggregate versions
+  ---
+  duration_ms: 8.70448
+  ...
+# Subtest: health rejects semantically altered rows with matching version and position
+ok 21 - health rejects semantically altered rows with matching version and position
+  ---
+  duration_ms: 8.955832
+  ...
+# Subtest: an ineligible candidate cannot retire the active generation
+ok 22 - an ineligible candidate cannot retire the active generation
+  ---
+  duration_ms: 9.339542
+  ...
+# Subtest: a stale worker batch cannot regress an advanced checkpoint
+ok 23 - a stale worker batch cannot regress an advanced checkpoint
+  ---
+  duration_ms: 9.524239
+  ...
+# Subtest: health reports a checkpoint ahead of the ledger instead of false ok
+ok 24 - health reports a checkpoint ahead of the ledger instead of false ok
+  ---
+  duration_ms: 8.035028
+  ...
+# Subtest: an incompatible active projection fails health and reads closed
+ok 25 - an incompatible active projection fails health and reads closed
+  ---
+  duration_ms: 7.111587
+  ...
+# Subtest: an incompatible candidate cannot be activated
+ok 26 - an incompatible candidate cannot be activated
+  ---
+  duration_ms: 7.572864
+  ...
+# Subtest: fixture applies immutable approval migration 007 while the operational runner stays at v4
+ok 27 - fixture applies immutable approval migration 007 while the operational runner stays at v4
+  ---
+  duration_ms: 9.285253
+  ...
+# Subtest: event registry rejects unknown/current-invalid facts and deterministically upcasts history
+ok 28 - event registry rejects unknown/current-invalid facts and deterministically upcasts history
+  ---
+  duration_ms: 2.2756
+  ...
+# Subtest: event registry refuses schema fields without explicit classification
+ok 29 - event registry refuses schema fields without explicit classification
+  ---
+  duration_ms: 0.176849
+  ...
+# Subtest: runtime seals tool and event registries against post-start injection
+ok 30 - runtime seals tool and event registries against post-start injection
+  ---
+  duration_ms: 10.923281
+  ...
+# Subtest: runtime commits authorized and started facts before provider dispatch and returns one envelope
+ok 31 - runtime commits authorized and started facts before provider dispatch and returns one envelope
+  ---
+  duration_ms: 18.03258
+  ...
+# Subtest: input, authority, and policy failures are fail-closed before ledger/provider effects
+ok 32 - input, authority, and policy failures are fail-closed before ledger/provider effects
+  ---
+  duration_ms: 29.40773
+  ...
+# Subtest: reserved optional-warning failure mode fails closed before provider or ledger effects
+ok 33 - reserved optional-warning failure mode fails closed before provider or ledger effects
+  ---
+  duration_ms: 8.080629
+  ...
+# Subtest: provided invalid idempotency keys are rejected instead of replaced
+ok 34 - provided invalid idempotency keys are rejected instead of replaced
+  ---
+  duration_ms: 6.908934
+  ...
+# Subtest: invalid actor, resource scope, or signal fails before durable facts
+ok 35 - invalid actor, resource scope, or signal fails before durable facts
+  ---
+  duration_ms: 24.113479
+  ...
+# Subtest: malformed policy approval and warning fields fail closed before effects
+ok 36 - malformed policy approval and warning fields fail closed before effects
+  ---
+  duration_ms: 15.762212
+  ...
+# Subtest: explicit approval is immutable, operation-bound, consumed once, and replay does not redispatch
+ok 37 - explicit approval is immutable, operation-bound, consumed once, and replay does not redispatch
+  ---
+  duration_ms: 12.670177
+  ...
+# Subtest: approval records reject lossy JSON and sensitive scope data
+ok 38 - approval records reject lossy JSON and sensitive scope data
+  ---
+  duration_ms: 8.200494
+  ...
+# Subtest: expired or scope-mismatched approvals cannot dispatch
+ok 39 - expired or scope-mismatched approvals cannot dispatch
+  ---
+  duration_ms: 15.733861
+  ...
+# Subtest: denied, wrong-policy, not-active, and reused approvals fail before dispatch
+ok 40 - denied, wrong-policy, not-active, and reused approvals fail before dispatch
+  ---
+  duration_ms: 26.917866
+  ...
+# Subtest: approval consumption rolls back atomically when pre-effect facts cannot commit
+ok 41 - approval consumption rolls back atomically when pre-effect facts cannot commit
+  ---
+  duration_ms: 9.12884
+  ...
+# Subtest: deadline after dispatch records uncertain outcome and same idempotency key never redispatches
+ok 42 - deadline after dispatch records uncertain outcome and same idempotency key never redispatches
+  ---
+  duration_ms: 32.949651
+  ...
+# Subtest: approval delay cannot extend the absolute execution deadline
+ok 43 - approval delay cannot extend the absolute execution deadline
+  ---
+  duration_ms: 8.865939
+  ...
+# Subtest: terminal append failure after provider success stays in doubt and is never automatically replayed
+ok 44 - terminal append failure after provider success stays in doubt and is never automatically replayed
+  ---
+  duration_ms: 8.943318
+  ...
+# Subtest: same idempotency key cannot cross actor, resource, or contract policy scope
+ok 45 - same idempotency key cannot cross actor, resource, or contract policy scope
+  ---
+  duration_ms: 9.266631
+  ...
+# Subtest: replay rejects trace or causation drift in any persisted operation fact
+ok 46 - replay rejects trace or causation drift in any persisted operation fact
+  ---
+  duration_ms: 7.081977
+  ...
+# Subtest: malformed provider evidence is terminally rejected after dispatch
+ok 47 - malformed provider evidence is terminally rejected after dispatch
+  ---
+  duration_ms: 15.207864
+  ...
+# Subtest: malformed provider error receipt is omitted while outcome remains durable
+ok 48 - malformed provider error receipt is omitted while outcome remains durable
+  ---
+  duration_ms: 10.023108
+  ...
+# Subtest: primitive provider throws still record a terminal outcome
+ok 49 - primitive provider throws still record a terminal outcome
+  ---
+  duration_ms: 12.112891
+  ...
+# Subtest: retryable provider failure remains retryable on immediate response and replay
+ok 50 - retryable provider failure remains retryable on immediate response and replay
+  ---
+  duration_ms: 11.609687
+  ...
+# Subtest: a provider without idempotency support forces explicit approval
+ok 51 - a provider without idempotency support forces explicit approval
+  ---
+  duration_ms: 6.70436
+  ...
+# Subtest: non-cancellable execution ignores a pre-aborted caller signal
+ok 52 - non-cancellable execution ignores a pre-aborted caller signal
+  ---
+  duration_ms: 6.685379
+  ...
+# Subtest: cooperative execution records a durable cancellation before provider dispatch
+ok 53 - cooperative execution records a durable cancellation before provider dispatch
+  ---
+  duration_ms: 10.917173
+  ...
+# Subtest: queued cancellation still fails closed on authority and policy denial
+ok 54 - queued cancellation still fails closed on authority and policy denial
+  ---
+  duration_ms: 31.135773
+  ...
+# Subtest: output contract failure is failed for reads and uncertain for mutations
+ok 55 - output contract failure is failed for reads and uncertain for mutations
+  ---
+  duration_ms: 18.03319
+  ...
+# Subtest: runtime rejects a ledger not bound to the exact fail-closed event registry
+ok 56 - runtime rejects a ledger not bound to the exact fail-closed event registry
+  ---
+  duration_ms: 6.630402
+  ...
+# Subtest: runtime rejects approval and ledger stores on different SQLite connections
+ok 57 - runtime rejects approval and ledger stores on different SQLite connections
+  ---
+  duration_ms: 8.76932
+  ...
+# Subtest: the registry-bound ledger rejects direct unregistered execution facts
+ok 58 - the registry-bound ledger rejects direct unregistered execution facts
+  ---
+  duration_ms: 4.555945
+  ...
+# Subtest: a default ledger also fails closed on unregistered execution facts
+ok 59 - a default ledger also fails closed on unregistered execution facts
+  ---
+  duration_ms: 6.281661
+  ...
+# Subtest: operational database remains at schema v4 without fixture activation
+ok 60 - operational database remains at schema v4 without fixture activation
+  ---
+  duration_ms: 12.968116
+  ...
+# Subtest: production rejects a pre-existing pending schema even when its version is disguised
+ok 61 - production rejects a pre-existing pending schema even when its version is disguised
+  ---
+  duration_ms: 16.327141
+  ...
+# Subtest: concurrent gated fixture startups serialize pending schema migration through version 10
+ok 62 - concurrent gated fixture startups serialize pending schema migration through version 10
+  ---
+  duration_ms: 100.962177
+  ...
+# Subtest: startup waits for an existing SQLite writer before applying connection pragmas
+ok 63 - startup waits for an existing SQLite writer before applying connection pragmas
+  ---
+  duration_ms: 138.718816
+  ...
+# Subtest: pending fixtures reject direct, symlinked, and hard-linked escape paths
+ok 64 - pending fixtures reject direct, symlinked, and hard-linked escape paths
+  ---
+  duration_ms: 7.763263
+  ...
+1..64
+# tests 64
+# suites 0
+# pass 64
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1701.050053
+State CLI smoke tests
+  ✓ state rejects command-shaped ports before invoking a process
+  ✓ state validates the complete TCP port range
+  ✓ legacy state SQL input is escaped instead of executed
+  ✓ production CLI preserves v4 behavior and records legacy transition usage
+  ✓ production CLI rejects a pre-existing pending execution schema
+  ✓ state-emit creates db file and inserts event
+  ✓ state-emit cannot write state when the governed pre-effect append fails
+  ✓ state-list returns the row from state-emit
+  ✓ state-describe returns the run summary
+  ✓ state-list --orphans is empty for fresh heartbeat
+
+10 passed, 0 failed
+state-render-lib snapshot tests
+  ✓ renderPlan produces deterministic markdown with table
+  ✓ renderStatus lists tasks and agent runs
+  ✓ renderResumePrompt emits run id and source-of-truth pointer
+  ✓ renderResumePrompt elides session line when absent
+
+4 passed, 0 failed
+State UI side-car smoke
+  ✓ side-car lifecycle rejects command-shaped and out-of-range ports
+  ✓ non-loopback binding fails closed even with authentication
+  ✓ identity health check sends no bearer secret and rejects an arbitrary 200 response
+  ✓ stop refuses an instance record whose PID belongs to another process
+  ✓ single-project side-car refuses to create a missing state database
+  ✓ requests without the configured bearer token are rejected
+  ✓ GET /health exposes only unauthenticated process identity
+  ✓ GET /favicon.ico is an unauthenticated console-clean no-content response
+  ✓ GET /api/state returns snapshot shape
+  ✓ stop signals exactly the verified managed process
+
+10 passed, 0 failed
+Kanban CLI ASCII smoke
+  ✓ hseos kanban exits 0 and renders all 5 columns
+  ✓ hseos kanban shows the seeded run id
+
+2 passed, 0 failed
+state-purge smoke
+  ✓ dry-run reports counts without deleting
+  ✓ --force without independent approval fails without deleting
+  ✓ approval for one run cannot authorize purging another run
+  ✓ --force deletes the run and dependent rows
+  ✓ R-keep run is preserved (not affected by R-purge)
+
+5 passed, 0 failed
+Central kanban smoke
+  ✓ default central registry is project-scoped
+  ✓ GET /health reports only the managed instance identity
+  ✓ GET /api/state aggregates 2 project DBs
+  ✓ graceful degrade when one DB is missing
+
+4 passed, 0 failed
+[test-state-session] DAL
+  ✓ registerSession creates an active row with context
+  ✓ registerSession is idempotent and refreshes last_seen
+  ✓ registerSession re-activates an ended session (resume)
+  ✓ endSession closes and listSessions hides it unless all=true
+  ✓ sweepOrphanSessions orphans only stale active sessions
+[test-state-session] CLI
+  ✓ CLI register creates the store and the row
+  ✓ CLI heartbeat on unknown session registers it (upsert)
+  ✓ CLI end closes the session; list --all still shows it
+  ✓ CLI sweep reports orphaned count
+  ✓ CLI register without --session fails with a clean error
+
+[test-state-session] 10 passed, 0 failed
+
+> hseos@4.0.0-rc.0 test:governance
+> node --test --test-concurrency=1 test/test-governance-context.js && node test/test-commit-msg.js && node test/test-governance-scripts.js && node test/test-solo-maintainer-governance.js && node test/test-pr-closeout.js
+
+TAP version 13
+# Subtest: empty consumer still inherits producer discovery; enforcement is never inferred
+ok 1 - empty consumer still inherits producer discovery; enforcement is never inferred
+  ---
+  duration_ms: 22.517789
+  ...
+# Subtest: missing producer source is incomplete even when local governance exists
+ok 2 - missing producer source is incomplete even when local governance exists
+  ---
+  duration_ms: 2.813368
+  ...
+# Subtest: empty sources fail and changed sources receive new hashes
+ok 3 - empty sources fail and changed sources receive new hashes
+  ---
+  duration_ms: 6.217794
+  ...
+# Subtest: compiled handler reloads context on repeated prompts/resume outside producer cwd
+ok 4 - compiled handler reloads context on repeated prompts/resume outside producer cwd
+  ---
+  duration_ms: 405.202232
+  ...
+# Subtest: canonical registry emits prompt hook and portable instructions include fallback
+ok 5 - canonical registry emits prompt hook and portable instructions include fallback
+  ---
+  duration_ms: 55.937789
+  ...
+# Subtest: dedup requires a lifecycle event, then unchanged prompts emit zero bytes
+ok 6 - dedup requires a lifecycle event, then unchanged prompts emit zero bytes
+  ---
+  duration_ms: 1448.984655
+  ...
+# Subtest: compaction, resume, end and project round trips invalidate context
+ok 7 - compaction, resume, end and project round trips invalidate context
+  ---
+  duration_ms: 804.064179
+  ...
+# Subtest: corpus and ancestor adapter changes invalidate; missing sources still block cached sessions
+ok 8 - corpus and ancestor adapter changes invalidate; missing sources still block cached sessions
+  ---
+  duration_ms: 502.805957
+  ...
+# Subtest: session and adapter isolation, JSON suppression, and absent identity fallback
+ok 9 - session and adapter isolation, JSON suppression, and absent identity fallback
+  ---
+  duration_ms: 527.299585
+  ...
+# Subtest: corrupt or unavailable cache re-emits; expired receipts do not suppress
+ok 10 - corrupt or unavailable cache re-emits; expired receipts do not suppress
+  ---
+  duration_ms: 402.630914
+  ...
+# Subtest: late receipt cannot undo compact invalidation; session names cannot escape state root
+ok 11 - late receipt cannot undo compact invalidation; session names cannot escape state root
+  ---
+  duration_ms: 6.165615
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4336.38741
+  PASS  valid conventional commit — fix with scope
+  PASS  valid conventional commit — feat with scope
+  PASS  no type prefix — plain sentence
+  PASS  AI mention in subject
+  PASS  forbidden Co-Authored-By trailer
+  PASS  subject longer than 100 characters
+
+Commit message validator tests: 6 passed, 0 failed
+  PASS  worktree-manager validates from inside the task worktree
+  PASS  worktree-manager generated merge message is conventional
+  PASS  branch protection desired state includes master
+  FAIL  branch protection apply tool emits GitHub REST payload - Command failed: node scripts/governance/apply-branch-protection.js --dry-run --branch master
+branch-protection: Unable to determine GitHub repo. Pass --repo <owner/repo>.
+
+  PASS  branch protection apply tool detects GitHub Actions repository
+  PASS  branch naming policy is aligned with check-branch guard
+  PASS  every workflow that runs the full suite installs the required isolation backend first
+  PASS  release assets have portable checksums and version-bound notes
+
+Governance script tests: 7 passed, 1 failed

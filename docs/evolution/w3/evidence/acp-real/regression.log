@@ -1,0 +1,46 @@
+✔ composition validator rejects any extra plugin, including a model-facing tool (11.28351ms)
+✔ composition validator rejects enabled workspaceContext (3.245245ms)
+✔ composition validator rejects enabled toolBash (5.998382ms)
+✔ composition validator rejects enabled toolJobs (2.225677ms)
+✔ composition validator rejects enabled goals (2.072415ms)
+✔ composition validator rejects symlink aliases (0.333035ms)
+✔ composition validator rejects hardlink aliases (4.637978ms)
+✔ process ACP peer drives one bounded DeepSeek-compatible session over JSON-RPC stdio (39.82638ms)
+✔ tool-free DeepSeek composition yields a hash-bound one-shot effect attestation (6.521731ms)
+✔ host-verified tool-free composition compensates for the missing stock ACP metadata (27.51211ms)
+✔ stock-like DeepSeek ACP initialization without HSEOS effect attestation fails closed (25.412528ms)
+✔ DeepSeek ACP process binding rejects cross-process resume when loadSession is absent (53.625307ms)
+✔ process ACP peer answers permission requests while the provider denies the effect (28.864529ms)
+✔ process ACP peer closes on an unknown JSON-RPC response id (27.861061ms)
+✔ ACP manifest reports L0 honestly and rejects negotiation for every higher level (3.711563ms)
+✔ stable ACP v1 lifecycle maps text and terminal response to normalized ordered events (7.23764ms)
+✔ L0 denies permission requests and cancels tool effects without emitting a tool call (5.036895ms)
+✔ tool-call notifications, malformed updates and wrong session identities fail closed (2.130112ms)
+✔ version and effect-boundary negotiation reject incompatible or ungoverned peers (0.697995ms)
+✔ resume, cancellation and disposal preserve correlated lifecycle semantics (1.689702ms)
+✔ ACP reattaches a durable session in a fresh provider through load without creating a remote session (0.642797ms)
+✔ ACP reattachment rejects unsupported load and missing durable state without session/new (0.449326ms)
+✔ concurrent duplicate creates reserve identity before crossing the ACP boundary (0.515451ms)
+✔ event budgets terminate an instruction stream before unbounded growth (0.679357ms)
+✔ a requested cancellation becomes terminal before the peer notification settles (8.791922ms)
+✔ prompt stop reasons are strict ACP v1 values and cancelled is not reported as success (2.375611ms)
+✔ synchronous prompt dispatch failures settle the session and do not leave an active turn (0.604171ms)
+✔ a correlatable malformed outer notification durably fails its active session (3.6234ms)
+✔ a duplicate remote session identity quarantines its existing local owner (0.736187ms)
+✔ a malformed post-create response cancels the captured remote session (0.352676ms)
+✔ initialize rejects malformed optional ACP v1 capability fields before session creation (0.274822ms)
+✔ input bytes are bounded by the delegated session budget before ACP dispatch (1.083574ms)
+✔ content chunk envelope is strict while valid ACP annotations are accepted (2.950157ms)
+✔ cancel settles locally when peer notification I/O never completes (25.503016ms)
+✔ durations above the Node timer ceiling do not overflow into an immediate timeout (11.693603ms)
+✔ send cannot overlap an in-flight session load (1.543898ms)
+✔ resume cannot overlap an active prompt or another in-flight resume (2.306141ms)
+✔ create and close settle when lifecycle request I/O never completes (68.891464ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1025.66428

@@ -1,0 +1,516 @@
+✔ pinned ACP profile negotiates known advertisements without enabling those operations (5.637741ms)
+✔ unknown capabilities and versions fail closed (0.871358ms)
+✔ mode or model drift fails before prompt; unsolicited metadata is rejected (1.170337ms)
+✔ usage is bounded and tools pass through to the denying generic L0 bridge (1.352977ms)
+✔ expiry denies new work while cancellation remains possible; paid auth changes denied (5.677774ms)
+✔ startup profile disables tool sources and pins catalog before app-server starts (0.580937ms)
+✔ ACP campaign accounts cached input and rejects inconsistent native totals (52.444448ms)
+✔ loader preserves legacy configuration and constructs only registered lazy adapters (39.321939ms)
+✔ loader refuses state override, directory drift and replaced ledger before factory effects (19.960679ms)
+✔ loader preserves temporary ledger activation gate (16.703857ms)
+✔ loader validates all references and manifests before invoking any factory (17.986489ms)
+✔ loader checks observed digest and adapter interface, sanitizing factory exceptions (18.358938ms)
+✔ loader rechecks ledger identity after factory construction (17.310662ms)
+✔ loader rejects malformed, oversized, symlink and hardlink configurations (18.898278ms)
+✔ composition validator rejects any extra plugin, including a model-facing tool (11.067598ms)
+✔ composition validator rejects enabled workspaceContext (3.213523ms)
+✔ composition validator rejects enabled toolBash (5.874483ms)
+✔ composition validator rejects enabled toolJobs (2.243955ms)
+✔ composition validator rejects enabled goals (2.075669ms)
+✔ composition validator rejects symlink aliases (0.328963ms)
+✔ composition validator rejects hardlink aliases (5.476706ms)
+✔ process ACP peer drives one bounded DeepSeek-compatible session over JSON-RPC stdio (38.749006ms)
+✔ tool-free DeepSeek composition yields a hash-bound one-shot effect attestation (6.470907ms)
+✔ host-verified tool-free composition compensates for the missing stock ACP metadata (28.407807ms)
+✔ stock-like DeepSeek ACP initialization without HSEOS effect attestation fails closed (25.028221ms)
+✔ DeepSeek ACP process binding rejects cross-process resume when loadSession is absent (52.684403ms)
+✔ process ACP peer answers permission requests while the provider denies the effect (27.709097ms)
+✔ process ACP peer closes on an unknown JSON-RPC response id (28.246855ms)
+✔ codex factory selects explicit identity, preserves remote quota units and receipts (1855.25766ms)
+✔ claude factory selects explicit identity, preserves remote quota units and receipts (1832.727958ms)
+✔ native preflight never replaces unknown quotas, paid credits or credentials with invented capacity (2390.00536ms)
+✔ bridge authenticates, pins child scope, cannot replay, and works through the Python SDK component (131.128373ms)
+✔ bridge retains uncertainty and waits for an in-flight child before closing (4.46839ms)
+✖ process supervisor returns only after descendants drain and kills startup stalls (0.841431ms)
+✔ Antigravity factory requires a pinned local checkpoint and proves a subordinate call occurred (183.042513ms)
+✖ real worker process drives Codex and Claude protocol fixtures and refuses attempted effects (0.801188ms)
+✖ resource profiles enforce finite memory and process bounds and preserve defaults (0.43469ms)
+✔ Claude cached input remains part of the admitted token usage (778.166308ms)
+✖ native resource profile is pinned and reaches inspection and execution (1591.661267ms)
+✖ campaign reserves before dispatch, replays receipts and preserves consumption after reopening (44.591176ms)
+✔ a new campaign identity cannot reuse authorization or manufacture a larger budget (27.260458ms)
+✔ ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch (25.498662ms)
+✖ receipt loss preserves the reservation and requires current-state reconciliation without retry (21.531503ms)
+✖ a second controller cannot reconcile a live dispatch and can cancel it durably (25.101612ms)
+✔ a changed binding manifest cannot replace the pinned configuration after reopening (19.971987ms)
+✖ HTTP and SDK campaign commands share authentication, cursors and durable budget (68.545958ms)
+✖ known overspend remains charged after uncertain outcome reconciliation (20.533095ms)
+✔ expired grants, stale sequences and cancellation deny new effects (26.75808ms)
+✔ unbound adapter identities and missing dispatch implementations cannot configure campaigns (20.788885ms)
+✖ a concurrent exact retry observes the committed receipt without a second dispatch (20.555898ms)
+✖ a request ceiling holds even when prior attempts report zero charge (20.659681ms)
+✔ failed inspection never consumes an authorization or leaks transport details (19.924729ms)
+✖ client and subordinate model reserve in one campaign before effect and preserve costs on reopen (21.675255ms)
+✖ subordinate budget cannot bypass the campaign ceiling (47.507719ms)
+✖ a child with a lost receipt retains its reservation and fences even a parent that catches its error (42.574523ms)
+✖ subordinate capability expires when parent finishes and cannot target an unpinned binding (31.483082ms)
+✖ campaign cancellation reaches parent and child and waits for child termination (24.654165ms)
+✖ shutdown cancels and drains a composed call before returning, and fences future effects (21.755791ms)
+✔ denied task scope is checked before resolving provider credentials or probing its API (20.107138ms)
+✔ shutdown aborts and waits for admission probes before the ledger can close (22.680478ms)
+✔ request quota cannot conceal an observed monetary deficit (18.513534ms)
+✖ Python Antigravity capability reaches the same campaign reservation before the subordinate effect (19.464478ms)
+✖ known session resume keeps binding, task and campaign budget pinned (19.213345ms)
+✖ unknown quota requires an explicit expiring owner exception and never overrides exhaustion (21.503438ms)
+✔ quota exceptions cannot expand authorization scope or expiration (18.741762ms)
+✖ terminal account client composes without changing identity or enabling recursive children (20.239379ms)
+ℹ Error: Test "a concurrent exact retry observes the committed receipt without a second dispatch" at test/test-provider-campaign-control.js:324:1 generated asynchronous activity after the test ended. This activity created the error "EngineeringIsolationError: A delegated parent cgroup is required" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+✖ runner completes a bounded pilot, checks replay and can restart without repeating inference or resetting budget (45.644436ms)
+✔ four-family scope fails before authorization claim if families are missing (23.023444ms)
+✖ runner preserves uncertain effects across restart and never advances or cancels them implicitly (22.03397ms)
+✔ runner rejects duplicate command identity and unexpected vendor before effects (17.919757ms)
+✖ runner operates through authenticated HTTP and the public SDK (67.29782ms)
+✔ official routes distinguish native accounts, API and local bindings without claiming certification (6.030466ms)
+✔ route confusion, unknown quota, capability claims, secrets and unbounded reservations fail closed (2.566273ms)
+✔ binding drift is rejected and declared control evidence does not certify a real journey (0.283551ms)
+✔ ACP manifest reports L0 honestly and rejects negotiation for every higher level (3.662084ms)
+✔ stable ACP v1 lifecycle maps text and terminal response to normalized ordered events (7.218553ms)
+✔ L0 denies permission requests and cancels tool effects without emitting a tool call (5.090138ms)
+✔ tool-call notifications, malformed updates and wrong session identities fail closed (2.116173ms)
+✔ version and effect-boundary negotiation reject incompatible or ungoverned peers (0.689242ms)
+✔ resume, cancellation and disposal preserve correlated lifecycle semantics (1.667728ms)
+✔ ACP reattaches a durable session in a fresh provider through load without creating a remote session (0.646424ms)
+✔ ACP reattachment rejects unsupported load and missing durable state without session/new (0.461268ms)
+✔ concurrent duplicate creates reserve identity before crossing the ACP boundary (0.484348ms)
+✔ event budgets terminate an instruction stream before unbounded growth (0.670597ms)
+✔ a requested cancellation becomes terminal before the peer notification settles (5.132906ms)
+✔ prompt stop reasons are strict ACP v1 values and cancelled is not reported as success (5.34651ms)
+✔ synchronous prompt dispatch failures settle the session and do not leave an active turn (0.619407ms)
+✔ a correlatable malformed outer notification durably fails its active session (3.610119ms)
+✔ a duplicate remote session identity quarantines its existing local owner (0.734792ms)
+✔ a malformed post-create response cancels the captured remote session (0.350976ms)
+✔ initialize rejects malformed optional ACP v1 capability fields before session creation (0.26983ms)
+✔ input bytes are bounded by the delegated session budget before ACP dispatch (1.026923ms)
+✔ content chunk envelope is strict while valid ACP annotations are accepted (1.158047ms)
+✔ cancel settles locally when peer notification I/O never completes (25.720768ms)
+✔ durations above the Node timer ceiling do not overflow into an immediate timeout (11.219524ms)
+✔ send cannot overlap an in-flight session load (0.727852ms)
+✔ resume cannot overlap an active prompt or another in-flight resume (1.000869ms)
+✔ create and close settle when lifecycle request I/O never completes (66.084605ms)
+ℹ tests 98
+ℹ suites 0
+ℹ pass 74
+ℹ fail 24
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12357.050696
+
+✖ failing tests:
+
+test at test/test-provider-campaign-adapters.js:216:1
+✖ process supervisor returns only after descendants drain and kills startup stalls (0.841431ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+      at createResourceGroup (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:108:18)
+      at runCampaignProcess (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-process.js:19:17)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/test/test-provider-campaign-adapters.js:219:24)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-provider-campaign-adapters.js:309:1
+✖ real worker process drives Codex and Claude protocol fixtures and refuses attempted effects (0.801188ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+      at createResourceGroup (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:108:18)
+      at runCampaignProcess (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-process.js:19:17)
+      at run (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/test/test-provider-campaign-adapters.js:327:26)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/test/test-provider-campaign-adapters.js:328:23)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-provider-campaign-adapters.js:354:1
+✖ resource profiles enforce finite memory and process bounds and preserve defaults (0.43469ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+      at createResourceGroup (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:108:18)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/test/test-provider-campaign-adapters.js:361:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-provider-campaign-adapters.js:389:1
+✖ native resource profile is pinned and reaches inspection and execution (1591.661267ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+      at createResourceGroup (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:108:18)
+      at runCampaignProcess (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-process.js:19:17)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/test/test-provider-campaign-adapters.js:402:24)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-provider-campaign-control.js:74:1
+✖ campaign reserves before dispatch, replays receipts and preserves consumption after reopening (44.591176ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+      at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+      at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+      at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+      at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-provider-campaign-control.js:130:1
+✖ receipt loss preserves the reservation and requires current-state reconciliation without retry (21.531503ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  -   code: 'CONTROL_OUTCOME_UNCERTAIN'
+    }
+  
+      at async TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/test/test-provider-campaign-control.js:137:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: EngineeringIsolationError: A delegated parent cgroup is required
+        at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+        at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+        at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+        at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+        at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8),
+    expected: { code: 'CONTROL_OUTCOME_UNCERTAIN' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at test/test-provider-campaign-control.js:153:1
+✖ a second controller cannot reconcile a live dispatch and can cancel it durably (25.101612ms)
+  [AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  -   code: 'CONTROL_OUTCOME_UNCERTAIN'
+    }
+  ] {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: EngineeringIsolationError: A delegated parent cgroup is required
+        at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+        at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+        at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+        at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+        at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8),
+    expected: { code: 'CONTROL_OUTCOME_UNCERTAIN' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at test/test-provider-campaign-control.js:192:1
+✖ HTTP and SDK campaign commands share authentication, cursors and durable budget (68.545958ms)
+  Error: CONTROL_REQUEST_REJECTED
+      at ControlClient.request (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/control-sdk/index.js:28:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/test/test-provider-campaign-control.js:215:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    code: 'CONTROL_REQUEST_REJECTED'
+  }
+
+test at test/test-provider-campaign-control.js:252:1
+✖ known overspend remains charged after uncertain outcome reconciliation (20.533095ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  -   code: 'CONTROL_OUTCOME_UNCERTAIN'
+    }
+  
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/test/test-provider-campaign-control.js:255:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: EngineeringIsolationError: A delegated parent cgroup is required
+        at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+        at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+        at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+        at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+        at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8)
+        at process.processTicksAndRejections (node:internal/process/task_queues:104:5),
+    expected: { code: 'CONTROL_OUTCOME_UNCERTAIN' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at test/test-provider-campaign-control.js:324:1
+✖ a concurrent exact retry observes the committed receipt without a second dispatch (20.555898ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+      at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+      at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+      at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+      at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-provider-campaign-control.js:344:1
+✖ a request ceiling holds even when prior attempts report zero charge (20.659681ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+      at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+      at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+      at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+      at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-provider-campaign-control.js:459:1
+✖ client and subordinate model reserve in one campaign before effect and preserve costs on reopen (21.675255ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+      at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+      at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+      at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+      at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-provider-campaign-control.js:471:1
+✖ subordinate budget cannot bypass the campaign ceiling (47.507719ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  -   code: 'CONTROL_OUTCOME_UNCERTAIN'
+    }
+  
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/test/test-provider-campaign-control.js:473:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: EngineeringIsolationError: A delegated parent cgroup is required
+        at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+        at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+        at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+        at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+        at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8)
+        at process.processTicksAndRejections (node:internal/process/task_queues:104:5),
+    expected: { code: 'CONTROL_OUTCOME_UNCERTAIN' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at test/test-provider-campaign-control.js:478:1
+✖ a child with a lost receipt retains its reservation and fences even a parent that catches its error (42.574523ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  -   code: 'CONTROL_OUTCOME_UNCERTAIN'
+    }
+  
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/test/test-provider-campaign-control.js:488:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: EngineeringIsolationError: A delegated parent cgroup is required
+        at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+        at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+        at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+        at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+        at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8)
+        at process.processTicksAndRejections (node:internal/process/task_queues:104:5),
+    expected: { code: 'CONTROL_OUTCOME_UNCERTAIN' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at test/test-provider-campaign-control.js:496:1
+✖ subordinate capability expires when parent finishes and cannot target an unpinned binding (31.483082ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+      at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+      at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+      at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+      at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-provider-campaign-control.js:510:1
+✖ campaign cancellation reaches parent and child and waits for child termination (24.654165ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  -   code: 'CONTROL_OUTCOME_UNCERTAIN'
+    }
+  
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: EngineeringIsolationError: A delegated parent cgroup is required
+        at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+        at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+        at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+        at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+        at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8)
+        at process.processTicksAndRejections (node:internal/process/task_queues:104:5),
+    expected: { code: 'CONTROL_OUTCOME_UNCERTAIN' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at test/test-provider-campaign-control.js:534:1
+✖ shutdown cancels and drains a composed call before returning, and fences future effects (21.755791ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  -   code: 'CONTROL_OUTCOME_UNCERTAIN'
+    }
+  
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: EngineeringIsolationError: A delegated parent cgroup is required
+        at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+        at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+        at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+        at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+        at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8)
+        at process.processTicksAndRejections (node:internal/process/task_queues:104:5),
+    expected: { code: 'CONTROL_OUTCOME_UNCERTAIN' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at test/test-provider-campaign-control.js:617:1
+✖ Python Antigravity capability reaches the same campaign reservation before the subordinate effect (19.464478ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+      at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+      at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+      at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+      at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-provider-campaign-control.js:646:1
+✖ known session resume keeps binding, task and campaign budget pinned (19.213345ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+      at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+      at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+      at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+      at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-provider-campaign-control.js:671:1
+✖ unknown quota requires an explicit expiring owner exception and never overrides exhaustion (21.503438ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+      at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+      at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+      at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+      at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-provider-campaign-control.js:729:1
+✖ terminal account client composes without changing identity or enabling recursive children (20.239379ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+      at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+      at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+      at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+      at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-provider-campaign-runner.js:87:1
+✖ runner completes a bounded pilot, checks replay and can restart without repeating inference or resetting budget (45.644436ms)
+  Error [EngineeringIsolationError]: A delegated parent cgroup is required
+      at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+      at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+      at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+      at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+      at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8) {
+    code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  }
+
+test at test/test-provider-campaign-runner.js:108:1
+✖ runner preserves uncertain effects across restart and never advances or cancels them implicitly (22.03397ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'ENGINEERING_ISOLATION_UNAVAILABLE'
+  -   code: 'CONTROL_OUTCOME_UNCERTAIN'
+    }
+  
+      at async TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/test/test-provider-campaign-runner.js:111:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: EngineeringIsolationError: A delegated parent cgroup is required
+        at resourceParent (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:32:59)
+        at executorOwner (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/agent-isolation-attestation/executor.js:47:59)
+        at sqliteTransaction.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:424:22)
+        at sqliteTransaction (/workspace/github/marciohideaki/enterprise-hseos/node_modules/better-sqlite3/lib/methods/transaction.js:65:24)
+        at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-control.js:449:8),
+    expected: { code: 'CONTROL_OUTCOME_UNCERTAIN' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at test/test-provider-campaign-runner.js:127:1
+✖ runner operates through authenticated HTTP and the public SDK (67.29782ms)
+  Error: CONTROL_REQUEST_REJECTED
+      at ControlClient.request (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/packages/control-sdk/index.js:28:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runProviderCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-runner.js:69:20)
+      at async TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/test/test-provider-campaign-runner.js:134:20)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    code: 'CONTROL_REQUEST_REJECTED'
+  }

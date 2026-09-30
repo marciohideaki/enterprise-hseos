@@ -192,7 +192,7 @@ gate_code() {
     local run_node_checks=false
     if [[ -z "${staged_files}" ]]; then
       run_node_checks=true
-    elif echo "${staged_files}" | grep -qE '^(src/|tools/|package\.json|package-lock\.json|eslint\.config\..*|tsconfig.*|scripts/.*\.(js|ts|mjs|cjs)$)'; then
+    elif grep -qE '^(src/|tools/|packages/|test/|package\.json|package-lock\.json|eslint\.config\..*|tsconfig.*|scripts/.*\.(js|ts|mjs|cjs)$)' <<< "${staged_files}"; then
       run_node_checks=true
     fi
 
@@ -239,7 +239,7 @@ gate_code() {
 
   # Schema validation (HSEOS-specific)
   if [[ -f "${REPO_ROOT}/tools/validate-agent-schema.js" ]] && \
-     ([[ -z "${staged_files}" ]] || echo "${staged_files}" | grep -qE '^(src/hsm/agents/|tools/schema/|tools/validate-agent-schema\.js|src/utility/agent-components/)'); then
+     ([[ -z "${staged_files}" ]] || grep -qE '^(src/hsm/agents/|tools/schema/|tools/validate-agent-schema\.js|src/utility/agent-components/)' <<< "${staged_files}"); then
     if (cd "${REPO_ROOT}" && node tools/validate-agent-schema.js &>>"$LOG_FILE"); then
       pass "Agent schema validation: passed"
     else
@@ -295,10 +295,10 @@ gate_security() {
   fi
 
   # .env files must never be staged (local) nor tracked (local + CI)
-  if git -C "${REPO_ROOT}" diff --cached --name-only 2>/dev/null | grep -qE '(^|/)\.env$|(^|/)\.env\.'; then
+  if git -C "${REPO_ROOT}" diff --cached --name-only 2>/dev/null | grep -E '(^|/)\.env$|(^|/)\.env\.' >/dev/null; then
     record_fail ".env file is staged — secrets must not be committed"
   fi
-  if git -C "${REPO_ROOT}" ls-files 2>/dev/null | grep -qE '(^|/)\.env$|(^|/)\.env\.'; then
+  if git -C "${REPO_ROOT}" ls-files 2>/dev/null | grep -E '(^|/)\.env$|(^|/)\.env\.' >/dev/null; then
     record_fail ".env file is tracked in git — secrets must not be committed"
   fi
 }

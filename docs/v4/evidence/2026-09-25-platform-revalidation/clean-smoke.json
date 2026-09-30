@@ -1,0 +1,211 @@
+{
+  "consumer": "/tmp/hseos-platform-validation-a1uo0ad3",
+  "public_bin_used": true,
+  "empty_home": true,
+  "results": [
+    {
+      "name": "addition",
+      "receipt": {
+        "schema_version": 1,
+        "profile": "disposable-engineering-candidate",
+        "task_run_id": "180c7ab7-5486-460f-ac1d-31f75ef5c737",
+        "task_id": "example-addition",
+        "state": "/tmp/hseos-ledger-fixture-Dc2zle",
+        "session_id": "session:a8588d8f-9762-4d1d-aec2-5ff1f2f427b8",
+        "status": "completed",
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "current_sequence": 4,
+        "contract_sha256": "1f401c276570d722debc9dacc6b324c5b5d3950b1765777ebeb1fb2df9ac94af",
+        "token_accounting": {
+          "reported_input_tokens": 1,
+          "reported_output_tokens": 1,
+          "conservative_estimate_tokens": 26463,
+          "total_tokens": 26465,
+          "estimate_counter": "token-counter:utf8-byte-upper-bound"
+        },
+        "correction_reviews": [],
+        "correction_diagnoses": [],
+        "questions": [],
+        "operational_authorized": false
+      }
+    },
+    {
+      "name": "clamp",
+      "receipt": {
+        "schema_version": 1,
+        "profile": "disposable-engineering-candidate",
+        "task_run_id": "e54c9f8d-dadb-4e9b-8146-2e2de09766d4",
+        "task_id": "example-clamp",
+        "state": "/tmp/hseos-ledger-fixture-6jPCq1",
+        "session_id": "session:e4d08694-c7c5-4df5-bc4b-9171d94f6d19",
+        "status": "completed",
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "current_sequence": 4,
+        "contract_sha256": "efa1ba0634b1a2f0bea6705d87639433a94e856ed8d1551a20e1249db1b0cd17",
+        "token_accounting": {
+          "reported_input_tokens": 1,
+          "reported_output_tokens": 1,
+          "conservative_estimate_tokens": 26643,
+          "total_tokens": 26645,
+          "estimate_counter": "token-counter:utf8-byte-upper-bound"
+        },
+        "correction_reviews": [],
+        "correction_diagnoses": [],
+        "questions": [],
+        "operational_authorized": false
+      }
+    },
+    {
+      "name": "unique",
+      "receipt": {
+        "schema_version": 1,
+        "profile": "disposable-engineering-candidate",
+        "task_run_id": "0e7fb0d1-77d1-4328-a76e-673a1ced7f6e",
+        "task_id": "example-unique",
+        "state": "/tmp/hseos-ledger-fixture-feO09h",
+        "session_id": "session:222029ac-2426-4618-82d2-21478d6516a4",
+        "status": "completed",
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "current_sequence": 4,
+        "contract_sha256": "bc7212402b4c42914ff134e462d3f8bc84e525ad326ef987c354d82151eeb3d4",
+        "token_accounting": {
+          "reported_input_tokens": 1,
+          "reported_output_tokens": 1,
+          "conservative_estimate_tokens": 26711,
+          "total_tokens": 26713,
+          "estimate_counter": "token-counter:utf8-byte-upper-bound"
+        },
+        "correction_reviews": [],
+        "correction_diagnoses": [],
+        "questions": [],
+        "operational_authorized": false
+      }
+    },
+    {
+      "name": "correction",
+      "receipt": {
+        "schema_version": 1,
+        "profile": "disposable-engineering-candidate",
+        "task_run_id": "bc32ecbf-3034-4a01-9233-cbfebcb73a00",
+        "task_id": "example-correction",
+        "state": "/tmp/hseos-ledger-fixture-DOMNuF",
+        "session_id": "session:63087f8c-8056-479c-a7da-963db161cce3",
+        "status": "completed",
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "current_sequence": 9,
+        "contract_sha256": "1c24bcec8a7eb9dd7a9b7c11e61050bcf0131a581fee640d2a1ce1e06fb068b7",
+        "token_accounting": {
+          "reported_input_tokens": 2,
+          "reported_output_tokens": 2,
+          "conservative_estimate_tokens": 59864,
+          "total_tokens": 59868,
+          "estimate_counter": "token-counter:utf8-byte-upper-bound"
+        },
+        "correction_reviews": [
+          {
+            "kind": "review",
+            "step_id": "step:63559578bb5c1de2bc7cd74d1a34d2b3ca9aca35",
+            "approved": false,
+            "reason": "criteria-not-satisfied",
+            "files_sha256": "1f6233233c22dd03810edb8dc2afb8e1e15bb14fda6d824269830935f61140dd",
+            "correction_requested": true
+          },
+          {
+            "kind": "review",
+            "step_id": "step:df893b9bdb7b89cb184fa32a0cddae24288ea22e",
+            "approved": true,
+            "reason": "criteria-satisfied",
+            "files_sha256": "3d595d023ae2f571120d1c4c00463edcd9c1780c7b2f5780a93b6c3830e29d86",
+            "correction_requested": false
+          }
+        ],
+        "correction_diagnoses": [
+          {
+            "kind": "diagnosis",
+            "review_step_id": "step:63559578bb5c1de2bc7cd74d1a34d2b3ca9aca35",
+            "files_sha256": "1f6233233c22dd03810edb8dc2afb8e1e15bb14fda6d824269830935f61140dd",
+            "cause": "Constant output violates the addition requirement.",
+            "correction": "Compute the sum using both arguments, then run the authorized check.",
+            "requirement_ids": [
+              "r1"
+            ]
+          }
+        ],
+        "questions": [],
+        "operational_authorized": false
+      }
+    },
+    {
+      "name": "workflow",
+      "receipt": {
+        "schema_version": 1,
+        "profile": "disposable-engineering-candidate",
+        "workflow_id": "workflow:engineering-examples",
+        "state": "/tmp/hseos-ledger-fixture-1rlFmu",
+        "session_id": "session:6b31bf9b-0d23-4ef9-b8e2-c60e11fa52a3",
+        "current_sequence": 9,
+        "status": "completed",
+        "tasks": [
+          {
+            "id": "addition",
+            "session_id": "session:7bbaf90a-5b52-41bf-9be6-eed7404aacbe",
+            "task_run_id": "57223c01-3c36-4ec4-b4eb-fe8eb7b00e59",
+            "result": "approved",
+            "reason": "criteria-satisfied",
+            "questions": []
+          },
+          {
+            "id": "clamp",
+            "session_id": "session:f1969e1a-629b-4399-8a28-880f324c6f48",
+            "task_run_id": "fcf5d6ab-0246-46f3-bd12-5972e9ba2aef",
+            "result": "approved",
+            "reason": "criteria-satisfied",
+            "questions": []
+          },
+          {
+            "id": "unique",
+            "session_id": "session:d4a48956-e0dd-44b2-998f-87b973898b4b",
+            "task_run_id": "cf3465ff-bac1-4244-85c9-dec4a9899f72",
+            "result": "approved",
+            "reason": "criteria-satisfied",
+            "questions": []
+          }
+        ],
+        "questions": [],
+        "budget": {
+          "max_tokens": {
+            "ceiling": 300000,
+            "spent": 79823,
+            "reserved": 0,
+            "released": 220177
+          },
+          "max_tool_calls": {
+            "ceiling": 24,
+            "spent": 6,
+            "reserved": 0,
+            "released": 18
+          },
+          "max_turns": {
+            "ceiling": 24,
+            "spent": 3,
+            "reserved": 0,
+            "released": 21
+          }
+        },
+        "operational_authorized": false
+      }
+    },
+    {
+      "profile": "minimal",
+      "installed": true
+    },
+    {
+      "profile": "disposable-engineering-candidate",
+      "installed": true
+    }
+  ]
+}

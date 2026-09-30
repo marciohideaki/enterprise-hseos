@@ -1,0 +1,9 @@
+{
+  "recorded_at": "2026-09-26T14:47:31.897140+00:00",
+  "load_average": [14.83154296875, 10.94091796875, 5.671875],
+  "physical_cores": 6,
+  "status": "full_matrix_deferred_host_capacity",
+  "stopped_only_owned_runner": 1065329,
+  "stopped_owned_port_forwards": [1065385],
+  "no_full_matrix_pass_claim": true
+}

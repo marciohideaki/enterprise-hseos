@@ -36,12 +36,14 @@ const ModelNameSchema = z
   .string()
   .min(1)
   .max(256)
-  .regex(/^[^\s\u0000-\u001f\u007f]+$/);
+  // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
+  .regex(/^[^\s\u0000-\u001F\u007F]+$/);
 const OpaqueIdentifierSchema = z
   .string()
   .min(1)
   .max(1024)
-  .regex(/^[^\s\u0000-\u001f\u007f]+$/);
+  // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
+  .regex(/^[^\s\u0000-\u001F\u007F]+$/);
 const ReferenceSchema = z.string().min(1).max(1024);
 const SemverSchema = z.string().regex(/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/);
 const TimestampSchema = z.string().datetime({ offset: true });

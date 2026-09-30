@@ -1,0 +1,3 @@
+{"total": {"lines":{"total":926,"covered":883,"skipped":0,"pct":95.35},"statements":{"total":926,"covered":883,"skipped":0,"pct":95.35},"functions":{"total":27,"covered":26,"skipped":0,"pct":96.29},"branches":{"total":343,"covered":301,"skipped":0,"pct":87.75},"branchesTrue":{"total":0,"covered":0,"skipped":0,"pct":"Unknown"}}
+,"/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-job-dispatch/tools/cli/lib/engineering-task-runtime.js": {"lines":{"total":926,"covered":883,"skipped":0,"pct":95.35},"functions":{"total":27,"covered":26,"skipped":0,"pct":96.29},"statements":{"total":926,"covered":883,"skipped":0,"pct":95.35},"branches":{"total":343,"covered":301,"skipped":0,"pct":87.75}}
+}

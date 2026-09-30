@@ -1,0 +1,20 @@
+✔ optional Antigravity client restricts SDK tools to pinned kernel actions (176.432897ms)
+✔ codex factory selects explicit identity, preserves remote quota units and receipts (1826.42725ms)
+✔ claude factory selects explicit identity, preserves remote quota units and receipts (1850.7621ms)
+✔ native preflight never replaces unknown quotas, paid credits or credentials with invented capacity (2373.49166ms)
+✔ bridge authenticates, pins child scope, cannot replay, and works through the Python SDK component (132.174409ms)
+✔ bridge retains uncertainty and waits for an in-flight child before closing (4.522684ms)
+✔ process supervisor returns only after descendants drain and kills startup stalls (107.056987ms)
+✔ Antigravity factory requires a pinned local checkpoint and proves a subordinate call occurred (173.083688ms)
+✔ real worker process drives Codex and Claude protocol fixtures and refuses attempted effects (1325.604634ms)
+✔ resource profiles enforce finite memory and process bounds and preserve defaults (1.296849ms)
+✔ Claude cached input remains part of the admitted token usage (788.814581ms)
+✔ native resource profile is pinned and reaches inspection and execution (1634.290176ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10628.968398

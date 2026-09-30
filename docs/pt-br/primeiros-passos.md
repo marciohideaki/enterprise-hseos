@@ -6,7 +6,7 @@
 
 ## Pré-requisitos
 
-- Node.js ≥ 20
+- Node.js ≥ 22
 - Git configurado com sua identidade
 - Claude Code CLI instalado (`npm install -g @anthropic-ai/claude-code`)
 - Acesso ao repositório do projeto
@@ -27,12 +27,26 @@ como NVM, fnm, asdf e Volta, devem ser atualizadas sem `sudo`.
 Depois, a partir da raiz do seu projeto:
 
 ```bash
-hseos install
+hseos init  # assistente interativo: perfil, plano e instalação
 ```
+
+O assistente mostra os perfis, resume componentes e pré-requisitos, pede
+confirmação antes de gravar arquivos e então conduz as opções do instalador.
+Para ver o plano completo ou automatizar a instalação, use:
+
+```bash
+hseos install-plan --profile developer --tools claude-code,codex  # consulta, sem escrita
+hseos install --profile developer --tools claude-code,codex
+```
+
+`install-plan` mostra componentes, arquivos e pré-requisitos; `install` grava os
+arquivos do projeto. Se quiser apenas Codex, use `--tools codex` nos
+dois comandos. A instalação global do CLI não instala automaticamente os
+workflows e adapters em cada repositório.
 
 Isso configura:
 
-- `.claude/commands/` — todos os 14 comandos de agente (ativados como slash commands do Claude Code)
+- `.claude/commands/` — comandos de agente e auxiliares para Claude Code
 - `.enterprise/` — specs de governança, arquivos de autoridade dos agentes, biblioteca de skills
 - `.hseos/` — configurações de agentes, definições de workflow, config local
 - Git hooks — quality gates de pré-commit (lint, validação de schema, higiene de commits)
@@ -59,7 +73,7 @@ a instalação portátil e siga
 
 Após a instalação, leia nesta ordem:
 
-1. **`CLAUDE.md`** — As Sete Leis e o roster de agentes (5 min)
+1. **`AGENTS.md`** — regras canônicas do projeto e cascata de instruções (5 min); `CLAUDE.md` encaminha o Claude Code para ele
 2. **`.enterprise/.specs/constitution/Enterprise-Constitution.md`** — Regras inegociáveis (10 min)
 3. **`docs/agents/`** — Navegue pelos agentes relevantes para o seu papel (veja o guia de papéis abaixo)
 

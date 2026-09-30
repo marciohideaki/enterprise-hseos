@@ -1,0 +1,39 @@
+{
+  "type": "focused-verification",
+  "task": "W4-02c2a",
+  "Node22.23.3": {
+    "passed": 42,
+    "failed": 0,
+    "skipped": 0
+  },
+  "Node24.15.0": {
+    "passed": 42,
+    "failed": 0,
+    "skipped": 0
+  },
+  "coverage": {
+    "execution-plugin-campaign.js": {
+      "lines": 100,
+      "branches": 88
+    },
+    "provider-control-manifest.js": {
+      "lines": 99.32,
+      "branches": 93.75
+    }
+  },
+  "sha256": {
+    "tools/cli/lib/execution-plugin-campaign.js": "030453a2998302df0f151af53b646dcb51cb77dcd235b06de2342d013cea203f",
+    "tools/lib/provider-control-manifest.js": "7b3d82afb71f5bc36b7f65372dc8fb246af52ef431f59b0c703a15fa9e72475f"
+  },
+  "full_gate": {
+    "Node24.15.0": "passed",
+    "failures": 0,
+    "warnings": 3,
+    "log_sha256": "eecdde44bd00edebd0f1f035954f9cb30c5bb2ce359c2e1af5a0048792a499f8"
+  },
+  "limitations": [
+    "Deterministic local fixtures; real consumers and campaign pending",
+    "Provider ports and task composition pending",
+    "No new remote provider family or operational activation"
+  ]
+}

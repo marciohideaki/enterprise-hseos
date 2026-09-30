@@ -1,0 +1,161 @@
+✖ external code executes only from a read-only isolated snapshot with request-bound output (12.44075ms)
+✖ untrusted imports cannot access the host workspace, source directory or arbitrary private file (5.005544ms)
+✖ network creation is refused inside an external plugin (4.674337ms)
+✖ malformed output, forged identity, unsuccessful import and missing handlers fail closed (9.830459ms)
+✖ timeout and output ceilings terminate plugin descendants (3.626557ms)
+✖ cancellation drains a plugin and a detached descendant; parent exit also drains descendants (3.586987ms)
+✔ admission drift, malformed requests, expired deadlines and pre-cancellation reject before entrypoint effects (7.815306ms)
+✖ plugin-supplied conformance is isolated and cannot claim host certification (3.884351ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 1
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 250.027198
+
+✖ failing tests:
+
+test at test/test-execution-plugin-runtime.js:47:1
+✖ external code executes only from a read-only isolated snapshot with request-bound output (12.44075ms)
+  Error [ExecutionPluginError]: PLUGIN_ISOLATION_FAILED
+      at reject (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:47:9)
+      at invoke (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:155:5)
+      at executeExecutionPlugin (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:162:10)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/test/test-execution-plugin-runtime.js:56:24)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    code: 'PLUGIN_ISOLATION_FAILED'
+  }
+
+test at test/test-execution-plugin-runtime.js:64:1
+✖ untrusted imports cannot access the host workspace, source directory or arbitrary private file (5.005544ms)
+  Error [ExecutionPluginError]: PLUGIN_ISOLATION_FAILED
+      at reject (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:47:9)
+      at invoke (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:155:5)
+      at executeExecutionPlugin (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:162:10)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/test/test-execution-plugin-runtime.js:74:27)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    code: 'PLUGIN_ISOLATION_FAILED'
+  }
+
+test at test/test-execution-plugin-runtime.js:78:1
+✖ network creation is refused inside an external plugin (4.674337ms)
+  Error [ExecutionPluginError]: PLUGIN_ISOLATION_FAILED
+      at reject (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:47:9)
+      at invoke (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:155:5)
+      at executeExecutionPlugin (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:162:10)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/test/test-execution-plugin-runtime.js:86:23)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    code: 'PLUGIN_ISOLATION_FAILED'
+  }
+
+test at test/test-execution-plugin-runtime.js:89:1
+✖ malformed output, forged identity, unsuccessful import and missing handlers fail closed (9.830459ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+  Caught error:
+
+  ExecutionPluginError: PLUGIN_ISOLATION_FAILED
+      at async TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/test/test-execution-plugin-runtime.js:100:39)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: ExecutionPluginError: PLUGIN_ISOLATION_FAILED
+        at reject (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:47:9)
+        at invoke (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:155:5)
+        at executeExecutionPlugin (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:162:10)
+        at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/test/test-execution-plugin-runtime.js:100:53)
+        at Test.runInAsyncScope (node:async_hooks:227:14)
+        at Test.run (node:internal/test_runner/test:1201:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+        at Test.postRun (node:internal/test_runner/test:1330:19)
+        at Test.run (node:internal/test_runner/test:1258:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at test/test-execution-plugin-runtime.js:103:1
+✖ timeout and output ceilings terminate plugin descendants (3.626557ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+  Caught error:
+
+  ExecutionPluginError: PLUGIN_ISOLATION_FAILED
+      at async TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/test/test-execution-plugin-runtime.js:105:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: ExecutionPluginError: PLUGIN_ISOLATION_FAILED
+        at reject (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:47:9)
+        at invoke (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:155:5)
+        at executeExecutionPlugin (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:162:10)
+        at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/test/test-execution-plugin-runtime.js:105:17)
+        at Test.runInAsyncScope (node:async_hooks:227:14)
+        at Test.run (node:internal/test_runner/test:1201:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+        at Test.postRun (node:internal/test_runner/test:1330:19)
+        at Test.run (node:internal/test_runner/test:1258:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at test/test-execution-plugin-runtime.js:110:1
+✖ cancellation drains a plugin and a detached descendant; parent exit also drains descendants (3.586987ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+  Caught error:
+
+  ExecutionPluginError: PLUGIN_ISOLATION_FAILED
+      at async TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/test/test-execution-plugin-runtime.js:118:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: ExecutionPluginError: PLUGIN_ISOLATION_FAILED
+        at reject (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:47:9)
+        at invoke (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:155:5)
+        at executeExecutionPlugin (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:162:10)
+        at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/test/test-execution-plugin-runtime.js:118:19)
+        at Test.runInAsyncScope (node:async_hooks:227:14)
+        at Test.run (node:internal/test_runner/test:1201:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+        at Test.postRun (node:internal/test_runner/test:1330:19)
+        at Test.run (node:internal/test_runner/test:1258:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at test/test-execution-plugin-runtime.js:137:1
+✖ plugin-supplied conformance is isolated and cannot claim host certification (3.884351ms)
+  Error [ExecutionPluginError]: PLUGIN_ISOLATION_FAILED
+      at reject (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:47:9)
+      at invoke (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:155:5)
+      at runExecutionPluginConformance (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/tools/cli/lib/execution-plugin-runtime.js:170:26)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w4-plugin-isolation/test/test-execution-plugin-runtime.js:139:24)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    code: 'PLUGIN_ISOLATION_FAILED'
+  }

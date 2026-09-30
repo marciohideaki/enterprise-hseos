@@ -220,6 +220,7 @@ class OpenAICompatibleModelProvider {
     const controller = new AbortController();
     const reservation = { controller, started: false };
     this.#active.set(input.request_id, reservation);
+    // eslint-disable-next-line unicorn/no-this-assignment -- Capture the provider owner for the returned async iterator method.
     const provider = this;
     let started = false;
     return {

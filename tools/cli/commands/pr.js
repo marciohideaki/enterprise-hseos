@@ -7,7 +7,7 @@ const SUPPORTED_ACTIONS = new Set(['closeout']);
 
 module.exports = {
   command: 'pr <action> [number]',
-  description: 'Governed Pull Request operations',
+  description: 'Governed Pull Request closeout',
   options: [
     ['--approved', 'Confirm explicit human approval for governed merge'],
     ['--dry-run', 'Validate and print the planned closeout without executing it'],

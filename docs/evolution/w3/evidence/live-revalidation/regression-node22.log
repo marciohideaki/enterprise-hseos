@@ -1,0 +1,400 @@
+TAP version 13
+# Subtest: Codex app-server driver performs official initialize, thread and turn lifecycle over JSONL stdio
+ok 1 - Codex app-server driver performs official initialize, thread and turn lifecycle over JSONL stdio
+  ---
+  duration_ms: 40.049918
+  type: 'test'
+  ...
+# Subtest: a fresh driver process reattaches with thread/resume and never creates a replacement thread
+ok 2 - a fresh driver process reattaches with thread/resume and never creates a replacement thread
+  ---
+  duration_ms: 53.469543
+  type: 'test'
+  ...
+# Subtest: effect-bearing Codex items are rejected by the hosted L0 provider
+ok 3 - effect-bearing Codex items are rejected by the hosted L0 provider
+  ---
+  duration_ms: 27.139139
+  type: 'test'
+  ...
+# Subtest: an unknown future Codex item fails closed as an effect instead of widening L0
+ok 4 - an unknown future Codex item fails closed as an effect instead of widening L0
+  ---
+  duration_ms: 43.53222
+  type: 'test'
+  ...
+# Subtest: an app-server process exit settles the active hosted stream as provider unavailable
+ok 5 - an app-server process exit settles the active hosted stream as provider unavailable
+  ---
+  duration_ms: 41.069616
+  type: 'test'
+  ...
+# Subtest: driver cancellation maps to turn/interrupt and terminates the process
+ok 6 - driver cancellation maps to turn/interrupt and terminates the process
+  ---
+  duration_ms: 28.124772
+  type: 'test'
+  ...
+# Subtest: driver rejects a relative executable and an environment with non-explicit keys
+ok 7 - driver rejects a relative executable and an environment with non-explicit keys
+  ---
+  duration_ms: 0.739603
+  type: 'test'
+  ...
+# Subtest: process normalization cannot mutate the frozen driver environment
+ok 8 - process normalization cannot mutate the frozen driver environment
+  ---
+  duration_ms: 23.821425
+  type: 'test'
+  ...
+# Subtest: resumed Codex usage distinguishes known history from another thread: stale-usage
+ok 9 - resumed Codex usage distinguishes known history from another thread: stale-usage
+  ---
+  duration_ms: 29.390602
+  type: 'test'
+  ...
+# Subtest: resumed Codex usage distinguishes known history from another thread: foreign-stale-usage
+ok 10 - resumed Codex usage distinguishes known history from another thread: foreign-stale-usage
+  ---
+  duration_ms: 29.530121
+  type: 'test'
+  ...
+# Subtest: Node command executes with read-only workspace, hidden controls and bounded resources
+ok 11 - Node command executes with read-only workspace, hidden controls and bounded resources
+  ---
+  duration_ms: 113.257337
+  type: 'test'
+  ...
+# Subtest: Python cannot create Internet or Unix sockets
+ok 12 - Python cannot create Internet or Unix sockets
+  ---
+  duration_ms: 36.439972
+  type: 'test'
+  ...
+# Subtest: output flooding is bounded and every descendant is drained
+ok 13 - output flooding is bounded and every descendant is drained
+  ---
+  duration_ms: 29.499988
+  type: 'test'
+  ...
+# Subtest: cancellation eliminates a detached descendant holding output pipes
+ok 14 - cancellation eliminates a detached descendant holding output pipes
+  ---
+  duration_ms: 302.875568
+  type: 'test'
+  ...
+# Subtest: parent exit drains detached descendants without waiting for their sleep
+ok 15 - parent exit drains detached descendants without waiting for their sleep
+  ---
+  duration_ms: 35.84266
+  type: 'test'
+  ...
+# Subtest: forged policies and invalid budgets fail before launch
+ok 16 - forged policies and invalid budgets fail before launch
+  ---
+  duration_ms: 1.065593
+  type: 'test'
+  ...
+# Subtest: a running command cannot exceed its wall-clock budget
+ok 17 - a running command cannot exceed its wall-clock budget
+  ---
+  duration_ms: 204.716945
+  type: 'test'
+  ...
+# Subtest: the process limit applies to the complete descendant group
+ok 18 - the process limit applies to the complete descendant group
+  ---
+  duration_ms: 43.993815
+  type: 'test'
+  ...
+# Subtest: invalid UTF-8 cannot expand captured output beyond its byte budget
+ok 19 - invalid UTF-8 cannot expand captured output beyond its byte budget
+  ---
+  duration_ms: 33.961371
+  type: 'test'
+  ...
+# Subtest: memory exhaustion remains confined to the executor group
+ok 20 - memory exhaustion remains confined to the executor group
+  ---
+  duration_ms: 148.709101
+  type: 'test'
+  ...
+# Subtest: resource cleanup retries a busy empty group before confirming completion
+ok 21 - resource cleanup retries a busy empty group before confirming completion
+  ---
+  duration_ms: 42.34935
+  type: 'test'
+  ...
+# Subtest: persistent busy cleanup is uncertain and never confirms completion
+ok 22 - persistent busy cleanup is uncertain and never confirms completion
+  ---
+  duration_ms: 5044.734386
+  type: 'test'
+  ...
+# Subtest: project runtime mounts only the controller executable read-only without inheriting its environment
+ok 23 - project runtime mounts only the controller executable read-only without inheriting its environment
+  ---
+  duration_ms: 50.302047
+  type: 'test'
+  ...
+# Subtest: codex factory selects explicit identity, preserves remote quota units and receipts
+ok 24 - codex factory selects explicit identity, preserves remote quota units and receipts
+  ---
+  duration_ms: 1913.533141
+  type: 'test'
+  ...
+# Subtest: claude factory selects explicit identity, preserves remote quota units and receipts
+ok 25 - claude factory selects explicit identity, preserves remote quota units and receipts
+  ---
+  duration_ms: 1904.095997
+  type: 'test'
+  ...
+# Subtest: native preflight never replaces unknown quotas, paid credits or credentials with invented capacity
+ok 26 - native preflight never replaces unknown quotas, paid credits or credentials with invented capacity
+  ---
+  duration_ms: 2374.235835
+  type: 'test'
+  ...
+# Subtest: bridge authenticates, pins child scope, cannot replay, and works through the Python SDK component
+ok 27 - bridge authenticates, pins child scope, cannot replay, and works through the Python SDK component
+  ---
+  duration_ms: 125.195708
+  type: 'test'
+  ...
+# Subtest: bridge retains uncertainty and waits for an in-flight child before closing
+ok 28 - bridge retains uncertainty and waits for an in-flight child before closing
+  ---
+  duration_ms: 4.261492
+  type: 'test'
+  ...
+# Subtest: process supervisor returns only after descendants drain and kills startup stalls
+ok 29 - process supervisor returns only after descendants drain and kills startup stalls
+  ---
+  duration_ms: 112.042703
+  type: 'test'
+  ...
+# Subtest: Antigravity factory requires a pinned local checkpoint and proves a subordinate call occurred
+ok 30 - Antigravity factory requires a pinned local checkpoint and proves a subordinate call occurred
+  ---
+  duration_ms: 182.150316
+  type: 'test'
+  ...
+# Subtest: real worker process drives Codex and Claude protocol fixtures and refuses attempted effects
+ok 31 - real worker process drives Codex and Claude protocol fixtures and refuses attempted effects
+  ---
+  duration_ms: 1282.264465
+  type: 'test'
+  ...
+# Subtest: resource profiles enforce finite memory and process bounds and preserve defaults
+ok 32 - resource profiles enforce finite memory and process bounds and preserve defaults
+  ---
+  duration_ms: 1.329119
+  type: 'test'
+  ...
+# Subtest: Claude cached input remains part of the admitted token usage
+ok 33 - Claude cached input remains part of the admitted token usage
+  ---
+  duration_ms: 791.954117
+  type: 'test'
+  ...
+# Subtest: native resource profile is pinned and reaches inspection and execution
+ok 34 - native resource profile is pinned and reaches inspection and execution
+  ---
+  duration_ms: 1618.882047
+  type: 'test'
+  ...
+# Subtest: campaign reserves before dispatch, replays receipts and preserves consumption after reopening
+ok 35 - campaign reserves before dispatch, replays receipts and preserves consumption after reopening
+  ---
+  duration_ms: 52.597195
+  type: 'test'
+  ...
+# Subtest: a new campaign identity cannot reuse authorization or manufacture a larger budget
+ok 36 - a new campaign identity cannot reuse authorization or manufacture a larger budget
+  ---
+  duration_ms: 23.83009
+  type: 'test'
+  ...
+# Subtest: ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch
+ok 37 - ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch
+  ---
+  duration_ms: 31.287597
+  type: 'test'
+  ...
+# Subtest: receipt loss preserves the reservation and requires current-state reconciliation without retry
+ok 38 - receipt loss preserves the reservation and requires current-state reconciliation without retry
+  ---
+  duration_ms: 31.648983
+  type: 'test'
+  ...
+# Subtest: a second controller cannot reconcile a live dispatch and can cancel it durably
+ok 39 - a second controller cannot reconcile a live dispatch and can cancel it durably
+  ---
+  duration_ms: 80.476679
+  type: 'test'
+  ...
+# Subtest: a changed binding manifest cannot replace the pinned configuration after reopening
+ok 40 - a changed binding manifest cannot replace the pinned configuration after reopening
+  ---
+  duration_ms: 28.130056
+  type: 'test'
+  ...
+# Subtest: HTTP and SDK campaign commands share authentication, cursors and durable budget
+ok 41 - HTTP and SDK campaign commands share authentication, cursors and durable budget
+  ---
+  duration_ms: 242.190411
+  type: 'test'
+  ...
+# Subtest: known overspend remains charged after uncertain outcome reconciliation
+ok 42 - known overspend remains charged after uncertain outcome reconciliation
+  ---
+  duration_ms: 26.683357
+  type: 'test'
+  ...
+# Subtest: expired grants, stale sequences and cancellation deny new effects
+ok 43 - expired grants, stale sequences and cancellation deny new effects
+  ---
+  duration_ms: 25.796867
+  type: 'test'
+  ...
+# Subtest: unbound adapter identities and missing dispatch implementations cannot configure campaigns
+ok 44 - unbound adapter identities and missing dispatch implementations cannot configure campaigns
+  ---
+  duration_ms: 22.389903
+  type: 'test'
+  ...
+# Subtest: a concurrent exact retry observes the committed receipt without a second dispatch
+ok 45 - a concurrent exact retry observes the committed receipt without a second dispatch
+  ---
+  duration_ms: 23.662173
+  type: 'test'
+  ...
+# Subtest: a request ceiling holds even when prior attempts report zero charge
+ok 46 - a request ceiling holds even when prior attempts report zero charge
+  ---
+  duration_ms: 34.997529
+  type: 'test'
+  ...
+# Subtest: failed inspection never consumes an authorization or leaks transport details
+ok 47 - failed inspection never consumes an authorization or leaks transport details
+  ---
+  duration_ms: 20.522564
+  type: 'test'
+  ...
+# Subtest: client and subordinate model reserve in one campaign before effect and preserve costs on reopen
+ok 48 - client and subordinate model reserve in one campaign before effect and preserve costs on reopen
+  ---
+  duration_ms: 27.398049
+  type: 'test'
+  ...
+# Subtest: subordinate budget cannot bypass the campaign ceiling
+ok 49 - subordinate budget cannot bypass the campaign ceiling
+  ---
+  duration_ms: 22.368347
+  type: 'test'
+  ...
+# Subtest: a child with a lost receipt retains its reservation and fences even a parent that catches its error
+ok 50 - a child with a lost receipt retains its reservation and fences even a parent that catches its error
+  ---
+  duration_ms: 30.731666
+  type: 'test'
+  ...
+# Subtest: subordinate capability expires when parent finishes and cannot target an unpinned binding
+ok 51 - subordinate capability expires when parent finishes and cannot target an unpinned binding
+  ---
+  duration_ms: 22.270416
+  type: 'test'
+  ...
+# Subtest: campaign cancellation reaches parent and child and waits for child termination
+ok 52 - campaign cancellation reaches parent and child and waits for child termination
+  ---
+  duration_ms: 28.233226
+  type: 'test'
+  ...
+# Subtest: shutdown cancels and drains a composed call before returning, and fences future effects
+ok 53 - shutdown cancels and drains a composed call before returning, and fences future effects
+  ---
+  duration_ms: 27.92076
+  type: 'test'
+  ...
+# Subtest: denied task scope is checked before resolving provider credentials or probing its API
+ok 54 - denied task scope is checked before resolving provider credentials or probing its API
+  ---
+  duration_ms: 18.443103
+  type: 'test'
+  ...
+# Subtest: shutdown aborts and waits for admission probes before the ledger can close
+ok 55 - shutdown aborts and waits for admission probes before the ledger can close
+  ---
+  duration_ms: 26.468011
+  type: 'test'
+  ...
+# Subtest: request quota cannot conceal an observed monetary deficit
+ok 56 - request quota cannot conceal an observed monetary deficit
+  ---
+  duration_ms: 19.272065
+  type: 'test'
+  ...
+# Subtest: Python Antigravity capability reaches the same campaign reservation before the subordinate effect
+ok 57 - Python Antigravity capability reaches the same campaign reservation before the subordinate effect
+  ---
+  duration_ms: 122.961688
+  type: 'test'
+  ...
+# Subtest: known session resume keeps binding, task and campaign budget pinned
+ok 58 - known session resume keeps binding, task and campaign budget pinned
+  ---
+  duration_ms: 32.308334
+  type: 'test'
+  ...
+# Subtest: unknown quota requires an explicit expiring owner exception and never overrides exhaustion
+ok 59 - unknown quota requires an explicit expiring owner exception and never overrides exhaustion
+  ---
+  duration_ms: 28.969245
+  type: 'test'
+  ...
+# Subtest: quota exceptions cannot expand authorization scope or expiration
+ok 60 - quota exceptions cannot expand authorization scope or expiration
+  ---
+  duration_ms: 20.388484
+  type: 'test'
+  ...
+# Subtest: runner completes a bounded pilot, checks replay and can restart without repeating inference or resetting budget
+ok 61 - runner completes a bounded pilot, checks replay and can restart without repeating inference or resetting budget
+  ---
+  duration_ms: 61.819405
+  type: 'test'
+  ...
+# Subtest: four-family scope fails before authorization claim if families are missing
+ok 62 - four-family scope fails before authorization claim if families are missing
+  ---
+  duration_ms: 18.909965
+  type: 'test'
+  ...
+# Subtest: runner preserves uncertain effects across restart and never advances or cancels them implicitly
+ok 63 - runner preserves uncertain effects across restart and never advances or cancels them implicitly
+  ---
+  duration_ms: 26.391933
+  type: 'test'
+  ...
+# Subtest: runner rejects duplicate command identity and unexpected vendor before effects
+ok 64 - runner rejects duplicate command identity and unexpected vendor before effects
+  ---
+  duration_ms: 19.33731
+  type: 'test'
+  ...
+# Subtest: runner operates through authenticated HTTP and the public SDK
+ok 65 - runner operates through authenticated HTTP and the public SDK
+  ---
+  duration_ms: 492.934478
+  type: 'test'
+  ...
+1..65
+# tests 65
+# suites 0
+# pass 65
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 19631.786936

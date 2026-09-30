@@ -874,3 +874,293 @@ test('runtime rejects forged and overridden durable session stores', (context) =
     fixture.sessionStore.append = () => {};
   }, TypeError);
 });
+
+test('runtime configuration rejects malformed ports, limits and compaction profiles', async (context) => {
+  const fixture = setup();
+  context.after(() => fixture.db.close());
+  const options = {
+    session_store: fixture.sessionStore,
+    model_provider_snapshot: fixture.snapshot,
+    tool_runtime: fixture.tools,
+    context_profile_resolver: profile,
+  };
+  for (const patch of [
+    { model_provider_snapshot: {} },
+    { tool_runtime: {} },
+    { context_profile_resolver: null },
+    { clock: {} },
+    { stream_limits: { unknown: 3 } },
+    { stream_limits: { max_events_per_step: 1 } },
+    { stream_limits: { max_bytes_per_step: 2 } },
+  ])
+    assert.throws(() => new AgentRuntime({ ...options, ...patch }));
+  const { AgentContextProfileSchema } = require('../packages/agent-runtime/schemas');
+  assert.equal(AgentContextProfileSchema.safeParse({ ...profile(), overflow_policy: 'compact' }).success, false);
+  assert.equal(AgentContextProfileSchema.safeParse({ ...profile(), compaction_provider_id: 'compaction:unexpected' }).success, false);
+  const invalid = new AgentRuntime({
+    ...options,
+    context_profile_resolver() {
+      throw new Error('not available');
+    },
+  });
+  await assert.rejects(() => invalid.create({ schema_version: 1, command: 'create', spec: fixture.sessionSpec }), {
+    code: 'AGENT_RUNTIME_CONTEXT_PROFILE_FAILED',
+  });
+  const missing = new AgentRuntime({
+    ...options,
+    context_profile_resolver: () => ({ ...profile(), overflow_policy: 'compact', compaction_provider_id: 'compaction:missing' }),
+  });
+  await assert.rejects(() => missing.create({ schema_version: 1, command: 'create', spec: fixture.sessionSpec }), {
+    code: 'AGENT_RUNTIME_COMPACTION_UNAVAILABLE',
+  });
+  assert.deepEqual(fixture.sessionStore.readSession(fixture.sessionSpec.session_id), []);
+});
+
+test('create retries preserve identity and cannot replace an existing specification', async (context) => {
+  const fixture = setup();
+  context.after(() => fixture.db.close());
+  const input = { schema_version: 1, command: 'create', spec: fixture.sessionSpec };
+  await fixture.runtime.create(input);
+  await fixture.runtime.create(input);
+  assert.equal(fixture.sessionStore.readSession(input.spec.session_id).length, 1);
+  await assert.rejects(
+    () => fixture.runtime.create({ ...input, spec: { ...input.spec, authority_ref: 'authority://replacement' } }),
+    /different specification/,
+  );
+});
+
+for (const active of [false, true])
+  test(`runtime disposal settles ${active ? 'active' : 'created'} sessions`, async (context) => {
+    const fixture = setup({
+      routes: [
+        {
+          match: () => true,
+          events: [
+            { delay_ms: 10_000, event_type: 'content.delta', payload: { text: 'late content' } },
+            { event_type: 'completed', payload: { finish_reason: 'stop', provider_response_ref: 'scripted://disposed' } },
+          ],
+        },
+        { match: () => false, events: [] },
+      ],
+    });
+    context.after(() => fixture.db.close());
+    await fixture.runtime.create({ schema_version: 1, command: 'create', spec: fixture.sessionSpec });
+    const running = active ? fixture.runtime.send(sendCommand()) : null;
+    if (active) {
+      await new Promise((resolve) => setImmediate(resolve));
+      assert.deepEqual(fixture.runtime.snapshot().active_sessions, ['session:loop']);
+    }
+    await fixture.runtime.dispose({ schema_version: 1, command: 'dispose', session_id: 'session:loop' });
+    if (running) await running;
+    assert.equal(fixture.sessionStore.replay('session:loop').terminal_event.event_type, 'session.cancelled');
+    assert.deepEqual(fixture.runtime.snapshot().active_sessions, []);
+  });
+
+for (const finishReason of ['cancelled', 'length'])
+  test(`provider ${finishReason} cannot be misreported as successful task completion`, async (context) => {
+    const fixture = setup({
+      routes: [
+        {
+          match: () => true,
+          events: [{ event_type: 'completed', payload: { finish_reason: finishReason, provider_response_ref: 'scripted://terminal' } }],
+        },
+        { match: () => false, events: [] },
+      ],
+    });
+    context.after(() => fixture.db.close());
+    await fixture.runtime.create({ schema_version: 1, command: 'create', spec: fixture.sessionSpec });
+    await fixture.runtime.send(sendCommand());
+    assert.equal(
+      fixture.sessionStore.replay('session:loop').terminal_event.event_type,
+      finishReason === 'cancelled' ? 'session.cancelled' : 'session.failed',
+    );
+  });
+
+test('replay rejects altered model and tool intents before reproducing effects', async (context) => {
+  const { replaySessionEvents } = require('../packages/agent-session-store');
+  const fixture = setup();
+  context.after(() => fixture.db.close());
+  await fixture.runtime.create({ schema_version: 1, command: 'create', spec: fixture.sessionSpec });
+  await fixture.runtime.send(sendCommand());
+  const events = fixture.sessionStore.readSession('session:loop');
+  const rejectAlteration = (type, mutate, code, occurrence = 0) => {
+    const index = events.map((event, i) => (event.event_type === type ? i : -1)).filter((i) => i !== -1)[occurrence];
+    assert.notEqual(index, undefined, type);
+    const altered = structuredClone(events.slice(0, index + 1));
+    mutate(altered.at(-1), altered);
+    assert.throws(() => replaySessionEvents(altered), { code });
+  };
+  rejectAlteration(
+    'model.request.started',
+    (event) => {
+      event.payload.request.model = 'forged/model';
+    },
+    'AGENT_SESSION_PROVIDER_MISMATCH',
+  );
+  rejectAlteration(
+    'model.request.started',
+    (event) => {
+      event.payload.source_event_ids = [randomUUID()];
+    },
+    'AGENT_SESSION_SOURCE_MISMATCH',
+  );
+  rejectAlteration(
+    'model.request.started',
+    (event) => {
+      event.payload.request.messages.at(-1).content = 'forged';
+    },
+    'AGENT_SESSION_REQUEST_MISMATCH',
+  );
+  rejectAlteration(
+    'model.request.started',
+    (event) => {
+      event.payload.request.messages.at(-1).content = 'forged tool result';
+    },
+    'AGENT_SESSION_REQUEST_MISMATCH',
+    1,
+  );
+  rejectAlteration(
+    'tool.execution.started',
+    (event) => {
+      event.payload.step_id = 'step:unknown';
+    },
+    'AGENT_SESSION_TOOL_STEP_INVALID',
+  );
+  rejectAlteration(
+    'tool.execution.started',
+    (event) => {
+      event.payload.input = { value: 'forged' };
+    },
+    'AGENT_SESSION_TOOL_CALL_MISMATCH',
+  );
+  rejectAlteration(
+    'tool.execution.started',
+    (event, all) => {
+      all[0].payload.spec.limits.max_tool_calls = 0;
+    },
+    'AGENT_SESSION_TOOL_LIMIT_EXCEEDED',
+  );
+  for (const field of ['invocation_id', 'tool_call_id', 'name']) {
+    rejectAlteration(
+      'tool.execution.completed',
+      (event) => {
+        event.payload.outcome[field] = 'forged:identity';
+      },
+      'AGENT_SESSION_TOOL_OUTCOME_MISMATCH',
+    );
+  }
+  for (const [type, code] of [
+    ['model.request.started', 'AGENT_SESSION_DUPLICATE_MODEL_STEP'],
+    ['tool.execution.started', 'AGENT_SESSION_DUPLICATE_TOOL_EXECUTION'],
+    ['tool.execution.completed', 'AGENT_SESSION_TOOL_OUTCOME_MISMATCH'],
+  ]) {
+    const index = events.findIndex((event) => event.event_type === type);
+    const prefix = structuredClone(events.slice(0, index + 1));
+    prefix.push({ ...structuredClone(prefix.at(-1)), event_id: randomUUID(), sequence: index + 2 });
+    assert.throws(() => replaySessionEvents(prefix), { code });
+  }
+  for (let boundary = 1; boundary < events.length; boundary++) {
+    const checkpoint = replaySessionEvents(events.slice(0, boundary));
+    assert.deepEqual(replaySessionEvents(events.slice(boundary), { from: checkpoint }), replaySessionEvents(events));
+  }
+  assert.equal(fixture.external.dispatches, 1);
+});
+
+test('reconciliation retains uncertain evidence and refuses identity substitution or a second settlement', async (context) => {
+  const { replaySessionEvents } = require('../packages/agent-session-store');
+  const fixture = setup();
+  context.after(() => fixture.db.close());
+  await fixture.runtime.create({ schema_version: 1, command: 'create', spec: fixture.sessionSpec });
+  await fixture.runtime.send(sendCommand());
+  const events = fixture.sessionStore.readSession('session:loop');
+  const index = events.findIndex((event) => event.event_type === 'tool.execution.completed');
+  const prefix = structuredClone(events.slice(0, index + 1));
+  const completed = prefix.at(-1);
+  const settlement = {
+    ...structuredClone(completed),
+    event_type: 'tool.execution.reconciled',
+    event_id: randomUUID(),
+    sequence: completed.sequence + 1,
+  };
+  settlement.payload.outcome.evidence_refs.push(`reconciliation://${'a'.repeat(64)}`);
+  completed.payload.outcome = {
+    ...completed.payload.outcome,
+    status: 'uncertain',
+    result: null,
+    replayed: false,
+    error: { code: 'EXECUTION_OUTCOME_IN_DOUBT', message: 'receipt lost', retryable: false },
+  };
+  const pending = replaySessionEvents(prefix);
+  const resolved = replaySessionEvents([settlement], { from: pending });
+  assert.deepEqual(resolved, replaySessionEvents([...prefix, settlement]));
+  const execution = resolved.tool_invocations[settlement.payload.outcome.invocation_id];
+  assert.equal(execution.outcome.status, 'succeeded');
+  assert.deepEqual(execution.uncertain_outcome, completed.payload.outcome);
+  assert.equal(execution.uncertain_event_id, completed.event_id);
+  for (const mutate of [
+    (event) => {
+      event.payload.step_id = 'step:other';
+    },
+    (event) => {
+      event.payload.outcome.invocation_id = 'invocation:other';
+    },
+    (event) => {
+      event.payload.outcome.tool_call_id = 'call:other';
+    },
+    (event) => {
+      event.payload.outcome.name = 'other.tool';
+    },
+    (event) => {
+      event.payload.outcome.evidence_refs = ['reconciliation://invalid'];
+    },
+  ]) {
+    const invalid = structuredClone(settlement);
+    mutate(invalid);
+    assert.throws(() => replaySessionEvents([invalid], { from: pending }), /pending uncertain execution/);
+  }
+  assert.throws(
+    () => replaySessionEvents([{ ...settlement, event_id: randomUUID(), sequence: settlement.sequence + 1 }], { from: resolved }),
+    /pending uncertain execution/,
+  );
+  assert.equal(fixture.external.dispatches, 1);
+});
+
+test('legacy terminal streams remain readable without dispatching old effects again', async (context) => {
+  const source = setup();
+  context.after(() => source.db.close());
+  await source.runtime.create(createCommand(source.sessionSpec));
+  await source.runtime.send(sendCommand());
+  const original = source.sessionStore.readSession('session:loop');
+  const prefix = original.slice(
+    0,
+    original.findIndex((event) => event.event_type === 'model.request.started'),
+  );
+  const template = original.find((event) => event.event_type === 'model.streamed');
+  for (const reason of ['stop', 'failed', 'length', 'cancelled', 'tool_calls']) {
+    const fixture = setup();
+    try {
+      const terminal = structuredClone(template);
+      delete terminal.payload.step_id;
+      terminal.sequence = prefix.length + 1;
+      terminal.payload.event.sequence = 0;
+      terminal.payload.event.event_type = reason === 'failed' ? 'failed' : 'completed';
+      terminal.payload.event.payload =
+        reason === 'failed'
+          ? { error_code: 'provider_unavailable', message: 'legacy provider failed', retryable: false }
+          : { finish_reason: reason, provider_response_ref: 'legacy://terminal' };
+      fixture.sessionStore.append({ session_id: 'session:loop', expected_version: 0, events: [...prefix, terminal] });
+      await fixture.runtime.resume({
+        schema_version: 1,
+        command: 'resume',
+        session_id: 'session:loop',
+        expected_sequence: terminal.sequence,
+      });
+      const state = fixture.sessionStore.replay('session:loop');
+      assert.equal(state.status, reason === 'stop' ? 'completed' : 'failed');
+      assert.equal(fixture.external.dispatches, 0);
+      assert.deepEqual(fixture.sessionStore.readSession('session:loop').slice(0, terminal.sequence), [...prefix, terminal]);
+    } finally {
+      fixture.db.close();
+    }
+  }
+});

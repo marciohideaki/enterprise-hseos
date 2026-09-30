@@ -1,0 +1,4 @@
+Checking formatting...
+[warn] docs/evolution/w3/evidence/matrix-checkpoint/coverage-node24.json
+[warn] docs/evolution/w3/evidence/matrix-checkpoint/receipt.json
+[warn] Code style issues found in 2 files. Run Prettier with --write to fix.

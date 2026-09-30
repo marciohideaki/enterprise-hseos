@@ -1,0 +1,11 @@
+✔ help and structural validation do not load optional integrations or query updates (394.744045ms)
+✔ fresh minimal and engineering materialization excludes optional implementations and services (575.3656ms)
+✔ npx wrapper preserves literal arguments without invoking a shell (77.57354ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1262.199128

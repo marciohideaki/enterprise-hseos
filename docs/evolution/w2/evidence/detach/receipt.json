@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-09-26T08:03:27.712025+00:00",
+  "before_commit": "f7bbf25fbbaba4635d523b193d01054295ab7e60",
+  "before_regressions": {
+    "tests": 2,
+    "failed": 2
+  },
+  "node24_api": {
+    "tests": 8,
+    "passed": 8,
+    "failed": 0
+  },
+  "node22_attach_focused": {
+    "tests": 7,
+    "passed": 7,
+    "failed": 0
+  },
+  "coverage_scope": "tools/cli/lib/terminal-attach.js",
+  "coverage": {
+    "lines": 98.92,
+    "branches": 100,
+    "per_file_90_80": true
+  },
+  "sources": {
+    "tools/cli/lib/terminal-attach.js": "533aa30585659ee5fab7b2a3599a95f77b9d40fdc92c3c2eb9933d13dadd3228",
+    "test/test-terminal-api.js": "1bc9a256932c99087bec56cc3eb3364173e6e5dfdc0b6ce3f3fa66f92b19880b"
+  },
+  "artifacts": {
+    "before.log": "1d03262fab228ae7c9c4c14f2445facf75138468c8def07ea693fe4dbe15fee0",
+    "node24-api-coverage.log": "0dce6e46cd2c1f1a3cc4dc0aaddb1d71bac2ff290fd02230f5eee184d86ffdaf",
+    "node22-attach.log": "4126201c3a2e37e982b1c9c33f40a8cb7ef32b115a818684ad8545621e9b30f5",
+    "coverage-summary.json": "d978848de2d996f8783dedfae1b067bca57d93a1a9b89c3170b3081204480d01"
+  },
+  "integration_gates": "pending_at_receipt_creation",
+  "hosted_matrix": "required_before_closeout",
+  "operational": "not_activated"
+}

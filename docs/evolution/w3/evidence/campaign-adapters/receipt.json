@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-09-26T18:05:31.847771+00:00",
+  "base_commit": "b9db33bfcf53681d91c64ca8a0dd42c74b0fb24c",
+  "branch": "task/hseos-w3-prototype",
+  "committed": false,
+  "inference": "not_executed",
+  "real_conformance": "not_certified",
+  "aew_activation": "not_verified",
+  "validation": {
+    "critical_final_node22": {
+      "tests": 504,
+      "failed": 0,
+      "skipped": 0,
+      "lines": 96.08,
+      "branches": 89.04,
+      "per_file_gate": "90/80 PASS"
+    },
+    "affected_final_node24": {
+      "tests": 88,
+      "failed": 0,
+      "skipped": 0
+    },
+    "critical_node24_checkpoint_before_sdk_id_length_fix": {
+      "tests": 504,
+      "lines": 96.08,
+      "branches": 89.03,
+      "per_file_gate": "90/80 PASS"
+    },
+    "installed_consumers": {
+      "node22": 58,
+      "node24": 58,
+      "package_entries": 1430
+    },
+    "full_npm_test_matrix": "not_repeated_for_this_increment",
+    "source_whitespace": "PASS",
+    "raw_evidence_whitespace": "preserved; broad diff check exits 2",
+    "checks": [
+      {
+        "stage": "format-final",
+        "exit_code": 0
+      },
+      {
+        "stage": "affected-final-node24",
+        "exit_code": 0
+      },
+      {
+        "stage": "official-sdk-config",
+        "exit_code": 0
+      },
+      {
+        "stage": "official-worker-inspection",
+        "exit_code": 0
+      },
+      {
+        "stage": "cli-manifest",
+        "exit_code": 0
+      },
+      {
+        "stage": "typescript-sdk",
+        "exit_code": 0
+      },
+      {
+        "stage": "lint",
+        "exit_code": 0
+      },
+      {
+        "stage": "format-source",
+        "exit_code": 0
+      },
+      {
+        "stage": "diff-whitespace",
+        "exit_code": 2
+      }
+    ]
+  },
+  "real_campaign_blockers": [
+    "owner finite USD ceiling not supplied",
+    "authorized bindings/routes and credential references not supplied",
+    "eligible local LiteRT checkpoint not provisioned for a real run"
+  ],
+  "default_credential_env_presence": {
+    "ANTHROPIC_API_KEY": false,
+    "DEEPSEEK_API_KEY": false,
+    "HSEOS_MODEL_PROVIDER_API_KEY": false,
+    "OPENAI_API_KEY": false
+  },
+  "credential_search_scope": "presence only in this process environment; no claim about other credential stores",
+  "known_limits": [
+    "resource containment is not filesystem confinement",
+    "hashes cover enumerated artifacts, not all transitive dependencies",
+    "known receipt resume is not real vendor recovery certification",
+    "cost reservations are not verified invoices",
+    "temporary ledger is not operational retention"
+  ],
+  "governance_ci": {
+    "exit_code": 0
+  },
+  "source_sha256": {
+    ".c8-kernel.json": "ba69e3b1b7f02c0b26528efc2603dcb4af6cd16303a8f49cf25487b4a882075a",
+    ".specs/features/harness-w3/adr-drafts/binding-control.md": "44d9fe40dba1dd63b018e96074809497fccc55ac32342b41034689ab4c6f38c0",
+    ".specs/features/harness-w3/design.md": "6ddea351a25e4ffd87cb8058d344f9df62ede80cbd93d261fef6ece5422129c3",
+    ".specs/features/harness-w3/spec.md": "317eff9544319cfef3e279ebf31d3d8c5b428747d46fdcb11cef1cbf1c5c9655",
+    ".specs/features/harness-w3/tasks.md": "ff10a49d37294cc25c2f55e8bbb342b541afaf82a0b434651506a62f5b4a253d",
+    "CHANGELOG.md": "ea571a422660b473ea4c66b4bdfd041bb1dc156bb314516261b7baa18b17227f",
+    "README.md": "6420721e589b42594386fd182d51282781a1d784391b227e6fddf7c1b1b83ce4",
+    "docs/decisions/harness-w3-intake.md": "86aba50a2bfa329c6e259c16162ba8f64229a666b0d05549743c3325be3753ab",
+    "docs/evolution/w3/ADAPTERS-CAMPAIGN.md": "80e6267592c1af388ba76afafb211610b5b123ce3b602a02eecaf8d3f9dbb816",
+    "docs/evolution/w3/ADVERSARIAL-REVIEW.md": "8be62d1bfc0c2f0327fc8927409deb095fbb970e3c0d2c985d10cd964a21b7b8",
+    "docs/evolution/w3/ANTIGRAVITY-CLIENT.md": "c072b9422b4132e11c837d75e5c88e26201bb65a4716d4c82754e38692e7039b",
+    "docs/evolution/w3/BINDINGS.md": "db977d0c3196dc524ebba41c9edf3cb594bca6c3c976a9561a66910651ed3451",
+    "docs/evolution/w3/CONTROL-PROTOTYPE.md": "cbd0d6b3c19937a7ce82c2c98d286e13a754abfe51cce006be164c2edca60506",
+    "docs/evolution/w3/STATUS.md": "62753849ef88f7bbf3dd4d5ff9bc7a17c05d6567cd4a31c1a0d49b2258d505a7",
+    "package.json": "7d9dfc79258f11c81fa08fd4159bab203a577310bdfe888e195e435461e33774",
+    "packages/agent-isolation-attestation/executor.js": "315b19e4bd0c2b643e3dde6d134d2d36fc4ae5d22ba16f776cdc972f56de4338",
+    "packages/control-sdk/antigravity_campaign_worker.py": "0221b1f5d2aeaaf5a24aed2f3cc3f28a4798b2c86870d66f3dd12ccf32831cd4",
+    "packages/control-sdk/antigravity_client.py": "f4687c4dc504fba579e7408a2ca8010ac64a8b8d1bd793cfcaf46cfdb7216d85",
+    "packages/control-sdk/hseos_control.py": "6489d8beab9481171e83005696d251d174391b765762df3e4bc6c970eb9522f9",
+    "packages/control-sdk/index.d.ts": "68ca2770a1b404cf3dc966f87156757ca5d8a9e404fc2df7ee783a281f9e554b",
+    "packages/control-sdk/index.js": "0cef4a3896d7a9a3ca5eeee32b0929c03ccfe4d47808713057f6935539340785",
+    "packages/runtime-providers/claude-agent-sdk-driver.js": "85fc090d8f228d26e952afb05fdf255c9467f249bde81b6ed66661fff1438602",
+    "packages/runtime-providers/codex-app-server-driver.js": "6a40b0c79d335404a81add24abc5240ed1694d1c3d33b0b157ced8e4148a8b85",
+    "test/fixtures/fake-claude-agent-sdk.mjs": "945a0668aed51764a9e7ff735651391d2ae9f93cbc3dba298cf33fbbbb0cda37",
+    "test/fixtures/fake-codex-app-server.js": "0ba90ae9b732c15cb056dfb42d2fdbd5c6082619bcca50580e3106071d160706",
+    "test/helpers/check-antigravity-campaign-config.py": "d902a5592182259dc4773b47d853cc72d15bc54d2fc50b49eed099f5ab47d6bd",
+    "test/helpers/check-antigravity-sdk-config.py": "969fe3dfb7d6cf20f2d3fad03cc58d4dcd9104e3db444976b324a1e98d25506e",
+    "test/helpers/provider-control.js": "e5b20d0f564bd0a86708eeb616444c2d080262ea8236f6d614abf6fbc68bac37",
+    "test/test-antigravity-client.js": "771855d7e0c3cc4ff0c942ca4b64946616e38f02d9c0eccc1a8c1f3142d9e237",
+    "test/test-control-configuration.js": "09be5b5a3ca02823ebc875c0277b0dae87570e08b001ed7115e13b00454f2147",
+    "test/test-package-surface.js": "a9dfb5a58886fc83acdfb044b016be567c958c4a825612e6933fcb4b8e249d0e",
+    "test/test-provider-api-adapter.js": "f152feecf54565906758b9227289c2e50cd369303feafa831240695fbafcd670",
+    "test/test-provider-campaign-adapters.js": "e206c07d2f781db6ffa321e28ab00f7de3d12c853bd85d83e4a982b8c21a3190",
+    "test/test-provider-campaign-control.js": "6540956013d8096a08061c8d9546c3bd65e459e623dbd9116b0f93d7908969ac",
+    "test/test-provider-campaign-runner.js": "fb17636bc886956f9001dee7b05e8e19c23ea5db2df3c82b33d9309c15432af9",
+    "test/test-provider-control-manifest.js": "9bb6164ec1086ec1e62af2f9c18724e25d62ea8bb020786b874863e5a354d18e",
+    "test/test_antigravity_client.py": "1d518a03e3a57c6a948a39e97b8dccfd895c567a7fb117df991108c84af22c11",
+    "tools/cli/command-manifest.json": "49033e1f38cabf9ad5080b2ba671f42107d2e53befadd875d56acb412cf10811",
+    "tools/cli/commands/control.js": "5d803eb14aaddbd30b3072e0acaa971e2d2e5006a61fd4462af3266e6086d997",
+    "tools/cli/lib/control-configuration.js": "0e286487c78c37bb414b17e4c87af6057de8854f05adb7c840d0008faa8729d9",
+    "tools/cli/lib/engineering-control-http.js": "8b5fdb0eac2d37bc0cf4927e3d823cf4888b130e5f414a4ba5f226eec0e045bb",
+    "tools/cli/lib/engineering-control.js": "a1158fe7f8253d638cff29aaa39b9bf79c93cfd7a14c0a46d0bd31e91366c78b",
+    "tools/cli/lib/provider-antigravity-adapter.js": "c88bac914a7c50f45c00311f557b222165b0a2c14850015821eddf22dbcd883a",
+    "tools/cli/lib/provider-api-adapter.js": "9773c02932f572d70e77594ef1280cc8f4c93ce4ce369bff497f47c8d25b3ee9",
+    "tools/cli/lib/provider-campaign-bridge.js": "30af3c64140aad8ab373b00cc83120bbd033735653a81bb1db9833bb653f0797",
+    "tools/cli/lib/provider-campaign-control.js": "1ad7f82c143b1ffca85063ef39cb83ab311fecd1fa31978eedbefa60b9d0bdf5",
+    "tools/cli/lib/provider-campaign-process.js": "5ca1998d832d4fc4ff9213795cf8fbc14d858cb4f300a93b5d07c3e2deb5955b",
+    "tools/cli/lib/provider-campaign-runner.js": "7c99a2ea44a39ce2c1a26916eb9a09bc619993329127aa9e79e34b06fd49a69a",
+    "tools/cli/lib/provider-campaign-worker.js": "6c30d847abc3899edae70bc845d173f02758d0b7e23096331995dcf2aaf9fca2",
+    "tools/cli/lib/provider-native-adapter.js": "9f96656af9625eb7ff23846a84647f9842c182c3351a5e7f2f70d7dff7a97faf",
+    "tools/lib/provider-control-manifest.js": "28f5ab518d8aca70406ac8b49ff36e9142a3f4a316e860678fb4fb51831b8653",
+    "tools/mcp-project-state/lib/execution-ledger-schema.js": "505df7fdb3c2aa3a98dfb95d6b7de47b510059181de232f1d5c5afdabe141457"
+  },
+  "evidence_sha256": {
+    "adapters.json": "36cba241f93075e213c5ac686ef14c5eb60ee4834a218290e3e81b7a9428121d",
+    "affected-final-node24.log": "27144f257ce5c4784c5c8ecb5dc5cf915c2d4b8600d5c0bf53b5f44ed3d255b9",
+    "affected-node22.log": "e833ffd88e8531c87cf60b3d114093a91790f9ac0a1dccfb7c66a9c86a5d51d5",
+    "affected-node24.log": "9095d3512474474564b43d5d4ff5fd5ac08b2bdcb6e1b47d763fa0fd588930d0",
+    "cli-manifest.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "coverage-before.json": "1b2d7770d31c7f2383c26d3ef11db4ff125c908005f4bec682974d599c0cc0e4",
+    "coverage-final-node22.json": "9763b3310aa21dff5aa72c7cea99223331238d0d459533aed8c049be30126a26",
+    "coverage-final-node24.json": "8ccb9e51cb75918c5f41cdd959f17d806ad38458fbbb23ffe8738afb73397c10",
+    "coverage-incremental-node24.log": "b99c42815815be8256db69d15ed63c83809e33ac3514705a774f7f39bcd8e2bd",
+    "coverage-node24.json": "7c987390d481534cb7f37a8f33d3e2ff1dbe19e163c98f017587e0431374aa07",
+    "critical-final-node22.log": "d2653e35b760b8bd0379bfd1664eca97801481412eb21d533eb09f13cde3faa1",
+    "critical-final-node24.log": "04b453eed11f01e8ccf7032369c1144a700e00fcd54239990de71dc490f02181",
+    "critical-node24.log": "1f1f59b1f5c0dfe44fc05999c6b49516747b4d565638accdd647eccbe1754e58",
+    "diff-source.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "diff-whitespace.log": "923971d68c21cf20b85f2164a50c8d271024eaac8703b9334f417c65cdf1c1d8",
+    "final-checks.json": "c7b905466c5e4066922dd679b49ba94ba57685e3c350882a34d955700198f76d",
+    "format-final.log": "47e13410a9d21add215bb96b099f6a04d3bb0d6379a75a4fa15b175841ff8749",
+    "format-source.log": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+    "governance-ci.log": "3b3cfe65da21f6c8ea594918d8fe022f778aa4e6f6f0d4c4f9c5312fc9ab1f3d",
+    "installed-consumer/antigravity-import-node22.log": "6d8e08a852a28a5c097f456fcdf07ff25213491070ebd9257b6ff28e3a9de5be",
+    "installed-consumer/antigravity-import-node24.log": "6d8e08a852a28a5c097f456fcdf07ff25213491070ebd9257b6ff28e3a9de5be",
+    "installed-consumer/checks.json": "5e3d3aabbf4461f8cf244bbb655e10d59078589c506966ce62ced69ab8fb4d32",
+    "installed-consumer/consumer-node22.log": "2a87e280e098759a1a4fccd4c04ee646242d89e7ff15bbf1c9e128256efd4cd0",
+    "installed-consumer/consumer-node24.log": "16133e6484c327ec237f537b17a46b36c25544bb36b77c29803268f96f1a04fe",
+    "installed-consumer/install-node22.log": "4c6b15fb3cd2c37c424969359462e2ab9f6bdf335afe1c844ce1c48898000f22",
+    "installed-consumer/install-node24.log": "4c6b15fb3cd2c37c424969359462e2ab9f6bdf335afe1c844ce1c48898000f22",
+    "installed-consumer/pack.log": "20202b98c2ee6f4d0a18d651e1a364da5e48c04ddf5d21b3e6581fcf10f9a333",
+    "installed-consumer/receipt.json": "ca2f7dc2648d66d7828a397567aafce9ac6e8d4136ce7069008040ff4f50d907",
+    "installed-consumer-before-sdk-id/antigravity-import-node22.log": "6d8e08a852a28a5c097f456fcdf07ff25213491070ebd9257b6ff28e3a9de5be",
+    "installed-consumer-before-sdk-id/antigravity-import-node24.log": "6d8e08a852a28a5c097f456fcdf07ff25213491070ebd9257b6ff28e3a9de5be",
+    "installed-consumer-before-sdk-id/checks.json": "5e3d3aabbf4461f8cf244bbb655e10d59078589c506966ce62ced69ab8fb4d32",
+    "installed-consumer-before-sdk-id/consumer-node22.log": "318ab482671aa20439988e2c12d2c1924db5b0976d35aa6fed1a86df3e1f6f89",
+    "installed-consumer-before-sdk-id/consumer-node24.log": "814b0c13bcebdcc94e3698a2d5b7c2b8bed38779ba55ce9e5e456dcf382ac9a4",
+    "installed-consumer-before-sdk-id/install-node22.log": "4c6b15fb3cd2c37c424969359462e2ab9f6bdf335afe1c844ce1c48898000f22",
+    "installed-consumer-before-sdk-id/install-node24.log": "4c6b15fb3cd2c37c424969359462e2ab9f6bdf335afe1c844ce1c48898000f22",
+    "installed-consumer-before-sdk-id/pack.log": "1dd12784065cb2fbba26bb95db2f2a240667664a80c2cb9f45b614d117fe1047",
+    "installed-consumer-before-sdk-id/receipt.json": "7951784936011df33f2acffd1e64515ce2229df0c2608185f81279b5e203b487",
+    "installed-consumer-initial/checks.json": "6135913addd37ef272ff1adb465d4ad5ed80bc70eac150b2f6a2a1a66a413433",
+    "installed-consumer-initial/consumer-node24.log": "a8833a79d80c5677a80cc27de65cb62bf84c7d69215942360e42fb629c5f4023",
+    "installed-consumer-initial/install-node24.log": "4c6b15fb3cd2c37c424969359462e2ab9f6bdf335afe1c844ce1c48898000f22",
+    "installed-consumer-initial/pack.log": "1dd12784065cb2fbba26bb95db2f2a240667664a80c2cb9f45b614d117fe1047",
+    "lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "official-sdk-config.log": "f71699166c9ae70291bbfc41295b758bbcb88893bf2d78dea75762a27e86c9a0",
+    "official-sdk-invalid-id.json": "7968ed263b3d8a2c5b97be9e79dba986ebca29e8408d620c81a1fc766b144631",
+    "official-sdk-local.json": "f5c92e9c7be7601845410cf525a5b366bc19d83b983e4c0f4a68cf53f197ee3d",
+    "official-worker-inspection-command.txt": "26328d971a47089e1f7e07618cb895f2020ffcc182a5ac1227634194427642e2",
+    "official-worker-inspection.json": "1261b5deffc9495ac7632b867cc50e6d636a7ef5ba137cb0942e422fa13a8a9f",
+    "official-worker-inspection.log": "6fc98497bb0e60dc56cd48ab10d651bfa69dd1d5a666fe41bb6834ee71147e9d",
+    "resume-regression-node24.log": "15737db84184608d43c80f827d69e31b24e84d210029b8ab0017b3c510cd80d6",
+    "typescript-sdk.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

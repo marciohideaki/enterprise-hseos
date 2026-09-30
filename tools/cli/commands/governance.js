@@ -6,7 +6,8 @@ const execute = createManagedGovernanceAction();
 
 module.exports = {
   command: 'governance <area> <action>',
-  description: 'Query and operate the optional managed governance control plane',
+  description:
+    'Managed governance: catalog import/status, artifact list, policy evaluate, session preflight, readiness status, setup install, recovery rehearse, server start',
   options: [
     ['--plan', 'Build a deterministic import plan without writes'],
     ['--apply', 'Apply an import through the configured control plane'],

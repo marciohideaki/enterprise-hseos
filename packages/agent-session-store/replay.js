@@ -115,11 +115,11 @@ function durableHistory(state, currentTurnId) {
     });
     const terminalIndex = turn.model_events.findIndex((item) => item.event_type === 'completed');
     const content = turn.model_events
-      .slice(0, terminalIndex < 0 ? 0 : terminalIndex)
+      .slice(0, Math.max(terminalIndex, 0))
       .filter((item) => item.event_type === 'content.delta')
       .map((item) => item.payload.text)
       .join('');
-    if (terminalIndex >= 0 && content.length > 0) {
+    if (terminalIndex !== -1 && content.length > 0) {
       history.push({
         source_event_id: turn.model_event_ids[terminalIndex],
         message: { role: 'assistant', content },
@@ -145,29 +145,148 @@ function assertStartedWorkSettled(state) {
   }
 }
 
-function replaySessionEvents(inputEvents) {
+function assertWorkflowCheckpoint(checkpoint, definition) {
+  const phase = definition?.phases.find((item) => item.phase_id === checkpoint.phase_id);
+  if (
+    !phase ||
+    checkpoint.definition_digest !== digest(definition) ||
+    checkpoint.mode !== phase.mode ||
+    canonicalJson(checkpoint.completed_step_ids) !== canonicalJson(phase.steps.map((step) => step.step_id)) ||
+    canonicalJson(checkpoint.child_session_ids) !== canonicalJson(phase.steps.map((step) => step.child_spec.session_id))
+  ) {
+    throw new SessionReplayError('workflow checkpoint differs from its pinned phase', 'AGENT_SESSION_WORKFLOW_CHECKPOINT_INVALID');
+  }
+}
+
+function reviseWorkflow(state, event) {
+  const { workflow_id: workflowId, claim_ref: claimRef, revision, previous_definition: previous, definition } = event.payload;
+  const reservation = state.workflow_reservations[workflowId];
+  if (!reservation || reservation.released || reservation.claim_ref !== claimRef || state.cancellation_request) {
+    throw new SessionReplayError('workflow revision requires the active uncancelled claim', 'AGENT_SESSION_WORKFLOW_CLAIM_INVALID');
+  }
+  if (revision !== (reservation.revision || 1) + 1) {
+    throw new SessionReplayError('workflow revision must advance exactly once', 'AGENT_SESSION_WORKFLOW_REVISION_INVALID');
+  }
+  const previousSteps = previous.phases.flatMap((phase) => phase.steps);
+  if (
+    previous.workflow_id !== workflowId ||
+    definition.workflow_id !== workflowId ||
+    digest(previous) !== reservation.definition_digest ||
+    previousSteps.length !== reservation.step_count ||
+    canonicalJson(previousSteps.map((step) => step.child_spec.session_id)) !== canonicalJson(reservation.child_session_ids)
+  ) {
+    throw new SessionReplayError('workflow revision does not extend the pinned definition', 'AGENT_SESSION_WORKFLOW_DEFINITION_CONFLICT');
+  }
+  if (
+    definition.subagent_provider_id !== previous.subagent_provider_id ||
+    definition.max_parallelism !== previous.max_parallelism ||
+    definition.phases.length <= previous.phases.length ||
+    canonicalJson(definition.phases.slice(0, previous.phases.length)) !== canonicalJson(previous.phases)
+  ) {
+    throw new SessionReplayError('workflow revisions may only append phases', 'AGENT_SESSION_WORKFLOW_REVISION_RETROACTIVE');
+  }
+  const steps = definition.phases.flatMap((phase) => phase.steps);
+  const childIds = steps.map((step) => step.child_spec.session_id);
+  const others = Object.values(state.workflow_reservations).filter((item) => item.workflow_id !== workflowId);
+  const foreignChildren = new Set(others.flatMap((item) => item.child_session_ids));
+  if (childIds.some((id) => foreignChildren.has(id))) {
+    throw new SessionReplayError('workflow child identity belongs to another reservation', 'AGENT_SESSION_WORKFLOW_CHILD_INVALID');
+  }
+  const legacy = state.workflow_checkpoints.filter((item) => !state.workflow_reservations[item.workflow_id]);
+  const reservedSteps = others.reduce((sum, item) => sum + item.step_count, 0);
+  const legacySteps = legacy.reduce((sum, item) => sum + (item.completed_step_ids?.length || 1), 0);
+  if (steps.length + reservedSteps + legacySteps > state.spec.limits.max_workflow_steps) {
+    throw new SessionReplayError('workflow revision exceeds the parent step limit', 'AGENT_SESSION_WORKFLOW_STEP_LIMIT_EXCEEDED');
+  }
+  const allChildren = new Set([...state.children, ...childIds, ...others.flatMap((item) => item.child_session_ids)]);
+  if (allChildren.size > state.spec.limits.max_children) {
+    throw new SessionReplayError('workflow revision exceeds the parent child limit', 'AGENT_SESSION_WORKFLOW_CHILD_LIMIT_EXCEEDED');
+  }
+  if (
+    others.length > 0 ||
+    legacy.length > 0 ||
+    state.children.some((id) => !reservation.child_session_ids.includes(id)) ||
+    state.turn_order.length > 0 ||
+    state.operation_ids.length > 0 ||
+    Object.keys(state.tool_invocations).length > 0 ||
+    state.reconciliation_reserved_tokens ||
+    state.reconciliation_reserved_tool_calls
+  ) {
+    throw new SessionReplayError('workflow revision has unknown competing resource commitments', 'AGENT_SESSION_WORKFLOW_BUDGET_UNKNOWN');
+  }
+  for (const step of steps) {
+    if (
+      step.child_spec.session_id === state.session_id ||
+      step.child_spec.parent_session_id !== state.session_id ||
+      step.child_spec.authority_ref !== state.spec.authority_ref ||
+      step.child_spec.policy_ref !== state.spec.policy_ref
+    ) {
+      throw new SessionReplayError('workflow child changes parent authority', 'AGENT_SESSION_WORKFLOW_AUTHORITY_WIDENING');
+    }
+    for (const [name, value] of Object.entries(step.child_spec.limits)) {
+      if (value > state.spec.limits[name]) {
+        throw new SessionReplayError('workflow child widens a parent limit', 'AGENT_SESSION_WORKFLOW_LIMIT_WIDENING', { limit: name });
+      }
+    }
+  }
+  for (const name of ['max_tokens', 'max_tool_calls', 'max_turns']) {
+    if (steps.reduce((sum, step) => sum + step.child_spec.limits[name], 0) > state.spec.limits[name]) {
+      throw new SessionReplayError('workflow revision exceeds aggregate resources', 'AGENT_SESSION_WORKFLOW_RESOURCE_LIMIT_EXCEEDED', {
+        limit: name,
+      });
+    }
+  }
+  const windows = definition.phases.reduce(
+    (sum, phase) => sum + (phase.mode === 'pipeline' ? phase.steps.length : Math.ceil(phase.steps.length / definition.max_parallelism)),
+    0,
+  );
+  if (windows * definition.join_timeout_ms > state.spec.limits.max_duration_ms) {
+    throw new SessionReplayError('workflow revision exceeds original duration', 'AGENT_SESSION_WORKFLOW_DURATION_LIMIT_EXCEEDED');
+  }
+  const history = reservation.revisions || [
+    { revision: 1, definition_digest: reservation.definition_digest, definition: previous, event_id: reservation.event_id },
+  ];
+  for (const checkpoint of state.workflow_checkpoints.filter((item) => item.workflow_id === workflowId)) {
+    const pinned = history.find((item) => item.definition_digest === checkpoint.definition_digest);
+    assertWorkflowCheckpoint(checkpoint, pinned?.definition);
+  }
+  const definitionDigest = digest(definition);
+  reservation.revision = revision;
+  reservation.revisions = [...history, { revision, definition_digest: definitionDigest, definition, event_id: event.event_id }];
+  reservation.definition_digest = definitionDigest;
+  reservation.step_count = steps.length;
+  reservation.child_session_ids = childIds;
+  if (state.workflows[workflowId]) state.workflows[workflowId].definition_digest = definitionDigest;
+}
+
+const REPLAY_CHECKPOINTS = new WeakMap();
+
+function replaySessionEvents(inputEvents, { from = null } = {}) {
   if (!Array.isArray(inputEvents)) throw new SessionReplayError('events must be an array');
   const events = inputEvents.map((event) => parseContract(SessionEventSchema, event, 'session event'));
-  const state = {
-    session_id: null,
-    spec: null,
-    status: 'empty',
-    current_sequence: 0,
-    parent: null,
-    turns: {},
-    turn_order: [],
-    operation_ids: [],
-    children: [],
-    subagent_request: null,
-    compactions: [],
-    workflow_checkpoints: [],
-    workflows: {},
-    workflow_reservations: {},
-    cancellation_request: null,
-    tool_invocations: {},
-    terminal_event: null,
-  };
-  const seenEventIds = new Set();
+  if (from && !REPLAY_CHECKPOINTS.has(from)) throw new SessionReplayError('Incremental replay requires a reducer-owned checkpoint');
+  const state = from
+    ? structuredClone(from)
+    : {
+        session_id: null,
+        spec: null,
+        status: 'empty',
+        current_sequence: 0,
+        parent: null,
+        turns: {},
+        turn_order: [],
+        operation_ids: [],
+        children: [],
+        subagent_request: null,
+        compactions: [],
+        workflow_checkpoints: [],
+        workflows: {},
+        workflow_reservations: {},
+        cancellation_request: null,
+        tool_invocations: {},
+        terminal_event: null,
+      };
+  const seenEventIds = new Set(from ? REPLAY_CHECKPOINTS.get(from) : []);
 
   for (const event of events) {
     const expectedSequence = state.current_sequence + 1;
@@ -196,12 +315,19 @@ function replaySessionEvents(inputEvents) {
 
     state.session_id = event.session_id;
     state.current_sequence = event.sequence;
+    if (
+      ['session.cancelled', 'session.failed', 'session.completed'].includes(event.event_type) &&
+      Object.values(state.workflow_reservations).some((reservation) => !reservation.released)
+    ) {
+      throw new SessionReplayError('session cannot terminate before workflow drain', 'AGENT_SESSION_WORKFLOW_ACTIVE');
+    }
     switch (event.event_type) {
-      case 'session.created':
+      case 'session.created': {
         state.spec = event.payload.spec;
         state.status = 'active';
         break;
-      case 'session.forked':
+      }
+      case 'session.forked': {
         if (event.sequence !== 2 || state.parent) {
           throw new SessionReplayError(
             'session fork lineage must be recorded exactly once after creation',
@@ -213,7 +339,15 @@ function replaySessionEvents(inputEvents) {
         }
         state.parent = { ...event.payload };
         break;
-      case 'session.resumed':
+      }
+      case 'session.reconciled': {
+        assertStartedWorkSettled(state);
+        state.reconciliation_reserved_tokens = (state.reconciliation_reserved_tokens || 0) + event.payload.reserved_tokens;
+        if (!Number.isSafeInteger(state.reconciliation_reserved_tokens)) throw new SessionReplayError('Reconciliation budget overflow');
+        state.reconciliation_reports = [...(state.reconciliation_reports || []), event.payload.report_sha256];
+        break;
+      }
+      case 'session.resumed': {
         if (event.payload.from_sequence !== event.sequence - 1) {
           throw new SessionReplayError(
             'resume source must be the immediately preceding durable sequence',
@@ -221,6 +355,7 @@ function replaySessionEvents(inputEvents) {
           );
         }
         break;
+      }
       case 'turn.started': {
         const turnId = event.payload.turn_id;
         if (state.turns[turnId]) {
@@ -271,18 +406,17 @@ function replaySessionEvents(inputEvents) {
         const durable = durableHistory(state, event.payload.turn_id);
         const visibleHistory = event.payload.request.messages.slice(1, -1).filter((message) => message.role !== 'system');
         const compaction = turn.context_compaction;
-        if (event.payload.budget.overflow_policy === 'compact') {
-          if (
-            compaction &&
-            (event.payload.budget.compaction_provider_id !== compaction.provider_id ||
-              event.payload.budget.checkpoint_provider_id !== compaction.checkpoint_provider_id ||
-              canonicalJson(event.payload.budget.compaction_provider_manifest) !== canonicalJson(compaction.provider_manifest))
-          ) {
-            throw new SessionReplayError(
-              'context compaction provenance differs from selected budget providers',
-              'AGENT_SESSION_COMPACTION_PROVENANCE_INVALID',
-            );
-          }
+        if (
+          event.payload.budget.overflow_policy === 'compact' &&
+          compaction &&
+          (event.payload.budget.compaction_provider_id !== compaction.provider_id ||
+            event.payload.budget.checkpoint_provider_id !== compaction.checkpoint_provider_id ||
+            canonicalJson(event.payload.budget.compaction_provider_manifest) !== canonicalJson(compaction.provider_manifest))
+        ) {
+          throw new SessionReplayError(
+            'context compaction provenance differs from selected budget providers',
+            'AGENT_SESSION_COMPACTION_PROVENANCE_INVALID',
+          );
         }
         const selectedHistory = visibleHistory.length === 0 ? [] : durable.slice(-visibleHistory.length);
         const expectedCompactedHistory = compaction
@@ -342,6 +476,25 @@ function replaySessionEvents(inputEvents) {
           ) {
             throw new SessionReplayError('initial model step must use the assembled request', 'AGENT_SESSION_REQUEST_MISMATCH');
           }
+        } else if (previous.revision) {
+          const expectedMessages = [
+            ...previous.request.messages,
+            {
+              role: 'assistant',
+              content: previous.model_events
+                .filter((item) => item.event_type === 'content.delta')
+                .map((item) => item.payload.text)
+                .join(''),
+            },
+            { role: 'user', content: previous.revision.feedback },
+          ];
+          const stableRequest = { ...event.payload.request, request_id: previous.request.request_id, messages: previous.request.messages };
+          if (
+            canonicalJson(event.payload.request.messages) !== canonicalJson(expectedMessages) ||
+            canonicalJson(event.payload.source_event_ids) !== canonicalJson([previous.terminal_event_id, previous.revision.event_id]) ||
+            canonicalJson(stableRequest) !== canonicalJson(previous.request)
+          )
+            throw new SessionReplayError('revision continuation differs from durable review', 'AGENT_SESSION_REQUEST_MISMATCH');
         } else {
           const terminal = previous.model_events.at(-1);
           if (terminal?.event_type !== 'completed' || terminal.payload.finish_reason !== 'tool_calls') {
@@ -408,6 +561,21 @@ function replaySessionEvents(inputEvents) {
         };
         turn.model_steps.push(step);
         turn.model_steps_by_id[step.step_id] = step;
+        break;
+      }
+      case 'model.revision.requested': {
+        const turn = requireTurn(state, event.payload.turn_id, event);
+        const step = turn.model_steps.at(-1);
+        const terminal = step?.model_events.at(-1);
+        if (
+          !step ||
+          step.step_id !== event.payload.step_id ||
+          step.revision ||
+          terminal?.event_type !== 'completed' ||
+          terminal.payload.finish_reason !== 'stop'
+        )
+          throw new SessionReplayError('revision requires the latest completed model response', 'AGENT_SESSION_MODEL_STEP_ORDER_INVALID');
+        step.revision = { feedback: event.payload.feedback, event_id: event.event_id };
         break;
       }
       case 'model.streamed': {
@@ -483,6 +651,25 @@ function replaySessionEvents(inputEvents) {
         state.tool_invocations[event.payload.invocation_id] = execution;
         break;
       }
+      case 'tool.execution.reconciled': {
+        const execution = state.tool_invocations[event.payload.outcome.invocation_id];
+        if (
+          !execution ||
+          execution.outcome?.status !== 'uncertain' ||
+          execution.turn_id !== event.payload.turn_id ||
+          execution.step_id !== event.payload.step_id ||
+          execution.tool_call_id !== event.payload.outcome.tool_call_id ||
+          execution.name !== event.payload.outcome.name ||
+          !event.payload.outcome.evidence_refs.some((ref) => /^reconciliation:\/\/[a-f0-9]{64}$/.test(ref))
+        )
+          throw new SessionReplayError('Reconciliation must reference a pending uncertain execution');
+        execution.uncertain_outcome = execution.outcome;
+        execution.uncertain_event_id = execution.completed_event_id;
+        execution.outcome = event.payload.outcome;
+        execution.completed_event_id = event.event_id;
+        execution.completed_event_sequence = event.sequence;
+        break;
+      }
       case 'tool.execution.completed': {
         const turn = requireTurn(state, event.payload.turn_id, event);
         const execution = state.tool_invocations[event.payload.outcome.invocation_id];
@@ -501,7 +688,7 @@ function replaySessionEvents(inputEvents) {
         turn.tool_executions[execution.tool_call_id] = execution;
         break;
       }
-      case 'tool.operation_linked':
+      case 'tool.operation_linked': {
         {
           const turn = requireTurn(state, event.payload.turn_id, event);
           const execution = turn.tool_executions[event.payload.tool_call_id];
@@ -514,6 +701,7 @@ function replaySessionEvents(inputEvents) {
         }
         state.operation_ids.push(event.payload.operation_id);
         break;
+      }
       case 'compaction.completed': {
         const turn = requireTurn(state, event.payload.turn_id, event);
         if (
@@ -556,7 +744,7 @@ function replaySessionEvents(inputEvents) {
           const executions = calls.map((call) => turn.tool_executions[call.tool_call_id]);
           if (
             executions.some((execution) => !execution?.outcome) ||
-            event.payload.retained_source_event_ids.length !== 0 ||
+            event.payload.retained_source_event_ids.length > 0 ||
             canonicalJson(event.payload.source_event_ids) !== canonicalJson(executions.map((execution) => execution.completed_event_id))
           ) {
             throw new SessionReplayError(
@@ -616,7 +804,7 @@ function replaySessionEvents(inputEvents) {
         state.compactions.push(compaction);
         break;
       }
-      case 'child.attached':
+      case 'child.attached': {
         if (event.payload.child_session_id === state.session_id) {
           throw new SessionReplayError('session cannot attach itself as a child', 'AGENT_SESSION_SELF_CHILD');
         }
@@ -628,12 +816,14 @@ function replaySessionEvents(inputEvents) {
         }
         state.children.push(event.payload.child_session_id);
         break;
-      case 'subagent.requested':
+      }
+      case 'subagent.requested': {
         if (state.subagent_request || state.turn_order.length > 0) {
           throw new SessionReplayError('subagent request must be unique and precede execution', 'AGENT_SESSION_SUBAGENT_REQUEST_INVALID');
         }
         state.subagent_request = { ...event.payload, event_id: event.event_id };
         break;
+      }
       case 'workflow.reserved': {
         const existing = state.workflow_reservations[event.payload.workflow_id];
         if (existing) {
@@ -665,6 +855,10 @@ function replaySessionEvents(inputEvents) {
         };
         break;
       }
+      case 'workflow.revised': {
+        reviseWorkflow(state, event);
+        break;
+      }
       case 'workflow.reclaimed': {
         const reservation = state.workflow_reservations[event.payload.workflow_id];
         if (
@@ -694,11 +888,23 @@ function replaySessionEvents(inputEvents) {
         reservation.released = { status: event.payload.status, event_id: event.event_id };
         break;
       }
-      case 'workflow.checkpointed':
+      case 'workflow.checkpointed': {
+        if (state.workflow_reservations[event.payload.workflow_id]?.revision) {
+          throw new SessionReplayError('revised workflows require pinned phase checkpoints', 'AGENT_SESSION_WORKFLOW_CHECKPOINT_INVALID');
+        }
         state.workflow_checkpoints.push({ ...event.payload, event_id: event.event_id });
         break;
-      case 'workflow.phase.checkpointed':
-        if (state.workflow_reservations[event.payload.workflow_id]?.claim_ref !== event.payload.claim_ref) {
+      }
+      case 'workflow.phase.checkpointed': {
+        const reservation = state.workflow_reservations[event.payload.workflow_id];
+        if (reservation?.revision) {
+          if (reservation.released || state.cancellation_request) {
+            throw new SessionReplayError('revised workflow checkpoint requires an active claim', 'AGENT_SESSION_WORKFLOW_CLAIM_INVALID');
+          }
+          const pinned = reservation.revisions.find((item) => item.definition_digest === event.payload.definition_digest);
+          assertWorkflowCheckpoint(event.payload, pinned?.definition);
+        }
+        if (reservation?.claim_ref !== event.payload.claim_ref) {
           throw new SessionReplayError('workflow checkpoint is fenced by a different claim', 'AGENT_SESSION_WORKFLOW_CLAIM_INVALID');
         }
         if (event.payload.child_session_ids.some((childId) => !state.children.includes(childId))) {
@@ -706,11 +912,11 @@ function replaySessionEvents(inputEvents) {
         }
         if (!state.workflows[event.payload.workflow_id]) {
           state.workflows[event.payload.workflow_id] = {
-            definition_digest: event.payload.definition_digest,
+            definition_digest: reservation?.revision ? reservation.definition_digest : event.payload.definition_digest,
             phases: [],
           };
         }
-        if (state.workflows[event.payload.workflow_id].definition_digest !== event.payload.definition_digest) {
+        if (!reservation?.revision && state.workflows[event.payload.workflow_id].definition_digest !== event.payload.definition_digest) {
           throw new SessionReplayError(
             'workflow identifier has a different durable definition',
             'AGENT_SESSION_WORKFLOW_DEFINITION_CONFLICT',
@@ -719,7 +925,6 @@ function replaySessionEvents(inputEvents) {
         if (state.workflows[event.payload.workflow_id].phases.includes(event.payload.phase_id)) {
           throw new SessionReplayError('workflow phase is already checkpointed', 'AGENT_SESSION_WORKFLOW_PHASE_DUPLICATE');
         }
-        const reservation = state.workflow_reservations[event.payload.workflow_id];
         const completedForWorkflow = state.workflow_checkpoints
           .filter((checkpoint) => checkpoint.workflow_id === event.payload.workflow_id && checkpoint.completed_step_ids)
           .reduce((count, checkpoint) => count + checkpoint.completed_step_ids.length, 0);
@@ -732,13 +937,15 @@ function replaySessionEvents(inputEvents) {
         state.workflows[event.payload.workflow_id].phases.push(event.payload.phase_id);
         state.workflow_checkpoints.push({ ...event.payload, event_id: event.event_id });
         break;
-      case 'session.cancellation.requested':
+      }
+      case 'session.cancellation.requested': {
         if (state.cancellation_request) {
           throw new SessionReplayError('session cancellation was already requested', 'AGENT_SESSION_DUPLICATE_CANCELLATION');
         }
         state.cancellation_request = { ...event.payload, event_id: event.event_id };
         break;
-      case 'session.cancelled':
+      }
+      case 'session.cancelled': {
         if (!state.cancellation_request) {
           throw new SessionReplayError('session cancellation requires a preceding durable request', 'AGENT_SESSION_CANCELLATION_REQUIRED');
         }
@@ -758,12 +965,14 @@ function replaySessionEvents(inputEvents) {
         state.status = 'cancelled';
         state.terminal_event = event;
         break;
-      case 'session.failed':
+      }
+      case 'session.failed': {
         assertStartedWorkSettled(state);
         state.status = 'failed';
         state.terminal_event = event;
         break;
-      case 'session.completed':
+      }
+      case 'session.completed': {
         if (
           Object.values(state.turns).some(
             (turn) =>
@@ -791,17 +1000,20 @@ function replaySessionEvents(inputEvents) {
         state.status = 'completed';
         state.terminal_event = event;
         break;
-      default:
+      }
+      default: {
         break;
+      }
     }
     seenEventIds.add(event.event_id);
   }
 
+  REPLAY_CHECKPOINTS.set(state, seenEventIds);
   return deepFreeze(state);
 }
 
-function reconstructModelRequest(events, { turn_id } = {}) {
-  const state = replaySessionEvents(events);
+function reconstructModelRequest(events, { turn_id, from = null } = {}) {
+  const state = replaySessionEvents(events, { from });
   const selectedTurnId = turn_id || state.turn_order.at(-1);
   const turn = selectedTurnId && state.turns[selectedTurnId];
   if (!turn || !turn.request) {
@@ -845,8 +1057,7 @@ function buildRecoveryPlan(events) {
     const step = turn.model_steps.at(-1);
     request = step?.request || turn.request;
     if (state.cancellation_request) nextAction = 'settle_cancellation';
-    else if (!step) nextAction = 'restart_model_request';
-    else {
+    else if (step) {
       const terminalModelEvent = step.model_events.find((event) => ['completed', 'failed'].includes(event.event_type));
       if (!terminalModelEvent) nextAction = step.model_events.length === 0 ? 'restart_model_request' : 'fail_interrupted_model';
       else if (terminalModelEvent.event_type === 'failed') nextAction = 'fail_after_model';
@@ -857,6 +1068,8 @@ function buildRecoveryPlan(events) {
         else if (executions.some((execution) => !execution.outcome)) nextAction = 'resume_tools';
         else nextAction = 'continue_after_tools';
       } else nextAction = 'settle_after_model';
+    } else {
+      nextAction = 'restart_model_request';
     }
   }
   return deepFreeze({

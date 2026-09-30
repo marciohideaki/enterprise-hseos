@@ -8,12 +8,21 @@ const yaml = require('yaml');
 
 const { ModelProviderManifestSchema, RuntimeProviderManifestSchema, parseContract } = require('../../packages/agent-runtime-contracts');
 const { createAcpRuntimeManifest, createHostedRuntimeManifest } = require('../../packages/runtime-providers');
+const { getEngineeringModelManifest } = require('../cli/lib/engineering-task-runtime');
 const { getReferenceModelManifest } = require('../cli/lib/reference-agent-runtime');
 const { loadCapabilityCatalog } = require('../cli/lib/capability-catalog');
 const { providerManifest, readProviderBinding } = require('./agent-provider-binding');
 
 const PROFILE_CONTRACTS = Object.freeze(
   [
+    [
+      'disposable-engineering-candidate',
+      'kernel',
+      'model:engineering-scripted',
+      'runtime:hseos-kernel',
+      [],
+      ['runtime:engineering-candidate'],
+    ],
     [
       'agent-reference',
       'kernel',
@@ -68,6 +77,12 @@ const PROFILE_CONTRACTS = Object.freeze(
 
 const PROVIDER_SPECS = Object.freeze(
   [
+    {
+      provider_id: 'model:engineering-scripted',
+      provider_kind: 'model',
+      suites: ['test/test-engineering-task-runtime.js', 'test/test-engineering-model.js'],
+      manifest: () => getEngineeringModelManifest(),
+    },
     {
       provider_id: 'model:scripted-reference',
       provider_kind: 'model',
@@ -370,7 +385,9 @@ function validateProfiles(catalog) {
       model_provider_id: profile.agent.model_provider_id || null,
       runtime_provider_id: profile.agent.runtime_provider_id,
       secret_refs: profile.agent.secret_refs,
-      provider_components: profile.components.filter((component) => component.startsWith('runtime:agent-')).sort(),
+      provider_components: profile.components
+        .filter((component) => component.startsWith('runtime:agent-') || component === 'runtime:engineering-candidate')
+        .sort(),
     };
     const normalizedExpected = {
       ...expected,

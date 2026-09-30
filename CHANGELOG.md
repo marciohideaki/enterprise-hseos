@@ -9,7 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Candidate campaign factories for native account, API and local SDK routes, with scoped Antigravity composition, shared reservations, process drainage and receipt-bound session resume. Real-provider campaign conformance remains unverified; see [W3 candidate limits](docs/evolution/w3/ADAPTERS-CAMPAIGN.md).
+
 - Resolve producer governance independently of consumer files, inject a minimal discovery capsule only when session/project/source state changes, and keep unverified application/enforcement explicit.
+
+## [4.0.0-rc.0] — Unpublished candidate
+
+### Added
+
+- Disposable Node/Python task execution through the governed kernel, isolated command executor, protected verification and versioned task evidence.
+- Canonical task-graph workflows, explicit definition migration, independent task outcomes and bounded aggregate reservations.
+- Selective fresh-consumer profiles, lazy CLI/provider loading, protected task context and incremental replay with full recovery replay.
+- Optional existing provider binding and credential broker integration for engineering tasks and workflows.
+
+### Breaking Changes
+
+- Mutable YAML workflow advancement is retired. Legacy runs remain read-only; migrate eligible definitions and start new runs. See [v4 migration and rollback](docs/v4-migration.md).
+
+### Candidate limits
+
+- Workflow recovery fences live owners and preserves recorded effects and original deadlines. Interrupted uncertain effects remain blocked for reconciliation; the real-provider campaign remains separate.
+- Publication, operational activation and the v3 deprecation window require separate release decisions.
 
 ## [3.4.2] — 2026-09-07
 
@@ -60,7 +80,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   authority. ([PR #147](https://github.com/marciohideaki/enterprise-hseos/pull/147))
 - `hseos agent-core compile --check`, which verifies generated artifacts and
   source/output drift without writing files. ([PR #148](https://github.com/marciohideaki/enterprise-hseos/pull/148))
-
 
 ## [3.3.1] — 2026-09-01
 

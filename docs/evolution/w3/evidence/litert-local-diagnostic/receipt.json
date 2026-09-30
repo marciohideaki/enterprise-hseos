@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-26",
+  "status": "incomplete",
+  "sdk_version": "0.1.18",
+  "litert_version": "0.17.1",
+  "checkpoint": {
+    "repository": "litert-community/Qwen3-0.6B-int4",
+    "revision": "6aa2daf8aba4aa456797fb8040b36a3948bcfda7",
+    "filename": "qwen3_0.6b_nothink_q4_block32_ekv1280.litertlm",
+    "sha256": "2df6821ec12702dafd33915e7a1a1adc7c4b053f3672fd9555dfaf3a114c4139",
+    "size": 347251840,
+    "license": "apache-2.0",
+    "path": "/build/tmp/hseos-w3-litert-model/qwen3_0.6b_nothink_q4_block32_ekv1280.litertlm",
+    "source": "https://huggingface.co/litert-community/Qwen3-0.6B-int4/resolve/6aa2daf8aba4aa456797fb8040b36a3948bcfda7/qwen3_0.6b_nothink_q4_block32_ekv1280.litertlm"
+  },
+  "local_inference_observed": true,
+  "prompt_compliance": false,
+  "usage": null,
+  "tool_bridge_exercised": false,
+  "campaign_completed": false,
+  "api_calls": 0,
+  "new_api_cost_usd": 0,
+  "global_cap_usd": 10,
+  "retained_reservations_usd": 8,
+  "available_usd": 2,
+  "output_sha256": "3ea44abc2bb0341140a7f5f21379b7134181fe43e79ea95d3a9c5691e64bc2d1",
+  "sdk_session_id": "18543b0a2e40ab1056001ddccd8f9e68",
+  "source_hashes": {
+    "packages/control-sdk/antigravity_client.py": "9b2eaa010cf8f655020828200e6e9ffa742dc9c30923a59c65c040fbd731635b",
+    "test/test_antigravity_client.py": "034c4986c03a74801832509dbcc45ae18e07a304227c86ba94db32b36a0d180d"
+  }
+}

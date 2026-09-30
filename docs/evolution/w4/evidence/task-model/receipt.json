@@ -1,0 +1,120 @@
+{
+  "task": "W4-02c3c",
+  "base": "2c06be5",
+  "type": "deterministic-task-model-composition",
+  "verification": {
+    "Node24.15.0": {
+      "passed": 185,
+      "failed": 0,
+      "skipped": 0
+    },
+    "Node22.23.3": {
+      "passed": 87,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "environment": {
+    "isolation": "Linux bwrap/cgroup; delegated scope",
+    "cpu": "one nonzero logical CPU, nice 19",
+    "memory_max_bytes": 3221225472,
+    "parallel_test_files": 1
+  },
+  "coverage": {
+    "control-configuration.js": {
+      "lines": 98,
+      "branches": 91.48
+    },
+    "engineering-control.js": {
+      "lines": 99.09,
+      "branches": 92.91
+    },
+    "engineering-plugin-model.js": {
+      "lines": 100,
+      "branches": 91.42
+    },
+    "engineering-task-extensions.js": {
+      "lines": 100,
+      "branches": 100
+    },
+    "engineering-task-runtime.js": {
+      "lines": 95.61,
+      "branches": 87.78
+    },
+    "engineering-task-state.js": {
+      "lines": 100,
+      "branches": 81.17
+    },
+    "execution-plugin-campaign.js": {
+      "lines": 100,
+      "branches": 92.12
+    },
+    "execution-plugin-model.js": {
+      "lines": 97.5,
+      "branches": 93.54
+    },
+    "provider-campaign-control.js": {
+      "lines": 98.81,
+      "branches": 93.46
+    }
+  },
+  "sha256": {
+    "package.json": "baf936a92f7a6628ceec275456469836d6c371002d074eef3e89ed521fa7a68c",
+    "test/test-control-configuration.js": "73ede05db9e5c3599b8ebb08c4aec135483bc32708cab1b48da3c347586d0017",
+    "test/test-package-surface.js": "ecabb0ec07bc5e4339171aa3279c9e26bb34b5ab7d53a44cab90427fffeadbae",
+    "tools/cli/commands/control.js": "4086a0b590b1c02a93ec731aaeb887adcd24b9f77f31222307e2d4260f721c3d",
+    "tools/cli/lib/control-configuration.js": "0306c416254b980d98aae4107cfe52ac7aedcc36fa9b28f93a7fc4cc9dc748de",
+    "tools/cli/lib/engineering-control.js": "ea7f3687081b943fdc60d46ede27132de9e304d97cb0d3ef1d3db45cc90fefaa",
+    "tools/cli/lib/engineering-task-extensions.js": "90d0e8baa664d7fe2c3bd79230945b933788d2cc389337477075368ed3fe6b1a",
+    "tools/cli/lib/engineering-task-runtime.js": "4b1f18493f97474d671973b465b1438e3aa4bbf769970b220f52fc1f85af322b",
+    "tools/cli/lib/engineering-task-state.js": "10a33cf44ba59219b231dda284f6ab4d39108f80a4ede55ba7bacae3a6ec143d",
+    "tools/cli/lib/execution-plugin-campaign.js": "165656f846411e587128bb09b1fc8f8d47f3215f14c66f107bffc1ee93ee5866",
+    "tools/cli/lib/execution-plugin-model.js": "6025778182756ce964f845acefca2ce721c859320637ab953b315c0d89b7b02e",
+    "tools/cli/lib/provider-campaign-control.js": "d4b857b6cf1898984966c40e50ef928fd49cbf7ad58a917268753e075649eb40",
+    "tools/cli/lib/engineering-plugin-model.js": "df33ad605838a72728bb21c6e02822a059d60fbd6a0a7a8424d5caaa71954a38",
+    "test/test-engineering-plugin-model.js": "d8b0f1e75680036c5c0713bbde229a6a019833ab28ca8cc8a5baecc2b5bcdcc1",
+    "tools/cli/command-manifest.json": "433555f25b6103e083da2bafa6d34b12887d34cb8b1580211db8d70012c17d48"
+  },
+  "gate": {
+    "Node24.15.0": "passed",
+    "failures": 0,
+    "warnings": 1,
+    "log_sha256": "a64820fc619cefb69ee717e4c442569e6749687fe74df5999c88eaec2bb7348d"
+  },
+  "review": {
+    "blind": "FAIL: foreign control ledger could replace original budget",
+    "correction": "physical control identity and resource-directory association pinned and verified; adversarial test passes",
+    "static_recheck": "P1 resolved; no new blocker",
+    "final_confrontation": "14 source hashes and final logs checked; Node24 185, Node22 87 pass with zero skips, nine critical files >=90/80; no remaining code blocker; full gate and hook pending",
+    "supplemental_confrontation": "Active cgroup and drain assertions plus 15/15 logs for both Nodes confirmed; current hashes match; no new blocker"
+  },
+  "package": {
+    "entry_count": 1447,
+    "base_entry_count": 1446,
+    "delta": [
+      "tools/cli/lib/engineering-plugin-model.js"
+    ]
+  },
+  "limitations": [
+    "fixture consumers, not external certification",
+    "physical candidate control identity; operational rebind/backup remains W4-03c",
+    "W4-03 through W4-08 pending",
+    "No paid call, publication or activation"
+  ],
+  "gate_initial": "failed before full suite: stale CLI generated manifest; regenerated with npm run compile:cli",
+  "regression_test_sha256_before_drain_strengthening": "d663959da73596c4da87d58df8842554486e4ea58d067727de7350e1f07ffe6f",
+  "supplemental_verification": {
+    "Node24.15.0": {
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0
+    },
+    "Node22.23.3": {
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0
+    },
+    "purpose": "Observe populated sandbox cgroup before cancellation/shutdown and empty owned groups afterward; production source hashes unchanged"
+  },
+  "gate_intermediate": "interrupted by executor to strengthen active-process cancellation proof; not PASS"
+}

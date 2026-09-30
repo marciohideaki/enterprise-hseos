@@ -1,0 +1,316 @@
+{
+  "schema_version": 1,
+  "timestamp": "2026-09-26T03:40:35.863588+00:00",
+  "status": "deterministically-verified-candidate",
+  "base_commit": "a8423081934d64538d71ef8289f072d51566a870",
+  "execution": {
+    "sequential": true,
+    "nice": 10,
+    "test_concurrency": 1,
+    "owner_instruction": "Execute sequencialmente"
+  },
+  "checks": {
+    "24": {
+      "full_suite": {
+        "node": "24",
+        "started_at": "2026-09-26T03:00:46.943338+00:00",
+        "finished_at": "2026-09-26T03:08:52.959393+00:00",
+        "exit_code": 0,
+        "sequential": true,
+        "nice": 10,
+        "postgres_integration": true,
+        "tests": 887,
+        "pass": 887,
+        "fail": 0,
+        "skipped": 0
+      },
+      "final_kernel": {
+        "exit_code": 0,
+        "sequential": true,
+        "tests": 416,
+        "pass": 416,
+        "fail": 0,
+        "skipped": 0,
+        "coverage": {
+          "lines": 95.41,
+          "branches": 88.06
+        },
+        "per_file_minimum": {
+          "lines": 90,
+          "branches": 80
+        }
+      },
+      "installed": {
+        "node": "v24.15.0",
+        "installed": "/build/tmp/hseos-w1-installed-a_id6zf1/consumer24/node_modules/hseos",
+        "outside_checkout": true,
+        "projects": [
+          {
+            "project": "typescript-report",
+            "result": "approved",
+            "corrections": 2,
+            "task_run_id": "b08522cb-8a48-47b5-a7df-6c162c4db34b",
+            "contract_sha256": "134672354c73421e96c87571af3f0a3f699836577fbd024f534d9a909f5dc610",
+            "files_sha256": "78bac4753d1547df31815b4530bbe267b95328f932637d0b3e4958a8dd513823",
+            "verification": {
+              "kind": "result",
+              "result": "approved",
+              "reason": "criteria-satisfied",
+              "evidence": {
+                "approved": true,
+                "contract_sha256": "134672354c73421e96c87571af3f0a3f699836577fbd024f534d9a909f5dc610",
+                "descendants_terminated": true,
+                "files_sha256": "78bac4753d1547df31815b4530bbe267b95328f932637d0b3e4958a8dd513823",
+                "isolation_digest": "271da948463f765699954eda89b6920aa60027e87a7c9b0acff9b000313d62da",
+                "reason": "criteria-satisfied",
+                "schema_version": 1,
+                "session_id": "session:0f5df72b-d578-46ad-86df-ddb894c77463",
+                "verifier_sha256": "0928449f89579654c4aeea016f11e69fc28e5bb3217fd4ac69975d87339f9ebf",
+                "workspace_access": "read_only"
+              }
+            },
+            "review_sha256": "6d35b3cf54f4bb1b5f258911eebe8d02484fb98c80dfa2b4859049404872eb89",
+            "applied": true,
+            "events": 67
+          },
+          {
+            "project": "python-inventory",
+            "result": "approved",
+            "corrections": 2,
+            "task_run_id": "0c900c5a-de72-453a-9e3d-dfa2d02c11cc",
+            "contract_sha256": "a9d987ec59aa9bd05e550c75560cd84028387a1f8e09d506f3a559b58bc0b793",
+            "files_sha256": "dffd87ed6a8509c9763386e5a4457675704dbddcf9cb8bb89414b8833a9ec84e",
+            "verification": {
+              "kind": "result",
+              "result": "approved",
+              "reason": "criteria-satisfied",
+              "evidence": {
+                "approved": true,
+                "contract_sha256": "a9d987ec59aa9bd05e550c75560cd84028387a1f8e09d506f3a559b58bc0b793",
+                "descendants_terminated": true,
+                "files_sha256": "dffd87ed6a8509c9763386e5a4457675704dbddcf9cb8bb89414b8833a9ec84e",
+                "isolation_digest": "17164cda178f4b3086bbd7267705df79b242bd7c945cfd54109f4b5480229b92",
+                "reason": "criteria-satisfied",
+                "schema_version": 1,
+                "session_id": "session:022fed2c-622c-4164-9c75-689115af82d8",
+                "verifier_sha256": "026c4eee24f451a08120014760d90224366ecb05071c6ff13a2cf64f16b99b5f",
+                "workspace_access": "read_only"
+              }
+            },
+            "review_sha256": "1ef6ff6c74ed1377703442a926928d87bedba86b522d12284eb6b3b53e45362c",
+            "applied": true,
+            "events": 67
+          }
+        ],
+        "interfaces": ["CLI server", "CLI command", "JS SDK", "Python SDK", "HTTP"],
+        "operational": false,
+        "real_model": false
+      }
+    },
+    "22": {
+      "full_suite": {
+        "node": "22",
+        "started_at": "2026-09-26T03:08:52.960041+00:00",
+        "finished_at": "2026-09-26T03:16:39.125898+00:00",
+        "exit_code": 0,
+        "sequential": true,
+        "nice": 10,
+        "postgres_integration": true,
+        "tests": 887,
+        "pass": 887,
+        "fail": 0,
+        "skipped": 0
+      },
+      "final_kernel": {
+        "exit_code": 0,
+        "sequential": true,
+        "tests": 416,
+        "pass": 416,
+        "fail": 0,
+        "skipped": 0,
+        "coverage": {
+          "lines": 95.41,
+          "branches": 88.1
+        },
+        "per_file_minimum": {
+          "lines": 90,
+          "branches": 80
+        }
+      },
+      "installed": {
+        "node": "v22.23.3",
+        "installed": "/build/tmp/hseos-w1-installed-a_id6zf1/consumer22/node_modules/hseos",
+        "outside_checkout": true,
+        "projects": [
+          {
+            "project": "typescript-report",
+            "result": "approved",
+            "corrections": 2,
+            "task_run_id": "a94242c5-2e86-41ae-9ab5-9d702ad05a33",
+            "contract_sha256": "73f0c2c3a6f2ad724d47cf8e496eab4572c1779ad21f7faaf0dbfcacf3645d5a",
+            "files_sha256": "78bac4753d1547df31815b4530bbe267b95328f932637d0b3e4958a8dd513823",
+            "verification": {
+              "kind": "result",
+              "result": "approved",
+              "reason": "criteria-satisfied",
+              "evidence": {
+                "approved": true,
+                "contract_sha256": "73f0c2c3a6f2ad724d47cf8e496eab4572c1779ad21f7faaf0dbfcacf3645d5a",
+                "descendants_terminated": true,
+                "files_sha256": "78bac4753d1547df31815b4530bbe267b95328f932637d0b3e4958a8dd513823",
+                "isolation_digest": "64a73502c8dcc4fe5b7c3707d1cf0e96fa7bbb83f91bd2339c7f6ed3f272732a",
+                "reason": "criteria-satisfied",
+                "schema_version": 1,
+                "session_id": "session:35ff6298-abee-4a33-82ed-5fabdf3af440",
+                "verifier_sha256": "ecd09c79da78655f2bd84b0d6c0f3162b8dba2b0b99c6352106781a172e753bf",
+                "workspace_access": "read_only"
+              }
+            },
+            "review_sha256": "8d546a72b9559322a2851af7bfdf33fd9c27b729b486977e301551474bb47954",
+            "applied": true,
+            "events": 67
+          },
+          {
+            "project": "python-inventory",
+            "result": "approved",
+            "corrections": 2,
+            "task_run_id": "7e28ad6c-6186-491a-9ffa-a9b1ec7367fb",
+            "contract_sha256": "c6ecf1def325f2152f3b72b2fc81e7f761bd970e5fd6e2f703b53ba736bddb1d",
+            "files_sha256": "dffd87ed6a8509c9763386e5a4457675704dbddcf9cb8bb89414b8833a9ec84e",
+            "verification": {
+              "kind": "result",
+              "result": "approved",
+              "reason": "criteria-satisfied",
+              "evidence": {
+                "approved": true,
+                "contract_sha256": "c6ecf1def325f2152f3b72b2fc81e7f761bd970e5fd6e2f703b53ba736bddb1d",
+                "descendants_terminated": true,
+                "files_sha256": "dffd87ed6a8509c9763386e5a4457675704dbddcf9cb8bb89414b8833a9ec84e",
+                "isolation_digest": "cf0808c506853e854cbe6bb63357792abd542d0eb2c1b8a8e3740f9324129532",
+                "reason": "criteria-satisfied",
+                "schema_version": 1,
+                "session_id": "session:8f64710d-fc97-4cd3-b7fc-32a6ac5f7f20",
+                "verifier_sha256": "026c4eee24f451a08120014760d90224366ecb05071c6ff13a2cf64f16b99b5f",
+                "workspace_access": "read_only"
+              }
+            },
+            "review_sha256": "7eb9febb19ad015d2e272bdf1f36fff5b06011a3ac8fd25953aaa9e0f9e27ff3",
+            "applied": true,
+            "events": 67
+          }
+        ],
+        "interfaces": ["CLI server", "CLI command", "JS SDK", "Python SDK", "HTTP"],
+        "operational": false,
+        "real_model": false
+      }
+    }
+  },
+  "final_checks": {
+    "manifest": 0,
+    "lint": 0,
+    "format": 0,
+    "sdk-types": 0,
+    "documentation": 0,
+    "ci": 0,
+    "ci_evidence": 0
+  },
+  "full_suite_source_snapshot_sha256": "b13f8f28e1a82ad3757135a737914a97e11614e6231f942b7f3f0c9e2f5f9076",
+  "post_full_suite_changes": [
+    ".enterprise/.specs/decisions/ADR-0044-project-engineering-control.md",
+    ".specs/features/harness-w1/design.md",
+    ".specs/features/harness-w1/tasks.md",
+    "docs/engineering-control-api.md",
+    "docs/evolution/STATUS.md",
+    "docs/evolution/_INDEX.md",
+    "docs/evolution/requirements.json",
+    "docs/evolution/w1/STATUS.md",
+    "test/test-engineering-control.js",
+    "test/test-engineering-workspace.js",
+    "tools/cli/lib/engineering-workspace.js"
+  ],
+  "post_full_suite_validation": "Final critical suite on both Node versions covers Git hardening; final lint/format/types/CI checks cover remaining source and documentation deltas. Full suite results are explicitly bound to their earlier source snapshot.",
+  "sources_manifest_sha256": "004e71cf9bec9bfb844a7a1945a54ffa36561996f235f227d7c1c98373f8b990",
+  "git": {
+    "imported_w0_index": "28f6ba59233e80bc35cdf51e12f433ec9efed9b8",
+    "review_tree_without_receipts": "a27e58b075045c00b4fea3458f1d8e5f96baea46",
+    "wave1_patch_sha256": "ef5a85c2f2b1d7f4d097f4e0c00a1d1682b5041c15d08e9d53684a3d192546a8",
+    "patch_reconstructed": true,
+    "original_candidate_preserved_files": 1956,
+    "real_index_unchanged": true
+  },
+  "operational": false,
+  "real_models_certified": false,
+  "artifacts": {
+    "adversarial-coverage.log": "77523bd3c3eaa14509b79be275e0c2fb3a5fee9d21fc791b77f62f4bc6ef4038",
+    "capability-graph.log": "2b4f965ea67c1906c23b50183aec189e9a8509d5bc97e0dfdd3750c9b9468cb0",
+    "ci-evidence.log": "03db1dd3b6b0a73b4b6f2ae1bdefaccf3aa1434e4acb8bf51da70b112b8a6b0d",
+    "ci-final.log": "c6b5c90283d0f78fcf34c4bf9411344e914266a4a766ea1f5ad207b2a279412a",
+    "control-coverage.log": "3ac8668718cf29449dbdc98e56db62f570a118fc6279f8ad5d0add643dd512ff",
+    "control-final.log": "ff38acd9752629e7a9da854cf206b1757960bf78740862c0ce78582ac878f460",
+    "control-first.log": "7129b7a0481c0112771da327d0d8e51e24920b423f39a3cbb7954d70492c4428",
+    "coverage-node22.json": "acb39a20382f1d3381370694fee734fe3e5ab7b97a43ceaff9aaa2b591fb43b6",
+    "coverage-node24-before-git-hardening.json": "976c9e7c2712a4f2fa330f3dbd5e9b03e79eddbe78ab7170267a01ee7a08e8b5",
+    "coverage-node24.json": "80600f62488701b01e7ae75aca628d942906b05b14916a3e67f3a061190b55cb",
+    "documentation-final.log": "766d111bda25d6ca23dbce07781529a40e4f263087e09cb41d6945700a6ff933",
+    "final-checks.json": "a0d0cf87d4ddba67976d4b347d769996152356f978795a577590647b35f56558",
+    "final-checks.py.txt": "b25854f6de15561b3c8773c182e44447f0ed22562543bbd5e28c3d09c6a42ce8",
+    "finalization.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "format-final.log": "d2e1aea7716e1afaae196ebdb85b7cb6697a1da6fcf5e755920a0f9adec17eff",
+    "format.log": "258f44a029eb266e2ae7b81c673a73d5830b2ee7bfedfd93acab4f123d79392c",
+    "full-gates-node22.log": "bb18ac5be33503dbd7c8f14fa8ed744628aec7039cc3535892366274b5fa64af",
+    "full-gates-node22.result.json": "3081c4f9a4f0ce94c095f027ae7609337a42b6b60f12d9c57b91d395fdc35213",
+    "full-gates-node24-before-schema-tests.log": "72ba6ea79711bfd88ace4fda529449ac7d45b728516fd86ac34001db04b6daf4",
+    "full-gates-node24-before-schema-tests.result.json": "473b54b688430aeaa068de8859016626cd0c08b10b989d494bc7735f46814cdd",
+    "full-gates-node24.log": "ff3fc623e0107d8b89d61ce5262f194bff45c41e20832d92e796f23ab2718160",
+    "full-gates-node24.result.json": "167b736c1b634310f2d79ac2a84ef33d9e6172cb385e2882e4fec44c4b0cbefb",
+    "full-gates.py.txt": "786e2fb3b9e6094f04055ebd81c5238bc077fdb798afba72cbdc15e786aec9cc",
+    "full-suite-sources.json": "b13f8f28e1a82ad3757135a737914a97e11614e6231f942b7f3f0c9e2f5f9076",
+    "gate-scope.log": "83695ea9c02d3ae52688e57ca22ba87c0b33187b04953bb5ab72e0b2c2c0b262",
+    "gates-node22-skipped-tests.log": "7cc9179cf23a73a99de92cce13a839908443648f7b6d3a2d859df12cdb85acc9",
+    "gates-node24-skipped-tests.log": "42daf2bbe136046bbc869cc378eb62cfe76358e7882a9344053c8980d846c947",
+    "git-extension-probe.json": "5be290b1b65bb4c40a65d06d09eec39fcb4e985d8be615d45871a7288380dc2a",
+    "git-extension-probe.py.txt": "3672643d4aa86b5de9f200e18e925c4a622244240559703dc9fad2b1dddd08ff",
+    "git-hardening-fixed.log": "b86abbfec06fa98ae1b64bd0dc260055f84d8478b6360735a51b3619c8a05b72",
+    "git-hardening.log": "933fb05ef8fe49f952749238b7e649b2093829fb94715eee43a1ca71b9816bee",
+    "git-separation.json": "b77ec908e9c3332562405c9c6ec93a6b81e566d6859c0bcc0ae52a8d6d29fa21",
+    "install-matrix.py.txt": "5510066264111b1f7e0f98095e3fc0e121f06e4e4587b3620a81da774ee12d23",
+    "install-node22.log": "d5a3f400fc8193b95894e6e8750549a79a0a1da979c90620b371a4c14f8e09fd",
+    "install-node24.log": "839087b6d7dc44714a39d790cebff952141ea5f64e64e69987a851f346e5f90d",
+    "installed-node22.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "installed-node22.json": "cfbf68c879cda03e8ba250b450ca6a2e0d47e6e395a3bc143d16bef06757c290",
+    "installed-node22.network": "717c72ad9d094c37fd4bf8115343283e4fb25144b315f591b3d779219051ee6b",
+    "installed-node24.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "installed-node24.json": "5aef5f112b2b710ea2f74ef0aec7db28d5b6e89d55831cfa6386bb8108803091",
+    "installed-node24.network": "f34ced256b328768c381465b81b5817b781eb78f840bd07194b82ab41f61cdf7",
+    "installed-smoke.cjs.txt": "24e2877507629ac3fc2ab33a5cfdf1db6a30a64a913d6cf443438953094dbe1a",
+    "kernel-coverage-node22.log": "680af5bcdcd70c8d777197044f6c9b3873700a1f8a985f11a04b6c4219d407e2",
+    "kernel-coverage-node24.log": "44492038c2b71cbfdc779fc1238cdf9135183dfc01ed348951e1ea6b0e7ab894",
+    "kernel-matrix.py.txt": "3549f87c46b504679bcee21fad0325b9ed96ae405a213e23bdf649fedaa3882c",
+    "kernel-node22.result.json": "ef2113798d3236992c77647ccacdd71d5c2b88b5c3d17013a350bcfb3153689a",
+    "kernel-node24-before-git-hardening.log": "915ad1e35429bce5ec2d730b19b143021dfdd93c6fb9f5b3ae69316c7a824efa",
+    "kernel-node24.result.json": "ef2113798d3236992c77647ccacdd71d5c2b88b5c3d17013a350bcfb3153689a",
+    "lint-final.log": "cc6b4feb435484d113b62528c9012176a6894f5a0bad6bf6fe1b92944acc7514",
+    "lint.log": "19f298c02d00988305cc3b07cc248476f7b34f0cf51dbf5fc40b0499b6901a40",
+    "manifest-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "migration-rehearsal-fixed.log": "77170ed07bd98a94e3f340287248a4776e18cd64259379ee38b3294cb5630c50",
+    "network-observation.json": "d692704df5e689ca0754486d0684ccc55c5630e1b1156f228d3d105550929aeb",
+    "pack.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pack.json": "b7c3b42886908e4b14191c52fdf88877866c382a85b0a4b7d0e98ad5b2ab655a",
+    "package-receipt.json": "f7e2a959bc206e8f74a9852628bb391802f70a6cf9671d4c2d67c3d29b711772",
+    "postgres-port-forward.log": "92750bf4c4b55d6e3275741796a512a43507f94591da0348803f7aecb0baa189",
+    "project-examples.log": "4f249d3532411a2d3fce9b3632f1e5e70457b46c2807a541146874d9b5215dff",
+    "project-executor.log": "9f425e032cf9800b135d2e4e73d45bc759bd5a48f891a88d8721e99915bf2d2b",
+    "project-first.log": "be6a82cb87df6b6859ddf886152fd19c11b0c8504191b18fe3d9d6f1c9e03170",
+    "project-second.log": "178aa34822444f97d9c2cec81f5eed345cfcf0489796949a58055d55eb1b9865",
+    "project-third.log": "151276bd3b83db12c90cbc9737fd4c66eeddb54f7c05516d54004398ed23cc64",
+    "reconciliation-patch.log": "965ec58518aa62352dc24553fcadcb91faa37050dcd11208ab092c6952e908f7",
+    "reconciliation.log": "39f48e7fd074c1df06c254e78a9a49a3015f12f15a9c36efd583372b3b97f538",
+    "schema-fixed.log": "1f5ad5d150adea8b858025ac39c8b19d06bb5fcca1341119a482d19623f90c1d",
+    "schema-followup.log": "1a9916065fada325f142e46902da8c6f66349d9aba4ee2b0c4ca45fa56395e71",
+    "schema-migration.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sdk-check.ts.txt": "965569ffe5cb4d081af0920fb42c3f93d1f78544502e359bbf0ad3ed643fadb7",
+    "sdk-types-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sdk-types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sources.json": "004e71cf9bec9bfb844a7a1945a54ffa36561996f235f227d7c1c98373f8b990"
+  }
+}

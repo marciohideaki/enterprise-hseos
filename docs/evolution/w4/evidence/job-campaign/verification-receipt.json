@@ -1,0 +1,112 @@
+{
+  "task": "W4-05",
+  "base": "b6282f2e",
+  "node22": "22.22.1 official",
+  "node24": "24.15.0",
+  "focused": "49/49 passed on Node 24; literal W4-05 verify step 28/28 passed",
+  "coverage": {
+    "node22": {
+      "provider-campaign-control.js": {
+        "lines": 98.83,
+        "branches": 94.11
+      },
+      "execution-plugin-campaign.js": {
+        "lines": 100,
+        "branches": 92.24
+      },
+      "job-control.js": {
+        "lines": 99.69,
+        "branches": 92.15
+      },
+      "job-dispatch.js": {
+        "lines": 95.66,
+        "branches": 87.73
+      },
+      "engineering-task-runtime.js": {
+        "lines": 96.22,
+        "branches": 88.73
+      }
+    },
+    "node24": {
+      "provider-campaign-control.js": {
+        "lines": 98.83,
+        "branches": 94.11
+      },
+      "execution-plugin-campaign.js": {
+        "lines": 100,
+        "branches": 92.24
+      },
+      "job-control.js": {
+        "lines": 99.69,
+        "branches": 92.15
+      },
+      "job-dispatch.js": {
+        "lines": 96.44,
+        "branches": 87.92
+      },
+      "engineering-task-runtime.js": {
+        "lines": 97.19,
+        "branches": 89.01
+      }
+    }
+  },
+  "mutants": {
+    "node22": "18/18 rejected",
+    "node24": "18/18 rejected"
+  },
+  "gates": {
+    "node22": "PASS, zero failures and warnings",
+    "node24": "PASS, zero failures and warnings"
+  },
+  "pack_entries": 1457,
+  "review": "Skeptical reviewer found missing required test, then confirmed test/test-job-campaign.js and package scripts resolved the finding; no further blocker found. Review was static; dynamic suites separately passed.",
+  "scope": "Reciprocal authorization claim required before campaign use; durable job-to-campaign, request-to-reservation linkage and uncertain reservation retention verified. Existing ProviderCampaignControl remains sole monetary authority.",
+  "logs": {
+    "node22_coverage": {
+      "file": "node22_coverage.log.gz",
+      "sha256": "35d0b2c34c3ccc83b5b206fb72c3f751aa107a30dbc592c4693e499c7332da91",
+      "bytes": 35953
+    },
+    "node22_mutations": {
+      "file": "node22_mutations.log.gz",
+      "sha256": "2a85701b189d3c02d711d6c2c39801add94e9ab93b27882dd3213dfe047e9dc8",
+      "bytes": 672
+    },
+    "node22_gate": {
+      "file": "node22_gate.log.gz",
+      "sha256": "3cf723638adb2dc39f89fe467fab2eca765dbd3752a4c2a67ed5890269f04603",
+      "bytes": 69049
+    },
+    "node24_coverage": {
+      "file": "node24_coverage.log.gz",
+      "sha256": "ade51f45eb28bea8fbda46dc3ee0432af1f636fd0ef25d32df81869709088e04",
+      "bytes": 27313
+    },
+    "node24_mutations": {
+      "file": "node24_mutations.log.gz",
+      "sha256": "691d3240e5c4564ecad15366292e277295c33c4af8fbc1af62be579ca9730816",
+      "bytes": 502
+    },
+    "node24_gate": {
+      "file": "node24_gate.log.gz",
+      "sha256": "263e5c9252f9c660f37883ee43b259d069803cfd33948e89436fe87825a78a58",
+      "bytes": 54994
+    },
+    "node24_focused": {
+      "file": "node24_focused.log.gz",
+      "sha256": "77f03d56297cfb7aaabb6b66ba8fdf3afc5fa0ec4560d6d144baadf60cf4bb66",
+      "bytes": 2193
+    },
+    "node24_contract": {
+      "file": "node24_contract.log.gz",
+      "sha256": "2e9e1600dde4e63fa07e20c033d6e3d08eb8c83ee9fc69e5dcf992dcba5790a3",
+      "bytes": 1403
+    },
+    "node24_manager_validate": {
+      "file": "node24_manager_validate.log.gz",
+      "sha256": "3b0f6a4aee29291815c67d4d01176d873badfdc07e4cfd6fb86a92ae06577e9a",
+      "bytes": 54845
+    }
+  },
+  "worktree_validation": "PASS, zero failures; one pre-existing template placeholder warning"
+}

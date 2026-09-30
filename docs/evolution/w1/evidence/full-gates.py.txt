@@ -1,0 +1,29 @@
+import os,pathlib,subprocess,socket,time,urllib.parse,json,datetime
+root=pathlib.Path.cwd();logs=root/'.logs/validation/w1'
+password=subprocess.check_output(['pass','show','platform-shared-dev/postgres-platform'],text=True).splitlines()[0]
+s=socket.socket();s.bind(('127.0.0.1',0));port=s.getsockname()[1];s.close()
+with (logs/'postgres-port-forward.log').open('w') as f:
+ pf=subprocess.Popen(['kubectl','-n','platform-shared-dev','port-forward','svc/postgres-shared',f'{port}:5432','--address','127.0.0.1'],stdout=f,stderr=f)
+ try:
+  for _ in range(60):
+   try:
+    with socket.create_connection(('127.0.0.1',port),timeout=1):break
+   except OSError:time.sleep(.5)
+  else:raise RuntimeError('Port forward unavailable')
+  for version,runtime in [('24','/workspace/local/sdk/nvm/versions/node/v24.15.0/bin'),('22','/build/tmp/hseos-w1-node/node-v22.23.3-linux-x64/bin')]:
+   local=root/'node_modules';assert not local.exists() and not local.is_symlink()
+   if version=='22':local.symlink_to('/build/tmp/hseos-w0-closeout-cofvlsrb/consumer22/node_modules',target_is_directory=True)
+   try:
+    env=os.environ.copy();env.update(PATH=runtime+':'+env['PATH'],TMPDIR='/tmp',VALIDATION_ENFORCED='true',HSEOS_GOVERNANCE_TEST_DATABASE_URL='postgresql://platform:'+urllib.parse.quote(password,safe='')+f'@127.0.0.1:{port}/hseos_v4_ci_node22_20260925')
+    start=datetime.datetime.now(datetime.timezone.utc).isoformat();print('Starting full gates Node '+version,flush=True)
+    with (logs/f'full-gates-node{version}.log').open('w') as output:
+     p=subprocess.run(['nice','-n','10','bash','scripts/governance/quality-gates.sh','--phase','full'],cwd=root,env=env,stdout=output,stderr=subprocess.STDOUT)
+    (logs/f'full-gates-node{version}.result.json').write_text(json.dumps(dict(node=version,started_at=start,finished_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),exit_code=p.returncode,sequential=True,nice=10,postgres_integration=True),indent=2)+'\n')
+    print('Finished Node '+version+' exit '+str(p.returncode),flush=True)
+    if p.returncode:break
+   finally:
+    if version=='22':assert local.is_symlink();local.unlink()
+ finally:
+  pf.terminate()
+  try:pf.wait(timeout=10)
+  except subprocess.TimeoutExpired:pf.kill();pf.wait()

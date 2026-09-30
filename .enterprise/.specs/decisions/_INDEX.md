@@ -94,3 +94,12 @@ The following entries are ADR templates or placeholders for optional activation.
 ## Discovery hardening
 
 - [ADR-0038 — Global governance discovery](./ADR-0038-global-governance-discovery.md) — Accepted (2026-09-12); source resolution, conditional prompt reload and explicit unknown layers.
+
+- [ADR-0040 — Disposable engineering execution](ADR-0040-disposable-engineering-execution.md)
+- [ADR-0041 — Engineering executor boundary](ADR-0041-engineering-executor-boundary.md) — candidato bwrap selecionado pelo responsável em 2026-09-24; sem ativação.
+- [ADR-0042 — Kernel v4 e capacidades opcionais](ADR-0042-v4-kernel-and-optional-capabilities.md) — implementação candidata autorizada, ativação separada.
+
+- [ADR-0043 — Evolução do harness e IDE Code OSS](ADR-0043-harness-evolution.md) — draft; implementação por ondas, certificação e ativação separadas.
+- [ADR-0044 — Contrato de projeto e controle local](ADR-0044-project-engineering-control.md) — draft; W1 candidata, ativação separada.
+
+- [ADR-0045 — Plugins de execução e jobs duráveis](ADR-0045-execution-plugins-and-durable-jobs.md) — Proposed; implementação candidata W4, ativação separada.

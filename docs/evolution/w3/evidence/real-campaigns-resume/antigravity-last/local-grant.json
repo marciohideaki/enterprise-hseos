@@ -1,0 +1,12 @@
+{
+  "max_requests": 4,
+  "max_cost_microusd": 0,
+  "deadline": 1790481029227,
+  "binding_ids": [
+    "binding:codex-child",
+    "binding:antigravity-local"
+  ],
+  "task_ids": [
+    "9ea5d7bf-c043-4251-a6f5-de12071a6bd7"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "resource_id": "f09075de-55d4-4cef-afca-b2c962299a72",
+  "scope": "pilot",
+  "covered_vendors": [
+    "codex"
+  ],
+  "status": "control_trial_completed",
+  "vendor_session_recovery": "not_certified",
+  "real_conformance": "not_certified",
+  "receipts": [
+    {
+      "binding_id": "binding:codex-live",
+      "task_id": "04bdda23-3b59-4761-ab57-d1b60908660e",
+      "command_id": "009af4ec-98cb-45c7-b8dc-681d9978ada4",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "ea9bf9016e6759d7ff2bdee6a43d867e49fec33d7a3c7070b3c2f4e1b6e0fd99",
+        "evidence_sha256": "5a23f1dc840732e29196b8192958e54973f4a958a87cc0866ee8f71818d3daa3",
+        "cost_microusd": null,
+        "input_tokens": 17495,
+        "output_tokens": 38,
+        "provider_session_id": "01a0df1d-1d06-78b0-ad2c-e11e9d62cba4"
+      },
+      "control_replay_verified": true
+    },
+    {
+      "binding_id": "binding:codex-live",
+      "task_id": "04bdda23-3b59-4761-ab57-d1b60908660e",
+      "command_id": "10ab58e8-1d57-421c-aba6-12218f3d6d18",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "ea9bf9016e6759d7ff2bdee6a43d867e49fec33d7a3c7070b3c2f4e1b6e0fd99",
+        "evidence_sha256": "3823210afdd8236582bea196051cbe6a71f1cdfc7f1f535dea073d2f954db16f",
+        "cost_microusd": null,
+        "input_tokens": 17816,
+        "output_tokens": 14,
+        "provider_session_id": "01a0df1d-1d06-78b0-ad2c-e11e9d62cba4"
+      },
+      "control_replay_verified": true
+    }
+  ],
+  "final": {
+    "resource_id": "f09075de-55d4-4cef-afca-b2c962299a72",
+    "current_sequence": 12,
+    "max_requests": 7,
+    "max_cost_microusd": 10000000,
+    "deadline": 1790450517787,
+    "requests": 2,
+    "committed_microusd": 0,
+    "cancelled": true,
+    "unresolved_commands": [],
+    "live_commands": [],
+    "bindings": [
+      "binding:codex-live"
+    ],
+    "report_sha256": "80b82b112c7a20801c67df74baad547214e2f028e755f73f78afd32c2de50db0"
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "task": "W4-02c3b",
+  "base": "78f27f7",
+  "type": "deterministic-task-composition",
+  "verification": {
+    "Node24.15.0": {
+      "passed": 113,
+      "failed": 0,
+      "skipped": 0
+    },
+    "Node22.23.3": {
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "coverage": {
+    "control-configuration.js": {
+      "lines": 97.91,
+      "branches": 93.61
+    },
+    "engineering-control.js": {
+      "lines": 98.72,
+      "branches": 88.88
+    },
+    "engineering-task-extensions.js": {
+      "lines": 100,
+      "branches": 100
+    },
+    "engineering-task-runtime.js": {
+      "lines": 94.87,
+      "branches": 85.71
+    },
+    "engineering-task-state.js": {
+      "lines": 100,
+      "branches": 80.24
+    },
+    "execution-plugin-adapters.js": {
+      "lines": 100,
+      "branches": 95
+    },
+    "terminal-control.js": {
+      "lines": 98.9,
+      "branches": 93.2
+    }
+  },
+  "sha256": {
+    "test/test-control-configuration.js": "87967858499e4f076bbd54aed7e87a53128e655dbb452c23418aca57229fa40d",
+    "test/test-package-surface.js": "73043dde4da3122f2861ca2b5edd9d5da8d3069a006e35e16bb86d84fe914ba6",
+    "tools/cli/lib/control-configuration.js": "408bae7a2a4c8d710e3244ddcf58c87e88d60401122e9917c857a894f9180857",
+    "tools/cli/lib/engineering-control.js": "7bab8b7e26eb7277476a9d6aa2ed4ea9f4519c7c079f42e751c0536828f46bba",
+    "tools/cli/lib/engineering-task-runtime.js": "b5fbb33c5bfd34bcb899956f62023edf0b2cad1c15f61c25c097dc6d233f02fb",
+    "tools/cli/lib/engineering-task-state.js": "3d9d7fd3b3ca7365542eadce6be439594f96197b028e47c8ae5dbc3ec2485a85",
+    "tools/cli/lib/execution-plugin-adapters.js": "d2b812bcb8ded847ed131bd58af184573970f245349b629d3e2413c69d5ee608",
+    "tools/cli/lib/terminal-control.js": "734b9495537f74a28da2518cef922b464aed924ca6e539773f87d451b8ca2220",
+    "tools/lib/governed-execution/operational-runtime.js": "a026c570442f5adb6f04a3c5537ac8d026088c7f959f409c7b9c73b27dfe2112",
+    "tools/cli/lib/engineering-task-extensions.js": "9375611aef76ae942520e1f3af34eddf7b48c6e534956f73726b2d356dc00924",
+    "test/test-engineering-task-extensions.js": "3cc9e089732cd96adc601ac90915fdbe1508a0364bcf90e2fab0267d2f78e74e"
+  },
+  "gate": {
+    "Node24.15.0": "passed",
+    "failures": 0,
+    "warnings": 1,
+    "log_sha256": "fcf8a365beb17592ab52a27439a666aa5c36f8aada470444877744829d668110"
+  },
+  "independent_review": "blind and final confrontation: 11 source hashes and final Node24 logs checked, no code blockers; full gate pending",
+  "package": {
+    "entry_count": 1446,
+    "base_entry_count": 1445,
+    "delta": [
+      "tools/cli/lib/engineering-task-extensions.js"
+    ]
+  },
+  "limitations": [
+    "fixture consumers; external certification pending",
+    "model/campaign task composition pending",
+    "W4-03 through W4-08 pending",
+    "No paid call or activation"
+  ]
+}

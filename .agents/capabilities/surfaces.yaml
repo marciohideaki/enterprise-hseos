@@ -20,6 +20,7 @@ component_classes:
   runtime:workflows: core
   runtime:mcp: module
   runtime:managed-governance-client: module
+  runtime:engineering-candidate: candidate
   runtime:agent-kernel: core
   runtime:agent-reference: candidate
   runtime:agent-openai-compatible: candidate

@@ -1,0 +1,32 @@
+✔ Node command executes with read-only workspace, hidden controls and bounded resources (119.364016ms)
+✔ Python cannot create Internet or Unix sockets (34.833405ms)
+✔ output flooding is bounded and every descendant is drained (36.988175ms)
+✔ cancellation eliminates a detached descendant holding output pipes (308.321725ms)
+✔ parent exit drains detached descendants without waiting for their sleep (47.271572ms)
+✔ forged policies and invalid budgets fail before launch (1.388129ms)
+✔ a running command cannot exceed its wall-clock budget (209.720899ms)
+✔ the process limit applies to the complete descendant group (103.780524ms)
+✔ invalid UTF-8 cannot expand captured output beyond its byte budget (56.966404ms)
+✔ memory exhaustion remains confined to the executor group (174.997826ms)
+✔ resource cleanup retries a busy empty group before confirming completion (42.033945ms)
+✔ persistent busy cleanup is uncertain and never confirms completion (5046.46931ms)
+✔ project runtime mounts only the controller executable read-only without inheriting its environment (64.402677ms)
+✔ codex factory selects explicit identity, preserves remote quota units and receipts (1821.284856ms)
+✔ claude factory selects explicit identity, preserves remote quota units and receipts (1837.105778ms)
+✔ native preflight never replaces unknown quotas, paid credits or credentials with invented capacity (2325.900673ms)
+✔ bridge authenticates, pins child scope, cannot replay, and works through the Python SDK component (139.332537ms)
+✔ bridge retains uncertainty and waits for an in-flight child before closing (4.072896ms)
+✔ process supervisor returns only after descendants drain and kills startup stalls (112.337344ms)
+✔ Antigravity factory requires a pinned local checkpoint and proves a subordinate call occurred (176.165112ms)
+✔ real worker process drives Codex and Claude protocol fixtures and refuses attempted effects (1278.866047ms)
+✔ resource profiles enforce finite memory and process bounds and preserve defaults (1.738862ms)
+✔ Claude cached input remains part of the admitted token usage (770.191237ms)
+✔ native resource profile is pinned and reaches inspection and execution (1589.107586ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16632.414391

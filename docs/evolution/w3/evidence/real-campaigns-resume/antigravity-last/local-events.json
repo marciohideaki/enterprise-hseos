@@ -1,0 +1,639 @@
+[
+  {
+    "position": 2,
+    "event_id": "a1d53d3b-d3ed-4885-b7cb-a33946a9bcfe",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 1,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:40:29.523Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "authorization_id": "2145a44d-45dc-45de-83d8-917e1c29110b",
+      "binding_compositions": {
+        "binding:antigravity-local": "308e6f9a4b1907ff64397380ef95f10279fb02928c114a837c3b384663bb03b8",
+        "binding:codex-child": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "binding_ids": [
+        "binding:codex-child",
+        "binding:antigravity-local"
+      ],
+      "binding_manifests": {
+        "binding:antigravity-local": "758d045521058a31f1c7bb964ba25bed107a01e239d828a9878aec77301b5890",
+        "binding:codex-child": "448070d3e7a80b884517dc68aa18bcd20c6413e91075a2e5233a4d6b873400a1"
+      },
+      "deadline": 1790481029227,
+      "kind": "opened",
+      "max_cost_microusd": 0,
+      "max_requests": 4,
+      "schema_version": 1,
+      "task_ids": [
+        "9ea5d7bf-c043-4251-a6f5-de12071a6bd7"
+      ]
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:40:29.523Z"
+  },
+  {
+    "position": 3,
+    "event_id": "0606fa3b-1e0e-4787-ac5a-abc3d57ab649",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 2,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:40:29.523Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "a1d53d3b-d3ed-4885-b7cb-a33946a9bcfe",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "command_id": "508edec0-ce12-4325-9abc-f82864aae48a",
+      "digest": "96a27731dbe4677f5113778ea75a386dfda0e9fa89d1e53b82f2854b8d2dbe3c",
+      "kind": "intent",
+      "schema_version": 1
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:40:29.523Z"
+  },
+  {
+    "position": 4,
+    "event_id": "13027622-c5df-4c4c-9822-8ba18b336d11",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 3,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:40:29.523Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "0606fa3b-1e0e-4787-ac5a-abc3d57ab649",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "command_id": "508edec0-ce12-4325-9abc-f82864aae48a",
+      "kind": "done",
+      "result": {
+        "action": "create",
+        "resource_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce"
+      },
+      "schema_version": 1
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:40:29.523Z"
+  },
+  {
+    "position": 5,
+    "event_id": "179a72f6-525b-46fc-af07-76610417f0b8",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 4,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:40:30.813Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "13027622-c5df-4c4c-9822-8ba18b336d11",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "binding_id": "binding:antigravity-local",
+      "command_id": "a95d7c1e-d786-433e-b52d-7fba4ed2a550",
+      "digest": "a0db223f9c62eacc3e27728da3a37ca47cfebfb7206e0c6ece61a26823c23b04",
+      "kind": "reserved",
+      "manifest_sha256": "758d045521058a31f1c7bb964ba25bed107a01e239d828a9878aec77301b5890",
+      "observation": {
+        "expires_at": null,
+        "observed_at": 1790480430809,
+        "quota_available_microusd": null,
+        "quota_remaining_requests": null,
+        "quota_windows": null
+      },
+      "observation_sha256": "16365ec6a7ff7526188c2d72293d50fd332d8ff9f40641abebc7f30792d8540f",
+      "owner": {
+        "pid": 2489793,
+        "resource_parent": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice",
+        "start_ticks": "8307416"
+      },
+      "parent_command_id": null,
+      "quota_admission": "not_applicable",
+      "reserved_microusd": 0,
+      "schema_version": 1,
+      "task_id": "9ea5d7bf-c043-4251-a6f5-de12071a6bd7"
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:40:30.813Z"
+  },
+  {
+    "position": 6,
+    "event_id": "1a1ec7fa-ab7e-4098-8c92-2dcad01a6237",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 5,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:40:59.836Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "179a72f6-525b-46fc-af07-76610417f0b8",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "binding_id": "binding:codex-child",
+      "command_id": "1be6cfd8-8fd5-49f8-97de-870c2840b7d5",
+      "digest": "02f7585bb85bd939cd5fd48549402ee12908875347deea169724035d071d9459",
+      "kind": "reserved",
+      "manifest_sha256": "448070d3e7a80b884517dc68aa18bcd20c6413e91075a2e5233a4d6b873400a1",
+      "observation": {
+        "expires_at": 1790480488385,
+        "observed_at": 1790480458384,
+        "quota_available_microusd": null,
+        "quota_remaining_requests": null,
+        "quota_windows": [
+          {
+            "resets_at": 1791047565000,
+            "used_percent": 36
+          }
+        ]
+      },
+      "observation_sha256": "7f1c38881957931d0284cfa1e40655cb22ee4f8d403d0eec79d024667136345a",
+      "owner": {
+        "pid": 2489793,
+        "resource_parent": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice",
+        "start_ticks": "8307416"
+      },
+      "parent_command_id": "a95d7c1e-d786-433e-b52d-7fba4ed2a550",
+      "quota_admission": "observed",
+      "reserved_microusd": 0,
+      "schema_version": 1,
+      "task_id": "9ea5d7bf-c043-4251-a6f5-de12071a6bd7"
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:40:59.837Z"
+  },
+  {
+    "position": 7,
+    "event_id": "88fbe9a5-16c8-43d7-8c9f-f22050a201a2",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 6,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:41:07.748Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "1a1ec7fa-ab7e-4098-8c92-2dcad01a6237",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "command_id": "1be6cfd8-8fd5-49f8-97de-870c2840b7d5",
+      "kind": "receipt",
+      "receipt": {
+        "binding_sha256": "7bc9fe0b7e76406aff7f9818552cfb763bfe215077a38ae7738b2f040b564f3e",
+        "cost_microusd": null,
+        "evidence_sha256": "e558818aafaa497e2e50b697253c167c7dcfaf4212ddf2aa9329c78393a430e5",
+        "input_tokens": 17406,
+        "output_tokens": 5,
+        "provider_session_id": "01a0e0f3-ae7b-7c90-9baa-17335c3ac0c0",
+        "status": "completed"
+      },
+      "schema_version": 1
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:41:07.748Z"
+  },
+  {
+    "position": 8,
+    "event_id": "fad6d5e4-3aff-46af-b3c7-24f08daaab94",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 7,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:41:07.748Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "88fbe9a5-16c8-43d7-8c9f-f22050a201a2",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "command_id": "1be6cfd8-8fd5-49f8-97de-870c2840b7d5",
+      "kind": "done",
+      "result": {
+        "action": "run",
+        "receipt": {
+          "binding_sha256": "7bc9fe0b7e76406aff7f9818552cfb763bfe215077a38ae7738b2f040b564f3e",
+          "cost_microusd": null,
+          "evidence_sha256": "e558818aafaa497e2e50b697253c167c7dcfaf4212ddf2aa9329c78393a430e5",
+          "input_tokens": 17406,
+          "output_tokens": 5,
+          "provider_session_id": "01a0e0f3-ae7b-7c90-9baa-17335c3ac0c0",
+          "status": "completed"
+        },
+        "resource_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce"
+      },
+      "schema_version": 1
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:41:07.748Z"
+  },
+  {
+    "position": 9,
+    "event_id": "bf600fb8-4e01-4b1b-ab9e-3fa1eec66147",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 8,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:41:08.260Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "fad6d5e4-3aff-46af-b3c7-24f08daaab94",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "command_id": "a95d7c1e-d786-433e-b52d-7fba4ed2a550",
+      "kind": "receipt",
+      "receipt": {
+        "binding_sha256": "2cd6a40b5d2f4bdf5668924068861022c2a0435dc20c804eb4d7a26cb0ef5bd9",
+        "cost_microusd": 0,
+        "evidence_sha256": "60cb90f24ee24ab643df9e7a08a7cf720772c872fed7226d4fc0c39eba4c8e70",
+        "input_tokens": 249,
+        "output_tokens": 21,
+        "provider_session_id": "e61388b44de2b1b5a4fc6813f55955e5",
+        "status": "completed"
+      },
+      "schema_version": 1
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:41:08.260Z"
+  },
+  {
+    "position": 10,
+    "event_id": "33915f1e-addb-487e-84df-efc0fd965689",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 9,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:41:08.260Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "bf600fb8-4e01-4b1b-ab9e-3fa1eec66147",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "command_id": "a95d7c1e-d786-433e-b52d-7fba4ed2a550",
+      "kind": "done",
+      "result": {
+        "action": "run",
+        "receipt": {
+          "binding_sha256": "2cd6a40b5d2f4bdf5668924068861022c2a0435dc20c804eb4d7a26cb0ef5bd9",
+          "cost_microusd": 0,
+          "evidence_sha256": "60cb90f24ee24ab643df9e7a08a7cf720772c872fed7226d4fc0c39eba4c8e70",
+          "input_tokens": 249,
+          "output_tokens": 21,
+          "provider_session_id": "e61388b44de2b1b5a4fc6813f55955e5",
+          "status": "completed"
+        },
+        "resource_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce"
+      },
+      "schema_version": 1
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:41:08.261Z"
+  },
+  {
+    "position": 11,
+    "event_id": "f40edda1-4df4-4c35-88a7-ca10dc628e05",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 10,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:41:09.486Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "33915f1e-addb-487e-84df-efc0fd965689",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "binding_id": "binding:antigravity-local",
+      "command_id": "7af5f269-30ed-477a-90ff-921b39c7bdff",
+      "digest": "6fe78df13421b8e298cb180c64e4dbb834a31e29a3a5641760d5f4fa7eae9a16",
+      "kind": "reserved",
+      "manifest_sha256": "758d045521058a31f1c7bb964ba25bed107a01e239d828a9878aec77301b5890",
+      "observation": {
+        "expires_at": null,
+        "observed_at": 1790480469483,
+        "quota_available_microusd": null,
+        "quota_remaining_requests": null,
+        "quota_windows": null
+      },
+      "observation_sha256": "2226b94b734753ed61a72a3ce20f79f40cb504708dde80da03ac972645a2f201",
+      "owner": {
+        "pid": 2489793,
+        "resource_parent": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice",
+        "start_ticks": "8307416"
+      },
+      "parent_command_id": null,
+      "quota_admission": "not_applicable",
+      "reserved_microusd": 0,
+      "schema_version": 1,
+      "task_id": "9ea5d7bf-c043-4251-a6f5-de12071a6bd7"
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:41:09.486Z"
+  },
+  {
+    "position": 12,
+    "event_id": "1818bb5f-4511-4812-9b6d-ac0078b54cf9",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 11,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:41:40.357Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "f40edda1-4df4-4c35-88a7-ca10dc628e05",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "binding_id": "binding:codex-child",
+      "command_id": "27c018dd-8f10-46d1-ae0d-267046aff516",
+      "digest": "cfaa7e1a11aa6c269a023fc1e7f666a7bd1f9ffb49f6b311df49501953e3f62a",
+      "kind": "reserved",
+      "manifest_sha256": "448070d3e7a80b884517dc68aa18bcd20c6413e91075a2e5233a4d6b873400a1",
+      "observation": {
+        "expires_at": 1790480528327,
+        "observed_at": 1790480498327,
+        "quota_available_microusd": null,
+        "quota_remaining_requests": null,
+        "quota_windows": [
+          {
+            "resets_at": 1791047565000,
+            "used_percent": 36
+          }
+        ]
+      },
+      "observation_sha256": "1c635674e327c28d71ad7375ac25304223113c66a4b0051ec7af16e71a38fd1e",
+      "owner": {
+        "pid": 2489793,
+        "resource_parent": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice",
+        "start_ticks": "8307416"
+      },
+      "parent_command_id": "7af5f269-30ed-477a-90ff-921b39c7bdff",
+      "quota_admission": "observed",
+      "reserved_microusd": 0,
+      "schema_version": 1,
+      "task_id": "9ea5d7bf-c043-4251-a6f5-de12071a6bd7"
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:41:40.357Z"
+  },
+  {
+    "position": 13,
+    "event_id": "0d690432-b4fc-420d-abaa-059ace478bad",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 12,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:41:47.914Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "1818bb5f-4511-4812-9b6d-ac0078b54cf9",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "command_id": "27c018dd-8f10-46d1-ae0d-267046aff516",
+      "kind": "receipt",
+      "receipt": {
+        "binding_sha256": "7bc9fe0b7e76406aff7f9818552cfb763bfe215077a38ae7738b2f040b564f3e",
+        "cost_microusd": null,
+        "evidence_sha256": "e35ad7cc1f92ca2312062745c9b7bd36e23200417ec14ddf6d6b6974d60f1907",
+        "input_tokens": 17406,
+        "output_tokens": 5,
+        "provider_session_id": "01a0e0f4-4ce2-7bf0-a9e8-5c4f8921bf9d",
+        "status": "completed"
+      },
+      "schema_version": 1
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:41:47.914Z"
+  },
+  {
+    "position": 14,
+    "event_id": "08e98800-28bc-4c46-8937-a273b0eb8f8e",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 13,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:41:47.914Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "0d690432-b4fc-420d-abaa-059ace478bad",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "command_id": "27c018dd-8f10-46d1-ae0d-267046aff516",
+      "kind": "done",
+      "result": {
+        "action": "run",
+        "receipt": {
+          "binding_sha256": "7bc9fe0b7e76406aff7f9818552cfb763bfe215077a38ae7738b2f040b564f3e",
+          "cost_microusd": null,
+          "evidence_sha256": "e35ad7cc1f92ca2312062745c9b7bd36e23200417ec14ddf6d6b6974d60f1907",
+          "input_tokens": 17406,
+          "output_tokens": 5,
+          "provider_session_id": "01a0e0f4-4ce2-7bf0-a9e8-5c4f8921bf9d",
+          "status": "completed"
+        },
+        "resource_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce"
+      },
+      "schema_version": 1
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:41:47.914Z"
+  },
+  {
+    "position": 15,
+    "event_id": "47a73e42-b410-4876-947a-cf61589ae46a",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 14,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:41:48.657Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "08e98800-28bc-4c46-8937-a273b0eb8f8e",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "command_id": "7af5f269-30ed-477a-90ff-921b39c7bdff",
+      "kind": "receipt",
+      "receipt": {
+        "binding_sha256": "2cd6a40b5d2f4bdf5668924068861022c2a0435dc20c804eb4d7a26cb0ef5bd9",
+        "cost_microusd": 0,
+        "evidence_sha256": "4fc95c1af2d8c0c81ce4346e42d1df2ab4b9b5494f46428b9a5ccd533a1011ea",
+        "input_tokens": 331,
+        "output_tokens": 21,
+        "provider_session_id": "e61388b44de2b1b5a4fc6813f55955e5",
+        "status": "completed"
+      },
+      "schema_version": 1
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:41:48.657Z"
+  },
+  {
+    "position": 16,
+    "event_id": "6548861d-1229-4a07-9348-9b017677b022",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 15,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:41:48.657Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "47a73e42-b410-4876-947a-cf61589ae46a",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "command_id": "7af5f269-30ed-477a-90ff-921b39c7bdff",
+      "kind": "done",
+      "result": {
+        "action": "run",
+        "receipt": {
+          "binding_sha256": "2cd6a40b5d2f4bdf5668924068861022c2a0435dc20c804eb4d7a26cb0ef5bd9",
+          "cost_microusd": 0,
+          "evidence_sha256": "4fc95c1af2d8c0c81ce4346e42d1df2ab4b9b5494f46428b9a5ccd533a1011ea",
+          "input_tokens": 331,
+          "output_tokens": 21,
+          "provider_session_id": "e61388b44de2b1b5a4fc6813f55955e5",
+          "status": "completed"
+        },
+        "resource_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce"
+      },
+      "schema_version": 1
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:41:48.657Z"
+  },
+  {
+    "position": 17,
+    "event_id": "0c231b77-2a22-48ef-be15-63270e51b3dd",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 16,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:41:48.671Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "6548861d-1229-4a07-9348-9b017677b022",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "command_id": "7c8d941e-83a2-46b2-8d09-6f92fd434e07",
+      "digest": "56be18636f10c96ba76f371d8e5a6526439f99e2778bd7c4822c8017e6ae8f0d",
+      "kind": "intent",
+      "schema_version": 1
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:41:48.671Z"
+  },
+  {
+    "position": 18,
+    "event_id": "9aa92719-8138-4398-9f2b-8e5b17ba3602",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 17,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:41:48.671Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "0c231b77-2a22-48ef-be15-63270e51b3dd",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "kind": "cancelled",
+      "schema_version": 1
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:41:48.671Z"
+  },
+  {
+    "position": 19,
+    "event_id": "f1a61083-447c-4748-a2df-964700b21732",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 18,
+    "schema_version": 1,
+    "occurred_at": "2026-09-27T03:41:48.671Z",
+    "correlation_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce",
+    "causation_id": "9aa92719-8138-4398-9f2b-8e5b17ba3602",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "command_id": "7c8d941e-83a2-46b2-8d09-6f92fd434e07",
+      "kind": "done",
+      "result": {
+        "action": "cancel",
+        "resource_id": "360cc03f-0f20-4fdc-8ef2-1684d8fe7fce"
+      },
+      "schema_version": 1
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-09-27T03:41:48.671Z"
+  }
+]

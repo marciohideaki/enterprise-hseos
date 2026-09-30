@@ -12,6 +12,7 @@ const yaml = require('yaml');
 const agentCoreCommand = require('../tools/cli/commands/agent-core');
 const { AgentCoreCompiler } = require('../tools/cli/installers/lib/core/agent-core-compiler');
 const { validateHookRegistryDocument } = require('../tools/cli/installers/lib/core/agent-core-compiler/sources/hooks-source');
+const { writeClaudeAgents } = require('../tools/cli/installers/lib/core/agent-core-compiler/adapters/claude-code');
 
 let passed = 0;
 let failed = 0;
@@ -213,8 +214,12 @@ async function testAgentCoreCompileEmitsClaudeMdPointer() {
 
     const claudeMd = fs.existsSync(claudeMdPath) ? fs.readFileSync(claudeMdPath, 'utf8') : '';
     assertPass(
-      'CLAUDE.md points at AGENTS.md as the canonical source',
-      claudeMd.includes('Read `AGENTS.md`') && /^# CLAUDE\.md/m.test(claudeMd),
+      // ADR-0008 §4: the import is the contract, not the prose. With a CLAUDE.md
+      // present the runtime ignores AGENTS.md by default, so a file that merely
+      // *asks* the agent to read AGENTS.md routes nothing — the agent never sees
+      // the request. Asserting the prose is what let the defect ship.
+      'CLAUDE.md opens with the mandatory @AGENTS.md import',
+      claudeMd.startsWith('@AGENTS.md\n') && /^# CLAUDE\.md/m.test(claudeMd),
       claudeMd,
     );
   });
@@ -486,6 +491,84 @@ async function testManifestOmitsCatalogsWhenAbsent() {
   });
 }
 
+async function testClaudeCodeAgentSurfaceFormat() {
+  // The core currently ships zero governed agents, so a full compile never
+  // exercises this emitter. Left uncovered it would rot silently and break the
+  // first time an agent source appears. Drive it directly instead.
+  await withTempDir(async (tempDir) => {
+    const emitted = await writeClaudeAgents(tempDir, [
+      { id: 'Release Manager', description: 'Ships releases\nsafely', tool_policy: { allowed_tools: ['Bash', 'Read'] } },
+      { id: 'reviewer', name: 'Reviewer', description: 'Reviews diffs' },
+    ]);
+    assertPass(
+      'claude-code agent surface emits one markdown file per agent',
+      JSON.stringify(emitted) === JSON.stringify(['.claude/agents/release-manager.md', '.claude/agents/reviewer.md']),
+      JSON.stringify(emitted),
+    );
+
+    const body = fs.readFileSync(path.join(tempDir, '.claude', 'agents', 'release-manager.md'), 'utf8');
+    assertPass(
+      'claude-code agent file carries the frontmatter Claude Code expects',
+      body.startsWith('---\nname: release-manager\n') &&
+        // A newline inside description would terminate the YAML scalar and
+        // corrupt every field after it.
+        body.includes('description: "Ships releases safely"') &&
+        body.includes('tools: Bash, Read'),
+      body.split('\n').slice(0, 5).join(' | '),
+    );
+
+    let collided = false;
+    try {
+      await writeClaudeAgents(tempDir, [{ id: 'dup-a' }, { id: 'Dup A' }]);
+    } catch {
+      collided = true;
+    }
+    assertPass('claude-code agent surface rejects colliding portable names', collided);
+  });
+}
+
+async function testAgentCoreCompileEmitsClaudeCodeSkillAndAgentSurfaces() {
+  await withTempDir(async (tempDir) => {
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+
+    // Claude Code discovers skills under `.claude/skills`, never under the
+    // vendor-neutral `.agents/skills`. Before this surface existed the compiler
+    // wrote every governed skill to disk and Claude Code could invoke none of
+    // them — `hseos-goal-loop` included.
+    const claudeSkillsDir = path.join(tempDir, '.claude', 'skills');
+    const skillCount = fs.existsSync(claudeSkillsDir) ? fs.readdirSync(claudeSkillsDir).length : 0;
+    assertPass('claude-code adapter mirrors the governed skills into .claude/skills', skillCount >= 40, String(skillCount));
+
+    const goalLoop = path.join(claudeSkillsDir, 'hseos-goal-loop', 'SKILL.md');
+    assertPass(
+      'claude-code skill surface carries SKILL.md with real content',
+      fs.existsSync(goalLoop) && fs.readFileSync(goalLoop, 'utf8').trim().length > 0,
+      goalLoop,
+    );
+
+    // A surface the manifest advertises must be a surface the pipeline produces.
+    const manifest = yaml.parse(fs.readFileSync(path.join(tempDir, '.agents', 'manifest.yaml'), 'utf8'));
+    // The manifest key is `claude_code`, not `claude-code`. Reading the hyphenated
+    // form yields undefined, and `Object.values({}).every()` is vacuously true —
+    // the assertion would pass while advertising nothing.
+    const surfaces = manifest.adapters?.claude_code || {};
+    const declared = Object.values(surfaces);
+    assertPass(
+      'manifest advertises only claude-code surfaces that exist on disk',
+      declared.length > 0 && declared.every((rel) => fs.existsSync(path.join(tempDir, rel))),
+      JSON.stringify(surfaces),
+    );
+
+    // Reconciliation: a narrower profile must not leave a stale skill behind, or
+    // the agent keeps invoking a procedure the profile no longer grants.
+    const orphan = path.join(claudeSkillsDir, 'zz-orphan-skill', 'SKILL.md');
+    fs.mkdirSync(path.dirname(orphan), { recursive: true });
+    fs.writeFileSync(orphan, '# orphan\n', 'utf8');
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+    assertPass('claude-code skill surface is reconciled, not appended', !fs.existsSync(orphan), orphan);
+  });
+}
+
 async function testAgentCoreCompileEmitsGooseAdapterAndTruthfulManifest() {
   await withTempDir(async (tempDir) => {
     await agentCoreCommand.action('compile', { directory: tempDir, target: 'goose' });
@@ -537,6 +620,8 @@ async function run() {
   await testAgentCoreCompileRejectsFailingPluginConformance();
   await testAgentCoreCompileRegistersMcpServers();
   await testManifestOmitsCatalogsWhenAbsent();
+  await testClaudeCodeAgentSurfaceFormat();
+  await testAgentCoreCompileEmitsClaudeCodeSkillAndAgentSurfaces();
   await testAgentCoreCompileEmitsGooseAdapterAndTruthfulManifest();
   await testUnknownPlatformTargetIsRejected();
 

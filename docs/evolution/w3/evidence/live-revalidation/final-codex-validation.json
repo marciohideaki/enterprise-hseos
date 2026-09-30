@@ -1,0 +1,12 @@
+{
+  "same_session": true,
+  "expected_response_hashes": [
+    true,
+    true
+  ],
+  "real_inference_calls": 2,
+  "requests": 2,
+  "committed_microusd": 0,
+  "authorized_microusd": 10000000,
+  "scope": "Codex account pilot only; four-family campaign incomplete"
+}

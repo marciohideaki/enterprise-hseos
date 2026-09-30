@@ -1,0 +1,10 @@
+{
+  "repository": "litert-community/Qwen3-0.6B",
+  "revision": "a3c5d805ae362dff7f580bc25f2dfb9a5a7eaa76",
+  "filename": "Qwen3-0.6B_dynamic_wi4b32_afp32.litertlm",
+  "sha256": "03e7da1eb1108b50dffaa9bb52cc7bcbad2eb0c66ca990267f480c1e545d2856",
+  "size": 344671744,
+  "license": "apache-2.0",
+  "path": "/build/tmp/hseos-w3-litert-model/Qwen3-0.6B_dynamic_wi4b32_afp32.litertlm",
+  "source": "https://huggingface.co/litert-community/Qwen3-0.6B/resolve/a3c5d805ae362dff7f580bc25f2dfb9a5a7eaa76/Qwen3-0.6B_dynamic_wi4b32_afp32.litertlm"
+}

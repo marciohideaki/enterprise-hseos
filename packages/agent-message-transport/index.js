@@ -12,7 +12,8 @@ const MAX_TEXT_BYTES = 65_536;
 const MAX_TTL_MS = 604_800_000;
 const MAX_MESSAGES = 10_000;
 const MAX_SUBSCRIPTIONS = 100_000;
-const IDENTIFIER = /^[^\s\u0000-\u001f\u007f]{1,256}$/u;
+// eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
+const IDENTIFIER = /^[^\s\u0000-\u001F\u007F]{1,256}$/u;
 const RELAYS = new WeakSet();
 const STATUS_EVENTS = Object.freeze({
   delivered: 'agent.message.delivered',
@@ -71,7 +72,7 @@ function timestamp(value, label) {
 }
 
 function boundedReason(value) {
-  if (typeof value !== 'string' || value.length < 1 || value.length > 256) {
+  if (typeof value !== 'string' || value.length === 0 || value.length > 256) {
     throw new AgentMessageTransportError('message transition reason is invalid', 'AGENT_MESSAGE_STREAM_INVALID');
   }
   return value;

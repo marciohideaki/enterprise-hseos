@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-25",
+  "branch": "task/hseos-v4-consolidation",
+  "base": "a842308",
+  "package": {
+    "filename": "hseos-4.0.0-rc.0.tgz",
+    "shasum": "cbaecd4cc8e4641323d60ea421fb8b40eb86c2de",
+    "integrity": "sha512-vYjGrIMdoIWW8tsmSySxk/JbwmGT2U+ipAH6d+GrHN8U+br8oS/Ydx8dFAjq5pN0gghS58HkBBDrVFjQT3Q0cg==",
+    "size": 2371629,
+    "unpackedSize": 8644599
+  },
+  "verification": {
+    "engineering_integrated_tests": 43,
+    "wrapper_and_lazy_tests": 3,
+    "counts_overlap": true,
+    "workflow_and_orchestration_tests": 24,
+    "compatibility_tests": 10,
+    "activation_rehearsal_tests": 4,
+    "installed_workflow_tests": 11,
+    "installed_simulated_binding_tests": 2,
+    "lint": "passed",
+    "ci_phase": {
+      "failures": 0,
+      "warnings": 1,
+      "scope": "staged implementation after ephemeral test credential fix"
+    },
+    "full_gates": "third run failed on old migration expectations; fixes passed focused regressions; next full run blocked by host load rule",
+    "real_provider_campaign": "not_run",
+    "operational_activation": "not_authorized",
+    "ephemeral_credential_tests": 2,
+    "documentation_neutrality": "passed",
+    "security_fixture_fix": "static fake credential replaced with runtime-generated UUID; scanner unchanged; failed run preserved",
+    "full_gates_resource_blocker": {
+      "observed_load_1m": 11.25,
+      "physical_cores": 6,
+      "source": "/home/annonymous/.claude/AGENTS.md §3f"
+    }
+  },
+  "recovery": {
+    "live_owner_fenced": true,
+    "competing_resumers_one_winner": true,
+    "completed_session_events_unchanged": true,
+    "original_deadlines_unchanged": true,
+    "uncertain_effects_not_retried": true,
+    "dead_executor_cancelled": true
+  },
+  "evidence": [
+    {
+      "file": "engineering-recovery-integrated.log",
+      "sha256": "dc48060f1323661514406edff578a4eca25a62a898e4cf078f785c88279e8726"
+    },
+    {
+      "file": "workflow-recovery-final.log",
+      "sha256": "ffbcb074f53bbdc072da3ef73c80a723006de0c7f0d8cb79edb92b7f2c27f3f2"
+    },
+    {
+      "file": "workflow-reclaim-race.log",
+      "sha256": "2808f2e058343d848d11fd3f9faadf1bbd5d4902b339c8171d889ebdcfa7f2aa"
+    },
+    {
+      "file": "compatibility-v4.log",
+      "sha256": "4affe3d029814df742d3707c0a832470193c3f0a0f708ea33536c9b3701fd57e"
+    },
+    {
+      "file": "activation-rehearsal-v4.log",
+      "sha256": "2460e0c0a88d7e447dcf85f9ffb44e59946ac157403058310fc985bba4939cee"
+    },
+    {
+      "file": "npx-wrapper.log",
+      "sha256": "8755c454cafcb071e2e3b4990def271be26e9cfa34f967388310e9bc0212cd7f"
+    },
+    {
+      "file": "lint-recovery.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "lint-wrapper.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "clean-smoke.json",
+      "sha256": "539791976ab7901124792c8a4fb244e30739ee15c4ff44b188610bf65c371e87"
+    },
+    {
+      "file": "installed-test-engineering-workflow-runtime.js.log",
+      "sha256": "62016a0754311159d37ea106afbce8b33531dfac74b50eef4f0c3998742eeaab"
+    },
+    {
+      "file": "installed-test-engineering-model.js.log",
+      "sha256": "df76cd9f66efe029b828bafe6ea2fa183ee079c46b5023c90cfda44afc3d1bd2"
+    },
+    {
+      "file": "ci-gates.log",
+      "sha256": "17aa5bd53cbbea3d6c942f3de7ce184a72816f9a3d7240baf6c02afa102bf21d"
+    },
+    {
+      "file": "full-gates-third.log",
+      "sha256": "49343a5cb934ab4c12d5ee8dc99714db50240ed4742e34914eabd9f44f5708b7"
+    },
+    {
+      "file": "staged-ci-gates-before-fixture-fix.log",
+      "sha256": "154b9fbae4335b715329ee61255d74100296d30c20b469dc489e1eab5524616a"
+    },
+    {
+      "file": "staged-ci-gates.log",
+      "sha256": "c673daad6452585bf3872caac4c3f993a37889418e8357f6a7cbf7f7e53cb989"
+    },
+    {
+      "file": "ephemeral-credential.log",
+      "sha256": "5ca5e05a4d35ee8fe13aa21d450cd4433a1bf18b1a920c48705c4b05953fe027"
+    },
+    {
+      "file": "documentation-neutrality-final.log",
+      "sha256": "f9bff99cce0bba4c5aab0f5e734c23393bf3922aee0279d2a8da2463f0992711"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+✔ tests detect removal of the authority guard (692.104601ms)
+✔ tests detect removal of the budget guard (654.206439ms)
+✔ tests detect removal of the recovery guard (954.62446ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2406.648566

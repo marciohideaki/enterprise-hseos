@@ -1,0 +1,76 @@
+'use strict';
+
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const { createHash, randomUUID } = require('node:crypto');
+
+async function main() {
+  const project = process.cwd();
+  const packageRoot = path.join(project, 'node_modules', 'hseos');
+  const { EngineeringControl } = require(path.join(packageRoot, 'tools/cli/lib/engineering-control'));
+  const state = fs.readFileSync(path.join(project, 'campaign-state-path.txt'), 'utf8').trim();
+  const attempted = JSON.parse(fs.readFileSync(path.join(project, 'campaign-attempt.json'), 'utf8'));
+  const sessionFile = process.argv[2];
+  if (!sessionFile || !fs.realpathSync(sessionFile).startsWith(path.join(process.env.HOME, '.codex', 'sessions') + path.sep))
+    throw new Error('W4_SESSION_SCOPE_INVALID');
+  const content = fs.readFileSync(sessionFile, 'utf8');
+  const events = content
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line));
+  const prompt = events.some((row) => JSON.stringify(row).includes('Reply with exactly W4 campaign verified. Do not use tools.'));
+  const completed = events.some((row) => row.payload?.type === 'task_complete');
+  const usage = events.findLast((row) => row.payload?.type === 'token_count')?.payload?.info?.last_token_usage;
+  assert.equal(prompt, true);
+  assert.equal(completed, true);
+  assert.ok(Number.isSafeInteger(usage?.input_tokens) && Number.isSafeInteger(usage?.output_tokens));
+  const sessionSha = createHash('sha256').update(content).digest('hex');
+  const control = new EngineeringControl({ state });
+  try {
+    const campaign = control.providerCampaigns;
+    const before = campaign.query(attempted.campaign_id);
+    assert.deepEqual(before.unresolved_commands, [attempted.run_command_id]);
+    const answer =
+      `Observed the original Codex session with the exact W4 prompt and task_complete. Session SHA-256 ${sessionSha}; ` +
+      `input_tokens ${usage.input_tokens}; output_tokens ${usage.output_tokens}. Retain the original reserved request and its zero paid-cost ceiling.`;
+    await campaign.execute({
+      schema_version: 1,
+      command_id: randomUUID(),
+      resource_id: attempted.campaign_id,
+      expected_sequence: before.current_sequence,
+      action: 'reconcile',
+      input: { report_sha256: before.report_sha256, answer },
+    });
+    const after = campaign.query(attempted.campaign_id);
+    assert.deepEqual(after.unresolved_commands, []);
+    assert.equal(after.requests, 1);
+    assert.equal(after.committed_microusd, 0);
+    process.stdout.write(
+      JSON.stringify({
+        schema_version: 1,
+        campaign_id: attempted.campaign_id,
+        run_command_id: attempted.run_command_id,
+        session_sha256: sessionSha,
+        prompt_found: prompt,
+        provider_task_complete: completed,
+        provider_usage: { input_tokens: usage.input_tokens, output_tokens: usage.output_tokens },
+        original_manifest_max_input_tokens: 8192,
+        report_before_sha256: before.report_sha256,
+        report_after_sha256: after.report_sha256,
+        requests_retained: after.requests,
+        committed_microusd: after.committed_microusd,
+        unresolved_commands: after.unresolved_commands,
+      }) + '\n',
+    );
+  } finally {
+    await control.providerCampaigns.shutdown();
+    await control.terminals.shutdown();
+    control.close();
+  }
+}
+
+main().catch((error) => {
+  process.stderr.write(`${error.stack || error.message}\n`);
+  process.exitCode = 1;
+});

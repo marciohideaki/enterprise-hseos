@@ -1,0 +1,55 @@
+
+> hseos@4.0.0-rc.0 test:engineering-task
+> node --test --test-concurrency=1 test/test-engineering-executor.js test/test-engineering-model.js test/test-engineering-task-state.js test/test-engineering-task-runtime.js test/test-engineering-workflow-runtime.js test/test-workflow-v4-cli.js test/test-v4-lazy-cli.js
+
+✔ Node command executes with read-only workspace, hidden controls and bounded resources (179.063304ms)
+✔ Python cannot create Internet or Unix sockets (49.945947ms)
+✔ output flooding is bounded and every descendant is drained (57.41519ms)
+✔ cancellation eliminates a detached descendant holding output pipes (303.77011ms)
+✔ parent exit drains detached descendants without waiting for their sleep (54.297789ms)
+✔ forged policies and invalid budgets fail before launch (1.246463ms)
+✔ a running command cannot exceed its wall-clock budget (208.11309ms)
+✔ the process limit applies to the complete descendant group (67.193966ms)
+✔ invalid UTF-8 cannot expand captured output beyond its byte budget (50.017804ms)
+✔ memory exhaustion remains confined to the executor group (195.502324ms)
+✔ bound engineering worker uses the broker and never persists its credential (4572.677647ms)
+✔ engineering model dispatch rejects retries and missing credentials without egress (3.880751ms)
+✔ Node implementation is independently approved and survives status reopen (1717.585999ms)
+✔ Python bug correction is independently approved (1382.516288ms)
+✔ Node regression correction preserves zero values (1575.069916ms)
+✔ a completed model response without implementation fails independent verification (1343.633336ms)
+✔ incorrect code cannot pass using a successful process exit (1603.703592ms)
+✔ unknown tools never execute (1205.018526ms)
+✔ a create-only task resumes with its original budget and sequence (2752.2238ms)
+✔ cancel persists a separate task outcome and prevents later execution (1172.007406ms)
+✔ cross-process cancellation waits for the running worker to drain its executor (2798.856924ms)
+✔ cancellation after worker interruption reaps its executor before confirming (2726.884833ms)
+✔ tampered verifier hash or acceptance is blocked before the first model turn (22.794482ms)
+✔ gateway denies verifier, credential, and workspace escape paths (4166.792052ms)
+✔ interruption after model completion resumes verification without replaying effects (5676.705508ms)
+✔ invalid creation never poisons the durable stream (25.109248ms)
+✔ snapshots require complete unique scope and accurate content digests (17.163209ms)
+✔ approval requires versioned proof bound to contract, artifacts, session and isolation (19.359758ms)
+✔ WorkflowEngine composes the three engineering tasks using independent outcomes (4804.433803ms)
+✔ a completed model with a failed task prevents execution of dependent tasks (1457.152097ms)
+✔ workflow validation rejects cycles and aggregate oversubscription before creating state (12.060072ms)
+✔ workflow status and create-only resume use the canonical ledger (4927.4402ms)
+✔ workflow cancellation before execution preserves all task artifacts and prevents resume (55.735678ms)
+✔ workflow definition identity is protected after creation (35.338299ms)
+✔ parallel tasks share the declared aggregate budget and release unused reservations (2856.31969ms)
+✔ explicit migration converts eligible definitions without touching legacy history or executing tasks (67.309908ms)
+✔ live workflow cancellation settles the active executor and preserves unstarted tasks (1782.113249ms)
+✔ interrupted workflow blocks uncertain effects and cancellation drains the abandoned executor (1748.204302ms)
+✔ interrupted workflow reclaims only a dead owner and resumes verification without repeated effects (7842.596285ms)
+✔ help and structural validation do not load optional integrations or query updates (415.903062ms)
+✔ fresh minimal and engineering materialization excludes optional implementations and services (605.080357ms)
+✔ public workflow CLI validates, executes and reopens a task graph (5783.221198ms)
+✔ retired YAML mutations fail with migration guidance and preserve legacy state (1022.695814ms)
+ℹ tests 43
+ℹ suites 0
+ℹ pass 43
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 68876.260345

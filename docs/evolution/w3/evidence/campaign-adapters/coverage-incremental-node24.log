@@ -1,0 +1,121 @@
+✔ codex factory selects explicit identity, preserves remote quota units and receipts (1810.649151ms)
+✔ claude factory selects explicit identity, preserves remote quota units and receipts (1840.262362ms)
+✔ native preflight never replaces unknown quotas, paid credits or credentials with invented capacity (2335.094555ms)
+✔ bridge authenticates, pins child scope, cannot replay, and works through the Python SDK component (141.15853ms)
+✔ bridge retains uncertainty and waits for an in-flight child before closing (4.018006ms)
+✔ process supervisor returns only after descendants drain and kills startup stalls (124.186906ms)
+✔ Antigravity factory requires a pinned local checkpoint and proves a subordinate call occurred (173.146265ms)
+✖ real worker process drives Codex and Claude protocol fixtures and refuses attempted effects (1139.999959ms)
+✔ resource profiles enforce finite memory bounds and preserve the default (1.71085ms)
+✔ Claude cached input remains part of the admitted token usage (763.308889ms)
+✔ campaign reserves before dispatch, replays receipts and preserves consumption after reopening (57.837839ms)
+✔ a new campaign identity cannot reuse authorization or manufacture a larger budget (22.039427ms)
+✔ ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch (26.954022ms)
+✔ receipt loss preserves the reservation and requires current-state reconciliation without retry (28.605502ms)
+✔ a second controller cannot reconcile a live dispatch and can cancel it durably (74.338423ms)
+✔ a changed binding manifest cannot replace the pinned configuration after reopening (26.139991ms)
+✔ HTTP and SDK campaign commands share authentication, cursors and durable budget (250.340852ms)
+✔ known overspend remains charged after uncertain outcome reconciliation (26.806457ms)
+✔ expired grants, stale sequences and cancellation deny new effects (29.59995ms)
+✔ unbound adapter identities and missing dispatch implementations cannot configure campaigns (20.951372ms)
+✔ a concurrent exact retry observes the committed receipt without a second dispatch (23.441081ms)
+✔ a request ceiling holds even when prior attempts report zero charge (30.974929ms)
+✔ failed inspection never consumes an authorization or leaks transport details (19.335042ms)
+✔ client and subordinate model reserve in one campaign before effect and preserve costs on reopen (27.877667ms)
+✔ subordinate budget cannot bypass the campaign ceiling (22.971493ms)
+✔ a child with a lost receipt retains its reservation and fences even a parent that catches its error (31.797623ms)
+✔ subordinate capability expires when parent finishes and cannot target an unpinned binding (21.829691ms)
+✔ campaign cancellation reaches parent and child and waits for child termination (34.274867ms)
+✔ shutdown cancels and drains a composed call before returning, and fences future effects (28.769ms)
+✔ denied task scope is checked before resolving provider credentials or probing its API (19.065906ms)
+✔ shutdown aborts and waits for admission probes before the ledger can close (28.140021ms)
+✔ request quota cannot conceal an observed monetary deficit (19.406006ms)
+✔ Python Antigravity capability reaches the same campaign reservation before the subordinate effect (123.421052ms)
+✔ known session resume keeps binding, task and campaign budget pinned (31.361763ms)
+✔ unknown quota requires an explicit expiring owner exception and never overrides exhaustion (25.949247ms)
+✔ quota exceptions cannot expand authorization scope or expiration (19.527424ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 35
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10060.879225
+
+✖ failing tests:
+
+test at test/test-provider-campaign-adapters.js:301:1
+✖ real worker process drives Codex and Claude protocol fixtures and refuses attempted effects (1139.999959ms)
+  Error: CONTROL_OUTCOME_UNCERTAIN
+      at ChildProcess.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w3-prototype/tools/cli/lib/provider-campaign-process.js:55:18)
+      at Object.onceWrapper (node:events:631:26)
+      at ChildProcess.emit (node:events:509:28)
+      at maybeClose (node:internal/child_process:1124:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:306:5)
+--------------------------------------|---------|----------|---------|---------|--------------------
+File                                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s  
+--------------------------------------|---------|----------|---------|---------|--------------------
+All files                             |   96.08 |    89.01 |      98 |   96.08 |                    
+ packages/agent-compaction            |   97.97 |       93 |     100 |   97.97 |                    
+  checkpoint-provider.js              |     100 |    85.71 |     100 |     100 | 29,50,58           
+  deterministic-provider.js           |     100 |       98 |     100 |     100 | 35                 
+  index.js                            |     100 |      100 |     100 |     100 |                    
+  provider-registry.js                |     100 |      100 |     100 |     100 |                    
+  runtime.js                          |   93.63 |    87.23 |     100 |   93.63 | ...112-113,135-136 
+ packages/agent-isolation-attestation |   95.48 |    90.74 |     100 |   95.48 |                    
+  executor.js                         |   94.61 |    85.08 |     100 |   94.61 | ...236-238,276-277 
+  index.js                            |   96.14 |    93.52 |     100 |   96.14 | ...440-441,450-451 
+  terminal-executor.js                |   95.23 |    94.11 |     100 |   95.23 | ...160-162,176-178 
+ packages/agent-orchestration         |   96.72 |    89.17 |     100 |   96.72 |                    
+  execution-supervisor.js             |     100 |      100 |     100 |     100 |                    
+  index.js                            |     100 |      100 |     100 |     100 |                    
+  local-subagent-provider.js          |   97.25 |    88.76 |     100 |   97.25 | ...146-149,225-226 
+  utilities.js                        |     100 |      100 |     100 |     100 |                    
+  workflow-engine.js                  |   94.83 |    82.92 |     100 |   94.83 | ...263-264,383-384 
+ packages/agent-policy-lattice        |   96.33 |     81.3 |     100 |   96.33 |                    
+  index.js                            |   96.33 |     81.3 |     100 |   96.33 | ...175-176,203-204 
+ packages/agent-runtime               |   90.35 |    85.71 |   97.29 |   90.35 |                    
+  index.js                            |     100 |      100 |     100 |     100 |                    
+  runtime.js                          |   90.05 |    85.29 |   97.22 |   90.05 | ...-1056,1058-1067 
+  schemas.js                          |     100 |      100 |     100 |     100 |                    
+ packages/agent-session-store         |   91.75 |    89.16 |     100 |   91.75 |                    
+  index.js                            |     100 |      100 |     100 |     100 |                    
+  replay.js                           |   91.54 |    90.26 |     100 |   91.54 | ...809-810,871-872 
+  session-event-store.js              |   92.02 |    87.21 |     100 |   92.02 | ...482-483,490-491 
+ packages/control-sdk                 |     100 |       94 |     100 |     100 |                    
+  index.js                            |     100 |       94 |     100 |     100 | 28,62,74           
+ packages/tool-runtime                |   94.14 |     87.5 |    91.3 |   94.14 |                    
+  index.js                            |     100 |      100 |     100 |     100 |                    
+  registry.js                         |   91.66 |    84.61 |      90 |   91.66 | 37-38,42-43,46-49  
+  tool-runtime.js                     |   94.89 |    88.52 |    92.3 |   94.89 | ...212-213,268-269 
+ tools/cli/lib                        |   98.18 |    89.21 |   97.22 |   98.18 |                    
+  control-configuration.js            |   97.88 |    93.33 |     100 |   97.88 | 91-93              
+  engineering-control-http.js         |     100 |     91.3 |     100 |     100 | ...62,74-78,91,114 
+  engineering-control.js              |   98.61 |    89.09 |     100 |   98.61 | 75-77,214          
+  engineering-model.js                |     100 |       80 |     100 |     100 | 23,30-32,37        
+  engineering-project-verifier.js     |     100 |    93.33 |     100 |     100 | 34,52,68           
+  engineering-reconciliation.js       |   97.07 |    81.63 |     100 |   97.07 | 48-53,144-146      
+  engineering-sandbox-check.js        |     100 |      100 |     100 |     100 |                    
+  engineering-task-contract.js        |     100 |    96.42 |     100 |     100 | 169,201            
+  engineering-task-runtime.js         |   95.12 |    81.46 |   94.44 |   95.12 | ...590,631-632,634 
+  engineering-task-state.js           |   98.52 |    80.76 |     100 |   98.52 | 119-122            
+  engineering-tools.js                |     100 |     92.3 |     100 |     100 | ...128,195,201,204 
+  engineering-verifier.js             |     100 |       90 |     100 |     100 | 51,88              
+  engineering-workflow-runtime.js     |   97.63 |    84.57 |   88.88 |   97.63 | ...206-213,497-501 
+  engineering-workspace.js            |   98.95 |    95.32 |     100 |   98.95 | 31-32              
+  provider-antigravity-adapter.js     |     100 |    93.33 |     100 |     100 | 25,56,140          
+  provider-api-adapter.js             |    98.7 |    93.05 |     100 |    98.7 | 201-203            
+  provider-campaign-bridge.js         |    96.7 |    89.18 |     100 |    96.7 | 85-87              
+  provider-campaign-control.js        |   98.73 |    93.28 |      95 |   98.73 | 245-251            
+  provider-campaign-process.js        |   90.41 |    83.33 |     100 |   90.41 | 26-27,35,41-43,47  
+  provider-campaign-runner.js         |     100 |    86.48 |     100 |     100 | 56,66,74-75,86     
+  provider-campaign-worker.js         |     100 |    88.57 |     100 |     100 | 11,20,57-61        
+  provider-egress-broker.js           |   96.28 |    86.36 |   93.75 |   96.28 | ...223-225,252-253 
+  provider-native-adapter.js          |     100 |    83.87 |     100 |     100 | ...110,120,137,154 
+  terminal-attach.js                  |   98.92 |      100 |   85.71 |   98.92 | 58                 
+  terminal-budget.js                  |     100 |      100 |     100 |     100 |                    
+  terminal-control.js                 |   98.88 |    93.08 |     100 |   98.88 | 140-142,284        
+ tools/lib                            |   99.25 |     86.2 |     100 |   99.25 |                    
+  provider-control-manifest.js        |   99.25 |     86.2 |     100 |   99.25 | 88                 
+--------------------------------------|---------|----------|---------|---------|--------------------

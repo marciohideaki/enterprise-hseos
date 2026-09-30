@@ -1,0 +1,14 @@
+{
+  "baseline": "a8423081934d64538d71ef8289f072d51566a870",
+  "time": "2026-09-20T03:45:58.448464+00:00",
+  "sha256": {
+    "HSEOS-GOAL-HARNESS-AUTONOMO.md": "c5f2361c29cd0c65a83c40d67703db6117bdcc300dd074c832d3dd2d8a7aeaad",
+    "AGENTS.md": "ffd11a0eeb35390fc338f068cdf63645806a4e72549b2ff85a7399914b2bc697",
+    ".enterprise/.specs/constitution/Enterprise-Constitution.md": "69a563ee9b7bbc341c34ef49c11e89907b9c69f41bff167febf321310700f815",
+    ".enterprise/.specs/decisions/ADR-0024-model-agnostic-agent-framework.md": "a8a1e2b10fee255e1f0bd1872edf02228bcce4efc16e669a6e4e235ea960a7b1",
+    "scripts/governance/anchor-guard.sh": "f412162e57f1ecafe00730f26535d5b569fbf79bb35c4d70a0bcd356a0a88cb1",
+    "scripts/governance/loop-guard.sh": "8afa89990fa322ee7678c0567ff6a9c5f79408e0a20a62fff2b688cadcf0f7ea",
+    "scripts/governance/quality-gates.sh": "0e013ae38f1dc4a17158b12be945067c806b0ace2270748eb0637a900e61f356",
+    "test/test-agent-capability-cli.js": "d4131bd5cd1ed4e5925218c331e0b1e9422afb27533c2d59a2a2f80679a89031"
+  }
+}

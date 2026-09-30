@@ -121,11 +121,26 @@ function modelRoutes(value) {
     },
     {
       match: (request) => request.messages.at(-1).role === 'tool',
-      events: [
-        { event_type: 'content.delta', payload: { text: `Reference state set to ${value}` } },
-        { event_type: 'usage', payload: { input_tokens: 1, output_tokens: 1, cached_tokens: 0 } },
-        { event_type: 'completed', payload: { finish_reason: 'stop', provider_response_ref: 'scripted://reference/done' } },
-      ],
+      events(request) {
+        const outcome = JSON.parse(request.messages.at(-1).content);
+        if (outcome.status !== 'succeeded' || outcome.result?.value !== value) {
+          return [
+            {
+              event_type: 'failed',
+              payload: {
+                error_code: 'tool_failed',
+                message: 'Reference state write was not confirmed by the governed tool.',
+                retryable: false,
+              },
+            },
+          ];
+        }
+        return [
+          { event_type: 'content.delta', payload: { text: `Reference state set to ${value}` } },
+          { event_type: 'usage', payload: { input_tokens: 1, output_tokens: 1, cached_tokens: 0 } },
+          { event_type: 'completed', payload: { finish_reason: 'stop', provider_response_ref: 'scripted://reference/done' } },
+        ];
+      },
     },
   ];
 }
@@ -212,7 +227,7 @@ function summarize(handle, manifest, assembly, operation) {
     current_sequence: state.current_sequence,
     operation,
     output,
-    world_state: fs.existsSync(assembly.worldStatePath) ? assembly.worldStatePath : null,
+    world_state: state.status === 'completed' && fs.existsSync(assembly.worldStatePath) ? assembly.worldStatePath : null,
   };
 }
 

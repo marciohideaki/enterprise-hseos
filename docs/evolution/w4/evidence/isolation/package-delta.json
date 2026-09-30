@@ -1,0 +1,10 @@
+{
+  "base_count": 1439,
+  "current_count": 1440,
+  "added": [
+    "tools/cli/lib/execution-plugin-runtime.js"
+  ],
+  "removed": [],
+  "size": 8999328,
+  "npm": "11.12.1"
+}

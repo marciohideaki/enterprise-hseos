@@ -275,3 +275,59 @@ test('driver rejects a relative executable and an environment with non-explicit 
     fixture.cleanup();
   }
 });
+
+test('process normalization cannot mutate the frozen driver environment', async () => {
+  const fixture = temp();
+  const instance = new CodexAppServerDriver({
+    executable: process.execPath,
+    args: [FIXTURE, fixture.state, 'normal'],
+    cwd: fixture.directory,
+    env: {},
+    spawn_process(executable, args, options) {
+      // Node performs this kind of mutation when coverage is enabled.
+      options.env.HSEOS_PROCESS_PROBE = 'local-test';
+      return require('node:child_process').spawn(executable, args, options);
+    },
+  });
+  try {
+    await instance.create({
+      adapter_id: 'codex',
+      protocol: 'app-server',
+      cwd: fixture.directory,
+      limits: {},
+      effect_boundary: 'instructions_only',
+    });
+    assert.ok(Object.isFrozen(instance.env));
+    assert.deepEqual(instance.env, {});
+  } finally {
+    await instance.close();
+    fixture.cleanup();
+  }
+});
+
+for (const mode of ['stale-usage', 'foreign-stale-usage'])
+  test(`resumed Codex usage distinguishes known history from another thread: ${mode}`, async () => {
+    const fixture = temp();
+    const instance = driver(fixture, mode);
+    try {
+      await instance.resume({ runtime_session_id: 'codex-thread-1', expected_sequence: 1, effect_boundary: 'instructions_only' });
+      const usage = [];
+      const operation = instance.send({
+        runtime_session_id: 'codex-thread-1',
+        turn_id: 'test-turn',
+        instruction: 'ready',
+        effect_boundary: 'instructions_only',
+        on_event: () => {},
+        on_usage: (value) => usage.push(value),
+      });
+      if (mode === 'foreign-stale-usage') await assert.rejects(operation, /notification violated/);
+      else {
+        assert.equal((await operation).stop_reason, 'completed');
+        assert.equal(usage.length, 1);
+        assert.equal(usage[0].last.inputTokens, 5);
+      }
+    } finally {
+      await instance.close();
+      fixture.cleanup();
+    }
+  });

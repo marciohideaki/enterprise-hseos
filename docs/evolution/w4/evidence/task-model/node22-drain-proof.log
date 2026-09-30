@@ -1,0 +1,102 @@
+heavy-run: modo pinned na CPU 1, MemoryMax=3G (load1=1.38 phys=6 avail=23990MiB need=3G mem.psi=0.00 io.psi.full=0.00)
+W4 containment: /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/hseos-w4-task-model-drain-proof22.scope memory.max= 3221225472 affinity= [1]
+TAP version 13
+# Subtest: create-only pins authorized model identity; resume reserves the original campaign and verifies the task
+ok 1 - create-only pins authorized model identity; resume reserves the original campaign and verifies the task
+  ---
+  duration_ms: 2066.927911
+  type: 'test'
+  ...
+# Subtest: model tool proposal is executed by the task gateway and independently accepted
+ok 2 - model tool proposal is executed by the task gateway and independently accepted
+  ---
+  duration_ms: 2000.734216
+  type: 'test'
+  ...
+# Subtest: public campaign dispatch without a prepared plugin request cannot reserve or execute
+ok 3 - public campaign dispatch without a prepared plugin request cannot reserve or execute
+  ---
+  duration_ms: 49.18972
+  type: 'test'
+  ...
+# Subtest: model ambiguity, unauthorized task and changed association fail before effects
+ok 4 - model ambiguity, unauthorized task and changed association fail before effects
+  ---
+  duration_ms: 882.517993
+  type: 'test'
+  ...
+# Subtest: task cancellation drains its model without cancelling the shared campaign
+ok 5 - task cancellation drains its model without cancelling the shared campaign
+  ---
+  duration_ms: 2614.264606
+  type: 'test'
+  ...
+# Subtest: owner shutdown reaches facade requests and waits for process drain
+ok 6 - owner shutdown reaches facade requests and waits for process drain
+  ---
+  duration_ms: 1732.239478
+  type: 'test'
+  ...
+# Subtest: malformed model output preserves uncertain reservation and blocks task acceptance
+ok 7 - malformed model output preserves uncertain reservation and blocks task acceptance
+  ---
+  duration_ms: 1773.097565
+  type: 'test'
+  ...
+# Subtest: local binding loader inspects only declared selection without starting plugin code
+ok 8 - local binding loader inspects only declared selection without starting plugin code
+  ---
+  duration_ms: 65.985296
+  type: 'test'
+  ...
+# Subtest: a new controller restores the same task and campaign; catalog drift never swaps an in-flight selection
+ok 9 - a new controller restores the same task and campaign; catalog drift never swaps an in-flight selection
+  ---
+  duration_ms: 1876.144084
+  type: 'test'
+  ...
+# Subtest: lost campaign receipt keeps model result uncertain without replaying its process
+ok 10 - lost campaign receipt keeps model result uncertain without replaying its process
+  ---
+  duration_ms: 1793.387617
+  type: 'test'
+  ...
+# Subtest: model binding derivation preserves exact manifest, shared lifecycle and denies new authorization
+ok 11 - model binding derivation preserves exact manifest, shared lifecycle and denies new authorization
+  ---
+  duration_ms: 51.22218
+  type: 'test'
+  ...
+# Subtest: task deadline and invalid model pins fail before reserve
+ok 12 - task deadline and invalid model pins fail before reserve
+  ---
+  duration_ms: 59.371953
+  type: 'test'
+  ...
+# Subtest: same UUIDs and manifests in a different ledger cannot reset the task campaign
+ok 13 - same UUIDs and manifests in a different ledger cannot reset the task campaign
+  ---
+  duration_ms: 978.383192
+  type: 'test'
+  ...
+# Subtest: created replay rejects mixed model authority and direct unregistered execution
+ok 14 - created replay rejects mixed model authority and direct unregistered execution
+  ---
+  duration_ms: 883.042824
+  type: 'test'
+  ...
+# Subtest: control configuration loads a local plugin binding without an unused binding file or plugin effect
+ok 15 - control configuration loads a local plugin binding without an unused binding file or plugin effect
+  ---
+  duration_ms: 50.133946
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 17379.676985

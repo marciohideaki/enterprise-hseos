@@ -1,0 +1,16 @@
+✔ provider inventory binds every exact profile, component and provider without phantom models (107.768331ms)
+✔ swapping Codex and Claude providers between profiles fails before suite execution (51.043489ms)
+✔ actual manifests and checked binding templates generate an honest provider matrix (35.809075ms)
+✔ canonical local runner verifies only the canonical provider inventory (65774.766022ms)
+✔ certifying build rejects injected runners, provider specs and catalog loaders (0.621893ms)
+✔ opened descriptor bytes are executed even when the pathname is replaced (59.797889ms)
+✔ suite mutation during execution invalidates its earlier hash (59.395654ms)
+✔ provider manifest identity and binding-template drift fail closed (61.374563ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 66444.65402

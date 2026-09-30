@@ -9,3 +9,11 @@
 `WorkflowEngine` executes ordered phases in `parallel` or `pipeline` mode. Parallel groups are bounded by both the workflow and provider manifests, and their worst-case join windows must fit the parent duration ceiling. Before dispatch the engine atomically records `workflow.reserved`; this consumes the step/child ceiling and survives a crash before the first checkpoint. An active reservation can only resume through its exact `resume_from_ref` after its parent-bounded lease expires. `workflow.reclaimed` then rotates the claim atomically across SQLite connections, while spawn, checkpoint and release remain fenced by the captured claim. Each completed phase writes `workflow.phase.checkpointed`, and terminal teardown writes `workflow.released` with an exact status. The earlier single-step `workflow.checkpointed` event remains readable as a compatibility input. Reusing an identifier for a different definition fails closed.
 
 Cancellation and failure always invoke bounded child teardown. The package performs no provider-specific inference, secret access, external write, deployment or activation.
+
+A trusted local composition may set `claim_lease_ms` to a shorter positive lease,
+capped by the existing parent duration ceiling. It must fence recovery against a
+live owner before attempting reclaim. The engineering composition binds PID and
+process start time into the durable claim identity, refuses live/unknown owners,
+reaps a dead owner's executors and uses the original task deadlines. Lease renewal
+never grants a new task budget. Durable cancellation at recovery prevents child
+dispatch and tears down already attached children through the same engine.

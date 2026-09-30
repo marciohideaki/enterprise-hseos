@@ -1,0 +1,14 @@
+✔ tests detect removal of the authority guard (530.213356ms)
+✔ tests detect removal of the budget guard (584.113327ms)
+✔ tests detect removal of the recovery guard (807.806569ms)
+✔ every authored package source is linted with correctness rules enabled (833.40256ms)
+✔ coverage counts unexecuted critical files and enforces per-file 90/80 (0.28569ms)
+✔ comparison inventory covers every source family and points to real sources and tests (4.113115ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3094.837234

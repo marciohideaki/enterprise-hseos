@@ -1,0 +1,29 @@
+{
+  "node": "v22.23.3",
+  "installed": "/build/tmp/hseos-w0-closeout-cofvlsrb/consumer22/node_modules/hseos",
+  "outside_checkout": true,
+  "task_results": [
+    {
+      "task": "example-addition",
+      "result": "approved",
+      "corrections": 0
+    },
+    {
+      "task": "example-clamp",
+      "result": "approved",
+      "corrections": 0
+    },
+    {
+      "task": "example-unique",
+      "result": "approved",
+      "corrections": 0
+    },
+    {
+      "task": "example-correction",
+      "result": "approved",
+      "corrections": 2
+    }
+  ],
+  "workflow_result": "completed",
+  "workflow_tasks": 3
+}

@@ -1,0 +1,78 @@
+✔ loader preserves legacy configuration and constructs only registered lazy adapters (29.798767ms)
+✔ loader refuses state override, directory drift and replaced ledger before factory effects (17.711359ms)
+✔ loader preserves temporary ledger activation gate (16.847816ms)
+✔ loader validates all references and manifests before invoking any factory (18.77244ms)
+✔ loader checks observed digest and adapter interface, sanitizing factory exceptions (19.375072ms)
+✔ loader rechecks ledger identity after factory construction (17.955096ms)
+✔ loader rejects malformed, oversized, symlink and hardlink configurations (19.457251ms)
+✔ real API adapter is lazy, observes selected credential and USD balance, and streams through existing egress broker (54.460989ms)
+✔ API adapter refuses credential and binding drift before network effects (10.48213ms)
+✔ API adapter refuses unsupported origin, insufficient reservation and expired pricing (7.48651ms)
+✔ balance observation cannot invent quota or convert currencies (11.692438ms)
+✔ missing usage, cancellation and unknown task never become successful receipts (10.019733ms)
+✔ API adapter cancellation aborts the broker request and drains its connection (6.297142ms)
+✔ API adapter and campaign integrate credential admission, monetary quota and reservation before dispatch (309.558843ms)
+/build/tmp/hseos-w3-consumer-nw9vn21s/node24/test/test-provider-campaign-adapters.js:304
+  const fixture = path.resolve('/build/tmp/hseos-w3-consumer-nw9vn21s/node24/test/fixtures/'fake-codex-app-server.js');
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: missing ) after argument list
+    at wrapSafe (node:internal/modules/cjs/loader:1763:18)
+    at Module._compile (node:internal/modules/cjs/loader:1804:20)
+    at Object..js (node:internal/modules/cjs/loader:1961:10)
+    at Module.load (node:internal/modules/cjs/loader:1553:32)
+    at Module._load (node:internal/modules/cjs/loader:1355:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47
+
+Node.js v24.15.0
+✖ /build/tmp/hseos-w3-consumer-nw9vn21s/node24/test/test-provider-campaign-adapters.js (25.114583ms)
+✔ campaign reserves before dispatch, replays receipts and preserves consumption after reopening (55.142979ms)
+✔ a new campaign identity cannot reuse authorization or manufacture a larger budget (22.401424ms)
+✔ ambiguous credentials, logout, expired observations and unavailable quota cannot dispatch (25.549127ms)
+✔ receipt loss preserves the reservation and requires current-state reconciliation without retry (26.986178ms)
+✔ a second controller cannot reconcile a live dispatch and can cancel it durably (72.829491ms)
+✔ a changed binding manifest cannot replace the pinned configuration after reopening (23.074238ms)
+✔ HTTP and SDK campaign commands share authentication, cursors and durable budget (216.63641ms)
+✔ known overspend remains charged after uncertain outcome reconciliation (25.739361ms)
+✔ expired grants, stale sequences and cancellation deny new effects (28.868306ms)
+✔ unbound adapter identities and missing dispatch implementations cannot configure campaigns (20.622515ms)
+✔ a concurrent exact retry observes the committed receipt without a second dispatch (21.748105ms)
+✔ a request ceiling holds even when prior attempts report zero charge (30.429388ms)
+✔ failed inspection never consumes an authorization or leaks transport details (19.108223ms)
+✔ client and subordinate model reserve in one campaign before effect and preserve costs on reopen (27.770361ms)
+✔ subordinate budget cannot bypass the campaign ceiling (22.71879ms)
+✔ a child with a lost receipt retains its reservation and fences even a parent that catches its error (26.915659ms)
+✔ subordinate capability expires when parent finishes and cannot target an unpinned binding (23.075289ms)
+✔ campaign cancellation reaches parent and child and waits for child termination (29.817808ms)
+✔ shutdown cancels and drains a composed call before returning, and fences future effects (30.107448ms)
+✔ denied task scope is checked before resolving provider credentials or probing its API (20.198694ms)
+✔ shutdown aborts and waits for admission probes before the ledger can close (30.668591ms)
+✔ request quota cannot conceal an observed monetary deficit (19.760859ms)
+✔ Python Antigravity capability reaches the same campaign reservation before the subordinate effect (137.877857ms)
+✔ known session resume keeps binding, task and campaign budget pinned (30.99315ms)
+✔ unknown quota requires an explicit expiring owner exception and never overrides exhaustion (25.823443ms)
+✔ quota exceptions cannot expand authorization scope or expiration (19.338803ms)
+✔ runner completes a bounded pilot, checks replay and can restart without repeating inference or resetting budget (54.858905ms)
+✔ four-family scope fails before authorization claim if families are missing (19.045414ms)
+✔ runner preserves uncertain effects across restart and never advances or cancels them implicitly (23.585896ms)
+✔ runner rejects duplicate command identity and unexpected vendor before effects (16.778214ms)
+✔ runner operates through authenticated HTTP and the public SDK (449.568556ms)
+✔ official routes distinguish native accounts, API and local bindings without claiming certification (6.063486ms)
+✔ route confusion, unknown quota, capability claims, secrets and unbounded reservations fail closed (2.57604ms)
+✔ binding drift is rejected and declared control evidence does not certify a real journey (0.288522ms)
+ℹ tests 49
+ℹ suites 0
+ℹ pass 48
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3384.975127
+
+✖ failing tests:
+
+test at ../../test/test-provider-campaign-adapters.js:1:1
+✖ /build/tmp/hseos-w3-consumer-nw9vn21s/node24/test/test-provider-campaign-adapters.js (25.114583ms)
+  'test failed'

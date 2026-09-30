@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-09-26T16:46:58.945257+00:00",
+  "base_commit": "b9db33bfcf53681d91c64ca8a0dd42c74b0fb24c",
+  "matrix": [
+    {
+      "stage": "node24-full",
+      "started_at": "2026-09-26T16:29:31.585Z",
+      "finished_at": "2026-09-26T16:35:11.499Z",
+      "exit_code": 0,
+      "signal": null
+    },
+    {
+      "stage": "node24-critical",
+      "started_at": "2026-09-26T16:35:11.499Z",
+      "finished_at": "2026-09-26T16:38:03.697Z",
+      "exit_code": 0,
+      "signal": null
+    },
+    {
+      "stage": "node22-full",
+      "started_at": "2026-09-26T16:38:03.697Z",
+      "finished_at": "2026-09-26T16:43:44.320Z",
+      "exit_code": 0,
+      "signal": null
+    },
+    {
+      "stage": "node22-critical",
+      "started_at": "2026-09-26T16:43:44.320Z",
+      "finished_at": "2026-09-26T16:46:37.805Z",
+      "exit_code": 0,
+      "signal": null
+    }
+  ],
+  "tests": {
+    "node24-full": {
+      "tests": 962,
+      "pass": 962,
+      "fail": 0,
+      "skipped": 0
+    },
+    "node24-critical": {
+      "tests": 488,
+      "pass": 488,
+      "fail": 0,
+      "skipped": 0
+    },
+    "node22-full": {
+      "tests": 962,
+      "pass": 962,
+      "fail": 0,
+      "skipped": 0
+    },
+    "node22-critical": {
+      "tests": 488,
+      "pass": 488,
+      "fail": 0,
+      "skipped": 0
+    }
+  },
+  "critical_coverage": {
+    "24": {
+      "lines": 95.99,
+      "branches": 89.16,
+      "functions": 98.09,
+      "statements": 95.99
+    },
+    "22": {
+      "lines": 95.99,
+      "branches": 89.16,
+      "functions": 98.09,
+      "statements": 95.99
+    }
+  },
+  "affected_tests_per_node": 64,
+  "installed_consumer_tests_per_node": 42,
+  "real_provider_inference": false,
+  "real_conformance": "not_certified",
+  "vendor_session_recovery": "not_certified",
+  "implemented_campaign_adapters": [
+    "hseos-api-campaign-v1"
+  ],
+  "pending_campaign_adapters": [
+    "codex",
+    "claude",
+    "antigravity"
+  ],
+  "antigravity_composed_bridge": "pending",
+  "format_note": "Historical checkpoint JSON artifacts failed the broad formatting scan; their bytes/hashes were preserved. Current source-only formatting passed; see format-source.log.",
+  "source_sha256": {
+    ".c8-kernel.json": "a31a9d3e71e3aa388eeaac3de414a04dcda7ca90ac429397cb8b60a412c7de79",
+    "package.json": "078cb816f865c949867f1eb98668e2435c671aeca2b0e7cf603f5eb7f460c43f",
+    "packages/control-sdk/antigravity_client.py": "7da1bcab03a60df86f489e78f087f335df7a6212409aa7b8520d3ba18aece77e",
+    "packages/control-sdk/hseos_control.py": "6489d8beab9481171e83005696d251d174391b765762df3e4bc6c970eb9522f9",
+    "packages/control-sdk/index.js": "0cef4a3896d7a9a3ca5eeee32b0929c03ccfe4d47808713057f6935539340785",
+    "test/helpers/check-antigravity-sdk-config.py": "969fe3dfb7d6cf20f2d3fad03cc58d4dcd9104e3db444976b324a1e98d25506e",
+    "test/helpers/provider-control.js": "e5b20d0f564bd0a86708eeb616444c2d080262ea8236f6d614abf6fbc68bac37",
+    "test/test-antigravity-client.js": "771855d7e0c3cc4ff0c942ca4b64946616e38f02d9c0eccc1a8c1f3142d9e237",
+    "test/test-control-configuration.js": "09be5b5a3ca02823ebc875c0277b0dae87570e08b001ed7115e13b00454f2147",
+    "test/test-package-surface.js": "d281069998e062c4faa3618f958e7774c79fb0911ab91f1a7db4cc27dfce64a9",
+    "test/test-provider-api-adapter.js": "f152feecf54565906758b9227289c2e50cd369303feafa831240695fbafcd670",
+    "test/test-provider-campaign-control.js": "3e10e085d5d1be79fbf7bf8f3aa3260aa756adb21ab62128e73c6f90f6bed05f",
+    "test/test-provider-campaign-runner.js": "fb17636bc886956f9001dee7b05e8e19c23ea5db2df3c82b33d9309c15432af9",
+    "test/test-provider-control-manifest.js": "9bb6164ec1086ec1e62af2f9c18724e25d62ea8bb020786b874863e5a354d18e",
+    "test/test_antigravity_client.py": "527a443c4f6c70cec00876dd19ea3e9cdb9fe4ebb9e2e9cf01d5a9113198bb6d",
+    "tools/cli/command-manifest.json": "1906ef2b60a4db1ab64e39d3cce179acea68e9661006224341c0d2c343f12264",
+    "tools/cli/commands/control.js": "18567b395382711ef58f8c776a7aa62cc76461273a6623f6deb236a1fd5959b1",
+    "tools/cli/lib/control-configuration.js": "0e286487c78c37bb414b17e4c87af6057de8854f05adb7c840d0008faa8729d9",
+    "tools/cli/lib/engineering-control-http.js": "8b5fdb0eac2d37bc0cf4927e3d823cf4888b130e5f414a4ba5f226eec0e045bb",
+    "tools/cli/lib/engineering-control.js": "fd353d9581854dbcee7b56d368c977be849dd779677cd44207de04ac71144597",
+    "tools/cli/lib/provider-api-adapter.js": "9eb04a98ba1ae50dad8cd73e1d0c44819b1a3f8f729bbd10938f8731d1b3e8e7",
+    "tools/cli/lib/provider-campaign-control.js": "bdea4f238209abe9f3cc4cb146d88ec6fddf28138ada85ef5a2852c360243d74",
+    "tools/cli/lib/provider-campaign-runner.js": "b575b041cd502c49e13bda8c44cc582c262fcdadca4daff3ac85d9c0185b4285",
+    "tools/lib/provider-control-manifest.js": "446582cbdb853a3e73bd30dd1e15baeeba7b5813145f3303539a261fa8a45d71",
+    "tools/mcp-project-state/lib/execution-ledger-schema.js": "505df7fdb3c2aa3a98dfb95d6b7de47b510059181de232f1d5c5afdabe141457"
+  },
+  "evidence_sha256": {
+    "cli-manifest.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "format-source.log": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+    "node24-critical.log": "f68304077411196e073a21beb7fe469c8d24539d02230b56d7a9fa47eaafcf1a",
+    "affected-node24.log": "98d4ebd9a5b88019af6db43bf1f8530977ef73f812c375e9c45891a9f76efe32",
+    "lint-changed.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "node22-critical.log": "eda9021e6d3fc2e77632491784c836f0be97042a089d713b3feb8db974f9dd80",
+    "coverage-node24.json": "d5037b5b5c9af45afbaee15226b4b834ffb214193739e7e41f34fab19c8193b6",
+    "format-changed.log": "06a38bdbb67aa676314dcc4723e229fcf788ab3f593e2aaa01cad3a6ef9c42b6",
+    "coverage-node22.json": "dc8770b6425dee652d395f1429d7385222b10b9901b7a75e0258a4ed3bc70af8",
+    "node24-full.log": "9d11f9e4f91161173c8926600672a39b0dbb396809eb05ceb34648763cb0bdea",
+    "affected-node22.log": "36389b8702073b67fc6a44ab88cc82c9736e0194d4701386ec4ff9c301d82855",
+    "node22-full.log": "f2a2841af63c7e378911a7d94d0ddd75562ac96ba0370f99c9f58cbae2c464d9",
+    "checks.json": "25f5788640e1b78b7ae8023078aa493cb6f96037f88084ba90368e365d9ac3c4",
+    "typescript-sdk.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-ci.log": "96c24977efea0d77269a5b411c804a1af220e701b3774621dfba9c80f91db693"
+  },
+  "final_ci": {
+    "exit_code": 0,
+    "failures": 0,
+    "warnings": 1
+  }
+}

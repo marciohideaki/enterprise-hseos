@@ -2,7 +2,7 @@
 
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
-// eslint-disable-next-line n/no-unsupported-features/node-builtins -- describe is available throughout the supported Node 20 line
+
 const { describe, test } = require('node:test');
 const { digestCanonical } = require('../../packages/managed-governance-contracts');
 const { ImportCatalogService } = require('../../tools/managed-governance-control-plane/lib/application/import-catalog');

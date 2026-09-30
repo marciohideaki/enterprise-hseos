@@ -87,3 +87,53 @@
 - **A22 independent evidence:** `READY`; no residual blocker/high/medium after canonical-input injection, profile swaps, binding drift, descriptor TOCTOU and Node 20/22 runner compatibility probes
 - **Evidence:** `_graph/agentic-framework/state/checkpoints/A2-session-event-store.md`; `_graph/agentic-framework/state/checkpoints/A3-model-providers.md`; `_graph/agentic-framework/state/checkpoints/A4-context-assembler.md`; `_graph/agentic-framework/state/checkpoints/A5-tool-runtime.md`; `_graph/agentic-framework/state/checkpoints/A6-agent-runtime.md`; `_graph/agentic-framework/state/checkpoints/A7-compaction-checkpoints.md`; `_graph/agentic-framework/state/checkpoints/A8-subagents-workflows.md`; `_graph/agentic-framework/state/checkpoints/A9-runtime-provider-acp.md`; `_graph/agentic-framework/state/checkpoints/A10-hosted-runtime-adapters.md`; `_graph/agentic-framework/state/checkpoints/A11-capability-cli-reference.md`; `_graph/agentic-framework/state/checkpoints/A12-completion-audit.md`; `_graph/agentic-framework/state/checkpoints/A15-A20-claude-code-hardening.md`; `_graph/agentic-framework/state/checkpoints/A21-claude-code-hardening-closeout.md`; `_graph/agentic-framework/state/checkpoints/A22-provider-conformance-matrix.md`
 - **Operational constraint:** the sandbox-supervised raw-provider candidate is now exercised only against an ephemeral local OpenAI-compatible bridge; no production raw-provider endpoint was activated. G9 compatibility evidence and separate human authorization remain prerequisites for activation, together with the final stable audit
+
+## Integração v4 — 2026-09-24
+
+Em andamento na task/hseos-v4-consolidation, base a842308. O plano do responsável
+selecionou o candidato bwrap, sem ativar controles. Deltas H1/H2/H4/H5 reconciliados
+e proposta H6 revisada preservada. Evidências e pendências atuais em
+[docs/v4/STATUS.md](../../docs/v4/STATUS.md). A missão integral não está concluída.
+
+
+### 2026-09-25 — candidata v4, fechamento ainda pendente
+
+Integração em `task/hseos-v4-consolidation`: consumidor Node/Python isolado,
+verificação independente, binding/broker existente, workflow canônico, migração
+sem efeitos, perfis seletivos, contexto protegido e replay incremental.
+41 testes de engenharia e 83 de regressão do kernel passaram; cobertura dos
+contratos e gates de fase CI passaram (um aviso histórico). Pacote 4.0.0-rc.0
+instalado fora do checkout passou nas tarefas, workflow, consultas, perfis e
+binding simulado. Relatório: `docs/v4/STATUS.md`; recibo:
+`docs/v4/evidence/2026-09-25/receipt.json`.
+Gates completos pendentes pela carga do host; recuperação de workflow ativo e
+reconciliação de efeitos incertos não encerradas. Campanha real e ativação não
+realizadas. Sem commit, merge, publicação ou instalação global. Esta nota não
+reinterpreta indicadores de conclusão anteriores.
+
+
+### 2026-09-25 — recuperação da candidata v4 verificada
+
+Recuperação de workflow implementada sobre o claim canônico: owner vivo negado,
+owner morto confirmado, lease expirado, retomada única sob concorrência e nenhum
+novo evento na sessão já concluída. Comandos incertos não são repetidos;
+cancelamento elimina o executor abandonado. Prazos originais preservados.
+Compatibilidade e ensaio de ativação ajustados à migração pendente 010, sem mudar
+bancos operacionais. Wrapper npx agora preserva argumentos sem shell.
+43 testes integrados passaram; pacote externo passou também nos 11 testes de
+workflow e 2 de broker simulado. Gates de fase CI: zero falhas, um aviso histórico.
+A terceira rodada completa revelou expectativas antigas de migração, já corrigidas
+e verificadas de forma focada. Nova rodada completa aguarda carga permitida pela
+regra global; não há fechamento integral nem autorização operacional.
+Recibo: `docs/v4/evidence/2026-09-25-recovery/receipt.json`.
+
+### 2026-09-25 — gates completos da candidata v4 aprovados
+
+Quinta rodada completa: exit 0, zero falhas e um aviso histórico de placeholders.
+Correções de EPIPE no helper de hooks e limpeza transitória de cgroup passaram
+na cadeia integral, incluindo 46 testes de engenharia e nove de conformidade.
+Pacote externo: três tarefas e workflow aprovados; conteúdo da distribuição
+comparado byte a byte com a árvore final, sem diferenças. Evidência:
+`docs/v4/evidence/2026-09-25-final/receipt.json`.
+O fechamento determinístico não ratifica campanha real, migração operacional
+ou ativação. Sem commit, merge, publicação ou instalação global.

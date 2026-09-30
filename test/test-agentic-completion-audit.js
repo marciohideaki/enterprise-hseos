@@ -502,7 +502,7 @@ test('one root cancellation settles an active tool, workflow, model work, and ev
           steps: [
             {
               step_id: 'step:audit-child',
-              child_spec: cancellationSessionSpec('session:cancel-child', rootSpec.session_id, { max_children: 1, max_workflow_steps: 0 }),
+              child_spec: cancellationSessionSpec('session:cancel-child', rootSpec.session_id, { max_children: 1, max_workflow_steps: 1 }),
               turn_id: 'turn:audit-child',
               message: { role: 'user', content: 'wait as workflow child' },
             },
@@ -512,17 +512,36 @@ test('one root cancellation settles an active tool, workflow, model work, and ev
     },
   });
   await waitFor(() => fixture.store.readSession('session:cancel-child').some((event) => event.event_type === 'model.request.started'));
-  const childSequence = fixture.store.replay('session:cancel-child').current_sequence;
-  await fixture.subagents.spawn({
+  const nestedRun = fixture.supervisor.runWorkflow('workflow:audit-cancellation', {
     schema_version: 1,
-    provider_id: 'subagent:audit-cancellation',
-    request_id: 'request:audit-grandchild-spawn',
+    engine_id: 'workflow:audit-cancellation',
+    request_id: 'request:audit-nested-workflow-run',
     parent_session_id: 'session:cancel-child',
-    parent_sequence: childSequence,
-    child_spec: cancellationSessionSpec('session:cancel-grandchild', 'session:cancel-child', { max_children: 0, max_workflow_steps: 0 }),
-    turn_id: 'turn:audit-grandchild',
-    message: { role: 'user', content: 'wait as model-active descendant' },
     occurred_at: new Date().toISOString(),
+    workflow: {
+      schema_version: 1,
+      workflow_id: 'workflow:audit-nested-tree',
+      subagent_provider_id: 'subagent:audit-cancellation',
+      max_parallelism: 1,
+      join_timeout_ms: 20_000,
+      phases: [
+        {
+          phase_id: 'phase:audit-nested-cancel',
+          mode: 'pipeline',
+          steps: [
+            {
+              step_id: 'step:audit-grandchild',
+              child_spec: cancellationSessionSpec('session:cancel-grandchild', 'session:cancel-child', {
+                max_children: 0,
+                max_workflow_steps: 0,
+              }),
+              turn_id: 'turn:audit-grandchild',
+              message: { role: 'user', content: 'wait as model-active descendant' },
+            },
+          ],
+        },
+      ],
+    },
   });
   await waitFor(() => fixture.store.readSession('session:cancel-grandchild').some((event) => event.event_type === 'model.request.started'));
   const rootRun = fixture.supervisor.send({
@@ -542,16 +561,22 @@ test('one root cancellation settles an active tool, workflow, model work, and ev
     deadline_ms: 3000,
   });
   const elapsedMs = performance.now() - startedAt;
-  const [rootResult, workflowResult] = await Promise.all([rootRun, workflowRun]);
+  const [rootResult, workflowResult, nestedResult] = await Promise.all([rootRun, workflowRun, nestedRun]);
   assert.equal(cancelled.status, 'cancelled');
-  assert.equal(rootResult.terminal, true);
+  assert.equal(cancelled.cancellation.terminal, true);
+  assert.equal(rootResult.accepted, true);
   assert.equal(workflowResult.status, 'cancelled');
+  assert.equal(nestedResult.status, 'cancelled');
+  assert.deepEqual(cancelled.workflow_ids, ['workflow:audit-nested-tree', 'workflow:audit-root-tree']);
   assert.ok(elapsedMs < 3000, `root cancellation took ${elapsedMs.toFixed(2)}ms`);
   assert.deepEqual(cancelled.descendant_session_ids, ['session:cancel-child', 'session:cancel-grandchild']);
   for (const sessionId of [rootSpec.session_id, ...cancelled.descendant_session_ids]) {
     assert.equal(fixture.store.replay(sessionId).terminal_event.event_type, 'session.cancelled');
   }
   const rootEvents = fixture.store.readSession(rootSpec.session_id);
+  const releasedAt = rootEvents.findIndex((event) => event.event_type === 'workflow.released');
+  const terminalAt = rootEvents.findIndex((event) => event.event_type === 'session.cancelled');
+  assert.ok(releasedAt !== -1 && releasedAt < terminalAt);
   assert.equal(
     rootEvents.some((event) => event.event_type === 'tool.execution.completed'),
     true,
@@ -813,11 +838,21 @@ test('persistent replay scales within explicit latency, storage, and memory boun
       try {
         const recovered = new RelationalSessionEventStore({ ledger: new ExecutionEventLedger(reopened.db) });
         const samples = [];
+        const replaySamples = [];
+        const reconstructionSamples = [];
+        const cpuSamples = [];
         for (let sample = 0; sample < 25; sample++) {
           const startedAt = performance.now();
+          const cpuBefore = process.cpuUsage();
           assert.equal(recovered.replay(sessionId).status, 'completed');
+          const replayedAt = performance.now();
           assert.equal(recovered.reconstructRequest(sessionId).request.messages.at(-1).content, `measure ${volume} durable stream events`);
-          samples.push(performance.now() - startedAt);
+          const finishedAt = performance.now();
+          const cpuUsed = process.cpuUsage(cpuBefore);
+          samples.push(finishedAt - startedAt);
+          replaySamples.push(replayedAt - startedAt);
+          reconstructionSamples.push(finishedAt - replayedAt);
+          cpuSamples.push((cpuUsed.user + cpuUsed.system) / 1000);
         }
         metrics.push({
           volume,
@@ -825,6 +860,9 @@ test('persistent replay scales within explicit latency, storage, and memory boun
           p50_ms: Number(percentile(samples, 0.5).toFixed(3)),
           p95_ms: Number(percentile(samples, 0.95).toFixed(3)),
           max_ms: Number(Math.max(...samples).toFixed(3)),
+          replay_p95_ms: Number(percentile(replaySamples, 0.95).toFixed(3)),
+          reconstruction_p95_ms: Number(percentile(reconstructionSamples, 0.95).toFixed(3)),
+          cpu_p95_ms: Number(percentile(cpuSamples, 0.95).toFixed(3)),
           database_bytes: fs.statSync(fixture.filename).size,
         });
       } finally {
@@ -835,6 +873,7 @@ test('persistent replay scales within explicit latency, storage, and memory boun
     }
   }
   const heapGrowthBytes = Math.max(0, process.memoryUsage().heapUsed - heapBefore);
+  context.diagnostic(JSON.stringify({ metrics, heap_growth_bytes: heapGrowthBytes }));
   for (const metric of metrics) {
     assert.ok(metric.event_count >= metric.volume + 6, JSON.stringify(metric));
     assert.ok(metric.p95_ms < 250, JSON.stringify(metric));
@@ -842,5 +881,176 @@ test('persistent replay scales within explicit latency, storage, and memory boun
     assert.ok(metric.database_bytes < 16 * 1024 * 1024, JSON.stringify(metric));
   }
   assert.ok(heapGrowthBytes < 128 * 1024 * 1024, `heap grew by ${heapGrowthBytes} bytes`);
-  context.diagnostic(JSON.stringify({ metrics, heap_growth_bytes: heapGrowthBytes }));
+});
+
+function inactiveSupervisorEngine() {
+  return { async run() {}, async cancel() {}, async dispose() {} };
+}
+
+function rootCancellation(root_session_id, overrides = {}) {
+  return {
+    schema_version: 1,
+    request_id: 'request:guarded-cancel',
+    root_session_id,
+    reason: 'operator cancellation',
+    deadline_ms: null,
+    ...overrides,
+  };
+}
+
+test('supervisor rejects malformed configuration and cancellation before durable effects', async (context) => {
+  const fixture = coordinatedCancellationFixture(() => {});
+  context.after(() => fixture.db.close());
+  const options = {
+    agent_runtime: fixture.runtime,
+    session_store: fixture.store,
+    workflow_engines: new Map([['workflow:guarded', inactiveSupervisorEngine()]]),
+  };
+  for (const patch of [
+    { session_store: {} },
+    { workflow_engines: new Map() },
+    { workflow_engines: new Map([['', inactiveSupervisorEngine()]]) },
+    { max_settlement_ms: 0 },
+    { max_settlement_ms: 60_001 },
+    { clock: {} },
+  ])
+    assert.throws(() => new AgentExecutionSupervisor({ ...options, ...patch }));
+  const supervisor = new AgentExecutionSupervisor(options);
+  const root = cancellationSessionSpec('session:guarded-root');
+  await fixture.runtime.create({ schema_version: 1, command: 'create', spec: root });
+  for (const value of [
+    null,
+    [],
+    {},
+    rootCancellation(root.session_id, { extra: true }),
+    rootCancellation(root.session_id, { schema_version: 2 }),
+    rootCancellation(root.session_id, { request_id: '' }),
+    rootCancellation(root.session_id, { reason: '' }),
+    rootCancellation(root.session_id, { deadline_ms: 0 }),
+    rootCancellation(root.session_id, { deadline_ms: 5001 }),
+  ])
+    await assert.rejects(() => supervisor.cancelRoot(value), { code: 'AGENT_EXECUTION_SUPERVISOR_INVALID' });
+  assert.equal(fixture.store.replay(root.session_id).current_sequence, 1);
+  await supervisor.cancelRoot(rootCancellation(root.session_id));
+  assert.equal(fixture.store.replay(root.session_id).terminal_event.event_type, 'session.cancelled');
+});
+
+test('supervisor detects duplicate dispatch and releases ownership after rejection', async (context) => {
+  const fixture = coordinatedCancellationFixture(() => {});
+  context.after(() => fixture.db.close());
+  let rejectAgent;
+  let finishWorkflow;
+  const engine = {
+    ...inactiveSupervisorEngine(),
+    run: () =>
+      new Promise((resolve) => {
+        finishWorkflow = resolve;
+      }),
+  };
+  const supervisor = new AgentExecutionSupervisor({
+    agent_runtime: {
+      create: (input) => fixture.runtime.create(input),
+      resume: (input) => fixture.runtime.resume(input),
+      cancel: (input) => fixture.runtime.cancel(input),
+      dispose: (input) => fixture.runtime.dispose(input),
+      send: () =>
+        new Promise((resolve, reject) => {
+          rejectAgent = reject;
+        }),
+    },
+    session_store: fixture.store,
+    workflow_engines: new Map([['workflow:guarded', engine]]),
+  });
+  assert.throws(() => supervisor.send({ session_id: '' }), /session_id/);
+  assert.throws(() => supervisor.runWorkflow('workflow:unknown', {}), { code: 'AGENT_EXECUTION_ENGINE_NOT_FOUND' });
+  const input = { session_id: 'session:controlled' };
+  const first = supervisor.send(input);
+  assert.throws(() => supervisor.send(input), { code: 'AGENT_EXECUTION_ALREADY_ACTIVE' });
+  await Promise.resolve();
+  rejectAgent(new Error('model transport failed'));
+  await assert.rejects(first, /transport failed/);
+  const retry = supervisor.send(input);
+  await Promise.resolve();
+  rejectAgent(new Error('second controlled failure'));
+  await assert.rejects(retry, /second controlled/);
+  const workflow = { parent_session_id: input.session_id, workflow: { workflow_id: 'workflow:controlled' } };
+  const running = supervisor.runWorkflow('workflow:guarded', workflow);
+  assert.throws(() => supervisor.runWorkflow('workflow:guarded', workflow), { code: 'AGENT_EXECUTION_ALREADY_ACTIVE' });
+  await Promise.resolve();
+  finishWorkflow({ status: 'completed' });
+  assert.deepEqual(await running, { status: 'completed' });
+});
+
+test('supervisor does not accept a cancellation receipt without a durable terminal', async (context) => {
+  const fixture = coordinatedCancellationFixture(() => {});
+  context.after(() => fixture.db.close());
+  const root = cancellationSessionSpec('session:unsettled-root');
+  await fixture.runtime.create({ schema_version: 1, command: 'create', spec: root });
+  const supervisor = new AgentExecutionSupervisor({
+    agent_runtime: {
+      create: (input) => fixture.runtime.create(input),
+      resume: (input) => fixture.runtime.resume(input),
+      send: (input) => fixture.runtime.send(input),
+      dispose: (input) => fixture.runtime.dispose(input),
+      async cancel() {
+        return { accepted: true };
+      },
+    },
+    session_store: fixture.store,
+    workflow_engines: new Map([['workflow:guarded', inactiveSupervisorEngine()]]),
+  });
+  await assert.rejects(
+    () => supervisor.cancelRoot(rootCancellation(root.session_id)),
+    (error) => error.code === 'AGENT_EXECUTION_ORPHANED_WORK' && error.details.root_terminal === false,
+  );
+  assert.equal(fixture.store.replay(root.session_id).terminal_event, null);
+});
+
+test('supervisor reports cancellation failure even when the root has terminalized', async (context) => {
+  const fixture = coordinatedCancellationFixture(() => {});
+  context.after(() => fixture.db.close());
+  const root = cancellationSessionSpec('session:failed-receipt-root');
+  await fixture.runtime.create({ schema_version: 1, command: 'create', spec: root });
+  const supervisor = new AgentExecutionSupervisor({
+    agent_runtime: {
+      create: (input) => fixture.runtime.create(input),
+      resume: (input) => fixture.runtime.resume(input),
+      send: (input) => fixture.runtime.send(input),
+      dispose: (input) => fixture.runtime.dispose(input),
+      async cancel(input) {
+        await fixture.runtime.cancel(input);
+        throw new Error('lost cancellation receipt');
+      },
+    },
+    session_store: fixture.store,
+    workflow_engines: new Map([['workflow:guarded', inactiveSupervisorEngine()]]),
+  });
+  await assert.rejects(
+    () => supervisor.cancelRoot(rootCancellation(root.session_id)),
+    (error) =>
+      error.code === 'AGENT_EXECUTION_CANCELLATION_FAILED' &&
+      error.details.rejected_count === 1 &&
+      error.details.rejection_codes[0] === 'unknown',
+  );
+  assert.equal(fixture.store.replay(root.session_id).terminal_event.event_type, 'session.cancelled');
+});
+
+test('supervisor rejects invalid and regressing clocks rather than extending a settlement deadline', async (context) => {
+  const fixture = coordinatedCancellationFixture(() => {});
+  context.after(() => fixture.db.close());
+  const root = cancellationSessionSpec('session:clock-root');
+  await fixture.runtime.create({ schema_version: 1, command: 'create', spec: root });
+  for (const instants of [[Number.NaN], [100, 99], [100, 6000]]) {
+    const supervisor = new AgentExecutionSupervisor({
+      agent_runtime: fixture.runtime,
+      session_store: fixture.store,
+      workflow_engines: new Map([['workflow:guarded', inactiveSupervisorEngine()]]),
+      clock: { now: () => instants.shift() },
+    });
+    await assert.rejects(
+      () => supervisor.cancelRoot(rootCancellation(root.session_id)),
+      (error) => ['AGENT_EXECUTION_SUPERVISOR_INVALID', 'AGENT_EXECUTION_SETTLEMENT_TIMEOUT'].includes(error.code),
+    );
+  }
+  await new Promise((resolve) => setImmediate(resolve));
 });

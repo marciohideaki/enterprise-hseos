@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
-// eslint-disable-next-line n/no-unsupported-features/node-builtins -- describe is available throughout the supported Node 20 line
+
 const { after, before, describe, test } = require('node:test');
 const { digestCanonical } = require('../../packages/managed-governance-contracts');
 const {

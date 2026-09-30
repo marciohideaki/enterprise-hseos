@@ -191,147 +191,196 @@ function applyFact(state, row) {
     throw new DelegatedRuntimeHostError('delegated runtime trace lineage is fragmented', 'DELEGATED_RUNTIME_TRACE_FRAGMENTED');
   }
   state.trace_id = rowTraceId;
-  if (row.event_type === 'delegated.runtime.created') {
-    if (state.version !== 0 || payload.spec.session_id !== state.session_id || payload.spec.execution.mode !== 'delegated') {
-      throw new DelegatedRuntimeHostError('delegated runtime creation fact is invalid');
+  switch (row.event_type) {
+    case 'delegated.runtime.created': {
+      if (state.version !== 0 || payload.spec.session_id !== state.session_id || payload.spec.execution.mode !== 'delegated') {
+        throw new DelegatedRuntimeHostError('delegated runtime creation fact is invalid');
+      }
+      state.spec = payload.spec;
+
+      break;
     }
-    state.spec = payload.spec;
-  } else if (row.event_type === 'delegated.runtime.bound') {
-    if (!state.spec || state.manifest || payload.manifest.provider_id !== state.spec.execution.runtime_provider_id) {
-      throw new DelegatedRuntimeHostError('delegated runtime binding fact is invalid');
+    case 'delegated.runtime.bound': {
+      if (!state.spec || state.manifest || payload.manifest.provider_id !== state.spec.execution.runtime_provider_id) {
+        throw new DelegatedRuntimeHostError('delegated runtime binding fact is invalid');
+      }
+      state.manifest = payload.manifest;
+      state.runtime_session_id = payload.runtime_session_id;
+
+      break;
     }
-    state.manifest = payload.manifest;
-    state.runtime_session_id = payload.runtime_session_id;
-  } else if (row.event_type === 'delegated.runtime.event_recorded') {
-    const event = payload.event;
-    if (
-      !state.manifest ||
-      event.provider_id !== state.manifest.provider_id ||
-      event.runtime_session_id !== state.runtime_session_id ||
-      event.sequence !== state.runtime_sequence + 1
-    ) {
-      throw new DelegatedRuntimeHostError('runtime event does not continue the durable provider binding');
+    case 'delegated.runtime.event_recorded': {
+      const event = payload.event;
+      if (
+        !state.manifest ||
+        event.provider_id !== state.manifest.provider_id ||
+        event.runtime_session_id !== state.runtime_session_id ||
+        event.sequence !== state.runtime_sequence + 1
+      ) {
+        throw new DelegatedRuntimeHostError('runtime event does not continue the durable provider binding');
+      }
+      if (event.event_type === 'runtime.session.started' && event.payload.hseos_session_id !== state.session_id) {
+        throw new DelegatedRuntimeHostError('runtime start event belongs to another HSEOS session');
+      }
+      if (state.terminal) throw new DelegatedRuntimeHostError('runtime event follows a terminal fact');
+      state.runtime_sequence = event.sequence;
+      state.runtime_events.push(event);
+      if (['runtime.session.completed', 'runtime.session.failed'].includes(event.event_type)) {
+        state.terminal = true;
+        state.terminal_event = event;
+        state.pending_turn = null;
+      }
+
+      break;
     }
-    if (event.event_type === 'runtime.session.started' && event.payload.hseos_session_id !== state.session_id) {
-      throw new DelegatedRuntimeHostError('runtime start event belongs to another HSEOS session');
+    case 'delegated.turn.requested': {
+      if (!state.manifest || state.terminal || state.pending_turn) throw new DelegatedRuntimeHostError('delegated turn fact is invalid');
+      state.pending_turn = payload;
+      state.dispatch_started = false;
+
+      break;
     }
-    if (state.terminal) throw new DelegatedRuntimeHostError('runtime event follows a terminal fact');
-    state.runtime_sequence = event.sequence;
-    state.runtime_events.push(event);
-    if (['runtime.session.completed', 'runtime.session.failed'].includes(event.event_type)) {
-      state.terminal = true;
-      state.terminal_event = event;
-      state.pending_turn = null;
+    case 'delegated.turn.dispatch_started': {
+      if (!state.pending_turn || state.pending_turn.request_id !== payload.request_id || state.dispatch_started || state.terminal) {
+        throw new DelegatedRuntimeHostError('delegated dispatch fact is invalid');
+      }
+      state.dispatch_started = true;
+
+      break;
     }
-  } else if (row.event_type === 'delegated.turn.requested') {
-    if (!state.manifest || state.terminal || state.pending_turn) throw new DelegatedRuntimeHostError('delegated turn fact is invalid');
-    state.pending_turn = payload;
-    state.dispatch_started = false;
-  } else if (row.event_type === 'delegated.turn.dispatch_started') {
-    if (!state.pending_turn || state.pending_turn.request_id !== payload.request_id || state.dispatch_started || state.terminal) {
-      throw new DelegatedRuntimeHostError('delegated dispatch fact is invalid');
+    case 'delegated.cancel.requested': {
+      if (!state.manifest || state.terminal) throw new DelegatedRuntimeHostError('delegated cancellation fact is invalid');
+      if (state.cancel_request) throw new DelegatedRuntimeHostError('duplicate delegated cancellation fact');
+      state.cancel_request = payload;
+
+      break;
     }
-    state.dispatch_started = true;
-  } else if (row.event_type === 'delegated.cancel.requested') {
-    if (!state.manifest || state.terminal) throw new DelegatedRuntimeHostError('delegated cancellation fact is invalid');
-    if (state.cancel_request) throw new DelegatedRuntimeHostError('duplicate delegated cancellation fact');
-    state.cancel_request = payload;
-  } else if (['delegated.runtime.failed', 'delegated.runtime.outcome_uncertain'].includes(row.event_type)) {
-    if (state.terminal) throw new DelegatedRuntimeHostError('delegated failure follows a terminal fact');
-    state.failed = payload;
-    state.terminal = true;
-    state.pending_turn = null;
-  } else if (row.event_type === 'delegated.worker.attached') {
-    canonicalTimestamp(payload.lease_expires_at);
-    const canonicalExpiry = addMilliseconds(occurredAt, payload.lease_ttl_ms);
-    if (
-      !state.manifest ||
-      state.terminal ||
-      !['unassigned', 'parked', 'orphaned', 'retired'].includes(state.worker.status) ||
-      payload.lease_epoch !== state.worker.lease_epoch + 1 ||
-      payload.lease_expires_at !== canonicalExpiry ||
-      (state.worker.status === 'retired' && state.worker.worker_id === payload.worker_id)
-    ) {
-      throw new DelegatedRuntimeHostError('delegated worker attachment fact is invalid');
+    default: {
+      if (['delegated.runtime.failed', 'delegated.runtime.outcome_uncertain'].includes(row.event_type)) {
+        if (state.terminal) throw new DelegatedRuntimeHostError('delegated failure follows a terminal fact');
+        state.failed = payload;
+        state.terminal = true;
+        state.pending_turn = null;
+      } else
+        switch (row.event_type) {
+          case 'delegated.worker.attached': {
+            canonicalTimestamp(payload.lease_expires_at);
+            const canonicalExpiry = addMilliseconds(occurredAt, payload.lease_ttl_ms);
+            if (
+              !state.manifest ||
+              state.terminal ||
+              !['unassigned', 'parked', 'orphaned', 'retired'].includes(state.worker.status) ||
+              payload.lease_epoch !== state.worker.lease_epoch + 1 ||
+              payload.lease_expires_at !== canonicalExpiry ||
+              (state.worker.status === 'retired' && state.worker.worker_id === payload.worker_id)
+            ) {
+              throw new DelegatedRuntimeHostError('delegated worker attachment fact is invalid');
+            }
+            state.worker = {
+              status: 'attached',
+              worker_id: payload.worker_id,
+              lease_epoch: payload.lease_epoch,
+              lease_ttl_ms: payload.lease_ttl_ms,
+              lease_expires_at: payload.lease_expires_at,
+              drain_deadline_at: null,
+              drain_request_id: null,
+              drain_reason: null,
+              drain_defer_shutdown_ms: null,
+              checkpoint_sequence: null,
+            };
+
+            break;
+          }
+          case 'delegated.worker.heartbeat': {
+            canonicalTimestamp(payload.lease_expires_at);
+            assertWorkerIdentity(state, payload);
+            const requestedExpiry = addMilliseconds(occurredAt, payload.lease_ttl_ms);
+            const canonicalExpiry = state.worker.drain_deadline_at
+              ? new Date(Math.min(Date.parse(requestedExpiry), Date.parse(state.worker.drain_deadline_at))).toISOString()
+              : requestedExpiry;
+            if (
+              !['attached', 'draining'].includes(state.worker.status) ||
+              payload.lease_ttl_ms !== state.worker.lease_ttl_ms ||
+              payload.lease_expires_at !== canonicalExpiry ||
+              Date.parse(payload.lease_expires_at) <= Date.parse(state.worker.lease_expires_at)
+            ) {
+              throw new DelegatedRuntimeHostError('delegated worker heartbeat fact is invalid');
+            }
+            state.worker.lease_expires_at = payload.lease_expires_at;
+
+            break;
+          }
+          case 'delegated.worker.drain_requested': {
+            canonicalTimestamp(payload.drain_deadline_at);
+            assertWorkerIdentity(state, payload);
+            const requestedDeadline = addMilliseconds(occurredAt, payload.defer_shutdown_ms);
+            const canonicalDeadline = new Date(
+              Math.min(Date.parse(requestedDeadline), Date.parse(state.worker.lease_expires_at)),
+            ).toISOString();
+            if (
+              state.worker.status !== 'attached' ||
+              payload.drain_deadline_at !== canonicalDeadline ||
+              Date.parse(payload.drain_deadline_at) <= Date.parse(occurredAt)
+            ) {
+              throw new DelegatedRuntimeHostError('delegated worker drain fact is invalid');
+            }
+            state.worker.status = 'draining';
+            state.worker.drain_deadline_at = payload.drain_deadline_at;
+            state.worker.drain_request_id = payload.request_id;
+            state.worker.drain_reason = payload.reason;
+            state.worker.drain_defer_shutdown_ms = payload.defer_shutdown_ms;
+
+            break;
+          }
+          case 'delegated.worker.parked': {
+            assertWorkerIdentity(state, payload);
+            if (
+              state.worker.status !== 'draining' ||
+              state.dispatch_started ||
+              payload.checkpoint_sequence !== state.runtime_sequence ||
+              payload.reason !== state.worker.drain_reason ||
+              Date.parse(occurredAt) >= Date.parse(state.worker.lease_expires_at) ||
+              Date.parse(occurredAt) >= Date.parse(state.worker.drain_deadline_at)
+            ) {
+              throw new DelegatedRuntimeHostError('delegated worker checkpoint fact is invalid');
+            }
+            state.worker.status = 'parked';
+            state.worker.checkpoint_sequence = payload.checkpoint_sequence;
+            state.worker.lease_expires_at = null;
+            state.worker.drain_deadline_at = null;
+
+            break;
+          }
+          case 'delegated.worker.orphaned': {
+            assertWorkerIdentity(state, payload);
+            const drainExpired = state.worker.drain_deadline_at && Date.parse(occurredAt) >= Date.parse(state.worker.drain_deadline_at);
+            const leaseExpired = Date.parse(occurredAt) >= Date.parse(state.worker.lease_expires_at);
+            const expectedReason = drainExpired ? 'defer_expired' : 'lease_expired';
+            if (
+              !['attached', 'draining'].includes(state.worker.status) ||
+              (!drainExpired && !leaseExpired) ||
+              payload.reason !== expectedReason
+            ) {
+              throw new DelegatedRuntimeHostError('delegated worker orphan fact is invalid');
+            }
+            state.worker.status = 'orphaned';
+            state.worker.lease_expires_at = null;
+            state.worker.drain_deadline_at = null;
+
+            break;
+          }
+          case 'delegated.worker.retired': {
+            assertWorkerIdentity(state, payload);
+            if (!state.terminal && !['parked', 'orphaned'].includes(state.worker.status)) {
+              throw new DelegatedRuntimeHostError('delegated worker retirement fact is invalid');
+            }
+            state.worker.status = 'retired';
+
+            break;
+          }
+          // No default
+        }
     }
-    state.worker = {
-      status: 'attached',
-      worker_id: payload.worker_id,
-      lease_epoch: payload.lease_epoch,
-      lease_ttl_ms: payload.lease_ttl_ms,
-      lease_expires_at: payload.lease_expires_at,
-      drain_deadline_at: null,
-      drain_request_id: null,
-      drain_reason: null,
-      drain_defer_shutdown_ms: null,
-      checkpoint_sequence: null,
-    };
-  } else if (row.event_type === 'delegated.worker.heartbeat') {
-    canonicalTimestamp(payload.lease_expires_at);
-    assertWorkerIdentity(state, payload);
-    const requestedExpiry = addMilliseconds(occurredAt, payload.lease_ttl_ms);
-    const canonicalExpiry = state.worker.drain_deadline_at
-      ? new Date(Math.min(Date.parse(requestedExpiry), Date.parse(state.worker.drain_deadline_at))).toISOString()
-      : requestedExpiry;
-    if (
-      !['attached', 'draining'].includes(state.worker.status) ||
-      payload.lease_ttl_ms !== state.worker.lease_ttl_ms ||
-      payload.lease_expires_at !== canonicalExpiry ||
-      Date.parse(payload.lease_expires_at) <= Date.parse(state.worker.lease_expires_at)
-    ) {
-      throw new DelegatedRuntimeHostError('delegated worker heartbeat fact is invalid');
-    }
-    state.worker.lease_expires_at = payload.lease_expires_at;
-  } else if (row.event_type === 'delegated.worker.drain_requested') {
-    canonicalTimestamp(payload.drain_deadline_at);
-    assertWorkerIdentity(state, payload);
-    const requestedDeadline = addMilliseconds(occurredAt, payload.defer_shutdown_ms);
-    const canonicalDeadline = new Date(Math.min(Date.parse(requestedDeadline), Date.parse(state.worker.lease_expires_at))).toISOString();
-    if (
-      state.worker.status !== 'attached' ||
-      payload.drain_deadline_at !== canonicalDeadline ||
-      Date.parse(payload.drain_deadline_at) <= Date.parse(occurredAt)
-    ) {
-      throw new DelegatedRuntimeHostError('delegated worker drain fact is invalid');
-    }
-    state.worker.status = 'draining';
-    state.worker.drain_deadline_at = payload.drain_deadline_at;
-    state.worker.drain_request_id = payload.request_id;
-    state.worker.drain_reason = payload.reason;
-    state.worker.drain_defer_shutdown_ms = payload.defer_shutdown_ms;
-  } else if (row.event_type === 'delegated.worker.parked') {
-    assertWorkerIdentity(state, payload);
-    if (
-      state.worker.status !== 'draining' ||
-      state.dispatch_started ||
-      payload.checkpoint_sequence !== state.runtime_sequence ||
-      payload.reason !== state.worker.drain_reason ||
-      Date.parse(occurredAt) >= Date.parse(state.worker.lease_expires_at) ||
-      Date.parse(occurredAt) >= Date.parse(state.worker.drain_deadline_at)
-    ) {
-      throw new DelegatedRuntimeHostError('delegated worker checkpoint fact is invalid');
-    }
-    state.worker.status = 'parked';
-    state.worker.checkpoint_sequence = payload.checkpoint_sequence;
-    state.worker.lease_expires_at = null;
-    state.worker.drain_deadline_at = null;
-  } else if (row.event_type === 'delegated.worker.orphaned') {
-    assertWorkerIdentity(state, payload);
-    const drainExpired = state.worker.drain_deadline_at && Date.parse(occurredAt) >= Date.parse(state.worker.drain_deadline_at);
-    const leaseExpired = Date.parse(occurredAt) >= Date.parse(state.worker.lease_expires_at);
-    const expectedReason = drainExpired ? 'defer_expired' : 'lease_expired';
-    if (!['attached', 'draining'].includes(state.worker.status) || (!drainExpired && !leaseExpired) || payload.reason !== expectedReason) {
-      throw new DelegatedRuntimeHostError('delegated worker orphan fact is invalid');
-    }
-    state.worker.status = 'orphaned';
-    state.worker.lease_expires_at = null;
-    state.worker.drain_deadline_at = null;
-  } else if (row.event_type === 'delegated.worker.retired') {
-    assertWorkerIdentity(state, payload);
-    if (!state.terminal && !['parked', 'orphaned'].includes(state.worker.status)) {
-      throw new DelegatedRuntimeHostError('delegated worker retirement fact is invalid');
-    }
-    state.worker.status = 'retired';
   }
   state.version = row.stream_sequence;
   state.last_occurred_at = occurredAt;
@@ -682,14 +731,13 @@ class DelegatedRuntimeHost {
     const turnId = parseContract(IdentifierSchema, turn_id, 'delegated turn id');
     const message = parseContract(AgentMessageSchema, messageValue, 'delegated turn message');
     let state = this.#continuable(session_id, { worker_id, lease_epoch });
-    if (state.pending_turn) {
-      if (
-        state.pending_turn.request_id !== requestId ||
+    if (
+      state.pending_turn &&
+      (state.pending_turn.request_id !== requestId ||
         state.pending_turn.turn_id !== turnId ||
-        canonicalJson(state.pending_turn.message) !== canonicalJson(message)
-      ) {
-        throw new DelegatedRuntimeHostError('a different delegated turn is already pending');
-      }
+        canonicalJson(state.pending_turn.message) !== canonicalJson(message))
+    ) {
+      throw new DelegatedRuntimeHostError('a different delegated turn is already pending');
     }
     const provider = await this.#reattach(state);
     try {

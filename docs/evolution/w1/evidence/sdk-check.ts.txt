@@ -1,0 +1,8 @@
+import {ControlClient, ControlCommand, TaskStatus, WorkflowStatus} from '../../../packages/control-sdk';
+async function consume(client: ControlClient, command: ControlCommand) {
+  await client.execute(command);
+  const state: TaskStatus | WorkflowStatus = await client.query(command.resource_id);
+  await client.query(command.resource_id, 'session');
+  const page = await client.events(command.resource_id, {after: 0, limit: 10});
+  return state.current_sequence + page.next_cursor;
+}

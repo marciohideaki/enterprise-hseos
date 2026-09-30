@@ -1,0 +1,55 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+const {randomUUID,randomBytes,createHash}=require('node:crypto');
+const {execFileSync}=require('node:child_process');
+const root=process.cwd(),dir=__dirname;
+const {engineeringDigest}=require(root+'/tools/cli/lib/engineering-task-state');
+const {EngineeringControl}=require(root+'/tools/cli/lib/engineering-control');
+const {createNativeCampaignAdapter,nativeArtifactDigest}=require(root+'/tools/cli/lib/provider-native-adapter');
+const {createAntigravityCampaignAdapter,antigravityArtifactDigest}=require(root+'/tools/cli/lib/provider-antigravity-adapter');
+const {runCampaignProcess}=require(root+'/tools/cli/lib/provider-campaign-process');
+const {readBinding}=require(root+'/tools/cli/lib/delegated-codex-runtime');
+const {startControlServer}=require(root+'/tools/cli/lib/engineering-control-http');
+const {ControlClient}=require(root+'/packages/control-sdk');
+const {runProviderCampaign}=require(root+'/tools/cli/lib/provider-campaign-runner');
+const save=(name,value)=>fs.writeFileSync(path.join(dir,name),JSON.stringify(value,null,2)+'\n',{mode:0o600});
+const sha=p=>createHash('sha256').update(fs.readFileSync(fs.realpathSync(p))).digest('hex');
+(async()=>{
+ if(fs.existsSync(path.join(dir,'local-run.json')))throw new Error('PILOT_ALREADY_STARTED');
+ const task=randomUUID(),authorization=randomUUID(),campaign=randomUUID(),scratch=fs.mkdtempSync('/build/tmp/hseos-w3-local-campaign-');
+ const plan={schema_version:1,scope:'pilot',campaign_id:campaign,authorization_id:authorization,create_command_id:randomUUID(),cancel_command_id:randomUUID(),steps:[{command_id:randomUUID(),binding_id:'binding:antigravity-local',task_id:task}]};
+ plan.steps.push({command_id:randomUUID(),binding_id:'binding:antigravity-local',task_id:task,resume_from:plan.steps[0].command_id});
+ const selected=JSON.parse(fs.readFileSync(path.join(dir,'codex-inspection.json')));
+ if(Date.now()-selected.observed_at>900000)throw new Error('PREFLIGHT_EXPIRED');
+ const bindingFile=path.join(scratch,'codex.json');
+ const binding={...JSON.parse(fs.readFileSync('.logs/runs/w3-live-10usd/codex-binding-corrected.json')),cwd:scratch};
+ fs.writeFileSync(bindingFile,JSON.stringify(binding));
+ const options={model:'gpt-6-astra',tasks:{[task]:{prompt:'Do not use any tools or read files. Reply exactly READY.'}},environment:{HOME:'/home/annonymous',CODEX_HOME:'/home/annonymous/.codex',PATH:'/workspace/local/sdk/nvm/versions/node/v24.15.0/bin:/usr/local/bin:/usr/bin:/bin'},memory_max_bytes:536870912,pids_max:256};
+ const child={...JSON.parse(fs.readFileSync('.logs/runs/w3-live-revalidation-final/codex-manifest.json')),binding_id:'binding:codex-child',binding_sha256:engineeringDigest({binding:readBinding(bindingFile),options}),artifact_sha256:nativeArtifactDigest(),limits:{max_requests:2,max_input_tokens:65536,max_output_tokens:1024,max_duration_ms:90000}};
+ child.authentication.account_sha256=selected.account_sha256;
+ const checkpoint=JSON.parse(fs.readFileSync(path.join(dir,'checkpoint-tools.json')));
+ const config={python:'/build/tmp/hseos-w3-sdk-validation/bin/python',checkpoint:checkpoint.path,sdk_module:'/build/tmp/hseos-w3-sdk-validation/lib/python3.12/site-packages/google/antigravity/__init__.py',scratch,subordinate_binding_id:child.binding_id,max_model_calls:1,memory_max_bytes:2147483648,pids_max:256,tasks:{[task]:{prompt:'Call run_campaign_model exactly once, with no arguments. /no_think'}}};
+ const localFile=path.join(scratch,'local.json');fs.writeFileSync(localFile,JSON.stringify(config));
+ const artifacts=[config.python,config.checkpoint,config.sdk_module].map(sha);
+ const parent={schema_version:1,binding_id:'binding:antigravity-local',binding_sha256:engineeringDigest({config,artifacts}),vendor:'antigravity',provider_kind:'client',provider_version:'0.1.18',adapter:'hseos-antigravity-campaign-v1',artifact_sha256:antigravityArtifactDigest(),route:'local',transport:'stdio',authentication:{mode:'local',identity_kind:'local_profile',credential:null,account_sha256:null,profile_sha256:engineeringDigest(artifacts),source:'explicit'},billing:{kind:'local',currency:'USD',max_request_microusd:0},limits:{max_requests:2,max_input_tokens:4096,max_output_tokens:96,max_duration_ms:150000},controls:{authority:'external_client',resume:'not_verified',cancel:'not_verified',quota:'not_applicable',evidence_sha256:null}};
+ const audit=kind=>async input=>{const result=await runCampaignProcess(input);if(input.input.operation==='run')fs.appendFileSync(path.join(dir,kind+'-turns.jsonl'),JSON.stringify(result)+'\n');return result;};
+ const providerBindings={
+  [child.binding_id]:{manifest:child,...createNativeCampaignAdapter({manifest:child,binding:bindingFile,options},{processRunner:audit('child')})},
+  [parent.binding_id]:{manifest:parent,subordinate_binding_ids:[child.binding_id],...createAntigravityCampaignAdapter({manifest:parent,binding:localFile,options:{}},{processRunner:audit('parent')})}
+ };
+ const grant={max_requests:4,max_cost_microusd:0,deadline:Date.now()+600000,binding_ids:Object.keys(providerBindings),task_ids:[task]};
+ const control=new EngineeringControl({providerBindings,providerAuthorizations:{[authorization]:grant}});
+ save('local-run.json',{scratch,state:control.state,plan});save('local-manifests.json',{parent,child});save('local-grant.json',grant);
+ save('local-authorization.json',{owner_instruction:'Prossiga com a matriz integral e as campanhas reais; Antigravity ao final; quarta familia somente apos todas as fases',global_cap_microusd:10000000,prior_retained_microusd:9000000,available_microusd:1000000,prior_dispatches:26,additional_dispatches_max:4,additional_authorized_microusd:0,scope:'Local LiteRT parent and observed account child, no paid API calls'});
+ const entry='enterprise-hseos/w3-campaign-control-'+campaign,credential=randomBytes(32).toString('hex');
+ execFileSync('pass',['ls','enterprise-hseos'],{stdio:'ignore'});
+ execFileSync('pass',['insert','-m',entry],{input:credential+'\n',stdio:['pipe','pipe','pipe']});
+ let server;
+ try{
+  server=await startControlServer({control,credential});
+  const result=await runProviderCampaign(new ControlClient({url:server.url,credential}),plan);
+  save('local-result.json',result);save('local-events.json',control.providerCampaigns.rows(campaign));
+  console.log(JSON.stringify({status:result.status,requests:result.final.requests,cost_reserved:result.final.committed_microusd,unresolved:result.final.unresolved_commands.length,live:result.final.live_commands.length,cancelled:result.final.cancelled}));
+ }catch(e){save('local-failure.json',{code:e.code||e.message,state:control.providerCampaigns.query(campaign)});save('local-events.json',control.providerCampaigns.rows(campaign));console.log(JSON.stringify({code:e.code||e.message}));process.exitCode=1;}
+ finally{if(server)await server.close();await control.providerCampaigns.shutdown();control.close();}
+})().catch(e=>{console.log(JSON.stringify({code:e.code||e.message}));process.exitCode=1});

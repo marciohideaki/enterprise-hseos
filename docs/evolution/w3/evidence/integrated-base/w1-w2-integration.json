@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-26T08:40:06.836439+00:00",
+  "w1_pr": 178,
+  "w2_pr": 179,
+  "target": "feature/hseos-evolution-foundation",
+  "w2_reviewed_head": "0f6cd4ac8cb7692d86e9d0ab93e35842cca1b208",
+  "w2_merge_commit": "b9db33bfcf53681d91c64ca8a0dd42c74b0fb24c",
+  "ci_run": 36229395929,
+  "nodes": {
+    "22": {
+      "full": {
+        "tests": 919,
+        "pass": 919,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "critical": {
+        "tests": 445,
+        "pass": 445,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "coverage": {
+        "lines": 95.64,
+        "branches": 88.57
+      },
+      "log": "/build/tmp/hseos-w1-w2-integration/w2-ci-node22.log",
+      "log_sha256": "beae1af1caa83afcbf7da39c806517db5c1a0150f7b4ae78a6e432b31fe2dde7"
+    },
+    "24": {
+      "full": {
+        "tests": 919,
+        "pass": 919,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "critical": {
+        "tests": 445,
+        "pass": 445,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "coverage": {
+        "lines": 95.64,
+        "branches": 88.57
+      },
+      "log": "/build/tmp/hseos-w1-w2-integration/w2-ci-node24.log",
+      "log_sha256": "36adae4969edd3cd1058b5832e6cb09124be72e582f15bf9d09df97da4b8633a"
+    }
+  },
+  "real_campaign": "not_executed"
+}

@@ -549,7 +549,7 @@ async function migrationDryRun(databasePath, repositoryRoot) {
     const targetVersion = fixture.pragma('user_version', { simple: true });
     result = {
       ready:
-        sourceVersion === 4 && targetVersion === 9 && integrity.length === 1 && integrity[0] === 'ok' && changedLegacyTables.length === 0,
+        sourceVersion === 4 && targetVersion === 16 && integrity.length === 1 && integrity[0] === 'ok' && changedLegacyTables.length === 0,
       source_version: sourceVersion,
       target_version: targetVersion,
       applied: migrationResult.applied,

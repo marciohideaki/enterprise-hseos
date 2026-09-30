@@ -15,7 +15,7 @@ const { canonicalJson, isRelationalSessionEventStore } = require('../agent-sessi
 const { ModelProviderRegistrySnapshot } = require('../model-providers');
 const { CompactionRuntime, CompactionRuntimeError } = require('../agent-compaction');
 const { ContextAssemblyInputSchema, HistorySourceSchema, MAX_CONTEXT_ASSEMBLY_BYTES } = require('./schemas');
-const { ConservativeUtf8TokenCounter, deterministicCount, validateTokenCounter } = require('./token-counter');
+const { accountSessionTokens, ConservativeUtf8TokenCounter, deterministicCount, validateTokenCounter } = require('./token-counter');
 
 const BUILTIN_PRECEDENCE_REF = CONTEXT_PRECEDENCE_REF;
 const INSTRUCTION_TIERS = Object.freeze(['constitution', 'project', 'adapter', 'agent', 'skill']);
@@ -96,11 +96,11 @@ function durableHistory(state, currentTurnId) {
     );
     const terminalIndex = turn.model_events.findIndex((event) => event.event_type === 'completed');
     const content = turn.model_events
-      .slice(0, terminalIndex < 0 ? 0 : terminalIndex)
+      .slice(0, Math.max(terminalIndex, 0))
       .filter((event) => event.event_type === 'content.delta')
       .map((event) => event.payload.text)
       .join('');
-    if (terminalIndex >= 0 && content.length > 0) {
+    if (terminalIndex !== -1 && content.length > 0) {
       history.push(
         parseContract(
           HistorySourceSchema,
@@ -123,21 +123,8 @@ function durableHistory(state, currentTurnId) {
 }
 
 function remainingSessionTokens(state, excludedTurnId) {
-  let consumed = 0;
-  for (const [turnId, turn] of Object.entries(state.turns)) {
-    if (turnId === excludedTurnId) continue;
-    if (!turn.budget) continue;
-    consumed += turn.budget.input_tokens;
-    const usageEvents = turn.model_events.filter((event) => event.event_type === 'usage');
-    consumed +=
-      usageEvents.length === 0
-        ? turn.budget.reserved_output_tokens
-        : usageEvents.reduce((total, event) => total + event.payload.output_tokens, 0);
-    if (!Number.isSafeInteger(consumed)) {
-      throw new ContextBudgetError('durable token usage exceeds safe accounting bounds');
-    }
-  }
-  return Math.max(0, state.spec.limits.max_tokens - consumed);
+  const usage = accountSessionTokens(state, { excluded_turn_id: excludedTurnId });
+  return Math.max(0, state.spec.limits.max_tokens - usage.total_tokens);
 }
 
 class ContextAssembler {
@@ -258,7 +245,7 @@ class ContextAssembler {
     const selectedMemory = [];
     const omitted = [];
     let historyOverflowed = false;
-    for (const entry of orderedHistory(input.history).reverse()) {
+    for (const entry of orderedHistory(input.history).toReversed()) {
       if (historyOverflowed) {
         omitted.push(entry.source_ref);
         continue;

@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "scope": "Claude API live attempt with owner unknown-quota exception",
+  "owner_exception_authorized": true,
+  "global_cap_microusd": 10000000,
+  "global_dispatches": 6,
+  "claude_dispatches": 1,
+  "claude_authorized_dispatches_remaining": 1,
+  "claude_successful_receipts": 0,
+  "provider_refusal": "billing_error: Credit balance is too low",
+  "native_reported_inference_tokens": 0,
+  "global_retained_reservation_microusd": 2000000,
+  "global_uncommitted_microusd": 8000000,
+  "invoice_verified": false,
+  "cancelled": true,
+  "unresolved_attempts": 1,
+  "no_automatic_retry": true,
+  "antigravity_provisioned": false,
+  "runtime_changed": false,
+  "evidence_sha256": {
+    "authorization-intent.json": "57d5a3210ec40eb6387002fe40bfd7e3135f5f2508ef401cce1103ea2a2eb4f7",
+    "claude-failure.json": "213b90297bf10e76db368ee7ecc58263b3d8f2f76087ca698efdb870818fcb87",
+    "claude-final-state.json": "3d2017ccfd607e5f7119ea42dd0909b50d871793a0decba064aa43aba2f9f482",
+    "claude-grant.json": "8935371ecc507f1e306bd814ca042caa67659b9f8a9b554635d912c4926588fe",
+    "claude-manifest.json": "9f7e771a93324b57c9c13ed04fe3afe7b5163e8fb491b92533ccbeb82e9ddccb",
+    "native-session-observation.json": "80f349d05e1ea5666d136e181472cfa518d3049652239208095f30306cce094c"
+  },
+  "documents_sha256": {
+    "docs/evolution/w3/CLAUDE-LIVE.md": "73afb65c9b604f1e63938a46c72370dc3f4bea2b0fb34f4af676c30bea525fb0",
+    "docs/evolution/w3/STATUS.md": "03429131f0d81cc38a98f1f34c62eb81acf51a980cb682e80489bf1db4ff14a2"
+  }
+}

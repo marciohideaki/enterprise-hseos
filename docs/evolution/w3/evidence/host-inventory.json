@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "observed_date": "2026-09-26",
+  "scope": "Current shell PATH, current python3 distribution metadata, and native CLI status commands only",
+  "codex": {
+    "version": "0.157.1",
+    "native_account_reported": true,
+    "api_key_reported": false,
+    "identity_pinned": false,
+    "quota_verified": false
+  },
+  "claude": {
+    "version": "2.1.283",
+    "logged_in_reported": true,
+    "authentication_method": "claude.ai",
+    "identity_pinned": false,
+    "quota_verified": false
+  },
+  "agy": {
+    "executable_in_current_path": false
+  },
+  "deepseek": {
+    "executable_in_current_path": false
+  },
+  "python": {
+    "version": "3.14.4",
+    "google-antigravity_in_current_environment": false,
+    "anthropic_in_current_environment": false,
+    "openai_in_current_environment": false
+  },
+  "inference_executed": false,
+  "secrets_recorded": false,
+  "real_conformance": "not_certified",
+  "limitation": "CLI login presence does not authorize billing, certify SDK authentication, or establish availability in other virtual environments.",
+  "credential_change_requested": false,
+  "credential_store_integrity": "not_measured"
+}

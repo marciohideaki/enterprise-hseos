@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-v4-consolidation/.logs/validation/v4/platform-revalidation/smoke.py", line 17, in <module>
+    run(example+['workflow','workflow']);r=json.loads(run(cli+['workflow','run','--definition','workflow/workflow.json','--json']));assert r['workflow_result']=='approved',r;results.append({'name':'workflow','receipt':r})
+                                                                                                                                           ~^^^^^^^^^^^^^^^^^^^
+KeyError: 'workflow_result'

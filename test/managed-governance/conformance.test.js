@@ -63,7 +63,6 @@ test('HTTP, CLI and MCP expose the same decision semantics from the shared appli
   const contextPath = path.join(directory, 'context.json');
   fs.writeFileSync(contextPath, '{}\n');
   try {
-    // eslint-disable-next-line n/no-unsupported-features/node-builtins -- fetch is available throughout the supported Node 20 line
     const httpResponse = await fetch(`${endpoint}/api/v1/policy/evaluate`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },

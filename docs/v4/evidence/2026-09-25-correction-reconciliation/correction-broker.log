@@ -1,0 +1,11 @@
+✔ bound engineering worker implements the task through the broker without persisting its credential (4609.145428ms)
+✔ bound engineering worker corrects a rejection through the broker without persisting its credential (5451.105104ms)
+✔ engineering model dispatch rejects retries and missing credentials without egress (4.149656ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10333.878751

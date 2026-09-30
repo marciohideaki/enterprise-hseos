@@ -8,6 +8,7 @@ const { buildRecoveryPlan, reconstructModelRequest, replaySessionEvents } = requ
 const AGGREGATE_TYPE = 'agent_session';
 const LEDGER_EVENT_TYPE = 'AgentSessionEventRecorded';
 const RELATIONAL_SESSION_STORES = new WeakSet();
+const REPLAY_CACHES = new WeakMap();
 const SENSITIVE_KEYS = new Set([
   'access_token',
   'api_key',
@@ -118,6 +119,7 @@ function cloneActor(actor) {
     throw new SessionEventStoreError('actor must be a plain JSON object', 'AGENT_SESSION_ACTOR_INVALID');
   }
   assertStrictJson(actor, 'actor');
+  // eslint-disable-next-line unicorn/prefer-structured-clone -- Normalize the actor to its validated JSON representation before persistence.
   return deepFreeze(JSON.parse(JSON.stringify(actor)));
 }
 
@@ -179,7 +181,7 @@ function assertSessionCausation(ledger, rows, events) {
     const attachmentRow = parentRows[attachmentIndex];
     const branchEvent = forkEvent && parentEvents[forkEvent.payload?.parent_sequence - 1];
     if (
-      attachmentIndex < 0 ||
+      attachmentIndex === -1 ||
       canonicalTraceId(attachmentRow.correlation_id) !== canonicalTraceId(rows[0].correlation_id) ||
       (Number.isSafeInteger(rows[0].position) && attachmentRow.position >= rows[0].position) ||
       forkEvent?.event_type !== 'session.forked' ||
@@ -218,6 +220,7 @@ class RelationalSessionEventStore {
       actor: { value: parsedActor, enumerable: true },
     });
     RELATIONAL_SESSION_STORES.add(this);
+    REPLAY_CACHES.set(this, new Map());
     Object.freeze(this);
   }
 
@@ -257,7 +260,7 @@ class RelationalSessionEventStore {
       resolvedCorrelation = canonicalTraceId(correlation_id || parsedSessionId);
     }
     if (currentEvents.length === expected_version) {
-      replaySessionEvents([...currentEvents, ...parsedEvents]);
+      replaySessionEvents(parsedEvents, { from: this.replay(parsedSessionId) });
     } else if (
       currentEvents.length > expected_version &&
       stableJson(currentEvents.slice(expected_version, expected_version + parsedEvents.length)) === stableJson(parsedEvents)
@@ -358,8 +361,56 @@ class RelationalSessionEventStore {
     );
   }
 
-  replay(sessionId, { to_version = Number.MAX_SAFE_INTEGER } = {}) {
-    return replaySessionEvents(this.readSession(sessionId, { from_version: 1, to_version }));
+  replay(sessionId, { to_version = Number.MAX_SAFE_INTEGER, full = false } = {}) {
+    const id = parseContract(IdentifierSchema, sessionId, 'session id');
+    const cache = REPLAY_CACHES.get(this);
+    const db = this.ledger.db;
+    // Transaction-local events may disappear on rollback without changing SQLite's data_version.
+    if (db?.inTransaction) cache.delete(id);
+    const revision =
+      !db?.inTransaction && typeof db?.pragma === 'function'
+        ? `${db.pragma('schema_version', { simple: true })}:${db.pragma('data_version', { simple: true })}`
+        : null;
+    const previous = cache.get(id);
+    if (
+      !full &&
+      to_version === Number.MAX_SAFE_INTEGER &&
+      revision &&
+      previous?.revision === revision &&
+      previous.state.current_sequence > 0
+    ) {
+      const rows = this.ledger.readStream(AGGREGATE_TYPE, id, { from_version: previous.state.current_sequence + 1 });
+      if (rows.length === 0) return previous.state;
+      const events = rows.map(hydrateSessionEvent);
+      const correlation = assertUniformSessionTrace(rows);
+      if (correlation !== previous.correlation)
+        throw new SessionEventStoreError('incremental session trace changed', 'AGENT_SESSION_TRACE_FRAGMENTED');
+      let lastId = previous.lastId;
+      const eventIds = new Set(previous.eventIds);
+      for (const [index, row] of rows.entries()) {
+        if (row.causation_id !== lastId && !(events[index].event_type === 'child.attached' && eventIds.has(row.causation_id)))
+          throw new SessionEventStoreError('incremental session causation changed', 'AGENT_SESSION_CAUSATION_FRAGMENTED');
+        lastId = events[index].event_id;
+        eventIds.add(lastId);
+      }
+      const state = replaySessionEvents(events, { from: previous.state });
+      cache.set(id, { state, revision, correlation, lastId, eventIds });
+      return state;
+    }
+    const events = this.readSession(id, { from_version: 1, to_version });
+    const state = replaySessionEvents(events);
+    if (to_version === Number.MAX_SAFE_INTEGER && revision) {
+      const first = this.ledger.readStream(AGGREGATE_TYPE, id, { to_version: 1 })[0];
+      if (cache.size >= 16 && !cache.has(id)) cache.delete(cache.keys().next().value);
+      cache.set(id, {
+        state,
+        revision,
+        correlation: first?.correlation_id || null,
+        lastId: events.at(-1)?.event_id,
+        eventIds: new Set(events.map((event) => event.event_id)),
+      });
+    }
+    return state;
   }
 
   traceContext(sessionId) {
@@ -377,7 +428,7 @@ class RelationalSessionEventStore {
   }
 
   reconstructRequest(sessionId, options) {
-    return reconstructModelRequest(this.readSession(sessionId), options);
+    return reconstructModelRequest([], { ...options, from: this.replay(sessionId) });
   }
 
   recoveryPlan(sessionId) {

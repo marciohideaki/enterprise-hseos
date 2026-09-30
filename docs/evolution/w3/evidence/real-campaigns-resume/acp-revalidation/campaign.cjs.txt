@@ -1,0 +1,35 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path');
+const {randomUUID,randomBytes}=require('node:crypto');const {execFileSync}=require('node:child_process');
+const root=process.cwd(),dir=__dirname;
+const {engineeringDigest}=require(root+'/tools/cli/lib/engineering-task-state');
+const {EngineeringControl}=require(root+'/tools/cli/lib/engineering-control');
+const {createAcpCampaignAdapter,acpArtifactDigest}=require(root+'/tools/cli/lib/provider-acp-adapter');
+const {readBinding}=require(root+'/tools/cli/lib/delegated-codex-runtime');
+const {runCampaignProcess}=require(root+'/tools/cli/lib/provider-campaign-process');
+const {startControlServer}=require(root+'/tools/cli/lib/engineering-control-http');
+const {ControlClient}=require(root+'/packages/control-sdk');
+const {runProviderCampaign}=require(root+'/tools/cli/lib/provider-campaign-runner');
+const save=(n,v)=>fs.writeFileSync(path.join(dir,n),JSON.stringify(v,null,2)+'\n',{mode:0o600});
+(async()=>{
+ if(fs.existsSync(dir+'/campaign-run.json'))throw Error('ALREADY_STARTED');
+ const task=randomUUID(),authorization=randomUUID(),campaign=randomUUID();
+ const selected=JSON.parse(fs.readFileSync(dir+'/codex-inspection.json'));
+ if(Date.now()-selected.observed_at>900000)throw Error('PREFLIGHT_EXPIRED');
+ const {composition_path}=JSON.parse(fs.readFileSync(dir+'/paths.json'));const composition=JSON.parse(fs.readFileSync(composition_path));
+ const native_binding=path.resolve('.logs/runs/w3-live-10usd/codex-binding-corrected.json');
+ const options={native_binding,native_options:{model:composition.model,tasks:{[task]:{prompt:'Do not use tools or read files. Reply exactly READY.'}},environment:{HOME:'/home/annonymous',CODEX_HOME:'/home/annonymous/.codex',PATH:'/workspace/local/sdk/nvm/versions/node/v24.15.0/bin:/usr/local/bin:/usr/bin:/bin'},memory_max_bytes:805306368,pids_max:256}};
+ const manifest={...JSON.parse(fs.readFileSync('.logs/runs/w3-live-revalidation-final/codex-manifest.json')),binding_id:'binding:codex-acp',adapter:'hseos-codex-acp-campaign-v1',binding_sha256:engineeringDigest({composition,nativeBinding:readBinding(native_binding),options}),artifact_sha256:acpArtifactDigest(),limits:{max_requests:2,max_input_tokens:65536,max_output_tokens:256,max_duration_ms:90000}};
+ manifest.authentication.account_sha256=selected.account_sha256;manifest.billing.max_request_microusd=0;
+ manifest.controls.resume='not_verified';manifest.controls.cancel='not_verified';manifest.controls.evidence_sha256=null;
+ const audit=async input=>{const result=await runCampaignProcess(input);if(input.input.composition_path)fs.appendFileSync(dir+'/turns.jsonl',JSON.stringify(result)+'\n');return result;};
+ const providerBindings={[manifest.binding_id]:{manifest,...createAcpCampaignAdapter({manifest,binding:composition_path,options},{processRunner:audit})}};
+ const plan={schema_version:1,scope:'pilot',campaign_id:campaign,authorization_id:authorization,create_command_id:randomUUID(),cancel_command_id:randomUUID(),steps:[{command_id:randomUUID(),binding_id:manifest.binding_id,task_id:task}]};plan.steps.push({command_id:randomUUID(),binding_id:manifest.binding_id,task_id:task,resume_from:plan.steps[0].command_id});
+ const grant={max_requests:2,max_cost_microusd:0,deadline:Date.now()+300000,binding_ids:[manifest.binding_id],task_ids:[task]};
+ const control=new EngineeringControl({providerBindings,providerAuthorizations:{[authorization]:grant}});
+ save('campaign-run.json',{state:control.state,plan});save('manifest.json',manifest);save('grant.json',grant);
+ save('authorization.json',{owner_instruction:'Prossiga com a matriz integral e as campanhas reais!',global_cap_microusd:10000000,retained_microusd:8000000,available_microusd:2000000,prior_campaign_dispatches:22,prior_acp_protocol_prompts:5,max_additional_campaign_dispatches:2,max_additional_paid_microusd:0,route:'account',purpose:'Revalidate current ACP transport and pinned artifact after integral regression fixes; all prior dispatches and reservations retained'});
+ execFileSync('pass',['ls','enterprise-hseos'],{stdio:'ignore'});
+ const entry='enterprise-hseos/w3-acp-control-'+campaign,credential=randomBytes(32).toString('hex');execFileSync('pass',['insert','-m',entry],{input:credential+'\n',stdio:['pipe','pipe','pipe']});
+ let server;try{server=await startControlServer({control,credential});const result=await runProviderCampaign(new ControlClient({url:server.url,credential}),plan);save('campaign-result.json',result);console.log(JSON.stringify({status:result.status,requests:result.final.requests,committed:result.final.committed_microusd,live:result.final.live_commands.length,unresolved:result.final.unresolved_commands.length,cancelled:result.final.cancelled}));}catch(e){save('campaign-failure.json',{error:e.code||e.message,state:control.providerCampaigns.query(campaign)});console.log(e.code||e.message);process.exitCode=1;}finally{save('campaign-events.json',control.providerCampaigns.rows(campaign));if(server)await server.close();await control.providerCampaigns.shutdown();control.close();}
+})().catch(e=>{console.log(e.code||e.message);process.exitCode=1});

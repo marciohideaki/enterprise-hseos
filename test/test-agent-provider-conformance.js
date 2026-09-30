@@ -49,6 +49,19 @@ test('swapping Codex and Claude providers between profiles fails before suite ex
   assert.throws(() => inventory(ROOT, PROVIDER_SPECS, () => catalog), /agent profile contract drifted/);
 });
 
+test('engineering inventory binds the shipped provider and rejects profile drift', () => {
+  const result = inventory(ROOT);
+  const engineering = result.profiles.find((profile) => profile.profile_id === 'disposable-engineering-candidate');
+  assert.equal(engineering.model_provider_id, 'model:engineering-scripted');
+  assert.deepEqual(engineering.provider_components, ['runtime:engineering-candidate']);
+  const catalog = structuredClone(loadCapabilityCatalog(ROOT));
+  catalog.profiles['disposable-engineering-candidate'].agent.model_provider_id = 'model:scripted-reference';
+  assert.throws(() => inventory(ROOT, PROVIDER_SPECS, () => catalog), /agent profile contract drifted/);
+  const extra = structuredClone(loadCapabilityCatalog(ROOT));
+  extra.profiles['unknown-engineering'] = extra.profiles['disposable-engineering-candidate'];
+  assert.throws(() => inventory(ROOT, PROVIDER_SPECS, () => extra), /agent profile inventory drifted/);
+});
+
 test('actual manifests and checked binding templates generate an honest provider matrix', () => {
   const report = buildAgentProviderConformance({ root: ROOT, verify: false });
   assert.equal(report.status, 'not-run');
@@ -71,7 +84,18 @@ test('actual manifests and checked binding templates generate an honest provider
 
 test('canonical local runner verifies only the canonical provider inventory', { timeout: 120_000 }, () => {
   const report = buildAgentProviderConformance({ root: ROOT, verify: true });
-  assert.equal(report.status, 'passed');
+  assert.equal(
+    report.status,
+    'passed',
+    JSON.stringify(
+      {
+        inventory_stable: report.inventory_stable,
+        providers: report.providers.map(({ provider_id, status, evidence }) => ({ provider_id, status, evidence })),
+      },
+      null,
+      2,
+    ),
+  );
   assert.equal(report.verification_mode, 'stable-local-process');
   assert.equal(report.conformance_verified, true);
   assert.equal(

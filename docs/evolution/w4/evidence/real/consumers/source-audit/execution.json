@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "id": "source-audit",
+  "version": "1.0.0",
+  "kind": "tool",
+  "compatibility": {
+    "contract_version": 1,
+    "node_majors": [22, 24]
+  },
+  "entrypoint": "entry.cjs",
+  "files": {
+    "entry.cjs": "03edb7d88faf03e926f190b75ebf80a5997f4bf1e500438ffc3e78ae9bf87bd8"
+  },
+  "capabilities": ["source.audit"],
+  "limits": {
+    "timeout_ms": 3000,
+    "max_output_bytes": 65536,
+    "memory_max_bytes": 268435456,
+    "pids_max": 32
+  },
+  "dependencies": [],
+  "conformance": ["entry.cjs"]
+}

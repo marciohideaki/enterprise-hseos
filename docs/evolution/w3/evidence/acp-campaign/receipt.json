@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-27T01:50:26.900Z",
+  "status": "verified_scoped_candidate",
+  "scope": [
+    "known ACP compatibility",
+    "pinned model-tool effect boundary",
+    "real campaign integration"
+  ],
+  "native_version": "0.157.1",
+  "agent_version": "1.13.1",
+  "native_execution_node": "24.15.0",
+  "tests": {
+    "node24": {
+      "passed": 101,
+      "failed": 0
+    },
+    "node22": {
+      "passed": 101,
+      "failed": 0
+    }
+  },
+  "adversarial_verdict": "pass_with_explicit_scope_limits",
+  "artifact_sha256": "45fa2ead420180b376b4e740c8124038f53e2228ee335645eab86a4042ebdefb",
+  "sources": {
+    "packages/runtime-providers/codex-acp-peer.js": "a05fee717d0c00620b1104f3c7168da67775e6c0a630e06e5cb6d9a3c19f7340",
+    "packages/runtime-providers/codex-acp-composition.js": "10d485616832afe80dff03b485156d6ad128a0b6b1ec8b3aadc34b2f72945664",
+    "packages/runtime-providers/codex-acp-launcher.js": "15f678d414d6271bfa9e092a27ee801a6afd609e2cedbaa6a11182217b064c05",
+    "packages/runtime-providers/codex-acp-profile.json": "37e2ee17f4e9e9684738655b24d37f5d6e2f60d81253b556e202f5206f3cf1ff",
+    "packages/runtime-providers/package.json": "e4a1c85b8e96ef5e59e43f3002f210c92c07fbc63561ad7a7049c02c8c1d6283",
+    "tools/cli/lib/provider-acp-adapter.js": "cfd3883917e82406c972aa178db7d4af2f753e15771a806c1eceb8ff356aca94",
+    "tools/cli/lib/provider-acp-worker.js": "135f09548b3de150247836683c0fcda988be8f22dbb5587e3f43d5065d253758",
+    "tools/cli/commands/control.js": "0ae41cfbb5cc1c7cacded2668315e34c06845a749f0cd058be642c11d0f46a97",
+    "test/test-codex-acp-peer.js": "fcb9f791ea78e3bd50a1a352f7b819f26526c850eb20686314f7d9b7749ed30e",
+    "test/helpers/probe-codex-acp-tools.cjs": "7230fa71db745a5f46bb4ca56372778a56fe358c06da028f9b46e8dccfd0eba8",
+    "test/test-package-surface.js": "a4df62ca61d8307deefe3a080281593cec0cd08d4ae1c788dc29f82e8959d2cf",
+    "package.json": "000f0503f3a43dc2561ea4a219f18aee4838a196ed26c66e7da9401dc97a0ff6"
+  },
+  "budget": {
+    "global_cap_microusd": 10000000,
+    "retained_historical_microusd": 8000000,
+    "available_microusd": 2000000,
+    "additional_paid_api_calls": 0,
+    "cumulative_campaign_dispatches": 22,
+    "acp_campaign_dispatches_this_increment": 7,
+    "acp_campaign_completed_this_increment": 6,
+    "acp_diagnostic_prompts_this_increment": 3,
+    "prior_acp_protocol_prompts": 2,
+    "measured_cancelled_turn_usage": null
+  },
+  "account_preflight": {
+    "type": "chatgpt",
+    "observed_at": 1790473394269,
+    "paid_credits_available": false,
+    "unlimited_credits": false
+  },
+  "limits": [
+    "Only pinned Linux binary and ACP agent; trusted host/runtime",
+    "No universal ACP or L1-L4 certification",
+    "Manifest token ceiling checked on receipt, not a certified remote preventive output cap",
+    "In-flight cancellation probe predates removal of an unsupported config key; worker source is unchanged",
+    "Cancellation receipt proves local cancel and cgroup drain, not remote billing acknowledgement",
+    "Full W3 release matrix/coverage and paid Gemini API not closed",
+    "No new commit, PR or merge",
+    "AEW application/enforcement not verified"
+  ],
+  "governance": {
+    "producer": "e709368ead6e53ee1fd8e4428bc8913a3a4e8292",
+    "adr": "ADR-0044 (candidate)",
+    "ci_failures": 0,
+    "ci_warnings": 1,
+    "markdownlint": "unavailable"
+  }
+}

@@ -872,3 +872,179 @@ test('session cancellation terminal must exactly match its durable non-deadline 
     db.close();
   }
 });
+
+test('incremental replay preserves full replay and rejects forged checkpoints', () => {
+  const { replaySessionEvents } = require('../packages/agent-session-store');
+  const { db, store } = openStore();
+  try {
+    store.append({ session_id: kernelSession.session_id, expected_version: 0, events: [created()] });
+    const previous = store.replay(kernelSession.session_id);
+    const next = { ...sessionEvent('session.resumed', { from_sequence: 1 }, 2), session_id: kernelSession.session_id };
+    assert.throws(() => replaySessionEvents([next], { from: structuredClone(previous) }), /reducer-owned/);
+    store.append({ session_id: kernelSession.session_id, expected_version: 1, events: [next] });
+    const incremental = store.replay(kernelSession.session_id);
+    assert.equal(previous.current_sequence, 1);
+    assert.equal(incremental.current_sequence, 2);
+    assert.deepEqual(incremental, store.replay(kernelSession.session_id, { full: true }));
+    assert.deepEqual(store.replay(kernelSession.session_id, { to_version: 1 }), previous);
+  } finally {
+    db.close();
+  }
+});
+
+test('transaction rollback cannot retain an uncommitted replay checkpoint', () => {
+  const { db, store } = openStore();
+  const id = kernelSession.session_id;
+  try {
+    store.append({ session_id: id, expected_version: 0, events: [created()] });
+    const persisted = store.replay(id);
+    assert.throws(
+      () =>
+        db.transaction(() => {
+          store.append({
+            session_id: id,
+            expected_version: 1,
+            events: [{ ...sessionEvent('session.resumed', { from_sequence: 1 }, 2), session_id: id }],
+          });
+          assert.equal(store.replay(id).current_sequence, 2);
+          throw new Error('rollback fixture');
+        })(),
+      /rollback fixture/,
+    );
+    assert.deepEqual(store.replay(id), persisted);
+    assert.deepEqual(store.replay(id), store.replay(id, { full: true }));
+  } finally {
+    db.close();
+  }
+});
+
+test('replay rejects forged ordering, authority and context provenance', () => {
+  const { replaySessionEvents } = require('../packages/agent-session-store');
+  const prefix = [created(), turn(), context()];
+  const reject = (events, code) => assert.throws(() => replaySessionEvents(events), { code });
+  reject([turn(1)], 'AGENT_SESSION_CREATION_REQUIRED');
+  reject([created(), created(kernelSession, 2)], 'AGENT_SESSION_DUPLICATE_CREATION');
+  reject([created(), turn(), turn(3)], 'AGENT_SESSION_DUPLICATE_TURN');
+  reject([created(), context(2)], 'AGENT_SESSION_TURN_NOT_STARTED');
+  reject([...prefix, context(4)], 'AGENT_SESSION_DUPLICATE_REQUEST');
+  for (const [mutate, code] of [
+    [
+      (event) => {
+        event.payload.request.model = 'forged/model';
+      },
+      'AGENT_SESSION_PROVIDER_MISMATCH',
+    ],
+    [
+      (event) => {
+        event.payload.request.messages.at(-1).content = 'invented input';
+      },
+      'AGENT_SESSION_TURN_INPUT_MISMATCH',
+    ],
+    [
+      (event) => {
+        event.payload.source_refs = event.payload.source_refs.filter((ref) => !ref.startsWith('session-event://'));
+      },
+      'AGENT_SESSION_SOURCE_MISMATCH',
+    ],
+    [
+      (event) => {
+        event.payload.request.messages.splice(-1, 0, { role: 'assistant', content: 'invented history' });
+      },
+      'AGENT_SESSION_HISTORY_MISMATCH',
+    ],
+  ]) {
+    const events = structuredClone(prefix);
+    mutate(events.at(-1));
+    reject(events, code);
+  }
+  const checkpoint = replaySessionEvents(prefix.slice(0, 2));
+  assert.deepEqual(replaySessionEvents(prefix.slice(2), { from: checkpoint }), replaySessionEvents(prefix));
+  assert.throws(() => replaySessionEvents([], { from: structuredClone(checkpoint) }), /reducer-owned checkpoint/);
+  assert.throws(() => replaySessionEvents(null), /events must be an array/);
+});
+
+test('tool deltas preserve identity and require complete object arguments', () => {
+  const { assembledToolCalls } = require('../packages/agent-session-store');
+  const delta = (name, arguments_delta) => ({
+    event_type: 'tool_call.delta',
+    payload: { tool_call_id: 'call:guard', name, arguments_delta },
+  });
+  assert.deepEqual(assembledToolCalls([delta('echo', '{"text":'), delta(null, '"safe"}')]), [
+    { tool_call_id: 'call:guard', name: 'echo', input: { text: 'safe' } },
+  ]);
+  for (const events of [
+    [delta('echo', '{}'), delta('other', '')],
+    [delta('echo', '{')],
+    [delta(null, '{}')],
+    ...['null', '[]', '"text"', '42'].map((input) => [delta('echo', input)]),
+  ])
+    assert.throws(() => assembledToolCalls(events), { code: 'AGENT_SESSION_TOOL_CALL_INVALID' });
+});
+
+test('replay rejects gaps, foreign lineage, stale resume and streams without matching requests', () => {
+  const { replaySessionEvents, reconstructModelRequest, buildRecoveryPlan } = require('../packages/agent-session-store');
+  const reject = (events, code) => assert.throws(() => replaySessionEvents(events), { code });
+  reject([created(), turn(3)], 'AGENT_SESSION_SEQUENCE_INVALID');
+  reject([created(), turn(2, 'session:foreign')], 'AGENT_SESSION_IDENTITY_MISMATCH');
+  const fork = (sequence) => sessionEvent('session.forked', { parent_session_id: 'session:other', parent_sequence: 1 }, sequence);
+  reject([created(), turn(), fork(3)], 'AGENT_SESSION_FORK_SEQUENCE_INVALID');
+  reject([created(), fork(2)], 'AGENT_SESSION_FORK_PARENT_MISMATCH');
+  reject([created(), sessionEvent('session.resumed', { from_sequence: 0 }, 2)], 'AGENT_SESSION_RESUME_SEQUENCE_INVALID');
+  reject([created(), turn(), streamed(3, 0)], 'AGENT_SESSION_REQUEST_NOT_ASSEMBLED');
+  const unknown = streamed(4, 0);
+  unknown.payload.step_id = 'step:unknown';
+  reject([created(), turn(), context(), unknown], 'AGENT_SESSION_MODEL_STEP_NOT_STARTED');
+  const wrong = streamed(4, 0);
+  wrong.payload.event.request_id = 'request:unknown';
+  reject([created(), turn(), context(), wrong], 'AGENT_SESSION_MODEL_IDENTITY_MISMATCH');
+  reject([created(), turn(), context(), streamed(4, 0, 'completed'), streamed(5, 1)], 'AGENT_SESSION_MODEL_ALREADY_TERMINAL');
+  assert.throws(() => reconstructModelRequest([created()]), { code: 'AGENT_SESSION_REQUEST_NOT_FOUND' });
+  assert.throws(() => buildRecoveryPlan([]), { code: 'AGENT_SESSION_NOT_FOUND' });
+  const complete = sessionEvent('session.completed', { outcome_ref: 'provider-response://done' }, 5);
+  assert.equal(buildRecoveryPlan([created(), turn(), context(), streamed(4, 0, 'completed'), complete]).next_action, 'none');
+});
+
+test('request reconstruction consumes only reducer checkpoints and follows later durable turns', () => {
+  const { replaySessionEvents, reconstructModelRequest } = require('../packages/agent-session-store');
+  const { db, store } = openStore();
+  try {
+    const id = kernelSession.session_id;
+    const events = [created(), turn(), context()];
+    store.append({ session_id: id, expected_version: 0, events });
+    const checkpoint = store.replay(id);
+    const expected = reconstructModelRequest(events);
+    assert.deepEqual(store.reconstructRequest(id), expected);
+    assert.deepEqual(reconstructModelRequest([], { from: checkpoint }), expected);
+    assert.throws(() => reconstructModelRequest([], { from: structuredClone(checkpoint) }), /reducer-owned/);
+    const nextTurn = sessionEvent('turn.started', { turn_id: 'turn:later', input: { role: 'user', content: 'later request' } }, 4);
+    store.append({ session_id: id, expected_version: 3, events: [nextTurn] });
+    assert.throws(() => store.reconstructRequest(id, { from: checkpoint }), { code: 'AGENT_SESSION_REQUEST_NOT_FOUND' });
+    assert.deepEqual(store.reconstructRequest(id, { turn_id: modelRequest.turn_id }), expected);
+    assert.deepEqual(replaySessionEvents(events), checkpoint);
+  } finally {
+    db.close();
+  }
+});
+
+test('request reconstruction invalidates cached state after another connection appends a turn', () => {
+  const fixture = createExecutionLedgerFileFixture();
+  const writerDb = new Database(fixture.filename);
+  try {
+    const reader = new RelationalSessionEventStore({ ledger: new ExecutionEventLedger(fixture.db) });
+    const writer = new RelationalSessionEventStore({ ledger: new ExecutionEventLedger(writerDb) });
+    const id = kernelSession.session_id;
+    writer.append({ session_id: id, expected_version: 0, events: [created(), turn(), context()] });
+    const original = reader.reconstructRequest(id);
+    writer.append({
+      session_id: id,
+      expected_version: 3,
+      events: [sessionEvent('turn.started', { turn_id: 'turn:external', input: { role: 'user', content: 'external append' } }, 4)],
+    });
+    assert.throws(() => reader.reconstructRequest(id), { code: 'AGENT_SESSION_REQUEST_NOT_FOUND' });
+    assert.deepEqual(reader.reconstructRequest(id, { turn_id: modelRequest.turn_id }), original);
+    assert.equal(reader.replay(id).current_sequence, 4);
+  } finally {
+    writerDb.close();
+    fixture.cleanup();
+  }
+});

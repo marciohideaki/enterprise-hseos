@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "scope": "Codex live pilot and focused regression; four-family conformance incomplete",
+  "git_head": "b9db33bfcf53681d91c64ca8a0dd42c74b0fb24c",
+  "working_tree_candidate": true,
+  "global_authorized_microusd": 10000000,
+  "global_committed_microusd": 0,
+  "global_dispatches": 5,
+  "completed_receipts": 3,
+  "historical_uncertain_attempts_reconciled": 2,
+  "remaining_global_dispatches": 5,
+  "remaining_global_microusd": 10000000,
+  "paid_api_inference_executed": false,
+  "invoice_verified": false,
+  "final_pilot": {
+    "calls": 2,
+    "same_session": true,
+    "expected_output_hashes": [
+      true,
+      true
+    ],
+    "control_replay_verified": true,
+    "cancelled": true,
+    "live_commands": []
+  },
+  "validation": {
+    "node22": {
+      "tests": 65,
+      "failed": 0,
+      "skipped": 0
+    },
+    "node24": {
+      "tests": 65,
+      "failed": 0,
+      "skipped": 0
+    },
+    "lint": "passed",
+    "format": "passed",
+    "governance_ci": {
+      "failed": 0,
+      "warnings": 1
+    },
+    "full_matrix_repeated": false,
+    "coverage_gate_repeated": false
+  },
+  "pending": [
+    "Claude unknown-quota exception decision",
+    "ACP credential reference",
+    "Antigravity real LiteRT checkpoint",
+    "operational retention validation"
+  ],
+  "source_sha256": {
+    "packages/agent-isolation-attestation/executor.js": "aee7d3133000357a6daabf09a0cf24d94f1d42ba73f4676aca821dec7bbdb4ac",
+    "packages/runtime-providers/codex-app-server-driver.js": "11c91e6ef938c46011d13428e091ab9219407f2d3bf376e9fae2a1abc08ac9cf",
+    "tools/cli/lib/provider-campaign-process.js": "450d668137e5a7dddfaad6e23a3681adf2b26617612fd186b99aea64a84666a8",
+    "tools/cli/lib/provider-native-adapter.js": "d1cd40836715bb97dc9f0ccd74a59e65b5eec8211566f0d64af2c575b1ef3d61",
+    "test/test-provider-campaign-adapters.js": "fff269e0de88eabb2150417d73b1d7604854475f253a050a49f74d19e0299084",
+    "test/test-codex-app-server-driver.js": "438892b68a854f871408fcb1d7f3fc0025e5ed6c1c38d122f4c57a3c097e5c35",
+    "test/fixtures/fake-codex-app-server.js": "c91bdac3af092b5f7fcb00ec6ad9eea925ab2daa34a31e53a0123623046e5e99",
+    ".enterprise/.specs/decisions/ADR-0044-project-engineering-control.md": "a921caa00c66c2716f427acc07b05afb3451f8cc7889880160c0701637c8598a",
+    "docs/evolution/w3/LIVE-REVALIDATION.md": "e48d3e3107dcd52e097e132ce9ffeca116bfc4d59cd99742c831b084ec4a259f",
+    "docs/evolution/w3/STATUS.md": "86db88162f5c6156c3ea84d1d59e1742b5a6febc912f2c8311b3875825cf9f8d"
+  },
+  "evidence_sha256": {
+    "final-authorization-intent.json": "548b76f7f2c49a9504b384ef6cac0f8f6072138270dd3eadb7369ac3f3161f2d",
+    "final-codex-grant.json": "edc2b6095827a304bbf581a1a88320acbe862b998fd48eceebe7758079f4b1d2",
+    "final-codex-manifest.json": "d9584f1e2cb52187708590728d6831b765d03aca6f72eabb3b004493cad43203",
+    "final-codex-result.json": "78d8ef775363e0093bf937acb570d28e12760ad311dc4e181b3149d09d0ab3b6",
+    "final-codex-turns.jsonl": "a3dc4a67af72388fb16cbfc1c05d9bd273afdefd71f01cdc159122255ad42986",
+    "final-codex-validation.json": "2ba763617b1a9afb4f8c09303b9ae518e8a7086ed6a99c94fb4796e41af77659",
+    "final-prior-after.json": "cc8d916833a78f8cf69bc0a1a9fbb99578ac424400e78ce11b2c85b96058aef1",
+    "final-prior-before.json": "0c5fea10d4695e0915f4c0b3cb0b26b9583bf52236b9d9da848dd64c50fc0e15",
+    "format-check.log": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+    "governance-ci.log": "25174e9e84130ccf47b9cd1ba4a9770cf963a395bf05c850faca20dc3d09cdf5",
+    "intermediate-authorization-intent.json": "3f275078d685a1f6377062d0c2cabad749b2a4e34df0c76f5dcfe86d56b40f85",
+    "intermediate-codex-failure.json": "8d1ea0ecdcab3d06bd5497343f483e549d2a727025df1d664c1f10e3ebca84b8",
+    "intermediate-codex-turns.jsonl": "0d59a14849c1790fdbf2f79e2e0c5c7fd8efa77826f9b23cc4ea3ac47b04580d",
+    "intermediate-driver-tests-final.log": "2311d5489c8c80997c8ed56c656e1c8ecb09300905d8305e4ab2e291a1ed7d00",
+    "intermediate-driver-tests.log": "08b4d001a1719c68330ea5e8caeb4bc111495b2963ca413b7f94f2b7465a7ec2",
+    "intermediate-prior-after.json": "a52fbf62d26cb282ca357bd4b160ddb7d66fbbf2f78f5cccb42dfae9b5adfe10",
+    "intermediate-prior-before.json": "bc7a21d02385b00f43949b6811d3494f043f7640d9b86fdf6ebea6b7dc6415df",
+    "intermediate-resume-diagnostic.json": "49487b48039945ca8298553e546e3744a400253741e56b9d8b9cca3c7cbb7339",
+    "intermediate-resume-history.json": "0998e7203d9fd8f079c5cfb9edcc62aa9b5e9d69e6bc70f464f916565ed7fab9",
+    "lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "production-profile.json": "da563c8e86516651f5284ba5857e6d9266756221d4e056c77784fb1ccbf60acf",
+    "profile256-1.json": "57492646784d1728ca3eeff41030ed62e2612e61578db8aec980f046f9030f2b",
+    "profile256-2.json": "5061352f594194cb194af3c937e7a69fc44af7a4ed92be578c713ab9e22005f2",
+    "profile256-3.json": "9b6a819cb7fb67ccb9a41fbe25edbfa0e0c0a760b0f840bf5bcdb85bb8cfb158",
+    "profile256-4.json": "b0ca30b1d63d5a8d2afee9c2c3d286342658d6c18ef968cf539ecc300d5c63af",
+    "profile256-5.json": "15e5d3576d4717fd10c25878b7eebaa37af2c814303b7c65164cd7b8911a0305",
+    "profile256.json": "178d2850232cf91c2f3c5ad5fe085317f8c0333827157b9a7426c230fa3d0bed",
+    "regression-node22.log": "6ee69354671d3a0f6ab4d1e628cc79bf30d452f92599e1f1f4958857025e7215",
+    "regression-node24.log": "77ce3c107758218494811e1d54d073c1302eaeff9b04d1319890d0576173406c",
+    "resource-tests.log": "49e008b87682a2da621fc916bbe57218583d434b257a5bdf233c3a083ccf3de1"
+  }
+}
