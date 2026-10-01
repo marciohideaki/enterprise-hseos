@@ -106,8 +106,9 @@ test('published package exposes runtime and governance assets only', () => {
     assert.ok(!/\.(?:db|sqlite|pem|key)$/i.test(file), `state or key material published: ${file}`);
     assert.ok(!/(?:^|\/)(?:\.env|managed-governance\.json)$/i.test(file), `runtime configuration published: ${file}`);
   }
-  // Reviewed inventory: W4 migration 016 and the guided init command add two assets to the 1456-entry base.
+  // Reviewed inventory: W4 migration 016 and the guided init command add two assets to the 1456-entry base;
+  // ADR-0046 (platform bindings, governance distribution) adds one.
   // State/key/config exclusions above remain independent security invariants.
-  assert.ok(packed.entryCount <= 1458, `package entry count is not bounded: ${packed.entryCount}`);
+  assert.ok(packed.entryCount <= 1459, `package entry count is not bounded: ${packed.entryCount}`);
   assert.ok(packed.unpackedSize < 22_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);
 });
