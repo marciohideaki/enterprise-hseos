@@ -61,7 +61,10 @@
           "properties": {
             "source": {
               "const": "snapshot"
-            }
+            },
+            "path": false,
+            "uri": false,
+            "ref": false
           }
         },
         {
