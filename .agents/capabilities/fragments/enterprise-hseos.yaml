@@ -106,6 +106,41 @@ nodes:
     name: W2 terminal reuse and conformance intake
     path: docs/decisions/harness-w2-intake.md
     lifecycle: proposed
+  - id: capability.hseos.execution-control
+    type: Capability
+    name: HSEOS execution plugins, jobs and workflows candidate
+    path: .specs/features/harness-w4/spec.md
+    lifecycle: proposed
+  - id: contract.hseos.execution-control.w4
+    type: Contract
+    name: W4 execution control contract
+    path: .specs/features/harness-w4/design.md
+    lifecycle: proposed
+  - id: module.hseos.job-control
+    type: Module
+    name: Durable job control
+    path: tools/cli/lib/job-control.js
+    lifecycle: proposed
+  - id: module.hseos.execution-plugin-runtime
+    type: Module
+    name: Isolated execution plugin runtime
+    path: tools/cli/lib/execution-plugin-runtime.js
+    lifecycle: proposed
+  - id: testsuite.hseos.w4-jobs
+    type: TestSuite
+    name: W4 job and campaign tests
+    path: test/test-job-campaign.js
+    lifecycle: proposed
+  - id: testsuite.hseos.w4-plugins
+    type: TestSuite
+    name: W4 plugin runtime tests
+    path: test/test-execution-plugin-runtime.js
+    lifecycle: proposed
+  - id: evidence.hseos.w4-closeout
+    type: Evidence
+    name: W4 traceability and external consumer evidence
+    path: docs/evolution/w4/evidence/final/traceability.md
+    lifecycle: proposed
 edges:
   - id: edge.repo.enterprise-hseos.owned-by.platform-architecture
     type: OWNED_BY
@@ -293,4 +328,74 @@ edges:
     repository: repo.enterprise-hseos
     evidence:
       - evidence.hseos.w2-intake
+  - id: edge.capability.hseos.execution-control.owner
+    type: OWNED_BY
+    from: capability.hseos.execution-control
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.contract.hseos.execution-control.w4.owner
+    type: OWNED_BY
+    from: contract.hseos.execution-control.w4
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.module.hseos.job-control.owner
+    type: OWNED_BY
+    from: module.hseos.job-control
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.module.hseos.execution-plugin-runtime.owner
+    type: OWNED_BY
+    from: module.hseos.execution-plugin-runtime
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.testsuite.hseos.w4-jobs.owner
+    type: OWNED_BY
+    from: testsuite.hseos.w4-jobs
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.testsuite.hseos.w4-plugins.owner
+    type: OWNED_BY
+    from: testsuite.hseos.w4-plugins
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.evidence.hseos.w4-closeout.owner
+    type: OWNED_BY
+    from: evidence.hseos.w4-closeout
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.hseos.w4.contract.execution-control
+    type: DEFINED_BY
+    from: capability.hseos.execution-control
+    to: contract.hseos.execution-control.w4
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.hseos.w4-closeout
+  - id: edge.hseos.w4.module.job-control
+    type: IMPLEMENTED_BY
+    from: capability.hseos.execution-control
+    to: module.hseos.job-control
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.hseos.w4-closeout
+  - id: edge.hseos.w4.module.execution-plugin-runtime
+    type: IMPLEMENTED_BY
+    from: capability.hseos.execution-control
+    to: module.hseos.execution-plugin-runtime
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.hseos.w4-closeout
+  - id: edge.hseos.w4.testsuite.jobs
+    type: VALIDATED_BY
+    from: capability.hseos.execution-control
+    to: testsuite.hseos.w4-jobs
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.hseos.w4-closeout
+  - id: edge.hseos.w4.testsuite.plugins
+    type: VALIDATED_BY
+    from: capability.hseos.execution-control
+    to: testsuite.hseos.w4-plugins
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.hseos.w4-closeout
 findings: []

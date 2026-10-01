@@ -77,8 +77,8 @@ Each project has one mode:
 
 - Until a capability reaches `stable` for a stack, `hybrid` behaves as `local` plus advisories.
 - Per-capability overrides in `platform` and `hybrid` use the existing outcomes `keep-local` and
-  `exception`. They require an `intake_ref` or `exception_ref` that exists in the repository and an
-  `expires` date that has not passed; otherwise validation fails.
+  `exception`. They require an `intake_ref` (`keep-local`) or `exception_ref` (`exception`) that
+  resolves in the repository and an `expires` date that has not passed; otherwise validation fails.
 - Global rules that are not about capability reuse (shared infrastructure, secrets handling)
   apply in every mode.
 
@@ -93,7 +93,7 @@ Precedence from lowest to highest:
    file named by `HSEOS_PLATFORM_BINDINGS`. Read only if present (ADR-0006 P5). Holds machine
    paths such as `ecp_root` and `cores_root` for development.
 3. **Project** — `.hseos/config/platform-bindings.yaml`, versioned, without absolute paths.
-4. **Flags** — `--platform-mode`, `--platform-binding <capability>=<outcome>:<ref>`, `--mode-ref`.
+4. **Flags** — `--platform-mode`, `--platform-binding <capability>=<outcome>:<ref>:<YYYY-MM-DD>`, `--mode-ref`.
 
 The schema is `.enterprise/governance/capabilities/schemas/platform-bindings.schema.json`. Unknown
 keys are rejected. The schema enforces: a `registry.source` of `path` requires `path`; `remote`
@@ -102,8 +102,9 @@ matching reference. The loader additionally enforces the rules JSON Schema canno
 
 - The project file must declare `mode` and must not contain `workspace`; `workspace` is accepted only
   in the user/organization layer.
-- `mode_ref`, `intake_ref` and `exception_ref` are repository-relative, not absolute, contain no `..`
-  segment, and must exist.
+- `mode_ref` is a repository-relative path to an existing Markdown decision record (no absolute path, no
+  `..` segment); `intake_ref` and `exception_ref` are identifiers that must resolve in the repository
+  (see "Implementation clarifications").
 - Dates are real calendar dates, and an override whose `expires` date has passed is invalid.
 
 Registry resolution: the `registry` block of the highest layer that declares one wins. When no layer
@@ -164,6 +165,37 @@ detection.
   command, which verifies the hash. Hooks never retrieve.
 - Resolution order is deterministic: exact name, alias, package or contract identifier, `match`
   hints, prefix. Substring matching on file names remains only as a fallback labelled `heuristic`.
+
+### 8. Implementation clarifications (2026-10-01, W2b)
+
+These points record how the accepted decision is implemented; none of them changes it.
+
+- **Reference kinds.** `mode_ref` is a repository-relative path to an existing `.md` file under
+  `docs/decisions/` or `.enterprise/.specs/decisions/` (no absolute path, no `..`, no backslash, symlinks
+  must resolve to a file that still satisfies this rule). `intake_ref` and `exception_ref` are
+  **identifiers**, not paths: a prefix, a hyphen and at least one digit, at least 5 characters (for
+  example `INTAKE-2026-10-cache`, `EXC-0007`). An `intake_ref` resolves when the identifier appears as
+  a whole token (not a substring) in a `docs/decisions/**/*intake*.md` file. An `exception_ref` resolves
+  through `.enterprise/exceptions/<id>.md`, `.enterprise/exceptions/<id>-*.md`, or as a whole token in
+  `docs/decisions/**/*exception*.md`.
+- **Flag syntax.** `--platform-binding <capability>=<outcome>:<ref>:<YYYY-MM-DD>`: the date is the
+  mandatory `expires` and is validated as a real calendar date that has not passed. The flag may be
+  repeated.
+- **Baseline via HEAD.** `hseos install`, `init`, `show`, the guard and `capability-check` read the
+  recorded mode from the project file at `HEAD` (`git show HEAD:.hseos/config/platform-bindings.yaml`),
+  never from the working tree, so an uncommitted weakening is rejected. Outside a git repository, or
+  without that file at the revision, the recorded mode is `platform`. `hseos platform-bindings check`
+  uses `--base <ref>` instead of `HEAD` and ignores the user layer.
+- **Exit codes.** `hseos platform-bindings`: `show` exits 0, or 1 when the registry fails its integrity
+  check; `check` exits 0, 1 for a violation of the bindings rules (including an unjustified downgrade),
+  or 2 for a git or usage failure (for example `--base` does not resolve); `sync` and an unknown
+  action exit 1 with the error message; `guard` exits 0 (allow, optionally with advisory context) or
+  2 (deny, with the deny JSON on stdout). The shell guard forwards exit 0, and exit 2 only when the CLI
+  produced output; any other CLI result, a missing CLI or node falls back to the legacy decision.
+- **Acknowledgement.** With a bindings file, `CORE_INTAKE_ACK` is valid only when it has the identifier
+  shape above and matches as a whole token in a `docs/decisions/**/*intake*.md` file. The legacy path
+  (no bindings file, or CLI unavailable) keeps its substring match in `docs/decisions/*intake*.md`; it
+  is not tightened. Both reject `CORE_INTAKE_ACK=1`.
 
 ---
 

@@ -6,6 +6,8 @@
 **Scope:** All Hideaki repositories, projects, and agents
 **Authority:** Enterprise Constitution §2.6; Platform Capability Governance Standard; ADR-0033
 
+> ADR-0046 makes ECP the contract authority referenced by this graph; it does not activate schema 2.0.
+>
 > PCCP is accepted by ADR-0036 (2026-09-05); enforcement is pending the separate,
 > explicit schema-2.0 human activation gate.
 
@@ -25,6 +27,19 @@ MUST query the graph and record one intake outcome: `consume`, `extend`, `promot
 - Reference corpus validator: `scripts/governance/validate-capability-reference-corpus.js`
 - Validator: `scripts/governance/validate-capability-graph.js`
 - Repository fragments: `.platform/capability-graph.yaml` by default
+- ECP capability registry snapshot: `.enterprise/governance/capabilities/ecp-registry.snapshot.json` with
+  `ecp-registry.snapshot.lock.json` (`source_ref`, SHA-256); upstream source is the ECP
+  `catalog/capability-registry.json` (ADR-0046)
+
+## Contract authority
+
+The Enterprise Capability Platform (ECP) is the source of truth for shared capability contracts
+(ADR-0046, amending ADR-0036 and ADR-0033). ECP capability names are canonical; existing graph IDs
+are not rewritten and resolve to ECP names through the registry `aliases`. The graph keeps
+ownership, implementation and adoption evidence for nodes that are not ECP contracts. The
+compatibility diff for ECP contracts is performed by the ECP gate; HSEOS consumes its result
+through the registry. The snapshot is refreshed explicitly with
+`hseos platform-bindings sync --ref contracts-vX.Y.Z --ecp-root <ECP checkout>`.
 
 Repository policy MAY select another fragment path, but the root registry MUST declare it.
 All paths are repository-relative and MUST reject traversal outside the owning checkout.

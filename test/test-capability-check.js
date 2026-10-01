@@ -77,7 +77,7 @@ function tests() {
     assertPass('no bindings file: platform / default-no-file', report.mode === 'platform' && report.mode_source === 'default-no-file');
     assertPass('Redis resolves cache.typed first', names(report)[0] === 'cache.typed', names(report).join(','));
     assertPass('stacks come from the .csproj marker', JSON.stringify(report.stacks) === '["dotnet"]');
-    assertPass('registry ref comes from the shipped snapshot', report.registry.source === 'snapshot' && report.registry.ref === 'contracts-v0.3.0');
+    assertPass('registry ref comes from the shipped snapshot', report.registry.source === 'snapshot' && report.registry.ref === 'contracts-v0.3.1');
     const first = report.results[0];
     assertPass('platform verdict is consume <package>', first.verdict === 'consume' && /^consume Hideakisolutions\.Platform\.Caching\.Redis \(experimental\)$/.test(first.verdict_text), first.verdict_text);
     assertPass('exit code 0 for a completed query', exitCode === 0 && report.errors.length === 0);

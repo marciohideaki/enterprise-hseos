@@ -47,6 +47,19 @@ This sets up:
 - `.hseos/` — agent configurations, workflow definitions, local config
 - Git hooks — pre-commit quality gates (lint, schema validation, commit hygiene)
 
+### Choose how the project uses platform capabilities
+
+`hseos init` asks for a platform mode (`platform`, `hybrid` or `local`); `hseos install` takes
+`--platform-mode <mode>` (a `local` or weaker mode also needs `--mode-ref docs/decisions/<file>.md`).
+The choice is recorded in `.hseos/config/platform-bindings.yaml`. Nothing is written unless a mode or
+binding is given. See [Platform bindings](capabilities.md#platform-bindings).
+
+```bash
+hseos install-plan --platform-mode hybrid   # preview the bindings, writes nothing
+hseos platform-bindings show                # effective mode, stacks, registry
+hseos capability-check Redis                # what the platform already provides
+```
+
 ### Select which AI tools to set up
 
 By default, `hseos install` configures Claude Code and Cursor. To customize:
