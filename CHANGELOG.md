@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Platform bindings (ADR-0046, wave W2b): adoption modes `platform`, `hybrid` and `local` recorded in `.hseos/config/platform-bindings.yaml`, layered configuration (runtime, user, project, flags) with anti-downgrade protection through `mode_ref`, the `hseos platform-bindings` command (`show`, `check`, `sync`, `guard`), platform-mode prompts and flags in `hseos init`, `install` and `install-plan`, and a mode-aware capability intake guard that denies agent edits to the bindings file.
+- ECP capability registry snapshot (`contracts-v0.3.1`, SHA-256 pinned in `ecp-registry.snapshot.lock.json`); `hseos capability-check` now resolves by name, alias, contract, package and `match` hints before the filename heuristic and reports the effective mode.
+- Capability-reuse and capability-graph policies, capabilities docs and getting-started guides document ECP contract authority and the adoption modes; the `/opt/hideakisolutions/**` scope is removed from the capability-reuse policy.
+
 - Candidate campaign factories for native account, API and local SDK routes, with scoped Antigravity composition, shared reservations, process drainage and receipt-bound session resume. Real-provider campaign conformance remains unverified; see [W3 candidate limits](docs/evolution/w3/ADAPTERS-CAMPAIGN.md).
 
 - Resolve producer governance independently of consumer files, inject a minimal discovery capsule only when session/project/source state changes, and keep unverified application/enforcement explicit.

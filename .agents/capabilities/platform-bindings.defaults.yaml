@@ -1,0 +1,6 @@
+# Runtime defaults for platform bindings (ADR-0046 §3, lowest-precedence layer).
+# Defaults never set a project's mode: a project without its own bindings file
+# is treated as `platform`.
+schema_version: 1.0.0
+registry:
+  source: snapshot

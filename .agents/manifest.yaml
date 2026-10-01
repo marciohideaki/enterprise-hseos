@@ -5,6 +5,8 @@ adapters:
   claude_code:
     entrypoint: CLAUDE.md
     hooks: .claude/hooks.json
+    skills: .claude/skills
+    agents: .claude/agents
   codex:
     entrypoint: AGENTS.md
     skills: .agents/skills
@@ -86,7 +88,7 @@ skills:
     source: .enterprise/governance/agent-skills/capability-check/SKILL.md
     quick: .enterprise/governance/agent-skills/capability-check/SKILL-QUICK.md
     output: .agents/skills/capability-check/SKILL.md
-    hash: 77468b740e86c447d5c822ddd01c4bc263a3cc29259e9dae43b4f90f99f88b9b
+    hash: 0af45019acbfb14fc5d35df21fe88f9c15ae71637b4d778c190b5855600a3251
   - name: commit-hygiene
     source: .enterprise/governance/agent-skills/commit-hygiene/SKILL.md
     quick: .enterprise/governance/agent-skills/commit-hygiene/SKILL-QUICK.md
