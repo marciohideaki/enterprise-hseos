@@ -198,11 +198,15 @@
       "options": [
         [
           "--directory <path>",
-          "Repository root to search (default: current directory)"
+          "Repository root to check (default: current directory)"
+        ],
+        [
+          "--json",
+          "Print the result as JSON"
         ]
       ],
       "governed": false,
-      "source_sha256": "c94706c8b1cdfc360df51275f6912d3212ad29b04aa48f786c5cce8aa165884a"
+      "source_sha256": "cedd5cf69a54aeae3ea5b0ed8d93d720cef838a1a438a1f4d7c63c9254938920"
     },
     {
       "filename": "compatibility-audit.js",

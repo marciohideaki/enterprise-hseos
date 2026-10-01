@@ -1,3 +1,4 @@
+const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -524,6 +525,55 @@ function detectStacks(projectDir) {
   return [...stacks].sort();
 }
 
+function runGit(directory, args) {
+  return execFileSync('git', ['-C', directory, ...args], {
+    encoding: 'utf8',
+    timeout: 3000,
+    maxBuffer: 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, LC_ALL: 'C' },
+  });
+}
+
+/**
+ * The mode recorded in version control: the `mode` of `.hseos/config/platform-bindings.yaml` as committed
+ * at `ref`. Used as `baseMode` so an uncommitted weakening is rejected while a committed mode is not a
+ * downgrade. Returns `{ mode: 'platform', source: 'default' }` when `projectDir` is not a git work tree,
+ * the ref does not exist yet, the file is absent at `ref`, or its mode is missing or invalid. Any other
+ * git failure throws.
+ */
+function readRecordedMode(projectDir, ref = 'HEAD') {
+  const fallback = { mode: 'platform', source: 'default' };
+  const directory = path.resolve(projectDir);
+  try {
+    runGit(directory, ['rev-parse', '--is-inside-work-tree']);
+  } catch (error) {
+    if (error.status === 128 && /not a git repository/i.test(String(error.stderr))) return fallback;
+    throw new Error(`cannot read the recorded platform mode: git failed: ${String(error.stderr || error.message).trim()}`);
+  }
+  try {
+    runGit(directory, ['rev-parse', '--verify', '--quiet', `${ref}^{commit}`]);
+  } catch (error) {
+    if (error.status === 1) return fallback; // the ref does not exist (for example no commits yet)
+    throw new Error(`cannot read the recorded platform mode: git failed: ${String(error.stderr || error.message).trim()}`);
+  }
+  const target = PROJECT_BINDINGS_FILE.split(path.sep).join('/');
+  let text;
+  try {
+    if (runGit(directory, ['ls-tree', '--name-only', ref, '--', `./${target}`]).trim() === '') return fallback;
+    text = runGit(directory, ['show', `${ref}:./${target}`]);
+  } catch (error) {
+    throw new Error(`cannot read the recorded platform mode: git failed: ${String(error.stderr || error.message).trim()}`);
+  }
+  let doc = null;
+  try {
+    doc = yaml.parse(text);
+  } catch {
+    return fallback;
+  }
+  return doc && typeof doc === 'object' && PLATFORM_MODES.includes(doc.mode) ? { mode: doc.mode, source: 'committed' } : fallback;
+}
+
 function assertNotSymlink(target) {
   let stat = null;
   try {
@@ -565,6 +615,7 @@ module.exports = {
   loadPlatformBindings,
   modeStrength,
   parsePlatformBindingFlag,
+  readRecordedMode,
   validateBindingsDocument,
   writePlatformBindings,
 };
