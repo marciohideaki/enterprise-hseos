@@ -105,6 +105,11 @@ matching reference. The loader additionally enforces the rules JSON Schema canno
   segment, and must exist.
 - Dates are real calendar dates, and an override whose `expires` date has passed is invalid.
 
+Registry resolution: the `registry` block of the highest layer that declares one wins. When no layer
+declares `registry`, a user-layer `workspace.ecp_root` is shorthand for
+`registry: { source: path, path: <ecp_root>/catalog/capability-registry.json }`. Otherwise the runtime
+snapshot is used. `workspace.ecp_root` never overrides an explicit `registry` block.
+
 The project's stacks are detected from deterministic markers (`*.csproj` or `*.sln*` → `dotnet`,
 `package.json` → `node`, `pyproject.toml` or `setup.py` → `python`, `go.mod` → `go`,
 `pom.xml` or `build.gradle*` → `java`). An explicit `stacks` list in the project file replaces
