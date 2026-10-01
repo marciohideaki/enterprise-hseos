@@ -46,10 +46,22 @@ installation and enforced deterministically.
 - ECP capability names are the canonical identifiers. Core `$id` values and graph identifiers
   defined under ADR-0033 resolve to them through the `aliases` published in the ECP capability
   registry. Existing graph IDs are not rewritten.
-- The structural compatibility diff required by ADR-0036 is satisfied for ECP contracts by the ECP
+- The structural compatibility diff required by ADR-0036 is performed for ECP contracts by the ECP
   compatibility gate (Decision 0006, §6), which compares contract schemas with the base revision
   and rejects author-supplied classification. HSEOS consumes its result through the registry and
   does not reimplement it.
+- For contracts owned by ECP, the following ADR-0036 clauses are amended; graph nodes that are not
+  ECP contracts keep ADR-0036 unchanged:
+  - **Breaking change in `0.x`.** ADR-0036 requires a new major version for any detected breakage.
+    For ECP contracts in `0.x`, a breaking change requires a MINOR bump, as SemVer 2.0 allows for
+    initial development. From `1.0.0` the ADR-0036 rule (new major version) applies unchanged.
+  - **Initial contract evidence.** ADR-0036 requires immutable parent-fragment evidence that the ID
+    was absent. For ECP contracts, the evidence is the ECP gate's recorded base revision at which
+    the capability is absent, plus the contract file hashes published in the registry.
+  - **Supersedence, migration and rollback.** For ECP contracts at `1.0.0` or later, the ECP
+    `deprecation` block (`since`, `sunset`, `replaced_by`) plus the parallel version during the
+    compatibility window replace the graph `SUPERSEDES` edge as the supersedence record. Migration
+    and rollback evidence is still required and is attached to the ECP release.
 - This ADR does not activate graph schema 2.0 or intake v3. That gate of ADR-0036 stays pending.
 
 ### 2. Adoption modes
@@ -83,14 +95,32 @@ Precedence from lowest to highest:
 4. **Flags** — `--platform-mode`, `--platform-binding <capability>=<outcome>:<ref>`, `--mode-ref`.
 
 The schema is `.enterprise/governance/capabilities/schemas/platform-bindings.schema.json`. Unknown
-keys are rejected.
+keys are rejected. The schema enforces: a `registry.source` of `path` requires `path`; `remote`
+requires `uri`, `ref` and `sha256`; mode `local` requires `mode_ref`; override outcomes require the
+matching reference. The loader additionally enforces the rules JSON Schema cannot express portably:
+
+- The project file must declare `mode` and must not contain `workspace`; `workspace` is accepted only
+  in the user/organization layer.
+- `mode_ref`, `intake_ref` and `exception_ref` are repository-relative, not absolute, contain no `..`
+  segment, and must exist.
+- Dates are real calendar dates, and an override whose `expires` date has passed is invalid.
+
+The project's stacks are detected from deterministic markers (`*.csproj` or `*.sln*` → `dotnet`,
+`package.json` → `node`, `pyproject.toml` or `setup.py` → `python`, `go.mod` → `go`,
+`pom.xml` or `build.gradle*` → `java`). An explicit `stacks` list in the project file replaces
+detection.
 
 ### 4. Protection against silent downgrade
 
-- Choosing `local`, or any mode weaker than the one already recorded, requires `mode_ref` pointing
-  at a decision record in the repository.
-- The user layer, environment variables and flags can only make the mode stricter, unless a flag
-  carries `--mode-ref`.
+- Mode strength is ordered `platform` > `hybrid` > `local`.
+- The **recorded mode** is the `mode` in `.hseos/config/platform-bindings.yaml` at the base revision
+  of the change: the current `HEAD` for `hseos install`/`init`, and the pull request base for the CI
+  check `hseos platform-bindings check --base <ref>`. A project without the file at that revision has
+  the recorded mode `platform`, because that is how it is enforced today.
+- Choosing `local`, or any mode weaker than the recorded mode, requires `mode_ref` pointing at a
+  decision record in the repository.
+- The user/organization layer (including a file named by `HSEOS_PLATFORM_BINDINGS`) and flags can
+  only make the effective mode stricter than the project file, unless a flag carries `--mode-ref`.
 - Agents must not edit `.hseos/config/platform-bindings.yaml`; it is a protected, human-owned file.
 - `capability-check --json` reports the effective mode and the layer it came from.
 
@@ -102,11 +132,25 @@ keys are rejected.
   the validation error. It is not treated as deny-all.
 - `CORE_INTAKE_ACK=<intake-id>` resolved in `docs/decisions/*intake*.md` stays valid. `intake_ref`
   uses the same resolver.
-- The hook never uses the network and must finish within its 5-second timeout. It resolves the CLI
-  like the other handlers (local `tools/cli/hseos-cli.js`, otherwise `hseos` on `PATH`). Without
-  node or the CLI it keeps today's fail-open behavior, as it already does without `jq`.
+- The hook never uses the network and must finish within its 5-second timeout.
+- The hook checks for `.hseos/config/platform-bindings.yaml` before anything else. Without the file it
+  runs today's code path unchanged, with no dependency on node or the CLI.
+- With the file present, the hook resolves the CLI like the other handlers (local
+  `tools/cli/hseos-cli.js`, otherwise `hseos` on `PATH`). If the CLI or node is unavailable, it falls
+  back to today's code path, which is the `platform` decision. A bindings file can therefore never
+  make a host without the CLI less strict than it is today.
+- Without `jq`, the hook keeps today's fail-open behavior, unchanged by this ADR.
 
-### 6. Registry consumption
+### 6. Relation to ADR-0034 and to ECP Decision 0006
+
+- ADR-0034's enforcement (write-time guard and merge ratchet) applies per mode: in full in
+  `platform`, limited to `stable` matches in `hybrid`, and as advisory output in `local`. Its scope
+  is no longer tied to one filesystem path; it applies wherever HSEOS is installed with bindings.
+  The merge ratchet (`capability-drift`) is unchanged by mode.
+- This ADR depends on ECP Decision 0006. It must not be accepted while Decision 0006 is not accepted,
+  and it is rejected if Decision 0006 is rejected.
+
+### 7. Registry consumption
 
 - HSEOS reads the ECP capability registry (`catalog/capability-registry.json`) from the shipped
   snapshot by default, verifying its SHA-256. A user-layer `ecp_root` overrides it for development.
