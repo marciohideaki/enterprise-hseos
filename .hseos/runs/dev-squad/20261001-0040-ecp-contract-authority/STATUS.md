@@ -98,8 +98,13 @@ Pendências do owner: revisores obrigatórios no environment `contracts-release`
 
 ## Fechamento de escopo da W3 (owner, 2026-10-01)
 - A W3 fecha com o backend-core (#21), o ECP (#35, `contracts-v0.3.1`) e o platform-core (#12).
-- **frontend-core e mobile-core não participam da W3.** Os pilotos (`cache.typed`, `security.authn`, `messaging.event-envelope`) são capacidades de backend e esses cores não implementam nenhuma; verificado em 2026-10-01: sem branch nem PR ECP em ambos, e os ponteiros existentes (`platformCapability` nos `ui-react-*` e `ds-tokens`, `.platform-capability.json` do `mobile-tokens`) apontam para ids do `design-system-core`. Esses ponteiros seguem na Fase 2 (design system).
+- **frontend-core e mobile-core ficam fora da W3** (decisão do owner; o corpo da W3 no PLAN só especifica backend-core, ECP e HSEOS). Avaliação em leitura (2026-10-01): nenhum código desses cores implementa ou consome os pilotos. `ui-react-auth` só renderiza `LoginScreen`/`SsoLoginPanel` (OIDC e token ficam com o consumidor); o código do mobile-core é só `mobile-tokens` e `mobile_tokens_flutter`, com `mobile-core/auth/mobile-auth.schema.json` próprio (armazenamento seguro de token, sem relação com `auth-provider`). Os ponteiros existentes apontam para ids do `design-system-core`. O `integration-guide.md` do mobile cita "implement event-envelope contract" só como orientação: se o mobile ganhar código que o implemente, passa a caber um ponteiro ECP (Fase 2).
 - `implementations.json` dos pilotos (ECP, `develop` `394e80d`): verificado que o `contract_version` (0.1.0) já bate com o carimbo do backend-core em todas as stacks (`.csproj`, `golang/*`, `node/package.json`, `PLATFORM_CONTRACTS` do Python) e com `version: 0.1.0` das capabilities; nada a alinhar. Os 6 avisos do `contracts:pointers` do backend-core são de `package_version` (código 0.3.0/0.2.0 contra 0.2.1/0.1.0 no registro, que lista versões publicadas): só mudam após publicar os pacotes, com autorização.
+
+## Lacuna de descoberta de UI e mobile (owner decidiu deixar para a Fase 2, 2026-10-01)
+- `hseos capability-check` não sugere componentes de frontend-core nem de mobile-core: `Login`, `LoginScreen`, `SsoLoginPanel`, `Button`, `theme`, `design tokens` e `mobile tokens` retornam 0 resultados. O snapshot ECP `contracts-v0.3.1` tem 12 capabilities, nenhuma de UI ou mobile; o grafo do HSEOS não menciona esses cores (só aparecem em `reference-corpus.json`, como referência).
+- Causa: a discovery só enxerga o que o ECP registra, e o design system (tokens, temas, ~40 componentes) ainda não foi migrado ao ECP (ADR 0007, Fase 2).
+- Primeira tarefa da Fase 2: registrar no ECP capabilities de UI e mobile (por exemplo `ui.login`, `mobile.tokens`) com aliases e `match`, e atualizar o snapshot do HSEOS.
 
 ## W2b — limitações conhecidas
 - Aliases `Login`/`Authn` ausentes no registro `contracts-v0.3.1`: pedir ao ECP.
