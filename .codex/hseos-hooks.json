@@ -4,11 +4,11 @@
     {
       "id": "pretooluse-write-edit-capability-intake-guard",
       "event": "PreToolUse",
-      "matcher": "Write|Edit",
+      "matcher": "Write|Edit|MultiEdit",
       "command": "bash .agents/hooks/handlers/capability-intake-guard.sh",
       "blocking": true,
-      "description": "Require a valid capability-reuse intake before a qualifying exported capability is introduced",
-      "fallback": "Run `hseos capability-check <symbol|file>` in Codex and CI where no native PreToolUse adapter exists.",
+      "description": "Require a valid capability-reuse intake before a qualifying exported capability is introduced. With .hseos/config/platform-bindings.yaml the decision follows the project's platform mode (platform, hybrid, local) through `hseos platform-bindings guard`; the bindings file itself is human-owned and blocked for Write, Edit and MultiEdit (ADR-0046); writes through the Bash tool are not covered. Projects without bindings keep the legacy detection (see hooks/README.md, known gaps).",
+      "fallback": "Run `hseos capability-check <symbol|file>` in Codex and CI where no native PreToolUse adapter exists. When the CLI or node is unavailable the hook applies the platform decision, so a bindings file never makes a host less strict.",
       "codex_equivalent": "portable-handler-script"
     },
     {

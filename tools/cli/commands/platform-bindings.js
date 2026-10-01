@@ -12,6 +12,7 @@ const {
   loadCapabilityRegistry,
   validateCapabilityRegistry,
 } = require('../lib/capability-registry');
+const { evaluateGuard } = require('../lib/capability-intake-guard');
 const { NO_USER_LAYER_ENV, assertRefResolves, baselineMode } = require('../lib/platform-bindings-cli');
 
 const REF_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._/-]*$/;
@@ -164,6 +165,11 @@ function runSync(options = {}, { env = process.env } = {}) {
   return { code: 0, result, text };
 }
 
+/** `guard`: the capability intake decision for a project with platform bindings (see capability-intake-guard). */
+function runGuard(input, { runtimeRoot = getProjectRoot(), cwd = process.cwd(), env = process.env } = {}) {
+  return evaluateGuard({ input, cwd, env, runtimeRoot });
+}
+
 function emit(outcome, options) {
   console.log(options.json ? JSON.stringify(outcome.result, null, 2) : outcome.text);
   if (outcome.code !== 0) process.exitCode = outcome.code;
@@ -172,7 +178,7 @@ function emit(outcome, options) {
 
 module.exports = {
   command: 'platform-bindings <action>',
-  description: 'Inspect (show), verify (check) or sync the registry for platform bindings (ADR-0046)',
+  description: 'Inspect (show), verify (check), sync the registry for, or guard intake with platform bindings (ADR-0046)',
   options: [
     ['--directory <path>', 'Project directory (default: current directory)'],
     ['--json', 'Emit JSON'],
@@ -195,12 +201,21 @@ module.exports = {
       case 'sync': {
         return emit(runSync(options), options);
       }
+      case 'guard': {
+        // Hook entry point: hook JSON on stdin, hook output format on stdout (exit 2 denies).
+        const outcome = runGuard(fs.readFileSync(0, 'utf8'));
+        process.stdout.write(outcome.stdout);
+        if (outcome.stderr) process.stderr.write(outcome.stderr);
+        if (outcome.exitCode !== 0) process.exitCode = outcome.exitCode;
+        return outcome;
+      }
       default: {
-        throw new Error(`Unknown platform-bindings action '${action}'. Use show, check or sync.`);
+        throw new Error(`Unknown platform-bindings action '${action}'. Use show, check, sync or guard.`);
       }
     }
   },
   runCheck,
+  runGuard,
   runShow,
   runSync,
 };

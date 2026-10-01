@@ -111,7 +111,8 @@ test('published package exposes runtime and governance assets only', () => {
   // The platform-bindings loader (tools/cli/lib/platform-bindings.js) and its runtime defaults add two.
   // The ECP capability registry resolver, its shipped snapshot and the snapshot lock add three.
   // The platform-bindings command and its CLI helper library add two.
+  // The mode-aware capability intake guard library adds one.
   // State/key/config exclusions above remain independent security invariants.
-  assert.ok(packed.entryCount <= 1467, `package entry count is not bounded: ${packed.entryCount}`);
+  assert.ok(packed.entryCount <= 1468, `package entry count is not bounded: ${packed.entryCount}`);
   assert.ok(packed.unpackedSize < 22_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);
 });
