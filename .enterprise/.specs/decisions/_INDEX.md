@@ -103,3 +103,5 @@ The following entries are ADR templates or placeholders for optional activation.
 - [ADR-0044 — Contrato de projeto e controle local](ADR-0044-project-engineering-control.md) — draft; W1 candidata, ativação separada.
 
 - [ADR-0045 — Plugins de execução e jobs duráveis](ADR-0045-execution-plugins-and-durable-jobs.md) — Proposed; implementação candidata W4, ativação separada.
+
+- [ADR-0046 — Platform bindings, modos de adoção e autoridade de contratos do ECP](ADR-0046-platform-bindings-and-modes.md) — Proposed; emenda ADR-0036/0033/0034; implementação e ativação separadas.
