@@ -1034,17 +1034,19 @@ function testSessionTrackInstalledConsumer() {
       delete env[key];
     env.PATH = `${fixtureBinDir}:${env.PATH}`;
     const result = runHandler(handler, [], { cwd: tempDir, env, input: payload, stdio: ['pipe', 'pipe', 'pipe'] });
+    // The handler detaches the CLI with `timeout 5s`, and the fixture writes the
+    // capture through a shell redirect that creates the file before its content.
+    // Wait for the expected content (not just the file) for up to the handler's
+    // 5 s cap plus margin, leaving at the first success.
+    const isCaptured = (text) => text.includes('state-session register') && text.includes('consumer-session');
     let captured = '';
-    // The handler intentionally detaches its best-effort write. Under the full
-    // quality gate, native SQLite tests can keep the runner busy for longer
-    // than the former 500 ms polling window even though the child is healthy.
-    for (let attempt = 0; attempt < 100 && !fs.existsSync(capture); attempt += 1) {
+    for (let attempt = 0; attempt < 280 && !isCaptured(captured); attempt += 1) {
       Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25);
+      if (fs.existsSync(capture)) captured = fs.readFileSync(capture, 'utf8');
     }
-    if (fs.existsSync(capture)) captured = fs.readFileSync(capture, 'utf8');
     assertPass(
       'session-track.sh uses the project-local installed hseos binary',
-      result.ok && captured.includes('state-session register') && captured.includes('consumer-session'),
+      result.ok && isCaptured(captured),
       `captured="${captured.trim()}"`,
     );
   });
