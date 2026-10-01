@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.hideakiservicos.com/hseos/platform-bindings/1.0.0",
+  "title": "HSEOS Platform Bindings",
+  "description": "One configuration layer of platform bindings (ADR-0046). The same shape is used by the runtime defaults, the user/organization layer and the project file. Rules that JSON Schema cannot express portably are enforced by the loader and listed in ADR-0046 §3: no workspace paths and a required mode in the project file, no absolute paths or '..' segments in repository-relative references, and real calendar dates.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "platform",
+        "hybrid",
+        "local"
+      ]
+    },
+    "mode_ref": {
+      "description": "Repository-relative path of the decision record that justifies a local or weaker mode.",
+      "$ref": "#/$defs/relativePath"
+    },
+    "registry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": [
+            "snapshot",
+            "path",
+            "remote"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "source": {
+              "const": "snapshot"
+            },
+            "path": false,
+            "uri": false,
+            "ref": false
+          }
+        },
+        {
+          "properties": {
+            "source": {
+              "const": "path"
+            },
+            "path": true
+          },
+          "required": [
+            "path"
+          ]
+        },
+        {
+          "properties": {
+            "source": {
+              "const": "remote"
+            },
+            "uri": true,
+            "ref": true,
+            "sha256": true
+          },
+          "required": [
+            "uri",
+            "ref",
+            "sha256"
+          ]
+        }
+      ]
+    },
+    "workspace": {
+      "description": "Machine paths for development. Accepted only in the user/organization layer.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ecp_root": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cores_root": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "stacks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      }
+    },
+    "overrides": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/override"
+      }
+    }
+  },
+  "$defs": {
+    "relativePath": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_][A-Za-z0-9_./-]*$"
+    },
+    "override": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capability",
+        "outcome",
+        "reason",
+        "expires"
+      ],
+      "properties": {
+        "capability": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9_-]*)+$"
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "keep-local",
+            "exception"
+          ]
+        },
+        "intake_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exception_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expires": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "outcome": {
+              "const": "keep-local"
+            },
+            "intake_ref": true
+          },
+          "required": [
+            "intake_ref"
+          ]
+        },
+        {
+          "properties": {
+            "outcome": {
+              "const": "exception"
+            },
+            "exception_ref": true
+          },
+          "required": [
+            "exception_ref"
+          ]
+        }
+      ]
+    }
+  },
+  "anyOf": [
+    {
+      "properties": {
+        "mode": {
+          "enum": [
+            "platform",
+            "hybrid"
+          ]
+        }
+      }
+    },
+    {
+      "properties": {
+        "mode": {
+          "const": "local"
+        },
+        "mode_ref": true
+      },
+      "required": [
+        "mode_ref"
+      ]
+    }
+  ]
+}

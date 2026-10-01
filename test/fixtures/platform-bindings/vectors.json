@@ -1,0 +1,160 @@
+{
+ "valid": [
+  {
+   "schema_version": "1.0.0",
+   "mode": "platform"
+  },
+  {
+   "schema_version": "1.0.0",
+   "mode": "local",
+   "mode_ref": "docs/decisions/2026-10-01-local-mode.md"
+  },
+  {
+   "schema_version": "1.0.0",
+   "mode": "hybrid",
+   "stacks": [
+    "dotnet",
+    "react"
+   ],
+   "overrides": [
+    {
+     "capability": "cache.typed",
+     "outcome": "keep-local",
+     "intake_ref": "INTAKE-2026-10-cache",
+     "reason": "latency budget",
+     "expires": "2027-03-31"
+    },
+    {
+     "capability": "security.authn",
+     "outcome": "exception",
+     "exception_ref": "EXC-0007",
+     "reason": "legacy IdP",
+     "expires": "2026-12-31"
+    }
+   ]
+  },
+  {
+   "schema_version": "1.0.0",
+   "registry": {
+    "source": "snapshot",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+   },
+   "workspace": {
+    "ecp_root": "/workspace/github/hideaki-solutions/enterprise-capability-platform",
+    "cores_root": "/workspace/github/hideaki-solutions-core"
+   }
+  },
+  {
+   "schema_version": "1.0.0",
+   "registry": {
+    "source": "path",
+    "path": "/workspace/github/hideaki-solutions/enterprise-capability-platform/catalog/capability-registry.json"
+   }
+  },
+  {
+   "schema_version": "1.0.0",
+   "registry": {
+    "source": "remote",
+    "uri": "https://github.com/HideakiSolutions/enterprise-capability-platform",
+    "ref": "contracts-v0.2.0",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+   }
+  }
+ ],
+ "invalid": [
+  {
+   "mode": "platform"
+  },
+  {
+   "schema_version": "1.0.0",
+   "mode": "off"
+  },
+  {
+   "schema_version": "1.0.0",
+   "mode": "platform",
+   "unknown": 1
+  },
+  {
+   "schema_version": "1.0.0",
+   "overrides": [
+    {
+     "capability": "cache.typed",
+     "outcome": "keep-local",
+     "reason": "r",
+     "expires": "2027-01-01"
+    }
+   ]
+  },
+  {
+   "schema_version": "1.0.0",
+   "overrides": [
+    {
+     "capability": "cache.typed",
+     "outcome": "exception",
+     "intake_ref": "X",
+     "reason": "r",
+     "expires": "2027-01-01"
+    }
+   ]
+  },
+  {
+   "schema_version": "1.0.0",
+   "overrides": [
+    {
+     "capability": "Cache",
+     "outcome": "keep-local",
+     "intake_ref": "X",
+     "reason": "r",
+     "expires": "2027-01-01"
+    }
+   ]
+  },
+  {
+   "schema_version": "1.0.0",
+   "mode_ref": "../outside.md"
+  },
+  {
+   "schema_version": "1.0.0",
+   "registry": {
+    "source": "snapshot",
+    "sha256": "abc"
+   }
+  },
+  {
+   "schema_version": "1.0.0",
+   "mode": "local"
+  },
+  {
+   "schema_version": "1.0.0",
+   "registry": {
+    "source": "path"
+   }
+  },
+  {
+   "schema_version": "1.0.0",
+   "registry": {
+    "source": "remote",
+    "uri": "https://x"
+   }
+  },
+  {
+   "schema_version": "1.0.0",
+   "overrides": [
+    {
+     "capability": "cache.typed",
+     "outcome": "keep-local",
+     "intake_ref": "X",
+     "reason": "r",
+     "expires": "2027-13-01"
+    }
+   ]
+  },
+  {
+   "schema_version": "1.0.0",
+   "registry": {
+    "source": "snapshot",
+    "path": "x.json"
+   }
+  }
+ ]
+}

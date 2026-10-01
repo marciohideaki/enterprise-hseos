@@ -6,6 +6,7 @@
 **Affects Standards:** Enterprise Constitution v2.1, Core Standards index, specification consumption, automated validation, agent instruction cascade
 **Supersedes:** N/A
 **Superseded By:** N/A
+**Amended By:** ADR-0046 (2026-10-01)
 
 ---
 
