@@ -1,6 +1,6 @@
 # WAVE-0-REPORT — Governança e schemas (Commander/Opus)
 
-Run: `20261001-0040-ecp-contract-authority`. Data: 2026-10-01. Status: **CONCLUÍDA, aguardando gate humano**.
+Run: `20261001-0040-ecp-contract-authority`. Data: 2026-10-01. Status: **CONCLUÍDA e ACEITA pelo owner em 2026-10-01** (ver STATUS.md).
 
 ## Entregas
 

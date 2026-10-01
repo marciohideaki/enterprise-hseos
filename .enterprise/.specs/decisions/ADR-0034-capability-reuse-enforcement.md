@@ -7,6 +7,7 @@
 automated validation; exceptions; agent-core hook compilation
 **Supersedes:** N/A
 **Superseded By:** N/A
+**Amended By:** ADR-0046 (2026-10-01)
 
 ---
 

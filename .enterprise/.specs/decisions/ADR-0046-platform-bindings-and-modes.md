@@ -1,6 +1,7 @@
 # ADR-0046 — Platform Bindings, Adoption Modes and ECP Contract Authority
 
-**Status:** Proposed
+**Status:** Accepted (2026-10-01, owner). Implementation and activation are delivered by later waves;
+acceptance activates no enforcement on its own.
 **Date:** 2026-10-01
 **Authors:** Platform Architecture Owners (proposal prepared for review)
 **Affects Standards:** Platform Capability Governance Standard (§2.1, §7, §8.1), capability-reuse policy, capability-graph policy, capability intake guard, `hseos init` / `hseos install` / `hseos capability-check`
@@ -204,7 +205,7 @@ delivered in a separate pull request that requires Engineering Leadership approv
 
 ## Compliance
 
-- [ ] Approved by Engineering Leadership
+- [x] Approved by the owner (Platform Architecture), 2026-10-01
 - [ ] Affected standards updated to reference this ADR
 - [ ] Teams notified
 - [ ] Activation date: after the platform bindings implementation is merged and installed
