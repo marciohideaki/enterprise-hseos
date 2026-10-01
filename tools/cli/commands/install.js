@@ -2,6 +2,7 @@ const path = require('node:path');
 const prompts = require('../lib/prompts');
 const { getProjectRoot } = require('../lib/project-root');
 const { parseCsv, resolveCapabilityPlan, writeCapabilitySelection, materializeCapabilityPlan } = require('../lib/capability-catalog');
+const { PlatformBindingsError, applyPlatformBindings, platformFlags, preparePlatformBindings } = require('../lib/platform-bindings-cli');
 
 /**
  * Map selected `extra:*` capability components onto the corresponding install
@@ -63,13 +64,32 @@ module.exports = {
       '--no-git-hooks',
       'Skip writing the pre-commit hook at .git/hooks/pre-commit. Default: install the hook when the target is a git working tree.',
     ],
+    [
+      '--platform-mode <mode>',
+      'Record how this project uses platform capabilities: platform, hybrid or local (writes .hseos/config/platform-bindings.yaml)',
+    ],
+    [
+      '--platform-binding <spec...>',
+      'Per-capability override <capability>=<outcome>:<ref>:<YYYY-MM-DD> (outcome keep-local or exception); repeatable, one per capability. Without --platform-mode a new bindings file records mode: platform explicitly (an existing file keeps its mode)',
+    ],
+    ['--mode-ref <path>', 'Decision record under docs/decisions/ that justifies a local or weaker platform mode'],
   ],
   action: async (options) => {
     try {
+      // Reject malformed platform options before any prompt or write.
+      platformFlags(options);
       if (['minimal', 'disposable-engineering-candidate'].includes(options.profile)) {
-        const extras = Object.keys(options).filter((key) => !['profile', 'directory', 'yes', 'json', 'gitHooks'].includes(key));
-        if (extras.length > 0) throw new Error('Minimal/candidate materialization accepts profile, directory, yes and JSON only');
-        const receipt = await materializeCapabilityPlan({ directory: options.directory || process.cwd(), profile: options.profile });
+        const extras = Object.keys(options).filter(
+          (key) => !['profile', 'directory', 'yes', 'json', 'gitHooks', 'platformMode', 'platformBinding', 'modeRef'].includes(key),
+        );
+        if (extras.length > 0)
+          throw new Error('Minimal/candidate materialization accepts profile, directory, yes, JSON and the platform bindings options only');
+        const target = options.directory || process.cwd();
+        const bindings = preparePlatformBindings({ projectDir: target, runtimeRoot: getProjectRoot(), options });
+        for (const warning of bindings ? bindings.warnings : []) await prompts.log.warn(warning);
+        const receipt = await materializeCapabilityPlan({ directory: target, profile: options.profile });
+        const bindingsPath = applyPlatformBindings(target, bindings);
+        if (bindingsPath) receipt.platform_bindings = bindingsPath;
         console.log(options.json ? JSON.stringify(receipt) : `Materialized ${receipt.profile} in ${receipt.directory}`);
         return receipt;
       }
@@ -140,6 +160,10 @@ module.exports = {
         process.exit(0);
       }
 
+      // Validate requested platform bindings before anything is written.
+      const bindings = preparePlatformBindings({ projectDir: config.directory, runtimeRoot: getProjectRoot(), options });
+      for (const warning of bindings ? bindings.warnings : []) await prompts.log.warn(warning);
+
       // Regular install/update flow
       const result = await installer.install(config);
 
@@ -154,9 +178,15 @@ module.exports = {
           const selectionPath = writeCapabilitySelection(config.directory, config.capabilityPlan);
           await prompts.log.info(`Capability selection recorded: ${selectionPath}`);
         }
+        const bindingsPath = applyPlatformBindings(config.directory, bindings);
+        if (bindingsPath) await prompts.log.info(`Platform bindings recorded: ${bindingsPath}`);
         process.exit(0);
       }
     } catch (error) {
+      if (error instanceof PlatformBindingsError) {
+        console.error(`error: ${error.message}`);
+        process.exit(1);
+      }
       try {
         if (error.fullMessage) {
           await prompts.log.error(error.fullMessage);

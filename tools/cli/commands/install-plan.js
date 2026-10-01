@@ -2,6 +2,8 @@ const path = require('node:path');
 const prompts = require('../lib/prompts');
 const { loadAdapterMatrix, loadCapabilityCatalog, parseCsv, resolveCapabilityPlan } = require('../lib/capability-catalog');
 const { getProjectRoot } = require('../lib/project-root');
+const yaml = require('yaml');
+const { PlatformBindingsError, preparePlatformBindings } = require('../lib/platform-bindings-cli');
 
 function renderList(title, values) {
   if (!values || values.length === 0) return `${title}: (none)`;
@@ -93,6 +95,12 @@ module.exports = {
     ['--family <id>', 'Filter --list-components by family'],
     ['--list-skills', 'List synthetic skill component selectors'],
     ['--adapters', 'Show adapter capability matrix'],
+    ['--platform-mode <mode>', 'Preview the platform bindings an install would write: platform, hybrid or local'],
+    [
+      '--platform-binding <spec...>',
+      'Preview per-capability overrides <capability>=<outcome>:<ref>:<YYYY-MM-DD> (one per capability; a new file records mode: platform explicitly)',
+    ],
+    ['--mode-ref <path>', 'Decision record for a local or weaker platform mode'],
     ['--json', 'Emit JSON'],
   ],
   action: async (options = {}) => {
@@ -149,10 +157,39 @@ module.exports = {
       hookProfile: options.hookProfile,
     });
 
+    // Preview only: the bindings are validated and printed, never written.
+    let bindings;
+    try {
+      bindings = preparePlatformBindings({
+        // --directory selects the catalog repository here; the project being installed is the working directory.
+        projectDir: process.cwd(),
+        runtimeRoot: getProjectRoot(),
+        options,
+      });
+    } catch (error) {
+      if (!(error instanceof PlatformBindingsError)) throw error;
+      console.error(`error: ${error.message}`);
+      process.exitCode = 1;
+      return;
+    }
+
     if (options.json) {
-      console.log(JSON.stringify({ plan }, null, 2));
+      const preview = bindings
+        ? {
+            plan,
+            platform_bindings: bindings.doc,
+            ...(bindings.warnings.length > 0 ? { platform_bindings_warnings: bindings.warnings } : {}),
+          }
+        : { plan };
+      console.log(JSON.stringify(preview, null, 2));
     } else {
       await prompts.log.message(renderPlan(plan));
+      if (bindings) {
+        for (const warning of bindings.warnings) await prompts.log.warn(warning);
+        await prompts.log.message(
+          `Platform bindings that install would write (.hseos/config/platform-bindings.yaml):\n${yaml.stringify(bindings.doc)}`,
+        );
+      }
     }
   },
 };

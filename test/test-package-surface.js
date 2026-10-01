@@ -110,7 +110,8 @@ test('published package exposes runtime and governance assets only', () => {
   // ADR-0046 (platform bindings, governance distribution) and its platform-bindings schema add two.
   // The platform-bindings loader (tools/cli/lib/platform-bindings.js) and its runtime defaults add two.
   // The ECP capability registry resolver, its shipped snapshot and the snapshot lock add three.
+  // The platform-bindings command and its CLI helper library add two.
   // State/key/config exclusions above remain independent security invariants.
-  assert.ok(packed.entryCount <= 1465, `package entry count is not bounded: ${packed.entryCount}`);
+  assert.ok(packed.entryCount <= 1467, `package entry count is not bounded: ${packed.entryCount}`);
   assert.ok(packed.unpackedSize < 22_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);
 });
