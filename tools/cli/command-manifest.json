@@ -541,7 +541,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "912f85e812e9970770d61227f2ae0628987d1dcb8406b0280ac70efe58d05925"
+      "source_sha256": "81454417a4c08335d9edb0d946f0aff3f07714b7b0ff2cf635dc8ffdefb29825"
     },
     {
       "filename": "install-plan.js",
@@ -593,12 +593,24 @@
           "Show adapter capability matrix"
         ],
         [
+          "--platform-mode <mode>",
+          "Preview the platform bindings an install would write: platform, hybrid or local"
+        ],
+        [
+          "--platform-binding <spec...>",
+          "Preview per-capability overrides <capability>=<outcome>:<ref>:<YYYY-MM-DD> (one per capability; a new file records mode: platform explicitly)"
+        ],
+        [
+          "--mode-ref <path>",
+          "Decision record for a local or weaker platform mode"
+        ],
+        [
           "--json",
           "Emit JSON"
         ]
       ],
       "governed": false,
-      "source_sha256": "a862c6bb7ec2cdfd098127ddafc4b610ac0c7cf995c6411ddc76a1e0fcba905a"
+      "source_sha256": "522631c315afea553392eab55cb78e7977b6e391b0a9d3c6f1bc679cc241a3ad"
     },
     {
       "filename": "install.js",
@@ -684,10 +696,22 @@
         [
           "--no-git-hooks",
           "Skip writing the pre-commit hook at .git/hooks/pre-commit. Default: install the hook when the target is a git working tree."
+        ],
+        [
+          "--platform-mode <mode>",
+          "Record how this project uses platform capabilities: platform, hybrid or local (writes .hseos/config/platform-bindings.yaml)"
+        ],
+        [
+          "--platform-binding <spec...>",
+          "Per-capability override <capability>=<outcome>:<ref>:<YYYY-MM-DD> (outcome keep-local or exception); repeatable, one per capability. Without --platform-mode a new bindings file records mode: platform explicitly (an existing file keeps its mode)"
+        ],
+        [
+          "--mode-ref <path>",
+          "Decision record under docs/decisions/ that justifies a local or weaker platform mode"
         ]
       ],
       "governed": false,
-      "source_sha256": "29aaba8f10ff56c8a8d4cbaf21681f277f4c720a64a5cd2c29a17fea10c61136"
+      "source_sha256": "82b391ffe894e5057c161b7bd5c02a38789b61d1ec61598bc89db7c6fb29f116"
     },
     {
       "filename": "kanban-central.js",
@@ -768,6 +792,39 @@
       ],
       "governed": false,
       "source_sha256": "810f2efd52f270241280cd01723722c8eab7dd9c1fb239eb44bb86338bea3b63"
+    },
+    {
+      "filename": "platform-bindings.js",
+      "command": "platform-bindings <action>",
+      "description": "Inspect (show), verify (check) or sync the registry for platform bindings (ADR-0046)",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory (default: current directory)"
+        ],
+        [
+          "--json",
+          "Emit JSON"
+        ],
+        [
+          "--base <git-ref>",
+          "check: revision whose recorded mode is the downgrade baseline (default: HEAD; for example origin/main)"
+        ],
+        [
+          "--ref <tag>",
+          "sync: ECP tag or revision to read the capability registry from (a contracts-vX.Y.Z tag must match the registry contracts_version; for other refs the printed sha256 is the integrity anchor)"
+        ],
+        [
+          "--ecp-root <path>",
+          "sync: local ECP checkout"
+        ],
+        [
+          "--output <file>",
+          "sync: destination file (default: user cache directory)"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "fcc86e0a12006cef488ea8c60436d90ac35cfb32b957f6eea5a9c575dacd3ba4"
     },
     {
       "filename": "plugin.js",

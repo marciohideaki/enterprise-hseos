@@ -298,6 +298,13 @@ function repositoryRefExists(projectDir, relative) {
   }
 }
 
+/** Returns a message when `ref` is not a usable mode_ref for `projectDir` (shape or existence), otherwise null. */
+function checkModeRef(projectDir, ref) {
+  const problem = modeRefProblem(ref);
+  if (problem) return `mode_ref ${problem}`;
+  return repositoryRefExists(projectDir, ref) ? null : `mode_ref '${ref}' does not exist in the repository`;
+}
+
 function readLayerFile(file, layer, now, projectDir, warnings) {
   const { size } = fs.statSync(file);
   if (size > MAX_BINDINGS_FILE_BYTES)
@@ -611,6 +618,7 @@ module.exports = {
   PLATFORM_MODES,
   PROJECT_BINDINGS_FILE,
   RUNTIME_DEFAULTS_FILE,
+  checkModeRef,
   detectStacks,
   loadPlatformBindings,
   modeStrength,

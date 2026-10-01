@@ -149,3 +149,25 @@ Model preference selects an adapter/provider; it grants no kernel tool authority
 Advisory hooks inform. Approval requests pause for a decision. Only a denial enforced
 at the gateway or executor blocks an effect; a hook name or readiness label is not
 proof of enforcement. Missing engineering isolation prerequisites block execution.
+
+## Platform bindings
+
+`hseos init` asks how the project uses platform capabilities (`platform`, `hybrid` or `local`), and
+`hseos install` accepts the same choice through flags. The choice is recorded in
+`.hseos/config/platform-bindings.yaml` (ADR-0046). Nothing is written unless a mode or a binding is
+given explicitly.
+
+| Option                      | Effect                                                                                            |
+| --------------------------- | ------------------------------------------------------------------------------------------------- |
+| `--platform-mode <mode>`    | Records the mode. A mode weaker than the recorded one needs `--mode-ref`                          |
+| `--mode-ref <path>`         | Decision record under `docs/decisions/` that justifies a `local` or weaker mode                   |
+| `--platform-binding <spec>` | Override `<capability>=<outcome>:<ref>:<YYYY-MM-DD>`; repeat the flag, one binding per capability |
+
+`--platform-binding` without `--platform-mode` writes `mode: platform` explicitly when the project has
+no bindings file yet; an existing file keeps its mode. `hseos install-plan` accepts the same options and
+prints the document without writing it.
+
+`hseos platform-bindings show` prints the effective bindings. `check` validates the project file; with
+`--base <ref>` it compares against the mode recorded at that revision, `HEAD` by default.
+`sync --ref <tag> --ecp-root <checkout>` copies a tagged capability registry into the user cache and
+prints the user-layer snippet that uses it.
