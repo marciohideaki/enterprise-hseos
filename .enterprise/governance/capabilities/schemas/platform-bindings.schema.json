@@ -22,7 +22,7 @@
     },
     "mode_ref": {
       "description": "Repository-relative path of the decision record that justifies a local or weaker mode.",
-      "$ref": "#/$defs/relativePath"
+      "$ref": "#/$defs/decisionRecordPath"
     },
     "registry": {
       "type": "object",
@@ -72,7 +72,9 @@
             "source": {
               "const": "path"
             },
-            "path": true
+            "path": true,
+            "uri": false,
+            "ref": false
           },
           "required": [
             "path"
@@ -127,7 +129,7 @@
   "$defs": {
     "relativePath": {
       "type": "string",
-      "pattern": "^[A-Za-z0-9_][A-Za-z0-9_./-]*$"
+      "pattern": "^(?:(?!\\.\\.?(?:/|$))[A-Za-z0-9_.-]+)(?:/(?!\\.\\.?(?:/|$))[A-Za-z0-9_.-]+)*$"
     },
     "override": {
       "type": "object",
@@ -151,12 +153,12 @@
           ]
         },
         "intake_ref": {
-          "type": "string",
-          "minLength": 1
+          "description": "Identifier recorded (as a whole token) in docs/decisions/**/*intake*.md.",
+          "$ref": "#/$defs/referenceId"
         },
         "exception_ref": {
-          "type": "string",
-          "minLength": 1
+          "description": "Identifier of .enterprise/exceptions/<id>.md (or <id>-*.md), or recorded in docs/decisions/**/*exception*.md.",
+          "$ref": "#/$defs/referenceId"
         },
         "reason": {
           "type": "string",
@@ -191,6 +193,22 @@
           ]
         }
       ]
+    },
+    "decisionRecordPath": {
+      "description": "Repository-relative Markdown decision record under docs/decisions/ or .enterprise/.specs/decisions/.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/relativePath"
+        },
+        {
+          "pattern": "^(?:docs/decisions|\\.enterprise/\\.specs/decisions)/.+\\.md$"
+        }
+      ]
+    },
+    "referenceId": {
+      "type": "string",
+      "minLength": 5,
+      "pattern": "^[A-Za-z][A-Za-z0-9]*-[A-Za-z0-9._-]*[0-9][A-Za-z0-9._-]*$"
     }
   },
   "anyOf": [

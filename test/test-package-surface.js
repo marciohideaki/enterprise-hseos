@@ -108,7 +108,8 @@ test('published package exposes runtime and governance assets only', () => {
   }
   // Reviewed inventory: W4 migration 016 and the guided init command add two assets to the 1456-entry base;
   // ADR-0046 (platform bindings, governance distribution) and its platform-bindings schema add two.
+  // The platform-bindings loader (tools/cli/lib/platform-bindings.js) and its runtime defaults add two.
   // State/key/config exclusions above remain independent security invariants.
-  assert.ok(packed.entryCount <= 1460, `package entry count is not bounded: ${packed.entryCount}`);
+  assert.ok(packed.entryCount <= 1462, `package entry count is not bounded: ${packed.entryCount}`);
   assert.ok(packed.unpackedSize < 22_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);
 });
