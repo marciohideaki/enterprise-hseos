@@ -1,12 +1,12 @@
 # STATUS — 20261001-0040-ecp-contract-authority
 
-Atualizado: 2026-10-01. Wave atual: **W0 concluída e aceita** — W1 liberada.
+Atualizado: 2026-10-01. Wave atual: **W2b (HSEOS) pronta para PR** — W0 e W1 concluídas; W2a e W2c mergeadas.
 
 ## Branch map
 | Repo | Base | Feature | Estado |
 |---|---|---|---|
 | ECP | `develop` | `feature/contract-authority-w0` | local, sem push |
-| HSEOS | `master` | `feature/platform-bindings-w0` | local, sem push |
+| HSEOS | `master` | `feature/platform-bindings-w2b` (W2b-1..6; head `c6b02df2` antes da rodada 1 de correção) | local, sem push; W0 integrada em `master` |
 
 ## W0 — tasks
 | Task | Repo | Commit | Estado |
@@ -44,3 +44,54 @@ Revisão rodada 2 sem MAJOR + **aceitação humana das ADRs** (ECP 0006/0007/000
 - ECP: `origin/develop` estava à frente do `develop` local (7 commits, sem colisão de numeração); integrado na feature por merge, gate verde.
 - PR ECP: HideakiSolutions/enterprise-capability-platform#31.
 
+
+## W1 — ECP foundation (2026-10-01)
+| Task | Commit | Revisão | Estado |
+|---|---|---|---|
+| T0 loader YAML restrito | `d53a040` | 2 rodadas (2 MAJOR corrigidos) | merge `b871788` |
+| T1a perfil de keywords (validador stdlib) | `67478ba` | 2 rodadas; diferencial ~38k casos, 0 divergência | merge `e94ea2c` |
+| T1b validador v2 + migração dos 9 contratos | `28ccd03` | 3 rodadas (~100 mutações) | merge `279db62` |
+| T3 gate de compatibilidade | `0efe86e` | 3 rodadas (1 BLOCKER: $ref em oneOf) | merge `4fd01e4` |
+| T2 registro + CI | `94d0b81` | 2 rodadas | merge `9a08d37` |
+| T5 vetores + bundle reprodutível | `94628f6` | 1 rodada, 4 MINOR documentados | merge `981f445` |
+| T4a autor configurável (PR #32) | `5d63f01` | 2 rodadas | merge `3fc9483` |
+| T4b portabilidade (PR #32) | `eb2b4ca` | 2 rodadas | merge em `feature/ecp-portability-author` |
+
+Integração `feature/contract-authority-w1`: 381 testes OK, registro em dia, `check_compat --base develop` OK, bundle reprodutível.
+PR #32 (T4) verde e aguardando autorização de merge. Conflitos previstos W1 × #32: `validate_contracts.py`, `mcps/ecp.mcp.manifest.json` (regenerar).
+Decisões registradas na W1: pacotes `planned` inventados removidos; remoção de capability falha salvo `deprecated` com sunset vencido;
+perfil restringe `enum/const` a escalares e `$id/$schema` à raiz; publish do bundle imutável (sem `--clobber`); registro descreve o repo e o bundle é subconjunto;
+`expected_keyword` nos vetores inválidos fica para W2. Pendente do owner: revisores obrigatórios no environment `contracts-release`.
+Pendências fora do escopo: `.agents/*` e `.axon/config.toml` do ECP ainda apontam `/opt/hideakisolutions`; repos da org que usam `make` no CI.
+
+## W1 — merged (2026-10-01)
+ECP #32 (autor configurável + portabilidade) e #33 (validador v2, registro, gate de compatibilidade, bundle) mergeadas em `develop`; tag `contracts-v0.2.0`.
+Infra: scale set `arc-runners/hideaki-k3s` migrado para `actions-runner:2.337.0` (Helm rev 9) — CI da org voltou a rodar.
+CI expôs dependência de versão do Python no perfil de regex → T1c: gramática permitida (allowlist) + `$`→`\Z`; suítes verdes em 3.12 e 3.14.
+
+## W2 — estado
+| Frente | Repo | Estado |
+|---|---|---|
+| W2a pilotos library (cache.typed, security.authn, messaging.event-envelope) | ECP | #34 mergeada; tag `contracts-v0.3.0` |
+| W2b platform-bindings | HSEOS | W2b-1..6 concluídas em `feature/platform-bindings-w2b`: loader, registro, capability-check, wiring CLI, guard, snapshot ECP `contracts-v0.3.1`, policies/docs, ADR-0046 §8 (esclarecimentos) e CHANGELOG. **Pronta para PR** (aguarda gate de saída e autorização do owner) |
+| W2c resolvedores vendorizados fail-closed (4 stacks) | backend-core | #20 mergeada |
+
+## W3 — estado
+| Frente | Repo | Estado |
+|---|---|---|
+| hints de descoberta | ECP | #35 mergeada; tag `contracts-v0.3.1` |
+| stubs de deprecação dos pilotos | platform-core | #12 mergeada |
+| vendor 0.3.0 + conformidade dos pilotos (.NET, Node, Python, Go) | backend-core | `feature/ecp-contracts-w3`; paridade 45/45 vetores em todas as stacks |
+| correções classe A/B (.NET 0.3.0; Node/Python 0.2.0; Go v0.2.0 documentado) | backend-core | commitadas |
+| ponteiros ECP + carimbo de versão de contrato + checker | backend-core | commitado |
+| stub auth-middleware + resync snapshot platform-core | backend-core | em execução |
+
+Lacunas documentadas em `backend-core/docs/contracts/conformance-gaps.md` (classes C/D); candidato de evolução de contrato: `token_type` case-insensitive na entrada.
+Pendências do owner: revisores obrigatórios no environment `contracts-release` (ECP); `validate` como check obrigatório no backend-core.
+
+## W2b — limitações conhecidas (para as notas da PR)
+- Aliases `Login`/`Authn` ausentes no registro `contracts-v0.3.1`: pedir ao ECP.
+- Job de drift snapshot × ref do ECP (previsto no PLAN, W2b item 8) ainda não existe.
+- Ruído de formatação do compile em `.claude-plugin/marketplace.json` e `.codex-plugin/plugin.json`: o gerador não emite `\n` final
+  (`plugins-emit.js:115,121`); a saída não é commitada.
+- Espelho em `.agents/capabilities/` (4 arquivos) é efeito do compilador; limite de inventário do pacote em 1472 por decisão do owner.

@@ -149,3 +149,49 @@ Model preference selects an adapter/provider; it grants no kernel tool authority
 Advisory hooks inform. Approval requests pause for a decision. Only a denial enforced
 at the gateway or executor blocks an effect; a hook name or readiness label is not
 proof of enforcement. Missing engineering isolation prerequisites block execution.
+
+## Platform bindings
+
+`hseos init` asks how the project uses platform capabilities (`platform`, `hybrid` or `local`), and
+`hseos install` accepts the same choice through flags. The choice is recorded in
+`.hseos/config/platform-bindings.yaml` (ADR-0046). Nothing is written unless a mode or a binding is
+given explicitly.
+
+| Option                      | Effect                                                                                            |
+| --------------------------- | ------------------------------------------------------------------------------------------------- |
+| `--platform-mode <mode>`    | Records the mode. A mode weaker than the recorded one needs `--mode-ref`                          |
+| `--mode-ref <path>`         | Decision record under `docs/decisions/` that justifies a `local` or weaker mode                   |
+| `--platform-binding <spec>` | Override `<capability>=<outcome>:<ref>:<YYYY-MM-DD>`; repeat the flag, one binding per capability |
+
+`--platform-binding` without `--platform-mode` writes `mode: platform` explicitly when the project has
+no bindings file yet; an existing file keeps its mode. `hseos install-plan` accepts the same options and
+prints the document without writing it.
+
+`hseos platform-bindings show` prints the effective bindings. `check` validates the project file; with
+`--base <ref>` it compares against the mode recorded at that revision, `HEAD` by default.
+`sync --ref <tag> --ecp-root <checkout>` copies a tagged capability registry into the user cache and
+prints the user-layer snippet that uses it.
+
+### Modes and enforcement
+
+| Mode       | `capability-check`                                  | Intake guard                                                                                  |
+| ---------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `platform` | Resolves through the registry; `consume` or `extend` | Blocks a new shareable export without intake                                                  |
+| `hybrid`   | Same; advisory unless an implementation is `stable` | Blocks only a `match` hit whose implementation is `stable` for the project's stacks           |
+| `local`    | Informational                                       | Never blocks; requires `mode_ref`                                                             |
+
+A project without the bindings file (or with an invalid one) is treated as `platform`. Choosing `local`
+or any mode weaker than the one recorded at `HEAD` requires `--mode-ref` (a `.md` under
+`docs/decisions/` or `.enterprise/.specs/decisions/`). Overrides (`keep-local`, `exception`) need an
+`intake_ref`/`exception_ref` identifier that resolves in the repository and a future `expires` date.
+`.hseos/config/platform-bindings.yaml` is human-owned: the intake guard denies agent edits to it.
+
+`hseos capability-check <name> [--directory <path>] [--json]` resolves the query through the ECP
+registry (snapshot by default, a user-layer `ecp_root`/`registry` otherwise) by name, alias, package
+or contract, `match` hints and prefix; a filename scan is kept only as a `heuristic` fallback. The JSON
+output reports the effective mode and the layer it came from. Exit codes: 0 completed, 1 bindings or
+registry failed validation, 2 usage error.
+
+`hseos platform-bindings` exit codes: `show` 0 (1 if the registry fails its integrity check), `check`
+0/1 (violation)/2 (git or usage failure), `sync` 1 on error, `guard` 0 allow / 2 deny. The registry
+snapshot ships at `contracts-v0.3.1`; refresh it with `sync` and update the lock.

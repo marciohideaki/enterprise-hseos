@@ -141,6 +141,25 @@ pre-activation L0 surface: observed effect-bearing items fail closed.
 - Keep governed skill authority in `.enterprise/governance/agent-skills/`.
 - Do not duplicate skill content into capability manifests.
 
+## ECP Registry Snapshot and Platform Bindings
+
+- `ecp-registry.snapshot.json` is a byte copy of the ECP `catalog/capability-registry.json` at the tag
+  named in `ecp-registry.snapshot.lock.json` (`ref`, `contracts_version`, `sha256`). Loading fails
+  closed when the SHA-256 differs from the lock.
+- `platform-bindings.defaults.yaml` is the lowest-precedence layer (registry source `snapshot`). It
+  never sets a project's mode.
+- `schemas/platform-bindings.schema.json` validates the bindings layers: runtime defaults, the user
+  layer (`${XDG_CONFIG_HOME:-~/.config}/hseos/platform-bindings.yaml` or `HSEOS_PLATFORM_BINDINGS`),
+  the project file `.hseos/config/platform-bindings.yaml`, then flags.
+- Refresh the snapshot from a local ECP checkout, then update the lock `ref` and `sha256`:
+
+```bash
+hseos platform-bindings sync --ref contracts-v0.3.1 --ecp-root <ecp-checkout> \
+  --output .enterprise/governance/capabilities/ecp-registry.snapshot.json
+```
+
+See `docs/capabilities.md` (Platform bindings) and ADR-0046.
+
 ## Capability Graph Discovery
 
 The capability graph and discovery corpus are distinct governance surfaces:

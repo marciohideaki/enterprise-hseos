@@ -11,16 +11,16 @@ handlers_dir: .agents/hooks/handlers
 hooks:
   - id: pretooluse-write-edit-capability-intake-guard
     event: PreToolUse
-    matcher: Write|Edit
+    matcher: Write|Edit|MultiEdit
     type: command
     command: bash .agents/hooks/handlers/capability-intake-guard.sh
     timeout: 5
     blocking: true
     status: active
-    description: Require a valid capability-reuse intake before a qualifying exported capability is introduced
+    description: Require a valid capability-reuse intake before a qualifying exported capability is introduced. With .hseos/config/platform-bindings.yaml the decision follows the project's platform mode (platform, hybrid, local) through `hseos platform-bindings guard`; the bindings file itself is human-owned and blocked for Write, Edit and MultiEdit (ADR-0046); writes through the Bash tool are not covered. Projects without bindings keep the legacy detection (see hooks/README.md, known gaps).
     platform_support:
       - claude-code
-    fallback: Run `hseos capability-check <symbol|file>` in Codex and CI where no native PreToolUse adapter exists.
+    fallback: Run `hseos capability-check <symbol|file>` in Codex and CI where no native PreToolUse adapter exists. When the CLI or node is unavailable the hook applies the platform decision, so a bindings file never makes a host less strict.
   - id: pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global
     event: PreToolUse
     matcher: Agent

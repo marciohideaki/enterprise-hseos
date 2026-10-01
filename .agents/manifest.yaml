@@ -5,6 +5,8 @@ adapters:
   claude_code:
     entrypoint: CLAUDE.md
     hooks: .claude/hooks.json
+    skills: .claude/skills
+    agents: .claude/agents
   codex:
     entrypoint: AGENTS.md
     skills: .agents/skills
@@ -86,7 +88,7 @@ skills:
     source: .enterprise/governance/agent-skills/capability-check/SKILL.md
     quick: .enterprise/governance/agent-skills/capability-check/SKILL-QUICK.md
     output: .agents/skills/capability-check/SKILL.md
-    hash: 77468b740e86c447d5c822ddd01c4bc263a3cc29259e9dae43b4f90f99f88b9b
+    hash: 0af45019acbfb14fc5d35df21fe88f9c15ae71637b4d778c190b5855600a3251
   - name: commit-hygiene
     source: .enterprise/governance/agent-skills/commit-hygiene/SKILL.md
     quick: .enterprise/governance/agent-skills/commit-hygiene/SKILL-QUICK.md
@@ -151,7 +153,7 @@ skills:
     source: .enterprise/governance/agent-skills/gitops-new-project/SKILL.md
     quick: .enterprise/governance/agent-skills/gitops-new-project/SKILL-QUICK.md
     output: .agents/skills/gitops-new-project/SKILL.md
-    hash: af67d5483b6b102c5556d08cf8539d62184930566b7deb258c5b7b0ea5bbc6b7
+    hash: 9ffed055336a0d06e49a69948794b9e42318597902980a06d13a2da6d0bf546f
   - name: goal-graph
     source: .enterprise/governance/agent-skills/goal-graph/SKILL.md
     quick: .enterprise/governance/agent-skills/goal-graph/SKILL-QUICK.md
@@ -295,7 +297,7 @@ skills:
 hooks:
   - id: pretooluse-write-edit-capability-intake-guard
     event: PreToolUse
-    matcher: Write|Edit
+    matcher: Write|Edit|MultiEdit
     platform_support:
       - claude-code
   - id: pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global
@@ -558,7 +560,7 @@ handlers:
     sha256: a0eba699e3f0a61a8de38694d3fcb0c93013769f7304115e1ddb7465ed94577d
   - file: .agents/hooks/handlers/capability-intake-guard.sh
     source: .enterprise/governance/hooks/handlers/capability-intake-guard.sh
-    sha256: ae6922f3976de508c5a8c44018d17a9833b0bf5c805551b9eb615c0606f216df
+    sha256: 616768a0dbf5b839cea29286dda2364ff195c56f7131e25969054a5223e86626
   - file: .agents/hooks/handlers/claude-md-guard.sh
     source: .enterprise/governance/hooks/handlers/claude-md-guard.sh
     sha256: fb0b8631bb316c43702ff652f32ed87e80c9eff24cb27c117517d4a22848a6dc

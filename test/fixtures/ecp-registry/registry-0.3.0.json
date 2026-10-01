@@ -1,0 +1,1620 @@
+{
+  "capabilities": [
+    {
+      "aliases": [],
+      "files": [
+        {
+          "path": "capabilities/auth.authenticate/asyncapi.yaml",
+          "role": "interface",
+          "sha256": "fb0f1a7ba14f99797538bacf97eeec70a9b641d8fdb7153c2b11c88f98beb7c3"
+        },
+        {
+          "path": "capabilities/auth.authenticate/capability.yaml",
+          "role": "contract",
+          "sha256": "f203d8b35d4496091095e19871c3c212bb5bc3a1f18c8f293da313690abec13e"
+        },
+        {
+          "path": "capabilities/auth.authenticate/conformance/invalid/input-missing-required.json",
+          "role": "conformance-invalid",
+          "sha256": "5e853fb05f065709a66a607b1d3bf1ef7276864483c5267ea018d730a4a419fd"
+        },
+        {
+          "path": "capabilities/auth.authenticate/conformance/invalid/output-wrong-type.json",
+          "role": "conformance-invalid",
+          "sha256": "e757add1ab9d7c83f161c58e8879b8031e8d0da5beb7d7011771b82959c67bad"
+        },
+        {
+          "path": "capabilities/auth.authenticate/conformance/valid/input-example.json",
+          "role": "conformance-valid",
+          "sha256": "b797a12ad21e92eb1a267eecf0638b451f2f952c184c19d79d6aacbc983379dc"
+        },
+        {
+          "path": "capabilities/auth.authenticate/conformance/valid/output-example.json",
+          "role": "conformance-valid",
+          "sha256": "eddf55e781244734acb2dcc21cc6d2d4b2c289a64964a13e0f9c8f8c4f76ffa4"
+        },
+        {
+          "path": "capabilities/auth.authenticate/examples/request.json",
+          "role": "example",
+          "sha256": "713ca228c9773c5b99e6114e8a261f261edcdd556a3ca4821410d72edf9ee297"
+        },
+        {
+          "path": "capabilities/auth.authenticate/examples/response.json",
+          "role": "example",
+          "sha256": "2fc9028dd384f4d66067dab9ffa614fb5956d77a2d2f6168c5366a720df4a41a"
+        },
+        {
+          "path": "capabilities/auth.authenticate/implementations.json",
+          "role": "implementations",
+          "sha256": "55339a9e18623696c19d4223758eac0773cc8ce2824f9f40a5cdf5dd5abfd4d0"
+        },
+        {
+          "path": "capabilities/auth.authenticate/mcp.manifest.json",
+          "role": "interface",
+          "sha256": "2dcec2622e8da01abf11e66301f5e88847dd0ff530aa200c1112e4935606609f"
+        },
+        {
+          "path": "capabilities/auth.authenticate/openapi.yaml",
+          "role": "interface",
+          "sha256": "7d9032df3f53c4432c2cabf0a43eaef0b8916ad1421c8a74ecf1672c05304edc"
+        },
+        {
+          "path": "capabilities/auth.authenticate/policy.toml",
+          "role": "policy",
+          "sha256": "6bc0d738c1fae7a25083b70aba038c48d0d286261a3089ecefd89f8d651f3c1a"
+        },
+        {
+          "path": "capabilities/auth.authenticate/providers.toml",
+          "role": "policy",
+          "sha256": "91cc4286d7e6a2219c3e4fae16910b5db3346b9532315cf5b44daad22bb7c6bb"
+        },
+        {
+          "path": "capabilities/auth.authenticate/schema.input.json",
+          "role": "schema",
+          "sha256": "5e0329b10e231471936062aa4c3e7ebf6fc63e2126e31ab6b1818dd4d772a68a"
+        },
+        {
+          "path": "capabilities/auth.authenticate/schema.output.json",
+          "role": "schema",
+          "sha256": "a3f78f536590d3b66114280fae4a768532e347340dfacec3d9af1c798f76cc9f"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "runtime",
+          "package": "ecp_runtime",
+          "path": "runtimes/python",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp_client",
+          "path": "sdks/python/ecp_client.py",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp-client",
+          "path": "sdks/typescript/ecp-client.ts",
+          "stack": "typescript",
+          "status": "experimental"
+        }
+      ],
+      "kind": "service",
+      "name": "auth.authenticate",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "providers": [
+        "noop",
+        "local",
+        "oauth2",
+        "oidc",
+        "google_oauth",
+        "microsoft_oauth"
+      ],
+      "related_capabilities": [
+        "audit.record",
+        "telemetry.publish",
+        "security.authn"
+      ],
+      "stability": "experimental",
+      "summary": "Authenticate an actor for a tenant through an approved identity provider.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
+        "cache"
+      ],
+      "files": [
+        {
+          "path": "capabilities/cache.typed/README.md",
+          "role": "specification",
+          "sha256": "31ca8fc6e1e0455ffd6e10b1334ebb9876bc51c604e6762c0ee1e6b1914faad1"
+        },
+        {
+          "path": "capabilities/cache.typed/capability.yaml",
+          "role": "contract",
+          "sha256": "e12f1b68d396db6f182195df0a398a0b9a93075369d2d1ab8aea8e9f218d38b7"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/invalid/cache-entry-options.01.json",
+          "role": "conformance-invalid",
+          "sha256": "185cbfdfe8279977276f27a3d7390c6824df0e2dc49dd86fdd6fc487aaeef82b"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/invalid/cache-entry-options.02.json",
+          "role": "conformance-invalid",
+          "sha256": "925b4a387644dbe4a1f76c2eaa80a560dcb42b320e62b2dc7eee5b1b6cc402b9"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/invalid/cache-entry-options.03.json",
+          "role": "conformance-invalid",
+          "sha256": "883a0673c858ce8adde35b3762208da2430a8c03cdfd0f6c5ed77101becb2afc"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/invalid/cache-key.01.json",
+          "role": "conformance-invalid",
+          "sha256": "35150070549922d5610c1eb7402ae37b0b5fb4458d8bdd4806b1e785e7977c7d"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/invalid/cache-key.02.json",
+          "role": "conformance-invalid",
+          "sha256": "5a6d8f443afbe3fb6faa6b621115f0dcbddc38067f498b47bf61f434f4620193"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/invalid/cache-key.03.json",
+          "role": "conformance-invalid",
+          "sha256": "8c93fec327fabaefa617c09f4303368d0ab05f0047befad80cffa8988cb46caa"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/invalid/cache-key.04.json",
+          "role": "conformance-invalid",
+          "sha256": "dfe91ef9d4208244a079d3cc42f381ab5093535dfb0918089f4647022d9be2e1"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/invalid/cache-key.05.json",
+          "role": "conformance-invalid",
+          "sha256": "3170fb2c9dcff827a07e25125e197f87485f1bd98f426e8124ec4f5c350eb27c"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/invalid/cache-read-result.01.json",
+          "role": "conformance-invalid",
+          "sha256": "200793465c44849537866efb8a21c5cdfc0d7d000e8572cba9a602fb3e43f99d"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/invalid/cache-read-result.02.json",
+          "role": "conformance-invalid",
+          "sha256": "1f3dd52383771ea64360041b934ff4ac4446a9a79b7abe280aa1be71d6bcfc3b"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/invalid/cache-read-result.03.json",
+          "role": "conformance-invalid",
+          "sha256": "d2c215605368b5e592393bdb9f13b75bf15f87f0fe51976759dfe1a996d3bd7f"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/invalid/cache-read-result.04.json",
+          "role": "conformance-invalid",
+          "sha256": "df01e3b3d874620b8cb54696ba9e59654b2bffe52dff6ca29e5c3111d262287c"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/invalid/cache-write-result.01.json",
+          "role": "conformance-invalid",
+          "sha256": "d0be5877f4056dec933f3d8e20bac4f5fea197aca5f96516f15a4e8efcab572b"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/invalid/cache-write-result.02.json",
+          "role": "conformance-invalid",
+          "sha256": "e2b05d8bf18c1657324b63b9791819b1c62a1e686775f979d7421f9892a2948e"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/valid/cache-entry-options.01.json",
+          "role": "conformance-valid",
+          "sha256": "462084539ca604fb49b5c7e6f7c03d15284bc6b630a3b0c9637b84d4df710e36"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/valid/cache-entry-options.02.json",
+          "role": "conformance-valid",
+          "sha256": "fc1e748b2b9da275e6390929614633df84c90a77f4891c40d8d7ba7407e437cb"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/valid/cache-key.01.json",
+          "role": "conformance-valid",
+          "sha256": "1d80bf0e6ce3069ede75aed8bf87dabef7136f30d96b64dfb374016541015c30"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/valid/cache-key.02.json",
+          "role": "conformance-valid",
+          "sha256": "9f12f8d0caebdb0b41346bc029dd58520ff477a46f2769afb698a4d6983ae5b3"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/valid/cache-read-result.01.json",
+          "role": "conformance-valid",
+          "sha256": "e18638aa31240d60d64a414aca0d03f695494c07a3d206f9b01b50775640df41"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/valid/cache-read-result.02.json",
+          "role": "conformance-valid",
+          "sha256": "8c278324dcb2c16adde8ccc05e1d0ba318b62611e6284489ceb2cdb6af846a2c"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/valid/cache-read-result.03.json",
+          "role": "conformance-valid",
+          "sha256": "f5845a5852150ad745b63d787ccf1ac1317cd75c4b188b20f158cc5e66a7b26f"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/valid/cache-write-result.01.json",
+          "role": "conformance-valid",
+          "sha256": "2e24af9c0ce282240d9d825080929eeb0df2ad550a0dba690ea8a559e2d10ce8"
+        },
+        {
+          "path": "capabilities/cache.typed/conformance/valid/cache-write-result.02.json",
+          "role": "conformance-valid",
+          "sha256": "83980a3621a49126bf7099db36da4725a2d8d1c279cc59146316e6b6f22a24ef"
+        },
+        {
+          "path": "capabilities/cache.typed/implementations.json",
+          "role": "implementations",
+          "sha256": "205c6c0e620a9005a48c290a1c74a5c085d790ca04ee2c5283b8a2a2676775e7"
+        },
+        {
+          "path": "capabilities/cache.typed/schema.cache-entry-options.json",
+          "role": "schema",
+          "sha256": "1ec73ab721583d2b48ac4e34d6f818eba29f45908608688dae5f582f30e83d7d"
+        },
+        {
+          "path": "capabilities/cache.typed/schema.cache-key.json",
+          "role": "schema",
+          "sha256": "be394f85254dbedcafe7c39e804da3ec160305d65b2c26df4e8a025a3cf3943e"
+        },
+        {
+          "path": "capabilities/cache.typed/schema.cache-read-result.json",
+          "role": "schema",
+          "sha256": "d4ce57b88a306e2f1c5bcb233507fb6b4da94df3af454504cb6e949f51cea964"
+        },
+        {
+          "path": "capabilities/cache.typed/schema.cache-write-result.json",
+          "role": "schema",
+          "sha256": "b9a66407c299ffb6a178fc5d295cd008f2fda056eb2709b2559c70b609bf6eb7"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Caching.Abstractions",
+          "package_version": "0.1.0",
+          "path": "dotnet/src/Hideakisolutions.Platform.Caching.Abstractions",
+          "repository": "Hideaki-Solutions-Core/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Caching.Redis",
+          "package_version": "0.2.1",
+          "path": "dotnet/src/Hideakisolutions.Platform.Caching.Redis",
+          "repository": "Hideaki-Solutions-Core/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "Hideakisolutions.Platform.Caching.Abstractions",
+          "Hideakisolutions.Platform.Caching.Redis"
+        ],
+        "symbols": [
+          "ICacheStore",
+          "ICacheKeyNormalizer",
+          "CacheKey",
+          "CacheEntryOptions",
+          "CacheRead",
+          "PlatformCacheKeyNormalizer"
+        ]
+      },
+      "name": "cache.typed",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Provider-neutral typed cache with governed key namespaces, mandatory TTL and explicit availability outcomes.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "files": [
+        {
+          "path": "capabilities/calendar.event.create/asyncapi.yaml",
+          "role": "interface",
+          "sha256": "fd2d5422793b36d70c21e841020846578baea2ac6a320f3036eeec0682cf7c0f"
+        },
+        {
+          "path": "capabilities/calendar.event.create/capability.yaml",
+          "role": "contract",
+          "sha256": "e9b76dbf5fd2aa735c7c01a6e79b90c687e3d4266736f951449a736624ae74f8"
+        },
+        {
+          "path": "capabilities/calendar.event.create/conformance/invalid/input-missing-required.json",
+          "role": "conformance-invalid",
+          "sha256": "64d9afa613481a5a3ebdf06f71ddf6c73c6f0d988b7219eee55cd9561d905345"
+        },
+        {
+          "path": "capabilities/calendar.event.create/conformance/invalid/output-wrong-type.json",
+          "role": "conformance-invalid",
+          "sha256": "cce6f205a9fe7395fb6fab623ffea56d663be85e45789ff809835287fc72c94b"
+        },
+        {
+          "path": "capabilities/calendar.event.create/conformance/valid/input-example.json",
+          "role": "conformance-valid",
+          "sha256": "644403b2ecef1e4d1bc9dfa4fa068a8910473a23e8ef47ec26e46193ebb0f723"
+        },
+        {
+          "path": "capabilities/calendar.event.create/conformance/valid/output-example.json",
+          "role": "conformance-valid",
+          "sha256": "2aa2b73a44fd704dd380df60887f1dfefab17b9d337f7d82a534308bac89e6c8"
+        },
+        {
+          "path": "capabilities/calendar.event.create/examples/request.json",
+          "role": "example",
+          "sha256": "85cd121644f97a0236adb218def82e754c093ff6bdbbe148b20f4b14e127d96b"
+        },
+        {
+          "path": "capabilities/calendar.event.create/examples/response.json",
+          "role": "example",
+          "sha256": "8ebb53275016f8f705f64bea3b73fb0949f104bc7891975802a691501f6e4475"
+        },
+        {
+          "path": "capabilities/calendar.event.create/implementations.json",
+          "role": "implementations",
+          "sha256": "3fa4b79f7171211d926bfe46da8429a2faeb47522965077ecc190db73cd00d50"
+        },
+        {
+          "path": "capabilities/calendar.event.create/mcp.manifest.json",
+          "role": "interface",
+          "sha256": "ae6a12d86ff1bd2a172be66daf848ce267cfbc46142fa37e2b40b637f38417fe"
+        },
+        {
+          "path": "capabilities/calendar.event.create/openapi.yaml",
+          "role": "interface",
+          "sha256": "344d4a6517ef0f8630a850a79b54db8f1f23ded34918624ef63662def6c48a60"
+        },
+        {
+          "path": "capabilities/calendar.event.create/policy.toml",
+          "role": "policy",
+          "sha256": "6126ee06f3c60a97cec1ed519e430f636d90bd8f9a19a79caefa5de453f4cc04"
+        },
+        {
+          "path": "capabilities/calendar.event.create/providers.toml",
+          "role": "policy",
+          "sha256": "a9ebbea9ee9592d06e740a57f1b7dc078b7392df7fc7c4ebc9d79be69fba24d1"
+        },
+        {
+          "path": "capabilities/calendar.event.create/schema.input.json",
+          "role": "schema",
+          "sha256": "8d4d8faf8ad9f919a3c976a2bb1005edd8ac15f40f24ce1ca3498504ef8c3a1d"
+        },
+        {
+          "path": "capabilities/calendar.event.create/schema.output.json",
+          "role": "schema",
+          "sha256": "f655a7b056814b9d7383fc0491bb038fdecf37d461ddd1df6b853c52d648f530"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "runtime",
+          "package": "ecp_runtime",
+          "path": "runtimes/python",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp_client",
+          "path": "sdks/python/ecp_client.py",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp-client",
+          "path": "sdks/typescript/ecp-client.ts",
+          "stack": "typescript",
+          "status": "experimental"
+        }
+      ],
+      "kind": "service",
+      "name": "calendar.event.create",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "providers": [
+        "noop",
+        "google_calendar"
+      ],
+      "related_capabilities": [
+        "auth.authenticate",
+        "audit.record",
+        "telemetry.publish",
+        "workflow.execute"
+      ],
+      "stability": "experimental",
+      "summary": "Create a governed calendar event through an approved provider adapter.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "files": [
+        {
+          "path": "capabilities/data.query/asyncapi.yaml",
+          "role": "interface",
+          "sha256": "0637a15f1a1b7f289e9b019b9d87c0fc5542ac261f300d698600f9ed4804fab5"
+        },
+        {
+          "path": "capabilities/data.query/capability.yaml",
+          "role": "contract",
+          "sha256": "1ba6d903d696da8712768c6759d442176d2b7b2085694f49bf3c1667d9e29010"
+        },
+        {
+          "path": "capabilities/data.query/conformance/invalid/input-missing-required.json",
+          "role": "conformance-invalid",
+          "sha256": "1c18b8c86e9eb62ea1bd4534e44968437c4d51b7a3ecc7ca678333e4c66133c6"
+        },
+        {
+          "path": "capabilities/data.query/conformance/invalid/output-wrong-type.json",
+          "role": "conformance-invalid",
+          "sha256": "7c4ec98bf3e89f11a1ba6e2ef3262dafa56e51017fb6c8e29680a10eea5aa6be"
+        },
+        {
+          "path": "capabilities/data.query/conformance/valid/input-example.json",
+          "role": "conformance-valid",
+          "sha256": "a637b429f89d4c8eced0988de32ad61b6af49756b3c6119bcdcfd964fa5448e1"
+        },
+        {
+          "path": "capabilities/data.query/conformance/valid/output-example.json",
+          "role": "conformance-valid",
+          "sha256": "585f8e3d8211da1bbdb9d3075ccf46e86bb323b43f1796dff7baf801d4f6c0c3"
+        },
+        {
+          "path": "capabilities/data.query/examples/request.json",
+          "role": "example",
+          "sha256": "7e4f2f22335f4c818591db8e410d2aaa21cb012b7b22256e9d5bdf178d545424"
+        },
+        {
+          "path": "capabilities/data.query/examples/response.json",
+          "role": "example",
+          "sha256": "a4cf623e32d8d0ee8541dc310f25951b51b2a5d92bfdb608c34d14d75cf56335"
+        },
+        {
+          "path": "capabilities/data.query/implementations.json",
+          "role": "implementations",
+          "sha256": "898698a3328a761ad651281c2afa6a9768402c663625445e30439d4f4beacfc6"
+        },
+        {
+          "path": "capabilities/data.query/mcp.manifest.json",
+          "role": "interface",
+          "sha256": "82751d124abb9cbc4a875fffcc79991869456196c3229a06d103a005a1512b2c"
+        },
+        {
+          "path": "capabilities/data.query/openapi.yaml",
+          "role": "interface",
+          "sha256": "85ec9c9079f7ca74ce308da00845be7436cffa624cf7efd9381474363190cff9"
+        },
+        {
+          "path": "capabilities/data.query/policy.toml",
+          "role": "policy",
+          "sha256": "279fe6054a31ab0331b3fd84aed9a58701412c0593cd289bc715dc6a92c33807"
+        },
+        {
+          "path": "capabilities/data.query/providers.toml",
+          "role": "policy",
+          "sha256": "5774d234e471786178e95921c07403e93b3b28d59ecb06a2a6ecae45a6f45091"
+        },
+        {
+          "path": "capabilities/data.query/schema.input.json",
+          "role": "schema",
+          "sha256": "badf0c12568e262628ba997c7af33e1a261af09409f8ce1b37fd3a22d1fd1c87"
+        },
+        {
+          "path": "capabilities/data.query/schema.output.json",
+          "role": "schema",
+          "sha256": "b57163364ec40cf86d6852ff39ea4ce8657908977570ad48d50c1aa1a51ca650"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "runtime",
+          "package": "ecp_runtime",
+          "path": "runtimes/python",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp_client",
+          "path": "sdks/python/ecp_client.py",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp-client",
+          "path": "sdks/typescript/ecp-client.ts",
+          "stack": "typescript",
+          "status": "experimental"
+        }
+      ],
+      "kind": "service",
+      "name": "data.query",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "providers": [
+        "noop",
+        "postgres",
+        "sqlite",
+        "supabase"
+      ],
+      "related_capabilities": [
+        "audit.record",
+        "telemetry.publish"
+      ],
+      "stability": "experimental",
+      "summary": "Execute governed read-only data queries through approved data provider adapters.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "files": [
+        {
+          "path": "capabilities/drive.file.upload/asyncapi.yaml",
+          "role": "interface",
+          "sha256": "e230537690754e00897bd1014e79674f13f649565db60da9887a39d40b88eaaf"
+        },
+        {
+          "path": "capabilities/drive.file.upload/capability.yaml",
+          "role": "contract",
+          "sha256": "c301901c44944fb4749d3426eb6b38b278224aa07e8d82a865064a580ee61f26"
+        },
+        {
+          "path": "capabilities/drive.file.upload/conformance/invalid/input-missing-required.json",
+          "role": "conformance-invalid",
+          "sha256": "d151d7b69bfaa9053336fdec12a511fcbd3a1a6b367fbb250c2aed349525e8fc"
+        },
+        {
+          "path": "capabilities/drive.file.upload/conformance/invalid/output-wrong-type.json",
+          "role": "conformance-invalid",
+          "sha256": "cbe632de8c73b177e076e03526d3603e75c4fe4e72c8716f8dfefc22b1255d0d"
+        },
+        {
+          "path": "capabilities/drive.file.upload/conformance/valid/input-example.json",
+          "role": "conformance-valid",
+          "sha256": "c0cea02424ae0357a11d802032101f9ed96723a7f178d09d8e1cc28ad6f025e0"
+        },
+        {
+          "path": "capabilities/drive.file.upload/conformance/valid/output-example.json",
+          "role": "conformance-valid",
+          "sha256": "1a6bac7e9dca3699f9835fea88a1f63faac1e23f99f4639c0710fb36ba863e60"
+        },
+        {
+          "path": "capabilities/drive.file.upload/examples/request.json",
+          "role": "example",
+          "sha256": "1d38aacd98d7eb599b54448aea25197fd854574e5c341caa2191e74ab1a31743"
+        },
+        {
+          "path": "capabilities/drive.file.upload/examples/response.json",
+          "role": "example",
+          "sha256": "1434b5efd6fc940f63ae61ef46e983154a86890d37e39142d6b2c4fbd2d8c9a4"
+        },
+        {
+          "path": "capabilities/drive.file.upload/implementations.json",
+          "role": "implementations",
+          "sha256": "e5ef1d3ebc2cd04ad216eec71a079f2839dbce836404448f50d12c3fa99727ac"
+        },
+        {
+          "path": "capabilities/drive.file.upload/mcp.manifest.json",
+          "role": "interface",
+          "sha256": "7968d152cb4f56a38bf5df40a92c6350dc35ebe128030fb58af2732bfcf6f13c"
+        },
+        {
+          "path": "capabilities/drive.file.upload/openapi.yaml",
+          "role": "interface",
+          "sha256": "42a9d8831d8d1cd0767613615a66323a0d625a84931b8912bf3b0768d1500dcd"
+        },
+        {
+          "path": "capabilities/drive.file.upload/policy.toml",
+          "role": "policy",
+          "sha256": "5c411d24509b6655f30f8faf5cc5cca2e1f2ce811fa73f8679a905f6d137191a"
+        },
+        {
+          "path": "capabilities/drive.file.upload/providers.toml",
+          "role": "policy",
+          "sha256": "75f4b0555e6751106d9a8c1aa46f8e0836fb5915fa45e2cea39b6fe908e9a9f4"
+        },
+        {
+          "path": "capabilities/drive.file.upload/schema.input.json",
+          "role": "schema",
+          "sha256": "572f072e690aef0a050b6af136ffe1c6527e69941f8c642508e62212df408df7"
+        },
+        {
+          "path": "capabilities/drive.file.upload/schema.output.json",
+          "role": "schema",
+          "sha256": "cd5588672af4efe6e9a91fe6edf7565875ea9d94ad77679d77b3c6f6c6378de0"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "runtime",
+          "package": "ecp_runtime",
+          "path": "runtimes/python",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp_client",
+          "path": "sdks/python/ecp_client.py",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp-client",
+          "path": "sdks/typescript/ecp-client.ts",
+          "stack": "typescript",
+          "status": "experimental"
+        }
+      ],
+      "kind": "service",
+      "name": "drive.file.upload",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "providers": [
+        "noop",
+        "google_drive"
+      ],
+      "related_capabilities": [
+        "auth.authenticate",
+        "audit.record",
+        "telemetry.publish",
+        "workflow.execute"
+      ],
+      "stability": "experimental",
+      "summary": "Upload a governed file through an approved drive provider adapter.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "files": [
+        {
+          "path": "capabilities/llm.generate/asyncapi.yaml",
+          "role": "interface",
+          "sha256": "5ada811a247cd719b29bb67e43890244f291d561b16e330c6013f39d92b9a165"
+        },
+        {
+          "path": "capabilities/llm.generate/capability.yaml",
+          "role": "contract",
+          "sha256": "953f08167f8de4c3fc5ec8c06fe0c2fb8ecbea8fba64472455d3ee4bd0eebc76"
+        },
+        {
+          "path": "capabilities/llm.generate/conformance/invalid/input-missing-required.json",
+          "role": "conformance-invalid",
+          "sha256": "b377bbae532ca612fee703879179a64d85f1f3ff050f184355fbbc26e39bfab0"
+        },
+        {
+          "path": "capabilities/llm.generate/conformance/invalid/output-wrong-type.json",
+          "role": "conformance-invalid",
+          "sha256": "c6c8472941def744d495fa3589e54dc230bccf3b68889bb5ef2f36887ec6889c"
+        },
+        {
+          "path": "capabilities/llm.generate/conformance/valid/input-example.json",
+          "role": "conformance-valid",
+          "sha256": "a3a382c51de7cbe38f9c877f73fe22d4515d8cbbc3a6ae95ac5e92936404fda4"
+        },
+        {
+          "path": "capabilities/llm.generate/conformance/valid/output-example.json",
+          "role": "conformance-valid",
+          "sha256": "12d07eaecae16ad01c3273a4df1ea8001e49af3cb7975320923bdcbcc42035f5"
+        },
+        {
+          "path": "capabilities/llm.generate/examples/request.json",
+          "role": "example",
+          "sha256": "c44b7c9e8744d1bc2e6d1ee51f8e3620031b2693aafa78bcc526a4ad9c99a356"
+        },
+        {
+          "path": "capabilities/llm.generate/examples/response.json",
+          "role": "example",
+          "sha256": "8f5c27c9a5bdca1cf733c3b04a5e142d419d53d0c2ff4ee1d9a1141b71473416"
+        },
+        {
+          "path": "capabilities/llm.generate/implementations.json",
+          "role": "implementations",
+          "sha256": "eb5118b2cf16f4c165dde53665e1fb26a530487b7aa2fb06793939991910527a"
+        },
+        {
+          "path": "capabilities/llm.generate/mcp.manifest.json",
+          "role": "interface",
+          "sha256": "470784a5d2626d3eb3129b84cb508d201294a11eb95403eac73db4608221b74f"
+        },
+        {
+          "path": "capabilities/llm.generate/openapi.yaml",
+          "role": "interface",
+          "sha256": "446cbac027f509aa89251b6686dc0770df55c32fbea22836356b6d36299cfb52"
+        },
+        {
+          "path": "capabilities/llm.generate/policy.toml",
+          "role": "policy",
+          "sha256": "660d5ffcd8ec69958c70f5dda2836299049e99638291a33824c58e7d4156d1a0"
+        },
+        {
+          "path": "capabilities/llm.generate/providers.toml",
+          "role": "policy",
+          "sha256": "373b9503528fa706ca67d42eeddb7889263d342f2adbbbce850495ce26492be9"
+        },
+        {
+          "path": "capabilities/llm.generate/schema.input.json",
+          "role": "schema",
+          "sha256": "b6771249b7e69acf6985f3b0be60ec4ef629ee9a65f452d0325b6087005bfd80"
+        },
+        {
+          "path": "capabilities/llm.generate/schema.output.json",
+          "role": "schema",
+          "sha256": "e51b1c4591fdf81c0a88c8aac079946c662ba8d21b0849d32e1b73619f852d3a"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "runtime",
+          "package": "ecp_runtime",
+          "path": "runtimes/python",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp_client",
+          "path": "sdks/python/ecp_client.py",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp-client",
+          "path": "sdks/typescript/ecp-client.ts",
+          "stack": "typescript",
+          "status": "experimental"
+        }
+      ],
+      "kind": "service",
+      "name": "llm.generate",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "providers": [
+        "noop",
+        "openai",
+        "anthropic",
+        "ollama"
+      ],
+      "related_capabilities": [
+        "audit.record",
+        "telemetry.publish",
+        "mcp.invoke"
+      ],
+      "stability": "experimental",
+      "summary": "Generate model output through governed LLM provider adapters.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "files": [
+        {
+          "path": "capabilities/mcp.invoke/asyncapi.yaml",
+          "role": "interface",
+          "sha256": "96b56f769e609b520c4df5d3acfe1322aa245183fbd7c43cdb68646274adb2a2"
+        },
+        {
+          "path": "capabilities/mcp.invoke/capability.yaml",
+          "role": "contract",
+          "sha256": "a4669149e8bf8ba47b31ab59e6e2d2bdd47f7c9ecd15397f70b40a1ab5f66560"
+        },
+        {
+          "path": "capabilities/mcp.invoke/conformance/invalid/input-missing-required.json",
+          "role": "conformance-invalid",
+          "sha256": "2afc3a537b255415945c80f9308b36576c4e4f60b02218171e3350f54a8b07d5"
+        },
+        {
+          "path": "capabilities/mcp.invoke/conformance/invalid/output-wrong-type.json",
+          "role": "conformance-invalid",
+          "sha256": "964a0f0979cd4b6bab1e60e673d9e23e271ccace835bc51753e2744299d417fc"
+        },
+        {
+          "path": "capabilities/mcp.invoke/conformance/valid/input-example.json",
+          "role": "conformance-valid",
+          "sha256": "c16bafddc52e12e0b26d76ea1faabe5d81afac5c6388d95192c9756d71496548"
+        },
+        {
+          "path": "capabilities/mcp.invoke/conformance/valid/output-example.json",
+          "role": "conformance-valid",
+          "sha256": "0c25a1edc4e3c0f5ca3d68d9bc952b738ac2bbe2be30478560b73dc45778d741"
+        },
+        {
+          "path": "capabilities/mcp.invoke/examples/request.json",
+          "role": "example",
+          "sha256": "fc3c7d4bdeba6ab215cb770448aa90b57027912344f01edfe1f5dc05470f8838"
+        },
+        {
+          "path": "capabilities/mcp.invoke/examples/response.json",
+          "role": "example",
+          "sha256": "dfd3ece837dcf0ac8fc174c48db5d006ceecd86098027ee4a083d5bc90543485"
+        },
+        {
+          "path": "capabilities/mcp.invoke/implementations.json",
+          "role": "implementations",
+          "sha256": "592431dda7c13de7702a333ef1232b695e81fdefa7391ff2e253d96e3de59166"
+        },
+        {
+          "path": "capabilities/mcp.invoke/mcp.manifest.json",
+          "role": "interface",
+          "sha256": "8c64fede6ac5a04f12fab2ccd58ca7bea32deb2f1f69c1dcf4a416be1e940505"
+        },
+        {
+          "path": "capabilities/mcp.invoke/openapi.yaml",
+          "role": "interface",
+          "sha256": "7c37ece33a278ecf4cbd6e95e1e130d7fdfdd0a7fe16bb8d43172cbc5f5c2a36"
+        },
+        {
+          "path": "capabilities/mcp.invoke/policy.toml",
+          "role": "policy",
+          "sha256": "6204c632402c9f8a71ca7567550d575abcb5edc759ace8ed3045113d75cda9ff"
+        },
+        {
+          "path": "capabilities/mcp.invoke/providers.toml",
+          "role": "policy",
+          "sha256": "6bf32a9d8787954c9e4635ea6b7d549c4382d9f8f7b7d3c8b84fb47df632c424"
+        },
+        {
+          "path": "capabilities/mcp.invoke/schema.input.json",
+          "role": "schema",
+          "sha256": "4ca613f1093cb4e628194fa52bae15af6e3b08205d085edcbfb168e057be3016"
+        },
+        {
+          "path": "capabilities/mcp.invoke/schema.output.json",
+          "role": "schema",
+          "sha256": "c01bdc962ac216596a5b948f35dcf521742b36de1bb9a361391cf1b2d42aca66"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "runtime",
+          "package": "ecp_runtime",
+          "path": "runtimes/python",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp_client",
+          "path": "sdks/python/ecp_client.py",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp-client",
+          "path": "sdks/typescript/ecp-client.ts",
+          "stack": "typescript",
+          "status": "experimental"
+        }
+      ],
+      "kind": "service",
+      "name": "mcp.invoke",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "providers": [
+        "noop",
+        "internal_mcp",
+        "remote_mcp"
+      ],
+      "related_capabilities": [
+        "audit.record",
+        "telemetry.publish",
+        "llm.generate"
+      ],
+      "stability": "experimental",
+      "summary": "Invoke an MCP tool through the governed Capability Gateway without duplicating tool logic.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
+        "platform-core/messaging/event-envelope"
+      ],
+      "files": [
+        {
+          "path": "capabilities/messaging.event-envelope/README.md",
+          "role": "specification",
+          "sha256": "cb72ffe77fe053f87aeeeae441bb940d97f321747ccee3732888367f88af8d38"
+        },
+        {
+          "path": "capabilities/messaging.event-envelope/capability.yaml",
+          "role": "contract",
+          "sha256": "090292939cff520e1d8cf1c8c7320eab8f6a1163139bbf643caf05f32193cbc0"
+        },
+        {
+          "path": "capabilities/messaging.event-envelope/conformance/invalid/event-envelope.01.json",
+          "role": "conformance-invalid",
+          "sha256": "3bf62a71b7997d9e8ec3ba2aa969d687a623f336b7a563388e2d049a8c9dcb7a"
+        },
+        {
+          "path": "capabilities/messaging.event-envelope/conformance/invalid/event-envelope.02.json",
+          "role": "conformance-invalid",
+          "sha256": "0bd4d37e2914e1a0665707c5523c46ad99c51815d4deaf2c56d97cf2895f951a"
+        },
+        {
+          "path": "capabilities/messaging.event-envelope/conformance/invalid/event-envelope.03.json",
+          "role": "conformance-invalid",
+          "sha256": "9f1658563f26c178304e80dc02641586ed0d43cae16bb1615e1659ea87e149e7"
+        },
+        {
+          "path": "capabilities/messaging.event-envelope/conformance/invalid/event-envelope.04.json",
+          "role": "conformance-invalid",
+          "sha256": "49fa1a76915c83ff11f28f8a8fc59254b15428b7af6fbfbd0b9398c1518babb8"
+        },
+        {
+          "path": "capabilities/messaging.event-envelope/conformance/invalid/event-envelope.05.json",
+          "role": "conformance-invalid",
+          "sha256": "b8984f1b83a8b923252feca4d0df4266ac1fadbb445f27380814ac35e8f66b23"
+        },
+        {
+          "path": "capabilities/messaging.event-envelope/conformance/valid/event-envelope.01.json",
+          "role": "conformance-valid",
+          "sha256": "d16f9d36e77f0a9f773e4e8b95ab52fd34e0a48995228bf3215fb584c9649a95"
+        },
+        {
+          "path": "capabilities/messaging.event-envelope/conformance/valid/event-envelope.02.json",
+          "role": "conformance-valid",
+          "sha256": "b720a6bdda4b061f4ad684cd156406dda1d4218b6096c36ccc9af542016b8b12"
+        },
+        {
+          "path": "capabilities/messaging.event-envelope/conformance/valid/event-envelope.03.json",
+          "role": "conformance-valid",
+          "sha256": "eab741329c9aaf14f7cf69fb2cb0ac64c1d39878e00c33448194cbb2dec14264"
+        },
+        {
+          "path": "capabilities/messaging.event-envelope/implementations.json",
+          "role": "implementations",
+          "sha256": "f9d840c75c66048ab6d803b7b44706674eeacb62c2f0b0781bab7928ec6fed21"
+        },
+        {
+          "path": "capabilities/messaging.event-envelope/schema.event-envelope.json",
+          "role": "schema",
+          "sha256": "3be4fadf2078620185abb0d97002f90595dce82bffba674ca66da8559220a002"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Messaging.Contracts",
+          "package_version": "0.2.1",
+          "path": "dotnet/src/Hideakisolutions.Platform.Messaging.Contracts",
+          "repository": "Hideaki-Solutions-Core/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "github.com/hideakisolutions/backend-core/golang/messaging",
+          "path": "golang/messaging",
+          "repository": "Hideaki-Solutions-Core/backend-core",
+          "stack": "go",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@hideakisolutions/platform-node",
+          "package_version": "0.1.0",
+          "path": "node/src/messaging",
+          "repository": "Hideaki-Solutions-Core/backend-core",
+          "stack": "node",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "hideakisolutions-platform",
+          "package_version": "0.1.0",
+          "path": "python/hideakisolutions_platform/messaging",
+          "repository": "Hideaki-Solutions-Core/backend-core",
+          "stack": "python",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "Hideakisolutions.Platform.Messaging.Contracts",
+          "github.com/hideakisolutions/backend-core/golang/messaging",
+          "@hideakisolutions/platform-node",
+          "hideakisolutions_platform.messaging"
+        ],
+        "path_globs": [
+          "**/event-envelope.schema.json"
+        ],
+        "symbols": [
+          "EventEnvelope",
+          "EventEnvelope<TData>",
+          "createEventEnvelope"
+        ]
+      },
+      "name": "messaging.event-envelope",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Canonical envelope shared by every platform event and message.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "files": [
+        {
+          "path": "capabilities/notification.send/asyncapi.yaml",
+          "role": "interface",
+          "sha256": "3e15f50ce2fb1eefb94be361cade430bf283c8be356aae81a101ade87079bdfa"
+        },
+        {
+          "path": "capabilities/notification.send/capability.yaml",
+          "role": "contract",
+          "sha256": "b72d061ca435931de0151e6e374d822c3c3cb476f1bd9029829a0f3d4615c3cc"
+        },
+        {
+          "path": "capabilities/notification.send/conformance/invalid/input-missing-required.json",
+          "role": "conformance-invalid",
+          "sha256": "1e4611b91193784b29bf5f1516e07de62bddbb044d880295a82d6be580702cbb"
+        },
+        {
+          "path": "capabilities/notification.send/conformance/invalid/output-wrong-type.json",
+          "role": "conformance-invalid",
+          "sha256": "0f827d8f94109912875b50ca49aa0733268599132f2dc73d33f9aca80e8b27f0"
+        },
+        {
+          "path": "capabilities/notification.send/conformance/valid/input-example.json",
+          "role": "conformance-valid",
+          "sha256": "c6576e52cf330d36ef1b5fa997425d85d21fad0c32a0f2a250996703e1ddb6df"
+        },
+        {
+          "path": "capabilities/notification.send/conformance/valid/output-example.json",
+          "role": "conformance-valid",
+          "sha256": "dcecb8dcd135a53125d4f9cdab4b79d3ce9eab69fc3914e3e2bb7cfe1a8ca431"
+        },
+        {
+          "path": "capabilities/notification.send/examples/request.json",
+          "role": "example",
+          "sha256": "88ea56668bfe5d4c5911e1d7503f4250b5d50dac1acd6e4120c36479ef6d5dc3"
+        },
+        {
+          "path": "capabilities/notification.send/examples/response.json",
+          "role": "example",
+          "sha256": "197055ccf1ff2b5974620d34504024debaf0447b9dd501cc9e44eceef480b4a5"
+        },
+        {
+          "path": "capabilities/notification.send/implementations.json",
+          "role": "implementations",
+          "sha256": "b2d2b1861d8dac115bce2c9ca5c4d46d128d617c83a4cb8280f45ba44f73d6f2"
+        },
+        {
+          "path": "capabilities/notification.send/mcp.manifest.json",
+          "role": "interface",
+          "sha256": "532c46128a58283bf9353f1ac7b2a0c27576f9abcc6d9a3efc42b548c0347fb6"
+        },
+        {
+          "path": "capabilities/notification.send/openapi.yaml",
+          "role": "interface",
+          "sha256": "67b4ca4e8bafa238e96aa18f1e517ea69d7ee92c947289127dc947664c6bde49"
+        },
+        {
+          "path": "capabilities/notification.send/policy.toml",
+          "role": "policy",
+          "sha256": "e5abf4f0a1a50874b083a02c8afa86765ad1a35b4ad8434c2c671b28c02a5905"
+        },
+        {
+          "path": "capabilities/notification.send/providers.toml",
+          "role": "policy",
+          "sha256": "52ec6a6200917fa9939dd5c51251912ae43a9d08aedf560188837be9c512e869"
+        },
+        {
+          "path": "capabilities/notification.send/schema.input.json",
+          "role": "schema",
+          "sha256": "05346a798d42f6bcc4bb39548142efd17da2478bfbb8d84dbe4ab7181b981769"
+        },
+        {
+          "path": "capabilities/notification.send/schema.output.json",
+          "role": "schema",
+          "sha256": "84950b94b378861e9ff57b44d1601f32b7766f3d94713c687b440bfca09b70a2"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "runtime",
+          "package": "ecp_runtime",
+          "path": "runtimes/python",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp_client",
+          "path": "sdks/python/ecp_client.py",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp-client",
+          "path": "sdks/typescript/ecp-client.ts",
+          "stack": "typescript",
+          "status": "experimental"
+        }
+      ],
+      "kind": "service",
+      "name": "notification.send",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "providers": [
+        "noop",
+        "email",
+        "webhook",
+        "telegram",
+        "discord",
+        "slack",
+        "gmail",
+        "microsoft_mail"
+      ],
+      "related_capabilities": [
+        "audit.record",
+        "telemetry.publish",
+        "workflow.execute"
+      ],
+      "stability": "experimental",
+      "summary": "Send a governed notification through an approved provider adapter.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
+        "platform-core/auth/auth-provider",
+        "backend-core/security/auth-middleware",
+        "auth"
+      ],
+      "files": [
+        {
+          "path": "capabilities/security.authn/README.md",
+          "role": "specification",
+          "sha256": "f3bae0d60ffaab7bab0b75bf76b984d13d47c577a06a78334f6e459333318d91"
+        },
+        {
+          "path": "capabilities/security.authn/capability.yaml",
+          "role": "contract",
+          "sha256": "0a59fcaa62b60d8f2a1817ef6f357f3f22c60255d51b0b482a14505de8ce4944"
+        },
+        {
+          "path": "capabilities/security.authn/conformance/invalid/auth-middleware.01.json",
+          "role": "conformance-invalid",
+          "sha256": "fec90af5a592e5f4b1b844137f481fdfab5e9ca530890d2ab4c8b738e474c24a"
+        },
+        {
+          "path": "capabilities/security.authn/conformance/invalid/auth-middleware.02.json",
+          "role": "conformance-invalid",
+          "sha256": "2c2a0ee9bc4ce58f555a7588a534822d0b1d2345ec9106e8b2c955390b247689"
+        },
+        {
+          "path": "capabilities/security.authn/conformance/invalid/auth-middleware.03.json",
+          "role": "conformance-invalid",
+          "sha256": "6d4c08d5d35bd73c60da2ea3b89c1cdd0edbf253b1cd459856d3f7b775fb7de0"
+        },
+        {
+          "path": "capabilities/security.authn/conformance/invalid/auth-middleware.04.json",
+          "role": "conformance-invalid",
+          "sha256": "99c4b1056dc58414e0aaf819c37adb98e603ded2f7b9f70cbec1072e78ebb24b"
+        },
+        {
+          "path": "capabilities/security.authn/conformance/invalid/auth-provider.01.json",
+          "role": "conformance-invalid",
+          "sha256": "75631252d3573ae95b3408eee440aec05f775e10639c29b5e9b9b50129ef85dd"
+        },
+        {
+          "path": "capabilities/security.authn/conformance/invalid/auth-provider.02.json",
+          "role": "conformance-invalid",
+          "sha256": "8ffcf16a317cac5eeb5b505398f95ad0162b7fc94995a56f44ab45d8b071db81"
+        },
+        {
+          "path": "capabilities/security.authn/conformance/invalid/auth-provider.03.json",
+          "role": "conformance-invalid",
+          "sha256": "1a61865ee2f222f05225fa2d81fb973cce9ff53a327d43f1534fda7cac5d8bc2"
+        },
+        {
+          "path": "capabilities/security.authn/conformance/invalid/auth-provider.04.json",
+          "role": "conformance-invalid",
+          "sha256": "09d983c1a63a0e039b20fb1d0ff13d6d2c032d9fb2a0fa5382fdeb97da1a306d"
+        },
+        {
+          "path": "capabilities/security.authn/conformance/invalid/auth-provider.05.json",
+          "role": "conformance-invalid",
+          "sha256": "1bf0b3dac3adc35e723f55ec18821b68c1fce7b144debb9ad1cb3779258c8f23"
+        },
+        {
+          "path": "capabilities/security.authn/conformance/valid/auth-middleware.01.json",
+          "role": "conformance-valid",
+          "sha256": "308b817a6bad82365e1e894c25eafc41ca86eba25285e9240aa93713236ec5f7"
+        },
+        {
+          "path": "capabilities/security.authn/conformance/valid/auth-middleware.02.json",
+          "role": "conformance-valid",
+          "sha256": "7ac2f4f32dd0349e5d9f6a1c53abf4b9c5864fb05e31d8232570cfb29377ba93"
+        },
+        {
+          "path": "capabilities/security.authn/conformance/valid/auth-provider.01.json",
+          "role": "conformance-valid",
+          "sha256": "5165f783ff8b9b695db097ea07bb98dd0d47740fdcd890bc691cda19325d7174"
+        },
+        {
+          "path": "capabilities/security.authn/conformance/valid/auth-provider.02.json",
+          "role": "conformance-valid",
+          "sha256": "fa83f70a23358e591504b0e9f1a5c251ca505a2de8c4e35dba8290c7e571b1db"
+        },
+        {
+          "path": "capabilities/security.authn/conformance/valid/auth-provider.03.json",
+          "role": "conformance-valid",
+          "sha256": "9e14aac7994a4a25f13c65547de52d23ae71063979f7f24a8be788317277bb64"
+        },
+        {
+          "path": "capabilities/security.authn/implementations.json",
+          "role": "implementations",
+          "sha256": "41d0fe0f8da9f48ab7a82f2601afc0b1cb8c2644a17c79ad561a971667b7f648"
+        },
+        {
+          "path": "capabilities/security.authn/schema.auth-middleware.json",
+          "role": "schema",
+          "sha256": "f9752cdbce4da89fdbfec4fc8f5c77ee546a06116fd7109011e8203089520c2c"
+        },
+        {
+          "path": "capabilities/security.authn/schema.auth-provider.json",
+          "role": "schema",
+          "sha256": "d3224cc28bea64e69b87c54f165ee387381b60fcadca75fae16ac8129f7eafa8"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "Hideakisolutions.Platform.Security.Authn",
+          "package_version": "0.2.1",
+          "path": "dotnet/src/Hideakisolutions.Platform.Security.Authn",
+          "repository": "Hideaki-Solutions-Core/backend-core",
+          "stack": "dotnet",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "github.com/hideakisolutions/backend-core/golang/auth",
+          "path": "golang/auth",
+          "repository": "Hideaki-Solutions-Core/backend-core",
+          "stack": "go",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@hideakisolutions/platform-node",
+          "package_version": "0.1.0",
+          "path": "node/src/auth",
+          "repository": "Hideaki-Solutions-Core/backend-core",
+          "stack": "node",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "hideakisolutions-platform",
+          "package_version": "0.1.0",
+          "path": "python/hideakisolutions_platform/auth",
+          "repository": "Hideaki-Solutions-Core/backend-core",
+          "stack": "python",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "Hideakisolutions.Platform.Security.Authn",
+          "github.com/hideakisolutions/backend-core/golang/auth",
+          "@hideakisolutions/platform-node",
+          "hideakisolutions_platform.auth"
+        ],
+        "path_globs": [
+          "**/auth-provider.schema.json",
+          "**/auth-middleware.schema.json"
+        ],
+        "symbols": [
+          "AddPlatformJwtBearer",
+          "AccessTokenResponse",
+          "TokenValidationResult",
+          "AuthMiddlewareConfig",
+          "mapRealmRoles",
+          "map_realm_roles",
+          "MapRealmRoles"
+        ]
+      },
+      "name": "security.authn",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "related_capabilities": [
+        "auth.authenticate"
+      ],
+      "stability": "experimental",
+      "summary": "Authentication provider interface and bearer-token middleware configuration shared by every stack.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "files": [
+        {
+          "path": "capabilities/telemetry.publish/asyncapi.yaml",
+          "role": "interface",
+          "sha256": "653767aef82d49c3cf147c291875e9958f069990610ae17575a8d51ebe5e4c62"
+        },
+        {
+          "path": "capabilities/telemetry.publish/capability.yaml",
+          "role": "contract",
+          "sha256": "2fe49fe25fa629d8b3c32593d4e1533eb95767f350d52e5a4e8cbcd9f2114f44"
+        },
+        {
+          "path": "capabilities/telemetry.publish/conformance/invalid/input-missing-required.json",
+          "role": "conformance-invalid",
+          "sha256": "54563d789560409e9317224a494c3fb839f68aabf93095d9a8124b19d6231375"
+        },
+        {
+          "path": "capabilities/telemetry.publish/conformance/invalid/output-wrong-type.json",
+          "role": "conformance-invalid",
+          "sha256": "b47fe85f1a9dce385ea421d1ab08bc5722c7380407c0d91e26d0c09b8cbf1137"
+        },
+        {
+          "path": "capabilities/telemetry.publish/conformance/valid/input-example.json",
+          "role": "conformance-valid",
+          "sha256": "9ed1c769929268c14056b5a6656d2a9bc55ec24e8b6f3fe1686672e95b39a1f4"
+        },
+        {
+          "path": "capabilities/telemetry.publish/conformance/valid/output-example.json",
+          "role": "conformance-valid",
+          "sha256": "888d575f25b6df972fe87f8c7219328af05cb7a1f69d0f97b118f6421ec11ab1"
+        },
+        {
+          "path": "capabilities/telemetry.publish/examples/request.json",
+          "role": "example",
+          "sha256": "78fa20a1fca4c7f519d339dc513addcf1d85f3c1cd6ebcebd2344be1cb829d6e"
+        },
+        {
+          "path": "capabilities/telemetry.publish/examples/response.json",
+          "role": "example",
+          "sha256": "ffbfcb8d86dbc04123d78d1f212bfdf2cb9d51dea46b32f036834fc6cf2625d1"
+        },
+        {
+          "path": "capabilities/telemetry.publish/implementations.json",
+          "role": "implementations",
+          "sha256": "12049e16538f9620648c4d6490aeb673ec054815a0e041b2b674d59b8711eaab"
+        },
+        {
+          "path": "capabilities/telemetry.publish/mcp.manifest.json",
+          "role": "interface",
+          "sha256": "7db2ebff4784a7ba85ff0acf947478309828b75af5b2cc2805222dd7f971a61c"
+        },
+        {
+          "path": "capabilities/telemetry.publish/openapi.yaml",
+          "role": "interface",
+          "sha256": "58bb42ce23656db95eaae2dc523cdc7a7e8f0efccd23cfe1b692c6bdfcd2465c"
+        },
+        {
+          "path": "capabilities/telemetry.publish/policy.toml",
+          "role": "policy",
+          "sha256": "2b1edb2bdd6158b2449819e57402c5f2114092b04db41d5f02c92f74af17ac0b"
+        },
+        {
+          "path": "capabilities/telemetry.publish/providers.toml",
+          "role": "policy",
+          "sha256": "2824906276bb824130b5fe03ea00da16721aa15a03c358cd057cf5c851cc3d7e"
+        },
+        {
+          "path": "capabilities/telemetry.publish/schema.input.json",
+          "role": "schema",
+          "sha256": "ce813024bf88e4a5b0d02a6ddac7e29779d9a477839be18a8e23209fdff67215"
+        },
+        {
+          "path": "capabilities/telemetry.publish/schema.output.json",
+          "role": "schema",
+          "sha256": "4acb85e785ece26e2fdb688b1a24208b1a375b64590a26dcacf2358b35b51168"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "runtime",
+          "package": "ecp_runtime",
+          "path": "runtimes/python",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp_client",
+          "path": "sdks/python/ecp_client.py",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp-client",
+          "path": "sdks/typescript/ecp-client.ts",
+          "stack": "typescript",
+          "status": "experimental"
+        }
+      ],
+      "kind": "service",
+      "name": "telemetry.publish",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "providers": [
+        "noop",
+        "opentelemetry",
+        "prometheus",
+        "structured_log"
+      ],
+      "related_capabilities": [
+        "audit.record"
+      ],
+      "stability": "experimental",
+      "summary": "Publish governed telemetry events, metrics, traces, and audit-compatible operational signals.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [],
+      "files": [
+        {
+          "path": "capabilities/workflow.execute/asyncapi.yaml",
+          "role": "interface",
+          "sha256": "46bca3995c51ff61034581543ae5bdd1a12c324a27b884f4c05b97ab4e3a3708"
+        },
+        {
+          "path": "capabilities/workflow.execute/capability.yaml",
+          "role": "contract",
+          "sha256": "6a6db95c4a087bdd817827407c725623ede9f503bfe001514c424f033de0db74"
+        },
+        {
+          "path": "capabilities/workflow.execute/conformance/invalid/input-missing-required.json",
+          "role": "conformance-invalid",
+          "sha256": "9e562068be90194eeac5a0de5ad522ac364b3ae0333c872466634a1a99b1fa40"
+        },
+        {
+          "path": "capabilities/workflow.execute/conformance/invalid/output-wrong-type.json",
+          "role": "conformance-invalid",
+          "sha256": "61bc4a073dc4663276a3d87e5faa767d73baad58f47103abce4bec250afd3e64"
+        },
+        {
+          "path": "capabilities/workflow.execute/conformance/valid/input-example.json",
+          "role": "conformance-valid",
+          "sha256": "22cd2850540d8da3e4fcdc089d8d4bf3d5863c362799dd7034b430af09917b99"
+        },
+        {
+          "path": "capabilities/workflow.execute/conformance/valid/output-example.json",
+          "role": "conformance-valid",
+          "sha256": "808cac8b3d54953a9ff9e677b996b635b8a0103903881cbd2d24bbdd8f4d985d"
+        },
+        {
+          "path": "capabilities/workflow.execute/examples/request.json",
+          "role": "example",
+          "sha256": "f7f63cfb861447dfc15d6bbb28543d43d0cd654d705fe7ec3233cc514dbe2ffc"
+        },
+        {
+          "path": "capabilities/workflow.execute/examples/response.json",
+          "role": "example",
+          "sha256": "c82bed746dc0551f0f3e69d2898478cf400d98eafc75039c1da40ce8340e8804"
+        },
+        {
+          "path": "capabilities/workflow.execute/implementations.json",
+          "role": "implementations",
+          "sha256": "711350acaf4dcb6c8257f7901cbdf1dc7dd61260c32157f7cfadd90ae9cbf3ae"
+        },
+        {
+          "path": "capabilities/workflow.execute/mcp.manifest.json",
+          "role": "interface",
+          "sha256": "b5ce3e9b6233cb1d6c8faab7d9cd7c0a05c24078a8a896e61fee942b7a600631"
+        },
+        {
+          "path": "capabilities/workflow.execute/openapi.yaml",
+          "role": "interface",
+          "sha256": "2dc9d50653712e27364aa902d4ce4b6bf650d335f01b885bdf2bc3b011a49905"
+        },
+        {
+          "path": "capabilities/workflow.execute/policy.toml",
+          "role": "policy",
+          "sha256": "f9f91eb65da73fa6894300397cce48fba607b53fa5dc2a2b56e9a7b3823343c3"
+        },
+        {
+          "path": "capabilities/workflow.execute/providers.toml",
+          "role": "policy",
+          "sha256": "d037fa47f0fcf684aaf783a1cf14573335bd11235ef2ffc747af0e6e4fd17662"
+        },
+        {
+          "path": "capabilities/workflow.execute/schema.input.json",
+          "role": "schema",
+          "sha256": "5e0e0e1cbe1dc63db1abe75fba3da3ca6e70e009a7d7d601512ba133a0d8f348"
+        },
+        {
+          "path": "capabilities/workflow.execute/schema.output.json",
+          "role": "schema",
+          "sha256": "38924c9984db259ca7eabc64f606849fc24d46fdec1dfa22f64c32137bdb006b"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "runtime",
+          "package": "ecp_runtime",
+          "path": "runtimes/python",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp_client",
+          "path": "sdks/python/ecp_client.py",
+          "stack": "python",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "sdk",
+          "package": "ecp-client",
+          "path": "sdks/typescript/ecp-client.ts",
+          "stack": "typescript",
+          "status": "experimental"
+        }
+      ],
+      "kind": "service",
+      "name": "workflow.execute",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "providers": [
+        "noop",
+        "internal",
+        "n8n",
+        "temporal"
+      ],
+      "related_capabilities": [
+        "audit.record",
+        "telemetry.publish",
+        "queue.publish"
+      ],
+      "stability": "experimental",
+      "summary": "Execute a governed workflow with tenant, audit, telemetry, and retry policy.",
+      "version": "0.1.0"
+    }
+  ],
+  "generated_from": {
+    "contracts_version": "0.3.0",
+    "repository": "HideakiSolutions/enterprise-capability-platform"
+  },
+  "schema_version": "1"
+}
