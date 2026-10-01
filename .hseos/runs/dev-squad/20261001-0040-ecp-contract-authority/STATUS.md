@@ -1,12 +1,12 @@
 # STATUS — 20261001-0040-ecp-contract-authority
 
-Atualizado: 2026-10-01. Wave atual: **W0 concluída e aceita** — W1 liberada.
+Atualizado: 2026-10-01. Wave atual: **W2b (HSEOS) pronta para PR** — W0 e W1 concluídas; W2a e W2c mergeadas.
 
 ## Branch map
 | Repo | Base | Feature | Estado |
 |---|---|---|---|
 | ECP | `develop` | `feature/contract-authority-w0` | local, sem push |
-| HSEOS | `master` | `feature/platform-bindings-w0` | local, sem push |
+| HSEOS | `master` | `feature/platform-bindings-w2b` (W2b-1..6; head `c6b02df2` antes da rodada 1 de correção) | local, sem push; W0 integrada em `master` |
 
 ## W0 — tasks
 | Task | Repo | Commit | Estado |
@@ -88,3 +88,10 @@ CI expôs dependência de versão do Python no perfil de regex → T1c: gramáti
 
 Lacunas documentadas em `backend-core/docs/contracts/conformance-gaps.md` (classes C/D); candidato de evolução de contrato: `token_type` case-insensitive na entrada.
 Pendências do owner: revisores obrigatórios no environment `contracts-release` (ECP); `validate` como check obrigatório no backend-core.
+
+## W2b — limitações conhecidas (para as notas da PR)
+- Aliases `Login`/`Authn` ausentes no registro `contracts-v0.3.1`: pedir ao ECP.
+- Job de drift snapshot × ref do ECP (previsto no PLAN, W2b item 8) ainda não existe.
+- Ruído de formatação do compile em `.claude-plugin/marketplace.json` e `.codex-plugin/plugin.json`: o gerador não emite `\n` final
+  (`plugins-emit.js:115,121`); a saída não é commitada.
+- Espelho em `.agents/capabilities/` (4 arquivos) é efeito do compilador; limite de inventário do pacote em 1472 por decisão do owner.
