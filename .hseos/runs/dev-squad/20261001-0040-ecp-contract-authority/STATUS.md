@@ -1,6 +1,6 @@
 # STATUS — 20261001-0040-ecp-contract-authority
 
-Atualizado: 2026-10-01. Wave atual: **W0 concluída — aguardando gate humano** (aceitação das ADRs).
+Atualizado: 2026-10-01. Wave atual: **W0 concluída e aceita** — W1 liberada.
 
 ## Branch map
 | Repo | Base | Feature | Estado |
@@ -37,3 +37,10 @@ Correções: rodada 1 (E0.5, H0.3); rodada 2 sem MAJOR; rodada 3 fechou os MINOR
 
 ## Gate de saída da W0
 Revisão rodada 2 sem MAJOR + **aceitação humana das ADRs** (ECP 0006/0007/0008, HSEOS ADR-0046).
+
+## Decisão do gate W0 (owner, 2026-10-01)
+- Aceitas: ECP Decisions 0006, 0007 e 0008; HSEOS ADR-0046. A 0007 é aceita com a migração executada na Fase 2.
+- Autorizado: push, abertura das PRs e merge das duas PRs da W0 (ECP → `develop`, HSEOS → `master`), com checks verdes.
+- ECP: `origin/develop` estava à frente do `develop` local (7 commits, sem colisão de numeração); integrado na feature por merge, gate verde.
+- PR ECP: HideakiSolutions/enterprise-capability-platform#31.
+

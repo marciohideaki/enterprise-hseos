@@ -10,6 +10,7 @@ registry pin, enforcement, and migration/activation order are a separate, still-
 capability intake, stack publication policy, module templates, conformance gates
 **Supersedes:** N/A
 **Superseded By:** N/A
+**Amended By:** ADR-0046 (2026-10-01) — contract source of truth is ECP; see ADR-0046 §1
 
 ## Context
 
