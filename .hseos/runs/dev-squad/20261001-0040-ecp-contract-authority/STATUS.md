@@ -1,12 +1,13 @@
 # STATUS — 20261001-0040-ecp-contract-authority
 
-Atualizado: 2026-10-01. Wave atual: **W2b (HSEOS) pronta para PR** — W0 e W1 concluídas; W2a e W2c mergeadas.
+Atualizado: 2026-10-01. Wave atual: **W2b e W3 mergeadas** (2026-10-01) — W0, W1, W2a/b/c e W3 concluídas; Fase 2 (migração em massa) depende de plano próprio e de autorização.
 
 ## Branch map
 | Repo | Base | Feature | Estado |
 |---|---|---|---|
 | ECP | `develop` | `feature/contract-authority-w0` | local, sem push |
-| HSEOS | `master` | `feature/platform-bindings-w2b` (W2b-1..6; head `c6b02df2` antes da rodada 1 de correção) | local, sem push; W0 integrada em `master` |
+| HSEOS | `master` | `feature/platform-bindings-w2b` (W2b-1..6 + rodada 1 de correção) | PR #186 mergeada em `master` (`b09ee770`); branch removida |
+| backend-core | `develop` | `feature/ecp-contracts-w3` | PR #21 mergeada em `develop` (`409d243`) |
 
 ## W0 — tasks
 | Task | Repo | Commit | Estado |
@@ -73,7 +74,7 @@ CI expôs dependência de versão do Python no perfil de regex → T1c: gramáti
 | Frente | Repo | Estado |
 |---|---|---|
 | W2a pilotos library (cache.typed, security.authn, messaging.event-envelope) | ECP | #34 mergeada; tag `contracts-v0.3.0` |
-| W2b platform-bindings | HSEOS | W2b-1..6 concluídas em `feature/platform-bindings-w2b`: loader, registro, capability-check, wiring CLI, guard, snapshot ECP `contracts-v0.3.1`, policies/docs, ADR-0046 §8 (esclarecimentos) e CHANGELOG. **Pronta para PR** (aguarda gate de saída e autorização do owner) |
+| W2b platform-bindings | HSEOS | W2b-1..6 concluídas em `feature/platform-bindings-w2b`: loader, registro, capability-check, wiring CLI, guard, snapshot ECP `contracts-v0.3.1`, policies/docs, ADR-0046 §8 (esclarecimentos) e CHANGELOG. PR #186 **mergeada** (`b09ee770`); revisão cética aprovada com MINOR (rodada 1 corrigida); limite de inventário 1468→1472 aprovado pelo owner |
 | W2c resolvedores vendorizados fail-closed (4 stacks) | backend-core | #20 mergeada |
 
 ## W3 — estado
@@ -84,12 +85,18 @@ CI expôs dependência de versão do Python no perfil de regex → T1c: gramáti
 | vendor 0.3.0 + conformidade dos pilotos (.NET, Node, Python, Go) | backend-core | `feature/ecp-contracts-w3`; paridade 45/45 vetores em todas as stacks |
 | correções classe A/B (.NET 0.3.0; Node/Python 0.2.0; Go v0.2.0 documentado) | backend-core | commitadas |
 | ponteiros ECP + carimbo de versão de contrato + checker | backend-core | commitado |
-| stub auth-middleware + resync snapshot platform-core | backend-core | em execução |
+| stub auth-middleware + resync snapshot platform-core | backend-core | commitado |
+| correção da corrida do JsonSchema.Net (lock global de avaliação) + hop limit fail-closed | backend-core | revisão cética aprovada com MINOR; PR #21 mergeada (`409d243`) |
 
 Lacunas documentadas em `backend-core/docs/contracts/conformance-gaps.md` (classes C/D); candidato de evolução de contrato: `token_type` case-insensitive na entrada.
 Pendências do owner: revisores obrigatórios no environment `contracts-release` (ECP); `validate` como check obrigatório no backend-core.
 
-## W2b — limitações conhecidas (para as notas da PR)
+## Decisões do owner (2026-10-01, pós-merge)
+- ADR-0046 (esclarecimentos §3/§8 editados no lugar): **aprovada**.
+- Limite de inventário do pacote 1468→1472 (4 espelhos do compilador): **aprovado**.
+- Follow-ups backend-core: MINOR-2 (`$defs` em sub-schema de `LoadAt`), MINOR-3 (`FromText` fora do gate), avaliar JsonSchema.Net 9.x, vendor `contracts-v0.3.1`, `validate` obrigatório na branch protection.
+
+## W2b — limitações conhecidas
 - Aliases `Login`/`Authn` ausentes no registro `contracts-v0.3.1`: pedir ao ECP.
 - Job de drift snapshot × ref do ECP (previsto no PLAN, W2b item 8) ainda não existe.
 - Ruído de formatação do compile em `.claude-plugin/marketplace.json` e `.codex-plugin/plugin.json`: o gerador não emite `\n` final
