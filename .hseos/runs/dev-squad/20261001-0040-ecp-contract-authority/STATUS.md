@@ -96,6 +96,11 @@ Pendências do owner: revisores obrigatórios no environment `contracts-release`
 - Limite de inventário do pacote 1468→1472 (4 espelhos do compilador): **aprovado**.
 - Follow-ups backend-core: MINOR-2 (`$defs` em sub-schema de `LoadAt`), MINOR-3 (`FromText` fora do gate), avaliar JsonSchema.Net 9.x, vendor `contracts-v0.3.1`, `validate` obrigatório na branch protection.
 
+## Fechamento de escopo da W3 (owner, 2026-10-01)
+- A W3 fecha com o backend-core (#21), o ECP (#35, `contracts-v0.3.1`) e o platform-core (#12).
+- **frontend-core e mobile-core não participam da W3.** Os pilotos (`cache.typed`, `security.authn`, `messaging.event-envelope`) são capacidades de backend e esses cores não implementam nenhuma; verificado em 2026-10-01: sem branch nem PR ECP em ambos, e os ponteiros existentes (`platformCapability` nos `ui-react-*` e `ds-tokens`, `.platform-capability.json` do `mobile-tokens`) apontam para ids do `design-system-core`. Esses ponteiros seguem na Fase 2 (design system).
+- Alinhamento do `contract_version` em `implementations.json` dos pilotos (ECP, hoje `0.1.0`) ao que o backend-core carimba: task própria no ECP, em PR separada.
+
 ## W2b — limitações conhecidas
 - Aliases `Login`/`Authn` ausentes no registro `contracts-v0.3.1`: pedir ao ECP.
 - Job de drift snapshot × ref do ECP (previsto no PLAN, W2b item 8) ainda não existe.
