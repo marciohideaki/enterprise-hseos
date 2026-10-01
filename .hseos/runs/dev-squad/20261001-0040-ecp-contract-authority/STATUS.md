@@ -99,7 +99,7 @@ Pendências do owner: revisores obrigatórios no environment `contracts-release`
 ## Fechamento de escopo da W3 (owner, 2026-10-01)
 - A W3 fecha com o backend-core (#21), o ECP (#35, `contracts-v0.3.1`) e o platform-core (#12).
 - **frontend-core e mobile-core não participam da W3.** Os pilotos (`cache.typed`, `security.authn`, `messaging.event-envelope`) são capacidades de backend e esses cores não implementam nenhuma; verificado em 2026-10-01: sem branch nem PR ECP em ambos, e os ponteiros existentes (`platformCapability` nos `ui-react-*` e `ds-tokens`, `.platform-capability.json` do `mobile-tokens`) apontam para ids do `design-system-core`. Esses ponteiros seguem na Fase 2 (design system).
-- Alinhamento do `contract_version` em `implementations.json` dos pilotos (ECP, hoje `0.1.0`) ao que o backend-core carimba: task própria no ECP, em PR separada.
+- `implementations.json` dos pilotos (ECP, `develop` `394e80d`): verificado que o `contract_version` (0.1.0) já bate com o carimbo do backend-core em todas as stacks (`.csproj`, `golang/*`, `node/package.json`, `PLATFORM_CONTRACTS` do Python) e com `version: 0.1.0` das capabilities; nada a alinhar. Os 6 avisos do `contracts:pointers` do backend-core são de `package_version` (código 0.3.0/0.2.0 contra 0.2.1/0.1.0 no registro, que lista versões publicadas): só mudam após publicar os pacotes, com autorização.
 
 ## W2b — limitações conhecidas
 - Aliases `Login`/`Authn` ausentes no registro `contracts-v0.3.1`: pedir ao ECP.
