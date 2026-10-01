@@ -96,7 +96,8 @@ under `applications/**/src`, `packages/**`, or `src/Services/**` without a match
 (a project with bindings is decided by `hseos platform-bindings guard`, which applies the
 registry and the mode). Acknowledgement is permitted only as `CORE_INTAKE_ACK=<intake-id>` when
 that ID exists in the repository's intake decision; `CORE_INTAKE_ACK=1` is invalid. With a
-bindings file the ID must match as a whole token; without one the legacy substring match applies.
+bindings file the ID must match as a whole token; without one the legacy path accepts the
+acknowledgement as a substring of any intake document (see `.enterprise/governance/hooks/README.md`).
 Without the CLI or node the guard falls back to the `platform` decision.
 
 The guard MUST not fire for tests, specs, stories, mocks, generated files, `dist/`, or an

@@ -112,8 +112,10 @@ test('published package exposes runtime and governance assets only', () => {
   // The ECP capability registry resolver, its shipped snapshot and the snapshot lock add three.
   // The platform-bindings command and its CLI helper library add two.
   // The mode-aware capability intake guard library adds one.
-  // The compiler mirrors the registry snapshot, its lock, the runtime defaults and the bindings schema into
-  // .agents/capabilities/ for compiled-only installs (offline snapshot, ADR-0046 section 3); that adds four.
+  // The four capability files (registry snapshot, its lock, the runtime defaults and the bindings schema) are also
+  // copied into .agents/capabilities/. That is a side effect of the compiler (syncCapabilityCatalog copies the whole
+  // directory without a filter), not a runtime need: the runtime reads only .enterprise/.../capabilities. The owner
+  // decided to keep the mirror; test-capability-catalog.js asserts it equals the canonical source. This adds four.
   // State/key/config exclusions above remain independent security invariants.
   assert.ok(packed.entryCount <= 1472, `package entry count is not bounded: ${packed.entryCount}`);
   assert.ok(packed.unpackedSize < 22_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);

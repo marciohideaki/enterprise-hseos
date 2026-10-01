@@ -17,6 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Resolve producer governance independently of consumer files, inject a minimal discovery capsule only when session/project/source state changes, and keep unverified application/enforcement explicit.
 
+### Changed
+
+- The capability intake guard inspects `MultiEdit` edits, denies any agent edit of `.hseos/config/platform-bindings.yaml` in every mode, and, with a bindings file, accepts `CORE_INTAKE_ACK` only as a whole-token intake identifier (the legacy path without bindings keeps its substring match). `hseos platform-bindings` exit codes: `check` 0/1/2, `guard` 0/2, `show` 1 on a registry integrity failure.
+
+### Known limitations
+
+- The `contracts-v0.3.1` registry lacks the `Login` and `Authn` aliases (to be requested from the ECP); the snapshot-versus-ECP-ref drift job is not implemented yet; the agent-core compile rewrites `.claude-plugin/marketplace.json` and `.codex-plugin/plugin.json` without a trailing newline (formatting only, not committed).
+
 ## [4.0.0-rc.0] — Unpublished candidate
 
 ### Added

@@ -87,7 +87,7 @@ Each project has one mode:
 Precedence from lowest to highest:
 
 1. **Runtime** — `.enterprise/governance/capabilities/platform-bindings.defaults.yaml` and
-   `ecp-registry.snapshot.json` (with `source_ref` and SHA-256), shipped with the distribution and
+   `ecp-registry.snapshot.json` (with `ref` and SHA-256), shipped with the distribution and
    usable offline.
 2. **User / organization** — `${XDG_CONFIG_HOME:-~/.config}/hseos/platform-bindings.yaml` or the
    file named by `HSEOS_PLATFORM_BINDINGS`. Read only if present (ADR-0006 P5). Holds machine

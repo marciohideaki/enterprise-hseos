@@ -311,6 +311,18 @@ async function testCanonicalCapabilitySourceAndCompatibility() {
       );
     }
 
+    for (const relative of [
+      'ecp-registry.snapshot.json',
+      'ecp-registry.snapshot.lock.json',
+      'platform-bindings.defaults.yaml',
+      path.join('schemas', 'platform-bindings.schema.json'),
+    ]) {
+      assertPass(
+        `compiled capability ${relative} is byte-identical to its canonical source`,
+        fs.readFileSync(path.join(canonical, relative)).equals(fs.readFileSync(path.join(compiled, relative))),
+      );
+    }
+
     await fs.copy(canonical, path.join(tempRoot, '.enterprise', 'governance', 'capabilities'));
     await fs.copy(compiled, path.join(tempRoot, '.agents', 'capabilities'));
     await fs.copy(path.join(REPO_ROOT, '.agents', 'manifest.yaml'), path.join(tempRoot, '.agents', 'manifest.yaml'));

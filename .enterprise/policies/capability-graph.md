@@ -28,7 +28,7 @@ MUST query the graph and record one intake outcome: `consume`, `extend`, `promot
 - Validator: `scripts/governance/validate-capability-graph.js`
 - Repository fragments: `.platform/capability-graph.yaml` by default
 - ECP capability registry snapshot: `.enterprise/governance/capabilities/ecp-registry.snapshot.json` with
-  `ecp-registry.snapshot.lock.json` (`source_ref`, SHA-256); upstream source is the ECP
+  `ecp-registry.snapshot.lock.json` (`ref`, SHA-256); upstream source is the ECP
   `catalog/capability-registry.json` (ADR-0046)
 
 ## Contract authority
@@ -38,8 +38,14 @@ The Enterprise Capability Platform (ECP) is the source of truth for shared capab
 are not rewritten and resolve to ECP names through the registry `aliases`. The graph keeps
 ownership, implementation and adoption evidence for nodes that are not ECP contracts. The
 compatibility diff for ECP contracts is performed by the ECP gate; HSEOS consumes its result
-through the registry. The snapshot is refreshed explicitly with
-`hseos platform-bindings sync --ref contracts-vX.Y.Z --ecp-root <ECP checkout>`.
+through the registry. The shipped snapshot is refreshed explicitly: `hseos platform-bindings sync`
+writes to the user cache and never touches the snapshot or its lock, so write the registry to the
+snapshot path with `--output`, then update the lock `ref`, `contracts_version` and `sha256` by hand:
+
+```bash
+hseos platform-bindings sync --ref contracts-vX.Y.Z --ecp-root <ECP checkout> \
+  --output .enterprise/governance/capabilities/ecp-registry.snapshot.json
+```
 
 Repository policy MAY select another fragment path, but the root registry MUST declare it.
 All paths are repository-relative and MUST reject traversal outside the owning checkout.
