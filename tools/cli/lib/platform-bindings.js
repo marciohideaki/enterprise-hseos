@@ -66,6 +66,11 @@ function repositoryRelativeProblem(value) {
 }
 
 /** Shape rule for `mode_ref`: a Markdown decision record under the decision directories. */
+/** True when `value` has the shape of an intake or exception reference (prefix, hyphen, a digit, length >= 5). */
+function isReferenceId(value) {
+  return typeof value === 'string' && value.length >= REFERENCE_ID_MIN_LENGTH && REFERENCE_ID.test(value);
+}
+
 function modeRefProblem(value) {
   const problem = repositoryRelativeProblem(value);
   if (problem) return problem;
@@ -620,8 +625,10 @@ module.exports = {
   RUNTIME_DEFAULTS_FILE,
   checkModeRef,
   detectStacks,
+  isReferenceId,
   loadPlatformBindings,
   modeStrength,
+  overrideRefResolves,
   parsePlatformBindingFlag,
   readRecordedMode,
   validateBindingsDocument,

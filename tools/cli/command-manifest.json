@@ -796,7 +796,7 @@
     {
       "filename": "platform-bindings.js",
       "command": "platform-bindings <action>",
-      "description": "Inspect (show), verify (check) or sync the registry for platform bindings (ADR-0046)",
+      "description": "Inspect (show), verify (check), sync the registry for, or guard intake with platform bindings (ADR-0046)",
       "options": [
         [
           "--directory <path>",
@@ -824,7 +824,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "fcc86e0a12006cef488ea8c60436d90ac35cfb32b957f6eea5a9c575dacd3ba4"
+      "source_sha256": "aeb67a54caefed8d84511a24d542a83708cdfb73f330085ae3daf80fc50f03a4"
     },
     {
       "filename": "plugin.js",
