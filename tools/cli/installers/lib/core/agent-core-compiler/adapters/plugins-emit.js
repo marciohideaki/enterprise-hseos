@@ -112,13 +112,13 @@ async function stageVendorRoot(root, vendorRootName, emit, registryRaw, plugins,
       if (vendorRootName === '.claude-plugin') {
         await fs.writeFile(
           path.join(stagedRoot, 'marketplace.json'),
-          JSON.stringify(buildClaudePluginMarketplace(registryRaw, plugins), null, 2),
+          `${JSON.stringify(buildClaudePluginMarketplace(registryRaw, plugins), null, 2)}\n`,
           'utf8',
         );
       } else {
         await fs.writeFile(
           path.join(stagedRoot, 'plugin.json'),
-          JSON.stringify(buildCodexPluginIndex(registryRaw, plugins), null, 2),
+          `${JSON.stringify(buildCodexPluginIndex(registryRaw, plugins), null, 2)}\n`,
           'utf8',
         );
       }
