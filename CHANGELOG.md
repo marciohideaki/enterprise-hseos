@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Known limitations
 
-- The `contracts-v0.3.1` registry lacks the `Login` and `Authn` aliases (to be requested from the ECP); the snapshot-versus-ECP-ref drift job is not implemented yet; the agent-core compile rewrites `.claude-plugin/marketplace.json` and `.codex-plugin/plugin.json` without a trailing newline (formatting only, not committed).
+- The `contracts-v0.3.1` registry lacks the `Login` and `Authn` aliases (to be requested from the ECP); the snapshot-versus-ECP-ref drift job is not implemented yet.
 
 ## [4.0.0-rc.0] — Unpublished candidate
 
