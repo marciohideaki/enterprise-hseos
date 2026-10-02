@@ -130,6 +130,43 @@ and migration; keep-local additionally declares a product-local boundary.
 Lack of a semantic index does not authorize local implementation. Exact graph lookup and
 the deterministic intake contract remain mandatory.
 
+### 7.1 Contract authority and platform modes
+
+The Enterprise Capability Platform (ECP) is the single authority for shared capability
+contracts: capability names (the canonical identifiers), contracts, aliases and `match`
+discovery hints. Stack cores and the HSEOS graph consume those contracts; they never become a
+second source for them, and existing graph identifiers resolve to ECP names through the
+published aliases. Lookup under section 7 resolves against a registry snapshot whose SHA-256
+is verified, so that the decision is deterministic, offline and reviewable; remote retrieval
+happens only through an explicit sync that verifies `uri`, `ref` and `sha256`.
+
+Each project declares one platform mode in `.hseos/config/platform-bindings.yaml`:
+
+- `platform` (default): intake is required and the intake guard blocks a new shareable export
+  without it; the outcome resolves to `consume` or `extend`. Per-capability overrides with the
+  outcomes `keep-local` or `exception` keep the requirements of section 7 and additionally
+  require an `intake_ref` or `exception_ref` that resolves in the repository and an `expires`
+  date that has not passed.
+- `hybrid`: resolves like `platform`, but the guard blocks only when the export matches a
+  registry entry's `match` hints and that entry has an implementation with status `stable` for
+  the project's stack; otherwise it is advisory. Intake is required only in the blocking case.
+  Until a capability reaches `stable` for a stack, `hybrid` behaves as `local` plus advisories.
+- `local`: the project opts out of platform reuse. The check is informational, the guard never
+  blocks and intake is not required. It is a downgrade and requires a decision record
+  (`mode_ref`), a repository-relative path to an existing Markdown file under `docs/decisions/`
+  or `.enterprise/.specs/decisions/`.
+
+Mode strength is ordered `platform` > `hybrid` > `local`. The recorded mode is the `mode` in the
+project bindings file at the base revision (`HEAD` locally, the pull request base in CI); a
+project without that file has the recorded mode `platform`. Choosing a mode weaker than the
+recorded mode requires an existing `mode_ref`; without it the change is rejected and the
+effective mode stays the recorded one. The user/organization layer and command-line flags can
+only make the effective mode stricter than the project file, unless a flag carries `--mode-ref`.
+An unreadable or invalid bindings file is treated as `platform` and reports the validation
+error; it never silently weakens the mode. Agents MUST NOT edit the bindings file; it is
+protected and human-owned. Rules that are not about capability reuse (shared infrastructure,
+secrets handling) apply in every mode.
+
 ## 8. Validation
 
 Authoritative validation MUST be fail-closed and verify schema conformance, global ID
@@ -192,3 +229,5 @@ non-compliant.
 - ADR-0033 Federated Platform Capability Graph and Platform-First Intake
 - `.enterprise/policies/capability-graph.md`
 - `.enterprise/policies/automated-validation.md`
+- ADR-0046 Platform Bindings and Modes
+- ECP Decision 0006 Contract Authority and Kinds, and Decision 0007 Design System Contract Authority
