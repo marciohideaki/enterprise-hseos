@@ -371,10 +371,21 @@ function packagesOf(capability) {
   return [...packages];
 }
 
+/**
+ * Canonical form for name-like comparisons: lower case, and any run of
+ * whitespace, `_` or `-` collapses to a single `-`, so `mobile tokens`,
+ * `Mobile_Tokens` and `mobile-tokens` compare equal. Never applied to path globs.
+ */
+function canonical(value) {
+  return String(value)
+    .toLowerCase()
+    .replaceAll(/[\s_-]+/g, '-');
+}
+
 function bestMatch(capability, query, queryLower) {
   const { symbols, pathGlobs } = matchHints(capability);
-  const equal = (value) => value.toLowerCase() === queryLower;
-  const starts = (value) => value.toLowerCase().startsWith(queryLower);
+  const equal = (value) => canonical(value) === queryLower;
+  const starts = (value) => canonical(value).startsWith(queryLower);
   if (equal(capability.name)) return 'name';
   if (capability.aliases.some((alias) => !alias.includes('/') && equal(alias))) return 'alias';
   if (capability.aliases.some((alias) => alias.includes('/') && equal(alias))) return 'contract';
@@ -389,20 +400,21 @@ function bestMatch(capability, query, queryLower) {
 function containsQuery(capability, queryLower) {
   const { symbols, pathGlobs } = matchHints(capability);
   const haystack = [capability.name, ...capability.aliases, ...symbols, ...pathGlobs, ...packagesOf(capability)];
-  return haystack.some((value) => value.toLowerCase().includes(queryLower));
+  return haystack.some((value) => canonical(value).includes(queryLower));
 }
 
 /**
  * Resolves a query to capabilities. Order of precedence (ADR-0046 §7): exact
  * name, alias, package or contract identifier, match hints (symbol, path glob),
  * prefix. Substring matching runs only when nothing else matched and is labelled
- * `heuristic`. Comparison is case-insensitive; ties break by capability name.
+ * `heuristic`. Comparison is case-insensitive and treats space, `-` and `_` as
+ * the same separator; ties break by capability name.
  */
 function resolveCapability(registry, query, { stacks } = {}) {
   if (typeof query !== 'string') return [];
   query = query.trim();
   if (query.length === 0) return [];
-  const queryLower = query.toLowerCase();
+  const queryLower = canonical(query);
   const toResult = (capability, matchedBy) => ({
     capability,
     matchedBy,
