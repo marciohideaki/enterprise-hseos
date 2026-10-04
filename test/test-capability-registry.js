@@ -638,6 +638,20 @@ function testCorrectionRound() {
       resolveCapability(sepRegistry, '_').length === 0,
   );
   assertPass(
+    'short separator queries do not bridge tokens in the heuristic fallback',
+    ['d c', 'd_c', 'e g', 'e-g', 'x y'].every((q) => resolveCapability(registry, q).length === 0) &&
+      resolveCapability(sepRegistry, 'o k').length === 0,
+  );
+  assertPass(
+    'longer separator queries still match through the heuristic fallback',
+    shape('ile tok') === 'design.mobile-tokens:heuristic:10' && shape('ile_tok') === shape('ile tok'),
+    shape('ile tok'),
+  );
+  assertPass(
+    'separator-free heuristic behaviour is unchanged',
+    shape('obile') === 'design.mobile-tokens:heuristic:10' && resolveCapability(registry, 'Redis')[0].matchedBy === 'heuristic',
+  );
+  assertPass(
     'contract aliases stay contracts and paths are untouched',
     first(registry, 'platform-core/messaging/event-envelope').matchedBy === 'contract' &&
       first(registry, 'platform core/messaging/event envelope').matchedBy === 'contract' &&
