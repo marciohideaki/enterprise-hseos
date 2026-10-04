@@ -2,6 +2,9 @@
 .agents/
 .claude/
 .codex/
+# Plugin indexes emitted by `agent-core compile`
+.claude-plugin/marketplace.json
+.codex-plugin/plugin.json
 
 # Runtime state and temp artifacts
 .hseos/
