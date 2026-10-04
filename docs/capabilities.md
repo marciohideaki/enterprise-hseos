@@ -189,7 +189,9 @@ or any mode weaker than the one recorded at `HEAD` requires `--mode-ref` (a `.md
 `hseos capability-check <name> [--directory <path>] [--json]` resolves the query through the ECP
 registry (snapshot by default, a user-layer `ecp_root`/`registry` otherwise) by name, alias, package
 or contract, `match` hints and prefix (case-insensitive; space, `-` and `_` count as the same separator,
-so `mobile tokens` finds `mobile-tokens`); a filename scan is kept only as a `heuristic` fallback. The JSON
+so `mobile tokens` finds `mobile-tokens`; `.` and `/` are not normalized, only the separators around them, and the
+`heuristic` fallback bridges a separator only for queries of two or more tokens, each with at least two
+alphanumerics, and four or more alphanumerics in total); a filename scan is kept only as a `heuristic` fallback. The JSON
 output reports the effective mode and the layer it came from. Exit codes: 0 completed, 1 bindings or
 registry failed validation, 2 usage error.
 
