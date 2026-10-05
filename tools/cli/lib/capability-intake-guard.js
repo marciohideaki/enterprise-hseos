@@ -61,52 +61,74 @@ function isProtectedBindingsPath(file) {
 const REEXPORT = /\bexport\s+(?:type\s+)?(?:\*(?:\s+as\s+[A-Za-z_$][\w$]*)?|\{[^}]*\})\s*from\s*""/g;
 
 const REGEX_KEYWORDS = new Set([
-  'return', 'typeof', 'instanceof', 'in', 'of', 'new', 'delete', 'void', 'throw', 'case', 'do', 'else', 'yield', 'await',
+  'return',
+  'typeof',
+  'instanceof',
+  'in',
+  'of',
+  'new',
+  'delete',
+  'void',
+  'throw',
+  'case',
+  'do',
+  'else',
+  'yield',
+  'await',
 ]);
+
+// Bounds keep every scan linear: a regex candidate is abandoned after this many characters, template nesting after this depth.
+const MAX_REGEX_LENGTH = 200;
+const MAX_TEMPLATE_DEPTH = 64;
 
 /** A `/` at `index` opens a regex literal (not a division) when the previous significant token is not an operand. */
 function regexAllowed(content, index) {
   let j = index - 1;
   while (j >= 0 && /\s/.test(content[j])) j -= 1;
   if (j < 0) return true;
-  if (/[(,=:[!&|?{;+\-*%<>~^]/.test(content[j])) return true;
-  if (!/[\w$]/.test(content[j])) return false;
+  const previous = content[j];
+  // `++ /` and `-- /` end an operand; any other operator, bracket or separator starts a regex.
+  if ((previous === '+' || previous === '-') && content[j - 1] === previous) return false;
+  if (/[(,=:[!&|?{;+\-*%<>~^]/.test(previous)) return true;
+  if (!/[\w$]/.test(previous)) return false;
   let start = j;
   while (start > 0 && /[\w$]/.test(content[start - 1])) start -= 1;
+  // A keyword used as a property name (`o.in / 2`) is an operand.
+  if (start > 0 && content[start - 1] === '.') return false;
   return REGEX_KEYWORDS.has(content.slice(start, j + 1));
 }
 
-/** End index (after the flags) of the regex literal opening at `start`, or -1 when it does not close on its line. */
+/** End index (after the flags) of the regex literal opening at `start`, or -1 when it does not close on its line or within the bound. */
 function scanRegex(content, start) {
-  const n = content.length;
+  const limit = Math.min(content.length, start + MAX_REGEX_LENGTH);
   let i = start + 1;
   let inClass = false;
-  while (i < n) {
+  while (i < limit) {
     const char = content[i];
     if (char === '\n') return -1;
-    switch (char) {
-    case '\\': {
-    i += 2;
-    break;
-    }
-    case '[': {
-      inClass = true;
+    if (char === '/' && !inClass) {
       i += 1;
-    
-    break;
-    }
-    case ']': {
-      inClass = false;
-      i += 1;
-    
-    break;
-    }
-    default: { if (char === '/' && !inClass) {
-      i += 1;
-      while (i < n && /[\w$]/.test(content[i])) i += 1;
+      while (i < content.length && /[\w$]/.test(content[i])) i += 1;
       return i;
-    } else i += 1;
     }
+    switch (char) {
+      case '\\': {
+        i += 2;
+        break;
+      }
+      case '[': {
+        inClass = true;
+        i += 1;
+        break;
+      }
+      case ']': {
+        inClass = false;
+        i += 1;
+        break;
+      }
+      default: {
+        i += 1;
+      }
     }
   }
   return -1;
@@ -119,94 +141,115 @@ function scanString(content, start) {
   let i = start + 1;
   while (i < n) {
     const char = content[i];
+    if (char === quote) return i + 1;
     switch (char) {
-    case '\\': {
-    i += 2;
-    break;
-    }
-    case quote: { return i + 1;
-    }
-    case '\n': { return -1;
-    }
-    default: { i += 1;
-    }
+      case '\\': {
+        i += 2;
+        break;
+      }
+      case '\n': {
+        return -1;
+      }
+      default: {
+        i += 1;
+      }
     }
   }
   return -1;
 }
 
-/** End index of the template literal opening at `start` (its `${}` expressions are lexed), or -1 when unterminated. */
-function scanTemplate(content, start) {
+/** End index of the template literal opening at `start` (its `${}` expressions are lexed), or -1 when unterminated or too deep. */
+function scanTemplate(content, start, depth = 0) {
+  if (depth > MAX_TEMPLATE_DEPTH) return -1;
   const n = content.length;
   let i = start + 1;
   while (i < n) {
     const char = content[i];
-    if (char === '\\') i += 2;
-    else if (char === '`') return i + 1;
-    else if (char === '$' && content[i + 1] === '{') {
-      i = scanExpression(content, i + 2);
-      if (i === -1) return -1;
-    } else i += 1;
+    switch (char) {
+      case '\\': {
+        i += 2;
+        break;
+      }
+      case '`': {
+        return i + 1;
+      }
+      case '$': {
+        if (content[i + 1] === '{') {
+          i = scanExpression(content, i + 2, depth + 1);
+          if (i === -1) return -1;
+        } else {
+          i += 1;
+        }
+        break;
+      }
+      default: {
+        i += 1;
+      }
+    }
   }
   return -1;
 }
 
 /** End index (after the closing brace) of the `${}` expression whose body starts at `start`, or -1 when unterminated. */
-function scanExpression(content, start) {
+function scanExpression(content, start, depth) {
   const n = content.length;
-  let depth = 1;
+  let braces = 1;
   let i = start;
   while (i < n) {
     const char = content[i];
     const next = content[i + 1];
     switch (char) {
-    case '{': {
-      depth += 1;
-      i += 1;
-    
-    break;
-    }
-    case '}': {
-      depth -= 1;
-      i += 1;
-      if (depth === 0) return i;
-    
-    break;
-    }
-    case '"': 
-    case "'": {
-      i = scanString(content, i);
-      if (i === -1) return -1;
-    
-    break;
-    }
-    case '`': {
-      i = scanTemplate(content, i);
-      if (i === -1) return -1;
-    
-    break;
-    }
-    default: { if (char === '/' && next === '/') {
-      while (i < n && content[i] !== '\n') i += 1;
-    } else if (char === '/' && next === '*') {
-      const end = content.indexOf('*/', i + 2);
-      if (end === -1) return -1;
-      i = end + 2;
-    } else if (char === '/' && regexAllowed(content, i)) {
-      const end = scanRegex(content, i);
-      i = end === -1 ? i + 1 : end;
-    } else i += 1;
-    }
+      case '{': {
+        braces += 1;
+        i += 1;
+        break;
+      }
+      case '}': {
+        braces -= 1;
+        i += 1;
+        if (braces === 0) return i;
+        break;
+      }
+      case '"':
+      case "'": {
+        i = scanString(content, i);
+        if (i === -1) return -1;
+        break;
+      }
+      case '`': {
+        i = scanTemplate(content, i, depth);
+        if (i === -1) return -1;
+        break;
+      }
+      case '/': {
+        if (next === '/') {
+          while (i < n && content[i] !== '\n') i += 1;
+        } else if (next === '*') {
+          const end = content.indexOf('*/', i + 2);
+          if (end === -1) return -1;
+          i = end + 2;
+        } else if (regexAllowed(content, i)) {
+          const end = scanRegex(content, i);
+          i = end === -1 ? i + 1 : end;
+        } else {
+          i += 1;
+        }
+        break;
+      }
+      default: {
+        i += 1;
+      }
     }
   }
   return -1;
 }
 
 /**
- * Replaces comments and string literals with blanks (strings and regex literals become `""`) so that text inside
- * them is never mistaken for code. Small lexer, not a parser. Template literals are skipped through their `${}`
- * expressions (nested strings, templates, comments and regexes included) and a `/` starts a regex literal when the
- * previous token is not an operand. Fail-safe: a construct that never closes (an unclosed block comment, a template or a
+ * Replaces comments and string literals with blanks (strings become `""`) so that text inside them is never
+ * mistaken for code. Small lexer, not a parser. Template literals are skipped through their `${}`
+ * expressions (nested strings, templates, comments and regexes included) and a `/` that probably starts a regex
+ * literal only shields that literal's `/*` and `//` from opening a comment: its text stays inspected, so a wrong
+ * regex-versus-division guess can never hide code (a false positive asks for an intake; a false negative would not). Fail-safe: a construct that never closes (an unclosed block comment, a template or a
  * triple-quoted string without its end, a quote without its closing quote on the line) is kept as raw text so it
  * stays inspected instead of hiding the rest of the file. `language` is `cs` for C# (verbatim `@"…"`,
  * interpolated `$"…"`, raw `"""…"""`) and `js` otherwise.
@@ -246,7 +289,7 @@ function stripNonCode(content, language = 'js') {
         i = end + 2;
       }
     } else if (cs && (char === '@' || char === '$') && /^[@$]{1,2}"/.test(content.slice(i, i + 3))) {
-      const prefix = content.slice(i).match(/^[@$]{1,2}/)[0];
+      const prefix = content.slice(i, i + 2).match(/^[@$]{1,2}/)[0];
       const quote = i + prefix.length;
       const end = prefix.includes('@') ? skipVerbatim(quote) : scanString(content, quote);
       if (end === -1) {
@@ -257,7 +300,7 @@ function stripNonCode(content, language = 'js') {
         out += '""';
       }
     } else if (cs && char === '"' && content.startsWith('"""', i)) {
-      const quotes = content.slice(i).match(/^"+/)[0];
+      const quotes = content.slice(i, i + 64).match(/^"+/)[0];
       const end = content.indexOf(quotes, i + quotes.length);
       if (end === -1) {
         out += content.slice(i);
@@ -287,14 +330,12 @@ function stripNonCode(content, language = 'js') {
         out += '""';
       }
     } else if (!cs && char === '/' && regexAllowed(content, i)) {
+      // The literal only protects its own `/*` and `//` from opening a comment; its text stays inspected, so a
+      // wrong regex-versus-division guess can never hide code.
       const end = scanRegex(content, i);
-      if (end === -1) {
-        out += char;
-        i += 1;
-      } else {
-        i = end;
-        out += '""';
-      }
+      const stop = end === -1 ? i + 1 : end;
+      out += content.slice(i, stop);
+      i = stop;
     } else {
       out += char;
       i += 1;
