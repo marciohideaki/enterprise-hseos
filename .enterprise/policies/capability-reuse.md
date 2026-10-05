@@ -52,10 +52,11 @@ file means `platform`). Choosing `local`, or any mode weaker than the recorded o
 `.enterprise/.specs/decisions/`). The user/organization layer and flags can only strengthen the
 mode unless a flag carries `--mode-ref`. `.hseos/config/platform-bindings.yaml` is human-owned:
 the guard denies agent edits to it.
-The denial covers `Write`, `Edit` and `MultiEdit`, not writes through the Bash tool. An uncommitted
-shell edit does not change the effective mode (it comes from `HEAD`); a committed one does, and is
-constrained only by the `mode_ref` rule above and the guard's fallback to the platform decision when the CLI is unavailable. A Bash deny would
-be a heuristic, not a security boundary (see ADR-0046 section 8).
+The denial covers `Write`, `Edit` and `MultiEdit`, not writes through the Bash tool. The effective mode is
+the working-tree one; `HEAD` is only the floor of the anti-downgrade, and any existing decision record
+accepted as `mode_ref` (its content is not validated) allows a downgrade, committed or not. The
+anti-downgrade is therefore a convenience barrier, not a security boundary. Hardening options are listed
+as follow-ups in ADR-0046 section 8.
 
 ## Audience
 

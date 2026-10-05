@@ -183,7 +183,7 @@ These points record how the accepted decision is implemented; none of them chang
   repeated.
 - **Baseline via HEAD.** `hseos install`, `init`, `show`, the guard and `capability-check` read the
   recorded mode from the project file at `HEAD` (`git show HEAD:.hseos/config/platform-bindings.yaml`),
-  never from the working tree, so an uncommitted weakening is rejected. Outside a git repository, or
+  never from the working tree, so an uncommitted weakening is rejected unless it carries a resolving `mode_ref` (the recorded mode is the floor of the anti-downgrade, not the effective mode). Outside a git repository, or
   without that file at the revision, the recorded mode is `platform`. `hseos platform-bindings check`
   uses `--base <ref>` instead of `HEAD` and ignores the user layer.
 - **Exit codes.** `hseos platform-bindings`: `show` exits 0, or 1 when the registry fails its integrity
@@ -196,18 +196,24 @@ These points record how the accepted decision is implemented; none of them chang
   shape above and matches as a whole token in a `docs/decisions/**/*intake*.md` file. The legacy path
   (no bindings file, or CLI unavailable) keeps its substring match in `docs/decisions/*intake*.md`; it
   is not tightened. Both reject `CORE_INTAKE_ACK=1`.
-- **Writes through the Bash tool (assessed, not implemented).** The guard covers `Write`, `Edit` and
-  `MultiEdit`. A best-effort deny for shell writes (`>`, `tee`, `sed -i`, `cp`, `mv`, `dd of=`, `python -c`)
-  would need a new `PreToolUse` hook with matcher `Bash`, which spawns a process for every shell command
-  (about 2 ms each with a pure-bash fast path) and still misses indirection (variables, globs, `cd` plus a
-  relative path, scripts, editors). Any such check would be a heuristic, not a security boundary. The
-  benefit is also low, with limits stated plainly. The recorded mode is read from `HEAD` (Baseline via
-  HEAD), so an uncommitted shell edit does not change the effective mode. A shell edit that is then
-  committed does take effect as the new recorded mode; what protects against it is the anti-downgrade
-  rule (a weaker mode requires a `mode_ref` to a decision record, checked by
-  `hseos platform-bindings check` at review time) and the guard's fallback to the strictest (platform) decision when the CLI is unavailable, not any
-  control on the Bash tool. Reading the file (`cat`, `grep`, `hseos platform-bindings show`)
-  is unaffected either way.
+- **Writes through the Bash tool, and the strength of the anti-downgrade (assessed, not implemented).** The
+  guard denies agent edits of the bindings file for `Write`, `Edit` and `MultiEdit`; it does not cover writes
+  through the Bash tool (`>`, `tee`, `sed -i`, `cp`, `mv`, `dd of=`, one-liners). The effective mode is the one
+  in the working tree. The mode at `HEAD` is only the floor of the anti-downgrade: a weaker working-tree mode
+  is accepted whenever it carries a `mode_ref` that resolves to an existing Markdown file under
+  `docs/decisions/` or `.enterprise/.specs/decisions/`, committed or not, and the content or authorship of
+  that file is not validated. So the anti-downgrade is a convenience barrier, not a security boundary, and a
+  Bash-tool deny would not change that. It is not implemented because it would be a heuristic (it misses
+  variables, globs, `cd` plus a relative path, scripts and editors), it needs a new `PreToolUse` hook with
+  matcher `Bash` that starts a process for every shell command (cost not measured beyond about 1 ms of shell
+  start-up), and it would not fix the weak floor above. Hardening options, left as follow-up decisions for
+  the owner and not implemented here: require that a downgrade is committed and approved; validate the
+  content or authorship of the `mode_ref` record; add a Bash-tool matcher. Reading the file (`cat`, `grep`,
+  `hseos platform-bindings show`) is unaffected either way.
+- **Fallback when the CLI is unavailable.** With a bindings file, a missing CLI or node, or a CLI failure,
+  makes the shell handler apply its legacy decision (a narrower detection than the CLI: it does not see
+  `export async function` or `enum`). The literal `platform` decision applies only when the baseline at
+  `HEAD` cannot be read.
 
 ---
 
