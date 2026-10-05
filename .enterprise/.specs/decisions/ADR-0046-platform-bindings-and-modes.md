@@ -196,6 +196,18 @@ These points record how the accepted decision is implemented; none of them chang
   shape above and matches as a whole token in a `docs/decisions/**/*intake*.md` file. The legacy path
   (no bindings file, or CLI unavailable) keeps its substring match in `docs/decisions/*intake*.md`; it
   is not tightened. Both reject `CORE_INTAKE_ACK=1`.
+- **Writes through the Bash tool (assessed, not implemented).** The guard covers `Write`, `Edit` and
+  `MultiEdit`. A best-effort deny for shell writes (`>`, `tee`, `sed -i`, `cp`, `mv`, `dd of=`, `python -c`)
+  would need a new `PreToolUse` hook with matcher `Bash`, which spawns a process for every shell command
+  (about 2 ms each with a pure-bash fast path) and still misses indirection (variables, globs, `cd` plus a
+  relative path, scripts, editors). Any such check would be a heuristic, not a security boundary. The
+  benefit is also low, with limits stated plainly. The recorded mode is read from `HEAD` (Baseline via
+  HEAD), so an uncommitted shell edit does not change the effective mode. A shell edit that is then
+  committed does take effect as the new recorded mode; what protects against it is the anti-downgrade
+  rule (a weaker mode requires a `mode_ref` to a decision record, checked by
+  `hseos platform-bindings check` at review time) and the guard's fallback to the strictest (platform) decision when the CLI is unavailable, not any
+  control on the Bash tool. Reading the file (`cat`, `grep`, `hseos platform-bindings show`)
+  is unaffected either way.
 
 ---
 
