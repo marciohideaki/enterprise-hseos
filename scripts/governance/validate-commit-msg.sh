@@ -56,9 +56,22 @@ AI_TERMS=(
   "anthropic" "gemini" "mistral"
 )
 
+# Technical identifiers of tool adapters (paths and package names) are not AI
+# attribution; they are removed from a lowercase copy before matching. Prose
+# naming a vendor or tool stays forbidden.
+ALLOWED_IDENTIFIERS=(
+  ".claude-plugin" ".codex-plugin" ".claude/" ".codex/"
+  "claude-code" "claude_code"
+)
+
 MSG_LOWER="$(echo "$COMMIT_MSG" | tr '[:upper:]' '[:lower:]')"
+for ident in "${ALLOWED_IDENTIFIERS[@]}"; do
+  MSG_LOWER="${MSG_LOWER//"$ident"/ }"
+done
+
+# Whole-word match (grep -w): terms embedded inside other words do not count.
 for term in "${AI_TERMS[@]}"; do
-  if echo "$MSG_LOWER" | grep -q "$term"; then
+  if echo "$MSG_LOWER" | grep -qiwF -- "$term"; then
     record_fail "AI mention forbidden: found '${term}' in commit message"
   fi
 done
