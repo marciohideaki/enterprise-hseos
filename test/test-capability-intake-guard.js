@@ -835,3 +835,36 @@ test('lexer: regex literals and nested templates hide their text; unclosed const
   assert.equal(guard(directory, file, '/* open\nexport function Hidden() {}').exitCode, 2);
   assert.equal(guard(directory, file, String.raw`const r = /\/*/; // no export here`).exitCode, 0);
 });
+
+test('lexer: a division read as a regex never hides code, and pathological input stays linear', () => {
+  const exported = [
+    'let y = i++ / 2; export class H {} let z = k / 3;',
+    'let y = i-- / 2; export class H {} let z = k / 3;',
+    'a! / 2; export class H {} let z = k / 3;',
+    'o.in / 2; export class H {} let z = k / 3;',
+    'this.new / 2; export class H {} let z = k / 3;',
+    '<b>x</b>; export class H {} <i>y</i>',
+    'x = a / b; export class H {} y = c / d',
+    'x = (a) / b; export class H {} y = c / d',
+    'return a / 2; export class H {} y = c / d',
+  ];
+  for (const content of exported) assert.equal(detectExport(content)?.symbol, 'H', content);
+  const timed = (content, language) => {
+    const started = process.hrtime.bigint();
+    const result = detectExport(content, language);
+    return { result, milliseconds: Number(process.hrtime.bigint() - started) / 1e6 };
+  };
+  const normal = timed('const a = 1;\n'.repeat(80_000) + 'export class R {}');
+  assert.equal(normal.result?.symbol, 'R');
+  assert.ok(normal.milliseconds < 200, `1 MB took ${normal.milliseconds} ms`);
+  const patterns = [
+    ['x =' + '/['.repeat(128_000) + '\nexport class R {}', 'js'],
+    ['`${ '.repeat(10_000) + '\nexport class R {}', 'js'],
+    ['@"a" '.repeat(100_000) + 'public class R {}', 'cs'],
+  ];
+  for (const [content, language] of patterns) {
+    const { result, milliseconds } = timed(content, language);
+    assert.equal(result?.symbol, 'R', 'the export after a pathological prefix is still seen');
+    assert.ok(milliseconds < 1000, `pathological input took ${milliseconds} ms`);
+  }
+});
