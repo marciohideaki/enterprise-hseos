@@ -781,3 +781,57 @@ test('re-exports with a from clause are not new capabilities; local export lists
   assert.equal(guard(directory, file, "export * from './x'\nexport { a } from './y'").exitCode, 0, 'a barrel file adds no capability');
   assert.equal(guard(directory, file, 'export { a, b }').exitCode, 2);
 });
+
+test('lexer: regex literals and nested templates hide their text; unclosed constructs stay inspected', () => {
+  const E = 'export class Real {}';
+  // Hidden: an exported-looking text inside a construct that really closes (nothing to detect).
+  const hidden = [
+    [String.raw`const r = /a\/*b/; // export class A {}`, 'regex with an escaped slash then a star'],
+    ['const r = /\\/*/;\n// export class A {}', 'regex whose body is an escaped slash and a star'],
+    ['const r = /[/*]/;\n/* export class A {} */', 'slash and star inside a character class'],
+    ['x = a.replace(/\\/*/g, "");\nconst s = "export class A {}"', 'regex as a call argument with flags'],
+    ['const s = `${`x`} export class A {}`', 'template nested in ${}'],
+    ['const s = `${"`"} export class A {}`', 'backtick inside a string inside ${}'],
+    ['const s = `a ${ {b: `c ${d}`}.b } export class A {}`', 'braces and templates nested in ${}'],
+    ['const s = `${/`/.test(x)} export class A {}`', 'backtick inside a regex inside ${}'],
+    ['const s = `${/* ` */ 1} export class A {}`', 'backtick inside a comment inside ${}'],
+    ['const s = `${x /* } */}` + "export class A {}"', 'closing brace inside a comment inside ${}'],
+    [String.raw`return /\/*/.test(s) ? 1 : 0 // export class A {}`, 'regex after a keyword'],
+    ['const a = b / c; // export class A {}', 'division is not a regex'],
+    ['const a = (b) / c / d; // export class A {}', 'division after a parenthesis'],
+    ['const a = 1; // export class A {} (no trailing newline)', 'line comment without a final newline'],
+    ['const r = /"/; const s = "export class A {}"', 'quote inside a regex'],
+  ];
+  for (const [content, label] of hidden) assert.equal(detectExport(content), null, label);
+  // The code after the construct is still seen (the construct must not swallow it).
+  const visible = [
+    [`const r = /a\\/*b/;\n${E}`, String.raw`regex /a\/*b/`],
+    [`const r = /\\/*/;\n${E}`, String.raw`regex /\/*/`],
+    [`const s = \`\${\`x\`}\`;\n${E}`, 'nested template'],
+    [`const s = \`\${"\`"}\`;\n${E}`, 'backtick in a string in ${}'],
+    [`const s = \`a \${ {b: \`c \${d}\`}.b }\`;\n${E}`, 'deep nesting'],
+    [`x = a.replace(/\\/*/g, "");\n${E}`, 'regex argument with flags'],
+    [`const r = /[/*]/g; ${E}`, 'class with slash and star'],
+    [`const a = b / c; /* x */ ${E}`, 'division then a real comment'],
+    [`${E} // trailing comment without newline`, 'export before an unterminated line comment'],
+  ];
+  for (const [content, label] of visible) assert.equal(detectExport(content)?.symbol, 'Real', label);
+  // Fail-safe: unclosed constructs are raw text, never ignored content.
+  assert.equal(detectExport('/* never closed\nexport class Real {}').symbol, 'Real', 'unclosed block comment is raw text');
+  assert.equal(detectExport('/*'), null, 'a bare opener has nothing to inspect');
+  assert.equal(detectExport('const s = `never closed ${x}\nexport class Real {}').symbol, 'Real', 'unclosed template');
+  assert.equal(detectExport('const s = `${ never closed\nexport class Real {}').symbol, 'Real', 'unclosed ${}');
+  assert.equal(detectExport('const s = "never closed\nexport class Real {}').symbol, 'Real', 'unclosed double quote');
+  assert.equal(detectExport("const s = 'never closed export class Real {}").symbol, 'Real', 'unclosed quote keeps the rest of its line');
+  assert.equal(detectExport('var s = @"never closed\npublic class Real {}', 'cs').symbol, 'Real', 'unclosed verbatim string');
+  assert.equal(detectExport('var s = """never closed\npublic class Real {}', 'cs').symbol, 'Real', 'unclosed raw string');
+  assert.equal(detectExport('var s = $"never closed public class Real {}', 'cs').symbol, 'Real', 'unclosed interpolated string');
+  assert.equal(detectExport('const r = /never closed\nexport class Real {}').symbol, 'Real', 'a slash that never closes is not a regex');
+  assert.equal(detectExport('// only a comment'), null);
+  // Through the hook: an unclosed comment can no longer hide an export.
+  const directory = gitProject({ [BINDINGS]: projectFile('platform') });
+  const file = path.join(directory, 'packages/shared/a.ts');
+  assert.equal(guard(directory, file, 'const r = /\\/*/;\nexport function Hidden() {}').exitCode, 2);
+  assert.equal(guard(directory, file, '/* open\nexport function Hidden() {}').exitCode, 2);
+  assert.equal(guard(directory, file, String.raw`const r = /\/*/; // no export here`).exitCode, 0);
+});

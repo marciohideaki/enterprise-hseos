@@ -60,43 +60,176 @@ function isProtectedBindingsPath(file) {
 // Re-exports with a `from` clause forward an existing module; they introduce no new capability.
 const REEXPORT = /\bexport\s+(?:type\s+)?(?:\*(?:\s+as\s+[A-Za-z_$][\w$]*)?|\{[^}]*\})\s*from\s*""/g;
 
+const REGEX_KEYWORDS = new Set([
+  'return', 'typeof', 'instanceof', 'in', 'of', 'new', 'delete', 'void', 'throw', 'case', 'do', 'else', 'yield', 'await',
+]);
+
+/** A `/` at `index` opens a regex literal (not a division) when the previous significant token is not an operand. */
+function regexAllowed(content, index) {
+  let j = index - 1;
+  while (j >= 0 && /\s/.test(content[j])) j -= 1;
+  if (j < 0) return true;
+  if (/[(,=:[!&|?{;+\-*%<>~^]/.test(content[j])) return true;
+  if (!/[\w$]/.test(content[j])) return false;
+  let start = j;
+  while (start > 0 && /[\w$]/.test(content[start - 1])) start -= 1;
+  return REGEX_KEYWORDS.has(content.slice(start, j + 1));
+}
+
+/** End index (after the flags) of the regex literal opening at `start`, or -1 when it does not close on its line. */
+function scanRegex(content, start) {
+  const n = content.length;
+  let i = start + 1;
+  let inClass = false;
+  while (i < n) {
+    const char = content[i];
+    if (char === '\n') return -1;
+    switch (char) {
+    case '\\': {
+    i += 2;
+    break;
+    }
+    case '[': {
+      inClass = true;
+      i += 1;
+    
+    break;
+    }
+    case ']': {
+      inClass = false;
+      i += 1;
+    
+    break;
+    }
+    default: { if (char === '/' && !inClass) {
+      i += 1;
+      while (i < n && /[\w$]/.test(content[i])) i += 1;
+      return i;
+    } else i += 1;
+    }
+    }
+  }
+  return -1;
+}
+
+/** End index of the string opening at `start`, or -1 when it is unterminated (a line string ends at a newline). */
+function scanString(content, start) {
+  const quote = content[start];
+  const n = content.length;
+  let i = start + 1;
+  while (i < n) {
+    const char = content[i];
+    switch (char) {
+    case '\\': {
+    i += 2;
+    break;
+    }
+    case quote: { return i + 1;
+    }
+    case '\n': { return -1;
+    }
+    default: { i += 1;
+    }
+    }
+  }
+  return -1;
+}
+
+/** End index of the template literal opening at `start` (its `${}` expressions are lexed), or -1 when unterminated. */
+function scanTemplate(content, start) {
+  const n = content.length;
+  let i = start + 1;
+  while (i < n) {
+    const char = content[i];
+    if (char === '\\') i += 2;
+    else if (char === '`') return i + 1;
+    else if (char === '$' && content[i + 1] === '{') {
+      i = scanExpression(content, i + 2);
+      if (i === -1) return -1;
+    } else i += 1;
+  }
+  return -1;
+}
+
+/** End index (after the closing brace) of the `${}` expression whose body starts at `start`, or -1 when unterminated. */
+function scanExpression(content, start) {
+  const n = content.length;
+  let depth = 1;
+  let i = start;
+  while (i < n) {
+    const char = content[i];
+    const next = content[i + 1];
+    switch (char) {
+    case '{': {
+      depth += 1;
+      i += 1;
+    
+    break;
+    }
+    case '}': {
+      depth -= 1;
+      i += 1;
+      if (depth === 0) return i;
+    
+    break;
+    }
+    case '"': 
+    case "'": {
+      i = scanString(content, i);
+      if (i === -1) return -1;
+    
+    break;
+    }
+    case '`': {
+      i = scanTemplate(content, i);
+      if (i === -1) return -1;
+    
+    break;
+    }
+    default: { if (char === '/' && next === '/') {
+      while (i < n && content[i] !== '\n') i += 1;
+    } else if (char === '/' && next === '*') {
+      const end = content.indexOf('*/', i + 2);
+      if (end === -1) return -1;
+      i = end + 2;
+    } else if (char === '/' && regexAllowed(content, i)) {
+      const end = scanRegex(content, i);
+      i = end === -1 ? i + 1 : end;
+    } else i += 1;
+    }
+    }
+  }
+  return -1;
+}
+
 /**
- * Replaces comments and string literals with blanks (strings become `""`) so that text inside them is never
- * mistaken for code. Small lexer, not a parser: `${}` inside template literals is not evaluated, regex literals
- * are not recognised, and single- and double-quoted strings end at a newline so a stray quote cannot swallow the
- * rest of the file. `language` is `cs` for C# (verbatim `@"…"`, interpolated `$"…"`, raw `"""…"""`) and `js` otherwise.
+ * Replaces comments and string literals with blanks (strings and regex literals become `""`) so that text inside
+ * them is never mistaken for code. Small lexer, not a parser. Template literals are skipped through their `${}`
+ * expressions (nested strings, templates, comments and regexes included) and a `/` starts a regex literal when the
+ * previous token is not an operand. Fail-safe: a construct that never closes (an unclosed block comment, a template or a
+ * triple-quoted string without its end, a quote without its closing quote on the line) is kept as raw text so it
+ * stays inspected instead of hiding the rest of the file. `language` is `cs` for C# (verbatim `@"…"`,
+ * interpolated `$"…"`, raw `"""…"""`) and `js` otherwise.
  */
 function stripNonCode(content, language = 'js') {
   const cs = language === 'cs';
   let out = '';
   let i = 0;
   const n = content.length;
-  const skipQuoted = (quote, { verbatim = false } = {}) => {
-    i += 1;
-    while (i < n) {
-      const char = content[i];
-      if (verbatim) {
-        if (char === quote) {
-          if (content[i + 1] === quote) {
-            i += 2;
-            continue;
-          }
-          i += 1;
-          return;
-        }
-      } else {
-        if (char === '\\') {
-          i += 2;
+  const skipVerbatim = (start) => {
+    // `start` is the opening quote; returns the end index or -1 when it never closes.
+    let j = start + 1;
+    while (j < n) {
+      if (content[j] === '"') {
+        if (content[j + 1] === '"') {
+          j += 2;
           continue;
         }
-        if (char === quote) {
-          i += 1;
-          return;
-        }
-        if (char === '\n' && quote !== '`') return;
+        return j + 1;
       }
-      i += 1;
+      j += 1;
     }
+    return -1;
   };
   while (i < n) {
     const char = content[i];
@@ -105,22 +238,63 @@ function stripNonCode(content, language = 'js') {
       while (i < n && content[i] !== '\n') i += 1;
     } else if (char === '/' && next === '*') {
       const end = content.indexOf('*/', i + 2);
-      const stop = end === -1 ? n : end + 2;
-      out += content.slice(i, stop).replaceAll(/[^\n]/g, ' ');
-      i = stop;
+      if (end === -1) {
+        out += content.slice(i);
+        i = n;
+      } else {
+        out += content.slice(i, end + 2).replaceAll(/[^\n]/g, ' ');
+        i = end + 2;
+      }
     } else if (cs && (char === '@' || char === '$') && /^[@$]{1,2}"/.test(content.slice(i, i + 3))) {
       const prefix = content.slice(i).match(/^[@$]{1,2}/)[0];
-      i += prefix.length;
-      skipQuoted('"', { verbatim: prefix.includes('@') });
-      out += '""';
+      const quote = i + prefix.length;
+      const end = prefix.includes('@') ? skipVerbatim(quote) : scanString(content, quote);
+      if (end === -1) {
+        out += content.slice(i);
+        i = n;
+      } else {
+        i = end;
+        out += '""';
+      }
     } else if (cs && char === '"' && content.startsWith('"""', i)) {
       const quotes = content.slice(i).match(/^"+/)[0];
       const end = content.indexOf(quotes, i + quotes.length);
-      i = end === -1 ? n : end + quotes.length;
-      out += '""';
-    } else if (char === '"' || char === "'" || (!cs && char === '`')) {
-      skipQuoted(char);
-      out += '""';
+      if (end === -1) {
+        out += content.slice(i);
+        i = n;
+      } else {
+        i = end + quotes.length;
+        out += '""';
+      }
+    } else if (char === '"' || char === "'") {
+      const end = scanString(content, i);
+      if (end === -1) {
+        const lineEnd = content.indexOf('\n', i);
+        const stop = lineEnd === -1 ? n : lineEnd;
+        out += content.slice(i, stop);
+        i = stop;
+      } else {
+        i = end;
+        out += '""';
+      }
+    } else if (!cs && char === '`') {
+      const end = scanTemplate(content, i);
+      if (end === -1) {
+        out += content.slice(i);
+        i = n;
+      } else {
+        i = end;
+        out += '""';
+      }
+    } else if (!cs && char === '/' && regexAllowed(content, i)) {
+      const end = scanRegex(content, i);
+      if (end === -1) {
+        out += char;
+        i += 1;
+      } else {
+        i = end;
+        out += '""';
+      }
     } else {
       out += char;
       i += 1;
