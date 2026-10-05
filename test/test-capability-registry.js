@@ -599,6 +599,65 @@ function testCorrectionRound() {
     resolveCapability(registry, 'ed').some((result) => result.matchedBy === 'heuristic'),
   );
 
+  // 5b. separator normalization (space, hyphen, underscore)
+  const sepRegistry = fixture();
+  const design = (name, aliases) => ({
+    ...sepRegistry.capabilities[0],
+    name,
+    aliases,
+    match: undefined,
+    implementations: sepRegistry.capabilities[0].implementations.map((i) => ({ ...i, package: `pkg-${name}` })),
+  });
+  sepRegistry.capabilities.push(
+    design('design.mobile-tokens', ['mobile-tokens']),
+    design('design.login-pattern', ['login', 'login-screen']),
+  );
+  const shape = (query) =>
+    resolveCapability(sepRegistry, query)
+      .map((r) => `${r.capability.name}:${r.matchedBy}:${r.score}`)
+      .join('|');
+  const baseline = shape('mobile-tokens');
+  assertPass('hyphenated alias resolves', baseline === 'design.mobile-tokens:alias:90', baseline);
+  for (const variant of ['mobile tokens', 'Mobile-Tokens', 'mobile_tokens', 'MOBILE  TOKENS', 'mobile - tokens']) {
+    assertPass(`'${variant}' resolves like 'mobile-tokens'`, shape(variant) === baseline, shape(variant));
+  }
+  assertPass(
+    'login screen resolves like login-screen',
+    shape('login screen') === shape('login-screen') && shape('Login_Screen').startsWith('design.login-pattern:alias'),
+  );
+  assertPass(
+    'separator-normalized prefix keeps prefix score',
+    shape('mobile tok') === 'design.mobile-tokens:prefix:40',
+    shape('mobile tok'),
+  );
+  assertPass(
+    'no new ties or false positives',
+    resolveCapability(sepRegistry, 'mobile tokens').length === 1 &&
+      resolveCapability(sepRegistry, 'a b').length === 0 &&
+      resolveCapability(sepRegistry, '- _ -').length === 0 &&
+      resolveCapability(sepRegistry, '_').length === 0,
+  );
+  assertPass(
+    'short separator queries do not bridge tokens in the heuristic fallback',
+    ['d c', 'd_c', 'e g', 'e-g', 'x y'].every((q) => resolveCapability(registry, q).length === 0) &&
+      resolveCapability(sepRegistry, 'o k').length === 0,
+  );
+  assertPass(
+    'longer separator queries still match through the heuristic fallback',
+    shape('ile tok') === 'design.mobile-tokens:heuristic:10' && shape('ile_tok') === shape('ile tok'),
+    shape('ile tok'),
+  );
+  assertPass(
+    'separator-free heuristic behaviour is unchanged',
+    shape('obile') === 'design.mobile-tokens:heuristic:10' && resolveCapability(registry, 'Redis')[0].matchedBy === 'heuristic',
+  );
+  assertPass(
+    'contract aliases stay contracts and paths are untouched',
+    first(registry, 'platform-core/messaging/event-envelope').matchedBy === 'contract' &&
+      first(registry, 'platform core/messaging/event envelope').matchedBy === 'contract' &&
+      exportMatches(registry, { filePath: 'schemas/event-envelope.schema.json' }).length === 1,
+  );
+
   // 6. symbol normalization
   const symbolHit = (symbol) =>
     exportMatches(registry, { symbol })
