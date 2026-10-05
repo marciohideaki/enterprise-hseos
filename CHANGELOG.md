@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Capability resolution treats space, hyphen and underscore as the same separator, so `mobile tokens` and `mobile_tokens` resolve like `mobile-tokens`; `.` and `/` are not normalized, scores and tie-breaks are unchanged, and the `heuristic` fallback bridges a separator only for queries with at least two tokens of two alphanumerics each and four in total.
 - The `session-track.sh` installed-consumer hook test waits for the captured content, up to the handler's 5 s cap plus margin, instead of only for the capture file, which the fixture creates before writing it.
 - `agent-core compile` ends the emitted `.claude-plugin/marketplace.json` and `.codex-plugin/plugin.json` with a newline, and both files are excluded from prettier like the other compiler output, so repeated compiles leave no diff.
 
