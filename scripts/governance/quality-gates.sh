@@ -309,8 +309,9 @@ gate_security() {
 gate_commit_hygiene() {
   info "Gate 5: Commit Hygiene"
 
-  # Same vocabulary as scripts/governance/validate-commit-msg.sh (AR-52)
-  local ai_terms='claude|codex|openai|anthropic|copilot|chatgpt|gpt-[0-9]|gemini|mistral|ai-generated|ai generated|written by ai|language model|co-authored-by'
+  # Messages are checked by scripts/governance/validate-commit-msg.sh itself
+  # (--ai-terms-only), so the vocabulary and word boundaries stay in one place (AR-52).
+  local msg_validator="${REPO_ROOT}/scripts/governance/validate-commit-msg.sh"
 
   local staged_files
   staged_files=$(git -C "${REPO_ROOT}" diff --cached --name-only 2>/dev/null || true)
@@ -337,18 +338,21 @@ gate_commit_hygiene() {
   # history is rewritten by squash-merge at PR closeout.
   if [[ -n "${GITHUB_ACTIONS:-}" || "$PHASE" == "ci" ]]; then
     local head_msg
-    head_msg=$(git -C "${REPO_ROOT}" log -1 --format='%s%n%b' 2>/dev/null || true)
-    if echo "$head_msg" | grep -qiE "$ai_terms"; then
+    head_msg=$(git -C "${REPO_ROOT}" log -1 --format='%B' 2>/dev/null || true)
+    if [[ -n "$head_msg" ]] && ! bash "$msg_validator" --ai-terms-only "$head_msg" >/dev/null 2>&1; then
       record_fail "AI mention in HEAD commit message (AR-52 / validate-commit-msg vocabulary)"
     fi
 
     local base_ref="${GITHUB_BASE_REF:-master}"
     if git -C "${REPO_ROOT}" rev-parse --verify --quiet "origin/${base_ref}" >/dev/null 2>&1; then
-      local range_msgs
-      range_msgs=$(git -C "${REPO_ROOT}" log --format='%s%n%b' "origin/${base_ref}..HEAD" 2>/dev/null || true)
-      if echo "$range_msgs" | grep -qiE "$ai_terms"; then
-        record_warn "AI mention in commit range origin/${base_ref}..HEAD (advisory — squash-merge cleans history at closeout)"
-      fi
+      local range_sha range_msg
+      while IFS= read -r range_sha; do
+        [[ -n "$range_sha" ]] || continue
+        range_msg=$(git -C "${REPO_ROOT}" log -1 --format='%B' "$range_sha" 2>/dev/null || true)
+        if [[ -n "$range_msg" ]] && ! bash "$msg_validator" --ai-terms-only "$range_msg" >/dev/null 2>&1; then
+          record_warn "AI mention in commit ${range_sha:0:8} of origin/${base_ref}..HEAD (advisory — squash-merge cleans history at closeout)"
+        fi
+      done < <(git -C "${REPO_ROOT}" log --format='%H' "origin/${base_ref}..HEAD" 2>/dev/null || true)
     else
       info "Base ref origin/${base_ref} unavailable (shallow clone?) — range hygiene skipped"
     fi
