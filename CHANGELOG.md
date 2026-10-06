@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Platform bindings (ADR-0046, wave W2b): adoption modes `platform`, `hybrid` and `local` recorded in `.hseos/config/platform-bindings.yaml`, layered configuration (runtime, user, project, flags) with anti-downgrade protection through `mode_ref`, the `hseos platform-bindings` command (`show`, `check`, `sync`, `guard`), platform-mode prompts and flags in `hseos init`, `install` and `install-plan`, and a mode-aware capability intake guard that denies agent edits to the bindings file.
-- ECP capability registry snapshot (`contracts-v0.3.1`, SHA-256 pinned in `ecp-registry.snapshot.lock.json`); `hseos capability-check` now resolves by name, alias, contract, package and `match` hints before the filename heuristic and reports the effective mode.
+- ECP capability registry snapshot (`contracts-v0.4.0`, SHA-256 pinned in `ecp-registry.snapshot.lock.json`); `hseos capability-check` now resolves by name, alias, contract, package and `match` hints before the filename heuristic and reports the effective mode.
 - Capability-reuse and capability-graph policies, capabilities docs and getting-started guides document ECP contract authority and the adoption modes; the `/opt/hideakisolutions/**` scope is removed from the capability-reuse policy.
 
 - Candidate campaign factories for native account, API and local SDK routes, with scoped Antigravity composition, shared reservations, process drainage and receipt-bound session resume. Real-provider campaign conformance remains unverified; see [W3 candidate limits](docs/evolution/w3/ADAPTERS-CAMPAIGN.md).
@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The ECP registry snapshot is refreshed from `contracts-v0.3.1` to `contracts-v0.4.0` (lock `ref` and SHA-256 updated): `Authn` resolves to `security.authn` by alias, and the new `design.login-pattern` and `design.mobile-tokens` capabilities are visible to `hseos capability-check`.
 - The capability intake guard inspects `MultiEdit` edits, denies any agent edit of `.hseos/config/platform-bindings.yaml` in every mode, and, with a bindings file, accepts `CORE_INTAKE_ACK` only as a whole-token intake identifier (the legacy path without bindings keeps its substring match). `hseos platform-bindings` exit codes: `check` 0/1/2, `guard` 0/2, `show` 1 on a registry integrity failure.
 
 ### Fixed
@@ -30,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Known limitations
 
-- The `contracts-v0.3.1` registry lacks the `Login` and `Authn` aliases (to be requested from the ECP); the snapshot-versus-ECP-ref drift job is not implemented yet.
+- The snapshot-versus-ECP-ref drift job is not implemented yet.
 
 ## [4.0.0-rc.0] — Unpublished candidate
 
