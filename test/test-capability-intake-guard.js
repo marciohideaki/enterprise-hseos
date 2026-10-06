@@ -8,6 +8,8 @@ const path = require('node:path');
 const test = require('node:test');
 const {
   detectExport,
+  inspectedCode,
+  lexLegacy,
   evaluateGuard,
   extractSymbol,
   isProtectedBindingsPath,
@@ -793,8 +795,6 @@ test('lexer: regex literals and nested templates hide their text; unclosed const
     ['const s = `${`x`} export class A {}`', 'template nested in ${}'],
     ['const s = `${"`"} export class A {}`', 'backtick inside a string inside ${}'],
     ['const s = `a ${ {b: `c ${d}`}.b } export class A {}`', 'braces and templates nested in ${}'],
-    ['const s = `${/`/.test(x)} export class A {}`', 'backtick inside a regex inside ${}'],
-    ['const s = `${/* ` */ 1} export class A {}`', 'backtick inside a comment inside ${}'],
     ['const s = `${x /* } */}` + "export class A {}"', 'closing brace inside a comment inside ${}'],
     [String.raw`return /\/*/.test(s) ? 1 : 0 // export class A {}`, 'regex after a keyword'],
     ['const a = b / c; // export class A {}', 'division is not a regex'],
@@ -802,6 +802,10 @@ test('lexer: regex literals and nested templates hide their text; unclosed const
     ['const a = 1; // export class A {} (no trailing newline)', 'line comment without a final newline'],
   ];
   for (const [content, label] of hidden) assert.equal(detectExport(content), null, label);
+  // Accepted false positives: the inspected text is the union of both lexings, and the legacy lexing ends the template
+  // at the backtick inside the regex or the comment, so the text after it is inspected (an intake is asked for).
+  assert.equal(detectExport('const s = `${/`/.test(x)} export class A {}`')?.symbol, 'A', 'backtick inside a regex inside ${}');
+  assert.equal(detectExport('const s = `${/* ` */ 1} export class A {}`')?.symbol, 'A', 'backtick inside a comment inside ${}');
   // Accepted false positive (same as before the regex shield): a quote inside a regex still opens a string, so text
   // after it is inspected. Asking for an intake is the safe side; hiding code would not be.
   assert.equal(detectExport('const r = /"/; const s = "export class A {}"')?.symbol, 'A', 'quote inside a regex stays visible');
@@ -890,4 +894,124 @@ test('lexer: a division read as a regex cannot swallow the slash that opens a re
   // The regex shield still protects a real regex that contains a slash and a star.
   assert.equal(detectExport(String.raw`const r = /a\/*b/; /* c */ // d` + '\nexport class H {}')?.symbol, 'H');
   assert.equal(detectExport(String.raw`const r = /a\/*b/; // export class A {}`), null);
+});
+
+// ---- The inspected text is the union of the legacy lexing and the new one ----
+
+const LEGACY_LEXER_SOURCE = fs.readFileSync(path.join(__dirname, 'fixtures', 'capability-intake-guard', 'master-lexer.txt'), 'utf8');
+const frozenLexer = new Function(`${LEGACY_LEXER_SOURCE}; return stripNonCode;`)();
+const blankReexports = (code) =>
+  code.replaceAll(/\bexport\s+(?:type\s+)?(?:\*(?:\s+as\s+[A-Za-z_$][\w$]*)?|\{[^}]*\})\s*from\s*""/g, (match) =>
+    match.replaceAll(/[^\n]/g, ' '),
+  );
+
+function sourceFiles(directory, found = []) {
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const full = path.join(directory, entry.name);
+    if (entry.isDirectory() && entry.name !== 'node_modules' && !entry.name.startsWith('.')) sourceFiles(full, found);
+    else if (/\.(?:c?js|mjs|tsx?|cs|py)$/.test(entry.name)) found.push(full);
+  }
+  return found;
+}
+
+test('lexer union: lexLegacy is the previous lexer byte for byte and everything it leaves visible stays inspected', () => {
+  assert.equal(
+    lexLegacy.toString(),
+    LEGACY_LEXER_SOURCE.slice(LEGACY_LEXER_SOURCE.indexOf('function stripNonCode'))
+      .replace('function stripNonCode(', 'function lexLegacy(')
+      .trimEnd(),
+  );
+  const repository = path.join(__dirname, '..');
+  const files = [...sourceFiles(path.join(repository, 'tools')), ...sourceFiles(path.join(repository, 'test'))].slice(0, 400);
+  assert.ok(files.length >= 50, `corpus has ${files.length} files`);
+  for (const file of files) {
+    const content = fs.readFileSync(file, 'utf8');
+    for (const language of ['js', 'cs']) {
+      assert.equal(lexLegacy(content, language), frozenLexer(content, language), `${file} (${language})`);
+      assert.ok(
+        inspectedCode(content, language).endsWith(`\n;\n${blankReexports(frozenLexer(content, language))}`),
+        `${file} (${language}) inspected text`,
+      );
+    }
+  }
+});
+
+test('lexer union: a division read as a regex cannot make the guard see less than the previous release', () => {
+  const cases = [
+    'declare const a: any;\nconst y = a! /[/*]/ "*/ 1][0]; export class A {} // "',
+    'let of = 2; let y = of /[/*]/ "*/ 1]; export class A {} // "',
+    'let yield_ = 2; let y = yield /[/*]/ "*/ 1]; export class A {} // "',
+    'let await_ = 2; let y = await /[/*]/ "*/ 1]; export class A {} // "',
+    'const a = <b>x</b> /* see http://x */ export class A {}',
+    '</b> /* c // d */ export class A {}',
+    'const n = a! / 2 /* c // d */ export class A {}',
+    'const n = i++ / 2 /* http://x */ export class A {}',
+    'let y = i++ / 2; export class A {} let z = k / 3;',
+    'a! / 2; export class A {} let z = k / 3;',
+    'o.in / 2; export class A {} let z = k / 3;',
+    'this.new / 2; export class A {} let z = k / 3;',
+    '<b>x</b>; export class A {} <i>y</i>',
+  ];
+  for (const content of cases) assert.equal(detectExport(content)?.symbol, 'A', content);
+  // Deterministic differential run against the frozen previous lexer: the guard never misses what it found.
+  const tokens = [
+    '/',
+    '/',
+    '*',
+    '/*',
+    '*/',
+    '//',
+    '"',
+    "'",
+    '`',
+    '${',
+    '}',
+    '{',
+    '\n',
+    ' ',
+    'a',
+    '=',
+    '(',
+    ')',
+    '[',
+    ']',
+    '\\',
+    'i++',
+    '!',
+    'of',
+    'yield',
+    'await',
+    'in',
+    'new',
+    'return',
+    '[/*]',
+    '/x/g',
+    'http://x',
+    ';',
+    'export class A {}',
+    'public class A {}',
+    '@"',
+    '$"',
+    '"""',
+  ];
+  const frozenDetects = (content, language) => {
+    const code = blankReexports(frozenLexer(content, language));
+    return /\bexport\s*[{*]|\bexport\s+default\b|\bmodule\.exports\b|\b(?:export|public)\s+(?:(?:declare|async|abstract|static|sealed)\s+)*(?:function|class|const|let|var|interface|type|enum|namespace)\s+[A-Za-z_$][\w$]*/.test(
+      code,
+    );
+  };
+  for (const seed of [424_242, 7, 31_337, 1_234_567]) {
+    let state = seed;
+    const random = () => {
+      state = (Math.imul(state, 1_103_515_245) + 12_345) & 0x7f_ff_ff_ff;
+      return state / 0x7f_ff_ff_ff;
+    };
+    for (let round = 0; round < 3000; round += 1) {
+      let content = '';
+      for (let count = 2 + Math.floor(random() * 14); count > 0; count -= 1) content += tokens[Math.floor(random() * tokens.length)];
+      const language = random() < 0.3 ? 'cs' : 'js';
+      if (frozenDetects(content, language))
+        assert.notEqual(detectExport(content, language), null, `seed ${seed}: ${JSON.stringify(content)}`);
+    }
+  }
 });
