@@ -106,6 +106,121 @@ const cases = [
     msg: 'fix: controllm handling',
     expectPass: true,
   },
+  {
+    description: 'boundary — digit, underscore or plural does not shield a term: Claude3 did it',
+    msg: 'fix: Claude3 did it',
+    expectPass: false,
+  },
+  {
+    description: 'boundary — digit, underscore or plural does not shield a term: use GPT4o',
+    msg: 'fix: use GPT4o',
+    expectPass: false,
+  },
+  {
+    description: 'boundary — digit, underscore or plural does not shield a term: LLMs rewrote',
+    msg: 'fix: LLMs rewrote',
+    expectPass: false,
+  },
+  {
+    description: 'boundary — digit, underscore or plural does not shield a term: Claude_wrote_this',
+    msg: 'fix: Claude_wrote_this',
+    expectPass: false,
+  },
+  {
+    description: 'boundary — digit, underscore or plural does not shield a term: llm_routing',
+    msg: 'fix: llm_routing',
+    expectPass: false,
+  },
+  {
+    description: 'boundary — digit, underscore or plural does not shield a term: claudes',
+    msg: 'fix: claudes',
+    expectPass: false,
+  },
+  {
+    description: 'boundary — digit, underscore or plural does not shield a term: mistrals',
+    msg: 'fix: mistrals',
+    expectPass: false,
+  },
+  {
+    description: 'boundary — digit, underscore or plural does not shield a term: claude_',
+    msg: 'fix: claude_',
+    expectPass: false,
+  },
+  {
+    description: 'boundary — digit, underscore or plural does not shield a term: _claude',
+    msg: 'fix: _claude',
+    expectPass: false,
+  },
+  {
+    description: 'identifier boundary — not a standalone allowed identifier: claude-codex',
+    msg: 'fix: claude-codex',
+    expectPass: false,
+  },
+  {
+    description: 'identifier boundary — not a standalone allowed identifier: claude-code-review',
+    msg: 'fix: claude-code-review',
+    expectPass: false,
+  },
+  {
+    description: 'identifier boundary — not a standalone allowed identifier: claude_code_x',
+    msg: 'fix: claude_code_x',
+    expectPass: false,
+  },
+  {
+    description: 'identifier boundary — not a standalone allowed identifier: claude_codex',
+    msg: 'fix: claude_codex',
+    expectPass: false,
+  },
+  {
+    description: 'identifier boundary — not a standalone allowed identifier: .claude-plugins',
+    msg: 'fix: .claude-plugins',
+    expectPass: false,
+  },
+  {
+    description: 'identifier boundary — not a standalone allowed identifier: x.codex/y',
+    msg: 'fix: x.codex/y',
+    expectPass: false,
+  },
+  {
+    description: 'identifier boundary — not a standalone allowed identifier: x.claude/',
+    msg: 'fix: x.claude/',
+    expectPass: false,
+  },
+  {
+    description: 'identifier boundary — not a standalone allowed identifier: a.claude-plugin',
+    msg: 'fix: a.claude-plugin',
+    expectPass: false,
+  },
+  {
+    description: 'whitespace collapse — multi-word term split by spaces or newline: generated   by tool',
+    msg: 'fix: generated   by tool',
+    expectPass: false,
+  },
+  {
+    description: 'whitespace collapse — multi-word term split by spaces or newline: assisted  by tool',
+    msg: 'fix: assisted  by tool',
+    expectPass: false,
+  },
+  {
+    description: 'whitespace collapse — multi-word term split by spaces or newline: language\nmodel',
+    msg: 'fix: language\nmodel',
+    expectPass: false,
+  },
+  {
+    description: 'whitespace collapse — multi-word term split by spaces or newline: generated\nby tool',
+    msg: 'fix: generated\nby tool',
+    expectPass: false,
+  },
+  {
+    description: 'Co-Authored-By trailer with leading whitespace',
+    msg: 'fix(cli): remove method\n\n Co-Authored-By: Someone <x@y.com>',
+    expectPass: false,
+  },
+  {
+    description: 'allowed identifiers followed by punctuation and a path',
+    msg: 'chore: touch (claude-code), src/.claude/x and .claude-plugin/',
+    expectPass: true,
+  },
 ];
 
 let passed = 0;

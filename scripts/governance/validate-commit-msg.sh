@@ -64,14 +64,31 @@ ALLOWED_IDENTIFIERS=(
   "claude-code" "claude_code"
 )
 
-MSG_LOWER="$(echo "$COMMIT_MSG" | tr '[:upper:]' '[:lower:]')"
-for ident in "${ALLOWED_IDENTIFIERS[@]}"; do
-  MSG_LOWER="${MSG_LOWER//"$ident"/ }"
-done
+# Lowercase and collapse all whitespace (including newlines) so multi-word
+# terms cannot be split across spaces or lines.
+MSG_LOWER="$(printf '%s' "$COMMIT_MSG" | tr '[:upper:]' '[:lower:]' | tr '\n\t\r' '   ' | tr -s ' ')"
 
-# Whole-word match (grep -w): terms embedded inside other words do not count.
+# An identifier is removed only when it stands alone: not glued to a preceding
+# letter, digit or underscore (paths also not to a preceding dot), and, for
+# names, not continued by a letter, digit, underscore or hyphen. Anything that
+# survives falls through to the term match below.
+MSG_LOWER="$(printf '%s' "$MSG_LOWER" | perl -pe '
+  s{(?<![a-z0-9_.])\.(?:claude|codex)/}{ }g;
+  s{(?<![a-z0-9_])(?:claude-code|claude_code|\.claude-plugin|\.codex-plugin)(?![a-z0-9_-])}{ }g;
+')"
+
+# A term counts unless it sits inside a longer word made only of letters
+# (gptr, controllm). Digits, underscores, hyphens and dots do not shield it, and
+# a plain plural is the term itself (llms, claudes).
+has_ai_term() {
+  TERM="$1" perl -e '
+    local $/; my $m = <STDIN>; my $t = quotemeta($ENV{TERM});
+    exit(($m =~ /(?<![a-z])$t(?:s)?(?![a-z])/) ? 0 : 1);
+  ' <<<"$MSG_LOWER"
+}
+
 for term in "${AI_TERMS[@]}"; do
-  if echo "$MSG_LOWER" | grep -qiwF -- "$term"; then
+  if has_ai_term "$term"; then
     record_fail "AI mention forbidden: found '${term}' in commit message"
   fi
 done
@@ -83,7 +100,7 @@ fi
 # =============================================================================
 # Rule 3: No co-author trailers
 # =============================================================================
-if echo "$COMMIT_MSG" | grep -iqE '^Co-Authored-By:|^Co-authored-by:'; then
+if echo "$COMMIT_MSG" | grep -iqE '^[[:space:]]*co-authored-by:'; then
   record_fail "Co-Authored-By trailer is forbidden in commit messages"
 else
   pass "Co-author: no trailer found"
