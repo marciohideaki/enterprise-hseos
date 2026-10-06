@@ -84,7 +84,7 @@ test('show text output lists mode, stacks, registry and problems', () => {
   write(directory, BINDINGS_FILE, 'mode: off\n');
   const { text, result } = command.runShow({ directory }, { runtimeRoot: REPO_ROOT, env: userEnv() });
   assert.match(text, /Mode: platform \(source: invalid-file\)/);
-  assert.match(text, /Registry: source=snapshot ref=contracts-v0\.3\.1 sha256=[a-f0-9]{64}/);
+  assert.match(text, /Registry: source=snapshot ref=contracts-v0\.4\.0 sha256=[a-f0-9]{64}/);
   assert.match(text, /error: project file:/);
   assert.equal(result.errors.length, 1);
 });

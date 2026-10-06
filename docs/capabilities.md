@@ -197,4 +197,4 @@ registry failed validation, 2 usage error.
 
 `hseos platform-bindings` exit codes: `show` 0 (1 if the registry fails its integrity check), `check`
 0/1 (violation)/2 (git or usage failure), `sync` 1 on error, `guard` 0 allow / 2 deny. The registry
-snapshot ships at `contracts-v0.3.1`; refresh it with `sync` and update the lock.
+snapshot ships at `contracts-v0.4.0`; refresh it with `sync` and update the lock.

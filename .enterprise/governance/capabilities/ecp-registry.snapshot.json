@@ -595,6 +595,225 @@
       "version": "0.1.0"
     },
     {
+      "aliases": [
+        "design-system-core/components/login-pattern",
+        "ui.login",
+        "login",
+        "login-screen",
+        "sso-login"
+      ],
+      "files": [
+        {
+          "path": "capabilities/design.login-pattern/README.md",
+          "role": "specification",
+          "sha256": "2d66ace67643254f1688af044cd6c5c6c82a18b5b59a88214f337b76de922704"
+        },
+        {
+          "path": "capabilities/design.login-pattern/capability.yaml",
+          "role": "contract",
+          "sha256": "3e84f0a83bc6cff6697150fd1839d5396b83dc866b64129e5d2132c379926fa0"
+        },
+        {
+          "path": "capabilities/design.login-pattern/conformance/invalid/login-pattern.01.json",
+          "role": "conformance-invalid",
+          "sha256": "41d80382208c0266bf14817ed39423cf0e4b821253107386a74890dbe46b8b83"
+        },
+        {
+          "path": "capabilities/design.login-pattern/conformance/invalid/login-pattern.02.json",
+          "role": "conformance-invalid",
+          "sha256": "df442234e21fd5da3a9d17558e4214027b45c7249464d49c7c461d2a67abd99b"
+        },
+        {
+          "path": "capabilities/design.login-pattern/conformance/invalid/login-pattern.03.json",
+          "role": "conformance-invalid",
+          "sha256": "f1e4a8e441ceb7e87e9558df030cf773bf80c9c6ab609a9c8c801ea7d49d4e5d"
+        },
+        {
+          "path": "capabilities/design.login-pattern/conformance/invalid/login-pattern.04.json",
+          "role": "conformance-invalid",
+          "sha256": "f853df504f4fe7b48f7604ff569eccd090df1e6776755935be799794c3b21589"
+        },
+        {
+          "path": "capabilities/design.login-pattern/conformance/invalid/login-pattern.05.json",
+          "role": "conformance-invalid",
+          "sha256": "40129c18fc9674808c2834ab589c854a97b46722b5024faaad2c1294f92fda38"
+        },
+        {
+          "path": "capabilities/design.login-pattern/conformance/invalid/login-pattern.06.json",
+          "role": "conformance-invalid",
+          "sha256": "614f5ad072e4bafccc30dc0f38ca4bca765e1046e1adf848a9ff5111bcba12ec"
+        },
+        {
+          "path": "capabilities/design.login-pattern/conformance/valid/login-pattern.01.json",
+          "role": "conformance-valid",
+          "sha256": "57d44304e2f840c69efd24bd9e3c6dc896dfbb0cbec1ae79a4ec10720be3f32e"
+        },
+        {
+          "path": "capabilities/design.login-pattern/conformance/valid/login-pattern.02.json",
+          "role": "conformance-valid",
+          "sha256": "6e9aa0312b72c4598462911cd53f8291b17e70e3b9f784a37906ca091246d3e4"
+        },
+        {
+          "path": "capabilities/design.login-pattern/implementations.json",
+          "role": "implementations",
+          "sha256": "1ccbb353382f5effdab0c2b504da52384ccff61f689193b7d4cb3a7126b94768"
+        },
+        {
+          "path": "capabilities/design.login-pattern/schema.login-pattern.json",
+          "role": "schema",
+          "sha256": "adef7f0a446f88935c51523369a6483a994dc6c41b118a14ea9ee0801e00e5fc"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@hideakisolutions/ui-react-auth",
+          "package_version": "0.0.1",
+          "path": "packages/ui-react-auth",
+          "repository": "Hideaki-Solutions-Core/frontend-core",
+          "stack": "react",
+          "status": "experimental"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "@hideakisolutions/ui-react-auth"
+        ],
+        "path_globs": [
+          "**/login-pattern.schema.json"
+        ],
+        "symbols": [
+          "LoginScreen",
+          "SsoLoginPanel",
+          "LoginScreenProps",
+          "SsoLoginPanelProps",
+          "LoginScreenLabels"
+        ]
+      },
+      "name": "design.login-pattern",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "related_capabilities": [
+        "security.authn"
+      ],
+      "stability": "experimental",
+      "summary": "Ready-to-use SSO login screen pattern (layout, state mapping and accessibility) where the consumer owns authentication through callbacks.",
+      "version": "0.1.0"
+    },
+    {
+      "aliases": [
+        "design-system-core/components/component-contracts",
+        "mobile.tokens",
+        "mobile-tokens",
+        "design-tokens",
+        "mobile-theme"
+      ],
+      "files": [
+        {
+          "path": "capabilities/design.mobile-tokens/README.md",
+          "role": "specification",
+          "sha256": "17dfe2e971b04d89ee613ddec8e3fb7eafd3b954fb17b4b7ea059589d663e1b6"
+        },
+        {
+          "path": "capabilities/design.mobile-tokens/capability.yaml",
+          "role": "contract",
+          "sha256": "d80a7494b6def4559a5c1d0317903fa05a0bbaebcc11ec60e74ab3b348d70168"
+        },
+        {
+          "path": "capabilities/design.mobile-tokens/conformance/invalid/mobile-theme.01.json",
+          "role": "conformance-invalid",
+          "sha256": "ef3b2dd95ccb06c8b384567d8b7c7e548a30bc0d976bfbf3178c8f2da38d3275"
+        },
+        {
+          "path": "capabilities/design.mobile-tokens/conformance/invalid/mobile-theme.02.json",
+          "role": "conformance-invalid",
+          "sha256": "a0f9702cc776ddc0d98e9ab78ceb44f029f98319305d95f36823184002e0ce0e"
+        },
+        {
+          "path": "capabilities/design.mobile-tokens/conformance/invalid/mobile-theme.03.json",
+          "role": "conformance-invalid",
+          "sha256": "3115e99f96a40a67b388534df1b32642dc28c313db4379f3062b6d7eeea9a722"
+        },
+        {
+          "path": "capabilities/design.mobile-tokens/conformance/invalid/mobile-theme.04.json",
+          "role": "conformance-invalid",
+          "sha256": "61d3dffe30110bfb88f52f9f62bf908f7a061f94659a6f50556bd7ecf4a41e05"
+        },
+        {
+          "path": "capabilities/design.mobile-tokens/conformance/invalid/mobile-theme.05.json",
+          "role": "conformance-invalid",
+          "sha256": "e040af7f01b1c743286e458b7fbd467650c4267f41938477226f6900a61a13a2"
+        },
+        {
+          "path": "capabilities/design.mobile-tokens/conformance/valid/mobile-theme.01.json",
+          "role": "conformance-valid",
+          "sha256": "84f7936dcf952695ba4198d44c93d3cad2008565425206cb0a8fcac69884ce6b"
+        },
+        {
+          "path": "capabilities/design.mobile-tokens/conformance/valid/mobile-theme.02.json",
+          "role": "conformance-valid",
+          "sha256": "5f3184d0c3b196b212f8d51b6dbbaffb3d113d3a33b9a882d97b76a9ae322abf"
+        },
+        {
+          "path": "capabilities/design.mobile-tokens/implementations.json",
+          "role": "implementations",
+          "sha256": "ff1bea286cef1e552a7e78ce073b51d28b92ad7be672caa54f6169e9d0339ab9"
+        },
+        {
+          "path": "capabilities/design.mobile-tokens/schema.mobile-theme.json",
+          "role": "schema",
+          "sha256": "32556c0a03cd696979169b1c8a8326b8b3ac477e4e6c0c4717ce9e97fd6be468"
+        }
+      ],
+      "implementations": [
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "@hideakisolutions/mobile-tokens",
+          "package_version": "0.1.0",
+          "path": "packages/mobile-tokens",
+          "repository": "Hideaki-Solutions-Core/mobile-core",
+          "stack": "react-native",
+          "status": "experimental"
+        },
+        {
+          "contract_version": "0.1.0",
+          "kind": "library",
+          "package": "mobile_tokens_flutter",
+          "package_version": "0.1.0",
+          "path": "packages/mobile_tokens_flutter",
+          "repository": "Hideaki-Solutions-Core/mobile-core",
+          "stack": "flutter",
+          "status": "planned"
+        }
+      ],
+      "kind": "library",
+      "match": {
+        "packages": [
+          "@hideakisolutions/mobile-tokens",
+          "mobile_tokens_flutter"
+        ],
+        "symbols": [
+          "mobileThemes",
+          "getMobileTheme",
+          "MobileTheme",
+          "MobileThemeName",
+          "MobileColorTokens",
+          "MobileSpacingTokens",
+          "MobileRadiusTokens",
+          "MobileTypographyTokens",
+          "helixMobilePulse",
+          "helixMobileCarbon"
+        ]
+      },
+      "name": "design.mobile-tokens",
+      "owner": "platform-architecture@hideakisolutions.local",
+      "stability": "experimental",
+      "summary": "Mobile design tokens (colors, spacing, radius, typography) as plain-value themes for React Native and Flutter, projected from the Helix design system.",
+      "version": "0.1.0"
+    },
+    {
       "aliases": [],
       "files": [
         {
@@ -1227,6 +1446,7 @@
         "platform-core/auth/auth-provider",
         "backend-core/security/auth-middleware",
         "auth",
+        "authn",
         "jwt",
         "bearer",
         "keycloak",
@@ -1241,7 +1461,7 @@
         {
           "path": "capabilities/security.authn/capability.yaml",
           "role": "contract",
-          "sha256": "7c8a6d52a3cf95e4c67e4fcd4aa23bc819d126076cda7a1c0eb59d1829d8000c"
+          "sha256": "07b933f72f733955fd6f9193cb0db7db64a3ad9bdecfbb98846694b99b46789a"
         },
         {
           "path": "capabilities/security.authn/conformance/invalid/auth-middleware.01.json",
@@ -1655,7 +1875,7 @@
     }
   ],
   "generated_from": {
-    "contracts_version": "0.3.1",
+    "contracts_version": "0.4.0",
     "repository": "HideakiSolutions/enterprise-capability-platform"
   },
   "schema_version": "1"

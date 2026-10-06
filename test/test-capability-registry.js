@@ -71,13 +71,13 @@ function testSnapshot() {
   );
   assertPass(
     'ref and contracts version come from the lock',
-    loaded.ref === 'contracts-v0.3.1' && loaded.registry.generated_from.contracts_version === '0.3.1',
+    loaded.ref === 'contracts-v0.4.0' && loaded.registry.generated_from.contracts_version === '0.4.0',
   );
   assertPass(
-    'shipped snapshot is byte-identical to the 0.3.1 fixture',
+    'shipped snapshot is byte-identical to the 0.4.0 fixture',
     fs
       .readFileSync(path.join(REPO_ROOT, SNAPSHOT_FILE))
-      .equals(fs.readFileSync(path.join(__dirname, 'fixtures', 'ecp-registry', 'registry-0.3.1.json'))),
+      .equals(fs.readFileSync(path.join(__dirname, 'fixtures', 'ecp-registry', 'registry-0.4.0.json'))),
   );
   assertPass(
     'shipped snapshot resolves Redis -> cache.typed and auth -> security.authn',
@@ -679,12 +679,56 @@ function testCorrectionRound() {
   assertPass('whitespace around the symbol is ignored', symbolHit('  ICacheStore ') === 'cache.typed');
 }
 
+function testEcp040Capabilities() {
+  console.log('\nECP 0.4.0 capabilities (explicit fixtures, independent of the pinned snapshot)');
+  const load = (version) =>
+    loadCapabilityRegistry({
+      bindings: { registry: { source: 'path', path: path.join(__dirname, 'fixtures', 'ecp-registry', `registry-${version}.json`) } },
+    }).registry;
+  const next = load('0.4.0');
+  const previous = load('0.3.1');
+  const top = (registry, query) => {
+    const hit = first(registry, query);
+    return hit ? `${hit.capability.name}/${hit.matchedBy}` : 'none';
+  };
+  const symbolTop = (registry, symbol) => {
+    const hit = exportMatches(registry, { symbol })[0];
+    return hit ? `${hit.capability.name}/${hit.matchedBy}` : 'none';
+  };
+  assertPass(
+    'Authn and authn resolve security.authn by alias',
+    top(next, 'Authn') === 'security.authn/alias' && top(next, 'authn') === 'security.authn/alias',
+  );
+  assertPass('0.3.1 only reached Authn through the heuristic', top(previous, 'Authn') === 'security.authn/heuristic');
+  assertPass(
+    'Login resolves design.login-pattern by alias',
+    top(next, 'Login') === 'design.login-pattern/alias' && top(previous, 'Login') === 'none',
+  );
+  assertPass(
+    'mobile tokens and Mobile-Tokens resolve design.mobile-tokens by alias',
+    top(next, 'mobile tokens') === 'design.mobile-tokens/alias' && top(next, 'Mobile-Tokens') === 'design.mobile-tokens/alias',
+  );
+  assertPass(
+    'LoginScreen and getMobileTheme resolve by symbol',
+    symbolTop(next, 'LoginScreen') === 'design.login-pattern/symbol' && symbolTop(next, 'getMobileTheme') === 'design.mobile-tokens/symbol',
+  );
+  assertPass(
+    'auth, jwt, cache and event-envelope resolve as in 0.3.1',
+    ['auth', 'jwt', 'cache', 'event-envelope'].every(
+      (query) =>
+        JSON.stringify(resolveCapability(next, query).map((r) => [r.capability.name, r.matchedBy, r.score])) ===
+        JSON.stringify(resolveCapability(previous, query).map((r) => [r.capability.name, r.matchedBy, r.score])),
+    ),
+  );
+}
+
 testSnapshot();
 testPathAndRemote();
 testValidation();
 testResolution();
 testMatchExport();
 testCorrectionRound();
+testEcp040Capabilities();
 
 console.log(`\nCapability registry tests: ${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);
