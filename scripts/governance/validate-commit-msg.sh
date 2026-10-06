@@ -86,6 +86,8 @@ MSG_LOWER="$(printf '%s' "$MSG_LOWER" | perl -pe '
   s{(?<![a-z0-9_.])\.(?:claude|codex)/}{ }g;
   s{(?<![a-z0-9_])(?:claude-code|claude_code|\.claude-plugin|\.codex-plugin)(?![a-z0-9_-])}{ }g;
 ')"
+# Removing an identifier leaves a gap inside multi-word terms; close it again.
+MSG_LOWER="$(printf '%s' "$MSG_LOWER" | tr -s ' ')"
 
 # A term counts unless it sits inside a longer word made only of letters
 # (gptr, controllm). Digits, underscores, hyphens and dots do not shield it, and

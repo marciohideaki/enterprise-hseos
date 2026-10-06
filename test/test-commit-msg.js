@@ -221,6 +221,41 @@ const cases = [
     msg: 'chore: touch (claude-code), src/.claude/x and .claude-plugin/',
     expectPass: true,
   },
+  {
+    description: 'allowed identifier inside a multi-word term: generated .claude/ by tool',
+    msg: 'fix: generated .claude/ by tool',
+    expectPass: false,
+  },
+  {
+    description: 'allowed identifier inside a multi-word term: language claude-code model',
+    msg: 'fix: language claude-code model',
+    expectPass: false,
+  },
+  {
+    description: 'allowed identifier inside a multi-word term: assisted .codex/ by tool',
+    msg: 'fix: assisted .codex/ by tool',
+    expectPass: false,
+  },
+  {
+    description: 'allowed identifier inside a multi-word term: written by .claude/ ai',
+    msg: 'fix: written by .claude/ ai',
+    expectPass: false,
+  },
+  {
+    description: 'allowed identifier inside a multi-word term: generated\t.claude/\tby tool',
+    msg: 'fix: generated\t.claude/\tby tool',
+    expectPass: false,
+  },
+  {
+    description: 'allowed identifier inside a multi-word term: generated\n.codex/\nby tool',
+    msg: 'fix: generated\n.codex/\nby tool',
+    expectPass: false,
+  },
+  {
+    description: 'allowed identifier inside a multi-word term: language\n claude_code \nmodel',
+    msg: 'fix: language\n claude_code \nmodel',
+    expectPass: false,
+  },
 ];
 
 // --ai-terms-only mode (shared with quality-gates.sh Gate 5): same vocabulary,
