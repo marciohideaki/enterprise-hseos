@@ -413,6 +413,17 @@ function testEverySkillHasCapabilityFamilyHome() {
   );
 }
 
+function testReferenceCorpusProjectionIsByteIdentical() {
+  const canonical = fs.readFileSync(path.join(REPO_ROOT, '.enterprise/governance/capabilities/reference-corpus.json'));
+  const projection = fs.readFileSync(path.join(REPO_ROOT, '.agents/capabilities/reference-corpus.json'));
+
+  assertPass(
+    'reference corpus projection is byte-identical to the canonical corpus',
+    canonical.equals(projection),
+    'run: cp .enterprise/governance/capabilities/reference-corpus.json .agents/capabilities/reference-corpus.json',
+  );
+}
+
 function testPrerequisitesAreWellFormed() {
   const catalog = loadCapabilityCatalog(REPO_ROOT);
   const malformed = catalog.components.filter(
@@ -759,6 +770,7 @@ async function run() {
   testProfilesReferenceKnownComponents();
   testComponentsReferenceKnownSkills();
   testEverySkillHasCapabilityFamilyHome();
+testReferenceCorpusProjectionIsByteIdentical();
   testPrerequisitesAreWellFormed();
   testResolveProfilePlan();
   testFullProfileSelectsEveryAdapterEmitter();
