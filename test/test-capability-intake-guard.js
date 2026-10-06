@@ -800,9 +800,11 @@ test('lexer: regex literals and nested templates hide their text; unclosed const
     ['const a = b / c; // export class A {}', 'division is not a regex'],
     ['const a = (b) / c / d; // export class A {}', 'division after a parenthesis'],
     ['const a = 1; // export class A {} (no trailing newline)', 'line comment without a final newline'],
-    ['const r = /"/; const s = "export class A {}"', 'quote inside a regex'],
   ];
   for (const [content, label] of hidden) assert.equal(detectExport(content), null, label);
+  // Accepted false positive (same as before the regex shield): a quote inside a regex still opens a string, so text
+  // after it is inspected. Asking for an intake is the safe side; hiding code would not be.
+  assert.equal(detectExport('const r = /"/; const s = "export class A {}"')?.symbol, 'A', 'quote inside a regex stays visible');
   // The code after the construct is still seen (the construct must not swallow it).
   const visible = [
     [`const r = /a\\/*b/;\n${E}`, String.raw`regex /a\/*b/`],
@@ -867,4 +869,25 @@ test('lexer: a division read as a regex never hides code, and pathological input
     assert.equal(result?.symbol, 'R', 'the export after a pathological prefix is still seen');
     assert.ok(milliseconds < 1000, `pathological input took ${milliseconds} ms`);
   }
+});
+
+test('lexer: a division read as a regex cannot swallow the slash that opens a real comment', () => {
+  const cases = [
+    'const a = <b>x</b> /* see http://x */ export class H {}',
+    '</b> /* c // d */ export class H {}',
+    'const n = a! / 2 /* c // d */ export class H {}',
+    'const n = a! / 2 /* http://x */ export class H {}',
+    'const n = i++ / 2 /* c // d */ export class H {}',
+    'const n = i-- / 2 /* http://x */ export class H {}',
+    'const n = (a) / 2 /* c // d */ export class H {}',
+    'const n = a[0] / 2 /* c // d */ export class H {}',
+    'const n = o.in / 2 /* c // d */ export class H {}',
+    'const n = a! / 2 // c // d\nexport class H {}',
+    'const n = a! / 2 /// c\nexport class H {}',
+    "const n = a! / 2 /* it's */ export class H {}",
+  ];
+  for (const content of cases) assert.equal(detectExport(content)?.symbol, 'H', content);
+  // The regex shield still protects a real regex that contains a slash and a star.
+  assert.equal(detectExport(String.raw`const r = /a\/*b/; /* c */ // d` + '\nexport class H {}')?.symbol, 'H');
+  assert.equal(detectExport(String.raw`const r = /a\/*b/; // export class A {}`), null);
 });

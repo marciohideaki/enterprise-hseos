@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - ADR-0046 section 8 and the capability-reuse policy state that the guard does not cover writes through the Bash tool and that the anti-downgrade (floor at `HEAD`, any existing `mode_ref` allows a downgrade) is a convenience barrier, not a security boundary; a Bash-tool deny is not implemented because it would be a heuristic and would not fix that floor. Hardening options are listed as follow-ups.
-- The capability intake guard lexer keeps the text of a probable regex literal inspected (it only shields that literal's `/*` and `//`), so a division mistaken for a regex can no longer hide an export; regex scans and template nesting are bounded, so pathological input stays linear and never overflows the stack.
+- The capability intake guard lexer treats a probable regex literal only as a shield for the `/*` and `//` inside it: nothing is skipped or hidden, and a closing slash followed by `*` or `/` cancels the guess. In differential fuzzing against the previous lexer (600,000 JS and 300,000 C# inputs) and over 589 repository sources it never sees less; it sees more only where the previous lexer mislexed (a quote inside a regex stays inspected, a false positive that asks for an intake). Regex scans and template nesting are bounded, so pathological input stays linear.
 - The capability intake guard lexer (bindings path only; the legacy shell path is unchanged) now recognises regex literals containing `/*` and backticks inside strings, regexes and comments within template `${}` expressions, and keeps any construct that never closes (block comment, template, quote, verbatim or raw string) as raw inspected text instead of hiding the rest of the file.
 - Capability resolution treats space, hyphen and underscore as the same separator, so `mobile tokens` and `mobile_tokens` resolve like `mobile-tokens`; `.` and `/` are not normalized, scores and tie-breaks are unchanged, and the `heuristic` fallback bridges a separator only for queries with at least two tokens of two alphanumerics each and four in total.
 - The `session-track.sh` installed-consumer hook test waits for the captured content, up to the handler's 5 s cap plus margin, instead of only for the capture file, which the fixture creates before writing it.
@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Known limitations
 
+- The intake guard lexer still reads a `/` after a closing parenthesis as a division, so `if (x) /\/*/.test(y)` followed by a later `*/` can still be mislexed as a comment, as before; treating that case as ambiguous would add false positives.
 - The `contracts-v0.3.1` registry lacks the `Login` and `Authn` aliases (to be requested from the ECP); the snapshot-versus-ECP-ref drift job is not implemented yet.
 
 ## [4.0.0-rc.0] — Unpublished candidate

@@ -107,6 +107,8 @@ function scanRegex(content, start) {
     const char = content[i];
     if (char === '\n') return -1;
     if (char === '/' && !inClass) {
+      // A closing slash that is itself followed by `*` or `/` opens a comment, so this was a division.
+      if (content[i + 1] === '*' || content[i + 1] === '/') return -1;
       i += 1;
       while (i < content.length && /[\w$]/.test(content[i])) i += 1;
       return i;
@@ -258,6 +260,7 @@ function stripNonCode(content, language = 'js') {
   const cs = language === 'cs';
   let out = '';
   let i = 0;
+  let regexZoneEnd = 0;
   const n = content.length;
   const skipVerbatim = (start) => {
     // `start` is the opening quote; returns the end index or -1 when it never closes.
@@ -277,7 +280,10 @@ function stripNonCode(content, language = 'js') {
   while (i < n) {
     const char = content[i];
     const next = content[i + 1];
-    if (char === '/' && next === '/') {
+    if (char === '/' && i < regexZoneEnd) {
+      out += char;
+      i += 1;
+    } else if (char === '/' && next === '/') {
       while (i < n && content[i] !== '\n') i += 1;
     } else if (char === '/' && next === '*') {
       const end = content.indexOf('*/', i + 2);
@@ -330,12 +336,13 @@ function stripNonCode(content, language = 'js') {
         out += '""';
       }
     } else if (!cs && char === '/' && regexAllowed(content, i)) {
-      // The literal only protects its own `/*` and `//` from opening a comment; its text stays inspected, so a
-      // wrong regex-versus-division guess can never hide code.
+      // A probable regex literal only shields the slashes inside it from opening a comment. Nothing is skipped or
+      // hidden: strings and everything else are lexed as usual, so a wrong regex-versus-division guess can never
+      // make the lexer see less than it would without the guess.
       const end = scanRegex(content, i);
-      const stop = end === -1 ? i + 1 : end;
-      out += content.slice(i, stop);
-      i = stop;
+      if (end !== -1) regexZoneEnd = end;
+      out += char;
+      i += 1;
     } else {
       out += char;
       i += 1;
