@@ -112,3 +112,13 @@ Pendências do owner: revisores obrigatórios no environment `contracts-release`
 - Ruído de formatação do compile em `.claude-plugin/marketplace.json` e `.codex-plugin/plugin.json`: o gerador não emite `\n` final
   (`plugins-emit.js:115,121`); a saída não é commitada.
 - Espelho em `.agents/capabilities/` (4 arquivos) é efeito do compilador; limite de inventário do pacote em 1472 por decisão do owner.
+
+## Fechamento da sessão 2026-10-06
+**Mergeado** (HSEOS `master` em `526ea233`): #190 estabilização do teste `session-track.sh` e do ruído do compile; #192 normalização de separadores no resolvedor; #193 nota verdadeira do anti-downgrade (Plano B, sem o lexer); #194 política de shared-infrastructure reconciliada com o cluster; #195 validador de commit por palavra inteira, Gate 5 alinhado, `source_uri` do corpus; #196 snapshot do registro ECP em `contracts-v0.4.0`. ECP `develop`: #36 (`authn`, Decision 0009, `design.login-pattern`, `design.mobile-tokens`) e #37 (plano da Fase 2). backend-core `develop`: #22 (follow-ups da W3, vendor 0.3.1) e #23 (vendor 0.4.0).
+**Tag:** `contracts-v0.4.0` (ECP, `ab1fcc92`); bundle construído, nada publicado.
+**Abertas:** HSEOS #191 (shard `core`), aguarda Engineering Leadership.
+**Plano B do guard (#193):** o lexer do guard (G1) foi retirado após 4 revisões céticas. A união `lexLegacy` + `lexAware` garante a existência de export, mas `detectExport` devolve o primeiro símbolo e o guard decide por ele; entrada mínima do BLOCKER (hybrid): `const r = /'/; export class Other {}` e `export class ICacheStore {}` — o master nega, a união permitia. Follow-up: decidir sobre TODOS os exports dos dois lexings. Referência nas branches locais `task/l1-lexer-visible`, `task/l2-regex-zone`, `task/u1-lexer-union`.
+**Achado de segurança (ADR-0046 §8):** o `HEAD` é só o piso do anti-downgrade; qualquer `mode_ref` existente em `docs/decisions/` ou `.enterprise/.specs/decisions/` permite rebaixar o modo, commitado ou não; escrita via Bash não é bloqueada. É barreira de conveniência, não fronteira de segurança; opções de endurecimento aguardam decisão do owner.
+**Decisões do owner pendentes (Fase 2):** `x-promotion`, `patternProperties` do `color-tokens`, manifests, alias `login-screen`, ordem das fatias (plano em ECP `docs/migrations/design-system-phase-2.md`).
+**Follow-ups de estabilidade:** o smoke (`standalone-smoke.yaml`, `timeout-minutes: 10`) roda no limite (~9 min) e cancela ao acaso; `test-state-ui` oscila sob concorrência de portas; o `verify-vendor` do backend-core não recalcula o `bundle_sha256`; Unicode/homóglifos no validador de commit.
+**Bloqueado:** `validate` obrigatório no backend-core (org GitHub Free + repositório privado, 403). Publicação de pacotes aguarda autorização.
