@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- ADR-0046 section 8 and the capability-reuse policy state that the guard does not cover writes through the Bash tool and that the anti-downgrade (floor at `HEAD`, any existing `mode_ref` allows a downgrade) is a convenience barrier, not a security boundary; a Bash-tool deny is not implemented because it would be a heuristic and would not fix that floor. Hardening options are listed as follow-ups.
 - The shared-infrastructure policy registers MongoDB, Temporal, Mailpit, LocalStack, Gotenberg, GrowthBook and Meilisearch in the k3s mapping, merges the duplicate Keycloak rows into the neutral-hostname one, and records that GrowthBook, Gotenberg and NATS are provisioned but scaled to 0 replicas (cluster snapshot, 2026-10-06T01:39Z).
 - Capability resolution treats space, hyphen and underscore as the same separator, so `mobile tokens` and `mobile_tokens` resolve like `mobile-tokens`; `.` and `/` are not normalized, scores and tie-breaks are unchanged, and the `heuristic` fallback bridges a separator only for queries with at least two tokens of two alphanumerics each and four in total.
 - The `session-track.sh` installed-consumer hook test waits for the captured content, up to the handler's 5 s cap plus margin, instead of only for the capture file, which the fixture creates before writing it.
@@ -31,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Known limitations
 
+- Follow-up, not delivered: the intake guard lexer (bindings path) still hides code in two known cases, a regex literal containing `/*` and a backtick inside a string, regex or comment within a template `${}`; it also reads a `/` after a closing parenthesis as a division. The reviewed approach is a union of the previous lexing (`lexLegacy`) and a regex-aware lexing (`lexAware`), but the guard's decision must then be taken over ALL exports detected in both lexings (deny if any of them would deny), not over the first one. Minimal input showing why (hybrid mode, a `stable` capability for `ICacheStore`): `const r = /'/; export class Other {}` followed by a line `export class ICacheStore {}`; the previous release denies it and a first-export union allowed it. The reference commits are on the branches `task/l1-lexer-visible`, `task/l2-regex-zone` and `task/u1-lexer-union`.
 - The snapshot-versus-ECP-ref drift job is not implemented yet.
 
 ## [4.0.0-rc.0] — Unpublished candidate
