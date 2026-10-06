@@ -223,6 +223,31 @@ const cases = [
   },
 ];
 
+// --ai-terms-only mode (shared with quality-gates.sh Gate 5): same vocabulary,
+// but no conventional-format or length rules.
+function runTermsOnly(msg) {
+  try {
+    execSync(`"${VALIDATOR}" --ai-terms-only "${msg}"`, { cwd: REPO_ROOT, stdio: 'pipe', shell: true });
+    return 0;
+  } catch (error) {
+    return error.status ?? 1;
+  }
+}
+
+const termsOnlyCases = [
+  { description: 'terms-only: non-conventional subject is accepted', msg: 'Merge pull request #1 from x/y', expectPass: true },
+  { description: 'terms-only: allowed identifier is accepted', msg: 'wire the claude-code adapter', expectPass: true },
+  { description: 'terms-only: prose naming a vendor is rejected', msg: 'Merge branch for Claude support', expectPass: false },
+  { description: 'terms-only: trailer is rejected', msg: 'Merge x\n\nCo-Authored-By: Tool <t@x.com>', expectPass: false },
+];
+
+const gateSource = require('node:fs').readFileSync(path.join(REPO_ROOT, 'scripts/governance/quality-gates.sh'), 'utf8');
+const gate5 = gateSource.slice(gateSource.indexOf('gate_commit_hygiene()'), gateSource.indexOf('# Gate 6'));
+const structuralCases = [
+  { description: 'Gate 5 message mode delegates to the validator', ok: /--ai-terms-only/.test(gate5) },
+  { description: 'Gate 5 no longer carries its own substring vocabulary', ok: !/ai_terms=/.test(gate5) && !/grep -qiE "\$ai_terms"/.test(gate5) },
+];
+
 let passed = 0;
 let failed = 0;
 
@@ -238,6 +263,27 @@ for (const tc of cases) {
     const got = succeeded ? 'exit 0 (pass)' : `exit ${exitCode} (fail)`;
     const want = tc.expectPass ? 'exit 0 (pass)' : 'exit 1 (fail)';
     console.error(`  FAIL  ${tc.description} — got ${got}, want ${want}`);
+    failed++;
+  }
+}
+
+for (const tc of termsOnlyCases) {
+  const succeeded = runTermsOnly(tc.msg) === 0;
+  if (succeeded === tc.expectPass) {
+    console.log(`  PASS  ${tc.description}`);
+    passed++;
+  } else {
+    console.error(`  FAIL  ${tc.description}`);
+    failed++;
+  }
+}
+
+for (const tc of structuralCases) {
+  if (tc.ok) {
+    console.log(`  PASS  ${tc.description}`);
+    passed++;
+  } else {
+    console.error(`  FAIL  ${tc.description}`);
     failed++;
   }
 }

@@ -4,6 +4,8 @@
 # Authority: Enterprise Constitution > execution-governance
 # Usage: ./scripts/governance/validate-commit-msg.sh "<message>"
 #        OR: called by .husky/commit-msg with $1 = .git/COMMIT_EDITMSG path
+#        --ai-terms-only "<message>": run only the AI-mention and co-author
+#        rules (used by quality-gates.sh Gate 5 so both share one vocabulary)
 # =============================================================================
 
 set -euo pipefail
@@ -17,6 +19,12 @@ fatal() { echo -e "${RED}[COMMIT-MSG-FATAL]${NC} $*"; exit 1; }
 
 FAILURES=0
 record_fail() { FAILURES=$((FAILURES + 1)); fail "$@"; }
+
+AI_TERMS_ONLY=false
+if [[ "${1:-}" == "--ai-terms-only" ]]; then
+  AI_TERMS_ONLY=true
+  shift
+fi
 
 # Get commit message — either from file path (husky) or direct arg
 if [[ "${1:-}" == *.git/COMMIT_EDITMSG ]] || [[ -f "${1:-}" ]]; then
@@ -38,7 +46,9 @@ EFFECTIVE_MSG="$(echo "$COMMIT_MSG" | grep -v '^#' | sed '/^$/d')"
 CONVENTIONAL_PATTERN='^(feat|fix|docs|style|refactor|test|chore|ci|build|perf|revert)(\([a-z0-9_/-]+\))?: .{1,100}$'
 FIRST_LINE="$(echo "$EFFECTIVE_MSG" | head -1)"
 
-if echo "$FIRST_LINE" | grep -qE "$CONVENTIONAL_PATTERN"; then
+if [[ "$AI_TERMS_ONLY" == "true" ]]; then
+  :  # format is not checked in --ai-terms-only mode
+elif echo "$FIRST_LINE" | grep -qE "$CONVENTIONAL_PATTERN"; then
   pass "Format: conventional commit format valid"
 else
   record_fail "Format: must follow '<type>(<scope>): <summary>' pattern"
@@ -104,6 +114,11 @@ if echo "$COMMIT_MSG" | grep -iqE '^[[:space:]]*co-authored-by:'; then
   record_fail "Co-Authored-By trailer is forbidden in commit messages"
 else
   pass "Co-author: no trailer found"
+fi
+
+if [[ "$AI_TERMS_ONLY" == "true" ]]; then
+  [[ $FAILURES -eq 0 ]] || fatal "AI mention validation FAILED (${FAILURES} violation(s))"
+  exit 0
 fi
 
 # =============================================================================
