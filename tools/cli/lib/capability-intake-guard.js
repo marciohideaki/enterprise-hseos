@@ -256,7 +256,7 @@ function scanExpression(content, start, depth) {
  * stays inspected instead of hiding the rest of the file. `language` is `cs` for C# (verbatim `@"…"`,
  * interpolated `$"…"`, raw `"""…"""`) and `js` otherwise.
  */
-function stripNonCode(content, language = 'js') {
+function lexAware(content, language = 'js') {
   const cs = language === 'cs';
   let out = '';
   let i = 0;
@@ -351,9 +351,92 @@ function stripNonCode(content, language = 'js') {
   return out;
 }
 
+/*
+ * Union of two lexers (the property is true by construction, not by testing): the inspected text is the output of
+ * `lexAware` followed by the output of `lexLegacy`, so everything the legacy lexer left visible is also inspected, and
+ * `lexAware` can only reveal more (code the legacy lexer hid behind a `/*` inside a regex literal). A wrong regex
+ * guess in `lexAware` can therefore never hide code. The cost is an occasional false positive, which asks for an
+ * intake. `lexLegacy` below is the lexer of the previous release, byte for byte apart from its name (a test pins it).
+ */
+/**
+ * Replaces comments and string literals with blanks (strings become `""`) so that text inside them is never
+ * mistaken for code. Small lexer, not a parser: `${}` inside template literals is not evaluated, regex literals
+ * are not recognised, and single- and double-quoted strings end at a newline so a stray quote cannot swallow the
+ * rest of the file. `language` is `cs` for C# (verbatim `@"…"`, interpolated `$"…"`, raw `"""…"""`) and `js` otherwise.
+ */
+function lexLegacy(content, language = 'js') {
+  const cs = language === 'cs';
+  let out = '';
+  let i = 0;
+  const n = content.length;
+  const skipQuoted = (quote, { verbatim = false } = {}) => {
+    i += 1;
+    while (i < n) {
+      const char = content[i];
+      if (verbatim) {
+        if (char === quote) {
+          if (content[i + 1] === quote) {
+            i += 2;
+            continue;
+          }
+          i += 1;
+          return;
+        }
+      } else {
+        if (char === '\\') {
+          i += 2;
+          continue;
+        }
+        if (char === quote) {
+          i += 1;
+          return;
+        }
+        if (char === '\n' && quote !== '`') return;
+      }
+      i += 1;
+    }
+  };
+  while (i < n) {
+    const char = content[i];
+    const next = content[i + 1];
+    if (char === '/' && next === '/') {
+      while (i < n && content[i] !== '\n') i += 1;
+    } else if (char === '/' && next === '*') {
+      const end = content.indexOf('*/', i + 2);
+      const stop = end === -1 ? n : end + 2;
+      out += content.slice(i, stop).replaceAll(/[^\n]/g, ' ');
+      i = stop;
+    } else if (cs && (char === '@' || char === '$') && /^[@$]{1,2}"/.test(content.slice(i, i + 3))) {
+      const prefix = content.slice(i).match(/^[@$]{1,2}/)[0];
+      i += prefix.length;
+      skipQuoted('"', { verbatim: prefix.includes('@') });
+      out += '""';
+    } else if (cs && char === '"' && content.startsWith('"""', i)) {
+      const quotes = content.slice(i).match(/^"+/)[0];
+      const end = content.indexOf(quotes, i + quotes.length);
+      i = end === -1 ? n : end + quotes.length;
+      out += '""';
+    } else if (char === '"' || char === "'" || (!cs && char === '`')) {
+      skipQuoted(char);
+      out += '""';
+    } else {
+      out += char;
+      i += 1;
+    }
+  }
+  return out;
+}
+
+const blankReexports = (code) => code.replaceAll(REEXPORT, (match) => match.replaceAll(/[^\n]/g, ' '));
+
+/** The text inspected for exports: both lexings, separated so that no match can span the boundary. */
+function inspectedCode(content, language = 'js') {
+  return `${blankReexports(lexAware(content, language))}\n;\n${blankReexports(lexLegacy(content, language))}`;
+}
+
 /** First export in document order: `{ symbol }` (null when anonymous) or null when `content` exports nothing. */
 function detectExport(content, language = 'js') {
-  const code = stripNonCode(content, language).replaceAll(REEXPORT, (match) => match.replaceAll(/[^\n]/g, ' '));
+  const code = inspectedCode(content, language);
   let best = null;
   for (const form of EXPORT_FORMS) {
     form.lastIndex = 0;
@@ -575,6 +658,9 @@ module.exports = {
   detectExport,
   extractSymbol,
   isProtectedBindingsPath,
-  stripNonCode,
+  stripNonCode: lexAware,
+  lexAware,
+  lexLegacy,
+  inspectedCode,
   qualifies,
 };
