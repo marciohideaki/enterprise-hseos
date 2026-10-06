@@ -154,7 +154,7 @@ pre-activation L0 surface: observed effect-bearing items fail closed.
 - Refresh the snapshot from a local ECP checkout, then update the lock `ref` and `sha256`:
 
 ```bash
-hseos platform-bindings sync --ref contracts-v0.3.1 --ecp-root <ecp-checkout> \
+hseos platform-bindings sync --ref contracts-v0.4.0 --ecp-root <ecp-checkout> \
   --output .enterprise/governance/capabilities/ecp-registry.snapshot.json
 ```
 

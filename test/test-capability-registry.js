@@ -71,13 +71,13 @@ function testSnapshot() {
   );
   assertPass(
     'ref and contracts version come from the lock',
-    loaded.ref === 'contracts-v0.3.1' && loaded.registry.generated_from.contracts_version === '0.3.1',
+    loaded.ref === 'contracts-v0.4.0' && loaded.registry.generated_from.contracts_version === '0.4.0',
   );
   assertPass(
-    'shipped snapshot is byte-identical to the 0.3.1 fixture',
+    'shipped snapshot is byte-identical to the 0.4.0 fixture',
     fs
       .readFileSync(path.join(REPO_ROOT, SNAPSHOT_FILE))
-      .equals(fs.readFileSync(path.join(__dirname, 'fixtures', 'ecp-registry', 'registry-0.3.1.json'))),
+      .equals(fs.readFileSync(path.join(__dirname, 'fixtures', 'ecp-registry', 'registry-0.4.0.json'))),
   );
   assertPass(
     'shipped snapshot resolves Redis -> cache.typed and auth -> security.authn',
