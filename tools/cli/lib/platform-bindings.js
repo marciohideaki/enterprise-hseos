@@ -405,8 +405,16 @@ function loadPlatformBindings(options = {}) {
   const flagMode = applyFlagMode({ flags, mode, projectDir, errors, warnings });
   if (flagMode) ({ mode, source, modeRef } = { ...flagMode });
 
-  if (modeStrength(mode) < modeStrength(baseMode) && !(modeRef && repositoryRefExists(projectDir, modeRef))) {
-    errors.push(`mode '${mode}' is weaker than the recorded mode '${baseMode}' and requires an existing mode_ref`);
+  const downgradeDenied =
+    modeStrength(mode) < modeStrength(baseMode)
+      ? modeRef
+        ? downgradeProblem(projectDir, modeRef, baseMode, mode)
+        : 'no mode_ref was given'
+      : null;
+  if (downgradeDenied) {
+    errors.push(
+      `mode '${mode}' is weaker than the recorded mode '${baseMode}' and requires a committed, approved decision record in mode_ref: ${downgradeDenied}`,
+    );
     mode = baseMode;
     source = 'downgrade-rejected';
     modeRef = null;
@@ -619,7 +627,240 @@ function writePlatformBindings(projectDir, doc, { now = new Date() } = {}) {
   return targetPath;
 }
 
+// A downgrade of the adoption mode is authorized only by a COMMITTED decision record that names this exact
+// downgrade and an approver who owns the bindings file (ADR-0046 section 8, owner decision D6). Every
+// malformed, missing or ambiguous input denies; the functions return a message and never throw.
+
+const RECORD_INFO = 'platform-bindings-downgrade';
+const RECORD_KEYS = ['status', 'from', 'to', 'approver'];
+const APPROVED_STATUSES = new Set(['accepted', 'approved']);
+const CODEOWNERS_FILES = ['.github/CODEOWNERS', 'CODEOWNERS', 'docs/CODEOWNERS'];
+const BINDINGS_TARGET = '.hseos/config/platform-bindings.yaml';
+const REGULAR_FILE_MODES = new Set(['100644', '100755']);
+const MAX_RECORD_BYTES = 256 * 1024;
+
+function runGitBuffer(directory, args) {
+  return execFileSync('git', ['-C', directory, ...args], {
+    encoding: 'buffer',
+    timeout: 3000,
+    maxBuffer: 4 * 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, LC_ALL: 'C' },
+  });
+}
+
+/** Returns `{ content: Buffer }` for a regular file tracked at HEAD, `{ absent: true }` when untracked, else `{ error }`. */
+function readCommitted(directory, relative) {
+  try {
+    const listing = runGitBuffer(directory, ['ls-tree', 'HEAD', '--', `./${relative}`])
+      .toString('utf8')
+      .trim();
+    if (listing === '') return { absent: true };
+    const mode = listing.split(/\s+/)[0];
+    if (!REGULAR_FILE_MODES.has(mode)) return { error: `'${relative}' is not a regular file at HEAD (git mode ${mode})` };
+    return { content: runGitBuffer(directory, ['show', `HEAD:./${relative}`]) };
+  } catch (error) {
+    return { error: `git failed while reading '${relative}' at HEAD: ${String(error.stderr || error.message).trim()}` };
+  }
+}
+
+function globToRegExp(pattern) {
+  let source = '';
+  for (let index = 0; index < pattern.length; index += 1) {
+    const char = pattern[index];
+    if (char === '*' && pattern[index + 1] === '*') {
+      if (pattern[index + 2] === '/' && (index === 0 || pattern[index - 1] === '/')) {
+        source += '(?:.*/)?'; // `**/` also matches zero directories
+        index += 2;
+      } else {
+        source += '.*';
+        index += 1;
+      }
+    } else if (char === '*') source += '[^/]*';
+    else if (char === '?') source += '[^/]';
+    else source += char.replaceAll(/[.+^${}()|\\]/g, String.raw`\$&`);
+  }
+  return source;
+}
+
+/**
+ * Last matching CODEOWNERS entry wins (GitHub rule). `*` does not cross `/`, `**` does. Contents of a matched
+ * directory match too, but only for a directory pattern (trailing `/`) or a bare path whose last segment has no
+ * wildcard. Returns `{ owners }` or `{ error }`.
+ */
+function ownersFromCodeowners(text, target) {
+  let owners = [];
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.replace(/(^|\s)#.*$/, '').trim();
+    if (line === '') continue;
+    const [pattern, ...entryOwners] = line.split(/\s+/);
+    if (/^[[!]|[\\[\]]/.test(pattern)) return { error: `CODEOWNERS pattern '${pattern}' uses syntax this check does not resolve` };
+    const dirOnly = pattern.endsWith('/');
+    const body = (dirOnly ? pattern.slice(0, -1) : pattern).replace(/^\//, '');
+    const anchored = pattern.startsWith('/') || body.includes('/');
+    const lastSegment = body.slice(body.lastIndexOf('/') + 1);
+    let tail = '';
+    if (dirOnly) tail = '/.*';
+    else if (!/[*?]/.test(lastSegment)) tail = '(?:/.*)?';
+    const matcher = new RegExp(`^${anchored ? '' : '(?:.*/)?'}${globToRegExp(body)}${tail}$`);
+    // A wildcard last segment that matches an ancestor directory (`.hs*`, `/.hs*`, `.hseos/conf*`) is ambiguous
+    // between gitignore and GitHub semantics: fail closed instead of falling back to an earlier entry.
+    if (!dirOnly && /[*?]/.test(lastSegment) && lastSegment !== '*' && lastSegment !== '**') {
+      const segments = target.split('/');
+      const ancestors = segments.slice(0, -1).map((_, index) => segments.slice(0, index + 1).join('/'));
+      const bare = new RegExp(`^${anchored ? '' : '(?:.*/)?'}${globToRegExp(body)}$`);
+      if (ancestors.some((ancestor) => bare.test(ancestor))) {
+        return {
+          error: `CODEOWNERS pattern '${pattern}' matches a parent directory of the bindings file; its semantics are ambiguous, so it is not resolved`,
+        };
+      }
+    }
+    if (matcher.test(target)) owners = entryOwners;
+  }
+  return { owners };
+}
+
+/** Owners of the bindings file as committed at HEAD. Returns `{ owners: string[] }` or `{ error }`; never an empty owner list. */
+function resolveOwners(directory, target = BINDINGS_TARGET) {
+  for (const file of CODEOWNERS_FILES) {
+    const committed = readCommitted(directory, file);
+    if (committed.error) return { error: committed.error };
+    if (committed.absent) continue;
+    const resolved = ownersFromCodeowners(committed.content.toString('utf8'), target);
+    if (resolved.error) return resolved;
+    if (resolved.owners.length === 0) return { error: `no CODEOWNERS entry in '${file}' at HEAD covers '${target}' (or '*')` };
+    return { owners: resolved.owners };
+  }
+  return { error: `no CODEOWNERS file at HEAD (looked for ${CODEOWNERS_FILES.join(', ')}), so no owner can be resolved` };
+}
+
+function normalizeIdentity(value) {
+  return String(value).trim().toLowerCase().replace(/^@/, '');
+}
+
+/**
+ * Collects the bodies of top-level fenced blocks tagged `platform-bindings-downgrade`. A block inside an HTML
+ * comment, inside another (longer or different) fence, or indented four or more spaces does not count.
+ * Returns `{ blocks }` or `{ error }` (an unterminated block).
+ */
+function topLevelBlocks(text) {
+  const blocks = [];
+  let inComment = false;
+  let fence = null; // { char, length, collect, body }
+  for (const line of text.split(/\r?\n/)) {
+    if (fence) {
+      const close = /^ {0,3}(`{3,}|~{3,})[ \t]*$/.exec(line);
+      if (close && close[1][0] === fence.char && close[1].length >= fence.length) {
+        if (fence.collect) blocks.push(fence.body.join('\n'));
+        fence = null;
+      } else if (fence.collect) fence.body.push(line);
+      continue;
+    }
+    if (inComment) {
+      if (line.includes('-->')) inComment = false;
+      continue;
+    }
+    const open = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line);
+    if (open && !(open[1][0] === '`' && open[2].includes('`'))) {
+      fence = { char: open[1][0], length: open[1].length, collect: open[2].trim() === RECORD_INFO, body: [] };
+      continue;
+    }
+    const opened = line.lastIndexOf('<!--');
+    if (opened !== -1 && !line.slice(opened).includes('-->')) inComment = true;
+  }
+  if (fence && fence.collect) return { error: 'has an unterminated platform-bindings-downgrade block' };
+  return { blocks };
+}
+
+function parseRecord(text) {
+  const found = topLevelBlocks(text);
+  if (found.error) return { error: found.error };
+  const { blocks } = found;
+  if (blocks.length !== 1) {
+    return {
+      error: `must contain exactly one top-level fenced \`${RECORD_INFO}\` block with ${RECORD_KEYS.join(', ')} (found ${blocks.length})`,
+    };
+  }
+  let doc;
+  try {
+    doc = yaml.parse(blocks[0]);
+  } catch (error) {
+    return { error: `its platform-bindings-downgrade block is not valid YAML: ${error.message}` };
+  }
+  if (!doc || typeof doc !== 'object' || Array.isArray(doc))
+    return { error: 'its platform-bindings-downgrade block must be a YAML mapping' };
+  const missing = RECORD_KEYS.filter((key) => typeof doc[key] !== 'string' || doc[key].trim() === '');
+  if (missing.length > 0) return { error: `its platform-bindings-downgrade block is missing or has an empty ${missing.join(', ')}` };
+  const unknown = Object.keys(doc).filter((key) => !RECORD_KEYS.includes(key));
+  if (unknown.length > 0) return { error: `its platform-bindings-downgrade block has unknown keys: ${unknown.join(', ')}` };
+  return { record: doc };
+}
+
+/**
+ * Returns null when the downgrade `from` -> `to` is authorized by the decision record `modeRef`, otherwise a
+ * message that says exactly what is missing. The record must be tracked at HEAD with the same content in the
+ * working tree, carry one `platform-bindings-downgrade` block (status Accepted or Approved, from and to equal
+ * to the actual change, an approver) and the approver must be an owner of the bindings file in CODEOWNERS at HEAD.
+ */
+function downgradeProblem(projectDir, modeRef, from, to) {
+  const subject = `downgrade '${from}' -> '${to}' via mode_ref '${modeRef}'`;
+  const deny = (reason) => `${subject} is not authorized: ${reason}`;
+  if (
+    typeof modeRef !== 'string' ||
+    !modeRef.endsWith('.md') ||
+    modeRef.split('/').includes('..') ||
+    !DECISION_RECORD_ROOTS.some((root) => modeRef.startsWith(root))
+  ) {
+    return deny(`the decision record must be a .md file under ${DECISION_RECORD_ROOTS.join(' or ')}`);
+  }
+  // The repository root holds HEAD, CODEOWNERS and the tracked paths; the project may be a subdirectory of it.
+  let directory;
+  let prefix;
+  try {
+    const project = fs.realpathSync(path.resolve(projectDir));
+    directory = fs.realpathSync(runGitBuffer(project, ['rev-parse', '--show-toplevel']).toString('utf8').trim());
+    prefix = path.relative(directory, project).split(path.sep).join('/');
+  } catch (error) {
+    return deny(`git failed while locating the repository root: ${String(error.stderr || error.message).trim()}`);
+  }
+  const inRepo = (relative) => (prefix ? `${prefix}/${relative}` : relative);
+  const committed = readCommitted(directory, inRepo(modeRef));
+  if (committed.error) return deny(committed.error);
+  if (committed.absent) return deny('the decision record is not committed (not tracked at HEAD)');
+  if (committed.content.length > MAX_RECORD_BYTES) return deny('the decision record is too large');
+  let working;
+  try {
+    const target = path.join(directory, inRepo(modeRef));
+    if (fs.lstatSync(target).isSymbolicLink()) return deny('the decision record is a symlink in the working tree');
+    working = fs.readFileSync(target);
+  } catch (error) {
+    return deny(`the decision record cannot be read from the working tree: ${error.message}`);
+  }
+  if (!working.equals(committed.content)) return deny('the decision record differs from its committed content (uncommitted changes)');
+
+  const parsed = parseRecord(committed.content.toString('utf8'));
+  if (parsed.error) return deny(`the decision record ${parsed.error}`);
+  const { record } = parsed;
+  if (!APPROVED_STATUSES.has(record.status.trim().toLowerCase())) {
+    return deny(`the record status is '${record.status.trim()}', expected Accepted or Approved`);
+  }
+  if (record.from.trim() !== from || record.to.trim() !== to) {
+    return deny(`the record authorizes '${record.from.trim()}' -> '${record.to.trim()}'`);
+  }
+  const owners = resolveOwners(directory, inRepo(BINDINGS_TARGET));
+  if (owners.error) return deny(owners.error);
+  const approver = normalizeIdentity(record.approver);
+  if (!owners.owners.some((owner) => normalizeIdentity(owner) === approver)) {
+    return deny(
+      `approver '${record.approver.trim()}' is not an owner of '${BINDINGS_TARGET}' in CODEOWNERS (owners: ${owners.owners.join(', ')})`,
+    );
+  }
+  return null;
+}
+
 module.exports = {
+  downgradeProblem,
+  ownersFromCodeowners,
   PLATFORM_MODES,
   PROJECT_BINDINGS_FILE,
   RUNTIME_DEFAULTS_FILE,

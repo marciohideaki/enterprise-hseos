@@ -102,6 +102,7 @@ function tests() {
       bindings: { schema_version: '1.0.0', mode: 'hybrid', mode_ref: 'docs/decisions/0001-hybrid.md' },
       files: { 'docs/decisions/0001-hybrid.md': '# hybrid\n' },
     });
+    gitCommit(hybridDir); // a recorded mode: committed bindings and decision record
     const hybrid = check('cache', hybridDir).report;
     assertPass('hybrid mode is honoured with its mode_ref', hybrid.mode === 'hybrid' && hybrid.mode_source === 'project', `${hybrid.mode}/${hybrid.mode_source}`);
     assertPass('hybrid shows consume with advisory when nothing is stable', hybrid.results[0].advisory === true && /\(advisory\)$/.test(hybrid.results[0].verdict_text), hybrid.results[0].verdict_text);
@@ -119,6 +120,7 @@ function tests() {
       },
       files: { 'docs/decisions/0001-hybrid.md': '# hybrid\n' },
     });
+    gitCommit(stableDir);
     fs.writeJsonSync(path.join(stableDir, 'registry.json'), registry);
     const stable = check('cache', stableDir).report;
     assertPass('a stable implementation removes the advisory', stable.mode === 'hybrid' && stable.results[0].advisory === false && !/advisory/.test(stable.results[0].verdict_text), stable.results[0].verdict_text);
@@ -128,6 +130,7 @@ function tests() {
       bindings: { schema_version: '1.0.0', mode: 'local', mode_ref: 'docs/decisions/0001-local.md' },
       files: { 'docs/decisions/0001-local.md': '# local\n' },
     });
+    gitCommit(localDir);
     const local = check('cache', localDir).report;
     assertPass('local mode is informational', local.mode === 'local' && local.results[0].verdict_text === 'informational (local mode: no intake required)');
     const none = renderText(check('zzzqq', localDir).report);

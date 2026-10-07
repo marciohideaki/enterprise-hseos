@@ -125,7 +125,7 @@ detection.
   check `hseos platform-bindings check --base <ref>`. A project without the file at that revision has
   the recorded mode `platform`, because that is how it is enforced today.
 - Choosing `local`, or any mode weaker than the recorded mode, requires `mode_ref` pointing at a
-  decision record in the repository.
+  committed, approved decision record in the repository (section 8, "Anti-downgrade authorization").
 - The user/organization layer (including a file named by `HSEOS_PLATFORM_BINDINGS`) and flags can
   only make the effective mode stricter than the project file, unless a flag carries `--mode-ref`.
 - Agents must not edit `.hseos/config/platform-bindings.yaml`; it is a protected, human-owned file.
@@ -183,7 +183,7 @@ These points record how the accepted decision is implemented; none of them chang
   repeated.
 - **Baseline via HEAD.** `hseos install`, `init`, `show`, the guard and `capability-check` read the
   recorded mode from the project file at `HEAD` (`git show HEAD:.hseos/config/platform-bindings.yaml`),
-  never from the working tree, so an uncommitted weakening is rejected unless it carries a resolving `mode_ref` (the recorded mode is the floor of the anti-downgrade, not the effective mode). Outside a git repository, or
+  never from the working tree, so an uncommitted weakening is rejected unless it carries a `mode_ref` that authorizes it (see the next bullet; the recorded mode is the floor of the anti-downgrade, not the effective mode). Outside a git repository, or
   without that file at the revision, the recorded mode is `platform`. `hseos platform-bindings check`
   uses `--base <ref>` instead of `HEAD` and ignores the user layer.
 - **Exit codes.** `hseos platform-bindings`: `show` exits 0, or 1 when the registry fails its integrity
@@ -196,20 +196,58 @@ These points record how the accepted decision is implemented; none of them chang
   shape above and matches as a whole token in a `docs/decisions/**/*intake*.md` file. The legacy path
   (no bindings file, or CLI unavailable) keeps its substring match in `docs/decisions/*intake*.md`; it
   is not tightened. Both reject `CORE_INTAKE_ACK=1`.
-- **Writes through the Bash tool, and the strength of the anti-downgrade (assessed, not implemented).** The
-  guard denies agent edits of the bindings file for `Write`, `Edit` and `MultiEdit`; it does not cover writes
-  through the Bash tool (`>`, `tee`, `sed -i`, `cp`, `mv`, `dd of=`, one-liners). The effective mode is the one
-  in the working tree. The mode at `HEAD` is only the floor of the anti-downgrade: a weaker working-tree mode
-  is accepted whenever it carries a `mode_ref` that resolves to an existing Markdown file under
-  `docs/decisions/` or `.enterprise/.specs/decisions/`, committed or not, and the content or authorship of
-  that file is not validated. So the anti-downgrade is a convenience barrier, not a security boundary, and a
-  Bash-tool deny would not change that. It is not implemented because it would be a heuristic (it misses
-  variables, globs, `cd` plus a relative path, scripts and editors), it needs a new `PreToolUse` hook with
-  matcher `Bash` that starts a process for every shell command (cost not measured beyond about 1 ms of shell
-  start-up), and it would not fix the weak floor above. Hardening options, left as follow-up decisions for
-  the owner and not implemented here: require that a downgrade is committed and approved; validate the
-  content or authorship of the `mode_ref` record; add a Bash-tool matcher. Reading the file (`cat`, `grep`,
-  `hseos platform-bindings show`) is unaffected either way.
+- **Anti-downgrade authorization (owner decision D6, implemented).** A weaker working-tree mode than the
+  recorded one (the floor at `HEAD`, or `--base <ref>`) is accepted only when its `mode_ref` is a decision
+  record that authorizes exactly that downgrade. Existence alone no longer suffices. All of the following
+  must hold, otherwise the mode is rejected (`downgrade-rejected`, the recorded mode applies) with a message
+  that names what is missing:
+  1. The record is a regular file tracked at `HEAD` and its working-tree content is byte-identical to its
+     `HEAD` content. An untracked, staged-only or locally modified record authorizes nothing.
+  2. The record has exactly one fenced block tagged `platform-bindings-downgrade`, a YAML mapping with
+     exactly the keys `status`, `from`, `to` and `approver`:
+
+     ```platform-bindings-downgrade
+     status: Accepted
+     from: platform
+     to: hybrid
+     approver: "@marciohideaki"
+     ```
+
+     `status` is `Accepted` or `Approved` (case-insensitive); `from` is the recorded mode and `to` the
+     requested mode, both exact; `approver` is non-empty. Missing, duplicate, malformed or extra fields deny.
+
+  3. The approver is an owner of the bindings file. Owners are read from the CODEOWNERS file committed at
+     `HEAD` (first of `.github/CODEOWNERS`, `CODEOWNERS`, `docs/CODEOWNERS`), taking the last entry that
+     matches `.hseos/config/platform-bindings.yaml` (a `*`, directory or file pattern). Comparison ignores case
+     and a leading `@`; a listed team or e-mail matches only literally. No CODEOWNERS file, no covering entry,
+     an entry without owners, or a pattern syntax the check does not resolve (sections, negation, character
+     classes) fails closed. A repository without such an entry cannot downgrade until the owner adds one.
+     CODEOWNERS follows GitHub semantics: `*` does not cross `/`, `**` does, and a pattern matches the
+     contents of a directory only when it ends in `/` or is a bare path without a wildcard in its last segment.
+     When the project is a subdirectory of the git repository (a monorepo), HEAD, the record's tracking and
+     CODEOWNERS are resolved at the repository root (`git rev-parse --show-toplevel`), and the bindings path
+     matched against CODEOWNERS is root-relative (for example `/proj/.hseos/config/platform-bindings.yaml`).
+     A non-directory pattern whose wildcard last segment matches a parent directory of the bindings file
+     (`.hs*`, `/.hs*`, `.hseos/conf*`) fails closed as ambiguous; `.hseos/*` is unaffected and does not cover nested
+     files. Only a top-level fenced block counts: one inside an HTML comment, another fence, a block quote or an
+     indented code block is ignored, and an unterminated block denies. The record path is also required to be
+     a `.md` under the decision directories inside the downgrade check itself.
+     The same rule applies to `--platform-mode ... --mode-ref` flags. `hseos install`/`init` that choose a weaker
+     mode therefore need the record and CODEOWNERS entry committed first. Upgrades and same-mode operations are
+     unaffected, as are the exit codes. Option (3) of the hardening list (a Bash-tool matcher) was rejected by
+     the owner and is not implemented.
+
+- **What this does not buy.** The guard denies agent edits of the bindings file for `Write`, `Edit` and
+  `MultiEdit`; it does not cover writes through the Bash tool (`>`, `tee`, `sed -i`, `cp`, `mv`, `dd of=`,
+  one-liners). The effective mode is the one in the working tree. The check proves that a committed record
+  names an owner; it does not prove who wrote or committed it. Anyone able to commit locally can author a
+  record, a CODEOWNERS entry and the bindings file together, and local git history can be rewritten, so this
+  is not a security boundary against a malicious local user. It makes a downgrade a deliberate, explicit change;
+  only in a pull-request flow with review does it also become reviewable and attributable (the record and the
+  CODEOWNERS entry go through review), and
+  `hseos platform-bindings check --base <ref>` in CI evaluates it against the PR base. The floor remains the
+  `HEAD` (or base) file; a project outside a git repository cannot downgrade at all. Reading the file
+  (`cat`, `grep`, `hseos platform-bindings show`) is unaffected.
 - **Fallback when the CLI is unavailable.** With a bindings file, a missing CLI or node, or a CLI failure,
   makes the shell handler apply its legacy decision (a narrower detection than the CLI: it does not see
   `export async function` or `enum`). The literal `platform` decision applies only when the baseline at
