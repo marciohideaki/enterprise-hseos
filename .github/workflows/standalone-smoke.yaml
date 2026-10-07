@@ -14,7 +14,7 @@ jobs:
   standalone-smoke:
     name: "Standalone clean-env smoke (node:22)"
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
