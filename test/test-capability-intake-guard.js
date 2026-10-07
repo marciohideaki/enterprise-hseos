@@ -11,6 +11,7 @@ const {
   detectExports,
   inspectedCode,
   lexLegacy,
+  lexLegacyFast,
   evaluateGuard,
   extractSymbol,
   isProtectedBindingsPath,
@@ -1260,4 +1261,61 @@ test('lexer: unclosed `export {` repeated many times stays linear', () => {
   }
   assert.deepEqual(detectExports('export { a } from "x";\nexport * as q from "y";\nexport class K {}').symbols, ['K']);
   assert.equal(detectExports('export { a } from "x";\nexport * as q from "y";'), null, 're-exports with from stay ignored');
+});
+
+test('lexer: the sliced legacy lexer equals the pinned legacy lexer, and a realistic 1 MB file stays fast', () => {
+  const pieces = [
+    '/',
+    '*',
+    '//',
+    '/*',
+    '*/',
+    '"',
+    "'",
+    '`',
+    '${',
+    '}',
+    '\\',
+    '\n',
+    ' ',
+    'a',
+    'export class A {}',
+    '@',
+    '$',
+    '"""',
+    '(',
+    ')',
+    '[',
+    ']',
+    'x',
+    'in ',
+    '++',
+  ];
+  let state = 99_991;
+  const random = () => {
+    state = (Math.imul(state, 1_103_515_245) + 12_345) & 0x7f_ff_ff_ff;
+    return state / 0x7f_ff_ff_ff;
+  };
+  for (let round = 0; round < 6000; round += 1) {
+    let content = '';
+    for (let count = 1 + Math.floor(random() * 16); count > 0; count -= 1) content += pieces[Math.floor(random() * pieces.length)];
+    const language = random() < 0.4 ? 'cs' : 'js';
+    assert.equal(lexLegacyFast(content, language), lexLegacy(content, language), JSON.stringify(content));
+  }
+  const module = [
+    "import fs from 'node:fs';",
+    "// a comment with a quote ' and export class Fake {}",
+    String.raw`const re = /ab+c\/[x/]/gi; const half = total / 2; /* block */`,
+    'const label = `item ${count > 1 ? "items" : \'item\'} of ${`nested ${name}`}`;',
+    String.raw`function format(value) { return value.replace(/\s+/g, " ").trim() + "!"; }`,
+    'export const helper = (a, b) => a / b + (a % b) / 2;',
+    '',
+  ].join('\n');
+  const content = module.repeat(Math.ceil(1_000_000 / module.length)) + 'export class R {}';
+  assert.ok(content.length >= 1_000_000);
+  const started = process.hrtime.bigint();
+  const found = detectExports(content);
+  const milliseconds = Number(process.hrtime.bigint() - started) / 1e6;
+  assert.ok(found.symbols.includes('R') && found.symbols.includes('helper'));
+  assert.ok(milliseconds < 200, `realistic 1 MB took ${milliseconds} ms`);
 });

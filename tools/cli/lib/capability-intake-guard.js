@@ -249,6 +249,9 @@ function scanExpression(content, start, depth) {
   return -1;
 }
 
+// Characters that can open a comment, string, regex, template or C# string.
+const LEXER_TRIGGER = /[/"'`@$]/;
+
 /**
  * Replaces comments and string literals with blanks (strings become `""`) so that text inside them is never
  * mistaken for code. Small lexer, not a parser. Template literals are skipped through their `${}`
@@ -261,10 +264,21 @@ function scanExpression(content, start, depth) {
  */
 function lexAware(content, language = 'js') {
   const cs = language === 'cs';
-  let out = '';
+  // Output is built from slices of `content` (verbatim runs are copied lazily) instead of one character at a time.
+  const out = [];
+  let pending = 0;
   let i = 0;
   let regexZoneEnd = 0;
   const n = content.length;
+  const flush = (upto) => {
+    if (upto > pending) out.push(content.slice(pending, upto));
+  };
+  const replace = (replacement, end) => {
+    flush(i);
+    out.push(replacement);
+    i = end;
+    pending = end;
+  };
   const skipVerbatim = (start) => {
     // `start` is the opening quote; returns the end index or -1 when it never closes.
     let j = start + 1;
@@ -281,77 +295,60 @@ function lexAware(content, language = 'js') {
     return -1;
   };
   while (i < n) {
+    const code = content.codePointAt(i);
+    // Only `/`, `"`, `'`, a backtick, `@` and `$` can open anything: every other character is copied as is.
+    if (code !== 47 && code !== 34 && code !== 39 && code !== 96 && code !== 64 && code !== 36) {
+      i += 1;
+      continue;
+    }
     const char = content[i];
     const next = content[i + 1];
     if (char === '/' && i < regexZoneEnd) {
-      out += char;
       i += 1;
     } else if (char === '/' && next === '/') {
+      flush(i);
       while (i < n && content[i] !== '\n') i += 1;
+      pending = i;
     } else if (char === '/' && next === '*') {
       const end = content.indexOf('*/', i + 2);
-      if (end === -1) {
-        out += content.slice(i);
-        i = n;
-      } else {
-        out += content.slice(i, end + 2).replaceAll(/[^\n]/g, ' ');
-        i = end + 2;
-      }
+      if (end === -1) i = n;
+      else replace(content.slice(i, end + 2).replaceAll(/[^\n]/g, ' '), end + 2);
     } else if (cs && (char === '@' || char === '$') && /^[@$]{1,2}"/.test(content.slice(i, i + 3))) {
       const prefix = content.slice(i, i + 2).match(/^[@$]{1,2}/)[0];
       const quote = i + prefix.length;
       const end = prefix.includes('@') ? skipVerbatim(quote) : scanString(content, quote);
-      if (end === -1) {
-        out += content.slice(i);
-        i = n;
-      } else {
-        i = end;
-        out += '""';
-      }
+      if (end === -1) i = n;
+      else replace('""', end);
     } else if (cs && char === '"' && content.startsWith('"""', i)) {
       const quotes = content.slice(i, i + 64).match(/^"+/)[0];
       const end = content.indexOf(quotes, i + quotes.length);
-      if (end === -1) {
-        out += content.slice(i);
-        i = n;
-      } else {
-        i = end + quotes.length;
-        out += '""';
-      }
+      if (end === -1) i = n;
+      else replace('""', end + quotes.length);
     } else if (char === '"' || char === "'") {
       const end = scanString(content, i);
       if (end === -1) {
         const lineEnd = content.indexOf('\n', i);
-        const stop = lineEnd === -1 ? n : lineEnd;
-        out += content.slice(i, stop);
-        i = stop;
+        i = lineEnd === -1 ? n : lineEnd;
       } else {
-        i = end;
-        out += '""';
+        replace('""', end);
       }
     } else if (!cs && char === '`') {
       const end = scanTemplate(content, i);
-      if (end === -1) {
-        out += content.slice(i);
-        i = n;
-      } else {
-        i = end;
-        out += '""';
-      }
+      if (end === -1) i = n;
+      else replace('""', end);
     } else if (!cs && char === '/' && regexAllowed(content, i)) {
       // A probable regex literal only shields the slashes inside it from opening a comment. Nothing is skipped or
       // hidden: strings and everything else are lexed as usual, so a wrong regex-versus-division guess can never
       // make the lexer see less than it would without the guess.
       const end = scanRegex(content, i);
       if (end !== -1) regexZoneEnd = end;
-      out += char;
       i += 1;
     } else {
-      out += char;
       i += 1;
     }
   }
-  return out;
+  flush(n);
+  return out.join('');
 }
 
 /*
@@ -430,6 +427,87 @@ function lexLegacy(content, language = 'js') {
   return out;
 }
 
+/**
+ * Same output as `lexLegacy` (a test compares them on a fuzzed corpus), built from slices instead of one character at
+ * a time. `lexLegacy` stays as the pinned reference of the previous release; the union uses this one for speed.
+ */
+function lexLegacyFast(content, language = 'js') {
+  const cs = language === 'cs';
+  const out = [];
+  let pending = 0;
+  let i = 0;
+  const n = content.length;
+  const replace = (replacement, start) => {
+    if (start > pending) out.push(content.slice(pending, start));
+    out.push(replacement);
+    pending = i;
+  };
+  const skipQuoted = (quote, { verbatim = false } = {}) => {
+    i += 1;
+    while (i < n) {
+      const char = content[i];
+      if (verbatim) {
+        if (char === quote) {
+          if (content[i + 1] === quote) {
+            i += 2;
+            continue;
+          }
+          i += 1;
+          return;
+        }
+      } else {
+        if (char === '\\') {
+          i += 2;
+          continue;
+        }
+        if (char === quote) {
+          i += 1;
+          return;
+        }
+        if (char === '\n' && quote !== '`') return;
+      }
+      i += 1;
+    }
+  };
+  while (i < n) {
+    const code = content.codePointAt(i);
+    if (code !== 47 && code !== 34 && code !== 39 && code !== 96 && code !== 64 && code !== 36) {
+      i += 1;
+      continue;
+    }
+    const char = content[i];
+    const next = content[i + 1];
+    const start = i;
+    if (char === '/' && next === '/') {
+      while (i < n && content[i] !== '\n') i += 1;
+      replace('', start);
+    } else if (char === '/' && next === '*') {
+      const end = content.indexOf('*/', i + 2);
+      i = end === -1 ? n : end + 2;
+      replace(content.slice(start, i).replaceAll(/[^\n]/g, ' '), start);
+    } else if (cs && (char === '@' || char === '$') && /^[@$]{1,2}"/.test(content.slice(i, i + 3))) {
+      const prefix = content.slice(i, i + 3).match(/^[@$]{1,2}/)[0];
+      i += prefix.length;
+      skipQuoted('"', { verbatim: prefix.includes('@') });
+      replace('""', start);
+    } else if (cs && char === '"' && content.startsWith('"""', i)) {
+      let quoteEnd = i;
+      while (content[quoteEnd] === '"') quoteEnd += 1;
+      const quotes = content.slice(i, quoteEnd);
+      const end = content.indexOf(quotes, quoteEnd);
+      i = end === -1 ? n : end + quotes.length;
+      replace('""', start);
+    } else if (char === '"' || char === "'" || (!cs && char === '`')) {
+      skipQuoted(char);
+      replace('""', start);
+    } else {
+      i += 1;
+    }
+  }
+  if (n > pending) out.push(content.slice(pending, n));
+  return out.join('');
+}
+
 function blankReexports(code) {
   const out = [];
   let copied = 0;
@@ -462,9 +540,20 @@ function blankReexports(code) {
   return out.join('');
 }
 
+/** The two inspected texts (regex-aware lexing, then legacy lexing), each with its local re-exports blanked. */
+function inspectedSegments(content, language = 'js') {
+  if (!LEXER_TRIGGER.test(content)) {
+    // Nothing in the text can open a comment, string, regex or template, so both lexings return it unchanged.
+    const code = blankReexports(content);
+    return [code, code];
+  }
+  return [blankReexports(lexAware(content, language)), blankReexports(lexLegacyFast(content, language))];
+}
+
 /** The text inspected for exports: both lexings, separated so that no match can span the boundary. */
 function inspectedCode(content, language = 'js') {
-  return `${blankReexports(lexAware(content, language))}\n;\n${blankReexports(lexLegacy(content, language))}`;
+  const [aware, legacy] = inspectedSegments(content, language);
+  return `${aware}\n;\n${legacy}`;
 }
 
 /**
@@ -476,7 +565,9 @@ function inspectedCode(content, language = 'js') {
  * quirk that puts a harmless export ahead of a denied one.
  */
 function detectExports(content, language = 'js') {
-  const code = inspectedCode(content, language);
+  // An identical second segment would only repeat the same matches, so it is scanned once.
+  const [aware, legacy] = inspectedSegments(content, language);
+  const code = aware === legacy ? aware : `${aware}\n;\n${legacy}`;
   const found = [];
   for (const form of EXPORT_FORMS) {
     form.lastIndex = 0;
@@ -744,6 +835,7 @@ module.exports = {
   stripNonCode: lexAware,
   lexAware,
   lexLegacy,
+  lexLegacyFast,
   inspectedCode,
   qualifies,
 };
