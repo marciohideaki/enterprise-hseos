@@ -101,8 +101,11 @@ function regexAllowed(content, index) {
   return REGEX_KEYWORDS.has(content.slice(start, j + 1));
 }
 
-/** End index (after the flags) of the regex literal opening at `start`, or -1 when it does not close on its line or within the bound. */
-function scanRegex(content, start) {
+/**
+ * End index (after the flags) of the regex literal opening at `start`, or -1 when it does not close on its line or within the bound.
+ * `lenient` also accepts a closing slash followed by `/` or `*` (a regex directly before a comment) when the body holds a slash.
+ */
+function scanRegex(content, start, lenient = false) {
   const limit = Math.min(content.length, start + MAX_REGEX_LENGTH);
   let i = start + 1;
   let inClass = false;
@@ -111,7 +114,11 @@ function scanRegex(content, start) {
     if (char === '\n') return -1;
     if (char === '/' && !inClass) {
       // A closing slash that is itself followed by `*` or `/` opens a comment, so this was a division.
-      if (content[i + 1] === '*' || content[i + 1] === '/') return -1;
+      // Lenient: only a body that itself holds a slash (a class or escape holding `/*` or `//`) is worth reading as a regex
+      // here; `b / c; // note` is a division followed by a comment and must keep its comment.
+      if ((content[i + 1] === '*' || content[i + 1] === '/') && (!lenient || !content.slice(start + 1, i).includes('/'))) {
+        return -1;
+      }
       i += 1;
       while (i < content.length && /[\w$]/.test(content[i])) i += 1;
       return i;
@@ -164,7 +171,7 @@ function scanString(content, start) {
 }
 
 /** End index of the template literal opening at `start` (its `${}` expressions are lexed), or -1 when unterminated or too deep. */
-function scanTemplate(content, start, depth = 0) {
+function scanTemplate(content, start, depth = 0, ctx = null) {
   if (depth > MAX_TEMPLATE_DEPTH) return -1;
   const n = content.length;
   let i = start + 1;
@@ -180,7 +187,7 @@ function scanTemplate(content, start, depth = 0) {
       }
       case '$': {
         if (content[i + 1] === '{') {
-          i = scanExpression(content, i + 2, depth + 1);
+          i = scanExpression(content, i + 2, depth + 1, ctx);
           if (i === -1) return -1;
         } else {
           i += 1;
@@ -196,7 +203,7 @@ function scanTemplate(content, start, depth = 0) {
 }
 
 /** End index (after the closing brace) of the `${}` expression whose body starts at `start`, or -1 when unterminated. */
-function scanExpression(content, start, depth) {
+function scanExpression(content, start, depth, ctx = null) {
   const n = content.length;
   let braces = 1;
   let i = start;
@@ -222,7 +229,7 @@ function scanExpression(content, start, depth) {
         break;
       }
       case '`': {
-        i = scanTemplate(content, i, depth);
+        i = scanTemplate(content, i, depth, ctx);
         if (i === -1) return -1;
         break;
       }
@@ -233,11 +240,19 @@ function scanExpression(content, start, depth) {
           const end = content.indexOf('*/', i + 2);
           if (end === -1) return -1;
           i = end + 2;
-        } else if (regexAllowed(content, i)) {
+        } else if (ctx !== null && ctx.aggressive) {
+          // Aggressive pass: every code `/` inside the expression is tried as a regex, whatever the guess says, so a
+          // regex after `)`, `}` or a keyword (`if (x) /'/.test(y)`) cannot open a string that swallows the template's end.
           const end = scanRegex(content, i);
           i = end === -1 ? i + 1 : end;
         } else {
-          i += 1;
+          if (ctx !== null) ctx.probe.slash = true;
+          if (regexAllowed(content, i)) {
+            const end = scanRegex(content, i);
+            i = end === -1 ? i + 1 : end;
+          } else {
+            i += 1;
+          }
         }
         break;
       }
@@ -262,8 +277,37 @@ const LEXER_TRIGGER = /[/"'`@$]/;
  * stays inspected instead of hiding the rest of the file. `language` is `cs` for C# (verbatim `@"…"`,
  * interpolated `$"…"`, raw `"""…"""`) and `js` otherwise.
  */
-function lexAware(content, language = 'js') {
+function lexAware(content, language = 'js', opaqueRegex = false, probe = null, aggressive = false) {
   const cs = language === 'cs';
+  // `probe` (default pass) records where a `/` that is code, not a comment, shares a line with a string or template
+  // opener (`suspect` holds those line starts): the quote may really sit inside a regex literal the guess missed. The
+  // `aggressive` pass (a further inspected text) reads it: it treats every such `/` as a possible regex, and leaves
+  // quotes on the suspect lines unopened, so they cannot swallow the code after them. Both only add visible text.
+  const suspect = aggressive ? probe.suspect : null;
+  // Template expressions report their code slashes to the probe (default pass) or read every one as a regex (aggressive pass).
+  const templateCtx = probe === null ? null : { aggressive, probe };
+  let lineStart = -1;
+  let lineEnd = -1;
+  const lineStartOf = (index) => {
+    if (index < lineStart || index > lineEnd) {
+      lineStart = index === 0 ? 0 : content.lastIndexOf('\n', index - 1) + 1;
+      lineEnd = content.indexOf('\n', index);
+      if (lineEnd === -1) lineEnd = n;
+    }
+    return lineStart;
+  };
+  const noteSlash = () => {
+    probe.slash = true;
+    probe.slashLine = lineStartOf(i);
+  };
+  const noteOpener = () => {
+    if (probe.slashLine !== -1 && lineStartOf(i) === probe.slashLine) probe.suspect.add(probe.slashLine);
+  };
+  // Opaque mode (a third inspected text, see `inspectedSegments`): a probable regex literal is skipped whole and kept as
+  // raw text, so a quote or backtick inside it can never open a string that swallows the code after it. A candidate
+  // that does not close on its line is kept raw up to the end of the line. `differs` records whether that changed
+  // anything; when it did not, the mode returns null (the other two texts already hold the same output).
+  let differs = false;
   // Output is built from slices of `content` (verbatim runs are copied lazily) instead of one character at a time.
   const out = [];
   let pending = 0;
@@ -304,6 +348,11 @@ function lexAware(content, language = 'js') {
     const char = content[i];
     const next = content[i + 1];
     if (char === '/' && i < regexZoneEnd) {
+      if (aggressive === 2) {
+        // Wide pass: a regex can also start at a slash that a wider candidate swallowed (`a / /[/*]/`, a division then a regex). Strict close here: a lenient one would shield the `//` of a real comment after a regex.
+        const reach = scanRegex(content, i);
+        if (reach > regexZoneEnd) regexZoneEnd = reach;
+      }
       i += 1;
     } else if (char === '/' && next === '/') {
       flush(i);
@@ -324,7 +373,15 @@ function lexAware(content, language = 'js') {
       const end = content.indexOf(quotes, i + quotes.length);
       if (end === -1) i = n;
       else replace('""', end + quotes.length);
+    } else if (
+      suspect !== null &&
+      suspect.size > 0 &&
+      (char === '"' || char === "'" || (!cs && char === '`')) &&
+      suspect.has(lineStartOf(i))
+    ) {
+      i += 1;
     } else if (char === '"' || char === "'") {
+      if (probe !== null && !aggressive) noteOpener();
       const end = scanString(content, i);
       if (end === -1) {
         const lineEnd = content.indexOf('\n', i);
@@ -333,20 +390,39 @@ function lexAware(content, language = 'js') {
         replace('""', end);
       }
     } else if (!cs && char === '`') {
-      const end = scanTemplate(content, i);
+      if (probe !== null && !aggressive) noteOpener();
+      const end = scanTemplate(content, i, 0, templateCtx);
       if (end === -1) i = n;
       else replace('""', end);
+    } else if (aggressive && !cs && char === '/') {
+      const end = scanRegex(content, i, aggressive === 2);
+      if (end > regexZoneEnd) regexZoneEnd = end;
+      i += 1;
     } else if (!cs && char === '/' && regexAllowed(content, i)) {
+      if (probe !== null) noteSlash();
       // A probable regex literal only shields the slashes inside it from opening a comment. Nothing is skipped or
       // hidden: strings and everything else are lexed as usual, so a wrong regex-versus-division guess can never
       // make the lexer see less than it would without the guess.
       const end = scanRegex(content, i);
-      if (end !== -1) regexZoneEnd = end;
-      i += 1;
+      if (opaqueRegex) {
+        if (end === -1) {
+          differs = true;
+          const lineEnd = content.indexOf('\n', i);
+          i = lineEnd === -1 ? n : lineEnd;
+        } else {
+          if (!differs && /['"`]/.test(content.slice(i, end))) differs = true;
+          i = end;
+        }
+      } else {
+        if (end !== -1) regexZoneEnd = end;
+        i += 1;
+      }
     } else {
+      if (probe !== null && !cs && char === '/') noteSlash();
       i += 1;
     }
   }
+  if (opaqueRegex && (cs || !differs)) return null;
   flush(n);
   return out.join('');
 }
@@ -540,20 +616,73 @@ function blankReexports(code) {
   return out.join('');
 }
 
-/** The two inspected texts (regex-aware lexing, then legacy lexing), each with its local re-exports blanked. */
+/** The inspected texts (regex-aware lexing, an optional regex-opaque lexing, then legacy lexing last), each with its local re-exports blanked. */
 function inspectedSegments(content, language = 'js') {
   if (!LEXER_TRIGGER.test(content)) {
     // Nothing in the text can open a comment, string, regex or template, so both lexings return it unchanged.
     const code = blankReexports(content);
     return [code, code];
   }
-  return [blankReexports(lexAware(content, language)), blankReexports(lexLegacyFast(content, language))];
+  // The legacy lexing of the text as given stays the LAST segment; the extra views below go before it.
+  const segments = lexedViews(content, language);
+  const legacy = segments.pop();
+  // JavaScript also ends a line at a lone CR, U+2028 and U+2029, while the lexers end a `//` comment at LF only: code after
+  // such a terminator is real but would read as comment. A second set of views is taken over the text with those
+  // terminators turned into LF (same length), so the code after them shows. CRLF files do not trigger this.
+  const lone = LONE_TERMINATOR.test(content);
+  const normalized = lone ? content.replaceAll(/[\r\u2028\u2029]/g, '\n') : content;
+  if (lone) segments.push(...lexedViews(normalized, language));
+  // A string line continuation written as backslash, CR, LF is one continuation in JavaScript, but the lexers skip the
+  // backslash and the CR and then end the string at the LF. The same views are taken over the text with that sequence
+  // turned into backslash, LF, space (same length), so the string reads as continued.
+  if (CRLF_CONTINUATION.test(content)) {
+    const continued = content.replaceAll('\\\r\n', '\\\n ');
+    segments.push(...lexedViews(continued, language));
+    if (LONE_TERMINATOR.test(continued)) segments.push(...lexedViews(continued.replaceAll(/[\r\u2028\u2029]/g, '\n'), language));
+  }
+  // A hashbang line (`#!` at the very start of a JavaScript file) is a line comment, but the lexers read its quotes,
+  // backticks and `/*` as openers that swallow the code after it. The same views are taken over the text with that line
+  // blanked (same length).
+  if (language !== 'cs' && content.startsWith('#!')) segments.push(...lexedViews(blankHashbang(normalized), language));
+  segments.push(legacy);
+  return segments;
+}
+
+/** The text with a leading hashbang line replaced by spaces (a hashbang ends at LF, CR, U+2028 or U+2029). */
+function blankHashbang(text) {
+  const end = text.search(/[\n\r\u2028\u2029]/);
+  const stop = end === -1 ? text.length : end;
+  return ' '.repeat(stop) + text.slice(stop);
+}
+
+const LONE_TERMINATOR = /\r(?!\n)|[\u2028\u2029]/;
+const CRLF_CONTINUATION = /\\\r\n/;
+
+function lexedViews(content, language) {
+  const probe = { slash: false, slashLine: -1, suspect: new Set() };
+  const segments = [blankReexports(lexAware(content, language, false, probe))];
+  // Fourth text, only when the default lexing met a `/` in code: every such `/` is tried as a regex and the quotes that
+  // share its line stay unopened (`if (x) /'/.test(y); export class X {} // '`, where the regex follows `)`, `}` or a
+  // keyword the guess calls an operand). It can only add to what is inspected, never remove.
+  if (probe.slash && language !== 'cs') {
+    // The second pass is a wide variant of the same pass: a closing slash may be followed by a comment, and a regex may start
+    // at a slash an earlier candidate swallowed (`x = a / /[/*]/.source`, `if (a) /[/*]/// c`). Added next to the first, never in place of it.
+    segments.push(
+      blankReexports(lexAware(content, language, false, probe, true)),
+      blankReexports(lexAware(content, language, false, probe, 2)),
+    );
+  }
+  // Third text, only when a regex literal holds a quote or backtick (or does not close): the regex is read as opaque, so
+  // `/'/; export class X {} // '` shows its export. It can only add to what is inspected, never remove.
+  const opaque = lexAware(content, language, true);
+  if (opaque !== null) segments.push(blankReexports(opaque));
+  segments.push(blankReexports(lexLegacyFast(content, language)));
+  return segments;
 }
 
 /** The text inspected for exports: both lexings, separated so that no match can span the boundary. */
 function inspectedCode(content, language = 'js') {
-  const [aware, legacy] = inspectedSegments(content, language);
-  return `${aware}\n;\n${legacy}`;
+  return inspectedSegments(content, language).join('\n;\n');
 }
 
 /**
@@ -566,8 +695,7 @@ function inspectedCode(content, language = 'js') {
  */
 function detectExports(content, language = 'js') {
   // An identical second segment would only repeat the same matches, so it is scanned once.
-  const [aware, legacy] = inspectedSegments(content, language);
-  const code = aware === legacy ? aware : `${aware}\n;\n${legacy}`;
+  const code = [...new Set(inspectedSegments(content, language))].join('\n;\n');
   const found = [];
   for (const form of EXPORT_FORMS) {
     form.lastIndex = 0;
