@@ -58,8 +58,17 @@ function corpusFingerprint(producer, optional = false) {
   return { sha256: crypto.createHash('sha256').update(JSON.stringify(rows)).digest('hex'), files: rows.length };
 }
 
+// A session cwd can vanish under a live session (e.g. a removed git worktree).
+// That is an environment fault, not missing governance: resolve the nearest
+// existing ancestor so ancestor adapters and producer checks still apply.
+function consumerRoot(directory) {
+  let current = path.resolve(directory);
+  while (!fs.existsSync(current) && path.dirname(current) !== current) current = path.dirname(current);
+  return fs.realpathSync(current);
+}
+
 function collect({ directory = process.cwd(), sourceRoot = producerRoot() } = {}) {
-  const project = fs.realpathSync(directory);
+  const project = consumerRoot(directory);
   if (!fs.statSync(project).isDirectory()) throw new Error('Consumer must be a directory');
   const producer = fs.realpathSync(sourceRoot);
   const sources = REQUIRED.map((file) => inspect(path.join(producer, file)));
@@ -184,4 +193,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { REQUIRED, collect, render, fingerprint };
+module.exports = { REQUIRED, collect, consumerRoot, render, fingerprint };
