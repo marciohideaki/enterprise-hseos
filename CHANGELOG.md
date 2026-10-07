@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Capability registry and capability-graph composition workflow now reference `platform-core` and `backend-core` under the `HideakiSolutions` GitHub organization (moved from `Hideaki-Solutions-Core` on 2026-10-06); pinned SHAs are unchanged and verified at the new location.
 - Platform Capability Governance Standard (shard `core`) gains section 7.1, ECP contract authority and platform modes (`platform`, `hybrid`, `local`) per ADR-0046; the change is owner-reviewed under the shard `core` CODEOWNERS gate.
 - The ECP registry snapshot is refreshed from `contracts-v0.3.1` to `contracts-v0.4.0` (lock `ref` and SHA-256 updated): `Authn` resolves to `security.authn` by alias, and the new `design.login-pattern` and `design.mobile-tokens` capabilities are visible to `hseos capability-check`.
 - The capability intake guard inspects `MultiEdit` edits, denies any agent edit of `.hseos/config/platform-bindings.yaml` in every mode, and, with a bindings file, accepts `CORE_INTAKE_ACK` only as a whole-token intake identifier (the legacy path without bindings keeps its substring match). `hseos platform-bindings` exit codes: `check` 0/1/2, `guard` 0/2, `show` 1 on a registry integrity failure.
