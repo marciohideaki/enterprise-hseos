@@ -12,6 +12,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const http = require('node:http');
 const { spawn } = require('node:child_process');
+const { freePort } = require('./helpers/free-port');
 
 let Database;
 try {
@@ -40,10 +41,6 @@ async function it(name, fn) {
     console.log(`  \u2717 ${name}\n    ${error.message}`);
     fail++;
   }
-}
-
-function pickPort() {
-  return 3500 + Math.floor(Math.random() * 200);
 }
 
 function rpc(port, method, params = {}) {
@@ -106,7 +103,7 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
 
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-mcp-'));
   const dbPath = path.join(tmp, '.hseos', 'state', 'project.db');
-  const port = pickPort();
+  const port = await freePort();
 
   const child = spawn(process.execPath, [MCP_SERVER, `--port=${port}`, `--db=${dbPath}`], {
     env: { ...process.env, HSEOS_GOVERNED_EXECUTION_FIXTURE: '1', NODE_ENV: 'test' },

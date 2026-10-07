@@ -91,7 +91,7 @@ async function writePlatformAdapters(root, hooks, platforms, options = {}) {
   // `.claude/skills` and `.claude/agents`, not the vendor-neutral `.agents` copy,
   // so the adapter needs the sources to mirror them — the same enrichment the
   // Goose adapter already receives.
-  await writeClaudeCodeAdapters(root, hooks, platforms, options.sources);
+  await writeClaudeCodeAdapters(root, hooks, platforms, { ...options.sources, agentsDirName: options.agentsDirName });
   await writeCodexAdapter(root, hooks, platforms);
   // AGENTS.md is platform-neutral: any adapter that reads it (Codex today,
   // LF AAIF tomorrow) benefits, so emit unconditionally. The emitter is

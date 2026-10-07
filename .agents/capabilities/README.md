@@ -158,6 +158,11 @@ hseos platform-bindings sync --ref contracts-v0.4.0 --ecp-root <ecp-checkout> \
   --output .enterprise/governance/capabilities/ecp-registry.snapshot.json
 ```
 
+- Check the snapshot against upstream with `hseos platform-bindings drift --ecp-root <ecp-checkout>`.
+  It reads the registry at the lock `ref`, exits 1 when its SHA-256 differs from the lock, and lists
+  any `contracts-v*` tag newer than the ref. The scheduled workflow `.github/workflows/ecp-drift.yaml`
+  runs it weekly.
+
 See `docs/capabilities.md` (Platform bindings) and ADR-0046.
 
 ## Capability Graph Discovery

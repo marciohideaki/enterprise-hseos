@@ -1236,19 +1236,94 @@ test('guard: an override covers only its own exports; newDeny is a superset of m
   );
 });
 
-test('guard: known hiding cases (a quote or backtick inside a regex before a same-line comment) stay equal to master', () => {
+test('guard: a quote or backtick inside a regex before a same-line comment no longer hides an export', () => {
   const directory = gitProject({ 'docs/decisions/why.md': '# why\n' });
   const registryLine = stableRegistry(directory);
   write(directory, BINDINGS, projectFile('hybrid', `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}`));
   const run = bothGuards(directory, path.join(directory, 'packages/cache/src/Store.ts'));
-  const knownAllow = [
+  const formerlyAllowed = [
     "const r = /'/; export class ICacheStore {} // '",
     "const r = /'/; export class ICacheStore {} /* ' */",
     'x = /`/; export class ICacheStore {} // `',
     "const r = /[/'/]; export class ICacheStore {} // '",
   ];
-  // KNOWN LIMITATION: master and the guard both allow these. If a future lexer fix denies them, update this list.
-  for (const content of knownAllow) assert.deepEqual(run(content), { before: 0, after: 0 }, content);
+  // Master allowed these (a known limitation); the guard now denies them. `before` pins the master behaviour.
+  for (const content of formerlyAllowed) {
+    assert.equal(run(content).after, 2, `${content} must be denied`);
+    assert.ok(detectExports(content).symbols.includes('ICacheStore'), content);
+  }
+});
+
+test('guard: a regex after `)`, `}` or a keyword, and lone CR / U+2028 / U+2029 line ends, no longer hide an export', () => {
+  const directory = gitProject({ 'docs/decisions/why.md': '# why\n' });
+  const registryLine = stableRegistry(directory);
+  write(directory, BINDINGS, projectFile('hybrid', `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}`));
+  const run = bothGuards(directory, path.join(directory, 'packages/cache/src/Store.ts'));
+  const hiding = [
+    "if (x) /'/.test(y); export class ICacheStore {} // '",
+    "while (x) /'/.test(y); export class ICacheStore {} // '",
+    'if (x) /`/.test(y);\nexport class ICacheStore {}\n// `',
+    "function f(){} /'/.test(y); export class ICacheStore {} // '",
+    "try{}finally /'/.test(y); export class ICacheStore {} // '",
+    String.raw`if (x) /\//.test(y); export class ICacheStore {} // '`,
+    "a = b / c; if (x) /'/.test(y); export class ICacheStore {} // '",
+    '// c\rexport class ICacheStore {}',
+    '// c\u2028export class ICacheStore {}',
+    '// c\u2029export class ICacheStore {}',
+    "x = 1; // c\rif (x) /'/.test(y); export class ICacheStore {} // '",
+  ];
+  for (const content of hiding) {
+    assert.equal(run(content).after, 2, `${JSON.stringify(content)} must be denied`);
+    assert.ok(detectExports(content).symbols.includes('ICacheStore'), JSON.stringify(content));
+  }
+  // Regex after `)` inside a template `${}` expression, and a hashbang line holding a quote, backtick or `/*`.
+  const templateAndHashbang = [
+    'var x=0,y="";\nx = `${ (()=>{ if (x) /\'/.test(y); "`"; })() }`; export class ICacheStore {} // \'\nif (x) /}}`/.test(1);\n',
+    'x = `${ (()=>{ if (x) /}/.test(y); })() }`; export class ICacheStore {} // `',
+    '#!`\nexport class ICacheStore {}\n// `',
+    '#!/*\nexport class ICacheStore {}\n// */',
+    "#!'\nexport class ICacheStore {}\n// '",
+    '#!`\rexport class ICacheStore {}\n// `',
+  ];
+  for (const content of templateAndHashbang) {
+    assert.equal(run(content).after, 2, `${JSON.stringify(content)} must be denied`);
+    assert.ok(detectExports(content).symbols.includes('ICacheStore'), JSON.stringify(content));
+  }
+  // A `#!` that is not on the first line is not a hashbang; the guard still adds views only.
+  assert.equal(detectExports('x\n#!`\nexport class ICacheStore {}\n// `'), null);
+  // A regex after a division operator, a regex directly before a `//` comment, and a CRLF string line continuation.
+  const wideAndContinuation = [
+    'x = 1 / /[/*]/.source;\nexport class ICacheStore {}\n/* */',
+    'x = a / /[/*]/;\nexport class ICacheStore {}\n/* */',
+    'x = (a) / /[/*]/;\nexport class ICacheStore {}\n/* */',
+    'x = a++ / /[/*]/.source;\nexport class ICacheStore {}\n/* */',
+    'x = a / /[/*]/.source; export class ICacheStore {} /* */',
+    'if (a) /[/*]/// c\nexport class ICacheStore {}\n/* */',
+    'x="a\\\r\nb"; export class ICacheStore {} // "',
+    "x='a\\\r\nb'; export class ICacheStore {} // '",
+  ];
+  for (const content of wideAndContinuation) {
+    assert.equal(run(content).after, 2, `${JSON.stringify(content)} must be denied`);
+    assert.ok(detectExports(content).symbols.includes('ICacheStore'), JSON.stringify(content));
+  }
+  // Remaining limitation, equal to master: a division followed by a regex combined with `//` or a quote still hides code.
+  // The union-of-views approach has a limit here; the next strategy is a real tokenizer (decision recorded in run
+  // 20261007-1211-pendencies-waves). Pinned so any change in behaviour is deliberate.
+  const knownAllow = [
+    "x = a / /[/*]/// '\nexport class ICacheStore {}\n/* */",
+    String.raw`x = y / /\//.source / /'/; export class ICacheStore {} // '`,
+  ];
+  for (const content of knownAllow) {
+    assert.deepEqual(run(content), { before: 0, after: 0 }, `${JSON.stringify(content)} is a known limitation`);
+  }
+  // No new false positives on the common shapes.
+  for (const content of [
+    'const a = b / c; // note\nconst s = "x";',
+    'const t = "a/b"; // x\r\nconst u = 1;\r\n',
+    "const s = '// not a comment';",
+  ]) {
+    assert.equal(detectExports(content), null, JSON.stringify(content));
+  }
 });
 
 test('lexer: unclosed `export {` repeated many times stays linear', () => {

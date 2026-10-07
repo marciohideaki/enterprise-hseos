@@ -14,7 +14,7 @@ const { engineeringDigest } = require('../tools/cli/lib/engineering-task-state')
 const { manifest } = require('./helpers/provider-control');
 const sha = (file) => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 function fixture(t) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'acp-boundary-'));
+  const root = fs.mkdtempSync(path.join(require('./helpers/codex-free-tmpdir').codexFreeTmpdir(), 'acp-boundary-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const value = Object.fromEntries(['binary', 'agent', 'catalog', 'home', 'cwd', 'auth_source'].map((k) => [k, path.join(root, k)]));
   for (const dir of [value.home, value.cwd]) fs.mkdirSync(dir, { mode: 0o700 });
