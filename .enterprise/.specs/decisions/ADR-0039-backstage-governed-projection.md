@@ -166,7 +166,7 @@ Capability Graph and its adjacent authoritative sources. Concretely:
 
 - [x] Approved by Engineering Leadership (owner, 2026-09-13)
 - [x] Affected standards updated to reference this ADR
-- [ ] Teams notified
+- [x] Teams notified through issue #207 (2026-10-07) and the standards references (PR #204)
 - [x] Activation date: 2026-09-13
 - [ ] Review date: 2027-09-13
 
