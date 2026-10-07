@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `hseos pr closeout` now enforces Engineering Leadership approval (Enterprise Constitution section 13) for PRs touching `governance.engineering_leadership_paths` (configurable; defaults to `@marciohideaki` and the constitution/core specs). It requires a leader's approval comment bound to the head SHA (still valid if later commits leave the restricted paths unchanged), and the new `--engineering-leadership-approval` option lets an authenticated leader publish it.
 - Platform bindings (ADR-0046, wave W2b): adoption modes `platform`, `hybrid` and `local` recorded in `.hseos/config/platform-bindings.yaml`, layered configuration (runtime, user, project, flags) with anti-downgrade protection through `mode_ref`, the `hseos platform-bindings` command (`show`, `check`, `sync`, `guard`), platform-mode prompts and flags in `hseos init`, `install` and `install-plan`, and a mode-aware capability intake guard that denies agent edits to the bindings file.
 - ECP capability registry snapshot (`contracts-v0.4.0`, SHA-256 pinned in `ecp-registry.snapshot.lock.json`); `hseos capability-check` now resolves by name, alias, contract, package and `match` hints before the filename heuristic and reports the effective mode.
 - Capability-reuse and capability-graph policies, capabilities docs and getting-started guides document ECP contract authority and the adoption modes; the `/opt/hideakisolutions/**` scope is removed from the capability-reuse policy.
