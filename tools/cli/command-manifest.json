@@ -849,6 +849,10 @@
           "Confirm explicit human approval for governed merge"
         ],
         [
+          "--engineering-leadership-approval",
+          "Publish the Engineering Leadership approval comment for the current head (requires the authenticated gh user to be in governance.engineering_leadership)"
+        ],
+        [
           "--dry-run",
           "Validate and print the planned closeout without executing it"
         ],
@@ -863,7 +867,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "b668be1e2d2b4421c77d60ce5b1aa414ec0116dae5a4599302fa95a1a7c4908b"
+      "source_sha256": "5229090b30c945ff4bb1b9837f2d1cd4da04f3be6fa5ab1d3ba56c51767291c8"
     },
     {
       "filename": "sandbox.js",
