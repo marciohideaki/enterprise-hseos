@@ -165,6 +165,69 @@ function runSync(options = {}, { env = process.env } = {}) {
   return { code: 0, result, text };
 }
 
+/** Orders contracts-vX.Y.Z tags; returns those strictly newer than `ref`. Non-matching refs yield none. */
+function newerContractsTags(ref, tags) {
+  const parse = (tag) => {
+    const match = /^contracts-v(\d+)\.(\d+)\.(\d+)$/.exec(tag);
+    return match ? match.slice(1).map(Number) : null;
+  };
+  const base = parse(ref);
+  if (!base) return [];
+  const cmp = (a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
+  return tags
+    .filter((tag) => {
+      const version = parse(tag);
+      return version && cmp(version, base) > 0;
+    })
+    .sort((a, b) => cmp(parse(a), parse(b)));
+}
+
+/**
+ * `drift`: compares the sha256 of the registry at the lock `ref` in a local ECP checkout with the snapshot lock.
+ * Read-only. Code 1 when the upstream bytes diverge from the lock; newer contracts-v* tags are a warning only.
+ */
+function runDrift(options = {}, { runtimeRoot = getProjectRoot() } = {}) {
+  if (!options.ecpRoot) throw new Error('drift requires --ecp-root <path>');
+  const ecpRoot = path.resolve(options.ecpRoot);
+  const lockPath = path.join(runtimeRoot, '.enterprise', 'governance', 'capabilities', 'ecp-registry.snapshot.lock.json');
+  const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
+  if (!REF_PATTERN.test(lock.ref)) throw new Error(`Invalid lock ref '${lock.ref}'`);
+  const run = (args) =>
+    execFileSync('git', ['-C', ecpRoot, ...args], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: 30_000,
+      maxBuffer: MAX_REGISTRY_BYTES + 1,
+    });
+  let bytes;
+  try {
+    bytes = run(['show', `${lock.ref}:catalog/capability-registry.json`]);
+  } catch (error) {
+    const detail = error.stderr ? String(error.stderr).trim() : error.message;
+    throw new Error(`Cannot read catalog/capability-registry.json at ${lock.ref} in ${ecpRoot}: ${detail}`);
+  }
+  const upstream = crypto.createHash('sha256').update(bytes).digest('hex');
+  const newerTags = newerContractsTags(
+    lock.ref,
+    String(run(['tag', '--list', 'contracts-v*']))
+      .split('\n')
+      .filter(Boolean),
+  );
+  const diverged = upstream !== lock.sha256;
+  const result = {
+    ref: lock.ref,
+    repository: lock.repository,
+    locked_sha256: lock.sha256,
+    upstream_sha256: upstream,
+    diverged,
+    newer_tags: newerTags,
+  };
+  const text = [
+    `Lock ${lock.ref}: ${diverged ? 'DIVERGED' : 'equal'} (locked ${lock.sha256}, upstream ${upstream})`,
+    newerTags.length > 0 ? `Newer contracts tags than ${lock.ref}: ${newerTags.join(', ')}` : `No contracts tag newer than ${lock.ref}`,
+  ].join('\n');
+  return { code: diverged ? 1 : 0, result, text };
+}
+
 /** `guard`: the capability intake decision for a project with platform bindings (see capability-intake-guard). */
 function runGuard(input, { runtimeRoot = getProjectRoot(), cwd = process.cwd(), env = process.env } = {}) {
   return evaluateGuard({ input, cwd, env, runtimeRoot });
@@ -187,7 +250,7 @@ module.exports = {
       '--ref <tag>',
       'sync: ECP tag or revision to read the capability registry from (a contracts-vX.Y.Z tag must match the registry contracts_version; for other refs the printed sha256 is the integrity anchor)',
     ],
-    ['--ecp-root <path>', 'sync: local ECP checkout'],
+    ['--ecp-root <path>', 'sync/drift: local ECP checkout'],
     ['--output <file>', 'sync: destination file (default: user cache directory)'],
   ],
   action: async (action, options = {}) => {
@@ -201,6 +264,9 @@ module.exports = {
       case 'sync': {
         return emit(runSync(options), options);
       }
+      case 'drift': {
+        return emit(runDrift(options), options);
+      }
       case 'guard': {
         // Hook entry point: hook JSON on stdin, hook output format on stdout (exit 2 denies).
         const outcome = runGuard(fs.readFileSync(0, 'utf8'));
@@ -210,12 +276,14 @@ module.exports = {
         return outcome;
       }
       default: {
-        throw new Error(`Unknown platform-bindings action '${action}'. Use show, check, sync or guard.`);
+        throw new Error(`Unknown platform-bindings action '${action}'. Use show, check, sync, drift or guard.`);
       }
     }
   },
   runCheck,
   runGuard,
+  newerContractsTags,
+  runDrift,
   runShow,
   runSync,
 };
