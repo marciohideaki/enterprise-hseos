@@ -8,6 +8,10 @@ const path = require('node:path');
 const test = require('node:test');
 const {
   detectExport,
+  detectExports,
+  inspectedCode,
+  lexLegacy,
+  lexLegacyFast,
   evaluateGuard,
   extractSymbol,
   isProtectedBindingsPath,
@@ -40,6 +44,18 @@ function write(directory, relative, content) {
   fs.mkdirSync(path.dirname(target), { recursive: true });
   fs.writeFileSync(target, content);
   return target;
+}
+
+/** Records the working tree at HEAD, so a bindings mode written by a test is the recorded mode and not a downgrade (ADR-0046 section 8). */
+function commitAll(directory) {
+  const git = (...args) =>
+    execFileSync(
+      'git',
+      ['-C', directory, '-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', '-c', 'commit.gpgsign=false', ...args],
+      { stdio: 'ignore' },
+    );
+  git('add', '-A');
+  git('commit', '-q', '--allow-empty', '-m', 'record bindings');
 }
 
 function gitProject(files = {}) {
@@ -323,6 +339,7 @@ test('guard: hybrid blocks only stable matches for the project stacks and advise
   const withBindings = (extra = '') =>
     write(directory, BINDINGS, projectFile('hybrid', `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}${extra}`));
   withBindings();
+  commitAll(directory);
 
   const blocked = guard(directory, file, EXPORT);
   assert.equal(blocked.exitCode, 2);
@@ -345,6 +362,7 @@ test('guard: hybrid blocks only stable matches for the project stacks and advise
   assert.equal(unrelated.stdout, '', 'no match: nothing to say');
 
   write(directory, BINDINGS, projectFile('hybrid', `mode_ref: docs/decisions/why.md\nstacks: [node]\n${registryLine}`));
+  commitAll(directory);
   const otherStack = guard(directory, file, EXPORT);
   assert.equal(otherStack.exitCode, 0, 'stable only for another stack');
 
@@ -366,6 +384,7 @@ test('guard: hybrid matches by path glob and always surfaces registry warnings',
   const directory = gitProject({ 'docs/decisions/why.md': '# why\n' });
   const registryLine = stableRegistry(directory, { longGlob: true });
   write(directory, BINDINGS, projectFile('hybrid', `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}`));
+  commitAll(directory);
   const advisory = guard(directory, path.join(directory, 'packages/msg/src/event-envelope.schema.json'), 'export const Schema = 1');
   assert.equal(advisory.exitCode, 0);
   assert.match(contextOf(advisory), /Registry warning: cache\.typed: path glob ignored/);
@@ -780,4 +799,523 @@ test('re-exports with a from clause are not new capabilities; local export lists
   const file = path.join(directory, 'packages/shared/index.ts');
   assert.equal(guard(directory, file, "export * from './x'\nexport { a } from './y'").exitCode, 0, 'a barrel file adds no capability');
   assert.equal(guard(directory, file, 'export { a, b }').exitCode, 2);
+});
+
+test('lexer: regex literals and nested templates hide their text; unclosed constructs stay inspected', () => {
+  const E = 'export class Real {}';
+  // Hidden: an exported-looking text inside a construct that really closes (nothing to detect).
+  const hidden = [
+    [String.raw`const r = /a\/*b/; // export class A {}`, 'regex with an escaped slash then a star'],
+    ['const r = /\\/*/;\n// export class A {}', 'regex whose body is an escaped slash and a star'],
+    ['const r = /[/*]/;\n/* export class A {} */', 'slash and star inside a character class'],
+    ['x = a.replace(/\\/*/g, "");\nconst s = "export class A {}"', 'regex as a call argument with flags'],
+    ['const s = `${`x`} export class A {}`', 'template nested in ${}'],
+    ['const s = `${"`"} export class A {}`', 'backtick inside a string inside ${}'],
+    ['const s = `a ${ {b: `c ${d}`}.b } export class A {}`', 'braces and templates nested in ${}'],
+    ['const s = `${x /* } */}` + "export class A {}"', 'closing brace inside a comment inside ${}'],
+    [String.raw`return /\/*/.test(s) ? 1 : 0 // export class A {}`, 'regex after a keyword'],
+    ['const a = b / c; // export class A {}', 'division is not a regex'],
+    ['const a = (b) / c / d; // export class A {}', 'division after a parenthesis'],
+    ['const a = 1; // export class A {} (no trailing newline)', 'line comment without a final newline'],
+  ];
+  for (const [content, label] of hidden) assert.equal(detectExport(content), null, label);
+  // Accepted false positives: the inspected text is the union of both lexings, and the legacy lexing ends the template
+  // at the backtick inside the regex or the comment, so the text after it is inspected (an intake is asked for).
+  assert.equal(detectExport('const s = `${/`/.test(x)} export class A {}`')?.symbol, 'A', 'backtick inside a regex inside ${}');
+  assert.equal(detectExport('const s = `${/* ` */ 1} export class A {}`')?.symbol, 'A', 'backtick inside a comment inside ${}');
+  // Accepted false positive (same as before the regex shield): a quote inside a regex still opens a string, so text
+  // after it is inspected. Asking for an intake is the safe side; hiding code would not be.
+  assert.equal(detectExport('const r = /"/; const s = "export class A {}"')?.symbol, 'A', 'quote inside a regex stays visible');
+  // The code after the construct is still seen (the construct must not swallow it).
+  const visible = [
+    [`const r = /a\\/*b/;\n${E}`, String.raw`regex /a\/*b/`],
+    [`const r = /\\/*/;\n${E}`, String.raw`regex /\/*/`],
+    [`const s = \`\${\`x\`}\`;\n${E}`, 'nested template'],
+    [`const s = \`\${"\`"}\`;\n${E}`, 'backtick in a string in ${}'],
+    [`const s = \`a \${ {b: \`c \${d}\`}.b }\`;\n${E}`, 'deep nesting'],
+    [`x = a.replace(/\\/*/g, "");\n${E}`, 'regex argument with flags'],
+    [`const r = /[/*]/g; ${E}`, 'class with slash and star'],
+    [`const a = b / c; /* x */ ${E}`, 'division then a real comment'],
+    [`${E} // trailing comment without newline`, 'export before an unterminated line comment'],
+  ];
+  for (const [content, label] of visible) assert.equal(detectExport(content)?.symbol, 'Real', label);
+  // Fail-safe: unclosed constructs are raw text, never ignored content.
+  assert.equal(detectExport('/* never closed\nexport class Real {}').symbol, 'Real', 'unclosed block comment is raw text');
+  assert.equal(detectExport('/*'), null, 'a bare opener has nothing to inspect');
+  assert.equal(detectExport('const s = `never closed ${x}\nexport class Real {}').symbol, 'Real', 'unclosed template');
+  assert.equal(detectExport('const s = `${ never closed\nexport class Real {}').symbol, 'Real', 'unclosed ${}');
+  assert.equal(detectExport('const s = "never closed\nexport class Real {}').symbol, 'Real', 'unclosed double quote');
+  assert.equal(detectExport("const s = 'never closed export class Real {}").symbol, 'Real', 'unclosed quote keeps the rest of its line');
+  assert.equal(detectExport('var s = @"never closed\npublic class Real {}', 'cs').symbol, 'Real', 'unclosed verbatim string');
+  assert.equal(detectExport('var s = """never closed\npublic class Real {}', 'cs').symbol, 'Real', 'unclosed raw string');
+  assert.equal(detectExport('var s = $"never closed public class Real {}', 'cs').symbol, 'Real', 'unclosed interpolated string');
+  assert.equal(detectExport('const r = /never closed\nexport class Real {}').symbol, 'Real', 'a slash that never closes is not a regex');
+  assert.equal(detectExport('// only a comment'), null);
+  // Through the hook: an unclosed comment can no longer hide an export.
+  const directory = gitProject({ [BINDINGS]: projectFile('platform') });
+  const file = path.join(directory, 'packages/shared/a.ts');
+  assert.equal(guard(directory, file, 'const r = /\\/*/;\nexport function Hidden() {}').exitCode, 2);
+  assert.equal(guard(directory, file, '/* open\nexport function Hidden() {}').exitCode, 2);
+  assert.equal(guard(directory, file, String.raw`const r = /\/*/; // no export here`).exitCode, 0);
+});
+
+test('lexer: a division read as a regex never hides code, and pathological input stays linear', () => {
+  const exported = [
+    'let y = i++ / 2; export class H {} let z = k / 3;',
+    'let y = i-- / 2; export class H {} let z = k / 3;',
+    'a! / 2; export class H {} let z = k / 3;',
+    'o.in / 2; export class H {} let z = k / 3;',
+    'this.new / 2; export class H {} let z = k / 3;',
+    '<b>x</b>; export class H {} <i>y</i>',
+    'x = a / b; export class H {} y = c / d',
+    'x = (a) / b; export class H {} y = c / d',
+    'return a / 2; export class H {} y = c / d',
+  ];
+  for (const content of exported) assert.equal(detectExport(content)?.symbol, 'H', content);
+  const timed = (content, language) => {
+    const started = process.hrtime.bigint();
+    const result = detectExport(content, language);
+    return { result, milliseconds: Number(process.hrtime.bigint() - started) / 1e6 };
+  };
+  const normal = timed('const a = 1;\n'.repeat(80_000) + 'export class R {}');
+  assert.equal(normal.result?.symbol, 'R');
+  assert.ok(normal.milliseconds < 200, `1 MB took ${normal.milliseconds} ms`);
+  const patterns = [
+    ['x =' + '/['.repeat(128_000) + '\nexport class R {}', 'js'],
+    ['`${ '.repeat(10_000) + '\nexport class R {}', 'js'],
+    ['@"a" '.repeat(100_000) + 'public class R {}', 'cs'],
+  ];
+  for (const [content, language] of patterns) {
+    const { result, milliseconds } = timed(content, language);
+    assert.equal(result?.symbol, 'R', 'the export after a pathological prefix is still seen');
+    assert.ok(milliseconds < 1000, `pathological input took ${milliseconds} ms`);
+  }
+});
+
+test('lexer: a division read as a regex cannot swallow the slash that opens a real comment', () => {
+  const cases = [
+    'const a = <b>x</b> /* see http://x */ export class H {}',
+    '</b> /* c // d */ export class H {}',
+    'const n = a! / 2 /* c // d */ export class H {}',
+    'const n = a! / 2 /* http://x */ export class H {}',
+    'const n = i++ / 2 /* c // d */ export class H {}',
+    'const n = i-- / 2 /* http://x */ export class H {}',
+    'const n = (a) / 2 /* c // d */ export class H {}',
+    'const n = a[0] / 2 /* c // d */ export class H {}',
+    'const n = o.in / 2 /* c // d */ export class H {}',
+    'const n = a! / 2 // c // d\nexport class H {}',
+    'const n = a! / 2 /// c\nexport class H {}',
+    "const n = a! / 2 /* it's */ export class H {}",
+  ];
+  for (const content of cases) assert.equal(detectExport(content)?.symbol, 'H', content);
+  // The regex shield still protects a real regex that contains a slash and a star.
+  assert.equal(detectExport(String.raw`const r = /a\/*b/; /* c */ // d` + '\nexport class H {}')?.symbol, 'H');
+  assert.equal(detectExport(String.raw`const r = /a\/*b/; // export class A {}`), null);
+});
+
+// ---- The inspected text is the union of the legacy lexing and the new one ----
+
+const LEGACY_LEXER_SOURCE = fs.readFileSync(path.join(__dirname, 'fixtures', 'capability-intake-guard', 'master-lexer.txt'), 'utf8');
+const frozenLexer = new Function(`${LEGACY_LEXER_SOURCE}; return stripNonCode;`)();
+const blankReexports = (code) =>
+  code.replaceAll(/\bexport\s+(?:type\s+)?(?:\*(?:\s+as\s+[A-Za-z_$][\w$]*)?|\{[^}]*\})\s*from\s*""/g, (match) =>
+    match.replaceAll(/[^\n]/g, ' '),
+  );
+
+function sourceFiles(directory, found = []) {
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const full = path.join(directory, entry.name);
+    if (entry.isDirectory() && entry.name !== 'node_modules' && !entry.name.startsWith('.')) sourceFiles(full, found);
+    else if (/\.(?:c?js|mjs|tsx?|cs|py)$/.test(entry.name)) found.push(full);
+  }
+  return found;
+}
+
+test('lexer union: lexLegacy is the previous lexer byte for byte and everything it leaves visible stays inspected', () => {
+  assert.equal(
+    lexLegacy.toString(),
+    LEGACY_LEXER_SOURCE.slice(LEGACY_LEXER_SOURCE.indexOf('function stripNonCode'))
+      .replace('function stripNonCode(', 'function lexLegacy(')
+      .trimEnd(),
+  );
+  const repository = path.join(__dirname, '..');
+  const files = [...sourceFiles(path.join(repository, 'tools')), ...sourceFiles(path.join(repository, 'test'))].slice(0, 400);
+  assert.ok(files.length >= 50, `corpus has ${files.length} files`);
+  for (const file of files) {
+    const content = fs.readFileSync(file, 'utf8');
+    for (const language of ['js', 'cs']) {
+      assert.equal(lexLegacy(content, language), frozenLexer(content, language), `${file} (${language})`);
+      assert.ok(
+        inspectedCode(content, language).endsWith(`\n;\n${blankReexports(frozenLexer(content, language))}`),
+        `${file} (${language}) inspected text`,
+      );
+    }
+  }
+});
+
+test('lexer union: a division read as a regex cannot make the guard see less than the previous release', () => {
+  const cases = [
+    'declare const a: any;\nconst y = a! /[/*]/ "*/ 1][0]; export class A {} // "',
+    'let of = 2; let y = of /[/*]/ "*/ 1]; export class A {} // "',
+    'let yield_ = 2; let y = yield /[/*]/ "*/ 1]; export class A {} // "',
+    'let await_ = 2; let y = await /[/*]/ "*/ 1]; export class A {} // "',
+    'const a = <b>x</b> /* see http://x */ export class A {}',
+    '</b> /* c // d */ export class A {}',
+    'const n = a! / 2 /* c // d */ export class A {}',
+    'const n = i++ / 2 /* http://x */ export class A {}',
+    'let y = i++ / 2; export class A {} let z = k / 3;',
+    'a! / 2; export class A {} let z = k / 3;',
+    'o.in / 2; export class A {} let z = k / 3;',
+    'this.new / 2; export class A {} let z = k / 3;',
+    '<b>x</b>; export class A {} <i>y</i>',
+  ];
+  for (const content of cases) assert.equal(detectExport(content)?.symbol, 'A', content);
+  // Deterministic differential run against the frozen previous lexer: the guard never misses what it found.
+  const tokens = [
+    '/',
+    '/',
+    '*',
+    '/*',
+    '*/',
+    '//',
+    '"',
+    "'",
+    '`',
+    '${',
+    '}',
+    '{',
+    '\n',
+    ' ',
+    'a',
+    '=',
+    '(',
+    ')',
+    '[',
+    ']',
+    '\\',
+    'i++',
+    '!',
+    'of',
+    'yield',
+    'await',
+    'in',
+    'new',
+    'return',
+    '[/*]',
+    '/x/g',
+    'http://x',
+    ';',
+    'export class A {}',
+    'public class A {}',
+    '@"',
+    '$"',
+    '"""',
+  ];
+  const frozenDetects = (content, language) => {
+    const code = blankReexports(frozenLexer(content, language));
+    return /\bexport\s*[{*]|\bexport\s+default\b|\bmodule\.exports\b|\b(?:export|public)\s+(?:(?:declare|async|abstract|static|sealed)\s+)*(?:function|class|const|let|var|interface|type|enum|namespace)\s+[A-Za-z_$][\w$]*/.test(
+      code,
+    );
+  };
+  for (const seed of [424_242, 7, 31_337, 1_234_567]) {
+    let state = seed;
+    const random = () => {
+      state = (Math.imul(state, 1_103_515_245) + 12_345) & 0x7f_ff_ff_ff;
+      return state / 0x7f_ff_ff_ff;
+    };
+    for (let round = 0; round < 3000; round += 1) {
+      let content = '';
+      for (let count = 2 + Math.floor(random() * 14); count > 0; count -= 1) content += tokens[Math.floor(random() * tokens.length)];
+      const language = random() < 0.3 ? 'cs' : 'js';
+      if (frozenDetects(content, language))
+        assert.notEqual(detectExport(content, language), null, `seed ${seed}: ${JSON.stringify(content)}`);
+    }
+  }
+});
+
+// ---- All exports are decided, not the first one (owner decision D5a) ----
+
+const MASTER_REGEX_SLASH = "const r = /'/; export class Other {}\nexport class ICacheStore {}";
+
+test('detectExports returns every named export from both lexings', () => {
+  const found = detectExports(MASTER_REGEX_SLASH);
+  assert.deepEqual(found.symbols, ['Other', 'ICacheStore']);
+  assert.equal(found.anonymous, false);
+  assert.deepEqual(detectExports('export default class Foo {}\nexport { a }').symbols, ['Foo']);
+  assert.equal(detectExports('export default class Foo {}\nexport { a }').anonymous, true);
+  assert.equal(detectExports('export default class Foo {}').anonymous, false, 'a named default is not anonymous');
+  assert.equal(detectExports('export default () => 1').anonymous, true);
+  assert.equal(detectExports('const a = 1'), null);
+});
+
+test('guard: hybrid denies when ANY export is stable, whatever its position (minimal regression input)', () => {
+  const directory = gitProject({ 'docs/decisions/why.md': '# why\n' });
+  const registryLine = stableRegistry(directory);
+  write(directory, BINDINGS, projectFile('hybrid', `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}`));
+  commitAll(directory);
+  const file = path.join(directory, 'packages/cache/src/Store.ts');
+  const denied = guard(directory, file, MASTER_REGEX_SLASH);
+  assert.equal(denied.exitCode, 2);
+  assert.match(contextOf(denied), /Export ICacheStore matches stable platform capabilities/);
+  const both = guard(directory, file, 'export class ICacheStore {}\nexport class Other {}\nexport class Third {}');
+  assert.equal(both.exitCode, 2, 'denied export first');
+  assert.equal(guard(directory, file, 'export class Other {}\nexport class Third {}').exitCode, 0, 'no stable export: allowed');
+  const advisory = guard(
+    directory,
+    path.join(directory, 'packages/msg/src/Env.ts'),
+    'export class EventEnvelope {}\nexport class Plain {}',
+  );
+  assert.match(
+    contextOf(advisory),
+    /Advisory: EventEnvelope, Plain relates to platform capabilities: messaging\.event-envelope \(.*\) <- EventEnvelope/,
+  );
+});
+
+test('guard: platform denial names every exported symbol', () => {
+  const directory = gitProject({ [BINDINGS]: projectFile('platform') });
+  const outcome = guard(directory, path.join(directory, 'packages/x/src/a.ts'), 'export class Alpha {}\nexport const Beta = 1;');
+  assert.equal(outcome.exitCode, 2);
+  assert.match(contextOf(outcome), /Export Alpha, Beta requires/);
+});
+
+// ---- Non-regression against the pinned master guard: new denies must be a superset of master denies ----
+
+function loadMasterGuard() {
+  const lib = path.join(REPO_ROOT, 'tools', 'cli', 'lib');
+  const source = fs
+    .readFileSync(path.join(__dirname, 'fixtures', 'capability-intake-guard', 'master-guard.txt'), 'utf8')
+    .replaceAll("require('./", `require('${lib}/`);
+  const file = path.join(temp('hseos-master-guard-'), 'master-guard.js');
+  fs.writeFileSync(file, source);
+  return require(file);
+}
+
+const SUPERSET_CORPUS = [
+  MASTER_REGEX_SLASH,
+  "const r = /'/; export class Other {}\nexport class ICacheStore {}",
+  'export class ICacheStore {}',
+  'export class Other {}\nexport class ICacheStore {}',
+  // known master limitations
+  'const r = /a/*b/; export class Hidden {}\nexport class ICacheStore {}',
+  'const r = /\\/*/;\nexport class ICacheStore {}',
+  'const s = `${/`/.test(x)}`;\nexport class ICacheStore {}',
+  'const s = `${/* ` */ 1}`;\nexport class ICacheStore {}',
+  'const s = `${"`"}`;\nexport class ICacheStore {}',
+  'const n = (a) / 2; /* c */ export class ICacheStore {}',
+  'const n = (a) / 2 /* http://x */ export class ICacheStore {}',
+  '</b> /* c // d */ export class ICacheStore {}',
+  // quirks around strings, comments, templates
+  'const s = "export class Fake {}";\nexport class ICacheStore {}',
+  "const s = 'x\nexport class ICacheStore {}",
+  '/* open\nexport class ICacheStore {}',
+  'const s = `never ${x}\nexport class ICacheStore {}',
+  'const s = `${ never\nexport class ICacheStore {}',
+  '// export class Fake {}\nexport default function ICacheStore() {}',
+  'export default class ICacheStore {}',
+  'export { ICacheStore }',
+  'module.exports = { ICacheStore }',
+  'exports.ICacheStore = class {}',
+  'export const ICacheStore = 1; const r = /"/;',
+  'x = a / b; export class Other {} y = c / d\nexport class ICacheStore {}',
+  'export class EventEnvelope {}',
+  'export class Unrelated {}',
+  // seen only by the legacy lexing (the regex-aware lexing hides them inside a template): dropping the legacy segment must fail the test
+  'const s = `${/`/.test(x)} export class ICacheStore {}`;',
+  'const s = `${/* ` */ 1} export class ICacheStore {}`;',
+  'const s = `${/`/.test(x)} export class Other {}`;\nexport class Other2 {}\nexport class ICacheStore {}',
+  'const a = 1;',
+];
+
+test('guard: new denies are a superset of master denies over the corpus (hybrid and platform)', () => {
+  const master = loadMasterGuard();
+  const directory = gitProject({ 'docs/decisions/why.md': '# why\n' });
+  const registryLine = stableRegistry(directory);
+  const file = path.join(directory, 'packages/cache/src/Store.ts');
+  const decide = (evaluate, content) =>
+    evaluate({ input: hookInput(file, content), cwd: directory, env: quietEnv(), runtimeRoot: REPO_ROOT }).exitCode === 2;
+  const stricter = [];
+  for (const mode of ['hybrid', 'platform']) {
+    write(directory, BINDINGS, projectFile(mode, `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}`));
+    for (const content of SUPERSET_CORPUS) {
+      const before = decide(master.evaluateGuard, content);
+      const after = decide(evaluateGuard, content);
+      if (before) assert.ok(after, `${mode}: master denies but the guard allows: ${JSON.stringify(content)}`);
+      if (after && !before) stricter.push(`${mode}: ${JSON.stringify(content)}`);
+    }
+  }
+  // Documented improvements: inputs the master lexer hid from the guard and the union now denies.
+  assert.ok(stricter.length > 0, 'the corpus includes known master limitations that are now denied');
+  for (const entry of stricter) assert.match(entry, /ICacheStore|Hidden|Fake/, entry);
+  process.stderr.write(`# guard denies more than master on ${stricter.length} corpus entries (expected improvements)\n`);
+});
+
+test('guard: the inspected export set grows with the file but stays linear (5k lines)', () => {
+  const body = Array.from(
+    { length: 5000 },
+    (_, index) => `export const value${index} = /a\\/*b/.test("x") ? \`\${index}\` : ${index} / 2;`,
+  ).join('\n');
+  const started = process.hrtime.bigint();
+  const found = detectExports(body);
+  const milliseconds = Number(process.hrtime.bigint() - started) / 1e6;
+  assert.equal(found.symbols.length, 5000);
+  assert.ok(milliseconds < 1000, `5k lines took ${milliseconds} ms`);
+  process.stderr.write(`# detectExports 5k lines: ${milliseconds.toFixed(1)} ms\n`);
+});
+
+// ---- Overrides cover only the exports they match; known hiding cases stay equal to master ----
+
+const OVERRIDE = (capability, ref) =>
+  `  - {capability: ${capability}, outcome: keep-local, intake_ref: ${ref}, reason: test, expires: "2999-01-01"}\n`;
+
+function bothGuards(directory, file) {
+  const master = loadMasterGuard();
+  return (content) => {
+    const run = (evaluate) =>
+      evaluate({ input: hookInput(file, content), cwd: directory, env: quietEnv(), runtimeRoot: REPO_ROOT }).exitCode;
+    return { before: run(master.evaluateGuard), after: run(evaluateGuard) };
+  };
+}
+
+test('guard: an override covers only its own exports; newDeny is a superset of masterDeny with overrides (both orders, both modes)', () => {
+  const directory = gitProject({ 'docs/decisions/why.md': '# why\n', 'docs/decisions/2026-intake-cache.md': 'ack: INTAKE-1\n' });
+  const registryLine = stableRegistry(directory);
+  const file = path.join(directory, 'packages/cache/src/Store.ts');
+  const run = bothGuards(directory, file);
+  const contents = [
+    'export class ICacheStore {}',
+    'export class Other {}\nexport class ICacheStore {}',
+    'export class ICacheStore {}\nexport class Other {}',
+    'export class ICacheStore {}\nexport class EventEnvelope {}',
+    'export class EventEnvelope {}\nexport class ICacheStore {}',
+    'export class EventEnvelope {}\nexport class Other {}',
+    'export class Other {}\nexport class EventEnvelope {}\nexport class ICacheStore {}',
+    `const r = /'/; export class Other {}\nexport class ICacheStore {}`,
+    'export class ICacheStore {}\nexport { x }',
+    'const s = `${/`/.test(x)} export class ICacheStore {}`;',
+    'const s = `${/* ` */ 1} export class ICacheStore {}`;',
+    'const s = `${/`/.test(x)} export class Other {}`;\nexport class ICacheStore {}',
+    'const s = `${/`/.test(x)} export class ICacheStore {}`;\nexport class EventEnvelope {}',
+  ];
+  const overrideSets = {
+    cache: OVERRIDE('cache.typed', 'INTAKE-1'),
+    envelope: OVERRIDE('messaging.event-envelope', 'INTAKE-1'),
+    both: OVERRIDE('cache.typed', 'INTAKE-1') + OVERRIDE('messaging.event-envelope', 'INTAKE-1'),
+  };
+  for (const mode of ['platform', 'hybrid']) {
+    for (const [name, overrides] of Object.entries(overrideSets)) {
+      write(
+        directory,
+        BINDINGS,
+        projectFile(mode, `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}overrides:\n${overrides}`),
+      );
+      for (const content of contents) {
+        const { before, after } = run(content);
+        if (before === 2) assert.equal(after, 2, `${mode}/${name}: master denies, guard allows: ${JSON.stringify(content)}`);
+      }
+    }
+  }
+  // The reported probe, and its covered counterpart.
+  write(
+    directory,
+    BINDINGS,
+    projectFile('platform', `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}overrides:\n${overrideSets.cache}`),
+  );
+  assert.deepEqual(run('export class Other {}\nexport class ICacheStore {}'), { before: 2, after: 2 });
+  assert.deepEqual(run('export class ICacheStore {}'), { before: 0, after: 0 });
+  assert.equal(run('export class ICacheStore {}\nexport class Other {}').after, 2, 'covered first, uncovered after');
+  write(
+    directory,
+    BINDINGS,
+    projectFile('platform', `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}overrides:\n${overrideSets.both}`),
+  );
+  assert.equal(run('export class EventEnvelope {}\nexport class ICacheStore {}').after, 0, 'every export covered');
+  assert.equal(
+    run('export class EventEnvelope {}\nexport class ICacheStore {}\nexport class Other {}').after,
+    2,
+    'one uncovered export denies',
+  );
+});
+
+test('guard: known hiding cases (a quote or backtick inside a regex before a same-line comment) stay equal to master', () => {
+  const directory = gitProject({ 'docs/decisions/why.md': '# why\n' });
+  const registryLine = stableRegistry(directory);
+  write(directory, BINDINGS, projectFile('hybrid', `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}`));
+  const run = bothGuards(directory, path.join(directory, 'packages/cache/src/Store.ts'));
+  const knownAllow = [
+    "const r = /'/; export class ICacheStore {} // '",
+    "const r = /'/; export class ICacheStore {} /* ' */",
+    'x = /`/; export class ICacheStore {} // `',
+    "const r = /[/'/]; export class ICacheStore {} // '",
+  ];
+  // KNOWN LIMITATION: master and the guard both allow these. If a future lexer fix denies them, update this list.
+  for (const content of knownAllow) assert.deepEqual(run(content), { before: 0, after: 0 }, content);
+});
+
+test('lexer: unclosed `export {` repeated many times stays linear', () => {
+  for (const size of [160_000, 320_000]) {
+    const started = process.hrtime.bigint();
+    const found = detectExports('export {'.repeat(size / 8) + '\nexport class R {}');
+    const milliseconds = Number(process.hrtime.bigint() - started) / 1e6;
+    assert.deepEqual(found.symbols, ['R']);
+    assert.ok(milliseconds < 1000, `${size} bytes took ${milliseconds} ms`);
+  }
+  assert.deepEqual(detectExports('export { a } from "x";\nexport * as q from "y";\nexport class K {}').symbols, ['K']);
+  assert.equal(detectExports('export { a } from "x";\nexport * as q from "y";'), null, 're-exports with from stay ignored');
+});
+
+test('lexer: the sliced legacy lexer equals the pinned legacy lexer, and a realistic 1 MB file stays fast', () => {
+  const pieces = [
+    '/',
+    '*',
+    '//',
+    '/*',
+    '*/',
+    '"',
+    "'",
+    '`',
+    '${',
+    '}',
+    '\\',
+    '\n',
+    ' ',
+    'a',
+    'export class A {}',
+    '@',
+    '$',
+    '"""',
+    '(',
+    ')',
+    '[',
+    ']',
+    'x',
+    'in ',
+    '++',
+  ];
+  let state = 99_991;
+  const random = () => {
+    state = (Math.imul(state, 1_103_515_245) + 12_345) & 0x7f_ff_ff_ff;
+    return state / 0x7f_ff_ff_ff;
+  };
+  for (let round = 0; round < 6000; round += 1) {
+    let content = '';
+    for (let count = 1 + Math.floor(random() * 16); count > 0; count -= 1) content += pieces[Math.floor(random() * pieces.length)];
+    const language = random() < 0.4 ? 'cs' : 'js';
+    assert.equal(lexLegacyFast(content, language), lexLegacy(content, language), JSON.stringify(content));
+  }
+  const module = [
+    "import fs from 'node:fs';",
+    "// a comment with a quote ' and export class Fake {}",
+    String.raw`const re = /ab+c\/[x/]/gi; const half = total / 2; /* block */`,
+    'const label = `item ${count > 1 ? "items" : \'item\'} of ${`nested ${name}`}`;',
+    String.raw`function format(value) { return value.replace(/\s+/g, " ").trim() + "!"; }`,
+    'export const helper = (a, b) => a / b + (a % b) / 2;',
+    '',
+  ].join('\n');
+  const content = module.repeat(Math.ceil(1_000_000 / module.length)) + 'export class R {}';
+  assert.ok(content.length >= 1_000_000);
+  const started = process.hrtime.bigint();
+  const found = detectExports(content);
+  const milliseconds = Number(process.hrtime.bigint() - started) / 1e6;
+  assert.ok(found.symbols.includes('R') && found.symbols.includes('helper'));
+  assert.ok(milliseconds < 200, `realistic 1 MB took ${milliseconds} ms`);
 });

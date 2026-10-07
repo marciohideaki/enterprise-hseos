@@ -5,3 +5,5 @@
 /.enterprise/policies/capability-graph.md @marciohideaki
 /scripts/governance/validate-constitutional-change.js @marciohideaki
 /scripts/governance/validate-capability-graph.js @marciohideaki
+# Platform-bindings downgrades must be approved by an owner of the bindings file (ADR-0046 section 8).
+/.hseos/config/platform-bindings.yaml @marciohideaki

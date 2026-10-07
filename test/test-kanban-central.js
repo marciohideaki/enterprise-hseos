@@ -12,8 +12,8 @@ const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
 const http = require('node:http');
-const { spawn } = require('node:child_process');
 const { randomUUID } = require('node:crypto');
+const { spawnOnFreePort, stopChild } = require('./helpers/free-port');
 
 let Database;
 try {
@@ -44,10 +44,6 @@ async function it(name, fn) {
     console.log(`  \u2717 ${name}\n    ${error.message}`);
     fail++;
   }
-}
-
-function pickPort() {
-  return 3400 + Math.floor(Math.random() * 200);
 }
 
 function applyMigrations(db) {
@@ -93,22 +89,6 @@ function fetchJson(port, path_) {
   });
 }
 
-function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
-  return new Promise((resolve, reject) => {
-    const t0 = Date.now();
-    const tick = async () => {
-      try {
-        if (await predicate()) return resolve();
-      } catch {
-        /* swallow */
-      }
-      if (Date.now() - t0 > timeoutMs) return reject(new Error('timeout'));
-      setTimeout(tick, intervalMs);
-    };
-    tick();
-  });
-}
-
 (async () => {
   console.log('Central kanban smoke');
 
@@ -139,20 +119,14 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
     ),
   );
 
-  const port = pickPort();
   const instanceId = randomUUID();
-  const child = spawn(
-    process.execPath,
-    [SERVER, `--port=${port}`, `--registry=${registryPath}`, '--poll-ms=200', `--instance-id=${instanceId}`],
-    {
-      stdio: ['ignore', 'pipe', 'pipe'],
-    },
+  const { port, child } = await spawnOnFreePort(
+    (p) => [SERVER, `--port=${p}`, `--registry=${registryPath}`, '--poll-ms=200', `--instance-id=${instanceId}`],
+    { stdio: ['ignore', 'pipe', 'pipe'] },
+    instanceId,
   );
-  child.on('error', (e) => console.error('spawn error', e));
 
   try {
-    await waitFor(() => fetchJson(port, '/health').then((r) => r.instance_id === instanceId));
-
     await it('GET /health reports only the managed instance identity', async () => {
       const body = await fetchJson(port, '/health');
       if (body.server !== 'hseos-state-ui' || body.instance_id !== instanceId) throw new Error('wrong managed instance identity');
@@ -184,9 +158,7 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
       if (bMeta.db_status !== 'ok') throw new Error('project-b should still be ok');
     });
   } finally {
-    child.kill('SIGTERM');
-    await new Promise((r) => setTimeout(r, 200));
-    if (!child.killed) child.kill('SIGKILL');
+    await stopChild(child);
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 

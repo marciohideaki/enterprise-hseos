@@ -34,7 +34,7 @@ Each project has one mode, recorded in `.hseos/config/platform-bindings.yaml`:
 | Mode | `capability-check` | Intake guard | Intake required |
 |---|---|---|---|
 | `platform` | Resolves through the registry; verdict `consume` or `extend` | Blocks a new shareable export without intake | Yes |
-| `hybrid` | Same as `platform`; verdicts are advisory unless an implementation is `stable` | Blocks only when the export matches a registry entry's `match` hints and that entry has a `stable` implementation for the project's stack; otherwise advisory | Only in the blocking case |
+| `hybrid` | Same as `platform`; verdicts are advisory unless an implementation is `stable` | Blocks only when any export of the file matches a registry entry's `match` hints and that entry has a `stable` implementation for the project's stack; otherwise advisory | Only in the blocking case |
 | `local` | Informational | Never blocks | No |
 
 A project without the bindings file, or whose file fails validation, is treated as `platform`
@@ -48,15 +48,26 @@ that has not passed. Refs are identifiers that must resolve in the repository; s
 **Anti-downgrade.** Mode strength is `platform` > `hybrid` > `local`. The recorded mode is the
 one in the project file at `HEAD` (or at `--base <ref>` for `hseos platform-bindings check`; no
 file means `platform`). Choosing `local`, or any mode weaker than the recorded one, requires a
-`mode_ref` pointing to an existing decision record (`.md` under `docs/decisions/` or
-`.enterprise/.specs/decisions/`). The user/organization layer and flags can only strengthen the
+`mode_ref` pointing to a decision record (`.md` under `docs/decisions/` or
+`.enterprise/.specs/decisions/`) that is committed at `HEAD` and unmodified in the working tree, and whose
+`platform-bindings-downgrade` block (status Accepted or Approved, `from`/`to` equal to the actual change, an
+`approver`) names an owner of the bindings file in the CODEOWNERS committed at `HEAD`; anything missing,
+malformed or ambiguous denies, including a repository without a resolvable CODEOWNERS owner. The user/organization layer and flags can only strengthen the
 mode unless a flag carries `--mode-ref`. `.hseos/config/platform-bindings.yaml` is human-owned:
 the guard denies agent edits to it.
 The denial covers `Write`, `Edit` and `MultiEdit`, not writes through the Bash tool. The effective mode is
-the working-tree one; `HEAD` is only the floor of the anti-downgrade, and any existing decision record
-accepted as `mode_ref` (its content is not validated) allows a downgrade, committed or not. The
-anti-downgrade is therefore a convenience barrier, not a security boundary. Hardening options are listed
-as follow-ups in ADR-0046 section 8.
+the working-tree one; `HEAD` is the floor. The record check makes a downgrade a deliberate, explicit change (reviewable and attributable only in a
+pull-request flow), but it is not a security boundary against a malicious local user: whoever can commit can
+author the record, the CODEOWNERS entry and the bindings file, and local history can be rewritten. A Bash-tool
+matcher was rejected. Details and format: ADR-0046 section 8.
+
+CODEOWNERS limits for the owner check: it follows GitHub matching (`*` does not cross `/`, `**` does, last
+matching entry wins) and fails closed on syntax it does not resolve (sections such as `[Section]`, negation
+`!`, and character classes `[]`), and on a wildcard pattern whose last segment (other than exactly `*`) matches a parent directory of the
+bindings file (for example `.hs*` or `.hseos/conf*`), whose semantics differ between gitignore and GitHub. A last
+segment of exactly `*` (`.hseos/*`) is not ambiguous: it does not cover nested files. For a project in a subdirectory of the git repository, HEAD, the record and
+CODEOWNERS are resolved at the repository root, and the bindings file is matched by its root-relative path
+(for example `/proj/.hseos/config/platform-bindings.yaml`).
 
 ## Audience
 
