@@ -816,7 +816,7 @@
         ],
         [
           "--ecp-root <path>",
-          "sync: local ECP checkout"
+          "sync/drift: local ECP checkout"
         ],
         [
           "--output <file>",
@@ -824,7 +824,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "aeb67a54caefed8d84511a24d542a83708cdfb73f330085ae3daf80fc50f03a4"
+      "source_sha256": "8cf8a1a4f8ac2a2f628fa6d9f606f6ebd2e2efbc57dfc8d812d3dcb151e7ded2"
     },
     {
       "filename": "plugin.js",

@@ -21,6 +21,7 @@ const { createOperationalExecution } = require('../tools/lib/governed-execution/
 const { openOperationalStateDatabase } = require('../tools/mcp-project-state/lib/operational-state-db');
 const { runStaleSweep } = require('../tools/mcp-project-state/lib/scheduler');
 const { sweepOrphans } = require('../tools/mcp-project-state/lib/stale-detector');
+const { freePort } = require('./helpers/free-port');
 
 const ROOT = path.join(__dirname, '..');
 const SERVERS = Object.freeze([
@@ -86,7 +87,7 @@ test('production entrypoint preserves metered legacy compatibility without pendi
   fs.mkdirSync(workingDirectory);
   fs.mkdirSync(stateDirectory);
   const databasePath = path.join(stateDirectory, 'project.db');
-  const port = 4800 + Math.floor(Math.random() * 100);
+  const port = await freePort();
   const child = spawn(process.execPath, [path.join(ROOT, 'tools', 'mcp-hseos-governance', 'index.js'), `--port=${port}`], {
     cwd: workingDirectory,
     env: { ...process.env, HSEOS_STATE_DB: databasePath, NODE_ENV: 'production' },
@@ -124,7 +125,7 @@ test('project-state --db keeps telemetry beside the selected database without en
   fs.mkdirSync(workingDirectory);
   fs.mkdirSync(stateDirectory);
   const databasePath = path.join(stateDirectory, 'project.db');
-  const port = 4900 + Math.floor(Math.random() * 100);
+  const port = await freePort();
   const env = { ...process.env, NODE_ENV: 'production' };
   delete env.HSEOS_STATE_DB;
   delete env.HSEOS_LEGACY_TELEMETRY_DB;
@@ -222,7 +223,7 @@ async function waitForHealth(port) {
 async function withServer(spec, callback) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), `hseos-wiring-${spec.id}-`));
   const databasePath = path.join(directory, 'project.db');
-  const port = 4300 + Math.floor(Math.random() * 500);
+  const port = await freePort();
   const child = spawn(process.execPath, [path.join(ROOT, 'tools', spec.script, 'index.js'), `--port=${port}`, `--db=${databasePath}`], {
     cwd: ROOT,
     env: {

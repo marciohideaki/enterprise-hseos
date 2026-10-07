@@ -115,7 +115,7 @@ class AgentCoreCompiler {
     // exactly that list, never an aspirational one.
     const emittedPlatforms = await this.writePlatformAdapters(root, hooks, options.platforms || [], {
       agentsDirName: this.agentsDirName,
-      sources: { skills, agents, mcpBundles: mcp.bundles || [] },
+      sources: { skills, agents, mcpBundles: mcp.bundles || [], mcpServers: mcp.servers || [] },
     });
     if (registryPlugins)
       await writePlatformPluginAdapters(root, registryPlugins, this.agentsDirName, emittedPlatforms, activePluginManifests);
