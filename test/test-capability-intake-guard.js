@@ -45,6 +45,18 @@ function write(directory, relative, content) {
   return target;
 }
 
+/** Records the working tree at HEAD, so a bindings mode written by a test is the recorded mode and not a downgrade (ADR-0046 section 8). */
+function commitAll(directory) {
+  const git = (...args) =>
+    execFileSync(
+      'git',
+      ['-C', directory, '-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', '-c', 'commit.gpgsign=false', ...args],
+      { stdio: 'ignore' },
+    );
+  git('add', '-A');
+  git('commit', '-q', '--allow-empty', '-m', 'record bindings');
+}
+
 function gitProject(files = {}) {
   const directory = temp();
   const git = (...args) =>
@@ -326,6 +338,7 @@ test('guard: hybrid blocks only stable matches for the project stacks and advise
   const withBindings = (extra = '') =>
     write(directory, BINDINGS, projectFile('hybrid', `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}${extra}`));
   withBindings();
+  commitAll(directory);
 
   const blocked = guard(directory, file, EXPORT);
   assert.equal(blocked.exitCode, 2);
@@ -348,6 +361,7 @@ test('guard: hybrid blocks only stable matches for the project stacks and advise
   assert.equal(unrelated.stdout, '', 'no match: nothing to say');
 
   write(directory, BINDINGS, projectFile('hybrid', `mode_ref: docs/decisions/why.md\nstacks: [node]\n${registryLine}`));
+  commitAll(directory);
   const otherStack = guard(directory, file, EXPORT);
   assert.equal(otherStack.exitCode, 0, 'stable only for another stack');
 
@@ -369,6 +383,7 @@ test('guard: hybrid matches by path glob and always surfaces registry warnings',
   const directory = gitProject({ 'docs/decisions/why.md': '# why\n' });
   const registryLine = stableRegistry(directory, { longGlob: true });
   write(directory, BINDINGS, projectFile('hybrid', `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}`));
+  commitAll(directory);
   const advisory = guard(directory, path.join(directory, 'packages/msg/src/event-envelope.schema.json'), 'export const Schema = 1');
   assert.equal(advisory.exitCode, 0);
   assert.match(contextOf(advisory), /Registry warning: cache\.typed: path glob ignored/);
@@ -1036,6 +1051,7 @@ test('guard: hybrid denies when ANY export is stable, whatever its position (min
   const directory = gitProject({ 'docs/decisions/why.md': '# why\n' });
   const registryLine = stableRegistry(directory);
   write(directory, BINDINGS, projectFile('hybrid', `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}`));
+  commitAll(directory);
   const file = path.join(directory, 'packages/cache/src/Store.ts');
   const denied = guard(directory, file, MASTER_REGEX_SLASH);
   assert.equal(denied.exitCode, 2);

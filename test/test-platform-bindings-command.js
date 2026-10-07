@@ -65,6 +65,19 @@ function userEnv() {
 const projectFile = (mode, extra = '') => `schema_version: 1.0.0\nmode: ${mode}\n${extra}`;
 const DECISION = 'docs/decisions/why.md';
 
+/** Commits an approved downgrade record and the CODEOWNERS entry of its approver (ADR-0046 section 8). */
+function commitDowngradeRecord(directory, to, from = 'platform') {
+  if (!fs.existsSync(path.join(directory, '.git'))) git(directory, 'init', '-q');
+  write(
+    directory,
+    DECISION,
+    `# why\n\n\`\`\`platform-bindings-downgrade\nstatus: Accepted\nfrom: ${from}\nto: ${to}\napprover: "@owner"\n\`\`\`\n`,
+  );
+  write(directory, '.github/CODEOWNERS', `${BINDINGS_FILE} @owner\n`);
+  git(directory, 'add', '-A');
+  git(directory, 'commit', '-q', '-m', 'record downgrade');
+}
+
 test('show reports the default for a project without a bindings file', () => {
   const directory = temp();
   write(directory, 'package.json', '{}');
@@ -183,6 +196,13 @@ test('check --base rejects a downgrade without a decision record and accepts one
   assert.match(rejected.text, /weaker than the recorded mode 'platform'/);
 
   write(directory, DECISION, '# why\n');
+  write(directory, BINDINGS_FILE, projectFile('hybrid', `mode_ref: ${DECISION}\n`));
+  const uncommitted = command.runCheck({ directory, base: 'HEAD' }, { runtimeRoot: REPO_ROOT });
+  assert.equal(uncommitted.code, 1, 'an existing but uncommitted record authorizes nothing');
+  assert.match(uncommitted.text, /not committed/);
+
+  git(directory, 'stash', '-u', '-q');
+  commitDowngradeRecord(directory, 'hybrid');
   write(directory, BINDINGS_FILE, projectFile('hybrid', `mode_ref: ${DECISION}\n`));
   const accepted = command.runCheck({ directory, base: 'HEAD' }, { runtimeRoot: REPO_ROOT });
   assert.equal(accepted.code, 0);
@@ -485,8 +505,8 @@ test('preparePlatformBindings builds the project document and validates before a
   );
   assert.deepEqual(fs.readdirSync(directory), [], 'invalid requests leave the project untouched');
 
-  write(directory, DECISION, '# why\n');
   write(directory, 'docs/decisions/cache-intake.md', 'INTAKE-1 INTAKE-2\n');
+  commitDowngradeRecord(directory, 'hybrid');
   const weaker = prepare(directory, {
     platformMode: 'hybrid',
     modeRef: DECISION,
@@ -508,7 +528,7 @@ test('preparePlatformBindings builds the project document and validates before a
 test('preparePlatformBindings merges with an existing project file and keeps registry and stacks', () => {
   const env = userEnv();
   const directory = temp();
-  write(directory, DECISION, '# why\n');
+  commitDowngradeRecord(directory, 'hybrid');
   write(directory, 'docs/decisions/cache-intake.md', 'INTAKE-1\n');
   write(directory, 'docs/decisions/exception-log.md', 'EXC-0007\n');
   write(
@@ -598,7 +618,7 @@ test('install --profile minimal aborts on invalid bindings before writing anythi
 
 test('install --profile minimal writes the requested bindings and nothing without platform options', () => {
   const withFlags = temp();
-  write(withFlags, DECISION, '# why\n');
+  commitDowngradeRecord(withFlags, 'hybrid');
   write(withFlags, 'docs/decisions/cache-intake.md', 'INTAKE-1 INTAKE-2\n');
   const result = runInstall([
     '--profile',
