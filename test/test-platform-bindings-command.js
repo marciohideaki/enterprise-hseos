@@ -671,3 +671,31 @@ test('install-plan previews the bindings without writing them', () => {
   assert.equal('platform_bindings' in JSON.parse(plain.stdout), false);
   assert.notEqual(run('--platform-mode', 'local').status, 0);
 });
+
+test('drift: equal, diverged and newer-tag detection against a local ECP checkout', () => {
+  const root = temp('hseos-pb-drift-');
+  const ecp = path.join(root, 'ecp');
+  fs.mkdirSync(path.join(ecp, 'catalog'), { recursive: true });
+  git(ecp, 'init', '-q');
+  const bytes = Buffer.from('{"a":1}\n');
+  fs.writeFileSync(path.join(ecp, 'catalog', 'capability-registry.json'), bytes);
+  git(ecp, 'add', '-A');
+  git(ecp, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '-m', 'x');
+  git(ecp, 'tag', 'contracts-v0.4.0');
+  git(ecp, 'tag', 'contracts-v0.10.0');
+  git(ecp, 'tag', 'contracts-v0.3.9');
+  const runtime = temp('hseos-pb-drift-rt-');
+  const sha = crypto.createHash('sha256').update(bytes).digest('hex');
+  const lock = { ref: 'contracts-v0.4.0', repository: 'x/y', sha256: sha };
+  write(runtime, '.enterprise/governance/capabilities/ecp-registry.snapshot.lock.json', JSON.stringify(lock));
+  const equal = command.runDrift({ ecpRoot: ecp }, { runtimeRoot: runtime });
+  assert.equal(equal.code, 0);
+  assert.deepEqual(equal.result.newer_tags, ['contracts-v0.10.0']);
+  write(
+    runtime,
+    '.enterprise/governance/capabilities/ecp-registry.snapshot.lock.json',
+    JSON.stringify({ ...lock, sha256: '0'.repeat(64) }),
+  );
+  assert.equal(command.runDrift({ ecpRoot: ecp }, { runtimeRoot: runtime }).code, 1);
+  assert.deepEqual(command.newerContractsTags('main', ['contracts-v1.0.0']), []);
+});

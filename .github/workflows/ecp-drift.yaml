@@ -1,0 +1,45 @@
+name: ecp-drift
+
+# Weekly check that the vendored ECP registry snapshot still matches the upstream file at the
+# lock ref, and a heads-up when a newer contracts-v* tag exists. Not a PR check.
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Same cross-repo PAT as capability-graph-composition (provisioned from pass).
+      # Full history + tags: the comparator reads the lock ref and lists contracts-v* tags.
+      - uses: actions/checkout@v4
+        with:
+          repository: HideakiSolutions/enterprise-capability-platform
+          path: dependencies/enterprise-capability-platform
+          fetch-depth: 0
+          fetch-tags: true
+          token: ${{ secrets.CAPABILITY_GRAPH_CROSS_REPO_PAT }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Compare upstream registry with the snapshot lock (fail on divergence)
+        # shell: bash is explicit so the step runs with -eo pipefail; otherwise the exit code of
+        # the comparator is masked by tee and a divergence would leave the job green.
+        shell: bash
+        run: >-
+          node tools/cli/hseos-cli.js platform-bindings drift
+          --ecp-root dependencies/enterprise-capability-platform
+          --json | tee drift.json
+      - name: Warn on newer contracts tag
+        if: always()
+        run: |
+          if [ -s drift.json ]; then
+            node -e "const r=JSON.parse(require('fs').readFileSync('drift.json','utf8'));if(r.newer_tags.length)console.log('::warning::Newer ECP contracts tag(s) than '+r.ref+': '+r.newer_tags.join(', '))"
+          fi

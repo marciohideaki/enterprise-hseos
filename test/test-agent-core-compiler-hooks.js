@@ -605,6 +605,86 @@ async function testUnknownPlatformTargetIsRejected() {
   assertPass('compile --target cursor is rejected (no emitter behind it)', rejected);
 }
 
+function writeMcpFixture(tempDir, servers) {
+  const mcpDir = path.join(tempDir, '.agents', 'mcp');
+  fs.mkdirSync(path.join(mcpDir, 'bundles'), { recursive: true });
+  fs.writeFileSync(
+    path.join(mcpDir, 'registry.yaml'),
+    yaml.stringify({ version: '2.0', bundles: { core: { file: 'bundles/core.yaml', required: true } } }),
+  );
+  fs.writeFileSync(path.join(mcpDir, 'bundles', 'core.yaml'), yaml.stringify({ version: '1.0', bundle: 'core', servers }));
+}
+
+async function testClaudeCodeEmitsMcpSettingsAndMcpJson() {
+  const servers = [
+    { id: 'filesystem', transport: 'stdio', package: '@modelcontextprotocol/server-filesystem', runtime: 'npx', env: { A: '1' } },
+    { id: 'axon-bridge', transport: 'stdio', binary_resolver: [{ path: 'tools/mcp-axon-bridge/index.js', runtime: 'node' }] },
+    { id: 'disabled-one', client_enabled: false, transport: 'stdio', binary_resolver: [{ path: 'x.js', runtime: 'node' }] },
+  ];
+
+  await withTempDir(async (tempDir) => {
+    writeMcpFixture(tempDir, servers);
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+    const settings = JSON.parse(fs.readFileSync(path.join(tempDir, '.claude', 'settings.json'), 'utf8'));
+    const mcp = JSON.parse(fs.readFileSync(path.join(tempDir, '.mcp.json'), 'utf8'));
+    assertPass(
+      'bundle with 2 enabled servers -> settings.json allowedMcpServers has 2',
+      settings.allowedMcpServers.length === 2 &&
+        settings.allowedMcpServers
+          .map((e) => e.serverName)
+          .sort()
+          .join(',') === 'axon-bridge,filesystem',
+      JSON.stringify(settings),
+    );
+    assertPass(
+      '.mcp.json carries the same 2 servers with command/args/env',
+      Object.keys(mcp.mcpServers).sort().join(',') === 'axon-bridge,filesystem' &&
+        mcp.mcpServers['axon-bridge'].command === 'node' &&
+        mcp.mcpServers.filesystem.command === 'npx' &&
+        mcp.mcpServers.filesystem.env.A === '1',
+      JSON.stringify(mcp),
+    );
+    assertPass(
+      'rules/ and workflows/ are not emitted',
+      !fs.existsSync(path.join(tempDir, '.claude', 'rules')) && !fs.existsSync(path.join(tempDir, '.claude', 'workflows')),
+    );
+  });
+
+  await withTempDir(async (tempDir) => {
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+    assertPass(
+      'no MCP bundle -> no settings.json and no .mcp.json',
+      !fs.existsSync(path.join(tempDir, '.claude', 'settings.json')) && !fs.existsSync(path.join(tempDir, '.mcp.json')),
+    );
+  });
+
+  await withTempDir(async (tempDir) => {
+    writeMcpFixture(tempDir, servers);
+    fs.mkdirSync(path.join(tempDir, '.claude'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tempDir, '.claude', 'settings.json'),
+      JSON.stringify({ permissions: { allow: ['Bash(ls)'] }, allowedMcpServers: [{ serverName: 'mine' }] }),
+    );
+    fs.writeFileSync(path.join(tempDir, '.mcp.json'), JSON.stringify({ mcpServers: { mine: { command: 'x' } }, extra: true }));
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+    const settings = JSON.parse(fs.readFileSync(path.join(tempDir, '.claude', 'settings.json'), 'utf8'));
+    const mcp = JSON.parse(fs.readFileSync(path.join(tempDir, '.mcp.json'), 'utf8'));
+    assertPass(
+      'pre-existing settings.json keeps user keys and entries, idempotent merge',
+      settings.permissions.allow[0] === 'Bash(ls)' &&
+        settings.allowedMcpServers.length === 3 &&
+        settings.allowedMcpServers[0].serverName === 'mine',
+      JSON.stringify(settings),
+    );
+    assertPass(
+      'pre-existing .mcp.json keeps user servers and keys',
+      mcp.mcpServers.mine.command === 'x' && mcp.extra === true && Object.keys(mcp.mcpServers).length === 3,
+      JSON.stringify(mcp),
+    );
+  });
+}
+
 async function run() {
   console.log('Agent core compiler hook adapter tests');
   testCanonicalHookRegistryRequiresExplicitStatus();
@@ -623,6 +703,7 @@ async function run() {
   await testClaudeCodeAgentSurfaceFormat();
   await testAgentCoreCompileEmitsClaudeCodeSkillAndAgentSurfaces();
   await testAgentCoreCompileEmitsGooseAdapterAndTruthfulManifest();
+  await testClaudeCodeEmitsMcpSettingsAndMcpJson();
   await testUnknownPlatformTargetIsRejected();
 
   console.log(`\nCompiler hook tests: ${passed} passed, ${failed} failed`);
