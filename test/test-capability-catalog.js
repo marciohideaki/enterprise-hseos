@@ -14,6 +14,7 @@ const {
   REQUIRED_BASELINE_IDS,
   loadAdapterMatrix,
   loadCapabilityCatalog,
+  materializeCapabilityPlan,
   resolveCapabilityPlan,
   validateCapabilityDocuments,
   validateSurfaceDocument,
@@ -762,6 +763,43 @@ async function testEveryProfileMaterializesExactlySelectedSkills() {
   }
 }
 
+async function testMaterializeCapabilityPlanSelectedOnly() {
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'hseos-materialize-'));
+  try {
+    let rejected = false;
+    try {
+      await materializeCapabilityPlan({ directory: path.join(tempRoot, 'bad'), profile: 'full', root: REPO_ROOT });
+    } catch (error) {
+      rejected = /supports minimal and disposable-engineering-candidate/.test(error.message);
+    }
+    assertPass('materialization rejects unsupported profiles', rejected);
+
+    const occupied = path.join(tempRoot, 'occupied');
+    await fs.ensureDir(path.join(occupied, '.agents'));
+    let preserved = false;
+    try {
+      await materializeCapabilityPlan({ directory: occupied, profile: 'minimal', root: REPO_ROOT });
+    } catch (error) {
+      preserved = /fresh consumer governance surface/.test(error.message);
+    }
+    assertPass('materialization refuses an existing governance surface', preserved);
+
+    const target = path.join(tempRoot, 'fresh');
+    const result = await materializeCapabilityPlan({ directory: target, profile: 'minimal', root: REPO_ROOT });
+    const plan = resolveCapabilityPlan({ root: REPO_ROOT, profile: 'minimal' });
+    assertPass('materialization reports the selected profile', result.profile === 'minimal' && result.directory === target);
+    assertPass(
+      'materialization reports exactly the selected components',
+      JSON.stringify(result.components) === JSON.stringify(plan.components.map((component) => component.id)),
+    );
+    assertPass('materialization copies only governance artifacts', result.copied.every((entry) => entry.startsWith('.enterprise/')));
+    assertPass('materialization writes the capability selection', await fs.pathExists(path.join(target, '.hseos', 'config', 'capability-selection.yaml')));
+    assertPass('materialization leaves no staging directory', !(await fs.readdir(target)).some((name) => name.startsWith('.hseos-materialize-')));
+  } finally {
+    await fs.remove(tempRoot);
+  }
+}
+
 async function run() {
   testCatalogLoadsProfilesAndComponents();
   testSchemaV2FailsClosed();
@@ -785,6 +823,7 @@ testReferenceCorpusProjectionIsByteIdentical();
   testManagedGovernanceSurfacesArePureOptIn();
   testApplyExtrasFromPlanMapsFlags();
   await testEveryProfileMaterializesExactlySelectedSkills();
+  await testMaterializeCapabilityPlanSelectedOnly();
 
   console.log(`\nCapability catalog tests: ${passed} passed, ${failed} failed`);
   if (failed > 0) {
