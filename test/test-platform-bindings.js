@@ -401,8 +401,8 @@ function testWeakeningRules() {
     writeProject(sb, { mode: 'hybrid', mode_ref: ref });
     result = load(sb, { baseMode: 'platform' });
     assertPass(
-      'downgrade vs baseMode with existing mode_ref accepted',
-      result.mode === 'hybrid' && result.errors.length === 0 && result.modeRef === ref,
+      'downgrade vs baseMode with an existing but uncommitted mode_ref rejected (D6; the full matrix is in test-platform-bindings-downgrade.js)',
+      result.mode === 'platform' && result.source === 'downgrade-rejected' && /not committed|git failed/.test(result.errors.join(' ')),
     );
     writeProject(sb, { mode: 'local', mode_ref: ref });
     assertPass('local with existing mode_ref accepted', load(sb).mode === 'local');
