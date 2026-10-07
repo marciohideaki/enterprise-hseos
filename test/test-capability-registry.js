@@ -594,9 +594,27 @@ function testCorrectionRound() {
     'punctuation-only query has no heuristic hits',
     resolveCapability(registry, '..').length === 0 && resolveCapability(registry, '--').length === 0,
   );
+  // Assertive matching: prefix and heuristic need >=3 alphanumerics in the query,
+  // a prefix must end on a token boundary (or its last token has >=3 alphanumerics),
+  // and the heuristic only matches at the start of a token (start, after a
+  // separator, or a camelCase hump). Exact name/alias/package/symbol/path still
+  // work for any length.
   assertPass(
-    'two-character query can still use the heuristic',
-    resolveCapability(registry, 'ed').some((result) => result.matchedBy === 'heuristic'),
+    'two-character query has no prefix or heuristic hits (ed)',
+    resolveCapability(registry, 'ed').length === 0 && resolveCapability(registry, 'ui').length === 0,
+  );
+  assertPass(
+    'mid-word substring no longer matches the heuristic',
+    resolveCapability(registry, 'ache').length === 0 && resolveCapability(registry, 'edis').length === 0,
+  );
+  assertPass(
+    'camelCase hump still matches the heuristic (Vault in IZebraVault)',
+    (() => {
+      const humpRegistry = fixture();
+      humpRegistry.capabilities[0].match = { ...humpRegistry.capabilities[0].match, symbols: ['IZebraVault'] };
+      const hit = resolveCapability(humpRegistry, 'Vault');
+      return hit.length === 1 && hit[0].matchedBy === 'heuristic' && resolveCapability(humpRegistry, 'ebraVault').length === 0;
+    })(),
   );
 
   // 5b. separator normalization (space, hyphen, underscore)
@@ -643,13 +661,43 @@ function testCorrectionRound() {
       resolveCapability(sepRegistry, 'o k').length === 0,
   );
   assertPass(
-    'longer separator queries still match through the heuristic fallback',
-    shape('ile tok') === 'design.mobile-tokens:heuristic:10' && shape('ile_tok') === shape('ile tok'),
+    'separator queries starting mid-word no longer match (ile tok)',
+    shape('ile tok') === '' && shape('ile_tok') === '',
     shape('ile tok'),
   );
   assertPass(
-    'separator-free heuristic behaviour is unchanged',
-    shape('obile') === 'design.mobile-tokens:heuristic:10' && resolveCapability(registry, 'Redis')[0].matchedBy === 'heuristic',
+    'separator queries starting at a token still match (mobile tok, tokens)',
+    shape('mobile tok') === 'design.mobile-tokens:prefix:40' && shape('tokens') === 'design.mobile-tokens:heuristic:10',
+    shape('tokens'),
+  );
+  assertPass(
+    'mid-word substring no longer matches (obile); token-start heuristic is kept (Redis)',
+    shape('obile') === '' && resolveCapability(registry, 'Redis')[0].matchedBy === 'heuristic',
+  );
+  assertPass(
+    'prefix needs 3 alphanumerics and a token boundary (ui, mo, sso)',
+    (() => {
+      const loginRegistry = fixture();
+      loginRegistry.capabilities.push(design('design.login-pattern', ['ui.login', 'sso-login']));
+      return (
+        resolveCapability(loginRegistry, 'ui').length === 0 &&
+        resolveCapability(loginRegistry, 'mo').length === 0 &&
+        resolveCapability(loginRegistry, 'sso')[0].matchedBy === 'prefix' &&
+        // the last query token is judged across every separator ('.', '/', '_', '-', space)
+        // a hit that stops mid-token needs a last query token of 3 alphanumerics, in the prefix AND the
+        // heuristic, so a separator inside the query cannot bypass the rule ('ui.l', 'sso-l', 'mobile-t')
+        ['ui.l', 'ui.lo', 'sso-l', 'design.l', 'mobile-t', 'mobile_t', 'mobile t', 'm-t'].every(
+          (q) => resolveCapability(loginRegistry, q).length === 0,
+        ) &&
+        resolveCapability(loginRegistry, 'ui.log')[0].matchedBy === 'prefix' &&
+        resolveCapability(loginRegistry, 'sso-log')[0].matchedBy === 'prefix' &&
+        resolveCapability(loginRegistry, 'ui/l').length === 0 &&
+        // a trailing separator already ends on a token boundary
+        resolveCapability(loginRegistry, 'sso-')[0].matchedBy === 'prefix' &&
+        resolveCapability(loginRegistry, 'ui.log')[0].matchedBy === 'prefix' &&
+        resolveCapability(loginRegistry, 'ui.login')[0].matchedBy === 'alias'
+      );
+    })(),
   );
   assertPass(
     'contract aliases stay contracts and paths are untouched',
