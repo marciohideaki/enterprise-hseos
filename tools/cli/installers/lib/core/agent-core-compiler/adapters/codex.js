@@ -200,3 +200,4 @@ module.exports.writeCodexAdapter = writeCodexAdapter;
 module.exports.buildCodexConfigToml = buildCodexConfigToml;
 module.exports.buildCodexHooksMeta = buildCodexHooksMeta;
 module.exports.loadMcpServers = loadMcpServers;
+module.exports.resolveServerCommand = resolveServerCommand;
