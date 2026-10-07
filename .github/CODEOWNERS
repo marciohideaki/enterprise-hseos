@@ -7,3 +7,5 @@
 /scripts/governance/validate-capability-graph.js @marciohideaki
 # Platform-bindings downgrades must be approved by an owner of the bindings file (ADR-0046 section 8).
 /.hseos/config/platform-bindings.yaml @marciohideaki
+# Shared-infrastructure policy changes require Platform Architecture Owner review.
+/.enterprise/policies/shared-infrastructure.md @marciohideaki

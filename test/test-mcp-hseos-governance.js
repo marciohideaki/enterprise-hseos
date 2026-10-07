@@ -11,6 +11,7 @@ const os = require('node:os');
 const http = require('node:http');
 const { spawn } = require('node:child_process');
 const { MCP_LEGACY_PROTOCOL_VERSION } = require('../tools/lib/mcp-protocol');
+const { freePort } = require('./helpers/free-port');
 
 const REPO_ROOT = path.join(__dirname, '..');
 const SERVER = path.join(REPO_ROOT, 'tools', 'mcp-hseos-governance', 'index.js');
@@ -27,10 +28,6 @@ async function it(name, fn) {
     console.log(`  \u2717 ${name}\n    ${error.message}`);
     fail++;
   }
-}
-
-function pickPort() {
-  return 3600 + Math.floor(Math.random() * 200);
 }
 
 function rpc(port, method, params = {}) {
@@ -95,7 +92,7 @@ function waitFor(predicate, { timeoutMs = 6000, intervalMs = 100 } = {}) {
 (async () => {
   console.log('mcp-hseos-governance smoke test');
 
-  const port = pickPort();
+  const port = await freePort();
   const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-governance-state-'));
   const child = spawn(process.execPath, [SERVER, `--port=${port}`], {
     stdio: ['ignore', 'pipe', 'pipe'],

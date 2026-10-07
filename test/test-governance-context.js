@@ -88,6 +88,25 @@ test('compiled handler reloads context on repeated prompts/resume outside produc
   assert.equal(malformed.status, 2);
 });
 
+test('deleted session cwd (removed worktree) resolves nearest ancestor instead of blocking', async (t) => {
+  const { consumer, producer } = fixture(t);
+  fs.writeFileSync(path.join(consumer, 'AGENTS.md'), 'Local instructions');
+  const gone = path.join(consumer, '.worktrees', 'removed-task');
+  const result = collect({ directory: gone, sourceRoot: producer });
+  assert.equal(result.status, 'resolved');
+  assert.equal(result.project_root, fs.realpathSync(consumer));
+  assert.equal(result.consumer_adapters[0].status, 'read');
+  await syncHandlers(producer, path.join(root, '.enterprise/governance/hooks/handlers'));
+  const handler = path.join(producer, '.agents/hooks/handlers/governance-context.cjs');
+  const run = spawnSync(process.execPath, [handler], {
+    cwd: consumer,
+    input: JSON.stringify({ cwd: gone, prompt: 'hello' }),
+    encoding: 'utf8',
+  });
+  assert.equal(run.status, 0, run.stderr);
+  assert.ok(run.stdout.includes(producer));
+});
+
 test('canonical registry emits prompt hook and portable instructions include fallback', async (t) => {
   const { consumer } = fixture(t);
   const registry = yaml.parse(fs.readFileSync(path.join(root, '.enterprise/governance/hooks/registry.yaml'), 'utf8'));
