@@ -106,6 +106,10 @@ validation against its pinned schema version.
 Existing catalogs MUST be migrated or represented by a governed adapter. Once a catalog is
 declared superseded, it is a generated view and MUST NOT be edited as an independent source.
 
+ADR-0039 clarifies this section: Backstage is a governed adapter and the April 2026 catalog
+is superseded. It also extends §§3, 4 and 5 by fixing the projection of canonical nodes,
+edges and lifecycle onto portal entities.
+
 ## 7. Mandatory intake
 
 Before implementing a potentially shared concern, a human or agent MUST record:
@@ -227,6 +231,7 @@ non-compliant.
 - Enterprise Constitution §§2.1, 2.5, 2.6, 5, 7-10, 13-14
 - ADR-0016 Capability Packaging and Install Planning
 - ADR-0033 Federated Platform Capability Graph and Platform-First Intake
+- ADR-0039 Backstage as a governed projection of the Platform Capability Graph
 - `.enterprise/policies/capability-graph.md`
 - `.enterprise/policies/automated-validation.md`
 - ADR-0046 Platform Bindings and Modes

@@ -19,6 +19,7 @@
 - **Observability Playbook**
 - **Data Contracts & Schema Evolution Standard**
 - **Resilience Patterns Standard**
+- **ADR-0039** (Backstage as a governed projection): published API contracts surface as `API` entities in the portal
 
 ---
 
