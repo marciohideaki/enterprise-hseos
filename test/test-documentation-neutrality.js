@@ -3,6 +3,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { spawnSync } = require('node:child_process');
 const test = require('node:test');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -15,18 +16,40 @@ const COMPARISON_RECORDS = new Set(['docs/evolution/COMPARISON-2026-09-25.md', '
 const EXTERNAL_DERIVATION =
   /\b(?:ported|adapted|copied|derived|absorbed)\s+(?:parts?\s+)?(?:of\s+|from\s+)?(?:an?\s+|the\s+)?(?:existing\s+)?(?:harness|framework)\b|\b(?:portado|portada|adaptado|adaptada|copiado|copiada|derivado|derivada)\s+(?:em\s+parte\s+)?(?:de|do|da)\s+(?:um|uma)?\s*(?:harness|framework)\b/i;
 
-function collectDocumentation(directory, files = []) {
+function walkDocumentation(directory, files = []) {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
     if (entry.isDirectory() && SKIP_DIRECTORIES.has(entry.name)) continue;
 
     const absolutePath = path.join(directory, entry.name);
     if (entry.isDirectory()) {
-      collectDocumentation(absolutePath, files);
+      walkDocumentation(absolutePath, files);
     } else if (entry.isFile() && DOCUMENT_EXTENSIONS.has(path.extname(entry.name).toLowerCase())) {
       files.push(absolutePath);
     }
   }
   return files;
+}
+
+// Respect .gitignore by asking git for tracked plus untracked-not-ignored files.
+// Fallback (not a git checkout, or git unavailable): walk the disk, skipping SKIP_DIRECTORIES.
+function collectDocumentation(root) {
+  const listed = spawnSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], {
+    cwd: root,
+    encoding: 'utf8',
+    maxBuffer: 256 * 1024 * 1024,
+  });
+  if (listed.status !== 0 || typeof listed.stdout !== 'string') return walkDocumentation(root);
+  return listed.stdout
+    .split('\0')
+    .filter((relative) => relative && DOCUMENT_EXTENSIONS.has(path.extname(relative).toLowerCase()))
+    .map((relative) => path.join(root, relative))
+    .filter((absolute) => {
+      try {
+        return fs.statSync(absolute).isFile();
+      } catch {
+        return false; // listed but deleted in the working tree
+      }
+    });
 }
 
 function documentationViolations(relativePath, content) {
