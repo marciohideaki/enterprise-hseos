@@ -4,6 +4,8 @@
 # Authority: Enterprise Constitution > execution-governance
 # Usage: ./scripts/governance/validate-commit-msg.sh "<message>"
 #        OR: called by .husky/commit-msg with $1 = .git/COMMIT_EDITMSG path
+#        --ai-terms-only "<message>": run only the AI-mention and co-author
+#        rules (used by quality-gates.sh Gate 5 so both share one vocabulary)
 # =============================================================================
 
 set -euo pipefail
@@ -17,6 +19,12 @@ fatal() { echo -e "${RED}[COMMIT-MSG-FATAL]${NC} $*"; exit 1; }
 
 FAILURES=0
 record_fail() { FAILURES=$((FAILURES + 1)); fail "$@"; }
+
+AI_TERMS_ONLY=false
+if [[ "${1:-}" == "--ai-terms-only" ]]; then
+  AI_TERMS_ONLY=true
+  shift
+fi
 
 # Get commit message — either from file path (husky) or direct arg
 if [[ "${1:-}" == *.git/COMMIT_EDITMSG ]] || [[ -f "${1:-}" ]]; then
@@ -38,7 +46,9 @@ EFFECTIVE_MSG="$(echo "$COMMIT_MSG" | grep -v '^#' | sed '/^$/d')"
 CONVENTIONAL_PATTERN='^(feat|fix|docs|style|refactor|test|chore|ci|build|perf|revert)(\([a-z0-9_/-]+\))?: .{1,100}$'
 FIRST_LINE="$(echo "$EFFECTIVE_MSG" | head -1)"
 
-if echo "$FIRST_LINE" | grep -qE "$CONVENTIONAL_PATTERN"; then
+if [[ "$AI_TERMS_ONLY" == "true" ]]; then
+  :  # format is not checked in --ai-terms-only mode
+elif echo "$FIRST_LINE" | grep -qE "$CONVENTIONAL_PATTERN"; then
   pass "Format: conventional commit format valid"
 else
   record_fail "Format: must follow '<type>(<scope>): <summary>' pattern"
@@ -56,9 +66,41 @@ AI_TERMS=(
   "anthropic" "gemini" "mistral"
 )
 
-MSG_LOWER="$(echo "$COMMIT_MSG" | tr '[:upper:]' '[:lower:]')"
+# Technical identifiers of tool adapters (paths and package names) are not AI
+# attribution; they are removed from a lowercase copy before matching. Prose
+# naming a vendor or tool stays forbidden.
+ALLOWED_IDENTIFIERS=(
+  ".claude-plugin" ".codex-plugin" ".claude/" ".codex/"
+  "claude-code" "claude_code"
+)
+
+# Lowercase and collapse all whitespace (including newlines) so multi-word
+# terms cannot be split across spaces or lines.
+MSG_LOWER="$(printf '%s' "$COMMIT_MSG" | tr '[:upper:]' '[:lower:]' | tr '\n\t\r' '   ' | tr -s ' ')"
+
+# An identifier is removed only when it stands alone: not glued to a preceding
+# letter, digit or underscore (paths also not to a preceding dot), and, for
+# names, not continued by a letter, digit, underscore or hyphen. Anything that
+# survives falls through to the term match below.
+MSG_LOWER="$(printf '%s' "$MSG_LOWER" | perl -pe '
+  s{(?<![a-z0-9_.])\.(?:claude|codex)/}{ }g;
+  s{(?<![a-z0-9_])(?:claude-code|claude_code|\.claude-plugin|\.codex-plugin)(?![a-z0-9_-])}{ }g;
+')"
+# Removing an identifier leaves a gap inside multi-word terms; close it again.
+MSG_LOWER="$(printf '%s' "$MSG_LOWER" | tr -s ' ')"
+
+# A term counts unless it sits inside a longer word made only of letters
+# (gptr, controllm). Digits, underscores, hyphens and dots do not shield it, and
+# a plain plural is the term itself (llms, claudes).
+has_ai_term() {
+  TERM="$1" perl -e '
+    local $/; my $m = <STDIN>; my $t = quotemeta($ENV{TERM});
+    exit(($m =~ /(?<![a-z])$t(?:s)?(?![a-z])/) ? 0 : 1);
+  ' <<<"$MSG_LOWER"
+}
+
 for term in "${AI_TERMS[@]}"; do
-  if echo "$MSG_LOWER" | grep -q "$term"; then
+  if has_ai_term "$term"; then
     record_fail "AI mention forbidden: found '${term}' in commit message"
   fi
 done
@@ -70,10 +112,15 @@ fi
 # =============================================================================
 # Rule 3: No co-author trailers
 # =============================================================================
-if echo "$COMMIT_MSG" | grep -iqE '^Co-Authored-By:|^Co-authored-by:'; then
+if echo "$COMMIT_MSG" | grep -iqE '^[[:space:]]*co-authored-by:'; then
   record_fail "Co-Authored-By trailer is forbidden in commit messages"
 else
   pass "Co-author: no trailer found"
+fi
+
+if [[ "$AI_TERMS_ONLY" == "true" ]]; then
+  [[ $FAILURES -eq 0 ]] || fatal "AI mention validation FAILED (${FAILURES} violation(s))"
+  exit 0
 fi
 
 # =============================================================================

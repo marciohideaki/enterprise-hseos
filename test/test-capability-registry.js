@@ -71,13 +71,13 @@ function testSnapshot() {
   );
   assertPass(
     'ref and contracts version come from the lock',
-    loaded.ref === 'contracts-v0.3.1' && loaded.registry.generated_from.contracts_version === '0.3.1',
+    loaded.ref === 'contracts-v0.4.0' && loaded.registry.generated_from.contracts_version === '0.4.0',
   );
   assertPass(
-    'shipped snapshot is byte-identical to the 0.3.1 fixture',
+    'shipped snapshot is byte-identical to the 0.4.0 fixture',
     fs
       .readFileSync(path.join(REPO_ROOT, SNAPSHOT_FILE))
-      .equals(fs.readFileSync(path.join(__dirname, 'fixtures', 'ecp-registry', 'registry-0.3.1.json'))),
+      .equals(fs.readFileSync(path.join(__dirname, 'fixtures', 'ecp-registry', 'registry-0.4.0.json'))),
   );
   assertPass(
     'shipped snapshot resolves Redis -> cache.typed and auth -> security.authn',
@@ -599,6 +599,65 @@ function testCorrectionRound() {
     resolveCapability(registry, 'ed').some((result) => result.matchedBy === 'heuristic'),
   );
 
+  // 5b. separator normalization (space, hyphen, underscore)
+  const sepRegistry = fixture();
+  const design = (name, aliases) => ({
+    ...sepRegistry.capabilities[0],
+    name,
+    aliases,
+    match: undefined,
+    implementations: sepRegistry.capabilities[0].implementations.map((i) => ({ ...i, package: `pkg-${name}` })),
+  });
+  sepRegistry.capabilities.push(
+    design('design.mobile-tokens', ['mobile-tokens']),
+    design('design.login-pattern', ['login', 'login-screen']),
+  );
+  const shape = (query) =>
+    resolveCapability(sepRegistry, query)
+      .map((r) => `${r.capability.name}:${r.matchedBy}:${r.score}`)
+      .join('|');
+  const baseline = shape('mobile-tokens');
+  assertPass('hyphenated alias resolves', baseline === 'design.mobile-tokens:alias:90', baseline);
+  for (const variant of ['mobile tokens', 'Mobile-Tokens', 'mobile_tokens', 'MOBILE  TOKENS', 'mobile - tokens']) {
+    assertPass(`'${variant}' resolves like 'mobile-tokens'`, shape(variant) === baseline, shape(variant));
+  }
+  assertPass(
+    'login screen resolves like login-screen',
+    shape('login screen') === shape('login-screen') && shape('Login_Screen').startsWith('design.login-pattern:alias'),
+  );
+  assertPass(
+    'separator-normalized prefix keeps prefix score',
+    shape('mobile tok') === 'design.mobile-tokens:prefix:40',
+    shape('mobile tok'),
+  );
+  assertPass(
+    'no new ties or false positives',
+    resolveCapability(sepRegistry, 'mobile tokens').length === 1 &&
+      resolveCapability(sepRegistry, 'a b').length === 0 &&
+      resolveCapability(sepRegistry, '- _ -').length === 0 &&
+      resolveCapability(sepRegistry, '_').length === 0,
+  );
+  assertPass(
+    'short separator queries do not bridge tokens in the heuristic fallback',
+    ['d c', 'd_c', 'e g', 'e-g', 'x y'].every((q) => resolveCapability(registry, q).length === 0) &&
+      resolveCapability(sepRegistry, 'o k').length === 0,
+  );
+  assertPass(
+    'longer separator queries still match through the heuristic fallback',
+    shape('ile tok') === 'design.mobile-tokens:heuristic:10' && shape('ile_tok') === shape('ile tok'),
+    shape('ile tok'),
+  );
+  assertPass(
+    'separator-free heuristic behaviour is unchanged',
+    shape('obile') === 'design.mobile-tokens:heuristic:10' && resolveCapability(registry, 'Redis')[0].matchedBy === 'heuristic',
+  );
+  assertPass(
+    'contract aliases stay contracts and paths are untouched',
+    first(registry, 'platform-core/messaging/event-envelope').matchedBy === 'contract' &&
+      first(registry, 'platform core/messaging/event envelope').matchedBy === 'contract' &&
+      exportMatches(registry, { filePath: 'schemas/event-envelope.schema.json' }).length === 1,
+  );
+
   // 6. symbol normalization
   const symbolHit = (symbol) =>
     exportMatches(registry, { symbol })
@@ -620,12 +679,56 @@ function testCorrectionRound() {
   assertPass('whitespace around the symbol is ignored', symbolHit('  ICacheStore ') === 'cache.typed');
 }
 
+function testEcp040Capabilities() {
+  console.log('\nECP 0.4.0 capabilities (explicit fixtures, independent of the pinned snapshot)');
+  const load = (version) =>
+    loadCapabilityRegistry({
+      bindings: { registry: { source: 'path', path: path.join(__dirname, 'fixtures', 'ecp-registry', `registry-${version}.json`) } },
+    }).registry;
+  const next = load('0.4.0');
+  const previous = load('0.3.1');
+  const top = (registry, query) => {
+    const hit = first(registry, query);
+    return hit ? `${hit.capability.name}/${hit.matchedBy}` : 'none';
+  };
+  const symbolTop = (registry, symbol) => {
+    const hit = exportMatches(registry, { symbol })[0];
+    return hit ? `${hit.capability.name}/${hit.matchedBy}` : 'none';
+  };
+  assertPass(
+    'Authn and authn resolve security.authn by alias',
+    top(next, 'Authn') === 'security.authn/alias' && top(next, 'authn') === 'security.authn/alias',
+  );
+  assertPass('0.3.1 only reached Authn through the heuristic', top(previous, 'Authn') === 'security.authn/heuristic');
+  assertPass(
+    'Login resolves design.login-pattern by alias',
+    top(next, 'Login') === 'design.login-pattern/alias' && top(previous, 'Login') === 'none',
+  );
+  assertPass(
+    'mobile tokens and Mobile-Tokens resolve design.mobile-tokens by alias',
+    top(next, 'mobile tokens') === 'design.mobile-tokens/alias' && top(next, 'Mobile-Tokens') === 'design.mobile-tokens/alias',
+  );
+  assertPass(
+    'LoginScreen and getMobileTheme resolve by symbol',
+    symbolTop(next, 'LoginScreen') === 'design.login-pattern/symbol' && symbolTop(next, 'getMobileTheme') === 'design.mobile-tokens/symbol',
+  );
+  assertPass(
+    'auth, jwt, cache and event-envelope resolve as in 0.3.1',
+    ['auth', 'jwt', 'cache', 'event-envelope'].every(
+      (query) =>
+        JSON.stringify(resolveCapability(next, query).map((r) => [r.capability.name, r.matchedBy, r.score])) ===
+        JSON.stringify(resolveCapability(previous, query).map((r) => [r.capability.name, r.matchedBy, r.score])),
+    ),
+  );
+}
+
 testSnapshot();
 testPathAndRemote();
 testValidation();
 testResolution();
 testMatchExport();
 testCorrectionRound();
+testEcp040Capabilities();
 
 console.log(`\nCapability registry tests: ${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);

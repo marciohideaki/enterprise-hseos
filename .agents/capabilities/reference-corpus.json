@@ -60,7 +60,7 @@
       "kind": "product-sentinel",
       "evidence_role": "candidate-source",
       "revision": "1417341edf21480bb2b1f6a69d0b267631d68b13",
-      "source_uri": "https://github.com/HideakiSolutions/poynt-hub.git",
+      "source_uri": "https://github.com/PoyntHub/poynt-hub.git",
       "stacks": ["dotnet", "react", "react-native"],
       "architecture_signals": ["microservices", "shared-libraries", "kafka", "multi-surface"],
       "evidence_paths": [
@@ -140,7 +140,7 @@
       "kind": "product-sentinel",
       "evidence_role": "candidate-source",
       "revision": "4de4d45b1979ede971739e0dcaec36ce99a3122c",
-      "source_uri": "https://github.com/HideakiSolutions/linked-out.git",
+      "source_uri": "https://github.com/WorkUncut/linked-out.git",
       "stacks": ["dotnet", "react"],
       "architecture_signals": ["modular-monolith", "shared-kernel", "outbox", "design-system-candidates"],
       "evidence_paths": [
@@ -217,7 +217,7 @@
       "kind": "product-sentinel",
       "evidence_role": "candidate-source",
       "revision": "f4d9a73329ac662bcf1bf7e8f9594afc1fa4da03",
-      "source_uri": "https://github.com/HideakiSolutions/srm-asset.git",
+      "source_uri": "https://github.com/SRM-Inc/srm-asset.git",
       "stacks": ["dotnet", "go", "java", "node", "react"],
       "architecture_signals": ["control-plane-data-plane", "orleans", "ledger", "polyglot"],
       "evidence_paths": [
