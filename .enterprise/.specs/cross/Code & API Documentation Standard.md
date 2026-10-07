@@ -162,6 +162,8 @@ This standard is referenced by:
 - Agent Rules Standard
 - PR Checklist
 
+ADR-0039 extends the documentation surface: specifications and ADRs are published through TechDocs.
+
 ---
 
 ## Summary

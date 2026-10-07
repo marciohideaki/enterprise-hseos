@@ -23,5 +23,8 @@ Defines how technical decisions are made, enforced and evolved.
 - Standards are versioned
 - Changes require review and communication
 
+## 6. Related Decisions
+- ADR-0039: portal entities projected from the Platform Capability Graph are generated artifacts subject to this standard's review and enforcement.
+
 ## Summary
 Engineering decisions are explicit, documented and enforceable.
