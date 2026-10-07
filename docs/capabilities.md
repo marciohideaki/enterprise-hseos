@@ -188,10 +188,13 @@ or any mode weaker than the one recorded at `HEAD` requires `--mode-ref` (a `.md
 
 `hseos capability-check <name> [--directory <path>] [--json]` resolves the query through the ECP
 registry (snapshot by default, a user-layer `ecp_root`/`registry` otherwise) by name, alias, package
-or contract, `match` hints and prefix; a filename scan is kept only as a `heuristic` fallback. The JSON
+or contract, `match` hints and prefix (case-insensitive; space, `-` and `_` count as the same separator,
+so `mobile tokens` finds `mobile-tokens`; `.` and `/` are not normalized, only the separators around them, and the
+`heuristic` fallback bridges a separator only for queries of two or more tokens, each with at least two
+alphanumerics, and four or more alphanumerics in total); a filename scan is kept only as a `heuristic` fallback. The JSON
 output reports the effective mode and the layer it came from. Exit codes: 0 completed, 1 bindings or
 registry failed validation, 2 usage error.
 
 `hseos platform-bindings` exit codes: `show` 0 (1 if the registry fails its integrity check), `check`
 0/1 (violation)/2 (git or usage failure), `sync` 1 on error, `guard` 0 allow / 2 deny. The registry
-snapshot ships at `contracts-v0.3.1`; refresh it with `sync` and update the lock.
+snapshot ships at `contracts-v0.4.0`; refresh it with `sync` and update the lock.

@@ -44,7 +44,7 @@ Source containers (running on dev host as of 2026-05-20):
 
 ## Canonical mapping — k3s / k8s
 
-Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 2026-05-21 (post-cutover wave); credential and identity conventions normalized after the `.70` cutover on 2026-07-11.
+Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 2026-05-21 (post-cutover wave); credential and identity conventions normalized after the `.70` cutover on 2026-07-11; reconciled against the live cluster on 2026-09-15, registering five services that were running unmapped (per `platform-gitops` ADR-0004); re-checked read-only on 2026-10-05 at 17:34 UTC (metadata only, no `Secret` read; replica counts are a point-in-time snapshot).
 
 | Service | Service DNS (cluster-internal) | Notes |
 |---|---|---|
@@ -53,17 +53,23 @@ Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 20
 | Redis | `redis-shared.platform-shared-dev.svc.cluster.local:6379` | StatefulSet `redis-shared-0` |
 | Kafka | `kafka-shared.platform-shared-dev.svc.cluster.local:9092` | StatefulSet `kafka-shared-0` + zookeeper sibling; topic prefix per project. Must advertise FQDN per ADR-0003. |
 | RabbitMQ | `rabbitmq-shared.platform-shared-dev.svc.cluster.local:5672` (AMQP) / `:15672` (mgmt) | StatefulSet `rabbitmq-shared-0` |
-| NATS (JetStream) | `nats-shared.platform-shared-dev.svc.cluster.local:4222` (client) / `:8222` (mgmt) | StatefulSet `nats-shared-0`; stream prefix per project |
+| NATS (JetStream) | `nats-shared.platform-shared-dev.svc.cluster.local:4222` (client) / `:8222` (mgmt) | StatefulSet `nats-shared-0`; stream prefix per project. **Scaled to 0 replicas** (read 2026-10-05T17:34Z; the StatefulSet and Service exist, nothing answers) — confirm before consuming. |
 | MySQL | `mysql-shared.platform-shared-dev.svc.cluster.local:3306` | StatefulSet `mysql-shared-0` |
 | MariaDB | `mariadb-shared.platform-shared-dev.svc.cluster.local:3306` | StatefulSet `mariadb-shared-0`; legacy app compatibility (EspoCRM, etc) |
 | MinIO (S3) | `minio-shared.platform-shared-dev.svc.cluster.local:9000` (API) / `:9001` (console) | StatefulSet `minio-shared-0`; bucket prefix per project |
-| Keycloak | `keycloak-shared.platform-shared-dev.svc.cluster.local:8080` | Deployment `keycloak-shared`; v24.x; browser-facing hostname is the neutral shared IdP `https://keycloak.hideakiservicos.net/kc`; each project uses a dedicated realm (e.g. `aiagents` for `ai-agents-os`) |
+| Keycloak | `keycloak-shared.platform-shared-dev.svc.cluster.local:8080` | Deployment `keycloak-shared`; v24.x; HTTP relative path `/kc`. Browser-facing hostname is the **neutral** shared IdP `https://keycloak.hideakiservicos.net/kc` — per-project Keycloak hostnames are forbidden (§3e). Each project uses a **dedicated realm** (e.g. `aiagents` for `ai-agents-os`, `resolv-one` for the Resolv One family). Backend services MUST fetch JWKS internally at `…:8080/kc/realms/<realm>/protocol/openid-connect/certs` (no egress, no OIDC discovery from the public issuer); the token `iss` is the neutral public hostname. |
 | OPA | `opa-shared.platform-shared-dev.svc.cluster.local:8181` | Deployment `opa-shared`; multi-tenant policy bundles loaded per-project. Per ADR-0002. |
 | Loki | `loki.monitoring.svc.cluster.local:3100` | SingleBinary mode; namespace `monitoring`; deployed via ArgoCD app `loki-dev` (grafana/loki chart 6.55.0 / Loki 3.6.7); auth disabled; retention 7d; 10Gi PVC. |
 | OpenFGA | `openfga-shared.platform-shared-dev.svc.cluster.local:8080` (HTTP) / `:8081` (gRPC) | Deployment `openfga-shared`; v1.5.3; postgres backend via `openfga-shared-secret`; auth disabled for dev |
 | OpenSearch | `opensearch-shared.platform-shared-dev.svc.cluster.local:9200` | StatefulSet `opensearch-shared-0`; v2.18.0; single-node; security disabled for dev; 10Gi PVC |
 | OpenTelemetry Collector | `otel-collector-shared.platform-shared-dev.svc.cluster.local:4317` (OTLP gRPC) / `:4318` (OTLP HTTP) / `:8889` (Prometheus exporter) | Deployment `otel-collector-shared`; per-project resource attributes; metrics flow to shared Prometheus via the `otel-collector-shared` ServiceMonitor in `monitoring`. Per ADR-0010. |
-| Keycloak | `keycloak-shared.platform-shared-dev.svc.cluster.local:8080` | Deployment `keycloak-shared` (Keycloak 24.x); HTTP relative path `/kc`; `--hostname-strict=true` with `--hostname-url=https://keycloak-event-platform.hideakiservicos.net/kc`. Each project uses a **dedicated realm** (e.g. `aiagents` for ai-agents-os). Backend services fetch JWKS internally at `…:8080/kc/realms/<realm>/protocol/openid-connect/certs` (no egress); the token `iss` is the public hostname-url. |
+| MongoDB | `mongodb-shared.platform-shared-dev.svc.cluster.local:27017` | StatefulSet `mongodb-shared-0`; `mongo:7.0`; 20Gi PVC (PVC request read 2026-10-05T17:34Z); one database per project. Consumer `poynt-dev` (6 database URIs in `poynt-db-conn`) recorded by the 2026-09-15 commit — **not verified** (needs reading a Secret). Registered 2026-09-15 per `platform-gitops` ADR-0004. |
+| Temporal | `temporal-shared.platform-shared-dev.svc.cluster.local:7233` | Deployment `temporal-shared`; `temporalio/auto-setup:1.24`; persistence in `postgres-shared` (user `temporal`, `SKIP_SCHEMA_SETUP=true`). Consumers: **13 Deployments** in `intent-os-dev` (spec references read 2026-10-05T17:34Z). Registered 2026-09-15 per `platform-gitops` ADR-0004. |
+| Mailpit (SMTP sink) | `mailpit-shared.platform-shared-dev.svc.cluster.local:1025` (SMTP) / `:8025` (UI) | Deployment `mailpit-shared`; dev mail capture — never a real relay. Consumers `cambio-real-v3-dev/notification` and `openproject-dev` recorded by the 2026-09-15 commit — **not verified** (needs reading Secrets/ConfigMaps). Image unpinned (`:latest`) — see ADR-0004 R2. An Ingress also publishes the UI at `mailpit.hideakiservicos.net`; the Deployment sets `MP_SMTP_AUTH_ACCEPT_ANY=true` (read 2026-10-05T17:34Z), so any SMTP auth is accepted; treat captured mail as non-confidential. Registered 2026-09-15. |
+| LocalStack (AWS emulation) | `localstack-shared.platform-shared-dev.svc.cluster.local:4566` | Deployment `localstack-shared`; `localstack/localstack:3`, **community edition**; `SERVICES=sqs,secretsmanager`, `PERSISTENCE=0` — queues and secrets are recreated on restart, so consumers MUST provide an idempotent seed Job and keep a non-LocalStack fallback. Cognito is **not** available (Pro feature). Extend `SERVICES` when a consumer needs another API. First consumer: `resolv-one` (its ADR-0002). Registered 2026-09-15. |
+| Gotenberg (document rendering) | `gotenberg-shared.platform-shared-dev.svc.cluster.local:3000` | Deployment `gotenberg-shared`; `gotenberg/gotenberg:8`; stateless. **No verified consumer** — provisioned 2026-09-11 and **scaled to 0 replicas** (read 2026-10-05T17:34Z; the applied manifest asks for 1); owner must confirm the intended consumer or it should be removed (ADR-0004 R3). Registered 2026-09-15. |
+| GrowthBook (feature flags) | `growthbook-shared.platform-shared-dev.svc.cluster.local:3000` (app) / `:3100` (API) | Deployment `growthbook-shared`; `growthbook/growthbook:5.0.1`; authorized by `platform-gitops` ADR-0004 and provisioned but **scaled to 0 replicas** (read 2026-10-05T17:34Z; first read as 1/1 on 2026-10-05, later found 0/0: scaled down on 2026-10-05 at about 14:29 UTC per the Deployment's Available condition, confirmed 0/0 on 2026-10-06T01:39Z; replica state is volatile). State in `mongodb-shared` (database `growthbook`, dedicated user). Both hostnames MUST share one root domain (cookie auth is same-site); the Ingress hosts are `growthbook.dev.hideakisolutions.local` / `api-growthbook.dev.hideakisolutions.local` (read 2026-10-05T17:34Z). **Intended LAN only, no cloudflared route** (ADR-0004; the `.local` Ingress hosts are verified, the absence of a Cloudflare tunnel route is **not verified** from the cluster) — the OSS plan has no SSO and every console account carries the `Admin` role. `ENCRYPTION_KEY` and `JWT_SECRET` MUST be in `pass`; the Deployment consumes them from a Secret named `growthbook-shared-credentials` (only the Secret name was seen; key names not verified, Secret contents not read). |
+| Meilisearch | `meilisearch-shared.platform-shared-dev.svc.cluster.local:7700` | StatefulSet `meilisearch-shared-0`; `getmeili/meilisearch:v1.36.0`; 5Gi PVC (request read 2026-10-05T17:34Z). Found running unregistered on 2026-10-05 (age 5d); **owner and consumers not verified** — no ADR records it. |
 | Zookeeper | `zookeeper-shared.platform-shared-dev.svc.cluster.local:2181` | Internal to Kafka; do not consume directly |
 
 ### Services NOT yet in shared
@@ -77,6 +83,14 @@ Source: namespace **`platform-shared-dev`** in the dev k3s cluster. Validated 20
 - **ADR-0002** — OPA centralization in `platform-shared-dev` with per-project bundle loaders.
 - **ADR-0003** — `kafka-shared` must advertise FQDN for cross-namespace producers.
 - **ADR-0010** — `otel-collector-shared` is the canonical OTLP ingress for shared observability; capabilities must export via OTLP HTTP/gRPC instead of direct Prometheus scrape when telemetry contracts require trace/log correlation.
+
+Also binding, in the **`platform-gitops`** repository (not this one):
+
+- **`platform-gitops` ADR-0004** — registers MongoDB, Temporal, Mailpit, LocalStack and Gotenberg, which were running in
+  `platform-shared-dev` while absent from the table above; authorizes `growthbook-shared`; and removes the stale
+  per-project Keycloak hostname row. It also records that the last five services joined the namespace without an ADR or a
+  policy update — an enforcement gap declared there, deliberately left to a follow-up ADR rather than closed in the same
+  change that grants five retroactive exceptions.
 
 Credentials/secrets are sourced via **External Secrets Operator** from Vault when available; otherwise via per-namespace `Secret` populated by a controlled bootstrap (see `secret.yaml` comments in `platform-gitops/<project>/services/base/`). Per-project `ExternalSecret` resources project the shared credentials into the project namespace.
 
@@ -143,6 +157,7 @@ Demos requiring full isolation are also authorized exceptions, but must be docum
 
 - **Agent-side**: agents reading `.agents/instructions/PROJECT.md` should also read this file (`.enterprise/policies/shared-infrastructure.md`) when about to write infrastructure code, edit `.env`, or modify `docker-compose.yml`/k8s manifests.
 - **CI**: pipelines may add a lint that fails if a project's `docker-compose.yml` introduces `postgres`/`redis`/`opa` services without listing this policy in an exception.
+- **Drift check (proposed, not implemented)**: a read-only script should compare the Service DNS and ports in the k3s table with `kubectl -n platform-shared-dev get svc,deploy,sts` and fail on any Service missing from the table, any table row without a live Service, and any workload scaled to 0 that the table presents as available. Replica counts are a snapshot and change within hours (GrowthBook was first read as 1/1 on 2026-10-05 and was 0/0 hours later), so the check must report them as warnings with a timestamp, not as hard failures. The table has already drifted twice (five services unregistered until 2026-09-15; GrowthBook, Meilisearch and the NATS and Gotenberg replica counts by 2026-10-05).
 - **Pre-flight check**: the `pre-flight-checks.md` policy should include "Have you verified shared infra availability before booting project services?".
 
 ## Per-project documentation

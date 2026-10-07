@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Platform bindings (ADR-0046, wave W2b): adoption modes `platform`, `hybrid` and `local` recorded in `.hseos/config/platform-bindings.yaml`, layered configuration (runtime, user, project, flags) with anti-downgrade protection through `mode_ref`, the `hseos platform-bindings` command (`show`, `check`, `sync`, `guard`), platform-mode prompts and flags in `hseos init`, `install` and `install-plan`, and a mode-aware capability intake guard that denies agent edits to the bindings file.
-- ECP capability registry snapshot (`contracts-v0.3.1`, SHA-256 pinned in `ecp-registry.snapshot.lock.json`); `hseos capability-check` now resolves by name, alias, contract, package and `match` hints before the filename heuristic and reports the effective mode.
+- ECP capability registry snapshot (`contracts-v0.4.0`, SHA-256 pinned in `ecp-registry.snapshot.lock.json`); `hseos capability-check` now resolves by name, alias, contract, package and `match` hints before the filename heuristic and reports the effective mode.
 - Capability-reuse and capability-graph policies, capabilities docs and getting-started guides document ECP contract authority and the adoption modes; the `/opt/hideakisolutions/**` scope is removed from the capability-reuse policy.
 
 - Candidate campaign factories for native account, API and local SDK routes, with scoped Antigravity composition, shared reservations, process drainage and receipt-bound session resume. Real-provider campaign conformance remains unverified; see [W3 candidate limits](docs/evolution/w3/ADAPTERS-CAMPAIGN.md).
@@ -20,16 +20,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Platform Capability Governance Standard (shard `core`) gains section 7.1, ECP contract authority and platform modes (`platform`, `hybrid`, `local`) per ADR-0046; the change is owner-reviewed under the shard `core` CODEOWNERS gate.
+- The ECP registry snapshot is refreshed from `contracts-v0.3.1` to `contracts-v0.4.0` (lock `ref` and SHA-256 updated): `Authn` resolves to `security.authn` by alias, and the new `design.login-pattern` and `design.mobile-tokens` capabilities are visible to `hseos capability-check`.
 - The capability intake guard inspects `MultiEdit` edits, denies any agent edit of `.hseos/config/platform-bindings.yaml` in every mode, and, with a bindings file, accepts `CORE_INTAKE_ACK` only as a whole-token intake identifier (the legacy path without bindings keeps its substring match). `hseos platform-bindings` exit codes: `check` 0/1/2, `guard` 0/2, `show` 1 on a registry integrity failure.
 
 ### Fixed
 
+- ADR-0046 section 8 and the capability-reuse policy state that the guard does not cover writes through the Bash tool and that the anti-downgrade (floor at `HEAD`, any existing `mode_ref` allows a downgrade) is a convenience barrier, not a security boundary; a Bash-tool deny is not implemented because it would be a heuristic and would not fix that floor. Hardening options are listed as follow-ups.
+- The shared-infrastructure policy registers MongoDB, Temporal, Mailpit, LocalStack, Gotenberg, GrowthBook and Meilisearch in the k3s mapping, merges the duplicate Keycloak rows into the neutral-hostname one, and records that GrowthBook, Gotenberg and NATS are provisioned but scaled to 0 replicas (cluster snapshot, 2026-10-06T01:39Z).
+- Capability resolution treats space, hyphen and underscore as the same separator, so `mobile tokens` and `mobile_tokens` resolve like `mobile-tokens`; `.` and `/` are not normalized, scores and tie-breaks are unchanged, and the `heuristic` fallback bridges a separator only for queries with at least two tokens of two alphanumerics each and four in total.
 - The `session-track.sh` installed-consumer hook test waits for the captured content, up to the handler's 5 s cap plus margin, instead of only for the capture file, which the fixture creates before writing it.
 - `agent-core compile` ends the emitted `.claude-plugin/marketplace.json` and `.codex-plugin/plugin.json` with a newline, and both files are excluded from prettier like the other compiler output, so repeated compiles leave no diff.
 
 ### Known limitations
 
-- The `contracts-v0.3.1` registry lacks the `Login` and `Authn` aliases (to be requested from the ECP); the snapshot-versus-ECP-ref drift job is not implemented yet.
+- Follow-up, not delivered: the intake guard lexer (bindings path) still hides code in two known cases, a regex literal containing `/*` and a backtick inside a string, regex or comment within a template `${}`; it also reads a `/` after a closing parenthesis as a division. The reviewed approach is a union of the previous lexing (`lexLegacy`) and a regex-aware lexing (`lexAware`), but the guard's decision must then be taken over ALL exports detected in both lexings (deny if any of them would deny), not over the first one. Minimal input showing why (hybrid mode, a `stable` capability for `ICacheStore`): `const r = /'/; export class Other {}` followed by a line `export class ICacheStore {}`; the previous release denies it and a first-export union allowed it. The reference commits are on the branches `task/l1-lexer-visible`, `task/l2-regex-zone` and `task/u1-lexer-union`.
+- The snapshot-versus-ECP-ref drift job is not implemented yet.
 
 ## [4.0.0-rc.0] — Unpublished candidate
 

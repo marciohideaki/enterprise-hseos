@@ -371,10 +371,23 @@ function packagesOf(capability) {
   return [...packages];
 }
 
+/**
+ * Canonical form for name-like comparisons: lower case, and any run of
+ * whitespace, `_` or `-` collapses to a single `-`, so `mobile tokens`,
+ * `Mobile_Tokens` and `mobile-tokens` compare equal. Only separators are
+ * touched: `.` and `/` stay, and glob matching (`globMatches`) never sees it;
+ * path globs only take part in the substring fallback, see `containsQuery`.
+ */
+function canonical(value) {
+  return String(value)
+    .toLowerCase()
+    .replaceAll(/[\s_-]+/g, '-');
+}
+
 function bestMatch(capability, query, queryLower) {
   const { symbols, pathGlobs } = matchHints(capability);
-  const equal = (value) => value.toLowerCase() === queryLower;
-  const starts = (value) => value.toLowerCase().startsWith(queryLower);
+  const equal = (value) => canonical(value) === queryLower;
+  const starts = (value) => canonical(value).startsWith(queryLower);
   if (equal(capability.name)) return 'name';
   if (capability.aliases.some((alias) => !alias.includes('/') && equal(alias))) return 'alias';
   if (capability.aliases.some((alias) => alias.includes('/') && equal(alias))) return 'contract';
@@ -386,23 +399,39 @@ function bestMatch(capability, query, queryLower) {
   return null;
 }
 
-function containsQuery(capability, queryLower) {
+/**
+ * Separator-insensitive substring matching can bridge a separator (`d c` finds
+ * `cache.typed-client`), which is noise for short queries. It is therefore limited
+ * to queries whose every token has at least two alphanumerics and that carry at
+ * least four alphanumerics in total; any other query keeps the literal match.
+ */
+function allowsSeparatorFallback(query) {
+  const tokens = query.split(/[\s_-]+/).filter(Boolean);
+  const alnum = (token) => (token.match(/[A-Za-z0-9]/g) || []).length;
+  return tokens.length > 1 && tokens.every((token) => alnum(token) >= 2) && tokens.reduce((sum, t) => sum + alnum(t), 0) >= 4;
+}
+
+function containsQuery(capability, query, queryCanonical) {
   const { symbols, pathGlobs } = matchHints(capability);
   const haystack = [capability.name, ...capability.aliases, ...symbols, ...pathGlobs, ...packagesOf(capability)];
-  return haystack.some((value) => value.toLowerCase().includes(queryLower));
+  const literal = query.toLowerCase();
+  const bridge = allowsSeparatorFallback(query);
+  return haystack.some((value) => value.toLowerCase().includes(literal) || (bridge && canonical(value).includes(queryCanonical)));
 }
 
 /**
  * Resolves a query to capabilities. Order of precedence (ADR-0046 §7): exact
  * name, alias, package or contract identifier, match hints (symbol, path glob),
  * prefix. Substring matching runs only when nothing else matched and is labelled
- * `heuristic`. Comparison is case-insensitive; ties break by capability name.
+ * `heuristic`. Comparison is case-insensitive and treats space, `-` and `_` as
+ * the same separator (in the heuristic only for queries of at least two tokens
+ * and four alphanumerics); ties break by capability name.
  */
 function resolveCapability(registry, query, { stacks } = {}) {
   if (typeof query !== 'string') return [];
   query = query.trim();
   if (query.length === 0) return [];
-  const queryLower = query.toLowerCase();
+  const queryLower = canonical(query);
   const toResult = (capability, matchedBy) => ({
     capability,
     matchedBy,
@@ -423,7 +452,7 @@ function resolveCapability(registry, query, { stacks } = {}) {
   if (query.length < 2 || !/[A-Za-z0-9]/.test(query)) return [];
   return ordered(
     registry.capabilities
-      .filter((capability) => containsQuery(capability, queryLower))
+      .filter((capability) => containsQuery(capability, query, queryLower))
       .map((capability) => toResult(capability, 'heuristic')),
   );
 }
