@@ -387,7 +387,7 @@ function canonical(value) {
 function bestMatch(capability, query, queryLower) {
   const { symbols, pathGlobs } = matchHints(capability);
   const equal = (value) => canonical(value) === queryLower;
-  const starts = (value) => canonical(value).startsWith(queryLower);
+  const starts = (value) => startsAtTokenBoundary(canonical(value), queryLower);
   if (equal(capability.name)) return 'name';
   if (capability.aliases.some((alias) => !alias.includes('/') && equal(alias))) return 'alias';
   if (capability.aliases.some((alias) => alias.includes('/') && equal(alias))) return 'contract';
@@ -395,8 +395,61 @@ function bestMatch(capability, query, queryLower) {
   if (symbols.some(equal)) return 'symbol';
   const queryPath = normalizeProjectPath(query);
   if (queryPath && pathGlobs.some((glob) => globMatches(glob, queryPath))) return 'path';
-  if ([capability.name, ...capability.aliases, ...symbols, ...packagesOf(capability)].some(starts)) return 'prefix';
+  if (
+    alnumCount(query) >= MIN_FUZZY_ALNUM &&
+    [capability.name, ...capability.aliases, ...symbols, ...packagesOf(capability)].some(starts)
+  ) {
+    return 'prefix';
+  }
   return null;
+}
+
+const MIN_FUZZY_ALNUM = 3;
+const TOKEN_SEPARATOR = /[./_\s-]/;
+
+function alnumCount(text) {
+  return (String(text).match(/[A-Za-z0-9]/g) || []).length;
+}
+
+/**
+ * Prefix rule: the (canonical) query must open the value. When it stops inside a
+ * token of the value, its last token must carry at least MIN_FUZZY_ALNUM
+ * alphanumerics, so `mobile tok` finds `mobile-tokens` and `mo` does not.
+ */
+function startsAtTokenBoundary(value, queryCanonical) {
+  if (!value.startsWith(queryCanonical)) return false;
+  const next = value.charAt(queryCanonical.length);
+  if (next === '' || TOKEN_SEPARATOR.test(next)) return true;
+  // A query that ends on a separator ('sso-') already stops at a token boundary.
+  if (TOKEN_SEPARATOR.test(queryCanonical.at(-1))) return true;
+  return alnumCount(queryCanonical.split(TOKEN_SEPARATOR).pop()) >= MIN_FUZZY_ALNUM;
+}
+
+/**
+ * True when `needle` occurs in `value` starting at a token start: the beginning
+ * of the value, right after a separator, or at a camelCase hump (`Store` in
+ * `ICacheStore`). `value` keeps its case so the hump can be seen; `needle` is
+ * lower case and compared case-insensitively.
+ */
+function occursAtTokenStart(value, needle) {
+  const lower = value.toLowerCase();
+  // Same end rule as the prefix: a hit that stops inside a token of the value needs a
+  // last query token with MIN_FUZZY_ALNUM alphanumerics (`mobile-t`, `ui.l` find nothing).
+  const shortTail = !TOKEN_SEPARATOR.test(needle.at(-1)) && alnumCount(needle.split(TOKEN_SEPARATOR).pop()) < MIN_FUZZY_ALNUM;
+  const endsAtBoundary = (index) => {
+    const next = lower.charAt(index + needle.length);
+    return !shortTail || next === '' || TOKEN_SEPARATOR.test(next);
+  };
+  if (lower.length !== value.length) return lower.includes(needle) && endsAtBoundary(lower.indexOf(needle));
+  for (let index = lower.indexOf(needle); index !== -1; index = lower.indexOf(needle, index + 1)) {
+    if (!endsAtBoundary(index)) continue;
+    if (index === 0) return true;
+    const before = value.charAt(index - 1);
+    const here = value.charAt(index);
+    if (TOKEN_SEPARATOR.test(before)) return true;
+    if (/[a-z0-9]/.test(before) && /[A-Z]/.test(here)) return true;
+  }
+  return false;
 }
 
 /**
@@ -416,13 +469,20 @@ function containsQuery(capability, query, queryCanonical) {
   const haystack = [capability.name, ...capability.aliases, ...symbols, ...pathGlobs, ...packagesOf(capability)];
   const literal = query.toLowerCase();
   const bridge = allowsSeparatorFallback(query);
-  return haystack.some((value) => value.toLowerCase().includes(literal) || (bridge && canonical(value).includes(queryCanonical)));
+  const bridged = (value) => occursAtTokenStart(String(value).replaceAll(/[\s_-]+/g, '-'), queryCanonical);
+  return haystack.some((value) => occursAtTokenStart(value, literal) || (bridge && bridged(value)));
 }
 
 /**
  * Resolves a query to capabilities. Order of precedence (ADR-0046 §7): exact
  * name, alias, package or contract identifier, match hints (symbol, path glob),
- * prefix. Substring matching runs only when nothing else matched and is labelled
+ * prefix. Exact matches work for any query length. `prefix` and `heuristic` are
+ * assertive: they need at least three alphanumerics in the query; a prefix must
+ * end on a token boundary of the value (or its last query token must have three
+ * alphanumerics, so `mobile tok` finds `mobile-tokens` but `mo` does not); the
+ * heuristic (substring) only matches at the start of a token of the value (start,
+ * after `. / _ - space`, or a camelCase hump), never in the middle of a word.
+ * Substring matching runs only when nothing else matched and is labelled
  * `heuristic`. Comparison is case-insensitive and treats space, `-` and `_` as
  * the same separator (in the heuristic only for queries of at least two tokens
  * and four alphanumerics); ties break by capability name.
@@ -448,8 +508,8 @@ function resolveCapability(registry, query, { stacks } = {}) {
     if (matchedBy) matches.push(toResult(capability, matchedBy));
   }
   if (matches.length > 0) return ordered(matches);
-  // Substring matching is noisy: require at least two characters, one of them alphanumeric.
-  if (query.length < 2 || !/[A-Za-z0-9]/.test(query)) return [];
+  // Substring matching is noisy: require at least three alphanumerics in the query.
+  if (alnumCount(query) < MIN_FUZZY_ALNUM) return [];
   return ordered(
     registry.capabilities
       .filter((capability) => containsQuery(capability, query, queryLower))

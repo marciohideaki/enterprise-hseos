@@ -191,7 +191,10 @@ registry (snapshot by default, a user-layer `ecp_root`/`registry` otherwise) by 
 or contract, `match` hints and prefix (case-insensitive; space, `-` and `_` count as the same separator,
 so `mobile tokens` finds `mobile-tokens`; `.` and `/` are not normalized, only the separators around them, and the
 `heuristic` fallback bridges a separator only for queries of two or more tokens, each with at least two
-alphanumerics, and four or more alphanumerics in total); a filename scan is kept only as a `heuristic` fallback. The JSON
+alphanumerics, and four or more alphanumerics in total). Prefix and `heuristic` matching are assertive: the
+query needs at least three alphanumerics, a prefix must end on a token boundary (or its last token has three
+alphanumerics, so `mobile tok` finds `mobile-tokens` but `ui` does not), and a substring only counts at the start of a
+token or a camelCase hump, never in the middle of a word, and a hit that stops mid-token needs a last query token of three alphanumerics (`ui.l`, `mobile-t` match nothing); exact matches work at any length. A filename scan is kept only as a `heuristic` fallback. The JSON
 output reports the effective mode and the layer it came from. Exit codes: 0 completed, 1 bindings or
 registry failed validation, 2 usage error.
 
