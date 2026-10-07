@@ -11,6 +11,7 @@ const os = require('node:os');
 const http = require('node:http');
 const { spawn } = require('node:child_process');
 const { randomUUID } = require('node:crypto');
+const { freePort, spawnOnFreePort, stopChild } = require('./helpers/free-port');
 
 let Database;
 try {
@@ -41,10 +42,6 @@ async function it(name, fn) {
   }
 }
 
-function pickPort() {
-  return 3300 + Math.floor(Math.random() * 200);
-}
-
 function fetchResponse(port, path_, token = null) {
   return new Promise((resolve, reject) => {
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -64,27 +61,12 @@ async function fetchJson(port, path_, token = null) {
   return JSON.parse(response.body);
 }
 
-function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
-  return new Promise((resolve, reject) => {
-    const t0 = Date.now();
-    const tick = async () => {
-      try {
-        if (await predicate()) return resolve();
-      } catch {
-        /* swallow */
-      }
-      if (Date.now() - t0 > timeoutMs) return reject(new Error('timeout'));
-      setTimeout(tick, intervalMs);
-    };
-    tick();
-  });
-}
-
 (async () => {
   console.log('State UI side-car smoke');
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-ui-'));
   const dbPath = path.join(tmp, '.hseos', 'state', 'project.db');
-  const port = pickPort();
+  // Only used by cases that never bind (rejected before listen / fake records).
+  const probePort = await freePort();
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   const db = new Database(dbPath);
   const { runMigrations } = require('../tools/mcp-project-state/lib/migrations');
@@ -110,7 +92,7 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
   await it('non-loopback binding fails closed even with authentication', async () => {
     let rejected = false;
     try {
-      start({ port, host: '0.0.0.0', dbPath, pollMs: 200, staleMinutes: 10, authToken: token });
+      start({ port: probePort, host: '0.0.0.0', dbPath, pollMs: 200, staleMinutes: 10, authToken: token });
     } catch (error) {
       rejected = /binds only to loopback/.test(error.message);
     }
@@ -144,7 +126,7 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
       server: 'hseos-state-ui',
       instanceId: randomUUID(),
       entrypoint: SERVER,
-      port,
+      port: probePort,
       host: '127.0.0.1',
       pid: unrelated.pid,
       startedAt: new Date().toISOString(),
@@ -161,27 +143,28 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
   await it('single-project side-car refuses to create a missing state database', async () => {
     let rejected = false;
     try {
-      start({ port, host: '127.0.0.1', dbPath: path.join(tmp, 'missing.db'), pollMs: 200, staleMinutes: 10 });
+      start({ port: probePort, host: '127.0.0.1', dbPath: path.join(tmp, 'missing.db'), pollMs: 200, staleMinutes: 10 });
     } catch (error) {
       rejected = /does not exist/.test(error.message);
     }
     if (!rejected) throw new Error('missing database was created or accepted');
   });
 
-  const child = spawn(
-    process.execPath,
-    [SERVER, `--port=${port}`, `--db=${dbPath}`, '--poll-ms=200', '--auth-token-env=HSEOS_TEST_UI_TOKEN', `--instance-id=${instanceId}`],
-    {
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, HSEOS_TEST_UI_TOKEN: token },
-    },
+  const spawned = await spawnOnFreePort(
+    (p) => [
+      SERVER,
+      `--port=${p}`,
+      `--db=${dbPath}`,
+      '--poll-ms=200',
+      '--auth-token-env=HSEOS_TEST_UI_TOKEN',
+      `--instance-id=${instanceId}`,
+    ],
+    { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, HSEOS_TEST_UI_TOKEN: token } },
+    instanceId,
   );
-
-  child.on('error', (e) => console.error('spawn error', e));
+  const { child, port } = spawned;
 
   try {
-    await waitFor(() => fetchJson(port, '/health').then((r) => r.instance_id === instanceId));
-
     await it('requests without the configured bearer token are rejected', async () => {
       const response = await fetchResponse(port, '/api/state');
       if (response.statusCode !== 401) throw new Error(`status ${response.statusCode}`);
@@ -230,9 +213,8 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
       if (fs.existsSync(recordPath)) throw new Error('instance record remained after stop');
     });
   } finally {
-    child.kill('SIGTERM');
-    await new Promise((r) => setTimeout(r, 200));
-    if (!child.killed) child.kill('SIGKILL');
+    await stopChild(child);
+    fs.rmSync(tmp, { recursive: true, force: true });
   }
 
   console.log(`\n${pass} passed, ${fail} failed`);
