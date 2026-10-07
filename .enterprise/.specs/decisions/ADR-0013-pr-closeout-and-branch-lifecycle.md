@@ -127,6 +127,12 @@ The canonical governed branch prefixes are:
 
 ---
 
+## Amendment: Engineering Leadership gate
+
+`hseos pr closeout` refuses PRs whose files match `governance.engineering_leadership_paths` (default: the constitution and core specs) unless a comment from a login in `governance.engineering_leadership` (default: `marciohideaki`) contains "Engineering Leadership approval" and the approved head SHA. An older SHA stays valid only if the restricted paths are identical between `base...approved` and `base...head`. `--engineering-leadership-approval` lets an authenticated leader publish the canonical comment for the current head; otherwise it is refused. `--approved` is still required, and `--dry-run` never comments and never fetches. The file list is read from the paginated pull-request files API (not the 100-file capped `gh pr view` list) and includes rename origins; if the complete list cannot be fetched for a PR listing 100+ files, closeout fails closed. The approved SHA must be labelled as the head in the comment and be an ancestor of the current head.
+
+---
+
 ## Validation
 
 - `npm run test:governance` covers commit-message validation, worktree manager invariants, branch-protection desired state, and PR closeout policy checks.

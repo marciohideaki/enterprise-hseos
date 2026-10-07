@@ -185,6 +185,13 @@ governance:
     - performance_affecting_change
     - governance_modification
     - standard_exception
+  # GitHub logins (with or without "@") whose approval comment is required to close out
+  # PRs that touch engineering_leadership_paths (Enterprise Constitution section 13).
+  engineering_leadership:
+    - marciohideaki
+  engineering_leadership_paths:
+    - ".enterprise/.specs/constitution/"
+    - ".enterprise/.specs/core/"
   skill_loading: tiered
   stop_on_ambiguity: true
   human_approval_required_for:
