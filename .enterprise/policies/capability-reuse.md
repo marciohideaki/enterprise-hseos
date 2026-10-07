@@ -34,7 +34,7 @@ Each project has one mode, recorded in `.hseos/config/platform-bindings.yaml`:
 | Mode | `capability-check` | Intake guard | Intake required |
 |---|---|---|---|
 | `platform` | Resolves through the registry; verdict `consume` or `extend` | Blocks a new shareable export without intake | Yes |
-| `hybrid` | Same as `platform`; verdicts are advisory unless an implementation is `stable` | Blocks only when the export matches a registry entry's `match` hints and that entry has a `stable` implementation for the project's stack; otherwise advisory | Only in the blocking case |
+| `hybrid` | Same as `platform`; verdicts are advisory unless an implementation is `stable` | Blocks only when any export of the file matches a registry entry's `match` hints and that entry has a `stable` implementation for the project's stack; otherwise advisory | Only in the blocking case |
 | `local` | Informational | Never blocks | No |
 
 A project without the bindings file, or whose file fails validation, is treated as `platform`
