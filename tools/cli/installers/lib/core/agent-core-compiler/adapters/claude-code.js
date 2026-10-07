@@ -25,11 +25,24 @@
  * are declared in the binding but have no source in this pipeline — there is no
  * rules-source or workflows-source to compile from. Emitting empty directories
  * would advertise a surface with no content, which `PLATFORM_SURFACES` exists to
- * prevent. `.claude/settings.json` and `.mcp.json` remain open.
+ * prevent. Decision: they stay unemitted until a rules/workflows source exists.
+ *
+ * MCP surfaces (ADR-0008, Wave 3): when the active MCP bundles contain
+ * client-enabled stdio servers, the adapter emits
+ *   - .mcp.json              `mcpServers` for those servers
+ *   - .claude/settings.json  `allowedMcpServers` naming the same servers, so the
+ *                            project never ships an empty allow-list that blocks
+ *                            the compiled .mcp.json
+ * Both files are user-shared: only the managed key is merged (existing user
+ * keys and entries survive; same-id servers are refreshed). Without servers
+ * nothing is written and existing files are left untouched. An unparseable
+ * existing file is never overwritten.
  */
 
 const path = require('node:path');
 const fs = require('fs-extra');
+const yaml = require('yaml');
+const { resolveServerCommand } = require('./codex');
 
 function buildClaudeHooksJson(hooks) {
   const activeHooks = hooks.filter((h) => !h.status || h.status === 'active');
@@ -149,6 +162,82 @@ async function writeClaudeAgents(root, agents) {
   return emitted;
 }
 
+async function loadClaudeMcpServers(root, sources) {
+  const agentsDirName = sources.agentsDirName || '.agents';
+  const registryPath = path.join(root, agentsDirName, 'mcp', 'registry.yaml');
+  const enabled = (sources.mcpServers || []).filter((s) => s && s.id && s.client_enabled !== false);
+  if (enabled.length === 0 || !(await fs.pathExists(registryPath))) return [];
+
+  const registry = yaml.parse(await fs.readFile(registryPath, 'utf8')) || {};
+  const bundleDefs = registry.bundles || {};
+  const bundleCache = new Map();
+  const servers = [];
+  for (const entry of enabled) {
+    const def = bundleDefs[entry.bundle];
+    if (!def?.file) continue;
+    if (!bundleCache.has(entry.bundle)) {
+      const file = path.join(path.dirname(registryPath), def.file);
+      bundleCache.set(entry.bundle, (await fs.pathExists(file)) ? yaml.parse(await fs.readFile(file, 'utf8')) || {} : {});
+    }
+    const server = (bundleCache.get(entry.bundle).servers || []).find((s) => s.id === entry.id);
+    const spec = server && resolveServerCommand(server);
+    if (!spec?.command) continue;
+    const config = { command: spec.command, args: spec.args || [] };
+    if (server.env && Object.keys(server.env).length > 0) config.env = server.env;
+    servers.push({ id: entry.id, config });
+  }
+  return servers;
+}
+
+async function readJsonObject(file) {
+  if (!(await fs.pathExists(file))) return {};
+  try {
+    const value = JSON.parse(await fs.readFile(file, 'utf8'));
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Emit `.mcp.json` and `.claude/settings.json` for the active MCP servers,
+ * merging only the managed keys into any existing user file.
+ */
+async function writeClaudeMcpSurfaces(root, sources = {}) {
+  const servers = await loadClaudeMcpServers(root, sources);
+  if (servers.length === 0) return [];
+
+  const emitted = [];
+  const mcpPath = path.join(root, '.mcp.json');
+  const mcpDoc = await readJsonObject(mcpPath);
+  const settingsPath = path.join(root, '.claude', 'settings.json');
+  const settingsDoc = await readJsonObject(settingsPath);
+
+  if (mcpDoc) {
+    const merged = { ...mcpDoc.mcpServers };
+    for (const { id, config } of servers) merged[id] = config;
+    await fs.writeFile(mcpPath, `${JSON.stringify({ ...mcpDoc, mcpServers: merged }, null, 2)}\n`, 'utf8');
+    emitted.push('.mcp.json');
+  } else {
+    console.warn('[agent-core] .mcp.json is not a valid JSON object; left untouched');
+  }
+
+  if (settingsDoc) {
+    const existing = Array.isArray(settingsDoc.allowedMcpServers) ? settingsDoc.allowedMcpServers : [];
+    const names = new Set(existing.map((e) => e?.serverName).filter(Boolean));
+    const merged = [...existing];
+    for (const { id } of servers) {
+      if (!names.has(id)) merged.push({ serverName: id });
+    }
+    await fs.ensureDir(path.dirname(settingsPath));
+    await fs.writeFile(settingsPath, `${JSON.stringify({ ...settingsDoc, allowedMcpServers: merged }, null, 2)}\n`, 'utf8');
+    emitted.push('.claude/settings.json');
+  } else {
+    console.warn('[agent-core] .claude/settings.json is not a valid JSON object; left untouched');
+  }
+  return emitted;
+}
+
 async function writePlatformAdapters(root, hooks, platforms, sources = {}) {
   if (!platforms.includes('claude-code')) return;
 
@@ -159,6 +248,7 @@ async function writePlatformAdapters(root, hooks, platforms, sources = {}) {
 
   await writeClaudeSkills(root, sources.skills);
   await writeClaudeAgents(root, sources.agents);
+  await writeClaudeMcpSurfaces(root, sources);
 }
 
 module.exports = {
@@ -166,4 +256,5 @@ module.exports = {
   buildClaudeHooksJson,
   writeClaudeSkills,
   writeClaudeAgents,
+  writeClaudeMcpSurfaces,
 };
