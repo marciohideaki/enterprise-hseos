@@ -670,6 +670,7 @@ module.exports = {
   SNAPSHOT_LOCK_FILE,
   loadCapabilityRegistry,
   matchExport,
+  readSnapshotLock,
   resolveCapability,
   validateCapabilityRegistry,
 };
