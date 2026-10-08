@@ -17,6 +17,8 @@ const {
   isProtectedBindingsPath,
   qualifies,
   stripNonCode,
+  tokenizeJs,
+  tokenizeJsViews,
 } = require('../tools/cli/lib/capability-intake-guard');
 const command = require('../tools/cli/commands/platform-bindings');
 
@@ -1123,6 +1125,14 @@ const SUPERSET_CORPUS = [
   'const s = `${/`/.test(x)} export class ICacheStore {}`;',
   'const s = `${/* ` */ 1} export class ICacheStore {}`;',
   'const s = `${/`/.test(x)} export class Other {}`;\nexport class Other2 {}\nexport class ICacheStore {}',
+  // master limitations the real tokenizer closes: a division followed by a regex that holds a comment opener or a quote
+  "x = a / /[/*]/// '\nexport class ICacheStore {}",
+  String.raw`x = y / /\//.source / /'/; export class ICacheStore {} // '`,
+  "let a\n/'/.test(a); export class ICacheStore {} //'",
+  // TypeScript: a non-null `!` or a type literal before a regex (the master denies them; the guard must too)
+  "x = a! / /'/; export class ICacheStore {} // '",
+  "type A = { a: 1 } /'/; export class ICacheStore {} // '",
+  "/await /'/}*/export class ICacheStore {} </a'(=> /a",
   'const a = 1;',
 ];
 
@@ -1300,21 +1310,43 @@ test('guard: a regex after `)`, `}` or a keyword, and lone CR / U+2028 / U+2029 
     'x = a / /[/*]/.source; export class ICacheStore {} /* */',
     'if (a) /[/*]/// c\nexport class ICacheStore {}\n/* */',
     'x="a\\\r\nb"; export class ICacheStore {} // "',
-    "x='a\\\r\nb'; export class ICacheStore {} // '",
+    "x='a\\\r\nb'; export class ICacheStore {} // '", // `for await (` is a loop header: the `/'/` body is a regex, not a division followed by a string.
+    "for await (a of b) /'/.test(a); export class ICacheStore {} //'",
   ];
   for (const content of wideAndContinuation) {
     assert.equal(run(content).after, 2, `${JSON.stringify(content)} must be denied`);
     assert.ok(detectExports(content).symbols.includes('ICacheStore'), JSON.stringify(content));
   }
-  // Remaining limitation, equal to master: a division followed by a regex combined with `//` or a quote still hides code.
-  // The union-of-views approach has a limit here; the next strategy is a real tokenizer (decision recorded in run
-  // 20261007-1211-pendencies-waves). Pinned so any change in behaviour is deliberate.
-  const knownAllow = [
+  // A division followed by a regex that holds `//` or a quote: the tokenizer reads both literals, so these are denied.
+  const divisionThenRegex = [
     "x = a / /[/*]/// '\nexport class ICacheStore {}\n/* */",
     String.raw`x = y / /\//.source / /'/; export class ICacheStore {} // '`,
   ];
-  for (const content of knownAllow) {
-    assert.deepEqual(run(content), { before: 0, after: 0 }, `${JSON.stringify(content)} is a known limitation`);
+  for (const content of divisionThenRegex) {
+    assert.equal(run(content).after, 2, `${JSON.stringify(content)} must be denied`);
+    assert.ok(detectExports(content).symbols.includes('ICacheStore'), JSON.stringify(content));
+  }
+  // Automatic semicolon insertion: after a declarator, `debugger` or an import, a line break and `/` open a regex (the
+  // division would be a syntax error), and the `/` after an ordinary operand and a line break may be either. The
+  // tokenizer cannot tell without a parser, so the guard inspects every combination of readings.
+  const semicolonInsertion = [
+    "let a\n/'/.test(a); export class ICacheStore {} //'",
+    "var a\n/'/.test(a); export class ICacheStore {} //'",
+    "var a,b\n/'/.test(a); export class ICacheStore {} //'",
+    "debugger\n/'/.test(a); export class ICacheStore {} //'",
+    "import 'y'\n/'/.test(a); export class ICacheStore {} //'",
+    "import x from 'y'\n/'/.test(a); export class ICacheStore {} //'",
+    "import * as n from 'z'\n/'/.test(a); export class ICacheStore {} //'",
+    "export * from 'z'\n/'/.test(a); export class ICacheStore {} //'",
+    // A true division across a line break whose operands hold quotes: the regex reading would swallow the export, the division one shows it.
+    'a\n/ 2 + "/" + "x" + "y"; export class ICacheStore {} //"',
+    // Several ambiguous slashes: the readings combine, and beyond the limit the raw text is inspected.
+    `a\n/ 2 + "/" + "x"; b\n/'/.test(b); export class ICacheStore {} //'`,
+    `${'c\n/ 2 / 3;\n'.repeat(12)}d\n/'/.test(d); export class ICacheStore {} //'`,
+  ];
+  for (const content of semicolonInsertion) {
+    assert.equal(run(content).after, 2, `${JSON.stringify(content)} must be denied`);
+    assert.ok(detectExports(content).symbols.includes('ICacheStore'), JSON.stringify(content));
   }
   // No new false positives on the common shapes.
   for (const content of [
@@ -1393,4 +1425,614 @@ test('lexer: the sliced legacy lexer equals the pinned legacy lexer, and a reali
   const milliseconds = Number(process.hrtime.bigint() - started) / 1e6;
   assert.ok(found.symbols.includes('R') && found.symbols.includes('helper'));
   assert.ok(milliseconds < 200, `realistic 1 MB took ${milliseconds} ms`);
+});
+
+test('guard: ambiguous slashes cost a constant number of passes, however many there are (1 MB)', () => {
+  const filler = "const q = 'x'; // c\n".repeat(Math.ceil(1_000_000 / 21)) + 'export class R {}';
+  const fastest = (content) => {
+    let best = Number.POSITIVE_INFINITY;
+    for (let round = 0; round < 4; round += 1) {
+      const started = process.hrtime.bigint();
+      const found = detectExports(content);
+      best = Math.min(best, Number(process.hrtime.bigint() - started) / 1e6);
+      assert.ok(found.symbols.includes('R'));
+    }
+    return best;
+  };
+  const baseline = fastest(filler);
+  for (const count of [1, 2, 8, 9, 16, 64]) {
+    const ambiguous = Array.from({ length: count }, (_, index) => `let v${index} = a\n/x${index}/g.test(b)\n`).join('');
+    const milliseconds = fastest(ambiguous + filler);
+    assert.ok(milliseconds < 200, `${count} ambiguous slashes + 1 MB took ${milliseconds} ms`);
+    assert.ok(milliseconds < baseline * 2.5 + 20, `${count} ambiguous slashes took ${milliseconds} ms against ${baseline} ms without`);
+  }
+});
+
+test('guard: deep unclosed braces with many templates, and unclosed export lists, stay linear', () => {
+  const timed = (content) => {
+    const started = process.hrtime.bigint();
+    const found = detectExports(content);
+    return { found, milliseconds: Number(process.hrtime.bigint() - started) / 1e6 };
+  };
+  // Every template opening used to scan the whole stack of unclosed braces.
+  for (const length of [100_000, 400_000]) {
+    const { found, milliseconds } = timed('{'.repeat(length / 2) + '`a` '.repeat(length / 2) + '\nexport class Z {}');
+    assert.ok(found.symbols.includes('Z'));
+    assert.ok(milliseconds < 400, `${length} chars of braces and templates took ${milliseconds} ms`);
+  }
+  // Every `export {` used to rescan and re-split the text up to one distant closing brace.
+  for (const content of [
+    'export {a,'.repeat(20_000) + '}',
+    'export { a,'.repeat(10_000) + 'export class R {}',
+    'export { '.repeat(20_000) + '}',
+  ]) {
+    const { milliseconds } = timed(content);
+    assert.ok(milliseconds < 400, `${content.length} chars of unclosed export lists took ${milliseconds} ms`);
+  }
+  // The aliases of nested and shared lists are still all found, and a `from` list is still a forward.
+  assert.deepEqual(detectExports('export { a as A1, export { b as B1, c as C1 }').symbols, ['A1', 'C1', 'B1']);
+  assert.deepEqual(detectExports('export { x as X1 }\nexport { y as Y1 }').symbols, ['X1', 'Y1']);
+  assert.equal(detectExports('export { export { b as B2 } from "m"'), null);
+  assert.deepEqual(detectExports('export { type t as T1, default as d, z as default }').symbols, ['T1', 'd']);
+});
+
+test('guard: a hidden export behind an ambiguous slash shows however many other ones the text has', () => {
+  for (const count of [0, 1, 8, 9, 64, 300]) {
+    const ambiguous = Array.from({ length: count }, (_, index) => `let v${index} = a\n/x${index}/g.test(b)\n`).join('');
+    const content = `${ambiguous}let a\n/'/.test(b); export class Hidden {} // '\n`;
+    assert.ok(detectExports(content).symbols.includes('Hidden'), `${count} ambiguous slashes before it`);
+    assert.ok(detectExports(`${content}${ambiguous}`).symbols.includes('Hidden'), `${count} ambiguous slashes around it`);
+  }
+  // Readings that leave a line in different states fail closed: the rest of the text is inspected as written.
+  const diverging = "let a\n/'/.test(b)\nconst note = 'x'; export class Late {} // '\n";
+  assert.ok(tokenizeJsViews(diverging).some((view) => /export class Late/.test(view)));
+});
+
+test('tokenizeJs: regex versus division is decided by the previous significant token', () => {
+  const exportedAfter = (content, symbol) => {
+    const found = detectExports(content);
+    assert.ok(found && found.symbols.includes(symbol), `${JSON.stringify(content)} must export ${symbol}`);
+  };
+  // A regex after the `)` of if, while or for, after a keyword, an operator and at the start.
+  exportedAfter("if (x) /'/.test(y); export class A1 {} // '", 'A1');
+  exportedAfter("while (x) /'/.test(y); export class A2 {} // '", 'A2');
+  exportedAfter("for (;;) /'/.test(y); export class A3 {} // '", 'A3');
+  exportedAfter("function f() { return /'/.test(y); } export class A4 {} // '", 'A4');
+  exportedAfter("x = typeof /'/; export class A5 {} // '", 'A5');
+  exportedAfter("x = a || /'/.test(y); export class A6 {} // '", 'A6');
+  exportedAfter("/'/.test(y); export class A7 {} // '", 'A7');
+  exportedAfter("for (const k of /'/.source) k; export class A8 {} // '", 'A8');
+  // A division after the `)` of a call, after an index, after a number, after `++` and after a property named like a keyword.
+  for (const division of ['f(a) / 2', 'a[0] / 2', '10 / 2', 'a++ / 2', 'a.in / 2', 'this / 2', '(a + b) / 2', '"s" / 2']) {
+    exportedAfter(`x = ${division}; // it's\nexport class B1 {}`, 'B1');
+    exportedAfter(`x = ${division}; /* it's */ export class B2 {}`, 'B2');
+  }
+  assert.equal(tokenizeJs('x = f(a) / 2 / 3; y = "export class Hidden {}";'), 'x = f(a) / 2 / 3; y = "";');
+  // A `}` that closes a block lets a regex follow, one that closes an object does not.
+  exportedAfter("{ x; } /'/.test(y); export class C1 {} // '", 'C1');
+  exportedAfter("if (a) { b; } else { c; } /'/.test(y); export class C2 {} // '", 'C2');
+  exportedAfter("function g() {} /'/.test(y); export class C3 {} // '", 'C3');
+  exportedAfter("class K {} /'/.test(y); export class C4 {} // '", 'C4');
+  exportedAfter("function h() {}\n{ f(); } /'/.test(y); export class C8 {} // '", 'C8');
+  exportedAfter("x = y\n{ f(); } /'/.test(y); export class C9 {} // '", 'C9');
+  // After a line break `++` and `--` are prefix operators (no postfix across a line break), so a regex follows them.
+  exportedAfter("x = a\n++/'/.y; export class H1 {} //'", 'H1');
+  exportedAfter("x = a\n--/'/.y; export class H2 {} //'", 'H2');
+  exportedAfter("x = a\n++/'/.y; export class H3 {} /'/g", 'H3');
+  exportedAfter('a\n--/"/.y; export class H4 {} /"/.z', 'H4');
+  exportedAfter("x = a\n++ /* c */ /'/.y; export class H5 {} //'", 'H5');
+  exportedAfter("x = f(a)\r\n++/'/.y; export class H6 {} //'", 'H6');
+  exportedAfter("x = a++ / 2; // '\nexport class H7 {}", 'H7');
+  exportedAfter("x = {} / 2; // '\nexport class C5 {}", 'C5');
+  exportedAfter("x = { k: 1 } / 2; // '\nexport class C6 {}", 'C6');
+  exportedAfter("x = function () {} / 2; // '\nexport class C7 {}", 'C7');
+  // Nested templates keep their expressions visible and their text blank.
+  assert.equal(tokenizeJs("x = `a ${ `b ${c} '` } d`;").replaceAll(/\s+/g, ' '), 'x = "" "" c "" "";');
+  assert.equal(tokenizeJs("a--\n{ x; }\n/'/.test(b); export class C8 {} // '").includes('export class C8'), true);
+  assert.ok(!/Hidden/.test(tokenizeJs('x = `export class Hidden {} ${a} ${`export class Hidden {}`}`;')));
+  assert.ok(/\ba\b/.test(tokenizeJs('x = `${a}`;')) && /\bb\b/.test(tokenizeJs('x = `${`${b}`}`;')));
+  exportedAfter("x = `${/'/.test(a)}`; export class D1 {} // '", 'D1');
+  exportedAfter('x = `${"}"} ${\'`\'}`; export class D2 {}', 'D2');
+  // Line terminators: CR, U+2028 and U+2029 end a line comment; CRLF, CR and U+2028 continue a string.
+  for (const terminator of ['\r', ' ', ' ']) {
+    exportedAfter(`// note${terminator}export class E1 {}`, 'E1');
+    exportedAfter(`#! node's${terminator}export class E2 {}`, 'E2');
+  }
+  exportedAfter('x = "a\\\r\nb"; export class E3 {} // "', 'E3');
+  exportedAfter("x = 'a\\\rb'; export class E4 {} // '", 'E4');
+  exportedAfter("x = 'a\\ b'; export class E5 {} // '", 'E5');
+  exportedAfter("x = 'a\\ b'; export class E6 {} // '", 'E6');
+  exportedAfter("#!/usr/bin/env node '\nexport class E7 {}", 'E7');
+  // Unfinished constructs stay visible; the tokenizer never throws.
+  exportedAfter('x = `unclosed export class F1 {}', 'F1');
+  exportedAfter('/* unclosed export class F2 {}', 'F2');
+  exportedAfter('x = "unclosed export class F3 {}\nexport class F4 {}', 'F4');
+  assert.ok(tokenizeJs('x = "unclosed export class F3 {}\n').includes('export class F3'));
+  for (const garbage of ['}}}', ')))', '${', '`${', '`${`${', '/', '//', '/*', '\\', '"\\', '((((', '{`}`}', 'a ? /']) {
+    assert.equal(typeof tokenizeJs(garbage), 'string', garbage);
+  }
+  // TypeScript, JSX and decorators are tolerated without parsing.
+  exportedAfter('@Injectable({ providedIn: "root" })\nexport class G1 { constructor(private a: Map<string, number>) {} }', 'G1');
+  exportedAfter('const el = <div className="x">{a / 2}</div>;\nexport class G2 {}', 'G2');
+});
+
+// Differential fuzz against acorn (devDependency, tests only). The generator writes valid JavaScript from fragments (divisions,
+// regex literals in every position, strings holding quotes and comment openers, nested templates, comments, blocks versus
+// objects, `if (...)` followed by a regex); for each program that acorn parses, every token acorn reads must come out of
+// `tokenizeJs` the same way: comments, strings and template text blank, everything else (identifiers, keywords, numbers,
+// punctuators, regex literals, the code inside `${}`) visible. Fixed seed, so a failure reproduces.
+const acorn = require('acorn');
+
+const FUZZ_NEWLINES = ['\n', '\n', '\n', '\r\n', '\r', ' ', ' '];
+const FUZZ_IDENTS = ['a', 'b', 'c', 'x', 'y', 'total', 'of', 'async', 'let', 'e1'];
+const FUZZ_STRINGS = [
+  '"it\'s // not"',
+  "'a /* b'",
+  '"`"',
+  String.raw`'\''`,
+  '"x"',
+  "'//'",
+  '"/*"',
+  '"*/"',
+  '"a\\\nb"',
+  '"a\\\r\nb"',
+  "'a\\ b'",
+  String.raw`"\u0041"`,
+  '""',
+  '"}"',
+  "'${'",
+];
+const FUZZ_REGEXES = [
+  '/ab+/g',
+  '/[/*]/',
+  "/'/",
+  '/"/',
+  String.raw`/\//`,
+  '/`/',
+  '/[`]/',
+  '/[/]/',
+  String.raw`/a\/*b/`,
+  String.raw`/\//g`,
+  '/x/',
+  '/[\'"]/u',
+  '/${/',
+  String.raw`/\*/`,
+];
+const FUZZ_NUMBERS = ['1', '2.5', '0x10', '1e3', '.5', '10n', '1_000', '0b11'];
+const FUZZ_BINOPS = ['+', '-', '*', '/', '%', '&&', '||', '==', '<', '>', '??', '&', '|', '**'];
+
+function fuzzRandom(seed) {
+  let state = seed;
+  return () => {
+    state = (Math.imul(state, 1_103_515_245) + 12_345) & 0x7f_ff_ff_ff;
+    return state / 0x7f_ff_ff_ff;
+  };
+}
+
+function generateJs(random) {
+  const pick = (list) => list[Math.floor(random() * list.length)];
+  const nl = () => (random() < 0.7 ? '\n' : pick(FUZZ_NEWLINES));
+  const ws = () => pick(['', ' ', ' ', '  ', '\t']);
+  const comment = () =>
+    pick(['', '', '', `// c ' " \` /*${nl()}`, '/* c \' " ` // */', `/* multi${nl()}line ' */`, `// export class Fake {}${nl()}`]);
+  function templateExpr(depth) {
+    return pick([
+      () => FUZZ_IDENTS[0],
+      () => `a ${pick(FUZZ_BINOPS)} b`,
+      () => `a / b`,
+      () => `${pick(FUZZ_STRINGS)}`,
+      () => `/'/.test(a)`,
+      () => `{ x: 1 }.x`,
+      () => `f({ k: a / 2 })`,
+      () => (depth < 3 ? template(depth + 1) : '1'),
+      () => `(a) / ${pick(FUZZ_REGEXES)}.source`,
+      () => `a ? "}" : '{'`,
+      () => `() => { return a / 2 }`,
+    ])();
+  }
+  function template(depth = 0) {
+    let result = '`';
+    for (let count = Math.floor(random() * 3); count >= 0; count -= 1) {
+      result += pick(['', 'x', ' // ', " ' ", ' /* ', '"', '\\`', '\\${', '$', '{}', '}', '\n', '\r\n', ' ']);
+      if (random() < 0.7) result += '${' + ws() + templateExpr(depth) + ws() + '}';
+    }
+    return result + pick(['', 'x', "'", '/']) + '`';
+  }
+  function atom(depth) {
+    const roll = random();
+    if (roll < 0.2) return pick(FUZZ_IDENTS);
+    if (roll < 0.28) return pick(FUZZ_NUMBERS);
+    if (roll < 0.4) return pick(FUZZ_STRINGS);
+    if (roll < 0.5) return pick(FUZZ_REGEXES);
+    if (roll < 0.6) return template();
+    if (depth > 3) return pick(FUZZ_IDENTS);
+    return pick([
+      () => `(${expr(depth + 1)})`,
+      () => `f(${expr(depth + 1)}, ${expr(depth + 1)})`,
+      () => `[${expr(depth + 1)}, ${expr(depth + 1)}]`,
+      () => `({ k: ${expr(depth + 1)}, "q": ${pick(FUZZ_REGEXES)} })`,
+      () => `${pick(FUZZ_IDENTS)}${pick(['++', '--'])}`,
+      () => `typeof ${pick(FUZZ_REGEXES)}`,
+      () => `void ${pick(FUZZ_REGEXES)}`,
+      () => `new ${pick(['RegExp', 'Date'])}(${pick(FUZZ_STRINGS)})`,
+      () => `(() => { return ${expr(depth + 1)} })()`,
+      () => `function (p) { return p / 2 }`,
+      () => `(function () {}) / 2`,
+      () => `a.in / 2`,
+      () => `a.return / b / c`,
+      () => `a?.b / 2`,
+      () => `${pick(FUZZ_REGEXES)}.test(a) / 2`,
+      () => `a[0] / ${pick(FUZZ_REGEXES)}.source`,
+      () => `a\`tpl\` / 2`,
+      () => `{} / 2`.replace('{} / 2', '({}) / 2'),
+      () => `${pick(FUZZ_IDENTS)}${pick(['++', '--'])} / ${pick(FUZZ_REGEXES)}.source`,
+      () => `await_ / ${pick(FUZZ_REGEXES)}.source`,
+      () => `this / 1`,
+      () => `null / 1`,
+    ])();
+  }
+  function expr(depth = 0) {
+    let result = atom(depth);
+    for (let count = Math.floor(random() * 3); count > 0; count -= 1) {
+      result += `${ws()}${pick(FUZZ_BINOPS)}${ws()}${atom(depth + 1)}`;
+    }
+    return result;
+  }
+  function statement(depth = 0) {
+    const sep = nl();
+    const stmts = {
+      let: () => `let v${Math.floor(random() * 99)} = ${expr()};`,
+      assign: () => `x = ${expr()}${pick([';', ';', ''])}${nl()}`,
+      call: () => `f(${expr()});`,
+      ifRegex: () => `if (${expr()}) ${pick(FUZZ_REGEXES)}.test(${pick(FUZZ_STRINGS)});`,
+      ifBlock: () => `if (${expr()}) { ${statement(depth + 1)} } else { ${statement(depth + 1)} }`,
+      ifElseRegex: () => `if (a) b; else ${pick(FUZZ_REGEXES)}.test(c);`,
+      whileRegex: () => `while (${expr()}) ${pick(FUZZ_REGEXES)}.test(a);`,
+      forRegex: () => `for (let i = 0; i < 2; i++) ${pick(FUZZ_REGEXES)}.test(a);`,
+      forOf: () => `for (const k of ${pick(['[1]', '[a, b]', "'xy'"])}) ${pick(FUZZ_REGEXES)}.test(k);`,
+      forOfRegex: () => `for (const k of ${pick(FUZZ_REGEXES)}.source) a;`,
+      block: () => `{ ${statement(depth + 1)} } ${pick(FUZZ_REGEXES)}.test(a);`,
+      blockDiv: () => `x = {} / 2;`,
+      objDiv: () => `x = { k: 1 } / ${pick(FUZZ_REGEXES)}.source;`,
+      func: () => `function fn${Math.floor(random() * 99)}(p, q) { ${statement(depth + 1)} return p / q; }`,
+      funcThenRegex: () => `function g() {} ${pick(FUZZ_REGEXES)}.test(a);`,
+      funcExprDiv: () => `x = function () {} / 2;`,
+      arrow: () => `const h = (p) => { return p / ${expr()}; };`,
+      arrowConcise: () => `const h2 = (p) => p / ${pick(FUZZ_REGEXES)}.source;`,
+      cls: () => `class K${Math.floor(random() * 99)} extends Base { m() { return ${expr()}; } static n = ${pick(FUZZ_REGEXES)}; }`,
+      classThenRegex: () => `class K2 { } ${pick(FUZZ_REGEXES)}.test(a);`,
+      label: () => `lbl: { ${statement(depth + 1)} }`,
+      doWhile: () => `do ${pick(FUZZ_REGEXES)}.test(a); while (b);`,
+      switchStmt: () => `switch (a) { case ${pick(FUZZ_REGEXES)}.source: b; break; default: ${pick(FUZZ_REGEXES)}.test(c); }`,
+      tryStmt: () => `try { ${statement(depth + 1)} } catch (e) { ${pick(FUZZ_REGEXES)}.test(e); } finally { x = 1 / 2; }`,
+      ret: () => `function r() { return ${pick(FUZZ_REGEXES)}.test(a) ? 1 / 2 : /y/; }`,
+      throwStmt: () => `function t() { throw ${pick(FUZZ_REGEXES)}; }`,
+      template: () => `const t = ${template()};`,
+      tagged: () => `const tt = tag${template()};`,
+      exportClass: () => `export class E${Math.floor(random() * 99)} {}`,
+      divChain: () => `x = a / b / c; y = a /b/ c;`,
+      incDiv: () => `x = a++ / 2; y = b-- / 3;`,
+      yieldGen: () => `function* gen() { yield ${pick(FUZZ_REGEXES)}; yield a / 2; }`,
+      asyncFn: () => `async function af() { void ${pick(FUZZ_REGEXES)}.test(a); }`,
+      objLit: () => `const o = { a: ${expr()}, b() { return 1 / 2; }, get c() { return ${pick(FUZZ_REGEXES)}; } };`,
+      cond: () => `x = a ? ${pick(FUZZ_REGEXES)} : b / 2;`,
+      asiDeclarator: () => `${pick(['let', 'var', 'const'])} av${Math.floor(random() * 99)} = 1${nl()}${pick(FUZZ_REGEXES)}.test(a);`,
+      asiKeyword: () => `debugger${nl()}${pick(FUZZ_REGEXES)}.test(a);`,
+      asiImport: () => `import 'y${Math.floor(random() * 99)}'${nl()}${pick(FUZZ_REGEXES)}.test(a);`,
+      commentOnly: () => `${comment()}`,
+    };
+    const names = Object.keys(stmts);
+    return `${comment()}${pick(['', ' '])}${stmts[pick(names)]()}${comment()}${sep}`;
+  }
+  let program = '';
+  for (let count = 1 + Math.floor(random() * 4); count > 0; count -= 1) program += statement();
+  return program;
+}
+
+function acornVisible(code) {
+  // Parser-driven tokens: where the tokenizer's own regex/division guess is wrong, the parser re-reads the token.
+  const tokens = [];
+  acorn.parse(code, { ecmaVersion: 'latest', sourceType: 'module', onToken: tokens, onComment() {} });
+  let expected = '';
+  for (let k = 0; k < tokens.length; k += 1) {
+    const token = tokens[k];
+    const label = token.type.label;
+    switch (label) {
+      case 'string': {
+        expected += '""';
+        break;
+      }
+      case 'template': {
+        expected += '""';
+        break;
+      }
+      case '`':
+      case '${': {
+        expected += '';
+        break;
+      }
+      default: {
+        if (label === '}' && tokens[k + 1] && tokens[k + 1].type.label === 'template') expected += '';
+        else expected += code.slice(token.start, token.end);
+      }
+    }
+  }
+  return expected.replaceAll(/\s+/g, '');
+}
+
+function diffOne(code) {
+  try {
+    acorn.parse(code, { ecmaVersion: 'latest', sourceType: 'module' });
+  } catch {
+    return 'skip';
+  }
+  let expected;
+  try {
+    expected = acornVisible(code);
+  } catch {
+    return 'skip';
+  }
+  // A `/` after an operand and a line break is ambiguous without a parser: one of the views must match acorn's reading.
+  const actual = tokenizeJsViews(code).map((view) => view.replaceAll(/\s+/g, ''));
+  return actual.includes(expected) ? 'ok' : { expected, actual };
+}
+
+test('tokenizeJs: differential fuzz against acorn (strings, comments and template text blank, all code visible)', () => {
+  const random = fuzzRandom(123_457);
+  let compared = 0;
+  for (let round = 0; round < 6000; round += 1) {
+    const code = generateJs(random);
+    const result = diffOne(code);
+    if (result === 'skip') continue;
+    compared += 1;
+    assert.equal(result, 'ok', `${JSON.stringify(code)}\n${JSON.stringify(result)}`);
+  }
+  assert.ok(compared > 4000, `only ${compared} programs compared`);
+});
+
+const TYPESCRIPT_DENIED = [
+  "x = a! / /'/; export class ICacheStore {} // '",
+  "type A = { a: 1 } /'/; export class ICacheStore {} // '",
+  "/await /'/}*/export class ICacheStore {} </a'(=> /a",
+];
+
+test('guard: TypeScript non-null assertions and type literals before a regex cannot hide an export', () => {
+  const master = loadMasterGuard();
+  const directory = gitProject({ 'docs/decisions/why.md': '# why\n' });
+  const registryLine = stableRegistry(directory);
+  write(directory, BINDINGS, projectFile('hybrid', `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}`));
+  const file = path.join(directory, 'packages/cache/src/Store.ts');
+  const decide = (evaluate, content) =>
+    evaluate({ input: hookInput(file, content), cwd: directory, env: quietEnv(), runtimeRoot: REPO_ROOT }).exitCode === 2;
+  for (const content of TYPESCRIPT_DENIED) {
+    assert.ok(decide(master.evaluateGuard, content), `master denies ${JSON.stringify(content)}`);
+    assert.ok(decide(evaluateGuard, content), `the guard must deny ${JSON.stringify(content)}`);
+    assert.ok(detectExports(content).symbols.includes('ICacheStore'), JSON.stringify(content));
+  }
+  // The tokenizer reads them on its own too: the non-null `!` and the type literal leave an operand, so the `/` after them is
+  // also read as a division, and the regex reading is enumerated next to it.
+  for (const content of TYPESCRIPT_DENIED.slice(0, 2)) {
+    assert.ok(
+      tokenizeJsViews(content).some((view) => /export class ICacheStore/.test(view)),
+      JSON.stringify(content),
+    );
+  }
+});
+
+// Built with a variable so that the source holds no unicode escape of its own: the escapes belong to the fixtures.
+const ESC = String.fromCodePoint(92) + 'u';
+const UNICODE_DENIED = [
+  ['export class ÉCacheStore {}', 'ÉCacheStore'],
+  ['export class 日本 {}', '日本'],
+  ['export const ℮ = 1', '℮'],
+  ['export let ÉÉ=1', 'ÉÉ'],
+  [`export function ${ESC}0061() {}`, 'a'],
+  [`export const ${ESC}{61} = 1`, 'a'],
+  [`export class ${ESC}{49}CacheStore {}`, 'ICacheStore'],
+];
+
+test('guard: exports named with a non-ASCII identifier or a unicode escape are detected', () => {
+  for (const [content, symbol] of UNICODE_DENIED) {
+    assert.deepEqual(detectExports(content).symbols, [symbol], JSON.stringify(content));
+    assert.equal(qualifies('/packages/cache/src/Store.ts', content), true, JSON.stringify(content));
+  }
+  // An escape in the middle keeps the symbol the previous release reported, and adds the full name.
+  assert.deepEqual(detectExports(`export class IC${ESC}0061cheStore {}`).symbols, ['IC', 'ICacheStore']);
+  assert.equal(detectExports('const Ünused = 1;'), null);
+});
+
+// Exports that master and the previous tokenizer allowed (a few only in part) although TypeScript/JavaScript accepts them: an export form the list
+// did not hold, and JSX element text, where `'`, `//` and `/*` open nothing.
+const HUNTER_DENIED = [
+  ['export function *ICacheStore(){}', ['ICacheStore']],
+  ["const a = <div>it's</div>; export class ICacheStore {} // '", ['ICacheStore']],
+  ['const a = <p>//</p>; export class ICacheStore {}', ['ICacheStore']],
+  ['const a = <p>http://x</p>; export class ICacheStore {}', ['ICacheStore']],
+  ['const a = <p>/*</p>; export class ICacheStore {} /* */', ['ICacheStore']],
+  ["const a = <ul><li>it's</li><li>{x} it's</li></ul>; export class ICacheStore {} // '", ['ICacheStore']],
+  ["const a = <Foo d={e > 1 ? 'x' : \"y\"}>it's {z}</Foo>; export class ICacheStore {} // '", ['ICacheStore']],
+  ['export module ICacheStore {}', ['ICacheStore']],
+  ['export declare module ICacheStore {}', ['ICacheStore']],
+  ['export import ICacheStore = x.y', ['ICacheStore']],
+  ['export import type ICacheStore = x.y', ['ICacheStore']],
+  ['export @dec class ICacheStore {}', ['ICacheStore']],
+  ['export @dec(1) class ICacheStore {}', ['ICacheStore']],
+  ['export = ICacheStore', []],
+  // Only the first declarator, a destructuring pattern and the `as` alias of a local list used to be read.
+  ['export const a = 1, ICacheStore = 2', ['a', 'ICacheStore']],
+  ['export let a, ICacheStore;', ['a', 'ICacheStore']],
+  ['export declare var a: any, ICacheStore: any;', ['a', 'ICacheStore']],
+  ['export const a: T = 1, ICacheStore: T = 2', ['a', 'ICacheStore']],
+  ['export const a: Map<string, number> = f(1, 2), ICacheStore = 3\nconst z = 1, Y = 2', ['a', 'ICacheStore']],
+  ['export const {ICacheStore} = x', ['ICacheStore']],
+  ['export const [ICacheStore] = x', ['ICacheStore']],
+  ['export const {a, b: {c: [ICacheStore]}, d = e, ...f} = x', ['a', 'ICacheStore', 'd', 'f']],
+  ['export { x as ICacheStore }', ['ICacheStore']],
+  ['export type { x as ICacheStore }', ['ICacheStore']],
+  ['export { a, type b as ICacheStore, c as default }', ['ICacheStore']],
+];
+
+// Allowed on purpose: a `from` re-export forwards a binding defined (and checked) in its own module, and a barrel file
+// would otherwise be denied; knownAllow, documented in the changelog.
+const REEXPORTS_ALLOWED = [
+  'export type { ICacheStore } from "./x"',
+  'export { default as ICacheStore } from "x"',
+  'export * as ICacheStore from "x"',
+  'export { x as ICacheStore } from "y"',
+];
+
+test('guard: re-exports with a from clause stay allowed under any name (knownAllow)', () => {
+  for (const content of REEXPORTS_ALLOWED) assert.equal(detectExports(content), null, content);
+});
+
+test('guard: JSX element text and the export forms master did not list cannot hide an export', () => {
+  const master = loadMasterGuard();
+  const directory = gitProject({ 'docs/decisions/why.md': '# why\n' });
+  const registryLine = stableRegistry(directory);
+  write(directory, BINDINGS, projectFile('hybrid', `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}`));
+  const file = path.join(directory, 'packages/cache/src/Store.tsx');
+  const decide = (evaluate, content) =>
+    evaluate({ input: hookInput(file, content), cwd: directory, env: quietEnv(), runtimeRoot: REPO_ROOT }).exitCode;
+  for (const [content, symbols] of HUNTER_DENIED) {
+    const found = detectExports(content);
+    for (const symbol of master.detectExports(content)?.symbols ?? []) assert.ok(found?.symbols.includes(symbol), JSON.stringify(content));
+    assert.ok(found, JSON.stringify(content));
+    assert.deepEqual(found.symbols, symbols, JSON.stringify(content));
+    if (symbols.length > 0) assert.equal(decide(evaluateGuard, content), 2, `the guard must deny ${JSON.stringify(content)}`);
+  }
+  // Text that is not an export stays allowed: a comparison is not an element.
+  assert.equal(detectExports('const a = b > c; // export class X {}\n'), null);
+});
+
+test('guard property: every symbol the master detects, the guard detects too (TypeScript-like and invalid input included)', () => {
+  const master = loadMasterGuard();
+  const random = fuzzRandom(777_001);
+  const pick = (list) => list[Math.floor(random() * list.length)];
+  const typescript = [
+    'const a: number = 1;',
+    'function f<T>(a: T): T { return a }',
+    'x = a! / b;',
+    "x = a!.b! / /'/;",
+    'y = f()! / /"/;',
+    'z = a![0]! / 2;',
+    'const v = a as T;',
+    'const w = a satisfies T;',
+    'type A = { a: 1 };',
+    "type B = { a: '/' } | string;",
+    'interface I { m(): void }',
+    '@Dec()\nclass K {}',
+    "const el = <div>/'</div>;",
+    "const j = <p>it's // <b>/*</b></p>;",
+    'export function *g() {}',
+    '@dec export class Z {}',
+    "let n = a\n/'/.test(a);",
+    'enum E { A = 1 / 2 }',
+    'abstract class Q<T extends U = V> implements W {}',
+    'x = <T,>(a: T) => a / 2;',
+    'declare module "m" { export const q: number }',
+    "if (a) /'/.test(b);",
+    'x = a / /[/*]/.source;',
+    'const s = `${/`/.test(x)}`;',
+    'return /a/.test(b) ? 1 / 2 : /y/;',
+  ];
+  const noise = [
+    "'",
+    '"',
+    '`',
+    '/',
+    '//',
+    '/*',
+    '*/',
+    '${',
+    '}',
+    '{',
+    '(',
+    ')',
+    '\\',
+    '\n',
+    '\r',
+    ' ',
+    ' ',
+    '!',
+    '<',
+    '>',
+    '=>',
+    ':',
+    '#!',
+  ];
+  const tail = [
+    "export class ICacheStore {} // '",
+    'export class ICacheStore {}\n// `',
+    'export const ICacheStore = 1; /* "',
+    "export default class ICacheStore {} </a'(=> /a",
+  ];
+  const symbolsOf = (found) => (found ? found.symbols : []);
+  let compared = 0;
+  for (let round = 0; round < 4000; round += 1) {
+    let content = '';
+    const parts = 1 + Math.floor(random() * 5);
+    for (let k = 0; k < parts; k += 1) {
+      const roll = random();
+      if (roll < 0.35) content += generateJs(random) + pick(['', '\n', ' ']);
+      else if (roll < 0.75) content += pick(typescript) + pick(['', '\n', ' ']);
+      else content += pick(noise) + pick(['', '', 'a', 'a ', '1 ']);
+    }
+    content += pick(['', ' ', '\n']) + pick(tail);
+    const before = symbolsOf(master.detectExports(content, 'js'));
+    const afterFound = detectExports(content, 'js');
+    const after = new Set(symbolsOf(afterFound));
+    for (const symbol of before) assert.ok(after.has(symbol), `the guard lost ${symbol}: ${JSON.stringify(content)}`);
+    if (master.detectExports(content, 'js')?.anonymous) assert.ok(afterFound.anonymous, JSON.stringify(content));
+    compared += 1;
+  }
+  assert.equal(compared, 4000);
+});
+
+test('deeply nested destructuring does not overflow the stack and later exports are still found', () => {
+  for (const opener of ['[', '{a:', '[a,']) {
+    const content = `export const ${opener.repeat(20_000)}\nexport class Denied {}\n`;
+    const found = detectExports(content, 'js');
+    assert.ok(found.symbols.includes('Denied'), opener);
+  }
+});
+
+test('unclosed destructuring heads at 1 MB neither overflow the stack nor cost more than a fraction of a second', () => {
+  for (const unit of ['export const [a,', 'export const {a:{b:', 'export const {a,']) {
+    const content = `${unit.repeat(Math.ceil(1_000_000 / unit.length))}\nexport class Denied {}\n`;
+    const started = process.hrtime.bigint();
+    const found = detectExports(content, 'js');
+    const elapsed = Number(process.hrtime.bigint() - started) / 1e6;
+    assert.ok(found.symbols.includes('Denied'), unit);
+    assert.ok(elapsed < 1500, `${unit}: ${elapsed} ms`);
+  }
+});
+
+test('a later declarator stays visible after a type argument list or a regex literal with a comma in its initializer', () => {
+  for (const initializer of [
+    'new Map<string, number>()',
+    '<T,U>(x:T)=>x',
+    'f<A, B>(x)',
+    'x as Map<string,number>',
+    '/,/',
+    '/[,]/g',
+    "'x'.replace(/,/g, '')",
+  ]) {
+    for (const language of ['js', 'ts']) {
+      const found = detectExports(`export const a = ${initializer}, Denied = 1;`, language);
+      assert.ok(found.symbols.includes('Denied'), `${language}: ${initializer}`);
+      assert.ok(found.symbols.includes('a'), `${language}: ${initializer}`);
+    }
+  }
+});
+
+test('unclosed destructuring heads at 1 MB stay under 200 ms', () => {
+  for (const unit of ['export const {a=(', 'export const {[a]:', 'export const [a,']) {
+    const content = `${unit.repeat(Math.ceil(1_000_000 / unit.length))}\nexport class Denied {}\n`;
+    detectExports(content, 'js');
+    const started = process.hrtime.bigint();
+    const found = detectExports(content, 'js');
+    const elapsed = Number(process.hrtime.bigint() - started) / 1e6;
+    assert.ok(found.symbols.includes('Denied'), unit);
+    assert.ok(elapsed < 200, `${unit}: ${elapsed} ms`);
+  }
 });
