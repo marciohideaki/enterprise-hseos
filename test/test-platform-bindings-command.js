@@ -699,3 +699,47 @@ test('drift: equal, diverged and newer-tag detection against a local ECP checkou
   assert.equal(command.runDrift({ ecpRoot: ecp }, { runtimeRoot: runtime }).code, 1);
   assert.deepEqual(command.newerContractsTags('main', ['contracts-v1.0.0']), []);
 });
+
+const ECP_DRIFT_WORKFLOW = path.join(REPO_ROOT, '.github', 'workflows', 'ecp-drift.yaml');
+
+function ecpDriftSteps() {
+  return yaml.parse(fs.readFileSync(ECP_DRIFT_WORKFLOW, 'utf8')).jobs.drift.steps;
+}
+
+test('ecp-drift workflow takes the ECP repository from the snapshot lock', () => {
+  const steps = ecpDriftSteps();
+  const lockIndex = steps.findIndex((step) => step.id === 'lock');
+  const ecpIndex = steps.findIndex((step) => step.with && step.with.path === 'dependencies/enterprise-capability-platform');
+  const installIndex = steps.findIndex((step) => step.run === 'npm ci');
+  assert.ok(installIndex !== -1 && lockIndex > installIndex, 'lock step runs after npm ci');
+  assert.ok(ecpIndex > lockIndex, 'ECP checkout runs after the lock step');
+  assert.equal(steps[ecpIndex].with.repository, '${{ steps.lock.outputs.repository }}');
+  assert.doesNotMatch(fs.readFileSync(ECP_DRIFT_WORKFLOW, 'utf8'), /repository:\s*HideakiSolutions/);
+});
+
+function runLockStep(root) {
+  const script = ecpDriftSteps().find((step) => step.id === 'lock').run;
+  const output = path.join(temp('hseos-pb-lockstep-'), 'github-output');
+  fs.writeFileSync(output, '');
+  const run = spawnSync('bash', ['-eo', 'pipefail', '-c', script], {
+    cwd: root,
+    env: { ...process.env, GITHUB_OUTPUT: output },
+    encoding: 'utf8',
+  });
+  return { run, output: fs.readFileSync(output, 'utf8') };
+}
+
+test('ecp-drift lock step emits the real lock repository and rejects an invalid one', () => {
+  const real = runLockStep(REPO_ROOT);
+  assert.equal(real.run.status, 0, real.run.stderr);
+  assert.equal(real.output.trim(), 'repository=HideakiSolutions/enterprise-capability-platform');
+
+  const root = temp('hseos-pb-lockroot-');
+  const lock = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, SNAPSHOT_LOCK_FILE), 'utf8'));
+  write(root, SNAPSHOT_LOCK_FILE, JSON.stringify({ ...lock, repository: 'a/b; rm -rf' }));
+  fs.symlinkSync(path.join(REPO_ROOT, 'tools'), path.join(root, 'tools'));
+  const bad = runLockStep(root);
+  assert.notEqual(bad.run.status, 0);
+  assert.match(bad.run.stdout + bad.run.stderr, /::error::/);
+  assert.equal(bad.output, '');
+});
