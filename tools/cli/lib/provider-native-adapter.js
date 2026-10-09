@@ -5,6 +5,7 @@ const { z } = require('zod');
 const { engineeringDigest } = require('./engineering-task-state');
 const { credentialFingerprint } = require('./provider-api-adapter');
 const { runCampaignProcess } = require('./provider-campaign-process');
+const { createClaudeAccountCampaignAdapter } = require('./provider-claude-account-adapter');
 const readers = { codex: require('./delegated-codex-runtime').readBinding, claude: require('./delegated-claude-runtime').readBinding };
 const integer = z.number().int().nonnegative().safe();
 const settingsSchema = z
@@ -23,6 +24,9 @@ const files = [
   require.resolve('../../../packages/agent-isolation-attestation/executor'),
   require.resolve('../../../packages/runtime-providers/codex-app-server-driver'),
   require.resolve('../../../packages/runtime-providers/claude-agent-sdk-driver'),
+  require.resolve('./provider-claude-account-adapter'),
+  require.resolve('./provider-claude-account-worker'),
+  require.resolve('../../../packages/runtime-providers/claude-cli-driver'),
 ];
 function nativeArtifactDigest() {
   return engineeringDigest(files.map((file) => createHash('sha256').update(fs.readFileSync(file)).digest('hex')));
@@ -39,6 +43,15 @@ function createNativeCampaignAdapter(
 ) {
   const vendor = manifest.vendor;
   if (!Object.hasOwn(readers, vendor)) fail('CONTROL_PROVIDER_CONFIGURATION_INVALID');
+  if (vendor === 'claude' && manifest.route === 'account')
+    return createClaudeAccountCampaignAdapter(
+      { manifest, binding: filename, options },
+      { processRunner },
+      {
+        loadedArtifact,
+        artifactDigest: nativeArtifactDigest,
+      },
+    );
   const settings = settingsSchema.parse(options);
   const binding = readers[vendor](filename);
   const digest = engineeringDigest({ binding, options: settings });
