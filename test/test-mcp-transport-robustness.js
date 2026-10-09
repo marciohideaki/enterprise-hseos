@@ -13,9 +13,13 @@ const http = require('node:http');
 const os = require('node:os');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
+const crypto = require('node:crypto');
 
 // HSEOS_TEST_REPO_ROOT lets the same cases run against another tools/ tree (e.g. a copy holding master's transport).
 const REPO_ROOT = process.env.HSEOS_TEST_REPO_ROOT || path.join(__dirname, '..');
+// The axon-bridge only serves HTTP behind a bearer credential of at least 32 characters.
+const AXON_BRIDGE_CREDENTIAL = crypto.randomBytes(24).toString('hex');
+const AUTHORIZATION = { authorization: `Bearer ${AXON_BRIDGE_CREDENTIAL}` };
 const { createMessageHandler } = require(path.join(REPO_ROOT, 'tools', 'lib', 'mcp-transport'));
 const STDIO_SERVERS = [
   { name: 'hseos-governance', script: 'mcp-hseos-governance' },
@@ -86,7 +90,7 @@ const INIT = '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}';
 
 function post(port, body) {
   return new Promise((resolve, reject) => {
-    const req = http.request({ host: '127.0.0.1', port, method: 'POST', path: '/' }, (res) => {
+    const req = http.request({ host: '127.0.0.1', port, method: 'POST', path: '/', headers: AUTHORIZATION }, (res) => {
       let data = '';
       res.on('data', (chunk) => (data += chunk));
       res.on('end', () => resolve({ status: res.statusCode, body: data ? JSON.parse(data) : null }));
@@ -99,7 +103,7 @@ function post(port, body) {
 function get(port, urlPath) {
   return new Promise((resolve, reject) => {
     http
-      .get({ host: '127.0.0.1', port, path: urlPath }, (res) => {
+      .get({ host: '127.0.0.1', port, path: urlPath, headers: AUTHORIZATION }, (res) => {
         res.resume();
         res.on('end', () => resolve(res.statusCode));
       })
@@ -219,19 +223,22 @@ function call(id, name, args) {
 
   await it('axon-bridge (http): null/array bodies get -32600, server survives, bad args get -32602 (M1, M2)', async () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-axon-robust-'));
-    const child = spawn(process.execPath, [path.join(REPO_ROOT, 'tools', 'mcp-axon-bridge', 'index.js'), '--port=0'], {
+    const child = spawn(process.execPath, [path.join(REPO_ROOT, 'tools', 'mcp-axon-bridge', 'index.js'), '--http', '--port=0'], {
       cwd: tmp,
-      env: { ...legacyEnv(tmp), AXON_BIN: '/nonexistent-axon-binary' },
+      env: { ...legacyEnv(tmp), AXON_BIN: '/nonexistent-axon-binary', HSEOS_AXON_BRIDGE_CREDENTIAL: AXON_BRIDGE_CREDENTIAL },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     try {
       const port = await new Promise((resolve, reject) => {
         let out = '';
-        child.stdout.on('data', (chunk) => {
+        const onData = (chunk) => {
           out += chunk;
           const match = out.match(/127\.0\.0\.1:(\d+)/);
           if (match) resolve(Number(match[1]));
-        });
+        };
+        // The listening banner goes to stderr so stdout stays a clean protocol channel.
+        child.stdout.on('data', onData);
+        child.stderr.on('data', onData);
         child.on('exit', () => reject(new Error(`axon-bridge exited early: ${out}`)));
         setTimeout(() => reject(new Error('timeout waiting for port')), 8000).unref();
       });
