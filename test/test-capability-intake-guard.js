@@ -1082,10 +1082,10 @@ test('guard: platform denial names every exported symbol', () => {
 
 // ---- Non-regression against the pinned master guard: new denies must be a superset of master denies ----
 
-function loadMasterGuard() {
+function loadMasterGuard(fixture = 'master-guard.txt') {
   const lib = path.join(REPO_ROOT, 'tools', 'cli', 'lib');
   const source = fs
-    .readFileSync(path.join(__dirname, 'fixtures', 'capability-intake-guard', 'master-guard.txt'), 'utf8')
+    .readFileSync(path.join(__dirname, 'fixtures', 'capability-intake-guard', fixture), 'utf8')
     .replaceAll("require('./", `require('${lib}/`);
   const file = path.join(temp('hseos-master-guard-'), 'master-guard.js');
   fs.writeFileSync(file, source);
@@ -2034,5 +2034,516 @@ test('unclosed destructuring heads at 1 MB stay under 200 ms', () => {
     const elapsed = Number(process.hrtime.bigint() - started) / 1e6;
     assert.ok(found.symbols.includes('Denied'), unit);
     assert.ok(elapsed < 200, `${unit}: ${elapsed} ms`);
+  }
+});
+
+test('guard: a list the scanners abandon with text unread fails closed (an export with an unknown name)', () => {
+  const maps = (count) => Array.from({ length: count }, (_, k) => `a${k} = new Map<string, number>()`).join(', ');
+  const calls = (count) => Array.from({ length: count }, (_, k) => `c${k} = f<A, B>(x)`).join(', ');
+  const abandoned = {
+    'a pattern nested past the depth limit': `export const ${'['.repeat(120)}a${']'.repeat(120)} = 1, Denied = 1;`,
+    'a token that is neither a name nor a pattern in the first declarator': 'export const 5x, Denied = 2;',
+    'a token no binding holds after a default in an array pattern': 'export const [a = x < y, ?Denied] = o;',
+    'the same inside an object pattern with a nested array': 'export const { k: [a = x < y, ?Denied] } = o;',
+    'a property key that is not a key inside a pattern': 'export const { a, ) , Denied } = o;',
+    'an export list that never closes': 'export { a, b',
+    'export lists that open before the first one closes': 'export { a, export { b }',
+  };
+  const directory = gitProject({ [BINDINGS]: projectFile('platform') });
+  const file = path.join(directory, 'packages/lib/src/thing.ts');
+  for (const [label, content] of Object.entries(abandoned)) {
+    for (const language of ['js', 'ts']) {
+      const found = detectExports(content, language);
+      assert.equal(found.incomplete, true, `${label} (${language})`);
+      assert.equal(found.anonymous, true, `${label} (${language})`);
+    }
+    const outcome = guard(directory, file, content);
+    assert.equal(outcome.exitCode, 2, label);
+    assert.match(contextOf(outcome), /could not be fully read/, label);
+  }
+  // Defaults holding a comma of a type argument list are read through, so the binding after them is found by name.
+  for (const content of [
+    'export const [a = f<"a", "b">(x), Denied] = o;',
+    'export const { k: [a = f<A, { k: 1 }>(x), Denied] } = o;',
+    'export const [{ a = f<"a", "b">(x) }, Denied] = o;',
+    'export const x = 1, [a = f<A, `b`>(x), Denied] = o',
+  ]) {
+    const found = detectExports(content, 'ts');
+    assert.ok(found.symbols.includes('Denied'), content);
+    assert.equal(found.incomplete, false, content);
+  }
+  // Commas of type argument lists no longer cap the reading: the declarator after any number of them is read by name.
+  for (const count of [6, 7, 40]) {
+    for (const content of [`export const ${maps(count)}, Denied = 1;`, `export const ${calls(count)}, Denied = 1;`]) {
+      const found = detectExports(content, 'ts');
+      assert.ok(found.symbols.includes('Denied'), content.slice(0, 60));
+      assert.equal(found.incomplete, false);
+    }
+  }
+  // Local mode allows everything; hybrid denies an unreadable list (decision tests at the end of the file) and allows a plain unknown export.
+  const local = gitProject({ [BINDINGS]: projectFile('local', 'mode_ref: docs/decisions/why.md\n'), 'docs/decisions/why.md': '# why\n' });
+  assert.equal(guard(local, path.join(local, 'packages/lib/src/thing.ts'), abandoned['an export list that never closes']).exitCode, 0);
+  const hybrid = gitProject({ 'docs/decisions/why.md': '# why\n' });
+  const registryLine = stableRegistry(hybrid);
+  write(hybrid, BINDINGS, projectFile('hybrid', `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}`));
+  commitAll(hybrid);
+  const hybridFile = path.join(hybrid, 'packages/lib/src/thing.ts');
+  assert.equal(guard(hybrid, hybridFile, abandoned['an export list that never closes']).exitCode, 2);
+  assert.equal(guard(hybrid, hybridFile, 'export class Unknown {}').exitCode, 0);
+});
+
+test('guard: exhausting the pattern budget reports the list as incomplete', () => {
+  const content = `${'export const {a=('.repeat(5000)}\nexport class Denied {}\n`;
+  const found = detectExports(content, 'js');
+  assert.equal(found.incomplete, true);
+  assert.ok(found.symbols.includes('Denied'));
+});
+
+test('guard: terminated lists, lists ending with the text and barrel files are not reported as incomplete', () => {
+  for (const content of [
+    'export const a = 1, b = 2;',
+    'export const a = 1,\n  b = 2\nfoo();',
+    'export const a = new Map<string, number>(), b = 2;',
+    'export const { a, b: [c, d], ...rest } = o;',
+    'export const a = 1,',
+    'export const [a, b',
+    'export { a, b as c };',
+    'export { a } from "./x";\nexport type { B } from "./y";\nexport * from "./z";',
+    'export const a = 1;\nexport { a as b }\n',
+  ]) {
+    for (const language of ['js', 'ts']) {
+      const found = detectExports(content, language);
+      assert.notEqual(found && found.incomplete, true, `${language}: ${content}`);
+    }
+  }
+});
+
+test('guard: JSX text and type parameter commas are not reported as unread lists', () => {
+  for (const content of [
+    'export const A = () => <p>Hello, 2 apples</p>;',
+    'export const A = () => <p>Oops, 404 not found</p>',
+    'export const A = () =>\n  <footer>\n    (c) 2024, 2025 Acme Inc.\n  </footer>;',
+    'export const A = <p>Hello, (world)</p>;',
+    'export const A = <b>Yes, </b>;',
+    'export const A = <T,>(x: T) => x;',
+    'export const A = async <T,>(x: T) => x;',
+    'export const A = <T extends Record<string, unknown>,>(x: T) => x;',
+    'export const A = <T,>(init: T): [T, (v: T) => void] => { const [s, set] = useState<T>(init); return [s, set]; };',
+    'export const A = y.z<1, 2>(w);',
+  ]) {
+    const found = detectExports(content, 'tsx');
+    assert.equal(found.incomplete, false, content);
+    assert.ok(found.symbols.includes('A'), content);
+  }
+  // Nothing is hidden by reading past them: a declarator after the text is still read by name.
+  assert.ok(detectExports('export const A = <p>x, 2</p>, Denied = 1;', 'tsx').symbols.includes('Denied'));
+  assert.ok(detectExports('export const A = <T,>(x: T) => x, Denied = 1;', 'tsx').symbols.includes('Denied'));
+  assert.ok(detectExports('export const a = 1, 5x, Denied = 2;', 'ts').symbols.includes('Denied'));
+  const directory = gitProject({ [BINDINGS]: projectFile('platform') });
+  const outcome = guard(directory, path.join(directory, 'packages/lib/src/thing.tsx'), 'export const A = () => <p>Hello, 2 apples</p>;');
+  assert.doesNotMatch(contextOf(outcome), /could not be fully read/);
+});
+
+test('guard: a declarator hidden behind a continued line is read by name', () => {
+  const hidden = [
+    'export const a = x\n`t`, Denied = 1;',
+    'export let [p, q] = x\n`t`, [Denied] = 1;',
+    'export const a = typeof\n x, Denied = 1;',
+    'export const a = void\n 0, Denied = 1;',
+    'export const a = delete\n x.y, Denied = 1;',
+    'export const a = await\n x, Denied = 1;',
+    'export const a = class\n{}, Denied = 1;',
+    'export const a = x instanceof\n Y, Denied = 1;',
+    'export const a = x as\n Y, Denied = 1;',
+    'export const a = x satisfies\n Y, Denied = 1;',
+    'export const a = new\n Map<string, number>(), Denied = 1;',
+    'export const a: typeof\n x = 1, Denied = 1;',
+  ];
+  for (const content of hidden) {
+    const found = detectExports(content, 'ts');
+    assert.ok(found.symbols.includes('Denied'), content);
+  }
+  // A statement end after an ordinary word still ends the list.
+  assert.deepEqual(detectExports('export const a = x\nconst Denied = 1;', 'ts').symbols, ['a']);
+});
+
+test('guard: type literals cut by a type argument comma are not reported as unread lists', () => {
+  const readable = [
+    'export const ICacheStore = f<X, { a: 1; b: 2 }>();',
+    'export const ICacheStore = f<{ a: 1 }, { b: 2; c: 3 }>();',
+    'export const fetchUser = createAsyncThunk<User, string, { state: RootState; rejectValue?: string }>("u", async () => 1);',
+    'export const ICacheStore = f<"a", "b">();',
+  ];
+  for (const content of readable) {
+    const found = detectExports(content, 'ts');
+    assert.equal(found.incomplete, false, content);
+    assert.equal(found.anonymous, false, content);
+  }
+  // Nothing is hidden by skipping them: the declarator after the type literal is still read.
+  assert.ok(detectExports('export const a = f<X, { a: 1; b?: 2 }>(), Denied = 1;', 'ts').symbols.includes('Denied'));
+  const directory = gitProject({ [BINDINGS]: projectFile('platform') });
+  const outcome = guard(directory, path.join(directory, 'packages/lib/src/thing.ts'), readable[0]);
+  assert.doesNotMatch(contextOf(outcome), /could not be fully read/);
+});
+
+test('guard: a JSX element followed by a comma and a declarator keeps the declarator (also with a division after it)', () => {
+  for (const content of ['export const p = <div>x</div>, Denied = a/b;', 'export const p = <div>x</div>, Denied = a/b, c = 1/2;']) {
+    const found = detectExports(content, 'tsx');
+    assert.deepEqual(found.symbols.slice(0, 2), ['p', 'Denied'], content);
+    assert.equal(found.incomplete, false, content);
+  }
+});
+
+test('guard: JSX elements in an initializer are jumped over whole, so a declarator after them is read', () => {
+  const elements = [
+    '<ul>{items.map((i) => <li key={i}>{i}</li>)}</ul>',
+    '<div>{<b></b>}</div>',
+    '<div>{<></>}</div>',
+    '<div a={<b></b>}></div>',
+    '<div>{cond && <b>t</b>}</div>',
+    '<p>a &amp; b</p>',
+    '() => <p>a &amp; b</p>',
+    '() => <div>{b.map((c) => <i key={c}>{c}</i>)}</div>',
+    '() => <p>:)</p>',
+    '<p>x</p>',
+    '<A render={() => <b />} />',
+    '<div>{x}</div>',
+  ];
+  for (const element of elements) {
+    for (const language of ['js', 'ts']) {
+      const content = `export const a = ${element}, ICacheStore = 1;`;
+      assert.ok(detectExports(content, language).symbols.includes('ICacheStore'), content);
+      const last = `export const A = <p>x</p>, ICacheStore = ${element};`;
+      assert.ok(detectExports(last, language).symbols.includes('ICacheStore'), last);
+    }
+  }
+  // A generic arrow function is no element: the declarator after it is still read.
+  for (const content of [
+    'export const f = <T>(x: T) => x, ICacheStore = 1;',
+    'export const f = <T extends X>(x: T) => x, ICacheStore = 1;',
+  ]) {
+    const found = detectExports(content, 'ts');
+    assert.ok(found.symbols.includes('ICacheStore'), content);
+    assert.equal(found.incomplete, false, content);
+  }
+});
+
+test('guard: a non-null assertion after a string literal is followed by a division, not a regex', () => {
+  for (const content of [
+    'export const a = "s"! / (/a,b/.test(n), 1), ICacheStore = 1;',
+    'export const a = this ?null : "s,s"! / (/a,b/g.test(null), new Map<\n any >()), ICacheStore = 1;',
+    "export const a = 's'! / (/a,b/.test(n), 1), ICacheStore = 1;",
+  ]) {
+    assert.ok(detectExports(content, 'ts').symbols.includes('ICacheStore'), content);
+  }
+});
+
+test('guard: a modifier on a type parameter ending a line continues onto the next one', () => {
+  for (const content of [
+    'export const a = <A,\nstatic\nB\n>(x) => x, ICacheStore = 1;',
+    'export const a = <A,\r\nstatic\r\nB\r\n>(x) => x, ICacheStore = 1;',
+  ]) {
+    assert.ok(detectExports(content, 'ts').symbols.includes('ICacheStore'), content);
+  }
+});
+
+test('guard: the first words of a string a code generator writes are no export list the scanner abandoned', () => {
+  for (const content of [
+    "const unquote = (s) => s.replaceAll(/`/g, '');\nexport function emit(name, value) {\n  return 'export const ' + unquote(name) + ' = ' + value + ';';\n}\n",
+    "export const fence = /^```(\\w+)?$/;\nexport const tpl = (n: string) => 'export const ' + n + ' = 1;';",
+    "const re = /[`]/g;\nconst s = 'export {';\nexport const real = 1;",
+    "test('big', () => {\n  const src = 'export {'.repeat(size / 8) + '\\nexport class R {}';\n});\n",
+    "x('export {'.repeat(n / 8) + 'a');",
+  ]) {
+    assert.equal(detectExports(content, 'ts').incomplete, false, content);
+  }
+  // Real unclosed lists (not directly after a quote) are still reported, however many heads follow a quoted one.
+  assert.equal(detectExports("x('export {'); export { a, \nexport {\n", 'ts').incomplete, true);
+  assert.equal(detectExports('export const [a = (', 'ts').incomplete, true);
+});
+
+test('guard: a division after a postfix operator, a non-null assertion or a type argument list does not hide a declarator', () => {
+  const divisions = [
+    ['export let n = 0, a = n++ / 2, Denied = 1, b = 1/2;', 'js'],
+    ['export const a = x++/2, Denied = 1, b = /a/;', 'js'],
+    ['export const a = x--/2, Denied = 1, b = /a/;', 'js'],
+    ['export const a = x! / 2, Denied = 1, b = 1/2;', 'ts'],
+    ['export const a = f()!/2, Denied = 1, b = /a/;', 'ts'],
+    ['export const a = x?.y! / 2, Denied = 1, b = 1/2;', 'ts'],
+    ['export const a = x as Array<number> / 2, Denied = 1, b = 1/2;', 'ts'],
+  ];
+  for (const [content, language] of divisions) {
+    const found = detectExports(content, language);
+    assert.ok(found.symbols.includes('a') && found.symbols.includes('Denied') && found.symbols.includes('b'), content);
+    assert.equal(found.incomplete, false, content);
+  }
+  // A regex after an operator that starts an operand is still a regex: its comma does not split the list.
+  for (const content of [
+    'export const a = x => /,/.test(y), Denied = 1;',
+    'export const a = !/,/.test(y), Denied = 1;',
+    'export const a = b + +/,/.test(y), Denied = 1;',
+    'export const a = f(), b = typeof !/,/.test(y), Denied = 1;',
+  ]) {
+    assert.deepEqual(
+      detectExports(content, 'ts').symbols.filter((s) => s.length > 1),
+      ['Denied'],
+      content,
+    );
+  }
+});
+
+test('guard: type fragments cut by a type argument comma (mapped types, signatures, optional tuple elements) are not unread lists', () => {
+  const fragments = [
+    '{ [K in keyof B]?: B[K] }',
+    '{ [K in keyof B]-?: B[K] }',
+    '{ -readonly [K in keyof B]: B[K] }',
+    '{ +readonly [K in keyof B]+?: B[K] }',
+    '{ (): void }',
+    '{ <T>(): T }',
+    '{ a(): void }',
+    '{ new (x: number): string }',
+    '{ get a(): number }',
+    '[B?]',
+    '[x?: B]',
+    '[1?, 2?]',
+    '{ a: [1, 2] }',
+  ];
+  const directory = gitProject({ [BINDINGS]: projectFile('platform') });
+  for (const fragment of fragments) {
+    const content = `export const ICacheStore = f<A, ${fragment}>(x);`;
+    const found = detectExports(content, 'ts');
+    assert.equal(found.incomplete, false, content);
+    assert.ok(found.symbols.includes('ICacheStore'), content);
+    // A declarator after the fragment is still read by name.
+    assert.ok(detectExports(`export const a = f<A, ${fragment}>(x), Denied = 1;`, 'ts').symbols.includes('Denied'), content);
+    assert.doesNotMatch(contextOf(guard(directory, path.join(directory, 'packages/lib/src/thing.ts'), content)), /could not be fully read/);
+  }
+  // A pattern in the first declarator that no binding pattern can hold is still reported as unread.
+  assert.equal(detectExports('export const { (): void } = x, Denied = 1;', 'ts').incomplete, true);
+});
+
+// ---- Fail-closed decision, multi-line generics, hidden bindings and symbol-level superset against master 7a0ff6db ----
+
+const UNREADABLE = ['export { a, b', 'export const 5x, Denied = 2;', 'export const [a = x < y, ?Denied] = o;'];
+
+test('guard: an unreadable export list is denied in hybrid (with and without a registry) and in platform (with and without override); local allows', () => {
+  const ackFiles = { 'docs/decisions/why.md': '# why\n', 'docs/decisions/2026-intake-cache.md': 'ack: INTAKE-1\n' };
+  const override = `overrides:\n${OVERRIDE('cache.typed', 'INTAKE-1')}`;
+  const fileOf = (directory) => path.join(directory, 'packages/cache/src/Store.ts');
+  const setup = (mode, { registry = true, overrides = '' } = {}) => {
+    const directory = gitProject(ackFiles);
+    const registryLine = registry ? stableRegistry(directory) : '';
+    write(directory, BINDINGS, projectFile(mode, `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}${overrides}`));
+    commitAll(directory);
+    return directory;
+  };
+  const acked = quietEnv({ CORE_INTAKE_ACK: 'INTAKE-1' });
+  for (const content of UNREADABLE) {
+    // hybrid, stable registry: the hidden name could match a stable capability, so the unknown is denied with its own reason.
+    const hybrid = setup('hybrid');
+    const denied = guard(hybrid, fileOf(hybrid), content);
+    assert.equal(denied.exitCode, 2, content);
+    assert.match(denied.stdout, /capability-intake-unreadable-exports/, content);
+    assert.match(contextOf(denied), /could not be read in full/, content);
+    assert.match(contextOf(denied), /CORE_INTAKE_ACK/, content);
+    // a valid acknowledgement lifts it; the legacy "1" does not
+    assert.equal(guard(hybrid, fileOf(hybrid), content, { env: acked }).exitCode, 0, content);
+    assert.equal(guard(hybrid, fileOf(hybrid), content, { env: quietEnv({ CORE_INTAKE_ACK: '1' }) }).exitCode, 2, content);
+    // hybrid without a registry falls back to the platform decision: denied
+    const bare = setup('hybrid', { registry: false });
+    assert.equal(guard(bare, fileOf(bare), content).exitCode, 2, content);
+    assert.equal(guard(bare, fileOf(bare), content, { env: acked }).exitCode, 0, content);
+    // platform, with and without an override: the unreadable names are never covered by an override
+    for (const overrides of ['', override]) {
+      const platform = setup('platform', { overrides });
+      assert.equal(
+        guard(platform, fileOf(platform), content).exitCode,
+        2,
+        `platform ${overrides ? 'with' : 'without'} override: ${content}`,
+      );
+      assert.equal(guard(platform, fileOf(platform), content, { env: acked }).exitCode, 0, content);
+    }
+    // local mode allows
+    const local = setup('local', { registry: false });
+    assert.equal(guard(local, fileOf(local), content).exitCode, 0, content);
+  }
+  // A readable list is untouched by the new rule.
+  const hybrid = setup('hybrid');
+  assert.equal(guard(hybrid, fileOf(hybrid), 'export class Unknown {}').exitCode, 0);
+  assert.equal(guard(hybrid, fileOf(hybrid), 'export const a = 1, b = 2;').exitCode, 0);
+});
+
+test('guard: a stable ICacheStore after JSX, a string assertion or a type parameter modifier is denied in hybrid; a code generator is allowed', () => {
+  const directory = gitProject({ 'docs/decisions/why.md': '# why\n' });
+  const registryLine = stableRegistry(directory);
+  write(directory, BINDINGS, projectFile('hybrid', `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}`));
+  commitAll(directory);
+  for (const content of [
+    'export const a = <ul>{items.map((i) => <li key={i}>{i}</li>)}</ul>, ICacheStore = 1;',
+    'export const a = <div>{<></>}</div>, ICacheStore = 1;',
+    'export const A = () => <p>a &amp; b</p>, ICacheStore = 1;',
+    'export const a = "s"! / (/a,b/.test(n), 1), ICacheStore = 1;',
+    'export const a = <A,\nstatic\nB\n>(x) => x, ICacheStore = 1;',
+  ]) {
+    for (const name of ['Store.tsx', 'Store.jsx', 'Store.ts']) {
+      assert.equal(guard(directory, path.join(directory, 'packages/cache/src', name), content).exitCode, 2, `${name}: ${content}`);
+    }
+  }
+  const generator =
+    "const unquote = (s) => s.replaceAll(/`/g, '');\nexport function emit(name, value) {\n  return 'export const ' + unquote(name) + ' = ' + value;\n}\n";
+  assert.equal(guard(directory, path.join(directory, 'packages/md/src/emit.js'), generator).exitCode, 0);
+});
+
+test('guard: a hidden ICacheStore behind an unreadable list is denied in hybrid like a plain ICacheStore', () => {
+  const directory = gitProject({ 'docs/decisions/why.md': '# why\n' });
+  const registryLine = stableRegistry(directory);
+  write(directory, BINDINGS, projectFile('hybrid', `mode_ref: docs/decisions/why.md\nstacks: [dotnet]\n${registryLine}`));
+  commitAll(directory);
+  const file = path.join(directory, 'packages/cache/src/Store.ts');
+  assert.equal(guard(directory, file, 'export class ICacheStore {}').exitCode, 2);
+  assert.equal(guard(directory, file, 'export const 5x, ICacheStore = 2;').exitCode, 2);
+  assert.equal(guard(directory, file, 'export const { a, ) , ICacheStore } = o;').exitCode, 2);
+});
+
+test('guard: multi-line type argument lists (prettier style) keep the next declarator and hidden bindings are reported as unread', () => {
+  const read = [
+    'export const a = new Map<string,\n number\n>(), Denied = 1;',
+    'export const a = f<A,\n B\n>(x), Denied = 1;',
+    'export const a = f<A,\n B\n  >(x), c = 2, Denied = 1;',
+    'export const a = new Map<\n  string,\n  number\n>(), Denied = 1;',
+    'export const a = f<A,\n B\n.c>(x), Denied = 1;',
+    'export const a = f<A,\n B\n extends C>(x), Denied = 1;',
+  ];
+  for (const content of read) assert.ok(detectExports(content, 'ts').symbols.includes('Denied'), content);
+  for (const content of ['export const a = 1, ...Denied;', 'export const a = 1, #Denied=1;', 'export const a = 1, b = 2, ...Z;']) {
+    assert.equal(detectExports(content, 'ts').incomplete, true, content);
+  }
+  // A new statement on the next line is where the list ends, not unread text.
+  for (const content of [
+    'export const a = 1, b\nconst c = 2;',
+    'export const a = 1, b\nfoo();',
+    'export const a = 1,\n  b = 2\nexport const c = 3;',
+  ]) {
+    assert.equal(detectExports(content, 'ts').incomplete, false, content);
+  }
+});
+
+test('guard: a type operator or a non-null mark ending a line of a multi-line type argument list does not hide the next declarator', () => {
+  for (const operand of ['keyof\n B', 'typeof\n B', 'readonly\n B[]', 'unique\n symbol', 'infer\n U', 'abstract\n new () => B', 'B!']) {
+    const content = `export const a = f<A,\n ${operand}\n>(x), ICacheStore = 1;`;
+    assert.ok(detectExports(content, 'ts').symbols.includes('ICacheStore'), content);
+  }
+  // A new statement after a plain name is still where the list ends.
+  assert.equal(detectExports('export const a = 1, b\nconst c = 2;', 'ts').incomplete, false);
+});
+
+test('guard: a default holding a comma of a type argument list is no unreadable list; a hidden binding after it still is read or reported', () => {
+  for (const content of [
+    'export const { a = new Map<string, number>() } = obj;',
+    'export const [a = f<A,B>(1)] = arr;',
+    'export const { a = <T,>(x: T) => x } = obj;',
+    'export const { a = new Map<string, {k: 1}>(), Denied } = o;',
+  ]) {
+    assert.equal(detectExports(content, 'ts').incomplete, false, content);
+  }
+  for (const content of ['export const { a = f<A,B>(1), Denied } = o;', 'export const [a = f<A,B>(1), Denied] = o;']) {
+    assert.ok(detectExports(content, 'ts').symbols.includes('Denied'), content);
+  }
+  // Comparisons are not type arguments: the binding after the comma stays visible.
+  assert.ok(detectExports('export const { a = x < y, Denied } = o;', 'ts').symbols.includes('Denied'));
+  assert.ok(detectExports('export const { a = x < y, Denied = 1 > 0 } = o;', 'ts').symbols.includes('Denied'));
+});
+
+test('guard: every symbol master 7a0ff6db detects is detected (property test: valid and invalid, TypeScript and JSX input)', () => {
+  const master = loadMasterGuard('master-guard-7a0ff6db.txt');
+  let state = 20_261_008;
+  const random = () => {
+    state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
+    return state / 4_294_967_296;
+  };
+  const pieces = [
+    'export ',
+    'const ',
+    'let ',
+    'var ',
+    'declare ',
+    'a',
+    'b',
+    'Denied',
+    ' = ',
+    '1',
+    ', ',
+    ',\n',
+    '\n',
+    ';',
+    '{',
+    '}',
+    '[',
+    ']',
+    '(',
+    ')',
+    '<',
+    '>',
+    '<A,\n B\n>',
+    'new Map<string,\n number\n>()',
+    'f<A, B>(x)',
+    '...',
+    '#',
+    '"',
+    "'",
+    '`',
+    '/',
+    '/*',
+    '*/',
+    '//',
+    ': ',
+    'number',
+    'string',
+    'typeof ',
+    'new ',
+    'as ',
+    '=> ',
+    '!',
+    '?',
+    '.',
+    '<p>',
+    '</p>',
+    '<div>{<b></b>}</div>',
+    '&amp;',
+    '"s"! / ',
+    '2 apples',
+    '{ a: 1; b?: string }',
+    'export class Z {}',
+    'export { ',
+    ' as ',
+    'default ',
+    'function ',
+    'class ',
+    '\r\n',
+    String.raw`\u0061`,
+    'enum ',
+    'interface ',
+  ];
+  let compared = 0;
+  for (let round = 0; round < 6000; round += 1) {
+    let content = random() < 0.8 ? `export ${['const', 'let', 'var'][Math.floor(random() * 3)]} ` : '';
+    const count = 3 + Math.floor(random() * 16);
+    for (let k = 0; k < count; k += 1) content += pieces[Math.floor(random() * pieces.length)];
+    for (const language of ['js', 'cs']) {
+      const before = master.detectExports(content, language);
+      const after = detectExports(content, language);
+      assert.ok(before === null || after !== null, JSON.stringify(content));
+      for (const symbol of before ? before.symbols : []) {
+        assert.ok(after.symbols.includes(symbol), `lost ${symbol}: ${JSON.stringify(content)} (${language})`);
+      }
+      if (before && before.anonymous) assert.ok(after.anonymous, JSON.stringify(content));
+      compared += 1;
+    }
+  }
+  assert.equal(compared, 12_000);
+  // Invalid input where the earlier reader found [export, number, B]: still found.
+  for (const content of ['export const a = f<A,\n number\n B', 'export const a = 1, b = 2, ...c', 'export const a = f<A,\n number B']) {
+    const before = master.detectExports(content, 'js');
+    for (const symbol of before.symbols) assert.ok(detectExports(content, 'js').symbols.includes(symbol), content);
   }
 });

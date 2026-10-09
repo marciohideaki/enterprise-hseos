@@ -1490,32 +1490,7 @@ const DECLARATION_HEAD = /\bexport\s+(?:declare\s+)?(?:const|let|var)\b/g;
 const LOCAL_LIST_HEAD = /\bexport\s+(?:type\s+)?\{/g;
 const LIST_ALIAS = new RegExp(`^(?:type\\s+)?${UNICODE_IDENTIFIER}\\s+as\\s+(${UNICODE_IDENTIFIER})$`, 'u');
 const EXPORT_WORD = /export(?![\w$])/y;
-// Text that continues the previous line even when that line looks complete (the `CONTINUES_LINE` starts plus type-level keywords).
-// Words that end a type argument line and take their operand on the next one.
-// `static`, `const`, `public`, `private`, `protected`, `override`, `accessor` and `declare` are modifiers the TypeScript parser takes on a type parameter.
-const TYPE_OPERATOR =
-  /^(?:keyof|typeof|readonly|unique|infer|abstract|asserts|extends|new|is|in|out|void|import|static|const|public|private|protected|override|accessor|declare)$/;
-const CONTINUATION = /^(?:[,.?:+\-*/%&|^=<>([!~`"']|in\b|instanceof\b|as\b|satisfies\b|extends\b)/;
-const CONTINUES_LINE = /^(?:[,.?:+\-*/%&|^=<>([!~`"']|in\b|instanceof\b|as\b|satisfies\b)/;
-// Words that cannot end an expression or a type: a line ending in one continues on the next (`typeof\n x`, `new\n Map()`).
-const DANGLING_WORDS = new Set([
-  'typeof',
-  'new',
-  'void',
-  'delete',
-  'await',
-  'class',
-  'function',
-  'instanceof',
-  'as',
-  'satisfies',
-  'keyof',
-  'extends',
-  'in',
-  'infer',
-  'yield',
-]);
-const LAST_WORD = /[\w$]+$/;
+const CONTINUES_LINE = /^(?:[,.?:+\-*/%&|^=<>([!~]|in\b|instanceof\b|as\b|satisfies\b)/;
 
 const ASCII_NAME_AT = /[A-Za-z_$][\w$]*/y;
 
@@ -1561,595 +1536,8 @@ const WORD_BEFORE = /[\w$.]/;
 const MAX_SKIP_REGEX = 200;
 const REGEX_PRECEDER = '=(,:[!&|?{;+-*%<>~^';
 
-// Words after which `!`, `++` or `--` still start an operand (`return !/a/.test(x)`), so a `/` after them can open a regex.
-const OPERAND_WORDS = new Set([
-  'return',
-  'typeof',
-  'void',
-  'delete',
-  'throw',
-  'case',
-  'in',
-  'of',
-  'instanceof',
-  'new',
-  'yield',
-  'await',
-  'else',
-  'do',
-]);
-
-/** Whether the `/` after the operator character at `back` divides: a postfix `++`/`--`, a non-null `!` or the `>` closing `as T<U>`. */
-function dividesAfter(code, back) {
-  const c = code[back];
-  if (c === '>') return code[back - 1] !== '=';
-  if (c !== '!' && c !== '+' && c !== '-') return false;
-  let end = back - 1;
-  if (c !== '!') {
-    if (code[end] !== c) return false;
-    end--;
-  }
-  while (end >= 0 && isSpaceUnit(code.codePointAt(end))) end--;
-  if (end < 0) return false;
-  const previous = code[end];
-  if (previous === ')' || previous === ']') return true;
-  // A string or template literal (its content is blanked, its quotes stay) is an operand like a name: `"s"! / 2`.
-  if (previous === '"' || previous === "'" || previous === '`') return true;
-  if (!/[\w$]/.test(previous)) return false;
-  const word = LAST_WORD.exec(code.slice(Math.max(0, end - 12), end + 1));
-  return !word || !OPERAND_WORDS.has(word[0]);
-}
-
 /** Index after the regex literal opening at the `/` at `at` when the previous character says a regex can start there and it closes on the line, else -1. */
 function regexEnd(code, at) {
-  const next = code.codePointAt(at + 1);
-  if (next === 47 || next === 42) return -1;
-  let back = at - 1;
-  while (back >= 0 && isSpaceUnit(code.codePointAt(back))) back--;
-  if (back >= 0) {
-    if (!REGEX_PRECEDER.includes(code[back])) return -1;
-    // `</` is the closing tag of a JSX element (or a comparison with a regex, which nobody writes glued): not a regex start.
-    if (back === at - 1 && code[back] === '<') {
-      readingDiverged = true; // the earlier reading took this slash for a regex
-      return -1;
-    }
-    if (dividesAfter(code, back)) {
-      readingDiverged = true; // the earlier reading took this slash for a regex
-      return -1;
-    }
-  }
-  const limit = Math.min(code.length, at + MAX_SKIP_REGEX);
-  let inClass = false;
-  for (let i = at + 1; i < limit; i++) {
-    const c = code.codePointAt(i);
-    if (c === 10 || c === 13) return -1;
-    // The next statement's `export` ends a declarator list; a regex swallowing it would let every head rescan the same tail.
-    if (c === 101 && code.startsWith('export', i)) return -1;
-    switch (c) {
-      case 92: {
-        i++;
-        break;
-      }
-      case 91: {
-        inClass = true;
-        break;
-      }
-      case 93: {
-        inClass = false;
-        break;
-      }
-      case 47: {
-        if (inClass) break;
-        let end = i + 1;
-        while (end < code.length && /[a-z]/.test(code[end])) end++;
-        return end;
-      }
-    }
-  }
-  return -1;
-}
-
-/**
- * Index where an expression or type starting at `i` ends: a depth-0 `,` or `;`, a closer with no opener, the `export`
- * keyword of the next statement, or (statements only) a line break the expression cannot continue across.
- * `types` also counts `<>` and stops at a depth-0 `=`; `lines` lets a line break end the text.
- */
-function skipTo(code, i, { types, lines }) {
-  let depth = 0;
-  let at = i;
-  const length = code.length;
-  skipOpen = false;
-  while (at < length) {
-    const unit = code.codePointAt(at);
-    if (unit === 34 || unit === 39 || unit === 96) {
-      const close = code.indexOf(code[at], at + 1);
-      at = close === -1 ? at + 1 : close + 1;
-      continue;
-    }
-    if (unit === 47 && !types) {
-      // A regex literal may hold commas, quotes and brackets (`/,/`, `/[)]/`): jump over it when it clearly is one.
-      const after = regexEnd(code, at);
-      if (after !== -1) {
-        at = after;
-        continue;
-      }
-    }
-    if (unit === 60 && !types && startsJsx(code, at)) {
-      // A JSX element in operand position is jumped over whole: its text may hold `;` (`&amp;`), `)` or `/` that end or confuse a
-      // plain reading, and its `{...}` containers may hold elements of their own.
-      const after = jsxEnd(code, at);
-      skipOpen = false;
-      if (after !== -1) {
-        readingDiverged = true; // the earlier reading went through the element character by character
-        at = after;
-        continue;
-      }
-    }
-    if (unit === 40 || unit === 91 || unit === 123 || (types && unit === 60)) depth++;
-    else if (unit === 41 || unit === 93 || unit === 125 || (types && unit === 62 && code.codePointAt(at - 1) !== 61)) {
-      if (depth === 0) return at;
-      depth--;
-    } else if (depth === 0 && (unit === 44 || unit === 59)) return at;
-    else if (depth === 0 && types && unit === 61 && code.codePointAt(at + 1) !== 62) return at;
-    else if (unit === 101 && code.codePointAt(at + 1) === 120 && !WORD_BEFORE.test(code[at - 1] || ' ')) {
-      EXPORT_WORD.lastIndex = at;
-      if (
-        EXPORT_WORD.test(code) &&
-        /^\s+(?:default|declare|async|abstract|function|class|const|let|var|enum|interface|type|namespace|module|import|\*|\{|@)/.test(
-          code.slice(at + 6, at + 40),
-        )
-      )
-        return at;
-    } else if (lines && depth === 0 && unit === 10) {
-      // The last character before the line break that is not whitespace ('' when there is none).
-      let back = at - 1;
-      while (back >= 0 && isSpaceUnit(code.codePointAt(back))) back--;
-      const before = back >= 0 ? code[back] : '';
-      const after = code.slice(skipSpace(code, at), skipSpace(code, at) + 12);
-      if (!(',=+-*/%&|^?:<>(!~.'.includes(before) && before !== '')) {
-        if (!CONTINUES_LINE.test(after)) {
-          const word = LAST_WORD.exec(code.slice(Math.max(0, back - 12), back + 1));
-          if (!word || !DANGLING_WORDS.has(word[0])) return at;
-          readingDiverged = true; // the earlier reading ended the text at this line break
-        } else if (!CONTINUES_LINE_LEGACY.test(after)) readingDiverged = true;
-      }
-    }
-    at++;
-  }
-  // The text ended inside an opener: the closer was swallowed by a quote, a regex or a template this reading got wrong, and what
-  // followed it is unread. (The callers that take this end as the end of the list report it.)
-  skipOpen = depth > 0;
-  return at;
-}
-
-// Set by `skipTo` when it ran to the end of the text with a bracket still open.
-let skipOpen = false;
-// JSX elements: characters the element reader may still cover (reset per call), its nesting depth and how far it read.
-let jsxBudget = 0;
-let jsxDepth = 0;
-let jsxReach = 0;
-const MAX_JSX_DEPTH = 64;
-const JSX_NAME = /[A-Za-z_$][\w$.:-]*/y;
-const JSX_BREAK = /[{<>}]/g;
-
-/** Whether the `<` at `at` is where an operand starts and a tag or fragment follows (not a comparison or a type argument list). */
-function startsJsx(code, at) {
-  const next = code[at + 1];
-  if (!(next === '>' || (next !== undefined && /[A-Za-z_$]/.test(next)))) return false;
-  let back = at - 1;
-  while (back >= 0 && isSpaceUnit(code.codePointAt(back))) back--;
-  if (back < 0) return true;
-  const c = code[back];
-  if (c === '>') return code[back - 1] === '=';
-  if (/[\w$]/.test(c)) {
-    const word = LAST_WORD.exec(code.slice(Math.max(0, back - 12), back + 1));
-    return word !== null && OPERAND_WORDS.has(word[0]);
-  }
-  return '=(,:[!&|?{;+-*%~^'.includes(c);
-}
-
-/** Index after the JSX element opening at the `<` at `at`, or -1 when the text there is no element (a generic arrow function, say). */
-function jsxEnd(code, at) {
-  if (jsxBudget <= 0 || jsxDepth >= MAX_JSX_DEPTH) {
-    // Too much text read as candidate elements, or nested too deep: what follows cannot be told apart from the element's text.
-    listAbandoned = true;
-    return -1;
-  }
-  const top = jsxDepth === 0;
-  if (top) jsxReach = at;
-  jsxDepth++;
-  const end = jsxElement(code, at);
-  jsxDepth--;
-  if (top) jsxBudget -= Math.max(jsxReach, end) - at + 8;
-  return end;
-}
-
-/** The `{...}` container whose `{` is at `at`: the index after its `}`, or -1. */
-function jsxContainer(code, at) {
-  const close = skipTo(code, at + 1, { types: false, lines: false });
-  return code[close] === '}' ? close + 1 : -1;
-}
-
-function jsxElement(code, at) {
-  let i = at + 1;
-  let name = '';
-  if (code[i] !== '>') {
-    JSX_NAME.lastIndex = i;
-    const found = JSX_NAME.exec(code);
-    if (!found) return -1;
-    name = found[0];
-    i += name.length;
-    for (;;) {
-      i = skipSpace(code, i);
-      jsxReach = Math.max(jsxReach, i);
-      const c = code[i];
-      if (c === '/') return code[i + 1] === '>' ? i + 2 : -1;
-      if (c === '>') break;
-      if (c === '{') {
-        i = jsxContainer(code, i);
-        if (i === -1) return -1;
-        continue;
-      }
-      JSX_NAME.lastIndex = i;
-      const attribute = JSX_NAME.exec(code);
-      if (!attribute) return -1;
-      i = skipSpace(code, i + attribute[0].length);
-      if (code[i] !== '=') continue;
-      i = skipSpace(code, i + 1);
-      const value = code[i];
-      switch (value) {
-        case '"':
-        case "'": {
-          const close = code.indexOf(value, i + 1);
-          if (close === -1) return -1;
-          i = close + 1;
-          break;
-        }
-        case '{': {
-          i = jsxContainer(code, i);
-          if (i === -1) return -1;
-          break;
-        }
-        case '<': {
-          i = jsxEnd(code, i);
-          if (i === -1) return -1;
-          break;
-        }
-        default: {
-          return -1;
-        }
-      }
-    }
-  }
-  // Children: text, `{...}` containers and elements, up to the closing tag. A bare `>` or `}` in the text is no valid JSX, which is
-  // how a generic arrow function (`<T>(x: T) => x`) stops being a candidate after a few characters.
-  let pos = i + 1;
-  for (;;) {
-    JSX_BREAK.lastIndex = pos;
-    const found = JSX_BREAK.exec(code);
-    if (!found) {
-      jsxReach = code.length;
-      return -1;
-    }
-    const k = found.index;
-    jsxReach = k;
-    if (found[0] === '{') {
-      pos = jsxContainer(code, k);
-      if (pos === -1) return -1;
-    } else if (found[0] === '<') {
-      if (code[k + 1] === '/') {
-        let j = skipSpace(code, k + 2);
-        let closing = '';
-        if (code[j] !== '>') {
-          JSX_NAME.lastIndex = j;
-          const tag = JSX_NAME.exec(code);
-          if (!tag) return -1;
-          closing = tag[0];
-          j = skipSpace(code, j + closing.length);
-        }
-        return code[j] === '>' && closing === name ? j + 1 : -1;
-      }
-      pos = jsxEnd(code, k);
-      if (pos === -1) return -1;
-    } else return -1;
-  }
-}
-
-// Nesting depth past which a destructuring pattern is abandoned (names read so far are kept): the reading is recursive, and
-// thousands of unclosed brackets would overflow the stack and abort the guard instead of letting the other export forms decide.
-const MAX_PATTERN_DEPTH = 100;
-// Returned by the readers (instead of -1) when the nesting limit is hit; the whole declarator is then dropped, since the names
-// read inside such a pattern are noise and keeping them would make every unclosed head cost its depth in entries.
-const TOO_DEEP = -2;
-// Pattern-reading steps still allowed for the text being inspected (reset per call, 1 per character: honest code needs at most
-// that). Unclosed heads that all read the same long tail would otherwise cost depth x heads; once spent, later patterns are dropped.
-let patternBudget = 0;
-// Set by the readers when they give up on a list while text that could still hold a declared name is left unread (a depth or
-// budget limit, a token that is neither a name nor a pattern, a jump cap). Nothing hidden may then be treated as absent: the
-// caller reports the list as incomplete, which the decision treats as one more export whose name is unknown.
-let listAbandoned = false;
-// Set when the text read as a target is a type fragment cut by a comma of a type argument list (`{ a: 1; b?: string }>()`), not a
-// binding pattern: the caller skips it like the tail of an initializer instead of reporting the list as unread.
-let typeLiteral = false;
-// Set when a top-level target is text that is not a name or a pattern (`2 apples</p>`, `>(x) => x`): the tail of an expression a
-// comma of JSX text or of a type parameter list (`<T,>`) cut, which the caller skips when a declarator came before it.
-let junkTarget = false;
-// Set when a pattern crossed a default value (`= ...`): a type fragment has none, so a type literal found after one means a
-// default was cut by a comma of a type argument list and the bindings after it are hidden.
-let sawDefault = false;
-// Set when a pattern holds a token no binding pattern can hold (`(`, `?`, `-`, a number where a name goes): in valid code that text
-// is a type fragment cut by a comma of a type argument list (`{ (): void }`, `[B?]`, `{ [K in keyof T]?: U }`), so the caller skips it
-// when a declarator came before it and no default was crossed; otherwise the list is reported as abandoned.
-let patternBroken = false;
-// Set whenever the reading takes a step the earlier reader (kept as the legacy view below) did not take: a slash read as a division,
-// a line that continues where the earlier reader ended the text, an optional property key, a recovery after text the earlier reader
-// stopped at. Until it is set the two readers run in lockstep (same steps, same budget, same names), so the legacy view is only
-// needed from the first divergence on; the names of both are united there.
-let readingDiverged = false;
-// Set once a list was read where the current reader departed from the earlier one: from then on their budgets are no longer equal.
-let budgetsApart = false;
-// Characters the tail skips may still cover (reset per call; honest code needs a fraction of the text).
-let skipBudget = 0;
-
-/** True when `text` is balanced by kind (`()`, `[]`, `{}` and `<>`, a `=>` not counting), strings and templates skipped. */
-function balancedKinds(text) {
-  const stack = [];
-  const pairs = { ')': '(', ']': '[', '}': '{', '>': '<' };
-  for (let at = 0; at < text.length; at++) {
-    const c = text[at];
-    if (c === '"' || c === "'" || c === '`') {
-      const close = text.indexOf(c, at + 1);
-      if (close === -1) return false;
-      at = close;
-    } else if ('([{<'.includes(c)) stack.push(c);
-    else if (')]}>'.includes(c) && !(c === '>' && text[at - 1] === '=') && stack.pop() !== pairs[c]) return false;
-  }
-  return stack.length === 0;
-}
-
-/**
- * Index where the default value starting at `from` (inside a pattern) ends. A comma of a type argument list (`a = new Map<string,
- * number>()`, `a = <T,>(x: T) => x`) is not the end of the default: when the plain reading stops at a comma inside an unclosed `<`, the
- * angle-aware reading is taken instead, but only if it ends at a comma or a closer, holds no `=` (a binding with a default would hide
- * in it) and is balanced by kind. Anything else keeps the plain reading, whose leftovers the callers report as unread. The earlier
- * reading stopped at the comma, so the legacy view is switched on.
- */
-function skipDefault(code, from) {
-  const plain = skipTo(code, from, { types: false, lines: false });
-  // A default that runs to the end of the text with a bracket open swallowed what follows it.
-  if (skipOpen) listAbandoned = true;
-  if (code[plain] !== ',') return plain;
-  const head = code.slice(from, plain);
-  if (!head.includes('<')) return plain;
-  const angled = skipTo(code, from, { types: true, lines: false });
-  if (angled <= plain) return plain;
-  const end = code[angled];
-  const span = code.slice(from, angled);
-  if (!(end === ',' || end === '}' || end === ']' || angled >= code.length) || /=(?!>)/.test(span) || !balancedKinds(span)) return plain;
-  readingDiverged = true;
-  return angled;
-}
-
-/** Binding names of the target at `i` (a name, `{...}` or `[...]`) pushed to `names`; the index after it, or -1 when it is none. */
-function readTarget(code, i, names, depth = 0, inValue = false) {
-  const at = skipSpace(code, i);
-  if (code[at] === '{' || code[at] === '[') {
-    if (depth < MAX_PATTERN_DEPTH) return readPattern(code, at, names, depth + 1);
-    listAbandoned = true;
-    return TOO_DEEP;
-  }
-  const name = nameAt(code, at);
-  if (name === null) {
-    // The end of the text or of the statement is where a list legitimately stops; anything else left here is unread. A string, or
-    // anything where a pattern wants a binding, is the tail of a type (`f<"a", { k: 1 }>()`): not a declarator, nothing hidden in it.
-    if (inValue || code[at] === '"' || code[at] === "'" || code[at] === '`') typeLiteral = true;
-    else if (at < code.length && code[at] !== ';') {
-      if (depth === 0) junkTarget = true;
-      else patternBroken = true;
-      listAbandoned = true;
-    }
-    return -1;
-  }
-  names.push(decodeIdentifier(name));
-  return at + name.length;
-}
-
-function readPattern(code, start, names, depth) {
-  const object = code[start] === '{';
-  const closer = object ? '}' : ']';
-  let at = start + 1;
-  for (;;) {
-    if (--patternBudget < 0) {
-      listAbandoned = true;
-      // Once the readers have spent different amounts, the earlier reading may still have had budget.
-      if (budgetsApart) readingDiverged = true;
-      return TOO_DEEP;
-    }
-    at = skipSpace(code, at);
-    if (at >= code.length) return -1;
-    if (code[at] === closer) return at + 1;
-    if (code[at] === ',') {
-      at++;
-      continue;
-    }
-    if (code.startsWith('...', at)) at = skipSpace(code, at + 3);
-    else if (object) {
-      // A property key: `[computed]`, a string, a number or a name; it is a binding only when no `:` follows (shorthand).
-      let after;
-      let shorthand = null;
-      if (code[at] === '[') {
-        after = skipTo(code, at + 1, { types: false, lines: false }) + 1;
-        if (skipOpen) listAbandoned = true;
-      } else if (code[at] === '"' || code[at] === "'") after = code.indexOf(code[at], at + 1) + 1 || at + 1;
-      else {
-        shorthand = nameAt(code, at);
-        const key = shorthand ?? /^[\d.]+/.exec(code.slice(at, at + 40))?.[0];
-        if (!key) {
-          // `;` cannot follow a binding: the braces are a type literal.
-          if (code[at] === ';') typeLiteral = true;
-          else {
-            patternBroken = true;
-            listAbandoned = true;
-          }
-          return -1;
-        }
-        after = at + key.length;
-      }
-      const colon = skipSpace(code, after);
-      if (code[colon] === '?' && shorthand !== null) {
-        typeLiteral = true; // an optional property: only a type literal has them
-        readingDiverged = true; // the earlier reading went on past it
-        return -1;
-      }
-      if (code[colon] === ':') at = colon + 1;
-      else {
-        if (shorthand !== null) names.push(decodeIdentifier(shorthand));
-        at = after;
-        if (code[skipSpace(code, at)] === '=') {
-          sawDefault = true;
-          at = skipDefault(code, skipSpace(code, at) + 1);
-        }
-        continue;
-      }
-    }
-    at = readTarget(code, at, names, depth, object);
-    if (at < 0) return at;
-    at = skipSpace(code, at);
-    if (code[at] === '=') {
-      sawDefault = true;
-      at = skipDefault(code, at + 1);
-    }
-  }
-}
-
-/** Skips the tail of a declarator cut by a comma of a type argument list; the index it ends at, or -1 when the budget is spent. */
-function skipTail(code, from) {
-  // Text made of nothing but names and commas would make every head read the same tail: the total is bounded, and past it the
-  // list is reported as abandoned (the caller sets listAbandoned).
-  if (skipBudget <= 0) {
-    readingDiverged = true;
-    return -1;
-  }
-  const end = skipTo(code, from, { types: false, lines: true });
-  if (skipOpen) listAbandoned = true;
-  skipBudget -= end - from + 8;
-  return end;
-}
-
-/** Every name declared by the `const`/`let`/`var` list whose first declarator starts at `start`. */
-function declaredNames(code, start) {
-  const names = [];
-  let at = skipSpace(code, start);
-  if (/^enum\s/.test(code.slice(at, at + 6))) return names;
-  let declarators = 0;
-  let skipped = 0;
-  for (;;) {
-    declarators++;
-    const before = names.length;
-    const targetStart = skipSpace(code, at);
-    typeLiteral = false;
-    junkTarget = false;
-    sawDefault = false;
-    patternBroken = false;
-    const abandonedBefore = listAbandoned;
-    at = readTarget(code, at, names);
-    if (at === TOO_DEEP) names.length = before;
-    if (at < 0) {
-      // Not the first declarator and not an identifier start: JSX text or a type parameter list was cut by a comma. Read on after it.
-      // `...x` and `#x` are never JSX text or a type fragment the way a binding is not: they stay unread, hence abandoned.
-      const hiddenBinding = code[targetStart] === '\\' || code[targetStart] === '#' || code.startsWith('...', targetStart);
-      if (junkTarget && declarators > 1 && !hiddenBinding) {
-        listAbandoned = abandonedBefore;
-        typeLiteral = true;
-      }
-      if (patternBroken && declarators > 1 && !sawDefault) {
-        listAbandoned = abandonedBefore;
-        typeLiteral = true;
-      }
-      // Exit inventory: reaching here without a flag means the text ended or a `;` came where a declarator was expected (every
-      // other reader exit above set listAbandoned), so nothing is left unread.
-      if (!typeLiteral) break;
-      // A type fragment is only ever what a comma of a type argument list cut off, which needs a declarator before it: as the
-      // first target it is text the skip below would jump over unread.
-      if (declarators === 1) listAbandoned = true;
-      readingDiverged = true; // the earlier reading stopped here
-      // A default cut by a type argument comma inside a real pattern: the skip below jumps over bindings still to come.
-      if (sawDefault) listAbandoned = true;
-      at = skipTail(code, targetStart);
-      if (at < 0) {
-        listAbandoned = true;
-        break;
-      }
-      // skipTo stops only at a `;`, a closer, the next `export`, a line break the text cannot continue across or the end: the list ended.
-      if (code[at] !== ',') break;
-      at = skipSpace(code, at + 1);
-      continue;
-    }
-    const targetEnd = at;
-    at = skipSpace(code, at);
-    // Junk right after the name on the same line (not `:`, `=`, `!`, `,`, `;`): see below.
-    let afterTarget = !':=!,;'.includes(code[at] ?? ';') && !code.slice(targetEnd, at).includes('\n');
-    // A line break followed by text that continues the expression (`B\n>(x), Denied = 1`, a multi-line type argument list) is the
-    // same junk on the next line; one followed by a new statement is where the list ends.
-    if (!afterTarget && at < code.length && !':=!,;'.includes(code[at]) && CONTINUATION.test(code.slice(at, at + 12))) {
-      afterTarget = true;
-      readingDiverged = true; // the earlier reading stopped at the line break
-    }
-    // A type operator ending a line (`keyof\n B`, `typeof\n B`, `readonly\n B[]`, `infer\n U`) is no declarator: the next line is
-    // the rest of the type argument, not a new statement.
-    if (!afterTarget && at < code.length && !':=!,;'.includes(code[at]) && TYPE_OPERATOR.test(code.slice(targetStart, targetEnd))) {
-      afterTarget = true;
-      readingDiverged = true;
-    }
-    let skippedValue = false;
-    if (code[at] === '!') {
-      at = skipSpace(code, at + 1);
-      // `B!\n>(x)`: junk after the `!` is the same tail as junk after the name.
-      if (at < code.length && !':=,;'.includes(code[at])) {
-        afterTarget = true;
-        readingDiverged = true;
-      }
-    }
-    if (code[at] === ':') {
-      skippedValue = true;
-      at = skipSpace(code, skipTo(code, at + 1, { types: true, lines: true }));
-      if (skipOpen) listAbandoned = true;
-    }
-    if (code[at] === '=') {
-      skippedValue = true;
-      at = skipSpace(code, skipTo(code, at + 1, { types: false, lines: true }));
-      if (skipOpen) listAbandoned = true;
-    }
-    if (code[at] !== ',') {
-      // A name followed by anything else is not a declarator: it is the tail of an initializer that a comma inside a type argument
-      // list (`Map<string, number>`, `f<A, B>(x)`, `<T, U>(x) => x`) cut short. Skip to the next depth-0 comma and read on.
-      // Legitimate ends: the end of the text, a `;`, a closer, a new statement on the next line, or whatever follows a value or
-      // type annotation (skipTo above stopped where the statement ends). Anything else is junk the loop must not leave unread.
-      if (!afterTarget || at >= code.length || skippedValue) break;
-      // The earlier reading gave up after this many skips; the current one goes on.
-      if ((skipped += 1) > MAX_TYPE_ARGUMENT_COMMAS_LEGACY) readingDiverged = true;
-      at = skipTail(code, at);
-      if (at < 0) {
-        listAbandoned = true;
-        break;
-      }
-      // Same stop contract as skipTo above: the list ended.
-      if (code[at] !== ',') break;
-    }
-    at = skipSpace(code, at + 1);
-  }
-  return names;
-}
-
-// ---- Legacy reading (superset guarantee) ----
-// The declarator reader as it stood before the fail-closed rework, kept verbatim as an additional view: the names of this view are
-// always united with those of the current reader, so no symbol the earlier version detected can be lost by the newer one, whatever
-// the input (the current reader only ever adds). It carries its own copies of the text-skipping helpers it depended on.
-// Pattern-reading steps still allowed for the legacy view (same role as patternBudget).
-let patternBudgetLegacy = 0;
-const CONTINUES_LINE_LEGACY = /^(?:[,.?:+\-*/%&|^=<>([!~]|in\b|instanceof\b|as\b|satisfies\b)/;
-/** Index after the regex literal opening at the `/` at `at` when the previous character says a regex can start there and it closes on the line, else -1. */
-function regexEndLegacy(code, at) {
   const next = code.codePointAt(at + 1);
   if (next === 47 || next === 42) return -1;
   let back = at - 1;
@@ -2191,7 +1579,7 @@ function regexEndLegacy(code, at) {
  * keyword of the next statement, or (statements only) a line break the expression cannot continue across.
  * `types` also counts `<>` and stops at a depth-0 `=`; `lines` lets a line break end the text.
  */
-function skipToLegacy(code, i, { types, lines }) {
+function skipTo(code, i, { types, lines }) {
   let depth = 0;
   let at = i;
   const length = code.length;
@@ -2204,7 +1592,7 @@ function skipToLegacy(code, i, { types, lines }) {
     }
     if (unit === 47 && !types) {
       // A regex literal may hold commas, quotes and brackets (`/,/`, `/[)]/`): jump over it when it clearly is one.
-      const after = regexEndLegacy(code, at);
+      const after = regexEnd(code, at);
       if (after !== -1) {
         at = after;
         continue;
@@ -2231,29 +1619,39 @@ function skipToLegacy(code, i, { types, lines }) {
       while (back >= 0 && isSpaceUnit(code.codePointAt(back))) back--;
       const before = back >= 0 ? code[back] : '';
       const after = code.slice(skipSpace(code, at), skipSpace(code, at) + 12);
-      if (!(',=+-*/%&|^?:<>(!~.'.includes(before) && before !== '') && !CONTINUES_LINE_LEGACY.test(after)) return at;
+      if (!(',=+-*/%&|^?:<>(!~.'.includes(before) && before !== '') && !CONTINUES_LINE.test(after)) return at;
     }
     at++;
   }
   return at;
 }
 
+// Nesting depth past which a destructuring pattern is abandoned (names read so far are kept): the reading is recursive, and
+// thousands of unclosed brackets would overflow the stack and abort the guard instead of letting the other export forms decide.
+const MAX_PATTERN_DEPTH = 100;
+// Returned by the readers (instead of -1) when the nesting limit is hit; the whole declarator is then dropped, since the names
+// read inside such a pattern are noise and keeping them would make every unclosed head cost its depth in entries.
+const TOO_DEEP = -2;
+// Pattern-reading steps still allowed for the text being inspected (reset per call, 1 per character: honest code needs at most
+// that). Unclosed heads that all read the same long tail would otherwise cost depth x heads; once spent, later patterns are dropped.
+let patternBudget = 0;
+
 /** Binding names of the target at `i` (a name, `{...}` or `[...]`) pushed to `names`; the index after it, or -1 when it is none. */
-function readTargetLegacy(code, i, names, depth = 0) {
+function readTarget(code, i, names, depth = 0) {
   const at = skipSpace(code, i);
-  if (code[at] === '{' || code[at] === '[') return depth >= MAX_PATTERN_DEPTH ? TOO_DEEP : readPatternLegacy(code, at, names, depth + 1);
+  if (code[at] === '{' || code[at] === '[') return depth >= MAX_PATTERN_DEPTH ? TOO_DEEP : readPattern(code, at, names, depth + 1);
   const name = nameAt(code, at);
   if (name === null) return -1;
   names.push(decodeIdentifier(name));
   return at + name.length;
 }
 
-function readPatternLegacy(code, start, names, depth) {
+function readPattern(code, start, names, depth) {
   const object = code[start] === '{';
   const closer = object ? '}' : ']';
   let at = start + 1;
   for (;;) {
-    if (--patternBudgetLegacy < 0) return TOO_DEEP;
+    if (--patternBudget < 0) return TOO_DEEP;
     at = skipSpace(code, at);
     if (at >= code.length) return -1;
     if (code[at] === closer) return at + 1;
@@ -2266,7 +1664,7 @@ function readPatternLegacy(code, start, names, depth) {
       // A property key: `[computed]`, a string, a number or a name; it is a binding only when no `:` follows (shorthand).
       let after;
       let shorthand = null;
-      if (code[at] === '[') after = skipToLegacy(code, at + 1, { types: false, lines: false }) + 1;
+      if (code[at] === '[') after = skipTo(code, at + 1, { types: false, lines: false }) + 1;
       else if (code[at] === '"' || code[at] === "'") after = code.indexOf(code[at], at + 1) + 1 || at + 1;
       else {
         shorthand = nameAt(code, at);
@@ -2279,30 +1677,30 @@ function readPatternLegacy(code, start, names, depth) {
       else {
         if (shorthand !== null) names.push(decodeIdentifier(shorthand));
         at = after;
-        at = code[skipSpace(code, at)] === '=' ? skipToLegacy(code, skipSpace(code, at) + 1, { types: false, lines: false }) : at;
+        at = code[skipSpace(code, at)] === '=' ? skipTo(code, skipSpace(code, at) + 1, { types: false, lines: false }) : at;
         continue;
       }
     }
-    at = readTargetLegacy(code, at, names, depth);
+    at = readTarget(code, at, names, depth);
     if (at < 0) return at;
     at = skipSpace(code, at);
-    if (code[at] === '=') at = skipToLegacy(code, at + 1, { types: false, lines: false });
+    if (code[at] === '=') at = skipTo(code, at + 1, { types: false, lines: false });
   }
 }
 
 // Most commas of type argument lists one declaration may jump over (`Map<string, Array<number>>` has one): text made of nothing
 // but names and commas would otherwise make every head read the same tail.
-const MAX_TYPE_ARGUMENT_COMMAS_LEGACY = 6;
+const MAX_TYPE_ARGUMENT_COMMAS = 6;
 
 /** Every name declared by the `const`/`let`/`var` list whose first declarator starts at `start`. */
-function declaredNamesLegacy(code, start) {
+function declaredNames(code, start) {
   const names = [];
   let at = skipSpace(code, start);
   if (/^enum\s/.test(code.slice(at, at + 6))) return names;
   let skipped = 0;
   for (;;) {
     const before = names.length;
-    at = readTargetLegacy(code, at, names);
+    at = readTarget(code, at, names);
     if (at === TOO_DEEP) names.length = before;
     if (at < 0) break;
     const targetEnd = at;
@@ -2310,29 +1708,18 @@ function declaredNamesLegacy(code, start) {
     // Junk right after the name on the same line (not `:`, `=`, `!`, `,`, `;`): see below.
     const afterTarget = !':=!,;'.includes(code[at] ?? ';') && !code.slice(targetEnd, at).includes('\n');
     if (code[at] === '!') at = skipSpace(code, at + 1);
-    if (code[at] === ':') at = skipSpace(code, skipToLegacy(code, at + 1, { types: true, lines: true }));
-    if (code[at] === '=') at = skipSpace(code, skipToLegacy(code, at + 1, { types: false, lines: true }));
+    if (code[at] === ':') at = skipSpace(code, skipTo(code, at + 1, { types: true, lines: true }));
+    if (code[at] === '=') at = skipSpace(code, skipTo(code, at + 1, { types: false, lines: true }));
     if (code[at] !== ',') {
       // A name followed by anything else is not a declarator: it is the tail of an initializer that a comma inside a type argument
       // list (`Map<string, number>`, `f<A, B>(x)`, `<T, U>(x) => x`) cut short. Skip to the next depth-0 comma and read on.
-      if (!afterTarget || at >= code.length || (skipped += 1) > MAX_TYPE_ARGUMENT_COMMAS_LEGACY) break;
-      at = skipToLegacy(code, at, { types: false, lines: true });
+      if (!afterTarget || at >= code.length || (skipped += 1) > MAX_TYPE_ARGUMENT_COMMAS) break;
+      at = skipTo(code, at, { types: false, lines: true });
       if (code[at] !== ',') break;
     }
     at = skipSpace(code, at + 1);
   }
   return names;
-}
-
-/**
- * Whether the `export` at `index` directly follows a quote or backtick (spaces and tabs aside): real code never has one there
- * (`'a' export {` is no JavaScript), so it is the first words of a string a code generator writes (`'export const ' + name`) that a
- * reading which went wrong at an earlier regex or quote shows as code. Such a head is not an export list the scanner abandoned.
- */
-function opensString(code, index) {
-  let back = Math.floor(index) - 1;
-  while (back >= 0 && (code[back] === ' ' || code[back] === '\t')) back--;
-  return back >= 0 && (code[back] === '"' || code[back] === "'" || code[back] === '`');
 }
 
 /** `{ index, symbol }` entries for the names `declaredNames` and the local export lists add. */
@@ -2347,40 +1734,16 @@ function extraExportEntries(code) {
     },
   };
   patternBudget = code.length + 1000;
-  skipBudget = code.length + 1000;
-  budgetsApart = false;
-  jsxBudget = 2 * code.length + 1000;
-  jsxDepth = 0;
-  patternBudgetLegacy = code.length + 1000;
-  // Index of the first list the scanners gave up on with text left unread (Infinity when none).
-  let abandonedAt = Number.POSITIVE_INFINITY;
-  const abandon = (index) => {
-    abandonedAt = Math.min(abandonedAt, index);
-  };
   for (const head of code.matchAll(DECLARATION_HEAD)) {
-    listAbandoned = false;
-    readingDiverged = false;
-    const start = head.index + head[0].length;
-    for (const symbol of declaredNames(code, start)) entries.push({ index: head.index + 0.5, symbol });
-    // Superset by construction: a list read without a divergence is read by the current reader exactly as the earlier one read it
-    // (same steps, names and budget cost); a list where the current reader departed from it (or ran out of a budget the earlier
-    // reader, which spent less before, may still have had) also gets the earlier reader's names united in, so whatever it
-    // detected stays detected. The earlier reader's budget is only spent by the lists it reads, which is never less than it had.
-    if (readingDiverged) budgetsApart = true;
-    if (readingDiverged) for (const symbol of declaredNamesLegacy(code, start)) entries.push({ index: head.index + 0.5, symbol });
-    if (listAbandoned && !opensString(code, head.index)) abandon(head.index);
+    for (const symbol of declaredNames(code, head.index + head[0].length)) entries.push({ index: head.index + 0.5, symbol });
   }
-  listAbandoned = false;
   // Heads that share their closing brace share the comma-separated parts after their first comma, so those parts are read once
   // (by the first head of the group); every later head only reads its own first part. Total work stays linear however many
   // unclosed `export {` precede one distant `}` (rescanning and re-splitting the same tail for each head is quadratic).
   const aliasOf = (from, to) => {
     // A brace cannot be part of `name as alias`; this keeps a first part that spans later heads from being sliced for each of them.
     const brace = code.indexOf('{', from);
-    if (brace !== -1 && brace < to) {
-      if (!opensString(code, heads.at - 0.5)) abandon(heads.at - 0.5);
-      return;
-    }
+    if (brace !== -1 && brace < to) return;
     const alias = LIST_ALIAS.exec(code.slice(from, to).trim());
     if (alias && alias[1] !== 'default') entries.push({ index: heads.at, symbol: decodeIdentifier(alias[1]) });
   };
@@ -2389,23 +1752,12 @@ function extraExportEntries(code) {
   let tailIsFrom = false;
   let commas = [];
   let next = 0;
-  let unclosed = false;
   for (const head of code.matchAll(LOCAL_LIST_HEAD)) {
     const start = head.index + head[0].length;
     let first = false;
-    if (unclosed) {
-      // No `}` follows any more heads either (searched once: a search per head would be quadratic).
-      if (!opensString(code, head.index)) abandon(head.index);
-      continue;
-    }
     if (close < start) {
       close = code.indexOf('}', start);
-      if (close === -1) {
-        // An export list that never closes: whatever follows may be its names.
-        unclosed = true;
-        if (!opensString(code, head.index)) abandon(head.index);
-        continue;
-      }
+      if (close === -1) break;
       tailIsFrom = /^\s*from\b/.test(code.slice(close + 1, close + 40));
       commas = [];
       for (let at = start; at < close; at += 1) if (code.codePointAt(at) === 44) commas.push(at);
@@ -2420,10 +1772,7 @@ function extraExportEntries(code) {
       for (let k = next; k < commas.length; k += 1) aliasOf(commas[k] + 1, k + 1 < commas.length ? commas[k + 1] : close);
     }
   }
-  const list = [...first].map(([symbol, index]) => ({ index, symbol }));
-  // One anonymous entry stands for every name the scanners could not read (never one per list: thousands of unclosed heads).
-  if (abandonedAt !== Number.POSITIVE_INFINITY) list.push({ index: abandonedAt + 0.75, symbol: null, incomplete: true });
-  return list;
+  return [...first].map(([symbol, index]) => ({ index, symbol }));
 }
 
 /** The identifier with its `\uXXXX` and `\u{X}` escapes decoded (an out-of-range escape stays as written). */
@@ -2457,17 +1806,13 @@ function detectExports(content, language = 'js') {
       for (const match of code.matchAll(form)) found.push({ index: match.index, symbol: decodeIdentifier(match[1]) });
     }
   }
-  let incomplete = false;
-  for (const entry of extraExportEntries(code)) {
-    if (entry.incomplete) incomplete = true;
-    found.push(entry);
-  }
+  for (const entry of extraExportEntries(code)) found.push(entry);
   if (found.length === 0) return null;
   // `export default class Name` matches both the named and the bare `export default` form at one index: keep the named one.
   const named = new Set(found.filter((entry) => entry.symbol).map((entry) => entry.index));
   const kept = found.filter((entry) => entry.symbol || !named.has(entry.index)).sort((a, b) => a.index - b.index);
   const symbols = [...new Set(kept.filter((entry) => entry.symbol).map((entry) => entry.symbol))];
-  return { symbols, anonymous: kept.some((entry) => !entry.symbol), symbol: symbols[0] || null, incomplete };
+  return { symbols, anonymous: kept.some((entry) => !entry.symbol), symbol: symbols[0] || null };
 }
 
 /** `{ symbol }` (the first named export, null when none is named) or null when `content` exports nothing; see `detectExports`. */
@@ -2613,9 +1958,7 @@ function evaluateGuard({ input, cwd = process.cwd(), env = process.env, runtimeR
   // Every export of the content, not just the first: the decision is taken over all of them (deny if any would be denied).
   const detected = detectExports(content, languageOf(target.real));
   const symbols = detected ? [...detected.symbols, ...(detected.anonymous || detected.symbols.length === 0 ? [null] : [])] : [null];
-  const incomplete = Boolean(detected && detected.incomplete);
   const notes = [];
-  if (incomplete) notes.push('Export list could not be fully read; hidden names are treated as an export with an unknown name.');
   const base = safeBaseMode(root);
   if (base.error) notes.push(`Bindings baseline unavailable (${base.error}); the platform decision applies.`);
   const bindings = loadPlatformBindings({ runtimeRoot, projectDir: root, env, now, baseMode: base.mode });
@@ -2634,9 +1977,9 @@ function evaluateGuard({ input, cwd = process.cwd(), env = process.env, runtimeR
   }
   if (!registry && mode === 'hybrid') {
     // Without registry data hybrid cannot identify a stable match: fall back to the platform decision.
-    return decide({ mode: 'platform', registry, symbols, relative: target.relative, root, env, bindings, notes, incomplete });
+    return decide({ mode: 'platform', registry, symbols, relative: target.relative, root, env, bindings, notes });
   }
-  return decide({ mode, registry, symbols, relative: target.relative, root, env, bindings, notes, incomplete });
+  return decide({ mode, registry, symbols, relative: target.relative, root, env, bindings, notes });
 }
 
 /** Names for messages: the named exports joined, or the fallback for an export without a name. */
@@ -2645,7 +1988,7 @@ function nameList(symbols, fallback) {
   return names.length > 0 ? names.join(', ') : fallback;
 }
 
-function decide({ mode, registry, symbols, relative, root, env, bindings, notes, incomplete = false }) {
+function decide({ mode, registry, symbols, relative, root, env, bindings, notes }) {
   const stacks = bindings.stacks && bindings.stacks.length > 0 ? bindings.stacks : detectStacks(root);
   // One lookup per export; a capability matched by several exports is reported once and remembers which symbols hit it.
   const byCapability = new Map();
@@ -2679,14 +2022,6 @@ function decide({ mode, registry, symbols, relative, root, env, bindings, notes,
   if (validAck(root, env)) return allowance([overrideNote, ...warnings].filter(Boolean).join(' '));
 
   if (mode === 'hybrid') {
-    // A list the scanner could not read fully may hide a name that matches a stable capability: the hidden name is unknown, so the
-    // unknown is denied (same outcome as a stable match) unless a valid acknowledgement was recorded above.
-    if (incomplete) {
-      return denial(
-        'capability-intake-unreadable-exports',
-        `[CAPABILITY-INTAKE] The export list of this file could not be read in full, so a hidden export cannot be checked against the stable platform capabilities for this project's stacks. Rewrite the exports in a readable form (one plain \`export const name = ...\` or \`export { name }\` per name) or record a valid CORE_INTAKE_ACK=<intake-id> in docs/decisions/*intake*.md (CORE_INTAKE_ACK=1 is invalid).${[...warnings, ...notes].length > 0 ? ` ${[...warnings, ...notes].join(' ')}` : ''}`,
-      );
-    }
     // Deny when ANY export of the content matches a stable, non-overridden capability.
     const blocking = matched.filter((match) => match.stableForStack && !overridden.includes(match));
     if (blocking.length > 0) {
@@ -2707,8 +2042,6 @@ function decide({ mode, registry, symbols, relative, root, env, bindings, notes,
   // An override only covers the exports whose own matches include an overridden capability; any uncovered export denies.
   const isOverridden = (match) => overridden.includes(match) || bindings.overrides.some((o) => o.capability === match.capability.name);
   const uncovered = perSymbol.filter((entry) => !entry.matches.some(isOverridden)).map((entry) => entry.symbol);
-  // The hidden names of an unreadable list are no export an override can name: they are never covered.
-  if (incomplete) uncovered.push(null);
   if (uncovered.length === 0) return allowance([overrideNote, ...warnings].join(' '));
   const named = uncovered.filter(Boolean);
   const registryCandidates = registry
