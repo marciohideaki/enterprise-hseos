@@ -162,7 +162,7 @@
     "test:platform-bindings": "node test/test-platform-bindings.js",
     "test:platform-bindings-command": "node --test --test-concurrency=1 test/test-platform-bindings-command.js",
     "test:plugins": "node test/test-plugin-marketplace.js && node --test --test-concurrency=1 test/test-execution-plugin-install.js",
-    "test:provider-control": "node --test --test-concurrency=1 test/test-provider-control-manifest.js test/test-provider-campaign-control.js test/test-control-configuration.js test/test-provider-api-adapter.js test/test-provider-campaign-runner.js test/test-antigravity-client.js test/test-provider-campaign-adapters.js test/test-codex-acp-peer.js test/test-acp-campaign-boundaries.js",
+    "test:provider-control": "node --test --test-concurrency=1 test/test-provider-control-manifest.js test/test-provider-campaign-control.js test/test-campaign-evidence.js test/test-control-configuration.js test/test-provider-api-adapter.js test/test-provider-campaign-runner.js test/test-antigravity-client.js test/test-provider-campaign-adapters.js test/test-codex-acp-peer.js test/test-acp-campaign-boundaries.js",
     "test:provider-egress-broker": "node --test --test-concurrency=1 test/test-provider-egress-broker.js",
     "test:repository-identity-contract": "node test/test-repository-identity-contract.js",
     "test:runtime-providers": "node --test --test-concurrency=1 test/test-runtime-providers.js test/test-hosted-runtime-adapters.js test/test-process-acp-peer.js test/test-deepseek-acp-composition.js test/test-codex-acp-peer.js test/test-acp-campaign-boundaries.js",

@@ -5,6 +5,7 @@ const { z } = require('zod');
 const { engineeringDigest } = require('./engineering-task-state');
 const { parseProviderControlManifest, inspectProviderControlManifest } = require('../../lib/provider-control-manifest');
 const { executorOwner, isExecutorOwnerAlive } = require('../../../packages/agent-isolation-attestation/executor');
+const { MAX_EVIDENCE_BYTES, storeEvidence, readEvidence } = require('./campaign-evidence-store');
 
 const integer = z.number().int().nonnegative().safe();
 const hash = z.string().regex(/^[a-f0-9]{64}$/);
@@ -60,8 +61,18 @@ const receiptSchema = z
       .max(1024)
       .regex(/^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/)
       .optional(),
+    // Optional so receipts recorded before model-output retention stay readable without rewriting events.
+    evidence_ref: z
+      .object({ schema_version: z.literal(1), kind: z.literal('model_output'), sha256: hash, bytes: integer.max(MAX_EVIDENCE_BYTES) })
+      .strict()
+      .optional(),
+    // Declared non-retention keeps the paid dispatch valid; reads answer CONTROL_CAMPAIGN_EVIDENCE_WITHHELD.
+    evidence_withheld: z.enum(['too_large', 'credential_pattern', 'integrity_mismatch']).optional(),
   })
-  .strict();
+  .strict()
+  .refine((value) => !(value.evidence_ref && value.evidence_withheld));
+const CAMPAIGN_REFERENCE = /^campaign:\/\/([a-f0-9-]{36})\/([a-f0-9-]{36})$/;
+const responsesSchema = z.array(z.object({ name: z.string().min(1).max(160), input: z.record(z.string(), z.json()) }).strict()).max(64);
 const authorizationSchema = z
   .object({
     max_requests: integer.min(1).max(10_000),
@@ -265,6 +276,76 @@ class ProviderCampaignControl {
     const done = rows.find((r) => r.payload.kind === 'done' && r.payload.command_id === commandId);
     if (!done) reject('CONTROL_OUTCOME_UNCERTAIN');
     return done.payload.result;
+  }
+  /** Governed read of a completed dispatch's model output; the stored artifact is re-hashed against the accepted receipt. */
+  evidence(id, commandId) {
+    if (!z.string().uuid().safeParse(commandId).success) reject('CONTROL_QUERY_INVALID');
+    const state = this.query(id);
+    const rows = this.rows(id);
+    const reserved = rows.find((r) => r.payload.kind === 'reserved' && r.payload.command_id === commandId)?.payload;
+    if (!reserved) reject('CONTROL_CAMPAIGN_EVIDENCE_UNAVAILABLE');
+    const rejected = rows.some(
+      (r) =>
+        (r.payload.kind === 'uncertain' && r.payload.command_id === commandId) ||
+        (r.payload.kind === 'reconciled' && r.payload.command_ids.includes(commandId)),
+    );
+    if (!rejected && (this.active.has(id) || state.unresolved_commands.includes(commandId))) reject('CONTROL_CAMPAIGN_NOT_COMPLETED');
+    const receipt = rows.find((r) => r.payload.kind === 'receipt' && r.payload.command_id === commandId)?.payload.receipt;
+    const done = rows.some((r) => r.payload.kind === 'done' && r.payload.command_id === commandId);
+    if (!receipt || !done || rejected || receipt.status !== 'completed') reject('CONTROL_CAMPAIGN_EVIDENCE_REJECTED');
+    if (receipt.evidence_withheld) reject('CONTROL_CAMPAIGN_EVIDENCE_WITHHELD');
+    if (!receipt.evidence_ref) reject('CONTROL_CAMPAIGN_EVIDENCE_UNAVAILABLE');
+    const opened = rows.find((r) => r.payload.kind === 'opened').payload;
+    if (opened.binding_manifests[reserved.binding_id] !== reserved.manifest_sha256) reject('CONTROL_PROVIDER_BINDING_DRIFT');
+    const text = readEvidence(this.control.state, receipt.evidence_ref);
+    return {
+      schema_version: 1,
+      resource_id: id,
+      command_id: commandId,
+      task_id: reserved.task_id,
+      binding_id: reserved.binding_id,
+      binding_sha256: receipt.binding_sha256,
+      receipt_sha256: engineeringDigest(receipt),
+      evidence_sha256: receipt.evidence_ref.sha256,
+      bytes: receipt.evidence_ref.bytes,
+      text,
+    };
+  }
+  /** Resolve `campaign://<campaign>/<dispatch>` into scripted tool calls with verifiable provenance. */
+  resolveResponses({ ref, binding_sha256: bindingSha256 }, { task_id: taskId }) {
+    const match = CAMPAIGN_REFERENCE.exec(ref);
+    if (!match) reject('CONTROL_CAMPAIGN_REFERENCE_INVALID');
+    const evidence = this.evidence(match[1], match[2]);
+    if (evidence.binding_sha256 !== bindingSha256) reject('CONTROL_CAMPAIGN_BINDING_MISMATCH');
+    if (evidence.task_id !== taskId) reject('CONTROL_CAMPAIGN_TASK_MISMATCH');
+    const fenced = /^\s*```(?:json)?\n([\s\S]*?)\n```\s*$/.exec(evidence.text);
+    let responses;
+    try {
+      responses = responsesSchema.parse(JSON.parse(fenced ? fenced[1] : evidence.text));
+    } catch {
+      reject('CONTROL_CAMPAIGN_EVIDENCE_INVALID');
+    }
+    const { text: _text, schema_version: _version, ...provenance } = evidence;
+    return { responses, source: { schema_version: 1, ref, ...provenance } };
+  }
+  /**
+   * One dispatch output feeds one consuming resource; replays by that resource stay idempotent. A different resource may take
+   * over only for the same task and contract when the previous consumer never registered (the creation failed after the claim).
+   */
+  claimEvidence(commandId, consumerId, taskId, contractSha256) {
+    const rows = this.control.ledger.readStream('control_campaign_evidence', commandId);
+    const last = rows.at(-1)?.payload;
+    if (last) {
+      if (last.contract_sha256 !== contractSha256 || last.task_id !== taskId) reject('CONTROL_CAMPAIGN_EVIDENCE_CONSUMED');
+      if (last.consumer_id === consumerId) return;
+      if (this.control.rows(last.consumer_id).some((row) => row.payload.kind === 'registered'))
+        reject('CONTROL_CAMPAIGN_EVIDENCE_CONSUMED');
+    }
+    this.append(
+      commandId,
+      { kind: 'consumed', consumer_id: consumerId, task_id: taskId, contract_sha256: contractSha256 },
+      'control_campaign_evidence',
+    );
   }
   events(id, { after = 0, limit = 100 } = {}) {
     if (!Number.isSafeInteger(after) || after < 0 || !Number.isInteger(limit) || limit < 1 || limit > 1000) reject('CONTROL_QUERY_INVALID');
@@ -551,16 +632,15 @@ class ProviderCampaignControl {
     let observedReceipt;
     try {
       if (this.query(id).cancelled || this.now() >= this.query(id).deadline) reject('CONTROL_CAMPAIGN_CANCELLED');
-      const receipt = receiptSchema.parse(
-        await binding.adapter.run({
-          task_id: input.task_id,
-          request_id: commandId,
-          manifest: binding.manifest,
-          signal: abort.signal,
-          runSubordinate,
-          ...(input.resume_from ? { resume_session_id: this.resumeSession(id, input) } : {}),
-        }),
-      );
+      const { output_text: outputText, ...receiptInput } = await binding.adapter.run({
+        task_id: input.task_id,
+        request_id: commandId,
+        manifest: binding.manifest,
+        signal: abort.signal,
+        runSubordinate,
+        ...(input.resume_from ? { resume_session_id: this.resumeSession(id, input) } : {}),
+      });
+      const receipt = receiptSchema.parse(receiptInput);
       observedReceipt = receipt;
       context.open = false;
       await Promise.allSettled(children);
@@ -573,9 +653,12 @@ class ProviderCampaignControl {
         (receipt.cost_microusd !== null && receipt.cost_microusd > binding.manifest.billing.max_request_microusd)
       )
         reject('CONTROL_PROVIDER_RECEIPT_INVALID');
+      if (Boolean(receipt.evidence_ref) !== (outputText !== undefined)) reject('CONTROL_PROVIDER_RECEIPT_INVALID');
+      const stored = receipt.evidence_ref ? storeEvidence(this.control.state, outputText, receipt.evidence_ref) : null;
       const result = { resource_id: id, action, receipt };
       this.control.handle.db
         .transaction(() => {
+          if (stored?.repaired) this.append(id, { kind: 'evidence_repaired', command_id: commandId, sha256: receipt.evidence_ref.sha256 });
           this.append(id, { kind: 'receipt', command_id: commandId, receipt });
           this.append(id, { kind: 'done', command_id: commandId, result });
         })

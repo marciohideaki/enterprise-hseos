@@ -3,7 +3,7 @@
 module.exports = {
   command: 'control <action>',
   description:
-    'Engineering control actions: serve, adapters, prepare, command, query, events, job-command, job-query, job-events, binding-inspect, campaign-run, campaign-command, campaign-query, campaign-events, terminal-attach, terminal-command, terminal-query, terminal-events',
+    'Engineering control actions: serve, adapters, prepare, command, query, events, job-command, job-query, job-events, binding-inspect, campaign-run, campaign-command, campaign-query, campaign-events, campaign-evidence, terminal-attach, terminal-command, terminal-query, terminal-events',
   options: [
     ['--config <path>', 'Server configuration with workspace allowlist and binding references'],
     ['--state <path>', 'Existing local candidate control ledger'],
@@ -11,6 +11,7 @@ module.exports = {
     ['--request <path>', 'Versioned JSON command'],
     ['--resource <id>', 'Task, job or campaign resource UUID'],
     ['--binding <id>', 'Provider binding identity'],
+    ['--command <id>', 'Campaign dispatch command UUID'],
     ['--view <view>', 'status, evidence, review or session'],
     ['--after <cursor>', 'Event cursor'],
     ['--limit <count>', 'Maximum events per page'],
@@ -141,6 +142,10 @@ module.exports = {
       }
       case 'campaign-events': {
         result = await client.campaignEvents(options.resource, { after: Number(options.after || 0) });
+        break;
+      }
+      case 'campaign-evidence': {
+        result = await client.campaignEvidence(options.resource, options.command);
         break;
       }
       case 'terminal-attach': {

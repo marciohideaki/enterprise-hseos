@@ -40,6 +40,13 @@ const inputs = {
         .array(z.object({ name: z.string().min(1).max(160), input: z.record(z.string(), z.json()) }).strict())
         .max(64)
         .optional(),
+      responses_from: z
+        .object({
+          ref: z.string().regex(/^campaign:\/\/[a-f0-9-]{36}\/[a-f0-9-]{36}$/),
+          binding_sha256: z.string().regex(/^[a-f0-9]{64}$/),
+        })
+        .strict()
+        .optional(),
       binding_id: z.string().min(1).max(160).optional(),
       plugin_model: z.object({ selection_id: IdentifierSchema, campaign_id: z.string().uuid() }).strict().optional(),
       extension_ids: z
@@ -66,9 +73,10 @@ function parseCreationInput(action, value) {
   if (action === 'create') {
     const contract = parseEngineeringTask(input.contract);
     if (contract.schema_version !== 2) throw new ControlError('CONTROL_WORKSPACE_DENIED');
-    if ([input.responses, input.binding_id, input.plugin_model].filter(Boolean).length > 1)
+    if ([input.responses, input.responses_from, input.binding_id, input.plugin_model].filter(Boolean).length > 1)
       throw new ControlError('CONTROL_MODEL_CONFLICT');
-    if (!input.responses && !input.binding_id && !input.plugin_model) throw new ControlError('CONTROL_MODEL_REQUIRED');
+    if (!input.responses && !input.responses_from && !input.binding_id && !input.plugin_model)
+      throw new ControlError('CONTROL_MODEL_REQUIRED');
     return { ...input, contract };
   }
   const { definition } = parseEngineeringWorkflow(input.definition);
@@ -296,6 +304,7 @@ class EngineeringControl {
     const input = inputs[command.action].parse(command.input);
     const digest = engineeringDigest(command);
     let rows = this.rows(command.resource_id);
+    let sourced;
     const previous = rows.find((row) => row.payload.kind === 'intent' && row.payload.command_id === command.command_id);
     if (previous) {
       if (previous.payload.digest !== digest) throw new ControlError('CONTROL_IDEMPOTENCY_CONFLICT');
@@ -307,6 +316,11 @@ class EngineeringControl {
       if (rows.length > 0 || command.expected_sequence !== 0) throw new ControlError('CONTROL_SEQUENCE_CONFLICT');
       if (this.jobs.rows(command.resource_id).length > 0) throw new ControlError('JOB_RESOURCE_CONFLICT');
       await this.admitCreation(command.action, input, command.resource_id);
+      if (command.action === 'create' && input.responses_from) {
+        const { contract } = parseCreationInput('create', input);
+        sourced = this.providerCampaigns.resolveResponses(input.responses_from, { task_id: contract.task_id });
+        this.providerCampaigns.claimEvidence(sourced.source.command_id, command.resource_id, contract.task_id, engineeringDigest(contract));
+      }
     } else {
       const workflow = this.kind(command.resource_id) === 'workflow';
       if ((workflow && input.reconciliation_decision) || (!workflow && input.reconciliation_decisions))
@@ -349,13 +363,14 @@ class EngineeringControl {
           const contractFile = path.join(this.state, `${command.command_id}-task.json`);
           fs.writeFileSync(contractFile, JSON.stringify(input.contract), { mode: 0o600, flag: 'wx' });
           let responsesFile;
-          if (input.responses) {
+          if (input.responses || sourced) {
             responsesFile = path.join(this.state, `${command.command_id}-responses.json`);
-            fs.writeFileSync(responsesFile, JSON.stringify(input.responses), { mode: 0o600, flag: 'wx' });
+            fs.writeFileSync(responsesFile, JSON.stringify(input.responses || sourced.responses), { mode: 0o600, flag: 'wx' });
           }
           const created = await runEngineeringTask({
             taskContract: contractFile,
             scriptedResponses: responsesFile,
+            responseSource: sourced?.source,
             binding: input.binding_id ? this.bindings[input.binding_id] : undefined,
             createOnly: true,
             extensionCatalog: this.extensionCatalog,
