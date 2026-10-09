@@ -1,0 +1,769 @@
+{
+  "gerado_em": "2026-10-09T17:12:28.734Z",
+  "pacote": {
+    "arquivo": "/tmp/hseos-reval/pack/hseos-4.0.0-rc.0.tgz",
+    "sha256": "ea1a430de8aea5777a9daa6639220720bb809e09e448ccb37500d826ca450064"
+  },
+  "node": "v24.15.0",
+  "consumidor": {
+    "prefix": "/tmp/hseos-reval/consumer-a4/project",
+    "hseosInstall": "already installed (re-run)",
+    "hseosVersion": "4.0.0-rc.0"
+  },
+  "axon_no_path": "/home/annonymous/.local/bin/axon",
+  "load1_inicio": 5.47,
+  "servidores": [
+    {
+      "nome": "hseos-governance",
+      "script": "node_modules/hseos/tools/mcp-hseos-governance/index.js",
+      "caminho": "legacy",
+      "transporte": "stdio",
+      "tools": [
+        "check_authority",
+        "list_skills",
+        "list_workflows",
+        "get_effective_governance_context",
+        "evaluate_governed_action",
+        "explain_governance_decision",
+        "get_governance_artifact",
+        "get_governance_release",
+        "diff_governance_releases",
+        "verify_governance_snapshot",
+        "get_governance_session_status",
+        "get_governance_session_preflight",
+        "get_governance_readiness",
+        "query_constitution",
+        "validate_adr"
+      ],
+      "chamadas": [
+        {
+          "tool": "query_constitution",
+          "args": "{\"article\":\"constitution\"}",
+          "status": "PASS",
+          "evidence": "result {\"article\":\"constitution\",\"text\":\"# Enterprise Constitution\\n\\n**Version:** 2.2\\n**Status:** Active\\n**Scope:** All repositories and projects under this organization\\n**Source of Truth:** GitHub (repository content)\\n**Audience:** Engineering Team + AI Agents (any framework)\\n\\n> **v2.0 change:** Me...(+15617) path=/tmp/hseos-reval/consumer-a4/project/node_modules/hseos/.enterprise/.specs/constitution/Enterprise-Constitution.md len=15319"
+        },
+        {
+          "tool": "check_authority",
+          "args": "{\"agent_code\":\"SWARM\"}",
+          "status": "PASS",
+          "evidence": "result {\"agent_code\":\"SWARM\",\"authority\":\"# SWARM — Parallel Execution Commander — Authority (Enterprise Overlay)\\n**Agent:** SWARM — Parallel Execution Commander\\n**Scope:** Heterogeneous Batch Decomposition, Parallel Execution, Worktree Isolation\\n**Status:** Active\\n\\n## 1. Role Definition\\nSWARM decomp...(+4800) authority_len=2791"
+        },
+        {
+          "tool": "validate_adr",
+          "args": "{\"change_kind\":\"security\"}",
+          "status": "PASS",
+          "evidence": "result {\"change_kind\":\"security\",\"required\":true,\"reason\":\"Security posture changes mandate an ADR per §5.2\"} required=true"
+        },
+        {
+          "tool": "list_skills",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "result {\"skills\":[],\"total\":0} skills=0"
+        }
+      ],
+      "negacoes": [
+        {
+          "tool": "unknown_tool_xyz",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32000 message=Unknown tool: unknown_tool_xyz",
+          "kind": "unknown-tool"
+        },
+        {
+          "tool": "tools/call(no name)",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32000 message=Unknown tool: undefined",
+          "kind": "missing-name"
+        },
+        {
+          "tool": "method unknown",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32601 message=Method not found: nope/method",
+          "kind": "unknown-method"
+        },
+        {
+          "tool": "check_authority",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32000 message=Cannot read properties of undefined (reading 'toLowerCase')",
+          "kind": "schema-violation"
+        },
+        {
+          "tool": "malformed-json-line",
+          "status": "PASS",
+          "evidence": "error code=-32700",
+          "kind": "malformed-input"
+        },
+        {
+          "tool": "unknown-method-notification (no id)",
+          "status": "FAIL",
+          "evidence": "server replied to a notification: [{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method not found: bogus/notification\"}}]",
+          "kind": "jsonrpc-notification"
+        },
+        {
+          "tool": "check_authority",
+          "args": "{\"agent_code\":12345}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32000 message=agentCode.toLowerCase is not a function",
+          "kind": "wrong-type"
+        },
+        {
+          "tool": "check_authority",
+          "args": "{\"agent_code\":\"../../../../../../etc\"}",
+          "kind": "out-of-scope-path",
+          "status": "PASS",
+          "evidence": "no file content returned outside package: {\"agent_code\":\"../../../../../../etc\",\"authority\":null,\"error\":\"agent dir not found: ../../../../../../etc\"}"
+        },
+        {
+          "tool": "query_constitution",
+          "args": "{\"article\":\"../../../../etc/passwd\"}",
+          "kind": "out-of-scope-path",
+          "status": "PASS",
+          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"/tmp/hseos-reval/consumer-a4/project/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../../etc...(+9)"
+        }
+      ],
+      "notas": [
+        "spec root resolved to /tmp/hseos-reval/consumer-a4/project/node_modules/hseos (package, not consumer project): spec-reader REPO_ROOT = __dirname/../../.. (tools/mcp-hseos-governance/lib/spec-reader.js:8)",
+        "legacy telemetry db written in consumer project: true (.hseos/state/mcp-legacy-usage.db)"
+      ],
+      "initialize": {
+        "protocolVersion": "2024-11-05",
+        "serverInfo": {
+          "name": "hseos-governance",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "tools": {}
+        }
+      },
+      "initializedNotificationAnswered": false,
+      "exit": {
+        "code": 0,
+        "sig": null
+      },
+      "stderr": "[governance] legacy MCP compatibility stdio ready; tools=15\n",
+      "stdoutNonJson": 0,
+      "crashProbe": {
+        "probes": [
+          {
+            "probe": "JSON null",
+            "serverAlive": false,
+            "response": "null",
+            "exit": {
+              "code": 1,
+              "sig": null
+            }
+          },
+          {
+            "probe": "JSON number",
+            "serverAlive": true,
+            "response": "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method not found: undefined\"}}",
+            "exit": null
+          },
+          {
+            "probe": "JSON array",
+            "serverAlive": true,
+            "response": "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method not found: undefined\"}}",
+            "exit": null
+          },
+          {
+            "probe": "JSON string",
+            "serverAlive": true,
+            "response": "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method not found: undefined\"}}",
+            "exit": null
+          }
+        ],
+        "stderrTail": "de_modules/hseos/tools/lib/mcp-transport.js:69:28)\n    at Interface.emit (node:events:509:28)\n    at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)\n    at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)\n    at Socket.ondata (node:internal/readline/interface:263:23)\n    at Socket.emit (node:events:509:28)\n    at addChunk (node:internal/streams/readable:563:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)\n\nNode.js v24.15.0\n"
+      },
+      "resumo": {
+        "PASS": 12,
+        "FAIL": 1,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "nome": "hseos-swarm",
+      "script": "node_modules/hseos/tools/mcp-hseos-swarm/index.js",
+      "caminho": "legacy",
+      "transporte": "stdio",
+      "tools": ["consolidate_handoff", "dispatch_wave", "get_run_state", "list_runs", "plan_squad"],
+      "chamadas": [
+        {
+          "tool": "list_runs",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "result {\"runs\":[{\"id\":\"202610091710-squad\",\"path\":\"/tmp/hseos-reval/consumer-a4/project/node_modules/hseos/.hseos/runs/dev-squad/202610091710-squad\",\"status_snippet\":\"unknown\"},{\"id\":\"a4-badtype-1791565812022\",\"path\":\"/tmp/hseos-reval/consumer-a4/project/node_modules/hseos/.hseos/runs/dev-squad/a4-badtype-...(+54) runs=2; sees consumer-project run canary=false"
+        },
+        {
+          "tool": "plan_squad",
+          "args": "{\"batch_description\":\"a4 journey probe\",\"run_id\":\"a4-journey-1791565924787\"}",
+          "status": "PASS",
+          "evidence": "result {\"run_id\":\"a4-journey-1791565924787\",\"run_dir\":\"/tmp/hseos-reval/consumer-a4/project/node_modules/hseos/.hseos/runs/dev-squad/a4-journey-1791565924787\",\"plan_md\":\"# SWARM Squad Plan — a4-journey-1791565924787\\n\\n**Description:** a4 journey probe\\n**Created:** 2026-10-09T17:12:04.788Z\\n\\n## Tier Hint...(+147) run_dir=/tmp/hseos-reval/consumer-a4/project/node_modules/hseos/.hseos/runs/dev-squad/a4-journey-1791565924787"
+        },
+        {
+          "tool": "get_run_state",
+          "args": "{\"run_id\":\"a4-journey-1791565924787\"}",
+          "status": "PASS",
+          "evidence": "result {\"run_id\":\"a4-journey-1791565924787\",\"run_dir\":\"/tmp/hseos-reval/consumer-a4/project/node_modules/hseos/.hseos/runs/dev-squad/a4-journey-1791565924787\",\"status\":\"# STATUS — a4-journey-1791565924787\\n\\n**Phase:** INTAKE\\n**Created:** 2026-10-09T17:12:04.788Z\\n\",\"wave_reports\":[]} status_len=93"
+        }
+      ],
+      "negacoes": [
+        {
+          "tool": "unknown_tool_xyz",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32000 message=Unknown tool: unknown_tool_xyz",
+          "kind": "unknown-tool"
+        },
+        {
+          "tool": "tools/call(no name)",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32000 message=Unknown tool: undefined",
+          "kind": "missing-name"
+        },
+        {
+          "tool": "method unknown",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32601 message=Method not found: nope/method",
+          "kind": "unknown-method"
+        },
+        {
+          "tool": "plan_squad",
+          "args": "{}",
+          "status": "FAIL",
+          "evidence": "NOT denied; result={\"run_id\":\"202610091712-squad\",\"run_dir\":\"/tmp/hseos-reval/consumer-a4/project/node_modules/hseos/.hseos/runs/dev-squad/202610091712-squad\",\"plan_md\":\"# SWARM Squad Plan — 202610091712-squad\\n\\n**Description:** undefined\\n**Created:** 2026-10-09T17:12:04.791Z\\n\\n## Tier Hints\\n\\n_none provided_\\n\\n#...(+122)",
+          "kind": "schema-violation"
+        },
+        {
+          "tool": "malformed-json-line",
+          "status": "PASS",
+          "evidence": "error code=-32700",
+          "kind": "malformed-input"
+        },
+        {
+          "tool": "unknown-method-notification (no id)",
+          "status": "FAIL",
+          "evidence": "server replied to a notification: [{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method not found: bogus/notification\"}}]",
+          "kind": "jsonrpc-notification"
+        },
+        {
+          "tool": "plan_squad",
+          "args": "{\"batch_description\":123,\"run_id\":\"x\"}",
+          "status": "FAIL",
+          "evidence": "NOT denied; result={\"run_id\":\"a4-badtype-1791565925592\",\"run_dir\":\"/tmp/hseos-reval/consumer-a4/project/node_modules/hseos/.hseos/runs/dev-squad/a4-badtype-1791565925592\",\"plan_md\":\"# SWARM Squad Plan — a4-badtype-1791565925592\\n\\n**Description:** [object Object]\\n**Created:** 2026-10-09T17:12:05.592Z\\n\\n## Tier Hints...(+146)",
+          "kind": "wrong-type"
+        },
+        {
+          "tool": "plan_squad",
+          "args": "{run_id only, batch_description (required) omitted}",
+          "kind": "schema-required-missing",
+          "status": "FAIL",
+          "evidence": "ACCEPTED, created /tmp/hseos-reval/consumer-a4/project/node_modules/hseos/.hseos/runs/dev-squad/a4-norequired-1791565925593; plan_md has \"Description: undefined\""
+        },
+        {
+          "tool": "get_run_state",
+          "args": "{\"run_id\":\"../../../../../../../../../build/tmp/a4-outside-canary-3615851\"}",
+          "kind": "out-of-scope-path-read",
+          "status": "FAIL",
+          "evidence": "READ OUTSIDE PACKAGE/PROJECT: returned content of /build/tmp/a4-outside-canary-3615851 ({\"run_id\":\"../../../../../../../../../build/tmp/a4-outside-canary-3615851\",\"run_dir\":\"/build/tmp/a4-outside-canary-3615851\",\"status\":\"OUTSIDE-SECRET-STATUS-CANA...(+78))"
+        },
+        {
+          "tool": "plan_squad",
+          "args": "{\"run_id\":\"../../../../../../../../../build/tmp/a4-outside-write-3615851\"}",
+          "kind": "out-of-scope-path-write",
+          "status": "FAIL",
+          "evidence": "WROTE PLAN.md/STATUS.md outside package: /build/tmp/a4-outside-write-3615851"
+        }
+      ],
+      "notas": ["plan_squad run_dir inside consumer project tree (excluding node_modules): false; inside node_modules: true"],
+      "initialize": {
+        "protocolVersion": "2024-11-05",
+        "serverInfo": {
+          "name": "hseos-swarm",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "tools": {}
+        }
+      },
+      "initializedNotificationAnswered": false,
+      "exit": {
+        "code": 0,
+        "sig": null
+      },
+      "stderr": "[swarm] legacy MCP compatibility stdio ready; tools=5\n",
+      "stdoutNonJson": 0,
+      "crashProbe": {
+        "probes": [
+          {
+            "probe": "JSON null",
+            "serverAlive": false,
+            "response": "null",
+            "exit": {
+              "code": 1,
+              "sig": null
+            }
+          },
+          {
+            "probe": "JSON number",
+            "serverAlive": true,
+            "response": "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method not found: undefined\"}}",
+            "exit": null
+          },
+          {
+            "probe": "JSON array",
+            "serverAlive": true,
+            "response": "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method not found: undefined\"}}",
+            "exit": null
+          },
+          {
+            "probe": "JSON string",
+            "serverAlive": true,
+            "response": "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method not found: undefined\"}}",
+            "exit": null
+          }
+        ],
+        "stderrTail": "de_modules/hseos/tools/lib/mcp-transport.js:69:28)\n    at Interface.emit (node:events:509:28)\n    at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)\n    at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)\n    at Socket.ondata (node:internal/readline/interface:263:23)\n    at Socket.emit (node:events:509:28)\n    at addChunk (node:internal/streams/readable:563:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)\n\nNode.js v24.15.0\n"
+      },
+      "resumo": {
+        "PASS": 7,
+        "FAIL": 6,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "nome": "hseos-project-state",
+      "script": "node_modules/hseos/tools/mcp-project-state/index.js",
+      "caminho": "legacy",
+      "transporte": "stdio",
+      "tools": [
+        "state_read",
+        "state_write",
+        "tasks_list",
+        "tasks_add",
+        "tasks_update",
+        "state_history",
+        "agent_runs_list",
+        "orphans_list",
+        "event_emit",
+        "events_search",
+        "handoffs_list",
+        "handoff_get",
+        "runs_list",
+        "run_describe",
+        "run_create"
+      ],
+      "chamadas": [
+        {
+          "tool": "state_write",
+          "args": "{\"fields\":{\"a4_marker\":\"a4-1791565935070\"},\"agent\":\"a4\"}",
+          "status": "PASS",
+          "evidence": "result {\"written\":1,\"updated_at\":\"2026-10-09T17:12:15.071Z\"} written=1"
+        },
+        {
+          "tool": "state_read",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "result {\"state\":{\"a4_marker\":\"a4-1791565935070\"},\"updated_at\":\"2026-10-09T17:12:15.071Z\"} read-after-write marker match=true"
+        },
+        {
+          "tool": "tasks_add",
+          "args": "{\"id\":\"a4-task-1791565935072\"}",
+          "status": "PASS",
+          "evidence": "result {\"added\":\"a4-task-1791565935072\"}"
+        },
+        {
+          "tool": "tasks_list",
+          "args": "{\"status\":\"pending\"}",
+          "status": "PASS",
+          "evidence": "result {\"tasks\":[{\"id\":\"a4-task-1791565815993\",\"owner\":\"a4\",\"description\":\"journey probe\",\"status\":\"pending\",\"depends_on\":null,\"note\":null,\"created_at\":\"2026-10-09 17:10:15\",\"updated_at\":\"2026-10-09 17:10:15\"},{\"id\":\"a4-task-1791565935072\",\"owner\":\"a4\",\"description\":\"journey probe\",\"status\":\"pending\",\"depe...(+107) count=2"
+        },
+        {
+          "tool": "runs_list",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "result {\"runs\":[],\"count\":0} count=0"
+        },
+        {
+          "tool": "state_history",
+          "args": "{\"n\":3}",
+          "status": "PASS",
+          "evidence": "result {\"history\":[{\"id\":2,\"key\":\"a4_marker\",\"old_value\":\"a4-1791565815991\",\"new_value\":\"a4-1791565935070\",\"changed_by\":\"a4\",\"changed_at\":\"2026-10-09T17:12:15.071Z\"},{\"id\":1,\"key\":\"a4_marker\",\"old_value\":null,\"new_value\":\"a4-1791565815991\",\"changed_by\":\"a4\",\"changed_at\":\"2026-10-09T17:10:15.992Z\"}],\"count\"...(+3) count=2"
+        }
+      ],
+      "negacoes": [
+        {
+          "tool": "unknown_tool_xyz",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32000 message=Unknown tool: unknown_tool_xyz",
+          "kind": "unknown-tool"
+        },
+        {
+          "tool": "tools/call(no name)",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32000 message=Unknown tool: undefined",
+          "kind": "missing-name"
+        },
+        {
+          "tool": "method unknown",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32601 message=Method not found: nope/method",
+          "kind": "unknown-method"
+        },
+        {
+          "tool": "tasks_add",
+          "args": "{\"id\":\"only-id\"}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32000 message=id, owner, description are required",
+          "kind": "schema-violation"
+        },
+        {
+          "tool": "malformed-json-line",
+          "status": "PASS",
+          "evidence": "error code=-32700",
+          "kind": "malformed-input"
+        },
+        {
+          "tool": "unknown-method-notification (no id)",
+          "status": "FAIL",
+          "evidence": "server replied to a notification: [{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method not found: bogus/notification\"}}]",
+          "kind": "jsonrpc-notification"
+        },
+        {
+          "tool": "tasks_list",
+          "args": "{\"status\":\"bogus\"}",
+          "status": "FAIL",
+          "evidence": "NOT denied; result={\"tasks\":[],\"count\":0}",
+          "kind": "enum-violation"
+        },
+        {
+          "tool": "run_describe",
+          "args": "{\"run_id\":\"does-not-exist\"}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32000 message=Run not found: does-not-exist",
+          "kind": "nonexistent-entity"
+        },
+        {
+          "tool": "tasks_update",
+          "args": "{\"id\":\"no-such-task-a4\",\"status\":\"done\"}",
+          "kind": "nonexistent-entity",
+          "status": "FAIL",
+          "evidence": "reported success for a task that does not exist: {\"updated\":\"no-such-task-a4\",\"status\":\"done\",\"updated_at\":\"2026-10-09T17:12:15.879Z\"}"
+        },
+        {
+          "tool": "(scope)",
+          "kind": "out-of-scope-path",
+          "status": "BLOCKED",
+          "evidence": "no tool of this server takes a filesystem path argument; db path comes only from operator flag/env (--db / HSEOS_STATE_DB), not from the MCP client"
+        }
+      ],
+      "notas": ["state db at project cwd: true (.hseos/state/project.db); legacy telemetry db: true"],
+      "initialize": {
+        "protocolVersion": "2024-11-05",
+        "serverInfo": {
+          "name": "hseos-project-state",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "tools": {}
+        }
+      },
+      "initializedNotificationAnswered": false,
+      "exit": {
+        "code": 0,
+        "sig": null
+      },
+      "stderr": "[project-state:info] [project_state] legacy MCP compatibility stdio ready; tools=15\n",
+      "stdoutNonJson": 0,
+      "crashProbe": {
+        "probes": [
+          {
+            "probe": "JSON null",
+            "serverAlive": false,
+            "response": "null",
+            "exit": {
+              "code": 1,
+              "sig": null
+            }
+          },
+          {
+            "probe": "JSON number",
+            "serverAlive": true,
+            "response": "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method not found: undefined\"}}",
+            "exit": null
+          },
+          {
+            "probe": "JSON array",
+            "serverAlive": true,
+            "response": "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method not found: undefined\"}}",
+            "exit": null
+          },
+          {
+            "probe": "JSON string",
+            "serverAlive": true,
+            "response": "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method not found: undefined\"}}",
+            "exit": null
+          }
+        ],
+        "stderrTail": "de_modules/hseos/tools/lib/mcp-transport.js:69:28)\n    at Interface.emit (node:events:509:28)\n    at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)\n    at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)\n    at Socket.ondata (node:internal/readline/interface:263:23)\n    at Socket.emit (node:events:509:28)\n    at addChunk (node:internal/streams/readable:563:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)\n\nNode.js v24.15.0\n"
+      },
+      "resumo": {
+        "PASS": 12,
+        "FAIL": 3,
+        "BLOCKED": 1
+      }
+    },
+    {
+      "nome": "axon-bridge",
+      "script": "node_modules/hseos/tools/mcp-axon-bridge/index.js",
+      "caminho": "legacy",
+      "transporte": "http-only (no stdio mode in index.js)",
+      "tools": ["code_search", "dep_graph", "get_overview", "get_skeleton", "memory_search", "run_pipeline"],
+      "chamadas": [
+        {
+          "tool": "GET /health",
+          "status": "PASS",
+          "evidence": "{\"status\":\"ok\",\"server\":\"axon-bridge\",\"protocol\":\"2024-11-05\",\"compatibility_mode\":\"legacy-metered\",\"axon_binary\":\"/home/annonymous/.local/bin/axon\",\"fallback_active\":false,\"tools\":6}"
+        },
+        {
+          "tool": "get_overview",
+          "args": "{}",
+          "status": "FAIL",
+          "evidence": "noOpResponse fallback although axon is on PATH (bridge did not obtain a real answer from axon; degraded silently): {\"results\":[],\"fallback\":true,\"reason\":\"axon binary not found — install axon or set AXON_BIN env var\",\"tool\":\"mcp__axon__get_overview\"}",
+          "fallback": true
+        },
+        {
+          "tool": "code_search",
+          "args": "{\"query\":\"mcp server\",\"limit\":3}",
+          "status": "FAIL",
+          "evidence": "noOpResponse fallback although axon is on PATH (bridge did not obtain a real answer from axon; degraded silently): {\"results\":[],\"fallback\":true,\"reason\":\"axon binary not found — install axon or set AXON_BIN env var\",\"tool\":\"mcp__axon__search\"}",
+          "fallback": true
+        }
+      ],
+      "negacoes": [
+        {
+          "tool": "unknown_tool_xyz",
+          "args": "{}",
+          "kind": "unknown-tool",
+          "status": "PASS",
+          "evidence": "denied code=-32000 Unknown tool: unknown_tool_xyz"
+        },
+        {
+          "tool": "tools/call(no name)",
+          "args": "{}",
+          "kind": "missing-name",
+          "status": "PASS",
+          "evidence": "denied code=-32000 Unknown tool: undefined"
+        },
+        {
+          "tool": "code_search",
+          "args": "{}",
+          "kind": "schema-required-missing",
+          "status": "FAIL",
+          "evidence": "NOT denied: {\"jsonrpc\":\"2.0\",\"id\":7,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"{\\n  \\\"results\\\": [],\\n  \\\"fallback\\\": true,\\n  \\\"reason\\\": \\\"axon binary not found — install axon or set AXON_BIN env var\\\",\\n  \\\"tool\\\": \\\"mcp__axon__search\\\"\\n}\"}]}}"
+        },
+        {
+          "tool": "code_search",
+          "args": "{\"query\":123}",
+          "kind": "wrong-type",
+          "status": "FAIL",
+          "evidence": "NOT denied: {\"jsonrpc\":\"2.0\",\"id\":8,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"{\\n  \\\"results\\\": [],\\n  \\\"fallback\\\": true,\\n  \\\"reason\\\": \\\"axon binary not found — install axon or set AXON_BIN env var\\\",\\n  \\\"tool\\\": \\\"mcp__axon__search\\\"\\n}\"}]}}"
+        },
+        {
+          "tool": "nope/method",
+          "args": "{}",
+          "kind": "unknown-method",
+          "status": "PASS",
+          "evidence": "denied code=-32601 Method not found: nope/method"
+        },
+        {
+          "tool": "get_skeleton",
+          "args": "{\"files\":[\"/etc/passwd\",\"../../../../etc/shadow\"]}",
+          "kind": "out-of-scope-path",
+          "status": "BLOCKED",
+          "evidence": "no passwd content returned. NOTE: result was noOp fallback, so axon path containment itself was NOT exercised {\"results\":[],\"fallback\":true,\"reason\":\"axon binary not found — install axon or set AXON_BIN env var\",\"tool\":\"mcp__axon__get_skeleton\"}"
+        },
+        {
+          "tool": "HTTP malformed body",
+          "kind": "malformed-input",
+          "status": "PASS",
+          "evidence": "http 400 {\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}"
+        },
+        {
+          "tool": "HTTP GET /tools",
+          "kind": "transport",
+          "status": "PASS",
+          "evidence": "http 405"
+        },
+        {
+          "tool": "HTTP body \"null\"",
+          "kind": "malformed-input",
+          "status": "FAIL",
+          "evidence": "http ERR TypeError: fetch failed; server alive after=false"
+        }
+      ],
+      "notas": [
+        "axon on PATH: /home/annonymous/.local/bin/axon; startup banner: [axon-bridge] Axon binary: /home/annonymous/.local/bin/axon\n[axon_bridge] legacy MCP compatibility listening on http://127.0.0.1:36687",
+        "banner logs go to stdout (console.log) in bridge, unlike the other 3 servers which log to stderr; irrelevant to HTTP but would corrupt stdio framing",
+        "auth: HTTP listener binds 127.0.0.1 only; no authentication on the endpoint (any local process can call tools)"
+      ],
+      "stdioAttempt": {
+        "respondedOverStdio": false,
+        "stdoutLines": "[\"[axon-bridge] Axon binary: /home/annonymous/.local/bin/axon\",\"[axon_bridge] legacy MCP compatibility listening on http://127.0.0.1:36687\"]"
+      },
+      "initialize": {
+        "protocolVersion": "2024-11-05",
+        "serverInfo": {
+          "name": "axon-bridge",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "tools": {}
+        }
+      },
+      "axonMcpSubcommandProbe": {
+        "status": 1,
+        "outputHead": "axon — Context Engine for AI Coding Agents | ",
+        "version": "axon 1.7.0 (build e49a4dd)"
+      },
+      "exit": {
+        "code": 1,
+        "sig": null
+      },
+      "stderr": "/tmp/hseos-reval/consumer-a4/project/node_modules/hseos/tools/lib/mcp-transport.js:78\n    const { id, method, params = {} } = message;\n            ^\n\nTypeError: Cannot destructure property 'id' of 'message' as it is null.\n    at /tmp/hseos-reval/consumer-a4/project/node_modules/hseos/tools/lib/mcp-transport.js:78:13\n    at /tmp/hseos-reval/consumer-a4/project/node_modules/hseos/tools/lib/legacy-mc...(+357)",
+      "serverAliveAfterNullBody": false,
+      "resumo": {
+        "PASS": 6,
+        "FAIL": 5,
+        "BLOCKED": 1
+      }
+    }
+  ],
+  "achados": [
+    {
+      "id": "F-hseos-governance-notif-reply",
+      "severity": "low",
+      "server": "hseos-governance",
+      "summary": "unknown-method notification (no id) receives an error reply (JSON-RPC 2.0 forbids replies to notifications)",
+      "evidence": "[{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method not found: bogus/notification\"}}]",
+      "where": "tools/lib/mcp-transport.js:105 (default branch builds error even when isNotification)"
+    },
+    {
+      "id": "F-swarm-root",
+      "severity": "medium",
+      "server": "hseos-swarm",
+      "summary": "swarm tools resolve runs dir relative to the installed package (node_modules/hseos/.hseos/runs/dev-squad), not the consumer project cwd; a project run in <project>/.hseos/runs is invisible and plan_squad writes into node_modules",
+      "evidence": "list_runs did not list .hseos/runs/dev-squad/a4-project-canary; payload={\"runs\":[{\"id\":\"202610091710-squad\",\"path\":\"/tmp/hseos-reval/consumer-a4/project/node_modules/hseos/.hseos/runs/dev-squad/202610091710-squad\",\"status_snippet\":\"unknown\"},{\"id\":\"a4-badtype-179156581202...(+154)",
+      "where": "tools/mcp-hseos-swarm/tools/list_runs.js:7-8 (REPO_ROOT=__dirname/../../..), plan_squad.js:7, get_run_state.js:7, dispatch_wave.js:7, consolidate_handoff.js:7"
+    },
+    {
+      "id": "F-hseos-swarm-notif-reply",
+      "severity": "low",
+      "server": "hseos-swarm",
+      "summary": "unknown-method notification (no id) receives an error reply (JSON-RPC 2.0 forbids replies to notifications)",
+      "evidence": "[{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method not found: bogus/notification\"}}]",
+      "where": "tools/lib/mcp-transport.js:105 (default branch builds error even when isNotification)"
+    },
+    {
+      "id": "F-swarm-no-schema-validation",
+      "severity": "medium",
+      "server": "hseos-swarm",
+      "summary": "tools/call does not validate arguments against the advertised inputSchema (required/types); plan_squad without required batch_description (and with object as description) creates a run on disk",
+      "evidence": "{\"run_id\":\"a4-norequired-1791565925593\",\"run_dir\":\"/tmp/hseos-reval/consumer-a4/project/node_modules/hseos/.hseos/runs/dev-squad/a4-norequired-1791565925593\",\"plan_md\":\"# SWARM Squad Plan — a4-norequi...(+249)",
+      "where": "tools/lib/mcp-transport.js:98 (callTool called with params.arguments unvalidated); tools/mcp-hseos-swarm/tools/plan_squad.js:44-62"
+    },
+    {
+      "id": "F-swarm-traversal-read",
+      "severity": "high",
+      "server": "hseos-swarm",
+      "summary": "get_run_state accepts path traversal in run_id and returns STATUS.md and WAVE-*.md from any readable directory",
+      "evidence": "run_id=../../../../../../../../../build/tmp/a4-outside-canary-3615851 -> content canary returned",
+      "where": "tools/mcp-hseos-swarm/tools/get_run_state.js:21-33 (path.join(RUNS_DIR, args.run_id) no containment check)"
+    },
+    {
+      "id": "F-swarm-traversal-write",
+      "severity": "high",
+      "server": "hseos-swarm",
+      "summary": "plan_squad accepts path traversal in run_id and creates directories/files (PLAN.md, STATUS.md) at an arbitrary writable location",
+      "evidence": "run_id=../../../../../../../../../build/tmp/a4-outside-write-3615851 -> /build/tmp/a4-outside-write-3615851/PLAN.md created",
+      "where": "tools/mcp-hseos-swarm/tools/plan_squad.js:53-61 (mkdirSync/writeFileSync on path.join(RUNS_DIR, run_id), no containment check)"
+    },
+    {
+      "id": "F-hseos-project-state-notif-reply",
+      "severity": "low",
+      "server": "hseos-project-state",
+      "summary": "unknown-method notification (no id) receives an error reply (JSON-RPC 2.0 forbids replies to notifications)",
+      "evidence": "[{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-32601,\"message\":\"Method not found: bogus/notification\"}}]",
+      "where": "tools/lib/mcp-transport.js:105 (default branch builds error even when isNotification)"
+    },
+    {
+      "id": "F-state-update-ghost",
+      "severity": "low",
+      "server": "hseos-project-state",
+      "summary": "tasks_update returns success for a nonexistent task id (UPDATE affects 0 rows, not checked); also status not validated against enum",
+      "evidence": "{\"updated\":\"no-such-task-a4\",\"status\":\"done\",\"updated_at\":\"2026-10-09T17:12:15.879Z\"}",
+      "where": "tools/mcp-project-state/index.js:~118-124 (tasks_update case)"
+    },
+    {
+      "id": "F-axon-bridge-fallback-with-binary",
+      "severity": "medium",
+      "server": "axon-bridge",
+      "summary": "with axon on PATH (axon 1.7.0 (build e49a4dd)) bridge tools still return noOpResponse (fallback:true). Root cause observed: bridge spawns `axon mcp` but that is not a subcommand of this axon (prints usage; real command is `axon serve`), and the bridge also sends tools/call without an initialize handshake using tool names mcp__axon__*. The failure reason is swallowed and indistinguishable to the client from \"axon not installed\" (the reason text always says \"axon binary not found\")",
+      "evidence": "{\"results\":[],\"fallback\":true,\"reason\":\"axon binary not found — install axon or set AXON_BIN env var\",\"tool\":\"mcp__axon__get_overview\"}",
+      "where": "tools/mcp-axon-bridge/lib/axon-client.js:11,20,38,49,60,70 (all failure paths -> noOpResponse; spawn(binaryPath, ['mcp']) at :17, request w/o initialize at :25); no-op-fallback.js:6 reason string always says binary not found"
+    },
+    {
+      "id": "F-axon-bridge-crash-null-body",
+      "severity": "medium",
+      "server": "axon-bridge",
+      "summary": "HTTP POST with body `null` (valid JSON, not an object) crashes the whole axon-bridge process (unhandled rejection in the async req.end handler); subsequent /health fails",
+      "evidence": "fetch after: TypeError: fetch failed; alive=false",
+      "where": "tools/lib/mcp-transport.js:46 (await handleMessage in async end handler, no try/catch) -> :78 destructure of null"
+    },
+    {
+      "id": "F-hseos-governance-crash-on-non-object",
+      "severity": "medium",
+      "server": "hseos-governance",
+      "summary": "a single stdio line containing valid JSON that is not an object (killed by: JSON null; survived: JSON number, JSON array, JSON string) kills the server process (unhandled rejection in the async readline handler)",
+      "evidence": "{\"probes\":[\"JSON null:alive=false\",\"JSON number:alive=true\",\"JSON array:alive=true\",\"JSON string:alive=true\"],\"stderrTail\":\"de_modules/hseos/tools/lib/mcp-transport.js:69:28)\\n    at Interface.emit (node:events:509:28)\\n    at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)\\n    at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)\\n    at Socket.ondata (no...(+265)",
+      "where": "tools/lib/mcp-transport.js:78 (destructure of null/non-object) invoked from :69 without try/catch"
+    },
+    {
+      "id": "F-hseos-swarm-crash-on-non-object",
+      "severity": "medium",
+      "server": "hseos-swarm",
+      "summary": "a single stdio line containing valid JSON that is not an object (killed by: JSON null; survived: JSON number, JSON array, JSON string) kills the server process (unhandled rejection in the async readline handler)",
+      "evidence": "{\"probes\":[\"JSON null:alive=false\",\"JSON number:alive=true\",\"JSON array:alive=true\",\"JSON string:alive=true\"],\"stderrTail\":\"de_modules/hseos/tools/lib/mcp-transport.js:69:28)\\n    at Interface.emit (node:events:509:28)\\n    at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)\\n    at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)\\n    at Socket.ondata (no...(+265)",
+      "where": "tools/lib/mcp-transport.js:78 (destructure of null/non-object) invoked from :69 without try/catch"
+    },
+    {
+      "id": "F-hseos-project-state-crash-on-non-object",
+      "severity": "medium",
+      "server": "hseos-project-state",
+      "summary": "a single stdio line containing valid JSON that is not an object (killed by: JSON null; survived: JSON number, JSON array, JSON string) kills the server process (unhandled rejection in the async readline handler)",
+      "evidence": "{\"probes\":[\"JSON null:alive=false\",\"JSON number:alive=true\",\"JSON array:alive=true\",\"JSON string:alive=true\"],\"stderrTail\":\"de_modules/hseos/tools/lib/mcp-transport.js:69:28)\\n    at Interface.emit (node:events:509:28)\\n    at [_onLine] [as _onLine] (node:internal/readline/interface:465:12)\\n    at [_normalWrite] [as _normalWrite] (node:internal/readline/interface:647:22)\\n    at Socket.ondata (no...(+265)",
+      "where": "tools/lib/mcp-transport.js:78 (destructure of null/non-object) invoked from :69 without try/catch"
+    }
+  ],
+  "processos": {
+    "spawned": [
+      3615862, 3616020, 3616148, 3616275, 3616310, 3616434, 3616518, 3616558, 3616699, 3616758, 3616830, 3617060, 3617103, 3617222, 3617313,
+      3617385
+    ],
+    "orfaos_apos_encerrar": [],
+    "axon_orfaos": [],
+    "strays_mortos_na_limpeza": []
+  },
+  "limitacoes": [
+    "governance/swarm/project-state were exercised only in the normal installed mode (NODE_ENV and HSEOS_GOVERNED_EXECUTION_FIXTURE unset) => legacy server path; the native governed path is fixture-gated and was not exercised here.",
+    "axon-bridge exposes no stdio mode; exercised over HTTP on an ephemeral port (127.0.0.1).",
+    "No MCP schema validation exists in the legacy transport, so \"invalid argument\" negatives depend on incidental handler exceptions."
+  ]
+}

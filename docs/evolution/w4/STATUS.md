@@ -1,5 +1,10 @@
 # W4 — estado de execução
 
+> Nota de 2026-10-09: W4 foi integrada na `master` (PRs #181 e #182). Os registros abaixo
+> são históricos; expressões como "hook e integração pendentes" descrevem o momento de
+> cada registro, não o estado atual. A revalidação posterior está em
+> [../revalidation-2026-10/STATUS.md](../revalidation-2026-10/STATUS.md).
+
 Tipo: evidência de progresso, atualizado em 2026-09-29. Base 32eaef2; upstream
 feature/hseos-evolution-foundation; feature/hseos-evolution-w4.
 Governança: Constituição §§2.6/5/7, AGENTS.md, ADR-0045 Proposed.
@@ -505,6 +510,8 @@ a ambiguidade do erro pós-commit. Testes focados 29/29, cobertura crítica,
 Recibo em `evidence/expansion-atomicity/`.
 
 ### W4-07a verificada antes do commit
+
+_Nota de 2026-10-09: hook e integração, citados como pendentes neste registro, foram concluídos; W4 está na `master` (PRs #181/#182)._
 
 A matriz P1–S1 passou 117/117 em Node 22.22.1 e Node 24.15.0, sem falhas ou
 skips. O verificador dirigido rejeitou 18/18 mutantes em ambas as versões,

@@ -1,4 +1,19 @@
-# Estado da evolução — 2026-09-27
+# Estado da evolução — 2026-10-09
+
+**Estado atual (2026-10-09):** W0–W4 foram integradas na `master` pela PR #182
+(W4 também pela #181). Uma revalidação independente do core em pacote instalado
+está em curso: [revalidação 2026-10](revalidation-2026-10/README.md) e
+[estado das etapas](revalidation-2026-10/STATUS.md). A linha de base determinística
+da `master` foi verificada; a execução com modelo real (A5) e a decisão sobre o teto
+do inventário do pacote (G3) estão pendentes. O programa W0–W8 segue incompleto:
+W5–W8 não foram entregues e nada foi ativado operacionalmente.
+
+Tudo abaixo desta linha é **histórico**: preserva o que foi afirmado em cada
+checkpoint e não descreve o estado atual.
+
+---
+
+# Checkpoint histórico — 2026-09-27
 
 Onda 3: **entrega técnica corrente validada**, matriz/cobertura Node 22/24 e
 campanhas reais ACP/Codex, Claude e Antigravity local aprovadas.

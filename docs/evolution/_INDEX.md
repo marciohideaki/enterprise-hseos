@@ -1,6 +1,6 @@
 # Evolução do harness HSEOS
 
-Artefatos: plano de execução, inventário verificável e recibos das ondas 0 e 1.
+Artefatos: plano de execução, inventário verificável e recibos das ondas 0 a 4 e da revalidação 2026-10.
 Autoridade: plano fornecido pelo usuário em 2026-09-25; Constituição 2.2,
 AGENTS.md, governance-discovery, automated-validation e ADR-0043.
 
@@ -34,5 +34,7 @@ separados.
 - [Onda 1 — implementação e evidências](w1/STATUS.md)
 - [Onda 2 — terminais e lifecycle](w2/STATUS.md)
 - [Onda 3 — adapters e campanha](w3/STATUS.md)
+- [Onda 4 — plugins de execução, jobs e workflows](w4/STATUS.md) ([README](w4/README.md))
+- [Revalidação do core 2026-10](revalidation-2026-10/README.md) ([estado](revalidation-2026-10/STATUS.md))
 - [Revalidação real e revisão adversarial](w3/LIVE-REVALIDATION.md)
 - [ACP restrito: compatibilidade, fronteira e campanha real](w3/ACP-CAMPAIGN.md)
