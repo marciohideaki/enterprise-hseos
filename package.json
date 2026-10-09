@@ -156,7 +156,7 @@
     "test:mcp-governance": "node test/test-mcp-hseos-governance.js && node --test --test-concurrency=1 test/managed-governance/mcp.test.js",
     "test:mcp-project-state": "node test/test-mcp-agent-state.js",
     "test:mcp-stdio": "node test/test-mcp-stdio.js",
-    "test:mcp-swarm": "node test/test-mcp-hseos-swarm.js",
+    "test:mcp-swarm": "node test/test-mcp-hseos-swarm.js && node --test --test-concurrency=1 test/test-mcp-hseos-swarm-scope.js",
     "test:model-providers": "node --test --test-concurrency=1 test/test-model-providers.js",
     "test:package-surface": "node --test --test-concurrency=1 test/test-package-surface.js",
     "test:platform-bindings": "node test/test-platform-bindings.js",

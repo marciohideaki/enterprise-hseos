@@ -3,9 +3,7 @@
 const path = require('node:path');
 const fs = require('node:fs');
 
-// tools/ → mcp-hseos-swarm/ → tools/ → worktree root
-const REPO_ROOT = path.join(__dirname, '..', '..', '..');
-const RUNS_DIR = path.join(REPO_ROOT, '.hseos', 'runs', 'dev-squad');
+const { runsDir, assertFileInside, readContained } = require('../lib/run-scope');
 
 module.exports = [
   {
@@ -18,13 +16,23 @@ module.exports = [
       },
     },
     handler(_db, args) {
+      const RUNS_DIR = runsDir();
       if (!fs.existsSync(RUNS_DIR)) return { runs: [], total: 0 };
       const dirs = fs.readdirSync(RUNS_DIR).filter((d) => {
-        return fs.statSync(path.join(RUNS_DIR, d)).isDirectory();
+        try {
+          return fs.statSync(assertFileInside(RUNS_DIR, path.join(RUNS_DIR, d))).isDirectory();
+        } catch {
+          return false;
+        }
       });
       const runs = dirs.map((d) => {
         const statusPath = path.join(RUNS_DIR, d, 'STATUS.md');
-        const statusText = fs.existsSync(statusPath) ? fs.readFileSync(statusPath, 'utf8') : '';
+        let statusText = '';
+        try {
+          statusText = readContained(path.join(RUNS_DIR, d), statusPath) ?? '';
+        } catch {
+          statusText = '';
+        }
         const phaseMatch = statusText.match(/\*\*Phase[:\s]+([^\n*]+)/i);
         return {
           id: d,
