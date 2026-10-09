@@ -4,6 +4,7 @@ const { spawn } = require('node:child_process');
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 const KILL_GRACE_MS = 500;
+const EXIT_WAIT_MS = 2000;
 const PROTOCOL_VERSION = '2024-11-05';
 
 class AxonError extends Error {
@@ -53,25 +54,37 @@ function detectVersion(binaryPath, timeoutMs = 2000) {
 }
 
 // SIGTERM first; a child that ignores it is SIGKILLed shortly after so it cannot be orphaned.
+// Returns a promise that settles once the child has really exited (its DuckDB lock is then released),
+// bounded by a hard ceiling so a stuck process cannot hang the caller.
 function terminate(child) {
-  if (child.hseosTerminating) return;
-  child.hseosTerminating = true;
-  try {
-    child.kill('SIGTERM');
-  } catch {
-    return;
-  }
-  const escalation = setTimeout(() => {
-    if (child.exitCode === null && child.signalCode === null) {
+  if (child.hseosExited) return child.hseosExited;
+  child.hseosExited = new Promise((resolve) => {
+    if (child.exitCode !== null || child.signalCode !== null) {
+      resolve();
+      return;
+    }
+    const escalation = setTimeout(() => {
       try {
         child.kill('SIGKILL');
       } catch {
         /* already gone */
       }
+    }, KILL_GRACE_MS);
+    const ceiling = setTimeout(resolve, KILL_GRACE_MS + EXIT_WAIT_MS);
+    child.once('exit', () => {
+      clearTimeout(escalation);
+      clearTimeout(ceiling);
+      resolve();
+    });
+    try {
+      child.kill('SIGTERM');
+    } catch {
+      clearTimeout(escalation);
+      clearTimeout(ceiling);
+      resolve();
     }
-  }, KILL_GRACE_MS);
-  escalation.unref();
-  child.once('exit', () => clearTimeout(escalation));
+  });
+  return child.hseosExited;
 }
 
 /**
@@ -79,7 +92,16 @@ function terminate(child) {
  * then tools/call. Every failure is an AxonError; nothing degrades to an
  * empty-but-successful result.
  */
-function callAxon(binaryPath, toolName, args, { timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
+function callAxon(binaryPath, toolName, args, options = {}) {
+  // axon serve instances on the same project contend for one index lock: run calls one at a time.
+  const run = queue.then(() => runAxon(binaryPath, toolName, args, options));
+  queue = run.catch(() => {});
+  return run;
+}
+
+let queue = Promise.resolve();
+
+function runAxon(binaryPath, toolName, args, { timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
   return new Promise((resolve, reject) => {
     if (!binaryPath) {
       reject(unavailableError(toolName));
@@ -98,8 +120,8 @@ function callAxon(binaryPath, toolName, args, { timeoutMs = DEFAULT_TIMEOUT_MS }
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      if (child) terminate(child);
-      fn(value);
+      // Resolve only after the child exited: the next `axon serve` must not race for the index lock.
+      (child ? terminate(child) : Promise.resolve()).then(() => fn(value));
     };
     // Failures that benefit from the detected axon version: stop the child now, report once the probe returns.
     const fail = (code, reason, details = {}) => {

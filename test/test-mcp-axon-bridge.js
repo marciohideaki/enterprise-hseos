@@ -409,6 +409,53 @@ setInterval(() => {}, 1000);
     });
   });
 
+  await it('consecutive and concurrent calls never overlap axon processes (index lock released before resolve)', async () => {
+    const lock = path.join(fakeDir, 'index.lock');
+    const lockFake = path.join(fakeDir, 'fake-axon-lock');
+    fs.writeFileSync(
+      lockFake,
+      `#!${process.execPath}
+const fs = require('node:fs');
+const lock = ${JSON.stringify(lock)};
+if (process.argv[2] === '--version') { console.log('axon 9.9.9 (fake)'); process.exit(0); }
+let held = true;
+try { fs.writeFileSync(lock, String(process.pid), { flag: 'wx' }); } catch { held = false; }
+// slow shutdown: the lock is only released 300ms after SIGTERM, like a DuckDB flush
+process.on('SIGTERM', () => setTimeout(() => { if (held) fs.unlinkSync(lock); process.exit(0); }, 300));
+const rl = require('node:readline').createInterface({ input: process.stdin });
+rl.on('line', (line) => {
+  const m = JSON.parse(line);
+  if (m.method === 'initialize') console.log(JSON.stringify({ jsonrpc: '2.0', id: m.id, result: { protocolVersion: '2024-11-05', serverInfo: { name: 'fake', version: '9' }, capabilities: {} } }));
+  if (m.method === 'tools/call') {
+    const text = held ? JSON.stringify({ ok: true }) : JSON.stringify({ error: 'Axon index database unavailable' });
+    console.log(JSON.stringify({ jsonrpc: '2.0', id: m.id, result: { isError: !held, content: [{ type: 'text', text }] } }));
+  }
+});
+`,
+      { mode: 0o755 },
+    );
+    const outcomes = [];
+    for (let i = 0; i < 3; i++)
+      outcomes.push(
+        await callAxon(lockFake, 'get_overview', {}, { timeoutMs: 5000 }).then(
+          () => 'ok',
+          (error) => error.message,
+        ),
+      );
+    outcomes.push(
+      ...(await Promise.all(
+        [0, 1, 2].map(() =>
+          callAxon(lockFake, 'get_overview', {}, { timeoutMs: 5000 }).then(
+            () => 'ok',
+            (error) => error.message,
+          ),
+        ),
+      )),
+    );
+    if (outcomes.some((o) => o !== 'ok')) throw new Error(`lock contention: ${JSON.stringify(outcomes)}`);
+    if (fs.existsSync(lock)) throw new Error('lock still held after the last call resolved');
+  });
+
   // --- stdio mode: stdout carries protocol only ----------------------------------------
   await it('stdio mode: no banner on stdout, tools/list answered, errors explicit', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-axon-stdio-'));
