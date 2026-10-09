@@ -1,7 +1,6 @@
 'use strict';
 
-const { callAxon } = require('../lib/axon-client');
-const { noOpResponse } = require('../lib/no-op-fallback');
+const { callAxon, unavailableError } = require('../lib/axon-client');
 const { resolve } = require('../lib/binary-resolver');
 
 module.exports = [
@@ -14,8 +13,8 @@ module.exports = [
     },
     async handler(_db, _args) {
       const bin = resolve();
-      if (!bin) return noOpResponse('get_overview');
-      return callAxon(bin, 'mcp__axon__get_overview', {});
+      if (!bin) throw unavailableError('get_overview');
+      return callAxon(bin, 'get_overview', {});
     },
   },
 ];

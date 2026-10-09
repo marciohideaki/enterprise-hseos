@@ -1,7 +1,6 @@
 'use strict';
 
-const { callAxon } = require('../lib/axon-client');
-const { noOpResponse } = require('../lib/no-op-fallback');
+const { callAxon, unavailableError } = require('../lib/axon-client');
 const { resolve } = require('../lib/binary-resolver');
 
 module.exports = [
@@ -16,8 +15,8 @@ module.exports = [
     },
     async handler(_db, args) {
       const bin = resolve();
-      if (!bin) return noOpResponse('run_pipeline');
-      return callAxon(bin, 'mcp__axon__run_pipeline', { project_path: args.project_path || process.cwd() });
+      if (!bin) throw unavailableError('run_pipeline');
+      return callAxon(bin, 'run_pipeline', { root: args.project_path || process.cwd() }, { timeoutMs: 300_000 });
     },
   },
 ];
