@@ -90,6 +90,11 @@ class ControlClient:
             raise ValueError("Invalid campaign cursor")
         return self._request("/v1/provider-campaigns/" + resource_id + "/events?" + urllib.parse.urlencode({"after": after, "limit": limit}))
 
+    def campaign_evidence(self, resource_id, command_id):
+        if not re.fullmatch(r"[a-f0-9-]{36}", resource_id) or not re.fullmatch(r"[a-f0-9-]{36}", command_id):
+            raise ValueError("Invalid campaign evidence query")
+        return self._request("/v1/provider-campaigns/" + resource_id + "/evidence?" + urllib.parse.urlencode({"command_id": command_id}))
+
     def binding_inspect(self, binding_id):
         if not isinstance(binding_id, str) or not re.fullmatch(r"[a-z][a-z0-9-]*:[a-z][a-z0-9-]*", binding_id):
             raise ValueError("Invalid binding identity")

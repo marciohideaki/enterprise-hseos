@@ -74,6 +74,10 @@ class ControlClient {
       throw new Error('Invalid campaign cursor');
     return this.request(`/v1/provider-campaigns/${resourceId}/events?after=${after}&limit=${limit}`);
   }
+  campaignEvidence(resourceId, commandId) {
+    if (!/^[a-f0-9-]{36}$/.test(resourceId) || !/^[a-f0-9-]{36}$/.test(commandId)) throw new Error('Invalid campaign evidence query');
+    return this.request(`/v1/provider-campaigns/${resourceId}/evidence?command_id=${commandId}`);
+  }
   terminal(command) {
     return this.request('/v1/terminals/commands', command);
   }

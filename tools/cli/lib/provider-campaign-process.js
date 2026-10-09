@@ -4,6 +4,9 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 const { createResourceGroup, removeDrainedGroup } = require('../../../packages/agent-isolation-attestation/executor');
 
+// 64 KiB of retained model text can escape to six bytes per character (\\u00XX) inside the JSON envelope.
+const MAX_ENVELOPE_BYTES = 65_536 * 6 + 8192;
+
 /** Resource containment for trusted SDK clients; not a filesystem sandbox. */
 async function runCampaignProcess({
   binary = process.execPath,
@@ -36,9 +39,13 @@ async function runCampaignProcess({
       failure = true;
     });
     let output = '';
+    let outputBytes = 0;
+    // Decode incrementally so multibyte characters split across pipe chunks are not corrupted.
+    child.stdout.setEncoding('utf8');
     child.stdout.on('data', (chunk) => {
       output += chunk;
-      if (Buffer.byteLength(output) > 65_536) {
+      outputBytes += Buffer.byteLength(chunk);
+      if (outputBytes > MAX_ENVELOPE_BYTES) {
         failure = true;
         stop();
       }

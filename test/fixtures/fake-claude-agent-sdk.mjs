@@ -18,6 +18,16 @@ function writeState(filename, state) {
   fs.writeFileSync(filename, `${JSON.stringify(state, null, 2)}\n`);
 }
 
+// `bulk:<kind>:<bytes>` yields output of an exact UTF-8 size whose JSON escaping is worst-case (control) or heavy (quotes).
+function bulkText(prompt) {
+  const match = /^bulk:(quotes|control|ascii|multibyte):(\d+)$/.exec(prompt);
+  if (!match) return undefined;
+  const bytes = Number(match[2]);
+  if (match[1] === 'multibyte') return '€'.repeat(Math.floor(bytes / 3)) + 'x'.repeat(bytes % 3);
+  const unit = { quotes: '"', control: '\u0001', ascii: 'a' }[match[1]];
+  return unit.repeat(bytes);
+}
+
 export async function getSessionInfo(sessionId, { dir } = {}) {
   const filename = remotePath() || (dir ? path.join(dir, 'claude.json') : undefined);
   if (!filename) return undefined;
@@ -84,7 +94,7 @@ export function query({ prompt, options }) {
           ? [{ type: 'tool_use', id: 'tool-1', name: 'Bash', input: {} }]
           : prompt === 'unknown-effect'
             ? [{ type: 'future_capability', payload: {} }]
-            : [{ type: 'thinking', thinking: 'fixture reasoning' }, { type: 'text', text: 'fixture answer' }];
+            : [{ type: 'thinking', thinking: 'fixture reasoning' }, { type: 'text', text: bulkText(prompt) ?? 'fixture answer' }];
       yield { type: 'assistant', session_id: sessionId, message: { content } };
       yield {
         type: 'result',

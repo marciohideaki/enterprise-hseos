@@ -75,8 +75,13 @@ async function startControlServer({ control, credential, port = 0 }) {
           throw error;
         }
       }
-      const campaign = /^\/v1\/provider-campaigns\/([a-f0-9-]{36})(?:\/(events))?$/.exec(url.pathname);
+      const campaign = /^\/v1\/provider-campaigns\/([a-f0-9-]{36})(?:\/(events|evidence))?$/.exec(url.pathname);
       if (request.method === 'GET' && campaign) {
+        if (campaign[2] === 'evidence') {
+          if ([...url.searchParams.keys()].some((name) => name !== 'command_id') || url.searchParams.getAll('command_id').length !== 1)
+            return send(400, { error: 'CONTROL_QUERY_INVALID' });
+          return send(200, control.providerCampaigns.evidence(campaign[1], url.searchParams.get('command_id')));
+        }
         if (campaign[2]) {
           if ([...url.searchParams.keys()].some((name) => !['after', 'limit'].includes(name)))
             return send(400, { error: 'CONTROL_QUERY_INVALID' });

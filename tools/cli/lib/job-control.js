@@ -609,6 +609,7 @@ class JobControl {
     let admission;
     if (command.action === 'create' || command.action === 'retry') {
       if (this.control.rows(command.resource_id).length > 0) reject('JOB_RESOURCE_CONFLICT');
+      if (command.input.definition?.responses_from) reject('JOB_RESPONSES_SOURCE_DENIED');
       admission = await this.control.admitCreation(
         command.input.kind === 'task' ? 'create' : 'create_workflow',
         command.input.definition,
