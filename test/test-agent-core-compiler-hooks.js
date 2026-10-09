@@ -644,6 +644,12 @@ async function testClaudeCodeEmitsMcpSettingsAndMcpJson() {
         mcp.mcpServers.filesystem.env.A === '1',
       JSON.stringify(mcp),
     );
+    const advertised = yaml.parse(fs.readFileSync(path.join(tempDir, '.agents', 'manifest.yaml'), 'utf8')).adapters?.claude_code || {};
+    assertPass(
+      'manifest advertises settings.json and .mcp.json when they were emitted',
+      advertised.settings === '.claude/settings.json' && advertised.mcp === '.mcp.json',
+      JSON.stringify(advertised),
+    );
     assertPass(
       'rules/ and workflows/ are not emitted',
       !fs.existsSync(path.join(tempDir, '.claude', 'rules')) && !fs.existsSync(path.join(tempDir, '.claude', 'workflows')),
@@ -655,6 +661,29 @@ async function testClaudeCodeEmitsMcpSettingsAndMcpJson() {
     assertPass(
       'no MCP bundle -> no settings.json and no .mcp.json',
       !fs.existsSync(path.join(tempDir, '.claude', 'settings.json')) && !fs.existsSync(path.join(tempDir, '.mcp.json')),
+    );
+    const bare = yaml.parse(fs.readFileSync(path.join(tempDir, '.agents', 'manifest.yaml'), 'utf8')).adapters?.claude_code || {};
+    assertPass(
+      'no MCP bundle -> manifest does not advertise settings or mcp',
+      bare.entrypoint === 'CLAUDE.md' && !('settings' in bare) && !('mcp' in bare),
+      JSON.stringify(bare),
+    );
+  });
+
+  await withTempDir(async (tempDir) => {
+    const userSettings = JSON.stringify({ permissions: { allow: ['Bash(ls)'] } });
+    fs.mkdirSync(path.join(tempDir, '.claude'), { recursive: true });
+    fs.writeFileSync(path.join(tempDir, '.claude', 'settings.json'), userSettings);
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+    assertPass(
+      'user settings.json without MCP bundle is left byte-identical',
+      fs.readFileSync(path.join(tempDir, '.claude', 'settings.json'), 'utf8') === userSettings,
+    );
+    const userAdvertised = yaml.parse(fs.readFileSync(path.join(tempDir, '.agents', 'manifest.yaml'), 'utf8')).adapters?.claude_code || {};
+    assertPass(
+      'user settings.json without MCP bundle is still advertised in the manifest',
+      userAdvertised.settings === '.claude/settings.json' && !('mcp' in userAdvertised),
+      JSON.stringify(userAdvertised),
     );
   });
 

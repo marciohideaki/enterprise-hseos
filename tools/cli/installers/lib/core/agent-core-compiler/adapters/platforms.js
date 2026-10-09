@@ -25,6 +25,10 @@ const PLATFORM_SURFACES = {
     hooks: '.claude/hooks.json',
     skills: '.claude/skills',
     agents: '.claude/agents',
+    // Conditional: emitted only when active MCP bundles contain client-enabled
+    // stdio servers; the disk filter in manifest/builder.js decides.
+    settings: '.claude/settings.json',
+    mcp: '.mcp.json',
   },
   codex: {
     entrypoint: 'AGENTS.md',
