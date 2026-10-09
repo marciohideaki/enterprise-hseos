@@ -382,7 +382,7 @@
     {
       "filename": "control.js",
       "command": "control <action>",
-      "description": "Engineering control actions: serve, adapters, prepare, command, query, events, job-command, job-query, job-events, binding-inspect, campaign-run, campaign-command, campaign-query, campaign-events, terminal-attach, terminal-command, terminal-query, terminal-events",
+      "description": "Engineering control actions: serve, adapters, prepare, command, query, events, job-command, job-query, job-events, binding-inspect, campaign-run, campaign-command, campaign-query, campaign-events, campaign-evidence, terminal-attach, terminal-command, terminal-query, terminal-events",
       "options": [
         [
           "--config <path>",
@@ -409,6 +409,10 @@
           "Provider binding identity"
         ],
         [
+          "--command <id>",
+          "Campaign dispatch command UUID"
+        ],
+        [
           "--view <view>",
           "status, evidence, review or session"
         ],
@@ -422,7 +426,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "faf76da832c717157bb923a4e89e7ada83b83f3e90e743b379da9350972357f4"
+      "source_sha256": "8124dc653a98a764877ca69e692cb9d50df403fd3e824ad5a52123f3bcf892ff"
     },
     {
       "filename": "governance-context.js",

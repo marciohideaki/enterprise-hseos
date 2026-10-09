@@ -10,6 +10,7 @@ const { execFile } = require('node:child_process');
 const yaml = require('yaml');
 const { manifest } = require('./helpers/provider-control');
 const { engineeringDigest } = require('../tools/cli/lib/engineering-task-state');
+const vectors = require('./fixtures/campaign-credential-vectors');
 const { credentialFingerprint } = require('../tools/cli/lib/provider-api-adapter');
 const { createNativeCampaignAdapter, nativeArtifactDigest } = require('../tools/cli/lib/provider-native-adapter');
 const { createAntigravityCampaignAdapter, antigravityArtifactDigest } = require('../tools/cli/lib/provider-antigravity-adapter');
@@ -126,6 +127,101 @@ for (const vendor of ['codex', 'claude'])
     f.settings.model = 'drift';
     assert.throws(f.create, { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' });
   });
+test('native runs return retained model output only when it is bounded, hash-exact and credential-free', async (t) => {
+  const { createHash } = require('node:crypto');
+  const sha = (value) => createHash('sha256').update(value).digest('hex');
+  const f = native(t, 'claude');
+  const base = (text, hash = sha(text)) => ({
+    text,
+    text_sha256: hash,
+    provider_session_id: 'native-session-1',
+    usage: { usage: { input_tokens: 5, output_tokens: 2 } },
+  });
+  const original = f.deps.processRunner;
+  const run = async (result) => {
+    f.deps.processRunner = async (input) => (input.input.operation === 'run' ? result : original(input));
+    return f.create().adapter.run({ task_id: f.id, signal: new AbortController().signal });
+  };
+  const kept = await run(base('plan'));
+  assert.equal(kept.output_text, 'plan');
+  assert.deepEqual(kept.evidence_ref, { schema_version: 1, kind: 'model_output', sha256: sha('plan'), bytes: 4 });
+  assert.equal(
+    kept.evidence_sha256,
+    engineeringDigest({
+      text_sha256: sha('plan'),
+      provider_session_id: 'native-session-1',
+      usage: { usage: { input_tokens: 5, output_tokens: 2 } },
+    }),
+  );
+  for (const withheld of [
+    base('plan', 'a'.repeat(64)),
+    base('x'.repeat(65_537)),
+    base(`key ${f.deps.environment.TEST_PROVIDER_KEY}`),
+    base(vectors.RSA_PRIVATE_KEY),
+    { ...base('plan'), text: undefined },
+  ]) {
+    const result = await run(withheld);
+    assert.equal(result.output_text, undefined);
+    assert.equal(result.evidence_ref, undefined);
+  }
+});
+test('native adapter declares why output is withheld without failing the dispatch', async (t) => {
+  const { createHash } = require('node:crypto');
+  const sha = (value) => createHash('sha256').update(value).digest('hex');
+  const f = native(t, 'claude');
+  const original = f.deps.processRunner;
+  const run = async (result) => {
+    f.deps.processRunner = async (input) => (input.input.operation === 'run' ? result : original(input));
+    return f.create().adapter.run({ task_id: f.id, signal: new AbortController().signal });
+  };
+  const base = (extra) => ({ provider_session_id: 'native-session-1', usage: { usage: { input_tokens: 5, output_tokens: 2 } }, ...extra });
+  const text = vectors.PROJECT_TOKEN_TEXT;
+  const cases = [
+    [base({ text_sha256: sha('x'), text_too_large: true }), 'too_large'],
+    [base({ text, text_sha256: sha(text) }), 'credential_pattern'],
+    [base({ text: 'ok', text_sha256: 'b'.repeat(64) }), 'integrity_mismatch'],
+    [base({ text: 'x'.repeat(65_537), text_sha256: sha('x'.repeat(65_537)) }), 'too_large'],
+  ];
+  for (const [result, reason] of cases) {
+    const receipt = await run(result);
+    assert.equal(receipt.evidence_withheld, reason);
+    assert.equal(receipt.evidence_ref, undefined);
+    assert.equal(receipt.output_text, undefined);
+  }
+  const known = await run(
+    base({ text: `echo ${f.deps.environment.TEST_PROVIDER_KEY}`, text_sha256: sha(`echo ${f.deps.environment.TEST_PROVIDER_KEY}`) }),
+  );
+  assert.equal(known.evidence_withheld, 'credential_pattern');
+  const none = await run(base({ text_sha256: 'a'.repeat(64) }));
+  assert.equal(none.evidence_withheld, undefined);
+});
+test('real worker process returns retained output at the limit without exceeding the envelope', async (t) => {
+  const d = temporary(t);
+  const run = (prompt) =>
+    runCampaignProcess({
+      input: {
+        vendor: 'claude',
+        operation: 'run',
+        binding: { executable: process.execPath, sdk_module: path.resolve('test/fixtures/fake-claude-agent-sdk.mjs'), cwd: d },
+        environment: { HOME: d, PATH: '/usr/bin', HSEOS_CLAUDE_TEST_REMOTE: path.join(d, 'claude.json') },
+        model: 'pinned',
+        prompt,
+        budget_microusd: 1000,
+      },
+      signal: new AbortController().signal,
+      timeout_ms: 20_000,
+    });
+  for (const kind of ['quotes', 'control', 'ascii', 'multibyte']) {
+    const result = await run(`bulk:${kind}:65536`);
+    assert.equal(Buffer.byteLength(result.text), 65_536, kind);
+    assert.equal(createHash('sha256').update(result.text).digest('hex'), result.text_sha256, kind);
+    assert.equal(result.text_too_large, undefined);
+  }
+  const over = await run('bulk:control:65537');
+  assert.equal(over.text, undefined);
+  assert.equal(over.text_too_large, true);
+  assert.equal(over.text_sha256.length, 64);
+});
 test('native preflight never replaces unknown quotas, paid credits or credentials with invented capacity', async (t) => {
   const f = native(t, 'codex');
   const a = f.create().adapter;

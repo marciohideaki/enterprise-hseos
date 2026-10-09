@@ -35,6 +35,8 @@ async function main() {
     }
     let usage;
     let bytes = 0;
+    const chunks = [];
+    let retained = 0;
     const hash = createHash('sha256');
     const session = config.resume_session_id
       ? { runtime_session_id: config.resume_session_id }
@@ -65,10 +67,21 @@ async function main() {
         bytes += Buffer.byteLength(event.text);
         if (bytes > 1_048_576) throw new Error('output limit');
         hash.update(event.text);
+        // Retention is capped far below the stream limit; an oversized answer is hashed but not returned.
+        if (retained !== null) {
+          retained += Buffer.byteLength(event.text);
+          if (retained > 65_536) retained = null;
+          else chunks.push(event.text);
+        }
       },
     });
     if (result.stop_reason !== 'completed' || !usage) throw new Error('uncertain result');
-    return { usage, text_sha256: hash.digest('hex'), provider_session_id: session.runtime_session_id };
+    return {
+      usage,
+      text_sha256: hash.digest('hex'),
+      ...(retained === null ? { text_too_large: true } : { text: chunks.join('') }),
+      provider_session_id: session.runtime_session_id,
+    };
   } finally {
     await driver.close();
   }

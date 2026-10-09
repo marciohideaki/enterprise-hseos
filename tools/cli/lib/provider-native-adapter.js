@@ -6,6 +6,7 @@ const { engineeringDigest } = require('./engineering-task-state');
 const { credentialFingerprint } = require('./provider-api-adapter');
 const { runCampaignProcess } = require('./provider-campaign-process');
 const { createClaudeAccountCampaignAdapter } = require('./provider-claude-account-adapter');
+const { MAX_EVIDENCE_BYTES, containsCredential, evidenceSha256 } = require('./campaign-evidence-store');
 const readers = { codex: require('./delegated-codex-runtime').readBinding, claude: require('./delegated-claude-runtime').readBinding };
 const integer = z.number().int().nonnegative().safe();
 const settingsSchema = z
@@ -32,6 +33,16 @@ function nativeArtifactDigest() {
   return engineeringDigest(files.map((file) => createHash('sha256').update(fs.readFileSync(file)).digest('hex')));
 }
 const loadedArtifact = nativeArtifactDigest();
+/** Why retained output must not be persisted; null when the text may be kept, undefined when the worker returned none. */
+function withholdReason(result, secrets) {
+  const { text, text_too_large: tooLarge } = result;
+  if (tooLarge === true) return 'too_large';
+  if (text === undefined) return;
+  if (typeof text !== 'string') return 'integrity_mismatch';
+  if (Buffer.byteLength(text) > MAX_EVIDENCE_BYTES) return 'too_large';
+  if (evidenceSha256(Buffer.from(text, 'utf8')) !== result.text_sha256) return 'integrity_mismatch';
+  return containsCredential(text, secrets) ? 'credential_pattern' : null;
+}
 function fail(code) {
   throw Object.assign(new Error(code), { code });
 }
@@ -65,6 +76,13 @@ function createNativeCampaignAdapter(
     (vendor === 'codex' ? manifest.route !== 'account' : manifest.route !== 'api')
   )
     fail('CONTROL_PROVIDER_CONFIGURATION_INVALID');
+  // Values of every credential the binding or manifest references through the process environment.
+  function knownSecretValues() {
+    const names = new Set(binding.env_names || []);
+    const ref = manifest.authentication.credential?.source_ref || '';
+    if (ref.startsWith('env://')) names.add(ref.slice(6));
+    return [...names].map((name) => environment[name]);
+  }
   function verify() {
     if (
       nativeArtifactDigest() !== loadedArtifact ||
@@ -183,10 +201,23 @@ function createNativeCampaignAdapter(
                 integer.parse(usage?.cache_creation_input_tokens ?? 0),
         );
         const output = integer.parse(vendor === 'codex' ? usage?.outputTokens : usage?.output_tokens);
+        // The text itself is retained by the control layer; the receipt digest keeps covering only the attested summary.
+        const { text, text_too_large: _tooLarge, ...attested } = result;
+        const secrets = [selected.ANTHROPIC_API_KEY, ...knownSecretValues()];
+        const withheld = withholdReason(result, secrets);
+        const retained = withheld === null;
         return {
           status: 'completed',
           binding_sha256: digest,
-          evidence_sha256: engineeringDigest(result),
+          evidence_sha256: engineeringDigest(attested),
+          ...(retained
+            ? {
+                evidence_ref: { schema_version: 1, kind: 'model_output', sha256: result.text_sha256, bytes: Buffer.byteLength(text) },
+                output_text: text,
+              }
+            : withheld
+              ? { evidence_withheld: withheld }
+              : {}),
           cost_microusd: null,
           input_tokens: input,
           output_tokens: output,

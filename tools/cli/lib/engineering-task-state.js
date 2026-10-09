@@ -63,6 +63,7 @@ const eventSchema = z.discriminatedUnion('kind', [
       binding: z.unknown().optional(),
       extensions: z.unknown().optional(),
       plugin_model: z.unknown().optional(),
+      response_source: z.record(z.string(), z.json()).optional(),
       responses: z.array(z.object({ name: z.string().min(1).max(160), input: z.record(z.string(), z.json()) }).strict()).max(64),
     })
     .strict(),
@@ -84,6 +85,8 @@ function reduce(state, event) {
         require('./engineering-plugin-model').parseTaskPluginModel(event.plugin_model, event.extensions);
         if (event.binding || event.responses.length > 0) throw new Error('A task cannot combine model sources');
       }
+      if (event.response_source !== undefined && (event.responses.length === 0 || event.binding || event.plugin_model))
+        throw new Error('Response provenance requires scripted responses');
       if (event.binding !== undefined) {
         require('./engineering-model').validateEngineeringBinding(event.binding);
         if (event.responses.length > 0) throw new Error('A task cannot combine bound and scripted models');

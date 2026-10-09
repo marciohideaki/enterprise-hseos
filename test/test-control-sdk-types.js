@@ -41,3 +41,25 @@ test('SDK query accepts a union-typed view and still rejects unknown views', { s
   );
   assert.equal(rejected.status, 0, rejected.stdout);
 });
+
+test('SDK campaignEvidence is typed with provenance fields', { skip: !fs.existsSync(TSC) }, () => {
+  const result = typecheck(
+    HEAD +
+      `void client.campaignEvidence('id', 'command').then((value) => { const text: string = value.text; const digest: string = value.evidence_sha256; void text; void digest; });\n// @ts-expect-error both identifiers are required\nvoid client.campaignEvidence('id');\n`,
+  );
+  assert.equal(result.status, 0, result.stdout);
+});
+
+test('SDK create input types responses_from and rejects a malformed campaign source', { skip: !fs.existsSync(TSC) }, () => {
+  const base = "schema_version: 1 as const, command_id: 'c', resource_id: 'r', expected_sequence: 0, action: 'create' as const";
+  const accepted = typecheck(
+    HEAD +
+      `void client.execute({ ${base}, input: { contract: {}, responses_from: { ref: 'campaign://a/b', binding_sha256: 'x' } } });\nvoid client.execute({ ${base}, input: { contract: {}, responses: [] } });\n`,
+  );
+  assert.equal(accepted.status, 0, accepted.stdout);
+  const rejected = typecheck(
+    HEAD +
+      `// @ts-expect-error source needs a campaign:// ref and a binding digest\nvoid client.execute({ ${base}, input: { contract: {}, responses_from: { ref: 'scripted://x' } } });\n// @ts-expect-error contract is required\nvoid client.execute({ ${base}, input: { responses_from: { ref: 'campaign://a/b', binding_sha256: 'x' } } });\n`,
+  );
+  assert.equal(rejected.status, 0, rejected.stdout);
+});
