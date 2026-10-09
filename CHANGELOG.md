@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The standalone smoke job timeout goes from 10 to 20 minutes because successful runs took 550–626 s and runs were being cancelled at the 600 s limit.
 - The `session-track.sh` installed-consumer hook test waits for the captured content, up to the handler's 5 s cap plus margin, instead of only for the capture file, which the fixture creates before writing it.
 - `agent-core compile` ends the emitted `.claude-plugin/marketplace.json` and `.codex-plugin/plugin.json` with a newline, and both files are excluded from prettier like the other compiler output, so repeated compiles leave no diff.
+- The capability intake guard reads the declarator that follows a type operator ending a variable annotation line (`export let a: readonly\nstring[] = 1, Denied = 1;`) and one that follows a `class` or `function` expression whose body opens on its own line, and reports a block opening on its own line after a head it cannot place as an unreadable export list instead of skipping it.
 
 ### Known limitations
 

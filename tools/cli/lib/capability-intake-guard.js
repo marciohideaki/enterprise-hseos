@@ -1516,6 +1516,7 @@ const DANGLING_WORDS = new Set([
   'yield',
 ]);
 const LAST_WORD = /[\w$]+$/;
+const HEAD_WORD = /(?:class|function)(?![\w$])/y;
 
 const ASCII_NAME_AT = /[A-Za-z_$][\w$]*/y;
 
@@ -1658,9 +1659,15 @@ function skipTo(code, i, { types, lines }) {
   let depth = 0;
   let at = i;
   const length = code.length;
+  // A `class` or `function` head read at depth 0 whose body `{` has not opened yet: a line break inside it ends nothing.
+  let headOpen = false;
   skipOpen = false;
   while (at < length) {
     const unit = code.codePointAt(at);
+    if (lines && depth === 0 && (unit === 99 || unit === 102) && !WORD_BEFORE.test(code[at - 1] || ' ')) {
+      HEAD_WORD.lastIndex = at;
+      if (HEAD_WORD.test(code)) headOpen = true;
+    }
     if (unit === 34 || unit === 39 || unit === 96) {
       const close = code.indexOf(code[at], at + 1);
       at = close === -1 ? at + 1 : close + 1;
@@ -1689,6 +1696,7 @@ function skipTo(code, i, { types, lines }) {
     else if (unit === 41 || unit === 93 || unit === 125 || (types && unit === 62 && code.codePointAt(at - 1) !== 61)) {
       if (depth === 0) return at;
       depth--;
+      if (depth === 0 && unit === 125) headOpen = false;
     } else if (depth === 0 && (unit === 44 || unit === 59)) return at;
     else if (depth === 0 && types && unit === 61 && code.codePointAt(at + 1) !== 62) return at;
     else if (unit === 101 && code.codePointAt(at + 1) === 120 && !WORD_BEFORE.test(code[at - 1] || ' ')) {
@@ -1706,10 +1714,17 @@ function skipTo(code, i, { types, lines }) {
       while (back >= 0 && isSpaceUnit(code.codePointAt(back))) back--;
       const before = back >= 0 ? code[back] : '';
       const after = code.slice(skipSpace(code, at), skipSpace(code, at) + 12);
-      if (!(',=+-*/%&|^?:<>(!~.'.includes(before) && before !== '')) {
+      if (headOpen)
+        readingDiverged = true; // the earlier reading ended the text at this line break
+      else if (!(',=+-*/%&|^?:<>(!~.'.includes(before) && before !== '')) {
         if (!CONTINUES_LINE.test(after)) {
           const word = LAST_WORD.exec(code.slice(Math.max(0, back - 12), back + 1));
-          if (!word || !DANGLING_WORDS.has(word[0])) return at;
+          if (!word || !(DANGLING_WORDS.has(word[0]) || (types && TYPE_OPERATOR.test(word[0])))) {
+            // A block opening on the next line is either a statement of its own or the body of a head this reading did not see
+            // (`class A<B, C>\nimplements D\n{}` cut by a type argument comma): the second hides what follows it.
+            if (after[0] === '{') listAbandoned = true;
+            return at;
+          }
           readingDiverged = true; // the earlier reading ended the text at this line break
         } else if (!CONTINUES_LINE_LEGACY.test(after)) readingDiverged = true;
       }
