@@ -2437,6 +2437,40 @@ test('guard: a type operator or a non-null mark ending a line of a multi-line ty
   assert.equal(detectExports('export const a = 1, b\nconst c = 2;', 'ts').incomplete, false);
 });
 
+test('guard: a type operator ending a variable annotation line or a class/function body on its own line does not hide the next declarator', () => {
+  const heads = [
+    'export let a: readonly\nstring[] = 1',
+    'export let a: unique\nsymbol = Symbol()',
+    'export let a: keyof\nB = 1',
+    'export let a: typeof\nB = 1',
+    'export const a = class Foo\n{}',
+    'export const a = function foo()\n{}',
+    'export const a = async function foo()\n{}',
+    'export const a = function* foo()\n{}',
+    'export const a = function foo(): string\n\n{}',
+    'export const a = class Foo extends Bar\n{}',
+    'export const a = class Foo\nimplements I\n{}',
+    'export const a = class\n{ m()\n{} }',
+  ];
+  for (const head of heads) {
+    for (const variant of [head, head.replaceAll('\n', '\r\n'), head.replace('\n', ' // c\n'), head.replace('\n', ' /* c */\n')]) {
+      const content = `${variant}, Denied = 1;`;
+      assert.ok(detectExports(content, 'ts').symbols.includes('Denied'), JSON.stringify(content));
+    }
+  }
+  // No false end of list: a new statement on the next line still ends it, and invents no symbol.
+  for (const content of ['export const a = 1, b\nconst c = 2;', 'export let a: readonly string[] = []\nfoo();']) {
+    assert.equal(detectExports(content, 'ts').incomplete, false, content);
+  }
+  assert.deepEqual(detectExports('export let a: readonly string[] = []\nconst Q = 1, Z = 2;', 'ts').symbols, ['a']);
+});
+
+test('guard: a block opening on its own line after a head the scanner cannot place is reported unreadable, never silently skipped', () => {
+  for (const content of ['export const a = 1\n{ b, Denied }', 'export const a = class Foo<A, B>\nimplements I\n{}, Denied = 1;']) {
+    assert.equal(detectExports(content, 'ts').incomplete, true, content);
+  }
+});
+
 test('guard: a default holding a comma of a type argument list is no unreadable list; a hidden binding after it still is read or reported', () => {
   for (const content of [
     'export const { a = new Map<string, number>() } = obj;',
