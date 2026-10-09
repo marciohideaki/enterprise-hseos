@@ -97,7 +97,7 @@ components:
     name: MCP Runtime
     description: Project-local MCP bundles, governance tools, swarm tools, state tools, and code-index bridge.
     prerequisites:
-      - "axon-bridge proxies an external `axon` binary — degrades to no-op fallback results when the binary is absent"
+      - "axon-bridge proxies an external `axon` binary — fails with an explicit AXON_UNAVAILABLE / AXON_INCOMPATIBLE error when the binary is absent or incompatible (no silent empty results)"
       - "enterprise-tier MCP bundle (github, postgres, kubernetes, sentry, azure-devops) requires secrets via environment variables (ADR-0008)"
     modules: []
     tools:

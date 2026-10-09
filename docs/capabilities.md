@@ -82,7 +82,7 @@ evidence, not operational activation; the report always keeps activation authori
 | `capability:observability` | `OTEL_EXPORTER_OTLP_ENDPOINT` (+ Loki vars) for telemetry export (ADR-0014)          | Export hooks stay inert; SQLite remains canonical                   |
 | `capability:knowledge`     | Vault path for `second-brain` (`--second-brain-path`)                                | Skill degrades (`vault_required: false`, P6)                        |
 | `capability:research`      | Axon code index for `repo-radar`                                                     | Falls back to Read+Grep exploration                                 |
-| `runtime:mcp`              | `axon` binary for axon-bridge; env secrets for the enterprise MCP bundle (ADR-0008)  | axon-bridge returns no-op fallbacks; enterprise bundle stays opt-in |
+| `runtime:mcp`              | `axon` binary for axon-bridge; env secrets for the enterprise MCP bundle (ADR-0008)  | axon-bridge fails with explicit `AXON_*` errors; enterprise bundle stays opt-in |
 
 Components **without** external prerequisites: `baseline:*` (3), `runtime:{hooks,state,workflows}`,
 `capability:{architecture,delivery,security,readiness,solo,verification}`, `adapter:{claude-code,codex,goose}`.

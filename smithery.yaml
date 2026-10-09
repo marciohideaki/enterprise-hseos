@@ -23,5 +23,5 @@ mcp_servers:
     command: node tools/mcp-hseos-swarm/index.js
     port: 3102
   - id: hseos-axon-bridge
+    # stdio by default; HTTP (--http/--port) needs HSEOS_AXON_BRIDGE_CREDENTIAL (>= 32 chars) as a Bearer token
     command: node tools/mcp-axon-bridge/index.js
-    port: 3103

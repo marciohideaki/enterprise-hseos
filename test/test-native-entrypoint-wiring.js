@@ -88,6 +88,21 @@ test('production entrypoint preserves metered legacy compatibility without pendi
   fs.mkdirSync(stateDirectory);
   const databasePath = path.join(stateDirectory, 'project.db');
   const port = await freePort();
+  // Controlled axon double speaking MCP over `axon serve`: an absent axon is now an explicit error,
+  // so the lifecycle assertions need a provider that really answers.
+  const fakeAxon = path.join(directory, 'fake-axon');
+  fs.writeFileSync(
+    fakeAxon,
+    `#!${process.execPath}
+const rl = require('node:readline').createInterface({ input: process.stdin });
+rl.on('line', (line) => {
+  const m = JSON.parse(line);
+  if (m.method === 'initialize') console.log(JSON.stringify({ jsonrpc: '2.0', id: m.id, result: { protocolVersion: '2024-11-05', serverInfo: { name: 'fake', version: '1' }, capabilities: {} } }));
+  if (m.method === 'tools/call') console.log(JSON.stringify({ jsonrpc: '2.0', id: m.id, result: { content: [{ type: 'text', text: JSON.stringify({ overview: 'fixture' }) }] } }));
+});
+`,
+    { mode: 0o755 },
+  );
   const child = spawn(process.execPath, [path.join(ROOT, 'tools', 'mcp-hseos-governance', 'index.js'), `--port=${port}`], {
     cwd: workingDirectory,
     env: { ...process.env, HSEOS_STATE_DB: databasePath, NODE_ENV: 'production' },
@@ -149,6 +164,9 @@ test('project-state --db keeps telemetry beside the selected database without en
   assert.equal(fs.existsSync(path.join(workingDirectory, '.hseos', 'state', 'mcp-legacy-usage.db')), false);
 });
 
+// Generated per run; the axon bridge requires it in HTTP mode, the other servers ignore it.
+const BRIDGE_CREDENTIAL = require('node:crypto').randomBytes(24).toString('hex');
+
 function rpc(port, tool, argumentsValue, idempotencyKey, { capabilities = {}, requestState, inputResponses } = {}) {
   const meta = {
     [PROTOCOL_VERSION_META_KEY]: MCP_MODERN_PROTOCOL_VERSION,
@@ -177,6 +195,7 @@ function rpc(port, tool, argumentsValue, idempotencyKey, { capabilities = {}, re
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${BRIDGE_CREDENTIAL}`,
           'Content-Length': Buffer.byteLength(body),
           'mcp-protocol-version': MCP_MODERN_PROTOCOL_VERSION,
           'mcp-method': 'tools/call',
@@ -203,10 +222,13 @@ function rpc(port, tool, argumentsValue, idempotencyKey, { capabilities = {}, re
 
 function health(port) {
   return new Promise((resolve) => {
-    const request = http.get({ host: '127.0.0.1', port, path: '/health' }, (response) => {
-      response.resume();
-      response.on('end', () => resolve(response.statusCode === 200));
-    });
+    const request = http.get(
+      { host: '127.0.0.1', port, path: '/health', headers: { Authorization: `Bearer ${BRIDGE_CREDENTIAL}` } },
+      (response) => {
+        response.resume();
+        response.on('end', () => resolve(response.statusCode === 200));
+      },
+    );
     request.on('error', () => resolve(false));
   });
 }
@@ -224,11 +246,27 @@ async function withServer(spec, callback) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), `hseos-wiring-${spec.id}-`));
   const databasePath = path.join(directory, 'project.db');
   const port = await freePort();
+  // Controlled axon double speaking MCP over `axon serve`: an absent axon is now an explicit error,
+  // so the lifecycle assertions need a provider that really answers.
+  const fakeAxon = path.join(directory, 'fake-axon');
+  fs.writeFileSync(
+    fakeAxon,
+    `#!${process.execPath}
+const rl = require('node:readline').createInterface({ input: process.stdin });
+rl.on('line', (line) => {
+  const m = JSON.parse(line);
+  if (m.method === 'initialize') console.log(JSON.stringify({ jsonrpc: '2.0', id: m.id, result: { protocolVersion: '2024-11-05', serverInfo: { name: 'fake', version: '1' }, capabilities: {} } }));
+  if (m.method === 'tools/call') console.log(JSON.stringify({ jsonrpc: '2.0', id: m.id, result: { content: [{ type: 'text', text: JSON.stringify({ overview: 'fixture' }) }] } }));
+});
+`,
+    { mode: 0o755 },
+  );
   const child = spawn(process.execPath, [path.join(ROOT, 'tools', spec.script, 'index.js'), `--port=${port}`, `--db=${databasePath}`], {
     cwd: ROOT,
     env: {
       ...process.env,
-      AXON_BIN: '/nonexistent-axon-binary',
+      AXON_BIN: fakeAxon,
+      HSEOS_AXON_BRIDGE_CREDENTIAL: BRIDGE_CREDENTIAL,
       HSEOS_GOVERNED_EXECUTION_FIXTURE: '1',
       HSEOS_STATE_DB: databasePath,
       NODE_ENV: 'test',
