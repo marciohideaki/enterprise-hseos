@@ -108,7 +108,13 @@ relatório atual; uma resposta não amplia política, escopo ou orçamento.
 `CONTROL_SEQUENCE_CONFLICT`, `CONTROL_IDEMPOTENCY_CONFLICT`,
 `CONTROL_WORKSPACE_DENIED` e `CONTROL_BINDING_UNKNOWN` negam o comando.
 Erros internos são retornados como `CONTROL_REQUEST_REJECTED`, sem detalhes
-sensíveis. Autenticação retorna 401, recurso desconhecido 404, conflitos 409.
+sensíveis. Autenticação retorna 401, recurso desconhecido 404 (tarefa, job, terminal, campanha
+e vínculo de provider, em consulta e em `/events`), consulta ou cursor malformado 400
+(`CONTROL_QUERY_INVALID`, validado antes da existência do recurso), conflitos 409.
+Recurso identificado na URL e desconhecido (consulta, `/events` ou comando POST
+para campanha ou terminal inexistente) retorna 404; antes retornava 409 para
+terminal e campanha (mudança 409 para 404). Referência desconhecida no corpo de
+um POST (`CONTROL_PROVIDER_BINDING_UNKNOWN`, `CONTROL_BINDING_UNKNOWN`) continua 409.
 
 ## Aceite protegido e aplicação
 

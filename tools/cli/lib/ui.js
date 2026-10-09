@@ -47,7 +47,20 @@ class UI {
       }
       confirmedDirectory = expandedDir;
       await prompts.log.info(`Using directory from command-line: ${confirmedDirectory}`);
+    } else if (options.yes) {
+      // --yes accepts the documented default (current directory) without prompting.
+      const defaultDir = process.cwd();
+      const validation = this.validateDirectorySync(defaultDir);
+      if (validation) throw new Error(`Invalid directory: ${validation}`);
+      confirmedDirectory = defaultDir;
+      await prompts.log.info(`Using current directory (--yes): ${confirmedDirectory}`);
     } else {
+      if (!process.stdin.isTTY) {
+        throw new Error(
+          'Cannot prompt for the installation directory: stdin is not a terminal. ' +
+            'Pass --directory <path> (add -y to accept the remaining defaults, or --modules/--tools/--profile to choose them).',
+        );
+      }
       confirmedDirectory = await this.getConfirmedDirectory();
     }
 

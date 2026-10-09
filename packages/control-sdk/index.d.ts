@@ -84,6 +84,8 @@ export interface WorkflowStatus {
   questions: string[];
   [key: string]: unknown;
 }
+export type ControlQueryView = 'status' | 'evidence' | 'review' | 'session';
+
 export class ControlClient {
   constructor(options: { url: string; credential: string; fetchImpl?: typeof fetch });
   bindingInspect(bindingId: string): Promise<Record<string, unknown>>;
@@ -109,6 +111,7 @@ export class ControlClient {
   execute(command: ControlCommand): Promise<Record<string, unknown>>;
   query(resourceId: string, view?: 'status'): Promise<TaskStatus | WorkflowStatus>;
   query(resourceId: string, view: 'evidence' | 'review' | 'session'): Promise<Record<string, unknown>>;
+  query(resourceId: string, view: ControlQueryView): Promise<TaskStatus | WorkflowStatus | Record<string, unknown>>;
   events(
     resourceId: string,
     options?: { after?: number; limit?: number },

@@ -101,6 +101,12 @@ test('CLI, JavaScript and Python share job state, command replay and event curso
   );
   assert.deepEqual(JSON.parse(cliEvents.stdout), page);
   assert.deepEqual((await f.client.jobEvents(f.id, { after: 2 })).events, []);
+  const headers = { authorization: `Bearer ${credential}` };
+  const badCursor = await fetch(f.server.url + `/v1/jobs/${f.id}/events?after=-1`, { headers });
+  assert.equal(badCursor.status, 400);
+  assert.deepEqual(await badCursor.json(), { error: 'CONTROL_QUERY_INVALID' });
+  const missing = await fetch(f.server.url + `/v1/jobs/${randomUUID()}/events`, { headers });
+  assert.equal(missing.status, 404);
 });
 
 test('HTTP, CLI and Python expose explicit resume with one durable dispatch', async (t) => {
