@@ -671,6 +671,23 @@ async function testClaudeCodeEmitsMcpSettingsAndMcpJson() {
   });
 
   await withTempDir(async (tempDir) => {
+    const userSettings = JSON.stringify({ permissions: { allow: ['Bash(ls)'] } });
+    fs.mkdirSync(path.join(tempDir, '.claude'), { recursive: true });
+    fs.writeFileSync(path.join(tempDir, '.claude', 'settings.json'), userSettings);
+    await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
+    assertPass(
+      'user settings.json without MCP bundle is left byte-identical',
+      fs.readFileSync(path.join(tempDir, '.claude', 'settings.json'), 'utf8') === userSettings,
+    );
+    const userAdvertised = yaml.parse(fs.readFileSync(path.join(tempDir, '.agents', 'manifest.yaml'), 'utf8')).adapters?.claude_code || {};
+    assertPass(
+      'user settings.json without MCP bundle is still advertised in the manifest',
+      userAdvertised.settings === '.claude/settings.json' && !('mcp' in userAdvertised),
+      JSON.stringify(userAdvertised),
+    );
+  });
+
+  await withTempDir(async (tempDir) => {
     writeMcpFixture(tempDir, servers);
     fs.mkdirSync(path.join(tempDir, '.claude'), { recursive: true });
     fs.writeFileSync(
