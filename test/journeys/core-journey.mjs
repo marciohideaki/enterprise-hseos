@@ -1698,7 +1698,10 @@ if (!KEEP_WORK) {
 console.log('\n=== resumo ===');
 for (const r of ctx.results) console.log(`${r.status.padEnd(8)} ${r.id.padEnd(24)} ${r.descricao}`);
 console.log(`resultado: ${path.join(OUT, 'core-journey-result.json')}  ${canon(summary.resumo)}  residual_serve=${leftover}`);
-process.exit(ctx.results.some((r) => r.status !== 'PASS') ? 1 : 0);
+// Fail-closed: a residual serve process (or an unreadable /proc scan, -1) and an empty result set are failures, not passes.
+if (leftover !== 0) console.error(`FAIL: residual_serve=${leftover} (expected 0)`);
+if (ctx.results.length === 0) console.error('FAIL: no journey step ran');
+process.exit(ctx.results.length === 0 || leftover !== 0 || ctx.results.some((r) => r.status !== 'PASS') ? 1 : 0);
 
 function stripIds(status) {
   const copy = structuredClone(status);
