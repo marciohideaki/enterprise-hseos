@@ -487,6 +487,8 @@ function validateInWorker({ schema, value, timeoutMs, workerPath, signal }) {
   });
 }
 
+const KNOWN_REQUEST_METHODS = new Set(['initialize', 'server/discover', 'tools/list', 'tools/call']);
+
 function validateRpcRequest(message) {
   if (!message || typeof message !== 'object' || Array.isArray(message) || message.jsonrpc !== '2.0') {
     throw new McpAdapterError('Invalid JSON-RPC request', JSON_RPC.INVALID_REQUEST);
@@ -1000,6 +1002,8 @@ class Mcp2026Adapter {
         throw new McpAdapterError('JSON-RPC request id must be a non-empty string or integer', JSON_RPC.INVALID_REQUEST);
       }
       if (!Object.hasOwn(message, 'id') && !['notifications/cancelled', 'notifications/initialized'].includes(message.method)) {
+        // JSON-RPC 2.0: a notification of an unknown method is dropped silently; known request methods keep the explicit error.
+        if (!KNOWN_REQUEST_METHODS.has(message.method)) return null;
         throw new McpAdapterError('JSON-RPC request id is required', JSON_RPC.INVALID_REQUEST);
       }
       const context =

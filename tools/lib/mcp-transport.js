@@ -2,6 +2,7 @@
 
 const http = require('node:http');
 const readline = require('node:readline');
+const Ajv2020 = require('ajv/dist/2020');
 const { MCP_PROTOCOL_VERSION } = require('./mcp-protocol');
 
 function buildMcpResponse(id, result) {
@@ -14,6 +15,36 @@ function buildMcpError(id, code, message) {
 
 function isNotification(message) {
   return !Object.prototype.hasOwnProperty.call(message, 'id');
+}
+
+function isPlainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function formatSchemaErrors(errors) {
+  return (errors || []).map((error) => `${error.instancePath || '(arguments)'} ${error.message}`.trim()).join('; ');
+}
+
+// Lazily compiles each declared tool inputSchema once; unknown tools are left to callTool.
+function createArgumentValidator(tools) {
+  const ajv = new Ajv2020({ allErrors: true, strict: false, validateFormats: false });
+  const schemas = new Map((tools || []).map((tool) => [tool.name, tool.inputSchema]));
+  const compiled = new Map();
+  return (name, args) => {
+    const schema = schemas.get(name);
+    if (!schema) return null;
+    if (!compiled.has(name)) compiled.set(name, ajv.compile(schema));
+    const validate = compiled.get(name);
+    return validate(args) ? null : formatSchemaErrors(validate.errors);
+  };
+}
+
+async function respondSafely(handleMessage, parsed) {
+  try {
+    return await handleMessage(parsed);
+  } catch (error) {
+    return buildMcpError(null, -32_603, `Internal error: ${error.message}`);
+  }
 }
 
 function createHttpServer(handleMessage, healthPayload) {
@@ -42,8 +73,14 @@ function createHttpServer(handleMessage, healthPayload) {
         return;
       }
 
+      const response = await respondSafely(handleMessage, parsed);
+      if (!response) {
+        res.writeHead(202);
+        res.end();
+        return;
+      }
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(await handleMessage(parsed)));
+      res.end(JSON.stringify(response));
     });
   });
 }
@@ -66,7 +103,7 @@ function startStdioServer(handleMessage) {
       return;
     }
 
-    const response = await handleMessage(parsed);
+    const response = await respondSafely(handleMessage, parsed);
     if (response) process.stdout.write(`${JSON.stringify(response)}\n`);
   });
 
@@ -74,7 +111,26 @@ function startStdioServer(handleMessage) {
 }
 
 function createMessageHandler({ serverInfo, tools, callTool, wrapToolResults = true }) {
+  const validateArguments = createArgumentValidator(tools);
   return async (message) => {
+    if (!isPlainObject(message) || typeof message.method !== 'string' || message.method.length === 0) {
+      const id = isPlainObject(message) && ['string', 'number'].includes(typeof message.id) ? message.id : null;
+      return buildMcpError(id, -32_600, 'Invalid Request');
+    }
+    const hasId = !isNotification(message);
+    if (
+      hasId &&
+      !(typeof message.id === 'number' ? Number.isInteger(message.id) : typeof message.id === 'string' && message.id.length > 0)
+    ) {
+      return buildMcpError(null, -32_600, 'Invalid Request: id must be a non-empty string or an integer');
+    }
+    if (!hasId) {
+      // JSON-RPC 2.0: notifications never get a response, and are never executed as requests.
+      if (message.method !== 'notifications/initialized') {
+        process.stderr.write(`[mcp] discarded notification: ${message.method}\n`);
+      }
+      return null;
+    }
     const { id, method, params = {} } = message;
 
     try {
@@ -87,7 +143,7 @@ function createMessageHandler({ serverInfo, tools, callTool, wrapToolResults = t
           });
         }
         case 'notifications/initialized': {
-          return isNotification(message) ? null : buildMcpResponse(id, {});
+          return buildMcpResponse(id, {});
         }
         case 'tools/list': {
           return buildMcpResponse(id, { tools });
@@ -95,7 +151,15 @@ function createMessageHandler({ serverInfo, tools, callTool, wrapToolResults = t
         case 'tools/call': {
           // Await so async tool handlers serialize their resolved value instead
           // of a pending Promise (awaiting a sync value is a no-op).
-          const result = await callTool(params.name, params.arguments || {});
+          if (!isPlainObject(params) || typeof params.name !== 'string') {
+            return buildMcpError(id, -32_602, 'Invalid params: tools/call requires a string "name"');
+          }
+          const args = params.arguments === undefined ? {} : params.arguments;
+          const argumentErrors = validateArguments(params.name, args);
+          if (argumentErrors !== null) {
+            return buildMcpError(id, -32_602, `Invalid params: ${argumentErrors}`);
+          }
+          const result = await callTool(params.name, args);
           if (!wrapToolResults) return buildMcpResponse(id, result);
           return buildMcpResponse(id, {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
