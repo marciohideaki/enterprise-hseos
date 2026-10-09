@@ -42,6 +42,7 @@
     ".hseos/**",
     "!.hseos/runs/**",
     "!.hseos/state/**",
+    "!.hseos/loops/**",
     "docs/MANAGED-GOVERNANCE.md",
     "docs/pt-br/governanca-gerenciada.md",
     "packages/**",

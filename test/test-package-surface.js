@@ -106,17 +106,46 @@ test('published package exposes runtime and governance assets only', () => {
     assert.ok(!/\.(?:db|sqlite|pem|key)$/i.test(file), `state or key material published: ${file}`);
     assert.ok(!/(?:^|\/)(?:\.env|managed-governance\.json)$/i.test(file), `runtime configuration published: ${file}`);
   }
-  // Reviewed inventory: W4 migration 016 and the guided init command add two assets to the 1456-entry base;
-  // ADR-0046 (platform bindings, governance distribution) and its platform-bindings schema add two.
-  // The platform-bindings loader (tools/cli/lib/platform-bindings.js) and its runtime defaults add two.
-  // The ECP capability registry resolver, its shipped snapshot and the snapshot lock add three.
-  // The platform-bindings command and its CLI helper library add two.
-  // The mode-aware capability intake guard library adds one.
-  // The four capability files (registry snapshot, its lock, the runtime defaults and the bindings schema) are also
-  // copied into .agents/capabilities/. That is a side effect of the compiler (syncCapabilityCatalog copies the whole
-  // directory without a filter), not a runtime need: the runtime reads only .enterprise/.../capabilities. The owner
-  // decided to keep the mirror; test-capability-catalog.js asserts it equals the canonical source. This adds four.
+  // Reviewed inventory ceiling (owner decision G3, 2026-10-09; analysis in docs/evolution/revalidation-2026-10/).
+  // The 17 files with no consumer were retired (14 removed from the repository, 3 pilot-evidence files excluded from the
+  // package via `!.hseos/loops/**`), leaving 1454 entries. The W5 projection for the core is +47 to +72 files
+  // (central ~60); the ceiling is the post-removal base plus the high scenario (72) plus ~14 of contingency for
+  // evidence/migration files that only appear during execution, i.e. 1540. Raising it again needs a per-increment
+  // justification; the history of earlier increments lives in Git.
+  // Note: the capability registry snapshot, its lock, the runtime defaults and the bindings schema are also copied into
+  // .agents/capabilities/. That is a side effect of the compiler (syncCapabilityCatalog copies the whole directory
+  // without a filter), not a runtime need; the owner decided to keep the mirror and test-capability-catalog.js asserts
+  // it equals the canonical source.
   // State/key/config exclusions above remain independent security invariants.
-  assert.ok(packed.entryCount <= 1472, `package entry count is not bounded: ${packed.entryCount}`);
-  assert.ok(packed.unpackedSize < 22_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);
+  const ENTRY_CEILING = 1540;
+  assert.ok(packed.entryCount <= ENTRY_CEILING, `package entry count is not bounded: ${packed.entryCount}`);
+  assert.ok(packed.unpackedSize < 14_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);
+
+  // Per-area budget = measured count after the G3 removals + projected W5 core share (high estimate) + contingency.
+  // Measured: .enterprise 446, tools 371, src 245, .agents 186, packages 112, .hseos 61, scripts 19, docs 7, root 7
+  // (1454). W5 high share (72): .enterprise 33 (ADR, policies, 3 skills), tools 18 (MCP hardening, LSP, DAP, memory),
+  // packages 9 (multimodal contracts), .agents 6 (skill mirror), src 4, scripts 2. Contingency (14): .enterprise 5,
+  // tools 4, packages 2, .agents 1, src 1, .hseos 1. The area budgets sum to the ceiling, so none can grow at the
+  // expense of another without an explicit change here.
+  const areaBudgets = {
+    '.enterprise': 484,
+    tools: 393,
+    src: 250,
+    '.agents': 193,
+    packages: 123,
+    '.hseos': 62,
+    scripts: 21,
+    docs: 7,
+    '(root)': 7,
+  };
+  assert.ok(Object.values(areaBudgets).reduce((a, b) => a + b, 0) <= ENTRY_CEILING, 'area budgets must not exceed the entry ceiling');
+  const areaCounts = {};
+  for (const file of files) {
+    const area = file.includes('/') ? file.split('/')[0] : '(root)';
+    areaCounts[area] = (areaCounts[area] || 0) + 1;
+  }
+  for (const [area, count] of Object.entries(areaCounts)) {
+    assert.ok(area in areaBudgets, `package area has no budget: ${area} (${count} entries)`);
+    assert.ok(count <= areaBudgets[area], `package area ${area} exceeds its budget: ${count} > ${areaBudgets[area]}`);
+  }
 });
