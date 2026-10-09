@@ -1,0 +1,1616 @@
+{
+  "pacote": {
+    "sha256": "ea1a430de8aea5777a9daa6639220720bb809e09e448ccb37500d826ca450064",
+    "file": "/tmp/hseos-reval/pack/hseos-4.0.0-rc.0.tgz",
+    "installed_prefix": "/tmp/hseos-reval/consumer-a3/project"
+  },
+  "node": {
+    "journey": "v24.15.0",
+    "sandbox": "v22.22.1"
+  },
+  "python": "3.14.4",
+  "runtimes": {
+    "journey_node": "v24.15.0",
+    "sandbox_node": "v22.22.1",
+    "python": "3.14.4",
+    "git": "git version 2.53.0",
+    "bwrap": "bubblewrap 0.11.1"
+  },
+  "iniciado_em": "2026-10-09T17:23:24.870Z",
+  "finalizado_em": "2026-10-09T17:24:29.340Z",
+  "serve": {
+    "generations": 2,
+    "state_dir": "/build/tmp/hseos-ledger-fixture-v79j63",
+    "cgroup_service": "hseos-a3-5173c26c.service"
+  },
+  "passos": [
+    {
+      "id": "s00-install",
+      "descricao": "Pacote instalado fora do checkout: identidade, CLI, SDK e executor",
+      "status": "PASS",
+      "evidencia": {
+        "checks": [
+          {
+            "name": "package installed under the consumer prefix",
+            "ok": true
+          },
+          {
+            "name": "tarball entries match installed files (SDK index.js bytes)",
+            "ok": true
+          },
+          {
+            "name": "hseos --version matches package.json",
+            "ok": true,
+            "detail": "4.0.0-rc.0"
+          },
+          {
+            "name": "`control adapters` lists adapters as not_certified, none operational",
+            "ok": true
+          }
+        ],
+        "package": {
+          "name": "hseos",
+          "version": "4.0.0-rc.0",
+          "tgz_sha256": "ea1a430de8aea5777a9daa6639220720bb809e09e448ccb37500d826ca450064",
+          "installed_at": "/tmp/hseos-reval/consumer-a3/project/node_modules/hseos"
+        },
+        "runtimes": {
+          "journey_node": "v24.15.0",
+          "sandbox_node": "v22.22.1",
+          "python": "3.14.4",
+          "git": "git version 2.53.0",
+          "bwrap": "bubblewrap 0.11.1"
+        },
+        "adapters": [
+          {
+            "adapter": "hseos-api-campaign-v1",
+            "real_conformance": "not_certified"
+          },
+          {
+            "adapter": "hseos-codex-campaign-v1",
+            "real_conformance": "not_certified"
+          },
+          {
+            "adapter": "hseos-claude-campaign-v1",
+            "real_conformance": "not_certified"
+          },
+          {
+            "adapter": "hseos-antigravity-campaign-v1",
+            "real_conformance": "not_certified"
+          }
+        ]
+      },
+      "duracao_ms": 309
+    },
+    {
+      "id": "s01-serve",
+      "descricao": "hseos control serve (cgroup delegado) com banner {url,state,operational:false}",
+      "status": "PASS",
+      "evidencia": {
+        "checks": [
+          {
+            "name": "banner has loopback url",
+            "ok": true,
+            "detail": "http://127.0.0.1:42965"
+          },
+          {
+            "name": "banner operational is false",
+            "ok": true
+          },
+          {
+            "name": "banner has state dir",
+            "ok": true,
+            "detail": "/build/tmp/hseos-ledger-fixture-v79j63"
+          },
+          {
+            "name": "serve process alive",
+            "ok": true
+          },
+          {
+            "name": "JS SDK object does not serialize the credential",
+            "ok": true
+          }
+        ],
+        "workspaces": 15,
+        "service_form": "systemd-run --user --unit=hseos-a3-5173c26c --wait --collect --pipe --service-type=exec -p Delegate=yes -p DelegateSubgroup=tests (supervisor script + enable-test-cgroup.mjs)",
+        "sdk_workers": {
+          "ts": {
+            "ready": true,
+            "runtime": "node-ts",
+            "node": "v24.15.0"
+          },
+          "py": {
+            "ready": true,
+            "runtime": "python",
+            "version": "3.14.4"
+          }
+        },
+        "state_dir": "/build/tmp/hseos-ledger-fixture-v79j63"
+      },
+      "duracao_ms": 5900
+    },
+    {
+      "id": "s02-ts-typecheck",
+      "descricao": "SDK TypeScript: tsc strict contra index.d.ts instalado + contrato negativo de tipos",
+      "status": "PASS",
+      "evidencia": {
+        "checks": [
+          {
+            "name": "sdk-ts-client.ts type-checks (strict, nodenext)",
+            "ok": true,
+            "detail": ""
+          },
+          {
+            "name": "4 invalid usages are rejected by index.d.ts (no unused @ts-expect-error)",
+            "ok": true,
+            "detail": ""
+          }
+        ],
+        "tsc": {
+          "version": "Version 5.9.3",
+          "path": "/workspace/github/marciohideaki/enterprise-hseos/.worktrees/core-revalidation/node_modules/typescript/lib/tsc.js",
+          "note": "tsc is NOT part of the installed package; taken read-only from the checkout node_modules"
+        },
+        "note_union_view_overload": "query(id, view) with a union-typed view does not compile against the declared overloads (index.d.ts)"
+      },
+      "duracao_ms": 2668
+    },
+    {
+      "id": "s03-three-sdk-pipeline",
+      "descricao": "prepare -> command -> query -> events (cursor/paginacao) via SDK JS, TS e Python na mesma instancia; equivalencia",
+      "status": "PASS",
+      "evidencia": {
+        "checks": [
+          {
+            "name": "[js] prepare is stable for an already prepared contract",
+            "ok": true
+          },
+          {
+            "name": "[js] create leaves the task awaiting execution",
+            "ok": true,
+            "detail": "awaiting-execution"
+          },
+          {
+            "name": "[js] resume approves (correction flow)",
+            "ok": true,
+            "detail": "approved/criteria-satisfied"
+          },
+          {
+            "name": "[js] replaying the same command_id returns the identical receipt",
+            "ok": true
+          },
+          {
+            "name": "[js] cursor strictly increases (0 -> 7)",
+            "ok": true
+          },
+          {
+            "name": "[js] cursor strictly increases (7 -> 14)",
+            "ok": true
+          },
+          {
+            "name": "[js] cursor strictly increases (14 -> 21)",
+            "ok": true
+          },
+          {
+            "name": "[js] cursor strictly increases (21 -> 28)",
+            "ok": true
+          },
+          {
+            "name": "[js] cursor strictly increases (28 -> 35)",
+            "ok": true
+          },
+          {
+            "name": "[js] cursor strictly increases (35 -> 42)",
+            "ok": true
+          },
+          {
+            "name": "[js] cursor strictly increases (42 -> 49)",
+            "ok": true
+          },
+          {
+            "name": "[js] cursor strictly increases (49 -> 56)",
+            "ok": true
+          },
+          {
+            "name": "[js] cursor strictly increases (56 -> 63)",
+            "ok": true
+          },
+          {
+            "name": "[js] cursor strictly increases (63 -> 67)",
+            "ok": true
+          },
+          {
+            "name": "[js] paged events (limit 7) equal the full read",
+            "ok": true,
+            "detail": "67 vs 67"
+          },
+          {
+            "name": "[js] cursor at the end yields no events",
+            "ok": true
+          },
+          {
+            "name": "[ts] prepare is stable for an already prepared contract",
+            "ok": true
+          },
+          {
+            "name": "[ts] create leaves the task awaiting execution",
+            "ok": true,
+            "detail": "awaiting-execution"
+          },
+          {
+            "name": "[ts] resume approves (correction flow)",
+            "ok": true,
+            "detail": "approved/criteria-satisfied"
+          },
+          {
+            "name": "[ts] replaying the same command_id returns the identical receipt",
+            "ok": true
+          },
+          {
+            "name": "[ts] cursor strictly increases (0 -> 7)",
+            "ok": true
+          },
+          {
+            "name": "[ts] cursor strictly increases (7 -> 14)",
+            "ok": true
+          },
+          {
+            "name": "[ts] cursor strictly increases (14 -> 21)",
+            "ok": true
+          },
+          {
+            "name": "[ts] cursor strictly increases (21 -> 28)",
+            "ok": true
+          },
+          {
+            "name": "[ts] cursor strictly increases (28 -> 35)",
+            "ok": true
+          },
+          {
+            "name": "[ts] cursor strictly increases (35 -> 42)",
+            "ok": true
+          },
+          {
+            "name": "[ts] cursor strictly increases (42 -> 49)",
+            "ok": true
+          },
+          {
+            "name": "[ts] cursor strictly increases (49 -> 56)",
+            "ok": true
+          },
+          {
+            "name": "[ts] cursor strictly increases (56 -> 63)",
+            "ok": true
+          },
+          {
+            "name": "[ts] cursor strictly increases (63 -> 67)",
+            "ok": true
+          },
+          {
+            "name": "[ts] paged events (limit 7) equal the full read",
+            "ok": true,
+            "detail": "67 vs 67"
+          },
+          {
+            "name": "[ts] cursor at the end yields no events",
+            "ok": true
+          },
+          {
+            "name": "[py] prepare is stable for an already prepared contract",
+            "ok": true
+          },
+          {
+            "name": "[py] create leaves the task awaiting execution",
+            "ok": true,
+            "detail": "awaiting-execution"
+          },
+          {
+            "name": "[py] resume approves (correction flow)",
+            "ok": true,
+            "detail": "approved/criteria-satisfied"
+          },
+          {
+            "name": "[py] replaying the same command_id returns the identical receipt",
+            "ok": true
+          },
+          {
+            "name": "[py] cursor strictly increases (0 -> 7)",
+            "ok": true
+          },
+          {
+            "name": "[py] cursor strictly increases (7 -> 14)",
+            "ok": true
+          },
+          {
+            "name": "[py] cursor strictly increases (14 -> 21)",
+            "ok": true
+          },
+          {
+            "name": "[py] cursor strictly increases (21 -> 28)",
+            "ok": true
+          },
+          {
+            "name": "[py] cursor strictly increases (28 -> 35)",
+            "ok": true
+          },
+          {
+            "name": "[py] cursor strictly increases (35 -> 42)",
+            "ok": true
+          },
+          {
+            "name": "[py] cursor strictly increases (42 -> 49)",
+            "ok": true
+          },
+          {
+            "name": "[py] cursor strictly increases (49 -> 56)",
+            "ok": true
+          },
+          {
+            "name": "[py] cursor strictly increases (56 -> 63)",
+            "ok": true
+          },
+          {
+            "name": "[py] cursor strictly increases (63 -> 67)",
+            "ok": true
+          },
+          {
+            "name": "[py] paged events (limit 7) equal the full read",
+            "ok": true,
+            "detail": "67 vs 67"
+          },
+          {
+            "name": "[py] cursor at the end yields no events",
+            "ok": true
+          },
+          {
+            "name": "js vs ts: status identical modulo generated ids",
+            "ok": true
+          },
+          {
+            "name": "js vs ts: event type/kind/sequence lists identical",
+            "ok": true,
+            "detail": "67 vs 67"
+          },
+          {
+            "name": "js vs ts: next_cursor identical",
+            "ok": true,
+            "detail": "67 vs 67"
+          },
+          {
+            "name": "js vs ts: contract_sha256 identical",
+            "ok": true
+          },
+          {
+            "name": "js vs ts: correction reviews/diagnoses identical",
+            "ok": true
+          },
+          {
+            "name": "js vs py: status identical modulo generated ids",
+            "ok": true
+          },
+          {
+            "name": "js vs py: event type/kind/sequence lists identical",
+            "ok": true,
+            "detail": "67 vs 67"
+          },
+          {
+            "name": "js vs py: next_cursor identical",
+            "ok": true,
+            "detail": "67 vs 67"
+          },
+          {
+            "name": "js vs py: contract_sha256 identical",
+            "ok": true
+          },
+          {
+            "name": "js vs py: correction reviews/diagnoses identical",
+            "ok": true
+          },
+          {
+            "name": "same resource, view=status: js == ts == py",
+            "ok": true
+          },
+          {
+            "name": "same resource, view=evidence: js == ts == py",
+            "ok": true
+          },
+          {
+            "name": "same resource, view=session: js == ts == py",
+            "ok": true
+          },
+          {
+            "name": "same resource, events(after=3,limit=5): js == ts == py",
+            "ok": true
+          },
+          {
+            "name": "CLI `control query` equals SDK status",
+            "ok": true
+          },
+          {
+            "name": "CLI `control events --after 3` equals SDK page",
+            "ok": true
+          },
+          {
+            "name": "CLI `control prepare` equals SDK prepare",
+            "ok": true
+          }
+        ],
+        "resources": {
+          "js": {
+            "id": "bcc95af9-8670-49f7-980d-14ab45d13ae6",
+            "task_run_id": "81174a11-e379-4386-a0ca-113af0542967",
+            "events": 67,
+            "next_cursor": 67,
+            "status": "completed",
+            "task_result": "approved"
+          },
+          "ts": {
+            "id": "0489e13a-04b9-4206-958a-441f1041ab10",
+            "task_run_id": "b532471f-9b6e-4188-8feb-5b334db855bd",
+            "events": 67,
+            "next_cursor": 67,
+            "status": "completed",
+            "task_result": "approved"
+          },
+          "py": {
+            "id": "33a46c1b-6821-4c83-9a41-3bc1f086c43e",
+            "task_run_id": "712a2c44-cdde-477a-92e5-f7b61b806672",
+            "events": 67,
+            "next_cursor": 67,
+            "status": "completed",
+            "task_result": "approved"
+          }
+        },
+        "event_kinds_js": [
+          "created",
+          "AgentSessionEventRecorded",
+          "execution_started",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "ExecutionAuthorized",
+          "ExecutionStarted",
+          "ExecutionSucceeded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "snapshot",
+          "review",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "ExecutionAuthorized",
+          "ExecutionStarted",
+          "diagnosis",
+          "ExecutionSucceeded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "ExecutionAuthorized",
+          "ExecutionStarted",
+          "ExecutionSucceeded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "ExecutionAuthorized",
+          "ExecutionStarted",
+          "ExecutionSucceeded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "ExecutionAuthorized",
+          "ExecutionStarted",
+          "ExecutionSucceeded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "AgentSessionEventRecorded",
+          "snapshot",
+          "review",
+          "AgentSessionEventRecorded",
+          "snapshot",
+          "result"
+        ]
+      },
+      "duracao_ms": 8551
+    },
+    {
+      "id": "s04-example-projects",
+      "descricao": "Projetos de exemplo (typescript-report, python-inventory): entrega correta, incorreta rejeitada, correcao aceita",
+      "status": "PASS",
+      "evidencia": {
+        "checks": [
+          {
+            "name": "[typescript-report] example response script has the expected shape",
+            "ok": true,
+            "detail": "engineering.search,fixture.submit,engineering.diagnose,engineering.patch,engineering.command,engineering.diff"
+          },
+          {
+            "name": "[typescript-report] correct delivery is approved",
+            "ok": true,
+            "detail": "approved/criteria-satisfied"
+          },
+          {
+            "name": "[typescript-report] correct delivery needed no correction",
+            "ok": true
+          },
+          {
+            "name": "[typescript-report] incorrect delivery is NOT approved",
+            "ok": true,
+            "detail": "failed/criteria-not-satisfied"
+          },
+          {
+            "name": "[typescript-report] incorrect delivery is rejected by an independent review (approved:false)",
+            "ok": true,
+            "detail": [
+              {
+                "kind": "review",
+                "step_id": "step:97b2a559f8207328fff7caa6107e763f408cfe6e",
+                "approved": false,
+                "reason": "criteria-not-satisfied",
+                "files_sha256": "e6b11d0ad8337ef13b5a49ba538cb1fee44a1aa3fba6e1560e3543be0983902c",
+                "correction_requested": true
+              },
+              {
+                "kind": "review",
+                "step_id": "step:79aa419ca59d5846407834e7ac6e0e95282b615a",
+                "approved": false,
+                "reason": "criteria-not-satisfied",
+                "files_sha256": "e6b11d0ad8337ef13b5a49ba538cb1fee44a1aa3fba6e1560e3543be0983902c",
+                "correction_requested": false
+              }
+            ]
+          },
+          {
+            "name": "[typescript-report] rejected task has no approved review artifact",
+            "ok": true,
+            "detail": "review view must be refused for an unapproved task"
+          },
+          {
+            "name": "[typescript-report] correction after rejection is approved",
+            "ok": true,
+            "detail": "approved/criteria-satisfied"
+          },
+          {
+            "name": "[typescript-report] rejection precedes approval (reviews [false,true])",
+            "ok": true
+          },
+          {
+            "name": "[typescript-report] exactly one diagnosis recorded between them",
+            "ok": true
+          },
+          {
+            "name": "[typescript-report] approved task exposes a review with a hash",
+            "ok": true,
+            "detail": [
+              "resource_id",
+              "schema_version",
+              "task_run_id",
+              "current_sequence",
+              "contract_sha256",
+              "files_sha256",
+              "baseline_sha",
+              "current_workspace_sha256",
+              "baseline_valid",
+              "patch",
+              "review_sha256"
+            ]
+          },
+          {
+            "name": "[typescript-report] patching without a diagnosis after a rejection fails",
+            "ok": true,
+            "detail": "failed"
+          },
+          {
+            "name": "[typescript-report] corrected task is readable identically from the Python SDK",
+            "ok": true
+          },
+          {
+            "name": "[python-inventory] example response script has the expected shape",
+            "ok": true,
+            "detail": "engineering.search,fixture.submit,engineering.diagnose,engineering.patch,engineering.command,engineering.diff"
+          },
+          {
+            "name": "[python-inventory] correct delivery is approved",
+            "ok": true,
+            "detail": "approved/criteria-satisfied"
+          },
+          {
+            "name": "[python-inventory] correct delivery needed no correction",
+            "ok": true
+          },
+          {
+            "name": "[python-inventory] incorrect delivery is NOT approved",
+            "ok": true,
+            "detail": "failed/criteria-not-satisfied"
+          },
+          {
+            "name": "[python-inventory] incorrect delivery is rejected by an independent review (approved:false)",
+            "ok": true,
+            "detail": [
+              {
+                "kind": "review",
+                "step_id": "step:fd85daaa115c1eec3abd7a98eb9d505025200611",
+                "approved": false,
+                "reason": "criteria-not-satisfied",
+                "files_sha256": "a71b0082c47ff0b581d254ccb529c476be5fa5793c41d2949440bbfae8e9e59d",
+                "correction_requested": true
+              },
+              {
+                "kind": "review",
+                "step_id": "step:00f425cce8367d1bcd6f57720da4cea1fe3294f2",
+                "approved": false,
+                "reason": "criteria-not-satisfied",
+                "files_sha256": "a71b0082c47ff0b581d254ccb529c476be5fa5793c41d2949440bbfae8e9e59d",
+                "correction_requested": false
+              }
+            ]
+          },
+          {
+            "name": "[python-inventory] rejected task has no approved review artifact",
+            "ok": true,
+            "detail": "review view must be refused for an unapproved task"
+          },
+          {
+            "name": "[python-inventory] correction after rejection is approved",
+            "ok": true,
+            "detail": "approved/criteria-satisfied"
+          },
+          {
+            "name": "[python-inventory] rejection precedes approval (reviews [false,true])",
+            "ok": true
+          },
+          {
+            "name": "[python-inventory] exactly one diagnosis recorded between them",
+            "ok": true
+          },
+          {
+            "name": "[python-inventory] approved task exposes a review with a hash",
+            "ok": true,
+            "detail": [
+              "resource_id",
+              "schema_version",
+              "task_run_id",
+              "current_sequence",
+              "contract_sha256",
+              "files_sha256",
+              "baseline_sha",
+              "current_workspace_sha256",
+              "baseline_valid",
+              "patch",
+              "review_sha256"
+            ]
+          },
+          {
+            "name": "[python-inventory] patching without a diagnosis after a rejection fails",
+            "ok": true,
+            "detail": "failed"
+          },
+          {
+            "name": "[python-inventory] corrected task is readable identically from the Python SDK",
+            "ok": true
+          }
+        ],
+        "examples": {
+          "typescript-report": {
+            "correct": {
+              "id": "9825e351-7be4-4ca2-99b3-e817cd8b7a2a",
+              "result": "approved"
+            },
+            "wrong": {
+              "id": "e8ae9100-a029-436c-98ee-865175808396",
+              "result": "failed",
+              "reason": "criteria-not-satisfied",
+              "verification": "failed"
+            },
+            "corrected": {
+              "id": "1e4bddad-7ca9-4c4f-b64a-1511db09409a",
+              "result": "approved",
+              "reviews": [false, true]
+            },
+            "bypass": {
+              "id": "cc243fa2-11f7-4451-9c97-40f063333e71",
+              "result": "failed"
+            }
+          },
+          "python-inventory": {
+            "correct": {
+              "id": "25018427-4b21-427d-a01c-e995678a2d14",
+              "result": "approved"
+            },
+            "wrong": {
+              "id": "08c9fb90-efb7-448a-aa5f-f8a996ab6db8",
+              "result": "failed",
+              "reason": "criteria-not-satisfied",
+              "verification": "failed"
+            },
+            "corrected": {
+              "id": "8cdfad6e-e024-4a39-a586-b0c75a7e88eb",
+              "result": "approved",
+              "reviews": [false, true]
+            },
+            "bypass": {
+              "id": "df9c9042-a2d0-48a8-a2d3-b66be850534d",
+              "result": "failed"
+            }
+          }
+        }
+      },
+      "duracao_ms": 19205
+    },
+    {
+      "id": "s05-jobs",
+      "descricao": "Jobs: criar, consultar e eventos (SDK JS, TS, Python) ate conclusao",
+      "status": "PASS",
+      "evidencia": {
+        "checks": [
+          {
+            "name": "job created queued or already progressing",
+            "ok": true,
+            "detail": "queued"
+          },
+          {
+            "name": "create replay with the same command_id returns the same receipt",
+            "ok": true
+          },
+          {
+            "name": "job reaches succeeded through the serve dispatcher",
+            "ok": true,
+            "detail": "succeeded"
+          },
+          {
+            "name": "jobQuery: js == ts == py",
+            "ok": true
+          },
+          {
+            "name": "job ledger has creation, claim, materialization and execution events",
+            "ok": true,
+            "detail": "JobCommandRecorded,JobLifecycleRecorded,JobMaterializationRecorded,JobMaterializationRecorded,JobExecutionRecorded,JobExecutionRecorded"
+          },
+          {
+            "name": "jobEvents: js == ts == py (limit 2, after 1)",
+            "ok": true
+          },
+          {
+            "name": "python pagination (limit 2) reproduces the full job ledger",
+            "ok": true,
+            "detail": "6 vs 6"
+          },
+          {
+            "name": "CLI `control job-query` equals SDK",
+            "ok": true
+          }
+        ],
+        "job": {
+          "id": "145367e6-0ca8-458d-83fe-7ca1c28da314",
+          "status": "succeeded",
+          "events": 6,
+          "event_types": ["JobCommandRecorded", "JobLifecycleRecorded", "JobMaterializationRecorded", "JobExecutionRecorded"]
+        }
+      },
+      "duracao_ms": 2727
+    },
+    {
+      "id": "s06-job-cancel-drain",
+      "descricao": "Cancelar job em execucao e verificar drenagem dos descendentes (/proc antes/depois)",
+      "status": "PASS",
+      "evidencia": {
+        "checks": [
+          {
+            "name": "no marker process before the job exists",
+            "ok": true
+          },
+          {
+            "name": "before cancel: status running and >=2 descendant processes carry the marker (script + spawned child)",
+            "ok": true,
+            "detail": [3701970, 3701972, 3701973, 3701980]
+          },
+          {
+            "name": "job settles as cancelled",
+            "ok": true,
+            "detail": "cancelling -> cancelled"
+          },
+          {
+            "name": "after cancel: zero processes carry the marker (descendants drained, no orphans)",
+            "ok": true,
+            "detail": []
+          },
+          {
+            "name": "2s later: still zero (nothing respawned)",
+            "ok": true
+          },
+          {
+            "name": "cancel replay (same command_id) returns the same receipt",
+            "ok": true
+          },
+          {
+            "name": "ledger shows intent then cancelling then a settled/cancelled phase",
+            "ok": true,
+            "detail": ["intent", "cancelling", "settled"]
+          },
+          {
+            "name": "terminal job query is stable across SDKs",
+            "ok": true
+          }
+        ],
+        "before": [
+          {
+            "pid": 3701970,
+            "cmd": "/usr/bin/bwrap --unshare-all --die-with-parent --new-session --seccomp 3 --ro-bind /usr /usr --ro-bind /bin /bin --ro-bi"
+          },
+          {
+            "pid": 3701972,
+            "cmd": "/usr/bin/bwrap --unshare-all --die-with-parent --new-session --seccomp 3 --ro-bind /usr /usr --ro-bind /bin /bin --ro-bi"
+          },
+          {
+            "pid": 3701973,
+            "cmd": "/hseos-runtime/node --experimental-strip-types ./scripts/long.js jmark-cancel-86669b36 "
+          },
+          {
+            "pid": 3701980,
+            "cmd": "/hseos-runtime/node -e setInterval(() => {}, 1000) jmark-cancel-86669b36 "
+          }
+        ],
+        "cancel_call_ms": 22,
+        "execution_phases": ["intent", "cancelling", "settled"],
+        "job": {
+          "id": "9f48bb7e-6449-46dd-b1cd-f40989348a31",
+          "final_status": "cancelled"
+        }
+      },
+      "duracao_ms": 4081
+    },
+    {
+      "id": "s07-terminals",
+      "descricao": "Terminais: abrir (pty e job), attach, entrada, resize, eventos com cursor, encerrar com drenagem",
+      "status": "PASS",
+      "evidencia": {
+        "checks": [
+          {
+            "name": "open (pty) accepted",
+            "ok": true,
+            "detail": ["resource_id", "action", "effect"]
+          },
+          {
+            "name": "descendant marker process is alive while the terminal runs",
+            "ok": true,
+            "detail": [3702402, 3702414, 3702418, 3702421, 3702428]
+          },
+          {
+            "name": "terminalQuery: running, mode pty, descendants not yet terminated",
+            "ok": true,
+            "detail": {
+              "resource_id": "c2d42d7e-4c94-4040-b8a0-10007c9cde58",
+              "task_id": "43189708-7d98-4b75-a292-e6fb5d29d0c3",
+              "mode": "pty",
+              "current_sequence": 5,
+              "status": "running",
+              "descendants_terminated": false,
+              "uncertain_commands": [],
+              "outcome_uncertain": false,
+              "report_sha256": "e4016a1e508454e435a5b9ed503dad915bd369a0ae184393476e23dcd48655ce"
+            }
+          },
+          {
+            "name": "terminalQuery: js == ts == py",
+            "ok": true
+          },
+          {
+            "name": "input reports 6 bytes written",
+            "ok": true,
+            "detail": {
+              "kind": "ack",
+              "id": "18b30bc1-c4c1-4733-b4d5-d196d9e7b0c7",
+              "bytes": 6
+            }
+          },
+          {
+            "name": "resize accepted",
+            "ok": true
+          },
+          {
+            "name": "child observed the new window size (SIGWINCH, 40x120)",
+            "ok": true
+          },
+          {
+            "name": "pause -> status paused",
+            "ok": true
+          },
+          {
+            "name": "continue -> status running",
+            "ok": true
+          },
+          {
+            "name": "terminal cursor advances (0 -> 3)",
+            "ok": true
+          },
+          {
+            "name": "terminal cursor advances (3 -> 6)",
+            "ok": true
+          },
+          {
+            "name": "terminal cursor advances (6 -> 9)",
+            "ok": true
+          },
+          {
+            "name": "terminal cursor advances (9 -> 12)",
+            "ok": true
+          },
+          {
+            "name": "terminal cursor advances (12 -> 15)",
+            "ok": true
+          },
+          {
+            "name": "terminal cursor advances (15 -> 16)",
+            "ok": true
+          },
+          {
+            "name": "terminalEvents paged via TS SDK equals the full read",
+            "ok": true
+          },
+          {
+            "name": "terminalEvents: js == py (after 2, limit 4)",
+            "ok": true
+          },
+          {
+            "name": "past the end: no events and the cursor is stable",
+            "ok": true
+          },
+          {
+            "name": "attach streamed the terminal output and the typed input echoed back",
+            "ok": true
+          },
+          {
+            "name": "Ctrl-] detaches without killing the process",
+            "ok": true,
+            "detail": {
+              "next_cursor": 20
+            }
+          },
+          {
+            "name": "stale expected_sequence on a terminal command -> 409 CONTROL_SEQUENCE_CONFLICT",
+            "ok": true,
+            "detail": {
+              "status": 409,
+              "body": {
+                "error": "CONTROL_SEQUENCE_CONFLICT"
+              }
+            }
+          },
+          {
+            "name": "terminate: descendants_terminated proven and no uncertainty",
+            "ok": true,
+            "detail": {
+              "resource_id": "c2d42d7e-4c94-4040-b8a0-10007c9cde58",
+              "task_id": "43189708-7d98-4b75-a292-e6fb5d29d0c3",
+              "mode": "pty",
+              "current_sequence": 25,
+              "status": "terminated",
+              "descendants_terminated": true,
+              "uncertain_commands": [],
+              "outcome_uncertain": false,
+              "report_sha256": "1b64c20db3fc687b022597a81824a61c56629dc5f59f0f825699f3091c80a5ce"
+            }
+          },
+          {
+            "name": "terminate: zero marker processes in /proc",
+            "ok": true,
+            "detail": []
+          },
+          {
+            "name": "job-mode terminal: EOF ends the command and drains descendants",
+            "ok": true,
+            "detail": {
+              "resource_id": "a48abdd0-8832-4184-923b-faf26c61dc81",
+              "task_id": "00c853d4-2ed7-4381-b6d6-847ac024836d",
+              "mode": "job",
+              "current_sequence": 12,
+              "status": "succeeded",
+              "descendants_terminated": true,
+              "uncertain_commands": [],
+              "outcome_uncertain": false,
+              "report_sha256": "e0155f3aa4509165ea8e4b964f6734321a875563376885c91487aa4b7925f710"
+            }
+          },
+          {
+            "name": "job-mode terminal: zero marker processes",
+            "ok": true
+          }
+        ],
+        "pty": {
+          "id": "c2d42d7e-4c94-4040-b8a0-10007c9cde58",
+          "final_status": "terminated",
+          "events": 16,
+          "sample_output": "READY\r\nhello\r\nECHO:HELLO\r\nSIZE 40x120\r\nvia-attach\r\nECHO:VIA-ATTACH\r\n"
+        },
+        "job_mode": {
+          "id": "a48abdd0-8832-4184-923b-faf26c61dc81",
+          "status": "succeeded"
+        }
+      },
+      "duracao_ms": 3249
+    },
+    {
+      "id": "s08-provider-readonly",
+      "descricao": "GET /v1/provider-bindings e consulta de campanha (somente leitura, sem despacho a provedor)",
+      "status": "PASS",
+      "evidencia": {
+        "checks": [
+          {
+            "name": "unknown binding is refused without side effects (4xx with a CONTROL_* code)",
+            "ok": true,
+            "detail": {
+              "status": 409,
+              "body": {
+                "error": "CONTROL_PROVIDER_BINDING_UNKNOWN"
+              }
+            }
+          },
+          {
+            "name": "binding_id is mandatory -> 400 CONTROL_QUERY_INVALID",
+            "ok": true,
+            "detail": {
+              "status": 400,
+              "body": {
+                "error": "CONTROL_QUERY_INVALID"
+              }
+            }
+          },
+          {
+            "name": "unexpected parameter -> 400 CONTROL_QUERY_INVALID",
+            "ok": true,
+            "detail": {
+              "status": 400,
+              "body": {
+                "error": "CONTROL_QUERY_INVALID"
+              }
+            }
+          },
+          {
+            "name": "[js] SDK bindingInspect surfaces the same refusal code",
+            "ok": true,
+            "detail": "CONTROL_PROVIDER_BINDING_UNKNOWN"
+          },
+          {
+            "name": "[ts] SDK bindingInspect surfaces the same refusal code",
+            "ok": true,
+            "detail": "CONTROL_PROVIDER_BINDING_UNKNOWN"
+          },
+          {
+            "name": "[py] SDK bindingInspect surfaces the same refusal code",
+            "ok": true,
+            "detail": "CONTROL_PROVIDER_BINDING_UNKNOWN"
+          },
+          {
+            "name": "SDK validates the binding identity locally",
+            "ok": true,
+            "detail": "Invalid binding identity"
+          },
+          {
+            "name": "unknown campaign is refused with a JSON error and no side effect",
+            "ok": true,
+            "detail": {
+              "status": 409,
+              "body": {
+                "error": "CONTROL_CAMPAIGN_NOT_FOUND"
+              }
+            }
+          },
+          {
+            "name": "no provider campaign was created by these reads",
+            "ok": true,
+            "detail": "reads only; the config declares bindings:{} and no provider_control"
+          }
+        ],
+        "unknown_binding": {
+          "status": 409,
+          "body": {
+            "error": "CONTROL_PROVIDER_BINDING_UNKNOWN"
+          }
+        },
+        "unknown_campaign": {
+          "status": 409,
+          "body": {
+            "error": "CONTROL_CAMPAIGN_NOT_FOUND"
+          }
+        }
+      },
+      "duracao_ms": 7
+    },
+    {
+      "id": "s09-negatives",
+      "descricao": "Negativos: credencial errada, sequencia obsoleta, ids inexistentes, origem, rota, limites",
+      "status": "FAIL",
+      "evidencia": {
+        "checks": [
+          {
+            "name": "no Authorization header -> 401 CONTROL_UNAUTHENTICATED",
+            "ok": true,
+            "detail": {
+              "status": 401,
+              "body": {
+                "error": "CONTROL_UNAUTHENTICATED"
+              }
+            }
+          },
+          {
+            "name": "wrong credential -> 401 CONTROL_UNAUTHENTICATED",
+            "ok": true,
+            "detail": {
+              "status": 401,
+              "body": {
+                "error": "CONTROL_UNAUTHENTICATED"
+              }
+            }
+          },
+          {
+            "name": "wrong credential on a mutating route -> 401, nothing recorded",
+            "ok": true,
+            "detail": {
+              "status": 401,
+              "body": {
+                "error": "CONTROL_UNAUTHENTICATED"
+              }
+            }
+          },
+          {
+            "name": "wrong credential on /v1/jobs/<id> -> 401 (auth precedes routing)",
+            "ok": true,
+            "detail": {
+              "status": 401,
+              "body": {
+                "error": "CONTROL_UNAUTHENTICATED"
+              }
+            }
+          },
+          {
+            "name": "wrong credential on /v1/terminals/<id> -> 401 (auth precedes routing)",
+            "ok": true,
+            "detail": {
+              "status": 401,
+              "body": {
+                "error": "CONTROL_UNAUTHENTICATED"
+              }
+            }
+          },
+          {
+            "name": "[js] SDK with a wrong credential receives CONTROL_UNAUTHENTICATED",
+            "ok": true,
+            "detail": "CONTROL_UNAUTHENTICATED"
+          },
+          {
+            "name": "[ts] SDK with a wrong credential receives CONTROL_UNAUTHENTICATED",
+            "ok": true,
+            "detail": "CONTROL_UNAUTHENTICATED"
+          },
+          {
+            "name": "[py] SDK with a wrong credential receives CONTROL_UNAUTHENTICATED",
+            "ok": true,
+            "detail": "CONTROL_UNAUTHENTICATED"
+          },
+          {
+            "name": "browser Origin header -> 403 CONTROL_ORIGIN_DENIED",
+            "ok": true,
+            "detail": {
+              "status": 403,
+              "body": {
+                "error": "CONTROL_ORIGIN_DENIED"
+              }
+            }
+          },
+          {
+            "name": "non-loopback Host header -> 403 CONTROL_ORIGIN_DENIED",
+            "ok": true,
+            "detail": {
+              "status": 403,
+              "body": {
+                "error": "CONTROL_ORIGIN_DENIED"
+              }
+            }
+          },
+          {
+            "name": "stale/foreign expected_sequence on a task -> 409 CONTROL_SEQUENCE_CONFLICT",
+            "ok": true,
+            "detail": {
+              "status": 409,
+              "body": {
+                "error": "CONTROL_SEQUENCE_CONFLICT"
+              }
+            }
+          },
+          {
+            "name": "obsolete expected_sequence 0 on an existing task -> 409",
+            "ok": true,
+            "detail": {
+              "status": 409,
+              "body": {
+                "error": "CONTROL_SEQUENCE_CONFLICT"
+              }
+            }
+          },
+          {
+            "name": "[js] SDK surfaces CONTROL_SEQUENCE_CONFLICT for the obsolete sequence",
+            "ok": true,
+            "detail": "CONTROL_SEQUENCE_CONFLICT"
+          },
+          {
+            "name": "[ts] SDK surfaces CONTROL_SEQUENCE_CONFLICT for the obsolete sequence",
+            "ok": true,
+            "detail": "CONTROL_SEQUENCE_CONFLICT"
+          },
+          {
+            "name": "[py] SDK surfaces CONTROL_SEQUENCE_CONFLICT for the obsolete sequence",
+            "ok": true,
+            "detail": "CONTROL_SEQUENCE_CONFLICT"
+          },
+          {
+            "name": "same command_id with different input -> 409 CONTROL_IDEMPOTENCY_CONFLICT",
+            "ok": true,
+            "detail": {
+              "status": 409,
+              "body": {
+                "error": "CONTROL_IDEMPOTENCY_CONFLICT"
+              }
+            }
+          },
+          {
+            "name": "workspace outside the allowlist -> 409 CONTROL_WORKSPACE_DENIED",
+            "ok": true,
+            "detail": {
+              "status": 409,
+              "body": {
+                "error": "CONTROL_WORKSPACE_DENIED"
+              }
+            }
+          },
+          {
+            "name": "unknown envelope field is rejected (4xx, CONTROL_REQUEST_REJECTED)",
+            "ok": true,
+            "detail": {
+              "status": 409,
+              "body": {
+                "error": "CONTROL_REQUEST_REJECTED"
+              }
+            }
+          },
+          {
+            "name": "job whose contract embeds inline code is refused (409; JOB_INLINE_CODE_DENIED or contract rejection)",
+            "ok": true,
+            "detail": {
+              "status": 409,
+              "body": {
+                "error": "CONTROL_REQUEST_REJECTED"
+              }
+            }
+          },
+          {
+            "name": "the refused inline-code job left no job behind (404)",
+            "ok": true
+          },
+          {
+            "name": "unknown task id -> 404 (\"recurso desconhecido 404\")",
+            "ok": true,
+            "detail": "404 CONTROL_TASK_NOT_FOUND"
+          },
+          {
+            "name": "unknown task events id -> 404 (\"recurso desconhecido 404\")",
+            "ok": true,
+            "detail": "404 CONTROL_TASK_NOT_FOUND"
+          },
+          {
+            "name": "unknown job id -> 404 (\"recurso desconhecido 404\")",
+            "ok": true,
+            "detail": "404 JOB_NOT_FOUND"
+          },
+          {
+            "name": "unknown job events id -> 404 (\"recurso desconhecido 404\")",
+            "ok": true,
+            "detail": "404 JOB_NOT_FOUND"
+          },
+          {
+            "name": "unknown terminal id -> 404 (\"recurso desconhecido 404\")",
+            "ok": false,
+            "detail": "409 CONTROL_TERMINAL_NOT_FOUND"
+          },
+          {
+            "name": "unknown terminal events id -> 404 (\"recurso desconhecido 404\")",
+            "ok": false,
+            "detail": "409 CONTROL_TERMINAL_NOT_FOUND"
+          },
+          {
+            "name": "unknown campaign id -> 404 (\"recurso desconhecido 404\")",
+            "ok": false,
+            "detail": "409 CONTROL_CAMPAIGN_NOT_FOUND"
+          },
+          {
+            "name": "[js] SDK query of an unknown task -> CONTROL_TASK_NOT_FOUND",
+            "ok": true,
+            "detail": "CONTROL_TASK_NOT_FOUND"
+          },
+          {
+            "name": "[ts] SDK query of an unknown task -> CONTROL_TASK_NOT_FOUND",
+            "ok": true,
+            "detail": "CONTROL_TASK_NOT_FOUND"
+          },
+          {
+            "name": "[py] SDK query of an unknown task -> CONTROL_TASK_NOT_FOUND",
+            "ok": true,
+            "detail": "CONTROL_TASK_NOT_FOUND"
+          },
+          {
+            "name": "unknown route -> 404 CONTROL_ROUTE_UNKNOWN",
+            "ok": true,
+            "detail": {
+              "status": 404,
+              "body": {
+                "error": "CONTROL_ROUTE_UNKNOWN"
+              }
+            }
+          },
+          {
+            "name": "negative cursor on task events is refused (4xx, no events)",
+            "ok": true,
+            "detail": {
+              "status": 409,
+              "body": {
+                "error": "CONTROL_REQUEST_REJECTED"
+              }
+            }
+          },
+          {
+            "name": "unexpected query parameter -> 400 CONTROL_QUERY_INVALID",
+            "ok": true,
+            "detail": {
+              "status": 400,
+              "body": {
+                "error": "CONTROL_QUERY_INVALID"
+              }
+            }
+          },
+          {
+            "name": "non-JSON content type -> 415 CONTROL_JSON_REQUIRED",
+            "ok": true,
+            "detail": {
+              "status": 415,
+              "body": {
+                "error": "CONTROL_JSON_REQUIRED"
+              }
+            }
+          },
+          {
+            "name": "body above 2 MiB is refused (413 CONTROL_REQUEST_LIMIT or connection reset)",
+            "ok": true,
+            "detail": {
+              "status": 413,
+              "error": {
+                "error": "CONTROL_REQUEST_LIMIT"
+              }
+            }
+          },
+          {
+            "name": "all SDKs validate limit>=1 locally",
+            "ok": true,
+            "detail": ["Invalid event cursor", "ValueError: Invalid event cursor", "Invalid event cursor"]
+          }
+        ],
+        "inline_code_refusal": {
+          "error": "CONTROL_REQUEST_REJECTED"
+        },
+        "unknown_id_statuses": {
+          "task": "404 CONTROL_TASK_NOT_FOUND",
+          "task_events": "404 CONTROL_TASK_NOT_FOUND",
+          "job": "404 JOB_NOT_FOUND",
+          "job_events": "404 JOB_NOT_FOUND",
+          "terminal": "409 CONTROL_TERMINAL_NOT_FOUND",
+          "terminal_events": "409 CONTROL_TERMINAL_NOT_FOUND",
+          "campaign": "409 CONTROL_CAMPAIGN_NOT_FOUND"
+        },
+        "negative_cursor_codes": {
+          "tasks": "409 CONTROL_REQUEST_REJECTED",
+          "terminals": "409 CONTROL_QUERY_INVALID",
+          "jobs": "409 CONTROL_QUERY_INVALID"
+        },
+        "sdk_wrong_credential_codes": {
+          "js": "CONTROL_UNAUTHENTICATED",
+          "ts": "CONTROL_UNAUTHENTICATED",
+          "py": "CONTROL_UNAUTHENTICATED"
+        }
+      },
+      "duracao_ms": 3831
+    },
+    {
+      "id": "s10-crash-restart",
+      "descricao": "SIGKILL do serve no meio de um job e de uma tarefa; reinicio com o mesmo --state; sem repetir efeito",
+      "status": "PASS",
+      "evidencia": {
+        "checks": [
+          {
+            "name": "before the crash: job is running with live descendants",
+            "ok": true,
+            "detail": "running"
+          },
+          {
+            "name": "before the crash: exactly one dispatch intent recorded",
+            "ok": true,
+            "detail": 1
+          },
+          {
+            "name": "the in-flight resume request failed when the process died (client did not get a result)",
+            "ok": true,
+            "detail": "rejected:fetch failed"
+          },
+          {
+            "name": "after SIGKILL (before restart) the broker drained all descendants (no orphans)",
+            "ok": true,
+            "detail": {
+              "job": [],
+              "task": []
+            }
+          },
+          {
+            "name": "restart reports the same state directory",
+            "ok": true,
+            "detail": "/build/tmp/hseos-ledger-fixture-v79j63"
+          },
+          {
+            "name": "job history survived the restart (ledger rows preserved)",
+            "ok": true
+          },
+          {
+            "name": "no second dispatch intent was recorded after restart (no repeated effect)",
+            "ok": true,
+            "detail": 1
+          },
+          {
+            "name": "no process carries the job marker 5 s after restart (the command was not re-executed)",
+            "ok": true,
+            "detail": []
+          },
+          {
+            "name": "job state after restart is not a fabricated success",
+            "ok": true,
+            "detail": "running"
+          },
+          {
+            "name": "retry of the same resume command_id returns CONTROL_OUTCOME_UNCERTAIN (intent without receipt)",
+            "ok": true,
+            "detail": {
+              "ok": false,
+              "code": "CONTROL_OUTCOME_UNCERTAIN"
+            }
+          },
+          {
+            "name": "the retry did not start the command again (no marker process)",
+            "ok": true
+          },
+          {
+            "name": "task is not reported as approved",
+            "ok": true,
+            "detail": "not_executed"
+          },
+          {
+            "name": "replaying the original job create command after restart is a no-op replay (no error, same job)",
+            "ok": true,
+            "detail": "queued"
+          },
+          {
+            "name": "after explicit reconcile the job is in a recorded, non-success state and nothing runs",
+            "ok": true,
+            "detail": {
+              "reconcileJob": {
+                "ok": true,
+                "status": "uncertain"
+              },
+              "status": "uncertain"
+            }
+          },
+          {
+            "name": "task reconcile is accepted (returns state/questions rather than re-running)",
+            "ok": true,
+            "detail": {
+              "ok": true,
+              "task_result": "not_executed",
+              "questions": 1
+            }
+          },
+          {
+            "name": "still no marker process after reconcile",
+            "ok": true
+          }
+        ],
+        "markers_before_kill": {
+          "job": 4,
+          "task": 4
+        },
+        "job_after_restart": {
+          "status": "running",
+          "sequence": 5
+        },
+        "job_state_after_wait": "running",
+        "task_retry_after_restart": {
+          "ok": false,
+          "code": "CONTROL_OUTCOME_UNCERTAIN"
+        },
+        "task_state_after_restart": {
+          "status": "active",
+          "task_result": "not_executed",
+          "reason": "awaiting-execution",
+          "sequence": 2,
+          "questions": []
+        },
+        "task_events": {
+          "before_crash": 11,
+          "after_restart": 11
+        },
+        "job_create_replay_after_restart": "queued",
+        "job_reconcile": {
+          "ok": true,
+          "status": "uncertain"
+        },
+        "job_after_reconcile": "uncertain",
+        "task_reconcile": {
+          "ok": true,
+          "task_result": "not_executed",
+          "questions": 1
+        },
+        "generation": 2
+      },
+      "duracao_ms": 12097
+    },
+    {
+      "id": "s11-hygiene",
+      "descricao": "Higiene: nenhuma credencial em evidencias, nenhum processo residual",
+      "status": "PASS",
+      "evidencia": {
+        "checks": [
+          {
+            "name": "no leftover descendant process for any journey marker",
+            "ok": true,
+            "detail": []
+          },
+          {
+            "name": "the credential does not appear in any evidence file",
+            "ok": true,
+            "detail": []
+          }
+        ],
+        "load_waits": []
+      },
+      "duracao_ms": 250
+    }
+  ],
+  "resumo": {
+    "PASS": 11,
+    "FAIL": 1
+  },
+  "limitacoes": [
+    "Provider bindings: a POSITIVE binding inspection was not exercised. A binding needs provider_control (a pre-existing ledger identity) and a real adapter (codex/claude/antigravity/api) whose inspect() may reach a real provider; real dispatch is forbidden in this journey. Only the read-only refusal paths were verified.",
+    "JOB_INLINE_CODE_DENIED itself was not reached: a managed-project contract carrying initial_files is refused earlier by contract validation (CONTROL_REQUEST_REJECTED); the observable behaviour (refusal, no job created) was verified.",
+    "Executor isolation needs a delegated cgroup v2 (systemd-run --user -p Delegate=yes -p DelegateSubgroup=tests). Without it, `create` returns task_result=blocked reason=ENGINEERING_ISOLATION_UNAVAILABLE (observed in a smoke run) and `hseos sandbox engineering-check --json` reports workspace_write_confirmed=false for the legacy ai-jail probes (separate legacy backend; not used by the control executor).",
+    "Responses are deterministic scripted tool calls (fixture), not model output: this proves the control plane, verifier, ledger and SDKs, not model quality or provider integration.",
+    "TypeScript is type-checked with a tsc taken read-only from the checkout node_modules (typescript is not in the installed package); execution uses Node native type stripping (no emit).",
+    "Crash/restart is exercised with SIGKILL of the serve process inside the SAME delegated cgroup service (a supervisor restarts it); host reboot and cgroup-owner loss are not covered.",
+    "Terminal attach was driven through the packaged attachTerminal() with in-memory streams (non-TTY); a real TTY raw-mode session was not exercised.",
+    "Ledger storage is the documented temporary candidate fixture (no production durability, no migration)."
+  ],
+  "residual_serve_processes": 0
+}
