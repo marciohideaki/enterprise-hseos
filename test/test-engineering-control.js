@@ -251,7 +251,12 @@ test('HTTP rejects malformed, oversized and unsupported requests without exposin
   await f.client.execute(f.create);
   assert.equal((await fetch(f.server.url + `/v1/tasks/${f.id}?unexpected=1`, { headers })).status, 400);
   assert.equal((await fetch(f.server.url + `/v1/tasks/${f.id}/events?unexpected=1`, { headers })).status, 400);
-  assert.equal((await fetch(f.server.url + `/v1/tasks/${f.id}/events?after=-1`, { headers })).status, 409);
+  const badCursor = await fetch(f.server.url + `/v1/tasks/${f.id}/events?after=-1`, { headers });
+  assert.equal(badCursor.status, 400);
+  assert.deepEqual(await badCursor.json(), { error: 'CONTROL_QUERY_INVALID' });
+  const missingEvents = await fetch(f.server.url + `/v1/tasks/${randomUUID()}/events`, { headers });
+  assert.equal(missingEvents.status, 404);
+  assert.deepEqual(await missingEvents.json(), { error: 'CONTROL_TASK_NOT_FOUND' });
 });
 
 test('SDK rejects remote endpoints, malformed cursors and invalid query views', () => {
@@ -307,4 +312,30 @@ test('Git application never invokes configured filesystem monitors or external d
     true,
   );
   assert.equal(fs.existsSync(marker), false);
+});
+
+test('unknown resources return 404 and malformed cursors 400 uniformly across task, job, terminal and campaign routes', async (t) => {
+  const f = await setup(t);
+  const headers = { authorization: `Bearer ${credential}` };
+  const surfaces = [
+    ['tasks', 'CONTROL_TASK_NOT_FOUND'],
+    ['jobs', 'JOB_NOT_FOUND'],
+    ['terminals', 'CONTROL_TERMINAL_NOT_FOUND'],
+    ['provider-campaigns', 'CONTROL_CAMPAIGN_NOT_FOUND'],
+  ];
+  for (const [surface, code] of surfaces) {
+    const id = randomUUID();
+    for (const route of [`/v1/${surface}/${id}`, `/v1/${surface}/${id}/events`, `/v1/${surface}/${id}/events?after=0&limit=10`]) {
+      const response = await fetch(f.server.url + route, { headers });
+      assert.equal(response.status, 404, route);
+      assert.deepEqual(await response.json(), { error: code }, route);
+    }
+    for (const query of ['after=-1', 'after=1.5', 'limit=0', 'limit=1001']) {
+      const response = await fetch(f.server.url + `/v1/${surface}/${id}/events?${query}`, { headers });
+      assert.equal(response.status, 400, `${surface} ${query}`);
+      assert.deepEqual(await response.json(), { error: 'CONTROL_QUERY_INVALID' }, `${surface} ${query}`);
+    }
+  }
+  const binding = await fetch(f.server.url + '/v1/provider-bindings?binding_id=binding%3Aunknown', { headers });
+  assert.equal(binding.status, 404);
 });

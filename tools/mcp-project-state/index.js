@@ -131,7 +131,8 @@ function handleTool(db, name, args, context) {
       const { id, status, note } = args;
       if (!id || !status) throw new Error('id and status are required');
       const now = new Date().toISOString();
-      db.prepare('UPDATE tasks SET status = ?, note = ?, updated_at = ? WHERE id = ?').run(status, note || null, now, id);
+      const result = db.prepare('UPDATE tasks SET status = ?, note = ?, updated_at = ? WHERE id = ?').run(status, note || null, now, id);
+      if (!result.changes) throw new Error(`Task not found: ${id}`);
       return { updated: id, status, updated_at: now };
     }
 

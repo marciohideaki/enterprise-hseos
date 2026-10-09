@@ -3,6 +3,8 @@
 const http = require('node:http');
 const { createHash, timingSafeEqual } = require('node:crypto');
 
+const NOT_FOUND_CODES = new Set(['CONTROL_TASK_NOT_FOUND', 'JOB_NOT_FOUND', 'CONTROL_TERMINAL_NOT_FOUND', 'CONTROL_CAMPAIGN_NOT_FOUND']);
+
 async function startControlServer({ control, credential, port = 0 }) {
   if (typeof credential !== 'string' || credential.length < 32 || !Number.isInteger(port) || port < 0 || port > 65_535)
     throw new Error('A local control credential and valid port are required');
@@ -66,7 +68,12 @@ async function startControlServer({ control, credential, port = 0 }) {
       if (request.method === 'GET' && url.pathname === '/v1/provider-bindings') {
         if ([...url.searchParams.keys()].some((name) => name !== 'binding_id') || url.searchParams.getAll('binding_id').length !== 1)
           return send(400, { error: 'CONTROL_QUERY_INVALID' });
-        return send(200, control.providerCampaigns.inspect(url.searchParams.get('binding_id')));
+        try {
+          return send(200, control.providerCampaigns.inspect(url.searchParams.get('binding_id')));
+        } catch (error) {
+          if (error.code === 'CONTROL_PROVIDER_BINDING_UNKNOWN') return send(404, { error: error.code });
+          throw error;
+        }
       }
       const campaign = /^\/v1\/provider-campaigns\/([a-f0-9-]{36})(?:\/(events))?$/.exec(url.pathname);
       if (request.method === 'GET' && campaign) {
@@ -131,7 +138,8 @@ async function startControlServer({ control, credential, port = 0 }) {
       return send(404, { error: 'CONTROL_ROUTE_UNKNOWN' });
     } catch (error) {
       const code = typeof error.code === 'string' && /^(?:CONTROL|JOB)_[A-Z_]+$/.test(error.code) ? error.code : 'CONTROL_REQUEST_REJECTED';
-      return send(['CONTROL_TASK_NOT_FOUND', 'JOB_NOT_FOUND'].includes(code) ? 404 : 409, { error: code });
+      // Unknown resource -> 404, malformed query -> 400, any other rejection -> 409 (docs/engineering-control-api.md).
+      return send(NOT_FOUND_CODES.has(code) ? 404 : code === 'CONTROL_QUERY_INVALID' ? 400 : 409, { error: code });
     }
   });
   server.requestTimeout = 15_000;

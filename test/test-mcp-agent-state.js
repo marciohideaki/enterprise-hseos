@@ -156,6 +156,38 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 
+  // tasks_update is an approval-gated mutation under the governed fixture; the legacy server calls the handler directly.
+  const legacyTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-mcp-legacy-'));
+  const legacyPort = await freePort();
+  const legacyEnv = { ...process.env };
+  delete legacyEnv.HSEOS_GOVERNED_EXECUTION_FIXTURE;
+  delete legacyEnv.NODE_ENV;
+  const legacy = spawn(process.execPath, [MCP_SERVER, `--port=${legacyPort}`, `--db=${path.join(legacyTmp, 'project.db')}`], {
+    env: legacyEnv,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  try {
+    await waitFor(async () => Array.isArray((await rpc(legacyPort, 'tools/list', {})).tools));
+    await it('tasks_update fails explicitly for an unknown task and updates a known one', async () => {
+      const call = (name, args) => rpc(legacyPort, 'tools/call', { name, arguments: args });
+      await call('tasks_add', { id: 'T-known', owner: 'qa', description: 'known task' });
+      const ok = await call('tasks_update', { id: 'T-known', status: 'done' });
+      if (ok.updated !== 'T-known') throw new Error('known task not updated');
+      let failure = null;
+      try {
+        await call('tasks_update', { id: 'T-missing', status: 'done' });
+      } catch (error) {
+        failure = error;
+      }
+      if (!failure) throw new Error('tasks_update reported success for an unknown task');
+      if (!/not found/i.test(failure.message)) throw new Error(`unexpected failure: ${failure.message}`);
+    });
+  } finally {
+    legacy.kill('SIGTERM');
+    await new Promise((r) => setTimeout(r, 200));
+    fs.rmSync(legacyTmp, { recursive: true, force: true });
+  }
+
   console.log(`\n${pass} passed, ${fail} failed`);
   process.exit(fail === 0 ? 0 : 1);
 })().catch((error) => {

@@ -212,6 +212,8 @@ class EngineeringControl {
     return { ...publicValue, resource_id: id };
   }
   events(id, { after = 0, limit = 100 } = {}) {
+    if (!Number.isSafeInteger(after) || after < 0 || !Number.isInteger(limit) || limit < 1 || limit > 1000)
+      throw new ControlError('CONTROL_QUERY_INVALID');
     const jobView = require('./job-materialization').resolveJobView(this, id);
     if (jobView) {
       const plan = jobView.state.materialization.plan;
