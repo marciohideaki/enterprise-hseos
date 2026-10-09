@@ -46,6 +46,8 @@ async function main(input) {
   let sessionDirectory;
   let bytes = 0;
   const hash = createHash('sha256');
+  const chunks = [];
+  let retained = 0;
   try {
     const result = await runner.run({
       prompt: config.prompt,
@@ -63,6 +65,12 @@ async function main(input) {
         bytes += Buffer.byteLength(event.text);
         if (bytes > 1_048_576) throw new Error('output limit');
         hash.update(event.text);
+        // Retention is capped far below the stream limit; an oversized answer is hashed but not returned.
+        if (retained !== null) {
+          retained += Buffer.byteLength(event.text);
+          if (retained > 65_536) retained = null;
+          else chunks.push(event.text);
+        }
       },
     });
     if (result.stop_reason !== 'completed' || !usage) throw new Error('uncertain result');
@@ -80,6 +88,7 @@ async function main(input) {
       init: result.init,
       ...(config.persist === true ? { sensitive_session_dir: sessionDirectory } : {}),
       text_sha256: hash.digest('hex'),
+      ...(retained === null ? { text_too_large: true } : { text: chunks.join('') }),
       provider_session_id: result.session_id,
       rate_limit_warnings: result.rate_limit_warnings,
       pids_peak: Number.isSafeInteger(pidsPeak) ? pidsPeak : null,

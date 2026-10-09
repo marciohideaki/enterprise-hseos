@@ -100,7 +100,7 @@ function parseBinding(filename) {
 function createClaudeAccountCampaignAdapter(
   { manifest, binding: filename, options },
   { processRunner = runCampaignProcess } = {},
-  { loadedArtifact, artifactDigest },
+  { loadedArtifact, artifactDigest, retainOutput },
 ) {
   const settings = settingsSchema.parse(options);
   const binding = readBinding(filename);
@@ -191,6 +191,7 @@ function createClaudeAccountCampaignAdapter(
           ...profile(),
         });
         if (refusals.has(result.refusal)) fail(result.refusal);
+        const { attested, fields } = retainOutput(result, []);
         const usage = result.usage?.usage;
         const input =
           integer.parse(usage?.input_tokens) +
@@ -201,7 +202,8 @@ function createClaudeAccountCampaignAdapter(
         return {
           status: 'completed',
           binding_sha256: digest,
-          evidence_sha256: engineeringDigest(result),
+          evidence_sha256: engineeringDigest(attested),
+          ...fields,
           // total_cost_usd is an estimate under a subscription; no monetary quantity is ever reported.
           cost_microusd: null,
           input_tokens: input,

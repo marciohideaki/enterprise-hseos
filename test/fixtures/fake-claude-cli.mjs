@@ -75,7 +75,7 @@ if (argv[0] === '--version') {
     });
     if (mode.run === 'tool') emit({ ...base, type: 'assistant', message: { content: [{ type: 'tool_use', id: 't1', name: 'Bash', input: {} }] } });
     if (mode.run === 'user') emit({ ...base, type: 'user', message: { content: [] } });
-    emit({ ...base, type: 'assistant', message: { content: [{ type: 'text', text: `echo:${prompt.length}` }] } });
+    emit({ ...base, type: 'assistant', message: { content: [{ type: 'text', text: mode.answer ?? `echo:${prompt.length}` }] } });
     emit({
       ...base,
       type: 'result',

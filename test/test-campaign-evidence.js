@@ -14,6 +14,7 @@ const { ControlClient } = require('../packages/control-sdk');
 const { manifest } = require('./helpers/provider-control');
 const { fixture } = require('./helpers/engineering-project');
 const vectors = require('./fixtures/campaign-credential-vectors');
+const claudeAccount = require('./helpers/claude-account');
 
 const executeFile = promisify(execFile);
 const credential = 'ephemeral-test-fixture-credential-not-for-installation';
@@ -456,4 +457,47 @@ test('store handles directory targets, partial writes and failed renames explici
   );
   fs.rmdirSync(path.join(directory, ref.sha256));
   assert.deepEqual(storeEvidence(state, text, ref), { repaired: false });
+});
+
+// claude/account feeds the same retention path: fake CLI output -> adapter receipt -> store -> campaign:// consumer.
+async function claudeReceipt(t, answerText) {
+  const c = claudeAccount.setup(t, { mode: { answer: answerText } });
+  const { adapter } = c.create();
+  return async (input) => ({
+    ...(await adapter.run({ task_id: c.id, signal: input.signal ?? new AbortController().signal })),
+    binding_sha256: 'a'.repeat(64),
+  });
+}
+
+test('claude/account output is retained, recoverable and consumable by a campaign:// task', async (t) => {
+  const f = await setup(t, { respond: await claudeReceipt(t, JSON.stringify(PLAN)) });
+  const commandId = await f.dispatch();
+  const stored = f.campaigns.evidence(f.campaignId, commandId);
+  assert.equal(stored.output_text ?? stored.text, JSON.stringify(PLAN));
+  const create = f.taskCreate(commandId);
+  const created = await f.client.execute(create);
+  assert.equal(created.response_source.evidence_sha256, sha(JSON.stringify(PLAN)));
+  const result = await f.client.execute({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: create.resource_id,
+    expected_sequence: created.current_sequence,
+    action: 'resume',
+    input: {},
+  });
+  assert.equal(result.task_result, 'approved', JSON.stringify(result));
+});
+
+test('claude/account output carrying a credential or exceeding the cap is withheld, not stored', async (t) => {
+  for (const [text, reason] of [
+    [`token ghp_${'a1B2c3D4e5'.repeat(4)}`, 'credential_pattern'],
+    ['x'.repeat(70_000), 'too_large'],
+  ]) {
+    const f = await setup(t, { respond: await claudeReceipt(t, text) });
+    const commandId = await f.dispatch();
+    assert.equal(f.campaigns.query(f.campaignId).unresolved_commands.length, 0);
+    assert.throws(() => f.campaigns.evidence(f.campaignId, commandId), { code: 'CONTROL_CAMPAIGN_EVIDENCE_WITHHELD' });
+    const receipt = f.campaigns.rows(f.campaignId).find((r) => r.payload.kind === 'receipt').payload.receipt;
+    assert.equal(receipt.evidence_withheld, reason);
+  }
 });
