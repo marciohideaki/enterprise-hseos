@@ -100,6 +100,7 @@ function httpRpc(port, payload) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${AXON_BRIDGE_CREDENTIAL}`,
           'mcp-protocol-version': MCP_MODERN_PROTOCOL_VERSION,
           'mcp-method': payload.method,
           ...(payload.params?.name ? { 'mcp-name': payload.params.name } : {}),
@@ -123,6 +124,8 @@ function httpRpc(port, payload) {
   });
 }
 
+const AXON_BRIDGE_CREDENTIAL = 'contract-test-credential-0123456789abcdef';
+
 function probeAxonBridgeHttp() {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-mcp-contract-axon-'));
   return new Promise((resolve, reject) => {
@@ -132,6 +135,7 @@ function probeAxonBridgeHttp() {
       env: {
         ...process.env,
         HSEOS_GOVERNED_EXECUTION_FIXTURE: '1',
+        HSEOS_AXON_BRIDGE_CREDENTIAL: AXON_BRIDGE_CREDENTIAL,
         HSEOS_STATE_DB: path.join(tmp, 'project.db'),
         NODE_ENV: 'test',
       },
@@ -155,11 +159,10 @@ function probeAxonBridgeHttp() {
 
     child.stdout.setEncoding('utf8');
     child.stderr.setEncoding('utf8');
-    child.stderr.on('data', (chunk) => {
+    // The bridge keeps stdout clean and logs its listening banner on stderr.
+    child.stderr.on('data', async (chunk) => {
       stderr = `${stderr}${chunk}`.slice(-2000);
-    });
-    child.stdout.on('data', async (chunk) => {
-      stdout = `${stdout}${chunk}`.slice(-2000);
+      stdout = stderr;
       const match = stdout.match(/governed MCP listening on http:\/\/127\.0\.0\.1:(\d+)\/mcp/);
       if (!match || probing || completed) return;
       probing = true;

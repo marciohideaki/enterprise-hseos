@@ -357,6 +357,9 @@ test('invalid input and unsupported modern lifecycle methods fail before executi
   }
   const notification = await instance.handle({ jsonrpc: '2.0', method: 'tools/list', params: modernParams() });
   assert.equal(notification.error.code, JSON_RPC.INVALID_REQUEST);
+  // JSON-RPC 2.0: a notification of an unknown method is dropped without any response.
+  assert.equal(await instance.handle({ jsonrpc: '2.0', method: 'bogus/notification', params: modernParams() }), null);
+  assert.equal(await instance.handle({ jsonrpc: '2.0', method: 'bogus/notification' }), null);
   for (const id of [{}, null, 1.5]) {
     const invalidId = await instance.handle(modernMessage('tools/list', {}, id));
     assert.equal(invalidId.error.code, JSON_RPC.INVALID_REQUEST);

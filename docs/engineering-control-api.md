@@ -105,10 +105,70 @@ Decisão de tarefa: `reconciliation_decision` com `report_sha256`,
 `reconciliation_decisions:{"id-da-etapa":{...}}`. O hash deve corresponder ao
 relatório atual; uma resposta não amplia política, escopo ou orçamento.
 
+### Saída de campanha como resposta da tarefa
+
+Uma dispatch concluída de campanha de provider retém o texto do modelo (até
+65536 bytes) como artefato content-addressed em `<estado>/campaign-evidence/<sha256>`;
+o recibo ganha `evidence_ref` opcional (`schema_version:1`, `kind:"model_output"`,
+`sha256`, `bytes`). Recibos anteriores sem `evidence_ref` continuam legíveis e
+respondem `CONTROL_CAMPAIGN_EVIDENCE_UNAVAILABLE`. Saída acima do limite ou com
+formato de credencial não é retida (o recibo é inválido se o adapter a declarar).
+O texto nunca aparece em `/events`.
+
+Leitura governada: `GET /v1/provider-campaigns/{id}/evidence?command_id=<dispatch>`,
+`hseos control campaign-evidence --resource <id> --command <dispatch>`,
+`campaignEvidence(id, commandId)` (JS/TS) e `campaign_evidence(id, command_id)`
+(Python). O controle recalcula o SHA-256 contra o recibo aceito antes de devolver
+`{resource_id, command_id, task_id, binding_id, binding_sha256, receipt_sha256,
+evidence_sha256, bytes, text}`. Erros (409): `CONTROL_CAMPAIGN_NOT_COMPLETED`
+(dispatch em andamento), `CONTROL_CAMPAIGN_EVIDENCE_REJECTED` (incerta, reconciliada
+ou não concluída), `CONTROL_CAMPAIGN_EVIDENCE_UNAVAILABLE`,
+`CONTROL_CAMPAIGN_EVIDENCE_CORRUPT` (hash/tamanho divergente).
+
+Compatibilidade de tipos (SDK TypeScript): `ControlCommand` passou de interface a
+união de `TaskCreateCommand` (com `input: TaskCreateInput`, que tipa `responses_from`)
+e comandos genéricos com `action` diferente de `create`. Código que declarava
+`ControlCommand` com `action:'create'` e `input` livre agora precisa respeitar
+`TaskCreateInput` (`contract` obrigatório); `BaseControlCommand` preserva o formato
+antigo. Recriação após falha: o mesmo `task_id` e digest de contrato podem reconsumir
+a saída sob novo recurso enquanto o consumidor anterior não foi registrado; depois
+disso, ou com outro contrato, vale `CONTROL_CAMPAIGN_EVIDENCE_CONSUMED`.
+
+Saída acima do limite ou com formato de credencial é descartada (nunca
+redigida) e o recibo declara `evidence_withheld` (`too_large`, `credential_pattern`
+ou `integrity_mismatch`): a dispatch continua válida e a leitura responde
+`CONTROL_CAMPAIGN_EVIDENCE_WITHHELD`. A gravação é atômica (arquivo temporário
+exclusivo, fsync e rename); um artefato truncado no endereço do hash é substituído e
+registrado como `evidence_repaired` no ledger da campanha. Um artefato gravado cujo
+recibo não chegou a ser confirmado (falha entre gravação e transação) é órfão
+inofensivo, sem referência. O envelope do worker aceita o pior caso de escape JSON
+de 64 KB.
+
+`create` aceita `responses_from:{ref,binding_sha256}` no lugar de `responses`,
+`binding_id` e `plugin_model` (exclusivos). `ref` é
+`campaign://<campaign_id>/<command_id>`, onde `command_id` identifica a dispatch e
+seu recibo. O texto deve ser o mesmo array `[{name,input}]` das respostas
+roteirizadas (opcionalmente em bloco ```json). O controle valida campanha, binding
+(`CONTROL_CAMPAIGN_BINDING_MISMATCH`), recibo aceito e hash antes de criar a tarefa;
+`CONTROL_CAMPAIGN_EVIDENCE_INVALID` se o texto não for um plano válido. A dispatch deve
+pertencer à tarefa (`task_id`da campanha igual ao`task_id`do contrato,`CONTROL_CAMPAIGN_TASK_MISMATCH`) e cada saída alimenta um único recurso
+(`CONTROL_CAMPAIGN_EVIDENCE_CONSUMED`; o replay do mesmo comando é idempotente); o
+consumo fica no agregado `control_campaign_evidence`, sem alterar a sequência da campanha. A
+proveniência (`ref`, `resource_id`, `command_id`, `binding_id`, `binding_sha256`,
+`receipt_sha256`, `evidence_sha256`, `bytes`) fica em `response_source`na evidência
+da tarefa. Consumir a saída não reserva orçamento nem dispara nova dispatch; jobs
+não aceitam`responses_from` (`JOB_RESPONSES_SOURCE_DENIED`).
+
 `CONTROL_SEQUENCE_CONFLICT`, `CONTROL_IDEMPOTENCY_CONFLICT`,
 `CONTROL_WORKSPACE_DENIED` e `CONTROL_BINDING_UNKNOWN` negam o comando.
 Erros internos são retornados como `CONTROL_REQUEST_REJECTED`, sem detalhes
-sensíveis. Autenticação retorna 401, recurso desconhecido 404, conflitos 409.
+sensíveis. Autenticação retorna 401, recurso desconhecido 404 (tarefa, job, terminal, campanha
+e vínculo de provider, em consulta e em `/events`), consulta ou cursor malformado 400
+(`CONTROL_QUERY_INVALID`, validado antes da existência do recurso), conflitos 409.
+Recurso identificado na URL e desconhecido (consulta, `/events` ou comando POST
+para campanha ou terminal inexistente) retorna 404; antes retornava 409 para
+terminal e campanha (mudança 409 para 404). Referência desconhecida no corpo de
+um POST (`CONTROL_PROVIDER_BINDING_UNKNOWN`, `CONTROL_BINDING_UNKNOWN`) continua 409.
 
 ## Aceite protegido e aplicação
 

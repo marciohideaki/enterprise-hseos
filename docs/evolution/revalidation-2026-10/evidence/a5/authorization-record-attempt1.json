@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-09T19:08:06.323Z",
+  "owner_authorization_date": "2026-10-09",
+  "source": "team-lead A5 brief (owner authorization relayed)",
+  "limits": {
+    "codex_subscription_max_dispatches_per_binding": 3,
+    "codex_paid_credits": "none",
+    "claude_paid_api_total_cap_usd": 1,
+    "claude_subscription": "authorized route (no HSEOS adapter exists)",
+    "litert_local": "authorized",
+    "historical_grants_reused": false
+  },
+  "ids": {
+    "codex": {
+      "binding": "binding:a5-codex-account",
+      "task": "ab69fbcb-12fb-41a1-b3b8-598a19ab2811",
+      "authorization": "dcf621a3-c8b3-4783-88a0-e0e28a6bba12"
+    },
+    "claude": {
+      "binding": "binding:a5-claude-api",
+      "task": "36a14a05-5313-472a-813d-7032cb422050",
+      "authorization": "b30f3b76-cec7-4e98-834c-bb2830a3e405"
+    }
+  },
+  "grants": {
+    "dcf621a3-c8b3-4783-88a0-e0e28a6bba12": {
+      "max_requests": 3,
+      "max_cost_microusd": 0,
+      "deadline": 1791583686323,
+      "binding_ids": ["binding:a5-codex-account"],
+      "task_ids": ["ab69fbcb-12fb-41a1-b3b8-598a19ab2811"]
+    },
+    "b30f3b76-cec7-4e98-834c-bb2830a3e405": {
+      "max_requests": 2,
+      "max_cost_microusd": 1000000,
+      "deadline": 1791583686323,
+      "binding_ids": ["binding:a5-claude-api"],
+      "task_ids": ["36a14a05-5313-472a-813d-7032cb422050"],
+      "quota_exceptions": {
+        "binding:a5-claude-api": {
+          "reason": "Owner authorization 2026-10-09 (via team-lead A5 brief): Codex subscription max 3 dispatches, no paid credits; Claude paid API total cap USD 1.00; Antigravity/LiteRT local; Claude subscription route; no reuse of W3/W4 grants. Unknown inference quota accepted only under the USD 1.00 total cap.",
+          "expires_at": 1791583686323
+        }
+      }
+    }
+  },
+  "state": "/build/tmp/hseos-ledger-fixture-cZmAtr",
+  "deadline": "2026-10-09T22:08:06.323Z",
+  "manifests": {
+    "codex": {
+      "binding_id": "binding:a5-codex-account",
+      "binding_sha256": "72cfecd218926fd89c0b26b663edae932c1af57bab612e3905d208975bc45783",
+      "provider_version": "0.161.0",
+      "account_sha256": "754a72742f0878483b176d79faa2584ada06c974d331b5e609c964de438bd9dc"
+    },
+    "claude": {
+      "binding_id": "binding:a5-claude-api",
+      "binding_sha256": "98c943679431af472243a1c56e3763ab07c132429e3d8c37558ece5f84600770",
+      "provider_version": "0.3.283",
+      "model": "claude-haiku-4-5-20251001",
+      "credential_sha256": "cd372ce212333d3c560749302ca18b2bc7839b0aa928eec2aa8e82daa765118c",
+      "max_request_microusd": 250000
+    }
+  },
+  "prompt_sha256": "c3fc0529d58c50ccce3ed2c6bb0670f061e3137b3d29ebf3420dacf2ce7265f2",
+  "verifier_sha256": "305dc54bf64b2650dfd842dcceb330ee1e97da885199743b06120197b0b4e38c"
+}

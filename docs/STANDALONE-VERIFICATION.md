@@ -1,116 +1,81 @@
-# Standalone Verification — Smoke Test Procedure
+# Standalone Verification — Procedimento
 
-> **Purpose:** verify HSEOS bootstraps and operates from a clean clone with no host-machine state, no global agent skills, no second-brain vault, and no pre-installed MCP servers. This is the acceptance gate for ADR-0006 Principle P5 ("zero global path") and P6 ("graceful degradation").
+> **Propósito:** verificar que o HSEOS inicia e opera a partir de um clone limpo, sem
+> estado da máquina hospedeira, sem skills globais de agente, sem vault second-brain e
+> sem servidores MCP pré-instalados (ADR-0006, princípios P5 "zero global path" e P6
+> "graceful degradation"), e que o **pacote instalado** funciona como consumidor real.
 >
-> **When to run:**
-> - End of Wave 1 (this PR) — proves the decoupling closed all P5 violations
-> - End of Wave 8 (Docs + Tests) — full v2.0 pre-release acceptance
-> - In CI on every PR via `.github/workflows/standalone-smoke.yaml` (lands in Wave 6)
+> Atualizado em 2026-10-09. A versão anterior deste documento (Node 20, "Wave 1",
+> contagens de testes fixas) está obsoleta e foi substituída.
 
----
+## Onde isto roda
 
-## Procedure (manual, ~5 minutes)
+| Verificação                                                                          | CI                                        | Local                                                 |
+| ------------------------------------------------------------------------------------ | ----------------------------------------- | ----------------------------------------------------- |
+| Clone limpo: schemas, lint, componentes de instalação, guardas P5/P6, suíte integral | `.github/workflows/standalone-smoke.yaml` | seção "Procedimento local"                            |
+| Suíte integral e cobertura crítica 90/80 por arquivo, Node 22 e 24                   | `.github/workflows/ci.yaml`               | `npm test` e `npm run test:kernel-coverage`           |
+| Gates de governança (`--phase ci`, `VALIDATION_ENFORCED=true`)                       | job `governance` do `ci.yaml`             | `bash scripts/governance/quality-gates.sh --phase ci` |
+| Pacote instalado fora do checkout: plano de controle + SDKs e servidores MCP         | `.github/workflows/core-journey.yaml`     | [`test/journeys`](../test/journeys/README.md)         |
 
-### 1. Prepare an isolated environment
+## Procedimento local
 
-```bash
-# Pull a clean Node.js image so no host-state can leak in.
-docker run --rm -it -v "$PWD":/repo -w /repo node:20 bash
-```
-
-Inside the container:
-
-```bash
-# Belt-and-suspenders: assert no agent state is mounted from the host.
-test ! -d ~/.claude     || { echo "FAIL: ~/.claude leaked"; exit 1; }
-test ! -d ~/.codex      || { echo "FAIL: ~/.codex leaked";  exit 1; }
-test ! -d /opt/hideakisolutions/second-brain \
-                        || { echo "FAIL: vault leaked";       exit 1; }
-
-# Confirm we're at the standalone-w1 baseline (or later).
-git rev-parse --abbrev-ref HEAD
-git log --oneline -1
-```
-
-### 2. Install dependencies and validate the manifest
+Pré-requisitos: Node 22 ou 24, `bubblewrap` e, para testes de executor, cgroup v2 delegado
+(os mesmos do CI). Use um ambiente limpo (container ou usuário sem `~/.claude`, `~/.codex`
+nem vault montado). Em máquina compartilhada, rode um comando pesado por vez.
 
 ```bash
+test ! -d ~/.claude && test ! -d ~/.codex && test ! -d /opt/hideakisolutions/second-brain
 npm ci
-npm run validate:schemas    # JSON-Schema validation of .agents/, .hseos/
-npm run lint                # 0 warnings expected (project enforces zero-warning)
-```
-
-### 3. Run the installation component test suite
-
-```bash
+npm run validate:schemas
+npm run lint                  # zero avisos
 npm run test:install
 ```
 
-Expected:
-- 14 agent schema tests pass
-- 24 installation component tests pass (including: `.agents/manifest.yaml has portable adapters and skills`, `hseos.config.yaml is valid YAML`)
-
-### 4. Verify the standalone invariant set
+Invariantes P5/P6, como no `standalone-smoke.yaml`:
 
 ```bash
-# P5 — Zero global path: no runtime asset references ~/.claude or
-# /opt/hideakisolutions/second-brain or absolute $HOME paths.
-! grep -rn "~/\\.claude\\|/opt/hideakisolutions/second-brain" \
-    .agents/ .hseos/ .enterprise/governance/ scripts/governance/ \
-    || { echo "FAIL: P5 violation detected"; exit 1; }
-
-# P6 — Graceful degradation: the second-brain skill carries
-# vault_required: false in its frontmatter.
+! grep -rn --include='*.sh' --include='*.js' "~/\.claude\|/opt/hideakisolutions/second-brain" \
+    .agents/ .hseos/agents/ .enterprise/governance/ scripts/governance/ | grep -Ev ":[0-9]+:[[:space:]]*(#|//)"
 grep -q "vault_required: false" .agents/skills/second-brain/SKILL.md
 grep -q "vault_required: false" .agents/skills/second-brain/QUICK.md
 ```
 
-### 5. Smoke the state-tracking subsystem
+Suíte integral e cobertura, dentro de um serviço systemd com cgroup delegado (como o `ci.yaml`):
 
 ```bash
-npm test    # full suite — DAL, CLI, render lib, SSE, kanban
+sudo systemd-run --wait --collect --pipe --service-type=exec \
+  --uid="$(id -u)" --gid="$(id -g)" \
+  --property=Delegate=yes --property=DelegateSubgroup=tests \
+  --working-directory="$PWD" --setenv="PATH=$PATH" --setenv="HOME=$HOME" --setenv=CI=true \
+  bash -c 'node .github/scripts/enable-test-cgroup.mjs && npm test && npm run test:kernel-coverage'
 ```
 
-Expected: `npm test` exits 0 with "Tests: passed" on every subgate.
+## Jornadas do pacote instalado
 
----
+Gere o tarball (`npm pack`), instale-o fora do checkout e rode as jornadas conforme o
+[README de `test/journeys`](../test/journeys/README.md). O CI faz isso para Node 22 e 24
+e publica os JSON de resultado como artifact. Sem modelo real, provedor ou segredos.
 
-## Acceptance criteria
+## Critérios de aceite
 
-A clone is **standalone-compliant** when **every** check below passes in a clean Docker environment:
+Um clone é **standalone-compliant** quando, em ambiente limpo:
 
-- [ ] `npm ci` succeeds (no network calls beyond npm registry)
-- [ ] `npm run validate:schemas` exits 0
-- [ ] `npm run lint` exits 0 with **0 warnings**
-- [ ] `npm run test:install` reports 14 agent + 24 component tests passed
-- [ ] `npm test` reports the full state-tracking suite green
-- [ ] `grep` checks for `~/.claude` and `/opt/hideakisolutions` return zero matches inside `.agents/`, `.hseos/`, `.enterprise/governance/`, and `scripts/governance/`
-- [ ] `vault_required: false` appears in both the second-brain SKILL.md and QUICK.md frontmatter
+- `npm ci`, `validate:schemas`, `lint` (zero avisos) e `test:install` passam.
+- `npm test` passa sem falhas nem skips; `test:kernel-coverage` mantém o gate 90/80 por arquivo.
+- Os greps P5 não retornam ocorrências e `vault_required: false` consta nos dois arquivos da skill.
+- As jornadas do pacote instalado terminam sem FAIL (e sem achados altos no MCP).
 
----
+Contagens de testes mudam a cada onda: use o recibo vigente em vez de números neste documento
+(linha de base atual em [revalidação 2026-10](evolution/revalidation-2026-10/STATUS.md)).
 
-## Known limitations (Wave 1 baseline)
+## Limites
 
-The following items are **expected** to fail standalone today and become green at the wave indicated:
+Esta verificação não certifica modelo real, provedor, orçamento nem ativação operacional;
+essas etapas têm decisões e evidências próprias (ver [docs/evolution](evolution/STATUS.md)).
 
-| Check | Expected at | Wave |
-|---|---|---|
-| `hseos doctor` returns 0 in standalone | command lands in W6 | Wave 6 |
-| `hseos audit` reports zero drift | command lands in W6 | Wave 6 |
-| `hseos verify` matches all hashes | manifest v2 + signatures land in W2 | Wave 2 |
-| `.mcp.json` ships in the repo and is validated | bundle policy lands in W3 | Wave 3 |
-| 6 platform adapters compile from `.agents/` | compiler v2 lands in W2 | Wave 2 |
-| `.claude-plugin/marketplace.json` exists | plugin marketplace lands in W5 | Wave 5 |
+## Falha
 
-Wave 1 closes the **P5 zero-global-path** violations only. Subsequent waves layer on the rest of the standalone contract.
-
----
-
-## Failure response
-
-If any check fails in CI or locally:
-
-1. **Do not bypass.** The standalone smoke test is a constitutional gate per ADR-0006.
-2. Open a `task/` branch off the relevant wave's `feature/` branch and fix the root cause.
-3. If the failure surfaces a missing requirement that the current wave plan does not cover, escalate to ORBIT and draft an ADR amendment before fixing.
-4. Re-run the full procedure inside Docker before merging the fix.
+1. Não contornar: o smoke standalone é um gate constitucional (ADR-0006).
+2. Abrir uma branch `task/` a partir da base e corrigir a causa raiz; nunca afrouxar gate ou threshold.
+3. Se a falha revelar requisito fora do plano, escalar ao ORBIT e redigir emenda de ADR.
+4. Repetir o procedimento completo antes do merge.

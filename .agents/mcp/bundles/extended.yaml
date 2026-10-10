@@ -27,10 +27,10 @@ servers:
     adapter_namespace: hseos_swarm
 
   - id: axon-bridge
-    # The server implementation is HTTP-only (port 3103) — it never reads stdin.
-    # Declaring stdio here made adapters spawn it as a stdio process and hang
-    # (test/test-mcp-stdio.js deliberately excludes this server).
-    transport: http
+    # Default transport is stdio (stdout is protocol-only). HTTP is opt-in via
+    # --http/--port and requires HSEOS_AXON_BRIDGE_CREDENTIAL (>= 32 chars) sent
+    # as a Bearer token; it binds to 127.0.0.1 only.
+    transport: stdio
     binary_resolver:
       - path: tools/mcp-axon-bridge/index.js
         runtime: node
@@ -44,12 +44,13 @@ servers:
     description: |
       Wrapper around the Axon code-index binary. Resolver tries (1) repo-vendored
       binary at tools/vendor/axon/, (2) $AXON_BIN env var, (3) `axon` on $PATH,
-      (4) no-op fallback returning empty results so downstream skills degrade
-      gracefully to Read+Grep.
+      (4) unavailable. Absent or incompatible axon is an explicit error
+      (AXON_UNAVAILABLE / AXON_INCOMPATIBLE / AXON_TOOL_ERROR / AXON_TIMEOUT),
+      never an empty success; callers degrade to Read+Grep themselves.
     status: implemented   # 6 proxy tools live; covered by test/test-mcp-axon-bridge.js in npm test
     adapter_namespace: axon
     fallback_skill: repo-radar
-    graceful_degradation: true
+    graceful_degradation: true   # caller-side only: the bridge itself returns explicit errors, never an empty success
 
   - id: sequential-thinking
     transport: stdio

@@ -93,6 +93,16 @@ print(json.dumps(r))`,
   assert.equal((await client.terminalEvents(id, { after: events.next_cursor })).events.length, 0);
   await assert.rejects(client.request(`/v1/terminals/${id}/events?after=-1`), { code: 'CONTROL_QUERY_INVALID' });
   await assert.rejects(client.request(`/v1/terminals/${id}?unexpected=1`), { code: 'CONTROL_QUERY_INVALID' });
+  const headers = { authorization: `Bearer ${credential}` };
+  const missing = randomUUID();
+  for (const route of [`/v1/terminals/${missing}`, `/v1/terminals/${missing}/events`]) {
+    const response = await fetch(server.url + route, { headers });
+    assert.equal(response.status, 404, route);
+    assert.deepEqual(await response.json(), { error: 'CONTROL_TERMINAL_NOT_FOUND' });
+  }
+  const badCursor = await fetch(server.url + `/v1/terminals/${id}/events?after=-1`, { headers });
+  assert.equal(badCursor.status, 400);
+  assert.deepEqual(await badCursor.json(), { error: 'CONTROL_QUERY_INVALID' });
 });
 
 test('interactive attach streams bytes, serializes input/resize, and detaches without terminate', async () => {

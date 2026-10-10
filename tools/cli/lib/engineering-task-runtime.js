@@ -73,6 +73,7 @@ function getEngineeringModelManifest() {
 function assemble(handle, created, { environment, fetchImpl, extensionCatalog = {}, campaigns, resourceId } = {}) {
   require('../../mcp-project-state/lib/execution-ledger-schema').assertExecutionLedgerView(handle.db, handle.directory);
   const { contract, responses, session_id: sessionId, deadline } = created;
+  const responseOrigin = created.response_source?.ref || 'scripted://engineering';
   const extensions = created.extensions
     ? createTaskExtensions({
         selection: created.extensions,
@@ -182,7 +183,7 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
                 },
                 {
                   event_type: 'completed',
-                  payload: { finish_reason: 'tool_calls', provider_response_ref: `scripted://engineering/${index}` },
+                  payload: { finish_reason: 'tool_calls', provider_response_ref: `${responseOrigin}/${index}` },
                 },
               ]
             : [
@@ -191,7 +192,7 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
                   payload: { text: 'Scripted response sequence ended; independent verification is still required.' },
                 },
                 { event_type: 'usage', payload: { input_tokens: 1, output_tokens: 1, cached_tokens: 0 } },
-                { event_type: 'completed', payload: { finish_reason: 'stop', provider_response_ref: 'scripted://engineering/end' } },
+                { event_type: 'completed', payload: { finish_reason: 'stop', provider_response_ref: `${responseOrigin}/end` } },
               ];
         },
       },
@@ -424,6 +425,7 @@ function summary(handle, id, task, assembly) {
     contract_sha256: state.created.contract_sha256,
     ...(state.created.extensions ? { extensions: state.created.extensions } : {}),
     ...(state.created.plugin_model ? { plugin_model: pluginModel } : {}),
+    ...(state.created.response_source ? { response_source: state.created.response_source } : {}),
     token_accounting: session ? require('../../../packages/agent-context/token-counter').accountSessionTokens(session) : null,
     correction_reviews: state.reviews || [],
     correction_diagnoses: state.diagnoses || [],
@@ -496,6 +498,7 @@ async function runEngineeringTask({
   pluginModel,
   campaigns,
   resourceId,
+  responseSource,
 }) {
   if (pluginModel && !createOnly)
     throw Object.assign(new Error('PLUGIN_TASK_REGISTRATION_REQUIRED'), { code: 'PLUGIN_TASK_REGISTRATION_REQUIRED' });
@@ -546,6 +549,7 @@ async function runEngineeringTask({
     session_id: `session:${randomUUID()}`,
     deadline,
     responses,
+    ...(responseSource ? { response_source: responseSource } : {}),
     ...(binding ? { binding } : {}),
     ...(extensions ? { extensions } : {}),
     ...(pluginModelPin ? { plugin_model: pluginModelPin } : {}),

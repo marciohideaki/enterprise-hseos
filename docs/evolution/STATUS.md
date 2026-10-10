@@ -1,4 +1,22 @@
-# Estado da evolução — 2026-09-27
+# Estado da evolução — 2026-10-09
+
+**Estado atual (2026-10-10):** W0–W4 foram integradas na `master` pela PR #182
+(W4 também pela #181). A revalidação independente do core em pacote instalado
+([revalidação 2026-10](revalidation-2026-10/README.md),
+[estado das etapas](revalidation-2026-10/STATUS.md)) está concluída na branch
+`feature/core-revalidation-2026-10`, pendente de integração: correções A6 com revisão cética,
+`npm test` 1493/1493 em Node 22 e 24, jornadas de pacote instalado aprovadas, teto do
+inventário decidido (G3) e execução com modelo real (A5, A5b) com uma rota de API paga
+reprovada no verificador externo. A cobertura falhou em uma das rodadas e foi corrigida e
+repetida (registrado). Pendências abertas listadas no estado das etapas. O programa W0–W8
+segue incompleto: W5–W8 não foram entregues e nada foi ativado operacionalmente.
+
+Tudo abaixo desta linha é **histórico**: preserva o que foi afirmado em cada
+checkpoint e não descreve o estado atual.
+
+---
+
+# Checkpoint histórico — 2026-09-27
 
 Onda 3: **entrega técnica corrente validada**, matriz/cobertura Node 22/24 e
 campanhas reais ACP/Codex, Claude e Antigravity local aprovadas.

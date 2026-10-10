@@ -204,6 +204,18 @@ test('HTTP and SDK campaign commands share authentication, cursors and durable b
     assert.equal(inspected.effective_authentication, 'not_observed');
     assert.equal(f.calls(), 0);
     await assert.rejects(client.bindingInspect('binding:unknown'), { code: 'CONTROL_PROVIDER_BINDING_UNKNOWN' });
+    const headers = { authorization: `Bearer ${credential}` };
+    const unknownBinding = await fetch(server.url + '/v1/provider-bindings?binding_id=binding%3Aunknown', { headers });
+    assert.equal(unknownBinding.status, 404);
+    const missing = randomUUID();
+    for (const route of [`/v1/provider-campaigns/${missing}`, `/v1/provider-campaigns/${missing}/events`]) {
+      const response = await fetch(server.url + route, { headers });
+      assert.equal(response.status, 404, route);
+      assert.deepEqual(await response.json(), { error: 'CONTROL_CAMPAIGN_NOT_FOUND' });
+    }
+    const badCursor = await fetch(server.url + `/v1/provider-campaigns/${f.id}/events?after=-1`, { headers });
+    assert.equal(badCursor.status, 400);
+    assert.deepEqual(await badCursor.json(), { error: 'CONTROL_QUERY_INVALID' });
     await assert.rejects(client.request('/v1/provider-bindings'), { code: 'CONTROL_QUERY_INVALID' });
     assert.throws(() => client.bindingInspect('invalid'));
     const before = await client.campaignQuery(f.id);

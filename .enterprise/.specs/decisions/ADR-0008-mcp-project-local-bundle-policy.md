@@ -104,3 +104,7 @@ We will move all MCP configuration to project-local artifacts and organize serve
 | Bundle every MCP into a single monolith | Forces Axon and enterprise servers (postgres, kubernetes) onto every install; violates P6 graceful degradation; bloats install footprint. |
 | Use an external orchestrator (Smithery) as the source of truth | Coupling HSEOS to Smithery violates P1 (single SoT). Smithery becomes a destination for HSEOS-published servers, not a dependency. |
 | Skip HSEOS-native MCPs and expose governance only as documentation | Non-Anthropic adapters cannot read `.enterprise/.specs/` repeatedly without burning context tokens; an MCP tool call is cacheable and adapter-agnostic. |
+
+## Update 2026-10-09
+
+The axon-bridge no longer returns a no-op fallback with empty results. An absent or incompatible `axon` is an explicit error (`AXON_UNAVAILABLE`, `AXON_INCOMPATIBLE`, `AXON_TOOL_ERROR`, `AXON_TIMEOUT`); graceful degradation to Read+Grep is the caller's responsibility. The default transport is stdio; HTTP is opt-in and requires `HSEOS_AXON_BRIDGE_CREDENTIAL`. The decision above is kept as originally recorded.

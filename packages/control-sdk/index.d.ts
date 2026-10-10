@@ -1,4 +1,4 @@
-export interface CampaignCommand extends Omit<ControlCommand, 'action'> {
+export interface CampaignCommand extends Omit<BaseControlCommand, 'action'> {
   action: 'create' | 'run' | 'cancel' | 'reconcile';
 }
 export interface CampaignStatus {
@@ -14,6 +14,23 @@ export interface CampaignStatus {
   live_commands: string[];
   bindings: string[];
   report_sha256: string;
+}
+export interface CampaignEvidence {
+  schema_version: 1;
+  resource_id: string;
+  command_id: string;
+  task_id: string;
+  binding_id: string;
+  binding_sha256: string;
+  receipt_sha256: string;
+  evidence_sha256: string;
+  bytes: number;
+  text: string;
+}
+export interface CampaignResponsesSource {
+  /** campaign://<campaign_id>/<dispatch command_id> */
+  ref: `campaign://${string}/${string}`;
+  binding_sha256: string;
 }
 export type JobAction = 'create' | 'retry' | 'cancel' | 'reconcile' | 'resume';
 export interface JobCommand {
@@ -42,7 +59,7 @@ export type TerminalAction =
   | 'terminate'
   | 'recover'
   | 'reconcile';
-export interface TerminalCommand extends Omit<ControlCommand, 'action'> {
+export interface TerminalCommand extends Omit<BaseControlCommand, 'action'> {
   action: TerminalAction;
 }
 export interface TerminalStatus {
@@ -57,7 +74,7 @@ export interface TerminalStatus {
   report_sha256: string;
 }
 export type ControlAction = 'create' | 'create_workflow' | 'resume' | 'cancel' | 'reconcile' | 'apply';
-export interface ControlCommand {
+export interface BaseControlCommand {
   schema_version: 1;
   command_id: string;
   resource_id: string;
@@ -65,6 +82,20 @@ export interface ControlCommand {
   action: ControlAction;
   input: Record<string, unknown>;
 }
+export interface TaskCreateInput {
+  contract: Record<string, unknown>;
+  /** Exactly one model source: responses, responses_from, binding_id or plugin_model. */
+  responses?: { name: string; input: Record<string, unknown> }[];
+  responses_from?: CampaignResponsesSource;
+  binding_id?: string;
+  plugin_model?: { selection_id: string; campaign_id: string };
+  extension_ids?: string[];
+}
+export interface TaskCreateCommand extends Omit<BaseControlCommand, 'action' | 'input'> {
+  action: 'create';
+  input: TaskCreateInput;
+}
+export type ControlCommand = TaskCreateCommand | (Omit<BaseControlCommand, 'action'> & { action: Exclude<ControlAction, 'create'> });
 export interface TaskStatus {
   resource_id: string;
   task_run_id: string;
@@ -84,6 +115,8 @@ export interface WorkflowStatus {
   questions: string[];
   [key: string]: unknown;
 }
+export type ControlQueryView = 'status' | 'evidence' | 'review' | 'session';
+
 export class ControlClient {
   constructor(options: { url: string; credential: string; fetchImpl?: typeof fetch });
   bindingInspect(bindingId: string): Promise<Record<string, unknown>>;
@@ -99,6 +132,7 @@ export class ControlClient {
     resourceId: string,
     options?: { after?: number; limit?: number },
   ): Promise<{ resource_id: string; events: Record<string, unknown>[]; next_cursor: number }>;
+  campaignEvidence(resourceId: string, commandId: string): Promise<CampaignEvidence>;
   terminal(command: TerminalCommand): Promise<Record<string, unknown>>;
   terminalQuery(resourceId: string): Promise<TerminalStatus>;
   terminalEvents(
@@ -109,6 +143,7 @@ export class ControlClient {
   execute(command: ControlCommand): Promise<Record<string, unknown>>;
   query(resourceId: string, view?: 'status'): Promise<TaskStatus | WorkflowStatus>;
   query(resourceId: string, view: 'evidence' | 'review' | 'session'): Promise<Record<string, unknown>>;
+  query(resourceId: string, view: ControlQueryView): Promise<TaskStatus | WorkflowStatus | Record<string, unknown>>;
   events(
     resourceId: string,
     options?: { after?: number; limit?: number },

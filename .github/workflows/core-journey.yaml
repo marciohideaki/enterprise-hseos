@@ -1,0 +1,79 @@
+name: Core journey (installed package)
+
+# Runs the real consumer journeys (control API + JS/TS/Python SDKs, and the 4 MCP servers) against the
+# PACKED tarball installed outside the checkout. Deterministic fixtures only: no model or provider dispatch,
+# no secrets. The journeys live in test/journeys (not shipped in the package); see test/journeys/README.md.
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master, "feature/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  journey:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        node-version: ["22.x", "24.x"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - name: Bind the selected Node runtime for isolated executor commands
+        run: |
+          selected_node="$(command -v node)"
+          sudo install -m 0755 "$selected_node" /usr/bin/node
+          test "$(sha256sum "$selected_node" | cut -d ' ' -f 1)" = "$(sha256sum /usr/bin/node | cut -d ' ' -f 1)"
+      - name: Install isolation backend
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - run: npm ci
+      - name: Pack and install the tarball outside the checkout
+        run: |
+          set -euo pipefail
+          journey_root="${RUNNER_TEMP}/hseos-journey"
+          mkdir -p "${journey_root}/pack" "${journey_root}/out" "${journey_root}/consumer-core" "${journey_root}/consumer-mcp"
+          npm pack --pack-destination "${journey_root}/pack"
+          tgz="$(ls "${journey_root}"/pack/hseos-*.tgz)"
+          sha256sum "${tgz}"
+          for consumer in consumer-core consumer-mcp; do
+            (cd "${journey_root}/${consumer}" && npm init -y >/dev/null && npm install --prefer-offline --no-audit --no-fund "${tgz}")
+          done
+          echo "JOURNEY_ROOT=${journey_root}" >> "$GITHUB_ENV"
+          echo "JOURNEY_TGZ=${tgz}" >> "$GITHUB_ENV"
+      - name: Journeys in a delegated cgroup
+        run: |
+          sudo systemd-run --wait --collect --pipe --service-type=exec \
+            --uid="$(id -u)" --gid="$(id -g)" \
+            --property=Delegate=yes --property=DelegateSubgroup=tests \
+            --working-directory="$PWD" \
+            --setenv="PATH=$PATH" --setenv="HOME=$HOME" --setenv=CI=true \
+            --setenv="JOURNEY_ROOT=$JOURNEY_ROOT" --setenv="JOURNEY_TGZ=$JOURNEY_TGZ" \
+            bash -c 'set -e
+              node .github/scripts/enable-test-cgroup.mjs
+              status=0
+              node test/journeys/core-journey.mjs --service-mode system --prefix "$JOURNEY_ROOT/consumer-core" --tgz "$JOURNEY_TGZ" --out "$JOURNEY_ROOT/out/core" || status=1
+              # axon is an optional integration and the runner has no axon binary: with the default --axon-real=optional those
+              # checks are reported NOT_EXERCISED (never PASS). The real axon is exercised in the local revalidation
+              # (docs/evolution/revalidation-2026-10); the AXON_UNAVAILABLE scenarios stay mandatory.
+              node test/journeys/mcp-journey.mjs --prefix "$JOURNEY_ROOT/consumer-mcp" --tgz "$JOURNEY_TGZ" --out "$JOURNEY_ROOT/out/mcp" --fail-on high || status=1
+              exit $status'
+      - name: Publish journey results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-journey-node${{ matrix.node-version }}
+          path: |
+            ${{ env.JOURNEY_ROOT }}/out/core/core-journey-result.json
+            ${{ env.JOURNEY_ROOT }}/out/mcp/mcp-journey-result.json
+          if-no-files-found: warn
