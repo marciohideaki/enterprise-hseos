@@ -63,6 +63,9 @@ jobs:
               node .github/scripts/enable-test-cgroup.mjs
               status=0
               node test/journeys/core-journey.mjs --service-mode system --prefix "$JOURNEY_ROOT/consumer-core" --tgz "$JOURNEY_TGZ" --out "$JOURNEY_ROOT/out/core" || status=1
+              # axon is an optional integration and the runner has no axon binary: with the default --axon-real=optional those
+              # checks are reported NOT_EXERCISED (never PASS). The real axon is exercised in the local revalidation
+              # (docs/evolution/revalidation-2026-10); the AXON_UNAVAILABLE scenarios stay mandatory.
               node test/journeys/mcp-journey.mjs --prefix "$JOURNEY_ROOT/consumer-mcp" --tgz "$JOURNEY_TGZ" --out "$JOURNEY_ROOT/out/mcp" --fail-on high || status=1
               exit $status'
       - name: Publish journey results
