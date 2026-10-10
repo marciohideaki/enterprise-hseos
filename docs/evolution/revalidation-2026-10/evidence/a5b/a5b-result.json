@@ -1,0 +1,106 @@
+{
+  "task": "A5b governed journey: campaign output -> campaign:// task -> patch -> verifier (no manual bridge)",
+  "date": "2026-10-09",
+  "package_sha256": "fcb81c1adbad85a5c5f057eda42fff5485649996b2126a9ed90531d6697ed0be",
+  "routes": {
+    "claude_account_subscription": {
+      "binding": "binding:a5b-claude-account",
+      "authorization_id": "bf7069da-c1ff-44f1-b926-a067e7e6588a",
+      "campaign_id": "6603a286-be61-44cd-8d7f-7427e7b1ccf8",
+      "dispatch_command_id": "20b8a3b6-35d7-4292-a7e0-b63cc0910d77",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "f630abb752ab25d6b97ed30fe732ebdf8dae0f93132512b0b97f5c43a76ea373",
+        "evidence_sha256": "b311acb55a37c0f8077a63e47bbf986bdfac32ae1af2d8b67764523fd0646928",
+        "cost_microusd": null,
+        "input_tokens": 2779,
+        "output_tokens": 1767,
+        "provider_session_id": "95d8da06-98f6-46dd-87f7-64e4631ce5dc",
+        "evidence_ref": {
+          "schema_version": 1,
+          "kind": "model_output",
+          "sha256": "c163cb37e6e202a9006a7c0dba90a5145bcb287112bb112eed8d7313491b73d6",
+          "bytes": 2468
+        }
+      },
+      "reserved_microusd": 0,
+      "quota_admission": "owner_exception",
+      "response_source": {
+        "binding_id": "binding:a5b-claude-account",
+        "binding_sha256": "f630abb752ab25d6b97ed30fe732ebdf8dae0f93132512b0b97f5c43a76ea373",
+        "bytes": 2468,
+        "command_id": "20b8a3b6-35d7-4292-a7e0-b63cc0910d77",
+        "evidence_sha256": "c163cb37e6e202a9006a7c0dba90a5145bcb287112bb112eed8d7313491b73d6",
+        "receipt_sha256": "d52e90b0c06b462ebea6dd2829a4a68ab732ad15473536413e7d30188ff4ccae",
+        "ref": "campaign://6603a286-be61-44cd-8d7f-7427e7b1ccf8/20b8a3b6-35d7-4292-a7e0-b63cc0910d77",
+        "resource_id": "6603a286-be61-44cd-8d7f-7427e7b1ccf8",
+        "schema_version": 1,
+        "task_id": "69648b11-a3ed-426d-91b5-aab55a0391bf"
+      },
+      "task_result": "approved",
+      "external_verifier_pass": true,
+      "negative_consumed": "CONTROL_CAMPAIGN_EVIDENCE_CONSUMED",
+      "git_diff_stat": " 1 file changed, 4 insertions(+), 2 deletions(-)",
+      "interface": "CLI",
+      "dispatches_used": 1,
+      "dispatch_limit": 3,
+      "cost": "US$0 (subscription, cost_microusd null)",
+      "status": "PASS",
+      "observed_identity_account_sha256": "704dfbe70d21948b88b784590c772cb3fba241af716f2ecf675e350890874063"
+    },
+    "claude_api_paid": {
+      "binding": "binding:a5b-claude-api",
+      "authorization_id": "5ececd54-a502-4f7f-9613-3541736edc76",
+      "campaign_id": "0b203e12-81ee-40f6-b7f5-c4b61ad467b9",
+      "dispatch_command_id": "b564b257-72de-4eba-b704-df680979b9c7",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "2399dc924d70420fc088ee9029267394e39140a0e1a0ac3b35a6c7d1e82b4433",
+        "evidence_sha256": "4f3536e6d593c05e9a4e860888e2bf0a67da47eda30f306dde579b27d783bb6a",
+        "cost_microusd": null,
+        "input_tokens": 1979,
+        "output_tokens": 2613,
+        "provider_session_id": "5eb97dfd-f65c-4452-b741-e32a90af4e31",
+        "evidence_ref": {
+          "schema_version": 1,
+          "kind": "model_output",
+          "sha256": "41b48f080b6f2454cac815ae2c0eece96de96130d5f8cdbc122babbf9c681226",
+          "bytes": 2190
+        }
+      },
+      "reserved_microusd": 250000,
+      "quota_admission": "owner_exception",
+      "response_source": {
+        "binding_id": "binding:a5b-claude-api",
+        "binding_sha256": "2399dc924d70420fc088ee9029267394e39140a0e1a0ac3b35a6c7d1e82b4433",
+        "bytes": 2190,
+        "command_id": "b564b257-72de-4eba-b704-df680979b9c7",
+        "evidence_sha256": "41b48f080b6f2454cac815ae2c0eece96de96130d5f8cdbc122babbf9c681226",
+        "receipt_sha256": "b626ff1404cc3348c94687df8fe8f46fb3853b7cbf49d826acf172cec3277da1",
+        "ref": "campaign://0b203e12-81ee-40f6-b7f5-c4b61ad467b9/b564b257-72de-4eba-b704-df680979b9c7",
+        "resource_id": "0b203e12-81ee-40f6-b7f5-c4b61ad467b9",
+        "schema_version": 1,
+        "task_id": "c3f9ae8b-0f24-443b-a673-028140c4882c"
+      },
+      "task_result": "approved",
+      "external_verifier_pass": false,
+      "negative_consumed": "CONTROL_CAMPAIGN_EVIDENCE_CONSUMED",
+      "git_diff_stat": " 1 file changed, 2 insertions(+), 2 deletions(-)",
+      "interface": "SDK",
+      "dispatches_used": 1,
+      "cost_real_usd": 0.016614,
+      "committed_reserved_usd": 0.25,
+      "grant_cap_usd": 0.75,
+      "status": "PARTIAL: journey PASS, pinned verifier FAIL",
+      "cause": "Haiku kept bare 3103 in the Port cell and never said optional (C8, C10); HSEOS internal web-content verifier approved"
+    }
+  },
+  "a5_paid_spent_usd_real": 0.00696,
+  "a5b_paid_spent_usd_real": 0.016614,
+  "unobserved": "init (apiKeySource, fast_mode_state, model), rate_limit_event and pids_peak are attested only inside evidence_sha256 (hash); the governed receipt/evidence path does not expose them. Not recoverable without bypass or an extra dispatch; the subscription session was not persisted.",
+  "findings": [
+    "Journey works end to end with no manual step on both routes",
+    "Weak internal verifier (content-includes of one string) approves a README that the pinned external verifier rejects",
+    "Receipt/evidence do not expose init/pids_peak/rate_limit_event despite adapter docs asking campaign to read them"
+  ]
+}

@@ -1,0 +1,11 @@
+{"stage":"npm-test-node24","node":"v24.15.0","started_at":"2026-10-10T00:09:35Z","ended_at":"2026-10-10T00:19:47Z","exit_code":0,"log":"/tmp/hseos-reval/final3/logs/npm-test-node24.log","log_sha256":"4cfe46a20bd2fa245194a548890e1910e383dde4e46c256caa836c17c1893d3b"}
+{"stage":"kernel-coverage-node24","node":"v24.15.0","started_at":"2026-10-10T00:19:47Z","ended_at":"2026-10-10T00:26:01Z","exit_code":1,"log":"/tmp/hseos-reval/final3/logs/kernel-coverage-node24.log","log_sha256":"ec1ccd14e93e04f04d3f19cc5b5d7208f87b1a3ce7515b423a50267c468857c6"}
+{"stage":"w4-mutations-node24","node":"v24.15.0","started_at":"2026-10-10T00:26:01Z","ended_at":"2026-10-10T00:26:23Z","exit_code":0,"log":"/tmp/hseos-reval/final3/logs/w4-mutations-node24.log","log_sha256":"7c80108d69ba1d9385a83a6d66f2ba68d525cd7b8963ceada65c12ebb38d7ab9"}
+{"stage":"quality-gates-node24","node":"v24.15.0","started_at":"2026-10-10T00:26:23Z","ended_at":"2026-10-10T00:26:30Z","exit_code":0,"log":"/tmp/hseos-reval/final3/logs/quality-gates-node24.log","log_sha256":"e7b7f8c259ae3c904bf0008407ffbf7285719baf6c8b193c14795e4966194201"}
+{"stage":"npm-test-node22","node":"v22.23.3","started_at":"2026-10-10T00:26:31Z","ended_at":"2026-10-10T00:36:44Z","exit_code":0,"log":"/tmp/hseos-reval/final3/logs/npm-test-node22.log","log_sha256":"cc1a7a15c4b84d89849ef1b0abd5b49fd73c1dcc594fb50dacc82e4adb7cc76e"}
+{"stage":"kernel-coverage-node22","node":"v22.23.3","started_at":"2026-10-10T00:36:44Z","ended_at":"2026-10-10T00:42:58Z","exit_code":1,"log":"/tmp/hseos-reval/final3/logs/kernel-coverage-node22.log","log_sha256":"b3539f820c9b22bef109b44fa5673c6f53dcd04df97243df9415dfa8bbdb7ae1"}
+{"stage":"w4-mutations-node22","node":"v22.23.3","started_at":"2026-10-10T00:42:58Z","ended_at":"2026-10-10T00:43:20Z","exit_code":0,"log":"/tmp/hseos-reval/final3/logs/w4-mutations-node22.log","log_sha256":"e02f69db2e43f23438d8fac10535d59a50be7854fcc35340dc6eab0aa319d657"}
+{"stage":"quality-gates-node22","node":"v22.23.3","started_at":"2026-10-10T00:43:20Z","ended_at":"2026-10-10T00:43:34Z","exit_code":0,"log":"/tmp/hseos-reval/final3/logs/quality-gates-node22.log","log_sha256":"18988a2b9b0bf7e7ca982d3cf123f57501db3ef33fff7ddf7c6e7871eda11c6d"}
+{"stage":"consumer-install","exit_code":0}
+{"stage":"core-journey","exit_code":0}
+{"stage":"mcp-journey","exit_code":0}

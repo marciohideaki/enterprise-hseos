@@ -1,0 +1,1167 @@
+{
+  "gerado_em": "2026-10-10T00:45:09.370Z",
+  "veredito": "PASS",
+  "motivos_falha": [],
+  "pacote": {
+    "arquivo": "/tmp/hseos-reval/final3/pack/hseos-4.0.0-rc.0.tgz",
+    "sha256": "fcb81c1adbad85a5c5f057eda42fff5485649996b2126a9ed90531d6697ed0be"
+  },
+  "node": "v24.15.0",
+  "consumidor": {
+    "prefix": "/tmp/hseos-reval/final3/journeys/consumer",
+    "hseosInstall": "ran: hseos install --tools none --yes --no-git-hooks",
+    "hseosVersion": "4.0.0-rc.0"
+  },
+  "axon_no_path": "/home/annonymous/.local/bin/axon",
+  "load1_inicio": 2.66,
+  "totais": {
+    "PASS": 144,
+    "FAIL": 0,
+    "BLOCKED": 0
+  },
+  "servidores": [
+    {
+      "nome": "hseos-governance",
+      "script": "node_modules/hseos/tools/mcp-hseos-governance/index.js",
+      "caminho": "legacy",
+      "transporte": "stdio",
+      "tools": [
+        "check_authority",
+        "list_skills",
+        "list_workflows",
+        "get_effective_governance_context",
+        "evaluate_governed_action",
+        "explain_governance_decision",
+        "get_governance_artifact",
+        "get_governance_release",
+        "diff_governance_releases",
+        "verify_governance_snapshot",
+        "get_governance_session_status",
+        "get_governance_session_preflight",
+        "get_governance_readiness",
+        "query_constitution",
+        "validate_adr"
+      ],
+      "chamadas": [
+        {
+          "tool": "initialize",
+          "status": "PASS",
+          "evidence": "{\"protocolVersion\":\"2024-11-05\",\"serverInfo\":{\"name\":\"hseos-governance\",\"version\":\"1.0.0\"},\"capabilities\":{\"tools\":{}}}"
+        },
+        {
+          "tool": "notifications/initialized",
+          "status": "PASS",
+          "evidence": "no reply (conformant)",
+          "kind": "jsonrpc-notification"
+        },
+        {
+          "tool": "tools/list",
+          "status": "PASS",
+          "evidence": "15 tools: check_authority,list_skills,list_workflows,get_effective_governance_context,evaluate_governed_action,explain_governance_decision,get_governance_artifact,get_governance_release,diff_governance_releases,verify_governance_snapshot,get_governance_session_status,get_governance_session_preflight,get_governance_readiness,query_constitution,validate_adr"
+        },
+        {
+          "tool": "query_constitution",
+          "args": "{\"article\":\"constitution\"}",
+          "status": "PASS",
+          "evidence": "result {\"article\":\"constitution\",\"text\":\"# Enterprise Constitution\\n\\n**Version:** 2.2\\n**Status:** Active\\n**Scope:** All repositories and projects under this organization\\n**Source of Truth:** GitHub (repository content)\\n**Audience:** Engineering Team + AI Agents (any framework)\\n\\n> **v2.0 change:** Me...(+15622) path=/tmp/hseos-reval/final3/journeys/consumer/node_modules/hseos/.enterprise/.specs/constitution/Enterprise-Constitution.md len=15319"
+        },
+        {
+          "tool": "check_authority",
+          "args": "{\"agent_code\":\"SWARM\"}",
+          "status": "PASS",
+          "evidence": "result {\"agent_code\":\"SWARM\",\"authority\":\"# SWARM — Parallel Execution Commander — Authority (Enterprise Overlay)\\n**Agent:** SWARM — Parallel Execution Commander\\n**Scope:** Heterogeneous Batch Decomposition, Parallel Execution, Worktree Isolation\\n**Status:** Active\\n\\n## 1. Role Definition\\nSWARM decomp...(+4805) authority_len=2791"
+        },
+        {
+          "tool": "validate_adr",
+          "args": "{\"change_kind\":\"security\"}",
+          "status": "PASS",
+          "evidence": "result {\"change_kind\":\"security\",\"required\":true,\"reason\":\"Security posture changes mandate an ADR per §5.2\"} required=true"
+        },
+        {
+          "tool": "list_skills",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "result {\"skills\":[],\"total\":0} skills=0"
+        }
+      ],
+      "negacoes": [
+        {
+          "tool": "unknown_tool_xyz",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32000 message=Unknown tool: unknown_tool_xyz",
+          "kind": "unknown-tool"
+        },
+        {
+          "tool": "tools/call(no name)",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32602 message=Invalid params: tools/call requires a string \"name\"",
+          "kind": "missing-name"
+        },
+        {
+          "tool": "method unknown",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32601 message=Method not found: nope/method",
+          "kind": "unknown-method"
+        },
+        {
+          "tool": "check_authority",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32602 message=Invalid params: (arguments) must have required property 'agent_code'",
+          "kind": "schema-violation"
+        },
+        {
+          "tool": "check_authority",
+          "args": "{\"agent_code\":12345}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32602 message=Invalid params: /agent_code must be string",
+          "kind": "wrong-type"
+        },
+        {
+          "tool": "malformed-json-line",
+          "status": "PASS",
+          "evidence": "error code=-32700",
+          "kind": "malformed-input"
+        },
+        {
+          "tool": "unknown-method-notification (no id)",
+          "status": "PASS",
+          "evidence": "discarded silently (JSON-RPC conformant)",
+          "kind": "jsonrpc-notification"
+        },
+        {
+          "tool": "non-request:null",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:number",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:array",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:string",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:object-without-method",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":901,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:object-id-not-scalar",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request: id must be a non-empty string or an integer\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "still-serving-after-non-requests",
+          "status": "PASS",
+          "evidence": "15 tools",
+          "kind": "non-object"
+        },
+        {
+          "tool": "check_authority",
+          "args": "{\"agent_code\":\"../../../../../../etc\"}",
+          "kind": "out-of-scope-path",
+          "status": "PASS",
+          "evidence": "no file content returned outside the package: {\"agent_code\":\"../../../../../../etc\",\"authority\":null,\"error\":\"agent dir not found: ../../../../../../etc\"}"
+        },
+        {
+          "tool": "query_constitution",
+          "args": "{\"article\":\"../../../../etc/passwd\"}",
+          "kind": "out-of-scope-path",
+          "status": "PASS",
+          "evidence": "{\"article\":\"../../../../etc/passwd\",\"text\":null,\"path\":\"/tmp/hseos-reval/final3/journeys/consumer/node_modules/hseos/.enterprise/.specs/constitution\",\"error\":\"no constitution file matching: ../../../....(+14)"
+        },
+        {
+          "tool": "(stdout framing)",
+          "status": "PASS",
+          "evidence": "stdout carried only JSON-RPC lines",
+          "kind": "framing"
+        }
+      ],
+      "notas": [
+        "spec root is the installed package (/tmp/hseos-reval/final3/journeys/consumer/node_modules/hseos); specs are bundled, so this is intended",
+        "legacy telemetry db written in consumer project: true (.hseos/state/mcp-legacy-usage.db)"
+      ],
+      "initialize": {
+        "protocolVersion": "2024-11-05",
+        "serverInfo": {
+          "name": "hseos-governance",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "tools": {}
+        }
+      },
+      "exit": {
+        "code": 0,
+        "sig": null
+      },
+      "stderr": "[governance] legacy MCP compatibility stdio ready; tools=15\n[mcp] discarded notification: bogus/notification\n",
+      "stdoutNonJson": 0,
+      "resumo": {
+        "PASS": 24,
+        "FAIL": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "nome": "hseos-swarm",
+      "script": "node_modules/hseos/tools/mcp-hseos-swarm/index.js",
+      "caminho": "legacy",
+      "transporte": "stdio",
+      "tools": ["consolidate_handoff", "dispatch_wave", "get_run_state", "list_runs", "plan_squad"],
+      "chamadas": [
+        {
+          "tool": "initialize",
+          "status": "PASS",
+          "evidence": "{\"protocolVersion\":\"2024-11-05\",\"serverInfo\":{\"name\":\"hseos-swarm\",\"version\":\"1.0.0\"},\"capabilities\":{\"tools\":{}}}"
+        },
+        {
+          "tool": "notifications/initialized",
+          "status": "PASS",
+          "evidence": "no reply (conformant)",
+          "kind": "jsonrpc-notification"
+        },
+        {
+          "tool": "tools/list",
+          "status": "PASS",
+          "evidence": "5 tools: consolidate_handoff,dispatch_wave,get_run_state,list_runs,plan_squad"
+        },
+        {
+          "tool": "list_runs",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "result {\"runs\":[{\"id\":\"a4-project-canary\",\"path\":\"/tmp/hseos-reval/final3/journeys/consumer/.hseos/runs/dev-squad/a4-project-canary\",\"status_snippet\":\"unknown\"}],\"total\":1} runs=1; sees consumer-project run canary=true"
+        },
+        {
+          "tool": "plan_squad",
+          "args": "{\"batch_description\":\"a4 journey probe\",\"run_id\":\"a4-journey-1791593084119\"}",
+          "status": "PASS",
+          "evidence": "result {\"run_id\":\"a4-journey-1791593084119\",\"run_dir\":\"/tmp/hseos-reval/final3/journeys/consumer/.hseos/runs/dev-squad/a4-journey-1791593084119\",\"plan_md\":\"# SWARM Squad Plan — a4-journey-1791593084119\\n\\n**Description:** a4 journey probe\\n**Created:** 2026-10-10T00:44:44.121Z\\n\\n## Tier Hints\\n\\n_none pro...(+133) run_dir=/tmp/hseos-reval/final3/journeys/consumer/.hseos/runs/dev-squad/a4-journey-1791593084119 expected=/tmp/hseos-reval/final3/journeys/consumer/.hseos/runs/dev-squad/a4-journey-1791593084119"
+        },
+        {
+          "tool": "get_run_state",
+          "args": "{\"run_id\":\"a4-journey-1791593084119\"}",
+          "status": "PASS",
+          "evidence": "result {\"run_id\":\"a4-journey-1791593084119\",\"run_dir\":\"/tmp/hseos-reval/final3/journeys/consumer/.hseos/runs/dev-squad/a4-journey-1791593084119\",\"status\":\"# STATUS — a4-journey-1791593084119\\n\\n**Phase:** INTAKE\\n**Created:** 2026-10-10T00:44:44.121Z\\n\",\"wave_reports\":[]} status_len=93"
+        },
+        {
+          "tool": "dispatch_wave",
+          "args": "{\"run_id\":\"a4-journey-1791593084119\"}",
+          "status": "PASS",
+          "evidence": "result {\"wave_index\":0,\"worktree_paths\":[],\"subagent_prompts\":[],\"note\":\"no waves defined in PLAN.md\"} {\"wave_index\":0,\"worktree_paths\":[],\"subagent_prompts\":[],\"note\":\"no waves defined in PLAN.md\"}"
+        },
+        {
+          "tool": "(no writes inside installed package)",
+          "status": "PASS",
+          "evidence": "node_modules/hseos/.hseos/runs absent",
+          "kind": "out-of-scope-write"
+        }
+      ],
+      "negacoes": [
+        {
+          "tool": "unknown_tool_xyz",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32000 message=Unknown tool: unknown_tool_xyz",
+          "kind": "unknown-tool"
+        },
+        {
+          "tool": "tools/call(no name)",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32602 message=Invalid params: tools/call requires a string \"name\"",
+          "kind": "missing-name"
+        },
+        {
+          "tool": "method unknown",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32601 message=Method not found: nope/method",
+          "kind": "unknown-method"
+        },
+        {
+          "tool": "plan_squad",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32602 message=Invalid params: (arguments) must have required property 'batch_description'",
+          "kind": "schema-violation"
+        },
+        {
+          "tool": "plan_squad",
+          "args": "{\"batch_description\":{\"a\":1},\"run_id\":\"a4-badtype-1791593084124\"}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32602 message=Invalid params: /batch_description must be string",
+          "kind": "wrong-type"
+        },
+        {
+          "tool": "malformed-json-line",
+          "status": "PASS",
+          "evidence": "error code=-32700",
+          "kind": "malformed-input"
+        },
+        {
+          "tool": "unknown-method-notification (no id)",
+          "status": "PASS",
+          "evidence": "discarded silently (JSON-RPC conformant)",
+          "kind": "jsonrpc-notification"
+        },
+        {
+          "tool": "non-request:null",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:number",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:array",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:string",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:object-without-method",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":901,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:object-id-not-scalar",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request: id must be a non-empty string or an integer\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "still-serving-after-non-requests",
+          "status": "PASS",
+          "evidence": "5 tools",
+          "kind": "non-object"
+        },
+        {
+          "tool": "plan_squad",
+          "args": "{\"run_id\":\"a4-norequired-1791593087039\"}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32602 message=Invalid params: (arguments) must have required property 'batch_description'nothing created on disk",
+          "kind": "schema-required-missing"
+        },
+        {
+          "tool": "get_run_state",
+          "args": "{\"run_id\":\"../../../../../../../../build/tmp/a4-outside-canary-2956746-1791593087041\"}",
+          "kind": "out-of-scope-read:relative-traversal",
+          "status": "PASS",
+          "evidence": "denied code=-32000 Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state",
+          "args": "{\"run_id\":\"/build/tmp/a4-outside-canary-2956746-1791593087041\"}",
+          "kind": "out-of-scope-read:absolute-path",
+          "status": "PASS",
+          "evidence": "denied code=-32000 Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state",
+          "args": "{\"run_id\":\"..\"}",
+          "kind": "out-of-scope-read:dotdot",
+          "status": "PASS",
+          "evidence": "denied code=-32000 Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "dispatch_wave",
+          "args": "{\"run_id\":\"../../../../../../../../build/tmp/a4-outside-canary-2956746-1791593087041\"}",
+          "kind": "out-of-scope-read:relative-traversal",
+          "status": "PASS",
+          "evidence": "denied code=-32000 Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "consolidate_handoff",
+          "args": "{\"run_id\":\"../../../../../../../../build/tmp/a4-outside-canary-2956746-1791593087041\",\"source_task\":\"a\",\"target_task\":\"b\"}",
+          "kind": "out-of-scope-read:relative-traversal",
+          "status": "PASS",
+          "evidence": "denied code=-32000 Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "consolidate_handoff",
+          "args": "{\"run_id\":\"a4-journey-1791593084119\",\"source_task\":\"../../../../etc\",\"target_task\":\"b\"}",
+          "kind": "out-of-scope-read:source_task-traversal",
+          "status": "PASS",
+          "evidence": "denied code=-32000 Invalid source_task: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "get_run_state",
+          "args": "{\"run_id\":\"a4-link-dir\"}",
+          "kind": "out-of-scope-read:symlinked-run-dir",
+          "status": "PASS",
+          "evidence": "denied code=-32000 Invalid run_id: resolves outside the runs directory"
+        },
+        {
+          "tool": "get_run_state",
+          "args": "{\"run_id\":\"a4-linkfile-run\"}",
+          "kind": "out-of-scope-read:symlinked-file",
+          "status": "PASS",
+          "evidence": "denied code=-32000 Symlink not allowed: STATUS.md"
+        },
+        {
+          "tool": "get_run_state",
+          "args": "{\"run_id\":\"a4-dangling\"}",
+          "kind": "out-of-scope-read:dangling-symlink",
+          "status": "PASS",
+          "evidence": "denied code=-32000 Dangling symlink not allowed: a4-dangling"
+        },
+        {
+          "tool": "plan_squad",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"../../../../../../../../build/tmp/a4-outside-write-2956746-1791593087041\"}",
+          "kind": "out-of-scope-write:relative-traversal",
+          "status": "PASS",
+          "evidence": "denied code=-32000 Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "plan_squad",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"/build/tmp/a4-outside-write-2956746-1791593087041\"}",
+          "kind": "out-of-scope-write:absolute-path",
+          "status": "PASS",
+          "evidence": "denied code=-32000 Invalid run_id: must match /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/"
+        },
+        {
+          "tool": "plan_squad",
+          "args": "{\"batch_description\":\"x\",\"run_id\":\"a4-link-w\"}",
+          "kind": "out-of-scope-write:symlinked-run-dir",
+          "status": "PASS",
+          "evidence": "denied code=-32000 Invalid run_id: resolves outside the runs directory"
+        },
+        {
+          "tool": "(stdout framing)",
+          "status": "PASS",
+          "evidence": "stdout carried only JSON-RPC lines",
+          "kind": "framing"
+        }
+      ],
+      "notas": [],
+      "initialize": {
+        "protocolVersion": "2024-11-05",
+        "serverInfo": {
+          "name": "hseos-swarm",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "tools": {}
+        }
+      },
+      "exit": {
+        "code": 0,
+        "sig": null
+      },
+      "stderr": "[swarm] legacy MCP compatibility stdio ready; tools=5\n[mcp] discarded notification: bogus/notification\n",
+      "stdoutNonJson": 0,
+      "resumo": {
+        "PASS": 36,
+        "FAIL": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "nome": "hseos-project-state",
+      "script": "node_modules/hseos/tools/mcp-project-state/index.js",
+      "caminho": "legacy",
+      "transporte": "stdio",
+      "tools": [
+        "state_read",
+        "state_write",
+        "tasks_list",
+        "tasks_add",
+        "tasks_update",
+        "state_history",
+        "agent_runs_list",
+        "orphans_list",
+        "event_emit",
+        "events_search",
+        "handoffs_list",
+        "handoff_get",
+        "runs_list",
+        "run_describe",
+        "run_create"
+      ],
+      "chamadas": [
+        {
+          "tool": "initialize",
+          "status": "PASS",
+          "evidence": "{\"protocolVersion\":\"2024-11-05\",\"serverInfo\":{\"name\":\"hseos-project-state\",\"version\":\"1.0.0\"},\"capabilities\":{\"tools\":{}}}"
+        },
+        {
+          "tool": "notifications/initialized",
+          "status": "PASS",
+          "evidence": "no reply (conformant)",
+          "kind": "jsonrpc-notification"
+        },
+        {
+          "tool": "tools/list",
+          "status": "PASS",
+          "evidence": "15 tools: state_read,state_write,tasks_list,tasks_add,tasks_update,state_history,agent_runs_list,orphans_list,event_emit,events_search,handoffs_list,handoff_get,runs_list,run_describe,run_create"
+        },
+        {
+          "tool": "state_write",
+          "args": "{\"fields\":{\"a4_marker\":\"a4-1791593089360\"},\"agent\":\"a4\"}",
+          "status": "PASS",
+          "evidence": "result {\"written\":1,\"updated_at\":\"2026-10-10T00:44:49.421Z\"} written=1"
+        },
+        {
+          "tool": "state_read",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "result {\"state\":{\"a4_marker\":\"a4-1791593089360\"},\"updated_at\":\"2026-10-10T00:44:49.421Z\"} read-after-write marker match=true"
+        },
+        {
+          "tool": "tasks_add",
+          "args": "{\"id\":\"a4-task-1791593089422\"}",
+          "status": "PASS",
+          "evidence": "result {\"added\":\"a4-task-1791593089422\"}"
+        },
+        {
+          "tool": "tasks_list",
+          "args": "{\"status\":\"pending\"}",
+          "status": "PASS",
+          "evidence": "result {\"tasks\":[{\"id\":\"a4-task-1791593089422\",\"owner\":\"a4\",\"description\":\"journey probe\",\"status\":\"pending\",\"depends_on\":null,\"note\":null,\"created_at\":\"2026-10-10 00:44:49\",\"updated_at\":\"2026-10-10 00:44:49\"}],\"count\":1} count=1"
+        },
+        {
+          "tool": "tasks_update",
+          "args": "{\"id\":\"a4-task-1791593089422\",\"status\":\"done\"}",
+          "status": "PASS",
+          "evidence": "result {\"updated\":\"a4-task-1791593089422\",\"status\":\"done\",\"updated_at\":\"2026-10-10T00:44:49.425Z\"}"
+        },
+        {
+          "tool": "runs_list",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "result {\"runs\":[],\"count\":0} count=0"
+        },
+        {
+          "tool": "state_history",
+          "args": "{\"n\":3}",
+          "status": "PASS",
+          "evidence": "result {\"history\":[{\"id\":1,\"key\":\"a4_marker\",\"old_value\":null,\"new_value\":\"a4-1791593089360\",\"changed_by\":\"a4\",\"changed_at\":\"2026-10-10T00:44:49.421Z\"}],\"count\":1} count=1"
+        },
+        {
+          "tool": "(state db location)",
+          "status": "PASS",
+          "evidence": ".hseos/state/project.db exists=true; legacy telemetry db: true"
+        }
+      ],
+      "negacoes": [
+        {
+          "tool": "unknown_tool_xyz",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32000 message=Unknown tool: unknown_tool_xyz",
+          "kind": "unknown-tool"
+        },
+        {
+          "tool": "tools/call(no name)",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32602 message=Invalid params: tools/call requires a string \"name\"",
+          "kind": "missing-name"
+        },
+        {
+          "tool": "method unknown",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32601 message=Method not found: nope/method",
+          "kind": "unknown-method"
+        },
+        {
+          "tool": "tasks_add",
+          "args": "{\"id\":\"only-id\"}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32602 message=Invalid params: (arguments) must have required property 'owner'; (arguments) must have required property 'description'",
+          "kind": "schema-violation"
+        },
+        {
+          "tool": "tasks_add",
+          "args": "{\"id\":123,\"owner\":\"a\",\"description\":\"b\"}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32602 message=Invalid params: /id must be string",
+          "kind": "wrong-type"
+        },
+        {
+          "tool": "malformed-json-line",
+          "status": "PASS",
+          "evidence": "error code=-32700",
+          "kind": "malformed-input"
+        },
+        {
+          "tool": "unknown-method-notification (no id)",
+          "status": "PASS",
+          "evidence": "discarded silently (JSON-RPC conformant)",
+          "kind": "jsonrpc-notification"
+        },
+        {
+          "tool": "non-request:null",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:number",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:array",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:string",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:object-without-method",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":901,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:object-id-not-scalar",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request: id must be a non-empty string or an integer\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "still-serving-after-non-requests",
+          "status": "PASS",
+          "evidence": "15 tools",
+          "kind": "non-object"
+        },
+        {
+          "tool": "tasks_list",
+          "args": "{\"status\":\"bogus\"}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32602 message=Invalid params: /status must be equal to one of the allowed values",
+          "kind": "enum-violation"
+        },
+        {
+          "tool": "run_describe",
+          "args": "{\"run_id\":\"does-not-exist\"}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32000 message=Run not found: does-not-exist",
+          "kind": "nonexistent-entity"
+        },
+        {
+          "tool": "tasks_update",
+          "args": "{\"id\":\"no-such-task-a4\",\"status\":\"done\"}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32000 message=Task not found: no-such-task-a4",
+          "kind": "nonexistent-entity"
+        },
+        {
+          "tool": "(stdout framing)",
+          "status": "PASS",
+          "evidence": "stdout carried only JSON-RPC lines",
+          "kind": "framing"
+        }
+      ],
+      "notas": [
+        "no tool of this server takes a filesystem path argument; the db path comes only from operator flag/env (--db / HSEOS_STATE_DB), so there is no client-reachable path scope to probe"
+      ],
+      "initialize": {
+        "protocolVersion": "2024-11-05",
+        "serverInfo": {
+          "name": "hseos-project-state",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "tools": {}
+        }
+      },
+      "exit": {
+        "code": 0,
+        "sig": null
+      },
+      "stderr": "[project-state:info] applied 001-agent-state-tables.sql (user_version → 1)\n[project-state:info] applied 002-events-fts.sql (user_version → 2)\n[project-state:info] applied 003-session-tracking.sql (user_version → 3)\n[project-state:info] applied 004-session-context.sql (user_version → 4)\n[project-state:info] [project_state] legacy MCP compatibility stdio ready; tools=15\n[mcp] discarded notification:...(+20)",
+      "stdoutNonJson": 0,
+      "resumo": {
+        "PASS": 29,
+        "FAIL": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "nome": "axon-bridge[stdio]",
+      "script": "node_modules/hseos/tools/mcp-axon-bridge/index.js",
+      "caminho": "legacy",
+      "transporte": "stdio (default, no flags)",
+      "tools": ["code_search", "dep_graph", "get_overview", "get_skeleton", "memory_search", "run_pipeline"],
+      "chamadas": [
+        {
+          "tool": "initialize",
+          "status": "PASS",
+          "evidence": "{\"protocolVersion\":\"2024-11-05\",\"serverInfo\":{\"name\":\"axon-bridge\",\"version\":\"1.0.0\"},\"capabilities\":{\"tools\":{}}}"
+        },
+        {
+          "tool": "notifications/initialized",
+          "status": "PASS",
+          "evidence": "no reply (conformant)",
+          "kind": "jsonrpc-notification"
+        },
+        {
+          "tool": "tools/list",
+          "status": "PASS",
+          "evidence": "6 tools: code_search,dep_graph,get_overview,get_skeleton,memory_search,run_pipeline"
+        },
+        {
+          "tool": "get_overview",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "result {\"hint\":\"Use get_context_capsule(query) with a query derived from these entry points, or get_skeleton(files) to inspect signatures.\",\"top_files\":[{\"byte_size\":59,\"in_degree\":0,\"out_degree\":0,\"path\":\"a.js\",\"total_degree\":0},{\"byte_size\":95,\"in_degree\":0,\"out_degree\":0,\"path\":\"b.js\",\"total_degree\":0}]...(+277) real axon answer (no fallback marker)"
+        },
+        {
+          "tool": "code_search",
+          "args": "{\"query\":\"mcp server\",\"limit\":3}",
+          "status": "PASS",
+          "evidence": "result {\"cache\":\"miss\",\"expand\":\"get_symbol{name,file} reads one definition; get_skeleton{files} lists signatures; entries marked signatures:true list neighbours only\",\"pivot_files\":[{\"content\":\"// file: b.js\\n\\n// === run (function) lines 2-2 ===\\nfunction run() { return hello(); }\\n\",\"path\":\"b.js\",\"sourc...(+227) real axon answer (no fallback marker)"
+        }
+      ],
+      "negacoes": [
+        {
+          "tool": "unknown_tool_xyz",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32000 message=Unknown tool: unknown_tool_xyz",
+          "kind": "unknown-tool"
+        },
+        {
+          "tool": "tools/call(no name)",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32602 message=Invalid params: tools/call requires a string \"name\"",
+          "kind": "missing-name"
+        },
+        {
+          "tool": "method unknown",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32601 message=Method not found: nope/method",
+          "kind": "unknown-method"
+        },
+        {
+          "tool": "code_search",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32602 message=Invalid params: (arguments) must have required property 'query'",
+          "kind": "schema-violation"
+        },
+        {
+          "tool": "code_search",
+          "args": "{\"query\":123,\"limit\":\"abc\"}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32602 message=Invalid params: /query must be string",
+          "kind": "wrong-type"
+        },
+        {
+          "tool": "malformed-json-line",
+          "status": "PASS",
+          "evidence": "error code=-32700",
+          "kind": "malformed-input"
+        },
+        {
+          "tool": "unknown-method-notification (no id)",
+          "status": "PASS",
+          "evidence": "discarded silently (JSON-RPC conformant)",
+          "kind": "jsonrpc-notification"
+        },
+        {
+          "tool": "non-request:null",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:number",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:array",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:string",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:object-without-method",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":901,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "non-request:object-id-not-scalar",
+          "status": "PASS",
+          "evidence": "reply={\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request: id must be a non-empty string or an integer\"}}",
+          "kind": "non-object"
+        },
+        {
+          "tool": "still-serving-after-non-requests",
+          "status": "PASS",
+          "evidence": "6 tools",
+          "kind": "non-object"
+        },
+        {
+          "tool": "get_skeleton",
+          "args": "{\"files\":[\"/etc/passwd\",\"../../../../etc/shadow\"]}",
+          "kind": "out-of-scope-path",
+          "status": "PASS",
+          "evidence": "no /etc/passwd content returned: []"
+        },
+        {
+          "tool": "(stdout framing)",
+          "status": "PASS",
+          "evidence": "stdout carried only JSON-RPC lines",
+          "kind": "framing"
+        }
+      ],
+      "notas": [
+        "axon on PATH: /home/annonymous/.local/bin/axon; fixture project /tmp/hseos-reval/final3/journeys/mcp/axon-fixture: indexed"
+      ],
+      "initialize": {
+        "protocolVersion": "2024-11-05",
+        "serverInfo": {
+          "name": "axon-bridge",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "tools": {}
+        }
+      },
+      "exit": {
+        "code": 0,
+        "sig": null
+      },
+      "stderr": "[axon_bridge] legacy MCP compatibility stdio ready; tools=6\n[axon-bridge] Axon binary: /home/annonymous/.local/bin/axon\n[mcp] discarded notification: bogus/notification\n",
+      "stdoutNonJson": 0,
+      "resumo": {
+        "PASS": 21,
+        "FAIL": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "nome": "axon-bridge[axon-absent]",
+      "script": "node_modules/hseos/tools/mcp-axon-bridge/index.js",
+      "caminho": "legacy",
+      "transporte": "stdio, axon removed from PATH",
+      "tools": ["code_search", "dep_graph", "get_overview", "get_skeleton", "memory_search", "run_pipeline"],
+      "chamadas": [
+        {
+          "tool": "initialize",
+          "status": "PASS",
+          "evidence": "{\"protocolVersion\":\"2024-11-05\",\"serverInfo\":{\"name\":\"axon-bridge\",\"version\":\"1.0.0\"},\"capabilities\":{\"tools\":{}}}"
+        },
+        {
+          "tool": "notifications/initialized",
+          "status": "PASS",
+          "evidence": "no reply (conformant)",
+          "kind": "jsonrpc-notification"
+        },
+        {
+          "tool": "tools/list",
+          "status": "PASS",
+          "evidence": "6 tools: code_search,dep_graph,get_overview,get_skeleton,memory_search,run_pipeline"
+        }
+      ],
+      "negacoes": [
+        {
+          "tool": "get_overview",
+          "args": "{}",
+          "kind": "axon-unavailable",
+          "status": "PASS",
+          "evidence": "explicit error: AXON_UNAVAILABLE: axon binary not found — install axon or set AXON_BIN env var"
+        },
+        {
+          "tool": "code_search",
+          "args": "{\"query\":\"mcp server\",\"limit\":3}",
+          "kind": "axon-unavailable",
+          "status": "PASS",
+          "evidence": "explicit error: AXON_UNAVAILABLE: axon binary not found — install axon or set AXON_BIN env var"
+        },
+        {
+          "tool": "(stdout framing)",
+          "status": "PASS",
+          "evidence": "stdout carried only JSON-RPC lines",
+          "kind": "framing"
+        }
+      ],
+      "notas": [],
+      "initialize": {
+        "protocolVersion": "2024-11-05",
+        "serverInfo": {
+          "name": "axon-bridge",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "tools": {}
+        }
+      },
+      "exit": {
+        "code": 0,
+        "sig": null
+      },
+      "stderr": "[axon_bridge] legacy MCP compatibility stdio ready; tools=6\n[axon-bridge] Axon binary: (unavailable: tools return AXON_UNAVAILABLE)\n",
+      "stdoutNonJson": 0,
+      "resumo": {
+        "PASS": 6,
+        "FAIL": 0,
+        "BLOCKED": 0
+      }
+    },
+    {
+      "nome": "axon-bridge[http]",
+      "script": "node_modules/hseos/tools/mcp-axon-bridge/index.js",
+      "caminho": "legacy",
+      "transporte": "http (--port=0) + bearer credential",
+      "tools": ["code_search", "dep_graph", "get_overview", "get_skeleton", "memory_search", "run_pipeline"],
+      "chamadas": [
+        {
+          "tool": "GET /health (bearer)",
+          "status": "PASS",
+          "evidence": "{\"status\":\"ok\",\"server\":\"axon-bridge\",\"protocol\":\"2024-11-05\",\"compatibility_mode\":\"legacy-metered\",\"axon_binary\":\"/home/annonymous/.local/bin/axon\",\"axon_available\":true,\"tools\":6}"
+        },
+        {
+          "tool": "initialize",
+          "status": "PASS",
+          "evidence": "{\"protocolVersion\":\"2024-11-05\",\"serverInfo\":{\"name\":\"axon-bridge\",\"version\":\"1.0.0\"}}"
+        },
+        {
+          "tool": "tools/list",
+          "status": "PASS",
+          "evidence": "code_search,dep_graph,get_overview,get_skeleton,memory_search,run_pipeline"
+        },
+        {
+          "tool": "get_overview",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "result {\"hint\":\"Use get_context_capsule(query) with a query derived from these entry points, or get_skeleton(files) to inspect signatures.\",\"top_files\":[{\"byte_size\":59,\"in_degree\":0,\"out_degree\":0,\"path\":\"a.js\",\"total_degree\":0},{\"byte_size\":95,\"in_degree\":0,\"out_degree\":0,\"path\":\"b.js\",\"total_degree\":0}]...(+277) real axon answer (no fallback marker)"
+        },
+        {
+          "tool": "code_search",
+          "args": "{\"query\":\"mcp server\",\"limit\":3}",
+          "status": "PASS",
+          "evidence": "result {\"cache\":\"hit\",\"expand\":\"get_symbol{name,file} reads one definition; get_skeleton{files} lists signatures; entries marked signatures:true list neighbours only\",\"pivot_files\":[{\"content\":\"// file: b.js\\n\\n// === run (function) lines 2-2 ===\\nfunction run() { return hello(); }\\n\",\"path\":\"b.js\",\"source...(+226) real axon answer (no fallback marker)"
+        },
+        {
+          "tool": "POST notification",
+          "status": "PASS",
+          "evidence": "http 202",
+          "kind": "jsonrpc-notification"
+        }
+      ],
+      "negacoes": [
+        {
+          "tool": "startup with no credential",
+          "kind": "http-auth",
+          "status": "PASS",
+          "evidence": "exit=1 stderr=[axon-bridge] HTTP mode requires HSEOS_AXON_BRIDGE_CREDENTIAL with at least 32 characters (or run without --http/--port for stdio)"
+        },
+        {
+          "tool": "startup with short credential (31 chars)",
+          "kind": "http-auth",
+          "status": "PASS",
+          "evidence": "exit=1 stderr=[axon-bridge] HTTP mode requires HSEOS_AXON_BRIDGE_CREDENTIAL with at least 32 characters (or run without --http/--port for stdio)"
+        },
+        {
+          "tool": "(stdout framing)",
+          "status": "PASS",
+          "evidence": "HTTP mode must not write protocol or banner lines to stdout"
+        },
+        {
+          "tool": "HTTP no Authorization header",
+          "kind": "http-auth",
+          "status": "PASS",
+          "evidence": "http 401 (expected 401) {\"error\":\"missing or invalid bearer credential\"}"
+        },
+        {
+          "tool": "HTTP wrong bearer",
+          "kind": "http-auth",
+          "status": "PASS",
+          "evidence": "http 401 (expected 401) {\"error\":\"missing or invalid bearer credential\"}"
+        },
+        {
+          "tool": "HTTP Basic scheme",
+          "kind": "http-auth",
+          "status": "PASS",
+          "evidence": "http 401 (expected 401) {\"error\":\"missing or invalid bearer credential\"}"
+        },
+        {
+          "tool": "HTTP Origin header present",
+          "kind": "http-auth",
+          "status": "PASS",
+          "evidence": "http 403 (expected 403) {\"error\":\"forbidden origin or host\"}"
+        },
+        {
+          "tool": "HTTP foreign Host header",
+          "kind": "http-auth",
+          "status": "PASS",
+          "evidence": "http 403 (expected 403) {\"error\":\"forbidden origin or host\"}"
+        },
+        {
+          "tool": "HTTP GET /health without bearer",
+          "kind": "http-auth",
+          "status": "PASS",
+          "evidence": "http 401"
+        },
+        {
+          "tool": "unknown_tool_xyz",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32000 message=Unknown tool: unknown_tool_xyz",
+          "kind": "unknown-tool"
+        },
+        {
+          "tool": "tools/call(no name)",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32602 message=Invalid params: tools/call requires a string \"name\"",
+          "kind": "missing-name"
+        },
+        {
+          "tool": "code_search",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32602 message=Invalid params: (arguments) must have required property 'query'",
+          "kind": "schema-violation"
+        },
+        {
+          "tool": "code_search",
+          "args": "{\"query\":123,\"limit\":\"abc\"}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32602 message=Invalid params: /query must be string",
+          "kind": "wrong-type"
+        },
+        {
+          "tool": "nope/method",
+          "args": "{}",
+          "status": "PASS",
+          "evidence": "denied with JSON-RPC error code=-32601 message=Method not found: nope/method",
+          "kind": "unknown-method"
+        },
+        {
+          "tool": "HTTP malformed body",
+          "kind": "malformed-input",
+          "status": "PASS",
+          "evidence": "http 400 {\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}"
+        },
+        {
+          "tool": "HTTP GET /tools",
+          "kind": "transport",
+          "status": "PASS",
+          "evidence": "http 405"
+        },
+        {
+          "tool": "HTTP body null",
+          "kind": "non-object",
+          "status": "PASS",
+          "evidence": "http 200 {\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}"
+        },
+        {
+          "tool": "HTTP body number",
+          "kind": "non-object",
+          "status": "PASS",
+          "evidence": "http 200 {\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}"
+        },
+        {
+          "tool": "HTTP body array",
+          "kind": "non-object",
+          "status": "PASS",
+          "evidence": "http 200 {\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}"
+        },
+        {
+          "tool": "HTTP body string",
+          "kind": "non-object",
+          "status": "PASS",
+          "evidence": "http 200 {\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}"
+        },
+        {
+          "tool": "get_skeleton",
+          "args": "{\"files\":[\"/etc/passwd\"]}",
+          "kind": "out-of-scope-path",
+          "status": "PASS",
+          "evidence": "no /etc/passwd content: []"
+        },
+        {
+          "tool": "(still serving after non-object bodies)",
+          "kind": "non-object",
+          "status": "PASS",
+          "evidence": "http 200"
+        }
+      ],
+      "notas": [],
+      "initialize": {
+        "protocolVersion": "2024-11-05",
+        "serverInfo": {
+          "name": "axon-bridge",
+          "version": "1.0.0"
+        }
+      },
+      "exit": {
+        "code": 0,
+        "sig": null
+      },
+      "stderr": "[axon-bridge] Axon binary: /home/annonymous/.local/bin/axon\n[axon_bridge] legacy MCP compatibility listening on http://127.0.0.1:44693\n",
+      "resumo": {
+        "PASS": 28,
+        "FAIL": 0,
+        "BLOCKED": 0
+      }
+    }
+  ],
+  "achados": [],
+  "abortos": [],
+  "processos": {
+    "spawned": [2956831, 2957098, 2957318, 2957751, 2958278, 2958462],
+    "orfaos_apos_encerrar": [],
+    "axon_orfaos": [],
+    "strays_mortos_na_limpeza": []
+  },
+  "limitacoes": [
+    "Servers were exercised only in the normal installed mode (NODE_ENV and HSEOS_GOVERNED_EXECUTION_FIXTURE unset), i.e. the legacy server path; the native governed path is fixture-gated and was not exercised here.",
+    "axon-bridge is covered three ways: stdio (default), stdio with axon removed from PATH, and HTTP on an ephemeral 127.0.0.1 port with a generated bearer credential.",
+    "Real axon answers depend on the axon binary found on PATH at run time; without it those calls are BLOCKED (and the journey fails).",
+    "project-state has no client-reachable path argument, so out-of-scope path probes do not apply to it."
+  ]
+}

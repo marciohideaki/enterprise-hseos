@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "task": "REVAL-A1",
+  "status": "BASELINE_VERIFIED_PRE_FIX",
+  "base_commit": "4a95592b",
+  "branch": "master",
+  "environment": {
+    "os": "linux",
+    "arch": "x64",
+    "node22": "v22.23.3",
+    "node24": "v24.15.0",
+    "resource_scope": "systemd-run --user Delegate=yes DelegateSubgroup=tests + .github/scripts/enable-test-cgroup.mjs; heavy-run wrapper (serialized, load-gated)",
+    "postgres": "platform-shared-dev tunnel, dedicated databases; credential omitted"
+  },
+  "package": {
+    "tarball": "hseos-4.0.0-rc.0.tgz",
+    "sha256": "ea1a430de8aea5777a9daa6639220720bb809e09e448ccb37500d826ca450064",
+    "entries": 1472
+  },
+  "stages": {
+    "npm-test-node24": {
+      "command": ["npm", "test"],
+      "node": "v24.15.0",
+      "started_at": "2026-10-09T17:26:58Z",
+      "ended_at": "2026-10-09T17:43:06Z",
+      "exit_code": 0,
+      "log": "npm-test-node24.log.gz",
+      "log_sha256": "9376b6710fce858b3581782a3810266a5ec6bacd947b5cd0983da0fdef65c50f",
+      "tap": {
+        "tests": 1439,
+        "pass": 1439,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    "kernel-coverage-node24": {
+      "command": ["npm", "run", "test:kernel-coverage"],
+      "node": "v24.15.0",
+      "started_at": "2026-10-09T17:44:36Z",
+      "ended_at": "2026-10-09T17:54:58Z",
+      "exit_code": 0,
+      "log": "kernel-coverage-node24.log.gz",
+      "log_sha256": "c885fd32f1a4c98cf792f29737e1bcbc782e10f0cdbf728b1a597882e5770ddc",
+      "coverage": {
+        "lines_pct": 96.8,
+        "branches_pct": 90.12,
+        "per_file_gate": "90/80 approved"
+      }
+    },
+    "w4-mutations-node24": {
+      "command": ["npm", "run", "test:w4-mutations"],
+      "node": "v24.15.0",
+      "started_at": "2026-10-09T17:58:58Z",
+      "ended_at": "2026-10-09T17:59:21Z",
+      "exit_code": 0,
+      "log": "w4-mutations-node24.log.gz",
+      "log_sha256": "2573844cfc8f1c2299bfaf504c3d2bff99ea51f75cc06cec670c88f2b21c507a",
+      "mutants": {
+        "rejected": 18,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "quality-gates-node24": {
+      "command": ["bash", "scripts/governance/quality-gates.sh", "--phase", "ci"],
+      "node": "v24.15.0",
+      "started_at": "2026-10-09T17:59:51Z",
+      "ended_at": "2026-10-09T17:59:53Z",
+      "exit_code": 0,
+      "log": "quality-gates-node24.log.gz",
+      "log_sha256": "4e7662151436a40263096e50a81a0ea483d425dd1fbe5ab9ee4fab62f2a3658c",
+      "env": {
+        "VALIDATION_ENFORCED": "true"
+      },
+      "gate": {
+        "failures": 0,
+        "warnings": 1,
+        "validation_enforced": true
+      }
+    },
+    "npm-test-node22": {
+      "command": ["npm", "test"],
+      "node": "v22.23.3",
+      "started_at": "2026-10-09T17:59:54Z",
+      "ended_at": "2026-10-09T18:11:06Z",
+      "exit_code": 0,
+      "log": "npm-test-node22.log.gz",
+      "log_sha256": "6fc81a4ffa1db9d55caafa8efc742bf4509f990b395b3cd4360021be6d0620ab",
+      "tap": {
+        "tests": 1439,
+        "pass": 1439,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    "kernel-coverage-node22": {
+      "command": ["npm", "run", "test:kernel-coverage"],
+      "node": "v22.23.3",
+      "started_at": "2026-10-09T18:11:06Z",
+      "ended_at": "2026-10-09T18:30:33Z",
+      "exit_code": 0,
+      "log": "kernel-coverage-node22.log.gz",
+      "log_sha256": "ab5c46199de3495641b4ec7402ced330be7af6bbd75ffe50a6d7d91b2f78ec85",
+      "coverage": {
+        "lines_pct": 96.81,
+        "branches_pct": 90.13,
+        "per_file_gate": "90/80 approved"
+      }
+    },
+    "w4-mutations-node22": {
+      "command": ["npm", "run", "test:w4-mutations"],
+      "node": "v22.23.3",
+      "started_at": "2026-10-09T18:42:33Z",
+      "ended_at": "2026-10-09T18:42:53Z",
+      "exit_code": 0,
+      "log": "w4-mutations-node22.log.gz",
+      "log_sha256": "43ecf4a5304377b410459dacd9abcca2af483ff006949181e2bd0befd47c0ed9",
+      "mutants": {
+        "rejected": 18,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "quality-gates-node22": {
+      "command": ["bash", "scripts/governance/quality-gates.sh", "--phase", "ci"],
+      "node": "v22.23.3",
+      "started_at": "2026-10-09T18:42:53Z",
+      "ended_at": "2026-10-09T18:42:56Z",
+      "exit_code": 0,
+      "log": "quality-gates-node22.log.gz",
+      "log_sha256": "b8c4bf2851c8827ab8f69ee285c541c70f9e87e633217412118c3fe7192d0399",
+      "env": {
+        "VALIDATION_ENFORCED": "true"
+      },
+      "gate": {
+        "failures": 0,
+        "warnings": 1,
+        "validation_enforced": true
+      }
+    }
+  },
+  "limitations": [
+    "Baseline of master 4a95592b BEFORE the A6 corrections; the post-fix matrix will be appended by a later receipt and is not claimed here.",
+    "Commands are the logical npm/bash commands; the systemd-run/heavy-run envelope is described in environment.resource_scope and was not recorded argument-for-argument.",
+    "A first Node 24 attempt failed 2 guard performance tests (201.9 ms > 200 ms threshold) under external host load; it is NOT counted as an approval and its log is not part of this receipt. The recorded Node 24 run is the repetition.",
+    "Node 22 here is v22.23.3 (the sandbox /usr/bin/node 22.22.1 was not used for these stages).",
+    "log_sha256 is the hash of the uncompressed log; the .gz files hold the same bytes compressed. The logs embed the original machine paths of the run.",
+    "Real-model dispatch (A5) was not performed; no provider or paid call was made."
+  ]
+}
