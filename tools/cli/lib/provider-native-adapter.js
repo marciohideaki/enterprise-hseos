@@ -5,6 +5,7 @@ const { z } = require('zod');
 const { engineeringDigest } = require('./engineering-task-state');
 const { credentialFingerprint } = require('./provider-api-adapter');
 const { runCampaignProcess } = require('./provider-campaign-process');
+const { createClaudeAccountCampaignAdapter } = require('./provider-claude-account-adapter');
 const { MAX_EVIDENCE_BYTES, containsCredential, evidenceSha256 } = require('./campaign-evidence-store');
 const readers = { codex: require('./delegated-codex-runtime').readBinding, claude: require('./delegated-claude-runtime').readBinding };
 const integer = z.number().int().nonnegative().safe();
@@ -24,6 +25,9 @@ const files = [
   require.resolve('../../../packages/agent-isolation-attestation/executor'),
   require.resolve('../../../packages/runtime-providers/codex-app-server-driver'),
   require.resolve('../../../packages/runtime-providers/claude-agent-sdk-driver'),
+  require.resolve('./provider-claude-account-adapter'),
+  require.resolve('./provider-claude-account-worker'),
+  require.resolve('../../../packages/runtime-providers/claude-cli-driver'),
 ];
 function nativeArtifactDigest() {
   return engineeringDigest(files.map((file) => createHash('sha256').update(fs.readFileSync(file)).digest('hex')));
@@ -39,6 +43,21 @@ function withholdReason(result, secrets) {
   if (evidenceSha256(Buffer.from(text, 'utf8')) !== result.text_sha256) return 'integrity_mismatch';
   return containsCredential(text, secrets) ? 'credential_pattern' : null;
 }
+/** Splits a worker result into the attested summary and the receipt fields that retain or withhold the output text. */
+function retainOutput(result, secrets) {
+  const { text, text_too_large: _tooLarge, ...attested } = result;
+  const withheld = withholdReason(result, secrets);
+  const fields =
+    withheld === null
+      ? {
+          evidence_ref: { schema_version: 1, kind: 'model_output', sha256: result.text_sha256, bytes: Buffer.byteLength(text) },
+          output_text: text,
+        }
+      : withheld
+        ? { evidence_withheld: withheld }
+        : {};
+  return { attested, fields };
+}
 function fail(code) {
   throw Object.assign(new Error(code), { code });
 }
@@ -50,6 +69,16 @@ function createNativeCampaignAdapter(
 ) {
   const vendor = manifest.vendor;
   if (!Object.hasOwn(readers, vendor)) fail('CONTROL_PROVIDER_CONFIGURATION_INVALID');
+  if (vendor === 'claude' && manifest.route === 'account')
+    return createClaudeAccountCampaignAdapter(
+      { manifest, binding: filename, options },
+      { processRunner },
+      {
+        loadedArtifact,
+        artifactDigest: nativeArtifactDigest,
+        retainOutput,
+      },
+    );
   const settings = settingsSchema.parse(options);
   const binding = readers[vendor](filename);
   const digest = engineeringDigest({ binding, options: settings });
@@ -189,22 +218,12 @@ function createNativeCampaignAdapter(
         );
         const output = integer.parse(vendor === 'codex' ? usage?.outputTokens : usage?.output_tokens);
         // The text itself is retained by the control layer; the receipt digest keeps covering only the attested summary.
-        const { text, text_too_large: _tooLarge, ...attested } = result;
-        const secrets = [selected.ANTHROPIC_API_KEY, ...knownSecretValues()];
-        const withheld = withholdReason(result, secrets);
-        const retained = withheld === null;
+        const { attested, fields } = retainOutput(result, [selected.ANTHROPIC_API_KEY, ...knownSecretValues()]);
         return {
           status: 'completed',
           binding_sha256: digest,
           evidence_sha256: engineeringDigest(attested),
-          ...(retained
-            ? {
-                evidence_ref: { schema_version: 1, kind: 'model_output', sha256: result.text_sha256, bytes: Buffer.byteLength(text) },
-                output_text: text,
-              }
-            : withheld
-              ? { evidence_withheld: withheld }
-              : {}),
+          ...fields,
           cost_microusd: null,
           input_tokens: input,
           output_tokens: output,
