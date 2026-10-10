@@ -1,0 +1,98 @@
+{
+  "task": "A5 real-model engineering task (README axon-bridge stdio default)",
+  "date": "2026-10-09",
+  "verifier_sha256": "305dc54bf64b2650dfd842dcceb330ee1e97da885199743b06120197b0b4e38c",
+  "routes": [
+    {
+      "route": "codex-subscription",
+      "binding": "binding:a5-codex-account",
+      "interface": "CLI (control campaign-run/prepare/command/query)",
+      "authorizations": ["dcf621a3-c8b3-4783-88a0-e0e28a6bba12", "442fd45f-68e6-43c2-b585-a1d80887d33f"],
+      "campaigns": [
+        "f07d2777-da3b-4199-bd3f-a49bab118080 (attempt1 uncertain, reconciled, cancelled)",
+        "fc998b15-c025-48e3-8f9e-7907af11251b (completed)"
+      ],
+      "reservation": "subscription, reserved_microusd=0",
+      "receipt": {
+        "input_tokens": 18091,
+        "output_tokens": 368,
+        "session": "01a12216-a5a3-73c3-9b6b-8116f5f5973d"
+      },
+      "cost": "US$0 (subscription; no credits)",
+      "dispatches_used": 2,
+      "external_verifier": "PASS",
+      "hseos_task_result": "approved",
+      "status": "PASS",
+      "cause": "attempt1 failed pre-turn (pids.max=64); attempt2 ok"
+    },
+    {
+      "route": "claude-api-paid",
+      "binding": "binding:a5-claude-api",
+      "interface": "SDK (ControlClient)",
+      "authorizations": ["873d6f89-25a7-4cdb-89d9-d74357511874"],
+      "campaigns": ["f6004129-b494-44eb-828c-6d4bbf5ba52a"],
+      "reservation": "250000 microusd per request; grant cap 1000000 set before dispatch",
+      "receipt": {
+        "status": "completed",
+        "binding_sha256": "91f38da5ce44ce3899eb3db6c5972e8f3316f9bf092a27acab60cb27cf135075",
+        "evidence_sha256": "0d4c2702f2f982b7834954b1ccaae418db80bb1d04c6faa058a13db61b2c4db3",
+        "cost_microusd": null,
+        "input_tokens": 1826,
+        "output_tokens": 745,
+        "provider_session_id": "643fdb9e-4c52-452d-af50-442e43ac6b23"
+      },
+      "cost": "US$0.00696 (SDK cost-state); ledger committed (reserved) US$0.25",
+      "dispatches_used": 1,
+      "external_verifier": "PASS",
+      "hseos_task_result": "approved",
+      "status": "PASS"
+    },
+    {
+      "route": "claude-subscription",
+      "status": "BLOCKED",
+      "cause": "No HSEOS campaign adapter for claude/account (control adapters lists claude only as api); native adapter refuses with CONTROL_PROVIDER_CONFIGURATION_INVALID. CLI logged in (Max). Not circumvented.",
+      "evidence": ["routes/claude-account-probe.json", "routes/adapters.json"],
+      "dispatches_used": 0,
+      "cost": "US$0"
+    },
+    {
+      "route": "antigravity-litert-local (+codex child)",
+      "binding": "binding:a5-antigravity-local + binding:a5-codex-child",
+      "interface": "SDK, programmatic control server",
+      "campaigns": ["5776c139-b2c3-4365-84db-8acaacdab068"],
+      "receipt": {
+        "status": "completed",
+        "cost_microusd": 0,
+        "input_tokens": 249,
+        "output_tokens": 21,
+        "provider_session_id": "ab6179212de35836bb2805e9a5fb3e38",
+        "evidence_sha256": "bd72096ea6665c3aeb5c7509ecc0380cdbf0a6711d2ca44ae05f93b386c361f9"
+      },
+      "child": {
+        "input_tokens": 18091,
+        "output_tokens": 385,
+        "session": "01a1221c-7367-7d40-803f-16ee03bb5c83"
+      },
+      "cost": "US$0",
+      "dispatches_used": "1 local + 1 Codex (3rd of 3)",
+      "external_verifier": "PASS",
+      "hseos_task_result": "approved",
+      "status": "PASS (composite)",
+      "cause": "README text authored by the Codex child; Qwen3-0.6B only delegated via run_campaign_model. Served-config loader requires model-kind subordinates, so the composite ran programmatically."
+    }
+  ],
+  "totals": {
+    "paid_api_real_usd": 0.00696,
+    "paid_api_reserved_usd": 0.25,
+    "codex_dispatches": 3,
+    "cap_usd": 1.0
+  },
+  "findings": [
+    "Campaign receipts carry only an evidence hash; model text is not returned. README patches were built from vendor session transcripts (out-of-band bridge, not an HSEOS path).",
+    "Native worker pids_max=64 insufficient for codex 0.161 (peak 64 hit); 256 used.",
+    "web-content-v1 verifier echoes the whole file: max_output_bytes (max 65536) must exceed file size; 8192 fails.",
+    "Task max_tokens 200k insufficient for a 40KB README with full-content tool payloads; 2M used.",
+    "Binding provider_version must match the native codex binary (0.161.0), not the wrapper (0.154.0).",
+    "A leading blank line in the prompted block caused a formatting regression in glue attempt 3, caught by the external verifier (C3)."
+  ]
+}

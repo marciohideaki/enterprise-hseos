@@ -1,0 +1,68 @@
+{
+  "recorded_at": "2026-10-10T00:11:19.316Z",
+  "owner_authorization_date": "2026-10-09",
+  "limits": {
+    "claude_account_max_dispatches": 3,
+    "claude_account_overage": "refused by adapter",
+    "api_total_cap_usd": 1,
+    "api_reserved_in_a5_usd": 0.25,
+    "api_grant_cap_usd_here": 0.75,
+    "codex": "exhausted/forbidden"
+  },
+  "ids": {
+    "sub": {
+      "binding": "binding:a5b-claude-account",
+      "task": "69648b11-a3ed-426d-91b5-aab55a0391bf",
+      "authorization": "bf7069da-c1ff-44f1-b926-a067e7e6588a"
+    },
+    "api": {
+      "binding": "binding:a5b-claude-api",
+      "task": "c3f9ae8b-0f24-443b-a673-028140c4882c",
+      "authorization": "5ececd54-a502-4f7f-9613-3541736edc76"
+    }
+  },
+  "grants": {
+    "bf7069da-c1ff-44f1-b926-a067e7e6588a": {
+      "max_requests": 3,
+      "max_cost_microusd": 0,
+      "deadline": 1791601878090,
+      "binding_ids": ["binding:a5b-claude-account"],
+      "task_ids": ["69648b11-a3ed-426d-91b5-aab55a0391bf"],
+      "quota_exceptions": {
+        "binding:a5b-claude-account": {
+          "reason": "Owner authorization 2026-10-09 (A5b brief via team-lead): Claude subscription (claude/account) max 3 dispatches total, no paid credits/overage. CLI exposes no quota windows.",
+          "expires_at": 1791601878090
+        }
+      }
+    },
+    "5ececd54-a502-4f7f-9613-3541736edc76": {
+      "max_requests": 1,
+      "max_cost_microusd": 750000,
+      "deadline": 1791601878090,
+      "binding_ids": ["binding:a5b-claude-api"],
+      "task_ids": ["c3f9ae8b-0f24-443b-a673-028140c4882c"],
+      "quota_exceptions": {
+        "binding:a5b-claude-api": {
+          "reason": "Owner authorization 2026-10-09 (A5b brief via team-lead): paid Anthropic API total cap USD 1.00; A5 already reserved USD 0.25, remaining USD 0.75 here (same owner authorization, new grant id because the A5 grant was claimed).",
+          "expires_at": 1791601878090
+        }
+      }
+    }
+  },
+  "state": "/build/tmp/hseos-ledger-fixture-UyeLhe",
+  "prompt_sha256": "7ea042651ed1918dc6d095f8f0f89a59084253a2c241cbbcca379ba68a547d18",
+  "verifier_sha256": "305dc54bf64b2650dfd842dcceb330ee1e97da885199743b06120197b0b4e38c",
+  "manifests": {
+    "sub": {
+      "binding_sha256": "f630abb752ab25d6b97ed30fe732ebdf8dae0f93132512b0b97f5c43a76ea373",
+      "account_sha256": "704dfbe70d21948b88b784590c772cb3fba241af716f2ecf675e350890874063",
+      "provider_version": "2.1.296",
+      "model": "sonnet"
+    },
+    "api": {
+      "binding_sha256": "2399dc924d70420fc088ee9029267394e39140a0e1a0ac3b35a6c7d1e82b4433",
+      "credential_sha256": "cd372ce212333d3c560749302ca18b2bc7839b0aa928eec2aa8e82daa765118c",
+      "model": "claude-haiku-4-5-20251001"
+    }
+  }
+}

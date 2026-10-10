@@ -1,9 +1,11 @@
 {
   "schema_version": 1,
-  "task": "REVAL-A1",
-  "status": "BASELINE_VERIFIED_PRE_FIX",
+  "task": "REVAL-CLOSEOUT",
+  "status": "VERIFIED_BEFORE_PR",
   "base_commit": "4a95592b",
-  "branch": "master",
+  "head_commit": "1ae317c0",
+  "branch": "feature/core-revalidation-2026-10",
+  "upstream": "master",
   "environment": {
     "os": "linux",
     "arch": "x64",
@@ -14,137 +16,260 @@
   },
   "package": {
     "tarball": "hseos-4.0.0-rc.0.tgz",
-    "sha256": "ea1a430de8aea5777a9daa6639220720bb809e09e448ccb37500d826ca450064",
-    "entries": 1472
+    "built_from": "82e4c2cc",
+    "sha256": "fcb81c1adbad85a5c5f057eda42fff5485649996b2126a9ed90531d6697ed0be",
+    "entries": 1459,
+    "unpacked_size": 9689409,
+    "installed_offline_outside_checkout": true
+  },
+  "journeys": {
+    "core": {
+      "head": "82e4c2cc",
+      "node": "v24.15.0",
+      "result": "evidence/final3/core-journey-result.json",
+      "steps_pass": 12,
+      "steps_fail": 0,
+      "residual_serve_processes": 0
+    },
+    "mcp": {
+      "head": "82e4c2cc",
+      "node": "v24.15.0",
+      "result": "evidence/final3/mcp-journey-result.json",
+      "verdict": "PASS",
+      "checks_pass": 144,
+      "checks_fail": 0,
+      "checks_blocked": 0,
+      "orphans": 0
+    }
   },
   "stages": {
-    "npm-test-node24": {
+    "final3/npm-test-node24": {
       "command": ["npm", "test"],
       "node": "v24.15.0",
-      "started_at": "2026-10-09T17:26:58Z",
-      "ended_at": "2026-10-09T17:43:06Z",
+      "head": "82e4c2cc",
+      "started_at": "2026-10-10T00:09:35Z",
+      "ended_at": "2026-10-10T00:19:47Z",
       "exit_code": 0,
-      "log": "npm-test-node24.log.gz",
-      "log_sha256": "9376b6710fce858b3581782a3810266a5ec6bacd947b5cd0983da0fdef65c50f",
+      "log": "evidence/final3/npm-test-node24.log.gz",
+      "log_sha256": "4cfe46a20bd2fa245194a548890e1910e383dde4e46c256caa836c17c1893d3b",
       "tap": {
-        "tests": 1439,
-        "pass": 1439,
+        "tests": 1493,
+        "pass": 1493,
         "fail": 0,
         "skipped": 0
       }
     },
-    "kernel-coverage-node24": {
+    "final3/kernel-coverage-node24": {
       "command": ["npm", "run", "test:kernel-coverage"],
       "node": "v24.15.0",
-      "started_at": "2026-10-09T17:44:36Z",
-      "ended_at": "2026-10-09T17:54:58Z",
-      "exit_code": 0,
-      "log": "kernel-coverage-node24.log.gz",
-      "log_sha256": "c885fd32f1a4c98cf792f29737e1bcbc782e10f0cdbf728b1a597882e5770ddc",
+      "head": "82e4c2cc",
+      "started_at": "2026-10-10T00:19:47Z",
+      "ended_at": "2026-10-10T00:26:01Z",
+      "exit_code": 1,
+      "log": "evidence/final3/kernel-coverage-node24.log.gz",
+      "log_sha256": "ec1ccd14e93e04f04d3f19cc5b5d7208f87b1a3ce7515b423a50267c468857c6",
       "coverage": {
-        "lines_pct": 96.8,
-        "branches_pct": 90.12,
-        "per_file_gate": "90/80 approved"
-      }
+        "lines_pct": 93.76,
+        "branches_pct": 88.7,
+        "per_file_gate": "FAILED"
+      },
+      "failure": "2 tests of the claude/account adapter and CLI driver failed under c8 (coverage variable leaked into the child-environment allowlist assertions); the per-file gate then reported plugin and runtime files below threshold because those tests did not run to completion"
     },
-    "w4-mutations-node24": {
+    "final3/w4-mutations-node24": {
       "command": ["npm", "run", "test:w4-mutations"],
       "node": "v24.15.0",
-      "started_at": "2026-10-09T17:58:58Z",
-      "ended_at": "2026-10-09T17:59:21Z",
+      "head": "82e4c2cc",
+      "started_at": "2026-10-10T00:26:01Z",
+      "ended_at": "2026-10-10T00:26:23Z",
       "exit_code": 0,
-      "log": "w4-mutations-node24.log.gz",
-      "log_sha256": "2573844cfc8f1c2299bfaf504c3d2bff99ea51f75cc06cec670c88f2b21c507a",
+      "log": "evidence/final3/w4-mutations-node24.log.gz",
+      "log_sha256": "7c80108d69ba1d9385a83a6d66f2ba68d525cd7b8963ceada65c12ebb38d7ab9",
       "mutants": {
         "rejected": 18,
         "failed": 0,
         "skipped": 0
       }
     },
-    "quality-gates-node24": {
+    "final3/quality-gates-node24": {
       "command": ["bash", "scripts/governance/quality-gates.sh", "--phase", "ci"],
       "node": "v24.15.0",
-      "started_at": "2026-10-09T17:59:51Z",
-      "ended_at": "2026-10-09T17:59:53Z",
+      "head": "82e4c2cc",
+      "started_at": "2026-10-10T00:26:23Z",
+      "ended_at": "2026-10-10T00:26:30Z",
       "exit_code": 0,
-      "log": "quality-gates-node24.log.gz",
-      "log_sha256": "4e7662151436a40263096e50a81a0ea483d425dd1fbe5ab9ee4fab62f2a3658c",
+      "log": "evidence/final3/quality-gates-node24.log.gz",
+      "log_sha256": "e7b7f8c259ae3c904bf0008407ffbf7285719baf6c8b193c14795e4966194201",
       "env": {
         "VALIDATION_ENFORCED": "true"
       },
       "gate": {
         "failures": 0,
-        "warnings": 1,
-        "validation_enforced": true
+        "warnings": 1
       }
     },
-    "npm-test-node22": {
+    "final3/npm-test-node22": {
       "command": ["npm", "test"],
       "node": "v22.23.3",
-      "started_at": "2026-10-09T17:59:54Z",
-      "ended_at": "2026-10-09T18:11:06Z",
+      "head": "82e4c2cc",
+      "started_at": "2026-10-10T00:26:31Z",
+      "ended_at": "2026-10-10T00:36:44Z",
       "exit_code": 0,
-      "log": "npm-test-node22.log.gz",
-      "log_sha256": "6fc81a4ffa1db9d55caafa8efc742bf4509f990b395b3cd4360021be6d0620ab",
+      "log": "evidence/final3/npm-test-node22.log.gz",
+      "log_sha256": "cc1a7a15c4b84d89849ef1b0abd5b49fd73c1dcc594fb50dacc82e4adb7cc76e",
       "tap": {
-        "tests": 1439,
-        "pass": 1439,
+        "tests": 1493,
+        "pass": 1493,
         "fail": 0,
         "skipped": 0
       }
     },
-    "kernel-coverage-node22": {
+    "final3/kernel-coverage-node22": {
       "command": ["npm", "run", "test:kernel-coverage"],
       "node": "v22.23.3",
-      "started_at": "2026-10-09T18:11:06Z",
-      "ended_at": "2026-10-09T18:30:33Z",
-      "exit_code": 0,
-      "log": "kernel-coverage-node22.log.gz",
-      "log_sha256": "ab5c46199de3495641b4ec7402ced330be7af6bbd75ffe50a6d7d91b2f78ec85",
+      "head": "82e4c2cc",
+      "started_at": "2026-10-10T00:36:44Z",
+      "ended_at": "2026-10-10T00:42:58Z",
+      "exit_code": 1,
+      "log": "evidence/final3/kernel-coverage-node22.log.gz",
+      "log_sha256": "b3539f820c9b22bef109b44fa5673c6f53dcd04df97243df9415dfa8bbdb7ae1",
       "coverage": {
-        "lines_pct": 96.81,
-        "branches_pct": 90.13,
-        "per_file_gate": "90/80 approved"
-      }
+        "lines_pct": 93.76,
+        "branches_pct": 88.7,
+        "per_file_gate": "FAILED"
+      },
+      "failure": "same two tests as Node 24"
     },
-    "w4-mutations-node22": {
+    "final3/w4-mutations-node22": {
       "command": ["npm", "run", "test:w4-mutations"],
       "node": "v22.23.3",
-      "started_at": "2026-10-09T18:42:33Z",
-      "ended_at": "2026-10-09T18:42:53Z",
+      "head": "82e4c2cc",
+      "started_at": "2026-10-10T00:42:58Z",
+      "ended_at": "2026-10-10T00:43:20Z",
       "exit_code": 0,
-      "log": "w4-mutations-node22.log.gz",
-      "log_sha256": "43ecf4a5304377b410459dacd9abcca2af483ff006949181e2bd0befd47c0ed9",
+      "log": "evidence/final3/w4-mutations-node22.log.gz",
+      "log_sha256": "e02f69db2e43f23438d8fac10535d59a50be7854fcc35340dc6eab0aa319d657",
       "mutants": {
         "rejected": 18,
         "failed": 0,
         "skipped": 0
       }
     },
-    "quality-gates-node22": {
+    "final3/quality-gates-node22": {
       "command": ["bash", "scripts/governance/quality-gates.sh", "--phase", "ci"],
       "node": "v22.23.3",
-      "started_at": "2026-10-09T18:42:53Z",
-      "ended_at": "2026-10-09T18:42:56Z",
+      "head": "82e4c2cc",
+      "started_at": "2026-10-10T00:43:20Z",
+      "ended_at": "2026-10-10T00:43:34Z",
       "exit_code": 0,
-      "log": "quality-gates-node22.log.gz",
-      "log_sha256": "b8c4bf2851c8827ab8f69ee285c541c70f9e87e633217412118c3fe7192d0399",
+      "log": "evidence/final3/quality-gates-node22.log.gz",
+      "log_sha256": "18988a2b9b0bf7e7ca982d3cf123f57501db3ef33fff7ddf7c6e7871eda11c6d",
       "env": {
         "VALIDATION_ENFORCED": "true"
       },
       "gate": {
         "failures": 0,
-        "warnings": 1,
-        "validation_enforced": true
+        "warnings": 1
+      }
+    },
+    "final4/kernel-coverage-node24": {
+      "command": ["npm", "run", "test:kernel-coverage"],
+      "node": "v24.15.0",
+      "head": "1ae317c0",
+      "started_at": "2026-10-10T00:57:26Z",
+      "ended_at": "2026-10-10T01:03:40Z",
+      "exit_code": 0,
+      "log": "evidence/final4/kernel-coverage-node24.log.gz",
+      "log_sha256": "6d2ff28f1bd4c34687e7d3d41596524b9ebd1e18d52f1700172df1f8a1d3e543",
+      "coverage": {
+        "lines_pct": 96.86,
+        "branches_pct": 90.26,
+        "per_file_gate": "90/80 approved, 0 files below"
+      }
+    },
+    "final4/npm-test-node24": {
+      "command": ["npm", "test"],
+      "node": "v24.15.0",
+      "head": "1ae317c0",
+      "started_at": "2026-10-10T01:03:40Z",
+      "ended_at": "2026-10-10T01:13:43Z",
+      "exit_code": 0,
+      "log": "evidence/final4/npm-test-node24.log.gz",
+      "log_sha256": "b56189d69a1cbb59f65392cc88c2c5f6c0d7ba81e2bf95327af852cc76704b18",
+      "tap": {
+        "tests": 1493,
+        "pass": 1493,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    "final4/kernel-coverage-node22": {
+      "command": ["npm", "run", "test:kernel-coverage"],
+      "node": "v22.23.3",
+      "head": "1ae317c0",
+      "started_at": "2026-10-10T01:13:44Z",
+      "ended_at": "2026-10-10T01:20:10Z",
+      "exit_code": 0,
+      "log": "evidence/final4/kernel-coverage-node22.log.gz",
+      "log_sha256": "52230d11b5fe655448f0359d7b11a6a366d0db5ba330a4a33217022c16508ad3",
+      "coverage": {
+        "lines_pct": 96.86,
+        "branches_pct": 90.26,
+        "per_file_gate": "90/80 approved, 0 files below"
+      }
+    },
+    "final4/npm-test-node22": {
+      "command": ["npm", "test"],
+      "node": "v22.23.3",
+      "head": "1ae317c0",
+      "started_at": "2026-10-10T01:20:10Z",
+      "ended_at": "2026-10-10T01:30:24Z",
+      "exit_code": 0,
+      "log": "evidence/final4/npm-test-node22.log.gz",
+      "log_sha256": "2f4abeaf5f262fbcc3dae4471c7a66bc91594737678241d790412b405fbba72f",
+      "tap": {
+        "tests": 1493,
+        "pass": 1493,
+        "fail": 0,
+        "skipped": 0
       }
     }
   },
+  "real_model": {
+    "a5": {
+      "result": "evidence/a5/a5-result.json",
+      "report": "evidence/a5/A5-REPORT.md",
+      "routes": {
+        "codex-subscription": "PASS",
+        "claude-api-paid": "PASS",
+        "claude-subscription": "BLOCKED (no adapter at the time; led to the claude/account adapter)",
+        "litert-local-with-codex-child": "PASS (composite)"
+      },
+      "paid_api_real_usd": 0.00696
+    },
+    "a5b": {
+      "result": "evidence/a5b/a5b-result.json",
+      "report": "evidence/a5b/A5B-REPORT.md",
+      "routes": {
+        "claude/account": "PASS (1 of 3 dispatches; pinned external verifier PASS)",
+        "claude-api-paid": "journey PASS; pinned external verifier FAIL"
+      },
+      "paid_api_real_usd": 0.016614
+    },
+    "paid_api_real_usd_total": 0.023574,
+    "paid_api_cap_usd": 1.0,
+    "authorization": "owner, 2026-10-09"
+  },
   "limitations": [
-    "Baseline of master 4a95592b BEFORE the A6 corrections; the post-fix matrix will be appended by a later receipt and is not claimed here.",
+    "The Node 24 and Node 22 kernel-coverage stages of final3 (head 82e4c2cc) FAILED with exit code 1: two tests of the claude/account adapter and CLI driver failed under c8 because the coverage variable reached the child-environment allowlist assertions. This failure is recorded and is not counted as an approval.",
+    "The fix (ea1ff3ec, merged as 1ae317c0) changes only test files (3 files). final4 re-ran kernel-coverage and npm test on 1ae317c0 and both passed on Node 24 and Node 22; w4-mutations, quality-gates and the installed-package journeys were NOT re-run on 1ae317c0 and rest on the 82e4c2cc run, justified only by the diff being test-only.",
+    "The documentation commit that carries this receipt sits on top of 1ae317c0 and was not part of the verified runs.",
+    "Journeys use scripted fixture responses (not model output) and the normal installed MCP mode; native governed MCP path is fixture-gated and was not exercised there. Real-model evidence is separate (a5, a5b).",
+    "A5 relayed the campaign output to the task through an out-of-band transcript bridge; A5b replaced it with the governed campaign:// path.",
+    "A5b: init (apiKeySource, fast_mode_state, model), rate_limit_event and pids_peak are attested only inside the evidence hash and are not exposed by the receipt; not recoverable without a bypass or an extra dispatch.",
+    "A5b API route: the pinned external verifier rejected a result the internal task criterion approved (weak internal acceptance criterion); it was not re-run and not converted into a pass.",
+    "Paid-API cost comes from the SDK cost-state, not from an invoice; reserved ledger amounts (US$ 0.25 per request) are not spend.",
     "Commands are the logical npm/bash commands; the systemd-run/heavy-run envelope is described in environment.resource_scope and was not recorded argument-for-argument.",
-    "A first Node 24 attempt failed 2 guard performance tests (201.9 ms > 200 ms threshold) under external host load; it is NOT counted as an approval and its log is not part of this receipt. The recorded Node 24 run is the repetition.",
-    "Node 22 here is v22.23.3 (the sandbox /usr/bin/node 22.22.1 was not used for these stages).",
     "log_sha256 is the hash of the uncompressed log; the .gz files hold the same bytes compressed. The logs embed the original machine paths of the run.",
-    "Real-model dispatch (A5) was not performed; no provider or paid call was made."
+    "No credential is stored in the evidence; the copied files were scanned for the real API key value, key prefixes, e-mail addresses and organization identifiers before copying (no match)."
   ]
 }
