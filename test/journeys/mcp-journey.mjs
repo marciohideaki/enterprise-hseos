@@ -1,7 +1,10 @@
 // A4 - installed-package MCP journey (4 HSEOS MCP servers).
-// Usage: node test/journeys/mcp-journey.mjs --prefix <consumer project> --tgz <packed tarball> --out <dir> [--fail-on none|low|medium|high]
+// Usage: node test/journeys/mcp-journey.mjs --prefix <consumer project> --tgz <packed tarball> --out <dir> [--fail-on none|low|medium|high] [--axon-real optional|required]
 // Fail-closed: exit 0 only when every call/negation is PASS, nothing aborted, no orphan process remains and
 // no finding reaches --fail-on (default none = findings alone do not fail; FAIL/BLOCKED entries always do).
+// --axon-real=optional (default; axon is an optional integration): when the axon binary is absent from PATH, the checks that need a
+// real axon answer are reported NOT_EXERCISED (neither PASS nor BLOCKED) and recorded in the result; with axon on PATH they run and
+// count normally. --axon-real=required turns an absent axon into BLOCKED. The AXON_UNAVAILABLE scenarios are mandatory in every mode.
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import crypto from 'node:crypto';
@@ -12,6 +15,8 @@ import os from 'node:os';
 
 const argv = process.argv.slice(2);
 const opt = (k, d) => {
+  const inline = argv.find((a) => a.startsWith(`--${k}=`));
+  if (inline) return inline.slice(k.length + 3);
   const i = argv.indexOf(`--${k}`);
   return i === -1 ? d : argv[i + 1];
 };
@@ -22,6 +27,11 @@ if (!opt('prefix') || !opt('tgz') || !opt('out')) {
 const prefix = path.resolve(opt('prefix'));
 const outDir = path.resolve(opt('out'));
 const tgz = path.resolve(opt('tgz'));
+const axonRealMode = opt('axon-real', 'optional');
+if (!['optional', 'required'].includes(axonRealMode)) {
+  console.error('--axon-real must be optional or required');
+  process.exit(2);
+}
 fs.mkdirSync(outDir, { recursive: true });
 
 const pkgRoot = path.join(prefix, 'node_modules', 'hseos');
@@ -54,6 +64,21 @@ if (fs.existsSync(path.join(prefix, '.hseos'))) {
 }
 
 const axonOnPath = spawnSync('sh', ['-c', 'command -v axon'], { encoding: 'utf8' }).stdout.trim() || null;
+// Real-axon checks are waived only when explicitly requested AND the binary is genuinely absent.
+const axonRealWaived = axonRealMode === 'optional' && !axonOnPath;
+const axonRealSkipped = [];
+const axonRealUnavailable = (server, tool, args, reason) => {
+  const entry = axonRealWaived
+    ? {
+        tool,
+        args: truncate(args, 100),
+        status: 'NOT_EXERCISED',
+        evidence: `real axon not exercised (--axon-real=optional, axon not on PATH): ${reason}`,
+      }
+    : { tool, args: truncate(args, 100), status: 'BLOCKED', evidence: `a real answer cannot be obtained: ${reason}` };
+  if (axonRealWaived) axonRealSkipped.push(`${server}:${tool}`);
+  return entry;
+};
 
 function pgrep(pat) {
   const r = spawnSync('pgrep', ['-f', pat], { encoding: 'utf8' });
@@ -717,12 +742,7 @@ async function runAxonStdio() {
   for (const [name, args] of AXON_TOOL_CALLS) {
     const resp = await c.rpc('tools/call', { name, arguments: args }, id++, 30_000);
     if (!axonOnPath || !axonFixtureState.ok) {
-      push(s.chamadas, {
-        tool: name,
-        args: truncate(args, 100),
-        status: 'BLOCKED',
-        evidence: `a real answer cannot be obtained: ${axonFixtureState.reason}`,
-      });
+      push(s.chamadas, axonRealUnavailable(s.nome, name, args, axonFixtureState.reason));
       continue;
     }
     record(s.chamadas, name, args, resp, 'ok', () => [realAxonAnswer(resp), 'real axon answer (no fallback marker)']);
@@ -892,8 +912,7 @@ async function runAxonHttp() {
   push(s.chamadas, { tool: 'tools/list', status: s.tools.length > 0 ? 'PASS' : 'FAIL', evidence: s.tools.join(',') });
   for (const [name, args] of AXON_TOOL_CALLS) {
     const resp = await rpcH('tools/call', { name, arguments: args });
-    if (!axonOnPath || !axonFixtureState?.ok)
-      push(s.chamadas, { tool: name, status: 'BLOCKED', evidence: `a real answer cannot be obtained: ${axonFixtureState?.reason}` });
+    if (!axonOnPath || !axonFixtureState?.ok) push(s.chamadas, axonRealUnavailable(s.nome, name, args, axonFixtureState?.reason));
     else record(s.chamadas, name, args, resp, 'ok', () => [realAxonAnswer(resp), 'real axon answer (no fallback marker)']);
   }
   const notif = await httpRaw(port, { method: 'POST', headers: auth, body: { jsonrpc: '2.0', method: 'notifications/initialized' } });
@@ -1033,12 +1052,17 @@ for (const p of allOrphans) {
 const aggregate = (s) => {
   const all = [...s.chamadas, ...s.negacoes];
   const cnt = (x) => all.filter((e) => e.status === x).length;
-  return { PASS: cnt('PASS'), FAIL: cnt('FAIL'), BLOCKED: cnt('BLOCKED') };
+  return { PASS: cnt('PASS'), FAIL: cnt('FAIL'), BLOCKED: cnt('BLOCKED'), NOT_EXERCISED: cnt('NOT_EXERCISED') };
 };
 for (const s of servers) s.resumo = aggregate(s);
 const totals = servers.reduce(
-  (a, s) => ({ PASS: a.PASS + s.resumo.PASS, FAIL: a.FAIL + s.resumo.FAIL, BLOCKED: a.BLOCKED + s.resumo.BLOCKED }),
-  { PASS: 0, FAIL: 0, BLOCKED: 0 },
+  (a, s) => ({
+    PASS: a.PASS + s.resumo.PASS,
+    FAIL: a.FAIL + s.resumo.FAIL,
+    BLOCKED: a.BLOCKED + s.resumo.BLOCKED,
+    NOT_EXERCISED: a.NOT_EXERCISED + s.resumo.NOT_EXERCISED,
+  }),
+  { PASS: 0, FAIL: 0, BLOCKED: 0, NOT_EXERCISED: 0 },
 );
 
 const rank = { low: 1, medium: 2, high: 3 };
@@ -1060,6 +1084,13 @@ const result = {
   gerado_em: new Date().toISOString(),
   veredito: reasons.length === 0 ? 'PASS' : 'FAIL',
   motivos_falha: reasons,
+  axon_real: axonRealSkipped.length > 0 ? 'not_exercised' : 'exercised',
+  axon_real_detalhe: {
+    modo: axonRealMode,
+    axon_no_path: axonOnPath,
+    causa: axonRealSkipped.length > 0 ? 'axon is an optional integration and its binary is absent from PATH (--axon-real=optional)' : null,
+    checagens_nao_exercitadas: axonRealSkipped,
+  },
   pacote: { arquivo: tgz, sha256 },
   node: process.version,
   consumidor: { prefix, ...projectSetup, hseosVersion: JSON.parse(fs.readFileSync(path.join(pkgRoot, 'package.json'), 'utf8')).version },
@@ -1074,7 +1105,7 @@ const result = {
     ...limitations,
     'Servers were exercised only in the normal installed mode (NODE_ENV and HSEOS_GOVERNED_EXECUTION_FIXTURE unset), i.e. the legacy server path; the native governed path is fixture-gated and was not exercised here.',
     'axon-bridge is covered three ways: stdio (default), stdio with axon removed from PATH, and HTTP on an ephemeral 127.0.0.1 port with a generated bearer credential.',
-    'Real axon answers depend on the axon binary found on PATH at run time; without it those calls are BLOCKED (and the journey fails).',
+    'Real axon answers depend on the axon binary found on PATH at run time; axon is optional, so without it those calls are reported NOT_EXERCISED (see axon_real in this file) and the verdict does not fail; with --axon-real=required they are BLOCKED and the journey fails. If axon is on PATH but cannot answer, the checks FAIL/BLOCK as usual.',
     'project-state has no client-reachable path argument, so out-of-scope path probes do not apply to it.',
   ],
 };
@@ -1082,10 +1113,10 @@ let serialized = JSON.stringify(result, null, 2);
 for (const secret of secrets) serialized = serialized.replaceAll(secret, '***');
 fs.writeFileSync(path.join(outDir, 'mcp-journey-result.json'), serialized);
 const line = (s) =>
-  `${s.nome.padEnd(26)} ${String(s.caminho).padEnd(8)} tools=${String(s.tools.length).padEnd(3)} PASS=${s.resumo.PASS} FAIL=${s.resumo.FAIL} BLOCKED=${s.resumo.BLOCKED}`;
+  `${s.nome.padEnd(26)} ${String(s.caminho).padEnd(8)} tools=${String(s.tools.length).padEnd(3)} PASS=${s.resumo.PASS} FAIL=${s.resumo.FAIL} BLOCKED=${s.resumo.BLOCKED} NOT_EXERCISED=${s.resumo.NOT_EXERCISED}`;
 console.log(servers.map(line).join('\n'));
 console.log(
-  `veredito: ${result.veredito}${reasons.length > 0 ? ` (${reasons.join('; ')})` : ''}; orphans: ${allOrphans.length}; out: ${path.join(outDir, 'mcp-journey-result.json')}`,
+  `axon_real: ${result.axon_real}${axonRealSkipped.length > 0 ? ` (${axonRealSkipped.length} checks NOT_EXERCISED: axon optional and absent)` : ''}\nveredito: ${result.veredito}${reasons.length > 0 ? ` (${reasons.join('; ')})` : ''}; orphans: ${allOrphans.length}; out: ${path.join(outDir, 'mcp-journey-result.json')}`,
 );
 for (const s of servers)
   for (const e of [...s.chamadas, ...s.negacoes])
