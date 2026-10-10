@@ -86,4 +86,6 @@ function setup(t, { mode = {}, run = 'normal' } = {}) {
       : [];
   return { home, cwd, executable, id, settings, filename, m, create, writeMode, calls, state };
 }
-module.exports = { setup, plainRunner, IDENTITY, PATH, FIXTURE };
+/** Node injects NODE_V8_COVERAGE into children under c8; tolerate it only when this very process has it. */
+const childEnvironment = (names) => names.filter((name) => !(name === 'NODE_V8_COVERAGE' && process.env.NODE_V8_COVERAGE !== undefined));
+module.exports = { childEnvironment, setup, plainRunner, IDENTITY, PATH, FIXTURE };

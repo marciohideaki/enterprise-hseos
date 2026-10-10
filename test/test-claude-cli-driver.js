@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const { randomUUID } = require('node:crypto');
 const { test } = require('node:test');
 const { ClaudeCliDriver } = require('../packages/runtime-providers/claude-cli-driver');
-const { setup, PATH } = require('./helpers/claude-account');
+const { childEnvironment, setup, PATH } = require('./helpers/claude-account');
 
 function driver(f, extra = {}) {
   return new ClaudeCliDriver({ executable: f.executable, cwd: f.cwd, env: { HOME: f.home, PATH }, grace_ms: 150, ...extra });
@@ -47,7 +47,7 @@ test('headless run uses the subscription-safe flag set and an allowlisted enviro
   assert.equal(usage[0].estimated_cost_usd, 0.0001);
   const call = f.calls().at(-1);
   assert.ok(
-    call.env.every((name) => ['HOME', 'PATH'].includes(name)),
+    childEnvironment(call.env).every((name) => ['HOME', 'PATH'].includes(name)),
     `unexpected env ${call.env}`,
   );
   for (const [flag, value] of [
