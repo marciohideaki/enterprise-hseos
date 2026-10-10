@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const { randomUUID } = require('node:crypto');
 const { test } = require('node:test');
 const { engineeringDigest } = require('../tools/cli/lib/engineering-task-state');
-const { setup, IDENTITY } = require('./helpers/claude-account');
+const { childEnvironment, setup, IDENTITY } = require('./helpers/claude-account');
 
 const signal = () => new AbortController().signal;
 
@@ -89,8 +89,8 @@ test('run reports tokens, null cost and a session, with the parent API key kept 
   assert.equal(result.binding_sha256, f.m.binding_sha256);
   const prompt = f.calls().find((call) => call.argv.includes('-p'));
   assert.ok(
-    prompt.env.every((name) => ['HOME', 'PATH', 'CLAUDE_CODE_MAX_OUTPUT_TOKENS'].includes(name)),
-    prompt.env.join(','),
+    childEnvironment(prompt.env).every((name) => ['HOME', 'PATH', 'CLAUDE_CODE_MAX_OUTPUT_TOKENS'].includes(name)),
+    childEnvironment(prompt.env).join(','),
   );
   assert.ok(!prompt.cwd.endsWith('/work'), 'each run gets a fresh empty directory');
   assert.deepEqual(fs.readdirSync(f.cwd), []);
