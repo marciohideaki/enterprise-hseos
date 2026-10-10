@@ -105,3 +105,5 @@ The following entries are ADR templates or placeholders for optional activation.
 - [ADR-0045 — Plugins de execução e jobs duráveis](ADR-0045-execution-plugins-and-durable-jobs.md) — Proposed; implementação candidata W4, ativação separada.
 
 - [ADR-0046 — Platform bindings, modos de adoção e autoridade de contratos do ECP](ADR-0046-platform-bindings-and-modes.md) — Accepted (2026-10-01); emenda ADR-0036/0033/0034; implementação e ativação separadas.
+
+- [ADR-0047 — Capacidades de ambiente, autoridade e proveniência de contexto](ADR-0047-environment-capabilities-and-context-authority.md) — Proposed (2026-10-10); implementação candidata W5, ativação separada.

@@ -141,6 +141,21 @@ nodes:
     name: W4 traceability and external consumer evidence
     path: docs/evolution/w4/evidence/final/traceability.md
     lifecycle: proposed
+  - id: capability.hseos.environment-capabilities
+    type: Capability
+    name: HSEOS environment capabilities, context authority and governed memory candidate
+    path: .specs/features/harness-w5/spec.md
+    lifecycle: proposed
+  - id: contract.hseos.environment-capabilities.w5
+    type: Contract
+    name: W5 environment capabilities contract
+    path: .specs/features/harness-w5/design.md
+    lifecycle: proposed
+  - id: evidence.hseos.w5-intake
+    type: Evidence
+    name: W5 environment capabilities reuse and conformance intake
+    path: docs/decisions/harness-w5-intake.md
+    lifecycle: proposed
 edges:
   - id: edge.repo.enterprise-hseos.owned-by.platform-architecture
     type: OWNED_BY
@@ -398,4 +413,26 @@ edges:
     repository: repo.enterprise-hseos
     evidence:
       - evidence.hseos.w4-closeout
+  - id: edge.capability.hseos.environment-capabilities.owner
+    type: OWNED_BY
+    from: capability.hseos.environment-capabilities
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.contract.hseos.environment-capabilities.w5.owner
+    type: OWNED_BY
+    from: contract.hseos.environment-capabilities.w5
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.evidence.hseos.w5-intake.owner
+    type: OWNED_BY
+    from: evidence.hseos.w5-intake
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.hseos.w5.contract.environment-capabilities
+    type: DEFINED_BY
+    from: capability.hseos.environment-capabilities
+    to: contract.hseos.environment-capabilities.w5
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.hseos.w5-intake
 findings: []
