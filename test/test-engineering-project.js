@@ -122,3 +122,198 @@ test('project search, preconditioned patch and diff share governed task executio
   const evidence = await inspectEngineeringTask({ state: result.state, action: 'evidence' });
   assert.equal(evidence.artifacts.files[0].content, 'module.exports = n => n + 1;');
 });
+
+function acceptanceCommandFixture(t, script, { duration } = {}) {
+  const f = fixture(t, { files: { 'index.js': 'module.exports = (n) => n + 1;\n', 'check.js': script } });
+  f.contract.commands = [{ id: 'check', runtime: 'node', entrypoint: 'check.js', args: [] }];
+  f.contract.verifier.command_checks = [{ command_id: 'check' }];
+  f.contract.verifier.protected_paths = ['check.js'];
+  f.contract.scope.write = ['index.js'];
+  if (duration) f.contract.limits.max_duration_ms = duration;
+  f.contract.verifier.sha256 = projectVerifierDigest(f.contract);
+  f.save();
+  return f;
+}
+
+const ACCEPTANCE_COMMANDS = [
+  { name: 'exit zero', script: 'process.exit(0);', outcome: 'approved', status: 'succeeded' },
+  { name: 'exit one', script: 'process.exit(1);', outcome: 'failed', status: 'failed' },
+  { name: 'missing module', script: "require('hseos-absent-test-runner');", outcome: 'failed', status: 'failed' },
+  { name: 'killed by signal', script: "process.kill(process.pid, 'SIGKILL');", outcome: 'failed' },
+  { name: 'timeout', script: 'setInterval(() => {}, 1000);', outcome: 'failed', duration: 8000 },
+];
+for (const scenario of ACCEPTANCE_COMMANDS) {
+  test(`declared acceptance command (${scenario.name}) gates approval`, async (t) => {
+    const f = acceptanceCommandFixture(t, scenario.script, scenario);
+    const responses = path.join(f.directory, 'responses.json');
+    fs.writeFileSync(responses, '[]');
+    const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+    t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+    assert.equal(result.task_result, scenario.outcome, JSON.stringify(result));
+    const { verification } = await inspectEngineeringTask({ state: result.state, action: 'evidence' });
+    const [check] = verification.evidence.command_checks || [];
+    // A timeout may exhaust the task budget before the command result is recorded; it still rejects.
+    if (!scenario.duration) assert.equal(check.command_id, 'check');
+    if (scenario.status) assert.equal(check.status, scenario.status);
+    if (check) assert.equal(scenario.outcome === 'approved', check.status === 'succeeded' && check.exit_code === 0);
+  });
+}
+
+test('acceptance commands are pinned, declared and optional', (t) => {
+  const f = acceptanceCommandFixture(t, 'process.exit(0);');
+  attestEngineeringVerifier(f.contract);
+  f.contract.commands[0].args = ['--other'];
+  assert.throws(() => attestEngineeringVerifier(f.contract), /pinned/);
+  f.contract.verifier.command_checks = [{ command_id: 'ghost' }];
+  f.contract.verifier.sha256 = projectVerifierDigest(f.contract);
+  assert.throws(() => attestEngineeringVerifier(f.contract), /pinned/);
+  const plain = fixture(t);
+  assert.equal(plain.contract.verifier.command_checks, undefined);
+  assert.doesNotThrow(() => readEngineeringTask(plain.filename));
+});
+
+test('a workflow child with a failing acceptance command is not approved and blocks its dependents', async (t) => {
+  const { runEngineeringWorkflow } = require('../tools/cli/lib/engineering-workflow-runtime');
+  const failing = acceptanceCommandFixture(t, "require('hseos-absent-test-runner');");
+  const passing = acceptanceCommandFixture(t, 'process.exit(0);');
+  const own = failing.contract.limits;
+  const limits = {
+    ...own,
+    max_turns: own.max_turns * 2,
+    max_tokens: own.max_tokens * 2,
+    max_tool_calls: own.max_tool_calls * 2,
+    max_children: 2,
+    max_workflow_steps: 2,
+    max_duration_ms: 120_000,
+  };
+  const result = await runEngineeringWorkflow({
+    definition: {
+      schema_version: 1,
+      workflow_id: 'workflow:acceptance-command',
+      max_parallelism: 1,
+      limits,
+      tasks: [
+        { id: 'typecheck', contract: failing.contract, responses: [], depends_on: [] },
+        { id: 'vitest', contract: passing.contract, responses: [], depends_on: ['typecheck'] },
+      ],
+    },
+  });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.notEqual(result.status, 'completed', JSON.stringify(result));
+  assert.deepEqual(
+    result.tasks.map((task) => task.result),
+    ['failed', 'not_executed'],
+  );
+});
+
+test('the model cannot rewrite the acceptance command: writable entrypoints or arguments are refused at parse', (t) => {
+  const writable = acceptanceCommandFixture(t, 'process.exit(1);');
+  writable.contract.scope.write = ['index.js', 'check.js'];
+  writable.contract.verifier.sha256 = projectVerifierDigest(writable.contract);
+  writable.save();
+  assert.throws(() => readEngineeringTask(writable.filename), { code: 'ENGINEERING_TASK_CONTRACT_INVALID' });
+  const unprotected = acceptanceCommandFixture(t, 'process.exit(1);');
+  delete unprotected.contract.verifier.protected_paths;
+  unprotected.save();
+  assert.throws(() => readEngineeringTask(unprotected.filename), { code: 'ENGINEERING_TASK_CONTRACT_INVALID' });
+  for (const arg of [
+    './index.js',
+    '--config=index.js',
+    '--config=./index.js',
+    '../project/index.js',
+    '../outside.js',
+    '--x=../../etc/passwd',
+  ]) {
+    const argument = acceptanceCommandFixture(t, 'process.exit(0);');
+    argument.contract.commands[0].args = [arg];
+    argument.save();
+    assert.throws(() => readEngineeringTask(argument.filename), { code: 'ENGINEERING_TASK_CONTRACT_INVALID' }, arg);
+  }
+  const harmless = acceptanceCommandFixture(t, 'process.exit(0);');
+  harmless.contract.commands[0].args = ['--timeout=5', 'check.js'];
+  harmless.save();
+  assert.doesNotThrow(() => readEngineeringTask(harmless.filename));
+});
+
+test('patching the protected acceptance script is refused and the delivery stays failed', async (t) => {
+  const f = acceptanceCommandFixture(t, 'process.exit(1);');
+  const responses = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(
+    responses,
+    JSON.stringify([
+      {
+        name: 'engineering.patch',
+        input: { path: 'check.js', expected_sha256: sha('process.exit(1);'), before: 'exit(1)', after: 'exit(0)' },
+      },
+    ]),
+  );
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.notEqual(result.task_result, 'approved', JSON.stringify(result));
+  assert.equal(fs.readFileSync(path.join(f.root, 'check.js'), 'utf8'), 'process.exit(1);');
+});
+
+test('transitive test files declared in protected_paths are pinned and verified before the command runs', async (t) => {
+  const f = fixture(t, {
+    files: { 'index.js': 'module.exports = (n) => n + 1;\n', 'check.js': "require('./suite.js');", 'suite.js': 'process.exit(0);' },
+  });
+  f.contract.commands = [{ id: 'check', runtime: 'node', entrypoint: 'check.js', args: [] }];
+  f.contract.verifier.command_checks = [{ command_id: 'check' }];
+  f.contract.verifier.protected_paths = ['check.js', 'suite.js'];
+  f.contract.scope.write = ['index.js'];
+  f.contract.verifier.sha256 = projectVerifierDigest(f.contract);
+  f.save();
+  const { verifyEngineeringTask } = require('../tools/cli/lib/engineering-project-verifier');
+  const loaded = readEngineeringTask(f.filename).contract;
+  const stale = loaded.initial_files.map((item) => (item.path === 'suite.js' ? { ...item, sha256: '1'.repeat(64) } : item));
+  const verdict = await verifyEngineeringTask({ contract: loaded, policy: {}, deadline: Date.now() + 5000, files: stale });
+  assert.equal(verdict.approved, false);
+  assert.equal(verdict.reason, 'protected-files-changed');
+  const missing = await verifyEngineeringTask({ contract: loaded, policy: {}, deadline: Date.now() + 5000 });
+  assert.equal(missing.reason, 'protected-files-changed');
+});
+
+test('the review event and correction prompt name the failed acceptance command', async (t) => {
+  const f = acceptanceCommandFixture(t, 'process.exit(3);');
+  f.contract.max_failed_corrections = 1;
+  f.contract.verifier.sha256 = projectVerifierDigest(f.contract);
+  f.save();
+  const responses = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(responses, '[]');
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(result.task_result, 'failed', JSON.stringify(result));
+  const evidence = await inspectEngineeringTask({ state: result.state, action: 'evidence' });
+  assert.deepEqual(evidence.verification.evidence.command_checks, [{ command_id: 'check', status: 'failed', exit_code: 3 }]);
+  const state = JSON.stringify(await inspectEngineeringTask({ state: result.state, action: 'evidence' }));
+  assert.match(state, /"exit_code":3/);
+});
+
+test('reconciliation inspection never replays acceptance commands', async (t) => {
+  const f = acceptanceCommandFixture(t, 'process.exit(0);');
+  const { verifyEngineeringTask } = require('../tools/cli/lib/engineering-project-verifier');
+  const loaded = readEngineeringTask(f.filename).contract;
+  const verdict = await verifyEngineeringTask({
+    contract: loaded,
+    policy: {},
+    deadline: Date.now() + 5000,
+    files: loaded.initial_files,
+    runCommandChecks: false,
+  });
+  assert.equal(verdict.approved, false);
+  assert.equal(verdict.reason, 'command-checks-not-run');
+});
+
+test('a real acceptance command timeout rejects while the task budget is still available', async (t) => {
+  const f = acceptanceCommandFixture(t, 'setInterval(() => {}, 1000);', { duration: 60_000 });
+  f.contract.verifier.command_checks = [{ command_id: 'check', timeout_ms: 1500 }];
+  f.contract.verifier.sha256 = projectVerifierDigest(f.contract);
+  f.save();
+  const responses = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(responses, '[]');
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(result.task_result, 'failed', JSON.stringify(result));
+  const { verification } = await inspectEngineeringTask({ state: result.state, action: 'evidence' });
+  assert.equal(verification.evidence.command_checks[0].status, 'timed_out');
+});

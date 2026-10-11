@@ -27,13 +27,29 @@ function executableDigest(filename) {
 }
 const RUNTIMES = Object.freeze({ node: executableDigest(process.execPath), python: executableDigest('/usr/bin/python3') });
 
+function declaredCommandArgv(contract, declared) {
+  return declared.runtime === 'node'
+    ? [
+        '/usr/bin/node',
+        ...(contract.schema_version === 2 ? ['--experimental-strip-types'] : []),
+        `./${declared.entrypoint}`,
+        ...declared.args,
+      ]
+    : ['/usr/bin/python3', '-I', '-B', `./${declared.entrypoint}`, ...declared.args];
+}
+
 function projectVerifierDigest(contract) {
   const { sha256: _pin, ...verifier } = contract.verifier;
-  return createHash('sha256')
+  const hash = createHash('sha256')
     .update(CODE_SHA256)
     .update(RUNTIMES[PROJECT_VERIFIERS[verifier.reference]?.runtime] || 'unsupported')
-    .update(canonicalJson({ verifier, sources: contract.sources, requirements: contract.requirements, acceptance: contract.acceptance }))
-    .digest('hex');
+    .update(canonicalJson({ verifier, sources: contract.sources, requirements: contract.requirements, acceptance: contract.acceptance }));
+  // Acceptance commands bind the exact declared argv; contracts without them keep their original digest.
+  if (verifier.command_checks)
+    hash.update(
+      canonicalJson(verifier.command_checks.map((item) => contract.commands.find((entry) => entry.id === item.command_id) || null)),
+    );
+  return hash.digest('hex');
 }
 
 function attestEngineeringVerifier(contract) {
@@ -42,7 +58,8 @@ function attestEngineeringVerifier(contract) {
   if (
     !definition ||
     projectVerifierDigest(contract) !== contract.verifier.sha256 ||
-    contract.verifier.checks.some((check) => !contract.scope.read.includes(check.path))
+    contract.verifier.checks.some((check) => !contract.scope.read.includes(check.path)) ||
+    (contract.verifier.command_checks || []).some((item) => !contract.commands.some((entry) => entry.id === item.command_id))
   )
     throw new Error('Project verifier does not match pinned acceptance');
   if (
@@ -54,9 +71,21 @@ function attestEngineeringVerifier(contract) {
 }
 
 async function verifyEngineeringTask(options) {
-  const { contract, policy, deadline, signal } = options;
+  const { contract, policy, deadline, signal, files, runCommandChecks = true } = options;
   if (contract.schema_version === 1) return legacy.verifyEngineeringTask(options);
   const { definition, sha256 } = attestEngineeringVerifier(contract);
+  const declaredChecks = contract.verifier.command_checks || [];
+  // Protected files must still match the content pinned at preparation, otherwise nothing is executed.
+  if (declaredChecks.length > 0) {
+    const pinned = new Map(contract.initial_files.map((item) => [item.path, item.sha256]));
+    const observed = new Map((files || []).map((item) => [item.path, item.sha256]));
+    const intact = (contract.verifier.protected_paths || []).every(
+      (entry) => pinned.has(entry) && observed.get(entry) === pinned.get(entry),
+    );
+    if (!files || !intact) return { approved: false, reason: 'protected-files-changed', verifier_sha256: sha256 };
+    // Reconciliation only inspects prerequisites and never approves, so it does not replay acceptance commands.
+    if (!runCommandChecks) return { approved: false, reason: 'command-checks-not-run', verifier_sha256: sha256 };
+  }
   const probes = contract.verifier.checks.map(({ expected: _expected, ...probe }) => probe);
   const script =
     definition.runtime === 'python'
@@ -93,14 +122,41 @@ async function verifyEngineeringTask(options) {
   } catch {
     /* Invalid or excess output cannot satisfy protected acceptance. */
   }
+  const commandResults = [];
+  let evidence = result;
+  for (const item of approved ? declaredChecks : []) {
+    const left = deadline - Date.now();
+    const declared = contract.commands.find((entry) => entry.id === item.command_id);
+    let outcome = { status: 'budget_exhausted', exit_code: null };
+    if (left >= 1) {
+      try {
+        evidence = await executeIsolatedCommand({
+          policy,
+          host_node: declared.runtime === 'node',
+          command: declaredCommandArgv(contract, declared),
+          timeout_ms: Math.min(left, item.timeout_ms || 300_000),
+          max_output_bytes: contract.max_output_bytes,
+          signal,
+        });
+        outcome = { status: evidence.status, exit_code: evidence.exit_code ?? null };
+        if (!evidence.descendants_terminated) outcome.status = 'descendants_not_terminated';
+      } catch {
+        outcome = { status: 'executor_error', exit_code: null };
+      }
+    }
+    commandResults.push({ command_id: item.command_id, ...outcome });
+    // Only a clean zero exit satisfies an acceptance command; failure, signal, timeout or a missing binary reject.
+    if (outcome.status !== 'succeeded' || outcome.exit_code !== 0) approved = false;
+  }
   return {
     approved,
     reason: approved ? 'criteria-satisfied' : 'criteria-not-satisfied',
     verifier_sha256: sha256,
-    isolation_digest: result.policy_digest,
-    workspace_access: result.workspace_access,
-    descendants_terminated: result.descendants_terminated,
+    isolation_digest: evidence.policy_digest || result.policy_digest,
+    workspace_access: evidence.workspace_access || result.workspace_access,
+    descendants_terminated: result.descendants_terminated && evidence.descendants_terminated !== false,
+    ...(declaredChecks.length > 0 ? { command_checks: commandResults } : {}),
   };
 }
 
-module.exports = { PROJECT_VERIFIERS, projectVerifierDigest, attestEngineeringVerifier, verifyEngineeringTask };
+module.exports = { declaredCommandArgv, PROJECT_VERIFIERS, projectVerifierDigest, attestEngineeringVerifier, verifyEngineeringTask };

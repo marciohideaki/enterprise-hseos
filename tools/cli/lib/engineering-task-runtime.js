@@ -251,7 +251,7 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
       const files = tools.snapshot();
       const filesDigest = engineeringDigest(files);
       task.append({ kind: 'snapshot', files, files_sha256: filesDigest }, task.read().version);
-      const verified = await verifyEngineeringTask({ contract, policy, deadline });
+      const verified = await verifyEngineeringTask({ contract, policy, deadline, files });
       observeTaskCancellation();
       if (engineeringDigest(tools.snapshot()) !== filesDigest) {
         task.append(
@@ -277,6 +277,7 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
           step_id: step.step_id,
           approved: verified.approved,
           reason: verified.reason,
+          ...(verified.command_checks ? { command_checks: verified.command_checks } : {}),
           files_sha256: filesDigest,
           correction_requested: correctionRequested,
         },
@@ -288,6 +289,7 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
         instruction:
           'The protected verifier rejected this delivery. Diagnose the cause against the original sources, requirements and acceptance criteria. Before changing files, call engineering.diagnose with the files_sha256 from this review, cause, correction plan and requirement_ids. Inspect the current files and command evidence, explain the diagnosis, apply a scoped correction, and run authorized checks. Preserve all original policies and constraints. Do not claim acceptance; the protected verifier will recheck. If facts remain uncertain, request clarification rather than guessing.',
         reason: verified.reason,
+        failed_commands: (verified.command_checks || []).filter((c) => c.status !== 'succeeded' || c.exit_code !== 0),
         correction: previousCorrections + 1,
         remaining_corrections: contract.max_failed_corrections - previousCorrections - 1,
         deadline,
@@ -674,7 +676,7 @@ async function executeTask(handle, task, assembly, created, verificationOnly = f
     const ended = assembly.sessionStore.replay(created.session_id);
     const verified =
       !task.read().uncertainty && ended.status === 'completed' && !task.read().cancellation
-        ? await verifyEngineeringTask({ contract, policy: assembly.policy, deadline: created.deadline, signal: controller.signal })
+        ? await verifyEngineeringTask({ contract, policy: assembly.policy, deadline: created.deadline, signal: controller.signal, files })
         : { approved: false, reason: 'session-not-completed' };
     if (engineeringDigest(assembly.tools.snapshot()) !== engineeringDigest(files) && !task.read().uncertainty)
       task.append(
