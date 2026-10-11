@@ -87,6 +87,9 @@ function parseCreationInput(action, value) {
   return { definition };
 }
 
+// Aggregate types a job-owned resource, its task runs and their sessions write to the shared ledger.
+const OWNED_AGGREGATE_TYPES = ['control_job', 'control_task', 'engineering_task', 'agent_session'];
+
 class ControlError extends Error {
   constructor(code) {
     super(code);
@@ -174,7 +177,12 @@ class EngineeringControl {
       const { RelationalSessionEventStore } = require('../../../packages/agent-session-store');
       const store = new RelationalSessionEventStore({ ledger: this.ledger });
       const value = jobView.manifest
-        ? require('./engineering-workflow-runtime').readEngineeringWorkflowView(jobView.handle, jobView.manifest, store)
+        ? require('./engineering-workflow-runtime').readEngineeringWorkflowView(
+            jobView.handle,
+            jobView.manifest,
+            store,
+            action === 'evidence',
+          )
         : require('./engineering-task-runtime').readEngineeringTaskView(jobView.handle, id, action === 'evidence');
       if (action === 'session') {
         const session = store.replay(value.session_id);
@@ -231,10 +239,16 @@ class EngineeringControl {
         ...tasks.flatMap((entry) => [entry.task_run_id, entry.created.session_id]),
         ...(jobView.manifest ? [plan.manifest.parent_session_id] : []),
       ]);
-      // A shared control ledger contains unrelated resources; never return those rows.
-      const batch = this.ledger.readGlobal({ after_position: after, limit });
-      const events = batch.filter((row) => aggregates.has(row.aggregate_id));
-      return { resource_id: id, events, next_cursor: batch.at(-1)?.position || after };
+      // A shared control ledger contains unrelated resources: read only the aggregates owned by this resource (indexed
+      // by stream), so an empty page means "no newer events" and the cursor never advances without delivering one.
+      const events = this.ledger.readAggregates({
+        after_position: after,
+        limit,
+        aggregates: [...aggregates].flatMap((aggregate_id) =>
+          OWNED_AGGREGATE_TYPES.map((aggregate_type) => ({ aggregate_type, aggregate_id })),
+        ),
+      });
+      return { resource_id: id, events, next_cursor: events.at(-1)?.position || after };
     }
     const handle = openExecutionLedgerFileFixture(this.location(id));
     try {
@@ -422,4 +436,4 @@ class EngineeringControl {
   }
 }
 
-module.exports = { EngineeringControl, ControlError, parseCreationInput };
+module.exports = { EngineeringControl, ControlError, parseCreationInput, OWNED_AGGREGATE_TYPES };

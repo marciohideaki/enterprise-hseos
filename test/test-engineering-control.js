@@ -184,6 +184,78 @@ test('public preparation pins the current workspace and cannot expand the server
   });
 });
 
+test('rejected preparation returns a curated actionable cause under the stable category', async (t) => {
+  const f = await setup(t);
+  const headers = { authorization: `Bearer ${credential}`, 'content-type': 'application/json' };
+  const post = async (contract) =>
+    fetch(f.server.url + '/v1/prepare', { method: 'POST', headers, body: JSON.stringify(contract) }).then(async (r) => ({
+      status: r.status,
+      body: await r.json(),
+    }));
+  fs.symlinkSync('/etc/hostname', path.join(f.root, 'linked.txt'));
+  const denied = await post({ ...f.contract, scope: { read: ['index.js', 'linked.txt'], write: ['index.js'] } });
+  assert.equal(denied.status, 409);
+  assert.equal(denied.body.error, 'CONTROL_REQUEST_REJECTED');
+  assert.equal(denied.body.detail.code, 'PROJECT_FILE_UNSAFE');
+  assert.equal(denied.body.detail.path, 'linked.txt');
+  assert.ok(!JSON.stringify(denied.body).includes(f.root));
+  await assert.rejects(
+    new ControlClient({ url: f.server.url, credential }).prepare({
+      ...f.contract,
+      scope: { read: ['index.js', 'linked.txt'], write: ['index.js'] },
+    }),
+    (error) => error.code === 'CONTROL_REQUEST_REJECTED' && error.detail.code === 'PROJECT_FILE_UNSAFE',
+  );
+});
+
+test('prepare reports binary files and scope-contract violations with a curated cause', async (t) => {
+  const f = await setup(t);
+  const headers = { authorization: `Bearer ${credential}`, 'content-type': 'application/json' };
+  const post = async (contract) =>
+    fetch(f.server.url + '/v1/prepare', { method: 'POST', headers, body: JSON.stringify(contract) }).then(async (r) => r.json());
+  fs.writeFileSync(path.join(f.root, 'blob.bin'), Buffer.from([0xff, 0xfe, 0xfd]));
+  const binary = await post({ ...f.contract, scope: { read: ['index.js', 'blob.bin'], write: ['index.js'] } });
+  assert.deepEqual(binary, {
+    error: 'CONTROL_REQUEST_REJECTED',
+    detail: { code: 'PROJECT_FILE_NOT_UTF8', message: binary.detail.message, path: 'blob.bin' },
+  });
+  const cases = [
+    [{ read: ['index.js', 'index.js/x'], write: ['index.js'] }, 'PROJECT_SCOPE_CONFLICT', 'scope'],
+    [{ read: ['index.js', '../x'], write: ['index.js'] }, 'PROJECT_PATH_INVALID', 'scope.read[1]'],
+    [{ read: ['index.js'], write: ['index.js', 'other.js'] }, 'PROJECT_SCOPE_INVALID', 'scope.write'],
+    [{ read: ['index.js', 'index.js'], write: ['index.js'] }, 'PROJECT_SCOPE_INVALID', 'scope.read'],
+  ];
+  for (const [scope, code, field] of cases) {
+    const body = await post({ ...f.contract, scope });
+    assert.equal(body.error, 'CONTROL_REQUEST_REJECTED');
+    assert.equal(body.detail.code, code);
+    assert.equal(body.detail.field, field);
+    assert.ok(!JSON.stringify(body).includes(f.root) && !JSON.stringify(body).includes('../x'));
+  }
+});
+
+test('an out-of-scope read by the executor fails with ENGINEERING_SCOPE_DENIED', async (t) => {
+  const f = await setup(t);
+  await f.client.execute(
+    command(f.id, 'create', 0, { contract: f.contract, responses: [{ name: 'engineering.read', input: { path: 'outside.js' } }] }),
+  );
+  const result = await f.client.execute(command(f.id, 'resume', 1));
+  const text = JSON.stringify([result, (await f.client.events(f.id, { limit: 1000 })).events]);
+  assert.ok(text.includes('ENGINEERING_SCOPE_DENIED'), text.slice(0, 600));
+  assert.ok(!text.includes('EXECUTION_INPUT_INVALID'));
+  assert.notEqual(result.task_result, 'approved');
+});
+
+test('review of a non-approved task and a stale apply expose their cause', async (t) => {
+  const f = await setup(t);
+  await f.client.execute(command(f.id, 'create', 0, { contract: f.contract, responses: [] }));
+  const headers = { authorization: `Bearer ${credential}` };
+  const response = await fetch(`${f.server.url}/v1/tasks/${f.id}/review`, { headers });
+  const body = await response.json();
+  assert.equal(body.error, 'CONTROL_REQUEST_REJECTED');
+  assert.equal(body.detail.code, 'PROJECT_RESULT_NOT_APPROVED');
+});
+
 test('workflows reuse the same API control and aggregate kernel budget', async (t) => {
   const f = await setup(t);
   const input = {

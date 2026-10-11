@@ -139,7 +139,7 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
   }
   const tools = {
     ...nativeTools,
-    bundles: [...nativeTools.bundles, ...(extensions?.bundles || [])],
+    bundles: [...nativeTools.bundles.map(classifyScopeDenial), ...(extensions?.bundles || [])],
     async drain() {
       const results = await Promise.allSettled([nativeTools.drain(), extensions?.drain(), modelConnection?.drain?.(), cancellationRequest]);
       const failed = results.find((result) => result.status === 'rejected');
@@ -861,6 +861,24 @@ module.exports = {
   attestEngineeringExecutor: attestExecutor,
   executeEngineeringTask: executeTask,
 };
+
+/**
+ * A path outside scope.read/scope.write fails the tool's `path` enum. Keep the rejection fail-closed (same
+ * ExecutionContractError) but classify it so the model and the operator see a scope denial, not a generic schema error.
+ */
+function classifyScopeDenial(bundle) {
+  const schema = bundle.contract.input_schema;
+  const safeParse = (value) => {
+    const result = schema.safeParse(value);
+    if (
+      result.success ||
+      !result.error?.issues?.some((issue) => issue.path?.[0] === 'path' && /^invalid_(?:value|enum_value)$/.test(issue.code))
+    )
+      return result;
+    return { success: false, error: { issues: result.error.issues, hseos_code: 'ENGINEERING_SCOPE_DENIED' } };
+  };
+  return { ...bundle, contract: { ...bundle.contract, input_schema: { ...schema, safeParse } } };
+}
 
 /** Closed preparation path: never exposes a runtime capable of dispatch. */
 async function initializeJobSession(control, jobId) {
