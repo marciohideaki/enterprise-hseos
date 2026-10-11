@@ -281,6 +281,53 @@ function overrideRefResolves(projectDir, refKey, id) {
   );
 }
 
+const INTAKE_SCHEMA_ID = 'platform-core/governance/capability-intake/v2';
+const INTAKE_DECISIONS = new Set(['promote', 'extend', 'consume', 'keep-local', 'exception']);
+// `status` vocabulary: the accepted states the policy uses for decision records (Accepted, Approved) plus the states consumers write
+// on registered intake records. A record with any other status (rejected, pending, proposed, draft, ...) is not an acknowledgement.
+const INTAKE_ACCEPTED_STATUS = new Set(['accepted', 'approved', 'implemented', 'registered_not_implemented']);
+// Decisions that depart from the shared path need a recorded approval (or an accepted status); an exception also needs an expiry.
+const INTAKE_APPROVAL_DECISIONS = new Set(['keep-local', 'exception']);
+const INTAKE_REQUEST_ID = /^[A-Za-z0-9][A-Za-z0-9._/-]{4,199}$/;
+
+/** True when `record` is a capability-intake v2 document identified by `id`, with an approval (when present) that has not expired. */
+function isValidIntakeRecord(record, id, now) {
+  if (!record || typeof record !== 'object' || Array.isArray(record)) return false;
+  if (record.$schema !== INTAKE_SCHEMA_ID || record.schema_version !== 2) return false;
+  if (record.request_id !== id || !INTAKE_DECISIONS.has(record.decision)) return false;
+  if (record.status !== undefined && !(typeof record.status === 'string' && INTAKE_ACCEPTED_STATUS.has(record.status.toLowerCase())))
+    return false;
+  const approval = record.approval;
+  if (approval !== undefined && (approval === null || typeof approval !== 'object' || !isNonEmptyString(approval.reference))) return false;
+  const expires = approval && approval.expires_at;
+  if (INTAKE_APPROVAL_DECISIONS.has(record.decision) && !approval && record.status === undefined) return false;
+  if (expires === undefined) return record.decision !== 'exception';
+  const time = typeof expires === 'string' ? Date.parse(expires) : Number.NaN;
+  return Number.isFinite(time) && time >= now.getTime();
+}
+
+/**
+ * Resolves an acknowledgement against the consumer's own JSON intake records: a `.json` file under docs/decisions whose path
+ * contains `intake` (e.g. docs/decisions/intake/<date>-<name>.json) that validates as a capability-intake v2 record and carries
+ * `id` as its `request_id`. The id is compared for equality with that field, never searched for in the text, so arbitrary JSON
+ * (or a note that quotes the id) does not acknowledge anything.
+ */
+function intakeRecordResolves(projectDir, id, now = new Date()) {
+  if (typeof id !== 'string' || !INTAKE_REQUEST_ID.test(id)) return false;
+  const decisions = realDirectoryInside(path.resolve(projectDir), path.join('docs', 'decisions'));
+  if (!decisions) return false;
+  return walkMarkdown(decisions, (name) => name.endsWith('.json')).some((file) => {
+    const relative = path.relative(decisions, file).toLowerCase();
+    if (!relative.includes('intake')) return false;
+    try {
+      if (fs.statSync(file).size > MAX_BINDINGS_FILE_BYTES) return false;
+      return isValidIntakeRecord(JSON.parse(fs.readFileSync(file, 'utf8')), id, now);
+    } catch {
+      return false;
+    }
+  });
+}
+
 function resolveInside(projectDir, relative) {
   const root = path.resolve(projectDir);
   const resolved = path.resolve(root, relative);
@@ -866,6 +913,7 @@ module.exports = {
   RUNTIME_DEFAULTS_FILE,
   checkModeRef,
   detectStacks,
+  intakeRecordResolves,
   isReferenceId,
   loadPlatformBindings,
   modeStrength,
