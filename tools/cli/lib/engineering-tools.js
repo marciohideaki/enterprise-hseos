@@ -7,6 +7,7 @@ const { z } = require('zod');
 const { governanceRef } = require('../../../packages/tool-runtime');
 const { executeIsolatedCommand } = require('../../../packages/agent-isolation-attestation/executor');
 const { parseEngineeringTask } = require('./engineering-task-contract');
+const { declaredCommandArgv } = require('./engineering-project-verifier');
 
 const hash = (value) => createHash('sha256').update(value).digest('hex');
 const LEGACY_NAMES = Object.freeze(['engineering.read', 'engineering.write', 'engineering.command', 'engineering.diagnose']);
@@ -106,15 +107,7 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
     const invocation = executeIsolatedCommand({
       policy,
       host_node: contract.schema_version === 2 && declared.runtime === 'node',
-      command:
-        declared.runtime === 'node'
-          ? [
-              '/usr/bin/node',
-              ...(contract.schema_version === 2 ? ['--experimental-strip-types'] : []),
-              `./${declared.entrypoint}`,
-              ...declared.args,
-            ]
-          : ['/usr/bin/python3', '-I', '-B', `./${declared.entrypoint}`, ...declared.args],
+      command: declaredCommandArgv(contract, declared),
       timeout_ms: Math.min(remaining, 300_000),
       max_output_bytes: contract.max_output_bytes,
       signal: context.signal,

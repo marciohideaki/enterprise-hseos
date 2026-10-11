@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('node:fs');
+const path = require('node:path');
 const { createHash } = require('node:crypto');
 const { AgentLimitsSchema, IdentifierSchema, strictObject, deepFreeze, z } = require('../../../packages/agent-runtime-contracts');
 const { canonicalJson } = require('../../../packages/agent-session-store');
@@ -97,6 +98,12 @@ const projectSchema = schema.extend({
       )
       .min(1)
       .max(64),
+    command_checks: z
+      .array(strictObject({ command_id: IdentifierSchema, timeout_ms: z.number().int().min(1).max(300_000).optional() }))
+      .min(1)
+      .max(16)
+      .optional(),
+    protected_paths: projectPaths.optional(),
   }),
 });
 const versionedSchema = z.discriminatedUnion('schema_version', [schema, projectSchema]);
@@ -163,6 +170,24 @@ function parseEngineeringTask(value) {
   requireCondition(contract.limits.max_children === 0 && contract.limits.max_workflow_steps === 0);
   if (contract.schema_version === 2) {
     for (const check of contract.verifier.checks) requireCondition(readPaths.has(check.path));
+    const protectedPaths = new Set(unique(contract.verifier.protected_paths || []));
+    for (const entry of protectedPaths) requireCondition(readPaths.has(entry) && !writePaths.has(entry));
+    if (contract.verifier.command_checks) {
+      const declared = new Map(contract.commands.map((item) => [item.id, item]));
+      for (const id of unique(contract.verifier.command_checks.map((item) => item.command_id))) {
+        const entry = declared.get(id);
+        requireCondition(entry);
+        // The model must not be able to rewrite what judges it: entrypoint is protected, never writable.
+        requireCondition(protectedPaths.has(entry.entrypoint) && !writePaths.has(entry.entrypoint));
+        for (const arg of entry.args) {
+          // Check the whole argument and the value after `=`, resolved against the project root.
+          for (const candidate of new Set([arg, arg.slice(arg.indexOf('=') + 1)])) {
+            const relative = path.relative(contract.workspace.root, path.resolve(contract.workspace.root, candidate));
+            requireCondition(!relative.startsWith('..') && !path.isAbsolute(relative) && !writePaths.has(relative));
+          }
+        }
+      }
+    }
     if (contract.initial_files.length > 0) {
       const byPath = new Map(contract.initial_files.map((item) => [item.path, item.sha256]));
       requireCondition(

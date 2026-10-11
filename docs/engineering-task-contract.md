@@ -37,6 +37,45 @@ does not prove implementation or availability of that verifier.
 | `verifier` | External `verifier://` reference/digest and exactly all acceptance ids |
 | `rollback` | `discard-disposable-workspace` |
 
+### Acceptance commands (schema 2, optional)
+
+`commands` are tools the model may run; their exit codes are diagnostics and never
+approve or reject a delivery. To make a command part of acceptance, list it in
+`verifier.command_checks` (`[{ "command_id": "<id of a declared command>", "timeout_ms"?: 1-300000 }]`, unique,
+at most 16). After the output checks pass, the protected verifier runs each listed
+command itself in the isolated executor, with the declared argv, against the final
+artifacts. Approval requires every one to finish with status `succeeded` and
+`exit_code` 0; a nonzero exit, signal, timeout, missing module or binary, invalid
+output or exhausted budget rejects (`criteria-not-satisfied`, correctable under
+`max_failed_corrections`). The evidence and each `review` event record
+`command_checks` (`command_id`, `status`, `exit_code`; no output); the correction
+prompt carries `failed_commands` with the same fields. The approval event is refused
+without a matching passing entry per declared check. Workflow children use the same
+verifier, so a failing child is `failed` and its dependents are `not_executed`.
+
+Protected files. The model must not be able to rewrite what judges it. When
+`command_checks` is present, `verifier.protected_paths` is required: paths inside
+`scope.read`, disjoint from `scope.write`, which must include every listed command's
+entrypoint. The parse refuses a writable entrypoint or an argument naming a writable
+path (also the value after `=`, resolved against the project root; an argument resolving outside the root is refused). Their content is pinned by the prepared `initial_files` and re-compared with the
+final snapshot immediately before any acceptance command runs; any divergence rejects
+with `protected-files-changed`. Residual transitive risk: files the command imports or
+reads (test suites, configuration, fixtures) that sit in `scope.write` can still be
+edited by the model and weaken the command. Contracts should put every test and
+verifier-configuration file the command depends on in `protected_paths` (and keep it
+out of `scope.write`). An exit of 0 is the whole criterion; what the command asserts
+is the contract author's responsibility (for example `--passWithNoTests` passes).
+
+Reconciliation inspection never replays acceptance commands (it never approves; it
+reports `command-checks-not-run`). Results are recorded per review for the same files
+digest.
+
+Compatibility. Schema 1 and schema 2 contracts without `command_checks` behave as
+before. Any change to the verifier implementation changes its code digest, so schema 2
+tasks prepared before this change must be re-prepared (`prepareProjectTask`) to pass
+the pinned-acceptance check; this holds for every edit of the verifier source, not
+only this one.
+
 Objects reject unknown fields. Paths use portable alphanumeric-leading segments
 with dots, dashes and underscores; no absolute paths, traversal, hidden control
 paths, backslashes, wildcards or file/directory prefix collisions. This first
