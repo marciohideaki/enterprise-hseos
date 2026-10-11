@@ -12,6 +12,7 @@ const yaml = require('yaml');
 const {
   PLATFORM_MODES,
   detectStacks,
+  detectStacksForFile,
   loadPlatformBindings,
   modeStrength,
   parsePlatformBindingFlag,
@@ -897,6 +898,78 @@ function testStacks() {
   }
 }
 
+function writeJson(root, rel, value) {
+  fs.ensureDirSync(path.dirname(path.join(root, rel)));
+  fs.writeFileSync(path.join(root, rel), JSON.stringify(value));
+}
+
+function testStackLabels() {
+  console.log('\nStack labels (registry vocabulary, per package)');
+  const sb = sandbox();
+  try {
+    const root = sb.project;
+    writeJson(root, 'package.json', { name: 'root', devDependencies: { typescript: '^5' } });
+    fs.writeFileSync(path.join(root, 'pnpm-workspace.yaml'), 'packages:\n  - "apps/*"\n  - "libs/*"\n  - "!libs/ignored"\n');
+    writeJson(root, 'apps/web/package.json', { dependencies: { react: '^19', 'react-dom': '^19' } });
+    writeJson(root, 'libs/format/package.json', { name: 'format' });
+    writeJson(root, 'libs/mobile/package.json', { dependencies: { 'react-native': '^0.76' } });
+    touch(root, 'apps/web/tsconfig.json');
+    touch(root, 'tools/api/pyproject.toml');
+    assertPass('project-wide union uses registry labels', detectStacks(root).join(',') === 'node,react,react-native,typescript');
+    assertPass(
+      'react app yields node,react,typescript',
+      detectStacksForFile(root, 'apps/web/src/Login.tsx').join(',') === 'node,react,typescript',
+    );
+    assertPass(
+      'plain library does not inherit react',
+      detectStacksForFile(root, 'libs/format/src/money.ts').join(',') === 'node,typescript',
+      detectStacksForFile(root, 'libs/format/src/money.ts').join(','),
+    );
+    assertPass(
+      'react-native package does not imply react',
+      detectStacksForFile(root, 'libs/mobile/src/a.ts').join(',') === 'node,react-native,typescript',
+    );
+    assertPass('python package keeps its own stack', detectStacksForFile(root, 'tools/api/app/main.py').join(',') === 'python,typescript');
+    assertPass(
+      'absolute path inside the project works',
+      detectStacksForFile(root, path.join(root, 'apps/web/src/a.tsx')).join(',') === 'node,react,typescript',
+    );
+    assertPass(
+      'file outside the project falls back to the project union',
+      detectStacksForFile(root, '/etc/hosts').join(',') === detectStacks(root).join(','),
+    );
+    touch(root, 'apps/web/src/tsconfig.json');
+    assertPass(
+      'a tsconfig below the manifest does not hide the package',
+      detectStacksForFile(root, 'apps/web/src/deep/a.tsx').join(',') === 'node,react,typescript',
+      detectStacksForFile(root, 'apps/web/src/deep/a.tsx').join(','),
+    );
+    const hostile = path.join(sb.base, 'hostile');
+    writeJson(hostile, 'package.json', { dependencies: { constructor: '1', __proto__: '1', toString: '1', react: '1' } });
+    let hostileStacks = null;
+    try {
+      hostileStacks = detectStacks(hostile).join(',');
+    } catch (error) {
+      hostileStacks = `threw ${error.message}`;
+    }
+    assertPass('dependencies named like Object.prototype members do not break detection', hostileStacks === 'node,react', hostileStacks);
+    const nested = path.join(sb.base, 'nested');
+    writeJson(nested, 'package.json', { name: 'n' });
+    fs.writeFileSync(path.join(nested, 'pnpm-workspace.yaml'), 'packages:\n  - "packages/*/pkgs/*"\n  - "**/ui"\n');
+    writeJson(nested, 'packages/a/pkgs/web/package.json', { dependencies: { react: '1' } });
+    writeJson(nested, 'misc/x/ui/package.json', { dependencies: { 'react-native': '1' } });
+    assertPass(
+      'nested and ** workspace globs enter the project-wide union',
+      detectStacks(nested).join(',') === 'node,react,react-native',
+      detectStacks(nested).join(','),
+    );
+    const explicit = loadPlatformBindings({ projectDir: root, env: sb.env, now: NOW });
+    assertPass('detected stacks are not flagged explicit', explicit.stacksExplicit === false);
+  } finally {
+    sb.cleanup();
+  }
+}
+
 function testWriter() {
   console.log('\nwritePlatformBindings');
   const sb = sandbox();
@@ -974,6 +1047,7 @@ function run() {
   testSymlinkedReferences();
   testRegistryResolution();
   testStacks();
+  testStackLabels();
   testWriter();
 
   console.log(`\nPlatform bindings tests: ${passed} passed, ${failed} failed`);

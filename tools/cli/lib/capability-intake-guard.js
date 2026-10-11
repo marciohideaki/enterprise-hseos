@@ -5,6 +5,7 @@ const yaml = require('yaml');
 const {
   PROJECT_BINDINGS_FILE,
   detectStacks,
+  detectStacksForFile,
   intakeRecordResolves,
   isReferenceId,
   loadPlatformBindings,
@@ -2800,9 +2801,21 @@ function evaluateGuard({ input, cwd = process.cwd(), env = process.env, runtimeR
   }
   if (!registry && mode === 'hybrid') {
     // Without registry data hybrid cannot identify a stable match: fall back to the platform decision.
-    return decide({ mode: 'platform', registry, symbols, relative: target.relative, root, env, bindings, notes, incomplete, now });
+    return decide({
+      mode: 'platform',
+      registry,
+      symbols,
+      relative: target.relative,
+      file: target.real,
+      root,
+      env,
+      bindings,
+      notes,
+      incomplete,
+      now,
+    });
   }
-  return decide({ mode, registry, symbols, relative: target.relative, root, env, bindings, notes, incomplete, now });
+  return decide({ mode, registry, symbols, relative: target.relative, file: target.real, root, env, bindings, notes, incomplete, now });
 }
 
 /** Names for messages: the named exports joined, or the fallback for an export without a name. */
@@ -2811,8 +2824,14 @@ function nameList(symbols, fallback) {
   return names.length > 0 ? names.join(', ') : fallback;
 }
 
-function decide({ mode, registry, symbols, relative, root, env, bindings, notes, incomplete = false, now = new Date() }) {
-  const stacks = bindings.stacks && bindings.stacks.length > 0 ? bindings.stacks : detectStacks(root);
+function decide({ mode, registry, symbols, relative, file, root, env, bindings, notes, incomplete = false, now = new Date() }) {
+  let stacks = [];
+  try {
+    stacks = bindings.stacksExplicit && bindings.stacks.length > 0 ? bindings.stacks : detectStacksForFile(root, file);
+  } catch (error) {
+    // Unknown stacks mean "any stack", the most blocking reading: the decision stays fail-closed.
+    notes.push(`Stack detection failed (${error.message}); every stack is assumed.`);
+  }
   // One lookup per export; a capability matched by several exports is reported once and remembers which symbols hit it.
   const byCapability = new Map();
   const warningSet = new Set();
