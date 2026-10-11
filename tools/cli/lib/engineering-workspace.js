@@ -6,6 +6,22 @@ const { execFileSync } = require('node:child_process');
 const { createHash } = require('node:crypto');
 const { canonicalJson } = require('../../../packages/agent-session-store');
 
+/**
+ * Curated rejection: `reason` is a closed code and `message` a fixed string, both safe to return to API clients.
+ * Anything not built here (raw fs/git errors) must never be echoed because it can embed host paths.
+ */
+function projectRejection(reason, message, file, field) {
+  return Object.assign(new Error(message), { reason, ...(file ? { file } : {}), ...(field ? { field } : {}) });
+}
+
+const FS_REASONS = {
+  ELOOP: ['PROJECT_FILE_UNSAFE', 'Unsafe project file'],
+  ENOTDIR: ['PROJECT_FILE_UNSAFE', 'Unsafe project file'],
+  EMLINK: ['PROJECT_FILE_UNSAFE', 'Unsafe project file'],
+  EACCES: ['PROJECT_FILE_UNREADABLE', 'Project file is not readable'],
+  EPERM: ['PROJECT_FILE_UNREADABLE', 'Project file is not readable'],
+};
+
 const digest = (value) => createHash('sha256').update(value).digest('hex');
 
 // Git metadata may name executable extensions. Project code belongs in the sandbox.
@@ -19,20 +35,21 @@ function projectGit(root, args, input) {
     stdio: ['pipe', 'pipe', 'pipe'],
   };
   const keys = execFileSync('git', [...base, 'config', '--includes', '--name-only', '--list'], options);
-  if (/^filter\./im.test(keys)) throw new Error('Project Git conversion filters are unsupported');
+  if (/^filter\./im.test(keys)) throw projectRejection('PROJECT_GIT_FILTERS_UNSUPPORTED', 'Project Git conversion filters are unsupported');
   const top = execFileSync('git', [...base, 'rev-parse', '--show-toplevel'], options).trim();
-  if (top !== root) throw new Error('Project Git root does not match workspace');
+  if (top !== root) throw projectRejection('PROJECT_GIT_ROOT_MISMATCH', 'Project Git root does not match workspace');
   return execFileSync('git', [...base, `--work-tree=${root}`, ...args], { ...options, input });
 }
 
 function workspaceSnapshot(contract, root) {
   const identity = fs.lstatSync(root);
   if (!identity.isDirectory() || identity.isSymbolicLink() || fs.realpathSync(root) !== root) {
-    throw new Error('Unsafe project workspace');
+    throw projectRejection('PROJECT_WORKSPACE_UNSAFE', 'Unsafe project workspace');
   }
   let bytes = 0;
   const files = contract.scope.read.map((name) => {
-    if (!/^[a-zA-Z0-9_][a-zA-Z0-9._-]*(?:\/[a-zA-Z0-9_][a-zA-Z0-9._-]*)*$/.test(name)) throw new Error('Invalid project path');
+    if (!/^[a-zA-Z0-9_][a-zA-Z0-9._-]*(?:\/[a-zA-Z0-9_][a-zA-Z0-9._-]*)*$/.test(name))
+      throw projectRejection('PROJECT_PATH_INVALID', 'Invalid project path');
     const directories = [];
     let fd;
     try {
@@ -48,8 +65,9 @@ function workspaceSnapshot(contract, root) {
       const filename = `/proc/self/fd/${directories.at(-1)}/${name.split('/').at(-1)}`;
       fd = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK);
       const before = fs.fstatSync(fd);
-      if (!before.isFile() || before.nlink !== 1 || before.size > contract.max_artifact_bytes - bytes)
-        throw new Error('Unsafe project file');
+      if (before.size > contract.max_artifact_bytes - bytes)
+        throw projectRejection('PROJECT_FILE_TOO_LARGE', 'Project files exceed max_artifact_bytes', name);
+      if (!before.isFile() || before.nlink !== 1) throw projectRejection('PROJECT_FILE_UNSAFE', 'Unsafe project file', name);
       const buffer = Buffer.alloc(before.size + 1);
       const length = fs.readSync(fd, buffer, 0, buffer.length, 0);
       const after = fs.fstatSync(fd);
@@ -62,12 +80,16 @@ function workspaceSnapshot(contract, root) {
         linked.dev !== before.dev ||
         linked.isSymbolicLink()
       )
-        throw new Error('Project changed during snapshot');
+        throw projectRejection('PROJECT_CHANGED_DURING_SNAPSHOT', 'Project changed during snapshot');
       bytes += length;
       const content = new TextDecoder('utf-8', { fatal: true }).decode(buffer.subarray(0, length));
       return { path: name, content, sha256: digest(buffer.subarray(0, length)) };
     } catch (error) {
       if (error.code === 'ENOENT') return { path: name, content: null, sha256: null };
+      if (error.reason) throw error;
+      if (error.code === 'ERR_ENCODING_INVALID_ENCODED_DATA')
+        throw projectRejection('PROJECT_FILE_NOT_UTF8', 'Project file is not valid UTF-8', name);
+      if (FS_REASONS[error.code]) throw projectRejection(...FS_REASONS[error.code], name);
       throw error;
     } finally {
       if (fd !== undefined) fs.closeSync(fd);
@@ -75,20 +97,22 @@ function workspaceSnapshot(contract, root) {
     }
   });
   const after = fs.lstatSync(root);
-  if (after.ino !== identity.ino || after.dev !== identity.dev || after.isSymbolicLink()) throw new Error('Project identity changed');
+  if (after.ino !== identity.ino || after.dev !== identity.dev || after.isSymbolicLink())
+    throw projectRejection('PROJECT_IDENTITY_CHANGED', 'Project identity changed');
   return { files, sha256: digest(canonicalJson(files.map(({ path: name, sha256 }) => ({ path: name, sha256 })))) };
 }
 
 function projectWorkspaceSnapshot(contract) {
   const root = contract.workspace.root;
   const gitHead = projectGit(root, ['rev-parse', '--verify', 'HEAD']).trim();
-  if (gitHead !== contract.baseline_sha) throw new Error('Project Git baseline changed');
+  if (gitHead !== contract.baseline_sha) throw projectRejection('PROJECT_BASELINE_CHANGED', 'Project Git baseline changed');
   return workspaceSnapshot(contract, root);
 }
 
 function hydrateProjectTask(contract) {
   const snapshot = projectWorkspaceSnapshot(contract);
-  if (snapshot.sha256 !== contract.workspace.files_sha256) throw new Error('Project content baseline changed');
+  if (snapshot.sha256 !== contract.workspace.files_sha256)
+    throw projectRejection('PROJECT_BASELINE_CHANGED', 'Project content baseline changed');
   if (contract.initial_files.length > 0) throw new Error('Project input must be read from its declared workspace');
   return { ...contract, initial_files: snapshot.files.filter((file) => file.content !== null) };
 }
@@ -225,7 +249,8 @@ function projectPatch(contract, files) {
   for (const file of files) {
     const before = originals.get(file.path) ?? null;
     if (before === file.content) continue;
-    if (!contract.scope.write.includes(file.path)) throw new Error('Patch would change a read-only path');
+    if (!contract.scope.write.includes(file.path))
+      throw projectRejection('PROJECT_PATCH_READ_ONLY_PATH', 'Patch would change a read-only path');
     const a = count(before),
       b = count(file.content);
     if (a === 0 && b === 0) {
@@ -244,10 +269,10 @@ function projectPatch(contract, files) {
 function reviewProjectResult(evidence) {
   const contract = evidence.contract;
   if (contract.schema_version !== 2 || evidence.task_result !== 'approved' || !evidence.artifacts)
-    throw new Error('An approved project result is required');
+    throw projectRejection('PROJECT_RESULT_NOT_APPROVED', 'An approved project result is required');
   const candidate = workspaceSnapshot(contract, path.join(evidence.state, 'workspace'));
   if (digest(canonicalJson(candidate.files)) !== evidence.artifacts.files_sha256)
-    throw new Error('Project candidate changed after verification');
+    throw projectRejection('PROJECT_CANDIDATE_CHANGED', 'Project candidate changed after verification');
   const current = projectWorkspaceSnapshot(contract);
   const patch = projectPatch(contract, evidence.artifacts.files);
   const review = {
@@ -266,7 +291,8 @@ function reviewProjectResult(evidence) {
 
 function applyProjectResult(evidence, expectedReview) {
   const review = reviewProjectResult(evidence);
-  if (!review.baseline_valid || review.review_sha256 !== expectedReview) throw new Error('Project approval is stale');
+  if (!review.baseline_valid || review.review_sha256 !== expectedReview)
+    throw projectRejection('PROJECT_APPROVAL_STALE', 'Project approval is stale');
   const contract = evidence.contract;
   const git = (args, input) => projectGit(contract.workspace.root, args, input);
   // Git's index/worktree preconditions are mandatory. Never force or auto-commit.
@@ -274,7 +300,7 @@ function applyProjectResult(evidence, expectedReview) {
   if (review.patch) {
     git(['apply', '--check', '--index', '--whitespace=nowarn', '-'], review.patch);
     if (projectWorkspaceSnapshot(contract).sha256 !== contract.workspace.files_sha256)
-      throw new Error('Project changed before application');
+      throw projectRejection('PROJECT_CHANGED_BEFORE_APPLY', 'Project changed before application');
     git(['apply', '--index', '--whitespace=nowarn', '-'], review.patch);
   }
   const after = projectWorkspaceSnapshot(contract);
@@ -287,7 +313,56 @@ module.exports.projectPatch = projectPatch;
 module.exports.reviewProjectResult = reviewProjectResult;
 module.exports.applyProjectResult = applyProjectResult;
 
+const PROJECT_PATH = /^[a-zA-Z0-9_][a-zA-Z0-9._-]*(?:\/[a-zA-Z0-9_][a-zA-Z0-9._-]*)*$/;
+
+/**
+ * Names the first violated scope rule of a rejected v2 contract. Only the scope field and a fixed message are
+ * returned; the offending path is never echoed because it is caller-controlled text.
+ */
+function diagnoseScope(value) {
+  const scope = value?.scope;
+  if (!scope || typeof scope !== 'object') return null;
+  for (const list of ['read', 'write']) {
+    const paths = scope[list];
+    if (!Array.isArray(paths) || paths.length === 0 || paths.length > 64)
+      return projectRejection('PROJECT_SCOPE_INVALID', `scope.${list} must list 1 to 64 paths`, undefined, `scope.${list}`);
+    const bad = paths.findIndex((entry) => typeof entry !== 'string' || entry.length > 240 || !PROJECT_PATH.test(entry));
+    if (bad !== -1)
+      return projectRejection(
+        'PROJECT_PATH_INVALID',
+        'Path must be relative, without ".." or hidden segments',
+        undefined,
+        `scope.${list}[${bad}]`,
+      );
+    if (new Set(paths).size !== paths.length)
+      return projectRejection('PROJECT_SCOPE_INVALID', `scope.${list} must not repeat a path`, undefined, `scope.${list}`);
+  }
+  const all = [...new Set([...scope.read, ...scope.write])];
+  if (all.some((entry) => all.some((other) => other.startsWith(`${entry}/`))))
+    return projectRejection(
+      'PROJECT_SCOPE_CONFLICT',
+      'A scope path is a file and also the parent directory of another path',
+      undefined,
+      'scope',
+    );
+  if (scope.write.some((entry) => !scope.read.includes(entry)))
+    return projectRejection('PROJECT_SCOPE_INVALID', 'Every scope.write path must also be listed in scope.read', undefined, 'scope.write');
+  return null;
+}
+
 function prepareProjectTask(value) {
+  try {
+    return prepareProjectTaskUnchecked(value);
+  } catch (error) {
+    if (error.code === 'ENGINEERING_TASK_CONTRACT_INVALID') {
+      const diagnosis = diagnoseScope(value);
+      if (diagnosis) throw diagnosis;
+    }
+    throw error;
+  }
+}
+
+function prepareProjectTaskUnchecked(value) {
   const { parseEngineeringTask } = require('./engineering-task-contract');
   const input = structuredClone(value);
   input.baseline_sha = '0'.repeat(40);

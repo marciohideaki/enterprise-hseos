@@ -35,11 +35,18 @@ function parseSchema(schema, value, phase) {
     });
   }
   if (!parsed || parsed.success !== true) {
-    throw new ExecutionContractError(`${phase} does not match schema v${schema.version}`, `EXECUTION_${phase.toUpperCase()}_INVALID`, {
-      phase,
-      schema_version: schema.version,
-      issues: parsed && parsed.error && parsed.error.issues ? parsed.error.issues : [],
-    });
+    // A schema may classify its own rejection with a specific, closed-form code; the default stays EXECUTION_<PHASE>_INVALID.
+    const specific =
+      parsed && parsed.error && /^[A-Z][A-Z0-9_]{2,63}$/.test(parsed.error.hseos_code || '') ? parsed.error.hseos_code : null;
+    throw new ExecutionContractError(
+      `${phase} does not match schema v${schema.version}`,
+      specific || `EXECUTION_${phase.toUpperCase()}_INVALID`,
+      {
+        phase,
+        schema_version: schema.version,
+        issues: parsed && parsed.error && parsed.error.issues ? parsed.error.issues : [],
+      },
+    );
   }
   return parsed.data;
 }

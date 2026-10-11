@@ -5,6 +5,18 @@ const { createHash, timingSafeEqual } = require('node:crypto');
 
 const NOT_FOUND_CODES = new Set(['CONTROL_TASK_NOT_FOUND', 'JOB_NOT_FOUND', 'CONTROL_TERMINAL_NOT_FOUND', 'CONTROL_CAMPAIGN_NOT_FOUND']);
 
+function rejectionDetail(error) {
+  if (typeof error.reason === 'string' && /^PROJECT_[A-Z0-9_]+$/.test(error.reason))
+    return {
+      code: error.reason,
+      message: String(error.message).slice(0, 200),
+      ...(typeof error.file === 'string' && error.file.length <= 256 ? { path: error.file } : {}),
+      ...(typeof error.field === 'string' && /^[a-z_]+(?:\.[a-z_]+)?(?:\[\d{1,2}\])?$/.test(error.field) ? { field: error.field } : {}),
+    };
+  if (typeof error.code === 'string' && /^E[A-Z0-9]{2,15}$/.test(error.code)) return { code: error.code };
+  return null;
+}
+
 async function startControlServer({ control, credential, port = 0 }) {
   if (typeof credential !== 'string' || credential.length < 32 || !Number.isInteger(port) || port < 0 || port > 65_535)
     throw new Error('A local control credential and valid port are required');
@@ -144,7 +156,12 @@ async function startControlServer({ control, credential, port = 0 }) {
     } catch (error) {
       const code = typeof error.code === 'string' && /^(?:CONTROL|JOB)_[A-Z_]+$/.test(error.code) ? error.code : 'CONTROL_REQUEST_REJECTED';
       // Unknown resource -> 404, malformed query -> 400, any other rejection -> 409 (docs/engineering-control-api.md).
-      return send(NOT_FOUND_CODES.has(code) ? 404 : code === 'CONTROL_QUERY_INVALID' ? 400 : 409, { error: code });
+      // CONTROL_REQUEST_REJECTED stays the category; `detail` carries a curated cause only (never raw error text or host paths).
+      const detail = code === 'CONTROL_REQUEST_REJECTED' ? rejectionDetail(error) : null;
+      return send(NOT_FOUND_CODES.has(code) ? 404 : code === 'CONTROL_QUERY_INVALID' ? 400 : 409, {
+        error: code,
+        ...(detail ? { detail } : {}),
+      });
     }
   });
   server.requestTimeout = 15_000;

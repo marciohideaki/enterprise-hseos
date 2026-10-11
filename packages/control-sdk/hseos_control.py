@@ -33,7 +33,10 @@ class ControlClient:
                 return json.load(response)
         except urllib.error.HTTPError as error:
             value = json.load(error)
-            raise RuntimeError(value.get("error", "CONTROL_REQUEST_FAILED")) from None
+            failure = RuntimeError(value.get("error", "CONTROL_REQUEST_FAILED"))
+            failure.code = value.get("error")
+            failure.detail = value.get("detail")
+            raise failure from None
 
     def prepare(self, contract):
         return self._request("/v1/prepare", contract)

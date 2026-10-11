@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const { fixture } = require('./helpers/engineering-project');
-const { EngineeringControl } = require('../tools/cli/lib/engineering-control');
+const { EngineeringControl, OWNED_AGGREGATE_TYPES } = require('../tools/cli/lib/engineering-control');
 const { EngineeringTaskState } = require('../tools/cli/lib/engineering-task-state');
 const { RelationalSessionEventStore } = require('../packages/agent-session-store');
 const runtime = require('../tools/cli/lib/engineering-task-runtime');
@@ -378,10 +378,59 @@ test('shared ledger event queries exclude other jobs and preserve global cursor'
   f.control.append(other, { kind: 'intent', command_id: randomUUID(), digest: 'a'.repeat(64), action: 'create' });
   const events = f.control.events(f.id, { limit: 1000 });
   assert.ok(events.events.every((row) => row.aggregate_id !== other));
-  assert.equal(events.next_cursor, f.control.ledger.readGlobal({ limit: 1000 }).at(-1).position);
+  assert.equal(events.next_cursor, events.events.at(-1).position);
   assert.deepEqual(f.control.events(f.id, { after: events.next_cursor }).events, []);
   await assert.rejects(f.control.query(f.id, 'review'), { code: 'CONTROL_VIEW_UNAVAILABLE' });
   assert.equal((await f.control.query(f.id, 'evidence')).contract.schema_version, 2);
+});
+
+test('job-created workflow events page honestly when foreign rows dominate the shared ledger', async (t) => {
+  const f = await setup(t, true);
+  const early = f.control.ledger.readGlobal({ limit: 1000 }).at(-1)?.position || 0;
+  for (let index = 0; index < 30; index++)
+    f.control.append(randomUUID(), { kind: 'intent', command_id: randomUUID(), digest: 'a'.repeat(64), action: 'create' });
+  await f.jobs.materializer.execute(f.command);
+  const all = f.control.events(f.id, { after: early, limit: 1000 });
+  assert.ok(all.events.length > 3);
+  const collected = [];
+  let cursor = early;
+  for (let pages = 0; pages < 50; pages++) {
+    const page = f.control.events(f.id, { after: cursor, limit: 3 });
+    if (page.events.length === 0) {
+      assert.equal(page.next_cursor, cursor, 'an empty page must not advance the cursor');
+      break;
+    }
+    assert.ok(page.events.length <= 3);
+    collected.push(...page.events);
+    cursor = page.next_cursor;
+  }
+  assert.deepEqual(collected, all.events);
+  assert.equal(f.control.events(f.id, { after: early, limit: 3 }).events.length, 3);
+});
+test('job-created workflow evidence carries per-step evidence like a direct workflow', async (t) => {
+  const f = await setup(t, true);
+  await f.jobs.materializer.execute(f.command);
+  const view = await f.control.query(f.id, 'evidence');
+  assert.deepEqual(
+    view.evidence.map((entry) => entry.id),
+    ['first', 'second'],
+  );
+  assert.ok(view.evidence.every((entry) => entry.contract.schema_version === 2));
+  assert.equal(Object.hasOwn(await f.control.query(f.id), 'evidence'), false);
+});
+
+test('every ledger row of a job-owned resource uses an aggregate type that events() reads', async (t) => {
+  for (const workflow of [false, true]) {
+    const f = await setup(t, workflow);
+    const ready = await f.jobs.materializer.execute(f.command);
+    const ids = new Set([f.id, ...ready.materialization.plan.tasks.flatMap((entry) => [entry.task_run_id, entry.created.session_id])]);
+    if (workflow) ids.add(ready.materialization.plan.manifest.parent_session_id);
+    const rows = f.control.ledger.readGlobal({ limit: 1000 }).filter((row) => ids.has(row.aggregate_id));
+    assert.ok(rows.length > 0);
+    const foreign = rows.filter((row) => !OWNED_AGGREGATE_TYPES.includes(row.aggregate_type));
+    assert.deepEqual(foreign, [], 'add the new aggregate type to OWNED_AGGREGATE_TYPES or events() will silently omit it');
+    assert.deepEqual(f.control.events(f.id, { limit: 1000 }).events, rows);
+  }
 });
 
 test('a second ledger cannot assemble capabilities over the original job workspace', async (t) => {
