@@ -2581,3 +2581,166 @@ test('guard: every symbol master 7a0ff6db detects is detected (property test: va
     for (const symbol of before.symbols) assert.ok(detectExports(content, 'js').symbols.includes(symbol), content);
   }
 });
+
+// ---- Watched roots follow the declared workspace layout; a JSON intake record can acknowledge (CRP battery F2, F4, F5) ----
+
+const platformProject = (files = {}) => gitProject({ [BINDINGS]: projectFile('platform'), ...files });
+const denied = (outcome) => outcome.exitCode === 2;
+
+test('watched roots: apps/* declared in pnpm-workspace.yaml is watched, and the declaration decides', () => {
+  const declared = platformProject({ 'pnpm-workspace.yaml': 'packages:\n  - "apps/*"\n  - "packages/*"\n' });
+  assert.ok(denied(guard(declared, 'apps/web/src/Widget.ts', EXPORT)), 'apps/* is watched');
+  assert.ok(denied(guard(declared, 'packages/ui/Widget.ts', EXPORT)), 'packages stays watched');
+  assert.equal(guard(declared, 'tools/Widget.ts', EXPORT).exitCode, 0, 'undeclared root stays unwatched');
+  const custom = platformProject({ 'pnpm-workspace.yaml': 'packages:\n  - "libs/**"\n  - "!libs/legacy/*"\n' });
+  assert.ok(denied(guard(custom, 'libs/core/src/Widget.ts', EXPORT)), 'a custom root is watched');
+  assert.equal(guard(custom, 'apps/web/src/Widget.ts', EXPORT).exitCode, 0, 'a declaration without apps leaves apps unwatched');
+});
+
+test('watched roots: package.json workspaces (array and object form) are honoured', () => {
+  const array = platformProject({ 'package.json': JSON.stringify({ workspaces: ['services/*'] }) });
+  assert.ok(denied(guard(array, 'services/api/src/Widget.ts', EXPORT)));
+  const object = platformProject({ 'package.json': JSON.stringify({ workspaces: { packages: ['modules/*'] } }) });
+  assert.ok(denied(guard(object, 'modules/a/Widget.ts', EXPORT)));
+});
+
+test('watched roots: without a workspace declaration the safe fallback watches apps/', () => {
+  const bare = platformProject();
+  assert.ok(denied(guard(bare, 'apps/web/src/Widget.ts', EXPORT)));
+  const unreadable = platformProject({ 'pnpm-workspace.yaml': 'packages: [unclosed\n' });
+  assert.ok(denied(guard(unreadable, 'apps/web/src/Widget.ts', EXPORT)), 'a broken declaration falls back, never to "watch nothing"');
+});
+
+test('watched roots: tests, e2e, mocks and design references stay out of the declared roots', () => {
+  const project = platformProject({ 'pnpm-workspace.yaml': 'packages:\n  - "apps/*"\n' });
+  for (const file of [
+    'apps/web/src/Widget.test.ts',
+    'apps/web/src/__tests__/helper.ts',
+    'apps/web/e2e/support.ts',
+    'apps/web/dist/Widget.js',
+    'e2e/support.ts',
+    'design-reference/support.js',
+    'scripts/build.js',
+  ]) {
+    assert.equal(guard(project, file, EXPORT).exitCode, 0, file);
+  }
+});
+
+test('watched roots: qualifies accepts the declared roots as an extra argument', () => {
+  assert.equal(qualifies('/apps/web/a.ts', EXPORT), false, 'no declaration, no extra root');
+  assert.equal(qualifies('/apps/web/a.ts', EXPORT, ['apps']), true);
+  assert.equal(qualifies('/apps/web/e2e/a.ts', EXPORT, ['apps']), false);
+  assert.equal(qualifies('/other/a.ts', EXPORT, ['apps']), false);
+});
+
+test('barrels: a re-export with a from clause introduces no capability and stays allowed under any name', () => {
+  const project = platformProject({ 'pnpm-workspace.yaml': 'packages:\n  - "apps/*"\n' });
+  assert.equal(guard(project, 'apps/web/src/index.ts', "export * from './Widget';\nexport { Widget } from './Widget';").exitCode, 0);
+  assert.ok(denied(guard(project, 'apps/web/src/index.ts', 'export { Widget };')), 'a local name list is still an unknown export');
+});
+
+const intakeRecord = (overrides = {}) =>
+  JSON.stringify({
+    $schema: 'platform-core/governance/capability-intake/v2',
+    schema_version: 2,
+    request_id: 'demo-platform/intake/2026-09-01-widget-promote',
+    decision: 'promote',
+    approval: { reference: 'owner', expires_at: '2099-12-31T00:00:00Z' },
+    ...overrides,
+  });
+const ACK = 'demo-platform/intake/2026-09-01-widget-promote';
+
+test('JSON intake record: a v2 record under docs/decisions/**/intake acknowledges by request_id', () => {
+  const project = platformProject({ 'docs/decisions/intake/2026-09-01-widget-promote.json': intakeRecord() });
+  assert.equal(guard(project, 'packages/ui/Widget.ts', EXPORT, { env: quietEnv({ CORE_INTAKE_ACK: ACK }) }).exitCode, 0);
+  const denial = guard(project, 'packages/ui/Widget.ts', EXPORT, { env: quietEnv({ CORE_INTAKE_ACK: `${ACK}-x` }) });
+  assert.ok(denied(denial), 'a different id does not resolve');
+  assert.match(contextOf(denial), /docs\/decisions\/.*intake.*\.json/, 'the denial says where the token goes (markdown and JSON)');
+  assert.match(contextOf(denial), /request_id/);
+});
+
+test('JSON intake record: arbitrary or invalid JSON is not an acknowledgement', () => {
+  const cases = {
+    'wrong schema': intakeRecord({ $schema: 'something/else' }),
+    'wrong version': intakeRecord({ schema_version: 1 }),
+    'unknown decision': intakeRecord({ decision: 'whatever' }),
+    'expired approval': intakeRecord({ approval: { reference: 'owner', expires_at: '2020-01-01T00:00:00Z' } }),
+    'request_id only inside a note': intakeRecord({ request_id: 'other/id-1', note: ACK }),
+    'not json': `{ "request_id": "${ACK}"`,
+  };
+  for (const [name, content] of Object.entries(cases)) {
+    const project = platformProject({ 'docs/decisions/intake/record.json': content });
+    const outcome = guard(project, 'packages/ui/Widget.ts', EXPORT, { env: quietEnv({ CORE_INTAKE_ACK: ACK }) });
+    assert.ok(denied(outcome), name);
+  }
+  const outside = platformProject({ 'docs/other/intake/record.json': intakeRecord() });
+  assert.ok(denied(guard(outside, 'packages/ui/Widget.ts', EXPORT, { env: quietEnv({ CORE_INTAKE_ACK: ACK }) })), 'outside docs/decisions');
+  const notIntake = platformProject({ 'docs/decisions/plain/record.json': intakeRecord() });
+  assert.ok(
+    denied(guard(notIntake, 'packages/ui/Widget.ts', EXPORT, { env: quietEnv({ CORE_INTAKE_ACK: ACK }) })),
+    'path is not an intake path',
+  );
+});
+
+// ---- Round 2: declarations without a literal root, effective approval, injected clock ----
+
+test('watched roots: `*`/`**` watch every first-level directory, negations exclude, empty declarations fall back', () => {
+  const star = platformProject({ 'pnpm-workspace.yaml': 'packages:\n  - "**"\n  - "!legacy"\n  - "!apps/old/*"\n' });
+  assert.ok(denied(guard(star, 'apps/web/src/Widget.ts', EXPORT)));
+  assert.ok(denied(guard(star, 'tools/Widget.ts', EXPORT)));
+  assert.equal(guard(star, 'legacy/Widget.ts', EXPORT).exitCode, 0, 'declared negation');
+  assert.equal(guard(star, 'apps/old/Widget.ts', EXPORT).exitCode, 0, 'declared nested negation');
+  assert.equal(guard(star, 'apps/web/node_modules/x/Widget.ts', EXPORT).exitCode, 0, 'node_modules');
+  assert.ok(denied(guard(platformProject({ 'pnpm-workspace.yaml': "packages:\n  - '*'\n" }), 'libs/Widget.ts', EXPORT)));
+  for (const manifest of [
+    { 'pnpm-workspace.yaml': 'packages: []\n' },
+    { 'pnpm-workspace.yaml': 'packages:\n  - "!apps/legacy"\n' },
+    { 'package.json': JSON.stringify({ workspaces: [] }) },
+    { 'package.json': JSON.stringify({ workspaces: { packages: ['../outside/*'] } }) },
+  ]) {
+    assert.ok(denied(guard(platformProject(manifest), 'apps/web/src/Widget.ts', EXPORT)), JSON.stringify(manifest));
+  }
+});
+
+test('JSON intake record: approval is effective (status, approval, exception expiry) and the clock is injected', () => {
+  const ask = (record, extra = {}) => {
+    const project = platformProject({ 'docs/decisions/intake/record.json': JSON.stringify(record) });
+    return evaluateGuard({
+      input: hookInput('packages/ui/Widget.ts', EXPORT),
+      cwd: project,
+      env: quietEnv({ CORE_INTAKE_ACK: ACK }),
+      runtimeRoot: REPO_ROOT,
+      ...extra,
+    }).exitCode;
+  };
+  const base = JSON.parse(intakeRecord());
+  const { approval, ...noApproval } = base;
+  assert.equal(ask(base), 0);
+  assert.equal(ask(noApproval), 0, 'promote needs no approval block');
+  assert.equal(ask({ ...noApproval, decision: 'keep-local' }), 2, 'keep-local without approval');
+  assert.equal(ask({ ...noApproval, decision: 'keep-local', status: 'implemented' }), 0, 'keep-local accepted by status');
+  assert.equal(ask({ ...base, decision: 'keep-local' }), 0);
+  for (const status of ['rejected', 'pending', 'proposed', 'draft', 7, null]) assert.equal(ask({ ...base, status }), 2, String(status));
+  assert.equal(ask({ ...base, status: 'accepted' }), 0);
+  assert.equal(ask({ ...base, approval: { reference: '' } }), 2, 'empty approval reference');
+  assert.equal(ask({ ...base, approval: null }), 2);
+  assert.equal(ask({ ...base, decision: 'exception', approval: { reference: 'owner' } }), 2, 'exception without expiry');
+  assert.equal(ask({ ...noApproval, decision: 'exception', status: 'approved' }), 2, 'exception needs an expiry even when approved');
+  assert.equal(ask({ ...base, decision: 'exception' }), 0, 'exception with approval and expiry');
+  assert.equal(ask(base, { now: new Date('2100-01-01T00:00:00Z') }), 2, 'expired at the injected clock');
+  assert.equal(ask(base, { now: new Date('2090-01-01T00:00:00Z') }), 0);
+});
+
+test('watched roots: a negation with a glob after a literal directory excludes matching files, not the whole root', () => {
+  const project = platformProject({
+    'pnpm-workspace.yaml':
+      'packages:\n  - "apps/*"\n  - "!apps/*/fixtures"\n  - "!apps/**/stories"\n  - "!apps/legacy"\n  - "!**/scratch"\n',
+  });
+  assert.ok(denied(guard(project, 'apps/web/src/Widget.ts', EXPORT)), 'the root stays watched');
+  assert.equal(guard(project, 'apps/web/fixtures/Widget.ts', EXPORT).exitCode, 0, '!apps/*/fixtures');
+  assert.equal(guard(project, 'apps/web/src/deep/stories/Widget.ts', EXPORT).exitCode, 0, '!apps/**/stories');
+  assert.equal(guard(project, 'apps/legacy/src/Widget.ts', EXPORT).exitCode, 0, 'literal !apps/legacy');
+  assert.equal(guard(project, 'apps/web/scratch/Widget.ts', EXPORT).exitCode, 0, '!**/scratch');
+  assert.ok(denied(guard(project, 'apps/web/fixtures-not/Widget.ts', EXPORT)), 'a longer name does not match');
+  assert.ok(denied(guard(project, 'apps/web/src/stories.ts', EXPORT)), 'a file is not a directory');
+});

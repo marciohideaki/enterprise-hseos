@@ -116,6 +116,28 @@ bindings file the ID must match as a whole token; without one the legacy path ac
 acknowledgement as a substring of any intake document (see `.enterprise/governance/hooks/README.md`).
 Without the CLI or node the guard falls back to the `platform` decision.
 
+Scope of the guard with bindings: besides the globs above, it watches the roots the project declares
+as its workspace (`pnpm-workspace.yaml` `packages`, `package.json` `workspaces`; for example
+`apps/*`) at the repository root. A top-level `*` or `**` means every first-level directory, and a
+declared `!dir` negation excludes that directory. A declaration with no positive root (empty, only
+negations) is no declaration: the guard falls back to `apps/`. Inside declared roots, `__tests__`,
+`tests`, `e2e`, `design-reference` and `node_modules` directories are not watched (the fixed globs
+keep their historical behaviour). The legacy shell fallback keeps the fixed globs only.
+
+Accepted acknowledgement records: the token as a whole word in `docs/decisions/**/*intake*.md`, or a
+capability-intake v2 JSON record (any `.json` under `docs/decisions` whose path contains `intake`, such
+as `docs/decisions/intake/<name>.json`) with `$schema` `platform-core/governance/capability-intake/v2`,
+`schema_version` 2, a known `decision` and a `request_id` equal to the token. A `status`, when present,
+must be accepted, approved, implemented or registered_not_implemented. A `keep-local` or `exception`
+needs an `approval.reference` (or one of those statuses), an `exception` also needs
+`approval.expires_at`, and an `expires_at` in the past invalidates any record. The token is compared
+with `request_id`, never searched for in the text. This is the minimal local validation; it is replaced
+by the platform-core intake schema once that schema is imported.
+
+Re-exports with a `from` clause (`export * from`, `export { x } from`, barrels) forward an existing
+module and introduce no capability, so they stay allowed under any name; the capability is judged where
+it is declared. A local name list (`export { x }`) is an export with an unknown name.
+
 The guard MUST not fire for tests, specs, stories, mocks, generated files, `dist/`, or an
 edit that adds no export. A documented false positive is a required regression case.
 
