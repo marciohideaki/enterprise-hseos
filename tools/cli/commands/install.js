@@ -193,7 +193,8 @@ module.exports = {
         } else {
           await prompts.log.error(`Installation failed: ${error.message}`);
         }
-        if (error.stack) {
+        // Expected failures stay a clean one-line message; the stack is opt-in.
+        if (error.stack && (options.debug || process.env.DEBUG || process.env.HSEOS_DEBUG)) {
           await prompts.log.message(error.stack);
         }
       } catch {

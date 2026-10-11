@@ -1,4 +1,5 @@
 const path = require('node:path');
+const { PROJECT_STATE_ENTRIES, INSTALL_IN_PROGRESS_FILE } = require('./project-state');
 const fs = require('fs-extra');
 const { Detector } = require('./detector');
 const { Manifest } = require('./manifest');
@@ -409,6 +410,13 @@ class Installer {
       // Check existing installation
       spinner.message('Checking for existing installation...');
       const existingInstall = await this.detector.detect(hseosDir);
+
+      // Mark a fresh install as in progress so an interruption is repairable.
+      const inProgressMarker = path.join(hseosDir, INSTALL_IN_PROGRESS_FILE);
+      if (!config._quickUpdate && !existingInstall.version) {
+        await fs.ensureDir(hseosDir);
+        await fs.writeFile(inProgressMarker, `${new Date().toISOString()}\n`);
+      }
 
       if (existingInstall.installed && !config.force && !config._quickUpdate) {
         spinner.stop('Existing installation detected');
@@ -1144,6 +1152,9 @@ class Installer {
           message('Compiling agent core...');
           const agentCoreStats = await this.agentCoreCompiler.compile(projectDir, hseosDir, {
             platforms: config.ides || [],
+            // An explicit empty tool selection (--tools none) must not write the
+            // Claude/Codex plugin directories; `[]` alone means "all" to the emitter.
+            skipPlatformPlugins: Array.isArray(config.ides) && config.ides.length === 0,
             selectedSkills: config.capabilityPlan ? config.capabilityPlan.skills : undefined,
           });
           addResult(
@@ -1469,7 +1480,8 @@ class Installer {
                 addResult('Pre-commit hook', 'ok', hook.detail);
                 break;
               }
-              case 'no-git': {
+              case 'no-git':
+              case 'no-gate': {
                 addResult('Pre-commit hook', 'warn', hook.detail);
                 break;
               }
@@ -1496,6 +1508,8 @@ class Installer {
         customFiles: customFiles.length > 0 ? customFiles : undefined,
         modifiedFiles: modifiedFiles.length > 0 ? modifiedFiles : undefined,
       });
+
+      await fs.remove(inProgressMarker);
 
       return {
         success: true,
@@ -1844,7 +1858,7 @@ class Installer {
     try {
       const entries = await fs.readdir(hseosDir, { withFileTypes: true });
       for (const entry of entries) {
-        if (!entry.isDirectory() || entry.name === 'hsm' || entry.name.startsWith('_')) continue;
+        if (!entry.isDirectory() || entry.name === 'hsm' || entry.name.startsWith('_') || PROJECT_STATE_ENTRIES.has(entry.name)) continue;
         const configPath = path.join(hseosDir, entry.name, 'config.yaml');
         if (await fs.pathExists(configPath)) {
           try {
@@ -1915,7 +1929,14 @@ class Installer {
     // Get all installed module directories
     const entries = await fs.readdir(hseosDir, { withFileTypes: true });
     const installedModules = entries
-      .filter((entry) => entry.isDirectory() && entry.name !== '_config' && entry.name !== 'docs' && entry.name !== '_memory')
+      .filter(
+        (entry) =>
+          entry.isDirectory() &&
+          entry.name !== '_config' &&
+          entry.name !== 'docs' &&
+          entry.name !== '_memory' &&
+          !PROJECT_STATE_ENTRIES.has(entry.name),
+      )
       .map((entry) => entry.name);
 
     // Add core module to scan (it's installed at root level as _config, but we check src/core)
@@ -2124,7 +2145,7 @@ class Installer {
     // Get all installed module directories
     const entries = await fs.readdir(hseosDir, { withFileTypes: true });
     const installedModules = entries
-      .filter((entry) => entry.isDirectory() && entry.name !== '_config' && entry.name !== 'docs')
+      .filter((entry) => entry.isDirectory() && entry.name !== '_config' && entry.name !== 'docs' && !PROJECT_STATE_ENTRIES.has(entry.name))
       .map((entry) => entry.name);
 
     // Generate config.yaml for each installed module
@@ -3071,6 +3092,7 @@ fi
       }
 
       // Load existing configs and collect new fields (if any)
+      this.configCollector.skipPrompts = config.skipPrompts || false;
       await prompts.log.info('Checking for new configuration options...');
       await this.configCollector.loadExistingConfig(projectDir);
 
@@ -3258,48 +3280,6 @@ fi
       choices: [{ name: 'Update existing installation', value: 'update' }],
     });
     return { action };
-  }
-
-  /**
-   * Handle legacy HSEOS v4 detection with simple warning
-   * @param {string} _projectDir - Project directory (unused in simplified version)
-   * @param {Object} _legacyV4 - Legacy V4 detection result (unused in simplified version)
-   */
-  async handleLegacyV4Migration(_projectDir, _legacyV4) {
-    await prompts.note(
-      'Found .hseos folder from HSEOS v4 installation.\n\n' +
-        'Before continuing with installation, we recommend:\n' +
-        '  1. Remove the .hseos folder, OR\n' +
-        '  2. Back it up by renaming it to another name (e.g., hseos-backup)\n\n' +
-        'If your v4 installation set up rules or commands, you should remove those as well.',
-      'Legacy HSEOS v4 detected',
-    );
-
-    const proceed = await prompts.select({
-      message: 'What would you like to do?',
-      choices: [
-        {
-          name: 'Exit and clean up manually (recommended)',
-          value: 'exit',
-          hint: 'Exit installation',
-        },
-        {
-          name: 'Continue with installation anyway',
-          value: 'continue',
-          hint: 'Continue',
-        },
-      ],
-      default: 'exit',
-    });
-
-    if (proceed === 'exit') {
-      await prompts.log.info('Please remove the .hseos folder and any v4 rules/commands, then run the installer again.');
-      // Allow event loop to flush pending I/O before exit
-      setImmediate(() => process.exit(0));
-      return;
-    }
-
-    await prompts.log.warn('Proceeding with installation despite legacy v4 folder');
   }
 
   /**
@@ -3762,20 +3742,28 @@ fi
 
   /**
    * Install a pre-commit hook at `.git/hooks/pre-commit` that runs the project's
-   * governance quality gates when present. Silently no-ops when:
+   * `scripts/governance/quality-gates.sh`. No-ops (reporting why) when:
    *   - `.git/` does not exist (the target is not a git working tree)
+   *   - the project has no quality-gates script (the hook would be inert; the
+   *     script is project-owned and is not delivered to consumers)
    *   - a hook already exists (we never overwrite user-authored hooks)
    *
-   * The hook itself does not assume the gates script exists at install time —
-   * it checks for it at commit time. This means the hook works whether or not
-   * the user later adds `scripts/governance/quality-gates.sh`.
-   *
-   * @returns {Promise<{status: 'installed'|'preserved'|'no-git', detail: string, path?: string}>}
+   * @returns {Promise<{status: 'installed'|'preserved'|'no-git'|'no-gate', detail: string, path?: string}>}
    */
   async installPreCommitHook(projectDir) {
     const gitDir = path.join(projectDir, '.git');
     if (!(await fs.pathExists(gitDir))) {
       return { status: 'no-git', detail: '.git directory not found' };
+    }
+
+    // The hook only calls the project's own gate script. Without it the hook
+    // would be inert and give a false sense of enforcement, so do not install it.
+    const gatesScript = path.join(projectDir, 'scripts', 'governance', 'quality-gates.sh');
+    if (!(await fs.pathExists(gatesScript))) {
+      return {
+        status: 'no-gate',
+        detail: 'not installed: scripts/governance/quality-gates.sh not found in the project (re-run install after adding it)',
+      };
     }
 
     const hooksDir = path.join(gitDir, 'hooks');

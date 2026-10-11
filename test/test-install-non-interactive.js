@@ -39,3 +39,16 @@ test('install --yes without --directory assumes the current directory instead of
     fs.rmSync(cwd, { recursive: true, force: true });
   }
 });
+
+test('a prompt that needs a terminal fails with a message and exit != 0 instead of silently exiting 0', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-install-eof-'));
+  try {
+    const result = install(['--directory', dir], os.tmpdir());
+    assert.equal(result.error, undefined);
+    assert.notEqual(result.status, 0, result.stdout + result.stderr);
+    assert.match(result.stdout + result.stderr, /stdin is not a terminal/);
+    assert.ok(!fs.existsSync(path.join(dir, '.hseos')), 'nothing may be installed');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

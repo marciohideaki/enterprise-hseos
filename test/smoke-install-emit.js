@@ -56,6 +56,10 @@ function check(label, fn) {
     check('workflow overlay self-target is a no-op', () => assert.equal(workflowsSelf.status, 'skipped-self'));
 
     // 2. installPreCommitHook — fresh install, idempotency, no-git case
+    const hookNoGate = await installer.installPreCommitHook(TEST_DIR);
+    check('pre-commit hook is not installed without a quality-gates script', () => assert.equal(hookNoGate.status, 'no-gate'));
+    await fs.ensureDir(path.join(TEST_DIR, 'scripts', 'governance'));
+    await fs.writeFile(path.join(TEST_DIR, 'scripts', 'governance', 'quality-gates.sh'), '#!/usr/bin/env bash\nexit 0\n');
     const hook = await installer.installPreCommitHook(TEST_DIR);
     check('pre-commit hook installs', () => assert.equal(hook.status, 'installed'));
     const hookContent = await fs.readFile(path.join(TEST_DIR, '.git', 'hooks', 'pre-commit'), 'utf8');

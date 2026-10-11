@@ -64,118 +64,83 @@ class UI {
       confirmedDirectory = await this.getConfirmedDirectory();
     }
 
-    // Preflight: Check for legacy HSEOS v4 footprints immediately after getting directory
+    // Classify the existing adoption from the installed manifest, not from the
+    // mere existence of `.hseos/` (a project may hold only runs/ and state/).
     const { Detector } = require('../installers/lib/core/detector');
     const { Installer } = require('../installers/lib/core/installer');
     const detector = new Detector();
     const installer = new Installer();
-    const legacyV4 = await detector.detectLegacyV4(confirmedDirectory);
-    if (legacyV4.hasLegacyV4) {
-      await installer.handleLegacyV4Migration(confirmedDirectory, legacyV4);
-    }
+    const currentVersion = require(path.join(__dirname, '../../../package.json')).version;
+    const nonInteractive = Boolean(options.yes) || !process.stdin.isTTY;
+    const installState = await detector.classifyInstallState(confirmedDirectory, currentVersion);
 
-    // Check for legacy folders and prompt for rename before showing any menus
-    let hasLegacyCfg = false;
-    let hasLegacyHseosFolder = false;
-    let hseosDir = null;
-    let legacyHseosPath = null;
-
-    // First check for legacy .hseos folder (instead of _hseos)
-    // Only check if directory exists
-    if (await fs.pathExists(confirmedDirectory)) {
-      const entries = await fs.readdir(confirmedDirectory, { withFileTypes: true });
-      for (const entry of entries) {
-        if (entry.isDirectory() && (entry.name === '.hseos' || entry.name === 'hseos')) {
-          hasLegacyHseosFolder = true;
-          legacyHseosPath = path.join(confirmedDirectory, entry.name);
-          hseosDir = legacyHseosPath;
-
-          // Check if it has _cfg folder
-          const cfgPath = path.join(legacyHseosPath, '_cfg');
-          if (await fs.pathExists(cfgPath)) {
-            hasLegacyCfg = true;
-          }
-          break;
-        }
+    // Pre-dot layout: a bare `hseos/` folder that carries installation markers.
+    const bareHseosPath = path.join(confirmedDirectory, 'hseos');
+    let hasBareHseosFolder = false;
+    if (installState.state === 'none' && (await fs.pathExists(bareHseosPath)) && (await fs.stat(bareHseosPath)).isDirectory()) {
+      for (const marker of ['_cfg', '_config', 'core']) {
+        if (await fs.pathExists(path.join(bareHseosPath, marker))) hasBareHseosFolder = true;
       }
     }
 
-    // If no .hseos or hseos found, check for current installations _hseos
-    if (!hasLegacyHseosFolder) {
-      const hseosResult = await installer.findHseosDir(confirmedDirectory);
-      hseosDir = hseosResult.hseosDir;
-      hasLegacyCfg = hseosResult.hasLegacyCfg;
+    let hseosDir = path.join(confirmedDirectory, '.hseos');
+
+    if (installState.state === 'downgrade') {
+      throw new Error(
+        `Installed HSEOS ${installState.installedVersion} is newer than this installer (${currentVersion}). ` +
+          'Refusing to downgrade. Update the hseos CLI (or run the newer one) and retry; nothing was changed.',
+      );
     }
 
-    // Handle legacy .hseos or _cfg folder - these are very old (v4 or alpha)
-    // Show version warning instead of offering conversion
-    if (hasLegacyHseosFolder || hasLegacyCfg) {
+    if (installState.state === 'legacy' || hasBareHseosFolder) {
+      const legacyPath = hasBareHseosFolder ? bareHseosPath : hseosDir;
+      const reason = hasBareHseosFolder ? 'a bare "hseos/" folder from a pre-v4 layout' : installState.reason;
+      if (nonInteractive) {
+        throw new Error(
+          `Legacy or unrecognized HSEOS layout at ${legacyPath} (${reason}). ` +
+            'A non-interactive install will not modify it and nothing was installed. ' +
+            'Project state (.hseos/runs, .hseos/state) is not part of the legacy layout and must be kept. ' +
+            'To migrate: back up by moving the legacy installation files (everything in that folder except runs/ and state/) ' +
+            'to a backup folder outside .hseos, then rerun the install; or run it interactively to attempt an in-place update.',
+        );
+      }
+
       await prompts.log.warn('LEGACY INSTALLATION DETECTED');
       await prompts.note(
-        'Found a ".hseos"/"hseos" folder, or a legacy "_cfg" folder under the hseos folder -\n' +
-          'this is from an old HSEOS version that is out of date for automatic upgrade,\n' +
-          'manual intervention required.\n\n' +
-          'You have a legacy version installed (v4 or alpha).\n' +
-          'Legacy installations may have compatibility issues.\n\n' +
-          'For the best experience, we strongly recommend:\n' +
-          '  1. Delete your current HSEOS installation folder (.hseos or hseos)\n' +
-          '  2. Run a fresh installation\n\n' +
-          'If you do not want to start fresh, you can attempt to proceed beyond this\n' +
-          'point IF you have ensured the hseos folder is named _hseos, and under it there\n' +
-          'is a _config folder. If you have a folder under your hseos folder named _cfg,\n' +
-          'you would need to rename it _config, and then restart the installer.\n\n' +
-          'Benefits of a fresh install:\n' +
-          '  \u2022 Cleaner configuration without legacy artifacts\n' +
-          '  \u2022 All new features properly configured\n' +
-          '  \u2022 Fewer potential conflicts\n\n' +
-          'If you have already produced output from an earlier alpha version, you can\n' +
-          'still retain those artifacts. After installation, ensure you configured during\n' +
-          'install the proper file locations for artifacts depending on the module you\n' +
-          'are using, or move the files to the proper locations.',
+        `Found a legacy HSEOS layout at ${legacyPath}\n(${reason}).\n\n` +
+          'It is out of date for automatic upgrade. Recommended: back up the legacy installation files\n' +
+          '(keep runs/ and state/, which are project state) and run a fresh installation.\n\n' +
+          'You can also attempt an in-place update: a "_cfg" folder is renamed to "_config" and a bare\n' +
+          '"hseos" folder is renamed to ".hseos". This may fail or leave unstable behavior.',
         'Legacy Installation Detected',
       );
 
       const proceed = await prompts.select({
         message: 'How would you like to proceed?',
         choices: [
-          {
-            name: 'Cancel and do a fresh install (recommended)',
-            value: 'cancel',
-          },
-          {
-            name: 'Proceed anyway (will attempt update, potentially may fail or have unstable behavior)',
-            value: 'proceed',
-          },
+          { name: 'Cancel and back up the legacy files first (recommended)', value: 'cancel' },
+          { name: 'Proceed anyway (will attempt update, potentially may fail or have unstable behavior)', value: 'proceed' },
         ],
         default: 'cancel',
       });
 
       if (proceed === 'cancel') {
-        await prompts.note(
-          '1. Delete the existing hseos folder in your project\n' + "2. Run 'hseos install' again",
-          'To do a fresh install',
-        );
-        process.exit(0);
+        await prompts.log.error('Installation cancelled: legacy layout left untouched, nothing was installed.');
+        process.exit(1);
         return;
       }
 
       const s = await prompts.spinner();
       s.start('Updating folder structure...');
       try {
-        // Handle .hseos folder
-        if (hasLegacyHseosFolder) {
-          const newHseosPath = path.join(confirmedDirectory, '.hseos');
-          await fs.move(legacyHseosPath, newHseosPath);
-          hseosDir = newHseosPath;
-          s.stop(`Renamed "${path.basename(legacyHseosPath)}" to ".hseos"`);
+        if (hasBareHseosFolder) {
+          await fs.move(bareHseosPath, hseosDir);
+          s.stop('Renamed "hseos" to ".hseos"');
         }
-
-        // Handle _cfg folder (either from .hseos or standalone)
         const cfgPath = path.join(hseosDir, '_cfg');
         if (await fs.pathExists(cfgPath)) {
           s.start('Renaming configuration folder...');
-          const newCfgPath = path.join(hseosDir, '_config');
-          await fs.move(cfgPath, newCfgPath);
+          await fs.move(cfgPath, path.join(hseosDir, '_config'));
           s.stop('Renamed "_cfg" to "_config"');
         }
       } catch (error) {
@@ -183,10 +148,26 @@ class UI {
         await prompts.log.error(`Error: ${error.message}`);
         process.exit(1);
       }
+    } else {
+      switch (installState.state) {
+        case 'incomplete': {
+          await prompts.log.warn(`Previous install was interrupted (${installState.reason}); installing again to repair it.`);
+          break;
+        }
+        case 'state-only': {
+          await prompts.log.info('Found .hseos with project state only (runs/, state/); installing and preserving it.');
+          break;
+        }
+        case 'upgrade': {
+          await prompts.log.info(`Upgrading HSEOS ${installState.installedVersion} -> ${currentVersion}`);
+          break;
+        }
+        default:
+      }
     }
 
     // Check if there's an existing HSEOS installation (after any folder renames)
-    const hasExistingInstall = await fs.pathExists(hseosDir);
+    const hasExistingInstall = ['current', 'upgrade', 'legacy'].includes(installState.state) || hasBareHseosFolder;
 
     let customContentConfig = { hasCustomContent: false };
     if (!hasExistingInstall) {
@@ -199,9 +180,7 @@ class UI {
     // Only show action menu if there's an existing installation
     if (hasExistingInstall) {
       // Get version information
-      const { existingInstall, hseosDir } = await this.getExistingInstallation(confirmedDirectory);
-      const packageJsonPath = path.join(__dirname, '../../../package.json');
-      const currentVersion = require(packageJsonPath).version;
+      const { existingInstall } = await this.getExistingInstallation(confirmedDirectory);
       const installedVersion = existingInstall.version || 'unknown';
 
       // Check if version is pre beta
@@ -209,7 +188,8 @@ class UI {
 
       // If user chose to cancel, exit the installer
       if (!shouldProceed) {
-        process.exit(0);
+        await prompts.log.error('Installation cancelled at the legacy version warning; nothing was installed.');
+        process.exit(1);
         return;
       }
 

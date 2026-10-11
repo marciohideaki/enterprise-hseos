@@ -77,6 +77,39 @@ async function mkScratch() {
     await fs.remove(dir);
   }
 
+  // Case 6: .hseos/ holding only project state (runs/, state/) is not legacy
+  {
+    const dir = await mkScratch();
+    await fs.ensureDir(path.join(dir, '.hseos', 'runs'));
+    await fs.ensureDir(path.join(dir, '.hseos', 'state'));
+    const r = await detector.detectLegacyV4(dir);
+    cases.push({ name: 'project state only (runs/, state/)', expected: false, actual: r.hasLegacyV4 });
+    await fs.remove(dir);
+  }
+
+  // classifyInstallState: derived from the installed manifest version
+  const writeManifest = async (dir, version) => {
+    await fs.ensureDir(path.join(dir, '.hseos', '_config'));
+    await fs.writeFile(path.join(dir, '.hseos', '_config', 'manifest.yaml'), `installation:\n  version: ${version}\nmodules: []\n`);
+  };
+  const stateCases = [
+    ['none', async () => {}, '4.0.0'],
+    ['state-only', async (d) => fs.ensureDir(path.join(d, '.hseos', 'runs')), '4.0.0'],
+    ['current', (d) => writeManifest(d, '4.0.0-rc.0'), '4.0.0-rc.0'],
+    ['upgrade', (d) => writeManifest(d, '3.9.0'), '4.0.0-rc.0'],
+    ['downgrade', (d) => writeManifest(d, '9.0.0'), '4.0.0-rc.0'],
+    ['legacy', (d) => writeManifest(d, '1.0.0-alpha.3'), '4.0.0-rc.0'],
+    ['legacy', (d) => fs.ensureDir(path.join(d, '.hseos', '_cfg')), '4.0.0'],
+    ['legacy', (d) => fs.ensureDir(path.join(d, '.hseos', 'workflows')), '4.0.0'],
+  ];
+  for (const [expected, setup, version] of stateCases) {
+    const dir = await mkScratch();
+    await setup(dir);
+    const r = await detector.classifyInstallState(dir, version);
+    cases.push({ name: `classifyInstallState -> ${expected}`, expected, actual: r.state });
+    await fs.remove(dir);
+  }
+
   let failed = 0;
   for (const c of cases) {
     const ok = c.actual === c.expected;

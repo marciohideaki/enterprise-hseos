@@ -1,9 +1,16 @@
+const fs = require('node:fs');
 const path = require('node:path');
 const prompts = require('../lib/prompts');
 const { loadAdapterMatrix, loadCapabilityCatalog, parseCsv, resolveCapabilityPlan } = require('../lib/capability-catalog');
 const { getProjectRoot } = require('../lib/project-root');
 const yaml = require('yaml');
 const { PlatformBindingsError, preparePlatformBindings } = require('../lib/platform-bindings-cli');
+
+function hasCapabilityCatalog(root) {
+  return ['.enterprise/governance/capabilities', '.agents/capabilities'].some((dir) =>
+    fs.existsSync(path.join(root, dir, 'profiles.yaml')),
+  );
+}
 
 function renderList(title, values) {
   if (!values || values.length === 0) return `${title}: (none)`;
@@ -105,6 +112,15 @@ module.exports = {
   ],
   action: async (options = {}) => {
     const root = options.directory ? path.resolve(options.directory) : getProjectRoot();
+    if (options.directory && !hasCapabilityCatalog(root)) {
+      console.error(
+        `error: ${root} has no HSEOS capability catalog (expected .enterprise/governance/capabilities/ or .agents/capabilities/). ` +
+          '--directory selects the repository that provides the catalog, not the project to install into; ' +
+          'omit it to use the installed HSEOS runtime catalog.',
+      );
+      process.exitCode = 1;
+      return;
+    }
     const catalog = loadCapabilityCatalog(root);
 
     if (options.listProfiles) {
