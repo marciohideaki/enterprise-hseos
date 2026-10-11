@@ -54,9 +54,24 @@ async function handleCancel(value, message = 'Operation cancelled') {
   const clack = await getClack();
   if (clack.isCancel(value)) {
     clack.cancel(message);
-    process.exit(0);
+    // 130 = interrupted by the user (SIGINT convention); never 0, nothing was done.
+    process.exit(130);
   }
   return false;
+}
+
+/**
+ * Fail fast when an interactive prompt is requested without a terminal. Without
+ * this, stdin EOF ends the process silently with exit 0 and nothing installed.
+ * @throws {Error} when stdin is not a TTY
+ */
+function requireInteractive() {
+  if (!process.stdin.isTTY) {
+    throw new Error(
+      'An interactive prompt is required but stdin is not a terminal (EOF); nothing was changed. ' +
+        'Pass --yes and/or explicit flags (--directory, --modules, --tools, --action) to run non-interactively.',
+    );
+  }
 }
 
 /**
@@ -145,6 +160,7 @@ async function spinner() {
  * @returns {Promise<any>} Selected value
  */
 async function select(options) {
+  requireInteractive();
   const clack = await getClack();
 
   // Convert Inquirer-style choices to clack format
@@ -187,6 +203,7 @@ async function select(options) {
  * @returns {Promise<Array>} Array of selected values
  */
 async function multiselect(options) {
+  requireInteractive();
   const clack = await getClack();
 
   // Support both clack-native (options) and Inquirer-style (choices) APIs
@@ -256,6 +273,7 @@ function defaultAutocompleteFilter(search, option) {
  * @returns {Promise<Array>} Array of selected values
  */
 async function autocompleteMultiselect(options) {
+  requireInteractive();
   const core = await getClackCore();
   const clack = await getClack();
   const color = await getPicocolors();
@@ -392,6 +410,7 @@ async function autocompleteMultiselect(options) {
  * @returns {Promise<boolean>} User's answer
  */
 async function confirm(options) {
+  requireInteractive();
   const clack = await getClack();
 
   const result = await clack.confirm({
@@ -418,6 +437,7 @@ async function confirm(options) {
  * @returns {Promise<string>} User's input
  */
 async function text(options) {
+  requireInteractive();
   const core = await getClackCore();
   const color = await getPicocolors();
 
@@ -487,6 +507,7 @@ async function text(options) {
  * @returns {Promise<string>} User's input
  */
 async function password(options) {
+  requireInteractive();
   const clack = await getClack();
 
   const result = await clack.password({
@@ -608,6 +629,7 @@ async function taskLog(options) {
  * @returns {Promise<string>} Selected path
  */
 async function pathPrompt(options) {
+  requireInteractive();
   const clack = await getClack();
   const result = await clack.path(options);
   await handleCancel(result);
@@ -625,6 +647,7 @@ async function pathPrompt(options) {
  * @returns {Promise<any>} Selected value
  */
 async function autocomplete(options) {
+  requireInteractive();
   const clack = await getClack();
   const result = await clack.autocomplete(options);
   await handleCancel(result);
@@ -639,6 +662,7 @@ async function autocomplete(options) {
  * @returns {Promise<any>} Selected value
  */
 async function selectKey(options) {
+  requireInteractive();
   const clack = await getClack();
   const result = await clack.selectKey(options);
   await handleCancel(result);

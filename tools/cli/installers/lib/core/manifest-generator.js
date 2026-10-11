@@ -1,4 +1,5 @@
 const path = require('node:path');
+const { PROJECT_STATE_ENTRIES } = require('./project-state');
 const fs = require('fs-extra');
 const yaml = require('yaml');
 const crypto = require('node:crypto');
@@ -1054,7 +1055,7 @@ class ManifestGenerator {
 
       for (const entry of entries) {
         // Skip if not a directory or is a special directory
-        if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name === '_config') {
+        if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name === '_config' || PROJECT_STATE_ENTRIES.has(entry.name)) {
           continue;
         }
 

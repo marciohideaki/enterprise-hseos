@@ -1,7 +1,10 @@
 const path = require('node:path');
 const fs = require('fs-extra');
 const yaml = require('yaml');
+const semver = require('semver');
 const { Manifest } = require('./manifest');
+
+const { PROJECT_STATE_ENTRIES, INSTALL_MARKERS, INSTALL_IN_PROGRESS_FILE } = require('./project-state');
 
 class Detector {
   /**
@@ -92,7 +95,7 @@ class Detector {
       // Fallback: scan directory for modules (legacy installations without manifest)
       const entries = await fs.readdir(hseosDir, { withFileTypes: true });
       for (const entry of entries) {
-        if (entry.isDirectory() && entry.name !== 'core' && entry.name !== '_config') {
+        if (entry.isDirectory() && entry.name !== 'core' && entry.name !== '_config' && !PROJECT_STATE_ENTRIES.has(entry.name)) {
           const modulePath = path.join(hseosDir, entry.name);
           const moduleConfigPath = path.join(modulePath, 'config.yaml');
 
@@ -228,6 +231,11 @@ class Detector {
       return { hasLegacyV4: false, offenders };
     }
 
+    // Project state (runs/, state/) is not an installation footprint at all.
+    if (await this.isProjectStateOnly(hseosMethodPath)) {
+      return { hasLegacyV4: false, offenders };
+    }
+
     const legacyCfgPath = path.join(hseosMethodPath, '_cfg');
     const modernConfigPath = path.join(hseosMethodPath, '_config');
     const hasLegacyCfg = await fs.pathExists(legacyCfgPath);
@@ -245,6 +253,60 @@ class Detector {
     }
 
     return { hasLegacyV4: offenders.length > 0, offenders };
+  }
+
+  async isProjectStateOnly(hseosPath) {
+    const entries = await fs.readdir(hseosPath);
+    return !entries.some((name) => INSTALL_MARKERS.has(name) || name === INSTALL_IN_PROGRESS_FILE);
+  }
+
+  /**
+   * Classify the state of `<projectDir>/.hseos` from the installed manifest, not
+   * from the mere existence of the folder.
+   *
+   *   none       - no `.hseos/`
+   *   state-only - `.hseos/` has no installation marker (only runs/, state/, config/ and unrelated files)
+   *   incomplete - a previous fresh install was interrupted; repaired by installing again
+   *   current    - manifest version equals `currentVersion` (idempotent reinstall)
+   *   upgrade    - manifest version is older than `currentVersion`
+   *   downgrade  - manifest version is newer than `currentVersion`
+   *   legacy     - incompatible layout: `_cfg/`, no readable manifest version,
+   *                or an alpha version that the current installer cannot upgrade
+   *
+   * @param {string} projectDir
+   * @param {string} currentVersion - Version of the running installer
+   * @returns {Promise<{state: string, installedVersion: string|null, reason: string, hseosDir: string}>}
+   */
+  async classifyInstallState(projectDir, currentVersion) {
+    const hseosDir = path.join(projectDir, '.hseos');
+    const make = (state, installedVersion, reason) => ({ state, installedVersion, reason, hseosDir });
+
+    if (!(await fs.pathExists(hseosDir))) return make('none', null, 'no .hseos folder');
+    if (!(await fs.stat(hseosDir)).isDirectory()) {
+      throw new Error(`${hseosDir} exists but is not a directory; move it aside and rerun the install. Nothing was changed.`);
+    }
+    if (await fs.pathExists(path.join(hseosDir, INSTALL_IN_PROGRESS_FILE))) {
+      return make('incomplete', null, 'a previous install was interrupted; it will be repaired');
+    }
+    if (await this.isProjectStateOnly(hseosDir)) {
+      return make('state-only', null, '.hseos holds no installation, only project state and unrelated files');
+    }
+    if (await fs.pathExists(path.join(hseosDir, '_cfg'))) {
+      return make('legacy', null, '.hseos/_cfg found (v4 layout)');
+    }
+
+    const detected = await this.detect(hseosDir);
+    const installedVersion = detected.manifest && detected.manifest.version ? String(detected.manifest.version) : null;
+    if (!installedVersion || !semver.valid(installedVersion)) {
+      return make('legacy', installedVersion, 'no readable installation manifest with a valid version');
+    }
+    if (/-alpha\./i.test(installedVersion)) {
+      return make('legacy', installedVersion, `alpha version ${installedVersion} cannot be upgraded in place`);
+    }
+    const cmp = semver.compare(installedVersion, currentVersion);
+    if (cmp === 0) return make('current', installedVersion, 'same version installed');
+    if (cmp < 0) return make('upgrade', installedVersion, `installed ${installedVersion} is older than ${currentVersion}`);
+    return make('downgrade', installedVersion, `installed ${installedVersion} is newer than ${currentVersion}`);
   }
 }
 

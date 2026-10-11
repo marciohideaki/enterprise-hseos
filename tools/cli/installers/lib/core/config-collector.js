@@ -1,6 +1,7 @@
 const path = require('node:path');
 const fs = require('fs-extra');
 const yaml = require('yaml');
+const { PROJECT_STATE_ENTRIES } = require('./project-state');
 const { getProjectRoot, getModulePath } = require('../../../lib/project-root');
 const { CLIUtils } = require('../../../lib/cli-utils');
 const prompts = require('../../../lib/prompts');
@@ -118,7 +119,7 @@ class ConfigCollector {
     for (const entry of entries) {
       if (entry.isDirectory()) {
         // Skip the _config directory - it's for system use
-        if (entry.name === '_config' || entry.name === '_memory') {
+        if (entry.name === '_config' || entry.name === '_memory' || PROJECT_STATE_ENTRIES.has(entry.name)) {
           continue;
         }
 
@@ -501,7 +502,16 @@ class ConfigCollector {
       // Collect all answers (static + prompted)
       let allAnswers = { ...staticAnswers };
 
-      if (questions.length > 0) {
+      if (questions.length > 0 && this.skipPrompts) {
+        // Non-interactive (--yes): new options take their documented defaults.
+        await prompts.log.info(`Using default values for new ${moduleName} options (--yes)`);
+        for (const question of questions) {
+          const hasDefault = question.default !== undefined && question.default !== null && question.default !== '';
+          if (hasDefault && typeof question.default !== 'function') {
+            allAnswers[question.name] = question.default;
+          }
+        }
+      } else if (questions.length > 0) {
         // Only show header if we actually have questions
         await CLIUtils.displayModuleConfigHeader(moduleName, moduleConfig.header, moduleConfig.subheader);
         await prompts.log.message('');
