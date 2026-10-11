@@ -74,14 +74,14 @@ evidence, not operational activation; the report always keeps activation authori
 
 ## Components with prerequisites (all optional, all degrade gracefully)
 
-| Component                  | Prerequisite                                                                         | Behavior when unmet                                                 |
-| -------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
-| `capability:ado`           | `ado.enabled: true` in `.hseos/config/hseos.config.yaml` + `ADO_PAT` env (ADR-0011)  | Every ADO hook/skill exits silently (no-op)                         |
-| `capability:sandbox`       | External `ai-jail` binary (bubblewrap); check with `hseos sandbox doctor` (ADR-0012) | No-op (`sandbox.required: false` default)                           |
-| `capability:gitops`        | Admin agent mode for `gitops-deploy`; kubectl/ArgoCD for real deployments            | Skills never auto-activate outside admin mode                       |
-| `capability:observability` | `OTEL_EXPORTER_OTLP_ENDPOINT` (+ Loki vars) for telemetry export (ADR-0014)          | Export hooks stay inert; SQLite remains canonical                   |
-| `capability:knowledge`     | Vault path for `second-brain` (`--second-brain-path`)                                | Skill degrades (`vault_required: false`, P6)                        |
-| `capability:research`      | Axon code index for `repo-radar`                                                     | Falls back to Read+Grep exploration                                 |
+| Component                  | Prerequisite                                                                         | Behavior when unmet                                                             |
+| -------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| `capability:ado`           | `ado.enabled: true` in `.hseos/config/hseos.config.yaml` + `ADO_PAT` env (ADR-0011)  | Every ADO hook/skill exits silently (no-op)                                     |
+| `capability:sandbox`       | External `ai-jail` binary (bubblewrap); check with `hseos sandbox doctor` (ADR-0012) | No-op (`sandbox.required: false` default)                                       |
+| `capability:gitops`        | Admin agent mode for `gitops-deploy`; kubectl/ArgoCD for real deployments            | Skills never auto-activate outside admin mode                                   |
+| `capability:observability` | `OTEL_EXPORTER_OTLP_ENDPOINT` (+ Loki vars) for telemetry export (ADR-0014)          | Export hooks stay inert; SQLite remains canonical                               |
+| `capability:knowledge`     | Vault path for `second-brain` (`--second-brain-path`)                                | Skill degrades (`vault_required: false`, P6)                                    |
+| `capability:research`      | Axon code index for `repo-radar`                                                     | Falls back to Read+Grep exploration                                             |
 | `runtime:mcp`              | `axon` binary for axon-bridge; env secrets for the enterprise MCP bundle (ADR-0008)  | axon-bridge fails with explicit `AXON_*` errors; enterprise bundle stays opt-in |
 
 Components **without** external prerequisites: `baseline:*` (3), `runtime:{hooks,state,workflows}`,
@@ -139,11 +139,11 @@ Public help and structural task validation load no optional integrations and mak
 no update network request. Commands and optional model implementations load on use.
 Sidecars retain their existing separate service lifecycle.
 
-| Provider path | Inference | Tools / writing | Resume | Cancellation | Evidence |
-| --- | --- | --- | --- | --- | --- |
-| Engineering scripted fixture | Deterministic sequence | Contract gateway / scoped writes | Before dispatch; completed-session verification | Executor descendants confirmed | Task, artifacts, protected verifier |
-| Engineering compatible binding | SSE model via existing broker | Same gateway and executor | Same bounded rules; original binding | Runtime stream and executor cancellation | Same task evidence plus session provider events |
-| Existing delegated runtimes | Owned by external runtime | External runtime capabilities | Only as declared by adapter | Only as declared by adapter | Adapter conformance; no engineering approval implied |
+| Provider path                  | Inference                     | Tools / writing                  | Resume                                          | Cancellation                             | Evidence                                             |
+| ------------------------------ | ----------------------------- | -------------------------------- | ----------------------------------------------- | ---------------------------------------- | ---------------------------------------------------- |
+| Engineering scripted fixture   | Deterministic sequence        | Contract gateway / scoped writes | Before dispatch; completed-session verification | Executor descendants confirmed           | Task, artifacts, protected verifier                  |
+| Engineering compatible binding | SSE model via existing broker | Same gateway and executor        | Same bounded rules; original binding            | Runtime stream and executor cancellation | Same task evidence plus session provider events      |
+| Existing delegated runtimes    | Owned by external runtime     | External runtime capabilities    | Only as declared by adapter                     | Only as declared by adapter              | Adapter conformance; no engineering approval implied |
 
 Model preference selects an adapter/provider; it grants no kernel tool authority.
 Advisory hooks inform. Approval requests pause for a decision. Only a denial enforced
@@ -174,17 +174,28 @@ prints the user-layer snippet that uses it.
 
 ### Modes and enforcement
 
-| Mode       | `capability-check`                                  | Intake guard                                                                                  |
-| ---------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `platform` | Resolves through the registry; `consume` or `extend` | Blocks a new shareable export without intake                                                  |
-| `hybrid`   | Same; advisory unless an implementation is `stable` | Blocks only a `match` hit whose implementation is `stable` for the project's stacks           |
-| `local`    | Informational                                       | Never blocks; requires `mode_ref`                                                             |
+| Mode       | `capability-check`                                   | Intake guard                                                                        |
+| ---------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `platform` | Resolves through the registry; `consume` or `extend` | Blocks a new shareable export without intake                                        |
+| `hybrid`   | Same; advisory unless an implementation is `stable`  | Blocks only a `match` hit whose implementation is `stable` for the project's stacks |
+| `local`    | Informational                                        | Never blocks; requires `mode_ref`                                                   |
 
 A project without the bindings file (or with an invalid one) is treated as `platform`. Choosing `local`
 or any mode weaker than the one recorded at `HEAD` requires `--mode-ref` (a `.md` under
 `docs/decisions/` or `.enterprise/.specs/decisions/`). Overrides (`keep-local`, `exception`) need an
 `intake_ref`/`exception_ref` identifier that resolves in the repository and a future `expires` date.
 `.hseos/config/platform-bindings.yaml` is human-owned: the intake guard denies agent edits to it.
+
+Stacks use the registry vocabulary and are detected from markers: a `package.json` gives `node`, plus
+`typescript` (dependency or `tsconfig*.json`), `react` (`react`, `react-dom`, `@types/react`, `next`) and
+`react-native` (`react-native`, `expo`; it does not imply `react`, the registry keeps them apart); `pyproject.toml`/`setup.py`, `go.mod`,
+`.csproj`/`.sln`, `pom.xml`/`build.gradle*` and `pubspec.yaml` give `python`, `go`, `dotnet`, `java` and
+`flutter`. `capability-check` reports the union over the root, `src/`, `apps/`, `services/` and the declared
+workspaces; the intake guard uses the stacks of the file's own package (plus `typescript` when an ancestor
+declares it); a tsconfig below the package manifest adds to the package instead of replacing it. Dependencies of the root `package.json` apply to files that have no package of their own, devDependencies included. A `stacks` list in the bindings file replaces detection. A query of several words that matches
+nothing as a whole is retried word by word (`matchedBy: tokens`), ignoring common verbs and articles (EN/PT) and
+matching whole words or a shared stem of four letters: a capability must match all remaining words (at least two), or a
+majority from three words up.
 
 `hseos capability-check <name> [--directory <path>] [--json]` resolves the query through the ECP
 registry (snapshot by default, a user-layer `ecp_root`/`registry` otherwise) by name, alias, package

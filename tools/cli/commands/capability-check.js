@@ -216,6 +216,14 @@ function buildResult(entry, { mode, bindings, stacks, queryLower }) {
   const { capability } = entry;
   const implementations = entry.implementations.map(describeImplementation);
   const override = overrideFor(bindings, capability.name);
+  const covered = new Set(implementations.map((implementation) => implementation.stack));
+  const otherStacks = [
+    ...new Set(
+      entry.capability.implementations
+        .filter((implementation) => CONSUMABLE_STATUSES.has(implementation.status) && !covered.has(implementation.stack))
+        .map((implementation) => implementation.stack),
+    ),
+  ].sort();
   const verdict = verdictFor({ mode, override, implementations, stacks, queryLower });
   return {
     capability: capability.name,
@@ -225,6 +233,7 @@ function buildResult(entry, { mode, bindings, stacks, queryLower }) {
     summary: capability.summary,
     matched_by: entry.matchedBy,
     implementations,
+    other_stacks: otherStacks,
     override,
     verdict: verdict.code,
     verdict_text: verdict.text,
@@ -309,12 +318,17 @@ function renderText(report) {
   } else {
     lines.push('Registry results:');
     for (const [index, result] of report.results.entries()) {
-      lines.push(`${index + 1}. ${result.capability} [${result.kind}] ${result.version} (${result.stability}) matchedBy: ${result.matched_by}`);
+      lines.push(
+        `${index + 1}. ${result.capability} [${result.kind}] ${result.version} (${result.stability}) matchedBy: ${result.matched_by}`,
+      );
       if (result.implementations.length === 0) lines.push('   implementations: none for the project stacks');
       for (const implementation of result.implementations) {
         const version = implementation.package_version ? `@${implementation.package_version}` : '';
         const repository = implementation.repository ? ` ${implementation.repository}` : '';
         lines.push(`   implementation: ${implementation.stack} ${implementation.package}${version} ${implementation.status}${repository}`);
+      }
+      if (result.implementations.length === 0 && result.other_stacks.length > 0) {
+        lines.push(`   other stacks with an implementation: ${result.other_stacks.join(', ')}`);
       }
       lines.push(`   verdict: ${result.verdict_text}`);
     }

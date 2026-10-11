@@ -206,7 +206,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "cedd5cf69a54aeae3ea5b0ed8d93d720cef838a1a438a1f4d7c63c9254938920"
+      "source_sha256": "88b66976951a04e01bd665a7a636a817bfc656820d2beca53eaef86061bddb62"
     },
     {
       "filename": "compatibility-audit.js",
