@@ -6,6 +6,7 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 const { randomUUID } = require('node:crypto');
 const { prepareIsolatedExecution } = require('./index');
+const { resolveCallLimits, verifiedSeccomp } = require('./profiles');
 const { createResourceGroup, removeDrainedGroup, EngineeringIsolationError } = require('./executor');
 
 /** Controller-owned launch. No command or filesystem authority comes from the transport. */
@@ -20,6 +21,7 @@ function startIsolatedTerminal({
   max_output_bytes,
   onOutput,
   onPrepared = () => {},
+  limits: callLimits,
 }) {
   if (
     !['pty', 'job'].includes(mode) ||
@@ -33,8 +35,9 @@ function startIsolatedTerminal({
     typeof onOutput !== 'function'
   )
     throw new EngineeringIsolationError('Invalid terminal limits');
+  const limits = resolveCallLimits(callLimits);
   const launch = prepareIsolatedExecution(policy, command, host_node, mode === 'pty');
-  const group = createResourceGroup();
+  const group = createResourceGroup({ memory_max_bytes: limits.memory_max_bytes, pids_max: limits.pids_max });
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-terminal-'));
   const filename = path.join(temp, 'seccomp');
   const fds = [];
@@ -66,7 +69,7 @@ function startIsolatedTerminal({
   };
   try {
     onPrepared(group);
-    fs.writeFileSync(filename, launch.seccomp, { mode: 0o400, flag: 'wx' });
+    fs.writeFileSync(filename, verifiedSeccomp(launch), { mode: 0o400, flag: 'wx' });
     fds.push(fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW));
     fs.unlinkSync(filename);
     if (host_node) fds.push(fs.openSync(fs.realpathSync(process.execPath), fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW));
