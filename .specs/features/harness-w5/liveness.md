@@ -169,3 +169,27 @@ Aprovadas pelo owner depois de inconsistências observadas na execução da pró
    - Um agente que espera uma decisão do Commander ou do humano (resultado de revisão, congelamento, aprovação) declara `WAITING_ON`, com a condição explícita, `wake_via: commander` ou `human` e `deadline_at`.
    - `BLOCKED` fica reservado para impedimento que o agente não consegue resolver e que exige mudança de escopo, de capacidade ou de decisão ainda não pedida, sempre com a causa.
    - O classificador da LV2 trata como `waiting_ok` ou `waiting_overdue` quem declarou `WAITING_ON`, e só conta como `blocked` quem declarou `BLOCKED`. As métricas por `reason_code` não misturam os dois.
+
+## Adendo 3 — prazos, incidentes e consistência de códigos (2026-10-12)
+
+Decisões do Commander a partir das revisões da LV1 e da LV2.
+
+1. **Prazo de espera por decisão.**
+   - `WAITING_ON` com `wake_via: commander|human` aceita `deadline_at` até `max_wait_deadline_s` a partir de agora. Esse é um campo novo do contrato, com padrão de 14400 s.
+   - `stall_timeout_s` continua valendo para o silêncio sem estado declarado.
+   - Revisões e decisões humanas costumam passar de 15 min, e o limite anterior tornava inválida a espera legítima.
+   - Um prazo vencido vira `waiting_overdue`, como antes.
+2. **Código próprio para espera declarada.**
+   - `waiting_ok` e o evento `wait_declared` usam `reason_code: waiting_on_declared`, separando as métricas de espera das de `declared` (`done`, `failed`, `running`).
+   - O `reason_code` informado em `report` precisa ser coerente com o estado declarado, por exemplo `blocked_pending` só com `BLOCKED`. Se não for, o `report` é recusado com exit 2.
+3. **Modelo de incidente.**
+   - A escalada ao humano fecha o incidente corrente.
+   - Qualquer atividade do agente depois da escalada (heartbeat, `turn_end` ou mudança de HEAD) abre um incidente novo, com o contador de acordares zerado.
+   - Dentro de um incidente, o contador só zera com um `report` terminal válido.
+   - Um agente que volta e fica em silêncio de novo é acordado e escalado de novo. Nunca há silêncio permanente depois da primeira escalada.
+4. **Escalada durável.**
+   - Escalada e notificação são gravadas como intenção (outbox) na mesma transação do ciclo, e entregues depois do commit de forma idempotente.
+   - Uma queda entre o commit e a entrega é reentregue no ciclo seguinte.
+5. **Lease vencido durante o turno.**
+   - Lease vencido acorda o agente mesmo em turno. Um agente em operação longa usa `hseos liveness await`, que renova o heartbeat, e por isso não vence.
+   - O protocolo no `AGENTS.md` e na skill passa a dizer isso explicitamente.
