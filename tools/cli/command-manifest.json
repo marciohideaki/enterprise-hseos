@@ -2,6 +2,67 @@
   "schema_version": 1,
   "entries": [
     {
+      "filename": "activity.js",
+      "command": "activity <action> [target]",
+      "description": "Coordinate concurrent tool sessions: register|declare|heartbeat|end|reserve|release|check|overlaps|list|guard-publish (no effect unless activity-coordination.yaml is enabled).",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory holding .hseos/config/activity-coordination.yaml (default: current)"
+        ],
+        [
+          "--session <id>",
+          "Session id of the calling tool"
+        ],
+        [
+          "--tool <name>",
+          "Calling tool (claude-code, codex, ...)"
+        ],
+        [
+          "--repo <remote>",
+          "Repository remote (default: origin of the worktree)"
+        ],
+        [
+          "--worktree <path>",
+          "Worktree path (default: directory)"
+        ],
+        [
+          "--branch <name>",
+          "Branch (default: current)"
+        ],
+        [
+          "--base <ref>",
+          "Base ref for git diff overlap"
+        ],
+        [
+          "--intent <text>",
+          "What the session intends to do"
+        ],
+        [
+          "--path <globs...>",
+          "Paths or globs declared"
+        ],
+        [
+          "--identifier <ids...>",
+          "Identifiers declared (versions, names)"
+        ],
+        [
+          "--fence <n>",
+          "Fence granted at reserve time (release)"
+        ],
+        [
+          "--no-consume",
+          "check: peek at the inbox without draining it"
+        ],
+        [
+          "--json",
+          "Output machine-readable JSON"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "057b730d30d5871eb18e13d82ea080aa3c8da5656b783757d2c4ae3592a380f4"
+    },
+    {
       "filename": "agent-activation-rehearsal.js",
       "command": "agent-activation-rehearsal",
       "description": "Rehearse agentic schema activation and rollback on private copies without authorizing operational cutover.",
