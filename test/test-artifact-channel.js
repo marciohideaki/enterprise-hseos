@@ -276,3 +276,22 @@ test('a spent repair budget is reported explicitly and the removal is still atte
   mock.method(Date, 'now', () => real + (calls++ > 0 ? REPAIR_BUDGET_MS + 1 : 0));
   assert.deepEqual(clean.dispose(), { disposed: true }, 'nothing unreadable: the final attempt succeeds even with the budget spent');
 });
+
+test('the permission repair never enters a symbolic link: an external directory keeps its mode and content', (context) => {
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-outside-'));
+  context.after(() => fs.rmSync(outside, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(outside, 'inner'));
+  fs.writeFileSync(path.join(outside, 'inner', 'file'), 'kept');
+  fs.chmodSync(path.join(outside, 'inner'), 0o751);
+  fs.chmodSync(outside, 0o751);
+  const channel = createArtifactChannel({ limits: LIMITS, media_types: TYPES });
+  context.after(() => channel.dispose());
+  fs.symlinkSync(outside, path.join(channel.directory, 'to-directory'));
+  fs.symlinkSync(path.join(outside, 'inner', 'file'), path.join(channel.directory, 'to-file'));
+  fs.mkdirSync(path.join(channel.directory, 'hidden'));
+  fs.chmodSync(path.join(channel.directory, 'hidden'), 0);
+  assert.deepEqual(channel.dispose(), { disposed: true });
+  assert.equal(fs.statSync(outside).mode & 0o777, 0o751, 'the external directory was not repaired');
+  assert.equal(fs.statSync(path.join(outside, 'inner')).mode & 0o777, 0o751);
+  assert.equal(fs.readFileSync(path.join(outside, 'inner', 'file'), 'utf8'), 'kept');
+});

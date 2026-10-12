@@ -1,0 +1,225 @@
+{
+  "task": "W5-02b2",
+  "result": "PASS",
+  "base_revision": "90f5ce148ffd766209ca632c2671c1f73323c37e",
+  "working_tree": "uncommitted at receipt time; the commit SHA is the task commit",
+  "node": "v22.22.1",
+  "command": "node node_modules/c8/bin/c8.js --config .c8-kernel.json --include 'tools/cli/lib/engineering-workspace.js' --include 'tools/cli/lib/engineering-task-contract.js' --include 'tools/cli/lib/engineering-project-verifier.js' --include 'tools/cli/lib/engineering-sandbox-check.js' --include 'tools/cli/lib/engineering-task-runtime.js' --reports-dir .logs/validation/w5-02b2-coverage --temp-directory .logs/validation/w5-02b2-coverage/tmp node --test --test-concurrency=1 test/test-engineering-project.js test/test-engineering-workspace.js test/test-engineering-task-contract.js test/test-engineering-task-runtime.js test/test-engineering-sandbox-check.js",
+  "verify_note": "the literal verify_step command of tasks.md, unchanged, exits 0",
+  "coverage_per_file": {
+    "tools/cli/lib/engineering-project-verifier.js": {
+      "lines": 99.06,
+      "branches": 89.69
+    },
+    "tools/cli/lib/engineering-sandbox-check.js": {
+      "lines": 100,
+      "branches": 100
+    },
+    "tools/cli/lib/engineering-task-contract.js": {
+      "lines": 100,
+      "branches": 97.05
+    },
+    "tools/cli/lib/engineering-task-runtime.js": {
+      "lines": 90.55,
+      "branches": 81.32
+    },
+    "tools/cli/lib/engineering-workspace.js": {
+      "lines": 97.91,
+      "branches": 93.07
+    }
+  },
+  "logs": {
+    "logs/verify.log": "be7c0b938fea0aea6e25ac5ea18f2cf61cc3976dff0c9e28c4cf3bba7c9d39c8",
+    "logs/coverage-summary.json": "dd54811b9291182c8ca3797736f936e33b9830f4636bd9a83b0bfb967dea9cc0",
+    "vitest-measurement.json": "4dec4dda962cfb7205773afd24585e8dc31bd9399fde9d2292862d594ff302d7",
+    "vitest-project-flow.json": "5c5841adf2dff0946d6fbf302894b76a539abdcdd6dffb15d620d242e0dd6122"
+  },
+  "acceptance": {
+    "path_regex_accepts_at_only_under_the_store_prefix": "PASS: isProjectPath accepts \"@\" and \"+\" only below node_modules/.pnpm; negative tests for every other \"@\", \"..\", \".\", hidden segment, empty, absolute, NUL, backslash and foreign prefix (test-engineering-task-contract.js)",
+    "symlinks_and_hardlinks_resolved_inside_a_verified_root": "PASS: store paths are resolved and must stay inside the real node_modules/.pnpm of the real workspace root. Symlinked package directories, scoped directories and a file hardlinked into a shared content store are read through the fixture (test/fixtures/pnpm-store). Refused with curated reasons: an ordinary path through a symlink, an ordinary file with a second link, absolute / relative / project-internal / chained / directory store links that leave the store (PROJECT_STORE_LINK_ESCAPES), a symlinked node_modules or .pnpm, a FIFO and a directory (test-engineering-workspace.js)",
+    "limits": {
+      "paths": "ordinary 64 (unchanged), total 256 including store paths; 64/65 and 256/257 tested; v1 contracts keep 64 and never accept store paths",
+      "path_length": "ordinary 240 (unchanged), store 512, 255 per segment; each limit tested at the limit and one past it",
+      "bytes": "v2 max_artifact_bytes 2 MiB (v1 stays 1 MiB; 1048576 and 1048577 tested), contract canonical ceiling 4 MiB; 2 MiB and 2 MiB + 1 tested",
+      "characters": "65536 per file: a longer file is refused with PROJECT_FILE_TOO_LARGE naming the file, never truncated; 65536 and 65537 characters tested, and characters versus bytes (2-byte characters) tested",
+      "measured_on": "cambio-real-platforms node_modules, vitest 4.1.10: the vitest package is 116 files / 1.9 MB with 7 files above 64 KiB and its store directory name is 130 characters, so 240 ordinary characters could not hold it. typescript lib/tsc.js is a 267-byte wrapper over a file far above 64 KiB. The content snapshot path therefore holds small runners and wrappers; a full vitest closure (native binaries, files above 64 KiB) does not fit and is refused explicitly, never truncated"
+    },
+    "native_tests_as_command_checks_against_the_pnpm_fixture": "PASS: a native runner laid out as a pnpm package (mini-test, mini-assert through a symlinked directory, scoped @scope/kit, hardlinked content) runs as a declared command_check inside the executor; a failing native suite rejects even when the module probe passes (test-engineering-project.js)",
+    "per_command_resource_limits": "new optional commands[].limits {pids_max 32-256, memory_max_bytes 256 MiB-2 GiB, nofile 64-4096}, bound into the pinned verifier digest and applied by the protected verifier; boundary tests at and beyond each limit",
+    "real_vitest_and_tsc_limits_measured": {
+      "source": "vitest-measurement.json (consumer node_modules mounted read-only through the 02b1 toolchain_roots / readonly_mounts)",
+      "vitest_threads_P0_defaults": {
+        "profile": "P0",
+        "status": "succeeded",
+        "exit_code": 0,
+        "pids_peak": 23,
+        "memory_peak_bytes": 79085568,
+        "limits": {
+          "processes": 32,
+          "memory_bytes": 268435456,
+          "nofile": 64,
+          "output_bytes": 65536,
+          "duration_ms": 120000
+        }
+      },
+      "vitest_forks_P1_intermediate": {
+        "profile": "P1",
+        "status": "succeeded",
+        "exit_code": 0,
+        "pids_peak": 29,
+        "memory_peak_bytes": 78225408,
+        "limits": {
+          "processes": 128,
+          "memory_bytes": 1073741824,
+          "nofile": 1024,
+          "output_bytes": 65536,
+          "duration_ms": 120000
+        }
+      },
+      "vitest_forks_P0_raised": {
+        "profile": "P0",
+        "status": "failed",
+        "exit_code": 1,
+        "pids_peak": 22,
+        "memory_peak_bytes": 52572160,
+        "limits": {
+          "processes": 256,
+          "memory_bytes": 2147483648,
+          "nofile": 4096,
+          "output_bytes": 65536,
+          "duration_ms": 120000
+        }
+      },
+      "vitest_config_bundled_in_readonly_workspace": {
+        "profile": "P0",
+        "status": "failed",
+        "exit_code": 1,
+        "pids_peak": 35,
+        "memory_peak_bytes": 52211712,
+        "limits": {
+          "processes": 256,
+          "memory_bytes": 2147483648,
+          "nofile": 4096,
+          "output_bytes": 65536,
+          "duration_ms": 120000
+        }
+      },
+      "tsc_P0_defaults": {
+        "profile": "P0",
+        "status": "succeeded",
+        "exit_code": 0,
+        "pids_peak": 9,
+        "memory_peak_bytes": 215498752,
+        "limits": {
+          "processes": 32,
+          "memory_bytes": 268435456,
+          "nofile": 64,
+          "output_bytes": 65536,
+          "duration_ms": 120000
+        }
+      },
+      "findings": [
+        "real vitest 4.1.10 passes inside the P0 executor with the default 32 processes / 256 MiB using --pool=threads --configLoader runner (23 processes, about 79 MB)",
+        "the forks pool needs socketpair, which P0 refuses, and passes only under P1 (29 processes)",
+        "a config file bundled next to a read-only workspace fails with EROFS; --configLoader runner avoids it",
+        "tsc passes with the defaults (9 processes) but peaks near 217 MB against the 256 MiB default, which is tight"
+      ]
+    },
+    "review_round_3_addendum": {
+      "r3_5_no_environment_source": "PASS: no environment variable feeds the trusted store list. HSEOS_PNPM_STORE_DIRS, PNPM_STORE_DIR and npm_config_store_dir are ignored with a HSEOS_PNPM_ENV_IGNORED warning; the home directory comes from the account database, not from HOME. Accepted sources are controller files only: toolchain.pnpm_store_dirs in ~/.config/hseos/config.yaml or in the installation HSEOS configuration, ~/.config/pnpm/rc, and the pnpm default. Tests inject through the internal API trustPnpmStores. The exact attack runs through npm: a project .npmrc store-dir is exported by npm as npm_config_store_dir, the check runs from an npm script, and the result is PROJECT_STORE_DIR_NOT_ALLOWED",
+      "post_command_fingerprint": "PASS: the fingerprint is recomputed after the verifier probe, after every acceptance command and after every model-invoked command. A mismatch discards the result (store-drift verdict, store_drift command status, tool error) and the command is recorded as not approved. Tests change the store during the probe, during an acceptance command, between the probe and the command guard (the command never launches) and during a model command",
+      "activation": "the real vitest on this machine needs /workspace/.pnpm-store in toolchain.pnpm_store_dirs of the controller configuration; that activation is the owner decision, the measurement script trusts it through the internal API",
+      "mutants_killed": "a source that reads the environment, a home taken from HOME, and removing each of the pre-launch, post-probe, post-command and tool post checks were applied and each failed the suite"
+    },
+    "review_round_3": {
+      "r3_1_ctime": "PASS: the fingerprint tuple now includes ctime_ns, which a user cannot restore. Test of the exact attack: an in-place rewrite with the same inode and the same size and the mtime restored to the nanosecond with os.utime(ns=...) is refused with PROJECT_STORE_DRIFT (the test asserts that inode, size and mtime are equal and that ctime moved)",
+      "r3_3_mutants_killed": "Y4 (check in engineering.command) and Y6 (check before each command_check) are killed by end-to-end tests that change the store between assembly and launch; Y7 (ino), Y8 (nlink), Y10 (size) and the new ctime field are each killed by a test that perturbs only that field of the lstat result; Y11 (store moving during verification) by a test that adds an entry while the walk runs; Y13 (pin of another root) by a test that reuses a policy across two projects. Each mutant was applied and failed the suite",
+      "y12_equivalent": "Y12 (the runtime not calling pinStoreMount) is equivalent in practice: the first launch of an unpinned policy performs the full verification and pins it. It is kept because it avoids one full verification per task",
+      "r3_2_trust_boundary": "a real v<N> directory created inside a trusted base is in the same trust boundary as the user store: whoever can create it already controls the store"
+    },
+    "review_round_2": {
+      "r2_1_store_dir_not_forgeable": "PASS: the pnpm store is trusted only through the controller (HSEOS_PNPM_STORE_DIRS, toolchain.pnpm_store_dirs in the HSEOS configuration, PNPM_STORE_DIR / npm_config_store_dir, ~/.config/pnpm/rc and the pnpm default). The project .modules.yaml only names the store for comparison; a storeDir outside the allowlist is refused with PROJECT_STORE_DIR_NOT_ALLOWED, and a project .npmrc is not a source. Test: a forged store outside the project holding the private file under a valid content address is refused and TOPSECRET-A never reaches the snapshot or the mount verification. The toolchain.pnpm_store_dirs key is read when present; the shared hseos.config.yaml was not edited",
+      "r2_2_toctou": "PASS: the mounted store is pinned by a content-free fingerprint (sorted path, dev, ino, size, mtime_ns, nlink, type; sha256) taken before and after the full verification, and recomputed before every launch of the protected verifier and of model-invoked commands. A change refuses the launch (PROJECT_STORE_DRIFT, store-drift verdict, tool error). A policy that was never pinned is fully verified instead of trusted. Tests: a hardlink inserted after verification, rewritten content, a restored mtime, a retargeted link, and the verifier verdict",
+      "r2_3_launch_cost": {
+        "source": "vitest-project-flow.json on the consumer clone (56346 entries, 49791 hardlinks, 334 MB hashed)",
+        "full_verification_ms": [10465, 9512],
+        "fingerprint_per_launch_ms": [
+          [569, 547, 558, 548, 582],
+          [561, 625, 553, 573, 705]
+        ]
+      },
+      "r2_4_mutants_killed": "X4 (owner check of the trusted store) is killed by a test that makes the store look foreign through process.getuid; X13 (engineering.command without the mount) is killed by an end-to-end test in which the model runs the native runner through the mounted store. Both mutants were applied and failed the suite"
+    },
+    "review_round_1": {
+      "f1_curated_store_errors": "PASS: symlink loops, ENOTDIR and EACCES on a store path are reported with a fixed message and the PROJECT_FILE_UNSAFE / PROJECT_FILE_UNREADABLE reasons, never with a host path (tests assert the message carries neither the project root nor the temp directory)",
+      "f2_limits_only_with_store_paths": "PASS: a v2 contract without store paths keeps exactly the previous limits (1 MiB of project files, 1 MiB canonical contract, 64 paths); the 2 MiB / 4 MiB / 256-path ceilings apply only when a store path is declared. End to end: 1.2 MB of project files is approved with store paths and refused without them (test-engineering-project.js)",
+      "f3_hardlink_origin_verified": "PASS: a store file with several links is accepted only when it is the same inode (dev + ino) as <storeDir>/files/<sha512[0..2]>/<rest>[-exec] (also below v<N>/files). storeDir comes from node_modules/.modules.yaml and must be a real directory of the current user outside the project. Layout confirmed on the consumer (/workspace/.pnpm-store/v11, vitest.mjs inode 22420880 equals its -exec store file). A hardlink to a private file, a same-content copy with another inode and a forged or missing store are refused with PROJECT_STORE_HARDLINK_UNVERIFIED",
+      "f4_store_mount_wired": "PASS: workspace.store_mount = pnpm-virtual-store. The controller verifies the project .pnpm (real chain without symlinks, links confined to the project root, content-addressed hardlinks, finite entry and hashing budgets), puts that exact root on the isolation policy allowlist (toolchain_roots), mounts it read-only at /opt/hseos/pnpm-store, recreates node_modules/.pnpm and the confined top-level package links inside the task workspace, and pins the mounted root in the verifier digest. Applies to the protected verifier and to model-invoked commands",
+      "real_vitest_through_the_project_flow": {
+        "source": "vitest-project-flow.json (hardlink-farm clone of the consumer node_modules, so the content-addressed check is exercised for real)",
+        "runs": [
+          {
+            "name": "vitest through the store mount, executor defaults",
+            "task_result": "approved",
+            "reason": "criteria-satisfied",
+            "exit_code": 0,
+            "pids_peak": 23,
+            "memory_peak_bytes": 78589952,
+            "limits": {
+              "duration_ms": 100000,
+              "memory_bytes": 268435456,
+              "nofile": 64,
+              "output_bytes": 8192,
+              "processes": 32
+            },
+            "store_mount": {
+              "entries": 56346,
+              "symlinks": 1828,
+              "hardlinks": 49791,
+              "hashed_bytes": 334404144
+            },
+            "duration_ms": 28624
+          },
+          {
+            "name": "vitest through the store mount, intermediate limits",
+            "task_result": "approved",
+            "reason": "criteria-satisfied",
+            "exit_code": 0,
+            "pids_peak": 23,
+            "memory_peak_bytes": 76972032,
+            "limits": {
+              "duration_ms": 100000,
+              "memory_bytes": 1073741824,
+              "nofile": 1024,
+              "output_bytes": 8192,
+              "processes": 128
+            },
+            "store_mount": {
+              "entries": 56346,
+              "symlinks": 1828,
+              "hardlinks": 49791,
+              "hashed_bytes": 334404144
+            },
+            "duration_ms": 27675
+          }
+        ]
+      }
+    },
+    "r3_2_residues_included_as_tests": [
+      "executor and terminal must run the verified filter, not launch.seccomp: tampered-launch test (test-isolation-profiles.js); mutants that use the raw buffer are killed",
+      "artifact dispose never enters a symbolic link: an external directory keeps its mode and content (test-artifact-channel.js); the mutant that walks every entry is killed",
+      "dropping socketpair from the P0 filter is detected: pinned P0 filter digest plus a per-syscall refusal table (test-isolation-profiles.js); the mutant is killed"
+    ]
+  },
+  "deviations": [
+    "the review event keeps its compact schema-pinned command_checks shape; measured pids_peak, memory_peak_bytes and limits live in the verification evidence (engineering-task-runtime.js projects them out of the review event and the correction prompt)",
+    "engineering-task-runtime.js reaches 90/80 with new tests inside test-engineering-task-runtime.js: correction flow, extension context and tool, bound provider, claimed task and workflow jobs, races during review and verification, response fixture validation. Its branch coverage margin over 80 is small",
+    "engineering-sandbox-check.js was not modified (its maxBuffer is not part of this change); engineering-tools.js now applies the declared per-command limits and the store mount to model-invoked commands, the same as the protected verifier (a small edit outside the listed output files)",
+    "monorepo workspace packages linked into the store (../../packages/x) dangle inside the sandbox because only the store is mounted; only the pnpm isolated linker is supported (not hoisted or pnp)",
+    "the mount uses the live directory: a change between the per-launch fingerprint and the sandbox start is detected by the fingerprint recomputed after the command and the result is discarded, but the command has already run",
+    "the shared hseos.config.yaml was not edited: toolchain.pnpm_store_dirs is read from the controller configuration files when present; no environment variable trusts a store, and the consumer store /workspace/.pnpm-store must be listed by the controller",
+    "tests of the 02b1 area (R3-2) were added to test-isolation-profiles.js and test-artifact-channel.js; they run in test:kernel and are not part of the 02b2 verify command"
+  ],
+  "new_files_in_packages": [],
+  "new_files": ["test/helpers/pnpm-store.js", "test/fixtures/pnpm-store/*", "docs/evolution/w5/evidence/w5-02b2/*"]
+}

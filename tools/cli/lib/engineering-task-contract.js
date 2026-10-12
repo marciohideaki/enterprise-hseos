@@ -7,6 +7,40 @@ const { AgentLimitsSchema, IdentifierSchema, strictObject, deepFreeze, z } = req
 const { canonicalJson } = require('../../../packages/agent-session-store');
 
 const MAX_BYTES = 1_048_576;
+
+/**
+ * Project (v2) limits. The v1 limits stay as they were; these apply only to managed projects whose
+ * dependencies live in a pnpm virtual store. Measured on a real consumer (cambio-real-platforms,
+ * vitest 4.1.10): the vitest package alone is 116 files / 1.9 MB with 7 files above 64 KiB, and its
+ * store directory name is 130 characters, so the plain 240-character path and 1 MiB budgets cannot hold a
+ * test runner. Every limit stays finite and is tested at the limit and one past it.
+ */
+const PROJECT_LIMITS = Object.freeze({
+  ordinary_paths: 64,
+  store_paths: 256,
+  total_paths: 256,
+  ordinary_path_chars: 240,
+  store_path_chars: 512,
+  segment_chars: 255,
+  file_chars: 65_536,
+  artifact_bytes: 2_097_152,
+  contract_bytes: 4_194_304,
+});
+const ORDINARY_PATH = /^[a-zA-Z0-9_][a-zA-Z0-9._-]*(?:\/[a-zA-Z0-9_][a-zA-Z0-9._-]*)*$/;
+// Only below node_modules/.pnpm: pnpm names store entries <package>@<version>_<peers> and scoped packages @scope+name.
+const STORE_PATH = /^node_modules\/\.pnpm\/[a-zA-Z0-9_@][a-zA-Z0-9._+@-]*(?:\/[a-zA-Z0-9_@][a-zA-Z0-9._+@-]*)*$/;
+const isStorePath = (value) =>
+  typeof value === 'string' &&
+  value.length <= PROJECT_LIMITS.store_path_chars &&
+  STORE_PATH.test(value) &&
+  value.split('/').every((segment) => segment.length <= PROJECT_LIMITS.segment_chars);
+const isProjectPath = (value) =>
+  typeof value === 'string' &&
+  ((value.length <= PROJECT_LIMITS.ordinary_path_chars &&
+    ORDINARY_PATH.test(value) &&
+    value.split('/').every((segment) => segment.length <= PROJECT_LIMITS.segment_chars)) ||
+    isStorePath(value));
+const ordinaryCount = (list) => list.filter((entry) => !isStorePath(entry)).length;
 const sha = (value) => createHash('sha256').update(value).digest('hex');
 const text = z.string().min(1).max(8192);
 const hash = z.string().regex(/^[a-f0-9]{64}$/);
@@ -60,19 +94,28 @@ const schema = strictObject({
   rollback: z.literal('discard-disposable-workspace'),
 });
 
-const projectPath = z
-  .string()
+const projectPath = z.string().min(1).max(PROJECT_LIMITS.store_path_chars).refine(isProjectPath);
+const projectPaths = z
+  .array(projectPath)
   .min(1)
-  .max(240)
-  .regex(/^[a-zA-Z0-9_][a-zA-Z0-9._-]*(?:\/[a-zA-Z0-9_][a-zA-Z0-9._-]*)*$/);
-const projectPaths = z.array(projectPath).min(1).max(64);
+  .max(PROJECT_LIMITS.total_paths)
+  .refine((list) => ordinaryCount(list) <= PROJECT_LIMITS.ordinary_paths);
+const commandLimits = strictObject({
+  pids_max: z.number().int().min(32).max(256).optional(),
+  memory_max_bytes: z.number().int().min(268_435_456).max(2_147_483_648).optional(),
+  nofile: z.number().int().min(64).max(4096).optional(),
+});
 const projectSchema = schema.extend({
-  initial_files: z.array(file.extend({ path: projectPath })).max(64),
+  initial_files: z
+    .array(file.extend({ path: projectPath }))
+    .max(PROJECT_LIMITS.total_paths)
+    .refine((list) => ordinaryCount(list.map((entry) => entry.path)) <= PROJECT_LIMITS.ordinary_paths),
   scope: strictObject({ read: projectPaths, write: projectPaths }),
   commands: z
-    .array(command.extend({ entrypoint: projectPath }))
+    .array(command.extend({ entrypoint: projectPath, limits: commandLimits.optional() }))
     .min(1)
     .max(16),
+  max_artifact_bytes: z.number().int().positive().max(PROJECT_LIMITS.artifact_bytes),
   schema_version: z.literal(2),
   execution_profile: z.literal('managed-project'),
   workspace: strictObject({
@@ -82,6 +125,8 @@ const projectSchema = schema.extend({
       .max(4096)
       .refine((value) => value.startsWith('/') && !value.includes('\0')),
     files_sha256: hash,
+    // The controller mounts the project's own node_modules/.pnpm read-only; store files are then never copied into the task.
+    store_mount: z.literal('pnpm-virtual-store').optional(),
   }),
   verifier: strictObject({
     reference: z.enum(['verifier://project/node-module-v1', 'verifier://project/python-module-v1', 'verifier://project/web-content-v1']),
@@ -124,11 +169,24 @@ function unique(values) {
   return new Set(values);
 }
 
+const declaredPaths = (contract) => [
+  ...contract.scope.read,
+  ...contract.scope.write,
+  ...contract.initial_files.map((entry) => entry.path),
+  ...contract.commands.map((entry) => entry.entrypoint),
+  ...(contract.verifier.checks || []).map((entry) => entry.path),
+  ...(contract.verifier.protected_paths || []),
+];
+
 function parseEngineeringTask(value) {
   const parsed = versionedSchema.safeParse(value);
   requireCondition(parsed.success);
   const contract = parsed.data;
-  requireCondition(Buffer.byteLength(canonicalJson(contract)) <= MAX_BYTES);
+  // The wider v2 ceilings exist only for contracts that carry pnpm store paths; everything else keeps the original limits.
+  const storeBacked = contract.schema_version === 2 && declaredPaths(contract).some(isStorePath);
+  requireCondition(Buffer.byteLength(canonicalJson(contract)) <= (storeBacked ? PROJECT_LIMITS.contract_bytes : MAX_BYTES));
+  requireCondition(storeBacked || contract.max_artifact_bytes <= MAX_BYTES);
+  requireCondition(!(contract.workspace?.store_mount && storeBacked));
   const sourceIds = unique(contract.sources.map((item) => item.id));
   const requirementIds = unique(contract.requirements.map((item) => item.id));
   const acceptanceIds = unique(contract.acceptance.map((item) => item.id));
@@ -137,7 +195,11 @@ function parseEngineeringTask(value) {
   unique(contract.initial_files.map((item) => item.path));
   unique(contract.commands.map((item) => item.id));
   const allPaths = [...new Set([...readPaths, ...writePaths])];
-  requireCondition(allPaths.length <= 64);
+  requireCondition(
+    storeBacked
+      ? allPaths.length <= PROJECT_LIMITS.total_paths && ordinaryCount(allPaths) <= PROJECT_LIMITS.ordinary_paths
+      : allPaths.length <= 64,
+  );
   requireCondition(!allPaths.some((entry) => allPaths.some((other) => other.startsWith(`${entry}/`))));
   for (const entry of writePaths) requireCondition(readPaths.has(entry));
   for (const item of contract.sources) requireCondition(sha(item.content) === item.sha256);
@@ -228,4 +290,4 @@ function readEngineeringTask(filename) {
   }
 }
 
-module.exports = { EngineeringTaskContractError, parseEngineeringTask, readEngineeringTask };
+module.exports = { EngineeringTaskContractError, PROJECT_LIMITS, isProjectPath, isStorePath, parseEngineeringTask, readEngineeringTask };

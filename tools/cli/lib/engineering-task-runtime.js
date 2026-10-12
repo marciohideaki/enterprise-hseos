@@ -19,6 +19,7 @@ const { assembleTemporaryKernel } = require('./temporary-kernel-assembly');
 const { readEngineeringTask } = require('./engineering-task-contract');
 const { createEngineeringTools, ENGINEERING_TOOL_NAMES } = require('./engineering-tools');
 const { attestEngineeringVerifier, verifyEngineeringTask } = require('./engineering-project-verifier');
+const { materializeStoreLinks, pinStoreMount, verifyPnpmStoreMount } = require('./engineering-workspace');
 const { EngineeringTaskState, engineeringDigest } = require('./engineering-task-state');
 const { evaluatePermissionLattice } = require('../../../packages/agent-policy-lattice');
 
@@ -82,12 +83,16 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
         modelSelectionId: created.plugin_model?.selection_id,
       })
     : null;
+  // A contract that declares the pnpm store mount gets exactly that verified, read-only root on the allowlist.
+  const storeMount = contract.schema_version === 2 && contract.workspace.store_mount ? verifyPnpmStoreMount(contract.workspace.root) : null;
   const policy = createIsolationPolicy({
     backend: 'bwrap',
     host_workspace: path.join(handle.directory, 'workspace'),
     main_checkout: handle.directory,
     protected_paths: [path.join(handle.directory, MANIFEST)],
+    ...(storeMount ? { toolchain_roots: [storeMount.source] } : {}),
   });
+  if (storeMount) pinStoreMount(policy, contract.workspace.root, storeMount);
   const nativeTools = createEngineeringTools({
     directory: handle.directory,
     contract,
@@ -277,7 +282,10 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
           step_id: step.step_id,
           approved: verified.approved,
           reason: verified.reason,
-          ...(verified.command_checks ? { command_checks: verified.command_checks } : {}),
+          // The review event keeps the compact, schema-pinned shape; measured peaks stay in the verification evidence.
+          ...(verified.command_checks
+            ? { command_checks: verified.command_checks.map(({ command_id, status, exit_code }) => ({ command_id, status, exit_code })) }
+            : {}),
           files_sha256: filesDigest,
           correction_requested: correctionRequested,
         },
@@ -289,7 +297,9 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
         instruction:
           'The protected verifier rejected this delivery. Diagnose the cause against the original sources, requirements and acceptance criteria. Before changing files, call engineering.diagnose with the files_sha256 from this review, cause, correction plan and requirement_ids. Inspect the current files and command evidence, explain the diagnosis, apply a scoped correction, and run authorized checks. Preserve all original policies and constraints. Do not claim acceptance; the protected verifier will recheck. If facts remain uncertain, request clarification rather than guessing.',
         reason: verified.reason,
-        failed_commands: (verified.command_checks || []).filter((c) => c.status !== 'succeeded' || c.exit_code !== 0),
+        failed_commands: (verified.command_checks || [])
+          .filter((c) => c.status !== 'succeeded' || c.exit_code !== 0)
+          .map(({ command_id, status, exit_code }) => ({ command_id, status, exit_code })),
         correction: previousCorrections + 1,
         remaining_corrections: contract.max_failed_corrections - previousCorrections - 1,
         deadline,
@@ -458,6 +468,8 @@ function createEngineeringTaskWorkspace(handle, created, id) {
     fs.mkdirSync(path.dirname(path.join(handle.directory, 'workspace', filename)), { recursive: true, mode: 0o700 });
   for (const file of contract.initial_files)
     fs.writeFileSync(path.join(handle.directory, 'workspace', file.path), file.content, { mode: 0o600, flag: 'wx' });
+  if (contract.schema_version === 2 && contract.workspace.store_mount)
+    materializeStoreLinks(contract.workspace.root, path.join(handle.directory, 'workspace'));
   task.append(created, 0);
   return task;
 }

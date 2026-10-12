@@ -39,6 +39,7 @@ const {
   verifiedSeccomp,
 } = require('../packages/agent-isolation-attestation/profiles');
 
+const P0_FILTER_SHA256 = '146f9fcc2dce62245c1c07b01bc370a5de7f1073754877f18b28ca048e4b8526';
 const EPERM = 0x00_05_00_01;
 const ALLOW = 0x7f_ff_00_00;
 const KILL = 0x80_00_00_00;
@@ -873,4 +874,60 @@ test('a forged or edited launch is refused before it can be run, probed or grant
     () => verifiedSeccomp({ profile: 'P1', seccomp: 'text' }),
     (error) => error.code === 'AGENT_ISOLATION_BINDING_DRIFT',
   );
+});
+
+test('the P0 filter is pinned: every network system call stays refused and nothing else is added', () => {
+  const program = seccompProgramFor('P0');
+  // A fixed digest makes any edit to the historical P0 filter visible, including dropping a single call.
+  assert.equal(createHash('sha256').update(program).digest('hex'), P0_FILTER_SHA256);
+  for (const number of [41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 53, 288, 299, 307, 425, 426, 427]) {
+    assert.equal(decide(program, number, [AF.UNIX, SOCK.STREAM, 0]), EPERM, `syscall ${number}`);
+  }
+  assert.equal(decide(program, NR.socketpair, [AF.UNIX, SOCK.STREAM, 0]), EPERM, 'socketpair is refused in P0 even for AF_UNIX');
+  for (const number of [0, 1, 2, 3, 9, 51, 52, 54, 231]) assert.equal(decide(program, number), ALLOW, `syscall ${number}`);
+  assert.equal(decide(program, 0x40_00_00_29), KILL);
+});
+
+test('executor and terminal run only the filter their profile requires: a tampered launch never reaches bwrap', async (context) => {
+  const indexPath = require.resolve('../packages/agent-isolation-attestation');
+  const executorPath = require.resolve('../packages/agent-isolation-attestation/executor');
+  const terminalPath = require.resolve('../packages/agent-isolation-attestation/terminal-executor');
+  const index = require(indexPath);
+  const realPrepare = index.prepareIsolatedExecution;
+  // The executors bind prepareIsolatedExecution when they are loaded, so load fresh copies against a tampering one.
+  index.prepareIsolatedExecution = (...args) => {
+    const launch = realPrepare(...args);
+    return registerLaunch(
+      Object.freeze({ ...launch, args: Object.freeze([...launch.args]), seccomp: Buffer.alloc(launch.seccomp.length) }),
+    );
+  };
+  delete require.cache[executorPath];
+  delete require.cache[terminalPath];
+  const tampered = { executor: require(executorPath), terminal: require(terminalPath) };
+  index.prepareIsolatedExecution = realPrepare;
+  delete require.cache[executorPath];
+  delete require.cache[terminalPath];
+  const { policy, workspace } = fixture(context, { profile: 'P1' });
+  const marker = path.join(workspace, 'ran');
+  await assert.rejects(
+    tampered.executor.executeIsolatedCommand({
+      policy,
+      command: ['/usr/bin/touch', '/workspace/ran'],
+      timeout_ms: 5000,
+      max_output_bytes: 1024,
+    }),
+    (error) => error.name === 'EngineeringIsolationError',
+  );
+  assert.equal(fs.existsSync(marker), false);
+  const terminal = tampered.terminal.startIsolatedTerminal({
+    policy,
+    command: ['/usr/bin/python3', '-I', '-c', "print('ran')"],
+    mode: 'job',
+    timeout_ms: 5000,
+    max_output_bytes: 1024,
+    onOutput() {},
+  });
+  await assert.rejects(terminal.ready, (error) => error.code === 'AGENT_ISOLATION_BINDING_DRIFT');
+  await terminal.completion.catch(() => {});
+  assert.equal(fs.existsSync(terminal.group), false, 'the group of the refused launch is removed');
 });

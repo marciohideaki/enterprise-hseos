@@ -147,3 +147,226 @@ test('public validation emits no source contents and cannot select an execution 
   assert.notEqual(run(['validate-task', '--task-contract', fixturePath, '--profile', 'agent-reference']).status, 0);
   assert.notEqual(run(['run', '--task-contract', fixturePath]).status, 0);
 });
+
+const { PROJECT_LIMITS, isProjectPath, isStorePath } = require('../tools/cli/lib/engineering-task-contract');
+const { pnpmProject } = require('./helpers/pnpm-store');
+
+const STORE_ENTRY = 'node_modules/.pnpm/vitest@4.1.10_@opentelemetry+api@1.9.0_@types+node@26.1.1_yaml@2.9.0_';
+
+test('the "@" alphabet is accepted only below node_modules/.pnpm; every other path keeps the strict alphabet', () => {
+  for (const accepted of [
+    `${STORE_ENTRY}/node_modules/vitest/vitest.mjs`,
+    'node_modules/.pnpm/@scope+kit@3.1.0_peer@2.0.0/node_modules/@scope/kit/index.js',
+    'node_modules/.pnpm/mini-test@1.0.0/node_modules/mini-test/bin.js',
+    'src/index.ts',
+    'a/b_c/d-e.f',
+  ])
+    assert.equal(isProjectPath(accepted), true, accepted);
+  for (const rejected of [
+    'a@b.js',
+    'src/@scope/x.js',
+    'node_modules/@scope/x.js',
+    'node_modules/vitest@1/index.js',
+    'node_modules/.pnpm',
+    'node_modules/.pnpm/',
+    'node_modules/.pnpm/../x',
+    'node_modules/.pnpm/a/../b',
+    'node_modules/.pnpm/a/./b',
+    'node_modules/.pnpm/.hidden/x',
+    'node_modules/.pnpm/a/.bin/x',
+    'node_modules/.pnpm/-lead/x',
+    'node_modules/.pnpm/a b/x',
+    String.raw`node_modules/.pnpm/a\b/x`,
+    'node_modules/.pnpm/a\0b/x',
+    'node_modules/.pnpm//x',
+    '/node_modules/.pnpm/a/x',
+    '.pnpm/a/x',
+    'other/node_modules/.pnpm/a/x',
+    'node_modules/.pnpm/a:b/x',
+    '',
+    7,
+    null,
+  ])
+    assert.equal(isProjectPath(rejected), false, String(rejected));
+  assert.equal(isStorePath('src/index.ts'), false);
+  assert.equal(isStorePath(`${STORE_ENTRY}/node_modules/vitest/vitest.mjs`), true);
+});
+
+test('path length limits are explicit: 240 ordinary, 512 store, 255 per segment', () => {
+  assert.equal(isProjectPath(`d/${'a'.repeat(PROJECT_LIMITS.ordinary_path_chars - 2)}`), true);
+  assert.equal(isProjectPath(`d/${'a'.repeat(PROJECT_LIMITS.ordinary_path_chars - 1)}`), false);
+  assert.equal(isProjectPath(`node_modules/.pnpm/${'s'.repeat(PROJECT_LIMITS.segment_chars)}/x`), true);
+  const store = (length) => {
+    const prefix = 'node_modules/.pnpm/';
+    const segments = [];
+    let remaining = length - prefix.length;
+    while (remaining > 0) {
+      const size = Math.min(remaining, PROJECT_LIMITS.segment_chars);
+      segments.push('s'.repeat(size));
+      remaining -= size + 1;
+    }
+    return prefix + segments.join('/');
+  };
+  assert.equal(store(PROJECT_LIMITS.store_path_chars).length, PROJECT_LIMITS.store_path_chars);
+  assert.equal(isProjectPath(store(PROJECT_LIMITS.store_path_chars)), true);
+  assert.equal(isProjectPath(store(PROJECT_LIMITS.store_path_chars + 1)), false);
+  assert.equal(isProjectPath(`node_modules/.pnpm/${'s'.repeat(PROJECT_LIMITS.segment_chars + 1)}/x`), false);
+});
+
+function projectContract(t, mutate) {
+  const f = pnpmProject(t);
+  const contract = structuredClone(f.contract);
+  mutate?.(contract);
+  return contract;
+}
+const storeFile = (index) => `node_modules/.pnpm/pkg${index}@1.0.0/node_modules/pkg${index}/index.js`;
+const parseCode = (contract) => {
+  try {
+    return parseEngineeringTask(contract) && 'ok';
+  } catch (error) {
+    return error.code;
+  }
+};
+
+test('v2 path budgets: 64 ordinary plus store paths up to 256 in total, one more of either is refused', (t) => {
+  assert.equal(parseCode(projectContract(t)), 'ok');
+  const withPaths = (ordinary, store) => (contract) => {
+    contract.scope.read = [
+      ...contract.scope.read,
+      ...Array.from({ length: ordinary }, (_, i) => `extra${i}.js`),
+      ...Array.from({ length: store }, (_, i) => storeFile(i)),
+    ];
+  };
+  const baseOrdinary = 2;
+  const baseStore = 3;
+  assert.equal(
+    parseCode(
+      projectContract(
+        t,
+        withPaths(PROJECT_LIMITS.ordinary_paths - baseOrdinary, PROJECT_LIMITS.total_paths - PROJECT_LIMITS.ordinary_paths - baseStore),
+      ),
+    ),
+    'ok',
+  );
+  assert.equal(
+    parseCode(projectContract(t, withPaths(PROJECT_LIMITS.ordinary_paths - baseOrdinary + 1, 0))),
+    'ENGINEERING_TASK_CONTRACT_INVALID',
+  );
+  assert.equal(
+    parseCode(projectContract(t, withPaths(0, PROJECT_LIMITS.total_paths - baseOrdinary - baseStore + 1))),
+    'ENGINEERING_TASK_CONTRACT_INVALID',
+  );
+});
+
+test('v2 byte budget: 2 MiB of project files, one byte more is refused; v1 keeps 1 MiB', (t) => {
+  assert.equal(
+    parseCode(
+      projectContract(t, (c) => {
+        c.max_artifact_bytes = PROJECT_LIMITS.artifact_bytes;
+      }),
+    ),
+    'ok',
+  );
+  assert.equal(
+    parseCode(
+      projectContract(t, (c) => {
+        c.max_artifact_bytes = PROJECT_LIMITS.artifact_bytes + 1;
+      }),
+    ),
+    'ENGINEERING_TASK_CONTRACT_INVALID',
+  );
+  const v1 = fixture();
+  v1.max_artifact_bytes = 1_048_576;
+  assert.equal(parseCode(v1), 'ok');
+  v1.max_artifact_bytes = 1_048_577;
+  assert.equal(parseCode(v1), 'ENGINEERING_TASK_CONTRACT_INVALID');
+  const wide = fixture();
+  wide.scope.read = ['add.js', storeFile(1)];
+  assert.equal(parseCode(wide), 'ENGINEERING_TASK_CONTRACT_INVALID', 'v1 contracts never accept store paths');
+});
+
+test('a store path may name the command entrypoint, a probe and a protected file only when it is also readable', (t) => {
+  assert.equal(
+    parseCode(
+      projectContract(t, (c) => {
+        c.verifier.protected_paths.push(storeFile(9));
+      }),
+    ),
+    'ENGINEERING_TASK_CONTRACT_INVALID',
+  );
+  assert.equal(
+    parseCode(
+      projectContract(t, (c) => {
+        c.commands[0].entrypoint = storeFile(9);
+      }),
+    ),
+    'ENGINEERING_TASK_CONTRACT_INVALID',
+  );
+  assert.equal(
+    parseCode(
+      projectContract(t, (c) => {
+        c.scope.write.push(storeFile(9));
+      }),
+    ),
+    'ENGINEERING_TASK_CONTRACT_INVALID',
+  );
+});
+
+test('per-command limits are bounded, optional, and bound into the pinned verifier digest', (t) => {
+  const { projectVerifierDigest } = require('../tools/cli/lib/engineering-project-verifier');
+  const limited = (limits) =>
+    projectContract(t, (c) => {
+      c.commands[0].limits = limits;
+    });
+  assert.equal(parseCode(limited({ pids_max: 256, memory_max_bytes: 2_147_483_648, nofile: 4096 })), 'ok');
+  assert.equal(parseCode(limited({ pids_max: 32, memory_max_bytes: 268_435_456, nofile: 64 })), 'ok');
+  assert.equal(parseCode(limited({})), 'ok');
+  for (const bad of [
+    { pids_max: 31 },
+    { pids_max: 257 },
+    { memory_max_bytes: 268_435_455 },
+    { memory_max_bytes: 2_147_483_649 },
+    { nofile: 63 },
+    { nofile: 4097 },
+    { shm_bytes: 1_048_576 },
+    { pids_max: 1.5 },
+  ])
+    assert.equal(parseCode(limited(bad)), 'ENGINEERING_TASK_CONTRACT_INVALID', JSON.stringify(bad));
+  const plain = projectContract(t);
+  const wider = structuredClone(plain);
+  wider.commands[0].limits = { pids_max: 128 };
+  assert.notEqual(
+    projectVerifierDigest(plain),
+    projectVerifierDigest(wider),
+    'the model cannot raise a limit without invalidating the pin',
+  );
+});
+
+test('the store mount is a pinned literal, excludes content-backed store paths, and joins the verifier digest', (t) => {
+  const { projectVerifierDigest, declaredMounts } = require('../tools/cli/lib/engineering-project-verifier');
+  const mounted = pnpmProject(t, { mounted: true });
+  assert.equal(parseCode(mounted.contract), 'ok');
+  assert.deepEqual(declaredMounts(mounted.contract), [{ source: `${mounted.root}/node_modules/.pnpm`, target: '/opt/hseos/pnpm-store' }]);
+  const withValue = (value) => {
+    const contract = structuredClone(mounted.contract);
+    contract.workspace.store_mount = value;
+    return contract;
+  };
+  for (const bad of ['yes', true, '', 'pnpm', null])
+    assert.equal(parseCode(withValue(bad)), 'ENGINEERING_TASK_CONTRACT_INVALID', String(bad));
+  const mixed = structuredClone(mounted.contract);
+  mixed.scope.read.push(storeFile(1));
+  assert.equal(parseCode(mixed), 'ENGINEERING_TASK_CONTRACT_INVALID', 'mounted and copied store content never mix');
+  const plain = pnpmProject(t, { mounted: true });
+  delete plain.contract.workspace.store_mount;
+  assert.notEqual(
+    projectVerifierDigest(plain.contract),
+    projectVerifierDigest(mounted.contract),
+    'removing or adding the mount invalidates the pin',
+  );
+  assert.equal(declaredMounts(plain.contract), null);
+  assert.equal(declaredMounts(fixture()), null);
+  const relocated = structuredClone(mounted.contract);
+  relocated.workspace.root = `${mounted.root}-other`;
+  assert.notEqual(projectVerifierDigest(relocated), projectVerifierDigest(mounted.contract), 'the mounted root is part of the pin');
+});

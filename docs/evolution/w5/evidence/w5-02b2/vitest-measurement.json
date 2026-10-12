@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "node": "v24.15.0",
+  "consumer_node_modules": "/workspace/github/cambio-real/cambio-real-platforms/node_modules",
+  "runs": [
+    {
+      "name": "vitest, config bundled into the workspace (read-only), P0, raised limits",
+      "profile": "P0",
+      "limits_requested": {
+        "pids_max": 256,
+        "memory_max_bytes": 2147483648,
+        "nofile": 4096
+      },
+      "status": "failed",
+      "exit_code": 1,
+      "pids_peak": 35,
+      "memory_peak_bytes": 52211712,
+      "effective_limits": {
+        "processes": 256,
+        "memory_bytes": 2147483648,
+        "nofile": 4096,
+        "output_bytes": 65536,
+        "duration_ms": 120000
+      },
+      "duration_ms": 260,
+      "stdout_tail": "",
+      "stderr_tail": "es+node@26.1.1_jsdom@29.1.1_vite@8.1.3_@types+node@26.1.1_yaml@2.9.0_/node_modules/vitest/dist/chunks/cli-api.BK8pd4xc.js:14221:18)\n    at async prepareVitest (file:///opt/hseos/nm/.pnpm/vitest@4.1.10_@opentelemetry+api@1.9.0_@types+node@26.1.1_jsdom@29.1.1_vite@8.1.3_@types+node@26.1.1_yaml@2.9.0_/node_modules/vitest/dist/chunks/cli-api.BK8pd4xc.js:14588:14) {\n  errno: -30,\n  code: 'EROFS',\n  syscall: 'open',\n  path: '/workspace/vitest.config.mjs.timestamp-1791833436405-3d5a41275083e.mjs'\n}\n\n\n\n"
+    },
+    {
+      "name": "vitest threads pool, P0, executor defaults",
+      "profile": "P0",
+      "limits_requested": "defaults",
+      "status": "succeeded",
+      "exit_code": 0,
+      "pids_peak": 23,
+      "memory_peak_bytes": 79085568,
+      "effective_limits": {
+        "processes": 32,
+        "memory_bytes": 268435456,
+        "nofile": 64,
+        "output_bytes": 65536,
+        "duration_ms": 120000
+      },
+      "duration_ms": 446,
+      "stdout_tail": "\n\u001b[1m\u001b[30m\u001b[46m RUN \u001b[49m\u001b[39m\u001b[22m \u001b[36mv4.1.10 \u001b[39m\u001b[90m/workspace\u001b[39m\n\n \u001b[32m✓\u001b[39m sum.test.js \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 3\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m   Start at \u001b[22m 19:30:36\n\u001b[2m   Duration \u001b[22m 123ms\u001b[2m (transform 9ms, setup 0ms, import 15ms, tests 3ms, environment 0ms)\u001b[22m\n\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "vitest threads pool, P0, intermediate limits",
+      "profile": "P0",
+      "limits_requested": {
+        "pids_max": 128,
+        "memory_max_bytes": 1073741824,
+        "nofile": 1024
+      },
+      "status": "succeeded",
+      "exit_code": 0,
+      "pids_peak": 23,
+      "memory_peak_bytes": 78008320,
+      "effective_limits": {
+        "processes": 128,
+        "memory_bytes": 1073741824,
+        "nofile": 1024,
+        "output_bytes": 65536,
+        "duration_ms": 120000
+      },
+      "duration_ms": 513,
+      "stdout_tail": "\n\u001b[1m\u001b[30m\u001b[46m RUN \u001b[49m\u001b[39m\u001b[22m \u001b[36mv4.1.10 \u001b[39m\u001b[90m/workspace\u001b[39m\n\n \u001b[32m✓\u001b[39m sum.test.js \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 2\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m   Start at \u001b[22m 19:30:37\n\u001b[2m   Duration \u001b[22m 121ms\u001b[2m (transform 8ms, setup 0ms, import 14ms, tests 2ms, environment 0ms)\u001b[22m\n\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "vitest threads pool, P0, raised limits",
+      "profile": "P0",
+      "limits_requested": {
+        "pids_max": 256,
+        "memory_max_bytes": 2147483648,
+        "nofile": 4096
+      },
+      "status": "succeeded",
+      "exit_code": 0,
+      "pids_peak": 23,
+      "memory_peak_bytes": 78565376,
+      "effective_limits": {
+        "processes": 256,
+        "memory_bytes": 2147483648,
+        "nofile": 4096,
+        "output_bytes": 65536,
+        "duration_ms": 120000
+      },
+      "duration_ms": 492,
+      "stdout_tail": "\n\u001b[1m\u001b[30m\u001b[46m RUN \u001b[49m\u001b[39m\u001b[22m \u001b[36mv4.1.10 \u001b[39m\u001b[90m/workspace\u001b[39m\n\n \u001b[32m✓\u001b[39m sum.test.js \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 3\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m   Start at \u001b[22m 19:30:37\n\u001b[2m   Duration \u001b[22m 118ms\u001b[2m (transform 8ms, setup 0ms, import 14ms, tests 3ms, environment 0ms)\u001b[22m\n\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "vitest forks pool, P0, raised limits",
+      "profile": "P0",
+      "limits_requested": {
+        "pids_max": 256,
+        "memory_max_bytes": 2147483648,
+        "nofile": 4096
+      },
+      "status": "failed",
+      "exit_code": 1,
+      "pids_peak": 22,
+      "memory_peak_bytes": 52572160,
+      "effective_limits": {
+        "processes": 256,
+        "memory_bytes": 2147483648,
+        "nofile": 4096,
+        "output_bytes": 65536,
+        "duration_ms": 120000
+      },
+      "duration_ms": 10428,
+      "stdout_tail": "\n\u001b[1m\u001b[30m\u001b[46m RUN \u001b[49m\u001b[39m\u001b[22m \u001b[36mv4.1.10 \u001b[39m\u001b[90m/workspace\u001b[39m\n\n\n\u001b[2m Test Files \u001b[22m \u001b[2mno tests\u001b[22m\n\u001b[2m      Tests \u001b[22m \u001b[2mno tests\u001b[22m\n\u001b[2m     Errors \u001b[22m \u001b[1m\u001b[31m1 error\u001b[39m\u001b[22m\n\u001b[2m   Start at \u001b[22m 19:30:38\n\u001b[2m   Duration \u001b[22m 6ms\u001b[2m (transform 0ms, setup 0ms, import 0ms, tests 0ms, environment 0ms)\u001b[22m\n\n",
+      "stderr_tail": "⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\u001b[22m\u001b[39m\n\u001b[31m\u001b[1mSerialized Error:\u001b[22m\u001b[39m \u001b[90m{ errno: -1, code: 'EPERM', syscall: 'spawn' }\u001b[39m\n\u001b[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\u001b[39m\n\n[vitest-pool]: Timeout terminating forks worker for test files /workspace/sum.test.js.\nclose timed out after 10000ms\nTests closed successfully but something prevents Vite server from exiting\nYou can try to identify the cause by enabling \"hanging-process\" reporter. See https://vitest.dev/guide/reporters.html#hanging-process-reporter\n"
+    },
+    {
+      "name": "vitest forks pool, P1, intermediate limits",
+      "profile": "P1",
+      "limits_requested": {
+        "pids_max": 128,
+        "memory_max_bytes": 1073741824,
+        "nofile": 1024
+      },
+      "status": "succeeded",
+      "exit_code": 0,
+      "pids_peak": 29,
+      "memory_peak_bytes": 78225408,
+      "effective_limits": {
+        "processes": 128,
+        "memory_bytes": 1073741824,
+        "nofile": 1024,
+        "output_bytes": 65536,
+        "duration_ms": 120000
+      },
+      "duration_ms": 485,
+      "stdout_tail": "\n\u001b[1m\u001b[30m\u001b[46m RUN \u001b[49m\u001b[39m\u001b[22m \u001b[36mv4.1.10 \u001b[39m\u001b[90m/workspace\u001b[39m\n\n \u001b[32m✓\u001b[39m sum.test.js \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 2\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m   Start at \u001b[22m 19:30:48\n\u001b[2m   Duration \u001b[22m 127ms\u001b[2m (transform 9ms, setup 0ms, import 16ms, tests 2ms, environment 0ms)\u001b[22m\n\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "vitest forks pool, P1, raised limits",
+      "profile": "P1",
+      "limits_requested": {
+        "pids_max": 256,
+        "memory_max_bytes": 2147483648,
+        "nofile": 4096
+      },
+      "status": "succeeded",
+      "exit_code": 0,
+      "pids_peak": 29,
+      "memory_peak_bytes": 79355904,
+      "effective_limits": {
+        "processes": 256,
+        "memory_bytes": 2147483648,
+        "nofile": 4096,
+        "output_bytes": 65536,
+        "duration_ms": 120000
+      },
+      "duration_ms": 464,
+      "stdout_tail": "\n\u001b[1m\u001b[30m\u001b[46m RUN \u001b[49m\u001b[39m\u001b[22m \u001b[36mv4.1.10 \u001b[39m\u001b[90m/workspace\u001b[39m\n\n \u001b[32m✓\u001b[39m sum.test.js \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 3\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m   Start at \u001b[22m 19:30:49\n\u001b[2m   Duration \u001b[22m 120ms\u001b[2m (transform 10ms, setup 0ms, import 15ms, tests 3ms, environment 0ms)\u001b[22m\n\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "tsc with the executor defaults",
+      "profile": "P0",
+      "limits_requested": "defaults",
+      "status": "succeeded",
+      "exit_code": 0,
+      "pids_peak": 9,
+      "memory_peak_bytes": 215498752,
+      "effective_limits": {
+        "processes": 32,
+        "memory_bytes": 268435456,
+        "nofile": 64,
+        "output_bytes": 65536,
+        "duration_ms": 120000
+      },
+      "duration_ms": 800,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "name": "tsc with raised limits",
+      "profile": "P0",
+      "limits_requested": {
+        "pids_max": 64,
+        "memory_max_bytes": 1073741824,
+        "nofile": 256
+      },
+      "status": "succeeded",
+      "exit_code": 0,
+      "pids_peak": 9,
+      "memory_peak_bytes": 217931776,
+      "effective_limits": {
+        "processes": 64,
+        "memory_bytes": 1073741824,
+        "nofile": 256,
+        "output_bytes": 65536,
+        "duration_ms": 120000
+      },
+      "duration_ms": 826,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    }
+  ],
+  "vitest_store_entry": "vitest@4.1.10_@opentelemetry+api@1.9.0_@types+node@26.1.1_jsdom@29.1.1_vite@8.1.3_@types+node@26.1.1_yaml@2.9.0_",
+  "typescript_store_entry": "typescript@5.9.3",
+  "verdict": "MEASURED"
+}
