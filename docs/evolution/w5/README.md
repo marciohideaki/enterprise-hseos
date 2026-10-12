@@ -2,15 +2,15 @@
 
 Esta onda acrescenta ao kernel a percepção e a ação sobre o ambiente de engenharia: LSP e
 depuração (core, com servidores e adaptadores fixados por digest), navegador e computer-use
-(pacotes de plugin separados), contexto com autoridade e proveniência, partes multimodais,
+(runtime no core com carregamento tardio; todas as capacidades também empacotáveis em `plugins/*`), contexto com autoridade e proveniência, partes multimodais,
 memória governada, compactação combinada e MCP subordinado ao gateway. A definição, as
 decisões e os limites estão em [`PLAN.md`](./PLAN.md) e na
 [especificação](../../../.specs/features/harness-w5/spec.md).
 
 ## Estado
 
-W5-01 (contratos) em revisão; implementação não iniciada e dependente do gate G2. Detalhes e
-matriz de entrega em [`STATUS.md`](./STATUS.md).
+G2 aprovado em 2026-10-11 e W5-01 (contratos) concluída; próximo passo: onda B1 (W5-02a, W5-02b1 → W5-02b2,
+W5-04). Implementação ainda não iniciada. Detalhes e matriz de entrega em [`STATUS.md`](./STATUS.md).
 
 ## Princípios
 

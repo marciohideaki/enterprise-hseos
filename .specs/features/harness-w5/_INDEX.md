@@ -8,7 +8,7 @@ Tipo: entrada de contratos. Leia spec → design → tasks → plano/estado.
 - [Plano da onda e decisões G2](../../../docs/evolution/w5/PLAN.md)
 - [Estado](../../../docs/evolution/w5/STATUS.md)
 - [Intake](../../../docs/decisions/harness-w5-intake.md)
-- [ADR-0047 (Proposed)](../../../.enterprise/.specs/decisions/ADR-0047-environment-capabilities-and-context-authority.md)
+- [ADR-0047 (Accepted)](../../../.enterprise/.specs/decisions/ADR-0047-environment-capabilities-and-context-authority.md)
 
 Glossário: authority = nível de autoridade de uma fonte de contexto (directive, operator, data);
 proveniência = origem, digest, hora e cadeia de transformações; perfil de isolamento = conjunto
