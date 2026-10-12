@@ -1,0 +1,21 @@
+# REVIEW C4 (deteccao de stack / capability-check) - worktree crp-c4-stack-detection, base 15074b6e
+Veredito: APROVAR COM RESSALVAS - corrigir antes de merge: C4-1 (fail-open do guard) e C4-2 (falsos positivos de tokens). Testes 227/227 e 71/71 (rodados).
+
+## Achados
+| ID | Sev | Achado | Repro |
+|---|---|---|---|
+| C4-1 | MEDIA | `DEPENDENCY_STACKS[name]` busca em objeto comum: dependencia chamada `constructor`/`toString`/`valueOf`/`hasOwnProperty` devolve funcao de Object.prototype e `for..of` lanca TypeError. detectStacks/detectStacksForFile quebram: `hseos platform-bindings guard` sai exit 1 (nao-bloqueante no hook => guard FAIL-OPEN) e capability-check cai. Na base nao havia. Correcao: Map ou Object.hasOwn/prototype nulo, e try/catch fail-closed (platform) no guard. | package.json `{"dependencies":{"constructor":"1"}}`; evaluateGuard lanca; `hseos platform-bindings guard < evento` => exit 1 |
+| C4-2 | MEDIA | Fallback por tokens casa verbos/artigos genericos (prefixo/substring em nomes, aliases, pacotes): "add new user", "create new account", "add a new product" => security.authn [tokens 2]; "get the client" => design.mobile-tokens; "create new client" => security.authn + calendar.event.create. 'client' casa heuristic em 9 capacidades (pacotes python). Sem lista de stopwords nem exigencia de um token forte. | `resolveCapability(registry,'add new user')`; `hseos capability-check "add new user"` |
+| C4-3 | BAIXA/MEDIA | react-native/expo implica `react`: projeto RN recebe `consume` da implementacao react (DOM) de design.login-pattern. O proprio registry separa react de react-native. | package.json com react-native => `capability-check login` => consume impl=react |
+| C4-4 | BAIXA | detectStacksForFile: "o diretorio mais proximo com qualquer marcador" vence. tsconfig*.json em src/ ou em subpasta mais perto que o package.json faz a arvore perder `react`/`node` (so typescript herdado). Pacote de workspace sem package.json cai no root (node). | `apps/web/src/tsconfig.json` + `apps/web/package.json{react}` => arquivo em src/ = `typescript` |
+| C4-5 | BAIXA | Workspaces aninhados (`packages/*/pkgs/*`) nao entram na uniao project-wide (so filhos imediatos da base literal); `*`/`**` sem base sao ignorados. A via por arquivo ve (sobe a arvore). | detectStacks => node |
+| C4-6 | BAIXA | react so em devDependencies da raiz propaga `react` a scripts/ e a servicos fora de pacote; Vue/preact/svelte sem vocabulario => so `node`. Aceitavel/documentavel. | |
+
+## Alegacoes
+- RED provado contra 15074b6e: test-platform-bindings lanca `detectStacksForFile is not a function` (FAIL "project-wide union uses registry labels"); test-capability-check 3 FAIL (stacks=node, sem react impl, verdict extend). GREEN no worktree.
+- deps em dependencies/devDependencies/peerDependencies (react so como peer em lib de UI => node,react) OK; tsconfig*.json, tsconfig extends irrelevante (qualquer tsconfig marca typescript); next/expo/@types/react/react-dom OK; flutter via pubspec OK; workspaces `../outside` e absolutos ignorados; symlink, node_modules, dist ignorados; package.json malformado => node; monorepo aninhado: arquivo ve react, uniao nao (C4-5).
+- stacks explicitas no bindings mandam (`[go]` => ["go"], explicit true; lista vazia cai na deteccao, como antes).
+- capability-check no corpus real: stacks node,react,typescript; `login` => design.login-pattern [alias, consume]; `login-pattern`/`login pattern` => heuristic consume; `design tokens` => mobile-tokens extend (correto: so RN/flutter); "formatacao monetaria"/"money formatting"/"data table pagination" => 0 (registry nao tem capacidade; esperado, so 14 capacidades). Projeto Go: extend + "other stacks with an implementation: react".
+- tokens: deterministico; 2 palavras exigem as duas, 3+ maioria; separadores so por espaco (login-pattern nao quebra); acentos nao normalizados (nao ha nada em PT no registry).
+- Guard no corpus (580 arquivos, 3 modos): identico a 15074b6e: platform 319 deny/261 allow, hybrid 0/580, local 0/580. So contagem; mudanca e de mensagem/stacks (hybrid so mudaria com implementacao `stable`, hoje todas experimental).
+- Desempenho: detectStacksForFile 0,14 ms/chamada no corpus (580 arquivos, 83 ms), project-wide 1,3 ms; sem cache e desnecessario. Corpus 3 modos 16,8 s -> 19,4 s (~15%, dentro do ruido de carga ~2).
