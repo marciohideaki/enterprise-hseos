@@ -360,6 +360,46 @@
       "description": "Always-on session tracking: mark as_sessions row completed on session end",
       "fallback": "No-op when hseos CLI or jq absent.",
       "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "sessionstart-all-activity-coordination",
+      "event": "SessionStart",
+      "matcher": "*",
+      "command": "bash .agents/hooks/handlers/activity-coordination.sh",
+      "blocking": false,
+      "description": "Cross-tool activity coordination: register the session and inject pending coordination events. No effect without an enabled .hseos/config/activity-coordination.yaml.",
+      "fallback": "No-op without the contract, the hseos CLI or jq; other tools run `hseos activity check` at session start (AGENTS.md).",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "userpromptsubmit-all-activity-coordination",
+      "event": "UserPromptSubmit",
+      "matcher": "*",
+      "command": "bash .agents/hooks/handlers/activity-coordination.sh",
+      "blocking": false,
+      "description": "Cross-tool activity coordination: heartbeat and inject pending coordination events into the prompt. No effect without an enabled .hseos/config/activity-coordination.yaml.",
+      "fallback": "No-op without the contract, the hseos CLI or jq; other tools run `hseos activity check` at session start (AGENTS.md).",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "stop-all-activity-coordination",
+      "event": "Stop",
+      "matcher": "*",
+      "command": "bash .agents/hooks/handlers/activity-coordination.sh",
+      "blocking": false,
+      "description": "Cross-tool activity coordination: heartbeat at turn end. No effect without an enabled .hseos/config/activity-coordination.yaml.",
+      "fallback": "No-op without the contract, the hseos CLI or jq; other tools run `hseos activity check` at session start (AGENTS.md).",
+      "codex_equivalent": "portable-handler-script"
+    },
+    {
+      "id": "sessionend-all-activity-coordination",
+      "event": "SessionEnd",
+      "matcher": "*",
+      "command": "bash .agents/hooks/handlers/activity-coordination.sh",
+      "blocking": false,
+      "description": "Cross-tool activity coordination: end the activity. No effect without an enabled .hseos/config/activity-coordination.yaml.",
+      "fallback": "No-op without the contract, the hseos CLI or jq; other tools run `hseos activity check` at session start (AGENTS.md).",
+      "codex_equivalent": "portable-handler-script"
     }
   ]
 }

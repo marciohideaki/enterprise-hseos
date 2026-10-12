@@ -183,6 +183,17 @@ No commit allowed if gates fail. No exceptions. The `husky` `pre-commit` hook ru
 - `.logs/validation/` — gitignored (temporary)
 - `.logs/summaries/` — committable
 
+## 10a. Activity coordination (cross-tool)
+
+When `.hseos/config/activity-coordination.yaml` exists with `enabled: true`, other sessions (any tool) may be working in the same repository or packages. Tools without prompt hooks follow this protocol:
+
+- At session start run `hseos activity check` and read the pending events.
+- Before changing a hot file (shared manifests, changelogs, candidate files), run `hseos activity declare` with the paths.
+- Before fixing a published version or a package name, run `hseos activity reserve` (`version:<pkg>@<semver>` or `name:<pkg>`); never reuse a version reserved by another session.
+- Release scripts and CI call `hseos activity guard-publish <pkg>@<version>`.
+
+Without the contract none of this applies. Details: `docs/activity-coordination/README.md`.
+
 ## 11. Stop Conditions
 
 **STOP and ask the user when:**

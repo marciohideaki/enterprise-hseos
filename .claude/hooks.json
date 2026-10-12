@@ -193,6 +193,12 @@
             "command": "bash .agents/hooks/handlers/session-track.sh",
             "timeout": 5,
             "description": "Always-on session tracking: register each supported session in the active project's as_sessions store."
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/activity-coordination.sh",
+            "timeout": 8,
+            "description": "Cross-tool activity coordination: register the session and inject pending coordination events. No effect without an enabled .hseos/config/activity-coordination.yaml."
           }
         ]
       }
@@ -218,6 +224,12 @@
             "command": "bash .agents/hooks/handlers/session-track.sh",
             "timeout": 5,
             "description": "Always-on session tracking: heartbeat as_sessions on each prompt (register-if-missing upsert)"
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/activity-coordination.sh",
+            "timeout": 8,
+            "description": "Cross-tool activity coordination: heartbeat and inject pending coordination events into the prompt. No effect without an enabled .hseos/config/activity-coordination.yaml."
           }
         ]
       }
@@ -261,6 +273,12 @@
             "command": "bash .agents/hooks/handlers/session-track.sh",
             "timeout": 5,
             "description": "Always-on session tracking: mark as_sessions row completed on session end"
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/activity-coordination.sh",
+            "timeout": 3,
+            "description": "Cross-tool activity coordination: end the activity. No effect without an enabled .hseos/config/activity-coordination.yaml."
           }
         ]
       }
@@ -285,6 +303,12 @@
             "command": "bash .agents/hooks/handlers/session-track.sh",
             "timeout": 5,
             "description": "Always-on session tracking: heartbeat as_sessions at turn end (long autonomous turns stay fresh)"
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/activity-coordination.sh",
+            "timeout": 8,
+            "description": "Cross-tool activity coordination: heartbeat at turn end. No effect without an enabled .hseos/config/activity-coordination.yaml."
           }
         ]
       }
