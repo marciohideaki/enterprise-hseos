@@ -41,6 +41,7 @@ async function inspectReconciliation(task, assembly, attest) {
         contract: state.created.contract,
         policy: assembly.policy,
         deadline: state.created.deadline,
+        runCommandChecks: false,
       });
       if (engineeringDigest(files) !== engineeringDigest(assembly.tools.snapshot()))
         throw new Error('Workspace changed during verification');

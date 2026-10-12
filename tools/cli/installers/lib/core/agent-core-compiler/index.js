@@ -117,7 +117,7 @@ class AgentCoreCompiler {
       agentsDirName: this.agentsDirName,
       sources: { skills, agents, mcpBundles: mcp.bundles || [], mcpServers: mcp.servers || [] },
     });
-    if (registryPlugins)
+    if (registryPlugins && !options.skipPlatformPlugins)
       await writePlatformPluginAdapters(root, registryPlugins, this.agentsDirName, emittedPlatforms, activePluginManifests);
 
     const manifest = await writeManifest(

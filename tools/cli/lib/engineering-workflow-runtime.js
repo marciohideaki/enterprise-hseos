@@ -93,6 +93,13 @@ function parseEngineeringWorkflow(value) {
   return { definition, phases, joinTimeout };
 }
 
+function workflowEvidence(handle, manifest) {
+  return manifest.tasks.map((entry) => {
+    const state = new EngineeringTaskState(handle.db, entry.task_run_id).read();
+    return { id: entry.id, contract: state.created.contract, artifacts: state.snapshot || null, verification: state.result || null };
+  });
+}
+
 function workflowSummary(handle, manifest, store) {
   const parent = store.replay(manifest.parent_session_id);
   const reservation = parent.workflow_reservations[manifest.definition.workflow_id];
@@ -534,10 +541,7 @@ async function inspectEngineeringWorkflow({
     if (action === 'evidence')
       return {
         ...workflowSummary(handle, manifest, store),
-        evidence: manifest.tasks.map((entry) => {
-          const state = new EngineeringTaskState(handle.db, entry.task_run_id).read();
-          return { id: entry.id, contract: state.created.contract, artifacts: state.snapshot || null, verification: state.result || null };
-        }),
+        evidence: workflowEvidence(handle, manifest),
       };
     if (action === 'status' || reservation?.released || parent.terminal_event) return workflowSummary(handle, manifest, store);
     const inspectInterrupted = async () => {
@@ -671,7 +675,10 @@ async function inspectEngineeringWorkflow({
 }
 
 module.exports = {
-  readEngineeringWorkflowView: workflowSummary,
+  readEngineeringWorkflowView: (handle, manifest, store, evidence = false) => ({
+    ...workflowSummary(handle, manifest, store),
+    ...(evidence ? { evidence: workflowEvidence(handle, manifest) } : {}),
+  }),
   parseEngineeringWorkflow,
   migrateEngineeringWorkflow,
   readEngineeringWorkflow: readDefinitionFile,

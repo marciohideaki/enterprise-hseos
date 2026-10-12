@@ -67,7 +67,7 @@ const IMPLEMENTATION_STATUSES = new Set(['planned', 'experimental', 'stable', 'd
 const CONFORMANCE_KEYS = new Set(['vectors_version', 'evidence']);
 const LOCK_KEYS = new Set(['schema_version', 'repository', 'ref', 'contracts_version', 'sha256']);
 
-const SCORES = { name: 100, alias: 90, contract: 80, package: 80, symbol: 60, path: 60, prefix: 40, heuristic: 10 };
+const SCORES = { name: 100, alias: 90, contract: 80, package: 80, symbol: 60, path: 60, prefix: 40, heuristic: 10, tokens: 5 };
 
 class RegistryIntegrityError extends Error {
   constructor(message) {
@@ -510,10 +510,75 @@ function resolveCapability(registry, query, { stacks } = {}) {
   if (matches.length > 0) return ordered(matches);
   // Substring matching is noisy: require at least three alphanumerics in the query.
   if (alnumCount(query) < MIN_FUZZY_ALNUM) return [];
-  return ordered(
-    registry.capabilities
-      .filter((capability) => containsQuery(capability, query, queryLower))
-      .map((capability) => toResult(capability, 'heuristic')),
+  const heuristic = registry.capabilities
+    .filter((capability) => containsQuery(capability, query, queryLower))
+    .map((capability) => toResult(capability, 'heuristic'));
+  if (heuristic.length > 0) return ordered(heuristic);
+  return matchTokens(registry, query).map(({ capability, hits }) => ({ ...toResult(capability, 'tokens'), tokenHits: hits }));
+}
+
+/**
+ * Multi-word fallback, used only when the whole query matched nothing: each word of at least three
+ * alphanumerics is resolved on its own, and a capability qualifies when it matches all of them or, with
+ * three or more words, a strict majority. Deterministic: more matched words first, then the stronger
+ * single-word matches, then the capability name. Words are split on whitespace only, so an identifier
+ * (`snake_case`, `kebab-case`) is never broken apart.
+ */
+const STOPWORDS = new Set(
+  (
+    'add new create get set make the and for with from into that this then use using need want how can ' +
+    'um uma uns umas novo nova novos novas criar adicionar obter ler para com sem por uma que dos das nos nas ' +
+    'del los las une des'
+  ).split(' '),
+);
+
+/** Lower-case words of a registry value, split on separators and camelCase humps. */
+function wordsOf(value) {
+  return String(value)
+    .split(/[^A-Za-z0-9]+|(?<=[a-z0-9])(?=[A-Z])/)
+    .map((word) => word.toLowerCase())
+    .filter((word) => word.length >= 2);
+}
+
+/** Whole-word match, or a shared stem: the shorter word has at least four letters and opens the longer one. */
+function sameWord(word, candidate) {
+  if (word === candidate) return 2;
+  const [short, long] = word.length <= candidate.length ? [word, candidate] : [candidate, word];
+  return short.length >= 4 && long.startsWith(short) && long.length - short.length <= 3 ? 1 : 0;
+}
+
+function matchTokens(registry, query) {
+  const words = [
+    ...new Set(
+      query
+        .split(/\s+/)
+        .map((word) => word.toLowerCase())
+        .filter((word) => alnumCount(word) >= MIN_FUZZY_ALNUM && !STOPWORDS.has(word)),
+    ),
+  ];
+  if (words.length < 2) return [];
+  const results = [];
+  for (const capability of registry.capabilities) {
+    const { symbols, pathGlobs } = matchHints(capability);
+    const vocabulary = new Set(
+      [capability.name, ...capability.aliases, ...symbols, ...pathGlobs, ...packagesOf(capability)].flatMap(wordsOf),
+    );
+    let hits = 0;
+    let strength = 0;
+    for (const word of words) {
+      const best = Math.max(0, ...[...vocabulary].map((candidate) => sameWord(word, candidate)));
+      if (best > 0) {
+        hits += 1;
+        strength += best;
+      }
+    }
+    if (hits >= (words.length === 2 ? 2 : Math.floor(words.length / 2) + 1)) results.push({ capability, hits, strength });
+  }
+  return results.sort(
+    (a, b) =>
+      b.hits - a.hits ||
+      b.strength - a.strength ||
+      (a.capability.name < b.capability.name ? -1 : a.capability.name > b.capability.name ? 1 : 0),
   );
 }
 

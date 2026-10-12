@@ -427,6 +427,29 @@ class ExecutionEventLedger {
       .map(hydrate);
   }
 
+  /**
+   * Events of the given aggregates after a global cursor, in global order. Each (type, id) pair is read through the
+   * stream index, so cost follows the rows owned by the aggregates and not the size of the shared ledger.
+   */
+  readAggregates({ after_position = 0, limit = 100, aggregates } = {}) {
+    if (!Number.isInteger(after_position) || after_position < 0 || !Number.isInteger(limit) || limit < 1 || limit > 1000) {
+      throw new InvalidEventError('Invalid global stream cursor or limit');
+    }
+    if (!Array.isArray(aggregates)) throw new InvalidEventError('aggregates must be an array');
+    const statement = this.db.prepare(
+      `SELECT * FROM execution_events WHERE aggregate_type = ? AND aggregate_id = ? AND position > ? ORDER BY position LIMIT ?`,
+    );
+    return aggregates
+      .flatMap(({ aggregate_type, aggregate_id }) => {
+        requireString(aggregate_type, 'aggregate_type');
+        requireString(aggregate_id, 'aggregate_id');
+        return statement.all(aggregate_type, aggregate_id, after_position, limit);
+      })
+      .sort((a, b) => a.position - b.position)
+      .slice(0, limit)
+      .map(hydrate);
+  }
+
   metrics() {
     return {
       ...this._metrics,

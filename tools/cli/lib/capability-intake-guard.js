@@ -1,9 +1,12 @@
 const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
+const yaml = require('yaml');
 const {
   PROJECT_BINDINGS_FILE,
   detectStacks,
+  detectStacksForFile,
+  intakeRecordResolves,
   isReferenceId,
   loadPlatformBindings,
   overrideRefResolves,
@@ -17,6 +20,16 @@ const { RegistryIntegrityError, loadCapabilityRegistry, matchExport, resolveCapa
 const EXCLUDED_FILE =
   /^.*(?:\.test\..*|\.spec\..*|\.stories\..*)$|^.*\/__mocks__\/.*$|^.*\.generated\..*$|^.*\/dist\/.*$|^.*\.d\.(?:ts|mts|cts)$/s;
 const WATCHED_FILE = /^(?:.*\/applications\/.*\/src\/.*|.*\/packages\/.*|.*\/src\/Services\/.*)$/s;
+// Besides the fixed globs above, the roots a project declares as its workspace (pnpm-workspace.yaml `packages`, package.json
+// `workspaces`) are watched at the repository root, so a monorepo's `apps/*` is not invisible. Inside those roots, directories that
+// hold tests, end-to-end suites or design references are not shareable capabilities and stay out (the fixed globs keep their
+// historical behaviour). A project with no readable declaration falls back to FALLBACK_WORKSPACE_ROOTS, never to "watch nothing".
+const NON_SHIPPING_DIRECTORY = /\/(?:__tests__|tests?|e2e|design-reference|node_modules)\//;
+const FALLBACK_WORKSPACE_ROOTS = ['apps'];
+const MAX_MANIFEST_BYTES = 256 * 1024;
+const WORKSPACE_ANY = '*';
+const ROOT_SEGMENT_PATH = /^[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)*$/;
+const ROOT_SEGMENT = /^[A-Za-z0-9_.-]+$/;
 
 // Export detection is broader than the legacy shell guard (which misses `export async function`, `export enum`,
 // `export default` without a name, CommonJS exports, multi-line declarations and most C# types) and is
@@ -2495,9 +2508,20 @@ function languageOf(file) {
   return /\.cs$/i.test(file) ? 'cs' : 'js';
 }
 
-/** `file` is matched as given (a project-relative path gets a leading slash from the caller). */
-function qualifies(file, content) {
-  return !EXCLUDED_FILE.test(file) && WATCHED_FILE.test(file) && detectExports(content, languageOf(file)) !== null;
+function inWorkspaceRoot(file, roots) {
+  if (NON_SHIPPING_DIRECTORY.test(file)) return false;
+  if (roots.some((root) => root.startsWith('!') && file.startsWith(`/${root.slice(1)}/`))) return false;
+  if (roots.some((root) => root.startsWith('~') && matchesNegatedGlob(file, root.slice(1)))) return false;
+  return roots.some(
+    (root) =>
+      !root.startsWith('!') && !root.startsWith('~') && (root === WORKSPACE_ANY ? /^\/[^/]+\//.test(file) : file.startsWith(`/${root}/`)),
+  );
+}
+
+/** `file` is matched as given (a project-relative path gets a leading slash from the caller); `roots` are extra declared workspace roots. */
+function qualifies(file, content, roots = []) {
+  if (EXCLUDED_FILE.test(file) || !(WATCHED_FILE.test(file) || inWorkspaceRoot(file, roots))) return false;
+  return detectExports(content, languageOf(file)) !== null;
 }
 
 function extractSymbol(content, language = 'js') {
@@ -2523,6 +2547,129 @@ function resolveTarget(root, file) {
   }
   const relative = path.relative(realRoot, real);
   return { real, relative: relative.startsWith('..') || path.isAbsolute(relative) ? null : relative.split(path.sep).join('/') };
+}
+
+/**
+ * Watched root of a workspace glob: its leading literal directory (`apps/*` -> `apps`, `libs/**` -> `libs`), or `*` for a glob with no
+ * literal directory at all (`*`, `**`: every first-level directory). Null for odd paths (`..`, absolute, `.`) and for an empty glob.
+ */
+function globRoot(glob) {
+  if (typeof glob !== 'string') return null;
+  const literal = [];
+  const segments = glob.trim().replaceAll('\\', '/').replace(/^\.\//, '').split('/');
+  for (const segment of segments) {
+    if (/[*?[\]{}()]/.test(segment) || segment === '') break;
+    literal.push(segment);
+  }
+  if (literal.length === 0) return /^\*+$/.test(segments[0]) ? WORKSPACE_ANY : null;
+  if (literal.some((segment) => !ROOT_SEGMENT.test(segment) || /^\.+$/.test(segment))) return null;
+  return literal.join('/');
+}
+
+/**
+ * A negation becomes `!dir` only when the negated pattern is a literal directory (`!apps/legacy`, `!apps/legacy/**`): that whole
+ * directory leaves the watch. A pattern with a glob after a literal part (`!apps/*\/fixtures`) must not take its literal head out, so
+ * it becomes `~glob` and is matched against each file's directories instead.
+ */
+function negationEntry(pattern) {
+  const normalized = pattern
+    .trim()
+    .replaceAll('\\', '/')
+    .replace(/^\.\//, '')
+    .replace(/\/\*{1,2}$/, '');
+  if (normalized === '' || normalized.split('/').includes('..')) return null;
+  if (!/[*?[\]{}()]/.test(normalized)) return ROOT_SEGMENT_PATH.test(normalized) ? `!${normalized}` : null;
+  return `~${normalized}`;
+}
+
+const globRegexCache = new Map();
+function globToRegExp(glob) {
+  let regex = globRegexCache.get(glob);
+  if (!regex) {
+    const source = glob
+      .split(/(\*\*\/|\*\*|\*|\?)/)
+      .map((part) => {
+        if (part === '**/') return '(?:.*/)?';
+        if (part === '**') return '.*';
+        if (part === '*') return '[^/]*';
+        if (part === '?') return '[^/]';
+        return part.replaceAll(/[.+^${}()|[\]\\]/g, String.raw`\$&`);
+      })
+      .join('');
+    regex = new RegExp(`^${source}$`);
+    globRegexCache.set(glob, regex);
+  }
+  return regex;
+}
+
+/** True when some directory on the path of `file` (`/a/b/c.ts` -> `a`, `a/b`) matches the negated glob. */
+function matchesNegatedGlob(file, glob) {
+  const directories = file.split('/').slice(1, -1);
+  const regex = globToRegExp(glob);
+  return directories.some((_, index) => regex.test(directories.slice(0, index + 1).join('/')));
+}
+
+function readManifest(root, relative, parse) {
+  try {
+    const file = path.join(root, relative);
+    if (fs.statSync(file).size > MAX_MANIFEST_BYTES) return null;
+    return parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function manifestStamp(root) {
+  return ['pnpm-workspace.yaml', 'package.json']
+    .map((name) => {
+      try {
+        const stat = fs.statSync(path.join(root, name));
+        return `${stat.mtimeMs}:${stat.size}`;
+      } catch {
+        return '-';
+      }
+    })
+    .join('|');
+}
+
+const rootsCache = new Map();
+
+/**
+ * Workspace roots the project declares (`pnpm-workspace.yaml` `packages`, `package.json` `workspaces` as an array or `{ packages }`),
+ * as repository-relative directories, `*` (every first-level directory) and `!dir` exclusions from declared negations. A declaration
+ * with no positive root (empty, only negations, only odd paths) is no declaration: the fallback roots apply, never "watch nothing".
+ * Cached per project while the manifests are unchanged (the guard asks once per write, a batch asks thousands of times).
+ */
+function workspaceRoots(root) {
+  const stamp = manifestStamp(root);
+  const cached = rootsCache.get(root);
+  if (cached && cached.stamp === stamp) return cached.roots;
+  const globs = [];
+  const pnpm = readManifest(root, 'pnpm-workspace.yaml', (text) => yaml.parse(text));
+  if (pnpm && Array.isArray(pnpm.packages)) globs.push(...pnpm.packages);
+  const manifest = readManifest(root, 'package.json', (text) => JSON.parse(text));
+  if (manifest && Array.isArray(manifest.workspaces)) globs.push(...manifest.workspaces);
+  else if (manifest && manifest.workspaces && Array.isArray(manifest.workspaces.packages)) globs.push(...manifest.workspaces.packages);
+  const isNegation = (glob) => typeof glob === 'string' && glob.trim().startsWith('!');
+  const positive = [
+    ...new Set(
+      globs
+        .filter((glob) => !isNegation(glob))
+        .map(globRoot)
+        .filter(Boolean),
+    ),
+  ];
+  const excluded = [
+    ...new Set(
+      globs
+        .filter(isNegation)
+        .map((glob) => negationEntry(glob.trim().slice(1)))
+        .filter(Boolean),
+    ),
+  ];
+  const roots = positive.length === 0 ? [...FALLBACK_WORKSPACE_ROOTS] : [...positive, ...excluded];
+  rootsCache.set(root, { stamp, roots });
+  return roots;
 }
 
 function projectRoot(cwd) {
@@ -2563,10 +2710,12 @@ function filesystemCandidates(root, symbol) {
   return found;
 }
 
-function validAck(root, env) {
+function validAck(root, env, now) {
   const ack = env.CORE_INTAKE_ACK || '';
   // Same shape as an intake_ref, then a token-exact match in intake documents (the legacy rule is a substring match).
-  return isReferenceId(ack) && overrideRefResolves(root, 'intake_ref', ack);
+  if (isReferenceId(ack) && overrideRefResolves(root, 'intake_ref', ack)) return true;
+  // A consumer's own intake records (JSON, capability-intake v2) acknowledge by their `request_id`.
+  return intakeRecordResolves(root, ack, now);
 }
 
 function describeMatches(matches) {
@@ -2578,8 +2727,11 @@ function describeMatches(matches) {
     .join('; ');
 }
 
+const INTAKE_FORMATS_HINT =
+  "Accepted records: the token as a whole word in docs/decisions/**/*intake*.md, or a capability-intake v2 JSON record (any .json under docs/decisions whose path contains 'intake', e.g. docs/decisions/intake/<name>.json) whose request_id equals the token and whose approval has not expired.";
+
 function platformDenial(symbol, candidates, notes) {
-  const context = `[CAPABILITY-INTAKE] Export ${symbol || 'unknown'} requires a valid CORE_INTAKE_ACK=<intake-id> recorded in docs/decisions/*intake*.md. CORE_INTAKE_ACK=1 is invalid. Run: hseos capability-check ${(symbol || '').split(', ')[0] || '<symbol>'}.${candidates.length > 0 ? ` Candidates: ${candidates.join(', ')}` : ''}${notes.length > 0 ? ` ${notes.join(' ')}` : ''}`;
+  const context = `[CAPABILITY-INTAKE] Export ${symbol || 'unknown'} requires a valid CORE_INTAKE_ACK=<intake-id> recorded in docs/decisions/*intake*.md. CORE_INTAKE_ACK=1 is invalid. Run: hseos capability-check ${(symbol || '').split(', ')[0] || '<symbol>'}.${candidates.length > 0 ? ` Candidates: ${candidates.join(', ')}` : ''}${notes.length > 0 ? ` ${notes.join(' ')}` : ''} ${INTAKE_FORMATS_HINT}`;
   return denial('capability-intake-required', context);
 }
 
@@ -2623,7 +2775,7 @@ function evaluateGuard({ input, cwd = process.cwd(), env = process.env, runtimeR
   const root = projectRoot(cwd);
   const target = resolveTarget(root, file);
   if (isProtectedBindingsPath(file) || isProtectedTarget(root, target)) return denial('platform-bindings-protected', PROTECTED_MESSAGE);
-  if (!qualifies(target.relative === null ? target.real : `/${target.relative}`, content)) return allowance('');
+  if (!qualifies(target.relative === null ? target.real : `/${target.relative}`, content, workspaceRoots(root))) return allowance('');
 
   // Every export of the content, not just the first: the decision is taken over all of them (deny if any would be denied).
   const detected = detectExports(content, languageOf(target.real));
@@ -2649,9 +2801,21 @@ function evaluateGuard({ input, cwd = process.cwd(), env = process.env, runtimeR
   }
   if (!registry && mode === 'hybrid') {
     // Without registry data hybrid cannot identify a stable match: fall back to the platform decision.
-    return decide({ mode: 'platform', registry, symbols, relative: target.relative, root, env, bindings, notes, incomplete });
+    return decide({
+      mode: 'platform',
+      registry,
+      symbols,
+      relative: target.relative,
+      file: target.real,
+      root,
+      env,
+      bindings,
+      notes,
+      incomplete,
+      now,
+    });
   }
-  return decide({ mode, registry, symbols, relative: target.relative, root, env, bindings, notes, incomplete });
+  return decide({ mode, registry, symbols, relative: target.relative, file: target.real, root, env, bindings, notes, incomplete, now });
 }
 
 /** Names for messages: the named exports joined, or the fallback for an export without a name. */
@@ -2660,8 +2824,14 @@ function nameList(symbols, fallback) {
   return names.length > 0 ? names.join(', ') : fallback;
 }
 
-function decide({ mode, registry, symbols, relative, root, env, bindings, notes, incomplete = false }) {
-  const stacks = bindings.stacks && bindings.stacks.length > 0 ? bindings.stacks : detectStacks(root);
+function decide({ mode, registry, symbols, relative, file, root, env, bindings, notes, incomplete = false, now = new Date() }) {
+  let stacks = [];
+  try {
+    stacks = bindings.stacksExplicit && bindings.stacks.length > 0 ? bindings.stacks : detectStacksForFile(root, file);
+  } catch (error) {
+    // Unknown stacks mean "any stack", the most blocking reading: the decision stays fail-closed.
+    notes.push(`Stack detection failed (${error.message}); every stack is assumed.`);
+  }
   // One lookup per export; a capability matched by several exports is reported once and remembers which symbols hit it.
   const byCapability = new Map();
   const warningSet = new Set();
@@ -2691,7 +2861,7 @@ function decide({ mode, registry, symbols, relative, root, env, bindings, notes,
       })
       .join('; ');
 
-  if (validAck(root, env)) return allowance([overrideNote, ...warnings].filter(Boolean).join(' '));
+  if (validAck(root, env, now)) return allowance([overrideNote, ...warnings].filter(Boolean).join(' '));
 
   if (mode === 'hybrid') {
     // A list the scanner could not read fully may hide a name that matches a stable capability: the hidden name is unknown, so the

@@ -96,6 +96,39 @@ function tests() {
     assertPass('node project sees only node implementations', node.implementations.every((entry) => entry.stack === 'node') && node.implementations.length > 0);
   }
 
+  console.log('\nStacks of a TypeScript/React project and multi-word queries');
+  {
+    const dir = project({
+      marker: null,
+      files: {
+        'package.json': JSON.stringify({ dependencies: { react: '^19' }, devDependencies: { typescript: '^5' } }),
+        'tsconfig.json': '{}',
+      },
+    });
+    const { report } = check('login', dir);
+    assertPass('stacks are node,react,typescript', JSON.stringify(report.stacks) === '["node","react","typescript"]', report.stacks.join(','));
+    const login = report.results.find((entry) => entry.capability === 'design.login-pattern');
+    assertPass('login finds its react implementation', login && login.implementations.some((entry) => entry.stack === 'react'));
+    assertPass('login is consumed, not extended', login && login.verdict === 'consume', login && login.verdict_text);
+
+    const go = check('login', project({ marker: 'go.mod' })).report.results.find((entry) => entry.capability === 'design.login-pattern');
+    assertPass('a project of another stack still extends and names the other stacks', go.verdict === 'extend' && go.other_stacks.includes('react'), JSON.stringify(go.other_stacks));
+
+    const multi = check('auth login', dir).report;
+    assertPass('multi-word query matches when each word matches', names(multi).includes('design.login-pattern'), names(multi).join(','));
+    assertPass('multi-word match is labelled tokens', multi.results[0].matched_by === 'tokens', multi.results[0] && multi.results[0].matched_by);
+    assertPass('multi-word result is deterministic', JSON.stringify(names(check('auth login', dir).report)) === JSON.stringify(names(multi)));
+    assertPass('multi-word query with one unknown word finds nothing', names(check('login zzzzqqq', dir).report).length === 0);
+    for (const generic of ['add new user', 'create new account', 'add a new product', 'get the client', 'create new client', 'criar novo usuario']) {
+      assertPass(`generic request '${generic}' finds nothing`, names(check(generic, dir).report).length === 0, names(check(generic, dir).report).join(','));
+    }
+    assertPass('stopwords are ignored next to real words', names(check('add the auth login', dir).report).includes('design.login-pattern'));
+    const mobile = project({ marker: null, files: { 'package.json': JSON.stringify({ dependencies: { 'react-native': '1' } }) } });
+    const rn = check('login', mobile).report;
+    assertPass('react-native does not receive the react implementation', JSON.stringify(rn.stacks) === '["node","react-native"]' && rn.results[0].verdict === 'extend', JSON.stringify(rn.stacks));
+    assertPass('a whole-query match still wins over tokens', check('login', dir).report.results[0].matched_by === 'alias');
+  }
+
   console.log('\nHybrid, local and overrides');
   {
     const hybridDir = project({

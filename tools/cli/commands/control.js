@@ -108,83 +108,97 @@ module.exports = {
     const { ControlClient } = require('../../../packages/control-sdk');
     const client = new ControlClient({ url: options.url, credential });
     let result;
-    switch (action) {
-      case 'job-command': {
-        result = await client.job(JSON.parse(fs.readFileSync(options.request, 'utf8')));
-        break;
-      }
-      case 'job-query': {
-        result = await client.jobQuery(options.resource);
-        break;
-      }
-      case 'job-events': {
-        result = await client.jobEvents(options.resource, { after: Number(options.after || 0), limit: Number(options.limit || 100) });
-        break;
-      }
-      case 'binding-inspect': {
-        result = await client.bindingInspect(options.binding);
-        break;
-      }
-      case 'campaign-run': {
-        result = await require('../lib/provider-campaign-runner').runProviderCampaign(
-          client,
-          JSON.parse(fs.readFileSync(options.request, 'utf8')),
-        );
-        break;
-      }
-      case 'campaign-command': {
-        result = await client.campaign(JSON.parse(fs.readFileSync(options.request, 'utf8')));
-        break;
-      }
-      case 'campaign-query': {
-        result = await client.campaignQuery(options.resource);
-        break;
-      }
-      case 'campaign-events': {
-        result = await client.campaignEvents(options.resource, { after: Number(options.after || 0) });
-        break;
-      }
-      case 'campaign-evidence': {
-        result = await client.campaignEvidence(options.resource, options.command);
-        break;
-      }
-      case 'terminal-attach': {
-        await require('../lib/terminal-attach').attachTerminal(client, options.resource, { after: Number(options.after || 0) });
-        return;
-      }
-      case 'terminal-command': {
-        result = await client.terminal(JSON.parse(fs.readFileSync(options.request, 'utf8')));
-        break;
-      }
-      case 'terminal-query': {
-        result = await client.terminalQuery(options.resource);
-        break;
-      }
-      case 'terminal-events': {
-        result = await client.terminalEvents(options.resource, { after: Number(options.after || 0) });
-        break;
-      }
-      case 'prepare': {
-        result = await client.prepare(JSON.parse(fs.readFileSync(options.request, 'utf8')));
-        break;
-      }
-      case 'command': {
-        result = await client.execute(JSON.parse(fs.readFileSync(options.request, 'utf8')));
-        break;
-      }
-      case 'query': {
-        result = await client.query(options.resource, options.view || 'status');
-        break;
-      }
-      case 'events': {
-        result = await client.events(options.resource, { after: Number(options.after || 0) });
-        break;
-      }
-      default: {
-        throw new Error('Unknown control action');
-      }
+    try {
+      result = await dispatchClientAction(client, action, options);
+    } catch (error) {
+      // Surface the curated cause carried by CONTROL_REQUEST_REJECTED without changing the stable error code.
+      if (error.detail?.code) error.message = `${error.message}: ${error.detail.code}${error.detail.path ? ` (${error.detail.path})` : ''}`;
+      throw error;
     }
+    if (result === undefined) return;
     process.stdout.write(JSON.stringify(result) + '\n');
     return result;
   },
 };
+
+async function dispatchClientAction(client, action, options) {
+  const fs = require('node:fs');
+  let result;
+  switch (action) {
+    case 'job-command': {
+      result = await client.job(JSON.parse(fs.readFileSync(options.request, 'utf8')));
+      break;
+    }
+    case 'job-query': {
+      result = await client.jobQuery(options.resource);
+      break;
+    }
+    case 'job-events': {
+      result = await client.jobEvents(options.resource, { after: Number(options.after || 0), limit: Number(options.limit || 100) });
+      break;
+    }
+    case 'binding-inspect': {
+      result = await client.bindingInspect(options.binding);
+      break;
+    }
+    case 'campaign-run': {
+      result = await require('../lib/provider-campaign-runner').runProviderCampaign(
+        client,
+        JSON.parse(fs.readFileSync(options.request, 'utf8')),
+      );
+      break;
+    }
+    case 'campaign-command': {
+      result = await client.campaign(JSON.parse(fs.readFileSync(options.request, 'utf8')));
+      break;
+    }
+    case 'campaign-query': {
+      result = await client.campaignQuery(options.resource);
+      break;
+    }
+    case 'campaign-events': {
+      result = await client.campaignEvents(options.resource, { after: Number(options.after || 0) });
+      break;
+    }
+    case 'campaign-evidence': {
+      result = await client.campaignEvidence(options.resource, options.command);
+      break;
+    }
+    case 'terminal-attach': {
+      await require('../lib/terminal-attach').attachTerminal(client, options.resource, { after: Number(options.after || 0) });
+      return;
+    }
+    case 'terminal-command': {
+      result = await client.terminal(JSON.parse(fs.readFileSync(options.request, 'utf8')));
+      break;
+    }
+    case 'terminal-query': {
+      result = await client.terminalQuery(options.resource);
+      break;
+    }
+    case 'terminal-events': {
+      result = await client.terminalEvents(options.resource, { after: Number(options.after || 0) });
+      break;
+    }
+    case 'prepare': {
+      result = await client.prepare(JSON.parse(fs.readFileSync(options.request, 'utf8')));
+      break;
+    }
+    case 'command': {
+      result = await client.execute(JSON.parse(fs.readFileSync(options.request, 'utf8')));
+      break;
+    }
+    case 'query': {
+      result = await client.query(options.resource, options.view || 'status');
+      break;
+    }
+    case 'events': {
+      result = await client.events(options.resource, { after: Number(options.after || 0) });
+      break;
+    }
+    default: {
+      throw new Error('Unknown control action');
+    }
+  }
+  return result;
+}

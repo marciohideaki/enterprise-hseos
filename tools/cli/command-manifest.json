@@ -206,7 +206,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "cedd5cf69a54aeae3ea5b0ed8d93d720cef838a1a438a1f4d7c63c9254938920"
+      "source_sha256": "88b66976951a04e01bd665a7a636a817bfc656820d2beca53eaef86061bddb62"
     },
     {
       "filename": "compatibility-audit.js",
@@ -426,7 +426,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "8124dc653a98a764877ca69e692cb9d50df403fd3e824ad5a52123f3bcf892ff"
+      "source_sha256": "e327bb4215b9ffaaa801a36a57472d26fe24660a9503213cc9c933a3d3c02a52"
     },
     {
       "filename": "governance-context.js",
@@ -614,7 +614,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "522631c315afea553392eab55cb78e7977b6e391b0a9d3c6f1bc679cc241a3ad"
+      "source_sha256": "a71be9a6bf317cee4c9e040c79ceda8acd24cd97bda6032397e5d9af77973754"
     },
     {
       "filename": "install.js",
@@ -715,7 +715,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "82b391ffe894e5057c161b7bd5c02a38789b61d1ec61598bc89db7c6fb29f116"
+      "source_sha256": "2d6e25522345b47a88dc4fb80fedbcccadf4dcaf08f1ec477a7c21e93fa55dd6"
     },
     {
       "filename": "kanban-central.js",

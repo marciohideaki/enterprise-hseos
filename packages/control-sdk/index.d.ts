@@ -117,6 +117,18 @@ export interface WorkflowStatus {
 }
 export type ControlQueryView = 'status' | 'evidence' | 'review' | 'session';
 
+/** Curated cause attached to CONTROL_REQUEST_REJECTED; never contains host paths or raw error text. */
+export interface ControlErrorDetail {
+  code: string;
+  message?: string;
+  path?: string;
+  field?: string;
+}
+export interface ControlError extends Error {
+  code?: string;
+  detail?: ControlErrorDetail;
+}
+
 export class ControlClient {
   constructor(options: { url: string; credential: string; fetchImpl?: typeof fetch });
   bindingInspect(bindingId: string): Promise<Record<string, unknown>>;

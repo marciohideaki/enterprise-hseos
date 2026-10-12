@@ -65,6 +65,13 @@ cliente; caminhos privados de estado não são aceitos pela API.
 
 A rota `tasks` hospeda ambos os tipos de recurso nesta versão. O cursor pertence
 ao ledger do recurso; continuar de `next_cursor` após desconexão preserva a ordem.
+Para recursos materializados por job (tarefa ou workflow), o servidor lê apenas os streams
+do recurso, pelo índice de stream do ledger (custo proporcional aos eventos do recurso, não ao
+tamanho do ledger compartilhado): página vazia significa
+"sem eventos novos" e `next_cursor` só avança até o último evento entregue (sem eventos,
+devolve o `after` recebido). `GET .../evidence` de workflow criado por job traz
+`evidence[]` por etapa (`id`, `contract`, `artifacts`, `verification`), igual ao workflow
+criado diretamente; `status` não traz `evidence`.
 Clientes podem reduzir `limit` para limitar o tamanho de cada resposta.
 
 ```json
@@ -161,7 +168,22 @@ não aceitam`responses_from` (`JOB_RESPONSES_SOURCE_DENIED`).
 
 `CONTROL_SEQUENCE_CONFLICT`, `CONTROL_IDEMPOTENCY_CONFLICT`,
 `CONTROL_WORKSPACE_DENIED` e `CONTROL_BINDING_UNKNOWN` negam o comando.
-Erros internos são retornados como `CONTROL_REQUEST_REJECTED`, sem detalhes
+Erros internos são retornados como `CONTROL_REQUEST_REJECTED`; a categoria é estável
+e, quando a causa é conhecida e segura, a resposta traz `detail: {code, message?, path?, field?}`
+(SDK JS/TS: `error.detail`; Python: `error.detail`; ambos mantêm `error.code`). Códigos de
+`detail.code` em `prepare`, `review` e `apply`: `PROJECT_FILE_UNSAFE` (symlink, hardlink,
+não regular ou diretório no caminho; `path` é o item de `scope.read`),
+`PROJECT_FILE_TOO_LARGE`, `PROJECT_FILE_NOT_UTF8`, `PROJECT_FILE_UNREADABLE`,
+`PROJECT_PATH_INVALID`, `PROJECT_SCOPE_CONFLICT` e `PROJECT_SCOPE_INVALID` (contrato v2 recusado em `prepare`; `field` aponta o campo, p.ex. `scope.read[1]`, sem ecoar o valor), `PROJECT_GIT_FILTERS_UNSUPPORTED`, `PROJECT_GIT_ROOT_MISMATCH`,
+`PROJECT_WORKSPACE_UNSAFE`, `PROJECT_IDENTITY_CHANGED`, `PROJECT_CHANGED_DURING_SNAPSHOT`,
+`PROJECT_BASELINE_CHANGED`, `PROJECT_RESULT_NOT_APPROVED` (review/apply de tarefa não
+aprovada), `PROJECT_CANDIDATE_CHANGED`, `PROJECT_APPROVAL_STALE` (baseline vencido ou
+`review_sha256` divergente), `PROJECT_CHANGED_BEFORE_APPLY`, `PROJECT_PATCH_READ_ONLY_PATH`;
+falhas de sistema de arquivos não curadas expõem apenas o errno (`ENOENT`, ...). Quem
+tratava `CONTROL_REQUEST_REJECTED` continua funcionando. Negação de escopo nas ferramentas
+de engenharia (caminho fora de `scope.read`/`scope.write`) agora falha com
+`ENGINEERING_SCOPE_DENIED` (antes `EXECUTION_INPUT_INVALID`), mantendo fail-closed; os
+demais erros de schema continuam `EXECUTION_INPUT_INVALID`. Sem detalhes
 sensíveis. Autenticação retorna 401, recurso desconhecido 404 (tarefa, job, terminal, campanha
 e vínculo de provider, em consulta e em `/events`), consulta ou cursor malformado 400
 (`CONTROL_QUERY_INVALID`, validado antes da existência do recurso), conflitos 409.

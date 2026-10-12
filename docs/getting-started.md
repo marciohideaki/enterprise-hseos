@@ -70,6 +70,33 @@ hseos install --tools claude-code          # Claude Code only
 hseos install --tools none                 # skip IDE setup, governance files only
 ```
 
+`--tools none` writes no tool plugin directories (`.claude-plugin/`, `.codex-plugin/`).
+
+### Reinstall and upgrade an existing adoption
+
+`hseos install` decides what to do from the installed manifest version
+(`.hseos/_config/manifest.yaml`), not from the mere presence of `.hseos/`:
+
+| State of `.hseos/`                                          | `hseos install --yes` (non-interactive)                 |
+| ----------------------------------------------------------- | ------------------------------------------------------- |
+| absent                                                      | fresh install                                           |
+| only project state (`runs/`, `state/`, `config/`)           | fresh install; project state is preserved               |
+| same version installed                                      | idempotent reinstall (quick update)                     |
+| older supported version                                     | upgrade (quick update); new options take their defaults |
+| newer version than the installer                            | refused, exit 1 (update the `hseos` CLI)                |
+| legacy or unrecognized layout (`_cfg/`, alpha, no manifest) | refused, exit 1, nothing changed                        |
+
+For a refused legacy layout, move the legacy installation files (everything except
+`runs/` and `state/`, which are project state) to a backup folder outside `.hseos`
+and rerun, or run interactively to attempt an in-place update. A non-interactive
+install never exits 0 without installing.
+
+The pre-commit hook is installed only when the project has its own
+`scripts/governance/quality-gates.sh` (the script is project-owned and is not
+delivered to consumers); otherwise the installer reports the hook as not installed
+instead of writing an inert one. `hseos install-plan --directory <path>` expects a
+repository that provides the capability catalog, not the project being installed.
+
 Supported tools: `claude-code`, `cursor`, `windsurf`, `gemini`, `codex`, `antigravity`, `github-copilot`, `cline`, and more.
 
 For the optional PostgreSQL-backed managed-shadow control plane, complete the

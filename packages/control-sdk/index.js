@@ -27,6 +27,7 @@ class ControlClient {
       if (!response.ok) {
         const error = new Error(value.error || 'CONTROL_REQUEST_FAILED');
         error.code = value.error;
+        if (value.detail) error.detail = value.detail;
         throw error;
       }
       return value;

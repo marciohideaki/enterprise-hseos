@@ -49,6 +49,10 @@ const eventSchema = z.discriminatedUnion('kind', [
       step_id: z.string(),
       approved: z.boolean(),
       reason: z.string(),
+      command_checks: z
+        .array(z.object({ command_id: z.string(), status: z.string().max(40), exit_code: z.number().int().nullable() }).strict())
+        .max(16)
+        .optional(),
       files_sha256: z.string(),
       correction_requested: z.boolean(),
     })
@@ -204,7 +208,8 @@ function reduce(state, event) {
           proof.verifier_sha256 !== state.created.contract.verifier.sha256 ||
           !/^[a-f0-9]{64}$/.test(proof.isolation_digest || '') ||
           proof.workspace_access !== 'read_only' ||
-          proof.descendants_terminated !== true
+          proof.descendants_terminated !== true ||
+          !acceptanceCommandsPassed(state.created.contract, proof)
         )
           throw new Error('Approval lacks bound verification evidence');
       }
@@ -213,6 +218,18 @@ function reduce(state, event) {
   }
   state.version++;
   return state;
+}
+
+function acceptanceCommandsPassed(contract, proof) {
+  const required = contract.verifier.command_checks || [];
+  const actual = Array.isArray(proof.command_checks) ? proof.command_checks : [];
+  return (
+    actual.length === required.length &&
+    required.every(
+      (item, index) =>
+        actual[index]?.command_id === item.command_id && actual[index].status === 'succeeded' && actual[index].exit_code === 0,
+    )
+  );
 }
 
 class EngineeringTaskState {

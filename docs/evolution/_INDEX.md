@@ -36,5 +36,6 @@ separados.
 - [Onda 3 — adapters e campanha](w3/STATUS.md)
 - [Onda 4 — plugins de execução, jobs e workflows](w4/STATUS.md) ([README](w4/README.md))
 - [Revalidação do core 2026-10](revalidation-2026-10/README.md) ([estado](revalidation-2026-10/STATUS.md))
+- [Validação em consumidor real 2026-10](consumer-validation-2026-10/README.md) ([estado](consumer-validation-2026-10/STATUS.md))
 - [Revalidação real e revisão adversarial](w3/LIVE-REVALIDATION.md)
 - [ACP restrito: compatibilidade, fronteira e campanha real](w3/ACP-CAMPAIGN.md)

@@ -281,6 +281,53 @@ function overrideRefResolves(projectDir, refKey, id) {
   );
 }
 
+const INTAKE_SCHEMA_ID = 'platform-core/governance/capability-intake/v2';
+const INTAKE_DECISIONS = new Set(['promote', 'extend', 'consume', 'keep-local', 'exception']);
+// `status` vocabulary: the accepted states the policy uses for decision records (Accepted, Approved) plus the states consumers write
+// on registered intake records. A record with any other status (rejected, pending, proposed, draft, ...) is not an acknowledgement.
+const INTAKE_ACCEPTED_STATUS = new Set(['accepted', 'approved', 'implemented', 'registered_not_implemented']);
+// Decisions that depart from the shared path need a recorded approval (or an accepted status); an exception also needs an expiry.
+const INTAKE_APPROVAL_DECISIONS = new Set(['keep-local', 'exception']);
+const INTAKE_REQUEST_ID = /^[A-Za-z0-9][A-Za-z0-9._/-]{4,199}$/;
+
+/** True when `record` is a capability-intake v2 document identified by `id`, with an approval (when present) that has not expired. */
+function isValidIntakeRecord(record, id, now) {
+  if (!record || typeof record !== 'object' || Array.isArray(record)) return false;
+  if (record.$schema !== INTAKE_SCHEMA_ID || record.schema_version !== 2) return false;
+  if (record.request_id !== id || !INTAKE_DECISIONS.has(record.decision)) return false;
+  if (record.status !== undefined && !(typeof record.status === 'string' && INTAKE_ACCEPTED_STATUS.has(record.status.toLowerCase())))
+    return false;
+  const approval = record.approval;
+  if (approval !== undefined && (approval === null || typeof approval !== 'object' || !isNonEmptyString(approval.reference))) return false;
+  const expires = approval && approval.expires_at;
+  if (INTAKE_APPROVAL_DECISIONS.has(record.decision) && !approval && record.status === undefined) return false;
+  if (expires === undefined) return record.decision !== 'exception';
+  const time = typeof expires === 'string' ? Date.parse(expires) : Number.NaN;
+  return Number.isFinite(time) && time >= now.getTime();
+}
+
+/**
+ * Resolves an acknowledgement against the consumer's own JSON intake records: a `.json` file under docs/decisions whose path
+ * contains `intake` (e.g. docs/decisions/intake/<date>-<name>.json) that validates as a capability-intake v2 record and carries
+ * `id` as its `request_id`. The id is compared for equality with that field, never searched for in the text, so arbitrary JSON
+ * (or a note that quotes the id) does not acknowledge anything.
+ */
+function intakeRecordResolves(projectDir, id, now = new Date()) {
+  if (typeof id !== 'string' || !INTAKE_REQUEST_ID.test(id)) return false;
+  const decisions = realDirectoryInside(path.resolve(projectDir), path.join('docs', 'decisions'));
+  if (!decisions) return false;
+  return walkMarkdown(decisions, (name) => name.endsWith('.json')).some((file) => {
+    const relative = path.relative(decisions, file).toLowerCase();
+    if (!relative.includes('intake')) return false;
+    try {
+      if (fs.statSync(file).size > MAX_BINDINGS_FILE_BYTES) return false;
+      return isValidIntakeRecord(JSON.parse(fs.readFileSync(file, 'utf8')), id, now);
+    } catch {
+      return false;
+    }
+  });
+}
+
 function resolveInside(projectDir, relative) {
   const root = path.resolve(projectDir);
   const resolved = path.resolve(root, relative);
@@ -427,11 +474,22 @@ function loadPlatformBindings(options = {}) {
     modeRef,
     registry: resolveRegistry({ runtime, user, project, projectDir }),
     workspace: (userDoc && userDoc.workspace) || {},
-    stacks: project && project.stacks !== undefined ? [...project.stacks] : detectStacks(projectDir),
+    stacks: project && project.stacks !== undefined ? [...project.stacks] : safeDetectStacks(projectDir, warnings),
+    stacksExplicit: Boolean(project && project.stacks !== undefined),
     overrides,
     warnings,
     errors,
   };
+}
+
+/** Detection never aborts the load: a failure means no stacks (any stack) and a warning. */
+function safeDetectStacks(projectDir, warnings) {
+  try {
+    return detectStacks(projectDir);
+  } catch (error) {
+    warnings.push(`stack detection failed: ${error.message}`);
+    return [];
+  }
 }
 
 function loadUserLayer(env, now, warnings, guarded) {
@@ -507,6 +565,7 @@ function stackFor(name) {
   if (name === 'pyproject.toml' || name === 'setup.py') return 'python';
   if (name === 'go.mod') return 'go';
   if (name === 'pom.xml' || name.startsWith('build.gradle')) return 'java';
+  if (name === 'pubspec.yaml') return 'flutter';
   return null;
 }
 
@@ -521,28 +580,155 @@ function listDirectory(directory) {
   }
 }
 
+function readJsonFile(file) {
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+/** Dependency name -> registry stack label. A Map: a dependency named `constructor` must not hit Object.prototype. */
+const DEPENDENCY_STACKS = new Map([
+  ['react', 'react'],
+  ['react-dom', 'react'],
+  ['@types/react', 'react'],
+  ['next', 'react'],
+  ['react-native', 'react-native'],
+  ['expo', 'react-native'],
+  ['typescript', 'typescript'],
+  ['ts-node', 'typescript'],
+  ['tsx', 'typescript'],
+]);
+
+/** Labels of one directory (markers, tsconfig, package.json dependencies) and whether it holds a package manifest. */
+function directoryInfo(directory) {
+  const stacks = new Set();
+  let manifestFound = false;
+  for (const entry of listDirectory(directory)) {
+    if (!entry.isFile()) continue;
+    const stack = stackFor(entry.name);
+    if (stack) {
+      stacks.add(stack);
+      manifestFound = true;
+    }
+    if (/^tsconfig(\..+)?\.json$/.test(entry.name)) stacks.add('typescript');
+  }
+  const manifest = readJsonFile(path.join(directory, 'package.json'));
+  if (manifest && typeof manifest === 'object') {
+    for (const field of ['dependencies', 'devDependencies', 'peerDependencies']) {
+      const group = manifest[field];
+      if (!group || typeof group !== 'object' || Array.isArray(group)) continue;
+      for (const name of Object.keys(group)) if (DEPENDENCY_STACKS.has(name)) stacks.add(DEPENDENCY_STACKS.get(name));
+    }
+  }
+  return { stacks, manifestFound };
+}
+
+const directoryStacks = (directory) => directoryInfo(directory).stacks;
+
+function workspaceGlobs(root) {
+  const globs = [];
+  try {
+    const pnpm = yaml.parse(fs.readFileSync(path.join(root, 'pnpm-workspace.yaml'), 'utf8'));
+    if (pnpm && Array.isArray(pnpm.packages)) globs.push(...pnpm.packages);
+  } catch {
+    // no pnpm workspace file
+  }
+  const manifest = readJsonFile(path.join(root, 'package.json'));
+  if (manifest && Array.isArray(manifest.workspaces)) globs.push(...manifest.workspaces);
+  else if (manifest && manifest.workspaces && Array.isArray(manifest.workspaces.packages)) globs.push(...manifest.workspaces.packages);
+  return globs.filter((glob) => typeof glob === 'string' && !glob.trim().startsWith('!'));
+}
+
+const MAX_PACKAGE_DIRECTORIES = 2000;
+
+function childDirectories(directory) {
+  return listDirectory(directory)
+    .filter((entry) => entry.isDirectory() && !entry.isSymbolicLink() && !SCAN_SKIP.has(entry.name) && entry.name !== '.git')
+    .map((entry) => path.join(directory, entry.name));
+}
+
+/** Expands one workspace glob (`*`, `**` and literal segments) below `root`; never leaves `root`. */
+function expandWorkspaceGlob(root, glob) {
+  const segments = glob.trim().replace(/^\.\//, '').split('/').filter(Boolean);
+  if (segments.length === 0 || segments.includes('..') || path.isAbsolute(glob.trim())) return [];
+  let current = [root];
+  for (const segment of segments) {
+    const next = [];
+    for (const directory of current) {
+      if (segment === '*') next.push(...childDirectories(directory));
+      else if (segment === '**') {
+        const stack = [directory];
+        for (let depth = 0; stack.length > 0 && next.length < MAX_PACKAGE_DIRECTORIES; depth += 1) {
+          const dir = stack.shift();
+          next.push(dir);
+          if (depth < 4) stack.push(...childDirectories(dir));
+        }
+      } else if (/[*?[{]/.test(segment)) {
+        const pattern = new RegExp(
+          `^${segment
+            .replaceAll(/[.+^$()|\\]/g, String.raw`\$&`)
+            .replaceAll('*', '.*')
+            .replaceAll('?', '.')}$`,
+        );
+        next.push(...childDirectories(directory).filter((child) => pattern.test(path.basename(child))));
+      } else next.push(path.join(directory, segment));
+    }
+    current = next.slice(0, MAX_PACKAGE_DIRECTORIES);
+  }
+  return current;
+}
+
+/** Package directories: the immediate children of the conventional roots and every directory a workspace glob selects. */
+function packageDirectories(root) {
+  const found = new Set();
+  for (const name of STACK_ROOTS) {
+    const base = path.join(root, name);
+    if (listDirectory(base).length === 0) continue;
+    found.add(base);
+    for (const child of childDirectories(base)) found.add(child);
+  }
+  for (const glob of workspaceGlobs(root)) for (const directory of expandWorkspaceGlob(root, glob)) found.add(directory);
+  return [...found].sort().slice(0, MAX_PACKAGE_DIRECTORIES);
+}
+
+const SCAN_SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
+
 /**
- * Detects stacks from deterministic markers in the project root and in the
- * immediate children of `src/`, `apps/` and `services/` (bounded and sorted).
+ * Detects stacks from deterministic markers in the project root, its declared workspaces and the immediate
+ * children of `src/`, `apps/` and `services/` (bounded and sorted). A package.json yields `node` plus the labels
+ * of the registry vocabulary it implies (`typescript`, `react`, `react-native`).
  */
 function detectStacks(projectDir) {
   const root = path.resolve(projectDir);
-  const directories = [root];
-  for (const name of STACK_ROOTS) {
-    const base = path.join(root, name);
-    const entries = listDirectory(base);
-    if (entries.length === 0) continue;
-    directories.push(base);
-    for (const entry of entries) if (entry.isDirectory()) directories.push(path.join(base, entry.name));
-  }
-  const stacks = new Set();
-  for (const directory of directories) {
-    for (const entry of listDirectory(directory)) {
-      const stack = entry.isFile() ? stackFor(entry.name) : null;
-      if (stack) stacks.add(stack);
-    }
-  }
+  const stacks = new Set(directoryStacks(root));
+  for (const directory of packageDirectories(root)) for (const stack of directoryStacks(directory)) stacks.add(stack);
   return [...stacks].sort();
+}
+
+/**
+ * Stacks relevant to one file: the markers from the file's directory up to and including the nearest package
+ * manifest (so a tsconfig in `src/` adds to the package instead of replacing it), plus `typescript` when any directory on the way up declares it (a shared tsconfig).
+ * Falls back to the project-wide detection when the file is outside the project or no marker is found.
+ */
+function detectStacksForFile(projectDir, filePath) {
+  const root = path.resolve(projectDir);
+  const target = path.resolve(root, filePath || '');
+  if (!filePath || (target !== root && !target.startsWith(`${root}${path.sep}`))) return detectStacks(root);
+  const stacks = new Set();
+  let packageFound = false;
+  for (let directory = path.dirname(target); ; directory = path.dirname(directory)) {
+    const { stacks: found, manifestFound } = directoryInfo(directory);
+    if (!packageFound) {
+      for (const stack of found) stacks.add(stack);
+      if (manifestFound) packageFound = true;
+    } else if (found.has('typescript')) {
+      stacks.add('typescript');
+    }
+    if (directory === root || directory === path.dirname(directory)) break;
+  }
+  return stacks.size > 0 ? [...stacks].sort() : detectStacks(root);
 }
 
 function runGit(directory, args) {
@@ -866,6 +1052,8 @@ module.exports = {
   RUNTIME_DEFAULTS_FILE,
   checkModeRef,
   detectStacks,
+  detectStacksForFile,
+  intakeRecordResolves,
   isReferenceId,
   loadPlatformBindings,
   modeStrength,
