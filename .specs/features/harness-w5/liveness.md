@@ -118,3 +118,39 @@ Orçamento: arquivos novos no pacote contam contra as áreas `tools` (393), `.ag
 ## Gates
 
 Nenhum gate novo. Valem G3 (inventário medido) e G6 (merge da W5). A ativação operacional da trilha no ambiente do owner (timer systemd instalado, contrato ligado em projetos) fica fora do escopo, com decisão própria.
+
+## Adendo 1 — lacunas contra o Symphony (2026-10-12)
+
+Fonte: análise de lacunas Symphony × HSEOS (`/tmp/hseos-w5/research/SYMPHONY-GAP.md`, copiada pela W5-LV2 para `docs/evolution/w5/evidence/w5-lv/SYMPHONY-GAP.md`).
+
+A diferença estrutural vale como invariante: o Symphony é dono do loop do agente e por isso pode matar e reiniciar o worker. O HSEOS não é dono do loop dos teammates do harness, e o core recusa por desenho a reexecução automática (`jobs.md:56`, `max_attempts: 1`). A trilha transplanta a reconciliação contra a fonte de verdade e a classificação tipada. Não transplanta kill nem retry automático.
+
+Incorporado à trilha (P0, obrigatório para a LV1 e a LV2):
+
+1. **Heartbeat durante a espera.** Enquanto aguarda, `hseos liveness await` renova o heartbeat a cada 60 s. Sem isso, `foreground_wait_max_s` (540) maior que `heartbeat_ttl_s` (300) gera `overdue` falso durante uma espera correta. O TTL não sobe. É obrigatório um teste de espera de 540 s sem `overdue`.
+2. **`reason_code` enumerado** nos eventos `report`, `wait_declared`, `idle_violation`, `overdue` e `wake_sent`, junto do `reason` livre. Códigos: `declared`, `no_state_at_stop`, `invalid_liveness_line`, `background_task_active`, `foreground_cap_exceeded`, `wait_deadline_exceeded`, `wake_exhausted`, `evidence_unverified`, `blocked_pending`, `guard_internal_error`. As métricas e os acordares são contados por código.
+3. **Classes `blocked` e `failed` no classificador.** O conjunto completo passa a ser `running`, `waiting_ok`, `waiting_overdue`, `stalled`, `idle_no_state`, `blocked`, `failed`, `done`.
+   - `blocked` não conta como `idle_no_state`.
+   - `blocked` notifica o humano na primeira passada e entra no relatório com `blocked_age_s`.
+   - Um `blocked` nunca fica parado sem aparecer.
+4. **Reconciliação também contra o status do run e do job** (`as_agent_runs` e ledger) antes de qualquer `wake_request`. Run cancelado, encerrado ou concluído não é acordado.
+5. **Configuração relida a cada execução, sem cache.** Se o `agent-liveness.yaml` estiver inválido, vale a última configuração válida e sai um aviso visível. O `watch` em loop relê a cada ciclo.
+6. **`report` verifica a evidência.** Confere se o caminho existe, se o hash está no HEAD do worktree e se o run id está no ledger, e grava `evidence_verified: true|false`. O valor `false` só gera alerta (`evidence_unverified`), não recusa.
+
+Incorporado à W5-LV2 (P1 da trilha, por decisão do owner de rodar P0 e P1 em paralelo):
+
+7. **`max_wakes_per_cycle`**, padrão 3, como teto global por ciclo do watchdog, contra tempestade de acordares.
+8. **Inbox reconstruível.** `.hseos/state/liveness/inbox/` pode ser recriado a partir do ledger, e perder o diretório não perde pedidos.
+9. **Snapshot da state-ui** (`tools/state-ui-server/lib/snapshot.js`) passa a ler a classificação da LV: `class`, `reason_code`, `idle_for_s`, `wake_attempts`.
+10. **`tokens` por run no `report`**, se o payload real de `SubagentStop` (spike LV0/I3) trouxer o dado. Se não trouxer, registrar como NÃO VERIFICADO.
+
+Fora da trilha, registrado em `docs/evolution/w5/STATUS.md` para decisão do owner:
+
+- **W5 ou tasks próprias:** timeout de silêncio no stream dos drivers `claude-cli-driver`/`codex-app-server-driver` (F01/F18); snapshot agregado de rate limit e quota; `POST` coalescente de reconcile na control API.
+- **W6 ou depois:**
+  - dispatcher autônomo com tick, `priority` e concorrência por estado (decisão de produto: tirar o humano do papel de despachante);
+  - dashboard humano de runs ocupadas, ociosas, bloqueadas e com prazo vencido;
+  - template estrito de prompt com `attempt`;
+  - varredura de worktrees terminais;
+  - logs `key=value`;
+  - pool SSH (W7).
