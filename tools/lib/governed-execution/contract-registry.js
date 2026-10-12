@@ -1,5 +1,8 @@
 'use strict';
 
+const fs = require('node:fs');
+const path = require('node:path');
+
 const REVERSIBILITY_CLASSES = new Set(['read_only', 'idempotent_mutation', 'compensatable_mutation', 'irreversible_mutation']);
 const CANCELLATION_POLICIES = new Set(['cooperative', 'non_cancellable']);
 const FAILURE_MODES = new Set(['fail_closed', 'optional_warning']);
@@ -133,7 +136,134 @@ class ExecutionContractRegistry {
   }
 }
 
+// Exit code of an MCP server that refuses to boot because its tool catalog is malformed (sysexits EX_CONFIG).
+const TOOL_CATALOG_EXIT_CODE = 78;
+const TOOL_NAME_PATTERN = /^[A-Za-z][A-Za-z0-9_.-]{0,127}$/;
+
+class ToolCatalogError extends Error {
+  constructor(message, details = {}, code = 'MCP_TOOL_CATALOG_INVALID') {
+    super(message);
+    this.name = 'ToolCatalogError';
+    this.code = code;
+    this.details = details;
+  }
+}
+
+function assertToolDefinition(tool, source) {
+  if (!tool || typeof tool !== 'object' || Array.isArray(tool)) {
+    throw new ToolCatalogError(`Tool in ${source} must be an object`, { source });
+  }
+  if (typeof tool.name !== 'string' || !TOOL_NAME_PATTERN.test(tool.name)) {
+    throw new ToolCatalogError(`Tool in ${source} requires a valid name`, { source });
+  }
+  if (typeof tool.description !== 'string' || tool.description.length === 0) {
+    throw new ToolCatalogError(`Tool ${tool.name} in ${source} requires a description`, { source, tool: tool.name });
+  }
+  if (typeof tool.handler !== 'function') {
+    throw new ToolCatalogError(`Tool ${tool.name} in ${source} requires a handler function`, { source, tool: tool.name });
+  }
+  if (!tool.inputSchema || typeof tool.inputSchema !== 'object' || Array.isArray(tool.inputSchema)) {
+    throw new ToolCatalogError(`Tool ${tool.name} in ${source} requires an inputSchema object`, { source, tool: tool.name });
+  }
+}
+
+// Fail-closed: any unreadable, non-array, malformed or duplicated tool aborts the whole catalog instead of being skipped.
+function loadServerTools(toolsDirectory) {
+  const tools = new Map();
+  if (!fs.existsSync(toolsDirectory)) throw new ToolCatalogError('Tool directory is missing', { directory: toolsDirectory });
+  for (const file of fs
+    .readdirSync(toolsDirectory)
+    .filter((entry) => entry.endsWith('.js'))
+    .sort()) {
+    let exported;
+    try {
+      exported = require(path.resolve(toolsDirectory, file));
+    } catch (error) {
+      throw new ToolCatalogError(`Failed to load tool module ${file}: ${error.message}`, { source: file });
+    }
+    if (!Array.isArray(exported)) throw new ToolCatalogError(`Tool module ${file} must export an array`, { source: file });
+    for (const tool of exported) {
+      assertToolDefinition(tool, file);
+      if (tools.has(tool.name)) throw new ToolCatalogError(`Duplicate tool ${tool.name} in ${file}`, { source: file, tool: tool.name });
+      tools.set(tool.name, tool);
+    }
+  }
+  if (tools.size === 0) throw new ToolCatalogError('Tool catalog is empty', { directory: toolsDirectory }, 'MCP_TOOL_CATALOG_EMPTY');
+  return tools;
+}
+
+// Boot helper shared by the stdio/HTTP servers: report the cause on stderr and exit with a stable code.
+function failBoot(serverId, error, { exit = process.exit, stderr = process.stderr } = {}) {
+  const code = error && error.code ? error.code : 'MCP_BOOT_FAILED';
+  stderr.write(`[${serverId}] fatal: ${code}: ${error && error.message ? error.message : error}\n`);
+  exit(TOOL_CATALOG_EXIT_CODE);
+}
+
+const NOT_IMPLEMENTED_SCHEMA = Object.freeze({
+  version: 1,
+  safeParse() {
+    return {
+      success: false,
+      error: {
+        hseos_code: 'ENV_CAPABILITY_NOT_IMPLEMENTED',
+        issues: [{ message: 'capability contract is a stub without implementation' }],
+      },
+    };
+  },
+});
+
+// Versioned contract stubs for the W5 capabilities (design 5). No provider exists: every call fails closed until the
+// owning task (W5-05..W5-09) replaces the stub with the real schema. Names follow environment.<capability>.<action>.
+const CAPABILITY_CONTRACT_STUBS = Object.freeze(
+  [
+    ['environment.lsp.diagnostics', 'read_only', false],
+    ['environment.lsp.definition', 'read_only', false],
+    ['environment.lsp.references', 'read_only', false],
+    ['environment.lsp.hover', 'read_only', false],
+    ['environment.lsp.rename_preview', 'read_only', false],
+    ['environment.dap.run', 'read_only', false],
+    ['environment.browser.run', 'read_only', false],
+    ['environment.computer.start', 'irreversible_mutation', true],
+    ['environment.computer.act', 'irreversible_mutation', true],
+    ['environment.computer.stop', 'idempotent_mutation', false],
+    ['memory.write', 'idempotent_mutation', false],
+    ['memory.retrieve', 'read_only', false],
+    ['memory.delete', 'irreversible_mutation', true],
+  ].map(([name, reversibility, requiresApproval]) => {
+    const capability = name.startsWith('memory.') ? 'agent-memory' : name.split('.').slice(0, 2).join('.');
+    return Object.freeze({
+      name,
+      capability,
+      contract_version: 1,
+      status: 'stub',
+      provider: `unimplemented:${capability}`,
+      authority: `${capability}.${reversibility === 'read_only' ? 'read' : 'mutate'}`,
+      policy_version: 'hseos-w5-contract-stub-v1',
+      reversibility,
+      cancellation_policy: reversibility === 'read_only' ? 'cooperative' : 'non_cancellable',
+      failure_mode: 'fail_closed',
+      timeout_ms: 30_000,
+      requires_approval: requiresApproval,
+      exclusive: false,
+      provider_accepts_idempotency: false,
+      input_schema: NOT_IMPLEMENTED_SCHEMA,
+      output_schema: NOT_IMPLEMENTED_SCHEMA,
+    });
+  }),
+);
+
+function registerCapabilityContractStubs(registry) {
+  if (!(registry instanceof ExecutionContractRegistry)) throw new ExecutionContractError('A contract registry is required');
+  return CAPABILITY_CONTRACT_STUBS.map((stub) => registry.register(stub));
+}
+
 module.exports = {
+  CAPABILITY_CONTRACT_STUBS,
+  TOOL_CATALOG_EXIT_CODE,
+  ToolCatalogError,
+  failBoot,
+  loadServerTools,
+  registerCapabilityContractStubs,
   CANCELLATION_POLICIES,
   ExecutionContractError,
   ExecutionContractRegistry,

@@ -1,0 +1,67 @@
+{
+  "task": "W5-04",
+  "revision": {
+    "base": "4dc8dd51",
+    "note": "digest of the tracked diff against the base, excluding this evidence directory; the commit hash cannot reference itself"
+  },
+  "tracked_diff_sha256": "34139ed4275efd1ad2ee5a5d1707871e707b30f0b6f6e816d1779fc2c6f3bb59",
+  "node": "v24.15.0",
+  "command_literal": "node node_modules/c8/bin/c8.js --config .c8-kernel.json --include 'tools/lib/mcp-2026-adapter.js' --include 'tools/mcp-hseos-governance/index.js' --include 'tools/lib/governed-execution/contract-registry.js' --include 'tools/lib/governed-execution/native-mcp-server.js' --include 'tools/lib/governed-execution/event-registry.js' --include 'tools/lib/legacy-mcp-server.js' --include 'tools/lib/mcp-transport.js' --include 'tools/mcp-hseos-swarm/index.js' --include 'tools/mcp-hseos-swarm/lib/run-scope.js' --include 'tools/mcp-hseos-swarm/tools/dispatch_wave.js' node --test --test-concurrency=1 test/test-mcp-hseos-governance.js test/test-mcp-contract.js test/test-mcp-2026-adapter.js test/test-mcp-transport-robustness.js test/test-mcp-hseos-swarm-scope.js test/test-mcp-stdio.js (run through /tmp/hseos-w5/run-in-cgroup.sh, which wraps heavy-run)",
+  "result": {
+    "exit": 0,
+    "tests": 29,
+    "pass": 29,
+    "fail": 0,
+    "skipped": 0
+  },
+  "coverage_lines_branches_pct_literal_includes": {
+    "tools/lib/mcp-2026-adapter.js": [92.04, 81.01],
+    "tools/lib/mcp-transport.js": [98.61, 94.87],
+    "tools/lib/legacy-mcp-server.js": [98.17, 95.65],
+    "tools/lib/governed-execution/contract-registry.js": [100, 100],
+    "tools/lib/governed-execution/native-mcp-server.js": [96.72, 94.33],
+    "tools/lib/governed-execution/event-registry.js": [97.9, 93.9],
+    "tools/mcp-hseos-governance/index.js": [100, 95],
+    "tools/mcp-hseos-swarm/index.js": [100, 95],
+    "tools/mcp-hseos-swarm/lib/run-scope.js": [97.87, 92.64],
+    "tools/mcp-hseos-swarm/tools/dispatch_wave.js": [100, 100]
+  },
+  "effective_include_extended": {
+    "reason": "every file the task alters must reach 90/80 (wave protocol): the Commander widened the scope to project-state and axon-bridge entrypoints, and the task also alters operational-runtime.js (production registry carries the contract stubs) and mcp-legacy-usage-store.js (durable denial table); extra run with the same six test files, exit 0",
+    "files": {
+      "tools/mcp-project-state/index.js": [96.01, 82.5],
+      "tools/mcp-axon-bridge/index.js": [97.87, 91.42],
+      "tools/lib/governed-execution/operational-runtime.js": [100, 98.66],
+      "tools/mcp-project-state/lib/mcp-legacy-usage-store.js": [100, 91.93]
+    },
+    "log": "w5-04-verify2.log"
+  },
+  "regression_run": {
+    "files": "test-mcp-hseos-swarm, mcp-agent-state, mcp-axon-bridge, agentic-completion-audit, compatibility-audit, governed-entrypoints, governed-execution-runtime, native-entrypoint-wiring, agent-runtime, tool-runtime, agent-orchestration, compatibility-observation, agentic-activation-rehearsal",
+    "exit": 0
+  },
+  "log_sha256": {
+    "w5-04-verify-literal.log": "db917a63614433f16cf07461f3ba84caa9d50af2974f802fa85fb59f5a73c56e",
+    "w5-04-verify2.log": "663508c34c8d127015b0ee876c351ed591266a9a2a6b558027ce75c375c93645",
+    "w5-04-others.log": "6e92ace85dc6b37f00471d885a2784ab59feae5598d7e72b917dd1244b80b7c2"
+  },
+  "deviations": [
+    {
+      "item": "legacy path outside the fixture",
+      "text": "not forbidden: it always goes through the gateway, which denies and records durably in the legacy telemetry SQLite (mcp_gateway_denials, append-only). Differs from the accepted text 'legado so em fixture'.",
+      "reference": "decisao do owner 2026-10-12"
+    },
+    {
+      "item": "scope widened by the Commander",
+      "text": "tools/mcp-project-state/index.js, tools/mcp-axon-bridge/index.js (exit 78 loader), tools/mcp-project-state/lib/mcp-legacy-usage-store.js, tools/lib/governed-execution/operational-runtime.js"
+    },
+    {
+      "item": "413 delivery",
+      "text": "sent with Connection: close and the rest of the body is drained (cap 16 MiB over the limit); the body never reaches a tool"
+    },
+    {
+      "item": "journey",
+      "text": "test/journeys/mcp-journey.mjs not run (needs packed tarball and consumer install)"
+    }
+  ]
+}

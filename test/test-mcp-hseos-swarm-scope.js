@@ -9,7 +9,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
 const http = require('node:http');
-const { spawn } = require('node:child_process');
+const { execFileSync, spawn } = require('node:child_process');
 const { MCP_LEGACY_PROTOCOL_VERSION } = require('../tools/lib/mcp-protocol');
 
 const SERVER = path.join(__dirname, '..', 'tools', 'mcp-hseos-swarm', 'index.js');
@@ -100,6 +100,305 @@ async function expectRejected(port, name, args) {
     return;
   }
   throw new Error(`${name} accepted ${JSON.stringify(args)} and returned ${JSON.stringify(data).slice(0, 200)}`);
+}
+
+// ---------------------------------------------------------------------------
+// W5-04: in-process run-scope hardening (cwd, nlink, O_NOFOLLOW) and ledger-recorded denials in governed mode.
+// ---------------------------------------------------------------------------
+const assert = require('node:assert/strict');
+const Database = require('better-sqlite3');
+const runScope = require('../tools/mcp-hseos-swarm/lib/run-scope');
+
+function scopeCode(fn) {
+  try {
+    fn();
+  } catch (error) {
+    return error.code;
+  }
+  return null;
+}
+
+async function runInProcessScopeTests() {
+  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-w5-04-scope-')));
+  const originalCwd = process.cwd();
+  try {
+    const project = path.join(root, 'project');
+    const outside = path.join(root, 'outside');
+    const runs = path.join(project, '.hseos', 'runs', 'dev-squad');
+    fs.mkdirSync(path.join(runs, 'r1'), { recursive: true });
+    fs.mkdirSync(outside);
+    process.chdir(project);
+
+    await it('run-scope: the project root must be a real, non-root directory', async () => {
+      assert.equal(runScope.projectRoot(), project);
+      process.chdir('/');
+      assert.equal(
+        scopeCode(() => runScope.projectRoot()),
+        runScope.SCOPE_DENIED,
+      );
+      assert.equal(
+        scopeCode(() => runScope.resolveRunDir('r1')),
+        runScope.SCOPE_DENIED,
+      );
+      process.chdir(project);
+      const doomed = path.join(root, 'doomed');
+      fs.mkdirSync(doomed);
+      process.chdir(doomed);
+      fs.rmdirSync(doomed);
+      assert.equal(
+        scopeCode(() => runScope.projectRoot()),
+        runScope.SCOPE_DENIED,
+      );
+      process.chdir(project);
+    });
+
+    await it('run-scope: every refusal carries the stable scope-denied code', async () => {
+      assert.equal(
+        scopeCode(() => runScope.assertIdentifier('../x', 'run_id')),
+        runScope.SCOPE_DENIED,
+      );
+      assert.equal(
+        scopeCode(() => runScope.assertIdentifier(7, 'run_id')),
+        runScope.SCOPE_DENIED,
+      );
+      assert.equal(runScope.assertIdentifier('ok-1', 'run_id'), 'ok-1');
+      assert.equal(
+        scopeCode(() => runScope.resolveRunDir('..')),
+        runScope.SCOPE_DENIED,
+      );
+      fs.symlinkSync(outside, path.join(runs, 'escape'), 'dir');
+      assert.equal(
+        scopeCode(() => runScope.resolveRunDir('escape')),
+        runScope.SCOPE_DENIED,
+      );
+      fs.symlinkSync(path.join(root, 'nowhere'), path.join(runs, 'dangling'));
+      assert.equal(
+        scopeCode(() => runScope.resolveRunDir('dangling')),
+        runScope.SCOPE_DENIED,
+      );
+      assert.equal(runScope.resolveRunDir('r1'), path.join(runs, 'r1'));
+    });
+
+    await it('run-scope: a runs directory that resolves outside the project is refused', async () => {
+      const hijacked = path.join(root, 'hijacked');
+      fs.mkdirSync(path.join(outside, 'dev-squad', 'r9'), { recursive: true });
+      fs.mkdirSync(hijacked);
+      process.chdir(hijacked);
+      fs.symlinkSync(outside, path.join(hijacked, '.hseos'));
+      fs.mkdirSync(path.join(outside, 'runs', 'dev-squad', 'r9'), { recursive: true });
+      assert.equal(
+        scopeCode(() => runScope.resolveRunDir('r9')),
+        runScope.SCOPE_DENIED,
+      );
+      process.chdir(project);
+    });
+
+    await it('run-scope: reads refuse hardlinks, symlinks and non-files, and return null when absent', async () => {
+      const runDir = path.join(runs, 'r1');
+      const plain = path.join(runDir, 'PLAN.md');
+      fs.writeFileSync(plain, 'plan');
+      assert.equal(runScope.readContained(runDir, plain), 'plan');
+      assert.equal(runScope.readContained(runDir, path.join(runDir, 'ABSENT.md')), null);
+      const secret = path.join(outside, 'secret.md');
+      fs.writeFileSync(secret, 'TOP-SECRET');
+      fs.linkSync(secret, path.join(runDir, 'HARD.md'));
+      assert.equal(
+        scopeCode(() => runScope.readContained(runDir, path.join(runDir, 'HARD.md'))),
+        runScope.SCOPE_DENIED,
+      );
+      fs.symlinkSync(secret, path.join(runDir, 'SOFT.md'));
+      assert.equal(
+        scopeCode(() => runScope.readContained(runDir, path.join(runDir, 'SOFT.md'))),
+        runScope.SCOPE_DENIED,
+      );
+      fs.mkdirSync(path.join(runDir, 'DIR.md'));
+      assert.equal(
+        scopeCode(() => runScope.readContained(runDir, path.join(runDir, 'DIR.md'))),
+        runScope.SCOPE_DENIED,
+      );
+      assert.equal(
+        scopeCode(() => runScope.assertFileInside(runDir, path.join(outside, 'secret.md'))),
+        runScope.SCOPE_DENIED,
+      );
+    });
+
+    await it('run-scope: writes never follow a symlink, never truncate through a hardlink, and replace content fully', async () => {
+      const runDir = path.join(runs, 'r1');
+      const target = path.join(runDir, 'OUT.md');
+      runScope.writeContained(runDir, target, 'a much longer first content');
+      runScope.writeContained(runDir, target, 'short');
+      assert.equal(fs.readFileSync(target, 'utf8'), 'short');
+      const victim = path.join(outside, 'victim.md');
+      fs.writeFileSync(victim, 'VICTIM-CONTENT');
+      fs.linkSync(victim, path.join(runDir, 'ALIAS.md'));
+      assert.equal(
+        scopeCode(() => runScope.writeContained(runDir, path.join(runDir, 'ALIAS.md'), 'overwrite')),
+        runScope.SCOPE_DENIED,
+      );
+      assert.equal(fs.readFileSync(victim, 'utf8'), 'VICTIM-CONTENT', 'the aliased file must not be truncated or written');
+      fs.symlinkSync(victim, path.join(runDir, 'LINK.md'));
+      assert.equal(
+        scopeCode(() => runScope.writeContained(runDir, path.join(runDir, 'LINK.md'), 'overwrite')),
+        runScope.SCOPE_DENIED,
+      );
+      assert.equal(fs.readFileSync(victim, 'utf8'), 'VICTIM-CONTENT');
+      assert.throws(() => runScope.writeContained(runDir, path.join(runDir, 'no-such-dir', 'X.md'), 'x'), { code: 'ENOENT' });
+    });
+
+    await it('run-scope: a symlink swapped in after the path check is not followed (O_NOFOLLOW), for reads and writes', async () => {
+      const runDir = path.join(runs, 'r1');
+      const secret = path.join(outside, 'race-secret.md');
+      fs.writeFileSync(secret, 'RACE-SECRET');
+      const swapToSymlink = (file) => {
+        fs.rmSync(file, { force: true });
+        fs.symlinkSync(secret, file);
+      };
+      const readTarget = path.join(runDir, 'RACE-READ.md');
+      fs.writeFileSync(readTarget, 'harmless');
+      runScope.hooks.afterCheck = swapToSymlink;
+      try {
+        assert.equal(
+          scopeCode(() => runScope.readContained(runDir, readTarget)),
+          runScope.SCOPE_DENIED,
+        );
+        const writeTarget = path.join(runDir, 'RACE-WRITE.md');
+        assert.equal(
+          scopeCode(() => runScope.writeContained(runDir, writeTarget, 'OVERWRITE')),
+          runScope.SCOPE_DENIED,
+        );
+        assert.equal(fs.readFileSync(secret, 'utf8'), 'RACE-SECRET', 'the swapped target must not be written');
+      } finally {
+        runScope.hooks.afterCheck = null;
+      }
+    });
+
+    await it('run-scope: a parent directory swapped for a symlink after the path check is detected from the opened descriptor', async () => {
+      const raceRun = path.join(runs, 'r-race');
+      fs.mkdirSync(raceRun);
+      fs.writeFileSync(path.join(raceRun, 'PLAN.md'), 'inside');
+      const stolen = path.join(outside, 'stolen-run');
+      fs.mkdirSync(stolen);
+      fs.writeFileSync(path.join(stolen, 'PLAN.md'), 'OUTSIDE-PARENT-SECRET');
+      runScope.hooks.afterCheck = () => {
+        fs.renameSync(raceRun, `${raceRun}.bak`);
+        fs.symlinkSync(stolen, raceRun);
+      };
+      try {
+        assert.equal(
+          scopeCode(() => runScope.readContained(raceRun, path.join(raceRun, 'PLAN.md'))),
+          runScope.SCOPE_DENIED,
+        );
+      } finally {
+        runScope.hooks.afterCheck = null;
+      }
+      fs.rmSync(raceRun);
+      fs.renameSync(`${raceRun}.bak`, raceRun);
+      runScope.hooks.afterCheck = () => {
+        if (fs.lstatSync(raceRun).isSymbolicLink()) return;
+        fs.renameSync(raceRun, `${raceRun}.bak`);
+        fs.symlinkSync(stolen, raceRun);
+      };
+      try {
+        assert.equal(
+          scopeCode(() => runScope.writeContained(raceRun, path.join(raceRun, 'PLAN.md'), 'X')),
+          runScope.SCOPE_DENIED,
+        );
+        assert.equal(
+          scopeCode(() => runScope.writeContained(raceRun, path.join(raceRun, 'NEW.md'), 'X')),
+          runScope.SCOPE_DENIED,
+        );
+        assert.equal(fs.readFileSync(path.join(stolen, 'PLAN.md'), 'utf8'), 'OUTSIDE-PARENT-SECRET');
+        assert.equal(fs.existsSync(path.join(stolen, 'NEW.md')), false, 'nothing may be created outside the base');
+      } finally {
+        runScope.hooks.afterCheck = null;
+      }
+    });
+
+    await it('run-scope: a FIFO in place of a file is rejected without blocking', async () => {
+      const runDir = path.join(runs, 'r1');
+      const fifo = path.join(runDir, 'PIPE.md');
+      execFileSync('mkfifo', [fifo]);
+      const started = Date.now();
+      assert.equal(
+        scopeCode(() => runScope.readContained(runDir, fifo)),
+        runScope.SCOPE_DENIED,
+      );
+      assert.ok(Date.now() - started < 2000, 'the read must not wait for a writer');
+      assert.equal(
+        scopeCode(() => runScope.writeContained(runDir, fifo, 'x')),
+        runScope.SCOPE_DENIED,
+      );
+    });
+
+    await it('dispatch_wave: extracts the tasks of a wave, and reports missing plans, waves and indexes', async () => {
+      const { handler } = require('../tools/mcp-hseos-swarm/tools/dispatch_wave.js')[0];
+      const planDir = path.join(runs, 'plan-run');
+      fs.mkdirSync(planDir);
+      assert.match(handler(null, { run_id: 'plan-run' }).error, /PLAN\.md not found/);
+      fs.writeFileSync(path.join(planDir, 'PLAN.md'), '# Plan\nnothing here\n');
+      assert.equal(handler(null, { run_id: 'plan-run' }).note, 'no waves defined in PLAN.md');
+      fs.writeFileSync(
+        path.join(planDir, 'PLAN.md'),
+        '# Plan\n## Wave 1: first\n- [ ] alpha task\n- [x] beta task\nnoise\n## Wave 2: second\n- [ ] gamma task\n',
+      );
+      const first = handler(null, { run_id: 'plan-run' });
+      assert.deepEqual(first.tasks, ['alpha task', 'beta task']);
+      assert.deepEqual(first.subagent_prompts, ['Task T1-1: alpha task', 'Task T1-2: beta task']);
+      assert.deepEqual(first.worktree_paths, [path.join(project, '.worktrees', 'T1-1'), path.join(project, '.worktrees', 'T1-2')]);
+      const second = handler(null, { run_id: 'plan-run', wave_index: 1 });
+      assert.deepEqual(second.tasks, ['gamma task']);
+      assert.equal(second.wave_index, 1);
+      assert.match(handler(null, { run_id: 'plan-run', wave_index: 5 }).error, /Wave index 5 not found; plan has 2 wave\(s\)/);
+      assert.equal(
+        scopeCode(() => handler(null, { run_id: '../etc' })),
+        runScope.SCOPE_DENIED,
+      );
+    });
+  } finally {
+    process.chdir(originalCwd);
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
+async function runGovernedDenialTests() {
+  const base = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-w5-04-governed-')));
+  const project = path.join(base, 'project');
+  const database = path.join(base, 'state', 'project.db');
+  fs.mkdirSync(path.join(project, '.hseos', 'runs', 'dev-squad'), { recursive: true });
+  const child = spawn(process.execPath, [SERVER, '--port=0'], {
+    cwd: project,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, HSEOS_STATE_DB: database, NODE_ENV: 'test', HSEOS_GOVERNED_EXECUTION_FIXTURE: '1' },
+  });
+  try {
+    const port = await waitForPort(child);
+    await it('governed swarm: unknown tools and out-of-scope run ids are denied', async () => {
+      await expectRejected(port, 'ghost_tool', {});
+      await expectRejected(port, 'get_run_state', { run_id: '../../etc' });
+      await expectRejected(port, 'dispatch_wave', { run_id: '/etc' });
+    });
+  } finally {
+    child.kill('SIGTERM');
+    await new Promise((resolve) => child.once('exit', resolve));
+  }
+  await it('governed swarm: the denials are recorded in the ledger with stable codes', async () => {
+    const db = new Database(database, { readonly: true });
+    try {
+      const rows = db
+        .prepare(
+          "SELECT event_type, payload_json, evidence_refs_json FROM execution_events WHERE aggregate_type = 'mcp_gateway' ORDER BY position",
+        )
+        .all();
+      const codes = rows.map((row) => JSON.parse(row.payload_json).error.code);
+      assert.ok(codes.includes('MCP_TOOL_UNKNOWN'), codes.join(','));
+      assert.ok(codes.filter((code) => code === 'MCP_SCOPE_DENIED').length >= 2, codes.join(','));
+      assert.ok(rows.every((row) => row.event_type === 'ExecutionFailed'));
+      assert.ok(rows.some((row) => row.evidence_refs_json.includes('hseos://mcp/swarm/denied/ghost_tool')));
+    } finally {
+      db.close();
+    }
+  });
+  fs.rmSync(base, { recursive: true, force: true });
 }
 
 (async () => {
@@ -254,6 +553,12 @@ async function expectRejected(port, name, args) {
       if (listed && listed.status_snippet.includes('LEAKED')) throw new Error('list_runs leaked symlinked STATUS.md');
     });
 
+    await it('plan_squad refuses a FIFO standing in for PLAN.md and the refusal is a recorded denial', async () => {
+      fs.mkdirSync(path.join(runsDir, 'fifo-run'));
+      execFileSync('mkfifo', [path.join(runsDir, 'fifo-run', 'PLAN.md')]);
+      await expectRejected(port, 'plan_squad', { batch_description: 'x', run_id: 'fifo-run' });
+    });
+
     await it('plan_squad treats empty or missing run_id as auto-generated', async () => {
       for (const args of [{ batch_description: 'x' }, { batch_description: 'x', run_id: '' }]) {
         const result = await call(port, 'plan_squad', args);
@@ -262,10 +567,30 @@ async function expectRejected(port, name, args) {
     });
   } finally {
     child.kill('SIGTERM');
-    await new Promise((r) => setTimeout(r, 200));
+    await new Promise((resolve) => child.once('exit', resolve));
+    await it('legacy swarm: out-of-scope refusals are durable in the telemetry store', async () => {
+      const store = new (require('better-sqlite3'))(path.join(base, 'mcp-legacy-usage.db'), { readonly: true });
+      try {
+        const rows = store.prepare("SELECT tool, code, rpc_code FROM mcp_gateway_denials WHERE code = 'MCP_SCOPE_DENIED'").all();
+        assert.ok(
+          rows.some((row) => row.tool === 'plan_squad'),
+          JSON.stringify(rows),
+        );
+        assert.ok(
+          rows.some((row) => row.tool === 'get_run_state'),
+          JSON.stringify(rows),
+        );
+        assert.ok(rows.every((row) => row.rpc_code === -32_000));
+      } finally {
+        store.close();
+      }
+    });
     for (const dir of created) fs.rmSync(dir, { recursive: true, force: true });
     fs.rmSync(base, { recursive: true, force: true });
   }
+
+  await runInProcessScopeTests();
+  await runGovernedDenialTests();
 
   console.log(`\n${pass} passed, ${fail} failed`);
   process.exit(fail === 0 ? 0 : 1);
