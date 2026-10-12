@@ -1,0 +1,167 @@
+{
+  "battery": "B1",
+  "harness": {
+    "commit": "e079409c",
+    "package": "4.0.0-rc.0",
+    "sha256": "fcb81c1adbad85a5c5f057eda42fff5485649996b2126a9ed90531d6697ed0be"
+  },
+  "consumer": {
+    "clone": "/tmp/hseos-crp/b1/repo",
+    "commit": "8fe5747"
+  },
+  "steps": [
+    {
+      "id": "1a",
+      "status": "PASS"
+    },
+    {
+      "id": "1b",
+      "status": "PASS"
+    },
+    {
+      "id": "1c",
+      "status": "FAIL"
+    },
+    {
+      "id": "1d",
+      "status": "PASS"
+    },
+    {
+      "id": "1e",
+      "status": "FAIL"
+    },
+    {
+      "id": "1f",
+      "status": "PASS"
+    },
+    {
+      "id": "1g",
+      "status": "FAIL"
+    },
+    {
+      "id": "2a",
+      "status": "PASS"
+    },
+    {
+      "id": "2b",
+      "status": "PASS"
+    },
+    {
+      "id": "2c",
+      "status": "PASS"
+    },
+    {
+      "id": "2d",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "2e",
+      "status": "PASS"
+    },
+    {
+      "id": "2f",
+      "status": "PASS"
+    },
+    {
+      "id": "2g",
+      "status": "NOT_EXERCISED"
+    },
+    {
+      "id": "2h",
+      "status": "PASS"
+    },
+    {
+      "id": "3",
+      "status": "PASS"
+    },
+    {
+      "id": "4a",
+      "status": "PASS"
+    },
+    {
+      "id": "4b",
+      "status": "PASS"
+    },
+    {
+      "id": "4c",
+      "status": "PASS"
+    },
+    {
+      "id": "4d",
+      "status": "PASS"
+    },
+    {
+      "id": "5",
+      "status": "PASS"
+    }
+  ],
+  "guard": {
+    "files": 581,
+    "unreadable": 0,
+    "detectErrors": 0,
+    "withExports": 366,
+    "watched": 124,
+    "deny": {
+      "platform": 124,
+      "hybrid": 0,
+      "local": 0
+    },
+    "incomplete": 0,
+    "anonymous": 16,
+    "astNamedExports": 1310,
+    "missedNamed": 1,
+    "reexportOnlyFilesNull": 9,
+    "msP50": 8,
+    "msP95": 45,
+    "msMax": 66,
+    "totalMs": 8917
+  },
+  "install": {
+    "newUntrackedFiles": 921,
+    "trackedFilesChanged": 0
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "high"
+    },
+    {
+      "id": "F2",
+      "severity": "medium"
+    },
+    {
+      "id": "F3",
+      "severity": "medium"
+    },
+    {
+      "id": "F4",
+      "severity": "medium"
+    },
+    {
+      "id": "F5",
+      "severity": "low"
+    },
+    {
+      "id": "F6",
+      "severity": "low"
+    },
+    {
+      "id": "F7",
+      "severity": "low"
+    },
+    {
+      "id": "F8",
+      "severity": "low"
+    },
+    {
+      "id": "F9",
+      "severity": "medium-host"
+    },
+    {
+      "id": "F10",
+      "severity": "low"
+    }
+  ],
+  "repoRealUnchanged": true,
+  "residualProcesses": 0
+}

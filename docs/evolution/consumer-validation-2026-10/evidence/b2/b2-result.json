@@ -1,0 +1,310 @@
+{
+  "battery": "B2",
+  "date": "2026-10-10",
+  "harness": {
+    "package": "hseos 4.0.0-rc.0",
+    "tgz_sha256": "fcb81c1adbad85a5c5f057eda42fff5485649996b2126a9ed90531d6697ed0be"
+  },
+  "consumer": {
+    "repo": "cambio-real-platforms",
+    "base": "develop 8fe5747",
+    "package_target": "packages/formatting",
+    "real_repo_modified": false,
+    "real_repo_note": "git status alterou apenas o mtime do diretorio .git (index.lock transitorio); index/HEAD/arvore identicos"
+  },
+  "summary": {
+    "PASS": 14,
+    "FAIL": 0,
+    "BLOCKED": 2,
+    "NOT_EXERCISED": 1,
+    "note": "BLOCKED x2 = executor nao roda pnpm/vitest/tsc; NOT_EXERCISED = pids/memoria/tempo reais do vitest em sandbox"
+  },
+  "steps": {
+    "m-model-journey": {
+      "status": "PASS",
+      "duracao_ms": 8645,
+      "evidence": "ev/steps/m-model-journey.json",
+      "failed_checks": [],
+      "erro": null
+    },
+    "s00-serve": {
+      "status": "PASS",
+      "duracao_ms": 1214,
+      "evidence": "ev/steps/s00-serve.json",
+      "failed_checks": [],
+      "erro": null
+    },
+    "t1-negative-prepare": {
+      "status": "PASS",
+      "duracao_ms": 167,
+      "evidence": "ev/steps/t1-negative-prepare.json",
+      "failed_checks": [],
+      "erro": null
+    },
+    "t1a-correct-approved": {
+      "status": "PASS",
+      "duracao_ms": 3554,
+      "evidence": "ev/steps/t1a-correct-approved.json",
+      "failed_checks": [],
+      "erro": null
+    },
+    "t1b-incorrect-rejected": {
+      "status": "PASS",
+      "duracao_ms": 2938,
+      "evidence": "ev/steps/t1b-incorrect-rejected.json",
+      "failed_checks": [],
+      "erro": null
+    },
+    "t1c-reject-diagnose-correct": {
+      "status": "PASS",
+      "duracao_ms": 3213,
+      "evidence": "ev/steps/t1c-reject-diagnose-correct.json",
+      "failed_checks": [],
+      "erro": null
+    },
+    "t1d-out-of-scope-denied": {
+      "status": "PASS",
+      "duracao_ms": 11317,
+      "evidence": "ev/steps/t1d-out-of-scope-denied.json",
+      "failed_checks": [],
+      "erro": null
+    },
+    "t1e-concurrent-edit": {
+      "status": "PASS",
+      "duracao_ms": 2012,
+      "evidence": "ev/steps/t1e-concurrent-edit.json",
+      "failed_checks": [],
+      "erro": null
+    },
+    "t2-job-cancel-drain": {
+      "status": "PASS",
+      "duracao_ms": 4395,
+      "evidence": "ev/steps/t2-job-cancel-drain.json",
+      "failed_checks": [],
+      "erro": null
+    },
+    "t2-job-dag": {
+      "status": "PASS",
+      "duracao_ms": 3953,
+      "evidence": "ev/steps/t2-job-dag.json",
+      "failed_checks": [],
+      "erro": null
+    },
+    "t2-workflow-direct": {
+      "status": "PASS",
+      "duracao_ms": 2409,
+      "evidence": "ev/steps/t2-workflow-direct.json",
+      "failed_checks": [],
+      "erro": null
+    },
+    "t3a-terminal-vitest": {
+      "status": "BLOCKED",
+      "duracao_ms": 1108,
+      "evidence": "ev/steps/t3a-terminal-vitest.json",
+      "failed_checks": [],
+      "erro": "o executor nao consegue rodar o vitest do pacote: ERR_MODULE_NOT_FOUND Cannot find package 'vitest'"
+    },
+    "t3b-terminal-pty": {
+      "status": "PASS",
+      "duracao_ms": 2210,
+      "evidence": "ev/steps/t3b-terminal-pty.json",
+      "failed_checks": [],
+      "erro": null
+    }
+  },
+  "table": [
+    {
+      "step": "0 serve cgroup delegado",
+      "result": "PASS"
+    },
+    {
+      "step": "baseline host (install offline, vitest 32/32, tsc)",
+      "result": "PASS"
+    },
+    {
+      "step": "1-neg prepare recusa symlink/hardlink/tamanho/oculto/..",
+      "result": "PASS"
+    },
+    {
+      "step": "1-exec pnpm/vitest/tsc no executor isolado",
+      "result": "BLOCKED"
+    },
+    {
+      "step": "1a correta aprovada + apply + vitest real",
+      "result": "PASS"
+    },
+    {
+      "step": "1b incorreta rejeitada",
+      "result": "PASS"
+    },
+    {
+      "step": "1c rejeicao-diagnostico-correcao",
+      "result": "PASS"
+    },
+    {
+      "step": "1d fora de escopo negado (6)",
+      "result": "PASS"
+    },
+    {
+      "step": "1e edicao concorrente invalida aprovacao",
+      "result": "PASS"
+    },
+    {
+      "step": "2a job workflow 2 filhos cursor",
+      "result": "PASS"
+    },
+    {
+      "step": "2b workflow direto",
+      "result": "PASS"
+    },
+    {
+      "step": "2c cancel + drenagem",
+      "result": "PASS"
+    },
+    {
+      "step": "3a terminal com vitest",
+      "result": "BLOCKED"
+    },
+    {
+      "step": "3b terminal pty generico",
+      "result": "PASS"
+    },
+    {
+      "step": "4 modelo real claude/account",
+      "result": "PASS"
+    },
+    {
+      "step": "5 higiene",
+      "result": "PASS",
+      "ressalvas": [
+        ".git mtime do repo real",
+        "link do store pnpm removido",
+        "~/.claude nao atribuivel"
+      ]
+    },
+    {
+      "step": "executor: pids/mem/tempo do vitest",
+      "result": "NOT_EXERCISED"
+    }
+  ],
+  "model": {
+    "route": "claude/account",
+    "model": "sonnet",
+    "claude_version": "2.1.296",
+    "dispatches_used": 1,
+    "dispatch_limit": 2,
+    "tokens": {
+      "input": 3091,
+      "output": 324
+    },
+    "cost_microusd": null,
+    "dispatch_ms": 5231,
+    "task_result": "approved",
+    "external_acceptance": "PASS (vitest real 32/32 sobre o resultado aplicado)",
+    "quota_admission": "owner_exception",
+    "init_observable": {
+      "apiKeySource": false,
+      "fast_mode_state": false,
+      "model": false,
+      "pids_peak": false
+    }
+  },
+  "findings": [
+    {
+      "id": "A1",
+      "sev": "alta",
+      "title": "Aceite nao pode ser vitest/tsc do projeto; executor nao roda pnpm/vitest/tsc",
+      "refs": [
+        "tools/cli/lib/engineering-task-contract.js:8,22,25,133,161",
+        "tools/cli/lib/engineering-workspace.js:35-51",
+        "packages/agent-isolation-attestation/executor.js:275",
+        "tools/cli/lib/engineering-project-verifier.js:63-100"
+      ]
+    },
+    {
+      "id": "A2",
+      "sev": "alta/media",
+      "title": "exit code dos comandos nao afeta a aprovacao (filho vitest exit 1 aprovado)",
+      "refs": [
+        "tools/cli/lib/engineering-project-verifier.js:79-100"
+      ]
+    },
+    {
+      "id": "A3",
+      "sev": "media",
+      "title": "/events de recurso materializado por job: janela global filtrada, paginas vazias com next_cursor avancando",
+      "refs": [
+        "tools/cli/lib/engineering-control.js:233-236"
+      ]
+    },
+    {
+      "id": "A4",
+      "sev": "media",
+      "title": "/evidence de workflow materializado por job sem evidence[] por etapa",
+      "refs": [
+        "tools/cli/lib/engineering-control.js:176-179"
+      ]
+    },
+    {
+      "id": "A5",
+      "sev": "baixa/media",
+      "title": "CONTROL_REQUEST_REJECTED opaco em prepare/review/apply",
+      "refs": [
+        "tools/cli/lib/engineering-control-http.js:145",
+        "tools/cli/lib/engineering-workspace.js:246-247"
+      ]
+    },
+    {
+      "id": "A6",
+      "sev": "baixa",
+      "title": "negacao de escopo = EXECUTION_INPUT_INVALID generico",
+      "refs": [
+        "tools/cli/lib/engineering-tools.js:133-143"
+      ]
+    },
+    {
+      "id": "A7",
+      "sev": "baixa",
+      "title": "init do cliente e pids_peak nao observaveis",
+      "refs": [
+        "docs/evolution/w3/ADAPTERS-CAMPAIGN.md"
+      ]
+    },
+    {
+      "id": "A8",
+      "sev": "baixa",
+      "title": "campanha: expected_sequence nao documentado; autorizacao de uso unico",
+      "refs": [
+        "tools/cli/lib/provider-campaign-control.js:18,521"
+      ]
+    },
+    {
+      "id": "A9",
+      "sev": "info",
+      "title": "/usr/bin/node da distro sem TS; doc cita /usr/bin/node",
+      "refs": [
+        "docs/engineering-task-contract.md",
+        "packages/agent-isolation-attestation/executor.js:175"
+      ]
+    }
+  ],
+  "load": {
+    "max_load1_sampled": 1.81,
+    "per_run": {
+      "run-m.json": 1.72,
+      "run-t1-t2.json": 1.81,
+      "run-t1-t2-t3.json": 1.79,
+      "run-t1.json": 1.58
+    },
+    "heavy_run_mode": "normal em todas as execucoes"
+  },
+  "hygiene": {
+    "residual_processes": 0,
+    "secrets_in_evidence": false,
+    "changes_outside_b2": [
+      ".git dir mtime do repo real (git status)",
+      "/tmp/.pnpm-store/v11/projects/a960e3493339f50d29e75697d3c03d86 (criado pelo pnpm; removido ao final)",
+      "~/.claude (nao atribuivel)"
+    ]
+  }
+}

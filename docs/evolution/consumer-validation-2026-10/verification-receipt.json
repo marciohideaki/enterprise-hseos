@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "task": "CRP-VALIDATION-DOCS",
+  "status": "VERIFIED_BEFORE_PR",
+  "base_commit": "e079409c",
+  "head_commit": "df8bae8a",
+  "branch": "fix/harness-consumer-findings",
+  "upstream": "master",
+  "corrections": {
+    "C2": "96817c92",
+    "C3": "f9639303",
+    "C1": "da2e2c42",
+    "C5": "0a197f55",
+    "C4": "0d970dec",
+    "integration": "df8bae8a"
+  },
+  "environment": {
+    "os": "linux",
+    "arch": "x64",
+    "node22": "v22.23.3",
+    "node24": "v24.15.0",
+    "resource_scope": "systemd-run --user Delegate=yes DelegateSubgroup=tests + .github/scripts/enable-test-cgroup.mjs; heavy-run wrapper (serialized, load-gated)"
+  },
+  "package": {
+    "tarball": "hseos-4.0.0-rc.0.tgz",
+    "built_from": "df8bae8a",
+    "sha256": "8a126fc1d7d831f7296a0b72439d21c812500877b8ad48420f5ad033d174498a",
+    "entries": 1460,
+    "unpacked_size": 9737599,
+    "installed_offline_outside_checkout": true
+  },
+  "journeys": {
+    "core": {
+      "head": "df8bae8a",
+      "node": "v24.15.0",
+      "result": "evidence/final/journeys/core-journey-result.json",
+      "steps_pass": 12,
+      "steps_fail": 0,
+      "residual_serve_processes": 0
+    },
+    "mcp": {
+      "head": "df8bae8a",
+      "node": "v24.15.0",
+      "result": "evidence/final/journeys/mcp-journey-result.json",
+      "verdict": "PASS",
+      "checks_pass": 144,
+      "checks_fail": 0,
+      "checks_blocked": 0,
+      "orphans": 0
+    }
+  },
+  "stages": {
+    "final/npm-test-node24": {
+      "command": ["npm", "test"],
+      "node": "v24.15.0",
+      "head": "df8bae8a",
+      "started_at": "2026-10-11T02:06:32Z",
+      "ended_at": "2026-10-11T02:17:17Z",
+      "exit_code": 0,
+      "log": "evidence/final/logs/npm-test-node24.log.gz",
+      "log_sha256": "8d79d4be10d07a99718c548c27516be6bbcee3b41bda58e9bb3bd6a7f69ba9bf",
+      "tap": {
+        "tests": 1542,
+        "pass": 1542,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    "final/kernel-coverage-node24": {
+      "command": ["npm", "run", "test:kernel-coverage"],
+      "node": "v24.15.0",
+      "head": "df8bae8a",
+      "started_at": "2026-10-11T02:17:17Z",
+      "ended_at": "2026-10-11T02:23:57Z",
+      "exit_code": 0,
+      "log": "evidence/final/logs/kernel-coverage-node24.log.gz",
+      "log_sha256": "d4ccd62612407e380df3b9b39ce9d370a20dbb36e8ca021b3a8d3a69c6e9cb23",
+      "coverage": {
+        "lines_pct": 96.88,
+        "branches_pct": 90.34,
+        "per_file_gate": "90/80 approved, 0 files below"
+      }
+    },
+    "final/w4-mutations-node24": {
+      "command": ["npm", "run", "test:w4-mutations"],
+      "node": "v24.15.0",
+      "head": "df8bae8a",
+      "started_at": "2026-10-11T02:23:57Z",
+      "ended_at": "2026-10-11T02:24:17Z",
+      "exit_code": 0,
+      "log": "evidence/final/logs/w4-mutations-node24.log.gz",
+      "log_sha256": "6eb63df5e5416b9b263f1949efbd885b7d2a0760d0e021848df4f51f7b68fe48",
+      "mutants": {
+        "rejected": 18,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "final/quality-gates-node24": {
+      "command": ["bash", "scripts/governance/quality-gates.sh", "--phase", "ci"],
+      "node": "v24.15.0",
+      "head": "df8bae8a",
+      "started_at": "2026-10-11T02:24:17Z",
+      "ended_at": "2026-10-11T02:24:20Z",
+      "exit_code": 0,
+      "log": "evidence/final/logs/quality-gates-node24.log.gz",
+      "log_sha256": "d31ebcbc777ddaa58abe97b73c70193c531a3bdf7372fef15126b6b945a900e8",
+      "env": {
+        "VALIDATION_ENFORCED": "true"
+      },
+      "gate": {
+        "failures": 0,
+        "warnings": 1
+      }
+    },
+    "final/npm-test-node22": {
+      "command": ["npm", "test"],
+      "node": "v22.23.3",
+      "head": "df8bae8a",
+      "started_at": "2026-10-11T02:24:21Z",
+      "ended_at": "2026-10-11T02:35:12Z",
+      "exit_code": 0,
+      "log": "evidence/final/logs/npm-test-node22.log.gz",
+      "log_sha256": "26cc39ea8228368113d061cfa4c95c3f47f9acf83c593296edaf795d775aaf47",
+      "tap": {
+        "tests": 1542,
+        "pass": 1542,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    "final/kernel-coverage-node22": {
+      "command": ["npm", "run", "test:kernel-coverage"],
+      "node": "v22.23.3",
+      "head": "df8bae8a",
+      "started_at": "2026-10-11T02:35:12Z",
+      "ended_at": "2026-10-11T02:41:55Z",
+      "exit_code": 0,
+      "log": "evidence/final/logs/kernel-coverage-node22.log.gz",
+      "log_sha256": "77641981f159b19b225b826fdee2aa48ed1a001aa03dec58e0112e462cd9ee19",
+      "coverage": {
+        "lines_pct": 96.86,
+        "branches_pct": 90.34,
+        "per_file_gate": "90/80 approved, 0 files below"
+      }
+    },
+    "final/w4-mutations-node22": {
+      "command": ["npm", "run", "test:w4-mutations"],
+      "node": "v22.23.3",
+      "head": "df8bae8a",
+      "started_at": "2026-10-11T02:41:55Z",
+      "ended_at": "2026-10-11T02:42:15Z",
+      "exit_code": 0,
+      "log": "evidence/final/logs/w4-mutations-node22.log.gz",
+      "log_sha256": "9e7f053c099b897849bd0e19cb462abe555ddbd5760528185d77b8cda933086a",
+      "mutants": {
+        "rejected": 18,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "final/quality-gates-node22": {
+      "command": ["bash", "scripts/governance/quality-gates.sh", "--phase", "ci"],
+      "node": "v22.23.3",
+      "head": "df8bae8a",
+      "started_at": "2026-10-11T02:42:15Z",
+      "ended_at": "2026-10-11T02:42:18Z",
+      "exit_code": 0,
+      "log": "evidence/final/logs/quality-gates-node22.log.gz",
+      "log_sha256": "08bf5fff7efdc0f380e4d9e2e975be1bd5865e85ef932d85a42062b2b2eee4f9",
+      "env": {
+        "VALIDATION_ENFORCED": "true"
+      },
+      "gate": {
+        "failures": 0,
+        "warnings": 1
+      }
+    }
+  },
+  "consumer_batteries": {
+    "b1": {
+      "report": "evidence/b1/B1-REPORT.md",
+      "result": "evidence/b1/b1-result.json"
+    },
+    "b2": {
+      "report": "evidence/b2/B2-REPORT.md",
+      "result": "evidence/b2/b2-result.json",
+      "rows_pass": 14,
+      "rows_blocked": 2,
+      "rows_fail": 0,
+      "model_dispatches": 1,
+      "cost_usd": 0
+    },
+    "b1v2": {
+      "report": "evidence/b1v2/B1V2-REPORT.md"
+    },
+    "b2v2": {
+      "report": "evidence/b2v2/B2V2-REPORT.md",
+      "steps_pass": 16,
+      "steps_blocked": 1,
+      "steps_fail": 0,
+      "model_dispatches": 0
+    }
+  },
+  "limitations": [
+    "The stages file records consumer-install, core-journey and mcp-journey with exit code 0 only; their structured results are the two journey JSON files copied under evidence/final/journeys.",
+    "The B1V2 and B2V2 batteries are recorded as reports; their structured result files were not copied.",
+    "Corrections were reviewed by a skeptical reviewer in two passes; code changes made after the second pass (glob negation in the guard, key=path arguments in the engineering contract) were not re-reviewed, only covered by the test suite.",
+    "The second reviewer pass for C5 did not re-verify the weak RED of the boundaries test.",
+    "Only one consumer was exercised; guard and registry numbers hold for that corpus.",
+    "The project vitest and tsc cannot run inside the isolated executor (A1/N2, tracked for W5-02b); project acceptance ran on the host.",
+    "F5, F10, A7, A8 and A9 were not re-verified after the corrections.",
+    "Commands are the logical npm/bash commands; the systemd-run/heavy-run envelope is described in environment.resource_scope and was not recorded argument-for-argument.",
+    "log_sha256 is the hash of the uncompressed log; the .gz files hold the same bytes compressed. The logs embed the original machine paths of the run.",
+    "No credential is stored in the evidence; the copied files were scanned for the real API key value, key prefixes, database URL prefix, e-mail addresses and organization identifiers before copying (no match other than a documentation sentence listing the patterns searched)."
+  ]
+}
