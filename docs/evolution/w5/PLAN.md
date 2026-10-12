@@ -95,13 +95,13 @@ A evidência de B nunca é apresentada como consumidor real de teste: apenas com
 
 ### 7.2 Distribuição híbrida (core e plugin)
 
-Contratos **e runtime** de todas as capacidades (LSP, DAP, memória, navegador, computer-use) ficam no core, com carregamento tardio (`require` sob demanda) das dependências pesadas. Cada capacidade também é empacotável como plugin em `plugins/*`, gerado a partir da **mesma implementação** do core (o empacote copia os arquivos do core no momento do pack; um teste de paridade de digest impede divergência; nenhum código é duplicado no repositório). Os binários (Chromium `chromium-1228`, `typescript-language-server`, `pyright`, `debugpy`, `js-debug`, `xdotool`) e o pacote `playwright-core` são pins em cache offline, fora do tarball do core e dos plugins.
+Contratos **e runtime** de todas as capacidades (LSP, DAP, memória, navegador, computer-use) ficam no core, com carregamento tardio (`require` sob demanda) das dependências pesadas. Cada capacidade também é empacotável como plugin em `plugins/*`, gerado a partir da **mesma implementação** do core (o empacote copia os arquivos do core no momento do pack; um teste de paridade de digest impede divergência; nenhum código é duplicado no repositório). Os binários (`chrome-headless-shell-1228`, `typescript-language-server`, `pyright`, `debugpy`, `js-debug`, `xdotool`) e o pacote `playwright-core` são pins em cache offline, fora do tarball do core e dos plugins.
 
 | Item                  | Core (contrato + runtime, lazy)                    | Plugin empacotável (`plugins/*`)                    | Pins externos                                   |
 | --------------------- | -------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------- |
 | LSP                   | sim                                                | `plugins/lsp`                                       | typescript-language-server, typescript, pyright |
 | DAP                   | sim                                                | `plugins/dap`                                       | debugpy, js-debug                               |
-| Navegador             | sim; `playwright-core` carregado do pin só ao usar | `plugins/browser`                                   | playwright-core, Chromium `chromium-1228`       |
+| Navegador             | sim; `playwright-core` carregado do pin só ao usar | `plugins/browser`                                   | playwright-core, `chrome-headless-shell-1228`   |
 | Computer-use          | sim; só Linux; carregamento tardio                 | `plugins/computer-use`                              | xdotool, Xvfb, xwd (sistema)                    |
 | Memória               | sim (precisa do ledger com CAS)                    | `plugins/memory` como empacotamento de distribuição | nenhum                                          |
 | Contexto, perfis, MCP | sim, sem plugin                                    | não aplicável                                       | nenhum                                          |
@@ -140,15 +140,15 @@ As colunas W5 do híbrido são **estimativa, não decisão** (o runtime de naveg
 
 Aprovada a lista de pins e a política **sem download em tempo de execução; sem cache = BLOCKED**.
 
-| Pin                                          | Licença esperada\*               | Estado no host                                  |
-| -------------------------------------------- | -------------------------------- | ----------------------------------------------- |
-| `typescript` / `typescript-language-server`  | Apache-2.0                       | `typescript` 5.9.3 transitivo; servidor ausente |
-| `pyright`                                    | MIT                              | ausente                                         |
-| `debugpy`                                    | MIT                              | ausente                                         |
-| `js-debug`                                   | MIT                              | ausente                                         |
-| `playwright-core` + Chromium `chromium-1228` | Apache-2.0 + BSD-3 e componentes | Chromium presente; pacote a fixar               |
-| `Xvfb`, `xwd`                                | X11 (estilo MIT)                 | presentes                                       |
-| `xdotool` (BSD), pin externo                 | BSD                              | ausente                                         |
+| Pin                                              | Licença esperada\*               | Estado no host                                  |
+| ------------------------------------------------ | -------------------------------- | ----------------------------------------------- |
+| `typescript` / `typescript-language-server`      | Apache-2.0                       | `typescript` 5.9.3 transitivo; servidor ausente |
+| `pyright`                                        | MIT                              | ausente                                         |
+| `debugpy`                                        | MIT                              | ausente                                         |
+| `js-debug`                                       | MIT                              | ausente                                         |
+| `playwright-core` + `chrome-headless-shell-1228` | Apache-2.0 + BSD-3 e componentes | Chromium presente; pacote a fixar               |
+| `Xvfb`, `xwd`                                    | X11 (estilo MIT)                 | presentes                                       |
+| `xdotool` (BSD), pin externo                     | BSD                              | ausente                                         |
 
 \*Licenças conforme os projetos oficiais; **não conferidas** nesta task. A conferência de licença **no artefato fixado** é critério de aceite de cada task de capacidade (W5-02b1 para o ensaio do Chromium, W5-05, W5-06, W5-07, W5-08). `python-xlib` (LGPL-2.1+) foi retirado das alternativas: a entrada X11 é `xdotool`.
 

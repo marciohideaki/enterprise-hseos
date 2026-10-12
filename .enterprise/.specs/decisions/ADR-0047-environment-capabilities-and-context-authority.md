@@ -35,7 +35,7 @@ escopo, egresso de rede, controle de display) e a de distribuição (binários p
    ficam no core, com carregamento tardio das dependências pesadas e sem dependência npm nova.
    Cada capacidade também é empacotável como plugin em `plugins/*` (kind `tool`) a partir da
    mesma implementação, sem duplicar código (teste de paridade de digest). Binários e
-   `playwright-core` (Chromium `chromium-1228`, `typescript-language-server`, `pyright`,
+   `playwright-core` (`chrome-headless-shell-1228`, `typescript-language-server`, `pyright`,
    `debugpy`, `js-debug`, `xdotool`) são pins fixados por digest em cache offline, fora dos
    tarballs; sem download em tempo de execução e sem cache o resultado é BLOCKED. Computer-use
    só em display virtual isolado, com aprovação por ação; a entrada X11 é `xdotool` (BSD).
