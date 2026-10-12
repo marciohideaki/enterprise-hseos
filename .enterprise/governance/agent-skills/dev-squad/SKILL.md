@@ -95,6 +95,25 @@ SWARM generates commit messages for each task based on the task's Goal and FILES
 
 ---
 
+## No Silent Idle (dispatch contract)
+
+Every subagent or teammate prompt dispatched by SWARM MUST carry this clause verbatim. It is additive: without `.hseos/config/agent-liveness.yaml`, or with `enabled: false`, nothing about the flow changes.
+
+> **NO SILENT IDLE.** Background-task and Monitor notices do NOT wake you once your turn ends.
+> - Never end a turn saying "waiting" / "aguardando". Run long commands in the foreground, in blocks of at most 540 s (`timeout 540 bash -c 'until <condition>; do sleep 15; done'`), repeating until the result is out.
+> - End the final turn with exactly one last line:
+>   `LIVENESS: {"state":"DONE"|"BLOCKED"|"FAILED"|"WAITING_ON","reason":"...","evidence":"<hash|path|run id>"}`
+> - Use `WAITING_ON` for a third party, including a pending decision from the Commander or a human (that is a wait, never `BLOCKED`), with `"waiting_on":{"condition":"...","wake_via":"commander"|"human","deadline_at":"<ISO-8601 within max_wait_deadline_s>"}`. `wake_via: self` does not exist. Waiting on your own process is never a reason to end the turn.
+> - Compute `deadline_at` with `date -u` at the moment you emit the line; never type a clock time from memory. `BLOCKED` is only for a real impediment, with its cause in `reason`.
+
+Commander rules:
+- Treat a missing or invalid LIVENESS line as BLOCKED, never as DONE.
+- When `liveness-wake-inbox` injects a wake request into the prompt, `SendMessage` the named agent before anything else.
+- With the contract enabled, `liveness-stop-guard` (Stop, SubagentStop, TeammateIdle) refuses an end of turn without a valid LIVENESS line, or with background tasks active and no valid `WAITING_ON`, up to `max_stop_refusals`; afterwards the turn passes and an `idle_violation` is recorded. Refusals are not correction rounds (the 3-round limit is separate).
+- The state is declared and validated. Prose is never classified by regex.
+- A task under review is pinned to the reviewed SHA: its executor is frozen (no commit, amend, reset or squash) until the verdict. Corrections arrive in one round the Commander opens afterwards. If HEAD moves during the review, the review is void and is reported as `REVIEW_TARGET_MOVED`.
+- `deadline_at` of a `WAITING_ON` with `wake_via: commander|human` may reach `max_wait_deadline_s` (default 14400); silence without a declared state is still bounded by `stall_timeout_s`.
+
 ## Run Directory Convention
 
 Under HSEOS:

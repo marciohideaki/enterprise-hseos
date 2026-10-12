@@ -23,9 +23,9 @@ platforms:
   - goose
 counts:
   skills: 53
-  hooks: 39
+  hooks: 43
   commands: 9
-  handlers: 28
+  handlers: 29
   agents: 16
   mcp_servers: 8
 skills:
@@ -123,7 +123,7 @@ skills:
     source: .enterprise/governance/agent-skills/dev-squad/SKILL.md
     quick: .enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md
     output: .agents/skills/dev-squad/SKILL.md
-    hash: 11c58373efad1130d2943fcab42b92415dcfdd6ec7210f6580931737128dcae6
+    hash: c16fe8113acdbe7c47de664dff24ef7e411636da06d285e9fa106367e510af3b
   - name: doc-project
     source: .enterprise/governance/agent-skills/doc-project/SKILL.md
     quick: .enterprise/governance/agent-skills/doc-project/SKILL-QUICK.md
@@ -490,6 +490,26 @@ hooks:
     matcher: "*"
     platform_support:
       - claude-code
+  - id: stop-all-liveness-stop-guard
+    event: Stop
+    matcher: "*"
+    platform_support:
+      - claude-code
+  - id: subagentstop-all-liveness-stop-guard
+    event: SubagentStop
+    matcher: "*"
+    platform_support:
+      - claude-code
+  - id: teammateidle-all-liveness-stop-guard
+    event: TeammateIdle
+    matcher: "*"
+    platform_support:
+      - claude-code
+  - id: userpromptsubmit-all-liveness-wake-inbox
+    event: UserPromptSubmit
+    matcher: "*"
+    platform_support:
+      - claude-code
 commands:
   - name: hseos-workflow-delivery-readiness
     type: workflow
@@ -575,7 +595,10 @@ handlers:
     sha256: 3767def30c2c9b50a02d02f24d6f68ee1cb4064c4b6ad3f2fe6aa03c04a9afac
   - file: .agents/hooks/handlers/governance-context.cjs
     source: .enterprise/governance/hooks/handlers/governance-context.cjs
-    sha256: 5650bbde19aa9edda3940332f7af24f06c78b5ce9ed46cc754c0b093160391ce
+    sha256: 0ab6e3274b314023a0b1630ac82c0a837fb0b00f55fd18f41643fd94e6765442
+  - file: .agents/hooks/handlers/liveness-guard.cjs
+    source: .enterprise/governance/hooks/handlers/liveness-guard.cjs
+    sha256: 53f5649e18ac2c9fc5006d030d37eb2f295385ecdff24281335d849d46b64569
   - file: .agents/hooks/handlers/managed-governance-preflight.sh
     source: .enterprise/governance/hooks/handlers/managed-governance-preflight.sh
     sha256: 2f067333688c969dc476f24480d83f7151682ccd559cdff07cbac3e4fe685961

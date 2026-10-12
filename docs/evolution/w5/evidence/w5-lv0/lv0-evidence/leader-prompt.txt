@@ -1,0 +1,4 @@
+Teste de infraestrutura. Faça EXATAMENTE isto:
+1) Use a ferramenta Agent para criar um subagente (subagent_type general-purpose, model haiku, name lv0-sub) com este prompt: "Execute `echo hello` com Bash usando run_in_background true e, logo depois, encerre o turno respondendo apenas WAITING. Não faça polling." Aguarde o retorno dele.
+2) Depois rode em primeiro plano: timeout 50 bash -c 'sleep 40'.
+3) Imprima DONE.

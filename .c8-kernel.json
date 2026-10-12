@@ -41,7 +41,10 @@
     "tools/cli/lib/job-worker.js",
     "tools/cli/lib/job-materialization.js",
     "tools/cli/lib/job-dispatch.js",
-    "tools/mcp-project-state/lib/execution-ledger-schema.js"
+    "tools/mcp-project-state/lib/execution-ledger-schema.js",
+    ".agents/hooks/handlers/liveness-guard.cjs",
+    ".enterprise/governance/hooks/handlers/liveness-guard.cjs",
+    "docs/evolution/w5/liveness-idle-metric.mjs"
   ],
   "exclude": ["**/node_modules/**", "test/**"],
   "reporter": ["text", "json-summary", "json"],
