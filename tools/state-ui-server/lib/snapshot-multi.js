@@ -44,7 +44,7 @@ function snapshotForProject(project, opts) {
     return { project, snap: null, status: 'error', error: error.message };
   }
   try {
-    const snap = takeSnapshot(db, opts);
+    const snap = takeSnapshot(db, { ...opts, projectDirectory: project.path });
     return { project, snap, status: 'ok' };
   } catch (error) {
     return { project, snap: null, status: 'error', error: error.message };
@@ -78,6 +78,7 @@ function takeMultiSnapshot(registry, opts = {}) {
   const agentRuns = [];
   const events = [];
   const orphans = [];
+  const liveness = [];
   const counts = emptyCounts();
   const counts_by_project = {};
   const branches = new Set();
@@ -111,6 +112,7 @@ function takeMultiSnapshot(registry, opts = {}) {
     tasks.push(...tag(s.tasks || [], project.id));
     agentRuns.push(...tag(s.agentRuns || [], project.id));
     events.push(...tag(s.events || [], project.id));
+    liveness.push(...tag(s.liveness || [], project.id));
     for (const oid of s.orphans || []) orphans.push({ project_id: project.id, agent_run_id: oid });
     counts_by_project[project.id] = s.counts ? { ...emptyCounts(), ...s.counts } : emptyCounts();
     for (const k of STATUSES) counts[k] += s.counts?.[k] || 0;
@@ -129,6 +131,7 @@ function takeMultiSnapshot(registry, opts = {}) {
     agentRuns,
     events: events.slice(0, opts.eventLimit || 100),
     orphans,
+    liveness,
     counts,
     counts_by_project,
     projects: projects_meta.map((p) => p.id),

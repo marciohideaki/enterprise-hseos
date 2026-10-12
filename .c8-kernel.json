@@ -41,7 +41,12 @@
     "tools/cli/lib/job-worker.js",
     "tools/cli/lib/job-materialization.js",
     "tools/cli/lib/job-dispatch.js",
-    "tools/mcp-project-state/lib/execution-ledger-schema.js"
+    "tools/mcp-project-state/lib/execution-ledger-schema.js",
+    "tools/lib/agent-liveness-contract.js",
+    "tools/lib/agent-liveness.js",
+    "tools/cli/commands/liveness.js",
+    "tools/state-ui-server/lib/snapshot.js",
+    "tools/state-ui-server/lib/snapshot-multi.js"
   ],
   "exclude": ["**/node_modules/**", "test/**"],
   "reporter": ["text", "json-summary", "json"],

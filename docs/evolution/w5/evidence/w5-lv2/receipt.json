@@ -1,0 +1,178 @@
+{
+  "task": "W5-LV2",
+  "base": "231de2e3",
+  "spec": ".specs/features/harness-w5/liveness.md#w5-lv2",
+  "generated_at": "2026-10-12T20:01:38.213Z",
+  "files_sha256": {
+    "tools/lib/agent-liveness-contract.js": "c14dca6253910add9a2008258713bd1d8968bc3c1f29dde90b2cce8a79e42d2a",
+    "tools/lib/agent-liveness.js": "dac25640181869ae6709602622ff228e4e83727e8bf3f32ccc834d9ec6bef709",
+    "tools/cli/commands/liveness.js": "9704d0f4c3dea2487ae72ae4db36a5af7226a49851a550ff1aba672f07cb4cd6",
+    "tools/cli/commands/kanban.js": "ea9d519b4ccf698db225444a6eb8f7b445f06a67412e6470311b1f998d74c0ae",
+    "tools/cli/commands/state-ui.js": "e18e2b8b56158466024879b0c42d1f685e3edb9065dad9443867c08f744e1de7",
+    "tools/state-ui-server/lib/snapshot.js": "4599e1f8c276c4718a2098015106ba1b5899ff3df71e66fa1640cf38f68f7d39",
+    "tools/state-ui-server/lib/snapshot-multi.js": "74c8eb977e731e07c76769365ad73780058c5e9d3fc11955737ee273d5f9e9ab",
+    "tools/state-ui-server/index.js": "94ba41761fbb5c7904adf19ff8b859bb814602eb77d467d0d80334499720b55b",
+    "test/test-agent-liveness.js": "ed4a37d41eecca0623ffe3809775241d6ec1ca28af6bcc93d0479713eaf336a3",
+    ".hseos/config/agent-liveness.yaml": "2ce05e94bbfbc36506b62ce647071bea888d316621905a81535b1b823d8fec6f",
+    "tools/cli/command-manifest.json": "e29cc28ab50c5b6bfd1a7dbf4e5bc0e99fb29472e5fe164ae09bc9c32147f703",
+    "AGENTS.md": "c3cd4194b0904dc4918194a4600dbd08e4d24f8d587239f42e962e4e6944c7f8",
+    ".enterprise/governance/agent-skills/dev-squad/SKILL.md": "8bacb6d93d7ac5665103663f3f11384515557d7ac75c37b56e47ed045c850ae8",
+    ".agents/skills/dev-squad/SKILL.md": "0128e70de71575e33cf56811823cec51dcdb64d3bd9b628d20c50a601bc2a371",
+    "docs/evolution/w5/evidence/w5-lv/SYMPHONY-GAP.md": "6de8c9817a0b09194a0695334c16f1f7cee5244287fdd1b031965a257e049fb7"
+  },
+  "tests": {
+    "file": "test/test-agent-liveness.js",
+    "passed": 66,
+    "failed": 0,
+    "runner": "node --test via /tmp/hseos-w5/run-in-cgroup.sh",
+    "node": "v24.15.0"
+  },
+  "coverage_per_file": {
+    "tools/cli/commands/liveness.js": {
+      "lines": 100,
+      "branches": 98.26
+    },
+    "tools/lib/agent-liveness-contract.js": {
+      "lines": 100,
+      "branches": 97.05
+    },
+    "tools/lib/agent-liveness.js": {
+      "lines": 98.6,
+      "branches": 95.51
+    },
+    "tools/state-ui-server/lib/snapshot-multi.js": {
+      "lines": 100,
+      "branches": 98.18
+    },
+    "tools/state-ui-server/lib/snapshot.js": {
+      "lines": 98.21,
+      "branches": 93.18
+    }
+  },
+  "coverage_policy": {
+    "lines": 90,
+    "branches": 80,
+    "per_file": true
+  },
+  "related_suites_passed": [
+    "test/test-kernel-quality-surface.js",
+    "test/test-capability-graph-governance.js",
+    "test/test-package-surface.js",
+    "test/test-agent-state-dal.js",
+    "test/test-state-cli.js",
+    "test/test-kanban-cli.js",
+    "test/test-kanban-central.js",
+    "test/test-state-ui.js"
+  ],
+  "static_checks": {
+    "eslint": "0 problems on new js files",
+    "prettier": "clean",
+    "check_cli": "ok",
+    "validate_capability_graph": "0 findings"
+  },
+  "package_count": {
+    "base": 1461,
+    "after": 1465,
+    "areas": {
+      "tools": {
+        "base": 376,
+        "after": 379,
+        "budget": 393
+      },
+      ".hseos": {
+        "base": 61,
+        "after": 62,
+        "budget": 62
+      },
+      ".agents": {
+        "base": 186,
+        "after": 186,
+        "budget": 193
+      }
+    },
+    "tool": "node v24.15.0 npm pack --dry-run --json --ignore-scripts",
+    "g3": "G3 approved by the owner: the .hseos budget rises to 64 and the total ceiling by 2, adjusted by the Commander at integration; this task adds no file in .hseos beyond the 62 measured"
+  },
+  "acceptance": {
+    "absent_or_disabled_changes_nothing": "cli test: report/check/watch exit 0, no .hseos/state created; await is a pure helper",
+    "state_list_orphans_compatible": "ledger is a separate additive table without user_version bump; test asserts as_agent_runs.last_heartbeat_at untouched and listOrphans empty; test-state-cli passes",
+    "lease_overdue_never_kill_or_takeover": "watch test: lapsed lease -> overdue event, stalled -> wake -> escalation; no workflow run or agent run mutated",
+    "watch_reconciles_before_acting": "watch test: moved worktree HEAD suppresses wake and renews the lease only by an observed-progress heartbeat; pid/status file enrich the wake reason",
+    "turn_end_not_heartbeat": "classifier and ledger tests",
+    "await_never_exceeds_foreground_wait_max_s": "await test: --max 100000 clamped to 540, clamped=true; exit 75 when pending",
+    "synthetic_rehearsal": "run with only turn_end -> idle_no_state + wake request in the first cycle; WAITING_ON past deadline -> waiting_overdue, 3 wakes with backoff 60/120 s, then escalation (jsonl + notifier)"
+  },
+  "design_decisions": [
+    "Liveness events live in table as_liveness_events created idempotently (no migration number, no user_version bump): OPERATIONAL_SCHEMA_VERSION is 4 and assertOperationalSchemaBoundary rejects higher versions; as_events has a closed kind CHECK.",
+    "Extra event kind heartbeat (not in the spec list) is needed as the only activity signal that is not turn_end; recorded by report --event heartbeat, by await ticks and by watch reconciliation.",
+    "report accepts --event turn_end|heartbeat plus --pid/--status-file/--worktree (source of truth); the fixed LV1 interface report --json <line> is unchanged.",
+    "DONE requires evidence; WAITING_ON deadline must be future and within stall_timeout_s.",
+    "wake_via human escalates on overdue without wake attempts."
+  ],
+  "not_verified": [
+    "systemd units were rendered and escaped-tested, never installed or run under systemd",
+    "notify-send delivery not exercised (notifier injected in tests)",
+    "no run against a live Claude Code or Codex session; LV1 hook integration not exercised",
+    "full test:kernel, full npm test and the pre-commit gate are not part of this receipt",
+    "job status reconciliation covers as_agent_runs/as_runs only: the W4 job ledger (execution_events) is pending activation in the operational DB, so job state is not consulted",
+    "tokens per run (not implemented: SubagentStop payload has no tokens)",
+    "Codex SubagentStop behavior",
+    "wake_via human/commander WAITING_ON with long deadlines was exercised only in the ledger and unit tests, not in a real session",
+    "pending-reports drain against a live guard invocation in a real Claude Code or Codex session",
+    "notify-send displaying a real notification"
+  ],
+  "adendo_1": {
+    "1_await_heartbeat_60s": "test: 540 s await writes heartbeats at most 60 s apart; classifier never overdue at 30 s steps",
+    "2_reason_code": "enumerated on report, wait_declared, idle_violation, overdue, wake_sent; counted per code in check metrics. The enum has no code for mid-turn silence: foreground_cap_exceeded is used for stalled-mid-turn and lease lapse",
+    "3_blocked_failed": "own classes, notify once (jsonl + notifier), blocked_age_s, never woken",
+    "4_run_status_reconcile": "as_agent_runs/as_runs ended (completed|aborted|killed) -> done, no wake",
+    "5_config_no_cache": "re-read each call; last valid kept in .hseos/state/liveness/last-valid-config.json with warning",
+    "6_evidence": "path | commit in worktree HEAD | run id in as_runs -> evidence_verified, alert only",
+    "7_max_wakes_per_cycle": "default 3; oldest first; rest deferred",
+    "8_inbox_rebuild": "rebuilt from wake_sent events; check reads the ledger",
+    "9_state_ui": "snapshot.liveness rows {class, reason_code, idle_for_s, wake_attempts}",
+    "10_tokens": "NOT IMPLEMENTED by Commander decision: the real SubagentStop payload (LV0-SPIKE) carries no tokens; recorded as NOT VERIFIED"
+  },
+  "codex_parity": "Codex 0.162.1 has a Stop hook (stop_hook_active) and UserPromptSubmit additionalContext (spike CO0); hooks need trusted_hash in config.toml. AGENTS.md section 12 and the dev-squad skill no longer declare a Stop-hook gap. Codex SubagentStop exists in the schema, not exercised (NOT VERIFIED). Install template belongs to CO2.",
+  "coverage_note": "c8 with explicit --include of the 5 files over test/test-agent-liveness.js ALONE (the only liveness test in test:kernel), per-file 90/80. Supersedes the round-1 figures for snapshot.js (100/95.65) and snapshot-multi.js (98.6/80.35), which review 2 refuted (measured 98.21/93.33 and 98.6/79.62).",
+  "logs_sha256": {
+    "coverage_run": "1db026dd6f9c482f4210c5e054d42133062f3de5e7070bfe98cc9979157ff318",
+    "related_suites": "4fa94a49fc2139b20cdc1073d82b405d83bb142978226dde9d8f03079e11dadc"
+  },
+  "logs_note": "logs kept outside the package: /tmp/hseos-w5/lv2-r3-coverage.log and /tmp/hseos-w5/lv2-r3-related.log",
+  "review_round_1": {
+    "F1": "lapsed lease raises overdue and, in the same cycle, a wake (reason_code heartbeat_lease_expired) counted in max_wake_attempts; exhausting them escalates (test: escalation at +820 s, before stall_timeout_s)",
+    "F2": "wake count, escalation and idle_violation are per run since the last LIVENESS report; activity, turn_end and heartbeat do not reset them (test: 6 ping-pong rounds -> 3 wakes, 1 escalation, 1 idle_violation)",
+    "F3": "evidence path resolved by realpath and contained in the worktree (not the worktree itself); commit must be a unique >=7 hex prefix reachable from the worktree HEAD (tests: ., ./, /, /etc/passwd, symlink escape, ../, side-branch commit, short prefix)",
+    "F4": "snapshot-multi carries liveness tagged by project_id; snapshots use the project agent-liveness.yaml (disabled => no rows) and a ledger-only inert io, so the HTTP/kanban path never runs git or probes pids",
+    "F5": "kept by design and documented: a worktree HEAD that moved after the last event is progress by the agent; the watchdog records a heartbeat with source=reconcile and the new head, so the lease is renewed only by observed progress",
+    "F6": "as_liveness_events stays outside numbered migrations: OPERATIONAL_SCHEMA_VERSION is 4 and assertOperationalSchemaBoundary rejects any higher user_version, and as_events has a closed kind CHECK; CREATE stays idempotent and assertLivenessSchema (columns + index) fails closed with LIVENESS_SCHEMA_DRIFT on write-open and on load (test)",
+    "F7": "backslash, dollar, percent and quote are escaped in the systemd units (test)",
+    "F8": "check, await and watch --print-systemd never write last-valid-config.json; report and watch do (test)",
+    "F9": "git, pid and status-file reconciliation run before the IMMEDIATE transaction and its observations are reused inside it; inbox and escalations.jsonl are written after the commit and a lost inbox file is rebuilt from the ledger (test asserts db.inTransaction is false during reconciliation I/O)",
+    "F10": "tokens removed",
+    "F11": "AGENTS.md section 12 lists the 8 classes once and the 12 reason codes"
+  },
+  "reason_codes_added": ["stall_no_activity (mid-turn silence)", "heartbeat_lease_expired (lapsed lease)"],
+  "review_round_2": {
+    "R1": "incident model: the escalation closes the incident, any later agent event (heartbeat, turn_end, reconcile heartbeat on a HEAD change) opens a new one with a zeroed count; inside an incident only a valid report resets the count. Tests: second incident (return, silence, woken and escalated again), HEAD change after escalation, turn_end alone, report reset. planAction returns none for a closed incident.",
+    "R2": "snapshot-multi.js 100/98.18 and snapshot.js 98.21/93.18 measured with test-agent-liveness.js alone; tests use real databases, a corrupt and an unopenable db, the project filter, a missing driver and partial snapshots with a failing close",
+    "R3": "as_liveness_outbox: escalation and notification rows are inserted in the decision transaction and delivered after the commit; the jsonl line is written once per outbox id, the notification is at-least-once, a failed delivery stays pending and is redelivered next cycle (tests: simulated crash between commit and delivery, retry after notifier failure, no duplicate line)",
+    "R4": "test spies on child_process (the lib calls it through the module object): the snapshot/multi-snapshot path spawns nothing, the watchdog default io reaches git once (mutant k15 now killed); state-ui gets the project directory from --project-dir passed by the state-ui command, with no guess from the db path",
+    "R5": "AGENTS.md section 12 and the dev-squad skill state that a lapsed lease wakes the agent even mid-turn and long operations must use hseos liveness await",
+    "A2_1_and_item2": "waiting_ok and wait_declared use waiting_on_declared; report refuses (exit 2) a reason_code incoherent with the declared state; metrics keep waits, completions and blocked runs apart",
+    "item1": "max_wait_deadline_s (default 14400, 60..604800, not below stall_timeout_s) in the schema, validator, example yaml and LIVENESS line validation",
+    "rule2": "BLOCKED only for a real impediment; waiting for a decision is WAITING_ON (AGENTS.md section 12 and the skill)"
+  },
+  "review_round_3": {
+    "notifications": "defaultNotify throws when notify-send is missing, fails or exits non-zero; every outbox row counts attempts with exponential backoff (60 s doubling, 1 h cap) and is marked gave_up after max_notify_attempts (default 10, in schema, validator and example yaml); escalations.jsonl stays the durable record; check shows outbox pending/gave_up; delivered and gave_up rows older than 7 days are pruned; delivery per cycle is bounded by a batch of 10 and a time budget of half of watch_interval_s (tests: missing notify-send, status 1, gave_up, prune, 200 pending rows, slow notifier)",
+    "schema": "column name/type/NOT NULL/primary key/default and the expected indexes of as_liveness_events, as_liveness_outbox and as_liveness_meta are verified; a schema marker row in as_liveness_meta makes a missing table fail closed (LIVENESS_SCHEMA_DRIFT) instead of recreating an empty outbox; a ledger without the marker is upgraded in place (tests)",
+    "lv1_link": "watch drains .hseos/state/liveness/pending-reports.jsonl written by the LV1 stop guard (3a0a5ae6, read only; record {at, session, agent, reason_code, line}): atomic rename, per-line sha256 key stored as source_key on the report event, validated as of the line timestamp, session/agent sanitised like the guard, invalid lines kept in pending-reports.invalid.jsonl with warnings, duplicate and crash-leftover draining files are no-ops. The fixture is one record produced by running the real guard (BLOCKED) plus records of the same shape",
+    "residue": [
+      "as_liveness_* tables stay outside numbered migrations (schema v4 ceiling); the outbox is pruned after 7 days but the events table has no retention",
+      "the real guard was run only for a BLOCKED line (DONE and WAITING_ON lines of the same code path are fixtures), and the guard config parser may reject the new keys (max_wakes_per_cycle, max_wait_deadline_s, max_notify_attempts) until the LV1 integration",
+      "notification delivery remains at-least-once",
+      "F5 (agent commit read as progress), missing --project-dir only shows an empty liveness list, and the dead stall_timeout_s branch for waits in parseLivenessLine are accepted residues"
+    ]
+  }
+}

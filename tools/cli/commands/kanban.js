@@ -198,6 +198,7 @@ module.exports = {
     const snapOpts = {
       staleMinutes: Number.parseInt(options.staleMinutes, 10) || 10,
       run: options.run || null,
+      projectDirectory: directory,
     };
 
     const renderTick = () => {
