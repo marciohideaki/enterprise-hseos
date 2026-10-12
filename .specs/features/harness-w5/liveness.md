@@ -154,3 +154,18 @@ Fora da trilha, registrado em `docs/evolution/w5/STATUS.md` para decisão do own
   - varredura de worktrees terminais;
   - logs `key=value`;
   - pool SSH (W7).
+
+## Adendo 2 — regras de processo do squad (2026-10-12)
+
+Aprovadas pelo owner depois de inconsistências observadas na execução da própria trilha. A W5-LV2 fez reset e squash duas vezes durante a revisão, chegando a mudar a árvore. Uma revisão da W5-LV1 rodou sobre um commit superado. Um executor congelado declarou `BLOCKED`. Estas regras são de processo: entram na cláusula "no silent idle" do workflow e da skill dev-squad, e no classificador da LV2 só onde indicado.
+
+1. **Revisão presa a um SHA.**
+   - Toda revisão cética nomeia o commit revisado (SHA) e o hash da árvore (`git rev-parse <sha>^{tree}`).
+   - Enquanto a revisão estiver em curso, o executor fica congelado: sem commit, amend, reset ou squash no branch.
+   - Qualquer mudança no HEAD durante a revisão a invalida. O revisor reporta `REVIEW_TARGET_MOVED` e não emite veredito sobre a árvore nova.
+   - Correções vão juntas numa rodada só, aberta pelo Commander depois do veredito. Squash para cumprir "1 task = 1 commit" só é feito fora de revisão ou com árvore idêntica comprovada.
+   - Uma revisão que termina com o HEAD diferente do SHA revisado não vale como aprovação.
+2. **Aguardar decisão não é bloqueio.**
+   - Um agente que espera uma decisão do Commander ou do humano (resultado de revisão, congelamento, aprovação) declara `WAITING_ON`, com a condição explícita, `wake_via: commander` ou `human` e `deadline_at`.
+   - `BLOCKED` fica reservado para impedimento que o agente não consegue resolver e que exige mudança de escopo, de capacidade ou de decisão ainda não pedida, sempre com a causa.
+   - O classificador da LV2 trata como `waiting_ok` ou `waiting_overdue` quem declarou `WAITING_ON`, e só conta como `blocked` quem declarou `BLOCKED`. As métricas por `reason_code` não misturam os dois.
