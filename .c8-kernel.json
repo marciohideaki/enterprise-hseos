@@ -41,7 +41,13 @@
     "tools/cli/lib/job-worker.js",
     "tools/cli/lib/job-materialization.js",
     "tools/cli/lib/job-dispatch.js",
-    "tools/mcp-project-state/lib/execution-ledger-schema.js"
+    "tools/mcp-project-state/lib/execution-ledger-schema.js",
+    "packages/agent-context/schemas.js",
+    "packages/agent-context/context-assembler.js",
+    "packages/agent-context/token-counter.js",
+    "packages/agent-context/authority.js",
+    "packages/agent-context/media-store.js",
+    "packages/agent-runtime-contracts/content-parts.js"
   ],
   "exclude": ["**/node_modules/**", "test/**"],
   "reporter": ["text", "json-summary", "json"],
