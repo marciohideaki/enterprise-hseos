@@ -73,6 +73,18 @@ for (const [label, guardFile] of GUARDS) {
     assert.equal(run.state, 'done');
     assert.equal(run.reason_code, 'declared');
     assert.equal(run.violation, false);
+    // The guard must also close the turn with the real CLI: without turn_end the watchdog cannot tell a
+    // finished turn from a silent one.
+    const db = require('../tools/lib/agent-liveness').openLivenessDb(root);
+    try {
+      const kinds = db
+        .prepare("SELECT kind FROM as_liveness_events WHERE session = 's1' AND agent = 'a1' ORDER BY id")
+        .all()
+        .map((row) => row.kind);
+      assert.ok(kinds.includes('turn_end'), `turn_end was not recorded: ${kinds.join(',')}`);
+    } finally {
+      db.close();
+    }
   });
 
   test(`[${label}] an unknown config key only warns in the guard, the CLI and the watch alike`, () => {

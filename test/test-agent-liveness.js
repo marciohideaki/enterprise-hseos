@@ -1496,6 +1496,40 @@ test('systemd: backslash, dollar, percent and quote are escaped', () => {
   assert.ok(units.service.includes(String.raw`--directory "/tmp/a$$HOME b\\ 50%%\"q\""`));
 });
 
+test('watch: an unknown key that appears on a later cycle warns once and never stops the watch', async () => {
+  const directory = tmpProject();
+  const file = path.join(directory, '.hseos', 'config', 'agent-liveness.yaml');
+  let clock = T0;
+  const sleeps = [];
+  const sleep = async (ms) => {
+    sleeps.push(ms);
+    clock += ms;
+    // The key shows up after the first cycle and stays for the following ones.
+    fs.writeFileSync(file, 'enabled: true\nlater_key: 1\n');
+  };
+  const warnings = [];
+  const original = console.error;
+  console.error = (line) => warnings.push(String(line));
+  let result;
+  try {
+    result = await command._internal.run(
+      'watch',
+      { directory, maxCycles: 3 },
+      { now: () => clock, sleep, notify: () => {}, reconcile: NO_IO },
+    );
+  } finally {
+    console.error = original;
+  }
+  assert.equal(result.code, 0);
+  assert.equal(result.body.cycles.length, 3);
+  assert.equal(
+    result.body.cycles.every((cycle) => cycle.enabled === true),
+    true,
+  );
+  assert.equal(sleeps.length, 2);
+  assert.deepEqual(warnings, ['[hseos liveness] warning: unknown key ignored: later_key']);
+});
+
 test('last-valid config is written by report and watch only', async () => {
   const written = (directory) => fs.existsSync(path.join(directory, '.hseos', 'state', 'liveness', 'last-valid-config.json'));
   const directory = tmpProject();
