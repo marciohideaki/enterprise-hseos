@@ -193,6 +193,12 @@
             "command": "bash .agents/hooks/handlers/session-track.sh",
             "timeout": 5,
             "description": "Always-on session tracking: register each supported session in the active project's as_sessions store."
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/activity-coordination.sh",
+            "timeout": 8,
+            "description": "Cross-tool activity coordination: register the session and inject pending coordination events. No effect without an enabled .hseos/config/activity-coordination.yaml."
           }
         ]
       }
@@ -224,6 +230,12 @@
             "command": "node .agents/hooks/handlers/liveness-guard.cjs inbox",
             "timeout": 10,
             "description": "Inject pending liveness wake requests (.hseos/state/liveness/inbox) into the orchestrator prompt so it can SendMessage the stalled agents"
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/activity-coordination.sh",
+            "timeout": 8,
+            "description": "Cross-tool activity coordination: heartbeat and inject pending coordination events into the prompt. No effect without an enabled .hseos/config/activity-coordination.yaml."
           }
         ]
       }
@@ -267,6 +279,12 @@
             "command": "bash .agents/hooks/handlers/session-track.sh",
             "timeout": 5,
             "description": "Always-on session tracking: mark as_sessions row completed on session end"
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/activity-coordination.sh",
+            "timeout": 3,
+            "description": "Cross-tool activity coordination: end the activity. No effect without an enabled .hseos/config/activity-coordination.yaml."
           }
         ]
       }
@@ -297,6 +315,12 @@
             "command": "node .agents/hooks/handlers/liveness-guard.cjs stop",
             "timeout": 10,
             "description": "No silent idle: refuse a dispatched agent's end of turn without a valid final LIVENESS line, or with background tasks active and no valid WAITING_ON, up to max_stop_refusals; then record idle_violation and let it pass"
+          },
+          {
+            "type": "command",
+            "command": "bash .agents/hooks/handlers/activity-coordination.sh",
+            "timeout": 8,
+            "description": "Cross-tool activity coordination: heartbeat at turn end. No effect without an enabled .hseos/config/activity-coordination.yaml."
           }
         ]
       }

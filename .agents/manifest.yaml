@@ -23,9 +23,9 @@ platforms:
   - goose
 counts:
   skills: 53
-  hooks: 43
+  hooks: 47
   commands: 9
-  handlers: 29
+  handlers: 30
   agents: 16
   mcp_servers: 8
 skills:
@@ -168,7 +168,7 @@ skills:
     source: .enterprise/governance/agent-skills/inter-agent-comms/SKILL.md
     quick: .enterprise/governance/agent-skills/inter-agent-comms/SKILL-QUICK.md
     output: .agents/skills/inter-agent-comms/SKILL.md
-    hash: b514e21479ae6727f07ba770696456775cc9bc0a2b9d194af47edf365cf3d987
+    hash: 85f0101fc771fe9604d7ddeeebc291a9bd9456acb11430acc1bb6ce5b640d1aa
   - name: mcp-governance
     source: .enterprise/governance/agent-skills/mcp-governance/SKILL.md
     quick: .enterprise/governance/agent-skills/mcp-governance/SKILL-QUICK.md
@@ -510,6 +510,26 @@ hooks:
     matcher: "*"
     platform_support:
       - claude-code
+  - id: sessionstart-all-activity-coordination
+    event: SessionStart
+    matcher: "*"
+    platform_support:
+      - claude-code
+  - id: userpromptsubmit-all-activity-coordination
+    event: UserPromptSubmit
+    matcher: "*"
+    platform_support:
+      - claude-code
+  - id: stop-all-activity-coordination
+    event: Stop
+    matcher: "*"
+    platform_support:
+      - claude-code
+  - id: sessionend-all-activity-coordination
+    event: SessionEnd
+    matcher: "*"
+    platform_support:
+      - claude-code
 commands:
   - name: hseos-workflow-delivery-readiness
     type: workflow
@@ -554,6 +574,9 @@ handlers:
   - file: .agents/hooks/handlers/_ado-lib.sh
     source: .enterprise/governance/hooks/handlers/_ado-lib.sh
     sha256: bd2dbb5881fc0b01b6c0fbe3f71fba72305c9c93af60ebfe0def42e4536e2b33
+  - file: .agents/hooks/handlers/activity-coordination.sh
+    source: .enterprise/governance/hooks/handlers/activity-coordination.sh
+    sha256: c5f08ae27a9046b75edf6b6c8156b316d5bdef863157bc1b08984073cd8023a5
   - file: .agents/hooks/handlers/ado-branch-guard.sh
     source: .enterprise/governance/hooks/handlers/ado-branch-guard.sh
     sha256: 6f4b4278c67a10bbfaceb39d9971df68c12617491e6720eaaa1a1bcda1a26463
@@ -622,7 +645,7 @@ handlers:
     sha256: c331a2ff08666b2f13a4caa6b2a6e0405275654b5ea27788bcb00e7d53a9705b
   - file: .agents/hooks/handlers/session-track.sh
     source: .enterprise/governance/hooks/handlers/session-track.sh
-    sha256: 4b05d14c7cf1f8ab69544e78b6d2f59976b9bcda77d06b853f3b15d865a6c7d0
+    sha256: 04c67a38a24dbe464906b5f43986a880d2c13c71c0b07b80a7d80650a80e1d7b
   - file: .agents/hooks/handlers/suggest-skill.sh
     source: .enterprise/governance/hooks/handlers/suggest-skill.sh
     sha256: 87153f5431a380150acebd00f13ac75987c52f50112869965766f391bc00f0db

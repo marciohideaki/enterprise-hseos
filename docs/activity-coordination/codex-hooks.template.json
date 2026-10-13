@@ -1,0 +1,73 @@
+{
+  "_comment": "Template. Replace {{HSEOS_REPO}} with the absolute path of the HSEOS checkout and merge into ~/.codex/hooks.json. Writing this file is NOT enough: each hook must be trusted (trusted_hash in config.toml or via the TUI), see README. Verified in codex-cli 0.162.1 under codex exec (W5-CO0): SessionStart, UserPromptSubmit, Stop, SessionEnd fire and additionalContext reaches the model.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "HSEOS_AGENT_TOOL=codex bash {{HSEOS_REPO}}/.agents/hooks/handlers/session-track.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "HSEOS_AGENT_TOOL=codex bash {{HSEOS_REPO}}/.agents/hooks/handlers/activity-coordination.sh",
+            "timeout": 8
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "HSEOS_AGENT_TOOL=codex bash {{HSEOS_REPO}}/.agents/hooks/handlers/session-track.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "HSEOS_AGENT_TOOL=codex bash {{HSEOS_REPO}}/.agents/hooks/handlers/activity-coordination.sh",
+            "timeout": 8
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "HSEOS_AGENT_TOOL=codex bash {{HSEOS_REPO}}/.agents/hooks/handlers/session-track.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "HSEOS_AGENT_TOOL=codex bash {{HSEOS_REPO}}/.agents/hooks/handlers/activity-coordination.sh",
+            "timeout": 8
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "HSEOS_AGENT_TOOL=codex bash {{HSEOS_REPO}}/.agents/hooks/handlers/session-track.sh",
+            "timeout": 3
+          },
+          {
+            "type": "command",
+            "command": "HSEOS_AGENT_TOOL=codex bash {{HSEOS_REPO}}/.agents/hooks/handlers/activity-coordination.sh",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  }
+}
