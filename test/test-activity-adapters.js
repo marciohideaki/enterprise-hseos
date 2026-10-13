@@ -862,15 +862,19 @@ function shimDir({
   return dir;
 }
 
+let lastTrustStderr = '';
+
 function trustRun(shim, { events = ['SessionStart'], extraEnv = {} } = {}) {
   const repo = makeRepo(ENABLED);
   const copy = installCopy();
+  lastTrustStderr = '';
   for (const event of events) {
-    spawnSync('bash', [copy.handler], {
+    const result = spawnSync('bash', [copy.handler], {
       input: JSON.stringify({ hook_event_name: event, session_id: 't1', cwd: repo }),
       encoding: 'utf8',
       env: { ...process.env, HSEOS_ACTIVITY_CLI: '', HSEOS_CLI_PATH: '', PATH: `${shim}:${process.env.PATH}`, ...extraEnv },
     });
+    lastTrustStderr += result.stderr;
   }
   return fs.existsSync(copy.log);
 }
@@ -902,6 +906,13 @@ test('group-writable CLI is accepted only when the group is private to the user'
   );
   assert.equal(trustRun(shimDir({ mode: '757' })), false, 'world-writable');
   assert.equal(trustRun(shimDir({ mode: '755', group: '2000' })), true, 'group not writable');
+});
+
+test('refusing a group-writable CLI is never silent: the reason goes to stderr', { skip: !HAS_JQ }, () => {
+  assert.equal(trustRun(shimDir({ mode: '775', getentExit: 2 })), false);
+  assert.match(lastTrustStderr, /\[ACTIVITY\] adapter degraded: group-writable CLI refused \(.*hseos-cli\.js\): its group is not private to the user/);
+  assert.equal(trustRun(shimDir({ mode: '775' })), true);
+  assert.doesNotMatch(lastTrustStderr, /group-writable CLI refused/, 'a private group is accepted without a warning');
 });
 
 test('the global hseos on PATH is the last fallback and is validated', { skip: !HAS_JQ }, () => {

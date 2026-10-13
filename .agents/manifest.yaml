@@ -576,7 +576,7 @@ handlers:
     sha256: bd2dbb5881fc0b01b6c0fbe3f71fba72305c9c93af60ebfe0def42e4536e2b33
   - file: .agents/hooks/handlers/activity-coordination.sh
     source: .enterprise/governance/hooks/handlers/activity-coordination.sh
-    sha256: c5f08ae27a9046b75edf6b6c8156b316d5bdef863157bc1b08984073cd8023a5
+    sha256: eb775b08a234a2763c39abe2055fe52397339d13ac776f5415bb52993416deed
   - file: .agents/hooks/handlers/ado-branch-guard.sh
     source: .enterprise/governance/hooks/handlers/ado-branch-guard.sh
     sha256: 6f4b4278c67a10bbfaceb39d9971df68c12617491e6720eaaa1a1bcda1a26463

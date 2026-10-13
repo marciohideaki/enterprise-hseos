@@ -77,7 +77,10 @@ use_cli_path() {
   [[ "$owner" == "$(id -u)" || "$owner" == "0" ]] || return 1
   [[ "$mode" =~ ^[0-7]+$ ]] || return 1
   (( (8#$mode & 002) == 0 )) || return 1
-  if (( (8#$mode & 020) != 0 )) && ! private_group "$group"; then return 1; fi
+  if (( (8#$mode & 020) != 0 )) && ! private_group "$group"; then
+    warn "group-writable CLI refused ($resolved): its group is not private to the user"
+    return 1
+  fi
   if [[ "$resolved" == *.js ]]; then HSEOS_COMMAND=(node "$resolved"); elif [[ -x "$resolved" ]]; then HSEOS_COMMAND=("$resolved"); else return 1; fi
 }
 
