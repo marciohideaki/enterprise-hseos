@@ -1,0 +1,223 @@
+{
+  "task": "integration of wave B1 plus LV/CO tracks",
+  "branch": "integration/hseos-w5-b1",
+  "base": "07bd5e97",
+  "verified_head": "35440fa5",
+  "merges": {
+    "contracts": {
+      "task_sha": "5afa6501",
+      "merge": "938e1f1d"
+    },
+    "02a": {
+      "task_sha": "2a2f15eb",
+      "merge": "b04ff03d"
+    },
+    "04": {
+      "task_sha": "0ce6b4eb",
+      "merge": "d20b4a34"
+    },
+    "lv1": {
+      "task_sha": "3a0a5ae6",
+      "merge": "14be5f5a"
+    },
+    "lv2": {
+      "task_sha": "16c52664",
+      "merge": "e807c62c"
+    },
+    "co1": {
+      "task_sha": "d82eaa09",
+      "merge": "17f06c6c"
+    },
+    "co2": {
+      "task_sha": "a7783abb",
+      "merge": "569d1007"
+    },
+    "02b": {
+      "task_sha": "51be92f6",
+      "includes": "02b1 a4343171",
+      "merge": "e818b826",
+      "conflict": "package.json test:kernel, resolved by union; .c8-kernel.json merged cleanly"
+    }
+  },
+  "corrections": [
+    {
+      "sha": "32affa38",
+      "what": "package surface: .hseos budget 64 and entry ceiling 1556 (owner G3, 2026-10-12)"
+    },
+    {
+      "sha": "b8c8a85d",
+      "what": "ignore c8 coverage output"
+    },
+    {
+      "sha": "1551e020",
+      "what": "LV1 stop guard aligned with the report CLI contract"
+    },
+    {
+      "sha": "852b15d4",
+      "what": "LV2 shared inbox leaves coordination entries alone"
+    },
+    {
+      "sha": "354c6b4c",
+      "what": "CO1 mirrored events carry id and the adapter alias is refused"
+    },
+    {
+      "sha": "94a09cde",
+      "what": "CO2 C1: stderr warning when a group-writable CLI is refused"
+    },
+    {
+      "sha": "7dcc1dc9",
+      "what": "composition test of the real CO1 core with the real CO2 modules"
+    },
+    {
+      "sha": "8aa63437",
+      "what": "W5-04 criterion recorded as gateway-only with a durable record"
+    },
+    {
+      "sha": "1966b391",
+      "what": "regenerate the CLI command manifest after the activity command change"
+    },
+    {
+      "sha": "8824d103",
+      "what": "drop the restricted provider name from the idle watchdog research"
+    },
+    {
+      "sha": "c56b59a0",
+      "what": "format the files touched by the integration fixes"
+    },
+    {
+      "sha": "c251318a",
+      "what": "liveness: unknown config key warns and is ignored in guard, CLI and watch alike; a known key with an invalid value keeps the last valid config"
+    },
+    {
+      "sha": "35440fa5",
+      "what": "regenerate the CLI command manifest after the liveness change (stale after c251318a, caught by npm test)"
+    }
+  ],
+  "receipt_text_divergences_not_edited": [
+    {
+      "file": "docs/evolution/w5/evidence/w5-co2/receipt.json",
+      "field": "delivered",
+      "stated": "test/test-activity-adapters.js (18 tests)",
+      "actual": "43 tests"
+    },
+    {
+      "file": "docs/evolution/w5/evidence/w5-co2/receipt.json",
+      "field": "pending_integration",
+      "stated": "A2 attributed to the CO2 pending integration list",
+      "actual": "A2 is CO1 loader work, delivered by CO1 round 3"
+    }
+  ],
+  "process_deviations": [
+    "Focused tests of phase 2 ran without heavy-run while another session held the lock (same cgroup).",
+    "Husky hooks (.husky/_) exist in the worktree only from 2026-10-13 10:01; merge e818b826 and fix c251318a may have been committed without pre-commit. The stale command manifest left by c251318a was caught by the full npm test and fixed in 35440fa5. Whether those two commits ran the hook is NOT VERIFIED."
+  ],
+  "phase3": {
+    "task_verifies": {
+      "head": "c251318a",
+      "note": "W5-01/02a/02b1/02b2/04 use the verify_step of tasks.md without the heavy-run prefix (the cgroup wrapper applies it) and without the /tmp flock of W5-01; LV1/LV2/CO1/CO2 use c8 with includes taken from each receipt, per-file 90/80, plus the composition tests",
+      "result": "all exit 0, no failures, no coverage error",
+      "logs": {
+        "01": {
+          "log": "/build/tmp/w5-int/final/verify-01.log",
+          "sha256": "2d051dc3ec44a5f4b6908a8eb7933cdafa19ba2355055066116c8188882abb25"
+        },
+        "02a": {
+          "log": "/build/tmp/w5-int/final/verify-02a.log",
+          "sha256": "ce0573d07b60e13c6e2ca6a027c00b559824d3dfe5afa27ea99b12a204d9bf86"
+        },
+        "02b1": {
+          "log": "/build/tmp/w5-int/final/verify-02b1.log",
+          "sha256": "93026d5ae3b977fc06b85117732c1d24e97b50ca337080a674c1e600c06fa328"
+        },
+        "02b2": {
+          "log": "/build/tmp/w5-int/final/verify-02b2.log",
+          "sha256": "d9a661c1f0e90369377eec2460648b4ecde36992987fc44d480088c4675d5732"
+        },
+        "04": {
+          "log": "/build/tmp/w5-int/final/verify-04.log",
+          "sha256": "3e84b23fafa2fede46e8da37a7dd930b225d9a84d03279e1105834edafd88c55"
+        },
+        "lv1": {
+          "log": "/build/tmp/w5-int/final/verify-lv1.log",
+          "sha256": "c837a15f1a650d036ed4d87320cb8a04f987fbf9488fa9b86a8b1cd93265f9c0"
+        },
+        "lv2": {
+          "log": "/build/tmp/w5-int/final/verify-lv2.log",
+          "sha256": "10d7cfb1b6709f8657e7e2225f5d2605122f448f597f0d5a5e46a7cc445fe66d"
+        },
+        "co1": {
+          "log": "/build/tmp/w5-int/final/verify-co1.log",
+          "sha256": "3793266dc764cbcb2eb12472c653bf583ea64a38bf61cb63018aa0f22b75be4f"
+        },
+        "co2": {
+          "log": "/build/tmp/w5-int/final/verify-co2.log",
+          "sha256": "2ff5fc5985fbd4fa22fc377bb2fb08e05447a7b7ef9967b4c1115fb516f4e196"
+        }
+      }
+    },
+    "kernel_coverage": {
+      "head": "c251318a",
+      "result": "10 test blocks, 0 failures, no coverage threshold error; all files 97.34 lines / 91.86 branches. Literal exit code not captured.",
+      "log": "/build/tmp/w5-int/final/kcov.log",
+      "sha256": "b1bec8cdf6d6579e6e99a8915070331d230e1ca1731d8d22865e3b47aeea6582"
+    },
+    "npm_test_node24": {
+      "head": "35440fa5",
+      "node": "24.15.0",
+      "result": "exit 0",
+      "log": "/build/tmp/w5-int/final/npmtest24.log",
+      "sha256": "9f64ecec3e245467259bda644f2fb84c2ff5c2ece3ec115800566b4c497ae6cb"
+    },
+    "npm_test_node22": {
+      "head": "35440fa5",
+      "node": "22.23.3",
+      "clone": "/build/tmp/w5-int/wt22",
+      "note": "better-sqlite3 already built for ABI 22 in the clone; wrapper copy with NODEBIN of Node 22; env file only in XDG_RUNTIME_DIR with trap",
+      "result": "exit 0",
+      "log": "/build/tmp/w5-int/final/npmtest22.log",
+      "sha256": "502ada2694673c35d0dab3f199434449323fcc504da7fa93d147a6f535b3d7d5"
+    },
+    "inventory": {
+      "npm": "24.15.0",
+      "total": 1483,
+      "ceiling": 1556,
+      "areas": {
+        ".enterprise": [449, 484],
+        "tools": [387, 393],
+        "src": [245, 250],
+        ".agents": [188, 193],
+        "packages": [118, 137],
+        ".hseos": [63, 64],
+        "scripts": [19, 21],
+        "docs": [7, 7],
+        "root": [7, 7]
+      },
+      "areas_note": "[measured, budget]",
+      "g3_needed": false,
+      "log": "/build/tmp/w5-int/final/pack.json",
+      "sha256": "893ab6d44c7c4bb0e43c3336900bd8e91ad4524d5c17de7358b9f1dc5d2a4368"
+    },
+    "capability_graph": "0 findings",
+    "agent_core_compile_check": "242 checks passed, no files written",
+    "eslint": "--max-warnings=0 passed on the 116 js/cjs/mjs/yaml files touched since 07bd5e97; repo lint inside npm test passed",
+    "prettier": {
+      "result": "4 files fail --check",
+      "files": [
+        "docs/evolution/w5/evidence/w5-02b1/chromium-feasibility.json",
+        "docs/evolution/w5/evidence/w5-02b1/logs/coverage-summary.json",
+        "docs/evolution/w5/evidence/w5-02b2/logs/coverage-summary.json",
+        "docs/evolution/w5/evidence/w5-lv0/lv0-evidence/scratch-settings.local.json"
+      ],
+      "note": "task evidence artifacts, not reformatted; format:check is not part of npm test"
+    }
+  },
+  "blocked": [],
+  "not_verified": [
+    "MCP journey through the installed package (W5-04 pending)",
+    "real consumers A and B",
+    "any activation (codex hooks, systemd timer, contracts enabled in projects)",
+    "literal exit code of test:kernel-coverage",
+    "whether e818b826 and c251318a ran the pre-commit hook",
+    "kernel coverage and task verifies were run at c251318a, not at 35440fa5 (the later commit only regenerates the manifest)"
+  ]
+}
