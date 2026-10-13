@@ -154,6 +154,21 @@ class McpLegacyUsageStore {
         heartbeat_count INTEGER NOT NULL CHECK(heartbeat_count > 0),
         PRIMARY KEY (usage_hour, server_id)
       );
+      CREATE TABLE IF NOT EXISTS mcp_gateway_denials (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        occurred_at TEXT NOT NULL CHECK(occurred_at GLOB '????-??-??T??:??:??.???Z'),
+        server_id TEXT NOT NULL CHECK(length(server_id) BETWEEN 1 AND 80),
+        tool TEXT NOT NULL CHECK(length(tool) BETWEEN 1 AND 128),
+        code TEXT NOT NULL CHECK(code IN ('MCP_TOOL_UNKNOWN', 'MCP_SCOPE_DENIED')),
+        rpc_code INTEGER NOT NULL
+      );
+      CREATE TRIGGER IF NOT EXISTS mcp_gateway_denials_no_update
+      BEFORE UPDATE ON mcp_gateway_denials
+      BEGIN SELECT RAISE(ABORT, 'mcp_gateway_denials is append-only'); END;
+      CREATE TRIGGER IF NOT EXISTS mcp_gateway_denials_no_recent_delete
+      BEFORE DELETE ON mcp_gateway_denials
+      WHEN OLD.occurred_at >= strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-31 days')
+      BEGIN SELECT RAISE(ABORT, 'mcp_gateway_denials is append-only'); END;
     `);
   }
 
@@ -250,6 +265,17 @@ class McpLegacyUsageStore {
 
   activationReadiness({ serverIds, asOf = new Date(), days = 30 }) {
     return activationReadinessFromDatabase(this.db, { serverIds, asOf, days });
+  }
+
+  // Durable, append-only record of a gateway denial in the legacy mode (which has no execution ledger).
+  recordDenial({ server_id: serverId, tool, code, rpc_code: rpcCode }, now = new Date()) {
+    this.db
+      .prepare('INSERT INTO mcp_gateway_denials (occurred_at, server_id, tool, code, rpc_code) VALUES (?, ?, ?, ?, ?)')
+      .run(now.toISOString(), serverId, String(tool).slice(0, 128) || '(empty)', code, rpcCode);
+  }
+
+  listDenials() {
+    return this.db.prepare('SELECT occurred_at, server_id, tool, code, rpc_code FROM mcp_gateway_denials ORDER BY id').all();
   }
 
   close() {

@@ -25,16 +25,27 @@ function formatSchemaErrors(errors) {
   return (errors || []).map((error) => `${error.instancePath || '(arguments)'} ${error.message}`.trim()).join('; ');
 }
 
-// Lazily compiles each declared tool inputSchema once; unknown tools are left to callTool.
+const MAX_HTTP_BODY_BYTES = 1_048_576;
+// An oversized body is read and discarded up to this many extra bytes, then the connection is dropped.
+const MAX_DRAIN_BYTES = 16_777_216;
+
+// Compiles every declared tool inputSchema at registration, so an unresolvable $ref fails the boot, not the first call.
+// Unknown tools are left to callTool.
 function createArgumentValidator(tools) {
   const ajv = new Ajv2020({ allErrors: true, strict: false, validateFormats: false });
-  const schemas = new Map((tools || []).map((tool) => [tool.name, tool.inputSchema]));
   const compiled = new Map();
+  for (const tool of tools || []) {
+    try {
+      compiled.set(tool.name, ajv.compile(tool.inputSchema));
+    } catch (error) {
+      throw Object.assign(new Error(`Tool ${tool.name} has an invalid inputSchema: ${error.message}`), {
+        code: 'MCP_TOOL_SCHEMA_INVALID',
+      });
+    }
+  }
   return (name, args) => {
-    const schema = schemas.get(name);
-    if (!schema) return null;
-    if (!compiled.has(name)) compiled.set(name, ajv.compile(schema));
     const validate = compiled.get(name);
+    if (!validate) return null;
     return validate(args) ? null : formatSchemaErrors(validate.errors);
   };
 }
@@ -47,7 +58,7 @@ async function respondSafely(handleMessage, parsed) {
   }
 }
 
-function createHttpServer(handleMessage, healthPayload) {
+function createHttpServer(handleMessage, healthPayload, { maxBodyBytes = MAX_HTTP_BODY_BYTES } = {}) {
   return http.createServer((req, res) => {
     if (req.method === 'GET' && req.url === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -61,9 +72,30 @@ function createHttpServer(handleMessage, healthPayload) {
       return;
     }
 
-    let body = '';
-    req.on('data', (chunk) => (body += chunk));
+    const chunks = [];
+    let received = 0;
+    let rejected = false;
+    req.on('data', (chunk) => {
+      received += chunk.length;
+      if (rejected) {
+        // Draining: the rest of an oversized body is discarded unread by the tool, up to a hard cap.
+        if (received > maxBodyBytes + MAX_DRAIN_BYTES) req.destroy();
+        return;
+      }
+      if (received > maxBodyBytes) {
+        // Stop buffering at once: the body is refused without being parsed or handed to any tool. The 413 is written
+        // with Connection: close and the remaining input is drained (not reset) so a client mid-upload can read it.
+        rejected = true;
+        chunks.length = 0;
+        res.writeHead(413, { 'Content-Type': 'application/json', Connection: 'close' });
+        res.end(JSON.stringify(buildMcpError(null, -32_600, 'Request body exceeds limit')));
+        return;
+      }
+      chunks.push(chunk);
+    });
     req.on('end', async () => {
+      if (rejected) return;
+      const body = Buffer.concat(chunks).toString('utf8');
       let parsed;
       try {
         parsed = JSON.parse(body);
@@ -176,6 +208,7 @@ function createMessageHandler({ serverInfo, tools, callTool, wrapToolResults = t
 }
 
 module.exports = {
+  MAX_HTTP_BODY_BYTES,
   buildMcpError,
   buildMcpResponse,
   createHttpServer,

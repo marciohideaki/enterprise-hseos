@@ -89,6 +89,267 @@ function waitFor(predicate, { timeoutMs = 6000, intervalMs = 100 } = {}) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// W5-04: governed boot guards, local approval flow, ledger-recorded gateway denials.
+// ---------------------------------------------------------------------------
+const assert = require('node:assert/strict');
+const Database = require('better-sqlite3');
+const {
+  createDenialRecorder,
+  createLocalApprovalFlow,
+  startNativeMcpServer,
+} = require('../tools/lib/governed-execution/native-mcp-server');
+const { CAPABILITY_CONTRACT_STUBS } = require('../tools/lib/governed-execution/contract-registry');
+const { createOperationalExecution, schemaContract } = require('../tools/lib/governed-execution/operational-runtime');
+const { applyExecutionLedgerFixtureSchema } = require('../tools/mcp-project-state/lib/execution-ledger-schema');
+const { createExecutionEventRegistry } = require('../tools/lib/governed-execution/event-registry');
+const { deterministicOperationId } = require('../tools/lib/governed-execution/runtime');
+
+async function withEnv(patch, fn) {
+  const saved = Object.fromEntries(Object.keys(patch).map((key) => [key, process.env[key]]));
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined) delete process.env[key];
+    else process.env[key] = value;
+  }
+  try {
+    return await fn();
+  } finally {
+    for (const [key, value] of Object.entries(saved)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+}
+
+async function runGovernedUnitTests() {
+  const tools = new Map([['noop', { name: 'noop', description: 'd', inputSchema: { type: 'object' }, handler() {} }]]);
+  await it('governed boot: unknown servers, missing activation, non-temporary and pre-existing databases fail closed', async () => {
+    assert.throws(() => startNativeMcpServer({ serverId: 'nope', tools, invokeTool() {}, mode: 'http', port: 0 }), TypeError);
+    await withEnv({ NODE_ENV: 'production', HSEOS_GOVERNED_EXECUTION_FIXTURE: undefined }, () => {
+      assert.throws(
+        () => startNativeMcpServer({ serverId: 'governance', tools, invokeTool() {}, mode: 'http', port: 0 }),
+        (error) => error.code === 'EXECUTION_ACTIVATION_PENDING',
+      );
+    });
+    await withEnv({ NODE_ENV: 'test', HSEOS_GOVERNED_EXECUTION_FIXTURE: '1' }, () => {
+      assert.throws(
+        () =>
+          startNativeMcpServer({ serverId: 'governance', tools, invokeTool() {}, mode: 'http', port: 0, dbPath: '/nonexistent-root/x.db' }),
+        /temporary database/,
+      );
+      const existing = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-w5-04-existing-')), 'project.db');
+      fs.writeFileSync(existing, '');
+      assert.throws(
+        () => startNativeMcpServer({ serverId: 'governance', tools, invokeTool() {}, mode: 'http', port: 0, dbPath: existing }),
+        /fresh database/,
+      );
+      fs.rmSync(path.dirname(existing), { recursive: true, force: true });
+      const outsideRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-w5-04-redirect-'));
+      const elsewhere = fs.mkdtempSync(path.join('/dev/shm', 'hseos-w5-04-elsewhere-'));
+      fs.symlinkSync(elsewhere, path.join(outsideRoot, 'link'));
+      assert.throws(
+        () =>
+          startNativeMcpServer({
+            serverId: 'governance',
+            tools,
+            invokeTool() {},
+            mode: 'http',
+            port: 0,
+            dbPath: path.join(outsideRoot, 'link', 'p.db'),
+          }),
+        /outside the temporary root/,
+      );
+      fs.rmSync(outsideRoot, { recursive: true, force: true });
+      fs.rmSync(elsewhere, { recursive: true, force: true });
+    });
+  });
+
+  await it('governed in-process server: stdio-less HTTP boot records an unknown-tool denial and closes cleanly', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-w5-04-inproc-'));
+    const databasePath = path.join(dir, 'project.db');
+    const logs = [];
+    await withEnv({ NODE_ENV: 'test', HSEOS_GOVERNED_EXECUTION_FIXTURE: '1' }, async () => {
+      const handle = startNativeMcpServer({
+        serverId: 'swarm',
+        tools: new Map([['list_runs', { name: 'list_runs', description: 'd', inputSchema: { type: 'object' } }]]),
+        invokeTool: async () => ({ runs: [] }),
+        mode: 'http',
+        port: 0,
+        dbPath: databasePath,
+        log: (line) => logs.push(line),
+      });
+      try {
+        await new Promise((resolve) => (handle.server.listening ? resolve() : handle.server.once('listening', resolve)));
+        const port = handle.server.address().port;
+        await assert.rejects(() => rpc(port, 'tools/call', { name: 'ghost', arguments: {} }), /Unknown tool/);
+        const rows = handle.db.prepare("SELECT payload_json FROM execution_events WHERE aggregate_type = 'mcp_gateway'").all();
+        assert.equal(rows.length, 1);
+        assert.equal(JSON.parse(rows[0].payload_json).error.code, 'MCP_TOOL_UNKNOWN');
+      } finally {
+        await handle.close();
+        await handle.close();
+      }
+    });
+    assert.ok(logs.some((line) => line.includes('governed MCP listening')));
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  await it('operational registry: the production registry carries the versioned environment.* and memory.* stubs', async () => {
+    const db = new Database(':memory:');
+    try {
+      applyExecutionLedgerFixtureSchema(db);
+      const execution = createOperationalExecution({
+        db,
+        serverId: 'swarm',
+        tools: new Map([['list_runs', { name: 'list_runs', description: 'd', inputSchema: { type: 'object' } }]]),
+        invokeTool: async () => ({}),
+      });
+      const names = new Set(execution.contracts.list().map((contract) => contract.name));
+      for (const stub of CAPABILITY_CONTRACT_STUBS) assert.ok(names.has(stub.name), `missing ${stub.name}`);
+      assert.ok(names.has('list_runs'));
+      assert.throws(
+        () => execution.contracts.validateInput(execution.contracts.resolve('memory.write'), {}),
+        (error) => error.code === 'ENV_CAPABILITY_NOT_IMPLEMENTED',
+      );
+    } finally {
+      db.close();
+    }
+  });
+
+  await it('operational runtime: rejects bad wiring, unclassified tools, and maps governance classes', async () => {
+    const db = new Database(':memory:');
+    try {
+      applyExecutionLedgerFixtureSchema(db);
+      const tool = (name) => ({ name, description: 'd', inputSchema: { type: 'object', properties: { a: { type: 'string' } } } });
+      const base = { db, serverId: 'swarm', tools: new Map([['list_runs', tool('list_runs')]]), invokeTool: async () => ({}) };
+      assert.throws(() => createOperationalExecution({ ...base, db: {} }), TypeError);
+      assert.throws(() => createOperationalExecution({ ...base, tools: new Map() }), TypeError);
+      assert.throws(() => createOperationalExecution({ ...base, tools: [] }), TypeError);
+      assert.throws(() => createOperationalExecution({ ...base, invokeTool: null }), TypeError);
+      assert.throws(
+        () => createOperationalExecution({ ...base, tools: new Map([['mystery', tool('mystery')]]) }),
+        /Explicit execution governance is required for swarm:mystery/,
+      );
+      const governed = createOperationalExecution({
+        ...base,
+        tools: new Map([
+          ['plan_squad', tool('plan_squad')],
+          ['list_runs', tool('list_runs')],
+          ['mystery', tool('mystery')],
+        ]),
+        toolGovernance: {
+          mystery: { reversibility: 'idempotent_mutation', requires_approval: true, exclusive: true, provider_accepts_idempotency: true },
+        },
+      });
+      const plan = governed.contracts.resolve('plan_squad');
+      assert.equal(plan.reversibility, 'compensatable_mutation');
+      assert.equal(plan.cancellation_policy, 'non_cancellable');
+      assert.equal(plan.exclusive, true);
+      const read = governed.contracts.resolve('list_runs');
+      assert.equal(read.reversibility, 'read_only');
+      assert.equal(read.cancellation_policy, 'cooperative');
+      const mystery = governed.contracts.resolve('mystery');
+      assert.ok(mystery.requires_approval && mystery.exclusive && mystery.provider_accepts_idempotency);
+      assert.equal(mystery.authority, 'mcp.swarm.mutate');
+      const projectState = createOperationalExecution({
+        ...base,
+        serverId: 'project_state',
+        tools: new Map([['tasks_add', tool('tasks_add')]]),
+      });
+      assert.equal(projectState.contracts.resolve('tasks_add').provider_accepts_idempotency, true);
+
+      // Input schemas are enforced and provider output must be strict JSON.
+      assert.throws(
+        () => read.input_schema.safeParse && governed.contracts.validateInput(read, { a: 5 }),
+        (error) => error.code === 'EXECUTION_INPUT_INVALID',
+      );
+      assert.deepEqual(governed.contracts.validateInput(read, { a: 'x' }), { a: 'x' });
+      const cyclic = {};
+      cyclic.self = cyclic;
+      const sparse = [1, , 3]; // eslint-disable-line no-sparse-arrays
+      const decorated = Object.assign([1], { extra: true });
+      const accessor = Object.defineProperty({}, 'x', { enumerable: true, get: () => 1 });
+      const symbolic = { [Symbol('s')]: 1 };
+      const instance = new (class Custom {})();
+      for (const value of [Number.NaN, -0, undefined, () => 1, cyclic, sparse, decorated, accessor, symbolic, instance]) {
+        assert.throws(
+          () => governed.contracts.validateOutput(read, value),
+          (error) => error.code === 'EXECUTION_OUTPUT_INVALID',
+          String(value),
+        );
+      }
+      const nested = { list: [1, 'two', { three: null, four: true }] };
+      assert.deepEqual(governed.contracts.validateOutput(read, nested), nested);
+      assert.equal(typeof schemaContract(undefined, 'x').safeParse, 'function');
+    } finally {
+      db.close();
+    }
+  });
+
+  await it('governed denial recorder: a ledger failure is logged and never thrown to the caller', async () => {
+    const logs = [];
+    const recorder = createDenialRecorder({
+      ledger: {
+        append() {
+          throw new Error('ledger down');
+        },
+      },
+      eventRegistry: createExecutionEventRegistry(),
+      serverId: 'unit',
+      actor: { id: 'local:uid:1', type: 'local_process' },
+      log: (line) => logs.push(line),
+    });
+    recorder({ tool: 'ghost', code: 'MCP_TOOL_UNKNOWN', rpc_code: -32_602 });
+    recorder({ tool: 'ghost', code: 'NOT_A_DENIAL_CODE' });
+    assert.equal(logs.length, 2);
+    assert.ok(logs[0].includes('denial not recorded in the ledger'));
+  });
+
+  await it('governed approval flow: explicit approval issues a bound, expiring, single-purpose approval', async () => {
+    const issued = [];
+    const flow = createLocalApprovalFlow({
+      execution: { approvalStore: { issue: (approval) => issued.push(approval) } },
+      serverId: 'unit',
+    });
+    const operationId = deterministicOperationId('some_tool', 'key-1');
+    const begin = await flow.begin({ outcome: { error: { operation_id: operationId } } });
+    assert.equal(begin.state.operation_id, operationId);
+    assert.equal(begin.inputRequests.confirm.method, 'elicitation/create');
+    const executionRequest = { tool: 'some_tool', idempotency_key: 'key-1', resource_scope: { project: '/p' } };
+    const verifiedState = { operation_id: operationId, policy_version: 'hseos-operational-v1' };
+    for (const inputResponses of [
+      undefined,
+      { confirm: { action: 'decline' } },
+      { confirm: { action: 'accept', content: { approved: false } } },
+    ]) {
+      await assert.rejects(
+        () => flow.resolve({ inputResponses, verifiedState, executionRequest }),
+        (error) => error.code === 'EXECUTION_APPROVAL_DENIED',
+      );
+    }
+    await assert.rejects(
+      () =>
+        flow.resolve({
+          inputResponses: { confirm: { action: 'accept', content: { approved: true } } },
+          verifiedState: { ...verifiedState, operation_id: 'other' },
+          executionRequest,
+        }),
+      /binding mismatch/,
+    );
+    assert.equal(issued.length, 0, 'no approval is issued on denial or mismatch');
+    const approved = await flow.resolve({
+      inputResponses: { confirm: { action: 'accept', content: { approved: true } } },
+      verifiedState,
+      executionRequest,
+    });
+    assert.equal(issued.length, 1);
+    assert.equal(issued[0].operation_id, operationId);
+    assert.equal(issued[0].decision, 'approved');
+    assert.equal(approved.approval_id, issued[0].approval_id);
+    assert.ok(Date.parse(issued[0].expires_at) - Date.parse(issued[0].issued_at) === 300_000);
+  });
+}
+
 (async () => {
   console.log('mcp-hseos-governance smoke test');
 
@@ -178,12 +439,33 @@ function waitFor(predicate, { timeoutMs = 6000, intervalMs = 100 } = {}) {
       const result = toolData(r);
       if (!Array.isArray(result.workflows)) throw new Error('workflows is not array');
     });
+
+    await it('an unknown tool is denied', async () => {
+      let denied = null;
+      try {
+        await rpc(port, 'tools/call', { name: 'ghost_tool', arguments: {} });
+      } catch (error) {
+        denied = error;
+      }
+      if (!denied || !/Unknown tool/.test(denied.message)) throw new Error(`unknown tool was not denied: ${denied && denied.message}`);
+    });
   } finally {
     child.kill('SIGTERM');
-    await new Promise((r) => setTimeout(r, 200));
-    if (!child.killed) child.kill('SIGKILL');
+    await new Promise((resolve) => child.once('exit', resolve));
+    await it('the unknown-tool denial is recorded in the ledger', async () => {
+      const db = new Database(path.join(stateDir, 'project.db'), { readonly: true });
+      try {
+        const rows = db.prepare("SELECT payload_json FROM execution_events WHERE aggregate_type = 'mcp_gateway'").all();
+        const codes = rows.map((row) => JSON.parse(row.payload_json).error.code);
+        if (!codes.includes('MCP_TOOL_UNKNOWN')) throw new Error(`no denial in ledger: ${codes.join(',')}`);
+      } finally {
+        db.close();
+      }
+    });
     fs.rmSync(stateDir, { recursive: true, force: true });
   }
+
+  await runGovernedUnitTests();
 
   console.log(`\n${pass} passed, ${fail} failed`);
   process.exit(fail === 0 ? 0 : 1);

@@ -9,7 +9,7 @@
  */
 
 const path = require('node:path');
-const fs = require('node:fs');
+const { failBoot, loadServerTools } = require('../lib/governed-execution/contract-registry');
 const { startNativeMcpServer } = require('../lib/governed-execution/native-mcp-server');
 const { startLegacyMcpServer } = require('../lib/legacy-mcp-server');
 const { openOperationalStateDatabase } = require('./lib/operational-state-db');
@@ -31,26 +31,14 @@ function parseArgs() {
   return { dbPath, instanceId, mode, port };
 }
 
+// Discover and require all `./tools/*.js` files; each exports an array of tool descriptors
+// `{ name, description, inputSchema, handler(db, args, dal) }`. Any malformed module fails the boot.
 function loadDynamicTools() {
-  // Discover and require all `./tools/*.js` files; each exports an array of
-  // tool descriptors `{ name, description, inputSchema, handler(db, args, dal) }`.
-  const toolsDir = path.join(__dirname, 'tools');
-  const map = new Map();
-  if (!fs.existsSync(toolsDir)) return map;
-  for (const file of fs.readdirSync(toolsDir).filter((f) => f.endsWith('.js'))) {
-    try {
-      const exported = require(path.join(toolsDir, file));
-      if (!Array.isArray(exported)) continue;
-      for (const tool of exported) {
-        if (tool && tool.name && typeof tool.handler === 'function') {
-          map.set(tool.name, tool);
-        }
-      }
-    } catch (error) {
-      console.error(`[project-state] failed to load ${file}: ${error.message}`);
-    }
+  try {
+    return loadServerTools(path.join(__dirname, 'tools'));
+  } catch (error) {
+    return failBoot('project-state', error);
   }
-  return map;
 }
 
 const dynamicTools = loadDynamicTools();
