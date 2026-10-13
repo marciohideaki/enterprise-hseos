@@ -22,3 +22,7 @@ node_modules/
 # Python SDK bytecode caches
 __pycache__/
 *.pyc
+
+# c8 coverage output
+coverage/
+.nyc_output/
