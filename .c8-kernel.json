@@ -60,7 +60,10 @@
     "tools/mcp-project-state/index.js",
     "tools/mcp-axon-bridge/index.js",
     "tools/lib/governed-execution/operational-runtime.js",
-    "tools/mcp-project-state/lib/mcp-legacy-usage-store.js"
+    "tools/mcp-project-state/lib/mcp-legacy-usage-store.js",
+    ".agents/hooks/handlers/liveness-guard.cjs",
+    ".enterprise/governance/hooks/handlers/liveness-guard.cjs",
+    "docs/evolution/w5/liveness-idle-metric.mjs"
   ],
   "exclude": ["**/node_modules/**", "test/**"],
   "reporter": ["text", "json-summary", "json"],

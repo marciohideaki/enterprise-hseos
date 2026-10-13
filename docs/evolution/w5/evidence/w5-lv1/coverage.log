@@ -1,0 +1,80 @@
+heavy-run: modo normal (load1=1.79 phys=6 avail=20863MiB need=6G mem.psi=0.00 io.psi.full=1.13)
+Delegated test cgroup controllers verified
+✔ [compiled] without contract or with enabled false, both modes are inert (10.338067ms)
+✔ [compiled] config parser keeps defaults for invalid values and ignores unknown keys (0.379871ms)
+✔ [compiled] a plain Stop without agent identity is the interactive session and passes (0.753558ms)
+✔ [compiled] missing LIVENESS is refused until max_stop_refusals, then passes with idle_violation (2.217899ms)
+✔ [compiled] TeammateIdle is refused with exit 2 and stderr guidance (0.687883ms)
+✔ [compiled] a valid LIVENESS line is reported through hseos liveness report and clears the budget (7.049244ms)
+✔ [compiled] a missing report CLI parks the event and warns, never blocking the stop (6.984249ms)
+✔ [compiled] background tasks with a non-waiting state are refused; a valid WAITING_ON passes (10.578658ms)
+✔ [compiled] stop_hook_active is bounded by the persisted refusal budget (1.468754ms)
+✔ [compiled] the final message falls back to the agent transcript (6.166279ms)
+✔ [compiled] internal errors fail open with a warning (1.649358ms)
+✔ [compiled] LIVENESS validation covers the declared schema (0.922075ms)
+✔ [compiled] violations and reports carry an enumerated reason_code (2.866734ms)
+✔ [compiled] BLOCKED is a valid end of turn, even with background tasks, and is reported as blocked_pending (8.90505ms)
+✔ [compiled] the configuration is re-read on every run and an invalid file keeps the last valid one (2.447513ms)
+✔ [compiled] an internal error is recorded as guard_internal_error (1.040797ms)
+✔ [compiled] inbox injects pending wake requests once and moves them to delivered (2.330339ms)
+✔ [compiled] only running, pending and queued background tasks count; unknown statuses warn and never refuse (55.792589ms)
+✔ [compiled] a switched-off contract is never resurrected by a later typo (1.333938ms)
+✔ [compiled] a malformed payload without an active contract prints nothing (0.692383ms)
+✔ [compiled] session and agent ids cannot escape the refusal directory (0.842025ms)
+✔ [compiled] inbox content is sanitised, quoted as data, and symlinks and races are ignored (4.858212ms)
+✔ [compiled] a declared wait is reported as waiting_on_declared and may reach max_wait_deadline_s (9.781535ms)
+✔ [compiled] the last valid configuration, not the defaults, applies when the file is broken (1.662323ms)
+✔ [compiled] inbox injects at most ten requests per prompt (1.379817ms)
+✔ [canonical] without contract or with enabled false, both modes are inert (1.382498ms)
+✔ [canonical] config parser keeps defaults for invalid values and ignores unknown keys (0.129545ms)
+✔ [canonical] a plain Stop without agent identity is the interactive session and passes (0.566317ms)
+✔ [canonical] missing LIVENESS is refused until max_stop_refusals, then passes with idle_violation (1.52431ms)
+✔ [canonical] TeammateIdle is refused with exit 2 and stderr guidance (0.763208ms)
+✔ [canonical] a valid LIVENESS line is reported through hseos liveness report and clears the budget (4.734282ms)
+✔ [canonical] a missing report CLI parks the event and warns, never blocking the stop (6.736953ms)
+✔ [canonical] background tasks with a non-waiting state are refused; a valid WAITING_ON passes (9.567601ms)
+✔ [canonical] stop_hook_active is bounded by the persisted refusal budget (0.903629ms)
+✔ [canonical] the final message falls back to the agent transcript (5.528187ms)
+✔ [canonical] internal errors fail open with a warning (1.310977ms)
+✔ [canonical] LIVENESS validation covers the declared schema (0.403763ms)
+✔ [canonical] violations and reports carry an enumerated reason_code (2.51405ms)
+✔ [canonical] BLOCKED is a valid end of turn, even with background tasks, and is reported as blocked_pending (9.107718ms)
+✔ [canonical] the configuration is re-read on every run and an invalid file keeps the last valid one (1.753272ms)
+✔ [canonical] an internal error is recorded as guard_internal_error (0.78694ms)
+✔ [canonical] inbox injects pending wake requests once and moves them to delivered (1.298869ms)
+✔ [canonical] only running, pending and queued background tasks count; unknown statuses warn and never refuse (53.10864ms)
+✔ [canonical] a switched-off contract is never resurrected by a later typo (1.211463ms)
+✔ [canonical] a malformed payload without an active contract prints nothing (0.758627ms)
+✔ [canonical] session and agent ids cannot escape the refusal directory (0.774394ms)
+✔ [canonical] inbox content is sanitised, quoted as data, and symlinks and races are ignored (1.60836ms)
+✔ [canonical] a declared wait is reported as waiting_on_declared and may reach max_wait_deadline_s (10.607265ms)
+✔ [canonical] the last valid configuration, not the defaults, applies when the file is broken (1.541403ms)
+✔ [canonical] inbox injects at most ten requests per prompt (0.895865ms)
+✔ the executable entry reads the payload from stdin (104.531433ms)
+✔ compiled handler is byte-identical to the canonical source and wired for the four events (0.487822ms)
+✔ the dev-squad skill, its mirror and the workflow carry the no-silent-idle clause (0.297572ms)
+✔ the retroactive metric reproduces the 10h39m reaction latency of the stalled turn (1.165592ms)
+✔ the retroactive metric honours the stall threshold and handles empty input (0.186857ms)
+✔ the retroactive metric CLI prints JSON for a transcript file and rejects bad usage (43.378576ms)
+✔ the retroactive metric counts notices by derived cause (0.312093ms)
+✔ real SubagentStop payloads from the LV0 spike drive the guard (21.458691ms)
+ℹ tests 58
+ℹ suites 0
+ℹ pass 58
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 526.212349
+---------------------------------------|---------|----------|---------|---------|-------------------
+File                                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+---------------------------------------|---------|----------|---------|---------|-------------------
+All files                              |   98.73 |    96.96 |   92.98 |   98.73 |                   
+ .agents/hooks/handlers                |   99.15 |    96.77 |   95.83 |   99.15 |                   
+  liveness-guard.cjs                   |   99.15 |    96.77 |   95.83 |   99.15 | 388-389,472-473   
+ .enterprise/governance/hooks/handlers |   97.89 |    96.52 |   91.66 |   97.89 |                   
+  liveness-guard.cjs                   |   97.89 |    96.52 |   91.66 |   97.89 | 388-389,468-475   
+ docs/evolution/w5                     |     100 |    98.79 |   88.88 |     100 |                   
+  liveness-idle-metric.mjs             |     100 |    98.79 |   88.88 |     100 | 83                
+---------------------------------------|---------|----------|---------|---------|-------------------
+c8rc=0
