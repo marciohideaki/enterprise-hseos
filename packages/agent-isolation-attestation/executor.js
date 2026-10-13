@@ -182,6 +182,10 @@ async function executeIsolatedCommand({ policy, command, timeout_ms, max_output_
     fs.writeFileSync(filename, launch.seccomp, { flag: 'wx', mode: 0o400 });
     fd = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
     fs.unlinkSync(filename);
+    // The descriptor keeps the filter alive; drop the directory now so a kill/timeout while the
+    // child runs (finally never executes) cannot leak an empty hseos-executor-filter-* directory.
+    fs.rmdirSync(temporary);
+    temporary = undefined;
     const result = await new Promise((resolve, reject) => {
       const child = spawn(
         '/usr/bin/python3',
@@ -280,7 +284,10 @@ async function executeIsolatedCommand({ policy, command, timeout_ms, max_output_
   } finally {
     if (fd !== undefined) fs.closeSync(fd);
     if (runtimeFd !== undefined) fs.closeSync(runtimeFd);
-    if (temporary) fs.rmdirSync(temporary);
+    if (temporary) {
+      // Failure between mkdtemp and unlink: the filter file may still exist, so remove recursively.
+      fs.rmSync(temporary, { recursive: true, force: true });
+    }
     if (group) {
       await removeDrainedGroup(group);
     }
