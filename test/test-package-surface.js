@@ -117,7 +117,7 @@ test('published package exposes runtime and governance assets only', () => {
   // without a filter), not a runtime need; the owner decided to keep the mirror and test-capability-catalog.js asserts
   // it equals the canonical source.
   // State/key/config exclusions above remain independent security invariants.
-  const ENTRY_CEILING = 1554;
+  const ENTRY_CEILING = 1556;
   assert.ok(packed.entryCount <= ENTRY_CEILING, `package entry count is not bounded: ${packed.entryCount}`);
   assert.ok(packed.unpackedSize < 14_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);
 
@@ -126,14 +126,15 @@ test('published package exposes runtime and governance assets only', () => {
   // (1454). W5 high share (72): .enterprise 33 (ADR, policies, 3 skills), tools 18 (MCP hardening, LSP, DAP, memory),
   // packages 9 (multimodal contracts), .agents 6 (skill mirror), src 4, scripts 2. Contingency (14): .enterprise 5,
   // tools 4, packages 2, .agents 1, src 1, .hseos 1. The area budgets sum to the ceiling, so none can grow at the
-  // expense of another without an explicit change here.
+  // expense of another without an explicit change here. The owner approved .hseos 64 and the ceiling 1556 on
+  // 2026-10-12 (G3) for the W5 liveness and coordination contracts.
   const areaBudgets = {
     '.enterprise': 484,
     tools: 393,
     src: 250,
     '.agents': 193,
     packages: 137,
-    '.hseos': 62,
+    '.hseos': 64,
     scripts: 21,
     docs: 7,
     '(root)': 7,
