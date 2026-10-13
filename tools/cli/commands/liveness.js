@@ -125,9 +125,18 @@ async function doWatch(options, directory, loaded, io) {
   }
   if (!loaded.valid || !loaded.enabled) return disabledResult(loaded);
   const maxCycles = options.maxCycles === undefined ? Infinity : toInteger('--max-cycles', options.maxCycles);
+  const announced = new Set();
   const cycles = await liveness.runWatch({
     directory,
-    loadConfig: (dir) => loadContract(dir, true),
+    loadConfig: (dir) => {
+      const reloaded = loadContract(dir, true);
+      // The first load is reported by run(); a warning that appears on a later cycle is reported once.
+      for (const warning of reloaded.warnings) {
+        if (!loaded.warnings.includes(warning) && !announced.has(warning)) console.error(`[hseos liveness] warning: ${warning}`);
+        announced.add(warning);
+      }
+      return reloaded;
+    },
     once: options.once === true,
     maxCycles,
     sleep: io.sleep,

@@ -69,10 +69,9 @@ test('contract: absent file is disabled with defaults, example file validates an
   assert.deepEqual(example.config, contract.DEFAULTS);
 });
 
-test('contract: schema rejects unknown keys, bad ranges and incoherent combinations', () => {
+test('contract: schema rejects bad ranges and incoherent combinations but only warns on an unknown key', () => {
   for (const document of [
     { enabled: 'yes' },
-    { surprise: 1 },
     { foreground_wait_max_s: 600 },
     { stall_timeout_s: 30 },
     { escalate_to: 'nobody' },
@@ -85,15 +84,23 @@ test('contract: schema rejects unknown keys, bad ranges and incoherent combinati
     assert.equal(result.ok, false, JSON.stringify(document));
     assert.ok(result.errors.length > 0);
   }
+  const unknown = contract.validateLivenessConfig({ enabled: true, surprise: 1 });
+  assert.equal(unknown.ok, true);
+  assert.equal(unknown.config.enabled, true);
+  assert.equal('surprise' in unknown.config, false);
+  assert.deepEqual(unknown.warnings, ['unknown key ignored: surprise']);
+  const unknownAndInvalid = contract.validateLivenessConfig({ surprise: 1, max_wake_attempts: 0 });
+  assert.equal(unknownAndInvalid.ok, false);
+  assert.deepEqual(unknownAndInvalid.warnings, ['unknown key ignored: surprise']);
   assert.equal(contract.validateLivenessConfig().ok, true);
   assert.equal(contract.validateLivenessConfig({ enabled: true, max_stop_refusals: 0 }).config.max_stop_refusals, 0);
 });
 
 test('contract: invalid or unreadable file fails open (disabled) and reports errors', () => {
-  const broken = tmpProject({ enabled: true, extra: 'surprise: 1\n' });
+  const broken = tmpProject({ enabled: true, extra: 'max_wake_attempts: 0\n' });
   const loaded = contract.loadLivenessConfig(broken);
   assert.deepEqual([loaded.present, loaded.valid, loaded.enabled], [true, false, false]);
-  assert.match(loaded.errors.join(' '), /surprise|Unrecognized/i);
+  assert.match(loaded.errors.join(' '), /max_wake_attempts/);
   const yamlBroken = tmpProject({ enabled: null });
   fs.writeFileSync(path.join(yamlBroken, '.hseos', 'config', 'agent-liveness.yaml'), 'enabled: [unterminated\n');
   const loadedYaml = contract.loadLivenessConfig(yamlBroken);
@@ -810,10 +817,18 @@ test('cli: absent or disabled contract changes nothing and exits 0', async () =>
 });
 
 test('cli: an invalid contract is reported with exit 2, not silently ignored', async () => {
-  const directory = tmpProject({ enabled: true, extra: 'surprise: 1\n' });
+  const directory = tmpProject({ enabled: true, extra: 'max_wake_attempts: 0\n' });
   const result = await command._internal.run('check', { directory });
   assert.equal(result.code, 2);
   assert.equal(result.body.valid, false);
+});
+
+test('cli: an unknown key warns on stderr and keeps the contract active', async () => {
+  const directory = tmpProject({ enabled: true, extra: 'surprise: 1\n' });
+  const result = await command._internal.run('check', { directory });
+  assert.equal(result.code, 0);
+  assert.equal(result.body.enabled, true);
+  assert.deepEqual(result.body.warnings, ['unknown key ignored: surprise']);
 });
 
 test('cli: report validates and records; turn_end and heartbeat events carry the source of truth', async () => {
@@ -1108,11 +1123,11 @@ test('config is re-read every call; an invalid edit falls back to the last valid
 
   fs.writeFileSync(file, 'enabled: false\n');
   assert.equal(contract.loadLivenessConfigWithFallback(directory, { remember: true }).enabled, false);
-  fs.writeFileSync(file, 'surprise: 1\n');
+  fs.writeFileSync(file, 'max_wake_attempts: 0\n');
   const afterDisable = contract.loadLivenessConfigWithFallback(directory, { remember: true });
   assert.deepEqual([afterDisable.fallback, afterDisable.enabled], [true, false], 'the last valid config was the disabled one');
 
-  const never = tmpProject({ enabled: true, extra: 'surprise: 1\n' });
+  const never = tmpProject({ enabled: true, extra: 'max_wake_attempts: 0\n' });
   const unremembered = contract.loadLivenessConfigWithFallback(never, { remember: true });
   assert.deepEqual([unremembered.valid, unremembered.fallback], [false, undefined]);
   const disabledOnly = tmpProject({ enabled: false });
@@ -1121,7 +1136,7 @@ test('config is re-read every call; an invalid edit falls back to the last valid
   const memory = tmpProject({ enabled: true });
   contract.loadLivenessConfigWithFallback(memory, { remember: true });
   fs.writeFileSync(path.join(memory, '.hseos', 'state', 'liveness', 'last-valid-config.json'), '{broken');
-  fs.writeFileSync(path.join(memory, '.hseos', 'config', 'agent-liveness.yaml'), 'surprise: 1\n');
+  fs.writeFileSync(path.join(memory, '.hseos', 'config', 'agent-liveness.yaml'), 'max_wake_attempts: 0\n');
   assert.equal(contract.loadLivenessConfigWithFallback(memory, { remember: true }).valid, false, 'a corrupt remembered config is ignored');
 });
 

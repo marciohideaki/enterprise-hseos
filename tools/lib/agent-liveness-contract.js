@@ -74,8 +74,10 @@ const configSchema = z
     max_notify_attempts: z.number().int().min(1).max(100),
     escalate_to: z.enum(['human']),
   })
-  .partial()
-  .strict();
+  .partial();
+// An unknown key is ignored with a warning (never rejects the file), the same rule the stop
+// guard applies, so a typo or a key from a newer CLI cannot switch the watchdog off.
+const KNOWN_KEYS = new Set(Object.keys(configSchema.shape));
 
 function formatIssues(error) {
   return error.issues.map((issue) => `${issue.path.length > 0 ? `${issue.path.join('.')}: ` : ''}${issue.message}`);
@@ -84,17 +86,24 @@ function formatIssues(error) {
 /**
  * Validate a parsed config document and merge it over the defaults.
  * @param {unknown} document
- * @returns {{ ok: boolean, config: object, errors: string[] }}
+ * A known key with an invalid value makes the document invalid; an unknown key only adds a warning.
+ * @returns {{ ok: boolean, config: object, errors: string[], warnings: string[] }}
  */
 function validateLivenessConfig(document) {
+  const isRecord = document !== null && typeof document === 'object' && !Array.isArray(document);
+  const warnings = isRecord
+    ? Object.keys(document)
+        .filter((key) => !KNOWN_KEYS.has(key))
+        .map((key) => `unknown key ignored: ${key}`)
+    : [];
   const parsed = configSchema.safeParse(document ?? {});
-  if (!parsed.success) return { ok: false, config: { ...DEFAULTS }, errors: formatIssues(parsed.error) };
+  if (!parsed.success) return { ok: false, config: { ...DEFAULTS }, errors: formatIssues(parsed.error), warnings };
   const config = { ...DEFAULTS, ...parsed.data };
   const errors = [];
   if (config.heartbeat_ttl_s > config.stall_timeout_s) errors.push('heartbeat_ttl_s must not exceed stall_timeout_s');
   if (config.watch_interval_s > config.stall_timeout_s) errors.push('watch_interval_s must not exceed stall_timeout_s');
   if (config.max_wait_deadline_s < config.stall_timeout_s) errors.push('max_wait_deadline_s must not be below stall_timeout_s');
-  return errors.length > 0 ? { ok: false, config: { ...DEFAULTS }, errors } : { ok: true, config, errors };
+  return errors.length > 0 ? { ok: false, config: { ...DEFAULTS }, errors, warnings } : { ok: true, config, errors, warnings };
 }
 
 /**
@@ -123,6 +132,7 @@ function loadLivenessConfig(directory) {
     path: file,
     config: result.config,
     errors: result.errors,
+    warnings: result.warnings,
   };
 }
 
@@ -138,7 +148,7 @@ const LAST_VALID_RELATIVE_PATH = path.join('.hseos', 'state', 'liveness', 'last-
 function loadLivenessConfigWithFallback(directory, { remember = false } = {}) {
   const loaded = loadLivenessConfig(directory);
   const remembered = path.join(directory, LAST_VALID_RELATIVE_PATH);
-  loaded.warnings = [];
+  loaded.warnings = [...(loaded.warnings ?? [])];
   if (loaded.valid) {
     if (remember && loaded.present && (loaded.enabled || fs.existsSync(remembered))) {
       fs.mkdirSync(path.dirname(remembered), { recursive: true, mode: 0o700 });

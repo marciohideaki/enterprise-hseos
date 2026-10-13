@@ -75,16 +75,40 @@ for (const [label, guardFile] of GUARDS) {
     assert.equal(run.violation, false);
   });
 
-  test(`[${label}] an unknown config key only warns in the guard while the strict CLI rejects the file`, () => {
+  test(`[${label}] an unknown config key only warns in the guard, the CLI and the watch alike`, () => {
     const { root, bin } = project(`${FULL_CONFIG}\nfuture_key: 1`);
     const refused = stop(guardFile, root, bin, 'aguardando');
     assert.equal(refused.code, 0);
     assert.equal(JSON.parse(refused.stdout).decision, 'block');
     assert.match(refused.stderr, /chave desconhecida ignorada: future_key/);
     const cli = spawnSync(process.execPath, [CLI, 'liveness', 'check', '--json'], { cwd: root, encoding: 'utf8' });
-    // The CLI schema is strict on purpose (a typo must not pass silently); the guard stays enabled so
-    // the stop protection survives a key it does not know.
-    assert.equal(cli.status, 2);
-    assert.deepEqual(JSON.parse(cli.stdout), { enabled: false, valid: false, errors: ['Unrecognized key: "future_key"'] });
+    assert.equal(cli.status, 0, cli.stderr);
+    assert.match(cli.stderr, /unknown key ignored: future_key/);
+    const checked = JSON.parse(cli.stdout);
+    assert.equal(checked.enabled, true);
+    assert.deepEqual(checked.warnings, ['unknown key ignored: future_key']);
+    const watch = spawnSync(process.execPath, [CLI, 'liveness', 'watch', '--once', '--json'], { cwd: root, encoding: 'utf8' });
+    assert.equal(watch.status, 0, watch.stderr);
+    assert.match(watch.stderr, /unknown key ignored: future_key/);
+    assert.equal(JSON.parse(watch.stdout).enabled, true);
+  });
+
+  test(`[${label}] a known key with an invalid value keeps the last valid config in the guard, the CLI and the watch alike`, () => {
+    const { root, bin } = project(FULL_CONFIG);
+    // report and watch remember the valid config; the guard keeps its own snapshot.
+    assert.equal(stop(guardFile, root, bin, 'feito\nLIVENESS: {"state":"DONE","reason":"ok","evidence":"abc123"}').code, 0);
+    assert.equal(spawnSync(process.execPath, [CLI, 'liveness', 'watch', '--once', '--json'], { cwd: root, encoding: 'utf8' }).status, 0);
+    fs.writeFileSync(path.join(root, '.hseos/config/agent-liveness.yaml'), `${FULL_CONFIG}\nmax_wake_attempts: 0\nfuture_key: 1`);
+    const refused = stop(guardFile, root, bin, 'aguardando');
+    assert.equal(JSON.parse(refused.stdout).decision, 'block');
+    assert.match(refused.stderr, /invalido/);
+    const cli = spawnSync(process.execPath, [CLI, 'liveness', 'check', '--json'], { cwd: root, encoding: 'utf8' });
+    assert.equal(cli.status, 0, cli.stderr);
+    assert.equal(JSON.parse(cli.stdout).enabled, true);
+    assert.match(cli.stderr, /last valid configuration/);
+    const watch = spawnSync(process.execPath, [CLI, 'liveness', 'watch', '--once', '--json'], { cwd: root, encoding: 'utf8' });
+    assert.equal(watch.status, 0, watch.stderr);
+    assert.equal(JSON.parse(watch.stdout).enabled, true);
+    assert.match(watch.stderr, /last valid configuration/);
   });
 }
