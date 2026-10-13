@@ -991,6 +991,80 @@ test('stale and unknown sessions get an explicit notice; a diverging worktree re
   coordination.close();
 });
 
+test('adapter loader refuses the -adapter alias and a factory that answers to another name, with a clear message', async () => {
+  const root = tmp();
+  const adapters = path.join(root, 'activity-adapters');
+  fs.mkdirSync(adapters);
+  fs.writeFileSync(path.join(adapters, 'axon-adapter.js'), 'exports.createAxonAdapter = () => ({ name: "axon", mirror: () => {} });\n');
+  fs.writeFileSync(path.join(adapters, 'named-adapter.js'), 'exports.createAdapter = () => ({ name: "other", mirror: () => {} });\n');
+  const original = cli.loaders.adapterDir;
+  try {
+    cli.loaders.adapterDir = adapters;
+    const alias = cli.loaders.adapter('axon-adapter');
+    assert.equal(alias.mirror, undefined);
+    assert.match(alias.issue, /use o nome sem o sufixo -adapter \(axon\)/);
+    const diverging = cli.loaders.adapter('named');
+    assert.equal(diverging.mirror, undefined);
+    assert.match(diverging.issue, /adapter named refused: the module answers to the name other/);
+    assert.equal(cli.loaders.adapter('axon').name, 'axon');
+    const dir = tmp();
+    writeContract(dir, `enabled: true\nstore:\n  path: ${path.join(dir, 'cli.db')}\n  adapters: [axon-adapter, named]\n`);
+    const out = [];
+    const log = console.log;
+    console.log = (text) => out.push(text);
+    try {
+      await cli.action('register', undefined, { directory: dir, session: 'a', tool: 'codex', repo: REPO, worktree: dir, json: true });
+    } finally {
+      console.log = log;
+    }
+    const { warnings } = JSON.parse(out.join(''));
+    assert.ok(warnings.some((w) => /adapter axon-adapter refused: use o nome sem o sufixo -adapter/.test(w)), JSON.stringify(warnings));
+    assert.ok(warnings.some((w) => /adapter named refused/.test(w)), JSON.stringify(warnings));
+    assert.ok(!warnings.some((w) => /not installed/.test(w)), 'a refused entry is not reported as merely missing');
+  } finally {
+    cli.loaders.adapterDir = original;
+  }
+});
+
+test('mirrored events carry a unique id, the tool, and the source and other session of a conflict', () => {
+  const ctx = setup();
+  writeContract(ctx.dir, `enabled: true\nstore:\n  path: ${ctx.db}\n  adapters: [axon]\n`);
+  const events = [];
+  const { coordination } = createCoordination(ctx.dir, {
+    now: ctx.now,
+    git: ctx.git,
+    registry: ctx.registry,
+    adapters: [{ name: 'axon', mirror: (event) => events.push(event) }],
+  });
+  coordination.register({ session: 's1', tool: 'claude-code', repo: REPO, worktree: ctx.dir, paths: ['a'], intent: 'refactor a' });
+  coordination.register({ session: 's2', tool: 'codex', repo: REPO, worktree: ctx.dir, paths: ['b'] });
+  coordination.declare('s1', { paths: ['a.js'] });
+  coordination.declare('s1', { paths: ['b.js'] });
+  coordination.reserve('s1', 'name:held-pkg');
+  coordination.reserve('s2', 'name:held-pkg');
+  const declared = events.filter((event) => event.type === 'activity_declared');
+  assert.equal(declared.length, 2);
+  assert.notEqual(declared[0].id, declared[1].id, 'two declares of one session must not share an idempotency id');
+  assert.equal(new Set(events.map((event) => event.id)).size, events.length, 'every mirrored event has its own id');
+  for (const event of events) {
+    assert.ok(event.id && event.at && Date.parse(event.at) >= 0, 'id and at are present');
+    assert.ok(event.tool, `${event.type} carries the tool`);
+  }
+  assert.equal(declared[0].tool, 'claude-code');
+  assert.equal(declared[0].intent, 'refactor a');
+  const conflict = events.find((event) => event.type === 'reservation_conflict' && event.session === 's2');
+  assert.ok(conflict, JSON.stringify(events.map((event) => event.type)));
+  assert.equal(conflict.tool, 'codex');
+  assert.ok(conflict.source, 'source is set');
+  assert.equal(conflict.other_session, 's1');
+  const wrapped = events.find((event) => event.event && event.event.type === 'reservation_conflict');
+  assert.ok(wrapped, 'the inbox-wrapped conflict is mirrored too');
+  assert.equal(wrapped.session, 's2');
+  assert.equal(wrapped.other_session, 's1');
+  assert.equal(wrapped.source, 'claim');
+  coordination.close();
+});
+
 test('adapter loader: resolves <name>-adapter.js with create<Name>Adapter (CO2 format), stays inside its directory', async () => {
   const root = tmp();
   const adapters = path.join(root, 'activity-adapters');

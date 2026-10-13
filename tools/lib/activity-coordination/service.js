@@ -148,10 +148,37 @@ class Coordination {
     return this.out({ ok: false, reason_code: reasonCode, ...extra });
   }
 
+  /**
+   * What the adapters receive: a unique `id` and `at` (the mirror dedups on the id, and two events of one session must
+   * never collide), the tool and intent of the session, and for a conflict the `source` and `other_session` the axon
+   * handoff text is built from. Both the bare event and the inbox-wrapped one (`{event:{type,...}}`) are enriched.
+   */
+  mirrorPayload(event) {
+    const inner = event.event && typeof event.event === 'object' ? event.event : {};
+    const type = event.type || inner.type;
+    const session = event.session || inner.requested_by || inner.session;
+    const first = Array.isArray(event.conflicts) ? event.conflicts[0] : undefined;
+    this.mirrorSequence = (this.mirrorSequence || 0) + 1;
+    const known = session && this.store.get ? this.store.get(session) : null;
+    const payload = {
+      ...event,
+      id: `${type}-${session || 'unknown'}-${this.now()}-${this.mirrorSequence}-${Math.random().toString(36).slice(2, 8)}`,
+      at: new Date(this.now()).toISOString(),
+    };
+    if (session) payload.session = session;
+    if (known && known.tool) payload.tool = known.tool;
+    if (known && known.intent && payload.intent === undefined) payload.intent = known.intent;
+    if (type === 'reservation_conflict') {
+      payload.source = event.source || inner.source || (first && first.source) || undefined;
+      payload.other_session = event.other_session || (first && first.held_by) || event.recipient || undefined;
+    }
+    return payload;
+  }
+
   mirror(event) {
     for (const adapter of this.adapters) {
       try {
-        adapter.mirror(event);
+        adapter.mirror(this.mirrorPayload(event));
       } catch (error) {
         this.warn(`adapter ${adapter.name} failed: ${error.message.split('\n')[0]}`);
       }
@@ -581,7 +608,11 @@ function createCoordination(directory, options = {}) {
   const coordination = new Coordination({ directory, config: loaded.config, store, ...options });
   coordination.warnings.push(...loaded.warnings);
   const installed = new Set((options.adapters || []).map((adapter) => adapter.name));
-  for (const name of loaded.config.store.adapters) if (!installed.has(name)) coordination.warn(`adapter ${name} is not installed; skipped`);
+  const issues = options.adapterIssues || {};
+  for (const name of loaded.config.store.adapters) {
+    if (installed.has(name)) continue;
+    coordination.warn(issues[name] || `adapter ${name} is not installed; skipped`);
+  }
   const backend = loaded.config.store.backend;
   if (backend.startsWith('adapter:') && !(options.adapters || []).some((adapter) => `adapter:${adapter.name}` === backend)) {
     coordination.warn(`${backend} is not installed; using the machine store`);

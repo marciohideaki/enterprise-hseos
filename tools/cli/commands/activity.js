@@ -19,10 +19,15 @@ const loaders = {
   /**
    * Optional mirror adapter `<name>`: `<adapterDir>/<name>-adapter.js`, then `<name>.js`, contained in the adapter
    * directory. The module exports `createAdapter` or `create<Name>Adapter` (e.g. `createAxonAdapter`), or is the adapter
-   * itself ({mirror(event)}). Returns null when absent or unusable.
+   * itself ({mirror(event)}). Returns null when absent or unusable, or `{ name, issue }` when the entry is refused
+   * on purpose: the `-adapter` file suffix is not part of the name, and a factory must answer to the name it was
+   * configured under.
    */
   adapter: (name) => {
     if (!ADAPTER_NAME.test(name)) return null;
+    if (name.endsWith('-adapter')) {
+      return { name, issue: `adapter ${name} refused: use o nome sem o sufixo -adapter (${name.slice(0, -'-adapter'.length)})` };
+    }
     const root = path.resolve(loaders.adapterDir);
     try {
       for (const file of [`${name}-adapter.js`, `${name}.js`]) {
@@ -31,7 +36,11 @@ const loaders = {
         const loaded = require(candidate);
         const factory = [loaded.createAdapter, loaded[`create${pascal(name)}Adapter`]].find((item) => typeof item === 'function');
         const adapter = factory ? factory() : loaded;
-        return adapter && typeof adapter.mirror === 'function' ? { name, mirror: (event) => adapter.mirror(event) } : null;
+        if (!adapter || typeof adapter.mirror !== 'function') return null;
+        if (adapter.name !== undefined && adapter.name !== name) {
+          return { name, issue: `adapter ${name} refused: the module answers to the name ${String(adapter.name).slice(0, 40)}` };
+        }
+        return { name, mirror: (event) => adapter.mirror(event) };
       }
     } catch {
       return null;
@@ -53,8 +62,10 @@ function run(action, options, target) {
   const directory = path.resolve(options.directory || process.cwd());
   const { loadConfig } = require('../../lib/activity-coordination/config');
   const configured = loadConfig(directory);
-  const adapters = (configured.enabled ? configured.config.store.adapters : []).map((name) => loaders.adapter(name)).filter(Boolean);
-  const { coordination, loaded } = createCoordination(directory, { adapters });
+  const resolved = (configured.enabled ? configured.config.store.adapters : []).map((name) => loaders.adapter(name)).filter(Boolean);
+  const adapters = resolved.filter((adapter) => !adapter.issue);
+  const adapterIssues = Object.fromEntries(resolved.filter((adapter) => adapter.issue).map((adapter) => [adapter.name, adapter.issue]));
+  const { coordination, loaded } = createCoordination(directory, { adapters, adapterIssues });
   if (!coordination) return { enabled: false, source: loaded.source, warnings: loaded.warnings, exitCode: 0 };
   try {
     const needSession = () => {
