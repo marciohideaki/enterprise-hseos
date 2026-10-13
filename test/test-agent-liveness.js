@@ -581,6 +581,39 @@ test('reconcile: pid and status file enrich the wake reason without suppressing 
   });
 });
 
+test('watch: coordination entries in the shared inbox are counted, never read as wakes, rewritten or pruned', () => {
+  const directory = tmpProject();
+  withDb(directory, (db) => {
+    emit(db, 'turn_end', 0);
+    const first = liveness.runWatchCycle({ db, directory, config: CONFIG, now: T0 + 10 * S, io: NO_IO, notify: () => {} });
+    assert.equal(first.wake_requests.length, 1);
+    assert.equal(first.coordination_pending, 0);
+    const dir = liveness.inboxDir(directory);
+    const entry = {
+      kind: 'coordination',
+      schema: 'coordination-inbox/v1',
+      recipient: 's1',
+      reason: 'overlap',
+      reason_code: 'path_overlap',
+      created_at: new Date(T0).toISOString(),
+      event: { type: 'overlap' },
+    };
+    fs.writeFileSync(path.join(dir, 's1-coordination-1-abc.json'), JSON.stringify(entry));
+    // A typed entry that merely carries session/agent is still not a wake request.
+    fs.writeFileSync(path.join(dir, 'typed.json'), JSON.stringify({ kind: 'other', session: 's1', agent: 'a1', reason: 'x' }));
+    assert.equal(liveness.readInbox(directory).length, 1);
+    assert.deepEqual(liveness.readCoordinationInbox(directory), [
+      { file: 's1-coordination-1-abc.json', recipient: 's1', reason_code: 'path_overlap', created_at: entry.created_at },
+    ]);
+    emit(db, 'heartbeat', 20);
+    const second = liveness.runWatchCycle({ db, directory, config: CONFIG, now: T0 + 25 * S, io: NO_IO, notify: () => {} });
+    assert.equal(second.pruned.length, 1);
+    assert.equal(second.coordination_pending, 1);
+    assert.deepEqual(fs.readdirSync(dir).sort(), ['s1-coordination-1-abc.json', 'typed.json']);
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, 's1-coordination-1-abc.json'), 'utf8')), entry);
+  });
+});
+
 test('watch: the inbox is pruned once the agent answers; foreign and corrupt files are left alone', () => {
   const directory = tmpProject();
   withDb(directory, (db) => {

@@ -699,20 +699,40 @@ function summarizeRun(run) {
 
 // ------------------------------------------------------------------ inbox ----
 
-function readInbox(directory) {
+// The inbox directory is shared with the coordination track (`kind: 'coordination'`,
+// `coordination-inbox/v1`). A wake request has no `kind`; any typed entry belongs to someone else
+// and is neither read, rewritten nor pruned here.
+const WAKE_KIND = 'wake';
+
+function readInboxFiles(directory) {
   const dir = inboxDir(directory);
   if (!fs.existsSync(dir)) return [];
-  const requests = [];
+  const entries = [];
   for (const name of fs.readdirSync(dir).sort()) {
     if (!name.endsWith('.json')) continue;
     try {
       const body = JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8'));
-      if (body && typeof body.session === 'string' && typeof body.agent === 'string') requests.push({ file: name, ...body });
+      if (body && typeof body === 'object' && !Array.isArray(body)) entries.push({ file: name, body });
     } catch {
-      /* a corrupt request is ignored, never fatal */
+      /* a corrupt entry is ignored, never fatal */
     }
   }
-  return requests;
+  return entries;
+}
+
+function readInbox(directory) {
+  return readInboxFiles(directory)
+    .filter(({ body }) => (body.kind === undefined || body.kind === WAKE_KIND) && typeof body.session === 'string' && typeof body.agent === 'string')
+    .map(({ file, body }) => ({ file, ...body }));
+}
+
+/**
+ * Pending coordination events (read-only): the watchdog reports them, it never consumes or prunes them.
+ */
+function readCoordinationInbox(directory) {
+  return readInboxFiles(directory)
+    .filter(({ body }) => body.kind === 'coordination' && body.schema === 'coordination-inbox/v1' && typeof body.recipient === 'string')
+    .map(({ file, body }) => ({ file, recipient: body.recipient, reason_code: body.reason_code, created_at: body.created_at }));
 }
 
 function writeInboxRequest(directory, { session, agent, seq, reason, createdAt, attempt }) {
@@ -1170,6 +1190,7 @@ function runWatchCycle({ db, directory, config, now = Date.now(), io, notify = d
   for (const write of inboxWrites) writeInboxRequest(directory, write);
   result.rebuilt = rebuildInbox(directory, runs);
   result.pruned = pruneInbox(directory, new Map(runs.map((run) => [`${run.session}\u0000${run.agent}`, run])));
+  result.coordination_pending = readCoordinationInbox(directory).length;
   result.runs = runs.map((run) => summarizeRun(run));
   result.delivered = deliverOutbox(db, directory, notify, { now, config });
   return result;
@@ -1418,6 +1439,7 @@ module.exports = {
   pendingWakeRequests,
   planAction,
   readInbox,
+  readCoordinationInbox,
   rebuildInbox,
   reasonCodeMetrics,
   snapshotLiveness,
