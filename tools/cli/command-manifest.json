@@ -60,7 +60,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "057b730d30d5871eb18e13d82ea080aa3c8da5656b783757d2c4ae3592a380f4"
+      "source_sha256": "9542342b6da40523a76e8cd65becd7cd511adb7717204d188e9c05741396a2c3"
     },
     {
       "filename": "agent-activation-rehearsal.js",
