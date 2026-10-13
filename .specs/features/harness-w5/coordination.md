@@ -37,6 +37,7 @@ Arquivo `.hseos/config/activity-coordination.yaml`, registrado como capability. 
 | `store.backend`            | `machine`                          | `machine`, `project-aggregate` ou `adapter:<nome>`                                       |
 | `store.path`               | `~/.local/state/hseos/activity.db` | store de máquina (SQLite WAL, transações curtas)                                         |
 | `store.adapters`           | `[]`                               | adaptadores opcionais, por exemplo `axon`, só quando instalados                          |
+| `store.project_dirs`       | `[]`                               | só `project-aggregate`: projetos cujo `.hseos/state/project.db` é lido (somente leitura) |
 | `hot_files`                | `[]`                               | globs do repo que geram aviso de alta severidade se houver sobreposição                  |
 | `reservations.kinds`       | `[path, version, name]`            | tipos de reserva aceitos                                                                 |
 | `reservations.ttl_s`       | 86400                              | TTL da reserva, renovado por heartbeat da sessão dona                                    |
@@ -59,6 +60,15 @@ Eventos aditivos, com `reason_code` enumerado no padrão da trilha LV:
 - `reservation_conflict`, com fonte `claim|published|tag|candidate`.
 
 O inbox reaproveita o diretório e o formato da LV, acrescentando o campo `kind: coordination`.
+
+### Saída de `hseos activity check --json`
+
+`{session, overlaps, foreign_reservations, overdue_claims, inbox, warnings}`.
+
+- `overlaps`: `[{with, tool, branch, file, severity}]`, com `severity` em `hot_file|declared|diff`.
+- `foreign_reservations`: reservas ativas de OUTRAS sessões que se sobrepõem aos paths ou identificadores declarados pela sessão: `[{key, owner, tool, fence, overdue, matched}]`. O campo do dono é `owner` (o `held_by` aparece só nos objetos de `conflicts` do `reserve`).
+- `inbox`: entradas `{kind:'coordination', schema:'coordination-inbox/v1', recipient, reason, reason_code, created_at, event}`, sem `session` nem `agent`.
+- Sessão desconhecida ou `stale` (sem heartbeat por mais de `reservations.ttl_s`) recebe um aviso explícito em `warnings`.
 
 ## Mapa da trilha
 
