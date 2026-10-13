@@ -2,7 +2,7 @@
   "task": "integration of wave B1 plus LV/CO tracks",
   "branch": "integration/hseos-w5-b1",
   "base": "07bd5e97",
-  "verified_head": "35440fa5",
+  "verified_head": "0a7b9582",
   "merges": {
     "contracts": {
       "task_sha": "5afa6501",
@@ -21,76 +21,77 @@
       "merge": "14be5f5a"
     },
     "lv2": {
-      "task_sha": "16c52664",
-      "merge": "e807c62c"
+      "task_sha": "46431c03",
+      "merge": "1b84dbe1",
+      "original_task_sha": "16c52664"
     },
     "co1": {
       "task_sha": "d82eaa09",
-      "merge": "17f06c6c"
+      "merge": "c3d22990"
     },
     "co2": {
       "task_sha": "a7783abb",
-      "merge": "569d1007"
+      "merge": "e3c6e14e"
     },
     "02b": {
       "task_sha": "51be92f6",
       "includes": "02b1 a4343171",
-      "merge": "e818b826",
+      "merge": "90900208",
       "conflict": "package.json test:kernel, resolved by union; .c8-kernel.json merged cleanly"
     }
   },
   "corrections": [
     {
-      "sha": "32affa38",
+      "sha": "028244e2",
       "what": "package surface: .hseos budget 64 and entry ceiling 1556 (owner G3, 2026-10-12)"
     },
     {
-      "sha": "b8c8a85d",
+      "sha": "27b46258",
       "what": "ignore c8 coverage output"
     },
     {
-      "sha": "1551e020",
+      "sha": "c3ee484c",
       "what": "LV1 stop guard aligned with the report CLI contract"
     },
     {
-      "sha": "852b15d4",
+      "sha": "8bdaed44",
       "what": "LV2 shared inbox leaves coordination entries alone"
     },
     {
-      "sha": "354c6b4c",
+      "sha": "e8a3e44b",
       "what": "CO1 mirrored events carry id and the adapter alias is refused"
     },
     {
-      "sha": "94a09cde",
+      "sha": "5c2219e5",
       "what": "CO2 C1: stderr warning when a group-writable CLI is refused"
     },
     {
-      "sha": "7dcc1dc9",
+      "sha": "197ecdd3",
       "what": "composition test of the real CO1 core with the real CO2 modules"
     },
     {
-      "sha": "8aa63437",
+      "sha": "895a3df4",
       "what": "W5-04 criterion recorded as gateway-only with a durable record"
     },
     {
-      "sha": "1966b391",
+      "sha": "460b0c8b",
       "what": "regenerate the CLI command manifest after the activity command change"
     },
     {
-      "sha": "8824d103",
+      "sha": "b88abe6d",
       "what": "drop the restricted provider name from the idle watchdog research"
     },
     {
-      "sha": "c56b59a0",
+      "sha": "fe51b2ec",
       "what": "format the files touched by the integration fixes"
     },
     {
-      "sha": "c251318a",
+      "sha": "baba84ac",
       "what": "liveness: unknown config key warns and is ignored in guard, CLI and watch alike; a known key with an invalid value keeps the last valid config"
     },
     {
-      "sha": "35440fa5",
-      "what": "regenerate the CLI command manifest after the liveness change (stale after c251318a, caught by npm test)"
+      "sha": "0a7b9582",
+      "what": "regenerate the CLI command manifest after the liveness change (stale after baba84ac, caught by npm test)"
     }
   ],
   "receipt_text_divergences_not_edited": [
@@ -109,11 +110,11 @@
   ],
   "process_deviations": [
     "Focused tests of phase 2 ran without heavy-run while another session held the lock (same cgroup).",
-    "Husky hooks (.husky/_) exist in the worktree only from 2026-10-13 10:01; merge e818b826 and fix c251318a may have been committed without pre-commit. The stale command manifest left by c251318a was caught by the full npm test and fixed in 35440fa5. Whether those two commits ran the hook is NOT VERIFIED."
+    "Husky hooks (.husky/_) exist in the worktree only from 2026-10-13 10:01; merge 90900208 and fix baba84ac may have been committed without pre-commit. The stale command manifest left by baba84ac was caught by the full npm test and fixed in 0a7b9582. Whether those two commits ran the hook is NOT VERIFIED."
   ],
   "phase3": {
     "task_verifies": {
-      "head": "c251318a",
+      "head": "baba84ac",
       "note": "W5-01/02a/02b1/02b2/04 use the verify_step of tasks.md without the heavy-run prefix (the cgroup wrapper applies it) and without the /tmp flock of W5-01; LV1/LV2/CO1/CO2 use c8 with includes taken from each receipt, per-file 90/80, plus the composition tests",
       "result": "all exit 0, no failures, no coverage error",
       "logs": {
@@ -166,14 +167,14 @@
       "exit_code_source": "verify-summary.txt written by the runner (exit=0 for each task); the chained \";\" commands expose only the last exit, so each log was also checked for failures"
     },
     "kernel_coverage": {
-      "head": "c251318a",
+      "head": "baba84ac",
       "result": "exit code não capturado; conclusão pelo log: 10 blocos com 0 falhas, sem 'ERROR: Coverage', All files 97,34/91,86",
       "log": "/build/tmp/w5-int/final/kcov.log",
       "sha256": "b1bec8cdf6d6579e6e99a8915070331d230e1ca1731d8d22865e3b47aeea6582",
       "exit_code": "not captured"
     },
     "npm_test_node24": {
-      "head": "35440fa5",
+      "head": "0a7b9582",
       "node": "24.15.0",
       "result": "exit 0",
       "log": "/build/tmp/w5-int/final/npmtest24.log",
@@ -182,7 +183,7 @@
       "exit_code_source": "NPMTEST_EXIT=0 appended to the log"
     },
     "npm_test_node22": {
-      "head": "35440fa5",
+      "head": "0a7b9582",
       "node": "22.23.3",
       "clone": "/build/tmp/w5-int/wt22",
       "note": "better-sqlite3 already built for ABI 22 in the clone; wrapper copy with NODEBIN of Node 22; env file only in XDG_RUNTIME_DIR with trap",
@@ -226,6 +227,15 @@
         "docs/evolution/w5/evidence/w5-lv0/lv0-evidence/scratch-settings.local.json"
       ],
       "note": "task evidence artifacts, not reformatted; format:check is not part of npm test"
+    },
+    "compensatory_gate_ci": {
+      "head": "de0b3dad",
+      "command": "VALIDATION_ENFORCED=true bash scripts/governance/quality-gates.sh --phase ci",
+      "result": "All quality gates passed: 0 failures, 2 warnings (unresolved placeholders in docs/activity-coordination/README.md and in src/hsm/workflows/3-solutioning/create-epics-and-stories/templates/epics-template.md)",
+      "exit_code": 0,
+      "exit_code_source": "GATE_EXIT=0 appended to the log",
+      "log": "/build/tmp/w5-int/final/gate-ci.log",
+      "sha256": "65e5a5c31f972330a5f2a7350bbefe2c8fde2fc96a7c698782e3ea558645078d"
     }
   },
   "blocked": [],
@@ -234,7 +244,50 @@
     "real consumers A and B",
     "any activation (codex hooks, systemd timer, contracts enabled in projects)",
     "literal exit code of test:kernel-coverage (declared, not a full PASS)",
-    "whether e818b826 and c251318a ran the pre-commit hook",
-    "kernel coverage and task verifies were run at c251318a, not at 35440fa5 (the later commit only regenerates the manifest)"
-  ]
+    "whether the commits made without hooks (until baba84ac) ran the pre-commit hook: they did not (hooks absent); compensated by npm test on Node 24 and 22 plus the CI gate",
+    "kernel coverage and task verifies were run at baba84ac, not at 0a7b9582 (the later commit only regenerates the manifest)"
+  ],
+  "history_rewrite": {
+    "date": "2026-10-13",
+    "reason": "The message of the original LV2 commit (16c52664) named a tool in its \"Parity for ...\" line, which the commit-msg hook rejects. It was accepted only because the LV2 worktree never had .husky/_ (hooks absent). Only that message was rewritten.",
+    "rewritten": "16c52664 -> 46431c03 (task/hseos-w5-lv2 moved too); the integration first-parent chain was rebuilt with the new parent.",
+    "map": {
+      "16c52664": "46431c03",
+      "e807c62c": "1b84dbe1",
+      "17f06c6c": "c3d22990",
+      "569d1007": "e3c6e14e",
+      "32affa38": "028244e2",
+      "b8c8a85d": "27b46258",
+      "1551e020": "c3ee484c",
+      "852b15d4": "8bdaed44",
+      "354c6b4c": "e8a3e44b",
+      "94a09cde": "5c2219e5",
+      "7dcc1dc9": "197ecdd3",
+      "8aa63437": "895a3df4",
+      "1966b391": "460b0c8b",
+      "8824d103": "b88abe6d",
+      "c56b59a0": "fe51b2ec",
+      "e818b826": "90900208",
+      "c251318a": "baba84ac",
+      "35440fa5": "0a7b9582",
+      "08c65f66": "351e0a51",
+      "52166b61": "de0b3dad"
+    },
+    "unchanged": "contracts, 02a, 04, lv1, co1, co2, 02b and the commits of the tasks",
+    "proof": {
+      "tree_identical_before_and_after": "tree 285b90bc269b349f72a9a7a493166101f879d589 for 16c52664 and 46431c03 (integration trees identical, worktree clean)",
+      "retroactive_commit_msg": "passed on 36 of 36 commits of the range",
+      "integration_head_before_this_docs_commit": "de0b3dad (was 52166b61)"
+    },
+    "note": "Evidence logs and the receipts of the tasks keep the old SHAs where they quote them; the trees are identical so the verifications carry over."
+  },
+  "hooks_finding": {
+    "finding": ".husky/_ (generated by husky prepare, ignored by git) was absent in the LV1, LV2 and integration worktrees up to baba84ac (old c251318a), and in the first commits of CO1 and CO2. git then commits silently with no pre-commit and no commit-msg.",
+    "consequence": "commits in that window were not checked by the hooks; the stale CLI manifest left by baba84ac and the tool name in the LV2 message went through.",
+    "remediation": [
+      "commit-in-cgroup.sh now refuses with exit 72 when the pre-commit or commit-msg hook is missing",
+      "retroactive commit-msg check over the range: 36 of 36 passed",
+      "compensatory CI gate on the HEAD (phase3.compensatory_gate_ci)"
+    ]
+  }
 }
