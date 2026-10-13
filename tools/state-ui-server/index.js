@@ -7,6 +7,7 @@
  * Start: hseos state-ui start
  * Port:  --port=N (default 3200)
  * DB:    --db=PATH (default .hseos/state/project.db)
+ * Dir:   --project-dir=PATH (project whose agent-liveness.yaml governs the liveness rows; none by default)
  */
 
 const http = require('node:http');
@@ -52,7 +53,8 @@ function parseArgs() {
   if (authTokenEnv && !authToken) throw new Error(`authentication environment variable ${authTokenEnv} is not populated`);
   if (authToken && authToken.length < 16) throw new Error('authentication token must contain at least 16 characters');
   if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(instanceId)) throw new Error('instance-id must be a UUID');
-  return { port, host, dbPath, pollMs, staleMinutes, registry, authToken, authTokenEnv, instanceId };
+  const projectDirectory = args.find((a) => a.startsWith('--project-dir='))?.slice('--project-dir='.length) || null;
+  return { port, host, dbPath, pollMs, staleMinutes, registry, authToken, authTokenEnv, instanceId, projectDirectory };
 }
 
 const MIME = {
@@ -77,6 +79,7 @@ function start({
   pollMs,
   staleMinutes,
   registry: registryPath,
+  projectDirectory = null,
   authToken = null,
   instanceId = crypto.randomUUID(),
 }) {
@@ -111,7 +114,7 @@ function start({
       loadedRegistry = loadRegistryFn(registryPath);
       return takeMultiSnapshotFn(loadedRegistry, { staleMinutes });
     }
-    return takeSnapshot(db, { staleMinutes });
+    return takeSnapshot(db, { staleMinutes, projectDirectory });
   }
 
   function pushSnapshot() {

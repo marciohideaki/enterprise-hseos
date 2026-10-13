@@ -63,7 +63,12 @@
     "tools/mcp-project-state/lib/mcp-legacy-usage-store.js",
     ".agents/hooks/handlers/liveness-guard.cjs",
     ".enterprise/governance/hooks/handlers/liveness-guard.cjs",
-    "docs/evolution/w5/liveness-idle-metric.mjs"
+    "docs/evolution/w5/liveness-idle-metric.mjs",
+    "tools/lib/agent-liveness-contract.js",
+    "tools/lib/agent-liveness.js",
+    "tools/cli/commands/liveness.js",
+    "tools/state-ui-server/lib/snapshot.js",
+    "tools/state-ui-server/lib/snapshot-multi.js"
   ],
   "exclude": ["**/node_modules/**", "test/**"],
   "reporter": ["text", "json-summary", "json"],

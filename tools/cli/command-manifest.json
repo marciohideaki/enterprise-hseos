@@ -795,7 +795,81 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "810f2efd52f270241280cd01723722c8eab7dd9c1fb239eb44bb86338bea3b63"
+      "source_sha256": "ea9d519b4ccf698db225444a6eb8f7b445f06a67412e6470311b1f998d74c0ae"
+    },
+    {
+      "filename": "liveness.js",
+      "command": "liveness <action>",
+      "description": "Agent liveness (\"no silent idle\"): report, check, watch, await",
+      "options": [
+        [
+          "--directory <path>",
+          "Project directory (default: current directory)"
+        ],
+        [
+          "--session <id>",
+          "Session id of the agent (report, await heartbeats)"
+        ],
+        [
+          "--agent <id>",
+          "Agent id (report, await heartbeats)"
+        ],
+        [
+          "--json [line]",
+          "Print JSON; for report, the LIVENESS line to validate and record"
+        ],
+        [
+          "--event <kind>",
+          "report event: report (default), turn_end or heartbeat"
+        ],
+        [
+          "--pid <n>",
+          "report: pid of the awaited process; await: pid to wait on"
+        ],
+        [
+          "--status-file <path>",
+          "report: status file written by the awaited command"
+        ],
+        [
+          "--worktree <path>",
+          "report: worktree whose HEAD is the source of truth"
+        ],
+        [
+          "--file <path>",
+          "await: wait until this file exists"
+        ],
+        [
+          "--cmd-status <path>",
+          "await: wait for a status file with {\"exit_code\": n}"
+        ],
+        [
+          "--max <seconds>",
+          "await: maximum wait, capped at foreground_wait_max_s"
+        ],
+        [
+          "--poll-ms <n>",
+          "await: poll interval in milliseconds",
+          "1000"
+        ],
+        [
+          "--reason-code <code>",
+          "report: enumerated reason_code (default declared, blocked_pending for BLOCKED)"
+        ],
+        [
+          "--once",
+          "watch: run a single cycle"
+        ],
+        [
+          "--max-cycles <n>",
+          "watch: stop after n cycles"
+        ],
+        [
+          "--print-systemd",
+          "watch: print the systemd --user service and timer units"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "9704d0f4c3dea2487ae72ae4db36a5af7226a49851a550ff1aba672f07cb4cd6"
     },
     {
       "filename": "platform-bindings.js",
@@ -1172,7 +1246,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "ca53bd71eb002623bbce81cd0092a8ff475e4e44291856c328bf1bce6517a5fb"
+      "source_sha256": "e18e2b8b56158466024879b0c42d1f685e3edb9065dad9443867c08f744e1de7"
     },
     {
       "filename": "state.js",

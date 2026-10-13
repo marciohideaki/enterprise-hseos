@@ -231,6 +231,32 @@ sqlite3 .hseos/state/project.db "SELECT kind, ts FROM as_events WHERE agent_run_
 
 ---
 
+## Liveness parity (Codex and other harnesses)
+
+When `.hseos/config/agent-liveness.yaml` has `enabled: true`, every dispatched executor follows the "no silent
+idle" protocol in `AGENTS.md` §12; with the contract absent or disabled nothing changes. Dispatch prompts for
+executors outside Claude Code must carry these lines verbatim:
+
+- End the final message with `LIVENESS: {"state":"DONE"|"BLOCKED"|"FAILED"|"WAITING_ON","reason":"...","evidence":"...","waiting_on":{...}}`
+  and record it with `hseos liveness report --session <id> --agent <id> --json '<line>'`.
+- Never end the turn "waiting" on a background job. Wait in the foreground with
+  `hseos liveness await --pid|--file|--cmd-status ... --max 540` and call it again while it answers
+  "ainda rodando, chame de novo" (exit 75).
+- Codex 0.162.1 has a Stop hook (`stop_hook_active`) and a UserPromptSubmit hook with `additionalContext`
+  (spike CO0), so the guard can be installed there through `hooks.json` with a `trusted_hash` in `config.toml`
+  (installation template: CO2; Codex `SubagentStop` exists in the schema but is NOT VERIFIED). Without the guard,
+  or in a harness without hooks, also record `hseos liveness report --event turn_end --session <id> --agent <id>`
+  when the turn ends; the external watchdog (`hseos liveness watch --once`, systemd timer via `--print-systemd`)
+  is the backstop.
+- `BLOCKED` is only for a real impediment, with its cause. Waiting for a decision from the Commander or a
+  human is `WAITING_ON` with the condition, `wake_via` and a `deadline_at` of up to `max_wait_deadline_s`
+  (default 4 h). A lapsed heartbeat lease wakes the agent even mid-turn, so a long foreground operation uses
+  `hseos liveness await`, which renews the heartbeat every 60 s.
+- The Commander reads `hseos liveness check --json` each cycle and messages the agent behind every wake
+  request; an expired lease is escalated to the human, never taken over or killed.
+
+---
+
 ## Exit Criteria
 
 - [ ] All waves executed or correctly halted

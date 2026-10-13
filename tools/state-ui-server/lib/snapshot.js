@@ -17,6 +17,9 @@ const TASK_ABORTED = new Set(['BLOCKED', 'FAILED']);
  * @property {string|null} [run=null] Filter to a single run id.
  * @property {string|null} [project=null] Filter to a single project path.
  * @property {number} [eventLimit=100] How many recent events to include.
+ * @property {string} [projectDirectory] Project directory whose agent-liveness.yaml governs the liveness rows.
+ * @property {object} [livenessConfig] Liveness config override (wins over projectDirectory).
+ * @property {object} [livenessIo] Reconciliation I/O overrides (tests).
  */
 
 /**
@@ -32,9 +35,20 @@ const TASK_ABORTED = new Set(['BLOCKED', 'FAILED']);
  *   events: Array<object>,
  *   orphans: number[],
  *   counts: { pending: number, running: number, completed: number, aborted: number, orphaned: number },
- *   stale_minutes: number
+ *   stale_minutes: number,
+ *   liveness: Array<{ session: string, agent: string, class: string, reason_code: string, idle_for_s: number, wake_attempts: number }>
  * }}
  */
+function livenessRows(db, opts) {
+  const { loadLivenessConfigWithFallback, DEFAULTS } = require('../../lib/agent-liveness-contract');
+  const { snapshotLiveness, INERT_IO } = require('../../lib/agent-liveness');
+  // Project config, not defaults; the HTTP path reads only the ledger (the watchdog's reconciliation
+  // is already in it) and never spawns git or probes processes.
+  const config = opts.livenessConfig ?? (opts.projectDirectory ? loadLivenessConfigWithFallback(opts.projectDirectory).config : DEFAULTS);
+  if (config.enabled !== true) return [];
+  return snapshotLiveness(db, config, Date.now(), opts.livenessIo ?? INERT_IO);
+}
+
 function takeSnapshot(db, opts = {}) {
   const stale = Number.parseInt(opts.staleMinutes ?? 10, 10) || 10;
   const runFilter = opts.run || null;
@@ -135,6 +149,9 @@ function takeSnapshot(db, opts = {}) {
     else if (TASK_ABORTED.has(t.status)) counts.aborted += 1;
   }
 
+  // Agent liveness classification (additive; empty until the liveness ledger has data).
+  const liveness = livenessRows(db, opts);
+
   return {
     ts: new Date().toISOString(),
     runs,
@@ -144,6 +161,7 @@ function takeSnapshot(db, opts = {}) {
     orphans,
     counts,
     stale_minutes: stale,
+    liveness,
   };
 }
 

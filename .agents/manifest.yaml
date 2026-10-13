@@ -123,7 +123,7 @@ skills:
     source: .enterprise/governance/agent-skills/dev-squad/SKILL.md
     quick: .enterprise/governance/agent-skills/dev-squad/SKILL-QUICK.md
     output: .agents/skills/dev-squad/SKILL.md
-    hash: c16fe8113acdbe7c47de664dff24ef7e411636da06d285e9fa106367e510af3b
+    hash: 8770fde897fa49114e40b8d35792529affa40b459b2a1bf6b41a0f7a892665b5
   - name: doc-project
     source: .enterprise/governance/agent-skills/doc-project/SKILL.md
     quick: .enterprise/governance/agent-skills/doc-project/SKILL-QUICK.md
