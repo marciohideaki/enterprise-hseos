@@ -930,7 +930,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "9704d0f4c3dea2487ae72ae4db36a5af7226a49851a550ff1aba672f07cb4cd6"
+      "source_sha256": "4fd864882395a3dca72d1bbd9e5a1125f4b1de1e55074e793575c56a04e21540"
     },
     {
       "filename": "platform-bindings.js",
