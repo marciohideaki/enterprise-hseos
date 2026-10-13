@@ -119,54 +119,67 @@
       "logs": {
         "01": {
           "log": "/build/tmp/w5-int/final/verify-01.log",
-          "sha256": "2d051dc3ec44a5f4b6908a8eb7933cdafa19ba2355055066116c8188882abb25"
+          "sha256": "2d051dc3ec44a5f4b6908a8eb7933cdafa19ba2355055066116c8188882abb25",
+          "exit_code": 0
         },
         "02a": {
           "log": "/build/tmp/w5-int/final/verify-02a.log",
-          "sha256": "ce0573d07b60e13c6e2ca6a027c00b559824d3dfe5afa27ea99b12a204d9bf86"
+          "sha256": "ce0573d07b60e13c6e2ca6a027c00b559824d3dfe5afa27ea99b12a204d9bf86",
+          "exit_code": 0
         },
         "02b1": {
           "log": "/build/tmp/w5-int/final/verify-02b1.log",
-          "sha256": "93026d5ae3b977fc06b85117732c1d24e97b50ca337080a674c1e600c06fa328"
+          "sha256": "93026d5ae3b977fc06b85117732c1d24e97b50ca337080a674c1e600c06fa328",
+          "exit_code": 0
         },
         "02b2": {
           "log": "/build/tmp/w5-int/final/verify-02b2.log",
-          "sha256": "d9a661c1f0e90369377eec2460648b4ecde36992987fc44d480088c4675d5732"
+          "sha256": "d9a661c1f0e90369377eec2460648b4ecde36992987fc44d480088c4675d5732",
+          "exit_code": 0
         },
         "04": {
           "log": "/build/tmp/w5-int/final/verify-04.log",
-          "sha256": "3e84b23fafa2fede46e8da37a7dd930b225d9a84d03279e1105834edafd88c55"
+          "sha256": "3e84b23fafa2fede46e8da37a7dd930b225d9a84d03279e1105834edafd88c55",
+          "exit_code": 0
         },
         "lv1": {
           "log": "/build/tmp/w5-int/final/verify-lv1.log",
-          "sha256": "c837a15f1a650d036ed4d87320cb8a04f987fbf9488fa9b86a8b1cd93265f9c0"
+          "sha256": "c837a15f1a650d036ed4d87320cb8a04f987fbf9488fa9b86a8b1cd93265f9c0",
+          "exit_code": 0
         },
         "lv2": {
           "log": "/build/tmp/w5-int/final/verify-lv2.log",
-          "sha256": "10d7cfb1b6709f8657e7e2225f5d2605122f448f597f0d5a5e46a7cc445fe66d"
+          "sha256": "10d7cfb1b6709f8657e7e2225f5d2605122f448f597f0d5a5e46a7cc445fe66d",
+          "exit_code": 0
         },
         "co1": {
           "log": "/build/tmp/w5-int/final/verify-co1.log",
-          "sha256": "3793266dc764cbcb2eb12472c653bf583ea64a38bf61cb63018aa0f22b75be4f"
+          "sha256": "3793266dc764cbcb2eb12472c653bf583ea64a38bf61cb63018aa0f22b75be4f",
+          "exit_code": 0
         },
         "co2": {
           "log": "/build/tmp/w5-int/final/verify-co2.log",
-          "sha256": "2ff5fc5985fbd4fa22fc377bb2fb08e05447a7b7ef9967b4c1115fb516f4e196"
+          "sha256": "2ff5fc5985fbd4fa22fc377bb2fb08e05447a7b7ef9967b4c1115fb516f4e196",
+          "exit_code": 0
         }
-      }
+      },
+      "exit_code_source": "verify-summary.txt written by the runner (exit=0 for each task); the chained \";\" commands expose only the last exit, so each log was also checked for failures"
     },
     "kernel_coverage": {
       "head": "c251318a",
-      "result": "10 test blocks, 0 failures, no coverage threshold error; all files 97.34 lines / 91.86 branches. Literal exit code not captured.",
+      "result": "exit code não capturado; conclusão pelo log: 10 blocos com 0 falhas, sem 'ERROR: Coverage', All files 97,34/91,86",
       "log": "/build/tmp/w5-int/final/kcov.log",
-      "sha256": "b1bec8cdf6d6579e6e99a8915070331d230e1ca1731d8d22865e3b47aeea6582"
+      "sha256": "b1bec8cdf6d6579e6e99a8915070331d230e1ca1731d8d22865e3b47aeea6582",
+      "exit_code": "not captured"
     },
     "npm_test_node24": {
       "head": "35440fa5",
       "node": "24.15.0",
       "result": "exit 0",
       "log": "/build/tmp/w5-int/final/npmtest24.log",
-      "sha256": "9f64ecec3e245467259bda644f2fb84c2ff5c2ece3ec115800566b4c497ae6cb"
+      "sha256": "9f64ecec3e245467259bda644f2fb84c2ff5c2ece3ec115800566b4c497ae6cb",
+      "exit_code": 0,
+      "exit_code_source": "NPMTEST_EXIT=0 appended to the log"
     },
     "npm_test_node22": {
       "head": "35440fa5",
@@ -175,7 +188,9 @@
       "note": "better-sqlite3 already built for ABI 22 in the clone; wrapper copy with NODEBIN of Node 22; env file only in XDG_RUNTIME_DIR with trap",
       "result": "exit 0",
       "log": "/build/tmp/w5-int/final/npmtest22.log",
-      "sha256": "502ada2694673c35d0dab3f199434449323fcc504da7fa93d147a6f535b3d7d5"
+      "sha256": "502ada2694673c35d0dab3f199434449323fcc504da7fa93d147a6f535b3d7d5",
+      "exit_code": 0,
+      "exit_code_source": "NPMTEST_EXIT=0 appended to the log"
     },
     "inventory": {
       "npm": "24.15.0",
@@ -195,7 +210,9 @@
       "areas_note": "[measured, budget]",
       "g3_needed": false,
       "log": "/build/tmp/w5-int/final/pack.json",
-      "sha256": "893ab6d44c7c4bb0e43c3336900bd8e91ad4524d5c17de7358b9f1dc5d2a4368"
+      "sha256": "893ab6d44c7c4bb0e43c3336900bd8e91ad4524d5c17de7358b9f1dc5d2a4368",
+      "exit_code": 0,
+      "exit_code_source": "EXIT=0 printed by the pack command (not appended to the json)"
     },
     "capability_graph": "0 findings",
     "agent_core_compile_check": "242 checks passed, no files written",
@@ -216,7 +233,7 @@
     "MCP journey through the installed package (W5-04 pending)",
     "real consumers A and B",
     "any activation (codex hooks, systemd timer, contracts enabled in projects)",
-    "literal exit code of test:kernel-coverage",
+    "literal exit code of test:kernel-coverage (declared, not a full PASS)",
     "whether e818b826 and c251318a ran the pre-commit hook",
     "kernel coverage and task verifies were run at c251318a, not at 35440fa5 (the later commit only regenerates the manifest)"
   ]
