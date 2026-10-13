@@ -1,0 +1,113 @@
+{
+  "task": "W5-03",
+  "base_sha": "1816e9e5b6ba52764a21a3bcbc1f55e5860ba3dd",
+  "revision": "commit that contains this receipt (task/hseos-w5-03); base_sha is the wave base",
+  "node_for_verify": "v24.15.0 (run-in-cgroup.sh); npm 11.12.1",
+  "commands": [
+    {
+      "id": "coverage-focused",
+      "command": "node node_modules/c8/bin/c8.js --config .c8-kernel.json --include packages/agent-context/context-assembler.js --reports-dir .logs/validation/w5-03-coverage --temp-directory .logs/validation/w5-03-coverage/tmp node --test --test-concurrency=1 test/test-compaction-resume-fork.js test/test-agent-compaction.js test/test-agent-session-store.js",
+      "result": "exit 0; 48 tests, 0 fail, 0 skipped; c8 per-file 90/80 passed",
+      "log": "docs/evolution/w5/evidence/w5-03/verify-coverage.log",
+      "sha256": "de2f1cc7917b54e9442525061921a2e188607e2f280b29f7df7ae67f230076e3"
+    },
+    {
+      "id": "consumers",
+      "command": "node --test --test-concurrency=1 test/test-agent-context.js test/test-agent-context-authority.js test/test-agent-context-media.js test/test-agent-compaction.js test/test-agent-runtime.js test/test-agentic-completion-audit.js test/test-execution-plugin-adapters.js",
+      "result": "exit 0; 95 tests, 0 fail, 0 skipped",
+      "log": "docs/evolution/w5/evidence/w5-03/verify-consumers.log",
+      "sha256": "3fa2b8aefc62a25c7b18549d863f6723305482526c15d2b456c0e2060ffd1e5e",
+      "note": "every test file that imports packages/agent-context or agent-compaction (test/fixtures/agent-context-harness.js is a helper of these)"
+    },
+    {
+      "id": "package-surface",
+      "command": "node --test test/test-package-surface.js",
+      "result": "exit 0; 1 test, 0 fail",
+      "log": "docs/evolution/w5/evidence/w5-03/verify-surface.log",
+      "sha256": "eb9929af4be5e14be1ea967f6478f94585493dcdaad5c64e40c69998591c25b3"
+    },
+    {
+      "id": "node22",
+      "result": "NOT VERIFIED: not run; better-sqlite3 ABI is Node 24 (see COMMON.md)"
+    }
+  ],
+  "coverage_per_file": {
+    "context-assembler.js": {
+      "lines": 90.07,
+      "branches": 85.63,
+      "statements": 90.07,
+      "functions": 95.83
+    }
+  },
+  "verify_command_changes": [
+    "removed the heavy-run --mem 4G -- prefix (run-in-cgroup.sh already runs under heavy-run)",
+    "removed --include packages/agent-compaction/runtime.js: file not changed (rule quoted in verify_rule_cited)",
+    "removed --include packages/agent-context/schemas.js: file not changed (rule quoted in verify_rule_cited)",
+    "kept --include packages/agent-context/context-assembler.js, added by the Commander amendment of 2026-10-13"
+  ],
+  "defect": {
+    "id": "resume-with-durable-compaction-without-context",
+    "code_before": "AGENT_SESSION_DUPLICATE_COMPACTION (replay.js:717 <- context-assembler.js:554)",
+    "reachability": "only external writers (public append, imported or migrated ledger). The governed path appends compaction.completed and context.assembled in one atomic batch; rollback proven by a SQLite trigger that aborts the context insert. agent-runtime/runtime.js:855 emits only tool_result_pressure compactions, which never set turn.context_compaction.",
+    "fix": "ContextAssembler reuses the durable compaction record: no provider call, no second compaction event, only context.assembled appended; mismatch of compaction_id/provider/event id raises AGENT_CONTEXT_COMPACTION_MISMATCH",
+    "behaviour_change": "reject (or any non-compact) policy with a durable compaction pending: before, an error at append (replay invariant); now AGENT_CONTEXT_COMPACTION_MISMATCH before any write",
+    "amendment": "tasks.md W5-03 amended by the Commander on 2026-10-13 (output_contract, verify include, nota)"
+  },
+  "defense_in_depth_untested": {
+    "lines": "context-assembler.js 464-467",
+    "guard": "durable compaction no longer partitions the durable history -> AGENT_CONTEXT_COMPACTION_MISMATCH",
+    "reason": "unreachable through the public API: replay only accepts a compaction whose lineage partitions the exact durable history, and the assembler derives its history from that same replayed state. Exercising it would need a forged store.replay, but the store is frozen and the assembler requires the nominal store. Kept as defence in depth; accepted by team-lead."
+  },
+  "crash_evidence": {
+    "case_a": "SQLite trigger aborts the context.assembled insert; batch rolls back; retry with a new runtime over the surviving checkpoint store: 0 extra provider calls (1 in total), identical request, checkpoint_ref and byte-identical events versus a run that never crashed",
+    "case_b": "durable compaction.completed alone: recoveryPlan returns assemble_context and it is now executable"
+  },
+  "package_inventory": {
+    "entryCount": 1483,
+    "areas": {
+      ".agents": 188,
+      ".enterprise": 449,
+      ".hseos": 63,
+      "root": 7,
+      "docs": 7,
+      "packages": 118,
+      "scripts": 19,
+      "src": 245,
+      "tools": 387
+    },
+    "ceiling": 1556,
+    "new_files_in_budgeted_areas": 0,
+    "note": "No file was added under packages, .agents, tools, .enterprise or .hseos; the only new files are test/test-compaction-resume-fork.js and docs/evolution/w5/evidence/w5-03/*, none of which are in the pack (0 hits). Absolute area counts reflect the merged base 1816e9e5, not this task; the 02a receipt (1464, packages 116) was measured on an older base. packages 118 <= 137, total 1483 <= 1556."
+  },
+  "not_run": ["full npm test", "test:kernel-coverage (wave integration)", "Node 22 execution (better-sqlite3 ABI)"],
+  "deviations": [
+    {
+      "file": "package.json",
+      "reason": "test appended at the end of the first node --test group of test:kernel (after test/test-project-examples.js); the literal end of the string belongs to the arguments of npm run test:plugins. No new script, aggregate test untouched.",
+      "accepted_by": "team-lead"
+    },
+    {
+      "file": "packages/agent-context/context-assembler.js",
+      "reason": "defect fix, contract amended before code",
+      "accepted_by": "team-lead"
+    },
+    {
+      "file": ".specs/features/harness-w5/tasks.md",
+      "reason": "W5-03 section only: output_contract, verify include, nota",
+      "accepted_by": "team-lead"
+    }
+  ],
+  "round": 1,
+  "round_1_corrections": [
+    "finding 2: resume re-selects memory with the same algorithm as the original attempt (shared #selectOptional, then memory leaves from the end until it fits); new test compares the resumed request, source_refs and budget with the run that never crashed under memory pressure (deepEqual)",
+    "finding 3: the conditional authority assertion was vacuous (history is not a recorded authority source); it now asserts the summary ref is in source_refs, the summary is an assistant message, and no source holds an authority different from the full history",
+    "finding 4: the fork test adds a control fork from the full, uncompacted history; the child takes instructions and criteria from the parent's input (lineage) and must equal the control in source_refs, sources and request",
+    "finding 1: accepted as defence in depth, no change",
+    "finding 5: rule cited literally below"
+  ],
+  "verify_rule_cited": {
+    "file": ".specs/features/harness-w5/tasks.md",
+    "section": "header, paragraph 'Protocolo de arquivos compartilhados na onda'",
+    "quote": "Task de apenas teste (W5-03) inclui `runtime.js` e `schemas.js` só se os alterar e remove do `--include` o que não alterou, registrando isso no recibo."
+  }
+}

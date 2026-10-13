@@ -217,13 +217,15 @@ Nota B1: B1 roda com 3 agentes (aprovado pelo owner no G2). A W5-02b (perfis de 
   - `test/test-compaction-resume-fork.js`
   - `packages/agent-compaction/runtime.js (somente se o cenário expuser defeito)`
   - `packages/agent-context/schemas.js (somente retention aditivo, se necessário)`
+  - `packages/agent-context/context-assembler.js (correção do resume com compaction.completed durável sem context.assembled; defeito confirmado na B2)`
   - `.c8-kernel.json`
   - `package.json`
   - `docs/evolution/w5/evidence/w5-03/*`
 - acceptance_criteria: cenário compactação, crash entre compaction.completed e context.assembled, resume e fork comparado ao histórico integral: mesmos source_refs obrigatórios, autoridade por fonte, critérios fixados e lineage; critério existente só em histórico documentado como compactável; sem reescrita de eventos.
-- verify_step.command: `heavy-run --mem 4G -- node node_modules/c8/bin/c8.js --config .c8-kernel.json --include 'packages/agent-compaction/runtime.js' --include 'packages/agent-context/schemas.js' --reports-dir .logs/validation/w5-03-coverage --temp-directory .logs/validation/w5-03-coverage/tmp node --test --test-concurrency=1 test/test-compaction-resume-fork.js test/test-agent-compaction.js test/test-agent-session-store.js`
+- verify_step.command: `heavy-run --mem 4G -- node node_modules/c8/bin/c8.js --config .c8-kernel.json --include 'packages/agent-compaction/runtime.js' --include 'packages/agent-context/schemas.js' --include 'packages/agent-context/context-assembler.js' --reports-dir .logs/validation/w5-03-coverage --temp-directory .logs/validation/w5-03-coverage/tmp node --test --test-concurrency=1 test/test-compaction-resume-fork.js test/test-agent-compaction.js test/test-agent-session-store.js`
 - verify_step.expected: exit 0, zero falhas/skips; cobertura focada: o c8 do primeiro comando (config `.c8-kernel.json`, `--include` limitado aos arquivos da task, `per-file` 90% linhas e 80% branches) passa para os arquivos da task; os arquivos novos estão em `.c8-kernel.json` e os testes novos registrados em `test:kernel` de `package.json` (o `npm run test:kernel-coverage` completo roda uma vez por onda, na integração, não por task); recibo ligado à revisão em `docs/evolution/w5/evidence/<task>/receipt.json` (SHA da revisão, comando, versão do Node, resultado e SHA-256 dos logs).
 - verify_step.on_failure: diagnosticar e corrigir (até 3 rodadas); causa desconhecida ou capacidade indisponível = BLOCKED com a causa, nunca PASS.
+- nota: defeito confirmado na B2: com `compaction.completed` (context_pressure) durável e sem `context.assembled`, o `recoveryPlan` devolve `assemble_context`, mas executá-lo falha com AGENT_SESSION_DUPLICATE_COMPACTION (replay.js:717 <- context-assembler.js:554). Reachability: só escritores externos (append público, ledger importado/migrado); o caminho governado grava compaction e context num append atômico (rollback provado). Emenda do contrato decidida pelo Commander em 2026-10-13.
 
 ## W5-05 — LSP TypeScript e Python restrito ao workspace
 

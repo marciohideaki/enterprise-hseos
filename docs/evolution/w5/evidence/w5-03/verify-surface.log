@@ -1,0 +1,15 @@
+heavy-run: outro job pesado em execução — entrando na fila
+  processos com o lock aberto:
+    PID 3032778: bash /home/annonymous/.local/bin/heavy-run --mem 4G -- corepack pnpm exec vitest run --maxWorkers=2 
+    PID 3033495: bash /home/annonymous/.local/bin/heavy-run --mem 6G --wait-max 3600 -- systemd-run --user --wait --c
+heavy-run: modo normal (load1=2.71 phys=6 avail=20109MiB need=6G mem.psi=0.00 io.psi.full=0.00)
+Delegated test cgroup controllers verified
+✔ published package exposes runtime and governance assets only (2118.53985ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2166.067791
