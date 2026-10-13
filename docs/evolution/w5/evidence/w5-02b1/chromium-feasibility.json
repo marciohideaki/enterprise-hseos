@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "node": "v24.15.0",
+  "host": "virus-repository",
+  "criteria": {
+    "licence": {
+      "decision": "Owner decision 2026-10-12: the W5 browser pin is chrome-headless-shell-1228; chromium-1228 leaves the pin list",
+      "pinned_artifact": "chrome-headless-shell-1228",
+      "expected": "BSD-3-Clause text by The Chromium Authors inside the pinned artifact",
+      "verdict": "PASS",
+      "evidence": {
+        "file": "chromium_headless_shell-1228/chrome-headless-shell-linux64/LICENSE.headless_shell",
+        "sha256": "a522f12bd149be8d77dd05b5bdb03ebd7ac759cca511190d158ced6d27b539ac",
+        "bytes": 2021680
+      },
+      "headless_shell_1228_files": [
+        {
+          "file": "chromium_headless_shell-1228/chrome-headless-shell-linux64/LICENSE.headless_shell",
+          "sha256": "a522f12bd149be8d77dd05b5bdb03ebd7ac759cca511190d158ced6d27b539ac",
+          "bytes": 2021680,
+          "bsd3_markers": [
+            true,
+            true,
+            true
+          ],
+          "first_line": "--------------------"
+        }
+      ],
+      "history": {
+        "chromium_1228": {
+          "verdict": "BLOCKED",
+          "cause": "the artifact carries no Chromium BSD-3 licence text (only the files listed)",
+          "files": [
+            {
+              "file": "chromium-1228/chrome-linux64/WidevineCdm/LICENSE",
+              "sha256": "20de375707692099b3132084695377ce5fec0aec05813dedcce094b8eda44386",
+              "bytes": 473,
+              "bsd3_markers": [
+                false,
+                false,
+                false
+              ],
+              "first_line": "Google LLC and its affiliates (\"Google\") own all legal right, title and"
+            }
+          ]
+        },
+        "distro_alternative": {
+          "path": "/usr/lib/chromium",
+          "present": false,
+          "copyright": false,
+          "version": ""
+        }
+      }
+    },
+    "chromium_headless": {
+      "name": "chromium headless screenshot under P1",
+      "status": "succeeded",
+      "exit_code": 0,
+      "stdout": "chrome_rc=124\ndress type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5:5:1012/032613.631200:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5:20:1012/032613.631254:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5:5:1012/032613.637828:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5:21:1012/032616.666350:ERROR:device/udev_linux/udev_watcher.cc:51] Failed to initialize a udev monitor.\ntotal 0\n",
+      "stderr_tail": "",
+      "pids_peak": 137,
+      "memory_peak_bytes": 371613696,
+      "limits": {
+        "processes": 256,
+        "memory_bytes": 2147483648,
+        "nofile": 1024,
+        "output_bytes": 65536,
+        "duration_ms": 90000,
+        "shm_bytes": 268435456
+      },
+      "profile": "P1",
+      "files": []
+    },
+    "chromium_headless_dump_dom": {
+      "name": "chromium headless dump-dom under P1",
+      "status": "succeeded",
+      "exit_code": 0,
+      "stdout": "chrome_rc=0\n",
+      "stderr_tail": "",
+      "pids_peak": 123,
+      "memory_peak_bytes": 158912512,
+      "limits": {
+        "processes": 256,
+        "memory_bytes": 2147483648,
+        "nofile": 1024,
+        "output_bytes": 65536,
+        "duration_ms": 90000,
+        "shm_bytes": 268435456
+      },
+      "profile": "P1",
+      "files": []
+    },
+    "headless_shell_screenshot": {
+      "name": "chrome-headless-shell screenshot under P1 (the pinned headless artifact)",
+      "status": "succeeded",
+      "exit_code": 0,
+      "stdout": "shell_rc=0\n032733.541278:ERROR:device/udev_linux/udev_watcher.cc:51] Failed to initialize a udev monitor.\n[1012/032733.545208:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:1643] drmGetDevices2() has not found any devices\n[1012/032733.877935:WARNING:device/bluetooth/dbus/bluez_dbus_manager.cc:209] Floss manager service not available, cannot set Floss enable/disable.\n5728 bytes written to file /artifacts/shell.png\ntotal 8\n-rw-rw-r-- 1 1000 1000 5728 Oct 12 03:27 shell.png\n",
+      "stderr_tail": "",
+      "pids_peak": 60,
+      "memory_peak_bytes": 271134720,
+      "limits": {
+        "processes": 256,
+        "memory_bytes": 2147483648,
+        "nofile": 1024,
+        "output_bytes": 65536,
+        "duration_ms": 90000,
+        "shm_bytes": 268435456
+      },
+      "profile": "P1",
+      "files": [
+        {
+          "file": "shell.png",
+          "bytes": 5728,
+          "sha256": "d9bed0607eefb1bf6aeb74ad95ab74fada9c210e6058be6e7098000e1ae3b0b6",
+          "head": "89504e470d0a1a0a"
+        }
+      ]
+    },
+    "xvfb": {
+      "name": "Xvfb in the sandbox tmpfs with xwd capture",
+      "status": "succeeded",
+      "exit_code": 0,
+      "stdout": "xwd_rc=0\ndone\n",
+      "stderr_tail": "",
+      "pids_peak": 7,
+      "memory_peak_bytes": 13176832,
+      "limits": {
+        "processes": 256,
+        "memory_bytes": 2147483648,
+        "nofile": 1024,
+        "output_bytes": 65536,
+        "duration_ms": 90000,
+        "shm_bytes": 268435456
+      },
+      "profile": "P1",
+      "files": [
+        {
+          "file": "root.xwd",
+          "bytes": 1923179,
+          "sha256": "f39721dff83cf1ac77acc817c8196aed1bd25a306ed34f00a11930cc137705ff",
+          "head": "0000006b00000007"
+        }
+      ]
+    },
+    "chromium_headed_on_xvfb": {
+      "name": "chromium on Xvfb display",
+      "status": "succeeded",
+      "exit_code": 0,
+      "stdout": "xwd_rc=0\nxwd_bytes 1923179 distinct_bytes 254\ns/machine-id”: No such file or directory\n[69:69:1012/032747.788175:ERROR:mojo/public/cpp/bindings/lib/interface_endpoint_client.cc:748] Message 0 rejected by interface blink.mojom.WidgetHost\n[69:94:1012/032750.788121:ERROR:device/udev_linux/udev_watcher.cc:51] Failed to initialize a udev monitor.\ndone\n",
+      "stderr_tail": "",
+      "pids_peak": 123,
+      "memory_peak_bytes": 201859072,
+      "limits": {
+        "processes": 256,
+        "memory_bytes": 2147483648,
+        "nofile": 1024,
+        "output_bytes": 65536,
+        "duration_ms": 90000,
+        "shm_bytes": 268435456
+      },
+      "profile": "P1",
+      "files": [
+        {
+          "file": "root.xwd",
+          "bytes": 1923179,
+          "sha256": "99f9c8905df3ef2d9fa3ac43fbbf4e922b9465a4e3396de3876ddcc5488c461b",
+          "head": "0000006b00000007"
+        }
+      ]
+    }
+  }
+}

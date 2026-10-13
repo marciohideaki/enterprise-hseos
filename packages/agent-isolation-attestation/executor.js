@@ -6,6 +6,7 @@ const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const { spawn } = require('node:child_process');
 const { prepareIsolatedExecution } = require('./index');
+const { resolveCallLimits, verifiedSeccomp } = require('./profiles');
 
 // Trusted launcher joins the already bounded group before any task code starts.
 const LAUNCHER = String.raw`
@@ -127,6 +128,17 @@ function createResourceGroup({ memory_max_bytes = 268_435_456, pids_max = 32 } =
   }
 }
 
+// Peaks survive until the group is removed, so they are read after the drain and before cleanup.
+function readPeak(directory, name) {
+  try {
+    const value = fs.readFileSync(path.join(directory, name), 'utf8').trim();
+    return /^[0-9]+$/.test(value) ? Number(value) : null;
+  } catch (error) {
+    if (error.code === 'ENOENT') return null;
+    throw error;
+  }
+}
+
 async function drain(directory, deadline = Date.now() + 5000) {
   fs.writeFileSync(path.join(directory, 'cgroup.kill'), '1');
   while (/populated 1/.test(fs.readFileSync(path.join(directory, 'cgroup.events'), 'utf8'))) {
@@ -154,7 +166,17 @@ async function removeDrainedGroup(directory) {
 }
 
 /** Execute an exact contract command. Workspace mutations go through scoped tools. */
-async function executeIsolatedCommand({ policy, command, timeout_ms, max_output_bytes, signal, host_node = false }) {
+async function executeIsolatedCommand({
+  policy,
+  command,
+  timeout_ms,
+  max_output_bytes,
+  signal,
+  host_node = false,
+  limits: callLimits,
+  artifact_channel: channel,
+  readonly_mounts,
+}) {
   if (
     !Number.isSafeInteger(timeout_ms) ||
     timeout_ms < 1 ||
@@ -166,7 +188,16 @@ async function executeIsolatedCommand({ policy, command, timeout_ms, max_output_
     throw new EngineeringIsolationError('Finite execution limits are required');
   }
   if (signal?.aborted) return { status: 'cancelled', exit_code: null, stdout: '', stderr: '', descendants_terminated: true };
-  const launch = prepareIsolatedExecution(policy, command, host_node);
+  // Per-call limits stay inside the global 32-256 processes and 2 GiB ceilings; invalid ones refuse the call.
+  const limits = resolveCallLimits(callLimits);
+  const launch = prepareIsolatedExecution(policy, command, host_node, false, {
+    memory_max_bytes: limits.memory_max_bytes,
+    ...(limits.shm_bytes === undefined ? {} : { shm_bytes: limits.shm_bytes }),
+    ...(channel ? { artifacts_directory: channel.directory } : {}),
+    ...(readonly_mounts ? { readonly_mounts } : {}),
+  });
+  const fileBytes = channel ? channel.max_file_bytes : 1_048_576;
+  let peaks = { pids_peak: null, memory_peak_bytes: null };
   let group;
   let fd;
   let temporary;
@@ -176,10 +207,10 @@ async function executeIsolatedCommand({ policy, command, timeout_ms, max_output_
       runtimeFd = fs.openSync(fs.realpathSync(process.execPath), fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
       if (!fs.fstatSync(runtimeFd).isFile()) throw new EngineeringIsolationError('Unsafe host runtime');
     }
-    group = createResourceGroup();
+    group = createResourceGroup({ memory_max_bytes: limits.memory_max_bytes, pids_max: limits.pids_max });
     temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-executor-filter-'));
     const filename = path.join(temporary, 'filter');
-    fs.writeFileSync(filename, launch.seccomp, { flag: 'wx', mode: 0o400 });
+    fs.writeFileSync(filename, verifiedSeccomp(launch), { flag: 'wx', mode: 0o400 });
     fd = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
     fs.unlinkSync(filename);
     const result = await new Promise((resolve, reject) => {
@@ -192,8 +223,8 @@ async function executeIsolatedCommand({ policy, command, timeout_ms, max_output_
           group,
           '/usr/bin/prlimit',
           '--core=0:0',
-          '--nofile=64:64',
-          '--fsize=1048576:1048576',
+          `--nofile=${limits.nofile}:${limits.nofile}`,
+          `--fsize=${fileBytes}:${fileBytes}`,
           `--cpu=${Math.max(1, Math.ceil(timeout_ms / 1000))}:${Math.max(1, Math.ceil(timeout_ms / 1000))}`,
           '--',
           launch.binary,
@@ -266,13 +297,24 @@ async function executeIsolatedCommand({ policy, command, timeout_ms, max_output_
       });
     });
     await drain(group);
+    peaks = { pids_peak: readPeak(group, 'pids.peak'), memory_peak_bytes: readPeak(group, 'memory.peak') };
+    // The sandbox is gone and drained, so the caller verifies /artifacts with nothing able to write.
     return {
       ...result,
       descendants_terminated: true,
       policy_digest: launch.policy_digest,
       workspace_access: 'read_only',
       ...(host_node ? { runtime_version: process.version, runtime_source: 'controller-executable-readonly' } : {}),
-      limits: { processes: 32, memory_bytes: 268_435_456, output_bytes: max_output_bytes, duration_ms: timeout_ms },
+      profile: launch.profile,
+      ...peaks,
+      limits: {
+        processes: limits.pids_max,
+        memory_bytes: limits.memory_max_bytes,
+        nofile: limits.nofile,
+        output_bytes: max_output_bytes,
+        duration_ms: timeout_ms,
+        ...(limits.shm_bytes === undefined ? {} : { shm_bytes: limits.shm_bytes }),
+      },
     };
   } catch (error) {
     if (error instanceof EngineeringIsolationError) throw error;

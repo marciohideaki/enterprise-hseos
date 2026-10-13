@@ -16,20 +16,20 @@ Nada listado como pendente é tratado como aprovado.
 Severidade como classificada nos relatórios de origem. "Revisão": veredito da última
 passagem cética (arquivos em `evidence/reviews/`).
 
-| Achado                            | Sev.        | Antes                                                                           | Depois (B1V2/B2V2)                                                                                                                                                                                                     | Commit          | Revisão                                                             |
-| --------------------------------- | ----------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------- |
-| F1 install sobre adoção existente | Alta        | `.hseos` existente tratado como legado; `--yes` cancela com exit 0 sem instalar | instala, runs/state preservados (326 arquivos, hash idêntico); reinstalação em quick-update, exit 0                                                                                                                    | `96817c92` (C2) | Aprovar com ressalvas (REVIEW2-C2)                                  |
-| F2 guard não vigia `apps/*`       | Média       | 124 negações em platform, só `packages/`                                        | workspace lido de `pnpm-workspace.yaml`: 319 negações (apps 195, packages 124); hybrid 0, local 0                                                                                                                      | `f9639303` (C3) | Aprovar com 1 ressalva média, tratada no código depois (ver abaixo) |
-| F3 stacks e verdict               | Média       | só `node`; `login` sugeria "extend ... node"                                    | `node, react, typescript`; `login` sugere consumir a implementação react                                                                                                                                               | `0d970dec` (C4) | Aprovar (REVIEW2-C4)                                                |
-| F4 ack por JSON de intake         | Média       | só `.md` aceito                                                                 | 54 de 55 registros reais aceitos; 1 recusado (exceção sem expiração, recusa correta)                                                                                                                                   | `f9639303` (C3) | Aprovar com ressalva média (REVIEW2-C3)                             |
-| F6 consulta com várias palavras   | Baixa       | nenhum resultado                                                                | registry casa por tokens; candidatos no filesystem **continuam** por substring da consulta inteira                                                                                                                     | `0d970dec` (C4) | Aprovar (REVIEW2-C4); parcial                                       |
-| F7 `--tools none` e pre-commit    | Baixa       | criava `.claude-plugin`/`.codex-plugin`; hook inerte com resumo "wired"         | diretórios não criados; hook não instalado, com o motivo                                                                                                                                                               | `96817c92` (C2) | Aprovar com ressalvas (REVIEW2-C2)                                  |
-| F8 `install-plan --directory`     | Baixa       | erro de schema                                                                  | exit 0 com plano; texto do `--help` inalterado                                                                                                                                                                         | `96817c92` (C2) | Aprovar com ressalvas (REVIEW2-C2)                                  |
-| A2 exit code não afeta aprovação  | Alta/Média  | filho com `exit_code 1` terminou `approved`                                     | `command_checks` com `protected_paths`: comando falho reprova; sem o campo, semântica antiga                                                                                                                           | `da2e2c42` (C1) | Aprovar com ajustes, nenhum bloqueante (REVIEW3-C1: mutantes mortos, `timeout_ms` fechado)                 |
-| A3 eventos de workflow por job    | Média       | primeira página vazia, eventos só após várias páginas                           | 59 eventos na primeira página (limit 100); caminhada com limit 7 igual à leitura completa                                                                                                                              | `0a197f55` (C5) | Aprovar (REVIEW2-C5)                                                |
-| A4 evidência sem `evidence[]`     | Média       | ausente                                                                         | `evidence[]` com 2 etapas                                                                                                                                                                                              | `0a197f55` (C5) | Aprovar (REVIEW2-C5)                                                |
-| A5 erros opacos                   | Baixa/Média | tudo `CONTROL_REQUEST_REJECTED`                                                 | `detail.code` por causa (`PROJECT_FILE_UNSAFE`, `..._TOO_LARGE`, `..._NOT_UTF8`, `PROJECT_PATH_INVALID`, `PROJECT_RESULT_NOT_APPROVED`, `PROJECT_APPROVAL_STALE`/`PROJECT_CHANGED_BEFORE_APPLY`); `error.code` mantido | `0a197f55` (C5) | Aprovar (REVIEW2-C5); resíduo N1                                    |
-| A6 negação de escopo              | Baixa       | `EXECUTION_INPUT_INVALID`                                                       | `ENGINEERING_SCOPE_DENIED` nas 6 tentativas; a mensagem ainda diz "input does not match schema v1"                                                                                                                     | `0a197f55` (C5) | Aprovar (REVIEW2-C5)                                                |
+| Achado                            | Sev.        | Antes                                                                           | Depois (B1V2/B2V2)                                                                                                                                                                                                     | Commit          | Revisão                                                                                    |
+| --------------------------------- | ----------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------ |
+| F1 install sobre adoção existente | Alta        | `.hseos` existente tratado como legado; `--yes` cancela com exit 0 sem instalar | instala, runs/state preservados (326 arquivos, hash idêntico); reinstalação em quick-update, exit 0                                                                                                                    | `96817c92` (C2) | Aprovar com ressalvas (REVIEW2-C2)                                                         |
+| F2 guard não vigia `apps/*`       | Média       | 124 negações em platform, só `packages/`                                        | workspace lido de `pnpm-workspace.yaml`: 319 negações (apps 195, packages 124); hybrid 0, local 0                                                                                                                      | `f9639303` (C3) | Aprovar com 1 ressalva média, tratada no código depois (ver abaixo)                        |
+| F3 stacks e verdict               | Média       | só `node`; `login` sugeria "extend ... node"                                    | `node, react, typescript`; `login` sugere consumir a implementação react                                                                                                                                               | `0d970dec` (C4) | Aprovar (REVIEW2-C4)                                                                       |
+| F4 ack por JSON de intake         | Média       | só `.md` aceito                                                                 | 54 de 55 registros reais aceitos; 1 recusado (exceção sem expiração, recusa correta)                                                                                                                                   | `f9639303` (C3) | Aprovar com ressalva média (REVIEW2-C3)                                                    |
+| F6 consulta com várias palavras   | Baixa       | nenhum resultado                                                                | registry casa por tokens; candidatos no filesystem **continuam** por substring da consulta inteira                                                                                                                     | `0d970dec` (C4) | Aprovar (REVIEW2-C4); parcial                                                              |
+| F7 `--tools none` e pre-commit    | Baixa       | criava `.claude-plugin`/`.codex-plugin`; hook inerte com resumo "wired"         | diretórios não criados; hook não instalado, com o motivo                                                                                                                                                               | `96817c92` (C2) | Aprovar com ressalvas (REVIEW2-C2)                                                         |
+| F8 `install-plan --directory`     | Baixa       | erro de schema                                                                  | exit 0 com plano; texto do `--help` inalterado                                                                                                                                                                         | `96817c92` (C2) | Aprovar com ressalvas (REVIEW2-C2)                                                         |
+| A2 exit code não afeta aprovação  | Alta/Média  | filho com `exit_code 1` terminou `approved`                                     | `command_checks` com `protected_paths`: comando falho reprova; sem o campo, semântica antiga                                                                                                                           | `da2e2c42` (C1) | Aprovar com ajustes, nenhum bloqueante (REVIEW3-C1: mutantes mortos, `timeout_ms` fechado) |
+| A3 eventos de workflow por job    | Média       | primeira página vazia, eventos só após várias páginas                           | 59 eventos na primeira página (limit 100); caminhada com limit 7 igual à leitura completa                                                                                                                              | `0a197f55` (C5) | Aprovar (REVIEW2-C5)                                                                       |
+| A4 evidência sem `evidence[]`     | Média       | ausente                                                                         | `evidence[]` com 2 etapas                                                                                                                                                                                              | `0a197f55` (C5) | Aprovar (REVIEW2-C5)                                                                       |
+| A5 erros opacos                   | Baixa/Média | tudo `CONTROL_REQUEST_REJECTED`                                                 | `detail.code` por causa (`PROJECT_FILE_UNSAFE`, `..._TOO_LARGE`, `..._NOT_UTF8`, `PROJECT_PATH_INVALID`, `PROJECT_RESULT_NOT_APPROVED`, `PROJECT_APPROVAL_STALE`/`PROJECT_CHANGED_BEFORE_APPLY`); `error.code` mantido | `0a197f55` (C5) | Aprovar (REVIEW2-C5); resíduo N1                                                           |
+| A6 negação de escopo              | Baixa       | `EXECUTION_INPUT_INVALID`                                                       | `ENGINEERING_SCOPE_DENIED` nas 6 tentativas; a mensagem ainda diz "input does not match schema v1"                                                                                                                     | `0a197f55` (C5) | Aprovar (REVIEW2-C5)                                                                       |
 
 Números do guard (corpus de 581 arquivos): leitura sem erro em todos; 0 `incomplete`;
 tempo por arquivo p50 8 ms, p95 45 ms (B1), longe do timeout de 4 s do hook.
@@ -56,16 +56,50 @@ Detalhes e hashes dos logs em [verification-receipt.json](verification-receipt.j
 
 Pendências para a onda W5 (os arquivos da W5 não são editados por este registro):
 
-- **A1/N2 (entra na W5-02b):** o executor isolado não lê o virtual store do pnpm. A
-  causa medida na reexecução é o regex de caminho, que não aceita `@`
-  (`node_modules/.pnpm/<pacote>@<versão>`), além de symlinks, hardlinks do store, o
-  limite de 64 caminhos/1 MiB e arquivos acima de 65536 caracteres. Consequência:
-  vitest e `tsc` do projeto não rodam dentro do executor; o aceite do projeto real
-  precisa de outro caminho. Os limites do executor (32 processos, 256 MiB) não puderam
-  ser medidos para o vitest.
-- **Verificador com testes nativos do projeto (entra na W5-02b):** hoje o verificador
-  fixado é `node-module-v1`; `command_checks` foi provado só com um script node
-  autocontido, não com o vitest do projeto.
+- **A1/N2 (fechada na W5-02b2):** o executor isolado não lia o virtual store do pnpm. Duas
+  causas medidas: o regex de caminho não aceitava `@`, e o store depende de symlinks e
+  hardlinks que o snapshot recusava. Resolvido em dois caminhos, ambos fail-closed:
+  (1) store por conteúdo, para runners pequenos: `@` e `+` só abaixo de `node_modules/.pnpm`,
+  links resolvidos e confinados ao store real, hardlinks aceitos só quando são o inode
+  content-addressed do pnpm (`PROJECT_STORE_HARDLINK_UNVERIFIED` caso contrário), limites
+  finitos e testados (256 caminhos, 512 caracteres por caminho de store, 2 MiB, 65536
+  caracteres por arquivo, recusa sem truncar); (2) montagem SÓ LEITURA do `.pnpm` real
+  (`workspace.store_mount`), verificada pelo controlador (store real sem symlink no caminho,
+  links confinados à raiz do projeto, hardlinks content-addressed, orçamentos de 300 mil
+  entradas e 2 GiB de hash) e declarada na allowlist `toolchain_roots` da 02b1. Medido no
+  consumidor `cambio-real-platforms`: vitest 4.1.10 aprovado como `command_check` protegido,
+  com os limites padrão do executor (32 processos, 256 MiB): 23 processos e cerca de 78 MB;
+  `tsc` 9 processos e cerca de 217 MB. O pool `forks` do vitest exige perfil P1; use
+  `--pool=threads --configLoader runner`. Evidência em
+  `docs/evolution/w5/evidence/w5-02b2/vitest-project-flow.json`.
+  O store pnpm só é confiado se o controlador o declarar em arquivos fora do controle do
+  projeto: a configuração do HSEOS (`toolchain.pnpm_store_dirs` em
+  `~/.config/hseos/config.yaml` ou na configuração da instalação), o rc do pnpm do usuário
+  (`~/.config/pnpm/rc`) e o padrão do pnpm. Nenhuma variável de ambiente alimenta essa lista:
+  `HSEOS_PNPM_STORE_DIRS`, `PNPM_STORE_DIR` e `npm_config_store_dir` são ignoradas, com aviso,
+  porque um script do projeto define qualquer variável e o npm exporta o `store-dir` do
+  `.npmrc` do projeto como `npm_config_store_dir`. O `.modules.yaml` e o `.npmrc` do projeto
+  só servem para conferência, e um `storeDir` fora da lista é recusado com
+  `PROJECT_STORE_DIR_NOT_ALLOWED`. O store verificado é fixado por uma impressão digital sem
+  conteúdo (caminho, dev, ino, tamanho, mtime, ctime, nlink, tipo; o ctime não pode ser
+  restaurado pelo usuário) recalculada antes e depois de cada lançamento (cerca de 0,55 s para
+  56 mil entradas por cálculo); mudança antes do lançamento recusa o comando, e mudança
+  durante ele descarta o resultado, com `PROJECT_STORE_DRIFT`.
+  Ativação (decisão do owner): para o vitest real nesta máquina, o consumidor usa
+  `/workspace/.pnpm-store`, que precisa constar em `toolchain.pnpm_store_dirs` da
+  configuração do controlador; sem isso o fluxo recusa o store por segurança.
+  Um diretório `v<N>` real criado dentro de uma base confiável está na mesma fronteira de
+  confiança do store do usuário: quem pode criá-lo já controla o store.
+  Resíduos: a montagem usa o diretório vivo; uma mudança entre a impressão digital e o
+  `bwrap` do mesmo lançamento é detectada pela conferência posterior e o resultado do comando
+  é descartado, mas o comando já rodou; pacotes de workspace linkados no store
+  (`../../packages/x`) ficam sem alvo dentro do sandbox; só o linker `isolated` do pnpm é
+  suportado (não `hoisted` nem `pnp`).
+- **Verificador com testes nativos do projeto (fechada na W5-02b2):** `command_checks`
+  executa o runner nativo do projeto dentro do executor, provado contra o fixture de store
+  pnpm e contra o vitest real do consumidor; cada comando pode declarar `limits`
+  (processos, memória, descritores), presos no digest do verificador, e a evidência traz
+  `pids_peak` e `memory_peak_bytes`.
 - **N1:** recusas por regra cruzada do contrato (`command_checks`, `protected_paths`
   e demais regras de `parseEngineeringTask`) chegam sem `detail.code`.
 

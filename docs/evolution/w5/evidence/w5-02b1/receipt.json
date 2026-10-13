@@ -1,0 +1,113 @@
+{
+  "task": "W5-02b1",
+  "result": "PASS",
+  "base_revision": "4dc8dd5159bc1390d3043de698a571ba16571c52",
+  "working_tree": "uncommitted at receipt time; the commit SHA is the task commit",
+  "node": "v22.22.1",
+  "command": "node node_modules/c8/bin/c8.js --config .c8-kernel.json --include 'packages/agent-isolation-attestation/profiles.js' --include 'packages/agent-isolation-attestation/artifact-channel.js' --include 'packages/agent-isolation-attestation/index.js' --include 'packages/agent-isolation-attestation/executor.js' --include 'packages/agent-isolation-attestation/terminal-executor.js' --include 'tools/lib/execution-plugin-manifest.js' --include 'tools/cli/lib/execution-plugin-runtime.js' --reports-dir .logs/validation/w5-02b1-coverage --temp-directory .logs/validation/w5-02b1-coverage/tmp node --test --test-concurrency=1 test/test-isolation-profiles.js test/test-artifact-channel.js test/test-execution-plugin-runtime.js test/test-agent-transitive-isolation.js test/test-isolation-witness-faults.js",
+  "verify_exit": 0,
+  "coverage_per_file": {
+    "packages/agent-isolation-attestation/artifact-channel.js": {
+      "lines": 98.28,
+      "branches": 98.5
+    },
+    "packages/agent-isolation-attestation/executor.js": {
+      "lines": 96.48,
+      "branches": 90.29
+    },
+    "packages/agent-isolation-attestation/index.js": {
+      "lines": 97.14,
+      "branches": 95.49
+    },
+    "packages/agent-isolation-attestation/profiles.js": {
+      "lines": 98.91,
+      "branches": 96.35
+    },
+    "packages/agent-isolation-attestation/terminal-executor.js": {
+      "lines": 93.75,
+      "branches": 91.83
+    },
+    "tools/cli/lib/execution-plugin-runtime.js": {
+      "lines": 99.2,
+      "branches": 92.13
+    },
+    "tools/lib/execution-plugin-manifest.js": {
+      "lines": 100,
+      "branches": 88.13
+    }
+  },
+  "logs": {
+    "logs/verify.log": "329454237d31d4f41682ff7c32d88842fa637b1f3b60e439885c2538629a1b24",
+    "logs/coverage-summary.json": "56e76edcdf9e71b7836635d0fb077b7774045243141683094e16e0154d99cec3",
+    "chromium-feasibility.json": "3ea0daca975a59e2feec452ca29d6f622852e31bb100e68312373345a6b56b57"
+  },
+  "acceptance": {
+    "p0_unchanged": "PASS: test-agent-transitive-isolation, test-isolation-witness-faults and test-execution-plugin-runtime existing cases green; explicit P0 keeps the same policy digest",
+    "p1_p2_only_by_controller_reference": "PASS: closed profile table; manifest only references a name; grant (isolation_profile) decides; P2 needs controller broker_socket",
+    "seccomp_by_argument": "PASS: allows AF_UNIX/AF_INET/AF_INET6 (stream/datagram), blocks AF_NETLINK, AF_PACKET, AF_VSOCK, raw sockets, io_uring; per-family negative tests in test-isolation-profiles plus live bwrap probe",
+    "chromium_no_sandbox_only_inside_bwrap": "PASS: chromiumSandboxFlags() requires a supervisor bwrap launch of P1/P2; ensaio ran chrome-headless-shell and chrome (on Xvfb) with --no-sandbox inside bwrap",
+    "external_network_unreachable": "PASS: ENETUNREACH to 1.1.1.1 in P1 and P2; only lo present",
+    "per_call_limits": "PASS: pids_max 32-256, memory 256MiB-2GiB, shm_bytes, nofile 64-4096; peaks (pids_peak, memory_peak_bytes) and effective limits in the execution result",
+    "artifacts_verified": "PASS: digest, size, magic, no links, flat names under /artifacts, exact manifest/directory match",
+    "chromium_xvfb_feasibility": {
+      "verdict": "PASS (technical)",
+      "headless_shell_screenshot": {
+        "pids_peak": 60,
+        "memory_peak_bytes": 271134720,
+        "status": "succeeded"
+      },
+      "xvfb_xwd_capture": {
+        "pids_peak": 7,
+        "memory_peak_bytes": 13176832,
+        "status": "succeeded"
+      },
+      "chromium_headed_on_xvfb": {
+        "pids_peak": 123,
+        "memory_peak_bytes": 201859072,
+        "status": "succeeded"
+      },
+      "note": "full chrome --headless=new hung (timeout 124) in this sandbox and is not used; chrome-headless-shell and headed chrome on Xvfb work. Needs nofile>=1024 and /dev/shm 256MiB. Xvfb needs mkdir /tmp/.X11-unix, -nolisten unix and -extension GLX (nvidia EGL segfault otherwise).",
+      "pin": "chrome-headless-shell-1228",
+      "peaks_source": "chromium-feasibility.json (hashed in logs)"
+    },
+    "cgroup_drain": "PASS: test asserts no resource group remains after runs, timeout, flood, cancel and invalid output",
+    "licence_browser_pin": {
+      "verdict": "PASS",
+      "pinned_artifact": "chrome-headless-shell-1228",
+      "decision": "Owner decision 2026-10-12: the W5 browser pin is chrome-headless-shell-1228; chromium-1228 leaves the pin list",
+      "evidence": {
+        "file": "chromium_headless_shell-1228/chrome-headless-shell-linux64/LICENSE.headless_shell",
+        "sha256": "a522f12bd149be8d77dd05b5bdb03ebd7ac759cca511190d158ced6d27b539ac",
+        "bytes": 2021680
+      },
+      "history": {
+        "chromium_1228": {
+          "verdict": "BLOCKED",
+          "cause": "the artifact carries no Chromium BSD-3 licence text (only the files listed)",
+          "note": "kept as historical record; chromium-1228 leaves the pin list by owner decision"
+        },
+        "distro_chromium": {
+          "path": "/usr/lib/chromium",
+          "present": false,
+          "copyright": false,
+          "version": ""
+        }
+      },
+      "method": "conferência de licença = SHA-256 do arquivo de licença fixado + padrão de texto; não é comparação integral de texto (three BSD-3 markers over a 2 MB aggregate of third-party notices; the pin has no binary digest yet)"
+    }
+  },
+  "deviations": [
+    "readonly_mounts added (controller-only extras): fixed /opt/hseos/ targets, read-only, real sources checked against the policy toolchain_roots allowlist; negative tests for source outside allowlist, target outside /opt/hseos, write attempt, plugin-supplied field",
+    "/artifacts lives on host tmpfs (/dev/shm, refused otherwise): cgroup memory accounting + RLIMIT_FSIZE per file + controller quota check at the end; no privileged tmpfs quota",
+    "nofile per-call limit added (default 64, ceiling 4096) because Chromium aborts with EMFILE at 64",
+    "plugin manifest gained optional isolation_profile and artifacts (digest of existing manifests unchanged)",
+    "nofile per-call limit has boundary tests: 63 and 4097 refused, 64 and 1024 accepted and applied to the process (test-isolation-profiles.js)",
+    "review round 1 fixes: dispose never throws and repairs unreadable directories (cleanup outcome recorded in isolation.cleanup); broker socket revalidated by lstat dev/ino at launch; internet sockets limited to protocol 0/TCP/UDP; launch records frozen and registration requires an immutable record; test-execution-plugin-runtime.js added to test:kernel; tests added for terminal-executor and manifest inside the listed verify files",
+    "review round 2 fixes: artifact repair has no node-count cap (time budget REPAIR_BUDGET_MS, explicit REPAIR_BUDGET_EXHAUSTED and a final removal attempt); cleanup outcome also travels on rejected calls as error.cleanup; launch seccomp is copied and verified against the profile filter before use (verifiedSeccomp), registerLaunch stays exported but a forged or edited launch is refused at use; seccompNetworklessProgram moved to profiles.js unchanged"
+  ],
+  "new_files_in_packages": ["packages/agent-isolation-attestation/profiles.js", "packages/agent-isolation-attestation/artifact-channel.js"],
+  "verify_note": "the literal verify_step command of tasks.md (unchanged) exits 0 with 90/80 per file",
+  "known_limitations": [
+    "/artifacts quotas (max_files, max_total_bytes) are verified after the execution; while it runs the bounds are the cgroup memory limit and RLIMIT_FSIZE per file"
+  ]
+}

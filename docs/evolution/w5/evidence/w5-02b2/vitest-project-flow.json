@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "node": "v24.15.0",
+  "consumer_node_modules": "/workspace/github/cambio-real/cambio-real-platforms/node_modules",
+  "runs": [
+    {
+      "name": "vitest through the store mount, executor defaults",
+      "limits_requested": "defaults",
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "command_check": {
+        "command_id": "vitest",
+        "exit_code": 0,
+        "limits": {
+          "duration_ms": 100000,
+          "memory_bytes": 268435456,
+          "nofile": 64,
+          "output_bytes": 8192,
+          "processes": 32
+        },
+        "memory_peak_bytes": 78589952,
+        "pids_peak": 23,
+        "status": "succeeded"
+      },
+      "verify_ms": 10465,
+      "fingerprint_ms": [569, 547, 558, 548, 582],
+      "store_mount": {
+        "entries": 56346,
+        "symlinks": 1828,
+        "hardlinks": 49791,
+        "hashed_bytes": 334404144
+      },
+      "duration_ms": 28624
+    },
+    {
+      "name": "vitest through the store mount, intermediate limits",
+      "limits_requested": {
+        "pids_max": 128,
+        "memory_max_bytes": 1073741824,
+        "nofile": 1024
+      },
+      "task_result": "approved",
+      "reason": "criteria-satisfied",
+      "command_check": {
+        "command_id": "vitest",
+        "exit_code": 0,
+        "limits": {
+          "duration_ms": 100000,
+          "memory_bytes": 1073741824,
+          "nofile": 1024,
+          "output_bytes": 8192,
+          "processes": 128
+        },
+        "memory_peak_bytes": 76972032,
+        "pids_peak": 23,
+        "status": "succeeded"
+      },
+      "verify_ms": 9512,
+      "fingerprint_ms": [561, 625, 553, 573, 705],
+      "store_mount": {
+        "entries": 56346,
+        "symlinks": 1828,
+        "hardlinks": 49791,
+        "hashed_bytes": 334404144
+      },
+      "duration_ms": 27675
+    }
+  ],
+  "verdict": "MEASURED"
+}
