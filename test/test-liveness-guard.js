@@ -96,6 +96,21 @@ for (const [label, file] of [
     assert.equal('nope' in config, false);
   });
 
+  test(`[${label}] the keys added by the LV2 contract are accepted and an unknown key only warns`, () => {
+    const text = ['enabled: true', 'max_wakes_per_cycle: 5', 'max_wait_deadline_s: 7200', 'max_notify_attempts: 4', 'future_key: 1'].join('\n');
+    const parsed = guard.parseConfigChecked(text);
+    assert.deepEqual(parsed.errors, []);
+    assert.deepEqual(parsed.warnings, ['chave desconhecida ignorada: future_key']);
+    assert.equal(parsed.config.max_wakes_per_cycle, 5);
+    assert.equal(parsed.config.max_wait_deadline_s, 7200);
+    assert.equal(parsed.config.max_notify_attempts, 4);
+    assert.equal(guard.parseConfigChecked('max_wakes_per_cycle: 0').errors.length, 1);
+    const root = project({ config: text });
+    const result = run(guard, 'stop', { hook_event_name: 'SubagentStop', agent_id: 'a1', last_assistant_message: 'x' }, root);
+    assert.equal(JSON.parse(result.stdout).decision, 'block');
+    assert.match(result.stderr, /agent-liveness\.yaml: chave desconhecida ignorada: future_key/);
+  });
+
   test(`[${label}] a plain Stop without agent identity is the interactive session and passes`, () => {
     const root = project({ config: ENABLED });
     assert.deepEqual(run(guard, 'stop', { hook_event_name: 'Stop', last_assistant_message: 'pronto' }, root), {
@@ -154,6 +169,7 @@ for (const [label, file] of [
     assert.deepEqual(ok, { code: 0, stdout: '', stderr: '' });
     const call = fs.readFileSync(log, 'utf8');
     assert.match(call, /^liveness report --session s1 --agent a1 --reason-code declared --json LIVENESS: \{/);
+    assert.match(call, /\nliveness report --session s1 --agent a1 --event turn_end\n$/);
     assert.equal(fs.readdirSync(path.join(root, '.hseos/state/liveness/refusals')).length, 0);
   });
 
@@ -166,8 +182,11 @@ for (const [label, file] of [
       assert.match(result.stderr, /pending-reports\.jsonl/);
     }
     const pending = fs.readFileSync(path.join(root, '.hseos/state/liveness/pending-reports.jsonl'), 'utf8').trim().split('\n');
-    assert.equal(pending.length, 2);
+    // Each stop parks the declaration and the turn_end event that follows it.
+    assert.equal(pending.length, 4);
     assert.equal(JSON.parse(pending[0]).agent, 'a1');
+    assert.equal(JSON.parse(pending[0]).reason_code, 'declared');
+    assert.equal(JSON.parse(pending[1]).event, 'turn_end');
   });
 
   test(`[${label}] background tasks with a non-waiting state are refused; a valid WAITING_ON passes`, () => {

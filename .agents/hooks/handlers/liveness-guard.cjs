@@ -21,6 +21,8 @@ const DEFAULTS = Object.freeze({
   watch_interval_s: 120,
   max_stop_refusals: 2,
   max_wake_attempts: 3,
+  max_wakes_per_cycle: 3,
+  max_notify_attempts: 10,
   escalate_to: 'human',
 });
 const STATES = new Set(['DONE', 'BLOCKED', 'FAILED', 'WAITING_ON']);
@@ -60,11 +62,13 @@ function parseScalar(raw) {
   return value.replace(/^(["'])(.*)\1$/, '$2');
 }
 
-// The contract is flat `key: value`. Unknown keys are ignored; a known key with a wrong
+// The contract is flat `key: value`. An unknown key is ignored with a warning (the file stays
+// valid, so a key added by a newer CLI never switches the guard off); a known key with a wrong
 // type, a non-positive number or an unparseable line makes the file invalid.
 function parseConfigChecked(text) {
   const config = { ...DEFAULTS };
   const errors = [];
+  const warnings = [];
   for (const line of String(text).split(/\r?\n/)) {
     if (!line.trim() || line.trim().startsWith('#')) continue;
     const match = /^([a-z_]+):\s*(.*)$/.exec(line);
@@ -72,13 +76,16 @@ function parseConfigChecked(text) {
       errors.push(`linha ilegivel: ${line.trim().slice(0, 40)}`);
       continue;
     }
-    if (!(match[1] in DEFAULTS)) continue;
+    if (!(match[1] in DEFAULTS)) {
+      warnings.push(`chave desconhecida ignorada: ${match[1]}`);
+      continue;
+    }
     const value = parseScalar(match[2]);
     const valid = typeof value === typeof DEFAULTS[match[1]] && (typeof value !== 'number' || value > 0);
     if (valid) config[match[1]] = value;
     else errors.push(`valor invalido para ${match[1]}`);
   }
-  return { config, errors };
+  return { config, errors, warnings };
 }
 
 function parseConfig(text) {
@@ -103,7 +110,7 @@ function findProject(directory) {
 function loadContract(directory) {
   const found = findProject(directory);
   if (!found) return { contract: null };
-  const { config, errors } = parseConfigChecked(fs.readFileSync(found.file, 'utf8'));
+  const { config, errors, warnings } = parseConfigChecked(fs.readFileSync(found.file, 'utf8'));
   const lastValid = path.join(found.root, LIVENESS_DIR, 'config.last-valid.json');
   if (errors.length > 0) {
     const previous = readJson(lastValid, null);
@@ -119,7 +126,8 @@ function loadContract(directory) {
       // The snapshot is a convenience; failing to write it must not affect the verdict.
     }
   }
-  return { contract: config.enabled === true ? { root: found.root, config } : null };
+  const warning = warnings.length > 0 ? `agent-liveness.yaml: ${warnings.join('; ')}` : undefined;
+  return { contract: config.enabled === true ? { root: found.root, config } : null, warning };
 }
 
 function lastNonEmptyLine(text) {
@@ -247,21 +255,25 @@ function appendJsonl(root, name, record) {
   fs.appendFileSync(file, `${JSON.stringify(record)}\n`);
 }
 
-// Writes the event through `hseos liveness report` (LV2). Until that command
-// exists the call fails and the event is parked in pending-reports.jsonl.
-function reportLiveness({ root, session, agent, line, reasonCode, env, now }) {
+// Writes the event through `hseos liveness report` (LV2). When the call fails the event is
+// parked in pending-reports.jsonl. A declaration is followed by a `turn_end` event so the
+// watchdog knows the turn is over (`turn_end` never counts as a heartbeat).
+function reportLiveness({ root, session, agent, line, reasonCode, event, env, now }) {
   const cli = env.HSEOS_LIVENESS_CLI || 'hseos';
-  const result = spawnSync(
-    cli,
-    ['liveness', 'report', '--session', safeKey(session), '--agent', safeKey(agent), '--reason-code', reasonCode, '--json', line],
-    {
-      cwd: root,
-      encoding: 'utf8',
-      timeout: 4000,
-    },
-  );
+  const identity = ['liveness', 'report', '--session', safeKey(session), '--agent', safeKey(agent)];
+  const args = event === 'turn_end' ? [...identity, '--event', 'turn_end'] : [...identity, '--reason-code', reasonCode, '--json', line];
+  const result = spawnSync(cli, args, {
+    cwd: root,
+    encoding: 'utf8',
+    timeout: 4000,
+  });
   if (!result.error && result.status === 0) return 'reported';
-  appendJsonl(root, 'pending-reports.jsonl', { at: new Date(now).toISOString(), session, agent, reason_code: reasonCode, line });
+  appendJsonl(root, 'pending-reports.jsonl', {
+    at: new Date(now).toISOString(),
+    session,
+    agent,
+    ...(event === 'turn_end' ? { event } : { reason_code: reasonCode, line }),
+  });
   return 'pending';
 }
 
@@ -314,8 +326,9 @@ function handleStop({ payload, contract, env, now, io }) {
   if (problems.length === 0) {
     fs.rmSync(file, { force: true });
     const reasonCode = { BLOCKED: 'blocked_pending', WAITING_ON: 'waiting_on_declared' }[parsed.value.state] ?? 'declared';
-    const status = reportLiveness({ root, session, agent, line: parsed.line, reasonCode, env, now });
-    if (status === 'pending') io.stderr(`[liveness] aviso: hseos liveness report indisponivel; evento em pending-reports.jsonl\n`);
+    const declared = reportLiveness({ root, session, agent, line: parsed.line, reasonCode, env, now });
+    const ended = reportLiveness({ root, session, agent, event: 'turn_end', env, now });
+    if (declared === 'pending' || ended === 'pending') io.stderr(`[liveness] aviso: hseos liveness report indisponivel; evento em pending-reports.jsonl\n`);
     return 0;
   }
 
