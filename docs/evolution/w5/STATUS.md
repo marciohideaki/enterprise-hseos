@@ -139,3 +139,8 @@ Origem: revisão da integração (aprovada em `260da30f` com ressalvas F1 a F5).
 - **02b1:** K2 e K3 (`verifiedSeccomp(launch)` contra `launch.seccomp`), K9 (`makeRemovable` entra em symlinks), M17 (corrida lstat/fstat) e 3 diretórios `/dev/shm/hseos-artifacts-*` ilegíveis.
 - **CO2:** o template do Codex não foi verificado no Codex real (coberto pela ativação fora de escopo dos hooks no `~/.codex`).
 - **04 e 02a:** a drenagem do 413 mantém a conexão até 16 MiB; informativo sobre cabeçalho sem decodificação.
+- **G1 (revisão 2 da integração, baixa):** grafias YAML exóticas (`1.0`, `0x10`, `+5`, `1e3`, `enabled: True`) são aceitas pela CLI (parser YAML completo) e recusadas pelo guard (parser mínimo sem dependências), que então mantém a última configuração válida. Nenhuma aparece nos exemplos nem na spec, e o teste de tabelas não as cobre. Use inteiros decimais e `true`/`false` em minúsculas no `agent-liveness.yaml`.
+
+### Revisão final da integração
+
+A revisão cética aprovou a integração em `260da30f` com as ressalvas F1 a F5. A rodada 1 de correção (`53ed7624`, `78b617f1`, `778bc5e7`) fechou todas, e a revisão do delta aprovou `778bc5e7`, ficando só o G1 como resíduo baixo. Relatórios: `REVIEW-W5-INT.md` e `REVIEW2-W5-INT.md`.
