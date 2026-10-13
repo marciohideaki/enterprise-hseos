@@ -1,9 +1,9 @@
 'use strict';
 
 const path = require('node:path');
-const fs = require('node:fs');
 const crypto = require('node:crypto');
 const { resolve: resolveAxon } = require('./lib/binary-resolver');
+const { failBoot, loadServerTools } = require('../lib/governed-execution/contract-registry');
 const { startNativeMcpServer } = require('../lib/governed-execution/native-mcp-server');
 const { startLegacyMcpServer } = require('../lib/legacy-mcp-server');
 
@@ -46,25 +46,12 @@ function protectHttpServer(server, credential) {
   });
 }
 
-function loadTools() {
-  const toolsDir = path.join(__dirname, 'tools');
-  const map = new Map();
-  if (!fs.existsSync(toolsDir)) return map;
-  for (const file of fs.readdirSync(toolsDir).filter((f) => f.endsWith('.js'))) {
-    try {
-      const exported = require(path.join(toolsDir, file));
-      if (!Array.isArray(exported)) continue;
-      for (const tool of exported) {
-        if (tool?.name && typeof tool.handler === 'function') map.set(tool.name, tool);
-      }
-    } catch (error) {
-      console.error(`[axon-bridge] failed to load ${file}: ${error.message}`);
-    }
-  }
-  return map;
+let tools;
+try {
+  tools = loadServerTools(path.join(__dirname, 'tools'));
+} catch (error) {
+  failBoot('axon-bridge', error);
 }
-
-const tools = loadTools();
 const axonBin = resolveAxon();
 
 const { mode, port } = parseArgs();

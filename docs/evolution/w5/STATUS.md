@@ -1,6 +1,6 @@
 # W5 — estado de execução
 
-Tipo: evidência de progresso, iniciado em 2026-10-10 e atualizado em 2026-10-11. Base dos contratos `e079409c`, rebaseados sobre a master `0dd3bb89`; upstream `master`;
+Tipo: evidência de progresso, iniciado em 2026-10-10 e atualizado em 2026-10-13. Base dos contratos `e079409c`, rebaseados sobre a master `0dd3bb89`; upstream `master`;
 feature `feature/hseos-evolution-w5`. Governança: Constituição §§2.6/5/7, AGENTS.md, ADR-0047 Accepted (2026-10-11).
 
 ## W5-01
@@ -23,7 +23,8 @@ externa; `xdotool`, `pyright`, `typescript-language-server`, `debugpy` e `python
 | Etapa                                    | Determinístico                                                   | Consumidor real | Ativação       |
 | ---------------------------------------- | ---------------------------------------------------------------- | --------------- | -------------- |
 | W5-01                                    | contratos concluídos; verificação a reexecutar por quem integrar | não aplicável   | não autorizada |
-| W5-02a / W5-02b1 / W5-02b2 / W5-04       | não verificado                                                   | não verificado  | não autorizada |
+| W5-02a / W5-02b1 / W5-02b2 / W5-04       | integradas e verificadas na B1 (seção "Integração da onda B1")   | não verificado  | não autorizada |
+| W5-LV1 / W5-LV2 / W5-CO1 / W5-CO2        | integradas e verificadas na B1 (seção "Integração da onda B1")   | não verificado  | não autorizada |
 | W5-03 / W5-05 / W5-06                    | não verificado                                                   | não verificado  | não autorizada |
 | W5-07 / W5-08 / W5-09                    | não verificado                                                   | não verificado  | não autorizada |
 | W5-10 / W5-10b / W5-11a / W5-11b / W5-12 | não verificado                                                   | não verificado  | não autorizada |
@@ -66,3 +67,80 @@ Decisões do owner aplicadas em PLAN seção 7, spec, design, tasks e ADR-0047:
 ## Decisão do owner em 2026-10-12: pin de navegador
 
 O pin de navegador passa a ser o `chrome-headless-shell-1228`. O `chromium-1228` saiu dos pins porque é a build do Google Chrome e só traz o LICENSE do Widevine, sem o texto BSD-3, e por isso o critério de licença ficava BLOCKED. O headless-shell traz o BSD-3 (`LICENSE.headless_shell`) e passou no ensaio da W5-02b1 dentro do bwrap no P1. O Chrome completo (`--headless=new`) trava no sandbox. Este host não tem Chromium da distro.
+
+## Integração da onda B1 e das trilhas LV/CO (2026-10-13)
+
+Branch `integration/hseos-w5-b1`, parte de `feature/hseos-evolution-w5` (07bd5e97). HEAD verificado: `0a7b9582` (a verificação foi feita nos SHAs anteriores à reescrita; as árvores são idênticas). Ordem dos merges (`--no-ff`):
+contratos `5afa6501` (merge `938e1f1d`), 02a `2a2f15eb` (`b04ff03d`), 04 `0ce6b4eb` (`d20b4a34`), LV1 `3a0a5ae6` (`14be5f5a`), LV2 `46431c03` (`1b84dbe1`),
+CO1 `d82eaa09` (`c3d22990`), CO2 `a7783abb` (`e3c6e14e`) e 02b (02b1 `a4343171` + 02b2 `51be92f6`, merge `90900208`).
+Receipt: [evidence/integration-b1/receipt.json](evidence/integration-b1/receipt.json).
+
+Correções da integração (um commit cada): teto do pacote `.hseos` 64 / 1556 (`028244e2`, G3 do owner de 2026-10-12); `.gitignore` de coverage (`27b46258`);
+LV1 alinhada ao contrato do CLI de report (`c3ee484c`); inbox compartilhada da LV2 ignora entradas de coordenação (`8bdaed44`); eventos espelhados da CO1 com `id` e recusa do alias do adaptador (`e8a3e44b`);
+aviso em stderr quando o CLI gravável por grupo é recusado (`5c2219e5`); teste de composição CO1 + CO2 reais (`197ecdd3`); critério da W5-04 em `tasks.md` (`895a3df4`);
+manifest do CLI (`460b0c8b`, `0a7b9582`); simetria de chave desconhecida em `agent-liveness.yaml` (`baba84ac`).
+
+**Critério da W5-04 (decisão do owner, 2026-10-12):** o legado só é alcançável pelo gateway, com registro durável. Substitui a redação anterior em `tasks.md`.
+
+**Simetria do `agent-liveness.yaml` (resolvida):** chave conhecida com valor inválido torna o arquivo inválido e vale a última configuração válida, com aviso; chave desconhecida gera aviso em stderr
+e é ignorada, sem rejeitar o arquivo. Vale igual no guard, no `check` e no `watch` (antes, a CLI e o watch rejeitavam o arquivo e um typo parava o watchdog). Provado em processo real por
+`test/test-liveness-composition.js`, com o guard compilado e o canônico.
+
+### Resultados da verificação (Fase 3)
+
+| Verificação                                                                    | Resultado                                                                                                                                                                                 |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| verify de W5-01, 02a, 02b1, 02b2, 04                                           | verde, em `baba84ac` (o commit seguinte só regenera o manifest)                                                                                                                           |
+| verify de LV1, LV2, CO1, CO2 (c8 com includes dos receipts, 90/80 por arquivo) | verde, em `baba84ac`; o spec dessas trilhas não fixa um comando único, os includes vêm dos receipts                                                                                       |
+| `npm run test:kernel-coverage` completo (uma vez)                              | sem falhas e sem erro de cobertura, em `baba84ac`: all files 97,34% linhas / 91,86% branches; exit code não capturado; conclusão pelo log (10 blocos com 0 falhas, sem erro de cobertura) |
+| `npm test` completo, Node 24.15.0                                              | exit 0, em `0a7b9582`                                                                                                                                                                     |
+| `npm test` completo, Node 22.23.3 (clone separado, better-sqlite3 no ABI 22)   | exit 0, em `0a7b9582`                                                                                                                                                                     |
+| inventário (npm 24)                                                            | 1483 de 1556; `.enterprise` 449/484, `tools` 387/393, `src` 245/250, `.agents` 188/193, `packages` 118/137, `.hseos` 63/64, `scripts` 19/21, `docs` 7/7, raiz 7/7. Sem G3                 |
+| `validate-capability-graph`, `agent-core compile --check`                      | 0 findings; 242 checks, sem escrita                                                                                                                                                       |
+| eslint (`--max-warnings=0`) nos arquivos tocados                               | verde                                                                                                                                                                                     |
+| prettier nos arquivos js/cjs/mjs/json/yaml tocados                             | 4 JSONs de evidência fora do estilo (não reformatados por serem artefatos de receipt com hash); `format:check` não faz parte de `npm test`                                                |
+
+Não verificado nesta integração: a jornada MCP pelo pacote instalado (pendência da W5-04), consumidores reais, e qualquer ativação.
+
+### Resíduos a registrar
+
+- **W5-04:** P01, P04, P06 e M03 (equivalente); a negação do FIFO não foi testada ponta a ponta.
+- **W5-02b1:** launch forjado congelado com o filtro correto; `socketpair` no P0 (anterior à task).
+- **W5-02b2:** Y4 (a conferência antes do comando não é distinguível no teste); janela até o bwrap; R3-2 (`v<N>` na base confiável); Y12 equivalente.
+  Pré-condição de implantação: o `HSEOS_CONFIG` é relativo ao módulo, então o HSEOS não pode rodar de um checkout que é o próprio projeto verificado.
+- **LV1:** status desconhecido de `background_tasks` só gera aviso; TeammateIdle e teammates nomeados não verificados; inbox no contexto do Commander.
+- **LV2:** tabelas fora de migração numerada e sem retenção de eventos; notificação em duplicata; F5; `--project-dir` sem aviso; ramo morto em `parseLivenessLine`; systemd, `notify-send` e sessões reais não verificados.
+- **CO1:** F13 (epoch do fence: a liberação não confere o dono depois de o banco ser recriado; baixa); sidecars `-wal`/`-shm` do project-aggregate (baixa; a spec deve mencioná-los em "somente leitura");
+  N1 (`register --path` não espelha ao axon, conforme a spec); o loader aceita `HSEOS_ACTIVITY_GUARD_MODULE` só com `NODE_ENV=test`, e a injeção por API interna dos testes é preferível.
+- **CO2:** A1 (CLI gravável por grupo só em grupo privado do usuário, UPG); os mutantes `pg_getent`, `pg_groupfail` e `pg_passwdfail` são redundantes com os testes de saída vazia.
+- **Fora da trilha (Symphony):** timeout de silêncio nos drivers; snapshot de rate limit; POST de reconcile; W6: dispatcher, dashboard, template estrito, varredura de worktrees, logs `key=value`; W7: pool SSH.
+- **Drift do compilador (item 6 do checklist):** não houve mudança de `settings:`/`mcp:`, de transport do axon-bridge nem arquivos `.claude/{settings.json,agents,skills}` ou `.mcp.json` nesta integração; `compile --check` passa limpo. Continua sendo risco de `agent-core compile` (sem `--check`) em worktrees.
+- **Formatação:** 4 JSONs de evidência fora do estilo do prettier (listados no receipt).
+- **Ativação fora de escopo, por decisão do owner:** hooks no `~/.codex` (trusted_hash); `/workspace/.pnpm-store` na allowlist do controlador; timer systemd; contratos ligados em projetos.
+- **`executor.js` (02b1):** o vazamento de `hseos-executor-filter-*` é corrigido pela PR #216 na master; esperar conflito manual no `executor.js` quando a W5 for atualizada com a master.
+- **Desvio de processo:** os testes focados da Fase 2 rodaram sem `heavy-run` durante o lock de outra sessão, no mesmo cgroup.
+- **Hooks ausentes:** o `.husky/_` (gerado pelo `prepare` do husky e ignorado pelo git) não existia nos worktrees da LV1, da LV2 e da integração até `baba84ac`, nem nos primeiros commits da CO1 e da CO2. Nessa janela o git commitou sem pre-commit e sem commit-msg: o manifest stale deixado por `baba84ac` foi pego só pelo `npm test` (corrigido em `0a7b9582`), e a mensagem do commit da LV2 passou com o nome de uma ferramenta. Remediação: o helper `commit-in-cgroup.sh` recusa com exit 72 sem os hooks; commit-msg retroativo aprovou 36 de 36 commits do intervalo; e o gate compensatório `VALIDATION_ENFORCED=true bash scripts/governance/quality-gates.sh --phase ci` no HEAD `de0b3dad` passou (GATE_EXIT=0, 0 falhas, 2 avisos de placeholders não resolvidos).
+- **Reescrita de histórico (2026-10-13):** a mensagem do commit da LV2 foi reescrita (`16c52664` → `46431c03`, mesma árvore `285b90bc`) e a cadeia first-parent da integração foi reconstruída; `task/hseos-w5-lv2` foi movido junto. Mapa antigo → novo e prova (árvore idêntica, commit-msg 36/36) em `history_rewrite` no receipt. Os SHAs deste documento já estão no valor novo.
+
+### Rodada 1 de correção da integração (2026-10-13)
+
+Origem: revisão da integração (aprovada em `260da30f` com ressalvas F1 a F5). Detalhes e hashes dos logs em `correction_round_1` do receipt.
+
+- **F3 (`53ed7624`):** guard e CLI passam a usar as mesmas faixas, tipos, valores de enum e regras entre chaves. `max_stop_refusals: 0` vale nos dois (antes desligava o guard) e `foreground_wait_max_s: 9999` é inválido nos dois (antes só a CLI recusava). O guard mantém uma cópia da tabela, porque é copiado sozinho para `.agents`; um teste compara a cópia com `CONFIG_RANGES` do contrato em todas as bordas.
+- **F4 (`78b617f1`):** a composição afirma que a CLI real gravou o `turn_end`, e o aviso de chave desconhecida em ciclo posterior do `watch` tem teste; os três mutantes sobreviventes da revisão morrem.
+- **F1:** o `npm test` **não encadeia o `test:kernel`**, então as execuções do Node 22 e do 24 da Fase 3 não exercitaram as suítes novas de LV, CO e 02b. A matriz Node 22/24 passa a ser `npm test` mais `test:kernel` nas duas versões. `test:kernel` em Node 22.23.3 no HEAD `78b617f1`: `KERNEL22_EXIT=0`, 10 blocos com 0 falhas. Em Node 24, a revisão rodou `test:kernel` e `test:kernel-coverage` no HEAD `260da30f` (exit 0 nos dois).
+- **Cobertura focada** dos arquivos alterados (90/80 por arquivo): 141 testes, 0 falhas, `COV_EXIT=0`.
+
+### Resíduos acrescentados pela revisão da integração
+
+- **CO1 N2.2:** um conflito de reserva ainda gera 2 handoffs no axon (`service.js:224`, via `this.mirror(entry)`, e `service.js:541`, o evento tipado). O teste de composição não afirma a contagem.
+- **LV2, revisão 4, itens 3 a 6:** reuso de `outbox_id` com o jsonl; corrida `existsSync`/`renameSync` em `drainPendingReports`; `pending-reports.invalid.jsonl` sem poda; entrega após `gave_up`. Os itens 1 e 2 (o marcador some junto com o outbox; ledger legado só em leitura) já constavam.
+- **LV1 R5:** um agente pode declarar `WAITING_ON` por até 4 h sem ser acordado pelo guard (desenho do Adendo 3; o controle fica no watchdog).
+- **02b1:** K2 e K3 (`verifiedSeccomp(launch)` contra `launch.seccomp`), K9 (`makeRemovable` entra em symlinks), M17 (corrida lstat/fstat) e 3 diretórios `/dev/shm/hseos-artifacts-*` ilegíveis.
+- **CO2:** o template do Codex não foi verificado no Codex real (coberto pela ativação fora de escopo dos hooks no `~/.codex`).
+- **04 e 02a:** a drenagem do 413 mantém a conexão até 16 MiB; informativo sobre cabeçalho sem decodificação.
+- **G1 (revisão 2 da integração, baixa):** grafias YAML exóticas (`1.0`, `0x10`, `+5`, `1e3`, `enabled: True`) são aceitas pela CLI (parser YAML completo) e recusadas pelo guard (parser mínimo sem dependências), que então mantém a última configuração válida. Nenhuma aparece nos exemplos nem na spec, e o teste de tabelas não as cobre. Use inteiros decimais e `true`/`false` em minúsculas no `agent-liveness.yaml`.
+
+### Revisão final da integração
+
+A revisão cética aprovou a integração em `260da30f` com as ressalvas F1 a F5. A rodada 1 de correção (`53ed7624`, `78b617f1`, `778bc5e7`) fechou todas, e a revisão do delta aprovou `778bc5e7`, ficando só o G1 como resíduo baixo. Relatórios: `REVIEW-W5-INT.md` e `REVIEW2-W5-INT.md`.

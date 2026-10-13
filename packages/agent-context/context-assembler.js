@@ -3,11 +3,13 @@
 const {
   CONTRACT_SCHEMA_VERSION,
   CONTEXT_ASSEMBLY_CONTRACT,
+  CONTEXT_ASSEMBLY_CONTRACT_V2,
   CONTEXT_PRECEDENCE_PREAMBLE,
   CONTEXT_PRECEDENCE_REF,
   ContextBudgetReportSchema,
   ModelProviderManifestSchema,
   ModelRequestSchema,
+  ModelRequestV2Schema,
   deepFreeze,
   parseContract,
 } = require('../agent-runtime-contracts');
@@ -15,7 +17,15 @@ const { canonicalJson, isRelationalSessionEventStore } = require('../agent-sessi
 const { ModelProviderRegistrySnapshot } = require('../model-providers');
 const { CompactionRuntime, CompactionRuntimeError } = require('../agent-compaction');
 const { ContextAssemblyInputSchema, HistorySourceSchema, MAX_CONTEXT_ASSEMBLY_BYTES } = require('./schemas');
-const { accountSessionTokens, ConservativeUtf8TokenCounter, deterministicCount, validateTokenCounter } = require('./token-counter');
+const { resolveInputAuthority } = require('./authority');
+const { ContextMediaError, assertMediaWithinLimits } = require('./media-store');
+const {
+  accountSessionTokens,
+  ConservativeUtf8TokenCounter,
+  deterministicCount,
+  deterministicCountMedia,
+  validateTokenCounter,
+} = require('./token-counter');
 
 const BUILTIN_PRECEDENCE_REF = CONTEXT_PRECEDENCE_REF;
 const INSTRUCTION_TIERS = Object.freeze(['constitution', 'project', 'adapter', 'agent', 'skill']);
@@ -37,12 +47,17 @@ class ContextBudgetError extends ContextAssemblyError {
   }
 }
 
-function quotedData(kind, source) {
+// A source that declared v2 authority advertises it to the model; v1 sources render byte-identically to before.
+function authorityAttributes(meta) {
+  return meta?.declared ? ` authority=${meta.authority} origin=${meta.provenance.origin} trust=${meta.provenance.trust}` : '';
+}
+
+function quotedData(kind, source, meta) {
   return {
     role: 'system',
-    content: `[HSEOS ${kind} source=${JSON.stringify(source.source_ref)} classification=${source.classification}]\n${JSON.stringify(
-      source.content,
-    )}\n[END HSEOS ${kind}]`,
+    content: `[HSEOS ${kind} source=${JSON.stringify(source.source_ref)} classification=${source.classification}${authorityAttributes(
+      meta,
+    )}]\n${JSON.stringify(source.content)}\n[END HSEOS ${kind}]`,
   };
 }
 
@@ -71,6 +86,21 @@ function orderedHistory(history) {
 
 function orderedMemory(memory) {
   return [...memory].sort((left, right) => right.priority - left.priority || bySourceRef(left, right));
+}
+
+function orderedMedia(media) {
+  return orderedMemory(media);
+}
+
+function sourceRecord(source, meta, extra = {}) {
+  return {
+    source_ref: source.source_ref,
+    authority: meta.authority,
+    origin: meta.provenance.origin,
+    digest: meta.provenance.digest,
+    trust: meta.provenance.trust,
+    ...extra,
+  };
 }
 
 function uniqueReferences(references) {
@@ -134,8 +164,15 @@ class ContextAssembler {
   #counterId;
   #countCache = new Map();
   #providerSnapshot;
+  #mediaStore;
 
-  constructor({ session_store, model_provider_snapshot, compaction_runtime = null, token_counter = new ConservativeUtf8TokenCounter() }) {
+  constructor({
+    session_store,
+    model_provider_snapshot,
+    compaction_runtime = null,
+    token_counter = new ConservativeUtf8TokenCounter(),
+    media_store = null,
+  }) {
     if (!isRelationalSessionEventStore(session_store)) {
       throw new ContextAssemblyError('session store must be a verified RelationalSessionEventStore');
     }
@@ -151,6 +188,7 @@ class ContextAssembler {
     this.#counterId = validatedCounter.counter_id;
     this.#providerSnapshot = model_provider_snapshot;
     this.#compactionRuntime = compaction_runtime;
+    this.#mediaStore = media_store;
   }
 
   #count(value) {
@@ -164,8 +202,9 @@ class ContextAssembler {
     return count;
   }
 
-  #measure(messages, tools, parameters) {
-    const messageTokens = this.#count(messages);
+  #measure(messages, tools, parameters, mediaTokens) {
+    // media cost is folded into message tokens so the v1 budget accounting identity keeps balancing
+    const messageTokens = this.#count(messages) + mediaTokens;
     const toolTokens = this.#count(tools);
     const parameterTokens = this.#count(parameters);
     return {
@@ -176,7 +215,7 @@ class ContextAssembler {
     };
   }
 
-  #compose(input, includedHistory, includedMemory) {
+  #compose(input, includedHistory, includedMemory, includedMedia = input.required_media) {
     const instructionItems = orderedInstructions(input.instructions);
     const runtimeItems = [...input.runtime_context].sort(bySourceRef);
     const referenceItems = [...input.references].sort(bySourceRef);
@@ -185,24 +224,59 @@ class ContextAssembler {
     const messages = [
       { role: 'system', content: PRECEDENCE_PREAMBLE },
       ...instructionItems.map((item) => item.message),
-      ...runtimeItems.map((source) => quotedData('RUNTIME_DATA', source)),
-      ...referenceItems.map((source) => quotedData('REFERENCE_DATA', source)),
-      ...memoryItems.map((source) => quotedData('MEMORY_DATA', source)),
+      ...runtimeItems.map((source) => quotedData('RUNTIME_DATA', source, input.authority.get(source.source_ref))),
+      ...referenceItems.map((source) => quotedData('REFERENCE_DATA', source, input.authority.get(source.source_ref))),
+      ...memoryItems.map((source) => quotedData('MEMORY_DATA', source, input.authority.get(source.source_ref))),
       ...historyItems.map((entry) => entry.message),
       input.current_turn.message,
     ];
     const tools = [...input.tools].sort((left, right) => (left.name < right.name ? -1 : left.name > right.name ? 1 : 0));
+    const mediaItems = orderedMedia(includedMedia);
+    const parts = mediaItems.map((media) => ({
+      type: 'image',
+      source_ref: media.source_ref,
+      media_type: media.media_type,
+      digest: media.digest,
+      bytes: media.bytes,
+      artifact_ref: media.artifact_ref,
+    }));
+    const mediaTokens = mediaItems.reduce((total, media) => total + input.media_tokens.get(media.source_ref), 0);
+    const included = [
+      ...instructionItems.map((item) => item.source),
+      ...runtimeItems,
+      ...referenceItems,
+      ...memoryItems,
+      input.current_turn,
+    ];
+    const sources = [
+      ...included.map((source) => sourceRecord(source, input.authority.get(source.source_ref))),
+      ...mediaItems.map((media) =>
+        sourceRecord(media, input.authority.get(media.source_ref), {
+          media_type: media.media_type,
+          bytes: media.bytes,
+          artifact_ref: media.artifact_ref,
+        }),
+      ),
+    ];
     const sourceRefs = uniqueReferences([
       BUILTIN_PRECEDENCE_REF,
       ...instructionItems.map((item) => item.source.source_ref),
       ...runtimeItems.map((source) => source.source_ref),
       ...referenceItems.map((source) => source.source_ref),
       ...memoryItems.map((source) => source.source_ref),
+      ...mediaItems.map((media) => media.source_ref),
       ...historyItems.map((entry) => entry.source_ref),
       input.current_turn.source_ref,
       ...tools.map((tool) => tool.governance_ref),
     ]);
-    return { messages, tools, source_refs: sourceRefs, measurement: this.#measure(messages, tools, input.parameters) };
+    return {
+      messages,
+      tools,
+      parts,
+      sources,
+      source_refs: sourceRefs,
+      measurement: this.#measure(messages, tools, input.parameters, mediaTokens),
+    };
   }
 
   #budget(input, providerManifest, sessionRemainingTokens) {
@@ -225,7 +299,7 @@ class ContextAssembler {
       });
     }
 
-    const complete = this.#compose(input, input.history, input.memory);
+    const complete = this.#compose(input, input.history, input.memory, input.media);
     if (input.overflow_policy === 'reject') {
       if (complete.measurement.input_tokens > inputLimit) {
         throw new ContextBudgetError('complete model context exceeds the input budget', {
@@ -243,6 +317,7 @@ class ContextAssembler {
 
     const selectedHistory = [];
     const selectedMemory = [];
+    const selectedMedia = [...input.required_media];
     const omitted = [];
     let historyOverflowed = false;
     for (const entry of orderedHistory(input.history).toReversed()) {
@@ -262,8 +337,15 @@ class ContextAssembler {
       if (candidate.measurement.input_tokens <= inputLimit) selectedMemory.push(entry);
       else omitted.push(entry.source_ref);
     }
+    const requiredRefs = new Set(input.required_media.map((media) => media.source_ref));
+    for (const entry of orderedMedia(input.media)) {
+      if (requiredRefs.has(entry.source_ref)) continue;
+      const candidate = this.#compose(input, selectedHistory, selectedMemory, [...selectedMedia, entry]);
+      if (candidate.measurement.input_tokens <= inputLimit) selectedMedia.push(entry);
+      else omitted.push(entry.source_ref);
+    }
     const ordinary = {
-      composition: this.#compose(input, selectedHistory, selectedMemory),
+      composition: this.#compose(input, selectedHistory, selectedMemory, selectedMedia),
       omitted_source_refs: omitted.sort((left, right) => (left < right ? -1 : left > right ? 1 : 0)),
       contextLimit,
       inputLimit,
@@ -298,7 +380,7 @@ class ContextAssembler {
     let acceptedComposition = null;
     let record = null;
     for (let attempt = 0; attempt <= input.history.length + input.memory.length; attempt++) {
-      const withoutReplacement = this.#compose(input, retainedHistory, retainedMemory);
+      const withoutReplacement = this.#compose(input, retainedHistory, retainedMemory, selectedMedia);
       const targetTokens = Math.max(1, inputLimit - withoutReplacement.measurement.input_tokens);
       try {
         record = this.#compactionRuntime.compact(
@@ -321,7 +403,7 @@ class ContextAssembler {
               sequence: compactedHistory[0].sequence,
               message: result.replacement_messages[0],
             };
-            const candidate = this.#compose(input, [replacement, ...retainedHistory], retainedMemory);
+            const candidate = this.#compose(input, [replacement, ...retainedHistory], retainedMemory, selectedMedia);
             if (candidate.measurement.input_tokens > inputLimit) return false;
             acceptedComposition = candidate;
             return true;
@@ -345,7 +427,11 @@ class ContextAssembler {
     if (!record || !acceptedComposition) throw new ContextBudgetError('compaction did not converge within bounded attempts');
     return {
       composition: acceptedComposition,
-      omitted_source_refs: [...compactedHistory.map((entry) => entry.source_ref), ...omittedMemoryRefs].sort(),
+      omitted_source_refs: [
+        ...compactedHistory.map((entry) => entry.source_ref),
+        ...omittedMemoryRefs,
+        ...input.media.filter((entry) => !selectedMedia.includes(entry)).map((entry) => entry.source_ref),
+      ].sort(),
       contextLimit,
       inputLimit,
       reservedOutput,
@@ -353,8 +439,27 @@ class ContextAssembler {
     };
   }
 
+  // Rejects media before any effect: provider capability, counter support, then bytes against digest/size/magic.
+  #verifiedMediaTokens(media, providerManifest) {
+    const tokens = new Map();
+    if (media.length === 0) return tokens;
+    if (!providerManifest.capabilities.includes('image_input')) {
+      throw new ContextAssemblyError('selected model provider does not declare image_input', 'AGENT_CONTEXT_PROVIDER_LACKS_IMAGE_INPUT', {
+        provider_id: providerManifest.provider_id,
+      });
+    }
+    for (const item of media) tokens.set(item.source_ref, deterministicCountMedia(this.#tokenCounter, item));
+    if (!this.#mediaStore) {
+      throw new ContextMediaError('media requires a context media store', 'AGENT_CONTEXT_MEDIA_STORE_REQUIRED');
+    }
+    for (const item of media) this.#mediaStore.load(item);
+    return tokens;
+  }
+
   assembleAndRecord(inputValue) {
     const input = parseContract(ContextAssemblyInputSchema, inputValue, 'context assembly input');
+    const { resolved: authority, v2: declaredV2 } = resolveInputAuthority(input);
+    assertMediaWithinLimits(input.media);
     const durableState = this.#store.replay(input.session.session_id);
     const durableTurn = durableState.turns[input.turn_id];
     if (!durableTurn || durableState.turn_order.at(-1) !== input.turn_id) {
@@ -371,10 +476,19 @@ class ContextAssembler {
     }
     const providerEntry = this.#providerSnapshot.resolve(input.session.execution.model_provider_id, input.session.execution.model);
     const providerManifest = parseContract(ModelProviderManifestSchema, providerEntry.manifest, 'registered model provider manifest');
-    const enrichedInput = { ...input, history: durableHistory(durableState, input.turn_id) };
+    const mediaTokens = this.#verifiedMediaTokens(input.media, providerManifest);
+    const requiredRefs = new Set((input.current_turn.parts ?? []).map((part) => part.source_ref));
+    const enrichedInput = {
+      ...input,
+      history: durableHistory(durableState, input.turn_id),
+      authority,
+      media_tokens: mediaTokens,
+      required_media: input.media.filter((media) => requiredRefs.has(media.source_ref)),
+    };
     const budgeted = this.#budget(enrichedInput, providerManifest, remainingSessionTokens(durableState, input.turn_id));
+    const useV2 = declaredV2 || input.media.length > 0;
     const request = parseContract(
-      ModelRequestSchema,
+      budgeted.composition.parts.length > 0 ? ModelRequestV2Schema : ModelRequestSchema,
       {
         schema_version: CONTRACT_SCHEMA_VERSION,
         request_id: input.request_id,
@@ -385,6 +499,7 @@ class ContextAssembler {
         messages: budgeted.composition.messages,
         tools: budgeted.composition.tools,
         parameters: input.parameters,
+        ...(budgeted.composition.parts.length > 0 ? { parts: budgeted.composition.parts } : {}),
       },
       'assembled model request',
     );
@@ -427,10 +542,11 @@ class ContextAssembler {
       occurred_at: input.occurred_at,
       event_type: 'context.assembled',
       payload: {
-        assembly_contract: CONTEXT_ASSEMBLY_CONTRACT,
+        assembly_contract: useV2 ? CONTEXT_ASSEMBLY_CONTRACT_V2 : CONTEXT_ASSEMBLY_CONTRACT,
         turn_id: input.turn_id,
         request,
         source_refs: budgeted.composition.source_refs,
+        ...(useV2 ? { sources: budgeted.composition.sources } : {}),
         budget,
       },
     };

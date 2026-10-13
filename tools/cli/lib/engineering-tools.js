@@ -7,7 +7,8 @@ const { z } = require('zod');
 const { governanceRef } = require('../../../packages/tool-runtime');
 const { executeIsolatedCommand } = require('../../../packages/agent-isolation-attestation/executor');
 const { parseEngineeringTask } = require('./engineering-task-contract');
-const { declaredCommandArgv } = require('./engineering-project-verifier');
+const { declaredCommandArgv, declaredCommandLimits, declaredMounts } = require('./engineering-project-verifier');
+const { assertStoreMountUnchanged } = require('./engineering-workspace');
 
 const hash = (value) => createHash('sha256').update(value).digest('hex');
 const LEGACY_NAMES = Object.freeze(['engineering.read', 'engineering.write', 'engineering.command', 'engineering.diagnose']);
@@ -104,6 +105,11 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
     snapshot();
     const remaining = deadline - Date.now();
     if (remaining < 1) throw new EngineeringToolError('Task duration budget exhausted');
+    try {
+      assertStoreMountUnchanged(policy, contract);
+    } catch {
+      throw new EngineeringToolError('The pnpm store changed after it was verified');
+    }
     const invocation = executeIsolatedCommand({
       policy,
       host_node: contract.schema_version === 2 && declared.runtime === 'node',
@@ -111,16 +117,26 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
       timeout_ms: Math.min(remaining, 300_000),
       max_output_bytes: contract.max_output_bytes,
       signal: context.signal,
+      ...(contract.schema_version === 2 ? { limits: declaredCommandLimits(declared), readonly_mounts: declaredMounts(contract) } : {}),
     });
     active.add(invocation);
+    let outcome;
     try {
-      return await invocation;
+      outcome = await invocation;
     } catch (error) {
       executorFailure = true;
       throw error;
     } finally {
       active.delete(invocation);
     }
+    // A store that changed while the command ran makes its result untrustworthy: it is rejected, not returned. The
+    // executor itself drained cleanly, so this is a refused result and not an executor failure.
+    try {
+      assertStoreMountUnchanged(policy, contract);
+    } catch {
+      throw new EngineeringToolError('The pnpm store changed while the command ran');
+    }
+    return outcome;
   };
   const inputs = [
     z.object({ path: z.enum(contract.scope.read) }).strict(),

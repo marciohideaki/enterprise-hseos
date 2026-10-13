@@ -1,0 +1,24 @@
+# Agent liveness contract ("no silent idle"). Spec: .specs/features/harness-w5/liveness.md
+# Disabled by default: with enabled: false (or this file absent) no liveness behavior runs.
+# Every key is optional; the values below are the defaults.
+enabled: false
+# Longest foreground wait block (seconds); must stay under the 600 s Bash limit.
+foreground_wait_max_s: 540
+# Turn ended (or no activity) for longer than this without a new event = stalled.
+stall_timeout_s: 900
+# Heartbeat lease. A lapsed lease yields "overdue" and escalation, never takeover or kill.
+heartbeat_ttl_s: 300
+# Watchdog cycle (hseos liveness watch).
+watch_interval_s: 120
+# Stop-guard refusals before the end of turn is allowed and an idle_violation is recorded.
+max_stop_refusals: 2
+# Wake requests per incident (exponential backoff, up to 5 min) before escalating.
+max_wake_attempts: 3
+# Longest deadline_at accepted for WAITING_ON on the Commander or a human (seconds).
+max_wait_deadline_s: 14400
+# Delivery attempts per escalation notification (exponential backoff) before it is marked gave_up;
+# escalations.jsonl stays the durable record.
+max_notify_attempts: 10
+# Global cap on wake requests per watchdog cycle (storm guard).
+max_wakes_per_cycle: 3
+escalate_to: human

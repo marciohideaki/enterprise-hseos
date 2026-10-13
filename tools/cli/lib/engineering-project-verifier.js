@@ -5,6 +5,10 @@ const { createHash } = require('node:crypto');
 const { canonicalJson } = require('../../../packages/agent-session-store');
 const { executeIsolatedCommand } = require('../../../packages/agent-isolation-attestation/executor');
 const legacy = require('./engineering-verifier');
+const { assertStoreMountUnchanged } = require('./engineering-workspace');
+const path = require('node:path');
+
+const STORE_MOUNT_TARGET = '/opt/hseos/pnpm-store';
 
 const CODE_SHA256 = createHash('sha256').update(fs.readFileSync(__filename)).digest('hex');
 const PROJECT_VERIFIERS = Object.freeze({
@@ -38,12 +42,29 @@ function declaredCommandArgv(contract, declared) {
     : ['/usr/bin/python3', '-I', '-B', `./${declared.entrypoint}`, ...declared.args];
 }
 
+/**
+ * Read-only mounts a contract declares. The source is derived from the pinned workspace root, never from model input,
+ * and must also be on the isolation policy allowlist that the task runtime builds from the same contract.
+ */
+function declaredMounts(contract) {
+  if (contract.schema_version !== 2 || !contract.workspace.store_mount) return null;
+  return [{ source: path.join(contract.workspace.root, 'node_modules', '.pnpm'), target: STORE_MOUNT_TARGET }];
+}
+
+/** Per-command resource ceilings declared in the pinned contract; absent means the executor defaults. */
+function declaredCommandLimits(declared) {
+  return declared.limits ? { ...declared.limits } : undefined;
+}
+
 function projectVerifierDigest(contract) {
   const { sha256: _pin, ...verifier } = contract.verifier;
   const hash = createHash('sha256')
     .update(CODE_SHA256)
     .update(RUNTIMES[PROJECT_VERIFIERS[verifier.reference]?.runtime] || 'unsupported')
     .update(canonicalJson({ verifier, sources: contract.sources, requirements: contract.requirements, acceptance: contract.acceptance }));
+  // The mounted store root is part of what the acceptance pinned.
+  if (contract.workspace.store_mount)
+    hash.update(canonicalJson({ store_mount: contract.workspace.store_mount, roots: declaredMounts(contract) }));
   // Acceptance commands bind the exact declared argv; contracts without them keep their original digest.
   if (verifier.command_checks)
     hash.update(
@@ -95,6 +116,11 @@ async function verifyEngineeringTask(options) {
         : "(async()=>{const checks=JSON.parse(process.argv[1]);const out=[];for(const c of checks){const m=require('./'+c.path);const fn=c.export_name==='default'?(m.default||m):m[c.export_name];out.push(await fn(...c.args));}console.log(JSON.stringify(out));})().catch(()=>process.exitCode=1);";
   const remaining = deadline - Date.now();
   if (remaining < 1) return { approved: false, reason: 'budget-exhausted', verifier_sha256: sha256 };
+  try {
+    assertStoreMountUnchanged(policy, contract);
+  } catch {
+    return { approved: false, reason: 'store-drift', verifier_sha256: sha256 };
+  }
   const result = await executeIsolatedCommand({
     policy,
     host_node: definition.runtime === 'node',
@@ -105,7 +131,14 @@ async function verifyEngineeringTask(options) {
     timeout_ms: Math.min(remaining, 10_000),
     max_output_bytes: contract.max_output_bytes,
     signal,
+    readonly_mounts: declaredMounts(contract),
   });
+  // The fingerprint is checked again after the launch: a store that moved during it makes the result untrustworthy.
+  try {
+    assertStoreMountUnchanged(policy, contract);
+  } catch {
+    return { approved: false, reason: 'store-drift', verifier_sha256: sha256 };
+  }
   let approved = false;
   try {
     const actual = JSON.parse(result.stdout);
@@ -130,6 +163,7 @@ async function verifyEngineeringTask(options) {
     let outcome = { status: 'budget_exhausted', exit_code: null };
     if (left >= 1) {
       try {
+        assertStoreMountUnchanged(policy, contract);
         evidence = await executeIsolatedCommand({
           policy,
           host_node: declared.runtime === 'node',
@@ -137,11 +171,22 @@ async function verifyEngineeringTask(options) {
           timeout_ms: Math.min(left, item.timeout_ms || 300_000),
           max_output_bytes: contract.max_output_bytes,
           signal,
+          limits: declaredCommandLimits(declared),
+          readonly_mounts: declaredMounts(contract),
         });
-        outcome = { status: evidence.status, exit_code: evidence.exit_code ?? null };
+        outcome = {
+          status: evidence.status,
+          exit_code: evidence.exit_code ?? null,
+          // Measured, not assumed: what the native test runner really used inside the executor.
+          pids_peak: evidence.pids_peak ?? null,
+          memory_peak_bytes: evidence.memory_peak_bytes ?? null,
+          limits: evidence.limits,
+        };
         if (!evidence.descendants_terminated) outcome.status = 'descendants_not_terminated';
-      } catch {
-        outcome = { status: 'executor_error', exit_code: null };
+        // Checked again after the command: its result is discarded when the store changed while it ran.
+        assertStoreMountUnchanged(policy, contract);
+      } catch (error) {
+        outcome = { status: error?.reason === 'PROJECT_STORE_DRIFT' ? 'store_drift' : 'executor_error', exit_code: null };
       }
     }
     commandResults.push({ command_id: item.command_id, ...outcome });
@@ -159,4 +204,12 @@ async function verifyEngineeringTask(options) {
   };
 }
 
-module.exports = { declaredCommandArgv, PROJECT_VERIFIERS, projectVerifierDigest, attestEngineeringVerifier, verifyEngineeringTask };
+module.exports = {
+  declaredCommandArgv,
+  declaredCommandLimits,
+  declaredMounts,
+  PROJECT_VERIFIERS,
+  projectVerifierDigest,
+  attestEngineeringVerifier,
+  verifyEngineeringTask,
+};

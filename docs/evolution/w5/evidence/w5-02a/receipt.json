@@ -1,0 +1,157 @@
+{
+  "task": "W5-02a",
+  "base_sha": "4dc8dd5159bc1390d3043de698a571ba16571c52",
+  "revision": "commit that contains this receipt (task/hseos-w5-02a, amended after review round 1); base_sha is the wave base",
+  "node_for_verify": "v24.15.0 (run-in-cgroup.sh)",
+  "commands": [
+    {
+      "id": "coverage-focused",
+      "result": "exit 0; 41 tests, 0 fail, 0 skipped; c8 per-file 90/80 passed, now including event-contracts.js",
+      "log": "docs/evolution/w5/evidence/w5-02a/verify-coverage.log",
+      "sha256": "b414f30a4a379cc74e01fa47704da9c716cd8e732a3829953ac5c12ddadfcb6d"
+    },
+    {
+      "id": "package-surface",
+      "result": "exit 0; 1 test, 0 fail",
+      "log": "docs/evolution/w5/evidence/w5-02a/verify-surface.log",
+      "sha256": "9a9054c28561f2e1a811a563efa7e1874657f91c9674e6c7964f5cb7b1810a5e"
+    },
+    {
+      "id": "node22-focused",
+      "result": "NOT PASS: 18 pass, 23 fail; every failure is ERR_DLOPEN_FAILED (better-sqlite3 built for NODE_MODULE_VERSION 137, Node 22 needs 127). Not rebuilt in the worktree by instruction. Node 22 coverage of this task is therefore not verified.",
+      "log": "docs/evolution/w5/evidence/w5-02a/verify-node22.log",
+      "sha256": "c44e0e3e1842d3de3433baa2b6162457a2c7263a9f3544f9e02e25d7c9dd1adc"
+    }
+  ],
+  "coverage_per_file": {
+    "authority.js": {
+      "lines": 100,
+      "branches": 98.14
+    },
+    "context-assembler.js": {
+      "lines": 93.47,
+      "branches": 88.26
+    },
+    "media-store.js": {
+      "lines": 96.63,
+      "branches": 94.59
+    },
+    "schemas.js": {
+      "lines": 93.87,
+      "branches": 86.36
+    },
+    "token-counter.js": {
+      "lines": 100,
+      "branches": 98.18
+    },
+    "content-parts.js": {
+      "lines": 98.52,
+      "branches": 88.88
+    },
+    "event-contracts.js": {
+      "lines": 92.08,
+      "branches": 86.84
+    },
+    "index.js": {
+      "lines": 100,
+      "branches": 100
+    }
+  },
+  "package_inventory": {
+    "entryCount": 1464,
+    "ceiling": 1554,
+    "areas": {
+      ".agents": 186,
+      ".enterprise": 447,
+      ".hseos": 61,
+      "root": 7,
+      "docs": 7,
+      "packages": 116,
+      "scripts": 19,
+      "src": 245,
+      "tools": 376
+    },
+    "packages_budget": 137,
+    "core_new_files_in_packages": [
+      "packages/agent-context/authority.js",
+      "packages/agent-context/media-store.js",
+      "packages/agent-runtime-contracts/content-parts.js"
+    ],
+    "note": "Canonical measurement: 1464 entries, docs 7, with the repo npm (10/11). The earlier 1466/9 came from the system npm 9.2.0, which includes nested README* files; no generated file was involved. packages is 116 in every measurement; the total stays below the 1554 ceiling and the packages 137 budget.",
+    "measurements": [
+      {
+        "by": "executor (earlier)",
+        "npm": "9.2.0 (/usr/bin/npm, system)",
+        "entryCount": 1466,
+        "docs": 9,
+        "note": "npm 9 also packs nested README* (docs/README.md, docs/pt-br/README.md); not the repo toolchain"
+      },
+      {
+        "by": "reviewer and team-lead",
+        "npm": "10.9.9 (Node 22) and 11.12.1 (Node 24)",
+        "entryCount": 1464,
+        "docs": 7,
+        "docs_files": [
+          "docs/capabilities.md",
+          "docs/engineering-control-api.md",
+          "docs/engineering-task-contract.md",
+          "docs/MANAGED-GOVERNANCE.md",
+          "docs/pt-br/governanca-gerenciada.md",
+          "docs/sandbox.md",
+          "docs/v4-migration.md"
+        ]
+      },
+      {
+        "by": "executor (re-run)",
+        "npm": "11.12.1 (Node 24.15.0)",
+        "entryCount": 1464,
+        "docs": 7
+      }
+    ],
+    "canonical": {
+      "entryCount": 1464,
+      "docs": 7,
+      "npm": "10.9.9 or 11.12.1 from the repo Node (CI toolchain)"
+    }
+  },
+  "media_limits": {
+    "item_bytes": 5242880,
+    "assembly_bytes": 16777216,
+    "items": 8,
+    "max_dimension": 16384
+  },
+  "not_run": [
+    "full npm test",
+    "test:kernel-coverage (wave integration)",
+    "Node 22 execution of the focused suite (better-sqlite3 ABI, see commands)"
+  ],
+  "deviations": [
+    {
+      "file": "packages/agent-runtime-contracts/event-contracts.js",
+      "reason": "additive payload of context.assembled v2 (assembly_contract v1|v2, sources[], request.parts); output_contract updated in tasks.md before code",
+      "accepted_by": "team-lead"
+    },
+    {
+      "file": "test/fixtures/agent-context-harness.js",
+      "reason": "shared test helper for the three task test files; outside the literal output_contract",
+      "accepted_by": "team-lead"
+    },
+    {
+      "file": ".specs/features/harness-w5/tasks.md",
+      "reason": "verify include extended with event-contracts.js (review R3)",
+      "accepted_by": "team-lead"
+    }
+  ],
+  "review_round_1": {
+    "A1": "authority.js: trusted label refused in data layers and media with AGENT_CONTEXT_TRUST_ESCALATION; test: data layers refuse a trusted label for every origin",
+    "A2": "authority.js: operator needs current_turn and origin operator; test: operator authority on the current turn requires the operator origin",
+    "A3": "authority test central invariant now feeds the lattice with the tool list produced by each assembly and compares outcomes with/without injected data",
+    "A4_A5": "media-store.js reads real dimensions for PNG (IHDR checked), JPEG (SOF) and WebP (VP8, VP8L, VP8X); mismatch and unreadable formats refused; negative tests per format",
+    "T1": "magic signature negative test per media type pair",
+    "T2": "exact limit and limit+1 tests for item count and total bytes",
+    "R1": "inventory note above",
+    "R3": "event-contracts.js in verify include, 92.08/86.84; tests added in test-agent-context.js for forged v1/v2 payloads",
+    "R4": "fixture listed in deviations",
+    "A6": "open by design: sender of parts must call ContextMediaStore.load again (inherited by the consuming task)"
+  }
+}

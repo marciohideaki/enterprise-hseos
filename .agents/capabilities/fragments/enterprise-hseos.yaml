@@ -156,6 +156,31 @@ nodes:
     name: W5 environment capabilities reuse and conformance intake
     path: docs/decisions/harness-w5-intake.md
     lifecycle: proposed
+  - id: capability.hseos.agent-liveness
+    type: Capability
+    name: HSEOS agent liveness contract (no silent idle) candidate
+    path: .specs/features/harness-w5/liveness.md
+    lifecycle: proposed
+  - id: contract.hseos.agent-liveness.config
+    type: Contract
+    name: Agent liveness configuration and LIVENESS line contract
+    path: .hseos/config/agent-liveness.yaml
+    lifecycle: proposed
+  - id: module.hseos.agent-liveness
+    type: Module
+    name: Agent liveness ledger, classifier, watchdog and await
+    path: tools/lib/agent-liveness.js
+    lifecycle: proposed
+  - id: testsuite.hseos.agent-liveness
+    type: TestSuite
+    name: Agent liveness tests
+    path: test/test-agent-liveness.js
+    lifecycle: proposed
+  - id: evidence.hseos.w5-lv2
+    type: Evidence
+    name: W5-LV2 liveness receipt
+    path: docs/evolution/w5/evidence/w5-lv2/receipt.json
+    lifecycle: proposed
 edges:
   - id: edge.repo.enterprise-hseos.owned-by.platform-architecture
     type: OWNED_BY
@@ -435,4 +460,50 @@ edges:
     repository: repo.enterprise-hseos
     evidence:
       - evidence.hseos.w5-intake
+  - id: edge.capability.hseos.agent-liveness.owner
+    type: OWNED_BY
+    from: capability.hseos.agent-liveness
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.contract.hseos.agent-liveness.config.owner
+    type: OWNED_BY
+    from: contract.hseos.agent-liveness.config
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.module.hseos.agent-liveness.owner
+    type: OWNED_BY
+    from: module.hseos.agent-liveness
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.testsuite.hseos.agent-liveness.owner
+    type: OWNED_BY
+    from: testsuite.hseos.agent-liveness
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.evidence.hseos.w5-lv2.owner
+    type: OWNED_BY
+    from: evidence.hseos.w5-lv2
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.hseos.agent-liveness.defined
+    type: DEFINED_BY
+    from: capability.hseos.agent-liveness
+    to: contract.hseos.agent-liveness.config
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.hseos.w5-lv2
+  - id: edge.hseos.agent-liveness.implemented
+    type: IMPLEMENTED_BY
+    from: capability.hseos.agent-liveness
+    to: module.hseos.agent-liveness
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.hseos.w5-lv2
+  - id: edge.hseos.agent-liveness.validated
+    type: VALIDATED_BY
+    from: capability.hseos.agent-liveness
+    to: testsuite.hseos.agent-liveness
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.hseos.w5-lv2
 findings: []

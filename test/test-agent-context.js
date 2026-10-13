@@ -19,12 +19,17 @@ const {
   ContextAssemblyError,
   ContextBudgetError,
   TokenCounterError,
+  accountSessionTokens,
+  deterministicCount,
+  deterministicCountMedia,
+  validateTokenCounter,
 } = require('../packages/agent-context');
 const {
   AgentContractError,
   CONTEXT_ASSEMBLY_CONTRACT,
   CONTEXT_PRECEDENCE_PREAMBLE,
   CONTEXT_PRECEDENCE_REF,
+  SessionEventSchema,
 } = require('../packages/agent-runtime-contracts');
 const { RelationalSessionEventStore, canonicalJson, replaySessionEvents } = require('../packages/agent-session-store');
 const { ModelProviderRegistry, ModelProviderRegistrySnapshot, ScriptedModelProvider } = require('../packages/model-providers');
@@ -647,4 +652,170 @@ test('exact retries are idempotent and conservative counter uses canonical UTF-8
   } finally {
     db.close();
   }
+});
+
+test('token counter validation and accounting fail closed on malformed counters and unsafe totals', () => {
+  assert.throws(() => validateTokenCounter(null), TokenCounterError);
+  assert.throws(() => validateTokenCounter({ counter_id: 'token-counter:x' }), /expose count/);
+  const valid = validateTokenCounter({ counter_id: 'token-counter:x', count: () => 1 });
+  assert.equal(valid.count_media, null, 'a counter without count_media is valid for text only');
+  assert.throws(() => deterministicCount({ count: () => 1.5 }, 'x'), TokenCounterError);
+  assert.throws(() => deterministicCount({ count: () => -1 }, 'x'), TokenCounterError);
+  let calls = 0;
+  assert.throws(() => deterministicCount({ count: () => ++calls }, 'x'), TokenCounterError);
+  assert.throws(
+    () =>
+      deterministicCount(
+        {
+          count: () => {
+            throw new Error('boom');
+          },
+        },
+        'x',
+      ),
+    (error) => error.code === 'AGENT_CONTEXT_COUNTER_FAILED',
+  );
+  const media = { media_type: 'image/png', width: 1, height: 1, bytes: 1 };
+  assert.throws(() => deterministicCountMedia({ count_media: () => 1.5 }, media), TokenCounterError);
+  assert.equal(deterministicCountMedia({ count_media: () => 7 }, media), 7);
+
+  const usage = (input, output) => ({ event_type: 'usage', payload: { input_tokens: input, output_tokens: output } });
+  const request = { parameters: { max_output_tokens: 10 } };
+  const state = {
+    reconciliation_reserved_tokens: 5,
+    turns: {
+      'turn:excluded': { model_steps: [{ model_events: [usage(999, 999)], request }] },
+      'turn:steps': {
+        model_steps: [
+          { model_events: [usage(3, 4)], request },
+          { model_events: [{ event_type: 'completed' }], request },
+          { model_events: [{ event_type: 'content.delta' }], request },
+        ],
+      },
+      'turn:legacy-usage': { model_events: [usage(1, 2)], budget: { input_tokens: 100, reserved_output_tokens: 100 } },
+      'turn:legacy-estimate': { model_events: [], budget: { input_tokens: 20, reserved_output_tokens: 30 } },
+      'turn:empty': { model_events: [] },
+    },
+  };
+  const accounted = accountSessionTokens(state, { excluded_turn_id: 'turn:excluded' });
+  const requestBytes = Buffer.byteLength(canonicalJson(request), 'utf8');
+  assert.equal(accounted.reported_input_tokens, 4);
+  assert.equal(accounted.reported_output_tokens, 6);
+  assert.equal(accounted.conservative_estimate_tokens, 5 + requestBytes + 10 + 50);
+  assert.equal(accounted.total_tokens, 4 + 6 + accounted.conservative_estimate_tokens);
+  assert.equal(accountSessionTokens({}).total_tokens, 0);
+  assert.throws(
+    () =>
+      accountSessionTokens({
+        reconciliation_reserved_tokens: Number.MAX_SAFE_INTEGER,
+        turns: { a: { model_events: [], budget: { input_tokens: 1, reserved_output_tokens: 1 } } },
+      }),
+    TokenCounterError,
+  );
+});
+
+test('context.assembled rejects forged or inconsistent v1 and v2 payloads', () => {
+  const { db, store } = openStore();
+  let v1;
+  let v2;
+  try {
+    const spec = session('session:context-forged');
+    const turn = prepareSession(store, spec);
+    const input = assemblyInput(spec, turn);
+    v1 = structuredClone(assembler(store).assembleAndRecord(input).event);
+    const other = openStore();
+    try {
+      const otherSpec = session('session:context-forged-v2');
+      const otherTurn = prepareSession(other.store, otherSpec);
+      const declared = { ...source('source://declared', 'declared'), authority: 'data' };
+      declared.provenance = {
+        origin: 'tool',
+        source_ref: 'source://declared',
+        digest: createHash('sha256').update('declared').digest('hex'),
+        retrieved_at: '2026-08-22T02:10:02Z',
+        trust: 'untrusted',
+        transform: [],
+      };
+      v2 = structuredClone(assembler(other.store).assembleAndRecord(assemblyInput(otherSpec, otherTurn, { references: [declared] })).event);
+    } finally {
+      other.db.close();
+    }
+  } finally {
+    db.close();
+  }
+  assert.equal(SessionEventSchema.safeParse(v1).success, true);
+  assert.equal(SessionEventSchema.safeParse(v2).success, true);
+  assert.equal(v2.payload.assembly_contract, 'hseos.context/v2');
+
+  const refuses = (label, base, mutate) => {
+    const event = structuredClone(base);
+    mutate(event);
+    assert.equal(SessionEventSchema.safeParse(event).success, false, label);
+  };
+  const budgetCases = {
+    'input limit differs from reserved output': (e) => (e.payload.budget.input_limit_tokens += 1),
+    'unbalanced accounting': (e) => (e.payload.budget.message_tokens += 1),
+    'input beyond limit': (e) => {
+      e.payload.budget.input_limit_tokens = e.payload.budget.input_tokens - 1;
+      e.payload.budget.context_limit_tokens = e.payload.budget.input_limit_tokens + e.payload.budget.reserved_output_tokens;
+    },
+    'compact without provenance': (e) => (e.payload.budget.overflow_policy = 'compact'),
+    'compact manifest identity': (e) => {
+      e.payload.budget.overflow_policy = 'compact';
+      e.payload.budget.compaction_provider_id = 'compaction:a';
+      e.payload.budget.checkpoint_provider_id = 'checkpoint:a';
+      e.payload.budget.compaction_provider_manifest = { provider_id: 'compaction:b' };
+    },
+    'provenance on a non-compact budget': (e) => (e.payload.budget.checkpoint_provider_id = 'checkpoint:a'),
+    'omitted source also included': (e) => (e.payload.budget.omitted_source_refs = [e.payload.source_refs[1]]),
+  };
+  const lineageCases = {
+    'missing precedence source': (e) => (e.payload.source_refs = e.payload.source_refs.filter((ref) => ref !== CONTEXT_PRECEDENCE_REF)),
+    'wrong preamble': (e) => (e.payload.request.messages[0].content = 'changed'),
+    'unrecognized system block': (e) => e.payload.request.messages.splice(1, 0, { role: 'system', content: 'free text' }),
+    'invalid history role': (e) => e.payload.request.messages.splice(-1, 0, { role: 'tool', content: 'x', tool_call_id: 'call:1' }),
+    'system block after history': (e) => {
+      const block = e.payload.request.messages[1];
+      e.payload.request.messages.splice(-1, 0, { role: 'assistant', content: 'a' }, structuredClone(block));
+    },
+    'block source outside lineage': (e) => (e.payload.source_refs = e.payload.source_refs.filter((ref) => ref !== 'runtime://environment')),
+    'instruction after data': (e) => {
+      const instruction = e.payload.request.messages.find((m) => m.content.startsWith('[HSEOS INSTRUCTION tier=project'));
+      e.payload.request.messages.splice(-1, 0, structuredClone(instruction));
+    },
+    'missing project tier': (e) =>
+      (e.payload.request.messages = e.payload.request.messages.filter((m) => !m.content.includes('tier=project'))),
+    'missing constitution tier': (e) =>
+      (e.payload.request.messages = e.payload.request.messages.filter((m) => !m.content.includes('tier=constitution'))),
+    'tier order': (e) => {
+      const [a, b] = [2, 3];
+      [e.payload.request.messages[a], e.payload.request.messages[b]] = [e.payload.request.messages[b], e.payload.request.messages[a]];
+    },
+    'tool governance outside lineage': (e) =>
+      (e.payload.source_refs = e.payload.source_refs.filter((ref) => !ref.startsWith('governance://tool'))),
+    'session identity': (e) => (e.payload.request.session_id = 'session:other'),
+    'turn identity': (e) => (e.payload.turn_id = 'turn:other'),
+  };
+  for (const [label, mutate] of Object.entries({ ...budgetCases, ...lineageCases })) refuses(label, v1, mutate);
+  assert.ok(v1.payload.source_refs.some((ref) => ref.startsWith('governance://tool')) || v1.payload.request.tools.length === 0);
+
+  refuses('v1 cannot carry sources', v1, (e) => (e.payload.sources = []));
+  refuses('v2 requires sources', v2, (e) => delete e.payload.sources);
+  refuses('v1 cannot carry parts', v1, (e) => {
+    e.payload.request.parts = [{ type: 'text', text: 'x' }];
+  });
+  refuses('source record outside lineage', v2, (e) => (e.payload.sources[0].source_ref = 'source://unknown'));
+  refuses('image part outside lineage', v2, (e) => {
+    const digest = 'a'.repeat(64);
+    e.payload.request.parts = [
+      {
+        type: 'image',
+        source_ref: 'media://unknown',
+        media_type: 'image/png',
+        digest,
+        bytes: 10,
+        artifact_ref: `artifact://sha256/${digest}`,
+      },
+    ];
+  });
 });

@@ -1,0 +1,10 @@
+{
+  "env": {"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"},
+  "hooks": {
+    "SubagentStart": [{"hooks":[{"type":"command","command":"/home/annonymous/.claude/jobs/cba2d6cc/tmp/lv0/hook-log.sh SubagentStart"}]}],
+    "SubagentStop":  [{"hooks":[{"type":"command","command":"/home/annonymous/.claude/jobs/cba2d6cc/tmp/lv0/hook-log.sh SubagentStop"}]}],
+    "Stop":          [{"hooks":[{"type":"command","command":"/home/annonymous/.claude/jobs/cba2d6cc/tmp/lv0/hook-log.sh Stop"}]}],
+    "TeammateIdle":  [{"hooks":[{"type":"command","command":"/home/annonymous/.claude/jobs/cba2d6cc/tmp/lv0/hook-log.sh TeammateIdle"}]}],
+    "TaskCompleted": [{"hooks":[{"type":"command","command":"/home/annonymous/.claude/jobs/cba2d6cc/tmp/lv0/hook-log.sh TaskCompleted"}]}]
+  }
+}

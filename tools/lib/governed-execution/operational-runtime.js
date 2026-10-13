@@ -2,7 +2,7 @@
 
 const Ajv2020 = require('ajv/dist/2020');
 
-const { ExecutionContractRegistry } = require('./contract-registry');
+const { ExecutionContractRegistry, registerCapabilityContractStubs } = require('./contract-registry');
 const { createExecutionEventRegistry } = require('./event-registry');
 const { createGovernedExecutionPort } = require('./execution-port');
 const { GovernedExecutionRuntime } = require('./runtime');
@@ -164,6 +164,9 @@ function createOperationalExecution({ db, serverId, tools, invokeTool, maxConcur
       },
     });
   }
+
+  // The versioned environment.* and memory.* contracts belong to the production registry; the stubs fail closed.
+  registerCapabilityContractStubs(contracts);
 
   const eventRegistry = createExecutionEventRegistry();
   const ledger = new ExecutionEventLedger(db, { event_registry: eventRegistry });

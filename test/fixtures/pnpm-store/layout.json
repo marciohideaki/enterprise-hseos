@@ -1,0 +1,88 @@
+{
+  "files": [
+    {
+      "source": "project-sum.js",
+      "path": "src/sum.js"
+    },
+    {
+      "source": "project-sum.test.js",
+      "path": "test/sum.test.js"
+    },
+    {
+      "source": "mini-test.package.json",
+      "path": "node_modules/.pnpm/mini-test@1.0.0/node_modules/mini-test/package.json"
+    },
+    {
+      "source": "mini-test.bin.js",
+      "path": "node_modules/.pnpm/mini-test@1.0.0/node_modules/mini-test/bin.js"
+    },
+    {
+      "source": "kit.index.js",
+      "path": "node_modules/.pnpm/@scope+kit@3.1.0_mini-assert@2.0.0/node_modules/@scope/kit/index.js"
+    }
+  ],
+  "hardlinks": [
+    {
+      "source": "mini-assert.index.js",
+      "path": "node_modules/.pnpm/mini-assert@2.0.0/node_modules/mini-assert/index.js"
+    }
+  ],
+  "symlinks": [
+    {
+      "path": "node_modules/.pnpm/mini-test@1.0.0/node_modules/mini-assert",
+      "target": "../../mini-assert@2.0.0/node_modules/mini-assert"
+    },
+    {
+      "path": "node_modules/.pnpm/mini-test@1.0.0/node_modules/@scope/kit",
+      "target": "../../../@scope+kit@3.1.0_mini-assert@2.0.0/node_modules/@scope/kit"
+    },
+    {
+      "path": "node_modules/mini-test",
+      "target": ".pnpm/mini-test@1.0.0/node_modules/mini-test"
+    }
+  ],
+  "contract": {
+    "entrypoint": "node_modules/.pnpm/mini-test@1.0.0/node_modules/mini-test/bin.js",
+    "read": [
+      "src/sum.js",
+      "test/sum.test.js",
+      "node_modules/.pnpm/mini-test@1.0.0/node_modules/mini-test/bin.js",
+      "node_modules/.pnpm/mini-test@1.0.0/node_modules/mini-assert/index.js",
+      "node_modules/.pnpm/mini-test@1.0.0/node_modules/@scope/kit/index.js"
+    ],
+    "write": [
+      "src/sum.js"
+    ],
+    "protected": [
+      "test/sum.test.js",
+      "node_modules/.pnpm/mini-test@1.0.0/node_modules/mini-test/bin.js",
+      "node_modules/.pnpm/mini-test@1.0.0/node_modules/mini-assert/index.js",
+      "node_modules/.pnpm/mini-test@1.0.0/node_modules/@scope/kit/index.js"
+    ],
+    "args": [
+      "test/sum.test.js"
+    ]
+  },
+  "mounted": {
+    "files": [
+      {
+        "source": "mounted-wrapper.cjs",
+        "path": "scripts/run-native.cjs"
+      }
+    ],
+    "read": [
+      "src/sum.js",
+      "test/sum.test.js",
+      "scripts/run-native.cjs"
+    ],
+    "write": [
+      "src/sum.js"
+    ],
+    "protected": [
+      "test/sum.test.js",
+      "scripts/run-native.cjs"
+    ],
+    "entrypoint": "scripts/run-native.cjs",
+    "args": []
+  }
+}

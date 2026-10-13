@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('node:path');
-const fs = require('node:fs');
+const { failBoot, loadServerTools } = require('../lib/governed-execution/contract-registry');
 const { startNativeMcpServer } = require('../lib/governed-execution/native-mcp-server');
 const { startLegacyMcpServer } = require('../lib/legacy-mcp-server');
 
@@ -14,25 +14,12 @@ function parseArgs() {
   return { mode, port };
 }
 
-function loadTools() {
-  const toolsDir = path.join(__dirname, 'tools');
-  const map = new Map();
-  if (!fs.existsSync(toolsDir)) return map;
-  for (const file of fs.readdirSync(toolsDir).filter((f) => f.endsWith('.js'))) {
-    try {
-      const exported = require(path.join(toolsDir, file));
-      if (!Array.isArray(exported)) continue;
-      for (const tool of exported) {
-        if (tool?.name && typeof tool.handler === 'function') map.set(tool.name, tool);
-      }
-    } catch (error) {
-      console.error(`[governance] failed to load ${file}: ${error.message}`);
-    }
-  }
-  return map;
+let tools;
+try {
+  tools = loadServerTools(path.join(__dirname, 'tools'));
+} catch (error) {
+  failBoot('governance', error);
 }
-
-const tools = loadTools();
 
 const { mode, port } = parseArgs();
 const fixtureActivation = process.env.NODE_ENV === 'test' && process.env.HSEOS_GOVERNED_EXECUTION_FIXTURE === '1';
@@ -47,9 +34,14 @@ const serverOptions = {
     return tool.handler(null, args, null, context);
   },
 };
-const runtimeHandle = fixtureActivation
-  ? startNativeMcpServer(serverOptions)
-  : startLegacyMcpServer({ ...serverOptions, serverName: 'hseos-governance', health: { tools: tools.size } });
+let runtimeHandle;
+try {
+  runtimeHandle = fixtureActivation
+    ? startNativeMcpServer(serverOptions)
+    : startLegacyMcpServer({ ...serverOptions, serverName: 'hseos-governance', health: { tools: tools.size } });
+} catch (error) {
+  failBoot('governance', error);
+}
 
 async function shutdown() {
   await runtimeHandle.close();

@@ -83,6 +83,7 @@ module.exports = {
           `--poll-ms=${pollMs}`,
           `--stale-minutes=${staleMinutes}`,
           `--instance-id=${record.instanceId}`,
+          `--project-dir=${directory}`,
         ];
         if (authTokenEnv) serverArgs.push(`--auth-token-env=${authTokenEnv}`);
         const child = spawn(process.execPath, serverArgs, { detached: true, stdio: 'ignore' });
