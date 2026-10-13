@@ -1,0 +1,66 @@
+heavy-run: modo normal (load1=0.99 phys=6 avail=21658MiB need=6G mem.psi=0.00 io.psi.full=0.00)
+Delegated test cgroup controllers verified
+✔ v1 input keeps the v1 contract, bytes and replay: no authority fields are required or emitted (32.866241ms)
+✔ v2 sources are recorded with authority, origin, digest and trust in an additive context.assembled v2 (10.606654ms)
+✔ data layers can never claim directive or operator authority, from any origin (38.034846ms)
+✔ directive authority needs a trusted, untransformed config or operator origin in an instruction layer (54.841715ms)
+✔ data layers refuse a trusted label for every origin, with a dedicated code (170.104083ms)
+✔ operator authority on the current turn requires the operator origin (37.941903ms)
+✔ incomplete or inconsistent provenance is refused at the boundary (20.081149ms)
+✔ a transformation keeps the lowest input authority and can never raise it (0.255758ms)
+✔ external data never changes the lattice decision or the tool list (central invariant) (226.54999ms)
+✔ media store round-trips PNG, JPEG and WebP and verifies magic, digest, size and dimensions (15.693935ms)
+✔ tampered, truncated, linked or foreign artifacts fail with a digest mismatch before use (3.291122ms)
+✔ a damaged artifact on a content address is repaired by storing the exact bytes again (4.803519ms)
+✔ byte ceilings are enforced per item, per count and per assembly (10.38549ms)
+✔ counter v2 bounds image cost and is deterministic; a counter without count_media rejects media (0.733985ms)
+✔ assembles media as digest-verified parts with bytes kept out of the durable event (51.368037ms)
+✔ optional media is omitted by priority under truncate_optional; required media stays (15.520736ms)
+✔ a provider without image_input rejects media before any append (8.630045ms)
+✔ a counter without count_media rejects media; so does a nondeterministic or failing one (9.720122ms)
+✔ media needs a store, matching bytes and ceilings, and nothing is appended when any check fails (12.938099ms)
+✔ correct digest and size with the wrong magic signature is refused for every media type (0.517785ms)
+✔ count and total ceilings accept the exact limit and refuse one past it (0.522921ms)
+✔ real dimensions are read from PNG, JPEG and WebP (VP8, VP8L, VP8X) and must equal the declaration (0.81586ms)
+✔ formats whose dimensions cannot be read are refused (fail closed) (0.719812ms)
+✔ assembles canonical precedence and records every visible source before returning (32.114956ms)
+✔ source order and tool order cannot change deterministic assembled messages (16.635335ms)
+✔ truncate_optional keeps recent history first and durably records whole omitted sources (25.80413ms)
+✔ compact pressure atomically records exact lineage and a byte-reconstructable request (39.83096ms)
+✔ session budget reserves output when a provider emits no usage telemetry (12.06121ms)
+✔ required or reject-policy overflow fails before any context event is appended (12.13499ms)
+✔ durable turn identity, source identity and provider ownership fail closed (6.951262ms)
+✔ duplicate lineage, secret classification and nondeterministic token counters append nothing (16.333722ms)
+✔ requires nominal durable stores and registry-created provider snapshots (0.399493ms)
+✔ exact retries are idempotent and conservative counter uses canonical UTF-8 bytes (11.141055ms)
+✔ token counter validation and accounting fail closed on malformed counters and unsafe totals (0.723755ms)
+✔ context.assembled rejects forged or inconsistent v1 and v2 payloads (24.444198ms)
+✔ constitutional and mandatory denies survive bypass mode and provider callbacks (1.838116ms)
+✔ ask precedes mode, allow, and provider callback (0.144366ms)
+✔ provider callback can narrow but never runs after a deny or ask (0.140134ms)
+✔ configuration precedence and restrictive merge kinds are deterministic (0.618595ms)
+✔ child agents can narrow but cannot widen parent authority (0.580613ms)
+✔ malformed modes, rules, configuration values, and authority fail closed (0.400474ms)
+ℹ tests 41
+ℹ suites 0
+ℹ pass 41
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1588.709382
+-------------------------|---------|----------|---------|---------|---------------------------------
+File                     | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s               
+-------------------------|---------|----------|---------|---------|---------------------------------
+All files                |   94.89 |     91.3 |     100 |   94.89 |                                 
+ agent-context           |    95.5 |    92.09 |     100 |    95.5 |                                 
+  authority.js           |     100 |    98.14 |     100 |     100 | 31                              
+  context-assembler.js   |   93.47 |    88.26 |     100 |   93.47 | ...-467,469-470,567-568,576-577 
+  media-store.js         |   96.63 |    94.59 |     100 |   96.63 | 193-200                         
+  schemas.js             |   93.87 |    86.36 |     100 |   93.87 | ...-148,151-152,154-155,170-171 
+  token-counter.js       |     100 |    98.18 |     100 |     100 | 24                              
+ agent-runtime-contracts |   93.63 |     87.2 |     100 |   93.63 |                                 
+  content-parts.js       |   98.52 |    88.88 |     100 |   98.52 | 73-74                           
+  event-contracts.js     |   92.08 |    86.84 |     100 |   92.08 | ...,416-417,420,422-423,425-429 
+  index.js               |     100 |      100 |     100 |     100 |                                 
+-------------------------|---------|----------|---------|---------|---------------------------------

@@ -4,6 +4,7 @@ module.exports = {
   ...require('./common'),
   ...require('./provider-contracts'),
   ...require('./agent-contracts'),
+  ...require('./content-parts'),
   ...require('./compaction-contracts'),
   ...require('./orchestration-contracts'),
   ...require('./event-contracts'),

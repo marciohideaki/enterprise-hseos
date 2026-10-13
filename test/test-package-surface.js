@@ -117,7 +117,7 @@ test('published package exposes runtime and governance assets only', () => {
   // without a filter), not a runtime need; the owner decided to keep the mirror and test-capability-catalog.js asserts
   // it equals the canonical source.
   // State/key/config exclusions above remain independent security invariants.
-  const ENTRY_CEILING = 1540;
+  const ENTRY_CEILING = 1554;
   assert.ok(packed.entryCount <= ENTRY_CEILING, `package entry count is not bounded: ${packed.entryCount}`);
   assert.ok(packed.unpackedSize < 14_000_000, `package unpacked size is not bounded: ${packed.unpackedSize}`);
 
@@ -132,7 +132,7 @@ test('published package exposes runtime and governance assets only', () => {
     tools: 393,
     src: 250,
     '.agents': 193,
-    packages: 123,
+    packages: 137,
     '.hseos': 62,
     scripts: 21,
     docs: 7,
