@@ -121,3 +121,21 @@ Não verificado nesta integração: a jornada MCP pelo pacote instalado (pendên
 - **Desvio de processo:** os testes focados da Fase 2 rodaram sem `heavy-run` durante o lock de outra sessão, no mesmo cgroup.
 - **Hooks ausentes:** o `.husky/_` (gerado pelo `prepare` do husky e ignorado pelo git) não existia nos worktrees da LV1, da LV2 e da integração até `baba84ac`, nem nos primeiros commits da CO1 e da CO2. Nessa janela o git commitou sem pre-commit e sem commit-msg: o manifest stale deixado por `baba84ac` foi pego só pelo `npm test` (corrigido em `0a7b9582`), e a mensagem do commit da LV2 passou com o nome de uma ferramenta. Remediação: o helper `commit-in-cgroup.sh` recusa com exit 72 sem os hooks; commit-msg retroativo aprovou 36 de 36 commits do intervalo; e o gate compensatório `VALIDATION_ENFORCED=true bash scripts/governance/quality-gates.sh --phase ci` no HEAD `de0b3dad` passou (GATE_EXIT=0, 0 falhas, 2 avisos de placeholders não resolvidos).
 - **Reescrita de histórico (2026-10-13):** a mensagem do commit da LV2 foi reescrita (`16c52664` → `46431c03`, mesma árvore `285b90bc`) e a cadeia first-parent da integração foi reconstruída; `task/hseos-w5-lv2` foi movido junto. Mapa antigo → novo e prova (árvore idêntica, commit-msg 36/36) em `history_rewrite` no receipt. Os SHAs deste documento já estão no valor novo.
+
+### Rodada 1 de correção da integração (2026-10-13)
+
+Origem: revisão da integração (aprovada em `260da30f` com ressalvas F1 a F5). Detalhes e hashes dos logs em `correction_round_1` do receipt.
+
+- **F3 (`53ed7624`):** guard e CLI passam a usar as mesmas faixas, tipos, valores de enum e regras entre chaves. `max_stop_refusals: 0` vale nos dois (antes desligava o guard) e `foreground_wait_max_s: 9999` é inválido nos dois (antes só a CLI recusava). O guard mantém uma cópia da tabela, porque é copiado sozinho para `.agents`; um teste compara a cópia com `CONFIG_RANGES` do contrato em todas as bordas.
+- **F4 (`78b617f1`):** a composição afirma que a CLI real gravou o `turn_end`, e o aviso de chave desconhecida em ciclo posterior do `watch` tem teste; os três mutantes sobreviventes da revisão morrem.
+- **F1:** o `npm test` **não encadeia o `test:kernel`**, então as execuções do Node 22 e do 24 da Fase 3 não exercitaram as suítes novas de LV, CO e 02b. A matriz Node 22/24 passa a ser `npm test` mais `test:kernel` nas duas versões. `test:kernel` em Node 22.23.3 no HEAD `78b617f1`: `KERNEL22_EXIT=0`, 10 blocos com 0 falhas. Em Node 24, a revisão rodou `test:kernel` e `test:kernel-coverage` no HEAD `260da30f` (exit 0 nos dois).
+- **Cobertura focada** dos arquivos alterados (90/80 por arquivo): 141 testes, 0 falhas, `COV_EXIT=0`.
+
+### Resíduos acrescentados pela revisão da integração
+
+- **CO1 N2.2:** um conflito de reserva ainda gera 2 handoffs no axon (`service.js:224`, via `this.mirror(entry)`, e `service.js:541`, o evento tipado). O teste de composição não afirma a contagem.
+- **LV2, revisão 4, itens 3 a 6:** reuso de `outbox_id` com o jsonl; corrida `existsSync`/`renameSync` em `drainPendingReports`; `pending-reports.invalid.jsonl` sem poda; entrega após `gave_up`. Os itens 1 e 2 (o marcador some junto com o outbox; ledger legado só em leitura) já constavam.
+- **LV1 R5:** um agente pode declarar `WAITING_ON` por até 4 h sem ser acordado pelo guard (desenho do Adendo 3; o controle fica no watchdog).
+- **02b1:** K2 e K3 (`verifiedSeccomp(launch)` contra `launch.seccomp`), K9 (`makeRemovable` entra em symlinks), M17 (corrida lstat/fstat) e 3 diretórios `/dev/shm/hseos-artifacts-*` ilegíveis.
+- **CO2:** o template do Codex não foi verificado no Codex real (coberto pela ativação fora de escopo dos hooks no `~/.codex`).
+- **04 e 02a:** a drenagem do 413 mantém a conexão até 16 MiB; informativo sobre cabeçalho sem decodificação.

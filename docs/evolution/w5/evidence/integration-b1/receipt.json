@@ -289,5 +289,55 @@
       "retroactive commit-msg check over the range: 36 of 36 passed",
       "compensatory CI gate on the HEAD (phase3.compensatory_gate_ci)"
     ]
-  }
+  },
+  "correction_round_1": {
+    "review": "/build/tmp/hseos-w5/rev/REVIEW-W5-INT.md (approved at 260da30f with F1-F5)",
+    "commits": [
+      {
+        "sha": "53ed7624",
+        "finding": "F3",
+        "what": "guard and CLI contract share the value ranges, types, enum values and cross-key rules; the guard keeps a copy (it ships alone) and test/test-liveness-guard.js compares it with CONFIG_RANGES of the contract at every boundary; composition test covers max_stop_refusals: 0 (valid in guard, check and watch) and foreground_wait_max_s: 9999 (invalid in all three). The only generated change is the guard sha256 in .agents/manifest.yaml; the other compile drift (settings:/mcp:, axon-bridge transport, .claude/*, .mcp.json) was reverted."
+      },
+      {
+        "sha": "78b617f1",
+        "finding": "F4",
+        "what": "composition test asserts the real CLI recorded turn_end after a declaration; watch test covers an unknown key that appears on a later cycle (one warning, watch keeps running). Mutants killed by re-running the three review mutants: removing turn_end from the guard (2 failures), removing the later-cycle warning (1), removing its dedupe (1)."
+      }
+    ],
+    "focused_coverage": {
+      "files": [
+        "tools/lib/agent-liveness-contract.js",
+        "tools/cli/commands/liveness.js",
+        ".agents/hooks/handlers/liveness-guard.cjs",
+        ".enterprise/governance/hooks/handlers/liveness-guard.cjs"
+      ],
+      "per_file_policy": "90/80",
+      "result": "141 tests, 0 failures; liveness.js 100/100, contract 100/97.5, guards 99.23/97.06 and 98.09/96.91 (lines/branches)",
+      "exit_code": 0,
+      "exit_code_source": "COV_EXIT=0 appended to the log",
+      "log": "/build/tmp/w5-int/final/r1-cov.log",
+      "sha256": "e2f351cf1bbc9939894844b6d04ac506b4eb930b9268fe668eff7c01bbc94d65"
+    },
+    "test_kernel_node22": {
+      "finding": "F1",
+      "head": "78b617f1",
+      "node": "22.23.3",
+      "clone": "/build/tmp/w5-int/wt22",
+      "command": "npm run test:kernel",
+      "result": "10 blocks, 0 failures",
+      "exit_code": 0,
+      "exit_code_source": "KERNEL22_EXIT=0 appended to the log",
+      "log": "/build/tmp/w5-int/final/kernel22.log",
+      "sha256": "34f7b8c4cdda9bf4bb8966a04f7af0fa05320f61009a05927d13aa148e48e401"
+    },
+    "matrix_note": "npm test does not chain test:kernel, so the npm test runs of the Phase 3 (Node 22 and 24) do not exercise the new LV/CO/02b suites. The Node 22/24 matrix is npm test plus test:kernel on both versions. Node 24 test:kernel and test:kernel-coverage (KERNEL_EXIT=0, KCOV_EXIT=0, All files 97.35/91.85 at 260da30f) were run by the reviewer; Node 22 test:kernel was run here."
+  },
+  "residues_added_by_review": [
+    "CO1 N2.2: a reservation conflict still produces 2 handoffs in the axon (service.js:224 through this.mirror(entry), and service.js:541 for the typed event); the composition test does not assert the count",
+    "LV2 review 4 items 3-6: #3 reuse of outbox_id with the jsonl; #4 existsSync/renameSync race in drainPendingReports; #5 pending-reports.invalid.jsonl without pruning; #6 delivery after gave_up (items 1-2 were already listed: marker disappears with the outbox, legacy ledger read-only)",
+    "LV1 R5: an agent can declare WAITING_ON for up to 4 h without being woken by the guard (Addendum 3 design; control stays with the watchdog)",
+    "02b1 K2 and K3 (verifiedSeccomp(launch) versus launch.seccomp), K9 (makeRemovable enters symlinks), M17 (lstat/fstat race), and 3 unreadable /dev/shm/hseos-artifacts-* directories",
+    "CO2 pending item 3: the Codex template was not verified in the real Codex (covered by the out-of-scope activation of the ~/.codex hooks)",
+    "04: the 413 drain keeps the connection up to 16 MiB; 02a: informational note on a header without decoding"
+  ]
 }
