@@ -1018,8 +1018,14 @@ test('adapter loader refuses the -adapter alias and a factory that answers to an
       console.log = log;
     }
     const { warnings } = JSON.parse(out.join(''));
-    assert.ok(warnings.some((w) => /adapter axon-adapter refused: use o nome sem o sufixo -adapter/.test(w)), JSON.stringify(warnings));
-    assert.ok(warnings.some((w) => /adapter named refused/.test(w)), JSON.stringify(warnings));
+    assert.ok(
+      warnings.some((w) => /adapter axon-adapter refused: use o nome sem o sufixo -adapter/.test(w)),
+      JSON.stringify(warnings),
+    );
+    assert.ok(
+      warnings.some((w) => /adapter named refused/.test(w)),
+      JSON.stringify(warnings),
+    );
     assert.ok(!warnings.some((w) => /not installed/.test(w)), 'a refused entry is not reported as merely missing');
   } finally {
     cli.loaders.adapterDir = original;

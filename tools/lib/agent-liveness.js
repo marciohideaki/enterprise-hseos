@@ -722,7 +722,10 @@ function readInboxFiles(directory) {
 
 function readInbox(directory) {
   return readInboxFiles(directory)
-    .filter(({ body }) => (body.kind === undefined || body.kind === WAKE_KIND) && typeof body.session === 'string' && typeof body.agent === 'string')
+    .filter(
+      ({ body }) =>
+        (body.kind === undefined || body.kind === WAKE_KIND) && typeof body.session === 'string' && typeof body.agent === 'string',
+    )
     .map(({ file, body }) => ({ file, ...body }));
 }
 

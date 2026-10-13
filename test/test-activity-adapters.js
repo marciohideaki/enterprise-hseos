@@ -910,7 +910,10 @@ test('group-writable CLI is accepted only when the group is private to the user'
 
 test('refusing a group-writable CLI is never silent: the reason goes to stderr', { skip: !HAS_JQ }, () => {
   assert.equal(trustRun(shimDir({ mode: '775', getentExit: 2 })), false);
-  assert.match(lastTrustStderr, /\[ACTIVITY\] adapter degraded: group-writable CLI refused \(.*hseos-cli\.js\): its group is not private to the user/);
+  assert.match(
+    lastTrustStderr,
+    /\[ACTIVITY\] adapter degraded: group-writable CLI refused \(.*hseos-cli\.js\): its group is not private to the user/,
+  );
   assert.equal(trustRun(shimDir({ mode: '775' })), true);
   assert.doesNotMatch(lastTrustStderr, /group-writable CLI refused/, 'a private group is accepted without a warning');
 });

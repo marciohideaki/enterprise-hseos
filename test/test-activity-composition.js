@@ -94,7 +94,20 @@ test('the real axon adapter receives events with a unique id, the tool, the sour
     assert.ok([0, 2, 3].includes(result.status), `${args.join(' ')}: ${result.stdout}${result.stderr}`);
     return result;
   };
-  run(['register', '--session', 's1', '--tool', 'claude-code', '--repo', REPO, '--worktree', ctx.dir, '--intent', 'ship contracts', '--json']);
+  run([
+    'register',
+    '--session',
+    's1',
+    '--tool',
+    'claude-code',
+    '--repo',
+    REPO,
+    '--worktree',
+    ctx.dir,
+    '--intent',
+    'ship contracts',
+    '--json',
+  ]);
   run(['register', '--session', 's2', '--tool', 'codex', '--repo', REPO, '--worktree', ctx.dir, '--json']);
   run(['declare', '--session', 's1', '--path', 'src/a.js', '--json']);
   run(['declare', '--session', 's1', '--path', 'src/b.js', '--json']);
@@ -108,7 +121,14 @@ test('the real axon adapter receives events with a unique id, the tool, the sour
       if (lines.length >= count) return lines.map((line) => JSON.parse(line));
       spawnSync('sleep', ['0.2']);
     }
-    return fs.existsSync(log) ? fs.readFileSync(log, 'utf8').trim().split('\n').filter(Boolean).map((line) => JSON.parse(line)) : [];
+    return fs.existsSync(log)
+      ? fs
+          .readFileSync(log, 'utf8')
+          .trim()
+          .split('\n')
+          .filter(Boolean)
+          .map((line) => JSON.parse(line))
+      : [];
   };
   const calls = waitForCalls(3);
   assert.ok(calls.length >= 3, `expected the declares and the conflict to reach axon, got ${calls.length}`);
@@ -118,7 +138,7 @@ test('the real axon adapter receives events with a unique id, the tool, the sour
   assert.equal(declares.length, 2, 'two declares of the same session are two handoffs');
   for (const call of declares) assert.match(call.args.objective, /Session s1 \(claude-code\) declared work on/);
   const conflicts = calls.filter((call) => call.args.target_agent === 'coordination-conflict');
-  assert.ok(conflicts.length >= 1);
+  assert.ok(conflicts.length > 0);
   for (const call of conflicts) {
     assert.doesNotMatch(call.args.objective, /source: unknown/, call.args.objective);
     assert.doesNotMatch(call.args.objective, /sessions \S+ and \?/, call.args.objective);
@@ -142,7 +162,10 @@ test('foreign_reservations from the real CLI is [{key, tool, owner}] and reaches
   const { foreign_reservations: foreign } = JSON.parse(checked.stdout);
   // The format the handler assumes is [{key, tool, owner}]; the CLI may add detail (fence, overdue, matched).
   assert.equal(foreign.length, 1);
-  assert.deepEqual({ key: foreign[0].key, tool: foreign[0].tool, owner: foreign[0].owner }, { key: 'name:shared-lib', tool: 'claude-code', owner: 'cc-1' });
+  assert.deepEqual(
+    { key: foreign[0].key, tool: foreign[0].tool, owner: foreign[0].owner },
+    { key: 'name:shared-lib', tool: 'claude-code', owner: 'cc-1' },
+  );
 
   const hook = spawnSync('bash', [HANDLER], {
     input: JSON.stringify({ hook_event_name: 'UserPromptSubmit', session_id: 'z-1', cwd: ctx.dir }),

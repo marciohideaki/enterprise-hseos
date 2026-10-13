@@ -97,7 +97,9 @@ for (const [label, file] of [
   });
 
   test(`[${label}] the keys added by the LV2 contract are accepted and an unknown key only warns`, () => {
-    const text = ['enabled: true', 'max_wakes_per_cycle: 5', 'max_wait_deadline_s: 7200', 'max_notify_attempts: 4', 'future_key: 1'].join('\n');
+    const text = ['enabled: true', 'max_wakes_per_cycle: 5', 'max_wait_deadline_s: 7200', 'max_notify_attempts: 4', 'future_key: 1'].join(
+      '\n',
+    );
     const parsed = guard.parseConfigChecked(text);
     assert.deepEqual(parsed.errors, []);
     assert.deepEqual(parsed.warnings, ['chave desconhecida ignorada: future_key']);

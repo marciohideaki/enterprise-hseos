@@ -328,7 +328,8 @@ function handleStop({ payload, contract, env, now, io }) {
     const reasonCode = { BLOCKED: 'blocked_pending', WAITING_ON: 'waiting_on_declared' }[parsed.value.state] ?? 'declared';
     const declared = reportLiveness({ root, session, agent, line: parsed.line, reasonCode, env, now });
     const ended = reportLiveness({ root, session, agent, event: 'turn_end', env, now });
-    if (declared === 'pending' || ended === 'pending') io.stderr(`[liveness] aviso: hseos liveness report indisponivel; evento em pending-reports.jsonl\n`);
+    if (declared === 'pending' || ended === 'pending')
+      io.stderr(`[liveness] aviso: hseos liveness report indisponivel; evento em pending-reports.jsonl\n`);
     return 0;
   }
 

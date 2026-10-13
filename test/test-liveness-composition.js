@@ -31,7 +31,13 @@ function stop(guardFile, root, bin, message) {
   const err = [];
   const code = require(guardFile).main({
     mode: 'stop',
-    stdin: JSON.stringify({ cwd: root, session_id: 's1', hook_event_name: 'SubagentStop', agent_id: 'a1', last_assistant_message: message }),
+    stdin: JSON.stringify({
+      cwd: root,
+      session_id: 's1',
+      hook_event_name: 'SubagentStop',
+      agent_id: 'a1',
+      last_assistant_message: message,
+    }),
     env: { HSEOS_LIVENESS_CLI: bin },
     cwd: root,
     now: Date.now(),
