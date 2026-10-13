@@ -71,6 +71,13 @@ plugins:
     extends: ""
     requires_bundles: [core]
 
+  - id: hseos-plugin-lsp
+    version: "0.1.0"
+    status: scaffolded
+    description: "Workspace-restricted TypeScript and Python language-server queries generated from the core LSP code"
+    extends: ""
+    requires_bundles: [core]
+
 # Compiler emit targets
 emit_targets:
   claude-code: .claude-plugin/marketplace.json

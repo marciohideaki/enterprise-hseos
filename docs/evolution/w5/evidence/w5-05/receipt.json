@@ -1,0 +1,237 @@
+{
+  "task": "W5-05",
+  "base_sha": "1816e9e5b6ba52764a21a3bcbc1f55e5860ba3dd",
+  "revision": "commit that contains this receipt (task/hseos-w5-05); base_sha is the wave base",
+  "node_for_verify": "v24.15.0 (run-in-cgroup.sh)",
+  "commands": [
+    {
+      "id": "coverage-focused",
+      "command": "node node_modules/c8/bin/c8.js --config .c8-kernel.json --include packages/agent-environment/framing.js --include packages/agent-environment/lsp.js --include packages/agent-environment/lsp-host.js --include tools/lib/environment-toolchain-pins.js --include tools/lib/environment-plugin-pack.js --reports-dir .logs/validation/w5-05-coverage --temp-directory .logs/validation/w5-05-coverage/tmp node --test --test-concurrency=1 test/test-environment-lsp.js test/test-lsp-plugin-parity.js test/test-environment-plugin-pack.js",
+      "note": "literal verify without the heavy-run --mem 4G -- prefix (run-in-cgroup.sh already runs under heavy-run; nesting deadlocks the flock); the log also holds the trailing run of test/test-plugin-marketplace.js (88 passed, 0 failed) chained after the literal command; re-run after fixing 5 lint errors and the marketplace counts found by the pre-commit gates (round 1)",
+      "result": "exit 0; 47 tests, 0 fail, 0 skipped; c8 per-file 90/80 passed",
+      "log": "docs/evolution/w5/evidence/w5-05/verify-coverage.log",
+      "sha256": "6947bce5fa5b1fa3b2c9c561d22fdcf3e1e0b4bdebad9c87f15482d398e1a417"
+    },
+    {
+      "id": "package-surface",
+      "command": "node --test test/test-package-surface.js",
+      "result": "exit 0; 1 test, 0 fail",
+      "log": "docs/evolution/w5/evidence/w5-05/verify-surface.log",
+      "sha256": "260e3d6c142d0aec00afbf53f4d1a5383024bf7e906cc759d697194299f0f108"
+    },
+    {
+      "id": "node22-focused",
+      "command": "node --test --test-concurrency=1 <3 tests> with PATH=node v22.23.3",
+      "result": "exit 0; v22.23.3; 47 tests, 47 pass, 0 fail, 0 skipped (no ERR_DLOPEN: none of the suites loads better-sqlite3)",
+      "log": "docs/evolution/w5/evidence/w5-05/verify-node22.log",
+      "sha256": "b4a2395036aaa42cdb74c0287c2f21ca50a4c4971545e10d4a261a663b3eef22"
+    },
+    {
+      "id": "compile-check",
+      "command": "node tools/cli/hseos-cli.js agent-core compile --check",
+      "result": "exit 0; 242 checks passed; no files written; no divergence reported",
+      "log": "docs/evolution/w5/evidence/w5-05/compile-check.log",
+      "sha256": "c8a5d46e064991ffe1ffc1e77e4e2a5a28ce02378af1bd2f6155fe20b6c7fcf8"
+    },
+    {
+      "id": "pack-dry-run",
+      "command": "npm pack --dry-run --json",
+      "result": "exit 0; 1497 entries (unchanged), unpackedSize 10166339",
+      "log": "docs/evolution/w5/evidence/w5-05/pack-dry-run.json",
+      "sha256": "07f0f3d4edd5c002d327d646af88230bd1c942cebd6f07172c48867548ee2b33"
+    },
+    {
+      "id": "p0-eperm-evidence",
+      "command": "node probe: child_process.spawn with pipes inside the bwrap sandbox, P0 then P1",
+      "result": "P0: failed, \"Error: spawn EPERM\"; P1: succeeded, ECHO hi",
+      "log": "docs/evolution/w5/evidence/w5-05/p0-eperm.log",
+      "sha256": "6740c926504a39da60fea658ee58541b8b5c4b390789dd0e96a09616f1114606"
+    }
+  ],
+  "coverage_per_file": {
+    "framing.js": {
+      "lines": 100,
+      "branches": 100
+    },
+    "lsp.js": {
+      "lines": 100,
+      "branches": 97.75
+    },
+    "lsp-host.js": {
+      "lines": 97.01,
+      "branches": 91.56
+    },
+    "environment-toolchain-pins.js": {
+      "lines": 100,
+      "branches": 100
+    },
+    "environment-plugin-pack.js": {
+      "lines": 100,
+      "branches": 98.27
+    }
+  },
+  "package_inventory": {
+    "entryCount": 1497,
+    "ceiling": 1556,
+    "areas": {
+      ".agents": 191,
+      ".enterprise": 452,
+      ".hseos": 63,
+      "root": 7,
+      "docs": 7,
+      "packages": 124,
+      "scripts": 19,
+      "src": 245,
+      "tools": 389
+    },
+    "budgets": {
+      ".agents": 193,
+      ".enterprise": 484,
+      ".hseos": 64,
+      "packages": 137,
+      "tools": 393
+    },
+    "new_files_in_core_tarball": [
+      "packages/agent-environment/{package.json,README.md,index.js,framing.js,lsp.js,lsp-host.js}",
+      "tools/lib/{environment-toolchain-pins.js,environment-plugin-pack.js}",
+      ".enterprise/governance/plugins/definitions/hseos-plugin-lsp/{plugin.yaml,README.md,skills/lsp/SKILL.md}",
+      ".agents/plugins/definitions/hseos-plugin-lsp/{plugin.yaml,README.md,skills/lsp/SKILL.md} (compiler mirror)"
+    ],
+    "checks": {
+      "plugins_dir_in_pack": 0,
+      "binaries_or_pins_in_pack": 0,
+      "note": "the only path matching /toolchain/ is tools/lib/environment-toolchain-pins.js (source code, not a pin)"
+    },
+    "unpackedSize": 10166339
+  },
+  "plugin_pack": {
+    "entries": 7,
+    "unpacked_bytes": 31689,
+    "tarball_bytes": 10258,
+    "limits": {
+      "entries": 40,
+      "bytes": 1048576
+    },
+    "lazy": true,
+    "digest_reproducible": true
+  },
+  "toolchain_pins_license_check": [
+    {
+      "name": "typescript-language-server",
+      "version": "6.0.2",
+      "artifact": "npm/typescript-language-server-6.0.2.tgz",
+      "sha256": "d225b223a8a4764ecbd94bdba85d2ef185eaa7b9842a1a31c38c2bbe7f2fe9b9",
+      "license": "Apache-2.0",
+      "license_file": "package/LICENSE",
+      "result": "PASS: SHA-256 of the artifact and licence text found inside the artifact match the pinned expectation"
+    },
+    {
+      "name": "typescript",
+      "version": "5.9.3",
+      "artifact": "npm/typescript-5.9.3.tgz",
+      "sha256": "10e108c9cf7d5f2879053dff18515fb405abf2ccef63eaaf017d9c571687a1d3",
+      "license": "Apache-2.0",
+      "license_file": "package/LICENSE.txt",
+      "result": "PASS: SHA-256 of the artifact and licence text found inside the artifact match the pinned expectation"
+    },
+    {
+      "name": "pyright",
+      "version": "1.1.414",
+      "artifact": "npm/pyright-1.1.414.tgz",
+      "sha256": "bf5f473f6167c0d14175492c3263d783b4489a6956e1c06c18e15228e3a3fa42",
+      "license": "MIT",
+      "license_file": "package/LICENSE.txt",
+      "result": "PASS: SHA-256 of the artifact and licence text found inside the artifact match the pinned expectation"
+    }
+  ],
+  "real_servers": "TypeScript (typescript-language-server 6.0.2 on typescript 5.9.3) and Python (pyright 1.1.414) run inside the bwrap P1 sandbox with the workspace mounted read-only; workspace hash before/after identical for all 10 actions",
+  "compile_restored": {
+    "restored": [
+      ".agents/manifest.yaml (settings/mcp lines and axon-bridge transport http->stdio)"
+    ],
+    "deleted_untracked": [
+      ".claude/agents/",
+      ".claude/skills/",
+      ".claude/settings.json",
+      ".mcp.json"
+    ],
+    "kept": [
+      ".agents/plugins/registry.yaml (+7 lines)",
+      ".agents/plugins/definitions/hseos-plugin-lsp/ (3 files)"
+    ]
+  },
+  "not_run": [
+    "full npm test",
+    "test:kernel-coverage (wave integration)"
+  ],
+  "deviations": [
+    {
+      "item": "LSP runs in profile P1, not P0 (design 5.1)",
+      "reason": "P0 seccomp denies socketpair: Node child_process.spawn with pipes fails with \"spawn EPERM\" in P0 and succeeds in P1 with the same program; typescript-language-server also forks tsserver over IPC. The service refuses a P0 policy with BLOCKED ENV_LSP_PROFILE_INSUFFICIENT. design.md 5.1 is updated at integration.",
+      "accepted_by": "team-lead"
+    },
+    {
+      "item": "extra file skills/lsp/SKILL.md in the plugin definition",
+      "reason": "plugin schema requires at least one surface",
+      "accepted_by": "team-lead"
+    },
+    {
+      "item": "test/test-plugin-marketplace.js updated (4 -> 5 plugins)",
+      "reason": "registering hseos-plugin-lsp in registry.yaml (required by the W5-05 note) makes the pre-existing count assertions fail; file is outside the literal output_contract. Only the 5 numeric assertions/labels changed.",
+      "accepted_by": "team-lead (Commander), 2026-10-13"
+    }
+  ],
+  "residues": [
+    {
+      "item": "plugin registered as status: scaffolded",
+      "note": "activation is post-G6 (active requires behaviour tests in doctor and vendor emission)"
+    },
+    {
+      "item": "contract-registry.js stubs for environment.lsp.* left untouched (input_contract only)",
+      "note": "LSP_INPUT_SCHEMA and LSP_OUTPUT_SCHEMA (version 1) are exported from packages/agent-environment for the later swap"
+    }
+  ],
+  "round": 3,
+  "round_1_changes": [
+    "scope: resolveReal resolves the deepest existing ancestor and follows dangling symlinks (finding 1); tests for linkdir/new.py, dangling new_path, locations, percent-encoded dot segments, chained and looping symlinks (finding 2)",
+    "real EROFS test from inside the sandbox for workspace and toolchain (finding 3)",
+    "server HOME and TMPDIR point at the private sandbox tmpfs mounted at /dev/shm (shm_bytes 64 MiB) instead of the sandbox tmp mount (finding 4)",
+    "installToolchain: bytes read once, hashed and extracted from the same bytes via tar stdin; destination cleaned; real ../ member test (finding 6)",
+    "truncation is structured: truncated + original_length on hover, diagnostic messages and edit new_text; lists carry total + truncated (finding 9)",
+    "P0 EPERM claim now proven by a real test and a log (p0-eperm.log)"
+  ],
+  "accepted_findings": [
+    {
+      "finding": 2,
+      "note": "TOCTOU between scope check and use: mitigated by construction, the workspace is mounted read-only in the sandbox (EROFS proven by test) and the server cannot create or retarget links; no new code."
+    },
+    {
+      "finding": 4,
+      "note": "HOME and TMPDIR point at /dev/shm, the private tmpfs of the sandbox mounted by the profile (not a host directory); the host module has no literal tmp path."
+    },
+    {
+      "finding": 5,
+      "note": "/usr/bin/node is a system path inside the sandbox command; the toolchain cache path is configuration (HSEOS_TOOLCHAIN_CACHE or option); the hardcoded cache path exists only in the test as a default."
+    },
+    {
+      "finding": 7,
+      "note": "licence check uses distinctive marker substrings of the full text (Apache: title and Version 2.0 line; MIT: grant sentence), not byte-equality of the whole text; divergence or absence is BLOCKED."
+    },
+    {
+      "finding": 8,
+      "note": "the plugin pack depends on the installed core (requires_bundles: core) for agent-isolation-attestation; packPlugin does not validate toolchain_pins or profile (generic generator, unchanged for W5-06..09)."
+    }
+  ],
+  "round_2_changes": [
+    "resolveReal rewritten as component-by-component canonicalisation: symlink targets resolve against the REAL directory reached so far, absolute targets restart at the root, .. climbs from the real directory, missing tail appended, 40-hop limit and loop detection, uninspectable component fails closed (fixes the symlinked-parent bypass top/dang.py with p/q/linkdir)",
+    "tests: reviewer case, symlinked-parent chains, .. after directory symlinks (superseded in round 3: refused, not collapsed), and a generated matrix of directory/file, existing/pending, in/out symlinks at two depths compared with a kernel oracle (fs.realpathSync after temporarily materialising the pending target)",
+    "removed the source-regex assertion from the same-bytes test",
+    "pack-dry-run.json regenerated"
+  ],
+  "round_3_changes": [
+    "scoped(): any location whose decoded text has a .. segment (checked on the raw string, because the URL parser would collapse it silently; also %2e%2e and ..%2f) is refused with ENV_LSP_OUT_OF_SCOPE and recorded, instead of being collapsed; the request file already refused ..; the old test that expected p/m.py now expects a refusal",
+    "scope matrix: 42 paths (not 80): removed the 8 tautological .. rows, removed the continue so the verdict is compared with the kernel on every row, removed the unused variable",
+    "permission-000 test: explicit precondition assert.notEqual(process.getuid(), 0), no skip",
+    "pack-dry-run.json regenerated"
+  ]
+}

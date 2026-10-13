@@ -1,0 +1,57 @@
+│
+◆  ✓ Adapter drift — posttooluse-write-edit-ado-plan-advisory — hook posttooluse-write-edit-ado-plan-advisory present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — posttooluse-bash-ado-task-progress — hook posttooluse-bash-ado-task-progress present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — posttooluse-bash-ado-pr-link — hook posttooluse-bash-ado-pr-link present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — posttooluse-bash-ado-tag-close — hook posttooluse-bash-ado-tag-close present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — sessionstart-ado-inbox-check — hook sessionstart-ado-inbox-check present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — posttooluse-all-telemetry-export-otlp-metrics-opt-in — hook posttooluse-all-telemetry-export-otlp-metrics-opt-in present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — stop-all-telemetry-export-otlp-loki-session-log-opt-in — hook stop-all-telemetry-export-otlp-loki-session-log-opt-in present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — sessionstart-all-session-track-register-project-store — hook sessionstart-all-session-track-register-project-store present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — userpromptsubmit-all-session-track-heartbeat — hook userpromptsubmit-all-session-track-heartbeat present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — stop-all-session-track-heartbeat-turn-end — hook stop-all-session-track-heartbeat-turn-end present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — sessionend-all-session-track-end — hook sessionend-all-session-track-end present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — stop-all-liveness-stop-guard — hook stop-all-liveness-stop-guard present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — subagentstop-all-liveness-stop-guard — hook subagentstop-all-liveness-stop-guard present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — teammateidle-all-liveness-stop-guard — hook teammateidle-all-liveness-stop-guard present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — userpromptsubmit-all-liveness-wake-inbox — hook userpromptsubmit-all-liveness-wake-inbox present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — sessionstart-all-activity-coordination — hook sessionstart-all-activity-coordination present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — userpromptsubmit-all-activity-coordination — hook userpromptsubmit-all-activity-coordination present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — stop-all-activity-coordination — hook stop-all-activity-coordination present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — sessionend-all-activity-coordination — hook sessionend-all-activity-coordination present in .claude/hooks.json
+│
+◆  compile --check: 242 check(s) passed; no files were written.
+exit=0
+ M .agents/plugins/registry.yaml
+ M .c8-kernel.json
+ M .enterprise/governance/plugins/registry.yaml
+ M package.json
+?? .agents/plugins/definitions/hseos-plugin-lsp/
+?? .enterprise/governance/plugins/definitions/hseos-plugin-lsp/
+?? packages/agent-environment/
+?? plugins/
+?? test/fixtures/lsp/
+?? test/test-environment-lsp.js
+?? test/test-environment-plugin-pack.js
+?? test/test-lsp-plugin-parity.js
+?? tools/lib/environment-plugin-pack.js
+?? tools/lib/environment-toolchain-pins.js
+
+[exited with code 0]
