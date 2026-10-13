@@ -111,4 +111,23 @@ for (const [label, guardFile] of GUARDS) {
     assert.equal(JSON.parse(watch.stdout).enabled, true);
     assert.match(watch.stderr, /last valid configuration/);
   });
+
+  test(`[${label}] guard, check and watch read the same ranges: max_stop_refusals 0 is valid and foreground_wait_max_s 9999 is not`, () => {
+    const cliRun = (root, ...args) => spawnSync(process.execPath, [CLI, 'liveness', ...args, '--json'], { cwd: root, encoding: 'utf8' });
+    // 0 refusals is valid for the CLI, so it must be valid for the guard: the stop is not refused and the guard stays enabled.
+    const zero = project(`${FULL_CONFIG.replace('max_stop_refusals: 2', 'max_stop_refusals: 0')}`);
+    const zeroStop = stop(guardFile, zero.root, zero.bin, 'aguardando');
+    assert.equal(zeroStop.stderr.includes('invalido'), false, zeroStop.stderr);
+    assert.equal(cliRun(zero.root, 'check').status, 0);
+    assert.equal(JSON.parse(cliRun(zero.root, 'check').stdout).enabled, true);
+    assert.equal(JSON.parse(cliRun(zero.root, 'watch', '--once').stdout).enabled, true);
+    // 9999 is invalid for the CLI, so it must be invalid for the guard too (last valid config or defaults, with a warning).
+    const wide = project(`${FULL_CONFIG}\nforeground_wait_max_s: 9999`);
+    const wideStop = stop(guardFile, wide.root, wide.bin, 'aguardando');
+    assert.match(wideStop.stderr, /invalido.*foreground_wait_max_s/);
+    const wideCheck = cliRun(wide.root, 'check');
+    assert.equal(wideCheck.status, 2);
+    assert.match(JSON.parse(wideCheck.stdout).errors.join(' '), /foreground_wait_max_s/);
+    assert.equal(cliRun(wide.root, 'watch', '--once').status, 2);
+  });
 }

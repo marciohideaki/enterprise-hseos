@@ -56,23 +56,26 @@ const DEFAULTS = Object.freeze({
   escalate_to: 'human',
 });
 
+// Single table of the accepted values per key. The stop guard (.cjs, dependency-free and copied
+// intact into .agents) carries its own copy; test/test-liveness-guard.js fails on any divergence.
+const CONFIG_RANGES = Object.freeze({
+  foreground_wait_max_s: Object.freeze({ min: 1, max: BASH_FOREGROUND_LIMIT_S - 10 }),
+  stall_timeout_s: Object.freeze({ min: 60, max: 86_400 }),
+  heartbeat_ttl_s: Object.freeze({ min: 30, max: 86_400 }),
+  watch_interval_s: Object.freeze({ min: 5, max: 3600 }),
+  max_stop_refusals: Object.freeze({ min: 0, max: 10 }),
+  max_wake_attempts: Object.freeze({ min: 1, max: 10 }),
+  max_wakes_per_cycle: Object.freeze({ min: 1, max: 50 }),
+  max_wait_deadline_s: Object.freeze({ min: 60, max: 604_800 }),
+  max_notify_attempts: Object.freeze({ min: 1, max: 100 }),
+});
+const ESCALATE_TO_VALUES = Object.freeze(['human']);
+
 const configSchema = z
   .object({
     enabled: z.boolean(),
-    foreground_wait_max_s: z
-      .number()
-      .int()
-      .min(1)
-      .max(BASH_FOREGROUND_LIMIT_S - 10),
-    stall_timeout_s: z.number().int().min(60).max(86_400),
-    heartbeat_ttl_s: z.number().int().min(30).max(86_400),
-    watch_interval_s: z.number().int().min(5).max(3600),
-    max_stop_refusals: z.number().int().min(0).max(10),
-    max_wake_attempts: z.number().int().min(1).max(10),
-    max_wakes_per_cycle: z.number().int().min(1).max(50),
-    max_wait_deadline_s: z.number().int().min(60).max(604_800),
-    max_notify_attempts: z.number().int().min(1).max(100),
-    escalate_to: z.enum(['human']),
+    ...Object.fromEntries(Object.entries(CONFIG_RANGES).map(([key, { min, max }]) => [key, z.number().int().min(min).max(max)])),
+    escalate_to: z.enum(ESCALATE_TO_VALUES),
   })
   .partial();
 // An unknown key is ignored with a warning (never rejects the file), the same rule the stop
@@ -245,6 +248,8 @@ function parseLivenessLine(
 }
 
 module.exports = {
+  CONFIG_RANGES,
+  ESCALATE_TO_VALUES,
   BASH_FOREGROUND_LIMIT_S,
   CONFIG_RELATIVE_PATH,
   DEFAULTS,

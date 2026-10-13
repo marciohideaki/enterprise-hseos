@@ -25,6 +25,20 @@ const DEFAULTS = Object.freeze({
   max_notify_attempts: 10,
   escalate_to: 'human',
 });
+// Accepted values per key, kept identical to CONFIG_RANGES in tools/lib/agent-liveness-contract.js
+// (test/test-liveness-guard.js fails on any divergence): the guard cannot import it, it is copied alone.
+const RANGES = Object.freeze({
+  foreground_wait_max_s: [1, 590],
+  stall_timeout_s: [60, 86_400],
+  heartbeat_ttl_s: [30, 86_400],
+  watch_interval_s: [5, 3600],
+  max_stop_refusals: [0, 10],
+  max_wake_attempts: [1, 10],
+  max_wakes_per_cycle: [1, 50],
+  max_wait_deadline_s: [60, 604_800],
+  max_notify_attempts: [1, 100],
+});
+const ESCALATE_TO_VALUES = Object.freeze(['human']);
 const STATES = new Set(['DONE', 'BLOCKED', 'FAILED', 'WAITING_ON']);
 const WAKE_VIA = new Set(['commander', 'human']);
 const LINE_KEYS = new Set(['state', 'reason', 'evidence', 'waiting_on']);
@@ -65,6 +79,13 @@ function parseScalar(raw) {
 // The contract is flat `key: value`. An unknown key is ignored with a warning (the file stays
 // valid, so a key added by a newer CLI never switches the guard off); a known key with a wrong
 // type, a non-positive number or an unparseable line makes the file invalid.
+function isValidValue(key, value) {
+  if (key === 'enabled') return typeof value === 'boolean';
+  if (key === 'escalate_to') return ESCALATE_TO_VALUES.includes(value);
+  const [min, max] = RANGES[key];
+  return Number.isInteger(value) && value >= min && value <= max;
+}
+
 function parseConfigChecked(text) {
   const config = { ...DEFAULTS };
   const errors = [];
@@ -81,9 +102,15 @@ function parseConfigChecked(text) {
       continue;
     }
     const value = parseScalar(match[2]);
-    const valid = typeof value === typeof DEFAULTS[match[1]] && (typeof value !== 'number' || value > 0);
+    const valid = isValidValue(match[1], value);
     if (valid) config[match[1]] = value;
     else errors.push(`valor invalido para ${match[1]}`);
+  }
+  // Same cross-key rules as the CLI contract.
+  if (errors.length === 0) {
+    if (config.heartbeat_ttl_s > config.stall_timeout_s) errors.push('heartbeat_ttl_s acima de stall_timeout_s');
+    if (config.watch_interval_s > config.stall_timeout_s) errors.push('watch_interval_s acima de stall_timeout_s');
+    if (config.max_wait_deadline_s < config.stall_timeout_s) errors.push('max_wait_deadline_s abaixo de stall_timeout_s');
   }
   return { config, errors, warnings };
 }
@@ -476,7 +503,17 @@ function main({ mode, stdin = '', env = process.env, cwd = process.cwd(), now = 
   }
 }
 
-module.exports = { main, parseConfig, parseConfigChecked, unknownTaskStatuses, validateLine, activeBackgroundTasks, DEFAULTS };
+module.exports = {
+  main,
+  parseConfig,
+  parseConfigChecked,
+  unknownTaskStatuses,
+  validateLine,
+  activeBackgroundTasks,
+  DEFAULTS,
+  RANGES,
+  ESCALATE_TO_VALUES,
+};
 
 if (require.main === module) {
   let stdin = '';

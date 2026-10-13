@@ -621,7 +621,7 @@ handlers:
     sha256: 0ab6e3274b314023a0b1630ac82c0a837fb0b00f55fd18f41643fd94e6765442
   - file: .agents/hooks/handlers/liveness-guard.cjs
     source: .enterprise/governance/hooks/handlers/liveness-guard.cjs
-    sha256: a4f926b301ff62ba43fb591aafd35d5cc67bf777703f16c63ad7361b6d0cd622
+    sha256: b9f009a9a235f876dd24582830e4d85913867b882477aa086c218cd96b6e4652
   - file: .agents/hooks/handlers/managed-governance-preflight.sh
     source: .enterprise/governance/hooks/handlers/managed-governance-preflight.sh
     sha256: 2f067333688c969dc476f24480d83f7151682ccd559cdff07cbac3e4fe685961

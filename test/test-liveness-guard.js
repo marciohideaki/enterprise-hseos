@@ -83,6 +83,7 @@ for (const [label, file] of [
         'stall_timeout_s: 120',
         'foreground_wait_max_s: -4',
         'escalate_to: "ops"',
+        'max_stop_refusals: 11',
         'max_stop_refusals: many',
         'nope: 1',
         'bad line',
@@ -91,9 +92,69 @@ for (const [label, file] of [
     assert.equal(config.enabled, true);
     assert.equal(config.stall_timeout_s, 120);
     assert.equal(config.foreground_wait_max_s, guard.DEFAULTS.foreground_wait_max_s);
-    assert.equal(config.escalate_to, 'ops');
+    assert.equal(config.escalate_to, guard.DEFAULTS.escalate_to, 'only the values the CLI contract accepts');
     assert.equal(config.max_stop_refusals, guard.DEFAULTS.max_stop_refusals);
     assert.equal('nope' in config, false);
+  });
+
+  test(`[${label}] the value ranges are the same table as the CLI contract`, () => {
+    const contract = require('../tools/lib/agent-liveness-contract');
+    assert.deepEqual(
+      Object.fromEntries(Object.entries(guard.RANGES).map(([key, [min, max]]) => [key, { min, max }])),
+      structuredClone(contract.CONFIG_RANGES),
+    );
+    assert.deepEqual(guard.ESCALATE_TO_VALUES, contract.ESCALATE_TO_VALUES);
+    assert.deepEqual({ ...guard.DEFAULTS }, { ...contract.DEFAULTS });
+    // Every boundary of every key agrees with the contract, one value outside each side.
+    for (const [key, { min, max }] of Object.entries(contract.CONFIG_RANGES)) {
+      for (const [value, expected] of [
+        [min - 1, false],
+        [min, true],
+        [max, true],
+        [max + 1, false],
+      ]) {
+        // Cross-key rules would mask the single-key verdict, so the other keys stay at coherent values.
+        const base = { stall_timeout_s: 900, heartbeat_ttl_s: 300, watch_interval_s: 120, max_wait_deadline_s: 14_400 };
+        const document = key in base ? { ...base, [key]: value } : { [key]: value };
+        const guardOk =
+          guard.parseConfigChecked(
+            Object.entries(document)
+              .map(([k, v]) => `${k}: ${v}`)
+              .join('\n'),
+          ).errors.length === 0;
+        const cliOk = contract.validateLivenessConfig(document).ok;
+        assert.equal(guardOk, cliOk, `${key}=${value}: guard and CLI disagree`);
+        if (!(key in base)) assert.equal(cliOk, expected, `${key}=${value}`);
+      }
+    }
+    for (const value of ['"human"', '"ops"', 'true', '5']) {
+      assert.equal(
+        guard.parseConfigChecked(`escalate_to: ${value}`).errors.length === 0,
+        contract.validateLivenessConfig({ escalate_to: value === '"human"' ? 'human' : value === '"ops"' ? 'ops' : JSON.parse(value) }).ok,
+        `escalate_to=${value}`,
+      );
+    }
+    for (const [key, text] of [
+      ['enabled', 'enabled: yes'],
+      ['max_stop_refusals', 'max_stop_refusals: 1.5'],
+    ]) {
+      assert.equal(guard.parseConfigChecked(text).errors.length > 0, true, key);
+    }
+  });
+
+  test(`[${label}] the cross-key rules of the CLI contract invalidate the file in the guard too`, () => {
+    const contract = require('../tools/lib/agent-liveness-contract');
+    for (const document of [
+      { heartbeat_ttl_s: 1000, stall_timeout_s: 900 },
+      { watch_interval_s: 1000, stall_timeout_s: 900 },
+      { max_wait_deadline_s: 100, stall_timeout_s: 900 },
+    ]) {
+      const text = Object.entries(document)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join('\n');
+      assert.equal(contract.validateLivenessConfig(document).ok, false);
+      assert.equal(guard.parseConfigChecked(text).errors.length > 0, true, text);
+    }
   });
 
   test(`[${label}] the keys added by the LV2 contract are accepted and an unknown key only warns`, () => {
