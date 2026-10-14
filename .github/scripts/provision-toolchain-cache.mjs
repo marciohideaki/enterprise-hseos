@@ -12,8 +12,7 @@ const { PINS } = require('../../tools/lib/environment-toolchain-pins.js');
 
 const directory = process.argv[2];
 if (!directory || !path.isAbsolute(directory)) {
-  console.error('usage: provision-toolchain-cache.mjs <absolute cache directory>');
-  process.exit(2);
+  throw new Error('usage: provision-toolchain-cache.mjs <absolute cache directory>');
 }
 
 const npmUrl = (artifact) =>
@@ -26,7 +25,8 @@ async function locate(name, pin) {
   if (pin.artifact.startsWith('pypi/')) {
     const response = await fetch(`https://pypi.org/pypi/${name}/${pin.version}/json`);
     if (!response.ok) throw new Error(`pypi lookup for ${name} failed: ${response.status}`);
-    const file = (await response.json()).urls.find((entry) => entry.filename === path.basename(pin.artifact));
+    const listing = await response.json();
+    const file = listing.urls.find((entry) => entry.filename === path.basename(pin.artifact));
     if (!file) throw new Error(`pypi has no ${path.basename(pin.artifact)}`);
     return file.url;
   }
