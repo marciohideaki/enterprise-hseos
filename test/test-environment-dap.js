@@ -1187,6 +1187,8 @@ test("only js-debug's own child configuration is honoured for startDebugging; an
   const ok = { type: 'pwa-node', name: 'app.js [1]', __pendingTargetId: '101e9b709185c03d4048f6ad' };
   assert.equal(host.childConfiguration(ok), true);
   assert.equal(host.childConfiguration({ ...ok, request: 'attach' }), true);
+  assert.equal(host.childConfiguration({ ...ok, name: undefined }), true, 'the name is optional');
+  assert.equal(host.childConfiguration({ ...ok, name: 'n'.repeat(256) }), true, 'a name of exactly 256 characters is accepted');
   for (const bad of [
     null,
     undefined,
@@ -1200,6 +1202,9 @@ test("only js-debug's own child configuration is honoured for startDebugging; an
     { ...ok, __pendingTargetId: undefined },
     { ...ok, __pendingTargetId: 'not-hex!' },
     { ...ok, __pendingTargetId: 'ab' },
+    { ...ok, name: 7 },
+    { ...ok, name: { toString: 'x' } },
+    { ...ok, name: 'n'.repeat(257) },
   ]) {
     assert.equal(host.childConfiguration(bad), false, JSON.stringify(bad));
   }

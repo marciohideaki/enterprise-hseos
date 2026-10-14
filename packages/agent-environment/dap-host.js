@@ -196,6 +196,7 @@ function childConfiguration(configuration) {
     typeof configuration === 'object' &&
     Object.keys(configuration).every((key) => CHILD_FIELDS.has(key)) &&
     configuration.type === 'pwa-node' &&
+    (configuration.name === undefined || (typeof configuration.name === 'string' && configuration.name.length <= 256)) &&
     ['launch', 'attach'].includes(configuration.request ?? 'launch') &&
     /^[0-9a-f]{8,64}$/.test(configuration.__pendingTargetId ?? '')
   );
