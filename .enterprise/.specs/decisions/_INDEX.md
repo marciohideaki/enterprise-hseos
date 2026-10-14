@@ -105,3 +105,5 @@ The following entries are ADR templates or placeholders for optional activation.
 - [ADR-0045 — Plugins de execução e jobs duráveis](ADR-0045-execution-plugins-and-durable-jobs.md) — Proposed; implementação candidata W4, ativação separada.
 
 - [ADR-0046 — Platform bindings, modos de adoção e autoridade de contratos do ECP](ADR-0046-platform-bindings-and-modes.md) — Accepted (2026-10-01); emenda ADR-0036/0033/0034; implementação e ativação separadas.
+
+- [ADR-0048 — Escopo da DG-27: checksum de integridade vs. hash irreversível de PII](ADR-0048-dg27-integrity-checksum-scope.md) — Proposed (2026-10-14); esclarece DG-27 v1.1; ratificação pelos owners e novo pin separados.

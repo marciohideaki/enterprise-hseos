@@ -1,7 +1,7 @@
 # Data Governance & LGPD Standard
 ## Cross-Cutting — Mandatory
 
-**Version:** 1.0
+**Version:** 1.1
 **Status:** Canonical / Normative
 **Scope:** All stacks — mandatory for all services processing data
 **Classification:** Cross-Cutting (Mandatory)
@@ -363,7 +363,9 @@ public static string HashPii(string value, string salt)
 // breaks all hashes at once.
 ```
 
-- DG-27: **MD5, SHA-1 and unsalted hashes are forbidden for PII.** Any existing usage must be migrated. Migration requires an ADR with timeline.
+- DG-27: **MD5 and SHA-1 are forbidden for PII. Unsalted irreversible hashes of PII used for identity matching, personal-field deduplication, cohort/blacklist analysis or replacement of the original personal value are forbidden.** Any existing usage in that scope must be migrated. Migration requires an ADR with timeline.
+
+  Cryptographic SHA-256 checksums used exclusively for integrity, chain continuity or idempotency identity of a complete command/record are a separate purpose from irreversible PII transformation in §3.3. This distinction applies when the protected original representation is retained/recoverable for that contracted purpose and command equality is verified against the complete canonical bytes, not a digest alone. Such checksums MUST NOT serve as person/subject matching keys, replace required tokenization or claim anonymity. Classification, authorized access, protection and finite retention/erasure apply to the checksum, its associations and every copy; deriving a digest never declassifies PII. This clarification does not permit MD5/SHA-1, unprotected checksums, implicit exceptions, retention renewal through copies, or bypass of DG-26/tokenization requirements. Chain retirement and protected successor proofs remain subject to their independently admitted finite lifecycle; this paragraph does not certify those protocols.
 
 ### 3.4 Encryption at Rest
 
