@@ -650,6 +650,23 @@ test('resuming a durable compaction refuses a different identity, provider, poli
   }
 });
 
+test('the session store refuses a compaction that does not partition the durable history, so the assembler can rely on it', () => {
+  const source = sessionRun();
+  const target = sessionRun();
+  try {
+    const { result } = durableCompactionOnly(source);
+    const event = structuredClone(result.compaction_event);
+    event.payload.retained_source_event_ids = [...event.payload.retained_source_event_ids, 'event:not-in-the-durable-history'];
+    assert.throws(
+      () => target.store.append({ session_id: target.spec.session_id, expected_version: target.history.expectedVersion, events: [event] }),
+      (error) => error.code === 'AGENT_SESSION_COMPACTION_LINEAGE_INVALID',
+    );
+  } finally {
+    source.db.close();
+    target.db.close();
+  }
+});
+
 test('the assembler refuses a forged store, snapshot or compaction runtime and a stale or foreign turn', () => {
   const { db, store } = openStore();
   try {

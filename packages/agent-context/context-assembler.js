@@ -466,11 +466,9 @@ class ContextAssembler {
     const retainedIds = new Set(recorded.retained_source_event_ids);
     const compactedHistory = orderedHistory(input.history).filter((entry) => compactedIds.has(entry.source_event_id));
     const retainedHistory = orderedHistory(input.history).filter((entry) => retainedIds.has(entry.source_event_id));
-    if (compactedHistory.length !== compactedIds.size || retainedHistory.length !== retainedIds.size) {
-      throw new ContextAssemblyError('durable compaction no longer partitions the durable history', 'AGENT_CONTEXT_COMPACTION_MISMATCH', {
-        compaction_id: recorded.compaction_id,
-      });
-    }
+    // Invariant, not re-checked here: the recorded ids partition the durable history exactly. Replay refuses any other
+    // compaction (AGENT_SESSION_COMPACTION_LINEAGE_INVALID) and this history comes from that same replayed state, so a
+    // violation cannot reach this point through the sealed session store.
     const replacement = {
       source_event_id: recorded.event_id,
       source_ref: `session-event://${recorded.event_id}`,
