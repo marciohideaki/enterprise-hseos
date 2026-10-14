@@ -330,11 +330,14 @@ Nota B1: B1 roda com 3 agentes (aprovado pelo owner no G2). A W5-02b (perfis de 
   - `.enterprise/governance/plugins/registry.yaml`
   - `.c8-kernel.json`
   - `package.json`
+  - `.github/scripts/provision-toolchain-cache.mjs`
+  - `.github/workflows/ci.yaml`
   - `docs/evolution/w5/evidence/w5-07/*`
 - acceptance_criteria: runtime no core com `playwright-core` carregado sob demanda do pin (nenhum `require` no topo; core sem dependência npm nova); `plugins/browser` gerado do mesmo código (digest idêntico) e admitido por hash pinado; navegador executa em P2 com `--no-sandbox` apenas dentro do `bwrap`; host fora da allowlist bloqueado e registrado; screenshot e DOM viram partes data/untrusted com URL, hora, digest e transform; cookies e segredos não persistem; zero descendentes; sem download em runtime; licença de `playwright-core` e do `chrome-headless-shell-1228` conferida no artefato fixado; pacote do plugin dentro do teto próprio (≤40 entradas, ≤1 MB); core inalterado em dependências.
 - verify_step.command: `heavy-run --mem 4G -- node node_modules/c8/bin/c8.js --config .c8-kernel.json --include 'packages/agent-environment/browser-contract.js' --include 'packages/agent-environment/browser.js' --include 'packages/agent-environment/browser-host.js' --include 'tools/cli/lib/environment-egress-broker.js' --reports-dir .logs/validation/w5-07-coverage --temp-directory .logs/validation/w5-07-coverage/tmp node --test --test-concurrency=1 test/test-environment-browser.js test/test-browser-plugin-surface.js test/test-browser-plugin-parity.js`
 - verify_step.expected: exit 0, zero falhas/skips; cobertura focada: o c8 do primeiro comando (config `.c8-kernel.json`, `--include` limitado aos arquivos da task, `per-file` 90% linhas e 80% branches) passa para os arquivos da task; os arquivos novos estão em `.c8-kernel.json` e os testes novos registrados em `test:kernel` de `package.json` (o `npm run test:kernel-coverage` completo roda uma vez por onda, na integração, não por task); recibo ligado à revisão em `docs/evolution/w5/evidence/<task>/receipt.json` (SHA da revisão, comando, versão do Node, resultado e SHA-256 dos logs).
 - verify_step.on_failure: diagnosticar e corrigir (até 3 rodadas); causa desconhecida ou capacidade indisponível = BLOCKED com a causa, nunca PASS.
+- nota (emenda de 2026-10-14): `playwright-core` fixado em **1.61.0** (SHA-256 `b5ab14f09f3aaacdedbc2cb1431b0552cec8995fba35d841779a4ed535ce0200`, já no cache `/build/cache/hseos-toolchain/npm`). O CI não tem o cache: a task estende `provision-toolchain-cache.mjs` (baixa o tarball e confere o SHA-256 do pin; o `chrome-headless-shell-1228` com SHA-256 fixado) e o `ci.yaml` (`HSEOS_TOOLCHAIN_CACHE` já é passado) para que `npm test` fique verde no runner; sem isso a PR é BLOCKED.
 - nota: cache do `chrome-headless-shell-1228` e do playwright-core ausentes = BLOCKED; `chrome --headless=new` completo trava no sandbox e não é suportado (ensaio da W5-02b1). Sobe no máximo uma instância de navegador por vez.
 
 ## W5-08 — Computer-use em Xvfb isolado com aprovação por ação (core, lazy; empacotável como plugin)
@@ -364,11 +367,14 @@ Nota B1: B1 roda com 3 agentes (aprovado pelo owner no G2). A W5-02b (perfis de 
   - `.enterprise/governance/plugins/registry.yaml`
   - `.c8-kernel.json`
   - `package.json`
+  - `.github/scripts/provision-toolchain-cache.mjs`
+  - `.github/workflows/ci.yaml`
   - `docs/evolution/w5/evidence/w5-08/*`
 - acceptance_criteria: ação sem aprovação negada; aprovação de uso único vinculada a sessão, sequência, ação e screenshot, expira e não é reutilizável; modo bypass/approve_all não se aplica; DISPLAY do operador inacessível (teste negativo); sessão encerra e drena em stop e expiração; screenshot com proveniência; injetor de entrada (`xdotool`, BSD, pin externo; `python-xlib` descartado) indisponível = BLOCKED, com a licença conferida no artefato fixado; `plugins/computer-use` gerado do mesmo código do core (digest idêntico, ≤40 entradas, ≤1 MB), somente Linux.
 - verify_step.command: `heavy-run --mem 4G -- node node_modules/c8/bin/c8.js --config .c8-kernel.json --include 'packages/agent-environment/computer-contract.js' --include 'packages/agent-environment/computer.js' --include 'packages/agent-environment/computer-host.js' --include 'tools/cli/lib/environment-approval.js' --reports-dir .logs/validation/w5-08-coverage --temp-directory .logs/validation/w5-08-coverage/tmp node --test --test-concurrency=1 test/test-environment-computer.js test/test-computer-plugin-parity.js`
 - verify_step.expected: exit 0, zero falhas/skips; cobertura focada: o c8 do primeiro comando (config `.c8-kernel.json`, `--include` limitado aos arquivos da task, `per-file` 90% linhas e 80% branches) passa para os arquivos da task; os arquivos novos estão em `.c8-kernel.json` e os testes novos registrados em `test:kernel` de `package.json` (o `npm run test:kernel-coverage` completo roda uma vez por onda, na integração, não por task); recibo ligado à revisão em `docs/evolution/w5/evidence/<task>/receipt.json` (SHA da revisão, comando, versão do Node, resultado e SHA-256 dos logs).
 - verify_step.on_failure: diagnosticar e corrigir (até 3 rodadas); causa desconhecida ou capacidade indisponível = BLOCKED com a causa, nunca PASS.
+- nota (emenda de 2026-10-14): `xdotool` é pin externo (pacote Linux), ausente do host de desenvolvimento até a instalação pelo owner; sem ele a task termina em BLOCKED com a causa. No CI a task acrescenta `xdotool` e `xvfb` ao `apt-get install` do `ci.yaml` e estende o provisionamento do cache; testes que dependem do binário reportam BLOCKED e não PASS quando ele falta.
 - nota: somente Xvfb próprio; nunca a sessão gráfica real. Uma sessão por vez.
 
 ## W5-09 — Memória governada
