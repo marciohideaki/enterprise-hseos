@@ -34,6 +34,7 @@ const MAX_STOPS = 25;
 const MAX_FRAMES = 20;
 const MAX_VARIABLES = 50;
 const MAX_EXPANDED = 10;
+// Shared with the controller (dap.js), which refuses a longer list of children than the host can produce.
 const MAX_CHILDREN = 20;
 const MAX_VALUE = 512;
 const MAX_OUTPUT = 4096;
@@ -427,6 +428,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+  MAX_CHILDREN,
   childConfiguration,
   ALLOWED_REQUESTS,
   DapHostError,

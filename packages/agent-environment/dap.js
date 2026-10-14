@@ -8,6 +8,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
 const { canonical, resolveReal, LspError } = require('./lsp');
+const { MAX_CHILDREN } = require('./dap-host');
 
 const CONTRACT = 'environment.dap.v1';
 const RUNTIMES = new Set(['node', 'python']);
@@ -201,15 +202,15 @@ function createDapService({ policy, toolchain, execute, createChannel, ledger = 
       : { [key]: text };
   };
 
-  function variables(list, depth) {
+  function variables(list, depth, limit = MAX_VARIABLES) {
     return {
-      variables: count(list.variables, MAX_VARIABLES).map((item) => {
+      variables: count(list.variables, limit).map((item) => {
         if (item.children && depth < 2) invalid();
         return {
           ...bounded(item.name, 'name', 256),
           ...clip(item.value),
           ...(item.type == null ? { type: null } : bounded(item.type, 'type', 128)),
-          ...(item.children ? { children: variables(item.children, depth - 1) } : {}),
+          ...(item.children ? { children: variables(item.children, depth - 1, MAX_CHILDREN) } : {}),
         };
       }),
       total: Number.isSafeInteger(list.total) ? list.total : list.variables.length,

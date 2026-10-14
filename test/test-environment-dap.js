@@ -929,6 +929,15 @@ test('results are normalised: paths are root-relative or withheld, values are tr
     'children at depth 1',
   );
   assert.equal((await deep({ stack: true, variables_depth: 2 }, [{ ...nested, children: { variables: [child] } }])).status, 'ok');
+  const childList = (size) => Array.from({ length: size }, () => child);
+  const withChildren = (size) => [{ ...nested, children: { variables: childList(size) } }];
+  assert.equal(host.MAX_CHILDREN, 20, 'the host and the controller share one ceiling for children');
+  assert.equal((await deep({ stack: true, variables_depth: 2 }, withChildren(host.MAX_CHILDREN))).status, 'ok', 'a full list of children');
+  assert.equal(
+    (await deep({ stack: true, variables_depth: 2 }, withChildren(host.MAX_CHILDREN + 1))).code,
+    'ENV_DAP_RESULT_INVALID',
+    'more children than the host can produce',
+  );
   const invalidResult = async (stop, result = {}, capture) =>
     (
       await scripted(spaces, hostOk(rawResult({ stops: [rawStop(stop)], ...result }))).service.run({
