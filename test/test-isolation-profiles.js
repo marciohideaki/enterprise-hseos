@@ -28,6 +28,7 @@ const {
   checkObservations,
   chromiumSandboxFlags,
   evaluateSeccomp,
+  openSeccompDescriptor,
   profileRank,
   resolveCallLimits,
   registerLaunch,
@@ -930,4 +931,38 @@ test('executor and terminal run only the filter their profile requires: a tamper
   await assert.rejects(terminal.ready, (error) => error.code === 'AGENT_ISOLATION_BINDING_DRIFT');
   await terminal.completion.catch(() => {});
   assert.equal(fs.existsSync(terminal.group), false, 'the group of the refused launch is removed');
+});
+
+test('the seccomp descriptor leaves no filter directory behind on any failure path and keeps the original error', (context) => {
+  const leftovers = () => fs.readdirSync(os.tmpdir()).filter((name) => name.startsWith('hseos-profile-filter-'));
+  const before = leftovers();
+  const openDescriptors = () => fs.readdirSync('/proc/self/fd').length;
+  const program = Buffer.from('program');
+  const fd = openSeccompDescriptor(program);
+  assert.equal(fs.fstatSync(fd).size, program.length, 'the happy path hands over a readable descriptor');
+  fs.closeSync(fd);
+  assert.deepEqual(leftovers(), before, 'the happy path leaves nothing behind');
+
+  const descriptors = openDescriptors();
+  for (const [method, failure] of [
+    ['writeFileSync', 'write failed'],
+    ['openSync', 'open failed'],
+    ['unlinkSync', 'unlink failed'],
+  ]) {
+    const original = fs[method];
+    mock.method(fs, method, (...args) => {
+      // Only the filter file is faulted; anything else the runner does with fs keeps working.
+      if (String(args[0]).includes('hseos-profile-filter-')) throw Object.assign(new Error(failure), { code: 'EFAULTED' });
+      return original(...args);
+    });
+    assert.throws(
+      () => openSeccompDescriptor(program),
+      (error) => error.message === failure && error.code === 'EFAULTED',
+      method,
+    );
+    mock.restoreAll();
+    assert.deepEqual(leftovers(), before, `${method} failure leaves no hseos-profile-filter-* directory`);
+  }
+  assert.equal(openDescriptors(), descriptors, 'a failure after open does not leak the descriptor');
+  context.after(() => mock.restoreAll());
 });
