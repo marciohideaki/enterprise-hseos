@@ -37,7 +37,10 @@ test('the lsp pack stays inside 40 entries and 1 MB and carries no binary or pin
   assert.ok(result.entries.length <= MAX_ENTRIES, `${result.entries.length} entries`);
   assert.ok(result.unpacked_bytes <= MAX_BYTES && result.tarball.length <= MAX_BYTES);
   assert.ok(result.entries.every((entry) => !/\.(?:tgz|whl|node|so)$|node_modules|toolchain\//.test(entry.path)));
-  assert.deepEqual(manifest.toolchain_pins.sort(), Object.keys(PINS).sort(), 'the manifest names the pins as data only');
+  assert.deepEqual([...manifest.toolchain_pins].sort(), ['pyright', 'typescript', 'typescript-language-server'], 'the manifest names the pins as data only');
+  // The registry is shared with the dap plugin: together the two manifests claim every pin exactly once.
+  const dapManifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'plugins/dap/plugin.json'), 'utf8'));
+  assert.deepEqual([...manifest.toolchain_pins, ...dapManifest.toolchain_pins].sort(), Object.keys(PINS).sort(), 'every pin belongs to exactly one capability');
   assert.equal(manifest.profile, 'P1');
 });
 

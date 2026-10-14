@@ -676,7 +676,7 @@ test('the real cache verifies SHA-256 and licence text inside each pinned artifa
   for (const entry of ['typescript-language-server/package/lib/cli.mjs', 'typescript/package/lib/tsserver.js', 'pyright/package/langserver.index.js', 'host/lsp-host.js', 'host/framing.js']) {
     assert.ok(fs.existsSync(path.join(toolchain.root, entry)), entry);
   }
-  assert.throws(() => pins.installToolchain({ cacheDirectory: CACHE, destination: temp('hseos-lsp-x-'), names: ['debugpy'] }), { code: 'ENV_TOOLCHAIN_PIN_UNKNOWN' });
+  assert.throws(() => pins.installToolchain({ cacheDirectory: CACHE, destination: temp('hseos-lsp-x-'), names: ['no-such-pin'] }), { code: 'ENV_TOOLCHAIN_PIN_UNKNOWN' });
 });
 
 function sha(bytes) {
