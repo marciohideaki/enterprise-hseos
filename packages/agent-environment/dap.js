@@ -22,6 +22,8 @@ const HOST_FILES = ['dap-host.js', 'framing.js'];
 const SANDBOX_ROOT = '/workspace';
 const SANDBOX_TOOLCHAIN = '/opt/hseos/toolchain';
 const SANDBOX_SCRATCH = '/dev/shm';
+// Where the isolation layer binds the controller's own node read-only (packages/agent-isolation-attestation/index.js).
+const SANDBOX_NODE = '/hseos-runtime/node';
 const MODULE = /^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*){0,7}$/;
 const MAX_BREAKPOINTS = 20;
 const MAX_STEPS = 20;
@@ -292,7 +294,7 @@ function createDapService({ policy, toolchain, execute, createChannel, ledger = 
         root: SANDBOX_ROOT,
         toolchain: SANDBOX_TOOLCHAIN,
         scratch: SANDBOX_SCRATCH,
-        node: '/usr/bin/node',
+        node: SANDBOX_NODE,
         python: '/usr/bin/python3',
         timeout_ms: request.timeout_ms,
       };

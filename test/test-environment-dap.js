@@ -495,6 +495,11 @@ test('files outside the root (.., absolute, symlink, encoded) are refused as ENV
   const sent = JSON.parse(calls[0].command[2]);
   assert.deepEqual([sent.launch.program, sent.breakpoints[0].file, sent.launch.cwd], ['app.py', 'app.py', '.']);
   assert.deepEqual([sent.scratch, sent.root, sent.toolchain], ['/dev/shm', '/workspace', '/opt/hseos/toolchain']);
+  assert.equal(
+    sent.node,
+    '/hseos-runtime/node',
+    'the debuggee runs on the runtime the isolation layer binds, not on a guessed system path',
+  );
   assert.equal(calls[0].limits.shm_bytes, 67_108_864);
   assert.equal(calls[0].timeout_ms, 40_000, 'the sandbox gets the request timeout plus a reaping grace');
 });
