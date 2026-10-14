@@ -1,0 +1,71 @@
+heavy-run: modo normal (load1=1.32 phys=6 avail=20371MiB need=6G mem.psi=0.00 io.psi.full=0.10)
+Delegated test cgroup controllers verified
+✔ real typescript server answers diagnostics read-only and returns untrusted data (1300.62595ms)
+✔ real typescript server answers definition read-only and returns untrusted data (663.583971ms)
+✔ real typescript server answers references read-only and returns untrusted data (693.750099ms)
+✔ real typescript server answers hover read-only and returns untrusted data (673.511933ms)
+✔ real typescript server answers rename_preview read-only and returns untrusted data (645.851317ms)
+✔ real python server answers diagnostics read-only and returns untrusted data (1004.531454ms)
+✔ real python server answers definition read-only and returns untrusted data (547.906311ms)
+✔ real python server answers references read-only and returns untrusted data (513.027669ms)
+✔ real python server answers hover read-only and returns untrusted data (519.711925ms)
+✔ real python server answers rename_preview read-only and returns untrusted data (514.892679ms)
+✔ a location outside the workspace root reported by the real server is refused and recorded (392.605126ms)
+✔ a P0 policy cannot host a language server and is reported as blocked (1.106809ms)
+✔ input validation refuses malformed requests before anything runs (1.299234ms)
+✔ files outside the root (.., absolute, symlink) are refused and recorded without launching a server (1.438961ms)
+✔ a missing toolchain, pin or server binary is BLOCKED with its cause, never an empty result (1.717988ms)
+✔ executor failures and unreadable host output are refused with a stable code (1.840736ms)
+✔ a large host result arrives through the artifact channel and only a verified manifest is accepted (1.506526ms)
+✔ every reported location is mapped to a root-relative path or the whole call is refused (4.494188ms)
+✔ targets that do not exist yet are resolved through their existing ancestor and symlinks before the scope check (7.466162ms)
+✔ the sandbox really mounts the workspace and the toolchain read-only (EROFS), not just by label (218.407558ms)
+✔ P0 forbids child processes with pipes (spawn EPERM) while P1 allows them: the reason LSP needs P1 (109.675185ms)
+✔ diagnostics, hover and rename previews are normalised, bounded and never applied (10.862234ms)
+✔ the default service wires the real executor and artifact channel lazily (0.806611ms)
+✔ Content-Length framing round-trips, reassembles split chunks and refuses every violation (1.323791ms)
+✔ host reports protocol failures with stable codes (1022.448421ms)
+✔ host answers server requests, accepts null results and shuts the server down (708.389252ms)
+✔ host lists are bounded and report the real total (0.263556ms)
+✔ host output is inline when small and a verified artifact manifest when large (5.954326ms)
+✔ host main prints ok on success and a stable code on failure (671.122054ms)
+✔ the real cache verifies SHA-256 and licence text inside each pinned artifact and installs offline (0.720032ms)
+✔ a coherent fixture cache installs and every divergence is BLOCKED with its own code (99.293894ms)
+✔ the cache location is configuration: unset or relative means BLOCKED, the environment variable is honoured (0.323324ms)
+✔ a real tar with a ../ member is refused before anything is extracted (153.900456ms)
+✔ hash and extraction use the same bytes, and a re-install starts from a clean destination (24.695034ms)
+✔ a pending link seen through a symlinked parent is resolved against the REAL directory (reviewer case) (5.267346ms)
+✔ generated matrix: resolveReal and the scope verdict equal the kernel for every link/parent combination (25.278656ms)
+✔ a pack copies the listed core files, is deterministic and records a digest per entry (12.824861ms)
+✔ a changed core file changes the digest (1.158001ms)
+✔ an invalid or missing manifest is refused (2.398661ms)
+✔ a plugin must load lazily from one of its own files (0.65538ms)
+✔ more than 40 entries is refused, 40 is accepted (4.95707ms)
+✔ unsafe paths, binaries, pins, links and missing files never enter a tarball (3.747255ms)
+✔ size limits apply to the unpacked content, the tarball and the entry names (24.936869ms)
+✔ the lsp pack is generated from the very same files the core ships (identical digests) (27.784305ms)
+✔ the lsp pack stays inside 40 entries and 1 MB and carries no binary or pin (1.734304ms)
+✔ the capability loads lazily: requiring the package never loads the pin installer (83.794795ms)
+✔ the governance definition and registry entry exist for the plugin (0.431515ms)
+ℹ tests 47
+ℹ suites 0
+ℹ pass 47
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13358.545118
+--------------------------------|---------|----------|---------|---------|-------------------
+File                            | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+--------------------------------|---------|----------|---------|---------|-------------------
+All files                       |   99.29 |    97.01 |   97.05 |   99.29 |                   
+ packages/agent-environment     |   98.97 |    96.23 |   96.07 |   98.97 |                   
+  framing.js                    |     100 |      100 |     100 |     100 |                   
+  lsp-host.js                   |   97.01 |    91.56 |   93.75 |   97.01 | 20-21,196-199     
+  lsp.js                        |     100 |    97.75 |   96.66 |     100 | 63,94,162,250     
+ tools/lib                      |     100 |    99.09 |     100 |     100 |                   
+  environment-plugin-pack.js    |     100 |    98.27 |     100 |     100 | 41                
+  environment-toolchain-pins.js |     100 |      100 |     100 |     100 |                   
+--------------------------------|---------|----------|---------|---------|-------------------
+=== Results: 88 passed, 0 failed ===
+

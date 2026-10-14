@@ -1,0 +1,14 @@
+id: hseos-plugin-dap
+version: "0.1.0"
+description: "Scripted, bounded Node and Python debug sessions (breakpoints, stack, variables, step) restricted to the workspace"
+license: MIT
+authors:
+  - "Hideaki Solutions"
+extends: ""
+requires_bundles:
+  - core
+surfaces:
+  skills:
+    - skills/dap/SKILL.md
+verification:
+  conformance_tests: tests/

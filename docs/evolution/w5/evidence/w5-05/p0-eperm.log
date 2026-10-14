@@ -1,0 +1,8 @@
+P0 failed "" node:internal/child_process:441
+    throw new ErrnoException(err, 'spawn');
+    ^
+
+Error: spawn EPERM
+    at ChildProcess.spawn (node:internal/child_process:441:11)
+    at Object.spawn (node:child_pro
+P1 succeeded "ECHO hi\n" 
