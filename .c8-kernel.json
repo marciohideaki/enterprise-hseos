@@ -77,6 +77,10 @@
     "packages/agent-environment/lsp-host.js",
     "packages/agent-environment/dap.js",
     "packages/agent-environment/dap-host.js",
+    "packages/agent-environment/browser-contract.js",
+    "packages/agent-environment/browser.js",
+    "packages/agent-environment/browser-host.js",
+    "tools/cli/lib/environment-egress-broker.js",
     "tools/lib/environment-toolchain-pins.js",
     "tools/lib/environment-plugin-pack.js"
   ],

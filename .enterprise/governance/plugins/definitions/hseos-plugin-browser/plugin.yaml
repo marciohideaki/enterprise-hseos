@@ -1,0 +1,14 @@
+id: hseos-plugin-browser
+version: "0.1.0"
+description: "Bounded, stateless browser steps (goto, click, type, press, wait, screenshot, DOM snapshot) in the P2 sandbox with allowlisted egress"
+license: MIT
+authors:
+  - "Hideaki Solutions"
+extends: ""
+requires_bundles:
+  - core
+surfaces:
+  skills:
+    - skills/browser/SKILL.md
+verification:
+  conformance_tests: tests/

@@ -1,0 +1,233 @@
+v22.23.3
+TAP version 13
+# Subtest: the browser pack is generated from the very same files the core ships (identical digests)
+ok 1 - the browser pack is generated from the very same files the core ships (identical digests)
+  ---
+  duration_ms: 35.988549
+  type: 'test'
+  ...
+# Subtest: the browser pack stays inside 40 entries and 1 MB and carries no binary or pin
+ok 2 - the browser pack stays inside 40 entries and 1 MB and carries no binary or pin
+  ---
+  duration_ms: 2.905131
+  type: 'test'
+  ...
+# Subtest: the browser pack adds only the browser files to the shared environment entry points
+ok 3 - the browser pack adds only the browser files to the shared environment entry points
+  ---
+  duration_ms: 0.311728
+  type: 'test'
+  ...
+# Subtest: the capability loads lazily: requiring the package never loads the pin installer or the browser
+ok 4 - the capability loads lazily: requiring the package never loads the pin installer or the browser
+  ---
+  duration_ms: 87.946899
+  type: 'test'
+  ...
+# Subtest: the browser pack is admitted by its pinned hash and refused on any divergence
+ok 5 - the browser pack is admitted by its pinned hash and refused on any divergence
+  ---
+  duration_ms: 23.914146
+  type: 'test'
+  ...
+# Subtest: the pack tarball digest equals its pinned hash; a divergent tarball does not
+ok 6 - the pack tarball digest equals its pinned hash; a divergent tarball does not
+  ---
+  duration_ms: 3.056242
+  type: 'test'
+  ...
+# Subtest: governance surface: definition, skill and registry entry agree with the manifest
+ok 7 - governance surface: definition, skill and registry entry agree with the manifest
+  ---
+  duration_ms: 1.260999
+  type: 'test'
+  ...
+# Subtest: core surface: no new npm dependency, browser files registered for the kernel suite and coverage
+ok 8 - core surface: no new npm dependency, browser files registered for the kernel suite and coverage
+  ---
+  duration_ms: 1.111921
+  type: 'test'
+  ...
+# Subtest: isolation surface: the plugin asks for P2 and grants --no-sandbox only through the supervisor launch
+ok 9 - isolation surface: the plugin asks for P2 and grants --no-sandbox only through the supervisor launch
+  ---
+  duration_ms: 0.769007
+  type: 'test'
+  ...
+# Subtest: toolchain surface: both pins are data with a licence checked in the artifact, and nothing downloads at run time
+ok 10 - toolchain surface: both pins are data with a licence checked in the artifact, and nothing downloads at run time
+  ---
+  duration_ms: 0.580329
+  type: 'test'
+  ...
+# Subtest: real browser in the P2 sandbox: goto, click, type, press, wait, screenshot and DOM become untrusted data parts
+ok 11 - real browser in the P2 sandbox: goto, click, type, press, wait, screenshot and DOM become untrusted data parts
+  ---
+  duration_ms: 5078.325439
+  type: 'test'
+  ...
+# Subtest: cookies and storage do not persist across calls: each call gets a fresh context
+ok 12 - cookies and storage do not persist across calls: each call gets a fresh context
+  ---
+  duration_ms: 1267.094621
+  type: 'test'
+  ...
+# Subtest: a host outside the allowlist is blocked and recorded: navigation, subresource and redirect
+ok 13 - a host outside the allowlist is blocked and recorded: navigation, subresource and redirect
+  ---
+  duration_ms: 1216.82264
+  type: 'test'
+  ...
+# Subtest: page text with a credential pattern is withheld, and a slow page times out with zero descendants
+ok 14 - page text with a credential pattern is withheld, and a slow page times out with zero descendants
+  ---
+  duration_ms: 3056.93796
+  type: 'test'
+  ...
+# Subtest: long page text is cut and says so
+ok 15 - long page text is cut and says so
+  ---
+  duration_ms: 673.756805
+  type: 'test'
+  ...
+# Subtest: the sandbox flag exists only for a genuine bwrap launch; calls are serialised to one browser at a time
+ok 16 - the sandbox flag exists only for a genuine bwrap launch; calls are serialised to one browser at a time
+  ---
+  duration_ms: 92.894533
+  type: 'test'
+  ...
+# Subtest: profile, toolchain and installation gaps are BLOCKED with their cause, never ok
+ok 17 - profile, toolchain and installation gaps are BLOCKED with their cause, never ok
+  ---
+  duration_ms: 1.980986
+  type: 'test'
+  ...
+# Subtest: controller: host failures map to refusals; denied egress wins over a generic failure
+ok 18 - controller: host failures map to refusals; denied egress wins over a generic failure
+  ---
+  duration_ms: 2.069181
+  type: 'test'
+  ...
+# Subtest: controller: malformed captures are refused, never passed on
+ok 19 - controller: malformed captures are refused, never passed on
+  ---
+  duration_ms: 2.001619
+  type: 'test'
+  ...
+# Subtest: controller: invalid input is refused before anything runs
+ok 20 - controller: invalid input is refused before anything runs
+  ---
+  duration_ms: 0.424772
+  type: 'test'
+  ...
+# Subtest: contract: every step shape and limit is validated
+ok 21 - contract: every step shape and limit is validated
+  ---
+  duration_ms: 1.029795
+  type: 'test'
+  ...
+# Subtest: pins: playwright-core and chrome-headless-shell match the cache manifest field by field and their licences are in the artifact
+ok 22 - pins: playwright-core and chrome-headless-shell match the cache manifest field by field and their licences are in the artifact
+  ---
+  duration_ms: 397.083523
+  type: 'test'
+  ...
+# Subtest: lazy loading: requiring the package loads neither the browser nor playwright-core
+ok 23 - lazy loading: requiring the package loads neither the browser nor playwright-core
+  ---
+  duration_ms: 45.552847
+  type: 'test'
+  ...
+# Subtest: host in-process: runs the steps, writes artifacts and reports step failures without throwing
+ok 24 - host in-process: runs the steps, writes artifacts and reports step failures without throwing
+  ---
+  duration_ms: 1519.956711
+  type: 'test'
+  ...
+# Subtest: host in-process: launch failure, deadline and output handling
+ok 25 - host in-process: launch failure, deadline and output handling
+  ---
+  duration_ms: 268.761373
+  type: 'test'
+  ...
+# Subtest: egress broker: allowlist parsing is strict
+ok 26 - egress broker: allowlist parsing is strict
+  ---
+  duration_ms: 0.593142
+  type: 'test'
+  ...
+# Subtest: egress broker: forwards allowed requests, refuses and records everything else
+ok 27 - egress broker: forwards allowed requests, refuses and records everything else
+  ---
+  duration_ms: 418.458703
+  type: 'test'
+  ...
+# Subtest: egress broker: an idle tunnel is closed, connections are capped, and an existing directory is kept
+ok 28 - egress broker: an idle tunnel is closed, connections are capped, and an existing directory is kept
+  ---
+  duration_ms: 213.284755
+  type: 'test'
+  ...
+# Subtest: host in-process: every step kind, a refused navigation, the relay and the command-line entry
+ok 29 - host in-process: every step kind, a refused navigation, the relay and the command-line entry
+  ---
+  duration_ms: 1547.704478
+  type: 'test'
+  ...
+# Subtest: parts carry the final URL and descendants are proved gone
+ok 30 - parts carry the final URL and descendants are proved gone
+  ---
+  duration_ms: 869.403736
+  type: 'test'
+  ...
+# Subtest: every call gets a fresh, locked-down context: no downloads, service workers blocked, no permissions
+ok 31 - every call gets a fresh, locked-down context: no downloads, service workers blocked, no permissions
+  ---
+  duration_ms: 0.18297
+  type: 'test'
+  ...
+# Subtest: the sandbox cannot resolve names or reach an external address; only the broker socket leads out
+ok 32 - the sandbox cannot resolve names or reach an external address; only the broker socket leads out
+  ---
+  duration_ms: 130.882086
+  type: 'test'
+  ...
+# Subtest: egress broker: refusals are never lost to a flood of allowed requests, and every cut is counted
+ok 33 - egress broker: refusals are never lost to a flood of allowed requests, and every cut is counted
+  ---
+  duration_ms: 638.806646
+  type: 'test'
+  ...
+# Subtest: egress broker: the Host header is rewritten from the validated target and userinfo is refused
+ok 34 - egress broker: the Host header is rewritten from the validated target and userinfo is refused
+  ---
+  duration_ms: 7.523306
+  type: 'test'
+  ...
+# Subtest: controller: descendants must be proved terminated, sandbox-supplied strings are validated, services share one queue
+ok 35 - controller: descendants must be proved terminated, sandbox-supplied strings are validated, services share one queue
+  ---
+  duration_ms: 62.741574
+  type: 'test'
+  ...
+# Subtest: pins: a tampered artifact fails its SHA-256 and the zip ceilings are tight to the real archive
+ok 36 - pins: a tampered artifact fails its SHA-256 and the zip ceilings are tight to the real archive
+  ---
+  duration_ms: 113.119083
+  type: 'test'
+  ...
+# Subtest: lazy loading: no top-level require outside node: builtins and sibling modules, and loading the host pulls no pin
+ok 37 - lazy loading: no top-level require outside node: builtins and sibling modules, and loading the host pulls no pin
+  ---
+  duration_ms: 43.489077
+  type: 'test'
+  ...
+1..37
+# tests 37
+# suites 0
+# pass 37
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18231.665573
