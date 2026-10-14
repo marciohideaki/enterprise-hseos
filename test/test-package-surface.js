@@ -129,10 +129,10 @@ test('published package exposes runtime and governance assets only', () => {
   // expense of another without an explicit change here. The owner approved .hseos 64 and the ceiling 1556 on
   // 2026-10-12 (G3) for the W5 liveness and coordination contracts.
   const areaBudgets = {
-    '.enterprise': 484,
+    '.enterprise': 472,
     tools: 393,
     src: 250,
-    '.agents': 193,
+    '.agents': 205,
     packages: 137,
     '.hseos': 64,
     scripts: 21,

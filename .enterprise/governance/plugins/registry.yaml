@@ -71,6 +71,20 @@ plugins:
     extends: ""
     requires_bundles: [core]
 
+  - id: hseos-plugin-lsp
+    version: "0.1.0"
+    status: scaffolded
+    description: "Workspace-restricted TypeScript and Python language-server queries generated from the core LSP code"
+    extends: ""
+    requires_bundles: [core]
+
+  - id: hseos-plugin-dap
+    version: "0.1.0"
+    status: scaffolded
+    description: "Scripted, bounded Node and Python debug sessions (breakpoints, stack, variables, step) generated from the core DAP code"
+    extends: ""
+    requires_bundles: [core]
+
 # Compiler emit targets
 emit_targets:
   claude-code: .claude-plugin/marketplace.json

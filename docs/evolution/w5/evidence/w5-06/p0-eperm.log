@@ -1,0 +1,35 @@
+  processos com o lock aberto:
+    PID 3630527: bash /home/annonymous/.local/bin/heavy-run --mem 2G -- node ../../node_modules/typescript/bin/tsc -p
+    PID 3630760: bash /home/annonymous/.local/bin/heavy-run --mem 6G --wait-max 3600 -- systemd-run --user --wait --c
+=== profile P0 status failed exit_code 1
+--- stdout
+
+--- stderr
+node:internal/child_process:441
+    throw new ErrnoException(err, 'spawn');
+    ^
+
+Error: spawn EPERM
+    at ChildProcess.spawn (node:internal/child_process:441:11)
+    at Object.spawn (node:child_process:796:9)
+    at [eval]:1:34
+    at runScriptInThisContext (node:internal/vm:219:10)
+    at node:internal/process/execution:451:12
+    at [eval]-wrapper:6:24
+    at runScriptInContext (node:internal/process/execution:449:60)
+    at evalFunction (node:internal/process/execution:283:30)
+    at evalTypeScript (node:internal/process/execution:295:3)
+    at node:internal/main/eval_string:71:3 {
+  errno: -1,
+  code: 'EPERM',
+  syscall: 'spawn'
+}
+
+Node.js v24.15.0
+
+=== profile P1 status succeeded exit_code 0
+--- stdout
+ECHO hi
+
+--- stderr
+

@@ -279,42 +279,8 @@ class ContextAssembler {
     };
   }
 
-  #budget(input, providerManifest, sessionRemainingTokens) {
-    const contextLimit = Math.min(providerManifest.limits.context_tokens, sessionRemainingTokens);
-    if (contextLimit < 1) throw new ContextBudgetError('session token budget is exhausted');
-    const reservedOutput = input.parameters.max_output_tokens;
-    if (reservedOutput > providerManifest.limits.max_output_tokens || reservedOutput > contextLimit) {
-      throw new ContextBudgetError('reserved output exceeds provider or session limits', {
-        context_limit_tokens: contextLimit,
-        reserved_output_tokens: reservedOutput,
-      });
-    }
-    const inputLimit = contextLimit - reservedOutput;
-    const base = this.#compose(input, [], []);
-    if (base.measurement.input_tokens > inputLimit) {
-      throw new ContextBudgetError('required model context exceeds the input budget', {
-        context_limit_tokens: contextLimit,
-        input_limit_tokens: inputLimit,
-        required_input_tokens: base.measurement.input_tokens,
-      });
-    }
-
-    const complete = this.#compose(input, input.history, input.memory, input.media);
-    if (input.overflow_policy === 'reject') {
-      if (complete.measurement.input_tokens > inputLimit) {
-        throw new ContextBudgetError('complete model context exceeds the input budget', {
-          context_limit_tokens: contextLimit,
-          input_limit_tokens: inputLimit,
-          required_input_tokens: complete.measurement.input_tokens,
-        });
-      }
-      return { composition: complete, omitted_source_refs: [], contextLimit, inputLimit, reservedOutput };
-    }
-
-    if (complete.measurement.input_tokens <= inputLimit) {
-      return { composition: complete, omitted_source_refs: [], contextLimit, inputLimit, reservedOutput };
-    }
-
+  // Greedy selection of the optional context (newest history first, then memory, then media) under the input limit.
+  #selectOptional(input, inputLimit) {
     const selectedHistory = [];
     const selectedMemory = [];
     const selectedMedia = [...input.required_media];
@@ -344,6 +310,49 @@ class ContextAssembler {
       if (candidate.measurement.input_tokens <= inputLimit) selectedMedia.push(entry);
       else omitted.push(entry.source_ref);
     }
+    return { selectedHistory, selectedMemory, selectedMedia, omitted };
+  }
+
+  #budget(input, providerManifest, sessionRemainingTokens, recordedCompaction = null) {
+    const contextLimit = Math.min(providerManifest.limits.context_tokens, sessionRemainingTokens);
+    if (contextLimit < 1) throw new ContextBudgetError('session token budget is exhausted');
+    const reservedOutput = input.parameters.max_output_tokens;
+    if (reservedOutput > providerManifest.limits.max_output_tokens || reservedOutput > contextLimit) {
+      throw new ContextBudgetError('reserved output exceeds provider or session limits', {
+        context_limit_tokens: contextLimit,
+        reserved_output_tokens: reservedOutput,
+      });
+    }
+    const inputLimit = contextLimit - reservedOutput;
+    const base = this.#compose(input, [], []);
+    if (base.measurement.input_tokens > inputLimit) {
+      throw new ContextBudgetError('required model context exceeds the input budget', {
+        context_limit_tokens: contextLimit,
+        input_limit_tokens: inputLimit,
+        required_input_tokens: base.measurement.input_tokens,
+      });
+    }
+
+    if (recordedCompaction) {
+      return this.#resumeRecordedCompaction(input, recordedCompaction, { contextLimit, inputLimit, reservedOutput });
+    }
+    const complete = this.#compose(input, input.history, input.memory, input.media);
+    if (input.overflow_policy === 'reject') {
+      if (complete.measurement.input_tokens > inputLimit) {
+        throw new ContextBudgetError('complete model context exceeds the input budget', {
+          context_limit_tokens: contextLimit,
+          input_limit_tokens: inputLimit,
+          required_input_tokens: complete.measurement.input_tokens,
+        });
+      }
+      return { composition: complete, omitted_source_refs: [], contextLimit, inputLimit, reservedOutput };
+    }
+
+    if (complete.measurement.input_tokens <= inputLimit) {
+      return { composition: complete, omitted_source_refs: [], contextLimit, inputLimit, reservedOutput };
+    }
+
+    const { selectedHistory, selectedMemory, selectedMedia, omitted } = this.#selectOptional(input, inputLimit);
     const ordinary = {
       composition: this.#compose(input, selectedHistory, selectedMemory, selectedMedia),
       omitted_source_refs: omitted.sort((left, right) => (left < right ? -1 : left > right ? 1 : 0)),
@@ -439,6 +448,66 @@ class ContextAssembler {
     };
   }
 
+  // Resume of a turn whose compaction.completed is already durable but whose context.assembled is not: the recorded
+  // replacement is reused as is. The provider is not invoked again and the compaction event is not written twice.
+  #resumeRecordedCompaction(input, recorded, { contextLimit, inputLimit, reservedOutput }) {
+    if (
+      recorded.compaction_id !== input.compaction_id ||
+      recorded.provider_id !== input.compaction_provider_id ||
+      recorded.event_id !== input.compaction_event_id
+    ) {
+      throw new ContextAssemblyError(
+        'durable compaction differs from the requested compaction identity',
+        'AGENT_CONTEXT_COMPACTION_MISMATCH',
+        { compaction_id: recorded.compaction_id },
+      );
+    }
+    const compactedIds = new Set(recorded.source_event_ids);
+    const retainedIds = new Set(recorded.retained_source_event_ids);
+    const compactedHistory = orderedHistory(input.history).filter((entry) => compactedIds.has(entry.source_event_id));
+    const retainedHistory = orderedHistory(input.history).filter((entry) => retainedIds.has(entry.source_event_id));
+    if (compactedHistory.length !== compactedIds.size || retainedHistory.length !== retainedIds.size) {
+      throw new ContextAssemblyError('durable compaction no longer partitions the durable history', 'AGENT_CONTEXT_COMPACTION_MISMATCH', {
+        compaction_id: recorded.compaction_id,
+      });
+    }
+    const replacement = {
+      source_event_id: recorded.event_id,
+      source_ref: `session-event://${recorded.event_id}`,
+      sequence: compactedHistory[0].sequence,
+      message: recorded.replacement_messages[0],
+    };
+    const history = [replacement, ...retainedHistory];
+    // Same selection and same rejection loop as the original attempt: memory leaves from the end until it fits.
+    const { selectedMemory, selectedMedia } = this.#selectOptional(input, inputLimit);
+    const retainedMemory = orderedMemory(selectedMemory);
+    const omittedMemoryRefs = input.memory
+      .filter((entry) => !retainedMemory.some((retained) => retained.source_ref === entry.source_ref))
+      .map((entry) => entry.source_ref);
+    while (
+      retainedMemory.length > 0 &&
+      this.#compose(input, history, retainedMemory, selectedMedia).measurement.input_tokens > inputLimit
+    ) {
+      omittedMemoryRefs.push(retainedMemory.pop().source_ref);
+    }
+    const composition = this.#compose(input, history, retainedMemory, selectedMedia);
+    if (composition.measurement.input_tokens > inputLimit) {
+      throw new ContextBudgetError('recorded compaction replacement cannot fit the model input budget');
+    }
+    return {
+      composition,
+      omitted_source_refs: [
+        ...compactedHistory.map((entry) => entry.source_ref),
+        ...omittedMemoryRefs,
+        ...input.media.filter((entry) => !selectedMedia.includes(entry)).map((entry) => entry.source_ref),
+      ].sort(),
+      contextLimit,
+      inputLimit,
+      reservedOutput,
+      compaction: null,
+    };
+  }
+
   // Rejects media before any effect: provider capability, counter support, then bytes against digest/size/magic.
   #verifiedMediaTokens(media, providerManifest) {
     const tokens = new Map();
@@ -485,7 +554,15 @@ class ContextAssembler {
       media_tokens: mediaTokens,
       required_media: input.media.filter((media) => requiredRefs.has(media.source_ref)),
     };
-    const budgeted = this.#budget(enrichedInput, providerManifest, remainingSessionTokens(durableState, input.turn_id));
+    const recordedCompaction = durableTurn.request ? null : (durableTurn.context_compaction ?? null);
+    if (recordedCompaction && input.overflow_policy !== 'compact') {
+      throw new ContextAssemblyError(
+        'a durable compaction requires the compact overflow policy to resume',
+        'AGENT_CONTEXT_COMPACTION_MISMATCH',
+        { compaction_id: recordedCompaction.compaction_id },
+      );
+    }
+    const budgeted = this.#budget(enrichedInput, providerManifest, remainingSessionTokens(durableState, input.turn_id), recordedCompaction);
     const useV2 = declaredV2 || input.media.length > 0;
     const request = parseContract(
       budgeted.composition.parts.length > 0 ? ModelRequestV2Schema : ModelRequestSchema,

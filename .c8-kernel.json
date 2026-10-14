@@ -71,7 +71,14 @@
     "tools/state-ui-server/lib/snapshot-multi.js",
     "tools/lib/activity-coordination/*.js",
     "tools/cli/commands/activity.js",
-    "tools/cli/lib/activity-adapters/*.js"
+    "tools/cli/lib/activity-adapters/*.js",
+    "packages/agent-environment/framing.js",
+    "packages/agent-environment/lsp.js",
+    "packages/agent-environment/lsp-host.js",
+    "packages/agent-environment/dap.js",
+    "packages/agent-environment/dap-host.js",
+    "tools/lib/environment-toolchain-pins.js",
+    "tools/lib/environment-plugin-pack.js"
   ],
   "exclude": ["**/node_modules/**", "test/**"],
   "reporter": ["text", "json-summary", "json"],

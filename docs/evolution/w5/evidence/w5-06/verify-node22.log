@@ -1,0 +1,230 @@
+v22.23.3
+TAP version 13
+# Subtest: the dap pack is generated from the very same files the core ships (identical digests)
+ok 1 - the dap pack is generated from the very same files the core ships (identical digests)
+  ---
+  duration_ms: 29.298614
+  type: 'test'
+  ...
+# Subtest: the dap pack stays inside 40 entries and 1 MB and carries no binary or pin
+ok 2 - the dap pack stays inside 40 entries and 1 MB and carries no binary or pin
+  ---
+  duration_ms: 2.613933
+  type: 'test'
+  ...
+# Subtest: the dap pack shares the very same core entry points as the lsp pack and adds only the debug files
+ok 3 - the dap pack shares the very same core entry points as the lsp pack and adds only the debug files
+  ---
+  duration_ms: 0.220442
+  type: 'test'
+  ...
+# Subtest: the capability loads lazily: requiring the package never loads the pin installer
+ok 4 - the capability loads lazily: requiring the package never loads the pin installer
+  ---
+  duration_ms: 58.876742
+  type: 'test'
+  ...
+# Subtest: the governance definition and registry entry exist for the plugin
+ok 5 - the governance definition and registry entry exist for the plugin
+  ---
+  duration_ms: 0.482564
+  type: 'test'
+  ...
+# measured python: pids_peak=23 memory_peak_bytes=87158784
+# Subtest: real python adapter: breakpoint, stack, variables, step and termination, workspace untouched
+ok 6 - real python adapter: breakpoint, stack, variables, step and termination, workspace untouched
+  ---
+  duration_ms: 2458.405014
+  type: 'test'
+  ...
+# measured node: pids_peak=36 memory_peak_bytes=102363136
+# Subtest: real node adapter: breakpoint, stack, variables, step and termination, workspace untouched
+ok 7 - real node adapter: breakpoint, stack, variables, step and termination, workspace untouched
+  ---
+  duration_ms: 2874.646937
+  type: 'test'
+  ...
+# Subtest: real adapters: stepIn, stepOut, depth 2 children, a program without breakpoints, a module launch and stack-less capture
+ok 8 - real adapters: stepIn, stepOut, depth 2 children, a program without breakpoints, a module launch and stack-less capture
+  ---
+  duration_ms: 7762.483883
+  type: 'test'
+  ...
+# Subtest: input validation refuses malformed requests, and everything that would run code in the debuggee, before anything runs
+ok 9 - input validation refuses malformed requests, and everything that would run code in the debuggee, before anything runs
+  ---
+  duration_ms: 4.179208
+  type: 'test'
+  ...
+# Subtest: the host client only ever sends allow-listed requests: evaluate, setVariable, setExpression, restartFrame never reach the wire
+ok 10 - the host client only ever sends allow-listed requests: evaluate, setVariable, setExpression, restartFrame never reach the wire
+  ---
+  duration_ms: 316.598711
+  type: 'test'
+  ...
+# Subtest: the host client reports a failed response, a framing violation and a vanished adapter with stable codes
+ok 11 - the host client reports a failed response, a framing violation and a vanished adapter with stable codes
+  ---
+  duration_ms: 6.847823
+  type: 'test'
+  ...
+# Subtest: files outside the root (.., absolute, symlink, encoded) are refused as ENV_DAP_OUT_OF_SCOPE and recorded, without a sandbox
+ok 12 - files outside the root (.., absolute, symlink, encoded) are refused as ENV_DAP_OUT_OF_SCOPE and recorded, without a sandbox
+  ---
+  duration_ms: 11.557184
+  type: 'test'
+  ...
+# Subtest: generated matrix: the scope verdict equals the kernel for every link/parent combination, for breakpoints, program and cwd
+ok 13 - generated matrix: the scope verdict equals the kernel for every link/parent combination, for breakpoints, program and cwd
+  ---
+  duration_ms: 41.134249
+  type: 'test'
+  ...
+# Subtest: a workspace root that is itself a symlink is resolved first: inside stays inside, escapes stay out
+ok 14 - a workspace root that is itself a symlink is resolved first: inside stays inside, escapes stay out
+  ---
+  duration_ms: 2.543243
+  type: 'test'
+  ...
+# Subtest: a breakpoint outside /workspace is refused by the real service too, and the sandbox is never entered
+ok 15 - a breakpoint outside /workspace is refused by the real service too, and the sandbox is never entered
+  ---
+  duration_ms: 1.469582
+  type: 'test'
+  ...
+# P0 evidence: status=failed stderr="node:internal/child_process:420"
+# Subtest: a P0 policy cannot host an adapter and is reported as blocked, with the real denial as evidence
+ok 16 - a P0 policy cannot host an adapter and is reported as blocked, with the real denial as evidence
+  ---
+  duration_ms: 111.921555
+  type: 'test'
+  ...
+# Subtest: the sandbox really mounts the workspace and the toolchain read-only (EROFS), and the scratch tmpfs stays writable
+ok 17 - the sandbox really mounts the workspace and the toolchain read-only (EROFS), and the scratch tmpfs stays writable
+  ---
+  duration_ms: 210.357584
+  type: 'test'
+  ...
+# Subtest: a missing toolchain, pin or adapter is BLOCKED with its cause, never an empty result
+ok 18 - a missing toolchain, pin or adapter is BLOCKED with its cause, never an empty result
+  ---
+  duration_ms: 33.317734
+  type: 'test'
+  ...
+# Subtest: executor failures and unreadable host output are refused with a stable code, and the drain evidence is kept
+ok 19 - executor failures and unreadable host output are refused with a stable code, and the drain evidence is kept
+  ---
+  duration_ms: 2.142405
+  type: 'test'
+  ...
+# Subtest: a large host result arrives through the artifact channel and only a verified manifest is accepted
+ok 20 - a large host result arrives through the artifact channel and only a verified manifest is accepted
+  ---
+  duration_ms: 1.545966
+  type: 'test'
+  ...
+# Subtest: results are normalised: paths are root-relative or withheld, values are truncated with a marker, malformed results are refused
+ok 21 - results are normalised: paths are root-relative or withheld, values are truncated with a marker, malformed results are refused
+  ---
+  duration_ms: 7.69936
+  type: 'test'
+  ...
+# Subtest: the default service wires the real executor and artifact channel lazily
+ok 22 - the default service wires the real executor and artifact channel lazily
+  ---
+  duration_ms: 0.956708
+  type: 'test'
+  ...
+# Subtest: python: a debuggee that never stops ends at the timeout and drains, leaving no descendant in the cgroup or in /proc
+ok 23 - python: a debuggee that never stops ends at the timeout and drains, leaving no descendant in the cgroup or in /proc
+  ---
+  duration_ms: 6140.183975
+  type: 'test'
+  ...
+# Subtest: node: a debuggee that never stops ends at the timeout and drains, leaving no descendant in the cgroup or in /proc
+ok 24 - node: a debuggee that never stops ends at the timeout and drains, leaving no descendant in the cgroup or in /proc
+  ---
+  duration_ms: 6230.586345
+  type: 'test'
+  ...
+# Subtest: the executor timeout itself (a host that cannot answer) kills and drains the whole cgroup, detached descendants included
+ok 25 - the executor timeout itself (a host that cannot answer) kills and drains the whole cgroup, detached descendants included
+  ---
+  duration_ms: 3072.958183
+  type: 'test'
+  ...
+# Subtest: host protocol failures have stable codes: refused initialize, garbage framing, a dying adapter, no listener, a silent adapter, bad input
+ok 26 - host protocol failures have stable codes: refused initialize, garbage framing, a dying adapter, no listener, a silent adapter, bad input
+  ---
+  duration_ms: 4604.400241
+  type: 'test'
+  ...
+# Subtest: host drives a scripted adapter: reverse requests are refused, output is bounded, lists and frames are cut, stops are limited
+ok 27 - host drives a scripted adapter: reverse requests are refused, output is bounded, lists and frames are cut, stops are limited
+  ---
+  duration_ms: 3173.881154
+  type: 'test'
+  ...
+# Subtest: only js-debug's own child configuration is honoured for startDebugging; anything with program, runtime or arguments is refused
+ok 28 - only js-debug's own child configuration is honoured for startDebugging; anything with program, runtime or arguments is refused
+  ---
+  duration_ms: 1.393062
+  type: 'test'
+  ...
+# Subtest: host output is inline when small and a verified artifact manifest when large
+ok 29 - host output is inline when small and a verified artifact manifest when large
+  ---
+  duration_ms: 5.970989
+  type: 'test'
+  ...
+# Subtest: host main prints ok on success and a stable code on failure
+ok 30 - host main prints ok on success and a stable code on failure
+  ---
+  duration_ms: 1867.144417
+  type: 'test'
+  ...
+# Subtest: crc32 matches the published check values
+ok 31 - crc32 matches the published check values
+  ---
+  duration_ms: 0.604145
+  type: 'test'
+  ...
+# Subtest: the real cache verifies SHA-256 and the licence text inside debugpy and js-debug, and installs offline
+ok 32 - the real cache verifies SHA-256 and the licence text inside debugpy and js-debug, and installs offline
+  ---
+  duration_ms: 103.42878
+  type: 'test'
+  ...
+# Subtest: a coherent zip installs from the verified bytes; stored and deflated members are both extracted, with their CRC checked
+ok 33 - a coherent zip installs from the verified bytes; stored and deflated members are both extracted, with their CRC checked
+  ---
+  duration_ms: 2.933093
+  type: 'test'
+  ...
+# Subtest: every unsafe or inconsistent zip (links, traversal, duplicates, file/directory clashes, bad sizes) is BLOCKED before anything is touched
+ok 34 - every unsafe or inconsistent zip (links, traversal, duplicates, file/directory clashes, bad sizes) is BLOCKED before anything is touched
+  ---
+  duration_ms: 23.406571
+  type: 'test'
+  ...
+# Subtest: zip pins diverge, go missing or fail the licence check with their own codes
+ok 35 - zip pins diverge, go missing or fail the licence check with their own codes
+  ---
+  duration_ms: 2.540649
+  type: 'test'
+  ...
+# Subtest: a tar pin may use its own root prefix, and a member outside that root is refused
+ok 36 - a tar pin may use its own root prefix, and a member outside that root is refused
+  ---
+  duration_ms: 105.427639
+  type: 'test'
+  ...
+1..36
+# tests 36
+# suites 0
+# pass 36
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 41001.170669

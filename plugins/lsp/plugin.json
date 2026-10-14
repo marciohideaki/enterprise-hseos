@@ -1,0 +1,17 @@
+{
+  "schema": "hseos.environment-plugin.v1",
+  "id": "hseos-plugin-lsp",
+  "capability": "lsp",
+  "version": "0.1.0",
+  "profile": "P1",
+  "load": { "strategy": "lazy", "entry": "packages/agent-environment/index.js" },
+  "core_files": [
+    "packages/agent-environment/package.json",
+    "packages/agent-environment/index.js",
+    "packages/agent-environment/framing.js",
+    "packages/agent-environment/lsp.js",
+    "packages/agent-environment/lsp-host.js",
+    "tools/lib/environment-toolchain-pins.js"
+  ],
+  "toolchain_pins": ["typescript-language-server", "typescript", "pyright"]
+}

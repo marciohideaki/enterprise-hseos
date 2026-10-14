@@ -1,0 +1,295 @@
+heavy-run: modo normal (load1=1.40 phys=6 avail=19707MiB need=6G mem.psi=0.00 io.psi.full=0.02)
+Delegated test cgroup controllers verified
+v22.23.3
+TAP version 13
+# Subtest: real typescript server answers diagnostics read-only and returns untrusted data
+ok 1 - real typescript server answers diagnostics read-only and returns untrusted data
+  ---
+  duration_ms: 1389.600669
+  type: 'test'
+  ...
+# Subtest: real typescript server answers definition read-only and returns untrusted data
+ok 2 - real typescript server answers definition read-only and returns untrusted data
+  ---
+  duration_ms: 725.416499
+  type: 'test'
+  ...
+# Subtest: real typescript server answers references read-only and returns untrusted data
+ok 3 - real typescript server answers references read-only and returns untrusted data
+  ---
+  duration_ms: 745.917956
+  type: 'test'
+  ...
+# Subtest: real typescript server answers hover read-only and returns untrusted data
+ok 4 - real typescript server answers hover read-only and returns untrusted data
+  ---
+  duration_ms: 707.124046
+  type: 'test'
+  ...
+# Subtest: real typescript server answers rename_preview read-only and returns untrusted data
+ok 5 - real typescript server answers rename_preview read-only and returns untrusted data
+  ---
+  duration_ms: 729.315339
+  type: 'test'
+  ...
+# Subtest: real python server answers diagnostics read-only and returns untrusted data
+ok 6 - real python server answers diagnostics read-only and returns untrusted data
+  ---
+  duration_ms: 1051.872082
+  type: 'test'
+  ...
+# Subtest: real python server answers definition read-only and returns untrusted data
+ok 7 - real python server answers definition read-only and returns untrusted data
+  ---
+  duration_ms: 577.391719
+  type: 'test'
+  ...
+# Subtest: real python server answers references read-only and returns untrusted data
+ok 8 - real python server answers references read-only and returns untrusted data
+  ---
+  duration_ms: 520.022814
+  type: 'test'
+  ...
+# Subtest: real python server answers hover read-only and returns untrusted data
+ok 9 - real python server answers hover read-only and returns untrusted data
+  ---
+  duration_ms: 530.363263
+  type: 'test'
+  ...
+# Subtest: real python server answers rename_preview read-only and returns untrusted data
+ok 10 - real python server answers rename_preview read-only and returns untrusted data
+  ---
+  duration_ms: 520.193758
+  type: 'test'
+  ...
+# Subtest: a location outside the workspace root reported by the real server is refused and recorded
+ok 11 - a location outside the workspace root reported by the real server is refused and recorded
+  ---
+  duration_ms: 407.892824
+  type: 'test'
+  ...
+# Subtest: a P0 policy cannot host a language server and is reported as blocked
+ok 12 - a P0 policy cannot host a language server and is reported as blocked
+  ---
+  duration_ms: 0.926483
+  type: 'test'
+  ...
+# Subtest: input validation refuses malformed requests before anything runs
+ok 13 - input validation refuses malformed requests before anything runs
+  ---
+  duration_ms: 0.992133
+  type: 'test'
+  ...
+# Subtest: files outside the root (.., absolute, symlink) are refused and recorded without launching a server
+ok 14 - files outside the root (.., absolute, symlink) are refused and recorded without launching a server
+  ---
+  duration_ms: 1.412262
+  type: 'test'
+  ...
+# Subtest: a missing toolchain, pin or server binary is BLOCKED with its cause, never an empty result
+ok 15 - a missing toolchain, pin or server binary is BLOCKED with its cause, never an empty result
+  ---
+  duration_ms: 1.583866
+  type: 'test'
+  ...
+# Subtest: executor failures and unreadable host output are refused with a stable code
+ok 16 - executor failures and unreadable host output are refused with a stable code
+  ---
+  duration_ms: 1.744658
+  type: 'test'
+  ...
+# Subtest: a large host result arrives through the artifact channel and only a verified manifest is accepted
+ok 17 - a large host result arrives through the artifact channel and only a verified manifest is accepted
+  ---
+  duration_ms: 1.064031
+  type: 'test'
+  ...
+# Subtest: every reported location is mapped to a root-relative path or the whole call is refused
+ok 18 - every reported location is mapped to a root-relative path or the whole call is refused
+  ---
+  duration_ms: 4.262535
+  type: 'test'
+  ...
+# Subtest: targets that do not exist yet are resolved through their existing ancestor and symlinks before the scope check
+ok 19 - targets that do not exist yet are resolved through their existing ancestor and symlinks before the scope check
+  ---
+  duration_ms: 7.628391
+  type: 'test'
+  ...
+# Subtest: the sandbox really mounts the workspace and the toolchain read-only (EROFS), not just by label
+ok 20 - the sandbox really mounts the workspace and the toolchain read-only (EROFS), not just by label
+  ---
+  duration_ms: 211.157171
+  type: 'test'
+  ...
+# Subtest: P0 forbids child processes with pipes (spawn EPERM) while P1 allows them: the reason LSP needs P1
+ok 21 - P0 forbids child processes with pipes (spawn EPERM) while P1 allows them: the reason LSP needs P1
+  ---
+  duration_ms: 115.235315
+  type: 'test'
+  ...
+# Subtest: diagnostics, hover and rename previews are normalised, bounded and never applied
+ok 22 - diagnostics, hover and rename previews are normalised, bounded and never applied
+  ---
+  duration_ms: 10.645329
+  type: 'test'
+  ...
+# Subtest: the default service wires the real executor and artifact channel lazily
+ok 23 - the default service wires the real executor and artifact channel lazily
+  ---
+  duration_ms: 0.989015
+  type: 'test'
+  ...
+# Subtest: Content-Length framing round-trips, reassembles split chunks and refuses every violation
+ok 24 - Content-Length framing round-trips, reassembles split chunks and refuses every violation
+  ---
+  duration_ms: 1.860302
+  type: 'test'
+  ...
+# Subtest: host reports protocol failures with stable codes
+ok 25 - host reports protocol failures with stable codes
+  ---
+  duration_ms: 1045.585855
+  type: 'test'
+  ...
+# Subtest: host answers server requests, accepts null results and shuts the server down
+ok 26 - host answers server requests, accepts null results and shuts the server down
+  ---
+  duration_ms: 703.182122
+  type: 'test'
+  ...
+# Subtest: host lists are bounded and report the real total
+ok 27 - host lists are bounded and report the real total
+  ---
+  duration_ms: 0.404264
+  type: 'test'
+  ...
+# Subtest: host output is inline when small and a verified artifact manifest when large
+ok 28 - host output is inline when small and a verified artifact manifest when large
+  ---
+  duration_ms: 2.000315
+  type: 'test'
+  ...
+# Subtest: host main prints ok on success and a stable code on failure
+ok 29 - host main prints ok on success and a stable code on failure
+  ---
+  duration_ms: 484.636177
+  type: 'test'
+  ...
+# Subtest: the real cache verifies SHA-256 and licence text inside each pinned artifact and installs offline
+ok 30 - the real cache verifies SHA-256 and licence text inside each pinned artifact and installs offline
+  ---
+  duration_ms: 0.482953
+  type: 'test'
+  ...
+# Subtest: a coherent fixture cache installs and every divergence is BLOCKED with its own code
+ok 31 - a coherent fixture cache installs and every divergence is BLOCKED with its own code
+  ---
+  duration_ms: 66.711206
+  type: 'test'
+  ...
+# Subtest: the cache location is configuration: unset or relative means BLOCKED, the environment variable is honoured
+ok 32 - the cache location is configuration: unset or relative means BLOCKED, the environment variable is honoured
+  ---
+  duration_ms: 0.27882
+  type: 'test'
+  ...
+# Subtest: a real tar with a ../ member is refused before anything is extracted
+ok 33 - a real tar with a ../ member is refused before anything is extracted
+  ---
+  duration_ms: 131.183179
+  type: 'test'
+  ...
+# Subtest: hash and extraction use the same bytes, and a re-install starts from a clean destination
+ok 34 - hash and extraction use the same bytes, and a re-install starts from a clean destination
+  ---
+  duration_ms: 18.53847
+  type: 'test'
+  ...
+# Subtest: a pending link seen through a symlinked parent is resolved against the REAL directory (reviewer case)
+ok 35 - a pending link seen through a symlinked parent is resolved against the REAL directory (reviewer case)
+  ---
+  duration_ms: 4.751228
+  type: 'test'
+  ...
+# Subtest: generated matrix: resolveReal and the scope verdict equal the kernel for every link/parent combination
+ok 36 - generated matrix: resolveReal and the scope verdict equal the kernel for every link/parent combination
+  ---
+  duration_ms: 23.547661
+  type: 'test'
+  ...
+# Subtest: a pack copies the listed core files, is deterministic and records a digest per entry
+ok 37 - a pack copies the listed core files, is deterministic and records a digest per entry
+  ---
+  duration_ms: 10.177982
+  type: 'test'
+  ...
+# Subtest: a changed core file changes the digest
+ok 38 - a changed core file changes the digest
+  ---
+  duration_ms: 1.502361
+  type: 'test'
+  ...
+# Subtest: an invalid or missing manifest is refused
+ok 39 - an invalid or missing manifest is refused
+  ---
+  duration_ms: 3.385373
+  type: 'test'
+  ...
+# Subtest: a plugin must load lazily from one of its own files
+ok 40 - a plugin must load lazily from one of its own files
+  ---
+  duration_ms: 0.671921
+  type: 'test'
+  ...
+# Subtest: more than 40 entries is refused, 40 is accepted
+ok 41 - more than 40 entries is refused, 40 is accepted
+  ---
+  duration_ms: 4.236605
+  type: 'test'
+  ...
+# Subtest: unsafe paths, binaries, pins, links and missing files never enter a tarball
+ok 42 - unsafe paths, binaries, pins, links and missing files never enter a tarball
+  ---
+  duration_ms: 3.373481
+  type: 'test'
+  ...
+# Subtest: size limits apply to the unpacked content, the tarball and the entry names
+ok 43 - size limits apply to the unpacked content, the tarball and the entry names
+  ---
+  duration_ms: 23.778811
+  type: 'test'
+  ...
+# Subtest: the lsp pack is generated from the very same files the core ships (identical digests)
+ok 44 - the lsp pack is generated from the very same files the core ships (identical digests)
+  ---
+  duration_ms: 23.927273
+  type: 'test'
+  ...
+# Subtest: the lsp pack stays inside 40 entries and 1 MB and carries no binary or pin
+ok 45 - the lsp pack stays inside 40 entries and 1 MB and carries no binary or pin
+  ---
+  duration_ms: 1.617949
+  type: 'test'
+  ...
+# Subtest: the capability loads lazily: requiring the package never loads the pin installer
+ok 46 - the capability loads lazily: requiring the package never loads the pin installer
+  ---
+  duration_ms: 56.30599
+  type: 'test'
+  ...
+# Subtest: the governance definition and registry entry exist for the plugin
+ok 47 - the governance definition and registry entry exist for the plugin
+  ---
+  duration_ms: 0.395614
+  type: 'test'
+  ...
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13618.593699
