@@ -25,7 +25,7 @@ externa; `xdotool`, `pyright`, `typescript-language-server`, `debugpy` e `python
 | W5-01                                    | contratos concluídos; verificação a reexecutar por quem integrar | não aplicável   | não autorizada |
 | W5-02a / W5-02b1 / W5-02b2 / W5-04       | integradas e verificadas na B1 (seção "Integração da onda B1")   | não verificado  | não autorizada |
 | W5-LV1 / W5-LV2 / W5-CO1 / W5-CO2        | integradas e verificadas na B1 (seção "Integração da onda B1")   | não verificado  | não autorizada |
-| W5-03 / W5-05 / W5-06                    | não verificado                                                   | não verificado  | não autorizada |
+| W5-03 / W5-05 / W5-06                    | integradas e verificadas na B2 (seção "Integração da onda B2")   | não verificado  | não autorizada |
 | W5-07 / W5-08 / W5-09                    | não verificado                                                   | não verificado  | não autorizada |
 | W5-10 / W5-10b / W5-11a / W5-11b / W5-12 | não verificado                                                   | não verificado  | não autorizada |
 
@@ -144,3 +144,54 @@ Origem: revisão da integração (aprovada em `260da30f` com ressalvas F1 a F5).
 ### Revisão final da integração
 
 A revisão cética aprovou a integração em `260da30f` com as ressalvas F1 a F5. A rodada 1 de correção (`53ed7624`, `78b617f1`, `778bc5e7`) fechou todas, e a revisão do delta aprovou `778bc5e7`, ficando só o G1 como resíduo baixo. Relatórios: `REVIEW-W5-INT.md` e `REVIEW2-W5-INT.md`.
+
+## Integração da onda B2 (2026-10-14)
+
+Branch `integration/hseos-w5-b2`, parte de `feature/hseos-evolution-w5` (`1816e9e5`, depois da PR #218). HEAD verificado: `577207c5`. Ordem dos merges (`--no-ff`):
+W5-03 `833fcd20` (merge `7205977e`; 2 rodadas de revisão) e W5-06 `d5fb5a28` (merge `39eb7d06`; 2 rodadas), que traz a W5-05 `7c8623ee` (4 rodadas de revisão, 3 de correção), porque a W5-06 é empilhada sobre ela.
+Único conflito: a lista `test:kernel` do `package.json`, resolvida por união. Receipt: [evidence/integration-b2/receipt.json](evidence/integration-b2/receipt.json).
+
+Correções da integração (um commit cada): design §5.1, o LSP roda em P1 (`d432538e`); design §5.2, desvios aprovados do DAP (`ac1e1d99`); testes do LSP restritos aos pins do LSP (`577207c5`).
+
+**Decisão G3 pendente de confirmação do owner.** O owner decidiu em 2026-10-13 `.agents` 205 com o teto 1556 inalterado. Como a soma dos orçamentos por área já era exatamente o teto, o Commander aplicou a realocação `.enterprise` 484 → 472 (o owner não respondeu à pergunta corrigida dentro do prazo). Medido nesta integração: `.agents` 194 e `.enterprise` 455.
+Com o orçamento anterior da `.agents` (193) o medido já estourava por 1; a `.enterprise` passa com 17 entradas de folga em 472, e essa folga é a que as ondas seguintes (W5-07 a W5-12) consumiriam.
+Alternativas: (a) confirmar `.agents` 205 e `.enterprise` 472; (b) subir o teto para 1568 e manter a `.enterprise` em 484; (c) só o medido, `.agents` 194 e `.enterprise` 483.
+
+**Desvios aprovados registrados no design:** o LSP roda em P1 (P0 falha com `spawn EPERM`, recusa `ENV_LSP_PROFILE_INSUFFICIENT`); no DAP, breakpoint só com `file` e `line` (sem `condition`, `hitCondition`, `logMessage`), frames fora do workspace com `path: null` e `external: true`, e `startDebugging` por allow-list estrita (necessário ao `js-debug`).
+
+### Resultados da verificação (Fase 3, B2)
+
+| Verificação                                                               | Resultado                                                                                                                                                                                            |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| verify literal da W5-06                                                   | exit 0                                                                                                                                                                                               |
+| verify literal da W5-03                                                   | **exit 1**: `schemas.js` 87,75% linhas / 65,78% branches. O `tasks.md` manda a task de só teste tirar do `--include` o que não alterou; o recibo aprovado fez isso e nenhuma task tocou `schemas.js` |
+| W5-03 com o comando do recibo aprovado                                    | exit 0, 48 testes; `context-assembler.js` 90,07% linhas / 85,63% branches (margem de 0,07 pp, igual à da task isolada)                                                                               |
+| verify literal da W5-05                                                   | **exit 1**: `environment-toolchain-pins.js` 77,31% branches. O arquivo é compartilhado: a W5-06 acrescentou os pins e ramos do DAP, que os testes da W5-05 não exercitam                             |
+| `npm run test:kernel-coverage` completo, rodada 1                         | **exit 1**, 3 testes reprovados: 2 defeitos reais de integração (corrigidos em `577207c5`) e 1 corrida de relógio pré-existente no teste de liveness (resíduo abaixo)                                |
+| `npm run test:kernel-coverage` completo, rodada 2 (`577207c5`)            | exit 0; 0 blocos com falha; todos os arquivos 97,51% linhas / 92,25% branches; `environment-toolchain-pins.js` 100 / 98,57                                                                           |
+| `npm test` e `npm run test:kernel`, Node 24.15.0                          | exit 0 e exit 0                                                                                                                                                                                      |
+| `npm test` e `npm run test:kernel`, Node 22.23.3 (clone, ABI 22)          | exit 0 e exit 0                                                                                                                                                                                      |
+| inventário (npm 24) e `test-package-surface.js`                           | 1505 de 1556; `.enterprise` 455/472, `tools` 389/393, `src` 245/250, `.agents` 194/205, `packages` 126/137, `.hseos` 63/64, `scripts` 19/21, `docs` 7/7, raiz 7/7. Exit 0 no teste. G3 pendente      |
+| `validate-capability-graph`, `agent-core compile --check`                 | exit 0; 242 checks, sem escrita                                                                                                                                                                      |
+| `VALIDATION_ENFORCED=true scripts/governance/quality-gates.sh --phase ci` | exit 0; 0 falhas, 2 avisos (placeholders em `epics-template.md` e `docs/activity-coordination/README.md`, não tocados pela B2)                                                                       |
+| eslint (`--max-warnings=0`)                                               | roda dentro do `npm test`; exit 0 nas duas versões do Node                                                                                                                                           |
+| prettier nos arquivos tocados                                             | 7 arquivos da W5-05 fora do estilo, todos já reprovando em `7c8623ee`; `format:check` não faz parte de `npm test` nem do pre-commit. Não reformatados                                                |
+
+Os dois verifies literais com exit 1 ficam registrados como FAIL medido, e não como PASS: a causa de cada um está na tabela, e o gate de cobertura que vale para arquivos compartilhados é o `test:kernel-coverage` completo (rodada 2).
+
+### Resíduos a registrar (B2)
+
+- **Plugins:** `hseos-plugin-lsp` e `hseos-plugin-dap` ficam `scaffolded`; a ativação vem depois do G6.
+- **`contract-registry.js`:** os stubs `environment.lsp.*` e `environment.dap.*` seguem intocados. Os schemas `LSP_INPUT_SCHEMA` e `LSP_OUTPUT_SCHEMA` já estão exportados para a troca futura.
+- **W5-03:** a guarda de partição do `context-assembler.js` é inalcançável pela API pública (defesa em profundidade); a margem de cobertura de linhas é de 0,07 pp.
+- **W5-05:** a licença dos pins é conferida por marcadores de texto, não pelo texto integral; `/usr/bin/node` fixo no comando do sandbox do LSP; o decode do URI inteiro recusa `%` inválido fora de `file:` (fail-closed).
+- **W5-06:** `childConfiguration.name` sem validação de tipo nem de tamanho; filhos: o controlador aceita até 50 e o host corta em 20.
+- **02b1:** `profiles.js` `openSeccompDescriptor` usa só `rmdirSync`, o que pode vazar `hseos-profile-filter-*` em falha depois do `wx`.
+- **Liveness (pré-existente, não tocado pela B2):** `test/test-agent-liveness.js:1950` tem uma corrida de relógio. Com `watch_interval_s: 0` o orçamento de `deliverOutbox` é 0 ms e o laço sai se `Date.now() - startedAt > 0`; o `DELETE` e o `SELECT` anteriores normalmente cabem no mesmo milissegundo, mas sob c8 com 815 testes podem passar dele e a entrega fica em 0. Reprovou na rodada 1 do `test:kernel-coverage` e passou 3 de 3 isolado. Correção própria, na onda de liveness.
+- **Verify literal da W5-05 sobre arquivo compartilhado:** o per-file de 90/80 da task não vale para `environment-toolchain-pins.js` depois da W5-06; o gate é o `test:kernel-coverage` completo. Vale ajustar o `tasks.md` para as próximas ondas.
+- **Formatação:** os 7 arquivos da W5-05 listados no receipt.
+- **`/build` cheio:** o volume chegou a 100% (62 MB livres) e a primeira tentativa de commit do merge da W5-06 reprovou no pre-commit com `ENOSPC`. Foi liberado só o scratch dos gates (`/build/hseos-qg-tmp`, 1,5 GB de resíduo de testes). Margem atual de cerca de 1,4 GB: precisa de limpeza antes da B3.
+
+### Revisão cética da integração B2
+
+Pendente nesta versão do documento: o relatório entra em `REVIEW-W5-B2-INT.md` e é registrado aqui depois da revisão.
