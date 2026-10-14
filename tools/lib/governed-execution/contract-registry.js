@@ -213,15 +213,9 @@ const NOT_IMPLEMENTED_SCHEMA = Object.freeze({
 });
 
 // Versioned contract stubs for the W5 capabilities (design 5). No provider exists: every call fails closed until the
-// owning task (W5-05..W5-09) replaces the stub with the real schema. Names follow environment.<capability>.<action>.
+// owning task (W5-07..W5-09) replaces the stub with the real schema. Names follow environment.<capability>.<action>.
 const CAPABILITY_CONTRACT_STUBS = Object.freeze(
   [
-    ['environment.lsp.diagnostics', 'read_only', false],
-    ['environment.lsp.definition', 'read_only', false],
-    ['environment.lsp.references', 'read_only', false],
-    ['environment.lsp.hover', 'read_only', false],
-    ['environment.lsp.rename_preview', 'read_only', false],
-    ['environment.dap.run', 'read_only', false],
     ['environment.browser.run', 'read_only', false],
     ['environment.computer.start', 'irreversible_mutation', true],
     ['environment.computer.act', 'irreversible_mutation', true],
@@ -252,13 +246,60 @@ const CAPABILITY_CONTRACT_STUBS = Object.freeze(
   }),
 );
 
+// Real contracts of the shipped environment providers (LSP, W5-05; DAP, W5-06). The schemas are the providers' own, loaded
+// on first use so requiring the registry never pulls the environment package (the LSP pack does not carry dap.js).
+const lspSchema = (name, action) => ({
+  version: 1,
+  safeParse(value) {
+    const { LSP_INPUT_SCHEMA, LSP_OUTPUT_SCHEMA } = require('../../../packages/agent-environment/lsp');
+    const schema = name === 'input' ? LSP_INPUT_SCHEMA : LSP_OUTPUT_SCHEMA;
+    if (name === 'input' && value && typeof value === 'object' && value.action !== action) {
+      return { success: false, error: { hseos_code: 'ENV_LSP_INPUT_INVALID', issues: [{ message: `action must be ${action}` }] } };
+    }
+    return schema.safeParse(value);
+  },
+});
+const dapSchema = (name) => ({
+  version: 1,
+  safeParse(value) {
+    const { DAP_INPUT_SCHEMA, DAP_OUTPUT_SCHEMA } = require('../../../packages/agent-environment/dap');
+    return (name === 'input' ? DAP_INPUT_SCHEMA : DAP_OUTPUT_SCHEMA).safeParse(value);
+  },
+});
+const environmentContract = (name, capability, input_schema, output_schema, timeout_ms) =>
+  Object.freeze({
+    name,
+    capability,
+    contract_version: 1,
+    status: 'implemented',
+    provider: 'agent-environment',
+    authority: `${capability}.read`,
+    policy_version: 'hseos-w5-environment-v1',
+    reversibility: 'read_only',
+    cancellation_policy: 'cooperative',
+    failure_mode: 'fail_closed',
+    timeout_ms,
+    requires_approval: false,
+    exclusive: false,
+    provider_accepts_idempotency: false,
+    input_schema,
+    output_schema,
+  });
+const ENVIRONMENT_CONTRACTS = Object.freeze([
+  ...['diagnostics', 'definition', 'references', 'hover', 'rename_preview'].map((action) =>
+    environmentContract(`environment.lsp.${action}`, 'environment.lsp', lspSchema('input', action), lspSchema('output', action), 60_000),
+  ),
+  environmentContract('environment.dap.run', 'environment.dap', dapSchema('input'), dapSchema('output'), 140_000),
+]);
+
 function registerCapabilityContractStubs(registry) {
   if (!(registry instanceof ExecutionContractRegistry)) throw new ExecutionContractError('A contract registry is required');
-  return CAPABILITY_CONTRACT_STUBS.map((stub) => registry.register(stub));
+  return [...ENVIRONMENT_CONTRACTS, ...CAPABILITY_CONTRACT_STUBS].map((contract) => registry.register(contract));
 }
 
 module.exports = {
   CAPABILITY_CONTRACT_STUBS,
+  ENVIRONMENT_CONTRACTS,
   TOOL_CATALOG_EXIT_CODE,
   ToolCatalogError,
   failBoot,
