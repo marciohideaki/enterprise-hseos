@@ -78,14 +78,21 @@
       "W5-05_literal": {
         "command_source": "tasks.md literal",
         "exit_code": 1,
-        "result": "FAIL as measured: environment-toolchain-pins.js 77.31% branches",
-        "cause": "the file is co-owned: W5-06 added the DAP pins and their branches, which the W5-05 tests do not exercise. In the full kernel coverage the file is 100% lines / 98.57% branches",
-        "log": "/build/tmp/hseos-w5/b2/logs/int/verify/W5-05.log",
-        "sha256": "dcdaf09bd26b514332963a716da498edb244619f7711b53c59f63888096e1a5e"
+        "result": "FAIL as measured, twice. First run (before 577207c5): 45 of 47 tests pass (the 2 integration defects) and environment-toolchain-pins.js 77.31% branches. Rerun at 4b66aae4 (after the fix): 47 of 47 pass, environment-toolchain-pins.js 70.31% lines / 95.08% branches, exit 1",
+        "cause": "the file is co-owned: W5-06 added the zip reader and the extraction/installation paths for the DAP pins (extractZip and neighbours, lines 263-276 among others) that the W5-05 tests do not run. Before the fix, a W5-05 test that treated debugpy as a real pin ran that path by accident, which is why the first run showed 99% lines. In the full kernel coverage (union of all tests) the file is 100% lines / 98.57% branches",
+        "first_run": {
+          "log": "/build/tmp/hseos-w5/b2/logs/int/verify/W5-05.pre-fix.log",
+          "sha256": "dcdaf09bd26b514332963a716da498edb244619f7711b53c59f63888096e1a5e"
+        },
+        "rerun": {
+          "log": "/build/tmp/hseos-w5/b2/logs/int/verify/W5-05.rerun-577207c5.log",
+          "sha256": "8691775468c49216ede4a5883d34e2c1570d4444a6ec4d0bb2c287949d886da9",
+          "exit_code": 1
+        }
       },
       "exit_codes_file": {
         "log": "/build/tmp/hseos-w5/b2/logs/int/verify/exitcodes.txt",
-        "sha256": "a1adbe7f575225fa8e2854816295a629a870c9fe1542aa83c4ea5d3b814c37fc"
+        "sha256": "161b2a7ddd37987c1f89a6ae6eeaafa499705e7640504e6eb065eab9a3d587e8"
       }
     },
     "kernel_coverage": {
@@ -169,7 +176,8 @@
       }
     },
     "inventory": {
-      "npm": "24.15.0",
+      "npm": "11.12.1 (the npm of Node 24.15.0; the Node 22.23.3 run used npm 10.9.9)",
+      "npm_version_dependency": "reported by the review, not reproduced here: with the default shell npm 9.2.0 the same pack counted 1507 entries and test-package-surface.js failed on docs 9 > 7; the measurement is only valid with the npm of the Node 24 wrapper",
       "total": 1505,
       "ceiling": 1556,
       "areas": {
@@ -253,8 +261,48 @@
     "The Node 22 run used a copy of run-in-cgroup.sh with the Node 22 NODEBIN and the same test database as Node 24; the runs were serial.",
     "The literal verifies of W5-03 and W5-05 fail on the integrated tree for the causes above; they are reported as FAIL, not converted to PASS."
   ],
+  "review": {
+    "report": "/build/tmp/hseos-w5/b2/rev/REVIEW-W5-B2-INT.md",
+    "sha256": "d269697632b1bc48bb0833d4e229c2d5230a47b66984578aa6697efa156c25aa",
+    "pinned_to": {
+      "head": "4b66aae47184a9ac6f50f8a34c9a2ef16d61447a",
+      "tree": "3292ad3841096a664fe5872de7eee23af8f89c65"
+    },
+    "verdict": "APPROVED_WITH_RESERVATIONS",
+    "isolation": "separate agent without the Commander reasoning; blind pass, then confrontation with this receipt; reports only",
+    "mutations": "8 run, 8 killed, 0 surviving (startDebugging allow-list, evaluate in the allow-list, condition in breakpoints, textual .. refusal in the LSP scope, symlink resolution, unix mode in the zip reader, a pin removed from a manifest, the compaction duplicate path)",
+    "receipt_sha256_check": "all 24 log hashes of the first version of this receipt matched",
+    "findings_and_disposition": {
+      "R1_major": "OPEN, owner decision: the LSP and DAP acceptance tests require /build/cache/hseos-toolchain (before() asserts toolchain.status ready) and the CI workflow does not provision it; 67 of 67 tests of the two files fail without the cache, including pure ones. See risks_open",
+      "R2_G3": "OPEN, owner confirmation (reallocation .enterprise 472)",
+      "F_C1": "fixed in this receipt: the literal W5-05 verify was rerun at 4b66aae4 (see task_verifies)",
+      "F_C2": "fixed in tasks.md: plugin count 4 to 6, and the 1556 ceiling noted next to the stale 1554",
+      "F_C3": "fixed in tasks.md: the W5-03 literal verify keeps only context-assembler.js, as the header rule and the approved receipt already did",
+      "F_C4": "fixed in this receipt: inventory.npm now names the npm version",
+      "F_B2_plugins_outside_files": "registered as a residue",
+      "qg_tmp_recurring_scratch": "registered as a residue; the scratch was cleaned again",
+      "minor_and_info": "F-B1 (jsdoc of installToolchain), F-B3 (step op validated only in the controller), F-B4 (childConfiguration accepts a missing request), F-B5 (design says /tmp tmpfs, code uses /dev/shm), F-B6 (a failing DAP test leaves the runner hanging until the timeout): registered as residues, not changed"
+    },
+    "post_review_commits": "documentation only (tasks.md corrections, this receipt, STATUS); no code changed after 4b66aae4"
+  },
+  "risks_open": [
+    {
+      "id": "R1",
+      "severity": "major",
+      "summary": "CI is expected to fail: test-environment-lsp.js and test-environment-dap.js need the pinned toolchain cache at /build/cache/hseos-toolchain (or HSEOS_TOOLCHAIN_CACHE), the before() hook asserts it is ready, and .github/workflows/ci.yaml runs npm ci, npm test and test:kernel-coverage on ubuntu-latest without provisioning it. Without the cache the two files fail 67 of 67, including pure tests such as crc32 and framing; the kernel coverage thresholds would drop with them (expected, not measured)",
+      "verified_by": "the reviewer (execution with an empty cache) and by the Commander (reading the before() hook and the workflow); the real CI run is not verified until the PR checks finish",
+      "conflicts_with": "tasks.md rule: an input that is absent ends in BLOCKED with the cause, never in a red unrelated failure and never in a lowered threshold",
+      "options": [
+        "provision the cache in CI from the pinned SHA-256 artifacts (a workflow change)",
+        "split the real-server acceptance tests from the pure ones and make the former report BLOCKED when the cache is absent, which also needs a decision on how the kernel coverage thresholds treat them",
+        "accept a red CI for the wave branch until a dedicated step handles it"
+      ],
+      "decision_needed_from": "owner (CI workflow and thresholds are outside the Commander authority)"
+    }
+  ],
   "blocked": [],
   "not_verified": [
+    "the real CI run of this branch (no access from the session; the PR checks are the evidence, see risks_open R1)",
     "consumers A and B (real consumers)",
     "any activation of the LSP/DAP plugins (scaffolded; activation comes after G6)",
     "the toolchain pins against a real network (the cache is offline by design)"
