@@ -8,8 +8,12 @@ const {
   CONTRACT,
   MAX_TTL_SECONDS,
   admitWrite,
+  assertEntryInputFields,
   assertNoCredential,
+  normalizeActor,
   normalizeEntry,
+  normalizeReason,
+  requireIdentifier,
   sha256Text,
 } = require('./policy');
 
@@ -132,10 +136,22 @@ class MemoryStore {
     return result;
   }
 
-  /** Writes one entry. Needs an admitting policy rule and a clean credential scan; `created_at` comes from the clock. */
-  write({ rules, approved, actor = DEFAULT_ACTOR, expected_version, ...input }) {
+  /**
+   * Writes one entry. `input` is the entry as the caller proposes it; `host` is what only the trusted host may
+   * supply: the policy `rules`, the human `approved` flag, the authenticated `actor` and the CAS `expected_version`.
+   * `created_at` comes from the clock, and `origin: operator` needs an operator actor.
+   */
+  write(input, { rules, approved, actor = DEFAULT_ACTOR, execution_mode, expected_version } = {}) {
+    assertEntryInputFields(input);
     const entry = normalizeEntry({ ...input, created_at: iso(this.now()) }, { maxTtlSeconds: this.maxTtlSeconds });
-    entry.write_policy_ref = admitWrite({ rules, approved });
+    if (entry.source_digest !== sha256Text(entry.content)) {
+      throw new AgentMemoryError('source_digest does not match the content', 'AGENT_MEMORY_INVALID', { field: 'source_digest' });
+    }
+    const resolvedActor = normalizeActor(actor, this.scanCredential);
+    if (entry.origin === 'operator' && resolvedActor.kind !== 'operator') {
+      throw new AgentMemoryError('operator origin needs an operator actor', 'AGENT_MEMORY_ORIGIN_ACTOR_MISMATCH', { origin: entry.origin });
+    }
+    entry.write_policy_ref = admitWrite({ rules, approved, execution_mode });
     assertNoCredential(entry, this.scanCredential);
     const projectId = entry.scope.project_id;
     const state = this._state(projectId);
@@ -151,32 +167,43 @@ class MemoryStore {
       }
       facts.push({ type: EVENTS.SUPERSEDED, memory_id: entry.supersedes, payload: { superseded_by: entry.memory_id } });
     }
-    this._append(projectId, state, expected_version, actor, facts);
+    this._append(projectId, state, expected_version, resolvedActor, facts);
     return Object.freeze({ memory_id: entry.memory_id, write_policy_ref: entry.write_policy_ref });
   }
 
   /** Records `memory.expired` for every active entry whose TTL has elapsed. Returns the expired ids. */
   sweepExpired(projectId, { actor = DEFAULT_ACTOR } = {}) {
+    requireIdentifier(projectId, 'project_id');
+    const resolvedActor = normalizeActor(actor, this.scanCredential);
     const state = this._state(projectId);
     const nowMs = this.now();
     const due = [...state.records.values()].filter((record) => record.status === 'active' && this._isExpired(record, nowMs));
     if (due.length === 0) return [];
     const facts = due.map((record) => ({ type: EVENTS.EXPIRED, memory_id: record.entry.memory_id, payload: { expired_at: iso(nowMs) } }));
-    this._append(projectId, state, undefined, actor, facts);
+    this._append(projectId, state, undefined, resolvedActor, facts);
     return due.map((record) => record.entry.memory_id);
   }
 
-  /** Explicit operator command: the entry stops being retrievable and the deletion is a ledger event. */
-  forget({ project_id: projectId, memory_id: memoryId, actor, reason = 'operator command' }) {
-    if (actor?.kind !== 'operator' || typeof actor.id !== 'string') {
+  /**
+   * Explicit operator command (`host.actor` must be the authenticated operator): the entry stops being retrievable and
+   * the deletion is a ledger event. The ledger is append-only, so the content itself stays in earlier events.
+   */
+  forget({ project_id: projectId, memory_id: memoryId, reason = 'operator command' }, { actor } = {}) {
+    requireIdentifier(projectId, 'project_id');
+    requireIdentifier(memoryId, 'memory_id');
+    if (actor?.kind !== 'operator') {
       throw new AgentMemoryError('deleting memory requires an operator actor', 'AGENT_MEMORY_OPERATOR_REQUIRED');
     }
+    const resolvedActor = normalizeActor(actor, this.scanCredential);
+    const safeReason = normalizeReason(reason, this.scanCredential);
     const state = this._state(projectId);
     const record = state.records.get(memoryId);
     if (!record || record.status === 'deleted') {
       throw new AgentMemoryError('memory entry does not exist', 'AGENT_MEMORY_NOT_FOUND', { memory_id: memoryId });
     }
-    this._append(projectId, state, undefined, actor, [{ type: EVENTS.DELETED, memory_id: memoryId, payload: { reason } }]);
+    this._append(projectId, state, undefined, resolvedActor, [
+      { type: EVENTS.DELETED, memory_id: memoryId, payload: { reason: safeReason } },
+    ]);
   }
 
   _isExpired(record, nowMs) {
@@ -185,6 +212,7 @@ class MemoryStore {
 
   /** Lists entries of one project with their status; expiry is evaluated against the clock. */
   list(projectId) {
+    requireIdentifier(projectId, 'project_id');
     const nowMs = this.now();
     return [...this._state(projectId).records.values()].map((record) => ({
       memory_id: record.entry.memory_id,
@@ -198,6 +226,7 @@ class MemoryStore {
    * provenance carries the original write. Untrusted entries stay out unless the policy includes them.
    */
   retrieve({ project_id: projectId, query, limit = DEFAULT_LIMIT, include_untrusted: includeUntrusted = false }) {
+    requireIdentifier(projectId, 'project_id');
     if (typeof query !== 'string' || query.trim().length === 0) {
       throw new AgentMemoryError('query must be a non-empty string', 'AGENT_MEMORY_INVALID', { field: 'query' });
     }

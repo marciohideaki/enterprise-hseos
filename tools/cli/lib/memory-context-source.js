@@ -5,6 +5,7 @@ const { AUTHORITY, MAX_CONTENT_BYTES, sha256Text } = require('../../../packages/
 const { containsCredential } = require('./campaign-evidence-store');
 
 const MAX_AXON_RESULTS = 10;
+const DEFAULT_LIMIT = 5;
 
 function axonItems(result) {
   const list = Array.isArray(result)
@@ -28,9 +29,18 @@ function createGovernedMemory({ ledger, now, maxTtlSeconds }) {
  * read-only, untrusted, and only consulted when the policy includes untrusted memory. A missing or failing
  * bridge is a no-op.
  */
-async function collectMemorySources({ store, project_id, query, limit, include_untrusted = false, searchProvider = null, now = Date.now }) {
+async function collectMemorySources({
+  store,
+  project_id,
+  query,
+  limit = DEFAULT_LIMIT,
+  include_untrusted = false,
+  searchProvider = null,
+  now = Date.now,
+}) {
   const sources = store.retrieve({ project_id, query, limit, include_untrusted });
-  if (include_untrusted !== true || typeof searchProvider !== 'function') return sources;
+  // The query leaves the process: it never goes to the bridge when it looks like a credential.
+  if (include_untrusted !== true || typeof searchProvider !== 'function' || containsCredential(query)) return sources;
   let items;
   try {
     items = axonItems(await searchProvider(query)).slice(0, MAX_AXON_RESULTS);
@@ -39,10 +49,13 @@ async function collectMemorySources({ store, project_id, query, limit, include_u
   }
   const retrievedAt = new Date(now()).toISOString();
   const bridged = [];
+  const seen = new Set();
   for (const item of items) {
     const content = axonText(item);
     if (content.length === 0 || Buffer.byteLength(content, 'utf8') > MAX_CONTENT_BYTES || containsCredential(content)) continue;
     const digest = sha256Text(content);
+    if (seen.has(digest)) continue;
+    seen.add(digest);
     bridged.push({
       source_ref: `axon://memory/${digest.slice(0, 16)}`,
       classification: 'internal',
@@ -59,7 +72,7 @@ async function collectMemorySources({ store, project_id, query, limit, include_u
       },
     });
   }
-  return [...sources, ...bridged];
+  return [...sources, ...bridged.slice(0, Math.max(0, limit - sources.length))];
 }
 
 module.exports = { collectMemorySources, createGovernedMemory };

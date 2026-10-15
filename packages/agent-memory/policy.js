@@ -13,6 +13,23 @@ const TRUSTS = Object.freeze(['trusted', 'untrusted']);
 const ORIGINS = Object.freeze(['operator', 'agent', 'tool', 'plugin', 'lsp', 'dap', 'browser', 'display', 'mcp']);
 // Everything except the operator is untrusted: such an entry can only be stored as untrusted.
 const UNTRUSTED_ORIGINS = Object.freeze(ORIGINS.filter((origin) => origin !== 'operator'));
+const ACTOR_KINDS = Object.freeze(['host', 'operator', 'agent']);
+const MAX_REASON_BYTES = 256;
+// Fields a caller may put in an entry. Everything else (rules, approval, actor, created_at, write_policy_ref) is
+// host-owned and travels in a separate parameter.
+const ENTRY_INPUT_FIELDS = Object.freeze([
+  'memory_id',
+  'scope',
+  'content',
+  'authority',
+  'origin',
+  'trust',
+  'classification',
+  'source_ref',
+  'source_digest',
+  'ttl_seconds',
+  'supersedes',
+]);
 const IDENTIFIER = /^[a-z0-9][a-z0-9._:-]{0,159}$/;
 const SHA256 = /^[0-9a-f]{64}$/;
 // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
@@ -42,6 +59,38 @@ function canonicalTimestamp(value, field) {
   const parsed = new Date(value);
   if (typeof value !== 'string' || Number.isNaN(parsed.getTime())) invalid(`${field} must be a valid timestamp`, field);
   return parsed.toISOString();
+}
+
+function assertEntryInputFields(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) invalid('memory entry must be an object', 'entry');
+  const unknown = Object.keys(input).filter((field) => !ENTRY_INPUT_FIELDS.includes(field));
+  if (unknown.length > 0) {
+    throw new AgentMemoryError('the entry carries host-owned or unknown fields', 'AGENT_MEMORY_INVALID', { field: unknown[0] });
+  }
+}
+
+/** The host names who acts; the actor is validated and scanned because it is persisted on every event. */
+function normalizeActor(actor, scanCredential) {
+  if (!actor || typeof actor !== 'object' || Array.isArray(actor) || !ACTOR_KINDS.includes(actor.kind))
+    invalid('actor.kind is not allowed', 'actor');
+  const id = requireIdentifier(actor.id, 'actor.id');
+  if (typeof scanCredential === 'function' && scanCredential(id) === true) {
+    throw new AgentMemoryError('actor contains a credential pattern', 'AGENT_MEMORY_CREDENTIAL_DETECTED', { field: 'actor' });
+  }
+  return Object.freeze({ kind: actor.kind, id });
+}
+
+function normalizeReason(reason, scanCredential) {
+  if (typeof reason !== 'string' || reason.trim().length === 0 || Buffer.byteLength(reason, 'utf8') > MAX_REASON_BYTES) {
+    invalid('reason must be a short non-empty string', 'reason');
+  }
+  if (typeof scanCredential !== 'function') {
+    throw new AgentMemoryError('a credential scanner is required to write memory', 'AGENT_MEMORY_SCANNER_REQUIRED');
+  }
+  if (scanCredential(reason) === true) {
+    throw new AgentMemoryError('reason contains a credential pattern', 'AGENT_MEMORY_CREDENTIAL_DETECTED', { field: 'reason' });
+  }
+  return reason;
 }
 
 /**
@@ -135,7 +184,13 @@ module.exports = {
   MAX_TTL_SECONDS,
   ORIGINS,
   UNTRUSTED_ORIGINS,
+  ACTOR_KINDS,
+  MAX_REASON_BYTES,
   admitWrite,
+  assertEntryInputFields,
+  normalizeActor,
+  normalizeReason,
+  requireIdentifier,
   assertNoCredential,
   normalizeEntry,
   sha256Text,

@@ -55,7 +55,27 @@ test('the plugin ships no ledger of its own: the core files never open a databas
 test('the governance definition and registry entry exist for the plugin', () => {
   const definition = path.join(ROOT, '.enterprise/governance/plugins/definitions', manifest.id);
   for (const file of ['plugin.yaml', 'README.md', 'skills/memory/SKILL.md']) assert.ok(fs.existsSync(path.join(definition, file)), file);
+  const mirror = path.join(ROOT, '.agents/plugins/definitions', manifest.id);
+  for (const file of ['plugin.yaml', 'README.md', 'skills/memory/SKILL.md']) {
+    assert.equal(
+      fs.readFileSync(path.join(mirror, file), 'utf8'),
+      fs.readFileSync(path.join(definition, file), 'utf8'),
+      `compiled mirror of ${file}`,
+    );
+  }
+  assert.match(fs.readFileSync(path.join(ROOT, '.agents/plugins/registry.yaml'), 'utf8'), new RegExp(`- id: ${manifest.id}\\n`));
   const registry = fs.readFileSync(path.join(ROOT, '.enterprise/governance/plugins/registry.yaml'), 'utf8');
   assert.match(registry, new RegExp(`- id: ${manifest.id}\\n\\s+version: "${manifest.version}"`));
   assert.match(fs.readFileSync(path.join(definition, 'plugin.yaml'), 'utf8'), new RegExp(`^id: ${manifest.id}$`, 'm'));
+});
+
+test('the manifest lists every local module its core files require (the pack is self-consistent)', () => {
+  const listed = new Set(manifest.core_files);
+  for (const file of manifest.core_files.filter((name) => name.startsWith('packages/agent-memory/') && name.endsWith('.js'))) {
+    const source = fs.readFileSync(path.join(ROOT, file), 'utf8');
+    for (const [, request] of source.matchAll(/require\('(\.\/[^']+)'\)/g)) {
+      const resolved = path.posix.join(path.posix.dirname(file), request).replace(/(?:\.js)?$/, '.js');
+      assert.ok(listed.has(resolved), `${file} requires ${request} which is not in core_files`);
+    }
+  }
 });

@@ -1,21 +1,22 @@
-heavy-run: outro job pesado em execução — entrando na fila
-  processos com o lock aberto:
-    PID 1020667: bash /home/annonymous/.local/bin/heavy-run --mem 6G --wait-max 3600 -- systemd-run --user --wait --c
-    PID 1105286: bash /home/annonymous/.local/bin/heavy-run --mem 6G --wait-max 3600 -- systemd-run --user --wait --c
-heavy-run: modo normal (load1=1.82 phys=6 avail=24399MiB need=6G mem.psi=0.00 io.psi.full=0.35)
+heavy-run: modo normal (load1=0.55 phys=6 avail=24088MiB need=6G mem.psi=0.00 io.psi.full=0.00)
 Delegated test cgroup controllers verified
-✔ a write needs an admitting policy rule; ask passes only with approval and bypass never admits (20.218666ms)
-✔ authority is fixed to data and escalation is refused (4.888309ms)
-✔ ttl is mandatory, bounded by the policy ceiling and expiry is verifiable with the injected clock (5.956395ms)
-✔ credentials are refused in content and in the source reference (4.580585ms)
-✔ entries are validated against the agent-memory.v1 shape (4.578523ms)
-✔ untrusted origins are stored as untrusted and stay out of default retrieval (4.882581ms)
-✔ retrieval is deterministic, scoped by project and feeds memory[] with provenance (9.236863ms)
-✔ supersession and operator deletion are events and remove entries from retrieval (5.523639ms)
-✔ the projection is disposable: rebuilding from the events gives the same result, and writes use CAS (5.450396ms)
-✔ the store fails closed on a foreign ledger, unknown events and impossible transitions (0.378373ms)
-✔ the axon bridge is optional and read-only: absent, failing or empty is a no-op (5.733769ms)
-✔ migration 017 registers exactly the four memory events and the trigger still refuses any other type (4.38765ms)
+✔ a write needs an admitting policy rule; ask passes only with approval and neither bypass nor an empty policy admits (14.185734ms)
+✔ rules, approval, actor, created_at and the policy reference are host-owned and refused inside the entry (6.701725ms)
+✔ origin operator needs an operator actor and the actor is validated and scanned (4.938243ms)
+✔ authority is fixed to data and escalation is refused (5.123059ms)
+✔ ttl is mandatory, bounded by the policy ceiling and expiry is verifiable with the injected clock (6.021723ms)
+✔ credentials are refused in content and in the source reference (4.451629ms)
+✔ each malformed field is refused for its own reason (one violation per case) (0.701918ms)
+✔ source_digest must describe the content when the caller supplies it (4.643967ms)
+✔ untrusted origins are stored as untrusted and stay out of default retrieval (4.924606ms)
+✔ retrieval is deterministic, scoped by project and feeds memory[] with provenance (9.044937ms)
+✔ projects never share ids, events or projection: the same memory_id lives independently in two projects (5.376921ms)
+✔ supersession and operator deletion are events and remove entries from retrieval (5.791289ms)
+✔ every read and sweep validates the project identifier with the contract (4.306125ms)
+✔ the projection is disposable: rebuilding from the events gives the same result, and writes use CAS (6.987699ms)
+✔ the store fails closed on a foreign ledger, unknown events and impossible transitions (0.648213ms)
+✔ the axon bridge is optional and read-only: absent, failing or empty is a no-op (6.940641ms)
+✔ migration 017 registers exactly the four memory events and the trigger still refuses any other type (4.547895ms)
 mcp-axon-bridge test
   ✓ tools/list returns 6 tools
   ✓ initialize handshake
@@ -40,27 +41,28 @@ mcp-axon-bridge test
   ✓ stdio mode: no banner on stdout, tools/list answered, errors explicit
 
 20 passed, 0 failed
-✔ test/test-mcp-axon-bridge.js (6700.50509ms)
-✔ the memory pack is generated from the very same files the core ships (identical digests) (21.125362ms)
-✔ the memory pack stays inside 40 entries and 1 MB and carries no binary, pin or ledger (1.243916ms)
-✔ the plugin ships no ledger of its own: the core files never open a database (0.329888ms)
-✔ the governance definition and registry entry exist for the plugin (0.652239ms)
-ℹ tests 17
+✔ test/test-mcp-axon-bridge.js (6810.924475ms)
+✔ the memory pack is generated from the very same files the core ships (identical digests) (20.204231ms)
+✔ the memory pack stays inside 40 entries and 1 MB and carries no binary, pin or ledger (1.302506ms)
+✔ the plugin ships no ledger of its own: the core files never open a database (0.336201ms)
+✔ the governance definition and registry entry exist for the plugin (0.425155ms)
+✔ the manifest lists every local module its core files require (the pack is self-consistent) (0.306266ms)
+ℹ tests 23
 ℹ suites 0
-ℹ pass 17
+ℹ pass 23
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 7064.173424
+ℹ duration_ms 7184.984257
 ---------------------------|---------|----------|---------|---------|-------------------
 File                       | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
 ---------------------------|---------|----------|---------|---------|-------------------
-All files                  |     100 |    98.88 |     100 |     100 |                   
- packages/agent-memory     |     100 |    98.62 |     100 |     100 |                   
+All files                  |     100 |    99.53 |     100 |     100 |                   
+ packages/agent-memory     |     100 |    99.43 |     100 |     100 |                   
   index.js                 |     100 |      100 |     100 |     100 |                   
-  policy.js                |     100 |    98.41 |     100 |     100 | 97                
-  store.js                 |     100 |    98.76 |     100 |     100 | 31                
+  policy.js                |     100 |      100 |     100 |     100 |                   
+  store.js                 |     100 |    98.85 |     100 |     100 | 35                
  tools/cli/lib             |     100 |      100 |     100 |     100 |                   
   memory-context-source.js |     100 |      100 |     100 |     100 |                   
 ---------------------------|---------|----------|---------|---------|-------------------
