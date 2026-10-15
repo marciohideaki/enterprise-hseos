@@ -387,8 +387,31 @@ function extractZip(members, target) {
 }
 
 /**
- * Verify every requested pin, then extract each to `<destination>/<name>/package`. Any divergence blocks the
- * whole install: a partial toolchain is never reported as ready.
+ * Verify every requested pin offline, then extract each one under `<destination>/<name>`. Nothing is downloaded.
+ *
+ * @param {object} options
+ * @param {string} [options.cacheDirectory] Absolute path of the toolchain cache; falls back to `HSEOS_TOOLCHAIN_CACHE`.
+ * @param {string} options.destination Directory that receives one sub-directory per pin. The caller owns it.
+ * @param {string[]} [options.names] Pins to install. Defaults to every pin that is not a system pin.
+ * @param {object} [options.expected] Pin table to verify against. Defaults to `PINS`.
+ * @returns {Readonly<{status: 'ready', root: string, pins: ReadonlyArray<{name: string, version: string, sha256: string, license: string}>}>}
+ *   `root` is `destination`. The extracted tree of a pin is `<root>/<name>/<pin root>`: `package/` for npm tarballs, the
+ *   pin's own `root` for other tarballs, and the zip entry names as they are for zips.
+ * @throws {ToolchainBlockedError} Every refusal carries a stable `code`: ENV_TOOLCHAIN_PIN_SYSTEM (a requested name is a
+ *   system pin: those are verified, never installed, so the call fails and a system pin is never part of the default set),
+ *   ENV_TOOLCHAIN_CACHE_UNSET, ENV_TOOLCHAIN_MANIFEST_MISSING, ENV_TOOLCHAIN_MANIFEST_INVALID, ENV_TOOLCHAIN_PIN_UNKNOWN,
+ *   ENV_TOOLCHAIN_PIN_MISSING, ENV_TOOLCHAIN_PIN_DIVERGED, ENV_TOOLCHAIN_ARTIFACT_PATH, ENV_TOOLCHAIN_ARTIFACT_MISSING,
+ *   ENV_TOOLCHAIN_DIGEST_MISMATCH, ENV_TOOLCHAIN_LICENSE_MISSING, ENV_TOOLCHAIN_LICENSE_MISMATCH,
+ *   ENV_TOOLCHAIN_LICENSE_DIGEST and ENV_TOOLCHAIN_ARCHIVE_UNSAFE.
+ *
+ * Effects on disk: before anything is written every requested pin is verified (artifact SHA-256 and licence markers and
+ * digest) and, for each pin in turn, its archive is checked (tar listing, or every zip member decoded and CRC-checked).
+ * The target `<destination>/<name>` of a pin is then removed and recreated, so a previous install never leaks stale files.
+ * What is hashed is what is extracted: the artifact is read once and the same bytes are handed to the extractor.
+ *
+ * Atomicity: verification of all pins happens first, so a cache divergence blocks the call before any write. The write
+ * phase is per pin, not transactional: an archive that proves unsafe while pin N is processed leaves pins 1..N-1 installed
+ * and the target of pin N untouched. A call that throws never reports `ready`.
  */
 function installToolchain({
   cacheDirectory,
