@@ -12,6 +12,7 @@ const MANIFEST_SCHEMA = 'hseos.toolchain-cache.v1';
 const CACHE_ENV = 'HSEOS_TOOLCHAIN_CACHE';
 const APACHE_MARKERS = ['Apache License', 'Version 2.0, January 2004'];
 const MIT_MARKERS = ['Permission is hereby granted, free of charge'];
+const BSD3_MARKERS = ['Redistribution and use in source and binary forms', 'Neither the name of Google LLC'];
 
 const PINS = Object.freeze({
   'typescript-language-server': Object.freeze({
@@ -56,6 +57,27 @@ const PINS = Object.freeze({
     root: 'js-debug/',
     license_file: 'js-debug/LICENSE',
     license_markers: Object.freeze(MIT_MARKERS),
+  }),
+  'playwright-core': Object.freeze({
+    version: '1.61.0',
+    artifact: 'npm/playwright-core-1.61.0.tgz',
+    sha256: 'b5ab14f09f3aaacdedbc2cb1431b0552cec8995fba35d841779a4ed535ce0200',
+    license: 'Apache-2.0',
+    license_file: 'package/LICENSE',
+    license_markers: Object.freeze(APACHE_MARKERS),
+  }),
+  // Chrome headless shell, Playwright revision 1228. The zip is far larger than the default zip ceilings, so the
+  // pin declares its own finite ones; the binary inside is byte-identical to the one Playwright installs.
+  'chrome-headless-shell': Object.freeze({
+    version: '149.0.7827.55',
+    artifact: 'playwright/chrome-headless-shell-linux64-149.0.7827.55.zip',
+    sha256: '410c9407d5de3fea80d9398666be06f2aa09154a3fa7b327dc254e336bb4c4b7',
+    size_bytes: 119_778_157,
+    license: 'BSD-3-Clause',
+    format: 'zip',
+    license_file: 'chrome-headless-shell-linux64/LICENSE.headless_shell',
+    license_markers: Object.freeze(BSD3_MARKERS),
+    zip_limits: Object.freeze({ entry_bytes: 201_326_592, total_bytes: 335_544_320 }),
   }),
 });
 
@@ -124,7 +146,9 @@ function crc32(data) {
 }
 
 /** List the central directory of a zip held in memory. Anything unusual is refused, never skipped. */
-function listZip(bytes) {
+function listZip(bytes, limits = {}) {
+  const maxEntry = limits.entry_bytes ?? MAX_ZIP_ENTRY_BYTES;
+  const maxTotal = limits.total_bytes ?? MAX_ZIP_TOTAL_BYTES;
   const unsafe = () => blocked('artifact is not a safe zip', 'ENV_TOOLCHAIN_ARCHIVE_UNSAFE');
   const end = bytes.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]), bytes.length - 22);
   if (end === -1 || bytes.length - end < 22) unsafe();
@@ -154,10 +178,19 @@ function listZip(bytes) {
     const directory = name.endsWith('/');
     total += uncompressed;
     // Encrypted entries, exotic methods, links, special files and oversize entries are never extracted.
-    if (flags & 0x1 || ![0, 8].includes(method) || uncompressed > MAX_ZIP_ENTRY_BYTES || total > MAX_ZIP_TOTAL_BYTES) unsafe();
+    if (flags & 0x1 || ![0, 8].includes(method) || uncompressed > maxEntry || total > maxTotal) unsafe();
     if (mode !== 0 && mode !== (directory ? UNIX_DIRECTORY : UNIX_REGULAR)) unsafe();
     if (name.length === 0 || name.startsWith('/') || name.includes('\\') || name.includes('\0') || name.split('/').includes('..')) unsafe();
-    entries.push({ name, directory, method, crc, compressed, uncompressed, localOffset });
+    entries.push({
+      name,
+      directory,
+      method,
+      crc,
+      compressed,
+      uncompressed,
+      localOffset,
+      executable: platform === 3 && !directory && ((attributes >>> 16) & 0o100) !== 0,
+    });
   }
   assertCoherentNames(entries, unsafe);
   return entries;
@@ -185,23 +218,23 @@ function assertCoherentNames(entries, unsafe) {
   }
 }
 
-function readZipEntry(bytes, entry) {
+function readZipEntry(bytes, entry, maxBytes = MAX_ZIP_ENTRY_BYTES) {
   const unsafe = () => blocked('artifact is not a safe zip', 'ENV_TOOLCHAIN_ARCHIVE_UNSAFE');
   const at = entry.localOffset;
   if (at + 30 > bytes.length || bytes.readUInt32LE(at) !== 0x04_03_4b_50) unsafe();
   const start = at + 30 + bytes.readUInt16LE(at + 26) + bytes.readUInt16LE(at + 28);
   const raw = bytes.subarray(start, start + entry.compressed);
   if (raw.length !== entry.compressed) unsafe();
-  const data = entry.method === 0 ? raw : zlib.inflateRawSync(raw, { maxOutputLength: MAX_ZIP_ENTRY_BYTES });
+  const data = entry.method === 0 ? raw : zlib.inflateRawSync(raw, { maxOutputLength: maxBytes });
   if (data.length !== entry.uncompressed || crc32(data) !== entry.crc) unsafe();
   return data;
 }
 
 function readLicense(want, bytes) {
   if (want.format === 'zip') {
-    const entry = listZip(bytes).find((item) => item.name === want.license_file);
+    const entry = listZip(bytes, want.zip_limits).find((item) => item.name === want.license_file);
     if (!entry) throw new Error('licence file is absent');
-    return readZipEntry(bytes, entry).toString('utf8');
+    return readZipEntry(bytes, entry, want.zip_limits?.entry_bytes).toString('utf8');
   }
   return tar(['-xzOf', '-', want.license_file], bytes).toString('utf8');
 }
@@ -246,6 +279,7 @@ function verifyPin(cacheDirectory, name, manifest, expected = PINS) {
     license: want.license,
     format: want.format ?? 'tgz',
     root: want.root ?? 'package/',
+    zip_limits: want.zip_limits,
     bytes,
   });
 }
@@ -271,7 +305,7 @@ function extractZip(members, target) {
       continue;
     }
     fs.mkdirSync(path.dirname(destination), { recursive: true, mode: 0o700 });
-    fs.writeFileSync(destination, data, { flag: 'wx', mode: 0o600 });
+    fs.writeFileSync(destination, data, { flag: 'wx', mode: entry.executable ? 0o700 : 0o600 });
   }
 }
 
@@ -288,7 +322,10 @@ function installToolchain({ cacheDirectory, destination, names = Object.keys(PIN
     const target = path.join(destination, pin.name);
     if (pin.format === 'zip') {
       // Every member is decoded and checked before the first byte is written.
-      const members = listZip(pin.bytes).map((entry) => ({ entry, data: entry.directory ? null : readZipEntry(pin.bytes, entry) }));
+      const members = listZip(pin.bytes, pin.zip_limits).map((entry) => ({
+        entry,
+        data: entry.directory ? null : readZipEntry(pin.bytes, entry, pin.zip_limits?.entry_bytes),
+      }));
       fs.rmSync(target, { recursive: true, force: true });
       fs.mkdirSync(target, { recursive: true, mode: 0o700 });
       extractZip(members, target);
