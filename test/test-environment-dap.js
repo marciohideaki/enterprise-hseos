@@ -370,47 +370,53 @@ test('the host client only ever sends allow-listed requests: evaluate, setVariab
     onEvent: () => {},
     onReverseRequest: (message) => (reverse.push(message.command), message.command === 'startDebugging'),
   });
-  for (const command of [
-    'evaluate',
-    'setVariable',
-    'setExpression',
-    'restartFrame',
-    'completions',
-    'source',
-    'setFunctionBreakpoints',
-    'setExceptionBreakpoints',
-    'dataBreakpointInfo',
-    'modules',
-    'goto',
-    'runInTerminal',
-    'terminate',
-  ]) {
-    await assert.rejects(client.request(command, {}), { code: 'ENV_DAP_FORBIDDEN_REQUEST' }, command);
+  try {
+    for (const command of [
+      'evaluate',
+      'setVariable',
+      'setExpression',
+      'restartFrame',
+      'completions',
+      'source',
+      'setFunctionBreakpoints',
+      'setExceptionBreakpoints',
+      'dataBreakpointInfo',
+      'modules',
+      'goto',
+      'runInTerminal',
+      'terminate',
+    ]) {
+      await assert.rejects(client.request(command, {}), { code: 'ENV_DAP_FORBIDDEN_REQUEST' }, command);
+    }
+    assert.equal(server.received.length, 0, 'none of them was sent');
+    await client.request('threads', {});
+    assert.deepEqual(
+      server.received.map((message) => message.command),
+      ['threads'],
+    );
+    for (const command of host.ALLOWED_REQUESTS) assert.ok(!['evaluate', 'setVariable', 'setExpression', 'restartFrame'].includes(command));
+    await assert.rejects(client.request('fail', {}), { code: 'ENV_DAP_FORBIDDEN_REQUEST' });
+    // Reverse requests: only startDebugging is honoured (and only for node); anything that would run code is answered with a refusal.
+    server.sockets[0].write(encodeMessage({ seq: 9, type: 'request', command: 'runInTerminal', arguments: {} }));
+    server.sockets[0].write(encodeMessage({ seq: 10, type: 'request', command: 'startDebugging', arguments: {} }));
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    assert.deepEqual(reverse, ['runInTerminal', 'startDebugging']);
+    const replies = server.received.filter((message) => message.type === 'response');
+    assert.deepEqual(
+      replies.map((reply) => [reply.command, reply.success]),
+      [
+        ['runInTerminal', false],
+        ['startDebugging', true],
+      ],
+    );
+    server.close();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    await assert.rejects(client.request('threads', {}), { code: 'ENV_DAP_ADAPTER_EXITED' });
+  } finally {
+    // A failed assertion must not leave the loopback server or the client socket holding the runner open.
+    server.close();
+    client.destroy();
   }
-  assert.equal(server.received.length, 0, 'none of them was sent');
-  await client.request('threads', {});
-  assert.deepEqual(
-    server.received.map((message) => message.command),
-    ['threads'],
-  );
-  for (const command of host.ALLOWED_REQUESTS) assert.ok(!['evaluate', 'setVariable', 'setExpression', 'restartFrame'].includes(command));
-  await assert.rejects(client.request('fail', {}), { code: 'ENV_DAP_FORBIDDEN_REQUEST' });
-  // Reverse requests: only startDebugging is honoured (and only for node); anything that would run code is answered with a refusal.
-  server.sockets[0].write(encodeMessage({ seq: 9, type: 'request', command: 'runInTerminal', arguments: {} }));
-  server.sockets[0].write(encodeMessage({ seq: 10, type: 'request', command: 'startDebugging', arguments: {} }));
-  await new Promise((resolve) => setTimeout(resolve, 200));
-  assert.deepEqual(reverse, ['runInTerminal', 'startDebugging']);
-  const replies = server.received.filter((message) => message.type === 'response');
-  assert.deepEqual(
-    replies.map((reply) => [reply.command, reply.success]),
-    [
-      ['runInTerminal', false],
-      ['startDebugging', true],
-    ],
-  );
-  server.close();
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  await assert.rejects(client.request('threads', {}), { code: 'ENV_DAP_ADAPTER_EXITED' });
 });
 
 test('the host client reports a failed response, a framing violation and a vanished adapter with stable codes', async () => {
@@ -1153,6 +1159,16 @@ const codeOf = async (promise) => {
   }
 };
 
+test('the host refuses a step it does not know, before any adapter is started', async () => {
+  for (const steps of [[{ op: 'evaluate' }], [{ op: 'next' }, { op: 'setVariable' }], ['next'], [null], [{}], 'next']) {
+    await assert.rejects(
+      host.runSession({ runtime: 'python', launch: { program: 'app.py' }, steps, root: '/workspace', toolchain: '/nonexistent' }),
+      { code: 'ENV_DAP_INPUT' },
+      JSON.stringify(steps),
+    );
+  }
+});
+
 test('host protocol failures have stable codes: refused initialize, garbage framing, a dying adapter, no listener, a silent adapter, bad input', async () => {
   assert.equal(await codeOf(fakeRun({ mode: 'refuse' })), 'ENV_DAP_ADAPTER_ERROR');
   assert.equal(await codeOf(fakeRun({ mode: 'garbage' })), 'ENV_DAP_PROTOCOL');
@@ -1199,10 +1215,14 @@ test('host drives a scripted adapter: reverse requests are refused, output is bo
 
 test("only js-debug's own child configuration is honoured for startDebugging; anything with program, runtime or arguments is refused", () => {
   const ok = { type: 'pwa-node', name: 'app.js [1]', __pendingTargetId: '101e9b709185c03d4048f6ad' };
-  assert.equal(host.childConfiguration(ok), true);
-  assert.equal(host.childConfiguration({ ...ok, request: 'attach' }), true);
-  assert.equal(host.childConfiguration({ ...ok, name: undefined }), true, 'the name is optional');
-  assert.equal(host.childConfiguration({ ...ok, name: 'n'.repeat(256) }), true, 'a name of exactly 256 characters is accepted');
+  assert.equal(host.childConfiguration(ok, 'launch'), true);
+  assert.equal(host.childConfiguration(ok, 'attach'), true);
+  assert.equal(host.childConfiguration({ ...ok, request: 'attach' }), true, 'the request may also be inside the configuration');
+  assert.equal(host.childConfiguration(ok), false, 'there is no default request');
+  assert.equal(host.childConfiguration(ok, 'evaluate'), false);
+  assert.equal(host.childConfiguration({ ...ok, request: 'attach' }, 'launch'), false, 'the two requests must agree');
+  assert.equal(host.childConfiguration({ ...ok, name: undefined }, 'launch'), true, 'the name is optional');
+  assert.equal(host.childConfiguration({ ...ok, name: 'n'.repeat(256) }, 'launch'), true, 'a name of exactly 256 characters is accepted');
   for (const bad of [
     null,
     undefined,
@@ -1220,7 +1240,7 @@ test("only js-debug's own child configuration is honoured for startDebugging; an
     { ...ok, name: { toString: 'x' } },
     { ...ok, name: 'n'.repeat(257) },
   ]) {
-    assert.equal(host.childConfiguration(bad), false, JSON.stringify(bad));
+    assert.equal(host.childConfiguration(bad, 'launch'), false, JSON.stringify(bad));
   }
 });
 
