@@ -1,0 +1,199 @@
+{
+  "task": "cl1",
+  "base_sha": "40a7e420249cdf28f0c30ce91503ec0a07d643e2",
+  "revision": "commits listed below, on task/hseos-w5-cl1; this receipt is committed after them",
+  "node_for_verify": "v24.15.0 (run-in-cgroup.sh)",
+  "node22": "not verified: better-sqlite3 in the worktree is built for the Node 24 ABI",
+  "commands_note": "every verify ran through run-in-cgroup.sh without the heavy-run prefix (the helper already runs under heavy-run); each commit also passed the pre-commit quality gates (npm test) through commit-in-cgroup.sh",
+  "items": [
+    {
+      "item": 1,
+      "commit": "faa457e425c1f437c3368a62b7097460479af31d",
+      "subject": "feat(governed-execution): replace the LSP and DAP contract stubs with the real provider contracts",
+      "status": "PASS",
+      "verify": "node test/test-mcp-contract.js (145 passed, 0 failed); node --test test/test-mcp-hseos-governance.js (pass); node --test test/test-package-surface.js (pass)",
+      "notes": "ENVIRONMENT_CONTRACTS added; browser/computer/memory stubs untouched; registry requires the provider schemas lazily"
+    },
+    {
+      "item": 2,
+      "commit": "d01253ccc1e6ab326b734075dcddb5b4a3bc6baa",
+      "subject": "refactor(agent-context): drop the unreachable partition guard and prove the invariant at the store",
+      "status": "PASS",
+      "verify": "node --test test-compaction-resume-fork, test-agent-context, -authority, -media, test-agent-compaction (64 pass, 0 fail)",
+      "coverage": {
+        "packages/agent-context/context-assembler.js": {
+          "lines": 96.28,
+          "branches": 92.75
+        }
+      },
+      "notes": "guard removed: unreachable, the store replay refuses a non-partitioning record (AGENT_SESSION_COMPACTION_LINEAGE_INVALID, replay.js 728-735); proof test added; the assembler history is derived from the same replayed state; the sealed/frozen store cannot be tampered to reach the guard"
+    },
+    {
+      "item": 3,
+      "commit": "f09bbfbd032393903a78df899aaf9cd7b6d83fc3",
+      "subject": "fix(agent-environment): bound the name of a js-debug child session configuration",
+      "status": "PASS",
+      "verify": "node --test --test-name-pattern=\"child configuration\" test/test-environment-dap.js (1 pass); the whole file ran in item 4 and item 7",
+      "notes": ""
+    },
+    {
+      "item": 4,
+      "commit": "5863708a937e552d02730d38744421d23152011c",
+      "subject": "fix(agent-environment): share the child-variable ceiling between the debug host and controller",
+      "status": "PASS",
+      "verify": "node --test test/test-environment-dap.js (31 pass, 0 fail)",
+      "coverage": {
+        "dap.js": {
+          "lines": 99.46,
+          "branches": 98.03
+        },
+        "dap-host.js": {
+          "lines": 99.09,
+          "branches": 92.35
+        }
+      },
+      "log": "docs/evolution/w5/evidence/cl1/verify-item-i4.log"
+    },
+    {
+      "item": 5,
+      "commit": "08762ffae493ea36fdf4e101bdfbc1f797b3b276",
+      "subject": "fix(agent-isolation): clean the seccomp filter directory on every failure path",
+      "status": "PASS",
+      "verify": "node --test test/test-isolation-profiles.js (35 pass, 0 fail)",
+      "coverage": {
+        "profiles.js": {
+          "lines": 98.11,
+          "branches": 95
+        }
+      },
+      "log": "docs/evolution/w5/evidence/cl1/verify-item-i5.log",
+      "notes": "also closes the descriptor when a later step fails; openSeccompDescriptor is now exported for the test"
+    },
+    {
+      "item": 6,
+      "commit": "b572b37b3ae19dfdc4e7e01af7ad47c7b6a7609e",
+      "subject": "fix(agent-environment): run the debuggee on the bound runtime and decode only file: path segments",
+      "status": "PASS",
+      "verify": "node --test test/test-environment-lsp.js test/test-environment-dap.js (67 pass, 0 fail, real adapters included)",
+      "coverage": {
+        "lsp.js": {
+          "lines": 100,
+          "branches": 98.35
+        },
+        "dap.js": {
+          "lines": 99.46,
+          "branches": 98.03
+        }
+      },
+      "log": "docs/evolution/w5/evidence/cl1/verify-item-i6.log",
+      "notes": "the real fix was dap.js hostRequest.node -> /hseos-runtime/node (the isolation layer rewrites command[0] itself); dap.js scopePath decode left as is on purpose (existing tests expect %2e%2e / ..%2f to be OUT_OF_SCOPE for plain paths); prettier reformatted lsp.js and test-environment-lsp.js (see prettier_noise)"
+    },
+    {
+      "item": 7,
+      "commit": "82b4ec529b1a99a7988a1fbd634e031750661a9b",
+      "subject": "fix(agent-environment): validate steps in the debug host, require an explicit child request",
+      "status": "PASS",
+      "verify": "node --test test/test-environment-dap.js (32 pass, 0 fail)",
+      "coverage": {
+        "dap-host.js": {
+          "lines": 97.53,
+          "branches": 91.81
+        },
+        "dap.js": {
+          "lines": 99.46,
+          "branches": 98.03
+        }
+      },
+      "log": "docs/evolution/w5/evidence/cl1/verify-item-i7.log",
+      "notes": "F-B3 steps validated in the host; F-B4: js-debug sends the request kind beside the configuration (arguments.request), not inside it, so requiring configuration.request made every real node run time out; the kind is now read from arguments.request, required, no default, and the configured kind is the one used; F-B5 design.md lines 144 and 153 (line 120 already said /dev/shm); F-B6 the loopback test now closes server and client in finally"
+    },
+    {
+      "item": 8,
+      "commit": "85b1edcad7a132888a5802d10344ad26ae715846",
+      "subject": "test(liveness): remove the clock race from the outbox delivery budget test",
+      "status": "PASS",
+      "verify": "20 isolated runs + 10 runs under load on one cpu, 0 failures; full test-agent-liveness.js 69 pass, 0 fail",
+      "log": "docs/evolution/w5/evidence/cl1/verify-liveness-stability.log",
+      "notes": "test-only change; the production code is untouched"
+    },
+    {
+      "item": 9,
+      "commit": "44c66f0169023b7de23fd53b4e109eb50c852167",
+      "subject": "fix(governance): resolve the loop-guard repository from the caller, never from node_modules",
+      "status": "PASS",
+      "verify": "node --test test/test-loop-guard.js (4 pass); wired as npm run test:loop-guard in the test chain",
+      "notes": "anchor-guard.sh and other governance scripts keep the script-relative default (outside the requested scope)"
+    },
+    {
+      "item": 10,
+      "status": "BLOCKED (external)",
+      "notes": "ecp-registry snapshot is a SHA-locked copy of upstream contracts-v0.4.0; hand edits would break provenance. Handled by the Commander."
+    },
+    {
+      "item": 11,
+      "status": "DEFERRED",
+      "notes": "guard tokenizer, handled by the Commander separately"
+    },
+    {
+      "item": 12,
+      "commit": "1a3042d20269b84487e14b28f72a4f013abfb5f8",
+      "subject": "fix(manifest): derive the axon-bridge transport as stdio and guard manifest against bundle drift",
+      "status": "PASS",
+      "verify": "node --test test/test-manifest-mcp-coherence.js (1 pass; fails with \"axon-bridge: transport differs from extended.yaml\" when the manifest line is http); wired as npm run test:manifest-mcp-coherence",
+      "notes": "only the manifest transport line changed; no settings:/mcp: lines nor generated files committed"
+    }
+  ],
+  "prettier_noise": {
+    "reformatted_by_prettier_write": [
+      "packages/agent-environment/lsp.js (116 changed lines, formatting-only outside the scope check)",
+      "test/test-environment-lsp.js (324 changed lines, mostly formatting)",
+      "test/test-environment-dap.js (formatting only inside touched tests)"
+    ],
+    "not_touched": [
+      "packages/agent-environment/lsp-host.js",
+      "packages/agent-environment/framing.js",
+      "packages/agent-environment/index.js"
+    ],
+    "note": "dap.js and dap-host.js received only their functional edits"
+  },
+  "package_inventory": {
+    "entryCount": 1505,
+    "ceiling": 1556,
+    "areas": {
+      ".agents": 194,
+      ".enterprise": 455,
+      ".hseos": 63,
+      "docs": 7,
+      "packages": 126,
+      "scripts": 19,
+      "src": 245,
+      "tools": 389,
+      "root": 7
+    },
+    "note": "identical to the 40a7e420 measurement (.agents 194, .enterprise 455, packages 126, tools 389); no new packaged file; test-package-surface passes",
+    "measured_with": "npm pack --dry-run --json (repo npm) via run-in-cgroup.sh; raw JSON not stored (1505 entries)"
+  },
+  "logs": [
+    {
+      "log": "docs/evolution/w5/evidence/cl1/verify-item-i4.log",
+      "sha256": "fa5f4512b942caae2df5e4c921c90cc03f5773686a3c575ac63fc5b754b36dd6"
+    },
+    {
+      "log": "docs/evolution/w5/evidence/cl1/verify-item-i5.log",
+      "sha256": "51a8cccf564aa42a12701d8661d1e86ec836811e37fcf02c7b030c43e9618f68"
+    },
+    {
+      "log": "docs/evolution/w5/evidence/cl1/verify-item-i6.log",
+      "sha256": "ee8be31298baa493a4935c6a870d8f32585fdbc3bd1764f560d1fa7b5da978d9"
+    },
+    {
+      "log": "docs/evolution/w5/evidence/cl1/verify-item-i7.log",
+      "sha256": "342efa40335a29ea0df03337dc8aee647b4b1bb152e5b3e89990417796534ec7"
+    },
+    {
+      "log": "docs/evolution/w5/evidence/cl1/verify-liveness-stability.log",
+      "sha256": "ec1af3a79629a2f8f174205591a2f5e62546be9a830ea2b21e1b244f26b58664"
+    }
+  ],
+  "tree_note": "git rev-parse HEAD^{tree} is reported in the hand-off message, as the receipt is itself part of the tree"
+}
