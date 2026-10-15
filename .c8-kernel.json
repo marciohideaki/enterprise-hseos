@@ -82,7 +82,11 @@
     "packages/agent-environment/browser-host.js",
     "tools/cli/lib/environment-egress-broker.js",
     "tools/lib/environment-toolchain-pins.js",
-    "tools/lib/environment-plugin-pack.js"
+    "tools/lib/environment-plugin-pack.js",
+    "packages/agent-memory/index.js",
+    "packages/agent-memory/store.js",
+    "packages/agent-memory/policy.js",
+    "tools/cli/lib/memory-context-source.js"
   ],
   "exclude": ["**/node_modules/**", "test/**"],
   "reporter": ["text", "json-summary", "json"],

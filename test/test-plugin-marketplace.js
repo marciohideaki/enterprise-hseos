@@ -92,12 +92,12 @@ async function writeActivePluginFixture(tmpDir, { failing = false } = {}) {
 async function runTests() {
   console.log('\n=== Plugin Marketplace Tests ===\n');
 
-  // Test 1: writePluginRegistry returns 7 plugins
+  // Test 1: writePluginRegistry returns 8 plugins
   {
-    console.log('1. writePluginRegistry — loads 7 plugins from registry.yaml');
+    console.log('1. writePluginRegistry — loads 8 plugins from registry.yaml');
     const plugins = await writePluginRegistry(REPO_ROOT);
     assertPass('returns array', Array.isArray(plugins));
-    assertPass('returns 7 plugins', plugins.length === 7, `got ${plugins.length}`);
+    assertPass('returns 8 plugins', plugins.length === 8, `got ${plugins.length}`);
     assertPass(
       'all have ids',
       plugins.every((p) => p.id),
@@ -191,10 +191,10 @@ async function runTests() {
       await pluginCmd.action('doctor', undefined, { directory: REPO_ROOT });
     });
     prompts.log = originalLog;
-    assertPass('doctor reports all seven inactive candidates', messages.filter((entry) => entry.level === 'warn').length === 7);
+    assertPass('doctor reports all eight inactive candidates', messages.filter((entry) => entry.level === 'warn').length === 8);
     assertPass(
       'doctor reports zero active plugins passed',
-      messages.some((entry) => /0 active plugin\(s\) passed; 7 inactive plugin\(s\) skipped/.test(entry.message)),
+      messages.some((entry) => /0 active plugin\(s\) passed; 8 inactive plugin\(s\) skipped/.test(entry.message)),
       JSON.stringify(messages),
     );
   }

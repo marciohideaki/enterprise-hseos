@@ -1,0 +1,15 @@
+{
+  "schema": "hseos.environment-plugin.v1",
+  "id": "hseos-plugin-memory",
+  "capability": "memory",
+  "version": "0.1.0",
+  "profile": "P1",
+  "load": { "strategy": "lazy", "entry": "packages/agent-memory/index.js" },
+  "core_files": [
+    "packages/agent-memory/package.json",
+    "packages/agent-memory/index.js",
+    "packages/agent-memory/store.js",
+    "packages/agent-memory/policy.js",
+    "tools/cli/lib/memory-context-source.js"
+  ]
+}

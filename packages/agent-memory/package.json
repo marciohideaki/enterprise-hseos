@@ -1,0 +1,9 @@
+{
+  "name": "@hseos/agent-memory",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
