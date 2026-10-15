@@ -191,7 +191,7 @@ function launchArguments({ runtime, launch, root, node }) {
 // js-debug needs one child session per debug target. The configuration it asks for is accepted only when it is exactly
 // that: the node launch type, an explicit, known request (named by js-debug beside the configuration) and the opaque target id, with no program, runtime or argument fields.
 const CHILD_FIELDS = new Set(['type', 'request', 'name', '__pendingTargetId']);
-function childConfiguration(configuration, request = configuration?.request) {
+function childConfiguration(configuration, request) {
   return (
     Boolean(configuration) &&
     typeof configuration === 'object' &&

@@ -1086,6 +1086,7 @@ else net.createServer((socket) => {
       if (buffer.length < end + 4 + length) return;
       const m = JSON.parse(buffer.subarray(end + 4, end + 4 + length).toString());
       buffer = buffer.subarray(end + 4 + length);
+      if (!first) fs.appendFileSync(path.join(process.env.HOME, 'child.log'), m.command + '\\n');
       if (behavior.mode === 'garbage') return socket.write('garbage\\r\\n\\r\\n');
       if (behavior.mode === 'die') return process.exit(0);
       if (behavior.mode === 'refuse' && m.command === 'initialize') return respond(m, {}, false);
@@ -1096,7 +1097,14 @@ else net.createServer((socket) => {
         event('output', { category: 'stdout' });
         if (first) {
           send({ type: 'request', command: 'runInTerminal', arguments: {} });
-          send({ type: 'request', command: 'startDebugging', arguments: { configuration: { type: 'pwa-node', name: 'child', __pendingTargetId: 'abcdef0123456789' } } });
+          send({
+            type: 'request',
+            command: 'startDebugging',
+            arguments: {
+              ...(behavior.childRequest ? { request: behavior.childRequest } : {}),
+              configuration: { type: 'pwa-node', name: 'child', ...(behavior.configRequest ? { request: behavior.configRequest } : {}), __pendingTargetId: 'abcdef0123456789' },
+            },
+          });
         }
         globalThis.pendingLaunch = m;
       }
@@ -1129,9 +1137,8 @@ function fakeToolchain() {
   return { root, python };
 }
 
-function fakeRun(behavior, extra = {}) {
+function fakeRun(behavior, extra = {}, home = temp('hseos-dap-home-')) {
   const fake = fakeToolchain();
-  const home = temp('hseos-dap-home-');
   fs.writeFileSync(path.join(home, 'behavior.json'), JSON.stringify(behavior));
   const { root } = workspace();
   const runtime = extra.runtime ?? 'python';
@@ -1158,6 +1165,27 @@ const codeOf = async (promise) => {
     return error.code;
   }
 };
+
+test('a js-debug child session is configured with the request kind js-debug named, and never with a default', async () => {
+  const childCommands = async (behavior) => {
+    const home = temp('hseos-dap-home-');
+    await fakeRun({ mode: 'script', ...behavior }, { runtime: 'node', steps: [] }, home);
+    const log = path.join(home, 'child.log');
+    return fs.existsSync(log) ? fs.readFileSync(log, 'utf8').split('\n').filter(Boolean) : [];
+  };
+  const attach = await childCommands({ childRequest: 'attach' });
+  assert.ok(attach.includes('attach') && !attach.includes('launch'), `attach is what the child receives: ${attach}`);
+  const launch = await childCommands({ childRequest: 'launch' });
+  assert.ok(launch.includes('launch') && !launch.includes('attach'), `launch is what the child receives: ${launch}`);
+  assert.deepEqual(await childCommands({}), [], 'no request in the arguments: no child session, no default');
+  assert.deepEqual(
+    await childCommands({ configRequest: 'launch' }),
+    [],
+    'a request only inside the configuration does not stand in for the explicit one',
+  );
+  assert.deepEqual(await childCommands({ childRequest: 'evaluate' }), [], 'an unknown request kind is refused');
+  assert.deepEqual(await childCommands({ childRequest: 'attach', configRequest: 'launch' }), [], 'disagreeing requests are refused');
+});
 
 test('the host refuses a step it does not know, before any adapter is started', async () => {
   for (const steps of [[{ op: 'evaluate' }], [{ op: 'next' }, { op: 'setVariable' }], ['next'], [null], [{}], 'next']) {
@@ -1217,7 +1245,12 @@ test("only js-debug's own child configuration is honoured for startDebugging; an
   const ok = { type: 'pwa-node', name: 'app.js [1]', __pendingTargetId: '101e9b709185c03d4048f6ad' };
   assert.equal(host.childConfiguration(ok, 'launch'), true);
   assert.equal(host.childConfiguration(ok, 'attach'), true);
-  assert.equal(host.childConfiguration({ ...ok, request: 'attach' }), true, 'the request may also be inside the configuration');
+  assert.equal(host.childConfiguration({ ...ok, request: 'attach' }, 'attach'), true, 'the configuration may only agree with the request');
+  assert.equal(
+    host.childConfiguration({ ...ok, request: 'launch' }),
+    false,
+    'a request inside the configuration never replaces the explicit one',
+  );
   assert.equal(host.childConfiguration(ok), false, 'there is no default request');
   assert.equal(host.childConfiguration(ok, 'evaluate'), false);
   assert.equal(host.childConfiguration({ ...ok, request: 'attach' }, 'launch'), false, 'the two requests must agree');
