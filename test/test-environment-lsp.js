@@ -79,7 +79,12 @@ function hashTree(directory) {
 
 function realService(spaces, extra = {}) {
   const events = [];
-  const service = environment.createDefaultLspService({ policy: policyFor(spaces), toolchain, ledger: (event) => events.push(event), ...extra });
+  const service = environment.createDefaultLspService({
+    policy: policyFor(spaces),
+    toolchain,
+    ledger: (event) => events.push(event),
+    ...extra,
+  });
   return { service, events };
 }
 
@@ -89,8 +94,18 @@ function realService(spaces, extra = {}) {
 
 const REAL_CASES = [
   ['typescript', 'diagnostics', { file: 'a.ts' }, (r) => assert.ok(r.diagnostics.some((d) => /not assignable/.test(d.message)))],
-  ['typescript', 'definition', { file: 'b.ts', position: { line: 1, character: 13 } }, (r) => assert.ok(r.locations.length > 0 && r.locations.every((l) => !path.isAbsolute(l.path)))],
-  ['typescript', 'references', { file: 'a.ts', position: { line: 0, character: 17 } }, (r) => assert.ok(r.locations.some((l) => l.path === 'a.ts'))],
+  [
+    'typescript',
+    'definition',
+    { file: 'b.ts', position: { line: 1, character: 13 } },
+    (r) => assert.ok(r.locations.length > 0 && r.locations.every((l) => !path.isAbsolute(l.path))),
+  ],
+  [
+    'typescript',
+    'references',
+    { file: 'a.ts', position: { line: 0, character: 17 } },
+    (r) => assert.ok(r.locations.some((l) => l.path === 'a.ts')),
+  ],
   ['typescript', 'hover', { file: 'a.ts', position: { line: 0, character: 17 } }, (r) => assert.match(r.hover, /greet/)],
   [
     'typescript',
@@ -102,7 +117,16 @@ const REAL_CASES = [
     },
   ],
   ['python', 'diagnostics', { file: 'm.py' }, (r) => assert.ok(r.diagnostics.some((d) => /not assignable/.test(d.message)))],
-  ['python', 'definition', { file: 'm.py', position: { line: 4, character: 7 } }, (r) => assert.deepEqual(r.locations.map((l) => l.path), ['m.py'])],
+  [
+    'python',
+    'definition',
+    { file: 'm.py', position: { line: 4, character: 7 } },
+    (r) =>
+      assert.deepEqual(
+        r.locations.map((l) => l.path),
+        ['m.py'],
+      ),
+  ],
   ['python', 'references', { file: 'm.py', position: { line: 0, character: 5 } }, (r) => assert.equal(r.locations.length, 2)],
   ['python', 'hover', { file: 'm.py', position: { line: 0, character: 5 } }, (r) => assert.match(r.hover, /greet/)],
   [
@@ -153,7 +177,11 @@ test('a location outside the workspace root reported by the real server is refus
 test('a P0 policy cannot host a language server and is reported as blocked', async () => {
   const spaces = workspace();
   const events = [];
-  const service = environment.createDefaultLspService({ policy: policyFor(spaces, 'P0'), toolchain, ledger: (event) => events.push(event) });
+  const service = environment.createDefaultLspService({
+    policy: policyFor(spaces, 'P0'),
+    toolchain,
+    ledger: (event) => events.push(event),
+  });
   const output = await service.run({ action: 'diagnostics', language: 'python', file: 'm.py' });
   assert.deepEqual([output.status, output.code], ['blocked', 'ENV_LSP_PROFILE_INSUFFICIENT']);
   assert.equal(events.at(-1).type, 'environment.lsp.blocked');
@@ -166,7 +194,12 @@ test('a P0 policy cannot host a language server and is reported as blocked', asy
 function scripted(spaces, reply, options = {}) {
   const events = [];
   const calls = [];
-  const channel = { directory: '/unused', max_file_bytes: 1, verify: options.verify || (() => assert.fail('no artifact expected')), dispose: () => {} };
+  const channel = {
+    directory: '/unused',
+    max_file_bytes: 1,
+    verify: options.verify || (() => assert.fail('no artifact expected')),
+    dispose: () => {},
+  };
   const service = environment.createLspService({
     policy: policyFor(spaces),
     toolchain: options.toolchain || toolchain,
@@ -194,7 +227,10 @@ const execution = (stdout, status = 'succeeded') => ({
   descendants_terminated: true,
 });
 const hostOk = (result) => execution(JSON.stringify({ ok: true, result }));
-const loc = (file, line = 0) => ({ uri: `file:///workspace/${file}`, range: { start: { line, character: 0 }, end: { line, character: 1 } } });
+const loc = (file, line = 0) => ({
+  uri: `file:///workspace/${file}`,
+  range: { start: { line, character: 0 }, end: { line, character: 1 } },
+});
 
 test('input validation refuses malformed requests before anything runs', async () => {
   const spaces = workspace();
@@ -245,9 +281,14 @@ test('files outside the root (.., absolute, symlink) are refused and recorded wi
 test('a missing toolchain, pin or server binary is BLOCKED with its cause, never an empty result', async () => {
   const spaces = workspace();
   const input = { action: 'diagnostics', language: 'python', file: 'm.py' };
-  const unready = scripted(spaces, hostOk({}), { toolchain: { status: 'blocked', code: 'ENV_TOOLCHAIN_ARTIFACT_MISSING', cause: 'artifact for pyright is absent' } });
+  const unready = scripted(spaces, hostOk({}), {
+    toolchain: { status: 'blocked', code: 'ENV_TOOLCHAIN_ARTIFACT_MISSING', cause: 'artifact for pyright is absent' },
+  });
   const blockedOutput = await unready.service.run(input);
-  assert.deepEqual([blockedOutput.status, blockedOutput.code, blockedOutput.cause], ['blocked', 'ENV_TOOLCHAIN_ARTIFACT_MISSING', 'artifact for pyright is absent']);
+  assert.deepEqual(
+    [blockedOutput.status, blockedOutput.code, blockedOutput.cause],
+    ['blocked', 'ENV_TOOLCHAIN_ARTIFACT_MISSING', 'artifact for pyright is absent'],
+  );
   const empty = temp('hseos-lsp-empty-');
   const absent = scripted(spaces, hostOk({}), { toolchain: { status: 'ready', root: empty } });
   const output = await absent.service.run(input);
@@ -315,11 +356,29 @@ test('every reported location is mapped to a root-relative path or the whole cal
   });
   const input = { action: 'references', language: 'typescript', file: 'a.ts', position: { line: 0, character: 17 } };
   const run = async (raw, overrides = input) => scripted(spaces, hostOk(raw)).service.run(overrides);
-  const ok = await run({ action: 'references', locations: [loc('a.ts'), loc('alias.ts'), loc('gone.ts'), { targetUri: 'file:///workspace/b.ts', targetSelectionRange: loc('b.ts').range }] });
-  assert.deepEqual(ok.result.locations.map((l) => l.path), ['a.ts', 'a.ts', 'gone.ts', 'b.ts']);
+  const ok = await run({
+    action: 'references',
+    locations: [
+      loc('a.ts'),
+      loc('alias.ts'),
+      loc('gone.ts'),
+      { targetUri: 'file:///workspace/b.ts', targetSelectionRange: loc('b.ts').range },
+    ],
+  });
+  assert.deepEqual(
+    ok.result.locations.map((l) => l.path),
+    ['a.ts', 'a.ts', 'gone.ts', 'b.ts'],
+  );
   const rootLocation = await run({ action: 'references', locations: [{ uri: 'file:///workspace', range: loc('a.ts').range }] });
   assert.equal(rootLocation.result.locations[0].path, '.');
-  for (const uri of ['file:///etc/passwd', 'file:///workspace/escape.ts', 'file:///workspace/../etc/passwd', 'file://remote/workspace/a.ts', 'file:///workspacefoo/a.ts', 'file:///opt/hseos/toolchain/x.py']) {
+  for (const uri of [
+    'file:///etc/passwd',
+    'file:///workspace/escape.ts',
+    'file:///workspace/../etc/passwd',
+    'file://remote/workspace/a.ts',
+    'file:///workspacefoo/a.ts',
+    'file:///opt/hseos/toolchain/x.py',
+  ]) {
     const output = await run({ action: 'references', locations: [{ uri, range: loc('a.ts').range }] });
     assert.deepEqual([output.status, output.code], ['refused', 'ENV_LSP_OUT_OF_SCOPE'], uri);
   }
@@ -338,7 +397,8 @@ test('targets that do not exist yet are resolved through their existing ancestor
     fs.symlinkSync('loop.py', path.join(root, 'loop.py'));
   });
   const rename = { action: 'rename_preview', language: 'python', file: 'm.py', position: { line: 0, character: 5 }, new_name: 'hello' };
-  const operation = (kind, uri, newUri) => hostOk({ action: 'rename_preview', edit: { documentChanges: [{ kind, uri, oldUri: uri, ...(newUri ? { newUri } : {}) }] } });
+  const operation = (kind, uri, newUri) =>
+    hostOk({ action: 'rename_preview', edit: { documentChanges: [{ kind, uri, oldUri: uri, ...(newUri ? { newUri } : {}) }] } });
   const run = (reply, input = rename) => scripted(spaces, reply).service.run(input);
   const outside = (output) => assert.deepEqual([output.status, output.code], ['refused', 'ENV_LSP_OUT_OF_SCOPE'], JSON.stringify(output));
   outside(await run(operation('create', 'file:///workspace/linkdir/new.py')));
@@ -348,12 +408,40 @@ test('targets that do not exist yet are resolved through their existing ancestor
   outside(await run(operation('delete', 'file:///workspace/chain1.py')));
   outside(await run(operation('delete', 'file:///workspace/loop.py')));
   const references = { action: 'references', language: 'python', file: 'm.py', position: { line: 0, character: 5 } };
-  for (const uri of ['file:///workspace/linkdir/new.py', 'file:///workspace/dangling.py', 'file:///workspace/chain1.py', 'file:///workspace/loop.py']) {
+  for (const uri of [
+    'file:///workspace/linkdir/new.py',
+    'file:///workspace/dangling.py',
+    'file:///workspace/chain1.py',
+    'file:///workspace/loop.py',
+  ]) {
     outside(await run(hostOk({ action: 'references', locations: [{ uri, range: loc('m.py').range }] }), references));
   }
   // Percent-encoded dot segments are decoded before the check and leave the root.
-  for (const uri of ['file:///workspace/%2e%2e/outside.ts', 'file:///workspace/sub/%2E%2E/%2e%2e/x.py', 'file:///workspace/..%2foutside.ts']) {
+  for (const uri of [
+    'file:///workspace/%2e%2e/outside.ts',
+    'file:///workspace/sub/%2E%2E/%2e%2e/x.py',
+    'file:///workspace/..%2foutside.ts',
+  ]) {
     outside(await run(hostOk({ action: 'references', locations: [{ uri, range: loc('m.py').range }] }), references));
+  }
+  // Only the path segments of a file: URI are decoded: an invalid escape is refused, an escaped dot segment is a parent
+  // segment in any case, and a plain path is literal (a '%' in a name is not an escape).
+  for (const uri of ['file:///workspace/%zz/x.py', 'file:///workspace/%2E%2e/x.py', 'file:///workspace/a/%2e%2E/%2e%2e/x.py']) {
+    outside(await run(hostOk({ action: 'references', locations: [{ uri, range: loc('m.py').range }] }), references));
+  }
+  const escaped = await run(
+    hostOk({ action: 'references', locations: [{ uri: 'file:///workspace/with%20space.py', range: loc('m.py').range }] }),
+    references,
+  );
+  assert.equal(escaped.result?.locations?.[0]?.path, 'with space.py', 'a valid escape in a file: segment is decoded');
+  const literal = await run(
+    hostOk({ action: 'references', locations: [{ uri: '/workspace/100%/x.py', range: loc('m.py').range }] }),
+    references,
+  );
+  assert.equal(literal.result?.locations?.[0]?.path, '100%/x.py', 'a plain path with a lone % is literal, not invalid text');
+  for (const query of ['file:///workspace/ok.py?q=%zz', 'file:///workspace/ok.py#%zz']) {
+    const output = await run(hostOk({ action: 'references', locations: [{ uri: query, range: loc('m.py').range }] }), references);
+    assert.equal(output.result?.locations?.[0]?.path, 'ok.py', `the query or fragment is not part of the path: ${query}`);
   }
   // A pending link that stays inside the root is in scope and reported by the path it would create.
   const inside = await run(operation('create', 'file:///workspace/dangling-in.py'));
@@ -403,7 +491,8 @@ test('the sandbox really mounts the workspace and the toolchain read-only (EROFS
 
 test('P0 forbids child processes with pipes (spawn EPERM) while P1 allows them: the reason LSP needs P1', async () => {
   const { executeIsolatedCommand } = require('../packages/agent-isolation-attestation/executor');
-  const probe = "const c=require('child_process').spawn('/usr/bin/cat',[],{stdio:['pipe','pipe','ignore']});c.on('error',e=>console.log('ERR',e.code));c.stdout.on('data',d=>{console.log('ECHO',String(d));c.kill()});c.stdin.write('hi')";
+  const probe =
+    "const c=require('child_process').spawn('/usr/bin/cat',[],{stdio:['pipe','pipe','ignore']});c.on('error',e=>console.log('ERR',e.code));c.stdout.on('data',d=>{console.log('ECHO',String(d));c.kill()});c.stdin.write('hi')";
   const outcome = async (profile) =>
     executeIsolatedCommand({
       policy: policyFor(workspace(), profile),
@@ -429,33 +518,59 @@ test('diagnostics, hover and rename previews are normalised, bounded and never a
   assert.deepEqual([clipped.result.truncated, clipped.result.original_length], [true, 5000]);
   const whole = await scripted(spaces, hostOk({ action: 'hover', hover: 'short' })).service.run(hover);
   assert.deepEqual([whole.result.hover, whole.result.truncated, whole.result.original_length], ['short', false, undefined]);
-  const diagnostics = await scripted(spaces, hostOk({ action: 'diagnostics', diagnostics: [{ range: loc('m.py').range, message: 'bare' }] })).service.run({
-    action: 'diagnostics',
-    language: 'python',
-    file: 'm.py',
-  });
-  assert.deepEqual([diagnostics.result.diagnostics[0].severity, diagnostics.result.diagnostics[0].code, diagnostics.result.diagnostics[0].source], [null, null, null]);
-  assert.deepEqual([diagnostics.result.total, diagnostics.result.truncated, diagnostics.result.diagnostics[0].truncated], [1, false, false]);
-  const longMessage = await scripted(spaces, hostOk({ action: 'diagnostics', total: 500, diagnostics: [{ range: loc('m.py').range, message: long }] })).service.run({
+  const diagnostics = await scripted(
+    spaces,
+    hostOk({ action: 'diagnostics', diagnostics: [{ range: loc('m.py').range, message: 'bare' }] }),
+  ).service.run({
     action: 'diagnostics',
     language: 'python',
     file: 'm.py',
   });
   assert.deepEqual(
-    [longMessage.result.diagnostics[0].truncated, longMessage.result.diagnostics[0].original_length, longMessage.result.total, longMessage.result.truncated],
+    [diagnostics.result.diagnostics[0].severity, diagnostics.result.diagnostics[0].code, diagnostics.result.diagnostics[0].source],
+    [null, null, null],
+  );
+  assert.deepEqual(
+    [diagnostics.result.total, diagnostics.result.truncated, diagnostics.result.diagnostics[0].truncated],
+    [1, false, false],
+  );
+  const longMessage = await scripted(
+    spaces,
+    hostOk({ action: 'diagnostics', total: 500, diagnostics: [{ range: loc('m.py').range, message: long }] }),
+  ).service.run({
+    action: 'diagnostics',
+    language: 'python',
+    file: 'm.py',
+  });
+  assert.deepEqual(
+    [
+      longMessage.result.diagnostics[0].truncated,
+      longMessage.result.diagnostics[0].original_length,
+      longMessage.result.total,
+      longMessage.result.truncated,
+    ],
     [true, 5000, 500, true],
     'a cut message and a cut list are both flagged',
   );
 
   const rename = { action: 'rename_preview', language: 'python', file: 'm.py', position: { line: 0, character: 5 }, new_name: 'hello' };
   const edit = (uri, newText = 'hello') => ({ range: loc('m.py').range, newText });
-  const changes = await scripted(spaces, hostOk({ action: 'rename_preview', edit: { changes: { 'file:///workspace/m.py': [edit()] } } })).service.run(rename);
+  const changes = await scripted(
+    spaces,
+    hostOk({ action: 'rename_preview', edit: { changes: { 'file:///workspace/m.py': [edit()] } } }),
+  ).service.run(rename);
   assert.equal(changes.result.rename.applied, false);
   assert.equal(changes.result.rename.truncated, false);
-  const cutEdit = await scripted(spaces, hostOk({ action: 'rename_preview', edit: { changes: { 'file:///workspace/m.py': [edit('', long)] } } })).service.run(rename);
+  const cutEdit = await scripted(
+    spaces,
+    hostOk({ action: 'rename_preview', edit: { changes: { 'file:///workspace/m.py': [edit('', long)] } } }),
+  ).service.run(rename);
   const [cut] = cutEdit.result.rename.files[0].edits;
   assert.deepEqual([cutEdit.result.rename.truncated, cut.truncated, cut.original_length], [true, true, 5000]);
-  assert.deepEqual(changes.result.rename.files.map((f) => f.path), ['m.py']);
+  assert.deepEqual(
+    changes.result.rename.files.map((f) => f.path),
+    ['m.py'],
+  );
   const documentChanges = await scripted(
     spaces,
     hostOk({
@@ -475,10 +590,16 @@ test('diagnostics, hover and rename previews are normalised, bounded and never a
   ]);
   const empty = await scripted(spaces, hostOk({ action: 'rename_preview', edit: {} })).service.run(rename);
   assert.deepEqual(empty.result.rename.files, []);
-  const escaped = await scripted(spaces, hostOk({ action: 'rename_preview', edit: { changes: { 'file:///etc/hosts': [edit()] } } })).service.run(rename);
+  const escaped = await scripted(
+    spaces,
+    hostOk({ action: 'rename_preview', edit: { changes: { 'file:///etc/hosts': [edit()] } } }),
+  ).service.run(rename);
   assert.equal(escaped.code, 'ENV_LSP_OUT_OF_SCOPE');
   const many = Array.from({ length: 2001 }, () => edit());
-  const tooMany = await scripted(spaces, hostOk({ action: 'rename_preview', edit: { changes: { 'file:///workspace/m.py': many } } })).service.run(rename);
+  const tooMany = await scripted(
+    spaces,
+    hostOk({ action: 'rename_preview', edit: { changes: { 'file:///workspace/m.py': many } } }),
+  ).service.run(rename);
   assert.equal(tooMany.code, 'ENV_LSP_RESULT_TOO_LARGE');
   const broken = await scripted(spaces, hostOk({ action: 'rename_preview' })).service.run(rename);
   assert.equal(broken.code, 'ENV_LSP_RESULT_INVALID');
@@ -504,12 +625,19 @@ test('Content-Length framing round-trips, reassembles split chunks and refuses e
   const all = Buffer.concat([first, second]);
   const out = [];
   for (let index = 0; index < all.length; index += 7) out.push(...parser.push(all.subarray(index, index + 7)));
-  assert.deepEqual(out.map((m) => m.id), [1, 2]);
+  assert.deepEqual(
+    out.map((m) => m.id),
+    [1, 2],
+  );
   assert.equal(out[1].text, 'ação');
   assert.deepEqual(createFrameParser().push(Buffer.alloc(0)), []);
 
   const frame = (header, body = '{}') => Buffer.from(`${header}\r\n\r\n${body}`);
-  const refuse = (buffer, code, options) => assert.throws(() => createFrameParser(options).push(buffer), (error) => error instanceof FramingError && error.code === code);
+  const refuse = (buffer, code, options) =>
+    assert.throws(
+      () => createFrameParser(options).push(buffer),
+      (error) => error instanceof FramingError && error.code === code,
+    );
   refuse(frame('Content-Length: 2\r\nContent-Length: 2'), 'ENV_FRAMING_INVALID');
   refuse(frame('Content-Length: abc'), 'ENV_FRAMING_INVALID');
   refuse(frame('Content-Type: x'), 'ENV_FRAMING_INVALID');
@@ -577,12 +705,17 @@ test('host reports protocol failures with stable codes', async () => {
   assert.equal(await code('process.stdout.write("garbage\\r\\n\\r\\n")\nsetInterval(() => {}, 1000)'), 'ENV_LSP_PROTOCOL');
   assert.equal(await code('setInterval(() => {}, 1000)', { timeout_ms: 300 }), 'ENV_LSP_TIMEOUT');
   assert.equal(
-    await code(`${FAKE_PRELUDE}function onMessage(m) { if (m.id !== undefined) process.stdout.write(frame({ jsonrpc: '2.0', id: m.id, error: { code: -1, message: 'no' } })); }`),
+    await code(
+      `${FAKE_PRELUDE}function onMessage(m) { if (m.id !== undefined) process.stdout.write(frame({ jsonrpc: '2.0', id: m.id, error: { code: -1, message: 'no' } })); }`,
+    ),
     'ENV_LSP_SERVER_ERROR',
   );
   // A server that never publishes diagnostics times out instead of returning an empty list.
   assert.equal(
-    await code(`${FAKE_PRELUDE}function onMessage(m) { if (m.id !== undefined) process.stdout.write(frame({ jsonrpc: '2.0', id: m.id, result: {} })); }`, { action: 'diagnostics', position: undefined, timeout_ms: 600 }),
+    await code(
+      `${FAKE_PRELUDE}function onMessage(m) { if (m.id !== undefined) process.stdout.write(frame({ jsonrpc: '2.0', id: m.id, result: {} })); }`,
+      { action: 'diagnostics', position: undefined, timeout_ms: 600 },
+    ),
     'ENV_LSP_TIMEOUT',
   );
   assert.equal(await code('process.exit(0)', { action: 'format' }), 'ENV_LSP_INPUT');
@@ -617,7 +750,10 @@ function onMessage(m) {
   assert.deepEqual((await run({ action: 'references' })).locations, []);
   assert.equal((await run({ action: 'hover' })).hover, 'a\nb\n');
   assert.deepEqual((await run({ action: 'rename_preview', new_name: 'z' })).edit, {});
-  assert.deepEqual((await run({ action: 'diagnostics' })).diagnostics.map((d) => d.message), ['d']);
+  assert.deepEqual(
+    (await run({ action: 'diagnostics' })).diagnostics.map((d) => d.message),
+    ['d'],
+  );
   assert.equal(host.hoverText(), '');
   assert.equal(host.hoverText(null), '');
 });
@@ -640,7 +776,12 @@ test('host output is inline when small and a verified artifact manifest when lar
   host.emit(large, (line) => lines.push(line), directory);
   const [entry] = JSON.parse(lines[2]);
   const bytes = fs.readFileSync(path.join(directory, 'result.json'));
-  assert.deepEqual(entry, { path: '/artifacts/result.json', media_type: 'application/json', bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') });
+  assert.deepEqual(entry, {
+    path: '/artifacts/result.json',
+    media_type: 'application/json',
+    bytes: bytes.length,
+    sha256: createHash('sha256').update(bytes).digest('hex'),
+  });
   assert.deepEqual(JSON.parse(bytes), large);
 });
 
@@ -673,10 +814,18 @@ test('the real cache verifies SHA-256 and licence text inside each pinned artifa
       ['pyright', '1.1.414', 'MIT'],
     ],
   );
-  for (const entry of ['typescript-language-server/package/lib/cli.mjs', 'typescript/package/lib/tsserver.js', 'pyright/package/langserver.index.js', 'host/lsp-host.js', 'host/framing.js']) {
+  for (const entry of [
+    'typescript-language-server/package/lib/cli.mjs',
+    'typescript/package/lib/tsserver.js',
+    'pyright/package/langserver.index.js',
+    'host/lsp-host.js',
+    'host/framing.js',
+  ]) {
     assert.ok(fs.existsSync(path.join(toolchain.root, entry)), entry);
   }
-  assert.throws(() => pins.installToolchain({ cacheDirectory: CACHE, destination: temp('hseos-lsp-x-'), names: ['no-such-pin'] }), { code: 'ENV_TOOLCHAIN_PIN_UNKNOWN' });
+  assert.throws(() => pins.installToolchain({ cacheDirectory: CACHE, destination: temp('hseos-lsp-x-'), names: ['no-such-pin'] }), {
+    code: 'ENV_TOOLCHAIN_PIN_UNKNOWN',
+  });
 });
 
 function sha(bytes) {
@@ -684,7 +833,12 @@ function sha(bytes) {
 }
 
 /** Build a one-pin cache: a tgz holding `package/<file>` entries plus a manifest that matches (or deliberately not). */
-function fixtureCache({ files = { 'package/LICENSE': 'Permission is hereby granted, free of charge' }, mutate = (manifest) => manifest, link = false, outside = false } = {}) {
+function fixtureCache({
+  files = { 'package/LICENSE': 'Permission is hereby granted, free of charge' },
+  mutate = (manifest) => manifest,
+  link = false,
+  outside = false,
+} = {}) {
   const cache = temp('hseos-lsp-cache-');
   const source = temp('hseos-lsp-src-');
   for (const [name, content] of Object.entries(files)) {
@@ -715,11 +869,19 @@ function fixtureCache({ files = { 'package/LICENSE': 'Permission is hereby grant
   return { cache, expected, artifact };
 }
 
-const install = (cache, expected, names = ['fixture']) => () => pins.installToolchain({ cacheDirectory: cache, destination: temp('hseos-lsp-dest-'), names, expected });
+const install =
+  (cache, expected, names = ['fixture']) =>
+  () =>
+    pins.installToolchain({ cacheDirectory: cache, destination: temp('hseos-lsp-dest-'), names, expected });
 
 test('a coherent fixture cache installs and every divergence is BLOCKED with its own code', () => {
   const good = fixtureCache();
-  const result = pins.installToolchain({ cacheDirectory: good.cache, destination: temp('hseos-lsp-dest-'), names: ['fixture'], expected: good.expected });
+  const result = pins.installToolchain({
+    cacheDirectory: good.cache,
+    destination: temp('hseos-lsp-dest-'),
+    names: ['fixture'],
+    expected: good.expected,
+  });
   assert.equal(result.status, 'ready');
   assert.ok(fs.existsSync(path.join(result.root, 'fixture/package/LICENSE')));
 
@@ -728,19 +890,25 @@ test('a coherent fixture cache installs and every divergence is BLOCKED with its
     ['ENV_TOOLCHAIN_MANIFEST_INVALID', fixtureCache({ mutate: () => null })],
     ['ENV_TOOLCHAIN_PIN_MISSING', fixtureCache({ mutate: (m) => ({ ...m, pins: [] }) })],
     ['ENV_TOOLCHAIN_PIN_DIVERGED', fixtureCache({ mutate: (m) => ({ ...m, pins: [{ ...m.pins[0], version: '9.9.9' }] }) })],
-    ['ENV_TOOLCHAIN_DIGEST_MISMATCH', (() => {
-      const f = fixtureCache();
-      f.expected.fixture.sha256 = 'f'.repeat(64);
-      const manifest = JSON.parse(fs.readFileSync(path.join(f.cache, 'toolchain-manifest.json')));
-      manifest.pins[0].sha256 = 'f'.repeat(64);
-      fs.writeFileSync(path.join(f.cache, 'toolchain-manifest.json'), JSON.stringify(manifest));
-      return f;
-    })()],
-    ['ENV_TOOLCHAIN_ARTIFACT_MISSING', (() => {
-      const f = fixtureCache();
-      fs.rmSync(f.artifact);
-      return f;
-    })()],
+    [
+      'ENV_TOOLCHAIN_DIGEST_MISMATCH',
+      (() => {
+        const f = fixtureCache();
+        f.expected.fixture.sha256 = 'f'.repeat(64);
+        const manifest = JSON.parse(fs.readFileSync(path.join(f.cache, 'toolchain-manifest.json')));
+        manifest.pins[0].sha256 = 'f'.repeat(64);
+        fs.writeFileSync(path.join(f.cache, 'toolchain-manifest.json'), JSON.stringify(manifest));
+        return f;
+      })(),
+    ],
+    [
+      'ENV_TOOLCHAIN_ARTIFACT_MISSING',
+      (() => {
+        const f = fixtureCache();
+        fs.rmSync(f.artifact);
+        return f;
+      })(),
+    ],
     ['ENV_TOOLCHAIN_LICENSE_MISSING', fixtureCache({ files: { 'package/README': 'no licence' } })],
     ['ENV_TOOLCHAIN_LICENSE_MISMATCH', fixtureCache({ files: { 'package/LICENSE': 'All rights reserved' } })],
     ['ENV_TOOLCHAIN_ARCHIVE_UNSAFE', fixtureCache({ link: true })],
@@ -808,15 +976,23 @@ test('a real tar with a ../ member is refused before anything is extracted', () 
     const fixture = fixtureCache();
     swapArtifact(fixture, craftedTgz(names));
     const destination = temp('hseos-lsp-dest-');
-    assert.throws(() => pins.installToolchain({ cacheDirectory: fixture.cache, destination, names: ['fixture'], expected: fixture.expected }), {
-      code: 'ENV_TOOLCHAIN_ARCHIVE_UNSAFE',
-    });
+    assert.throws(
+      () => pins.installToolchain({ cacheDirectory: fixture.cache, destination, names: ['fixture'], expected: fixture.expected }),
+      {
+        code: 'ENV_TOOLCHAIN_ARCHIVE_UNSAFE',
+      },
+    );
     assert.deepEqual(fs.readdirSync(destination), [], 'nothing was extracted');
     assert.equal(fs.existsSync(path.join(path.dirname(destination), 'evil.txt')), false);
   }
   const clean = fixtureCache();
   swapArtifact(clean, craftedTgz(['package/LICENSE', 'package/index.js']));
-  const ok = pins.installToolchain({ cacheDirectory: clean.cache, destination: temp('hseos-lsp-dest-'), names: ['fixture'], expected: clean.expected });
+  const ok = pins.installToolchain({
+    cacheDirectory: clean.cache,
+    destination: temp('hseos-lsp-dest-'),
+    names: ['fixture'],
+    expected: clean.expected,
+  });
   assert.equal(ok.status, 'ready');
 });
 
@@ -850,14 +1026,28 @@ test('a pending link seen through a symlinked parent is resolved against the REA
   });
   const references = { action: 'references', language: 'python', file: 'm.py', position: { line: 0, character: 5 } };
   const status = async (relative) =>
-    scripted(spaces, hostOk({ action: 'references', locations: [{ uri: `${SCOPE_MIRROR}/${relative}`, range: loc('m.py').range }] })).service.run(references);
+    scripted(
+      spaces,
+      hostOk({ action: 'references', locations: [{ uri: `${SCOPE_MIRROR}/${relative}`, range: loc('m.py').range }] }),
+    ).service.run(references);
   for (const relative of ['top/dang.py', 'p/q/linkdir/dang.py', 'p/q/viainner/dang.py', 'p/q/linkdir/up.py']) {
     const output = await status(relative);
     assert.deepEqual([output.status, output.code], ['refused', 'ENV_LSP_OUT_OF_SCOPE'], relative);
   }
   // A `..` segment is refused outright, never collapsed into a path that looks in scope (and recorded in the ledger).
-  for (const relative of ['p/q/linkdir/../../m.py', 'p/q/linkdir/../../../../outside.ts', 'top/../m.py', '%2e%2e/m.py', 'p/%2E%2E/m.py', 'p/..%2fm.py', 'p/bad%zz.py']) {
-    const { service, events } = scripted(spaces, hostOk({ action: 'references', locations: [{ uri: `${SCOPE_MIRROR}/${relative}`, range: loc('m.py').range }] }));
+  for (const relative of [
+    'p/q/linkdir/../../m.py',
+    'p/q/linkdir/../../../../outside.ts',
+    'top/../m.py',
+    '%2e%2e/m.py',
+    'p/%2E%2E/m.py',
+    'p/..%2fm.py',
+    'p/bad%zz.py',
+  ]) {
+    const { service, events } = scripted(
+      spaces,
+      hostOk({ action: 'references', locations: [{ uri: `${SCOPE_MIRROR}/${relative}`, range: loc('m.py').range }] }),
+    );
     const output = await service.run(references);
     assert.deepEqual([output.status, output.code], ['refused', 'ENV_LSP_OUT_OF_SCOPE'], relative);
     assert.equal(events.at(-1).code, 'ENV_LSP_OUT_OF_SCOPE', relative);
@@ -918,7 +1108,18 @@ test('generated matrix: resolveReal and the scope verdict equal the kernel for e
   const relatives = [];
   for (const prefix of ['top', 'p/q/via']) {
     for (const name of names) relatives.push(`${prefix}/${name}/real.py`, `${prefix}/${name}/new.py`, `${prefix}/${name}/sub/dir/new.py`);
-    for (const name of ['f_in', 'f_out', 'pend_in_rel', 'pend_in_abs', 'pend_out_rel', 'pend_out_abs', 'pend_via_dir', 'pend_via_dir_in', 'pend_up']) relatives.push(`${prefix}/${name}`);
+    for (const name of [
+      'f_in',
+      'f_out',
+      'pend_in_rel',
+      'pend_in_abs',
+      'pend_out_rel',
+      'pend_out_abs',
+      'pend_via_dir',
+      'pend_via_dir_in',
+      'pend_up',
+    ])
+      relatives.push(`${prefix}/${name}`);
   }
   const references = { action: 'references', language: 'python', file: 'm.py', position: { line: 0, character: 5 } };
   let outside = 0;
@@ -929,7 +1130,10 @@ test('generated matrix: resolveReal and the scope verdict equal the kernel for e
     assert.equal(ours, truth, relative);
     // The scope verdict is compared with the kernel on every row.
     const expectedInside = truth === base || truth.startsWith(`${base}${path.sep}`);
-    const output = await scripted(spaces, hostOk({ action: 'references', locations: [{ uri: `${SCOPE_MIRROR}/${relative}`, range: loc('m.py').range }] })).service.run(references);
+    const output = await scripted(
+      spaces,
+      hostOk({ action: 'references', locations: [{ uri: `${SCOPE_MIRROR}/${relative}`, range: loc('m.py').range }] }),
+    ).service.run(references);
     assert.equal(output.status === 'ok', expectedInside, `${relative} -> ${truth}`);
     if (expectedInside) {
       inside += 1;

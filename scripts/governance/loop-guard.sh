@@ -21,7 +21,14 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="${REPO_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
+# O alvo é o repositório de quem chama, não o diretório onde o script está instalado: instalado como dependência, o
+# caminho relativo ao script cai em node_modules/<pkg>. Sem REPO_ROOT explícito usa-se o toplevel git do cwd (ou o cwd).
+REPO_ROOT="${REPO_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+REPO_ROOT="$(cd "$REPO_ROOT" 2>/dev/null && pwd -P)" || { echo "[loop-guard FAIL] REPO_ROOT inexistente" >&2; exit 1; }
+case "$REPO_ROOT/" in
+  */node_modules/*) echo "[loop-guard FAIL] REPO_ROOT resolvido dentro de node_modules ($REPO_ROOT); rode a partir do repositório alvo ou defina REPO_ROOT" >&2; exit 1;;
+esac
+export REPO_ROOT
 LOOPS_DIR="${REPO_ROOT}/.hseos/loops"
 NO_PROGRESS_LIMIT="${NO_PROGRESS_LIMIT:-3}"
 

@@ -99,7 +99,7 @@ const {
   createLocalApprovalFlow,
   startNativeMcpServer,
 } = require('../tools/lib/governed-execution/native-mcp-server');
-const { CAPABILITY_CONTRACT_STUBS } = require('../tools/lib/governed-execution/contract-registry');
+const { CAPABILITY_CONTRACT_STUBS, ENVIRONMENT_CONTRACTS } = require('../tools/lib/governed-execution/contract-registry');
 const { createOperationalExecution, schemaContract } = require('../tools/lib/governed-execution/operational-runtime');
 const { applyExecutionLedgerFixtureSchema } = require('../tools/mcp-project-state/lib/execution-ledger-schema');
 const { createExecutionEventRegistry } = require('../tools/lib/governed-execution/event-registry');
@@ -205,7 +205,7 @@ async function runGovernedUnitTests() {
         invokeTool: async () => ({}),
       });
       const names = new Set(execution.contracts.list().map((contract) => contract.name));
-      for (const stub of CAPABILITY_CONTRACT_STUBS) assert.ok(names.has(stub.name), `missing ${stub.name}`);
+      for (const stub of [...ENVIRONMENT_CONTRACTS, ...CAPABILITY_CONTRACT_STUBS]) assert.ok(names.has(stub.name), `missing ${stub.name}`);
       assert.ok(names.has('list_runs'));
       assert.throws(
         () => execution.contracts.validateInput(execution.contracts.resolve('memory.write'), {}),

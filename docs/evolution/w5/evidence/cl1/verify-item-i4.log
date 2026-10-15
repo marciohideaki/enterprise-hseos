@@ -1,0 +1,14 @@
+heavy-run: modo normal (load1=0.65 phys=6 avail=24692MiB need=6G mem.psi=0.00 io.psi.full=0.00)
+Delegated test cgroup controllers verified
+✔ real python adapter: breakpoint, stack, variables, step and termination, workspace untouched (2501.150754ms)
+✔ real node adapter: breakpoint, stack, variables, step and termination, workspace untouched (2892.525727ms)
+✔ real adapters: stepIn, stepOut, depth 2 children, a program without breakpoints, a module launch and stack-less capture (7655.604723ms)
+✔ the host client reports a failed response, a framing violation and a vanished adapter with stable codes (21.211912ms)
+✔ a P0 policy cannot host an adapter and is reported as blocked, with the real denial as evidence (111.988594ms)
+✔ a missing toolchain, pin or adapter is BLOCKED with its cause, never an empty result (34.197733ms)
+✔ host protocol failures have stable codes: refused initialize, garbage framing, a dying adapter, no listener, a silent adapter, bad input (4856.982319ms)
+✔ host drives a scripted adapter: reverse requests are refused, output is bounded, lists and frames are cut, stops are limited (3129.475043ms)
+ℹ pass 31
+ℹ fail 0
+ dap-host.js |   99.09 |    92.35 |     100 |   99.09 | 425-428           
+ dap.js      |   99.46 |    98.03 |     100 |   99.46 | 141-142           

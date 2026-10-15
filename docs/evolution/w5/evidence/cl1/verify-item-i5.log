@@ -1,0 +1,9 @@
+heavy-run: outro job pesado em execução — entrando na fila
+  processos com o lock aberto:
+    PID 636222: bash /home/annonymous/.local/bin/heavy-run --mem 6G --wait-max 3600 -- systemd-run --user --wait --c
+    PID 637658: bash /home/annonymous/.local/bin/heavy-run --mem 6G --wait-max 3600 -- systemd-run --user --wait --c
+heavy-run: modo normal (load1=1.25 phys=6 avail=24788MiB need=6G mem.psi=0.11 io.psi.full=0.16)
+Delegated test cgroup controllers verified
+ℹ pass 35
+ℹ fail 0
+ profiles.js |   98.11 |       95 |     100 |   98.11 | 99-100,167-168,257,342-343,348-349 

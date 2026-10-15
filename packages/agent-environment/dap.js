@@ -8,6 +8,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
 const { canonical, resolveReal, LspError } = require('./lsp');
+const { MAX_CHILDREN } = require('./dap-host');
 
 const CONTRACT = 'environment.dap.v1';
 const RUNTIMES = new Set(['node', 'python']);
@@ -21,6 +22,8 @@ const HOST_FILES = ['dap-host.js', 'framing.js'];
 const SANDBOX_ROOT = '/workspace';
 const SANDBOX_TOOLCHAIN = '/opt/hseos/toolchain';
 const SANDBOX_SCRATCH = '/dev/shm';
+// Where the isolation layer binds the controller's own node read-only (packages/agent-isolation-attestation/index.js).
+const SANDBOX_NODE = '/hseos-runtime/node';
 const MODULE = /^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*){0,7}$/;
 const MAX_BREAKPOINTS = 20;
 const MAX_STEPS = 20;
@@ -201,15 +204,15 @@ function createDapService({ policy, toolchain, execute, createChannel, ledger = 
       : { [key]: text };
   };
 
-  function variables(list, depth) {
+  function variables(list, depth, limit = MAX_VARIABLES) {
     return {
-      variables: count(list.variables, MAX_VARIABLES).map((item) => {
+      variables: count(list.variables, limit).map((item) => {
         if (item.children && depth < 2) invalid();
         return {
           ...bounded(item.name, 'name', 256),
           ...clip(item.value),
           ...(item.type == null ? { type: null } : bounded(item.type, 'type', 128)),
-          ...(item.children ? { children: variables(item.children, depth - 1) } : {}),
+          ...(item.children ? { children: variables(item.children, depth - 1, MAX_CHILDREN) } : {}),
         };
       }),
       total: Number.isSafeInteger(list.total) ? list.total : list.variables.length,
@@ -291,7 +294,7 @@ function createDapService({ policy, toolchain, execute, createChannel, ledger = 
         root: SANDBOX_ROOT,
         toolchain: SANDBOX_TOOLCHAIN,
         scratch: SANDBOX_SCRATCH,
-        node: '/usr/bin/node',
+        node: SANDBOX_NODE,
         python: '/usr/bin/python3',
         timeout_ms: request.timeout_ms,
       };

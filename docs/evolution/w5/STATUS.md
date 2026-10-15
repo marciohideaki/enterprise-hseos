@@ -205,3 +205,27 @@ Revisor isolado (agente separado, sem o raciocínio do Commander), preso a `4b66
 **Veredito: APPROVED_WITH_RESERVATIONS, sem blocker.** HEAD e árvore idênticos do início ao fim; os 24 hashes de log do primeiro receipt bateram; exit codes, contagens (815 testes, 1505 de 1556, soma dos orçamentos igual ao teto) e a análise da corrida de relógio do liveness conferem. O commit `577207c5` não enfraqueceu nenhuma asserção e acrescentou uma mais forte.
 **Mutações: 8 executadas, 8 mortas, nenhuma sobrevivente** (allow-list de `startDebugging`, `evaluate` na allow-list, `condition` em breakpoint, recusa textual de `..` no LSP, resolução de symlink, modo unix no zip, pin removido de manifest, retorno do caminho do duplicado de compactação). Observação: a recusa textual de `..` no LSP só é morta por um teste.
 Disposição dos achados: **R1** (CI sem o cache de toolchain, major) e **R2** (confirmação do G3) seguem abertos e dependem do owner; F-C1 (causa do literal da W5-05), F-C2 e F-C3 (`tasks.md`) e F-C4 (rótulo do npm no receipt) foram corrigidos nesta documentação; os resíduos faltantes foram registrados acima. Depois do `4b66aae4` só mudou documentação (`tasks.md`, receipt e este STATUS); nenhum código.
+
+## Onda de limpeza cl1: resíduos da B2 e pendências antigas (2026-10-15)
+
+Branch `task/hseos-w5-cl1` a partir de `40a7e420` (B2 mergeada). Sem contrato em `tasks.md`: o escopo foi a lista de resíduos da seção anterior, um commit por item. Revisão cética isolada, duas rodadas, presa a SHA: **APPROVED_WITH_RESERVATIONS sem blocker** em `9e87412a` (relatórios `REVIEW-CL1.md` e `REVIEW-CL1-R2.md`; 25 mutações na rodada 1 e 7 mutantes do kind da filha na rodada 2). Recibo: `docs/evolution/w5/evidence/cl1/receipt.json`.
+
+| Item | Resíduo | Commit | Resultado |
+|---|---|---|---|
+| 1 | stubs `environment.lsp.*` e `environment.dap.run` | `faa457e4`, `ef1ff8e1` | contratos reais (`read_only`, `implemented`); saída LSP presa à action |
+| 2 | guarda de partição do `context-assembler.js` | `d01253cc` | removida: inalcançável, o store e o `replay.js:728-735` recusam a linhagem inválida (teste novo) |
+| 3 | `childConfiguration.name` sem tipo | `f09bbfbd` | string de até 256 |
+| 4 | filhos 50 contra 20 | `5863708a` | `MAX_CHILDREN` 20 compartilhado |
+| 5 | `openSeccompDescriptor` só com `rmdirSync` | `08762ffa` | limpeza recursiva, erro original preservado, sem vazar diretório nem fd |
+| 6 | `/usr/bin/node` fixo e decode de `%` | `b572b37b` | debuggee em `/hseos-runtime/node`; decode só nos segmentos de caminho de `file:` |
+| 7 | F-B3, F-B4, F-B5, F-B6 | `82b4ec52`, `9a3ff661` | `op` validado no host; kind `launch|attach` obrigatório, lido de `arguments.request` (o js-debug não o põe na configuração); design e teardown de teste corrigidos |
+| 8 | corrida de relógio do liveness | `85b1edca` | orçamento de 500 ms, asserção intacta; 20 execuções isoladas e 10 sob carga sem falha |
+| 9 | `loop-guard.sh` gravando em `node_modules` | `44c66f01` | raiz pelo toplevel git, recusa `/node_modules/`; teste novo |
+| 12 | deriva do `compile` | `1a3042d2` | causa: o manifest derivado ficou em `http` depois do commit `bf4239b5` mudar a fonte para `stdio`; corrigida uma linha e teste de coerência manifest e bundles. As linhas `settings:` e `mcp:` que o `compile` acrescenta com os arquivos gerados em disco são o comportamento da PR #212, não defeito |
+
+**Fora da onda, com a causa:**
+- **Item 10 (BLOCKED, externo):** `ecp-registry.snapshot.json` e as fixtures citam `Hideaki-Solutions-Core` porque o snapshot é cópia travada por SHA-256 da tag upstream `contracts-v0.4.0` de `HideakiSolutions/enterprise-capability-platform`, e não existe tag mais nova. Editar à mão quebra a proveniência; precisa de um novo bundle publicado no upstream.
+- **Item 11 (adiado):** o tokenizer do guard (`capability-intake-guard.js`) é uma task própria, com testes adversariais.
+- **Reformatação:** `lsp.js` e `test-environment-lsp.js` foram reformatados; `lsp-host.js`, `framing.js` e `index.js` seguem fora do estilo e ficam para a `cl2`, junto da licença por digest e do jsdoc de `installToolchain`.
+
+**Resíduos aceitos pela revisão:** `dap.js:138` é mais estrito que o LSP novo (recusa `%2e%2e` literal em caminho simples; fail-closed); o limite de 256 do `name` recusaria um basename de 246 a 255 caracteres (medido 16 e 71 com o js-debug real); o SHA histórico de `loop-guard.sh` em `harness-cli-outcome/baseline.json` ficou desatualizado e nenhum teste o usa; `test-mcp-contract.js` não roda em Node 22 local (ABI do `better-sqlite3`), coberto pelo CI.

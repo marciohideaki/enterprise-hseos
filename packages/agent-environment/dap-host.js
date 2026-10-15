@@ -34,6 +34,7 @@ const MAX_STOPS = 25;
 const MAX_FRAMES = 20;
 const MAX_VARIABLES = 50;
 const MAX_EXPANDED = 10;
+// Shared with the controller (dap.js), which refuses a longer list of children than the host can produce.
 const MAX_CHILDREN = 20;
 const MAX_VALUE = 512;
 const MAX_OUTPUT = 4096;
@@ -188,15 +189,17 @@ function launchArguments({ runtime, launch, root, node }) {
 }
 
 // js-debug needs one child session per debug target. The configuration it asks for is accepted only when it is exactly
-// that: the node launch type, a known request and the opaque target id, with no program, runtime or argument fields.
+// that: the node launch type, an explicit, known request (named by js-debug beside the configuration) and the opaque target id, with no program, runtime or argument fields.
 const CHILD_FIELDS = new Set(['type', 'request', 'name', '__pendingTargetId']);
-function childConfiguration(configuration) {
+function childConfiguration(configuration, request) {
   return (
     Boolean(configuration) &&
     typeof configuration === 'object' &&
     Object.keys(configuration).every((key) => CHILD_FIELDS.has(key)) &&
     configuration.type === 'pwa-node' &&
-    ['launch', 'attach'].includes(configuration.request ?? 'launch') &&
+    (configuration.name === undefined || (typeof configuration.name === 'string' && configuration.name.length <= 256)) &&
+    ['launch', 'attach'].includes(request) &&
+    (configuration.request === undefined || configuration.request === request) &&
     /^[0-9a-f]{8,64}$/.test(configuration.__pendingTargetId ?? '')
   );
 }
@@ -217,6 +220,9 @@ async function runSession(request) {
   } = request;
   if (!RUNTIMES.has(runtime) || !launch || typeof launch !== 'object')
     throw new DapHostError('unsupported runtime or launch', 'ENV_DAP_INPUT');
+  // The controller validates the steps too, but the host is the one that sends them to the adapter.
+  if (!Array.isArray(steps) || steps.some((step) => !step || typeof step !== 'object' || !STEP_OPS.includes(step.op)))
+    throw new DapHostError('step operation is not supported', 'ENV_DAP_INPUT');
   const deadline = Date.now() + timeoutMs;
   const port = await freePort();
   const adapter = adapterFor({ runtime, launch, port, root, toolchain, scratch, node, python });
@@ -306,10 +312,12 @@ async function runSession(request) {
       onEvent,
       onReverseRequest: (message) => {
         // Only js-debug's own child session is honoured; running anything in a terminal is refused.
-        if (message.command === 'startDebugging' && runtime === 'node' && childConfiguration(message.arguments?.configuration)) {
+        // js-debug names the request kind next to the configuration, not inside it; there is no default.
+        const kind = message.arguments?.request;
+        if (message.command === 'startDebugging' && runtime === 'node' && childConfiguration(message.arguments?.configuration, kind)) {
           sessions.push(
             open()
-              .then((next) => configure(next, 'launch', message.arguments.configuration))
+              .then((next) => configure(next, kind, message.arguments.configuration))
               .catch(() => {}),
           );
           return true;
@@ -384,7 +392,7 @@ async function runSession(request) {
         reason = 'steps_exhausted';
         break;
       }
-      await event.source.request(op.op ?? op, { threadId: event.body.threadId });
+      await event.source.request(op.op, { threadId: event.body.threadId });
     }
     for (const client of clients)
       await Promise.race([client.request('disconnect', { terminateDebuggee: true }).catch(() => {}), delay(1500)]);
@@ -426,6 +434,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+  MAX_CHILDREN,
   childConfiguration,
   ALLOWED_REQUESTS,
   DapHostError,

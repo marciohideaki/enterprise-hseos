@@ -712,7 +712,7 @@ mcp_bundles_active:
   - extended
 mcp_servers:
   - id: axon-bridge
-    transport: http
+    transport: stdio
     client_enabled: true
     binary: tools/mcp-axon-bridge/index.js
     runtime: node

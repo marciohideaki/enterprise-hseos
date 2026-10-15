@@ -221,6 +221,7 @@ function assertServerContract(name, probe) {
 const crypto = require('node:crypto');
 const {
   CAPABILITY_CONTRACT_STUBS,
+  ENVIRONMENT_CONTRACTS,
   ExecutionContractError,
   ExecutionContractRegistry,
   TOOL_CATALOG_EXIT_CODE,
@@ -387,11 +388,11 @@ function runCapabilityStubTests() {
   const registry = new ExecutionContractRegistry();
   const registered = registerCapabilityContractStubs(registry);
   const names = registered.map((contract) => contract.name);
-  assertPass('stubs: every environment.* and memory.* contract is registered', names.length === CAPABILITY_CONTRACT_STUBS.length);
+  assertPass(
+    'stubs: every environment.* and memory.* contract is registered',
+    names.length === CAPABILITY_CONTRACT_STUBS.length + ENVIRONMENT_CONTRACTS.length,
+  );
   for (const required of [
-    'environment.lsp.diagnostics',
-    'environment.lsp.rename_preview',
-    'environment.dap.run',
     'environment.browser.run',
     'environment.computer.start',
     'environment.computer.act',
@@ -414,6 +415,65 @@ function runCapabilityStubTests() {
       })(),
     );
   }
+  assertPass(
+    'environment: LSP and DAP are implemented contracts, not stubs',
+    ENVIRONMENT_CONTRACTS.length === 6 &&
+      !CAPABILITY_CONTRACT_STUBS.some((entry) => /^environment\.(lsp|dap)\./.test(entry.name)) &&
+      ENVIRONMENT_CONTRACTS.every((entry) => entry.status === 'implemented' && entry.provider === 'agent-environment'),
+  );
+  const lspInput = { action: 'hover', language: 'python', file: 'a.py', position: { line: 0, character: 0 } };
+  const hover = registry.resolve('environment.lsp.hover');
+  assertPass('environment: a valid LSP input validates', registry.validateInput(hover, lspInput) !== undefined);
+  throwsWith(
+    'environment: an LSP contract refuses the input of another action',
+    () => registry.validateInput(registry.resolve('environment.lsp.diagnostics'), lspInput),
+    ExecutionContractError,
+    'ENV_LSP_INPUT_INVALID',
+  );
+  throwsWith(
+    'environment: an LSP input with an unknown field is refused',
+    () => registry.validateInput(hover, { ...lspInput, extra: 1 }),
+    ExecutionContractError,
+    'ENV_LSP_INPUT_INVALID',
+  );
+  const dapRun = registry.resolve('environment.dap.run');
+  assertPass(
+    'environment: a valid DAP input validates',
+    registry.validateInput(dapRun, { runtime: 'python', launch: { program: 'a.py' } }) !== undefined,
+  );
+  throwsWith(
+    'environment: a DAP breakpoint condition is refused',
+    () =>
+      registry.validateInput(dapRun, {
+        runtime: 'python',
+        launch: { program: 'a.py' },
+        breakpoints: [{ file: 'a.py', line: 1, condition: 'x' }],
+      }),
+    ExecutionContractError,
+    'ENV_DAP_INPUT_INVALID',
+  );
+  throwsWith(
+    'environment: an output that is not untrusted data is refused',
+    () => registry.validateOutput(dapRun, { contract: 'environment.dap.v1' }),
+    ExecutionContractError,
+    'ENV_DAP_OUTPUT_INVALID',
+  );
+  const lspOutput = (action) => ({
+    contract: 'environment.lsp.v1',
+    status: 'ok',
+    action,
+    source: { authority: 'data', provenance: { trust: 'untrusted' } },
+  });
+  assertPass('environment: an LSP output validates under its own action', registry.validateOutput(hover, lspOutput('hover')) !== undefined);
+  throwsWith(
+    'environment: an LSP output of another action is refused',
+    () => registry.validateOutput(registry.resolve('environment.lsp.diagnostics'), lspOutput('hover')),
+    ExecutionContractError,
+    'ENV_LSP_OUTPUT_INVALID',
+  );
+  // The sandbox gets the longest request timeout (120 s) plus its reaping grace (10 s); the language server has 60 s.
+  assertPass('environment: the DAP contract timeout covers the longest request plus the reaping grace', dapRun.timeout_ms === 140_000);
+  assertPass('environment: the LSP contract timeout is the server timeout', hover.timeout_ms === 60_000);
   assertPass(
     'stubs: computer-use actions and memory deletion require approval',
     registry.resolve('environment.computer.act').requires_approval &&

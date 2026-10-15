@@ -46,7 +46,14 @@ function canonical(value) {
 }
 
 function isPosition(value) {
-  return value && typeof value === 'object' && Number.isSafeInteger(value.line) && value.line >= 0 && Number.isSafeInteger(value.character) && value.character >= 0;
+  return (
+    value &&
+    typeof value === 'object' &&
+    Number.isSafeInteger(value.line) &&
+    value.line >= 0 &&
+    Number.isSafeInteger(value.character) &&
+    value.character >= 0
+  );
 }
 
 /** Shape check only; scope is checked separately because it needs the filesystem. */
@@ -57,7 +64,8 @@ function parseInput(input) {
   if (Object.keys(input).some((key) => !allowed.has(key))) return issue('input has an unknown field');
   if (!ACTIONS.has(input.action)) return issue('action is not supported');
   if (!Object.hasOwn(EXTENSIONS, input.language)) return issue('language is not supported');
-  if (typeof input.file !== 'string' || input.file.length === 0 || input.file.length > 1024 || input.file.includes('\0')) return issue('file must be a path');
+  if (typeof input.file !== 'string' || input.file.length === 0 || input.file.length > 1024 || input.file.includes('\0'))
+    return issue('file must be a path');
   if (!EXTENSIONS[input.language].test(input.file)) return issue('file does not match the language');
   if (input.action !== 'diagnostics' && !isPosition(input.position)) return issue('position is required');
   if (input.action === 'rename_preview' && !NEW_NAME.test(input.new_name ?? '')) return issue('new_name must be an identifier');
@@ -134,7 +142,15 @@ function prepareLspToolchain({ install, cacheDirectory, destination }) {
   return Object.freeze({ status: 'ready', root: destination, pins: installed.pins });
 }
 
-function createLspService({ policy, toolchain, execute, createChannel, ledger = () => {}, now = () => new Date(), timeoutMs = TIMEOUT_MS }) {
+function createLspService({
+  policy,
+  toolchain,
+  execute,
+  createChannel,
+  ledger = () => {},
+  now = () => new Date(),
+  timeoutMs = TIMEOUT_MS,
+}) {
   const workspace = fs.realpathSync(policy.host_workspace);
   const record = (event) => ledger(Object.freeze({ contract: CONTRACT, at: now().toISOString(), ...event }));
   const refuse = (code, cause, extra = {}) => {
@@ -150,13 +166,22 @@ function createLspService({ policy, toolchain, execute, createChannel, ledger = 
   function scoped(location) {
     // A parent-directory segment is never collapsed (the URL parser would do it silently, so the raw text is checked):
     // servers report canonical paths, so one is a refusal, not a shortcut.
-    let decoded;
-    try {
-      decoded = decodeURIComponent(location);
-    } catch {
-      throw new LspError('location is not valid text', 'ENV_LSP_OUT_OF_SCOPE');
+    // Only the path segments of a file: URI are percent-decoded (one by one, so an invalid escape in one place cannot
+    // hide a segment in another); a plain path is taken literally, so a '%' in a file name is just a character.
+    let segments = location.split(/[/\\]/);
+    if (location.startsWith('file:')) {
+      try {
+        segments = location
+          .replace(/^file:(\/\/[^/?#]*)?/, '')
+          .split(/[?#]/)[0]
+          .split('/')
+          .map((segment) => decodeURIComponent(segment));
+      } catch {
+        throw new LspError('location is not valid text', 'ENV_LSP_OUT_OF_SCOPE');
+      }
     }
-    if (decoded.split(/[/\\]/).includes('..')) throw new LspError('location has a parent-directory segment', 'ENV_LSP_OUT_OF_SCOPE');
+    if (segments.some((segment) => segment.split(/[/\\]/).includes('..')))
+      throw new LspError('location has a parent-directory segment', 'ENV_LSP_OUT_OF_SCOPE');
     let absolute;
     try {
       absolute = location.startsWith('file:') ? fileURLToPath(location) : location;
@@ -181,7 +206,10 @@ function createLspService({ policy, toolchain, execute, createChannel, ledger = 
       : { [key]: text, truncated: false };
   };
   // The host bounds lists; `total` is what the server returned, so a cut list is visible too.
-  const listed = (items, total) => ({ total: Number.isSafeInteger(total) ? total : items.length, truncated: Number.isSafeInteger(total) && total > items.length });
+  const listed = (items, total) => ({
+    total: Number.isSafeInteger(total) ? total : items.length,
+    truncated: Number.isSafeInteger(total) && total > items.length,
+  });
 
   function renameEdit(edit) {
     const files = new Map();
@@ -194,7 +222,11 @@ function createLspService({ policy, toolchain, execute, createChannel, ledger = 
     for (const [uri, edits] of Object.entries(edit.changes ?? {})) add(uri, edits);
     for (const change of edit.documentChanges ?? []) {
       if (change.kind) {
-        operations.push({ kind: change.kind, path: scoped(change.uri ?? change.oldUri), ...(change.newUri ? { new_path: scoped(change.newUri) } : {}) });
+        operations.push({
+          kind: change.kind,
+          path: scoped(change.uri ?? change.oldUri),
+          ...(change.newUri ? { new_path: scoped(change.newUri) } : {}),
+        });
       } else {
         add(change.textDocument.uri, change.edits);
       }
@@ -247,19 +279,32 @@ function createLspService({ policy, toolchain, execute, createChannel, ledger = 
     try {
       target = resolveReal(path.join(workspace, request.file));
     } catch (error) {
-      return refuse(error.code === 'ENV_LSP_OUT_OF_SCOPE' ? error.code : 'ENV_LSP_INPUT_INVALID', error.message, { input_digest: inputDigest });
+      return refuse(error.code === 'ENV_LSP_OUT_OF_SCOPE' ? error.code : 'ENV_LSP_INPUT_INVALID', error.message, {
+        input_digest: inputDigest,
+      });
     }
-    if (!within(workspace, target)) return refuse('ENV_LSP_OUT_OF_SCOPE', 'file resolves outside the workspace root', { input_digest: inputDigest });
-    if (!fs.existsSync(target) || !fs.statSync(target).isFile()) return refuse('ENV_LSP_INPUT_INVALID', 'file does not exist', { input_digest: inputDigest });
+    if (!within(workspace, target))
+      return refuse('ENV_LSP_OUT_OF_SCOPE', 'file resolves outside the workspace root', { input_digest: inputDigest });
+    if (!fs.existsSync(target) || !fs.statSync(target).isFile())
+      return refuse('ENV_LSP_INPUT_INVALID', 'file does not exist', { input_digest: inputDigest });
     // Node children need AF_UNIX socketpairs (stdio pipes, tsserver IPC); P0 seccomp denies them, so P0 cannot host a server.
-    if (!['P1', 'P2'].includes(policy.profile)) return blocked('ENV_LSP_PROFILE_INSUFFICIENT', 'the language server needs a loopback profile (P1)');
+    if (!['P1', 'P2'].includes(policy.profile))
+      return blocked('ENV_LSP_PROFILE_INSUFFICIENT', 'the language server needs a loopback profile (P1)');
     if (toolchain.status !== 'ready') return blocked(toolchain.code, toolchain.cause);
     for (const entry of SERVER_ENTRIES[request.language]) {
-      if (!fs.existsSync(path.join(toolchain.root, entry))) return blocked('ENV_LSP_SERVER_UNAVAILABLE', `language server for ${request.language} is not installed`);
+      if (!fs.existsSync(path.join(toolchain.root, entry)))
+        return blocked('ENV_LSP_SERVER_UNAVAILABLE', `language server for ${request.language} is not installed`);
     }
     const channel = createChannel();
     try {
-      const hostRequest = { ...request, file: path.relative(workspace, target), root: SANDBOX_ROOT, toolchain: SANDBOX_TOOLCHAIN, timeout_ms: timeoutMs - 10_000, scratch: SANDBOX_SCRATCH };
+      const hostRequest = {
+        ...request,
+        file: path.relative(workspace, target),
+        root: SANDBOX_ROOT,
+        toolchain: SANDBOX_TOOLCHAIN,
+        timeout_ms: timeoutMs - 10_000,
+        scratch: SANDBOX_SCRATCH,
+      };
       const execution = await execute({
         policy,
         command: ['/usr/bin/node', `${SANDBOX_TOOLCHAIN}/host/lsp-host.js`, JSON.stringify(hostRequest)],
@@ -277,9 +322,12 @@ function createLspService({ policy, toolchain, execute, createChannel, ledger = 
         host = null;
       }
       if (execution.status !== 'succeeded' || !host?.ok) {
-        const code = host?.code || (execution.status === 'succeeded' ? 'ENV_LSP_OUTPUT_INVALID' : `ENV_LSP_${String(execution.status).toUpperCase()}`);
+        const code =
+          host?.code || (execution.status === 'succeeded' ? 'ENV_LSP_OUTPUT_INVALID' : `ENV_LSP_${String(execution.status).toUpperCase()}`);
         const unavailable = ['ENV_LSP_SERVER_UNAVAILABLE', 'ENV_LSP_SERVER_EXITED'].includes(code);
-        return unavailable ? blocked(code, 'language server could not run') : refuse(code, 'language server call did not succeed', { input_digest: inputDigest });
+        return unavailable
+          ? blocked(code, 'language server could not run')
+          : refuse(code, 'language server call did not succeed', { input_digest: inputDigest });
       }
       let result;
       try {
@@ -298,7 +346,14 @@ function createLspService({ policy, toolchain, execute, createChannel, ledger = 
         source: Object.freeze({
           source_ref: sourceRef,
           authority: 'data',
-          provenance: Object.freeze({ origin: 'lsp', source_ref: sourceRef, digest: `sha256:${digest}`, retrieved_at: now().toISOString(), trust: 'untrusted', transform: [] }),
+          provenance: Object.freeze({
+            origin: 'lsp',
+            source_ref: sourceRef,
+            digest: `sha256:${digest}`,
+            retrieved_at: now().toISOString(),
+            trust: 'untrusted',
+            transform: [],
+          }),
         }),
         execution: Object.freeze({
           profile: execution.profile,
@@ -309,7 +364,14 @@ function createLspService({ policy, toolchain, execute, createChannel, ledger = 
           descendants_terminated: execution.descendants_terminated,
         }),
       });
-      record({ type: 'environment.lsp.completed', action: request.action, language: request.language, input_digest: inputDigest, output_digest: digest, pids_peak: execution.pids_peak });
+      record({
+        type: 'environment.lsp.completed',
+        action: request.action,
+        language: request.language,
+        input_digest: inputDigest,
+        output_digest: digest,
+        pids_peak: execution.pids_peak,
+      });
       return output;
     } finally {
       channel.dispose();
@@ -319,4 +381,14 @@ function createLspService({ policy, toolchain, execute, createChannel, ledger = 
   return Object.freeze({ run });
 }
 
-module.exports = { CONTRACT, resolveReal, LSP_INPUT_SCHEMA, LSP_OUTPUT_SCHEMA, LspError, canonical, createLspService, parseInput, prepareLspToolchain };
+module.exports = {
+  CONTRACT,
+  resolveReal,
+  LSP_INPUT_SCHEMA,
+  LSP_OUTPUT_SCHEMA,
+  LspError,
+  canonical,
+  createLspService,
+  parseInput,
+  prepareLspToolchain,
+};

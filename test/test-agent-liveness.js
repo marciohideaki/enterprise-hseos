@@ -1964,9 +1964,11 @@ test('delivery work per cycle is bounded: 200 pending rows are handled in batche
     );
 
     queueOutbox(db, 5);
-    const slow = liveness.deliverOutbox(db, directory, () => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 30), {
+    // A one-second interval gives a 500 ms budget; a 200 ms notifier needs 1 s for five rows, so the budget must cut it
+    // short, and the first row always starts well inside the budget. Neither bound depends on a clock tick.
+    const slow = liveness.deliverOutbox(db, directory, () => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 200), {
       now: T0,
-      config: { ...CONFIG, watch_interval_s: 0 },
+      config: { ...CONFIG, watch_interval_s: 1 },
     });
     assert.ok(slow >= 1 && slow < 5, `the time budget stops a slow notifier early (delivered ${slow})`);
   });

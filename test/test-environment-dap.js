@@ -370,47 +370,53 @@ test('the host client only ever sends allow-listed requests: evaluate, setVariab
     onEvent: () => {},
     onReverseRequest: (message) => (reverse.push(message.command), message.command === 'startDebugging'),
   });
-  for (const command of [
-    'evaluate',
-    'setVariable',
-    'setExpression',
-    'restartFrame',
-    'completions',
-    'source',
-    'setFunctionBreakpoints',
-    'setExceptionBreakpoints',
-    'dataBreakpointInfo',
-    'modules',
-    'goto',
-    'runInTerminal',
-    'terminate',
-  ]) {
-    await assert.rejects(client.request(command, {}), { code: 'ENV_DAP_FORBIDDEN_REQUEST' }, command);
+  try {
+    for (const command of [
+      'evaluate',
+      'setVariable',
+      'setExpression',
+      'restartFrame',
+      'completions',
+      'source',
+      'setFunctionBreakpoints',
+      'setExceptionBreakpoints',
+      'dataBreakpointInfo',
+      'modules',
+      'goto',
+      'runInTerminal',
+      'terminate',
+    ]) {
+      await assert.rejects(client.request(command, {}), { code: 'ENV_DAP_FORBIDDEN_REQUEST' }, command);
+    }
+    assert.equal(server.received.length, 0, 'none of them was sent');
+    await client.request('threads', {});
+    assert.deepEqual(
+      server.received.map((message) => message.command),
+      ['threads'],
+    );
+    for (const command of host.ALLOWED_REQUESTS) assert.ok(!['evaluate', 'setVariable', 'setExpression', 'restartFrame'].includes(command));
+    await assert.rejects(client.request('fail', {}), { code: 'ENV_DAP_FORBIDDEN_REQUEST' });
+    // Reverse requests: only startDebugging is honoured (and only for node); anything that would run code is answered with a refusal.
+    server.sockets[0].write(encodeMessage({ seq: 9, type: 'request', command: 'runInTerminal', arguments: {} }));
+    server.sockets[0].write(encodeMessage({ seq: 10, type: 'request', command: 'startDebugging', arguments: {} }));
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    assert.deepEqual(reverse, ['runInTerminal', 'startDebugging']);
+    const replies = server.received.filter((message) => message.type === 'response');
+    assert.deepEqual(
+      replies.map((reply) => [reply.command, reply.success]),
+      [
+        ['runInTerminal', false],
+        ['startDebugging', true],
+      ],
+    );
+    server.close();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    await assert.rejects(client.request('threads', {}), { code: 'ENV_DAP_ADAPTER_EXITED' });
+  } finally {
+    // A failed assertion must not leave the loopback server or the client socket holding the runner open.
+    server.close();
+    client.destroy();
   }
-  assert.equal(server.received.length, 0, 'none of them was sent');
-  await client.request('threads', {});
-  assert.deepEqual(
-    server.received.map((message) => message.command),
-    ['threads'],
-  );
-  for (const command of host.ALLOWED_REQUESTS) assert.ok(!['evaluate', 'setVariable', 'setExpression', 'restartFrame'].includes(command));
-  await assert.rejects(client.request('fail', {}), { code: 'ENV_DAP_FORBIDDEN_REQUEST' });
-  // Reverse requests: only startDebugging is honoured (and only for node); anything that would run code is answered with a refusal.
-  server.sockets[0].write(encodeMessage({ seq: 9, type: 'request', command: 'runInTerminal', arguments: {} }));
-  server.sockets[0].write(encodeMessage({ seq: 10, type: 'request', command: 'startDebugging', arguments: {} }));
-  await new Promise((resolve) => setTimeout(resolve, 200));
-  assert.deepEqual(reverse, ['runInTerminal', 'startDebugging']);
-  const replies = server.received.filter((message) => message.type === 'response');
-  assert.deepEqual(
-    replies.map((reply) => [reply.command, reply.success]),
-    [
-      ['runInTerminal', false],
-      ['startDebugging', true],
-    ],
-  );
-  server.close();
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  await assert.rejects(client.request('threads', {}), { code: 'ENV_DAP_ADAPTER_EXITED' });
 });
 
 test('the host client reports a failed response, a framing violation and a vanished adapter with stable codes', async () => {
@@ -495,6 +501,11 @@ test('files outside the root (.., absolute, symlink, encoded) are refused as ENV
   const sent = JSON.parse(calls[0].command[2]);
   assert.deepEqual([sent.launch.program, sent.breakpoints[0].file, sent.launch.cwd], ['app.py', 'app.py', '.']);
   assert.deepEqual([sent.scratch, sent.root, sent.toolchain], ['/dev/shm', '/workspace', '/opt/hseos/toolchain']);
+  assert.equal(
+    sent.node,
+    '/hseos-runtime/node',
+    'the debuggee runs on the runtime the isolation layer binds, not on a guessed system path',
+  );
   assert.equal(calls[0].limits.shm_bytes, 67_108_864);
   assert.equal(calls[0].timeout_ms, 40_000, 'the sandbox gets the request timeout plus a reaping grace');
 });
@@ -929,6 +940,15 @@ test('results are normalised: paths are root-relative or withheld, values are tr
     'children at depth 1',
   );
   assert.equal((await deep({ stack: true, variables_depth: 2 }, [{ ...nested, children: { variables: [child] } }])).status, 'ok');
+  const childList = (size) => Array.from({ length: size }, () => child);
+  const withChildren = (size) => [{ ...nested, children: { variables: childList(size) } }];
+  assert.equal(host.MAX_CHILDREN, 20, 'the host and the controller share one ceiling for children');
+  assert.equal((await deep({ stack: true, variables_depth: 2 }, withChildren(host.MAX_CHILDREN))).status, 'ok', 'a full list of children');
+  assert.equal(
+    (await deep({ stack: true, variables_depth: 2 }, withChildren(host.MAX_CHILDREN + 1))).code,
+    'ENV_DAP_RESULT_INVALID',
+    'more children than the host can produce',
+  );
   const invalidResult = async (stop, result = {}, capture) =>
     (
       await scripted(spaces, hostOk(rawResult({ stops: [rawStop(stop)], ...result }))).service.run({
@@ -1066,6 +1086,7 @@ else net.createServer((socket) => {
       if (buffer.length < end + 4 + length) return;
       const m = JSON.parse(buffer.subarray(end + 4, end + 4 + length).toString());
       buffer = buffer.subarray(end + 4 + length);
+      if (!first) fs.appendFileSync(path.join(process.env.HOME, 'child.log'), m.command + '\\n');
       if (behavior.mode === 'garbage') return socket.write('garbage\\r\\n\\r\\n');
       if (behavior.mode === 'die') return process.exit(0);
       if (behavior.mode === 'refuse' && m.command === 'initialize') return respond(m, {}, false);
@@ -1076,7 +1097,14 @@ else net.createServer((socket) => {
         event('output', { category: 'stdout' });
         if (first) {
           send({ type: 'request', command: 'runInTerminal', arguments: {} });
-          send({ type: 'request', command: 'startDebugging', arguments: { configuration: { type: 'pwa-node', name: 'child', __pendingTargetId: 'abcdef0123456789' } } });
+          send({
+            type: 'request',
+            command: 'startDebugging',
+            arguments: {
+              ...(behavior.childRequest ? { request: behavior.childRequest } : {}),
+              configuration: { type: 'pwa-node', name: 'child', ...(behavior.configRequest ? { request: behavior.configRequest } : {}), __pendingTargetId: 'abcdef0123456789' },
+            },
+          });
         }
         globalThis.pendingLaunch = m;
       }
@@ -1109,9 +1137,8 @@ function fakeToolchain() {
   return { root, python };
 }
 
-function fakeRun(behavior, extra = {}) {
+function fakeRun(behavior, extra = {}, home = temp('hseos-dap-home-')) {
   const fake = fakeToolchain();
-  const home = temp('hseos-dap-home-');
   fs.writeFileSync(path.join(home, 'behavior.json'), JSON.stringify(behavior));
   const { root } = workspace();
   const runtime = extra.runtime ?? 'python';
@@ -1138,6 +1165,37 @@ const codeOf = async (promise) => {
     return error.code;
   }
 };
+
+test('a js-debug child session is configured with the request kind js-debug named, and never with a default', async () => {
+  const childCommands = async (behavior) => {
+    const home = temp('hseos-dap-home-');
+    await fakeRun({ mode: 'script', ...behavior }, { runtime: 'node', steps: [] }, home);
+    const log = path.join(home, 'child.log');
+    return fs.existsSync(log) ? fs.readFileSync(log, 'utf8').split('\n').filter(Boolean) : [];
+  };
+  const attach = await childCommands({ childRequest: 'attach' });
+  assert.ok(attach.includes('attach') && !attach.includes('launch'), `attach is what the child receives: ${attach}`);
+  const launch = await childCommands({ childRequest: 'launch' });
+  assert.ok(launch.includes('launch') && !launch.includes('attach'), `launch is what the child receives: ${launch}`);
+  assert.deepEqual(await childCommands({}), [], 'no request in the arguments: no child session, no default');
+  assert.deepEqual(
+    await childCommands({ configRequest: 'launch' }),
+    [],
+    'a request only inside the configuration does not stand in for the explicit one',
+  );
+  assert.deepEqual(await childCommands({ childRequest: 'evaluate' }), [], 'an unknown request kind is refused');
+  assert.deepEqual(await childCommands({ childRequest: 'attach', configRequest: 'launch' }), [], 'disagreeing requests are refused');
+});
+
+test('the host refuses a step it does not know, before any adapter is started', async () => {
+  for (const steps of [[{ op: 'evaluate' }], [{ op: 'next' }, { op: 'setVariable' }], ['next'], [null], [{}], 'next']) {
+    await assert.rejects(
+      host.runSession({ runtime: 'python', launch: { program: 'app.py' }, steps, root: '/workspace', toolchain: '/nonexistent' }),
+      { code: 'ENV_DAP_INPUT' },
+      JSON.stringify(steps),
+    );
+  }
+});
 
 test('host protocol failures have stable codes: refused initialize, garbage framing, a dying adapter, no listener, a silent adapter, bad input', async () => {
   assert.equal(await codeOf(fakeRun({ mode: 'refuse' })), 'ENV_DAP_ADAPTER_ERROR');
@@ -1185,8 +1243,19 @@ test('host drives a scripted adapter: reverse requests are refused, output is bo
 
 test("only js-debug's own child configuration is honoured for startDebugging; anything with program, runtime or arguments is refused", () => {
   const ok = { type: 'pwa-node', name: 'app.js [1]', __pendingTargetId: '101e9b709185c03d4048f6ad' };
-  assert.equal(host.childConfiguration(ok), true);
-  assert.equal(host.childConfiguration({ ...ok, request: 'attach' }), true);
+  assert.equal(host.childConfiguration(ok, 'launch'), true);
+  assert.equal(host.childConfiguration(ok, 'attach'), true);
+  assert.equal(host.childConfiguration({ ...ok, request: 'attach' }, 'attach'), true, 'the configuration may only agree with the request');
+  assert.equal(
+    host.childConfiguration({ ...ok, request: 'launch' }),
+    false,
+    'a request inside the configuration never replaces the explicit one',
+  );
+  assert.equal(host.childConfiguration(ok), false, 'there is no default request');
+  assert.equal(host.childConfiguration(ok, 'evaluate'), false);
+  assert.equal(host.childConfiguration({ ...ok, request: 'attach' }, 'launch'), false, 'the two requests must agree');
+  assert.equal(host.childConfiguration({ ...ok, name: undefined }, 'launch'), true, 'the name is optional');
+  assert.equal(host.childConfiguration({ ...ok, name: 'n'.repeat(256) }, 'launch'), true, 'a name of exactly 256 characters is accepted');
   for (const bad of [
     null,
     undefined,
@@ -1200,8 +1269,11 @@ test("only js-debug's own child configuration is honoured for startDebugging; an
     { ...ok, __pendingTargetId: undefined },
     { ...ok, __pendingTargetId: 'not-hex!' },
     { ...ok, __pendingTargetId: 'ab' },
+    { ...ok, name: 7 },
+    { ...ok, name: { toString: 'x' } },
+    { ...ok, name: 'n'.repeat(257) },
   ]) {
-    assert.equal(host.childConfiguration(bad), false, JSON.stringify(bad));
+    assert.equal(host.childConfiguration(bad, 'launch'), false, JSON.stringify(bad));
   }
 });
 

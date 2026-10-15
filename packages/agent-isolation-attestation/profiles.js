@@ -325,13 +325,28 @@ function chromiumSandboxFlags(launch) {
 function openSeccompDescriptor(program) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-profile-filter-'));
   const filename = path.join(directory, 'filter');
+  let fd;
+  let handedOver = false;
   try {
     fs.writeFileSync(filename, program, { flag: 'wx', mode: 0o400 });
-    const fd = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+    fd = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
     fs.unlinkSync(filename);
+    handedOver = true;
     return fd;
   } finally {
-    fs.rmdirSync(directory);
+    // Cleanup never replaces the error that got us here: a leftover file or a busy directory is swept recursively.
+    if (fd !== undefined && !handedOver) {
+      try {
+        fs.closeSync(fd);
+      } catch {
+        // the descriptor is already unusable
+      }
+    }
+    try {
+      fs.rmSync(directory, { recursive: true, force: true });
+    } catch {
+      // best effort: the directory only holds the filter file
+    }
   }
 }
 
@@ -450,6 +465,7 @@ module.exports = {
   checkObservations,
   chromiumSandboxFlags,
   evaluateSeccomp,
+  openSeccompDescriptor,
   profileRank,
   registerLaunch,
   resolveCallLimits,
