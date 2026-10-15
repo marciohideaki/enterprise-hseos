@@ -229,3 +229,48 @@ Branch `task/hseos-w5-cl1` a partir de `40a7e420` (B2 mergeada). Sem contrato em
 - **Reformatação:** `lsp.js` e `test-environment-lsp.js` foram reformatados; `lsp-host.js`, `framing.js` e `index.js` seguem fora do estilo e ficam para a `cl2`, junto da licença por digest e do jsdoc de `installToolchain`.
 
 **Resíduos aceitos pela revisão:** `dap.js:138` é mais estrito que o LSP novo (recusa `%2e%2e` literal em caminho simples; fail-closed); o limite de 256 do `name` recusaria um basename de 246 a 255 caracteres (medido 16 e 71 com o js-debug real); o SHA histórico de `loop-guard.sh` em `harness-cli-outcome/baseline.json` ficou desatualizado e nenhum teste o usa; `test-mcp-contract.js` não roda em Node 22 local (ABI do `better-sqlite3`), coberto pelo CI.
+
+## Integração da onda B3, parcial (2026-10-15)
+
+Branch `integration/hseos-w5-b3`, parte de `feature/hseos-evolution-w5` (`e1fb158a`, depois da PR #221 da limpeza `cl1`). HEAD de código verificado: `600a520e`; os commits seguintes só mexem em documentação e no recibo. Receipt: [evidence/integration-b3/receipt.json](evidence/integration-b3/receipt.json).
+
+**Escopo.** Entram a W5-07 (navegador sem estado, `addf771e`, merge `91e7be47`, 2 rodadas de revisão) e a W5-09 (memória governada, `b77382e3`, merge `96dcbe37`, 2 rodadas), além das emendas de contrato da B3 (`4616a9da`). **A W5-08 (computer-use) está BLOCKED**: o pin externo `xdotool` não existe no host (decisão G2: só o owner instala). Ela não foi despachada e vira PR própria sobre esta onda, depois que o owner instalar o `xdotool`. A B3 desta PR, portanto, não está completa.
+
+Conflitos: os dois `registry.yaml` de plugins e a lista `test:kernel` do `package.json`, todos resolvidos por união (115 entradas = 110 da base + 3 da W5-07 + 2 da W5-09, sem duplicata).
+
+Correções da integração: o teste do marketplace passa a esperar 8 plugins (`96dcbe37`); o `code_tree_sha` do recibo da W5-07 passa a `5bf228d9` e o contrato da W5-09 foi emendado com a migration 017, o espelho e os ajustes de contagem (`99c35d49`); a checagem "cada pin pertence a exatamente uma capacidade" dos testes de paridade de `lsp`, `dap` e `browser` ignora plugins sem `toolchain_pins`, como o `memory` (`600a520e`).
+
+### Resultados da verificação (Fase 3, B3)
+
+| Verificação | Resultado |
+| --- | --- |
+| primeira passada em `99c35d49`, `test:kernel` e `test:kernel-coverage` | **exit 1**: 3 testes de paridade reprovados (causa acima), corrigidos em `600a520e` |
+| verify literal da W5-07 | exit 0; 37 testes, 0 falhas, 0 skips; 99,12% linhas / 96,46% branches |
+| verify literal da W5-09 | exit 0; 23 testes, 0 falhas, 0 skips; 100% linhas / 99,53% branches |
+| `npm test`, `npm run test:kernel` e `test:kernel-coverage`, Node 24.15.0 | exit 0 nos três; 401 testes; 97,61% linhas / 92,55% branches |
+| `npm test`, `npm run test:kernel` e `test:kernel-coverage`, Node 22 (clone ABI 22) | exit 0 nos três; 97,63% linhas / 92,55% branches |
+| inventário (`npm pack --dry-run --json`) e `test-package-surface.js` | 1528 de 1556 (npm 11.12.1 do Node 24; a medição de 1530 fora feita por engano com o npm do Node 22); `.agents` 200/205, `.enterprise` 461/472, `packages` 134/137, `tools` 392/393; exit 0 |
+| `validate-capability-graph`, `agent-core compile --check` | exit 0 |
+| `VALIDATION_ENFORCED=true scripts/governance/quality-gates.sh --phase ci` | exit 0 |
+
+O `npm test` do Node 24 foi repetido sozinho porque o primeiro log ficou intercalado com o de uma instância duplicada do meu script (a duplicata foi encerrada); o log intercalado fica guardado, e o exit 0 do rerun é o que vale no recibo.
+
+### Resíduos a registrar (B3)
+
+- **Plugins:** `hseos-plugin-browser` e `hseos-plugin-memory` ficam `scaffolded`; a ativação vem depois do G6.
+- **`contract-registry.js`:** os stubs `environment.browser.*` e `memory.*` seguem intocados. `memory.delete` exige aprovação no contrato, mas `forget` não verifica nenhuma; a reconciliação cabe à troca dos stubs.
+- **W5-07:** o teste de admissão não admite o tarball real de `plugins/browser`; os testes in-process com `--no-sandbox` ficam fora do bwrap; mutantes M09, M18b e N5 sobrevivem. Bibliotecas de sistema do Chromium no `ubuntu-latest` não verificadas (o CI real dirá).
+- **W5-09:** sem quota por projeto; exclusão e expiração são lógicas (o conteúdo permanece no ledger); sem varredura de PII; formato de `search_memory` do axon presumido; nenhum consumidor de produção; Node 22 e ativação da migration 017 em banco real não verificados na task. O plugin só funciona em um host que injete `rules`, `approved`, `actor` e `execution_mode` fora do payload e que tenha `agent-policy-lattice` e `campaign-evidence-store`.
+- **Migration 017** (`memory.*`) está em `migrations-pending-activation`; renumerar se outra task criar migration antes da ativação.
+- **Orçamento G3:** a margem restante (28 entradas; 1 em `tools`, 3 em `packages`, 5 em `.agents`) é apertada para a W5-08 e a B4.
+- **`test-plugin-marketplace.js`:** em clone com `node_modules` por symlink sob o wrapper de cgroup, 3 asserções falham; no worktree real passa 88/0. Dependência do layout do checkout, não da B3.
+- **Instalação do `chrome-headless-shell`:** decodifica o zip inteiro antes de gravar (pico de ~455 MB). O `design.md` não documenta o pin `chrome-headless-shell` na tabela de pins além da emenda do contrato.
+- **CI real:** execução do CI da PR não verificada no momento da revisão; ver o resultado dos checks na PR.
+
+### Revisão cética da integração B3
+
+Revisor isolado (`b2-int-reviewer`), preso a `600a520e` / árvore `a9f7efd7`, passagem cega e passagem de confronto. Relatório: `REVIEW-B3-INT.md` (em `/build/tmp/hseos-w5/b3/rev/`). **Veredito: APPROVED_WITH_RESERVATIONS, sem blocker e sem major.** HEAD e árvore idênticos do início ao fim.
+
+Confirmado: `test:kernel` sem perda nem duplicata; `.c8-kernel.json` e registries com as duas tasks; espelhos `.agents` e `.enterprise` idênticos; migration 017 e contadores corretos; `contract-registry.js` intocado; `code_tree_sha` `5bf228d9` do recibo da W5-07 reproduz; a checagem de pin segue estrita. **Mutações: 6 executadas, 6 mortas** (pin duplicado entre lsp e dap, duplicado entre memory e browser, pin sem dono, TTL opcional, allow-list de host do broker, remoção de `memory.expired` da 017).
+
+Disposição: F2 (total de G3) procede: a medição de 1530 usara o npm do Node 22; com o Node 24 são 1528, corrigido no recibo e acima. F1 (folga de 1 em `tools`) e F7 (`memory.delete` com `requires_approval` contra `forget` que só exige ator operador) ficam como resíduos, para a próxima onda e a troca dos stubs. F3, F4, F5, F6 e F8 estão registrados acima.
