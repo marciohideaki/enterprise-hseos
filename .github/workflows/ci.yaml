@@ -41,11 +41,12 @@ jobs:
       - name: Install isolation backend
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq bubblewrap
+          sudo apt-get install -y -qq bubblewrap xdotool xvfb x11-apps x11-utils
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - run: npm ci
-      # The LSP, DAP and browser acceptance tests need the pinned toolchain cache (seven pins, including
-      # playwright-core and the chrome-headless-shell zip). Artifacts are downloaded here, at CI time, each to a file
+      # The LSP, DAP, browser and computer-use acceptance tests need the pinned toolchain cache (eight pins, including
+      # playwright-core, the chrome-headless-shell zip and the xdotool .deb; xdotool, Xvfb, xwd and xmessage themselves
+      # come from the apt step above and must match the pinned xdotool package version). Artifacts are downloaded here, at CI time, each to a file
       # and verified against the SHA-256 (and size, where pinned) in the repo; a mismatch fails the step.
       - name: Provision the pinned toolchain cache
         timeout-minutes: 15

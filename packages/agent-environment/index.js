@@ -62,7 +62,38 @@ function createDefaultBrowserService({ policy, toolchain, broker, mediaStore, le
   });
 }
 
-const api = { ...lsp, createDefaultLspService, createDefaultDapService, createDefaultBrowserService, loadPins };
+// Computer-use is loaded on first use too: it brings the approval gate and the terminal executor only when a session starts.
+const loadComputer = () => require('./computer');
+
+/**
+ * Same wiring for computer-use: the job-mode terminal executor, a media store for screenshots and the per-action
+ * approval gate. The operator's display (and the usual defaults) are handed to the host so it can prove it cannot reach them.
+ */
+function createDefaultComputerService({ policy, toolchain, approvals, mediaStore, ledger, operatorDisplay = process.env.DISPLAY }) {
+  const { startIsolatedTerminal } = require('../agent-isolation-attestation/terminal-executor');
+  const { containsCredential } = require('../../tools/cli/lib/campaign-evidence-store');
+  return loadComputer().createComputerService({
+    policy,
+    toolchain,
+    approvals,
+    mediaStore,
+    ledger,
+    containsCredential,
+    startTerminal: startIsolatedTerminal,
+    denyDisplays: [
+      ...new Set([operatorDisplay, ':0', ':1'].filter((name) => typeof name === 'string' && /^:[0-9]{1,3}(?:\.[0-9]{1,2})?$/u.test(name))),
+    ],
+  });
+}
+
+const api = {
+  ...lsp,
+  createDefaultLspService,
+  createDefaultDapService,
+  createDefaultBrowserService,
+  createDefaultComputerService,
+  loadPins,
+};
 const dapExports = {
   DAP_CONTRACT: 'CONTRACT',
   parseDapInput: 'parseInput',
@@ -85,6 +116,19 @@ const browserExports = {
   prepareBrowserToolchain: ['./browser', 'prepareBrowserToolchain'],
 };
 for (const [name, [file, source]] of Object.entries(browserExports))
+  Object.defineProperty(api, name, { enumerable: true, get: () => require(file)[source] });
+
+const computerExports = {
+  COMPUTER_CONTRACT: ['./computer-contract', 'CONTRACT'],
+  COMPUTER_INPUT_SCHEMA: ['./computer-contract', 'COMPUTER_INPUT_SCHEMA'],
+  COMPUTER_OUTPUT_SCHEMA: ['./computer-contract', 'COMPUTER_OUTPUT_SCHEMA'],
+  parseComputerStart: ['./computer-contract', 'parseStart'],
+  parseComputerAction: ['./computer-contract', 'parseAction'],
+  ComputerError: ['./computer-contract', 'ComputerError'],
+  createComputerService: ['./computer', 'createComputerService'],
+  prepareComputerToolchain: ['./computer', 'prepareComputerToolchain'],
+};
+for (const [name, [file, source]] of Object.entries(computerExports))
   Object.defineProperty(api, name, { enumerable: true, get: () => require(file)[source] });
 
 module.exports = api;

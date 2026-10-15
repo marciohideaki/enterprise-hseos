@@ -1,4 +1,4 @@
-// Provisions the offline toolchain cache that the LSP, DAP and browser acceptance tests require.
+// Provisions the offline toolchain cache that the LSP, DAP, browser and computer-use acceptance tests require.
 // Download happens here, at CI time, never at runtime: every artifact is checked against the
 // SHA-256 pinned in tools/lib/environment-toolchain-pins.js before it is written, and a mismatch
 // fails the step. The cache directory is the first argument.
@@ -77,6 +77,27 @@ const manifest = {
 };
 
 for (const [name, pin] of Object.entries(PINS)) {
+  if (pin.variants) {
+    // A system pin: every distro variant is downloaded (download only, nothing is installed) from its pinned archive URL
+    // and checked against its SHA-256 and size before it is kept. The runtime later picks the variant that matches the
+    // package installed by apt on the machine it runs on.
+    for (const variant of pin.variants) {
+      const place = path.join(directory, variant.artifact);
+      fs.mkdirSync(path.dirname(place), { recursive: true });
+      const got = await download(variant.source_url, variant, place);
+      manifest.pins.push({
+        name,
+        version: variant.version,
+        source: `ubuntu-archive:${variant.distro}`,
+        artifact: variant.artifact,
+        license: pin.license,
+        license_file: pin.license_file,
+        sha256: variant.sha256,
+      });
+      console.log(`ok ${variant.artifact} ${got}`);
+    }
+    continue;
+  }
   const target = path.join(directory, pin.artifact);
   fs.mkdirSync(path.dirname(target), { recursive: true });
   const digest = await download(await locate(name, pin), pin, target);
