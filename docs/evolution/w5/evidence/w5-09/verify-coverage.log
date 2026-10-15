@@ -1,0 +1,66 @@
+heavy-run: outro job pesado em execução — entrando na fila
+  processos com o lock aberto:
+    PID 1020667: bash /home/annonymous/.local/bin/heavy-run --mem 6G --wait-max 3600 -- systemd-run --user --wait --c
+    PID 1105286: bash /home/annonymous/.local/bin/heavy-run --mem 6G --wait-max 3600 -- systemd-run --user --wait --c
+heavy-run: modo normal (load1=1.82 phys=6 avail=24399MiB need=6G mem.psi=0.00 io.psi.full=0.35)
+Delegated test cgroup controllers verified
+✔ a write needs an admitting policy rule; ask passes only with approval and bypass never admits (20.218666ms)
+✔ authority is fixed to data and escalation is refused (4.888309ms)
+✔ ttl is mandatory, bounded by the policy ceiling and expiry is verifiable with the injected clock (5.956395ms)
+✔ credentials are refused in content and in the source reference (4.580585ms)
+✔ entries are validated against the agent-memory.v1 shape (4.578523ms)
+✔ untrusted origins are stored as untrusted and stay out of default retrieval (4.882581ms)
+✔ retrieval is deterministic, scoped by project and feeds memory[] with provenance (9.236863ms)
+✔ supersession and operator deletion are events and remove entries from retrieval (5.523639ms)
+✔ the projection is disposable: rebuilding from the events gives the same result, and writes use CAS (5.450396ms)
+✔ the store fails closed on a foreign ledger, unknown events and impossible transitions (0.378373ms)
+✔ the axon bridge is optional and read-only: absent, failing or empty is a no-op (5.733769ms)
+✔ migration 017 registers exactly the four memory events and the trigger still refuses any other type (4.38765ms)
+mcp-axon-bridge test
+  ✓ tools/list returns 6 tools
+  ✓ initialize handshake
+  ✓ code_search fails with AXON_UNAVAILABLE when axon is absent
+  ✓ dep_graph fails with AXON_UNAVAILABLE when axon is absent
+  ✓ memory_search fails with AXON_UNAVAILABLE when axon is absent
+  ✓ get_skeleton fails with AXON_UNAVAILABLE when axon is absent
+  ✓ get_overview fails with AXON_UNAVAILABLE when axon is absent
+  ✓ run_pipeline fails with AXON_UNAVAILABLE when axon is absent
+  ✓ HTTP rejects requests without credential (401)
+  ✓ HTTP rejects a wrong credential (401)
+  ✓ HTTP rejects a non-loopback Host header (403)
+  ✓ /health is not served without credential
+  ✓ HTTP mode refuses to start without HSEOS_AXON_BRIDGE_CREDENTIAL
+  ✓ incompatible axon yields AXON_INCOMPATIBLE with the detected version
+  ✓ compatible axon is really called with the upstream tool name and arguments
+  ✓ code_search maps to get_context_capsule and memory_search to search_memory
+  - real axon not on PATH: real-binary case skipped
+  ✓ axon that exits immediately yields AXON_INCOMPATIBLE and does not crash on EPIPE
+  ✓ timeout kills a child that ignores SIGTERM and never blocks the event loop
+  ✓ consecutive and concurrent calls never overlap axon processes (index lock released before resolve)
+  ✓ stdio mode: no banner on stdout, tools/list answered, errors explicit
+
+20 passed, 0 failed
+✔ test/test-mcp-axon-bridge.js (6700.50509ms)
+✔ the memory pack is generated from the very same files the core ships (identical digests) (21.125362ms)
+✔ the memory pack stays inside 40 entries and 1 MB and carries no binary, pin or ledger (1.243916ms)
+✔ the plugin ships no ledger of its own: the core files never open a database (0.329888ms)
+✔ the governance definition and registry entry exist for the plugin (0.652239ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7064.173424
+---------------------------|---------|----------|---------|---------|-------------------
+File                       | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+---------------------------|---------|----------|---------|---------|-------------------
+All files                  |     100 |    98.88 |     100 |     100 |                   
+ packages/agent-memory     |     100 |    98.62 |     100 |     100 |                   
+  index.js                 |     100 |      100 |     100 |     100 |                   
+  policy.js                |     100 |    98.41 |     100 |     100 | 97                
+  store.js                 |     100 |    98.76 |     100 |     100 | 31                
+ tools/cli/lib             |     100 |      100 |     100 |     100 |                   
+  memory-context-source.js |     100 |      100 |     100 |     100 |                   
+---------------------------|---------|----------|---------|---------|-------------------

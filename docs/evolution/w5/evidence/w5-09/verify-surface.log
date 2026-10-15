@@ -1,0 +1,11 @@
+heavy-run: modo normal (load1=0.91 phys=6 avail=23044MiB need=6G mem.psi=0.00 io.psi.full=0.03)
+Delegated test cgroup controllers verified
+✔ published package exposes runtime and governance assets only (2007.707364ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2055.39929
