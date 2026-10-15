@@ -1,0 +1,149 @@
+heavy-run: modo normal (load1=1.31 phys=6 avail=22544MiB need=6G mem.psi=0.00 io.psi.full=0.02)
+Delegated test cgroup controllers verified
+✖ only one session at a time; a new one starts after the first is stopped (5.984485ms)
+✖ one session at a time holds under concurrent starts: the slot is taken before anything is awaited (1.3539ms)
+✖ a start that fails releases the slot; a start while another is still launching is refused (152.708894ms)
+✖ no start overlaps the drain of the previous session, and the old timer never closes the new one (7.409017ms)
+✔ a session expires on its deadline: it is closed and drained, later calls are refused and the expiry is ledgered (8.314065ms)
+✔ stop drains the session; a host that ignores stop is terminated; an unprovable drain blocks the next session (407.126533ms)
+✔ a session whose host ends on its own is closed; one that cannot be proved drained is uncertain (4.568898ms)
+▶ real display session in the P1 sandbox
+  ✖ a session is exclusive, closes on stop, and expires on its deadline with every descendant drained (921.178797ms)
+  ✖ two concurrent starts launch exactly one display; the loser is refused with a contract code and nothing is left over (444.605501ms)
+✖ real display session in the P1 sandbox (1460.422628ms)
+ℹ tests 9
+ℹ suites 1
+ℹ pass 3
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 62259.082541
+
+✖ failing tests:
+
+test at test/test-environment-computer.js:1135:1
+✖ only one session at a time; a new one starts after the first is stopped (5.984485ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   'started',
+  +   undefined
+  -   'refused',
+  -   'ENV_COMPUTER_SESSION_ACTIVE'
+    ]
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/w5-08-computer-use/test/test-environment-computer.js:1138:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'started', undefined ],
+    expected: [ 'refused', 'ENV_COMPUTER_SESSION_ACTIVE' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test/test-environment-computer.js:1158:1
+✖ one session at a time holds under concurrent starts: the slot is taken before anything is awaited (1.3539ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  -   'ENV_COMPUTER_SESSION_ACTIVE',
+  -   'ENV_COMPUTER_SESSION_ACTIVE',
+      'started',
+  +   'started',
+  +   'started'
+    ]
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/w5-08-computer-use/test/test-environment-computer.js:1166:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'started', 'started', 'started' ],
+    expected: [ 'ENV_COMPUTER_SESSION_ACTIVE', 'ENV_COMPUTER_SESSION_ACTIVE', 'started' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test/test-environment-computer.js:1181:1
+✖ a start that fails releases the slot; a start while another is still launching is refused (152.708894ms)
+  AssertionError [ERR_ASSERTION]: the slot is held while the first start waits for its host
+  + actual - expected
+  
+  + 'ENV_COMPUTER_UNAVAILABLE'
+  - 'ENV_COMPUTER_SESSION_ACTIVE'
+                  ^
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/w5-08-computer-use/test/test-environment-computer.js:1185:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'ENV_COMPUTER_UNAVAILABLE',
+    expected: 'ENV_COMPUTER_SESSION_ACTIVE',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/test-environment-computer.js:1196:1
+✖ no start overlaps the drain of the previous session, and the old timer never closes the new one (7.409017ms)
+  AssertionError [ERR_ASSERTION]: the slot is still held while the old session drains
+  + actual - expected
+  
+  + undefined
+  - 'ENV_COMPUTER_SESSION_ACTIVE'
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/w5-08-computer-use/test/test-environment-computer.js:1207:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'ENV_COMPUTER_SESSION_ACTIVE',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/test-environment-computer.js:1720:3
+✖ a session is exclusive, closes on stop, and expires on its deadline with every descendant drained (921.178797ms)
+  AssertionError [ERR_ASSERTION]: a second session is refused while the first is open
+  + actual - expected
+  
+  + undefined
+  - 'ENV_COMPUTER_SESSION_ACTIVE'
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/w5-08-computer-use/test/test-environment-computer.js:1726:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Promise.all (index 3)
+      at async Suite.run (node:internal/test_runner/test:1619:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'ENV_COMPUTER_SESSION_ACTIVE',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/test-environment-computer.js:1752:3
+✖ two concurrent starts launch exactly one display; the loser is refused with a contract code and nothing is left over (444.605501ms)
+  AssertionError [ERR_ASSERTION]: [{"contract":"environment.computer.v1","status":"started","session_id":"b9171fb7-7824-463b-a323-ec8c334c066d","display":{"width":640,"height":400},"expires_at":"2026-10-15T19:51:55.142Z","isolation":{"profile":"P1","operator_display_denied":2,"x_sockets":0}},{"contract":"environment.computer.v1","status":"started","session_id":"0d800a0c-84b0-4ce8-8db0-b6009609ec93","display":{"width":640,"height":400},"expires_at":"2026-10-15T19:51:55.143Z","isolation":{"profile":"P1","operator_display_denied":2,"x_sockets":0}}]
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/w5-08-computer-use/test/test-environment-computer.js:1757:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,14 @@
+id: hseos-plugin-computer-use
+version: "0.1.0"
+description: "Approval-gated computer-use sessions (screenshot, move, click, type, key, scroll) on a private Xvfb in the P1 sandbox, Linux only"
+license: MIT
+authors:
+  - "Hideaki Solutions"
+extends: ""
+requires_bundles:
+  - core
+surfaces:
+  skills:
+    - skills/computer-use/SKILL.md
+verification:
+  conformance_tests: tests/

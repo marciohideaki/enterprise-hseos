@@ -13,6 +13,7 @@ const CACHE_ENV = 'HSEOS_TOOLCHAIN_CACHE';
 const APACHE_MARKERS = ['Apache License', 'Version 2.0, January 2004'];
 const MIT_MARKERS = ['Permission is hereby granted, free of charge'];
 const BSD3_MARKERS = ['Redistribution and use in source and binary forms', 'Neither the name of Google LLC'];
+const XDOTOOL_MARKERS = ['Redistribution and use in source and binary forms', 'Neither the name of the Jordan Sissel'];
 
 const PINS = Object.freeze({
   'typescript-language-server': Object.freeze({
@@ -79,7 +80,40 @@ const PINS = Object.freeze({
     license_markers: Object.freeze(BSD3_MARKERS),
     zip_limits: Object.freeze({ entry_bytes: 201_326_592, total_bytes: 335_544_320 }),
   }),
+  // A system package, pinned per distro: each variant fixes one .deb by digest and its licence is read inside it, but the
+  // binary that runs is the host's own /usr/bin/xdotool, accepted only when the installed package version equals the
+  // version of one variant (computer-use). No variant equal to the installed version means BLOCKED.
+  xdotool: Object.freeze({
+    system_package: 'xdotool',
+    license: 'BSD-3-clause',
+    format: 'deb',
+    binary: Object.freeze({ in_artifact: './usr/bin/xdotool', on_host: '/usr/bin/xdotool' }),
+    license_file: './usr/share/doc/xdotool/copyright',
+    license_markers: Object.freeze(XDOTOOL_MARKERS),
+    variants: Object.freeze([
+      Object.freeze({
+        distro: 'ubuntu-resolute',
+        version: '1:3.20160805.1-5.1build1',
+        artifact: 'apt/xdotool_3.20160805.1-5.1build1_amd64.deb',
+        source_url: 'https://archive.ubuntu.com/ubuntu/pool/universe/x/xdotool/xdotool_3.20160805.1-5.1build1_amd64.deb',
+        size_bytes: 42_984,
+        sha256: 'fda12b12adf99fa7d93cbc89baf53def35449e9ea04ec0f34dc5a92042a6a68f',
+      }),
+      Object.freeze({
+        distro: 'ubuntu-noble',
+        version: '1:3.20160805.1-5build1',
+        artifact: 'apt/xdotool_3.20160805.1-5build1_amd64.deb',
+        source_url: 'https://archive.ubuntu.com/ubuntu/pool/universe/x/xdotool/xdotool_3.20160805.1-5build1_amd64.deb',
+        size_bytes: 42_556,
+        sha256: '58a202c74bce31ca2d72d4d514942a5ab6191932696adc5d21d909c9216b13cb',
+      }),
+    ]),
+  }),
 });
+const MAX_DEB_MEMBERS = 16;
+const AR_MAGIC = '!<arch>\n';
+const AR_HEADER = 60;
+const DEB_DATA_FLAGS = Object.freeze({ '.zst': '--zstd', '.xz': '-J', '.gz': '-z' });
 
 const MAX_ZIP_ENTRY_BYTES = 67_108_864;
 const MAX_ZIP_TOTAL_BYTES = 268_435_456;
@@ -230,7 +264,36 @@ function readZipEntry(bytes, entry, maxBytes = MAX_ZIP_ENTRY_BYTES) {
   return data;
 }
 
+/** The data member of a .deb (an `ar` archive), read in memory: nothing is unpacked to disk. */
+function debDataMember(bytes) {
+  const unsafe = () => blocked('artifact is not a safe deb', 'ENV_TOOLCHAIN_ARCHIVE_UNSAFE');
+  if (bytes.length < AR_MAGIC.length || bytes.subarray(0, AR_MAGIC.length).toString('latin1') !== AR_MAGIC) unsafe();
+  let cursor = AR_MAGIC.length;
+  for (let member = 0; member < MAX_DEB_MEMBERS && cursor + AR_HEADER <= bytes.length; member += 1) {
+    const header = bytes.subarray(cursor, cursor + AR_HEADER);
+    const name = header.subarray(0, 16).toString('latin1').trim().replace(/\/$/u, '');
+    const size = Number(header.subarray(48, 58).toString('latin1').trim());
+    if (header.subarray(58, 60).toString('latin1') !== '`\n' || !Number.isSafeInteger(size) || size < 0) unsafe();
+    const start = cursor + AR_HEADER;
+    if (start + size > bytes.length) unsafe();
+    const suffix = Object.keys(DEB_DATA_FLAGS).find((item) => name === `data.tar${item}`);
+    if (suffix) return { data: bytes.subarray(start, start + size), flag: DEB_DATA_FLAGS[suffix] };
+    cursor = start + size + (size % 2);
+  }
+  return unsafe();
+}
+
+/** One file of a .deb, read in memory from the hashed bytes. */
+function readDebFile(bytes, file) {
+  const { data, flag } = debDataMember(bytes);
+  return tar([flag, '-xOf', '-', file], data);
+}
+
 function readLicense(want, bytes) {
+  if (want.format === 'deb') {
+    const { data, flag } = debDataMember(bytes);
+    return tar([flag, '-xOf', '-', want.license_file], data).toString('utf8');
+  }
   if (want.format === 'zip') {
     const entry = listZip(bytes, want.zip_limits).find((item) => item.name === want.license_file);
     if (!entry) throw new Error('licence file is absent');
@@ -313,8 +376,15 @@ function extractZip(members, target) {
  * Verify every requested pin, then extract each to `<destination>/<name>/package`. Any divergence blocks the
  * whole install: a partial toolchain is never reported as ready.
  */
-function installToolchain({ cacheDirectory, destination, names = Object.keys(PINS), expected = PINS }) {
+function installToolchain({
+  cacheDirectory,
+  destination,
+  names = Object.keys(PINS).filter((name) => !PINS[name].system_package),
+  expected = PINS,
+}) {
   const cache = resolveCacheDirectory(cacheDirectory);
+  if (names.some((name) => expected[name]?.system_package))
+    blocked('system pins are verified, never installed', 'ENV_TOOLCHAIN_PIN_SYSTEM');
   const manifest = readManifest(cache);
   const verified = names.map((name) => verifyPin(cache, name, manifest, expected));
   for (const pin of verified) {
@@ -343,6 +413,55 @@ function installToolchain({ cacheDirectory, destination, names = Object.keys(PIN
   });
 }
 
+function installedPackageVersion(packageName) {
+  return execFileSync('/usr/bin/dpkg-query', ['-W', '-f=${Version}', packageName], {
+    env: { PATH: '/usr/bin:/bin' },
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'ignore'],
+  }).trim();
+}
+
+/**
+ * A system pin has one variant per distro. The package installed on this host selects the variant whose version equals
+ * it; that variant's artifact (digest, licence inside it) is then verified like any other. A missing package, or an
+ * installed version that no variant names, is BLOCKED, never an approximation.
+ */
+function verifySystemPin({ cacheDirectory, name, expected = PINS, query = installedPackageVersion }) {
+  const want = expected[name];
+  if (!want?.system_package || !Array.isArray(want.variants)) blocked(`${name} is not a system pin`, 'ENV_TOOLCHAIN_PIN_UNKNOWN');
+  const cache = resolveCacheDirectory(cacheDirectory);
+  let installed;
+  try {
+    installed = query(want.system_package);
+  } catch {
+    blocked(`system package ${want.system_package} is not installed`, 'ENV_TOOLCHAIN_SYSTEM_MISSING');
+  }
+  const variant = want.variants.find((item) => item.version === installed);
+  if (!variant) {
+    blocked(
+      `installed ${want.system_package} ${installed} is none of the pinned ${want.variants.map((item) => item.version).join(', ')}`,
+      'ENV_TOOLCHAIN_SYSTEM_VERSION',
+    );
+  }
+  const { variants: _variants, ...common } = want;
+  const manifest = readManifest(cache);
+  // Several manifest entries share the package name; only the one of the selected variant is looked at.
+  const scoped = { ...manifest, pins: manifest.pins.filter((entry) => entry.name !== name || entry.version === variant.version) };
+  const { bytes, ...verified } = verifyPin(cache, name, scoped, { [name]: { ...common, ...variant } });
+  // Informational, never a criterion: a distro build may differ byte for byte while being the pinned version, so the
+  // dpkg-query version decides and this only records whether the host binary equals the one inside the .deb.
+  let binaryMatches = null;
+  if (want.binary) {
+    try {
+      const inside = createHash('sha256').update(readDebFile(bytes, want.binary.in_artifact)).digest('hex');
+      binaryMatches = inside === createHash('sha256').update(fs.readFileSync(want.binary.on_host)).digest('hex');
+    } catch {
+      binaryMatches = null;
+    }
+  }
+  return Object.freeze({ ...verified, distro: variant.distro, installed_version: installed, binary_matches_artifact: binaryMatches });
+}
+
 module.exports = {
   CACHE_ENV,
   PINS,
@@ -354,4 +473,5 @@ module.exports = {
   readZipEntry,
   resolveCacheDirectory,
   verifyPin,
+  verifySystemPin,
 };

@@ -1,0 +1,58 @@
+heavy-run: modo normal (load1=1.25 phys=6 avail=22547MiB need=6G mem.psi=0.00 io.psi.full=0.06)
+Delegated test cgroup controllers verified
+▶ real display session in the P1 sandbox
+  ✖ the operator's display is unreachable: even with DISPLAY set to it, the session sees only its own private one (133.963558ms)
+  ✖ positive control: a display that is reachable from the host is refused from the sandbox's point of view only because of the isolation (382.001218ms)
+✖ real display session in the P1 sandbox (545.69056ms)
+ℹ tests 2
+ℹ suites 1
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 711.458396
+
+✖ failing tests:
+
+test at test/test-environment-computer.js:1703:3
+✖ the operator's display is unreachable: even with DISPLAY set to it, the session sees only its own private one (133.963558ms)
+  AssertionError [ERR_ASSERTION]: the host proved it cannot reach the operator display :0: {"contract":"environment.computer.v1","status":"refused","code":"ENV_COMPUTER_DISPLAY_ISOLATION_BROKEN","cause":"the display session could not start"}
+  + actual - expected
+  
+  + 'refused'
+  - 'started'
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/w5-08-computer-use/test/test-environment-computer.js:1708:14)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Promise.all (index 2)
+      at async Suite.run (node:internal/test_runner/test:1619:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'refused',
+    expected: 'started',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/test-environment-computer.js:1768:3
+✖ positive control: a display that is reachable from the host is refused from the sandbox's point of view only because of the isolation (382.001218ms)
+  AssertionError [ERR_ASSERTION]: the same display is unreachable from inside the sandbox: {"contract":"environment.computer.v1","status":"refused","code":"ENV_COMPUTER_DISPLAY_ISOLATION_BROKEN","cause":"the display session could not start"}
+  + actual - expected
+  
+  + 'refused'
+  - 'started'
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/w5-08-computer-use/test/test-environment-computer.js:1795:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'refused',
+    expected: 'started',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
