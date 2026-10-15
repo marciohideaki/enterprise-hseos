@@ -1,7 +1,8 @@
 'use strict';
 
-// Offline toolchain pins for the environment capabilities. Pins are data: name, version, SHA-256 of the
-// artifact and the licence text expected inside it. Nothing is downloaded and no binary ever enters a tarball.
+// Offline toolchain pins for the environment capabilities. Pins are data: name, version, SHA-256 of the artifact, the
+// licence text expected inside it (markers) and the SHA-256 of that whole text. Nothing is downloaded and no binary
+// ever enters a tarball.
 const fs = require('node:fs');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
@@ -22,6 +23,7 @@ const PINS = Object.freeze({
     sha256: 'd225b223a8a4764ecbd94bdba85d2ef185eaa7b9842a1a31c38c2bbe7f2fe9b9',
     license: 'Apache-2.0',
     license_file: 'package/LICENSE',
+    license_sha256: '899d21038f87dd6243dd33b7ee82a078e639d4325a427c01e64d8116315b9680',
     license_markers: Object.freeze([...APACHE_MARKERS, ...MIT_MARKERS]),
   }),
   typescript: Object.freeze({
@@ -30,6 +32,7 @@ const PINS = Object.freeze({
     sha256: '10e108c9cf7d5f2879053dff18515fb405abf2ccef63eaaf017d9c571687a1d3',
     license: 'Apache-2.0',
     license_file: 'package/LICENSE.txt',
+    license_sha256: 'a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47',
     license_markers: Object.freeze(APACHE_MARKERS),
   }),
   pyright: Object.freeze({
@@ -38,6 +41,7 @@ const PINS = Object.freeze({
     sha256: 'bf5f473f6167c0d14175492c3263d783b4489a6956e1c06c18e15228e3a3fa42',
     license: 'MIT',
     license_file: 'package/LICENSE.txt',
+    license_sha256: 'f7c936bc43f132b08497ac952e9376cbc102e5eedb4bf6ec902ea8442bd9c68d',
     license_markers: Object.freeze(MIT_MARKERS),
   }),
   // The wheel is a zip: it is read from the same verified bytes by the in-process reader below.
@@ -48,6 +52,7 @@ const PINS = Object.freeze({
     license: 'MIT',
     format: 'zip',
     license_file: 'debugpy-1.8.22.dist-info/licenses/LICENSE',
+    license_sha256: '649844f60da138e54b9bcc13338c62c5f97be8612cb6249ac10f84bbb97ffc88',
     license_markers: Object.freeze(MIT_MARKERS),
   }),
   'js-debug': Object.freeze({
@@ -57,6 +62,7 @@ const PINS = Object.freeze({
     license: 'MIT',
     root: 'js-debug/',
     license_file: 'js-debug/LICENSE',
+    license_sha256: 'dea9265341829002e2c23a7372393eb2ed6e26085fb623f38a4ba0af833f30a6',
     license_markers: Object.freeze(MIT_MARKERS),
   }),
   'playwright-core': Object.freeze({
@@ -65,6 +71,7 @@ const PINS = Object.freeze({
     sha256: 'b5ab14f09f3aaacdedbc2cb1431b0552cec8995fba35d841779a4ed535ce0200',
     license: 'Apache-2.0',
     license_file: 'package/LICENSE',
+    license_sha256: '45873d00a0dd243596deb4aa23b2493b3d1f0671921bf2538ea431d7380220eb',
     license_markers: Object.freeze(APACHE_MARKERS),
   }),
   // Chrome headless shell, Playwright revision 1228. The zip is far larger than the default zip ceilings, so the
@@ -77,6 +84,7 @@ const PINS = Object.freeze({
     license: 'BSD-3-Clause',
     format: 'zip',
     license_file: 'chrome-headless-shell-linux64/LICENSE.headless_shell',
+    license_sha256: 'a522f12bd149be8d77dd05b5bdb03ebd7ac759cca511190d158ced6d27b539ac',
     license_markers: Object.freeze(BSD3_MARKERS),
     zip_limits: Object.freeze({ entry_bytes: 201_326_592, total_bytes: 335_544_320 }),
   }),
@@ -98,6 +106,7 @@ const PINS = Object.freeze({
         source_url: 'https://archive.ubuntu.com/ubuntu/pool/universe/x/xdotool/xdotool_3.20160805.1-5.1build1_amd64.deb',
         size_bytes: 42_984,
         sha256: 'fda12b12adf99fa7d93cbc89baf53def35449e9ea04ec0f34dc5a92042a6a68f',
+        license_sha256: '7022c27d07a4777ff1e23a83274f6351d634d83053b46a7f5582a2c988ab4572',
       }),
       Object.freeze({
         distro: 'ubuntu-noble',
@@ -106,6 +115,7 @@ const PINS = Object.freeze({
         source_url: 'https://archive.ubuntu.com/ubuntu/pool/universe/x/xdotool/xdotool_3.20160805.1-5build1_amd64.deb',
         size_bytes: 42_556,
         sha256: '58a202c74bce31ca2d72d4d514942a5ab6191932696adc5d21d909c9216b13cb',
+        license_sha256: '7022c27d07a4777ff1e23a83274f6351d634d83053b46a7f5582a2c988ab4572',
       }),
     ]),
   }),
@@ -334,6 +344,10 @@ function verifyPin(cacheDirectory, name, manifest, expected = PINS) {
   }
   if (!want.license_markers.every((marker) => licenseText.includes(marker))) {
     blocked(`licence text of ${name} does not match ${want.license}`, 'ENV_TOOLCHAIN_LICENSE_MISMATCH');
+  }
+  // The markers only prove that the right words are present; the digest proves that the whole text is the one pinned.
+  if (typeof want.license_sha256 !== 'string' || createHash('sha256').update(licenseText, 'utf8').digest('hex') !== want.license_sha256) {
+    blocked(`licence text of ${name} diverges from its pinned SHA-256`, 'ENV_TOOLCHAIN_LICENSE_DIGEST');
   }
   return Object.freeze({
     name,

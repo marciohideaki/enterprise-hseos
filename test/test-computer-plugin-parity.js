@@ -127,6 +127,7 @@ test('toolchain surface: the injector pin is data with its licence read in the a
   assert.equal(pin.variants.length, 2, 'one variant per distro: the dev host and the CI runner');
   for (const variant of pin.variants) {
     assert.match(variant.sha256, /^[0-9a-f]{64}$/);
+    assert.match(variant.license_sha256, /^[0-9a-f]{64}$/, 'each variant pins the digest of its licence text');
     assert.match(variant.artifact, /^apt\/xdotool_.*_amd64\.deb$/);
     assert.match(variant.source_url, /^https:\/\/archive\.ubuntu\.com\/ubuntu\/pool\/universe\/x\/xdotool\//);
     assert.ok(Number.isSafeInteger(variant.size_bytes));

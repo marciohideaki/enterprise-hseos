@@ -858,6 +858,7 @@ function fixtureCache({
       license: 'MIT',
       license_file: 'package/LICENSE',
       license_markers: ['Permission is hereby granted, free of charge'],
+      license_sha256: sha(Buffer.from('Permission is hereby granted, free of charge')),
     },
   };
   const manifest = {
@@ -911,6 +912,11 @@ test('a coherent fixture cache installs and every divergence is BLOCKED with its
     ],
     ['ENV_TOOLCHAIN_LICENSE_MISSING', fixtureCache({ files: { 'package/README': 'no licence' } })],
     ['ENV_TOOLCHAIN_LICENSE_MISMATCH', fixtureCache({ files: { 'package/LICENSE': 'All rights reserved' } })],
+    // The markers are all present, so only the digest of the whole text can tell this licence from the pinned one.
+    [
+      'ENV_TOOLCHAIN_LICENSE_DIGEST',
+      fixtureCache({ files: { 'package/LICENSE': 'Permission is hereby granted, free of charge, to anyone, for any use at all' } }),
+    ],
     ['ENV_TOOLCHAIN_ARCHIVE_UNSAFE', fixtureCache({ link: true })],
     ['ENV_TOOLCHAIN_ARCHIVE_UNSAFE', fixtureCache({ outside: true })],
   ];
