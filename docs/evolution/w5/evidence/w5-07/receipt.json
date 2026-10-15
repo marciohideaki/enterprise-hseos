@@ -162,7 +162,7 @@
     "a denied subresource does not fail the page (reported in egress.denied); a denied navigation or redirect fails the call with ENV_BROWSER_EGRESS_DENIED",
     "DNS is resolved by the broker, not in the sandbox; the allowlist is by name, not by resolved address"
   ],
-  "code_tree_sha": "ca93a385e2f63c3af5d5d804ba084b9c1b2b4463",
+  "code_tree_sha": "5bf228d9ff546cbd616c48ae344b6542a6ef6795",
   "code_tree_sha_note": "git tree of the repository content excluding docs/evolution/w5/evidence/w5-07/; verify with: git ls-tree -r on the commit with that path removed, or compare `git rev-parse <commit>^{tree}` after removing the evidence directory",
   "review_round_1": {
     "report": "/build/tmp/hseos-w5/b3/rev/REVIEW-W5-07.md",
