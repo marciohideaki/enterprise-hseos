@@ -85,6 +85,20 @@ plugins:
     extends: ""
     requires_bundles: [core]
 
+  - id: hseos-plugin-browser
+    version: "0.1.0"
+    status: scaffolded
+    description: "Bounded, stateless browser steps with allowlisted egress generated from the core browser code"
+    extends: ""
+    requires_bundles: [core]
+
+  - id: hseos-plugin-memory
+    version: "0.1.0"
+    status: scaffolded
+    description: "Governed per-project memory (data authority, mandatory TTL, credential scan) generated from the core memory code"
+    extends: ""
+    requires_bundles: [core]
+
 # Compiler emit targets
 emit_targets:
   claude-code: .claude-plugin/marketplace.json

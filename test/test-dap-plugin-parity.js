@@ -43,6 +43,11 @@ test('the dap pack stays inside 40 entries and 1 MB and carries no binary or pin
   assert.ok(result.entries.every((entry) => !/\.(?:tgz|whl|node|so)$|node_modules|toolchain\//.test(entry.path)));
   assert.deepEqual(manifest.toolchain_pins.sort(), ['debugpy', 'js-debug'], 'the manifest names the pins as data only');
   for (const name of manifest.toolchain_pins) assert.ok(Object.hasOwn(PINS, name), `${name} is a known pin`);
+  const claimed = fs
+    .readdirSync(path.join(ROOT, 'plugins'))
+    .flatMap((name) => JSON.parse(fs.readFileSync(path.join(ROOT, 'plugins', name, 'plugin.json'), 'utf8')).toolchain_pins ?? [])
+    .sort();
+  assert.deepEqual(claimed, Object.keys(PINS).sort(), 'every pin belongs to exactly one capability');
   assert.equal(manifest.profile, 'P1');
 });
 

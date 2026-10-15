@@ -44,9 +44,11 @@ jobs:
           sudo apt-get install -y -qq bubblewrap
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - run: npm ci
-      # The LSP and DAP acceptance tests need the pinned toolchain cache. Artifacts are downloaded here,
-      # at CI time, and each one is verified against the SHA-256 pinned in the repo; a mismatch fails the step.
+      # The LSP, DAP and browser acceptance tests need the pinned toolchain cache (seven pins, including
+      # playwright-core and the chrome-headless-shell zip). Artifacts are downloaded here, at CI time, each to a file
+      # and verified against the SHA-256 (and size, where pinned) in the repo; a mismatch fails the step.
       - name: Provision the pinned toolchain cache
+        timeout-minutes: 15
         run: node .github/scripts/provision-toolchain-cache.mjs "$RUNNER_TEMP/hseos-toolchain"
       - name: Tests and critical coverage in a delegated cgroup
         run: |
