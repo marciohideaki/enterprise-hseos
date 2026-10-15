@@ -1,9 +1,15 @@
 {
   "task": "cl1",
   "base_sha": "40a7e420249cdf28f0c30ce91503ec0a07d643e2",
-  "revision": "commits listed below, on task/hseos-w5-cl1; this receipt is committed after them",
-  "node_for_verify": "v24.15.0 (run-in-cgroup.sh)",
-  "node22": "not verified: better-sqlite3 in the worktree is built for the Node 24 ABI",
+  "revision": "round 1 correction; commits listed in items and corrections, receipt committed after them",
+  "node_for_verify": "v24.15.0 (run-in-cgroup.sh); focused DAP and LSP files also on v22.23.3",
+  "node22": {
+    "version": "v22.23.3",
+    "test_environment_dap": "33 pass, 0 fail",
+    "test_environment_lsp": "36 pass, 0 fail",
+    "test_mcp_contract": "not verified (stdio servers fail to boot on the Node 24 sqlite ABI)",
+    "log": "docs/evolution/w5/evidence/cl1/verify-node22.log"
+  },
   "commands_note": "every verify ran through run-in-cgroup.sh without the heavy-run prefix (the helper already runs under heavy-run); each commit also passed the pre-commit quality gates (npm test) through commit-in-cgroup.sh",
   "items": [
     {
@@ -93,11 +99,11 @@
       "commit": "82b4ec529b1a99a7988a1fbd634e031750661a9b",
       "subject": "fix(agent-environment): validate steps in the debug host, require an explicit child request",
       "status": "PASS",
-      "verify": "node --test test/test-environment-dap.js (32 pass, 0 fail)",
+      "verify": "node --test test/test-environment-dap.js (33 pass, 0 fail) at the round 1 head; the original commit ran 32 pass",
       "coverage": {
         "dap-host.js": {
-          "lines": 97.53,
-          "branches": 91.81
+          "lines": 99.1,
+          "branches": 93.1
         },
         "dap.js": {
           "lines": 99.46,
@@ -105,7 +111,7 @@
         }
       },
       "log": "docs/evolution/w5/evidence/cl1/verify-item-i7.log",
-      "notes": "F-B3 steps validated in the host; F-B4: js-debug sends the request kind beside the configuration (arguments.request), not inside it, so requiring configuration.request made every real node run time out; the kind is now read from arguments.request, required, no default, and the configured kind is the one used; F-B5 design.md lines 144 and 153 (line 120 already said /dev/shm); F-B6 the loopback test now closes server and client in finally"
+      "notes": "F-B3 steps validated in the host; F-B4: js-debug sends the request kind beside the configuration (arguments.request), not inside it, so an intermediate version that required configuration.request made every real node run time out (it never was the base behaviour: the base defaulted to launch); the kind is now read from arguments.request, required, no default, and the configured kind is the one used; F-B5 design.md lines 144 and 153 (line 120 already said /dev/shm); F-B6 the loopback test now closes server and client in finally | round 1: see corrections"
     },
     {
       "item": 8,
@@ -170,10 +176,14 @@
       "tools": 389,
       "root": 7
     },
-    "note": "identical to the 40a7e420 measurement (.agents 194, .enterprise 455, packages 126, tools 389); no new packaged file; test-package-surface passes",
+    "note": "re-measured after round 1: unchanged from 40a7e420 (1505 entries; .agents 194, .enterprise 455, packages 126, tools 389, .hseos 63); test-package-surface passes",
     "measured_with": "npm pack --dry-run --json (repo npm) via run-in-cgroup.sh; raw JSON not stored (1505 entries)"
   },
   "logs": [
+    {
+      "log": "docs/evolution/w5/evidence/cl1/name-length-measurement.log",
+      "sha256": "e4d39713bece28ee705dd9489775d9502e09362ba7a5f350a2c4d8095fc99507"
+    },
     {
       "log": "docs/evolution/w5/evidence/cl1/verify-item-i4.log",
       "sha256": "fa5f4512b942caae2df5e4c921c90cc03f5773686a3c575ac63fc5b754b36dd6"
@@ -188,12 +198,66 @@
     },
     {
       "log": "docs/evolution/w5/evidence/cl1/verify-item-i7.log",
-      "sha256": "342efa40335a29ea0df03337dc8aee647b4b1bb152e5b3e89990417796534ec7"
+      "sha256": "1da8444a69344fcde629f26ff0d17b58cc9e428c70a9a9628e73f53e11f73efb"
     },
     {
       "log": "docs/evolution/w5/evidence/cl1/verify-liveness-stability.log",
       "sha256": "ec1af3a79629a2f8f174205591a2f5e62546be9a830ea2b21e1b244f26b58664"
+    },
+    {
+      "log": "docs/evolution/w5/evidence/cl1/verify-node22.log",
+      "sha256": "b1ea0f547466d1a7075f86f691abaaa9a946af60b45d1f3a02424e2a04ed352c"
     }
   ],
-  "tree_note": "git rev-parse HEAD^{tree} is reported in the hand-off message, as the receipt is itself part of the tree"
+  "tree_note": "git rev-parse HEAD^{tree} is reported in the hand-off message, as the receipt is itself part of the tree",
+  "corrections": [
+    {
+      "round": 1,
+      "finding": "F1+F2",
+      "commit": "9a3ff66124c99c9a1f318e47032b7635d18dde88",
+      "subject": "fix(agent-environment): never let the child configuration stand in for the explicit request",
+      "status": "FIXED",
+      "verify": "node --test test/test-environment-dap.js (33 pass, 0 fail); Node 22.23.3: 33 pass",
+      "notes": "childConfiguration(configuration, request) has no default; the configuration may only agree. Scripted js-debug tests check the command the child receives for attach and launch, and that a missing, unknown, disagreeing or configuration-only request opens no child session. Mutants checked by hand: configure(next, \"launch\", ...) and kind = arguments.request ?? \"launch\" both fail the new test."
+    },
+    {
+      "round": 1,
+      "finding": "F5",
+      "commit": "ef1ff8e13ee8a083787126f5344d32021214ae62",
+      "subject": "fix(governed-execution): bind an LSP contract output to its action and pin the DAP timeout",
+      "status": "FIXED",
+      "verify": "node test/test-mcp-contract.js (149 passed, 0 failed); node --test test/test-mcp-hseos-governance.js (pass)",
+      "notes": "LSP output is bound to its action (ENV_LSP_OUTPUT_INVALID); DAP contract timeout 140000 and LSP 60000 are asserted"
+    },
+    {
+      "round": 1,
+      "finding": "F3",
+      "status": "FIXED",
+      "notes": "verify-item-i7.log regenerated from the final green run; SHA-256 of every log recomputed below"
+    },
+    {
+      "round": 1,
+      "finding": "F4",
+      "status": "FIXED",
+      "notes": "the item 7 note no longer claims the base required configuration.request"
+    },
+    {
+      "round": 1,
+      "finding": "F7",
+      "status": "MEASURED",
+      "notes": "name = basename + \" [pid]\" (16 and 71 chars in the real runs, directory part not included); 256 kept; see name-length-measurement.log"
+    },
+    {
+      "round": 1,
+      "finding": "F6",
+      "status": "RESIDUE (not changed, by instruction)",
+      "notes": "dap.js scopePath decodes the whole text and is stricter than the LSP segment decode: a literal %2e%2e directory is refused by the DAP and accepted by the LSP; no security gap"
+    },
+    {
+      "round": 1,
+      "finding": "F8",
+      "status": "RESIDUE (not changed, by instruction)",
+      "notes": "_graph/agentic-framework/state/evidence/harness-cli-outcome/baseline.json and control-integrity.json keep the historical SHA-256 of scripts/governance/loop-guard.sh; no test or tool reads them"
+    }
+  ]
 }
