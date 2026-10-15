@@ -458,6 +458,22 @@ function runCapabilityStubTests() {
     ExecutionContractError,
     'ENV_DAP_OUTPUT_INVALID',
   );
+  const lspOutput = (action) => ({
+    contract: 'environment.lsp.v1',
+    status: 'ok',
+    action,
+    source: { authority: 'data', provenance: { trust: 'untrusted' } },
+  });
+  assertPass('environment: an LSP output validates under its own action', registry.validateOutput(hover, lspOutput('hover')) !== undefined);
+  throwsWith(
+    'environment: an LSP output of another action is refused',
+    () => registry.validateOutput(registry.resolve('environment.lsp.diagnostics'), lspOutput('hover')),
+    ExecutionContractError,
+    'ENV_LSP_OUTPUT_INVALID',
+  );
+  // The sandbox gets the longest request timeout (120 s) plus its reaping grace (10 s); the language server has 60 s.
+  assertPass('environment: the DAP contract timeout covers the longest request plus the reaping grace', dapRun.timeout_ms === 140_000);
+  assertPass('environment: the LSP contract timeout is the server timeout', hover.timeout_ms === 60_000);
   assertPass(
     'stubs: computer-use actions and memory deletion require approval',
     registry.resolve('environment.computer.act').requires_approval &&

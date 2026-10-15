@@ -256,6 +256,9 @@ const lspSchema = (name, action) => ({
     if (name === 'input' && value && typeof value === 'object' && value.action !== action) {
       return { success: false, error: { hseos_code: 'ENV_LSP_INPUT_INVALID', issues: [{ message: `action must be ${action}` }] } };
     }
+    if (name === 'output' && value && typeof value === 'object' && value.action !== action) {
+      return { success: false, error: { hseos_code: 'ENV_LSP_OUTPUT_INVALID', issues: [{ message: `output is not a ${action} result` }] } };
+    }
     return schema.safeParse(value);
   },
 });
