@@ -917,6 +917,25 @@ test('a coherent fixture cache installs and every divergence is BLOCKED with its
       'ENV_TOOLCHAIN_LICENSE_DIGEST',
       fixtureCache({ files: { 'package/LICENSE': 'Permission is hereby granted, free of charge, to anyone, for any use at all' } }),
     ],
+    // Fail-closed: a pin that carries no licence digest is never accepted on its markers alone.
+    [
+      'ENV_TOOLCHAIN_LICENSE_DIGEST',
+      (() => {
+        const f = fixtureCache();
+        delete f.expected.fixture.license_sha256;
+        return f;
+      })(),
+    ],
+    // The whole digest is compared: this one agrees with the pinned value on its first 20 characters and differs after.
+    [
+      'ENV_TOOLCHAIN_LICENSE_DIGEST',
+      (() => {
+        const f = fixtureCache();
+        const real = f.expected.fixture.license_sha256;
+        f.expected.fixture.license_sha256 = `${real.slice(0, 20)}${real[20] === '0' ? '1' : '0'}${real.slice(21)}`;
+        return f;
+      })(),
+    ],
     ['ENV_TOOLCHAIN_ARCHIVE_UNSAFE', fixtureCache({ link: true })],
     ['ENV_TOOLCHAIN_ARCHIVE_UNSAFE', fixtureCache({ outside: true })],
   ];
@@ -1012,6 +1031,24 @@ test('hash and extraction use the same bytes, and a re-install starts from a cle
   assert.equal(fs.existsSync(path.join(destination, 'fixture/package/stale.txt')), false);
   assert.match(fs.readFileSync(path.join(destination, 'fixture/package/LICENSE'), 'utf8'), /Permission is hereby granted/);
   // Swapping the artifact after verification cannot change what is extracted: tar reads the verified bytes from stdin.
+});
+
+test('an extraction that fails keeps the previous install and is reported with a code, never as a raw error', () => {
+  const fixture = fixtureCache();
+  const destination = temp('hseos-lsp-dest-');
+  const args = { cacheDirectory: fixture.cache, destination, names: ['fixture'], expected: fixture.expected };
+  pins.installToolchain(args);
+  const licence = path.join(destination, 'fixture/package/LICENSE');
+  const before = fs.readFileSync(licence, 'utf8');
+  // A destination that cannot be written makes the staging directory impossible: the failure happens before the swap.
+  fs.chmodSync(destination, 0o500);
+  try {
+    if (process.getuid() !== 0) assert.throws(() => pins.installToolchain(args), { code: 'ENV_TOOLCHAIN_INSTALL_FAILED' });
+  } finally {
+    fs.chmodSync(destination, 0o700);
+  }
+  assert.equal(fs.readFileSync(licence, 'utf8'), before, 'the previous install is untouched');
+  assert.deepEqual(fs.readdirSync(destination), ['fixture'], 'no staging directory is left behind');
 });
 
 // ---------------------------------------------------------------------------------------------------------------

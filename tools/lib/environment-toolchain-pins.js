@@ -402,16 +402,21 @@ function extractZip(members, target) {
  *   ENV_TOOLCHAIN_CACHE_UNSET, ENV_TOOLCHAIN_MANIFEST_MISSING, ENV_TOOLCHAIN_MANIFEST_INVALID, ENV_TOOLCHAIN_PIN_UNKNOWN,
  *   ENV_TOOLCHAIN_PIN_MISSING, ENV_TOOLCHAIN_PIN_DIVERGED, ENV_TOOLCHAIN_ARTIFACT_PATH, ENV_TOOLCHAIN_ARTIFACT_MISSING,
  *   ENV_TOOLCHAIN_DIGEST_MISMATCH, ENV_TOOLCHAIN_LICENSE_MISSING, ENV_TOOLCHAIN_LICENSE_MISMATCH,
- *   ENV_TOOLCHAIN_LICENSE_DIGEST and ENV_TOOLCHAIN_ARCHIVE_UNSAFE.
+ *   ENV_TOOLCHAIN_LICENSE_DIGEST, ENV_TOOLCHAIN_ARCHIVE_UNSAFE and ENV_TOOLCHAIN_INSTALL_FAILED.
  *
- * Effects on disk: before anything is written every requested pin is verified (artifact SHA-256 and licence markers and
- * digest) and, for each pin in turn, its archive is checked (tar listing, or every zip member decoded and CRC-checked).
- * The target `<destination>/<name>` of a pin is then removed and recreated, so a previous install never leaks stale files.
- * What is hashed is what is extracted: the artifact is read once and the same bytes are handed to the extractor.
+ * Effects on disk: before anything is written every requested pin is verified (artifact SHA-256, licence markers and
+ * licence digest). Each pin is then checked (tar listing, or every zip member decoded and CRC-checked) and extracted into
+ * a staging directory `<destination>/<name>.staging-<pid>`; only when that is complete is `<destination>/<name>` removed
+ * and the staging directory renamed over it, so a previous install never leaks stale files into the new one. The staging
+ * directory is removed on every failure. What is hashed is what is extracted: the artifact is read once and the same bytes
+ * are handed to the extractor.
  *
  * Atomicity: verification of all pins happens first, so a cache divergence blocks the call before any write. The write
- * phase is per pin, not transactional: an archive that proves unsafe while pin N is processed leaves pins 1..N-1 installed
- * and the target of pin N untouched. A call that throws never reports `ready`.
+ * phase is per pin, not transactional across pins: if pin N cannot be extracted, pins 1..N-1 stay installed, the target of
+ * pin N keeps its previous content, and the call throws (never `ready`). Within one pin the swap is remove-then-rename, so
+ * a crash between the two steps can leave that pin absent, never half-written. Unsafe archives and any I/O failure while
+ * extracting are reported as ToolchainBlockedError (ENV_TOOLCHAIN_ARCHIVE_UNSAFE and ENV_TOOLCHAIN_INSTALL_FAILED); no raw
+ * error escapes.
  */
 function installToolchain({
   cacheDirectory,
@@ -425,23 +430,32 @@ function installToolchain({
   const manifest = readManifest(cache);
   const verified = names.map((name) => verifyPin(cache, name, manifest, expected));
   for (const pin of verified) {
-    // A previous install never leaks stale files into the new toolchain.
     const target = path.join(destination, pin.name);
-    if (pin.format === 'zip') {
-      // Every member is decoded and checked before the first byte is written.
-      const members = listZip(pin.bytes, pin.zip_limits).map((entry) => ({
-        entry,
-        data: entry.directory ? null : readZipEntry(pin.bytes, entry, pin.zip_limits?.entry_bytes),
-      }));
+    // Extraction happens in a staging directory beside the target; the target is replaced only once it is complete, so a
+    // failed extraction never costs the previous install, and a previous install never leaks stale files into the new one.
+    const staging = `${target}.staging-${process.pid}`;
+    try {
+      fs.rmSync(staging, { recursive: true, force: true });
+      if (pin.format === 'zip') {
+        // Every member is decoded and checked before the first byte is written.
+        const members = listZip(pin.bytes, pin.zip_limits).map((entry) => ({
+          entry,
+          data: entry.directory ? null : readZipEntry(pin.bytes, entry, pin.zip_limits?.entry_bytes),
+        }));
+        fs.mkdirSync(staging, { recursive: true, mode: 0o700 });
+        extractZip(members, staging);
+      } else {
+        assertSafeArchive(pin.bytes, pin.root);
+        fs.mkdirSync(staging, { recursive: true, mode: 0o700 });
+        tar(['-xzf', '-', '-C', staging, '--no-same-owner', '--no-same-permissions'], pin.bytes);
+      }
       fs.rmSync(target, { recursive: true, force: true });
-      fs.mkdirSync(target, { recursive: true, mode: 0o700 });
-      extractZip(members, target);
-      continue;
+      fs.renameSync(staging, target);
+    } catch (error) {
+      fs.rmSync(staging, { recursive: true, force: true });
+      if (error instanceof ToolchainBlockedError) throw error;
+      blocked(`toolchain ${pin.name} could not be extracted`, 'ENV_TOOLCHAIN_INSTALL_FAILED');
     }
-    assertSafeArchive(pin.bytes, pin.root);
-    fs.rmSync(target, { recursive: true, force: true });
-    fs.mkdirSync(target, { recursive: true, mode: 0o700 });
-    tar(['-xzf', '-', '-C', target, '--no-same-owner', '--no-same-permissions'], pin.bytes);
   }
   return Object.freeze({
     status: 'ready',

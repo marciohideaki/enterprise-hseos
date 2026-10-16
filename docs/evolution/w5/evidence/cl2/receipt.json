@@ -82,5 +82,25 @@
     "new_files_in_packages_or_tools": 0,
     "log": "docs/evolution/w5/evidence/cl2/pack-dry-run.json",
     "sha256": "340af82139fa2ab60378bd8d7a5be8dd22a7c1486c03c9c8009903f962518a12"
+  },
+  "review_round_1": {
+    "verdict": "APPROVED WITH RESERVATIONS, 0 blocker, 0 major",
+    "reviewed_sha": "bf474ecd",
+    "a_install_contract": "code fixed to match the doc: staging directory then rename, staging removed on failure, non-blocked errors wrapped as ENV_TOOLCHAIN_INSTALL_FAILED",
+    "b_tests": "missing license_sha256 is BLOCKED; a digest differing after the first 20 characters is BLOCKED; a failed extraction keeps the previous install and leaves no staging",
+    "c_status": "marketplace cause corrected to undetermined, pre-existing; W5-08 MINOR list completed; UTF-8 digest basis recorded",
+    "verify": {
+      "result": "186 tests, 186 pass, 0 fail, 0 skipped (marketplace file not in this run; its direct run stays 88/0)",
+      "log": "docs/evolution/w5/evidence/cl2/verify-focused-r1.log",
+      "sha256": "7548929e832a6e527db669a96a8fe55e96ef13a448865a2adbeb447e42ffd36c"
+    },
+    "inventory": {
+      "entryCount": 1538,
+      "packages": 137,
+      "tools": 393,
+      "log": "docs/evolution/w5/evidence/cl2/pack-dry-run-r1.json",
+      "sha256": "71d825b4e04b6904baf761d6414338ee0d7343932903af5d3aa513ee1e190a48"
+    },
+    "commits": "listed in the final report; receipt committed after them"
   }
 }
