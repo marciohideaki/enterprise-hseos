@@ -102,5 +102,25 @@
       "sha256": "71d825b4e04b6904baf761d6414338ee0d7343932903af5d3aa513ee1e190a48"
     },
     "commits": "listed in the final report; receipt committed after them"
+  },
+  "review_round_2": {
+    "reviewed_sha": "e4c3fc44",
+    "status_md": "item 5 aligned: 186/186 in the focused run, marketplace outside it, 88/0 direct",
+    "install_toolchain": "previous install moved to <target>.previous-<pid> and restored if the final rename fails; INSTALL_FAILED keeps the original error as cause; staging cleanup never masks the original error; jsdoc states that the pin is absent only if the restoring rename also fails",
+    "test": "mid-extraction failure through a tarball that lists cleanly and breaks in tar -x after staging exists: INSTALL_FAILED, cause set, previous install intact, no staging left; no privilege dependence so no skip; the final-rename failure path has no test",
+    "verify": {
+      "result": "186 tests, 186 pass, 0 fail, 0 skipped",
+      "log": "docs/evolution/w5/evidence/cl2/verify-focused-r2.log",
+      "sha256": "b2ebf50edda7120f631a36178036011138432d68afa81dbe68e3d3acedb57657"
+    },
+    "compile_check": "exit 0; 242 checks passed",
+    "eslint_prettier": "clean",
+    "inventory": {
+      "entryCount": 1538,
+      "packages": 137,
+      "tools": 393,
+      "log": "docs/evolution/w5/evidence/cl2/pack-dry-run-r2.json",
+      "sha256": "320de82eb97cbda05dac400c481659a4e50ac3ec4d7d47665f68d9d7a6758724"
+    }
   }
 }

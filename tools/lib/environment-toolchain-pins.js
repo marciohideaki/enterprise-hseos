@@ -133,15 +133,24 @@ const UNIX_REGULAR = 0o10_0000;
 const UNIX_DIRECTORY = 0o04_0000;
 
 class ToolchainBlockedError extends Error {
-  constructor(message, code = 'ENV_TOOLCHAIN_BLOCKED') {
-    super(message);
+  constructor(message, code = 'ENV_TOOLCHAIN_BLOCKED', options) {
+    super(message, options);
     this.name = 'ToolchainBlockedError';
     this.code = code;
   }
 }
 
-function blocked(message, code) {
-  throw new ToolchainBlockedError(message, code);
+function blocked(message, code, options) {
+  throw new ToolchainBlockedError(message, code, options);
+}
+
+/** Cleanup must never replace the error that caused it. */
+function removeQuietly(target) {
+  try {
+    fs.rmSync(target, { recursive: true, force: true });
+  } catch {
+    // A leftover scratch directory is harmless; the original failure is what the caller needs to see.
+  }
 }
 
 /** The cache location is configuration, never a compiled-in path. */
@@ -406,17 +415,18 @@ function extractZip(members, target) {
  *
  * Effects on disk: before anything is written every requested pin is verified (artifact SHA-256, licence markers and
  * licence digest). Each pin is then checked (tar listing, or every zip member decoded and CRC-checked) and extracted into
- * a staging directory `<destination>/<name>.staging-<pid>`; only when that is complete is `<destination>/<name>` removed
- * and the staging directory renamed over it, so a previous install never leaks stale files into the new one. The staging
- * directory is removed on every failure. What is hashed is what is extracted: the artifact is read once and the same bytes
- * are handed to the extractor.
+ * a staging directory `<destination>/<name>.staging-<pid>`. Only when that is complete is the previous
+ * `<destination>/<name>` renamed to `<name>.previous-<pid>`, the staging directory renamed over the target and the previous
+ * one removed, so a previous install never leaks stale files into the new one. What is hashed is what is extracted: the
+ * artifact is read once and the same bytes are handed to the extractor.
  *
  * Atomicity: verification of all pins happens first, so a cache divergence blocks the call before any write. The write
- * phase is per pin, not transactional across pins: if pin N cannot be extracted, pins 1..N-1 stay installed, the target of
- * pin N keeps its previous content, and the call throws (never `ready`). Within one pin the swap is remove-then-rename, so
- * a crash between the two steps can leave that pin absent, never half-written. Unsafe archives and any I/O failure while
- * extracting are reported as ToolchainBlockedError (ENV_TOOLCHAIN_ARCHIVE_UNSAFE and ENV_TOOLCHAIN_INSTALL_FAILED); no raw
- * error escapes.
+ * phase is per pin, not transactional across pins: if pin N cannot be installed, pins 1..N-1 stay installed and the call
+ * throws (never `ready`). Within pin N a failure while extracting leaves its previous install untouched, and a failure of
+ * the final rename puts the previous install back. Only if that restoring rename fails as well is the pin left absent, and
+ * the staging and previous directories are then left for the next call to clear. Unsafe archives are reported as
+ * ENV_TOOLCHAIN_ARCHIVE_UNSAFE; any other failure is a ToolchainBlockedError with ENV_TOOLCHAIN_INSTALL_FAILED whose
+ * `cause` is the original error. Cleanup never masks the original error.
  */
 function installToolchain({
   cacheDirectory,
@@ -431,11 +441,13 @@ function installToolchain({
   const verified = names.map((name) => verifyPin(cache, name, manifest, expected));
   for (const pin of verified) {
     const target = path.join(destination, pin.name);
-    // Extraction happens in a staging directory beside the target; the target is replaced only once it is complete, so a
-    // failed extraction never costs the previous install, and a previous install never leaks stale files into the new one.
+    // Extraction happens in a staging directory beside the target. The previous install is set aside, not deleted, until
+    // the new one is in place, so a failure at any point gives the previous install back.
     const staging = `${target}.staging-${process.pid}`;
+    const previous = `${target}.previous-${process.pid}`;
     try {
-      fs.rmSync(staging, { recursive: true, force: true });
+      removeQuietly(staging);
+      removeQuietly(previous);
       if (pin.format === 'zip') {
         // Every member is decoded and checked before the first byte is written.
         const members = listZip(pin.bytes, pin.zip_limits).map((entry) => ({
@@ -449,12 +461,19 @@ function installToolchain({
         fs.mkdirSync(staging, { recursive: true, mode: 0o700 });
         tar(['-xzf', '-', '-C', staging, '--no-same-owner', '--no-same-permissions'], pin.bytes);
       }
-      fs.rmSync(target, { recursive: true, force: true });
-      fs.renameSync(staging, target);
+      const replaced = fs.existsSync(target);
+      if (replaced) fs.renameSync(target, previous);
+      try {
+        fs.renameSync(staging, target);
+      } catch (error) {
+        if (replaced) fs.renameSync(previous, target);
+        throw error;
+      }
+      removeQuietly(previous);
     } catch (error) {
-      fs.rmSync(staging, { recursive: true, force: true });
+      removeQuietly(staging);
       if (error instanceof ToolchainBlockedError) throw error;
-      blocked(`toolchain ${pin.name} could not be extracted`, 'ENV_TOOLCHAIN_INSTALL_FAILED');
+      blocked(`toolchain ${pin.name} could not be installed`, 'ENV_TOOLCHAIN_INSTALL_FAILED', { cause: error });
     }
   }
   return Object.freeze({

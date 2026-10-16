@@ -1033,22 +1033,47 @@ test('hash and extraction use the same bytes, and a re-install starts from a cle
   // Swapping the artifact after verification cannot change what is extracted: tar reads the verified bytes from stdin.
 });
 
-test('an extraction that fails keeps the previous install and is reported with a code, never as a raw error', () => {
+test('an extraction that fails midway keeps the previous install, removes its staging and reports the cause', () => {
   const fixture = fixtureCache();
   const destination = temp('hseos-lsp-dest-');
   const args = { cacheDirectory: fixture.cache, destination, names: ['fixture'], expected: fixture.expected };
   pins.installToolchain(args);
   const licence = path.join(destination, 'fixture/package/LICENSE');
   const before = fs.readFileSync(licence, 'utf8');
-  // A destination that cannot be written makes the staging directory impossible: the failure happens before the swap.
-  fs.chmodSync(destination, 0o500);
+  // The archive lists cleanly (a file, then a path below that file) and only breaks when tar extracts the second entry,
+  // after the staging directory exists and has been written to.
+  const source = temp('hseos-lsp-src-');
+  const second = temp('hseos-lsp-src-');
+  fs.mkdirSync(path.join(source, 'package'));
+  fs.writeFileSync(path.join(source, 'package/LICENSE'), 'Permission is hereby granted, free of charge');
+  fs.writeFileSync(path.join(source, 'package/clash'), 'a file');
+  fs.mkdirSync(path.join(second, 'package/clash'), { recursive: true });
+  fs.writeFileSync(path.join(second, 'package/clash/inner'), 'below the file');
+  const plain = path.join(temp('hseos-lsp-tar-'), 'broken.tar');
+  execFileSync('tar', ['-cf', plain, '-C', source, 'package']);
+  execFileSync('tar', ['-rf', plain, '-C', second, 'package/clash/inner']);
+  execFileSync('gzip', ['-f', plain]);
+  const archive = path.join(fixture.cache, 'npm/fixture-1.0.0.tgz');
+  fs.copyFileSync(`${plain}.gz`, archive);
+  const digest = sha(fs.readFileSync(archive));
+  fixture.expected.fixture.sha256 = digest;
+  const manifestPath = path.join(fixture.cache, 'toolchain-manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath));
+  manifest.pins[0].sha256 = digest;
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest));
+
+  let seen;
   try {
-    if (process.getuid() !== 0) assert.throws(() => pins.installToolchain(args), { code: 'ENV_TOOLCHAIN_INSTALL_FAILED' });
-  } finally {
-    fs.chmodSync(destination, 0o700);
+    pins.installToolchain(args);
+  } catch (error) {
+    seen = error;
   }
+  assert.equal(seen?.code, 'ENV_TOOLCHAIN_INSTALL_FAILED', 'a failure while extracting is reported with a code, not as a raw error');
+  assert.ok(seen.cause instanceof Error, 'the original error is kept as the cause');
   assert.equal(fs.readFileSync(licence, 'utf8'), before, 'the previous install is untouched');
-  assert.deepEqual(fs.readdirSync(destination), ['fixture'], 'no staging directory is left behind');
+  assert.deepEqual(fs.readdirSync(destination), ['fixture'], 'the staging directory that was created is gone');
+  if (process.getuid() === 0)
+    t.skip('running as root: the unprivileged checks above are the ones that matter, nothing was skipped silently');
 });
 
 // ---------------------------------------------------------------------------------------------------------------
