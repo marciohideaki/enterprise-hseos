@@ -122,5 +122,28 @@
       "log": "docs/evolution/w5/evidence/cl2/pack-dry-run-r2.json",
       "sha256": "320de82eb97cbda05dac400c481659a4e50ac3ec4d7d47665f68d9d7a6758724"
     }
+  },
+  "review_round_3": {
+    "reviewed_sha": "bc07f78a",
+    "changes": "removed the leftover t.skip from the extraction test; jsdoc corrected (only previous-<pid> remains after a failed restore; a failed restore replaces the cause and the rename error is lost)",
+    "accepted_minor": [
+      "restore after a failed final rename has no test",
+      "previous-<other pid> left by a dead process is never cleaned",
+      "mutants T01, T06, T07 survive"
+    ],
+    "verify": {
+      "result": "186 tests, 186 pass, 0 fail, 0 skipped",
+      "log": "docs/evolution/w5/evidence/cl2/verify-focused-r3.log",
+      "sha256": "72ea75dac40195c50d6850d5444b653306102d673d9b210800c1214c3f5d5c9e"
+    },
+    "compile_check": "exit 0; 242 checks passed",
+    "eslint_prettier": "clean",
+    "inventory": {
+      "entryCount": 1538,
+      "packages": 137,
+      "tools": 393,
+      "log": "docs/evolution/w5/evidence/cl2/pack-dry-run-r3.json",
+      "sha256": "f24993ffaec5f3aed942820a0d36c11431bca4736a212b092e35166fc36a9e1b"
+    }
   }
 }

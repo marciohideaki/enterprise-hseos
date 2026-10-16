@@ -423,10 +423,11 @@ function extractZip(members, target) {
  * Atomicity: verification of all pins happens first, so a cache divergence blocks the call before any write. The write
  * phase is per pin, not transactional across pins: if pin N cannot be installed, pins 1..N-1 stay installed and the call
  * throws (never `ready`). Within pin N a failure while extracting leaves its previous install untouched, and a failure of
- * the final rename puts the previous install back. Only if that restoring rename fails as well is the pin left absent, and
- * the staging and previous directories are then left for the next call to clear. Unsafe archives are reported as
+ * the final rename puts the previous install back. Only if that restoring rename fails as well is the pin left absent; the
+ * staging directory is still removed and only `previous-<pid>` remains. Unsafe archives are reported as
  * ENV_TOOLCHAIN_ARCHIVE_UNSAFE; any other failure is a ToolchainBlockedError with ENV_TOOLCHAIN_INSTALL_FAILED whose
- * `cause` is the original error. Cleanup never masks the original error.
+ * `cause` is the original error. Cleanup of the staging directory never masks it. The one exception is a failed restore:
+ * its error becomes the `cause` and the error of the rename that triggered it is lost.
  */
 function installToolchain({
   cacheDirectory,

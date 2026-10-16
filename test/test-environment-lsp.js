@@ -1072,8 +1072,6 @@ test('an extraction that fails midway keeps the previous install, removes its st
   assert.ok(seen.cause instanceof Error, 'the original error is kept as the cause');
   assert.equal(fs.readFileSync(licence, 'utf8'), before, 'the previous install is untouched');
   assert.deepEqual(fs.readdirSync(destination), ['fixture'], 'the staging directory that was created is gone');
-  if (process.getuid() === 0)
-    t.skip('running as root: the unprivileged checks above are the ones that matter, nothing was skipped silently');
 });
 
 // ---------------------------------------------------------------------------------------------------------------
