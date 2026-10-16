@@ -1,0 +1,83 @@
+heavy-run: outro job pesado em execução — entrando na fila
+  processos com o lock aberto:
+    PID 2977400: bash /home/annonymous/.local/bin/heavy-run --mem 8G -- scripts/test-podman.sh -- dotnet test tests/C
+    PID 2985251: bash /home/annonymous/.local/bin/heavy-run --mem 6G --wait-max 3600 -- systemd-run --user --wait --c
+  suspeita: um daemon herdou o lock de um wrapper antigo (sem job real). Reinicie-o, ou rode com HEAVY_RUN_IGNORE_STALE=1 para não esperar.
+heavy-run: modo normal (load1=2.97 phys=6 avail=22635MiB need=6G mem.psi=0.00 io.psi.full=3.76)
+Delegated test cgroup controllers verified
+✔ import: requiring the environment entry touches no toolchain cache and loads no capability (33.05291ms)
+✖ lsp: a location outside the workspace reported by the real server is refused and recorded (78.03988ms)
+✖ dap: a detached child that outlives its parent is killed and drained, leaving nothing in /proc (15.246409ms)
+✔ browser: egress to a host outside the allowlist is denied, recorded, and never reaches the target (20.668538ms)
+✔ computer: an action without an approval is refused and nothing reaches the host (12.253481ms)
+✔ computer: a requested approval that no person granted does not authorise the action (6.087885ms)
+✔ computer: an approval is bound to its own action, arguments and position; the right action runs once (6.149846ms)
+✔ computer: an expired approval is refused and nothing reaches the host (5.103294ms)
+✔ computer: a single-use approval cannot be replayed (4.957671ms)
+✔ media: bytes changed after storing fail the digest check before they are used (14.582593ms)
+✔ media: a wrong magic signature is refused even when the digest agrees with the bytes (0.420667ms)
+✔ media: a declared size that differs from the real bytes is refused, and a truncated artifact fails to load (2.39187ms)
+✔ memory: a write cannot carry directive or operator authority, and retrieval stays data and untrusted (11.877771ms)
+✔ context: a source cannot raise its authority above what its layer allows (0.377768ms)
+✔ context: a source that loses or falsifies its provenance is refused (0.196906ms)
+✔ lattice: a child agent cannot widen the capabilities or the effect budget of its parent (0.538623ms)
+✔ mcp: malformed and unknown tool names are denied and recorded before any handler runs (17.34562ms)
+✔ mcp: a request outside the project scope is denied with the stable scope code (1.877366ms)
+✔ engineering: static-only acceptance is refused at admission (A5b) (316.115478ms)
+✔ engineering: every argument form outside the conservative alphabet is refused at admission (1414.744112ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 18
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2026.953335
+
+✖ failing tests:
+
+test at test/test-w5-negative-matrix.js:118:1
+✖ lsp: a location outside the workspace reported by the real server is refused and recorded (78.03988ms)
+  AssertionError [ERR_ASSERTION]: BLOCKED: the pinned toolchain cache is not provisioned (ENV_TOOLCHAIN_MANIFEST_MISSING)
+  
+  'blocked' !== 'ready'
+  
+      at toolchain (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-11a/test/test-w5-negative-matrix.js:85:10)
+      at sandboxPolicy (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-11a/test/test-w5-negative-matrix.js:114:23)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-11a/test/test-w5-negative-matrix.js:122:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'blocked',
+    expected: 'ready',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/test-w5-negative-matrix.js:156:1
+✖ dap: a detached child that outlives its parent is killed and drained, leaving nothing in /proc (15.246409ms)
+  AssertionError [ERR_ASSERTION]: BLOCKED: the pinned toolchain cache is not provisioned (ENV_TOOLCHAIN_MANIFEST_MISSING)
+  
+  'blocked' !== 'ready'
+  
+      at toolchain (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-11a/test/test-w5-negative-matrix.js:85:10)
+      at sandboxPolicy (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-11a/test/test-w5-negative-matrix.js:114:23)
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-11a/test/test-w5-negative-matrix.js:174:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'blocked',
+    expected: 'ready',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

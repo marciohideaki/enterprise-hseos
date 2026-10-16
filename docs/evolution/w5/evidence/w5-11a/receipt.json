@@ -1,0 +1,281 @@
+{
+  "task": "W5-11a",
+  "base_sha": "14a29aa4",
+  "branch": "task/hseos-w5-11a",
+  "revision": "commit that contains this receipt (task/hseos-w5-11a); base_sha is the wave base",
+  "node_for_verify": "v24.15.0 (run-in-cgroup.sh)",
+  "commands": [
+    {
+      "id": "verify-run-1",
+      "command": "node --test --test-concurrency=1 test/test-w5-negative-matrix.js; node scripts/governance/check-w5-mutations.js",
+      "note": "literal verify_step without the 'heavy-run --mem 4G --' prefix (run-in-cgroup.sh already runs under heavy-run; nesting would block the flock)",
+      "result": "exit 0 / exit 0; matrix: 20 tests, 20 pass, 0 fail, 0 skipped; mutants: \"W5 mutation matrix: 28 mutants rejected, 0 failed, 0 skipped\"; wall time 36.678s",
+      "log": "docs/evolution/w5/evidence/negative/verify-run1.log",
+      "sha256": "1703f8b95970b5693f2b6d32244c87afef977d1193e32cb23adf571cb0f3aac6"
+    },
+    {
+      "id": "verify-run-2",
+      "command": "same as verify-run-1",
+      "result": "identical result, wall time 32.609s (determinism across two consecutive runs)",
+      "log": "docs/evolution/w5/evidence/negative/verify-run2.log",
+      "sha256": "1d07e6d794da9e19a9617827e3240eb38cc0842a40ded23491ade3655919a089"
+    },
+    {
+      "id": "blocked-without-toolchain-cache",
+      "command": "HSEOS_TOOLCHAIN_CACHE=<empty dir> node --test --test-concurrency=1 test/test-w5-negative-matrix.js",
+      "result": "exit 1; 18 pass, 2 fail, 0 skipped; the LSP and DAP cases fail with \"BLOCKED: the pinned toolchain cache is not provisioned (ENV_TOOLCHAIN_MANIFEST_MISSING)\"",
+      "log": "docs/evolution/w5/evidence/negative/blocked-empty-cache.log",
+      "sha256": "ae0330cf850333ae8bd0ec66c138651675f20859d606f19c8f5f4e84d6f4afce"
+    },
+    {
+      "id": "node22",
+      "command": "matrix under /workspace/local/sdk/nvm/versions/node/v22.23.3",
+      "result": "ERR_DLOPEN_FAILED (better-sqlite3 built for the Node 24 ABI); recorded as NOT VERIFIED, no rebuild in the worktree",
+      "log": "docs/evolution/w5/evidence/negative/node22-attempt.log",
+      "sha256": "bb835576110dcfceb09ee73524bca592b13676d78a85a7ab8fee324e3fbd06ee"
+    },
+    {
+      "id": "package-surface-and-inventory",
+      "command": "npm pack --dry-run --json (Node 24, run-in-cgroup.sh); node --test test/test-package-surface.js",
+      "result": "package-surface: 1 test, 1 pass; pack total 1538 of 1556; .agents 203, .enterprise 464, .hseos 63, packages 137 of 137, tools 393 of 393, scripts 19, src 245; check-w5-mutations.js excluded by package.json \"files\"",
+      "log": "docs/evolution/w5/evidence/negative/pack-dry-run.json",
+      "sha256": "7eaa8d70c05a34e31db95cba618821e740b0eb974026379bd07414f0cebe05a9"
+    },
+    {
+      "id": "lint",
+      "command": "node node_modules/prettier/bin/prettier.cjs --check and node node_modules/eslint/bin/eslint.js --max-warnings=0 on the three new files",
+      "result": "clean (prettier and eslint --max-warnings=0 on the three code files); a one-token lint fix (alive.length > 0) was made after the logged verify runs, behaviour unchanged, and is re-exercised by the commit hook"
+    }
+  ],
+  "coverage": {
+    "note": "The new files are tests and a launcher; they exercise existing sources and add no source file. .c8-kernel.json include list unchanged (the W4 launcher is likewise outside it). Per-file coverage of the task files was not measured separately: no new source file was added."
+  },
+  "test_registration": "test/test-w5-negative-matrix.js and test/test-w5-mutations.js appended to test:kernel; script test:w5-mutations added to package.json",
+  "mutants": [
+    {
+      "id": "import_eager",
+      "group": "import",
+      "case_pattern": "^import: ",
+      "file": "packages/agent-environment/index.js",
+      "anchors": ["const loadComputer = () => require('./computer');"]
+    },
+    {
+      "id": "lsp_scope",
+      "group": "scope",
+      "case_pattern": "^lsp: ",
+      "file": "packages/agent-environment/lsp.js",
+      "anchors": ["if (!mapped) throw new LspError('location is outside the workspace root', 'ENV_LSP_OUT_OF_SCOPE');"]
+    },
+    {
+      "id": "approval_binding",
+      "group": "approval",
+      "case_pattern": "^computer: an approval is bound",
+      "file": "tools/cli/lib/environment-approval.js",
+      "anchors": ["if (bound.digest !== entry.binding) {"]
+    },
+    {
+      "id": "approval_expiry",
+      "group": "approval",
+      "case_pattern": "^computer: an expired approval",
+      "file": "tools/cli/lib/environment-approval.js",
+      "anchors": ["const expired = (entry) => now().getTime() >= entry.expires_at_ms;"]
+    },
+    {
+      "id": "approval_reuse",
+      "group": "approval",
+      "case_pattern": "^computer: a single-use approval",
+      "file": "tools/cli/lib/environment-approval.js",
+      "anchors": ["if (entry.state === 'consumed') return refuse("]
+    },
+    {
+      "id": "media_magic",
+      "group": "provenance",
+      "case_pattern": "^media: a wrong magic",
+      "file": "packages/agent-context/media-store.js",
+      "anchors": ["if (!signature(buffer)) throw mismatch("]
+    },
+    {
+      "id": "media_size",
+      "group": "provenance",
+      "case_pattern": "^media: a declared size",
+      "file": "packages/agent-context/media-store.js",
+      "anchors": ["if (buffer.length !== descriptor.bytes)"]
+    },
+    {
+      "id": "args_chars_value",
+      "group": "args",
+      "case_pattern": "^engineering: every argument form",
+      "file": "tools/cli/lib/engineering-task-contract.js",
+      "anchors": ["const ARG_WORD = '[A-Za-z0-9._@/-]+';"]
+    },
+    {
+      "id": "args_chars_word",
+      "group": "args",
+      "case_pattern": "^engineering: every argument form",
+      "file": "tools/cli/lib/engineering-task-contract.js",
+      "anchors": ["/^[A-Za-z0-9._@/][A-Za-z0-9._@/-]*$/,"]
+    },
+    {
+      "id": "args_newline",
+      "group": "args",
+      "case_pattern": "^engineering: every argument form",
+      "file": "tools/cli/lib/engineering-task-contract.js",
+      "anchors": ["/^[A-Za-z0-9._@/][A-Za-z0-9._@/-]*$/,"]
+    },
+    {
+      "id": "args_short_digit",
+      "group": "args",
+      "case_pattern": "^engineering: every argument form",
+      "file": "tools/cli/lib/engineering-task-contract.js",
+      "anchors": ["/^-[A-Za-z]$/]"]
+    },
+    {
+      "id": "browser_egress",
+      "group": "scope",
+      "case_pattern": "^browser: ",
+      "file": "tools/cli/lib/environment-egress-broker.js",
+      "anchors": ["if (!allowed.has(authority(target.host, target.port))) {"]
+    },
+    {
+      "id": "approval_required",
+      "group": "approval",
+      "case_pattern": "^computer: an action without an approval",
+      "file": "packages/agent-environment/computer.js",
+      "anchors": ["if (typeof approvalId !== 'string') return refuse("]
+    },
+    {
+      "id": "approval_consume",
+      "group": "approval",
+      "case_pattern": "^computer: an action without an approval",
+      "file": "packages/agent-environment/computer.js",
+      "anchors": ["if (spent.status !== 'consumed') return refuse("]
+    },
+    {
+      "id": "approval_granted",
+      "group": "approval",
+      "case_pattern": "^computer: a requested approval",
+      "file": "tools/cli/lib/environment-approval.js",
+      "anchors": ["if (entry.state !== 'approved') return refuse("]
+    },
+    {
+      "id": "media_digest",
+      "group": "provenance",
+      "case_pattern": "^media: bytes changed",
+      "file": "packages/agent-context/media-store.js",
+      "anchors": ["if (sha256(buffer) !== descriptor.digest)"]
+    },
+    {
+      "id": "memory_authority",
+      "group": "authority",
+      "case_pattern": "^memory: ",
+      "file": "packages/agent-memory/policy.js",
+      "anchors": ["if (input.authority !== undefined && input.authority !== AUTHORITY) {"]
+    },
+    {
+      "id": "memory_trust",
+      "group": "authority",
+      "case_pattern": "^memory: ",
+      "file": "packages/agent-memory/store.js",
+      "anchors": ["trust: 'untrusted',\n        transform: ["]
+    },
+    {
+      "id": "context_authority",
+      "group": "authority",
+      "case_pattern": "^context: a source cannot raise",
+      "file": "packages/agent-context/authority.js",
+      "anchors": ["if (AUTHORITY_RANK[authority] > AUTHORITY_RANK[rule.authority]) {"]
+    },
+    {
+      "id": "lattice_capability",
+      "group": "authority",
+      "case_pattern": "^lattice: ",
+      "file": "packages/agent-policy-lattice/index.js",
+      "anchors": ["if (widened.length > 0) {"]
+    },
+    {
+      "id": "lattice_budget",
+      "group": "authority",
+      "case_pattern": "^lattice: ",
+      "file": "packages/agent-policy-lattice/index.js",
+      "anchors": ["if (requestedLimit > parentLimit)"]
+    },
+    {
+      "id": "provenance_missing",
+      "group": "provenance",
+      "case_pattern": "^context: a source that loses",
+      "file": "packages/agent-context/authority.js",
+      "anchors": ["if (source.authority === undefined || source.provenance === undefined) {"]
+    },
+    {
+      "id": "provenance_digest",
+      "group": "provenance",
+      "case_pattern": "^context: a source that loses",
+      "file": "packages/agent-context/authority.js",
+      "anchors": ["if (layer !== 'media' && provenance.digest !== sha256Text(sourceText(source))) {"]
+    },
+    {
+      "id": "mcp_unknown",
+      "group": "scope",
+      "case_pattern": "^mcp: malformed and unknown",
+      "file": "tools/lib/legacy-mcp-server.js",
+      "anchors": ["if (typeof name !== 'string' || !tools.has(name)) {"]
+    },
+    {
+      "id": "mcp_scope",
+      "group": "scope",
+      "case_pattern": "^mcp: a request outside",
+      "file": "tools/mcp-hseos-swarm/lib/run-scope.js",
+      "anchors": ["function isInside(base, target) {"]
+    },
+    {
+      "id": "weak_acceptance",
+      "group": "weak",
+      "case_pattern": "^engineering: static-only",
+      "file": "tools/cli/lib/engineering-task-contract.js",
+      "anchors": ["requireCondition(modules, 'ENGINEERING_ACCEPTANCE_WEAK');"]
+    },
+    {
+      "id": "args_unchecked",
+      "group": "args",
+      "case_pattern": "^engineering: every argument form",
+      "file": "tools/cli/lib/engineering-task-contract.js",
+      "anchors": ["requireCondition(isConservativeArg(arg), 'ENGINEERING_COMMAND_ARG_INVALID');"]
+    },
+    {
+      "id": "args_relaxed",
+      "group": "args",
+      "case_pattern": "^engineering: every argument form",
+      "file": "tools/cli/lib/engineering-task-contract.js",
+      "anchors": ["const isConservativeArg = (arg) => ARG_FORMS.some((form) => form.test(arg));"]
+    }
+  ],
+  "discarded_mutant": {
+    "id": "dap_survivor",
+    "file": "packages/agent-isolation-attestation/executor.js",
+    "reason": "Equivalent mutant: the sandbox kills a surviving child three independent ways (pid namespace, cgroup.kill, group SIGKILL). Removing the two cgroup.kill writes left the case green (observed); removing the namespace needs --unshare-all, which profiles.js:317 requires. The matrix case asserts the end state in /proc instead. The reviewer confirmed that removing one or two of the three kill paths is equivalent; removing all three crashes the test process (exit 7) rather than failing an assertion, so it is not an official mutant."
+  },
+  "ci_provisioning": ".github/scripts/provision-toolchain-cache.mjs iterates every entry of PINS (npm, pypi incl. pyright, github js-debug, playwright); ci.yaml line 44 installs bubblewrap, xdotool, xvfb; line 53 provisions the cache and exports HSEOS_TOOLCHAIN_CACHE. No CI change needed.",
+  "known_limitations": [
+    "dap_survivor has no official mutant: single or double removal of the three kill paths is equivalent; removing all three crashes the test process (exit 7) without a clean assertion failure",
+    "the claim that removing the pid namespace needs --unshare-all (profiles.js:317) was not verified by the reviewer",
+    "DAP case exercises the real isolated executor, not the debugpy/js-debug service level",
+    "computer-use cases use the real service and approval gate with a recording terminal, not Xvfb/xdotool",
+    "LSP: the second location guard (within(workspace, real)) has no isolated mutant; the first guard already refuses the typeshed case",
+    "MCP: removing the RUN_ID_PATTERN identifier check alone is not detected, because the realpath containment still refuses the traversal (defence in depth)",
+    "FR04, FR11, FR12, FR13 and FR15 have no case in this task (covered by W5-03, W5-10, W5-11b, W5-04 and W5-02b2)",
+    "scratch directories are removed on normal exit and on process exit, but not after SIGKILL",
+    "LSP and DAP cases need bwrap, a delegated cgroup and the toolchain cache",
+    "Node 22 not verified (better-sqlite3 ABI)",
+    "c8 per-file not applicable: the task only adds tests and a script (the script is excluded from the pack); .c8-kernel.json unchanged",
+    "full npm test not run outside the commit hook"
+  ],
+  "round": 1,
+  "round_1_changes": [
+    "DAP: the detached grandchild is observed alive in /proc (marker-gc) before the timeout; the pids_peak>=2 assertion was removed",
+    "computer-use: bound/expired/reused approval cases with controllable clock and positive controls (approved action reaches the host exactly once)",
+    "media: wrong magic with a coherent digest, wrong declared size, truncated artifact",
+    "args: refused forms extended with + * | & quotes, trailing newline, -1, -=, brackets, and value forms (all refused by the real code; no divergence from W5-10b)",
+    "9 new official mutants: approval_binding, approval_expiry, approval_reuse, media_magic, media_size, args_chars_value, args_chars_word, args_newline, args_short_digit",
+    "scratch registry removed on process exit; traceability lists FR04, FR11, FR12, FR13, FR15 as no case in this task"
+  ]
+}
