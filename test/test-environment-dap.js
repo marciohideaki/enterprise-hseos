@@ -1442,6 +1442,7 @@ function zipCache(zipBytes, { mutate = (manifest) => manifest } = {}) {
       format: 'zip',
       license_file: LICENSE_FILE,
       license_markers: [MIT],
+      license_sha256: sha(MIT),
     },
   };
   fs.writeFileSync(
@@ -1619,6 +1620,7 @@ test('zip pins diverge, go missing or fail the licence check with their own code
     ['ENV_TOOLCHAIN_LICENSE_MISSING', zipCache(buildZip([{ name: 'pkg/mod.py', data: 'x' }]))],
     ['ENV_TOOLCHAIN_LICENSE_MISSING', zipCache(buildZip([{ name: `${LICENSE_FILE}/`, data: '' }]))],
     ['ENV_TOOLCHAIN_LICENSE_MISMATCH', zipCache(buildZip([{ name: LICENSE_FILE, data: 'All rights reserved' }]))],
+    ['ENV_TOOLCHAIN_LICENSE_DIGEST', zipCache(buildZip([{ name: LICENSE_FILE, data: `${MIT}, to anyone, for any use at all` }]))],
     ['ENV_TOOLCHAIN_PIN_DIVERGED', zipCache(buildZip(good()), { mutate: (m) => ({ ...m, pins: [{ ...m.pins[0], license: 'GPL-3.0' }] }) })],
     [
       'ENV_TOOLCHAIN_ARTIFACT_MISSING',
@@ -1669,6 +1671,7 @@ function tgzCache(bytes) {
       root: 'rooted/',
       license_file: 'rooted/LICENSE',
       license_markers: [MIT],
+      license_sha256: sha(MIT),
     },
   };
   fs.writeFileSync(

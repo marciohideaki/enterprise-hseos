@@ -69,6 +69,7 @@ test('toolchain surface: both pins are data with a licence checked in the artifa
   for (const name of manifest.toolchain_pins) {
     const pin = PINS[name];
     assert.match(pin.sha256, /^[0-9a-f]{64}$/);
+    assert.match(pin.license_sha256, /^[0-9a-f]{64}$/, `${name} pins the digest of its licence text`);
     assert.ok(pin.license_markers.length > 0 && pin.license_file, `${name} names its licence file and markers`);
   }
   assert.deepEqual([PINS['playwright-core'].version, PINS['chrome-headless-shell'].version], ['1.61.0', '149.0.7827.55']);

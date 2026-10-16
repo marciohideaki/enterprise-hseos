@@ -1,7 +1,8 @@
 'use strict';
 
-// Offline toolchain pins for the environment capabilities. Pins are data: name, version, SHA-256 of the
-// artifact and the licence text expected inside it. Nothing is downloaded and no binary ever enters a tarball.
+// Offline toolchain pins for the environment capabilities. Pins are data: name, version, SHA-256 of the artifact, the
+// licence text expected inside it (markers) and the SHA-256 of that whole text. Nothing is downloaded and no binary
+// ever enters a tarball.
 const fs = require('node:fs');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
@@ -22,6 +23,7 @@ const PINS = Object.freeze({
     sha256: 'd225b223a8a4764ecbd94bdba85d2ef185eaa7b9842a1a31c38c2bbe7f2fe9b9',
     license: 'Apache-2.0',
     license_file: 'package/LICENSE',
+    license_sha256: '899d21038f87dd6243dd33b7ee82a078e639d4325a427c01e64d8116315b9680',
     license_markers: Object.freeze([...APACHE_MARKERS, ...MIT_MARKERS]),
   }),
   typescript: Object.freeze({
@@ -30,6 +32,7 @@ const PINS = Object.freeze({
     sha256: '10e108c9cf7d5f2879053dff18515fb405abf2ccef63eaaf017d9c571687a1d3',
     license: 'Apache-2.0',
     license_file: 'package/LICENSE.txt',
+    license_sha256: 'a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47',
     license_markers: Object.freeze(APACHE_MARKERS),
   }),
   pyright: Object.freeze({
@@ -38,6 +41,7 @@ const PINS = Object.freeze({
     sha256: 'bf5f473f6167c0d14175492c3263d783b4489a6956e1c06c18e15228e3a3fa42',
     license: 'MIT',
     license_file: 'package/LICENSE.txt',
+    license_sha256: 'f7c936bc43f132b08497ac952e9376cbc102e5eedb4bf6ec902ea8442bd9c68d',
     license_markers: Object.freeze(MIT_MARKERS),
   }),
   // The wheel is a zip: it is read from the same verified bytes by the in-process reader below.
@@ -48,6 +52,7 @@ const PINS = Object.freeze({
     license: 'MIT',
     format: 'zip',
     license_file: 'debugpy-1.8.22.dist-info/licenses/LICENSE',
+    license_sha256: '649844f60da138e54b9bcc13338c62c5f97be8612cb6249ac10f84bbb97ffc88',
     license_markers: Object.freeze(MIT_MARKERS),
   }),
   'js-debug': Object.freeze({
@@ -57,6 +62,7 @@ const PINS = Object.freeze({
     license: 'MIT',
     root: 'js-debug/',
     license_file: 'js-debug/LICENSE',
+    license_sha256: 'dea9265341829002e2c23a7372393eb2ed6e26085fb623f38a4ba0af833f30a6',
     license_markers: Object.freeze(MIT_MARKERS),
   }),
   'playwright-core': Object.freeze({
@@ -65,6 +71,7 @@ const PINS = Object.freeze({
     sha256: 'b5ab14f09f3aaacdedbc2cb1431b0552cec8995fba35d841779a4ed535ce0200',
     license: 'Apache-2.0',
     license_file: 'package/LICENSE',
+    license_sha256: '45873d00a0dd243596deb4aa23b2493b3d1f0671921bf2538ea431d7380220eb',
     license_markers: Object.freeze(APACHE_MARKERS),
   }),
   // Chrome headless shell, Playwright revision 1228. The zip is far larger than the default zip ceilings, so the
@@ -77,6 +84,7 @@ const PINS = Object.freeze({
     license: 'BSD-3-Clause',
     format: 'zip',
     license_file: 'chrome-headless-shell-linux64/LICENSE.headless_shell',
+    license_sha256: 'a522f12bd149be8d77dd05b5bdb03ebd7ac759cca511190d158ced6d27b539ac',
     license_markers: Object.freeze(BSD3_MARKERS),
     zip_limits: Object.freeze({ entry_bytes: 201_326_592, total_bytes: 335_544_320 }),
   }),
@@ -98,6 +106,7 @@ const PINS = Object.freeze({
         source_url: 'https://archive.ubuntu.com/ubuntu/pool/universe/x/xdotool/xdotool_3.20160805.1-5.1build1_amd64.deb',
         size_bytes: 42_984,
         sha256: 'fda12b12adf99fa7d93cbc89baf53def35449e9ea04ec0f34dc5a92042a6a68f',
+        license_sha256: '7022c27d07a4777ff1e23a83274f6351d634d83053b46a7f5582a2c988ab4572',
       }),
       Object.freeze({
         distro: 'ubuntu-noble',
@@ -106,6 +115,7 @@ const PINS = Object.freeze({
         source_url: 'https://archive.ubuntu.com/ubuntu/pool/universe/x/xdotool/xdotool_3.20160805.1-5build1_amd64.deb',
         size_bytes: 42_556,
         sha256: '58a202c74bce31ca2d72d4d514942a5ab6191932696adc5d21d909c9216b13cb',
+        license_sha256: '7022c27d07a4777ff1e23a83274f6351d634d83053b46a7f5582a2c988ab4572',
       }),
     ]),
   }),
@@ -123,15 +133,24 @@ const UNIX_REGULAR = 0o10_0000;
 const UNIX_DIRECTORY = 0o04_0000;
 
 class ToolchainBlockedError extends Error {
-  constructor(message, code = 'ENV_TOOLCHAIN_BLOCKED') {
-    super(message);
+  constructor(message, code = 'ENV_TOOLCHAIN_BLOCKED', options) {
+    super(message, options);
     this.name = 'ToolchainBlockedError';
     this.code = code;
   }
 }
 
-function blocked(message, code) {
-  throw new ToolchainBlockedError(message, code);
+function blocked(message, code, options) {
+  throw new ToolchainBlockedError(message, code, options);
+}
+
+/** Cleanup must never replace the error that caused it. */
+function removeQuietly(target) {
+  try {
+    fs.rmSync(target, { recursive: true, force: true });
+  } catch {
+    // A leftover scratch directory is harmless; the original failure is what the caller needs to see.
+  }
 }
 
 /** The cache location is configuration, never a compiled-in path. */
@@ -335,6 +354,10 @@ function verifyPin(cacheDirectory, name, manifest, expected = PINS) {
   if (!want.license_markers.every((marker) => licenseText.includes(marker))) {
     blocked(`licence text of ${name} does not match ${want.license}`, 'ENV_TOOLCHAIN_LICENSE_MISMATCH');
   }
+  // The markers only prove that the right words are present; the digest proves that the whole text is the one pinned.
+  if (typeof want.license_sha256 !== 'string' || createHash('sha256').update(licenseText, 'utf8').digest('hex') !== want.license_sha256) {
+    blocked(`licence text of ${name} diverges from its pinned SHA-256`, 'ENV_TOOLCHAIN_LICENSE_DIGEST');
+  }
   return Object.freeze({
     name,
     version: want.version,
@@ -373,8 +396,38 @@ function extractZip(members, target) {
 }
 
 /**
- * Verify every requested pin, then extract each to `<destination>/<name>/package`. Any divergence blocks the
- * whole install: a partial toolchain is never reported as ready.
+ * Verify every requested pin offline, then extract each one under `<destination>/<name>`. Nothing is downloaded.
+ *
+ * @param {object} options
+ * @param {string} [options.cacheDirectory] Absolute path of the toolchain cache; falls back to `HSEOS_TOOLCHAIN_CACHE`.
+ * @param {string} options.destination Directory that receives one sub-directory per pin. The caller owns it.
+ * @param {string[]} [options.names] Pins to install. Defaults to every pin that is not a system pin.
+ * @param {object} [options.expected] Pin table to verify against. Defaults to `PINS`.
+ * @returns {Readonly<{status: 'ready', root: string, pins: ReadonlyArray<{name: string, version: string, sha256: string, license: string}>}>}
+ *   `root` is `destination`. The extracted tree of a pin is `<root>/<name>/<pin root>`: `package/` for npm tarballs, the
+ *   pin's own `root` for other tarballs, and the zip entry names as they are for zips.
+ * @throws {ToolchainBlockedError} Every refusal carries a stable `code`: ENV_TOOLCHAIN_PIN_SYSTEM (a requested name is a
+ *   system pin: those are verified, never installed, so the call fails and a system pin is never part of the default set),
+ *   ENV_TOOLCHAIN_CACHE_UNSET, ENV_TOOLCHAIN_MANIFEST_MISSING, ENV_TOOLCHAIN_MANIFEST_INVALID, ENV_TOOLCHAIN_PIN_UNKNOWN,
+ *   ENV_TOOLCHAIN_PIN_MISSING, ENV_TOOLCHAIN_PIN_DIVERGED, ENV_TOOLCHAIN_ARTIFACT_PATH, ENV_TOOLCHAIN_ARTIFACT_MISSING,
+ *   ENV_TOOLCHAIN_DIGEST_MISMATCH, ENV_TOOLCHAIN_LICENSE_MISSING, ENV_TOOLCHAIN_LICENSE_MISMATCH,
+ *   ENV_TOOLCHAIN_LICENSE_DIGEST, ENV_TOOLCHAIN_ARCHIVE_UNSAFE and ENV_TOOLCHAIN_INSTALL_FAILED.
+ *
+ * Effects on disk: before anything is written every requested pin is verified (artifact SHA-256, licence markers and
+ * licence digest). Each pin is then checked (tar listing, or every zip member decoded and CRC-checked) and extracted into
+ * a staging directory `<destination>/<name>.staging-<pid>`. Only when that is complete is the previous
+ * `<destination>/<name>` renamed to `<name>.previous-<pid>`, the staging directory renamed over the target and the previous
+ * one removed, so a previous install never leaks stale files into the new one. What is hashed is what is extracted: the
+ * artifact is read once and the same bytes are handed to the extractor.
+ *
+ * Atomicity: verification of all pins happens first, so a cache divergence blocks the call before any write. The write
+ * phase is per pin, not transactional across pins: if pin N cannot be installed, pins 1..N-1 stay installed and the call
+ * throws (never `ready`). Within pin N a failure while extracting leaves its previous install untouched, and a failure of
+ * the final rename puts the previous install back. Only if that restoring rename fails as well is the pin left absent; the
+ * staging directory is still removed and only `previous-<pid>` remains. Unsafe archives are reported as
+ * ENV_TOOLCHAIN_ARCHIVE_UNSAFE; any other failure is a ToolchainBlockedError with ENV_TOOLCHAIN_INSTALL_FAILED whose
+ * `cause` is the original error. Cleanup of the staging directory never masks it. The one exception is a failed restore:
+ * its error becomes the `cause` and the error of the rename that triggered it is lost.
  */
 function installToolchain({
   cacheDirectory,
@@ -388,23 +441,41 @@ function installToolchain({
   const manifest = readManifest(cache);
   const verified = names.map((name) => verifyPin(cache, name, manifest, expected));
   for (const pin of verified) {
-    // A previous install never leaks stale files into the new toolchain.
     const target = path.join(destination, pin.name);
-    if (pin.format === 'zip') {
-      // Every member is decoded and checked before the first byte is written.
-      const members = listZip(pin.bytes, pin.zip_limits).map((entry) => ({
-        entry,
-        data: entry.directory ? null : readZipEntry(pin.bytes, entry, pin.zip_limits?.entry_bytes),
-      }));
-      fs.rmSync(target, { recursive: true, force: true });
-      fs.mkdirSync(target, { recursive: true, mode: 0o700 });
-      extractZip(members, target);
-      continue;
+    // Extraction happens in a staging directory beside the target. The previous install is set aside, not deleted, until
+    // the new one is in place, so a failure at any point gives the previous install back.
+    const staging = `${target}.staging-${process.pid}`;
+    const previous = `${target}.previous-${process.pid}`;
+    try {
+      removeQuietly(staging);
+      removeQuietly(previous);
+      if (pin.format === 'zip') {
+        // Every member is decoded and checked before the first byte is written.
+        const members = listZip(pin.bytes, pin.zip_limits).map((entry) => ({
+          entry,
+          data: entry.directory ? null : readZipEntry(pin.bytes, entry, pin.zip_limits?.entry_bytes),
+        }));
+        fs.mkdirSync(staging, { recursive: true, mode: 0o700 });
+        extractZip(members, staging);
+      } else {
+        assertSafeArchive(pin.bytes, pin.root);
+        fs.mkdirSync(staging, { recursive: true, mode: 0o700 });
+        tar(['-xzf', '-', '-C', staging, '--no-same-owner', '--no-same-permissions'], pin.bytes);
+      }
+      const replaced = fs.existsSync(target);
+      if (replaced) fs.renameSync(target, previous);
+      try {
+        fs.renameSync(staging, target);
+      } catch (error) {
+        if (replaced) fs.renameSync(previous, target);
+        throw error;
+      }
+      removeQuietly(previous);
+    } catch (error) {
+      removeQuietly(staging);
+      if (error instanceof ToolchainBlockedError) throw error;
+      blocked(`toolchain ${pin.name} could not be installed`, 'ENV_TOOLCHAIN_INSTALL_FAILED', { cause: error });
     }
-    assertSafeArchive(pin.bytes, pin.root);
-    fs.rmSync(target, { recursive: true, force: true });
-    fs.mkdirSync(target, { recursive: true, mode: 0o700 });
-    tar(['-xzf', '-', '-C', target, '--no-same-owner', '--no-same-permissions'], pin.bytes);
   }
   return Object.freeze({
     status: 'ready',

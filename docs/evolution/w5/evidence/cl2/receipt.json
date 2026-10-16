@@ -1,0 +1,149 @@
+{
+  "task": "cl2",
+  "base_sha": "4c152844",
+  "node_for_verify": "v24.15.0 (run-in-cgroup.sh)",
+  "node22": "not verified (better-sqlite3 ABI 24 in the worktree; no rebuild)",
+  "commands_note": "verifies ran through run-in-cgroup.sh without the heavy-run prefix; each commit also passed the pre-commit quality gates through commit-in-cgroup.sh",
+  "items": [
+    {
+      "item": 1,
+      "commit": "a3b3b2e66f976f04430c91473e412820bb6e0f46",
+      "tree": "a8b5dedd8799a8f9857b157ba43a8c53152f4e4d",
+      "status": "PASS",
+      "notes": "license_sha256 per pin and per xdotool variant; ENV_TOOLCHAIN_LICENSE_DIGEST; new tests in lsp, dap, computer for markers-present-text-different"
+    },
+    {
+      "item": 2,
+      "commit": "603a9ebe",
+      "tree": "07edd0b1b5f5a58192eca32bad496cecb0724ee4",
+      "status": "PASS",
+      "notes": "comment only"
+    },
+    {
+      "item": 3,
+      "commit": "c21fc308",
+      "tree": "6cf3a863138bc502b4e1de564b716515993420b5",
+      "status": "PASS",
+      "notes": "4 files formatted; espree AST identical; no mirror or plugin file contains them; compile --check 242 checks exit 0"
+    },
+    {
+      "item": 4,
+      "status": "see the commit that contains this receipt",
+      "notes": "STATUS.md: B3b and cl2 sections"
+    }
+  ],
+  "license_sha256": {
+    "typescript-language-server": "899d21038f87dd6243dd33b7ee82a078e639d4325a427c01e64d8116315b9680",
+    "typescript": "a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47",
+    "pyright": "f7c936bc43f132b08497ac952e9376cbc102e5eedb4bf6ec902ea8442bd9c68d",
+    "debugpy": "649844f60da138e54b9bcc13338c62c5f97be8612cb6249ac10f84bbb97ffc88",
+    "js-debug": "dea9265341829002e2c23a7372393eb2ed6e26085fb623f38a4ba0af833f30a6",
+    "playwright-core": "45873d00a0dd243596deb4aa23b2493b3d1f0671921bf2538ea431d7380220eb",
+    "chrome-headless-shell": "a522f12bd149be8d77dd05b5bdb03ebd7ac759cca511190d158ced6d27b539ac",
+    "xdotool (both variants)": "7022c27d07a4777ff1e23a83274f6351d634d83053b46a7f5582a2c988ab4572"
+  },
+  "verifies": [
+    {
+      "id": "focused",
+      "result": "186 tests, 185 pass, 1 fail (test-plugin-marketplace.js under node --test in the cgroup wrapper, known layout dependency)",
+      "log": "docs/evolution/w5/evidence/cl2/verify-focused.log",
+      "sha256": "8e0f072a3c450180a69ac2d6ef8d8cc1dbc99329ae6912b22b44bb9208b89856"
+    },
+    {
+      "id": "marketplace-direct",
+      "result": "exit 0; 88 passed, 0 failed",
+      "log": "docs/evolution/w5/evidence/cl2/verify-marketplace.log",
+      "sha256": "9a51c1ab18b5b3b9e743830053af73342e8be894d0dfe523a670ec7dac8162fc"
+    },
+    {
+      "id": "compile-check",
+      "result": "exit 0; 242 checks passed"
+    },
+    {
+      "id": "eslint-prettier",
+      "result": "clean on every touched file"
+    }
+  ],
+  "package_inventory": {
+    "entryCount": 1538,
+    "ceiling": 1556,
+    "areas": {
+      ".agents": 203,
+      ".enterprise": 464,
+      ".hseos": 63,
+      "packages": 137,
+      "tools": 393,
+      "src": 245,
+      "docs": 7,
+      "scripts": 19,
+      "root": 7
+    },
+    "npm": "11.12.1 (Node 24)",
+    "new_files_in_packages_or_tools": 0,
+    "log": "docs/evolution/w5/evidence/cl2/pack-dry-run.json",
+    "sha256": "340af82139fa2ab60378bd8d7a5be8dd22a7c1486c03c9c8009903f962518a12"
+  },
+  "review_round_1": {
+    "verdict": "APPROVED WITH RESERVATIONS, 0 blocker, 0 major",
+    "reviewed_sha": "bf474ecd",
+    "a_install_contract": "code fixed to match the doc: staging directory then rename, staging removed on failure, non-blocked errors wrapped as ENV_TOOLCHAIN_INSTALL_FAILED",
+    "b_tests": "missing license_sha256 is BLOCKED; a digest differing after the first 20 characters is BLOCKED; a failed extraction keeps the previous install and leaves no staging",
+    "c_status": "marketplace cause corrected to undetermined, pre-existing; W5-08 MINOR list completed; UTF-8 digest basis recorded",
+    "verify": {
+      "result": "186 tests, 186 pass, 0 fail, 0 skipped (marketplace file not in this run; its direct run stays 88/0)",
+      "log": "docs/evolution/w5/evidence/cl2/verify-focused-r1.log",
+      "sha256": "7548929e832a6e527db669a96a8fe55e96ef13a448865a2adbeb447e42ffd36c"
+    },
+    "inventory": {
+      "entryCount": 1538,
+      "packages": 137,
+      "tools": 393,
+      "log": "docs/evolution/w5/evidence/cl2/pack-dry-run-r1.json",
+      "sha256": "71d825b4e04b6904baf761d6414338ee0d7343932903af5d3aa513ee1e190a48"
+    },
+    "commits": "listed in the final report; receipt committed after them"
+  },
+  "review_round_2": {
+    "reviewed_sha": "e4c3fc44",
+    "status_md": "item 5 aligned: 186/186 in the focused run, marketplace outside it, 88/0 direct",
+    "install_toolchain": "previous install moved to <target>.previous-<pid> and restored if the final rename fails; INSTALL_FAILED keeps the original error as cause; staging cleanup never masks the original error; jsdoc states that the pin is absent only if the restoring rename also fails",
+    "test": "mid-extraction failure through a tarball that lists cleanly and breaks in tar -x after staging exists: INSTALL_FAILED, cause set, previous install intact, no staging left; no privilege dependence so no skip; the final-rename failure path has no test",
+    "verify": {
+      "result": "186 tests, 186 pass, 0 fail, 0 skipped",
+      "log": "docs/evolution/w5/evidence/cl2/verify-focused-r2.log",
+      "sha256": "b2ebf50edda7120f631a36178036011138432d68afa81dbe68e3d3acedb57657"
+    },
+    "compile_check": "exit 0; 242 checks passed",
+    "eslint_prettier": "clean",
+    "inventory": {
+      "entryCount": 1538,
+      "packages": 137,
+      "tools": 393,
+      "log": "docs/evolution/w5/evidence/cl2/pack-dry-run-r2.json",
+      "sha256": "320de82eb97cbda05dac400c481659a4e50ac3ec4d7d47665f68d9d7a6758724"
+    }
+  },
+  "review_round_3": {
+    "reviewed_sha": "bc07f78a",
+    "changes": "removed the leftover t.skip from the extraction test; jsdoc corrected (only previous-<pid> remains after a failed restore; a failed restore replaces the cause and the rename error is lost)",
+    "accepted_minor": [
+      "restore after a failed final rename has no test",
+      "previous-<other pid> left by a dead process is never cleaned",
+      "mutants T01, T06, T07 survive"
+    ],
+    "verify": {
+      "result": "186 tests, 186 pass, 0 fail, 0 skipped",
+      "log": "docs/evolution/w5/evidence/cl2/verify-focused-r3.log",
+      "sha256": "72ea75dac40195c50d6850d5444b653306102d673d9b210800c1214c3f5d5c9e"
+    },
+    "compile_check": "exit 0; 242 checks passed",
+    "eslint_prettier": "clean",
+    "inventory": {
+      "entryCount": 1538,
+      "packages": 137,
+      "tools": 393,
+      "log": "docs/evolution/w5/evidence/cl2/pack-dry-run-r3.json",
+      "sha256": "f24993ffaec5f3aed942820a0d36c11431bca4736a212b092e35166fc36a9e1b"
+    }
+  }
+}

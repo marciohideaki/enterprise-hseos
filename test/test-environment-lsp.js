@@ -858,6 +858,7 @@ function fixtureCache({
       license: 'MIT',
       license_file: 'package/LICENSE',
       license_markers: ['Permission is hereby granted, free of charge'],
+      license_sha256: sha(Buffer.from('Permission is hereby granted, free of charge')),
     },
   };
   const manifest = {
@@ -911,6 +912,30 @@ test('a coherent fixture cache installs and every divergence is BLOCKED with its
     ],
     ['ENV_TOOLCHAIN_LICENSE_MISSING', fixtureCache({ files: { 'package/README': 'no licence' } })],
     ['ENV_TOOLCHAIN_LICENSE_MISMATCH', fixtureCache({ files: { 'package/LICENSE': 'All rights reserved' } })],
+    // The markers are all present, so only the digest of the whole text can tell this licence from the pinned one.
+    [
+      'ENV_TOOLCHAIN_LICENSE_DIGEST',
+      fixtureCache({ files: { 'package/LICENSE': 'Permission is hereby granted, free of charge, to anyone, for any use at all' } }),
+    ],
+    // Fail-closed: a pin that carries no licence digest is never accepted on its markers alone.
+    [
+      'ENV_TOOLCHAIN_LICENSE_DIGEST',
+      (() => {
+        const f = fixtureCache();
+        delete f.expected.fixture.license_sha256;
+        return f;
+      })(),
+    ],
+    // The whole digest is compared: this one agrees with the pinned value on its first 20 characters and differs after.
+    [
+      'ENV_TOOLCHAIN_LICENSE_DIGEST',
+      (() => {
+        const f = fixtureCache();
+        const real = f.expected.fixture.license_sha256;
+        f.expected.fixture.license_sha256 = `${real.slice(0, 20)}${real[20] === '0' ? '1' : '0'}${real.slice(21)}`;
+        return f;
+      })(),
+    ],
     ['ENV_TOOLCHAIN_ARCHIVE_UNSAFE', fixtureCache({ link: true })],
     ['ENV_TOOLCHAIN_ARCHIVE_UNSAFE', fixtureCache({ outside: true })],
   ];
@@ -1006,6 +1031,47 @@ test('hash and extraction use the same bytes, and a re-install starts from a cle
   assert.equal(fs.existsSync(path.join(destination, 'fixture/package/stale.txt')), false);
   assert.match(fs.readFileSync(path.join(destination, 'fixture/package/LICENSE'), 'utf8'), /Permission is hereby granted/);
   // Swapping the artifact after verification cannot change what is extracted: tar reads the verified bytes from stdin.
+});
+
+test('an extraction that fails midway keeps the previous install, removes its staging and reports the cause', () => {
+  const fixture = fixtureCache();
+  const destination = temp('hseos-lsp-dest-');
+  const args = { cacheDirectory: fixture.cache, destination, names: ['fixture'], expected: fixture.expected };
+  pins.installToolchain(args);
+  const licence = path.join(destination, 'fixture/package/LICENSE');
+  const before = fs.readFileSync(licence, 'utf8');
+  // The archive lists cleanly (a file, then a path below that file) and only breaks when tar extracts the second entry,
+  // after the staging directory exists and has been written to.
+  const source = temp('hseos-lsp-src-');
+  const second = temp('hseos-lsp-src-');
+  fs.mkdirSync(path.join(source, 'package'));
+  fs.writeFileSync(path.join(source, 'package/LICENSE'), 'Permission is hereby granted, free of charge');
+  fs.writeFileSync(path.join(source, 'package/clash'), 'a file');
+  fs.mkdirSync(path.join(second, 'package/clash'), { recursive: true });
+  fs.writeFileSync(path.join(second, 'package/clash/inner'), 'below the file');
+  const plain = path.join(temp('hseos-lsp-tar-'), 'broken.tar');
+  execFileSync('tar', ['-cf', plain, '-C', source, 'package']);
+  execFileSync('tar', ['-rf', plain, '-C', second, 'package/clash/inner']);
+  execFileSync('gzip', ['-f', plain]);
+  const archive = path.join(fixture.cache, 'npm/fixture-1.0.0.tgz');
+  fs.copyFileSync(`${plain}.gz`, archive);
+  const digest = sha(fs.readFileSync(archive));
+  fixture.expected.fixture.sha256 = digest;
+  const manifestPath = path.join(fixture.cache, 'toolchain-manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath));
+  manifest.pins[0].sha256 = digest;
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest));
+
+  let seen;
+  try {
+    pins.installToolchain(args);
+  } catch (error) {
+    seen = error;
+  }
+  assert.equal(seen?.code, 'ENV_TOOLCHAIN_INSTALL_FAILED', 'a failure while extracting is reported with a code, not as a raw error');
+  assert.ok(seen.cause instanceof Error, 'the original error is kept as the cause');
+  assert.equal(fs.readFileSync(licence, 'utf8'), before, 'the previous install is untouched');
+  assert.deepEqual(fs.readdirSync(destination), ['fixture'], 'the staging directory that was created is gone');
 });
 
 // ---------------------------------------------------------------------------------------------------------------

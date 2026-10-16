@@ -700,7 +700,10 @@ describe('xdotool system pin', () => {
       return 'verified';
     };
     assert.equal(code(cacheWith(() => ({}))), 'verified');
-    const withExpected = (patch, artifact) => ({ expected: { xdotool: { ...pin, ...patch, variants: [resolute] } }, artifact });
+    const withExpected = (patch, artifact, variantPatch = {}) => ({
+      expected: { xdotool: { ...pin, ...patch, variants: [{ ...resolute, ...variantPatch }] } },
+      artifact,
+    });
     assert.equal(
       code(
         cacheWith(({ manifest }) => ({
@@ -729,6 +732,11 @@ describe('xdotool system pin', () => {
     assert.equal(
       code(cacheWith(() => withExpected({ license_markers: ['a licence text that is not in the artifact'] }))),
       'ENV_TOOLCHAIN_LICENSE_MISMATCH',
+    );
+    assert.equal(
+      code(cacheWith(() => withExpected({}, undefined, { license_sha256: '0'.repeat(64) }))),
+      'ENV_TOOLCHAIN_LICENSE_DIGEST',
+      'the markers are all present in the real licence, so only the digest of the whole text refuses a different one',
     );
     assert.equal(code(cacheWith(() => withExpected({ license_file: './usr/share/doc/xdotool/missing' }))), 'ENV_TOOLCHAIN_LICENSE_MISSING');
     const garbage = Buffer.from('this is not an ar archive at all');

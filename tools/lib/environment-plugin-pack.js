@@ -38,17 +38,25 @@ function readManifest(repoRoot, capability) {
     refuse('plugin manifest is missing or unreadable', 'ENV_PACK_MANIFEST_INVALID');
   }
   const files = manifest?.core_files;
-  if (manifest?.schema !== MANIFEST_SCHEMA || !ID.test(manifest.id ?? '') || manifest.capability !== capability || !Array.isArray(files) || files.length === 0) {
+  if (
+    manifest?.schema !== MANIFEST_SCHEMA ||
+    !ID.test(manifest.id ?? '') ||
+    manifest.capability !== capability ||
+    !Array.isArray(files) ||
+    files.length === 0
+  ) {
     refuse('plugin manifest does not match the pack schema', 'ENV_PACK_MANIFEST_INVALID');
   }
-  if (manifest.load?.strategy !== 'lazy' || !files.includes(manifest.load.entry)) refuse('plugin must load lazily from a listed core file', 'ENV_PACK_NOT_LAZY');
+  if (manifest.load?.strategy !== 'lazy' || !files.includes(manifest.load.entry))
+    refuse('plugin must load lazily from a listed core file', 'ENV_PACK_NOT_LAZY');
   if (files.length + 1 > MAX_ENTRIES) refuse('plugin exceeds the entry limit', 'ENV_PACK_TOO_MANY_ENTRIES');
   if (new Set(files).size !== files.length) refuse('core file list has duplicates', 'ENV_PACK_MANIFEST_INVALID');
   return manifest;
 }
 
 function readCoreFile(repoRoot, relative) {
-  if (typeof relative !== 'string' || !SAFE_PATH.test(relative) || relative.split('/').includes('..')) refuse('core file path is not safe', 'ENV_PACK_PATH_UNSAFE');
+  if (typeof relative !== 'string' || !SAFE_PATH.test(relative) || relative.split('/').includes('..'))
+    refuse('core file path is not safe', 'ENV_PACK_PATH_UNSAFE');
   if (FORBIDDEN.test(relative)) refuse('binaries and pins never enter a tarball', 'ENV_PACK_FORBIDDEN_CONTENT');
   const absolute = path.join(repoRoot, relative);
   let stat;
@@ -73,7 +81,13 @@ function tarHeader(name, size) {
   header.write('0', 156);
   header.write('ustar\0', 257);
   header.write('00', 263);
-  header.write(`${header.reduce((sum, byte) => sum + byte, 0).toString(8).padStart(6, '0')}\0 `, 148);
+  header.write(
+    `${header
+      .reduce((sum, byte) => sum + byte, 0)
+      .toString(8)
+      .padStart(6, '0')}\0 `,
+    148,
+  );
   return header;
 }
 
@@ -95,8 +109,14 @@ function buildTarball(entries) {
 function packPlugin({ repoRoot, capability, outputDirectory }) {
   const manifest = readManifest(repoRoot, capability);
   const manifestBytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`);
-  const files = manifest.core_files.map((relative) => ({ name: `package/${relative}`, source: relative, bytes: readCoreFile(repoRoot, relative) }));
-  const entries = [{ name: 'package/plugin.json', source: null, bytes: manifestBytes }, ...files].sort((a, b) => (a.name < b.name ? -1 : 1));
+  const files = manifest.core_files.map((relative) => ({
+    name: `package/${relative}`,
+    source: relative,
+    bytes: readCoreFile(repoRoot, relative),
+  }));
+  const entries = [{ name: 'package/plugin.json', source: null, bytes: manifestBytes }, ...files].sort((a, b) =>
+    a.name < b.name ? -1 : 1,
+  );
   const total = entries.reduce((sum, entry) => sum + entry.bytes.length, 0);
   if (total > MAX_BYTES) refuse('plugin exceeds the size limit', 'ENV_PACK_TOO_LARGE');
   const tarball = buildTarball(entries);
@@ -109,7 +129,9 @@ function packPlugin({ repoRoot, capability, outputDirectory }) {
     tarball,
     digest,
     unpacked_bytes: total,
-    entries: Object.freeze(entries.map(({ name, source, bytes }) => Object.freeze({ path: name, source, bytes: bytes.length, sha256: sha256(bytes) }))),
+    entries: Object.freeze(
+      entries.map(({ name, source, bytes }) => Object.freeze({ path: name, source, bytes: bytes.length, sha256: sha256(bytes) })),
+    ),
   });
   if (outputDirectory) {
     fs.mkdirSync(outputDirectory, { recursive: true });

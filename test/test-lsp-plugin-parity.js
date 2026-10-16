@@ -25,7 +25,11 @@ test('the lsp pack is generated from the very same files the core ships (identic
     assert.equal(written.digest, result.digest, 'packing is reproducible');
     for (const entry of copied) {
       const extracted = execFileSync('tar', ['-xzOf', path.join(directory, written.filename), entry.path]);
-      assert.equal(sha256(extracted), sha256(fs.readFileSync(path.join(ROOT, entry.source))), `${entry.path} in the tarball equals the core file`);
+      assert.equal(
+        sha256(extracted),
+        sha256(fs.readFileSync(path.join(ROOT, entry.source))),
+        `${entry.path} in the tarball equals the core file`,
+      );
     }
   } finally {
     fs.rmSync(directory, { recursive: true, force: true });
@@ -37,7 +41,11 @@ test('the lsp pack stays inside 40 entries and 1 MB and carries no binary or pin
   assert.ok(result.entries.length <= MAX_ENTRIES, `${result.entries.length} entries`);
   assert.ok(result.unpacked_bytes <= MAX_BYTES && result.tarball.length <= MAX_BYTES);
   assert.ok(result.entries.every((entry) => !/\.(?:tgz|whl|node|so)$|node_modules|toolchain\//.test(entry.path)));
-  assert.deepEqual([...manifest.toolchain_pins].sort(), ['pyright', 'typescript', 'typescript-language-server'], 'the manifest names the pins as data only');
+  assert.deepEqual(
+    [...manifest.toolchain_pins].sort(),
+    ['pyright', 'typescript', 'typescript-language-server'],
+    'the manifest names the pins as data only',
+  );
   // Every plugin manifest on disk claims pins: together they cover the whole registry and each pin appears exactly once.
   const claimed = fs
     .readdirSync(path.join(ROOT, 'plugins'))
