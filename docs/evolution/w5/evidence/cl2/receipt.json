@@ -1,0 +1,86 @@
+{
+  "task": "cl2",
+  "base_sha": "4c152844",
+  "node_for_verify": "v24.15.0 (run-in-cgroup.sh)",
+  "node22": "not verified (better-sqlite3 ABI 24 in the worktree; no rebuild)",
+  "commands_note": "verifies ran through run-in-cgroup.sh without the heavy-run prefix; each commit also passed the pre-commit quality gates through commit-in-cgroup.sh",
+  "items": [
+    {
+      "item": 1,
+      "commit": "a3b3b2e66f976f04430c91473e412820bb6e0f46",
+      "tree": "a8b5dedd8799a8f9857b157ba43a8c53152f4e4d",
+      "status": "PASS",
+      "notes": "license_sha256 per pin and per xdotool variant; ENV_TOOLCHAIN_LICENSE_DIGEST; new tests in lsp, dap, computer for markers-present-text-different"
+    },
+    {
+      "item": 2,
+      "commit": "603a9ebe",
+      "tree": "07edd0b1b5f5a58192eca32bad496cecb0724ee4",
+      "status": "PASS",
+      "notes": "comment only"
+    },
+    {
+      "item": 3,
+      "commit": "c21fc308",
+      "tree": "6cf3a863138bc502b4e1de564b716515993420b5",
+      "status": "PASS",
+      "notes": "4 files formatted; espree AST identical; no mirror or plugin file contains them; compile --check 242 checks exit 0"
+    },
+    {
+      "item": 4,
+      "status": "see the commit that contains this receipt",
+      "notes": "STATUS.md: B3b and cl2 sections"
+    }
+  ],
+  "license_sha256": {
+    "typescript-language-server": "899d21038f87dd6243dd33b7ee82a078e639d4325a427c01e64d8116315b9680",
+    "typescript": "a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47",
+    "pyright": "f7c936bc43f132b08497ac952e9376cbc102e5eedb4bf6ec902ea8442bd9c68d",
+    "debugpy": "649844f60da138e54b9bcc13338c62c5f97be8612cb6249ac10f84bbb97ffc88",
+    "js-debug": "dea9265341829002e2c23a7372393eb2ed6e26085fb623f38a4ba0af833f30a6",
+    "playwright-core": "45873d00a0dd243596deb4aa23b2493b3d1f0671921bf2538ea431d7380220eb",
+    "chrome-headless-shell": "a522f12bd149be8d77dd05b5bdb03ebd7ac759cca511190d158ced6d27b539ac",
+    "xdotool (both variants)": "7022c27d07a4777ff1e23a83274f6351d634d83053b46a7f5582a2c988ab4572"
+  },
+  "verifies": [
+    {
+      "id": "focused",
+      "result": "186 tests, 185 pass, 1 fail (test-plugin-marketplace.js under node --test in the cgroup wrapper, known layout dependency)",
+      "log": "docs/evolution/w5/evidence/cl2/verify-focused.log",
+      "sha256": "8e0f072a3c450180a69ac2d6ef8d8cc1dbc99329ae6912b22b44bb9208b89856"
+    },
+    {
+      "id": "marketplace-direct",
+      "result": "exit 0; 88 passed, 0 failed",
+      "log": "docs/evolution/w5/evidence/cl2/verify-marketplace.log",
+      "sha256": "9a51c1ab18b5b3b9e743830053af73342e8be894d0dfe523a670ec7dac8162fc"
+    },
+    {
+      "id": "compile-check",
+      "result": "exit 0; 242 checks passed"
+    },
+    {
+      "id": "eslint-prettier",
+      "result": "clean on every touched file"
+    }
+  ],
+  "package_inventory": {
+    "entryCount": 1538,
+    "ceiling": 1556,
+    "areas": {
+      ".agents": 203,
+      ".enterprise": 464,
+      ".hseos": 63,
+      "packages": 137,
+      "tools": 393,
+      "src": 245,
+      "docs": 7,
+      "scripts": 19,
+      "root": 7
+    },
+    "npm": "11.12.1 (Node 24)",
+    "new_files_in_packages_or_tools": 0,
+    "log": "docs/evolution/w5/evidence/cl2/pack-dry-run.json",
+    "sha256": "340af82139fa2ab60378bd8d7a5be8dd22a7c1486c03c9c8009903f962518a12"
+  }
+}
