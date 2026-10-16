@@ -154,20 +154,45 @@ const projectSchema = schema.extend({
 const versionedSchema = z.discriminatedUnion('schema_version', [schema, projectSchema]);
 
 class EngineeringTaskContractError extends Error {
-  constructor() {
+  constructor(reason = 'ENGINEERING_CONTRACT_INVALID') {
     super('Engineering task contract is invalid, unbounded, inconsistent, or changed while reading.');
     this.code = 'ENGINEERING_TASK_CONTRACT_INVALID';
+    // Curated cause surfaced as `detail.code` by the control API; `code` stays the compatibility category.
+    this.reason = reason;
   }
 }
 
-function requireCondition(condition) {
-  if (!condition) throw new EngineeringTaskContractError();
+function requireCondition(condition, reason) {
+  if (!condition) throw new EngineeringTaskContractError(reason);
 }
 
-function unique(values) {
-  requireCondition(new Set(values).size === values.length);
+function unique(values, reason = 'ENGINEERING_DUPLICATE_ID') {
+  requireCondition(new Set(values).size === values.length, reason);
   return new Set(values);
 }
+
+/**
+ * Configuration files a command may read implicitly. When one is present in the workspace it must be protected so the
+ * model cannot rewrite what judges it. The list only grows, by a new version; reading is never inferred from a command.
+ */
+const PROTECTED_CONFIG_FILES = Object.freeze({
+  version: 1,
+  patterns: Object.freeze([
+    /^package\.json$/,
+    /^tsconfig[^/]*\.json$/,
+    /^vitest\.config\.[^/]+$/,
+    /^vite\.config\.[^/]+$/,
+    /^\.npmrc$/,
+    /^pnpm-workspace\.yaml$/,
+  ]),
+});
+const isKnownConfigFile = (entry) =>
+  !isStorePath(entry) && PROTECTED_CONFIG_FILES.patterns.some((pattern) => pattern.test(entry.slice(entry.lastIndexOf('/') + 1)));
+
+/** Conservative argument alphabet for acceptance commands: identifier/relative path, `--name[=value]` or one short flag. */
+const ARG_WORD = '[A-Za-z0-9._@/-]+';
+const ARG_FORMS = [/^[A-Za-z0-9._@/][A-Za-z0-9._@/-]*$/, new RegExp(`^--[A-Za-z0-9][A-Za-z0-9._@/-]*(?:=${ARG_WORD})?$`), /^-[A-Za-z]$/];
+const isConservativeArg = (arg) => ARG_FORMS.some((form) => form.test(arg));
 
 const declaredPaths = (contract) => [
   ...contract.scope.read,
@@ -178,74 +203,112 @@ const declaredPaths = (contract) => [
   ...(contract.verifier.protected_paths || []),
 ];
 
-function parseEngineeringTask(value) {
+/**
+ * Admission rules for new schema 2 tasks (never applied when re-reading a contract that was already admitted):
+ * acceptance must be executable, either through protected `command_checks` or through a pinned module verifier
+ * (`node-module-v1`/`python-module-v1`) that runs the candidate against expectations fixed in the contract. The
+ * checked module is the artifact under test, so it stays writable; `web-content-v1` is static text matching and never
+ * satisfies this rule. Coverage is global through `verifier.acceptance_ids`, which the parse
+ * already equates with every `acceptance.id`; a per-criterion link is not part of the contract.
+ */
+function requireExecutableAcceptance(contract, protectedPaths) {
+  const commandChecks = contract.verifier.command_checks || [];
+  const declared = new Map(contract.commands.map((item) => [item.id, item]));
+  for (const { command_id: id } of commandChecks)
+    for (const arg of declared.get(id).args) requireCondition(isConservativeArg(arg), 'ENGINEERING_COMMAND_ARG_INVALID');
+  const present = [...new Set([...contract.scope.read, ...contract.initial_files.map((item) => item.path)])];
+  const modules = ['verifier://project/node-module-v1', 'verifier://project/python-module-v1'].includes(contract.verifier.reference);
+  if (commandChecks.length > 0) {
+    for (const entry of present.filter(isKnownConfigFile))
+      requireCondition(protectedPaths.has(entry), 'ENGINEERING_PROTECTED_CONFIG_MISSING');
+    return;
+  }
+  requireCondition(modules, 'ENGINEERING_ACCEPTANCE_WEAK');
+}
+
+function parseEngineeringTask(value, { admission = false } = {}) {
   const parsed = versionedSchema.safeParse(value);
-  requireCondition(parsed.success);
+  requireCondition(parsed.success, 'ENGINEERING_CONTRACT_SCHEMA_INVALID');
   const contract = parsed.data;
   // The wider v2 ceilings exist only for contracts that carry pnpm store paths; everything else keeps the original limits.
   const storeBacked = contract.schema_version === 2 && declaredPaths(contract).some(isStorePath);
-  requireCondition(Buffer.byteLength(canonicalJson(contract)) <= (storeBacked ? PROJECT_LIMITS.contract_bytes : MAX_BYTES));
-  requireCondition(storeBacked || contract.max_artifact_bytes <= MAX_BYTES);
-  requireCondition(!(contract.workspace?.store_mount && storeBacked));
+  requireCondition(
+    Buffer.byteLength(canonicalJson(contract)) <= (storeBacked ? PROJECT_LIMITS.contract_bytes : MAX_BYTES),
+    'ENGINEERING_CONTRACT_TOO_LARGE',
+  );
+  requireCondition(storeBacked || contract.max_artifact_bytes <= MAX_BYTES, 'ENGINEERING_CONTRACT_TOO_LARGE');
+  requireCondition(!(contract.workspace?.store_mount && storeBacked), 'ENGINEERING_STORE_MOUNT_CONFLICT');
   const sourceIds = unique(contract.sources.map((item) => item.id));
   const requirementIds = unique(contract.requirements.map((item) => item.id));
   const acceptanceIds = unique(contract.acceptance.map((item) => item.id));
-  const readPaths = unique(contract.scope.read);
-  const writePaths = unique(contract.scope.write);
-  unique(contract.initial_files.map((item) => item.path));
+  const readPaths = unique(contract.scope.read, 'ENGINEERING_SCOPE_INVALID');
+  const writePaths = unique(contract.scope.write, 'ENGINEERING_SCOPE_INVALID');
+  unique(
+    contract.initial_files.map((item) => item.path),
+    'ENGINEERING_INITIAL_FILES_INVALID',
+  );
   unique(contract.commands.map((item) => item.id));
   const allPaths = [...new Set([...readPaths, ...writePaths])];
   requireCondition(
     storeBacked
       ? allPaths.length <= PROJECT_LIMITS.total_paths && ordinaryCount(allPaths) <= PROJECT_LIMITS.ordinary_paths
       : allPaths.length <= 64,
+    'ENGINEERING_SCOPE_INVALID',
   );
-  requireCondition(!allPaths.some((entry) => allPaths.some((other) => other.startsWith(`${entry}/`))));
-  for (const entry of writePaths) requireCondition(readPaths.has(entry));
-  for (const item of contract.sources) requireCondition(sha(item.content) === item.sha256);
+  requireCondition(!allPaths.some((entry) => allPaths.some((other) => other.startsWith(`${entry}/`))), 'ENGINEERING_SCOPE_INVALID');
+  for (const entry of writePaths) requireCondition(readPaths.has(entry), 'ENGINEERING_SCOPE_INVALID');
+  for (const item of contract.sources) requireCondition(sha(item.content) === item.sha256, 'ENGINEERING_SOURCE_DIGEST_MISMATCH');
   const usedSources = new Set();
   for (const item of contract.requirements) {
     for (const id of unique(item.source_ids)) {
-      requireCondition(sourceIds.has(id));
+      requireCondition(sourceIds.has(id), 'ENGINEERING_TRACEABILITY_BROKEN');
       usedSources.add(id);
     }
   }
-  requireCondition(usedSources.size === sourceIds.size);
+  requireCondition(usedSources.size === sourceIds.size, 'ENGINEERING_TRACEABILITY_BROKEN');
   const covered = new Set();
   for (const item of contract.acceptance) {
     for (const id of unique(item.requirement_ids)) {
-      requireCondition(requirementIds.has(id));
+      requireCondition(requirementIds.has(id), 'ENGINEERING_TRACEABILITY_BROKEN');
       covered.add(id);
     }
   }
-  requireCondition(covered.size === requirementIds.size);
+  requireCondition(covered.size === requirementIds.size, 'ENGINEERING_TRACEABILITY_BROKEN');
   const verified = unique(contract.verifier.acceptance_ids);
-  requireCondition(verified.size === acceptanceIds.size && [...verified].every((id) => acceptanceIds.has(id)));
+  requireCondition(
+    verified.size === acceptanceIds.size && [...verified].every((id) => acceptanceIds.has(id)),
+    'ENGINEERING_ACCEPTANCE_MISMATCH',
+  );
   let initialBytes = 0;
   for (const item of contract.initial_files) {
-    requireCondition(readPaths.has(item.path) && sha(item.content) === item.sha256);
+    requireCondition(readPaths.has(item.path) && sha(item.content) === item.sha256, 'ENGINEERING_INITIAL_FILES_INVALID');
     initialBytes += Buffer.byteLength(item.content);
   }
-  requireCondition(initialBytes <= contract.max_artifact_bytes);
-  for (const item of contract.commands) requireCondition(readPaths.has(item.entrypoint));
-  requireCondition(Object.values(contract.limits).every(Number.isSafeInteger));
-  requireCondition(contract.limits.max_children === 0 && contract.limits.max_workflow_steps === 0);
+  requireCondition(initialBytes <= contract.max_artifact_bytes, 'ENGINEERING_INITIAL_FILES_INVALID');
+  for (const item of contract.commands) requireCondition(readPaths.has(item.entrypoint), 'ENGINEERING_COMMAND_ENTRYPOINT_UNREADABLE');
+  requireCondition(Object.values(contract.limits).every(Number.isSafeInteger), 'ENGINEERING_LIMITS_INVALID');
+  requireCondition(contract.limits.max_children === 0 && contract.limits.max_workflow_steps === 0, 'ENGINEERING_LIMITS_INVALID');
   if (contract.schema_version === 2) {
-    for (const check of contract.verifier.checks) requireCondition(readPaths.has(check.path));
-    const protectedPaths = new Set(unique(contract.verifier.protected_paths || []));
-    for (const entry of protectedPaths) requireCondition(readPaths.has(entry) && !writePaths.has(entry));
+    for (const check of contract.verifier.checks) requireCondition(readPaths.has(check.path), 'ENGINEERING_CHECK_PATH_UNREADABLE');
+    const protectedPaths = new Set(unique(contract.verifier.protected_paths || [], 'ENGINEERING_PROTECTED_PATH_INVALID'));
+    for (const entry of protectedPaths)
+      requireCondition(readPaths.has(entry) && !writePaths.has(entry), 'ENGINEERING_PROTECTED_PATH_INVALID');
     if (contract.verifier.command_checks) {
       const declared = new Map(contract.commands.map((item) => [item.id, item]));
       for (const id of unique(contract.verifier.command_checks.map((item) => item.command_id))) {
         const entry = declared.get(id);
-        requireCondition(entry);
+        requireCondition(entry, 'ENGINEERING_COMMAND_CHECK_UNKNOWN');
         // The model must not be able to rewrite what judges it: entrypoint is protected, never writable.
-        requireCondition(protectedPaths.has(entry.entrypoint) && !writePaths.has(entry.entrypoint));
+        requireCondition(
+          protectedPaths.has(entry.entrypoint) && !writePaths.has(entry.entrypoint),
+          'ENGINEERING_COMMAND_ENTRYPOINT_UNPROTECTED',
+        );
         for (const arg of entry.args) {
           // Check the whole argument and the value after `=`, resolved against the project root.
           for (const candidate of new Set([arg, arg.slice(arg.indexOf('=') + 1)])) {
             const relative = path.relative(contract.workspace.root, path.resolve(contract.workspace.root, candidate));
-            requireCondition(!relative.startsWith('..') && !path.isAbsolute(relative) && !writePaths.has(relative));
+            requireCondition(!relative.startsWith('..') && !path.isAbsolute(relative), 'ENGINEERING_COMMAND_ARG_OUTSIDE_ROOT');
+            requireCondition(!writePaths.has(relative), 'ENGINEERING_COMMAND_ARG_WRITABLE');
           }
         }
       }
@@ -255,8 +318,10 @@ function parseEngineeringTask(value) {
       requireCondition(
         sha(canonicalJson(contract.scope.read.map((path) => ({ path, sha256: byPath.get(path) || null })))) ===
           contract.workspace.files_sha256,
+        'ENGINEERING_WORKSPACE_DIGEST_MISMATCH',
       );
     }
+    if (admission) requireExecutableAcceptance(contract, protectedPaths);
   }
   return deepFreeze(contract);
 }
@@ -290,4 +355,12 @@ function readEngineeringTask(filename) {
   }
 }
 
-module.exports = { EngineeringTaskContractError, PROJECT_LIMITS, isProjectPath, isStorePath, parseEngineeringTask, readEngineeringTask };
+module.exports = {
+  EngineeringTaskContractError,
+  PROJECT_LIMITS,
+  PROTECTED_CONFIG_FILES,
+  isProjectPath,
+  isStorePath,
+  parseEngineeringTask,
+  readEngineeringTask,
+};

@@ -20,7 +20,7 @@ function stripExecutable(value) {
 }
 
 function rejectionDetail(error) {
-  if (typeof error.reason === 'string' && /^PROJECT_[A-Z0-9_]+$/.test(error.reason))
+  if (typeof error.reason === 'string' && /^(?:PROJECT|ENGINEERING)_[A-Z0-9_]+$/.test(error.reason))
     return {
       code: error.reason,
       message: String(error.message).slice(0, 200),
@@ -70,6 +70,7 @@ async function startControlServer({ control, credential, port = 0 }) {
           const parsed = require('./engineering-control').parseCreationInput(
             kind === 'task' ? 'create' : 'create_workflow',
             body.input?.definition,
+            { admission: true },
           );
           const contracts = kind === 'task' ? [parsed.contract] : parsed.definition.tasks.map((task) => task.contract);
           if (contracts.some((contract) => contract.initial_files.length > 0)) {

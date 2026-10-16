@@ -203,7 +203,21 @@ não regular ou diretório no caminho; `path` é o item de `scope.read`),
 `PROJECT_BASELINE_CHANGED`, `PROJECT_RESULT_NOT_APPROVED` (review/apply de tarefa não
 aprovada), `PROJECT_CANDIDATE_CHANGED`, `PROJECT_APPROVAL_STALE` (baseline vencido ou
 `review_sha256` divergente), `PROJECT_CHANGED_BEFORE_APPLY`, `PROJECT_PATCH_READ_ONLY_PATH`;
-falhas de sistema de arquivos não curadas expõem apenas o errno (`ENOENT`, ...). Quem
+falhas de sistema de arquivos não curadas expõem apenas o errno (`ENOENT`, ...). Toda
+recusa por regra cruzada do contrato de tarefa na criação (`create` e `create_workflow`)
+traz `detail.code` próprio com prefixo `ENGINEERING_` (mensagem curada, sem eco de valores):
+`ENGINEERING_ACCEPTANCE_WEAK` (aceite sem verificador executável), `ENGINEERING_COMMAND_ARG_INVALID`
+(arg fora do alfabeto conservador), `ENGINEERING_PROTECTED_CONFIG_MISSING` (arquivo de configuração
+conhecido fora de `protected_paths`) e, só como rótulo das regras que já existiam,
+`ENGINEERING_CONTRACT_SCHEMA_INVALID`, `ENGINEERING_CONTRACT_TOO_LARGE`, `ENGINEERING_STORE_MOUNT_CONFLICT`,
+`ENGINEERING_DUPLICATE_ID`, `ENGINEERING_SCOPE_INVALID`, `ENGINEERING_INITIAL_FILES_INVALID`,
+`ENGINEERING_SOURCE_DIGEST_MISMATCH`, `ENGINEERING_TRACEABILITY_BROKEN`, `ENGINEERING_ACCEPTANCE_MISMATCH`,
+`ENGINEERING_COMMAND_ENTRYPOINT_UNREADABLE`, `ENGINEERING_LIMITS_INVALID`, `ENGINEERING_CHECK_PATH_UNREADABLE`,
+`ENGINEERING_PROTECTED_PATH_INVALID`, `ENGINEERING_COMMAND_CHECK_UNKNOWN`,
+`ENGINEERING_COMMAND_ENTRYPOINT_UNPROTECTED`, `ENGINEERING_COMMAND_ARG_OUTSIDE_ROOT`,
+`ENGINEERING_COMMAND_ARG_WRITABLE` e `ENGINEERING_WORKSPACE_DIGEST_MISMATCH`; `error.code` segue
+`CONTROL_REQUEST_REJECTED`. As regras de aceite endurecido valem só para novas admissões; contratos já
+admitidos continuam legíveis (`docs/engineering-task-contract.md`). Quem
 tratava `CONTROL_REQUEST_REJECTED` continua funcionando. Negação de escopo nas ferramentas
 de engenharia (caminho fora de `scope.read`/`scope.write`) agora falha com
 `ENGINEERING_SCOPE_DENIED` (antes `EXECUTION_INPUT_INVALID`), mantendo fail-closed; os
