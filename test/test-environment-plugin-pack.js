@@ -36,7 +36,10 @@ function repo({ files = { 'src/a.js': 'a\n', 'src/entry.js': 'e\n' }, manifest =
   return root;
 }
 
-const pack = (root, capability = 'demo') => () => packPlugin({ repoRoot: root, capability });
+const pack =
+  (root, capability = 'demo') =>
+  () =>
+    packPlugin({ repoRoot: root, capability });
 const refuses = (call, code) => assert.throws(call, (error) => error instanceof PluginPackError && error.code === code, code);
 
 test('a pack copies the listed core files, is deterministic and records a digest per entry', () => {
@@ -46,11 +49,20 @@ test('a pack copies the listed core files, is deterministic and records a digest
   const second = packPlugin({ repoRoot: root, capability: 'demo' });
   assert.equal(first.digest, second.digest);
   assert.equal(first.filename, 'demo-plugin-1.0.0.tgz');
-  assert.deepEqual(first.entries.map((entry) => entry.path), ['package/plugin.json', 'package/src/a.js', 'package/src/entry.js']);
+  assert.deepEqual(
+    first.entries.map((entry) => entry.path),
+    ['package/plugin.json', 'package/src/a.js', 'package/src/entry.js'],
+  );
   assert.equal(fs.readFileSync(path.join(output, `${first.filename}.sha256`), 'utf8'), `${first.digest}  ${first.filename}\n`);
   assert.equal(fs.readFileSync(path.join(output, first.filename)).equals(first.tarball), true);
-  const listing = execFileSync('tar', ['-tzf', path.join(output, first.filename)]).toString().trim().split('\n');
-  assert.deepEqual(listing, first.entries.map((entry) => entry.path));
+  const listing = execFileSync('tar', ['-tzf', path.join(output, first.filename)])
+    .toString()
+    .trim()
+    .split('\n');
+  assert.deepEqual(
+    listing,
+    first.entries.map((entry) => entry.path),
+  );
   assert.equal(execFileSync('tar', ['-xzOf', path.join(output, first.filename), 'package/src/a.js']).toString(), 'a\n');
   assert.ok(first.entries.every((entry) => /^[a-f0-9]{64}$/.test(entry.sha256)));
   assert.ok(first.unpacked_bytes < MAX_BYTES && first.entries.length <= MAX_ENTRIES);
@@ -83,14 +95,16 @@ test('a plugin must load lazily from one of its own files', () => {
 });
 
 test('more than 40 entries is refused, 40 is accepted', () => {
-  const many = (count) => Object.fromEntries([['src/entry.js', 'e'], ...Array.from({ length: count - 1 }, (_, index) => [`src/f${index}.js`, 'x'])]);
+  const many = (count) =>
+    Object.fromEntries([['src/entry.js', 'e'], ...Array.from({ length: count - 1 }, (_, index) => [`src/f${index}.js`, 'x'])]);
   assert.equal(packPlugin({ repoRoot: repo({ files: many(MAX_ENTRIES - 1) }), capability: 'demo' }).entries.length, MAX_ENTRIES);
   refuses(pack(repo({ files: many(MAX_ENTRIES) })), 'ENV_PACK_TOO_MANY_ENTRIES');
 });
 
 test('unsafe paths, binaries, pins, links and missing files never enter a tarball', () => {
   const withFile = (name) => repo({ files: { 'src/entry.js': 'e', [name]: 'x' } });
-  for (const name of ['src/a.tgz', 'src/lib.so', 'src/node_modules/x.js', 'src/toolchain/y.js', 'src/p.whl']) refuses(pack(withFile(name)), 'ENV_PACK_FORBIDDEN_CONTENT');
+  for (const name of ['src/a.tgz', 'src/lib.so', 'src/node_modules/x.js', 'src/toolchain/y.js', 'src/p.whl'])
+    refuses(pack(withFile(name)), 'ENV_PACK_FORBIDDEN_CONTENT');
   for (const unsafe of ['../escape.js', '/abs.js', 'src/../a.js', 'sp ace.js']) {
     refuses(pack(repo({ manifest: { core_files: ['src/entry.js', unsafe] } })), 'ENV_PACK_PATH_UNSAFE');
   }

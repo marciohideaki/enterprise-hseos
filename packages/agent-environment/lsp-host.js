@@ -16,10 +16,7 @@ const QUIET_MS = 500;
 const INLINE_LIMIT_BYTES = 48_000;
 
 const SERVERS = {
-  typescript: (toolchain) => [
-    path.join(toolchain, 'typescript-language-server/package/lib/cli.mjs'),
-    '--stdio',
-  ],
+  typescript: (toolchain) => [path.join(toolchain, 'typescript-language-server/package/lib/cli.mjs'), '--stdio'],
   python: (toolchain) => [path.join(toolchain, 'pyright/package/langserver.index.js'), '--stdio'],
 };
 const LANGUAGE_IDS = { typescript: 'typescript', python: 'python' };
@@ -33,7 +30,11 @@ class LspHostError extends Error {
 }
 
 function startServer({ node, language, toolchain, root, scratch, timeoutMs }) {
-  const child = spawn(node, SERVERS[language](toolchain), { cwd: root, stdio: ['pipe', 'pipe', 'ignore'], env: { PATH: '/usr/bin:/bin', HOME: scratch, TMPDIR: scratch } });
+  const child = spawn(node, SERVERS[language](toolchain), {
+    cwd: root,
+    stdio: ['pipe', 'pipe', 'ignore'],
+    env: { PATH: '/usr/bin:/bin', HOME: scratch, TMPDIR: scratch },
+  });
   const parser = createFrameParser();
   const pending = new Map();
   const diagnostics = new Map();
@@ -125,8 +126,20 @@ function bounded(action, key, items) {
   return { action, [key]: items.slice(0, MAX_ITEMS), total: items.length };
 }
 
-async function runAction({ node = process.execPath, language, action, file, position, new_name: newName, root, toolchain, scratch = os.tmpdir(), timeout_ms: timeoutMs = 25_000 }) {
-  if (!ACTIONS.includes(action) || !Object.hasOwn(SERVERS, language)) throw new LspHostError('unsupported action or language', 'ENV_LSP_INPUT');
+async function runAction({
+  node = process.execPath,
+  language,
+  action,
+  file,
+  position,
+  new_name: newName,
+  root,
+  toolchain,
+  scratch = os.tmpdir(),
+  timeout_ms: timeoutMs = 25_000,
+}) {
+  if (!ACTIONS.includes(action) || !Object.hasOwn(SERVERS, language))
+    throw new LspHostError('unsupported action or language', 'ENV_LSP_INPUT');
   const absolute = path.join(root, file);
   const uri = pathToFileURL(absolute).href;
   const text = fs.readFileSync(absolute, 'utf8');
