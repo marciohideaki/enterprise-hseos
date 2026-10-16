@@ -20,22 +20,22 @@ The [example fixture](../test/fixtures/engineering-task/addition.json) intention
 contains unfinished code and a placeholder verifier digest. Its structural validity
 does not prove implementation or availability of that verifier.
 
-| Field | Contract v1 |
-|---|---|
-| `schema_version`, `task_id` | Version 1 and existing kernel identifier grammar |
-| `execution_profile` | `disposable-engineering-candidate`; explicit local candidate |
-| `baseline_sha` | Exact 40-character lowercase Git SHA; not proof of checkout identity |
-| `sources` | Bounded specification/memory data, each with id, content and verified SHA-256 |
-| `requirements` | Unique ids and descriptions linked to known source ids; all sources used |
-| `acceptance` | Unique criteria linked to requirements; all requirements covered |
-| `initial_files` | Bounded path/content/digest entries inside read scope |
-| `scope.read`, `scope.write` | Exact relative file paths, at most 64 combined; write is a subset of read |
-| `commands` | Unique ids, runtime `node` or `python`, declared entrypoint and exact argument array |
-| `limits` | Existing AgentLimitsSchema, safe integers; this initial slice permits no children/workflows |
-| `max_failed_corrections` | Integer from 0 to 2; bounds correction attempts within the original session and budget (0 disables them) |
-| `max_artifact_bytes`, `max_output_bytes` | Positive bounded budgets; initial contents must fit |
-| `verifier` | External `verifier://` reference/digest and exactly all acceptance ids |
-| `rollback` | `discard-disposable-workspace` |
+| Field                                    | Contract v1                                                                                              |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `schema_version`, `task_id`              | Version 1 and existing kernel identifier grammar                                                         |
+| `execution_profile`                      | `disposable-engineering-candidate`; explicit local candidate                                             |
+| `baseline_sha`                           | Exact 40-character lowercase Git SHA; not proof of checkout identity                                     |
+| `sources`                                | Bounded specification/memory data, each with id, content and verified SHA-256                            |
+| `requirements`                           | Unique ids and descriptions linked to known source ids; all sources used                                 |
+| `acceptance`                             | Unique criteria linked to requirements; all requirements covered                                         |
+| `initial_files`                          | Bounded path/content/digest entries inside read scope                                                    |
+| `scope.read`, `scope.write`              | Exact relative file paths, at most 64 combined; write is a subset of read                                |
+| `commands`                               | Unique ids, runtime `node` or `python`, declared entrypoint and exact argument array                     |
+| `limits`                                 | Existing AgentLimitsSchema, safe integers; this initial slice permits no children/workflows              |
+| `max_failed_corrections`                 | Integer from 0 to 2; bounds correction attempts within the original session and budget (0 disables them) |
+| `max_artifact_bytes`, `max_output_bytes` | Positive bounded budgets; initial contents must fit                                                      |
+| `verifier`                               | External `verifier://` reference/digest and exactly all acceptance ids                                   |
+| `rollback`                               | `discard-disposable-workspace`                                                                           |
 
 ### Acceptance commands (schema 2, optional)
 
@@ -65,6 +65,49 @@ edited by the model and weaken the command. Contracts should put every test and
 verifier-configuration file the command depends on in `protected_paths` (and keep it
 out of `scope.write`). An exit of 0 is the whole criterion; what the command asserts
 is the contract author's responsibility (for example `--passWithNoTests` passes).
+
+Hardened acceptance (admission only). New schema 2 tasks created through the control API (`create`,
+`create_workflow`, and job creation or expansion, which go through the same admission) are refused unless acceptance is executable; contracts already admitted, persisted
+events and `readEngineeringTask` keep the previous rules, so history stays readable. Each refusal carries
+a distinct `detail.code` (`docs/engineering-control-api.md`).
+
+- Executable means one of: (a) `verifier.command_checks` is non-empty (its entrypoints are protected as
+  above) and every known configuration file present in `scope.read` or `initial_files` is in
+  `protected_paths`; or (b) `verifier://project/node-module-v1` or `python-module-v1`, which runs the
+  candidate against the expectations fixed in the contract. `web-content-v1` alone (static text
+  matching) is refused with `ENGINEERING_ACCEPTANCE_WEAK`. The checked module of (b) is the artifact under
+  test and stays writable: the module under test is the editable artifact; the guarantee comes from the
+  fixed expectations and the external verifier. This is the Commander's reading of "executable verifier"
+  (the task text asked for the verification module in `protected_paths`); it has no formal owner
+  approval yet and is recorded here for review.
+- Known configuration files, `protected_config_files_version` 1 (the list only grows, by a new version):
+  `package.json`, `tsconfig*.json`, `vitest.config.*`, `vite.config.*`, `.npmrc`, `pnpm-workspace.yaml`,
+  matched by file name at any depth outside the pnpm store. Missing from `protected_paths`:
+  `ENGINEERING_PROTECTED_CONFIG_MISSING`. Files a command reads implicitly outside this list remain the
+  contract author's responsibility. Names that start with a dot (such as `.npmrc`) cannot be
+  represented in `protected_paths` or `scope` today (known limitation); the list keeps the entry
+  for when they can. Reading is not inferred from the command because it is not statically
+  decidable.
+- Each `command_checks` argument must be an identifier or relative path `[A-Za-z0-9._@/-]`, a long option
+  `--name` with at most one `=` whose value is in the same alphabet, or one single-letter short option.
+  `file:index.js`, `index%2Ejs`, `index.js:1`, `--a=b=index.js`, `~`, `\\`, `-cindex.js` and empty
+  values are refused with `ENGINEERING_COMMAND_ARG_INVALID`.
+- Known limitation: coverage of acceptance criteria is global through `verifier.acceptance_ids`
+  (already required to equal every `acceptance.id`); the contract carries no per-criterion link between a
+  criterion and a check or command. A criterion therefore cannot be shown to be covered only by static
+  checks (a contract mixing one command check with static checks for the other criteria is admitted).
+  Owner waiver, 2026-10-16: global coverage is accepted for this wave; a schema evolution that links each criterion to a check or command becomes its own future task. `ENGINEERING_ACCEPTANCE_UNCOVERED` is intentionally not implemented.
+- Other known limitations of the admission:
+  - It applies to the control API, job creation, retry and expansion. `agent run --task-contract` and the
+    CLI workflow path read contracts without it. Job claim and recovery deliberately re-validate without it,
+    so a job admitted earlier is not stranded.
+  - `protected_config_files_version` is a constant in the code and in this document, not a contract field;
+    admitted contracts do not record the version they were checked against.
+  - The argument alphabet applies only to commands listed in `command_checks`.
+  - Under option (b) the known-configuration protection does not apply (it is enforced only with
+    `command_checks`).
+  - The strength of `verifier.checks[].expected` is not evaluated (for example `null` is admitted).
+  - File-name matching is case-sensitive.
 
 Reconciliation inspection never replays acceptance commands (it never approves; it
 reports `command-checks-not-run`). Results are recorded per review for the same files
@@ -165,7 +208,6 @@ Unresolved questions require explicit answers bound to the current report.
 
 No external model campaign is implied by tests against a simulated upstream. Real
 bindings, spend authorization and the separate 18-run campaign remain necessary.
-
 
 ## Diagnosis and bounded correction
 

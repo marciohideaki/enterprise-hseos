@@ -470,6 +470,7 @@ Nota B1: B1 roda com 3 agentes (aprovado pelo owner no G2). A W5-02b (perfis de 
   - `tools/cli/lib/engineering-project-verifier.js`
   - `tools/cli/lib/engineering-control.js`
   - `tools/cli/lib/engineering-control-http.js`
+  - `tools/cli/lib/job-worker.js` (emenda de 2026-10-16: claim/recuperação de job histórico não reaplicam a admissão endurecida; testado em `test/test-engineering-control.js`; fora do `--include` do verify, pois a cobertura de 90/80 desse arquivo depende de suítes de job fora desta task)
   - `docs/engineering-control-api.md`
   - `docs/engineering-task-contract.md`
   - `test/test-engineering-task-contract.js`

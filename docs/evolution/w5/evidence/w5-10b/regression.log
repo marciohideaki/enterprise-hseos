@@ -1,0 +1,5 @@
+heavy-run: modo normal (load1=1.71 phys=6 avail=23319MiB need=6G mem.psi=0.00 io.psi.full=0.14)
+Delegated test cgroup controllers verified
+ℹ pass 268
+ℹ fail 0
+ℹ skipped 0

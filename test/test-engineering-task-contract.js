@@ -370,3 +370,150 @@ test('the store mount is a pinned literal, excludes content-backed store paths, 
   relocated.workspace.root = `${mounted.root}-other`;
   assert.notEqual(projectVerifierDigest(relocated), projectVerifierDigest(mounted.contract), 'the mounted root is part of the pin');
 });
+
+// Admission (W5-10b): new schema 2 tasks need executable acceptance; contracts already admitted stay readable.
+const { fixture: projectFixture } = require('./helpers/engineering-project');
+const { PROTECTED_CONFIG_FILES } = require('../tools/cli/lib/engineering-task-contract');
+
+function admissionContract(t, mutate, extraFiles = {}) {
+  const f = projectFixture(t, {
+    files: { 'index.js': 'module.exports = (n) => n + 1;\n', 'check.js': 'process.exit(0);\n', ...extraFiles },
+  });
+  Object.assign(f.contract.scope, { write: ['index.js'] });
+  f.contract.commands = [
+    { id: 'check', runtime: 'node', entrypoint: 'check.js', args: ['run', '--reporter=dot', '@scope/pkg/bin.js', '-v'] },
+  ];
+  f.contract.verifier.command_checks = [{ command_id: 'check' }];
+  f.contract.verifier.protected_paths = ['check.js'];
+  mutate?.(f.contract);
+  return f.contract;
+}
+const admissionCode = (contract) => {
+  try {
+    return parseEngineeringTask(contract, { admission: true }) && 'ok';
+  } catch (error) {
+    assert.equal(error.code, 'ENGINEERING_TASK_CONTRACT_INVALID', 'the compatibility category is kept');
+    return error.reason;
+  }
+};
+const reasonOf = (contract) => {
+  try {
+    parseEngineeringTask(contract);
+    return 'ok';
+  } catch (error) {
+    assert.equal(error.code, 'ENGINEERING_TASK_CONTRACT_INVALID');
+    return error.reason;
+  }
+};
+
+test('admission accepts protected command checks and a pinned module verifier, and refuses static-only acceptance (A5b)', (t) => {
+  assert.equal(admissionCode(admissionContract(t)), 'ok');
+  assert.equal(admissionCode(admissionContract(t, (c) => delete c.verifier.command_checks)), 'ok', 'node module verifier is executable');
+  const staticOnly = admissionContract(t, (c) => {
+    delete c.verifier.command_checks;
+    delete c.verifier.protected_paths;
+    c.verifier.reference = 'verifier://project/web-content-v1';
+    c.verifier.checks = [{ path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
+  });
+  assert.equal(admissionCode(staticOnly), 'ENGINEERING_ACCEPTANCE_WEAK');
+  assert.equal(parseEngineeringTask(staticOnly).schema_version, 2, 'the same contract is still readable without admission');
+  const staticWithCommand = structuredClone(staticOnly);
+  Object.assign(staticWithCommand.verifier, { command_checks: [{ command_id: 'check' }], protected_paths: ['check.js'] });
+  assert.equal(admissionCode(staticWithCommand), 'ok', 'an executable command makes the acceptance executable');
+  const schema1 = fixture();
+  assert.equal(admissionCode(schema1), 'ok', 'schema 1 is out of scope for the v2 admission rules');
+});
+
+test('admission refuses every argument form outside the conservative alphabet', (t) => {
+  for (const arg of [
+    'file:index.js',
+    'index%2Ejs',
+    'index.js:1',
+    '--a=b=index.js',
+    '~',
+    String.raw`a\b`,
+    '-cindex.js',
+    '',
+    '--x=',
+    '-',
+    '--',
+    'a b',
+    '$HOME',
+  ])
+    assert.equal(
+      admissionCode(admissionContract(t, (c) => (c.commands[0].args = [arg]))),
+      'ENGINEERING_COMMAND_ARG_INVALID',
+      JSON.stringify(arg),
+    );
+  for (const arg of ['run', '--reporter=dot', '--a-b', '@scope/pkg/bin.js', './x.js', '../outside', '-v', '3'])
+    assert.notEqual(
+      admissionCode(admissionContract(t, (c) => (c.commands[0].args = [arg]))),
+      'ENGINEERING_COMMAND_ARG_INVALID',
+      JSON.stringify(arg),
+    );
+});
+
+test('admission requires known configuration files present in the workspace to be protected, versioned', (t) => {
+  assert.equal(PROTECTED_CONFIG_FILES.version, 1);
+  const files = [
+    'package.json',
+    'tsconfig.json',
+    'tsconfig.build.json',
+    'vitest.config.ts',
+    'vite.config.mjs',
+    'pnpm-workspace.yaml',
+    'packages/a/package.json',
+  ];
+  for (const name of files) {
+    const open = admissionContract(t, undefined, { [name]: '{}' });
+    assert.equal(admissionCode(open), 'ENGINEERING_PROTECTED_CONFIG_MISSING', name);
+    const closed = admissionContract(t, (c) => c.verifier.protected_paths.push(name), { [name]: '{}' });
+    assert.equal(admissionCode(closed), 'ok', name);
+  }
+  const unrelated = admissionContract(t, (c) => c.scope.read.push('notes.json'));
+  assert.equal(admissionCode(unrelated), 'ok', 'only the known list is enforced');
+  const dependency = admissionContract(t, (c) => c.scope.read.push('node_modules/.pnpm/pkg@1.0.0/node_modules/pkg/package.json'));
+  assert.equal(admissionCode(dependency), 'ok', 'files inside the pnpm store are not workspace configuration');
+});
+
+test('every cross rule of the contract refuses with its own reason and keeps the compatibility code', (t) => {
+  const cases = [
+    ['ENGINEERING_CONTRACT_SCHEMA_INVALID', (c) => (c.task_id = '')],
+    ['ENGINEERING_CONTRACT_TOO_LARGE', (c) => (c.max_artifact_bytes = 1_048_577)],
+    ['ENGINEERING_DUPLICATE_ID', (c) => c.sources.push(structuredClone(c.sources[0]))],
+    ['ENGINEERING_SCOPE_INVALID', (c) => c.scope.read.push('index.js')],
+    ['ENGINEERING_SCOPE_INVALID', (c) => c.scope.write.push('other.js')],
+    ['ENGINEERING_SCOPE_INVALID', (c) => c.scope.read.push('index.js/x')],
+    ['ENGINEERING_INITIAL_FILES_INVALID', (c) => (c.initial_files = [{ path: 'zzz.js', content: 'x', sha256: sha('x') }])],
+    ['ENGINEERING_SOURCE_DIGEST_MISMATCH', (c) => (c.sources[0].sha256 = '0'.repeat(64))],
+    ['ENGINEERING_TRACEABILITY_BROKEN', (c) => (c.requirements[0].source_ids = ['ghost'])],
+    ['ENGINEERING_TRACEABILITY_BROKEN', (c) => (c.acceptance[0].requirement_ids = ['ghost'])],
+    ['ENGINEERING_ACCEPTANCE_MISMATCH', (c) => (c.verifier.acceptance_ids = ['ghost'])],
+    ['ENGINEERING_COMMAND_ENTRYPOINT_UNREADABLE', (c) => (c.commands[0].entrypoint = 'missing.js')],
+    ['ENGINEERING_LIMITS_INVALID', (c) => (c.limits.max_children = 1)],
+    ['ENGINEERING_CHECK_PATH_UNREADABLE', (c) => (c.verifier.checks[0].path = 'missing.js')],
+    ['ENGINEERING_PROTECTED_PATH_INVALID', (c) => c.verifier.protected_paths.push('index.js')],
+    ['ENGINEERING_PROTECTED_PATH_INVALID', (c) => c.verifier.protected_paths.push('check.js')],
+    ['ENGINEERING_COMMAND_CHECK_UNKNOWN', (c) => (c.verifier.command_checks = [{ command_id: 'ghost' }])],
+    ['ENGINEERING_DUPLICATE_ID', (c) => c.verifier.command_checks.push({ command_id: 'check' })],
+    ['ENGINEERING_COMMAND_ARG_OUTSIDE_ROOT', (c) => (c.commands[0].args = ['../outside'])],
+    ['ENGINEERING_COMMAND_ARG_WRITABLE', (c) => (c.commands[0].args = ['--file=index.js'])],
+    ['ENGINEERING_WORKSPACE_DIGEST_MISMATCH', (c) => (c.initial_files = [{ path: 'index.js', content: 'x', sha256: sha('x') }])],
+  ];
+  for (const [reason, mutate] of cases) assert.equal(reasonOf(admissionContract(t, mutate)), reason, reason);
+  const unprotectedEntry = admissionContract(t, (c) => (c.verifier.protected_paths = ['lib.js']), { 'lib.js': 'x' });
+  assert.equal(reasonOf(unprotectedEntry), 'ENGINEERING_COMMAND_ENTRYPOINT_UNPROTECTED');
+});
+
+test('a historical contract with weak acceptance is still read', (t) => {
+  const f = projectFixture(t, {
+    files: { 'index.html': '<h1>Project</h1>' },
+    entry: 'index.html',
+    reference: 'verifier://project/web-content-v1',
+    expected: '<h1>Project</h1>',
+    args: [],
+  });
+  assert.equal(admissionCode(f.contract), 'ENGINEERING_ACCEPTANCE_WEAK');
+  const { contract } = readEngineeringTask(f.filename);
+  assert.equal(contract.verifier.reference, 'verifier://project/web-content-v1');
+});
