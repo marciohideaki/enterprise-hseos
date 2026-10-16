@@ -115,6 +115,36 @@ export interface WorkflowStatus {
   questions: string[];
   [key: string]: unknown;
 }
+/** Authority and provenance of one context source, as recorded by `context.assembled` v2. */
+export interface ContextSourceProvenance {
+  source_ref: string;
+  authority: string | null;
+  origin: string | null;
+  digest: string | null;
+  trust: string | null;
+}
+export interface ContextProvenance {
+  schema_version: 1;
+  /** `v1` means no source declared authority; history is read, never rewritten. */
+  context_contract: 'v1' | 'v2';
+  /** Lineage of the last assembled context, present for v1 sessions too. */
+  source_refs: string[];
+  sources: ContextSourceProvenance[];
+}
+/** A signal without a persisted source is null and listed in `unknown_signals`. */
+export interface ExecutorSignals {
+  schema_version: 1;
+  init: null;
+  rate_limit: null;
+  pids_peak: number | null;
+  memory_peak_bytes: number | null;
+  unknown_signals: string[];
+}
+export interface ControlProvenance {
+  resource_id: string;
+  context_provenance: ContextProvenance;
+  executor_signals: ExecutorSignals | null;
+}
 export type ControlQueryView = 'status' | 'evidence' | 'review' | 'session';
 
 /** Curated cause attached to CONTROL_REQUEST_REJECTED; never contains host paths or raw error text. */
@@ -156,6 +186,7 @@ export class ControlClient {
   query(resourceId: string, view?: 'status'): Promise<TaskStatus | WorkflowStatus>;
   query(resourceId: string, view: 'evidence' | 'review' | 'session'): Promise<Record<string, unknown>>;
   query(resourceId: string, view: ControlQueryView): Promise<TaskStatus | WorkflowStatus | Record<string, unknown>>;
+  provenance(resourceId: string): Promise<ControlProvenance>;
   events(
     resourceId: string,
     options?: { after?: number; limit?: number },

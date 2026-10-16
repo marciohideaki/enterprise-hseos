@@ -49,6 +49,14 @@ class ControlClient:
             raise ValueError("Invalid control query")
         return self._request("/v1/tasks/" + resource_id + ("" if view == "status" else "/" + view))
 
+    def provenance(self, resource_id):
+        evidence = self.query(resource_id, "evidence")
+        return {
+            "resource_id": resource_id,
+            "context_provenance": evidence.get("context_provenance") or {"schema_version": 1, "context_contract": "v1", "source_refs": [], "sources": []},
+            "executor_signals": evidence.get("executor_signals"),
+        }
+
     def events(self, resource_id, after=0, limit=100):
         if not re.fullmatch(r"[a-f0-9-]{36}", resource_id) or type(after) is not int or after < 0 or type(limit) is not int or not 1 <= limit <= 1000:
             raise ValueError("Invalid event cursor")

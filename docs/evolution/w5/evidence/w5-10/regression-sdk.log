@@ -1,0 +1,51 @@
+heavy-run: modo normal (load1=1.18 phys=6 avail=23944MiB need=6G mem.psi=0.00 io.psi.full=0.00)
+Delegated test cgroup controllers verified
+✔ a completed campaign output is recoverable and hash-verified through control, HTTP, JS SDK, Python SDK and CLI (278.684527ms)
+✔ a v2 task consumes campaign:// output with registered provenance and no new dispatch or budget (1899.830272ms)
+✔ scripted responses still work and cannot be combined with a campaign source (849.729253ms)
+✔ fenced JSON plans are accepted and malformed outputs are rejected before any task exists (891.19376ms)
+✔ tampered, missing and foreign-binding artifacts fail closed (83.721102ms)
+✔ in-flight, uncertain and reconciled dispatches expose no evidence (78.509522ms)
+✔ oversized, mismatched and credential-bearing outputs invalidate the receipt instead of being stored (309.434706ms)
+✔ receipts recorded before evidence retention remain readable and report the artifact as unavailable (62.882883ms)
+✔ a campaign source cannot be used to create jobs (65.651109ms)
+✔ output is bound to the consuming task and can feed only one resource (874.840127ms)
+✔ withheld outputs keep the paid dispatch valid and reads fail explicitly (241.240319ms)
+✔ credential filter covers common token shapes and known secret values without flagging plain plans (0.549335ms)
+✔ a truncated artifact left by a crash is replaced atomically and recorded (67.812082ms)
+✔ a failed creation can be retried by the same task but not taken over once registered or by another contract (882.926733ms)
+✔ store handles directory targets, partial writes and failed renames explicitly (2.837164ms)
+✔ claude/account output is retained, recoverable and consumable by a campaign:// task (2064.450015ms)
+✔ claude/account output carrying a credential or exceeding the cap is withheld, not stored (626.30905ms)
+✔ SDK query accepts a union-typed view and still rejects unknown views (1652.187152ms)
+✔ SDK campaignEvidence is typed with provenance fields (738.485494ms)
+✔ SDK create input types responses_from and rejects a malformed campaign source (1543.562883ms)
+✔ CLI, JavaScript, Python and HTTP share identity, task results and replayable event cursors (2179.141394ms)
+✔ authenticated control rejects wrong identity, origins, workspace escalation and stale commands (864.104763ms)
+✔ an intent without receipt is not automatically dispatched again (853.544118ms)
+✔ review binds approval to Git baseline and only explicit apply modifies the source project (1913.724207ms)
+✔ concurrent source edits invalidate the prior review and are preserved (1821.864981ms)
+✔ public preparation pins the current workspace and cannot expand the server allowlist (69.263169ms)
+✔ rejected preparation returns a curated actionable cause under the stable category (82.269917ms)
+✔ prepare reports binary files and scope-contract violations with a curated cause (73.180935ms)
+✔ an out-of-scope read by the executor fails with ENGINEERING_SCOPE_DENIED (1954.777294ms)
+✔ review of a non-approved task and a stale apply expose their cause (883.197119ms)
+✔ workflows reuse the same API control and aggregate kernel budget (2050.313476ms)
+✔ HTTP rejects malformed, oversized and unsupported requests without exposing internal errors (873.279277ms)
+✔ SDK rejects remote endpoints, malformed cursors and invalid query views (0.676616ms)
+✔ candidate edits after approval invalidate review without applying unverified bytes (1872.511017ms)
+✔ control rejects model ambiguity, unknown bindings and duplicate resources before effects (908.10293ms)
+✔ Git application never invokes configured filesystem monitors or external diff commands (1960.011738ms)
+✔ unknown resources return 404 and malformed cursors 400 uniformly across task, job, terminal and campaign routes (72.453036ms)
+✔ CLI, JavaScript and Python share job state, command replay and event cursors (487.114453ms)
+✔ HTTP, CLI and Python expose explicit resume with one durable dispatch (1347.154674ms)
+✔ job HTTP keeps authentication, strict commands and cursor boundaries (65.447065ms)
+✔ public reconciliation drains a dead claim and replays with its original fence (590.966669ms)
+ℹ tests 41
+ℹ suites 0
+ℹ pass 41
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 35598.584192

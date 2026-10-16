@@ -1,0 +1,95 @@
+{
+  "task": "W5-10",
+  "base_sha": "cac7476e",
+  "revision": "commit that contains this receipt (task/hseos-w5-10); base_sha is the wave base",
+  "node_for_verify": "v24.15.0 (run-in-cgroup.sh)",
+  "commands": [
+    {
+      "id": "coverage-focused",
+      "command": "node node_modules/c8/bin/c8.js --config .c8-kernel.json --include 'tools/cli/lib/engineering-control-http.js' --include 'tools/cli/lib/engineering-control.js' --include 'packages/control-sdk/index.js' --reports-dir .logs/validation/w5-10-coverage --temp-directory .logs/validation/w5-10-coverage/tmp node --test --test-concurrency=1 test/test-environment-surfaces.js test/test-engineering-control.js",
+      "note": "literal verify_step without the 'heavy-run --mem 4G --' prefix, because run-in-cgroup.sh already runs under heavy-run (nesting would block the flock)",
+      "result": "exit 0; 29 tests, 29 pass, 0 fail, 0 skipped; c8 per-file 90/80 passed for all three files",
+      "log": "docs/evolution/w5/evidence/w5-10/verify-coverage.log",
+      "sha256": "c507716baeccbbda66675f75e601d10a4cac712885a4bdaf2daa15f8cc542195"
+    },
+    {
+      "id": "package-surface",
+      "command": "node --test test/test-package-surface.js",
+      "result": "exit 0; 1 test, 0 fail",
+      "log": "docs/evolution/w5/evidence/w5-10/verify-surface.log",
+      "sha256": "61b6b5e08094783d43999f7487791609073fc5e5fd22fcba16a6c433ea0f895d"
+    },
+    {
+      "id": "regression-sdk-and-control",
+      "command": "node --test --test-concurrency=1 test/test-control-sdk-types.js test/test-job-surfaces.js test/test-campaign-evidence.js test/test-engineering-control.js",
+      "result": "exit 0; 41 tests, 41 pass, 0 fail, 0 skipped",
+      "log": "docs/evolution/w5/evidence/w5-10/regression-sdk.log",
+      "sha256": "ebacacfea94ddb3659c03d0526390c1b192bcf023b9956c859b412dd0164c5a6"
+    },
+    {
+      "id": "lint-format",
+      "command": "eslint --max-warnings=0 and prettier --check on the touched files",
+      "result": "eslint clean; prettier clean (package.json already failed prettier at HEAD and is not reformatted)"
+    },
+    {
+      "id": "node22-focused",
+      "result": "NOT VERIFIED: not attempted; better-sqlite3 in the worktree is built for the Node 24 ABI and is not rebuilt (instruction)."
+    }
+  ],
+  "coverage_per_file": {
+    "packages/control-sdk/index.js": {
+      "lines": 100,
+      "branches": 100,
+      "base_lines": 57.14,
+      "base_branches": 97.14
+    },
+    "tools/cli/lib/engineering-control-http.js": {
+      "lines": 94.92,
+      "branches": 86.13,
+      "base_lines": 90.16,
+      "base_branches": 82.75
+    },
+    "tools/cli/lib/engineering-control.js": {
+      "lines": 94.85,
+      "branches": 85.2,
+      "base_lines": 81.54,
+      "base_branches": 81.29
+    }
+  },
+  "package_inventory": {
+    "entryCount": 1538,
+    "ceiling": 1556,
+    "areas": {
+      ".agents": 203,
+      ".enterprise": 464,
+      ".hseos": 63,
+      "root": 7,
+      "docs": 7,
+      "packages": 137,
+      "scripts": 19,
+      "src": 245,
+      "tools": 393
+    },
+    "budgets": {
+      "packages": 137,
+      ".agents": 205,
+      "tools": 393,
+      ".enterprise": 472,
+      ".hseos": 64
+    },
+    "new_files_in_packages": [],
+    "new_files_in_tools": [],
+    "new_files": ["test/test-environment-surfaces.js (not packed)", "docs/evolution/w5/evidence/w5-10/* (not packed)"],
+    "measurement": "npm pack --dry-run --json via run-in-cgroup (Node 24); raw output in docs/evolution/w5/evidence/w5-10/pack-dry-run.json"
+  },
+  "surfaces": {
+    "added_fields": ["evidence.context_provenance", "evidence.executor_signals", "events[].provenance (context.assembled v2 only)"],
+    "sdk_helpers": ["ControlClient.provenance (JS/TS)", "ControlClient.provenance (Python)"],
+    "executor_signals": "pids_peak and memory_peak_bytes are measured values from verification.evidence.command_checks; init and rate_limit have no persisted source and are declared unknown (null plus unknown_signals)",
+    "http_guard": "stripExecutable is a defensive denylist; the primary guarantee is that the contract refuses inline code before any job is created"
+  },
+  "known_limitations": [
+    "context_provenance.sources[] is empty for real tasks until the engineering runtime emits context.assembled v2; the engineering runtime currently assembles v1 (also with context-source extensions), so only source_refs (lineage) is exposed and no authority is invented. The v2 path is covered at ledger and event level with the real assembler, not end to end over HTTP for a real task.",
+    "init and rate_limit are always declared unknown; no executor receipt source exists today."
+  ]
+}
