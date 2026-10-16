@@ -109,6 +109,15 @@ class ControlClient {
       throw new Error('Invalid control query');
     return this.request(`/v1/tasks/${resourceId}${view === 'status' ? '' : '/' + view}`);
   }
+  // Authority, origin, digest and trust of the context sources plus executor signals (null = declared unknown).
+  async provenance(resourceId) {
+    const { context_provenance, executor_signals } = await this.query(resourceId, 'evidence');
+    return {
+      resource_id: resourceId,
+      context_provenance: context_provenance ?? { schema_version: 1, context_contract: 'v1', source_refs: [], sources: [] },
+      executor_signals: executor_signals ?? null,
+    };
+  }
   events(resourceId, { after = 0, limit = 100 } = {}) {
     if (
       !/^[a-f0-9-]{36}$/.test(resourceId) ||

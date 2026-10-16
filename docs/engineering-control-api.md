@@ -72,6 +72,30 @@ tamanho do ledger compartilhado): página vazia significa
 devolve o `after` recebido). `GET .../evidence` de workflow criado por job traz
 `evidence[]` por etapa (`id`, `contract`, `artifacts`, `verification`), igual ao workflow
 criado diretamente; `status` não traz `evidence`.
+
+### Autoridade, proveniência e sinais do executor (W5-10, campos aditivos)
+
+`GET /v1/tasks/{id}/evidence` (e `hseos control query --view evidence`, `query(id, 'evidence')`,
+`ControlClient.query(id, "evidence")`) ganha, sem alterar nenhum campo v1:
+
+- `context_provenance` (`schema_version:1`): `context_contract` (`v1` ou `v2`), `source_refs`
+  (linhagem do último `context.assembled`) e `sources[]` com `source_ref`, `authority`, `origin`,
+  `digest` e `trust`. Nunca carrega conteúdo. Sessões v1 devolvem `sources: []`; nenhuma
+  autoridade é inventada para fontes que não a declararam.
+  Limitação conhecida: `sources[]` fica vazio para tasks reais até o runtime emitir
+  `context.assembled` v2; só `source_refs` (linhagem) aparece.
+- `executor_signals` (`schema_version:1`): `pids_peak`, `memory_peak_bytes`, `init` e `rate_limit`.
+  Um sinal sem fonte persistida vale `null` e aparece em `unknown_signals`; `init` e `rate_limit`
+  ainda não têm fonte no recibo do executor e são sempre declarados desconhecidos.
+
+`GET .../events` acrescenta `provenance[]` (mesmos campos de `sources[]`) aos eventos
+`context.assembled` v2; as demais linhas, e todo o histórico v1, mantêm o formato exato.
+`provenance(id)` (JS/TS) e `provenance(resource_id)` (Python) devolvem `context_provenance` e
+`executor_signals`; contra um servidor v1 devolvem valores explícitos de "nenhum".
+
+As respostas HTTP removem valores função e campos de código (`executable_code`, `inline_code`,
+`source_code`, `script_source`) em qualquer profundidade: nenhum código executável trafega por HTTP. A lista é uma denylist defensiva; a garantia primária é
+o contrato recusar código inline antes de criar o job.
 Clientes podem reduzir `limit` para limitar o tamanho de cada resposta.
 
 ```json
