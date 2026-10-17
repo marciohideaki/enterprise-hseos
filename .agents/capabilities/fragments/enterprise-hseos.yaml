@@ -181,6 +181,21 @@ nodes:
     name: W5-LV2 liveness receipt
     path: docs/evolution/w5/evidence/w5-lv2/receipt.json
     lifecycle: proposed
+  - id: evidence.hseos.w5-traceability
+    type: Evidence
+    name: W5 requirement to task to test to receipt traceability
+    path: docs/evolution/w5/evidence/final/traceability.md
+    lifecycle: proposed
+  - id: evidence.hseos.w5-verification
+    type: Evidence
+    name: W5 final verification receipt
+    path: docs/evolution/w5/evidence/final/verification-receipt.json
+    lifecycle: proposed
+  - id: testsuite.hseos.w5-negative-matrix
+    type: TestSuite
+    name: W5 negative matrix tests
+    path: test/test-w5-negative-matrix.js
+    lifecycle: proposed
 edges:
   - id: edge.repo.enterprise-hseos.owned-by.platform-architecture
     type: OWNED_BY
@@ -506,4 +521,27 @@ edges:
     repository: repo.enterprise-hseos
     evidence:
       - evidence.hseos.w5-lv2
+  - id: edge.evidence.hseos.w5-traceability.owner
+    type: OWNED_BY
+    from: evidence.hseos.w5-traceability
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.evidence.hseos.w5-verification.owner
+    type: OWNED_BY
+    from: evidence.hseos.w5-verification
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.testsuite.hseos.w5-negative-matrix.owner
+    type: OWNED_BY
+    from: testsuite.hseos.w5-negative-matrix
+    to: owner.platform-architecture
+    repository: repo.enterprise-hseos
+  - id: edge.hseos.w5.environment-capabilities.validated
+    type: VALIDATED_BY
+    from: capability.hseos.environment-capabilities
+    to: testsuite.hseos.w5-negative-matrix
+    repository: repo.enterprise-hseos
+    evidence:
+      - evidence.hseos.w5-traceability
+      - evidence.hseos.w5-verification
 findings: []

@@ -326,7 +326,7 @@
       ],
       "gap": "Contexto multimodal e memória ampliada precisam de consumidores.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
+        "deterministic": "verified_w5_scope_only",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
       }
@@ -349,7 +349,7 @@
       ],
       "gap": "Cenário combinado deve ser demonstrado além dos testes individuais.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
+        "deterministic": "verified_w5_scope_only",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
       }
@@ -473,7 +473,7 @@
       ],
       "gap": "Conformance das ferramentas ampliadas precisa de consumidores reais.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
+        "deterministic": "verified_w5_scope_only",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
       }

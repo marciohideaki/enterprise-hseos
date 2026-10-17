@@ -1,0 +1,252 @@
+{
+  "task": "W5-12",
+  "status": "VERIFIED",
+  "note": "Heavy gates ran on the working tree (base b4160d87 plus the W5-12 documents) before review correction round 1; the correction edits documents only and the gates were not repeated (it changes F14 real_consumers to not_verified, the US$ wording, the stale_minutes note and this receipt). A file cannot carry its own commit SHA: the first commit was c2d77507 (VERIFIED_PENDING_COMMIT at that time); the amended commit SHA is reported by the task and by git, and the pre-commit hook passed on both.",
+  "base_sha": "b4160d874d76e9eafe1eb6b4bc343fea8cb0a2a1",
+  "branch": "task/hseos-w5-12",
+  "gates": [
+    {
+      "id": "node22-npm-test",
+      "node": "node22",
+      "command": "npm test",
+      "started_at": "2026-10-17T04:44:59Z",
+      "ended_at": "2026-10-17T04:57:40Z",
+      "result": "exit 0; 81 runner summaries, 1640 tests, 0 fail, 0 skipped, 0 cancelled",
+      "log": "docs/evolution/w5/evidence/final/node22-npm-test.log.gz",
+      "log_gz_sha256": "efcff0f68ed2cfa7a712cb21b7c20bcd2cdd001f948b7a0aaacaaba018dbee38",
+      "output_sha256": "ddf733f44590cb3457790b980eac63f1bfbe39c038ecf33db520f3b22422928c"
+    },
+    {
+      "id": "node22-kernel-coverage",
+      "node": "node22",
+      "command": "npm run test:kernel-coverage",
+      "started_at": "2026-10-17T04:57:40Z",
+      "ended_at": "2026-10-17T05:09:44Z",
+      "result": "exit 0; 10 runner summaries, 1582 tests, 0 fail, 0 skipped; c8 per-file 90/80 check passed; All files 97.68% lines, 92.88% branches",
+      "log": "docs/evolution/w5/evidence/final/node22-kernel-coverage.log.gz",
+      "log_gz_sha256": "acad62190e2693cb88996ac10cd38f639ca90783ebeb88a8587f7d533bf54e41",
+      "output_sha256": "44cc6a86be9575360f5c4af76402df795a7627543a00c52251d6ef89997cdc0f"
+    },
+    {
+      "id": "node22-w5-mutations",
+      "node": "node22",
+      "command": "npm run test:w5-mutations",
+      "started_at": "2026-10-17T05:09:44Z",
+      "ended_at": "2026-10-17T05:10:30Z",
+      "result": "exit 0; W5 mutation matrix: 28 mutants rejected, 0 failed, 0 skipped",
+      "log": "docs/evolution/w5/evidence/final/node22-w5-mutations.log.gz",
+      "log_gz_sha256": "e485e7373a716adb7bef731d345f7cd17ea93c54b6655454444c845a2399e5a6",
+      "output_sha256": "43970c01fd11c1aec7a936b1a6d4b8cbb5eb0f89b4ef8716ebb7dba9f2954f7c"
+    },
+    {
+      "id": "node24-npm-test",
+      "node": "node24",
+      "command": "npm test",
+      "started_at": "2026-10-17T05:10:30Z",
+      "ended_at": "2026-10-17T05:23:05Z",
+      "result": "exit 0; 81 runner summaries, 1640 tests, 0 fail, 0 skipped, 0 cancelled",
+      "log": "docs/evolution/w5/evidence/final/node24-npm-test.log.gz",
+      "log_gz_sha256": "2de72aa177c0d5766c9cee1963b43c1aceee7c2ba0c07eaaa3a07e5fa22194de",
+      "output_sha256": "e78e89856dd146aed4d5c3d70c35765820fe3cd1542724342a5e33f350ab1c66"
+    },
+    {
+      "id": "node24-kernel-coverage",
+      "node": "node24",
+      "command": "npm run test:kernel-coverage",
+      "started_at": "2026-10-17T05:23:05Z",
+      "ended_at": "2026-10-17T05:35:43Z",
+      "result": "exit 0; 10 runner summaries, 1582 tests, 0 fail, 0 skipped; c8 per-file 90/80 check passed; All files 97.68% lines, 92.88% branches",
+      "log": "docs/evolution/w5/evidence/final/node24-kernel-coverage.log.gz",
+      "log_gz_sha256": "df91d02a7cc853889e501548ae52258d253368788d3c45eea98e2317bbf34535",
+      "output_sha256": "debd77558d45f72e3f80f84a5ad4fc38de53aa2d57302bced39f7494aeb6c996"
+    },
+    {
+      "id": "node24-w5-mutations",
+      "node": "node24",
+      "command": "npm run test:w5-mutations",
+      "started_at": "2026-10-17T05:35:43Z",
+      "ended_at": "2026-10-17T05:37:08Z",
+      "result": "exit 0; W5 mutation matrix: 28 mutants rejected, 0 failed, 0 skipped",
+      "log": "docs/evolution/w5/evidence/final/node24-w5-mutations.log.gz",
+      "log_gz_sha256": "4ba6c21f767fd4d92a400722b704cb5d85c7f9d17b286c6eb8e6974375262a4e",
+      "output_sha256": "d98e94705709b3810427d33d806352ca6ce7c2d0fe4310a47938c65070fb44bf"
+    },
+    {
+      "id": "node24-quality-gates-ci",
+      "node": "node24",
+      "command": "VALIDATION_ENFORCED=true scripts/governance/quality-gates.sh --phase ci",
+      "started_at": "2026-10-17T05:37:08Z",
+      "ended_at": "2026-10-17T05:39:29Z",
+      "result": "exit 0; FAILURES 0, WARNINGS 2 (unresolved placeholders in docs/activity-coordination/README.md and src/hsm/workflows/3-solutioning/create-epics-and-stories/templates/epics-template.md); markdownlint not available, check skipped by the script",
+      "log": "docs/evolution/w5/evidence/final/node24-quality-gates-ci.log.gz",
+      "log_gz_sha256": "88781d060d675d207c1141c85fc6455fabacfb10d631d43c92b10ee0233462a7",
+      "output_sha256": "cd631a72e6526afee74ace3a613c9174682156b986130afe9fbb8f4a2fc9cd0b"
+    },
+    {
+      "id": "node24-capability-graph",
+      "node": "node24",
+      "command": "node scripts/governance/validate-capability-graph.js",
+      "started_at": "2026-10-17T05:39:29Z",
+      "ended_at": "2026-10-17T05:39:33Z",
+      "result": "exit 0; Capability graph valid: 1/6 fragments validated (5 delegated), 39 nodes, 60 edges, 0 findings",
+      "log": "docs/evolution/w5/evidence/final/node24-capability-graph.log.gz",
+      "log_gz_sha256": "3786ce91f6c350b8168fd304342eb3625c8a74d9178327f7df04d509948a3336",
+      "output_sha256": "b8c21bda6e20301a0c395ca9276e1efa09bede2d4f491b93e11eb08654f6237c"
+    }
+  ],
+  "failed_attempts": [],
+  "not_verified": [
+    "CI of the PR (not run locally)",
+    "the W5-11b journey is not part of npm test and was not re-run",
+    "cost of the W5-11b dispatches: not measured (subscription route; cost_microusd is null in the receipt)"
+  ],
+  "known_limitations": [
+    "quality-gates reported 2 warnings (unresolved placeholders in two pre-existing files) and skipped markdownlint (not installed)",
+    "test counts are sums of the node:test runner summaries printed by the npm scripts, not a single total reported by npm",
+    "test-plugin-marketplace.js failed 3 assertions under the cgroup wrapper in earlier waves (cause undetermined, pre-existing); in this run it passed 88/0 on Node 22 and 24 through the same wrapper",
+    "the engineering runtime still assembles context v1: context_provenance.sources[] is empty for real tasks and only source_refs (lineage) is exposed; the v2 path is covered at ledger and event level with the real assembler, not end to end over HTTP",
+    "mutants without detection declared in W5-11a (dap_survivor has no official mutant, the second LSP location guard, the MCP RUN_ID_PATTERN check) and survivors recorded in the W5-07 and W5-08 receipts remain accepted",
+    "plugins stay scaffolded; the memory migration 017 stays in migrations-pending-activation; merge, publication, global install and activation are separate decisions (G6)",
+    "F14, F15 and F20 have real_consumers not_verified: the journey exercised LSP, DAP and browser on a real consumer, but memory has no consumer, DAP debugged a harness reproducer, the browser rendered a harness page and the verifier is a regex",
+    "the W5-11b journey proves integration, installation and governed admission only; it does not run in CI and consumer B is synthetic"
+  ],
+  "gates_environment": {
+    "node22": "v22.23.3 on clone /build/tmp/w5-int/wt22 detached at b4160d87 with the W5-12 files synced by rsync (better-sqlite3 ABI 22 loads); wrapper /build/tmp/w5-int/run-in-cgroup-node22.sh",
+    "node24": "v24.15.0 on the worktree; wrapper /build/tmp/hseos-w5/bin/run-in-cgroup.sh",
+    "heavy_run": "run-in-cgroup.sh already runs under heavy-run; the literal verify prefix was not nested",
+    "order": "sequential, one heavy job at a time, driver script outside the worktree; uptime recorded before each gate in the driver log"
+  },
+  "artifacts_sha256_at_gate_time": {
+    "docs/evolution/w5/evidence/final/traceability.md": "5779b72166103d505142662dbbb8873e0da8674b17537e94589868ee3ae08109",
+    "docs/v4-migration.md": "4a57ffbb10004fcd283bb58f0249c56ba03d9cb426c6ff074963a523a8cabb1f",
+    "docs/evolution/requirements.json": "983a29b899da6025f9800096252022c67886a84cb99591e24a2fc3f1a9fabdef",
+    "docs/evolution/STATUS.md": "c1430d7d289de00afbf7ff6d48790fc250594f8a0ce823d2e01d18aeb98fa3f4",
+    "docs/evolution/w5/STATUS.md": "862deff8f65b078121d14d6cf6e72331c2562938c354e1aa79a247668e0236fb",
+    "docs/evolution/w5/README.md": "833ec15ca8499bdefce04875c9ec5ce8d81ee66be2d8bd4bfacc642c93535e16",
+    ".enterprise/governance/capabilities/fragments/enterprise-hseos.yaml": "93954ba188b545b1702fba39a9759fe3961f55fe8a6224283c6a85bda193769a",
+    ".agents/capabilities/fragments/enterprise-hseos.yaml": "93954ba188b545b1702fba39a9759fe3961f55fe8a6224283c6a85bda193769a"
+  },
+  "failed_attempts_note": "No gate failed in this run; no earlier attempt of the final matrix exists.",
+  "package_inventory": {
+    "method": "npm pack --dry-run --json, npm of Node 24.15.0, through run-in-cgroup.sh",
+    "entry_count": 1538,
+    "ceiling": 1556,
+    "areas": {
+      ".agents": 203,
+      ".enterprise": 464,
+      "packages": 137,
+      "tools": 393,
+      ".hseos": 63,
+      "docs": 7,
+      "src": 245,
+      "scripts": 19,
+      "(root)": 7
+    },
+    "budgets": {
+      "packages": 137,
+      "tools": 393,
+      ".agents": 205,
+      ".enterprise": 472,
+      ".hseos": 64
+    },
+    "within_ceiling": true,
+    "new_files_in_packages": [],
+    "new_files_in_tools": [],
+    "new_entries_vs_base": 0,
+    "test_package_surface_changed": false,
+    "output": "docs/evolution/w5/evidence/final/pack-dry-run.json",
+    "output_sha256": "0e2d2df3a857f964a881541fe639f4315f892289e41ece5656eebc790fb18426",
+    "note": "docs/evolution/** is not in package.json files, so this evidence directory is not packed; docs/v4-migration.md and the two fragments only changed content"
+  },
+  "plugin_packs": {
+    "method": "tools/lib/environment-plugin-pack.js packPlugin, each capability packed twice; entries compared with the core files",
+    "limits": {
+      "max_entries": 40,
+      "max_bytes": 1048576
+    },
+    "plugins": [
+      {
+        "capability": "lsp",
+        "id": "hseos-plugin-lsp",
+        "version": "0.1.0",
+        "digest": "44c6c6a64edc725426623850c4ca0208161985ad7dc48aa2f172a274ccf15f47",
+        "reproducible": true,
+        "entries": 7,
+        "unpacked_bytes": 60940,
+        "tarball_bytes": 19222,
+        "core_file_digest_parity": true,
+        "within_limits": true
+      },
+      {
+        "capability": "dap",
+        "id": "hseos-plugin-dap",
+        "version": "0.1.0",
+        "digest": "ddf95849a0b49045f6cc27d9303bcc904b45435ee7ab0727c437bafcf1faa2fc",
+        "reproducible": true,
+        "entries": 8,
+        "unpacked_bytes": 87146,
+        "tarball_bytes": 24790,
+        "core_file_digest_parity": true,
+        "within_limits": true
+      },
+      {
+        "capability": "browser",
+        "id": "hseos-plugin-browser",
+        "version": "0.1.0",
+        "digest": "283d7496b0f3ae028160995c88deb3549284cf226cc00324191580a1b2b213a8",
+        "reproducible": true,
+        "entries": 9,
+        "unpacked_bytes": 82578,
+        "tarball_bytes": 24509,
+        "core_file_digest_parity": true,
+        "within_limits": true
+      },
+      {
+        "capability": "computer-use",
+        "id": "hseos-plugin-computer-use",
+        "version": "0.1.0",
+        "digest": "f95fe0ad6506039d6a7a98ca6f65418825526e07a8f26d8daf6c89a8be46c80c",
+        "reproducible": true,
+        "entries": 9,
+        "unpacked_bytes": 94084,
+        "tarball_bytes": 28368,
+        "core_file_digest_parity": true,
+        "within_limits": true
+      },
+      {
+        "capability": "memory",
+        "id": "hseos-plugin-memory",
+        "version": "0.1.0",
+        "digest": "1b67595853c3846bb59ee4b8651592ce06ca25cb537dacbfda0d9ff351d46fa0",
+        "reproducible": true,
+        "entries": 6,
+        "unpacked_bytes": 23903,
+        "tarball_bytes": 7314,
+        "core_file_digest_parity": true,
+        "within_limits": true
+      }
+    ],
+    "digests_equal_to_w5_11b_receipt": true
+  },
+  "individual_results": {
+    "test-plugin-marketplace.js": {
+      "node24": "88 passed, 0 failed (line \"=== Results: 88 passed, 0 failed ===\" in node24-npm-test.log.gz, section test:plugins)",
+      "node22": "88 passed, 0 failed (same line in node22-npm-test.log.gz)",
+      "followed_by": "test-execution-plugin-install.js: 8 tests, 8 pass, 0 fail, 0 skipped (both Node versions)"
+    }
+  },
+  "artifacts_changed_since_gate": [],
+  "gate_time_artifacts_note": "Values are the SHA-256 of the files when the gates ran (before review correction round 1); see artifacts_after_correction_round_1 for the files changed afterwards.",
+  "artifacts_after_correction_round_1": {
+    "gates_run_before_this_correction": true,
+    "nature": "documentation and JSON only; no code, test, script or capability graph node changed; the fragments were not touched",
+    "commit_before_correction": "c2d775072926cc93d13b7a3c66bb3d0bdfde96c8",
+    "files": {
+      "docs/evolution/w5/evidence/final/traceability.md": "e0ba44328f94cafe513d586fff96f9ac7444092ab2fbde110da8a1f96305a025",
+      "docs/v4-migration.md": "6a87d28a1b924af0c9d7b0c1f8d8bf58c25240b523d9212d3ebae8c61a9b53b5",
+      "docs/evolution/requirements.json": "a0ee5d8df80f974171fefb38cab76975f90de5ab1cf42ea32950dc292a965cf3",
+      "docs/evolution/STATUS.md": "a60b5ac732cbc36228090e497a01c920935310b574f253455728be580b7fba8d",
+      "docs/evolution/w5/STATUS.md": "fe3e1a94cb94861781837ce5f027af78b810ee8c66d2a404e6e47b553ee5c939"
+    }
+  }
+}
