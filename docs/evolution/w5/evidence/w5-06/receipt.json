@@ -1,0 +1,157 @@
+{
+  "task": "W5-06",
+  "base_sha": "7c8623eea205ac35b42dab87acb0ea54de7a3954",
+  "revision": "commit that contains this receipt (task/hseos-w5-06); base_sha is the approved W5-05 commit",
+  "node_for_verify": "v24.15.0 (run-in-cgroup.sh)",
+  "python_for_debugpy": "Python 3.14.4 (host /usr/bin/python3, also the interpreter inside the sandbox)",
+  "commands": [
+    {
+      "id": "coverage-focused",
+      "command": "node node_modules/c8/bin/c8.js --config .c8-kernel.json --include packages/agent-environment/dap.js --include packages/agent-environment/dap-host.js --include tools/lib/environment-toolchain-pins.js --reports-dir .logs/validation/w5-06-coverage --temp-directory .logs/validation/w5-06-coverage/tmp node --test --test-concurrency=1 test/test-environment-dap.js test/test-dap-plugin-parity.js",
+      "note": "literal verify without the heavy-run --mem 4G -- prefix (run-in-cgroup.sh already runs under heavy-run; nesting deadlocks the flock)",
+      "result": "exit 0; 36 tests, 36 pass, 0 fail, 0 skipped; c8 per-file 90/80 passed",
+      "log": "docs/evolution/w5/evidence/w5-06/verify-coverage.log",
+      "sha256": "14d86ea6ae45810dcdb892779a4fbac500ff8a456a6787a23633dde897648051"
+    },
+    {
+      "id": "package-surface",
+      "command": "node --test test/test-package-surface.js",
+      "result": "exit 0; 1 test, 0 fail; area budgets sum to exactly 1556 (ceiling 1556)",
+      "log": "docs/evolution/w5/evidence/w5-06/verify-surface.log",
+      "sha256": "e4e656b1b8168c2483cab08b736a88328fb0b71e3ac0c9f5e9d771ca923b61b6"
+    },
+    {
+      "id": "node22-focused",
+      "command": "{ node --version; node --test --test-concurrency=1 test/test-environment-dap.js test/test-dap-plugin-parity.js; } with PATH=node v22.23.3",
+      "result": "exit 0; v22.23.3 (first line of the log); 36 tests, 36 pass, 0 fail, 0 skipped",
+      "log": "docs/evolution/w5/evidence/w5-06/verify-node22.log",
+      "sha256": "c725eddfd29f31e7f71389d9ed8eeb038e1a32e58b1501d410327a23769baf6c"
+    },
+    {
+      "id": "compile-check",
+      "command": "node tools/cli/hseos-cli.js agent-core compile --check",
+      "result": "exit 0; 242 checks passed; no files written; no drift to restore",
+      "log": "docs/evolution/w5/evidence/w5-06/compile-check.log",
+      "sha256": "00d4985cdba214bf93774cfe0b354d348e0244891387eeea2f458fc5203cffb8"
+    },
+    {
+      "id": "plugin-marketplace",
+      "command": "node test/test-plugin-marketplace.js",
+      "result": "exit 0; 88 passed, 0 failed (plugin count 5 -> 6, mandatory consequence of the new registry entry, same as W5-05)",
+      "log": "docs/evolution/w5/evidence/w5-06/marketplace.log",
+      "sha256": "06fffab434e3e485f7b9aa427dc83a6b0bbf678db72727846ddcb08e3da59c5a"
+    },
+    {
+      "id": "pack-dry-run",
+      "command": "npm pack --dry-run --json",
+      "result": "exit 0; 1505 entries (was 1497), unpackedSize 10209941",
+      "log": "docs/evolution/w5/evidence/w5-06/pack-dry-run.json",
+      "sha256": "ba6bede1cd60e5a70f818c10f42bc9f1011024feb88ce99dd4ce65ea5f43f7bc"
+    },
+    {
+      "id": "p0-eperm-evidence",
+      "command": "node probe: child_process.spawn with pipes inside the bwrap sandbox, P0 then P1 (executeIsolatedCommand, host_node)",
+      "result": "P0: status failed, exit 1, stderr \"Error: spawn EPERM\" (errno -1, code EPERM, syscall spawn); P1: succeeded, stdout \"ECHO hi\"; the log holds the full stdout and stderr of both runs; the P0 DAP service call returns BLOCKED ENV_DAP_PROFILE_INSUFFICIENT (test)",
+      "log": "docs/evolution/w5/evidence/w5-06/p0-eperm.log",
+      "sha256": "72e49a4c3745652a03132976732e1cb354388a837f132191945a8418925604af"
+    }
+  ],
+  "coverage_per_file": {
+    "dap.js": {
+      "lines": 99.46,
+      "branches": 98.03
+    },
+    "dap-host.js": {
+      "lines": 99.08,
+      "branches": 92.21
+    },
+    "environment-toolchain-pins.js": {
+      "lines": 98.75,
+      "branches": 93.7
+    }
+  },
+  "adapters": {
+    "debugpy": {
+      "version": "1.8.22",
+      "license": "MIT",
+      "license_checked_in": "debugpy-1.8.22.dist-info/licenses/LICENSE (inside the wheel, read from the hashed bytes)",
+      "artifact_sha256": "a9e9d3550e15ca479c59333e90845029190531f0cacfedab3b815a57bd913947"
+    },
+    "js-debug": {
+      "version": "1.140.0",
+      "license": "MIT",
+      "license_checked_in": "js-debug/LICENSE (inside the tarball, read from the hashed bytes)",
+      "artifact_sha256": "27dab92937ec1ab35821ae955aac867544fe06a1b6307229049f2d789af10968"
+    }
+  },
+  "pids_max_calibration": {
+    "configured": 128,
+    "executor_range": "32-256",
+    "measured_pids_peak": {
+      "python": "23-24",
+      "node": "36-38"
+    },
+    "measured_memory_peak_bytes": {
+      "python": "about 90 MB",
+      "node": "about 105 MB"
+    },
+    "basis": "log lines 'measured <runtime>: pids_peak=...' in verify-coverage.log; 128 is about 3.4x the Node peak"
+  },
+  "timeout_drain_proof": "per runtime (python, node): ENV_DAP_TIMEOUT, descendants_terminated true, pids_peak >= 3 (a detached grandchild existed), /proc scan for the unique marker finds nothing, no hseos-executor-<pid>-* group left under the delegated cgroup parent; plus the executor-level timed_out case",
+  "package_inventory": {
+    "entryCount": 1505,
+    "ceiling": 1556,
+    "areas": {
+      ".agents": 194,
+      ".enterprise": 455,
+      ".hseos": 63,
+      "root": 7,
+      "docs": 7,
+      "packages": 126,
+      "scripts": 19,
+      "src": 245,
+      "tools": 389
+    },
+    "budgets": {
+      ".enterprise": 472,
+      "tools": 393,
+      "src": 250,
+      ".agents": 205,
+      "packages": 137,
+      ".hseos": 64,
+      "scripts": 21,
+      "docs": 7,
+      "root": 7
+    },
+    "budget_sum": 1556
+  },
+  "g3_decision": {
+    "date": "2026-10-13",
+    "owner_decision": ".agents budget 193 -> 205 (194 measured + B3 projection), ceiling 1556 unchanged",
+    "consequence": "with .agents 205 the area budgets summed to 1568 > 1556, so the package-surface assertion failed",
+    "resolution": "Commander applied a reallocation under the owner's two fixed conditions: .enterprise 484 -> 472 (measured 455, so nothing is loosened); budget sum is exactly 1556; to be confirmed by the owner in the wave PR",
+    "measured_before": {
+      ".agents": 194,
+      ".enterprise": 455
+    }
+  },
+  "plugin_dap_pack": {
+    "entries": 8,
+    "unpacked_bytes": 68388,
+    "tarball_bytes": 19166,
+    "digest": "b053bb4e22ce758af3f5e876ea96e51d6b9e4afcebed73ade69bf0a7f956eb09",
+    "limits": "at most 40 entries and 1 MB"
+  },
+  "deviations": [
+    "Breakpoints with condition, hitCondition and logMessage are refused (fail-closed): they are expressions evaluated in the debuggee. Deviation from design 5.2 (which listed condition?), approved by the Commander.",
+    "Frames outside /workspace are reported with path null and external true; only breakpoints, program and cwd outside the workspace are refused (ENV_DAP_OUT_OF_SCOPE).",
+    "Contract amendments by the Commander (2026-10-13): packages/agent-environment/index.js, test/test-plugin-marketplace.js, test/test-package-surface.js (.agents 205, .enterprise 472).",
+    "index.js loads dap.js lazily (getters) so the LSP pack, which does not carry dap.js, still loads its entry.",
+    "Own CRC-32 in environment-toolchain-pins.js: zlib.crc32 needs Node 22.2 and the supported range starts at 22.0 (lint rule n/no-unsupported-features); found by the pre-commit gate in round 1, together with lint style fixes.",
+    "Review round 1: startDebugging is NOT refused (js-debug cannot debug Node without its child session); instead the requested configuration is accepted only when it is exactly the node child (type pwa-node, request launch or attach, name, opaque hex __pendingTargetId); any program, runtime or argument field is refused.",
+    "Review round 1: a symlinked workspace root cannot be tested through createIsolationPolicy (it refuses such a root), so that case drives createDapService with a bare policy object.",
+    "Review round 1: names that differ only by case are refused in zips regardless of the filesystem (a toolchain must unpack identically everywhere); names not in normal form (./ or empty segments) are refused too."
+  ],
+  "round": 1,
+  "round_note": "review round 1 of 3 (REVIEW-W5-06): listZip duplicate and file/directory clash refusal, scope matrix with cwd plus symlink-root case, normalize re-validation, startDebugging configuration allow-list, node --version at the top of the Node 22 log. Only the coverage and Node 22 logs were regenerated; surface, compile-check, marketplace and pack logs are from the first run because the inventory and registry did not change."
+}

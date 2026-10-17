@@ -1,0 +1,49 @@
+heavy-run: modo normal (load1=0.70 phys=6 avail=23930MiB need=6G mem.psi=0.00 io.psi.full=0.00)
+Delegated test cgroup controllers verified
+✔ CLI, JavaScript, Python and HTTP share identity, task results and replayable event cursors (2236.759444ms)
+✔ authenticated control rejects wrong identity, origins, workspace escalation and stale commands (853.843487ms)
+✔ an intent without receipt is not automatically dispatched again (860.434109ms)
+✔ review binds approval to Git baseline and only explicit apply modifies the source project (1889.956309ms)
+✔ concurrent source edits invalidate the prior review and are preserved (1975.663417ms)
+✔ public preparation pins the current workspace and cannot expand the server allowlist (75.701627ms)
+✔ rejected preparation returns a curated actionable cause under the stable category (85.99064ms)
+✔ prepare reports binary files and scope-contract violations with a curated cause (76.033363ms)
+✔ an out-of-scope read by the executor fails with ENGINEERING_SCOPE_DENIED (2000.65109ms)
+✔ review of a non-approved task and a stale apply expose their cause (860.091076ms)
+✔ workflows reuse the same API control and aggregate kernel budget (2161.908219ms)
+✔ HTTP rejects malformed, oversized and unsupported requests without exposing internal errors (865.216421ms)
+✔ SDK rejects remote endpoints, malformed cursors and invalid query views (0.564044ms)
+✔ candidate edits after approval invalidate review without applying unverified bytes (1846.806611ms)
+✔ control rejects model ambiguity, unknown bindings and duplicate resources before effects (895.859625ms)
+✔ Git application never invokes configured filesystem monitors or external diff commands (1968.746321ms)
+✔ unknown resources return 404 and malformed cursors 400 uniformly across task, job, terminal and campaign routes (80.867652ms)
+✔ evidence exposes context provenance and executor signals additively, equal over HTTP, SDK, CLI and Python (2198.092838ms)
+✔ a measured acceptance command exposes pids_peak and memory_peak_bytes; init and rate_limit stay declared unknown (1975.259284ms)
+✔ executorSignals takes the peak across checks, ignores non-integers and never invents a value (0.29508ms)
+✔ events carry provenance for context v2 and keep the exact v1 shape elsewhere; cursors stay stable (1838.337378ms)
+✔ rowProvenance reads only context.assembled v2 envelopes (8.696268ms)
+✔ HTTP never carries functions or code-bearing fields, at any depth (2.81991ms)
+✔ a job carrying inline files is refused over HTTP before any effect (51.768479ms)
+✔ the SDK exposes every route through the same loopback transport and keeps v1 servers readable (1.773186ms)
+✔ unknown views and workflow review stay rejected after the evidence extension (1846.930401ms)
+✔ a task with a context-source extension is admitted and keeps its v1 lineage readable without inventing authority (1980.105925ms)
+✔ a job exposes the same evidence, session and event surfaces as a task (1361.606481ms)
+✔ stale sequences and resumed intents are refused with stable codes (906.885488ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31965.617888
+------------------------------|---------|----------|---------|---------|----------------------------
+File                          | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s          
+------------------------------|---------|----------|---------|---------|----------------------------
+All files                     |   95.68 |     87.7 |     100 |   95.68 |                            
+ packages/control-sdk         |     100 |      100 |     100 |     100 |                            
+  index.js                    |     100 |      100 |     100 |     100 |                            
+ tools/cli/lib                |   94.87 |    85.55 |     100 |   94.87 |                            
+  engineering-control-http.js |   94.92 |    86.13 |     100 |   94.92 | 76-79,101-102,107-110      
+  engineering-control.js      |   94.85 |     85.2 |     100 |   94.85 | ...372-382,391,412-415,432 
+------------------------------|---------|----------|---------|---------|----------------------------

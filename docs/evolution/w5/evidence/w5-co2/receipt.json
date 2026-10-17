@@ -1,0 +1,113 @@
+{
+  "task": "W5-CO2",
+  "branch": "task/hseos-w5-co2",
+  "base": "c53a274e",
+  "delivered": [
+    ".enterprise/governance/hooks/handlers/activity-coordination.sh (single handler for SessionStart/UserPromptSubmit/Stop/SessionEnd; compiled to .agents)",
+    "session-track.sh declares the tool via HSEOS_AGENT_TOOL (default claude-code)",
+    "4 registry entries, compiled into .claude/hooks.json and .codex/hseos-hooks.json (additions only)",
+    "docs/activity-coordination/{README.md,codex-hooks.template.json}",
+    "AGENTS.md section 10a and inter-agent-comms skill section 5a",
+    "tools/cli/lib/activity-adapters/{publish-guard,guard-publish-command,axon-adapter}.js",
+    "test/test-activity-adapters.js (18 tests), added to test:kernel and .c8-kernel.json",
+    "Codex template includes SessionEnd; spike copied to docs/evolution/w5/evidence/w5-co0/spike.md"
+  ],
+  "coverage_per_file_min": {
+    "lines": 97.82,
+    "functions": 100,
+    "branches": 86.04,
+    "statements": 97.82,
+    "threshold": "90/80",
+    "files": "publish-guard.js, guard-publish-command.js, axon-adapter.js (shell handlers are exercised by tests but not measured by c8)"
+  },
+  "package": {
+    "entryCount": 1466,
+    "tools": "379/393",
+    "agents": "187/193",
+    "hseos": "61/62",
+    "scripts": "19/21",
+    "agents_new_files": 1,
+    "hseos_new_files": 0,
+    "measured_with": "npm pack --dry-run --json after round 1"
+  },
+  "checks": [
+    "agent-core verify 98/98",
+    "check:cli ok",
+    "test:package-surface pass",
+    "test:compiler-hooks 57/57",
+    "test:hooks pass",
+    "eslint and prettier clean on new files"
+  ],
+  "acceptance": {
+    "two_sessions_claude_codex_receive_overlap_and_reservation_warning": "PASS against a stub with the real CO1 shapes: the second session gets the overlap at its prompt; the reservation attempt is delivered to the HOLDER (CO1 notifies the holder, the requester sees claim_held in the reserve result)",
+    "no_contract_handlers_exit_0": "PASS",
+    "adapter_error_degrades_with_warning": "PASS",
+    "guard_publish_refuses_reserved_6_when_enforce_on": "PASS (injected store and registry fakes)"
+  },
+  "not_verified": [
+    "axon handoff_create call goes through callAxon with the schema seen via ToolSearch; not exercised against a live axon.",
+    "npm view path tested only with a fake npm; no network.",
+    "Codex: payload and additionalContext verified by CO0 under codex exec only; SubagentStart/Stop, PreCompact, Interrupt, interactive session and the bypassPermissions permission_mode under exec -s read-only are NOT VERIFIED. Hook trust (trusted_hash) is documented, not automated.",
+    "foreign_reservations shape of CO1 (stub assumption).",
+    "Command form `HSEOS_AGENT_TOOL=codex bash <handler>` in the real Codex (the spike used a direct script)."
+  ],
+  "out_of_scope_untouched": ["~/.codex", "~/.claude", "CI of consumer repositories"],
+  "co1_alignment": {
+    "co1_commit": "b163cf07",
+    "method": "read tools/cli/commands/activity.js and tools/lib/activity-coordination/service.js; ran the handler and the guard against that CLI in a throwaway repo and store (manual run, not part of the suite because the code is not on this branch)",
+    "adjusted": [
+      "register takes --worktree (no --cwd option exists)",
+      "list has no --kind; version claims come from `claims` ([{key,owner,released}])",
+      "check shape is {overlaps:[{with,tool,file,severity}],overdue_claims,inbox:[{reason,reason_code,event}]}; handler renders overlaps, inbox and overdue_claims",
+      "heartbeat of an unknown session returns ok:false, so the handler registers it"
+    ],
+    "observed": "codex reserve of a version held by claude-code returned claim_held; the holder received the notice at its next prompt. Overlap needs a repo remote (activity.repo) to match across sessions, so it did not fire in a remoteless throwaway repo.",
+    "pending_integration": "CO1 side: (A2) load store.adapters and call adapter.mirror(event) for activity_declared and reservation_conflict; (A6) emit `foreign_reservations` in check; (B1) accept the object returned by runGuardPublish and propagate exitCode to the process. The `guard-publish` action now exists in the CO1 dispatch (tolerant import).",
+    "foreign_reservations": "[{key, owner, tool, fence, overdue, matched}] at b163cf07 (composition commit of CO1); compatible with the handler, which reads tool and key; the extra fields are additive"
+  },
+  "hardening": [
+    "inbox/overlap/overdue fields are stripped of control, line-break and format characters, capped per field and in total (2500), emitted as JSON-quoted strings under a header that declares them quoted data; severity/type restricted to a [a-z_] allowlist; injection tests added",
+    "symlinks: the handler reads no inbox files itself (the CLI does). CO1 readInbox follows symlinks (readFileSync); rejecting them is a CO1 change and is NOT done here"
+  ],
+  "base_drift": "agent-core compile on this base also tries to add `settings: .claude/settings.json` and `mcp: .mcp.json` to the manifest and to switch the axon-bridge transport from http to stdio, and generates .claude/agents, .claude/skills, .claude/settings.json and .mcp.json. Reverted by hand (lines removed, transport restored, generated files deleted). Drift of the base, to be handled at integration.",
+  "tests": {
+    "file": "test/test-activity-adapters.js",
+    "count": 43,
+    "failed": 0,
+    "skipped": 0,
+    "note": "35 after round 1, 43 after round 2; round 3 adds 4 assertions (getent failing, empty group answer, empty passwd answer, blank passwd answer) inside the existing group-writable test, so the count stays 43"
+  },
+  "shared_files_note": "Shared files are not purely additive: the compiled manifest also changed the sha256 of governance-context.cjs (base was stale; the file itself is unchanged), the counts and the hashes of session-track.sh, activity-coordination.sh and the inter-agent-comms skill. registry.yaml, .claude/hooks.json and .codex/hseos-hooks.json are additions only (the SessionEnd entry has timeout 3).",
+  "gates": {
+    "G3": "inventory measured above; approved by the owner according to the Commander (message of round 1, 2026-10-12); recorded here, not decided by the executor"
+  },
+  "logs_sha256": {
+    "/tmp/hseos-w5/co2-commit.log": "14a62c32c60756a0b16afa01d467a7eb799af58bc8cf159983a1dba64b785911",
+    "/tmp/hseos-w5/co2-commit2.log": "45af12a95d94bd4c9a046c6b082b98c02fc4df5ba4596fc04eda2b65381fb434",
+    "/tmp/hseos-w5/co2-commit3.log": "04d925ac9411271b6dba4c914cde8f3b9905263f6548d8b76f4d53dfb698579b",
+    "/tmp/hseos-w5/co2-cov-r1.log (coverage, lint, verify of round 1)": "7f1ba0f7729ac7f5090fd6336827dd4069b6c2a2a79417968f9cccf52f701e0b",
+    "/tmp/hseos-w5/co2-pack-r1.json": "fe3e9af1b69267c4d3c9e3231373dbf530657258cc040092aa1588ad64389b1e",
+    "note": "the log of the round-3 amend is produced by the commit itself and cannot be hashed inside it",
+    "/tmp/hseos-w5/co2-commit4.log (round 1 amend)": "298092cfad98baf65f7932cf8c8887a2f2d55043fac07d13abb606b6070887cf",
+    "/tmp/hseos-w5/co2-cov-r2.log (round 2 coverage, lint, verify)": "58db7a0bb3a0ee293e1fff11ba4b71f65774c5e267ceff21bb1b1ea2f885b3e0",
+    "/tmp/hseos-w5/co2-commit5.log (round 2 amend)": "2f9f50fe6772a0c4a606d550ae392e56c26843c1f828fff77fa84b12f3893b71",
+    "/tmp/hseos-w5/co2-cov-r3.log (round 3 coverage, lint, verify)": "0b75769e4f9b646783785049ab30c3244c56ee00da6d479b9604e5a99f600734"
+  },
+  "round_1": {
+    "A1": "handler never runs a CLI from the session cwd; it resolves from the installation holding the handler, HSEOS_ACTIVITY_CLI (validated), HSEOS_CLI_PATH or the global hseos, owner and mode checked (group-writable accepted only for the user's own group). session-track already resolved from its own directory. Hostile-repo test: nothing runs.",
+    "A2": "axon adapter exposes synchronous fire-and-forget mirror(event); resolveBin and defaults loading are inside try; handles bare and inbox-wrapped events; handoff content sanitized and capped at 8192. The core side (calling mirror for activity_declared and reservation_conflict, loading store.adapters) belongs to CO1.",
+    "A3": "runGuardPublish(spec, options) is the exported interface; README says the command is available after the CO1 integration.",
+    "A4": "uppercase package names are invalid specs (exit 2); full semver validation; build metadata ignored in claims, published versions and the spec; unreadable contract applies the last valid configuration, otherwise inactive with a warning; store failure with enforce on is deny (exit 1, store_unavailable).",
+    "A5": "sanitizer removes Cc, Cf, Zl, Zp, U+180E, U+034F, U+00AD (tags, bidi isolates, ALM, zero-width, WJ, BOM included); \\z anchor; non-object entries skipped with a warning; tests kill the cap, tool validation, C1/DEL, zero-width and 10-line mutants.",
+    "A6": "handler renders `foreign_reservations` of check as 'reserved by another session' lines (fields tool and key, objects only). The exact shape comes from CO1 and is NOT VERIFIED against its code: the stub assumes [{key, tool, owner}].",
+    "A8": "SessionEnd: one call, 2 s cap, no network; registry and Codex template use timeout 3."
+  },
+  "round_2": {
+    "B1": "runGuardPublish always returns {exitCode, decision, reason, ...result} (0 allow/warn/skip, 1 refuse, 2 invalid spec); the module is also runnable as a process and sets process.exitCode. A test spawns node and checks the real process exit code (1 refuse, 2 invalid spec, 0 allow, 1 published, 0 with enforce off).",
+    "sanitizer": "variation selectors U+FE00-FE0F and U+E0100-E01EF, U+3164, U+2800 and U+115F removed in the handler and in the axon adapter, with tests.",
+    "A1_mutants": "tests drive stat/id/getent shims: owner must be the user or root; group-writable only when the group is private (primary gid, no other member in the group database, no other user with that primary gid, getent required); world-writable refused; global hseos on PATH validated as the last fallback; installation under .enterprise/governance resolves its CLI; a hung CLI is cut by the per-call timeout."
+  },
+  "round_3": {
+    "C1": "private_group fails closed: a getent that exits non-zero, is missing, or answers nothing for the group or for passwd means the group is NOT private and a group-writable CLI is refused (a warning is not emitted by the shell because the handler stays silent when no CLI resolves; it exits 0 without running it). Tests drive getent shims: exit 2, empty group answer, empty and blank passwd answer."
+  }
+}

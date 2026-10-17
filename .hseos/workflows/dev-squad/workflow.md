@@ -44,6 +44,9 @@ HSEOS source: this workflow + `.enterprise/governance/agent-skills/dev-squad/`.
 6. Knowledge Consolidation (second-brain, if enabled)
    QUILL-equivalent note: surface gotchas discovered during execution to `_knowledge/projects/<project>/gotchas.md`. SWARM prompts: run `/end-session` in second-brain for full capture.
 
+## No Silent Idle
+Dispatch prompts carry the "No Silent Idle (dispatch contract)" clause of the canonical skill (`.enterprise/governance/agent-skills/dev-squad/SKILL.md`): foreground waits in blocks of at most 540 s, never end a turn saying "waiting", and finish with a final `LIVENESS: {...}` line (`DONE|BLOCKED|FAILED|WAITING_ON`). The Commander treats a missing or invalid line as BLOCKED and answers `liveness-wake-inbox` requests with `SendMessage`. A task under review is pinned to the reviewed SHA: the executor stays frozen until the verdict, and a moved HEAD voids the review (`REVIEW_TARGET_MOVED`). Waiting for a Commander or human decision is declared `WAITING_ON` (with `deadline_at` computed by `date -u` at emission, up to `max_wait_deadline_s`), never `BLOCKED`. Additive: without `.hseos/config/agent-liveness.yaml`, or with `enabled: false`, the flow is unchanged.
+
 ## Handoff Chain
 ```
 Wave N subagents → SWARM (Commander extracts) → handoffs/T{a}-to-T{c}.md → Wave N+1 subagents

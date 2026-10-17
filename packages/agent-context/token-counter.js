@@ -24,6 +24,11 @@ class ConservativeUtf8TokenCounter {
     if (typeof canonicalText !== 'string') throw new TokenCounterError('token counter input must be canonical text');
     return Buffer.byteLength(canonicalText, 'utf8');
   }
+
+  // Upper bound for an image: one token per 256 pixels plus a fixed overhead, never below one token per 750 bytes.
+  count_media({ width, height, bytes }) {
+    return 85 + Math.max(Math.ceil((width * height) / 256), Math.ceil(bytes / 750));
+  }
 }
 
 function validateTokenCounter(counter) {
@@ -31,7 +36,27 @@ function validateTokenCounter(counter) {
     throw new TokenCounterError('token counter must expose count(canonicalText)');
   }
   const counterId = parseContract(IdentifierSchema, counter.counter_id, 'token counter id');
-  return Object.freeze({ count: counter.count.bind(counter), counter_id: counterId });
+  const countMedia = typeof counter.count_media === 'function' ? counter.count_media.bind(counter) : null;
+  return Object.freeze({ count: counter.count.bind(counter), counter_id: counterId, count_media: countMedia });
+}
+
+function deterministicCountMedia(counter, descriptor) {
+  if (typeof counter.count_media !== 'function') {
+    throw new TokenCounterError('token counter cannot account for media', 'AGENT_CONTEXT_COUNTER_MEDIA_UNSUPPORTED');
+  }
+  const input = { media_type: descriptor.media_type, width: descriptor.width, height: descriptor.height, bytes: descriptor.bytes };
+  let first;
+  let second;
+  try {
+    first = counter.count_media(input);
+    second = counter.count_media(input);
+  } catch (error) {
+    throw new TokenCounterError('token counter failed', 'AGENT_CONTEXT_COUNTER_FAILED', { cause: error });
+  }
+  if (!Number.isSafeInteger(first) || first < 0 || second !== first) {
+    throw new TokenCounterError('media token count must be one repeatable non-negative safe integer');
+  }
+  return first;
 }
 
 function deterministicCount(counter, canonicalText) {
@@ -91,4 +116,11 @@ function accountSessionTokens(state, { excluded_turn_id } = {}) {
   });
 }
 
-module.exports = { accountSessionTokens, ConservativeUtf8TokenCounter, TokenCounterError, deterministicCount, validateTokenCounter };
+module.exports = {
+  accountSessionTokens,
+  ConservativeUtf8TokenCounter,
+  TokenCounterError,
+  deterministicCount,
+  deterministicCountMedia,
+  validateTokenCounter,
+};

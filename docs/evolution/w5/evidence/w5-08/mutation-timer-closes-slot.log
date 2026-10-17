@@ -1,0 +1,30 @@
+heavy-run: modo normal (load1=1.12 phys=6 avail=22914MiB need=6G mem.psi=0.00 io.psi.full=0.00)
+Delegated test cgroup controllers verified
+✖ no start overlaps the drain of the previous session, and the old timer never closes the new one (414.688498ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 604.675568
+
+✖ failing tests:
+
+test at test/test-environment-computer.js:1196:1
+✖ no start overlaps the drain of the previous session, and the old timer never closes the new one (414.688498ms)
+  AssertionError [ERR_ASSERTION]: the expiry of the old session did not touch the new one
+  
+  false !== true
+  
+      at TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/w5-08-computer-use/test/test-environment-computer.js:1221:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -487,8 +487,6 @@ function validateInWorker({ schema, value, timeoutMs, workerPath, signal }) {
   });
 }
 
-const KNOWN_REQUEST_METHODS = new Set(['initialize', 'server/discover', 'tools/list', 'tools/call']);
-
 function validateRpcRequest(message) {
   if (!message || typeof message !== 'object' || Array.isArray(message) || message.jsonrpc !== '2.0') {
     throw new McpAdapterError('Invalid JSON-RPC request', JSON_RPC.INVALID_REQUEST);
@@ -607,6 +605,7 @@ class Mcp2026Adapter {
     validationWorkerPath = path.join(__dirname, 'json-schema-validation-worker.js'),
     legacyEnabled = true,
     legacyUsage = null,
+    onDenied = null,
     maxLegacyIdentities = 1024,
     allowedOrigins = [],
     clock = { now: () => new Date() },
@@ -659,6 +658,8 @@ class Mcp2026Adapter {
     this.activeValidationWorkers = 0;
     this.legacyEnabled = legacyEnabled;
     this.legacyUsage = legacyUsage;
+    if (onDenied !== null && typeof onDenied !== 'function') throw new McpAdapterError('onDenied must be a function');
+    this.onDenied = onDenied;
     this.maxLegacyIdentities = maxLegacyIdentities;
     this.allowedOrigins = new Set(allowedOrigins);
     this.clock = clock;
@@ -726,6 +727,16 @@ class Mcp2026Adapter {
     }
   }
 
+  // The denial hook is observational: a failing recorder never turns a denial into an allow or masks the RPC error.
+  _reportDenied(denial) {
+    if (typeof this.onDenied !== 'function') return;
+    try {
+      this.onDenied(denial);
+    } catch {
+      // intentionally ignored; the caller still rejects the request
+    }
+  }
+
   async _executeTool(message, requestContext, era) {
     const startedAt = new Date(this.clock.now()).getTime();
     if (!Number.isFinite(startedAt)) throw new McpAdapterError('Execution deadline clock is invalid');
@@ -765,7 +776,10 @@ class Mcp2026Adapter {
   async _executeToolWithinDeadline(message, requestContext, era) {
     const params = message.params || {};
     const tool = this.toolByName.get(params.name);
-    if (!tool) throw new McpAdapterError(`Unknown tool: ${params.name}`, JSON_RPC.INVALID_PARAMS);
+    if (!tool) {
+      this._reportDenied({ tool: params.name, code: 'MCP_TOOL_UNKNOWN', rpc_code: JSON_RPC.INVALID_PARAMS });
+      throw new McpAdapterError(`Unknown tool: ${params.name}`, JSON_RPC.INVALID_PARAMS);
+    }
     if (params.arguments !== undefined && (!params.arguments || typeof params.arguments !== 'object' || Array.isArray(params.arguments))) {
       throw new McpAdapterError('Tool arguments must be an object when provided', JSON_RPC.INVALID_PARAMS);
     }
@@ -1002,9 +1016,9 @@ class Mcp2026Adapter {
         throw new McpAdapterError('JSON-RPC request id must be a non-empty string or integer', JSON_RPC.INVALID_REQUEST);
       }
       if (!Object.hasOwn(message, 'id') && !['notifications/cancelled', 'notifications/initialized'].includes(message.method)) {
-        // JSON-RPC 2.0: a notification of an unknown method is dropped silently; known request methods keep the explicit error.
-        if (!KNOWN_REQUEST_METHODS.has(message.method)) return null;
-        throw new McpAdapterError('JSON-RPC request id is required', JSON_RPC.INVALID_REQUEST);
+        // JSON-RPC 2.0: a notification never gets a response and is never executed, whatever its method.
+        // Aligned with mcp-transport: a known request method sent without an id is discarded, not answered with -32600.
+        return null;
       }
       const context =
         requestContext.transport === 'http'

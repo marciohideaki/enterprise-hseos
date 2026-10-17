@@ -284,7 +284,13 @@ test('the review event and correction prompt name the failed acceptance command'
   t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
   assert.equal(result.task_result, 'failed', JSON.stringify(result));
   const evidence = await inspectEngineeringTask({ state: result.state, action: 'evidence' });
-  assert.deepEqual(evidence.verification.evidence.command_checks, [{ command_id: 'check', status: 'failed', exit_code: 3 }]);
+  const [check] = evidence.verification.evidence.command_checks;
+  assert.deepEqual(
+    { command_id: check.command_id, status: check.status, exit_code: check.exit_code },
+    { command_id: 'check', status: 'failed', exit_code: 3 },
+  );
+  // Measured resource use is evidence, not part of the pinned review event.
+  assert.ok(check.pids_peak >= 1 && check.memory_peak_bytes > 0 && check.limits.processes === 32);
   const state = JSON.stringify(await inspectEngineeringTask({ state: result.state, action: 'evidence' }));
   assert.match(state, /"exit_code":3/);
 });
@@ -316,4 +322,297 @@ test('a real acceptance command timeout rejects while the task budget is still a
   assert.equal(result.task_result, 'failed', JSON.stringify(result));
   const { verification } = await inspectEngineeringTask({ state: result.state, action: 'evidence' });
   assert.equal(verification.evidence.command_checks[0].status, 'timed_out');
+});
+
+const { pnpmProject } = require('./helpers/pnpm-store');
+
+test('a native test runner from a pnpm virtual store gates approval inside the isolated executor', async (t) => {
+  const f = pnpmProject(t, { limits: { pids_max: 64, memory_max_bytes: 536_870_912, nofile: 256 } });
+  const responses = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(responses, '[]');
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(result.task_result, 'approved', JSON.stringify(result));
+  const { verification } = await inspectEngineeringTask({ state: result.state, action: 'evidence' });
+  const [check] = verification.evidence.command_checks;
+  assert.equal(check.command_id, 'native');
+  assert.equal(check.exit_code, 0);
+  // The measured peaks and the effective limits are part of the evidence.
+  assert.ok(Number.isInteger(check.pids_peak) && check.pids_peak >= 2 && check.pids_peak <= 64, `pids_peak ${check.pids_peak}`);
+  assert.ok(check.memory_peak_bytes > 0 && check.memory_peak_bytes <= 536_870_912, `memory ${check.memory_peak_bytes}`);
+  assert.equal(check.limits.processes, 64);
+  assert.equal(check.limits.memory_bytes, 536_870_912);
+  assert.equal(check.limits.nofile, 256);
+  // The sandbox received the store files at their declared paths, resolved through symlinks.
+  const workspace = path.join(result.state, 'workspace');
+  assert.ok(fs.existsSync(path.join(workspace, 'node_modules/.pnpm/mini-test@1.0.0/node_modules/mini-assert/index.js')));
+  assert.equal(fs.readFileSync(path.join(f.root, 'src/sum.js'), 'utf8'), 'module.exports = (a, b) => a + b;\n');
+});
+
+test('a failing native test run rejects the delivery even when the module probe passes', async (t) => {
+  // The probe sums 2 + 3 with the right result for 5 only; the native suite also checks zero.
+  const f = pnpmProject(t, { sum: 'module.exports = (a, b) => (a === 0 && b === 0 ? 1 : a + b);\n' });
+  const responses = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(responses, '[]');
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(result.task_result, 'failed', JSON.stringify(result));
+  const { verification } = await inspectEngineeringTask({ state: result.state, action: 'evidence' });
+  assert.equal(verification.evidence.command_checks[0].exit_code, 1);
+});
+
+test('a read-only pnpm store mount lets a native runner reach its dependencies without copying them into the task', async (t) => {
+  const f = pnpmProject(t, { mounted: true, limits: { pids_max: 64, memory_max_bytes: 536_870_912, nofile: 256 } });
+  const responses = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(responses, '[]');
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(result.task_result, 'approved', JSON.stringify(result));
+  const { verification, contract } = await inspectEngineeringTask({ state: result.state, action: 'evidence' });
+  const [check] = verification.evidence.command_checks;
+  assert.equal(check.exit_code, 0);
+  assert.ok(check.pids_peak >= 2 && check.memory_peak_bytes > 0);
+  assert.equal(contract.workspace.store_mount, 'pnpm-virtual-store');
+  assert.deepEqual(contract.initial_files.map((file) => file.path).sort(), ['scripts/run-native.cjs', 'src/sum.js', 'test/sum.test.js']);
+  const modules = path.join(result.state, 'workspace', 'node_modules');
+  assert.equal(fs.readlinkSync(path.join(modules, '.pnpm')), '/opt/hseos/pnpm-store');
+  assert.equal(fs.readlinkSync(path.join(modules, 'mini-test')), '.pnpm/mini-test@1.0.0/node_modules/mini-test');
+});
+
+test('a failing native suite behind the store mount rejects the delivery', async (t) => {
+  const f = pnpmProject(t, { mounted: true, sum: 'module.exports = (a, b) => (a === 0 && b === 0 ? 1 : a + b);\n' });
+  const responses = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(responses, '[]');
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(result.task_result, 'failed', JSON.stringify(result));
+});
+
+test('a store mount over an unsafe store blocks the task before any model turn', async (t) => {
+  const f = pnpmProject(t, { mounted: true });
+  fs.symlinkSync('/etc', path.join(f.root, 'node_modules/.pnpm/mini-test@1.0.0/node_modules/leak'));
+  const responses = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(responses, '[]');
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(result.task_result, 'blocked', JSON.stringify(result));
+});
+
+function paddedStoreProject(t, { count = 20, size = 60_000 } = {}) {
+  const f = pnpmProject(t);
+  for (let index = 0; index < count; index += 1) {
+    const relative = `node_modules/.pnpm/pad@1.0.0/node_modules/pad/f${index}.js`;
+    fs.mkdirSync(path.dirname(path.join(f.root, relative)), { recursive: true });
+    fs.writeFileSync(path.join(f.root, relative), `${'x'.repeat(size - 1)}\n`);
+    f.contract.scope.read.push(relative);
+  }
+  f.git('add', '.');
+  f.git('commit', '-m', 'padding');
+  f.contract.baseline_sha = f.git('rev-parse', 'HEAD');
+  f.contract.max_artifact_bytes = 2_097_152;
+  f.seal();
+  f.save();
+  return f;
+}
+
+test('more than 1 MiB of project files is accepted when the contract carries store paths, and refused without them', async (t) => {
+  const withStore = paddedStoreProject(t);
+  const loaded = readEngineeringTask(withStore.filename);
+  assert.ok(loaded.contract.initial_files.reduce((sum, file) => sum + Buffer.byteLength(file.content), 0) > 1_048_576);
+  const responses = path.join(withStore.directory, 'responses.json');
+  fs.writeFileSync(responses, '[]');
+  const result = await runEngineeringTask({ taskContract: withStore.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(result.task_result, 'approved', JSON.stringify(result));
+
+  // The same bytes as ordinary files, with no store path anywhere in the contract, keep the original 1 MiB ceilings.
+  const plain = fixture(t);
+  const padding = Array.from({ length: 20 }, (_, index) => `pad${index}.js`);
+  for (const name of padding) fs.writeFileSync(path.join(plain.root, name), `${'x'.repeat(59_999)}\n`);
+  execFileSync('git', ['-C', plain.root, 'add', '.']);
+  execFileSync('git', ['-C', plain.root, 'commit', '-q', '-m', 'padding']);
+  plain.contract.baseline_sha = execFileSync('git', ['-C', plain.root, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  plain.contract.scope.read.push(...padding);
+  plain.contract.max_artifact_bytes = 2_097_152;
+  plain.contract.workspace.files_sha256 = projectWorkspaceSnapshot(plain.contract).sha256;
+  plain.contract.verifier.sha256 = projectVerifierDigest(plain.contract);
+  plain.save();
+  assert.throws(() => readEngineeringTask(plain.filename), { code: 'ENGINEERING_TASK_CONTRACT_INVALID' });
+  plain.contract.max_artifact_bytes = 1_048_576;
+  plain.contract.verifier.sha256 = projectVerifierDigest(plain.contract);
+  plain.save();
+  assert.throws(
+    () => readEngineeringTask(plain.filename),
+    { code: 'ENGINEERING_TASK_CONTRACT_INVALID' },
+    'the 1 MiB budget refuses the same bytes at snapshot time',
+  );
+});
+
+test('a command the model invokes sees the same read-only store mount as the protected verifier', async (t) => {
+  const f = pnpmProject(t, { mounted: true });
+  const responses = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(responses, JSON.stringify([{ name: 'engineering.command', input: { id: 'native' } }]));
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(result.task_result, 'approved', JSON.stringify(result));
+  const handle = require('../tools/mcp-project-state/lib/execution-ledger-schema').openExecutionLedgerFileFixture(result.state);
+  try {
+    const { RelationalSessionEventStore } = require('../packages/agent-session-store');
+    const { ExecutionEventLedger } = require('../tools/mcp-project-state/lib/execution-event-ledger');
+    const session = new RelationalSessionEventStore({ ledger: new ExecutionEventLedger(handle.db) }).replay(result.session_id);
+    const invocation = Object.values(session.tool_invocations).find((entry) => entry.name === 'engineering.command');
+    assert.equal(invocation.outcome.status, 'succeeded', JSON.stringify(invocation.outcome));
+    assert.match(JSON.stringify(invocation.outcome), /ok adds two numbers/, 'the runner ran against the mounted dependencies');
+  } finally {
+    handle.close();
+  }
+});
+
+test('a store changed after assembly stops a model-invoked command before it runs', async (t) => {
+  const f = pnpmProject(t, { mounted: true });
+  const secret = path.join(f.directory, 'private-key');
+  fs.writeFileSync(secret, 'TOPSECRET-D\n');
+  const { EngineeringTaskState } = require('../tools/cli/lib/engineering-task-state');
+  const original = EngineeringTaskState.prototype.append;
+  let injected = false;
+  t.mock.method(EngineeringTaskState.prototype, 'append', function (event, version) {
+    const receipt = original.call(this, event, version);
+    if (event.kind === 'execution_started' && !injected) {
+      injected = true;
+      fs.linkSync(secret, path.join(f.root, 'node_modules/.pnpm/mini-test@1.0.0/late.js'));
+    }
+    return receipt;
+  });
+  const responses = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(responses, JSON.stringify([{ name: 'engineering.command', input: { id: 'native' } }]));
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(injected, true);
+  assert.notEqual(result.task_result, 'approved', JSON.stringify(result));
+  const handle = require('../tools/mcp-project-state/lib/execution-ledger-schema').openExecutionLedgerFileFixture(result.state);
+  try {
+    const { RelationalSessionEventStore } = require('../packages/agent-session-store');
+    const { ExecutionEventLedger } = require('../tools/mcp-project-state/lib/execution-event-ledger');
+    const session = new RelationalSessionEventStore({ ledger: new ExecutionEventLedger(handle.db) }).replay(result.session_id);
+    const invocation = Object.values(session.tool_invocations).find((entry) => entry.name === 'engineering.command');
+    assert.notEqual(invocation.outcome?.status, 'succeeded', 'the command never ran against the changed store');
+    assert.doesNotMatch(JSON.stringify(invocation.outcome), /ok adds two numbers/);
+  } finally {
+    handle.close();
+  }
+});
+
+function driftFixture(t, name) {
+  const f = pnpmProject(t, { mounted: true });
+  const secret = path.join(f.directory, 'private-key');
+  fs.writeFileSync(secret, `TOPSECRET-${name}\n`);
+  const intrude = () => fs.linkSync(secret, path.join(f.root, `node_modules/.pnpm/mini-test@1.0.0/${name}.js`));
+  const responses = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(responses, '[]');
+  const reviews = async (result) => {
+    const handle = require('../tools/mcp-project-state/lib/execution-ledger-schema').openExecutionLedgerFileFixture(result.state);
+    try {
+      const { EngineeringTaskState } = require('../tools/cli/lib/engineering-task-state');
+      return new EngineeringTaskState(handle.db, result.task_run_id).read().reviews;
+    } finally {
+      handle.close();
+    }
+  };
+  return { f, intrude, responses, reviews };
+}
+const fromVerifier = () => new Error('trace').stack.includes('verifyEngineeringTask');
+
+test('a store that changes while the verifier probe runs discards the probe result', async (t) => {
+  const { f, intrude, responses, reviews } = driftFixture(t, 'probe');
+  const original = fs.writeFileSync;
+  let launches = 0;
+  t.mock.method(fs, 'writeFileSync', (file, ...rest) => {
+    const result = original(file, ...rest);
+    if (String(file).endsWith('/memory.swap.max') && fromVerifier() && ++launches === 1) intrude();
+    return result;
+  });
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(launches, 1, 'only the probe launched');
+  assert.equal(result.task_result, 'failed', JSON.stringify(result));
+  const [review] = await reviews(result);
+  assert.equal(review.approved, false);
+  assert.equal(review.reason, 'store-drift');
+  assert.equal(review.command_checks, undefined, 'the acceptance command never ran');
+});
+
+test('a store that changes while an acceptance command runs discards that command result', async (t) => {
+  const { f, intrude, responses, reviews } = driftFixture(t, 'during');
+  const original = fs.writeFileSync;
+  let launches = 0;
+  t.mock.method(fs, 'writeFileSync', (file, ...rest) => {
+    const result = original(file, ...rest);
+    if (String(file).endsWith('/memory.swap.max') && fromVerifier() && ++launches === 2) intrude();
+    return result;
+  });
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(launches, 2, 'the probe and the acceptance command launched');
+  assert.equal(result.task_result, 'failed', JSON.stringify(result));
+  const [review] = await reviews(result);
+  assert.equal(review.command_checks[0].status, 'store_drift', 'a passing result is rejected when the store moved while it ran');
+});
+
+test('a store that changes between the probe and the acceptance command stops that command before it launches', async (t) => {
+  const { f, intrude, responses, reviews } = driftFixture(t, 'between');
+  const original = fs.writeFileSync;
+  const clock = Date.now;
+  let launches = 0;
+  let injected = false;
+  t.mock.method(fs, 'writeFileSync', (file, ...rest) => {
+    const result = original(file, ...rest);
+    if (String(file).endsWith('/memory.swap.max') && fromVerifier()) launches += 1;
+    return result;
+  });
+  // The first clock read made by the verifier itself after its probe returned, before the command guard.
+  t.mock.method(Date, 'now', () => {
+    if (launches === 1 && !injected && new Error('trace').stack.split('\n')[3].includes('at verifyEngineeringTask')) {
+      injected = true;
+      intrude();
+    }
+    return clock();
+  });
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(injected, true);
+  assert.equal(launches, 1, 'the acceptance command never launched');
+  const [review] = await reviews(result);
+  assert.equal(review.command_checks[0].status, 'store_drift');
+});
+
+test('a model-invoked command whose store changed while it ran returns no result', async (t) => {
+  const f = pnpmProject(t, { mounted: true });
+  const secret = path.join(f.directory, 'private-key');
+  fs.writeFileSync(secret, 'TOPSECRET-F\n');
+  const original = fs.writeFileSync;
+  let injected = false;
+  t.mock.method(fs, 'writeFileSync', (file, ...rest) => {
+    const result = original(file, ...rest);
+    if (String(file).endsWith('/memory.swap.max') && new Error('trace').stack.includes('engineering-tools') && !injected) {
+      injected = true;
+      fs.linkSync(secret, path.join(f.root, 'node_modules/.pnpm/mini-test@1.0.0/model.js'));
+    }
+    return result;
+  });
+  const responses = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(responses, JSON.stringify([{ name: 'engineering.command', input: { id: 'native' } }]));
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(injected, true);
+  const handle = require('../tools/mcp-project-state/lib/execution-ledger-schema').openExecutionLedgerFileFixture(result.state);
+  try {
+    const { RelationalSessionEventStore } = require('../packages/agent-session-store');
+    const { ExecutionEventLedger } = require('../tools/mcp-project-state/lib/execution-event-ledger');
+    const session = new RelationalSessionEventStore({ ledger: new ExecutionEventLedger(handle.db) }).replay(result.session_id);
+    const invocation = Object.values(session.tool_invocations).find((entry) => entry.name === 'engineering.command');
+    assert.notEqual(invocation.outcome?.status, 'succeeded');
+    assert.doesNotMatch(JSON.stringify(invocation.outcome), /ok adds two numbers/, 'the command output is not handed to the model');
+  } finally {
+    handle.close();
+  }
 });

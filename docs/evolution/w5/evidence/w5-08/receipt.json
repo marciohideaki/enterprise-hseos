@@ -1,0 +1,212 @@
+{
+  "task": "W5-08",
+  "base_sha": "ad005cc14b292f25df07e4aa223a098dda4508f1",
+  "revision": "the commit that contains this receipt (a receipt cannot hold its own commit SHA); bound to content by code_tree_sha",
+  "code_tree_sha": "9cdc12d954a56fb3bc64135cc1982dcdf6894d7d",
+  "node_for_verify": "v24.15.0 (run-in-cgroup.sh)",
+  "node22": "not verified (the better-sqlite3 build of the worktree is ABI 24; no rebuild was done)",
+  "commands": [
+    {
+      "id": "coverage-focused",
+      "command": "node node_modules/c8/bin/c8.js --config .c8-kernel.json --include packages/agent-environment/computer-contract.js --include packages/agent-environment/computer.js --include packages/agent-environment/computer-host.js --include tools/cli/lib/environment-approval.js --reports-dir .logs/validation/w5-08-coverage --temp-directory .logs/validation/w5-08-coverage/tmp node --test --test-concurrency=1 test/test-environment-computer.js test/test-computer-plugin-parity.js",
+      "note": "literal verify without the heavy-run --mem 4G -- prefix (run-in-cgroup.sh already runs under heavy-run; nesting deadlocks the flock)",
+      "result": "exit 0; 57 tests, 57 pass, 0 fail, 0 skipped; c8 per-file 90/80 passed; 7 real tests ran Xvfb, xdotool, xwd and xmessage in the P1 sandbox, none on a mock",
+      "log": "docs/evolution/w5/evidence/w5-08/verify-coverage.log",
+      "sha256": "116e173007ea6b80e0877464ec61df5e228e121e2924b5267a97b3527b0df623"
+    },
+    {
+      "id": "regression-environment",
+      "command": "node --test --test-concurrency=1 test/test-environment-lsp.js test/test-environment-dap.js test/test-environment-browser.js test/test-lsp-plugin-parity.js test/test-dap-plugin-parity.js test/test-browser-plugin-parity.js test/test-browser-plugin-surface.js test/test-memory-plugin-parity.js test/test-environment-plugin-pack.js",
+      "result": "exit 0; 127 tests, 127 pass, 0 fail, 0 skipped",
+      "log": "docs/evolution/w5/evidence/w5-08/regression-environment.log",
+      "sha256": "7ad90f6c9ed146c0c91317ec43bd11a433040ce270aca2d2a75d8bea8dbd30b0"
+    },
+    {
+      "id": "package-surface",
+      "command": "node --test test/test-package-surface.js",
+      "result": "exit 0; 1 test, 0 fail",
+      "log": "docs/evolution/w5/evidence/w5-08/verify-surface.log",
+      "sha256": "f8197252bbd4d1b639e5a4089505348ea86fecde4c2221f823c35bd45d59122c"
+    },
+    {
+      "id": "compile-check",
+      "command": "node tools/cli/hseos-cli.js agent-core compile --check",
+      "result": "exit 0; 242 checks passed; no files written",
+      "log": "docs/evolution/w5/evidence/w5-08/compile-check.log",
+      "sha256": "00d4985cdba214bf93774cfe0b354d348e0244891387eeea2f458fc5203cffb8"
+    },
+    {
+      "id": "plugin-marketplace",
+      "command": "node test/test-plugin-marketplace.js",
+      "result": "exit 0; 88 passed, 0 failed (plugin count 8 -> 9)",
+      "log": "docs/evolution/w5/evidence/w5-08/marketplace.log",
+      "sha256": "9a51c1ab18b5b3b9e743830053af73342e8be894d0dfe523a670ec7dac8162fc"
+    },
+    {
+      "id": "pack-dry-run",
+      "command": "npm pack --dry-run --json",
+      "result": "exit 0; 1538 entries, unpackedSize 10369986",
+      "log": "docs/evolution/w5/evidence/w5-08/pack-dry-run.json",
+      "sha256": "f55fceef784688821d95573033b8e64f6a63989316cb83690f5ecbe625dcf8a8"
+    },
+    {
+      "id": "provisioner-real-run",
+      "command": "node .github/scripts/provision-toolchain-cache.mjs /build/tmp/w508/cache2",
+      "result": "exit 0; all 9 artifacts downloaded and checked against their pinned SHA-256 (both xdotool variants from the Ubuntu archive pool)",
+      "log": "docs/evolution/w5/evidence/w5-08/provision-run.log",
+      "sha256": "989bde7aaa228a1095e94d171b195933acedef6bb2a0a437bcecffbdd7d7527d"
+    },
+    {
+      "id": "runner-condition-noble-query",
+      "command": "HSEOS_TOOLCHAIN_CACHE=/build/tmp/w508/cache2 HSEOS_TEST_XDOTOOL_VERSION='1:3.20160805.1-5build1' node --test --test-concurrency=1 test/test-environment-computer.js test/test-computer-plugin-parity.js",
+      "note": "cache built by the real provisioner; dpkg-query simulated as the noble runner's version (test-only switch in the test file; production code has none). The sandbox runs the host's own binary, so this proves the pin/variant selection path, not a noble binary",
+      "result": "exit 0; 57 tests, 57 pass, 0 fail, 0 skipped",
+      "log": "docs/evolution/w5/evidence/w5-08/runner-condition-cache-provisioned-noble-query.log",
+      "sha256": "5833538b09bc9c72c5ef21e013455638d8c8d614f029f3375be7dc20953a36f7"
+    },
+    {
+      "id": "runner-condition-host-query",
+      "command": "HSEOS_TOOLCHAIN_CACHE=/build/tmp/w508/cache2 node --test --test-concurrency=1 test/test-environment-computer.js test/test-computer-plugin-parity.js",
+      "note": "the same provisioned cache with the real dpkg-query (resolute host variant)",
+      "result": "exit 0; 57 tests, 57 pass, 0 fail, 0 skipped",
+      "log": "docs/evolution/w5/evidence/w5-08/runner-condition-cache-provisioned-host-query.log",
+      "sha256": "8657545fc4e820ea649759876479ac90147b03c0ebc7733744b3f79580437446"
+    }
+  ],
+  "coverage_per_file": {
+    "computer-contract.js": {
+      "lines": 100.0,
+      "branches": 100.0
+    },
+    "computer-host.js": {
+      "lines": 99.21,
+      "branches": 97.9
+    },
+    "computer.js": {
+      "lines": 98.89,
+      "branches": 97.17
+    },
+    "environment-approval.js": {
+      "lines": 100.0,
+      "branches": 98.76
+    }
+  },
+  "pins": {
+    "xdotool": {
+      "kind": "system package (.deb), one variant per distro",
+      "license": "BSD-3-clause",
+      "license_checked_in": "./usr/share/doc/xdotool/copyright (inside each .deb data member, read from the hashed bytes)",
+      "variants": [
+        {
+          "distro": "ubuntu-resolute (development host)",
+          "version": "1:3.20160805.1-5.1build1",
+          "artifact": "apt/xdotool_3.20160805.1-5.1build1_amd64.deb",
+          "artifact_sha256": "fda12b12adf99fa7d93cbc89baf53def35449e9ea04ec0f34dc5a92042a6a68f",
+          "source_url": "https://archive.ubuntu.com/ubuntu/pool/universe/x/xdotool/xdotool_3.20160805.1-5.1build1_amd64.deb",
+          "size_bytes": 42984
+        },
+        {
+          "distro": "ubuntu-noble (CI runner)",
+          "version": "1:3.20160805.1-5build1",
+          "artifact": "apt/xdotool_3.20160805.1-5build1_amd64.deb",
+          "artifact_sha256": "58a202c74bce31ca2d72d4d514942a5ab6191932696adc5d21d909c9216b13cb (equals the noble Packages index, per the Commander)",
+          "source_url": "https://archive.ubuntu.com/ubuntu/pool/universe/x/xdotool/xdotool_3.20160805.1-5build1_amd64.deb",
+          "size_bytes": 42556
+        }
+      ],
+      "selection": "the installed package version (dpkg-query) must equal the version of exactly one variant; that variant's artifact is then verified. No variant equal to the installed version: BLOCKED (ENV_TOOLCHAIN_SYSTEM_VERSION). A cache without the selected variant's entry: BLOCKED (ENV_TOOLCHAIN_PIN_MISSING).",
+      "runtime_binary": "/usr/bin/xdotool of the host; binary_matches_artifact is recorded (informational), the dpkg-query version is the criterion"
+    }
+  },
+  "decisions_and_deviations": [
+    "1. The X socket is abstract (-nolisten unix), not in a private directory: Xorg requires /tmp/.X11-unix to be owned by root, which the sandbox cannot provide. It lives in the sandbox network namespace; the host probes :0, :1 and the operator DISPLAY before starting and aborts with ENV_COMPUTER_DISPLAY_ISOLATION_BROKEN if any answers.",
+    "2. GLX is off (-extension GLX): the software GL path aborts the server inside the sandbox (SIGSEGV through swrast/EGL nvidia).",
+    "3. Profile P1 (local sockets, no broker). The session is a startIsolatedTerminal job with the broker's 64 KiB output cap; screenshots travel on stdout as indexed PNG, 14 KiB ceiling each, 8 per session; one that does not fit is refused, never truncated.",
+    "4. xdotool is a system pin (format deb, system_package): digest and licence are read inside the .deb with an in-process ar parser and tar --zstd; installToolchain refuses system pins and excludes them from the default set.",
+    "5. Files outside output_contract (contract amendment accepted by the Commander): packages/agent-environment/index.js, .agents/plugins/registry.yaml, .agents/plugins/definitions/hseos-plugin-computer-use/*, test/test-plugin-marketplace.js (plugin count 8 -> 9, no assertion removed or loosened).",
+    "6. No test/fixtures/computer/*: the GUI target is the host's /usr/bin/xmessage.",
+    "7. CI: apt-get install gains xdotool xvfb x11-apps x11-utils; provision-toolchain-cache.mjs gains downloadApt (apt-get download pkg=version, then the pinned SHA-256).",
+    "8. The approval gate (tools/cli/lib/environment-approval.js) stays in the core and is not in the plugin pack; the host passes it in."
+  ],
+  "ci": {
+    "not_verified": "Round 3 replaces apt-get download by a plain download of each pinned archive URL (every variant, checked against SHA-256 and size before it is kept, 3 attempts then fail). The provisioner was run for real here and the suites pass on the cache it builds, with the installed version simulated as noble; the CI run on PR 223 is still the proof on an actual noble runner (apt install of xdotool xvfb x11-apps x11-utils stays in ci.yaml for the runtime binary).",
+    "lint": "eslint --max-warnings=0 passes on the provision script"
+  },
+  "package_inventory": {
+    "entryCount": 1538,
+    "ceiling": 1556,
+    "areas": {
+      ".agents": 203,
+      ".enterprise": 464,
+      ".hseos": 63,
+      "root": 7,
+      "docs": 7,
+      "packages": 137,
+      "scripts": 19,
+      "src": 245,
+      "tools": 393
+    },
+    "budgets": {
+      ".enterprise": 472,
+      "tools": 393,
+      "src": 250,
+      ".agents": 205,
+      "packages": 137,
+      ".hseos": 64,
+      "scripts": 21,
+      "docs": 7,
+      "root": 7
+    },
+    "note": "packages 137/137 and tools 393/393: zero slack left in both"
+  },
+  "review_round": 3,
+  "mutations": [
+    {
+      "id": "share-net",
+      "mutation": "add --share-net to sandboxArguments (packages/agent-isolation-attestation/index.js), removing the network-namespace isolation of the abstract X socket",
+      "tests_run": "positive control + operator display tests",
+      "result": "KILLED: both real tests fail with ENV_COMPUTER_DISPLAY_ISOLATION_BROKEN (the probe now reaches the host display); reverted with git checkout",
+      "log": "docs/evolution/w5/evidence/w5-08/mutation-share-net.log",
+      "sha256": "733938b47346e4dd566f19de4a9dc4dadcba802ee21be1a719b3626163dd91be"
+    },
+    {
+      "id": "no-slot-guard",
+      "mutation": "remove the `if (slot) refuse(ENV_COMPUTER_SESSION_ACTIVE)` guard from start()",
+      "result": "KILLED: 6 tests fail (4 controller, 2 real incl. the concurrent real start)",
+      "log": "docs/evolution/w5/evidence/w5-08/mutation-no-slot-guard.log",
+      "sha256": "0bbdfbbefbc9aef1c0d60198710aea7934dbdab760f3462f300b06dd458fbce7"
+    },
+    {
+      "id": "timer-closes-slot",
+      "mutation": "the session deadline timer closes `slot ?? current` instead of the session it was created for",
+      "result": "KILLED by the 'old timer never closes the new one' test",
+      "log": "docs/evolution/w5/evidence/w5-08/mutation-timer-closes-slot.log",
+      "sha256": "5c43910dc048a51a7bef34549b99c7f51deaaa903e86a8e79a354dd05832f943"
+    }
+  ],
+  "review_round_1": {
+    "MAJOR-1": "start() reserves the slot synchronously before any await; close() is idempotent per session object and the slot is released only after the drain; timers and the completion callback act on their own session. New tests: three concurrent fake starts, start while a previous start is launching, start during a pending drain, old timer vs new session, and a real Promise.all of two starts (exactly one Xvfb, no leftover process by /proc).",
+    "MAJOR-2": "The host probe now also does a plain connect to the abstract socket (no X protocol, so no cookie is needed) and refuses if it connects or if xdotool answers. Positive control: the test starts an open Xvfb :58 (abstract socket only) in the host namespace, proves the host can connect and drive it, then proves a session started with that display denied still starts (unreachable from the sandbox). The --share-net mutation kills it.",
+    "MINOR-6": "request() with 256 open approvals returns a refusal (ENV_COMPUTER_APPROVAL_LIMIT) instead of throwing.",
+    "MINOR-3": "verifySystemPin now also compares the sha256 of /usr/bin/xdotool with ./usr/bin/xdotool inside the .deb and returns binary_matches_artifact (true on this host). It is informational: if a distro build differs byte for byte, the dpkg-query version remains the criterion. Xvfb, xwd and xmessage are only checked for X_OK.",
+    "MINOR-5": "the real tests now check /proc for leftover Xvfb :99 and target processes after stop and after expiry.",
+    "MINOR-1": "'renewable only by a new approval' (design 5.4) is NOT implemented: the session keeps only the 300 s ceiling and nothing can renew it (more restrictive). A longer session needs a new start.",
+    "documented_only": [
+      "MINOR-2: start() accepts any /usr/bin target with up to 8 arguments and is not behind the approval gate; only the P1 sandbox bounds it (the criterion gates actions, not start).",
+      "MINOR-4: mutants M04 (screenshot digest in the binding is redundant while seq advances on every screenshot), M24 (controller-side PNG size ceiling; the host-side one is tested) and M22 (DISPLAY inheritance in the host BASE_ENV; the sandbox --clearenv is the real barrier) are not isolated by a test.",
+      "MINOR-8: the 14 KiB screenshot ceiling makes screens with more than 256 colours likely to be refused (ENV_COMPUTER_SCREENSHOT_TOO_LARGE); it refuses, never truncates.",
+      "MINOR-9: the apt candidate on the CI runner must be exactly the pinned xdotool version; not verified on a runner."
+    ]
+  },
+  "review_round_2": {
+    "cause": "CI step 'Provision the pinned toolchain cache' failed: E: Version '1:3.20160805.1-5.1build1' for 'xdotool' was not found (the runner's apt only knows 1:3.20160805.1-5build1).",
+    "change": "PINS.xdotool is now a system pin with two variants (resolute host, noble runner), each with its own version, artifact and SHA-256, all checked inside the .deb. verifySystemPin queries the installed version first, selects the variant that equals it and verifies only that variant (the manifest is scoped to its entry, since both entries share the package name). provisionAptPin (tools/lib/environment-toolchain-pins.js, existing file) asks apt for each pinned version through an injected aptDownload: a version apt does not know is skipped, a known one must produce the pinned SHA-256 (ENV_TOOLCHAIN_DIGEST_MISMATCH, nothing is written), a package that yields no .deb is ENV_TOOLCHAIN_APT_EMPTY, and obtaining no variant at all is ENV_TOOLCHAIN_APT_UNKNOWN_VERSION. provision-toolchain-cache.mjs calls it and writes one manifest entry per obtained variant (no process.exit, no direct await member).",
+    "tests": "two variants verified against the real .debs; unknown installed version blocked and the message names both known versions; a cache holding only the other distro's entry is PIN_MISSING; simulated runner matrix for provisionAptPin; the cache a simulated noble runner builds is accepted for the noble version and refused for the resolute version; the existing divergence matrix now runs against the resolute variant.",
+    "also": "the leftover-process check in the real tests no longer matches the parent shell's command line (it keys on the NUL-separated argv of Xvfb and xmessage)."
+  },
+  "review_round_3": {
+    "cause": "CI run on 80ea783d: the provisioner now passed but on the noble runner it only obtained the noble variant (apt knows only that one), so six 'xdotool system pin' subtests that read the resolute .deb from the cache failed (ENOENT, PIN_MISSING, and ENV_TOOLCHAIN_PIN_MISSING where ENV_COMPUTER_UNAVAILABLE was expected).",
+    "change": "each variant carries source_url (Ubuntu archive pool) and size_bytes; provision-toolchain-cache.mjs downloads ALL variants by URL with the existing verified download (file first, size then SHA-256, then rename), one manifest entry per variant; apt-get download and provisionAptPin were removed (no package manager at provisioning, no swallowed errors). The runtime still selects the variant by the installed dpkg-query version and is BLOCKED when none matches. Verification tests only read bytes, so they no longer depend on the distro of the machine; the tests that depend on the installed variant use dpkg-query (or the test-only HSEOS_TEST_XDOTOOL_VERSION override). The test of an unset cache no longer depends on HSEOS_TOOLCHAIN_CACHE being unset in the environment of the run (it spawns a child without it).",
+    "proof": "real provisioner run into a fresh cache, then both suites green on it twice (host dpkg-query, and simulated noble version), plus the official cache run (the verify)."
+  }
+}

@@ -1,0 +1,921 @@
+{
+  "schema_version": 1,
+  "journey": "w5-environment-journey",
+  "base_sha": "92b4d62216cb74decc6c680bd35caea538334775",
+  "node": "v24.15.0",
+  "started_at": "2026-10-16T23:09:42.702Z",
+  "ended_at": "2026-10-16T23:10:35.094Z",
+  "synthetic_consumers": ["B"],
+  "dispatch": {
+    "allowed": false,
+    "ceiling_microusd": 1000000,
+    "max_per_binding": 3,
+    "executed": 0
+  },
+  "verifier_pins": {
+    "A": {
+      "schema_version": 1,
+      "consumer": "A",
+      "synthetic": false,
+      "governance_check": {
+        "module": "hseos_w5/verify.mjs",
+        "export": "observe",
+        "expected": {
+          "up": "text-green-600",
+          "down": "text-red-600"
+        },
+        "module_sha256": "13291e6e5fa64d6c778e8c208f0608af674c6ebeaa6eb1a275b7016ca43e8359"
+      },
+      "behavioral_acceptance": {
+        "command": [
+          "node",
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "src/components/Dashboard/StatsCard.test.tsx",
+          "--maxWorkers=2",
+          "--minWorkers=1"
+        ],
+        "test_file_sha256": "d11e65c2f2d6bcad56e817409b3d7133e5dbae736b7a939cc0ba86cb4734dcb4",
+        "expected_exit": 0,
+        "named_tests": ["shows green color for up trend", "shows red color for down trend"]
+      },
+      "baseline_sha": "aa34cb8988075234497c253fe5a669ec486895aa",
+      "task_contract_sha256": "942017cc2d68fcfe1af171cac33968f13d66974cf0b8dd2d78fc66cc3e1a198c",
+      "verifier_sha256": "4fbdf6880e427a80b550a5b6273316fade83314785a767eab94f2bc420fd342d",
+      "static_sha256": "8041fa92c3765205c6699d8b4c91bb329b895bd4f61f28241524f2c8d404cc73",
+      "pinned_at": "2026-10-16T23:09:54.156Z",
+      "red": {
+        "exit": 1,
+        "failed": ["shows green color for up trend", "shows red color for down trend"],
+        "passed": 4
+      }
+    },
+    "B": {
+      "schema_version": 1,
+      "consumer": "B",
+      "synthetic": true,
+      "governance_check": {
+        "module": "hseos_w5/verify.mjs",
+        "export": "observe",
+        "expected": {
+          "label": "Symbols"
+        },
+        "module_sha256": "be1f55fbe160fadd95c6dd26369ecdb5401121258091c5081510fc00d37f85c3"
+      },
+      "behavioral_acceptance": {
+        "synthetic_dom_check": {
+          "selector": "#root *",
+          "text": "Symbols",
+          "absent": "Symbls"
+        }
+      },
+      "baseline_sha": "38bfa40216768dd4c77af53bddaee1bb27e6b461",
+      "task_contract_sha256": "a982eb0342e0510607fc9094a852c89e6d97a717fba19150f7578a237e1cd058",
+      "verifier_sha256": "88529616bff4c7931933757fd17bd209d41c10d3475b2b5951af68da76bc3a6c",
+      "static_sha256": "bec5a8392252a8d5496bda7e211f2a902167777485e951d376ff0fb824bcefc8",
+      "pinned_at": "2026-10-16T23:10:18.183Z"
+    }
+  },
+  "steps": [
+    {
+      "id": "s11a-receipts-selftest",
+      "consumer": "-",
+      "title": "receipt gate rejects adversarial ledgers (each rule proven load-bearing)",
+      "kind": "unit",
+      "status": "PASS",
+      "detail": {
+        "good_ledger": "accepted",
+        "adversarial_cases": 17,
+        "cases": [
+          {
+            "case": "four reservations on one binding",
+            "rejected_by": ["per_binding_cap"]
+          },
+          {
+            "case": "receipt whose reservation is missing",
+            "rejected_by": ["receipt_after_reserved"]
+          },
+          {
+            "case": "receipt recorded before its reservation",
+            "rejected_by": ["receipt_after_reserved"]
+          },
+          {
+            "case": "committed above the ceiling and reported honestly",
+            "rejected_by": ["committed_ceiling"]
+          },
+          {
+            "case": "campaign opened above the ceiling",
+            "rejected_by": ["opened_ceiling"]
+          },
+          {
+            "case": "receipt cost 5000000, report says 0",
+            "rejected_by": ["committed_consistent", "committed_ceiling"]
+          },
+          {
+            "case": "receipt cost 500000 under the ceiling, report says 0",
+            "rejected_by": ["committed_consistent"]
+          },
+          {
+            "case": "dispatch reference not in campaign:// form",
+            "rejected_by": ["reference_format"]
+          },
+          {
+            "case": "dispatch reference of another campaign",
+            "rejected_by": ["reference_format"]
+          },
+          {
+            "case": "receipt names another binding digest",
+            "rejected_by": ["receipt_binding"]
+          },
+          {
+            "case": "receipts of one binding disagree",
+            "rejected_by": ["receipt_binding"]
+          },
+          {
+            "case": "reservation under a manifest the campaign never opened with",
+            "rejected_by": ["receipt_binding"]
+          },
+          {
+            "case": "completed receipt without model-output evidence",
+            "rejected_by": ["receipt_evidence"]
+          },
+          {
+            "case": "reservation without receipt",
+            "rejected_by": ["reservation_has_receipt"]
+          },
+          {
+            "case": "no opening row",
+            "rejected_by": ["opened_present"]
+          },
+          {
+            "case": "no report",
+            "rejected_by": ["report_present"]
+          },
+          {
+            "case": "unresolved command",
+            "rejected_by": ["unresolved"]
+          }
+        ]
+      },
+      "duration_ms": 2
+    },
+    {
+      "id": "s03d-pin-selftest",
+      "consumer": "-",
+      "title": "verifier pin gate rejects an altered verifier and a late pin",
+      "kind": "unit",
+      "status": "PASS",
+      "detail": {
+        "good_pin": "accepted",
+        "adversarial_cases": 4
+      },
+      "duration_ms": 0
+    },
+    {
+      "id": "s00-install",
+      "consumer": "-",
+      "title": "core and plugin tarballs installed offline from the cache into an empty directory",
+      "kind": "infra",
+      "status": "PASS",
+      "detail": {
+        "core": {
+          "filename": "hseos-4.0.0-rc.0.tgz",
+          "entries": 1538,
+          "integrity": "sha512-LVXkHboZMuofm3HLlYsiT8dxxE8Mo7SFV804509rT92bcEUGlgD9LZj2kaEgrbm6Z8hrOXDZQSYq445tqY4NBg=="
+        },
+        "plugins": [
+          {
+            "id": "hseos-plugin-lsp",
+            "version": "0.1.0",
+            "digest": "44c6c6a64edc725426623850c4ca0208161985ad7dc48aa2f172a274ccf15f47",
+            "entries": 7,
+            "bytes": 60940
+          },
+          {
+            "id": "hseos-plugin-dap",
+            "version": "0.1.0",
+            "digest": "ddf95849a0b49045f6cc27d9303bcc904b45435ee7ab0727c437bafcf1faa2fc",
+            "entries": 8,
+            "bytes": 87146
+          },
+          {
+            "id": "hseos-plugin-browser",
+            "version": "0.1.0",
+            "digest": "283d7496b0f3ae028160995c88deb3549284cf226cc00324191580a1b2b213a8",
+            "entries": 9,
+            "bytes": 82578
+          },
+          {
+            "id": "hseos-plugin-computer-use",
+            "version": "0.1.0",
+            "digest": "f95fe0ad6506039d6a7a98ca6f65418825526e07a8f26d8daf6c89a8be46c80c",
+            "entries": 9,
+            "bytes": 94084
+          },
+          {
+            "id": "hseos-plugin-memory",
+            "version": "0.1.0",
+            "digest": "1b67595853c3846bb59ee4b8651592ce06ca25cb537dacbfda0d9ff351d46fa0",
+            "entries": 6,
+            "bytes": 23903
+          }
+        ]
+      },
+      "duration_ms": 4609
+    },
+    {
+      "id": "s05b-routes",
+      "consumer": "-",
+      "title": "model routes available (local, subscriptions, paid API) by inspection only",
+      "kind": "infra",
+      "status": "PASS",
+      "detail": {
+        "local": {
+          "available": false,
+          "found": [],
+          "checked": 6
+        },
+        "claude_subscription": {
+          "logged_in": true,
+          "auth_method": "claude.ai",
+          "api_provider": "firstParty"
+        },
+        "codex_subscription": {
+          "account_type": "chatgpt",
+          "account_sha256": "<redacted>",
+          "paid_credits": false,
+          "quota_used_percent": [100],
+          "eligible": false,
+          "inference_executed": false
+        },
+        "paid_api": {
+          "used": false,
+          "note": "not inspected and not used; needs a new owner question (G4)"
+        },
+        "network_queries": {
+          "claude_auth_status": "local command; network use not measured",
+          "codex_inspect_account": "reads account and quota through the codex app-server, which contacts the provider (not measured at socket level); no inference"
+        }
+      },
+      "duration_ms": 2491
+    },
+    {
+      "id": "s01-clone-A",
+      "consumer": "A",
+      "title": "disposable clone of cambio-real platform-web with the defect injected",
+      "kind": "consumer",
+      "status": "PASS",
+      "detail": {
+        "target": "src/components/Dashboard/StatsCard.tsx",
+        "line": 35,
+        "synthetic": false,
+        "baseline_sha": "aa34cb8988075234497c253fe5a669ec486895aa",
+        "defective_sha256": "7775bfc7a46ae6273be66a90ecbc34b1a9ad6bee5b6013ba4db94713ffc58091",
+        "original_untouched_checked_at_end": true
+      },
+      "duration_ms": 135
+    },
+    {
+      "id": "s02-deps-A",
+      "consumer": "A",
+      "title": "cambio-real platform-web dependencies installed offline from the dedicated npm cache",
+      "kind": "consumer",
+      "status": "PASS",
+      "detail": {
+        "offline_without_network": true,
+        "sandbox_interfaces": ["lo"],
+        "cache": "/build/cache/hseos-w5-consumers/npm-A",
+        "cache_kib": 52804,
+        "lockfile_sha256": "b2cb8f0ec56a2bab01d5a324ddba9bd118a685ea7528e991b8667405232c56ea",
+        "top_level_modules": 416,
+        "lifecycle_scripts": "skipped (--ignore-scripts)"
+      },
+      "duration_ms": 3887
+    },
+    {
+      "id": "s03-verifier-A",
+      "consumer": "A",
+      "title": "external verifier fixed (digest and commands) before any dispatch",
+      "kind": "consumer",
+      "status": "PASS",
+      "detail": {
+        "verifier_sha256": "4fbdf6880e427a80b550a5b6273316fade83314785a767eab94f2bc420fd342d",
+        "static_sha256": "8041fa92c3765205c6699d8b4c91bb329b895bd4f61f28241524f2c8d404cc73",
+        "pinned_at": "2026-10-16T23:09:54.156Z",
+        "task_contract_sha256": "942017cc2d68fcfe1af171cac33968f13d66974cf0b8dd2d78fc66cc3e1a198c"
+      },
+      "duration_ms": 289
+    },
+    {
+      "id": "s03b-red-A",
+      "consumer": "A",
+      "title": "the real test fails on the clone with the injected defect (vitest, no model)",
+      "kind": "consumer",
+      "status": "PASS",
+      "detail": {
+        "exit": 1,
+        "failed_tests": ["shows green color for up trend", "shows red color for down trend"],
+        "passed_tests": 4,
+        "max_workers": 2
+      },
+      "duration_ms": 814
+    },
+    {
+      "id": "s03c-browser-defect-A",
+      "consumer": "A",
+      "title": "browser on the DEFECTIVE state (before any correction): screenshot and DOM show the defect",
+      "kind": "consumer",
+      "status": "PASS",
+      "detail": {
+        "synthetic": false,
+        "harness_preview_page": true,
+        "screenshot": "screenshots/A-defective.png",
+        "screenshot_sha256": "87883e5c99e1c124bba5976bfdcf9cb5715aa5a54d5e4af1f89e0d87ace57734",
+        "screenshot_bytes": 21727,
+        "viewport": [900, 700],
+        "dom_digest": "e58e2e22bdca33294a331225cf5f402103c0a471ae0e3d5c13fe026c691c5aef",
+        "dom_excerpt": "\n\nError Rate\n\n2.3%\n\n-5.2%\nvs last month\nup=rgb(220, 38, 38) down=rgb(22, 163, 74)\n\n--- accessibility tree ---\n- paragraph: Revenue\n- paragraph: $45,231\n- img\n- text: +20.1% vs last month\n- img\n- paragraph: Error Rate\n- paragraph: 2.3%\n- img",
+        "egress": {
+          "requests": 3,
+          "denied": 0
+        },
+        "profile": "P2",
+        "orphans": 0
+      },
+      "duration_ms": 10518
+    },
+    {
+      "id": "s04-lsp-A",
+      "consumer": "A",
+      "title": "LSP over the defective component (definition, references, hover, scope denial)",
+      "kind": "consumer",
+      "status": "PASS",
+      "detail": {
+        "diagnostics": {
+          "digest": "sha256:47065bcac0e5ae48d9917ec6ae94549c8a0bd0e1b29db1ea2579afc39495d10e",
+          "pids_peak": 45,
+          "count": 85
+        },
+        "definition": {
+          "digest": "sha256:6576ff6f8098f8ec68a214f74389ab2db62c904d7ea7ba00e73d9d366ae08273",
+          "pids_peak": 41
+        },
+        "references": {
+          "digest": "sha256:1e138a2be1077e542411554382443936847a0457f94b60ffee5e772747109ca8",
+          "pids_peak": 41,
+          "count": 3
+        },
+        "hover": {
+          "digest": "sha256:6035582224f8d12677557996cd7d0fd32e10deb0729401572764e7ed71081198",
+          "pids_peak": 41,
+          "text": "\n```typescript\n(parameter) trend: \"up\" | \"down\"\n```\n"
+        },
+        "outside_workspace": {
+          "status": "refused",
+          "code": "ENV_LSP_OUT_OF_SCOPE"
+        },
+        "deps_installed": true,
+        "workspace_unchanged": true
+      },
+      "duration_ms": 7450
+    },
+    {
+      "id": "s05-dap-A",
+      "consumer": "A",
+      "title": "DAP session on the reproducer: breakpoint, stack and variables expose the defect",
+      "kind": "consumer",
+      "status": "PASS",
+      "detail": {
+        "stop_reason": "breakpoint",
+        "observed_selected_for_up": "'text-red-600'",
+        "observed_selected_for_down": "'text-green-600'",
+        "digest": "sha256:a6ffbbd3d2922f1ec98f7023764de929409fcad0226e76dcd33ff718e7883d66",
+        "pids_peak": 36,
+        "outside_workspace": {
+          "status": "refused",
+          "code": "ENV_DAP_OUT_OF_SCOPE"
+        },
+        "note": "the reproducer evaluates the class expression extracted from the component source (the component itself needs JSX and the dependencies)"
+      },
+      "duration_ms": 2951
+    },
+    {
+      "id": "s01-clone-B",
+      "consumer": "B",
+      "title": "disposable clone of axon-web with the defect injected",
+      "kind": "consumer",
+      "status": "PASS",
+      "detail": {
+        "target": "src/pages/DashboardPage.tsx",
+        "line": 86,
+        "synthetic": true,
+        "baseline_sha": "38bfa40216768dd4c77af53bddaee1bb27e6b461",
+        "defective_sha256": "a0994400cb62d12259361c358c25a649821ac0af042b6d5008a78030ee865f58",
+        "original_untouched_checked_at_end": true
+      },
+      "duration_ms": 152
+    },
+    {
+      "id": "s02-deps-B",
+      "consumer": "B",
+      "title": "axon-web dependencies installed offline from the dedicated npm cache",
+      "kind": "consumer",
+      "status": "PASS",
+      "detail": {
+        "offline_without_network": true,
+        "sandbox_interfaces": ["lo"],
+        "cache": "/build/cache/hseos-w5-consumers/npm-B",
+        "cache_kib": 38324,
+        "lockfile_sha256": "6d58abee17736e8f4134659f8495962b4276df674db87430eec7034aec5014d1",
+        "top_level_modules": 133,
+        "lifecycle_scripts": "skipped (--ignore-scripts)"
+      },
+      "duration_ms": 2062
+    },
+    {
+      "id": "s03-verifier-B",
+      "consumer": "B",
+      "title": "external verifier fixed (digest and commands) before any dispatch",
+      "kind": "consumer",
+      "status": "PASS",
+      "detail": {
+        "verifier_sha256": "88529616bff4c7931933757fd17bd209d41c10d3475b2b5951af68da76bc3a6c",
+        "static_sha256": "bec5a8392252a8d5496bda7e211f2a902167777485e951d376ff0fb824bcefc8",
+        "pinned_at": "2026-10-16T23:10:18.183Z",
+        "task_contract_sha256": "a982eb0342e0510607fc9094a852c89e6d97a717fba19150f7578a237e1cd058"
+      },
+      "duration_ms": 57
+    },
+    {
+      "id": "s06a-campaign",
+      "consumer": "-",
+      "title": "Claude subscription binding built and tested; campaign opened under the cost ceiling",
+      "kind": "infra",
+      "status": "PASS",
+      "detail": {
+        "binding_id": "binding:claude-w5-account",
+        "binding_sha256": "5f8706e433c5a8a9fc76650a8704d76388b65746c4fa7451fe81a3a9d139de0f",
+        "provider_version": "2.1.263",
+        "account_sha256": "<redacted>",
+        "authenticated": true,
+        "inspections": 2,
+        "campaign_id": "9c41099f-8a55-455e-b57d-24dee73e30cf",
+        "authorization": {
+          "max_requests": 2,
+          "max_cost_microusd": 0,
+          "ceiling_microusd": 1000000,
+          "tasks": 2
+        },
+        "inference_executed": false
+      },
+      "duration_ms": 1443
+    },
+    {
+      "id": "s06-dispatch-A",
+      "consumer": "A",
+      "title": "model dispatch under the campaign ledger (reserve, then receipt)",
+      "kind": "consumer",
+      "status": "BLOCKED",
+      "cause": "dispatch not authorized in this invocation (needs --allow-dispatch and HSEOS_W5_DISPATCH_BINDING=claude); no model was called",
+      "duration_ms": 56
+    },
+    {
+      "id": "s07-correction-A",
+      "consumer": "A",
+      "title": "governed correction with the model patch (scoped patch, protected verifier, review, apply)",
+      "kind": "consumer",
+      "status": "BLOCKED",
+      "cause": "depends on s06-dispatch-A=BLOCKED",
+      "duration_ms": 0
+    },
+    {
+      "id": "s07c-control-A",
+      "consumer": "A",
+      "title": "CONTROL (harness patch, not a model): governed machinery on a second clone",
+      "kind": "control",
+      "status": "PASS",
+      "detail": {
+        "control": true,
+        "not_a_model_result": true,
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "review_sha256": "66e6a4cc4aa36607dbe2ae1dfce99e05826461f032f25eab2ceb6fd5f4e929c1",
+        "applied": true,
+        "patch_bytes": 2993
+      },
+      "duration_ms": 1964
+    },
+    {
+      "id": "s08-accept-A",
+      "consumer": "A",
+      "title": "external acceptance on the corrected clone",
+      "kind": "consumer",
+      "status": "BLOCKED",
+      "cause": "depends on s07-correction-A=BLOCKED",
+      "duration_ms": 0
+    },
+    {
+      "id": "s09-browser-A",
+      "consumer": "A",
+      "title": "browser verification with screenshot",
+      "kind": "consumer",
+      "status": "BLOCKED",
+      "cause": "depends on s08-accept-A=BLOCKED",
+      "duration_ms": 0
+    },
+    {
+      "id": "s08c-accept-control-A",
+      "consumer": "A",
+      "title": "CONTROL: external acceptance on the harness-corrected clone",
+      "kind": "control",
+      "status": "PASS",
+      "detail": {
+        "control": true,
+        "vitest_exit": 0,
+        "passed_tests": 6,
+        "previously_failing_now_passing": ["shows green color for up trend", "shows red color for down trend"],
+        "max_workers": 2,
+        "verifier_sha256": "4fbdf6880e427a80b550a5b6273316fade83314785a767eab94f2bc420fd342d",
+        "pin_rechecked_before_acceptance": true
+      },
+      "duration_ms": 1018
+    },
+    {
+      "id": "s09c-browser-control-A",
+      "consumer": "A",
+      "title": "CONTROL: browser verification with screenshot on the harness-corrected clone",
+      "kind": "control",
+      "status": "PASS",
+      "detail": {
+        "control": true,
+        "synthetic": false,
+        "harness_preview_page": true,
+        "screenshot": "screenshots/A-control-fixed.png",
+        "screenshot_sha256": "99ab400177c335bac019daa57f37b340b044818d2b9ec129c9f724b28c6814eb",
+        "screenshot_bytes": 21677,
+        "viewport": [900, 700],
+        "dom_digest": "67f04d3db7905bf92c8f5303b0428190eed7ab2f6759a4f374b82fd983839368",
+        "dom_excerpt": "\n\nError Rate\n\n2.3%\n\n-5.2%\nvs last month\nup=rgb(22, 163, 74) down=rgb(220, 38, 38)\n\n--- accessibility tree ---\n- paragraph: Revenue\n- paragraph: $45,231\n- img\n- text: +20.1% vs last month\n- img\n- paragraph: Error Rate\n- paragraph: 2.3%\n- img",
+        "egress": {
+          "requests": 3,
+          "denied": 0
+        },
+        "profile": "P2",
+        "orphans": 0
+      },
+      "duration_ms": 5317
+    },
+    {
+      "id": "s06-dispatch-B",
+      "consumer": "B",
+      "title": "model dispatch under the campaign ledger (reserve, then receipt)",
+      "kind": "consumer",
+      "status": "BLOCKED",
+      "cause": "dispatch not authorized in this invocation (needs --allow-dispatch and HSEOS_W5_DISPATCH_BINDING=claude); no model was called",
+      "duration_ms": 72
+    },
+    {
+      "id": "s07-correction-B",
+      "consumer": "B",
+      "title": "governed correction with the model patch (scoped patch, protected verifier, review, apply)",
+      "kind": "consumer",
+      "status": "BLOCKED",
+      "cause": "depends on s06-dispatch-B=BLOCKED",
+      "duration_ms": 1
+    },
+    {
+      "id": "s07c-control-B",
+      "consumer": "B",
+      "title": "CONTROL (harness patch, not a model): governed machinery on a second clone",
+      "kind": "control",
+      "status": "PASS",
+      "detail": {
+        "control": true,
+        "not_a_model_result": true,
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "review_sha256": "9ff279f357db05e691f05e406cdf485202c7bfc7618e83f2dd0d7e9f5106d220",
+        "applied": true,
+        "patch_bytes": 11650
+      },
+      "duration_ms": 2172
+    },
+    {
+      "id": "s08-accept-B",
+      "consumer": "B",
+      "title": "external acceptance on the corrected clone",
+      "kind": "consumer",
+      "status": "BLOCKED",
+      "cause": "depends on s07-correction-B=BLOCKED",
+      "duration_ms": 0
+    },
+    {
+      "id": "s09-browser-B",
+      "consumer": "B",
+      "title": "browser verification with screenshot",
+      "kind": "consumer",
+      "status": "BLOCKED",
+      "cause": "depends on s08-accept-B=BLOCKED",
+      "duration_ms": 0
+    },
+    {
+      "id": "s08c-accept-control-B",
+      "consumer": "B",
+      "title": "CONTROL: external acceptance on the harness-corrected clone",
+      "kind": "control",
+      "status": "PASS",
+      "detail": {
+        "control": true,
+        "synthetic": true,
+        "observed": {
+          "label": "Symbols"
+        },
+        "verifier_sha256": "88529616bff4c7931933757fd17bd209d41c10d3475b2b5951af68da76bc3a6c",
+        "pin_rechecked_before_acceptance": true
+      },
+      "duration_ms": 2
+    },
+    {
+      "id": "s09c-browser-control-B",
+      "consumer": "B",
+      "title": "CONTROL: browser verification with screenshot on the harness-corrected clone",
+      "kind": "control",
+      "status": "PASS",
+      "detail": {
+        "control": true,
+        "synthetic": true,
+        "harness_preview_page": false,
+        "served": {
+          "third_party_font_tags_removed": 1
+        },
+        "screenshot": "screenshots/B-control-fixed.png",
+        "screenshot_sha256": "b7baedb5cc4d70f2aaf619e4a1515d0402959403cf30a0e70b1ff5c86aa764e7",
+        "screenshot_bytes": 38941,
+        "viewport": [900, 700],
+        "dom_digest": "68ff1221269f57350fe4f6fc0fead4ec029cdfb5f89439e6a06bb01dc6fc1cf4",
+        "dom_excerpt": "x Summary\" [level=2]\n  - text: Files 60 Symbols 0 Edges 88\n  - heading \"Recent Changes\" [level=2]\n  - text: src/api/client.ts modified src/hooks/useGraph.ts modified src/components/Sidebar.tsx modified\n  - heading \"Graph Density Map\" [level",
+        "egress": {
+          "requests": 7,
+          "denied": 0
+        },
+        "profile": "P2",
+        "orphans": 0
+      },
+      "duration_ms": 4051
+    },
+    {
+      "id": "s10-computer",
+      "consumer": "-",
+      "title": "computer-use on an own fixture: approval gate, display change, zero orphans",
+      "kind": "infra",
+      "status": "PASS",
+      "detail": {
+        "unapproved": "ENV_COMPUTER_APPROVAL_REQUIRED",
+        "shot_before": "22587f8e85aa97d91c36a39b40b0b261abdb497554f76071ca116ad5e8fc85ab",
+        "shot_after": "64e5e6e1322a67e2ebbf5a4301e7553eea212bf3379b56ddea26254c34bde658",
+        "isolation": {
+          "profile": "P1",
+          "operator_display_denied": 2,
+          "x_sockets": 0
+        },
+        "stopped": {
+          "status": "stopped",
+          "descendants_terminated": true
+        },
+        "orphans": 0
+      },
+      "duration_ms": 731
+    },
+    {
+      "id": "s11-receipts",
+      "consumer": "-",
+      "title": "campaign ledger receipts (cost ceiling, dispatch cap, reservation before receipt)",
+      "kind": "infra",
+      "status": "BLOCKED",
+      "cause": "no campaign was opened in this run (no dispatch took place): there are no receipts to assert",
+      "duration_ms": 0
+    },
+    {
+      "id": "s11b-receipts-replay",
+      "consumer": "-",
+      "title": "REPLAY of the recorded real ledger through the receipt and pin gates (no dispatch)",
+      "kind": "infra",
+      "status": "PASS",
+      "detail": {
+        "replayed": true,
+        "dispatches_in_this_invocation": 0,
+        "first_reserved_at": "2026-10-16T21:14:00.394Z",
+        "pins": {
+          "A": {
+            "pinned_at": "2026-10-16T21:13:44.938Z",
+            "before_first_reservation": true
+          },
+          "B": {
+            "pinned_at": "2026-10-16T21:13:58.789Z",
+            "before_first_reservation": true
+          }
+        },
+        "ok": true,
+        "violations": [],
+        "dispatches": 2,
+        "receipts": 2,
+        "per_binding": {
+          "binding:claude-w5-account": 2
+        }
+      },
+      "duration_ms": 2
+    },
+    {
+      "id": "s12-originals",
+      "consumer": "-",
+      "title": "consumer originals untouched (git head, status and path/size/mtime digest)",
+      "kind": "infra",
+      "status": "PASS",
+      "detail": {
+        "A": {
+          "head": "9b253b916135d670d3ee6bf576f2d3babed596e6",
+          "status": "",
+          "tree": "7df9e3db5d2530336f1b72763083b875aac62c23247aaa90188ce710acbc16ff"
+        },
+        "B": {
+          "head": "eb4102dfa8098afa39d2ee91b9d73a96b6e18c2a",
+          "status": "",
+          "tree": "0aef9174c0850f7943f83980b7e397516e75e4a131db44a7ec8b14840568fb04"
+        }
+      },
+      "duration_ms": 1
+    }
+  ],
+  "counts": {
+    "PASS": 24,
+    "BLOCKED": 9
+  },
+  "counts_by_kind": {
+    "unit": {
+      "PASS": 2
+    },
+    "infra": {
+      "PASS": 6,
+      "BLOCKED": 1
+    },
+    "consumer": {
+      "PASS": 10,
+      "BLOCKED": 8
+    },
+    "control": {
+      "PASS": 6
+    }
+  },
+  "logs": [
+    {
+      "name": "00-npm-pack.log.gz",
+      "exit": 0,
+      "sha256": "e85a11f0de3dc62b0a894ba95781d30af5e101355b787521aa475980af25708e",
+      "bytes": 203205
+    },
+    {
+      "name": "01-npm-init.log.gz",
+      "exit": 0,
+      "sha256": "1a16814e81424f6629e310bc70b117b8d06fdd504da55d365d1650beee7945a2",
+      "bytes": 355
+    },
+    {
+      "name": "02-npm-install-core.log.gz",
+      "exit": 0,
+      "sha256": "a3af43f9bc4ba08ac63c542743268e23ad814f3be7f6beb1bbc7136df07f5da6",
+      "bytes": 336
+    },
+    {
+      "name": "03-untar-lsp.log.gz",
+      "exit": 0,
+      "sha256": "09ef3ad53ace655006721782f2cbf8ddde8275e244104be5e4569e3af36a689c",
+      "bytes": 207
+    },
+    {
+      "name": "04-untar-dap.log.gz",
+      "exit": 0,
+      "sha256": "850c0d4ae2735c6454f1201ff3df2d2bb74cd201a6cae4f61bb250d446287e12",
+      "bytes": 207
+    },
+    {
+      "name": "05-untar-browser.log.gz",
+      "exit": 0,
+      "sha256": "8dae13284256edda827d3d39c4daee68f4ad49eac621e950b38107abe6f17fdd",
+      "bytes": 215
+    },
+    {
+      "name": "06-untar-computer-use.log.gz",
+      "exit": 0,
+      "sha256": "ad11462e59fdfc034c2d08ba0a9c9eef737f88178d7affcaae4c022b5654f8af",
+      "bytes": 225
+    },
+    {
+      "name": "07-untar-memory.log.gz",
+      "exit": 0,
+      "sha256": "e6b04f3e87bc5fc2dca718619aff6b71a7da7da8275c63ef0e78e9464f75ced9",
+      "bytes": 213
+    },
+    {
+      "name": "08-tar-A.log.gz",
+      "exit": 0,
+      "sha256": "c458232d4b354ff64a27212dde38003ba0b288e4c695e630f4c7931afb9aab1d",
+      "bytes": 329
+    },
+    {
+      "name": "09-untar-A.log.gz",
+      "exit": 0,
+      "sha256": "2f41c604a052b1d7bce74d6a2f9ecd515901d6df24b732eadbf5161ff241d70e",
+      "bytes": 169
+    },
+    {
+      "name": "10-net-probe-A.log.gz",
+      "exit": 0,
+      "sha256": "75123d31f16846985b9eea844daf2c315cd42e0a7c8e572ca8d73fe4dc1b0004",
+      "bytes": 453
+    },
+    {
+      "name": "11-npm-ci-A.log.gz",
+      "exit": 0,
+      "sha256": "f5c1959c01965dc06557ca1f6a55a1b428d6ac5a31b3952ebb67a8d576c0c24a",
+      "bytes": 1160
+    },
+    {
+      "name": "12-vitest.log.gz",
+      "exit": 1,
+      "sha256": "74aa00036eb136ade1f9e976fdf9097ddad1f01d8f3b27847252b81711d55c15",
+      "bytes": 2239
+    },
+    {
+      "name": "13-vite-build-A.log.gz",
+      "exit": 0,
+      "sha256": "98e1614bbcf30e0a1c9bea228a4c30985825df97e65d468517bd71bdb75d870f",
+      "bytes": 770
+    },
+    {
+      "name": "14-tar-B.log.gz",
+      "exit": 0,
+      "sha256": "449f46420b3e4b2559a4dc59d4f802971f25e03a0e26fcc696be844f02b4d9bc",
+      "bytes": 308
+    },
+    {
+      "name": "15-untar-B.log.gz",
+      "exit": 0,
+      "sha256": "6bba593b2b342a16d2a2188bef27e05c4664d35cdb922c4208d14a7a9b4a80a8",
+      "bytes": 169
+    },
+    {
+      "name": "16-net-probe-B.log.gz",
+      "exit": 0,
+      "sha256": "75123d31f16846985b9eea844daf2c315cd42e0a7c8e572ca8d73fe4dc1b0004",
+      "bytes": 453
+    },
+    {
+      "name": "17-npm-ci-B.log.gz",
+      "exit": 0,
+      "sha256": "f9dca6dd69f23ecec5e4eb612a521140b815ec58d41727a97a6922107b01c69d",
+      "bytes": 239
+    },
+    {
+      "name": "18-tar-A-control.log.gz",
+      "exit": 0,
+      "sha256": "bf3153e3d7b627b82c75c70ceb789c5b8390926a93ec124ca9428825540fdea0",
+      "bytes": 337
+    },
+    {
+      "name": "19-untar-A-control.log.gz",
+      "exit": 0,
+      "sha256": "ea1b2e9cbe650ed53fd82a37d3e3b0284f51c7ce849e4587fc9a96a5bf11d894",
+      "bytes": 185
+    },
+    {
+      "name": "20-vitest.log.gz",
+      "exit": 0,
+      "sha256": "4fa581dbcb2f3b369b85a7caab28ca19711b8229c4cbf81c0c53a55ca07cb36c",
+      "bytes": 1872
+    },
+    {
+      "name": "21-vite-build-A.log.gz",
+      "exit": 0,
+      "sha256": "b39f175ddb3d3adecbbaa03ebbb9539e1e67278077a024e2dca3c2e247a3fddf",
+      "bytes": 778
+    },
+    {
+      "name": "22-tar-B-control.log.gz",
+      "exit": 0,
+      "sha256": "b5a23b6560dac91f4b82e3bf9a9d7ef76af025982de4a6f19b61853ebdbf883e",
+      "bytes": 316
+    },
+    {
+      "name": "23-untar-B-control.log.gz",
+      "exit": 0,
+      "sha256": "83570771cea1b0a836002f2f2e8cbe1126031aad78fc710a27185b7b13e2a601",
+      "bytes": 185
+    },
+    {
+      "name": "24-vite-build-B.log.gz",
+      "exit": 0,
+      "sha256": "63dd1e422f81d65b4d93488be66e108336ed24bdfa301fe93c29cdb0fe56b266",
+      "bytes": 875
+    }
+  ]
+}

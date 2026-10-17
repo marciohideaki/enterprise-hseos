@@ -1,0 +1,808 @@
+{
+  "schema_version": 1,
+  "journey": "w5-environment-journey",
+  "base_sha": "892388f2c17212fd1abc473d3d52aece516344ad",
+  "node": "v24.15.0",
+  "started_at": "2026-10-16T21:13:33.086Z",
+  "ended_at": "2026-10-16T21:14:36.057Z",
+  "synthetic_consumers": ["B"],
+  "dispatch": {
+    "allowed": true,
+    "ceiling_microusd": 1000000,
+    "max_per_binding": 3,
+    "executed": 2
+  },
+  "verifier_pins": {
+    "A": {
+      "schema_version": 1,
+      "consumer": "A",
+      "synthetic": false,
+      "governance_check": {
+        "module": "hseos_w5/verify.mjs",
+        "export": "observe",
+        "expected": {
+          "up": "text-green-600",
+          "down": "text-red-600"
+        },
+        "module_sha256": "13291e6e5fa64d6c778e8c208f0608af674c6ebeaa6eb1a275b7016ca43e8359"
+      },
+      "behavioral_acceptance": {
+        "command": [
+          "node",
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "src/components/Dashboard/StatsCard.test.tsx",
+          "--maxWorkers=2",
+          "--minWorkers=1"
+        ],
+        "test_file_sha256": "d11e65c2f2d6bcad56e817409b3d7133e5dbae736b7a939cc0ba86cb4734dcb4",
+        "expected_exit": 0,
+        "named_tests": ["shows green color for up trend", "shows red color for down trend"]
+      },
+      "baseline_sha": "3cc512dbb8c3624ef459c62a8f119daea529ef8d",
+      "task_contract_sha256": "8f76ff1ca617a245408c51adb17876e62758edf3ed92dba36312247f02a395c7",
+      "verifier_sha256": "c16c137d01699782c4d6bce78a0b1d114b2d15e4e8f989381990f7e7dc4faa65",
+      "pinned_at": "2026-10-16T21:13:44.938Z",
+      "red": {
+        "exit": 1,
+        "failed": ["shows green color for up trend", "shows red color for down trend"],
+        "passed": 4
+      }
+    },
+    "B": {
+      "schema_version": 1,
+      "consumer": "B",
+      "synthetic": true,
+      "governance_check": {
+        "module": "hseos_w5/verify.mjs",
+        "export": "observe",
+        "expected": {
+          "label": "Symbols"
+        },
+        "module_sha256": "be1f55fbe160fadd95c6dd26369ecdb5401121258091c5081510fc00d37f85c3"
+      },
+      "behavioral_acceptance": {
+        "synthetic_dom_check": {
+          "selector": "#root *",
+          "text": "Symbols",
+          "absent": "Symbls"
+        }
+      },
+      "baseline_sha": "dccd64e776a7716087cdd1ce581c3e1b40aa0ae9",
+      "task_contract_sha256": "141f812f84562a488babd949ee9f3bdc8932d248ad95c6eebbd92b90e45c413a",
+      "verifier_sha256": "b2f5c6889897b3e0d634fc4b05acc12dec4aee8c680a8b911b4816ed916fb334",
+      "pinned_at": "2026-10-16T21:13:58.789Z"
+    }
+  },
+  "steps": [
+    {
+      "id": "s00-install",
+      "consumer": "-",
+      "title": "core and plugin tarballs installed offline from the cache into an empty directory",
+      "status": "PASS",
+      "detail": {
+        "core": {
+          "filename": "hseos-4.0.0-rc.0.tgz",
+          "entries": 1538,
+          "integrity": "sha512-LVXkHboZMuofm3HLlYsiT8dxxE8Mo7SFV804509rT92bcEUGlgD9LZj2kaEgrbm6Z8hrOXDZQSYq445tqY4NBg=="
+        },
+        "plugins": [
+          {
+            "id": "hseos-plugin-lsp",
+            "version": "0.1.0",
+            "digest": "44c6c6a64edc725426623850c4ca0208161985ad7dc48aa2f172a274ccf15f47",
+            "entries": 7,
+            "bytes": 60940
+          },
+          {
+            "id": "hseos-plugin-dap",
+            "version": "0.1.0",
+            "digest": "ddf95849a0b49045f6cc27d9303bcc904b45435ee7ab0727c437bafcf1faa2fc",
+            "entries": 8,
+            "bytes": 87146
+          },
+          {
+            "id": "hseos-plugin-browser",
+            "version": "0.1.0",
+            "digest": "283d7496b0f3ae028160995c88deb3549284cf226cc00324191580a1b2b213a8",
+            "entries": 9,
+            "bytes": 82578
+          },
+          {
+            "id": "hseos-plugin-computer-use",
+            "version": "0.1.0",
+            "digest": "f95fe0ad6506039d6a7a98ca6f65418825526e07a8f26d8daf6c89a8be46c80c",
+            "entries": 9,
+            "bytes": 94084
+          },
+          {
+            "id": "hseos-plugin-memory",
+            "version": "0.1.0",
+            "digest": "1b67595853c3846bb59ee4b8651592ce06ca25cb537dacbfda0d9ff351d46fa0",
+            "entries": 6,
+            "bytes": 23903
+          }
+        ]
+      },
+      "duration_ms": 4966
+    },
+    {
+      "id": "s05b-routes",
+      "consumer": "-",
+      "title": "model routes available (local, subscriptions, paid API) by inspection only",
+      "status": "PASS",
+      "detail": {
+        "local": {
+          "available": false,
+          "found": [],
+          "checked": 6
+        },
+        "claude_subscription": {
+          "logged_in": true,
+          "auth_method": "claude.ai",
+          "api_provider": "firstParty"
+        },
+        "codex_subscription": {
+          "account_type": "chatgpt",
+          "account_sha256": "<redacted>",
+          "paid_credits": false,
+          "quota_used_percent": [100],
+          "eligible": false,
+          "inference_executed": false
+        },
+        "paid_api": {
+          "used": false,
+          "note": "not inspected and not used; needs a new owner question (G4)"
+        }
+      },
+      "duration_ms": 2338
+    },
+    {
+      "id": "s01-clone-A",
+      "consumer": "A",
+      "title": "disposable clone of cambio-real platform-web with the defect injected",
+      "status": "PASS",
+      "detail": {
+        "target": "src/components/Dashboard/StatsCard.tsx",
+        "line": 35,
+        "synthetic": false,
+        "baseline_sha": "3cc512dbb8c3624ef459c62a8f119daea529ef8d",
+        "defective_sha256": "7775bfc7a46ae6273be66a90ecbc34b1a9ad6bee5b6013ba4db94713ffc58091",
+        "original_untouched_checked_at_end": true
+      },
+      "duration_ms": 123
+    },
+    {
+      "id": "s02-deps-A",
+      "consumer": "A",
+      "title": "cambio-real platform-web dependencies installed offline from the dedicated npm cache",
+      "status": "PASS",
+      "detail": {
+        "offline_without_network": true,
+        "cache": "/build/cache/hseos-w5-consumers/npm-A",
+        "cache_kib": 52932,
+        "lockfile_sha256": "b2cb8f0ec56a2bab01d5a324ddba9bd118a685ea7528e991b8667405232c56ea",
+        "top_level_modules": 416,
+        "lifecycle_scripts": "skipped (--ignore-scripts)"
+      },
+      "duration_ms": 4070
+    },
+    {
+      "id": "s03-verifier-A",
+      "consumer": "A",
+      "title": "external verifier fixed (digest and commands) before any dispatch",
+      "status": "PASS",
+      "detail": {
+        "verifier_sha256": "c16c137d01699782c4d6bce78a0b1d114b2d15e4e8f989381990f7e7dc4faa65",
+        "pinned_at": "2026-10-16T21:13:44.938Z",
+        "task_contract_sha256": "8f76ff1ca617a245408c51adb17876e62758edf3ed92dba36312247f02a395c7"
+      },
+      "duration_ms": 310
+    },
+    {
+      "id": "s03b-red-A",
+      "consumer": "A",
+      "title": "the real test fails on the clone with the injected defect (vitest, no model)",
+      "status": "PASS",
+      "detail": {
+        "exit": 1,
+        "failed_tests": ["shows green color for up trend", "shows red color for down trend"],
+        "passed_tests": 4,
+        "max_workers": 2
+      },
+      "duration_ms": 808
+    },
+    {
+      "id": "s04-lsp-A",
+      "consumer": "A",
+      "title": "LSP over the defective component (definition, references, hover, scope denial)",
+      "status": "PASS",
+      "detail": {
+        "diagnostics": {
+          "digest": "sha256:47065bcac0e5ae48d9917ec6ae94549c8a0bd0e1b29db1ea2579afc39495d10e",
+          "pids_peak": 45,
+          "count": 85
+        },
+        "definition": {
+          "digest": "sha256:6576ff6f8098f8ec68a214f74389ab2db62c904d7ea7ba00e73d9d366ae08273",
+          "pids_peak": 41
+        },
+        "references": {
+          "digest": "sha256:1e138a2be1077e542411554382443936847a0457f94b60ffee5e772747109ca8",
+          "pids_peak": 41,
+          "count": 3
+        },
+        "hover": {
+          "digest": "sha256:6035582224f8d12677557996cd7d0fd32e10deb0729401572764e7ed71081198",
+          "pids_peak": 41,
+          "text": "\n```typescript\n(parameter) trend: \"up\" | \"down\"\n```\n"
+        },
+        "outside_workspace": {
+          "status": "refused",
+          "code": "ENV_LSP_OUT_OF_SCOPE"
+        },
+        "deps_installed": true,
+        "workspace_unchanged": true
+      },
+      "duration_ms": 7407
+    },
+    {
+      "id": "s05-dap-A",
+      "consumer": "A",
+      "title": "DAP session on the reproducer: breakpoint, stack and variables expose the defect",
+      "status": "PASS",
+      "detail": {
+        "stop_reason": "breakpoint",
+        "observed_selected_for_up": "'text-red-600'",
+        "observed_selected_for_down": "'text-green-600'",
+        "digest": "sha256:a6ffbbd3d2922f1ec98f7023764de929409fcad0226e76dcd33ff718e7883d66",
+        "pids_peak": 36,
+        "outside_workspace": {
+          "status": "refused",
+          "code": "ENV_DAP_OUT_OF_SCOPE"
+        },
+        "note": "the reproducer evaluates the class expression extracted from the component source (the component itself needs JSX and the dependencies)"
+      },
+      "duration_ms": 3153
+    },
+    {
+      "id": "s01-clone-B",
+      "consumer": "B",
+      "title": "disposable clone of axon-web with the defect injected",
+      "status": "PASS",
+      "detail": {
+        "target": "src/pages/DashboardPage.tsx",
+        "line": 86,
+        "synthetic": true,
+        "baseline_sha": "dccd64e776a7716087cdd1ce581c3e1b40aa0ae9",
+        "defective_sha256": "a0994400cb62d12259361c358c25a649821ac0af042b6d5008a78030ee865f58",
+        "original_untouched_checked_at_end": true
+      },
+      "duration_ms": 102
+    },
+    {
+      "id": "s02-deps-B",
+      "consumer": "B",
+      "title": "axon-web dependencies installed offline from the dedicated npm cache",
+      "status": "PASS",
+      "detail": {
+        "offline_without_network": true,
+        "cache": "/build/cache/hseos-w5-consumers/npm-B",
+        "cache_kib": 38340,
+        "lockfile_sha256": "6d58abee17736e8f4134659f8495962b4276df674db87430eec7034aec5014d1",
+        "top_level_modules": 133,
+        "lifecycle_scripts": "skipped (--ignore-scripts)"
+      },
+      "duration_ms": 2332
+    },
+    {
+      "id": "s03-verifier-B",
+      "consumer": "B",
+      "title": "external verifier fixed (digest and commands) before any dispatch",
+      "status": "PASS",
+      "detail": {
+        "verifier_sha256": "b2f5c6889897b3e0d634fc4b05acc12dec4aee8c680a8b911b4816ed916fb334",
+        "pinned_at": "2026-10-16T21:13:58.789Z",
+        "task_contract_sha256": "141f812f84562a488babd949ee9f3bdc8932d248ad95c6eebbd92b90e45c413a"
+      },
+      "duration_ms": 34
+    },
+    {
+      "id": "s06a-campaign",
+      "consumer": "-",
+      "title": "Claude subscription binding built and tested; campaign opened under the cost ceiling",
+      "status": "PASS",
+      "detail": {
+        "binding_id": "binding:claude-w5-account",
+        "binding_sha256": "543775c4f2ec5f0300b5964aa7f449f77a06ca6a59949f1f8e27297fafeb4181",
+        "provider_version": "2.1.263",
+        "account_sha256": "<redacted>",
+        "authenticated": true,
+        "inspections": 2,
+        "campaign_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+        "authorization": {
+          "max_requests": 2,
+          "max_cost_microusd": 0,
+          "ceiling_microusd": 1000000,
+          "tasks": 2
+        },
+        "inference_executed": false
+      },
+      "duration_ms": 1285
+    },
+    {
+      "id": "s06-dispatch-A",
+      "consumer": "A",
+      "title": "model dispatch under the campaign ledger (reserve, then receipt)",
+      "status": "PASS",
+      "detail": {
+        "reference": "campaign://cbcfc604-34b5-430e-ae3e-a0a52086bd77/4cee0d08-0e31-47f9-9a7f-b49f525cd327",
+        "command_id": "4cee0d08-0e31-47f9-9a7f-b49f525cd327",
+        "receipt_status": "completed",
+        "input_tokens": 5771,
+        "output_tokens": 176,
+        "cost_microusd": null,
+        "evidence_sha256": "9d20fe7b0deebe70e009975207fa74a9a9a1e51fcee21d32e4ccf6eff1691d10",
+        "evidence_bytes": 335,
+        "verifier_pinned_before_dispatch": true,
+        "committed_microusd": 0,
+        "dispatches_on_binding": 1
+      },
+      "duration_ms": 4734
+    },
+    {
+      "id": "s07-correction-A",
+      "consumer": "A",
+      "title": "governed correction with the model patch (scoped patch, protected verifier, review, apply)",
+      "status": "PASS",
+      "detail": {
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "response_names": ["engineering.patch", "engineering.diff"],
+        "patched_path": "src/components/Dashboard/StatsCard.tsx",
+        "response_source_ref": "campaign://cbcfc604-34b5-430e-ae3e-a0a52086bd77/4cee0d08-0e31-47f9-9a7f-b49f525cd327",
+        "review_sha256": "774b6a03c0abd5d930374dd54dc81fa7a7466b4ff31f0285235c01f075535d2f",
+        "applied": true,
+        "changed_files": ["src/components/Dashboard/StatsCard.tsx"],
+        "patch": "diff --git a/src/components/Dashboard/StatsCard.tsx b/src/components/Dashboard/StatsCard.tsx\n--- a/src/components/Dashboard/StatsCard.tsx\n+++ b/src/components/Dashboard/StatsCard.tsx\n@@ -1,49 +1,49 @@\n-import { LucideIcon, TrendingUp, TrendingDown } from 'lucide-react'\n-\n-interface StatsCardProps {\n-  title: string\n-  value: string\n-  change: string\n-  trend: 'up' | 'down'\n-  icon: LucideIcon\n-}\n-\n-/**\n- * Reusable stats card component for the dashboard UI.\n- */\n-export default function StatsCard({\n-  title,\n-  value,\n-  change,\n-  trend,\n-  icon: Icon,\n-}: StatsCardProps) {\n-  return (\n-    <div className=\"card\">\n-      <div className=\"flex items-center justify-between\">\n-        <div>\n-          <p className=\"text-sm font-medium text-gray-600\">{title}</p>\n-          <p className=\"mt-2 text-3xl font-bold text-gray-900\">{value}</p>\n-          <div className=\"mt-2 flex items-center\">\n-            {trend === 'up' ? (\n-              <TrendingUp className=\"w-4 h-4 text-green-600 mr-1\" />\n-            ) : (\n-              <TrendingDown className=\"w-4 h-4 text-red-600 mr-1\" />\n-            )}\n-            <span\n-              className={`text-sm font-medium ${\n-                trend === 'up' ? 'text-red-600' : 'text-green-600'\n-              }`}\n-            >\n-              {change}\n-            </span>\n-            <span className=\"text-sm text-gray-500 ml-2\">vs last month</span>\n-          </div>\n-        </div>\n-        <div className=\"p-3 bg-primary-100 rounded-lg\">\n-          <Icon className=\"w-8 h-8 text-primary-600\" />\n-        </div>\n-      </div>\n-    </div>\n-  )\n-}\n+import { LucideIcon, TrendingUp, TrendingDown } from 'lucide-react'\n+\n+interface StatsCardProps {\n+  title: string\n+  value: string\n+  change: string\n+  trend: 'up' | 'down'\n+  icon: LucideIcon\n+}\n+\n+/**\n+ * Reusable stats card component for the dashboard UI.\n+ */\n+export default function StatsCard({\n+  title,\n+  value,\n+  change,\n+  trend,\n+  icon: Icon,\n+}: StatsCardProps) {\n+  return (\n+    <div className=\"card\">\n+      <div className=\"flex items-center justify-between\">\n+        <div>\n+          <p className=\"text-sm font-medium text-gray-600\">{title}</p>\n+          <p className=\"mt-2 text-3xl font-bold text-gray-900\">{value}</p>\n+          <div className=\"mt-2 flex items-center\">\n+            {trend === 'up' ? (\n+              <TrendingUp className=\"w-4 h-4 text-green-600 mr-1\" />\n+            ) : (\n+              <TrendingDown className=\"w-4 h-4 text-red-600 mr-1\" />\n+            )}\n+            <span\n+              className={`text-sm font-medium ${\n+                trend === 'up' ? 'text-green-600' : 'text-red-600'\n+              }`}\n+            >\n+              {change}\n+            </span>\n+            <span className=\"text-sm text-gray-500 ml-2\">vs last month</span>\n+          </div>\n+        </div>\n+        <div className=\"p-3 bg-primary-100 rounded-lg\">\n+          <Icon className=\"w-8 h-8 text-primary-600\" />\n+        </div>\n+      </div>\n+    </div>\n+  )\n+}\n"
+      },
+      "duration_ms": 1133
+    },
+    {
+      "id": "s07c-control-A",
+      "consumer": "A",
+      "title": "CONTROL (harness patch, not a model): governed machinery on a second clone",
+      "status": "PASS",
+      "detail": {
+        "control": true,
+        "not_a_model_result": true,
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "review_sha256": "33b83ebc6278c9ec9e2d0e6932e136833e9796d6c469c7d21d0f578167fdf3a0",
+        "applied": true,
+        "patch_bytes": 2993
+      },
+      "duration_ms": 1600
+    },
+    {
+      "id": "s08-accept-A",
+      "consumer": "A",
+      "title": "external acceptance on the corrected clone",
+      "status": "PASS",
+      "detail": {
+        "vitest_exit": 0,
+        "passed_tests": 6,
+        "previously_failing_now_passing": ["shows green color for up trend", "shows red color for down trend"],
+        "max_workers": 2,
+        "verifier_sha256": "c16c137d01699782c4d6bce78a0b1d114b2d15e4e8f989381990f7e7dc4faa65"
+      },
+      "duration_ms": 879
+    },
+    {
+      "id": "s09-browser-A",
+      "consumer": "A",
+      "title": "browser verification with screenshot",
+      "status": "PASS",
+      "detail": {
+        "synthetic": false,
+        "screenshot": "screenshots/A-fixed.png",
+        "screenshot_sha256": "99ab400177c335bac019daa57f37b340b044818d2b9ec129c9f724b28c6814eb",
+        "screenshot_bytes": 21677,
+        "viewport": [900, 700],
+        "dom_digest": "67f04d3db7905bf92c8f5303b0428190eed7ab2f6759a4f374b82fd983839368",
+        "dom_excerpt": "\n\nError Rate\n\n2.3%\n\n-5.2%\nvs last month\nup=rgb(22, 163, 74) down=rgb(220, 38, 38)\n\n--- accessibility tree ---\n- paragraph: Revenue\n- paragraph: $45,231\n- img\n- text: +20.1% vs last month\n- img\n- paragraph: Error Rate\n- paragraph: 2.3%\n- img",
+        "egress": {
+          "requests": 3,
+          "denied": 0
+        },
+        "profile": "P2",
+        "orphans": 0
+      },
+      "duration_ms": 5249
+    },
+    {
+      "id": "s08c-accept-control-A",
+      "consumer": "A",
+      "title": "CONTROL: external acceptance on the harness-corrected clone",
+      "status": "PASS",
+      "detail": {
+        "control": true,
+        "vitest_exit": 0,
+        "passed_tests": 6,
+        "previously_failing_now_passing": ["shows green color for up trend", "shows red color for down trend"],
+        "max_workers": 2,
+        "verifier_sha256": "c16c137d01699782c4d6bce78a0b1d114b2d15e4e8f989381990f7e7dc4faa65"
+      },
+      "duration_ms": 924
+    },
+    {
+      "id": "s09c-browser-control-A",
+      "consumer": "A",
+      "title": "CONTROL: browser verification with screenshot on the harness-corrected clone",
+      "status": "PASS",
+      "detail": {
+        "control": true,
+        "synthetic": false,
+        "screenshot": "screenshots/A-control-fixed.png",
+        "screenshot_sha256": "99ab400177c335bac019daa57f37b340b044818d2b9ec129c9f724b28c6814eb",
+        "screenshot_bytes": 21677,
+        "viewport": [900, 700],
+        "dom_digest": "67f04d3db7905bf92c8f5303b0428190eed7ab2f6759a4f374b82fd983839368",
+        "dom_excerpt": "\n\nError Rate\n\n2.3%\n\n-5.2%\nvs last month\nup=rgb(22, 163, 74) down=rgb(220, 38, 38)\n\n--- accessibility tree ---\n- paragraph: Revenue\n- paragraph: $45,231\n- img\n- text: +20.1% vs last month\n- img\n- paragraph: Error Rate\n- paragraph: 2.3%\n- img",
+        "egress": {
+          "requests": 3,
+          "denied": 0
+        },
+        "profile": "P2",
+        "orphans": 0
+      },
+      "duration_ms": 5149
+    },
+    {
+      "id": "s06-dispatch-B",
+      "consumer": "B",
+      "title": "model dispatch under the campaign ledger (reserve, then receipt)",
+      "status": "PASS",
+      "detail": {
+        "reference": "campaign://cbcfc604-34b5-430e-ae3e-a0a52086bd77/57e73c5e-650c-43fc-8ddb-012148b076ec",
+        "command_id": "57e73c5e-650c-43fc-8ddb-012148b076ec",
+        "receipt_status": "completed",
+        "input_tokens": 7346,
+        "output_tokens": 129,
+        "cost_microusd": null,
+        "evidence_sha256": "e9dd2edb7f4460f26f52c24f1d81b9e1be914d33a29c591cabd96ebc9db914c2",
+        "evidence_bytes": 255,
+        "verifier_pinned_before_dispatch": true,
+        "committed_microusd": 0,
+        "dispatches_on_binding": 2
+      },
+      "duration_ms": 4150
+    },
+    {
+      "id": "s07-correction-B",
+      "consumer": "B",
+      "title": "governed correction with the model patch (scoped patch, protected verifier, review, apply)",
+      "status": "PASS",
+      "detail": {
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "response_names": ["engineering.patch", "engineering.diff"],
+        "patched_path": "src/pages/DashboardPage.tsx",
+        "response_source_ref": "campaign://cbcfc604-34b5-430e-ae3e-a0a52086bd77/57e73c5e-650c-43fc-8ddb-012148b076ec",
+        "review_sha256": "17c86bfab26051be79fe13af974485e3bcb75e4513f5432137efc3819104a337",
+        "applied": true,
+        "changed_files": ["src/pages/DashboardPage.tsx"],
+        "patch": "diff --git a/src/pages/DashboardPage.tsx b/src/pages/DashboardPage.tsx\n--- a/src/pages/DashboardPage.tsx\n+++ b/src/pages/DashboardPage.tsx\n@@ -1,129 +1,129 @@\n-import { useEffect, useState } from 'react'\n-import { fetchOverview } from '../api/client'\n-import { Activity, GitCommit, Cpu, Zap } from 'lucide-react'\n-\n-interface Overview {\n-  files: number\n-  symbols: number\n-  edges: number\n-  project: string\n-}\n-\n-const ACCENT_CLASS: Record<string, string> = {\n-  '#c0c1ff': 'text-primary',\n-  '#4cd7f6': 'text-secondary',\n-  '#ffb783': 'text-tertiary',\n-}\n-\n-function MetricCard({ label, value, unit, icon: Icon, accent }: {\n-  label: string; value: string | number; unit?: string\n-  icon: React.ComponentType<{ size?: number; className?: string }>\n-  accent: string\n-}) {\n-  const iconClass = ACCENT_CLASS[accent] ?? 'text-outline'\n-  return (\n-    <div className=\"rounded-lg border border-outline-variant bg-surface-container p-4 flex flex-col gap-3\">\n-      <div className=\"flex items-center justify-between\">\n-        <span className=\"text-[11px] font-display font-semibold uppercase text-outline\" style={{ letterSpacing: '0.1em' }}>\n-          {label}\n-        </span>\n-        <div className=\"w-7 h-7 rounded flex items-center justify-center\" style={{ background: `${accent}15` }}>\n-          <Icon size={14} className={iconClass} />\n-        </div>\n-      </div>\n-      <div className=\"flex items-end gap-1\">\n-        <span className=\"text-2xl font-bold text-on-surface font-mono\">{value}</span>\n-        {unit && <span className=\"text-xs text-outline mb-0.5\">{unit}</span>}\n-      </div>\n-    </div>\n-  )\n-}\n-\n-export function DashboardPage() {\n-  const [overview, setOverview] = useState<Overview | null>(null)\n-\n-  useEffect(() => {\n-    fetchOverview().then(d => setOverview(d as Overview))\n-  }, [])\n-\n-  const tokenReduction = 85\n-  const latencyMs = 12\n-\n-  return (\n-    <div className=\"flex-1 overflow-y-auto p-6 bg-background\">\n-      <div className=\"max-w-5xl mx-auto space-y-6\">\n-\n-        {/* Header */}\n-        <div>\n-          <div className=\"flex items-center gap-2 mb-1\">\n-            <div className=\"w-1.5 h-1.5 rounded-full bg-secondary animate-pulse\" />\n-            <span className=\"text-[11px] font-display font-semibold uppercase text-outline tracking-widest\">\n-              Active Context\n-            </span>\n-          </div>\n-          <h1 className=\"text-2xl font-bold text-on-surface\">\n-            {overview?.project ?? 'Axon Dashboard'}\n-          </h1>\n-          <p className=\"text-sm text-outline mt-1\">Precision Context Engine — operational overview</p>\n-        </div>\n-\n-        {/* KPIs */}\n-        <div className=\"grid grid-cols-2 gap-3 sm:grid-cols-4\">\n-          <MetricCard label=\"Token Reduction\" value={`${tokenReduction}%`} icon={Zap} accent=\"#c0c1ff\" />\n-          <MetricCard label=\"Graph Nodes\" value={overview ? (overview.symbols / 1000).toFixed(1) + 'k' : '—'} icon={Cpu} accent=\"#4cd7f6\" />\n-          <MetricCard label=\"Graph Edges\" value={overview ? (overview.edges / 1000).toFixed(1) + 'k' : '—'} icon={Activity} accent=\"#ffb783\" />\n-          <MetricCard label=\"Latency\" value={latencyMs} unit=\"ms\" icon={Zap} accent=\"#4cd7f6\" />\n-        </div>\n-\n-        {/* Stats row */}\n-        <div className=\"rounded-lg border border-outline-variant bg-surface-container p-4\">\n-          <h2 className=\"text-[11px] font-display font-semibold uppercase text-outline mb-3\" style={{ letterSpacing: '0.1em' }}>\n-            Index Summary\n-          </h2>\n-          <div className=\"grid grid-cols-3 gap-4\">\n-            {[\n-              { label: 'Files', value: overview?.files ?? '—' },\n-              { label: 'Symbls', value: overview?.symbols ?? '—' },\n-              { label: 'Edges', value: overview?.edges ?? '—' },\n-            ].map(({ label, value }) => (\n-              <div key={label}>\n-                <div className=\"text-xs text-outline mb-1 font-display uppercase tracking-wider\">{label}</div>\n-                <div className=\"text-xl font-bold text-on-surface font-mono\">{typeof value === 'number' ? value.toLocaleString() : value}</div>\n-              </div>\n-            ))}\n-          </div>\n-        </div>\n-\n-        {/* Recent activity placeholder */}\n-        <div className=\"rounded-lg border border-outline-variant bg-surface-container p-4\">\n-          <div className=\"flex items-center gap-2 mb-3\">\n-            <GitCommit size={14} className=\"text-outline\" />\n-            <h2 className=\"text-[11px] font-display font-semibold uppercase text-outline\" style={{ letterSpacing: '0.1em' }}>\n-              Recent Changes\n-            </h2>\n-          </div>\n-          <div className=\"space-y-2\">\n-            {['src/api/client.ts', 'src/hooks/useGraph.ts', 'src/components/Sidebar.tsx'].map((file, i) => (\n-              <div key={i} className=\"flex items-center gap-3 py-1.5 border-b border-outline-variant last:border-0\">\n-                <div className=\"w-1.5 h-1.5 rounded-full bg-secondary shrink-0\" />\n-                <span className=\"text-xs text-on-surface-variant font-mono flex-1\">{file}</span>\n-                <span className=\"text-[11px] text-outline font-display\">modified</span>\n-              </div>\n-            ))}\n-          </div>\n-        </div>\n-\n-        {/* Graph Density Map placeholder */}\n-        <div className=\"rounded-lg border border-outline-variant bg-surface-container p-4\">\n-          <h2 className=\"text-[11px] font-display font-semibold uppercase text-outline mb-3\" style={{ letterSpacing: '0.1em' }}>\n-            Graph Density Map\n-          </h2>\n-          <div className=\"h-32 rounded bg-surface-container-high flex items-center justify-center border border-outline-variant\">\n-            <span className=\"text-xs text-outline-variant font-display uppercase tracking-wider\">Navigate to Graph to explore</span>\n-          </div>\n-        </div>\n-\n-      </div>\n-    </div>\n-  )\n-}\n+import { useEffect, useState } from 'react'\n+import { fetchOverview } from '../api/client'\n+import { Activity, GitCommit, Cpu, Zap } from 'lucide-react'\n+\n+interface Overview {\n+  files: number\n+  symbols: number\n+  edges: number\n+  project: string\n+}\n+\n+const ACCENT_CLASS: Record<string, string> = {\n+  '#c0c1ff': 'text-primary',\n+  '#4cd7f6': 'text-secondary',\n+  '#ffb783': 'text-tertiary',\n+}\n+\n+function MetricCard({ label, value, unit, icon: Icon, accent }: {\n+  label: string; value: string | number; unit?: string\n+  icon: React.ComponentType<{ size?: number; className?: string }>\n+  accent: string\n+}) {\n+  const iconClass = ACCENT_CLASS[accent] ?? 'text-outline'\n+  return (\n+    <div className=\"rounded-lg border border-outline-variant bg-surface-container p-4 flex flex-col gap-3\">\n+      <div className=\"flex items-center justify-between\">\n+        <span className=\"text-[11px] font-display font-semibold uppercase text-outline\" style={{ letterSpacing: '0.1em' }}>\n+          {label}\n+        </span>\n+        <div className=\"w-7 h-7 rounded flex items-center justify-center\" style={{ background: `${accent}15` }}>\n+          <Icon size={14} className={iconClass} />\n+        </div>\n+      </div>\n+      <div className=\"flex items-end gap-1\">\n+        <span className=\"text-2xl font-bold text-on-surface font-mono\">{value}</span>\n+        {unit && <span className=\"text-xs text-outline mb-0.5\">{unit}</span>}\n+      </div>\n+    </div>\n+  )\n+}\n+\n+export function DashboardPage() {\n+  const [overview, setOverview] = useState<Overview | null>(null)\n+\n+  useEffect(() => {\n+    fetchOverview().then(d => setOverview(d as Overview))\n+  }, [])\n+\n+  const tokenReduction = 85\n+  const latencyMs = 12\n+\n+  return (\n+    <div className=\"flex-1 overflow-y-auto p-6 bg-background\">\n+      <div className=\"max-w-5xl mx-auto space-y-6\">\n+\n+        {/* Header */}\n+        <div>\n+          <div className=\"flex items-center gap-2 mb-1\">\n+            <div className=\"w-1.5 h-1.5 rounded-full bg-secondary animate-pulse\" />\n+            <span className=\"text-[11px] font-display font-semibold uppercase text-outline tracking-widest\">\n+              Active Context\n+            </span>\n+          </div>\n+          <h1 className=\"text-2xl font-bold text-on-surface\">\n+            {overview?.project ?? 'Axon Dashboard'}\n+          </h1>\n+          <p className=\"text-sm text-outline mt-1\">Precision Context Engine — operational overview</p>\n+        </div>\n+\n+        {/* KPIs */}\n+        <div className=\"grid grid-cols-2 gap-3 sm:grid-cols-4\">\n+          <MetricCard label=\"Token Reduction\" value={`${tokenReduction}%`} icon={Zap} accent=\"#c0c1ff\" />\n+          <MetricCard label=\"Graph Nodes\" value={overview ? (overview.symbols / 1000).toFixed(1) + 'k' : '—'} icon={Cpu} accent=\"#4cd7f6\" />\n+          <MetricCard label=\"Graph Edges\" value={overview ? (overview.edges / 1000).toFixed(1) + 'k' : '—'} icon={Activity} accent=\"#ffb783\" />\n+          <MetricCard label=\"Latency\" value={latencyMs} unit=\"ms\" icon={Zap} accent=\"#4cd7f6\" />\n+        </div>\n+\n+        {/* Stats row */}\n+        <div className=\"rounded-lg border border-outline-variant bg-surface-container p-4\">\n+          <h2 className=\"text-[11px] font-display font-semibold uppercase text-outline mb-3\" style={{ letterSpacing: '0.1em' }}>\n+            Index Summary\n+          </h2>\n+          <div className=\"grid grid-cols-3 gap-4\">\n+            {[\n+              { label: 'Files', value: overview?.files ?? '—' },\n+              { label: 'Symbols', value: overview?.symbols ?? '—' },\n+              { label: 'Edges', value: overview?.edges ?? '—' },\n+            ].map(({ label, value }) => (\n+              <div key={label}>\n+                <div className=\"text-xs text-outline mb-1 font-display uppercase tracking-wider\">{label}</div>\n+                <div className=\"text-xl font-bold text-on-surface font-mono\">{typeof value === 'number' ? value.toLocaleString() : value}</div>\n+              </div>\n+            ))}\n+          </div>\n+        </div>\n+\n+        {/* Recent activity placeholder */}\n+        <div className=\"rounded-lg border border-outline-variant bg-surface-container p-4\">\n+          <div className=\"flex items-center gap-2 mb-3\">\n+            <GitCommit size={14} className=\"text-outline\" />\n+            <h2 className=\"text-[11px] font-display font-semibold uppercase text-outline\" style={{ letterSpacing: '0.1em' }}>\n+              Recent Changes\n+            </h2>\n+          </div>\n+          <div className=\"space-y-2\">\n+            {['src/api/client.ts', 'src/hooks/useGraph.ts', 'src/components/Sidebar.tsx'].map((file, i) => (\n+              <div key={i} className=\"flex items-center gap-3 py-1.5 border-b border-outline-variant last:border-0\">\n+                <div className=\"w-1.5 h-1.5 rounded-full bg-secondary shrink-0\" />\n+                <span className=\"text-xs text-on-surface-variant font-mono flex-1\">{file}</span>\n+                <span className=\"text-[11px] text-outline font-display\">modified</span>\n+              </div>\n+            ))}\n+          </div>\n+        </div>\n+\n+        {/* Graph Density Map placeholder */}\n+        <div className=\"rounded-lg border border-outline-variant bg-surface-container p-4\">\n+          <h2 className=\"text-[11px] font-display font-semibold uppercase text-outline mb-3\" style={{ letterSpacing: '0.1em' }}>\n+            Graph Density Map\n+          </h2>\n+          <div className=\"h-32 rounded bg-surface-container-high flex items-center justify-center border border-outline-variant\">\n+            <span className=\"text-xs text-outline-variant font-display uppercase tracking-wider\">Navigate to Graph to explore</span>\n+          </div>\n+        </div>\n+\n+      </div>\n+    </div>\n+  )\n+}\n"
+      },
+      "duration_ms": 1136
+    },
+    {
+      "id": "s07c-control-B",
+      "consumer": "B",
+      "title": "CONTROL (harness patch, not a model): governed machinery on a second clone",
+      "status": "PASS",
+      "detail": {
+        "control": true,
+        "not_a_model_result": true,
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "review_sha256": "5befca269483833ce16f7c2c59714822ad26b7feb864bb7cfc2b527b43cdca27",
+        "applied": true,
+        "patch_bytes": 11650
+      },
+      "duration_ms": 1271
+    },
+    {
+      "id": "s08-accept-B",
+      "consumer": "B",
+      "title": "external acceptance on the corrected clone",
+      "status": "PASS",
+      "detail": {
+        "synthetic": true,
+        "observed": {
+          "label": "Symbols"
+        },
+        "verifier_sha256": "b2f5c6889897b3e0d634fc4b05acc12dec4aee8c680a8b911b4816ed916fb334"
+      },
+      "duration_ms": 1
+    },
+    {
+      "id": "s09-browser-B",
+      "consumer": "B",
+      "title": "browser verification with screenshot",
+      "status": "PASS",
+      "detail": {
+        "synthetic": true,
+        "served": {
+          "third_party_font_tags_removed": 1
+        },
+        "screenshot": "screenshots/B-fixed.png",
+        "screenshot_sha256": "b7baedb5cc4d70f2aaf619e4a1515d0402959403cf30a0e70b1ff5c86aa764e7",
+        "screenshot_bytes": 38941,
+        "viewport": [900, 700],
+        "dom_digest": "68ff1221269f57350fe4f6fc0fead4ec029cdfb5f89439e6a06bb01dc6fc1cf4",
+        "dom_excerpt": "x Summary\" [level=2]\n  - text: Files 60 Symbols 0 Edges 88\n  - heading \"Recent Changes\" [level=2]\n  - text: src/api/client.ts modified src/hooks/useGraph.ts modified src/components/Sidebar.tsx modified\n  - heading \"Graph Density Map\" [level",
+        "egress": {
+          "requests": 7,
+          "denied": 0
+        },
+        "profile": "P2",
+        "orphans": 0
+      },
+      "duration_ms": 4537
+    },
+    {
+      "id": "s08c-accept-control-B",
+      "consumer": "B",
+      "title": "CONTROL: external acceptance on the harness-corrected clone",
+      "status": "PASS",
+      "detail": {
+        "control": true,
+        "synthetic": true,
+        "observed": {
+          "label": "Symbols"
+        },
+        "verifier_sha256": "b2f5c6889897b3e0d634fc4b05acc12dec4aee8c680a8b911b4816ed916fb334"
+      },
+      "duration_ms": 2
+    },
+    {
+      "id": "s09c-browser-control-B",
+      "consumer": "B",
+      "title": "CONTROL: browser verification with screenshot on the harness-corrected clone",
+      "status": "PASS",
+      "detail": {
+        "control": true,
+        "synthetic": true,
+        "served": {
+          "third_party_font_tags_removed": 1
+        },
+        "screenshot": "screenshots/B-control-fixed.png",
+        "screenshot_sha256": "b7baedb5cc4d70f2aaf619e4a1515d0402959403cf30a0e70b1ff5c86aa764e7",
+        "screenshot_bytes": 38941,
+        "viewport": [900, 700],
+        "dom_digest": "68ff1221269f57350fe4f6fc0fead4ec029cdfb5f89439e6a06bb01dc6fc1cf4",
+        "dom_excerpt": "x Summary\" [level=2]\n  - text: Files 60 Symbols 0 Edges 88\n  - heading \"Recent Changes\" [level=2]\n  - text: src/api/client.ts modified src/hooks/useGraph.ts modified src/components/Sidebar.tsx modified\n  - heading \"Graph Density Map\" [level",
+        "egress": {
+          "requests": 7,
+          "denied": 0
+        },
+        "profile": "P2",
+        "orphans": 0
+      },
+      "duration_ms": 4169
+    },
+    {
+      "id": "s10-computer",
+      "consumer": "-",
+      "title": "computer-use on an own fixture: approval gate, display change, zero orphans",
+      "status": "PASS",
+      "detail": {
+        "unapproved": "ENV_COMPUTER_APPROVAL_REQUIRED",
+        "shot_before": "22587f8e85aa97d91c36a39b40b0b261abdb497554f76071ca116ad5e8fc85ab",
+        "shot_after": "64e5e6e1322a67e2ebbf5a4301e7553eea212bf3379b56ddea26254c34bde658",
+        "isolation": {
+          "profile": "P1",
+          "operator_display_denied": 2,
+          "x_sockets": 0
+        },
+        "stopped": {
+          "status": "stopped",
+          "descendants_terminated": true
+        },
+        "orphans": 0
+      },
+      "duration_ms": 992
+    },
+    {
+      "id": "s11-receipts",
+      "consumer": "-",
+      "title": "campaign ledger receipts (cost ceiling, dispatch cap, reservation before receipt)",
+      "status": "PASS",
+      "detail": {
+        "ok": true,
+        "violations": [],
+        "dispatches": 2,
+        "receipts": 2,
+        "per_binding": {
+          "binding:claude-w5-account": 2
+        }
+      },
+      "duration_ms": 0
+    },
+    {
+      "id": "s12-originals",
+      "consumer": "-",
+      "title": "consumer originals untouched (git head, status and path/size/mtime digest)",
+      "status": "PASS",
+      "detail": {
+        "A": {
+          "head": "9b253b916135d670d3ee6bf576f2d3babed596e6",
+          "status": "",
+          "tree": "7df9e3db5d2530336f1b72763083b875aac62c23247aaa90188ce710acbc16ff"
+        },
+        "B": {
+          "head": "eb4102dfa8098afa39d2ee91b9d73a96b6e18c2a",
+          "status": "",
+          "tree": "0aef9174c0850f7943f83980b7e397516e75e4a131db44a7ec8b14840568fb04"
+        }
+      },
+      "duration_ms": 0
+    }
+  ],
+  "counts": {
+    "PASS": 29
+  },
+  "logs": [
+    {
+      "name": "00-npm-pack.log.gz",
+      "exit": 0,
+      "sha256": "0637fb683574bcaf5b16b4b559e3af8f1b2cc91ae9581eeddb96cbbf205dde6a",
+      "bytes": 203205
+    },
+    {
+      "name": "01-npm-init.log.gz",
+      "exit": 0,
+      "sha256": "1a16814e81424f6629e310bc70b117b8d06fdd504da55d365d1650beee7945a2",
+      "bytes": 355
+    },
+    {
+      "name": "02-npm-install-core.log.gz",
+      "exit": 0,
+      "sha256": "31b7143bf67fcff37024af38bfe817a1b61c343ce9b8e8c7df6ee9deb3c97c07",
+      "bytes": 336
+    },
+    {
+      "name": "03-untar-lsp.log.gz",
+      "exit": 0,
+      "sha256": "562ca267ebf49e3583d557483f7561b4beb356675a717865d515fa68d8e1a00f",
+      "bytes": 207
+    },
+    {
+      "name": "04-untar-dap.log.gz",
+      "exit": 0,
+      "sha256": "b822875ee2e81e6b4986ce2339ddcea62ace72ed859297602bbd0359d41736d6",
+      "bytes": 207
+    },
+    {
+      "name": "05-untar-browser.log.gz",
+      "exit": 0,
+      "sha256": "a1c6c53a8e6fd4895232ed67eb6b2a03a9ae580f43f40e4a56827b7de7d5b9c3",
+      "bytes": 215
+    },
+    {
+      "name": "06-untar-computer-use.log.gz",
+      "exit": 0,
+      "sha256": "100d9c57eaea40942e10dc34fd47bfa0e6f9e2c382aec59f4e2b3d637d9fe2f0",
+      "bytes": 225
+    },
+    {
+      "name": "07-untar-memory.log.gz",
+      "exit": 0,
+      "sha256": "f565d1cbc97ddc069de2dfed1c960fd68646496d4edcf72b55d70aa450d42709",
+      "bytes": 213
+    },
+    {
+      "name": "08-tar-A.log.gz",
+      "exit": 0,
+      "sha256": "fd4ca11846750198bba783ae8ac5cebff04c1392c598f36fb100cc661e7759d3",
+      "bytes": 329
+    },
+    {
+      "name": "09-untar-A.log.gz",
+      "exit": 0,
+      "sha256": "f02d840390c1a873bab6d4a0d6eeb9729c42bc073dcd19412812bf12c8aa7e64",
+      "bytes": 169
+    },
+    {
+      "name": "10-npm-ci-A.log.gz",
+      "exit": 0,
+      "sha256": "f5c1959c01965dc06557ca1f6a55a1b428d6ac5a31b3952ebb67a8d576c0c24a",
+      "bytes": 1160
+    },
+    {
+      "name": "11-vitest.log.gz",
+      "exit": 1,
+      "sha256": "6a44d78228893c4d75a9876329660a3425350b66f25f957f85cc18db6352f52f",
+      "bytes": 2239
+    },
+    {
+      "name": "12-tar-B.log.gz",
+      "exit": 0,
+      "sha256": "d0df540e3d32b650c207a75eaa9af9f7d015c1c3feee623ce0348ad94aae347b",
+      "bytes": 308
+    },
+    {
+      "name": "13-untar-B.log.gz",
+      "exit": 0,
+      "sha256": "2746949e283ecec94030edc835e291c13c6a4b28fb67fb8d3a5cdf644498f613",
+      "bytes": 169
+    },
+    {
+      "name": "14-npm-ci-B.log.gz",
+      "exit": 0,
+      "sha256": "f9dca6dd69f23ecec5e4eb612a521140b815ec58d41727a97a6922107b01c69d",
+      "bytes": 239
+    },
+    {
+      "name": "15-tar-A-control.log.gz",
+      "exit": 0,
+      "sha256": "f5495a3fe790d7c5dd75d0611dfc1505ef39b09b8080278a0cfe2fe33450fb94",
+      "bytes": 337
+    },
+    {
+      "name": "16-untar-A-control.log.gz",
+      "exit": 0,
+      "sha256": "cc3e39811f09e8b0549f697f289d96de84d334343833ee61b8596018e49ec432",
+      "bytes": 185
+    },
+    {
+      "name": "17-vitest.log.gz",
+      "exit": 0,
+      "sha256": "a90ea462def1e06f1fe662324507949fd332d9d3af3d60e8d0bf40a7fe7b409a",
+      "bytes": 1864
+    },
+    {
+      "name": "18-vite-build-A.log.gz",
+      "exit": 0,
+      "sha256": "da3b8de6eee14e2c2d8ed54c67080b52681a27c1abbdd62e0c231e68108af8e9",
+      "bytes": 770
+    },
+    {
+      "name": "19-vitest.log.gz",
+      "exit": 0,
+      "sha256": "31344e5035204b04908e6e0f3da5d2d2c536d1c6bd03526aca901805ca5577a9",
+      "bytes": 1872
+    },
+    {
+      "name": "20-vite-build-A.log.gz",
+      "exit": 0,
+      "sha256": "825aef35db4e5a85301ae3551104a2db541cba03719a8788fc38fe209484e24a",
+      "bytes": 778
+    },
+    {
+      "name": "21-tar-B-control.log.gz",
+      "exit": 0,
+      "sha256": "45cdc58545da74d6cc83517a76991f65447e67a988e62d623ad71574391447ba",
+      "bytes": 316
+    },
+    {
+      "name": "22-untar-B-control.log.gz",
+      "exit": 0,
+      "sha256": "cf0c8cbe52565ef5fe066a2de235d6683fec3cabf015ed93f4e2c75516463bf7",
+      "bytes": 185
+    },
+    {
+      "name": "23-vite-build-B.log.gz",
+      "exit": 0,
+      "sha256": "71105f3cf961fab6448dce8ffe9167dcf71fb63cee74e4faf9257a15125f5fcd",
+      "bytes": 867
+    },
+    {
+      "name": "24-vite-build-B.log.gz",
+      "exit": 0,
+      "sha256": "cd7a05d9b9e05ef03a93ac187b37996b531f0a6bdbc75cc03612eea62b43e600",
+      "bytes": 875
+    }
+  ]
+}

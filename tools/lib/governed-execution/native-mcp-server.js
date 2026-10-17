@@ -9,6 +9,7 @@ const { createMcp2026HttpServer, createMcpApprovalStateCodec, startMcp2026Stdio 
 const { DEFAULT_STATE_DB, openOperationalStateDatabase } = require('../../mcp-project-state/lib/operational-state-db');
 const { McpLegacyUsageStore } = require('../../mcp-project-state/lib/mcp-legacy-usage-store');
 const { createNativeMcpAdapter, NATIVE_MCP_SERVERS } = require('./native-mcp-adapters');
+const { buildGatewayDenialFact } = require('./event-registry');
 const { createOperationalExecution } = require('./operational-runtime');
 const { deterministicOperationId } = require('./runtime');
 
@@ -21,42 +22,29 @@ function localProcessActor() {
   };
 }
 
-function startNativeMcpServer({ serverId, tools, invokeTool, mode, port, dbPath, health = {}, log = console.error }) {
-  const serverSpec = NATIVE_MCP_SERVERS[serverId];
-  if (!serverSpec) throw new TypeError(`Unknown native MCP server: ${serverId}`);
-  const fixtureActivation = process.env.NODE_ENV === 'test' && process.env.HSEOS_GOVERNED_EXECUTION_FIXTURE === '1';
-  if (!fixtureActivation) {
-    const error = new Error('Governed MCP activation is pending ADR-0022/0023 compatibility evidence');
-    error.code = 'EXECUTION_ACTIVATION_PENDING';
-    throw error;
-  }
-  const resolvedDbPath = path.resolve(dbPath || process.env.HSEOS_STATE_DB || DEFAULT_STATE_DB);
-  const temporaryRoot = `${path.resolve(os.tmpdir())}${path.sep}`;
-  if (!resolvedDbPath.startsWith(temporaryRoot)) throw new Error('Governed MCP fixture activation requires a temporary database');
-  if (fs.existsSync(resolvedDbPath)) throw new Error('Governed MCP fixture activation requires a fresh database');
-  fs.mkdirSync(path.dirname(resolvedDbPath), { recursive: true });
-  const realParent = `${fs.realpathSync(path.dirname(resolvedDbPath))}${path.sep}`;
-  if (!realParent.startsWith(temporaryRoot)) throw new Error('Governed MCP fixture database resolved outside the temporary root');
-  const db = openOperationalStateDatabase(resolvedDbPath, {
-    activatePendingFixture: true,
-    log: (level, message) => log(`[${serverId}:migration:${level}] ${message}`),
-  });
-  const legacyUsageStore = new McpLegacyUsageStore(path.join(path.dirname(resolvedDbPath), 'mcp-legacy-usage.db'));
-  legacyUsageStore.markObservation(serverId);
-  const legacyObservationTimer = setInterval(
-    () => {
-      try {
-        legacyUsageStore.markObservation(serverId);
-      } catch (error) {
-        log(`[${serverId}:legacy-observation:warn] ${error.message}`);
-      }
-    },
-    60 * 60 * 1000,
-  );
-  legacyObservationTimer.unref();
-  const execution = createOperationalExecution({ db, serverId, tools, invokeTool });
-  const approvalStateCodec = createMcpApprovalStateCodec({ key: randomBytes(32) });
-  const approvalFlow = {
+// Records a gateway denial as a ledger fact. A recorder failure is logged and never relaxes the denial itself.
+function createDenialRecorder({ ledger, serverId, actor, log, clock = () => new Date() }) {
+  return (denial) => {
+    try {
+      ledger.append(
+        buildGatewayDenialFact({
+          serverId,
+          tool: denial.tool,
+          code: denial.code,
+          rpcCode: denial.rpc_code,
+          actor,
+          eventId: randomUUID(),
+          occurredAt: clock().toISOString(),
+        }),
+      );
+    } catch (error) {
+      log(`[${serverId}:gateway:warn] denial not recorded in the ledger: ${error.message}`);
+    }
+  };
+}
+
+function createLocalApprovalFlow({ execution, serverId }) {
+  return {
     async begin({ outcome }) {
       return {
         state: { operation_id: outcome.error.operation_id, policy_version: 'hseos-operational-v1' },
@@ -102,6 +90,62 @@ function startNativeMcpServer({ serverId, tools, invokeTool, mode, port, dbPath,
       return { approval_id: approvalId, policy_version: verifiedState.policy_version };
     },
   };
+}
+
+function startNativeMcpServer({ serverId, tools, invokeTool, mode, port, dbPath, health = {}, log = console.error }) {
+  const serverSpec = NATIVE_MCP_SERVERS[serverId];
+  if (!serverSpec) throw new TypeError(`Unknown native MCP server: ${serverId}`);
+  const fixtureActivation = process.env.NODE_ENV === 'test' && process.env.HSEOS_GOVERNED_EXECUTION_FIXTURE === '1';
+  if (!fixtureActivation) {
+    const error = new Error('Governed MCP activation is pending ADR-0022/0023 compatibility evidence');
+    error.code = 'EXECUTION_ACTIVATION_PENDING';
+    throw error;
+  }
+  const resolvedDbPath = path.resolve(dbPath || process.env.HSEOS_STATE_DB || DEFAULT_STATE_DB);
+  const temporaryRoot = `${path.resolve(os.tmpdir())}${path.sep}`;
+  if (!resolvedDbPath.startsWith(temporaryRoot)) throw new Error('Governed MCP fixture activation requires a temporary database');
+  if (fs.existsSync(resolvedDbPath)) throw new Error('Governed MCP fixture activation requires a fresh database');
+  fs.mkdirSync(path.dirname(resolvedDbPath), { recursive: true });
+  const realParent = `${fs.realpathSync(path.dirname(resolvedDbPath))}${path.sep}`;
+  if (!realParent.startsWith(temporaryRoot)) throw new Error('Governed MCP fixture database resolved outside the temporary root');
+  const db = openOperationalStateDatabase(resolvedDbPath, {
+    activatePendingFixture: true,
+    log: (level, message) => log(`[${serverId}:migration:${level}] ${message}`),
+  });
+  const legacyUsageStore = new McpLegacyUsageStore(path.join(path.dirname(resolvedDbPath), 'mcp-legacy-usage.db'));
+  legacyUsageStore.markObservation(serverId);
+  const legacyObservationTimer = setInterval(
+    () => {
+      try {
+        legacyUsageStore.markObservation(serverId);
+      } catch (error) {
+        log(`[${serverId}:legacy-observation:warn] ${error.message}`);
+      }
+    },
+    60 * 60 * 1000,
+  );
+  legacyObservationTimer.unref();
+  let recordDenial = () => {};
+  // A handler refusal for an out-of-scope access is a denial too; it is recorded before the failure envelope is built.
+  const gatedInvokeTool = async (name, args, context) => {
+    try {
+      return await invokeTool(name, args, context);
+    } catch (error) {
+      if (error && error.code === 'MCP_SCOPE_DENIED') {
+        recordDenial({ tool: name, code: 'MCP_SCOPE_DENIED', rpc_code: -32_000 });
+      }
+      throw error;
+    }
+  };
+  const execution = createOperationalExecution({ db, serverId, tools, invokeTool: gatedInvokeTool });
+  recordDenial = createDenialRecorder({
+    ledger: execution.ledger,
+    serverId,
+    actor: localProcessActor(),
+    log,
+  });
+  const approvalStateCodec = createMcpApprovalStateCodec({ key: randomBytes(32) });
+  const approvalFlow = createLocalApprovalFlow({ execution, serverId });
   const adapter = createNativeMcpAdapter({
     serverId,
     scheduler: execution.scheduler,
@@ -112,6 +156,7 @@ function startNativeMcpServer({ serverId, tools, invokeTool, mode, port, dbPath,
     adapterOptions: {
       approvalFlow,
       approvalStateCodec,
+      onDenied: (denial) => recordDenial(denial),
       legacyUsage(event) {
         try {
           legacyUsageStore.record({ ...event, server_id: serverId });
@@ -166,4 +211,4 @@ function startNativeMcpServer({ serverId, tools, invokeTool, mode, port, dbPath,
   return handle;
 }
 
-module.exports = { startNativeMcpServer };
+module.exports = { createDenialRecorder, createLocalApprovalFlow, startNativeMcpServer };

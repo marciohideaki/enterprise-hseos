@@ -1,0 +1,619 @@
+heavy-run: modo normal (load1=1.15 phys=6 avail=21553MiB need=6G mem.psi=0.00 io.psi.full=0.00)
+Delegated test cgroup controllers verified
+v22.23.3
+TAP version 13
+# Subtest: v1 input keeps the v1 contract, bytes and replay: no authority fields are required or emitted
+not ok 1 - v1 input keeps the v1 contract, bytes and replay: no authority fields are required or emitted
+  ---
+  duration_ms: 2.411442
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-authority.js:44:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The module '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'
+    was compiled against a different Node.js version using
+    NODE_MODULE_VERSION 137. This version of Node.js requires
+    NODE_MODULE_VERSION 127. Please try re-compiling or re-installing
+    the module (for instance, using `npm rebuild` or `npm install`).
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/fixtures/agent-context-harness.js:19:14)
+    run (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-authority.js:14:25)
+  ...
+# Subtest: v2 sources are recorded with authority, origin, digest and trust in an additive context.assembled v2
+not ok 2 - v2 sources are recorded with authority, origin, digest and trust in an additive context.assembled v2
+  ---
+  duration_ms: 0.415724
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-authority.js:54:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/fixtures/agent-context-harness.js:19:14)
+    run (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-authority.js:14:25)
+  ...
+# Subtest: data layers can never claim directive or operator authority, from any origin
+not ok 3 - data layers can never claim directive or operator authority, from any origin
+  ---
+  duration_ms: 0.352702
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-authority.js:86:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/fixtures/agent-context-harness.js:19:14)
+    expectRejected (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-authority.js:27:25)
+  ...
+# Subtest: directive authority needs a trusted, untransformed config or operator origin in an instruction layer
+not ok 4 - directive authority needs a trusted, untransformed config or operator origin in an instruction layer
+  ---
+  duration_ms: 0.344586
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-authority.js:103:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/fixtures/agent-context-harness.js:19:14)
+    expectRejected (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-authority.js:27:25)
+  ...
+# Subtest: data layers refuse a trusted label for every origin, with a dedicated code
+not ok 5 - data layers refuse a trusted label for every origin, with a dedicated code
+  ---
+  duration_ms: 0.41661
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-authority.js:142:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/fixtures/agent-context-harness.js:19:14)
+    expectRejected (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-authority.js:27:25)
+  ...
+# Subtest: operator authority on the current turn requires the operator origin
+not ok 6 - operator authority on the current turn requires the operator origin
+  ---
+  duration_ms: 0.334028
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-authority.js:164:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/fixtures/agent-context-harness.js:19:14)
+    expectRejected (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-authority.js:27:25)
+  ...
+# Subtest: incomplete or inconsistent provenance is refused at the boundary
+not ok 7 - incomplete or inconsistent provenance is refused at the boundary
+  ---
+  duration_ms: 0.295588
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-authority.js:180:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/fixtures/agent-context-harness.js:19:14)
+    expectRejected (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-authority.js:27:25)
+  ...
+# Subtest: a transformation keeps the lowest input authority and can never raise it
+ok 8 - a transformation keeps the lowest input authority and can never raise it
+  ---
+  duration_ms: 0.931059
+  type: 'test'
+  ...
+# Subtest: external data never changes the lattice decision or the tool list (central invariant)
+not ok 9 - external data never changes the lattice decision or the tool list (central invariant)
+  ---
+  duration_ms: 0.536991
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-authority.js:235:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/fixtures/agent-context-harness.js:19:14)
+    run (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-authority.js:14:25)
+  ...
+# Subtest: media store round-trips PNG, JPEG and WebP and verifies magic, digest, size and dimensions
+ok 10 - media store round-trips PNG, JPEG and WebP and verifies magic, digest, size and dimensions
+  ---
+  duration_ms: 16.996187
+  type: 'test'
+  ...
+# Subtest: tampered, truncated, linked or foreign artifacts fail with a digest mismatch before use
+ok 11 - tampered, truncated, linked or foreign artifacts fail with a digest mismatch before use
+  ---
+  duration_ms: 3.550825
+  type: 'test'
+  ...
+# Subtest: a damaged artifact on a content address is repaired by storing the exact bytes again
+ok 12 - a damaged artifact on a content address is repaired by storing the exact bytes again
+  ---
+  duration_ms: 5.119917
+  type: 'test'
+  ...
+# Subtest: byte ceilings are enforced per item, per count and per assembly
+ok 13 - byte ceilings are enforced per item, per count and per assembly
+  ---
+  duration_ms: 10.25009
+  type: 'test'
+  ...
+# Subtest: counter v2 bounds image cost and is deterministic; a counter without count_media rejects media
+ok 14 - counter v2 bounds image cost and is deterministic; a counter without count_media rejects media
+  ---
+  duration_ms: 0.568014
+  type: 'test'
+  ...
+# Subtest: assembles media as digest-verified parts with bytes kept out of the durable event
+not ok 15 - assembles media as digest-verified parts with bytes kept out of the durable event
+  ---
+  duration_ms: 1.996023
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-media.js:156:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The module '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'
+    was compiled against a different Node.js version using
+    NODE_MODULE_VERSION 137. This version of Node.js requires
+    NODE_MODULE_VERSION 127. Please try re-compiling or re-installing
+    the module (for instance, using `npm rebuild` or `npm install`).
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/fixtures/agent-context-harness.js:19:14)
+    withAssembly (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-media.js:46:25)
+  ...
+# Subtest: optional media is omitted by priority under truncate_optional; required media stays
+not ok 16 - optional media is omitted by priority under truncate_optional; required media stays
+  ---
+  duration_ms: 0.464554
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-media.js:205:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/fixtures/agent-context-harness.js:19:14)
+    withAssembly (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-media.js:46:25)
+  ...
+# Subtest: a provider without image_input rejects media before any append
+not ok 17 - a provider without image_input rejects media before any append
+  ---
+  duration_ms: 0.387696
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-media.js:243:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/fixtures/agent-context-harness.js:19:14)
+    withAssembly (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-media.js:46:25)
+  ...
+# Subtest: a counter without count_media rejects media; so does a nondeterministic or failing one
+not ok 18 - a counter without count_media rejects media; so does a nondeterministic or failing one
+  ---
+  duration_ms: 0.389668
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-media.js:259:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/fixtures/agent-context-harness.js:19:14)
+    withAssembly (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-media.js:46:25)
+  ...
+# Subtest: media needs a store, matching bytes and ceilings, and nothing is appended when any check fails
+not ok 19 - media needs a store, matching bytes and ceilings, and nothing is appended when any check fails
+  ---
+  duration_ms: 0.458681
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-media.js:287:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/fixtures/agent-context-harness.js:19:14)
+    withAssembly (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context-media.js:46:25)
+  ...
+# Subtest: correct digest and size with the wrong magic signature is refused for every media type
+ok 20 - correct digest and size with the wrong magic signature is refused for every media type
+  ---
+  duration_ms: 0.427636
+  type: 'test'
+  ...
+# Subtest: count and total ceilings accept the exact limit and refuse one past it
+ok 21 - count and total ceilings accept the exact limit and refuse one past it
+  ---
+  duration_ms: 0.504482
+  type: 'test'
+  ...
+# Subtest: real dimensions are read from PNG, JPEG and WebP (VP8, VP8L, VP8X) and must equal the declaration
+ok 22 - real dimensions are read from PNG, JPEG and WebP (VP8, VP8L, VP8X) and must equal the declaration
+  ---
+  duration_ms: 1.036193
+  type: 'test'
+  ...
+# Subtest: formats whose dimensions cannot be read are refused (fail closed)
+ok 23 - formats whose dimensions cannot be read are refused (fail closed)
+  ---
+  duration_ms: 0.729575
+  type: 'test'
+  ...
+# Subtest: assembles canonical precedence and records every visible source before returning
+not ok 24 - assembles canonical precedence and records every visible source before returning
+  ---
+  duration_ms: 2.103684
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:307:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The module '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'
+    was compiled against a different Node.js version using
+    NODE_MODULE_VERSION 137. This version of Node.js requires
+    NODE_MODULE_VERSION 127. Please try re-compiling or re-installing
+    the module (for instance, using `npm rebuild` or `npm install`).
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:44:14)
+    TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:308:25)
+  ...
+# Subtest: source order and tool order cannot change deterministic assembled messages
+not ok 25 - source order and tool order cannot change deterministic assembled messages
+  ---
+  duration_ms: 0.374535
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:338:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:44:14)
+    TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:339:17)
+  ...
+# Subtest: truncate_optional keeps recent history first and durably records whole omitted sources
+not ok 26 - truncate_optional keeps recent history first and durably records whole omitted sources
+  ---
+  duration_ms: 0.343356
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:363:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:44:14)
+    TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:364:20)
+  ...
+# Subtest: compact pressure atomically records exact lineage and a byte-reconstructable request
+not ok 27 - compact pressure atomically records exact lineage and a byte-reconstructable request
+  ---
+  duration_ms: 0.4572
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:415:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:44:14)
+    TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:416:20)
+  ...
+# Subtest: session budget reserves output when a provider emits no usage telemetry
+not ok 28 - session budget reserves output when a provider emits no usage telemetry
+  ---
+  duration_ms: 0.393158
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:496:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:44:14)
+    TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:497:25)
+  ...
+# Subtest: required or reject-policy overflow fails before any context event is appended
+not ok 29 - required or reject-policy overflow fails before any context event is appended
+  ---
+  duration_ms: 0.370212
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:520:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:44:14)
+    TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:522:27)
+  ...
+# Subtest: durable turn identity, source identity and provider ownership fail closed
+not ok 30 - durable turn identity, source identity and provider ownership fail closed
+  ---
+  duration_ms: 0.354418
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:542:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:44:14)
+    TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:543:25)
+  ...
+# Subtest: duplicate lineage, secret classification and nondeterministic token counters append nothing
+not ok 31 - duplicate lineage, secret classification and nondeterministic token counters append nothing
+  ---
+  duration_ms: 0.352376
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:565:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:44:14)
+    TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:566:25)
+  ...
+# Subtest: requires nominal durable stores and registry-created provider snapshots
+ok 32 - requires nominal durable stores and registry-created provider snapshots
+  ---
+  duration_ms: 4.365701
+  type: 'test'
+  ...
+# Subtest: exact retries are idempotent and conservative counter uses canonical UTF-8 bytes
+not ok 33 - exact retries are idempotent and conservative counter uses canonical UTF-8 bytes
+  ---
+  duration_ms: 0.536791
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:637:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:44:14)
+    TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:638:25)
+  ...
+# Subtest: token counter validation and accounting fail closed on malformed counters and unsafe totals
+ok 34 - token counter validation and accounting fail closed on malformed counters and unsafe totals
+  ---
+  duration_ms: 1.057859
+  type: 'test'
+  ...
+# Subtest: context.assembled rejects forged or inconsistent v1 and v2 payloads
+not ok 35 - context.assembled rejects forged or inconsistent v1 and v2 payloads
+  ---
+  duration_ms: 0.435814
+  type: 'test'
+  location: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:717:1'
+  failureType: 'testCodeFailure'
+  error: "Module did not self-register: '/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/build/Release/better_sqlite3.node'."
+  code: 'ERR_DLOPEN_FAILED'
+  stack: |-
+    Object..node (node:internal/modules/cjs/loader:1939:18)
+    Module.load (node:internal/modules/cjs/loader:1505:32)
+    Function._load (node:internal/modules/cjs/loader:1309:12)
+    wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    Module.require (node:internal/modules/cjs/loader:1527:12)
+    require (node:internal/modules/helpers:147:16)
+    bindings (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/bindings/bindings.js:112:48)
+    new Database (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/node_modules/better-sqlite3/lib/database.js:48:64)
+    openStore (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:44:14)
+    TestContext.<anonymous> (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/hseos-w5-02a/test/test-agent-context.js:718:25)
+  ...
+# Subtest: constitutional and mandatory denies survive bypass mode and provider callbacks
+ok 36 - constitutional and mandatory denies survive bypass mode and provider callbacks
+  ---
+  duration_ms: 1.419812
+  type: 'test'
+  ...
+# Subtest: ask precedes mode, allow, and provider callback
+ok 37 - ask precedes mode, allow, and provider callback
+  ---
+  duration_ms: 0.150233
+  type: 'test'
+  ...
+# Subtest: provider callback can narrow but never runs after a deny or ask
+ok 38 - provider callback can narrow but never runs after a deny or ask
+  ---
+  duration_ms: 0.151353
+  type: 'test'
+  ...
+# Subtest: configuration precedence and restrictive merge kinds are deterministic
+ok 39 - configuration precedence and restrictive merge kinds are deterministic
+  ---
+  duration_ms: 0.536354
+  type: 'test'
+  ...
+# Subtest: child agents can narrow but cannot widen parent authority
+ok 40 - child agents can narrow but cannot widen parent authority
+  ---
+  duration_ms: 0.562752
+  type: 'test'
+  ...
+# Subtest: malformed modes, rules, configuration values, and authority fail closed
+ok 41 - malformed modes, rules, configuration values, and authority fail closed
+  ---
+  duration_ms: 0.41044
+  type: 'test'
+  ...
+1..41
+# tests 41
+# suites 0
+# pass 18
+# fail 23
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 631.525623

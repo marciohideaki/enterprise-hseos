@@ -2,6 +2,10 @@
 
 const {
   AgentMessageSchema,
+  AuthoritySchema,
+  MAX_MEDIA_ITEMS,
+  MediaSourceSchema,
+  ProvenanceSchema,
   AgentSessionSpecSchema,
   CONTRACT_SCHEMA_VERSION,
   IdentifierSchema,
@@ -37,30 +41,40 @@ const BoundedToolDefinitionsSchema = ToolDefinitionsSchema.refine(
   (tools) => Buffer.byteLength(JSON.stringify(tools), 'utf8') <= MAX_TOOL_DEFINITIONS_BYTES,
   { message: 'tool definitions exceed the assembly byte limit' },
 );
+// context-source v2 is additive: a source without authority/provenance is read as v1 and derived from its layer.
 const ContextSourceSchema = strictObject({
   source_ref: SafeReferenceSchema,
   classification: z.enum(['public', 'internal']),
   content: ContextTextSchema,
+  authority: AuthoritySchema.optional(),
+  provenance: ProvenanceSchema.optional(),
 });
 const MemorySourceSchema = strictObject({
   source_ref: SafeReferenceSchema,
   classification: z.enum(['public', 'internal']),
   priority: z.number().int().min(0).max(100),
   content: ContextTextSchema,
+  authority: AuthoritySchema.optional(),
+  provenance: ProvenanceSchema.optional(),
 });
+const RequiredMediaPartSchema = strictObject({ type: z.literal('image'), source_ref: SafeReferenceSchema });
 const HistorySourceSchema = strictObject({
   source_event_id: IdentifierSchema,
   source_ref: SafeReferenceSchema,
   sequence: z.number().int().positive(),
   message: BoundedAgentMessageSchema,
 });
-const CurrentTurnSchema = strictObject({ source_ref: SafeReferenceSchema, message: BoundedAgentMessageSchema }).superRefine(
-  (turn, context) => {
-    if (turn.message.role !== 'user') {
-      context.addIssue({ code: 'custom', path: ['message', 'role'], message: 'current turn must be a user message' });
-    }
-  },
-);
+const CurrentTurnSchema = strictObject({
+  source_ref: SafeReferenceSchema,
+  message: BoundedAgentMessageSchema,
+  authority: AuthoritySchema.optional(),
+  provenance: ProvenanceSchema.optional(),
+  parts: z.array(RequiredMediaPartSchema).max(MAX_MEDIA_ITEMS).optional(),
+}).superRefine((turn, context) => {
+  if (turn.message.role !== 'user') {
+    context.addIssue({ code: 'custom', path: ['message', 'role'], message: 'current turn must be a user message' });
+  }
+});
 const InstructionLayersSchema = strictObject({
   constitution: z.array(ContextSourceSchema).min(1).max(16),
   project: z.array(ContextSourceSchema).min(1).max(64),
@@ -70,7 +84,14 @@ const InstructionLayersSchema = strictObject({
 });
 
 function allSources(input) {
-  return [...Object.values(input.instructions).flat(), ...input.runtime_context, ...input.references, ...input.memory, input.current_turn];
+  return [
+    ...Object.values(input.instructions).flat(),
+    ...input.runtime_context,
+    ...input.references,
+    ...input.memory,
+    ...input.media,
+    input.current_turn,
+  ];
 }
 
 function findSensitiveKey(value, path = 'tools') {
@@ -110,6 +131,7 @@ const ContextAssemblyInputSchema = strictObject({
   runtime_context: z.array(ContextSourceSchema).max(64),
   references: z.array(ContextSourceSchema).max(256),
   memory: z.array(MemorySourceSchema).max(256),
+  media: z.array(MediaSourceSchema).max(MAX_MEDIA_ITEMS).default([]),
   current_turn: CurrentTurnSchema,
   tools: BoundedToolDefinitionsSchema,
   parameters: strictObject({
@@ -146,6 +168,12 @@ const ContextAssemblyInputSchema = strictObject({
   }, 0);
   if (sourceBytes > MAX_CONTEXT_ASSEMBLY_BYTES) {
     context.addIssue({ code: 'custom', message: 'context sources exceed the total assembly byte limit' });
+  }
+  const mediaRefs = new Set(input.media.map((media) => media.source_ref));
+  for (const [index, part] of (input.current_turn.parts ?? []).entries()) {
+    if (!mediaRefs.has(part.source_ref)) {
+      context.addIssue({ code: 'custom', path: ['current_turn', 'parts', index], message: 'required media is not declared in media[]' });
+    }
   }
   const sensitivePath = findSensitiveKey(input.tools);
   if (sensitivePath) {

@@ -477,3 +477,99 @@ hooks:
     platform_support:
       - claude-code
     fallback: No-op when hseos CLI or jq absent.
+  - id: stop-all-liveness-stop-guard
+    event: Stop
+    matcher: "*"
+    type: command
+    command: node .agents/hooks/handlers/liveness-guard.cjs stop
+    timeout: 10
+    blocking: true
+    status: active
+    description: "No silent idle: refuse a dispatched agent's end of turn without a valid final LIVENESS line, or with background tasks active and no valid WAITING_ON, up to max_stop_refusals; then record idle_violation and let it pass"
+    platform_support:
+      - claude-code
+    fallback: Without .hseos/config/agent-liveness.yaml (or with enabled false) this hook exits 0 with no effect. Harnesses without this event rely on the LIVENESS line protocol in the dev-squad skill and the external watchdog.
+  - id: subagentstop-all-liveness-stop-guard
+    event: SubagentStop
+    matcher: "*"
+    type: command
+    command: node .agents/hooks/handlers/liveness-guard.cjs stop
+    timeout: 10
+    blocking: true
+    status: active
+    description: "No silent idle: refuse a dispatched agent's end of turn without a valid final LIVENESS line, or with background tasks active and no valid WAITING_ON, up to max_stop_refusals; then record idle_violation and let it pass"
+    platform_support:
+      - claude-code
+    fallback: Without .hseos/config/agent-liveness.yaml (or with enabled false) this hook exits 0 with no effect. Harnesses without this event rely on the LIVENESS line protocol in the dev-squad skill and the external watchdog.
+  - id: teammateidle-all-liveness-stop-guard
+    event: TeammateIdle
+    matcher: "*"
+    type: command
+    command: node .agents/hooks/handlers/liveness-guard.cjs stop
+    timeout: 10
+    blocking: true
+    status: active
+    description: "No silent idle: refuse a dispatched agent's end of turn without a valid final LIVENESS line, or with background tasks active and no valid WAITING_ON, up to max_stop_refusals; then record idle_violation and let it pass"
+    platform_support:
+      - claude-code
+    fallback: Without .hseos/config/agent-liveness.yaml (or with enabled false) this hook exits 0 with no effect. Harnesses without this event rely on the LIVENESS line protocol in the dev-squad skill and the external watchdog.
+  - id: userpromptsubmit-all-liveness-wake-inbox
+    event: UserPromptSubmit
+    matcher: "*"
+    type: command
+    command: node .agents/hooks/handlers/liveness-guard.cjs inbox
+    timeout: 10
+    blocking: true
+    status: active
+    description: Inject pending liveness wake requests (.hseos/state/liveness/inbox) into the orchestrator prompt so it can SendMessage the stalled agents
+    platform_support:
+      - claude-code
+    fallback: Without .hseos/config/agent-liveness.yaml (or with enabled false) this hook exits 0 with no effect. Harnesses without this event rely on the LIVENESS line protocol in the dev-squad skill and the external watchdog.
+  - id: sessionstart-all-activity-coordination
+    event: SessionStart
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/activity-coordination.sh
+    timeout: 8
+    blocking: false
+    status: active
+    description: "Cross-tool activity coordination: register the session and inject pending coordination events. No effect without an enabled .hseos/config/activity-coordination.yaml."
+    platform_support:
+      - claude-code
+    fallback: No-op without the contract, the hseos CLI or jq; other tools run `hseos activity check` at session start (AGENTS.md).
+  - id: userpromptsubmit-all-activity-coordination
+    event: UserPromptSubmit
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/activity-coordination.sh
+    timeout: 8
+    blocking: false
+    status: active
+    description: "Cross-tool activity coordination: heartbeat and inject pending coordination events into the prompt. No effect without an enabled .hseos/config/activity-coordination.yaml."
+    platform_support:
+      - claude-code
+    fallback: No-op without the contract, the hseos CLI or jq; other tools run `hseos activity check` at session start (AGENTS.md).
+  - id: stop-all-activity-coordination
+    event: Stop
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/activity-coordination.sh
+    timeout: 8
+    blocking: false
+    status: active
+    description: "Cross-tool activity coordination: heartbeat at turn end. No effect without an enabled .hseos/config/activity-coordination.yaml."
+    platform_support:
+      - claude-code
+    fallback: No-op without the contract, the hseos CLI or jq; other tools run `hseos activity check` at session start (AGENTS.md).
+  - id: sessionend-all-activity-coordination
+    event: SessionEnd
+    matcher: "*"
+    type: command
+    command: bash .agents/hooks/handlers/activity-coordination.sh
+    timeout: 3
+    blocking: false
+    status: active
+    description: "Cross-tool activity coordination: end the activity. No effect without an enabled .hseos/config/activity-coordination.yaml."
+    platform_support:
+      - claude-code
+    fallback: No-op without the contract, the hseos CLI or jq; other tools run `hseos activity check` at session start (AGENTS.md).

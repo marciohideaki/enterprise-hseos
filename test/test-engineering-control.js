@@ -9,6 +9,7 @@ const { promisify } = require('node:util');
 const test = require('node:test');
 const { fixture } = require('./helpers/engineering-project');
 const { EngineeringControl } = require('../tools/cli/lib/engineering-control');
+const { projectVerifierDigest } = require('../tools/cli/lib/engineering-project-verifier');
 const { startControlServer } = require('../tools/cli/lib/engineering-control-http');
 const { ControlClient } = require('../packages/control-sdk');
 const { engineeringDigest } = require('../tools/cli/lib/engineering-task-state');
@@ -410,4 +411,200 @@ test('unknown resources return 404 and malformed cursors 400 uniformly across ta
   }
   const binding = await fetch(f.server.url + '/v1/provider-bindings?binding_id=binding%3Aunknown', { headers });
   assert.equal(binding.status, 404);
+});
+
+test('admission refuses weak acceptance and unsafe command arguments with a curated detail.code (A5b, N1)', async (t) => {
+  const f = await setup(t);
+  const rejected = (contract, code) =>
+    assert.rejects(
+      f.client.execute(command(randomUUID(), 'create', 0, { contract, responses: [] })),
+      (error) => error.code === 'CONTROL_REQUEST_REJECTED' && error.detail.code === code && !JSON.stringify(error.detail).includes(f.root),
+      code,
+    );
+  const weak = structuredClone(f.contract);
+  weak.verifier.reference = 'verifier://project/web-content-v1';
+  weak.verifier.checks = [{ path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
+  await rejected(weak, 'ENGINEERING_ACCEPTANCE_WEAK');
+  const withCommand = (mutate) => {
+    const contract = structuredClone(f.contract);
+    fs.writeFileSync(path.join(f.root, 'check.js'), 'process.exit(0);\n');
+    contract.scope.read = [...contract.scope.read, 'check.js'];
+    contract.commands = [{ id: 'check', runtime: 'node', entrypoint: 'check.js', args: [] }];
+    contract.verifier.command_checks = [{ command_id: 'check' }];
+    contract.verifier.protected_paths = ['check.js'];
+    mutate(contract);
+    return contract;
+  };
+  await rejected(
+    withCommand((c) => (c.commands[0].args = ['-cindex.js'])),
+    'ENGINEERING_COMMAND_ARG_INVALID',
+  );
+  fs.writeFileSync(path.join(f.root, 'package.json'), '{}');
+  await rejected(
+    withCommand((c) => c.scope.read.push('package.json')),
+    'ENGINEERING_PROTECTED_CONFIG_MISSING',
+  );
+  await rejected(
+    withCommand((c) => (c.verifier.protected_paths = ['index.js'])),
+    'ENGINEERING_PROTECTED_PATH_INVALID',
+  );
+  const workflow = {
+    schema_version: 1,
+    workflow_id: 'workflow:weak',
+    max_parallelism: 1,
+    limits: { ...f.contract.limits, max_children: 1, max_workflow_steps: 1, max_duration_ms: f.contract.limits.max_duration_ms * 2 },
+    tasks: [
+      {
+        id: 'only',
+        contract: { ...weak, verifier: { ...weak.verifier, sha256: projectVerifierDigest(weak) } },
+        responses: f.create.input.responses,
+        depends_on: [],
+      },
+    ],
+  };
+  await assert.rejects(
+    f.client.execute(command(randomUUID(), 'create_workflow', 0, { definition: workflow })),
+    (error) => error.code === 'CONTROL_REQUEST_REJECTED' && error.detail?.code === 'ENGINEERING_ACCEPTANCE_WEAK',
+  );
+});
+
+test('a materialized job exposes status, evidence, session and owned events without dispatch', async (t) => {
+  const f = fixture(t);
+  const control = new EngineeringControl({ workspaces: [f.root] });
+  t.after(() => {
+    control.close();
+    fs.rmSync(control.state, { recursive: true, force: true });
+  });
+  const id = randomUUID();
+  const now = Date.parse('2027-01-01T00:00:00.000Z');
+  control.jobs.now = () => now;
+  const step = (action, expected_sequence, extra = {}) => ({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: id,
+    expected_sequence,
+    action,
+    ...extra,
+  });
+  await control.jobs.execute(
+    step('create', 0, {
+      input: {
+        kind: 'task',
+        definition: { contract: f.contract, responses: [] },
+        not_before: new Date(now).toISOString(),
+        deadline_at: new Date(now + 120_000).toISOString(),
+        depends_on: [],
+      },
+    }),
+  );
+  await control.jobs.worker.execute(step('claim', 1, { fence: 0, lease_ms: 1000 }));
+  await control.jobs.materializer.execute(step('materialize', 2, { fence: 1 }));
+  const status = await control.query(id);
+  assert.equal(status.resource_id, id);
+  assert.equal((await control.query(id, 'evidence')).resource_id, id);
+  assert.equal((await control.query(id, 'session')).resource_id, id);
+  await assert.rejects(control.query(id, 'review'), { code: 'CONTROL_VIEW_UNAVAILABLE' });
+  const events = control.events(id);
+  assert.ok(events.events.length > 0);
+  assert.equal(control.events(id, { after: events.next_cursor }).events.length, 0);
+});
+
+test('job creation applies the hardened admission while replaying admitted input does not', async (t) => {
+  const f = fixture(t);
+  const control = new EngineeringControl({ workspaces: [f.root] });
+  t.after(() => {
+    control.close();
+    fs.rmSync(control.state, { recursive: true, force: true });
+  });
+  const weak = structuredClone(f.contract);
+  weak.verifier.reference = 'verifier://project/web-content-v1';
+  weak.verifier.checks = [{ path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
+  weak.verifier.sha256 = projectVerifierDigest(weak);
+  const input = { contract: weak, responses: [] };
+  const { parseCreationInput } = require('../tools/cli/lib/engineering-control');
+  assert.equal(parseCreationInput('create', input).contract.schema_version, 2, 'history stays readable');
+  assert.throws(() => parseCreationInput('create', input, { admission: true }), { reason: 'ENGINEERING_ACCEPTANCE_WEAK' });
+  const now = Date.parse('2027-01-01T00:00:00.000Z');
+  control.jobs.now = () => now;
+  await assert.rejects(
+    control.jobs.execute({
+      schema_version: 1,
+      command_id: randomUUID(),
+      resource_id: randomUUID(),
+      expected_sequence: 0,
+      action: 'create',
+      input: {
+        kind: 'task',
+        definition: input,
+        not_before: new Date(now).toISOString(),
+        deadline_at: new Date(now + 120_000).toISOString(),
+        depends_on: [],
+      },
+    }),
+    { reason: 'ENGINEERING_ACCEPTANCE_WEAK' },
+  );
+});
+
+test('a job admitted under the previous rules is still claimed and re-validated, while new weak jobs are refused', async (t) => {
+  const f = fixture(t);
+  const control = new EngineeringControl({ workspaces: [f.root] });
+  t.after(() => {
+    control.close();
+    fs.rmSync(control.state, { recursive: true, force: true });
+  });
+  const weak = structuredClone(f.contract);
+  weak.verifier.reference = 'verifier://project/web-content-v1';
+  weak.verifier.checks = [{ path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
+  weak.verifier.sha256 = projectVerifierDigest(weak);
+  const id = randomUUID();
+  const now = Date.parse('2027-01-01T00:00:00.000Z');
+  control.jobs.now = () => now;
+  const step = (action, expected_sequence, extra = {}) => ({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: id,
+    expected_sequence,
+    action,
+    ...extra,
+  });
+  const create = step('create', 0, {
+    input: {
+      kind: 'task',
+      definition: { contract: weak, responses: [] },
+      not_before: new Date(now).toISOString(),
+      deadline_at: new Date(now + 120_000).toISOString(),
+      depends_on: [],
+    },
+  });
+  await assert.rejects(control.jobs.execute(create), { reason: 'ENGINEERING_ACCEPTANCE_WEAK' });
+  // Simulate a job persisted before the hardened rules existed.
+  const hardened = control.admitCreation;
+  control.admitCreation = (action, input, resource, deadline) =>
+    hardened.call(control, action, input, resource, deadline, { admission: false });
+  await control.jobs.execute(create);
+  delete control.admitCreation;
+  const claimed = await control.jobs.worker.execute(step('claim', 1, { fence: 0, lease_ms: 1000 }));
+  assert.equal(claimed.status, 'claimed');
+  // Recovery re-validates through the same path as the claim.
+  await control.jobs.worker.admit(control.jobs.query(id));
+});
+
+test('the job command pre-check refuses weak acceptance before any other validation', async (t) => {
+  const f = await setup(t);
+  const weak = structuredClone(f.contract);
+  weak.verifier.reference = 'verifier://project/web-content-v1';
+  weak.verifier.checks = [{ path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
+  const response = await fetch(f.server.url + '/v1/jobs/commands', {
+    method: 'POST',
+    headers: { authorization: `Bearer ${credential}`, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      action: 'create',
+      command_id: 'not-a-command',
+      input: { kind: 'task', definition: { contract: weak, responses: [] } },
+    }),
+  });
+  assert.equal(response.status, 409);
+  const body = await response.json();
+  assert.equal(body.error, 'CONTROL_REQUEST_REJECTED');
+  assert.equal(body.detail.code, 'ENGINEERING_ACCEPTANCE_WEAK');
 });

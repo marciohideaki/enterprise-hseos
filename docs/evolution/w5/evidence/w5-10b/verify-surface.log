@@ -1,0 +1,12 @@
+heavy-run: modo normal (load1=1.42 phys=6 avail=23289MiB need=6G mem.psi=0.00 io.psi.full=0.00)
+Delegated test cgroup controllers verified
+✔ published package exposes runtime and governance assets only (2127.845141ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2176.695181
+{"entryCount":1538,"areas":{".agents":203,".enterprise":464,".hseos":63,"AGENTS.md":1,"CHANGELOG.md":1,"CLAUDE.md":1,"LICENSE":1,"README.md":1,"SECURITY.md":1,"docs":7,"package.json":1,"packages":137,"scripts":19,"src":245,"tools":393}}

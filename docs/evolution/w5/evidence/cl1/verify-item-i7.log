@@ -1,0 +1,8 @@
+# item 7 final run at 9a3ff661 (round 1 correction): node --test test/test-environment-dap.js under c8, run-in-cgroup.sh, Node v24.15.0
+# replaces the log of the intermediate run (31 pass / 1 fail) that the first receipt cited
+heavy-run: modo normal (load1=1.29 phys=6 avail=21684MiB need=6G mem.psi=0.00 io.psi.full=0.00)
+Delegated test cgroup controllers verified
+ℹ pass 33
+ℹ fail 0
+ dap-host.js |    99.1 |     93.1 |     100 |    99.1 | 431-434           
+ dap.js      |   99.46 |    98.03 |     100 |   99.46 | 143-144           

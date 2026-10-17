@@ -203,6 +203,17 @@ This boundary prevents the model from treating external content as instructions.
 
 ---
 
+## 5a. Cross-tool activity coordination
+
+When `.hseos/config/activity-coordination.yaml` is enabled, peers in other tools (Claude Code, Codex, others) are visible through the activity store, with no addressing needed:
+
+- Run `hseos activity check` at the start; hook-capable tools receive it injected in the prompt.
+- Run `hseos activity declare` before altering hot files, and `hseos activity reserve` before fixing a version or name.
+- Release scripts call `hseos activity guard-publish <pkg>@<version>`.
+- SendMessage and peer brokers stay optional accelerators; the store and inbox are the channel of record.
+
+---
+
 ## 6. Constraints
 
 - Sensitive artifacts (tokens, secrets, credentials) MUST NOT be transmitted via inter-agent messages

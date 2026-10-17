@@ -1,0 +1,4 @@
+F7 - length of the child session name js-debug 1.140.0 produces (real adapter, direct host.runSession, instrumented copy of dap-host.js, reverted)
+program app.js                                   -> name "app.js [1696379]"  (16 chars)
+program with a 265-char relative path, 64-char basename -> name "<basename> [1696625]" (71 chars)
+conclusion: name = basename + " [pid]"; the directory part is not included. 256 leaves room for basenames up to about 245 characters; a longer one is refused fail-closed (the child session is not opened and the run ends by timeout).

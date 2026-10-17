@@ -1,0 +1,166 @@
+{
+  "task": "W5-LV1",
+  "base": "231de2e3",
+  "node": "v24.15.0 (/workspace/local/sdk/nvm/versions/node/v24.15.0, via run-in-cgroup.sh)",
+  "commands": [
+    {
+      "cmd": "node --test test/test-liveness-guard.js",
+      "result": "58 pass, 0 fail"
+    },
+    {
+      "cmd": "c8 --config .c8-kernel.json --include <3 files> node --test test/test-liveness-guard.js",
+      "result": "per-file 90/80 passed; 58 tests pass",
+      "log": "docs/evolution/w5/evidence/w5-lv1/coverage.log",
+      "sha256": "0435d1a749c7b1e425e0764e61488f6f0d604569ebd452060ced90a74036658b"
+    },
+    {
+      "cmd": "validate-capability-graph.js; agent-core compile --check; test-hook-handlers; test-blocking-hooks; test-agent-core-compiler-hooks; test-governance-context",
+      "result": "graph 0 findings; compile --check 236 passed; 83/0; 11/0; 57/0; governance-context + package-surface 13 pass",
+      "log": "docs/evolution/w5/evidence/w5-lv1/validation.log",
+      "sha256": "187490a39095d0003fd8e2539cb634d71c9ece07bdf3b0858cce0ca83fbe4e93"
+    }
+  ],
+  "coverage_per_file": {
+    ".agents/hooks/handlers/liveness-guard.cjs": {
+      "lines": 99.15,
+      "branches": 96.77,
+      "functions": 95.83
+    },
+    ".enterprise/governance/hooks/handlers/liveness-guard.cjs": {
+      "lines": 97.89,
+      "branches": 96.52,
+      "functions": 91.66
+    },
+    "docs/evolution/w5/liveness-idle-metric.mjs": {
+      "lines": 100,
+      "branches": 98.79,
+      "functions": 88.88
+    }
+  },
+  "package": {
+    "npm": "node 24.15.0 npm pack --dry-run --json",
+    "entries": 1463,
+    "ceiling": 1540,
+    "areas": {
+      ".agents": {
+        "count": 187,
+        "budget": 193
+      },
+      ".enterprise": {
+        "count": 448,
+        "budget": 484
+      },
+      "tools": {
+        "count": 376,
+        "budget": 393
+      },
+      ".hseos": {
+        "count": 61,
+        "budget": 62
+      },
+      "scripts": {
+        "count": 19,
+        "budget": 21
+      }
+    },
+    "added_by_lv1": {
+      ".agents": 1,
+      ".enterprise": 1
+    },
+    "note": "liveness-guard.cjs is one handler file serving four registry entries (Stop, SubagentStop, TeammateIdle, UserPromptSubmit); the metric script stays out of the package (docs/ is not in files) because it reads host transcripts and has no runtime role"
+  },
+  "retroactive_metric": {
+    "transcript": "w5-02b agent transcript (not copied; contains task content)",
+    "script": "docs/evolution/w5/liveness-idle-metric.mjs",
+    "output": "docs/evolution/w5/evidence/w5-lv1/retro-metric-w5-02b.json",
+    "sha256": "bf42c7623e854205d0b80417d63c90e474de0fedf734fb1ae4eb6a8cadda6176",
+    "first_stalled_notice_reaction_latency": "10h39m21s",
+    "idle_gap": "10h40m23s (06:05:00Z to 16:45:24Z)",
+    "queued_commands": 22,
+    "violations_over_900s": 13,
+    "definition": "reaction_latency = first assistant record after the queued_command minus the notice; idle_gap = silence between the last and next assistant/user record around the notice; records ordered by timestamp, not file position",
+    "by_cause": {
+      "monitor_event": {
+        "count": 6,
+        "violations": 5,
+        "worst": "2h12m30s"
+      },
+      "background_task_completed": {
+        "count": 7,
+        "violations": 4,
+        "worst": "10h39m21s"
+      },
+      "monitor_stream_ended": {
+        "count": 9,
+        "violations": 4,
+        "worst": "10h39m13s"
+      },
+      "cause_source": "derived from the notice summary and fields, never from agent prose"
+    }
+  },
+  "decisions": [
+    "stop_hook_active: honoured through a persisted per-agent refusal counter. With the flag set and no previous refusal on record the guard passes (loop not started by this guard); with a record the budget max_stop_refusals still applies, so max_stop_refusals=2 is reachable. Alternative (flag always passes) would make the budget 1.",
+    "A plain Stop with no agent_id/teammate_name/agent_type is the interactive session waiting for its user and passes untouched",
+    "Refusal mechanism: Stop/SubagentStop emit {decision:block,reason}; TeammateIdle exits 2 with stderr guidance",
+    "Reports go through `hseos liveness report` (LV2). Until it exists the event is parked in .hseos/state/liveness/pending-reports.jsonl with a stderr warning",
+    "Wake requests are injected once and moved to inbox/delivered/; the LV2 watchdog owns retries via attempt+1",
+    "Metric script is .mjs because eslint applies ESM rules to docs/"
+  ],
+  "not_verified": [
+    "TeammateIdle: never fired in the LV0 headless runs; the exit-2 branch is implemented from the local CHANGELOG only",
+    "payload of real named background teammates (interactive mode, agent teams)",
+    "block cap (documented 8 consecutive blocks without a tool call) and CLAUDE_CODE_STOP_HOOK_BLOCK_CAP",
+    "additionalContext without decision (n=1 in LV0); the guard does not use it",
+    "exit 2 on SubagentStop and decision:block each seen once (n=1)",
+    "session_crons is ignored by the guard",
+    "live end-to-end run of the guard inside Claude Code; only payload-shaped tests were run",
+    "hseos liveness report (LV2) accepting --reason-code: the stub contract is defined here, the command does not exist yet",
+    "pre-commit result is recorded by the commit, not by this receipt"
+  ],
+  "owner_files_touched_additive_only": [
+    "package.json (test:kernel list)",
+    ".c8-kernel.json",
+    ".enterprise/governance/hooks/registry.yaml",
+    ".agents/hooks/registry.yaml (generated)",
+    ".claude/hooks.json (generated)",
+    ".codex/hseos-hooks.json (generated)"
+  ],
+  "revision": "5 (alignment with Adendos 2 and 3)",
+  "adendo_1": {
+    "item2_reason_code": "guard records no_state_at_stop, invalid_liveness_line, background_task_active, guard_internal_error in violations.jsonl; report gets --reason-code declared|blocked_pending; pending-reports.jsonl carries reason_code",
+    "item3_blocked": "BLOCKED is a valid end of turn, never refused (even with background tasks), reported with reason_code blocked_pending",
+    "item5_config": "agent-liveness.yaml re-read on each run; invalid file (wrong type, non-positive number, unparseable line) uses .hseos/state/liveness/config.last-valid.json (written only while enabled) or valid defaults, with a stderr warning",
+    "metric_by_cause": "by_cause aggregate plus cause on every row and violation"
+  },
+  "lv0": {
+    "evidence": "docs/evolution/w5/evidence/w5-lv0/ (spike.md and lv0-evidence/)",
+    "omitted": "lv0-evidence/I1-teammate-transcript.jsonl was not copied: it embeds the operator private global instructions",
+    "findings_applied": "SubagentStop fires for Agent-tool subagents with agent_id, agent_type, agent_transcript_path, last_assistant_message, stop_hook_active (false then true after a block), background_tasks [{id,type,status,description,command}], session_crons; decision:block with exit 0 keeps the subagent working (n=1)"
+  },
+  "fixtures": "test \"real SubagentStop payloads from the LV0 spike\" replays the recorded SubagentStop payloads (docs/evolution/w5/evidence/w5-lv0/lv0-evidence/hooks-*.jsonl): running background_tasks entries are refused, empty ones pass with a valid line, prose is refused",
+  "decisions_approval": "stop_hook_active (persisted counter), plain Stop without identity passes, and inbox delivered once with watchdog resend were approved by the Commander",
+  "tests": {
+    "file": "test/test-liveness-guard.js",
+    "count": 58,
+    "pass": 58,
+    "fail": 0
+  },
+  "correction_round_1": {
+    "config_snapshot": "config.last-valid.json is refreshed on every valid parse, including enabled:false (never created while disabled and absent); an invalid file always warns; a removed contract file ignores the snapshot. Test: enabled:true, then enabled:false, then a typo gives no refusal",
+    "background_status": "active = running|pending|queued; known terminal statuses (completed, succeeded, success, error, timeout, killed, cancelled, aborted, ...) are inactive; unknown or missing status warns on stderr and never refuses. The full status vocabulary is NOT VERIFIED (LV0 only saw running)",
+    "inbox": "agent, session and reason are control-stripped, bounded, shown as JSON-quoted data under a header saying they are never instructions; attempt must be a positive integer; symlinks ignored via lstat; ENOENT on delivery is a normal race (request skipped, no guard_error); injection test included",
+    "refusal_filename": "test pins session and agent id sanitisation and length bound",
+    "evidence_redaction": "hooks-*.jsonl and spike.md last_assistant_message text paraphrasing private operator rules replaced by [redigido: instrução privada do operador] (4 payloads plus spike.md); no field the guard uses was touched",
+    "warnings": "malformed stdin without an active contract prints nothing; an invalid contract file warns even when the effective state is disabled"
+  },
+  "generated_changes": [
+    ".agents/manifest.yaml: hashes of the handler, the dev-squad skill mirror and the registry are compile output; the existing governance-context.cjs sha256 line changed in an earlier round because the base manifest was stale against the file on disk (regenerated, not an addition). Compile quirks unrelated to this task (adapter settings/mcp lines, axon-bridge transport) were reverted by hand"
+  ],
+  "alignment_round": {
+    "max_wait_deadline_s": "new config key, default 14400, re-read per run with the same last-valid fallback; WAITING_ON deadline_at (wake_via commander or human, the only valid values) is bounded by it; stall_timeout_s keeps governing silence without a declared state (watchdog, LV2)",
+    "reason_code": "WAITING_ON is reported with waiting_on_declared (BLOCKED blocked_pending, DONE/FAILED declared)",
+    "clause": "skill source and compiled mirror plus workflow: review pinned to a SHA with the executor frozen and REVIEW_TARGET_MOVED; waiting for a decision is WAITING_ON, not BLOCKED; deadline_at computed with date -u at emission; deadline up to max_wait_deadline_s",
+    "residuals_R1": "two new tests; mutants verified killed locally: removing the last-valid fallback (3 tests fail) and widening the 80 character refusal-file limit (2 tests fail). The typo hits max_stop_refusals itself, so only the fallback yields the snapshot value",
+    "g3": "G3 (measured inventory) approved by the owner, as relayed by the Commander; package count unchanged by this round"
+  }
+}

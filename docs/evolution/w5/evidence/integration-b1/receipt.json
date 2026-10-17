@@ -1,0 +1,343 @@
+{
+  "task": "integration of wave B1 plus LV/CO tracks",
+  "branch": "integration/hseos-w5-b1",
+  "base": "07bd5e97",
+  "verified_head": "0a7b9582",
+  "merges": {
+    "contracts": {
+      "task_sha": "5afa6501",
+      "merge": "938e1f1d"
+    },
+    "02a": {
+      "task_sha": "2a2f15eb",
+      "merge": "b04ff03d"
+    },
+    "04": {
+      "task_sha": "0ce6b4eb",
+      "merge": "d20b4a34"
+    },
+    "lv1": {
+      "task_sha": "3a0a5ae6",
+      "merge": "14be5f5a"
+    },
+    "lv2": {
+      "task_sha": "46431c03",
+      "merge": "1b84dbe1",
+      "original_task_sha": "16c52664"
+    },
+    "co1": {
+      "task_sha": "d82eaa09",
+      "merge": "c3d22990"
+    },
+    "co2": {
+      "task_sha": "a7783abb",
+      "merge": "e3c6e14e"
+    },
+    "02b": {
+      "task_sha": "51be92f6",
+      "includes": "02b1 a4343171",
+      "merge": "90900208",
+      "conflict": "package.json test:kernel, resolved by union; .c8-kernel.json merged cleanly"
+    }
+  },
+  "corrections": [
+    {
+      "sha": "028244e2",
+      "what": "package surface: .hseos budget 64 and entry ceiling 1556 (owner G3, 2026-10-12)"
+    },
+    {
+      "sha": "27b46258",
+      "what": "ignore c8 coverage output"
+    },
+    {
+      "sha": "c3ee484c",
+      "what": "LV1 stop guard aligned with the report CLI contract"
+    },
+    {
+      "sha": "8bdaed44",
+      "what": "LV2 shared inbox leaves coordination entries alone"
+    },
+    {
+      "sha": "e8a3e44b",
+      "what": "CO1 mirrored events carry id and the adapter alias is refused"
+    },
+    {
+      "sha": "5c2219e5",
+      "what": "CO2 C1: stderr warning when a group-writable CLI is refused"
+    },
+    {
+      "sha": "197ecdd3",
+      "what": "composition test of the real CO1 core with the real CO2 modules"
+    },
+    {
+      "sha": "895a3df4",
+      "what": "W5-04 criterion recorded as gateway-only with a durable record"
+    },
+    {
+      "sha": "460b0c8b",
+      "what": "regenerate the CLI command manifest after the activity command change"
+    },
+    {
+      "sha": "b88abe6d",
+      "what": "drop the restricted provider name from the idle watchdog research"
+    },
+    {
+      "sha": "fe51b2ec",
+      "what": "format the files touched by the integration fixes"
+    },
+    {
+      "sha": "baba84ac",
+      "what": "liveness: unknown config key warns and is ignored in guard, CLI and watch alike; a known key with an invalid value keeps the last valid config"
+    },
+    {
+      "sha": "0a7b9582",
+      "what": "regenerate the CLI command manifest after the liveness change (stale after baba84ac, caught by npm test)"
+    }
+  ],
+  "receipt_text_divergences_not_edited": [
+    {
+      "file": "docs/evolution/w5/evidence/w5-co2/receipt.json",
+      "field": "delivered",
+      "stated": "test/test-activity-adapters.js (18 tests)",
+      "actual": "43 tests"
+    },
+    {
+      "file": "docs/evolution/w5/evidence/w5-co2/receipt.json",
+      "field": "pending_integration",
+      "stated": "A2 attributed to the CO2 pending integration list",
+      "actual": "A2 is CO1 loader work, delivered by CO1 round 3"
+    }
+  ],
+  "process_deviations": [
+    "Focused tests of phase 2 ran without heavy-run while another session held the lock (same cgroup).",
+    "Husky hooks (.husky/_) exist in the worktree only from 2026-10-13 10:01; merge 90900208 and fix baba84ac may have been committed without pre-commit. The stale command manifest left by baba84ac was caught by the full npm test and fixed in 0a7b9582. Whether those two commits ran the hook is NOT VERIFIED."
+  ],
+  "phase3": {
+    "task_verifies": {
+      "head": "baba84ac",
+      "note": "W5-01/02a/02b1/02b2/04 use the verify_step of tasks.md without the heavy-run prefix (the cgroup wrapper applies it) and without the /tmp flock of W5-01; LV1/LV2/CO1/CO2 use c8 with includes taken from each receipt, per-file 90/80, plus the composition tests",
+      "result": "all exit 0, no failures, no coverage error",
+      "logs": {
+        "01": {
+          "log": "/build/tmp/w5-int/final/verify-01.log",
+          "sha256": "2d051dc3ec44a5f4b6908a8eb7933cdafa19ba2355055066116c8188882abb25",
+          "exit_code": 0
+        },
+        "02a": {
+          "log": "/build/tmp/w5-int/final/verify-02a.log",
+          "sha256": "ce0573d07b60e13c6e2ca6a027c00b559824d3dfe5afa27ea99b12a204d9bf86",
+          "exit_code": 0
+        },
+        "02b1": {
+          "log": "/build/tmp/w5-int/final/verify-02b1.log",
+          "sha256": "93026d5ae3b977fc06b85117732c1d24e97b50ca337080a674c1e600c06fa328",
+          "exit_code": 0
+        },
+        "02b2": {
+          "log": "/build/tmp/w5-int/final/verify-02b2.log",
+          "sha256": "d9a661c1f0e90369377eec2460648b4ecde36992987fc44d480088c4675d5732",
+          "exit_code": 0
+        },
+        "04": {
+          "log": "/build/tmp/w5-int/final/verify-04.log",
+          "sha256": "3e84b23fafa2fede46e8da37a7dd930b225d9a84d03279e1105834edafd88c55",
+          "exit_code": 0
+        },
+        "lv1": {
+          "log": "/build/tmp/w5-int/final/verify-lv1.log",
+          "sha256": "c837a15f1a650d036ed4d87320cb8a04f987fbf9488fa9b86a8b1cd93265f9c0",
+          "exit_code": 0
+        },
+        "lv2": {
+          "log": "/build/tmp/w5-int/final/verify-lv2.log",
+          "sha256": "10d7cfb1b6709f8657e7e2225f5d2605122f448f597f0d5a5e46a7cc445fe66d",
+          "exit_code": 0
+        },
+        "co1": {
+          "log": "/build/tmp/w5-int/final/verify-co1.log",
+          "sha256": "3793266dc764cbcb2eb12472c653bf583ea64a38bf61cb63018aa0f22b75be4f",
+          "exit_code": 0
+        },
+        "co2": {
+          "log": "/build/tmp/w5-int/final/verify-co2.log",
+          "sha256": "2ff5fc5985fbd4fa22fc377bb2fb08e05447a7b7ef9967b4c1115fb516f4e196",
+          "exit_code": 0
+        }
+      },
+      "exit_code_source": "verify-summary.txt written by the runner (exit=0 for each task); the chained \";\" commands expose only the last exit, so each log was also checked for failures"
+    },
+    "kernel_coverage": {
+      "head": "baba84ac",
+      "result": "exit code não capturado; conclusão pelo log: 10 blocos com 0 falhas, sem 'ERROR: Coverage', All files 97,34/91,86",
+      "log": "/build/tmp/w5-int/final/kcov.log",
+      "sha256": "b1bec8cdf6d6579e6e99a8915070331d230e1ca1731d8d22865e3b47aeea6582",
+      "exit_code": "not captured"
+    },
+    "npm_test_node24": {
+      "head": "0a7b9582",
+      "node": "24.15.0",
+      "result": "exit 0",
+      "log": "/build/tmp/w5-int/final/npmtest24.log",
+      "sha256": "9f64ecec3e245467259bda644f2fb84c2ff5c2ece3ec115800566b4c497ae6cb",
+      "exit_code": 0,
+      "exit_code_source": "NPMTEST_EXIT=0 appended to the log"
+    },
+    "npm_test_node22": {
+      "head": "0a7b9582",
+      "node": "22.23.3",
+      "clone": "/build/tmp/w5-int/wt22",
+      "note": "better-sqlite3 already built for ABI 22 in the clone; wrapper copy with NODEBIN of Node 22; env file only in XDG_RUNTIME_DIR with trap",
+      "result": "exit 0",
+      "log": "/build/tmp/w5-int/final/npmtest22.log",
+      "sha256": "502ada2694673c35d0dab3f199434449323fcc504da7fa93d147a6f535b3d7d5",
+      "exit_code": 0,
+      "exit_code_source": "NPMTEST_EXIT=0 appended to the log"
+    },
+    "inventory": {
+      "npm": "24.15.0",
+      "total": 1483,
+      "ceiling": 1556,
+      "areas": {
+        ".enterprise": [449, 484],
+        "tools": [387, 393],
+        "src": [245, 250],
+        ".agents": [188, 193],
+        "packages": [118, 137],
+        ".hseos": [63, 64],
+        "scripts": [19, 21],
+        "docs": [7, 7],
+        "root": [7, 7]
+      },
+      "areas_note": "[measured, budget]",
+      "g3_needed": false,
+      "log": "/build/tmp/w5-int/final/pack.json",
+      "sha256": "893ab6d44c7c4bb0e43c3336900bd8e91ad4524d5c17de7358b9f1dc5d2a4368",
+      "exit_code": 0,
+      "exit_code_source": "EXIT=0 printed by the pack command (not appended to the json)"
+    },
+    "capability_graph": "0 findings",
+    "agent_core_compile_check": "242 checks passed, no files written",
+    "eslint": "--max-warnings=0 passed on the 116 js/cjs/mjs/yaml files touched since 07bd5e97; repo lint inside npm test passed",
+    "prettier": {
+      "result": "4 files fail --check",
+      "files": [
+        "docs/evolution/w5/evidence/w5-02b1/chromium-feasibility.json",
+        "docs/evolution/w5/evidence/w5-02b1/logs/coverage-summary.json",
+        "docs/evolution/w5/evidence/w5-02b2/logs/coverage-summary.json",
+        "docs/evolution/w5/evidence/w5-lv0/lv0-evidence/scratch-settings.local.json"
+      ],
+      "note": "task evidence artifacts, not reformatted; format:check is not part of npm test"
+    },
+    "compensatory_gate_ci": {
+      "head": "de0b3dad",
+      "command": "VALIDATION_ENFORCED=true bash scripts/governance/quality-gates.sh --phase ci",
+      "result": "All quality gates passed: 0 failures, 2 warnings (unresolved placeholders in docs/activity-coordination/README.md and in src/hsm/workflows/3-solutioning/create-epics-and-stories/templates/epics-template.md)",
+      "exit_code": 0,
+      "exit_code_source": "GATE_EXIT=0 appended to the log",
+      "log": "/build/tmp/w5-int/final/gate-ci.log",
+      "sha256": "65e5a5c31f972330a5f2a7350bbefe2c8fde2fc96a7c698782e3ea558645078d"
+    }
+  },
+  "blocked": [],
+  "not_verified": [
+    "MCP journey through the installed package (W5-04 pending)",
+    "real consumers A and B",
+    "any activation (codex hooks, systemd timer, contracts enabled in projects)",
+    "literal exit code of test:kernel-coverage (declared, not a full PASS)",
+    "whether the commits made without hooks (until baba84ac) ran the pre-commit hook: they did not (hooks absent); compensated by npm test on Node 24 and 22 plus the CI gate",
+    "kernel coverage and task verifies were run at baba84ac, not at 0a7b9582 (the later commit only regenerates the manifest)"
+  ],
+  "history_rewrite": {
+    "date": "2026-10-13",
+    "reason": "The message of the original LV2 commit (16c52664) named a tool in its \"Parity for ...\" line, which the commit-msg hook rejects. It was accepted only because the LV2 worktree never had .husky/_ (hooks absent). Only that message was rewritten.",
+    "rewritten": "16c52664 -> 46431c03 (task/hseos-w5-lv2 moved too); the integration first-parent chain was rebuilt with the new parent.",
+    "map": {
+      "16c52664": "46431c03",
+      "e807c62c": "1b84dbe1",
+      "17f06c6c": "c3d22990",
+      "569d1007": "e3c6e14e",
+      "32affa38": "028244e2",
+      "b8c8a85d": "27b46258",
+      "1551e020": "c3ee484c",
+      "852b15d4": "8bdaed44",
+      "354c6b4c": "e8a3e44b",
+      "94a09cde": "5c2219e5",
+      "7dcc1dc9": "197ecdd3",
+      "8aa63437": "895a3df4",
+      "1966b391": "460b0c8b",
+      "8824d103": "b88abe6d",
+      "c56b59a0": "fe51b2ec",
+      "e818b826": "90900208",
+      "c251318a": "baba84ac",
+      "35440fa5": "0a7b9582",
+      "08c65f66": "351e0a51",
+      "52166b61": "de0b3dad"
+    },
+    "unchanged": "contracts, 02a, 04, lv1, co1, co2, 02b and the commits of the tasks",
+    "proof": {
+      "tree_identical_before_and_after": "tree 285b90bc269b349f72a9a7a493166101f879d589 for 16c52664 and 46431c03 (integration trees identical, worktree clean)",
+      "retroactive_commit_msg": "passed on 36 of 36 commits of the range",
+      "integration_head_before_this_docs_commit": "de0b3dad (was 52166b61)"
+    },
+    "note": "Evidence logs and the receipts of the tasks keep the old SHAs where they quote them; the trees are identical so the verifications carry over."
+  },
+  "hooks_finding": {
+    "finding": ".husky/_ (generated by husky prepare, ignored by git) was absent in the LV1, LV2 and integration worktrees up to baba84ac (old c251318a), and in the first commits of CO1 and CO2. git then commits silently with no pre-commit and no commit-msg.",
+    "consequence": "commits in that window were not checked by the hooks; the stale CLI manifest left by baba84ac and the tool name in the LV2 message went through.",
+    "remediation": [
+      "commit-in-cgroup.sh now refuses with exit 72 when the pre-commit or commit-msg hook is missing",
+      "retroactive commit-msg check over the range: 36 of 36 passed",
+      "compensatory CI gate on the HEAD (phase3.compensatory_gate_ci)"
+    ]
+  },
+  "correction_round_1": {
+    "review": "/build/tmp/hseos-w5/rev/REVIEW-W5-INT.md (approved at 260da30f with F1-F5)",
+    "commits": [
+      {
+        "sha": "53ed7624",
+        "finding": "F3",
+        "what": "guard and CLI contract share the value ranges, types, enum values and cross-key rules; the guard keeps a copy (it ships alone) and test/test-liveness-guard.js compares it with CONFIG_RANGES of the contract at every boundary; composition test covers max_stop_refusals: 0 (valid in guard, check and watch) and foreground_wait_max_s: 9999 (invalid in all three). The only generated change is the guard sha256 in .agents/manifest.yaml; the other compile drift (settings:/mcp:, axon-bridge transport, .claude/*, .mcp.json) was reverted."
+      },
+      {
+        "sha": "78b617f1",
+        "finding": "F4",
+        "what": "composition test asserts the real CLI recorded turn_end after a declaration; watch test covers an unknown key that appears on a later cycle (one warning, watch keeps running). Mutants killed by re-running the three review mutants: removing turn_end from the guard (2 failures), removing the later-cycle warning (1), removing its dedupe (1)."
+      }
+    ],
+    "focused_coverage": {
+      "files": [
+        "tools/lib/agent-liveness-contract.js",
+        "tools/cli/commands/liveness.js",
+        ".agents/hooks/handlers/liveness-guard.cjs",
+        ".enterprise/governance/hooks/handlers/liveness-guard.cjs"
+      ],
+      "per_file_policy": "90/80",
+      "result": "141 tests, 0 failures; liveness.js 100/100, contract 100/97.5, guards 99.23/97.06 and 98.09/96.91 (lines/branches)",
+      "exit_code": 0,
+      "exit_code_source": "COV_EXIT=0 appended to the log",
+      "log": "/build/tmp/w5-int/final/r1-cov.log",
+      "sha256": "e2f351cf1bbc9939894844b6d04ac506b4eb930b9268fe668eff7c01bbc94d65"
+    },
+    "test_kernel_node22": {
+      "finding": "F1",
+      "head": "78b617f1",
+      "node": "22.23.3",
+      "clone": "/build/tmp/w5-int/wt22",
+      "command": "npm run test:kernel",
+      "result": "10 blocks, 0 failures",
+      "exit_code": 0,
+      "exit_code_source": "KERNEL22_EXIT=0 appended to the log",
+      "log": "/build/tmp/w5-int/final/kernel22.log",
+      "sha256": "34f7b8c4cdda9bf4bb8966a04f7af0fa05320f61009a05927d13aa148e48e401"
+    },
+    "matrix_note": "npm test does not chain test:kernel, so the npm test runs of the Phase 3 (Node 22 and 24) do not exercise the new LV/CO/02b suites. The Node 22/24 matrix is npm test plus test:kernel on both versions. Node 24 test:kernel and test:kernel-coverage (KERNEL_EXIT=0, KCOV_EXIT=0, All files 97.35/91.85 at 260da30f) were run by the reviewer; Node 22 test:kernel was run here."
+  },
+  "residues_added_by_review": [
+    "CO1 N2.2: a reservation conflict still produces 2 handoffs in the axon (service.js:224 through this.mirror(entry), and service.js:541 for the typed event); the composition test does not assert the count",
+    "LV2 review 4 items 3-6: #3 reuse of outbox_id with the jsonl; #4 existsSync/renameSync race in drainPendingReports; #5 pending-reports.invalid.jsonl without pruning; #6 delivery after gave_up (items 1-2 were already listed: marker disappears with the outbox, legacy ledger read-only)",
+    "LV1 R5: an agent can declare WAITING_ON for up to 4 h without being woken by the guard (Addendum 3 design; control stays with the watchdog)",
+    "02b1 K2 and K3 (verifiedSeccomp(launch) versus launch.seccomp), K9 (makeRemovable enters symlinks), M17 (lstat/fstat race), and 3 unreadable /dev/shm/hseos-artifacts-* directories",
+    "CO2 pending item 3: the Codex template was not verified in the real Codex (covered by the out-of-scope activation of the ~/.codex hooks)",
+    "04: the 413 drain keeps the connection up to 16 MiB; 02a: informational note on a header without decoding"
+  ]
+}

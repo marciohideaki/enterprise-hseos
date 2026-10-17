@@ -1,0 +1,15 @@
+heavy-run: outro job pesado em execução — entrando na fila
+  processos com o lock aberto:
+    PID 2876646: bash /home/annonymous/.local/bin/heavy-run --mem 6G -- pnpm --filter @cambio-real/plataforma exec vi
+    PID 2877431: bash /home/annonymous/.local/bin/heavy-run --mem 6G --wait-max 3600 -- systemd-run --user --wait --c
+heavy-run: modo normal (load1=3.02 phys=6 avail=20100MiB need=6G mem.psi=0.00 io.psi.full=0.00)
+Delegated test cgroup controllers verified
+✔ published package exposes runtime and governance assets only (1970.267381ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2014.782593

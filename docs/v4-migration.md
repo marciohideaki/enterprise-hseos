@@ -95,3 +95,52 @@ reconciliation answers. These additive contracts require the updated coordinated
 candidate to read newly written events; do not downgrade a database containing
 them into an older runtime. No production migration is activated automatically.
 See [diagnosis and reconciliation commands](engineering-task-contract.md).
+
+
+## W5 behaviour changes
+
+The W5 candidate changes the behaviour below. None of it activates a production
+state migration, publishes a release or enables a plugin; those remain separate
+decisions. Historical events and already admitted contracts stay readable.
+
+### MCP argument validation (W5-04)
+
+- `limit` and `stale_minutes` given as strings (for example `{"limit": "10"}` or
+  `{"stale_minutes": "30"}`) are no longer accepted. The transport validates
+  `tools/call` arguments against the declared `inputSchema` and answers `-32602`.
+  Send integers. The extra numeric range (`stale_minutes` 1 to 1440) exists only on
+  the internal `scheduler_sweep_orphans` tool, which is a fixture.
+- A legacy MCP HTTP request body above 1 MiB is answered with `413` and `-32600`
+  (`Request body exceeds limit`); the body never reaches a tool.
+- A message without an `id` (a notification) never receives a response, for every
+  method, in both the legacy transport and the `mcp-2026` adapter.
+- A malformed server or tool, or an unresolvable `$ref` in an `inputSchema`, fails
+  at boot (exit `78`, `MCP_TOOL_CATALOG_INVALID` or `MCP_TOOL_SCHEMA_INVALID`)
+  instead of being skipped or failing on the first call.
+- Unknown tools and out-of-scope requests are denied and recorded. Outside the
+  fixture the legacy path still runs, always through the gateway, and each denial
+  is stored durably in `mcp_gateway_denials` in the legacy telemetry SQLite.
+
+### Stricter acceptance for engineering tasks (W5-10b)
+
+New task admissions now refuse a delivery that cannot be verified, with stable
+`detail.code` values:
+
+- `ENGINEERING_ACCEPTANCE_WEAK`: the contract declares no protected `command_checks`
+  and its verifier is not a pinned module verifier (`node-module-v1` or
+  `python-module-v1`), so acceptance would rest on static text matching such as
+  `web-content-v1`.
+- `ENGINEERING_COMMAND_ARG_INVALID`: an argument of a command used by a
+  `command_checks` entry is outside the conservative argument alphabet.
+- `ENGINEERING_PROTECTED_CONFIG_MISSING`: a contract with `command_checks` lists a
+  known project configuration file among its readable or initial files without
+  declaring it in the verifier's protected paths.
+
+Scope of the change: it applies only to new admissions (task create, workflow
+create and job create, retry and expand, including the `/v1/jobs/commands`
+pre-check). Claim, recovery, replay of an earlier admission and reading an
+existing task keep the previous rules, so work admitted before the upgrade still
+runs. Existing refusals gained `detail.code` labels without changing what they
+accept. To adapt a contract that is now refused, add protected `command_checks` or use a pinned
+module verifier, protect the configuration files the checks read, then submit it again. To roll back,
+return to the previous runtime; admitted tasks are unaffected.

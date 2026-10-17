@@ -1,0 +1,20 @@
+{
+  "schema": "hseos.environment-plugin.v1",
+  "id": "hseos-plugin-computer-use",
+  "capability": "computer-use",
+  "version": "0.1.0",
+  "profile": "P1",
+  "platform": "linux",
+  "load": { "strategy": "lazy", "entry": "packages/agent-environment/index.js" },
+  "core_files": [
+    "packages/agent-environment/package.json",
+    "packages/agent-environment/index.js",
+    "packages/agent-environment/framing.js",
+    "packages/agent-environment/lsp.js",
+    "packages/agent-environment/computer-contract.js",
+    "packages/agent-environment/computer.js",
+    "packages/agent-environment/computer-host.js",
+    "tools/lib/environment-toolchain-pins.js"
+  ],
+  "toolchain_pins": ["xdotool"]
+}

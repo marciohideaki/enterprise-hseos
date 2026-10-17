@@ -1,0 +1,133 @@
+{
+  "task": "W5-10b",
+  "base_sha": "0d2cebd1",
+  "revision": "commit that contains this receipt (task/hseos-w5-10b); base_sha is the wave base",
+  "node_for_verify": "v24.15.0 (run-in-cgroup.sh)",
+  "commands": [
+    {
+      "id": "coverage-base",
+      "note": "same literal command measured before any change; failed only on engineering-control.js lines (84%)",
+      "result": "120 tests pass; exit 1 (coverage threshold on engineering-control.js)",
+      "log": "docs/evolution/w5/evidence/w5-10b/verify-coverage-base.log",
+      "sha256": "021dd7bdc3c6a4ef239c72a70a3d3a7d06df8ceb35c18026bc9980f9ed25af44"
+    },
+    {
+      "id": "coverage-focused",
+      "command": "node node_modules/c8/bin/c8.js --config .c8-kernel.json --include 'tools/cli/lib/engineering-task-contract.js' --include 'tools/cli/lib/engineering-task-runtime.js' --include 'tools/cli/lib/engineering-project-verifier.js' --include 'tools/cli/lib/engineering-control.js' --include 'tools/cli/lib/engineering-control-http.js' --reports-dir .logs/validation/w5-10b-coverage --temp-directory .logs/validation/w5-10b-coverage/tmp node --test --test-concurrency=1 test/test-engineering-task-contract.js test/test-engineering-project.js test/test-engineering-control.js test/test-engineering-task-runtime.js",
+      "note": "literal verify_step without the 'heavy-run --mem 4G --' prefix, because run-in-cgroup.sh already runs under heavy-run (nesting would block the flock)",
+      "result": "exit 0; 130 tests, 130 pass, 0 fail, 0 skipped; c8 per-file 90/80 passed for all five files",
+      "log": "docs/evolution/w5/evidence/w5-10b/verify-coverage.log",
+      "sha256": "000779bdca5885e80c2bf12895e52e8812b7dd8e3c61966b831de5f0e4e9d6cd"
+    },
+    {
+      "id": "package-surface-and-inventory",
+      "command": "node --test test/test-package-surface.js; npm pack --dry-run --json (area counts)",
+      "result": "exit 0; 1 test, 0 fail; entryCount 1538 of 1556",
+      "log": "docs/evolution/w5/evidence/w5-10b/verify-surface.log",
+      "sha256": "a9b03e2787ab01ea38dfaf0ae8f4f55a18c4b4eb19acbdf9e3d84f9c64caccdf"
+    },
+    {
+      "id": "regression-job-workflow-surfaces",
+      "command": "node --test --test-concurrency=1 test/test-job-*.js test/test-workflow-*.js test/test-engineering-task-state.js test/test-engineering-workspace.js test/test-engineering-task-extensions.js test/test-engineering-plugin-model.js test/test-environment-surfaces.js test/test-terminal-api.js test/test-terminal-control.js test/test-campaign-evidence.js",
+      "result": "exit 0; 268 tests, 268 pass, 0 fail, 0 skipped (log holds the summary lines only); rerun after the job-worker change",
+      "log": "docs/evolution/w5/evidence/w5-10b/regression.log",
+      "sha256": "95539c33beeb751a75a9abf8b5f0fc4530ae8dce20308d2c38aacb91c295140a"
+    },
+    {
+      "id": "lint-format",
+      "command": "eslint --max-warnings=0 and prettier --check on the touched js, md files",
+      "result": "eslint clean; prettier clean"
+    },
+    {
+      "id": "node22-focused",
+      "result": "NOT VERIFIED: not attempted; better-sqlite3 in the worktree is built for the Node 24 ABI and is not rebuilt (instruction)."
+    }
+  ],
+  "coverage_per_file": {
+    "tools/cli/lib/engineering-task-contract.js": {
+      "lines": 100,
+      "branches": 98.31,
+      "base_lines": 100,
+      "base_branches": 97.02
+    },
+    "tools/cli/lib/engineering-control.js": {
+      "lines": 91.47,
+      "branches": 82.14,
+      "base_lines": 84,
+      "base_branches": 80.89
+    },
+    "tools/cli/lib/engineering-task-runtime.js": {
+      "lines": 91.17,
+      "branches": 81.79,
+      "base_lines": 90.55,
+      "base_branches": 81.62
+    },
+    "tools/cli/lib/engineering-project-verifier.js": {
+      "lines": 99.06,
+      "branches": 89.69,
+      "base_lines": 99.06,
+      "base_branches": 89.69
+    },
+    "tools/cli/lib/engineering-control-http.js": {
+      "lines": 94.94,
+      "branches": 82.94,
+      "base_lines": 90.86,
+      "base_branches": 84
+    }
+  },
+  "package_inventory": {
+    "entryCount": 1538,
+    "ceiling": 1556,
+    "areas": {
+      ".agents": 203,
+      ".enterprise": 464,
+      ".hseos": 63,
+      "root": 7,
+      "docs": 7,
+      "packages": 137,
+      "scripts": 19,
+      "src": 245,
+      "tools": 393
+    },
+    "budgets": {
+      "packages": 137,
+      ".agents": 205,
+      "tools": 393,
+      ".enterprise": 472,
+      ".hseos": 64
+    },
+    "new_files_in_packages": [],
+    "new_files_in_tools": [],
+    "new_files": ["docs/evolution/w5/evidence/w5-10b/* (not packed)"],
+    "measurement": "npm pack --dry-run --json via run-in-cgroup (Node 24); output in verify-surface.log"
+  },
+  "behavior": {
+    "admission_only": "parseEngineeringTask(value,{admission:true}) is applied by EngineeringControl.admitCreation (create, create_workflow, job create/retry/expand) and the /v1/jobs/commands pre-check; admitCreation(...,{admission:false}) is used by JobWorker.admit (claim and recovery), readEngineeringTask, validateAdmission replay and validatePlan keep the previous rules",
+    "new_detail_codes": ["ENGINEERING_ACCEPTANCE_WEAK", "ENGINEERING_COMMAND_ARG_INVALID", "ENGINEERING_PROTECTED_CONFIG_MISSING"],
+    "labelled_existing_rules": "ENGINEERING_CONTRACT_SCHEMA_INVALID, _CONTRACT_TOO_LARGE, _STORE_MOUNT_CONFLICT, _DUPLICATE_ID, _SCOPE_INVALID, _INITIAL_FILES_INVALID, _SOURCE_DIGEST_MISMATCH, _TRACEABILITY_BROKEN, _ACCEPTANCE_MISMATCH, _COMMAND_ENTRYPOINT_UNREADABLE, _LIMITS_INVALID, _CHECK_PATH_UNREADABLE, _PROTECTED_PATH_INVALID, _COMMAND_CHECK_UNKNOWN, _COMMAND_ENTRYPOINT_UNPROTECTED, _COMMAND_ARG_OUTSIDE_ROOT, _COMMAND_ARG_WRITABLE, _WORKSPACE_DIGEST_MISMATCH (labels only, acceptance unchanged)",
+    "protected_config_files_version": 1,
+    "a5b_case": "web-content-v1 only contract is refused at admission (test/test-engineering-task-contract.js and test-engineering-control.js)",
+    "scope_amendment": "tools/cli/lib/job-worker.js added to the output_contract (tasks.md, 2026-10-16); outside the verify --include because its 90/80 depends on job suites outside this task; tested in test/test-engineering-control.js (job admitted by the previous rules is claimed and re-validated, a new weak job is refused; HTTP pre-check kills the admission:false mutant)"
+  },
+  "known_limitations": [
+    "Deviation from the literal text of option (b): node-module-v1/python-module-v1 count as executable acceptance without requiring checks[].path in protected_paths, because the checked module is the artifact under test. The guarantee comes from the fixed expectations and the external verifier; web-content-v1 alone is always refused. This is the Commander's reading, with no formal owner approval yet (docs/engineering-task-contract.md).",
+    "MAJOR-1 (owner waiver, 2026-10-16): coverage of acceptance criteria is global via verifier.acceptance_ids; the contract has no per-criterion link, so ENGINEERING_ACCEPTANCE_UNCOVERED was not implemented and a contract mixing one command check with static checks for other criteria is admitted. Schema evolution is a future task.",
+    "agent run --task-contract and the CLI workflow path do not go through the admission.",
+    "protected_config_files_version is a constant in code and docs, not a contract field.",
+    "The argument alphabet applies only to commands listed in command_checks.",
+    "Under option (b) the known-configuration protection does not apply.",
+    "verifier.checks[].expected strength is not evaluated (null is admitted).",
+    "Names starting with a dot (such as .npmrc) are not representable in protected_paths/scope today; the entry stays in the versioned list. File-name matching is case-sensitive.",
+    "job_expand of a historical job whose definition carries a weak task is refused, because expansion goes through admitCreation. Claim and recovery do not re-apply the hardening.",
+    "Node 22 not verified."
+  ],
+  "round": 1,
+  "review_round_1": "skeptical review of 9350efa7: MAJOR-2 fixed (claim/recovery no longer re-apply the hardened admission), MINOR-4/5/6 addressed; MAJOR-1 closed by an explicit owner waiver on 2026-10-16",
+  "owner_waivers": [
+    {
+      "id": "MAJOR-1",
+      "date": "2026-10-16",
+      "scope": "W5-10b only: acceptance coverage stays global via verifier.acceptance_ids; ENGINEERING_ACCEPTANCE_UNCOVERED is not implemented; a schema link from each criterion to a check or command becomes a separate future task"
+    }
+  ]
+}

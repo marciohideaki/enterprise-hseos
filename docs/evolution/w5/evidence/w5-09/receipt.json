@@ -1,0 +1,136 @@
+{
+  "task": "W5-09",
+  "base_sha": "4616a9da2602a72f6f78d4ed17a79f0d03a98f21",
+  "revision": "commit that contains this receipt (task/hseos-w5-09); base_sha is the wave base",
+  "node_for_verify": "v24.15.0 (run-in-cgroup.sh)",
+  "commands": [
+    {
+      "id": "coverage-focused",
+      "command": "node node_modules/c8/bin/c8.js --config .c8-kernel.json --include 'packages/agent-memory/index.js' --include 'packages/agent-memory/store.js' --include 'packages/agent-memory/policy.js' --include 'tools/cli/lib/memory-context-source.js' --reports-dir .logs/validation/w5-09-coverage --temp-directory .logs/validation/w5-09-coverage/tmp node --test --test-concurrency=1 test/test-agent-memory.js test/test-memory-plugin-parity.js test/test-mcp-axon-bridge.js",
+      "note": "literal verify_step without the 'heavy-run --mem 4G --' prefix, because run-in-cgroup.sh already runs under heavy-run (nesting would deadlock the flock)",
+      "result": "exit 0; node:test 23 tests, 0 fail, 0 skipped (18 test-agent-memory, 5 test-memory-plugin-parity... axon-bridge file counts as 1 test); test-mcp-axon-bridge: 20 passed, 0 failed, 1 pre-existing case skipped inside that suite (real axon binary not on PATH); c8 per-file 90/80 passed",
+      "log": "docs/evolution/w5/evidence/w5-09/verify-coverage.log",
+      "sha256": "19bfc2b038a5abb65b1d7fe2a9ad47df84389b8a1637160a7644bba05e404e50"
+    },
+    {
+      "id": "package-surface",
+      "result": "exit 0; 1 test, 0 fail",
+      "log": "docs/evolution/w5/evidence/w5-09/verify-surface.log",
+      "sha256": "48d749ea7265ee887057ce1f0849f0c1deecbc62971624f159ebca85973fa138"
+    },
+    {
+      "id": "node22",
+      "result": "NOT VERIFIED: better-sqlite3 in the worktree is built for Node 24 (ERR_DLOPEN_FAILED on Node 22); not rebuilt by instruction."
+    }
+  ],
+  "coverage_per_file": {
+    "packages/agent-memory/index.js": {
+      "lines": 100,
+      "branches": 100
+    },
+    "packages/agent-memory/policy.js": {
+      "lines": 100,
+      "branches": 100
+    },
+    "packages/agent-memory/store.js": {
+      "lines": 100,
+      "branches": 98.85
+    },
+    "tools/cli/lib/memory-context-source.js": {
+      "lines": 100,
+      "branches": 100
+    }
+  },
+  "package_inventory": {
+    "entryCount": 1518,
+    "ceiling": 1556,
+    "areas": {
+      ".agents": 197,
+      ".enterprise": 458,
+      ".hseos": 63,
+      "root": 7,
+      "docs": 7,
+      "packages": 131,
+      "scripts": 19,
+      "src": 245,
+      "tools": 391
+    },
+    "packages_budget": 137,
+    "tools_budget": 393,
+    "enterprise_budget": 472,
+    "new_files_in_packages": [
+      "packages/agent-memory/package.json",
+      "packages/agent-memory/README.md",
+      "packages/agent-memory/index.js",
+      "packages/agent-memory/store.js",
+      "packages/agent-memory/policy.js"
+    ],
+    "new_files_in_tools": [
+      "tools/cli/lib/memory-context-source.js (+1)",
+      "tools/mcp-project-state/migrations-pending-activation/017-agent-memory-events.sql (+1, output_contract amendment)"
+    ],
+    "new_files_in_enterprise": [
+      "hseos-plugin-memory/plugin.yaml",
+      "hseos-plugin-memory/README.md",
+      "hseos-plugin-memory/skills/memory/SKILL.md (required: the plugin catalog compiler rejects a plugin with no surface)"
+    ],
+    "note": "plugins/ is not part of the npm pack; measured with the repo npm via run-in-cgroup.sh. tools went 389 -> 391 (the contracted adapter plus the migration).",
+    "new_files_in_agents": [
+      "plugins/definitions/hseos-plugin-memory/plugin.yaml",
+      "plugins/definitions/hseos-plugin-memory/README.md",
+      "plugins/definitions/hseos-plugin-memory/skills/memory/SKILL.md (compiled mirror, produced by 'agent-core compile'; budget .agents 205)"
+    ]
+  },
+  "output_contract_amendment": {
+    "extra_file": "tools/mcp-project-state/migrations-pending-activation/017-agent-memory-events.sql",
+    "reason": "execution_events has the trigger execution_events_registered_schema; the memory.* event types must be registered in execution_event_schemas, which only a migration can change. The in-code event registry only covers aggregate_type 'execution'.",
+    "options_evaluated": [
+      "A (chosen, approved by the Commander): new pending-activation migration 017 in the pattern of 008; nothing changes in production until the owner activates it.",
+      "B (rejected): reuse AgentSessionEventRecorded v1 with a payload discriminator; no migration but mixes memory with session semantics."
+    ],
+    "negative_test": "test/test-agent-memory.js: an unregistered memory.* type is still refused by the trigger (SQLITE_CONSTRAINT_TRIGGER) and execution_event_schemas inserts stay blocked",
+    "renumbering": "if W5-07/08 add a migration, renumbering is done by the Commander at integration",
+    "consequential_edits": {
+      "reason": "adding fixture migration 017 raises the fixture schema version from 16 to 17 and the applied-migration count from 12 to 13; these checks were hard-coded and failed the pre-commit gate (install-upgrade, ledger, compatibility audit, rehearsal)",
+      "source": [
+        "tools/lib/compatibility-audit.js (targetVersion === 17)",
+        "tools/lib/agentic-activation-rehearsal.js (candidateVersion === 17, applied.length === 13)"
+      ],
+      "tests": [
+        "test/test-execution-event-ledger.js",
+        "test/test-execution-projections.js",
+        "test/test-governed-execution-runtime.js",
+        "test/test-operational-state-db.js",
+        "test/test-compatibility-audit.js",
+        "test/test-agentic-activation-rehearsal.js",
+        "test/test-native-entrypoint-wiring.js"
+      ],
+      "note": "mechanical; if W5-07/08 add another migration the Commander renumbers and re-bumps these at integration",
+      "verified": "87 tests, 0 fail across the 8 affected suites plus test-package-surface"
+    }
+  },
+  "decisions": [
+    "Credential scanner injected into policy (packages never import from tools); memory-context-source injects containsCredential.",
+    "Retrieved memory carries provenance.trust 'untrusted' (the context authority layer refuses trusted memory); stored trust only decides default retrieval.",
+    "contract-registry.js untouched (memory.write stub reconciled by the Commander at integration)."
+  ],
+  "review_round_1": {
+    "base_commit": "37d3f1e97037803cd406f3fe967e505d45a4feb7",
+    "fixes": [
+      "M-1 validation tests rewritten: valid entry plus one violation per case, asserting error.details.field",
+      "M-2 write(entry, host): rules/approved/actor/execution_mode/expected_version are a separate host parameter; entry refuses host-owned and unknown fields; origin operator needs an operator actor; actor validated and scanned; README documents the host trust boundary",
+      "M-3 .agents/plugins mirror generated by agent-core compile (manifest.yaml churn from the environment reverted)",
+      "forget validates and scans reason and actor, project_id validated on every read; source_digest must match the content; bridge: query credential skip, dedupe, limit applies to merged set"
+    ],
+    "mutants": "40 targeted mutants run on a disposable worktree, 40 killed, 0 survivors",
+    "residuals": [
+      "per-project quota (m-3)",
+      "m-7 bridge shape is presumed, no adapter to the real search_memory",
+      "m-8 no production consumer until W5-10",
+      "m-9 logical deletion and no PII scan",
+      "m-10 memory_id reuse after expiry denied",
+      "m-12 foldEvents does not revalidate entries"
+    ],
+    "consequential_edit": "test/test-plugin-marketplace.js: plugin count 6 -> 7 (same bump W5-05/06 made when .agents/plugins gained lsp/dap)"
+  }
+}

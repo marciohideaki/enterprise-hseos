@@ -1,0 +1,14 @@
+heavy-run: modo normal (load1=1.79 phys=6 avail=20758MiB need=6G mem.psi=0.00 io.psi.full=0.92)
+Delegated test cgroup controllers verified
+Capability graph valid: 1/6 fragments validated (5 delegated), 31 nodes, 48 edges, 0 findings
+graph=0
+◆  compile --check: 236 check(s) passed; no files were written.
+check=0
+
+83 passed, 0 failed
+
+Blocking-hook tests: 11 passed, 0 failed
+
+Compiler hook tests: 57 passed, 0 failed
+ℹ pass 13
+ℹ fail 0

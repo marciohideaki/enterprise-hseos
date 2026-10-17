@@ -183,6 +183,17 @@ No commit allowed if gates fail. No exceptions. The `husky` `pre-commit` hook ru
 - `.logs/validation/` — gitignored (temporary)
 - `.logs/summaries/` — committable
 
+## 10a. Activity coordination (cross-tool)
+
+When `.hseos/config/activity-coordination.yaml` exists with `enabled: true`, other sessions (any tool) may be working in the same repository or packages. Tools without prompt hooks follow this protocol:
+
+- At session start run `hseos activity check` and read the pending events.
+- Before changing a hot file (shared manifests, changelogs, candidate files), run `hseos activity declare` with the paths.
+- Before fixing a published version or a package name, run `hseos activity reserve` (`version:<pkg>@<semver>` or `name:<pkg>`); never reuse a version reserved by another session.
+- Release scripts and CI call `hseos activity guard-publish <pkg>@<version>`.
+
+Without the contract none of this applies. Details: `docs/activity-coordination/README.md`.
+
 ## 11. Stop Conditions
 
 **STOP and ask the user when:**
@@ -190,5 +201,70 @@ No commit allowed if gates fail. No exceptions. The `husky` `pre-commit` hook ru
 - A destructive Git operation is needed
 - Tests fail and root cause is unclear
 - Two standards conflict
+
+## 12. Agent Liveness — "no silent idle" (parity protocol)
+
+Applies only when `.hseos/config/agent-liveness.yaml` exists with `enabled: true`; with the file absent or
+disabled nothing here changes. Spec: `.specs/features/harness-w5/liveness.md`. This protocol is the
+harness-neutral baseline: Claude Code and Codex can add a Stop-hook guard on top (Codex hooks only run with a
+`trusted_hash` in `config.toml`); harnesses without hooks rely on this section alone.
+
+- **End every dispatched turn with a declared state**, as the last line of the final message:
+  `LIVENESS: {"state":"DONE"|"BLOCKED"|"FAILED"|"WAITING_ON","reason":"...","evidence":"<hash|path|run id>","waiting_on":{"condition":"...","wake_via":"commander"|"human","deadline_at":"<ISO-8601>"}}`.
+  `evidence` is required for `DONE`; `waiting_on` is required for `WAITING_ON` and forbidden otherwise;
+  `deadline_at` must be in the future and at most `max_wait_deadline_s` (default 14400 s) from now, because
+  waiting on the Commander or on a human outlasts `stall_timeout_s`. Record it with
+  `hseos liveness report --session <id> --agent <id> --json '<line>'` (exit 2 lists what is invalid).
+  There is no `wake_via: self`: state is declared, never inferred from prose. `BLOCKED` is only for a real
+  impediment, with its cause; waiting for a decision from the Commander or a human is `WAITING_ON`
+  (condition, `wake_via`, `deadline_at`), never `BLOCKED`. The `--reason-code` of a report must match the
+  declared state (`declared` for DONE and FAILED, `blocked_pending` for BLOCKED, `waiting_on_declared` for
+  WAITING_ON); otherwise `report` exits 2.
+- **Never end a turn "waiting" on a background job.** A background-task notice does not wake an idle agent.
+  Wait in the foreground, in blocks of at most `foreground_wait_max_s` (default 540 s, under the 600 s Bash
+  limit): `hseos liveness await --pid <n> | --file <path> | --cmd-status <path> --max 540`. Exit 0 means the
+  condition is met; exit 75 and "ainda rodando, chame de novo" mean call `await` again in the same turn.
+  Long commands run detached and write `{"exit_code": <n>, "finished_at": "<ISO-8601>"}` to the `--cmd-status`
+  file. Do not weaken a gate (for example the pre-commit) to avoid waiting.
+- **Watchdog outside the session.** `hseos liveness watch --once` classifies every run
+  (classes below), reconciles against the
+  source of truth (worktree HEAD, pid, status file) and writes wake requests to
+  `.hseos/state/liveness/inbox/<session>-<agent>-<seq>.json`. `hseos liveness watch --print-systemd` prints a
+  `systemd --user` service and timer for it; installing them is a separate owner decision. The orchestrator
+  reads `hseos liveness check --json` and messages the agent for each wake request. After
+  `max_wake_attempts` the watchdog escalates to the human. An expired lease is never proof of death: nothing
+  is killed or taken over automatically.
+- **Classes and codes.** The watchdog classifies each run as `running`, `waiting_ok`, `waiting_overdue`,
+  `stalled`, `idle_no_state`, `blocked`, `failed` or `done`, and tags events with an enumerated `reason_code`
+  (`declared`, `no_state_at_stop`, `invalid_liveness_line`, `background_task_active`, `foreground_cap_exceeded`,
+  `wait_deadline_exceeded`, `wake_exhausted`, `evidence_unverified`, `blocked_pending`, `guard_internal_error`,
+  `stall_no_activity`, `heartbeat_lease_expired`, `waiting_on_declared`).
+  `blocked` and `failed` runs notify the human once and are reported with `blocked_age_s`; they are never woken.
+  A run already ended in the agent-state ledger is reconciled to `done` and not woken. `max_wakes_per_cycle`
+  caps wake requests per cycle. A lapsed heartbeat lease raises `overdue` and, in the same cycle, a wake request
+  (`heartbeat_lease_expired`), even in the middle of a turn: a long foreground operation must go through
+  `hseos liveness await`, which renews the heartbeat every 60 s, or the agent is woken after `heartbeat_ttl_s`.
+  Wake attempts are counted per incident and reset only by a valid LIVENESS report, so an agent that keeps
+  ending turns without a state is escalated to the human after `max_wake_attempts`. The escalation closes the
+  incident; any later agent activity (heartbeat, `turn_end`, a worktree HEAD change) opens a new one with a
+  zeroed count, so an agent that comes back and goes silent again is woken and escalated again. Escalations
+  and notifications are queued in the ledger with the decision and delivered afterwards (the jsonl line once,
+  the notification at least once, redelivered on the next cycle after a crash). A notification that cannot be
+  shown (for example `notify-send` missing) is retried with exponential backoff up to `max_notify_attempts`
+  and then marked `gave_up`; `escalations.jsonl` stays the durable record and `check` reports how many
+  notifications are pending or gave up. The watchdog also drains `pending-reports.jsonl`, where the stop guard
+  parks a LIVENESS report when `hseos liveness report` is unavailable (idempotent per line; invalid lines are
+  kept in `pending-reports.invalid.jsonl` with a warning). The contract file is re-read on every call; if it becomes invalid the last
+  valid configuration stays in force with a visible warning. `report` checks the declared `evidence` (path,
+  commit in the worktree HEAD, run id) and records `evidence_verified`; a failed check is an alert, never a
+  refusal. `await` renews the heartbeat every 60 s while it waits.
+- **Codex.** Codex 0.162.1 has a `Stop` hook (with `stop_hook_active`) and a `UserPromptSubmit` hook whose
+  `additionalContext` enters the context (spike CO0), so the liveness guard can also be applied to Codex through
+  its `hooks.json`; the hooks run only with a `trusted_hash` in `config.toml`. The Codex `SubagentStop` event
+  exists in the schema but has not been exercised (NOT VERIFIED). The Codex hook installation template belongs
+  to CO2 and is not defined here. Until the guard is installed, or in any harness without hooks, record the end
+  of each dispatched turn yourself with
+  `hseos liveness report --event turn_end --session <id> --agent <id>` after the declaration; the external
+  watchdog is the backstop.
 
 *Agents execute. Humans decide.*

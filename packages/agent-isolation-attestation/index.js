@@ -6,11 +6,19 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 const { deepFreeze } = require('../agent-runtime-contracts');
+const {
+  BROKER_SANDBOX_PATH,
+  brokerBinding,
+  registerLaunch,
+  resolveCallLimits,
+  resolveProfile,
+  seccompNetworklessProgram,
+  seccompProgramFor,
+} = require('./profiles');
 
 const REQUIRED_ACTORS = Object.freeze(['root', 'child_agent', 'workflow_worker', 'tool_provider', 'hosted_runtime']);
 const POLICIES = new WeakSet();
 const MAX_OUTPUT_BYTES = 65_536;
-const NETWORK_SYSCALLS_X64 = Object.freeze([41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 53, 288, 299, 307, 425, 426, 427]);
 const SCRIPT = String.raw`
 set -u
 set -C
@@ -95,34 +103,6 @@ function stableJson(value) {
   return JSON.stringify(value);
 }
 
-function seccompNetworklessProgram() {
-  if (process.platform !== 'linux' || process.arch !== 'x64') {
-    throw new AgentIsolationAttestationError('networkless seccomp is unavailable on this platform', 'AGENT_ISOLATION_BACKEND_UNAVAILABLE');
-  }
-  const instructions = [
-    [0x20, 0, 0, 4],
-    [0x15, 1, 0, 0xc0_00_00_3e],
-    [0x06, 0, 0, 0x80_00_00_00],
-    [0x20, 0, 0, 0],
-    [0x45, 0, 1, 0x40_00_00_00],
-    [0x06, 0, 0, 0x80_00_00_00],
-    ...NETWORK_SYSCALLS_X64.flatMap((number) => [
-      [0x15, 0, 1, number],
-      [0x06, 0, 0, 0x00_05_00_01],
-    ]),
-    [0x06, 0, 0, 0x7f_ff_00_00],
-  ];
-  const buffer = Buffer.alloc(instructions.length * 8);
-  for (const [index, [code, jumpTrue, jumpFalse, value]] of instructions.entries()) {
-    const offset = index * 8;
-    buffer.writeUInt16LE(code, offset);
-    buffer.writeUInt8(jumpTrue, offset + 2);
-    buffer.writeUInt8(jumpFalse, offset + 3);
-    buffer.writeUInt32LE(value, offset + 4);
-  }
-  return buffer;
-}
-
 function assertWorkspaceTypes(workspace) {
   const pending = [workspace];
   let visited = 0;
@@ -156,7 +136,15 @@ function assertWorkspaceTypes(workspace) {
 }
 
 function createIsolationPolicy(value) {
-  exactKeys(value, ['backend', 'host_workspace', 'main_checkout', 'protected_paths'], 'isolation policy');
+  const optional = ['profile', 'broker_socket', 'toolchain_roots'].filter(
+    (key) => value && typeof value === 'object' && Object.hasOwn(value, key),
+  );
+  exactKeys(value, ['backend', 'host_workspace', 'main_checkout', 'protected_paths', ...optional], 'isolation policy');
+  // P0 is the default only when the controller names nothing; any other name must be known.
+  const profile = resolveProfile(optional.includes('profile') ? value.profile : 'P0');
+  if (optional.includes('broker_socket') !== profile.broker) {
+    throw new AgentIsolationAttestationError('broker socket is required by P2 and forbidden elsewhere', 'AGENT_ISOLATION_PROFILE_INVALID');
+  }
   if (value.backend !== 'bwrap') throw new AgentIsolationAttestationError('only the bwrap conformance backend is supported');
   const workspace = realDirectory(value.host_workspace, 'host_workspace');
   const main = realDirectory(value.main_checkout, 'main_checkout');
@@ -215,6 +203,19 @@ function createIsolationPolicy(value) {
     network: { mode: 'none', namespace: 'isolated' },
     environment: { inherited: false, allowed_names: ['HSEOS_ACTOR_TYPE', 'HSEOS_CHALLENGE', 'PATH', 'PWD', 'SHLVL', '_'] },
   };
+  // P0 keeps its historical shape and digest. Wider profiles are explicit and digest-bound.
+  // Controller allowlist of pinned toolchain roots. Without it no read-only mount is ever accepted.
+  if (optional.includes('toolchain_roots')) {
+    if (!Array.isArray(value.toolchain_roots) || value.toolchain_roots.length === 0 || value.toolchain_roots.length > 8) {
+      throw new AgentIsolationAttestationError('toolchain_roots must be a non-empty bounded array');
+    }
+    unsigned.toolchain_roots = value.toolchain_roots.map((root) => realDirectory(root, 'toolchain root').path).sort();
+  }
+  if (profile.id !== 'P0') {
+    unsigned.profile = profile.id;
+    unsigned.network = { mode: profile.network, namespace: 'isolated' };
+    if (profile.broker) unsigned.broker_binding = brokerBinding(value.broker_socket, workspace.path);
+  }
   const policy = deepFreeze({ ...unsigned, policy_digest: createHash('sha256').update(stableJson(unsigned)).digest('hex') });
   POLICIES.add(policy);
   return policy;
@@ -315,10 +316,30 @@ function assertBinding(policy) {
       throw new AgentIsolationAttestationError('protected path drifted before execution', 'AGENT_ISOLATION_BINDING_DRIFT');
     }
   }
+  if (policy.broker_binding) {
+    let stat;
+    try {
+      stat = fs.lstatSync(policy.broker_binding.path);
+    } catch {
+      throw new AgentIsolationAttestationError('broker socket drifted before execution', 'AGENT_ISOLATION_BINDING_DRIFT');
+    }
+    if (!stat.isSocket() || stat.isSymbolicLink() || stat.dev !== policy.broker_binding.dev || stat.ino !== policy.broker_binding.ino) {
+      throw new AgentIsolationAttestationError('broker socket drifted before execution', 'AGENT_ISOLATION_BINDING_DRIFT');
+    }
+  }
   assertWorkspaceTypes(policy.host_workspace);
 }
 
-function sandboxArguments(policy, environment, command, readonlyWorkspace = false, hostNode = false) {
+function profileArguments(policy, extras) {
+  const args = [];
+  if (extras.shm_bytes !== undefined) args.push('--size', String(extras.shm_bytes), '--tmpfs', '/dev/shm');
+  if (extras.artifacts_directory !== undefined) args.push('--bind', extras.artifacts_directory, '/artifacts');
+  for (const mount of extras.readonly_mounts ?? []) args.push('--ro-bind', mount.source, mount.target);
+  if (policy.broker_binding) args.push('--bind', policy.broker_binding.path, BROKER_SANDBOX_PATH);
+  return args;
+}
+
+function sandboxArguments(policy, environment, command, readonlyWorkspace = false, hostNode = false, extras = {}) {
   return [
     '--unshare-all',
     '--die-with-parent',
@@ -332,6 +353,7 @@ function sandboxArguments(policy, environment, command, readonlyWorkspace = fals
     '/dev',
     '--tmpfs',
     '/tmp',
+    ...profileArguments(policy, extras),
     ...(hostNode ? ['--ro-bind', '/proc/self/fd/4', '/hseos-runtime/node'] : []),
     readonlyWorkspace ? '--ro-bind' : '--bind',
     policy.host_workspace,
@@ -348,7 +370,7 @@ function sandboxArguments(policy, environment, command, readonlyWorkspace = fals
 }
 
 // This boundary accepts only nominal supervisor-created policies, never model mounts.
-function prepareIsolatedExecution(policy, command, hostNode = false, terminal = false) {
+function prepareIsolatedExecution(policy, command, hostNode = false, terminal = false, extras = {}) {
   if (!POLICIES.has(policy)) throw new AgentIsolationAttestationError('isolation policy is not supervisor-owned');
   assertBinding(policy);
   if (!Array.isArray(command) || command.length === 0 || command.some((part) => typeof part !== 'string' || part.includes('\0'))) {
@@ -356,6 +378,8 @@ function prepareIsolatedExecution(policy, command, hostNode = false, terminal = 
   }
   if (typeof terminal !== 'boolean' || typeof hostNode !== 'boolean' || (hostNode && command[0] !== '/usr/bin/node'))
     throw new AgentIsolationAttestationError('invalid host runtime selection');
+  const profile = resolveProfile(policy.profile ?? 'P0');
+  const mounts = launchExtras(policy, extras);
   let executable = hostNode ? ['/hseos-runtime/node', ...command.slice(1)] : command;
   if (terminal)
     executable = [
@@ -365,12 +389,82 @@ function prepareIsolatedExecution(policy, command, hostNode = false, terminal = 
       'import os,sys,fcntl,termios\nif os.getsid(0) != os.getpid(): os.setsid()\nfcntl.ioctl(0,termios.TIOCSCTTY,0)\nos.execve(sys.argv[1],sys.argv[1:],dict(os.environ))',
       ...executable,
     ];
-  return {
-    binary: policy.backend_binding.path,
-    args: sandboxArguments(policy, {}, executable, true, hostNode),
-    seccomp: seccompNetworklessProgram(),
-    policy_digest: policy.policy_digest,
-  };
+  return registerLaunch(
+    Object.freeze({
+      binary: policy.backend_binding.path,
+      args: Object.freeze(sandboxArguments(policy, {}, executable, true, hostNode, mounts)),
+      seccomp: seccompProgramFor(profile),
+      policy_digest: policy.policy_digest,
+      profile: profile.id,
+    }),
+  );
+}
+
+const MOUNT_TARGET = /^\/opt\/hseos\/[a-z0-9][a-z0-9._-]*(?:\/[a-z0-9][a-z0-9._-]*)*$/;
+
+/** Toolchain pins mounted read-only under /opt/hseos/. The source is a real path, never a link. */
+function readonlyMounts(policy, mounts) {
+  if (!Array.isArray(mounts) || mounts.length > 8) throw new AgentIsolationAttestationError('readonly mounts must be a bounded list');
+  const targets = new Set();
+  return mounts.map((mount) => {
+    exactKeys(mount, ['source', 'target'], 'readonly mount');
+    if (typeof mount.target !== 'string' || !MOUNT_TARGET.test(mount.target) || mount.target.includes('..') || targets.has(mount.target)) {
+      throw new AgentIsolationAttestationError('readonly mount target must be a distinct path under /opt/hseos');
+    }
+    targets.add(mount.target);
+    if (typeof mount.source !== 'string' || !path.isAbsolute(mount.source) || mount.source.includes('\0')) {
+      throw new AgentIsolationAttestationError('readonly mount source must be absolute');
+    }
+    let stat;
+    try {
+      stat = fs.lstatSync(mount.source);
+    } catch {
+      throw new AgentIsolationAttestationError('readonly mount source is unavailable');
+    }
+    if (
+      stat.isSymbolicLink() ||
+      (!stat.isDirectory() && !stat.isFile()) ||
+      fs.realpathSync(mount.source) !== path.normalize(mount.source)
+    ) {
+      throw new AgentIsolationAttestationError('readonly mount source must be a real file or directory');
+    }
+    const source = fs.realpathSync(mount.source);
+    for (const protectedRoot of [policy.host_workspace, policy.main_checkout]) {
+      if (source === protectedRoot || within(protectedRoot, source) || within(source, protectedRoot)) {
+        throw new AgentIsolationAttestationError('readonly mount cannot overlap the workspace or main checkout');
+      }
+    }
+    if (!(policy.toolchain_roots ?? []).some((allowed) => source === allowed || within(allowed, source))) {
+      throw new AgentIsolationAttestationError('readonly mount source is outside the controller allowlist');
+    }
+    return Object.freeze({ source, target: mount.target });
+  });
+}
+
+/** Validate controller-only launch additions: /dev/shm size and the verified artifact directory. */
+function launchExtras(policy, extras) {
+  if (!extras || typeof extras !== 'object' || Array.isArray(extras)) throw new AgentIsolationAttestationError('invalid launch extras');
+  for (const key of Object.keys(extras)) {
+    if (!['shm_bytes', 'memory_max_bytes', 'artifacts_directory', 'readonly_mounts'].includes(key))
+      throw new AgentIsolationAttestationError('launch extra is not recognised');
+  }
+  const result = {};
+  if (extras.shm_bytes !== undefined) {
+    result.shm_bytes = resolveCallLimits({ shm_bytes: extras.shm_bytes, memory_max_bytes: extras.memory_max_bytes }).shm_bytes;
+  }
+  if (extras.artifacts_directory !== undefined) {
+    const directory = realDirectory(extras.artifacts_directory, 'artifacts_directory');
+    if (
+      directory.path === policy.host_workspace ||
+      within(policy.host_workspace, directory.path) ||
+      within(directory.path, policy.host_workspace)
+    ) {
+      throw new AgentIsolationAttestationError('artifacts directory cannot overlap the workspace');
+    }
+    result.artifacts_directory = directory.path;
+  }
+  if (extras.readonly_mounts !== undefined) result.readonly_mounts = readonlyMounts(policy, extras.readonly_mounts);
+  return result;
 }
 
 function runTransitiveIsolationJourney(policy) {

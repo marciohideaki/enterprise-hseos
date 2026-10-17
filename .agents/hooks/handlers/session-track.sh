@@ -61,7 +61,11 @@ case "$EVENT" in
   *)            ACTION="heartbeat" ;;  # UserPromptSubmit, Stop, unknown
 esac
 
-ARGS=(state-session "$ACTION" --silent --directory "$SESSION_ROOT" --session "$SESSION_ID" --service claude-code)
+# The tool declares itself (HSEOS_AGENT_TOOL, e.g. codex); Claude Code stays the default.
+SERVICE="${HSEOS_AGENT_TOOL:-claude-code}"
+[[ "$SERVICE" =~ ^[a-z0-9._-]+$ ]] || SERVICE="claude-code"
+
+ARGS=(state-session "$ACTION" --silent --directory "$SESSION_ROOT" --session "$SESSION_ID" --service "$SERVICE")
 [[ -n "$CWD" ]] && ARGS+=(--cwd "$CWD")
 
 # Fully detached, capped, silent — survive hosts that terminate the hook's

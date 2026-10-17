@@ -153,6 +153,8 @@ class JobWorker {
       state.definition,
       state.resource_id,
       state.execution_deadline_at || Date.parse(state.deadline_at),
+      // Claim and recovery re-validate a job admitted earlier; the hardened acceptance applies to new admissions only.
+      { admission: false },
     );
     if (jobDigest(admission) !== state.admission_sha256) reject('JOB_ADMISSION_DRIFT');
     const contracts = state.kind === 'task' ? [admission.input.contract] : admission.input.definition.tasks.map((entry) => entry.contract);

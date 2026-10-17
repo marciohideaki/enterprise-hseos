@@ -1,0 +1,4 @@
+item 8 - test/test-agent-liveness.js, test "delivery work per cycle is bounded..." (watch_interval_s: 1, notifier 200 ms)
+isolated: 20 sequential runs via run-in-cgroup.sh, failures=0
+loaded (3 busy loops pinned to cpu 0, test pinned to cpu 0): 10 runs, failures=0
+full file afterwards: 69 pass, 0 fail
