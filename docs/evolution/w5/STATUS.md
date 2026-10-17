@@ -1,6 +1,6 @@
 # W5 — estado de execução
 
-Tipo: evidência de progresso, iniciado em 2026-10-10 e atualizado em 2026-10-13. Base dos contratos `e079409c`, rebaseados sobre a master `0dd3bb89`; upstream `master`;
+Tipo: evidência de progresso, iniciado em 2026-10-10 e atualizado em 2026-10-17 (fechamento W5-12). Base dos contratos `e079409c`, rebaseados sobre a master `0dd3bb89`; upstream `master`;
 feature `feature/hseos-evolution-w5`. Governança: Constituição §§2.6/5/7, AGENTS.md, ADR-0047 Accepted (2026-10-11).
 
 ## W5-01
@@ -26,8 +26,8 @@ externa; `xdotool`, `pyright`, `typescript-language-server`, `debugpy` e `python
 | W5-02a / W5-02b1 / W5-02b2 / W5-04       | integradas e verificadas na B1 (seção "Integração da onda B1")   | não verificado  | não autorizada |
 | W5-LV1 / W5-LV2 / W5-CO1 / W5-CO2        | integradas e verificadas na B1 (seção "Integração da onda B1")   | não verificado  | não autorizada |
 | W5-03 / W5-05 / W5-06                    | integradas e verificadas na B2 (seção "Integração da onda B2")   | não verificado  | não autorizada |
-| W5-07 / W5-08 / W5-09                    | não verificado                                                   | não verificado  | não autorizada |
-| W5-10 / W5-10b / W5-11a / W5-11b / W5-12 | não verificado                                                   | não verificado  | não autorizada |
+| W5-07 / W5-08 / W5-09                    | integradas (B3, B3b); verificação final no recibo de fechamento | não verificado  | não autorizada |
+| W5-10 / W5-10b / W5-11a / W5-11b / W5-12 | integradas; verificação final no recibo de fechamento (seção W5-12) | prova de integração local: A real, B sintético (W5-11b) | não autorizada |
 
 ## Gate G2 (aprovado em 2026-10-11)
 
@@ -301,3 +301,23 @@ Branch `task/hseos-cl2`, base `4c152844`. Resíduos da B2/W5-05 aceitos pela rev
    - **Rodada 3 (MINOR aceitos).** A restauração após falha do rename final não tem teste; um `previous-<outro pid>` deixado por um processo morto nunca é limpo (o `removeQuietly` só cobre o do próprio pid); se a restauração também falha, o `cause` é o erro da restauração e o do rename se perde, e só `previous-<pid>` permanece (o staging é limpo); mutantes T01, T06 e T07 sobrevivem. Removido do teste de extração um `t.skip` residual num callback sem `t` (daria `ReferenceError` como root; o teste não depende de privilégio).
    - O digest da licença é calculado sobre o texto **decodificado em UTF-8** (o mesmo texto que os markers inspecionam), não sobre os bytes brutos.
 5. **Medições.** Testes focados (`test-environment-*`, paridades, `test-browser-plugin-surface`, `test-package-surface`, memory): 186 de 186 passam (0 falhas, 0 skips) na execução da rodada 2; o `test-plugin-marketplace.js` ficou fora dessa execução. Na execução original (que o incluía), ele foi a única reprovação, sob `node --test` no wrapper de cgroup (85/3). A explicação anterior (`node_modules` por symlink) estava errada: a revisão reproduziu a falha com `node_modules` copiado. Fica registrada como dependência do layout/ambiente do wrapper, **causa não determinada, preexistente**; rodado direto com Node 24 passa 88/0. **G3 após a cl2** (`npm pack --dry-run --json`, npm 11.12.1 do Node 24): **1538 de 1556**, igual ao pós-W5-08; `packages` 137 e `tools` 393, nenhum arquivo novo.
+
+## B4 e fechamento: W5-10, W5-10b, W5-11a, W5-11b e W5-12 (2026-10-17)
+
+Base desta seção: `b4160d87` (feature `feature/hseos-evolution-w5` depois da PR #228). Recibos por task em `evidence/<task>/receipt.json`; rastreabilidade FR → task → teste → recibo em [evidence/final/traceability.md](evidence/final/traceability.md); verificação final em [evidence/final/verification-receipt.json](evidence/final/verification-receipt.json).
+
+- **W5-10** (PR #225): proveniência de contexto e sinais do executor expostos em `/v1/tasks/{id}/evidence`, nos eventos e nas superfícies CLI e SDK. `context_provenance.sources[]` fica vazio para tarefas reais enquanto o runtime de engenharia montar contexto v1; só `source_refs` (lineage) é exposto. `init` e `rate_limit` seguem declarados desconhecidos.
+- **W5-10b** (PR #226): endurecimento do aceite de engenharia para **novas admissões**; claim e recuperação não reaplicam. Códigos novos `ENGINEERING_ACCEPTANCE_WEAK`, `ENGINEERING_COMMAND_ARG_INVALID` e `ENGINEERING_PROTECTED_CONFIG_MISSING`. Nota de migração em `docs/v4-migration.md`. Cobertura de critérios de aceite é global (waiver do owner de 2026-10-16); `agent run --task-contract` e o caminho de workflow da CLI não passam pela admissão.
+- **W5-11a** (PR #227): matriz negativa (20 casos) e mutantes (28 rejeitados, 0 falhas). Mutantes sem detecção são declarados no recibo da task: `dap_survivor` sem mutante oficial, segunda guarda de localização do LSP, `RUN_ID_PATTERN` do MCP (defesa em profundidade); FR04, FR11, FR12, FR13 e FR15 sem caso na matriz.
+- **W5-11b** (PR #228): **prova de integração, instalação e admissão governada**. Instala o core e os cinco plugins offline fora do checkout e conduz o consumidor real A (`cambio-real/apps/platform-web`) e o consumidor B (`axon-web`) por admissão governada com verificador fixado antes da primeira reserva. **Não** afirma que LSP ou DAP guiaram a correção: o despacho do modelo recebeu o defeito e o verificador externo aceitou o resultado. B é consumidor **sintético** (teste e defeito declarados). A jornada **não roda no CI**. Foram feitos **2 de 3 despachos** permitidos na assinatura; o custo **não é medido** (`cost_microusd` nulo; `max_cost_microusd` 0 só proíbe gasto pago; teto de API paga US$ 1, sem uso). Sem o despacho, a jornada termina com 24 PASS e 9 BLOCKED (exit 3), nunca PASS.
+- **W5-12** (esta task): rastreabilidade final, recibo de verificação final, nota de migração (`limit`/`stale_minutes` da W5-04 e aceite da W5-10b), status das famílias F14, F15 e F20 em `requirements.json` e nós `proposed` do grafo de capacidades.
+
+### Limitações aceitas na entrega
+
+- **Contexto v1 ainda montado pelo runtime de engenharia**: o contexto v2 com autoridade por fonte está coberto no ledger e nos eventos com o montador real, não de ponta a ponta por HTTP para uma tarefa real.
+- **Node 22**: a verificação final usa um clone com ABI do Node 22 (`better-sqlite3`); onde o recibo disser "não verificado", o motivo está registrado. O worktree da feature tem ABI do Node 24.
+- **Mutantes sem detecção** declarados na W5-11a (acima); três mutantes da W5-08 (M04, M24, M22) e três da W5-07 (M09, M18b, N5) sobrevivem, conforme os recibos.
+- **Consumidores reais**: F14, F15 e F20 ficam `real_consumers: not_verified`. A jornada exerceu LSP, DAP e navegador em consumidor real, mas isso não é consumidor real de F14: memória sem consumidor, DAP depurou um reprodutor do harness, o navegador renderizou uma página do harness e o verificador é uma regex.
+- **Ativação**: plugins permanecem `scaffolded`; migration 017 de memória em `migrations-pending-activation`; merge, publicação, instalação global e ativação seguem como decisões separadas (G6).
+- **Teste do marketplace** (`test-plugin-marketplace.js`): passou 88/0 em Node 22 e 24 na verificação final. Histórico: em waves anteriores 3 asserções falhavam sob `node --test` no wrapper de cgroup, causa não determinada e preexistente; segue como nota, sem reprodução nesta rodada.
+- **Inventário (G3)**: 1538 de 1556; `packages` 137/137 e `tools` 393/393 sem folga. Valor final medido no recibo de verificação.

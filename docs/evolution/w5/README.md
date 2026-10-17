@@ -9,8 +9,10 @@ decisões e os limites estão em [`PLAN.md`](./PLAN.md) e na
 
 ## Estado
 
-G2 aprovado em 2026-10-11 e W5-01 (contratos) concluída; próximo passo: onda B1 (W5-02a, W5-02b1 → W5-02b2,
-W5-04). Implementação ainda não iniciada. Detalhes e matriz de entrega em [`STATUS.md`](./STATUS.md).
+Implementação das tasks W5-02a a W5-11b integrada na feature `feature/hseos-evolution-w5`; a W5-12 fecha a onda com
+rastreabilidade e verificação final. Nada foi ativado operacionalmente: plugins `scaffolded`, merge para a `master`,
+publicação e instalação global dependem de decisões separadas (G6). Detalhes, limitações aceitas e matriz de entrega em
+[`STATUS.md`](./STATUS.md); FR → task → teste → recibo em [`evidence/final/traceability.md`](./evidence/final/traceability.md).
 
 ## Princípios
 
