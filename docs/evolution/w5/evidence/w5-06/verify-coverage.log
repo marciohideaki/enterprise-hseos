@@ -1,0 +1,57 @@
+✔ the dap pack is generated from the very same files the core ships (identical digests) (28.689284ms)
+✔ the dap pack stays inside 40 entries and 1 MB and carries no binary or pin (2.787773ms)
+✔ the dap pack shares the very same core entry points as the lsp pack and adds only the debug files (0.234783ms)
+✔ the capability loads lazily: requiring the package never loads the pin installer (80.186296ms)
+✔ the governance definition and registry entry exist for the plugin (0.425644ms)
+measured python: pids_peak=23 memory_peak_bytes=89350144
+✔ real python adapter: breakpoint, stack, variables, step and termination, workspace untouched (2480.686338ms)
+measured node: pids_peak=36 memory_peak_bytes=104730624
+✔ real node adapter: breakpoint, stack, variables, step and termination, workspace untouched (2913.2757ms)
+✔ real adapters: stepIn, stepOut, depth 2 children, a program without breakpoints, a module launch and stack-less capture (7828.068632ms)
+✔ input validation refuses malformed requests, and everything that would run code in the debuggee, before anything runs (2.540183ms)
+✔ the host client only ever sends allow-listed requests: evaluate, setVariable, setExpression, restartFrame never reach the wire (314.957815ms)
+✔ the host client reports a failed response, a framing violation and a vanished adapter with stable codes (6.247142ms)
+✔ files outside the root (.., absolute, symlink, encoded) are refused as ENV_DAP_OUT_OF_SCOPE and recorded, without a sandbox (7.397951ms)
+✔ generated matrix: the scope verdict equals the kernel for every link/parent combination, for breakpoints, program and cwd (33.244711ms)
+✔ a workspace root that is itself a symlink is resolved first: inside stays inside, escapes stay out (2.359063ms)
+✔ a breakpoint outside /workspace is refused by the real service too, and the sandbox is never entered (1.372011ms)
+P0 evidence: status=failed stderr="node:internal/child_process:441"
+✔ a P0 policy cannot host an adapter and is reported as blocked, with the real denial as evidence (115.130741ms)
+✔ the sandbox really mounts the workspace and the toolchain read-only (EROFS), and the scratch tmpfs stays writable (206.247775ms)
+✔ a missing toolchain, pin or adapter is BLOCKED with its cause, never an empty result (32.616794ms)
+✔ executor failures and unreadable host output are refused with a stable code, and the drain evidence is kept (2.039258ms)
+✔ a large host result arrives through the artifact channel and only a verified manifest is accepted (1.306859ms)
+✔ results are normalised: paths are root-relative or withheld, values are truncated with a marker, malformed results are refused (6.954098ms)
+✔ the default service wires the real executor and artifact channel lazily (0.982239ms)
+✔ python: a debuggee that never stops ends at the timeout and drains, leaving no descendant in the cgroup or in /proc (6088.696153ms)
+✔ node: a debuggee that never stops ends at the timeout and drains, leaving no descendant in the cgroup or in /proc (6124.750027ms)
+✔ the executor timeout itself (a host that cannot answer) kills and drains the whole cgroup, detached descendants included (3073.239788ms)
+✔ host protocol failures have stable codes: refused initialize, garbage framing, a dying adapter, no listener, a silent adapter, bad input (4783.666951ms)
+✔ host drives a scripted adapter: reverse requests are refused, output is bounded, lists and frames are cut, stops are limited (3112.321265ms)
+✔ only js-debug's own child configuration is honoured for startDebugging; anything with program, runtime or arguments is refused (0.734391ms)
+✔ host output is inline when small and a verified artifact manifest when large (3.271076ms)
+✔ host main prints ok on success and a stable code on failure (1848.371728ms)
+✔ crc32 matches the published check values (0.738443ms)
+✔ the real cache verifies SHA-256 and the licence text inside debugpy and js-debug, and installs offline (104.74352ms)
+✔ a coherent zip installs from the verified bytes; stored and deflated members are both extracted, with their CRC checked (4.944642ms)
+✔ every unsafe or inconsistent zip (links, traversal, duplicates, file/directory clashes, bad sizes) is BLOCKED before anything is touched (17.832312ms)
+✔ zip pins diverge, go missing or fail the licence check with their own codes (2.815023ms)
+✔ a tar pin may use its own root prefix, and a member outside that root is refused (99.404297ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 41703.757186
+--------------------------------|---------|----------|---------|---------|-------------------
+File                            | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+--------------------------------|---------|----------|---------|---------|-------------------
+All files                       |   99.11 |    94.97 |     100 |   99.11 |                   
+ packages/agent-environment     |   99.26 |    95.41 |     100 |   99.26 |                   
+  dap-host.js                   |   99.08 |    92.21 |     100 |   99.08 | 423-426           
+  dap.js                        |   99.46 |    98.03 |     100 |   99.46 | 140-141           
+ tools/lib                      |   98.75 |     93.7 |     100 |   98.75 |                   
+  environment-toolchain-pins.js |   98.75 |     93.7 |     100 |   98.75 | 93-94,96-97       
+--------------------------------|---------|----------|---------|---------|-------------------

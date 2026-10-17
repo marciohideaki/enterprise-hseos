@@ -1,0 +1,14 @@
+id: hseos-plugin-memory
+version: "0.1.0"
+description: "Governed per-project memory (agent-memory.v1) distributed from the core code; writes stay in the host ledger"
+license: MIT
+authors:
+  - "Hideaki Solutions"
+extends: ""
+requires_bundles:
+  - core
+surfaces:
+  skills:
+    - skills/memory/SKILL.md
+verification:
+  conformance_tests: tests/

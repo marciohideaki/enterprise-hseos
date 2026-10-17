@@ -95,6 +95,25 @@ SWARM generates commit messages for each task based on the task's Goal and FILES
 
 ---
 
+## No Silent Idle (dispatch contract)
+
+Every subagent or teammate prompt dispatched by SWARM MUST carry this clause verbatim. It is additive: without `.hseos/config/agent-liveness.yaml`, or with `enabled: false`, nothing about the flow changes.
+
+> **NO SILENT IDLE.** Background-task and Monitor notices do NOT wake you once your turn ends.
+> - Never end a turn saying "waiting" / "aguardando". Run long commands in the foreground, in blocks of at most 540 s (`timeout 540 bash -c 'until <condition>; do sleep 15; done'`), repeating until the result is out.
+> - End the final turn with exactly one last line:
+>   `LIVENESS: {"state":"DONE"|"BLOCKED"|"FAILED"|"WAITING_ON","reason":"...","evidence":"<hash|path|run id>"}`
+> - Use `WAITING_ON` for a third party, including a pending decision from the Commander or a human (that is a wait, never `BLOCKED`), with `"waiting_on":{"condition":"...","wake_via":"commander"|"human","deadline_at":"<ISO-8601 within max_wait_deadline_s>"}`. `wake_via: self` does not exist. Waiting on your own process is never a reason to end the turn.
+> - Compute `deadline_at` with `date -u` at the moment you emit the line; never type a clock time from memory. `BLOCKED` is only for a real impediment, with its cause in `reason`.
+
+Commander rules:
+- Treat a missing or invalid LIVENESS line as BLOCKED, never as DONE.
+- When `liveness-wake-inbox` injects a wake request into the prompt, `SendMessage` the named agent before anything else.
+- With the contract enabled, `liveness-stop-guard` (Stop, SubagentStop, TeammateIdle) refuses an end of turn without a valid LIVENESS line, or with background tasks active and no valid `WAITING_ON`, up to `max_stop_refusals`; afterwards the turn passes and an `idle_violation` is recorded. Refusals are not correction rounds (the 3-round limit is separate).
+- The state is declared and validated. Prose is never classified by regex.
+- A task under review is pinned to the reviewed SHA: its executor is frozen (no commit, amend, reset or squash) until the verdict. Corrections arrive in one round the Commander opens afterwards. If HEAD moves during the review, the review is void and is reported as `REVIEW_TARGET_MOVED`.
+- `deadline_at` of a `WAITING_ON` with `wake_via: commander|human` may reach `max_wait_deadline_s` (default 14400); silence without a declared state is still bounded by `stall_timeout_s`.
+
 ## Run Directory Convention
 
 Under HSEOS:
@@ -209,6 +228,32 @@ sqlite3 .hseos/state/project.db "SELECT kind, ts FROM as_events WHERE agent_run_
 | Merging PR without explicit owner authorization | Constitutional violation; merge authority is human-owned |
 | Bypassing G2 because "the batch is small" | Governance precedent damaged; next batch becomes looser |
 | Loading `INTAKE.md` + `STUDY.md` + all `logs/` on resume | Re-inflates context; use only PLAN + STATUS + existing handoffs |
+
+---
+
+## Liveness parity (Codex and other harnesses)
+
+When `.hseos/config/agent-liveness.yaml` has `enabled: true`, every dispatched executor follows the "no silent
+idle" protocol in `AGENTS.md` §12; with the contract absent or disabled nothing changes. Dispatch prompts for
+executors outside Claude Code must carry these lines verbatim:
+
+- End the final message with `LIVENESS: {"state":"DONE"|"BLOCKED"|"FAILED"|"WAITING_ON","reason":"...","evidence":"...","waiting_on":{...}}`
+  and record it with `hseos liveness report --session <id> --agent <id> --json '<line>'`.
+- Never end the turn "waiting" on a background job. Wait in the foreground with
+  `hseos liveness await --pid|--file|--cmd-status ... --max 540` and call it again while it answers
+  "ainda rodando, chame de novo" (exit 75).
+- Codex 0.162.1 has a Stop hook (`stop_hook_active`) and a UserPromptSubmit hook with `additionalContext`
+  (spike CO0), so the guard can be installed there through `hooks.json` with a `trusted_hash` in `config.toml`
+  (installation template: CO2; Codex `SubagentStop` exists in the schema but is NOT VERIFIED). Without the guard,
+  or in a harness without hooks, also record `hseos liveness report --event turn_end --session <id> --agent <id>`
+  when the turn ends; the external watchdog (`hseos liveness watch --once`, systemd timer via `--print-systemd`)
+  is the backstop.
+- `BLOCKED` is only for a real impediment, with its cause. Waiting for a decision from the Commander or a
+  human is `WAITING_ON` with the condition, `wake_via` and a `deadline_at` of up to `max_wait_deadline_s`
+  (default 4 h). A lapsed heartbeat lease wakes the agent even mid-turn, so a long foreground operation uses
+  `hseos liveness await`, which renews the heartbeat every 60 s.
+- The Commander reads `hseos liveness check --json` each cycle and messages the agent behind every wake
+  request; an expired lease is escalated to the human, never taken over or killed.
 
 ---
 

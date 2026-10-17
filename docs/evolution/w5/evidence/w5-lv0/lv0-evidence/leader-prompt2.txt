@@ -1,0 +1,4 @@
+Teste de infraestrutura. Faça EXATAMENTE isto:
+1) Use a ferramenta Agent para criar um subagente (subagent_type general-purpose, model haiku, name lv0-sub) com este prompt: "Execute `sleep 25` com Bash usando run_in_background true e, logo depois, encerre o turno respondendo apenas WAITING. Não faça polling. Se um hook ou uma mensagem pedir algo antes de você parar, faça o que for pedido e responda com a palavra pedida." Aguarde o retorno dele e registre literalmente o que ele respondeu.
+2) Depois rode em primeiro plano: timeout 50 bash -c 'sleep 35'.
+3) Imprima DONE e o texto literal que o subagente devolveu.

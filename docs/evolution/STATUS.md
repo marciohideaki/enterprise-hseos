@@ -11,6 +11,15 @@ reprovada no verificador externo. A cobertura falhou em uma das rodadas e foi co
 repetida (registrado). Pendências abertas listadas no estado das etapas. O programa W0–W8
 segue incompleto: W5–W8 não foram entregues e nada foi ativado operacionalmente.
 
+**Onda 5 (2026-10-17):** capacidades de ambiente (LSP, depuração, navegador, computer-use), contexto com autoridade e
+proveniência, memória governada, compactação combinada e MCP subordinado ao gateway integradas na feature
+`feature/hseos-evolution-w5`; fechamento na W5-12. Verificação determinística e rastreabilidade FR → task → teste → recibo em
+[w5/STATUS.md](w5/STATUS.md) e [w5/evidence/final](w5/evidence/final/traceability.md). Consumidor real A e consumidor B
+**sintético** (prova de integração local, fora do CI; 2 de 3 despachos em assinatura, custo não medido). Famílias F14, F15 e F20 em
+[requirements.json](requirements.json) passam a `verified_w5_scope_only` no plano determinístico; nenhuma das três tem
+consumidor real verificado (`real_consumers: not_verified`). Plugins `scaffolded`; nada ativado operacionalmente, sem merge para a `master`,
+publicação ou instalação global (G6). W6–W8 não foram entregues.
+
 Tudo abaixo desta linha é **histórico**: preserva o que foi afirmado em cada
 checkpoint e não descreve o estado atual.
 

@@ -1,0 +1,64 @@
+heavy-run: modo normal (load1=1.76 phys=6 avail=20849MiB need=6G mem.psi=0.00 io.psi.full=0.00)
+Delegated test cgroup controllers verified
+✔ registry snapshots isolate provider changes and reject duplicate identities (5.002971ms)
+✔ registry snapshots bind provider methods instead of retaining mutable method lookup (6.856417ms)
+✔ pressure is deterministic and history compaction writes one immutable exact checkpoint (5.925241ms)
+✔ crash retry reconstructs the exact result from checkpoint without reinvoking provider (1.782597ms)
+✔ manifest caps fail closed before input dispatch and after provider output (0.820965ms)
+✔ tool-result pruning removes result bodies while preserving identity, evidence and digest (1.509222ms)
+✔ runtime rejects a provider result not bound to the exact input before checkpoint persistence (0.752516ms)
+✔ runtime independently verifies provider accounting and ordered tool identities (1.843381ms)
+✔ checkpoint ids are immutable and dispose never erases evidence (1.097115ms)
+✔ checkpoint payloads reject nested credential-bearing fields (0.418427ms)
+✔ registry rejects forged snapshots, unverifiable manifests and manifest drift (0.653746ms)
+✔ invalid thresholds and tiny histories cannot be represented as successful compaction (0.704087ms)
+✔ pruning opaque tool output preserves its digest without inventing evidence or status (1.163895ms)
+✔ caller rejection cannot persist a checkpoint and a later accepted attempt can proceed (1.886324ms)
+✔ checkpoint failure is not a cache miss and never dispatches compaction (0.379977ms)
+✔ a valid checkpoint from a different compaction cannot be relabelled on recovery (0.97783ms)
+✔ session and governed-operation aggregates share relational global ordering without sharing authority (20.443555ms)
+✔ append and replay enforce one contiguous immutable session lifecycle (17.255072ms)
+✔ model request reconstruction is canonical, immutable and source-linked (6.440691ms)
+✔ crash recovery survives process reopen and exact append retry is idempotent (26.836188ms)
+✔ fork records immutable lineage and cannot widen authority, policy or resource limits (21.044836ms)
+✔ fork parent attachment and child creation commit atomically (7.012997ms)
+✔ root, resumed appends, and forked children retain one durable trace (10.797091ms)
+✔ replay fails closed when persisted trace lineage is fragmented (5.03594ms)
+✔ replay fails closed when persisted causation does not reference earlier lineage (5.776876ms)
+✔ root and child creation require verifiable causation anchors (7.009456ms)
+✔ gaps, foreign model streams and forged relational envelopes fail closed (12.541631ms)
+✔ session success cannot contradict a failed model terminal event (14.874057ms)
+✔ session cancellation terminal must exactly match its durable non-deadline request (7.834013ms)
+✔ incremental replay preserves full replay and rejects forged checkpoints (6.680016ms)
+✔ transaction rollback cannot retain an uncommitted replay checkpoint (6.059773ms)
+✔ replay rejects forged ordering, authority and context provenance (3.22214ms)
+✔ tool deltas preserve identity and require complete object arguments (0.453772ms)
+✔ replay rejects gaps, foreign lineage, stale resume and streams without matching requests (2.312513ms)
+✔ request reconstruction consumes only reducer checkpoints and follows later durable turns (7.941812ms)
+✔ request reconstruction invalidates cached state after another connection appends a turn (22.218395ms)
+✔ uncompacted history is the reference: every pinned source is visible with its resolved authority (42.173411ms)
+✔ compaction keeps pinned sources and authority while a history-only criterion is a documented compactable loss (50.323557ms)
+✔ crash before the atomic append recovers from the checkpoint with no extra provider call and identical events (66.365409ms)
+✔ resume after compaction replays to the same request, lineage and pinned sources (27.467609ms)
+✔ a fork from the compacted state keeps lineage and pinned sources and cannot widen limits (82.54583ms)
+✔ a durable compaction without context resumes through the recovery plan without a second compaction (53.691125ms)
+✔ resuming a durable compaction keeps fitting memory and reports the memory that no longer fits (49.275559ms)
+✔ resuming a durable compaction refuses a different identity, provider, policy or an unfittable budget (48.854184ms)
+✔ the assembler refuses a forged store, snapshot or compaction runtime and a stale or foreign turn (11.22195ms)
+✔ budget policies: reject fails closed, truncate_optional drops what does not fit, compact needs a runtime and a willing provider (38.844291ms)
+✔ compaction under pressure drops retained memory before it gives up, and a declining provider fails closed (32.462443ms)
+✔ resume under memory pressure rebuilds the request the run without a crash would have recorded (50.388377ms)
+ℹ tests 48
+ℹ suites 0
+ℹ pass 48
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1293.819673
+----------------------|---------|----------|---------|---------|------------------------------------
+File                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                  
+----------------------|---------|----------|---------|---------|------------------------------------
+All files             |   90.07 |    85.63 |   95.83 |   90.07 |                                    
+ context-assembler.js |   90.07 |    85.63 |   95.83 |   90.07 | ...491-492,515-525,644-645,653-654 
+----------------------|---------|----------|---------|---------|------------------------------------

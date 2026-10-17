@@ -60,11 +60,58 @@ function assertLegacyTelemetryTarget(telemetryPath, { projectDirectory = process
   }
 }
 
+const SCOPE_DENIED_CODE = 'MCP_SCOPE_DENIED';
+const TOOL_UNKNOWN_CODE = 'MCP_TOOL_UNKNOWN';
+// The legacy transport answers any thrown tool error with -32000.
+const LEGACY_DENIAL_RPC_CODE = -32_000;
+
+// Gateway in front of every legacy tool call: unknown tools never reach a handler, and refusals raised by a handler
+// for an out-of-scope access are reported as denials. The legacy path has no execution ledger (activation pending
+// ADR-0022/0023), so the denial goes to the injected durable recorder and to the structured server log. A recorder
+// failure never releases the call: it stays denied and the failure is appended to the error the client receives.
+function createLegacyGateway({ serverId, tools, invokeTool, recordDenial, log = console.error }) {
+  if (!(tools instanceof Map)) throw new TypeError('Legacy gateway requires the tool map');
+  if (typeof invokeTool !== 'function') throw new TypeError('Legacy gateway requires a tool invoker');
+  const deny = (tool, code, message) => {
+    const denial = {
+      server_id: serverId,
+      tool: String(tool).slice(0, 128),
+      code,
+      message: String(message).slice(0, 256),
+      rpc_code: LEGACY_DENIAL_RPC_CODE,
+    };
+    log(`[${serverId}:gateway:denied] ${code} tool=${denial.tool}`);
+    try {
+      if (typeof recordDenial === 'function') recordDenial(denial);
+    } catch (error) {
+      log(`[${serverId}:gateway:warn] denial recorder failed: ${error.message}`);
+      return `denial not recorded: ${error.message}`;
+    }
+    return null;
+  };
+  const withRecordingFailure = (error, recordingFailure) => {
+    if (recordingFailure) error.message = `${error.message} (${recordingFailure})`;
+    return error;
+  };
+  return async (name, args, context) => {
+    if (typeof name !== 'string' || !tools.has(name)) {
+      const failure = deny(name, TOOL_UNKNOWN_CODE, `Unknown tool: ${name}`);
+      throw withRecordingFailure(Object.assign(new Error(`Unknown tool: ${name}`), { code: TOOL_UNKNOWN_CODE }), failure);
+    }
+    try {
+      return await invokeTool(name, args, context);
+    } catch (error) {
+      if (error && error.code === SCOPE_DENIED_CODE) throw withRecordingFailure(error, deny(name, SCOPE_DENIED_CODE, error.message));
+      throw error;
+    }
+  };
+}
+
 function startLegacyMcpServer({
   serverId,
   serverName,
   tools,
-  invokeTool,
+  invokeTool: rawInvokeTool,
   mode,
   port,
   projectDirectory = process.cwd(),
@@ -72,6 +119,7 @@ function startLegacyMcpServer({
   telemetryPath = process.env.HSEOS_LEGACY_TELEMETRY_DB,
   health = {},
   wrapHttpResults = true,
+  recordDenial,
   log = console.error,
 }) {
   const resolvedTelemetryPath = resolveLegacyTelemetryPath({ projectDirectory, stateDatabasePath, telemetryPath });
@@ -79,6 +127,14 @@ function startLegacyMcpServer({
   fs.mkdirSync(path.dirname(resolvedTelemetryPath), { recursive: true });
   assertLegacyTelemetryTarget(resolvedTelemetryPath, { projectDirectory, stateDatabasePath });
   const usage = new McpLegacyUsageStore(resolvedTelemetryPath);
+  // No raw invoker reaches the transport: all four servers get the gateway by construction, recording in the durable store.
+  const invokeTool = createLegacyGateway({
+    serverId,
+    tools,
+    invokeTool: rawInvokeTool,
+    recordDenial: recordDenial || ((denial) => usage.recordDenial(denial)),
+    log,
+  });
   const observe = () => {
     try {
       usage.markObservation(serverId);
@@ -152,6 +208,9 @@ function startLegacyMcpServer({
 }
 
 module.exports = {
+  SCOPE_DENIED_CODE,
+  TOOL_UNKNOWN_CODE,
+  createLegacyGateway,
   LEGACY_SUNSET,
   OBSERVATION_INTERVAL_MS,
   assertLegacyTelemetryTarget,

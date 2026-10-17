@@ -1,0 +1,109 @@
+✔ five sandboxed process roles prove one transitive filesystem, network, and environment boundary (733.062554ms)
+✔ plain forged policies cannot invoke or claim the supervisor-owned journey (0.975801ms)
+✔ a protected inode hard-linked into the worktree invalidates the binding before sandbox launch (0.604259ms)
+✔ a checkout root that overlaps required system mounts is rejected (0.283263ms)
+✔ a host Unix socket exposed inside the worktree fails before any sandbox role launches (3.478824ms)
+✔ main checkout aliases, empty protection, unknown fields, and workspace protection fail closed (0.790101ms)
+✔ a manifest that matches the files promotes verified bytes with recomputed digest and size (4.096116ms)
+✔ manifest shape, size and field violations are refused before any file is read (1.571901ms)
+✔ paths outside /artifacts, traversal, nesting and hidden names are refused (0.563734ms)
+✔ files the manifest does not declare, declared files that are absent and subdirectories diverge (0.665312ms)
+✔ symbolic links, hard links and non-regular entries are refused (0.779302ms)
+✔ size, digest and signature are recomputed and must match the claim and the media type (0.968985ms)
+✔ the total quota is enforced across files even when each file is within its own ceiling (0.772088ms)
+✔ a file that grows between the stat and the read is caught by the extra-byte read (0.900022ms)
+✔ every media type accepts its own signature and rejects another (0.378056ms)
+✔ channel limits and media types are bounded and unknown names are refused (0.467659ms)
+✔ the channel lives on tmpfs, verifies a manifest, and cannot be used after disposal (0.618114ms)
+✔ a parent that is not memory-backed refuses the channel instead of silently using disk (0.309252ms)
+✔ the path must start with /artifacts/ even when the remaining name is a real file (0.443798ms)
+✔ removal does not depend on how many entries the plugin created before hiding a directory (108.445358ms)
+✔ a spent repair budget is reported explicitly and the removal is still attempted (0.650733ms)
+✔ external code executes only from a read-only isolated snapshot with request-bound output (71.957149ms)
+✔ untrusted imports cannot access the host workspace, source directory or arbitrary private file (56.35064ms)
+✔ network creation is refused inside an external plugin (59.818809ms)
+✔ malformed output, forged identity, unsuccessful import and missing handlers fail closed (278.976124ms)
+✔ timeout and output ceilings terminate plugin descendants (258.555545ms)
+✔ cancellation drains a plugin and a detached descendant; parent exit also drains descendants (349.473978ms)
+✔ admission drift, malformed requests, expired deadlines and pre-cancellation reject before entrypoint effects (10.791237ms)
+✔ plugin-supplied conformance is isolated and cannot claim host certification (185.156919ms)
+✔ private snapshot remains pinned if the original plugin changes immediately before launch (129.464364ms)
+✔ invalid signal fails before launch and drain uncertainty remains distinct from plugin failure (69.271789ms)
+✔ execution snapshots pinned dependencies and refuses conflicting transitive versions (103.853406ms)
+✔ shared dependency is materialized once and ESM entrypoints remain isolated (78.391771ms)
+✔ isolation setup failure is distinct from an attempted execution with uncertain teardown (5.672168ms)
+✔ default plugins stay P0 with peaks reported, and a wider profile needs both a manifest reference and a grant (64.996561ms)
+✔ a P1 plugin reaches loopback only; the grant, not the plugin, chose the profile (68.858275ms)
+✔ a P2 plugin needs a controller-supplied broker socket and a P0 plugin cannot be given one (89.200497ms)
+✔ artifacts are promoted only after the controller recomputes digest, size and signature (338.736178ms)
+✔ artifact grants cannot be exceeded, and a plugin without them has no channel or declaration (143.15406ms)
+✔ declared limits are applied per call: the process and memory ceilings come from the manifest (6283.052983ms)
+✔ a plugin cannot request mounts: the field is not part of the manifest or the grant (7.531213ms)
+✔ a plugin without a channel cannot return artifacts, even with a correct identity envelope (153.7102ms)
+✔ unreadable directories left by a plugin are removed: no tmpfs or workspace leak and the right diagnosis (125.937425ms)
+✔ a cleanup fault is recorded beside the result and never replaces it (61.602109ms)
+✔ execution plugin selection resolves dependencies in order and refuses every inconsistent catalog (4.259559ms)
+✔ bundles and manifests with unsafe or malformed content are rejected before admission (3.239538ms)
+✔ the cleanup outcome travels with a rejection as well as with a result (189.854435ms)
+✔ the profile table is closed: unknown names and inherited keys refuse, P0 stays the default (4.784066ms)
+✔ P1 is digest-bound, refuses a broker, and P2 demands a real owned socket outside the workspace (6.262876ms)
+✔ seccomp by argument: AF_UNIX and AF_INET* stream or datagram pass, every other family is refused (1.501939ms)
+✔ seccomp by argument: socketpair is AF_UNIX only; io_uring, x32 and foreign architectures stay refused (0.32966ms)
+✔ the seccomp evaluator and assembler refuse malformed programs instead of guessing (0.876256ms)
+✔ per-call limits stay inside 32-256 processes and 2 GiB, and shared memory never exceeds memory (0.4863ms)
+✔ P0 launches are untouched and wider profiles are launched only from a supervisor policy (9.38871ms)
+✔ P1 inside bwrap: loopback works, no external route, and the forbidden families are refused by the kernel path (30.995045ms)
+✔ P2 inside bwrap: the broker socket is mounted at /run/broker.sock and is the only way out (31.399313ms)
+✔ a profile probe refuses forged launches, failed runs, malformed output and any divergent observation (51.751656ms)
+✔ --no-sandbox is granted only for a supervisor bwrap launch of a wider profile (2.013766ms)
+✔ per-call process and memory limits are applied, reported with peaks, and the cgroup drains (290.205544ms)
+✔ descriptor limit is per call, finite, and applied to the sandboxed process (69.427663ms)
+✔ out-of-range call limits refuse before a group is created (1.225417ms)
+✔ /dev/shm is sized per call and the artifact channel is the only writable path out (194.730179ms)
+✔ read-only toolchain mounts appear under /opt/hseos and every unsafe source or target is refused (72.125061ms)
+✔ executor errors keep their types when limits or the channel are wrong (0.645824ms)
+✔ a dead executor owner is reconciled: only its own well-formed groups are drained and removed (0.878656ms)
+✔ terminal groups are reaped only under the exact owner prefix and parent (0.975751ms)
+✔ resource groups reject out-of-range limits and a controller that does not accept its limit (1.099683ms)
+✔ group removal tolerates a busy cgroup and a concurrent claimant, and gives up with an uncertain-teardown error (54.291406ms)
+✔ timeouts, output floods, cancellation and undecodable output end with a distinct status and drained groups (652.664612ms)
+✔ a kill that cannot be written is reported as uncertain teardown, never as a clean cancellation (216.960414ms)
+✔ internet sockets are limited to the default, TCP and UDP protocols (0.507602ms)
+✔ a prepared launch is immutable and its registration cannot be forged from an editable record (1.346618ms)
+✔ the broker socket is revalidated at launch: a swap, a symlink or a removal refuses the launch (3.150668ms)
+✔ an unreadable directory made by the plugin cannot keep the artifact channel from being removed (0.719964ms)
+✔ a channel that cannot be removed reports the failure instead of throwing (0.520077ms)
+✔ terminals take the profile from the policy and per-call limits, accept input and drain their group (65.687228ms)
+✔ a PTY terminal reports its size and resizes; the host runtime descriptor stays read-only (162.313716ms)
+✔ terminal limits, forged policies, failed preparation and unknown control actions all fail closed (459.483092ms)
+✔ a forged or edited launch is refused before it can be run, probed or granted the browser flag (8.781792ms)
+✔ malformed or overprivileged subprocess witnesses never certify isolation (84.930296ms)
+✔ policy input and execution commands fail closed before launching a process (5.34328ms)
+✔ executor ownership cannot be inferred from missing or mismatched process facts (1.71638ms)
+✔ executor rejects non-unified cgroup (0.238549ms)
+✔ executor rejects missing controllers (0.234514ms)
+✔ executor rejects invalid process identity (0.139659ms)
+ℹ tests 85
+ℹ suites 0
+ℹ pass 85
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13257.846028
+--------------------------------------|---------|----------|---------|---------|--------------------
+File                                  | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s  
+--------------------------------------|---------|----------|---------|---------|--------------------
+All files                             |   97.79 |    93.81 |     100 |   97.79 |                    
+ packages/agent-isolation-attestation |   97.26 |    94.98 |     100 |   97.26 |                    
+  artifact-channel.js                 |   98.28 |     98.5 |     100 |   98.28 | 135-136,227-228    
+  executor.js                         |   96.48 |    90.29 |     100 |   96.48 | ...254-255,269-271 
+  index.js                            |   97.14 |    95.49 |     100 |   97.14 | ...534-535,544-545 
+  profiles.js                         |   98.91 |    96.35 |     100 |   98.91 | 99-100,167-168,257 
+  terminal-executor.js                |   93.75 |    91.83 |     100 |   93.75 | ...163-165,179-181 
+ tools/cli/lib                        |    99.2 |    92.13 |     100 |    99.2 |                    
+  execution-plugin-runtime.js         |    99.2 |    92.13 |     100 |    99.2 | 92-93              
+ tools/lib                            |     100 |    88.13 |     100 |     100 |                    
+  execution-plugin-manifest.js        |     100 |    88.13 |     100 |     100 | ...202,221,224,246 
+--------------------------------------|---------|----------|---------|---------|--------------------
+exit=0

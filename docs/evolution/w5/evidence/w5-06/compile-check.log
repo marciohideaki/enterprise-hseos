@@ -1,0 +1,486 @@
+│
+◆  ✓ Skill accessibility integrity
+│
+◆  ✓ Skill ado-close-wave integrity
+│
+◆  ✓ Skill ado-new-project integrity
+│
+◆  ✓ Skill ado-ops integrity
+│
+◆  ✓ Skill ado-plan integrity
+│
+◆  ✓ Skill ado-sync integrity
+│
+◆  ✓ Skill adr-compliance integrity
+│
+◆  ✓ Skill agent-permissions integrity
+│
+◆  ✓ Skill ai-observability integrity
+│
+◆  ✓ Skill architecture-breaking-change-detection integrity
+│
+◆  ✓ Skill architecture-ddd-boundary-check integrity
+│
+◆  ✓ Skill capability-check integrity
+│
+◆  ✓ Skill commit-hygiene integrity
+│
+◆  ✓ Skill context-compression integrity
+│
+◆  ✓ Skill context-engineering integrity
+│
+◆  ✓ Skill context-policy integrity
+│
+◆  ✓ Skill core-drift integrity
+│
+◆  ✓ Skill dependency-audit integrity
+│
+◆  ✓ Skill dev-squad integrity
+│
+◆  ✓ Skill doc-project integrity
+│
+◆  ✓ Skill documentation-completeness integrity
+│
+◆  ✓ Skill enterprise-readiness-audit integrity
+│
+◆  ✓ Skill gitops-add-service integrity
+│
+◆  ✓ Skill gitops-deploy integrity
+│
+◆  ✓ Skill gitops-new-project integrity
+│
+◆  ✓ Skill goal-graph integrity
+│
+◆  ✓ Skill hseos-goal-loop integrity
+│
+◆  ✓ Skill inter-agent-comms integrity
+│
+◆  ✓ Skill mcp-governance integrity
+│
+◆  ✓ Skill multi-agent-orchestration integrity
+│
+◆  ✓ Skill naming-conventions integrity
+│
+◆  ✓ Skill observability-compliance integrity
+│
+◆  ✓ Skill performance-profiling integrity
+│
+◆  ✓ Skill policy-layer integrity
+│
+◆  ✓ Skill pr-review integrity
+│
+◆  ✓ Skill project-state integrity
+│
+◆  ✓ Skill release-control integrity
+│
+◆  ✓ Skill repo-radar integrity
+│
+◆  ✓ Skill rfc integrity
+│
+◆  ✓ Skill sanitize-comments integrity
+│
+◆  ✓ Skill second-brain integrity
+│
+◆  ✓ Skill secure-coding integrity
+│
+◆  ✓ Skill security-audit-plain-language integrity
+│
+◆  ✓ Skill self-verification integrity
+│
+◆  ✓ Skill session-handoff integrity
+│
+◆  ✓ Skill simplicity-first integrity
+│
+◆  ✓ Skill spec-driven integrity
+│
+◆  ✓ Skill systematic-debugging integrity
+│
+◆  ✓ Skill tech-research integrity
+│
+◆  ✓ Skill test-coverage integrity
+│
+◆  ✓ Skill threat-modeling integrity
+│
+◆  ✓ Skill verification-before-completion integrity
+│
+◆  ✓ Skill verifier integrity
+│
+◆  ✓ Agent ATLAS integrity
+│
+◆  ✓ Agent BLITZ integrity
+│
+◆  ✓ Agent CIPHER integrity
+│
+◆  ✓ Agent FORGE integrity
+│
+◆  ✓ Agent GHOST integrity
+│
+◆  ✓ Agent GLITCH integrity
+│
+◆  ✓ Agent HSEOS-MASTER integrity
+│
+◆  ✓ Agent KUBE integrity
+│
+◆  ✓ Agent NYX integrity
+│
+◆  ✓ Agent ORBIT integrity
+│
+◆  ✓ Agent PRISM integrity
+│
+◆  ✓ Agent QUILL integrity
+│
+◆  ✓ Agent RAZOR integrity
+│
+◆  ✓ Agent SABLE integrity
+│
+◆  ✓ Agent SWARM integrity
+│
+◆  ✓ Agent VECTOR integrity
+│
+◆  ✓ Handler README.md integrity
+│
+◆  ✓ Handler _ado-lib.sh integrity
+│
+◆  ✓ Handler activity-coordination.sh integrity
+│
+◆  ✓ Handler ado-branch-guard.sh integrity
+│
+◆  ✓ Handler ado-inbox-check.sh integrity
+│
+◆  ✓ Handler ado-on-plan-write.sh integrity
+│
+◆  ✓ Handler ado-pr-link.sh integrity
+│
+◆  ✓ Handler ado-preflight-gate.sh integrity
+│
+◆  ✓ Handler ado-tag-close.sh integrity
+│
+◆  ✓ Handler ado-task-progress.sh integrity
+│
+◆  ✓ Handler build-resource-guard.sh integrity
+│
+◆  ✓ Handler capability-intake-guard.sh integrity
+│
+◆  ✓ Handler claude-md-guard.sh integrity
+│
+◆  ✓ Handler code-index-guard.sh integrity
+│
+◆  ✓ Handler code-index-post-edit.sh integrity
+│
+◆  ✓ Handler governance-context-state.cjs integrity
+│
+◆  ✓ Handler governance-context.cjs integrity
+│
+◆  ✓ Handler liveness-guard.cjs integrity
+│
+◆  ✓ Handler managed-governance-preflight.sh integrity
+│
+◆  ✓ Handler on-notification.sh integrity
+│
+◆  ✓ Handler on-prompt-submit.sh integrity
+│
+◆  ✓ Handler plan-lint.sh integrity
+│
+◆  ✓ Handler pre-compact.sh integrity
+│
+◆  ✓ Handler rtk-rewrite.sh integrity
+│
+◆  ✓ Handler session-end.sh integrity
+│
+◆  ✓ Handler session-track.sh integrity
+│
+◆  ✓ Handler suggest-skill.sh integrity
+│
+◆  ✓ Handler swarm-gate.sh integrity
+│
+◆  ✓ Handler telemetry-export-session.sh integrity
+│
+◆  ✓ Handler telemetry-export-tool.sh integrity
+│
+◆  ✓ Skill accessibility drift — in sync
+│
+◆  ✓ Skill ado-close-wave drift — in sync
+│
+◆  ✓ Skill ado-new-project drift — in sync
+│
+◆  ✓ Skill ado-ops drift — in sync
+│
+◆  ✓ Skill ado-plan drift — in sync
+│
+◆  ✓ Skill ado-sync drift — in sync
+│
+◆  ✓ Skill adr-compliance drift — in sync
+│
+◆  ✓ Skill agent-permissions drift — in sync
+│
+◆  ✓ Skill ai-observability drift — in sync
+│
+◆  ✓ Skill architecture-breaking-change-detection drift — in sync
+│
+◆  ✓ Skill architecture-ddd-boundary-check drift — in sync
+│
+◆  ✓ Skill capability-check drift — in sync
+│
+◆  ✓ Skill commit-hygiene drift — in sync
+│
+◆  ✓ Skill context-compression drift — in sync
+│
+◆  ✓ Skill context-engineering drift — in sync
+│
+◆  ✓ Skill context-policy drift — in sync
+│
+◆  ✓ Skill core-drift drift — in sync
+│
+◆  ✓ Skill dependency-audit drift — in sync
+│
+◆  ✓ Skill dev-squad drift — in sync
+│
+◆  ✓ Skill doc-project drift — in sync
+│
+◆  ✓ Skill documentation-completeness drift — in sync
+│
+◆  ✓ Skill enterprise-readiness-audit drift — in sync
+│
+◆  ✓ Skill gitops-add-service drift — in sync
+│
+◆  ✓ Skill gitops-deploy drift — in sync
+│
+◆  ✓ Skill gitops-new-project drift — in sync
+│
+◆  ✓ Skill goal-graph drift — in sync
+│
+◆  ✓ Skill hseos-goal-loop drift — in sync
+│
+◆  ✓ Skill inter-agent-comms drift — in sync
+│
+◆  ✓ Skill mcp-governance drift — in sync
+│
+◆  ✓ Skill multi-agent-orchestration drift — in sync
+│
+◆  ✓ Skill naming-conventions drift — in sync
+│
+◆  ✓ Skill observability-compliance drift — in sync
+│
+◆  ✓ Skill performance-profiling drift — in sync
+│
+◆  ✓ Skill policy-layer drift — in sync
+│
+◆  ✓ Skill pr-review drift — in sync
+│
+◆  ✓ Skill project-state drift — in sync
+│
+◆  ✓ Skill release-control drift — in sync
+│
+◆  ✓ Skill repo-radar drift — in sync
+│
+◆  ✓ Skill rfc drift — in sync
+│
+◆  ✓ Skill sanitize-comments drift — in sync
+│
+◆  ✓ Skill second-brain drift — in sync
+│
+◆  ✓ Skill secure-coding drift — in sync
+│
+◆  ✓ Skill security-audit-plain-language drift — in sync
+│
+◆  ✓ Skill self-verification drift — in sync
+│
+◆  ✓ Skill session-handoff drift — in sync
+│
+◆  ✓ Skill simplicity-first drift — in sync
+│
+◆  ✓ Skill spec-driven drift — in sync
+│
+◆  ✓ Skill systematic-debugging drift — in sync
+│
+◆  ✓ Skill tech-research drift — in sync
+│
+◆  ✓ Skill test-coverage drift — in sync
+│
+◆  ✓ Skill threat-modeling drift — in sync
+│
+◆  ✓ Skill verification-before-completion drift — in sync
+│
+◆  ✓ Skill verifier drift — in sync
+│
+◆  ✓ Handler README.md drift — in sync
+│
+◆  ✓ Handler _ado-lib.sh drift — in sync
+│
+◆  ✓ Handler activity-coordination.sh drift — in sync
+│
+◆  ✓ Handler ado-branch-guard.sh drift — in sync
+│
+◆  ✓ Handler ado-inbox-check.sh drift — in sync
+│
+◆  ✓ Handler ado-on-plan-write.sh drift — in sync
+│
+◆  ✓ Handler ado-pr-link.sh drift — in sync
+│
+◆  ✓ Handler ado-preflight-gate.sh drift — in sync
+│
+◆  ✓ Handler ado-tag-close.sh drift — in sync
+│
+◆  ✓ Handler ado-task-progress.sh drift — in sync
+│
+◆  ✓ Handler build-resource-guard.sh drift — in sync
+│
+◆  ✓ Handler capability-intake-guard.sh drift — in sync
+│
+◆  ✓ Handler claude-md-guard.sh drift — in sync
+│
+◆  ✓ Handler code-index-guard.sh drift — in sync
+│
+◆  ✓ Handler code-index-post-edit.sh drift — in sync
+│
+◆  ✓ Handler governance-context-state.cjs drift — in sync
+│
+◆  ✓ Handler governance-context.cjs drift — in sync
+│
+◆  ✓ Handler liveness-guard.cjs drift — in sync
+│
+◆  ✓ Handler managed-governance-preflight.sh drift — in sync
+│
+◆  ✓ Handler on-notification.sh drift — in sync
+│
+◆  ✓ Handler on-prompt-submit.sh drift — in sync
+│
+◆  ✓ Handler plan-lint.sh drift — in sync
+│
+◆  ✓ Handler pre-compact.sh drift — in sync
+│
+◆  ✓ Handler rtk-rewrite.sh drift — in sync
+│
+◆  ✓ Handler session-end.sh drift — in sync
+│
+◆  ✓ Handler session-track.sh drift — in sync
+│
+◆  ✓ Handler suggest-skill.sh drift — in sync
+│
+◆  ✓ Handler swarm-gate.sh drift — in sync
+│
+◆  ✓ Handler telemetry-export-session.sh drift — in sync
+│
+◆  ✓ Handler telemetry-export-tool.sh drift — in sync
+│
+◆  ✓ Agent ATLAS drift — in sync
+│
+◆  ✓ Agent BLITZ drift — in sync
+│
+◆  ✓ Agent CIPHER drift — in sync
+│
+◆  ✓ Agent FORGE drift — in sync
+│
+◆  ✓ Agent GHOST drift — in sync
+│
+◆  ✓ Agent GLITCH drift — in sync
+│
+◆  ✓ Agent HSEOS-MASTER drift — in sync
+│
+◆  ✓ Agent KUBE drift — in sync
+│
+◆  ✓ Agent NYX drift — in sync
+│
+◆  ✓ Agent ORBIT drift — in sync
+│
+◆  ✓ Agent PRISM drift — in sync
+│
+◆  ✓ Agent QUILL drift — in sync
+│
+◆  ✓ Agent RAZOR drift — in sync
+│
+◆  ✓ Agent SABLE drift — in sync
+│
+◆  ✓ Agent SWARM drift — in sync
+│
+◆  ✓ Agent VECTOR drift — in sync
+│
+◆  ✓ Adapter drift — pretooluse-write-edit-capability-intake-guard — hook pretooluse-write-edit-capability-intake-guard present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global — hook pretooluse-agent-hseos-swarm-gate-bloqueia-agent-paralelo-sem-run-dev-squad-ativo-complementa-gate-global present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — pretooluse-write-edit-block-claude-md-direct-edits — hook pretooluse-write-edit-block-claude-md-direct-edits present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — pretooluse-edit-backup-file-before-any-edit-operation — hook pretooluse-edit-backup-file-before-any-edit-operation present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — pretooluse-bash-warn-on-high-risk-bash-commands — hook pretooluse-bash-warn-on-high-risk-bash-commands present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — posttooluse-edit-auto-format-python-black-and-js-ts-prettier-after-edit — hook posttooluse-edit-auto-format-python-black-and-js-ts-prettier-after-edit present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — posttooluse-all-emit-agent-state-tool-call-event-best-effort-non-blocking — hook posttooluse-all-emit-agent-state-tool-call-event-best-effort-non-blocking present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — sessionstart-all-display-hseos-navigation-reminder-at-session-start — hook sessionstart-all-display-hseos-navigation-reminder-at-session-start present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — sessionstart-all-emit-agent-state-start-event-best-effort-non-blocking — hook sessionstart-all-emit-agent-state-start-event-best-effort-non-blocking present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — userpromptsubmit-all-governance-context — hook userpromptsubmit-all-governance-context present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — sessionstart-all-governance-context-invalidate — hook sessionstart-all-governance-context-invalidate present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — precompact-all-governance-context-invalidate — hook precompact-all-governance-context-invalidate present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — sessionend-all-governance-context-invalidate — hook sessionend-all-governance-context-invalidate present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — sessionstart-all-managed-governance-preflight-advisory — hook sessionstart-all-managed-governance-preflight-advisory present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — stop-all-emit-agent-state-complete-event-when-claude-session-ends-best-effort-non-blocking — hook stop-all-emit-agent-state-complete-event-when-claude-session-ends-best-effort-non-blocking present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — posttooluse-write-edit-plan-lint-validate-execution-protocol-section — hook posttooluse-write-edit-plan-lint-validate-execution-protocol-section present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — precompact-snapshot-critical-context-before-claude-compaction — hook precompact-snapshot-critical-context-before-claude-compaction present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — userpromptsubmit-on-prompt-submit-project-scoped-state-injection — hook userpromptsubmit-on-prompt-submit-project-scoped-state-injection present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — sessionend-on-session-end-gated-vault-sync — hook sessionend-on-session-end-gated-vault-sync present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — pretooluse-agent-suggest-skill-before-agent-dispatch — hook pretooluse-agent-suggest-skill-before-agent-dispatch present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — pretooluse-grep-glob-code-index-guard — hook pretooluse-grep-glob-code-index-guard present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — posttooluse-write-edit-code-index-post-edit-reindex — hook posttooluse-write-edit-code-index-post-edit-reindex present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — notification-on-notification-system-toast-for-long-operations — hook notification-on-notification-system-toast-for-long-operations present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — pretooluse-agent-ado-preflight-gate — hook pretooluse-agent-ado-preflight-gate present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — pretooluse-bash-ado-branch-guard — hook pretooluse-bash-ado-branch-guard present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — posttooluse-write-edit-ado-plan-advisory — hook posttooluse-write-edit-ado-plan-advisory present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — posttooluse-bash-ado-task-progress — hook posttooluse-bash-ado-task-progress present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — posttooluse-bash-ado-pr-link — hook posttooluse-bash-ado-pr-link present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — posttooluse-bash-ado-tag-close — hook posttooluse-bash-ado-tag-close present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — sessionstart-ado-inbox-check — hook sessionstart-ado-inbox-check present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — posttooluse-all-telemetry-export-otlp-metrics-opt-in — hook posttooluse-all-telemetry-export-otlp-metrics-opt-in present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — stop-all-telemetry-export-otlp-loki-session-log-opt-in — hook stop-all-telemetry-export-otlp-loki-session-log-opt-in present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — sessionstart-all-session-track-register-project-store — hook sessionstart-all-session-track-register-project-store present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — userpromptsubmit-all-session-track-heartbeat — hook userpromptsubmit-all-session-track-heartbeat present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — stop-all-session-track-heartbeat-turn-end — hook stop-all-session-track-heartbeat-turn-end present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — sessionend-all-session-track-end — hook sessionend-all-session-track-end present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — stop-all-liveness-stop-guard — hook stop-all-liveness-stop-guard present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — subagentstop-all-liveness-stop-guard — hook subagentstop-all-liveness-stop-guard present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — teammateidle-all-liveness-stop-guard — hook teammateidle-all-liveness-stop-guard present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — userpromptsubmit-all-liveness-wake-inbox — hook userpromptsubmit-all-liveness-wake-inbox present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — sessionstart-all-activity-coordination — hook sessionstart-all-activity-coordination present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — userpromptsubmit-all-activity-coordination — hook userpromptsubmit-all-activity-coordination present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — stop-all-activity-coordination — hook stop-all-activity-coordination present in .claude/hooks.json
+│
+◆  ✓ Adapter drift — sessionend-all-activity-coordination — hook sessionend-all-activity-coordination present in .claude/hooks.json
+│
+◆  compile --check: 242 check(s) passed; no files were written.

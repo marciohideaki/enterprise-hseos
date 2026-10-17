@@ -1,0 +1,29 @@
+# W5-04 - MCP subordinado ao gateway: notas de mudança de comportamento
+
+Notas para a migração (consolidadas em `docs/v4-migration.md` na W5-12). Cada item é uma mudança observável pelo consumidor.
+
+## Mudanças de comportamento
+
+1. **`limit` e `stale_minutes` em string deixam de ser aceitos** (herdado de A6, revalidação 2026-10). O transporte valida os argumentos de `tools/call` contra o `inputSchema` declarado e responde `-32602` para `{"limit": "10"}` ou `{"stale_minutes": "30"}`. Envie inteiros.
+2. **Corpo HTTP do servidor legado limitado a 1 MiB** (`MAX_HTTP_BODY_BYTES`). Acima disso a resposta é `413` com `-32600` ("Request body exceeds limit"), a conexão é encerrada e o corpo nunca chega a uma tool.
+3. **Notificação (mensagem sem `id`) nunca recebe resposta**, qualquer que seja o método. Antes, o adapter `mcp-2026` respondia `-32600` a uma notificação de método conhecido (`tools/list`, `tools/call`...), divergindo do transporte legado, que a descartava. Ambos descartam agora, sem executar (JSON-RPC 2.0).
+4. **`$ref` não resolvível no `inputSchema` de uma tool falha no registro** (boot do servidor, código `MCP_TOOL_SCHEMA_INVALID`), não na primeira chamada.
+5. **Servidor ou tool malformado falha o boot** com saída `78` e `[<servidor>] fatal: MCP_TOOL_CATALOG_INVALID: <causa>` em stderr. Antes, o módulo era omitido com um `console.error`. Valem para os quatro servidores (`governance`, `swarm`, `project-state`, `axon-bridge`; os dois últimos por ampliação de escopo do Commander): módulo que não exporta array, tool sem `name`/`description`/`handler`/`inputSchema`, nome duplicado, módulo que lança ao carregar, diretório vazio ou ausente.
+6. **Falha de inicialização do runtime** (por exemplo `HSEOS_LEGACY_TELEMETRY_DB` relativo, ativação governada pendente) sai com `78` e o código na stderr, em vez de um stack trace não tratado.
+7. **Tool desconhecida e acesso fora do escopo são negados e registrados.** No modo governado (fixture, ADR-0022/0023 pendente de ativação) cada negação vira um fato `ExecutionFailed` no agregado `mcp_gateway` do ledger, com código estável (`MCP_TOOL_UNKNOWN`, `MCP_SCOPE_DENIED`) e o `rpc_code` na mensagem. No modo legado (o que roda instalado, sem ledger) a negação é gravada de forma durável na tabela append-only `mcp_gateway_denials` do SQLite de telemetria legada (`occurred_at`, `server_id`, `tool`, `code`, `rpc_code`; UPDATE proibido, DELETE só de linhas com mais de 31 dias) e também sai no log `[<servidor>:gateway:denied]`. Se o registro falhar, a chamada continua negada e o erro devolvido ao cliente traz `(denial not recorded: <causa>)`.
+8. **`swarm`: `cwd`, `nlink` e `O_NOFOLLOW`.** O diretório de trabalho precisa existir, ser diretório e não ser a raiz; o diretório de execuções precisa resolver dentro do projeto; leitura e escrita abrem o arquivo com `O_NOFOLLOW` e validam o descritor aberto (arquivo regular com `nlink === 1`), então hardlink e symlink trocado entre a checagem e o uso deixam de ser seguidos. A escrita só trunca depois dessa validação, de modo que um hardlink nunca zera o arquivo apontado. Depois do open, o caminho real do descritor (`/proc/self/fd`) precisa continuar dentro do diretório base, o que detecta um diretório pai trocado por symlink entre a checagem e o uso (em Linux). A abertura usa `O_NONBLOCK` e rejeita o que não for arquivo regular (um FIFO não bloqueia a leitura). Limite conhecido: numa escrita com `O_CREAT`, o arquivo vazio já pode ter sido criado fora do base quando o pai é trocado; o conteúdo não é escrito e a chamada é negada. Toda recusa carrega `code: MCP_SCOPE_DENIED`.
+
+## Contratos versionados de capacidade (stubs)
+
+`contract-registry.js` exporta `CAPABILITY_CONTRACT_STUBS` e `registerCapabilityContractStubs(registry)`: `environment.lsp.{diagnostics,definition,references,hover,rename_preview}`, `environment.dap.run`, `environment.browser.run`, `environment.computer.{start,act,stop}`, `memory.{write,retrieve,delete}`, todos `contract_version: 1`, `status: 'stub'`, `fail_closed`. São registrados no registry de produção (`createOperationalExecution`). Não há provider: a validação de entrada e de saída falha com `ENV_CAPABILITY_NOT_IMPLEMENTED` até a task dona (W5-05 a W5-09) trocar o stub pelo schema real. Nomes e granularidade por ação são provisórios.
+
+## Decisão tomada: legado via gateway (decisão do owner 2026-10-12)
+
+O desenho 5.7 e o critério "legado só em fixture" pediam que o caminho legado falhasse fechado fora da fixture. Isso quebraria o modo instalado normal (a jornada `test/journeys/mcp-journey.mjs` roda os servidores sem `NODE_ENV=test` nem fixture, e a ativação governada está pendente da ADR-0022/0023). O owner decidiu em 2026-10-12: o legado continua funcionando fora da fixture e passa sempre pelo gateway, que nega e registra a negação de forma durável na telemetria SQLite legada. O critério passa a ser "legado só via gateway, com registro durável da negação". `startLegacyMcpServer` envolve todo invoker no gateway por construção (não há invoker cru). O fechamento literal (exit 78 fora da fixture) não foi implementado. A spec e a STATUS da W5 são atualizadas pelo Commander na integração da onda.
+
+## Limites conhecidos
+
+- `O_NOFOLLOW` no arquivo final é defesa em profundidade: o `isSymlink` prévio e a checagem do descritor (`/proc/self/fd`) cobrem o mesmo caso.
+- O diretório pai é aberto com `O_DIRECTORY|O_NOFOLLOW`, validado pelo descritor, e o arquivo é aberto relativo a ele (Linux). Nada é criado fora da base numa corrida de troca de pai. Fora do Linux o caminho é usado como está.
+- O 413 é enviado com `Connection: close` e o resto do corpo é drenado e descartado (até 16 MiB além do limite, depois a conexão cai). O corpo nunca chega à tool.
+- A tabela `mcp_gateway_denials` não impede `DROP TABLE` por quem tem o arquivo; linhas com mais de 31 dias podem ser apagadas por desenho. Cada negação grava uma linha, sem limite de taxa (loopback/stdio).

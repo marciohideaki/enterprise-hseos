@@ -67,11 +67,12 @@ const inputs = {
   apply: z.object({ review_sha256: z.string().regex(/^[a-f0-9]{64}$/) }).strict(),
 };
 
-function parseCreationInput(action, value) {
+// `admission` applies the hardened acceptance rules to new tasks only; replaying admitted events parses without it.
+function parseCreationInput(action, value, { admission = false } = {}) {
   if (!['create', 'create_workflow'].includes(action)) throw new ControlError('CONTROL_COMMAND_UNKNOWN');
   const input = inputs[action].parse(value);
   if (action === 'create') {
-    const contract = parseEngineeringTask(input.contract);
+    const contract = parseEngineeringTask(input.contract, { admission });
     if (contract.schema_version !== 2) throw new ControlError('CONTROL_WORKSPACE_DENIED');
     if ([input.responses, input.responses_from, input.binding_id, input.plugin_model].filter(Boolean).length > 1)
       throw new ControlError('CONTROL_MODEL_CONFLICT');
@@ -82,12 +83,82 @@ function parseCreationInput(action, value) {
   const { definition } = parseEngineeringWorkflow(input.definition);
   for (const task of definition.tasks) {
     if (task.contract.schema_version !== 2) throw new ControlError('CONTROL_WORKSPACE_DENIED');
+    parseEngineeringTask(task.contract, { admission });
     if (task.binding) throw new ControlError('CONTROL_BINDING_UNKNOWN');
   }
   return { definition };
 }
 
 // Aggregate types a job-owned resource, its task runs and their sessions write to the shared ledger.
+const PROVENANCE_FIELDS = ['source_ref', 'authority', 'origin', 'digest', 'trust'];
+
+/** Public projection of one context source record: only authority, origin, digest and trust, never content. */
+function provenanceRecord(source) {
+  return Object.fromEntries(PROVENANCE_FIELDS.map((field) => [field, source[field] ?? null]));
+}
+
+/**
+ * Provenance carried by a persisted ledger row. Only `context.assembled` v2 events declare it; any other row, and
+ * every v1 event, yields an empty list so history stays readable and is never rewritten.
+ */
+function rowProvenance(row) {
+  const json = row?.payload?.session_event_json;
+  if (typeof json !== 'string' || !json.includes('context.assembled')) return [];
+  const event = JSON.parse(json);
+  return event.event_type === 'context.assembled' && Array.isArray(event.payload?.sources)
+    ? event.payload.sources.map(provenanceRecord)
+    : [];
+}
+
+/** Adds `provenance` to events that declare it; other rows keep their exact shape. */
+function withProvenance(row) {
+  const provenance = rowProvenance(row);
+  return provenance.length > 0 ? { ...row, provenance } : row;
+}
+
+/** Evidence block: which authority, origin, digest and trust shaped the model context of a session. */
+function contextProvenance(ledger, sessionId) {
+  const sources = [];
+  let sourceRefs = [];
+  if (typeof sessionId === 'string') {
+    const { RelationalSessionEventStore } = require('../../../packages/agent-session-store');
+    for (const event of new RelationalSessionEventStore({ ledger }).readSession(sessionId)) {
+      if (event.event_type !== 'context.assembled') continue;
+      sourceRefs = event.payload.source_refs;
+      sources.push(...(event.payload.sources || []).map(provenanceRecord));
+    }
+  }
+  return { schema_version: 1, context_contract: sources.length > 0 ? 'v2' : 'v1', source_refs: sourceRefs, sources };
+}
+
+/**
+ * Executor resource signals. A signal with no persisted source is `null` and listed in `unknown_signals`;
+ * it is never inferred. `init` and `rate_limit` have no source in the executor receipt today.
+ */
+function executorSignals(verification) {
+  const declared = verification?.evidence?.command_checks ?? verification?.command_checks;
+  const checks = Array.isArray(declared) ? declared : [];
+  const peak = (field) => {
+    const values = checks.map((check) => check[field]).filter((value) => Number.isSafeInteger(value) && value >= 0);
+    return values.length > 0 ? Math.max(...values) : null;
+  };
+  const signals = { init: null, rate_limit: null, pids_peak: peak('pids_peak'), memory_peak_bytes: peak('memory_peak_bytes') };
+  return {
+    schema_version: 1,
+    ...signals,
+    unknown_signals: Object.keys(signals).filter((name) => signals[name] === null),
+  };
+}
+
+/** Additive evidence fields; v1 readers ignore them and every existing field is left untouched. */
+function surfaceEvidence(value, ledger) {
+  return {
+    ...value,
+    context_provenance: contextProvenance(ledger, value.session_id),
+    executor_signals: executorSignals(value.verification),
+  };
+}
+
 const OWNED_AGGREGATE_TYPES = ['control_job', 'control_task', 'engineering_task', 'agent_session'];
 
 class ControlError extends Error {
@@ -196,7 +267,7 @@ class EngineeringControl {
           children: session.children,
         };
       }
-      const { state: _state, ...publicValue } = value;
+      const { state: _state, ...publicValue } = action === 'evidence' ? surfaceEvidence(value, this.ledger) : value;
       return { ...publicValue, resource_id: id };
     }
     const workflow = this.kind(id) === 'workflow';
@@ -224,7 +295,16 @@ class EngineeringControl {
       }
     }
     if (action === 'review') return { resource_id: id, ...reviewProjectResult(value) };
-    const { state: _state, ...publicValue } = value;
+    let shown = value;
+    if (action === 'evidence') {
+      const handle = openExecutionLedgerFileFixture(this.location(id));
+      try {
+        shown = surfaceEvidence(value, new ExecutionEventLedger(handle.db));
+      } finally {
+        handle.close();
+      }
+    }
+    const { state: _state, ...publicValue } = shown;
     return { ...publicValue, resource_id: id };
   }
   events(id, { after = 0, limit = 100 } = {}) {
@@ -248,18 +328,19 @@ class EngineeringControl {
           OWNED_AGGREGATE_TYPES.map((aggregate_type) => ({ aggregate_type, aggregate_id })),
         ),
       });
-      return { resource_id: id, events, next_cursor: events.at(-1)?.position || after };
+      return { resource_id: id, events: events.map(withProvenance), next_cursor: events.at(-1)?.position || after };
     }
     const handle = openExecutionLedgerFileFixture(this.location(id));
     try {
       const events = new ExecutionEventLedger(handle.db).readGlobal({ after_position: after, limit });
-      return { resource_id: id, events, next_cursor: events.at(-1)?.position || after };
+      return { resource_id: id, events: events.map(withProvenance), next_cursor: events.at(-1)?.position || after };
     } finally {
       handle.close();
     }
   }
-  async admitCreation(action, rawInput, resourceId, deadline) {
-    const input = parseCreationInput(action, rawInput);
+  // `admission: false` re-validates an already admitted definition (job claim and recovery) without the hardened rules.
+  async admitCreation(action, rawInput, resourceId, deadline, { admission = true } = {}) {
+    const input = parseCreationInput(action, rawInput, { admission });
     if (action === 'create_workflow') {
       const { definition } = input;
       for (const task of definition.tasks) {
@@ -436,4 +517,12 @@ class EngineeringControl {
   }
 }
 
-module.exports = { EngineeringControl, ControlError, parseCreationInput, OWNED_AGGREGATE_TYPES };
+module.exports = {
+  EngineeringControl,
+  ControlError,
+  contextProvenance,
+  executorSignals,
+  rowProvenance,
+  parseCreationInput,
+  OWNED_AGGREGATE_TYPES,
+};

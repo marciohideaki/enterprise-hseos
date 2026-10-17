@@ -1,0 +1,205 @@
+{
+  "task": "W5-07",
+  "base_sha": "4616a9da2602a72f6f78d4ed17a79f0d03a98f21",
+  "revision": "the commit that contains this receipt (a receipt cannot hold its own commit SHA); bound to content by code_tree_sha",
+  "node_for_verify": "v24.15.0 (run-in-cgroup.sh)",
+  "commands": [
+    {
+      "id": "coverage-focused",
+      "command": "node node_modules/c8/bin/c8.js --config .c8-kernel.json --include packages/agent-environment/browser-contract.js --include packages/agent-environment/browser.js --include packages/agent-environment/browser-host.js --include tools/cli/lib/environment-egress-broker.js --reports-dir .logs/validation/w5-07-coverage --temp-directory .logs/validation/w5-07-coverage/tmp node --test --test-concurrency=1 test/test-environment-browser.js test/test-browser-plugin-surface.js test/test-browser-plugin-parity.js",
+      "note": "literal verify without the heavy-run --mem 4G -- prefix (run-in-cgroup.sh already runs under heavy-run; nesting deadlocks the flock); exit 0 in the original round and again after review round 1",
+      "result": "exit 0; 37 tests, 37 pass, 0 fail, 0 skipped; c8 per-file 90/80 passed (round 1, after the correction)",
+      "log": "docs/evolution/w5/evidence/w5-07/verify-coverage.log",
+      "sha256": "3b9096f0b79c089af483e09408713217c83cab422191fa62d852a3c8d438c2e4"
+    },
+    {
+      "id": "node22-focused",
+      "command": "PATH=node v22.23.3: node --test --test-concurrency=1 (same three test files)",
+      "result": "exit 0; v22.23.3 (first line of the log); same three files",
+      "log": "docs/evolution/w5/evidence/w5-07/verify-node22.log",
+      "sha256": "2c63bb12853bd481cfe4933b4ee21b818a57f4ecb199af8934b0ab5b3a8fe575"
+    },
+    {
+      "id": "package-surface",
+      "command": "node --test test/test-package-surface.js",
+      "result": "exit 0; 1 test, 0 fail",
+      "log": "docs/evolution/w5/evidence/w5-07/verify-surface.log",
+      "sha256": "28a18252409c5a1c66b06a1eb6ee8b1b9d2a6b922e1478036ee9c64d444f3896"
+    },
+    {
+      "id": "compile-check",
+      "command": "node tools/cli/hseos-cli.js agent-core compile --check",
+      "result": "exit 0; 242 checks passed; no files written",
+      "log": "docs/evolution/w5/evidence/w5-07/compile-check.log",
+      "sha256": "00d4985cdba214bf93774cfe0b354d348e0244891387eeea2f458fc5203cffb8"
+    },
+    {
+      "id": "plugin-marketplace",
+      "command": "node test/test-plugin-marketplace.js",
+      "result": "exit 0; 88 passed, 0 failed (plugin count 6 -> 7)",
+      "log": "docs/evolution/w5/evidence/w5-07/marketplace.log",
+      "sha256": "088db5b79f275aab0c3e0b980287dbc09c91611513d5e5ff5b75902ba5a38571"
+    },
+    {
+      "id": "pack-dry-run",
+      "command": "npm pack --dry-run --json",
+      "result": "exit 0; 1515 entries, unpackedSize 10267836",
+      "log": "docs/evolution/w5/evidence/w5-07/pack-dry-run.json",
+      "sha256": "b7f9470ca2f0433ef4750ef07f15ef6392e98f965ee8d9b3d5c62c4ed819c785"
+    }
+  ],
+  "coverage_per_file": {
+    "browser-contract.js": {
+      "lines": 97.92,
+      "branches": 100.0
+    },
+    "browser.js": {
+      "lines": 100.0,
+      "branches": 95.76
+    },
+    "browser-host.js": {
+      "lines": 99.09,
+      "branches": 94.33
+    },
+    "environment-egress-broker.js": {
+      "lines": 98.94,
+      "branches": 93.54
+    }
+  },
+  "regression_run": "review round 1: test-lsp-plugin-parity, test-dap-plugin-parity and test-environment-plugin-pack pass (exit 0); the full lsp/dap real-adapter suites ran in the original round and the pins file changed in neither round after that except additive code",
+  "pins": {
+    "playwright-core": {
+      "version": "1.61.0",
+      "license": "Apache-2.0",
+      "license_checked_in": "package/LICENSE (inside the tarball, read from the hashed bytes)",
+      "artifact_sha256": "b5ab14f09f3aaacdedbc2cb1431b0552cec8995fba35d841779a4ed535ce0200"
+    },
+    "chrome-headless-shell": {
+      "version": "149.0.7827.55 (Playwright revision 1228)",
+      "license": "BSD-3-Clause",
+      "license_checked_in": "chrome-headless-shell-linux64/LICENSE.headless_shell (inside the zip, read from the hashed bytes)",
+      "artifact_sha256": "410c9407d5de3fea80d9398666be06f2aa09154a3fa7b327dc254e336bb4c4b7",
+      "size_bytes": 119778157,
+      "binary_sha256": "670ba079b75107746ba41abad131180a31a7c7219aa1bd4061fb471f4535d541"
+    }
+  },
+  "ci": {
+    "script": ".github/scripts/provision-toolchain-cache.mjs",
+    "source_url": "https://cdn.playwright.dev/chrome-for-testing-public/149.0.7827.55/linux64/chrome-headless-shell-linux64.zip",
+    "download_reproducible": "4+ independent downloads gave the same SHA-256 and size; pipe hashing once truncated, so the script writes to a file and checks size then SHA-256, 3 attempts then fail",
+    "local_end_to_end": "script run against a scratch directory: exit 0 and verifyPin accepted all 7 pins against the generated manifest",
+    "lint": "eslint --max-warnings=0 passes",
+    "timeout": "timeout-minutes: 15 is on the provision STEP, not on the test job",
+    "not_verified": "system libraries of the Chromium binary on ubuntu-latest (ldd is clean on this host)"
+  },
+  "package_inventory": {
+    "entryCount": 1515,
+    "ceiling": 1556,
+    "areas": {
+      ".agents": 197,
+      ".enterprise": 458,
+      ".hseos": 63,
+      "root": 7,
+      "docs": 7,
+      "packages": 129,
+      "scripts": 19,
+      "src": 245,
+      "tools": 390
+    },
+    "budgets": {
+      ".enterprise": 472,
+      "tools": 393,
+      "src": 250,
+      ".agents": 205,
+      "packages": 137,
+      ".hseos": 64,
+      "scripts": 21,
+      "docs": 7,
+      "root": 7
+    }
+  },
+  "amendments_outside_output_contract": [
+    {
+      "file": "test/test-lsp-plugin-parity.js",
+      "reason": "owner-authorised test amendment: 'every pin belongs to exactly one capability' now compares the union of toolchain_pins of ALL plugins/*/plugin.json (directory read) with Object.keys(PINS); duplicates or gaps fail; per-plugin specific assertions kept"
+    },
+    {
+      "file": "test/test-dap-plugin-parity.js",
+      "reason": "same authorised amendment, same union assertion added; specific dap assertions kept"
+    },
+    {
+      "file": "test/test-plugin-marketplace.js",
+      "reason": "plugin count 6 -> 7 (and 'six' -> 'seven' inactive candidates): mandatory consequence of the new registry entry, same as W5-05/W5-06"
+    },
+    {
+      "file": ".agents/plugins/definitions/hseos-plugin-browser/*",
+      "reason": "compiled mirror of the canonical definition, produced by `agent-core compile` (precedent W5-05/W5-06); mirror equals canonical, asserted by test-browser-plugin-parity"
+    },
+    {
+      "file": ".agents/plugins/registry.yaml",
+      "reason": "compiled mirror of the registry entry"
+    },
+    {
+      "file": "packages/agent-environment/index.js",
+      "reason": "in the output_contract only implicitly: createDefaultBrowserService and lazy browser getters (same pattern as the DAP registration amendment)"
+    },
+    {
+      "file": "tools/lib/environment-toolchain-pins.js",
+      "reason": "in the contract; note the additive core change: per-pin zip_limits, executable bit on extracted zip entries, size_bytes on the chrome pin; default zip ceilings unchanged"
+    },
+    {
+      "file": "side effects reverted",
+      "reason": "agent-core compile also rewrote .agents/manifest.yaml and created .claude/agents|skills|settings.json and .mcp.json; all reverted/removed, none committed"
+    }
+  ],
+  "deviations": [
+    "browser.js exports only createBrowserService and prepareBrowserToolchain; the contract vocabulary is exported by browser-contract.js (avoids export clashes with lsp.js in the package entry)",
+    "egress broker marks refusals with header x-hseos-egress: denied so the host can tell a broker refusal from a page answering 403",
+    "step budget: timeout_ms is the whole-call budget; each step gets the remainder minus 300 ms, the hard deadline closes the browser"
+  ],
+  "decisions_for_reviewer": [
+    "navigation to a non-allowlisted host is refused by the controller before launch; subresources and redirects are enforced by the broker",
+    "a denied subresource does not fail the page (reported in egress.denied); a denied navigation or redirect fails the call with ENV_BROWSER_EGRESS_DENIED",
+    "DNS is resolved by the broker, not in the sandbox; the allowlist is by name, not by resolved address"
+  ],
+  "code_tree_sha": "5bf228d9ff546cbd616c48ae344b6542a6ef6795",
+  "code_tree_sha_note": "git tree of the repository content excluding docs/evolution/w5/evidence/w5-07/; verify with: git ls-tree -r on the commit with that path removed, or compare `git rev-parse <commit>^{tree}` after removing the evidence directory",
+  "review_round_1": {
+    "report": "/build/tmp/hseos-w5/b3/rev/REVIEW-W5-07.md",
+    "fixed": {
+      "F1": "broker: refusals and allowed events have separate ceilings (1000 each), dropped() counts every cut per kind; egress.requests includes dropped and egress.dropped is in the output; regression test: 1100 allowed then 1 refused -> the refusal is recorded (and 1003 refusals -> 3 counted as dropped)",
+      "F2": "test-browser-plugin-parity.js admits the pack through the real admitExecutionPlugin/readExecutionPluginBundle (tools/lib/execution-plugin-manifest.js): an execution bundle is generated from the pack's own files, its manifest hash is pinned in the grant; success, wrong hash (PLUGIN_IDENTITY_DENIED), P1-only grant (PLUGIN_PROFILE_DENIED) and a tampered file (PLUGIN_CONTENT_CHANGED) are tested. Limit: there is no installer for the environment tarball itself, so the tarball digest is pinned and compared in the test only",
+      "F3": "broker rewrites Host from the validated target (test: client Host evil.example, upstream sees 127.0.0.1:<port>)",
+      "F4": "descendants_terminated must be exactly true, otherwise ENV_BROWSER_DESCENDANTS_SURVIVED (tests: false and absent)",
+      "F5": "the queue is module-level, shared by every service in the process (test: two services never overlap)",
+      "F6": "host.code must match ^ENV_BROWSER_[A-Z_]+$ else ENV_BROWSER_HOST_FAILURE; steps[] validated (index, op in OPS, ok boolean, status int|null, url string <=2048, error in a closed set) else ENV_BROWSER_RESULT_INVALID; capture url must be a bounded string",
+      "F8": "media and DOM parts carry the final URL (origin and path, no query or fragment) in source_ref; full URL, time, digest and transform stay in captures[]; BROWSER_OUTPUT_SCHEMA now requires every part to be traced to a capture and is applied to the service output",
+      "F10": "receipt.revision no longer prose-only: code_tree_sha binds the receipt to the content",
+      "F12": "plugin README documents the host requirements (broker, isolation, media store are core, not in the pack); .agents mirror updated"
+    },
+    "mutants_killed_by_new_tests": {
+      "M06": "test 'a tampered artifact fails its SHA-256' (digest mismatch and manifest divergence) in the browser file",
+      "M08": "in-process assertion that no browser process survives runBrowser, plus an after() hook that reaps leftovers so a surviving browser fails an assertion instead of hanging (verified: exit 1, 1 fail)",
+      "M09": "static guard (no top-level require outside node: builtins and sibling files in all three browser files) and a child-process probe that loading browser-host.js loads only capability files (verified)",
+      "M10": "zip_limits must be within 1.25x of the real archive's largest entry and total (verified)",
+      "M18": "host.contextOptions() exported and asserted: acceptDownloads false, serviceWorkers 'block', permissions [], no storageState (verified). Note: Playwright's 'block' only bypasses the service worker for fetches, a page can still register one; the context is discarded per call",
+      "M19": "userinfo targets (http and CONNECT, allowed host) are refused as malformed_target and never reach the server (verified)",
+      "M20": "stand-in executor reporting descendants_terminated false/absent is refused (verified)",
+      "M22": "relay address asserted to be 127.0.0.1 (verified)",
+      "F1_F3_mutants": "extra mutants of the fixes (single event ceiling; Host passthrough) are killed by the new tests (verified)"
+    },
+    "mutants_equivalent_documented": {
+      "M01": "controller pre-flight allowlist check removed: the broker refuses the same navigation (defence in depth), so no observable difference except the pre-launch short circuit",
+      "M07": "extractZip accepting path traversal: listZip already refuses '..' and absolute names before any extraction (defence in depth)",
+      "M21": "authority() without lowercase: parseTarget already lowercases the host (defence in depth)"
+    },
+    "dns_in_sandbox": "new test runs a probe inside the real P2 bwrap: dns.lookup('example.com') does not resolve, a TCP connect to 1.1.1.1:80 does not connect, and /run/broker.sock is a socket",
+    "residues": {
+      "F9": "the in-process host tests launch Chromium with --no-sandbox outside bwrap against local fixture servers; there is no alternative that keeps the real Chromium and still covers browser-host.js under c8 (the sandboxed child is not instrumented). The sandboxed path is covered by the real-bwrap tests",
+      "F7_part": "lazy-load and zip-limit guards were strengthened (see M09, M10)",
+      "F13": "package-surface depends on the npm version: with npm 9.2/Node 22.22 the docs area counts 9 (pre-existing, also on the base); the receipt was produced with Node 24.15 / npm 11.12.1",
+      "F11": "the 2026-10-14 amendment IS in tasks.md of the target (two occurrences), confirmed by the Commander"
+    },
+    "node22": "the three files pass on v22.23.3 (exit 0)"
+  }
+}

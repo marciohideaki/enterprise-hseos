@@ -1,0 +1,10 @@
+ok npm/typescript-language-server-6.0.2.tgz d225b223a8a4764ecbd94bdba85d2ef185eaa7b9842a1a31c38c2bbe7f2fe9b9
+ok npm/typescript-5.9.3.tgz 10e108c9cf7d5f2879053dff18515fb405abf2ccef63eaaf017d9c571687a1d3
+ok npm/pyright-1.1.414.tgz bf5f473f6167c0d14175492c3263d783b4489a6956e1c06c18e15228e3a3fa42
+ok pypi/debugpy-1.8.22-py2.py3-none-any.whl a9e9d3550e15ca479c59333e90845029190531f0cacfedab3b815a57bd913947
+ok github/js-debug-dap-v1.140.0.tar.gz 27dab92937ec1ab35821ae955aac867544fe06a1b6307229049f2d789af10968
+ok npm/playwright-core-1.61.0.tgz b5ab14f09f3aaacdedbc2cb1431b0552cec8995fba35d841779a4ed535ce0200
+ok playwright/chrome-headless-shell-linux64-149.0.7827.55.zip 410c9407d5de3fea80d9398666be06f2aa09154a3fa7b327dc254e336bb4c4b7
+ok apt/xdotool_3.20160805.1-5.1build1_amd64.deb fda12b12adf99fa7d93cbc89baf53def35449e9ea04ec0f34dc5a92042a6a68f
+ok apt/xdotool_3.20160805.1-5build1_amd64.deb 58a202c74bce31ca2d72d4d514942a5ab6191932696adc5d21d909c9216b13cb
+exit=0

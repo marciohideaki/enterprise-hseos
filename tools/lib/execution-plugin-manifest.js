@@ -5,6 +5,7 @@ const path = require('node:path');
 const { createHash } = require('node:crypto');
 const { z, IdentifierSchema, deepFreeze } = require('../../packages/agent-runtime-contracts/common');
 const semver = require('semver');
+const { profileRank } = require('../../packages/agent-isolation-attestation/profiles');
 const { canonicalize } = require('../../packages/managed-governance-contracts/canonical-json');
 
 const id = z.string().regex(/^[a-z][a-z0-9-]{0,79}$/);
@@ -26,6 +27,21 @@ const limits = z
     pids_max: z.number().int().min(32).max(256),
   })
   .strict();
+const profileName = z.enum(['P0', 'P1', 'P2']);
+const artifactLimits = z
+  .object({
+    max_files: z.number().int().min(1).max(32),
+    max_file_bytes: z.number().int().min(1).max(16_777_216),
+    max_total_bytes: z.number().int().min(1).max(67_108_864),
+    media_types: z
+      .array(z.string().regex(/^[a-z]+\/[a-z0-9.+-]+$/))
+      .min(1)
+      .max(16)
+      .refine(distinct),
+    shm_bytes: z.number().int().min(1_048_576).max(536_870_912).optional(),
+  })
+  .strict()
+  .refine((value) => value.max_file_bytes <= value.max_total_bytes);
 const manifestSchema = z
   .object({
     schema_version: z.literal(1),
@@ -46,6 +62,10 @@ const manifestSchema = z
     files: z.record(relative, hash),
     capabilities: z.array(IdentifierSchema).max(32).refine(distinct),
     limits,
+    // Optional and absent in existing manifests, so their digests are unchanged. The profile is a
+    // reference the controller may refuse; it grants nothing by itself.
+    isolation_profile: profileName.optional(),
+    artifacts: artifactLimits.optional(),
     dependencies: z.array(z.object({ id, version, manifest_sha256: hash }).strict()).max(32),
     conformance: z.array(relative).min(1).max(16).refine(distinct),
   })
@@ -141,6 +161,8 @@ function admitExecutionPlugin(directory, policy, dependencies = []) {
       kind: manifestSchema.shape.kind,
       allowed_capabilities: z.array(IdentifierSchema).max(32).refine(distinct),
       limits,
+      isolation_profile: profileName.optional(),
+      artifacts: artifactLimits.optional(),
       node_major: z.number().int(),
       contract_version: z.literal(1),
     })
@@ -158,6 +180,21 @@ function admitExecutionPlugin(directory, policy, dependencies = []) {
   if (!manifest.compatibility.node_majors.includes(grant.node_major)) reject('PLUGIN_INCOMPATIBLE');
   if (manifest.capabilities.some((capability) => !grant.allowed_capabilities.includes(capability))) reject('PLUGIN_AUTHORITY_DENIED');
   for (const [name, requested] of Object.entries(manifest.limits)) if (requested > grant.limits[name]) reject('PLUGIN_LIMIT_DENIED');
+  // Wider isolation profiles and artifact output are opt-in per grant; the default is P0 and none.
+  const requestedProfile = manifest.isolation_profile ?? 'P0';
+  if (profileRank(requestedProfile) > profileRank(grant.isolation_profile ?? 'P0')) reject('PLUGIN_PROFILE_DENIED');
+  if (manifest.artifacts) {
+    const allowed = grant.artifacts;
+    if (
+      !allowed ||
+      manifest.artifacts.max_files > allowed.max_files ||
+      manifest.artifacts.max_file_bytes > allowed.max_file_bytes ||
+      manifest.artifacts.max_total_bytes > allowed.max_total_bytes ||
+      (manifest.artifacts.shm_bytes ?? 0) > (allowed.shm_bytes ?? 0) ||
+      manifest.artifacts.media_types.some((type) => !allowed.media_types.includes(type))
+    )
+      reject('PLUGIN_ARTIFACTS_DENIED');
+  }
   if (!Array.isArray(dependencies) || dependencies.length !== manifest.dependencies.length) reject('PLUGIN_DEPENDENCY_UNRESOLVED');
   for (const dependency of manifest.dependencies) {
     const candidate = dependencies.find((item) => admissions.has(item) && item.manifest.id === dependency.id);
@@ -171,6 +208,7 @@ function admitExecutionPlugin(directory, policy, dependencies = []) {
     manifest,
     manifest_sha256,
     node_major: grant.node_major,
+    isolation_profile: requestedProfile,
   });
   admissions.add(admission);
   return admission;

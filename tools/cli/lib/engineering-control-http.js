@@ -5,8 +5,22 @@ const { createHash, timingSafeEqual } = require('node:crypto');
 
 const NOT_FOUND_CODES = new Set(['CONTROL_TASK_NOT_FOUND', 'JOB_NOT_FOUND', 'CONTROL_TERMINAL_NOT_FOUND', 'CONTROL_CAMPAIGN_NOT_FOUND']);
 
+// Surfaces carry data, digests and references only: functions and code-bearing fields never leave over HTTP.
+// This is a defensive denylist; the primary guarantee is that the contract refuses inline code before any job is created.
+const EXECUTABLE_FIELDS = new Set(['executable_code', 'inline_code', 'source_code', 'script_source']);
+
+function stripExecutable(value) {
+  if (Array.isArray(value)) return value.filter((item) => typeof item !== 'function').map(stripExecutable);
+  if (value === null || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key, item]) => typeof item !== 'function' && !EXECUTABLE_FIELDS.has(key))
+      .map(([key, item]) => [key, stripExecutable(item)]),
+  );
+}
+
 function rejectionDetail(error) {
-  if (typeof error.reason === 'string' && /^PROJECT_[A-Z0-9_]+$/.test(error.reason))
+  if (typeof error.reason === 'string' && /^(?:PROJECT|ENGINEERING)_[A-Z0-9_]+$/.test(error.reason))
     return {
       code: error.reason,
       message: String(error.message).slice(0, 200),
@@ -25,7 +39,7 @@ async function startControlServer({ control, credential, port = 0 }) {
     const send = (status, body) => {
       if (response.destroyed) return;
       response.writeHead(status, { 'content-type': 'application/json', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' });
-      response.end(JSON.stringify(body));
+      response.end(JSON.stringify(stripExecutable(body)));
     };
     try {
       const received = createHash('sha256')
@@ -56,6 +70,7 @@ async function startControlServer({ control, credential, port = 0 }) {
           const parsed = require('./engineering-control').parseCreationInput(
             kind === 'task' ? 'create' : 'create_workflow',
             body.input?.definition,
+            { admission: true },
           );
           const contracts = kind === 'task' ? [parsed.contract] : parsed.definition.tasks.map((task) => task.contract);
           if (contracts.some((contract) => contract.initial_files.length > 0)) {
@@ -180,4 +195,4 @@ async function startControlServer({ control, credential, port = 0 }) {
   };
 }
 
-module.exports = { startControlServer };
+module.exports = { startControlServer, stripExecutable };

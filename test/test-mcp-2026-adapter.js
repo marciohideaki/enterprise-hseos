@@ -24,7 +24,12 @@ const {
 } = require('../tools/lib/mcp-2026-adapter');
 const { deterministicOperationId } = require('../tools/lib/governed-execution/runtime');
 const { MCP_LEGACY_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION, MCP_PROTOCOL_VERSION } = require('../tools/lib/mcp-protocol');
-const { McpLegacyUsageStore } = require('../tools/mcp-project-state/lib/mcp-legacy-usage-store');
+const {
+  McpLegacyUsageStore,
+  activationReadinessFromDatabase,
+  assertStableReadOnlyDatabase,
+  readMcpLegacyActivationReadiness,
+} = require('../tools/mcp-project-state/lib/mcp-legacy-usage-store');
 
 const BASE_TOOLS = [
   {
@@ -355,9 +360,9 @@ test('invalid input and unsupported modern lifecycle methods fail before executi
     const malformedClient = await instance.handle(modernMessage('tools/list', { _meta: { [CLIENT_INFO_META_KEY]: clientInfo } }));
     assert.equal(malformedClient.error.code, JSON_RPC.INVALID_PARAMS);
   }
-  const notification = await instance.handle({ jsonrpc: '2.0', method: 'tools/list', params: modernParams() });
-  assert.equal(notification.error.code, JSON_RPC.INVALID_REQUEST);
-  // JSON-RPC 2.0: a notification of an unknown method is dropped without any response.
+  // JSON-RPC 2.0: a notification never gets a response, even for a known request method (aligned with mcp-transport).
+  assert.equal(await instance.handle({ jsonrpc: '2.0', method: 'tools/list', params: modernParams() }), null);
+  assert.equal(await instance.handle({ jsonrpc: '2.0', method: 'tools/call', params: modernParams({ name: 'alpha.read' }) }), null);
   assert.equal(await instance.handle({ jsonrpc: '2.0', method: 'bogus/notification', params: modernParams() }), null);
   assert.equal(await instance.handle({ jsonrpc: '2.0', method: 'bogus/notification' }), null);
   for (const id of [{}, null, 1.5]) {
@@ -996,4 +1001,35 @@ test('modern stdio cancellation aborts the matching in-flight request', async ()
   assert.equal(response.result.structuredContent.error.code, 'EXECUTION_CANCELLED');
   rl.close();
   input.end();
+});
+
+test('legacy readiness: read-only evidence rejects links and sidecars, and counter tampering is an integrity error', (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-legacy-readonly-evidence-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const databasePath = path.join(directory, 'legacy.db');
+  const store = new McpLegacyUsageStore(databasePath);
+  const asOf = new Date('2026-08-21T23:00:00.000Z');
+  store.markObservation('swarm', new Date('2026-08-20T10:00:00.000Z'));
+  store.record(
+    { client_identity: 'client', protocol_version: MCP_LEGACY_PROTOCOL_VERSION, server_id: 'swarm', sunset: LEGACY_SUNSET },
+    new Date('2026-08-20T10:30:00.000Z'),
+  );
+  assert.throws(() => store.activationReadiness({ serverIds: [], asOf }), TypeError);
+  assert.throws(() => store.activationReadiness({ serverIds: ['swarm'], asOf, days: 0 }), TypeError);
+  // Tamper with the daily observation counter so it disagrees with the recorded usage.
+  store.db.prepare("UPDATE mcp_legacy_observation_daily SET legacy_request_count = 5 WHERE usage_day = '2026-08-20'").run();
+  const tampered = store.activationReadiness({ serverIds: ['swarm'], asOf });
+  assert.equal(tampered.ready, false);
+  assert.ok(tampered.integrity_errors.some((error) => error.kind === 'usage_counter_mismatch' && error.observed_count === 5));
+  assert.equal(activationReadinessFromDatabase(store.db, { serverIds: ['swarm'], asOf }).ready, false);
+
+  assert.throws(() => assertStableReadOnlyDatabase(databasePath), /sidecars/);
+  store.db.pragma('wal_checkpoint(TRUNCATE)');
+  store.close();
+  assertStableReadOnlyDatabase(databasePath);
+  assert.equal(readMcpLegacyActivationReadiness(databasePath, { serverIds: ['swarm'], asOf }).ready, false);
+  fs.symlinkSync(databasePath, path.join(directory, 'link.db'));
+  assert.throws(() => assertStableReadOnlyDatabase(path.join(directory, 'link.db')), /regular, non-symlink/);
+  fs.linkSync(databasePath, path.join(directory, 'hard.db'));
+  assert.throws(() => assertStableReadOnlyDatabase(databasePath), /hard-linked/);
 });

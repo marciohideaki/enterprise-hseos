@@ -1,0 +1,14 @@
+id: hseos-plugin-lsp
+version: "0.1.0"
+description: "Workspace-restricted TypeScript and Python language-server queries (diagnostics, definition, references, hover, rename preview)"
+license: MIT
+authors:
+  - "Hideaki Solutions"
+extends: ""
+requires_bundles:
+  - core
+surfaces:
+  skills:
+    - skills/lsp/SKILL.md
+verification:
+  conformance_tests: tests/

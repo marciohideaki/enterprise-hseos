@@ -1,10 +1,13 @@
 'use strict';
 
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { createHash } = require('node:crypto');
+const YAML = require('yaml');
 const { canonicalJson } = require('../../../packages/agent-session-store');
+const { PROJECT_LIMITS, isProjectPath, isStorePath } = require('./engineering-task-contract');
 
 /**
  * Curated rejection: `reason` is a closed code and `message` a fixed string, both safe to return to API clients.
@@ -41,6 +44,164 @@ function projectGit(root, args, input) {
   return execFileSync('git', [...base, `--work-tree=${root}`, ...args], { ...options, input });
 }
 
+/** Filesystem failures on a store path are reported with a fixed message, never with the host path they came from. */
+function storeFailure(error, name) {
+  const [reason, message] = FS_REASONS[error?.code] || ['PROJECT_FILE_UNSAFE', 'Unsafe project file'];
+  return projectRejection(reason, message, name);
+}
+
+/**
+ * A pnpm virtual-store path may reach its file through symlinked package directories. Resolve it and
+ * require the result to stay inside the real node_modules/.pnpm of the verified workspace root; the
+ * caller then opens the resolved path without following any link.
+ */
+function resolveStoreTarget(root, name) {
+  const storeRoot = path.join(root, 'node_modules', '.pnpm');
+  for (const directory of [path.join(root, 'node_modules'), storeRoot]) {
+    let stat;
+    try {
+      stat = fs.lstatSync(directory);
+    } catch (error) {
+      if (error.code === 'ENOENT') return null;
+      throw storeFailure(error, name);
+    }
+    if (!stat.isDirectory() || stat.isSymbolicLink()) throw projectRejection('PROJECT_FILE_UNSAFE', 'Unsafe project file', name);
+  }
+  let real;
+  try {
+    real = fs.realpathSync(path.join(root, name));
+  } catch (error) {
+    // Absent or dangling: the caller records an absent file exactly as for ordinary paths.
+    if (error.code === 'ENOENT') return null;
+    throw storeFailure(error, name);
+  }
+  const relative = path.relative(root, real);
+  if (relative.startsWith('..') || path.isAbsolute(relative) || !isStorePath(relative)) {
+    throw projectRejection('PROJECT_STORE_LINK_ESCAPES', 'A pnpm store link resolves outside the verified store', name);
+  }
+  return relative;
+}
+
+const HSEOS_CONFIG = path.resolve(__dirname, '../../../.hseos/config/hseos.config.yaml');
+
+const IGNORED_STORE_ENV = Object.freeze(['HSEOS_PNPM_STORE_DIRS', 'PNPM_STORE_DIR', 'npm_config_store_dir']);
+const warnedStoreEnv = new Set();
+let injectedStores = [];
+
+/**
+ * Internal controller API: trust these stores in addition to the controller files. Returns a function that restores
+ * the previous list. Tests use it; nothing reads the environment, because a project script can set any variable and
+ * npm exports a project .npmrc store-dir as npm_config_store_dir.
+ */
+function trustPnpmStores(directories) {
+  const previous = injectedStores;
+  injectedStores = directories.filter((value) => typeof value === 'string' && path.isAbsolute(value)).map((value) => path.normalize(value));
+  return () => {
+    injectedStores = previous;
+  };
+}
+
+/**
+ * The pnpm stores the controller trusts. Only files outside the project's control count: the HSEOS configuration of
+ * the controller installation and of the user (toolchain.pnpm_store_dirs), the user's pnpm rc, and the pnpm
+ * default. Environment variables are ignored for this purpose (with a warning when they are present), and so is
+ * everything inside the project, including its .npmrc and .modules.yaml.
+ */
+function controllerStoreDirs({ home = os.userInfo().homedir } = {}) {
+  for (const name of IGNORED_STORE_ENV) {
+    if (process.env[name] !== undefined && !warnedStoreEnv.has(name)) {
+      warnedStoreEnv.add(name);
+      process.emitWarning(`${name} is ignored: pnpm stores are trusted only through controller files`, { code: 'HSEOS_PNPM_ENV_IGNORED' });
+    }
+  }
+  const trusted = new Set();
+  const add = (value) => {
+    if (typeof value === 'string' && path.isAbsolute(value)) trusted.add(path.normalize(value).replace(/\/+$/, '') || '/');
+  };
+  for (const value of injectedStores) add(value);
+  for (const file of [path.join(home, '.config', 'hseos', 'config.yaml'), HSEOS_CONFIG]) {
+    try {
+      for (const value of YAML.parse(fs.readFileSync(file, 'utf8'))?.toolchain?.pnpm_store_dirs ?? []) add(value);
+    } catch {
+      // An absent or unreadable configuration trusts nothing extra.
+    }
+  }
+  try {
+    add(/^\s*store-dir\s*=\s*(\S+)\s*$/m.exec(fs.readFileSync(path.join(home, '.config', 'pnpm', 'rc'), 'utf8'))?.[1]);
+  } catch {
+    // No user rc file.
+  }
+  add(path.join(home, '.local', 'share', 'pnpm', 'store'));
+  return [...trusted];
+}
+
+/**
+ * The pnpm content store of a project. The project only names it (.modules.yaml); the name is honoured when it
+ * equals a controller-trusted store (or its v<N> directory) and is a real directory of the current user outside the
+ * project. A name that is not trusted is refused, so a project cannot point the check at a store it forged.
+ */
+function pnpmStoreDirectory(root) {
+  let declared;
+  try {
+    const filename = path.join(root, 'node_modules', '.modules.yaml');
+    const stat = fs.lstatSync(filename);
+    if (!stat.isFile() || stat.size > 4_194_304) return null;
+    declared = YAML.parse(fs.readFileSync(filename, 'utf8'))?.storeDir;
+  } catch {
+    return null;
+  }
+  if (typeof declared !== 'string' || !path.isAbsolute(declared) || path.normalize(declared) !== declared) return null;
+  const trusted = controllerStoreDirs().some(
+    (base) => declared === base || (declared.startsWith(`${base}/`) && /^v[0-9]+$/.test(declared.slice(base.length + 1))),
+  );
+  if (!trusted) throw projectRejection('PROJECT_STORE_DIR_NOT_ALLOWED', 'The pnpm store named by the project is not a trusted store');
+  try {
+    const directory = fs.lstatSync(declared);
+    if (!directory.isDirectory() || directory.isSymbolicLink() || fs.realpathSync(declared) !== declared) return null;
+    if (directory.uid !== process.getuid() || declared === root || declared.startsWith(`${root}${path.sep}`)) return null;
+  } catch {
+    return null;
+  }
+  return declared;
+}
+
+/**
+ * A store file with several links is accepted only when it is the very inode pnpm keeps under its content
+ * address (<storeDir>/files/<sha512[0..2]>/<rest>, with "-exec" for executables, also below v<N>/ roots).
+ * Any other second link, for example to a user's private file, would otherwise copy that file into the snapshot.
+ */
+function assertContentAddressed(storeDir, stat, bytes, name) {
+  assertContentAddressedByHash(storeDir, stat, createHash('sha512').update(bytes).digest('hex'), name);
+}
+
+function assertContentAddressedByHash(storeDir, stat, hex, name) {
+  const unverified = () =>
+    projectRejection(
+      'PROJECT_STORE_HARDLINK_UNVERIFIED',
+      'A pnpm store file with several links is not the pnpm content-addressed file',
+      name,
+    );
+  if (!storeDir) throw unverified();
+  const bases = [path.join(storeDir, 'files')];
+  try {
+    for (const entry of fs.readdirSync(storeDir)) if (/^v[0-9]+$/.test(entry)) bases.push(path.join(storeDir, entry, 'files'));
+  } catch {
+    throw unverified();
+  }
+  for (const base of bases) {
+    for (const suffix of ['', '-exec']) {
+      let candidate;
+      try {
+        candidate = fs.lstatSync(path.join(base, hex.slice(0, 2), hex.slice(2) + suffix));
+      } catch {
+        continue;
+      }
+      if (candidate.isFile() && !candidate.isSymbolicLink() && candidate.dev === stat.dev && candidate.ino === stat.ino) return;
+    }
+  }
+  throw unverified();
+}
+
 function workspaceSnapshot(contract, root) {
   const identity = fs.lstatSync(root);
   if (!identity.isDirectory() || identity.isSymbolicLink() || fs.realpathSync(root) !== root) {
@@ -48,13 +209,15 @@ function workspaceSnapshot(contract, root) {
   }
   let bytes = 0;
   const files = contract.scope.read.map((name) => {
-    if (!/^[a-zA-Z0-9_][a-zA-Z0-9._-]*(?:\/[a-zA-Z0-9_][a-zA-Z0-9._-]*)*$/.test(name))
-      throw projectRejection('PROJECT_PATH_INVALID', 'Invalid project path');
+    if (!isProjectPath(name)) throw projectRejection('PROJECT_PATH_INVALID', 'Invalid project path');
+    const store = isStorePath(name);
+    const target = store ? resolveStoreTarget(root, name) : name;
+    if (target === null) return { path: name, content: null, sha256: null };
     const directories = [];
     let fd;
     try {
       directories.push(fs.openSync(root, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_DIRECTORY));
-      for (const segment of name.split('/').slice(0, -1)) {
+      for (const segment of target.split('/').slice(0, -1)) {
         directories.push(
           fs.openSync(
             `/proc/self/fd/${directories.at(-1)}/${segment}`,
@@ -62,12 +225,13 @@ function workspaceSnapshot(contract, root) {
           ),
         );
       }
-      const filename = `/proc/self/fd/${directories.at(-1)}/${name.split('/').at(-1)}`;
+      const filename = `/proc/self/fd/${directories.at(-1)}/${target.split('/').at(-1)}`;
       fd = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK);
       const before = fs.fstatSync(fd);
       if (before.size > contract.max_artifact_bytes - bytes)
         throw projectRejection('PROJECT_FILE_TOO_LARGE', 'Project files exceed max_artifact_bytes', name);
-      if (!before.isFile() || before.nlink !== 1) throw projectRejection('PROJECT_FILE_UNSAFE', 'Unsafe project file', name);
+      // pnpm hardlinks store files into the shared content store, so a store file may have several links.
+      if (!before.isFile() || (!store && before.nlink !== 1)) throw projectRejection('PROJECT_FILE_UNSAFE', 'Unsafe project file', name);
       const buffer = Buffer.alloc(before.size + 1);
       const length = fs.readSync(fd, buffer, 0, buffer.length, 0);
       const after = fs.fstatSync(fd);
@@ -82,7 +246,12 @@ function workspaceSnapshot(contract, root) {
       )
         throw projectRejection('PROJECT_CHANGED_DURING_SNAPSHOT', 'Project changed during snapshot');
       bytes += length;
+      if (store && before.nlink > 1) assertContentAddressed(pnpmStoreDirectory(root), before, buffer.subarray(0, length), name);
       const content = new TextDecoder('utf-8', { fatal: true }).decode(buffer.subarray(0, length));
+      // The contract holds a file whole or not at all: a longer file is refused, never cut.
+      if (content.length > PROJECT_LIMITS.file_chars) {
+        throw projectRejection('PROJECT_FILE_TOO_LARGE', `Project file exceeds ${PROJECT_LIMITS.file_chars} characters`, name);
+      }
       return { path: name, content, sha256: digest(buffer.subarray(0, length)) };
     } catch (error) {
       if (error.code === 'ENOENT') return { path: name, content: null, sha256: null };
@@ -117,11 +286,18 @@ function hydrateProjectTask(contract) {
   return { ...contract, initial_files: snapshot.files.filter((file) => file.content !== null) };
 }
 
-module.exports = { projectWorkspaceSnapshot, hydrateProjectTask };
+module.exports = {
+  projectWorkspaceSnapshot,
+  hydrateProjectTask,
+  resolveStoreTarget,
+  pnpmStoreDirectory,
+  controllerStoreDirs,
+  trustPnpmStores,
+};
 
 /** Finish an exact preparation snapshot without following links or overwriting divergent bytes. */
 function materializeProjectSnapshot(root, relative, files, emptyDirectories = []) {
-  const valid = (value) => /^[a-zA-Z0-9_][a-zA-Z0-9._-]*(?:\/[a-zA-Z0-9_][a-zA-Z0-9._-]*)*$/.test(value);
+  const valid = isProjectPath;
   if (!valid(relative) || Object.keys(files).some((name) => !valid(name)) || emptyDirectories.some((name) => !valid(name)))
     throw new Error('Invalid preparation path');
   if (fs.realpathSync(root) !== root) throw new Error('Unsafe preparation root');
@@ -313,8 +489,6 @@ module.exports.projectPatch = projectPatch;
 module.exports.reviewProjectResult = reviewProjectResult;
 module.exports.applyProjectResult = applyProjectResult;
 
-const PROJECT_PATH = /^[a-zA-Z0-9_][a-zA-Z0-9._-]*(?:\/[a-zA-Z0-9_][a-zA-Z0-9._-]*)*$/;
-
 /**
  * Names the first violated scope rule of a rejected v2 contract. Only the scope field and a fixed message are
  * returned; the offending path is never echoed because it is caller-controlled text.
@@ -324,9 +498,21 @@ function diagnoseScope(value) {
   if (!scope || typeof scope !== 'object') return null;
   for (const list of ['read', 'write']) {
     const paths = scope[list];
-    if (!Array.isArray(paths) || paths.length === 0 || paths.length > 64)
-      return projectRejection('PROJECT_SCOPE_INVALID', `scope.${list} must list 1 to 64 paths`, undefined, `scope.${list}`);
-    const bad = paths.findIndex((entry) => typeof entry !== 'string' || entry.length > 240 || !PROJECT_PATH.test(entry));
+    if (!Array.isArray(paths) || paths.length === 0 || paths.length > PROJECT_LIMITS.total_paths)
+      return projectRejection(
+        'PROJECT_SCOPE_INVALID',
+        `scope.${list} must list 1 to ${PROJECT_LIMITS.total_paths} paths (${PROJECT_LIMITS.ordinary_paths} outside node_modules/.pnpm)`,
+        undefined,
+        `scope.${list}`,
+      );
+    const bad = paths.findIndex((entry) => !isProjectPath(entry));
+    if (bad === -1 && paths.filter((entry) => !isStorePath(entry)).length > PROJECT_LIMITS.ordinary_paths)
+      return projectRejection(
+        'PROJECT_SCOPE_INVALID',
+        `scope.${list} may list at most ${PROJECT_LIMITS.ordinary_paths} paths outside node_modules/.pnpm`,
+        undefined,
+        `scope.${list}`,
+      );
     if (bad !== -1)
       return projectRejection(
         'PROJECT_PATH_INVALID',
@@ -379,3 +565,205 @@ function prepareProjectTaskUnchecked(value) {
   return result;
 }
 module.exports.prepareProjectTask = prepareProjectTask;
+
+const STORE_MOUNT_BUDGET = Object.freeze({ entries: 300_000, hashed_bytes: 2_147_483_648 });
+const STORE_MOUNT_TARGET = '/opt/hseos/pnpm-store';
+const STORE_LINK_BUDGET = 4096;
+
+function hashedBytes(filename, size) {
+  const fd = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK);
+  try {
+    const hash = createHash('sha512');
+    const buffer = Buffer.alloc(1_048_576);
+    let total = 0;
+    let length;
+    while ((length = fs.readSync(fd, buffer, 0, buffer.length, null)) > 0) {
+      total += length;
+      if (total > size) break;
+      hash.update(buffer.subarray(0, length));
+    }
+    return { total, hex: hash.digest('hex') };
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
+/**
+ * A cheap, content-free fingerprint of the mounted store: every entry as (path, dev, ino, size, mtime_ns, nlink,
+ * type), sorted and hashed. It is pinned when the store is verified and recomputed before each launch, so an entry
+ * added or relinked after the verification (a late hardlink, for example) is noticed without rereading any file.
+ */
+function summarizePnpmStore(root) {
+  const store = path.join(root, 'node_modules', '.pnpm');
+  const tuples = [];
+  const pending = [store];
+  const record = (filename, kind) => {
+    const stat = fs.lstatSync(filename, { bigint: true });
+    tuples.push(
+      `${path.relative(store, filename)}\0${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeNs}:${stat.ctimeNs}:${stat.nlink}:${kind}`,
+    );
+  };
+  record(store, 'd');
+  while (pending.length > 0) {
+    const directory = pending.pop();
+    let entries;
+    try {
+      entries = fs.readdirSync(directory, { withFileTypes: true });
+    } catch (error) {
+      throw storeFailure(error);
+    }
+    // The budget is checked before any entry is touched, so an oversized directory is refused without walking it.
+    if (tuples.length + entries.length > STORE_MOUNT_BUDGET.entries) {
+      throw projectRejection('PROJECT_STORE_TOO_LARGE', 'The pnpm store exceeds the mount entry budget');
+    }
+    for (const entry of entries) {
+      const filename = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        pending.push(filename);
+        record(filename, 'd');
+      } else {
+        record(filename, entry.isSymbolicLink() ? 'l' : entry.isFile() ? 'f' : 'o');
+      }
+    }
+  }
+  tuples.sort();
+  return Object.freeze({ sha256: createHash('sha256').update(tuples.join('\n')).digest('hex'), entries: tuples.length });
+}
+
+const STORE_PINS = new WeakMap();
+
+/** Remember what the controller verified for one isolation policy. */
+function pinStoreMount(policy, root, mount) {
+  STORE_PINS.set(policy, { root, summary: mount.summary });
+}
+
+/**
+ * Called before every launch of a contract with a store mount. A policy that was never pinned is verified in full;
+ * a pinned one only recomputes the fingerprint and refuses when it differs.
+ */
+function assertStoreMountUnchanged(policy, contract) {
+  if (contract.schema_version !== 2 || !contract.workspace.store_mount) return;
+  const root = contract.workspace.root;
+  const pin = STORE_PINS.get(policy);
+  if (!pin || pin.root !== root) {
+    pinStoreMount(policy, root, verifyPnpmStoreMount(root));
+    return;
+  }
+  if (summarizePnpmStore(root).sha256 !== pin.summary.sha256) {
+    throw projectRejection('PROJECT_STORE_DRIFT', 'The pnpm store changed after it was verified');
+  }
+}
+
+/**
+ * Verify the project's own node_modules/.pnpm before the controller mounts it read-only into the sandbox.
+ * The path is real and unlinked from the project root down; every symlink stays inside the store; every file with
+ * several links is the pnpm content-addressed inode; nothing but directories, regular files and links exists.
+ * Both budgets are finite: a larger store is refused, never sampled.
+ */
+function verifyPnpmStoreMount(root) {
+  const fail = (reason, message) => projectRejection(reason, message);
+  let rootStat;
+  try {
+    rootStat = fs.lstatSync(root);
+    if (!rootStat.isDirectory() || rootStat.isSymbolicLink() || fs.realpathSync(root) !== root) throw new Error('unsafe');
+  } catch {
+    throw fail('PROJECT_WORKSPACE_UNSAFE', 'Unsafe project workspace');
+  }
+  const store = path.join(root, 'node_modules', '.pnpm');
+  try {
+    for (const directory of [path.join(root, 'node_modules'), store]) {
+      const stat = fs.lstatSync(directory);
+      if (!stat.isDirectory() || stat.isSymbolicLink()) throw new Error('unsafe');
+    }
+    if (fs.realpathSync(store) !== store) throw new Error('unsafe');
+  } catch {
+    throw fail('PROJECT_STORE_MOUNT_UNSAFE', 'The pnpm store is missing or is not a real directory inside the project');
+  }
+  const storeDir = pnpmStoreDirectory(root);
+  const summary = summarizePnpmStore(root);
+  // Workspace packages are linked into the store from the monorepo (../../packages/x). Such a link may point anywhere
+  // inside the project root; in the sandbox it dangles, because only the store is mounted. Outside the root it is refused.
+  const within = (target) => target === root || target.startsWith(`${root}${path.sep}`);
+  const counts = { entries: 0, symlinks: 0, hardlinks: 0, hashed_bytes: 0 };
+  const pending = [store];
+  while (pending.length > 0) {
+    const directory = pending.pop();
+    let entries;
+    try {
+      entries = fs.readdirSync(directory, { withFileTypes: true });
+    } catch (error) {
+      throw storeFailure(error);
+    }
+    for (const entry of entries) {
+      if ((counts.entries += 1) > STORE_MOUNT_BUDGET.entries)
+        throw fail('PROJECT_STORE_TOO_LARGE', 'The pnpm store exceeds the mount entry budget');
+      const filename = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        pending.push(filename);
+      } else if (entry.isSymbolicLink()) {
+        counts.symlinks += 1;
+        const target = fs.readlinkSync(filename);
+        if (path.isAbsolute(target) || !within(path.resolve(directory, target))) {
+          throw fail('PROJECT_STORE_LINK_ESCAPES', 'A pnpm store link resolves outside the verified store');
+        }
+      } else if (entry.isFile()) {
+        const stat = fs.lstatSync(filename);
+        if (stat.nlink > 1) {
+          counts.hardlinks += 1;
+          const { total, hex } = hashedBytes(filename, stat.size);
+          counts.hashed_bytes += total;
+          if (total !== stat.size || counts.hashed_bytes > STORE_MOUNT_BUDGET.hashed_bytes) {
+            throw fail('PROJECT_STORE_TOO_LARGE', 'The pnpm store exceeds the mount hashing budget');
+          }
+          assertContentAddressedByHash(storeDir, stat, hex, path.relative(root, filename));
+        }
+      } else {
+        throw fail('PROJECT_FILE_UNSAFE', 'Unsafe project file');
+      }
+    }
+  }
+  // The store must not move while it is being verified.
+  if (summarizePnpmStore(root).sha256 !== summary.sha256)
+    throw fail('PROJECT_STORE_DRIFT', 'The pnpm store changed while it was being verified');
+  return Object.freeze({ source: store, target: STORE_MOUNT_TARGET, ...counts, summary });
+}
+
+/**
+ * Recreate, inside the task workspace, the links a pnpm project resolves through: node_modules/.pnpm becomes the
+ * read-only mount target and the top-level package links keep pointing into it. Only relative links that resolve
+ * into the store are copied.
+ */
+function materializeStoreLinks(root, workspace) {
+  const modules = path.join(workspace, 'node_modules');
+  fs.mkdirSync(modules, { recursive: true, mode: 0o700 });
+  fs.symlinkSync(STORE_MOUNT_TARGET, path.join(modules, '.pnpm'));
+  const source = path.join(root, 'node_modules');
+  let copied = 0;
+  const copy = (relative) => {
+    const from = path.join(source, relative);
+    const target = fs.readlinkSync(from);
+    const resolved = path.resolve(path.dirname(from), target);
+    if (path.isAbsolute(target) || !resolved.startsWith(`${path.join(source, '.pnpm')}${path.sep}`)) return;
+    if ((copied += 1) > STORE_LINK_BUDGET) throw projectRejection('PROJECT_STORE_TOO_LARGE', 'Too many top-level package links');
+    fs.mkdirSync(path.dirname(path.join(modules, relative)), { recursive: true, mode: 0o700 });
+    fs.symlinkSync(target, path.join(modules, relative));
+  };
+  for (const entry of fs.readdirSync(source, { withFileTypes: true })) {
+    if (entry.name.startsWith('.')) continue;
+    if (entry.isSymbolicLink()) copy(entry.name);
+    else if (entry.isDirectory() && entry.name.startsWith('@')) {
+      for (const inner of fs.readdirSync(path.join(source, entry.name), { withFileTypes: true })) {
+        if (inner.isSymbolicLink() && !inner.name.startsWith('.')) copy(path.join(entry.name, inner.name));
+      }
+    }
+  }
+  return copied;
+}
+
+module.exports.verifyPnpmStoreMount = verifyPnpmStoreMount;
+module.exports.summarizePnpmStore = summarizePnpmStore;
+module.exports.pinStoreMount = pinStoreMount;
+module.exports.assertStoreMountUnchanged = assertStoreMountUnchanged;
+module.exports.materializeStoreLinks = materializeStoreLinks;
+module.exports.STORE_MOUNT_TARGET = STORE_MOUNT_TARGET;
+module.exports.STORE_MOUNT_BUDGET = STORE_MOUNT_BUDGET;

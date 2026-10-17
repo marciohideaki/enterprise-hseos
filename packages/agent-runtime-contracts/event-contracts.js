@@ -15,6 +15,7 @@ const {
 const { AgentMessageSchema, AgentSessionSpecSchema, ModelRequestSchema, ToolExecutionResultSchema } = require('./agent-contracts');
 const { CompactionProviderManifestSchema, CompactionRecordSchema } = require('./compaction-contracts');
 const { WorkflowDefinitionSchema } = require('./orchestration-contracts');
+const { CONTEXT_ASSEMBLY_CONTRACT_V2, ContextSourceRecordSchema, ModelRequestV2Schema } = require('./content-parts');
 
 const MAX_EVENT_DELTA_BYTES = 262_144;
 const MAX_RUNTIME_TOOL_INPUT_BYTES = 1_048_576;
@@ -89,13 +90,30 @@ const ContextBudgetReportSchema = strictObject({
 });
 
 const ContextAssembledPayloadSchema = strictObject({
-  assembly_contract: z.literal(CONTEXT_ASSEMBLY_CONTRACT),
+  assembly_contract: z.enum([CONTEXT_ASSEMBLY_CONTRACT, CONTEXT_ASSEMBLY_CONTRACT_V2]),
   turn_id: IdentifierSchema,
-  request: ModelRequestSchema,
+  request: ModelRequestV2Schema,
   source_refs: UniqueReferencesSchema,
+  sources: z.array(ContextSourceRecordSchema).max(1024).optional(),
   budget: ContextBudgetReportSchema,
 }).superRefine((payload, context) => {
   const included = new Set(payload.source_refs);
+  if ((payload.assembly_contract === CONTEXT_ASSEMBLY_CONTRACT_V2) !== (payload.sources !== undefined)) {
+    context.addIssue({ code: 'custom', path: ['sources'], message: 'sources are required by, and only valid in, context v2' });
+  }
+  if (payload.assembly_contract === CONTEXT_ASSEMBLY_CONTRACT && payload.request.parts !== undefined) {
+    context.addIssue({ code: 'custom', path: ['request', 'parts'], message: 'content parts require context v2' });
+  }
+  for (const [index, record] of (payload.sources ?? []).entries()) {
+    if (!included.has(record.source_ref)) {
+      context.addIssue({ code: 'custom', path: ['sources', index], message: 'source record is missing from lineage' });
+    }
+  }
+  for (const [index, part] of (payload.request.parts ?? []).entries()) {
+    if (part.type === 'image' && !included.has(part.source_ref)) {
+      context.addIssue({ code: 'custom', path: ['request', 'parts', index], message: 'image part source is missing from lineage' });
+    }
+  }
   const overlap = payload.budget.omitted_source_refs.filter((reference) => included.has(reference));
   if (overlap.length > 0) {
     context.addIssue({ code: 'custom', path: ['budget', 'omitted_source_refs'], message: 'omitted sources cannot also be included' });

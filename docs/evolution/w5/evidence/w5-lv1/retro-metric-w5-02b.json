@@ -1,0 +1,289 @@
+{
+  "stall_timeout_s": 900,
+  "queued_commands": 22,
+  "by_cause": {
+    "monitor_event": {
+      "count": 6,
+      "violations": 5,
+      "worst_reaction_latency_ms": 7949740,
+      "worst_reaction_latency": "2h12m30s"
+    },
+    "background_task_completed": {
+      "count": 7,
+      "violations": 4,
+      "worst_reaction_latency_ms": 38361332,
+      "worst_reaction_latency": "10h39m21s"
+    },
+    "monitor_stream_ended": {
+      "count": 9,
+      "violations": 4,
+      "worst_reaction_latency_ms": 38352716,
+      "worst_reaction_latency": "10h39m13s"
+    }
+  },
+  "reaction_latency": [
+    {
+      "cause": "monitor_event",
+      "queued_at": "2026-10-12T02:46:32.139Z",
+      "reacted_at": "2026-10-12T02:46:34.230Z",
+      "reaction_latency_ms": 2091,
+      "reaction_latency": "0h00m02s"
+    },
+    {
+      "cause": "background_task_completed",
+      "queued_at": "2026-10-12T02:50:39.125Z",
+      "reacted_at": "2026-10-12T02:51:16.581Z",
+      "reaction_latency_ms": 37456,
+      "reaction_latency": "0h00m37s"
+    },
+    {
+      "cause": "monitor_stream_ended",
+      "queued_at": "2026-10-12T02:50:39.578Z",
+      "reacted_at": "2026-10-12T02:51:16.581Z",
+      "reaction_latency_ms": 37003,
+      "reaction_latency": "0h00m37s"
+    },
+    {
+      "cause": "monitor_stream_ended",
+      "queued_at": "2026-10-12T02:50:40.109Z",
+      "reacted_at": "2026-10-12T02:51:16.581Z",
+      "reaction_latency_ms": 36472,
+      "reaction_latency": "0h00m36s"
+    },
+    {
+      "cause": "monitor_stream_ended",
+      "queued_at": "2026-10-12T02:50:40.630Z",
+      "reacted_at": "2026-10-12T02:51:16.581Z",
+      "reaction_latency_ms": 35951,
+      "reaction_latency": "0h00m36s"
+    },
+    {
+      "cause": "monitor_stream_ended",
+      "queued_at": "2026-10-12T02:50:46.263Z",
+      "reacted_at": "2026-10-12T02:51:16.581Z",
+      "reaction_latency_ms": 30318,
+      "reaction_latency": "0h00m30s"
+    },
+    {
+      "cause": "background_task_completed",
+      "queued_at": "2026-10-12T03:12:56.460Z",
+      "reacted_at": "2026-10-12T03:15:07.441Z",
+      "reaction_latency_ms": 130981,
+      "reaction_latency": "0h02m11s"
+    },
+    {
+      "cause": "background_task_completed",
+      "queued_at": "2026-10-12T03:27:55.469Z",
+      "reacted_at": "2026-10-12T05:54:24.815Z",
+      "reaction_latency_ms": 8789346,
+      "reaction_latency": "2h26m29s"
+    },
+    {
+      "cause": "monitor_stream_ended",
+      "queued_at": "2026-10-12T03:35:42.678Z",
+      "reacted_at": "2026-10-12T05:54:24.815Z",
+      "reaction_latency_ms": 8322137,
+      "reaction_latency": "2h18m42s"
+    },
+    {
+      "cause": "monitor_event",
+      "queued_at": "2026-10-12T03:41:55.075Z",
+      "reacted_at": "2026-10-12T05:54:24.815Z",
+      "reaction_latency_ms": 7949740,
+      "reaction_latency": "2h12m30s"
+    },
+    {
+      "cause": "monitor_event",
+      "queued_at": "2026-10-12T03:45:07.475Z",
+      "reacted_at": "2026-10-12T05:54:24.815Z",
+      "reaction_latency_ms": 7757340,
+      "reaction_latency": "2h09m17s"
+    },
+    {
+      "cause": "monitor_event",
+      "queued_at": "2026-10-12T03:55:36.367Z",
+      "reacted_at": "2026-10-12T05:54:24.815Z",
+      "reaction_latency_ms": 7128448,
+      "reaction_latency": "1h58m48s"
+    },
+    {
+      "cause": "monitor_event",
+      "queued_at": "2026-10-12T03:55:39.605Z",
+      "reacted_at": "2026-10-12T05:54:24.815Z",
+      "reaction_latency_ms": 7125210,
+      "reaction_latency": "1h58m45s"
+    },
+    {
+      "cause": "monitor_event",
+      "queued_at": "2026-10-12T03:56:27.050Z",
+      "reacted_at": "2026-10-12T05:54:24.815Z",
+      "reaction_latency_ms": 7077765,
+      "reaction_latency": "1h57m58s"
+    },
+    {
+      "cause": "background_task_completed",
+      "queued_at": "2026-10-12T06:06:10.312Z",
+      "reacted_at": "2026-10-12T16:45:31.644Z",
+      "reaction_latency_ms": 38361332,
+      "reaction_latency": "10h39m21s"
+    },
+    {
+      "cause": "monitor_stream_ended",
+      "queued_at": "2026-10-12T06:06:18.928Z",
+      "reacted_at": "2026-10-12T16:45:31.644Z",
+      "reaction_latency_ms": 38352716,
+      "reaction_latency": "10h39m13s"
+    },
+    {
+      "cause": "background_task_completed",
+      "queued_at": "2026-10-12T16:59:40.495Z",
+      "reacted_at": "2026-10-12T18:02:28.832Z",
+      "reaction_latency_ms": 3768337,
+      "reaction_latency": "1h02m48s"
+    },
+    {
+      "cause": "monitor_stream_ended",
+      "queued_at": "2026-10-12T16:59:55.180Z",
+      "reacted_at": "2026-10-12T18:02:28.832Z",
+      "reaction_latency_ms": 3753652,
+      "reaction_latency": "1h02m34s"
+    },
+    {
+      "cause": "background_task_completed",
+      "queued_at": "2026-10-12T18:19:37.603Z",
+      "reacted_at": "2026-10-12T18:40:56.607Z",
+      "reaction_latency_ms": 1279004,
+      "reaction_latency": "0h21m19s"
+    },
+    {
+      "cause": "monitor_stream_ended",
+      "queued_at": "2026-10-12T18:19:45.520Z",
+      "reacted_at": "2026-10-12T18:40:56.607Z",
+      "reaction_latency_ms": 1271087,
+      "reaction_latency": "0h21m11s"
+    },
+    {
+      "cause": "background_task_completed",
+      "queued_at": "2026-10-12T19:08:46.565Z",
+      "reacted_at": "2026-10-12T19:13:25.388Z",
+      "reaction_latency_ms": 278823,
+      "reaction_latency": "0h04m39s"
+    },
+    {
+      "cause": "monitor_stream_ended",
+      "queued_at": "2026-10-12T19:08:51.926Z",
+      "reacted_at": "2026-10-12T19:13:25.388Z",
+      "reaction_latency_ms": 273462,
+      "reaction_latency": "0h04m33s"
+    }
+  ],
+  "idle_gap": [
+    {
+      "idle_from": "2026-10-12T03:26:28.510Z",
+      "idle_until": "2026-10-12T05:54:17.786Z",
+      "idle_gap_ms": 8869276,
+      "idle_gap": "2h27m49s"
+    },
+    {
+      "idle_from": "2026-10-12T06:05:00.779Z",
+      "idle_until": "2026-10-12T16:45:24.233Z",
+      "idle_gap_ms": 38423454,
+      "idle_gap": "10h40m23s"
+    },
+    {
+      "idle_from": "2026-10-12T16:58:37.254Z",
+      "idle_until": "2026-10-12T18:02:19.258Z",
+      "idle_gap_ms": 3822004,
+      "idle_gap": "1h03m42s"
+    },
+    {
+      "idle_from": "2026-10-12T18:18:54.121Z",
+      "idle_until": "2026-10-12T18:40:41.024Z",
+      "idle_gap_ms": 1306903,
+      "idle_gap": "0h21m47s"
+    }
+  ],
+  "violations": [
+    {
+      "cause": "background_task_completed",
+      "queued_at": "2026-10-12T03:27:55.469Z",
+      "reaction_latency_ms": 8789346,
+      "reaction_latency": "2h26m29s"
+    },
+    {
+      "cause": "monitor_stream_ended",
+      "queued_at": "2026-10-12T03:35:42.678Z",
+      "reaction_latency_ms": 8322137,
+      "reaction_latency": "2h18m42s"
+    },
+    {
+      "cause": "monitor_event",
+      "queued_at": "2026-10-12T03:41:55.075Z",
+      "reaction_latency_ms": 7949740,
+      "reaction_latency": "2h12m30s"
+    },
+    {
+      "cause": "monitor_event",
+      "queued_at": "2026-10-12T03:45:07.475Z",
+      "reaction_latency_ms": 7757340,
+      "reaction_latency": "2h09m17s"
+    },
+    {
+      "cause": "monitor_event",
+      "queued_at": "2026-10-12T03:55:36.367Z",
+      "reaction_latency_ms": 7128448,
+      "reaction_latency": "1h58m48s"
+    },
+    {
+      "cause": "monitor_event",
+      "queued_at": "2026-10-12T03:55:39.605Z",
+      "reaction_latency_ms": 7125210,
+      "reaction_latency": "1h58m45s"
+    },
+    {
+      "cause": "monitor_event",
+      "queued_at": "2026-10-12T03:56:27.050Z",
+      "reaction_latency_ms": 7077765,
+      "reaction_latency": "1h57m58s"
+    },
+    {
+      "cause": "background_task_completed",
+      "queued_at": "2026-10-12T06:06:10.312Z",
+      "reaction_latency_ms": 38361332,
+      "reaction_latency": "10h39m21s"
+    },
+    {
+      "cause": "monitor_stream_ended",
+      "queued_at": "2026-10-12T06:06:18.928Z",
+      "reaction_latency_ms": 38352716,
+      "reaction_latency": "10h39m13s"
+    },
+    {
+      "cause": "background_task_completed",
+      "queued_at": "2026-10-12T16:59:40.495Z",
+      "reaction_latency_ms": 3768337,
+      "reaction_latency": "1h02m48s"
+    },
+    {
+      "cause": "monitor_stream_ended",
+      "queued_at": "2026-10-12T16:59:55.180Z",
+      "reaction_latency_ms": 3753652,
+      "reaction_latency": "1h02m34s"
+    },
+    {
+      "cause": "background_task_completed",
+      "queued_at": "2026-10-12T18:19:37.603Z",
+      "reaction_latency_ms": 1279004,
+      "reaction_latency": "0h21m19s"
+    },
+    {
+      "cause": "monitor_stream_ended",
+      "queued_at": "2026-10-12T18:19:45.520Z",
+      "reaction_latency_ms": 1271087,
+      "reaction_latency": "0h21m11s"
+    }
+  ],
+  "unanswered": 0,
+  "worst_reaction_latency_ms": 38361332,
+  "worst_reaction_latency": "10h39m21s"
+}

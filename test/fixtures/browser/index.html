@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>HSEOS Browser Fixture</title>
+    <style>
+      body { font-family: sans-serif; background: #f4f6f8; }
+      #status { color: #0a6; }
+    </style>
+  </head>
+  <body>
+    <h1>Fixture home</h1>
+    <p id="status">idle</p>
+    <button id="go" type="button">Go</button>
+    <form id="form" onsubmit="event.preventDefault(); document.getElementById('status').textContent = 'submitted:' + document.getElementById('name').value;">
+      <input id="name" name="name" aria-label="Name" />
+    </form>
+    <script>
+      document.getElementById('go').addEventListener('click', () => {
+        document.getElementById('status').textContent = 'clicked';
+      });
+      setTimeout(() => {
+        const late = document.createElement('p');
+        late.id = 'late';
+        late.textContent = 'late content';
+        document.body.append(late);
+      }, 200);
+    </script>
+  </body>
+</html>

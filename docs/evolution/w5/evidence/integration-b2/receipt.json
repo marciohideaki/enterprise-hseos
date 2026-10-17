@@ -1,0 +1,310 @@
+{
+  "task": "integration of wave B2 (W5-03, W5-05, W5-06)",
+  "branch": "integration/hseos-w5-b2",
+  "base": "1816e9e5",
+  "verified_head": "577207c5",
+  "verified_head_note": "every command below ran at 577207c5 unless its entry says otherwise; commits after it only add the review record and this documentation",
+  "merges": {
+    "W5-03": {
+      "task_sha": "833fcd20464cb216d3f715228d4e56baa2f0e037",
+      "merge": "7205977e",
+      "review_rounds": 2
+    },
+    "W5-05": {
+      "task_sha": "7c8623eea205ac35b42dab87acb0ea54de7a3954",
+      "review_rounds": 4,
+      "correction_rounds": 3,
+      "note": "arrives through the W5-06 merge"
+    },
+    "W5-06": {
+      "task_sha": "d5fb5a288720b4565489889fd63a037fdd0e7a2c",
+      "merge": "39eb7d06",
+      "review_rounds": 2,
+      "parent": "7c8623ee",
+      "conflict": "package.json test:kernel, resolved by union (W5-03 test added to the W5-06 list); .c8-kernel.json and plugin registries merged cleanly"
+    }
+  },
+  "corrections": [
+    {
+      "sha": "d432538e",
+      "what": "design 5.1: the LSP capability runs under P1 (P0 spawn EPERM); ENV_LSP_PROFILE_INSUFFICIENT"
+    },
+    {
+      "sha": "ac1e1d99",
+      "what": "design 5.2: breakpoint takes only file and line; external frames path null; strict startDebugging allow-list"
+    },
+    {
+      "sha": "577207c5",
+      "what": "LSP tests scoped to the LSP pins now that the shared registry holds the DAP pins (test-environment-lsp.js, test-lsp-plugin-parity.js)",
+      "root_cause": "W5-06 grew PINS from 3 to 5; two W5-05 tests assumed an LSP-only registry",
+      "mutation_check": "removing a pin from plugins/dap/plugin.json fails the new assertion (exit 1), reverted",
+      "evidence": {
+        "log": "/build/tmp/hseos-w5/b2/logs/int/lsp-fix-check.log",
+        "sha256": "e597cf159e190ae32de7f988066f7fde468f70246b8fb19ce108b6ecc51cbd71",
+        "exit_code": 0,
+        "tests": "83 pass, 0 fail"
+      }
+    }
+  ],
+  "compile": {
+    "command": "node tools/cli/hseos-cli.js agent-core compile",
+    "exit_code": 0,
+    "result": "the only diff was the known base drift (settings:/mcp: and the axon-bridge transport); no legitimate mirror change, so nothing was committed; generated .claude/* and .mcp.json removed",
+    "log": "6d4136bb1b6b6de92c7f1b5b21df65027b437032efd0d9e9b17732da65a30a7a"
+  },
+  "phase3": {
+    "task_verifies": {
+      "W5-06": {
+        "command_source": "tasks.md literal, heavy-run prefix dropped (run-in-cgroup applies it)",
+        "exit_code": 0,
+        "log": "/build/tmp/hseos-w5/b2/logs/int/verify/W5-06.log",
+        "sha256": "997211e9223ee9af769dc0d780b6a9d1ae8c4f6fdd341ac58cd3d134123c07ea"
+      },
+      "W5-03_literal": {
+        "command_source": "tasks.md literal",
+        "exit_code": 1,
+        "result": "FAIL as measured: schemas.js 87.75% lines / 65.78% branches",
+        "cause": "tasks.md header tells the test-only W5-03 to drop unchanged files from --include; the approved receipt did, the section literal still lists runtime.js and schemas.js. No task touched schemas.js; its coverage is judged by the full kernel coverage",
+        "log": "/build/tmp/hseos-w5/b2/logs/int/verify/W5-03.literal-section.log",
+        "sha256": "0bc862e967445085ee968614009ff9e40a68dcf20c3e32f4bfc49ac3c17f80d3"
+      },
+      "W5-03_receipt_command": {
+        "command_source": "approved receipt docs/evolution/w5/evidence/w5-03/receipt.json",
+        "exit_code": 0,
+        "result": "48 pass; context-assembler.js 90.07% lines / 85.63% branches (same as the isolated task, margin 0.07 pp)",
+        "log": "/build/tmp/hseos-w5/b2/logs/int/verify/W5-03.receipt-cmd.log",
+        "sha256": "1e2d28cc8f4b10f2bc878567084a209e7aff44fb912a373160c63857faeb67f6"
+      },
+      "W5-05_literal": {
+        "command_source": "tasks.md literal",
+        "exit_code": 1,
+        "result": "FAIL as measured, twice. First run (before 577207c5): 45 of 47 tests pass (the 2 integration defects) and environment-toolchain-pins.js 77.31% branches. Rerun at 4b66aae4 (after the fix): 47 of 47 pass, environment-toolchain-pins.js 70.31% lines / 95.08% branches, exit 1",
+        "cause": "the file is co-owned: W5-06 added the zip reader and the extraction/installation paths for the DAP pins (extractZip and neighbours, lines 263-276 among others) that the W5-05 tests do not run. Before the fix, a W5-05 test that treated debugpy as a real pin ran that path by accident, which is why the first run showed 99% lines. In the full kernel coverage (union of all tests) the file is 100% lines / 98.57% branches",
+        "first_run": {
+          "log": "/build/tmp/hseos-w5/b2/logs/int/verify/W5-05.pre-fix.log",
+          "sha256": "dcdaf09bd26b514332963a716da498edb244619f7711b53c59f63888096e1a5e"
+        },
+        "rerun": {
+          "log": "/build/tmp/hseos-w5/b2/logs/int/verify/W5-05.rerun-577207c5.log",
+          "sha256": "8691775468c49216ede4a5883d34e2c1570d4444a6ec4d0bb2c287949d886da9",
+          "exit_code": 1
+        }
+      },
+      "exit_codes_file": {
+        "log": "/build/tmp/hseos-w5/b2/logs/int/verify/exitcodes.txt",
+        "sha256": "161b2a7ddd37987c1f89a6ae6eeaafa499705e7640504e6eb065eab9a3d587e8"
+      }
+    },
+    "kernel_coverage": {
+      "run_1": {
+        "head": "39eb7d06 + design commits (before the fix)",
+        "exit_code": 1,
+        "failing_tests": [
+          "test-environment-lsp.js:667 (debugpy no longer an unknown pin): integration defect, fixed in 577207c5",
+          "test-lsp-plugin-parity.js:35 (manifest vs the whole registry): integration defect, fixed in 577207c5",
+          "test-agent-liveness.js:1950 (time budget stops a slow notifier early, delivered 0): pre-existing clock race, not fixed here"
+        ],
+        "log": "/build/tmp/hseos-w5/b2/logs/int/kernel-coverage.log",
+        "sha256": "1de2f4d5d48a9972a5fbe8aa4f4e61d2b1acd53979650eba4f82b30f52bb0086",
+        "exit_file": {
+          "log": "/build/tmp/hseos-w5/b2/logs/int/kernel-coverage.exit",
+          "sha256": "dc5942e7f65a04b62fb9fff63e2c95efcc0c23952aab6b85833c66c579f744e9"
+        }
+      },
+      "run_2": {
+        "head": "577207c5",
+        "exit_code": 0,
+        "result": "0 failing blocks; all files 97.51% lines / 92.25% branches; toolchain-pins 100 / 98.57; schemas.js 93.87 / 87.5",
+        "log": "/build/tmp/hseos-w5/b2/logs/int/kernel-coverage-run2.log",
+        "sha256": "9dc41c1ed20e7f0261caeea08ca4fa981440631b9ebe0797a6e8d052a0b638c1",
+        "exit_file": {
+          "log": "/build/tmp/hseos-w5/b2/logs/int/kernel-coverage-run2.exit",
+          "sha256": "3c509d7e9e846f3ac5d80793e252989f6e345db2cf951b9c57f8a2c9db3647d5"
+        }
+      },
+      "liveness_flake": {
+        "diagnosis": "deliverOutbox with watch_interval_s 0 has a 0 ms budget and breaks when Date.now() - startedAt > 0; the DELETE and SELECT before the loop usually finish inside the same millisecond, but under c8 with 815 tests they can cross it and the loop exits with 0 deliveries",
+        "isolated_reruns": {
+          "runs": 3,
+          "exit_codes": [0, 0, 0],
+          "file": {
+            "log": "/build/tmp/hseos-w5/b2/logs/int/liveness-repro.txt",
+            "sha256": "fefdc283c66e0d24c5bce3366e0faadc82920830be123001de947afcaabc2a65"
+          }
+        },
+        "touched_by_b2": false,
+        "disposition": "residue; the test and tools/lib/agent-liveness.js belong to the liveness wave and are not changed in this integration"
+      }
+    },
+    "matrix": {
+      "node24": {
+        "node": "24.15.0",
+        "npm test": {
+          "exit_code": 0,
+          "log": "/build/tmp/hseos-w5/b2/logs/int/node24-npm_test.log",
+          "sha256": "89b14f4bd89031e98e39897d6e54cc20225c8f67c015ca02d26d7bc43720b5d9"
+        },
+        "npm run test:kernel": {
+          "exit_code": 0,
+          "tests": "815 pass in the main block",
+          "log": "/build/tmp/hseos-w5/b2/logs/int/node24-npm_run_test_kernel.log",
+          "sha256": "dcb3250278f716152d21c217ebd7acd1690cc1dce85e42b1bf7840fa2bba81f0"
+        },
+        "exit_file": {
+          "log": "/build/tmp/hseos-w5/b2/logs/int/node24.exit",
+          "sha256": "5dc6dae7d85aa4e2215a04acc1e0ded0d661f1f32cff9fa8f2e899a462b80066"
+        }
+      },
+      "node22": {
+        "node": "22.23.3",
+        "clone": "/build/tmp/w5-int/wt22 (better-sqlite3 built for ABI 22), moved to 577207c5; wrapper copy with the Node 22 NODEBIN",
+        "npm test": {
+          "exit_code": 0,
+          "log": "/build/tmp/hseos-w5/b2/logs/int/node22-npm_test.log",
+          "sha256": "2aeb52eaa4c58c2919cafd653e2b7777615976d1ea2d9cf97d8ea2d76dcd5ffa"
+        },
+        "npm run test:kernel": {
+          "exit_code": 0,
+          "tests": "815 pass in the main block",
+          "log": "/build/tmp/hseos-w5/b2/logs/int/node22-npm_run_test_kernel.log",
+          "sha256": "a32e58e0b31cf61be30e751bef433d19407521ccbba2ff11d0f95139297a42b2"
+        },
+        "exit_file": {
+          "log": "/build/tmp/hseos-w5/b2/logs/int/node22.exit",
+          "sha256": "78bc20a6d304e239770032fd6adb9dae04a192fea0dc0ed5db051f15114a40d8"
+        }
+      }
+    },
+    "inventory": {
+      "npm": "11.12.1 (the npm of Node 24.15.0; the Node 22.23.3 run used npm 10.9.9)",
+      "npm_version_dependency": "reported by the review, not reproduced here: with the default shell npm 9.2.0 the same pack counted 1507 entries and test-package-surface.js failed on docs 9 > 7; the measurement is only valid with the npm of the Node 24 wrapper",
+      "total": 1505,
+      "ceiling": 1556,
+      "areas": {
+        ".agents": [194, 205],
+        ".enterprise": [455, 472],
+        "packages": [126, 137],
+        "tools": [389, 393],
+        "src": [245, 250],
+        ".hseos": [63, 64],
+        "scripts": [19, 21],
+        "docs": [7, 7],
+        "root": [7, 7]
+      },
+      "areas_note": "[measured, budget]",
+      "package_surface_test": {
+        "exit_code": 0,
+        "log": "/build/tmp/hseos-w5/b2/logs/int/package-surface.log",
+        "sha256": "33c12ef52c1c4ba2093a2ef1ac0702dca512ec3baecfa7399f705a0837af2794"
+      },
+      "pack": {
+        "exit_code": 0,
+        "log": "/build/tmp/hseos-w5/b2/logs/int/pack.json",
+        "sha256": "40cb3377ff01a9b222ba919f3075e4e0f6e00cf939baa59bbd185bd22fb132a9"
+      },
+      "g3_needed": true
+    },
+    "g3": {
+      "decision_2026_10_13": ".agents 205, ceiling 1556 unchanged (owner)",
+      "applied_by_commander": ".enterprise 484 -> 472 to keep the sum of the area budgets equal to the ceiling",
+      "pending_owner_confirmation": true,
+      "measured": {
+        ".agents": 194,
+        ".enterprise": 455
+      },
+      "note": "with the previous .agents budget (193) the measured 194 already failed by 1; .enterprise has 17 entries of slack at 472, but that slack is what the next waves (W5-07..W5-12) would draw on"
+    },
+    "capability_graph": {
+      "command": "node scripts/governance/validate-capability-graph.js",
+      "exit_code": 0,
+      "log": "/build/tmp/hseos-w5/b2/logs/int/capability-graph.log",
+      "sha256": "0a52081798e1123d8bb5e1fb2e8b5d05b2b7a57168b086aac43a1e7535b0d427"
+    },
+    "agent_core_compile_check": {
+      "exit_code": 0,
+      "result": "242 checks passed, no files written",
+      "log": "/build/tmp/hseos-w5/b2/logs/int/compile-check.log",
+      "sha256": "296963e5d20e7a0735b55d472e3bd6f7226558cb9b49843db461af880eb12e0d"
+    },
+    "eslint": {
+      "result": "runs inside npm test (eslint . --max-warnings=0); exit 0 on Node 24 and Node 22"
+    },
+    "prettier": {
+      "exit_code": 123,
+      "result": "7 files outside the prettier style, all W5-05 code already failing at 7c8623ee; format:check is not part of npm test or of the pre-commit",
+      "files": [
+        ".enterprise/governance/plugins/definitions/hseos-plugin-lsp/skills/lsp/SKILL.md",
+        "packages/agent-environment/lsp-host.js",
+        "packages/agent-environment/lsp.js",
+        "test/test-environment-lsp.js",
+        "test/test-environment-plugin-pack.js",
+        "test/test-lsp-plugin-parity.js",
+        "tools/lib/environment-plugin-pack.js"
+      ],
+      "log": "/build/tmp/hseos-w5/b2/logs/int/prettier.log",
+      "sha256": "29c6c2d8dc8b6fdae1164fbaa91ffb67e4c5953a0ea6f3c7c463c21064ff2bc5"
+    },
+    "quality_gates_ci": {
+      "command": "VALIDATION_ENFORCED=true scripts/governance/quality-gates.sh --phase ci",
+      "exit_code": 0,
+      "result": "0 failures, 2 warnings (unresolved placeholders in epics-template.md and docs/activity-coordination/README.md, untouched by B2)",
+      "log": "/build/tmp/hseos-w5/b2/logs/int/quality-gates.log",
+      "sha256": "9ddb0dd9dd83cc1b06161c66eb794bd4e2af1cf1bd67efad65a09a175b0852d6",
+      "exit_file": {
+        "log": "/build/tmp/hseos-w5/b2/logs/int/quality-gates.exit",
+        "sha256": "bf1345b76c74346e9c42cde70819a3b63aa9c4178b1e38ad2004228f361c4d2c"
+      }
+    }
+  },
+  "process_deviations": [
+    "/build was 100% full (62 MB free) and the first commit attempt of the W5-06 merge failed in the pre-commit with ENOSPC (4 provider-runtime tests). Cleared only /build/hseos-qg-tmp (1.5 GB of leaked gate scratch, 16792 directories); the commit was repeated and passed. The first attempt log is kept.",
+    "The Node 22 run used a copy of run-in-cgroup.sh with the Node 22 NODEBIN and the same test database as Node 24; the runs were serial.",
+    "The literal verifies of W5-03 and W5-05 fail on the integrated tree for the causes above; they are reported as FAIL, not converted to PASS."
+  ],
+  "review": {
+    "report": "/build/tmp/hseos-w5/b2/rev/REVIEW-W5-B2-INT.md",
+    "sha256": "d269697632b1bc48bb0833d4e229c2d5230a47b66984578aa6697efa156c25aa",
+    "pinned_to": {
+      "head": "4b66aae47184a9ac6f50f8a34c9a2ef16d61447a",
+      "tree": "3292ad3841096a664fe5872de7eee23af8f89c65"
+    },
+    "verdict": "APPROVED_WITH_RESERVATIONS",
+    "isolation": "separate agent without the Commander reasoning; blind pass, then confrontation with this receipt; reports only",
+    "mutations": "8 run, 8 killed, 0 surviving (startDebugging allow-list, evaluate in the allow-list, condition in breakpoints, textual .. refusal in the LSP scope, symlink resolution, unix mode in the zip reader, a pin removed from a manifest, the compaction duplicate path)",
+    "receipt_sha256_check": "all 24 log hashes of the first version of this receipt matched",
+    "findings_and_disposition": {
+      "R1_major": "OPEN, owner decision: the LSP and DAP acceptance tests require /build/cache/hseos-toolchain (before() asserts toolchain.status ready) and the CI workflow does not provision it; 67 of 67 tests of the two files fail without the cache, including pure ones. See risks_open",
+      "R2_G3": "OPEN, owner confirmation (reallocation .enterprise 472)",
+      "F_C1": "fixed in this receipt: the literal W5-05 verify was rerun at 4b66aae4 (see task_verifies)",
+      "F_C2": "fixed in tasks.md: plugin count 4 to 6, and the 1556 ceiling noted next to the stale 1554",
+      "F_C3": "fixed in tasks.md: the W5-03 literal verify keeps only context-assembler.js, as the header rule and the approved receipt already did",
+      "F_C4": "fixed in this receipt: inventory.npm now names the npm version",
+      "F_B2_plugins_outside_files": "registered as a residue",
+      "qg_tmp_recurring_scratch": "registered as a residue; the scratch was cleaned again",
+      "minor_and_info": "F-B1 (jsdoc of installToolchain), F-B3 (step op validated only in the controller), F-B4 (childConfiguration accepts a missing request), F-B5 (design says /tmp tmpfs, code uses /dev/shm), F-B6 (a failing DAP test leaves the runner hanging until the timeout): registered as residues, not changed"
+    },
+    "post_review_commits": "documentation only (tasks.md corrections, this receipt, STATUS); no code changed after 4b66aae4"
+  },
+  "risks_open": [
+    {
+      "id": "R1",
+      "severity": "major",
+      "summary": "CI is expected to fail: test-environment-lsp.js and test-environment-dap.js need the pinned toolchain cache at /build/cache/hseos-toolchain (or HSEOS_TOOLCHAIN_CACHE), the before() hook asserts it is ready, and .github/workflows/ci.yaml runs npm ci, npm test and test:kernel-coverage on ubuntu-latest without provisioning it. Without the cache the two files fail 67 of 67, including pure tests such as crc32 and framing; the kernel coverage thresholds would drop with them (expected, not measured)",
+      "verified_by": "the reviewer (execution with an empty cache) and by the Commander (reading the before() hook and the workflow); the real CI run is not verified until the PR checks finish",
+      "conflicts_with": "tasks.md rule: an input that is absent ends in BLOCKED with the cause, never in a red unrelated failure and never in a lowered threshold",
+      "options": [
+        "provision the cache in CI from the pinned SHA-256 artifacts (a workflow change)",
+        "split the real-server acceptance tests from the pure ones and make the former report BLOCKED when the cache is absent, which also needs a decision on how the kernel coverage thresholds treat them",
+        "accept a red CI for the wave branch until a dedicated step handles it"
+      ],
+      "decision_needed_from": "owner (CI workflow and thresholds are outside the Commander authority)"
+    }
+  ],
+  "blocked": [],
+  "not_verified": [
+    "the real CI run of this branch (no access from the session; the PR checks are the evidence, see risks_open R1)",
+    "consumers A and B (real consumers)",
+    "any activation of the LSP/DAP plugins (scaffolded; activation comes after G6)",
+    "the toolchain pins against a real network (the cache is offline by design)"
+  ]
+}

@@ -434,7 +434,43 @@ function createExecutionEventRegistry() {
   ).seal();
 }
 
+const GATEWAY_DENIAL_AGGREGATE = 'mcp_gateway';
+const GATEWAY_DENIAL_CODES = Object.freeze(['MCP_TOOL_UNKNOWN', 'MCP_SCOPE_DENIED']);
+
+// A denial happens before any execution is authorized, so it is not an execution stream: it is recorded as a
+// single ExecutionFailed fact on a dedicated aggregate type (no schema migration), with a stable code and rpc_code.
+function buildGatewayDenialFact({ serverId, tool, code, rpcCode, actor, eventId, occurredAt }) {
+  if (!GATEWAY_DENIAL_CODES.includes(code)) {
+    throw new EventSchemaError(`Unsupported gateway denial code: ${code}`, 'EXECUTION_EVENT_PAYLOAD_INVALID', { code });
+  }
+  const toolName = typeof tool === 'string' ? tool.slice(0, 128) : '(invalid)';
+  const fact = {
+    event_id: eventId,
+    event_type: 'ExecutionFailed',
+    schema_version: 1,
+    occurred_at: occurredAt,
+    correlation_id: `mcp-gateway:${serverId}`,
+    causation_id: `mcp-gateway-denial:${eventId}`,
+    actor,
+    operation_id: null,
+    payload: {
+      error: {
+        code,
+        message: `MCP gateway denied ${JSON.stringify(toolName)} (rpc_code ${Number.isInteger(rpcCode) ? rpcCode : 'n/a'})`,
+        retryable: false,
+      },
+      warnings: [],
+    },
+    evidence_refs: [`hseos://mcp/${serverId}/denied/${encodeURIComponent(toolName)}`],
+  };
+  // The ledger validates the fact against the registry again on append; the schema is not duplicated here.
+  return { aggregate_type: GATEWAY_DENIAL_AGGREGATE, aggregate_id: `${serverId}:${eventId}`, expected_version: 0, events: [fact] };
+}
+
 module.exports = {
+  GATEWAY_DENIAL_AGGREGATE,
+  GATEWAY_DENIAL_CODES,
+  buildGatewayDenialFact,
   createExecutionEventRegistry,
   EventSchemaError,
   ExecutionEventRegistry,

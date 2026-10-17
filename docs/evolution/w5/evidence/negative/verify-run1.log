@@ -1,0 +1,41 @@
+heavy-run: outro job pesado em execução — entrando na fila
+  processos com o lock aberto:
+    PID 2965602: bash /home/annonymous/.local/bin/heavy-run --mem 6G -- dotnet test src/Services/Wallet/CambioReal.Wa
+    PID 2966282: bash /home/annonymous/.local/bin/heavy-run --mem 6G --wait-max 3600 -- systemd-run --user --wait --c
+heavy-run: modo normal (load1=3.44 phys=6 avail=22593MiB need=6G mem.psi=0.00 io.psi.full=0.00)
+Delegated test cgroup controllers verified
+✔ import: requiring the environment entry touches no toolchain cache and loads no capability (35.311309ms)
+✔ lsp: a location outside the workspace reported by the real server is refused and recorded (952.88098ms)
+✔ dap: a detached child that outlives its parent is killed and drained, leaving nothing in /proc (3052.769437ms)
+✔ browser: egress to a host outside the allowlist is denied, recorded, and never reaches the target (15.560415ms)
+✔ computer: an action without an approval is refused and nothing reaches the host (13.609342ms)
+✔ computer: a requested approval that no person granted does not authorise the action (12.025429ms)
+✔ computer: an approval is bound to its own action, arguments and position; the right action runs once (8.910251ms)
+✔ computer: an expired approval is refused and nothing reaches the host (5.474431ms)
+✔ computer: a single-use approval cannot be replayed (5.327296ms)
+✔ media: bytes changed after storing fail the digest check before they are used (24.153423ms)
+✔ media: a wrong magic signature is refused even when the digest agrees with the bytes (0.581884ms)
+✔ media: a declared size that differs from the real bytes is refused, and a truncated artifact fails to load (2.754533ms)
+✔ memory: a write cannot carry directive or operator authority, and retrieval stays data and untrusted (12.906983ms)
+✔ context: a source cannot raise its authority above what its layer allows (0.40674ms)
+✔ context: a source that loses or falsifies its provenance is refused (0.213893ms)
+✔ lattice: a child agent cannot widen the capabilities or the effect budget of its parent (0.579857ms)
+✔ mcp: malformed and unknown tool names are denied and recorded before any handler runs (24.276427ms)
+✔ mcp: a request outside the project scope is denied with the stable scope code (2.612827ms)
+✔ engineering: static-only acceptance is refused at admission (A5b) (317.862551ms)
+✔ engineering: every argument form outside the conservative alphabet is refused at admission (1381.389359ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6003.567157
+EXIT1=0
+W5 mutation matrix: 28 mutants rejected, 0 failed, 0 skipped
+EXIT2=0
+
+real	0m36.678s
+user	0m0.118s
+sys	0m0.211s

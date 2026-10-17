@@ -1,0 +1,109 @@
+{
+  "task": "W5-CO1",
+  "base": "c53a274e",
+  "round": 3,
+  "reviewed_sha": "b163cf0732a8f7a8f973ee8cc0146dcba6307b39",
+  "scope": "activity coordination core: contract, machine store (SQLite WAL), project-aggregate, reservations with fence and TTL, overlap detector, version reservation, inbox, CLI",
+  "files": {
+    "tools/lib/activity-coordination/config.js": {
+      "lines_pct": 97.35,
+      "branches_pct": 93.58
+    },
+    "tools/lib/activity-coordination/paths.js": {
+      "lines_pct": 100,
+      "branches_pct": 96.55
+    },
+    "tools/lib/activity-coordination/service.js": {
+      "lines_pct": 99.66,
+      "branches_pct": 93.86
+    },
+    "tools/lib/activity-coordination/store.js": {
+      "lines_pct": 98.13,
+      "branches_pct": 88.7
+    },
+    "tools/cli/commands/activity.js": {
+      "lines_pct": 96.92,
+      "branches_pct": 94.68
+    }
+  },
+  "gate": "c8 per-file, lines 90 / branches 80, explicit --include: PASS",
+  "tests": {
+    "file": "test/test-activity-coordination.js",
+    "pass": 29,
+    "fail": 0,
+    "network": "none (fake registry injected; CLI test uses a fake npm on PATH)"
+  },
+  "corrections": {
+    "F1": "glob matcher is linear (segment dynamic programming, single-backtrack wildcard); pattern length and segment limits; test with 50 repeated **/ finishes under 50 ms",
+    "F2": "last-valid snapshot written only when enabled; removed when disabled; tests compare the directory tree before and after (API and CLI)",
+    "F3": "base ref validated (no leading dash) and git diff ends with --; package name validated with the npm rules, strict semver, npm view uses -- before the package; --output= and --registry= tested. Ref validation is a stricter subset of git check-ref-format (regex), not a call to it",
+    "F4": "inbox entries carry kind=coordination, schema=coordination-inbox/v1 and recipient; they have no session/agent fields, so the liveness wake reader (which requires both) does not read them; atomic tmp+rename, 0600 files, 0700 directory, lstat ignores symlinks and files over 64 KiB, atomic claim on read",
+    "F5": "session/tool validated by charset, text fields stripped of control characters and truncated, paths normalised",
+    "F6_F8": "paths normalised (./, //, ..; absolute and .. rejected); glob against glob overlaps conservatively by literal prefix (severity declared, never hot_file); path: reservations compare by glob overlap (acquired as advisory, conflicted=true); package names lowercased and +build dropped; contracts and @org/contracts are different npm packages and stay different keys (documented in service.js)",
+    "F7": "another session's worktree is used as cwd or inbox root only when it has .git and its origin matches the recorded repo; otherwise the inbox falls back to <dirname(store.path)>/inbox",
+    "F9": "store directory 0700, database and -wal/-shm 0600 regardless of umask (tested with umask 0)",
+    "F10": "heartbeat updates the row, event only when a stale session resumes; sessions silent for more than reservations.ttl_s leave listActive, appear in listStale and are never deleted; migrate takes no lock when the schema is current",
+    "F11_exit_code": "reserve acquired with published/tag/candidate/overlap conflict exits 3 with conflicted:true (enforce off); refused exits 2",
+    "F12": "reserve sweeps overdue leases first; git diff failure and invalid base warn; --fence must be an integer; missing adapter backend warns",
+    "F15": "tests are offline",
+    "F14": "store.project_dirs added to the contract table in .specs/features/harness-w5/coordination.md",
+    "guard_publish": "guard-publish is dispatched to runGuardPublish(spec, options) through a tolerant loader; without the module: exit 2 and 'guard-publish indispon\u00edvel nesta instala\u00e7\u00e3o'; dispatch tested with a stub (supersedes the earlier exit 1 choice)",
+    "A2": "service mirrors activity_declared and reservation_conflict (and inbox notifications) synchronously to the adapters of store.adapters, each call in try/catch; the CLI loads them from tools/cli/lib/activity-adapters/<name>.js (name charset checked, no traversal); absent or failing adapters only warn",
+    "A3": "guard-publish is dispatched to runGuardPublish(spec, options) through a tolerant loader; without the module: exit 2 and 'guard-publish indispon\u00edvel nesta instala\u00e7\u00e3o'; dispatch tested with a stub (supersedes the earlier exit 1 choice)",
+    "A6": "check returns foreign_reservations: active claims of OTHER sessions that overlap the declared paths (same repo) or identifiers; tested for the experimental.6 scenario from both sides",
+    "inbox_non_object": "readInbox skips non-object entries with a warning without dropping the valid ones; symlinks ignored by lstat",
+    "B1": "guard-publish dispatch accepts a number or {exitCode,...} and propagates it to the process (0 allow/warn/skip, 1 refuse, 2 invalid); exits 2 when the module is absent or returns no code. Tested as a real process through a wrapper that imports the command and injects the stub via the internal loaders object; the environment-variable module hook was removed",
+    "sanitisation_round_2": "control (Cc, Zl, Zp) become a space; Cf (incl. U+00AD, U+180E), U+034F, variation selectors (also supplementary), U+3164, U+2800 and U+115F are dropped from free text and make a path invalid",
+    "stale_and_unknown_session": "check, list(session) and overlaps notices: unknown session and stale session produce an explicit warning (deduplicated), not a silent empty result",
+    "diverging_worktree": "git diff of a worktree that is missing, not a git worktree or whose origin differs from the recorded repo is ignored WITH a warning",
+    "H1": "adapter loader resolves <name>-adapter.js then <name>.js inside tools/cli/lib/activity-adapters (directory injectable through cli.loaders.adapterDir), accepts createAdapter or create<Name>Adapter (createAxonAdapter) or a module that is itself the adapter; name regex and directory containment kept. Tested with a fixture that replicates the adapters track artifact (axon-adapter.js exporting createAxonAdapter) through the real loader, end to end, without stubbing the loader",
+    "M1_P6": "test proves the name regex bars ../evil, .., a/b, uppercase, empty, leading dash, overlong and NUL names and that an evil.js outside the adapter directory is never loaded",
+    "sanitisation_round_3": "U+FFA0, U+1160, U+17B4 and U+17B5 are dropped as well, with a test",
+    "diff_warning_once": "git diff warnings (untrusted worktree, invalid base, failed diff, e.g. no origin/HEAD) are recorded as an activity_warning event with a dedupe key and emitted once per session instead of on every prompt; project-aggregate has no event store and keeps warning each time"
+  },
+  "decisions": [
+    "G3 approved by the owner: .hseos area rises to 64 and the total ceiling by 2; .hseos/config/activity-coordination.yaml stays in .hseos/config/; the test-package-surface.js change is the Commander's at integration"
+  ],
+  "inbox_contract": {
+    "directory": ".hseos/state/liveness/inbox/ of a trusted worktree, else <dirname(store.path)>/inbox/",
+    "file": "<session>-coordination-<ms>-<rand>.json",
+    "fields": "kind, schema, recipient, reason, reason_code, created_at, event",
+    "liveness_filter": "LV2 readInbox/pruneInbox should skip kind=coordination; they already skip these entries because they lack session/agent"
+  },
+  "acceptance": {
+    "contract_absent_or_disabled_no_effect": "PASS (no file or directory created, snapshot removed)",
+    "works_without_axon_or_adapter": "PASS",
+    "real_scenario_experimental_6": "PASS (reservation_conflict published+claim, overlap_detected hot_file, inbox kind coordination)",
+    "overdue_without_takeover": "PASS",
+    "fence_blocks_late_release": "PASS",
+    "two_process_sqlite_concurrency": "PASS (30 keys, exactly one owner each)",
+    "project_aggregate_two_stores_advisory": "PASS"
+  },
+  "package": {
+    "entries_before": 1461,
+    "entries_after": 1467,
+    "tools": "376 -> 381 (budget 393)",
+    ".hseos": "61 -> 62 (new ceiling 64 after G3)",
+    ".agents": "186 (unchanged)"
+  },
+  "not_verified": [
+    "real npm registry call: tests use a fake registry object, a fake spawn and a fake npm on PATH",
+    "registration of activity-coordination.yaml as a capability in components.yaml (no existing mechanism found for .hseos/config files; not done)",
+    "F13 (fence epoch if the database file is recreated) not implemented; release does not check the owner",
+    "project-aggregate opens project.db read-only, which can leave -wal/-shm sidecars in the project state directory",
+    "real guard-publish module (CO2) not present in this branch",
+    "LV2 readInbox/pruneInbox behaviour against these entries: reasoned from the reviewer's reading of the reader, not executed here"
+  ],
+  "reviewed_shas": {
+    "round_1_input": "87a6ed3c33bde6f1cb1712ca7148b8e133010650 (CHANGES_REQUIRED)",
+    "round_2_input": "b6f684902e46a72b246c6ba95f66de1d8b8a09cf (review 2: APPROVED)",
+    "round_3_input": "b163cf0732a8f7a8f973ee8cc0146dcba6307b39 (review 3: CHANGES_REQUIRED)",
+    "round_3_commit": "amend of b163cf07; its own hash is not recordable in the file it contains, read it from git log"
+  },
+  "foreign_reservations_format": {
+    "fields": "[{key, owner, tool, fence, overdue, matched}]",
+    "note": "owner is the holder session id (conflicts objects of reserve keep held_by). The CO2 handler assumes [{key, tool, owner}]: compatible; the extra fields fence, overdue and matched are additive",
+    "spec": ".specs/features/harness-w5/coordination.md, section 'Sa\u00edda de hseos activity check --json'"
+  },
+  "composition_validated_by_review_3": "with the adapters track: guard-publish exits 1 (refuse), 2 (invalid or module absent) and 0 (allow/warn/skip) in a real process, and foreign_reservations reaches the prompt; the axon mirror did not run because of H1, fixed in this round"
+}

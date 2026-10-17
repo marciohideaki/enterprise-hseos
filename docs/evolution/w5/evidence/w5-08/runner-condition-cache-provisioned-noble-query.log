@@ -1,0 +1,74 @@
+heavy-run: outro job pesado em execução — entrando na fila
+  processos com o lock aberto:
+    PID 1920008: bash /home/annonymous/.local/bin/heavy-run --mem 6G --wait-max 3600 -- systemd-run --user --wait --c
+heavy-run: modo normal (load1=2.97 phys=6 avail=21908MiB need=6G mem.psi=0.01 io.psi.full=0.05)
+Delegated test cgroup controllers verified
+✔ the computer-use pack is generated from the very same files the core ships (identical digests) (41.647754ms)
+✔ the computer-use pack stays inside 40 entries and 1 MB, carries no binary or pin, and is Linux only (4.041649ms)
+✔ the approval gate and the policy lattice stay in the core: the pack carries only the capability and the pin installer (0.408866ms)
+✔ the governance surface agrees with the manifest and the compiled mirror equals the canonical definition (0.469657ms)
+✔ core surface: no new npm dependency, files registered for the kernel suite and coverage, CI installs the binaries and the pin (0.625798ms)
+✔ toolchain surface: the injector pin is data with its licence read in the artifact, and nothing downloads at run time (0.471039ms)
+✔ the capability loads lazily: requiring the package never loads the controller, the host or the approval gate (93.059552ms)
+✔ the computer-use pack is admitted by its pinned hash and refused on any divergence (16.28201ms)
+✔ the pack tarball digest equals its pinned hash; a divergent tarball does not (4.022515ms)
+✔ start input: shape, defaults, ceilings and unknown fields (1.950268ms)
+✔ action input: one action per call, closed vocabulary, points inside the display, canonical defaults (0.655178ms)
+✔ output schema: only untrusted display data with a traced capture is valid (0.452853ms)
+✔ an action without an approval is refused; a request is pending until a person approves it (1.753255ms)
+✔ an approval is single use: the second use is refused, and it is bound to session, sequence, action, arguments and screenshot (1.035745ms)
+✔ an approval expires, and a late approval is refused (0.698981ms)
+✔ approve-all, standing grants and the bypass or plan modes do not apply; a deny rule wins; an allow rule grants nothing (0.746539ms)
+✔ open approvals are bounded; spent ones are purged (5.949233ms)
+▶ xdotool system pin
+  ✔ the .deb is verified by digest and its licence is read inside it; the installed version must equal the pin (9.495854ms)
+  ✔ two distro variants, each with its own artifact and digest, both verified inside their .deb; the installed version picks one (17.722442ms)
+  ✔ every variant names the archive URL and size the CI provisioner downloads, and a runner cache holding only its own variant is enough (9.358955ms)
+  ✔ BLOCKED when the package is absent or another version, never an approximation (37.83508ms)
+  ✔ a cache that diverges from the pin is BLOCKED: manifest, digest, licence text, licence path, archive shape (21.325133ms)
+  ✔ the computer toolchain is BLOCKED without the pin or a binary, and ready installs only the host files (18.020221ms)
+✔ xdotool system pin (126.025368ms)
+✔ crc32 matches the reference value and PNG encoding round-trips: indexed for flat screens, RGB for photographic ones (23.313556ms)
+✔ xwd decoding: little and big endian, masks applied, anything else refused (126.164666ms)
+✔ xdotool command lines are argument vectors built from validated actions only (0.538497ms)
+✔ host start: private display, no operator DISPLAY in any child, target after the display, ready only with an empty socket directory (1.288199ms)
+✔ host start refuses a reachable operator display, a filesystem socket, an Xvfb that dies and a display that never comes up (9.14997ms)
+✔ host actions: every action reaches xdotool as arguments; failures are results, never crashes (0.738493ms)
+✔ host screenshots: PNG with digest, ceilings, quota and the session output budget (52.585139ms)
+✔ host process entry: start failure, request loop, stop line and end of input (0.882815ms)
+✔ controller start: a session opens with isolation evidence, and its host runs as a sandboxed job with the limits the contract names (2.133393ms)
+✔ controller start refusals and BLOCKED states are explicit and ledgered (202.20648ms)
+✔ only one session at a time; a new one starts after the first is stopped (3.91687ms)
+✔ the abstract-socket probe sees a listening display and nothing else, without any X protocol (9.758575ms)
+✔ one session at a time holds under concurrent starts: the slot is taken before anything is awaited (1.295754ms)
+✔ a start that fails releases the slot; a start while another is still launching is refused (301.456205ms)
+✔ no start overlaps the drain of the previous session, and the old timer never closes the new one (404.928006ms)
+✔ a screenshot becomes untrusted display data with provenance, stored by digest, and the controller re-hashes what the host claims (12.057807ms)
+✔ an action without an approval is denied, and nothing reaches the host (0.918616ms)
+✔ an approved action runs once, bound to session, sequence, action, arguments and the last screenshot (1.573963ms)
+✔ approval requests are refused for screenshots, credentials, blanket modes and unknown sessions (0.592545ms)
+✔ host failures, silence and malformed answers are refusals with closed codes; the session stays usable (212.814156ms)
+✔ one action in flight, an action quota and a screenshot quota bound the session (6.383343ms)
+✔ the action quota counts every request, approved or not (13.495542ms)
+✔ a session expires on its deadline: it is closed and drained, later calls are refused and the expiry is ledgered (2.47611ms)
+✔ stop drains the session; a host that ignores stop is terminated; an unprovable drain blocks the next session (405.117451ms)
+✔ a session whose host ends on its own is closed; one that cannot be proved drained is uncertain (4.995659ms)
+✔ the event channel assembles frames, bounds a line and reports closure and silence (11.649427ms)
+✔ the package entry loads computer-use lazily and exposes the same contract (0.723583ms)
+▶ real display session in the P1 sandbox
+  ✔ start, screenshot, approved click, screenshot and stop: the target reacts, provenance holds and nothing survives (845.116762ms)
+  ✔ an unapproved action never reaches the display; the approval of one action is not the approval of another (498.815245ms)
+  ✔ the operator's display is unreachable: even with DISPLAY set to it, the session sees only its own private one (428.595193ms)
+  ✔ a session is exclusive, closes on stop, and expires on its deadline with every descendant drained (6601.735292ms)
+  ✔ a target that cannot start leaves an empty display: the session is valid, the screenshot shows nothing and the call does not hang (3622.121499ms)
+  ✔ two concurrent starts launch exactly one display; the loser is refused with a contract code and nothing is left over (472.700572ms)
+  ✔ positive control: a display that is reachable from the host is refused from the sandbox's point of view only because of the isolation (626.916486ms)
+✔ real display session in the P1 sandbox (13123.843485ms)
+ℹ tests 57
+ℹ suites 2
+ℹ pass 57
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15593.101562

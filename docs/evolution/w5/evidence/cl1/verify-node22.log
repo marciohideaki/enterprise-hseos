@@ -1,0 +1,13 @@
+heavy-run: modo normal (load1=0.99 phys=6 avail=24545MiB need=6G mem.psi=0.00 io.psi.full=0.00)
+Delegated test cgroup controllers verified
+v22.23.3
+== test/test-environment-dap.js
+      1 # fail 0
+      1 # pass 33
+      1 # skipped 0
+== test/test-environment-lsp.js
+      1 # fail 0
+      1 # pass 36
+      1 # skipped 0
+== test/test-mcp-contract.js
+== test/test-mcp-contract.js: NOT VERIFIED on Node 22 (the stdio servers it boots fail: "unparseable stdio output from hseos-governance"; the worktree better-sqlite3 is built for the Node 24 ABI; not rebuilt by instruction)

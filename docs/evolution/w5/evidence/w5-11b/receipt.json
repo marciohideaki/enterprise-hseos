@@ -1,0 +1,530 @@
+{
+  "task": "W5-11b",
+  "base_sha": "892388f2",
+  "branch": "task/hseos-w5-11b",
+  "revision": "commit that contains this receipt (task/hseos-w5-11b, amended in round 1); base_sha is the wave base",
+  "node_for_verify": "v24.15.0 (run-in-cgroup.sh)",
+  "synthetic_consumers": ["B"],
+  "commands": [
+    {
+      "id": "verify-with-dispatch-previous-revision",
+      "command": "HSEOS_W5_DISPATCH_BINDING=claude node test/journeys/w5-environment-journey.mjs --prefix <empty install dir> --consumer <cambio-real/apps/platform-web> --second-consumer <axon-web> --assert-receipts --allow-dispatch",
+      "note": "run of the revision committed as 92b4d622, through run-in-cgroup.sh; the only run that dispatched (2 requests); its evidence was afterwards redacted (account digest, provider session id, executor owner)",
+      "result": "exit 0; {\"PASS\":29}; 29 steps",
+      "log": "docs/evolution/w5/evidence/real/journey-result.json",
+      "sha256": "3ddae48cbe9a23a4f9a8b357676e27fe551e3ba21beed393779d7795d743de11",
+      "ledger": "docs/evolution/w5/evidence/real/ledger-rows.json",
+      "ledger_sha256": "93ef91f1cbbfebc27e81949d6a33a0cab57d7dabbd7bb0eb0a3f89e8664193d0"
+    },
+    {
+      "id": "verify-round1-no-dispatch",
+      "command": "node test/journeys/w5-environment-journey.mjs --prefix <empty install dir> --consumer <A> --second-consumer <B> --assert-receipts --evidence docs/evolution/w5/evidence/w5-11b/round1",
+      "note": "literal verify_step without the dispatch opt-in, on the corrected code; no model was called",
+      "result": "exit 3 (BLOCKED, no FAIL); {\"PASS\":24,\"BLOCKED\":9}; the 9 BLOCKED are the dispatch-dependent steps (s06, s07, s08, s09 of A and B) plus s11 live",
+      "log": "docs/evolution/w5/evidence/w5-11b/round1/journey-result.json",
+      "sha256": "babf2ec6e891f800b714bd1d81a266b20062fbebfbc6076116ab93493e0453b3"
+    },
+    {
+      "id": "receipt-gate-selftest",
+      "command": "step s11a-receipts-selftest (runs in every invocation)",
+      "result": "PASS: a well-formed ledger is accepted; 17 adversarial ledgers are each rejected by their rule, and disabling the rule lets the ledger through",
+      "mutation": "deleting the \"receipt has no earlier reservation\" check made s11a FAIL (adversarial ledger accepted: receipt whose reservation is missing), exit 1"
+    },
+    {
+      "id": "verifier-pin-selftest",
+      "command": "step s03d-pin-selftest (runs in every invocation)",
+      "result": "PASS: 4 adversarial cases (verifier altered after the pin, pin later than or equal to the first reservation, both) rejected; each rule load-bearing"
+    },
+    {
+      "id": "ledger-replay",
+      "command": "step s11b-receipts-replay",
+      "result": "PASS: the recorded real ledger passes the receipt gate (2 reservations, 2 receipts, committed 0) and both recorded pins precede the first reservation (21:14:00.394Z); 0 dispatches in the invocation",
+      "detail": {
+        "replayed": true,
+        "dispatches_in_this_invocation": 0,
+        "first_reserved_at": "2026-10-16T21:14:00.394Z",
+        "pins": {
+          "A": {
+            "pinned_at": "2026-10-16T21:13:44.938Z",
+            "before_first_reservation": true
+          },
+          "B": {
+            "pinned_at": "2026-10-16T21:13:58.789Z",
+            "before_first_reservation": true
+          }
+        },
+        "ok": true,
+        "violations": [],
+        "dispatches": 2,
+        "receipts": 2,
+        "per_binding": {
+          "binding:claude-w5-account": 2
+        }
+      }
+    },
+    {
+      "id": "package-surface-and-inventory",
+      "command": "npm pack --dry-run --json (Node 24, run-in-cgroup.sh); node --test test/test-package-surface.js",
+      "result": "package-surface: 1 test, 1 pass; pack total 1538 of 1556 (unchanged); .agents 203, .enterprise 464, .hseos 63, packages 137 of 137, tools 393 of 393, scripts 19, src 245, docs 7; measured again after round 1",
+      "log": "docs/evolution/w5/evidence/w5-11b/pack-dry-run.json",
+      "sha256": "7eaa8d70c05a34e31db95cba618821e740b0eb974026379bd07414f0cebe05a9",
+      "surface_log": "docs/evolution/w5/evidence/w5-11b/package-surface.log",
+      "surface_sha256": "3db62e8b819c68369b06807966aa02379bfae4a1d92fb10201639cef20aca5d2"
+    },
+    {
+      "id": "originals-untouched",
+      "command": "git status --porcelain and rev-parse HEAD on cambio-real and axon-web after the runs; step s12 of the journey",
+      "result": "cambio-real HEAD 9b253b91 and axon-web HEAD eb4102df, 0 changes in both; s12 PASS"
+    },
+    {
+      "id": "lint",
+      "command": "node node_modules/prettier/bin/prettier.cjs --check and node node_modules/eslint/bin/eslint.js --max-warnings=0 on the journey, the docs and the evidence JSON",
+      "result": "clean"
+    },
+    {
+      "id": "secret-scan",
+      "command": "grep for orgId, email, Bearer, sk-ant, token, oauth, Authorization, api key, account_sha256 and e-mail patterns over every evidence file (logs decompressed), CONSUMERS.md and the journey",
+      "result": "no credential, e-mail address, organization identifier, account digest or provider session id; the only hits are text that names the patterns, the ledger field authorization_id and the word token in package names and token counts"
+    }
+  ],
+  "dispatch": {
+    "route": "claude subscription (route 2); local route absent; codex subscription at 100% quota; paid API not used",
+    "binding_id": "binding:claude-w5-account",
+    "binding_sha256": "543775c4f2ec5f0300b5964aa7f449f77a06ca6a59949f1f8e27297fafeb4181",
+    "provider_version": "2.1.263",
+    "campaign_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+    "authorization": {
+      "max_requests": 2,
+      "max_cost_microusd": 0,
+      "ceiling_microusd": 1000000,
+      "tasks": 2
+    },
+    "dispatches_on_binding": 2,
+    "max_per_binding": 3,
+    "committed_microusd": 0,
+    "ceiling_microusd": 1000000,
+    "references": {
+      "A": "campaign://cbcfc604-34b5-430e-ae3e-a0a52086bd77/4cee0d08-0e31-47f9-9a7f-b49f525cd327",
+      "B": "campaign://cbcfc604-34b5-430e-ae3e-a0a52086bd77/57e73c5e-650c-43fc-8ddb-012148b076ec"
+    },
+    "tokens": {
+      "A": [5771, 176],
+      "B": [7346, 129]
+    },
+    "ledger": "docs/evolution/w5/evidence/real/ledger-rows.json",
+    "ledger_sha256": "93ef91f1cbbfebc27e81949d6a33a0cab57d7dabbd7bb0eb0a3f89e8664193d0",
+    "assert_receipts": "live assert in the dispatching run (previous revision): ok, no violations; replayed in round 1 by s11b",
+    "redaction": "account digest, provider_session_id and the executor owner (pid, cgroup path) are redacted in the repository evidence",
+    "quota_exception_source": "owner decision of 2026-10-16 (message \"Decisoes do owner (2026-10-16)\"), relayed by the Commander in the W5-11b session",
+    "cost_note": "committed 0 microusd is not a measured cost: the receipts carry cost_microusd null under a subscription; max_cost_microusd 0 forbids paid spend"
+  },
+  "consumers": {
+    "A": {
+      "role": "main proof, real existing test with injected defect",
+      "source_head": "9b253b916135d670d3ee6bf576f2d3babed596e6",
+      "defect": {
+        "file": "src/components/Dashboard/StatsCard.tsx",
+        "line": 35
+      },
+      "test": "src/components/Dashboard/StatsCard.test.tsx",
+      "failing_before": ["shows green color for up trend", "shows red color for down trend"],
+      "verifier_sha256": "c16c137d01699782c4d6bce78a0b1d114b2d15e4e8f989381990f7e7dc4faa65",
+      "steps": [
+        ["s01-clone-A", "PASS"],
+        ["s02-deps-A", "PASS"],
+        ["s03-verifier-A", "PASS"],
+        ["s03b-red-A", "PASS"],
+        ["s04-lsp-A", "PASS"],
+        ["s05-dap-A", "PASS"],
+        ["s06-dispatch-A", "PASS"],
+        ["s07-correction-A", "PASS"],
+        ["s08-accept-A", "PASS"],
+        ["s09-browser-A", "PASS"]
+      ]
+    },
+    "B": {
+      "role": "second UI proof, SYNTHETIC test and defect",
+      "synthetic": true,
+      "source_head": "eb4102dfa8098afa39d2ee91b9d73a96b6e18c2a",
+      "defect": {
+        "file": "src/pages/DashboardPage.tsx",
+        "line": 86
+      },
+      "target_change": "moved from src/components/Header.tsx (never imported, defect not visible) to src/pages/DashboardPage.tsx",
+      "verifier_sha256": "b2f5c6889897b3e0d634fc4b05acc12dec4aee8c680a8b911b4816ed916fb334",
+      "steps": [
+        ["s01-clone-B", "PASS"],
+        ["s02-deps-B", "PASS"],
+        ["s03-verifier-B", "PASS"],
+        ["s06-dispatch-B", "PASS"],
+        ["s07-correction-B", "PASS"],
+        ["s08-accept-B", "PASS"],
+        ["s09-browser-B", "PASS"]
+      ]
+    }
+  },
+  "npm_caches": {
+    "populated_online": "once per consumer, owner-authorized, 2026-10-16T20:59Z, npm ci --ignore-scripts into a new dedicated cache; existing caches untouched; lockfiles not modified",
+    "A": {
+      "path": "/build/cache/hseos-w5-consumers/npm-A",
+      "tarballs": 510,
+      "kib": 52804,
+      "lockfile_sha256": "b2cb8f0ec56a2bab01d5a324ddba9bd118a685ea7528e991b8667405232c56ea"
+    },
+    "B": {
+      "path": "/build/cache/hseos-w5-consumers/npm-B",
+      "tarballs": 186,
+      "kib": 38340,
+      "lockfile_sha256": "6d58abee17736e8f4134659f8495962b4276df674db87430eec7034aec5014d1"
+    },
+    "offline_proof": "npm ci --offline --cache <dir> inside bwrap --unshare-net; the isolation is measured (/proc/net/dev inside the sandbox lists only lo) and offline_without_network is derived from it and from the install result",
+    "hseos_toolchain_and_home_npm": "intact",
+    "default_cache_build_npm": "rewritten on every run: the offline install of the core (s00) updates index-v5 and _logs entries, without new content; the dedicated caches A and B are only read"
+  },
+  "screenshots": [
+    {
+      "file": "docs/evolution/w5/evidence/real/screenshots/A-fixed.png",
+      "sha256": "99ab400177c335bac019daa57f37b340b044818d2b9ec129c9f724b28c6814eb"
+    },
+    {
+      "file": "docs/evolution/w5/evidence/real/screenshots/B-fixed.png",
+      "sha256": "b7baedb5cc4d70f2aaf619e4a1515d0402959403cf30a0e70b1ff5c86aa764e7"
+    },
+    {
+      "file": "docs/evolution/w5/evidence/real/screenshots/A-control-fixed.png",
+      "sha256": "99ab400177c335bac019daa57f37b340b044818d2b9ec129c9f724b28c6814eb"
+    },
+    {
+      "file": "docs/evolution/w5/evidence/real/screenshots/B-control-fixed.png",
+      "sha256": "b7baedb5cc4d70f2aaf619e4a1515d0402959403cf30a0e70b1ff5c86aa764e7"
+    },
+    {
+      "file": "docs/evolution/w5/evidence/w5-11b/round1/screenshots/A-defective.png",
+      "sha256": "87883e5c99e1c124bba5976bfdcf9cb5715aa5a54d5e4af1f89e0d87ace57734"
+    }
+  ],
+  "plugins": [
+    {
+      "id": "hseos-plugin-lsp",
+      "version": "0.1.0",
+      "digest": "44c6c6a64edc725426623850c4ca0208161985ad7dc48aa2f172a274ccf15f47",
+      "entries": 7,
+      "bytes": 60940
+    },
+    {
+      "id": "hseos-plugin-dap",
+      "version": "0.1.0",
+      "digest": "ddf95849a0b49045f6cc27d9303bcc904b45435ee7ab0727c437bafcf1faa2fc",
+      "entries": 8,
+      "bytes": 87146
+    },
+    {
+      "id": "hseos-plugin-browser",
+      "version": "0.1.0",
+      "digest": "283d7496b0f3ae028160995c88deb3549284cf226cc00324191580a1b2b213a8",
+      "entries": 9,
+      "bytes": 82578
+    },
+    {
+      "id": "hseos-plugin-computer-use",
+      "version": "0.1.0",
+      "digest": "f95fe0ad6506039d6a7a98ca6f65418825526e07a8f26d8daf6c89a8be46c80c",
+      "entries": 9,
+      "bytes": 94084
+    },
+    {
+      "id": "hseos-plugin-memory",
+      "version": "0.1.0",
+      "digest": "1b67595853c3846bb59ee4b8651592ce06ca25cb537dacbfda0d9ff351d46fa0",
+      "entries": 6,
+      "bytes": 23903
+    }
+  ],
+  "core": {
+    "filename": "hseos-4.0.0-rc.0.tgz",
+    "entries": 1538,
+    "integrity": "sha512-LVXkHboZMuofm3HLlYsiT8dxxE8Mo7SFV804509rT92bcEUGlgD9LZj2kaEgrbm6Z8hrOXDZQSYq445tqY4NBg=="
+  },
+  "logs": {
+    "recorded_dispatch_run": [
+      {
+        "file": "docs/evolution/w5/evidence/real/00-npm-pack.log.gz",
+        "sha256": "fbed61207ff2aff9c40a9963c71efbfaa8d8fca4df569a43e194ce56ba53f456"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/01-npm-init.log.gz",
+        "sha256": "0b2b07c92823d53ee4d357de40367cb6b9cc350582ef511ceb59d45646270f7d"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/02-npm-install-core.log.gz",
+        "sha256": "c28dc259c3989125e1d8acd67257b171f10123e06f43bd114c9996cc4b123bff"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/03-untar-lsp.log.gz",
+        "sha256": "85ac05d141cf01929a0d86d7d2950d6b8059d0f583864fb930a50513fa85a970"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/04-untar-dap.log.gz",
+        "sha256": "1d3deb436edde96ee16fabb8b2a4e7ae8f5c8296ff5d4f04f2c19b6adb9dabf0"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/05-untar-browser.log.gz",
+        "sha256": "5c76d14317ee5d49e6f35c3afc9ff4418a19808c3ac8a07a641ed4802eeed541"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/06-untar-computer-use.log.gz",
+        "sha256": "ca69968f6f95701d611890457cdc9c798c1ef38f81a8cd1f9c0b5d90c8e4fe61"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/07-untar-memory.log.gz",
+        "sha256": "b1f46548308589318e452548aa00618074235a9a925c0a36cb050f61c341c7d2"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/08-tar-A.log.gz",
+        "sha256": "ae2c57590148bfa8ef34d4b508caf36affb2cc7ba71e4ded9d1b26e2a98360cc"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/09-untar-A.log.gz",
+        "sha256": "a9fb31378e42b0f7b2653849047000e57770ba1c1bb212132ab1a6a920e37ced"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/10-npm-ci-A.log.gz",
+        "sha256": "21dfdd53851dadc9dc44cb5308e6ae530e20f7c47d79b27523c04ff547417496"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/11-vitest.log.gz",
+        "sha256": "94849de8163ef1ed0c21470d094449f77096c3f2e5702b41bd9a5533547faf3a"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/12-tar-B.log.gz",
+        "sha256": "e490892ea0691af8f4be919df1d919a24fdef928c0a7c5c87de71be021eb9f58"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/13-untar-B.log.gz",
+        "sha256": "e5f0479f88a940fe5535c68fefc33855e1fcf825c00287b592d8095d31cbe17c"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/14-npm-ci-B.log.gz",
+        "sha256": "a8530e31fbf1a93816b5ec91192a8c9c31dd8bcfd4744048630955b8b5e40334"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/15-tar-A-control.log.gz",
+        "sha256": "1e95286aabeb207cf6c1a5679e6c043cb63fc1c9753c01d2bd2f88f5dcbb8785"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/16-untar-A-control.log.gz",
+        "sha256": "413b11bdee50d7408ace7d342596582266fc7c39e514daae26f3820832d8f158"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/17-vitest.log.gz",
+        "sha256": "f0a9a2cd8afec53900cea067408de7bd73d9826b240dad734dd32a1dc5bd2d5a"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/18-vite-build-A.log.gz",
+        "sha256": "29c81f53db5c546d2b9f819b40b5a493d91a78086f4896e9e9f4dbe12baa33cd"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/19-vitest.log.gz",
+        "sha256": "d1325930a08d6d9ff85e16b0b3069e2626eb9d00479a89cb5a7417c29cc47e06"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/20-vite-build-A.log.gz",
+        "sha256": "9a8d7139b840e127400afec5a1c67eddab130c4a797a5cfc8a3e1dd73dd89708"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/21-tar-B-control.log.gz",
+        "sha256": "3a5bacd9aef3df25a7a49cf6419a1b1c0eb89154cb4f947782eb09f6a6daf40a"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/22-untar-B-control.log.gz",
+        "sha256": "24f5b7cdc399588effa883832f2eea91c1d02b81d87e8323499034e43dd58230"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/23-vite-build-B.log.gz",
+        "sha256": "0b9331dde8357cde50b88837386a8a4ea37423963bc3c4b1790786c19e0ebd96"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/real/24-vite-build-B.log.gz",
+        "sha256": "d42b0a754bf8db7231d00d5e5789f6a1c965e14a55791ccad7b0ead9a64f3c73"
+      }
+    ],
+    "round1_no_dispatch_run": [
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/00-npm-pack.log.gz",
+        "sha256": "eb4e3f03fa7dbd736e9edde5a0b9e4be60c8f68cadf463ec035eb0c41ad62dc2"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/01-npm-init.log.gz",
+        "sha256": "0b2b07c92823d53ee4d357de40367cb6b9cc350582ef511ceb59d45646270f7d"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/02-npm-install-core.log.gz",
+        "sha256": "7aeb8b691f090ae6d8ac56b9240e2f8f320db9b7742a580b21e0c60e4165b600"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/03-untar-lsp.log.gz",
+        "sha256": "2bf8172c57678dc89b83db838c450694d8e97eedd5d800e1bb6c77bd6f5861a1"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/04-untar-dap.log.gz",
+        "sha256": "796eb18113ab49aece16036b5b9cdf32b13ed78c2cef6cc3c363b9d80817f72a"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/05-untar-browser.log.gz",
+        "sha256": "351bfdd0cf942888c950121dfb3bb3d39f5a97536e33df6abd8d139ebd5a00b1"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/06-untar-computer-use.log.gz",
+        "sha256": "6baad8d5f89a819dc1a9a917fad9ad30c1591cd2bbe5abb81914ecb47a7a619b"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/07-untar-memory.log.gz",
+        "sha256": "ee4cbb4c38ffffc61dc14bfbd6848bc0ceea29c6c58f557a9e539b1e823f6ba5"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/08-tar-A.log.gz",
+        "sha256": "6219f6c135765cf5d724edc12b7f46c6bbae61edbf656f2fcf7bdd544b1dbd65"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/09-untar-A.log.gz",
+        "sha256": "e3622b4e737b2b4a7c386a1de696209af1f8b3477f92b5e22bb6288fef1ed82d"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/10-net-probe-A.log.gz",
+        "sha256": "0981108eeedb1740778e52d56bfb90b95c63e6f5fe402e0dd30b44fc9529cc9b"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/11-npm-ci-A.log.gz",
+        "sha256": "21dfdd53851dadc9dc44cb5308e6ae530e20f7c47d79b27523c04ff547417496"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/12-vitest.log.gz",
+        "sha256": "0ffe16fe2d83536da51fde58f120baea337f1c75ac224e5cb81a79cc9ab3e56f"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/13-vite-build-A.log.gz",
+        "sha256": "b8cfdaf0a329fed9aef8dba34d96715120e86db1f0229a38775ddd0e19cd0c74"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/14-tar-B.log.gz",
+        "sha256": "b3654cf0a529f27ec6e9003ee82d8c24d8df72445bdc8be08ce1b65ad9e18981"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/15-untar-B.log.gz",
+        "sha256": "f54b8cc6ec1213e4a0f2de5d2fefddff1f57b2ba136faff5108eeb65f352c553"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/16-net-probe-B.log.gz",
+        "sha256": "0981108eeedb1740778e52d56bfb90b95c63e6f5fe402e0dd30b44fc9529cc9b"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/17-npm-ci-B.log.gz",
+        "sha256": "a8530e31fbf1a93816b5ec91192a8c9c31dd8bcfd4744048630955b8b5e40334"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/18-tar-A-control.log.gz",
+        "sha256": "f0457aef04cf070d4ffcaa5e3fd3c43b82615273faa9b4fba8f7a3d19cf4069d"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/19-untar-A-control.log.gz",
+        "sha256": "2f53048a47f0029836f8eabae5f0cf5412c265e055170fe29f4be8dfbfa62e66"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/20-vitest.log.gz",
+        "sha256": "d62eefcd0be8c4bd6c2049b07bd973e263c190dd48d7bd37b0994063b3bebb28"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/21-vite-build-A.log.gz",
+        "sha256": "f74abc61fda6d4c93a4be64d68dba6eaa53932772e57436d870560df619614f0"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/22-tar-B-control.log.gz",
+        "sha256": "05a0b32621820ad822b85c753937d5e4cfd8234af052007de202e217a34c6c2a"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/23-untar-B-control.log.gz",
+        "sha256": "edbee692542f6cda4a7bbe7728eba3ac726295de39db66dfeeb809c0f8fdf599"
+      },
+      {
+        "file": "docs/evolution/w5/evidence/w5-11b/round1/24-vite-build-B.log.gz",
+        "sha256": "3129cfac0da68e1cb0506440ac35d10897680aa1af13aab70e5b18eea2e93380"
+      }
+    ]
+  },
+  "known_limitations": [
+    "scope of proof: installation outside the checkout, governed admission of a real model patch on a real consumer, and vitest+DOM acceptance; NOT proof that LSP or DAP guided the correction",
+    "the defect and its two class names are quoted in the specification sent to the model; the swap is trivial",
+    "the governed verifier is a regex over the .tsx that repeats the specification; vitest runs outside the governed sandbox because the contract mounts node_modules only through the pnpm virtual store",
+    "DAP debugged a reproducer of the harness that extracts and evaluates the class expression, not the component",
+    "the browser of A renders a harness preview page with two real StatsCard, not the real route of the app (it needs authentication and an API); the defective state of A is captured in screenshots/A-defective.png for comparison",
+    "LSP: the defect is not a type error; hover inside the JSX template returns any; diagnostics (85) include dependency-type noise",
+    "B is synthetic (test, defect and requirement created by the journey); in the browser it needed VITE_API_BASE empty at build time and one third-party font tag removed from the served HTML copy (source untouched)",
+    "vitest 1.6.1 with only --maxWorkers=2 fails with \"minThreads and maxThreads must not conflict\", runs no test and exits 0 (false green); the journey uses --maxWorkers=2 --minWorkers=1 and refuses a run with zero tests",
+    "reviewProjectResult emits a whole-file patch (49 removed and 49 added lines in A, 129 and 129 in B) although the real difference is one line",
+    "the Claude client in the cgroup PATH is 2.1.263, not the interactive 2.1.302; the adapter checks the version at inspection and it matched",
+    "cost \"US$ 0\" is not measured: subscription receipts carry cost_microusd null; max_cost_microusd 0 forbids paid spend",
+    "s05b reads the Codex account and quota through the codex app-server, which contacts the provider (network use not measured at socket level); no inference",
+    "the paths that exist only with a dispatch (live pin check against the first reservation, live s11) were validated by replay of the recorded ledger and synthetic ledgers, not by a new dispatch",
+    "Node 22 not verified: better-sqlite3 of the worktree is built for the Node 24 ABI; no rebuild",
+    "the journey is outside test:kernel and CI (see test_registration): nothing guards against its regression other than running it by hand"
+  ],
+  "test_registration": "none: the journey lives in test/journeys, is not packaged and is not part of test:kernel or CI; it needs a delegated cgroup, bwrap, the dedicated npm caches and the toolchain cache",
+  "round": 1,
+  "round_note": "Correction round 1 after the skeptical review of 92b4d622. The 2 real dispatches happened in the PREVIOUS revision of the journey (evidence/real); the new code was validated without any new dispatch: the journey without --allow-dispatch, replay of the recorded real ledger (s11b) and adversarial synthetic ledgers (s11a, s03d).",
+  "counts_by_kind": {
+    "recorded_dispatch_run_previous_revision": {
+      "infra": {
+        "PASS": 6
+      },
+      "consumer": {
+        "PASS": 17
+      },
+      "control": {
+        "PASS": 6
+      }
+    },
+    "round1_no_dispatch_run": {
+      "unit": {
+        "PASS": 2
+      },
+      "infra": {
+        "PASS": 6,
+        "BLOCKED": 1
+      },
+      "consumer": {
+        "PASS": 10,
+        "BLOCKED": 8
+      },
+      "control": {
+        "PASS": 6
+      }
+    }
+  },
+  "scope_of_proof": {
+    "proves": [
+      "installation outside the checkout (core and 5 plugins, offline)",
+      "governed admission of a real model patch on a real consumer",
+      "acceptance by vitest and DOM in the browser"
+    ],
+    "does_not_prove": [
+      "that LSP or DAP guided the correction",
+      "real-route behaviour of A in the browser (a harness preview page is rendered)",
+      "vitest inside the governed sandbox"
+    ],
+    "defect_in_model_prompt": "the defect and its two classes are quoted in the specification sent to the model",
+    "governance_verifier": "a regex that repeats the specification",
+    "dap": "debugs a harness reproducer",
+    "browser_A": "renders a harness preview page with two real StatsCard; the defective state is also captured (screenshots/A-defective.png)"
+  },
+  "controls": {
+    "note": "harness-authored patch, not model output; kept apart from the consumer verdicts (kind: control in the result)",
+    "steps_round1": [
+      ["s07c-control-A", "PASS"],
+      ["s08c-accept-control-A", "PASS"],
+      ["s09c-browser-control-A", "PASS"],
+      ["s07c-control-B", "PASS"],
+      ["s08c-accept-control-B", "PASS"],
+      ["s09c-browser-control-B", "PASS"]
+    ]
+  }
+}
