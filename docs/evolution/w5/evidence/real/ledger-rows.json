@@ -1,0 +1,378 @@
+{
+  "rows": [
+    {
+      "position": 2,
+      "event_id": "f7582179-553e-48d1-922e-07b21ca16ed9",
+      "event_type": "ControlCommandRecorded",
+      "aggregate_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "aggregate_type": "control_provider_campaign",
+      "stream_sequence": 1,
+      "schema_version": 1,
+      "occurred_at": "2026-10-16T21:14:00.073Z",
+      "correlation_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "causation_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "actor": {
+        "id": "provider-control",
+        "type": "hseos"
+      },
+      "operation_id": null,
+      "payload": {
+        "authorization_id": "f01ef659-0435-4fd7-888d-4e14bf69c814",
+        "binding_compositions": {
+          "binding:claude-w5-account": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "binding_ids": ["binding:claude-w5-account"],
+        "binding_manifests": {
+          "binding:claude-w5-account": "79e66347d313329cfce29fb4d40f069e52d6ffe99729422ec97eda1c6d751f34"
+        },
+        "deadline": 1792187940029,
+        "kind": "opened",
+        "max_cost_microusd": 0,
+        "max_requests": 2,
+        "quota_exceptions": {
+          "binding:claude-w5-account": {
+            "expires_at": 1792187940029,
+            "reason": "Owner decision 2026-10-16: Claude subscription route for W5-11b; the CLI exposes no quota window"
+          }
+        },
+        "schema_version": 1,
+        "task_ids": ["815725c6-0bdd-402b-a817-14dd76c81980", "72d31cce-efc5-4f25-9814-3e5a2af06195"]
+      },
+      "evidence_refs": [],
+      "recorded_at": "2026-10-16T21:14:00.073Z"
+    },
+    {
+      "position": 3,
+      "event_id": "cba22d62-02da-43d7-ac76-5814852e6ee6",
+      "event_type": "ControlCommandRecorded",
+      "aggregate_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "aggregate_type": "control_provider_campaign",
+      "stream_sequence": 2,
+      "schema_version": 1,
+      "occurred_at": "2026-10-16T21:14:00.074Z",
+      "correlation_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "causation_id": "f7582179-553e-48d1-922e-07b21ca16ed9",
+      "actor": {
+        "id": "provider-control",
+        "type": "hseos"
+      },
+      "operation_id": null,
+      "payload": {
+        "command_id": "049e41d3-0360-4afc-912f-14bd22237b33",
+        "digest": "6141bb0d6c5248484e403b7b4dd122b9862772a5a1212ce5fa21962e7b364dda",
+        "kind": "intent",
+        "schema_version": 1
+      },
+      "evidence_refs": [],
+      "recorded_at": "2026-10-16T21:14:00.074Z"
+    },
+    {
+      "position": 4,
+      "event_id": "6bbde26a-9912-4599-9119-5550805174fb",
+      "event_type": "ControlCommandRecorded",
+      "aggregate_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "aggregate_type": "control_provider_campaign",
+      "stream_sequence": 3,
+      "schema_version": 1,
+      "occurred_at": "2026-10-16T21:14:00.074Z",
+      "correlation_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "causation_id": "cba22d62-02da-43d7-ac76-5814852e6ee6",
+      "actor": {
+        "id": "provider-control",
+        "type": "hseos"
+      },
+      "operation_id": null,
+      "payload": {
+        "command_id": "049e41d3-0360-4afc-912f-14bd22237b33",
+        "kind": "done",
+        "result": {
+          "action": "create",
+          "resource_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77"
+        },
+        "schema_version": 1
+      },
+      "evidence_refs": [],
+      "recorded_at": "2026-10-16T21:14:00.074Z"
+    },
+    {
+      "position": 5,
+      "event_id": "21941559-a7dc-40cc-93f9-1a9ebd56437c",
+      "event_type": "ControlCommandRecorded",
+      "aggregate_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "aggregate_type": "control_provider_campaign",
+      "stream_sequence": 4,
+      "schema_version": 1,
+      "occurred_at": "2026-10-16T21:14:00.394Z",
+      "correlation_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "causation_id": "6bbde26a-9912-4599-9119-5550805174fb",
+      "actor": {
+        "id": "provider-control",
+        "type": "hseos"
+      },
+      "operation_id": null,
+      "payload": {
+        "binding_id": "binding:claude-w5-account",
+        "command_id": "4cee0d08-0e31-47f9-9a7f-b49f525cd327",
+        "digest": "8cc1a37ea207e961d796c0f18ae5e85e39bddf1c915cc3620d67c9744f590ea7",
+        "kind": "reserved",
+        "manifest_sha256": "79e66347d313329cfce29fb4d40f069e52d6ffe99729422ec97eda1c6d751f34",
+        "observation": {
+          "expires_at": 1792185270392,
+          "observed_at": 1792185240392,
+          "quota_available_microusd": null,
+          "quota_remaining_requests": null,
+          "quota_windows": null
+        },
+        "observation_sha256": "d54179d331093a73a0a01e254e2d5c1abab97557af97d33e0b2ff517ab06e510",
+        "owner": "<redacted>",
+        "parent_command_id": null,
+        "quota_admission": "owner_exception",
+        "reserved_microusd": 0,
+        "schema_version": 1,
+        "task_id": "815725c6-0bdd-402b-a817-14dd76c81980"
+      },
+      "evidence_refs": [],
+      "recorded_at": "2026-10-16T21:14:00.395Z"
+    },
+    {
+      "position": 6,
+      "event_id": "8635a6cd-72c1-4d69-99a5-b6e6361c65b2",
+      "event_type": "ControlCommandRecorded",
+      "aggregate_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "aggregate_type": "control_provider_campaign",
+      "stream_sequence": 5,
+      "schema_version": 1,
+      "occurred_at": "2026-10-16T21:14:04.805Z",
+      "correlation_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "causation_id": "21941559-a7dc-40cc-93f9-1a9ebd56437c",
+      "actor": {
+        "id": "provider-control",
+        "type": "hseos"
+      },
+      "operation_id": null,
+      "payload": {
+        "command_id": "4cee0d08-0e31-47f9-9a7f-b49f525cd327",
+        "kind": "receipt",
+        "receipt": {
+          "binding_sha256": "543775c4f2ec5f0300b5964aa7f449f77a06ca6a59949f1f8e27297fafeb4181",
+          "cost_microusd": null,
+          "evidence_ref": {
+            "bytes": 335,
+            "kind": "model_output",
+            "schema_version": 1,
+            "sha256": "9d20fe7b0deebe70e009975207fa74a9a9a1e51fcee21d32e4ccf6eff1691d10"
+          },
+          "evidence_sha256": "f4604237219b677377d683c06c6076ab50fe67a698d84414581062d141dd283d",
+          "input_tokens": 5771,
+          "output_tokens": 176,
+          "provider_session_id": "<redacted>",
+          "status": "completed"
+        },
+        "schema_version": 1
+      },
+      "evidence_refs": [],
+      "recorded_at": "2026-10-16T21:14:04.805Z"
+    },
+    {
+      "position": 7,
+      "event_id": "78705dd5-1dfe-4d03-bc40-ce5e0820a6a6",
+      "event_type": "ControlCommandRecorded",
+      "aggregate_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "aggregate_type": "control_provider_campaign",
+      "stream_sequence": 6,
+      "schema_version": 1,
+      "occurred_at": "2026-10-16T21:14:04.805Z",
+      "correlation_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "causation_id": "8635a6cd-72c1-4d69-99a5-b6e6361c65b2",
+      "actor": {
+        "id": "provider-control",
+        "type": "hseos"
+      },
+      "operation_id": null,
+      "payload": {
+        "command_id": "4cee0d08-0e31-47f9-9a7f-b49f525cd327",
+        "kind": "done",
+        "result": {
+          "action": "run",
+          "receipt": {
+            "binding_sha256": "543775c4f2ec5f0300b5964aa7f449f77a06ca6a59949f1f8e27297fafeb4181",
+            "cost_microusd": null,
+            "evidence_ref": {
+              "bytes": 335,
+              "kind": "model_output",
+              "schema_version": 1,
+              "sha256": "9d20fe7b0deebe70e009975207fa74a9a9a1e51fcee21d32e4ccf6eff1691d10"
+            },
+            "evidence_sha256": "f4604237219b677377d683c06c6076ab50fe67a698d84414581062d141dd283d",
+            "input_tokens": 5771,
+            "output_tokens": 176,
+            "provider_session_id": "<redacted>",
+            "status": "completed"
+          },
+          "resource_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77"
+        },
+        "schema_version": 1
+      },
+      "evidence_refs": [],
+      "recorded_at": "2026-10-16T21:14:04.805Z"
+    },
+    {
+      "position": 9,
+      "event_id": "12f69906-a3f3-4b8a-9b9a-e0a15739fb9f",
+      "event_type": "ControlCommandRecorded",
+      "aggregate_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "aggregate_type": "control_provider_campaign",
+      "stream_sequence": 7,
+      "schema_version": 1,
+      "occurred_at": "2026-10-16T21:14:20.085Z",
+      "correlation_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "causation_id": "78705dd5-1dfe-4d03-bc40-ce5e0820a6a6",
+      "actor": {
+        "id": "provider-control",
+        "type": "hseos"
+      },
+      "operation_id": null,
+      "payload": {
+        "binding_id": "binding:claude-w5-account",
+        "command_id": "57e73c5e-650c-43fc-8ddb-012148b076ec",
+        "digest": "1984c3422a1a9af12f8d2695ded4cd48feb95cc58bb1740285ce3555648fc9fc",
+        "kind": "reserved",
+        "manifest_sha256": "79e66347d313329cfce29fb4d40f069e52d6ffe99729422ec97eda1c6d751f34",
+        "observation": {
+          "expires_at": 1792185290082,
+          "observed_at": 1792185260082,
+          "quota_available_microusd": null,
+          "quota_remaining_requests": null,
+          "quota_windows": null
+        },
+        "observation_sha256": "083fdcaa081f34b5a2959f69355f62c64b793551aee6d8f5c2954eac05626fc3",
+        "owner": "<redacted>",
+        "parent_command_id": null,
+        "quota_admission": "owner_exception",
+        "reserved_microusd": 0,
+        "schema_version": 1,
+        "task_id": "72d31cce-efc5-4f25-9814-3e5a2af06195"
+      },
+      "evidence_refs": [],
+      "recorded_at": "2026-10-16T21:14:20.085Z"
+    },
+    {
+      "position": 10,
+      "event_id": "cf3c66a1-ba34-479f-935e-4bc6e47cc87b",
+      "event_type": "ControlCommandRecorded",
+      "aggregate_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "aggregate_type": "control_provider_campaign",
+      "stream_sequence": 8,
+      "schema_version": 1,
+      "occurred_at": "2026-10-16T21:14:23.889Z",
+      "correlation_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "causation_id": "12f69906-a3f3-4b8a-9b9a-e0a15739fb9f",
+      "actor": {
+        "id": "provider-control",
+        "type": "hseos"
+      },
+      "operation_id": null,
+      "payload": {
+        "command_id": "57e73c5e-650c-43fc-8ddb-012148b076ec",
+        "kind": "receipt",
+        "receipt": {
+          "binding_sha256": "543775c4f2ec5f0300b5964aa7f449f77a06ca6a59949f1f8e27297fafeb4181",
+          "cost_microusd": null,
+          "evidence_ref": {
+            "bytes": 255,
+            "kind": "model_output",
+            "schema_version": 1,
+            "sha256": "e9dd2edb7f4460f26f52c24f1d81b9e1be914d33a29c591cabd96ebc9db914c2"
+          },
+          "evidence_sha256": "1510524a96ef16225ed7bdb57bef44d0aead8426c95cb15377306da2a9bda0c8",
+          "input_tokens": 7346,
+          "output_tokens": 129,
+          "provider_session_id": "<redacted>",
+          "status": "completed"
+        },
+        "schema_version": 1
+      },
+      "evidence_refs": [],
+      "recorded_at": "2026-10-16T21:14:23.890Z"
+    },
+    {
+      "position": 11,
+      "event_id": "75175491-3665-4033-a654-9bcc5a746a83",
+      "event_type": "ControlCommandRecorded",
+      "aggregate_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "aggregate_type": "control_provider_campaign",
+      "stream_sequence": 9,
+      "schema_version": 1,
+      "occurred_at": "2026-10-16T21:14:23.890Z",
+      "correlation_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+      "causation_id": "cf3c66a1-ba34-479f-935e-4bc6e47cc87b",
+      "actor": {
+        "id": "provider-control",
+        "type": "hseos"
+      },
+      "operation_id": null,
+      "payload": {
+        "command_id": "57e73c5e-650c-43fc-8ddb-012148b076ec",
+        "kind": "done",
+        "result": {
+          "action": "run",
+          "receipt": {
+            "binding_sha256": "543775c4f2ec5f0300b5964aa7f449f77a06ca6a59949f1f8e27297fafeb4181",
+            "cost_microusd": null,
+            "evidence_ref": {
+              "bytes": 255,
+              "kind": "model_output",
+              "schema_version": 1,
+              "sha256": "e9dd2edb7f4460f26f52c24f1d81b9e1be914d33a29c591cabd96ebc9db914c2"
+            },
+            "evidence_sha256": "1510524a96ef16225ed7bdb57bef44d0aead8426c95cb15377306da2a9bda0c8",
+            "input_tokens": 7346,
+            "output_tokens": 129,
+            "provider_session_id": "<redacted>",
+            "status": "completed"
+          },
+          "resource_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77"
+        },
+        "schema_version": 1
+      },
+      "evidence_refs": [],
+      "recorded_at": "2026-10-16T21:14:23.890Z"
+    }
+  ],
+  "report": {
+    "resource_id": "cbcfc604-34b5-430e-ae3e-a0a52086bd77",
+    "current_sequence": 9,
+    "max_requests": 2,
+    "max_cost_microusd": 0,
+    "deadline": 1792187940029,
+    "requests": 2,
+    "committed_microusd": 0,
+    "cancelled": false,
+    "unresolved_commands": [],
+    "live_commands": [],
+    "bindings": ["binding:claude-w5-account"],
+    "report_sha256": "8a04369f4ede4bc4367f8f1216cfb6f4c3357c5737e6b2e201b2d0434165310a"
+  },
+  "opened": {
+    "authorization_id": "f01ef659-0435-4fd7-888d-4e14bf69c814",
+    "binding_compositions": {
+      "binding:claude-w5-account": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "binding_ids": ["binding:claude-w5-account"],
+    "binding_manifests": {
+      "binding:claude-w5-account": "79e66347d313329cfce29fb4d40f069e52d6ffe99729422ec97eda1c6d751f34"
+    },
+    "deadline": 1792187940029,
+    "kind": "opened",
+    "max_cost_microusd": 0,
+    "max_requests": 2,
+    "quota_exceptions": {
+      "binding:claude-w5-account": {
+        "expires_at": 1792187940029,
+        "reason": "Owner decision 2026-10-16: Claude subscription route for W5-11b; the CLI exposes no quota window"
+      }
+    },
+    "schema_version": 1,
+    "task_ids": ["815725c6-0bdd-402b-a817-14dd76c81980", "72d31cce-efc5-4f25-9814-3e5a2af06195"]
+  }
+}

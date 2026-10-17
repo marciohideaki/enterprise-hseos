@@ -1,0 +1,34 @@
+heavy-run: modo normal (load1=0.92 phys=6 avail=24282MiB need=6G mem.psi=0.00 io.psi.full=0.04)
+Delegated test cgroup controllers verified
+PASS    s00-install [-] core and plugin tarballs installed offline from the cache into an empty directory
+PASS    s05b-routes [-] model routes available (local, subscriptions, paid API) by inspection only
+PASS    s01-clone-A [A] disposable clone of cambio-real platform-web with the defect injected
+PASS    s02-deps-A [A] cambio-real platform-web dependencies installed offline from the dedicated npm cache
+PASS    s03-verifier-A [A] external verifier fixed (digest and commands) before any dispatch
+PASS    s03b-red-A [A] the real test fails on the clone with the injected defect (vitest, no model)
+PASS    s04-lsp-A [A] LSP over the defective component (definition, references, hover, scope denial)
+PASS    s05-dap-A [A] DAP session on the reproducer: breakpoint, stack and variables expose the defect
+PASS    s01-clone-B [B] disposable clone of axon-web with the defect injected
+PASS    s02-deps-B [B] axon-web dependencies installed offline from the dedicated npm cache
+PASS    s03-verifier-B [B] external verifier fixed (digest and commands) before any dispatch
+PASS    s06a-campaign [-] Claude subscription binding built and tested; campaign opened under the cost ceiling
+BLOCKED s06-dispatch-A [A] model dispatch under the campaign ledger (reserve, then receipt) -- dispatch not authorized in this invocation (needs --allow-dispatch and HSEOS_W5_DISPATCH_BINDING=claude); no model was called
+BLOCKED s07-correction-A [A] governed correction with the model patch (scoped patch, protected verifier, review, apply) -- depends on s06-dispatch-A=BLOCKED
+PASS    s07c-control-A [A] CONTROL (harness patch, not a model): governed machinery on a second clone
+BLOCKED s08-accept-A [A] external acceptance on the corrected clone -- depends on s07-correction-A=BLOCKED
+BLOCKED s09-browser-A [A] browser verification with screenshot -- depends on s08-accept-A=BLOCKED
+PASS    s08c-accept-control-A [A] CONTROL: external acceptance on the harness-corrected clone
+PASS    s09c-browser-control-A [A] CONTROL: browser verification with screenshot on the harness-corrected clone
+BLOCKED s06-dispatch-B [B] model dispatch under the campaign ledger (reserve, then receipt) -- dispatch not authorized in this invocation (needs --allow-dispatch and HSEOS_W5_DISPATCH_BINDING=claude); no model was called
+BLOCKED s07-correction-B [B] governed correction with the model patch (scoped patch, protected verifier, review, apply) -- depends on s06-dispatch-B=BLOCKED
+PASS    s07c-control-B [B] CONTROL (harness patch, not a model): governed machinery on a second clone
+BLOCKED s08-accept-B [B] external acceptance on the corrected clone -- depends on s07-correction-B=BLOCKED
+BLOCKED s09-browser-B [B] browser verification with screenshot -- depends on s08-accept-B=BLOCKED
+PASS    s08c-accept-control-B [B] CONTROL: external acceptance on the harness-corrected clone
+PASS    s09c-browser-control-B [B] CONTROL: browser verification with screenshot on the harness-corrected clone
+PASS    s10-computer [-] computer-use on an own fixture: approval gate, display change, zero orphans
+BLOCKED s11-receipts [-] campaign ledger receipts (cost ceiling, dispatch cap, reservation before receipt) -- no campaign was opened in this run (no dispatch took place): there are no receipts to assert
+PASS    s12-originals [-] consumer originals untouched (git head, status and path/size/mtime digest)
+
+{"PASS":20,"BLOCKED":9}  result: /build/tmp/w5j-ev2/journey-result.json
+EXIT=3
