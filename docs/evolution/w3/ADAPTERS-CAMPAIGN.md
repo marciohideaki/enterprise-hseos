@@ -39,7 +39,8 @@ custo desconhecido conserva integralmente a reserva.
 
 Clientes nativos: reusam os bindings dos drivers existentes. Opções: `model`,
 `tasks`, `environment` (`HOME`, `PATH`, `CODEX_HOME` quando aplicável) e
-`memory_max_bytes` opcional. Codex exige referência explícita ao arquivo de
+`pids_max` obrigatório (inteiro de 32 a 256; omitido, o binding é recusado com
+`CONTROL_PROVIDER_CONFIGURATION_INVALID`) e `memory_max_bytes` opcional. Codex exige referência explícita ao arquivo de
 credenciais sob o CODEX_HOME selecionado. Claude recebe somente a chave API
 resolvida por referência e o ambiente público declarado; login de assinatura não
 é presumido. Listar modelos autentica a chave, mas não comprova quota de inferência.
@@ -53,8 +54,9 @@ Não usa o Agent SDK, não lê `.credentials.json` nem tokens e não usa `--bare
   `runtime_provider_id: runtime:claude-cli`, `executable` (hash fixado), `cwd`
   (diretório dedicado; cada execução usa um subdiretório vazio novo), `env_names` e
   `secret_refs` vazios. Opções: `model`, `tasks`, `environment` (`HOME`, `PATH`,
-  `CLAUDE_CONFIG_DIR` opcional), `persist_sessions` opcional, `memory_max_bytes` e
-  `pids_max` opcionais. O manifesto referencia `file://<diretório de login>` (nunca o
+  `CLAUDE_CONFIG_DIR` opcional), `persist_sessions` opcional, `memory_max_bytes`
+  opcional e `pids_max` obrigatório (32 a 256; omitido, recusa com
+  `CONTROL_PROVIDER_CONFIGURATION_INVALID`). O manifesto referencia `file://<diretório de login>` (nunca o
   arquivo de credenciais), `billing.max_request_microusd` 0 e `account_sha256`.
 - Identidade antes de cada operação: `claude --version` igual à versão fixada e
   `claude auth status` com `loggedIn`, `apiProvider` `firstParty` e `authMethod` em

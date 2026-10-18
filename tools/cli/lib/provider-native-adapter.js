@@ -9,15 +9,26 @@ const { createClaudeAccountCampaignAdapter } = require('./provider-claude-accoun
 const { MAX_EVIDENCE_BYTES, containsCredential, evidenceSha256 } = require('./campaign-evidence-store');
 const readers = { codex: require('./delegated-codex-runtime').readBinding, claude: require('./delegated-claude-runtime').readBinding };
 const integer = z.number().int().nonnegative().safe();
-const settingsSchema = z
+const strictSettingsSchema = z
   .object({
-    pids_max: integer.min(32).max(256).optional(),
+    pids_max: integer.min(32).max(256),
     model: z.string().min(1).max(256),
     memory_max_bytes: integer.min(268_435_456).max(2_147_483_648).optional(),
     tasks: z.record(z.string().uuid(), z.object({ prompt: z.string().min(1).max(16_384) }).strict()),
     environment: z.object({ HOME: z.string().min(1), PATH: z.string().min(1), CODEX_HOME: z.string().min(1).optional() }).strict(),
   })
   .strict();
+const settingsSchema = {
+  parse(options) {
+    try {
+      return strictSettingsSchema.parse(options);
+    } catch (error) {
+      const refusal = new Error(`CONTROL_PROVIDER_CONFIGURATION_INVALID: ${error.message}`, { cause: error });
+      refusal.code = 'CONTROL_PROVIDER_CONFIGURATION_INVALID';
+      throw refusal;
+    }
+  },
+};
 const files = [
   __filename,
   require.resolve('./provider-campaign-worker'),

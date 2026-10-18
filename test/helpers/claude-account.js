@@ -50,7 +50,7 @@ function setup(t, { mode = {}, run = 'normal' } = {}) {
   fs.copyFileSync(FIXTURE, executable);
   fs.chmodSync(executable, 0o755);
   const id = randomUUID();
-  const settings = { model: 'pinned-model', tasks: { [id]: { prompt: 'ready' } }, environment: { HOME: home, PATH } };
+  const settings = { pids_max: 64, model: 'pinned-model', tasks: { [id]: { prompt: 'ready' } }, environment: { HOME: home, PATH } };
   const filename = path.join(home, 'binding.yaml');
   fs.writeFileSync(
     filename,

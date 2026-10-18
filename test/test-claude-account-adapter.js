@@ -160,3 +160,35 @@ test('session transcripts are removed unless persistence is explicitly enabled',
   assert.ok(fs.existsSync(seen.sensitive_session_dir));
   assert.equal(seen.init.fast_mode_state, null);
 });
+
+test('claude/account refuses omitted pids_max with a stable error that names the field', (t) => {
+  const f = setup(t);
+  delete f.settings.pids_max;
+  // Re-pin so only the missing field, not a digest mismatch, can make the factory refuse.
+  f.m.binding_sha256 = engineeringDigest({
+    binding: require('../tools/cli/lib/provider-claude-account-adapter').readBinding(f.filename),
+    options: f.settings,
+  });
+  assert.throws(
+    f.create,
+    (error) =>
+      error.code === 'CONTROL_PROVIDER_CONFIGURATION_INVALID' && /pids_max/.test(error.message) && /pids_max/.test(String(error.cause)),
+  );
+});
+
+test('claude/account keeps accepting 32-256 and refusing out-of-range or non-integer pids_max', (t) => {
+  for (const value of [32, 128, 256]) {
+    const f = setup(t);
+    f.settings.pids_max = value;
+    f.m.binding_sha256 = engineeringDigest({
+      binding: require('../tools/cli/lib/provider-claude-account-adapter').readBinding(f.filename),
+      options: f.settings,
+    });
+    assert.doesNotThrow(() => f.create());
+  }
+  for (const value of [31, 257, '64', Number.NaN, 32.5, null]) {
+    const f = setup(t);
+    f.settings.pids_max = value;
+    assert.throws(() => f.create());
+  }
+});

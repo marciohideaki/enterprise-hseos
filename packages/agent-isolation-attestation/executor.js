@@ -101,8 +101,10 @@ async function reapTerminalGroup(owner, directory) {
   await removeDrainedGroup(directory);
 }
 
-function createResourceGroup({ memory_max_bytes = 268_435_456, pids_max = 32 } = {}) {
-  if (!Number.isSafeInteger(pids_max) || pids_max < 32 || pids_max > 256)
+const { LIMIT_FLOOR, LIMIT_CEILING } = require('./profiles');
+
+function createResourceGroup({ memory_max_bytes = 268_435_456, pids_max = LIMIT_FLOOR.pids_max } = {}) {
+  if (!Number.isSafeInteger(pids_max) || pids_max < LIMIT_FLOOR.pids_max || pids_max > LIMIT_CEILING.pids_max)
     throw new EngineeringIsolationError('Invalid finite process limit');
   if (!Number.isSafeInteger(memory_max_bytes) || memory_max_bytes < 268_435_456 || memory_max_bytes > 2_147_483_648)
     throw new EngineeringIsolationError('Invalid finite memory limit');

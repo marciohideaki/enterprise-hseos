@@ -1,0 +1,84 @@
+diff --git a/packages/agent-isolation-attestation/executor.js b/packages/agent-isolation-attestation/executor.js
+index dfbd34c3..ddf8cb21 100644
+--- a/packages/agent-isolation-attestation/executor.js
++++ b/packages/agent-isolation-attestation/executor.js
+@@ -101,8 +101,10 @@ async function reapTerminalGroup(owner, directory) {
+   await removeDrainedGroup(directory);
+ }
+ 
+-function createResourceGroup({ memory_max_bytes = 268_435_456, pids_max = 32 } = {}) {
+-  if (!Number.isSafeInteger(pids_max) || pids_max < 32 || pids_max > 256)
++const { LIMIT_FLOOR, LIMIT_CEILING } = require('./profiles');
++
++function createResourceGroup({ memory_max_bytes = 268_435_456, pids_max = LIMIT_FLOOR.pids_max } = {}) {
++  if (!Number.isSafeInteger(pids_max) || pids_max < LIMIT_FLOOR.pids_max || pids_max > LIMIT_CEILING.pids_max)
+     throw new EngineeringIsolationError('Invalid finite process limit');
+   if (!Number.isSafeInteger(memory_max_bytes) || memory_max_bytes < 268_435_456 || memory_max_bytes > 2_147_483_648)
+     throw new EngineeringIsolationError('Invalid finite memory limit');
+diff --git a/tools/cli/lib/provider-claude-account-adapter.js b/tools/cli/lib/provider-claude-account-adapter.js
+index 881dfe0f..0cf1adc5 100644
+--- a/tools/cli/lib/provider-claude-account-adapter.js
++++ b/tools/cli/lib/provider-claude-account-adapter.js
+@@ -12,9 +12,9 @@ const PROVIDER_ID = 'runtime:claude-cli';
+ const WORKER = path.join(__dirname, 'provider-claude-account-worker.js');
+ const integer = z.number().int().nonnegative().safe();
+ // The environment is an allowlist: API keys, auth tokens, helpers and cloud switches would outrank the login.
+-const settingsSchema = z
++const strictSettingsSchema = z
+   .object({
+-    pids_max: integer.min(32).max(256).optional(),
++    pids_max: integer.min(32).max(256),
+     model: z.string().min(1).max(256),
+     memory_max_bytes: integer.min(268_435_456).max(2_147_483_648).optional(),
+     persist_sessions: z.boolean().optional(),
+@@ -22,6 +22,17 @@ const settingsSchema = z
+     environment: z.object({ HOME: z.string().min(1), PATH: z.string().min(1), CLAUDE_CONFIG_DIR: z.string().min(1).optional() }).strict(),
+   })
+   .strict();
++const settingsSchema = {
++  parse(options) {
++    try {
++      return strictSettingsSchema.parse(options);
++    } catch (error) {
++      const refusal = new Error(`CONTROL_PROVIDER_CONFIGURATION_INVALID: ${error.message}`, { cause: error });
++      refusal.code = 'CONTROL_PROVIDER_CONFIGURATION_INVALID';
++      throw refusal;
++    }
++  },
++};
+ const refusals = new Set(['CONTROL_PROVIDER_IDENTITY_UNVERIFIED', 'CONTROL_PROVIDER_QUOTA_UNAVAILABLE']);
+ 
+ function fail(code) {
+diff --git a/tools/cli/lib/provider-native-adapter.js b/tools/cli/lib/provider-native-adapter.js
+index 564221d8..b1115c07 100644
+--- a/tools/cli/lib/provider-native-adapter.js
++++ b/tools/cli/lib/provider-native-adapter.js
+@@ -9,15 +9,26 @@ const { createClaudeAccountCampaignAdapter } = require('./provider-claude-accoun
+ const { MAX_EVIDENCE_BYTES, containsCredential, evidenceSha256 } = require('./campaign-evidence-store');
+ const readers = { codex: require('./delegated-codex-runtime').readBinding, claude: require('./delegated-claude-runtime').readBinding };
+ const integer = z.number().int().nonnegative().safe();
+-const settingsSchema = z
++const strictSettingsSchema = z
+   .object({
+-    pids_max: integer.min(32).max(256).optional(),
++    pids_max: integer.min(32).max(256),
+     model: z.string().min(1).max(256),
+     memory_max_bytes: integer.min(268_435_456).max(2_147_483_648).optional(),
+     tasks: z.record(z.string().uuid(), z.object({ prompt: z.string().min(1).max(16_384) }).strict()),
+     environment: z.object({ HOME: z.string().min(1), PATH: z.string().min(1), CODEX_HOME: z.string().min(1).optional() }).strict(),
+   })
+   .strict();
++const settingsSchema = {
++  parse(options) {
++    try {
++      return strictSettingsSchema.parse(options);
++    } catch (error) {
++      const refusal = new Error(`CONTROL_PROVIDER_CONFIGURATION_INVALID: ${error.message}`, { cause: error });
++      refusal.code = 'CONTROL_PROVIDER_CONFIGURATION_INVALID';
++      throw refusal;
++    }
++  },
++};
+ const files = [
+   __filename,
+   require.resolve('./provider-campaign-worker'),

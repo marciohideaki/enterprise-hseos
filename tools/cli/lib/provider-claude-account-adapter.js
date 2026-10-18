@@ -12,9 +12,9 @@ const PROVIDER_ID = 'runtime:claude-cli';
 const WORKER = path.join(__dirname, 'provider-claude-account-worker.js');
 const integer = z.number().int().nonnegative().safe();
 // The environment is an allowlist: API keys, auth tokens, helpers and cloud switches would outrank the login.
-const settingsSchema = z
+const strictSettingsSchema = z
   .object({
-    pids_max: integer.min(32).max(256).optional(),
+    pids_max: integer.min(32).max(256),
     model: z.string().min(1).max(256),
     memory_max_bytes: integer.min(268_435_456).max(2_147_483_648).optional(),
     persist_sessions: z.boolean().optional(),
@@ -22,6 +22,17 @@ const settingsSchema = z
     environment: z.object({ HOME: z.string().min(1), PATH: z.string().min(1), CLAUDE_CONFIG_DIR: z.string().min(1).optional() }).strict(),
   })
   .strict();
+const settingsSchema = {
+  parse(options) {
+    try {
+      return strictSettingsSchema.parse(options);
+    } catch (error) {
+      const refusal = new Error(`CONTROL_PROVIDER_CONFIGURATION_INVALID: ${error.message}`, { cause: error });
+      refusal.code = 'CONTROL_PROVIDER_CONFIGURATION_INVALID';
+      throw refusal;
+    }
+  },
+};
 const refusals = new Set(['CONTROL_PROVIDER_IDENTITY_UNVERIFIED', 'CONTROL_PROVIDER_QUOTA_UNAVAILABLE']);
 
 function fail(code) {

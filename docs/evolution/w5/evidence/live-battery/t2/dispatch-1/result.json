@@ -1,0 +1,82 @@
+{
+  "overall": "FAIL",
+  "allow_dispatch": true,
+  "max_requests": 2,
+  "steps": [
+    {
+      "id": "t2-baseline",
+      "title": "baseline clone is clean and the protected verifier rejects it",
+      "status": "PASS",
+      "detail": {
+        "verifier_exit": 1,
+        "pin": {
+          "schema_version": 1,
+          "verifier_script_sha256": "a4014c292e970198ae16f7ed60b2359dd73cfc7b04806caa72a4a8ed5d323523",
+          "test_file_sha256": "b8843e0f2808cc850ceeeee9fb916468c41af8e2198906882ce1e7d4ba95d25e",
+          "baseline_sha": "3d41dc4e199591b7fd7f1eb3e224b64cf5304570"
+        },
+        "pinned_at": "2026-10-18T15:44:57.452Z"
+      }
+    },
+    {
+      "id": "t2-contract",
+      "title": "managed-project task prepared on the clone (only the three adapter/executor files are writable)",
+      "status": "PASS",
+      "detail": {
+        "task_id": "05c27b6a-03f4-4a98-b8ec-705edd51be6e",
+        "write_scope": [
+          "tools/cli/lib/provider-native-adapter.js",
+          "tools/cli/lib/provider-claude-account-adapter.js",
+          "packages/agent-isolation-attestation/executor.js"
+        ],
+        "contract_sha256": "5a824448b29ed4c73a2bb3fa99c82cddb5be654a144fdeceb65ab761247c10ea",
+        "prompt_sha256": "32d7d4ed239a8bd2b6c6fbac8154ef83ae5c696883c001fa26f65e3ae62207d2",
+        "prompt_bytes": 6246
+      }
+    },
+    {
+      "id": "t2-campaign",
+      "title": "Claude binding inspected (no inference) and campaign opened under the cost ceiling",
+      "status": "PASS",
+      "detail": {
+        "binding_id": "binding:claude-w5-account",
+        "provider_version": "2.1.263",
+        "campaign_id": "4f304c40-d603-44a1-9450-1ccc41020162",
+        "authorization": {
+          "max_requests": 2,
+          "max_cost_microusd": 0,
+          "expires_in_min": 45,
+          "quota_exception": "Owner decision 2026-10-17, ver /build/tmp/hseos-w5/live/owner-decision.md; CLI sem janela de cota"
+        },
+        "inference_executed": false,
+        "ledger_kinds": ["opened", "intent", "done"],
+        "reserved_rows": 0
+      }
+    },
+    {
+      "id": "t2-dispatch",
+      "title": "model dispatch under the campaign ledger (reserve, then receipt)",
+      "status": "PASS",
+      "detail": {
+        "reference": "campaign://4f304c40-d603-44a1-9450-1ccc41020162/6a81d2c9-574c-4200-ba31-a832ab4ed381",
+        "receipt_status": "completed",
+        "input_tokens": 7436,
+        "output_tokens": 2410,
+        "committed_microusd": 0,
+        "dispatches": 1
+      }
+    },
+    {
+      "id": "t2-correction",
+      "title": "governed correction with the model plan (scoped patch, protected verifier, review, apply)",
+      "status": "FAIL",
+      "cause": "governed refusal: failed / session-not-completed"
+    },
+    {
+      "id": "t2-verdict",
+      "title": "protected verifier on the corrected clone (pin rechecked first)",
+      "status": "BLOCKED",
+      "cause": "depends on t2-correction"
+    }
+  ]
+}

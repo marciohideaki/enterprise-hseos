@@ -966,3 +966,21 @@ test('the seccomp descriptor leaves no filter directory behind on any failure pa
   assert.equal(openDescriptors(), descriptors, 'a failure after open does not leak the descriptor');
   context.after(() => mock.restoreAll());
 });
+
+test('structural guard (not behavioural): createResourceGroup takes its pids_max range from profiles', () => {
+  const source = fs.readFileSync(require.resolve('../packages/agent-isolation-attestation/executor'), 'utf8');
+  const code = source.replaceAll(/\/\*[\s\S]*?\*\//g, '').replaceAll(/\/\/.*$/gm, '');
+  const imports = [...code.matchAll(/const\s*\{([^}]*)\}\s*=\s*require\(\s*['"]\.\/profiles['"]\s*\)/g)];
+  assert.ok(imports.length > 0, 'executor imports from ./profiles');
+  const names = new Set(imports.flatMap((found) => found[1].split(',').map((name) => name.trim().split(':')[0].trim())));
+  assert.ok(names.has('LIMIT_FLOOR') && names.has('LIMIT_CEILING'), 'LIMIT_FLOOR and LIMIT_CEILING are imported from ./profiles');
+  const start = code.indexOf('function createResourceGroup(');
+  assert.notEqual(start, -1);
+  const end = code.indexOf('\nfunction ', start + 1);
+  const body = code.slice(start, end === -1 ? undefined : end);
+  const pids = body.split(/\r?\n/).filter((line) => line.includes('pids_max'));
+  assert.ok(pids.length > 0);
+  assert.ok(pids.some((line) => line.includes('LIMIT_FLOOR')) && pids.some((line) => line.includes('LIMIT_CEILING')));
+  for (const line of pids)
+    assert.doesNotMatch(line.replaceAll('_', ''), /(?<![\w.])(32|256)(?![\w.])/, `literal range bound: ${line.trim()}`);
+});

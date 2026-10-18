@@ -1,0 +1,51 @@
+You are changing three Node.js CommonJS files. Answer with ONE JSON array of tool calls and nothing else: no prose, no code fence.
+The array is executed as a script. No tool result is returned to you, so base every edit on the excerpts below.
+
+Objective:
+  A. In tools/cli/lib/provider-native-adapter.js and tools/cli/lib/provider-claude-account-adapter.js the setting `pids_max` is optional today, so a client started without it silently gets the executor default of 32 processes. Make `pids_max` REQUIRED in both settings schemas (keep the integer 32..256 literals; only remove `.optional()`). A refused configuration must make the factory throw an Error whose `code` is exactly CONTROL_PROVIDER_CONFIGURATION_INVALID, whose `message` is "CONTROL_PROVIDER_CONFIGURATION_INVALID: " followed by the original validation error's message (existing tests match text of that message, and for a missing `pids_max` it names the field), and whose `cause` is the original validation error. Do all of it inside the one block shown for each adapter: rename that schema constant (for example to `strictSettingsSchema`) and declare, right after it, an object named `settingsSchema` with a `parse(options)` method that calls the strict schema and rethrows as described, so the existing `settingsSchema.parse(options)` call in the factory stays untouched. Name the caught variable `error` (lint rule).
+  B. In packages/agent-isolation-attestation/executor.js, `createResourceGroup` hard-codes the process-limit range 32..256. LIMIT_FLOOR and LIMIT_CEILING (each with a `pids_max` field) are already exported by ./profiles. Add `const { LIMIT_FLOOR, LIMIT_CEILING } = require('./profiles');` followed by a blank line immediately before `function createResourceGroup`, and use LIMIT_FLOOR.pids_max for the default and the lower bound and LIMIT_CEILING.pids_max for the upper bound in that function, so no numeric literal of that range remains in the `pids_max` handling. Behaviour must not change: the same values are accepted and refused, with the same error. Do not touch the existing import line at the top of the file.
+Do not change the 32 and 256 literals in the adapter schemas, do not import ./profiles from the adapters, and add no files.
+
+Allowed to change: only tools/cli/lib/provider-native-adapter.js, tools/cli/lib/provider-claude-account-adapter.js, packages/agent-isolation-attestation/executor.js. Everything else is read-only; you may read packages/agent-isolation-attestation/profiles.js, test/test-provider-campaign-adapters.js, test/test-claude-account-adapter.js, test/test-acp-campaign-boundaries.js, test/test-isolation-profiles.js, hseos_w5/verify.mjs with engineering.read.
+Acceptance, run by a protected verifier after your patches are applied (from the repository root): `bash /build/tmp/hseos-w5/live/t2/verify-t2.sh`. It runs the relevant test files of the repository and the package surface test; all must pass. The test files already contain the cases for this change.
+
+<<<tools/cli/lib/provider-native-adapter.js (file sha256 dd9995507b38235b36528c537ea3972931250ef92f3308a5415638f9e001b136); the `before` is exactly the lines between the markers
+-----BEGIN-----
+const settingsSchema = z
+  .object({
+    pids_max: integer.min(32).max(256).optional(),
+    model: z.string().min(1).max(256),
+    memory_max_bytes: integer.min(268_435_456).max(2_147_483_648).optional(),
+    tasks: z.record(z.string().uuid(), z.object({ prompt: z.string().min(1).max(16_384) }).strict()),
+    environment: z.object({ HOME: z.string().min(1), PATH: z.string().min(1), CODEX_HOME: z.string().min(1).optional() }).strict(),
+  })
+  .strict();
+-----END-----
+tools/cli/lib/provider-native-adapter.js>>>
+
+<<<tools/cli/lib/provider-claude-account-adapter.js (file sha256 cb24c6ed7d05f5cb0a35d0ececfbc34254ae20cb09a6aae5c7235e290a15ee04); the `before` is exactly the lines between the markers
+-----BEGIN-----
+const settingsSchema = z
+  .object({
+    pids_max: integer.min(32).max(256).optional(),
+    model: z.string().min(1).max(256),
+    memory_max_bytes: integer.min(268_435_456).max(2_147_483_648).optional(),
+    persist_sessions: z.boolean().optional(),
+    tasks: z.record(z.string().uuid(), z.object({ prompt: z.string().min(1).max(16_384) }).strict()),
+    environment: z.object({ HOME: z.string().min(1), PATH: z.string().min(1), CLAUDE_CONFIG_DIR: z.string().min(1).optional() }).strict(),
+  })
+  .strict();
+-----END-----
+tools/cli/lib/provider-claude-account-adapter.js>>>
+
+<<<packages/agent-isolation-attestation/executor.js (file sha256 182231026ce499a2f73d1a8b98c1925647ddd7e29ffb57416a46952aab7f04fc); the `before` is exactly the lines between the markers
+-----BEGIN-----
+function createResourceGroup({ memory_max_bytes = 268_435_456, pids_max = 32 } = {}) {
+  if (!Number.isSafeInteger(pids_max) || pids_max < 32 || pids_max > 256)
+    throw new EngineeringIsolationError('Invalid finite process limit');
+-----END-----
+packages/agent-isolation-attestation/executor.js>>>
+
+Output format, exactly (one patch object per file, each with the sha256 of THAT file stated above; the engineering.read call is optional):
+[{"name":"engineering.read","input":{"path":"test/test-provider-campaign-adapters.js"}},{"name":"engineering.patch","input":{"path":"tools/cli/lib/provider-native-adapter.js","expected_sha256":"dd9995507b38235b36528c537ea3972931250ef92f3308a5415638f9e001b136","before":"<exact substring>","after":"<replacement>"}},{"name":"engineering.patch","input":{"path":"tools/cli/lib/provider-claude-account-adapter.js","expected_sha256":"cb24c6ed7d05f5cb0a35d0ececfbc34254ae20cb09a6aae5c7235e290a15ee04","before":"<exact substring>","after":"<replacement>"}},{"name":"engineering.patch","input":{"path":"packages/agent-isolation-attestation/executor.js","expected_sha256":"182231026ce499a2f73d1a8b98c1925647ddd7e29ffb57416a46952aab7f04fc","before":"<exact substring>","after":"<replacement>"}},{"name":"engineering.diff","input":{}}]
+Rules: exactly ONE engineering.patch per file (a second patch to the same file cannot know its new digest). Each `before` is the block shown for that file, copied exactly (it occurs once in the file); every change to that file goes into its `after`. Keep the change minimal and do not touch any other file.
