@@ -26,3 +26,8 @@ Reading rules:
 - Subscription receipts carry `cost_microusd: null`; `committed_microusd: 0` is not
   a measured cost.
 - Redaction: `owner` and `provider_session_id` are replaced by `<redacted>`.
+- Request allowance: a task can open more than one campaign. Record the sum of
+  authorised requests, the task ceiling from the owner decision and the real
+  consumption (T2: 3 authorised across two campaigns, ceiling 2, consumed 2).
+- `known_findings_not_fixed` lists review findings that were accepted without a
+  fix, with their locations.

@@ -495,7 +495,7 @@ test('native resource profile is pinned and reaches inspection and execution', a
   f.settings.pids_max = 128;
   assert.throws(f.create, { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' });
   f.settings.pids_max = 257;
-  assert.throws(f.create);
+  assert.throws(f.create, { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' });
   const result = await runCampaignProcess({
     args: [
       '-e',
@@ -537,6 +537,6 @@ test('native adapter keeps accepting and refusing explicit pids_max values', (t)
   for (const value of [31, 257, '64', Number.NaN, 32.5, null]) {
     const f = native(t, 'codex');
     f.settings.pids_max = value;
-    assert.throws(f.create);
+    assert.throws(f.create, { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' });
   }
 });

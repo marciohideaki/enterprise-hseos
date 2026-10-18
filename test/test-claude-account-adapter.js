@@ -39,7 +39,7 @@ test('configuration rejects unsafe or unpinned shapes', (t) => {
   for (const name of ['ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'CLAUDE_CODE_OAUTH_TOKEN', 'CLAUDE_CODE_USE_BEDROCK']) {
     const j = setup(t);
     j.settings.environment[name] = 'x';
-    assert.throws(() => j.create(), /unrecognized/i, name);
+    assert.throws(() => j.create(), { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID', message: /unrecognized/i }, name);
   }
 });
 
@@ -189,6 +189,6 @@ test('claude/account keeps accepting 32-256 and refusing out-of-range or non-int
   for (const value of [31, 257, '64', Number.NaN, 32.5, null]) {
     const f = setup(t);
     f.settings.pids_max = value;
-    assert.throws(() => f.create());
+    assert.throws(() => f.create(), { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' });
   }
 });

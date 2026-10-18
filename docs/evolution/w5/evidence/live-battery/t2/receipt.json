@@ -40,8 +40,9 @@
         "evidence": "dispatch-2/ledger-rows.json, dispatch-2/result.json"
       }
     ],
-    "requests_used_by_t2": "2 of 2 (two campaigns of the same task: max_requests 2, then 1; owner-decision.md allows 2 for T2)",
-    "battery_requests_after_t2": "2 of 12 (both belong to T2)"
+    "requests_used_by_t2": "2 of 2 consumed (two campaigns of the same task)",
+    "battery_requests_after_t2": "2 of 12 (both belong to T2)",
+    "campaign_allowance": "The campaigns together authorised 3 requests (max_requests 2, then 1) against the T2 ceiling of 2 in owner-decision.md; real consumption was 2. The unused allowance of the first campaign was carried over to the second campaign of the same wave, which the owner decision did not foresee (it says one ceiling per wave and no carry-over without a new confirmation); the Commander authorised the second campaign."
   },
   "real_work": {
     "description": "pids_max becomes required (integer 32-256) in the native (Codex, Claude) and claude-account campaign adapters with the stable refusal CONTROL_PROVIDER_CONFIGURATION_INVALID; the executor reads its pids_max range from the isolation profiles (LIMIT_FLOOR/LIMIT_CEILING). The three source files were written by the model through a governed patch; tests, fixtures, docs and this receipt were prepared by the executor beforehand or afterwards.",
@@ -251,5 +252,9 @@
     "a measured cost (the subscription route reports null)",
     "pids_peak or descendants_terminated for this task",
     "review by an independent skeptical reviewer"
+  ],
+  "known_findings_not_fixed": [
+    "require('./profiles') sits in the middle of executor.js (line 104, before createResourceGroup): it is the model output, kept as produced for fidelity to the governed patch",
+    "the structural guard of B covers only createResourceGroup; other copies of the 32-256 range remain (tools/cli/lib/engineering-task-contract.js:104, tools/lib/execution-plugin-manifest.js:27, packages/agent-isolation-attestation/profiles.js:67) and the guard would not catch them"
   ]
 }
