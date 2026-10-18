@@ -89,6 +89,7 @@ function adapterFixture(t) {
   const nativePath = path.join(f.root, 'native.yaml');
   fs.writeFileSync(nativePath, yaml.stringify(binding));
   const nativeOptions = {
+    pids_max: 64,
     model: f.value.model,
     tasks: { [taskId]: { prompt: 'READY' } },
     environment: { HOME: f.root, CODEX_HOME: f.root, PATH: '/usr/bin' },
@@ -285,4 +286,10 @@ test('launcher forwards only pinned startup configuration and propagates child f
   process.argv.push('unexpected');
   run();
   assert.equal(children.length, 1);
+});
+test('ACP campaign refuses native options without pids_max', (t) => {
+  const f = adapterFixture(t);
+  delete f.nativeOptions.pids_max;
+  f.pin();
+  assert.throws(f.create, (error) => error.code === 'CONTROL_PROVIDER_CONFIGURATION_INVALID' && /pids_max/.test(error.message));
 });

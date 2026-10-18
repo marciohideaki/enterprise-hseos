@@ -144,3 +144,26 @@ runs. Existing refusals gained `detail.code` labels without changing what they
 accept. To adapt a contract that is now refused, add protected `command_checks` or use a pinned
 module verifier, protect the configuration files the checks read, then submit it again. To roll back,
 return to the previous runtime; admitted tasks are unaffected.
+
+### `pids_max` is required for client campaign adapters (live battery T2)
+
+The `native` (Codex and Claude) and `claude-account` campaign adapters no longer
+accept a binding whose options omit `pids_max`. Before, an omitted value silently
+fell back to the executor default of 32 processes, which real clients exceed.
+
+- Behaviour: options without `pids_max` (an integer from 32 to 256) are refused
+  when the adapter is created, with `code: CONTROL_PROVIDER_CONFIGURATION_INVALID`.
+  The message starts with that code and carries the original validation message,
+  which names the field; the original error is kept as `cause`. The same applies
+  to `native_options` of the ACP adapter, which builds a native adapter. Values
+  outside 32-256 were already refused and still are.
+- Pinned digests: the artifact digest of the native adapter changes because the
+  files it covers changed, and `binding_sha256` changes whenever the options do.
+  Re-pin any stored manifest that names the old values.
+- Not affected: the Antigravity adapter keeps `pids_max` optional; the executor
+  accepts the same 32-256 range, now read from the isolation profiles instead of
+  being repeated in `executor.js`.
+- To adapt: add `pids_max` to the adapter options (the calibration notes in
+  `docs/evolution/w3/ADAPTERS-CAMPAIGN.md` recommend 256 until `pids_peak` is
+  measured), recompute the binding digest and submit the manifest again. To roll
+  back, return to the previous runtime.

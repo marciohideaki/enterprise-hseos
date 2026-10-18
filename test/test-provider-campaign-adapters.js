@@ -25,6 +25,7 @@ function native(t, vendor) {
   const d = temporary(t),
     id = randomUUID();
   const settings = {
+    pids_max: 64,
     model: 'pinned',
     tasks: { [id]: { prompt: 'ready' } },
     environment: { HOME: d, PATH: '/usr/bin', ...(vendor === 'codex' ? { CODEX_HOME: d } : {}) },
@@ -494,7 +495,7 @@ test('native resource profile is pinned and reaches inspection and execution', a
   f.settings.pids_max = 128;
   assert.throws(f.create, { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' });
   f.settings.pids_max = 257;
-  assert.throws(f.create);
+  assert.throws(f.create, { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' });
   const result = await runCampaignProcess({
     args: [
       '-e',
@@ -507,4 +508,35 @@ test('native resource profile is pinned and reaches inspection and execution', a
   });
   assert.equal(result.limit, '256');
   assert.equal(fs.existsSync(result.group), false);
+});
+for (const vendor of ['codex', 'claude'])
+  test(`${vendor} native adapter refuses omitted pids_max with a stable error that names the field`, (t) => {
+    const f = native(t, vendor);
+    delete f.settings.pids_max;
+    // Re-pin so only the missing field, not a digest mismatch, can make the factory refuse.
+    f.m.binding_sha256 = engineeringDigest({
+      binding: require(`../tools/cli/lib/delegated-${vendor}-runtime`).readBinding(f.filename),
+      options: f.settings,
+    });
+    assert.throws(
+      f.create,
+      (error) =>
+        error.code === 'CONTROL_PROVIDER_CONFIGURATION_INVALID' && /pids_max/.test(error.message) && /pids_max/.test(String(error.cause)),
+    );
+  });
+test('native adapter keeps accepting and refusing explicit pids_max values', (t) => {
+  for (const value of [32, 128, 256]) {
+    const f = native(t, 'codex');
+    f.settings.pids_max = value;
+    f.m.binding_sha256 = engineeringDigest({
+      binding: require('../tools/cli/lib/delegated-codex-runtime').readBinding(f.filename),
+      options: f.settings,
+    });
+    assert.doesNotThrow(f.create);
+  }
+  for (const value of [31, 257, '64', Number.NaN, 32.5, null]) {
+    const f = native(t, 'codex');
+    f.settings.pids_max = value;
+    assert.throws(f.create, { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' });
+  }
 });

@@ -41,7 +41,9 @@ O binding é um JSON com `binary`, `agent`, `catalog`, `catalog_sha256`, `model`
 `home`, `cwd` e `auth_source`. O catálogo contém exatamente um modelo, sem patch,
 shell, busca, ferramentas experimentais ou delegação. `home/auth.json` aponta para
 a referência de conta autorizada. As opções do adapter contêm `native_binding` e
-`native_options`, reutilizando o formato do adapter nativo. O manifesto fixa os
+`native_options`, reutilizando o formato do adapter nativo, inclusive o `pids_max`
+obrigatório (sem ele a composição é recusada com
+`CONTROL_PROVIDER_CONFIGURATION_INVALID`). O manifesto fixa os
 digests da composição, opções e artefatos. Configuração é propriedade do host;
 nenhuma dessas rotas é recebida de prompts.
 

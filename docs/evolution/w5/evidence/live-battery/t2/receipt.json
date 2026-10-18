@@ -1,0 +1,260 @@
+{
+  "schema": "hseos-live-battery-receipt/v1",
+  "task": "T2",
+  "capability": [
+    "FR10: isolamento (somente os limites de pids_max)",
+    "FR14: contrato de tarefa e aceite",
+    "FR15: projeto/sandbox de engenharia",
+    "FR11: superficie de campanha (ledger de despacho)"
+  ],
+  "base_sha": "eecfaa904b90fa878aa6bdf282cbdfff345a98b1",
+  "branch": "task/hseos-w5-live-t2",
+  "executor": {
+    "model": "claude-sonnet-5-5",
+    "route": "claude subscription",
+    "binding_id": "binding:claude-w5-account",
+    "dispatches": [
+      {
+        "attempt": 1,
+        "result": "FAIL",
+        "campaign_id": "4f304c40-d603-44a1-9450-1ccc41020162",
+        "command_id": "6a81d2c9-574c-4200-ba31-a832ab4ed381",
+        "max_requests": 2,
+        "receipt_status": "completed",
+        "tokens_in": 7436,
+        "tokens_out": 2410,
+        "cause": "(a) harness: contract limits.max_tokens 200000 (inherited from T1) was lower than the conservative per-step reservation with ~150 KB of read scope; the 5th model step could not be reserved (session.failed budget_exceeded, surfaced as session-not-completed). The plan itself was valid: a scripted replay without model on a copy of the clone, with max_tokens 400000, was approved.",
+        "evidence": "dispatch-1/ledger-rows.json, dispatch-1/result.json"
+      },
+      {
+        "attempt": 2,
+        "result": "PASS",
+        "campaign_id": "05b8f1f0-4879-41dc-a66c-e406705fb90f",
+        "command_id": "a28f1548-05fb-44bd-8d91-b020ce1e38b6",
+        "max_requests": 1,
+        "receipt_status": "completed",
+        "tokens_in": 7436,
+        "tokens_out": 2429,
+        "cost_microusd": null,
+        "committed_microusd": 0,
+        "evidence": "dispatch-2/ledger-rows.json, dispatch-2/result.json"
+      }
+    ],
+    "requests_used_by_t2": "2 of 2 consumed (two campaigns of the same task)",
+    "battery_requests_after_t2": "2 of 12 (both belong to T2)",
+    "campaign_allowance": "The campaigns together authorised 3 requests (max_requests 2, then 1) against the T2 ceiling of 2 in owner-decision.md; real consumption was 2. The unused allowance of the first campaign was carried over to the second campaign of the same wave, which the owner decision did not foresee (it says one ceiling per wave and no carry-over without a new confirmation); the Commander authorised the second campaign."
+  },
+  "real_work": {
+    "description": "pids_max becomes required (integer 32-256) in the native (Codex, Claude) and claude-account campaign adapters with the stable refusal CONTROL_PROVIDER_CONFIGURATION_INVALID; the executor reads its pids_max range from the isolation profiles (LIMIT_FLOOR/LIMIT_CEILING). The three source files were written by the model through a governed patch; tests, fixtures, docs and this receipt were prepared by the executor beforehand or afterwards.",
+    "pr": null,
+    "merged": false,
+    "is_synthetic": false,
+    "synthetic_reason": null,
+    "prompt_nature": "PRESCRIPTIVE: the prompt states the design (rename the schema, add a settingsSchema.parse wrapper, the exact require line and substitutions) and gives the exact blocks to replace. The dispatch proves the governed route (contract, scoped patch, protected verifier, ledger), NOT the ability of the model to design the solution.",
+    "prompt": {
+      "path": "prompt.txt",
+      "sha256": "32d7d4ed239a8bd2b6c6fbac8154ef83ae5c696883c001fa26f65e3ae62207d2",
+      "note": "file has no trailing newline; the CLI output of t2-prompt.mjs adds one (sha256 86a4994a4d907060b2047d4182044a2aa15220c3dc75f2df00ebef796e0066ce)"
+    }
+  },
+  "capability_use": [
+    {
+      "capability": "FR11: superficie de campanha",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "campaign ledger rows opened/reserved/receipt/done",
+        "source": "ledger",
+        "ref": "campaign://05b8f1f0-4879-41dc-a66c-e406705fb90f/a28f1548-05fb-44bd-8d91-b020ce1e38b6",
+        "sha256": "8fd27905101c617d757a1b97d7a890c43834744719a7c563e70665768019c82b"
+      },
+      "recorded_by": "system",
+      "asserted_by_script": "node assert-receipts.mjs (runs assertReceipts of test/journeys/w5-environment-journey.mjs over the rows): ok, 0 violations, 1 dispatch, 1 receipt",
+      "result": "PASS",
+      "limit": "proves reservation before receipt, cost ceiling and well-formed reference for one dispatch; the actor is always hseos/local-control, so it does not distinguish CLI, HTTP or SDK; the ledger copy is redacted (owner and provider_session_id)"
+    },
+    {
+      "capability": "FR14: contrato de tarefa e aceite",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "return value of runEngineeringTask captured by the harness (task_result approved, reason criteria-satisfied, review_sha256 8bd01646e0c4a34142c928e8601407ff848edd11c04d39ede282a0c17dc22bca)",
+        "source": "evidence",
+        "ref": "dispatch-2/result.json",
+        "sha256": "18b09ca150ef64e6009536cfa4a9aec15e061b3273e5349a618abe8baa1694bf"
+      },
+      "recorded_by": "agent_claim_only",
+      "asserted_by_script": "live-dispatch.mjs step t2-correction",
+      "result": "PASS",
+      "limit": "the engineering_task events and the task state were discarded by the harness after apply, so the approval is the value the script captured, not a retained ledger record; the in-sandbox acceptance check only compiles the three files and looks for their exports"
+    },
+    {
+      "capability": "FR14: aceite por verificador protegido",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "verifier exit and output on the corrected clone (104 tests, 0 failures) with the pin checked before and after the first reservation",
+        "source": "evidence",
+        "ref": "dispatch-2/verdict-verify.log.gz",
+        "sha256": "3ca13e4793fa4860531e70a0c6f8751dfd760e35f2aeb6ef0a11cd5e9ce32b2c"
+      },
+      "recorded_by": "system",
+      "asserted_by_script": "bash /build/tmp/hseos-w5/live/t2/verify-t2.sh (sha256 a4014c292e970198ae16f7ed60b2359dd73cfc7b04806caa72a4a8ed5d323523)",
+      "result": "PASS",
+      "limit": "the verifier also failed the baseline before dispatch (99 of 104 passed, 5 red cases; dispatch-2/baseline-verify.log.gz); coverage 90/80 per file measured on the clone: executor.js 96/87.31, provider-claude-account-adapter.js 100/88.33, provider-native-adapter.js 100/86.17 (dispatch-2/coverage.log.gz)"
+    },
+    {
+      "capability": "FR15: projeto/sandbox de engenharia",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "managed-project task: scope write limited to the three files, baseline_sha 3d41dc4e199591b7fd7f1eb3e224b64cf5304570, applied change set equal to the three files",
+        "source": "evidence",
+        "ref": "dispatch-2/result.json",
+        "sha256": "18b09ca150ef64e6009536cfa4a9aec15e061b3273e5349a618abe8baa1694bf"
+      },
+      "recorded_by": "agent_claim_only",
+      "asserted_by_script": "live-dispatch.mjs steps t2-contract and t2-correction",
+      "result": "PASS",
+      "limit": "same retention limit as above; the sandbox check result is not recorded as an event"
+    },
+    {
+      "capability": "FR10: isolamento (limite pids_max)",
+      "scenario": "adversarial",
+      "system_record": {
+        "kind": "tests that refuse an omitted, 31, 257, \"64\", NaN, 32.5 and null pids_max and accept 32, 128 and 256",
+        "source": "evidence",
+        "ref": "dispatch-2/verdict-verify.log.gz",
+        "sha256": "3ca13e4793fa4860531e70a0c6f8751dfd760e35f2aeb6ef0a11cd5e9ce32b2c"
+      },
+      "recorded_by": "system",
+      "asserted_by_script": "bash /build/tmp/hseos-w5/live/t2/verify-t2.sh",
+      "result": "PASS",
+      "limit": "proves the configuration limit only; no executor_signals.pids_peak or descendants_terminated record exists for this task because the model call is text-only; the structural guard of B (executor takes its range from profiles) is not behavioural"
+    },
+    {
+      "capability": "FR06: LSP",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "environment events go to an injected ledger callback that defaults to no-op, nothing persists them, and the campaign model only emits text"
+    },
+    {
+      "capability": "FR07: DAP",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "same as LSP"
+    },
+    {
+      "capability": "FR08: navegador",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "same as LSP; egress broker events are not persisted"
+    },
+    {
+      "capability": "FR09: computer-use",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "same as LSP; approval outcomes are not persisted"
+    },
+    {
+      "capability": "FR03: memoria",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "the engineering runtime fixes memory: [] and reads emit no event"
+    },
+    {
+      "capability": "FR05/FR13: MCP",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "the campaign model does not call MCP and the registry is not correlated with the task"
+    },
+    {
+      "capability": "FR04: compactacao/resume/fork",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "no production profile uses overflow_policy compact"
+    },
+    {
+      "capability": "FR01/FR02: contexto v2",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "sources[] is empty in real engineering tasks until T3"
+    }
+  ],
+  "cost": {
+    "committed_microusd": 0,
+    "cost_microusd_measured": null,
+    "tokens_in": 7436,
+    "tokens_out": 2429,
+    "wall_s": 208,
+    "note": "sob subscricao o recibo traz cost_microusd null; nao e custo medido. Figures are attempt 2; attempt 1 used 7436 in and 2410 out, wall 117 s. Session token accounting of attempt 2: conservative estimate 149089, total 149091 of max_tokens 400000."
+  },
+  "review": {
+    "reviewer": null,
+    "pinned_sha": null,
+    "pass1": null,
+    "pass2": null,
+    "rounds": 0,
+    "note": "skeptical review not performed yet"
+  },
+  "gates": {
+    "verify_t2": "PASS: verify-t2.sh coverage, exit 0; 104 of 104 tests; test-package-surface 1 of 1; c8 per file executor.js 96/87.31, provider-claude-account-adapter.js 100/88.33, provider-native-adapter.js 100/86.17 (lines/branches, thresholds 90/80)",
+    "kernel_quality": "PASS: npm run test:kernel-quality, 3 of 3",
+    "kernel_coverage": "PASS: npm run test:kernel-coverage, 828 tests pass, exit 0 with check-coverage 90/80 per file; the set (.c8-kernel.json) includes executor.js (97.14/92.25) and provider-native-adapter.js (100/86.17) but not provider-claude-account-adapter.js, which is covered by verify_t2 only",
+    "mutations": "NOT_RUN: the files touched are not in the kernel mutation set that was asked for in this step",
+    "npm_test": "NOT_RUN: full suite not run outside the commit hook (heavy-work rule); the hook runs the quality gates at commit",
+    "package_surface": "PASS: test/test-package-surface.js 1 of 1 (inside verify-t2 and as the pack check)",
+    "inventory_g3": "1538/1556; packages 137/137; tools 393/393; .agents 203; .enterprise 464; .hseos 63; docs/evolution/w5/evidence/live-battery in the pack: 0 (npm pack --dry-run --json --ignore-scripts, Node 24)",
+    "quality_gates": "PASS: scripts/governance/quality-gates.sh --phase ci, exit 0, no [FAIL]; 2 pre-existing WARN (unresolved placeholders in docs/activity-coordination/README.md and an epics template); docs/v4-migration.md is not flagged",
+    "format_lint": "PASS: prettier --check and eslint --max-warnings=0 on the 8 touched code and test files; prettier on docs/v4-migration.md reports lines 87 and 98, already so at HEAD, outside the lines added here; no gate checks markdown formatting (format:check and lint-staged cover js, cjs, mjs, json and yaml)",
+    "node24": "PASS: all touched tests run in verify-t2 and kernel-coverage",
+    "node22": "PASS for 6 of the 7 touched test files, 87 of 87 tests (v22.23.3); test/test-campaign-evidence.js NOT VERIFIED: better-sqlite3 is built for the Node 24 ABI (ERR_DLOPEN_FAILED), no rebuild attempted; the only change affecting it is the pids_max line in test/helpers/claude-account.js"
+  },
+  "protected_pins": {
+    "verifier_script_sha256": "a4014c292e970198ae16f7ed60b2359dd73cfc7b04806caa72a4a8ed5d323523",
+    "test_files_sha256": {
+      "test/helpers/claude-account.js": "a3aaae730e565d2cce06a0b39c6171a48d5aaf57aa688943590259a55a1b9495",
+      "test/test-acp-campaign-boundaries.js": "e9ebc85e964c69b6ae93209f99349ad8e5c73895c2962d933f847afe299d7549",
+      "test/test-claude-account-adapter.js": "ece020987365d3c4331fba94708600b328f2243da45670825444583072c630a0",
+      "test/test-isolation-profiles.js": "d4d521ecc94044eed2e4d8be5fd46016c3d517a6e19d774c0b3811700cbd5904",
+      "test/test-provider-campaign-adapters.js": "4ebb53b1e5c6766637225e9a9b5e4f3e77189341506e31a6cfb3481db012e613"
+    }
+  },
+  "redaction": "owner (pid, cgroup path) and provider_session_id are replaced by \"<redacted>\" in the repository copies of the ledger rows; no account digest appears in the rows; queue lines of unrelated heavy jobs were removed from the logs",
+  "product_findings": [
+    "(b) the conservative token counter (request bytes accumulated per step, packages/agent-runtime/runtime.js:499-506) rejects an acceptable session only at its last step, after the dispatch was spent, and budget_exceeded surfaces as session-not-completed with no hint",
+    "the managed-project contract refuses any file above 65536 characters (found in T1, not hit by T2; every T2 file is below it)",
+    "the structural guard for B is a source-text check, not behavioural; B preserves behaviour and has no honest red behavioural test"
+  ],
+  "does_not_prove": [
+    "that the model can design the change (the prompt was prescriptive)",
+    "LSP, DAP, browser, computer-use, memory, MCP, compaction and context v2 usage",
+    "a measured cost (the subscription route reports null)",
+    "pids_peak or descendants_terminated for this task",
+    "review by an independent skeptical reviewer"
+  ],
+  "known_findings_not_fixed": [
+    "require('./profiles') sits in the middle of executor.js (line 104, before createResourceGroup): it is the model output, kept as produced for fidelity to the governed patch",
+    "the structural guard of B covers only createResourceGroup; other copies of the 32-256 range remain (tools/cli/lib/engineering-task-contract.js:104, tools/lib/execution-plugin-manifest.js:27, packages/agent-isolation-attestation/profiles.js:67) and the guard would not catch them"
+  ]
+}
