@@ -173,7 +173,7 @@
     "test:schemas": "node test/test-agent-schema.js",
     "test:shared-infra-drift": "node --test --test-concurrency=1 test/test-shared-infra-drift.js",
     "test:smoke-install": "node test/smoke-install-emit.js",
-    "test:state": "node test/test-agent-state-dal.js && node --test --test-concurrency=1 test/test-operational-state-db.js test/test-execution-event-ledger.js test/test-execution-projections.js test/test-governed-execution-runtime.js && node test/test-state-cli.js && node test/test-state-render-lib.js && node test/test-state-ui.js && node test/test-kanban-cli.js && node test/test-state-purge.js && node test/test-kanban-central.js && node test/test-state-session.js",
+    "test:state": "node test/test-agent-state-dal.js && node --test --test-concurrency=1 test/test-operational-state-db.js test/test-execution-event-ledger.js test/test-execution-projections.js test/test-governed-execution-runtime.js && node test/test-state-cli.js && node test/test-state-render-lib.js && node test/test-state-ui.js && node test/test-state-ui-web.js && node test/test-kanban-cli.js && node test/test-state-purge.js && node test/test-kanban-central.js && node test/test-state-session.js",
     "test:state-emit-hook": "node test/test-state-emit-hook.js",
     "test:terminals": "node --test --test-concurrency=1 test/test-terminal-executor.js test/test-terminal-control.js test/test-terminal-api.js",
     "test:tool-runtime": "node --test --test-concurrency=1 test/test-tool-runtime.js",
