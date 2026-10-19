@@ -155,6 +155,13 @@ function stylePayload(card) {
   return [card.innerHTML, card.style.color, card.style.cssText].filter(Boolean).join('\n');
 }
 
+/** Values of the style attributes of the badge spans in a card. */
+function badgeStyles(card) {
+  return tokenize(card.innerHTML)
+    .filter((entry) => entry.tag === 'span' && entry.attributes.some((a) => a.name === 'class' && a.value === 'card-project'))
+    .flatMap((entry) => entry.attributes.filter((a) => a.name === 'style').map((a) => a.value));
+}
+
 const MALICIOUS_ID = 'x" onfocus="alert(1)" autofocus="';
 const MALICIOUS_COLOR = 'red;background:url(x)';
 const MALICIOUS_WAVE = '<img src=x onerror=1>';
@@ -220,8 +227,26 @@ test('control: a valid #rrggbb project color stays applied to border and badge',
   const view = createSandbox().render(taskState());
   const [card] = view.cards.pending;
   assert.equal(card.style.borderLeftColor, '#00d3ff');
-  assert.match(stylePayload(card), /#00d3ff/);
+  assert.deepEqual(badgeStyles(card), ['color:#00d3ff']);
   assert.match(card.innerHTML, /Project One/);
+});
+
+test('colour pattern: 3, 4 and 8 digit hexadecimal values, in either case, stay applied', () => {
+  for (const color of ['#fff', '#FFF', '#abcd', '#ABCDEF12', '#00D3ff']) {
+    const [card] = createSandbox().render(taskState({}, projectsMeta({ color }))).cards.pending;
+    assert.equal(card.style.borderLeftColor, color, `border for ${color}`);
+    assert.deepEqual(badgeStyles(card), [`color:${color}`], `badge for ${color}`);
+  }
+});
+
+test('colour pattern: out-of-range, unanchored and padded values are dropped from border and badge', () => {
+  const invalid = ['#ff', '#123456789', 'fff', 'x#fff', 'a#ffffff', ' #fff', '#fff ', '#fff\n', '#fff\r', '#ffg', '#', '', 'red', 42, null];
+  for (const color of invalid) {
+    const [card] = createSandbox().render(taskState({}, projectsMeta({ color }))).cards.pending;
+    assert.ok(!card.style.borderLeftColor, `border kept for ${JSON.stringify(color)}`);
+    assert.deepEqual(badgeStyles(card), [], `badge style kept for ${JSON.stringify(color)}`);
+    assert.match(card.innerHTML, /Project One/, 'the badge keeps its label');
+  }
 });
 
 test('control: project filter still narrows cards by stored project', () => {
@@ -279,6 +304,7 @@ test('P2: a malicious project color is not interpolated into a style', () => {
   const [card] = createSandbox().render(taskState({}, projectsMeta({ color: MALICIOUS_COLOR }))).cards.pending;
   const payload = stylePayload(card);
   assert.equal(/url\(|background/.test(payload), false, `style injected: ${payload}`);
+  assert.ok(!card.style.borderLeftColor, `border color kept: ${card.style.borderLeftColor}`);
   assert.deepEqual([...new Set(attributeNames(tokenize(card.innerHTML), 'span'))], ['class']);
 });
 
@@ -288,6 +314,7 @@ test('P2: quote and semicolon payloads in color cannot break out of the style at
     const spanAttributes = attributeNames(tokenize(card.innerHTML), 'span');
     assert.equal(spanAttributes.includes('onmouseover'), false, `injected handler for ${color}`);
     assert.equal(/position:fixed|url\(|x:y|expression/.test(stylePayload(card)), false, `style injected for ${color}`);
+    assert.ok(!card.style.borderLeftColor, `border color kept for ${color}`);
   }
 });
 

@@ -60,7 +60,7 @@
       "recorded_by": "system",
       "asserted_by_script": "live-dispatch.mjs step t4-dispatch (verifier pin checked before the first reservation and after the receipt)",
       "result": "PASS",
-      "limit": "proves reservation before receipt and the cost ceiling for one dispatch; the actor is always hseos/local-control; the ledger copy is redacted (owner and provider_session_id); assert-receipts.mjs was not run for T4"
+      "limit": "proves reservation before receipt and the cost ceiling for one dispatch; the ledger actor is hseos/provider-control on every row; the ledger copy is redacted (owner and provider_session_id); assert-receipts.mjs was not run for T4"
     },
     {
       "capability": "Auditoria de UI: escape de HTML",
@@ -74,7 +74,7 @@
       "recorded_by": "system",
       "asserted_by_script": "bash /build/tmp/hseos-w5/live/t4/verify-t4.sh (sha256 ab0a75d752ea06d0ef9a8e39acd4cdea991c0fe08e41f2a8e20a8b5f31d0c9e6)",
       "result": "PASS",
-      "limit": "string-level evidence: the markup is tokenised, not parsed by a browser; a real browser remains the final judge of XSS. style.borderLeftColor assigned through the DOM is not checked for invalid colors (it is harmless in a browser); the model happens to guard it too"
+      "limit": "string-level evidence: the markup is tokenised, not parsed by a browser; a real browser remains the final judge of XSS. the border color (style.borderLeftColor) is asserted only by the strengthened test added after the review, not by the test that judged the dispatch"
     },
     {
       "capability": "Auditoria de UI: escape de HTML (adversarial)",
@@ -219,15 +219,15 @@
     "note": "sob subscricao o recibo traz cost_microusd null; nao e custo medido. wall_s is reserved-to-receipt in the ledger (04:21:15.4 to 04:21:32.7 UTC). Session token accounting: conservative estimate 44491, total 44493 of max_tokens 400000."
   },
   "review": {
-    "reviewer": null,
-    "pinned_sha": null,
-    "pass1": null,
+    "reviewer": "independent skeptical reviewer",
+    "pinned_sha": "1a7c7c7117f2af5a3eba8d51e6cb8cdbee0f3aad",
+    "pass1": "APPROVED WITH RESERVATIONS: production code correct, no open vector; findings on the test",
     "pass2": null,
-    "rounds": 0,
-    "note": "skeptical review not performed yet"
+    "rounds": 1,
+    "note": "round 1 of correction: test strengthened (border color, regex bounds, exact badge style); 16 mutations of app.js (quotes, raw wave/id, regex anchors, {6}, {3,6}, {2,8}, {3,9}, no i flag, raw border color, raw badge color, ampersand) are all killed; the committed app.js, the model output and the reference solution pass; the base fails"
   },
   "gates": {
-    "verify_t4": "PASS: verify-t4.sh in the worktree after prettier, exit 0; test-state-ui-web.js 14 tests (+ test-state-ui.js 10 of 10); test-package-surface 1 of 1",
+    "verify_t4": "PASS: verify-t4.sh with the strengthened test (16 cases) on the committed app.js; the first commit passed with the 14-case test",
     "kernel_quality": "NOT_RUN: app.js and test-state-ui-web.js are not in the kernel set; package.json only gained a test:state entry",
     "kernel_coverage": "NOT_RUN: tools/state-ui-server/web/app.js is not in .c8-kernel.json (only lib/snapshot*.js of state-ui-server is)",
     "mutations": "NOT_RUN: not requested for this step",
@@ -242,20 +242,23 @@
   "protected_pins": {
     "verifier_script_sha256": "ab0a75d752ea06d0ef9a8e39acd4cdea991c0fe08e41f2a8e20a8b5f31d0c9e6",
     "test_files_sha256": {
-      "test/test-state-ui-web.js": "d3419ef6395365dca5eb406b0189aa0b39aab43eb21056214609bc78ab631016"
+      "test/test-state-ui-web.js": "deeaa9e0c0f1ed6a2a6a4c49d123f9f4b274fc75ebcea2ff72a742bf692acdb1"
     },
-    "note": "the harness pin (composite aa716f93efbd89173b3e44cd6b92feb96be77366804e49b62a0f964c72ad4b6a) also covers hseos_w5/verify.mjs and test/test-state-ui.js"
+    "note": "the dispatch was judged by test/test-state-ui-web.js with sha256 d3419ef6395365dca5eb406b0189aa0b39aab43eb21056214609bc78ab631016 (14 cases, pinned before the reservation). After the skeptical review (pass 1) the test was strengthened in a second commit (new sha256 deeaa9e0c0f1ed6a2a6a4c49d123f9f4b274fc75ebcea2ff72a742bf692acdb1, 16 cases: border color, boundaries of the colour pattern, exact badge style). The model's app.js (unformatted output and the committed prettier version) satisfies the strengthened test without any change. The harness pin (composite aa716f93efbd89173b3e44cd6b92feb96be77366804e49b62a0f964c72ad4b6a) was computed over the original test and also covers hseos_w5/verify.mjs and test/test-state-ui.js.",
+    "dispatch_judged_test_sha256": {
+      "test/test-state-ui-web.js": "d3419ef6395365dca5eb406b0189aa0b39aab43eb21056214609bc78ab631016"
+    }
   },
   "redaction": "owner (pid, cgroup path) and provider_session_id are replaced by \"<redacted>\" in the repository copies of the ledger rows; the heavy-run queue line was removed from the logs",
   "limitations": [
     "the prompt was prescriptive: it proves the governed route, not design ability",
     "evidence is by HTML string, without a browser; contrast, focus and aria were not exercised",
-    "style.borderLeftColor is not tested for invalid colors",
     "no coverage gate (app.js is outside .c8-kernel.json)",
     "a named color (for example red) would pass the tests; the prompt restricts the color to hexadecimal",
     "the governance console (tools/managed-governance-control-plane) was not audited in depth; its app.js only uses textContent/createElement",
     "browser and computer-use capabilities were NOT_EXERCISED",
-    "battery counter: 4 of 12 requests after T4 (T4 used 1 of its 2 authorised)"
+    "battery counter: 4 of 12 requests after T4 (T4 used 1 of its 2 authorised)",
+    "a named color (for example red) is rejected by the strengthened test as the prompt requires hexadecimal only; the original judging test would have accepted it"
   ],
   "product_findings": [
     "the defect was a real, deterministic HTML injection of low to medium severity in the kanban client: escapeHtml left quotes alone while used in a double-quoted attribute, and the project color, wave and agent id reached innerHTML unescaped; sources are the local projects.json registry and the project databases",
@@ -271,6 +274,7 @@
   ],
   "known_findings_not_fixed": [
     "the server sends no CSP header",
-    "accessibility findings (connection dot by color only, no aria-live, no reduced-motion query) are out of scope and unverified without a browser"
+    "accessibility findings (connection dot by color only, no aria-live, no reduced-motion query) are out of scope and unverified without a browser",
+    "the typeof string guard on the colour is not isolated by a dedicated test (an array such as ['#fff'] coerces to a matching string in RegExp.test); the review item is recorded without a fix"
   ]
 }
