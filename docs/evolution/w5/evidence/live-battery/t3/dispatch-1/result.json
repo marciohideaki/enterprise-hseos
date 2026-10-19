@@ -1,0 +1,107 @@
+{
+  "overall": "PASS",
+  "allow_dispatch": true,
+  "max_requests": 3,
+  "steps": [
+    {
+      "id": "t3-baseline",
+      "title": "baseline clone is clean and the protected verifier rejects it",
+      "status": "PASS",
+      "detail": {
+        "verifier_exit": 1,
+        "pin": {
+          "schema_version": 1,
+          "verifier_script_sha256": "d7b4730e5a4ca1b19c15be715f51e4607435fcf601368ace8737fc04ddccfd4a",
+          "test_file_sha256": "7ac99d6c9d607a50a08ab6ec4a275b71678c931fc63d840b4e57319c28bd8450",
+          "baseline_sha": "ecad6dede667d380d47a23f194bb48c73256663c"
+        },
+        "pinned_at": "2026-10-18T21:59:15.848Z"
+      }
+    },
+    {
+      "id": "t3-contract",
+      "title": "managed-project task prepared on the clone (only the runtime file is writable)",
+      "status": "PASS",
+      "detail": {
+        "task_id": "7568f86f-9a78-469d-b58f-ac05c00a827e",
+        "write_scope": [
+          "tools/cli/lib/engineering-task-runtime.js"
+        ],
+        "contract_sha256": "63f73031c2bfacafa91f057ec7de79219a999bf8c050c6a4dcb4ae5f25dbeb13",
+        "prompt_sha256": "ff04d532d959e6c4cc506722d638986aa296625e982fbdd797be0dfa9582c9ab",
+        "prompt_bytes": 5500
+      }
+    },
+    {
+      "id": "t3-campaign",
+      "title": "Claude binding inspected (no inference) and campaign opened under the cost ceiling",
+      "status": "PASS",
+      "detail": {
+        "binding_id": "binding:claude-w5-account",
+        "provider_version": "2.1.263",
+        "campaign_id": "067d72f8-854a-4b15-8dc6-b9a422b6571b",
+        "authorization": {
+          "max_requests": 3,
+          "max_cost_microusd": 0,
+          "expires_in_min": 45,
+          "quota_exception": "Owner decision 2026-10-17, ver /build/tmp/hseos-w5/live/owner-decision.md; CLI sem janela de cota"
+        },
+        "inference_executed": false,
+        "ledger_kinds": [
+          "opened",
+          "intent",
+          "done"
+        ],
+        "reserved_rows": 0
+      }
+    },
+    {
+      "id": "t3-dispatch",
+      "title": "model dispatch under the campaign ledger (reserve, then receipt)",
+      "status": "PASS",
+      "detail": {
+        "reference": "campaign://067d72f8-854a-4b15-8dc6-b9a422b6571b/fea4a8f3-4bdc-4913-b22d-5b412da6aeba",
+        "receipt_status": "completed",
+        "input_tokens": 6829,
+        "output_tokens": 2469,
+        "committed_microusd": 0,
+        "dispatches": 1
+      }
+    },
+    {
+      "id": "t3-correction",
+      "title": "governed correction with the model plan (scoped patch, protected verifier, review, apply)",
+      "status": "PASS",
+      "detail": {
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "response_names": [
+          "engineering.patch",
+          "engineering.diff"
+        ],
+        "token_accounting": {
+          "reported_input_tokens": 1,
+          "reported_output_tokens": 1,
+          "conservative_estimate_tokens": 80845,
+          "total_tokens": 80847,
+          "estimate_counter": "token-counter:utf8-byte-upper-bound"
+        },
+        "review_sha256": "fc292bf0c180339e3a529b55cae9793429da9bec0afea9353dec0da715c4f364",
+        "applied": true,
+        "changed_files": [
+          "tools/cli/lib/engineering-task-runtime.js"
+        ]
+      }
+    },
+    {
+      "id": "t3-verdict",
+      "title": "protected verifier on the corrected clone (pin rechecked first)",
+      "status": "PASS",
+      "detail": {
+        "verifier_exit": 0,
+        "coverage_gate_exit": 0,
+        "verifier_script_sha256": "d7b4730e5a4ca1b19c15be715f51e4607435fcf601368ace8737fc04ddccfd4a"
+      }
+    }
+  ]
+}
