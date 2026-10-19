@@ -96,9 +96,11 @@ test('evidence exposes context provenance and executor signals additively, equal
   assert.equal(evidence.verification.result, 'approved');
   assert.equal(evidence.task_result, result.task_result);
   assert.equal(evidence.contract_sha256, result.contract_sha256, 'v1 fields are untouched');
-  assert.deepEqual(evidence.context_provenance.sources, []);
-  assert.equal(evidence.context_provenance.context_contract, 'v1');
+  assert.equal(evidence.context_provenance.context_contract, 'v2');
   assert.ok(evidence.context_provenance.source_refs.length > 0);
+  assert.ok(evidence.context_provenance.sources.length >= 3);
+  assert.ok(evidence.context_provenance.sources.every((record) => evidence.context_provenance.source_refs.includes(record.source_ref)));
+  assert.ok(evidence.context_provenance.sources.every((record) => /^[0-9a-f]{64}$/.test(record.digest)));
   assert.deepEqual(evidence.executor_signals.unknown_signals, ['init', 'rate_limit', 'pids_peak', 'memory_peak_bytes']);
   assert.equal(evidence.executor_signals.init, null);
   assert.equal(evidence.executor_signals.rate_limit, null);
@@ -167,19 +169,22 @@ test('events carry provenance for context v2 and keep the exact v1 shape elsewhe
   await run(f);
   const before = await f.client.events(f.id, { limit: 1000 });
   assert.ok(before.events.length > 0);
-  for (const event of before.events) assert.equal('provenance' in event, false, 'v1 history is not rewritten');
+  const realTagged = before.events.filter((event) => event.provenance);
+  assert.ok(realTagged.length > 0, 'the real task assembles context v2');
+  assert.ok(realTagged.every((event) => event.provenance.every((record) => /^[0-9a-f]{64}$/.test(record.digest))));
   const sessionId = recordV2Session(f, 'surfaces-v2');
   const all = await f.client.events(f.id, { limit: 1000 });
   const tagged = all.events.filter((event) => event.provenance);
-  assert.equal(tagged.length, 1);
-  const byRef = new Map(tagged[0].provenance.map((record) => [record.source_ref, record]));
+  assert.equal(tagged.length, realTagged.length + 1);
+  const recorded = tagged.find((event) => event.provenance.some((record) => record.source_ref === 'source://reference-a'));
+  const byRef = new Map(recorded.provenance.map((record) => [record.source_ref, record]));
   assert.deepEqual(Object.keys(byRef.get('source://reference-a')).sort(), ['authority', 'digest', 'origin', 'source_ref', 'trust']);
   assert.equal(byRef.get('source://reference-a').origin, 'lsp');
   assert.equal(byRef.get('source://reference-a').trust, 'untrusted');
   assert.equal(byRef.get('source://reference-a').digest, sha('reference A'));
   assert.equal(byRef.get('memory://note').authority, 'data');
   assert.equal(byRef.get('governance://constitution/a').authority, 'directive');
-  assert.equal(JSON.stringify(tagged[0].provenance).includes('remembered'), false, 'provenance never carries content');
+  assert.equal(JSON.stringify(recorded.provenance).includes('remembered'), false, 'provenance never carries content');
   let after = 0;
   const combined = [];
   while (true) {
@@ -411,14 +416,17 @@ test('a task with a context-source extension is admitted and keeps its v1 lineag
   const result = await client.execute(command(id, 'resume', created.current_sequence));
   assert.equal(result.task_result, 'approved', JSON.stringify(result));
   const { context_provenance: provenance } = await client.provenance(id);
-  // The engineering runtime still assembles context v1: sources declare no authority, so none is invented. The lineage stays visible.
-  assert.equal(provenance.context_contract, 'v1', JSON.stringify(provenance));
-  assert.deepEqual(provenance.sources, []);
+  // The engineering runtime declares authority and provenance for its own sources, so the real task assembles context v2.
+  assert.equal(provenance.context_contract, 'v2', JSON.stringify(provenance));
   assert.ok(provenance.source_refs.length > 0 && provenance.source_refs.every((ref) => typeof ref === 'string'));
+  assert.ok(provenance.sources.length >= 3 && provenance.sources.every((record) => provenance.source_refs.includes(record.source_ref)));
+  assert.ok(
+    provenance.sources.every((record) => record.authority && record.origin && record.trust && /^[0-9a-f]{64}$/.test(record.digest)),
+  );
   const events = await client.events(id, { limit: 1000 });
   assert.equal(
     events.events.some((event) => event.provenance),
-    false,
+    true,
   );
   assert.equal(JSON.stringify(provenance).includes('reference note'), false);
 });

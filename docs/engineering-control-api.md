@@ -82,8 +82,10 @@ criado diretamente; `status` não traz `evidence`.
   (linhagem do último `context.assembled`) e `sources[]` com `source_ref`, `authority`, `origin`,
   `digest` e `trust`. Nunca carrega conteúdo. Sessões v1 devolvem `sources: []`; nenhuma
   autoridade é inventada para fontes que não a declararam.
-  Limitação conhecida: `sources[]` fica vazio para tasks reais até o runtime emitir
-  `context.assembled` v2; só `source_refs` (linhagem) aparece.
+  O runtime de engenharia declara `authority` e `provenance` das próprias fontes (constituição e
+  projeto: `directive`, `config`, `trusted`; critérios protegidos: `data`, `config`, `untrusted`),
+  então tasks reais emitem `context.assembled` v2 com `sources[]` preenchido. Fontes de extensão
+  seguem sem declaração (autoridade derivada da camada).
 - `executor_signals` (`schema_version:1`): `pids_peak`, `memory_peak_bytes`, `init` e `rate_limit`.
   Um sinal sem fonte persistida vale `null` e aparece em `unknown_signals`; `init` e `rate_limit`
   ainda não têm fonte no recibo do executor e são sempre declarados desconhecidos.

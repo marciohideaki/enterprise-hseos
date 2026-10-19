@@ -1,0 +1,260 @@
+{
+  "schema": "hseos-live-battery-receipt/v1",
+  "task": "T3",
+  "capability": [
+    "FR01/FR02: contexto v2 (authority/provenance nas fontes do runtime)",
+    "FR14: contrato de tarefa e aceite",
+    "FR15: projeto/sandbox de engenharia",
+    "FR11: superficie de campanha (ledger de despacho)"
+  ],
+  "base_sha": "7a5a12fdc84f2ad67e07825b9b6120b851396245",
+  "dispatch_baseline_sha": "eecfaa904b90fa878aa6bdf282cbdfff345a98b1",
+  "branch": "task/hseos-w5-live-t3",
+  "executor": {
+    "model": "claude-sonnet-5-5",
+    "route": "claude subscription",
+    "binding_id": "binding:claude-w5-account",
+    "dispatches": [
+      {
+        "attempt": 1,
+        "result": "PASS",
+        "campaign_id": "067d72f8-854a-4b15-8dc6-b9a422b6571b",
+        "command_id": "fea4a8f3-4bdc-4913-b22d-5b412da6aeba",
+        "max_requests": 3,
+        "receipt_status": "completed",
+        "tokens_in": 6829,
+        "tokens_out": 2469,
+        "cost_microusd": null,
+        "committed_microusd": 0,
+        "evidence": "dispatch-1/ledger-rows.json, dispatch-1/result.json"
+      }
+    ],
+    "requests_used_by_t3": "1 of 3 authorised (one campaign)",
+    "battery_requests_after_t3": "3 of 12 (2 from T2, 1 from T3)"
+  },
+  "real_work": {
+    "description": "The engineering runtime declares authority and provenance for its own context sources: constitution (policy://engineering/v1) and project (profile://engineering/candidate) as directive/config/trusted, protected-criteria as data/config/untrusted, each with the sha256 digest of its exact content. Real tasks now emit context.assembled v2 with sources[]. The production change in tools/cli/lib/engineering-task-runtime.js was written by the model through one governed patch; tests, docs and this receipt were prepared by the executor.",
+    "pr": null,
+    "merged": false,
+    "is_synthetic": false,
+    "synthetic_reason": null,
+    "prompt_nature": "PRESCRIPTIVE: the prompt states the design (local helper in the resolver, exact provenance fields, the crypto call, no conditionals) and gives the exact block to replace. The dispatch proves the governed route (contract, scoped patch, protected verifier, ledger), NOT the ability of the model to design the solution.",
+    "prompt": {
+      "path": "prompt.txt",
+      "sha256": "ff04d532d959e6c4cc506722d638986aa296625e982fbdd797be0dfa9582c9ab",
+      "note": "file has no trailing newline; the CLI output of t3-prompt.mjs adds one"
+    },
+    "formatting": "The model output was not formatted. prettier --write was run on tools/cli/lib/engineering-task-runtime.js after applying it (re-indentation of the returned object and wrapping of the declareSource calls). The ASTs of the model output and of the formatted file are identical (espree, locations and raw stripped, hash eb7399538e5284b30b1003ebd96d0b1b386165bad2783027993d9e1209e6dd46); the verifier was run on the formatted file in the worktree (verify_t3 below). dispatch-1/model-patch.diff is the unformatted model output."
+  },
+  "capability_use": [
+    {
+      "capability": "FR11: superficie de campanha",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "campaign ledger rows opened/intent/done/reserved/receipt/done",
+        "source": "ledger",
+        "ref": "campaign://067d72f8-854a-4b15-8dc6-b9a422b6571b/fea4a8f3-4bdc-4913-b22d-5b412da6aeba",
+        "sha256": "5b334f1b4113ca90a3162b291c7b555dfe4135ceac3bad3563e48295cc086354"
+      },
+      "recorded_by": "system",
+      "asserted_by_script": "live-dispatch.mjs step t3-dispatch (verifier pin checked before the first reservation and after the receipt)",
+      "result": "PASS",
+      "limit": "proves reservation before receipt and the cost ceiling for one dispatch; the actor is always hseos/local-control; the ledger copy is redacted (owner and provider_session_id); assert-receipts.mjs was not run for T3"
+    },
+    {
+      "capability": "FR01/FR02: contexto v2",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "tests over the persisted context.assembled events of real engineering tasks: assembly_contract hseos.context/v2, sources[] with authority/origin/trust/digest of the exact content, and context_contract v2 over HTTP/SDK/CLI evidence",
+        "source": "evidence",
+        "ref": "dispatch-1/verdict-verify.log.gz",
+        "sha256": "4b0bcf5e04bfac6afe4e87d0b510395b44ea640b414cbfebe85bc33cb3416d09"
+      },
+      "recorded_by": "system",
+      "asserted_by_script": "bash /build/tmp/hseos-w5/live/t3/verify-t3.sh (sha256 d7b4730e5a4ca1b19c15be715f51e4607435fcf601368ace8737fc04ddccfd4a)",
+      "result": "PASS",
+      "limit": "the tests run the engineering runtime with scripted responses; the model dispatch itself is text-only and did not exercise v2 context at inference time. From the second assembly of a session, sources[] also lists session-event:// history refs. Extension sources stay undeclared (authority derived from the layer)."
+    },
+    {
+      "capability": "FR01/FR02: contexto v2 (autoridade)",
+      "scenario": "adversarial",
+      "system_record": {
+        "kind": "tests: protected-criteria never trusted or directive; a changed criteria text changes only its own digest; the authority boundary refuses a trusted data declaration (AGENT_CONTEXT_TRUST_ESCALATION) and a wrong digest (AGENT_CONTEXT_PROVENANCE_DIGEST_MISMATCH); every source carries a 64-hex digest",
+        "source": "evidence",
+        "ref": "dispatch-1/verdict-verify.log.gz",
+        "sha256": "4b0bcf5e04bfac6afe4e87d0b510395b44ea640b414cbfebe85bc33cb3416d09"
+      },
+      "recorded_by": "system",
+      "asserted_by_script": "bash /build/tmp/hseos-w5/live/t3/verify-t3.sh",
+      "result": "PASS",
+      "limit": "the adversarial 'source without digest is refused' is covered only indirectly: the digest refusal is exercised at the authority boundary (control, passes on the base) and every emitted source is asserted to carry a digest; no test makes the runtime itself emit a digestless source. The dispatch was not adversarial."
+    },
+    {
+      "capability": "FR14: aceite por verificador protegido",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "verifier exit and output on the corrected clone (85 tests, 0 failures, package surface 1 of 1) with the pin checked before and after the first reservation; the baseline was rejected (85 tests, 8 red)",
+        "source": "evidence",
+        "ref": "dispatch-1/verdict-verify.log.gz",
+        "sha256": "4b0bcf5e04bfac6afe4e87d0b510395b44ea640b414cbfebe85bc33cb3416d09"
+      },
+      "recorded_by": "system",
+      "asserted_by_script": "bash /build/tmp/hseos-w5/live/t3/verify-t3.sh",
+      "result": "PASS",
+      "limit": "also measured on the clone: engineering-task-runtime.js 91.29 lines / 80.36 branches (dispatch-1/verdict-coverage.log.gz); in the worktree after prettier 91.4 / 80.36"
+    },
+    {
+      "capability": "FR14: contrato de tarefa e aceite",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "return value of runEngineeringTask captured by the harness (task_result approved, reason criteria-satisfied, review_sha256 fc292bf0c180339e3a529b55cae9793429da9bec0afea9353dec0da715c4f364)",
+        "source": "evidence",
+        "ref": "dispatch-1/result.json",
+        "sha256": "12f50f2e0aa29041d1efe6c285ed838ae85b267aa2c63d18f2ae97605fc41a3e"
+      },
+      "recorded_by": "agent_claim_only",
+      "asserted_by_script": "live-dispatch.mjs step t3-correction",
+      "result": "PASS",
+      "limit": "the task state was discarded by the harness after apply, so the approval is the value the script captured, not a retained ledger record; the in-sandbox acceptance check only compiles the file and looks for two exports"
+    },
+    {
+      "capability": "FR15: projeto/sandbox de engenharia",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "managed-project task: write scope limited to tools/cli/lib/engineering-task-runtime.js, baseline_sha ecad6dede667d380d47a23f194bb48c73256663c (clone), applied change set equal to that one file",
+        "source": "evidence",
+        "ref": "dispatch-1/result.json",
+        "sha256": "12f50f2e0aa29041d1efe6c285ed838ae85b267aa2c63d18f2ae97605fc41a3e"
+      },
+      "recorded_by": "agent_claim_only",
+      "asserted_by_script": "live-dispatch.mjs steps t3-contract and t3-correction",
+      "result": "PASS",
+      "limit": "same retention limit as above"
+    },
+    {
+      "capability": "FR06: LSP",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "environment events are not persisted and the campaign model only emits text"
+    },
+    {
+      "capability": "FR07: DAP",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "same as LSP"
+    },
+    {
+      "capability": "FR08: navegador",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "same as LSP"
+    },
+    {
+      "capability": "FR09: computer-use",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "same as LSP"
+    },
+    {
+      "capability": "FR03: memoria",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "the engineering runtime fixes memory: []"
+    },
+    {
+      "capability": "FR05/FR13: MCP",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "the campaign model does not call MCP"
+    },
+    {
+      "capability": "FR04: compactacao/resume/fork",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "no production profile uses overflow_policy compact; resume of a task created before this change (v1 history) is not exercised"
+    }
+  ],
+  "cost": {
+    "committed_microusd": 0,
+    "cost_microusd_measured": null,
+    "tokens_in": 6829,
+    "tokens_out": 2469,
+    "wall_s": 17,
+    "note": "sob subscricao o recibo traz cost_microusd null; nao e custo medido. wall_s is reserved-to-receipt in the ledger (21:59:17.8 to 21:59:34.6). Session token accounting: conservative estimate 80845, total 80847 of max_tokens 400000."
+  },
+  "review": {
+    "reviewer": null,
+    "pinned_sha": null,
+    "pass1": null,
+    "pass2": null,
+    "rounds": 0,
+    "note": "skeptical review not performed yet"
+  },
+  "gates": {
+    "verify_t3": "PASS: verify-t3.sh coverage in the worktree after prettier, exit 0; 85 of 85 tests; test-package-surface 1 of 1; c8 per file engineering-task-runtime.js 91.4/80.36 (lines/branches, thresholds 90/80); base coverage before the change 91.17/80.30",
+    "kernel_quality": "PASS: npm run test:kernel-quality, 3 of 3",
+    "kernel_coverage": "PASS: npm run test:kernel-coverage, exit 0 with check-coverage 90/80 per file; first suite 836 of 836; the set (.c8-kernel.json) includes engineering-task-runtime.js (97.87/92.66)",
+    "mutations": "NOT_RUN: not requested for this step",
+    "npm_test": "NOT_RUN: full suite not run outside the commit hook (heavy-work rule)",
+    "package_surface": "PASS: test/test-package-surface.js 1 of 1 (alone, and inside verify-t3)",
+    "inventory_g3": "1538/1556; packages 137/137; tools 393/393; .agents 203; .enterprise 464; .hseos 63; docs/evolution/w5/evidence/live-battery in the pack: 0 (npm pack --dry-run --json --ignore-scripts, Node 24)",
+    "quality_gates": "PASS: scripts/governance/quality-gates.sh --phase ci, exit 0, no [FAIL]; 2 pre-existing WARN (placeholders in docs/activity-coordination/README.md and an epics template)",
+    "format_lint": "PASS: prettier --check and eslint --max-warnings=0 on tools/cli/lib/engineering-task-runtime.js, test/test-engineering-task-runtime.js and test/test-environment-surfaces.js; the inline require('node:crypto') in the model output passes the repository lint rules; no gate checks markdown formatting",
+    "node24": "PASS: all touched tests run in verify-t3 and kernel-coverage",
+    "node22": "NOT VERIFIED: v22.23.3 fails with ERR_DLOPEN_FAILED (better-sqlite3 is built for the Node 24 ABI); no rebuild attempted"
+  },
+  "protected_pins": {
+    "verifier_script_sha256": "d7b4730e5a4ca1b19c15be715f51e4607435fcf601368ace8737fc04ddccfd4a",
+    "test_files_sha256": {
+      "test/test-engineering-task-runtime.js": "665a4a2149c3d6d053350ef64b43bdb27c057cefe1c504207f7e58d8b677ab10",
+      "test/test-environment-surfaces.js": "101d6e947074e818412f7777953e44cd6c2e274a99d8f3a1a550e8da5c54ea98"
+    },
+    "note": "the two test files are the version pinned before dispatch (clone baseline ecad6ded); the pin of the harness also covers hseos_w5/verify.mjs, test-engineering-control.js and test-agent-context-authority.js (composite 7ac99d6c9d607a50a08ab6ec4a275b71678c931fc63d840b4e57319c28bd8450)"
+  },
+  "redaction": "owner (pid, cgroup path) and provider_session_id are replaced by \"<redacted>\" in the repository copies of the ledger rows; queue lines of unrelated heavy jobs were removed from the logs",
+  "limitations": [
+    "the prompt was prescriptive: it proves the governed route, not design ability",
+    "retrieved_at of the three sources is the conventional constant 1970-01-01T00:00:00.000Z (approved by the owner): the resolver receives no occurred_at and the constant keeps the event stable between a task and its resume; no test fixes the value and the public projection does not expose it",
+    "the adversarial 'source without digest is refused' is covered only indirectly (see capability_use)",
+    "branch coverage margin of engineering-task-runtime.js is 0.36 point over the 80 threshold: one uncovered branch in a future change can fail the per-file gate",
+    "only the context v2 functional requirement was exercised by the change; FR03 to FR09 and FR13 were not",
+    "battery counter: 3 of 12 requests after T3 (T3 used 1 of its 3 authorised)",
+    "a task created before this change and resumed after it would mix v1 and v2 events in one session; resume across the change is not tested"
+  ],
+  "product_findings": [
+    "the model output needed prettier: the governed route applies a patch as produced and nothing formats it",
+    "from the second assembly of a session, sources[] also lists session-event:// history refs next to the three runtime sources"
+  ],
+  "does_not_prove": [
+    "that the model can design the change (the prompt was prescriptive)",
+    "LSP, DAP, browser, computer-use, memory, MCP and compaction usage",
+    "a measured cost (the subscription route reports null)",
+    "review by an independent skeptical reviewer",
+    "behaviour of a resume across the v1 to v2 change"
+  ],
+  "known_findings_not_fixed": [
+    "require('node:crypto') is called inline inside the helper (model output kept for fidelity to the governed patch; the repository lint accepts it)",
+    "the evidence-catalogue of the battery (outside the repository) still describes real tasks as v1"
+  ]
+}

@@ -31,3 +31,10 @@ Reading rules:
   consumption (T2: 3 authorised across two campaigns, ceiling 2, consumed 2).
 - `known_findings_not_fixed` lists review findings that were accepted without a
   fix, with their locations.
+
+## Index
+
+| Task | Receipt | Dispatches | Battery requests after the task |
+| --- | --- | --- | --- |
+| T2 | `t2/receipt.json` | 2 campaigns, 2 requests (attempt 1 FAIL by harness, attempt 2 PASS) | 2 of 12 |
+| T3 | `t3/receipt.json` | 1 campaign, 1 of 3 authorised requests (PASS) | 3 of 12 |
