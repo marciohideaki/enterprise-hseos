@@ -997,3 +997,23 @@ test('a pin belongs to one project root, and a store that moves while it is veri
   assert.throws(() => verifyPnpmStoreMount(moving.root), { reason: 'PROJECT_STORE_DRIFT' });
   assert.equal(moved, true);
 });
+
+test('a project file is read whole up to 262144 characters; four large files at most, within 1 MiB together', (t) => {
+  const snapshot = (files) => {
+    const f = fixture(t, { files: { 'index.js': 'module.exports = (n) => n + 1;\n' } });
+    for (const [name, content] of Object.entries(files)) fs.writeFileSync(path.join(f.root, name), content);
+    f.contract.scope.read = Object.keys(files);
+    f.contract.max_artifact_bytes = 2_097_152;
+    return () => projectWorkspaceSnapshot(f.contract);
+  };
+  const lines = (length) => `${'x'.repeat(length - 1)}\n`;
+  assert.equal(snapshot({ 'index.js': lines(262_144) })().files[0].content.length, 262_144);
+  assert.throws(snapshot({ 'index.js': lines(262_145) }), { reason: 'PROJECT_FILE_TOO_LARGE' });
+  const many = (count, size = 70_000) => Object.fromEntries(Array.from({ length: count }, (_, i) => [`f${i}.js`, lines(size)]));
+  assert.equal(snapshot(many(4))().files.length, 4);
+  assert.throws(snapshot(many(5)), { reason: 'PROJECT_FILE_TOO_LARGE', file: 'f4.js' });
+  assert.equal(snapshot(many(8, 65_536))().files.length, 8);
+  const wide = (name) => ({ [name]: 'é'.repeat(262_144) });
+  assert.equal(snapshot({ ...wide('a.js'), ...wide('b.js') })().files.length, 2);
+  assert.throws(snapshot({ ...wide('a.js'), ...wide('b.js'), ...wide('c.js') }), { reason: 'PROJECT_FILE_TOO_LARGE', file: 'c.js' });
+});

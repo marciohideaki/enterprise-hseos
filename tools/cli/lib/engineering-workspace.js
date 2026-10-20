@@ -208,6 +208,8 @@ function workspaceSnapshot(contract, root) {
     throw projectRejection('PROJECT_WORKSPACE_UNSAFE', 'Unsafe project workspace');
   }
   let bytes = 0;
+  let largeFiles = 0;
+  let largeBytes = 0;
   const files = contract.scope.read.map((name) => {
     if (!isProjectPath(name)) throw projectRejection('PROJECT_PATH_INVALID', 'Invalid project path');
     const store = isStorePath(name);
@@ -249,8 +251,16 @@ function workspaceSnapshot(contract, root) {
       if (store && before.nlink > 1) assertContentAddressed(pnpmStoreDirectory(root), before, buffer.subarray(0, length), name);
       const content = new TextDecoder('utf-8', { fatal: true }).decode(buffer.subarray(0, length));
       // The contract holds a file whole or not at all: a longer file is refused, never cut.
+      // Only a project's own file may be large; a store file keeps the plain limit.
+      const limit = store ? PROJECT_LIMITS.file_chars : PROJECT_LIMITS.large_file_chars;
+      if (content.length > limit) {
+        throw projectRejection('PROJECT_FILE_TOO_LARGE', `Project file exceeds ${limit} characters`, name);
+      }
       if (content.length > PROJECT_LIMITS.file_chars) {
-        throw projectRejection('PROJECT_FILE_TOO_LARGE', `Project file exceeds ${PROJECT_LIMITS.file_chars} characters`, name);
+        largeFiles += 1;
+        largeBytes += length;
+        if (largeFiles > PROJECT_LIMITS.large_files_max || largeBytes > PROJECT_LIMITS.large_files_bytes)
+          throw projectRejection('PROJECT_FILE_TOO_LARGE', 'Large project files exceed their count or byte budget', name);
       }
       return { path: name, content, sha256: digest(buffer.subarray(0, length)) };
     } catch (error) {
