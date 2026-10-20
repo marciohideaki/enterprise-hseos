@@ -254,7 +254,7 @@ gate_code_light() {
     stem="${source%.*}"
     while IFS= read -r importer; do
       [[ -n "${importer}" ]] && tests+=("${importer}")
-    done < <(git -C "${REPO_ROOT}" grep -lF -e "${stem}" -- 'test/*.js' 'test/*.cjs' 'test/*.mjs' 'test/*.sh' ':!test/fixtures' 2>/dev/null || true)
+    done < <(git -C "${REPO_ROOT}" grep -lF -e "${stem}" -- 'test/*.js' 'test/*.cjs' 'test/*.mjs' 'test/*.sh' ':!test/fixtures' ':!test/journeys' 2>/dev/null || true)
   done
 
   local -a unique_tests=()
