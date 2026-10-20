@@ -498,11 +498,17 @@ class AgentRuntime {
   #startStep(state, turn, request, sourceEventIds, active) {
     const index = turn.model_steps.length;
     const stepId = stableId('step', state.session_id, turn.turn_id, index);
-    const projected = tokenUsage(state) + Buffer.byteLength(canonicalJson(request), 'utf8') + request.parameters.max_output_tokens;
+    const used = tokenUsage(state);
+    const requestBytes = Buffer.byteLength(canonicalJson(request), 'utf8');
+    const reserve = request.parameters.max_output_tokens;
+    const projected = used + requestBytes + reserve;
     if (projected > state.spec.limits.max_tokens) {
       return this.#fail(
         state,
-        { code: 'budget_exceeded', message: 'session token budget cannot reserve another model step' },
+        {
+          code: 'budget_exceeded',
+          message: `session token budget cannot reserve another model step: projected ${projected} > max ${state.spec.limits.max_tokens} (used ${used} + request ${requestBytes} + reserve ${reserve})`,
+        },
         active,
         'token-budget',
       );

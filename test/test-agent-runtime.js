@@ -126,7 +126,12 @@ function toolDefinition() {
   };
 }
 
-function modelRoutes({ slow = false, calls = null } = {}) {
+function modelRoutes({
+  slow = false,
+  calls = null,
+  toolStepUsage = null,
+  finalUsage = { input_tokens: 20, output_tokens: 3, cached_tokens: 0 },
+} = {}) {
   return [
     {
       match: (request) => request.messages.at(-1).role === 'user',
@@ -140,6 +145,7 @@ function modelRoutes({ slow = false, calls = null } = {}) {
               event_type: 'tool_call.delta',
               payload: { tool_call_id: 'call:echo-1', name: 'fixture.echo', arguments_delta: '{"value":"durable"}' },
             },
+            ...(toolStepUsage ? [{ event_type: 'usage', payload: toolStepUsage }] : []),
             { event_type: 'completed', payload: { finish_reason: 'tool_calls', provider_response_ref: 'scripted://tool' } },
           ],
     },
@@ -152,7 +158,7 @@ function modelRoutes({ slow = false, calls = null } = {}) {
         assert.match(request.messages.at(-1).content, /durable/);
         return [
           { event_type: 'content.delta', payload: { text: 'verified external state' } },
-          { event_type: 'usage', payload: { input_tokens: 20, output_tokens: 3, cached_tokens: 0 } },
+          { event_type: 'usage', payload: finalUsage },
           { event_type: 'completed', payload: { finish_reason: 'stop', provider_response_ref: 'scripted://done' } },
         ];
       },
@@ -818,6 +824,16 @@ test('duration, token, tool and implementation caps terminate without unbounded 
   context.after(() => oversized.db.close());
   const invalid = spec('session:oversized', { max_tool_calls: RUNTIME_CAPS.max_tool_calls + 1 });
   await assert.rejects(() => oversized.runtime.create(createCommand(invalid)), /safety cap/);
+});
+
+test('a projected overflow fails before the step opens and reports the numbers', async (context) => {
+  const fixture = setup({ limits: { max_tokens: 1500 } });
+  context.after(() => fixture.db.close());
+  await fixture.runtime.create(createCommand(fixture.sessionSpec));
+  await fixture.runtime.send(sendCommand());
+  const failure = fixture.sessionStore.replay('session:loop').terminal_event.payload;
+  assert.equal(failure.error_code, 'budget_exceeded');
+  assert.match(failure.message, /projected \d+ > max 1500 \(used \d+ \+ request \d+ \+ reserve 64\)/);
 });
 
 test('unknown sessions, delegated ownership, concurrent sends and stale resume fail closed', async (context) => {
