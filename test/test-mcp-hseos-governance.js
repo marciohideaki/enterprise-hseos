@@ -16,6 +16,9 @@ const { freePort } = require('./helpers/free-port');
 const REPO_ROOT = path.join(__dirname, '..');
 const SERVER = path.join(REPO_ROOT, 'tools', 'mcp-hseos-governance', 'index.js');
 
+// Legacy compatibility ends at the sunset by the wall clock; the spawned server starts inside the window.
+const LEGACY_WINDOW_CLOCK = path.join(__dirname, 'helpers', 'legacy-window-clock.cjs');
+
 let pass = 0;
 let fail = 0;
 
@@ -105,6 +108,25 @@ const { applyExecutionLedgerFixtureSchema } = require('../tools/mcp-project-stat
 const { createExecutionEventRegistry } = require('../tools/lib/governed-execution/event-registry');
 const { deterministicOperationId } = require('../tools/lib/governed-execution/runtime');
 
+// In-process counterpart of the legacy-window-clock preload: the adapter reads `new Date()`, so for the duration
+// of `fn` a no-argument Date is placed inside the legacy window and then restored.
+async function withLegacyWindowClock(fn) {
+  const RealDate = Date;
+  const base = RealDate.parse('2026-08-21T12:00:00.000Z');
+  const started = performance.now();
+  const pinnedNow = () => base + Math.round(performance.now() - started);
+  globalThis.Date = new Proxy(RealDate, {
+    construct: (target, args, newTarget) =>
+      args.length === 0 ? Reflect.construct(target, [pinnedNow()], newTarget) : Reflect.construct(target, args, newTarget),
+    get: (target, prop, receiver) => (prop === 'now' ? pinnedNow : Reflect.get(target, prop, receiver)),
+  });
+  try {
+    return await fn();
+  } finally {
+    globalThis.Date = RealDate;
+  }
+}
+
 async function withEnv(patch, fn) {
   const saved = Object.fromEntries(Object.keys(patch).map((key) => [key, process.env[key]]));
   for (const [key, value] of Object.entries(patch)) {
@@ -168,28 +190,30 @@ async function runGovernedUnitTests() {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-w5-04-inproc-'));
     const databasePath = path.join(dir, 'project.db');
     const logs = [];
-    await withEnv({ NODE_ENV: 'test', HSEOS_GOVERNED_EXECUTION_FIXTURE: '1' }, async () => {
-      const handle = startNativeMcpServer({
-        serverId: 'swarm',
-        tools: new Map([['list_runs', { name: 'list_runs', description: 'd', inputSchema: { type: 'object' } }]]),
-        invokeTool: async () => ({ runs: [] }),
-        mode: 'http',
-        port: 0,
-        dbPath: databasePath,
-        log: (line) => logs.push(line),
-      });
-      try {
-        await new Promise((resolve) => (handle.server.listening ? resolve() : handle.server.once('listening', resolve)));
-        const port = handle.server.address().port;
-        await assert.rejects(() => rpc(port, 'tools/call', { name: 'ghost', arguments: {} }), /Unknown tool/);
-        const rows = handle.db.prepare("SELECT payload_json FROM execution_events WHERE aggregate_type = 'mcp_gateway'").all();
-        assert.equal(rows.length, 1);
-        assert.equal(JSON.parse(rows[0].payload_json).error.code, 'MCP_TOOL_UNKNOWN');
-      } finally {
-        await handle.close();
-        await handle.close();
-      }
-    });
+    await withLegacyWindowClock(() =>
+      withEnv({ NODE_ENV: 'test', HSEOS_GOVERNED_EXECUTION_FIXTURE: '1' }, async () => {
+        const handle = startNativeMcpServer({
+          serverId: 'swarm',
+          tools: new Map([['list_runs', { name: 'list_runs', description: 'd', inputSchema: { type: 'object' } }]]),
+          invokeTool: async () => ({ runs: [] }),
+          mode: 'http',
+          port: 0,
+          dbPath: databasePath,
+          log: (line) => logs.push(line),
+        });
+        try {
+          await new Promise((resolve) => (handle.server.listening ? resolve() : handle.server.once('listening', resolve)));
+          const port = handle.server.address().port;
+          await assert.rejects(() => rpc(port, 'tools/call', { name: 'ghost', arguments: {} }), /Unknown tool/);
+          const rows = handle.db.prepare("SELECT payload_json FROM execution_events WHERE aggregate_type = 'mcp_gateway'").all();
+          assert.equal(rows.length, 1);
+          assert.equal(JSON.parse(rows[0].payload_json).error.code, 'MCP_TOOL_UNKNOWN');
+        } finally {
+          await handle.close();
+          await handle.close();
+        }
+      }),
+    );
     assert.ok(logs.some((line) => line.includes('governed MCP listening')));
     fs.rmSync(dir, { recursive: true, force: true });
   });
@@ -355,7 +379,7 @@ async function runGovernedUnitTests() {
 
   const port = await freePort();
   const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-governance-state-'));
-  const child = spawn(process.execPath, [SERVER, `--port=${port}`], {
+  const child = spawn(process.execPath, ['-r', LEGACY_WINDOW_CLOCK, SERVER, `--port=${port}`], {
     stdio: ['ignore', 'pipe', 'pipe'],
     env: {
       ...process.env,
