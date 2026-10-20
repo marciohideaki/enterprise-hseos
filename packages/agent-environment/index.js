@@ -1,5 +1,7 @@
 'use strict';
 
+const { randomUUID } = require('node:crypto');
+
 const lsp = require('./lsp');
 
 // Pins are loaded on first use so requiring this package never touches the toolchain cache.
@@ -86,8 +88,86 @@ function createDefaultComputerService({ policy, toolchain, approvals, mediaStore
   });
 }
 
+const SINK_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u;
+const REDACTED = '[redacted]';
+
+function sinkFail(message, code = 'ENV_LEDGER_SINK_INVALID') {
+  return Object.assign(new Error(message), { code });
+}
+
+function redactCredentials(value, containsCredential) {
+  if (typeof value === 'string') return containsCredential(value) ? REDACTED : value;
+  if (Array.isArray(value)) return value.map((item) => redactCredentials(item, containsCredential));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, nested]) => [key, redactCredentials(nested, containsCredential)]));
+  }
+  return value;
+}
+
+/**
+ * The `ledger` callback of the environment services, bound to the execution ledger. Each loose `{ type, ...}` event is
+ * appended to the `environment_session` stream of one session with its actor and correlation; string values that look
+ * like credentials are redacted before they reach the ledger. An append failure (version conflict, unregistered type,
+ * sensitive field) is thrown, never swallowed, so the service decides: a mutating action fails closed on it.
+ */
+function createEnvironmentLedgerSink({
+  ledger,
+  project_id,
+  actor,
+  session_id,
+  correlation_id = session_id,
+  operation_id = null,
+  containsCredential,
+  now = () => new Date(),
+} = {}) {
+  if (!ledger || typeof ledger.append !== 'function' || typeof ledger.getVersion !== 'function') {
+    throw sinkFail('environment ledger sink requires the execution ledger');
+  }
+  for (const [name, value] of Object.entries({ project_id, session_id, correlation_id })) {
+    if (typeof value !== 'string' || value.length === 0) throw sinkFail(`environment ledger sink requires a non-empty ${name}`);
+  }
+  if (!actor || typeof actor !== 'object' || Array.isArray(actor)) throw sinkFail('environment ledger sink requires an actor object');
+  if (operation_id !== null && (typeof operation_id !== 'string' || operation_id.length === 0)) {
+    throw sinkFail('environment ledger sink operation_id must be a non-empty string or null');
+  }
+  if (containsCredential !== undefined && typeof containsCredential !== 'function') {
+    throw sinkFail('environment ledger sink containsCredential must be a function');
+  }
+  if (typeof now !== 'function') throw sinkFail('environment ledger sink now must be a function');
+  const scan = containsCredential ?? require('../../tools/cli/lib/campaign-evidence-store').containsCredential;
+  let causation = correlation_id;
+  return (event) => {
+    if (!event || typeof event !== 'object' || typeof event.type !== 'string' || event.type.length === 0) {
+      throw sinkFail('environment event requires a type', 'ENV_LEDGER_SINK_EVENT_INVALID');
+    }
+    const { type, at, ...rest } = event;
+    const eventId = randomUUID();
+    const result = ledger.append({
+      aggregate_type: 'environment_session',
+      aggregate_id: session_id,
+      expected_version: ledger.getVersion('environment_session', session_id),
+      events: [
+        {
+          event_id: eventId,
+          event_type: type,
+          schema_version: 1,
+          occurred_at: typeof at === 'string' && SINK_ISO.test(at) ? at : now().toISOString(),
+          correlation_id,
+          causation_id: causation,
+          actor,
+          operation_id,
+          payload: { project_id, ...redactCredentials(rest, scan) },
+        },
+      ],
+    });
+    causation = eventId;
+    return result;
+  };
+}
+
 const api = {
   ...lsp,
+  createEnvironmentLedgerSink,
   createDefaultLspService,
   createDefaultDapService,
   createDefaultBrowserService,
