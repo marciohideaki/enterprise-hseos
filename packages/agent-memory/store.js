@@ -10,6 +10,7 @@ const {
   admitWrite,
   assertEntryInputFields,
   assertNoCredential,
+  memoryDeleteOperation,
   normalizeActor,
   normalizeEntry,
   normalizeReason,
@@ -86,9 +87,10 @@ function foldEvents(events) {
  */
 class MemoryStore {
   /**
-   * @param {{ledger: object, scanCredential: (text: string) => boolean, now?: () => number, maxTtlSeconds?: number}} options
+   * `approvalVerifier` is host code that consumes the single-use approval backing a deletion and returns `true`.
+   * @param {{ledger: object, scanCredential: (text: string) => boolean, now?: () => number, maxTtlSeconds?: number, approvalVerifier?: Function}} options
    */
-  constructor({ ledger, scanCredential, now = Date.now, maxTtlSeconds = MAX_TTL_SECONDS }) {
+  constructor({ ledger, scanCredential, now = Date.now, maxTtlSeconds = MAX_TTL_SECONDS, approvalVerifier = null }) {
     if (!ledger || typeof ledger.append !== 'function' || typeof ledger.readStream !== 'function') {
       throw new AgentMemoryError('memory requires the execution ledger', 'AGENT_MEMORY_LEDGER_REQUIRED');
     }
@@ -96,6 +98,7 @@ class MemoryStore {
     this.scanCredential = scanCredential;
     this.now = now;
     this.maxTtlSeconds = maxTtlSeconds;
+    this.approvalVerifier = approvalVerifier;
     this._projection = new Map();
   }
 
@@ -185,8 +188,10 @@ class MemoryStore {
   }
 
   /**
-   * Explicit operator command (`host.actor` must be the authenticated operator): the entry stops being retrievable and
-   * the deletion is a ledger event. The ledger is append-only, so the content itself stays in earlier events.
+   * Explicit operator command (`host.actor` must be the authenticated operator) backed by a single-use approval bound
+   * to this memory (`memory.delete` requires approval in the execution contract). The approval is verified by the
+   * host-injected `approvalVerifier`, never read from `input`; without one the deletion is refused. The entry stops
+   * being retrievable and the deletion is a ledger event. The ledger is append-only, so the content itself stays in earlier events.
    */
   forget({ project_id: projectId, memory_id: memoryId, reason = 'operator command' }, { actor } = {}) {
     requireIdentifier(projectId, 'project_id');
@@ -201,9 +206,28 @@ class MemoryStore {
     if (!record || record.status === 'deleted') {
       throw new AgentMemoryError('memory entry does not exist', 'AGENT_MEMORY_NOT_FOUND', { memory_id: memoryId });
     }
+    this._consumeDeleteApproval(projectId, memoryId, resolvedActor);
     this._append(projectId, state, undefined, resolvedActor, [
       { type: EVENTS.DELETED, memory_id: memoryId, payload: { reason: safeReason } },
     ]);
+  }
+
+  _consumeDeleteApproval(projectId, memoryId, actor) {
+    const { operation, operation_id, resource_scope } = memoryDeleteOperation(projectId, memoryId);
+    const refuse = (cause) => {
+      throw new AgentMemoryError('deleting memory needs a single-use approval for this operation', 'AGENT_MEMORY_APPROVAL_REQUIRED', {
+        operation: operation_id,
+        ...(cause ? { cause } : {}),
+      });
+    };
+    if (typeof this.approvalVerifier !== 'function') refuse();
+    let confirmed;
+    try {
+      confirmed = this.approvalVerifier({ operation, operation_id, resource_scope, actor });
+    } catch (error) {
+      refuse(typeof error?.code === 'string' ? error.code : 'VERIFIER_FAILED');
+    }
+    if (confirmed !== true) refuse();
   }
 
   _isExpired(record, nowMs) {

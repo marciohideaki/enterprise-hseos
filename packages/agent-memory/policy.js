@@ -30,6 +30,7 @@ const ENTRY_INPUT_FIELDS = Object.freeze([
   'ttl_seconds',
   'supersedes',
 ]);
+const DELETE_OPERATION = 'memory.delete';
 const IDENTIFIER = /^[a-z0-9][a-z0-9._:-]{0,159}$/;
 const SHA256 = /^[0-9a-f]{64}$/;
 // eslint-disable-next-line no-control-regex -- Reject control characters at the untrusted protocol boundary.
@@ -175,8 +176,48 @@ function admitWrite({ rules = [], approved = false, execution_mode = 'default' }
   return `rule:${outcome.deciding_rule_id}`;
 }
 
+/** The operation a deletion approval is bound to: the contract name plus the exact project and memory. */
+function memoryDeleteOperation(projectId, memoryId) {
+  requireIdentifier(projectId, 'project_id');
+  requireIdentifier(memoryId, 'memory_id');
+  return Object.freeze({
+    operation: DELETE_OPERATION,
+    operation_id: `${DELETE_OPERATION}:${projectId}:${memoryId}`,
+    resource_scope: Object.freeze({ project_id: projectId, memory_id: memoryId }),
+  });
+}
+
+/**
+ * Host-side verifier for `forget`: consumes, once, the approval the host resolved for this exact operation from an
+ * `ExecutionApprovalStore`. `resolveApprovalId` is host code; the model never supplies the approval id.
+ */
+function createExecutionApprovalVerifier({ approvalStore, resolveApprovalId, policyVersion = 'hseos-operational-v1', now = Date.now }) {
+  if (typeof approvalStore?.consume !== 'function' || typeof resolveApprovalId !== 'function') {
+    throw new AgentMemoryError('the verifier needs an approval store and a host resolver', 'AGENT_MEMORY_APPROVAL_REQUIRED');
+  }
+  if (typeof policyVersion !== 'string' || policyVersion.length === 0) {
+    throw new AgentMemoryError('the verifier needs a policy version', 'AGENT_MEMORY_APPROVAL_REQUIRED');
+  }
+  return ({ operation_id: operationId, resource_scope: resourceScope, actor }) => {
+    const approvalId = resolveApprovalId({ operation_id: operationId, resource_scope: resourceScope, actor });
+    if (typeof approvalId !== 'string' || approvalId.length === 0) {
+      throw new AgentMemoryError('no approval was issued for this operation', 'AGENT_MEMORY_APPROVAL_REQUIRED');
+    }
+    approvalStore.consume({
+      approval_id: approvalId,
+      operation_id: operationId,
+      resource_scope: resourceScope,
+      policy_version: policyVersion,
+      now: new Date(now()).toISOString(),
+    });
+    return true;
+  };
+}
+
 module.exports = {
   AUTHORITY,
+  createExecutionApprovalVerifier,
+  memoryDeleteOperation,
   AgentMemoryError,
   CLASSIFICATIONS,
   CONTRACT,
