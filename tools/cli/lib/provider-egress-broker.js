@@ -253,8 +253,9 @@ function createUnixSocketFetch(socketPath) {
   }
   // The broker admits a single connection (server.maxConnections = 1), so every request of this
   // fetch shares one pooled socket instead of relying on the runtime's default agent policy.
+  // An abandoned SSE body holds the next request until the broker timeout (min(remaining, 60 s)), then ECONNRESET.
   const agent = new http.Agent({ keepAlive: true, maxSockets: 1 });
-  return async (_url, init = {}) =>
+  const unixSocketFetch = async (_url, init = {}) =>
     new Promise((resolve, reject) => {
       const request = http.request(
         {
@@ -285,6 +286,8 @@ function createUnixSocketFetch(socketPath) {
       }
       request.end(init.body);
     });
+  unixSocketFetch.destroy = () => agent.destroy();
+  return unixSocketFetch;
 }
 
 module.exports = {
