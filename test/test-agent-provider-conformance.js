@@ -82,7 +82,12 @@ test('actual manifests and checked binding templates generate an honest provider
   }
 });
 
-test('canonical local runner verifies only the canonical provider inventory', { timeout: 120_000 }, () => {
+// This test runs every canonical suite (18 distinct files, deduplicated across providers, one child process
+// each, including the 42-test engineering task runtime that spawns its own workers). Measured: ~83 s local
+// (23 s for 17 suites + 60 s for the engineering runtime) and 94-120+ s on 2-vCPU hosted runners, where the
+// 120 s limit was hit. The cost is inherent to what is proved; the timeout is sized at ~2.5x the worst
+// observed run so a loaded runner does not read as a defect.
+test('canonical local runner verifies only the canonical provider inventory', { timeout: 300_000 }, () => {
   const report = buildAgentProviderConformance({ root: ROOT, verify: true });
   assert.equal(
     report.status,
