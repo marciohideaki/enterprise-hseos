@@ -109,6 +109,10 @@ function redactCredentials(value, containsCredential) {
  * appended to the `environment_session` stream of one session with its actor and correlation; string values that look
  * like credentials are redacted before they reach the ledger. An append failure (version conflict, unregistered type,
  * sensitive field) is thrown, never swallowed, so the service decides: a mutating action fails closed on it.
+ *
+ * Concurrency: `expected_version` is read immediately before the append, which protects against a race with another
+ * process (the conflict is thrown) but does not serialize two sinks on the same `session_id`. The causation chain is
+ * per sink. Redaction scans string values only; the ledger itself refuses known sensitive keys (password, token, ...).
  */
 function createEnvironmentLedgerSink({
   ledger,
@@ -156,7 +160,8 @@ function createEnvironmentLedgerSink({
           causation_id: causation,
           actor,
           operation_id,
-          payload: { project_id, ...redactCredentials(rest, scan) },
+          // The sink's project is applied last: an event can never claim another project.
+          payload: { ...redactCredentials(rest, scan), project_id },
         },
       ],
     });

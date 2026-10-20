@@ -694,3 +694,9 @@ test('environment ledger sink records the computer approval outcome event regist
   assert.equal(event.event_type, 'environment.computer.approval_outcome');
   assert.equal(event.payload.outcome, 'granted');
 });
+
+test('environment ledger sink never lets an event claim another project', () => {
+  const { ledger } = setup();
+  sinkOf(ledger)({ type: 'environment.lsp.completed', project_id: 'beta' });
+  assert.equal(ledger.readStream('environment_session', 'session-1')[0].payload.project_id, 'alpha');
+});
