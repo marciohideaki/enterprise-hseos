@@ -53,7 +53,7 @@ test('the CI fan-in keeps the check names that branch protection requires', () =
 const gateSource = fs.readFileSync(path.join(ROOT, 'scripts/governance/quality-gates.sh'), 'utf8');
 const light = gateSource.slice(gateSource.indexOf('gate_code_light()'), gateSource.indexOf('\ngate_code() {'));
 
-function runLight(files) {
+function runLight(files, { max = 40 } = {}) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-light-hook-'));
   try {
     const git = (...args) => execFileSync('git', ['-C', directory, ...args], { encoding: 'utf8' });
@@ -67,6 +67,7 @@ function runLight(files) {
     write('test/test-package-surface.js', '');
     write('test/test-uses-lib.js', "require('../tools/lib/thing');\n");
     write('test/test-unrelated.js', '');
+    write('test/test-zzz.js', '');
     write('tools/lib/thing.js', '');
     write('README.md', '');
     git('add', '-A');
@@ -81,7 +82,7 @@ pass() { printf 'PASS %s\\n' "$*"; }
 record_fail() { printf 'FAIL %s\\n' "$*"; }
 run_node_check() { printf 'CHECK %s\\n' "$*"; }
 gate_passed=true
-HSEOS_HOOK_MAX_TESTS=40
+HSEOS_HOOK_MAX_TESTS=${max}
 ${light}
 gate_code_light
 `;
@@ -120,4 +121,54 @@ test('light is the default only for the code phase; other phases and --full keep
   assert.match(gateSource, /code\)\n\s+GATE_CODE_MODE="\$\{HSEOS_HOOK_MODE\}"/);
   assert.match(gateSource, /GATE_CODE_MODE:-full/);
   assert.match(gateSource, /--full\) HSEOS_HOOK_MODE="full"/);
+});
+
+test('light hook: staged test files run before the tests that cite a staged source file', () => {
+  const output = runLight([
+    ['tools/lib/thing.js', '// changed\n'],
+    ['test/test-zzz.js', '// changed\n'],
+  ]);
+  assert.match(output, /test\/test-zzz\.js test\/test-uses-lib\.js test\/test-package-surface\.js/);
+});
+
+test('light hook: past the ceiling it fails and points at --full instead of running a subset', () => {
+  const files = [
+    ['test/test-unrelated.js', '// changed\n'],
+    ['test/test-zzz.js', '// changed\n'],
+  ];
+  const over = runLight(files, { max: 1 });
+  assert.match(over, /FAIL Light hook: 2 test files .*ceiling 1.*--full/);
+  assert.doesNotMatch(over, /CHECK node --test/);
+  const atCeiling = runLight(files, { max: 2 });
+  assert.doesNotMatch(atCeiling, /FAIL/);
+  assert.match(atCeiling, /CHECK node --test/);
+});
+
+test('light mode with nothing staged runs the complete Gate 3', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-light-empty-'));
+  try {
+    fs.writeFileSync(path.join(directory, 'package.json'), '{}');
+    execFileSync('git', ['-C', directory, 'init', '-q']);
+    const gate = gateSource.slice(gateSource.indexOf('gate_code_light()'), gateSource.indexOf('gate_security()'));
+    const harness = `
+set -euo pipefail
+info() { :; }
+warn() { :; }
+pass() { printf 'PASS %s\\n' "$*"; }
+record_fail() { printf 'FAIL %s\\n' "$*"; }
+run_node_check() { printf 'CHECK %s\\n' "$*"; }
+node() { return 0; }
+GATE_CODE_MODE=light
+${gate}
+gate_code
+`;
+    const output = execFileSync('bash', ['-c', harness], {
+      encoding: 'utf8',
+      env: { ...process.env, REPO_ROOT: directory, LOG_FILE: path.join(directory, 'gate.log') },
+    });
+    assert.match(output, /CHECK npm run lint/);
+    assert.match(output, /CHECK npm test/);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
 });

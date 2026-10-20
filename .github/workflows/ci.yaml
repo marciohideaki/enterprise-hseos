@@ -7,6 +7,9 @@ on:
   pull_request:
     branches: [master, "feature/**"]
 
+permissions:
+  contents: read
+
 # One run per ref and event: a newer push cancels the superseded run on task/feature branches and PRs.
 # Master pushes are never cancelled, so every merged commit keeps its own result.
 concurrency:

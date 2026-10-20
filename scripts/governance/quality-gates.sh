@@ -191,8 +191,8 @@ run_node_check() (
 # Light Gate 3 (pre-commit): everything here is cheap and deterministic; whatever it leaves out is in the CI suite.
 #  - lint + prettier: staged files only (the whole tree when eslint/package config is staged);
 #  - tests: staged test files run as they are; for a staged source file, every test file under test/ that mentions
-#    its repo-relative path (extension dropped) runs. A direct textual match, not a dependency graph: indirect
-#    importers are covered by CI, not here;
+#    its repo-relative path (extension dropped) runs, after the staged ones. A direct textual match, not a dependency
+#    graph: indirect importers are covered by CI, not here. Past HSEOS_HOOK_MAX_TESTS the gate fails (use --full);
 #  - G3: test/test-package-surface.js always runs (the 393/137 file budgets must never reach CI red).
 # Tests that need the shared Postgres (test/managed-governance/postgres.integration.test.js) skip without
 # HSEOS_GOVERNANCE_TEST_DATABASE_URL; the hook neither opens a tunnel nor counts that skip as a pass: CI runs it
@@ -259,11 +259,14 @@ gate_code_light() {
 
   local -a unique_tests=()
   if [[ ${#tests[@]} -gt 0 ]]; then
-    while IFS= read -r file; do [[ -n "${file}" ]] && unique_tests+=("${file}"); done < <(printf '%s\n' "${tests[@]}" | sort -u)
+    while IFS= read -r file; do [[ -n "${file}" ]] && unique_tests+=("${file}"); done < <(printf '%s\n' "${tests[@]}" | awk '!seen[$0]++')
   fi
+  # Order is staged test files first, then the tests that cite a staged source file. Never a silent subset: past the
+  # ceiling the gate fails and asks for the complete local gate (or CI).
   if [[ ${#unique_tests[@]} -gt ${HSEOS_HOOK_MAX_TESTS} ]]; then
-    warn "Light hook: ${#unique_tests[@]} test files match; running the first ${HSEOS_HOOK_MAX_TESTS}, the rest is CI's (HSEOS_HOOK_MAX_TESTS)"
-    unique_tests=("${unique_tests[@]:0:${HSEOS_HOOK_MAX_TESTS}}")
+    record_fail "Light hook: ${#unique_tests[@]} test files are touched or cite a staged file (ceiling ${HSEOS_HOOK_MAX_TESTS}); run the complete gate with HSEOS_HOOK_MODE=full (or --full), or raise HSEOS_HOOK_MAX_TESTS"
+    gate_passed=false
+    return 0
   fi
   # G3 always, once.
   local g3="test/test-package-surface.js"
