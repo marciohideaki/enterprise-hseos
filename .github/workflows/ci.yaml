@@ -1,18 +1,37 @@
 name: CI
 on:
   push:
-    branches: [master]
+    # Task and feature branches get the full suite on every push, so the local commit hook can stay light.
+    # Master and PRs keep their existing triggers.
+    branches: [master, "task/**", "feature/**"]
   pull_request:
     branches: [master, "feature/**"]
 
+permissions:
+  contents: read
+
+# One run per ref and event: a newer push cancels the superseded run on task/feature branches and PRs.
+# Master pushes are never cancelled, so every merged commit keeps its own result.
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+env:
+  # Shards of the full suite; ci-test-shards.mjs proves the shards cover scripts.test plus the kernel coverage run.
+  SHARD_COUNT: 6
+
 jobs:
-  test:
+  # The full suite, split into SHARD_COUNT parallel jobs per Node version. The `test` job below fans the shards back
+  # in under the check names that branch protection requires (`test (22.x)`, `test (24.x)`).
+  shard:
+    name: test-shard (${{ matrix.node-version }}, ${{ matrix.shard }}/6)
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     strategy:
-      max-parallel: 1
       fail-fast: false
       matrix:
         node-version: ["22.x", "24.x"]
+        shard: [1, 2, 3, 4, 5, 6]
     services:
       postgres:
         image: postgres:18
@@ -51,16 +70,56 @@ jobs:
       - name: Provision the pinned toolchain cache
         timeout-minutes: 15
         run: node .github/scripts/provision-toolchain-cache.mjs "$RUNNER_TEMP/hseos-toolchain"
-      - name: Tests and critical coverage in a delegated cgroup
+      - name: Shard of the tests and critical coverage in a delegated cgroup
         run: |
           sudo systemd-run --wait --collect --pipe --service-type=exec \
             --uid="$(id -u)" --gid="$(id -g)" \
             --property=Delegate=yes --property=DelegateSubgroup=tests \
             --working-directory="$PWD" \
             --setenv="PATH=$PATH" --setenv="HOME=$HOME" --setenv=CI=true \
+            --setenv="GITHUB_STEP_SUMMARY=$GITHUB_STEP_SUMMARY" \
             --setenv="HSEOS_TOOLCHAIN_CACHE=$RUNNER_TEMP/hseos-toolchain" \
             --setenv="HSEOS_GOVERNANCE_TEST_DATABASE_URL=$HSEOS_GOVERNANCE_TEST_DATABASE_URL" \
-            bash -c 'node .github/scripts/enable-test-cgroup.mjs && npm test && npm run test:kernel-coverage'
+            bash -c 'node .github/scripts/enable-test-cgroup.mjs && node .github/scripts/ci-test-shards.mjs run --shards ${{ env.SHARD_COUNT }} --shard ${{ matrix.shard }}'
+
+  # Fan-in. The job id and matrix keep the required check names `test (22.x)` and `test (24.x)`. Each one passes only
+  # when the shard split provably covers the whole suite and every shard of its own Node version succeeded.
+  test:
+    needs: shard
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ["22.x", "24.x"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prove the shards cover the whole suite exactly once
+        run: node .github/scripts/ci-test-shards.mjs verify --shards ${{ env.SHARD_COUNT }}
+      - name: Require every shard of this Node version to have succeeded
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NODE_VERSION: ${{ matrix.node-version }}
+        run: |
+          # `needs: shard` guarantees the shards are done, but the jobs API can lag a few seconds behind and still report
+          # a finished job as pending; wait for that to settle instead of failing on it.
+          for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}/jobs?per_page=100" \
+              --jq '.jobs[] | select(.name | startswith("test-shard (" + env.NODE_VERSION + ", ")) | [.name, (.conclusion // "pending")] | @tsv' \
+              > "$RUNNER_TEMP/shards.tsv"
+            grep -q $'\tpending$' "$RUNNER_TEMP/shards.tsv" || break
+            echo "attempt ${attempt}: a shard still reads as pending, retrying"
+            sleep 10
+          done
+          cat "$RUNNER_TEMP/shards.tsv"
+          total=$(wc -l < "$RUNNER_TEMP/shards.tsv")
+          bad=$(grep -vc $'\tsuccess$' "$RUNNER_TEMP/shards.tsv" || true)
+          echo "shards seen: ${total} of ${SHARD_COUNT}; not successful: ${bad}"
+          [ "$total" -eq "$SHARD_COUNT" ] && [ "$bad" -eq 0 ]
 
   governance:
     needs: test
