@@ -41,6 +41,9 @@ function assertPass(label, condition, details = '') {
   }
 }
 
+// Legacy compatibility ends at the sunset by the wall clock; spawned servers start inside the window.
+const LEGACY_WINDOW_CLOCK = path.join(__dirname, 'helpers', 'legacy-window-clock.cjs');
+
 const STDIO_SERVERS = [
   { name: 'hseos-governance', script: path.join(REPO_ROOT, 'tools', 'mcp-hseos-governance', 'index.js') },
   { name: 'hseos-project-state', script: path.join(REPO_ROOT, 'tools', 'mcp-project-state', 'index.js'), withTempDb: true },
@@ -56,7 +59,11 @@ function probeStdio(server) {
       HSEOS_STATE_DB: path.join(tmp, 'project.db'),
       NODE_ENV: 'test',
     };
-    const child = spawn(process.execPath, [server.script], { cwd: REPO_ROOT, env, stdio: ['pipe', 'pipe', 'pipe'] });
+    const child = spawn(process.execPath, ['-r', LEGACY_WINDOW_CLOCK, server.script], {
+      cwd: REPO_ROOT,
+      env,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
 
     let stdout = '';
     child.stdout.setEncoding('utf8');
@@ -129,17 +136,21 @@ const AXON_BRIDGE_CREDENTIAL = 'contract-test-credential-0123456789abcdef';
 function probeAxonBridgeHttp() {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-mcp-contract-axon-'));
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [path.join(REPO_ROOT, 'tools', 'mcp-axon-bridge', 'index.js'), '--port=0'], {
-      cwd: REPO_ROOT,
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env: {
-        ...process.env,
-        HSEOS_GOVERNED_EXECUTION_FIXTURE: '1',
-        HSEOS_AXON_BRIDGE_CREDENTIAL: AXON_BRIDGE_CREDENTIAL,
-        HSEOS_STATE_DB: path.join(tmp, 'project.db'),
-        NODE_ENV: 'test',
+    const child = spawn(
+      process.execPath,
+      ['-r', LEGACY_WINDOW_CLOCK, path.join(REPO_ROOT, 'tools', 'mcp-axon-bridge', 'index.js'), '--port=0'],
+      {
+        cwd: REPO_ROOT,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: {
+          ...process.env,
+          HSEOS_GOVERNED_EXECUTION_FIXTURE: '1',
+          HSEOS_AXON_BRIDGE_CREDENTIAL: AXON_BRIDGE_CREDENTIAL,
+          HSEOS_STATE_DB: path.join(tmp, 'project.db'),
+          NODE_ENV: 'test',
+        },
       },
-    });
+    );
     let completed = false;
     let probing = false;
     let stdout = '';
@@ -844,7 +855,7 @@ function getStatus(port, urlPath, headers = {}) {
 }
 
 function spawnServer(script, { args = [], env = {}, cwd } = {}) {
-  const child = spawn(process.execPath, [path.join(REPO_ROOT, 'tools', script, 'index.js'), ...args], {
+  const child = spawn(process.execPath, ['-r', LEGACY_WINDOW_CLOCK, path.join(REPO_ROOT, 'tools', script, 'index.js'), ...args], {
     cwd: cwd || REPO_ROOT,
     env: { ...process.env, ...env },
     stdio: ['pipe', 'pipe', 'pipe'],
