@@ -24,6 +24,7 @@ INSERT INTO execution_event_schemas (event_type, schema_version) VALUES
   ('environment.computer.session_closed', 1),
   ('environment.computer.session_expired', 1),
   ('environment.computer.action_executed', 1),
+  ('environment.computer.approval_outcome', 1),
   ('environment.computer.screenshot', 1);
 
 CREATE TRIGGER execution_event_schemas_no_insert

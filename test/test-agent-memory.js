@@ -467,6 +467,7 @@ const ENVIRONMENT_EVENT_TYPES = [
   'environment.browser.completed',
   'environment.browser.refused',
   'environment.computer.action_executed',
+  'environment.computer.approval_outcome',
   'environment.computer.blocked',
   'environment.computer.refused',
   'environment.computer.screenshot',
@@ -481,14 +482,14 @@ const ENVIRONMENT_EVENT_TYPES = [
   'environment.lsp.refused',
 ];
 
-test('migration 017 registers exactly the four memory and sixteen environment events and the trigger still refuses any other type', () => {
+test('migration 017 registers exactly the four memory and seventeen environment events and the trigger still refuses any other type', () => {
   const { db, ledger } = setup();
   const registered = db
     .prepare(
       "SELECT event_type FROM execution_event_schemas WHERE event_type LIKE 'memory.%' OR event_type LIKE 'environment.%' ORDER BY event_type",
     )
     .all();
-  assert.equal(registered.length, 20);
+  assert.equal(registered.length, 21);
   assert.deepEqual(
     registered.map((row) => row.event_type),
     [...ENVIRONMENT_EVENT_TYPES, EVENTS.DELETED, EVENTS.EXPIRED, EVENTS.SUPERSEDED, EVENTS.WRITTEN].sort(),
@@ -684,4 +685,12 @@ test('environment ledger sink binds the project into every payload so projects n
   sinkOf(ledger, { session_id: 's-b', project_id: 'beta' })({ type: 'environment.lsp.completed' });
   assert.equal(ledger.readStream('environment_session', 's-a')[0].payload.project_id, 'alpha');
   assert.equal(ledger.readStream('environment_session', 's-b')[0].payload.project_id, 'beta');
+});
+
+test('environment ledger sink records the computer approval outcome event registered by migration 017', () => {
+  const { ledger } = setup();
+  sinkOf(ledger)({ type: 'environment.computer.approval_outcome', contract: 'environment.computer.v1', outcome: 'granted' });
+  const [event] = ledger.readStream('environment_session', 'session-1');
+  assert.equal(event.event_type, 'environment.computer.approval_outcome');
+  assert.equal(event.payload.outcome, 'granted');
 });
