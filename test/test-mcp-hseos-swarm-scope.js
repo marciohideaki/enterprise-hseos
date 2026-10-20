@@ -360,12 +360,16 @@ async function runInProcessScopeTests() {
   }
 }
 
+// Legacy compatibility ends at the sunset by the wall clock; the governed server starts inside the window,
+// otherwise every legacy request is refused for the sunset and the denials under test never reach the ledger.
+const LEGACY_WINDOW_CLOCK = path.join(__dirname, 'helpers', 'legacy-window-clock.cjs');
+
 async function runGovernedDenialTests() {
   const base = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-w5-04-governed-')));
   const project = path.join(base, 'project');
   const database = path.join(base, 'state', 'project.db');
   fs.mkdirSync(path.join(project, '.hseos', 'runs', 'dev-squad'), { recursive: true });
-  const child = spawn(process.execPath, [SERVER, '--port=0'], {
+  const child = spawn(process.execPath, ['-r', LEGACY_WINDOW_CLOCK, SERVER, '--port=0'], {
     cwd: project,
     stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, HSEOS_STATE_DB: database, NODE_ENV: 'test', HSEOS_GOVERNED_EXECUTION_FIXTURE: '1' },
