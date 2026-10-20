@@ -251,10 +251,14 @@ function createUnixSocketFetch(socketPath) {
   if (typeof socketPath !== 'string' || !path.isAbsolute(socketPath)) {
     throw new ProviderEgressBrokerError('broker socket path must be absolute');
   }
+  // The broker admits a single connection (server.maxConnections = 1), so every request of this
+  // fetch shares one pooled socket instead of relying on the runtime's default agent policy.
+  const agent = new http.Agent({ keepAlive: true, maxSockets: 1 });
   return async (_url, init = {}) =>
     new Promise((resolve, reject) => {
       const request = http.request(
         {
+          agent,
           socketPath,
           path: BROKER_ROUTE,
           method: 'POST',
