@@ -101,6 +101,7 @@
     "test:capability-intake-guard": "bash test/capability-intake-guard.test.sh && node --test --test-concurrency=1 test/test-capability-intake-guard.js",
     "test:capability-references": "node test/test-capability-reference-corpus.js",
     "test:capability-registry": "node test/test-capability-registry.js",
+    "test:clock-offset": "node test/helpers/run-clock-offset.cjs",
     "test:claude-agent-sdk-driver": "node --test --test-concurrency=1 test/test-claude-agent-sdk-driver.js",
     "test:codex-app-server-driver": "node --test --test-concurrency=1 test/test-codex-app-server-driver.js",
     "test:compatibility": "node --test --test-concurrency=1 test/test-compatibility-audit.js test/test-compatibility-evidence-inventory.js test/test-compatibility-evidence-pack.js test/test-compatibility-observation.js test/test-compatibility-observation-plan.js",
