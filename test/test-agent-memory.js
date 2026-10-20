@@ -41,10 +41,13 @@ function setup() {
   db.exec(fs.readFileSync(APPROVALS_SQL, 'utf8'));
   const approvalStore = new ExecutionApprovalStore(db);
   // The host decides which approval backs a deletion; nothing the model sends reaches this slot.
-  const host = { approvalId: null };
+  const host = { approvalId: null, onResolve: null };
   const approvalVerifier = memory.createExecutionApprovalVerifier({
     approvalStore,
-    resolveApprovalId: () => host.approvalId,
+    resolveApprovalId: () => {
+      host.onResolve?.();
+      return host.approvalId;
+    },
     policyVersion: POLICY_VERSION,
     now: () => clock.ms,
   });
@@ -633,9 +636,12 @@ test('forget fails closed when the host wired no verifier or the verifier misbeh
   );
   assert.equal(ledger.readStream('agent_memory', 'alpha').length, 1);
   const seen = [];
+  assert.throws(() => call(make(() => true)), refused, 'a verifier that confirms without running onConsumed');
+  assert.equal(ledger.readStream('agent_memory', 'alpha').length, 1);
   call(
-    make((request) => {
+    make(({ onConsumed, ...request }) => {
       seen.push(request);
+      onConsumed();
       return true;
     }),
   );
@@ -660,4 +666,52 @@ test('the approval verifier helper refuses a missing store, resolver or approval
     () => memory.createExecutionApprovalVerifier({ approvalStore, resolveApprovalId, policyVersion: '' }),
     codeOf('AGENT_MEMORY_APPROVAL_REQUIRED'),
   );
+});
+
+test('the approval is consumed together with the deletion append: a failed append leaves it unspent', () => {
+  const { store, ledger, db, approve, host: hostSlot, clock } = setup();
+  store.write(entry(), host());
+  const forget = () => store.forget({ project_id: 'alpha', memory_id: 'note-1' }, { actor: OPERATOR });
+  const spent = () => db.prepare('SELECT COUNT(*) AS n FROM execution_approval_uses').get().n;
+  approve('alpha', 'note-1');
+
+  const realAppend = ledger.append.bind(ledger);
+  ledger.append = () => {
+    throw new Error('ledger down');
+  };
+  assert.throws(forget, /ledger down/);
+  ledger.append = realAppend;
+  assert.equal(spent(), 0, 'append threw, approval not consumed');
+  assert.equal(store.list('alpha')[0].status, 'active');
+
+  // A concurrent writer moves the stream between the read and the append (version conflict).
+  const other = createGovernedMemory({ ledger, now: () => clock.ms });
+  hostSlot.onResolve = () => {
+    hostSlot.onResolve = null;
+    other.write(entry({ memory_id: 'note-9' }), host());
+  };
+  assert.throws(forget, (error) => !(error instanceof AgentMemoryError && error.code === 'AGENT_MEMORY_APPROVAL_REQUIRED'));
+  assert.equal(spent(), 0, 'version conflict, approval not consumed');
+  assert.equal(store.list('alpha').find((item) => item.memory_id === 'note-1').status, 'active');
+
+  forget();
+  assert.equal(spent(), 1);
+  const deleted = ledger.readStream('agent_memory', 'alpha').at(-1);
+  assert.equal(deleted.event_type, EVENTS.DELETED);
+  assert.equal(deleted.operation_id, 'memory.delete:alpha:note-1');
+  assert.equal(deleted.payload.approval_id, 'appr-alpha-note-1');
+  assert.deepEqual(Object.keys(deleted.payload).sort(), ['approval_id', 'contract', 'memory_id', 'reason']);
+});
+
+test('an expired approval cannot back a deletion', () => {
+  const { store, approve, clock, db } = setup();
+  store.write(entry(), host());
+  approve('alpha', 'note-1');
+  clock.ms = Date.parse('2026-10-14T13:00:00.000Z');
+  assert.throws(
+    () => store.forget({ project_id: 'alpha', memory_id: 'note-1' }, { actor: OPERATOR }),
+    (error) => codeOf('AGENT_MEMORY_APPROVAL_REQUIRED')(error) && error.details.cause === 'EXECUTION_APPROVAL_EXPIRED',
+  );
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM execution_approval_uses').get().n, 0);
+  assert.equal(store.list('alpha')[0].status, 'expired', 'entry untouched (ttl also elapsed)');
 });

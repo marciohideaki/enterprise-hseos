@@ -122,7 +122,7 @@ class MemoryStore {
       aggregate_id: projectId,
       aggregate_type: AGGREGATE_TYPE,
       expected_version: expectedVersion ?? state.version,
-      events: facts.map(({ type, memory_id, payload }) => ({
+      events: facts.map(({ type, memory_id, payload, operation_id: operationId = null }) => ({
         event_id: eventId(projectId, type, memory_id),
         event_type: type,
         schema_version: 1,
@@ -130,7 +130,7 @@ class MemoryStore {
         correlation_id: `memory:${projectId}`,
         causation_id: `memory:${projectId}:${memory_id}`,
         actor,
-        operation_id: null,
+        operation_id: operationId,
         payload: { contract: CONTRACT, memory_id, ...payload },
         evidence_refs: [],
       })),
@@ -190,7 +190,7 @@ class MemoryStore {
   /**
    * Explicit operator command (`host.actor` must be the authenticated operator) backed by a single-use approval bound
    * to this memory (`memory.delete` requires approval in the execution contract). The approval is verified by the
-   * host-injected `approvalVerifier`, never read from `input`; without one the deletion is refused. The entry stops
+   * host-injected `approvalVerifier` (which must call `onConsumed` inside its consuming transaction), never read from `input`; without one the deletion is refused. The entry stops
    * being retrievable and the deletion is a ledger event. The ledger is append-only, so the content itself stays in earlier events.
    */
   forget({ project_id: projectId, memory_id: memoryId, reason = 'operator command' }, { actor } = {}) {
@@ -206,13 +206,20 @@ class MemoryStore {
     if (!record || record.status === 'deleted') {
       throw new AgentMemoryError('memory entry does not exist', 'AGENT_MEMORY_NOT_FOUND', { memory_id: memoryId });
     }
-    this._consumeDeleteApproval(projectId, memoryId, resolvedActor);
-    this._append(projectId, state, undefined, resolvedActor, [
-      { type: EVENTS.DELETED, memory_id: memoryId, payload: { reason: safeReason } },
-    ]);
+    // The approval is consumed and the deletion appended in one transaction: no append, no spent approval.
+    this._deleteWithApproval(projectId, memoryId, resolvedActor, (approval, operationId) =>
+      this._append(projectId, state, undefined, resolvedActor, [
+        {
+          type: EVENTS.DELETED,
+          memory_id: memoryId,
+          operation_id: operationId,
+          payload: { reason: safeReason, ...(approval?.approval_id ? { approval_id: approval.approval_id } : {}) },
+        },
+      ]),
+    );
   }
 
-  _consumeDeleteApproval(projectId, memoryId, actor) {
+  _deleteWithApproval(projectId, memoryId, actor, append) {
     const { operation, operation_id, resource_scope } = memoryDeleteOperation(projectId, memoryId);
     const refuse = (cause) => {
       throw new AgentMemoryError('deleting memory needs a single-use approval for this operation', 'AGENT_MEMORY_APPROVAL_REQUIRED', {
@@ -221,13 +228,25 @@ class MemoryStore {
       });
     };
     if (typeof this.approvalVerifier !== 'function') refuse();
+    let appended = false;
+    let appendFailure = null;
+    const onConsumed = (approval) => {
+      try {
+        append(approval, operation_id);
+        appended = true;
+      } catch (error) {
+        appendFailure = error;
+        throw error;
+      }
+    };
     let confirmed;
     try {
-      confirmed = this.approvalVerifier({ operation, operation_id, resource_scope, actor });
+      confirmed = this.approvalVerifier({ operation, operation_id, resource_scope, actor, onConsumed });
     } catch (error) {
+      if (appendFailure) throw appendFailure;
       refuse(typeof error?.code === 'string' ? error.code : 'VERIFIER_FAILED');
     }
-    if (confirmed !== true) refuse();
+    if (confirmed !== true || !appended) refuse();
   }
 
   _isExpired(record, nowMs) {

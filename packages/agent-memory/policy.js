@@ -198,18 +198,22 @@ function createExecutionApprovalVerifier({ approvalStore, resolveApprovalId, pol
   if (typeof policyVersion !== 'string' || policyVersion.length === 0) {
     throw new AgentMemoryError('the verifier needs a policy version', 'AGENT_MEMORY_APPROVAL_REQUIRED');
   }
-  return ({ operation_id: operationId, resource_scope: resourceScope, actor }) => {
+  return ({ operation_id: operationId, resource_scope: resourceScope, actor, onConsumed = null }) => {
     const approvalId = resolveApprovalId({ operation_id: operationId, resource_scope: resourceScope, actor });
     if (typeof approvalId !== 'string' || approvalId.length === 0) {
       throw new AgentMemoryError('no approval was issued for this operation', 'AGENT_MEMORY_APPROVAL_REQUIRED');
     }
-    approvalStore.consume({
-      approval_id: approvalId,
-      operation_id: operationId,
-      resource_scope: resourceScope,
-      policy_version: policyVersion,
-      now: new Date(now()).toISOString(),
-    });
+    // `onConsumed` runs inside the store's consuming transaction: if it throws, the approval stays unspent.
+    approvalStore.consume(
+      {
+        approval_id: approvalId,
+        operation_id: operationId,
+        resource_scope: resourceScope,
+        policy_version: policyVersion,
+        now: new Date(now()).toISOString(),
+      },
+      typeof onConsumed === 'function' ? () => onConsumed({ approval_id: approvalId }) : null,
+    );
     return true;
   };
 }
