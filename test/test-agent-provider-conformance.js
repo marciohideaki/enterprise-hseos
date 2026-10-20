@@ -85,8 +85,9 @@ test('actual manifests and checked binding templates generate an honest provider
 // This test runs every canonical suite (18 distinct files, deduplicated across providers, one child process
 // each, including the 42-test engineering task runtime that spawns its own workers). Measured: ~83 s local
 // (23 s for 17 suites + 60 s for the engineering runtime) and 94-120+ s on 2-vCPU hosted runners, where the
-// 120 s limit was hit. The cost is inherent to what is proved; the timeout is sized at ~2.5x the worst
-// observed run so a loaded runner does not read as a defect.
+// previous 120 s limit was hit. The cost is inherent to what is proved. This node:test timeout is only the
+// ceiling for the whole run; a hung suite is bounded separately by the per-suite spawnSync timeout
+// (DEFAULT_SUITE_TIMEOUT_MS) in the runner.
 test('canonical local runner verifies only the canonical provider inventory', { timeout: 300_000 }, () => {
   const report = buildAgentProviderConformance({ root: ROOT, verify: true });
   assert.equal(
@@ -174,4 +175,24 @@ test('provider manifest identity and binding-template drift fail closed', () => 
       : spec,
   );
   assert.throws(() => inventory(ROOT, bindingDrift), AgentProviderConformanceError);
+});
+
+test('a suite that outlives the per-suite timeout fails with an explicit cause', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-provider-timeout-'));
+  fs.writeFileSync(path.join(directory, 'sleeper.js'), "'use strict';\nsetTimeout(() => {}, 60_000);\n", { mode: 0o600 });
+  try {
+    const suite = captureConformanceArtifact(directory, 'sleeper.js', 'conformance suite');
+    const started = Date.now();
+    const result = defaultRunner({ root: directory, suite, timeout_ms: 500 });
+    assert.ok(Date.now() - started < 20_000);
+    assert.equal(result.passed, false);
+    assert.equal(result.timed_out, true);
+    assert.equal(result.signal, 'SIGKILL');
+    assert.match(result.failure, /sleeper\.js exceeded 500 ms/);
+    const fast = defaultRunner({ root: ROOT, suite: captureConformanceArtifact(ROOT, PASS_FIXTURE, 'conformance suite') });
+    assert.equal(fast.passed, true);
+    assert.equal(fast.timed_out, false);
+  } finally {
+    fs.rmSync(directory, { recursive: true });
+  }
 });

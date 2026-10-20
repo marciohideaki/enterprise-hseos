@@ -428,7 +428,11 @@ function inventory(root, providerSpecs = PROVIDER_SPECS, catalogLoader = loadCap
   return Object.freeze({ root, profiles, providers });
 }
 
-function runOpenedSuite(descriptor, filename, root) {
+// Per-suite ceiling. Slowest suite observed: ~30 s on a contained local host (engineering task runtime, with
+// spawned workers); 180 s leaves 6x for 2-vCPU hosted runners while still bounding a genuine hang.
+const DEFAULT_SUITE_TIMEOUT_MS = 180_000;
+
+function runOpenedSuite(descriptor, filename, root, timeoutMs = DEFAULT_SUITE_TIMEOUT_MS) {
   return spawnSync(process.execPath, ['-e', DESCRIPTOR_TEST_RUNNER], {
     cwd: root,
     encoding: 'utf8',
@@ -440,11 +444,13 @@ function runOpenedSuite(descriptor, filename, root) {
       LC_ALL: 'C.UTF-8',
     },
     maxBuffer: 16 * 1024 * 1024,
+    timeout: timeoutMs,
+    killSignal: 'SIGKILL',
     stdio: ['ignore', 'pipe', 'pipe', descriptor],
   });
 }
 
-function defaultRunner({ root, suite }) {
+function defaultRunner({ root, suite, timeout_ms: timeoutMs = DEFAULT_SUITE_TIMEOUT_MS }) {
   let descriptor;
   try {
     const current = safeFile(root, suite.path, 'conformance suite');
@@ -456,7 +462,8 @@ function defaultRunner({ root, suite }) {
     if (!same(descriptorBefore, suite.identity)) {
       return Object.freeze({ passed: false, exit_code: null, signal: null, artifact_stable: false, artifact_sha256: current.sha256 });
     }
-    const result = runOpenedSuite(descriptor, current.absolute_path, root);
+    const result = runOpenedSuite(descriptor, current.absolute_path, root, timeoutMs);
+    const timedOut = result.error?.code === 'ETIMEDOUT';
     const after = safeFile(root, suite.path, 'conformance suite');
     const descriptorAfter = fileIdentity(fs.fstatSync(descriptor, { bigint: true }));
     const stable =
@@ -465,9 +472,11 @@ function defaultRunner({ root, suite }) {
       after.sha256 === suite.sha256 &&
       sha256Descriptor(descriptor) === suite.sha256;
     return Object.freeze({
-      passed: result.status === 0 && stable,
+      passed: result.status === 0 && stable && !timedOut,
       exit_code: result.status,
       signal: result.signal || null,
+      timed_out: timedOut,
+      failure: timedOut ? `conformance suite ${suite.path} exceeded ${timeoutMs} ms` : null,
       artifact_stable: stable,
       artifact_sha256: after.sha256,
     });
@@ -479,15 +488,15 @@ function defaultRunner({ root, suite }) {
 }
 
 function buildAgentProviderConformance(options = {}) {
-  rejectUnknownKeys(options, ['root', 'verify'], 'conformance build options');
-  const { root, verify = false } = options;
+  rejectUnknownKeys(options, ['root', 'verify', 'suite_timeout_ms'], 'conformance build options');
+  const { root, verify = false, suite_timeout_ms: suiteTimeoutMs } = options;
   const discovered = inventory(root || process.cwd());
   const trustedRunner = true;
   const uniqueSuites = new Map();
   for (const provider of discovered.providers) for (const suite of provider.suites) uniqueSuites.set(suite.path, suite);
   const suiteResults = new Map();
   for (const suite of uniqueSuites.values()) {
-    const result = verify ? defaultRunner({ root: discovered.root, suite }) : null;
+    const result = verify ? defaultRunner({ root: discovered.root, suite, timeout_ms: suiteTimeoutMs }) : null;
     const passed = trustedRunner && result?.passed === true && result.artifact_stable === true && result.artifact_sha256 === suite.sha256;
     suiteResults.set(
       suite.path,
@@ -498,6 +507,8 @@ function buildAgentProviderConformance(options = {}) {
         status: verificationStatus(verify, passed, trustedRunner),
         exit_code: result?.exit_code ?? null,
         signal: result?.signal ?? null,
+        timed_out: result?.timed_out === true,
+        failure: result?.failure ?? null,
         artifact_stable: result?.artifact_stable === true,
       }),
     );
