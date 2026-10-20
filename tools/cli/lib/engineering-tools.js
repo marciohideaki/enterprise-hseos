@@ -33,10 +33,19 @@ const checkRange = (start, end) => {
   if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 1 || end < start)
     throw invalidRange('Line range must be two integers with 1 <= start_line <= end_line');
 };
+const cutAtCodePoint = (text, maxBytes) => {
+  const buffer = Buffer.from(text);
+  let end = maxBytes;
+  // A UTF-8 continuation byte (10xxxxxx) at the cut means the cut is inside a code point: back up to its lead byte.
+  while (end > 0 && (buffer[end] & 0xc0) === 0x80) end -= 1;
+  return buffer.subarray(0, end).toString('utf8');
+};
 /**
  * Lines start..end (1-based, inclusive) bounded by the read window. A range past the window is cut and reported as
  * truncated; a range past the end of the file is cut silently to the last line. `lenient` serves a diff, where one side
- * of a changed file may be shorter than the requested range.
+ * of a changed file may be shorter than the requested range. A first line longer than the window is returned up to the
+ * window, cut at a code point (never inside a surrogate pair), and marked truncated; the rest of that line is not
+ * readable by range, which is the price of keeping every answer inside the window.
  */
 function selectRange(lines, start, end, { lenient = false } = {}) {
   checkRange(start, end);
@@ -54,11 +63,8 @@ function selectRange(lines, start, end, { lenient = false } = {}) {
     last += 1;
   }
   let content = lines.slice(start - 1, last).join('\n');
-  let cut = false;
-  while (Buffer.byteLength(content) > PROJECT_LIMITS.read_window_bytes) {
-    content = content.slice(0, Math.floor(content.length / 2));
-    cut = true;
-  }
+  const cut = Buffer.byteLength(content) > PROJECT_LIMITS.read_window_bytes;
+  if (cut) content = cutAtCodePoint(content, PROJECT_LIMITS.read_window_bytes);
   return { start_line: start, end_line: last, truncated: cut || last < wanted, content };
 }
 const lineOffset = (content, line) => {
@@ -277,15 +283,29 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
     );
     handlers.push(
       ({ text, limit }) => {
+        // The answer is held to the read window, so a search over a large file cannot carry the file back in matches.
         const matches = [];
+        let total = 0;
+        let bytes = 0;
+        let full = false;
         for (const file of snapshot()) {
           const lines = (file.content || '').split('\n');
-          for (let index = 0; index < lines.length && matches.length < limit; index++) {
-            if (lines[index].includes(text)) matches.push({ path: file.path, line: index + 1, text: lines[index].slice(0, 2048) });
+          for (const [index, line] of lines.entries()) {
+            if (!line.includes(text)) continue;
+            total += 1;
+            const match = { path: file.path, line: index + 1, text: line.slice(0, 2048) };
+            const size = Buffer.byteLength(JSON.stringify(match));
+            full ||= matches.length >= limit || (matches.length > 0 && bytes + size > PROJECT_LIMITS.read_window_bytes);
+            if (!full) {
+              matches.push(match);
+              bytes += size;
+            }
           }
         }
-        return { matches };
+        return { matches, total_matches: total, truncated: matches.length < total };
       },
+      // `before` must occur exactly once, counting non-overlapping occurrences from the left (as split does): text that
+      // overlaps itself, such as 'aa' in 'aaa', counts once and is not reported as ambiguous.
       ({ path: relative, expected_sha256, before, after, within }) => {
         const current = read(relative);
         const refused = () =>

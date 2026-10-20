@@ -291,3 +291,35 @@ test('the tool surface: v2 gains optional range fields, v1 keeps its original in
   assert.deepEqual(Object.keys(properties(v1, 'engineering.read')), ['path']);
   assert.equal(v1.bundles.length, 4);
 });
+
+test('engineering.search: the answer is held to the read window, with the line cap and the total reported', async (t) => {
+  const long = `${'needle '.repeat(600)}\n`;
+  const many = Array.from({ length: 60 }, () => long).join('');
+  const f = fixture(t, { 'index.js': many, 'small.js': SMALL });
+  const result = await f.call('engineering.search', { text: 'needle', limit: 100 });
+  assert.equal(result.total_matches, 60);
+  assert.equal(result.truncated, true);
+  assert.ok(result.matches.length > 0 && result.matches.length < 60);
+  assert.ok(Buffer.byteLength(JSON.stringify(result.matches)) <= 12_288 + 2100, 'within the window by at most the first entry');
+  assert.ok(
+    result.matches.every((match) => match.text.length === 2048),
+    'each line is cut at 2048 characters',
+  );
+  const few = await f.call('engineering.search', { text: 'needle', limit: 2 });
+  assert.deepEqual([few.matches.length, few.total_matches, few.truncated], [2, 60, true]);
+  const none = await f.call('engineering.search', { text: 'module.exports', limit: 5 });
+  assert.deepEqual([none.matches.length, none.total_matches, none.truncated], [1, 1, false]);
+});
+
+test('engineering.read: a long line is cut at a code point, never inside a surrogate pair, and the cut is marked', async (t) => {
+  const f = fixture(t, { 'index.js': `${'😀'.repeat(5000)}\nfinal\n`, 'small.js': SMALL });
+  const read = await f.call('engineering.read', { path: 'index.js', start_line: 1, end_line: 1 });
+  assert.equal(read.truncated, true);
+  assert.equal(Buffer.byteLength(read.content), 12_288, '3072 whole emoji fill the window exactly');
+  assert.equal(read.content, '😀'.repeat(3072));
+  assert.doesNotMatch(read.content, /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/);
+  const odd = fixture(t, { 'index.js': `é${'😀'.repeat(5000)}\n`, 'small.js': SMALL });
+  const shifted = await odd.call('engineering.read', { path: 'index.js', start_line: 1, end_line: 1 });
+  assert.ok(Buffer.byteLength(shifted.content) <= 12_288);
+  assert.equal(shifted.content, `é${'😀'.repeat(3071)}`, 'the emoji that does not fit whole is dropped');
+});
