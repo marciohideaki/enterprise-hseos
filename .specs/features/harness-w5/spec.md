@@ -1,6 +1,6 @@
 # W5 - Capacidades de ambiente, contexto com autoridade e memória
 
-Tipo: especificação de contratos W5 (W5-01), redigida em 2026-10-10. Gate G2 aprovado pelo owner em 2026-10-11; aceite técnico pendente.
+Tipo: especificação de contratos W5 (W5-01), redigida em 2026-10-10. Gate G2 aprovado pelo owner em 2026-10-11. Estado em 2026-10-20: a W5 está na `master` (PR #230, merge `eecfaa90`; depois #231 e #232); o aceite técnico da W5 foi registrado em `docs/evolution/w5/STATUS.md` e a ativação (G6) segue pendente.
 Fonte: [plano W5](../../../docs/evolution/w5/PLAN.md), [plano original](../../../docs/evolution/PLAN.md) (linha W5 e invariantes), inventário `docs/evolution/requirements.json` (F14-R1, F15-R1, F20-R1) pendências de [revalidação 2026-10](../../../docs/evolution/revalidation-2026-10/STATUS.md) e pendências da [validação em consumidor 2026-10](../../../docs/evolution/consumer-validation-2026-10/STATUS.md) (A1/N2, verificador com testes nativos, N1).
 Base examinada: `e079409c` (master com W0-W4 e revalidação do core).
 

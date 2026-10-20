@@ -17,8 +17,9 @@ proveniência, memória governada, compactação combinada e MCP subordinado ao 
 [w5/STATUS.md](w5/STATUS.md) e [w5/evidence/final](w5/evidence/final/traceability.md). Consumidor real A e consumidor B
 **sintético** (prova de integração local, fora do CI; 2 de 3 despachos em assinatura, custo não medido). Famílias F14, F15 e F20 em
 [requirements.json](requirements.json) passam a `verified_w5_scope_only` no plano determinístico; nenhuma das três tem
-consumidor real verificado (`real_consumers: not_verified`). Plugins `scaffolded`; nada ativado operacionalmente, sem merge para a `master`,
-publicação ou instalação global (G6). W6–W8 não foram entregues.
+consumidor real verificado (`real_consumers: not_verified`). Plugins `scaffolded`; nada ativado operacionalmente, sem publicação ou instalação global (G6). W6–W8 não foram entregues.
+
+**Atualização (2026-10-20):** a W5 entrou na `master` pela PR #230 (merge `eecfaa90`), seguida pelas PRs #231 (`7a5a12fd`) e #232 (`6ac6ad16`, contexto v2 com autoridade e proveniência declaradas pelo runtime). O texto "sem merge para a `master`" do parágrafo acima descreve o fechamento de 2026-10-17 e está superado; publicação, instalação global e ativação (G6) seguem não feitas.
 
 Tudo abaixo desta linha é **histórico**: preserva o que foi afirmado em cada
 checkpoint e não descreve o estado atual.
