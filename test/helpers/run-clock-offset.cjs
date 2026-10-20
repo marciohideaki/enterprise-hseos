@@ -6,7 +6,7 @@
 //   npm run test:clock-offset -- --days 0          control run, no shift
 //   npm run test:clock-offset -- --list            print selected and excluded files (with reasons) and exit
 //
-// Selection is automatic: every test/test-*.js whose source matches TIME_PATTERN, minus EXCLUDED (each with a reason).
+// Selection is automatic: every test/test-*.js whose source matches TIME_PATTERN (time words or real-clock reads), minus EXCLUDED (each with a reason).
 // A new test that talks about time is picked up without anyone editing a list.
 //
 // Limitations of the preload (clock-offset.cjs):
@@ -22,7 +22,9 @@ const { spawnSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..', '..');
 const preload = path.join(__dirname, 'clock-offset.cjs');
 
-const TIME_PATTERN = /\b(liveness|lease|ttl|expir[a-z]*|approval|deadline|stale|heartbeat|retention|sunset|window|2026-\d\d)/i;
+// Time vocabulary, or a direct read of the real clock (Date.now(), new Date() without arguments, SQLite 'now').
+const TIME_PATTERN =
+  /\b(liveness|lease|ttl|expir[a-z]*|approval|deadline|stale|heartbeat|retention|sunset|window|2026-\d\d)|Date\.now\(|new Date\(\)|datetime\('now'/i;
 
 const EXCLUDED = {
   'test/test-engineering-task-runtime.js':
@@ -30,6 +32,7 @@ const EXCLUDED = {
   'test/test-mcp-contract.js':
     'legacy MCP servers stop at the 2026-11-30 sunset by the wall clock; covered by W0-5, which pins the clock of the legacy children',
   'test/test-mcp-hseos-governance.js': 'same as test-mcp-contract.js (legacy MCP server over --port); covered by W0-5',
+  'test/test-mcp-hseos-swarm-scope.js': 'same as test-mcp-contract.js (legacy MCP server over --port); covered by W0-5',
   'test/test-mcp-agent-state.js': 'same as test-mcp-contract.js (legacy MCP server process, no clock seam); covered by W0-5',
 };
 
