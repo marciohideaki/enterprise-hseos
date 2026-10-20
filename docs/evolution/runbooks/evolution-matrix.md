@@ -2,7 +2,7 @@
 
 Status: **preparação (W7), nada é despachado por este documento.** Execução e dono: W8. Cada campanha exige autorização própria do owner, com binding, teto e validade explícitos (seção 6). Todo número de orçamento abaixo é **PROPOSTO**, não autorizado.
 
-Fonte normativa: `docs/evolution/PLAN.md:85-95` (18 execuções iniciais; depois ≥30 tarefas reservadas, três repetições por configuração elegível; separar comparação do harness e produto completo; ganho exige indicador principal melhor, sem regressão obrigatória, intervalos de confiança agrupados por tarefa; empate ou inconclusivo não é superação) e `docs/evolution/PLAN.md:96-98` (cada marco mantém três estados: determinístico, consumidor real, ativação).
+Fonte normativa: `docs/evolution/PLAN.md:86-93` (18 execuções iniciais; depois ≥30 tarefas reservadas, três repetições por configuração elegível; separar comparação do harness e produto completo; ganho exige indicador principal melhor, sem regressão obrigatória, intervalos de confiança agrupados por tarefa; empate ou inconclusivo não é superação) e `docs/evolution/PLAN.md:96-98` (cada marco mantém três estados: determinístico, consumidor real, ativação).
 
 ## 1. Escopo e o que está fora
 
@@ -21,12 +21,12 @@ Fora, explicitamente:
 Não criar controlador novo. O padrão já existe e foi exercitado na bateria viva da W5 (T2, T3, T4):
 
 | Peça                           | Onde está                                                                                                                                                   | Papel na matriz                                                                                                                                                                                                                 |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- | ---------- |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Campanha governada             | `providerCampaigns` do `EngineeringControl` (`tools/cli/lib/engineering-control.js:379`); autorização em `tools/cli/lib/provider-campaign-control.js:77-92` | `max_requests`, `max_cost_microusd`, `deadline`, `binding_ids`, `task_ids` (máx. 100), `quota_exceptions` com `expires_at` ≤ `deadline`. Reserva antes do efeito, recibo depois, linhas `opened`/`reserved`/`receipt` no ledger |
 | Contrato de tarefa v2 e aceite | `tools/cli/lib/engineering-task-contract.js`, `engineering-project-verifier.js`                                                                             | Verificador fixado fora do controle da tarefa; `pids_peak` na evidência                                                                                                                                                         |
 | Jornadas de consumidor real    | `test/journeys/` (`core-journey.mjs`, `mcp-journey.mjs`, `w5-environment-journey.mjs`; descrição em `test/journeys/README.md`)                              | Instalação do tarball fora do checkout; `assertReceipts` (`w5-environment-journey.mjs:308`) valida as linhas do ledger                                                                                                          |
 | Testes da campanha             | `test/test-provider-campaign-control.js`                                                                                                                    | Regressão do próprio controle; roda antes de cada campanha                                                                                                                                                                      |
-| Padrão de despacho da bateria  | `/build/tmp/hseos-w5/live/t2                                                                                                                                | t3                                                                                                                                                                                                                              | t4/` (fora do repositório, **não copiar código**) | Ver abaixo |
+| Padrão de despacho da bateria  | `/build/tmp/hseos-w5/live/` (subpastas `t2`, `t3`, `t4`) (fora do repositório, **não copiar código**)                                                       | Ver abaixo                                                                                                                                                                                                                      |
 
 Padrão do `live-dispatch.mjs` da bateria (descrição, não cópia):
 
@@ -41,7 +41,7 @@ Lacunas conhecidas do harness (a matriz não pode ignorá-las):
 
 - O recibo sob assinatura traz `cost_microusd` nulo: **custo não é medido** na rota de conta (`docs/evolution/w5/STATUS.md:321`). A métrica de custo da matriz precisa de fonte própria (tokens do recibo, tempo de parede) e rotular o que é estimativa.
 - A jornada de consumidor real da W5-11b **não roda no CI** e fez 2 de 3 despachos (`docs/evolution/w5/STATUS.md:321`, W5-11b).
-- `pids_max=32` por padrão era insuficiente para clientes reais (`docs/evolution/revalidation-2026-10/STATUS.md:105`); a W5 tornou o campo obrigatório nos adapters de campanha de cliente (commit `35865271`). Configurar o teto por binding antes da matriz.
+- `pids_max=64` foi insuficiente para clientes reais (o cliente `codex` bateu no teto, `docs/evolution/revalidation-2026-10/STATUS.md:105`); o código só aceita 32 a 256; a W5 tornou o campo obrigatório nos adapters de campanha de cliente (commit `35865271`). Configurar o teto por binding antes da matriz.
 
 ## 3. Elegibilidade e desenho
 
@@ -54,7 +54,7 @@ Lacunas conhecidas do harness (a matriz não pode ignorá-las):
 
 Famílias hoje: Codex (conta), Claude (conta), compatível/ACP e Antigravity local têm evidência histórica na W3 (`docs/evolution/w3/CLOSEOUT.md`); **a elegibilidade precisa ser reconfirmada** porque os grants expiraram. A 4ª família real (Gemini API) só entra após o F2.
 
-**Braços** (PLAN.md:88-89):
+**Braços** (PLAN.md:87-89):
 
 - **Harness (comparação controlada):** mesmo modelo, tarefa, ambiente e orçamento sempre que o cliente suportar; muda só o harness (candidato HSEOS vs. referência declarada).
 - **Produto completo:** configurações reais de cada produto, diferenças declaradas na tabela de configuração. Não se atribui diferença ao harness neste braço.

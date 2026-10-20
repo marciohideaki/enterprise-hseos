@@ -19,7 +19,7 @@ Fontes da decisão: ativação autorizada pelo owner em 2026-10-13 (vault `_know
 | Store pnpm no controlador                     | **já configurado** (inerte até o código entrar): `/workspace/.pnpm-store` em `~/.config/hseos/config.yaml` (`toolchain.pnpm_store_dirs`)            | `~/.config/hseos/config.yaml:5-7`                                |
 | Contratos                                     | `enabled: false` em `.hseos/config/agent-liveness.yaml` e `.hseos/config/activity-coordination.yaml` (padrão do repositório)                        | arquivos do repositório                                          |
 
-Observação do ambiente, **não corrigida aqui**: o wrapper `~/.local/bin/hseos` escolhe o maior `nvm` por `sort -V` e executa `<bin>/hseos`; nesta máquina o maior é `v24.22.0`, que **não tem** `hseos` (a instalação está em `v24.15.0`), então `hseos` falha com "No such file" a menos que `PATH` aponte para `v24.15.0/bin`. Todos os comandos abaixo prefixam `PATH=/workspace/local/sdk/nvm/versions/node/v24.15.0/bin:$PATH`. O `better-sqlite3` do pacote foi compilado para o ABI do Node 24.15; outro Node causa `ERR_DLOPEN_FAILED` (comentário do próprio wrapper).
+Risco do wrapper, **não corrigido aqui**: o wrapper `~/.local/bin/hseos` escolhe a maior versão do `nvm` (`sort -V`) e executa `<bin>/hseos`. Se um Node maior que o da instalação (`v24.15.0`) for instalado sem o pacote, o `hseos` global quebra com "No such file" (incidente de 2026-10-20, com um `v24.22.0` já removido). Hoje o maior Node é `v24.15.0`, então funciona; a ativação deve **fixar a versão do release** (PATH do `v24.15.0/bin`) em vez de ordenar o `nvm`. Por isso os comandos abaixo prefixam `PATH=/workspace/local/sdk/nvm/versions/node/v24.15.0/bin:$PATH`. O `better-sqlite3` do pacote foi compilado para o ABI do Node 24.15; outro Node causa `ERR_DLOPEN_FAILED` (comentário do próprio wrapper).
 
 Convenções: `SHA` = commit final da master (a ser fixado); `DIST=~/.local/state/hseos/distributions/$SHA`; `REL=/workspace/local/tooling/hseos-releases/$SHA`; `P=PATH=/workspace/local/sdk/nvm/versions/node/v24.15.0/bin:$PATH`. Scratch em `$TMPDIR` (`/build/tmp`), nunca em `/tmp` literal. Segredos: este runbook não os manuseia.
 
@@ -62,9 +62,14 @@ env $P hseos liveness --help                 # existe (o pin 2b4d6f37 não tem)
 env $P hseos activity --help                 # existe
 env $P hseos governance-context --directory "$TMPDIR" --json   # capsule resolve
 env $P hseos init --help
-# smoke de adapter e MCP (como o receipt anterior: server/discover + tools/list):
-#   hseos-governance 15 tools, hseos-project-state 15, hseos-swarm 5 (valores do receipt 6402726d; reconferir contagens da W5)
-env $P node "$REL/tools/mcp-hseos-governance/index.js" </dev/null   # smoke stdio via cliente de teste, não interativo
+# smoke de MCP que PROVA tools/list: o cliente MCP existente do repositório, contra o pacote instalado
+#   (test/journeys/mcp-journey.mjs, 4 servidores em stdio e HTTP; descrição em test/journeys/README.md)
+#   node test/journeys/mcp-journey.mjs --prefix <consumidor com o tarball instalado> --tgz "$DIST"/hseos-*.tgz --out "$TMPDIR/mcp"
+#   conferir mcp-journey-result.json: todos os passos PASS (axon real pode ser NOT_EXERCISED sem axon no PATH)
+#   contagens esperadas (receipt 6402726d, reconferir na W5): hseos-governance 15, hseos-project-state 15, hseos-swarm 5
+#   Nome do servidor: o receipt chama de `hseos-project-state` o servidor que o Codex registra como
+#   `hseos-state-tracking` (~/.codex/config.toml:180); é o mesmo servidor (tools/mcp-project-state/index.js).
+#   Sem rodar o journey, `node "$REL/tools/mcp-hseos-governance/index.js" </dev/null` só prova que o módulo carrega, não tools/list.
 sha256sum "$DIST"/hseos-*.tgz                # igual ao receipt
 ```
 
@@ -123,7 +128,7 @@ systemctl --user enable --now hseos-liveness-watch.timer
 
 Verificação: `systemctl --user list-timers | grep hseos` (próxima execução em até 120 s); `systemctl --user start hseos-liveness-watch.service && journalctl --user -u hseos-liveness-watch.service -n 20` (um ciclo, exit 0); `env $P hseos liveness check --json --directory <projeto>`; `<projeto>/.hseos/state/liveness/` com os arquivos do watchdog (nome do diretório vem de `LIVENESS_DIR_PARTS`, `tools/lib/agent-liveness.js:45`). Intervalo `OnUnitActiveSec=120s`, `Nice=10`, `DBUS_SESSION_BUS_ADDRESS` fixado no unit.
 
-Não verificados na W5 (resíduo LV2, `docs/evolution/w5/STATUS.md:119`): systemd real, `notify-send` e sessões reais; escalonamento falha com aviso, e `escalations.jsonl` é o registro durável (`tools/lib/agent-liveness.js:871`). Este passo é a primeira verificação real; registrar o resultado.
+Não verificados na W5 (resíduo LV2, `docs/evolution/w5/STATUS.md:112`): systemd real, `notify-send` e sessões reais; escalonamento falha com aviso, e `escalations.jsonl` é o registro durável (`tools/lib/agent-liveness.js:871`). Este passo é a primeira verificação real; registrar o resultado.
 
 Receipt: `$DIST/step3-liveness-timer.json` (units instalados com sha256, saída de `list-timers`, um ciclo do serviço com exit code, UID, linger).
 
@@ -138,7 +143,7 @@ Pré-condições por projeto: projeto nomeado pelo owner; sem trabalho de outro 
 Comandos (por projeto):
 
 1. Backup dos dois arquivos; editar `<projeto>/.hseos/config/agent-liveness.yaml` (`enabled: true`) e, se autorizado, `<projeto>/.hseos/config/activity-coordination.yaml` (`enabled: true`; `store.backend`, `hot_files`, `enforce.publish_guard` ficam **como estão**, salvo decisão do owner). Os contratos são relidos a cada execução e, se ficarem inválidos, vale a última configuração válida com aviso (`docs/activity-coordination/README.md:42`).
-2. Não adicionar skills/hooks/workflows do HSEOS ao projeto (global §HSEOS runtime): só adaptadores de escopo; verificar drift do compilador com `agent-core compile --check` (risco registrado, `docs/evolution/w5/STATUS.md:119`).
+2. Não adicionar skills/hooks/workflows do HSEOS ao projeto (global §HSEOS runtime): só adaptadores de escopo; verificar drift do compilador com `agent-core compile --check` (risco registrado, `docs/evolution/w5/STATUS.md:117`).
 
 Verificação:
 
@@ -182,7 +187,7 @@ Fora desta ativação (decisões separadas):
 
 - **Hash dos hooks depende do caminho do release**: toda nova distribuição muda os comandos e invalida `trusted_hash`; refazer o passo 2 após cada redistribuição.
 - **Sessões abertas** mantêm MCPs/hook anteriores; reabrir (`session_reload_note` do receipt de `2b4d6f37…`). `fresh_claude_client_lifecycle: not_verified` no receipt de `6402726d…`.
-- **Wrapper `hseos` quebrado** com o `nvm` mais novo (seção 1): rodar sempre com o PATH do Node 24.15.
+- **Wrapper `hseos` quebrado** com o `nvm` mais novo (seção 1): fixar sempre o PATH do Node 24.15 (risco condicional da seção 1: um Node maior sem o pacote quebra o `hseos` global).
 - **`hseos --version` não identifica o commit**: usar sha256 do tarball e o diretório `$REL`.
 - **Renumeração de migration** e **atualização da master com `executor.js`**: a PR #216 já está na master; esperar conflito manual se a W5 ainda não absorveu (`docs/evolution/w5/STATUS.md:120`).
 - **`notify-send`/systemd reais não verificados**: aceitar como primeira verificação, com escalonamento persistido em `escalations.jsonl`.
