@@ -44,6 +44,7 @@ function createEngineeringModel({ binding, deadline, environment = process.env, 
       transport = createUnixSocketFetch(broker.socketPath);
     },
     async close() {
+      transport?.destroy?.();
       transport = null;
       await broker?.close();
     },
