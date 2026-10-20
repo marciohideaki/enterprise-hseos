@@ -428,26 +428,76 @@ function inventory(root, providerSpecs = PROVIDER_SPECS, catalogLoader = loadCap
   return Object.freeze({ root, profiles, providers });
 }
 
-// Per-suite ceiling. Slowest suite observed: ~30 s on a contained local host (engineering task runtime, with
-// spawned workers); 180 s leaves 6x for 2-vCPU hosted runners while still bounding a genuine hang.
-const DEFAULT_SUITE_TIMEOUT_MS = 180_000;
+// Per-suite ceiling. Slowest suite measured in isolation: test-engineering-task-runtime.js, 60 s in the
+// contained CI-like cgroup (42 tests, spawns its own workers; the other 17 suites take 0.2-6 s each). Hosted
+// 2-vCPU runners were only ~1.3-1.5x slower than local for the whole run, so 240 s is 4x the worst local
+// suite while still bounding a genuine hang well inside the job limit.
+const DEFAULT_SUITE_TIMEOUT_MS = 240_000;
+
+// The suite runs in its own process group under a small synchronous-friendly supervisor, so an overrun kills
+// the whole group (grandchildren included), not only the direct child. Result is reported on fd 4.
+const SUITE_SUPERVISOR = [
+  "'use strict';",
+  "const fs = require('node:fs');",
+  "const { spawn } = require('node:child_process');",
+  'const runner = process.env.HSEOS_CONFORMANCE_RUNNER_SOURCE;',
+  'const limit = Number(process.env.HSEOS_CONFORMANCE_TIMEOUT_MS);',
+  'delete process.env.HSEOS_CONFORMANCE_RUNNER_SOURCE;',
+  'delete process.env.HSEOS_CONFORMANCE_TIMEOUT_MS;',
+  "const child = spawn(process.execPath, ['-e', runner], { detached: true, stdio: ['ignore', 'inherit', 'inherit', 3] });",
+  'let timedOut = false;',
+  "const killGroup = () => { try { process.kill(-child.pid, 'SIGKILL'); } catch {} };",
+  'const timer = setTimeout(() => { timedOut = true; killGroup(); }, limit);',
+  "child.on('exit', (code, signal) => {",
+  '  clearTimeout(timer);',
+  '  killGroup();',
+  '  fs.writeSync(4, JSON.stringify({ code, signal, timedOut }));',
+  '  process.exit(0);',
+  '});',
+  '',
+].join('\n');
 
 function runOpenedSuite(descriptor, filename, root, timeoutMs = DEFAULT_SUITE_TIMEOUT_MS) {
-  return spawnSync(process.execPath, ['-e', DESCRIPTOR_TEST_RUNNER], {
+  const outcome = spawnSync(process.execPath, ['-e', SUITE_SUPERVISOR], {
     cwd: root,
     encoding: 'utf8',
     env: {
       PATH: process.env.PATH || '',
       HSEOS_CONFORMANCE_SUITE_FILENAME: filename,
+      HSEOS_CONFORMANCE_RUNNER_SOURCE: DESCRIPTOR_TEST_RUNNER,
+      HSEOS_CONFORMANCE_TIMEOUT_MS: String(timeoutMs),
       HSEOS_DISABLE_UPDATE_CHECK: '1',
       LANG: 'C.UTF-8',
       LC_ALL: 'C.UTF-8',
     },
     maxBuffer: 16 * 1024 * 1024,
-    timeout: timeoutMs,
+    // Backstop only: the supervisor enforces the real limit and reports through fd 4.
+    timeout: timeoutMs + 15_000,
     killSignal: 'SIGKILL',
-    stdio: ['ignore', 'pipe', 'pipe', descriptor],
+    stdio: ['ignore', 'pipe', 'pipe', descriptor, 'pipe'],
   });
+  let report = null;
+  try {
+    report = JSON.parse(outcome.output?.[4] || 'null');
+  } catch {
+    report = null;
+  }
+  if (!report) {
+    return {
+      status: null,
+      signal: outcome.signal,
+      stdout: outcome.stdout,
+      stderr: outcome.stderr,
+      error: outcome.error || new Error('supervisor reported nothing'),
+    };
+  }
+  return {
+    status: report.timedOut ? null : report.code,
+    signal: report.timedOut ? 'SIGKILL' : report.signal,
+    stdout: outcome.stdout,
+    stderr: outcome.stderr,
+    error: report.timedOut ? Object.assign(new Error('suite timed out'), { code: 'ETIMEDOUT' }) : undefined,
+  };
 }
 
 function defaultRunner({ root, suite, timeout_ms: timeoutMs = DEFAULT_SUITE_TIMEOUT_MS }) {

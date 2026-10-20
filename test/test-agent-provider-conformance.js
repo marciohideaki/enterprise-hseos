@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { spawnSync } = require('node:child_process');
 const { test } = require('node:test');
 
 const { loadCapabilityCatalog } = require('../tools/cli/lib/capability-catalog');
@@ -193,6 +194,32 @@ test('a suite that outlives the per-suite timeout fails with an explicit cause',
     assert.equal(fast.passed, true);
     assert.equal(fast.timed_out, false);
   } finally {
+    fs.rmSync(directory, { recursive: true });
+  }
+});
+
+test('a suite overrun kills the whole process group, grandchildren included', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-provider-group-'));
+  const marker = `hseos-grandchild-${process.pid}-${Date.now()}`;
+  fs.writeFileSync(
+    path.join(directory, 'spawner.js'),
+    [
+      "'use strict';",
+      "const { spawn } = require('node:child_process');",
+      `spawn(process.execPath, ['-e', 'setTimeout(() => {}, 60000)', '${marker}'], { stdio: 'ignore' });`,
+      'setTimeout(() => {}, 60000);',
+      '',
+    ].join('\n'),
+    { mode: 0o600 },
+  );
+  const alive = () => spawnSync('pgrep', ['-f', marker]).status === 0;
+  try {
+    const suite = captureConformanceArtifact(directory, 'spawner.js', 'conformance suite');
+    const result = defaultRunner({ root: directory, suite, timeout_ms: 1500 });
+    assert.equal(result.timed_out, true);
+    assert.equal(alive(), false, 'a process of the timed-out suite survived');
+  } finally {
+    spawnSync('pkill', ['-f', marker]);
     fs.rmSync(directory, { recursive: true });
   }
 });
