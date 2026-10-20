@@ -1,0 +1,14 @@
+{
+  "npm run test:kernel-coverage": 14,
+  "npm run test:kernel-mutations": 6,
+  "npm run lint": 4,
+  "npm run test:install": 3,
+  "npm run test:managed-governance-http": 3,
+  "npm run test:engineering-task": 3,
+  "npm run test:runtime-providers": 3,
+  "npm run test:terminals": 2,
+  "npm run test:provider-control": 2,
+  "npm run test:compatibility": 2,
+  "npm run test:managed-governance-postgres": 2,
+  "npm run test:managed-governance-hardening": 2
+}

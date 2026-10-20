@@ -3,6 +3,11 @@
 # HSEOS Quality Gates — Reusable Validation Script
 # Authority: Enterprise Constitution > .enterprise/policies/automated-validation.md
 # Usage: ./scripts/governance/quality-gates.sh [--phase <doc|code|ci>] [--strict]
+#
+# Phase `code` (the pre-commit hook) runs a LIGHT Gate 3 by default: lint and format of the staged files, the tests
+# of the staged test files plus the tests that reference a staged source file, and the package-surface gate (G3).
+# The full suite runs in CI (.github/workflows/ci.yaml, sharded) on every push to task/** and feature/**.
+# HSEOS_HOOK_MODE=full (or --full) restores the complete local Gate 3. Other phases always run the full Gate 3.
 # =============================================================================
 
 set -euo pipefail
@@ -15,6 +20,8 @@ LOG_DIR="${REPO_ROOT}/.logs/validation"
 TIMESTAMP="$(date +%Y%m%dT%H%M%S)"
 LOG_FILE="${LOG_DIR}/gate-${TIMESTAMP}.log"
 VALIDATION_ENFORCED="${VALIDATION_ENFORCED:-true}"
+HSEOS_HOOK_MODE="${HSEOS_HOOK_MODE:-light}"
+HSEOS_HOOK_MAX_TESTS="${HSEOS_HOOK_MAX_TESTS:-40}"
 
 # Colors
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
@@ -38,6 +45,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --phase) PHASE="$2"; shift 2 ;;
     --strict) STRICT="true"; shift ;;
+    --full) HSEOS_HOOK_MODE="full"; shift ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
 done
@@ -180,6 +188,113 @@ run_node_check() (
   "$@"
 )
 
+# Light Gate 3 (pre-commit): everything here is cheap and deterministic; whatever it leaves out is in the CI suite.
+#  - lint + prettier: staged files only (the whole tree when eslint/package config is staged);
+#  - tests: staged test files run as they are; for a staged source file, every test file under test/ that mentions
+#    its repo-relative path (extension dropped) runs. A direct textual match, not a dependency graph: indirect
+#    importers are covered by CI, not here;
+#  - G3: test/test-package-surface.js always runs (the 393/137 file budgets must never reach CI red).
+# Tests that need the shared Postgres (test/managed-governance/postgres.integration.test.js) skip without
+# HSEOS_GOVERNANCE_TEST_DATABASE_URL; the hook neither opens a tunnel nor counts that skip as a pass: CI runs it
+# against a Postgres service on every shard set.
+gate_code_light() {
+  local -a staged=() sources=() tests=() lintable=() formattable=()
+  local file
+  while IFS= read -r file; do [[ -n "${file}" ]] && staged+=("${file}"); done < <(
+    git -C "${REPO_ROOT}" diff --cached --name-only --diff-filter=ACMR 2>/dev/null || true
+  )
+
+  local full_lint=false
+  for file in "${staged[@]}"; do
+    [[ -f "${REPO_ROOT}/${file}" ]] || continue
+    case "${file}" in
+      eslint.config.*|package.json|package-lock.json) full_lint=true ;;
+    esac
+    case "${file}" in
+      *.js|*.cjs|*.mjs|*.yaml) lintable+=("${file}") ;;
+    esac
+    case "${file}" in
+      *.js|*.cjs|*.mjs|*.json|*.yaml) formattable+=("${file}") ;;
+    esac
+    case "${file}" in
+      test/*.test.sh|test/*/*.test.sh) tests+=("${file}") ;;
+      test/*test-*.js|test/*/*test-*.js|test/*.test.js|test/*/*.test.js) tests+=("${file}") ;;
+      src/*.js|src/*.cjs|src/*.mjs|tools/*.js|tools/*.cjs|tools/*.mjs|packages/*.js|packages/*.cjs|packages/*.mjs) sources+=("${file}") ;;
+      scripts/*.js|scripts/*.cjs|scripts/*.mjs) sources+=("${file}") ;;
+    esac
+  done
+
+  # Lint
+  if [[ "${full_lint}" == "true" ]]; then
+    if run_node_check npm run lint --silent 2>>"$LOG_FILE"; then
+      pass "Lint (whole tree, config changed): passed"
+    else
+      record_fail "Lint (whole tree, config changed): FAILED"; gate_passed=false
+    fi
+  elif [[ ${#lintable[@]} -gt 0 ]]; then
+    if run_node_check node_modules/.bin/eslint --max-warnings=0 --no-warn-ignored "${lintable[@]}" 2>>"$LOG_FILE"; then
+      pass "Lint (${#lintable[@]} staged file(s)): passed"
+    else
+      record_fail "Lint (staged files): FAILED"; gate_passed=false
+    fi
+  fi
+
+  # Format
+  if [[ ${#formattable[@]} -gt 0 ]]; then
+    if run_node_check node_modules/.bin/prettier --check --ignore-unknown "${formattable[@]}" 2>>"$LOG_FILE"; then
+      pass "Prettier (${#formattable[@]} staged file(s)): passed"
+    else
+      record_fail "Prettier (staged files): FAILED — run: npx prettier --write <file>"; gate_passed=false
+    fi
+  fi
+
+  # Tests that reference a staged source file
+  local source stem importer
+  for source in "${sources[@]}"; do
+    stem="${source%.*}"
+    while IFS= read -r importer; do
+      [[ -n "${importer}" ]] && tests+=("${importer}")
+    done < <(git -C "${REPO_ROOT}" grep -lF -e "${stem}" -- 'test/*.js' 'test/*.cjs' 'test/*.mjs' 'test/*.sh' 2>/dev/null || true)
+  done
+
+  local -a unique_tests=()
+  if [[ ${#tests[@]} -gt 0 ]]; then
+    while IFS= read -r file; do [[ -n "${file}" ]] && unique_tests+=("${file}"); done < <(printf '%s\n' "${tests[@]}" | sort -u)
+  fi
+  if [[ ${#unique_tests[@]} -gt ${HSEOS_HOOK_MAX_TESTS} ]]; then
+    warn "Light hook: ${#unique_tests[@]} test files match; running the first ${HSEOS_HOOK_MAX_TESTS}, the rest is CI's (HSEOS_HOOK_MAX_TESTS)"
+    unique_tests=("${unique_tests[@]:0:${HSEOS_HOOK_MAX_TESTS}}")
+  fi
+  # G3 always, once.
+  local g3="test/test-package-surface.js"
+  local -a node_tests=() shell_tests=()
+  for file in "${unique_tests[@]}"; do
+    [[ "${file}" == "${g3}" ]] && continue
+    [[ -f "${REPO_ROOT}/${file}" ]] || continue
+    # A shell test ships its own runner; a test/*.js that is not a test file (helper/fixture) is not run directly.
+    case "${file}" in
+      *.sh) shell_tests+=("${file}") ;;
+      *) node_tests+=("${file}") ;;
+    esac
+  done
+  node_tests+=("${g3}")
+
+  info "Light hook: ${#node_tests[@]} node test file(s), ${#shell_tests[@]} shell test file(s)"
+  if run_node_check node --test --test-concurrency=1 "${node_tests[@]}" 2>>"$LOG_FILE"; then
+    pass "Tests (touched + referencing, G3 package surface): passed"
+  else
+    record_fail "Tests (touched + referencing, G3 package surface): FAILED"; gate_passed=false
+  fi
+  for file in "${shell_tests[@]}"; do
+    if run_node_check bash "${file}" 2>>"$LOG_FILE"; then
+      pass "Shell test ${file}: passed"
+    else
+      record_fail "Shell test ${file}: FAILED"; gate_passed=false
+    fi
+  done
+  info "Light hook: the full suite (all shards, kernel coverage, Postgres integration) runs in CI on push"
+}
+
 gate_code() {
   info "Gate 3: Code Quality"
 
@@ -188,7 +303,9 @@ gate_code() {
   staged_files=$(git -C "${REPO_ROOT}" diff --cached --name-only 2>/dev/null || true)
 
   # Node.js / JavaScript
-  if [[ -f "${REPO_ROOT}/package.json" ]]; then
+  if [[ -f "${REPO_ROOT}/package.json" && "${GATE_CODE_MODE:-full}" == "light" && -n "${staged_files}" ]]; then
+    gate_code_light
+  elif [[ -f "${REPO_ROOT}/package.json" ]]; then
     local run_node_checks=false
     if [[ -z "${staged_files}" ]]; then
       run_node_checks=true
@@ -462,6 +579,7 @@ main() {
       gate_workflow_publication
       ;;
     code)
+      GATE_CODE_MODE="${HSEOS_HOOK_MODE}"
       gate_governance_structure
       gate_governance_anchors
       gate_canonical_source
