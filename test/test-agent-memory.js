@@ -6,6 +6,7 @@ const { test } = require('node:test');
 const Database = require('better-sqlite3');
 
 const { MemorySourceSchema, resolveSourceAuthority } = require('../packages/agent-context');
+const environment = require('../packages/agent-environment');
 const memory = require('../packages/agent-memory');
 const { collectMemorySources, createGovernedMemory } = require('../tools/cli/lib/memory-context-source');
 const { ExecutionEventLedger } = require('../tools/mcp-project-state/lib/execution-event-ledger');
@@ -461,14 +462,41 @@ test('the axon bridge is optional and read-only: absent, failing or empty is a n
   assert.equal(limited.length, 2, 'the limit applies to the merged set');
 });
 
-test('migration 017 registers exactly the four memory events and the trigger still refuses any other type', () => {
+const ENVIRONMENT_EVENT_TYPES = [
+  'environment.browser.blocked',
+  'environment.browser.completed',
+  'environment.browser.refused',
+  'environment.computer.action_executed',
+  'environment.computer.approval_outcome',
+  'environment.computer.blocked',
+  'environment.computer.refused',
+  'environment.computer.screenshot',
+  'environment.computer.session_closed',
+  'environment.computer.session_expired',
+  'environment.computer.session_opened',
+  'environment.dap.blocked',
+  'environment.dap.completed',
+  'environment.dap.refused',
+  'environment.lsp.blocked',
+  'environment.lsp.completed',
+  'environment.lsp.refused',
+];
+
+test('migration 017 registers exactly the four memory and seventeen environment events and the trigger still refuses any other type', () => {
   const { db, ledger } = setup();
   const registered = db
-    .prepare("SELECT event_type FROM execution_event_schemas WHERE event_type LIKE 'memory.%' ORDER BY event_type")
+    .prepare(
+      "SELECT event_type FROM execution_event_schemas WHERE event_type LIKE 'memory.%' OR event_type LIKE 'environment.%' ORDER BY event_type",
+    )
     .all();
+  assert.equal(registered.length, 21);
   assert.deepEqual(
     registered.map((row) => row.event_type),
-    [EVENTS.DELETED, EVENTS.EXPIRED, EVENTS.SUPERSEDED, EVENTS.WRITTEN],
+    [...ENVIRONMENT_EVENT_TYPES, EVENTS.DELETED, EVENTS.EXPIRED, EVENTS.SUPERSEDED, EVENTS.WRITTEN].sort(),
+  );
+  assert.throws(
+    () => db.prepare("INSERT INTO execution_event_schemas (event_type, schema_version) VALUES ('environment.lsp.unknown', 1)").run(),
+    /require a migration/,
   );
   assert.throws(
     () => db.prepare("INSERT INTO execution_event_schemas (event_type, schema_version) VALUES ('memory.rogue', 1)").run(),
@@ -496,4 +524,179 @@ test('migration 017 registers exactly the four memory events and the trigger sti
       }),
     (error) => error.code === 'SQLITE_CONSTRAINT_TRIGGER',
   );
+  assert.throws(
+    () =>
+      ledger.append({
+        aggregate_id: 'session-1',
+        aggregate_type: 'environment_session',
+        expected_version: 0,
+        events: [
+          {
+            event_id: '00000000-0000-4000-8000-000000000002',
+            event_type: 'environment.lsp.unknown',
+            schema_version: 1,
+            occurred_at: STAMP,
+            correlation_id: 'c',
+            causation_id: 'c',
+            actor: OPERATOR,
+            operation_id: null,
+            payload: { code: 'x' },
+          },
+        ],
+      }),
+    (error) => error.code === 'SQLITE_CONSTRAINT_TRIGGER',
+  );
+});
+
+const SINK_ACTOR = { type: 'host', id: 'env-host' };
+const sinkOf = (ledger, overrides = {}) =>
+  environment.createEnvironmentLedgerSink({ ledger, project_id: 'alpha', actor: SINK_ACTOR, session_id: 'session-1', ...overrides });
+
+test('environment ledger sink appends service events to the environment_session stream in order', () => {
+  const { ledger } = setup();
+  const sink = sinkOf(ledger);
+  sink({ contract: 'environment.lsp.v1', at: '2026-01-01T00:00:00.000Z', type: 'environment.lsp.completed', action: 'hover' });
+  sink({ contract: 'environment.lsp.v1', at: '2026-01-01T00:00:01.000Z', type: 'environment.lsp.refused', code: 'ENV_X', cause: 'no' });
+  assert.equal(ledger.getVersion('environment_session', 'session-1'), 2);
+  const [first, second] = ledger.readStream('environment_session', 'session-1');
+  assert.equal(first.event_type, 'environment.lsp.completed');
+  assert.equal(first.schema_version, 1);
+  assert.equal(first.occurred_at, '2026-01-01T00:00:00.000Z');
+  assert.deepEqual(first.actor, SINK_ACTOR);
+  assert.equal(first.correlation_id, 'session-1');
+  assert.deepEqual(first.payload, { project_id: 'alpha', contract: 'environment.lsp.v1', action: 'hover' });
+  assert.equal(second.causation_id, first.event_id);
+  assert.deepEqual(second.payload, { project_id: 'alpha', contract: 'environment.lsp.v1', code: 'ENV_X', cause: 'no' });
+});
+
+test('environment ledger sink carries operation, correlation and falls back to the clock for a bad timestamp', () => {
+  const { ledger } = setup();
+  const sink = sinkOf(ledger, { correlation_id: 'corr-1', operation_id: 'op-1', now: () => new Date('2026-02-02T00:00:00.000Z') });
+  sink({ type: 'environment.dap.blocked', at: 'yesterday', code: 'C' });
+  sink({ type: 'environment.dap.blocked' });
+  const [event, bare] = ledger.readStream('environment_session', 'session-1');
+  assert.equal(event.correlation_id, 'corr-1');
+  assert.equal(event.operation_id, 'op-1');
+  assert.equal(event.occurred_at, '2026-02-02T00:00:00.000Z');
+  assert.equal(bare.occurred_at, '2026-02-02T00:00:00.000Z');
+});
+
+test('environment ledger sink redacts credentials in nested payloads and never writes them', () => {
+  const { ledger } = setup();
+  const leaked = `ghp_${'abcdefghijklmnopqrstuvwxyz0123456789'}`;
+  const sink = sinkOf(ledger, { containsCredential: (text) => text.includes('ghp_') });
+  sink({ type: 'environment.browser.refused', cause: `token ${leaked}`, nested: { list: [leaked, 'fine'] }, count: 3 });
+  const [event] = ledger.readStream('environment_session', 'session-1');
+  assert.equal(JSON.stringify(event).includes(leaked), false);
+  assert.deepEqual(event.payload, { project_id: 'alpha', cause: '[redacted]', nested: { list: ['[redacted]', 'fine'] }, count: 3 });
+});
+
+test('environment ledger sink uses the repository credential scanner by default', () => {
+  const { ledger } = setup();
+  const leaked = `ghp_${'abcdefghijklmnopqrstuvwxyz0123456789'}`;
+  sinkOf(ledger)({ type: 'environment.browser.refused', cause: `leaked ${leaked}` });
+  const [event] = ledger.readStream('environment_session', 'session-1');
+  assert.equal(JSON.stringify(event).includes(leaked), false);
+});
+
+test('environment ledger sink propagates every append failure instead of swallowing it', () => {
+  const { ledger } = setup();
+  const sink = sinkOf(ledger);
+  // Unregistered type: the schema trigger refuses it and the sink does not hide that.
+  assert.throws(
+    () => sink({ type: 'environment.lsp.unknown' }),
+    (error) => error.code === 'SQLITE_CONSTRAINT_TRIGGER',
+  );
+  // Sensitive key: the ledger refuses it.
+  assert.throws(
+    () => sink({ type: 'environment.lsp.completed', password: 'x' }),
+    (error) => error.code === 'EXECUTION_EVENT_INVALID',
+  );
+  assert.equal(ledger.getVersion('environment_session', 'session-1'), 0);
+  // Non-serializable payload.
+  assert.throws(
+    () => sink({ type: 'environment.lsp.completed', value: () => 1 }),
+    (error) => error.code === 'EXECUTION_EVENT_INVALID',
+  );
+  // A missing type is a programming error, not a silent drop.
+  assert.throws(
+    () => sink({}),
+    (error) => error.code === 'ENV_LEDGER_SINK_EVENT_INVALID',
+  );
+  assert.throws(
+    () => sink(null),
+    (error) => error.code === 'ENV_LEDGER_SINK_EVENT_INVALID',
+  );
+  // A ledger that fails to append surfaces its own error.
+  const broken = sinkOf({
+    getVersion: () => 0,
+    append: () => {
+      throw new Error('disk full');
+    },
+  });
+  assert.throws(() => broken({ type: 'environment.lsp.completed' }), /disk full/);
+});
+
+test('environment ledger sink surfaces a concurrent writer as a version conflict', () => {
+  const { ledger } = setup();
+  const sink = sinkOf(ledger);
+  const racing = {
+    getVersion: (...args) => {
+      const version = ledger.getVersion(...args);
+      sinkOf(ledger, { actor: { type: 'host', id: 'other' } })({ type: 'environment.lsp.completed' });
+      return version;
+    },
+    append: (request) => ledger.append(request),
+  };
+  assert.throws(
+    () => sinkOf(racing)({ type: 'environment.lsp.blocked' }),
+    (error) =>
+      error.code === 'EXECUTION_STREAM_VERSION_CONFLICT' && error.details.expected_version === 0 && error.details.current_version === 1,
+  );
+  sink({ type: 'environment.lsp.blocked' });
+  assert.equal(ledger.getVersion('environment_session', 'session-1'), 2);
+});
+
+test('environment ledger sink rejects an invalid construction', () => {
+  const { ledger } = setup();
+  for (const overrides of [
+    { ledger: null },
+    { ledger: { append() {} } },
+    { project_id: '' },
+    { session_id: 7 },
+    { actor: null },
+    { actor: [] },
+    { correlation_id: '' },
+    { operation_id: 4 },
+    { containsCredential: 'no' },
+    { now: 'no' },
+  ]) {
+    assert.throws(
+      () => sinkOf(ledger, overrides),
+      (error) => error.code === 'ENV_LEDGER_SINK_INVALID',
+      JSON.stringify(Object.keys(overrides)),
+    );
+  }
+});
+
+test('environment ledger sink binds the project into every payload so projects never mix', () => {
+  const { ledger } = setup();
+  sinkOf(ledger, { session_id: 's-a', project_id: 'alpha' })({ type: 'environment.lsp.completed' });
+  sinkOf(ledger, { session_id: 's-b', project_id: 'beta' })({ type: 'environment.lsp.completed' });
+  assert.equal(ledger.readStream('environment_session', 's-a')[0].payload.project_id, 'alpha');
+  assert.equal(ledger.readStream('environment_session', 's-b')[0].payload.project_id, 'beta');
+});
+
+test('environment ledger sink records the computer approval outcome event registered by migration 017', () => {
+  const { ledger } = setup();
+  sinkOf(ledger)({ type: 'environment.computer.approval_outcome', contract: 'environment.computer.v1', outcome: 'granted' });
+  const [event] = ledger.readStream('environment_session', 'session-1');
+  assert.equal(event.event_type, 'environment.computer.approval_outcome');
+  assert.equal(event.payload.outcome, 'granted');
+});
+
+test('environment ledger sink never lets an event claim another project', () => {
+  const { ledger } = setup();
+  sinkOf(ledger)({ type: 'environment.lsp.completed', project_id: 'beta' });
+  assert.equal(ledger.readStream('environment_session', 'session-1')[0].payload.project_id, 'alpha');
 });
