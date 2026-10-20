@@ -461,14 +461,40 @@ test('the axon bridge is optional and read-only: absent, failing or empty is a n
   assert.equal(limited.length, 2, 'the limit applies to the merged set');
 });
 
-test('migration 017 registers exactly the four memory events and the trigger still refuses any other type', () => {
+const ENVIRONMENT_EVENT_TYPES = [
+  'environment.browser.blocked',
+  'environment.browser.completed',
+  'environment.browser.refused',
+  'environment.computer.action_executed',
+  'environment.computer.blocked',
+  'environment.computer.refused',
+  'environment.computer.screenshot',
+  'environment.computer.session_closed',
+  'environment.computer.session_expired',
+  'environment.computer.session_opened',
+  'environment.dap.blocked',
+  'environment.dap.completed',
+  'environment.dap.refused',
+  'environment.lsp.blocked',
+  'environment.lsp.completed',
+  'environment.lsp.refused',
+];
+
+test('migration 017 registers exactly the four memory and sixteen environment events and the trigger still refuses any other type', () => {
   const { db, ledger } = setup();
   const registered = db
-    .prepare("SELECT event_type FROM execution_event_schemas WHERE event_type LIKE 'memory.%' ORDER BY event_type")
+    .prepare(
+      "SELECT event_type FROM execution_event_schemas WHERE event_type LIKE 'memory.%' OR event_type LIKE 'environment.%' ORDER BY event_type",
+    )
     .all();
+  assert.equal(registered.length, 20);
   assert.deepEqual(
     registered.map((row) => row.event_type),
-    [EVENTS.DELETED, EVENTS.EXPIRED, EVENTS.SUPERSEDED, EVENTS.WRITTEN],
+    [...ENVIRONMENT_EVENT_TYPES, EVENTS.DELETED, EVENTS.EXPIRED, EVENTS.SUPERSEDED, EVENTS.WRITTEN].sort(),
+  );
+  assert.throws(
+    () => db.prepare("INSERT INTO execution_event_schemas (event_type, schema_version) VALUES ('environment.lsp.unknown', 1)").run(),
+    /require a migration/,
   );
   assert.throws(
     () => db.prepare("INSERT INTO execution_event_schemas (event_type, schema_version) VALUES ('memory.rogue', 1)").run(),
@@ -491,6 +517,28 @@ test('migration 017 registers exactly the four memory events and the trigger sti
             actor: OPERATOR,
             operation_id: null,
             payload: { memory_id: 'x' },
+          },
+        ],
+      }),
+    (error) => error.code === 'SQLITE_CONSTRAINT_TRIGGER',
+  );
+  assert.throws(
+    () =>
+      ledger.append({
+        aggregate_id: 'session-1',
+        aggregate_type: 'environment_session',
+        expected_version: 0,
+        events: [
+          {
+            event_id: '00000000-0000-4000-8000-000000000002',
+            event_type: 'environment.lsp.unknown',
+            schema_version: 1,
+            occurred_at: STAMP,
+            correlation_id: 'c',
+            causation_id: 'c',
+            actor: OPERATOR,
+            operation_id: null,
+            payload: { code: 'x' },
           },
         ],
       }),
