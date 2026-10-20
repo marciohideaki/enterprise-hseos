@@ -1,7 +1,10 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const http = require('node:http');
+const os = require('node:os');
+const path = require('node:path');
 const { test } = require('node:test');
 
 const { BROKER_ROUTE, createUnixSocketFetch, startProviderEgressBroker } = require('../tools/cli/lib/provider-egress-broker');
@@ -221,4 +224,78 @@ test('Unix broker rejects malformed request bodies before upstream egress', asyn
   assert.equal(protectedValue.status, 400);
   assert.match(protectedValue.body, /protected_value_rejected/);
   assert.equal(observed.length, 0);
+});
+
+test('a second request queues behind an open SSE stream on the single broker connection instead of failing with EPIPE', async (t) => {
+  let release;
+  const held = new Promise((resolve) => {
+    release = resolve;
+  });
+  let calls = 0;
+  const server = http.createServer((request, response) => {
+    const first = (calls += 1) === 1;
+    request.resume();
+    request.on('end', () => {
+      response.writeHead(200, { 'content-type': 'text/event-stream' });
+      if (!first) return response.end('data: [DONE]\n\n');
+      response.write('data: {"choices":[]}\n\n');
+      held.then(() => response.end('data: [DONE]\n\n'));
+    });
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise((resolve) => (server.close(resolve), server.closeAllConnections())));
+  const broker = await startProviderEgressBroker({ baseUrl: `http://127.0.0.1:${server.address().port}/v1`, secret: 'host-only-secret' });
+  t.after(() => broker.close());
+  const brokerFetch = createUnixSocketFetch(broker.socketPath);
+  t.after(() => brokerFetch.destroy());
+
+  const firstResponse = await brokerFetch('ignored', { method: 'POST', body: '{}' });
+  assert.equal(firstResponse.status, 200);
+  const secondPending = brokerFetch('ignored', { method: 'POST', body: '{}' });
+  const early = await Promise.race([
+    secondPending.then(
+      () => 'settled',
+      () => 'rejected',
+    ),
+    new Promise((resolve) => setTimeout(() => resolve('queued'), 300)),
+  ]);
+  assert.equal(early, 'queued');
+  release();
+  assert.match(await firstResponse.text(), /\[DONE\]/);
+  const secondResponse = await Promise.race([
+    secondPending,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('second request never completed')), 5000)),
+  ]);
+  assert.equal(secondResponse.status, 200);
+  assert.match(await secondResponse.text(), /\[DONE\]/);
+});
+
+test('destroy releases the pooled socket of the unix socket fetch', async (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-fetch-destroy-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const socketPath = path.join(directory, 'p.sock');
+  let open = 0;
+  let closed;
+  const allClosed = new Promise((resolve) => {
+    closed = resolve;
+  });
+  const server = http.createServer((request, response) => {
+    request.resume();
+    request.on('end', () => response.end('ok'));
+  });
+  server.on('connection', (socket) => {
+    open += 1;
+    socket.once('close', () => {
+      open -= 1;
+      if (open === 0) closed();
+    });
+  });
+  await new Promise((resolve) => server.listen(socketPath, resolve));
+  t.after(() => new Promise((resolve) => server.close(resolve)));
+  const brokerFetch = createUnixSocketFetch(socketPath);
+  assert.equal(await (await brokerFetch('ignored', { method: 'POST', body: '{}' })).text(), 'ok');
+  assert.equal(open, 1);
+  brokerFetch.destroy();
+  await allClosed;
+  assert.equal(open, 0);
 });

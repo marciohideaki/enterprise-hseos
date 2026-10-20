@@ -428,23 +428,79 @@ function inventory(root, providerSpecs = PROVIDER_SPECS, catalogLoader = loadCap
   return Object.freeze({ root, profiles, providers });
 }
 
-function runOpenedSuite(descriptor, filename, root) {
-  return spawnSync(process.execPath, ['-e', DESCRIPTOR_TEST_RUNNER], {
+// Per-suite ceiling. Slowest suite measured in isolation: test-engineering-task-runtime.js, 60 s in the
+// contained CI-like cgroup (42 tests, spawns its own workers; the other 17 suites take 0.2-6 s each). Hosted
+// 2-vCPU runners were only ~1.3-1.5x slower than local for the whole run, so 240 s is 4x the worst local
+// suite while still bounding a genuine hang well inside the job limit.
+const DEFAULT_SUITE_TIMEOUT_MS = 240_000;
+
+// The suite runs in its own process group under a small synchronous-friendly supervisor, so an overrun kills
+// the whole group (grandchildren included), not only the direct child. Result is reported on fd 4.
+const SUITE_SUPERVISOR = [
+  "'use strict';",
+  "const fs = require('node:fs');",
+  "const { spawn } = require('node:child_process');",
+  'const runner = process.env.HSEOS_CONFORMANCE_RUNNER_SOURCE;',
+  'const limit = Number(process.env.HSEOS_CONFORMANCE_TIMEOUT_MS);',
+  'delete process.env.HSEOS_CONFORMANCE_RUNNER_SOURCE;',
+  'delete process.env.HSEOS_CONFORMANCE_TIMEOUT_MS;',
+  "const child = spawn(process.execPath, ['-e', runner], { detached: true, stdio: ['ignore', 'inherit', 'inherit', 3] });",
+  'let timedOut = false;',
+  "const killGroup = () => { try { process.kill(-child.pid, 'SIGKILL'); } catch {} };",
+  'const timer = setTimeout(() => { timedOut = true; killGroup(); }, limit);',
+  "child.on('exit', (code, signal) => {",
+  '  clearTimeout(timer);',
+  '  killGroup();',
+  '  fs.writeSync(4, JSON.stringify({ code, signal, timedOut }));',
+  '  process.exit(0);',
+  '});',
+  '',
+].join('\n');
+
+function runOpenedSuite(descriptor, filename, root, timeoutMs = DEFAULT_SUITE_TIMEOUT_MS) {
+  const outcome = spawnSync(process.execPath, ['-e', SUITE_SUPERVISOR], {
     cwd: root,
     encoding: 'utf8',
     env: {
       PATH: process.env.PATH || '',
       HSEOS_CONFORMANCE_SUITE_FILENAME: filename,
+      HSEOS_CONFORMANCE_RUNNER_SOURCE: DESCRIPTOR_TEST_RUNNER,
+      HSEOS_CONFORMANCE_TIMEOUT_MS: String(timeoutMs),
       HSEOS_DISABLE_UPDATE_CHECK: '1',
       LANG: 'C.UTF-8',
       LC_ALL: 'C.UTF-8',
     },
     maxBuffer: 16 * 1024 * 1024,
-    stdio: ['ignore', 'pipe', 'pipe', descriptor],
+    // Backstop only: the supervisor enforces the real limit and reports through fd 4.
+    timeout: timeoutMs + 15_000,
+    killSignal: 'SIGKILL',
+    stdio: ['ignore', 'pipe', 'pipe', descriptor, 'pipe'],
   });
+  let report = null;
+  try {
+    report = JSON.parse(outcome.output?.[4] || 'null');
+  } catch {
+    report = null;
+  }
+  if (!report) {
+    return {
+      status: null,
+      signal: outcome.signal,
+      stdout: outcome.stdout,
+      stderr: outcome.stderr,
+      error: outcome.error || new Error('supervisor reported nothing'),
+    };
+  }
+  return {
+    status: report.timedOut ? null : report.code,
+    signal: report.timedOut ? 'SIGKILL' : report.signal,
+    stdout: outcome.stdout,
+    stderr: outcome.stderr,
+    error: report.timedOut ? Object.assign(new Error('suite timed out'), { code: 'ETIMEDOUT' }) : undefined,
+  };
 }
 
-function defaultRunner({ root, suite }) {
+function defaultRunner({ root, suite, timeout_ms: timeoutMs = DEFAULT_SUITE_TIMEOUT_MS }) {
   let descriptor;
   try {
     const current = safeFile(root, suite.path, 'conformance suite');
@@ -456,7 +512,8 @@ function defaultRunner({ root, suite }) {
     if (!same(descriptorBefore, suite.identity)) {
       return Object.freeze({ passed: false, exit_code: null, signal: null, artifact_stable: false, artifact_sha256: current.sha256 });
     }
-    const result = runOpenedSuite(descriptor, current.absolute_path, root);
+    const result = runOpenedSuite(descriptor, current.absolute_path, root, timeoutMs);
+    const timedOut = result.error?.code === 'ETIMEDOUT';
     const after = safeFile(root, suite.path, 'conformance suite');
     const descriptorAfter = fileIdentity(fs.fstatSync(descriptor, { bigint: true }));
     const stable =
@@ -465,9 +522,11 @@ function defaultRunner({ root, suite }) {
       after.sha256 === suite.sha256 &&
       sha256Descriptor(descriptor) === suite.sha256;
     return Object.freeze({
-      passed: result.status === 0 && stable,
+      passed: result.status === 0 && stable && !timedOut,
       exit_code: result.status,
       signal: result.signal || null,
+      timed_out: timedOut,
+      failure: timedOut ? `conformance suite ${suite.path} exceeded ${timeoutMs} ms` : null,
       artifact_stable: stable,
       artifact_sha256: after.sha256,
     });
@@ -479,15 +538,15 @@ function defaultRunner({ root, suite }) {
 }
 
 function buildAgentProviderConformance(options = {}) {
-  rejectUnknownKeys(options, ['root', 'verify'], 'conformance build options');
-  const { root, verify = false } = options;
+  rejectUnknownKeys(options, ['root', 'verify', 'suite_timeout_ms'], 'conformance build options');
+  const { root, verify = false, suite_timeout_ms: suiteTimeoutMs } = options;
   const discovered = inventory(root || process.cwd());
   const trustedRunner = true;
   const uniqueSuites = new Map();
   for (const provider of discovered.providers) for (const suite of provider.suites) uniqueSuites.set(suite.path, suite);
   const suiteResults = new Map();
   for (const suite of uniqueSuites.values()) {
-    const result = verify ? defaultRunner({ root: discovered.root, suite }) : null;
+    const result = verify ? defaultRunner({ root: discovered.root, suite, timeout_ms: suiteTimeoutMs }) : null;
     const passed = trustedRunner && result?.passed === true && result.artifact_stable === true && result.artifact_sha256 === suite.sha256;
     suiteResults.set(
       suite.path,
@@ -498,6 +557,8 @@ function buildAgentProviderConformance(options = {}) {
         status: verificationStatus(verify, passed, trustedRunner),
         exit_code: result?.exit_code ?? null,
         signal: result?.signal ?? null,
+        timed_out: result?.timed_out === true,
+        failure: result?.failure ?? null,
         artifact_stable: result?.artifact_stable === true,
       }),
     );

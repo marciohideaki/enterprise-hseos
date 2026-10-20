@@ -109,6 +109,9 @@ function adapter(overrides = {}) {
   return { calls, instance };
 }
 
+// Legacy compatibility ends at LEGACY_SUNSET by the wall clock; tests of the legacy window pin a clock inside it.
+const LEGACY_WINDOW_CLOCK = { now: () => new Date('2026-08-21T12:00:00.000Z') };
+
 test('MRTR state codec enforces integrity, exact operation binding, and expiry', () => {
   let now = new Date('2026-08-21T05:00:00.000Z');
   const codec = createMcpApprovalStateCodec({
@@ -444,7 +447,7 @@ test('absolute MCP execution deadline bounds a port that never settles', async (
 
 test('legacy era is explicit, isolated, metered, deprecated, and cannot skip initialize', async () => {
   const usage = [];
-  const { calls, instance } = adapter({ legacyUsage: (event) => usage.push(event) });
+  const { calls, instance } = adapter({ clock: LEGACY_WINDOW_CLOCK, legacyUsage: (event) => usage.push(event) });
   const connection = instance.createConnectionContext();
   const premature = await instance.handle(
     { jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} },
@@ -616,7 +619,7 @@ test('legacy compatibility stops at the approved sunset and keeps identity metri
     assert.deepEqual(rejected.error.data.supported, [MCP_MODERN_PROTOCOL_VERSION]);
   }
 
-  const { instance } = adapter({ maxLegacyIdentities: 1 });
+  const { instance } = adapter({ clock: LEGACY_WINDOW_CLOCK, maxLegacyIdentities: 1 });
   for (const name of ['first', 'second', 'third']) {
     const response = await instance.handle(
       {
@@ -634,6 +637,7 @@ test('legacy compatibility stops at the approved sunset and keeps identity metri
 
 test('legacy approval failures are explicit, deprecated, and never redispatched', async () => {
   const { calls, instance } = adapter({
+    clock: LEGACY_WINDOW_CLOCK,
     execute: async (executionRequest) => {
       calls.push(executionRequest);
       return {
@@ -873,7 +877,7 @@ test('HTTP transport bounds bodies and returns the same modern structured semant
 
 test('legacy HTTP subset remains stateless, deprecated, and metered during the compatibility window', async () => {
   const usage = [];
-  const { calls, instance } = adapter({ legacyUsage: (event) => usage.push(event) });
+  const { calls, instance } = adapter({ clock: LEGACY_WINDOW_CLOCK, legacyUsage: (event) => usage.push(event) });
   const server = createMcp2026HttpServer(instance);
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const port = server.address().port;

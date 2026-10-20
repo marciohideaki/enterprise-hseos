@@ -41,6 +41,9 @@ function assertPass(label, condition, details = '') {
   }
 }
 
+// Legacy compatibility ends at the sunset by the wall clock; spawned servers start inside the window.
+const LEGACY_WINDOW_CLOCK = path.join(__dirname, 'helpers', 'legacy-window-clock.cjs');
+
 const STDIO_SERVERS = [
   { name: 'hseos-governance', script: path.join(REPO_ROOT, 'tools', 'mcp-hseos-governance', 'index.js') },
   { name: 'hseos-project-state', script: path.join(REPO_ROOT, 'tools', 'mcp-project-state', 'index.js'), withTempDb: true },
@@ -56,7 +59,11 @@ function probeStdio(server) {
       HSEOS_STATE_DB: path.join(tmp, 'project.db'),
       NODE_ENV: 'test',
     };
-    const child = spawn(process.execPath, [server.script], { cwd: REPO_ROOT, env, stdio: ['pipe', 'pipe', 'pipe'] });
+    const child = spawn(process.execPath, ['-r', LEGACY_WINDOW_CLOCK, server.script], {
+      cwd: REPO_ROOT,
+      env,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
 
     let stdout = '';
     child.stdout.setEncoding('utf8');
@@ -129,17 +136,21 @@ const AXON_BRIDGE_CREDENTIAL = 'contract-test-credential-0123456789abcdef';
 function probeAxonBridgeHttp() {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-mcp-contract-axon-'));
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [path.join(REPO_ROOT, 'tools', 'mcp-axon-bridge', 'index.js'), '--port=0'], {
-      cwd: REPO_ROOT,
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env: {
-        ...process.env,
-        HSEOS_GOVERNED_EXECUTION_FIXTURE: '1',
-        HSEOS_AXON_BRIDGE_CREDENTIAL: AXON_BRIDGE_CREDENTIAL,
-        HSEOS_STATE_DB: path.join(tmp, 'project.db'),
-        NODE_ENV: 'test',
+    const child = spawn(
+      process.execPath,
+      ['-r', LEGACY_WINDOW_CLOCK, path.join(REPO_ROOT, 'tools', 'mcp-axon-bridge', 'index.js'), '--port=0'],
+      {
+        cwd: REPO_ROOT,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: {
+          ...process.env,
+          HSEOS_GOVERNED_EXECUTION_FIXTURE: '1',
+          HSEOS_AXON_BRIDGE_CREDENTIAL: AXON_BRIDGE_CREDENTIAL,
+          HSEOS_STATE_DB: path.join(tmp, 'project.db'),
+          NODE_ENV: 'test',
+        },
       },
-    });
+    );
     let completed = false;
     let probing = false;
     let stdout = '';
@@ -844,7 +855,7 @@ function getStatus(port, urlPath, headers = {}) {
 }
 
 function spawnServer(script, { args = [], env = {}, cwd } = {}) {
-  const child = spawn(process.execPath, [path.join(REPO_ROOT, 'tools', script, 'index.js'), ...args], {
+  const child = spawn(process.execPath, ['-r', LEGACY_WINDOW_CLOCK, path.join(REPO_ROOT, 'tools', script, 'index.js'), ...args], {
     cwd: cwd || REPO_ROOT,
     env: { ...process.env, ...env },
     stdio: ['pipe', 'pipe', 'pipe'],
@@ -1063,6 +1074,74 @@ async function runW504Tests() {
   await runEntrypointTests();
 }
 
+// A real governed stdio process, with its JS clock pinned inside or after the legacy window, answers one
+// legacy initialize and one modern discover. The clock comes from a test preload, never from production.
+function probeLegacyWindow(clockBase, { modern = true } = {}) {
+  return new Promise((resolve, reject) => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-mcp-contract-sunset-'));
+    const child = spawn(process.execPath, ['-r', LEGACY_WINDOW_CLOCK, path.join(REPO_ROOT, 'tools', 'mcp-hseos-governance', 'index.js')], {
+      cwd: REPO_ROOT,
+      env: {
+        ...process.env,
+        HSEOS_GOVERNED_EXECUTION_FIXTURE: '1',
+        HSEOS_STATE_DB: path.join(tmp, 'project.db'),
+        HSEOS_TEST_LEGACY_CLOCK_BASE: clockBase,
+        NODE_ENV: 'test',
+      },
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    let stdout = '';
+    child.stdout.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => (stdout += chunk));
+    child.on('error', reject);
+    child.on('close', () => {
+      fs.rmSync(tmp, { recursive: true, force: true });
+      try {
+        const replies = stdout.trim().split('\n').filter(Boolean).map(JSON.parse);
+        resolve({ legacy: replies.find((reply) => reply.id === 1), modern: replies.find((reply) => reply.id === 2) });
+      } catch (error) {
+        reject(new Error(`unparseable sunset probe output: ${error.message}`));
+      }
+    });
+    const meta = {
+      [PROTOCOL_VERSION_META_KEY]: MCP_MODERN_PROTOCOL_VERSION,
+      [CLIENT_INFO_META_KEY]: { name: 'sunset-probe', version: '1.0.0' },
+      [CLIENT_CAPABILITIES_META_KEY]: {},
+    };
+    const legacyInit = {
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'initialize',
+      params: { protocolVersion: '2024-11-05', capabilities: {}, clientInfo: { name: 'sunset-probe', version: '1.0.0' } },
+    };
+    child.stdin.write(`${JSON.stringify(legacyInit)}\n`);
+    if (modern) {
+      child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'server/discover', params: { _meta: meta } })}\n`);
+    }
+    child.stdin.end();
+  });
+}
+
+async function runLegacySunsetTests() {
+  const inside = await probeLegacyWindow('2026-08-21T12:00:00.000Z', { modern: false });
+  assertPass(
+    'governance: legacy initialize is accepted inside the window',
+    inside.legacy.result?.protocolVersion === '2024-11-05' && inside.legacy.error === undefined,
+    JSON.stringify(inside.legacy),
+  );
+  const after = await probeLegacyWindow('2026-12-15T12:00:00.000Z');
+  assertPass(
+    'governance: legacy initialize is refused after the sunset with UNSUPPORTED_PROTOCOL_VERSION',
+    after.legacy.error?.code === -32_022 && after.legacy.result === undefined,
+    JSON.stringify(after.legacy),
+  );
+  assertPass(
+    'governance: the modern protocol is still served after the sunset',
+    after.modern.result?.supportedVersions?.includes(MCP_MODERN_PROTOCOL_VERSION) === true,
+    JSON.stringify(after.modern),
+  );
+}
+
 (async () => {
   console.log('mcp cross-server contract test');
 
@@ -1080,6 +1159,7 @@ async function runW504Tests() {
   assertPass('all four servers report an identical protocolVersion', new Set(versions).size === 1, versions.join(','));
 
   await runW504Tests();
+  await runLegacySunsetTests();
 
   console.log(`\nMCP contract tests: ${passed} passed, ${failed} failed`);
   process.exit(failed === 0 ? 0 : 1);

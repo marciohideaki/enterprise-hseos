@@ -69,7 +69,7 @@ function rpc(port, method, params = {}) {
         res.on('end', () => {
           try {
             const r = JSON.parse(chunks);
-            if (r.error) return reject(new Error(`${method}: ${r.error.message}`));
+            if (r.error) return reject(Object.assign(new Error(`${method}: ${r.error.message}`), { rpcCode: r.error.code }));
             resolve(r.result);
           } catch (error) {
             reject(error);
@@ -92,11 +92,19 @@ function toolData(result) {
 
 const call = async (port, name, args) => toolData(await rpc(port, 'tools/call', { name, arguments: args }));
 
-async function expectRejected(port, name, args) {
+// The refusal must be the scope/tool refusal under test, never an unrelated one such as the legacy sunset
+// (-32022, "Legacy MCP compatibility is unavailable"), which would let a denial test pass for the wrong reason.
+const SCOPE_REFUSAL = /^tools\/call: (Invalid (run_id|source_task|target_task): |Symlink not allowed: |Not a regular, non-linked file: )/;
+const LEGACY_SUNSET_RPC_CODE = -32_022;
+
+async function expectRejected(port, name, args, expected = SCOPE_REFUSAL) {
   let data;
   try {
     data = await call(port, name, args);
-  } catch {
+  } catch (error) {
+    if (error.rpcCode === LEGACY_SUNSET_RPC_CODE) throw new Error(`${name} was refused by the legacy sunset: ${error.message}`);
+    if (!expected.test(error.message))
+      throw new Error(`${name} refused ${JSON.stringify(args)} with an unexpected error: ${error.message}`);
     return;
   }
   throw new Error(`${name} accepted ${JSON.stringify(args)} and returned ${JSON.stringify(data).slice(0, 200)}`);
@@ -360,12 +368,16 @@ async function runInProcessScopeTests() {
   }
 }
 
+// Legacy compatibility ends at the sunset by the wall clock; the governed server starts inside the window,
+// otherwise every legacy request is refused for the sunset and the denials under test never reach the ledger.
+const LEGACY_WINDOW_CLOCK = path.join(__dirname, 'helpers', 'legacy-window-clock.cjs');
+
 async function runGovernedDenialTests() {
   const base = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-w5-04-governed-')));
   const project = path.join(base, 'project');
   const database = path.join(base, 'state', 'project.db');
   fs.mkdirSync(path.join(project, '.hseos', 'runs', 'dev-squad'), { recursive: true });
-  const child = spawn(process.execPath, [SERVER, '--port=0'], {
+  const child = spawn(process.execPath, ['-r', LEGACY_WINDOW_CLOCK, SERVER, '--port=0'], {
     cwd: project,
     stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, HSEOS_STATE_DB: database, NODE_ENV: 'test', HSEOS_GOVERNED_EXECUTION_FIXTURE: '1' },
@@ -373,9 +385,9 @@ async function runGovernedDenialTests() {
   try {
     const port = await waitForPort(child);
     await it('governed swarm: unknown tools and out-of-scope run ids are denied', async () => {
-      await expectRejected(port, 'ghost_tool', {});
-      await expectRejected(port, 'get_run_state', { run_id: '../../etc' });
-      await expectRejected(port, 'dispatch_wave', { run_id: '/etc' });
+      await expectRejected(port, 'ghost_tool', {}, /^tools\/call: Unknown tool: ghost_tool$/);
+      await expectRejected(port, 'get_run_state', { run_id: '../../etc' }, /^MCP_SCOPE_DENIED: /);
+      await expectRejected(port, 'dispatch_wave', { run_id: '/etc' }, /^MCP_SCOPE_DENIED: /);
     });
   } finally {
     child.kill('SIGTERM');
