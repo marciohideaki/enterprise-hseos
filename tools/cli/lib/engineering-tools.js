@@ -6,7 +6,7 @@ const { createHash, randomUUID } = require('node:crypto');
 const { z } = require('zod');
 const { governanceRef } = require('../../../packages/tool-runtime');
 const { executeIsolatedCommand } = require('../../../packages/agent-isolation-attestation/executor');
-const { parseEngineeringTask } = require('./engineering-task-contract');
+const { parseEngineeringTask, PROJECT_LIMITS } = require('./engineering-task-contract');
 const { declaredCommandArgv, declaredCommandLimits, declaredMounts } = require('./engineering-project-verifier');
 const { assertStoreMountUnchanged } = require('./engineering-workspace');
 
@@ -21,6 +21,46 @@ class EngineeringToolError extends Error {
   }
 }
 
+const isLarge = (content) => content !== null && content.length > PROJECT_LIMITS.file_chars;
+const textLines = (content) => {
+  if (content === null || content === '') return [];
+  const lines = content.split('\n');
+  if (lines.at(-1) === '') lines.pop();
+  return lines;
+};
+const invalidRange = (message) => new EngineeringToolError(message, 'ENGINEERING_RANGE_INVALID');
+const checkRange = (start, end) => {
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 1 || end < start)
+    throw invalidRange('Line range must be two integers with 1 <= start_line <= end_line');
+};
+/**
+ * Lines start..end (1-based, inclusive) bounded by the read window. A range past the window is cut and reported as
+ * truncated; a range past the end of the file is cut silently to the last line. `lenient` serves a diff, where one side
+ * of a changed file may be shorter than the requested range.
+ */
+function selectRange(lines, start, end, { lenient = false } = {}) {
+  checkRange(start, end);
+  if (start > lines.length) {
+    if (!lenient) throw invalidRange('start_line is past the end of the file');
+    return { start_line: start, end_line: start - 1, truncated: false, content: '' };
+  }
+  const wanted = Math.min(end, lines.length);
+  let last = start;
+  let bytes = Buffer.byteLength(lines[start - 1]);
+  while (last < wanted && last - start + 1 < PROJECT_LIMITS.read_window_lines) {
+    const next = Buffer.byteLength(lines[last]) + 1;
+    if (bytes + next > PROJECT_LIMITS.read_window_bytes) break;
+    bytes += next;
+    last += 1;
+  }
+  let content = lines.slice(start - 1, last).join('\n');
+  let cut = false;
+  while (Buffer.byteLength(content) > PROJECT_LIMITS.read_window_bytes) {
+    content = content.slice(0, Math.floor(content.length / 2));
+    cut = true;
+  }
+  return { start_line: start, end_line: last, truncated: cut || last < wanted, content };
+}
 function createEngineeringTools({ directory, contract: inputContract, policy, deadline, onDiagnosis }) {
   const contract = parseEngineeringTask(inputContract);
   const workspace = path.join(directory, 'workspace');
@@ -99,6 +139,20 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
     }
     return read(relative);
   };
+  const readRange = ({ path: relative, start_line, end_line }) => {
+    const current = read(relative);
+    if (current.content === null) return current;
+    const lines = textLines(current.content);
+    const total = { total_lines: lines.length, total_bytes: Buffer.byteLength(current.content) };
+    if (start_line === undefined && end_line === undefined) {
+      if (isLarge(current.content))
+        throw new EngineeringToolError('A large file is read by line range (start_line, end_line)', 'ENGINEERING_RANGE_REQUIRED');
+      return { ...current, ...total };
+    }
+    if (start_line === undefined || end_line === undefined) throw invalidRange('start_line and end_line are given together');
+    const { content, ...window } = selectRange(lines, start_line, end_line);
+    return { path: relative, sha256: current.sha256, ...total, ...window, content };
+  };
   const command = async ({ id }, context) => {
     const declared = contract.commands.find((entry) => entry.id === id);
     if (!declared) throw new EngineeringToolError('Command is not authorized');
@@ -138,8 +192,11 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
     }
     return outcome;
   };
+  const lineNumber = z.number().optional();
   const inputs = [
-    z.object({ path: z.enum(contract.scope.read) }).strict(),
+    contract.schema_version === 2
+      ? z.object({ path: z.enum(contract.scope.read), start_line: lineNumber, end_line: lineNumber }).strict()
+      : z.object({ path: z.enum(contract.scope.read) }).strict(),
     z
       .object({
         path: z.enum(contract.scope.write),
@@ -164,7 +221,7 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
       .strict(),
   ];
   const handlers = [
-    (value) => read(value.path),
+    contract.schema_version === 2 ? readRange : (value) => read(value.path),
     write,
     command,
     (value) => {
