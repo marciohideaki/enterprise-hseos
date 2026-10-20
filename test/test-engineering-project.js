@@ -616,3 +616,30 @@ test('a model-invoked command whose store changed while it ran returns no result
     handle.close();
   }
 });
+
+test('a 123 KB file is changed end to end by search, ranged read, anchored patch and diff, then accepted by the verifier', async (t) => {
+  const filler = Array.from({ length: 3000 }, (_, index) => `// filler line ${index + 1} ${'.'.repeat(20)}`);
+  const source = `${filler.join('\n')}\nmodule.exports = (n) => n - 1;\n`;
+  assert.ok(Buffer.byteLength(source) > 120_000 && source.length > 65_536);
+  const f = fixture(t, { files: { 'index.js': source }, maxArtifactBytes: 1_048_576 });
+  const responses = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(
+    responses,
+    JSON.stringify([
+      { name: 'engineering.search', input: { text: 'n - 1', limit: 5 } },
+      { name: 'engineering.read', input: { path: 'index.js', start_line: 3000, end_line: 3001 } },
+      { name: 'engineering.patch', input: { path: 'index.js', expected_sha256: sha(source), before: 'n - 1', after: 'n + 1' } },
+      { name: 'engineering.diff', input: { path: 'index.js', start_line: 3001, end_line: 3001 } },
+    ]),
+  );
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(result.task_result, 'approved', JSON.stringify(result));
+  const evidence = await inspectEngineeringTask({ state: result.state, action: 'evidence' });
+  assert.equal(evidence.artifacts.files[0].content, source.replace('n - 1', 'n + 1'));
+  assert.equal(
+    fs.readFileSync(path.join(f.root, 'index.js'), 'utf8'),
+    source,
+    'the project itself is untouched until the result is applied',
+  );
+});

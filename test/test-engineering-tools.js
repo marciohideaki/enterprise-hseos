@@ -214,3 +214,80 @@ test('engineering.write refuses a large file and still serves a small one', asyn
   const written = await f.call('engineering.write', { path: 'small.js', expected_sha256: sha(SMALL), content: 'module.exports = 1;\n' });
   assert.equal(written.content, 'module.exports = 1;\n');
 });
+
+test('engineering.diff: small files keep before/after, a large file reports its region and is read by range per side', async (t) => {
+  const f = fixture(t);
+  const source = largeSource();
+  assert.deepEqual((await f.call('engineering.diff', {})).changes, []);
+  await f.call('engineering.patch', { path: 'index.js', expected_sha256: sha(source), before: 'n - 1', after: 'n + 1' });
+  await f.call('engineering.write', { path: 'small.js', expected_sha256: sha(SMALL), content: 'module.exports = 2;\n' });
+  const all = await f.call('engineering.diff', {});
+  const [large, small] = [all.changes.find((entry) => entry.path === 'index.js'), all.changes.find((entry) => entry.path === 'small.js')];
+  assert.deepEqual(small, { path: 'small.js', before: SMALL, after: 'module.exports = 2;\n' });
+  assert.equal(large.large, true);
+  assert.equal(large.before, undefined);
+  assert.deepEqual(large.region, { before_start: 3001, before_end: 3001, after_start: 3001, after_end: 3001 });
+  assert.equal(large.before_sha256, sha(source));
+  assert.equal(large.after_sha256, sha(source.replace('n - 1', 'n + 1')));
+  assert.ok(JSON.stringify(all).length < 2000);
+  const ranged = await f.call('engineering.diff', { path: 'index.js', start_line: 3000, end_line: 3001 });
+  assert.equal(ranged.changes.length, 1);
+  assert.equal(ranged.changes[0].before.content.split('\n').at(-1), TARGET);
+  assert.equal(ranged.changes[0].after.content.split('\n').at(-1), 'module.exports = (n) => n + 1;');
+  assert.equal(await codeOf(f.call('engineering.diff', { start_line: 1, end_line: 3 })), 'ENGINEERING_RANGE_INVALID');
+  assert.equal(await codeOf(f.call('engineering.diff', { path: 'index.js', start_line: 0, end_line: 3 })), 'ENGINEERING_RANGE_INVALID');
+});
+
+test('engineering.diff: insertions, deletions and a range past one side are described without failing', async (t) => {
+  const f = fixture(t);
+  const source = largeSource();
+  const first = await f.call('engineering.patch', {
+    path: 'index.js',
+    expected_sha256: sha(source),
+    before: 'const unique500 = 5;',
+    after: 'const a = 1;\nconst b = 2;',
+  });
+  const second = await f.call('engineering.patch', {
+    path: 'index.js',
+    expected_sha256: first.sha256,
+    before: 'const marker = 1;',
+    within: { start_line: 1, end_line: 20 },
+    after: '',
+  });
+  assert.equal(second.total_lines, 3002);
+  const diff = await f.call('engineering.diff', { path: 'index.js', start_line: 3002, end_line: 3010 });
+  const [change] = diff.changes;
+  assert.equal(change.before_total_lines, 3001);
+  assert.equal(change.after_total_lines, 3002);
+  assert.equal(change.before.content, '', 'the original has no line 3002');
+  assert.ok(change.region.after_end >= change.region.after_start);
+});
+
+test('the tool surface: v2 gains optional range fields, v1 keeps its original input schemas', (t) => {
+  const f = fixture(t);
+  const properties = (tools, name) => tools.bundles.find((bundle) => bundle.definition.name === name).definition.input_schema.properties;
+  assert.ok(properties(f.tools, 'engineering.read').start_line);
+  assert.ok(properties(f.tools, 'engineering.patch').within);
+  assert.ok(properties(f.tools, 'engineering.diff').path);
+  assert.ok(
+    f.tools.bundles.find((bundle) => bundle.definition.name === 'engineering.read').definition.input_schema.required.includes('path'),
+  );
+  assert.ok(
+    !f.tools.bundles
+      .find((bundle) => bundle.definition.name === 'engineering.read')
+      .definition.input_schema.required.includes('start_line'),
+  );
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-tools-v1-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(directory, 'workspace'));
+  const workspace = path.join(directory, 'workspace');
+  const { createEngineeringExample } = require('../tools/examples/engineering-task');
+  const v1 = createEngineeringTools({
+    directory,
+    contract: structuredClone(createEngineeringExample('addition').contract),
+    policy: { host_workspace: workspace, policy_digest: 'v1' },
+    deadline: Number.MAX_SAFE_INTEGER,
+  });
+  assert.deepEqual(Object.keys(properties(v1, 'engineering.read')), ['path']);
+  assert.equal(v1.bundles.length, 4);
+});

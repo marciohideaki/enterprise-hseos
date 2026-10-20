@@ -71,6 +71,16 @@ const lineAt = (content, offset) => {
   for (let at = content.indexOf('\n'); at !== -1 && at < offset; at = content.indexOf('\n', at + 1)) line += 1;
   return line;
 };
+/** The single changed region between two files, as line numbers of each side (end < start means nothing on that side). */
+function changedRegion(before, after) {
+  let prefix = 0;
+  while (prefix < before.length && prefix < after.length && before[prefix] === after[prefix]) prefix += 1;
+  if (prefix === before.length && prefix === after.length) return null;
+  let suffix = 0;
+  while (suffix < before.length - prefix && suffix < after.length - prefix && before.at(-1 - suffix) === after.at(-1 - suffix)) suffix += 1;
+  return { before_start: prefix + 1, before_end: before.length - suffix, after_start: prefix + 1, after_end: after.length - suffix };
+}
+
 function createEngineeringTools({ directory, contract: inputContract, policy, deadline, onDiagnosis }) {
   const contract = parseEngineeringTask(inputContract);
   const workspace = path.join(directory, 'workspace');
@@ -263,7 +273,7 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
           within: z.object({ start_line: z.number(), end_line: z.number() }).strict().optional(),
         })
         .strict(),
-      z.object({}).strict(),
+      z.object({ path: z.enum(contract.scope.read).optional(), start_line: lineNumber, end_line: lineNumber }).strict(),
     );
     handlers.push(
       ({ text, limit }) => {
@@ -307,16 +317,42 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
           };
         return written;
       },
-      () => ({
-        baseline_sha: contract.baseline_sha,
-        changes: snapshot()
-          .filter((file) => file.sha256 !== (contract.initial_files.find((initial) => initial.path === file.path)?.sha256 || null))
-          .map((file) => ({
-            path: file.path,
-            before: contract.initial_files.find((initial) => initial.path === file.path)?.content ?? null,
-            after: file.content,
-          })),
-      }),
+      ({ path: only, start_line, end_line }) => {
+        const ranged = start_line !== undefined || end_line !== undefined;
+        if (ranged && only === undefined) throw invalidRange('A line range needs the path of one file');
+        if (ranged) checkRange(start_line, end_line);
+        return {
+          baseline_sha: contract.baseline_sha,
+          changes: snapshot()
+            .filter((file) => only === undefined || file.path === only)
+            .map((file) => {
+              const initial = contract.initial_files.find((entry) => entry.path === file.path);
+              return { file, before: initial?.content ?? null, initial };
+            })
+            .filter(({ file, initial }) => file.sha256 !== (initial?.sha256 || null))
+            .map(({ file, before }) => {
+              if (!isLarge(before) && !isLarge(file.content)) return { path: file.path, before, after: file.content };
+              // A large file is described by where it changed; its lines are read by range, one side at a time.
+              const beforeLines = textLines(before);
+              const afterLines = textLines(file.content);
+              return {
+                path: file.path,
+                large: true,
+                before_sha256: before === null ? null : createHash('sha256').update(before).digest('hex'),
+                after_sha256: file.sha256,
+                before_total_lines: beforeLines.length,
+                after_total_lines: afterLines.length,
+                region: changedRegion(beforeLines, afterLines),
+                ...(ranged
+                  ? {
+                      before: selectRange(beforeLines, start_line, end_line, { lenient: true }),
+                      after: selectRange(afterLines, start_line, end_line, { lenient: true }),
+                    }
+                  : {}),
+              };
+            }),
+        };
+      },
     );
   }
   const bundles = names.map((name, index) => ({
