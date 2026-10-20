@@ -24,6 +24,7 @@ const {
 } = require('../packages/agent-runtime-contracts');
 const { RelationalSessionEventStore, canonicalJson } = require('../packages/agent-session-store');
 const { ModelProviderRegistry, ScriptedModelProvider } = require('../packages/model-providers');
+const { accountSessionTokens } = require('../packages/agent-context/token-counter');
 const { ToolRuntime, ToolRuntimeRegistry, governanceRef } = require('../packages/tool-runtime');
 const { ExecutionContractRegistry } = require('../tools/lib/governed-execution/contract-registry');
 const { createExecutionEventRegistry } = require('../tools/lib/governed-execution/event-registry');
@@ -834,6 +835,33 @@ test('a projected overflow fails before the step opens and reports the numbers',
   const failure = fixture.sessionStore.replay('session:loop').terminal_event.payload;
   assert.equal(failure.error_code, 'budget_exceeded');
   assert.match(failure.message, /projected \d+ > max 1500 \(used \d+ \+ request \d+ \+ reserve 64\)/);
+});
+
+test('a session that stops within its window completes even when reported usage passes the limit', async (context) => {
+  const fixture = setup({
+    routes: modelRoutes({ finalUsage: { input_tokens: 6000, output_tokens: 3, cached_tokens: 0 } }),
+    limits: { max_tokens: 3000 },
+  });
+  context.after(() => fixture.db.close());
+  await fixture.runtime.create(createCommand(fixture.sessionSpec));
+  await fixture.runtime.send(sendCommand());
+  const done = fixture.sessionStore.replay('session:loop');
+  assert.equal(done.status, 'completed', JSON.stringify(done.terminal_event));
+  assert.ok(accountSessionTokens(done).total_tokens > 3000);
+});
+
+test('a step that needs another step fails when reported usage exhausted the budget', async (context) => {
+  const fixture = setup({
+    routes: modelRoutes({ toolStepUsage: { input_tokens: 6000, output_tokens: 3, cached_tokens: 0 } }),
+    limits: { max_tokens: 3000 },
+  });
+  context.after(() => fixture.db.close());
+  await fixture.runtime.create(createCommand(fixture.sessionSpec));
+  await fixture.runtime.send(sendCommand());
+  const failed = fixture.sessionStore.replay('session:loop');
+  assert.equal(failed.status, 'failed');
+  assert.equal(failed.terminal_event.payload.error_code, 'budget_exceeded');
+  assert.match(failed.terminal_event.payload.message, /session token budget exhausted: used \d+ > max 3000/);
 });
 
 test('unknown sessions, delegated ownership, concurrent sends and stale resume fail closed', async (context) => {

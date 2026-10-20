@@ -988,8 +988,17 @@ class AgentRuntime {
         if (terminal.payload.finish_reason === 'length') {
           return this.#fail(state, { code: 'budget_exceeded', message: 'model output limit reached' }, active, `length:${step.step_id}`);
         }
-        if (tokenUsage(state) > state.spec.limits.max_tokens) {
-          return this.#fail(state, { code: 'budget_exceeded', message: 'session token budget exhausted' }, active, 'token-budget');
+        // A session that stopped is complete; the budget only gates opening another step.
+        if (terminal.payload.finish_reason !== 'stop') {
+          const used = tokenUsage(state);
+          if (used > state.spec.limits.max_tokens) {
+            return this.#fail(
+              state,
+              { code: 'budget_exceeded', message: `session token budget exhausted: used ${used} > max ${state.spec.limits.max_tokens}` },
+              active,
+              'token-budget',
+            );
+          }
         }
         if (terminal.payload.finish_reason === 'stop') {
           let revision = step.revision;
