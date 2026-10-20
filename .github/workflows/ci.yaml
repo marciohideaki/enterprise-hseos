@@ -102,19 +102,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           NODE_VERSION: ${{ matrix.node-version }}
         run: |
-          gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}/jobs?per_page=100" \
-            --jq '.jobs[] | [.name, (.conclusion // "pending")] | @tsv' > "$RUNNER_TEMP/jobs.tsv"
-          cat "$RUNNER_TEMP/jobs.tsv"
-          total=0
-          bad=0
-          while IFS=$'\t' read -r name conclusion; do
-            case "$name" in
-              "test-shard (${NODE_VERSION}, "*)
-                total=$((total + 1))
-                [ "$conclusion" = success ] || { echo "::error::${name} concluded ${conclusion}"; bad=$((bad + 1)); }
-                ;;
-            esac
-          done < "$RUNNER_TEMP/jobs.tsv"
+          # `needs: shard` guarantees the shards are done, but the jobs API can lag a few seconds behind and still report
+          # a finished job as pending; wait for that to settle instead of failing on it.
+          for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}/jobs?per_page=100" \
+              --jq '.jobs[] | select(.name | startswith("test-shard (" + env.NODE_VERSION + ", ")) | [.name, (.conclusion // "pending")] | @tsv' \
+              > "$RUNNER_TEMP/shards.tsv"
+            grep -q $'\tpending$' "$RUNNER_TEMP/shards.tsv" || break
+            echo "attempt ${attempt}: a shard still reads as pending, retrying"
+            sleep 10
+          done
+          cat "$RUNNER_TEMP/shards.tsv"
+          total=$(wc -l < "$RUNNER_TEMP/shards.tsv")
+          bad=$(grep -vc $'\tsuccess$' "$RUNNER_TEMP/shards.tsv" || true)
           echo "shards seen: ${total} of ${SHARD_COUNT}; not successful: ${bad}"
           [ "$total" -eq "$SHARD_COUNT" ] && [ "$bad" -eq 0 ]
 
