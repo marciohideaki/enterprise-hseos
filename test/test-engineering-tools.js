@@ -136,3 +136,81 @@ test('engineering.read and engineering.write stay inside the declared scope and 
   fs.linkSync(`${target}.real`, target);
   await assert.rejects(f.call('engineering.read', { path: 'index.js', start_line: 1, end_line: 2 }), /safely read/);
 });
+
+test('engineering.patch: a large file is changed by a short anchored patch and answers with sha, totals and line only', async (t) => {
+  const f = fixture(t);
+  const source = largeSource();
+  const result = await f.call('engineering.patch', { path: 'index.js', expected_sha256: sha(source), before: 'n - 1', after: 'n + 1' });
+  const next = source.replace('n - 1', 'n + 1');
+  assert.deepEqual(result, { path: 'index.js', sha256: sha(next), total_lines: 3001, total_bytes: Buffer.byteLength(next), line: 3001 });
+  assert.equal(fs.readFileSync(path.join(f.workspace, 'index.js'), 'utf8'), next);
+  assert.ok(JSON.stringify(result).length < 300);
+});
+
+test('engineering.patch: sequential patches chain the sha; the sha of the first state is stale after the first patch', async (t) => {
+  const f = fixture(t);
+  const source = largeSource();
+  const first = await f.call('engineering.patch', {
+    path: 'index.js',
+    expected_sha256: sha(source),
+    before: 'unique500 = 5',
+    after: 'unique500 = 6',
+  });
+  const second = await f.call('engineering.patch', { path: 'index.js', expected_sha256: first.sha256, before: 'n - 1', after: 'n + 1' });
+  assert.equal(first.line, 500);
+  assert.equal(second.line, 3001);
+  const final = source.replace('unique500 = 5', 'unique500 = 6').replace('n - 1', 'n + 1');
+  assert.equal(second.sha256, sha(final));
+  assert.equal(
+    await codeOf(f.call('engineering.patch', { path: 'index.js', expected_sha256: sha(source), before: 'n + 1', after: 'n + 2' })),
+    'ENGINEERING_EFFECT_RECONCILIATION_REQUIRED',
+  );
+  assert.equal(fs.readFileSync(path.join(f.workspace, 'index.js'), 'utf8'), final, 'a refused patch changes nothing');
+});
+
+test('engineering.patch: wrong sha, ambiguous or absent before, and within narrowing', async (t) => {
+  const f = fixture(t);
+  const source = largeSource();
+  const attempt = (extra) =>
+    codeOf(f.call('engineering.patch', { path: 'index.js', expected_sha256: sha(source), after: 'const marker = 2;', ...extra }));
+  const refused = 'ENGINEERING_EFFECT_RECONCILIATION_REQUIRED';
+  assert.equal(await attempt({ expected_sha256: '0'.repeat(64), before: 'n - 1' }), refused, 'wrong sha');
+  assert.equal(await attempt({ before: 'const marker = 1;' }), refused, 'ambiguous in the file');
+  assert.equal(await attempt({ before: 'absent text' }), refused, 'absent');
+  assert.equal(await attempt({ before: 'const marker = 1;', within: { start_line: 1999, end_line: 2001 } }), 'resolved');
+  const now = fs.readFileSync(path.join(f.workspace, 'index.js'), 'utf8').split('\n');
+  assert.deepEqual([now[9], now[1999]], ['const marker = 1;', 'const marker = 2;'], 'only the occurrence inside the range changed');
+});
+
+test('engineering.patch within: ambiguous inside the range, outside the range, absent, invalid and past the end', async (t) => {
+  const source = `${['a', 'dup', 'b', 'dup', 'c', 'target', 'd'].join('\n')}\n${'x'.repeat(70_000)}\n`;
+  const f = fixture(t, { 'index.js': source, 'small.js': SMALL });
+  const hash = sha(source);
+  const patch = (before, within) =>
+    codeOf(
+      f.call('engineering.patch', { path: 'index.js', expected_sha256: hash, before, after: 'changed', ...(within ? { within } : {}) }),
+    );
+  const refused = 'ENGINEERING_EFFECT_RECONCILIATION_REQUIRED';
+  assert.equal(await patch('dup'), refused, 'ambiguous in the file');
+  assert.equal(await patch('dup', { start_line: 1, end_line: 5 }), refused, 'ambiguous inside the range');
+  assert.equal(await patch('target', { start_line: 1, end_line: 5 }), refused, 'present, but outside the range');
+  assert.equal(await patch('missing', { start_line: 1, end_line: 7 }), refused, 'absent');
+  assert.equal(await patch('dup', { start_line: 0, end_line: 5 }), 'ENGINEERING_RANGE_INVALID');
+  assert.equal(await patch('dup', { start_line: 4, end_line: 3 }), 'ENGINEERING_RANGE_INVALID');
+  assert.equal(await patch('dup', { start_line: 100, end_line: 200 }), 'ENGINEERING_RANGE_INVALID');
+  assert.equal(await patch('dup', { start_line: 4, end_line: 4 }), 'resolved', 'the second dup, alone in its range');
+  const now = fs.readFileSync(path.join(f.workspace, 'index.js'), 'utf8');
+  assert.equal(now.split('\n').slice(0, 4).join('\n'), 'a\ndup\nb\nchanged');
+});
+
+test('engineering.write refuses a large file and still serves a small one', async (t) => {
+  const f = fixture(t);
+  const source = largeSource();
+  assert.equal(
+    await codeOf(f.call('engineering.write', { path: 'index.js', expected_sha256: sha(source), content: 'short' })),
+    'ENGINEERING_WRITE_REQUIRES_PATCH',
+  );
+  assert.equal(fs.readFileSync(path.join(f.workspace, 'index.js'), 'utf8'), source);
+  const written = await f.call('engineering.write', { path: 'small.js', expected_sha256: sha(SMALL), content: 'module.exports = 1;\n' });
+  assert.equal(written.content, 'module.exports = 1;\n');
+});

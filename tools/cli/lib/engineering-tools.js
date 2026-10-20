@@ -61,6 +61,16 @@ function selectRange(lines, start, end, { lenient = false } = {}) {
   }
   return { start_line: start, end_line: last, truncated: cut || last < wanted, content };
 }
+const lineOffset = (content, line) => {
+  let offset = 0;
+  for (let current = 1; current < line; current++) offset = content.indexOf('\n', offset) + 1;
+  return offset;
+};
+const lineAt = (content, offset) => {
+  let line = 1;
+  for (let at = content.indexOf('\n'); at !== -1 && at < offset; at = content.indexOf('\n', at + 1)) line += 1;
+  return line;
+};
 function createEngineeringTools({ directory, contract: inputContract, policy, deadline, onDiagnosis }) {
   const contract = parseEngineeringTask(inputContract);
   const workspace = path.join(directory, 'workspace');
@@ -122,7 +132,7 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
     }
     return files;
   };
-  const write = ({ path: relative, expected_sha256, content }) => {
+  const writeFile = ({ path: relative, expected_sha256, content }) => {
     const filename = resolveFile(relative, 'write');
     const current = read(relative);
     if (current.sha256 !== expected_sha256)
@@ -138,6 +148,15 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
       if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
     }
     return read(relative);
+  };
+  const write = (value) => {
+    // A large file is changed only by anchored patch: a whole-file write would put it through the model whole.
+    if (contract.schema_version === 2 && isLarge(read(value.path).content))
+      throw new EngineeringToolError(
+        'A large file is changed with engineering.patch, not engineering.write',
+        'ENGINEERING_WRITE_REQUIRES_PATCH',
+      );
+    return writeFile(value);
   };
   const readRange = ({ path: relative, start_line, end_line }) => {
     const current = read(relative);
@@ -240,6 +259,8 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
           expected_sha256: z.string().regex(/^[a-f0-9]{64}$/),
           before: z.string().min(1).max(contract.max_artifact_bytes),
           after: z.string().max(contract.max_artifact_bytes),
+          // Narrows `before` to these lines when the same text occurs elsewhere in the file.
+          within: z.object({ start_line: z.number(), end_line: z.number() }).strict().optional(),
         })
         .strict(),
       z.object({}).strict(),
@@ -255,11 +276,36 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
         }
         return { matches };
       },
-      ({ path: relative, expected_sha256, before, after }) => {
+      ({ path: relative, expected_sha256, before, after, within }) => {
         const current = read(relative);
-        if (current.sha256 !== expected_sha256 || current.content === null || current.content.split(before).length !== 2)
-          throw new EngineeringToolError('Patch precondition changed or match is ambiguous', 'ENGINEERING_EFFECT_RECONCILIATION_REQUIRED');
-        return write({ path: relative, expected_sha256, content: current.content.replace(before, () => after) });
+        const refused = () =>
+          new EngineeringToolError('Patch precondition changed or match is ambiguous', 'ENGINEERING_EFFECT_RECONCILIATION_REQUIRED');
+        if (current.sha256 !== expected_sha256 || current.content === null) throw refused();
+        let from = 0;
+        let to = current.content.length;
+        if (within) {
+          const lines = textLines(current.content);
+          checkRange(within.start_line, within.end_line);
+          if (within.start_line > lines.length) throw invalidRange('within is past the end of the file');
+          from = lineOffset(current.content, within.start_line);
+          const last = Math.min(within.end_line, lines.length);
+          to = from + lines.slice(within.start_line - 1, last).join('\n').length;
+        }
+        const parts = current.content.slice(from, to).split(before);
+        if (parts.length !== 2) throw refused();
+        const at = from + parts[0].length;
+        const content = current.content.slice(0, at) + after + current.content.slice(at + before.length);
+        const written = writeFile({ path: relative, expected_sha256, content });
+        // A large file never comes back whole: the next patch needs only the new sha and where the change landed.
+        if (isLarge(current.content) || isLarge(content))
+          return {
+            path: relative,
+            sha256: written.sha256,
+            total_lines: textLines(content).length,
+            total_bytes: Buffer.byteLength(content),
+            line: lineAt(current.content, at),
+          };
+        return written;
       },
       () => ({
         baseline_sha: contract.baseline_sha,
