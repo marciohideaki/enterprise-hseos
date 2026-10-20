@@ -28,6 +28,8 @@ if (!Database) {
 
 const REPO_ROOT = path.join(__dirname, '..');
 const MCP_SERVER = path.join(REPO_ROOT, 'tools', 'mcp-project-state', 'index.js');
+// Legacy compatibility ends at the sunset by the wall clock; the spawned server starts inside the window.
+const LEGACY_WINDOW_CLOCK = path.join(__dirname, 'helpers', 'legacy-window-clock.cjs');
 
 let pass = 0;
 let fail = 0;
@@ -105,7 +107,7 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
   const dbPath = path.join(tmp, '.hseos', 'state', 'project.db');
   const port = await freePort();
 
-  const child = spawn(process.execPath, [MCP_SERVER, `--port=${port}`, `--db=${dbPath}`], {
+  const child = spawn(process.execPath, ['-r', LEGACY_WINDOW_CLOCK, MCP_SERVER, `--port=${port}`, `--db=${dbPath}`], {
     env: { ...process.env, HSEOS_GOVERNED_EXECUTION_FIXTURE: '1', NODE_ENV: 'test' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -162,10 +164,14 @@ function waitFor(predicate, { timeoutMs = 5000, intervalMs = 100 } = {}) {
   const legacyEnv = { ...process.env };
   delete legacyEnv.HSEOS_GOVERNED_EXECUTION_FIXTURE;
   delete legacyEnv.NODE_ENV;
-  const legacy = spawn(process.execPath, [MCP_SERVER, `--port=${legacyPort}`, `--db=${path.join(legacyTmp, 'project.db')}`], {
-    env: legacyEnv,
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  const legacy = spawn(
+    process.execPath,
+    ['-r', LEGACY_WINDOW_CLOCK, MCP_SERVER, `--port=${legacyPort}`, `--db=${path.join(legacyTmp, 'project.db')}`],
+    {
+      env: legacyEnv,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  );
   try {
     await waitFor(async () => Array.isArray((await rpc(legacyPort, 'tools/list', {})).tools));
     await it('tasks_update fails explicitly for an unknown task and updates a known one', async () => {
