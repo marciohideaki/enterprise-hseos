@@ -96,10 +96,16 @@
       ],
       "gap": "Novos pontos de extensão precisam de consumidores e conformance.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
+        "deterministic": "verified_w4_scope_only",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
-      }
+      },
+      "evolution_evidence": [
+        "docs/evolution/w4/evidence/final/traceability.md:14-15 (FR01/FR02: identidade, capacidade e autoridade inválidas rejeitadas antes do efeito; P1 test/test-execution-plugin-manifest.js:111,280; P2 execução isolada)",
+        "test/test-tool-runtime.js:531 (ferramenta desconhecida falha fechada) e :321 (negação de aprovação não despacha)",
+        "docs/evolution/w4/STATUS.md:512-519 (matriz P1-S1 117/117 em Node 22 e 24, 18/18 mutantes rejeitados, cobertura 90/80 por arquivo)"
+      ],
+      "evolution_scope": "Escopo W4 apenas: plugins de ferramenta, provider e contexto da matriz W4. O gap \"novos pontos de extensão precisam de consumidores e conformance\" segue aberto para extensões novas."
     },
     {
       "id": "F05",
@@ -142,10 +148,15 @@
       ],
       "gap": "Agendamento persistente de jobs ainda não certificado.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
+        "deterministic": "verified_w4_scope_only",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
-      }
+      },
+      "evolution_evidence": [
+        "docs/evolution/w4/evidence/final/traceability.md:16 (FR03: J1/J2/F1 test/test-job-control.js, test/test-job-recovery.js, test/test-job-faults.js: owner morto/incerto, crash antes e depois do efeito, concorrência)",
+        "docs/evolution/w4/STATUS.md:512-519 (matriz P1-S1 117/117 em Node 22 e 24, 18/18 mutantes rejeitados, cobertura 90/80 por arquivo)"
+      ],
+      "evolution_scope": "Escopo W4 apenas: jobs duráveis do plano de controle W4; a ativação operacional do agendador não está autorizada (docs/evolution/w4/STATUS.md:582)."
     },
     {
       "id": "F07",
@@ -191,7 +202,8 @@
         "deterministic": "not_verified_for_evolution",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
-      }
+      },
+      "not_verified_reason": "Pesquisado W0-W5. Existem testes do broker (test/test-provider-egress-broker.js:39,193: credencial injetada pelo supervisor e cabeçalho de sobrescrita recusado; :162 eco de credencial bloqueado), mas nenhum recibo de onda liga a verificação da família (login expirado, credencial de ambiente sobreposta, mudança silenciosa de cobrança) a um teste. docs/evolution/w3/BINDINGS.md:54 declara que os testes de protocolo não comprovam login, quota, cobrança ou recuperação reais, e docs/evolution/w3/STATUS.md:352 não declara a certificação de W3 concluída. Mantido not_verified."
     },
     {
       "id": "F09",
@@ -280,10 +292,15 @@
       ],
       "gap": "Descendentes dinâmicos e jobs agendados ainda não certificados.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
+        "deterministic": "verified_w4_scope_only",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
-      }
+      },
+      "evolution_evidence": [
+        "docs/evolution/w4/evidence/final/traceability.md:17-18 (FR04/FR05: D1 test/test-workflow-expansion.js: filhos tardios, join, expansão dupla/concorrente; cancelamento transitivo e drenagem de descendentes em P2/J2/F1/D1)",
+        "docs/evolution/w4/STATUS.md:512-519 (matriz P1-S1 117/117 em Node 22 e 24, 18/18 mutantes rejeitados, cobertura 90/80 por arquivo)"
+      ],
+      "evolution_scope": "Escopo W4 apenas."
     },
     {
       "id": "F13",
@@ -303,10 +320,15 @@
       ],
       "gap": "Campanha concorrente com bindings reais pendente.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
+        "deterministic": "verified_w4_scope_only",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
-      }
+      },
+      "evolution_evidence": [
+        "docs/evolution/w4/evidence/final/traceability.md:19 (FR06: B1/F1 test/test-job-campaign.js, test/test-job-faults.js: autorização, reserva, despacho, recibo; rejeição por saldo, binding trocado, recibo perdido e segunda reserva)",
+        "docs/evolution/w4/STATUS.md:512-519 (matriz P1-S1 117/117 em Node 22 e 24, 18/18 mutantes rejeitados, cobertura 90/80 por arquivo)"
+      ],
+      "evolution_scope": "Escopo W4 apenas, determinístico. A campanha concorrente com bindings reais segue não verificada: na R1 só um despacho Codex foi aceito e a autorização herdada não permite outro (docs/evolution/w4/evidence/final/traceability.md:25-31)."
     },
     {
       "id": "F14",
@@ -402,7 +424,8 @@
         "deterministic": "not_verified_for_evolution",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
-      }
+      },
+      "not_verified_reason": "Pesquisado W0-W5. test/test-provider-api-adapter.js:112 recusa tarifa expirada, mas a certificação de todos os bindings e as declarações versionadas seguem pendentes: docs/evolution/w3/STATUS.md:3-5 (quarta família diferida, não PASS) e :352 (certificação multifamília e fechamento integral de W3 não declarados). Mantido not_verified."
     },
     {
       "id": "F18",
@@ -425,7 +448,8 @@
         "deterministic": "not_verified_for_evolution",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
-      }
+      },
+      "not_verified_reason": "Pesquisado W0-W5. O critério exige quatro ecossistemas e a quarta família (API Gemini) está diferida e não é PASS (docs/evolution/w3/STATUS.md:3-5, :352); Antigravity foi exercitado só por rota local (w3/STATUS.md:308). Mantido not_verified."
     },
     {
       "id": "F19",
@@ -496,10 +520,16 @@
       ],
       "gap": "Ensaios de perfis novos e atualização/rollback pendentes.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
-        "real_consumers": "not_verified",
+        "deterministic": "verified_w4_scope_only",
+        "real_consumers": "verified_installed_local_scope_only",
         "operational": "not_authorized"
-      }
+      },
+      "evolution_evidence": [
+        "docs/evolution/w4/evidence/final/traceability.md:20 (FR07: I1 test/test-execution-plugin-install.js: instalação externa, upgrade, rollback e versão não selecionada inerte)",
+        "docs/evolution/w4/STATUS.md:533-537 e :576-578 (plugins instalados por tarball offline fora do checkout; seleção fixada, upgrade e rollback)",
+        "docs/evolution/w4/STATUS.md:512-519 (matriz P1-S1 117/117 em Node 22 e 24, 18/18 mutantes rejeitados, cobertura 90/80 por arquivo)"
+      ],
+      "evolution_scope": "Escopo W4 apenas: perfis de plugins de execução; perfis novos de capacidade fora desse escopo não foram ensaiados."
     },
     {
       "id": "F22",
@@ -519,10 +549,16 @@
       ],
       "gap": "Contratos de plugins e catálogo certificado de extensões da IDE pendentes.",
       "status": {
-        "deterministic": "not_verified_for_evolution",
+        "deterministic": "verified_w4_scope_only",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
-      }
+      },
+      "evolution_evidence": [
+        "docs/evolution/w4/evidence/final/traceability.md:14-15 (FR01/FR02: manifesto, hash e autoridade inválidos rejeitados; plugin de saída inválida, timeout ou acesso negado não amplia autoridade)",
+        "test/test-execution-plugin-manifest.js:280 (identificadores canônicos sem ampliar grants)",
+        "docs/evolution/w4/STATUS.md:512-519 (matriz P1-S1 117/117 em Node 22 e 24, 18/18 mutantes rejeitados, cobertura 90/80 por arquivo)"
+      ],
+      "evolution_scope": "Escopo W4 apenas: o catálogo certificado de extensões da IDE (gap original) segue pendente."
     },
     {
       "id": "F23",
@@ -545,7 +581,8 @@
         "deterministic": "not_verified_for_evolution",
         "real_consumers": "not_verified",
         "operational": "not_authorized"
-      }
+      },
+      "not_verified_reason": "Pesquisado W0-W5. Há evidência parcial: docs/evolution/W0-CLOSEOUT.md:9-15 (lint integral sem avisos, mínimo 90/80 por arquivo crítico em Node 22 e 24, três mutantes dirigidos detectados) e test/test-kernel-quality-surface.js:12-30 (regra no-undef ativa e sonda de variável indefinida). A sonda cobre só packages/ (probe em packages/agent-runtime/quality-probe.js), enquanto .c8-kernel.json inclui arquivos de tools/; a verificação \"em cada superfície\" não está demonstrada. Mantido not_verified."
     },
     {
       "id": "F24",
