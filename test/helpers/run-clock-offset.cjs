@@ -29,11 +29,8 @@ const TIME_PATTERN =
 const EXCLUDED = {
   'test/test-engineering-task-runtime.js':
     'mixed clocks: children spawned with a sanitised env keep the real clock and Date.now() is compared with file mtimes',
-  'test/test-mcp-contract.js':
-    'legacy MCP servers stop at the 2026-11-30 sunset by the wall clock; covered by W0-5, which pins the clock of the legacy children',
-  'test/test-mcp-hseos-governance.js': 'same as test-mcp-contract.js (legacy MCP server over --port); covered by W0-5',
-  'test/test-mcp-hseos-swarm-scope.js': 'same as test-mcp-contract.js (legacy MCP server over --port); covered by W0-5',
-  'test/test-mcp-agent-state.js': 'same as test-mcp-contract.js (legacy MCP server process, no clock seam); covered by W0-5',
+  'test/test-mcp-hseos-governance.js':
+    'legacy MCP server over --port stops at the 2026-11-30 sunset by the wall clock; W0-5 did not pin its children, so it fails with +400 days (server never answers) and passes with 0',
 };
 
 function selection() {
