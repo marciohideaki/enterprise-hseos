@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const path = require('node:path');
 const { test } = require('node:test');
 const Database = require('better-sqlite3');
@@ -9,12 +10,22 @@ const { MemorySourceSchema, resolveSourceAuthority } = require('../packages/agen
 const environment = require('../packages/agent-environment');
 const memory = require('../packages/agent-memory');
 const { collectMemorySources, createGovernedMemory } = require('../tools/cli/lib/memory-context-source');
+const { ExecutionApprovalStore } = require('../tools/mcp-project-state/lib/execution-approval-store');
 const { ExecutionEventLedger } = require('../tools/mcp-project-state/lib/execution-event-ledger');
 const { applyExecutionLedgerFixtureSchema } = require('../tools/mcp-project-state/lib/execution-ledger-schema');
 const { runMigrations } = require('../tools/mcp-project-state/lib/migrations');
 
 const { AgentMemoryError, EVENTS, MemoryStore } = memory;
 const MIGRATIONS_DIR = path.join(__dirname, '..', 'tools', 'mcp-project-state', 'migrations');
+const APPROVALS_SQL = path.join(
+  __dirname,
+  '..',
+  'tools',
+  'mcp-project-state',
+  'migrations-pending-activation',
+  '007-execution-approvals.sql',
+);
+const POLICY_VERSION = 'hseos-operational-v1';
 const ALLOW = [{ id: 'memory-write', source: 'project', stage: 'allow', decision: 'allow' }];
 const ASK = [{ id: 'memory-ask', source: 'project', stage: 'ask', decision: 'ask' }];
 const OPERATOR = { kind: 'operator', id: 'owner' };
@@ -28,8 +39,41 @@ function setup() {
   applyExecutionLedgerFixtureSchema(db);
   const ledger = new ExecutionEventLedger(db);
   const clock = { ms: START };
-  const store = createGovernedMemory({ ledger, now: () => clock.ms });
-  return { db, ledger, clock, store };
+  db.exec(fs.readFileSync(APPROVALS_SQL, 'utf8'));
+  const approvalStore = new ExecutionApprovalStore(db);
+  // The host decides which approval backs a deletion; nothing the model sends reaches this slot.
+  const host = { approvalId: null, onResolve: null };
+  const approvalVerifier = memory.createExecutionApprovalVerifier({
+    approvalStore,
+    resolveApprovalId: () => {
+      host.onResolve?.();
+      return host.approvalId;
+    },
+    policyVersion: POLICY_VERSION,
+    now: () => clock.ms,
+  });
+  const store = createGovernedMemory({ ledger, now: () => clock.ms, approvalVerifier });
+  const approve = (
+    projectId,
+    memoryId,
+    { approvalId = `appr-${projectId}-${memoryId}`, operationId, scope, decision = 'approved' } = {},
+  ) => {
+    const operation = memory.memoryDeleteOperation(projectId, memoryId);
+    approvalStore.issue({
+      approval_id: approvalId,
+      operation_id: operationId ?? operation.operation_id,
+      authorizer: { id: 'owner', type: 'operator' },
+      resource_scope: scope ?? operation.resource_scope,
+      issued_at: STAMP,
+      expires_at: '2026-10-14T13:00:00.000Z',
+      decision,
+      policy_version: POLICY_VERSION,
+      evidence_ref: 'hseos://test/approval',
+    });
+    host.approvalId = approvalId;
+    return approvalId;
+  };
+  return { db, ledger, clock, store, approve, host, approvalStore };
 }
 
 // `entry` is what a caller proposes; `host` is what only the trusted host supplies.
@@ -271,7 +315,7 @@ test('retrieval is deterministic, scoped by project and feeds memory[] with prov
 });
 
 test('projects never share ids, events or projection: the same memory_id lives independently in two projects', () => {
-  const { store, ledger } = setup();
+  const { store, ledger, approve } = setup();
   store.write(entry({ scope: { project_id: 'alpha' }, content: 'alpha only knowledge' }), host());
   store.write(entry({ scope: { project_id: 'beta' }, content: 'beta only knowledge' }), host());
   assert.equal(ledger.getVersion('agent_memory', 'alpha'), 1);
@@ -288,12 +332,13 @@ test('projects never share ids, events or projection: the same memory_id lives i
   );
   const ids = ledger.readGlobal({ limit: 10 }).map((event) => event.event_id);
   assert.equal(new Set(ids).size, 2);
+  approve('beta', 'note-1');
   store.forget({ project_id: 'beta', memory_id: 'note-1' }, { actor: OPERATOR });
   assert.equal(store.retrieve({ project_id: 'alpha', query: 'knowledge' }).length, 1, 'deleting in beta leaves alpha alone');
 });
 
 test('supersession and operator deletion are events and remove entries from retrieval', () => {
-  const { store, ledger } = setup();
+  const { store, ledger, approve } = setup();
   store.write(entry({ content: 'first version of the rule' }), host());
   assert.throws(() => store.write(entry({ content: 'again' }), host()), codeOf('AGENT_MEMORY_DUPLICATE'));
   assert.throws(() => store.write(entry({ memory_id: 'note-2', supersedes: 'missing' }), host()), codeOf('AGENT_MEMORY_SUPERSEDE_INVALID'));
@@ -304,6 +349,7 @@ test('supersession and operator deletion are events and remove entries from retr
   );
   assert.throws(() => store.write(entry({ memory_id: 'note-3', supersedes: 'note-1' }), host()), codeOf('AGENT_MEMORY_SUPERSEDE_INVALID'));
   const forget = (patch, actor = OPERATOR) => store.forget({ project_id: 'alpha', memory_id: 'note-2', ...patch }, { actor });
+  approve('alpha', 'note-2');
   assert.throws(() => forget({}, { kind: 'host', id: 'agent-memory' }), codeOf('AGENT_MEMORY_OPERATOR_REQUIRED'));
   assert.throws(() => forget({}, null), codeOf('AGENT_MEMORY_OPERATOR_REQUIRED'));
   assert.throws(() => forget({}, { kind: 'operator', id: syntheticCredential() }), codeOf('AGENT_MEMORY_CREDENTIAL_DETECTED', 'actor'));
@@ -314,6 +360,11 @@ test('supersession and operator deletion are events and remove entries from retr
   assert.throws(() => forget({ reason: '  ' }), invalidField('reason'));
   assert.throws(() => forget({ project_id: 'Bad Id' }), invalidField('project_id'));
   assert.throws(() => forget({ memory_id: 'BAD' }), invalidField('memory_id'));
+  assert.equal(
+    ledger.readStream('agent_memory', 'alpha').length,
+    3,
+    'every refusal above left the approval unspent and the stream untouched',
+  );
   forget({ reason: 'obsolete' });
   assert.throws(() => forget({}), codeOf('AGENT_MEMORY_NOT_FOUND'));
   assert.equal(store.retrieve({ project_id: 'alpha', query: 'rule' }).length, 0);
@@ -699,4 +750,171 @@ test('environment ledger sink never lets an event claim another project', () => 
   const { ledger } = setup();
   sinkOf(ledger)({ type: 'environment.lsp.completed', project_id: 'beta' });
   assert.equal(ledger.readStream('environment_session', 'session-1')[0].payload.project_id, 'alpha');
+});
+
+test('forget needs an operator and a single-use approval bound to the operation, issued by the host', () => {
+  const { store, ledger, approve, host: hostSlot, approvalStore, db } = setup();
+  store.write(entry(), host());
+  store.write(entry({ memory_id: 'note-2' }), host());
+  const forget = (patch = {}, actor = OPERATOR) => store.forget({ project_id: 'alpha', memory_id: 'note-1', ...patch }, { actor });
+  const events = () => ledger.readStream('agent_memory', 'alpha').map((event) => event.event_type);
+  const refused = (cause) => (error) =>
+    codeOf('AGENT_MEMORY_APPROVAL_REQUIRED')(error) && (cause === undefined || error.details.cause === cause);
+
+  assert.throws(() => forget(), refused(), 'no approval at all');
+  assert.throws(() => store.forget({ project_id: 'alpha', memory_id: 'note-1' }), codeOf('AGENT_MEMORY_OPERATOR_REQUIRED'));
+
+  approve('alpha', 'note-2', { approvalId: 'appr-other-memory' });
+  assert.throws(() => forget(), refused('EXECUTION_APPROVAL_SCOPE_MISMATCH'), 'approval of another memory');
+  approve('alpha', 'note-1', {
+    approvalId: 'appr-wrong-scope',
+    operationId: memory.memoryDeleteOperation('alpha', 'note-1').operation_id,
+    scope: { project_id: 'beta', memory_id: 'note-1' },
+  });
+  assert.throws(() => forget(), refused('EXECUTION_APPROVAL_SCOPE_MISMATCH'), 'right operation, wrong resource scope');
+  approve('alpha', 'note-1', { approvalId: 'appr-denied', decision: 'denied' });
+  assert.throws(() => forget(), refused('EXECUTION_APPROVAL_DENIED'), 'a denied approval');
+  hostSlot.approvalId = 'appr-unknown';
+  assert.throws(() => forget(), refused('EXECUTION_APPROVAL_NOT_FOUND'), 'an approval that does not exist');
+
+  approve('alpha', 'note-1');
+  assert.throws(
+    () => forget({}, { kind: 'agent', id: 'planner' }),
+    codeOf('AGENT_MEMORY_OPERATOR_REQUIRED'),
+    'agent actor even with approval',
+  );
+  assert.throws(
+    () => forget({ approval_id: 'appr-alpha-note-1', approval: { approved: true } }, null),
+    codeOf('AGENT_MEMORY_OPERATOR_REQUIRED'),
+  );
+  assert.equal(approvalStore.db.prepare('SELECT COUNT(*) AS n FROM execution_approval_uses').get().n, 0, 'refusals spent nothing');
+  assert.deepEqual(events(), ['memory.written', 'memory.written']);
+
+  // A model-supplied approval in the payload is ignored: the host slot decides.
+  hostSlot.approvalId = null;
+  assert.throws(() => forget({ approval_id: 'appr-alpha-note-1', approved: true, approval: { id: 'appr-alpha-note-1' } }), refused());
+
+  hostSlot.approvalId = 'appr-alpha-note-1';
+  forget({ reason: 'approved cleanup' });
+  assert.deepEqual(events(), ['memory.written', 'memory.written', EVENTS.DELETED]);
+  assert.equal(ledger.readStream('agent_memory', 'alpha').at(-1).payload.reason, 'approved cleanup');
+  assert.equal(db.prepare('SELECT operation_id FROM execution_approval_uses').get().operation_id, 'memory.delete:alpha:note-1');
+
+  // Single use: the same approval cannot delete again, nor can it be replayed for the same operation.
+  assert.throws(() => forget(), codeOf('AGENT_MEMORY_NOT_FOUND'));
+  assert.throws(
+    () => store.forget({ project_id: 'alpha', memory_id: 'note-2' }, { actor: OPERATOR }),
+    refused('EXECUTION_APPROVAL_REUSED'),
+    'a spent approval cannot back another deletion',
+  );
+  assert.throws(() => approve('alpha', 'note-1', { approvalId: 'appr-alpha-note-1' }), /identity is immutable/);
+  assert.equal(store.list('alpha').find((item) => item.memory_id === 'note-2').status, 'active');
+});
+
+test('forget fails closed when the host wired no verifier or the verifier misbehaves', () => {
+  const { ledger } = setup();
+  const make = (approvalVerifier) =>
+    new MemoryStore({
+      ledger,
+      scanCredential: () => false,
+      now: () => START,
+      ...(approvalVerifier === undefined ? {} : { approvalVerifier }),
+    });
+  make().write(entry(), host());
+  const call = (store) => store.forget({ project_id: 'alpha', memory_id: 'note-1' }, { actor: OPERATOR });
+  const refused = codeOf('AGENT_MEMORY_APPROVAL_REQUIRED');
+  assert.throws(() => call(make()), refused, 'no verifier');
+  assert.throws(() => call(make('yes')), refused, 'verifier is not a function');
+  assert.throws(() => call(make(() => 1)), refused, 'verifier that does not confirm true');
+  assert.throws(() => call(make(() => 'true')), refused, 'only boolean true confirms');
+  assert.throws(
+    () =>
+      call(
+        make(() => {
+          throw new Error('store down');
+        }),
+      ),
+    refused,
+    'verifier that throws',
+  );
+  assert.equal(ledger.readStream('agent_memory', 'alpha').length, 1);
+  const seen = [];
+  assert.throws(() => call(make(() => true)), refused, 'a verifier that confirms without running onConsumed');
+  assert.equal(ledger.readStream('agent_memory', 'alpha').length, 1);
+  call(
+    make(({ onConsumed, ...request }) => {
+      seen.push(request);
+      onConsumed();
+      return true;
+    }),
+  );
+  assert.deepEqual(seen, [
+    {
+      operation: 'memory.delete',
+      operation_id: 'memory.delete:alpha:note-1',
+      resource_scope: { project_id: 'alpha', memory_id: 'note-1' },
+      actor: OPERATOR,
+    },
+  ]);
+});
+
+test('the approval verifier helper refuses a missing store, resolver or approval id', () => {
+  const { approvalStore } = setup();
+  const resolveApprovalId = () => 'x';
+  assert.throws(() => memory.createExecutionApprovalVerifier({ resolveApprovalId }), codeOf('AGENT_MEMORY_APPROVAL_REQUIRED'));
+  assert.throws(() => memory.createExecutionApprovalVerifier({ approvalStore }), codeOf('AGENT_MEMORY_APPROVAL_REQUIRED'));
+  const verifier = memory.createExecutionApprovalVerifier({ approvalStore, resolveApprovalId: () => '', now: () => START });
+  assert.throws(() => verifier({ ...memory.memoryDeleteOperation('alpha', 'note-1') }), codeOf('AGENT_MEMORY_APPROVAL_REQUIRED'));
+  assert.throws(
+    () => memory.createExecutionApprovalVerifier({ approvalStore, resolveApprovalId, policyVersion: '' }),
+    codeOf('AGENT_MEMORY_APPROVAL_REQUIRED'),
+  );
+});
+
+test('the approval is consumed together with the deletion append: a failed append leaves it unspent', () => {
+  const { store, ledger, db, approve, host: hostSlot, clock } = setup();
+  store.write(entry(), host());
+  const forget = () => store.forget({ project_id: 'alpha', memory_id: 'note-1' }, { actor: OPERATOR });
+  const spent = () => db.prepare('SELECT COUNT(*) AS n FROM execution_approval_uses').get().n;
+  approve('alpha', 'note-1');
+
+  const realAppend = ledger.append.bind(ledger);
+  ledger.append = () => {
+    throw new Error('ledger down');
+  };
+  assert.throws(forget, /ledger down/);
+  ledger.append = realAppend;
+  assert.equal(spent(), 0, 'append threw, approval not consumed');
+  assert.equal(store.list('alpha')[0].status, 'active');
+
+  // A concurrent writer moves the stream between the read and the append (version conflict).
+  const other = createGovernedMemory({ ledger, now: () => clock.ms });
+  hostSlot.onResolve = () => {
+    hostSlot.onResolve = null;
+    other.write(entry({ memory_id: 'note-9' }), host());
+  };
+  assert.throws(forget, (error) => !(error instanceof AgentMemoryError && error.code === 'AGENT_MEMORY_APPROVAL_REQUIRED'));
+  assert.equal(spent(), 0, 'version conflict, approval not consumed');
+  assert.equal(store.list('alpha').find((item) => item.memory_id === 'note-1').status, 'active');
+
+  forget();
+  assert.equal(spent(), 1);
+  const deleted = ledger.readStream('agent_memory', 'alpha').at(-1);
+  assert.equal(deleted.event_type, EVENTS.DELETED);
+  assert.equal(deleted.operation_id, 'memory.delete:alpha:note-1');
+  assert.equal(deleted.payload.approval_id, 'appr-alpha-note-1');
+  assert.deepEqual(Object.keys(deleted.payload).sort(), ['approval_id', 'contract', 'memory_id', 'reason']);
+});
+
+test('an expired approval cannot back a deletion', () => {
+  const { store, approve, clock, db } = setup();
+  store.write(entry(), host());
+  approve('alpha', 'note-1');
+  clock.ms = Date.parse('2026-10-14T13:00:00.000Z');
+  assert.throws(
+    () => store.forget({ project_id: 'alpha', memory_id: 'note-1' }, { actor: OPERATOR }),
+    (error) => codeOf('AGENT_MEMORY_APPROVAL_REQUIRED')(error) && error.details.cause === 'EXECUTION_APPROVAL_EXPIRED',
+  );
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM execution_approval_uses').get().n, 0);
+  assert.equal(store.list('alpha')[0].status, 'expired', 'entry untouched (ttl also elapsed)');
 });
