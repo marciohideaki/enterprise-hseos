@@ -156,7 +156,7 @@
         "docs/evolution/w4/evidence/final/traceability.md:16 (FR03: J1/J2/F1 test/test-job-control.js, test/test-job-recovery.js, test/test-job-faults.js: owner morto/incerto, crash antes e depois do efeito, concorrência)",
         "docs/evolution/w4/STATUS.md:512-519 (matriz P1-S1 117/117 em Node 22 e 24, 18/18 mutantes rejeitados, cobertura 90/80 por arquivo)"
       ],
-      "evolution_scope": "Escopo W4 apenas: jobs duráveis do plano de controle W4; a ativação operacional do agendador não está autorizada (docs/evolution/w4/STATUS.md:582)."
+      "evolution_scope": "Escopo W4 apenas: jobs duráveis do plano de controle W4; nenhuma ativação operacional é autorizada (docs/evolution/w4/STATUS.md:582, texto geral de fechamento da W4, sem tratar do agendador em particular)."
     },
     {
       "id": "F07",
@@ -203,7 +203,7 @@
         "real_consumers": "not_verified",
         "operational": "not_authorized"
       },
-      "not_verified_reason": "Pesquisado W0-W5. Existem testes do broker (test/test-provider-egress-broker.js:39,193: credencial injetada pelo supervisor e cabeçalho de sobrescrita recusado; :162 eco de credencial bloqueado), mas nenhum recibo de onda liga a verificação da família (login expirado, credencial de ambiente sobreposta, mudança silenciosa de cobrança) a um teste. docs/evolution/w3/BINDINGS.md:54 declara que os testes de protocolo não comprovam login, quota, cobrança ou recuperação reais, e docs/evolution/w3/STATUS.md:352 não declara a certificação de W3 concluída. Mantido not_verified."
+      "not_verified_reason": "Pesquisado W0-W5. Existem testes do broker (test/test-provider-egress-broker.js:42,196: credencial injetada pelo supervisor e cabeçalho de sobrescrita recusado; :165 eco de credencial bloqueado), mas nenhum recibo de onda liga a verificação da família (login expirado, credencial de ambiente sobreposta, mudança silenciosa de cobrança) a um teste. docs/evolution/w3/BINDINGS.md:54 declara que os testes de protocolo não comprovam login, quota, cobrança ou recuperação reais, e docs/evolution/w3/STATUS.md:352 não declara a certificação de W3 concluída. Mantido not_verified."
     },
     {
       "id": "F09",
