@@ -20,6 +20,7 @@ const TASK_ABORTED = new Set(['BLOCKED', 'FAILED']);
  * @property {string} [projectDirectory] Project directory whose agent-liveness.yaml governs the liveness rows.
  * @property {object} [livenessConfig] Liveness config override (wins over projectDirectory).
  * @property {object} [livenessIo] Reconciliation I/O overrides (tests).
+ * @property {number} [now] Epoch ms the liveness rows are classified at (defaults to the real clock; tests inject it).
  */
 
 /**
@@ -46,7 +47,7 @@ function livenessRows(db, opts) {
   // is already in it) and never spawns git or probes processes.
   const config = opts.livenessConfig ?? (opts.projectDirectory ? loadLivenessConfigWithFallback(opts.projectDirectory).config : DEFAULTS);
   if (config.enabled !== true) return [];
-  return snapshotLiveness(db, config, Date.now(), opts.livenessIo ?? INERT_IO);
+  return snapshotLiveness(db, config, opts.now ?? Date.now(), opts.livenessIo ?? INERT_IO);
 }
 
 function takeSnapshot(db, opts = {}) {

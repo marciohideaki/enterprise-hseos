@@ -1346,10 +1346,10 @@ test('state-ui snapshot carries the liveness classification next to the agent-st
       claim(index, `n${index}`, status);
     emit(db, 'turn_end', 0, null, { agent: 'idle' });
     liveness.recordReport(db, { session: 's1', agent: 'blk', value: { state: 'BLOCKED', reason: 'r' }, now: T0 });
-    const snapshot = takeSnapshot(db, { livenessConfig: CONFIG, livenessIo: NO_IO, eventLimit: 5 });
+    const snapshot = takeSnapshot(db, { livenessConfig: CONFIG, livenessIo: NO_IO, eventLimit: 5, now: T0 + 1000 * S });
     const row = snapshot.liveness.find((entry) => entry.agent === 'idle');
     assert.deepEqual(Object.keys(row).sort(), ['agent', 'class', 'idle_for_s', 'reason_code', 'session', 'wake_attempts']);
-    assert.equal(row.class, 'stalled', 'the fixed 2026 timestamps are long past stall_timeout_s');
+    assert.equal(row.class, 'stalled', 'the injected clock is long past stall_timeout_s');
     assert.equal(snapshot.liveness.find((entry) => entry.agent === 'blk').blocked_age_s > 0, true);
     assert.equal(snapshot.counts.pending, 1);
     assert.ok(snapshot.counts.aborted >= 3);
@@ -1446,11 +1446,11 @@ test('state-ui: snapshot uses the project config, stays ledger-only, and the cen
       db.close();
     }
   };
-  const rows = open(enabled, (db) => takeSnapshot(db, { projectDirectory: enabled }).liveness);
+  const rows = open(enabled, (db) => takeSnapshot(db, { projectDirectory: enabled, now: T0 + 1000 * S }).liveness);
   assert.equal(rows.length, 1);
   assert.equal(rows[0].class, 'stalled', 'stall_timeout_s=60 from the project config, not the 900 s default');
   assert.deepEqual(
-    open(disabled, (db) => takeSnapshot(db, { projectDirectory: disabled }).liveness),
+    open(disabled, (db) => takeSnapshot(db, { projectDirectory: disabled, now: T0 + 1000 * S }).liveness),
     [],
   );
   assert.deepEqual(
@@ -1458,20 +1458,23 @@ test('state-ui: snapshot uses the project config, stays ledger-only, and the cen
     [],
     'no project directory and no override: defaults are disabled',
   );
-  open(enabled, (db) => takeSnapshot(db, { projectDirectory: enabled, livenessIo: spying }));
+  open(enabled, (db) => takeSnapshot(db, { projectDirectory: enabled, livenessIo: spying, now: T0 + 1000 * S }));
   assert.deepEqual(probes, [], 'a worktree without recorded truth is never probed');
 
   withDb(enabled, (db) => emit(db, 'heartbeat', 0, { truth: { worktree: '/wt/never-probed', head: 'a'.repeat(40) } }, { agent: 'probe' }));
   withDb(enabled, (db) => emit(db, 'turn_end', 1, null, { agent: 'probe' }));
-  const noGit = open(enabled, (db) => takeSnapshot(db, { projectDirectory: enabled }).liveness);
+  const noGit = open(enabled, (db) => takeSnapshot(db, { projectDirectory: enabled, now: T0 + 1000 * S }).liveness);
   assert.equal(noGit.find((row) => row.agent === 'probe').class, 'stalled', 'the default snapshot io never reconciles through git');
 
-  const central = takeMultiSnapshot({
-    projects: [
-      { id: 'on', path: enabled, label: 'on' },
-      { id: 'off', path: disabled, label: 'off' },
-    ],
-  });
+  const central = takeMultiSnapshot(
+    {
+      projects: [
+        { id: 'on', path: enabled, label: 'on' },
+        { id: 'off', path: disabled, label: 'off' },
+      ],
+    },
+    { now: T0 + 1000 * S },
+  );
   assert.ok(central.liveness.length > 0);
   assert.deepEqual([...new Set(central.liveness.map((row) => row.project_id))], ['on']);
 });
@@ -1752,9 +1755,9 @@ test('the HTTP/kanban snapshot path never spawns git, while the watchdog does', 
   try {
     const db = liveness.openLivenessDb(directory);
     try {
-      const rows = takeSnapshot(db, { projectDirectory: directory }).liveness;
+      const rows = takeSnapshot(db, { projectDirectory: directory, now: T0 + 1000 * S }).liveness;
       assert.equal(rows[0].class, 'stalled');
-      takeMultiSnapshot({ projects: [{ id: 'p', path: directory }] });
+      takeMultiSnapshot({ projects: [{ id: 'p', path: directory }] }, { now: T0 + 1000 * S });
     } finally {
       db.close();
     }
