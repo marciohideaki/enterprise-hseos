@@ -36,5 +36,11 @@ the host-injected `approvalVerifier` (`createExecutionApprovalVerifier` wraps an
 verifier or approval it fails with `AGENT_MEMORY_APPROVAL_REQUIRED`. It cannot know whether the host authenticated that
 actor or obtained the approval honestly. A host that lets a model choose `rules`, `approved` or `actor` has bypassed the governance.
 
+Atomicity premise: the `memory.deleted` append is atomic with the approval consumption only when the
+`ExecutionApprovalStore` and the ledger share the same better-sqlite3 database (the append runs as a nested
+transaction inside the consuming one). A host that mounts them on separate databases loses that guarantee: a failed
+append could leave the approval spent, or a failed consumption could leave an append behind, and the host must handle
+that case itself.
+
 Known residuals: there is no per-project quota (every read replays the project stream), deletion and expiry are logical
 (the ledger keeps the content), and no PII scan exists beyond the injected credential scanner.
