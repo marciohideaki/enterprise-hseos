@@ -834,7 +834,11 @@ test('a projected overflow fails before the step opens and reports the numbers',
   await fixture.runtime.send(sendCommand());
   const failure = fixture.sessionStore.replay('session:loop').terminal_event.payload;
   assert.equal(failure.error_code, 'budget_exceeded');
-  assert.match(failure.message, /projected \d+ > max 1500 \(used \d+ \+ request \d+ \+ reserve 64\)/);
+  const numbers = /projected (\d+) > max 1500 \(used (\d+) \+ request (\d+) \+ reserve 64\)/.exec(failure.message);
+  assert.ok(numbers, failure.message);
+  const [projected, used, request] = numbers.slice(1).map(Number);
+  assert.equal(projected, used + request + 64);
+  assert.ok(projected > 1500);
 });
 
 test('a session that stops within its window completes even when reported usage passes the limit', async (context) => {

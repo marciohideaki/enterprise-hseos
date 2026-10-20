@@ -22,6 +22,7 @@ const { attestEngineeringVerifier, verifyEngineeringTask } = require('./engineer
 const { materializeStoreLinks, pinStoreMount, verifyPnpmStoreMount } = require('./engineering-workspace');
 const { EngineeringTaskState, engineeringDigest } = require('./engineering-task-state');
 const { evaluatePermissionLattice } = require('../../../packages/agent-policy-lattice');
+const { containsCredential } = require('./campaign-evidence-store');
 const { accountSessionTokens } = require('../../../packages/agent-context/token-counter');
 
 const MANIFEST = 'engineering-task.json';
@@ -734,6 +735,7 @@ async function executeTask(handle, task, assembly, created, verificationOnly = f
         reason: finalState.cancellation ? 'cancelled' : finalState.uncertainty ? 'reconciliation-required' : verified.reason,
         evidence: {
           ...verified,
+          ...overBudgetEvidence(ended, contract),
           schema_version: 1,
           contract_sha256: created.contract_sha256,
           session_id: created.session_id,
@@ -750,6 +752,21 @@ async function executeTask(handle, task, assembly, created, verificationOnly = f
   return operationResult;
 }
 
+const SESSION_FAILURE_MESSAGE_MAX = 512;
+// The failure message is runtime-authored text that reaches durable evidence: drop it whole if it looks like a credential.
+function evidenceMessage(message) {
+  if (containsCredential(message)) return '[redacted: credential-like content]';
+  return message.length > SESSION_FAILURE_MESSAGE_MAX ? `${message.slice(0, SESSION_FAILURE_MESSAGE_MAX)}...` : message;
+}
+
+// A session that stopped is completed even past max_tokens (the budget only gates new steps); say so in the evidence.
+function overBudgetEvidence(session, contract) {
+  if (session.status !== 'completed') return {};
+  const accounting = accountSessionTokens(session);
+  if (accounting.total_tokens <= contract.limits.max_tokens) return {};
+  return { token_accounting: { ...accounting, over_budget: true, max_tokens: contract.limits.max_tokens } };
+}
+
 // Why a task whose session never completed has no verdict: the session's own terminal failure, else no terminal at all.
 function unverifiedSession(session) {
   if (session.status !== 'failed') return { approved: false, reason: 'session-not-completed' };
@@ -757,7 +774,7 @@ function unverifiedSession(session) {
   return {
     approved: false,
     reason: errorCode === 'budget_exceeded' ? 'session-budget-exceeded' : `session-failed:${errorCode}`,
-    session_failure: { error_code: errorCode, message },
+    session_failure: { error_code: errorCode, message: evidenceMessage(message) },
     token_accounting: accountSessionTokens(session),
   };
 }
@@ -1000,3 +1017,4 @@ async function executeJobTask(control, id) {
   }
 }
 module.exports.executeJobTask = executeJobTask;
+module.exports.sessionEvidence = { evidenceMessage, overBudgetEvidence, unverifiedSession };
