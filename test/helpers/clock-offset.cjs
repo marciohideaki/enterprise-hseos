@@ -6,6 +6,8 @@
 //
 // Shifted: Date.now(), new Date() without arguments, Date() called as a function, and SQLite
 // 'now' time values (better-sqlite3 prepare/exec/pragma SQL is rewritten to 'now','+N days').
+// Composition: a test that mocks Date.now replaces the shifted function (the mock wins); Date.prototype.constructor is
+// the real Date, so `instance.constructor === Date` is false.
 // NOT shifted: performance.now()/process.hrtime (monotonic), file mtimes, timers, subprocesses that
 // are not Node (they inherit the env but not the preload), and SQL built by other drivers.
 
@@ -16,20 +18,27 @@ if (days !== 0 && !globalThis.__hseosClockOffsetInstalled) {
   globalThis.__hseosClockOffsetInstalled = true;
   const offsetMs = days * 86_400_000;
   const RealDate = Date;
-  const shiftedNow = () => RealDate.now() + offsetMs;
+  const realNow = RealDate.now;
+  const shiftedNow = () => realNow.call(RealDate) + offsetMs;
 
+  // Date.now is replaced on the real constructor (not through a proxy trap) so a test that mocks it replaces the
+  // shifted function and may call the original, which is the shifted one.
+  RealDate.now = shiftedNow;
   globalThis.Date = new Proxy(RealDate, {
     construct: (target, args, newTarget) =>
       args.length === 0 ? Reflect.construct(target, [shiftedNow()], newTarget) : Reflect.construct(target, args, newTarget),
     apply: () => new RealDate(shiftedNow()).toString(),
-    get: (target, prop, receiver) => (prop === 'now' ? shiftedNow : Reflect.get(target, prop, receiver)),
   });
 
   // Patch better-sqlite3 lazily, on first load, so the preload never adds modules to a process that
   // does not use it (some tests assert the exact set of loaded modules).
   const Module = require('node:module');
   const modifier = `'now','${days >= 0 ? '+' : '-'}${Math.abs(days)} days'`;
-  const rewrite = (sql) => (typeof sql === 'string' ? sql.replaceAll(/'now'/gi, modifier) : sql);
+  // Only 'now' used as an argument of an SQLite date function is shifted; a bare string literal stays intact.
+  // Nested calls inside the argument list (datetime(coalesce(x, 'now'))) are not matched: documented limitation.
+  const dateFunction = /\b(date|time|datetime|julianday|unixepoch|strftime)\s*\(([^()]*)\)/gi;
+  const rewrite = (sql) =>
+    typeof sql === 'string' ? sql.replaceAll(dateFunction, (call, name, args) => `${name}(${args.replaceAll(/'now'/gi, modifier)})`) : sql;
   const originalLoad = Module._load;
   Module._load = function load(request, parent, isMain) {
     const exported = originalLoad.call(this, request, parent, isMain);

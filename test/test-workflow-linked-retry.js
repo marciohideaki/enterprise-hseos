@@ -15,7 +15,7 @@ function command(id, action, expected_sequence, input) {
   return { schema_version: 1, command_id: randomUUID(), resource_id: id, expected_sequence, action, input };
 }
 
-function setup(t) {
+function setup(t, { pinClock = false } = {}) {
   const project = fixture(t);
   const control = new EngineeringControl({ workspaces: [project.root] });
   t.after(async () => {
@@ -38,11 +38,13 @@ function setup(t) {
     deadline_at: '2027-01-02T00:00:00.000Z',
     depends_on: [],
   });
+  // The fixed window above (2027-01-01 to 2027-01-02) must not depend on the wall clock: pin it before the window opens.
+  if (pinClock) control.jobs.now = () => Date.parse('2026-12-01T00:00:00.000Z');
   return { project, control, jobs: control.jobs, id, create, definition };
 }
 
 test('retry creates one linked successor only after a terminal workflow and reopens durably', async (t) => {
-  const f = setup(t);
+  const f = setup(t, { pinClock: true });
   await f.jobs.execute(f.create);
   const id = randomUUID();
   const retry = command(id, 'retry', 0, { ...f.create.input, retry_of: f.id });
@@ -78,7 +80,7 @@ test('retry creates one linked successor only after a terminal workflow and reop
 });
 
 test('concurrent retry commands make one linear successor and preserve the root deadline through another terminal attempt', async (t) => {
-  const f = setup(t);
+  const f = setup(t, { pinClock: true });
   await f.jobs.execute(f.create);
   await f.jobs.execute(command(f.id, 'cancel', 1, {}));
   const input = { ...f.create.input, retry_of: f.id };
