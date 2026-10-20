@@ -643,3 +643,36 @@ test('a 123 KB file is changed end to end by search, ranged read, anchored patch
     'the project itself is untouched until the result is applied',
   );
 });
+
+test('the managed-project instruction tells the model to search, read by range and patch short; v1 keeps its text', async (t) => {
+  const { openExecutionLedgerFileFixture } = require('../tools/mcp-project-state/lib/execution-ledger-schema');
+  const { RelationalSessionEventStore } = require('../packages/agent-session-store');
+  const { ExecutionEventLedger } = require('../tools/mcp-project-state/lib/execution-event-ledger');
+  const f = fixture(t, { files: { 'index.js': 'module.exports = n => n - 1;' } });
+  const responses = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(responses, '[]');
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  const handle = openExecutionLedgerFileFixture(result.state);
+  let message;
+  try {
+    const event = new RelationalSessionEventStore({ ledger: new ExecutionEventLedger(handle.db) })
+      .readSession(result.session_id)
+      .find((entry) => entry.event_type === 'context.assembled');
+    message = event.payload.request.messages.find((entry) => entry.content.includes('profile://engineering/candidate')).content;
+  } finally {
+    handle.close();
+  }
+  assert.match(message, /Implement only the declared disposable task\. A model response is not proof of acceptance\./);
+  for (const hint of [
+    'engineering.search',
+    'engineering.read',
+    'start_line',
+    'engineering.patch',
+    'within',
+    'expected_sha256',
+    'engineering.write is refused',
+  ]) {
+    assert.ok(message.includes(hint), hint);
+  }
+});
