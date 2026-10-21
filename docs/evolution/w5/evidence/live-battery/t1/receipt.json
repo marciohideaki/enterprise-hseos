@@ -102,8 +102,9 @@
         "evidence": "dispatch-5/ledger-rows.json, dispatch-5/result.json, dispatch-5/runner-diagnostic.log.gz"
       }
     ],
-    "requests_used_by_t1": "5 of 5 authorised: 3 under the authorisation of 2026-10-17 reconfirmed on 2026-10-21 (attempts 1 to 3) and 2 under the new authorisation (attempts 4 and 5); one campaign per attempt",
-    "battery_requests_after_t1": "9 of 12 (2 from T2, 1 from T3, 1 from T4, 5 from T1)"
+    "requests_used_by_t1": "5 consumed (campaign allowances sum to 9; owner task ceiling 5): 3 under the authorisation of 2026-10-17 reconfirmed on 2026-10-21 (attempts 1 to 3) and 2 under the new authorisation (attempts 4 and 5); one campaign per attempt",
+    "battery_requests_after_t1": "9 of 12 (2 from T2, 1 from T3, 1 from T4, 5 from T1)",
+    "requests_authorised_by_campaigns": "9 (max_requests 3+2+1+2+1 across the five campaigns, as the README rule asks) against 5 consumed; the task ceiling from the owner decisions was 5 (3 reconfirmed on 2026-10-21 plus 2 new)"
   },
   "real_work": {
     "description": "The capability intake guard detects the CommonJS export forms the tokenizer-based detection missed: logical assignment on a named export (exports.a ??= 1, ||=), bracket access (module['exports'], exports['a']) and an alias of module or exports taken from the bare identifier. Strings, comments, template literals, aliases of unrelated objects and other property names stay undetected. The production change in tools/cli/lib/capability-intake-guard.js (+98 lines, one block next to detectExports) was written by the model through one governed patch with `within` on a large file; two executor adjustments followed (see formatting and adjustments).",
@@ -293,14 +294,18 @@
     "inventory_g3": "1538/1556; packages 137/137; tools 393/393; .agents 203; .enterprise 464; .hseos 63; docs/evolution/w5/evidence/live-battery in the pack: 0 (npm pack --dry-run --json --ignore-scripts, Node 24)",
     "format_lint": "PASS: prettier --check and eslint --max-warnings=0 on tools/cli/lib/capability-intake-guard.js and test/test-capability-intake-guard.js after the adjustments",
     "node24": "PASS: all runs on Node 24.15",
-    "node22": "NOT_RUN"
+    "node22": "NOT_RUN",
+    "complexity_test": "PASS: 'cjs gaps (T1): heavy CommonJS input at 1 MB stays linear' passes 3 of 3 alone; part of verify-t1.sh (pattern cjs gaps)"
   },
   "protected_pins": {
     "verifier_script_sha256": "01963d3901b8ad3dee0c5d8ab4166e1d370387fe21de5bd7c9e3f0d48980edf8",
     "test_files_sha256": {
-      "test/test-capability-intake-guard.js": "99a8ae77bcf829d510fc5a0c6318bd9195db8e0271d18537063b715941aa019f"
+      "test/test-capability-intake-guard.js": "970d8378db34d90d9c9e291b60ee6e21ba748a03d29a0df0982f2a3523521a41"
     },
-    "note": "the harness pin also covers hseos_w5/verify.mjs and test/capability-intake-guard.test.sh; the test file was not changed after the dispatch"
+    "note": "the dispatch was judged by the test file with sha256 99a8ae77bcf829d510fc5a0c6318bd9195db8e0271d18537063b715941aa019f (pinned before the first reservation). After the skeptical review a second commit added one complexity test for heavy CommonJS input at 1 MB, ratio-based (heavy against plain input of the same size and against a quarter of the size, same run, best of 4; limits 3x+20 ms and 8x+20 ms over measured 1.45-1.60x and 4.3-4.8x), without a new absolute ceiling; new sha256 970d8378db34d90d9c9e291b60ee6e21ba748a03d29a0df0982f2a3523521a41. The guard in the commit satisfies it unchanged. The harness pin also covers hseos_w5/verify.mjs and test/capability-intake-guard.test.sh.",
+    "dispatch_judged_test_sha256": {
+      "test/test-capability-intake-guard.js": "99a8ae77bcf829d510fc5a0c6318bd9195db8e0271d18537063b715941aa019f"
+    }
   },
   "redaction": "owner (pid, cgroup path) and provider_session_id are replaced by \"<redacted>\" in the ledger copies; session_id values are redacted in the client stream logs; the heavy-run queue lines were removed from the logs",
   "limitations": [
@@ -310,7 +315,9 @@
     "the aliased forms are detected by name pattern; scope resolution, regex literals and unrelated exports properties remain known false positives (test.todo)",
     "the guard is not in .c8-kernel.json: no 90/80 gate applies; informative coverage only",
     "the diagnostic tooling (diag-worker, offline receipt reproduction, reconcile script) lives outside the repository in /build/tmp/hseos-w5/live/t1",
-    "battery counter: 9 of 12 requests after T1"
+    "battery counter: 9 of 12 requests after T1",
+    "known false negatives outside the specification, found by the reviewer and not fixed: module[`exports`] with a template literal key, an alias of an alias (const a = m; a.exports = ...), destructuring (const { exports: e } = module), a function parameter used as alias, compound assignment (exports.a += 1), and a concatenated key (exports['a' + 'b'] = 1)",
+    "new cost of the CommonJS detection is linear but up to about 1.6x the master on heavy CommonJS input (1 MB: 33 to 77 ms with module['exports'], mixed strings 83 to 122 ms in the reviewer's runs); the complexity test added after the review guards the linearity, not the constant"
   ],
   "product_findings": [
     "provider-claude-account-adapter.js:212 compares usage.output_tokens, which includes reasoning tokens (12824 of 14971 here), with the manifest max_output_tokens, and the client cap CLAUDE_CODE_MAX_OUTPUT_TOKENS is the same number: a short plan can fail after minutes of reasoning",

@@ -34,9 +34,9 @@ Reading rules:
 
 ## Index
 
-| Task | Receipt           | Dispatches                                                                                         | Battery requests after the task |
-| ---- | ----------------- | -------------------------------------------------------------------------------------------------- | ------------------------------- |
-| T2   | `t2/receipt.json` | 2 campaigns, 2 requests (attempt 1 FAIL by harness, attempt 2 PASS)                                | 2 of 12                         |
-| T3   | `t3/receipt.json` | 1 campaign, 1 of 3 authorised requests (PASS)                                                      | 3 of 12                         |
-| T4   | `t4/receipt.json` | 1 campaign, 1 of 2 authorised requests (PASS)                                                      | 4 of 12                         |
-| T1   | `t1/receipt.json` | 5 campaigns, 5 of 5 authorised requests (4 without receipt, causes in the receipt; attempt 5 PASS) | 9 of 12                         |
+| Task | Receipt           | Dispatches                                                                                                                                                  | Battery requests after the task |
+| ---- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| T2   | `t2/receipt.json` | 2 campaigns, 2 requests (attempt 1 FAIL by harness, attempt 2 PASS)                                                                                         | 2 of 12                         |
+| T3   | `t3/receipt.json` | 1 campaign, 1 of 3 authorised requests (PASS)                                                                                                               | 3 of 12                         |
+| T4   | `t4/receipt.json` | 1 campaign, 1 of 2 authorised requests (PASS)                                                                                                               | 4 of 12                         |
+| T1   | `t1/receipt.json` | 5 campaigns, 5 requests consumed of 9 allowed by the campaigns (3+2+1+2+1; owner task ceiling 5) (4 without receipt, causes in the receipt; attempt 5 PASS) | 9 of 12                         |

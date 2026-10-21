@@ -2774,6 +2774,37 @@ for (const [name, source] of CJS_GAP_CONTROLS) {
   });
 }
 
+// Complexity of the CommonJS detection, robust to machine load: every figure is a ratio of two measurements taken in the same run
+// (best of 4 each), never an absolute time. Measured on 2026-10-21 (patched guard): heavy/plain 1.45 to 1.60 at 1 MB, and 4x the size
+// costs 4.3 to 4.8x the time (linear is 4x, a quadratic pass would be 16x). The limits leave about 2x of room over those figures.
+test('cjs gaps (T1): heavy CommonJS input at 1 MB stays linear, against plain input and against its own size', () => {
+  const plainLine = "const q = 'x'; // c\n";
+  const lines = {
+    bracket: "module['exports'].a = 'x' + \"y\"; const s = `t ${1}` + 'z'; // c\n",
+    mixed: "const m = module; m.exports.b = \"k\"; exports['c'] ??= 'v'; const r = /a+/g; // c\n",
+  };
+  const build = (line, bytes) => line.repeat(Math.ceil(bytes / line.length)) + 'export class R {}';
+  const fastest = (content) => {
+    let best = Number.POSITIVE_INFINITY;
+    for (let round = 0; round < 4; round += 1) {
+      const started = process.hrtime.bigint();
+      const found = detectExports(content);
+      best = Math.min(best, Number(process.hrtime.bigint() - started) / 1e6);
+      assert.ok(found.symbols.includes('R'));
+      if (content !== plain) assert.equal(found.anonymous, true, 'the CommonJS export is detected');
+    }
+    return best;
+  };
+  const plain = build(plainLine, 1_000_000);
+  const baseline = fastest(plain);
+  for (const [name, line] of Object.entries(lines)) {
+    const large = fastest(build(line, 1_000_000));
+    const small = fastest(build(line, 250_000));
+    assert.ok(large < baseline * 3 + 20, `${name}: 1 MB took ${large} ms against ${baseline} ms of plain input`);
+    assert.ok(large < small * 8 + 20, `${name}: 1 MB took ${large} ms against ${small} ms for a quarter of the size`);
+  }
+});
+
 // Known false positives on master, documented and NOT required by T1 (resolving them needs lexical scope).
 for (const name of [
   'a regex literal that mentions module.exports',
