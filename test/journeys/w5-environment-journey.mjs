@@ -649,7 +649,14 @@ function projectContract(consumer, root, taskId) {
     workspace: { root },
     sources: [{ id: 'spec', kind: 'specification', content: consumer.spec, sha256: sha256(consumer.spec) }],
     requirements: [{ id: 'r1', description: consumer.spec, source_ids: ['spec'] }],
-    acceptance: [{ id: 'a1', description: 'The protected module check observes the specified values.', requirement_ids: ['r1'] }],
+    acceptance: [
+      {
+        id: 'a1',
+        description: 'The protected module check observes the specified values.',
+        requirement_ids: ['r1'],
+        check_ids: ['observe'],
+      },
+    ],
     scope: { read, write: [consumer.target] },
     commands: [{ id: 'verify', runtime: 'node', entrypoint: 'hseos_w5/verify.mjs', args: [] }],
     limits: { max_turns: 8, max_tokens: 200_000, max_duration_ms: 120_000, max_tool_calls: 8, max_children: 0, max_workflow_steps: 0 },
@@ -659,7 +666,7 @@ function projectContract(consumer, root, taskId) {
     verifier: {
       reference: 'verifier://project/node-module-v1',
       acceptance_ids: ['a1'],
-      checks: [{ path: 'hseos_w5/verify.mjs', export_name: 'observe', args: [], expected: consumer.expected }],
+      checks: [{ id: 'observe', path: 'hseos_w5/verify.mjs', export_name: 'observe', args: [], expected: consumer.expected }],
     },
     rollback: 'discard-disposable-workspace',
   });

@@ -95,10 +95,11 @@ function pnpmProject(t, { sum = source('project-sum.js'), limits, mounted = fals
     reference: 'verifier://project/node-module-v1',
     sha256: '0'.repeat(64),
     acceptance_ids: ['a1'],
-    checks: [{ path: 'src/sum.js', export_name: 'default', args: [2, 3], expected: 5 }],
+    checks: [{ id: 'sum', path: 'src/sum.js', export_name: 'default', args: [2, 3], expected: 5 }],
     command_checks: [{ command_id: 'native' }],
     protected_paths: [...spec.protected],
   };
+  contract.acceptance[0].check_ids = ['sum', 'native'];
   const seal = () => {
     contract.workspace.files_sha256 = projectWorkspaceSnapshot(contract).sha256;
     contract.verifier.sha256 = projectVerifierDigest(contract);
