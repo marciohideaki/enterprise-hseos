@@ -144,6 +144,15 @@ test('adversarial rows are rejected for their own rule', async () => {
       ['computer_approval_order', (copy) => (outcomeRow('consumed')(copy).payload.request_id = 'another-request')],
       ['computer_approval_order', (copy) => (find(copy, 'environment.computer.action_executed').position = 0)],
       ['computer_approval_order', secondAction],
+      // A valid request for another step, action, session or digest does not authorise this action: each of these leaves
+      // the one real approval chain untouched and moves only the action (or one outcome) away from it.
+      ['computer_approval_order', (copy) => (find(copy, 'environment.computer.action_executed').payload.seq = 2)],
+      ['computer_approval_order', (copy) => (find(copy, 'environment.computer.action_executed').payload.action = 'move')],
+      ['computer_approval_order', (copy) => (find(copy, 'environment.computer.action_executed').payload.session_id = 's2')],
+      ['computer_approval_order', (copy) => (outcomeRow('approved')(copy).payload.binding_digest = 'd'.repeat(64))],
+      ['computer_approval_order', (copy) => (outcomeRow('consumed')(copy).payload.binding_digest = 'd'.repeat(64))],
+      // A write of the same memory id in another stream does not satisfy this stream's delete.
+      ['memory_delete_order', (copy) => (find(copy, 'memory.written').aggregate_id = 'another-project')],
       // The same step executed twice spends one approval twice.
       [
         'computer_approval_order',
