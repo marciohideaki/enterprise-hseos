@@ -75,16 +75,44 @@ if (argv[0] === '--version') {
     });
     if (mode.run === 'tool') emit({ ...base, type: 'assistant', message: { content: [{ type: 'tool_use', id: 't1', name: 'Bash', input: {} }] } });
     if (mode.run === 'user') emit({ ...base, type: 'user', message: { content: [] } });
-    emit({ ...base, type: 'assistant', message: { content: [{ type: 'text', text: mode.answer ?? `echo:${prompt.length}` }] } });
-    emit({
-      ...base,
-      type: 'result',
-      subtype: mode.run === 'error' ? 'error_during_execution' : 'success',
-      is_error: mode.run === 'error',
-      usage: { input_tokens: 5, output_tokens: 2, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
-      modelUsage: { [flag('--model') ?? 'm']: { inputTokens: 5, outputTokens: 2 } },
-      total_cost_usd: 0.0001,
-      permission_denials: [],
-    });
+    if (mode.run === 'output_limit' || mode.run === 'output_limit_tool') {
+      // As captured from the real client when reasoning used up CLAUDE_CODE_MAX_OUTPUT_TOKENS: an assistant error message, then an
+      // error result that still says subtype success.
+      const text =
+        "API Error: Claude's response exceeded the 4096 output token maximum. To configure this behavior, set the CLAUDE_CODE_MAX_OUTPUT_TOKENS environment variable.";
+      emit({
+        ...base,
+        type: 'assistant',
+        error: 'max_output_tokens',
+        message: {
+          stop_reason: 'stop_sequence',
+          content: [...(mode.run === 'output_limit_tool' ? [{ type: 'tool_use', id: 't1', name: 'Bash', input: {} }] : []), { type: 'text', text }],
+        },
+      });
+      emit({
+        ...base,
+        type: 'result',
+        subtype: 'success',
+        is_error: true,
+        terminal_reason: 'api_error',
+        api_error_status: null,
+        stop_reason: 'stop_sequence',
+        num_turns: 1,
+        result: text,
+        permission_denials: [],
+      });
+    } else {
+      emit({ ...base, type: 'assistant', message: { content: [{ type: 'text', text: mode.answer ?? `echo:${prompt.length}` }] } });
+      emit({
+        ...base,
+        type: 'result',
+        subtype: mode.run === 'error' ? 'error_during_execution' : 'success',
+        is_error: mode.run === 'error',
+        usage: mode.usage ?? { input_tokens: 5, output_tokens: 2, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
+        modelUsage: { [flag('--model') ?? 'm']: { inputTokens: 5, outputTokens: 2 } },
+        total_cost_usd: 0.0001,
+        permission_denials: [],
+      });
+    }
   }
 }

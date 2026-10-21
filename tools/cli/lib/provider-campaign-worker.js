@@ -75,7 +75,10 @@ async function main() {
         }
       },
     });
-    if (result.stop_reason !== 'completed' || !usage) throw new Error('uncertain result');
+    if (result.stop_reason !== 'completed' || !usage)
+      throw new Error(
+        `uncertain result: stop_reason=${JSON.stringify(result.stop_reason)} usage=${usage === undefined ? 'absent' : 'present'}`,
+      );
     return {
       usage,
       text_sha256: hash.digest('hex'),
@@ -91,8 +94,10 @@ if (require.main === module) {
     (result) => {
       process.stdout.write(JSON.stringify({ result }) + '\n');
     },
-    () => {
-      process.stdout.write(JSON.stringify({ error: 'CONTROL_OUTCOME_UNCERTAIN' }) + '\n');
+    (error) => {
+      // The parent redacts and bounds this; it holds the real cause instead of a bare uncertain marker.
+      const diagnostic = { name: String(error?.name), code: error?.error_code ?? error?.code ?? null, message: String(error?.message) };
+      process.stdout.write(JSON.stringify({ error: 'CONTROL_OUTCOME_UNCERTAIN', diagnostic }) + '\n');
       process.exitCode = 1;
     },
   );
