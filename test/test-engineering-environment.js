@@ -684,7 +684,7 @@ test('a family with no isolation policy is blocked, not run unconfined', async (
     ledgerSink: sinkOn(env),
     approvalGate: createApprovalGate(),
   });
-  await failsWith(bundleOf(set, 'environment.lsp.hover').provider.execute(HOVER), 'ENV_POLICY_UNAVAILABLE');
+  await failsWith(bundleOf(set, 'environment.lsp.hover').provider.execute(HOVER), 'ENGINEERING_ENVIRONMENT_POLICY_REQUIRED');
 });
 
 test('createEnvironmentBundles refuses an incomplete host', () => {
@@ -1109,14 +1109,14 @@ test('a declared family with no policy and no factory fails at assembly, not at 
   const result = await execute(t, project(t, ['environment.computer.start']), [{ name: 'environment.computer.start', input: START }], {
     project_id: 'proj-1',
   });
-  assert.equal(reasonOf(result), 'blocked/ENVIRONMENT_FAMILY_UNCONFIGURED');
+  assert.equal(reasonOf(result), 'blocked/ENGINEERING_ENVIRONMENT_POLICY_REQUIRED');
   const env = memoryHost();
   const set = createEnvironmentBundles({
     capabilities: ['environment.computer.start'],
     ledgerSink: sinkOn(env),
     approvalGate: createApprovalGate(),
   });
-  await failsWith(bundleOf(set, 'environment.computer.start').provider.execute(START), 'ENV_POLICY_UNAVAILABLE');
+  await failsWith(bundleOf(set, 'environment.computer.start').provider.execute(START), 'ENGINEERING_ENVIRONMENT_POLICY_REQUIRED');
   set.assertQuiescent();
 });
 
@@ -1146,4 +1146,42 @@ test('agent run accepts no environment host: the CLI path cannot run a contract 
     agent.action('run', { taskContract: f.filename, scriptedResponses: file, environmentHost: { project_id: 'proj-1' }, json: true }),
     /accept only task contract/,
   );
+});
+
+test('an approver that throws leaves no pending request and no action on the display', async (t) => {
+  const gate = createApprovalGate();
+  const requests = [];
+  const recording = {
+    request: (...args) => (requests.push(gate.request(...args)), requests.at(-1)),
+    approve: gate.approve,
+    deny: gate.deny,
+    consume: gate.consume,
+  };
+  const approve = async (request) => {
+    if (request.layer === 'computer_action') throw new Error('approver crashed');
+    return { approved: true, approver: 'owner-1' };
+  };
+  const { result, terminal } = await computerRun(t, { approve, extra: { approvalGate: recording } });
+  assert.deepEqual(toolErrors(result), ['environment.computer.act:ENV_APPROVAL_CALLBACK_FAILED'], JSON.stringify(result));
+  assert.equal(keyLines(terminal).length, 0);
+  // The request was answered (denied), so it cannot be approved later: it is not pending.
+  assert.equal(gate.approve(requests[0].request_id, { approver: 'late' }).code, 'ENV_COMPUTER_APPROVAL_NOT_PENDING');
+});
+
+test('a computer fake without state() does not turn quiescence into a TypeError', async () => {
+  const set = createEnvironmentBundles({
+    capabilities: ['environment.computer.start'],
+    ledgerSink: () => {},
+    approvalGate: createApprovalGate(),
+    factories: {
+      computer: () => ({ start: async () => ({ status: 'started', session_id: 's' }), stop: async () => ({ status: 'stopped' }) }),
+    },
+  });
+  await bundleOf(set, 'environment.computer.start').provider.execute(START);
+  assert.throws(
+    () => set.assertQuiescent(),
+    (error) => error.code === 'ENGINEERING_TEARDOWN_UNCERTAIN',
+  );
+  await set.drain();
+  set.assertQuiescent();
 });

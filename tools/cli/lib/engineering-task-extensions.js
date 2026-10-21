@@ -292,20 +292,25 @@ function createEnvironmentBundles({
       const computer = service('computer');
       const pending = computer.requestApproval(sessionId, action);
       if (pending.status !== 'pending') serviceOutcome(pending);
-      const decision =
-        typeof approve === 'function'
-          ? await approve({
-              layer: 'computer_action',
-              tool: 'environment.computer.act',
-              session_id: sessionId,
-              action: action.action,
-              // What the person is asked to approve: the exact action with its arguments, bound by the gate's digest
-              // (which also covers the screenshot the approver looked at).
-              input: action,
-              input_digest: inputDigest(action),
-              binding_digest: pending.binding_digest,
-            })
-          : null;
+      let decision = null;
+      try {
+        if (typeof approve === 'function')
+          decision = await approve({
+            layer: 'computer_action',
+            tool: 'environment.computer.act',
+            session_id: sessionId,
+            action: action.action,
+            // What the person is asked to approve: the exact action with its arguments, bound by the gate's digest
+            // (which also covers the screenshot the approver looked at).
+            input: action,
+            input_digest: inputDigest(action),
+            binding_digest: pending.binding_digest,
+          });
+      } catch {
+        // A request nobody can answer must not stay pending until it expires.
+        approvalGate.deny(pending.request_id, { approver: 'host' });
+        refuseCall('ENV_APPROVAL_CALLBACK_FAILED', 'the host approver failed; the request was rejected');
+      }
       const approver = typeof decision?.approver === 'string' ? decision.approver : '';
       // The host may present an approval it obtained for something else: the gate then refuses the binding mismatch.
       let requestId = pending.request_id;
@@ -384,7 +389,7 @@ function createEnvironmentBundles({
     names: Object.freeze(bundles.map((bundle) => bundle.definition.name)),
     drain,
     assertQuiescent() {
-      const state = services.get('computer')?.state();
+      const state = services.get('computer')?.state?.();
       if (inflight.size > 0 || sessions.size > 0 || uncertain || state?.active || state?.uncertain)
         throw Object.assign(new Error('Environment completion could not be attested'), { code: 'ENGINEERING_TEARDOWN_UNCERTAIN' });
     },
@@ -402,7 +407,7 @@ function defaultServiceFactory(family) {
     const { policy, toolchain, ledger } = context;
     if (!policy)
       throw Object.assign(new Error(`the host provided no ${family} isolation policy`), {
-        code: 'ENV_POLICY_UNAVAILABLE',
+        code: 'ENGINEERING_ENVIRONMENT_POLICY_REQUIRED',
         outcome: 'failed',
       });
     if (family === 'lsp') return environment.createDefaultLspService({ policy, toolchain, ledger });
@@ -509,7 +514,7 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
   }
   // A declared family with neither a policy nor an injected factory could only ever fail at the first call: fail now.
   for (const family of new Set(capabilities.map(familyOf)))
-    if (family !== 'memory' && !policies[family] && !host.factories?.[family]) reject('ENVIRONMENT_FAMILY_UNCONFIGURED');
+    if (family !== 'memory' && !policies[family] && !host.factories?.[family]) reject('ENGINEERING_ENVIRONMENT_POLICY_REQUIRED');
   // The call the policy just evaluated is the one the approver is shown and the one the provider must receive.
   let noted = { tool: null, input: undefined };
   const approvedInputs = new Map();
