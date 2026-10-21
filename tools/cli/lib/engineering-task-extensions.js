@@ -164,6 +164,8 @@ const ENVIRONMENT_FAMILIES = Object.freeze({
   computer: (name) => name.startsWith('environment.computer.'),
   memory: (name) => name.startsWith('memory.'),
 });
+const inputDigest = (value) =>
+  require('node:crypto').createHash('sha256').update(require('../../../packages/agent-session-store').canonicalJson(value)).digest('hex');
 const ENVIRONMENT_ACTOR = Object.freeze({ id: 'agent:engineering-environment', type: 'agent' });
 // The execution approval of one operation: short, single-use (the store consumes it) and issued by the host.
 const EXECUTION_APPROVAL_TTL_MS = 60_000;
@@ -228,6 +230,7 @@ function createEnvironmentBundles({
   mediaStore,
   operatorDisplay,
   isCancelled = () => false,
+  assertApproved = () => {},
 } = {}) {
   if (!Array.isArray(capabilities) || capabilities.length === 0) reject('ENVIRONMENT_CAPABILITIES_REQUIRED');
   if (typeof ledgerSink !== 'function') reject('ENVIRONMENT_LEDGER_SINK_REQUIRED');
@@ -296,6 +299,10 @@ function createEnvironmentBundles({
               tool: 'environment.computer.act',
               session_id: sessionId,
               action: action.action,
+              // What the person is asked to approve: the exact action with its arguments, bound by the gate's digest
+              // (which also covers the screenshot the approver looked at).
+              input: action,
+              input_digest: inputDigest(action),
               binding_digest: pending.binding_digest,
             })
           : null;
@@ -347,8 +354,9 @@ function createEnvironmentBundles({
         governance_ref: governanceRef(name),
       },
       provider: {
-        async execute(value) {
+        async execute(value, context) {
           try {
+            assertApproved(name, value, context);
             return { data: await track(Promise.resolve().then(() => handlers[name](value))), evidence: [`environment://${name}`] };
           } catch (error) {
             return family === 'memory' ? memoryFailure(error) : Promise.reject(error);
@@ -393,9 +401,10 @@ function defaultServiceFactory(family) {
     const environment = require('../../../packages/agent-environment');
     const { policy, toolchain, ledger } = context;
     if (!policy)
-      return {
-        run: () => ({ status: 'blocked', code: 'ENV_POLICY_UNAVAILABLE', cause: `the host provided no ${family} isolation policy` }),
-      };
+      throw Object.assign(new Error(`the host provided no ${family} isolation policy`), {
+        code: 'ENV_POLICY_UNAVAILABLE',
+        outcome: 'failed',
+      });
     if (family === 'lsp') return environment.createDefaultLspService({ policy, toolchain, ledger });
     if (family === 'dap') return environment.createDefaultDapService({ policy, toolchain, ledger });
     if (family === 'browser')
@@ -416,16 +425,31 @@ function defaultServiceFactory(family) {
  * is never consulted and sends no approval. A grant is issued to the approval store for exactly this operation
  * (the store binds operation id, resource scope and policy version, and spends it once).
  */
-function createExecutionApprovalResolver({ store, approve, now = () => new Date(), id = require('node:crypto').randomUUID }) {
+function createExecutionApprovalResolver({
+  store,
+  approve,
+  inputOf = () => {},
+  bind = () => {},
+  now = () => new Date(),
+  id = require('node:crypto').randomUUID,
+}) {
   return async (operation) => {
     if (typeof approve !== 'function') return null;
+    // The approver sees the content of the call, not only its name, and approves that content's digest.
+    const input = inputOf(operation);
+    const digest = input === undefined ? null : inputDigest(input);
     const decision = await approve({
       layer: 'execution',
       tool: operation.tool,
       operation_id: operation.operation_id,
       resource_scope: operation.resource_scope,
+      input,
+      input_digest: digest,
     });
     if (decision?.approved !== true) return null;
+    // An approval given for other content is not an approval of this call.
+    if (decision.input_digest !== undefined && decision.input_digest !== digest) return null;
+    bind(operation.operation_id, digest);
     // The host may present an approval it already holds; the store still binds it to this operation when it is spent.
     if (typeof decision.approval_id === 'string') return decision.approval_id;
     if (typeof decision.approver !== 'string' || decision.approver.length === 0) return null;
@@ -483,6 +507,12 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
         toolchain_roots: [root],
       });
   }
+  // A declared family with neither a policy nor an injected factory could only ever fail at the first call: fail now.
+  for (const family of new Set(capabilities.map(familyOf)))
+    if (family !== 'memory' && !policies[family] && !host.factories?.[family]) reject('ENVIRONMENT_FAMILY_UNCONFIGURED');
+  // The call the policy just evaluated is the one the approver is shown and the one the provider must receive.
+  let noted = { tool: null, input: undefined };
+  const approvedInputs = new Map();
   const environment = createEnvironmentBundles({
     capabilities,
     policies,
@@ -497,8 +527,23 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
     mediaStore: host.mediaStore,
     operatorDisplay: host.operatorDisplay,
     isCancelled,
+    assertApproved(name, value, context) {
+      if (!needsApproval(name)) return;
+      if (approvedInputs.get(context?.operation_id) !== inputDigest(value))
+        throw Object.assign(new Error('the call differs from the content that was approved'), {
+          code: 'ENV_APPROVAL_INPUT_MISMATCH',
+          outcome: 'failed',
+        });
+    },
   });
-  const approvalResolver = createExecutionApprovalResolver({ store: new ExecutionApprovalStore(db), approve: host.approve });
+  const needsApproval = (name) =>
+    environment.names.includes(name) && (APPROVAL_REQUIRED.includes(name) || (host.require_approval ?? []).includes(name));
+  const approvalResolver = createExecutionApprovalResolver({
+    store: new ExecutionApprovalStore(db),
+    approve: host.approve,
+    inputOf: (operation) => (noted.tool === operation.tool ? noted.input : undefined),
+    bind: (operationId, digest) => approvedInputs.set(operationId, digest),
+  });
   // Governed memory enters the context only when the task declared the capability and the host owns a store. The
   // assembler resolves its profile synchronously, so the (async) collection runs once before the session starts and
   // the resolver reads the frozen result; the retrieval itself is the store's synchronous, governed `retrieve`.
@@ -519,8 +564,10 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
       );
     },
     // A host may ask for more approvals than the contracts do (a stricter deployment); never fewer.
-    requiresApproval: (name) =>
-      environment.names.includes(name) && (APPROVAL_REQUIRED.includes(name) || (host.require_approval ?? []).includes(name)),
+    requiresApproval: needsApproval,
+    noteInput(tool, input) {
+      noted = { tool, input };
+    },
   });
 }
 

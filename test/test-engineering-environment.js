@@ -1032,3 +1032,118 @@ test('the memory in the context is deterministic: same memory, same blocks, same
   const other = await memoryTask(t, { seed: [{ memory_id: 'note-1', content: `${NOTE} Also exact for negatives.` }] });
   assert.notEqual(digest(first.result), digest(other.result));
 });
+
+// ---------------------------------------------------------------------------------------------------------------
+// Review round 1: the approver sees the content, an unconfigured family fails loudly, a failing ledger fails closed.
+// ---------------------------------------------------------------------------------------------------------------
+
+const digestOfInput = (value) => sha256(require('../packages/agent-session-store').canonicalJson(value));
+
+test('the host approver is shown the content of the call and its digest, not only the tool name', async (t) => {
+  const asked = [];
+  const act = { session_id: 'session-1', action: 'type', text: 'hello world' };
+  const { result } = await computerRun(t, {
+    responses: [FLOW[0], FLOW[1], { name: 'environment.computer.act', input: act }],
+    approve: grant(asked),
+  });
+  assert.deepEqual(toolErrors(result), [], JSON.stringify(result));
+  const start = asked.find((request) => request.tool === 'environment.computer.start');
+  assert.deepEqual(start.input, { ...START, display: { width: 640, height: 400 } }, 'the normalized input, defaults filled');
+  assert.equal(start.input_digest, digestOfInput(start.input));
+  const execution = asked.find((request) => request.layer === 'execution' && request.tool === 'environment.computer.act');
+  assert.deepEqual(execution.input, act);
+  assert.equal(execution.input_digest, digestOfInput(act));
+  const action = asked.find((request) => request.layer === 'computer_action');
+  assert.deepEqual(action.input, { action: 'type', text: 'hello world' }, 'the typed text is visible to the approver');
+  assert.match(action.binding_digest, /^[0-9a-f]{64}$/);
+
+  const env = memoryHost();
+  env.seed();
+  env.approveDeletion('note-1');
+  const deletion = { project_id: 'proj-1', memory_id: 'note-1', reason: 'obsolete' };
+  const memoryAsked = [];
+  await execute(t, project(t, MEMORY), [{ name: 'memory.delete', input: deletion }], { ...env.host, approve: grant(memoryAsked) });
+  assert.deepEqual(memoryAsked[0].input, deletion);
+  assert.equal(memoryAsked[0].input_digest, digestOfInput(deletion));
+});
+
+test('an approval given for other content is refused, and the provider only runs the approved content', async (t) => {
+  const refusing = async (request) => ({
+    approved: true,
+    approver: 'owner-1',
+    input_digest: request.input_digest === null ? 'x' : 'f'.repeat(64),
+  });
+  const { result, terminal } = await computerRun(t, { approve: refusing });
+  assert.deepEqual(toolErrors(result)[0], 'environment.computer.start:EXECUTION_APPROVAL_REQUIRED');
+  assert.equal(terminal.state.lines.length, 0);
+
+  // The provider-side guard: the operation approved for one content cannot carry another, or none at all.
+  const env = memoryHost();
+  const calls = [];
+  const { createTaskEnvironment } = require('../tools/cli/lib/engineering-task-extensions');
+  const task = createTaskEnvironment({
+    capabilities: ['environment.lsp.hover'],
+    db: env.db,
+    session_id: 'session-guard',
+    host: { project_id: 'proj-1', factories: { lsp: lspFactory(calls) }, require_approval: ['environment.lsp.hover'], approve: grant() },
+    workspace: {},
+    isCancelled: () => false,
+  });
+  const hover = bundleOf(task, 'environment.lsp.hover');
+  const operation = {
+    operation_id: 'op-1',
+    tool: 'environment.lsp.hover',
+    resource_scope: { task_id: 't' },
+    policy_version: 'hseos-w5-environment-v1',
+  };
+  task.noteInput('environment.lsp.hover', HOVER);
+  assert.equal(typeof (await task.approvalResolver(operation)), 'string');
+  await failsWith(hover.provider.execute({ ...HOVER, file: 'other.js' }, { operation_id: 'op-1' }), 'ENV_APPROVAL_INPUT_MISMATCH');
+  await failsWith(hover.provider.execute(HOVER, { operation_id: 'op-2' }), 'ENV_APPROVAL_INPUT_MISMATCH');
+  assert.equal(calls.length, 0);
+  await hover.provider.execute(HOVER, { operation_id: 'op-1' });
+  assert.equal(calls.length, 1);
+});
+
+test('a declared family with no policy and no factory fails at assembly, not at the first call', async (t) => {
+  const result = await execute(t, project(t, ['environment.computer.start']), [{ name: 'environment.computer.start', input: START }], {
+    project_id: 'proj-1',
+  });
+  assert.equal(reasonOf(result), 'blocked/ENVIRONMENT_FAMILY_UNCONFIGURED');
+  const env = memoryHost();
+  const set = createEnvironmentBundles({
+    capabilities: ['environment.computer.start'],
+    ledgerSink: sinkOn(env),
+    approvalGate: createApprovalGate(),
+  });
+  await failsWith(bundleOf(set, 'environment.computer.start').provider.execute(START), 'ENV_POLICY_UNAVAILABLE');
+  set.assertQuiescent();
+});
+
+test('a ledger that refuses the environment event fails the call closed: nothing is reported as success', async (t) => {
+  const factory = ({ ledger }) => ({
+    async run() {
+      ledger({ type: 'environment.lsp.unregistered_event', action: 'hover' });
+      return LSP_OK;
+    },
+  });
+  const result = await execute(t, project(t, ['environment.lsp.hover']), [{ name: 'environment.lsp.hover', input: HOVER }], {
+    project_id: 'proj-1',
+    factories: { lsp: factory },
+  });
+  assert.equal(toolErrors(result).length, 1, JSON.stringify(result));
+  assert.ok(toolErrors(result)[0].startsWith('environment.lsp.hover:'));
+  assert.deepEqual(environmentEvents(result), []);
+  assert.ok(!executionEvents(result).some((entry) => entry.event_type === 'ExecutionSucceeded'));
+});
+
+test('agent run accepts no environment host: the CLI path cannot run a contract with environment capabilities', async (t) => {
+  const f = project(t, ['environment.lsp.hover']);
+  const file = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(file, '[]');
+  const agent = require('../tools/cli/commands/agent');
+  await assert.rejects(
+    agent.action('run', { taskContract: f.filename, scriptedResponses: file, environmentHost: { project_id: 'proj-1' }, json: true }),
+    /accept only task contract/,
+  );
+});

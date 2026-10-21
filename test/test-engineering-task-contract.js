@@ -703,3 +703,17 @@ test('admission requires every criterion to name an executable check; reading an
   });
   assert.equal(admissionCode(second), 'ENGINEERING_ACCEPTANCE_UNCOVERED', 'the second criterion only names a static check');
 });
+
+test('admission treats a task with environment capabilities like any other: acceptance must name executable checks', (t) => {
+  const withEnvironment = (mutate) =>
+    admissionContract(t, (c) => {
+      c.environment = { capabilities: ['environment.lsp.hover', 'memory.retrieve'] };
+      mutate?.(c);
+    });
+  assert.equal(admissionCode(withEnvironment()), 'ok', 'check_ids declared: admitted');
+  const unlinked = withEnvironment((c) => delete c.acceptance[0].check_ids);
+  assert.equal(admissionCode(unlinked), 'ENGINEERING_ACCEPTANCE_UNCOVERED', 'no check_ids: refused by the admission path');
+  assert.equal(reasonOf(unlinked), 'ok', 'and still readable outside admission');
+  const dangling = withEnvironment((c) => c.environment.capabilities.push('environment.computer.act'));
+  assert.equal(admissionCode(dangling), 'ENGINEERING_ENVIRONMENT_INVALID', 'a computer action without start is refused');
+});

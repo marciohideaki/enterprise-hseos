@@ -344,8 +344,9 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
       });
     },
     execution_policy: {
-      async evaluate({ contract: tool }) {
+      async evaluate({ contract: tool, input }) {
         observeTaskCancellation();
+        environmentTools?.noteInput(tool.name, input);
         require('./job-dispatch').assertJobRuntimeAccess(handle.db, readIdentity(handle.directory));
         const used = Object.keys(assembly.sessionStore.replay(sessionId).tool_invocations).length;
         const reserved =
@@ -643,6 +644,9 @@ async function runEngineeringTask({
     }
     attestEngineeringVerifier(contract);
     // Declared capabilities without a host would be silently denied; a task that asked for them is blocked instead.
+    // `agent run` (tools/cli/commands/agent.js) reads the contract without the admission rules and accepts no `environmentHost`,
+    // so a contract with environment.capabilities is blocked there. Accepting a host means admitting the contract first
+    // (parseEngineeringTask with { admission: true }).
     if (contract.environment && !environmentHost)
       throw Object.assign(new Error('ENGINEERING_ENVIRONMENT_HOST_REQUIRED'), { code: 'ENGINEERING_ENVIRONMENT_HOST_REQUIRED' });
     assembly = assemble(handle, created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId, environmentHost });
