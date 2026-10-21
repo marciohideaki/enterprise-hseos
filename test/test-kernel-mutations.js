@@ -16,6 +16,8 @@ const cases = [
   ['reservation_current', 'test/test-workflow-reservations.js', 'engine reclaims an expired revised reservation'],
   ['reservation_checkpoint_cas', 'test/test-workflow-reservations.js', 'checkpoint CAS retries after an append-only revision'],
   ['task_completion', 'test/test-agent-orchestration.js', 'cancellation recorded during protected review'],
+  ['session_failure_reason', 'test/test-engineering-task-runtime.js', 'exhausts its token budget reports'],
+  ['stopped_session_budget', 'test/test-agent-runtime.js', 'stops within its window completes'],
   ['task_cancellation', 'test/test-engineering-task-runtime.js', 'durable cancellation at tool-intent'],
   ['job_shutdown', 'test/test-job-faults.js', 'shutdown during admission cannot'],
   ['job_acceptance', 'test/test-job-faults.js', 'replay rejects false success'],

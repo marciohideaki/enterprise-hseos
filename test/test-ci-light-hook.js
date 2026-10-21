@@ -51,7 +51,7 @@ test('the CI fan-in keeps the check names that branch protection requires', () =
 });
 
 const gateSource = fs.readFileSync(path.join(ROOT, 'scripts/governance/quality-gates.sh'), 'utf8');
-const light = gateSource.slice(gateSource.indexOf('gate_code_light()'), gateSource.indexOf('\ngate_code() {'));
+const light = gateSource.slice(gateSource.indexOf('is_test_file()'), gateSource.indexOf('\ngate_code() {'));
 
 function runLight(files, { max = 40 } = {}) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-light-hook-'));
@@ -68,6 +68,9 @@ function runLight(files, { max = 40 } = {}) {
     write('test/test-uses-lib.js', "require('../tools/lib/thing');\n");
     write('test/test-unrelated.js', '');
     write('test/test-zzz.js', '');
+    write('test/journeys/run.mjs', "import '../../tools/lib/thing.js';\n");
+    write('test/helpers/helper.js', "require('../../tools/lib/thing');\n");
+    write('test/sub/test-nested.js', "require('../../tools/lib/thing');\n");
     write('tools/lib/thing.js', '');
     write('README.md', '');
     git('add', '-A');
@@ -105,7 +108,10 @@ test('light hook: a source file runs the tests that reference it, lint and forma
   const output = runLight([['tools/lib/thing.js', '// changed\n']]);
   assert.match(output, /CHECK node_modules\/\.bin\/eslint .* tools\/lib\/thing\.js/);
   assert.match(output, /CHECK node_modules\/\.bin\/prettier .* tools\/lib\/thing\.js/);
-  assert.match(output, /node --test --test-concurrency=1 test\/test-uses-lib\.js test\/test-package-surface\.js/);
+  assert.match(
+    output,
+    /node --test --test-concurrency=1 test\/sub\/test-nested\.js test\/test-uses-lib\.js test\/test-package-surface\.js/,
+  );
   assert.doesNotMatch(output, /test-unrelated/);
 });
 
@@ -128,7 +134,7 @@ test('light hook: staged test files run before the tests that cite a staged sour
     ['tools/lib/thing.js', '// changed\n'],
     ['test/test-zzz.js', '// changed\n'],
   ]);
-  assert.match(output, /test\/test-zzz\.js test\/test-uses-lib\.js test\/test-package-surface\.js/);
+  assert.match(output, /test\/test-zzz\.js test\/sub\/test-nested\.js test\/test-uses-lib\.js test\/test-package-surface\.js/);
 });
 
 test('light hook: past the ceiling it fails and points at --full instead of running a subset', () => {
@@ -149,7 +155,7 @@ test('light mode with nothing staged runs the complete Gate 3', () => {
   try {
     fs.writeFileSync(path.join(directory, 'package.json'), '{}');
     execFileSync('git', ['-C', directory, 'init', '-q']);
-    const gate = gateSource.slice(gateSource.indexOf('gate_code_light()'), gateSource.indexOf('gate_security()'));
+    const gate = gateSource.slice(gateSource.indexOf('is_test_file()'), gateSource.indexOf('gate_security()'));
     const harness = `
 set -euo pipefail
 info() { :; }
@@ -171,4 +177,11 @@ gate_code
   } finally {
     fs.rmSync(directory, { recursive: true, force: true });
   }
+});
+
+test('light hook: journey CLIs and helpers that cite a staged file are never run as tests', () => {
+  const output = runLight([['tools/lib/thing.js', '// changed\n']]);
+  assert.doesNotMatch(output, /journeys|helpers/);
+  assert.match(output, /test\/sub\/test-nested\.js/);
+  assert.match(output, /test\/test-uses-lib\.js/);
 });

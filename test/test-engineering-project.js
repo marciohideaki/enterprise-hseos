@@ -616,3 +616,105 @@ test('a model-invoked command whose store changed while it ran returns no result
     handle.close();
   }
 });
+
+test('a 123 KB file is changed end to end by search, ranged read, anchored patch and diff, then accepted by the verifier', async (t) => {
+  const filler = Array.from({ length: 3000 }, (_, index) => `// filler line ${index + 1} ${'.'.repeat(20)}`);
+  const source = `${filler.join('\n')}\nmodule.exports = (n) => n - 1;\n`;
+  assert.ok(Buffer.byteLength(source) > 120_000 && source.length > 65_536);
+  const f = fixture(t, { files: { 'index.js': source }, maxArtifactBytes: 1_048_576 });
+  const responses = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(
+    responses,
+    JSON.stringify([
+      { name: 'engineering.search', input: { text: 'n - 1', limit: 5 } },
+      { name: 'engineering.read', input: { path: 'index.js', start_line: 3000, end_line: 3001 } },
+      { name: 'engineering.patch', input: { path: 'index.js', expected_sha256: sha(source), before: 'n - 1', after: 'n + 1' } },
+      { name: 'engineering.diff', input: { path: 'index.js', start_line: 3001, end_line: 3001 } },
+    ]),
+  );
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  assert.equal(result.task_result, 'approved', JSON.stringify(result));
+  const evidence = await inspectEngineeringTask({ state: result.state, action: 'evidence' });
+  assert.equal(evidence.artifacts.files[0].content, source.replace('n - 1', 'n + 1'));
+  assert.equal(
+    fs.readFileSync(path.join(f.root, 'index.js'), 'utf8'),
+    source,
+    'the project itself is untouched until the result is applied',
+  );
+});
+
+test('the managed-project instruction tells the model to search, read by range and patch short; v1 keeps its text', async (t) => {
+  const { openExecutionLedgerFileFixture } = require('../tools/mcp-project-state/lib/execution-ledger-schema');
+  const { RelationalSessionEventStore } = require('../packages/agent-session-store');
+  const { ExecutionEventLedger } = require('../tools/mcp-project-state/lib/execution-event-ledger');
+  const f = fixture(t, { files: { 'index.js': 'module.exports = n => n - 1;' } });
+  const responses = path.join(f.directory, 'responses.json');
+  fs.writeFileSync(responses, '[]');
+  const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  const handle = openExecutionLedgerFileFixture(result.state);
+  let message;
+  try {
+    const event = new RelationalSessionEventStore({ ledger: new ExecutionEventLedger(handle.db) })
+      .readSession(result.session_id)
+      .find((entry) => entry.event_type === 'context.assembled');
+    message = event.payload.request.messages.find((entry) => entry.content.includes('profile://engineering/candidate')).content;
+  } finally {
+    handle.close();
+  }
+  assert.match(message, /Implement only the declared disposable task\. A model response is not proof of acceptance\./);
+  for (const hint of [
+    'engineering.search',
+    'engineering.read',
+    'start_line',
+    'engineering.patch',
+    'within',
+    'expected_sha256',
+    'engineering.write is refused',
+  ]) {
+    assert.ok(message.includes(hint), hint);
+  }
+});
+
+for (const scenario of [
+  { runtime: 'node', files: { 'index.js': 'module.exports = (n) => n + 1;\n' }, entry: 'index.js' },
+  { runtime: 'python', files: { 'index.py': 'def calculate(n):\n    return n + 1\n' }, entry: 'index.py' },
+]) {
+  test(`${scenario.runtime} module verifier: the protected part is the expectation pinned in the verifier sha`, (t) => {
+    const f = fixture(t, scenario);
+    attestEngineeringVerifier(f.contract);
+    f.contract.verifier.checks[0].expected = 99;
+    assert.throws(() => attestEngineeringVerifier(f.contract), /pinned/, 'expected changed after the pin is refused');
+    f.contract.verifier.checks[0].expected = 4;
+    f.contract.verifier.checks[0].id = 'renamed';
+    f.contract.acceptance[0].check_ids = ['renamed'];
+    assert.throws(() => attestEngineeringVerifier(f.contract), /pinned/, 'the links are pinned as well');
+  });
+}
+
+test('the probe script receives each check without its id and without its expectation', async (t) => {
+  const executorPath = require.resolve('../packages/agent-isolation-attestation/executor');
+  const verifierPath = require.resolve('../tools/cli/lib/engineering-project-verifier');
+  const executor = require(executorPath);
+  const original = executor.executeIsolatedCommand;
+  const launched = [];
+  executor.executeIsolatedCommand = async (options) => {
+    launched.push(options);
+    return { status: 'succeeded', descendants_terminated: true, stdout: JSON.stringify([4]) };
+  };
+  delete require.cache[verifierPath];
+  t.after(() => {
+    executor.executeIsolatedCommand = original;
+    delete require.cache[verifierPath];
+  });
+  const { verifyEngineeringTask } = require(verifierPath);
+  const f = fixture(t);
+  assert.equal(f.contract.verifier.checks[0].id, 'c1', 'the checked contract does carry an id');
+  const result = await verifyEngineeringTask({ contract: f.contract, policy: {}, deadline: Date.now() + 60_000, files: [] });
+  assert.equal(result.approved, true, JSON.stringify(result));
+  assert.equal(launched.length, 1);
+  const payload = JSON.parse(launched[0].command.at(-1));
+  assert.deepEqual(payload, [{ path: 'index.js', export_name: 'default', args: [3] }]);
+  assert.ok(!JSON.stringify(launched[0].command).includes('"c1"'), 'the id appears nowhere in the launched command');
+});

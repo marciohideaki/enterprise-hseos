@@ -208,7 +208,7 @@ aprovada), `PROJECT_CANDIDATE_CHANGED`, `PROJECT_APPROVAL_STALE` (baseline venci
 falhas de sistema de arquivos não curadas expõem apenas o errno (`ENOENT`, ...). Toda
 recusa por regra cruzada do contrato de tarefa na criação (`create` e `create_workflow`)
 traz `detail.code` próprio com prefixo `ENGINEERING_` (mensagem curada, sem eco de valores):
-`ENGINEERING_ACCEPTANCE_WEAK` (aceite sem verificador executável), `ENGINEERING_COMMAND_ARG_INVALID`
+`ENGINEERING_ACCEPTANCE_WEAK` (aceite sem verificador executável), `ENGINEERING_ACCEPTANCE_UNCOVERED` (critério sem check executável em `check_ids`), `ENGINEERING_CHECK_ID_UNKNOWN`, `ENGINEERING_CHECK_ID_DUPLICATE`, `ENGINEERING_CHECK_IDS_INCOMPLETE` (vínculos de `check_ids`), `ENGINEERING_COMMAND_ARG_INVALID`
 (arg fora do alfabeto conservador), `ENGINEERING_PROTECTED_CONFIG_MISSING` (arquivo de configuração
 conhecido fora de `protected_paths`) e, só como rótulo das regras que já existiam,
 `ENGINEERING_CONTRACT_SCHEMA_INVALID`, `ENGINEERING_CONTRACT_TOO_LARGE`, `ENGINEERING_STORE_MOUNT_CONFLICT`,
@@ -231,6 +231,24 @@ Recurso identificado na URL e desconhecido (consulta, `/events` ou comando POST
 para campanha ou terminal inexistente) retorna 404; antes retornava 409 para
 terminal e campanha (mudança 409 para 404). Referência desconhecida no corpo de
 um POST (`CONTROL_PROVIDER_BINDING_UNKNOWN`, `CONTROL_BINDING_UNKNOWN`) continua 409.
+
+### Motivo (`reason`) quando a sessão não conclui
+
+Se a sessão do modelo não chega a `completed`, a tarefa fica `failed` e o `reason`
+vem do evento terminal da sessão, não de um valor genérico:
+
+| `reason`                  | Quando                                                                                        |
+| ------------------------- | --------------------------------------------------------------------------------------------- |
+| `session-budget-exceeded` | A sessão terminou com `error_code: budget_exceeded` (orçamento de tokens, turnos ou chamadas) |
+| `session-failed:<code>`   | Qualquer outra falha terminal da sessão (`<code>` é o `error_code`)                           |
+| `session-not-completed`   | A sessão não tem evento terminal de falha (sem terminal ou cancelada)                         |
+
+Nos dois primeiros casos, a evidência (`evidence` na ação `evidence`) traz
+`session_failure: { error_code, message }` e `token_accounting`. Em
+`budget_exceeded` por projeção, a mensagem informa projetado, máximo, usado,
+request e reserva (`max_output_tokens`). Uma sessão que termina com `stop` não
+falha por estimativa de tokens; o limite só impede abrir um novo passo.
+Cancelamento e reconciliação mantêm `cancelled` e `reconciliation-required`.
 
 ## Aceite protegido e aplicação
 

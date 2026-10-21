@@ -84,7 +84,6 @@ managed governance and global installation are not changed by this candidate.
 Release publication, the applicable v3 deprecation window and operational cutover
 remain separate release decisions. This guide does not authorize any of them.
 
-
 ## Additional candidate events
 
 Protected corrections add `model.revision.requested` with exact continuation
@@ -95,7 +94,6 @@ reconciliation answers. These additive contracts require the updated coordinated
 candidate to read newly written events; do not downgrade a database containing
 them into an older runtime. No production migration is activated automatically.
 See [diagnosis and reconciliation commands](engineering-task-contract.md).
-
 
 ## W5 behaviour changes
 
@@ -130,6 +128,11 @@ New task admissions now refuse a delivery that cannot be verified, with stable
   and its verifier is not a pinned module verifier (`node-module-v1` or
   `python-module-v1`), so acceptance would rest on static text matching such as
   `web-content-v1`.
+- `ENGINEERING_ACCEPTANCE_UNCOVERED` (W2): a criterion does not name, in `check_ids`, at least one
+  executable check (a protected command check or a check of a pinned module verifier;
+  `web-content-v1` never counts). This closes the owner waiver MAJOR-1 of W5-10b, which had kept
+  coverage global through `verifier.acceptance_ids`; contracts already admitted remain readable
+  and their `contract_sha256` does not change.
 - `ENGINEERING_COMMAND_ARG_INVALID`: an argument of a command used by a
   `command_checks` entry is outside the conservative argument alphabet.
 - `ENGINEERING_PROTECTED_CONFIG_MISSING`: a contract with `command_checks` lists a

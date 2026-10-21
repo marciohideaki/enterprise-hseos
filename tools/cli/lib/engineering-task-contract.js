@@ -23,6 +23,12 @@ const PROJECT_LIMITS = Object.freeze({
   store_path_chars: 512,
   segment_chars: 255,
   file_chars: 65_536,
+  // A v2 file above file_chars is "large": read by line range, changed by anchored patch, never held whole by the model.
+  large_file_chars: 262_144,
+  large_files_max: 4,
+  large_files_bytes: 1_048_576,
+  read_window_bytes: 12_288,
+  read_window_lines: 300,
   artifact_bytes: 2_097_152,
   contract_bytes: 4_194_304,
 });
@@ -106,8 +112,13 @@ const commandLimits = strictObject({
   nofile: z.number().int().min(64).max(4096).optional(),
 });
 const projectSchema = schema.extend({
+  // Optional per-criterion link to the checks (verifier.checks[].id) and commands (command_checks[].command_id) that decide it.
+  acceptance: z
+    .array(acceptance.extend({ check_ids: ids.optional() }))
+    .min(1)
+    .max(64),
   initial_files: z
-    .array(file.extend({ path: projectPath }))
+    .array(file.extend({ path: projectPath, content: z.string().max(PROJECT_LIMITS.large_file_chars) }))
     .max(PROJECT_LIMITS.total_paths)
     .refine((list) => ordinaryCount(list.map((entry) => entry.path)) <= PROJECT_LIMITS.ordinary_paths),
   scope: strictObject({ read: projectPaths, write: projectPaths }),
@@ -135,6 +146,7 @@ const projectSchema = schema.extend({
     checks: z
       .array(
         strictObject({
+          id: IdentifierSchema.optional(),
           path: projectPath,
           export_name: z.string().regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/),
           args: z.array(z.json()).max(16),
@@ -208,8 +220,8 @@ const declaredPaths = (contract) => [
  * acceptance must be executable, either through protected `command_checks` or through a pinned module verifier
  * (`node-module-v1`/`python-module-v1`) that runs the candidate against expectations fixed in the contract. The
  * checked module is the artifact under test, so it stays writable; `web-content-v1` is static text matching and never
- * satisfies this rule. Coverage is global through `verifier.acceptance_ids`, which the parse
- * already equates with every `acceptance.id`; a per-criterion link is not part of the contract.
+ * satisfies this rule. `verifier.acceptance_ids` is equated with every `acceptance.id` by the parse; per criterion,
+ * `check_ids` must name at least one executable check: a command check, or a check of a module verifier.
  */
 function requireExecutableAcceptance(contract, protectedPaths) {
   const commandChecks = contract.verifier.command_checks || [];
@@ -221,9 +233,34 @@ function requireExecutableAcceptance(contract, protectedPaths) {
   if (commandChecks.length > 0) {
     for (const entry of present.filter(isKnownConfigFile))
       requireCondition(protectedPaths.has(entry), 'ENGINEERING_PROTECTED_CONFIG_MISSING');
-    return;
+  } else {
+    requireCondition(modules, 'ENGINEERING_ACCEPTANCE_WEAK');
   }
-  requireCondition(modules, 'ENGINEERING_ACCEPTANCE_WEAK');
+  const executable = new Set([
+    ...commandChecks.map((item) => item.command_id),
+    ...(modules ? contract.verifier.checks.map((item) => item.id) : []),
+  ]);
+  for (const item of contract.acceptance)
+    requireCondition(
+      (item.check_ids || []).some((id) => executable.has(id)),
+      'ENGINEERING_ACCEPTANCE_UNCOVERED',
+    );
+}
+
+/** The ids a criterion may name share one namespace: checks and command checks. Absent links change nothing. */
+function requireCheckLinks(contract) {
+  const known = [
+    ...contract.verifier.checks.flatMap((item) => (item.id ? [item.id] : [])),
+    ...(contract.verifier.command_checks || []).map((item) => item.command_id),
+  ];
+  requireCondition(new Set(known).size === known.length, 'ENGINEERING_CHECK_ID_DUPLICATE');
+  const linked = contract.acceptance.filter((item) => item.check_ids);
+  if (linked.length === 0) return;
+  requireCondition(linked.length === contract.acceptance.length, 'ENGINEERING_CHECK_IDS_INCOMPLETE');
+  for (const item of linked) {
+    unique(item.check_ids, 'ENGINEERING_CHECK_ID_DUPLICATE');
+    for (const id of item.check_ids) requireCondition(known.includes(id), 'ENGINEERING_CHECK_ID_UNKNOWN');
+  }
 }
 
 function parseEngineeringTask(value, { admission = false } = {}) {
@@ -285,6 +322,12 @@ function parseEngineeringTask(value, { admission = false } = {}) {
     initialBytes += Buffer.byteLength(item.content);
   }
   requireCondition(initialBytes <= contract.max_artifact_bytes, 'ENGINEERING_INITIAL_FILES_INVALID');
+  const largeFiles = contract.initial_files.filter((item) => item.content.length > PROJECT_LIMITS.file_chars);
+  requireCondition(
+    largeFiles.length <= PROJECT_LIMITS.large_files_max &&
+      largeFiles.reduce((sum, item) => sum + Buffer.byteLength(item.content), 0) <= PROJECT_LIMITS.large_files_bytes,
+    'ENGINEERING_INITIAL_FILES_INVALID',
+  );
   for (const item of contract.commands) requireCondition(readPaths.has(item.entrypoint), 'ENGINEERING_COMMAND_ENTRYPOINT_UNREADABLE');
   requireCondition(Object.values(contract.limits).every(Number.isSafeInteger), 'ENGINEERING_LIMITS_INVALID');
   requireCondition(contract.limits.max_children === 0 && contract.limits.max_workflow_steps === 0, 'ENGINEERING_LIMITS_INVALID');
@@ -313,6 +356,7 @@ function parseEngineeringTask(value, { admission = false } = {}) {
         }
       }
     }
+    requireCheckLinks(contract);
     if (contract.initial_files.length > 0) {
       const byPath = new Map(contract.initial_files.map((item) => [item.path, item.sha256]));
       requireCondition(

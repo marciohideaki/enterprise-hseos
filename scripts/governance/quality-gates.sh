@@ -197,6 +197,19 @@ run_node_check() (
 # Tests that need the shared Postgres (test/managed-governance/postgres.integration.test.js) skip without
 # HSEOS_GOVERNANCE_TEST_DATABASE_URL; the hook neither opens a tunnel nor counts that skip as a pass: CI runs it
 # against a Postgres service on every shard set.
+# A real test file: test/test-*.{js,cjs,mjs} and test/<dir>/test-*, test/**/*.test.{js,cjs,mjs,sh}. Helpers, fixtures
+# and journey CLIs live under test/ too but need arguments or are only imported, so they never run as tests.
+is_test_file() {
+  case "$1" in
+    test/journeys/*|test/helpers/*) return 1 ;;
+    test/test-*.js|test/test-*.cjs|test/test-*.mjs) return 0 ;;
+    test/*/test-*.js|test/*/test-*.cjs|test/*/test-*.mjs) return 0 ;;
+    test/*.test.js|test/*.test.cjs|test/*.test.mjs|test/*.test.sh) return 0 ;;
+    test/*/*.test.js|test/*/*.test.cjs|test/*/*.test.mjs|test/*/*.test.sh) return 0 ;;
+  esac
+  return 1
+}
+
 gate_code_light() {
   local -a staged=() sources=() tests=() lintable=() formattable=()
   local file
@@ -217,8 +230,7 @@ gate_code_light() {
       *.js|*.cjs|*.mjs|*.json|*.yaml) formattable+=("${file}") ;;
     esac
     case "${file}" in
-      test/*.test.sh|test/*/*.test.sh) tests+=("${file}") ;;
-      test/*test-*.js|test/*/*test-*.js|test/*.test.js|test/*/*.test.js) tests+=("${file}") ;;
+      test/*) if is_test_file "${file}"; then tests+=("${file}"); fi ;;
       src/*.js|src/*.cjs|src/*.mjs|tools/*.js|tools/*.cjs|tools/*.mjs|packages/*.js|packages/*.cjs|packages/*.mjs) sources+=("${file}") ;;
       scripts/*.js|scripts/*.cjs|scripts/*.mjs) sources+=("${file}") ;;
     esac
@@ -253,7 +265,7 @@ gate_code_light() {
   for source in "${sources[@]}"; do
     stem="${source%.*}"
     while IFS= read -r importer; do
-      [[ -n "${importer}" ]] && tests+=("${importer}")
+      if [[ -n "${importer}" ]] && is_test_file "${importer}"; then tests+=("${importer}"); fi
     done < <(git -C "${REPO_ROOT}" grep -lF -e "${stem}" -- 'test/*.js' 'test/*.cjs' 'test/*.mjs' 'test/*.sh' 2>/dev/null || true)
   done
 

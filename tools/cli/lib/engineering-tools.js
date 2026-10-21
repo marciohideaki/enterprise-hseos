@@ -6,7 +6,7 @@ const { createHash, randomUUID } = require('node:crypto');
 const { z } = require('zod');
 const { governanceRef } = require('../../../packages/tool-runtime');
 const { executeIsolatedCommand } = require('../../../packages/agent-isolation-attestation/executor');
-const { parseEngineeringTask } = require('./engineering-task-contract');
+const { parseEngineeringTask, PROJECT_LIMITS } = require('./engineering-task-contract');
 const { declaredCommandArgv, declaredCommandLimits, declaredMounts } = require('./engineering-project-verifier');
 const { assertStoreMountUnchanged } = require('./engineering-workspace');
 
@@ -19,6 +19,72 @@ class EngineeringToolError extends Error {
     super(message);
     this.code = code;
   }
+}
+
+const isLarge = (content) => content !== null && content.length > PROJECT_LIMITS.file_chars;
+const textLines = (content) => {
+  if (content === null || content === '') return [];
+  const lines = content.split('\n');
+  if (lines.at(-1) === '') lines.pop();
+  return lines;
+};
+const invalidRange = (message) => new EngineeringToolError(message, 'ENGINEERING_RANGE_INVALID');
+const checkRange = (start, end) => {
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 1 || end < start)
+    throw invalidRange('Line range must be two integers with 1 <= start_line <= end_line');
+};
+const cutAtCodePoint = (text, maxBytes) => {
+  const buffer = Buffer.from(text);
+  let end = maxBytes;
+  // A UTF-8 continuation byte (10xxxxxx) at the cut means the cut is inside a code point: back up to its lead byte.
+  while (end > 0 && (buffer[end] & 0xc0) === 0x80) end -= 1;
+  return buffer.subarray(0, end).toString('utf8');
+};
+/**
+ * Lines start..end (1-based, inclusive) bounded by the read window. A range past the window is cut and reported as
+ * truncated; a range past the end of the file is cut silently to the last line. `lenient` serves a diff, where one side
+ * of a changed file may be shorter than the requested range. A first line longer than the window is returned up to the
+ * window, cut at a code point (never inside a surrogate pair), and marked truncated; the rest of that line is not
+ * readable by range, which is the price of keeping every answer inside the window.
+ */
+function selectRange(lines, start, end, { lenient = false } = {}) {
+  checkRange(start, end);
+  if (start > lines.length) {
+    if (!lenient) throw invalidRange('start_line is past the end of the file');
+    return { start_line: start, end_line: start - 1, truncated: false, content: '' };
+  }
+  const wanted = Math.min(end, lines.length);
+  let last = start;
+  let bytes = Buffer.byteLength(lines[start - 1]);
+  while (last < wanted && last - start + 1 < PROJECT_LIMITS.read_window_lines) {
+    const next = Buffer.byteLength(lines[last]) + 1;
+    if (bytes + next > PROJECT_LIMITS.read_window_bytes) break;
+    bytes += next;
+    last += 1;
+  }
+  let content = lines.slice(start - 1, last).join('\n');
+  const cut = Buffer.byteLength(content) > PROJECT_LIMITS.read_window_bytes;
+  if (cut) content = cutAtCodePoint(content, PROJECT_LIMITS.read_window_bytes);
+  return { start_line: start, end_line: last, truncated: cut || last < wanted, content };
+}
+const lineOffset = (content, line) => {
+  let offset = 0;
+  for (let current = 1; current < line; current++) offset = content.indexOf('\n', offset) + 1;
+  return offset;
+};
+const lineAt = (content, offset) => {
+  let line = 1;
+  for (let at = content.indexOf('\n'); at !== -1 && at < offset; at = content.indexOf('\n', at + 1)) line += 1;
+  return line;
+};
+/** The single changed region between two files, as line numbers of each side (end < start means nothing on that side). */
+function changedRegion(before, after) {
+  let prefix = 0;
+  while (prefix < before.length && prefix < after.length && before[prefix] === after[prefix]) prefix += 1;
+  if (prefix === before.length && prefix === after.length) return null;
+  let suffix = 0;
+  while (suffix < before.length - prefix && suffix < after.length - prefix && before.at(-1 - suffix) === after.at(-1 - suffix)) suffix += 1;
+  return { before_start: prefix + 1, before_end: before.length - suffix, after_start: prefix + 1, after_end: after.length - suffix };
 }
 
 function createEngineeringTools({ directory, contract: inputContract, policy, deadline, onDiagnosis }) {
@@ -82,7 +148,7 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
     }
     return files;
   };
-  const write = ({ path: relative, expected_sha256, content }) => {
+  const writeFile = ({ path: relative, expected_sha256, content }) => {
     const filename = resolveFile(relative, 'write');
     const current = read(relative);
     if (current.sha256 !== expected_sha256)
@@ -98,6 +164,29 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
       if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
     }
     return read(relative);
+  };
+  const write = (value) => {
+    // A large file is changed only by anchored patch: a whole-file write would put it through the model whole.
+    if (contract.schema_version === 2 && isLarge(read(value.path).content))
+      throw new EngineeringToolError(
+        'A large file is changed with engineering.patch, not engineering.write',
+        'ENGINEERING_WRITE_REQUIRES_PATCH',
+      );
+    return writeFile(value);
+  };
+  const readRange = ({ path: relative, start_line, end_line }) => {
+    const current = read(relative);
+    if (current.content === null) return current;
+    const lines = textLines(current.content);
+    const total = { total_lines: lines.length, total_bytes: Buffer.byteLength(current.content) };
+    if (start_line === undefined && end_line === undefined) {
+      if (isLarge(current.content))
+        throw new EngineeringToolError('A large file is read by line range (start_line, end_line)', 'ENGINEERING_RANGE_REQUIRED');
+      return { ...current, ...total };
+    }
+    if (start_line === undefined || end_line === undefined) throw invalidRange('start_line and end_line are given together');
+    const { content, ...window } = selectRange(lines, start_line, end_line);
+    return { path: relative, sha256: current.sha256, ...total, ...window, content };
   };
   const command = async ({ id }, context) => {
     const declared = contract.commands.find((entry) => entry.id === id);
@@ -138,8 +227,11 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
     }
     return outcome;
   };
+  const lineNumber = z.number().optional();
   const inputs = [
-    z.object({ path: z.enum(contract.scope.read) }).strict(),
+    contract.schema_version === 2
+      ? z.object({ path: z.enum(contract.scope.read), start_line: lineNumber, end_line: lineNumber }).strict()
+      : z.object({ path: z.enum(contract.scope.read) }).strict(),
     z
       .object({
         path: z.enum(contract.scope.write),
@@ -164,7 +256,7 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
       .strict(),
   ];
   const handlers = [
-    (value) => read(value.path),
+    contract.schema_version === 2 ? readRange : (value) => read(value.path),
     write,
     command,
     (value) => {
@@ -183,37 +275,104 @@ function createEngineeringTools({ directory, contract: inputContract, policy, de
           expected_sha256: z.string().regex(/^[a-f0-9]{64}$/),
           before: z.string().min(1).max(contract.max_artifact_bytes),
           after: z.string().max(contract.max_artifact_bytes),
+          // Narrows `before` to these lines when the same text occurs elsewhere in the file.
+          within: z.object({ start_line: z.number(), end_line: z.number() }).strict().optional(),
         })
         .strict(),
-      z.object({}).strict(),
+      z.object({ path: z.enum(contract.scope.read).optional(), start_line: lineNumber, end_line: lineNumber }).strict(),
     );
     handlers.push(
       ({ text, limit }) => {
+        // The answer is held to the read window, so a search over a large file cannot carry the file back in matches.
         const matches = [];
+        let total = 0;
+        let bytes = 0;
+        let full = false;
         for (const file of snapshot()) {
           const lines = (file.content || '').split('\n');
-          for (let index = 0; index < lines.length && matches.length < limit; index++) {
-            if (lines[index].includes(text)) matches.push({ path: file.path, line: index + 1, text: lines[index].slice(0, 2048) });
+          for (const [index, line] of lines.entries()) {
+            if (!line.includes(text)) continue;
+            total += 1;
+            const match = { path: file.path, line: index + 1, text: line.slice(0, 2048) };
+            const size = Buffer.byteLength(JSON.stringify(match));
+            full ||= matches.length >= limit || (matches.length > 0 && bytes + size > PROJECT_LIMITS.read_window_bytes);
+            if (!full) {
+              matches.push(match);
+              bytes += size;
+            }
           }
         }
-        return { matches };
+        return { matches, total_matches: total, truncated: matches.length < total };
       },
-      ({ path: relative, expected_sha256, before, after }) => {
+      // `before` must occur exactly once, counting non-overlapping occurrences from the left (as split does): text that
+      // overlaps itself, such as 'aa' in 'aaa', counts once and is not reported as ambiguous.
+      ({ path: relative, expected_sha256, before, after, within }) => {
         const current = read(relative);
-        if (current.sha256 !== expected_sha256 || current.content === null || current.content.split(before).length !== 2)
-          throw new EngineeringToolError('Patch precondition changed or match is ambiguous', 'ENGINEERING_EFFECT_RECONCILIATION_REQUIRED');
-        return write({ path: relative, expected_sha256, content: current.content.replace(before, () => after) });
+        const refused = () =>
+          new EngineeringToolError('Patch precondition changed or match is ambiguous', 'ENGINEERING_EFFECT_RECONCILIATION_REQUIRED');
+        if (current.sha256 !== expected_sha256 || current.content === null) throw refused();
+        let from = 0;
+        let to = current.content.length;
+        if (within) {
+          const lines = textLines(current.content);
+          checkRange(within.start_line, within.end_line);
+          if (within.start_line > lines.length) throw invalidRange('within is past the end of the file');
+          from = lineOffset(current.content, within.start_line);
+          const last = Math.min(within.end_line, lines.length);
+          to = from + lines.slice(within.start_line - 1, last).join('\n').length;
+        }
+        const parts = current.content.slice(from, to).split(before);
+        if (parts.length !== 2) throw refused();
+        const at = from + parts[0].length;
+        const content = current.content.slice(0, at) + after + current.content.slice(at + before.length);
+        const written = writeFile({ path: relative, expected_sha256, content });
+        // A large file never comes back whole: the next patch needs only the new sha and where the change landed.
+        if (isLarge(current.content) || isLarge(content))
+          return {
+            path: relative,
+            sha256: written.sha256,
+            total_lines: textLines(content).length,
+            total_bytes: Buffer.byteLength(content),
+            line: lineAt(current.content, at),
+          };
+        return written;
       },
-      () => ({
-        baseline_sha: contract.baseline_sha,
-        changes: snapshot()
-          .filter((file) => file.sha256 !== (contract.initial_files.find((initial) => initial.path === file.path)?.sha256 || null))
-          .map((file) => ({
-            path: file.path,
-            before: contract.initial_files.find((initial) => initial.path === file.path)?.content ?? null,
-            after: file.content,
-          })),
-      }),
+      ({ path: only, start_line, end_line }) => {
+        const ranged = start_line !== undefined || end_line !== undefined;
+        if (ranged && only === undefined) throw invalidRange('A line range needs the path of one file');
+        if (ranged) checkRange(start_line, end_line);
+        return {
+          baseline_sha: contract.baseline_sha,
+          changes: snapshot()
+            .filter((file) => only === undefined || file.path === only)
+            .map((file) => {
+              const initial = contract.initial_files.find((entry) => entry.path === file.path);
+              return { file, before: initial?.content ?? null, initial };
+            })
+            .filter(({ file, initial }) => file.sha256 !== (initial?.sha256 || null))
+            .map(({ file, before }) => {
+              if (!isLarge(before) && !isLarge(file.content)) return { path: file.path, before, after: file.content };
+              // A large file is described by where it changed; its lines are read by range, one side at a time.
+              const beforeLines = textLines(before);
+              const afterLines = textLines(file.content);
+              return {
+                path: file.path,
+                large: true,
+                before_sha256: before === null ? null : createHash('sha256').update(before).digest('hex'),
+                after_sha256: file.sha256,
+                before_total_lines: beforeLines.length,
+                after_total_lines: afterLines.length,
+                region: changedRegion(beforeLines, afterLines),
+                ...(ranged
+                  ? {
+                      before: selectRange(beforeLines, start_line, end_line, { lenient: true }),
+                      after: selectRange(afterLines, start_line, end_line, { lenient: true }),
+                    }
+                  : {}),
+              };
+            }),
+        };
+      },
     );
   }
   const bundles = names.map((name, index) => ({
