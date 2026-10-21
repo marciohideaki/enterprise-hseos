@@ -342,6 +342,7 @@ Fecho condicionado: C9 (teste estático de "chamador de produção") e C10 (inte
 
 **Limitações aceitas.**
 
+- **Dívida de produção da memória e do host (ativação, W8).** Nenhum código de produção monta o store de memória governado nem o `environmentHost` do servidor MCP: ambos chegam por injeção do embedder, e hoje só testes os injetam. O FR03 fica atendido em biblioteca, mas não é alcançável em produção até existir um embedder real. Sugestão para o runbook de ativação (`docs/evolution/runbooks/activation.md`): uma composição de host de referência, com o `MemoryStore` sobre o ledger de execução, as regras de escrita e o operador por projeto, os serviços de ambiente com o sink do ledger e o gate de aprovação do computer-use. O runbook ainda não está na master (vive na branch `feature/hseos-w5-closeout-w7`); esta entrada registra a dívida até o Commander levá-la para lá.
 - As capacidades de ambiente são **opt-in**: a tarefa precisa declarar `environment.capabilities`; capacidade não declarada é negada.
 - Não há chamador de CLI nem de worker até existir admissão que declare `environment.capabilities`; o que existe é o caminho do runtime de tarefa e do MCP.
 - O servidor MCP moderno, único que serve esses providers, só roda em fixture (`EXECUTION_ACTIVATION_PENDING` fora dele); a ativação segue pendente (ADR-0022/0023).
