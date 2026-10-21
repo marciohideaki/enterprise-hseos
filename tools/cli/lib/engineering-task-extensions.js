@@ -499,16 +499,43 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
     isCancelled,
   });
   const approvalResolver = createExecutionApprovalResolver({ store: new ExecutionApprovalStore(db), approve: host.approve });
+  // Governed memory enters the context only when the task declared the capability and the host owns a store. The
+  // assembler resolves its profile synchronously, so the (async) collection runs once before the session starts and
+  // the resolver reads the frozen result; the retrieval itself is the store's synchronous, governed `retrieve`.
+  const wantsMemory = capabilities.includes('memory.retrieve') && Boolean(host.memory?.store);
+  let memorySources = Object.freeze([]);
   return Object.freeze({
     ...environment,
     approvalResolver,
+    get memorySources() {
+      return memorySources;
+    },
+    async collectMemory({ query }) {
+      // A query that looks like a credential is never used to search: nothing leaves, nothing is found.
+      memorySources = deepFreeze(
+        wantsMemory && !containsCredential(query)
+          ? await require('./memory-context-source').collectMemorySources({ store: host.memory.store, project_id: host.project_id, query })
+          : [],
+      );
+    },
     // A host may ask for more approvals than the contracts do (a stricter deployment); never fewer.
     requiresApproval: (name) =>
       environment.names.includes(name) && (APPROVAL_REQUIRED.includes(name) || (host.require_approval ?? []).includes(name)),
   });
 }
 
+const MEMORY_QUERY_CHARS = 1024;
+
+/** The retrieval query of a task: its requirements, bounded and deterministic. Never the model's words. */
+function taskMemoryQuery(contract) {
+  return contract.requirements
+    .map((requirement) => requirement.description)
+    .join(' ')
+    .slice(0, MEMORY_QUERY_CHARS);
+}
+
 module.exports = {
+  taskMemoryQuery,
   createTaskExtensions,
   taskContextReservations,
   createEnvironmentBundles,

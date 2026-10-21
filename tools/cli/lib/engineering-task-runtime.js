@@ -31,7 +31,7 @@ const PROJECT_INSTRUCTION = 'Implement only the declared disposable task. A mode
 // Managed projects can hold files too large to read whole: the model is told how to work on them without fetching them.
 const LARGE_FILE_GUIDANCE =
   'A file above 64 KB cannot be read whole: find the place with engineering.search, read only the lines you need with engineering.read (start_line, end_line; at most 300 lines or 12 KiB per call), and change it with a short engineering.patch (before is the exact text, within narrows it to a line range when the text repeats, expected_sha256 is the sha256 of the whole file and each patch answers with the next one). engineering.write is refused on such a file. Review a change with engineering.diff (path, start_line, end_line).';
-const { createTaskExtensions, taskContextReservations, createTaskEnvironment } = require('./engineering-task-extensions');
+const { createTaskExtensions, taskContextReservations, createTaskEnvironment, taskMemoryQuery } = require('./engineering-task-extensions');
 const responsesSchema = z.array(z.object({ name: z.string().min(1).max(160), input: z.record(z.string(), z.json()) }).strict()).max(64);
 
 async function settleTaskOwners(operations) {
@@ -467,7 +467,7 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
           ),
         ],
         references: [],
-        memory: [],
+        memory: environmentTools?.memorySources ?? [],
         overflow_policy: 'reject',
         parameters: {
           max_output_tokens: Math.min(
@@ -726,6 +726,7 @@ async function executeTask(handle, task, assembly, created, verificationOnly = f
           throw error;
         }
       }
+      await assembly.environmentTools?.collectMemory({ query: taskMemoryQuery(contract) });
       observeCancellation();
       if (!controller.signal.aborted && !task.read().cancellation) {
         require('./job-dispatch').assertJobRuntimeAccess(handle.db, task.id);
