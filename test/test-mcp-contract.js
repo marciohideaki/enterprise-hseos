@@ -231,7 +231,7 @@ function assertServerContract(name, probe) {
 // ---------------------------------------------------------------------------
 const crypto = require('node:crypto');
 const {
-  CAPABILITY_CONTRACT_STUBS,
+  CAPABILITY_CONTRACTS,
   ENVIRONMENT_CONTRACTS,
   ExecutionContractError,
   ExecutionContractRegistry,
@@ -401,13 +401,14 @@ function runCapabilityStubTests() {
   const names = registered.map((contract) => contract.name);
   assertPass(
     'stubs: every environment.* and memory.* contract is registered',
-    names.length === CAPABILITY_CONTRACT_STUBS.length + ENVIRONMENT_CONTRACTS.length,
+    names.length === CAPABILITY_CONTRACTS.length + ENVIRONMENT_CONTRACTS.length,
   );
   for (const required of [
     'environment.browser.run',
     'environment.computer.start',
     'environment.computer.act',
     'environment.computer.stop',
+    'environment.computer.screenshot',
     'memory.write',
     'memory.retrieve',
     'memory.delete',
@@ -416,11 +417,11 @@ function runCapabilityStubTests() {
       `stubs: ${required} is versioned and fail-closed`,
       (() => {
         const contract = registry.resolve(required);
-        const stub = CAPABILITY_CONTRACT_STUBS.find((entry) => entry.name === required);
+        const real = CAPABILITY_CONTRACTS.find((entry) => entry.name === required);
         return (
           contract.failure_mode === 'fail_closed' &&
-          stub.contract_version === 1 &&
-          stub.status === 'stub' &&
+          real.contract_version === 1 &&
+          real.status === 'implemented' &&
           contract.input_schema.version === 1
         );
       })(),
@@ -429,7 +430,7 @@ function runCapabilityStubTests() {
   assertPass(
     'environment: LSP and DAP are implemented contracts, not stubs',
     ENVIRONMENT_CONTRACTS.length === 6 &&
-      !CAPABILITY_CONTRACT_STUBS.some((entry) => /^environment\.(lsp|dap)\./.test(entry.name)) &&
+      !CAPABILITY_CONTRACTS.some((entry) => /^environment\.(lsp|dap)\./.test(entry.name)) &&
       ENVIRONMENT_CONTRACTS.every((entry) => entry.status === 'implemented' && entry.provider === 'agent-environment'),
   );
   const lspInput = { action: 'hover', language: 'python', file: 'a.py', position: { line: 0, character: 0 } };
@@ -491,17 +492,305 @@ function runCapabilityStubTests() {
       registry.resolve('environment.computer.start').requires_approval &&
       registry.resolve('memory.delete').requires_approval,
   );
-  throwsWith(
-    'stubs: a stub has no implementation, so its input never validates',
-    () => registry.validateInput(registry.resolve('memory.write'), { content: 'x' }),
-    ExecutionContractError,
-    'ENV_CAPABILITY_NOT_IMPLEMENTED',
+  const rejects = (label, name, phase, value, code) =>
+    throwsWith(
+      label,
+      () =>
+        phase === 'input' ? registry.validateInput(registry.resolve(name), value) : registry.validateOutput(registry.resolve(name), value),
+      ExecutionContractError,
+      code,
+    );
+  const accepts = (label, name, phase, value) =>
+    assertPass(
+      label,
+      (phase === 'input'
+        ? registry.validateInput(registry.resolve(name), value)
+        : registry.validateOutput(registry.resolve(name), value)) !== undefined,
+    );
+  const memoryEntry = {
+    memory_id: 'note-1',
+    scope: { project_id: 'alpha' },
+    content: 'the deploy pipeline uses blue green rollouts',
+    origin: 'operator',
+    trust: 'trusted',
+    classification: 'internal',
+    source_ref: 'doc://runbook/deploy',
+    ttl_seconds: 3600,
+  };
+  accepts('memory.write: a well-formed entry validates', 'memory.write', 'input', memoryEntry);
+  rejects('memory.write: an empty input is refused', 'memory.write', 'input', {}, 'AGENT_MEMORY_INVALID');
+  rejects(
+    'memory.write: host-owned fields are refused',
+    'memory.write',
+    'input',
+    { ...memoryEntry, created_at: '2026-01-01T00:00:00.000Z' },
+    'AGENT_MEMORY_INVALID',
   );
-  throwsWith(
-    'stubs: a stub output never validates either',
-    () => registry.validateOutput(registry.resolve('memory.retrieve'), {}),
-    ExecutionContractError,
-    'ENV_CAPABILITY_NOT_IMPLEMENTED',
+  rejects(
+    'memory.write: an entry that is not data authority is refused',
+    'memory.write',
+    'input',
+    { ...memoryEntry, authority: 'directive' },
+    'AGENT_MEMORY_AUTHORITY_ESCALATION',
+  );
+  rejects(
+    'memory.write: an untrusted origin cannot be stored as trusted',
+    'memory.write',
+    'input',
+    { ...memoryEntry, origin: 'browser' },
+    'AGENT_MEMORY_TRUST_INVALID',
+  );
+  rejects(
+    'memory.write: a missing ttl is refused',
+    'memory.write',
+    'input',
+    { ...memoryEntry, ttl_seconds: undefined },
+    'AGENT_MEMORY_TTL_INVALID',
+  );
+  rejects(
+    'memory.write: an entry carrying a credential is refused',
+    'memory.write',
+    'input',
+    { ...memoryEntry, content: `token ${'ghp_'}${'abcdefghijklmnopqrstuvwxyz0123456789'}` },
+    'AGENT_MEMORY_CREDENTIAL_DETECTED',
+  );
+  rejects(
+    'memory.write: a digest that does not match the content is refused',
+    'memory.write',
+    'input',
+    { ...memoryEntry, source_digest: 'a'.repeat(64) },
+    'AGENT_MEMORY_INVALID',
+  );
+  accepts('memory.write: the receipt validates', 'memory.write', 'output', { memory_id: 'note-1', write_policy_ref: 'rule:r1' });
+  rejects(
+    'memory.write: a receipt without a policy reference is refused',
+    'memory.write',
+    'output',
+    { memory_id: 'note-1' },
+    'AGENT_MEMORY_INVALID',
+  );
+  accepts('memory.retrieve: a query validates', 'memory.retrieve', 'input', { project_id: 'alpha', query: 'deploy', limit: 5 });
+  rejects(
+    'memory.retrieve: an empty query is refused',
+    'memory.retrieve',
+    'input',
+    { project_id: 'alpha', query: ' ' },
+    'AGENT_MEMORY_INVALID',
+  );
+  rejects(
+    'memory.retrieve: a limit out of range is refused',
+    'memory.retrieve',
+    'input',
+    { project_id: 'alpha', query: 'x', limit: 0 },
+    'AGENT_MEMORY_INVALID',
+  );
+  rejects(
+    'memory.retrieve: a limit above the ceiling is refused',
+    'memory.retrieve',
+    'input',
+    { project_id: 'alpha', query: 'x', limit: 51 },
+    'AGENT_MEMORY_INVALID',
+  );
+  rejects(
+    'memory.retrieve: an unknown field is refused',
+    'memory.retrieve',
+    'input',
+    { project_id: 'alpha', query: 'x', approval_id: 'a' },
+    'AGENT_MEMORY_INVALID',
+  );
+  const source = {
+    source_ref: 'memory://alpha/note-1',
+    content: 'x',
+    authority: 'data',
+    provenance: { origin: 'memory', trust: 'untrusted' },
+  };
+  accepts('memory.retrieve: untrusted data sources validate', 'memory.retrieve', 'output', [source]);
+  rejects(
+    'memory.retrieve: a directive source is refused',
+    'memory.retrieve',
+    'output',
+    [{ ...source, authority: 'directive' }],
+    'AGENT_MEMORY_AUTHORITY_ESCALATION',
+  );
+  rejects(
+    'memory.retrieve: a trusted source is refused',
+    'memory.retrieve',
+    'output',
+    [{ ...source, provenance: { origin: 'memory', trust: 'trusted' } }],
+    'AGENT_MEMORY_TRUST_INVALID',
+  );
+  rejects('memory.retrieve: a non-list output is refused', 'memory.retrieve', 'output', {}, 'AGENT_MEMORY_INVALID');
+  accepts('memory.delete: a deletion request validates', 'memory.delete', 'input', {
+    project_id: 'alpha',
+    memory_id: 'note-1',
+    reason: 'obsolete',
+  });
+  rejects(
+    'memory.delete: the approval never travels in the input',
+    'memory.delete',
+    'input',
+    { project_id: 'alpha', memory_id: 'note-1', approval_id: 'x' },
+    'AGENT_MEMORY_INVALID',
+  );
+  rejects(
+    'memory.delete: an invalid identifier is refused',
+    'memory.delete',
+    'input',
+    { project_id: 'ALPHA', memory_id: 'note-1' },
+    'AGENT_MEMORY_INVALID',
+  );
+  rejects(
+    'memory.delete: a reason with a credential is refused',
+    'memory.delete',
+    'input',
+    { project_id: 'alpha', memory_id: 'n', reason: `x ${'ghp_'}${'abcdefghijklmnopqrstuvwxyz0123456789'}` },
+    'AGENT_MEMORY_CREDENTIAL_DETECTED',
+  );
+  accepts('memory.delete: the receipt validates', 'memory.delete', 'output', { memory_id: 'note-1', deleted: true });
+  rejects(
+    'memory.delete: a receipt that does not confirm deletion is refused',
+    'memory.delete',
+    'output',
+    { memory_id: 'note-1', deleted: false },
+    'AGENT_MEMORY_INVALID',
+  );
+  const browserInput = { steps: [{ op: 'goto', url: 'https://example.com/' }] };
+  accepts('browser: a navigation input validates', 'environment.browser.run', 'input', browserInput);
+  rejects(
+    'browser: the first step must be a goto',
+    'environment.browser.run',
+    'input',
+    { steps: [{ op: 'click', selector: 'a' }] },
+    'ENV_BROWSER_INPUT_INVALID',
+  );
+  rejects(
+    'browser: an unknown field is refused',
+    'environment.browser.run',
+    'input',
+    { ...browserInput, headless: false },
+    'ENV_BROWSER_INPUT_INVALID',
+  );
+  rejects(
+    'browser: a trusted output is refused',
+    'environment.browser.run',
+    'output',
+    { contract: 'environment.browser.v1', media: [{ origin: 'browser', authority: 'directive', trust: 'trusted' }] },
+    'ENV_BROWSER_OUTPUT_INVALID',
+  );
+  accepts('browser: an untrusted output validates', 'environment.browser.run', 'output', {
+    contract: 'environment.browser.v1',
+    status: 'ok',
+  });
+  const startInput = { target: { command: '/usr/bin/xclock' } };
+  accepts('computer.start: a target validates', 'environment.computer.start', 'input', startInput);
+  rejects(
+    'computer.start: a target outside /usr/bin is refused',
+    'environment.computer.start',
+    'input',
+    { target: { command: '/tmp/x' } },
+    'ENV_COMPUTER_INPUT_INVALID',
+  );
+  accepts('computer.act: an approved action validates', 'environment.computer.act', 'input', {
+    session_id: 's1',
+    action: 'click',
+    x: 10,
+    y: 10,
+  });
+  rejects(
+    'computer.act: a screenshot is not an approved action',
+    'environment.computer.act',
+    'input',
+    { session_id: 's1', action: 'screenshot' },
+    'ENV_COMPUTER_INPUT_INVALID',
+  );
+  rejects(
+    'computer.act: an unknown action is refused',
+    'environment.computer.act',
+    'input',
+    { session_id: 's1', action: 'drag' },
+    'ENV_COMPUTER_INPUT_INVALID',
+  );
+  rejects(
+    'computer.act: a session is required',
+    'environment.computer.act',
+    'input',
+    { action: 'key', key: 'Return' },
+    'ENV_COMPUTER_INPUT_INVALID',
+  );
+  rejects(
+    'computer.act: an approval id never travels in the input',
+    'environment.computer.act',
+    'input',
+    { session_id: 's1', action: 'key', key: 'Return', approval_id: 'a' },
+    'ENV_COMPUTER_INPUT_INVALID',
+  );
+  accepts('computer.screenshot: a session validates', 'environment.computer.screenshot', 'input', { session_id: 's1' });
+  rejects('computer.screenshot: a session is required', 'environment.computer.screenshot', 'input', {}, 'ENV_COMPUTER_INPUT_INVALID');
+  rejects(
+    'computer.screenshot: extra fields are refused',
+    'environment.computer.screenshot',
+    'input',
+    { session_id: 's1', x: 1 },
+    'ENV_COMPUTER_INPUT_INVALID',
+  );
+  rejects(
+    'computer.screenshot: an output that is not display data is refused',
+    'environment.computer.screenshot',
+    'output',
+    { contract: 'environment.computer.v1', media: [{ origin: 'display', authority: 'directive', trust: 'untrusted' }] },
+    'ENV_COMPUTER_OUTPUT_INVALID',
+  );
+  accepts('computer.screenshot: a traced untrusted capture validates', 'environment.computer.screenshot', 'output', {
+    contract: 'environment.computer.v1',
+    media: [{ origin: 'display', authority: 'data', trust: 'untrusted', source_ref: 'r1' }],
+    captures: [
+      { source_ref: 'r1', session_id: 's1', seq: 1, retrieved_at: '2026-01-01T00:00:00.000Z', digest: 'a'.repeat(64), transform: [] },
+    ],
+  });
+  assertPass(
+    'computer.act: the input is normalized with the defaults the approval binds',
+    JSON.stringify(
+      registry.validateInput(registry.resolve('environment.computer.act'), { session_id: 's1', action: 'click', x: 1, y: 2 }),
+    ) === JSON.stringify({ session_id: 's1', action: 'click', x: 1, y: 2, button: 1 }) &&
+      registry.validateInput(registry.resolve('environment.computer.act'), { session_id: 's1', action: 'scroll', direction: 'up' })
+        .amount === 3,
+  );
+  assertPass(
+    'contracts: a non-read-only contract without approval declares an idempotent provider (the runtime would otherwise demand approval)',
+    CAPABILITY_CONTRACTS.every(
+      (entry) => entry.reversibility === 'read_only' || entry.requires_approval || entry.provider_accepts_idempotency,
+    ) &&
+      registry.resolve('environment.computer.screenshot').reversibility === 'read_only' &&
+      !registry.resolve('environment.computer.screenshot').requires_approval,
+  );
+  accepts('computer.stop: a session validates', 'environment.computer.stop', 'input', { session_id: 's1' });
+  rejects(
+    'computer.stop: extra fields are refused',
+    'environment.computer.stop',
+    'input',
+    { session_id: 's1', force: true },
+    'ENV_COMPUTER_INPUT_INVALID',
+  );
+  rejects('computer.stop: a session is required', 'environment.computer.stop', 'input', {}, 'ENV_COMPUTER_INPUT_INVALID');
+  rejects(
+    'computer: a display output that is trusted is refused',
+    'environment.computer.act',
+    'output',
+    { contract: 'environment.computer.v1', media: [{ origin: 'display', authority: 'data', trust: 'trusted' }] },
+    'ENV_COMPUTER_OUTPUT_INVALID',
+  );
+  accepts('computer: a plain status output validates', 'environment.computer.stop', 'output', {
+    contract: 'environment.computer.v1',
+    status: 'stopped',
+  });
+  assertPass(
+    'contracts: reversibility follows the effect',
+    registry.resolve('environment.browser.run').reversibility === 'read_only' &&
+      registry.resolve('memory.retrieve').reversibility === 'read_only' &&
+      registry.resolve('environment.computer.act').reversibility === 'irreversible_mutation' &&
+      registry.resolve('memory.delete').reversibility === 'irreversible_mutation' &&
+      registry.resolve('environment.computer.stop').reversibility === 'idempotent_mutation' &&
+      registry.resolve('memory.write').reversibility === 'compensatable_mutation',
   );
   throwsWith('stubs: registration needs a contract registry', () => registerCapabilityContractStubs({}), ExecutionContractError);
   throwsWith(
