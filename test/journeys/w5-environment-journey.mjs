@@ -20,6 +20,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
 
+import { assertEnvironmentLedger, openJourneyLedger, REQUIRED_EVENTS } from './environment-ledger.mjs';
+
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const argv = process.argv.slice(2);
 const opt = (name, fallback) => {
@@ -64,6 +66,8 @@ class Blocked extends Error {
 }
 const results = [];
 const logs = [];
+// The capability services write to this real execution ledger; s11c asserts the rows read back from it.
+const envLedger = openJourneyLedger();
 const state = {
   nodeModules: {},
   clones: {},
@@ -919,7 +923,7 @@ async function browse(c, { directory, selector, text, absent, label }) {
       toolchain,
       broker: egress,
       mediaStore,
-      ledger: (e) => events.push(e),
+      ledger: envLedger.sink(`browser-${c}-${label}`, (e) => events.push(e)),
     });
     const output = await service.run({
       steps: [
@@ -1231,7 +1235,7 @@ async function main() {
         const service = environment.createDefaultLspService({
           policy: policyFor(clone),
           toolchain: lspToolchain,
-          ledger: (e) => events.push(e),
+          ledger: envLedger.sink('lsp-A', (e) => events.push(e)),
         });
         const file = CONSUMERS.A.target;
         const text = fs.readFileSync(path.join(clone.root, file), 'utf8').split('\n');
@@ -1283,7 +1287,11 @@ async function main() {
           profile: 'P1',
           toolchain_roots: [dapToolchain.root],
         });
-        const service = environment.createDefaultDapService({ policy, toolchain: dapToolchain, ledger: (e) => events.push(e) });
+        const service = environment.createDefaultDapService({
+          policy,
+          toolchain: dapToolchain,
+          ledger: envLedger.sink('dap-A', (e) => events.push(e)),
+        });
         const driver = fs.readFileSync(path.join(clone.root, 'hseos_w5/repro-trend.mjs'), 'utf8').split('\n');
         const breakLine = driver.findIndex((l) => l.includes('return selected;')) + 1;
         const before = hashTree(clone.root);
@@ -1672,14 +1680,14 @@ async function main() {
     const { createApprovalGate } = load('tools/cli/lib/environment-approval');
     const { ContextMediaStore } = load('packages/agent-context/media-store');
     const events = [];
-    const approvals = createApprovalGate({ ledger: (e) => events.push(e) });
+    const approvals = createApprovalGate({ ledger: envLedger.sink('computer-journey', (e) => events.push(e)) });
     const mediaStore = new ContextMediaStore({ root: fs.mkdtempSync(path.join(WORK, 'computer-media-')) });
     const service = environment.createDefaultComputerService({
       policy,
       toolchain: ready,
       approvals,
       mediaStore,
-      ledger: (e) => events.push(e),
+      ledger: envLedger.sink('computer-journey', (e) => events.push(e)),
     });
     const markers = () => [...procsMentioning('Xvfb\0:99\0'), ...procsMentioning('/usr/bin/xmessage\0-buttons\0')];
     const preexisting = markers();
@@ -1719,6 +1727,95 @@ async function main() {
     if (detail.stopped.descendants_terminated !== true) throw new Error('descendants were not terminated');
     if (orphans.length > 0) throw new Error(`orphan processes after stop: ${orphans.join(',')}`);
     return { ...detail, orphans: 0 };
+  });
+
+  // s10b: governed memory on the journey's own ledger: write, retrieve, and an approved deletion. No model, no dispatch.
+  await step('s10b-memory', '-', 'governed memory: write, retrieve and approved delete on the execution ledger', async () => {
+    let memory;
+    try {
+      memory = load('packages/agent-memory');
+    } catch (error) {
+      throw new Blocked(`the installed package carries no agent-memory: ${trim(error.message, 200)}`);
+    }
+    const { ExecutionApprovalStore } = createRequire(import.meta.url)('../../tools/mcp-project-state/lib/execution-approval-store');
+    const approvalStore = new ExecutionApprovalStore(envLedger.db);
+    const projectId = envLedger.projectId;
+    let approvalId = null;
+    const store = new memory.MemoryStore({
+      ledger: envLedger.ledger,
+      scanCredential: (text) => /(?:sk-|ghp_)[A-Za-z0-9_-]{16,}/u.test(text),
+      approvalVerifier: memory.createExecutionApprovalVerifier({ approvalStore, resolveApprovalId: () => approvalId }),
+    });
+    const operator = { kind: 'operator', id: 'journey-operator' };
+    const content = 'the journey records one governed note about the verification loop';
+    store.write(
+      {
+        scope: { project_id: projectId },
+        memory_id: 'journey-note',
+        content,
+        source_digest: memory.sha256Text(content),
+        origin: 'operator',
+        trust: 'trusted',
+        classification: 'internal',
+        source_ref: 'doc://w5-journey',
+        ttl_seconds: 3600,
+      },
+      { rules: [{ id: 'journey-write', source: 'project', stage: 'allow', decision: 'allow' }], actor: operator },
+    );
+    const found = store.retrieve({ project_id: projectId, query: 'verification loop' });
+    if (found.length !== 1 || found[0].authority !== 'data') throw new Error(`retrieve did not return the note as data: ${trim(found)}`);
+    const refused = (() => {
+      try {
+        store.forget({ project_id: projectId, memory_id: 'journey-note' }, { actor: operator });
+        return null;
+      } catch (error) {
+        return error.code;
+      }
+    })();
+    if (refused !== 'AGENT_MEMORY_APPROVAL_REQUIRED') throw new Error(`an unapproved delete was not refused: ${refused}`);
+    const operation = memory.memoryDeleteOperation(projectId, 'journey-note');
+    approvalId = randomUUID();
+    approvalStore.issue({
+      approval_id: approvalId,
+      operation_id: operation.operation_id,
+      authorizer: { id: operator.id, type: 'operator' },
+      resource_scope: operation.resource_scope,
+      issued_at: new Date(Date.now() - 1000).toISOString(),
+      expires_at: new Date(Date.now() + 60_000).toISOString(),
+      decision: 'approved',
+      policy_version: 'hseos-operational-v1',
+      evidence_ref: 'hseos://w5-journey/memory-delete-approval',
+    });
+    store.forget({ project_id: projectId, memory_id: 'journey-note' }, { actor: operator });
+    if (store.retrieve({ project_id: projectId, query: 'verification loop' }).length > 0)
+      throw new Error('the deleted note is still retrievable');
+    return { unapproved_delete: refused, retrieved: found.length };
+  });
+
+  // s11c: the ledger rows of THIS run, read back from the execution ledger. A capability whose step did not pass left no
+  // rows to assert: that is BLOCKED, never PASS, and the rows of the others are still checked.
+  await step('s11c-environment-ledger', '-', 'environment.* and memory.* events exist as rows of the real execution ledger', async () => {
+    const passed = (prefix) => results.some((r) => r.id.startsWith(prefix) && r.status === 'PASS');
+    const covered = {
+      lsp: passed('s04-lsp-'),
+      dap: passed('s05-dap-'),
+      browser: passed('s09-browser-'),
+      computer: passed('s10-computer'),
+      memory: passed('s10b-memory'),
+    };
+    const capabilities = Object.keys(covered).filter((name) => covered[name]);
+    const missing = Object.keys(covered).filter((name) => !covered[name]);
+    const rows = envLedger.rows();
+    const verdict = assertEnvironmentLedger(rows, { capabilities });
+    if (!verdict.ok) throw new Error(verdict.violations.map((v) => `${v.rule}: ${v.message}`).join('; '));
+    if (capabilities.length === 0) throw new Blocked('no capability step passed in this run: there are no ledger rows to assert');
+    if (missing.length > 0) {
+      throw new Blocked(`capability steps without a pass (no rows asserted for: ${missing.join(', ')})`, {
+        asserted: capabilities,
+        event_types: verdict.types,
+      });
+    }
+    return { rows: verdict.rows, event_types: verdict.types, required: REQUIRED_EVENTS };
   });
 
   // s11: receipts of THIS run. No dispatch means nothing to assert, and that is BLOCKED.
@@ -1818,6 +1915,7 @@ try {
   console.error(error);
 } finally {
   await closeCampaign().catch(() => {});
+  envLedger.close();
   if (!KEEP_WORK) fs.rmSync(WORK, { recursive: true, force: true });
 }
 process.exit(exitCode);
