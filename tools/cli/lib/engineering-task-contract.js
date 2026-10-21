@@ -23,6 +23,12 @@ const PROJECT_LIMITS = Object.freeze({
   store_path_chars: 512,
   segment_chars: 255,
   file_chars: 65_536,
+  // A v2 file above file_chars is "large": read by line range, changed by anchored patch, never held whole by the model.
+  large_file_chars: 262_144,
+  large_files_max: 4,
+  large_files_bytes: 1_048_576,
+  read_window_bytes: 12_288,
+  read_window_lines: 300,
   artifact_bytes: 2_097_152,
   contract_bytes: 4_194_304,
 });
@@ -107,7 +113,7 @@ const commandLimits = strictObject({
 });
 const projectSchema = schema.extend({
   initial_files: z
-    .array(file.extend({ path: projectPath }))
+    .array(file.extend({ path: projectPath, content: z.string().max(PROJECT_LIMITS.large_file_chars) }))
     .max(PROJECT_LIMITS.total_paths)
     .refine((list) => ordinaryCount(list.map((entry) => entry.path)) <= PROJECT_LIMITS.ordinary_paths),
   scope: strictObject({ read: projectPaths, write: projectPaths }),
@@ -285,6 +291,12 @@ function parseEngineeringTask(value, { admission = false } = {}) {
     initialBytes += Buffer.byteLength(item.content);
   }
   requireCondition(initialBytes <= contract.max_artifact_bytes, 'ENGINEERING_INITIAL_FILES_INVALID');
+  const largeFiles = contract.initial_files.filter((item) => item.content.length > PROJECT_LIMITS.file_chars);
+  requireCondition(
+    largeFiles.length <= PROJECT_LIMITS.large_files_max &&
+      largeFiles.reduce((sum, item) => sum + Buffer.byteLength(item.content), 0) <= PROJECT_LIMITS.large_files_bytes,
+    'ENGINEERING_INITIAL_FILES_INVALID',
+  );
   for (const item of contract.commands) requireCondition(readPaths.has(item.entrypoint), 'ENGINEERING_COMMAND_ENTRYPOINT_UNREADABLE');
   requireCondition(Object.values(contract.limits).every(Number.isSafeInteger), 'ENGINEERING_LIMITS_INVALID');
   requireCondition(contract.limits.max_children === 0 && contract.limits.max_workflow_steps === 0, 'ENGINEERING_LIMITS_INVALID');

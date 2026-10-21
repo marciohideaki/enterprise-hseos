@@ -25,6 +25,10 @@ const { evaluatePermissionLattice } = require('../../../packages/agent-policy-la
 
 const MANIFEST = 'engineering-task.json';
 const MODEL = 'model:engineering-scripted';
+const PROJECT_INSTRUCTION = 'Implement only the declared disposable task. A model response is not proof of acceptance.';
+// Managed projects can hold files too large to read whole: the model is told how to work on them without fetching them.
+const LARGE_FILE_GUIDANCE =
+  'A file above 64 KB cannot be read whole: find the place with engineering.search, read only the lines you need with engineering.read (start_line, end_line; at most 300 lines or 12 KiB per call), and change it with a short engineering.patch (before is the exact text, within narrows it to a line range when the text repeats, expected_sha256 is the sha256 of the whole file and each patch answers with the next one). engineering.write is refused on such a file. Review a change with engineering.diff (path, start_line, end_line).';
 const { createTaskExtensions, taskContextReservations } = require('./engineering-task-extensions');
 const responsesSchema = z.array(z.object({ name: z.string().min(1).max(160), input: z.record(z.string(), z.json()) }).strict()).max(64);
 
@@ -398,7 +402,7 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
               {
                 source_ref: 'profile://engineering/candidate',
                 classification: 'internal',
-                content: 'Implement only the declared disposable task. A model response is not proof of acceptance.',
+                content: contract.schema_version === 2 ? `${PROJECT_INSTRUCTION} ${LARGE_FILE_GUIDANCE}` : PROJECT_INSTRUCTION,
               },
               'directive',
               'trusted',

@@ -19,6 +19,7 @@ function fixture(
     expected = 4,
     args = [3],
     reference,
+    maxArtifactBytes,
   } = {},
 ) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-project-'));
@@ -45,6 +46,7 @@ function fixture(
     commands: [{ id: 'check', runtime, entrypoint: entry, args: [] }],
     workspace: { root, files_sha256: '0'.repeat(64) },
   });
+  if (maxArtifactBytes) contract.max_artifact_bytes = maxArtifactBytes;
   contract.limits.max_duration_ms = 60_000;
   contract.verifier = {
     reference: reference || `verifier://project/${runtime}-module-v1`,
