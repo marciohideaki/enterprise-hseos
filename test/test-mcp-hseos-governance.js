@@ -332,7 +332,10 @@ async function runGovernedUnitTests() {
   await it('governed approval flow: explicit approval issues a bound, expiring, single-purpose approval', async () => {
     const issued = [];
     const flow = createLocalApprovalFlow({
-      execution: { approvalStore: { issue: (approval) => issued.push(approval) } },
+      execution: {
+        approvalStore: { issue: (approval) => issued.push(approval) },
+        contracts: { resolve: (tool) => ({ policy_version: tool === 'cap_tool' ? 'hseos-w5-capability-v1' : 'hseos-operational-v1' }) },
+      },
       serverId: 'unit',
     });
     const operationId = deterministicOperationId('some_tool', 'key-1');
@@ -371,6 +374,299 @@ async function runGovernedUnitTests() {
     assert.equal(issued[0].decision, 'approved');
     assert.equal(approved.approval_id, issued[0].approval_id);
     assert.ok(Date.parse(issued[0].expires_at) - Date.parse(issued[0].issued_at) === 300_000);
+    assert.equal(issued[0].policy_version, 'hseos-operational-v1');
+    // A capability contract carries its own policy version; the grant must follow the contract or the runtime refuses to spend it.
+    const capabilityId = deterministicOperationId('cap_tool', 'key-2');
+    const capability = await flow.resolve({
+      inputResponses: { confirm: { action: 'accept', content: { approved: true } } },
+      verifiedState: { operation_id: capabilityId, policy_version: 'hseos-operational-v1' },
+      executionRequest: { tool: 'cap_tool', idempotency_key: 'key-2', resource_scope: { project: '/p' } },
+    });
+    assert.equal(capability.policy_version, 'hseos-w5-capability-v1');
+    assert.equal(issued[1].policy_version, 'hseos-w5-capability-v1');
+  });
+}
+
+// ---------------------------------------------------------------------------
+// W4-C7: providers of the environment.* and memory.* contracts behind the governed runtime.
+// ---------------------------------------------------------------------------
+async function runCapabilityProviderTests() {
+  const memoryPackage = require('../packages/agent-memory');
+  const environment = require('../packages/agent-environment');
+  const { containsCredential } = require('../tools/cli/lib/campaign-evidence-store');
+  const { ENV_CAPABILITY_UNAVAILABLE } = require('../tools/lib/governed-execution/operational-runtime');
+
+  const ACTOR = { id: 'local:uid:1', type: 'local_process' };
+  const OPERATOR = { kind: 'operator', id: 'owner' };
+  const SCOPE = { project: 'alpha' };
+  const ALLOW = [{ id: 'memory-write', source: 'project', stage: 'allow', decision: 'allow' }];
+  const SHOT = 'a'.repeat(64);
+  const tools = new Map([['list_runs', { name: 'list_runs', description: 'd', inputSchema: { type: 'object' } }]]);
+
+  const fakeServices = (calls, wiring) => {
+    const sink = environment.createEnvironmentLedgerSink({
+      ledger: wiring.ledger,
+      project_id: 'alpha',
+      actor: { type: 'host', id: 'env-host' },
+      session_id: 'session-1',
+    });
+    const display = (extra = {}) => ({ contract: 'environment.computer.v1', session_id: 'session-1', ...extra });
+    return {
+      lsp: {
+        async run(input) {
+          calls.push(['lsp', input]);
+          sink({ type: 'environment.lsp.completed', action: input.action });
+          return {
+            contract: 'environment.lsp.v1',
+            status: 'ok',
+            action: 'hover',
+            result: { action: 'hover', hover: 'greet(name)' },
+            source: { authority: 'data', provenance: { trust: 'untrusted' } },
+          };
+        },
+      },
+      computer: {
+        async start(input) {
+          calls.push(['start', input]);
+          return display({ status: 'started' });
+        },
+        async screenshot(sessionId) {
+          calls.push(['screenshot', sessionId]);
+          return display({ status: 'captured' });
+        },
+        requestApproval(sessionId, action) {
+          calls.push(['requestApproval', sessionId, action]);
+          return { status: 'pending', request_id: 'req-1' };
+        },
+        async act(sessionId, action, options) {
+          calls.push(['act', sessionId, action, options]);
+          return display({ status: 'acted', seq: 1, shot: SHOT });
+        },
+        async stop(sessionId) {
+          calls.push(['stop', sessionId]);
+          return display({ status: 'stopped' });
+        },
+      },
+      approvals: {
+        resolve(requestId, approved, who) {
+          calls.push(['resolve', requestId, approved, who]);
+          return { status: approved ? 'approved' : 'denied', request_id: requestId };
+        },
+      },
+    };
+  };
+
+  const setup = ({ withHost = true } = {}) => {
+    const db = new Database(':memory:');
+    applyExecutionLedgerFixtureSchema(db);
+    const calls = [];
+    let wired = null;
+    const execution = createOperationalExecution({
+      db,
+      serverId: 'swarm',
+      tools,
+      invokeTool: async () => ({}),
+      environmentHost: withHost
+        ? (wiring) => {
+            wired = wiring;
+            const memoryStore = new memoryPackage.MemoryStore({
+              ledger: wiring.ledger,
+              scanCredential: (text) => containsCredential(text),
+              approvalVerifier: memoryPackage.createExecutionApprovalVerifier({
+                approvalStore: wiring.approvalStore,
+                resolveApprovalId: wiring.resolveMemoryDeleteApproval,
+              }),
+            });
+            return {
+              ...fakeServices(calls, wiring),
+              approver: 'owner',
+              memory: { store: memoryStore, rules: ALLOW, actor: OPERATOR, operator: OPERATOR },
+            };
+          }
+        : null,
+    });
+    // The host's own explicit approval of one call, as the MCP elicitation flow issues it.
+    const approve = (tool, key) => {
+      const contract = execution.contracts.resolve(tool);
+      const approvalId = `approval-${tool}-${key}`;
+      execution.approvalStore.issue({
+        approval_id: approvalId,
+        operation_id: deterministicOperationId(tool, key),
+        authorizer: { id: 'owner', type: 'human' },
+        resource_scope: SCOPE,
+        issued_at: new Date(Date.now() - 1000).toISOString(),
+        expires_at: new Date(Date.now() + 60_000).toISOString(),
+        decision: 'approved',
+        policy_version: contract.policy_version,
+        evidence_ref: `hseos://test/${approvalId}`,
+      });
+      return { approval_id: approvalId };
+    };
+    const run = (tool, input, { approved = false, key = `${tool}-${Math.random()}` } = {}) =>
+      execution.port.execute({
+        tool,
+        input,
+        actor: ACTOR,
+        resource_scope: SCOPE,
+        idempotency_key: key,
+        approval_context: approved ? approve(tool, key) : null,
+      });
+    return { db, calls, execution, run, wired: () => wired };
+  };
+  const entry = (overrides = {}) => ({
+    scope: { project_id: 'alpha' },
+    memory_id: 'note-1',
+    content: 'the deploy pipeline uses blue green rollouts',
+    origin: 'operator',
+    trust: 'trusted',
+    classification: 'internal',
+    source_ref: 'doc://runbook/deploy',
+    ttl_seconds: 3600,
+    ...overrides,
+  });
+  const withDigest = (value) => ({ ...value, source_digest: memoryPackage.sha256Text(value.content) });
+  const HOVER = { action: 'hover', language: 'python', file: 'm.py', position: { line: 0, character: 5 } };
+
+  await it('capability providers: without a host every environment.* and memory.* call fails closed with ENV_CAPABILITY_UNAVAILABLE', async () => {
+    const { db, run, execution } = setup({ withHost: false });
+    try {
+      const cases = [
+        ['environment.lsp.hover', HOVER, false],
+        ['environment.computer.screenshot', { session_id: 'session-1' }, false],
+        ['environment.computer.stop', { session_id: 'session-1' }, false],
+        ['environment.computer.start', { target: { command: '/usr/bin/xterm' } }, true],
+        ['memory.retrieve', { project_id: 'alpha', query: 'deploy' }, false],
+        ['memory.write', withDigest(entry()), false],
+        ['memory.delete', { project_id: 'alpha', memory_id: 'note-1' }, true],
+      ];
+      for (const [tool, input, approved] of cases) {
+        const envelope = await run(tool, input, { approved });
+        assert.equal(envelope.ok, false, tool);
+        assert.equal(envelope.error.code, ENV_CAPABILITY_UNAVAILABLE, tool);
+      }
+      assert.notEqual(ENV_CAPABILITY_UNAVAILABLE, 'NOT_IMPLEMENTED');
+      assert.equal(execution.contracts.resolve('environment.lsp.hover').name, 'environment.lsp.hover');
+    } finally {
+      db.close();
+    }
+  });
+
+  await it('capability providers: with a host environment.lsp.* runs through the runtime and the service writes its ledger event', async () => {
+    const { db, run, calls } = setup();
+    try {
+      const envelope = await run('environment.lsp.hover', HOVER);
+      assert.equal(envelope.ok, true, JSON.stringify(envelope));
+      assert.equal(envelope.data.result.result.hover, 'greet(name)');
+      assert.deepEqual(calls, [['lsp', HOVER]]);
+      const rows = db.prepare("SELECT event_type FROM execution_events WHERE aggregate_type = 'environment_session'").all();
+      assert.deepEqual(
+        rows.map((row) => row.event_type),
+        ['environment.lsp.completed'],
+      );
+      const invalid = await run('environment.lsp.hover', { ...HOVER, action: 'definition' });
+      assert.equal(invalid.ok, false);
+      assert.equal(invalid.error.code, 'ENV_LSP_INPUT_INVALID');
+      assert.equal(calls.length, 1, 'a rejected input never reaches the service');
+      const missingMember = await run('environment.dap.run', {});
+      assert.equal(missingMember.ok, false);
+      assert.notEqual(missingMember.error.code, 'EXECUTION_PROVIDER_NOT_FOUND');
+    } finally {
+      db.close();
+    }
+  });
+
+  await it('capability providers: a host that lacks one service refuses that tool alone with ENV_CAPABILITY_UNAVAILABLE', async () => {
+    const { db, run } = setup();
+    try {
+      const envelope = await run('environment.browser.run', { url: 'https://example.com/' });
+      assert.equal(envelope.ok, false);
+      assert.ok([ENV_CAPABILITY_UNAVAILABLE, 'ENV_BROWSER_INPUT_INVALID'].includes(envelope.error.code), envelope.error.code);
+    } finally {
+      db.close();
+    }
+  });
+
+  await it('capability providers: computer.act without an approval is refused before the service is touched; with one it passes the service gate', async () => {
+    const { db, run, calls } = setup();
+    try {
+      const action = { session_id: 'session-1', action: 'click', x: 10, y: 10 };
+      const refused = await run('environment.computer.act', action);
+      assert.equal(refused.ok, false);
+      assert.equal(refused.error.code, 'EXECUTION_APPROVAL_REQUIRED');
+      assert.deepEqual(calls, [], 'no service call without the explicit approval');
+
+      const started = await run('environment.computer.start', { target: { command: '/usr/bin/xterm' } });
+      assert.equal(started.error.code, 'EXECUTION_APPROVAL_REQUIRED');
+      const ok = await run('environment.computer.act', action, { approved: true });
+      assert.equal(ok.ok, true, JSON.stringify(ok));
+      assert.deepEqual(
+        calls.map((call) => call[0]),
+        ['requestApproval', 'resolve', 'act'],
+      );
+      assert.deepEqual(calls[1].slice(1), ['req-1', true, { approver: 'owner' }]);
+      assert.deepEqual(calls[2][3], { approval_id: 'req-1' });
+      assert.equal(calls[0][2].session_id, undefined, 'the session id is not part of the action');
+    } finally {
+      db.close();
+    }
+  });
+
+  await it('capability providers: memory.write and memory.retrieve work, and write needs the store policy', async () => {
+    const { db, run, wired } = setup();
+    try {
+      const written = await run('memory.write', withDigest(entry()));
+      assert.equal(written.ok, true, JSON.stringify(written));
+      assert.equal(written.data.result.write_policy_ref, 'rule:memory-write');
+      const found = await run('memory.retrieve', { project_id: 'alpha', query: 'blue green' });
+      assert.equal(found.ok, true, JSON.stringify(found));
+      assert.equal(found.data.result.length, 1);
+      assert.equal(found.data.result[0].authority, 'data');
+      const invalid = await run('memory.retrieve', { project_id: 'alpha', query: 'x', unknown: 1 });
+      assert.equal(invalid.ok, false);
+      assert.equal(invalid.error.code, 'AGENT_MEMORY_INVALID');
+      const duplicate = await run('memory.write', withDigest(entry()));
+      assert.equal(duplicate.error.code, 'AGENT_MEMORY_DUPLICATE');
+      assert.equal(typeof wired().resolveMemoryDeleteApproval, 'function');
+    } finally {
+      db.close();
+    }
+  });
+
+  await it('capability providers: memory.delete is refused without approval and deletes with one', async () => {
+    const { db, run } = setup();
+    try {
+      await run('memory.write', withDigest(entry()));
+      const refused = await run('memory.delete', { project_id: 'alpha', memory_id: 'note-1' });
+      assert.equal(refused.ok, false);
+      assert.equal(refused.error.code, 'EXECUTION_APPROVAL_REQUIRED');
+      const still = await run('memory.retrieve', { project_id: 'alpha', query: 'blue green' });
+      assert.equal(still.data.result.length, 1, 'an unapproved delete leaves the entry');
+
+      const deleted = await run('memory.delete', { project_id: 'alpha', memory_id: 'note-1', reason: 'obsolete' }, { approved: true });
+      assert.equal(deleted.ok, true, JSON.stringify(deleted));
+      assert.deepEqual(deleted.data.result, { memory_id: 'note-1', deleted: true });
+      const gone = await run('memory.retrieve', { project_id: 'alpha', query: 'blue green' });
+      assert.equal(gone.data.result.length, 0);
+      const events = db.prepare("SELECT event_type FROM execution_events WHERE aggregate_type = 'agent_memory'").all();
+      assert.ok(events.some((row) => row.event_type === memoryPackage.EVENTS.DELETED));
+      const again = await run('memory.delete', { project_id: 'alpha', memory_id: 'note-1' }, { approved: true });
+      assert.equal(again.error.code, 'AGENT_MEMORY_NOT_FOUND');
+    } finally {
+      db.close();
+    }
+  });
+
+  await it('capability providers: environmentHost must be a builder function', async () => {
+    const db = new Database(':memory:');
+    try {
+      applyExecutionLedgerFixtureSchema(db);
+      assert.throws(
+        () => createOperationalExecution({ db, serverId: 'swarm', tools, invokeTool: async () => ({}), environmentHost: {} }),
+        TypeError,
+      );
+    } finally {
+      db.close();
+    }
   });
 }
 
@@ -490,6 +786,7 @@ async function runGovernedUnitTests() {
   }
 
   await runGovernedUnitTests();
+  await runCapabilityProviderTests();
 
   console.log(`\n${pass} passed, ${fail} failed`);
   process.exit(fail === 0 ? 0 : 1);

@@ -74,6 +74,8 @@ function createLocalApprovalFlow({ execution, serverId }) {
       }
       const operationId = deterministicOperationId(executionRequest.tool, executionRequest.idempotency_key);
       if (operationId !== verifiedState.operation_id) throw new Error('Approval operation binding mismatch');
+      // The grant is bound to the policy version of the contract being approved (capability contracts differ from the MCP tools').
+      const policyVersion = execution.contracts.resolve(executionRequest.tool).policy_version;
       const now = new Date();
       const approvalId = randomUUID();
       execution.approvalStore.issue({
@@ -84,15 +86,25 @@ function createLocalApprovalFlow({ execution, serverId }) {
         issued_at: now.toISOString(),
         expires_at: new Date(now.getTime() + 300_000).toISOString(),
         decision: 'approved',
-        policy_version: verifiedState.policy_version,
+        policy_version: policyVersion,
         evidence_ref: `hseos://mcp/${serverId}/elicitation/${approvalId}`,
       });
-      return { approval_id: approvalId, policy_version: verifiedState.policy_version };
+      return { approval_id: approvalId, policy_version: policyVersion };
     },
   };
 }
 
-function startNativeMcpServer({ serverId, tools, invokeTool, mode, port, dbPath, health = {}, log = console.error }) {
+function startNativeMcpServer({
+  serverId,
+  tools,
+  invokeTool,
+  mode,
+  port,
+  dbPath,
+  health = {},
+  environmentHost = null,
+  log = console.error,
+}) {
   const serverSpec = NATIVE_MCP_SERVERS[serverId];
   if (!serverSpec) throw new TypeError(`Unknown native MCP server: ${serverId}`);
   const fixtureActivation = process.env.NODE_ENV === 'test' && process.env.HSEOS_GOVERNED_EXECUTION_FIXTURE === '1';
@@ -137,7 +149,7 @@ function startNativeMcpServer({ serverId, tools, invokeTool, mode, port, dbPath,
       throw error;
     }
   };
-  const execution = createOperationalExecution({ db, serverId, tools, invokeTool: gatedInvokeTool });
+  const execution = createOperationalExecution({ db, serverId, tools, invokeTool: gatedInvokeTool, environmentHost });
   recordDenial = createDenialRecorder({
     ledger: execution.ledger,
     serverId,

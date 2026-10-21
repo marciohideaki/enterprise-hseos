@@ -1,5 +1,7 @@
 'use strict';
 
+const { randomUUID } = require('node:crypto');
+
 const Ajv2020 = require('ajv/dist/2020');
 
 const { ExecutionContractRegistry, registerCapabilityContractStubs } = require('./contract-registry');
@@ -7,6 +9,7 @@ const { createExecutionEventRegistry } = require('./event-registry');
 const { createGovernedExecutionPort } = require('./execution-port');
 const { GovernedExecutionRuntime } = require('./runtime');
 const { GovernedExecutionScheduler } = require('./scheduler');
+const { AgentMemoryError, memoryDeleteOperation } = require('../../../packages/agent-memory');
 const { ExecutionApprovalStore } = require('../../mcp-project-state/lib/execution-approval-store');
 const { ExecutionEventLedger } = require('../../mcp-project-state/lib/execution-event-ledger');
 const { ExecutionProjectionStore } = require('../../mcp-project-state/lib/execution-projections');
@@ -62,6 +65,13 @@ const MUTATION_SERVERS = Object.freeze({
 });
 const EXCLUSIVE_TOOLS = new Set(['consolidate_handoff', 'plan_squad', 'run_pipeline']);
 const IDEMPOTENT_PROVIDERS = new Set(['run_create', 'scheduler_sweep_orphans', 'tasks_add']);
+
+// Stable code of an environment.* / memory.* call that reaches a server started without the host that backs it. It is
+// distinct from NOT_IMPLEMENTED: the contract is implemented, the capability just has no provider wired in this process.
+const ENV_CAPABILITY_UNAVAILABLE = 'ENV_CAPABILITY_UNAVAILABLE';
+const ENVIRONMENT_PROVIDER = 'agent-environment';
+const MEMORY_PROVIDER = 'agent-memory';
+const DERIVED_APPROVAL_TTL_MS = 60_000;
 
 function schemaContract(schema, label) {
   const ajv = new Ajv2020({ allErrors: true, strict: false });
@@ -122,7 +132,94 @@ function outputContract() {
   });
 }
 
-function createOperationalExecution({ db, serverId, tools, invokeTool, maxConcurrency = 4, toolGovernance = {} }) {
+function capabilityUnavailable(tool, cause) {
+  // Nothing was attempted, so the outcome is a plain failure and not an uncertain mutation.
+  return Object.assign(new Error(`${tool} is unavailable: ${cause}`), {
+    code: ENV_CAPABILITY_UNAVAILABLE,
+    retryable: false,
+    outcome: 'failed',
+  });
+}
+
+/**
+ * Handlers of the environment.* and memory.* contracts, by tool name. Without a host (or without the one member a tool
+ * needs) a call fails closed with ENV_CAPABILITY_UNAVAILABLE. The runtime has already demanded and spent the explicit
+ * approval of the contracts that require one (computer.start/act, memory.delete) before a handler runs.
+ *
+ * `host` is `{ lsp, dap, browser, computer, approvals, approver, memory: { store, rules, actor, operator } }`, every
+ * member optional: the services of packages/agent-environment, the computer approval gate, and the governed memory store.
+ */
+function createCapabilityHandlers({ host, deriveDeleteApproval }) {
+  const member = (tool, name) => {
+    const value = name === 'store' ? host?.memory?.store : host?.[name];
+    if (!value) throw capabilityUnavailable(tool, host ? `the host has no ${name}` : 'no environment host was supplied');
+    return value;
+  };
+  const viaRun = (name) => (tool, input) => member(tool, name).run(input);
+  return {
+    'environment.lsp.diagnostics': viaRun('lsp'),
+    'environment.lsp.definition': viaRun('lsp'),
+    'environment.lsp.references': viaRun('lsp'),
+    'environment.lsp.hover': viaRun('lsp'),
+    'environment.lsp.rename_preview': viaRun('lsp'),
+    'environment.dap.run': viaRun('dap'),
+    'environment.browser.run': viaRun('browser'),
+    'environment.computer.start': (tool, input) => member(tool, 'computer').start(input),
+    'environment.computer.screenshot': (tool, input) => member(tool, 'computer').screenshot(input.session_id),
+    'environment.computer.stop': (tool, input) => member(tool, 'computer').stop(input.session_id),
+    'environment.computer.act': async (tool, input) => {
+      const computer = member(tool, 'computer');
+      const gate = member(tool, 'approvals');
+      const { session_id: sessionId, ...action } = input;
+      const asked = computer.requestApproval(sessionId, action);
+      if (asked.status !== 'pending') return asked;
+      // The runtime spent the explicit approval of this exact call before dispatch. It opens the service's own per-action
+      // gate, which still binds the grant to the session, sequence, action and the screenshot the approver saw.
+      const resolved = gate.resolve(asked.request_id, true, { approver: host.approver || 'governed-runtime' });
+      if (resolved.status !== 'approved') return resolved;
+      return computer.act(sessionId, action, { approval_id: asked.request_id });
+    },
+    'memory.write': (tool, input) => {
+      const store = member(tool, 'store');
+      const { rules, actor } = host.memory;
+      return store.write(input, { rules, ...(actor ? { actor } : {}) });
+    },
+    'memory.retrieve': (tool, input) => member(tool, 'store').retrieve(input),
+    'memory.delete': (tool, input, context) => {
+      const store = member(tool, 'store');
+      // The store asks for a single-use approval bound to this exact deletion; it is derived from the explicit approval
+      // the runtime has just spent for the call, and only exists for the duration of the forget.
+      deriveDeleteApproval(input, context);
+      store.forget(input, { actor: host.memory.operator });
+      return { memory_id: input.memory_id, deleted: true };
+    },
+  };
+}
+
+function createCapabilityProviders({ host, deriveDeleteApproval }) {
+  const handlers = createCapabilityHandlers({ host, deriveDeleteApproval });
+  const dispatch = (providerName) => ({
+    async execute(input, context) {
+      const handler = handlers[context.tool];
+      if (!handler) throw capabilityUnavailable(String(context.tool), `no handler for ${providerName}`);
+      let result;
+      try {
+        result = await handler(context.tool, input, context);
+      } catch (error) {
+        // A memory policy refusal (denied write, duplicate, unknown entry, missing approval) is raised before any append.
+        if (error instanceof AgentMemoryError && error.outcome === undefined) error.outcome = 'failed';
+        throw error;
+      }
+      return { data: result, evidence: [`hseos://execution/${context.operation_id}/provider/${providerName}`] };
+    },
+  });
+  return new Map([
+    [ENVIRONMENT_PROVIDER, dispatch(ENVIRONMENT_PROVIDER)],
+    [MEMORY_PROVIDER, dispatch(MEMORY_PROVIDER)],
+  ]);
+}
+
+function createOperationalExecution({ db, serverId, tools, invokeTool, maxConcurrency = 4, toolGovernance = {}, environmentHost = null }) {
   if (!db || typeof db.prepare !== 'function') throw new TypeError('Operational execution requires a SQLite database');
   if (!(tools instanceof Map) || tools.size === 0) throw new TypeError('Operational execution requires a non-empty tool map');
   if (typeof invokeTool !== 'function') throw new TypeError('Operational execution requires a provider invoker');
@@ -173,6 +270,41 @@ function createOperationalExecution({ db, serverId, tools, invokeTool, maxConcur
   const projector = new ExecutionProjectionStore(db, ledger);
   if (projector.health().reason === 'no_active_generation') projector.rebuild();
   const approvalStore = new ExecutionApprovalStore(db);
+
+  // environment.* and memory.*: the providers always exist, so a call without a host fails with a stable code instead of
+  // a missing provider. A host is built here, after the ledger and the approval store it must share exist.
+  const derivedDeleteApprovals = new Map();
+  const wiring = Object.freeze({
+    ledger,
+    approvalStore,
+    resolveMemoryDeleteApproval: ({ operation_id: operationId }) => derivedDeleteApprovals.get(operationId),
+  });
+  if (environmentHost !== null && typeof environmentHost !== 'function') {
+    throw new TypeError('environmentHost must be a function that builds the host from the execution wiring');
+  }
+  const host = environmentHost ? environmentHost(wiring) : null;
+  const deriveDeleteApproval = (input, context) => {
+    const operator = host?.memory?.operator;
+    if (!operator || typeof operator.id !== 'string') {
+      throw Object.assign(new Error('deleting memory requires an operator actor'), { code: 'AGENT_MEMORY_OPERATOR_REQUIRED' });
+    }
+    const { operation_id: operationId, resource_scope: resourceScope } = memoryDeleteOperation(input.project_id, input.memory_id);
+    const approvalId = randomUUID();
+    const now = new Date();
+    approvalStore.issue({
+      approval_id: approvalId,
+      operation_id: operationId,
+      authorizer: { id: operator.id, type: 'human' },
+      resource_scope: resourceScope,
+      issued_at: now.toISOString(),
+      expires_at: new Date(now.getTime() + DERIVED_APPROVAL_TTL_MS).toISOString(),
+      decision: 'approved',
+      policy_version: 'hseos-operational-v1',
+      evidence_ref: `hseos://execution/${context.operation_id}/derived-approval/${approvalId}`,
+    });
+    derivedDeleteApprovals.set(operationId, approvalId);
+  };
+  for (const [name, provider] of createCapabilityProviders({ host, deriveDeleteApproval })) providers.set(name, provider);
   const runtime = new GovernedExecutionRuntime({
     contracts,
     event_registry: eventRegistry,
@@ -187,8 +319,9 @@ function createOperationalExecution({ db, serverId, tools, invokeTool, maxConcur
       },
     },
     policy: {
-      async evaluate() {
-        return { allowed: true, policy_version: 'hseos-operational-v1', requires_approval: false, warnings: [] };
+      // The capability contracts (environment.*, memory.*) carry their own policy version; the MCP tools share the operational one.
+      async evaluate({ contract }) {
+        return { allowed: true, policy_version: contract.policy_version, requires_approval: false, warnings: [] };
       },
     },
     providers,
@@ -200,4 +333,11 @@ function createOperationalExecution({ db, serverId, tools, invokeTool, maxConcur
   return Object.freeze({ approvalStore, contracts, ledger, port, projector, runtime, scheduler });
 }
 
-module.exports = { schemaContract, createOperationalExecution, EXCLUSIVE_TOOLS, IDEMPOTENT_PROVIDERS, MUTATION_CLASS };
+module.exports = {
+  ENV_CAPABILITY_UNAVAILABLE,
+  schemaContract,
+  createOperationalExecution,
+  EXCLUSIVE_TOOLS,
+  IDEMPOTENT_PROVIDERS,
+  MUTATION_CLASS,
+};
