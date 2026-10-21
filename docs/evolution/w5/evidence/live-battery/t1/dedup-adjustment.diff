@@ -1,0 +1,19 @@
+2475,2476c2475,2478
+<   const base = detectExportsBase(content, language);
+<   const extra = cjsGapExports(content, language);
+---
+>   // The inspected text is computed once and shared: the tokenizer pass dominates the cost on large inputs.
+>   const code = [...new Set(inspectedSegments(content, language))].join('\n;\n');
+>   const base = detectExportsBase(code);
+>   const extra = cjsGapExports(content, code);
+2545,2546c2547
+< function cjsGapExports(content, language) {
+<   const code = [...new Set(inspectedSegments(content, language))].join('\n;\n');
+---
+> function cjsGapExports(content, code) {
+2572c2573
+< function detectExportsBase(content, language = 'js') {
+---
+> function detectExportsBase(code) {
+2574d2574
+<   const code = [...new Set(inspectedSegments(content, language))].join('\n;\n');

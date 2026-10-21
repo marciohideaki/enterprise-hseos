@@ -1,0 +1,83 @@
+{
+  "label": "liveness-fix-reviewer",
+  "span": ["2026-10-20T01:42:58.162Z", "2026-10-20T02:05:39.782Z"],
+  "priced": true,
+  "activities": [
+    {
+      "activity": "teste",
+      "model_latency_s": 25.6,
+      "tool_time_s": 1262.1,
+      "tool_calls": 11.0,
+      "tok_in_fresh": 22.0,
+      "tok_cache_read": 638034.0,
+      "tok_cache_write": 69336.0,
+      "tok_out": 3382.0,
+      "api_calls": 11.0,
+      "wall_s": 1287.6,
+      "usd": 0.5022
+    },
+    {
+      "activity": "git_estado",
+      "model_latency_s": 9.1,
+      "tool_time_s": 2.1,
+      "tool_calls": 4.0,
+      "tok_in_fresh": 10.0,
+      "tok_cache_read": 191787.0,
+      "tok_cache_write": 45304.0,
+      "tok_out": 1076.0,
+      "api_calls": 4.0,
+      "wall_s": 11.2,
+      "usd": 0.2436
+    },
+    {
+      "activity": "exploracao_codigo",
+      "model_latency_s": 20.0,
+      "tool_time_s": 5.1,
+      "tool_calls": 13.0,
+      "tok_in_fresh": 26.0,
+      "tok_cache_read": 909929.0,
+      "tok_cache_write": 8417.0,
+      "tok_out": 1894.0,
+      "api_calls": 13.0,
+      "wall_s": 25.1,
+      "usd": 0.333
+    },
+    {
+      "activity": "outros",
+      "model_latency_s": 12.4,
+      "tool_time_s": 5.8,
+      "tool_calls": 8.0,
+      "tok_in_fresh": 16.0,
+      "tok_cache_read": 559872.0,
+      "tok_cache_write": 2338.0,
+      "tok_out": 2085.0,
+      "api_calls": 8.0,
+      "wall_s": 18.2,
+      "usd": 0.2081
+    },
+    {
+      "activity": "raciocinio_resposta",
+      "model_latency_s": 14.9,
+      "tok_in_fresh": 4.0,
+      "tok_cache_read": 150062.0,
+      "tok_cache_write": 324.0,
+      "tok_out": 1855.0,
+      "api_calls": 2.0,
+      "wall_s": 14.9,
+      "usd": 0.0741
+    }
+  ],
+  "total": {
+    "activity": "TOTAL",
+    "model_latency_s": 82.0,
+    "tool_time_s": 1275.1,
+    "tool_calls": 36.0,
+    "tok_in_fresh": 78.0,
+    "tok_cache_read": 2449684.0,
+    "tok_cache_write": 125719.0,
+    "tok_out": 10292.0,
+    "api_calls": 38.0,
+    "wall_s": 1357.0,
+    "usd": 1.4
+  }
+}

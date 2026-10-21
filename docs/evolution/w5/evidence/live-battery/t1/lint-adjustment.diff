@@ -1,0 +1,12 @@
+2512c2512
+<   const blank = (s) => s.replace(/[^\n]/g, ' ');
+---
+>   const blank = (s) => s.replaceAll(/[^\n]/g, ' ');
+2550c2550
+<   for (const match of code.matchAll(/(?<![\w$.])([A-Za-z_$][\w$]*)\s*=\s*(module|exports)(?![\w$])(?!\s*[.\[(])/g)) {
+---
+>   for (const match of code.matchAll(/(?<![\w$.])([A-Za-z_$][\w$]*)\s*=\s*(module|exports)(?![\w$])(?!\s*[.[(])/g)) {
+2554c2554
+<   const alternation = (names) => [...names].map((name) => name.replace(/\$/g, (ch) => '\\' + ch)).join('|');
+---
+>   const alternation = (names) => [...names].map((name) => name.replaceAll('$', (ch) => '\\' + ch)).join('|');

@@ -1,0 +1,14 @@
+{
+  "resource_id": "54870cf0-627e-449f-a8d2-207d0b1b2c86",
+  "current_sequence": 6,
+  "max_requests": 1,
+  "max_cost_microusd": 0,
+  "deadline": 1792602619441,
+  "requests": 1,
+  "committed_microusd": 0,
+  "cancelled": false,
+  "unresolved_commands": [],
+  "live_commands": [],
+  "bindings": ["binding:claude-w5-account"],
+  "report_sha256": "d5a6a216366eb0f39c204070566accaedda5d69aade4291e7aae5399e6317738"
+}
