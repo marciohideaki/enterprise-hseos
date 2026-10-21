@@ -1088,6 +1088,7 @@ test('an approval given for other content is refused, and the provider only runs
     host: { project_id: 'proj-1', factories: { lsp: lspFactory(calls) }, require_approval: ['environment.lsp.hover'], approve: grant() },
     workspace: {},
     isCancelled: () => false,
+    max_concurrency: 1,
   });
   const hover = bundleOf(task, 'environment.lsp.hover');
   const operation = {
@@ -1184,4 +1185,63 @@ test('a computer fake without state() does not turn quiescence into a TypeError'
   );
   await set.drain();
   set.assertQuiescent();
+});
+
+test('the approver handoff needs serial calls: environment with any other concurrency is refused at assembly', () => {
+  const env = memoryHost();
+  const build = (max_concurrency) => () =>
+    require('../tools/cli/lib/engineering-task-extensions').createTaskEnvironment({
+      capabilities: ['environment.lsp.hover'],
+      db: env.db,
+      session_id: 'session-serial',
+      host: { project_id: 'proj-1', factories: { lsp: lspFactory([]) } },
+      workspace: {},
+      isCancelled: () => false,
+      max_concurrency,
+    });
+  for (const value of [undefined, 0, 2, 64])
+    assert.throws(build(value), (error) => error.code === 'ENGINEERING_ENVIRONMENT_CONCURRENCY_UNSUPPORTED', String(value));
+  assert.doesNotThrow(build(1));
+});
+
+test('two calls with different content each show the approver their own content', async (t) => {
+  const asked = [];
+  const second = { ...HOVER, position: { line: 0, character: 2 } };
+  const result = await execute(
+    t,
+    project(t, ['environment.lsp.hover']),
+    [
+      { name: 'environment.lsp.hover', input: HOVER },
+      { name: 'environment.lsp.hover', input: second },
+    ],
+    {
+      project_id: 'proj-1',
+      factories: { lsp: lspFactory([]) },
+      require_approval: ['environment.lsp.hover'],
+      approve: grant(asked),
+    },
+  );
+  assert.deepEqual(toolErrors(result), [], JSON.stringify(result));
+  assert.deepEqual(
+    asked.map((request) => request.input),
+    [HOVER, second],
+  );
+  assert.equal(new Set(asked.map((request) => request.input_digest)).size, 2);
+});
+
+test('stopping a session through the tool clears it, so the task is quiescent', async () => {
+  const fake = fakeComputer();
+  const set = createEnvironmentBundles({
+    capabilities: ['environment.computer.start', 'environment.computer.stop'],
+    ledgerSink: () => {},
+    approvalGate: createApprovalGate(),
+    factories: { computer: () => fake.service },
+  });
+  await bundleOf(set, 'environment.computer.start').provider.execute(START);
+  const stopped = await bundleOf(set, 'environment.computer.stop').provider.execute({ session_id: 'session-1' });
+  assert.equal(stopped.data.status, 'stopped');
+  set.assertQuiescent();
+  assert.equal(fake.state.stops, 1);
+  await set.drain();
+  assert.equal(fake.state.stops, 1, 'nothing left to stop');
 });

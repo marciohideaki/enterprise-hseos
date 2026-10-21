@@ -26,6 +26,8 @@ const { containsCredential } = require('./campaign-evidence-store');
 const { accountSessionTokens } = require('../../../packages/agent-context/token-counter');
 
 const MANIFEST = 'engineering-task.json';
+// Tool calls of one task run one at a time; the environment approval handoff relies on it.
+const TASK_MAX_CONCURRENCY = 1;
 const MODEL = 'model:engineering-scripted';
 const PROJECT_INSTRUCTION = 'Implement only the declared disposable task. A model response is not proof of acceptance.';
 // Managed projects can hold files too large to read whole: the model is told how to work on them without fetching them.
@@ -98,6 +100,7 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
           session_id: sessionId,
           host: environmentHost,
           isCancelled: () => observeTaskCancellation(),
+          max_concurrency: TASK_MAX_CONCURRENCY,
           workspace: {
             host_workspace: path.join(handle.directory, 'workspace'),
             main_checkout: handle.directory,
@@ -278,6 +281,7 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
     db: handle.db,
     model_provider_snapshot: guardedModels.snapshot(),
     tool_bundles: tools.bundles,
+    max_concurrency: TASK_MAX_CONCURRENCY,
     approval_resolver: environmentTools?.approvalResolver ?? null,
     completion_review: async ({ step }) => {
       if (observeTaskCancellation()) throw Object.assign(new Error('Task cancelled'), { code: 'ENGINEERING_TASK_CANCELLED' });

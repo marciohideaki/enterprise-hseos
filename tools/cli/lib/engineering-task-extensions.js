@@ -483,7 +483,9 @@ const SERVICE_PROFILE = Object.freeze({ lsp: 'P1', dap: 'P1', computer: 'P1' });
  * ledger: the real services over a ledger sink, the per-action approval gate, the execution-layer resolver and the
  * isolation policies. Nothing here is reachable by the model; the host (`host`) is the only source of trust.
  */
-function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, workspace, isCancelled }) {
+function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, workspace, isCancelled, max_concurrency: maxConcurrency }) {
+  // The policy hands the approver the call it just evaluated through one slot; that is only sound while calls are serial.
+  if (maxConcurrency !== 1) reject('ENGINEERING_ENVIRONMENT_CONCURRENCY_UNSUPPORTED');
   const { ExecutionEventLedger } = require('../../mcp-project-state/lib/execution-event-ledger');
   const { ExecutionApprovalStore } = require('../../mcp-project-state/lib/execution-approval-store');
   const { createExecutionEventRegistry } = require('../../lib/governed-execution/event-registry');
