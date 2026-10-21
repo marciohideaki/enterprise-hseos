@@ -5,6 +5,7 @@ const { createHash } = require('node:crypto');
 const yaml = require('yaml');
 const { z } = require('zod');
 const { engineeringDigest } = require('./engineering-task-state');
+const { LIMIT_CEILING, LIMIT_FLOOR } = require('../../../packages/agent-isolation-attestation/profiles');
 const { runCampaignProcess } = require('./provider-campaign-process');
 
 const PROFILE_ID = 'agent-claude-cli-account-candidate';
@@ -14,7 +15,7 @@ const integer = z.number().int().nonnegative().safe();
 // The environment is an allowlist: API keys, auth tokens, helpers and cloud switches would outrank the login.
 const strictSettingsSchema = z
   .object({
-    pids_max: integer.min(32).max(256),
+    pids_max: integer.min(LIMIT_FLOOR.pids_max).max(LIMIT_CEILING.pids_max),
     model: z.string().min(1).max(256),
     memory_max_bytes: integer.min(268_435_456).max(2_147_483_648).optional(),
     persist_sessions: z.boolean().optional(),

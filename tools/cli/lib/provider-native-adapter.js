@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const { createHash } = require('node:crypto');
 const { z } = require('zod');
 const { engineeringDigest } = require('./engineering-task-state');
+const { LIMIT_CEILING, LIMIT_FLOOR } = require('../../../packages/agent-isolation-attestation/profiles');
 const { credentialFingerprint } = require('./provider-api-adapter');
 const { runCampaignProcess } = require('./provider-campaign-process');
 const { createClaudeAccountCampaignAdapter } = require('./provider-claude-account-adapter');
@@ -11,7 +12,7 @@ const readers = { codex: require('./delegated-codex-runtime').readBinding, claud
 const integer = z.number().int().nonnegative().safe();
 const strictSettingsSchema = z
   .object({
-    pids_max: integer.min(32).max(256),
+    pids_max: integer.min(LIMIT_FLOOR.pids_max).max(LIMIT_CEILING.pids_max),
     model: z.string().min(1).max(256),
     memory_max_bytes: integer.min(268_435_456).max(2_147_483_648).optional(),
     tasks: z.record(z.string().uuid(), z.object({ prompt: z.string().min(1).max(16_384) }).strict()),
