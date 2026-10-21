@@ -20,8 +20,8 @@ function axonText(item) {
 }
 
 /** Governed memory bound to the host ledger, with the repository credential scanner injected. */
-function createGovernedMemory({ ledger, now, maxTtlSeconds }) {
-  return new MemoryStore({ ledger, scanCredential: (text) => containsCredential(text), now, maxTtlSeconds });
+function createGovernedMemory({ ledger, now, maxTtlSeconds, approvalVerifier }) {
+  return new MemoryStore({ ledger, scanCredential: (text) => containsCredential(text), now, maxTtlSeconds, approvalVerifier });
 }
 
 /**
