@@ -326,6 +326,43 @@ test('process supervisor returns only after descendants drain and kills startup 
   );
   await assert.rejects(runCampaignProcess({ input: {}, signal: AbortSignal.abort(), timeout_ms: 1 }), /CONTROL_CAMPAIGN_PROCESS_INVALID/);
 });
+test('Antigravity binding accepts pids_max 32-256 and refuses 31 and 257', (t) => {
+  for (const [value, accepted] of [
+    [31, false],
+    [32, true],
+    [256, true],
+    [257, false],
+  ]) {
+    const d = temporary(t);
+    const config = {
+      python: fs.realpathSync('/usr/bin/python3'),
+      checkpoint: path.join(d, 'model.litertlm'),
+      sdk_module: path.join(d, '__init__.py'),
+      scratch: d,
+      subordinate_binding_id: 'binding:model',
+      max_model_calls: 2,
+      pids_max: value,
+      tasks: { [randomUUID()]: { prompt: 'Call the campaign model tool.' } },
+    };
+    fs.writeFileSync(config.checkpoint, 'fixture only');
+    fs.writeFileSync(config.sdk_module, '');
+    const file = path.join(d, 'binding.json');
+    fs.writeFileSync(file, JSON.stringify(config));
+    const artifacts = [config.python, config.checkpoint, config.sdk_module].map((p) =>
+      createHash('sha256').update(fs.readFileSync(p)).digest('hex'),
+    );
+    const m = manifest('antigravity', 'local', 'client');
+    m.adapter = 'hseos-antigravity-campaign-v1';
+    m.artifact_sha256 = antigravityArtifactDigest();
+    m.authentication.identity_kind = 'local_profile';
+    m.authentication.account_sha256 = null;
+    m.authentication.profile_sha256 = engineeringDigest(artifacts);
+    m.binding_sha256 = engineeringDigest({ config, artifacts });
+    const make = () => createAntigravityCampaignAdapter({ manifest: m, binding: file, options: {} }, { processRunner: async () => ({}) });
+    if (accepted) assert.doesNotThrow(make, `pids_max ${value}`);
+    else assert.throws(make, `pids_max ${value}`);
+  }
+});
 test('Antigravity factory requires a pinned local checkpoint and proves a subordinate call occurred', async (t) => {
   const d = temporary(t),
     id = randomUUID();

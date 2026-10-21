@@ -73,20 +73,54 @@ test('pids_max boundaries are identical across the three validators', () => {
   }
 });
 
-test('no module re-declares the pids_max range as a literal', () => {
-  const files = [
-    'tools/cli/lib/engineering-task-contract.js',
-    'tools/lib/execution-plugin-manifest.js',
-    'tools/cli/lib/provider-antigravity-adapter.js',
-    'tools/cli/lib/provider-native-adapter.js',
-    'tools/cli/lib/provider-claude-account-adapter.js',
-  ];
-  for (const file of files) {
-    const source = fs.readFileSync(path.join(root, file), 'utf8');
-    for (const line of source.split('\n').filter((entry) => entry.includes('pids_max'))) {
-      assert.doesNotMatch(line, /\.min\(\s*32\s*\)|\.max\(\s*256\s*\)/, `${file} hardcodes the pids_max range: ${line.trim()}`);
+// Every pids_max declaration must take its range from the shared constants. The scan is
+// formatting-independent: it finds each `pids_max:` property and inspects its whole
+// expression (up to the next top-level comma), so multi-line chains are covered.
+const SCANNED = [
+  'tools/cli/lib/engineering-task-contract.js',
+  'tools/lib/execution-plugin-manifest.js',
+  'tools/cli/lib/provider-antigravity-adapter.js',
+  'tools/cli/lib/provider-native-adapter.js',
+  'tools/cli/lib/provider-claude-account-adapter.js',
+];
+function rangeViolations(source) {
+  const problems = [];
+  for (const match of source.matchAll(/\bpids_max\s*:\s*/g)) {
+    let depth = 0;
+    let end = match.index + match[0].length;
+    for (; end < source.length; end += 1) {
+      const char = source[end];
+      if ('([{'.includes(char)) depth += 1;
+      else if (')]}'.includes(char)) {
+        if (depth === 0) break;
+        depth -= 1;
+      } else if (char === ',' && depth === 0) break;
+    }
+    const expression = source.slice(match.index + match[0].length, end);
+    for (const bound of expression.matchAll(/\.(min|max)\(([^()]*)\)/g)) {
+      const expected = bound[1] === 'min' ? 'LIMIT_FLOOR.pids_max' : 'LIMIT_CEILING.pids_max';
+      if (bound[2].trim() !== expected) problems.push(`.${bound[1]}(${bound[2].trim()})`);
     }
   }
-  const profiles = fs.readFileSync(path.join(root, 'packages/agent-isolation-attestation/profiles.js'), 'utf8');
-  assert.doesNotMatch(profiles, /outside 32-256/, 'profiles message must derive from the constants');
+  return problems;
+}
+
+test('every pids_max min/max in the scanned modules references the shared constants', () => {
+  for (const file of SCANNED) {
+    const source = fs.readFileSync(path.join(root, file), 'utf8');
+    assert.ok(/pids_max\s*:\s*[^,]*\.min\(/.test(source), `${file} must declare a pids_max range`);
+    assert.deepEqual(rangeViolations(source), [], `${file} hardcodes the pids_max range`);
+  }
+});
+
+test('the scan rejects literal bounds regardless of value or formatting', () => {
+  for (const mutated of [
+    'pids_max: z.number().int().min(33).max(LIMIT_CEILING.pids_max),',
+    'pids_max: z.number().int().min(\n32).max(LIMIT_CEILING.pids_max),',
+    'pids_max: integer.min(LIMIT_FLOOR.pids_max).max(\n  256\n),',
+    'pids_max: z.number().int().min(LIMIT_CEILING.pids_max).max(LIMIT_CEILING.pids_max),',
+  ]) {
+    assert.notDeepEqual(rangeViolations(mutated), [], mutated);
+  }
+  assert.deepEqual(rangeViolations('pids_max: z.number().int().min(LIMIT_FLOOR.pids_max).max(LIMIT_CEILING.pids_max).optional(),'), []);
 });
