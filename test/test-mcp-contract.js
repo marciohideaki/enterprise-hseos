@@ -408,6 +408,7 @@ function runCapabilityStubTests() {
     'environment.computer.start',
     'environment.computer.act',
     'environment.computer.stop',
+    'environment.computer.screenshot',
     'memory.write',
     'memory.retrieve',
     'memory.delete',
@@ -584,6 +585,13 @@ function runCapabilityStubTests() {
     'AGENT_MEMORY_INVALID',
   );
   rejects(
+    'memory.retrieve: a limit above the ceiling is refused',
+    'memory.retrieve',
+    'input',
+    { project_id: 'alpha', query: 'x', limit: 51 },
+    'AGENT_MEMORY_INVALID',
+  );
+  rejects(
     'memory.retrieve: an unknown field is refused',
     'memory.retrieve',
     'input',
@@ -715,6 +723,45 @@ function runCapabilityStubTests() {
     'input',
     { session_id: 's1', action: 'key', key: 'Return', approval_id: 'a' },
     'ENV_COMPUTER_INPUT_INVALID',
+  );
+  accepts('computer.screenshot: a session validates', 'environment.computer.screenshot', 'input', { session_id: 's1' });
+  rejects('computer.screenshot: a session is required', 'environment.computer.screenshot', 'input', {}, 'ENV_COMPUTER_INPUT_INVALID');
+  rejects(
+    'computer.screenshot: extra fields are refused',
+    'environment.computer.screenshot',
+    'input',
+    { session_id: 's1', x: 1 },
+    'ENV_COMPUTER_INPUT_INVALID',
+  );
+  rejects(
+    'computer.screenshot: an output that is not display data is refused',
+    'environment.computer.screenshot',
+    'output',
+    { contract: 'environment.computer.v1', media: [{ origin: 'display', authority: 'directive', trust: 'untrusted' }] },
+    'ENV_COMPUTER_OUTPUT_INVALID',
+  );
+  accepts('computer.screenshot: a traced untrusted capture validates', 'environment.computer.screenshot', 'output', {
+    contract: 'environment.computer.v1',
+    media: [{ origin: 'display', authority: 'data', trust: 'untrusted', source_ref: 'r1' }],
+    captures: [
+      { source_ref: 'r1', session_id: 's1', seq: 1, retrieved_at: '2026-01-01T00:00:00.000Z', digest: 'a'.repeat(64), transform: [] },
+    ],
+  });
+  assertPass(
+    'computer.act: the input is normalized with the defaults the approval binds',
+    JSON.stringify(
+      registry.validateInput(registry.resolve('environment.computer.act'), { session_id: 's1', action: 'click', x: 1, y: 2 }),
+    ) === JSON.stringify({ session_id: 's1', action: 'click', x: 1, y: 2, button: 1 }) &&
+      registry.validateInput(registry.resolve('environment.computer.act'), { session_id: 's1', action: 'scroll', direction: 'up' })
+        .amount === 3,
+  );
+  assertPass(
+    'contracts: a non-read-only contract without approval declares an idempotent provider (the runtime would otherwise demand approval)',
+    CAPABILITY_CONTRACTS.every(
+      (entry) => entry.reversibility === 'read_only' || entry.requires_approval || entry.provider_accepts_idempotency,
+    ) &&
+      registry.resolve('environment.computer.screenshot').reversibility === 'read_only' &&
+      !registry.resolve('environment.computer.screenshot').requires_approval,
   );
   accepts('computer.stop: a session validates', 'environment.computer.stop', 'input', { session_id: 's1' });
   rejects(

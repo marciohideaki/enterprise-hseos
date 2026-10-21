@@ -279,10 +279,11 @@ const computerActSchema = {
     if (!APPROVED_ACTIONS.includes(action.action))
       return schemaFailure('ENV_COMPUTER_INPUT_INVALID', 'action is not an approved computer action');
     const parsed = parseAction(action);
-    return parsed.success ? { success: true, data: value } : parsed;
+    // The normalized action (defaults filled), the same form the approval binding digests.
+    return parsed.success ? { success: true, data: { session_id: sessionId, action: parsed.data.action, ...parsed.data.args } } : parsed;
   },
 };
-const computerStopSchema = {
+const computerSessionSchema = {
   version: 1,
   safeParse(value) {
     if (!isRecord(value) || Object.keys(value).some((key) => key !== 'session_id')) {
@@ -387,6 +388,7 @@ const capabilityContract = (
   timeout_ms,
   input_schema,
   output_schema,
+  provider_accepts_idempotency = false,
 ) =>
   Object.freeze({
     name,
@@ -402,7 +404,7 @@ const capabilityContract = (
     timeout_ms,
     requires_approval,
     exclusive: false,
-    provider_accepts_idempotency: false,
+    provider_accepts_idempotency,
     input_schema,
     output_schema,
   });
@@ -418,6 +420,18 @@ const CAPABILITY_CONTRACTS = Object.freeze([
     70_000,
     environmentSchema(browserContract, 'input'),
     environmentSchema(browserContract, 'output'),
+  ),
+  // Reading the display is not an action: it needs no approval, and the service demands one before any action.
+  capabilityContract(
+    'environment.computer.screenshot',
+    'environment.computer',
+    'agent-environment',
+    'environment.computer.read',
+    'read_only',
+    false,
+    30_000,
+    computerSessionSchema,
+    environmentSchema(computerContract, 'output'),
   ),
   // Computer-use drives a real display: starting a session and every non-screenshot action need a host approval.
   capabilityContract(
@@ -442,6 +456,7 @@ const CAPABILITY_CONTRACTS = Object.freeze([
     computerActSchema,
     environmentSchema(computerContract, 'output'),
   ),
+  // Stopping a session that is already closed is refused without effect, so a replay ends in the same state.
   capabilityContract(
     'environment.computer.stop',
     'environment.computer',
@@ -450,10 +465,12 @@ const CAPABILITY_CONTRACTS = Object.freeze([
     'idempotent_mutation',
     false,
     30_000,
-    computerStopSchema,
+    computerSessionSchema,
     environmentSchema(computerContract, 'output'),
+    true,
   ),
-  // A write is compensated by superseding or deleting the entry; the ledger keeps the earlier events.
+  // A write is compensated by superseding or deleting the entry; the ledger keeps the earlier events. A replay with the
+  // same memory_id is refused as a duplicate, so the effect is applied at most once and no approval is needed.
   capabilityContract(
     'memory.write',
     'agent-memory',
@@ -464,6 +481,7 @@ const CAPABILITY_CONTRACTS = Object.freeze([
     30_000,
     memoryWriteInput,
     memoryWriteOutput,
+    true,
   ),
   capabilityContract(
     'memory.retrieve',
