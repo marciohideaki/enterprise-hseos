@@ -564,3 +564,18 @@ Nota B1: B1 roda com 3 agentes (aprovado pelo owner no G2). A W5-02b (perfis de 
 - verify_step.command: `heavy-run -- systemd-run --user --wait --collect --pipe -p Delegate=yes -p DelegateSubgroup=tests npm test (Node 22 e depois 24); npm run test:kernel-coverage; VALIDATION_ENFORCED=true scripts/governance/quality-gates.sh --phase ci; node scripts/governance/validate-capability-graph.js`
 - verify_step.expected: zero falhas/skips; 90/80 por arquivo crítico; mutantes todos rejeitados; tentativas falhas registradas, nunca contadas.
 - verify_step.on_failure: diagnosticar e corrigir (até 3 rodadas); causa desconhecida ou capacidade indisponível = BLOCKED com a causa, nunca PASS.
+
+## Fechamento W1–W5, onda W4 — capacidades ligadas (adendo 2026-10-21)
+
+Tasks do plano de fechamento que ligam as capacidades da W5 ao runtime e ao MCP. Contratos de entrada e saída da W5-07 a W5-09 permanecem; o que muda é quem chama.
+
+- C6 (`32e4e568`, correções `410d4eb6`, `0d4ddd0e`, `7fbeb0f9`): `createEnvironmentBundles`, campo opcional `environment.capabilities`, política com `requires_approval` para `computer.*` e `memory.delete`, quiescência com os serviços.
+- C7 (`61c9d40e`, `abaeff99`, `ae1072be`): providers MCP de `environment.*` e `memory.*`; sem host, `ENV_CAPABILITY_UNAVAILABLE`.
+- C8 (`559eb7f2`): `memory[]` do assembler a partir do store governado.
+- C9 e C10: teste estático de chamador de produção e integração ponta a ponta em SQLite real; pendentes na base `7fbeb0f9`.
+- C11: a jornada `test/journeys/w5-environment-journey.mjs` afirma as linhas do ledger real (`environment.*`, `memory.*`) em vez de um arquivo estático. Verificador em `test/journeys/environment-ledger.mjs`; teste em `test/test-w5-environment-ledger.js`.
+  - acceptance_criteria: o `s11c` falha sem as linhas esperadas, com evento no agregado errado, com ação do computer-use sem aprovação anterior ou com remoção de memória sem aprovação; capacidade sem passo aprovado fica BLOCKED.
+  - verify_step.command: `node --test test/test-w5-environment-ledger.js`
+- C12: ver a nota sobre plugins `scaffolded` em `docs/evolution/w5/STATUS.md`.
+
+O fecho da não conformidade central e as limitações aceitas estão em `docs/evolution/w5/STATUS.md`, seção "Fecho da não conformidade central".

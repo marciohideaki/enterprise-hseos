@@ -54,6 +54,13 @@ jobs:
       - name: Install dependencies (npm ci)
         run: npm ci
 
+      # test/test-engineering-environment.js (part of `npm test`) runs the real TypeScript language server through the
+      # ToolRuntime and asserts the pinned toolchain cache is ready; ci.yaml provisions the same cache for its shards.
+      # Artifacts are downloaded here, each verified against the SHA-256 (and size, where pinned) in the repo.
+      - name: Provision the pinned toolchain cache
+        timeout-minutes: 15
+        run: node .github/scripts/provision-toolchain-cache.mjs "$RUNNER_TEMP/hseos-toolchain"
+
       - name: Validate schemas
         run: npm run validate:schemas
 
@@ -92,4 +99,5 @@ jobs:
             --property=Delegate=yes --property=DelegateSubgroup=tests \
             --working-directory="$PWD" \
             --setenv="PATH=$PATH" --setenv="HOME=$HOME" --setenv=CI=true \
+            --setenv="HSEOS_TOOLCHAIN_CACHE=$RUNNER_TEMP/hseos-toolchain" \
             bash -c 'node .github/scripts/enable-test-cgroup.mjs && npm test'

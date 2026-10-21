@@ -1,0 +1,109 @@
+{
+  "label": "T3a-exec",
+  "span": ["2026-10-18T21:24:37.036Z", "2026-10-18T21:26:03.344Z"],
+  "priced": true,
+  "activities": [
+    {
+      "activity": "leitura_spec",
+      "model_latency_s": 2.0,
+      "tool_time_s": 0.9,
+      "tool_calls": 3.0,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 0.0,
+      "tok_cache_write": 50490.0,
+      "tok_out": 240.0,
+      "api_calls": 1.0,
+      "wall_s": 3.0,
+      "usd": 0.1929
+    },
+    {
+      "activity": "exploracao_codigo",
+      "model_latency_s": 19.3,
+      "tool_time_s": 19.6,
+      "tool_calls": 11.0,
+      "tok_in_fresh": 12.0,
+      "tok_cache_read": 442944.0,
+      "tok_cache_write": 27315.0,
+      "tok_out": 2935.0,
+      "api_calls": 6.0,
+      "wall_s": 39.0,
+      "usd": 0.2794
+    },
+    {
+      "activity": "git_estado",
+      "model_latency_s": 1.8,
+      "tool_time_s": 2.4,
+      "tool_calls": 2.0,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 59471.0,
+      "tok_cache_write": 8491.0,
+      "tok_out": 569.0,
+      "api_calls": 1.0,
+      "wall_s": 4.2,
+      "usd": 0.0582
+    },
+    {
+      "activity": "inventario_g3",
+      "model_latency_s": 4.1,
+      "tool_time_s": 1.5,
+      "tool_calls": 1.0,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 83299.0,
+      "tok_cache_write": 3962.0,
+      "tok_out": 641.0,
+      "api_calls": 1.0,
+      "wall_s": 5.6,
+      "usd": 0.0495
+    },
+    {
+      "activity": "coordenacao",
+      "model_latency_s": 6.5,
+      "tool_time_s": 0.0,
+      "tool_calls": 1.0,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 90716.0,
+      "tok_cache_write": 3101.0,
+      "tok_out": 969.0,
+      "api_calls": 1.0,
+      "wall_s": 6.5,
+      "usd": 0.0534
+    },
+    {
+      "activity": "implementacao",
+      "model_latency_s": 22.4,
+      "tool_time_s": 0.2,
+      "tool_calls": 1.0,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 90258.0,
+      "tok_cache_write": 458.0,
+      "tok_out": 3025.0,
+      "api_calls": 1.0,
+      "wall_s": 22.7,
+      "usd": 0.0742
+    },
+    {
+      "activity": "raciocinio_resposta",
+      "model_latency_s": 5.5,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 93817.0,
+      "tok_cache_write": 1175.0,
+      "tok_out": 937.0,
+      "api_calls": 1.0,
+      "wall_s": 5.5,
+      "usd": 0.0466
+    }
+  ],
+  "total": {
+    "activity": "TOTAL",
+    "model_latency_s": 61.6,
+    "tool_time_s": 24.6,
+    "tool_calls": 19.0,
+    "tok_in_fresh": 24.0,
+    "tok_cache_read": 860505.0,
+    "tok_cache_write": 94992.0,
+    "tok_out": 9316.0,
+    "api_calls": 12.0,
+    "wall_s": 86.5,
+    "usd": 0.8
+  }
+}

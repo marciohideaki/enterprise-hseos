@@ -1,0 +1,71 @@
+{
+  "overall": "FAIL",
+  "allow_dispatch": true,
+  "max_requests": 3,
+  "steps": [
+    {
+      "id": "t1-baseline",
+      "title": "baseline clone is clean and the protected verifier rejects it",
+      "status": "PASS",
+      "detail": {
+        "verifier_exit": 1,
+        "pin": {
+          "schema_version": 1,
+          "verifier_script_sha256": "01963d3901b8ad3dee0c5d8ab4166e1d370387fe21de5bd7c9e3f0d48980edf8",
+          "test_file_sha256": "570034e07db79ed06caf0df8b17f20c01fdbc77a4cd6e604949d1caf8d0ef1dd",
+          "baseline_sha": "1fd9e3212b2b5d487b767d1eebbce351685f462b"
+        },
+        "pinned_at": "2026-10-21T14:11:59.391Z"
+      }
+    },
+    {
+      "id": "t1-contract",
+      "title": "managed-project task prepared on the clone (only the large guard file is writable)",
+      "status": "PASS",
+      "detail": {
+        "task_id": "9e323441-2cff-45b6-85ad-91817dfc5657",
+        "write_scope": ["tools/cli/lib/capability-intake-guard.js"],
+        "contract_sha256": "d71a322de8554ba2c6efabca7220e7e988876dd59f00c38d8f5f5c26ef86a8ae",
+        "prompt_sha256": "1842871ac70423a4b8322a4f12e9bfd3e185247c592519f8e2cf8a08a7400d88",
+        "prompt_bytes": 7467
+      }
+    },
+    {
+      "id": "t1-campaign",
+      "title": "Claude binding inspected (no inference) and campaign opened under the cost ceiling",
+      "status": "PASS",
+      "detail": {
+        "binding_id": "binding:claude-w5-account",
+        "provider_version": "2.1.263",
+        "campaign_id": "b43ee98c-7c60-48d5-bb13-71e114cbc596",
+        "authorization": {
+          "max_requests": 3,
+          "max_cost_microusd": 0,
+          "expires_in_min": 45,
+          "quota_exception": "Owner decision 2026-10-17, ver /build/tmp/hseos-w5/live/owner-decision.md; CLI sem janela de cota"
+        },
+        "inference_executed": false,
+        "ledger_kinds": ["opened", "intent", "done"],
+        "reserved_rows": 0
+      }
+    },
+    {
+      "id": "t1-dispatch",
+      "title": "model dispatch under the campaign ledger (reserve, then receipt)",
+      "status": "FAIL",
+      "cause": "dispatch failed: CONTROL_OUTCOME_UNCERTAIN (committed 0, requests 1)"
+    },
+    {
+      "id": "t1-correction",
+      "title": "governed correction with the model plan (scoped patch, protected verifier, review, apply)",
+      "status": "BLOCKED",
+      "cause": "depends on t1-dispatch"
+    },
+    {
+      "id": "t1-verdict",
+      "title": "protected verifier on the corrected clone (pin rechecked first)",
+      "status": "BLOCKED",
+      "cause": "depends on t1-correction"
+    }
+  ]
+}

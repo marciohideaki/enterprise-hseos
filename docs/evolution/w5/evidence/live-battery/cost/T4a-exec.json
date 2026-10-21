@@ -1,0 +1,109 @@
+{
+  "label": "T4a-exec",
+  "span": ["2026-10-19T01:50:03.205Z", "2026-10-19T01:54:11.312Z"],
+  "priced": true,
+  "activities": [
+    {
+      "activity": "leitura_spec",
+      "model_latency_s": 2.1,
+      "tool_time_s": 1.0,
+      "tool_calls": 3.0,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 0.0,
+      "tok_cache_write": 51068.0,
+      "tok_out": 240.0,
+      "api_calls": 1.0,
+      "wall_s": 3.0,
+      "usd": 0.1951
+    },
+    {
+      "activity": "exploracao_codigo",
+      "model_latency_s": 49.4,
+      "tool_time_s": 20.9,
+      "tool_calls": 8.0,
+      "tok_in_fresh": 10.0,
+      "tok_cache_read": 340762.0,
+      "tok_cache_write": 31237.0,
+      "tok_out": 2039.0,
+      "api_calls": 5.0,
+      "wall_s": 70.2,
+      "usd": 0.25
+    },
+    {
+      "activity": "implementacao",
+      "model_latency_s": 19.1,
+      "tool_time_s": 5.4,
+      "tool_calls": 2.0,
+      "tok_in_fresh": 4.0,
+      "tok_cache_read": 182676.0,
+      "tok_cache_write": 7329.0,
+      "tok_out": 1328.0,
+      "api_calls": 2.0,
+      "wall_s": 24.5,
+      "usd": 0.1022
+    },
+    {
+      "activity": "teste",
+      "model_latency_s": 2.9,
+      "tool_time_s": 1.6,
+      "tool_calls": 1.0,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 81274.0,
+      "tok_cache_write": 5939.0,
+      "tok_out": 495.0,
+      "api_calls": 1.0,
+      "wall_s": 4.5,
+      "usd": 0.0541
+    },
+    {
+      "activity": "lint_format",
+      "model_latency_s": 3.0,
+      "tool_time_s": 25.9,
+      "tool_calls": 1.0,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 93303.0,
+      "tok_cache_write": 1129.0,
+      "tok_out": 3795.0,
+      "api_calls": 1.0,
+      "wall_s": 28.9,
+      "usd": 0.0892
+    },
+    {
+      "activity": "git_estado",
+      "model_latency_s": 2.7,
+      "tool_time_s": 1.5,
+      "tool_calls": 1.0,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 91549.0,
+      "tok_cache_write": 1754.0,
+      "tok_out": 425.0,
+      "api_calls": 1.0,
+      "wall_s": 4.2,
+      "usd": 0.0404
+    },
+    {
+      "activity": "raciocinio_resposta",
+      "model_latency_s": 112.7,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 98456.0,
+      "tok_cache_write": 229.0,
+      "tok_out": 1517.0,
+      "api_calls": 1.0,
+      "wall_s": 112.7,
+      "usd": 0.0532
+    }
+  ],
+  "total": {
+    "activity": "TOTAL",
+    "model_latency_s": 191.9,
+    "tool_time_s": 56.3,
+    "tool_calls": 16.0,
+    "tok_in_fresh": 24.0,
+    "tok_cache_read": 888020.0,
+    "tok_cache_write": 98685.0,
+    "tok_out": 9839.0,
+    "api_calls": 12.0,
+    "wall_s": 248.0,
+    "usd": 0.8
+  }
+}

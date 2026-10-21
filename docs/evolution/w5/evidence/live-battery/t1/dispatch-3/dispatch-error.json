@@ -1,0 +1,6 @@
+{
+  "error_code": "CONTROL_OUTCOME_UNCERTAIN",
+  "error_message": "CONTROL_OUTCOME_UNCERTAIN",
+  "error_cause": "",
+  "error_stack": "Error: CONTROL_OUTCOME_UNCERTAIN\n    at reject (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/w5-t1-guard/tools/cli/lib/provider-campaign-control.js:96:17)\n    at #executeWithinCampaign (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/w5-t1-guard/tools/cli/lib/provider-campaign-control.js:672:7)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async ProviderCampaignControl.execute (/workspace/github/marciohideaki/enterprise-hseos/.worktrees/w5-t1-guard/tools/cli/lib/provider-campaign-control.js:443:14)\n    at async file:///build/tmp/hseos-w5/live/t1/live-dispatch.mjs:264:15\n    at async step (file:///build/tmp/hseos-w5/live/t1/live-dispatch.mjs:45:20)\n    at async file:///build/tmp/hseos-w5/live/t1/live-dispatch.mjs:246:1"
+}
