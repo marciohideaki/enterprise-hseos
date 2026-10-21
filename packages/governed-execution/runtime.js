@@ -587,6 +587,7 @@ class GovernedExecutionRuntime {
         providerDispatchBegan = true;
         providerResult = await Promise.race([
           provider.execute(input, {
+            tool: contract.name,
             operation_id: operationId,
             idempotency_key: idempotencyKey,
             deadline,
