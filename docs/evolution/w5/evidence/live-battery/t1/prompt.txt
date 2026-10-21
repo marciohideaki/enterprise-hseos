@@ -1,0 +1,75 @@
+You are fixing one defect in a large Node.js CommonJS module. Answer with ONE JSON array of tool calls and nothing else: no prose, no code fence.
+The array is executed as a script. No tool result is returned to you, so base every edit on the excerpts below.
+
+Objective: the capability intake guard (tools/cli/lib/capability-intake-guard.js, 2930 lines) does not detect some CommonJS export forms, so a file exporting through them is treated as exporting nothing. Close these gaps:
+  1. logical assignment on a named export: `exports.name ??= value` and `exports.name ||= value`;
+  2. bracket access: `module['exports']` (also `module["exports"].name = ...`) and `exports["name"] = ...`;
+  3. an alias of `module` or `exports` taken from the bare identifier and then used as an export target: `const m = module; m.exports = ...`, `const e = exports; e.x = ...`.
+Everything detected today must stay detected. Text inside strings, comments and template literals must still NOT count as an export, nor an alias of an unrelated object (`const m = other; m.exports = ...`), nor a different property name (`module['exportsX']`).
+Out of scope: lexical scope resolution (a parameter or local named `module`/`exports`), regex-literal content, and unrelated objects that have an `exports` property.
+
+Allowed to change: only tools/cli/lib/capability-intake-guard.js, a large file (current sha256 70142a786ec1e02e70dff0a22247137b1402473ad8a728943634a7564125d04f). Everything else is read-only, including test/test-capability-intake-guard.js (also large: engineering.read takes start_line and end_line for it), which you may read.
+Acceptance, run by a protected verifier after your patch is applied (from the repository root): `bash /build/tmp/hseos-w5/live/t1/verify-t1.sh`. It runs the tests whose names start with "cjs gaps", then the whole existing suite of the guard and its shell test; all must pass.
+
+Facts about the inspected text: detectExports runs its export regexes over text produced by its tokenizer (inspectedSegments), in which the contents of string literals, comments and template literals are blanked and every string collapses to `""` (for instance both `module['exports']` and `module['exportsX']` become `module[""]`). A property name written as a string can therefore only be decided from the original `content` before it is tokenized. The form list EXPORT_FORMS is about 2400 lines away from detectExports.
+
+<<<tools/cli/lib/capability-intake-guard.js lines 37-51 (EXPORT_FORMS, context only)
+   37| const EXPORT_FORMS = [
+   38|   /\bexport\s+default\s+(?:async\s+)?(?:abstract\s+)?(?:function\s*\*?|class)\s+(?!(?:extends|implements)\b)([A-Za-z_$][\w$]*)/g,
+   39|   /\bexport\s+default\b/g,
+   40|   /\bexport\s+(?:declare\s+)?(?:async\s+)?(?:abstract\s+)?(?:function\s*\*?|class|const\s+enum|enum|const|let|var|interface|type|namespace|module)\s+([A-Za-z_$][\w$]*)/g,
+   41|   /\bexport\s*[{*=]/g,
+   42|   /\bexport\s+type\s*\{/g,
+   43|   // Forms the first list does not match (a generator whose `*` is glued to the name, TypeScript's `export import X =`, a decorator
+   44|   // between `export` and `class`); added next to the others, never instead of them.
+   45|   /\bexport\s+(?:default\s+)?(?:declare\s+)?(?:async\s+)?function\s*\*\s*([A-Za-z_$][\w$]*)/g,
+   46|   /\bexport\s+import\s+(?:type\s+)?([A-Za-z_$][\w$]*)\s*=/g,
+   47|   /\bexport\s+(?:default\s+)?(?:declare\s+)?(?:@[\w$.]+(?:\s*\([^()]*\))?\s*)+(?:abstract\s+)?class\s+(?!(?:extends|implements)\b)([A-Za-z_$][\w$]*)/g,
+   48|   /\bmodule\.exports\b/g,
+   49|   /\bexports\.([A-Za-z_$][\w$]*)\s*=/g,
+   50|   /\b(?:public|internal)\s+(?:(?:sealed|static|abstract|partial|readonly|unsafe|new)\s+)*(?:(?:class|record|struct|interface|enum)\s+(?:(?:class|struct)\s+)?)([A-Za-z_]\w*)/g,
+   51| ];
+>>>
+
+<<<tools/cli/lib/capability-intake-guard.js lines 2466-2499 (detectExports and its comment; line numbers are absolute)
+ 2466| /**
+ 2467|  * Every export found in the inspected text (the union of both lexings), in document order:
+ 2468|  * `{ symbols, anonymous, symbol }` or null when `content` exports nothing. `symbols` holds each distinct exported
+ 2469|  * name, `anonymous` is true when some export carries no name (`export { a }`, `export default expr`, CommonJS
+ 2470|  * `module.exports`), and `symbol` is the first named export (null when none) for callers that need one.
+ 2471|  * The guard decides over ALL of them: a decision taken on the first export alone could be steered by a lexing
+ 2472|  * quirk that puts a harmless export ahead of a denied one.
+ 2473|  */
+ 2474| function detectExports(content, language = 'js') {
+ 2475|   // An identical second segment would only repeat the same matches, so it is scanned once.
+ 2476|   const code = [...new Set(inspectedSegments(content, language))].join('\n;\n');
+ 2477|   const found = [];
+ 2478|   for (const form of EXPORT_FORMS) {
+ 2479|     form.lastIndex = 0;
+ 2480|     for (const match of code.matchAll(form)) found.push({ index: match.index, symbol: match[1] || null });
+ 2481|   }
+ 2482|   if (UNICODE_TRIGGER.test(code)) {
+ 2483|     for (const form of UNICODE_FORMS) {
+ 2484|       form.lastIndex = 0;
+ 2485|       for (const match of code.matchAll(form)) found.push({ index: match.index, symbol: decodeIdentifier(match[1]) });
+ 2486|     }
+ 2487|   }
+ 2488|   let incomplete = false;
+ 2489|   for (const entry of extraExportEntries(code)) {
+ 2490|     if (entry.incomplete) incomplete = true;
+ 2491|     found.push(entry);
+ 2492|   }
+ 2493|   if (found.length === 0) return null;
+ 2494|   // `export default class Name` matches both the named and the bare `export default` form at one index: keep the named one.
+ 2495|   const named = new Set(found.filter((entry) => entry.symbol).map((entry) => entry.index));
+ 2496|   const kept = found.filter((entry) => entry.symbol || !named.has(entry.index)).sort((a, b) => a.index - b.index);
+ 2497|   const symbols = [...new Set(kept.filter((entry) => entry.symbol).map((entry) => entry.symbol))];
+ 2498|   return { symbols, anonymous: kept.some((entry) => !entry.symbol), symbol: symbols[0] || null, incomplete };
+ 2499| }
+>>>
+
+How to change the large file: use ONE engineering.patch with `within` set to the line range of the block you replace (here lines 2466 to 2499), a SHORT `before` that occurs exactly once inside that range, and an `after` that carries every change. Helper functions may be added in `after`, next to detectExports (a function declaration is hoisted). Do not edit EXPORT_FORMS or any other region: a second patch would need the new file digest, which you cannot know.
+
+Output format, exactly (the read and search calls are optional and their results are not returned to you; ONE patch object):
+[{"name":"engineering.search","input":{"text":"function detectExports","limit":5}},{"name":"engineering.read","input":{"path":"test/test-capability-intake-guard.js","start_line":1,"end_line":40}},{"name":"engineering.patch","input":{"path":"tools/cli/lib/capability-intake-guard.js","expected_sha256":"70142a786ec1e02e70dff0a22247137b1402473ad8a728943634a7564125d04f","within":{"start_line":2466,"end_line":2499},"before":"<exact substring, once inside the range>","after":"<replacement>"}},{"name":"engineering.diff","input":{"path":"tools/cli/lib/capability-intake-guard.js","start_line":2466,"end_line":2539}}]
+Rules: exactly ONE engineering.patch; keep the change minimal; do not touch any other file; do not weaken or remove any existing behavior.

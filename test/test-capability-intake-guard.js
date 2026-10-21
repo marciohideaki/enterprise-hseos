@@ -2744,3 +2744,42 @@ test('watched roots: a negation with a glob after a literal directory excludes m
   assert.ok(denied(guard(project, 'apps/web/fixtures-not/Widget.ts', EXPORT)), 'a longer name does not match');
   assert.ok(denied(guard(project, 'apps/web/src/stories.ts', EXPORT)), 'a file is not a directory');
 });
+
+// CommonJS export forms the tokenizer-based detection must see (T1). Each case is its own test so a failure names the form.
+const CJS_GAP_POSITIVES = [
+  ['logical-assign ??=', 'exports.a ??= 1;'],
+  ['logical-assign ||=', 'exports.a ||= 1;'],
+  ['bracket module[exports]', "module['exports'] = { a: 1 };"],
+  ['bracket module[exports].a', 'module["exports"].a = 1;'],
+  ['alias of module', 'const m = module;\nm.exports = { a: 1 };'],
+  ['alias of exports', 'const e = exports;\ne.a = 1;'],
+  ['bracket exports[a]', 'exports["a"] = 1;'],
+];
+for (const [name, source] of CJS_GAP_POSITIVES) {
+  test(`cjs gaps (T1): detects ${name}`, () => {
+    assert.notEqual(detectExports(source, 'js'), null, source);
+  });
+}
+
+const CJS_GAP_CONTROLS = [
+  ['module.exports in a string', 'const s = "module.exports = 1";'],
+  ['exports in comments', '// module.exports = 1\n/* exports.a = 1 */'],
+  ['module.exports in a template literal', 'const t = `module.exports = ${1}`;'],
+  ['alias of another object', 'const m = other;\nm.exports = { a: 1 };'],
+  ['bracket access to a different property', "foo(module['exportsX']);"],
+];
+for (const [name, source] of CJS_GAP_CONTROLS) {
+  test(`cjs gaps (T1): ignores ${name}`, () => {
+    assert.equal(detectExports(source, 'js'), null, source);
+  });
+}
+
+// Known false positives on master, documented and NOT required by T1 (resolving them needs lexical scope).
+for (const name of [
+  'a regex literal that mentions module.exports',
+  'exports as a property of another object (other.exports.a = 2)',
+  'a parameter or local named module/exports (shadowing)',
+  'a comparison (x.exports.a == 1)',
+]) {
+  test.todo(`cjs gaps (T1): known false positive, ${name}`);
+}

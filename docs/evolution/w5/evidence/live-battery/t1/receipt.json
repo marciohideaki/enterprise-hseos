@@ -1,0 +1,332 @@
+{
+  "schema": "hseos-live-battery-receipt/v1",
+  "task": "T1",
+  "capability": [
+    "FR14: contrato de tarefa e aceite (contrato v2 por janela, arquivo grande)",
+    "FR15: projeto/sandbox de engenharia",
+    "FR11: superficie de campanha (ledger de despacho)",
+    "Guard de intake de capabilities: deteccao de exports CommonJS"
+  ],
+  "base_sha": "190405f7f849033777789364a820adbaeaba17bd",
+  "dispatch_baseline_sha": "1fd9e3212b2b5d487b767d1eebbce351685f462b",
+  "branch": "task/w5-t1-guard",
+  "executor": {
+    "model": "claude-sonnet-5-5",
+    "route": "claude subscription",
+    "binding_id": "binding:claude-w5-account",
+    "dispatches": [
+      {
+        "attempt": 1,
+        "result": "FAIL",
+        "campaign_id": "b43ee98c-7c60-48d5-bb13-71e114cbc596",
+        "command_id": "97481ea4-143b-4a1d-a407-2f0bbfc8f7f3",
+        "max_requests": 3,
+        "max_output_tokens": 4096,
+        "receipt_status": null,
+        "tokens_in": null,
+        "tokens_out": null,
+        "cost_microusd": null,
+        "committed_microusd": 0,
+        "outcome": "CONTROL_OUTCOME_UNCERTAIN 142 s after the reservation; no receipt",
+        "cause": "not captured at the time (the repository worker drops the error and the runner ignores stderr); the same 142 s and the same pattern as attempt 3, whose cause was captured: probable, not proven",
+        "reconciled": "governed reconcile, no receipt forged",
+        "evidence": "dispatch-1/ledger-rows.json, dispatch-1/reconcile.log"
+      },
+      {
+        "attempt": 2,
+        "result": "FAIL",
+        "campaign_id": "a69d9868-aa3c-483f-b230-a6e60d3adc05",
+        "command_id": "b99be1ac-efaf-4b55-8315-1352ee0198cd",
+        "max_requests": 2,
+        "max_output_tokens": 4096,
+        "receipt_status": null,
+        "tokens_in": null,
+        "tokens_out": null,
+        "cost_microusd": null,
+        "committed_microusd": 0,
+        "outcome": "CONTROL_OUTCOME_UNCERTAIN 155 s after the reservation; client stop_reason refused, 156 bytes streamed, no usage",
+        "cause": "the 156 bytes have exactly the length of the error text captured in attempt 3 (max_output_tokens exceeded): probable, the text itself was not logged",
+        "reconciled": "governed reconcile, no receipt forged",
+        "evidence": "dispatch-2/runner-diagnostic.log.gz, dispatch-2/dispatch-error.json"
+      },
+      {
+        "attempt": 3,
+        "result": "FAIL",
+        "campaign_id": "5537b435-328b-4143-8895-48e09e9c45fc",
+        "command_id": "19ebadb0-d48c-4de7-84c8-81b3a8dca217",
+        "max_requests": 1,
+        "max_output_tokens": 4096,
+        "receipt_status": null,
+        "tokens_in": null,
+        "tokens_out": null,
+        "cost_microusd": null,
+        "committed_microusd": 0,
+        "outcome": "CONTROL_OUTCOME_UNCERTAIN 141 s after the reservation",
+        "cause": "PROVEN by the captured client stream: result is_error true, terminal_reason api_error, text 'API Error: Claude's response exceeded the 4096 output token maximum', after about 90 thinking_tokens events (the reasoning consumed the cap before the plan was written)",
+        "reconciled": "governed reconcile, no receipt forged",
+        "evidence": "dispatch-3/runner-diagnostic.log.gz"
+      },
+      {
+        "attempt": 4,
+        "result": "FAIL",
+        "campaign_id": "a584190a-ccf7-4ff1-be3b-800b42ff729f",
+        "command_id": "f0cdad41-9363-4b8e-9659-52761a45cc0e",
+        "max_requests": 2,
+        "max_output_tokens": 16384,
+        "max_duration_ms": 300000,
+        "receipt_status": null,
+        "tokens_in": null,
+        "tokens_out": null,
+        "cost_microusd": null,
+        "committed_microusd": 0,
+        "outcome": "the client completed (is_error false, end_turn, 227 s, plan of 3913 bytes) but the adapter returned no receipt: CONTROL_OUTCOME_UNCERTAIN 540 ms after the result",
+        "cause": "an exception after the result. The usage of this run was not logged. Offline reproduction (dispatch-4 tooling, not kept in the repository) shows two ways to get exactly this ledger: usage.output_tokens above manifest max_output_tokens (provider-claude-account-adapter.js:212) and input tokens plus cache above manifest max_input_tokens (provider-campaign-control.js:651). Consistent with the real usage of attempt 5 (14971 output tokens, 12824 of them reasoning) but not proven for attempt 4",
+        "reconciled": "governed reconcile, no receipt forged",
+        "evidence": "dispatch-4/runner-diagnostic.log.gz"
+      },
+      {
+        "attempt": 5,
+        "result": "PASS",
+        "campaign_id": "54870cf0-627e-449f-a8d2-207d0b1b2c86",
+        "command_id": "7edc9fea-7275-4b77-ab56-4c353e09ec92",
+        "max_requests": 1,
+        "max_output_tokens": 32768,
+        "max_input_tokens": 200000,
+        "max_duration_ms": 300000,
+        "receipt_status": "completed",
+        "tokens_in": 7977,
+        "tokens_out": 14971,
+        "tokens_out_reasoning": 12824,
+        "cost_microusd": null,
+        "committed_microusd": 0,
+        "evidence": "dispatch-5/ledger-rows.json, dispatch-5/result.json, dispatch-5/runner-diagnostic.log.gz"
+      }
+    ],
+    "requests_used_by_t1": "5 of 5 authorised: 3 under the authorisation of 2026-10-17 reconfirmed on 2026-10-21 (attempts 1 to 3) and 2 under the new authorisation (attempts 4 and 5); one campaign per attempt",
+    "battery_requests_after_t1": "9 of 12 (2 from T2, 1 from T3, 1 from T4, 5 from T1)"
+  },
+  "real_work": {
+    "description": "The capability intake guard detects the CommonJS export forms the tokenizer-based detection missed: logical assignment on a named export (exports.a ??= 1, ||=), bracket access (module['exports'], exports['a']) and an alias of module or exports taken from the bare identifier. Strings, comments, template literals, aliases of unrelated objects and other property names stay undetected. The production change in tools/cli/lib/capability-intake-guard.js (+98 lines, one block next to detectExports) was written by the model through one governed patch with `within` on a large file; two executor adjustments followed (see formatting and adjustments).",
+    "pr": null,
+    "merged": false,
+    "is_synthetic": false,
+    "synthetic_reason": null,
+    "prompt_nature": "PRESCRIPTIVE: the prompt lists the three gaps and the controls, gives the absolute-numbered excerpts, the patch window and the fact that the tokenizer collapses strings to \"\", from which the solution (decide bracket names from the original content) follows. It proves the governed route, NOT the model's design ability.",
+    "prompt": {
+      "path": "prompt.txt",
+      "sha256": "1842871ac70423a4b8322a4f12e9bfd3e185247c592519f8e2cf8a08a7400d88",
+      "note": "file has no trailing newline; the CLI output of t1-prompt.mjs adds one"
+    },
+    "formatting": "prettier --check passed on the model output: no formatting change.",
+    "adjustments": {
+      "model_output": "dispatch-5/model-patch.diff (original, unformatted by the executor, +98 lines)",
+      "adjustment_1_lint": "lint-adjustment.diff: eslint refused the model output (2x unicorn/prefer-string-replace-all, 1x no-useless-escape; a fourth, replaceAll(/\\$/g) -> replaceAll('$'), appeared after the first fix). Four equivalent swaps, no rule loosened. The AST is NOT identical (replace vs replaceAll). Equivalence argument: replaceAll with a global regex equals replace with /g; the escape inside a character class does not change the set; replaceAll('$', fn) equals the global regex of one literal char. Checked by a discardable differential: detectExports before and after on 1290 sources (repository files, literals of the guard test, the cjs gaps cases) in js and cs gave 0 differences of 2580",
+      "adjustment_2_dedup": "dedup-adjustment.diff: the model's cjsGapExports recomputed inspectedSegments, the dominant cost, so detectExports took about twice as long (1 MB: 88 ms on master, 172 ms patched) and failed the existing 200 ms performance test under load (209 ms). detectExports now computes the inspected text once and passes it to detectExportsBase and cjsGapExports (12 changed lines, no new branch). Measured under equal conditions (load about 14): 1 MB without module/exports 68 ms master, 65 ms after; with module.exports 62 vs 68; 64 ambiguous slashes plus cjs 89 vs 90, against 123/123/184 before the adjustment. Differential after vs before = 0 of 2580. Both adjustments are executor changes on top of the model output."
+    },
+    "protected_verifier_pass": "verify-t1.sh passed on the clone for the unadjusted model output (dispatch-5/verdict-verify.log.gz) and on the worktree after both adjustments (verify_t1 below)"
+  },
+  "capability_use": [
+    {
+      "capability": "FR11: superficie de campanha",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "campaign ledger rows opened/intent/done/reserved/receipt/done (attempt 5) and opened/intent/done/reserved/uncertain (attempts 1 to 4)",
+        "source": "ledger",
+        "ref": "campaign://54870cf0-627e-449f-a8d2-207d0b1b2c86/7edc9fea-7275-4b77-ab56-4c353e09ec92",
+        "sha256": "cd611874380868ae7500b9811ae0fa9e6a9b083087e2387d3dc929cc734c5b3c"
+      },
+      "recorded_by": "system",
+      "asserted_by_script": "live-dispatch.mjs step t1-dispatch (verifier pin checked before the first reservation and after the receipt)",
+      "result": "PASS",
+      "limit": "the ledger actor is hseos/provider-control; copies are redacted (owner, provider_session_id); the four uncertain commands were reconciled through the governed reconcile action, which keeps the spent requests counted; assert-receipts.mjs was not run"
+    },
+    {
+      "capability": "Guard: deteccao CommonJS",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "tests cjs gaps: 7 positives (??=, ||=, module['exports'], module[\"exports\"].a, alias of module, alias of exports, exports[\"a\"]) detected; baseline 7 red with 'Expected actual to be strictly unequal to null'",
+        "source": "evidence",
+        "ref": "dispatch-5/verdict-verify.log.gz",
+        "sha256": "c859ad613c580ae718e32be06a898f246264936ee9f4abd80df52f6302f98587"
+      },
+      "recorded_by": "system",
+      "asserted_by_script": "bash /build/tmp/hseos-w5/live/t1/verify-t1.sh (sha256 01963d3901b8ad3dee0c5d8ab4166e1d370387fe21de5bd7c9e3f0d48980edf8)",
+      "result": "PASS",
+      "limit": "the 4 known false positives (regex literal, other.exports.a, shadowing, comparison) stay test.todo: lexical scope is out of scope"
+    },
+    {
+      "capability": "Guard: deteccao CommonJS (controles)",
+      "scenario": "adversarial",
+      "system_record": {
+        "kind": "5 controls: module.exports in a string, in comments, in a template literal, alias of another object, module['exportsX'] stay undetected; the 101 tests of the existing suite and the shell test pass",
+        "source": "evidence",
+        "ref": "dispatch-5/verdict-verify.log.gz",
+        "sha256": "c859ad613c580ae718e32be06a898f246264936ee9f4abd80df52f6302f98587"
+      },
+      "recorded_by": "system",
+      "asserted_by_script": "bash /build/tmp/hseos-w5/live/t1/verify-t1.sh",
+      "result": "PASS",
+      "limit": "detection of aliases is by name pattern over the inspected text; shadowing is not resolved"
+    },
+    {
+      "capability": "FR14: aceite por verificador protegido",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "verifier exit 0 on the corrected clone (16 'cjs gaps' tests, 105 guard tests, shell test) with the pin checked before and after the reservation; the baseline was rejected (7 red)",
+        "source": "evidence",
+        "ref": "dispatch-5/verdict-verify.log.gz",
+        "sha256": "c859ad613c580ae718e32be06a898f246264936ee9f4abd80df52f6302f98587"
+      },
+      "recorded_by": "system",
+      "asserted_by_script": "bash /build/tmp/hseos-w5/live/t1/verify-t1.sh",
+      "result": "PASS",
+      "limit": "the in-sandbox check only compiles the file and looks for detectExports (the guard needs yaml and sibling modules); acceptance a1 is linked to that structural check by check_ids; the behavioural verdict is the external verifier"
+    },
+    {
+      "capability": "FR14/FR15: contrato v2 por janela",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "managed-project task with two large files (guard 123 KB write, test 142 KB read), one engineering.patch with `within` 2466-2499, check_ids on the acceptance criterion; the plan was approved by the governed correction",
+        "source": "evidence",
+        "ref": "dispatch-5/result.json",
+        "sha256": "b39afa1508d95eda3c57f9239e4dfcc91704932d982e5671c7d8db48d03d9db2"
+      },
+      "recorded_by": "agent_claim_only",
+      "asserted_by_script": "live-dispatch.mjs steps t1-contract and t1-correction",
+      "result": "PASS",
+      "limit": "the task state was discarded by the harness after apply; the approval is the value the script captured. The model did not call engineering.read/search (results are not returned in this single-shot dispatch), so reading by range was not exercised by the model"
+    },
+    {
+      "capability": "FR06: LSP",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "environment events are not persisted and the campaign model only emits text"
+    },
+    {
+      "capability": "FR07: DAP",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "same as LSP"
+    },
+    {
+      "capability": "FR08: navegador",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "same as LSP"
+    },
+    {
+      "capability": "FR09: computer-use",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "same as LSP"
+    },
+    {
+      "capability": "FR03: memoria",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "the engineering runtime fixes memory: []"
+    },
+    {
+      "capability": "FR05/FR13: MCP",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "the campaign model does not call MCP"
+    },
+    {
+      "capability": "FR04: compactacao/resume/fork",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "no production profile uses overflow_policy compact"
+    }
+  ],
+  "cost": {
+    "committed_microusd": 0,
+    "cost_microusd_measured": null,
+    "tokens_in": 7977,
+    "tokens_out": 14971,
+    "tokens_out_reasoning": 12824,
+    "input_breakdown": {
+      "input_tokens": 2,
+      "cache_read_input_tokens": 7784,
+      "cache_creation_input_tokens": 191
+    },
+    "wall_s": 110,
+    "note": "sob subscricao o recibo traz cost_microusd null; nao e custo medido. Real usage of the passing attempt 5 only; attempts 1 to 4 have no receipt (reserved requests counted as spent). wall_s is reserved-to-receipt of attempt 5 (16:25:19.8 to 16:27:09.1 UTC). Final ceilings of the task: max_output_tokens 32768, max_input_tokens 200000, max_duration_ms 300000, session max_tokens 400000."
+  },
+  "review": {
+    "reviewer": null,
+    "pinned_sha": null,
+    "pass1": null,
+    "pass2": null,
+    "rounds": 0,
+    "note": "skeptical review not performed yet"
+  },
+  "gates": {
+    "verify_t1": "PASS: verify-t1.sh in the worktree after both adjustments, exit 0, under load1 13 (pinned to one CPU): 16 'cjs gaps' tests (12 pass, 4 todo), guard suite 105 tests (101 pass, 4 todo), shell test ok; test-package-surface 1 of 1",
+    "kernel_quality": "NOT_RUN: not requested for this step",
+    "kernel_coverage": "PASS: npm run test:kernel-coverage exit 0 (first suite 872 of 872, all files 97.74/92.95). The guard is NOT in .c8-kernel.json, so this gate does not measure it",
+    "guard_coverage_informative": "c8 --per-file over capability-intake-guard.js with the guard suite: 97.95% lines, 95.27% branches, 100% functions; 5 timing tests fail under c8 instrumentation (performance assertions), so this run is informative only and is not a gate",
+    "mutations": "NOT_RUN: not requested for this step",
+    "npm_test": "NOT_RUN: full suite not run outside the commit hook (heavy-work rule)",
+    "package_surface": "PASS: test/test-package-surface.js 1 of 1 (inside verify-t1)",
+    "inventory_g3": "1538/1556; packages 137/137; tools 393/393; .agents 203; .enterprise 464; .hseos 63; docs/evolution/w5/evidence/live-battery in the pack: 0 (npm pack --dry-run --json --ignore-scripts, Node 24)",
+    "format_lint": "PASS: prettier --check and eslint --max-warnings=0 on tools/cli/lib/capability-intake-guard.js and test/test-capability-intake-guard.js after the adjustments",
+    "node24": "PASS: all runs on Node 24.15",
+    "node22": "NOT_RUN"
+  },
+  "protected_pins": {
+    "verifier_script_sha256": "01963d3901b8ad3dee0c5d8ab4166e1d370387fe21de5bd7c9e3f0d48980edf8",
+    "test_files_sha256": {
+      "test/test-capability-intake-guard.js": "99a8ae77bcf829d510fc5a0c6318bd9195db8e0271d18537063b715941aa019f"
+    },
+    "note": "the harness pin also covers hseos_w5/verify.mjs and test/capability-intake-guard.test.sh; the test file was not changed after the dispatch"
+  },
+  "redaction": "owner (pid, cgroup path) and provider_session_id are replaced by \"<redacted>\" in the ledger copies; session_id values are redacted in the client stream logs; the heavy-run queue lines were removed from the logs",
+  "limitations": [
+    "the prompt was prescriptive: it proves the governed route, not design ability",
+    "5 requests were needed; 4 ended without a receipt. Causes: attempt 3 proven (4096 output cap exceeded by reasoning); attempts 1 and 2 probable; attempt 4 not proven (usage not logged)",
+    "the model output needed two executor adjustments (lint, and removal of a second tokenizer pass that doubled the cost and tripped an existing 200 ms test)",
+    "the aliased forms are detected by name pattern; scope resolution, regex literals and unrelated exports properties remain known false positives (test.todo)",
+    "the guard is not in .c8-kernel.json: no 90/80 gate applies; informative coverage only",
+    "the diagnostic tooling (diag-worker, offline receipt reproduction, reconcile script) lives outside the repository in /build/tmp/hseos-w5/live/t1",
+    "battery counter: 9 of 12 requests after T1"
+  ],
+  "product_findings": [
+    "provider-claude-account-adapter.js:212 compares usage.output_tokens, which includes reasoning tokens (12824 of 14971 here), with the manifest max_output_tokens, and the client cap CLAUDE_CODE_MAX_OUTPUT_TOKENS is the same number: a short plan can fail after minutes of reasoning",
+    "provider-campaign-control.js:651 limits input tokens including cache reads and creation to manifest max_input_tokens (65536 in the harness)",
+    "provider-claude-account-worker.js and provider-campaign-process.js: the worker discards its error and the runner uses stdio 'ignore', so every failure after the reservation is reported only as CONTROL_OUTCOME_UNCERTAIN; claude-cli-driver.js:275 maps any non-success result to stop_reason refused",
+    "the governed route applies a patch as produced: the model output needed lint fixes and a performance fix"
+  ],
+  "does_not_prove": [
+    "that the model can design the change (the prompt was prescriptive)",
+    "LSP, DAP, browser, computer-use, memory, MCP and compaction usage",
+    "a measured cost (the subscription route reports null)",
+    "review by an independent skeptical reviewer",
+    "that reading a large file by range works from the model side (the single-shot dispatch returns no tool results)"
+  ],
+  "known_findings_not_fixed": [
+    "the four product findings above (W6-E9)",
+    "the aliased CommonJS forms are matched by name pattern without scope resolution"
+  ]
+}
