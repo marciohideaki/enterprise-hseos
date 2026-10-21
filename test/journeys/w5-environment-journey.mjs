@@ -1806,7 +1806,7 @@ async function main() {
     const capabilities = Object.keys(covered).filter((name) => covered[name]);
     const missing = Object.keys(covered).filter((name) => !covered[name]);
     const rows = envLedger.rows();
-    const verdict = assertEnvironmentLedger(rows, { capabilities });
+    const verdict = assertEnvironmentLedger(rows, { projectId: envLedger.projectId, capabilities });
     if (!verdict.ok) throw new Error(verdict.violations.map((v) => `${v.rule}: ${v.message}`).join('; '));
     if (capabilities.length === 0) throw new Blocked('no capability step passed in this run: there are no ledger rows to assert');
     if (missing.length > 0) {

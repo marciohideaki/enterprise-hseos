@@ -67,10 +67,11 @@ export function openJourneyLedger({ projectId = 'w5-journey' } = {}) {
 const violation = (rule, message) => ({ rule, message });
 
 /**
- * Pure checker over the rows read back from the ledger. `capabilities` limits the required events to the capabilities whose
- * journey step ran; the default is all of them.
+ * Pure checker over the rows read back from the ledger. `projectId` is the project the sink was opened for: every row must
+ * belong to it. `capabilities` limits the required events to the capabilities whose journey step ran (default: all).
  */
-export function assertEnvironmentLedger(rows, { capabilities = Object.keys(REQUIRED_EVENTS) } = {}) {
+export function assertEnvironmentLedger(rows, { projectId, capabilities = Object.keys(REQUIRED_EVENTS) } = {}) {
+  if (typeof projectId !== 'string' || projectId.length === 0) throw new TypeError('assertEnvironmentLedger needs the sink projectId');
   const violations = [];
   const types = new Set(rows.map((row) => row.event_type));
   for (const capability of capabilities) {
@@ -79,36 +80,57 @@ export function assertEnvironmentLedger(rows, { capabilities = Object.keys(REQUI
     }
   }
   for (const row of rows) {
-    const expected = row.event_type.startsWith('memory.') ? MEMORY_AGGREGATE : ENVIRONMENT_AGGREGATE;
+    const isMemory = row.event_type.startsWith('memory.');
+    const expected = isMemory ? MEMORY_AGGREGATE : ENVIRONMENT_AGGREGATE;
     if (row.aggregate_type !== expected) {
       violations.push(violation('aggregate', `${row.event_type} is on ${row.aggregate_type}, expected ${expected}`));
     }
-    // An environment event names its project in the payload; a memory stream is the project (aggregate_id) and an entry
-    // is written only into its own project.
-    const isMemory = expected === MEMORY_AGGREGATE;
-    const project = isMemory
-      ? (row.payload?.entry?.scope?.project_id ?? (row.event_type === 'memory.written' ? undefined : row.aggregate_id))
-      : row.payload?.project_id;
-    if (typeof project !== 'string' || project.length === 0 || (isMemory && project !== row.aggregate_id)) {
-      violations.push(violation('project_scope', `${row.event_type} is not scoped to its project`));
-    }
+    // An environment event names its project in the payload; a memory stream IS its project (the aggregate id), and an
+    // entry is written only into that same project. Both are compared with the project of the sink, not with themselves.
+    const scoped = isMemory
+      ? row.aggregate_id === projectId && (row.event_type !== 'memory.written' || row.payload?.entry?.scope?.project_id === projectId)
+      : row.payload?.project_id === projectId;
+    if (!scoped) violations.push(violation('project_scope', `${row.event_type} is not scoped to project ${projectId}`));
   }
-  // Every computer action is approved first: requested, approved and consumed come before the action that ran.
+  // Every computer action has ITS OWN approval: requested, approved and consumed (same request) come, in that order,
+  // before the action, and a request is never spent on a second action.
   const computer = rows.filter((row) => row.event_type.startsWith('environment.computer.'));
-  const outcomes = (id, outcome) =>
-    computer.filter((r) => r.aggregate_id === id && r.event_type.endsWith('approval_outcome') && r.payload.outcome === outcome);
+  const outcomes = computer.filter((row) => row.event_type.endsWith('approval_outcome'));
+  const spentRequests = new Set();
   for (const executed of computer.filter((row) => row.event_type.endsWith('action_executed'))) {
-    const consumed = outcomes(executed.aggregate_id, 'consumed').filter((row) => row.position < executed.position);
-    const approved = outcomes(executed.aggregate_id, 'approved').filter((row) => row.position < executed.position);
-    const requested = outcomes(executed.aggregate_id, 'requested').filter((row) => row.position < executed.position);
-    if (consumed.length === 0 || approved.length === 0 || requested.length === 0) {
-      violations.push(
-        violation(
-          'computer_approval_order',
-          `action at position ${executed.position} ran without requested, approved and consumed before it`,
-        ),
-      );
+    const { session_id: sessionId, seq, action } = executed.payload;
+    const label = `action ${action} (session ${sessionId}, seq ${seq}, position ${executed.position})`;
+    const requested = outcomes.find(
+      (row) =>
+        row.payload.outcome === 'requested' &&
+        row.payload.session_id === sessionId &&
+        row.payload.seq === seq &&
+        row.payload.action === action &&
+        row.position < executed.position,
+    );
+    if (!requested) {
+      violations.push(violation('computer_approval_order', `${label} has no requested outcome for its own session, step and action`));
+      continue;
     }
+    const step = (outcome, after) =>
+      outcomes.find(
+        (row) =>
+          row.payload.outcome === outcome &&
+          row.payload.request_id === requested.payload.request_id &&
+          row.payload.binding_digest === requested.payload.binding_digest &&
+          row.position > after &&
+          row.position < executed.position,
+      );
+    const approved = step('approved', requested.position);
+    const consumed = approved && step('consumed', approved.position);
+    if (!approved)
+      violations.push(violation('computer_approval_order', `${label} has no approved outcome for its request after it was requested`));
+    else if (!consumed)
+      violations.push(violation('computer_approval_order', `${label} has no consumed outcome for its request after it was approved`));
+    if (spentRequests.has(requested.payload.request_id)) {
+      violations.push(violation('computer_approval_order', `${label} reuses the approval of an earlier action`));
+    }
+    spentRequests.add(requested.payload.request_id);
   }
   // A deletion follows the write of the same entry and carries the approval that backed it.
   const memoryRows = rows.filter((row) => row.aggregate_type === MEMORY_AGGREGATE);
@@ -118,7 +140,10 @@ export function assertEnvironmentLedger(rows, { capabilities = Object.keys(REQUI
     }
     const written = memoryRows.some(
       (row) =>
-        row.event_type === 'memory.written' && row.payload.memory_id === deleted.payload.memory_id && row.position < deleted.position,
+        row.event_type === 'memory.written' &&
+        row.aggregate_id === deleted.aggregate_id &&
+        row.payload.memory_id === deleted.payload.memory_id &&
+        row.position < deleted.position,
     );
     if (!written)
       violations.push(violation('memory_delete_order', `memory.deleted for ${deleted.payload.memory_id} has no earlier memory.written`));
