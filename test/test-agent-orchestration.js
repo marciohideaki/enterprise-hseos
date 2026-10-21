@@ -687,6 +687,39 @@ test('cancelling a child whose runtime fails tears down without rethrowing the f
   assert.equal(fixture.sessionStore.replay(childId).terminal_event.event_type, 'session.cancelled');
 });
 
+test('a join whose deadline passed still reports a runtime failure that follows it', async (context) => {
+  const fixture = setup();
+  context.after(() => fixture.db.close());
+  await createParent(fixture);
+  const runtime = fixture.runtime;
+  const failing = {
+    create: runtime.create.bind(runtime),
+    resume: runtime.resume.bind(runtime),
+    send: () => new Promise((_, reject) => setTimeout(() => reject(new Error('runtime refused the turn')), 120)),
+    cancel: runtime.cancel.bind(runtime),
+    dispose: runtime.dispose.bind(runtime),
+  };
+  const provider = new LocalSubagentProvider({
+    session_store: fixture.sessionStore,
+    agent_runtime: failing,
+    provider_id: 'subagent:late-failure',
+    max_parallel_children: 1,
+  });
+  const childId = 'session:child-late-failure';
+  await provider.spawn(spawnInput(childId, { provider_id: 'subagent:late-failure' }));
+  await assert.rejects(
+    provider.join({
+      schema_version: 1,
+      provider_id: 'subagent:late-failure',
+      request_id: 'request:join-late-failure',
+      parent_session_id: 'session:parent',
+      child_session_ids: [childId],
+      timeout_ms: 30,
+    }),
+    (error) => error.code === 'SUBAGENT_RUNTIME_FAILED',
+  );
+});
+
 test('disposing a subagent provider drains children and rejects unrelated parent claims', async (context) => {
   const fixture = setup({ delayMs: 5000 });
   context.after(() => fixture.db.close());

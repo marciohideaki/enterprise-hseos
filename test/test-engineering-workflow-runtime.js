@@ -139,6 +139,34 @@ test('a task blocked by an uncoded execution error keeps the reason in the workf
   }
 });
 
+test('a credential in the error of a blocked task is redacted from the evidence and the summary', async () => {
+  const jobDispatch = require('../tools/cli/lib/job-dispatch');
+  const original = jobDispatch.assertJobRuntimeAccess;
+  const credential = `ghp_${'a1B2c3D4e5'.repeat(4)}`;
+  // Assembly checks access once per task; the failure has to come from the first execution step after it.
+  let calls = 0;
+  jobDispatch.assertJobRuntimeAccess = (...args) => {
+    calls += 1;
+    if (calls < 2) return original(...args);
+    throw new Error(`upstream refused with token ${credential}`);
+  };
+  const input = definition();
+  input.tasks = input.tasks.slice(0, 1);
+  let result;
+  try {
+    result = await runEngineeringWorkflow({ definition: input });
+  } finally {
+    jobDispatch.assertJobRuntimeAccess = original;
+  }
+  try {
+    assert.equal(result.tasks[0].result, 'blocked', JSON.stringify(result));
+    assert.match(result.tasks[0].detail, /redacted/);
+    assert.equal(JSON.stringify(result).includes(credential), false);
+  } finally {
+    fs.rmSync(result.state, { recursive: true, force: true });
+  }
+});
+
 test('explicit migration converts eligible definitions without touching legacy history or executing tasks', () => {
   const path = require('node:path');
   const os = require('node:os');
