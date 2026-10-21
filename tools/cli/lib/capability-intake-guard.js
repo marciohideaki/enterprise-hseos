@@ -2472,8 +2472,106 @@ function decodeIdentifier(name) {
  * quirk that puts a harmless export ahead of a denied one.
  */
 function detectExports(content, language = 'js') {
-  // An identical second segment would only repeat the same matches, so it is scanned once.
+  // The inspected text is computed once and shared: the tokenizer pass dominates the cost on large inputs.
   const code = [...new Set(inspectedSegments(content, language))].join('\n;\n');
+  const base = detectExportsBase(code);
+  const extra = cjsGapExports(content, code);
+  if (extra.length === 0) return base;
+  const symbols = [...new Set([...(base ? base.symbols : []), ...extra.filter((entry) => entry.symbol).map((entry) => entry.symbol)])];
+  return {
+    symbols,
+    anonymous: Boolean(base && base.anonymous) || extra.some((entry) => !entry.symbol),
+    symbol: symbols[0] || null,
+    incomplete: Boolean(base && base.incomplete),
+  };
+}
+
+function skipTemplateLiteral(text, start) {
+  let i = start + 1;
+  while (i < text.length) {
+    if (text[i] === '\\') i += 2;
+    else if (text[i] === '`') return i + 1;
+    else if (text[i] === '$' && text[i + 1] === '{') {
+      let depth = 1;
+      i += 2;
+      while (i < text.length && depth > 0) {
+        if (text[i] === '`') i = skipTemplateLiteral(text, i);
+        else {
+          if (text[i] === '{') depth++;
+          else if (text[i] === '}') depth--;
+          i++;
+        }
+      }
+    } else i++;
+  }
+  return text.length;
+}
+
+// Same-length copy of `text` with comments and template literals blanked; a string literal survives only when its body is a plain word.
+function keepPlainStrings(text) {
+  let out = '';
+  let i = 0;
+  const blank = (s) => s.replaceAll(/[^\n]/g, ' ');
+  while (i < text.length) {
+    const c = text[i];
+    const d = text[i + 1];
+    if (c === '/' && d === '/') {
+      let j = i;
+      while (j < text.length && text[j] !== '\n') j++;
+      out += blank(text.slice(i, j));
+      i = j;
+    } else if (c === '/' && d === '*') {
+      const close = text.indexOf('*/', i + 2);
+      const j = close === -1 ? text.length : close + 2;
+      out += blank(text.slice(i, j));
+      i = j;
+    } else if (c === '`') {
+      const j = skipTemplateLiteral(text, i);
+      out += blank(text.slice(i, j));
+      i = j;
+    } else if (c === '"' || c === "'") {
+      let j = i + 1;
+      while (j < text.length && text[j] !== c && text[j] !== '\n') j += text[j] === '\\' ? 2 : 1;
+      const closed = text[j] === c;
+      const body = text.slice(i + 1, j);
+      out += closed && /^[\w$-]+$/.test(body) ? c + body + c : c + blank(body) + (closed ? c : '');
+      i = closed ? j + 1 : Math.min(j, text.length);
+    } else {
+      out += c;
+      i++;
+    }
+  }
+  return out;
+}
+
+function cjsGapExports(content, code) {
+  if (!/\b(?:module|exports)\b/.test(code)) return [];
+  const moduleNames = new Set(['module']);
+  const exportsNames = new Set(['exports']);
+  for (const match of code.matchAll(/(?<![\w$.])([A-Za-z_$][\w$]*)\s*=\s*(module|exports)(?![\w$])(?!\s*[.[(])/g)) {
+    if (match[1] === 'module' || match[1] === 'exports') continue;
+    (match[2] === 'module' ? moduleNames : exportsNames).add(match[1]);
+  }
+  const alternation = (names) => [...names].map((name) => name.replaceAll('$', (ch) => '\\' + ch)).join('|');
+  const mods = alternation(moduleNames);
+  const exps = alternation(exportsNames);
+  const assign = String.raw`\s*(?:\?\?|\|\||&&)?=(?!=)`;
+  const plain = /\[\s*""\s*\]/.test(code) ? keepPlainStrings(content) : '';
+  const out = [];
+  const scan = (text, source, onMatch) => {
+    for (const match of text.matchAll(new RegExp(source, 'g'))) onMatch(match);
+  };
+  scan(code, String.raw`(?<![\w$.])(?:${mods})\s*\.\s*exports(?![\w$])`, () => out.push({ symbol: null }));
+  scan(code, String.raw`(?<![\w$.])(?:${exps})\s*\.\s*([A-Za-z_$][\w$]*)${assign}`, (match) => out.push({ symbol: match[1] }));
+  if (plain) {
+    scan(plain, String.raw`(?<![\w$.'"])(?:${mods})\s*\[\s*(['"])exports\1\s*\]`, () => out.push({ symbol: null }));
+    scan(plain, String.raw`(?<![\w$.'"])(?:${exps})\s*\[\s*(['"])([\w$-]+)\1\s*\]${assign}`, (match) => out.push({ symbol: match[2] }));
+  }
+  return out;
+}
+
+function detectExportsBase(code) {
+  // An identical second segment would only repeat the same matches, so it is scanned once.
   const found = [];
   for (const form of EXPORT_FORMS) {
     form.lastIndex = 0;

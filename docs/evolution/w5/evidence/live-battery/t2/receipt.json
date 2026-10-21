@@ -207,7 +207,12 @@
     "tokens_in": 7436,
     "tokens_out": 2429,
     "wall_s": 208,
-    "note": "sob subscricao o recibo traz cost_microusd null; nao e custo medido. Figures are attempt 2; attempt 1 used 7436 in and 2410 out, wall 117 s. Session token accounting of attempt 2: conservative estimate 149089, total 149091 of max_tokens 400000."
+    "note": "sob subscricao o recibo traz cost_microusd null; nao e custo medido. Figures are attempt 2; attempt 1 used 7436 in and 2410 out, wall 117 s. Session token accounting of attempt 2: conservative estimate 149089, total 149091 of max_tokens 400000. Correction (consolidation, 2026-10-21): the historical wall_s values above (208 s and 117 s) do not match the ledger and are kept as recorded; they are not reserved-to-receipt times (probably the elapsed time of the harness step that includes more than the model call). The ledger gives 16 s for attempt 2 and 18 s for attempt 1 (wall_s_ledger).",
+    "wall_s_ledger": {
+      "attempt_1": 18,
+      "attempt_2": 16,
+      "basis": "reserved to receipt rows of the campaign ledger (attempt 1 15:44:59.3 to 15:45:17.7 UTC, attempt 2 15:52:13.8 to 15:52:30.2 UTC), the same criterion as T1, T3 and T4"
+    }
   },
   "review": {
     "reviewer": null,

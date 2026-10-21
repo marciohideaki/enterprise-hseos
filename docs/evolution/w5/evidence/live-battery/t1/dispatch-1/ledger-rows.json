@@ -1,0 +1,161 @@
+[
+  {
+    "position": 2,
+    "event_id": "ea633c9f-9e46-4038-9dac-53e3a2ba4889",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "b43ee98c-7c60-48d5-bb13-71e114cbc596",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 1,
+    "schema_version": 1,
+    "occurred_at": "2026-10-21T14:12:01.251Z",
+    "correlation_id": "b43ee98c-7c60-48d5-bb13-71e114cbc596",
+    "causation_id": "b43ee98c-7c60-48d5-bb13-71e114cbc596",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "authorization_id": "304db917-bf5c-4db4-9728-be8716631c56",
+      "binding_compositions": {
+        "binding:claude-w5-account": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "binding_ids": ["binding:claude-w5-account"],
+      "binding_manifests": {
+        "binding:claude-w5-account": "daacd128deaf1f7721410193d99814736b99613bab69975c58cb2b0a241e00e7"
+      },
+      "deadline": 1792594621192,
+      "kind": "opened",
+      "max_cost_microusd": 0,
+      "max_requests": 3,
+      "quota_exceptions": {
+        "binding:claude-w5-account": {
+          "expires_at": 1792594621192,
+          "reason": "Owner decision 2026-10-17, ver /build/tmp/hseos-w5/live/owner-decision.md; CLI sem janela de cota"
+        }
+      },
+      "schema_version": 1,
+      "task_ids": ["9e323441-2cff-45b6-85ad-91817dfc5657"]
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-10-21T14:12:01.251Z"
+  },
+  {
+    "position": 3,
+    "event_id": "2ea4e138-2a66-4733-b439-715798e834bc",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "b43ee98c-7c60-48d5-bb13-71e114cbc596",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 2,
+    "schema_version": 1,
+    "occurred_at": "2026-10-21T14:12:01.251Z",
+    "correlation_id": "b43ee98c-7c60-48d5-bb13-71e114cbc596",
+    "causation_id": "ea633c9f-9e46-4038-9dac-53e3a2ba4889",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "command_id": "574f91f9-131f-45d1-9f58-2dcca70c23f7",
+      "digest": "649d18c9f1e9dfa1bdacf29caec3c42485451a78766e3aead6c0052eb34a8c12",
+      "kind": "intent",
+      "schema_version": 1
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-10-21T14:12:01.251Z"
+  },
+  {
+    "position": 4,
+    "event_id": "e47a2e87-1a2e-4fea-8673-6ad65f7ec508",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "b43ee98c-7c60-48d5-bb13-71e114cbc596",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 3,
+    "schema_version": 1,
+    "occurred_at": "2026-10-21T14:12:01.251Z",
+    "correlation_id": "b43ee98c-7c60-48d5-bb13-71e114cbc596",
+    "causation_id": "2ea4e138-2a66-4733-b439-715798e834bc",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "command_id": "574f91f9-131f-45d1-9f58-2dcca70c23f7",
+      "kind": "done",
+      "result": {
+        "action": "create",
+        "resource_id": "b43ee98c-7c60-48d5-bb13-71e114cbc596"
+      },
+      "schema_version": 1
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-10-21T14:12:01.251Z"
+  },
+  {
+    "position": 5,
+    "event_id": "6c45d58c-a81a-404a-9f4b-c2d70a0d0ace",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "b43ee98c-7c60-48d5-bb13-71e114cbc596",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 4,
+    "schema_version": 1,
+    "occurred_at": "2026-10-21T14:12:01.570Z",
+    "correlation_id": "b43ee98c-7c60-48d5-bb13-71e114cbc596",
+    "causation_id": "e47a2e87-1a2e-4fea-8673-6ad65f7ec508",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "binding_id": "binding:claude-w5-account",
+      "command_id": "97481ea4-143b-4a1d-a407-2f0bbfc8f7f3",
+      "digest": "baa51b75434c90ad07a2923983ff540d0f77ae307b68b567516f7853a1feeb60",
+      "kind": "reserved",
+      "manifest_sha256": "daacd128deaf1f7721410193d99814736b99613bab69975c58cb2b0a241e00e7",
+      "observation": {
+        "expires_at": 1792591951567,
+        "observed_at": 1792591921567,
+        "quota_available_microusd": null,
+        "quota_remaining_requests": null,
+        "quota_windows": null
+      },
+      "observation_sha256": "89c41509b85ba4a43ad974db12c6683e396e22ee4ce66c445616c42535dfbabb",
+      "owner": "<redacted>",
+      "parent_command_id": null,
+      "quota_admission": "owner_exception",
+      "reserved_microusd": 0,
+      "schema_version": 1,
+      "task_id": "9e323441-2cff-45b6-85ad-91817dfc5657"
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-10-21T14:12:01.570Z"
+  },
+  {
+    "position": 6,
+    "event_id": "223e49ba-05cf-4dad-8921-ed70d389ed28",
+    "event_type": "ControlCommandRecorded",
+    "aggregate_id": "b43ee98c-7c60-48d5-bb13-71e114cbc596",
+    "aggregate_type": "control_provider_campaign",
+    "stream_sequence": 5,
+    "schema_version": 1,
+    "occurred_at": "2026-10-21T14:14:23.745Z",
+    "correlation_id": "b43ee98c-7c60-48d5-bb13-71e114cbc596",
+    "causation_id": "6c45d58c-a81a-404a-9f4b-c2d70a0d0ace",
+    "actor": {
+      "id": "provider-control",
+      "type": "hseos"
+    },
+    "operation_id": null,
+    "payload": {
+      "command_id": "97481ea4-143b-4a1d-a407-2f0bbfc8f7f3",
+      "kind": "uncertain",
+      "measured_microusd": null,
+      "schema_version": 1
+    },
+    "evidence_refs": [],
+    "recorded_at": "2026-10-21T14:14:23.746Z"
+  }
+]
