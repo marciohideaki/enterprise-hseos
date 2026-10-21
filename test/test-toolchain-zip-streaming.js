@@ -277,3 +277,93 @@ test('peak memory does not depend on the size of the entries', { skip: process.p
   `);
   assert.ok(streamed < entryBytes, `streaming five entries of ${entryBytes} bytes grew the peak by ${streamed} bytes`);
 });
+
+function forgedTable(files) {
+  const zip = buildZip(files);
+  return { zip, entries: pins.listZip(zip) };
+}
+
+test('extractZip defends itself: zip-slip and the running total are refused even for a table that skipped listZip', () => {
+  const target = temp('hseos-extract-');
+  const outside = path.join(path.dirname(target), `${path.basename(target)}-escape`);
+  const { zip, entries } = forgedTable([{ name: 'tool/a', data: Buffer.from('payload') }]);
+  assert.throws(
+    () => pins.extractZip(zip, [{ ...entries[0], name: `../${path.basename(outside)}` }], { entry_bytes: 1000, total_bytes: 1000 }, target),
+    refusal('ENV_TOOLCHAIN_ARCHIVE_UNSAFE'),
+  );
+  assert.equal(fs.existsSync(outside), false);
+  assert.deepEqual(fs.readdirSync(target), []);
+
+  const part = Buffer.alloc(600, 1);
+  const pair = forgedTable([
+    { name: 'tool/p1', data: part },
+    { name: 'tool/p2', data: part },
+  ]);
+  assert.throws(
+    () => pins.extractZip(pair.zip, pair.entries, { entry_bytes: 1000, total_bytes: 1000 }, target),
+    refusal('ENV_TOOLCHAIN_ARCHIVE_UNSAFE'),
+  );
+  assert.doesNotThrow(() => pins.extractZip(pair.zip, pair.entries, { entry_bytes: 1000, total_bytes: 1200 }, temp('hseos-extract-')));
+});
+
+test('a zip held in memory streams large entries to the child through stdin, byte-identical', () => {
+  const size = 3 * 1024 * 1024;
+  const data = Buffer.from(Array.from({ length: size }, (_, index) => (index * 13 + (index >> 7)) % 251));
+  const { zip, entries } = forgedTable([{ name: 'tool/big.bin', data }]);
+  const target = temp('hseos-extract-');
+  pins.extractZip(zip, entries, { entry_bytes: size, total_bytes: size }, target);
+  assert.deepEqual(fs.readFileSync(path.join(target, 'tool/big.bin')), data);
+});
+
+test('a child that does not finish in time is killed and the entry is refused', () => {
+  const data = Buffer.alloc(3 * 1024 * 1024, 5);
+  const { zip, entries } = forgedTable([{ name: 'tool/big.bin', data }]);
+  const target = temp('hseos-extract-');
+  assert.throws(
+    () => pins.extractZip(zip, entries, { entry_bytes: data.length, total_bytes: data.length }, target, { timeoutMs: 1 }),
+    (error) => refusal('ENV_TOOLCHAIN_ARCHIVE_UNSAFE')(error) && ['ETIMEDOUT', 'ENOENT', 'EPIPE'].includes(error.cause?.code),
+  );
+});
+
+test('an archive that changes after it was hashed is refused', () => {
+  const limits = { entry_bytes: 100_000, total_bytes: 200_000 };
+  const { cache, expected } = syntheticCache([{ name: 'tool/ok', data: Buffer.from('first') }], limits);
+  const artifact = path.join(cache, expected.tool.artifact);
+  let tampered = false;
+  // zip_limits is read once verification has hashed the file: append a byte there, after the digest and before extraction.
+  const pin = {
+    ...expected.tool,
+    get zip_limits() {
+      if (!tampered && fs.statSync(artifact).size > 0) {
+        tampered = true;
+        fs.appendFileSync(artifact, Buffer.from([0]));
+      }
+      return limits;
+    },
+  };
+  const destination = temp('hseos-zip-dest-');
+  assert.throws(
+    () => pins.installToolchain({ cacheDirectory: cache, destination, names: ['tool'], expected: { tool: pin } }),
+    refusal('ENV_TOOLCHAIN_DIGEST_MISMATCH'),
+  );
+  assert.equal(tampered, true);
+  assert.deepEqual(fs.readdirSync(destination), []);
+});
+
+test('a zip on disk and the same zip in memory list identically, and a truncated one is refused', () => {
+  const { zip } = forgedTable([
+    { name: 'tool/a', data: Buffer.from('aaa') },
+    { name: 'tool/d/', data: Buffer.alloc(0) },
+    { name: 'tool/d/b', data: Buffer.from('bbb'), executable: true },
+  ]);
+  const file = path.join(temp('hseos-zip-file-'), 'z.zip');
+  fs.writeFileSync(file, zip);
+  const onDisk = pins.fileSource(file);
+  assert.deepEqual(pins.listZip(onDisk), pins.listZip(zip));
+  const [entry] = pins.listZip(onDisk);
+  assert.equal(pins.readZipEntry(onDisk, entry).toString(), 'aaa');
+  fs.writeFileSync(file, zip.subarray(0, -30));
+  assert.throws(() => pins.listZip(pins.fileSource(file)), refusal('ENV_TOOLCHAIN_ARCHIVE_UNSAFE'));
+  fs.writeFileSync(file, Buffer.alloc(10));
+  assert.throws(() => pins.listZip(pins.fileSource(file)), refusal('ENV_TOOLCHAIN_ARCHIVE_UNSAFE'));
+});

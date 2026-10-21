@@ -198,22 +198,83 @@ function crc32(data) {
   return (value ^ 0xff_ff_ff_ff) >>> 0;
 }
 
-/** List the central directory of a zip held in memory. Anything unusual is refused, never skipped. */
-function listZip(bytes, limits = {}) {
+const MAX_ZIP_DIRECTORY_BYTES = 16_777_216;
+const ZIP_END_RECORD = Buffer.from([0x50, 0x4b, 0x05, 0x06]);
+
+/** A zip held in memory, read through the same interface as a zip on disk. */
+function bufferSource(bytes) {
+  return { size: bytes.length, read: (offset, length) => bytes.subarray(offset, offset + length) };
+}
+
+/**
+ * A zip on disk: every read opens the file, reads the range and closes it, so nothing stays open and nothing but the
+ * requested range is ever resident. `path` lets a child process read the same range itself.
+ */
+function fileSource(file) {
+  return {
+    size: fs.statSync(file).size,
+    path: file,
+    read(offset, length) {
+      const descriptor = fs.openSync(file, 'r');
+      try {
+        const buffer = Buffer.alloc(length);
+        let filled = 0;
+        while (filled < length) {
+          const count = fs.readSync(descriptor, buffer, filled, length - filled, offset + filled);
+          if (count === 0) break;
+          filled += count;
+        }
+        return buffer.subarray(0, filled);
+      } finally {
+        fs.closeSync(descriptor);
+      }
+    },
+  };
+}
+
+const asSource = (input) => (Buffer.isBuffer(input) ? bufferSource(input) : input);
+
+/** SHA-256 of a file read in 1 MiB steps: the digest never needs the file in memory. */
+function sha256File(file) {
+  const hash = createHash('sha256');
+  const descriptor = fs.openSync(file, 'r');
+  try {
+    const buffer = Buffer.alloc(1_048_576);
+    for (
+      let count = fs.readSync(descriptor, buffer, 0, buffer.length, null);
+      count > 0;
+      count = fs.readSync(descriptor, buffer, 0, buffer.length, null)
+    )
+      hash.update(buffer.subarray(0, count));
+  } finally {
+    fs.closeSync(descriptor);
+  }
+  return hash.digest('hex');
+}
+
+/** List the central directory of a zip (a Buffer or a file source). Anything unusual is refused, never skipped. */
+function listZip(input, limits = {}) {
+  const source = asSource(input);
   const maxEntry = limits.entry_bytes ?? MAX_ZIP_ENTRY_BYTES;
   const maxTotal = limits.total_bytes ?? MAX_ZIP_TOTAL_BYTES;
   const unsafe = () => blocked('artifact is not a safe zip', 'ENV_TOOLCHAIN_ARCHIVE_UNSAFE');
-  const end = bytes.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]), bytes.length - 22);
-  if (end === -1 || bytes.length - end < 22) unsafe();
-  const count = bytes.readUInt16LE(end + 10);
-  const size = bytes.readUInt32LE(end + 12);
-  const offset = bytes.readUInt32LE(end + 16);
-  if (count > MAX_ZIP_ENTRIES || offset + size > end || bytes.readUInt16LE(end + 4) !== 0) unsafe();
+  const tailLength = Math.min(source.size, 22 + 0xff_ff);
+  const tailStart = source.size - tailLength;
+  const tail = source.read(tailStart, tailLength);
+  const found = tail.length < 22 ? -1 : tail.lastIndexOf(ZIP_END_RECORD, tail.length - 22);
+  if (found === -1 || tail.length - found < 22) unsafe();
+  const end = tailStart + found;
+  const count = tail.readUInt16LE(found + 10);
+  const size = tail.readUInt32LE(found + 12);
+  const offset = tail.readUInt32LE(found + 16);
+  if (count > MAX_ZIP_ENTRIES || offset + size > end || tail.readUInt16LE(found + 4) !== 0 || size > MAX_ZIP_DIRECTORY_BYTES) unsafe();
+  const bytes = source.read(offset, size);
+  if (bytes.length !== size) unsafe();
   const entries = [];
   let total = 0;
-  let cursor = offset;
+  let cursor = 0;
   for (let index = 0; index < count; index += 1) {
-    if (cursor + 46 > end || bytes.readUInt32LE(cursor) !== 0x02_01_4b_50) unsafe();
+    if (cursor + 46 > bytes.length || bytes.readUInt32LE(cursor) !== 0x02_01_4b_50) unsafe();
     const flags = bytes.readUInt16LE(cursor + 8);
     const method = bytes.readUInt16LE(cursor + 10);
     const crc = bytes.readUInt32LE(cursor + 16);
@@ -225,6 +286,7 @@ function listZip(bytes, limits = {}) {
     const platform = bytes.readUInt8(cursor + 5);
     const attributes = bytes.readUInt32LE(cursor + 38);
     const localOffset = bytes.readUInt32LE(cursor + 42);
+    if (cursor + 46 + nameLength > bytes.length) unsafe();
     const name = bytes.subarray(cursor + 46, cursor + 46 + nameLength).toString('utf8');
     cursor += 46 + nameLength + extraLength + commentLength;
     const mode = platform === 3 ? (attributes >>> 16) & UNIX_TYPE_MASK : 0;
@@ -271,26 +333,31 @@ function assertCoherentNames(entries, unsafe) {
   }
 }
 
-function zipEntryRaw(bytes, entry) {
+/** Where the compressed bytes of an entry start, after its local header. */
+function zipEntryStart(source, entry) {
   const unsafe = () => blocked('artifact is not a safe zip', 'ENV_TOOLCHAIN_ARCHIVE_UNSAFE');
   const at = entry.localOffset;
-  if (at + 30 > bytes.length || bytes.readUInt32LE(at) !== 0x04_03_4b_50) unsafe();
-  const start = at + 30 + bytes.readUInt16LE(at + 26) + bytes.readUInt16LE(at + 28);
-  const raw = bytes.subarray(start, start + entry.compressed);
-  if (raw.length !== entry.compressed) unsafe();
-  return raw;
+  const header = at + 30 > source.size ? Buffer.alloc(0) : source.read(at, 30);
+  if (header.length !== 30 || header.readUInt32LE(0) !== 0x04_03_4b_50) unsafe();
+  const start = at + 30 + header.readUInt16LE(26) + header.readUInt16LE(28);
+  if (start + entry.compressed > source.size) unsafe();
+  return start;
 }
 
-function readZipEntry(bytes, entry, maxBytes = MAX_ZIP_ENTRY_BYTES) {
+function readZipEntry(input, entry, maxBytes = MAX_ZIP_ENTRY_BYTES) {
   const unsafe = () => blocked('artifact is not a safe zip', 'ENV_TOOLCHAIN_ARCHIVE_UNSAFE');
-  const raw = zipEntryRaw(bytes, entry);
+  const source = asSource(input);
+  // Nothing legitimate is compressed to more than its ceiling (plus deflate's small worst-case overhead).
+  if (entry.compressed > maxBytes + 65_536) unsafe();
+  const raw = source.read(zipEntryStart(source, entry), entry.compressed);
+  if (raw.length !== entry.compressed) unsafe();
   const data = entry.method === 0 ? raw : zlib.inflateRawSync(raw, { maxOutputLength: maxBytes });
   if (data.length !== entry.uncompressed || crc32(data) !== entry.crc) unsafe();
   return data;
 }
 
 // Entries up to this size are decoded in this process; larger ones are streamed through a child process.
-const ZIP_INLINE_ENTRY_BYTES = 8_388_608;
+const ZIP_INLINE_ENTRY_BYTES = 1_048_576;
 
 /**
  * Inflate a raw-deflate (or stored) entry from `input` into `file`, chunk by chunk: memory never depends on the entry
@@ -327,23 +394,38 @@ function inflateEntryToFile(input, { file, mode, method, maxBytes, size, crc }) 
   return pipeline(...stages, fsModule.createWriteStream(file, { flags: 'wx', mode })).then(() => written);
 }
 
+// A child that does not finish in time is killed. Measured: the real 189 MB entry takes 1.7 s, and this allows 100 ms per
+// MiB (18.9 s for it, about 11 times the measurement) with a 10 s floor for small ones.
+const ZIP_CHILD_TIMEOUT_FLOOR_MS = 10_000;
+const zipChildTimeoutMs = (entry) => Math.max(ZIP_CHILD_TIMEOUT_FLOOR_MS, Math.ceil(entry.uncompressed / 1_048_576) * 100);
+
 /** Write one entry of the zip into `file`. Returns the bytes written. */
-function writeZipEntry(bytes, entry, file, mode, maxBytes = MAX_ZIP_ENTRY_BYTES) {
+function writeZipEntry(input, entry, file, mode, { maxBytes = MAX_ZIP_ENTRY_BYTES, timeoutMs = zipChildTimeoutMs(entry) } = {}) {
   const unsafe = (cause) => blocked('artifact is not a safe zip', 'ENV_TOOLCHAIN_ARCHIVE_UNSAFE', cause ? { cause } : undefined);
   if (entry.uncompressed <= ZIP_INLINE_ENTRY_BYTES) {
-    const data = readZipEntry(bytes, entry, maxBytes);
+    const data = readZipEntry(input, entry, maxBytes);
     fs.writeFileSync(file, data, { flag: 'wx', mode });
     return data.length;
   }
-  const raw = zipEntryRaw(bytes, entry);
+  const source = asSource(input);
+  const start = zipEntryStart(source, entry);
+  // From a file the child reads its own range; only an in-memory zip has to be piped in.
+  const range = source.path ? { path: source.path, start, end: start + entry.compressed - 1 } : null;
   const options = { file, mode, method: entry.method, maxBytes, size: entry.uncompressed, crc: entry.crc };
-  const script = `(${inflateEntryToFile.toString()})(process.stdin, ${JSON.stringify(options)}).then(
+  const script = `(${inflateEntryToFile.toString()})(${range ? `require('node:fs').createReadStream(${JSON.stringify(range.path)}, ${JSON.stringify({ start: range.start, end: range.end })})` : 'process.stdin'}, ${JSON.stringify(options)}).then(
     (written) => process.stdout.write(String(written)),
     (error) => { process.stderr.write(String(error && error.message)); process.exitCode = 2; },
   );`;
   try {
     return Number(
-      execFileSync(process.execPath, ['-e', script], { env: { PATH: '/usr/bin:/bin' }, input: raw, stdio: ['pipe', 'pipe', 'pipe'] }),
+      execFileSync(process.execPath, ['-e', script], {
+        env: { PATH: '/usr/bin:/bin' },
+        ...(range
+          ? { stdio: ['ignore', 'pipe', 'pipe'] }
+          : { input: source.read(start, entry.compressed), stdio: ['pipe', 'pipe', 'pipe'] }),
+        timeout: timeoutMs,
+        killSignal: 'SIGKILL',
+      }),
     );
   } catch (error) {
     return unsafe(error);
@@ -403,14 +485,22 @@ function verifyPin(cacheDirectory, name, manifest, expected = PINS) {
     blocked(`manifest entry for ${name} diverges from the pin`, 'ENV_TOOLCHAIN_PIN_DIVERGED');
   }
   const file = artifactPath(cacheDirectory, want.artifact);
+  // A zip is hashed in steps and read by range afterwards, so the whole archive is never resident; every other format is
+  // read once, and the same bytes are hashed and extracted.
   let bytes;
+  let digest;
   try {
-    bytes = fs.readFileSync(file);
+    if (want.format === 'zip') {
+      digest = sha256File(file);
+      bytes = fileSource(file);
+    } else {
+      bytes = fs.readFileSync(file);
+      digest = createHash('sha256').update(bytes).digest('hex');
+    }
   } catch {
     blocked(`artifact for ${name} is absent`, 'ENV_TOOLCHAIN_ARTIFACT_MISSING');
   }
-  if (createHash('sha256').update(bytes).digest('hex') !== want.sha256)
-    blocked(`artifact for ${name} fails its SHA-256`, 'ENV_TOOLCHAIN_DIGEST_MISMATCH');
+  if (digest !== want.sha256) blocked(`artifact for ${name} fails its SHA-256`, 'ENV_TOOLCHAIN_DIGEST_MISMATCH');
   let licenseText;
   try {
     licenseText = readLicense(want, bytes);
@@ -448,10 +538,10 @@ function assertSafeArchive(bytes, root = 'package/') {
 }
 
 // One entry at a time, and each entry a slice at a time: inflate, check, write, drop. The listing (names, modes, declared
-// sizes, ceilings) was already validated by listZip, so no entry is decoded before the whole table is accepted. Peak
-// memory is the artifact plus one slice, not the sum of the entries. The running total of the bytes actually decoded is
-// checked again here, so headers that lie about sizes cannot widen the total ceiling.
-function extractZip(bytes, entries, limits, target) {
+// sizes, ceilings) was already validated by listZip, so no entry is decoded before the whole table is accepted. The checks
+// on the path and on the running total are repeated here on purpose: they are the last line of defence if a table ever
+// reaches this function without going through listZip. The total counts the bytes actually written.
+function extractZip(input, entries, limits, target, { timeoutMs } = {}) {
   const base = path.resolve(target);
   const maxEntry = limits?.entry_bytes;
   const maxTotal = limits?.total_bytes ?? MAX_ZIP_TOTAL_BYTES;
@@ -465,7 +555,7 @@ function extractZip(bytes, entries, limits, target) {
       continue;
     }
     fs.mkdirSync(path.dirname(destination), { recursive: true, mode: 0o700 });
-    total += writeZipEntry(bytes, entry, destination, entry.executable ? 0o700 : 0o600, maxEntry);
+    total += writeZipEntry(input, entry, destination, entry.executable ? 0o700 : 0o600, { maxBytes: maxEntry, timeoutMs });
     if (total > maxTotal) blocked('artifact is not a safe zip', 'ENV_TOOLCHAIN_ARCHIVE_UNSAFE');
   }
 }
@@ -529,6 +619,9 @@ function installToolchain({
         const entries = listZip(pin.bytes, pin.zip_limits);
         fs.mkdirSync(staging, { recursive: true, mode: 0o700 });
         extractZip(pin.bytes, entries, pin.zip_limits, staging);
+        // The archive was read by range after it was hashed: refuse if it changed in between.
+        if (sha256File(pin.bytes.path) !== pin.sha256)
+          blocked(`artifact for ${pin.name} changed during extraction`, 'ENV_TOOLCHAIN_DIGEST_MISMATCH');
       } else {
         assertSafeArchive(pin.bytes, pin.root);
         fs.mkdirSync(staging, { recursive: true, mode: 0o700 });
@@ -614,6 +707,8 @@ module.exports = {
   listZip,
   readManifest,
   inflateEntryToFile,
+  extractZip,
+  fileSource,
   readZipEntry,
   resolveCacheDirectory,
   verifyPin,
