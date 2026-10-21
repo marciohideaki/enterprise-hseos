@@ -41,6 +41,13 @@ class FakeElement {
     };
   }
 
+  // Only what app.js asks for: the project badge it colours through the CSSOM (no inline style attribute).
+  querySelector(selector) {
+    if (selector !== '.card-project' || !/<span class="card-project"/.test(this.innerHTML)) return null;
+    this.badge ??= new FakeElement('span');
+    return this.badge;
+  }
+
   append(...nodes) {
     this.children.push(...nodes);
   }
@@ -152,14 +159,21 @@ function onlyTags(html, allowed) {
 }
 
 function stylePayload(card) {
-  return [card.innerHTML, card.style.color, card.style.cssText].filter(Boolean).join('\n');
+  return [card.innerHTML, card.style.color, card.style.cssText, card.badge?.style.color, card.badge?.style.cssText]
+    .filter(Boolean)
+    .join('\n');
 }
 
-/** Values of the style attributes of the badge spans in a card. */
+/**
+ * Styles applied to the badge of a card: any style attribute in the markup (there must be none, the CSP forbids
+ * inline styles) plus the colour set through the CSSOM, reported as `color:<value>`.
+ */
 function badgeStyles(card) {
-  return tokenize(card.innerHTML)
+  const inMarkup = tokenize(card.innerHTML)
     .filter((entry) => entry.tag === 'span' && entry.attributes.some((a) => a.name === 'class' && a.value === 'card-project'))
     .flatMap((entry) => entry.attributes.filter((a) => a.name === 'style').map((a) => a.value));
+  assert.deepEqual(inMarkup, [], 'the badge markup carries no inline style attribute');
+  return card.badge?.style.color ? [`color:${card.badge.style.color}`] : [];
 }
 
 const MALICIOUS_ID = 'x" onfocus="alert(1)" autofocus="';
