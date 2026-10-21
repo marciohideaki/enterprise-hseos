@@ -207,3 +207,45 @@ test('a client output limit overrun is an explicit provider output limit, never 
   assert.equal(error.diagnostic.client_limit_tokens, f.m.limits.max_output_tokens);
   assert.equal(f.calls().filter((call) => call.argv.includes('-p')).length, 1, 'not retried');
 });
+
+test('the manifest output limit counts reasoning, as the client cap does, and a breach names the numbers', async (t) => {
+  const usage = (output, thinking) => ({
+    input_tokens: 5,
+    output_tokens: output,
+    output_tokens_details: { thinking_tokens: thinking },
+    cache_read_input_tokens: 0,
+    cache_creation_input_tokens: 0,
+  });
+  const f = setup(t, { mode: { usage: usage(16_385, 12_000) } });
+  f.m.limits.max_output_tokens = 16_384;
+  const error = await f
+    .create()
+    .adapter.run({ task_id: f.id, signal: signal() })
+    .then(
+      () => null,
+      (error_) => error_,
+    );
+  assert.equal(error.code, 'CONTROL_CAMPAIGN_BUDGET_EXHAUSTED');
+  assert.deepEqual(error.diagnostic, {
+    limit: 'output_tokens',
+    output_tokens: 16_385,
+    max_output_tokens: 16_384,
+    reasoning_tokens: 12_000,
+  });
+  const g = setup(t, { mode: { usage: usage(16_384, 12_000) } });
+  g.m.limits.max_output_tokens = 16_384;
+  const receipt = await g.create().adapter.run({ task_id: g.id, signal: signal() });
+  assert.equal(receipt.output_tokens, 16_384, 'a run exactly at the limit is accepted');
+  const h = setup(t, {
+    mode: { usage: { input_tokens: 5, output_tokens: 16_385, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 } },
+  });
+  h.m.limits.max_output_tokens = 16_384;
+  const plain = await h
+    .create()
+    .adapter.run({ task_id: h.id, signal: signal() })
+    .then(
+      () => null,
+      (error_) => error_,
+    );
+  assert.equal(plain.diagnostic.reasoning_tokens, null, 'absent reasoning is reported as unknown, not zero');
+});

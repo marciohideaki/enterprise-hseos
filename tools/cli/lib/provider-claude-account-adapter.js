@@ -210,7 +210,17 @@ function createClaudeAccountCampaignAdapter(
           integer.parse(usage?.cache_read_input_tokens ?? 0) +
           integer.parse(usage?.cache_creation_input_tokens ?? 0);
         const output = integer.parse(usage?.output_tokens);
-        if (output > manifest.limits.max_output_tokens) fail('CONTROL_CAMPAIGN_BUDGET_EXHAUSTED');
+        // Same criterion as the client's own cap (CLAUDE_CODE_MAX_OUTPUT_TOKENS = manifest max_output_tokens): usage.output_tokens
+        // is the whole answer, reasoning included, so a breach is reported with the numbers and how much of it was reasoning.
+        if (output > manifest.limits.max_output_tokens) {
+          const reasoning = integer.safeParse(usage?.output_tokens_details?.thinking_tokens);
+          fail('CONTROL_CAMPAIGN_BUDGET_EXHAUSTED', {
+            limit: 'output_tokens',
+            output_tokens: output,
+            max_output_tokens: manifest.limits.max_output_tokens,
+            reasoning_tokens: reasoning.success ? reasoning.data : null,
+          });
+        }
         return {
           status: 'completed',
           binding_sha256: digest,

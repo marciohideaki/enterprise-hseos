@@ -100,7 +100,7 @@ if (argv[0] === '--version') {
         type: 'result',
         subtype: mode.run === 'error' ? 'error_during_execution' : 'success',
         is_error: mode.run === 'error',
-        usage: { input_tokens: 5, output_tokens: 2, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
+        usage: mode.usage ?? { input_tokens: 5, output_tokens: 2, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
         modelUsage: { [flag('--model') ?? 'm']: { inputTokens: 5, outputTokens: 2 } },
         total_cost_usd: 0.0001,
         permission_denials: [],
