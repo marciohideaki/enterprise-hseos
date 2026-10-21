@@ -366,7 +366,7 @@ function customProject(name, markerLong, markerEcho) {
     workspace: { root },
     sources: [{ id: 'spec', kind: 'specification', content: spec, sha256: sha256(spec) }],
     requirements: [{ id: 'r1', description: spec, source_ids: ['spec'] }],
-    acceptance: [{ id: 'a1', description: 'Protected cases validate the increment.', requirement_ids: ['r1'] }],
+    acceptance: [{ id: 'a1', description: 'Protected cases validate the increment.', requirement_ids: ['r1'], check_ids: ['increment'] }],
     scope: { read: Object.keys(files), write: ['index.js'] },
     commands: [
       { id: 'long', runtime: 'node', entrypoint: 'scripts/long.js', args: [markerLong] },
@@ -379,7 +379,7 @@ function customProject(name, markerLong, markerEcho) {
     verifier: {
       reference: 'verifier://project/node-module-v1',
       acceptance_ids: ['a1'],
-      checks: [{ path: 'index.js', export_name: 'default', args: [3], expected: 4 }],
+      checks: [{ id: 'increment', path: 'index.js', export_name: 'default', args: [3], expected: 4 }],
     },
     rollback: 'discard-disposable-workspace',
   });
