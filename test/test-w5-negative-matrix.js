@@ -966,7 +966,7 @@ test('executor limits and MCP bounds: an out-of-range pids_max is refused at adm
 
 test('pnpm store: a link leaving the verified store and a file one character beyond the limit are refused, never followed or truncated', (t) => {
   const { pnpmProject } = require('./helpers/pnpm-store');
-  const { projectWorkspaceSnapshot } = require('../tools/cli/lib/engineering-workspace');
+  const { projectWorkspaceSnapshot, verifyPnpmStoreMount } = require('../tools/cli/lib/engineering-workspace');
   const evil = 'node_modules/.pnpm/evil@1.0.0/node_modules/evil';
   const escaping = pnpmProject(t);
   const target = path.join(escaping.directory, 'outside.js');
@@ -975,6 +975,13 @@ test('pnpm store: a link leaving the verified store and a file one character bey
   fs.symlinkSync(target, path.join(escaping.root, evil, 'abs.js'));
   escaping.contract.scope.read.push(`${evil}/abs.js`);
   assert.throws(() => projectWorkspaceSnapshot(escaping.contract), { reason: 'PROJECT_STORE_LINK_ESCAPES' });
+  // The read path and the sandbox mount each check links on their own; the mount must refuse the same escape.
+  const mounted = pnpmProject(t, { mounted: true });
+  fs.symlinkSync('/etc/hostname', path.join(mounted.root, 'node_modules/.pnpm', 'abs-link'));
+  assert.throws(() => verifyPnpmStoreMount(mounted.root), { reason: 'PROJECT_STORE_LINK_ESCAPES' });
+  const parent = pnpmProject(t, { mounted: true });
+  fs.symlinkSync('../../../..', path.join(parent.root, 'node_modules/.pnpm', 'mini-test@1.0.0', 'parent'));
+  assert.throws(() => verifyPnpmStoreMount(parent.root), { reason: 'PROJECT_STORE_LINK_ESCAPES' });
   const storeFile = 'node_modules/.pnpm/mini-test@1.0.0/node_modules/mini-assert/index.js';
   const replace = (f, length) => {
     const file = path.join(f.root, 'node_modules/.pnpm/mini-assert@2.0.0/node_modules/mini-assert/index.js');
