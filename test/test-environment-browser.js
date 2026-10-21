@@ -638,32 +638,45 @@ console.log(JSON.stringify({ before, afterContract: loaded() > 0, playwright: Ob
 
 test('host in-process: runs the steps, writes artifacts and reports step failures without throwing', async () => {
   const artifacts = temp('hseos-browser-artifacts-');
-  const result = await host.runBrowser({
-    steps: [
-      { op: 'goto', url: `${origin}/` },
-      { op: 'wait_for', selector: '#late' },
-      { op: 'screenshot' },
-      { op: 'dom_snapshot' },
-      { op: 'click', selector: '#absent' },
-      { op: 'dom_snapshot' },
-    ],
-    viewport: { width: 640, height: 480 },
-    timeout_ms: 1500,
-    toolchain: toolchain.root,
-    flags: ['--no-sandbox'],
-    scratch: temp('hseos-browser-scratch-'),
-    broker_socket: egress.socketPath,
-    artifacts,
-  });
+  const call = (steps, timeoutMs) =>
+    host.runBrowser({
+      steps,
+      viewport: { width: 640, height: 480 },
+      timeout_ms: timeoutMs,
+      toolchain: toolchain.root,
+      flags: ['--no-sandbox'],
+      scratch: temp('hseos-browser-scratch-'),
+      broker_socket: egress.socketPath,
+      artifacts,
+    });
+  // The call's budget covers the browser launch too, and how long that takes depends on the load of the host. So the
+  // happy path gets a budget it cannot exhaust, and its measured cost sizes the budget of the call that has to time out.
+  const began = Date.now();
+  const result = await call(
+    [{ op: 'goto', url: `${origin}/` }, { op: 'wait_for', selector: '#late' }, { op: 'screenshot' }, { op: 'dom_snapshot' }],
+    30_000,
+  );
+  const cost = Date.now() - began;
   assert.deepEqual(
     result.steps.map((step) => step.ok),
-    [true, true, true, true, false],
+    [true, true, true, true],
   );
-  assert.equal(result.steps[4].error, 'ENV_BROWSER_TIMEOUT');
-  assert.equal(result.captures.length, 2, 'the loop stops at the first failed step');
-  assert.deepEqual(processesMentioning(toolchain.root), [], 'the browser is closed when the call ends, failed step or not');
+  assert.equal(result.captures.length, 2);
+  assert.deepEqual(processesMentioning(toolchain.root), [], 'the browser is closed when the call ends');
   assert.equal(result.files[0].media_type, 'image/png');
   assert.equal(sha256(fs.readFileSync(path.join(artifacts, 'shot-0.png'))), result.files[0].sha256);
+
+  const timedOut = await call(
+    [{ op: 'goto', url: `${origin}/` }, { op: 'dom_snapshot' }, { op: 'click', selector: '#absent' }, { op: 'dom_snapshot' }],
+    2 * cost + 1500,
+  );
+  assert.deepEqual(
+    timedOut.steps.map((step) => step.ok),
+    [true, true, false],
+  );
+  assert.equal(timedOut.steps[2].error, 'ENV_BROWSER_TIMEOUT');
+  assert.equal(timedOut.captures.length, 1, 'the loop stops at the first failed step');
+  assert.deepEqual(processesMentioning(toolchain.root), [], 'the browser is closed when the call ends, failed step or not');
 
   const failed = await host.runBrowser({
     steps: [
@@ -672,7 +685,7 @@ test('host in-process: runs the steps, writes artifacts and reports step failure
       { op: 'press', key: 'NoSuchKeyName' },
     ],
     viewport: { width: 640, height: 480 },
-    timeout_ms: 5000,
+    timeout_ms: 30_000, // the failing key press ends the call at once; the budget only has to outlast a loaded launch
     toolchain: toolchain.root,
     flags: ['--no-sandbox'],
     scratch: temp('hseos-browser-scratch-'),
