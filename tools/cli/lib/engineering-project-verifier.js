@@ -107,7 +107,7 @@ async function verifyEngineeringTask(options) {
     // Reconciliation only inspects prerequisites and never approves, so it does not replay acceptance commands.
     if (!runCommandChecks) return { approved: false, reason: 'command-checks-not-run', verifier_sha256: sha256 };
   }
-  const probes = contract.verifier.checks.map(({ expected: _expected, ...probe }) => probe);
+  const probes = contract.verifier.checks.map(({ expected: _expected, id: _id, ...probe }) => probe);
   const script =
     definition.runtime === 'python'
       ? "import json,runpy,sys,os\nsys.path.insert(0,os.getcwd())\nchecks=json.loads(sys.argv[1])\nprint(json.dumps([runpy.run_path(c['path'])[c['export_name']](*c['args']) for c in checks]))"

@@ -55,6 +55,7 @@ function assembleTemporaryKernel({
   context_profile_resolver,
   tool_bundles = [],
   execution_policy = null,
+  approval_resolver = null,
   completion_review = null,
   max_concurrency = 1,
   runtime_clock = Date,
@@ -77,6 +78,7 @@ function assembleTemporaryKernel({
     event_registry: eventRegistry,
     ledger: executionLedger,
     approval_store: new ExecutionApprovalStore(db),
+    approval_resolver,
     authority: {
       async evaluate() {
         return { allowed: true };

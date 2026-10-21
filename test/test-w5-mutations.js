@@ -33,6 +33,7 @@ const MCP_UNKNOWN = '^mcp: malformed and unknown';
 const MCP_SCOPE = '^mcp: a request outside';
 const WEAK = '^engineering: static-only';
 const ARGS = '^engineering: every argument form';
+const UNCOVERED = '^engineering: a criterion without an executable check';
 
 // [id, group, matrix case (anchored name pattern), file, [[anchor, replacement], ...]]; every anchor must occur once.
 const MUTANTS = [
@@ -201,6 +202,13 @@ const MUTANTS = [
     WEAK,
     'tools/cli/lib/engineering-task-contract.js',
     [["requireCondition(modules, 'ENGINEERING_ACCEPTANCE_WEAK');", 'void modules;']],
+  ],
+  [
+    'acceptance_uncovered',
+    'weak',
+    UNCOVERED,
+    'tools/cli/lib/engineering-task-contract.js',
+    [['(item.check_ids || []).some((id) => executable.has(id)),', 'true,']],
   ],
   [
     'args_unchecked',

@@ -100,6 +100,29 @@ const schema = strictObject({
   rollback: z.literal('discard-disposable-workspace'),
 });
 
+/**
+ * Environment capabilities a task may opt into (schema 2 only). Names are the governed contract names; a task that
+ * declares none keeps today's behavior and its digest, and a capability that is not declared is denied by the policy.
+ */
+const ENVIRONMENT_CAPABILITIES = Object.freeze([
+  'environment.lsp.diagnostics',
+  'environment.lsp.definition',
+  'environment.lsp.references',
+  'environment.lsp.hover',
+  'environment.lsp.rename_preview',
+  'environment.dap.run',
+  'environment.browser.run',
+  'environment.computer.start',
+  'environment.computer.screenshot',
+  'environment.computer.act',
+  'environment.computer.stop',
+  'memory.write',
+  'memory.retrieve',
+  'memory.delete',
+]);
+// A computer session is opened by `start`: every other computer capability is meaningless without it.
+const COMPUTER_DEPENDENT = Object.freeze(['environment.computer.screenshot', 'environment.computer.act', 'environment.computer.stop']);
+
 const projectPath = z.string().min(1).max(PROJECT_LIMITS.store_path_chars).refine(isProjectPath);
 const projectPaths = z
   .array(projectPath)
@@ -112,6 +135,11 @@ const commandLimits = strictObject({
   nofile: z.number().int().min(64).max(4096).optional(),
 });
 const projectSchema = schema.extend({
+  // Optional per-criterion link to the checks (verifier.checks[].id) and commands (command_checks[].command_id) that decide it.
+  acceptance: z
+    .array(acceptance.extend({ check_ids: ids.optional() }))
+    .min(1)
+    .max(64),
   initial_files: z
     .array(file.extend({ path: projectPath, content: z.string().max(PROJECT_LIMITS.large_file_chars) }))
     .max(PROJECT_LIMITS.total_paths)
@@ -124,6 +152,9 @@ const projectSchema = schema.extend({
   max_artifact_bytes: z.number().int().positive().max(PROJECT_LIMITS.artifact_bytes),
   schema_version: z.literal(2),
   execution_profile: z.literal('managed-project'),
+  environment: strictObject({
+    capabilities: z.array(z.enum(ENVIRONMENT_CAPABILITIES)).min(1).max(ENVIRONMENT_CAPABILITIES.length),
+  }).optional(),
   workspace: strictObject({
     root: z
       .string()
@@ -141,6 +172,7 @@ const projectSchema = schema.extend({
     checks: z
       .array(
         strictObject({
+          id: IdentifierSchema.optional(),
           path: projectPath,
           export_name: z.string().regex(/^[a-zA-Z_][a-zA-Z0-9_]*$/),
           args: z.array(z.json()).max(16),
@@ -214,8 +246,8 @@ const declaredPaths = (contract) => [
  * acceptance must be executable, either through protected `command_checks` or through a pinned module verifier
  * (`node-module-v1`/`python-module-v1`) that runs the candidate against expectations fixed in the contract. The
  * checked module is the artifact under test, so it stays writable; `web-content-v1` is static text matching and never
- * satisfies this rule. Coverage is global through `verifier.acceptance_ids`, which the parse
- * already equates with every `acceptance.id`; a per-criterion link is not part of the contract.
+ * satisfies this rule. `verifier.acceptance_ids` is equated with every `acceptance.id` by the parse; per criterion,
+ * `check_ids` must name at least one executable check: a command check, or a check of a module verifier.
  */
 function requireExecutableAcceptance(contract, protectedPaths) {
   const commandChecks = contract.verifier.command_checks || [];
@@ -227,9 +259,34 @@ function requireExecutableAcceptance(contract, protectedPaths) {
   if (commandChecks.length > 0) {
     for (const entry of present.filter(isKnownConfigFile))
       requireCondition(protectedPaths.has(entry), 'ENGINEERING_PROTECTED_CONFIG_MISSING');
-    return;
+  } else {
+    requireCondition(modules, 'ENGINEERING_ACCEPTANCE_WEAK');
   }
-  requireCondition(modules, 'ENGINEERING_ACCEPTANCE_WEAK');
+  const executable = new Set([
+    ...commandChecks.map((item) => item.command_id),
+    ...(modules ? contract.verifier.checks.map((item) => item.id) : []),
+  ]);
+  for (const item of contract.acceptance)
+    requireCondition(
+      (item.check_ids || []).some((id) => executable.has(id)),
+      'ENGINEERING_ACCEPTANCE_UNCOVERED',
+    );
+}
+
+/** The ids a criterion may name share one namespace: checks and command checks. Absent links change nothing. */
+function requireCheckLinks(contract) {
+  const known = [
+    ...contract.verifier.checks.flatMap((item) => (item.id ? [item.id] : [])),
+    ...(contract.verifier.command_checks || []).map((item) => item.command_id),
+  ];
+  requireCondition(new Set(known).size === known.length, 'ENGINEERING_CHECK_ID_DUPLICATE');
+  const linked = contract.acceptance.filter((item) => item.check_ids);
+  if (linked.length === 0) return;
+  requireCondition(linked.length === contract.acceptance.length, 'ENGINEERING_CHECK_IDS_INCOMPLETE');
+  for (const item of linked) {
+    unique(item.check_ids, 'ENGINEERING_CHECK_ID_DUPLICATE');
+    for (const id of item.check_ids) requireCondition(known.includes(id), 'ENGINEERING_CHECK_ID_UNKNOWN');
+  }
 }
 
 function parseEngineeringTask(value, { admission = false } = {}) {
@@ -301,6 +358,13 @@ function parseEngineeringTask(value, { admission = false } = {}) {
   requireCondition(Object.values(contract.limits).every(Number.isSafeInteger), 'ENGINEERING_LIMITS_INVALID');
   requireCondition(contract.limits.max_children === 0 && contract.limits.max_workflow_steps === 0, 'ENGINEERING_LIMITS_INVALID');
   if (contract.schema_version === 2) {
+    if (contract.environment) {
+      const declared = unique(contract.environment.capabilities, 'ENGINEERING_ENVIRONMENT_INVALID');
+      requireCondition(
+        !COMPUTER_DEPENDENT.some((name) => declared.has(name)) || declared.has('environment.computer.start'),
+        'ENGINEERING_ENVIRONMENT_INVALID',
+      );
+    }
     for (const check of contract.verifier.checks) requireCondition(readPaths.has(check.path), 'ENGINEERING_CHECK_PATH_UNREADABLE');
     const protectedPaths = new Set(unique(contract.verifier.protected_paths || [], 'ENGINEERING_PROTECTED_PATH_INVALID'));
     for (const entry of protectedPaths)
@@ -325,6 +389,7 @@ function parseEngineeringTask(value, { admission = false } = {}) {
         }
       }
     }
+    requireCheckLinks(contract);
     if (contract.initial_files.length > 0) {
       const byPath = new Map(contract.initial_files.map((item) => [item.path, item.sha256]));
       requireCondition(
@@ -368,6 +433,7 @@ function readEngineeringTask(filename) {
 }
 
 module.exports = {
+  ENVIRONMENT_CAPABILITIES,
   EngineeringTaskContractError,
   PROJECT_LIMITS,
   PROTECTED_CONFIG_FILES,

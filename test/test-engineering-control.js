@@ -423,7 +423,7 @@ test('admission refuses weak acceptance and unsafe command arguments with a cura
     );
   const weak = structuredClone(f.contract);
   weak.verifier.reference = 'verifier://project/web-content-v1';
-  weak.verifier.checks = [{ path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
+  weak.verifier.checks = [{ id: 'c1', path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
   await rejected(weak, 'ENGINEERING_ACCEPTANCE_WEAK');
   const withCommand = (mutate) => {
     const contract = structuredClone(f.contract);
@@ -518,7 +518,7 @@ test('job creation applies the hardened admission while replaying admitted input
   });
   const weak = structuredClone(f.contract);
   weak.verifier.reference = 'verifier://project/web-content-v1';
-  weak.verifier.checks = [{ path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
+  weak.verifier.checks = [{ id: 'c1', path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
   weak.verifier.sha256 = projectVerifierDigest(weak);
   const input = { contract: weak, responses: [] };
   const { parseCreationInput } = require('../tools/cli/lib/engineering-control');
@@ -554,7 +554,7 @@ test('a job admitted under the previous rules is still claimed and re-validated,
   });
   const weak = structuredClone(f.contract);
   weak.verifier.reference = 'verifier://project/web-content-v1';
-  weak.verifier.checks = [{ path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
+  weak.verifier.checks = [{ id: 'c1', path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
   weak.verifier.sha256 = projectVerifierDigest(weak);
   const id = randomUUID();
   const now = Date.parse('2027-01-01T00:00:00.000Z');
@@ -593,7 +593,7 @@ test('the job command pre-check refuses weak acceptance before any other validat
   const f = await setup(t);
   const weak = structuredClone(f.contract);
   weak.verifier.reference = 'verifier://project/web-content-v1';
-  weak.verifier.checks = [{ path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
+  weak.verifier.checks = [{ id: 'c1', path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
   const response = await fetch(f.server.url + '/v1/jobs/commands', {
     method: 'POST',
     headers: { authorization: `Bearer ${credential}`, 'content-type': 'application/json' },
