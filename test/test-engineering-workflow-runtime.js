@@ -123,6 +123,22 @@ test('parallel tasks share the declared aggregate budget and release unused rese
   }
 });
 
+test('a task blocked by an uncoded execution error keeps the reason in the workflow summary', async () => {
+  const input = definition();
+  input.tasks = input.tasks.slice(0, 1);
+  // The deadline is fixed at creation; one millisecond is gone before the executor attestation, which then refuses.
+  const { contract } = input.tasks[0];
+  input.tasks[0].contract = { ...contract, limits: { ...contract.limits, max_duration_ms: 1 } };
+  const result = await runEngineeringWorkflow({ definition: input });
+  try {
+    assert.equal(result.tasks[0].result, 'blocked', JSON.stringify(result));
+    assert.equal(result.tasks[0].reason, 'engineering-execution-blocked');
+    assert.match(result.tasks[0].detail, /Task duration budget exhausted before execution/);
+  } finally {
+    fs.rmSync(result.state, { recursive: true, force: true });
+  }
+});
+
 test('explicit migration converts eligible definitions without touching legacy history or executing tasks', () => {
   const path = require('node:path');
   const os = require('node:os');

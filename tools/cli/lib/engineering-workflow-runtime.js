@@ -19,6 +19,7 @@ const {
   assembleEngineeringTask,
   attestEngineeringExecutor,
   executeEngineeringTask,
+  sessionEvidence,
 } = require('./engineering-task-runtime');
 
 const definitionSchema = z
@@ -125,6 +126,7 @@ function workflowSummary(handle, manifest, store) {
       result: state.result?.result || 'not_executed',
       reason: state.result?.reason || 'awaiting-execution',
       questions: state.uncertainty ? [state.uncertainty.question] : [],
+      ...(state.result?.evidence?.error_message ? { detail: state.result.evidence.error_message } : {}),
     };
   });
   const cancellation = parent.status === 'cancelled' || reservation?.released?.status === 'cancelled';
@@ -326,7 +328,12 @@ function assembleEngineeringWorkflow(handle, manifest, modelOptions = {}) {
           child.task.append({ kind: 'result', result: 'not_executed', reason: 'cancelled', evidence: {} }, state.version);
         else if (!state.result)
           child.task.append(
-            { kind: 'result', result: 'blocked', reason: error.code || 'engineering-execution-blocked', evidence: {} },
+            {
+              kind: 'result',
+              result: 'blocked',
+              reason: error.code || 'engineering-execution-blocked',
+              evidence: { error_message: sessionEvidence.evidenceMessage(String(error.message)) },
+            },
             state.version,
           );
         throw error;
