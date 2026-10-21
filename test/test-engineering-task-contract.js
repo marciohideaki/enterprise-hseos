@@ -624,3 +624,37 @@ test('the check id never reaches the probe script', () => {
   const source = fs.readFileSync(path.join(__dirname, '../tools/cli/lib/engineering-project-verifier.js'), 'utf8');
   assert.match(source, /const probes = contract\.verifier\.checks\.map\(\(\{ expected: _expected, id: _id, \.\.\.probe \}\) => probe\);/);
 });
+
+test('admission requires every criterion to name an executable check; reading an admitted contract does not', (t) => {
+  assert.equal(admissionCode(admissionContract(t)), 'ok');
+  const uncovered = (mutate) => admissionContract(t, mutate);
+  const unlinked = uncovered((c) => delete c.acceptance[0].check_ids);
+  assert.equal(admissionCode(unlinked), 'ENGINEERING_ACCEPTANCE_UNCOVERED', 'a criterion without check_ids');
+  assert.equal(reasonOf(unlinked), 'ok', 'the same contract is still readable outside admission');
+  // A module verifier makes its checks executable even without command checks.
+  const moduleOnly = (mutate) =>
+    uncovered((c) => {
+      delete c.verifier.command_checks;
+      delete c.verifier.protected_paths;
+      mutate?.(c);
+    });
+  assert.equal(admissionCode(moduleOnly()), 'ok');
+  // web-content-v1 never counts, even when a command check makes the contract admissible: only the command does.
+  const web = (ids) =>
+    uncovered((c) => {
+      c.verifier.reference = 'verifier://project/web-content-v1';
+      c.verifier.checks = [{ id: 'c1', path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
+      c.acceptance[0].check_ids = ids;
+    });
+  assert.equal(admissionCode(web(['c1'])), 'ENGINEERING_ACCEPTANCE_UNCOVERED', 'a static check does not cover');
+  assert.equal(admissionCode(web(['c1', 'check'])), 'ok', 'a command check next to it does');
+  // One covered criterion does not cover another.
+  const second = uncovered((c) => {
+    c.acceptance.push({ id: 'a2', description: 'second', requirement_ids: c.acceptance[0].requirement_ids, check_ids: ['c1'] });
+    c.verifier.acceptance_ids.push('a2');
+    c.verifier.reference = 'verifier://project/web-content-v1';
+    c.verifier.checks[0].expected = 'module.exports';
+    c.acceptance[0].check_ids = ['check'];
+  });
+  assert.equal(admissionCode(second), 'ENGINEERING_ACCEPTANCE_UNCOVERED', 'the second criterion only names a static check');
+});

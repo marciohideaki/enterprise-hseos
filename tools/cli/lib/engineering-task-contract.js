@@ -236,6 +236,15 @@ function requireExecutableAcceptance(contract, protectedPaths) {
   } else {
     requireCondition(modules, 'ENGINEERING_ACCEPTANCE_WEAK');
   }
+  const executable = new Set([
+    ...commandChecks.map((item) => item.command_id),
+    ...(modules ? contract.verifier.checks.map((item) => item.id) : []),
+  ]);
+  for (const item of contract.acceptance)
+    requireCondition(
+      (item.check_ids || []).some((id) => executable.has(id)),
+      'ENGINEERING_ACCEPTANCE_UNCOVERED',
+    );
 }
 
 /** The ids a criterion may name share one namespace: checks and command checks. Absent links change nothing. */

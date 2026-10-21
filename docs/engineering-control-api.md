@@ -208,7 +208,7 @@ aprovada), `PROJECT_CANDIDATE_CHANGED`, `PROJECT_APPROVAL_STALE` (baseline venci
 falhas de sistema de arquivos não curadas expõem apenas o errno (`ENOENT`, ...). Toda
 recusa por regra cruzada do contrato de tarefa na criação (`create` e `create_workflow`)
 traz `detail.code` próprio com prefixo `ENGINEERING_` (mensagem curada, sem eco de valores):
-`ENGINEERING_ACCEPTANCE_WEAK` (aceite sem verificador executável), `ENGINEERING_COMMAND_ARG_INVALID`
+`ENGINEERING_ACCEPTANCE_WEAK` (aceite sem verificador executável), `ENGINEERING_ACCEPTANCE_UNCOVERED` (critério sem check executável em `check_ids`), `ENGINEERING_CHECK_ID_UNKNOWN`, `ENGINEERING_CHECK_ID_DUPLICATE`, `ENGINEERING_CHECK_IDS_INCOMPLETE` (vínculos de `check_ids`), `ENGINEERING_COMMAND_ARG_INVALID`
 (arg fora do alfabeto conservador), `ENGINEERING_PROTECTED_CONFIG_MISSING` (arquivo de configuração
 conhecido fora de `protected_paths`) e, só como rótulo das regras que já existiam,
 `ENGINEERING_CONTRACT_SCHEMA_INVALID`, `ENGINEERING_CONTRACT_TOO_LARGE`, `ENGINEERING_STORE_MOUNT_CONFLICT`,

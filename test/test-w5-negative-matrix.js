@@ -688,6 +688,28 @@ test('engineering: static-only acceptance is refused at admission (A5b)', (t) =>
   assert.equal(admission(t, weak), 'ENGINEERING_ACCEPTANCE_WEAK');
 });
 
+test('engineering: a criterion without an executable check is refused at admission (W2-B3)', (t) => {
+  assert.equal(admission(t), 'ok', 'the criterion names the executable module check');
+  assert.equal(
+    admission(t, (c) => delete c.acceptance[0].check_ids),
+    'ENGINEERING_ACCEPTANCE_UNCOVERED',
+  );
+  assert.equal(
+    admission(t, (c) => (c.acceptance[0].check_ids = ['check'])),
+    'ok',
+    'a protected command check also covers',
+  );
+  assert.equal(
+    admission(t, (c) => {
+      c.verifier.reference = 'verifier://project/web-content-v1';
+      c.verifier.checks[0].expected = 'module.exports';
+      c.acceptance[0].check_ids = ['c1'];
+    }),
+    'ENGINEERING_ACCEPTANCE_UNCOVERED',
+    'static text matching never covers a criterion',
+  );
+});
+
 test('engineering: every argument form outside the conservative alphabet is refused at admission', (t) => {
   for (const arg of [
     'file:index.js',
