@@ -500,6 +500,19 @@ test('open approvals are bounded; spent ones are purged', () => {
   assert.equal(approvals.request(binding({ seq: 1000 })).status, 'pending');
 });
 
+test('unanswered approvals expire out of the table instead of wedging it', () => {
+  const { approvals, advance } = gate();
+  for (let index = 0; index < 256; index += 1) assert.equal(approvals.request(binding({ seq: index })).status, 'pending');
+  assert.equal(approvals.request(binding({ seq: 999 })).code, 'ENV_COMPUTER_APPROVAL_LIMIT', 'still bounded while they are open');
+  advance(5001);
+  // Nobody answered: every request has expired, so the table makes room by itself.
+  assert.equal(approvals.request(binding({ seq: 1000 })).status, 'pending');
+  for (let round = 0; round < 3; round += 1) {
+    advance(5001);
+    for (let index = 0; index < 256; index += 1) assert.equal(approvals.request(binding({ seq: 2000 + index })).status, 'pending');
+  }
+});
+
 // ---------------------------------------------------------------------------------------------------------------
 // The input injector pin: licence read inside the .deb, installed version must match.
 // ---------------------------------------------------------------------------------------------------------------

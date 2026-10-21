@@ -707,6 +707,37 @@ async function runCapabilityProviderTests() {
     }
   });
 
+  await it('capability approvals: grant and take compare the exact input on their own, and a grant is single use', async () => {
+    const { db, execution, calls } = setup();
+    try {
+      const approvals = execution.capabilityApprovals;
+      const normalized = { session_id: 'session-1', action: 'click', button: 1, x: 10, y: 10 };
+      const request = { tool: 'environment.computer.act', input: CLICK };
+      const refusedWith = (fn) => assert.throws(fn, (error) => error.code === 'ENV_COMPUTER_APPROVAL_REQUIRED');
+      refusedWith(() => approvals.grant(request, 'op-1', 'approver'));
+      assert.match(approvals.describe(request, 'op-1'), /click/);
+      refusedWith(() => approvals.grant({ ...request, input: { ...CLICK, x: 99 } }, 'op-1', 'approver'));
+      refusedWith(() => approvals.take('op-1', normalized));
+      assert.equal(
+        calls.some((call) => call[0] === 'approve'),
+        false,
+        'a divergent grant never resolves the gate',
+      );
+      approvals.grant(request, 'op-1', 'approver');
+      refusedWith(() => approvals.take('op-1', { ...normalized, x: 99 }));
+      refusedWith(() => approvals.take('op-other', normalized));
+      const requestId = approvals.take('op-1', normalized);
+      assert.equal(typeof requestId, 'string');
+      refusedWith(() => approvals.take('op-1', normalized));
+      // The table of pending grants is bounded: the oldest request is forgotten, never accumulated.
+      for (let index = 0; index < 200; index += 1) approvals.describe(request, `bulk-${index}`);
+      refusedWith(() => approvals.grant(request, 'bulk-0', 'approver'));
+      approvals.grant(request, 'bulk-199', 'approver');
+    } finally {
+      db.close();
+    }
+  });
+
   await it('capability host: the shape returned by environmentHost is validated and fails loudly', async () => {
     const bad = (hostOverrides, pattern, withDefaults = true) => {
       const db = new Database(':memory:');

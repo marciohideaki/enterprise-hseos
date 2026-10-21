@@ -59,8 +59,9 @@ function createApprovalGate({
 
   function purge() {
     if (records.size < MAX_RECORDS) return;
+    // A request nobody answered in time is as spent as a consumed one; keeping it would wedge the table for good.
     for (const [key, entry] of records) {
-      if (entry.state !== 'pending' && entry.state !== 'approved') records.delete(key);
+      if ((entry.state !== 'pending' && entry.state !== 'approved') || expired(entry)) records.delete(key);
     }
     if (records.size >= MAX_RECORDS) throw new ApprovalError('too many open approvals', 'ENV_COMPUTER_APPROVAL_LIMIT');
   }

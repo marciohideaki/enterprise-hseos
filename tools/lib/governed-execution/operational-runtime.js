@@ -434,7 +434,7 @@ function createOperationalExecution({ db, serverId, tools, invokeTool, maxConcur
   });
   const deriveDeleteApproval = (input, context) => {
     const { operation_id: operationId, resource_scope: resourceScope } = memoryDeleteOperation(input.project_id, input.memory_id);
-    if (derivedDeleteApprovals.has(operationId)) throw refusal('AGENT_MEMORY_DELETE_IN_PROGRESS', 'this entry is already being deleted');
+    // No in-progress check: the grant is issued, spent by the synchronous forget and released in one tick of the loop.
     const approvalId = randomUUID();
     const now = new Date();
     approvalStore.issue({
