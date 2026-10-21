@@ -127,7 +127,12 @@
     {
       "id": "MAJOR-1",
       "date": "2026-10-16",
-      "scope": "W5-10b only: acceptance coverage stays global via verifier.acceptance_ids; ENGINEERING_ACCEPTANCE_UNCOVERED is not implemented; a schema link from each criterion to a check or command becomes a separate future task"
+      "scope": "W5-10b only: acceptance coverage stays global via verifier.acceptance_ids; ENGINEERING_ACCEPTANCE_UNCOVERED is not implemented; a schema link from each criterion to a check or command becomes a separate future task",
+      "closed": {
+        "date": "2026-10-20",
+        "by": "W2 (acceptance by criterion)",
+        "note": "Closed by the owner decision of 2026-10-20: each criterion is linked to an executable check through acceptance[].check_ids and ENGINEERING_ACCEPTANCE_UNCOVERED is enforced at admission. The waiver text above is kept as history."
+      }
     }
   ]
 }
