@@ -31,7 +31,7 @@ const PROJECT_INSTRUCTION = 'Implement only the declared disposable task. A mode
 // Managed projects can hold files too large to read whole: the model is told how to work on them without fetching them.
 const LARGE_FILE_GUIDANCE =
   'A file above 64 KB cannot be read whole: find the place with engineering.search, read only the lines you need with engineering.read (start_line, end_line; at most 300 lines or 12 KiB per call), and change it with a short engineering.patch (before is the exact text, within narrows it to a line range when the text repeats, expected_sha256 is the sha256 of the whole file and each patch answers with the next one). engineering.write is refused on such a file. Review a change with engineering.diff (path, start_line, end_line).';
-const { createTaskExtensions, taskContextReservations } = require('./engineering-task-extensions');
+const { createTaskExtensions, taskContextReservations, createTaskEnvironment } = require('./engineering-task-extensions');
 const responsesSchema = z.array(z.object({ name: z.string().min(1).max(160), input: z.record(z.string(), z.json()) }).strict()).max(64);
 
 async function settleTaskOwners(operations) {
@@ -77,7 +77,7 @@ function getEngineeringModelManifest() {
   };
 }
 
-function assemble(handle, created, { environment, fetchImpl, extensionCatalog = {}, campaigns, resourceId } = {}) {
+function assemble(handle, created, { environment, fetchImpl, extensionCatalog = {}, campaigns, resourceId, environmentHost } = {}) {
   require('../../mcp-project-state/lib/execution-ledger-schema').assertExecutionLedgerView(handle.db, handle.directory);
   const { contract, responses, session_id: sessionId, deadline } = created;
   const responseOrigin = created.response_source?.ref || 'scripted://engineering';
@@ -89,6 +89,22 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
         modelSelectionId: created.plugin_model?.selection_id,
       })
     : null;
+  // Environment and memory capabilities are opt-in: without the declaration and a host there are no bundles and the policy denies them.
+  const environmentTools =
+    contract.environment && environmentHost
+      ? createTaskEnvironment({
+          capabilities: contract.environment.capabilities,
+          db: handle.db,
+          session_id: sessionId,
+          host: environmentHost,
+          isCancelled: () => observeTaskCancellation(),
+          workspace: {
+            host_workspace: path.join(handle.directory, 'workspace'),
+            main_checkout: handle.directory,
+            protected_paths: [path.join(handle.directory, MANIFEST)],
+          },
+        })
+      : null;
   // A contract that declares the pnpm store mount gets exactly that verified, read-only root on the allowlist.
   const storeMount = contract.schema_version === 2 && contract.workspace.store_mount ? verifyPnpmStoreMount(contract.workspace.root) : null;
   const policy = createIsolationPolicy({
@@ -150,9 +166,15 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
   }
   const tools = {
     ...nativeTools,
-    bundles: [...nativeTools.bundles.map(classifyScopeDenial), ...(extensions?.bundles || [])],
+    bundles: [...nativeTools.bundles.map(classifyScopeDenial), ...(extensions?.bundles || []), ...(environmentTools?.bundles || [])],
     async drain() {
-      const results = await Promise.allSettled([nativeTools.drain(), extensions?.drain(), modelConnection?.drain?.(), cancellationRequest]);
+      const results = await Promise.allSettled([
+        nativeTools.drain(),
+        extensions?.drain(),
+        environmentTools?.drain(),
+        modelConnection?.drain?.(),
+        cancellationRequest,
+      ]);
       const failed = results.find((result) => result.status === 'rejected');
       if (failed) {
         if (['PLUGIN_TEARDOWN_UNCERTAIN', 'PLUGIN_RESULT_UNCERTAIN'].includes(failed.reason.code)) {
@@ -170,9 +192,14 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
     assertQuiescent() {
       nativeTools.assertQuiescent();
       extensions?.assertQuiescent();
+      environmentTools?.assertQuiescent();
     },
   };
-  const allowedTools = new Set([...ENGINEERING_TOOL_NAMES, ...(extensions?.bundles.map((bundle) => bundle.definition.name) || [])]);
+  const allowedTools = new Set([
+    ...ENGINEERING_TOOL_NAMES,
+    ...(extensions?.bundles.map((bundle) => bundle.definition.name) || []),
+    ...(environmentTools?.names || []),
+  ]);
   const manifest = getEngineeringModelManifest();
   const provider = new ScriptedModelProvider({
     manifest,
@@ -251,6 +278,7 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
     db: handle.db,
     model_provider_snapshot: guardedModels.snapshot(),
     tool_bundles: tools.bundles,
+    approval_resolver: environmentTools?.approvalResolver ?? null,
     completion_review: async ({ step }) => {
       if (observeTaskCancellation()) throw Object.assign(new Error('Task cancelled'), { code: 'ENGINEERING_TASK_CANCELLED' });
       if (contract.max_failed_corrections === 0) return null;
@@ -369,7 +397,12 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
             },
           ],
         });
-        return { allowed: decision.dispatch_allowed, requires_approval: false, policy_version: tool.policy_version, warnings: [] };
+        return {
+          allowed: decision.dispatch_allowed,
+          requires_approval: environmentTools?.requiresApproval(tool.name) === true,
+          policy_version: tool.policy_version,
+          warnings: [],
+        };
       },
     },
     context_profile_resolver: () => {
@@ -447,7 +480,7 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
       };
     },
   });
-  return { ...assembly, tools, policy, sessionId, modelConnection, extensions };
+  return { ...assembly, tools, policy, sessionId, modelConnection, extensions, environmentTools };
 }
 
 function summary(handle, id, task, assembly) {
@@ -545,6 +578,7 @@ async function runEngineeringTask({
   campaigns,
   resourceId,
   responseSource,
+  environmentHost,
 }) {
   if (pluginModel && !createOnly)
     throw Object.assign(new Error('PLUGIN_TASK_REGISTRATION_REQUIRED'), { code: 'PLUGIN_TASK_REGISTRATION_REQUIRED' });
@@ -608,7 +642,10 @@ async function runEngineeringTask({
       return summary(handle, id, task);
     }
     attestEngineeringVerifier(contract);
-    assembly = assemble(handle, created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId });
+    // Declared capabilities without a host would be silently denied; a task that asked for them is blocked instead.
+    if (contract.environment && !environmentHost)
+      throw Object.assign(new Error('ENGINEERING_ENVIRONMENT_HOST_REQUIRED'), { code: 'ENGINEERING_ENVIRONMENT_HOST_REQUIRED' });
+    assembly = assemble(handle, created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId, environmentHost });
     await attestExecutor(assembly.policy, created.deadline);
     await assembly.runtime.create({
       schema_version: 1,
@@ -628,7 +665,7 @@ async function runEngineeringTask({
     return summary(handle, id, task, assembly);
   } finally {
     try {
-      await settleTaskOwners([assembly?.modelConnection?.close(), assembly?.extensions?.close()]);
+      await settleTaskOwners([assembly?.modelConnection?.close(), assembly?.extensions?.close(), assembly?.environmentTools?.close()]);
     } finally {
       handle.close();
     }
@@ -793,6 +830,7 @@ async function inspectEngineeringTask({
   extensionCatalog = {},
   campaigns,
   resourceId,
+  environmentHost,
 }) {
   const handle = openExecutionLedgerFileFixture(path.resolve(directory));
   let assembly;
@@ -817,7 +855,7 @@ async function inspectEngineeringTask({
         directory: handle.directory,
       });
     if (action === 'reconcile') {
-      assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId });
+      assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId, environmentHost });
       const { report } = await require('./engineering-reconciliation').inspectReconciliation(task, assembly, attestExecutor);
       return { ...summary(handle, id, task, assembly), reconciliation: report, questions: report.questions };
     }
@@ -828,7 +866,7 @@ async function inspectEngineeringTask({
       if (action === 'cancel') {
         if (state.owner && !isExecutorOwnerAlive(state.owner)) {
           await reapExecutorOwner(state.owner);
-          assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId });
+          assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId, environmentHost });
           await assembly.runtime.cancel({
             schema_version: 1,
             command: 'cancel',
@@ -848,7 +886,7 @@ async function inspectEngineeringTask({
         if (task.read().result) return summary(handle, id, task);
         return { ...summary(handle, id, task), task_result: 'blocked', reason: 'cancellation-unconfirmed' };
       }
-      assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId });
+      assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId, environmentHost });
       const { inspectReconciliation, applyReconciliation } = require('./engineering-reconciliation');
       const inspected = await inspectReconciliation(task, assembly, attestExecutor);
       if (!inspected.report.prerequisites_verified || (inspected.report.questions.length > 0 && !reconciliationDecision))
@@ -875,7 +913,7 @@ async function inspectEngineeringTask({
       return summary(handle, id, task, assembly);
     }
 
-    assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId });
+    assembly = assemble(handle, state.created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId, environmentHost });
     if (action === 'cancel') {
       await assembly.runtime.cancel({
         schema_version: 1,
@@ -900,7 +938,12 @@ async function inspectEngineeringTask({
     return summary(handle, id, task, assembly);
   } finally {
     try {
-      await settleTaskOwners([assembly?.tools.drain(), assembly?.modelConnection?.close(), assembly?.extensions?.close()]);
+      await settleTaskOwners([
+        assembly?.tools.drain(),
+        assembly?.modelConnection?.close(),
+        assembly?.extensions?.close(),
+        assembly?.environmentTools?.close(),
+      ]);
     } finally {
       handle.close();
     }

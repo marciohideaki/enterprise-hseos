@@ -100,6 +100,29 @@ const schema = strictObject({
   rollback: z.literal('discard-disposable-workspace'),
 });
 
+/**
+ * Environment capabilities a task may opt into (schema 2 only). Names are the governed contract names; a task that
+ * declares none keeps today's behavior and its digest, and a capability that is not declared is denied by the policy.
+ */
+const ENVIRONMENT_CAPABILITIES = Object.freeze([
+  'environment.lsp.diagnostics',
+  'environment.lsp.definition',
+  'environment.lsp.references',
+  'environment.lsp.hover',
+  'environment.lsp.rename_preview',
+  'environment.dap.run',
+  'environment.browser.run',
+  'environment.computer.start',
+  'environment.computer.screenshot',
+  'environment.computer.act',
+  'environment.computer.stop',
+  'memory.write',
+  'memory.retrieve',
+  'memory.delete',
+]);
+// A computer session is opened by `start`: every other computer capability is meaningless without it.
+const COMPUTER_DEPENDENT = Object.freeze(['environment.computer.screenshot', 'environment.computer.act', 'environment.computer.stop']);
+
 const projectPath = z.string().min(1).max(PROJECT_LIMITS.store_path_chars).refine(isProjectPath);
 const projectPaths = z
   .array(projectPath)
@@ -124,6 +147,9 @@ const projectSchema = schema.extend({
   max_artifact_bytes: z.number().int().positive().max(PROJECT_LIMITS.artifact_bytes),
   schema_version: z.literal(2),
   execution_profile: z.literal('managed-project'),
+  environment: strictObject({
+    capabilities: z.array(z.enum(ENVIRONMENT_CAPABILITIES)).min(1).max(ENVIRONMENT_CAPABILITIES.length),
+  }).optional(),
   workspace: strictObject({
     root: z
       .string()
@@ -301,6 +327,13 @@ function parseEngineeringTask(value, { admission = false } = {}) {
   requireCondition(Object.values(contract.limits).every(Number.isSafeInteger), 'ENGINEERING_LIMITS_INVALID');
   requireCondition(contract.limits.max_children === 0 && contract.limits.max_workflow_steps === 0, 'ENGINEERING_LIMITS_INVALID');
   if (contract.schema_version === 2) {
+    if (contract.environment) {
+      const declared = unique(contract.environment.capabilities, 'ENGINEERING_ENVIRONMENT_INVALID');
+      requireCondition(
+        !COMPUTER_DEPENDENT.some((name) => declared.has(name)) || declared.has('environment.computer.start'),
+        'ENGINEERING_ENVIRONMENT_INVALID',
+      );
+    }
     for (const check of contract.verifier.checks) requireCondition(readPaths.has(check.path), 'ENGINEERING_CHECK_PATH_UNREADABLE');
     const protectedPaths = new Set(unique(contract.verifier.protected_paths || [], 'ENGINEERING_PROTECTED_PATH_INVALID'));
     for (const entry of protectedPaths)
@@ -368,6 +401,7 @@ function readEngineeringTask(filename) {
 }
 
 module.exports = {
+  ENVIRONMENT_CAPABILITIES,
   EngineeringTaskContractError,
   PROJECT_LIMITS,
   PROTECTED_CONFIG_FILES,

@@ -559,3 +559,54 @@ test('v2 large files: 256 KiB accepted, one character more refused, at most 4 ab
   v1.initial_files = [{ path: 'add.js', content, sha256: sha(content) }];
   assert.equal(parseReason(v1), 'ENGINEERING_CONTRACT_SCHEMA_INVALID');
 });
+
+// Environment capabilities (W5 closeout, C6): an opt-in field of schema 2, absent from every existing contract.
+const { ENVIRONMENT_CAPABILITIES } = require('../tools/cli/lib/engineering-task-contract');
+const { canonicalJson } = require('../packages/agent-session-store');
+
+test('environment.capabilities is optional: a contract without it parses to the same bytes, so its digest does not move', (t) => {
+  const contract = projectContract(t);
+  assert.equal('environment' in contract, false);
+  const parsed = parseEngineeringTask(contract);
+  assert.equal('environment' in parsed, false, 'nothing is injected when the task does not opt in');
+  assert.equal(sha(canonicalJson(parsed)), sha(canonicalJson(contract)), 'the digest of an existing contract is unchanged');
+  // Schema 1 is out of scope: it keeps its strict shape and refuses the field.
+  const v1 = fixture();
+  assert.equal(sha(canonicalJson(parseEngineeringTask(v1))), sha(canonicalJson(v1)));
+  v1.environment = { capabilities: ['environment.lsp.hover'] };
+  assert.equal(parseCode(v1), 'ENGINEERING_TASK_CONTRACT_INVALID');
+});
+
+test('environment.capabilities admits the governed contract names and nothing else', (t) => {
+  const declared = (capabilities) => (contract) => {
+    contract.environment = { capabilities };
+  };
+  assert.equal(parseReason(projectContract(t, declared(['environment.lsp.hover']))), 'ok');
+  assert.equal(parseReason(projectContract(t, declared(ENVIRONMENT_CAPABILITIES))), 'ok', 'every capability together');
+  for (const bad of [[], ['environment.lsp.hover', 'environment.lsp.hover'], ['environment.shell.run'], ['memory.*'], [42]]) {
+    assert.notEqual(parseReason(projectContract(t, declared(bad))), 'ok', JSON.stringify(bad));
+  }
+  assert.equal(
+    parseReason(
+      projectContract(t, (contract) => {
+        contract.environment = { capabilities: ['environment.lsp.hover'], extra: true };
+      }),
+    ),
+    'ENGINEERING_CONTRACT_SCHEMA_INVALID',
+  );
+  assert.equal(
+    parseReason(projectContract(t, declared(['environment.lsp.hover', 'environment.lsp.hover']))),
+    'ENGINEERING_ENVIRONMENT_INVALID',
+  );
+});
+
+test('a computer capability needs the one that opens the session', (t) => {
+  const declared = (capabilities) => (contract) => {
+    contract.environment = { capabilities };
+  };
+  for (const dependent of ['environment.computer.screenshot', 'environment.computer.act', 'environment.computer.stop']) {
+    assert.equal(parseReason(projectContract(t, declared([dependent]))), 'ENGINEERING_ENVIRONMENT_INVALID', dependent);
+    assert.equal(parseReason(projectContract(t, declared(['environment.computer.start', dependent]))), 'ok', dependent);
+  }
+  assert.equal(parseReason(projectContract(t, declared(['environment.computer.start']))), 'ok');
+});
