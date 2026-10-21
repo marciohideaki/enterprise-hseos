@@ -199,53 +199,6 @@ function failBoot(serverId, error, { exit = process.exit, stderr = process.stder
   exit(TOOL_CATALOG_EXIT_CODE);
 }
 
-const NOT_IMPLEMENTED_SCHEMA = Object.freeze({
-  version: 1,
-  safeParse() {
-    return {
-      success: false,
-      error: {
-        hseos_code: 'ENV_CAPABILITY_NOT_IMPLEMENTED',
-        issues: [{ message: 'capability contract is a stub without implementation' }],
-      },
-    };
-  },
-});
-
-// Versioned contract stubs for the W5 capabilities (design 5). No provider exists: every call fails closed until the
-// owning task (W5-07..W5-09) replaces the stub with the real schema. Names follow environment.<capability>.<action>.
-const CAPABILITY_CONTRACT_STUBS = Object.freeze(
-  [
-    ['environment.browser.run', 'read_only', false],
-    ['environment.computer.start', 'irreversible_mutation', true],
-    ['environment.computer.act', 'irreversible_mutation', true],
-    ['environment.computer.stop', 'idempotent_mutation', false],
-    ['memory.write', 'idempotent_mutation', false],
-    ['memory.retrieve', 'read_only', false],
-    ['memory.delete', 'irreversible_mutation', true],
-  ].map(([name, reversibility, requiresApproval]) => {
-    const capability = name.startsWith('memory.') ? 'agent-memory' : name.split('.').slice(0, 2).join('.');
-    return Object.freeze({
-      name,
-      capability,
-      contract_version: 1,
-      status: 'stub',
-      provider: `unimplemented:${capability}`,
-      authority: `${capability}.${reversibility === 'read_only' ? 'read' : 'mutate'}`,
-      policy_version: 'hseos-w5-contract-stub-v1',
-      reversibility,
-      cancellation_policy: reversibility === 'read_only' ? 'cooperative' : 'non_cancellable',
-      failure_mode: 'fail_closed',
-      timeout_ms: 30_000,
-      requires_approval: requiresApproval,
-      exclusive: false,
-      provider_accepts_idempotency: false,
-      input_schema: NOT_IMPLEMENTED_SCHEMA,
-      output_schema: NOT_IMPLEMENTED_SCHEMA,
-    });
-  }),
-);
-
 // Real contracts of the shipped environment providers (LSP, W5-05; DAP, W5-06). The schemas are the providers' own, loaded
 // on first use so requiring the registry never pulls the environment package (the LSP pack does not carry dap.js).
 const lspSchema = (name, action) => ({
@@ -295,12 +248,258 @@ const ENVIRONMENT_CONTRACTS = Object.freeze([
   environmentContract('environment.dap.run', 'environment.dap', dapSchema('input'), dapSchema('output'), 140_000),
 ]);
 
+// Contracts of the browser, computer-use and memory capabilities (W5-07..W5-09). They describe and validate only: no
+// provider is bound here, so the host (not the model) supplies approvals, actors and the session. The schemas are the
+// capabilities' own and load on first use, like the LSP and DAP ones above.
+const environmentSchema = (load, phase) => ({
+  version: 1,
+  safeParse: (value) => load()[phase].safeParse(value),
+});
+const browserContract = () => {
+  const { BROWSER_INPUT_SCHEMA, BROWSER_OUTPUT_SCHEMA } = require('../../../packages/agent-environment/browser-contract');
+  return { input: BROWSER_INPUT_SCHEMA, output: BROWSER_OUTPUT_SCHEMA };
+};
+const computerContract = () => {
+  const { COMPUTER_INPUT_SCHEMA, COMPUTER_OUTPUT_SCHEMA } = require('../../../packages/agent-environment/computer-contract');
+  return { input: COMPUTER_INPUT_SCHEMA, output: COMPUTER_OUTPUT_SCHEMA };
+};
+const schemaFailure = (code, message) => ({ success: false, error: { hseos_code: code, issues: [{ message }] } });
+const isRecord = (value) => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+
+// The model addresses a session by id and never supplies an approval id: the host resolves and spends the approval.
+const computerActSchema = {
+  version: 1,
+  safeParse(value) {
+    const { parseAction, APPROVED_ACTIONS } = require('../../../packages/agent-environment/computer-contract');
+    if (!isRecord(value)) return schemaFailure('ENV_COMPUTER_INPUT_INVALID', 'input must be an object');
+    const { session_id: sessionId, ...action } = value;
+    if (typeof sessionId !== 'string' || sessionId.length === 0)
+      return schemaFailure('ENV_COMPUTER_INPUT_INVALID', 'session_id is required');
+    // A screenshot is read-only and never goes through the approval gate, so it is not an `act` action.
+    if (!APPROVED_ACTIONS.includes(action.action))
+      return schemaFailure('ENV_COMPUTER_INPUT_INVALID', 'action is not an approved computer action');
+    const parsed = parseAction(action);
+    return parsed.success ? { success: true, data: value } : parsed;
+  },
+};
+const computerStopSchema = {
+  version: 1,
+  safeParse(value) {
+    if (!isRecord(value) || Object.keys(value).some((key) => key !== 'session_id')) {
+      return schemaFailure('ENV_COMPUTER_INPUT_INVALID', 'input must hold only a session_id');
+    }
+    return typeof value.session_id === 'string' && value.session_id.length > 0
+      ? { success: true, data: value }
+      : schemaFailure('ENV_COMPUTER_INPUT_INVALID', 'session_id is required');
+  },
+};
+
+const MEMORY_CODE = /^[A-Z][A-Z0-9_]{2,63}$/;
+// Memory policy checks throw; the contract turns each into a closed-form schema failure that keeps the policy's code.
+const memorySchema = (check) => ({
+  version: 1,
+  safeParse(value) {
+    try {
+      return { success: true, data: check(value, require('../../../packages/agent-memory')) };
+    } catch (error) {
+      const code = MEMORY_CODE.test(error?.code || '') ? error.code : 'AGENT_MEMORY_INVALID';
+      return schemaFailure(code, error.message);
+    }
+  },
+});
+const memoryInvalid = (memory, message, field) => {
+  throw new memory.AgentMemoryError(message, 'AGENT_MEMORY_INVALID', { field });
+};
+const exactFields = (memory, value, allowed, label) => {
+  if (!isRecord(value)) memoryInvalid(memory, `${label} must be an object`, label);
+  const unknown = Object.keys(value).find((key) => !allowed.includes(key));
+  if (unknown) memoryInvalid(memory, `${label} carries an unknown field`, unknown);
+};
+const scanCredential = (text) => require('../../cli/lib/campaign-evidence-store').containsCredential(text);
+
+const memoryWriteInput = memorySchema((value, memory) => {
+  memory.assertEntryInputFields(value);
+  // `created_at` is host-owned: only the shape and the policy ceilings are checked here, with a throwaway timestamp.
+  const entry = memory.normalizeEntry({ ...value, created_at: new Date(0).toISOString() });
+  if (entry.source_digest !== memory.sha256Text(entry.content))
+    memoryInvalid(memory, 'source_digest does not match the content', 'source_digest');
+  memory.assertNoCredential(entry, scanCredential);
+  return value;
+});
+const memoryWriteOutput = memorySchema((value, memory) => {
+  exactFields(memory, value, ['memory_id', 'write_policy_ref'], 'output');
+  memory.requireIdentifier(value.memory_id, 'memory_id');
+  if (typeof value.write_policy_ref !== 'string' || value.write_policy_ref.length === 0) {
+    memoryInvalid(memory, 'write_policy_ref is required', 'write_policy_ref');
+  }
+  return value;
+});
+const memoryRetrieveInput = memorySchema((value, memory) => {
+  exactFields(memory, value, ['project_id', 'query', 'limit', 'include_untrusted'], 'input');
+  memory.requireIdentifier(value.project_id, 'project_id');
+  if (typeof value.query !== 'string' || value.query.trim().length === 0)
+    memoryInvalid(memory, 'query must be a non-empty string', 'query');
+  if (value.limit !== undefined && (!Number.isInteger(value.limit) || value.limit < 1 || value.limit > 50)) {
+    memoryInvalid(memory, 'limit is out of range', 'limit');
+  }
+  if (value.include_untrusted !== undefined && typeof value.include_untrusted !== 'boolean') {
+    memoryInvalid(memory, 'include_untrusted must be a boolean', 'include_untrusted');
+  }
+  return value;
+});
+const memoryRetrieveOutput = memorySchema((value, memory) => {
+  if (!Array.isArray(value)) memoryInvalid(memory, 'output must be a list of memory sources', 'output');
+  for (const item of value) {
+    if (!isRecord(item) || typeof item.content !== 'string' || typeof item.source_ref !== 'string') {
+      memoryInvalid(memory, 'a memory source needs content and a source_ref', 'output');
+    }
+    if (item.authority !== memory.AUTHORITY) {
+      throw new memory.AgentMemoryError('memory can only carry data authority', 'AGENT_MEMORY_AUTHORITY_ESCALATION');
+    }
+    if (item.provenance?.trust !== 'untrusted') {
+      throw new memory.AgentMemoryError('a retrieved memory is untrusted at the context boundary', 'AGENT_MEMORY_TRUST_INVALID');
+    }
+  }
+  return value;
+});
+// The approval is bound to the exact operation and resolved by the host; it is never a field of the request.
+const memoryDeleteInput = memorySchema((value, memory) => {
+  exactFields(memory, value, ['project_id', 'memory_id', 'reason'], 'input');
+  memory.requireIdentifier(value.project_id, 'project_id');
+  memory.requireIdentifier(value.memory_id, 'memory_id');
+  if (value.reason !== undefined) memory.normalizeReason(value.reason, scanCredential);
+  return value;
+});
+const memoryDeleteOutput = memorySchema((value, memory) => {
+  exactFields(memory, value, ['memory_id', 'deleted'], 'output');
+  memory.requireIdentifier(value.memory_id, 'memory_id');
+  if (value.deleted !== true) memoryInvalid(memory, 'a deletion receipt must confirm the deletion', 'deleted');
+  return value;
+});
+
+const capabilityContract = (
+  name,
+  capability,
+  provider,
+  authority,
+  reversibility,
+  requires_approval,
+  timeout_ms,
+  input_schema,
+  output_schema,
+) =>
+  Object.freeze({
+    name,
+    capability,
+    contract_version: 1,
+    status: 'implemented',
+    provider,
+    authority,
+    policy_version: 'hseos-w5-capability-v1',
+    reversibility,
+    cancellation_policy: reversibility === 'read_only' ? 'cooperative' : 'non_cancellable',
+    failure_mode: 'fail_closed',
+    timeout_ms,
+    requires_approval,
+    exclusive: false,
+    provider_accepts_idempotency: false,
+    input_schema,
+    output_schema,
+  });
+const CAPABILITY_CONTRACTS = Object.freeze([
+  // The browser caps a run at 60 s; the grace covers reaping the sandbox.
+  capabilityContract(
+    'environment.browser.run',
+    'environment.browser',
+    'agent-environment',
+    'environment.browser.read',
+    'read_only',
+    false,
+    70_000,
+    environmentSchema(browserContract, 'input'),
+    environmentSchema(browserContract, 'output'),
+  ),
+  // Computer-use drives a real display: starting a session and every non-screenshot action need a host approval.
+  capabilityContract(
+    'environment.computer.start',
+    'environment.computer',
+    'agent-environment',
+    'environment.computer.mutate',
+    'irreversible_mutation',
+    true,
+    310_000,
+    environmentSchema(computerContract, 'input'),
+    environmentSchema(computerContract, 'output'),
+  ),
+  capabilityContract(
+    'environment.computer.act',
+    'environment.computer',
+    'agent-environment',
+    'environment.computer.mutate',
+    'irreversible_mutation',
+    true,
+    30_000,
+    computerActSchema,
+    environmentSchema(computerContract, 'output'),
+  ),
+  capabilityContract(
+    'environment.computer.stop',
+    'environment.computer',
+    'agent-environment',
+    'environment.computer.mutate',
+    'idempotent_mutation',
+    false,
+    30_000,
+    computerStopSchema,
+    environmentSchema(computerContract, 'output'),
+  ),
+  // A write is compensated by superseding or deleting the entry; the ledger keeps the earlier events.
+  capabilityContract(
+    'memory.write',
+    'agent-memory',
+    'agent-memory',
+    'agent-memory.mutate',
+    'compensatable_mutation',
+    false,
+    30_000,
+    memoryWriteInput,
+    memoryWriteOutput,
+  ),
+  capabilityContract(
+    'memory.retrieve',
+    'agent-memory',
+    'agent-memory',
+    'agent-memory.read',
+    'read_only',
+    false,
+    30_000,
+    memoryRetrieveInput,
+    memoryRetrieveOutput,
+  ),
+  capabilityContract(
+    'memory.delete',
+    'agent-memory',
+    'agent-memory',
+    'agent-memory.mutate',
+    'irreversible_mutation',
+    true,
+    30_000,
+    memoryDeleteInput,
+    memoryDeleteOutput,
+  ),
+]);
+
+// Kept under the old name for callers written when these contracts were stubs; the contracts are real now.
+const CAPABILITY_CONTRACT_STUBS = CAPABILITY_CONTRACTS;
+
+/** Registers the LSP, DAP, browser, computer and memory contracts (the name predates the real contracts). */
 function registerCapabilityContractStubs(registry) {
   if (!(registry instanceof ExecutionContractRegistry)) throw new ExecutionContractError('A contract registry is required');
-  return [...ENVIRONMENT_CONTRACTS, ...CAPABILITY_CONTRACT_STUBS].map((contract) => registry.register(contract));
+  return [...ENVIRONMENT_CONTRACTS, ...CAPABILITY_CONTRACTS].map((contract) => registry.register(contract));
 }
 
 module.exports = {
+  CAPABILITY_CONTRACTS,
   CAPABILITY_CONTRACT_STUBS,
   ENVIRONMENT_CONTRACTS,
   TOOL_CATALOG_EXIT_CODE,
