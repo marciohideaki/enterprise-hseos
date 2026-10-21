@@ -92,11 +92,19 @@ a distinct `detail.code` (`docs/engineering-control-api.md`).
   `--name` with at most one `=` whose value is in the same alphabet, or one single-letter short option.
   `file:index.js`, `index%2Ejs`, `index.js:1`, `--a=b=index.js`, `~`, `\\`, `-cindex.js` and empty
   values are refused with `ENGINEERING_COMMAND_ARG_INVALID`.
-- Known limitation: coverage of acceptance criteria is global through `verifier.acceptance_ids`
-  (already required to equal every `acceptance.id`); the contract carries no per-criterion link between a
-  criterion and a check or command. A criterion therefore cannot be shown to be covered only by static
-  checks (a contract mixing one command check with static checks for the other criteria is admitted).
-  Owner waiver, 2026-10-16: global coverage is accepted for this wave; a schema evolution that links each criterion to a check or command becomes its own future task. `ENGINEERING_ACCEPTANCE_UNCOVERED` is intentionally not implemented.
+- Acceptance by criterion (W2): in a schema 2 contract each `acceptance[]` entry may carry `check_ids`, and each
+  `verifier.checks[]` entry may carry an `id`. Check ids and `command_checks[].command_id` share one namespace; a
+  criterion names the checks and commands that decide it. The id is part of the pinned acceptance but is never sent to
+  the probe script. Rules at every parse: ids are unique (`ENGINEERING_CHECK_ID_DUPLICATE`), every named id exists
+  (`ENGINEERING_CHECK_ID_UNKNOWN`), and if one criterion declares `check_ids` all do
+  (`ENGINEERING_CHECK_IDS_INCOMPLETE`). Contracts without these fields keep their `contract_sha256`.
+  At admission each criterion must name at least one executable check, that is a protected command check or a check of
+  a pinned module verifier (`node-module-v1`, `python-module-v1`); `web-content-v1` never counts. Otherwise the
+  admission is refused with `ENGINEERING_ACCEPTANCE_UNCOVERED`. Re-reading an admitted contract does not apply it.
+  For module verifiers the protected part is the set of expectations (`expected`) fixed in the verifier sha: changing
+  one after the pin is refused.
+  Known limitation: the link names a check, not a relation to the criterion's text. A command check unrelated to a
+  criterion still satisfies `check_ids` if the author names it; relevance remains the contract author's responsibility.
 - Other known limitations of the admission:
   - It applies to the control API, job creation, retry and expansion. `agent run --task-contract` and the
     CLI workflow path read contracts without it. Job claim and recovery deliberately re-validate without it,

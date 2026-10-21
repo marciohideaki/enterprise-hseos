@@ -52,8 +52,9 @@ function fixture(
     reference: reference || `verifier://project/${runtime}-module-v1`,
     sha256: '0'.repeat(64),
     acceptance_ids: ['a1'],
-    checks: [{ path: entry, export_name: runtime === 'python' ? 'calculate' : 'default', args, expected }],
+    checks: [{ id: 'c1', path: entry, export_name: runtime === 'python' ? 'calculate' : 'default', args, expected }],
   };
+  contract.acceptance[0].check_ids = ['c1'];
   contract.workspace.files_sha256 = projectWorkspaceSnapshot(contract).sha256;
   contract.verifier.sha256 = projectVerifierDigest(contract);
   const filename = path.join(directory, 'task.json');

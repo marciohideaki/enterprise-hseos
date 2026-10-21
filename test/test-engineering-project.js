@@ -676,3 +676,45 @@ test('the managed-project instruction tells the model to search, read by range a
     assert.ok(message.includes(hint), hint);
   }
 });
+
+for (const scenario of [
+  { runtime: 'node', files: { 'index.js': 'module.exports = (n) => n + 1;\n' }, entry: 'index.js' },
+  { runtime: 'python', files: { 'index.py': 'def calculate(n):\n    return n + 1\n' }, entry: 'index.py' },
+]) {
+  test(`${scenario.runtime} module verifier: the protected part is the expectation pinned in the verifier sha`, (t) => {
+    const f = fixture(t, scenario);
+    attestEngineeringVerifier(f.contract);
+    f.contract.verifier.checks[0].expected = 99;
+    assert.throws(() => attestEngineeringVerifier(f.contract), /pinned/, 'expected changed after the pin is refused');
+    f.contract.verifier.checks[0].expected = 4;
+    f.contract.verifier.checks[0].id = 'renamed';
+    f.contract.acceptance[0].check_ids = ['renamed'];
+    assert.throws(() => attestEngineeringVerifier(f.contract), /pinned/, 'the links are pinned as well');
+  });
+}
+
+test('the probe script receives each check without its id and without its expectation', async (t) => {
+  const executorPath = require.resolve('../packages/agent-isolation-attestation/executor');
+  const verifierPath = require.resolve('../tools/cli/lib/engineering-project-verifier');
+  const executor = require(executorPath);
+  const original = executor.executeIsolatedCommand;
+  const launched = [];
+  executor.executeIsolatedCommand = async (options) => {
+    launched.push(options);
+    return { status: 'succeeded', descendants_terminated: true, stdout: JSON.stringify([4]) };
+  };
+  delete require.cache[verifierPath];
+  t.after(() => {
+    executor.executeIsolatedCommand = original;
+    delete require.cache[verifierPath];
+  });
+  const { verifyEngineeringTask } = require(verifierPath);
+  const f = fixture(t);
+  assert.equal(f.contract.verifier.checks[0].id, 'c1', 'the checked contract does carry an id');
+  const result = await verifyEngineeringTask({ contract: f.contract, policy: {}, deadline: Date.now() + 60_000, files: [] });
+  assert.equal(result.approved, true, JSON.stringify(result));
+  assert.equal(launched.length, 1);
+  const payload = JSON.parse(launched[0].command.at(-1));
+  assert.deepEqual(payload, [{ path: 'index.js', export_name: 'default', args: [3] }]);
+  assert.ok(!JSON.stringify(launched[0].command).includes('"c1"'), 'the id appears nowhere in the launched command');
+});
