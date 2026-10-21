@@ -413,12 +413,13 @@ test('admission accepts protected command checks and a pinned module verifier, a
     delete c.verifier.command_checks;
     delete c.verifier.protected_paths;
     c.verifier.reference = 'verifier://project/web-content-v1';
-    c.verifier.checks = [{ path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
+    c.verifier.checks = [{ id: 'c1', path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
   });
   assert.equal(admissionCode(staticOnly), 'ENGINEERING_ACCEPTANCE_WEAK');
   assert.equal(parseEngineeringTask(staticOnly).schema_version, 2, 'the same contract is still readable without admission');
   const staticWithCommand = structuredClone(staticOnly);
   Object.assign(staticWithCommand.verifier, { command_checks: [{ command_id: 'check' }], protected_paths: ['check.js'] });
+  staticWithCommand.acceptance[0].check_ids = ['check'];
   assert.equal(admissionCode(staticWithCommand), 'ok', 'an executable command makes the acceptance executable');
   const schema1 = fixture();
   assert.equal(admissionCode(schema1), 'ok', 'schema 1 is out of scope for the v2 admission rules');
@@ -558,4 +559,97 @@ test('v2 large files: 256 KiB accepted, one character more refused, at most 4 ab
   const content = 'x'.repeat(65_537);
   v1.initial_files = [{ path: 'add.js', content, sha256: sha(content) }];
   assert.equal(parseReason(v1), 'ENGINEERING_CONTRACT_SCHEMA_INVALID');
+});
+
+// Acceptance by criterion (W2-B1): each criterion may name the checks that decide it; contracts without the link keep their digest.
+const { canonicalJson } = require('../packages/agent-session-store');
+
+test('contracts without check_ids keep their contract_sha256: the new optional fields are never added', (t) => {
+  assert.equal(readEngineeringTask(fixturePath).sha256, 'c84e8a03902515288b408993300110c5aaa8dd72bd25c3366c97c1c740a8e2d4');
+  const legacy = admissionContract(t, (c) => {
+    delete c.acceptance[0].check_ids;
+    delete c.verifier.checks[0].id;
+  });
+  const parsed = parseEngineeringTask(structuredClone(legacy));
+  assert.equal(canonicalJson(parsed), canonicalJson(legacy), 'parsing a legacy v2 contract adds nothing');
+  assert.equal(sha(canonicalJson(parsed)), sha(canonicalJson(legacy)));
+  assert.equal(parsed.acceptance[0].check_ids, undefined);
+  assert.equal(parsed.verifier.checks[0].id, undefined);
+});
+
+test('check_ids link a criterion to checks and commands in one namespace; unknown, duplicate and partial links are refused', (t) => {
+  const linked = (mutate) =>
+    admissionContract(t, (c) => {
+      c.verifier.checks[0].id = 'sum';
+      c.acceptance[0].check_ids = ['sum', 'check'];
+      mutate?.(c);
+    });
+  assert.equal(reasonOf(linked()), 'ok', 'a module check and a command check can both be named');
+  assert.equal(reasonOf(linked((c) => (c.acceptance[0].check_ids = ['missing']))), 'ENGINEERING_CHECK_ID_UNKNOWN');
+  assert.equal(reasonOf(linked((c) => (c.acceptance[0].check_ids = ['sum', 'sum']))), 'ENGINEERING_CHECK_ID_DUPLICATE');
+  assert.equal(
+    reasonOf(linked((c) => (c.verifier.checks[0].id = 'check'))),
+    'ENGINEERING_CHECK_ID_DUPLICATE',
+    'a check id cannot reuse a command id',
+  );
+  assert.equal(
+    reasonOf(
+      linked((c) => {
+        c.verifier.checks.push({ ...c.verifier.checks[0] });
+      }),
+    ),
+    'ENGINEERING_CHECK_ID_DUPLICATE',
+    'two checks with the same id',
+  );
+  assert.equal(
+    reasonOf(
+      linked((c) => {
+        c.acceptance.push({ id: 'a2', description: 'second', requirement_ids: c.acceptance[0].requirement_ids });
+        c.verifier.acceptance_ids.push('a2');
+      }),
+    ),
+    'ENGINEERING_CHECK_IDS_INCOMPLETE',
+    'if one criterion declares check_ids, all must',
+  );
+  assert.equal(reasonOf(linked((c) => (c.acceptance[0].check_ids = []))), 'ENGINEERING_CONTRACT_SCHEMA_INVALID');
+});
+
+test('a schema 1 contract refuses the new fields', () => {
+  const v1 = fixture();
+  v1.acceptance[0].check_ids = ['x'];
+  assert.equal(reasonOf(v1), 'ENGINEERING_CONTRACT_SCHEMA_INVALID');
+});
+
+test('admission requires every criterion to name an executable check; reading an admitted contract does not', (t) => {
+  assert.equal(admissionCode(admissionContract(t)), 'ok');
+  const uncovered = (mutate) => admissionContract(t, mutate);
+  const unlinked = uncovered((c) => delete c.acceptance[0].check_ids);
+  assert.equal(admissionCode(unlinked), 'ENGINEERING_ACCEPTANCE_UNCOVERED', 'a criterion without check_ids');
+  assert.equal(reasonOf(unlinked), 'ok', 'the same contract is still readable outside admission');
+  // A module verifier makes its checks executable even without command checks.
+  const moduleOnly = (mutate) =>
+    uncovered((c) => {
+      delete c.verifier.command_checks;
+      delete c.verifier.protected_paths;
+      mutate?.(c);
+    });
+  assert.equal(admissionCode(moduleOnly()), 'ok');
+  // web-content-v1 never counts, even when a command check makes the contract admissible: only the command does.
+  const web = (ids) =>
+    uncovered((c) => {
+      c.verifier.reference = 'verifier://project/web-content-v1';
+      c.verifier.checks = [{ id: 'c1', path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
+      c.acceptance[0].check_ids = ids;
+    });
+  assert.equal(admissionCode(web(['c1'])), 'ENGINEERING_ACCEPTANCE_UNCOVERED', 'a static check does not cover');
+  assert.equal(admissionCode(web(['c1', 'check'])), 'ok', 'a command check next to it does');
+  // One covered criterion does not cover another.
+  const second = uncovered((c) => {
+    c.acceptance.push({ id: 'a2', description: 'second', requirement_ids: c.acceptance[0].requirement_ids, check_ids: ['c1'] });
+    c.verifier.acceptance_ids.push('a2');
+    c.verifier.reference = 'verifier://project/web-content-v1';
+    c.verifier.checks[0].expected = 'module.exports';
+    c.acceptance[0].check_ids = ['check'];
+  });
+  assert.equal(admissionCode(second), 'ENGINEERING_ACCEPTANCE_UNCOVERED', 'the second criterion only names a static check');
 });

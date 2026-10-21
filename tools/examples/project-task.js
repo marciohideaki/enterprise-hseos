@@ -103,7 +103,14 @@ function createProjectExample(name, directory, { correction = false } = {}) {
     workspace: { root },
     sources: [{ id: 'spec', kind: 'specification', content: source, sha256: sha(source) }],
     requirements: [{ id: 'r1', description: source, source_ids: ['spec'] }],
-    acceptance: [{ id: 'a1', description: 'Protected cases validate boundary, empty and ordinary inputs.', requirement_ids: ['r1'] }],
+    acceptance: [
+      {
+        id: 'a1',
+        description: 'Protected cases validate boundary, empty and ordinary inputs.',
+        requirement_ids: ['r1'],
+        check_ids: checks.map((_, index) => `case-${index + 1}`),
+      },
+    ],
     scope: { read: Object.keys(files), write: [edited] },
     commands: [{ id: 'test', runtime: python ? 'python' : 'node', entrypoint: python ? 'scripts/check.py' : 'scripts/check.ts', args: [] }],
     limits: { max_turns: 12, max_tokens: 500_000, max_duration_ms: 120_000, max_tool_calls: 12, max_children: 0, max_workflow_steps: 0 },
@@ -113,7 +120,12 @@ function createProjectExample(name, directory, { correction = false } = {}) {
     verifier: {
       reference: `verifier://project/${python ? 'python' : 'node'}-module-v1`,
       acceptance_ids: ['a1'],
-      checks: checks.map((check) => ({ path: entry, export_name: python ? 'calculate' : 'default', ...check })),
+      checks: checks.map((check, index) => ({
+        id: `case-${index + 1}`,
+        path: entry,
+        export_name: python ? 'calculate' : 'default',
+        ...check,
+      })),
     },
     rollback: 'discard-disposable-workspace',
   });
