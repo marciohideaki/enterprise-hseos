@@ -677,6 +677,23 @@ function admission(t, mutate) {
   }
 }
 
+const admissionCode = (t, mutate) => {
+  const { parseEngineeringTask } = require('../tools/cli/lib/engineering-task-contract');
+  const { fixture } = require('./helpers/engineering-project');
+  const f = fixture(t, { files: { 'index.js': 'module.exports = (n) => n + 1;\n', 'check.js': 'process.exit(0);\n' } });
+  Object.assign(f.contract.scope, { write: ['index.js'] });
+  f.contract.commands = [{ id: 'check', runtime: 'node', entrypoint: 'check.js', args: ['run'] }];
+  f.contract.verifier.command_checks = [{ command_id: 'check' }];
+  f.contract.verifier.protected_paths = ['check.js'];
+  mutate(f.contract);
+  try {
+    parseEngineeringTask(f.contract, { admission: true });
+    return 'ok';
+  } catch (error) {
+    return error.code;
+  }
+};
+
 test('engineering: static-only acceptance is refused at admission (A5b)', (t) => {
   assert.equal(admission(t), 'ok', 'protected command checks are executable acceptance');
   const weak = (c) => {
@@ -767,4 +784,215 @@ test('engineering: every argument form outside the conservative alphabet is refu
       'ENGINEERING_COMMAND_ARG_INVALID',
       JSON.stringify(arg),
     );
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// W6-E3: negatives for FR04, FR11, FR13 and FR15.
+// ---------------------------------------------------------------------------------------------------------------
+
+test('compaction: a provider result that does not bind the exact sources never reaches the checkpoint store, and a foreign checkpoint is not relabelled', () => {
+  const {
+    CompactionProviderRegistry,
+    CompactionRuntime,
+    DeterministicCompactionProvider,
+    InMemoryCheckpointProvider,
+  } = require('../packages/agent-compaction');
+  const message = (index) => ({ role: index % 2 ? 'assistant' : 'user', content: `history-${index} `.repeat(80) });
+  const sources = [1, 2, 3].map((index) => ({
+    source_event_id: `event:history-${index}`,
+    source_ref: `session-event://event:history-${index}`,
+    sequence: index + 1,
+    message: message(index),
+  }));
+  const input = {
+    schema_version: 1,
+    provider_id: 'compaction:negative',
+    compaction_id: 'compaction:negative-1',
+    session_id: 'session:negative-1',
+    turn_id: 'turn:negative-3',
+    trigger: 'context_pressure',
+    strategy: 'history_summary',
+    target_tokens: 256,
+    sources,
+  };
+  const honest = new DeterministicCompactionProvider({ provider_id: 'compaction:negative' });
+  const runtimeFor = (provider, checkpoint) => {
+    const registry = new CompactionProviderRegistry();
+    registry.register(
+      provider,
+      honest.manifest({ schema_version: 1, request_id: 'request:negative-manifest', provider_id: 'compaction:negative' }),
+    );
+    return new CompactionRuntime({
+      compaction_provider_snapshot: registry.snapshot(),
+      checkpoint_provider: checkpoint,
+      checkpoint_provider_id: 'checkpoint:negative',
+    });
+  };
+  // A result bound to other sources is refused before any write.
+  let writes = 0;
+  const counting = {
+    put() {
+      writes++;
+    },
+    get() {
+      throw Object.assign(new Error('not found'), { code: 'CHECKPOINT_NOT_FOUND' });
+    },
+    dispose() {},
+  };
+  const forged = {
+    manifest: (value) => honest.manifest(value),
+    assess: (value) => honest.assess(value),
+    compact: (value) => ({ ...honest.compact(value), source_digest: `sha256:${'0'.repeat(64)}` }),
+    dispose: (value) => honest.dispose(value),
+  };
+  assert.throws(() => runtimeFor(forged, counting).compact(input), { code: 'COMPACTION_SOURCE_DIGEST_MISMATCH' });
+  assert.equal(writes, 0, 'nothing is persisted for a result that does not bind the exact sources');
+  // A valid checkpoint of another compaction cannot be recovered under this identity.
+  const store = new InMemoryCheckpointProvider({ provider_id: 'checkpoint:negative' });
+  store.put({
+    schema_version: 1,
+    provider_id: 'checkpoint:negative',
+    checkpoint_id: input.compaction_id,
+    session_id: input.session_id,
+    payload: honest.compact({ ...input, compaction_id: 'compaction:another' }),
+  });
+  assert.throws(() => runtimeFor(honest, store).compact(input), { code: 'COMPACTION_IDENTITY_MISMATCH' });
+});
+
+test('control surface: functions and code-bearing fields are stripped from an HTTP response at any depth', async () => {
+  const { startControlServer, stripExecutable } = require('../tools/cli/lib/engineering-control-http');
+  const credential = 'ephemeral-test-fixture-credential-not-for-installation';
+  assert.deepEqual(stripExecutable({ ok: 1, run: () => 1, inline_code: 'x', nested: [() => 2, { source_code: 'y', keep: [1, null] }] }), {
+    ok: 1,
+    nested: [{ keep: [1, null] }],
+  });
+  const control = {
+    query: async () => ({
+      resource_id: 'r',
+      handler: () => 'x',
+      executable_code: 'process.exit(1)',
+      deep: { script_source: 'z', digest: 'd' },
+    }),
+  };
+  const server = await startControlServer({ control, credential });
+  try {
+    const response = await fetch(`${server.url}/v1/tasks/${randomUUID()}`, { headers: { authorization: `Bearer ${credential}` } });
+    assert.equal(response.status, 200);
+    const text = await response.text();
+    assert.deepEqual(JSON.parse(text), { resource_id: 'r', deep: { digest: 'd' } });
+    for (const leaked of ['process.exit', 'executable_code', 'script_source', 'handler'])
+      assert.equal(text.includes(leaked), false, `${leaked} must not travel over HTTP`);
+    const unauthenticated = await fetch(`${server.url}/v1/tasks/${randomUUID()}`);
+    assert.equal(unauthenticated.status, 401);
+  } finally {
+    await server.close();
+  }
+});
+
+test('executor limits and MCP bounds: an out-of-range pids_max is refused at admission and an oversized MCP request never reaches the executor', async (t) => {
+  for (const bad of [{ pids_max: 31 }, { pids_max: 257 }, { pids_max: 1.5 }, { shm_bytes: 1_048_576 }])
+    assert.equal(
+      admissionCode(t, (c) => (c.commands[0].limits = bad)),
+      'ENGINEERING_TASK_CONTRACT_INVALID',
+      JSON.stringify(bad),
+    );
+  for (const good of [{ pids_max: 32 }, { pids_max: 256 }])
+    assert.equal(
+      admissionCode(t, (c) => (c.commands[0].limits = good)),
+      'ok',
+      JSON.stringify(good),
+    );
+  const {
+    JSON_RPC,
+    Mcp2026Adapter,
+    PROTOCOL_VERSION_META_KEY,
+    CLIENT_INFO_META_KEY,
+    CLIENT_CAPABILITIES_META_KEY,
+  } = require('../tools/lib/mcp-2026-adapter');
+  const { MCP_MODERN_PROTOCOL_VERSION } = require('../tools/lib/mcp-protocol');
+  const calls = [];
+  const adapter = new Mcp2026Adapter({
+    serverInfo: { name: 'hseos-negative', version: '1.0.0' },
+    tools: [
+      {
+        name: 'zeta.echo',
+        description: 'Echo a bounded string',
+        inputSchema: {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          type: 'object',
+          properties: { value: { type: 'string' } },
+          required: ['value'],
+          additionalProperties: false,
+        },
+      },
+    ],
+    execute: async (request) => {
+      calls.push(request);
+      return {
+        schema_version: 1,
+        ok: true,
+        data: { operation_id: 'o', result: {}, replayed: false },
+        error: null,
+        evidence: [],
+        warnings: [],
+      };
+    },
+    resolveActor: async () => ({ id: 'actor-1', type: 'human' }),
+    resolveResourceScope: async ({ tool }) => ({ project: 'fixture', tool }),
+    maxBodyBytes: 2000,
+    maxJsonDepth: 8,
+  });
+  const meta = {
+    [PROTOCOL_VERSION_META_KEY]: MCP_MODERN_PROTOCOL_VERSION,
+    [CLIENT_INFO_META_KEY]: { name: 'negative-client', version: '1.0.0' },
+    [CLIENT_CAPABILITIES_META_KEY]: {},
+  };
+  const oversized = await adapter.handle({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'tools/call',
+    params: { name: 'zeta.echo', arguments: { value: 'x'.repeat(3000) }, _meta: meta },
+  });
+  assert.equal(oversized.error.code, JSON_RPC.REQUEST_TOO_LARGE);
+  const deep = await adapter.handle({
+    jsonrpc: '2.0',
+    id: 2,
+    method: 'tools/list',
+    params: { nested: { a: { b: { c: { d: { e: { f: { g: {} } } } } } } }, _meta: meta },
+  });
+  assert.equal(deep.error.code, JSON_RPC.INVALID_REQUEST);
+  assert.equal(calls.length, 0, 'a refused request never reaches the executor');
+});
+
+test('pnpm store: a link leaving the verified store and a file one character beyond the limit are refused, never followed or truncated', (t) => {
+  const { pnpmProject } = require('./helpers/pnpm-store');
+  const { projectWorkspaceSnapshot, verifyPnpmStoreMount } = require('../tools/cli/lib/engineering-workspace');
+  const evil = 'node_modules/.pnpm/evil@1.0.0/node_modules/evil';
+  const escaping = pnpmProject(t);
+  const target = path.join(escaping.directory, 'outside.js');
+  fs.writeFileSync(target, 'secret');
+  fs.mkdirSync(path.join(escaping.root, evil), { recursive: true });
+  fs.symlinkSync(target, path.join(escaping.root, evil, 'abs.js'));
+  escaping.contract.scope.read.push(`${evil}/abs.js`);
+  assert.throws(() => projectWorkspaceSnapshot(escaping.contract), { reason: 'PROJECT_STORE_LINK_ESCAPES' });
+  // The read path and the sandbox mount each check links on their own; the mount must refuse the same escape.
+  const mounted = pnpmProject(t, { mounted: true });
+  fs.symlinkSync('/etc/hostname', path.join(mounted.root, 'node_modules/.pnpm', 'abs-link'));
+  assert.throws(() => verifyPnpmStoreMount(mounted.root), { reason: 'PROJECT_STORE_LINK_ESCAPES' });
+  const parent = pnpmProject(t, { mounted: true });
+  fs.symlinkSync('../../../..', path.join(parent.root, 'node_modules/.pnpm', 'mini-test@1.0.0', 'parent'));
+  assert.throws(() => verifyPnpmStoreMount(parent.root), { reason: 'PROJECT_STORE_LINK_ESCAPES' });
+  const storeFile = 'node_modules/.pnpm/mini-test@1.0.0/node_modules/mini-assert/index.js';
+  const replace = (f, length) => {
+    const file = path.join(f.root, 'node_modules/.pnpm/mini-assert@2.0.0/node_modules/mini-assert/index.js');
+    fs.rmSync(file);
+    fs.writeFileSync(file, `${'x'.repeat(length - 1)}\n`);
+    f.contract.max_artifact_bytes = 2_097_152;
+  };
+  const exact = pnpmProject(t);
+  replace(exact, 65_536);
+  assert.equal(projectWorkspaceSnapshot(exact.contract).files.find((file) => file.path === storeFile).content.length, 65_536);
+  const over = pnpmProject(t);
+  replace(over, 65_537);
+  assert.throws(() => projectWorkspaceSnapshot(over.contract), { reason: 'PROJECT_FILE_TOO_LARGE', file: storeFile });
 });
