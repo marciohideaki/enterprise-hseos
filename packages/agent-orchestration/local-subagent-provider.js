@@ -230,7 +230,10 @@ class LocalSubagentProvider {
     }
     for (const childId of settleIds) this.#active.delete(childId);
     const rejected = taskOutcomes.find((outcome) => outcome.status === 'rejected');
-    if (rejected) throw rejected.reason;
+    // Cancellation is teardown: every child above is already terminal, so a runtime failure that raced with it is not
+    // rethrown here (a concurrent join still reports it); rethrowing would abort the workflow's own teardown before it
+    // releases its reservation and leave the root unable to settle.
+    if (rejected && !cancelReason) throw rejected.reason;
     const children = input.child_session_ids.map((childId) => this.#resolveChild(childId));
     return {
       schema_version: CONTRACT_SCHEMA_VERSION,
