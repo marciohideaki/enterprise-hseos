@@ -2744,3 +2744,73 @@ test('watched roots: a negation with a glob after a literal directory excludes m
   assert.ok(denied(guard(project, 'apps/web/fixtures-not/Widget.ts', EXPORT)), 'a longer name does not match');
   assert.ok(denied(guard(project, 'apps/web/src/stories.ts', EXPORT)), 'a file is not a directory');
 });
+
+// CommonJS export forms the tokenizer-based detection must see (T1). Each case is its own test so a failure names the form.
+const CJS_GAP_POSITIVES = [
+  ['logical-assign ??=', 'exports.a ??= 1;'],
+  ['logical-assign ||=', 'exports.a ||= 1;'],
+  ['bracket module[exports]', "module['exports'] = { a: 1 };"],
+  ['bracket module[exports].a', 'module["exports"].a = 1;'],
+  ['alias of module', 'const m = module;\nm.exports = { a: 1 };'],
+  ['alias of exports', 'const e = exports;\ne.a = 1;'],
+  ['bracket exports[a]', 'exports["a"] = 1;'],
+];
+for (const [name, source] of CJS_GAP_POSITIVES) {
+  test(`cjs gaps (T1): detects ${name}`, () => {
+    assert.notEqual(detectExports(source, 'js'), null, source);
+  });
+}
+
+const CJS_GAP_CONTROLS = [
+  ['module.exports in a string', 'const s = "module.exports = 1";'],
+  ['exports in comments', '// module.exports = 1\n/* exports.a = 1 */'],
+  ['module.exports in a template literal', 'const t = `module.exports = ${1}`;'],
+  ['alias of another object', 'const m = other;\nm.exports = { a: 1 };'],
+  ['bracket access to a different property', "foo(module['exportsX']);"],
+];
+for (const [name, source] of CJS_GAP_CONTROLS) {
+  test(`cjs gaps (T1): ignores ${name}`, () => {
+    assert.equal(detectExports(source, 'js'), null, source);
+  });
+}
+
+// Complexity of the CommonJS detection, robust to machine load: every figure is a ratio of two measurements taken in the same run
+// (best of 4 each), never an absolute time. Measured on 2026-10-21 (patched guard): heavy/plain 1.45 to 1.60 at 1 MB, and 4x the size
+// costs 4.3 to 4.8x the time (linear is 4x, a quadratic pass would be 16x). The limits leave about 2x of room over those figures.
+test('cjs gaps (T1): heavy CommonJS input at 1 MB stays linear, against plain input and against its own size', () => {
+  const plainLine = "const q = 'x'; // c\n";
+  const lines = {
+    bracket: "module['exports'].a = 'x' + \"y\"; const s = `t ${1}` + 'z'; // c\n",
+    mixed: "const m = module; m.exports.b = \"k\"; exports['c'] ??= 'v'; const r = /a+/g; // c\n",
+  };
+  const build = (line, bytes) => line.repeat(Math.ceil(bytes / line.length)) + 'export class R {}';
+  const fastest = (content) => {
+    let best = Number.POSITIVE_INFINITY;
+    for (let round = 0; round < 4; round += 1) {
+      const started = process.hrtime.bigint();
+      const found = detectExports(content);
+      best = Math.min(best, Number(process.hrtime.bigint() - started) / 1e6);
+      assert.ok(found.symbols.includes('R'));
+      if (content !== plain) assert.equal(found.anonymous, true, 'the CommonJS export is detected');
+    }
+    return best;
+  };
+  const plain = build(plainLine, 1_000_000);
+  const baseline = fastest(plain);
+  for (const [name, line] of Object.entries(lines)) {
+    const large = fastest(build(line, 1_000_000));
+    const small = fastest(build(line, 250_000));
+    assert.ok(large < baseline * 3 + 20, `${name}: 1 MB took ${large} ms against ${baseline} ms of plain input`);
+    assert.ok(large < small * 8 + 20, `${name}: 1 MB took ${large} ms against ${small} ms for a quarter of the size`);
+  }
+});
+
+// Known false positives on master, documented and NOT required by T1 (resolving them needs lexical scope).
+for (const name of [
+  'a regex literal that mentions module.exports',
+  'exports as a property of another object (other.exports.a = 2)',
+  'a parameter or local named module/exports (shadowing)',
+  'a comparison (x.exports.a == 1)',
+]) {
+  test.todo(`cjs gaps (T1): known false positive, ${name}`);
+}

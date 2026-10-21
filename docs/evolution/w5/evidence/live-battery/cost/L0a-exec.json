@@ -1,0 +1,83 @@
+{
+  "label": "L0a-exec",
+  "span": ["2026-10-17T23:25:07.266Z", "2026-10-17T23:30:11.363Z"],
+  "priced": true,
+  "activities": [
+    {
+      "activity": "exploracao_codigo",
+      "model_latency_s": 138.9,
+      "tool_time_s": 62.5,
+      "tool_calls": 55.0,
+      "tok_in_fresh": 90.0,
+      "tok_cache_read": 5609509.0,
+      "tok_cache_write": 135172.0,
+      "tok_out": 21037.0,
+      "api_calls": 45.0,
+      "wall_s": 201.4,
+      "usd": 2.5056
+    },
+    {
+      "activity": "leitura_spec",
+      "model_latency_s": 4.6,
+      "tool_time_s": 1.4,
+      "tool_calls": 4.0,
+      "tok_in_fresh": 4.0,
+      "tok_cache_read": 68153.0,
+      "tok_cache_write": 50143.0,
+      "tok_out": 449.0,
+      "api_calls": 2.0,
+      "wall_s": 5.9,
+      "usd": 0.2152
+    },
+    {
+      "activity": "implementacao",
+      "model_latency_s": 8.5,
+      "tool_time_s": 67.7,
+      "tool_calls": 4.0,
+      "tok_in_fresh": 8.0,
+      "tok_cache_read": 745674.0,
+      "tok_cache_write": 4536.0,
+      "tok_out": 11400.0,
+      "api_calls": 4.0,
+      "wall_s": 76.2,
+      "usd": 0.4117
+    },
+    {
+      "activity": "git_estado",
+      "model_latency_s": 6.8,
+      "tool_time_s": 5.1,
+      "tool_calls": 3.0,
+      "tok_in_fresh": 6.0,
+      "tok_cache_read": 558451.0,
+      "tok_cache_write": 3547.0,
+      "tok_out": 1098.0,
+      "api_calls": 3.0,
+      "wall_s": 11.9,
+      "usd": 0.1973
+    },
+    {
+      "activity": "raciocinio_resposta",
+      "model_latency_s": 8.7,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 193398.0,
+      "tok_cache_write": 231.0,
+      "tok_out": 1215.0,
+      "api_calls": 1.0,
+      "wall_s": 8.7,
+      "usd": 0.0771
+    }
+  ],
+  "total": {
+    "activity": "TOTAL",
+    "model_latency_s": 167.5,
+    "tool_time_s": 136.7,
+    "tool_calls": 66.0,
+    "tok_in_fresh": 110.0,
+    "tok_cache_read": 7175185.0,
+    "tok_cache_write": 193629.0,
+    "tok_out": 35199.0,
+    "api_calls": 55.0,
+    "wall_s": 304.1,
+    "usd": 3.4
+  }
+}

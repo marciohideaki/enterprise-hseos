@@ -1,0 +1,96 @@
+{
+  "overall": "PASS",
+  "allow_dispatch": true,
+  "max_requests": 1,
+  "steps": [
+    {
+      "id": "t1-baseline",
+      "title": "baseline clone is clean and the protected verifier rejects it",
+      "status": "PASS",
+      "detail": {
+        "verifier_exit": 1,
+        "pin": {
+          "schema_version": 1,
+          "verifier_script_sha256": "01963d3901b8ad3dee0c5d8ab4166e1d370387fe21de5bd7c9e3f0d48980edf8",
+          "test_file_sha256": "570034e07db79ed06caf0df8b17f20c01fdbc77a4cd6e604949d1caf8d0ef1dd",
+          "baseline_sha": "1fd9e3212b2b5d487b767d1eebbce351685f462b"
+        },
+        "pinned_at": "2026-10-21T16:25:17.865Z"
+      }
+    },
+    {
+      "id": "t1-contract",
+      "title": "managed-project task prepared on the clone (only the large guard file is writable)",
+      "status": "PASS",
+      "detail": {
+        "task_id": "b61b91c9-b5a6-452b-8ae7-3eb8c5e25b7e",
+        "write_scope": ["tools/cli/lib/capability-intake-guard.js"],
+        "contract_sha256": "e4823498ae598e9d6454abd98a910aa4a68216630559d1734ed1d4a10139f0d9",
+        "prompt_sha256": "1842871ac70423a4b8322a4f12e9bfd3e185247c592519f8e2cf8a08a7400d88",
+        "prompt_bytes": 7467
+      }
+    },
+    {
+      "id": "t1-campaign",
+      "title": "Claude binding inspected (no inference) and campaign opened under the cost ceiling",
+      "status": "PASS",
+      "detail": {
+        "binding_id": "binding:claude-w5-account",
+        "provider_version": "2.1.263",
+        "campaign_id": "54870cf0-627e-449f-a8d2-207d0b1b2c86",
+        "authorization": {
+          "max_requests": 1,
+          "max_cost_microusd": 0,
+          "expires_in_min": 45,
+          "quota_exception": "Owner decision 2026-10-17, ver /build/tmp/hseos-w5/live/owner-decision.md; CLI sem janela de cota"
+        },
+        "inference_executed": false,
+        "ledger_kinds": ["opened", "intent", "done"],
+        "reserved_rows": 0
+      }
+    },
+    {
+      "id": "t1-dispatch",
+      "title": "model dispatch under the campaign ledger (reserve, then receipt)",
+      "status": "PASS",
+      "detail": {
+        "reference": "campaign://54870cf0-627e-449f-a8d2-207d0b1b2c86/7edc9fea-7275-4b77-ab56-4c353e09ec92",
+        "receipt_status": "completed",
+        "input_tokens": 7977,
+        "output_tokens": 14971,
+        "committed_microusd": 0,
+        "dispatches": 1
+      }
+    },
+    {
+      "id": "t1-correction",
+      "title": "governed correction with the model plan (scoped patch, protected verifier, review, apply)",
+      "status": "PASS",
+      "detail": {
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "response_names": ["engineering.patch", "engineering.diff"],
+        "token_accounting": {
+          "reported_input_tokens": 1,
+          "reported_output_tokens": 1,
+          "conservative_estimate_tokens": 37569,
+          "total_tokens": 37571,
+          "estimate_counter": "token-counter:utf8-byte-upper-bound"
+        },
+        "review_sha256": "84fb106ee73a1b5a3645662c7c6b4923d5d8a4d8348037e707734c284fbb2a18",
+        "applied": true,
+        "changed_files": ["tools/cli/lib/capability-intake-guard.js"]
+      }
+    },
+    {
+      "id": "t1-verdict",
+      "title": "protected verifier on the corrected clone (pin rechecked first)",
+      "status": "PASS",
+      "detail": {
+        "verifier_exit": 0,
+        "coverage_gate": "not part of the verifier (the guard is in the kernel set; the official proof is the CI)",
+        "verifier_script_sha256": "01963d3901b8ad3dee0c5d8ab4166e1d370387fe21de5bd7c9e3f0d48980edf8"
+      }
+    }
+  ]
+}

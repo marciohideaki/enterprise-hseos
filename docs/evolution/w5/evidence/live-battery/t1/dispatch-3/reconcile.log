@@ -1,0 +1,4 @@
+before {"resource_id":"5537b435-328b-4143-8895-48e09e9c45fc","current_sequence":5,"max_requests":1,"max_cost_microusd":0,"deadline":1792598727930,"requests":1,"committed_microusd":0,"cancelled":false,"unresolved_commands":["19ebadb0-d48c-4de7-84c8-81b3a8dca217"],"live_commands":[],"bindings":["binding:claude-w5-account"],"report_sha256":"1de16cb686fba449f742bf304846ff8c3b6699f7cc4938ff7dae81b4aaf6f966"}
+outcome {"resource_id":"5537b435-328b-4143-8895-48e09e9c45fc","action":"reconcile"}
+after {"resource_id":"5537b435-328b-4143-8895-48e09e9c45fc","current_sequence":8,"max_requests":1,"max_cost_microusd":0,"deadline":1792598727930,"requests":1,"committed_microusd":0,"cancelled":false,"unresolved_commands":[],"live_commands":[],"bindings":["binding:claude-w5-account"],"report_sha256":"ed6da7e1f04562ea72f4200ad4df8a88bf1c136bc06dd07d91916900453d0b4a"}
+kinds ["opened","intent","done","reserved","uncertain","intent","reconciled","done"]
