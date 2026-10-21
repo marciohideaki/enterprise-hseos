@@ -348,3 +348,7 @@ Fecho condicionado: C9 (teste estático de "chamador de produção") e C10 (inte
 - A elicitação mostra o digest do screenshot, não a imagem: quem aprova depende do cliente para tê-la visto.
 - O console do navegador (violações de CSP) não é observável pelo serviço; a CSP do state-ui segue sem prova de console.
 - A jornada com consumidores reais continua fora do CI e exige despacho de modelo para os passos de campanha; o fecho dos ledgers dos passos de LSP, DAP, navegador e computer-use só é provado de ponta a ponta nessa execução.
+
+### Plugins das capacidades continuam `scaffolded` (C12)
+
+Os plugins `plugins/lsp`, `plugins/dap`, `plugins/browser`, `plugins/computer-use` e `plugins/memory` seguem com `status: scaffolded` em `.agents/plugins/registry.yaml`. Ligar as capacidades ao runtime de tarefa e ao MCP (onda W4) não os promove: a promoção é decisão de ativação. Pelo mesmo motivo, `plugins/` fica fora de `files` do `package.json`: o pacote publicado carrega o runtime e os contratos das capacidades (`packages/**`, `tools/**`), não os plugins empacotados. Incluir `plugins/` em `files`, mudar o `status` e instalar os plugins pertencem à ativação (W8), no passo e com a autorização próprios descritos em `docs/evolution/runbooks/activation.md`. Esse runbook ainda não está na master: hoje vive na branch `feature/hseos-w5-closeout-w7` e passa a ser citável quando a onda W7 for mergeada.
