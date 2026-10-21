@@ -1,0 +1,107 @@
+{
+  "overall": "PASS",
+  "allow_dispatch": true,
+  "max_requests": 2,
+  "steps": [
+    {
+      "id": "t4-baseline",
+      "title": "baseline clone is clean and the protected verifier rejects it",
+      "status": "PASS",
+      "detail": {
+        "verifier_exit": 1,
+        "pin": {
+          "schema_version": 1,
+          "verifier_script_sha256": "ab0a75d752ea06d0ef9a8e39acd4cdea991c0fe08e41f2a8e20a8b5f31d0c9e6",
+          "test_file_sha256": "aa716f93efbd89173b3e44cd6b92feb96be77366804e49b62a0f964c72ad4b6a",
+          "baseline_sha": "44cd76822c7424260cad7594de1db4dbada87a42"
+        },
+        "pinned_at": "2026-10-19T04:21:13.227Z"
+      }
+    },
+    {
+      "id": "t4-contract",
+      "title": "managed-project task prepared on the clone (only the web client file is writable)",
+      "status": "PASS",
+      "detail": {
+        "task_id": "f59adf14-ce4d-46e2-9eff-36d5abd6d1cd",
+        "write_scope": [
+          "tools/state-ui-server/web/app.js"
+        ],
+        "contract_sha256": "676c0c6a48cca03798850bcfa63a485da9762933392736a4120ad135a02d4f27",
+        "prompt_sha256": "9569cc5ed7fe927836d977db9569c940299f23397e3e05e56d180e6e7fbd28f9",
+        "prompt_bytes": 5173
+      }
+    },
+    {
+      "id": "t4-campaign",
+      "title": "Claude binding inspected (no inference) and campaign opened under the cost ceiling",
+      "status": "PASS",
+      "detail": {
+        "binding_id": "binding:claude-w5-account",
+        "provider_version": "2.1.263",
+        "campaign_id": "e6b7489c-e56f-4169-b1ce-a8ed97377c52",
+        "authorization": {
+          "max_requests": 2,
+          "max_cost_microusd": 0,
+          "expires_in_min": 45,
+          "quota_exception": "Owner decision 2026-10-17, ver /build/tmp/hseos-w5/live/owner-decision.md; CLI sem janela de cota"
+        },
+        "inference_executed": false,
+        "ledger_kinds": [
+          "opened",
+          "intent",
+          "done"
+        ],
+        "reserved_rows": 0
+      }
+    },
+    {
+      "id": "t4-dispatch",
+      "title": "model dispatch under the campaign ledger (reserve, then receipt)",
+      "status": "PASS",
+      "detail": {
+        "reference": "campaign://e6b7489c-e56f-4169-b1ce-a8ed97377c52/f451c60f-f25e-468f-913c-3fc603ff5575",
+        "receipt_status": "completed",
+        "input_tokens": 6893,
+        "output_tokens": 2673,
+        "committed_microusd": 0,
+        "dispatches": 1
+      }
+    },
+    {
+      "id": "t4-correction",
+      "title": "governed correction with the model plan (scoped patch, protected verifier, review, apply)",
+      "status": "PASS",
+      "detail": {
+        "task_result": "approved",
+        "reason": "criteria-satisfied",
+        "response_names": [
+          "engineering.patch",
+          "engineering.diff"
+        ],
+        "token_accounting": {
+          "reported_input_tokens": 1,
+          "reported_output_tokens": 1,
+          "conservative_estimate_tokens": 44491,
+          "total_tokens": 44493,
+          "estimate_counter": "token-counter:utf8-byte-upper-bound"
+        },
+        "review_sha256": "25f1dee17a561d7e468301f8e6af371c7ff440ddadff31f9723db36b9af0bd52",
+        "applied": true,
+        "changed_files": [
+          "tools/state-ui-server/web/app.js"
+        ]
+      }
+    },
+    {
+      "id": "t4-verdict",
+      "title": "protected verifier on the corrected clone (pin rechecked first)",
+      "status": "PASS",
+      "detail": {
+        "verifier_exit": 0,
+        "coverage_gate": "none (app.js is not in .c8-kernel.json)",
+        "verifier_script_sha256": "ab0a75d752ea06d0ef9a8e39acd4cdea991c0fe08e41f2a8e20a8b5f31d0c9e6"
+      }
+    }
+  ]
+}

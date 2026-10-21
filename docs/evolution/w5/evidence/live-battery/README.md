@@ -38,3 +38,4 @@ Reading rules:
 | --- | --- | --- | --- |
 | T2 | `t2/receipt.json` | 2 campaigns, 2 requests (attempt 1 FAIL by harness, attempt 2 PASS) | 2 of 12 |
 | T3 | `t3/receipt.json` | 1 campaign, 1 of 3 authorised requests (PASS) | 3 of 12 |
+| T4 | `t4/receipt.json` | 1 campaign, 1 of 2 authorised requests (PASS) | 4 of 12 |
