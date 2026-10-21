@@ -310,8 +310,12 @@ function createComputerService({
     if (parsed.data.action === 'type' && containsCredential(parsed.data.args.text)) {
       return refuse('ENV_COMPUTER_CREDENTIAL_DETECTED', 'the text to type holds a credential pattern');
     }
-    const granted = approvals.request(binding(current, parsed.data), options);
-    return granted.status === 'refused' ? refuse(granted.code, 'approval request was refused') : granted;
+    const bound = binding(current, parsed.data);
+    const granted = approvals.request(bound, options);
+    // The approver is shown the step and the screenshot digest the grant is bound to.
+    return granted.status === 'refused'
+      ? refuse(granted.code, 'approval request was refused')
+      : Object.freeze({ ...granted, seq: bound.seq, screenshot_digest: bound.screenshot_digest });
   }
 
   function parseEvent(event, seq, action) {

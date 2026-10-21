@@ -44,16 +44,21 @@ function createDenialRecorder({ ledger, serverId, actor, log, clock = () => new 
 }
 
 function createLocalApprovalFlow({ execution, serverId }) {
+  // The grant is bound to the policy version of the contract being approved (the MCP tools and the capability contracts differ).
+  const policyVersionOf = (tool) => execution.contracts.resolve(tool).policy_version;
   return {
-    async begin({ outcome }) {
+    async begin({ outcome, executionRequest }) {
+      const operationId = outcome.error.operation_id;
+      // What the human is shown: for a capability tool the action itself (and, for the computer, its screenshot digest).
+      const detail = execution.capabilityApprovals?.describe(executionRequest, operationId) ?? null;
       return {
-        state: { operation_id: outcome.error.operation_id, policy_version: 'hseos-operational-v1' },
+        state: { operation_id: operationId, policy_version: policyVersionOf(executionRequest.tool) },
         inputRequests: {
           confirm: {
             method: 'elicitation/create',
             params: {
               mode: 'form',
-              message: `Approve governed execution ${outcome.error.operation_id}?`,
+              message: detail ?? `Approve governed execution ${operationId}?`,
               requestedSchema: {
                 type: 'object',
                 properties: { approved: { type: 'boolean' } },
@@ -74,25 +79,40 @@ function createLocalApprovalFlow({ execution, serverId }) {
       }
       const operationId = deterministicOperationId(executionRequest.tool, executionRequest.idempotency_key);
       if (operationId !== verifiedState.operation_id) throw new Error('Approval operation binding mismatch');
+      const policyVersion = policyVersionOf(executionRequest.tool);
+      if (verifiedState.policy_version !== policyVersion) throw new Error('Approval policy version binding mismatch');
+      const authorizer = localProcessActor();
+      // The service-level gate (computer actions) opens only now, for this exact input, in the approver's name.
+      execution.capabilityApprovals?.grant(executionRequest, operationId, authorizer.id);
       const now = new Date();
       const approvalId = randomUUID();
       execution.approvalStore.issue({
         approval_id: approvalId,
         operation_id: operationId,
-        authorizer: localProcessActor(),
+        authorizer,
         resource_scope: executionRequest.resource_scope,
         issued_at: now.toISOString(),
         expires_at: new Date(now.getTime() + 300_000).toISOString(),
         decision: 'approved',
-        policy_version: verifiedState.policy_version,
+        policy_version: policyVersion,
         evidence_ref: `hseos://mcp/${serverId}/elicitation/${approvalId}`,
       });
-      return { approval_id: approvalId, policy_version: verifiedState.policy_version };
+      return { approval_id: approvalId, policy_version: policyVersion };
     },
   };
 }
 
-function startNativeMcpServer({ serverId, tools, invokeTool, mode, port, dbPath, health = {}, log = console.error }) {
+function startNativeMcpServer({
+  serverId,
+  tools,
+  invokeTool,
+  mode,
+  port,
+  dbPath,
+  health = {},
+  environmentHost = null,
+  log = console.error,
+}) {
   const serverSpec = NATIVE_MCP_SERVERS[serverId];
   if (!serverSpec) throw new TypeError(`Unknown native MCP server: ${serverId}`);
   const fixtureActivation = process.env.NODE_ENV === 'test' && process.env.HSEOS_GOVERNED_EXECUTION_FIXTURE === '1';
@@ -137,7 +157,7 @@ function startNativeMcpServer({ serverId, tools, invokeTool, mode, port, dbPath,
       throw error;
     }
   };
-  const execution = createOperationalExecution({ db, serverId, tools, invokeTool: gatedInvokeTool });
+  const execution = createOperationalExecution({ db, serverId, tools, invokeTool: gatedInvokeTool, environmentHost });
   recordDenial = createDenialRecorder({
     ledger: execution.ledger,
     serverId,
@@ -149,6 +169,7 @@ function startNativeMcpServer({ serverId, tools, invokeTool, mode, port, dbPath,
   const adapter = createNativeMcpAdapter({
     serverId,
     scheduler: execution.scheduler,
+    extraTools: execution.capabilityTools,
     resolver: {
       resolveActor: async () => localProcessActor(),
       resolveResourceScope: async () => ({ project: path.resolve(process.cwd()), server: serverId, state_db: resolvedDbPath }),
