@@ -103,6 +103,8 @@ a distinct `detail.code` (`docs/engineering-control-api.md`).
   admission is refused with `ENGINEERING_ACCEPTANCE_UNCOVERED`. Re-reading an admitted contract does not apply it.
   For module verifiers the protected part is the set of expectations (`expected`) fixed in the verifier sha: changing
   one after the pin is refused.
+  Known limitation: the link names a check, not a relation to the criterion's text. A command check unrelated to a
+  criterion still satisfies `check_ids` if the author names it; relevance remains the contract author's responsibility.
 - Other known limitations of the admission:
   - It applies to the control API, job creation, retry and expansion. `agent run --task-contract` and the
     CLI workflow path read contracts without it. Job claim and recovery deliberately re-validate without it,

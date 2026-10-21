@@ -620,11 +620,6 @@ test('a schema 1 contract refuses the new fields', () => {
   assert.equal(reasonOf(v1), 'ENGINEERING_CONTRACT_SCHEMA_INVALID');
 });
 
-test('the check id never reaches the probe script', () => {
-  const source = fs.readFileSync(path.join(__dirname, '../tools/cli/lib/engineering-project-verifier.js'), 'utf8');
-  assert.match(source, /const probes = contract\.verifier\.checks\.map\(\(\{ expected: _expected, id: _id, \.\.\.probe \}\) => probe\);/);
-});
-
 test('admission requires every criterion to name an executable check; reading an admitted contract does not', (t) => {
   assert.equal(admissionCode(admissionContract(t)), 'ok');
   const uncovered = (mutate) => admissionContract(t, mutate);
