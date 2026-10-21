@@ -1439,12 +1439,16 @@ test('guard: ambiguous slashes cost a constant number of passes, however many th
     }
     return best;
   };
+  // The guarantee is a number of passes, not wall time: every bound is relative to timings taken in this same run, so a
+  // loaded host slows the controls and the measurements alike. (The absolute budget of a realistic file is asserted above.)
+  const ambiguousWith = (count) =>
+    Array.from({ length: count }, (_, index) => `let v${index} = a\n/x${index}/g.test(b)\n`).join('') + filler;
   const baseline = fastest(filler);
+  const single = fastest(ambiguousWith(1));
   for (const count of [1, 2, 8, 9, 16, 64]) {
-    const ambiguous = Array.from({ length: count }, (_, index) => `let v${index} = a\n/x${index}/g.test(b)\n`).join('');
-    const milliseconds = fastest(ambiguous + filler);
-    assert.ok(milliseconds < 200, `${count} ambiguous slashes + 1 MB took ${milliseconds} ms`);
+    const milliseconds = fastest(ambiguousWith(count));
     assert.ok(milliseconds < baseline * 2.5 + 20, `${count} ambiguous slashes took ${milliseconds} ms against ${baseline} ms without`);
+    assert.ok(milliseconds < single * 2 + 20, `${count} ambiguous slashes took ${milliseconds} ms against ${single} ms with one`);
   }
 });
 
