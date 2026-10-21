@@ -2,7 +2,8 @@
 
 Receipts of the tasks of the live battery (a model dispatched through a governed
 provider campaign, applied through the managed-project route and judged by a
-protected verifier). One folder per task (`t1` to `t4`).
+protected verifier). One folder per task (`t1` to `t4`). The cross-task view, the requests authorised against consumed, the
+findings and the cost of the squad per activity are in `battery-report.md`.
 
 Each folder holds:
 
@@ -40,3 +41,5 @@ Reading rules:
 | T3   | `t3/receipt.json` | 1 campaign, 1 of 3 authorised requests (PASS)                                                                                                               | 3 of 12                         |
 | T4   | `t4/receipt.json` | 1 campaign, 1 of 2 authorised requests (PASS)                                                                                                               | 4 of 12                         |
 | T1   | `t1/receipt.json` | 5 campaigns, 5 requests consumed of 9 allowed by the campaigns (3+2+1+2+1; owner task ceiling 5) (4 without receipt, causes in the receipt; attempt 5 PASS) | 9 of 12                         |
+
+Consolidated report: [`battery-report.md`](battery-report.md) (9 of 12 requests consumed; 17 allowed by the campaigns).

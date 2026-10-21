@@ -1,0 +1,83 @@
+{
+  "label": "T2a-exec",
+  "span": ["2026-10-18T15:13:06.669Z", "2026-10-18T15:15:34.419Z"],
+  "priced": true,
+  "activities": [
+    {
+      "activity": "exploracao_codigo",
+      "model_latency_s": 42.6,
+      "tool_time_s": 47.2,
+      "tool_calls": 14.0,
+      "tok_in_fresh": 24.0,
+      "tok_cache_read": 880887.0,
+      "tok_cache_write": 43359.0,
+      "tok_out": 6289.0,
+      "api_calls": 12.0,
+      "wall_s": 89.8,
+      "usd": 0.5213
+    },
+    {
+      "activity": "leitura_spec",
+      "model_latency_s": 7.8,
+      "tool_time_s": 0.9,
+      "tool_calls": 3.0,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 0.0,
+      "tok_cache_write": 47979.0,
+      "tok_out": 245.0,
+      "api_calls": 1.0,
+      "wall_s": 8.7,
+      "usd": 0.1836
+    },
+    {
+      "activity": "raciocinio_resposta",
+      "model_latency_s": 7.0,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 95005.0,
+      "tok_cache_write": 4358.0,
+      "tok_out": 1782.0,
+      "api_calls": 1.0,
+      "wall_s": 7.0,
+      "usd": 0.0716
+    },
+    {
+      "activity": "implementacao",
+      "model_latency_s": 7.4,
+      "tool_time_s": 24.4,
+      "tool_calls": 2.0,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 93999.0,
+      "tok_cache_write": 1006.0,
+      "tok_out": 4076.0,
+      "api_calls": 1.0,
+      "wall_s": 31.9,
+      "usd": 0.0931
+    },
+    {
+      "activity": "git_estado",
+      "model_latency_s": 3.8,
+      "tool_time_s": 1.9,
+      "tool_calls": 1.0,
+      "tok_in_fresh": 2.0,
+      "tok_cache_read": 91338.0,
+      "tok_cache_write": 2661.0,
+      "tok_out": 622.0,
+      "api_calls": 1.0,
+      "wall_s": 5.7,
+      "usd": 0.0467
+    }
+  ],
+  "total": {
+    "activity": "TOTAL",
+    "model_latency_s": 68.6,
+    "tool_time_s": 74.4,
+    "tool_calls": 20.0,
+    "tok_in_fresh": 32.0,
+    "tok_cache_read": 1161229.0,
+    "tok_cache_write": 99363.0,
+    "tok_out": 13014.0,
+    "api_calls": 16.0,
+    "wall_s": 143.1,
+    "usd": 0.9
+  }
+}
