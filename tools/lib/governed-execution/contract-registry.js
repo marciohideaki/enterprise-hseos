@@ -456,7 +456,7 @@ const CAPABILITY_CONTRACTS = Object.freeze([
     computerActSchema,
     environmentSchema(computerContract, 'output'),
   ),
-  // Stopping a session that is already closed is refused without effect, so a replay ends in the same state.
+  // Stop is idempotent and only ends the session: closing one that is already closed is refused without effect.
   capabilityContract(
     'environment.computer.stop',
     'environment.computer',
@@ -469,8 +469,9 @@ const CAPABILITY_CONTRACTS = Object.freeze([
     environmentSchema(computerContract, 'output'),
     true,
   ),
-  // A write is compensated by superseding or deleting the entry; the ledger keeps the earlier events. A replay with the
-  // same memory_id is refused as a duplicate, so the effect is applied at most once and no approval is needed.
+  // A write is compensated by superseding or deleting the entry; the ledger keeps the earlier events. The runtime asks
+  // for no approval here (the provider is idempotent by memory_id: a replay is refused as a duplicate). The gate is the
+  // store's admitWrite policy instead: deny by default, with rules supplied by the host, plus the credential scan.
   capabilityContract(
     'memory.write',
     'agent-memory',
