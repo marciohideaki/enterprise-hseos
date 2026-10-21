@@ -100,7 +100,7 @@ function createNativeMcpAdapters({ scheduler, resolvers, adapterOptions = {} }) 
   return Object.freeze(adapters);
 }
 
-function createNativeMcpAdapter({ serverId, scheduler, resolver, adapterOptions = {} }) {
+function createNativeMcpAdapter({ serverId, scheduler, resolver, adapterOptions = {}, extraTools = [] }) {
   const server = NATIVE_MCP_SERVERS[serverId];
   if (!server) throw new EntrypointAdapterError(`Unknown native MCP server: ${serverId}`);
   if (!scheduler || typeof scheduler.execute !== 'function') {
@@ -112,7 +112,7 @@ function createNativeMcpAdapter({ serverId, scheduler, resolver, adapterOptions 
   return new Mcp2026Adapter({
     ...adapterOptions,
     serverInfo: { name: server.name, version: '2.0.0' },
-    tools: loadNativeMcpCatalogs()[serverId],
+    tools: [...loadNativeMcpCatalogs()[serverId], ...extraTools.map((tool) => publicDescriptor(tool, 'extraTools'))],
     execute: (request) => scheduler.execute(request),
     resolveActor: resolver.resolveActor,
     resolveResourceScope: resolver.resolveResourceScope,

@@ -339,7 +339,10 @@ async function runGovernedUnitTests() {
       serverId: 'unit',
     });
     const operationId = deterministicOperationId('some_tool', 'key-1');
-    const begin = await flow.begin({ outcome: { error: { operation_id: operationId } } });
+    const begin = await flow.begin({
+      outcome: { error: { operation_id: operationId } },
+      executionRequest: { tool: 'some_tool', input: {} },
+    });
     assert.equal(begin.state.operation_id, operationId);
     assert.equal(begin.inputRequests.confirm.method, 'elicitation/create');
     const executionRequest = { tool: 'some_tool', idempotency_key: 'key-1', resource_scope: { project: '/p' } };
@@ -379,7 +382,7 @@ async function runGovernedUnitTests() {
     const capabilityId = deterministicOperationId('cap_tool', 'key-2');
     const capability = await flow.resolve({
       inputResponses: { confirm: { action: 'accept', content: { approved: true } } },
-      verifiedState: { operation_id: capabilityId, policy_version: 'hseos-operational-v1' },
+      verifiedState: { operation_id: capabilityId, policy_version: 'hseos-w5-capability-v1' },
       executionRequest: { tool: 'cap_tool', idempotency_key: 'key-2', resource_scope: { project: '/p' } },
     });
     assert.equal(capability.policy_version, 'hseos-w5-capability-v1');
@@ -395,12 +398,15 @@ async function runCapabilityProviderTests() {
   const environment = require('../packages/agent-environment');
   const { containsCredential } = require('../tools/cli/lib/campaign-evidence-store');
   const { ENV_CAPABILITY_UNAVAILABLE } = require('../tools/lib/governed-execution/operational-runtime');
+  const { CLIENT_CAPABILITIES_META_KEY, CLIENT_INFO_META_KEY, PROTOCOL_VERSION_META_KEY } = require('../tools/lib/mcp-2026-adapter');
+  const { MCP_MODERN_PROTOCOL_VERSION } = require('../tools/lib/mcp-protocol');
 
   const ACTOR = { id: 'local:uid:1', type: 'local_process' };
   const OPERATOR = { kind: 'operator', id: 'owner' };
   const SCOPE = { project: 'alpha' };
   const ALLOW = [{ id: 'memory-write', source: 'project', stage: 'allow', decision: 'allow' }];
   const SHOT = 'a'.repeat(64);
+  const BINDING = 'b'.repeat(64);
   const tools = new Map([['list_runs', { name: 'list_runs', description: 'd', inputSchema: { type: 'object' } }]]);
 
   const fakeServices = (calls, wiring) => {
@@ -436,11 +442,11 @@ async function runCapabilityProviderTests() {
         },
         requestApproval(sessionId, action) {
           calls.push(['requestApproval', sessionId, action]);
-          return { status: 'pending', request_id: 'req-1' };
+          return { status: 'pending', request_id: `req-${calls.length}`, binding_digest: BINDING, seq: 1, screenshot_digest: SHOT };
         },
         async act(sessionId, action, options) {
           calls.push(['act', sessionId, action, options]);
-          return display({ status: 'acted', seq: 1, shot: SHOT });
+          return display({ status: 'acted' });
         },
         async stop(sessionId) {
           calls.push(['stop', sessionId]);
@@ -448,15 +454,30 @@ async function runCapabilityProviderTests() {
         },
       },
       approvals: {
-        resolve(requestId, approved, who) {
-          calls.push(['resolve', requestId, approved, who]);
-          return { status: approved ? 'approved' : 'denied', request_id: requestId };
+        approve(requestId, who) {
+          calls.push(['approve', requestId, who]);
+          return { status: 'approved', request_id: requestId };
         },
       },
     };
   };
 
-  const setup = ({ withHost = true } = {}) => {
+  const memoryHost = (wiring, overrides = {}) => ({
+    store: new memoryPackage.MemoryStore({
+      ledger: wiring.ledger,
+      scanCredential: (text) => containsCredential(text),
+      approvalVerifier: memoryPackage.createExecutionApprovalVerifier({
+        approvalStore: wiring.approvalStore,
+        resolveApprovalId: wiring.resolveMemoryDeleteApproval,
+      }),
+    }),
+    rules: ALLOW,
+    actor: OPERATOR,
+    operator: OPERATOR,
+    ...overrides,
+  });
+
+  const setup = ({ withHost = true, hostOverrides = {}, memoryOverrides = {} } = {}) => {
     const db = new Database(':memory:');
     applyExecutionLedgerFixtureSchema(db);
     const calls = [];
@@ -469,18 +490,11 @@ async function runCapabilityProviderTests() {
       environmentHost: withHost
         ? (wiring) => {
             wired = wiring;
-            const memoryStore = new memoryPackage.MemoryStore({
-              ledger: wiring.ledger,
-              scanCredential: (text) => containsCredential(text),
-              approvalVerifier: memoryPackage.createExecutionApprovalVerifier({
-                approvalStore: wiring.approvalStore,
-                resolveApprovalId: wiring.resolveMemoryDeleteApproval,
-              }),
-            });
             return {
               ...fakeServices(calls, wiring),
-              approver: 'owner',
-              memory: { store: memoryStore, rules: ALLOW, actor: OPERATOR, operator: OPERATOR },
+              project_id: 'alpha',
+              memory: memoryHost(wiring, memoryOverrides),
+              ...hostOverrides,
             };
           }
         : null,
@@ -526,6 +540,7 @@ async function runCapabilityProviderTests() {
   });
   const withDigest = (value) => ({ ...value, source_digest: memoryPackage.sha256Text(value.content) });
   const HOVER = { action: 'hover', language: 'python', file: 'm.py', position: { line: 0, character: 5 } };
+  const CLICK = { session_id: 'session-1', action: 'click', x: 10, y: 10 };
 
   await it('capability providers: without a host every environment.* and memory.* call fails closed with ENV_CAPABILITY_UNAVAILABLE', async () => {
     const { db, run, execution } = setup({ withHost: false });
@@ -567,45 +582,41 @@ async function runCapabilityProviderTests() {
       assert.equal(invalid.ok, false);
       assert.equal(invalid.error.code, 'ENV_LSP_INPUT_INVALID');
       assert.equal(calls.length, 1, 'a rejected input never reaches the service');
-      const missingMember = await run('environment.dap.run', {});
+    } finally {
+      db.close();
+    }
+    const lspLess = setup({ hostOverrides: { lsp: undefined } });
+    try {
+      const missingMember = await lspLess.run('environment.lsp.hover', HOVER);
       assert.equal(missingMember.ok, false);
-      assert.notEqual(missingMember.error.code, 'EXECUTION_PROVIDER_NOT_FOUND');
+      assert.equal(missingMember.error.code, ENV_CAPABILITY_UNAVAILABLE);
     } finally {
-      db.close();
+      lspLess.db.close();
     }
   });
 
-  await it('capability providers: a host that lacks one service refuses that tool alone with ENV_CAPABILITY_UNAVAILABLE', async () => {
-    const { db, run } = setup();
+  await it('capability policy: the expected policy version comes from a table, so a contract cannot pick its own', async () => {
+    const { db, execution } = setup();
     try {
-      const envelope = await run('environment.browser.run', { url: 'https://example.com/' });
-      assert.equal(envelope.ok, false);
-      assert.ok([ENV_CAPABILITY_UNAVAILABLE, 'ENV_BROWSER_INPUT_INVALID'].includes(envelope.error.code), envelope.error.code);
-    } finally {
-      db.close();
-    }
-  });
-
-  await it('capability providers: computer.act without an approval is refused before the service is touched; with one it passes the service gate', async () => {
-    const { db, run, calls } = setup();
-    try {
-      const action = { session_id: 'session-1', action: 'click', x: 10, y: 10 };
-      const refused = await run('environment.computer.act', action);
-      assert.equal(refused.ok, false);
-      assert.equal(refused.error.code, 'EXECUTION_APPROVAL_REQUIRED');
-      assert.deepEqual(calls, [], 'no service call without the explicit approval');
-
-      const started = await run('environment.computer.start', { target: { command: '/usr/bin/xterm' } });
-      assert.equal(started.error.code, 'EXECUTION_APPROVAL_REQUIRED');
-      const ok = await run('environment.computer.act', action, { approved: true });
-      assert.equal(ok.ok, true, JSON.stringify(ok));
-      assert.deepEqual(
-        calls.map((call) => call[0]),
-        ['requestApproval', 'resolve', 'act'],
-      );
-      assert.deepEqual(calls[1].slice(1), ['req-1', true, { approver: 'owner' }]);
-      assert.deepEqual(calls[2][3], { approval_id: 'req-1' });
-      assert.equal(calls[0][2].session_id, undefined, 'the session id is not part of the action');
+      const { policy } = execution.runtime;
+      const base = execution.contracts.resolve('environment.lsp.hover');
+      const expected = {
+        'environment.lsp.hover': 'hseos-w5-environment-v1',
+        'environment.computer.act': 'hseos-w5-capability-v1',
+        'memory.write': 'hseos-w5-capability-v1',
+        list_runs: 'hseos-operational-v1',
+      };
+      for (const [tool, version] of Object.entries(expected)) {
+        const contract = execution.contracts.resolve(tool);
+        assert.equal((await policy.evaluate({ contract })).policy_version, version, tool);
+        // Whatever the contract declares, the expected version does not follow it: the runtime check then refuses it.
+        const lying = (await policy.evaluate({ contract: { ...contract, policy_version: 'rogue-v9' } })).policy_version;
+        assert.equal(lying, version, `${tool} must not echo the contract`);
+        assert.notEqual(lying, 'rogue-v9');
+      }
+      const stranger = (await policy.evaluate({ contract: { ...base, capability: 'rogue.cap' } })).policy_version;
+      assert.equal(stranger, null, 'an unlisted family has no expected version');
+      assert.equal((await policy.evaluate({ contract: { ...base, capability: 'mcp.rogue' } })).policy_version, 'hseos-operational-v1');
     } finally {
       db.close();
     }
@@ -632,8 +643,24 @@ async function runCapabilityProviderTests() {
     }
   });
 
-  await it('capability providers: memory.delete is refused without approval and deletes with one', async () => {
+  await it('capability providers: memory tools refuse a project other than the host project', async () => {
     const { db, run } = setup();
+    try {
+      const write = await run('memory.write', withDigest(entry({ scope: { project_id: 'beta' } })));
+      assert.equal(write.error.code, 'ENV_PROJECT_SCOPE_MISMATCH');
+      const retrieve = await run('memory.retrieve', { project_id: 'beta', query: 'deploy' });
+      assert.equal(retrieve.error.code, 'ENV_PROJECT_SCOPE_MISMATCH');
+      const del = await run('memory.delete', { project_id: 'beta', memory_id: 'note-1' }, { approved: true });
+      assert.equal(del.error.code, 'ENV_PROJECT_SCOPE_MISMATCH');
+      const events = db.prepare("SELECT 1 FROM execution_events WHERE aggregate_type = 'agent_memory'").all();
+      assert.equal(events.length, 0, 'nothing was written for another project');
+    } finally {
+      db.close();
+    }
+  });
+
+  await it('capability providers: memory.delete is refused without approval and deletes with one, leaving no grant behind', async () => {
+    const { db, run, wired } = setup();
     try {
       await run('memory.write', withDigest(entry()));
       const refused = await run('memory.delete', { project_id: 'alpha', memory_id: 'note-1' });
@@ -645,15 +672,71 @@ async function runCapabilityProviderTests() {
       const deleted = await run('memory.delete', { project_id: 'alpha', memory_id: 'note-1', reason: 'obsolete' }, { approved: true });
       assert.equal(deleted.ok, true, JSON.stringify(deleted));
       assert.deepEqual(deleted.data.result, { memory_id: 'note-1', deleted: true });
+      const operation = memoryPackage.memoryDeleteOperation('alpha', 'note-1').operation_id;
+      assert.equal(wired().resolveMemoryDeleteApproval({ operation_id: operation }), undefined, 'the grant is gone after the delete');
       const gone = await run('memory.retrieve', { project_id: 'alpha', query: 'blue green' });
       assert.equal(gone.data.result.length, 0);
       const events = db.prepare("SELECT event_type FROM execution_events WHERE aggregate_type = 'agent_memory'").all();
       assert.ok(events.some((row) => row.event_type === memoryPackage.EVENTS.DELETED));
+      // The entry no longer exists: the failed forget must not leave a grant that a later call could spend.
       const again = await run('memory.delete', { project_id: 'alpha', memory_id: 'note-1' }, { approved: true });
       assert.equal(again.error.code, 'AGENT_MEMORY_NOT_FOUND');
+      assert.equal(wired().resolveMemoryDeleteApproval({ operation_id: operation }), undefined, 'a failed forget leaves no grant');
     } finally {
       db.close();
     }
+  });
+
+  await it('capability providers: concurrent deletions of different entries do not overwrite each other', async () => {
+    const { db, run } = setup();
+    try {
+      await run('memory.write', withDigest(entry()));
+      await run('memory.write', withDigest(entry({ memory_id: 'note-2', content: 'rollback runs through the same pipeline' })));
+      const results = await Promise.all([
+        run('memory.delete', { project_id: 'alpha', memory_id: 'note-1' }, { approved: true }),
+        run('memory.delete', { project_id: 'alpha', memory_id: 'note-2' }, { approved: true }),
+        run('memory.delete', { project_id: 'alpha', memory_id: 'note-1' }, { approved: true }),
+      ]);
+      assert.deepEqual(
+        results.map((result) => result.ok),
+        [true, true, false],
+      );
+      assert.equal(results[2].error.code, 'AGENT_MEMORY_NOT_FOUND');
+    } finally {
+      db.close();
+    }
+  });
+
+  await it('capability host: the shape returned by environmentHost is validated and fails loudly', async () => {
+    const bad = (hostOverrides, pattern, withDefaults = true) => {
+      const db = new Database(':memory:');
+      try {
+        applyExecutionLedgerFixtureSchema(db);
+        assert.throws(
+          () =>
+            createOperationalExecution({
+              db,
+              serverId: 'swarm',
+              tools,
+              invokeTool: async () => ({}),
+              environmentHost: (wiring) =>
+                withDefaults ? { ...fakeServices([], wiring), project_id: 'alpha', ...hostOverrides } : hostOverrides,
+            }),
+          pattern,
+        );
+      } finally {
+        db.close();
+      }
+    };
+    bad({ approvals: undefined }, /approvals/);
+    bad({ approvals: {} }, /approvals/);
+    bad({ computer: { start() {} } }, /computer/);
+    bad({ lsp: {} }, /lsp/);
+    bad({ typo_service: {} }, /typo_service/);
+    bad({ memory: { store: {} } }, /memory/);
+    bad({ project_id: undefined, memory: {} }, /project_id|memory/);
+    bad({}, /at least one/, false);
+    bad(null, /environment host/, false);
   });
 
   await it('capability providers: environmentHost must be a builder function', async () => {
@@ -667,6 +750,161 @@ async function runCapabilityProviderTests() {
     } finally {
       db.close();
     }
+  });
+
+  // ---- end to end through the MCP adapter: tools/list, tools/call, elicitation, requestState, resolve, execution ----
+  const CAPABLE = {
+    [PROTOCOL_VERSION_META_KEY]: MCP_MODERN_PROTOCOL_VERSION,
+    [CLIENT_INFO_META_KEY]: { name: 'fixture-client', version: '1.0.0' },
+    [CLIENT_CAPABILITIES_META_KEY]: { elicitation: {} },
+  };
+  const ACCEPT = { confirm: { action: 'accept', content: { approved: true } } };
+  const withServer = async (hostOptions, fn) => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-w4-c7-'));
+    const calls = [];
+    try {
+      await withEnv({ NODE_ENV: 'test', HSEOS_GOVERNED_EXECUTION_FIXTURE: '1' }, async () => {
+        const handle = startNativeMcpServer({
+          serverId: 'swarm',
+          tools,
+          invokeTool: async () => ({ runs: [] }),
+          mode: 'http',
+          port: 0,
+          dbPath: path.join(dir, 'project.db'),
+          log: () => {},
+          environmentHost:
+            hostOptions === null
+              ? null
+              : (wiring) => ({
+                  ...fakeServices(calls, wiring),
+                  project_id: 'alpha',
+                  memory: memoryHost(wiring),
+                  ...hostOptions,
+                }),
+        });
+        try {
+          await new Promise((resolve) => (handle.server.listening ? resolve() : handle.server.once('listening', resolve)));
+          let id = 0;
+          const call = (name, args, extra = {}) =>
+            handle.adapter.handle({
+              jsonrpc: '2.0',
+              id: ++id,
+              method: 'tools/call',
+              params: { name, arguments: args, _meta: { ...CAPABLE, ...extra._meta }, ...extra.params },
+            });
+          const list = () => handle.adapter.handle({ jsonrpc: '2.0', id: ++id, method: 'tools/list', params: { _meta: CAPABLE } });
+          await fn({ handle, call, list, calls });
+        } finally {
+          await handle.close();
+        }
+      });
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  };
+  const approveVia = async (call, name, args, { argsOnRetry = args, key = `key-${name}` } = {}) => {
+    const meta = { 'io.hseos/idempotencyKey': key };
+    const pending = await call(name, args, { _meta: meta });
+    assert.equal(pending.result?.resultType, 'input_required', JSON.stringify(pending));
+    const retry = await call(name, argsOnRetry, {
+      _meta: meta,
+      params: { requestState: pending.result.requestState, inputResponses: ACCEPT },
+    });
+    return { pending, retry };
+  };
+
+  await it('capability MCP: tools/list shows environment.* and memory.* only when a host backs them, and tools/call reaches them', async () => {
+    await withServer(null, async ({ call, list }) => {
+      const names = (await list()).result.tools.map((tool) => tool.name);
+      assert.ok(!names.some((name) => name.startsWith('environment.') || name.startsWith('memory.')), names.join(','));
+      const denied = await call('environment.lsp.hover', HOVER);
+      assert.match(denied.error.message, /Unknown tool/);
+    });
+    await withServer({ dap: undefined, browser: undefined }, async ({ call, list, calls }) => {
+      const names = new Set((await list()).result.tools.map((tool) => tool.name));
+      for (const expected of ['environment.lsp.hover', 'environment.computer.act', 'memory.write', 'memory.delete', 'list_runs']) {
+        assert.ok(names.has(expected), expected);
+      }
+      assert.ok(!names.has('environment.dap.run'), 'a service the host lacks is not advertised');
+      const hover = await call('environment.lsp.hover', HOVER);
+      assert.equal(hover.result.structuredContent.ok, true, JSON.stringify(hover));
+      assert.equal(calls.length, 1);
+    });
+  });
+
+  await it('capability MCP: computer.act goes elicitation -> requestState -> resolve -> execution, with the action, args and screenshot digest shown', async () => {
+    await withServer({}, async ({ call, calls }) => {
+      const meta = { 'io.hseos/idempotencyKey': 'act-1' };
+      const pending = await call('environment.computer.act', CLICK, { _meta: meta });
+      assert.equal(pending.result.resultType, 'input_required', JSON.stringify(pending));
+      const message = pending.result.inputRequests.confirm.params.message;
+      for (const needle of ['click', '"x":10', '"y":10', 'session-1', SHOT, BINDING])
+        assert.ok(message.includes(needle), `${needle} in: ${message}`);
+      assert.equal(
+        calls.some((c) => c[0] === 'approve'),
+        false,
+        'asking does not approve',
+      );
+      assert.equal(
+        calls.some((c) => c[0] === 'act'),
+        false,
+      );
+
+      const done = await call('environment.computer.act', CLICK, {
+        _meta: meta,
+        params: { requestState: pending.result.requestState, inputResponses: ACCEPT },
+      });
+      assert.equal(done.result.resultType, 'complete', JSON.stringify(done));
+      assert.equal(done.result.structuredContent.ok, true, JSON.stringify(done));
+      const approve = calls.find((c) => c[0] === 'approve');
+      assert.ok(approve, 'the service gate was resolved after the human accepted');
+      assert.match(approve[2].approver, /^local:/, 'by the identity of the approver, not a runtime constant');
+      const act = calls.find((c) => c[0] === 'act');
+      assert.equal(act[3].approval_id, approve[1]);
+      assert.deepEqual(act[2], { action: 'click', button: 1, x: 10, y: 10 });
+    });
+  });
+
+  await it('capability MCP: an approval of one computer action does not serve another, and a declined one never resolves the gate', async () => {
+    await withServer({}, async ({ call, calls }) => {
+      const other = { ...CLICK, x: 99 };
+      const { retry } = await approveVia(call, 'environment.computer.act', CLICK, { argsOnRetry: other, key: 'act-2' });
+      assert.ok(retry.error, 'the signed state is bound to the exact arguments');
+      assert.equal(
+        calls.some((c) => c[0] === 'act'),
+        false,
+      );
+
+      const meta = { 'io.hseos/idempotencyKey': 'act-3' };
+      const pending = await call('environment.computer.act', CLICK, { _meta: meta });
+      const declined = await call('environment.computer.act', CLICK, {
+        _meta: meta,
+        params: { requestState: pending.result.requestState, inputResponses: { confirm: { action: 'decline' } } },
+      });
+      assert.ok(declined.error, JSON.stringify(declined));
+      assert.equal(
+        calls.some((c) => c[0] === 'approve'),
+        false,
+        'no human approval, no resolve',
+      );
+      assert.equal(
+        calls.some((c) => c[0] === 'act'),
+        false,
+      );
+    });
+  });
+
+  await it('capability MCP: memory.delete goes through elicitation and requestState and deletes only after the human accepts', async () => {
+    await withServer({}, async ({ call }) => {
+      assert.equal((await call('memory.write', withDigest(entry()))).result.structuredContent.ok, true);
+      const { pending, retry } = await approveVia(call, 'memory.delete', { project_id: 'alpha', memory_id: 'note-1', reason: 'obsolete' });
+      const message = pending.result.inputRequests.confirm.params.message;
+      assert.ok(message.includes('note-1') && message.includes('alpha'), message);
+      assert.equal(retry.result.resultType, 'complete', JSON.stringify(retry));
+      assert.equal(retry.result.structuredContent.ok, true, JSON.stringify(retry));
+      const found = await call('memory.retrieve', { project_id: 'alpha', query: 'blue green' });
+      assert.equal(found.result.structuredContent.data.result.length, 0);
+    });
   });
 }
 

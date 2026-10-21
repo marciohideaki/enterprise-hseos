@@ -141,21 +141,144 @@ function capabilityUnavailable(tool, cause) {
   });
 }
 
+function refusal(code, message) {
+  return Object.assign(new Error(message), { code, retryable: false, outcome: 'failed' });
+}
+
+// The policy version the runtime expects for a contract comes from this table, never from the contract itself: a
+// contract that declares another version (or belongs to a family not listed here) is refused by the runtime check.
+const EXPECTED_POLICY_VERSION = Object.freeze({
+  'environment.lsp': 'hseos-w5-environment-v1',
+  'environment.dap': 'hseos-w5-environment-v1',
+  'environment.browser': 'hseos-w5-capability-v1',
+  'environment.computer': 'hseos-w5-capability-v1',
+  'agent-memory': 'hseos-w5-capability-v1',
+});
+
+function expectedPolicyVersion(contract) {
+  const capability = contract && contract.capability;
+  if (typeof capability !== 'string') return null;
+  if (capability.startsWith('mcp.')) return 'hseos-operational-v1';
+  return Object.hasOwn(EXPECTED_POLICY_VERSION, capability) ? EXPECTED_POLICY_VERSION[capability] : null;
+}
+
+const HOST_SERVICES = Object.freeze({
+  lsp: ['run'],
+  dap: ['run'],
+  browser: ['run'],
+  computer: ['start', 'screenshot', 'requestApproval', 'act', 'stop'],
+});
+const HOST_MEMBERS = new Set([...Object.keys(HOST_SERVICES), 'approvals', 'project_id', 'memory']);
+
+/** Fails loudly when the host a builder returned lacks what its own members need. Returns the host. */
+function validateEnvironmentHost(host) {
+  const fail = (message) => {
+    throw new TypeError(`environment host ${message}`);
+  };
+  if (!host || typeof host !== 'object' || Array.isArray(host)) fail('must be an object');
+  for (const key of Object.keys(host)) if (!HOST_MEMBERS.has(key)) fail(`has an unknown member: ${key}`);
+  const present = [...Object.keys(HOST_SERVICES), 'memory'].filter((key) => host[key] !== undefined);
+  if (present.length === 0) fail('must provide at least one service or the memory store');
+  for (const [name, methods] of Object.entries(HOST_SERVICES)) {
+    if (host[name] === undefined) continue;
+    for (const method of methods) if (typeof host[name]?.[method] !== 'function') fail(`${name} service lacks ${method}()`);
+  }
+  if (host.computer !== undefined && typeof host.approvals?.approve !== 'function') {
+    fail('needs approvals.approve() (the computer approval gate) when it provides computer');
+  }
+  if (host.memory !== undefined) {
+    const { store, rules, operator } = host.memory ?? {};
+    for (const method of ['write', 'retrieve', 'forget']) {
+      if (typeof store?.[method] !== 'function') fail(`memory store lacks ${method}()`);
+    }
+    if (!Array.isArray(rules)) fail('memory needs write rules (an array)');
+    if (!operator || typeof operator.id !== 'string' || operator.kind !== 'operator') fail('memory needs an operator actor');
+    if (typeof host.project_id !== 'string' || host.project_id.length === 0) fail('memory needs a project_id');
+  }
+  return host;
+}
+
+const stable = (value) =>
+  JSON.stringify(value, (_key, child) =>
+    child && typeof child === 'object' && !Array.isArray(child)
+      ? Object.fromEntries(Object.entries(child).sort(([x], [y]) => (x < y ? -1 : 1)))
+      : child,
+  );
+const MAX_PENDING_GRANTS = 64;
+
+/**
+ * Per-call approvals for the capability tools. `describe` is the text a human sees when asked (and, for a computer
+ * action, opens the service's own request for exactly that action); `grant` runs only after that human accepted and
+ * resolves the service gate with the approver's identity; `take` hands the provider the grant for the very same input.
+ */
+function createCapabilityApprovals({ host, normalize }) {
+  const pending = new Map();
+  // The runtime hands a provider the contract-normalized input (defaults filled); both sides compare that one form.
+  const canonical = (tool, input) => stable(normalize(tool, input));
+  return Object.freeze({
+    describe(request, operationId) {
+      if (request.tool === 'environment.computer.act') {
+        if (!host?.computer) throw capabilityUnavailable(request.tool, 'the host has no computer');
+        const { session_id: sessionId, ...action } = normalize(request.tool, request.input);
+        const asked = host.computer.requestApproval(sessionId, action);
+        if (asked.status !== 'pending') {
+          throw refusal(asked.code || 'ENV_COMPUTER_APPROVAL_REFUSED', `the computer action cannot be approved: ${asked.code}`);
+        }
+        if (pending.size >= MAX_PENDING_GRANTS) pending.delete(pending.keys().next().value);
+        pending.set(operationId, { request_id: asked.request_id, input: canonical(request.tool, request.input), granted: false });
+        const { action: name, ...args } = action;
+        return `Approve computer action ${name} ${JSON.stringify(args)} on session ${sessionId} (step ${asked.seq}, screenshot sha256 ${asked.screenshot_digest}, binding ${asked.binding_digest})?`;
+      }
+      if (request.tool === 'memory.delete') {
+        const { project_id: projectId, memory_id: memoryId, reason } = request.input;
+        return `Approve deleting memory ${memoryId} of project ${projectId}${reason ? ` (reason: ${reason})` : ''}?`;
+      }
+      return null;
+    },
+    grant(request, operationId, approverId) {
+      if (request.tool !== 'environment.computer.act') return;
+      const entry = pending.get(operationId);
+      if (!entry || entry.input !== canonical(request.tool, request.input)) {
+        throw refusal('ENV_COMPUTER_APPROVAL_REQUIRED', 'no computer approval was requested for this exact action');
+      }
+      const resolved = host.approvals.approve(entry.request_id, { approver: approverId });
+      if (resolved.status !== 'approved') {
+        throw refusal(resolved.code || 'ENV_COMPUTER_APPROVAL_REFUSED', 'the computer approval was not granted');
+      }
+      entry.granted = true;
+    },
+    take(operationId, input) {
+      const entry = pending.get(operationId);
+      if (!entry || !entry.granted || entry.input !== canonical('environment.computer.act', input)) {
+        throw refusal('ENV_COMPUTER_APPROVAL_REQUIRED', 'computer action has no granted approval for this exact input');
+      }
+      pending.delete(operationId);
+      return entry.request_id;
+    },
+  });
+}
+
+const memoryProject = (tool, input) => (tool === 'memory.write' ? input?.scope?.project_id : input?.project_id);
+
 /**
  * Handlers of the environment.* and memory.* contracts, by tool name. Without a host (or without the one member a tool
  * needs) a call fails closed with ENV_CAPABILITY_UNAVAILABLE. The runtime has already demanded and spent the explicit
  * approval of the contracts that require one (computer.start/act, memory.delete) before a handler runs.
- *
- * `host` is `{ lsp, dap, browser, computer, approvals, approver, memory: { store, rules, actor, operator } }`, every
- * member optional: the services of packages/agent-environment, the computer approval gate, and the governed memory store.
  */
-function createCapabilityHandlers({ host, deriveDeleteApproval }) {
+function createCapabilityHandlers({ host, deriveDeleteApproval, capabilityApprovals }) {
   const member = (tool, name) => {
     const value = name === 'store' ? host?.memory?.store : host?.[name];
     if (!value) throw capabilityUnavailable(tool, host ? `the host has no ${name}` : 'no environment host was supplied');
     return value;
   };
   const viaRun = (name) => (tool, input) => member(tool, name).run(input);
+  const memoryStore = (tool, input) => {
+    const store = member(tool, 'store');
+    if (memoryProject(tool, input) !== host.project_id) {
+      throw refusal('ENV_PROJECT_SCOPE_MISMATCH', `${tool} is bound to project ${host.project_id}`);
+    }
+    return store;
+  };
   return {
     'environment.lsp.diagnostics': viaRun('lsp'),
     'environment.lsp.definition': viaRun('lsp'),
@@ -167,37 +290,35 @@ function createCapabilityHandlers({ host, deriveDeleteApproval }) {
     'environment.computer.start': (tool, input) => member(tool, 'computer').start(input),
     'environment.computer.screenshot': (tool, input) => member(tool, 'computer').screenshot(input.session_id),
     'environment.computer.stop': (tool, input) => member(tool, 'computer').stop(input.session_id),
-    'environment.computer.act': async (tool, input) => {
+    'environment.computer.act': async (tool, input, context) => {
       const computer = member(tool, 'computer');
-      const gate = member(tool, 'approvals');
       const { session_id: sessionId, ...action } = input;
-      const asked = computer.requestApproval(sessionId, action);
-      if (asked.status !== 'pending') return asked;
-      // The runtime spent the explicit approval of this exact call before dispatch. It opens the service's own per-action
-      // gate, which still binds the grant to the session, sequence, action and the screenshot the approver saw.
-      const resolved = gate.resolve(asked.request_id, true, { approver: host.approver || 'governed-runtime' });
-      if (resolved.status !== 'approved') return resolved;
-      return computer.act(sessionId, action, { approval_id: asked.request_id });
+      // The service gate was resolved by the human's accepted elicitation (see grant), never by the runtime.
+      return computer.act(sessionId, action, { approval_id: capabilityApprovals.take(context.operation_id, input) });
     },
     'memory.write': (tool, input) => {
-      const store = member(tool, 'store');
+      const store = memoryStore(tool, input);
       const { rules, actor } = host.memory;
       return store.write(input, { rules, ...(actor ? { actor } : {}) });
     },
-    'memory.retrieve': (tool, input) => member(tool, 'store').retrieve(input),
+    'memory.retrieve': (tool, input) => memoryStore(tool, input).retrieve(input),
     'memory.delete': (tool, input, context) => {
-      const store = member(tool, 'store');
+      const store = memoryStore(tool, input);
       // The store asks for a single-use approval bound to this exact deletion; it is derived from the explicit approval
-      // the runtime has just spent for the call, and only exists for the duration of the forget.
-      deriveDeleteApproval(input, context);
-      store.forget(input, { actor: host.memory.operator });
+      // the runtime has just spent for the call, and exists only for the duration of the (synchronous) forget.
+      const release = deriveDeleteApproval(input, context);
+      try {
+        store.forget(input, { actor: host.memory.operator });
+      } finally {
+        release();
+      }
       return { memory_id: input.memory_id, deleted: true };
     },
   };
 }
 
-function createCapabilityProviders({ host, deriveDeleteApproval }) {
-  const handlers = createCapabilityHandlers({ host, deriveDeleteApproval });
+function createCapabilityProviders({ host, deriveDeleteApproval, capabilityApprovals }) {
+  const handlers = createCapabilityHandlers({ host, deriveDeleteApproval, capabilityApprovals });
   const dispatch = (providerName) => ({
     async execute(input, context) {
       const handler = handlers[context.tool];
@@ -217,6 +338,30 @@ function createCapabilityProviders({ host, deriveDeleteApproval }) {
     [ENVIRONMENT_PROVIDER, dispatch(ENVIRONMENT_PROVIDER)],
     [MEMORY_PROVIDER, dispatch(MEMORY_PROVIDER)],
   ]);
+}
+
+// Public descriptors of the tools a host can actually serve: a tool whose service the host lacks is not advertised.
+const TOOL_MEMBERS = (name) => {
+  if (name.startsWith('environment.lsp.')) return ['lsp'];
+  if (name === 'environment.dap.run') return ['dap'];
+  if (name === 'environment.browser.run') return ['browser'];
+  if (name === 'environment.computer.act') return ['computer', 'approvals'];
+  if (name.startsWith('environment.computer.')) return ['computer'];
+  return ['memory'];
+};
+function capabilityToolDescriptors(contracts, host) {
+  if (!host) return [];
+  return contracts
+    .list()
+    .filter((contract) => contract.provider === ENVIRONMENT_PROVIDER || contract.provider === MEMORY_PROVIDER)
+    .filter((contract) => TOOL_MEMBERS(contract.name).every((name) => host[name] !== undefined))
+    .map((contract) =>
+      Object.freeze({
+        name: contract.name,
+        description: `Governed ${contract.name}${contract.requires_approval ? ' (asks for explicit approval)' : ''}; the input is validated against the versioned contract.`,
+        inputSchema: Object.freeze({ type: 'object', additionalProperties: true }),
+      }),
+    );
 }
 
 function createOperationalExecution({ db, serverId, tools, invokeTool, maxConcurrency = 4, toolGovernance = {}, environmentHost = null }) {
@@ -282,19 +427,20 @@ function createOperationalExecution({ db, serverId, tools, invokeTool, maxConcur
   if (environmentHost !== null && typeof environmentHost !== 'function') {
     throw new TypeError('environmentHost must be a function that builds the host from the execution wiring');
   }
-  const host = environmentHost ? environmentHost(wiring) : null;
+  const host = environmentHost ? validateEnvironmentHost(environmentHost(wiring)) : null;
+  const capabilityApprovals = createCapabilityApprovals({
+    host,
+    normalize: (tool, input) => contracts.validateInput(contracts.resolve(tool), input),
+  });
   const deriveDeleteApproval = (input, context) => {
-    const operator = host?.memory?.operator;
-    if (!operator || typeof operator.id !== 'string') {
-      throw Object.assign(new Error('deleting memory requires an operator actor'), { code: 'AGENT_MEMORY_OPERATOR_REQUIRED' });
-    }
     const { operation_id: operationId, resource_scope: resourceScope } = memoryDeleteOperation(input.project_id, input.memory_id);
+    if (derivedDeleteApprovals.has(operationId)) throw refusal('AGENT_MEMORY_DELETE_IN_PROGRESS', 'this entry is already being deleted');
     const approvalId = randomUUID();
     const now = new Date();
     approvalStore.issue({
       approval_id: approvalId,
       operation_id: operationId,
-      authorizer: { id: operator.id, type: 'human' },
+      authorizer: { id: host.memory.operator.id, type: 'human' },
       resource_scope: resourceScope,
       issued_at: now.toISOString(),
       expires_at: new Date(now.getTime() + DERIVED_APPROVAL_TTL_MS).toISOString(),
@@ -303,8 +449,10 @@ function createOperationalExecution({ db, serverId, tools, invokeTool, maxConcur
       evidence_ref: `hseos://execution/${context.operation_id}/derived-approval/${approvalId}`,
     });
     derivedDeleteApprovals.set(operationId, approvalId);
+    return () => derivedDeleteApprovals.delete(operationId);
   };
-  for (const [name, provider] of createCapabilityProviders({ host, deriveDeleteApproval })) providers.set(name, provider);
+  for (const [name, provider] of createCapabilityProviders({ host, deriveDeleteApproval, capabilityApprovals }))
+    providers.set(name, provider);
   const runtime = new GovernedExecutionRuntime({
     contracts,
     event_registry: eventRegistry,
@@ -319,9 +467,9 @@ function createOperationalExecution({ db, serverId, tools, invokeTool, maxConcur
       },
     },
     policy: {
-      // The capability contracts (environment.*, memory.*) carry their own policy version; the MCP tools share the operational one.
+      // The expected version comes from a table by contract family, so a contract cannot choose its own policy.
       async evaluate({ contract }) {
-        return { allowed: true, policy_version: contract.policy_version, requires_approval: false, warnings: [] };
+        return { allowed: true, policy_version: expectedPolicyVersion(contract), requires_approval: false, warnings: [] };
       },
     },
     providers,
@@ -330,11 +478,13 @@ function createOperationalExecution({ db, serverId, tools, invokeTool, maxConcur
   });
   const port = createGovernedExecutionPort(runtime);
   const scheduler = new GovernedExecutionScheduler({ contracts, port, maxConcurrency });
-  return Object.freeze({ approvalStore, contracts, ledger, port, projector, runtime, scheduler });
+  const capabilityTools = capabilityToolDescriptors(contracts, host);
+  return Object.freeze({ approvalStore, capabilityApprovals, capabilityTools, contracts, ledger, port, projector, runtime, scheduler });
 }
 
 module.exports = {
   ENV_CAPABILITY_UNAVAILABLE,
+  expectedPolicyVersion,
   schemaContract,
   createOperationalExecution,
   EXCLUSIVE_TOOLS,

@@ -84,7 +84,6 @@ managed governance and global installation are not changed by this candidate.
 Release publication, the applicable v3 deprecation window and operational cutover
 remain separate release decisions. This guide does not authorize any of them.
 
-
 ## Additional candidate events
 
 Protected corrections add `model.revision.requested` with exact continuation
@@ -95,7 +94,6 @@ reconciliation answers. These additive contracts require the updated coordinated
 candidate to read newly written events; do not downgrade a database containing
 them into an older runtime. No production migration is activated automatically.
 See [diagnosis and reconciliation commands](engineering-task-contract.md).
-
 
 ## W5 behaviour changes
 
@@ -120,6 +118,23 @@ decisions. Historical events and already admitted contracts stay readable.
 - Unknown tools and out-of-scope requests are denied and recorded. Outside the
   fixture the legacy path still runs, always through the gateway, and each denial
   is stored durably in `mcp_gateway_denials` in the legacy telemetry SQLite.
+
+### Environment and memory tools over the governed MCP server (W4-C7)
+
+- `environment.lsp.*`, `environment.dap.run`, `environment.browser.run`, `environment.computer.*` and
+  `memory.{write,retrieve,delete}` have providers in the governed runtime. They are served only when the server is
+  started with an `environmentHost`: a builder `({ ledger, approvalStore, resolveMemoryDeleteApproval }) => host` with
+  `lsp`, `dap`, `browser`, `computer` (services of `packages/agent-environment`), `approvals` (the computer approval
+  gate, needed with `computer`), `project_id` and `memory: { store, rules, actor, operator }`. The returned shape is
+  validated at boot and a missing or unknown member fails loudly.
+- A tool whose service the host does not provide is not listed in `tools/list`. A runtime caller that reaches the
+  contract anyway gets the stable code `ENV_CAPABILITY_UNAVAILABLE` (distinct from `NOT_IMPLEMENTED`: the contract is
+  implemented, the process has no provider for it). `memory.*` refuses any project other than the host's with
+  `ENV_PROJECT_SCOPE_MISMATCH`.
+- `computer.start`, `computer.act` and `memory.delete` ask for explicit approval through the existing elicitation flow.
+  For `computer.act` the prompt shows the action, its arguments and the screenshot digest the service gate binds the
+  grant to; the service gate is resolved only after that approval, in the approver's name. The server stays fixture-only
+  (`EXECUTION_ACTIVATION_PENDING` otherwise).
 
 ### Stricter acceptance for engineering tasks (W5-10b)
 
