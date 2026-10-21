@@ -17,6 +17,7 @@ const { createGovernedMemory } = require('../../tools/cli/lib/memory-context-sou
 const { ExecutionApprovalStore } = require('../../tools/mcp-project-state/lib/execution-approval-store');
 const { ExecutionEventLedger } = require('../../tools/mcp-project-state/lib/execution-event-ledger');
 const { applyExecutionLedgerFixtureSchema } = require('../../tools/mcp-project-state/lib/execution-ledger-schema');
+const { createMemoryDeleteApprovals } = require('../../tools/cli/lib/engineering-task-extensions');
 const { runMigrations } = require('../../tools/mcp-project-state/lib/migrations');
 
 const sha256 = (value) => createHash('sha256').update(value).digest('hex');
@@ -177,7 +178,7 @@ const ALLOW = [{ id: 'memory-write', source: 'project', stage: 'allow', decision
 const OPERATOR = { kind: 'operator', id: 'owner' };
 const MEMORY = ['memory.write', 'memory.retrieve', 'memory.delete'];
 
-function memoryHost({ rules = ALLOW, operator = OPERATOR } = {}) {
+function memoryHost({ rules = ALLOW, operator = OPERATOR, derive = false } = {}) {
   const db = new Database(':memory:');
   db.pragma('foreign_keys = ON');
   runMigrations(db, path.join(__dirname, '..', '..', 'tools', 'mcp-project-state', 'migrations'), { log: () => {} });
@@ -191,12 +192,16 @@ function memoryHost({ rules = ALLOW, operator = OPERATOR } = {}) {
   const ledger = new ExecutionEventLedger(db);
   const approvalStore = new ExecutionApprovalStore(db);
   const state = { approvalId: null };
+  // With `derive`, the store's deletion approval comes from the person's approval at the runtime, not from the test.
+  const deleteApprovals = derive
+    ? createMemoryDeleteApprovals({ approvalStore, policyVersion: MEMORY_POLICY, now: () => Date.parse(STAMP) })
+    : null;
   const store = createGovernedMemory({
     ledger,
     now: () => Date.parse(STAMP),
     approvalVerifier: memory.createExecutionApprovalVerifier({
       approvalStore,
-      resolveApprovalId: () => state.approvalId,
+      resolveApprovalId: deleteApprovals ? deleteApprovals.resolveApprovalId : () => state.approvalId,
       policyVersion: MEMORY_POLICY,
       now: () => Date.parse(STAMP),
     }),
@@ -227,7 +232,7 @@ function memoryHost({ rules = ALLOW, operator = OPERATOR } = {}) {
       evidence_ref: 'hseos://test/approval',
     });
   };
-  const host = { project_id: 'proj-1', memory: { store, rules, operator } };
+  const host = { project_id: 'proj-1', memory: { store, rules, operator, ...(deleteApprovals ? { deleteApprovals } : {}) } };
   return {
     db,
     ledger,

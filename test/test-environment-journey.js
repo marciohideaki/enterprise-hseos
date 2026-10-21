@@ -9,8 +9,9 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
+const { randomUUID } = require('node:crypto');
 const Database = require('better-sqlite3');
-const { parseCreationInput } = require('../tools/cli/lib/engineering-control');
+const { parseCreationInput, EngineeringControl } = require('../tools/cli/lib/engineering-control');
 const { createApprovalGate } = require('../tools/cli/lib/environment-approval');
 const memoryPackage = require('../packages/agent-memory');
 const environment = require('../packages/agent-environment');
@@ -57,8 +58,18 @@ function admittedTask(t, capabilities) {
   const f = project(t, capabilities, { limits: ROOMY });
   const input = { contract: structuredClone(f.contract), responses: [] };
   assert.equal(parseCreationInput('create', input, { admission: true }).contract.environment.capabilities.length, capabilities.length);
+  // The control's own admission of the contract (workspace, model source and the hardened rules), not only the parser.
+  const control = new EngineeringControl({ workspaces: [f.root] });
+  t.after(() => {
+    control.close();
+    fs.rmSync(control.state, { recursive: true, force: true });
+  });
+  controlAdmissions.push(
+    control.admitCreation('create', input, `admission-${controlAdmissions.length}`).then((admitted) => admitted.input.contract),
+  );
   return f;
 }
+const controlAdmissions = [];
 const allEvents = (db, aggregateType) =>
   db
     .prepare('SELECT event_type, payload_json FROM execution_events WHERE aggregate_type = ? ORDER BY position')
@@ -77,12 +88,12 @@ test('admission: environment capabilities do not weaken the control, and a task 
 });
 
 test('journey: an admitted task uses LSP, memory and a display session; a second task receives the governed memory as data', async (t) => {
-  const env = memoryHost();
+  // The store's deletion approval is derived from the person's approval at the runtime, never seeded by the test.
+  const env = memoryHost({ derive: true });
   const trusted = (id, content) =>
     env.store.write(memoryEntry(env, { memory_id: id, content, ...TRUSTED }), { rules: ALLOW, actor: OPERATOR });
   trusted('note-1', 'Return the sum of two integers with plain addition in the deploy pipeline.');
   trusted('note-2', 'The sum of two integers never overflows in this project.');
-  env.approveDeletion('note-1');
 
   const lspCalls = [];
   const terminal = fakeTerminal();
@@ -437,6 +448,11 @@ test('MCP journey: tools/list advertises what the host backs, and the same flow 
       { project_id: 'alpha', memory_id: 'note-1', reason: 'obsolete' },
       { key: 'del-1' },
     );
+    const shown = deletion.pending.result.inputRequests.confirm.params.message;
+    assert.ok(
+      shown.includes('note-1') && shown.includes('alpha') && shown.includes('deleting memory'),
+      `the human is shown what is deleted: ${shown}`,
+    );
     assert.equal(deletion.retry.result.structuredContent.ok, true, JSON.stringify(deletion.retry));
     assert.equal(
       (await call('memory.retrieve', { project_id: 'alpha', query: 'blue green' })).result.structuredContent.data.result.length,
@@ -450,4 +466,35 @@ test('MCP journey: tools/list advertises what the host backs, and the same flow 
     assert.deepEqual(memoryRows, ['memory.written:note-1', 'memory.deleted:note-1']);
     db.close();
   });
+});
+
+test('the control admits a task that declares environment capabilities, but runs it without a host, so the capabilities are blocked', async (t) => {
+  // Every task of the journey went through the control's admission.
+  for (const contract of await Promise.all(controlAdmissions)) assert.ok(contract.environment?.capabilities.length > 0);
+  // Creating and running through the control never supplies a host: a declared capability has no service behind it.
+  const f = project(t, ['environment.lsp.diagnostics'], { limits: ROOMY });
+  const control = new EngineeringControl({ workspaces: [f.root] });
+  t.after(() => {
+    const states = control.ledger
+      .readGlobal({ limit: 1000, aggregate_type: 'control_task' })
+      .filter((event) => event.payload.kind === 'registered')
+      .map((event) => event.payload.state_directory);
+    control.close();
+    for (const state of [...states, control.state]) fs.rmSync(state, { recursive: true, force: true });
+  });
+  const id = randomUUID();
+  const command = (action, sequence, input = {}) => ({
+    schema_version: 1,
+    command_id: randomUUID(),
+    resource_id: id,
+    action,
+    expected_sequence: sequence,
+    input,
+  });
+  const created = await control.execute(
+    command('create', 0, { contract: f.contract, responses: [{ name: 'environment.lsp.diagnostics', input: DIAGNOSTICS }] }),
+  );
+  // Admitted and created, then blocked at once: nothing on the control path can provide the host the capabilities need.
+  assert.equal(created.task_result, 'blocked', JSON.stringify(created));
+  assert.equal(created.reason, 'ENGINEERING_ENVIRONMENT_HOST_REQUIRED');
 });

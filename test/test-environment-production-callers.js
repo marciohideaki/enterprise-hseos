@@ -126,10 +126,25 @@ test('the governed memory store is built over a ledger wherever production build
   assert.match(helper, /new MemoryStore\(\{ ledger,/);
 });
 
-test('runtime: the real caller passes each service the execution-ledger sink, not the default', async () => {
+test('runtime: every service the real caller creates writes through exactly the execution-ledger sink', async (t) => {
   const environment = require('../packages/agent-environment');
   const { createEnvironmentBundles } = require('../tools/cli/lib/engineering-task-extensions');
   const { createApprovalGate } = require('../tools/cli/lib/environment-approval');
+  const { createIsolationPolicy } = require('../packages/agent-isolation-attestation');
+  const os = require('node:os');
+  const main = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-callers-'));
+  t.after(() => fs.rmSync(main, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(main, 'workspace'));
+  fs.writeFileSync(path.join(main, 'protected'), 'protected');
+  fs.writeFileSync(path.join(main, 'workspace', 'index.js'), 'module.exports = 1;\n');
+  const policy = createIsolationPolicy({
+    backend: 'bwrap',
+    host_workspace: path.join(main, 'workspace'),
+    main_checkout: main,
+    protected_paths: [path.join(main, 'protected')],
+    profile: 'P1',
+    toolchain_roots: [os.tmpdir()],
+  });
   const db = new Database(':memory:');
   applyExecutionLedgerFixtureSchema(db);
   const ledger = new ExecutionEventLedger(db, { event_registry: createExecutionEventRegistry() });
@@ -148,24 +163,33 @@ test('runtime: the real caller passes each service the execution-ledger sink, no
         return originals[name](options);
       };
     }
-    const policy = { host_workspace: '/nonexistent', profile: 'P1' };
     const set = createEnvironmentBundles({
-      capabilities: ['environment.dap.run', 'environment.browser.run', 'environment.computer.start'],
-      policies: { dap: policy, browser: policy, computer: policy },
+      capabilities: ['environment.lsp.hover', 'environment.dap.run', 'environment.browser.run', 'environment.computer.start'],
+      policies: { lsp: policy, dap: policy, browser: policy, computer: policy },
       ledgerSink: sink,
       approvalGate: createApprovalGate(),
       mediaStore: { put: () => ({}) },
       broker: { allow: [] },
     });
-    for (const bundle of set.bundles) await bundle.provider.execute({}).catch(() => {});
-    assert.deepEqual([...seen.keys()].sort(), ['createDefaultBrowserService', 'createDefaultComputerService', 'createDefaultDapService']);
-    for (const [name, passed] of seen) assert.equal(passed, sink, `${name} received the sink`);
-    // And what they emit lands in the ledger.
+    const inputs = {
+      'environment.lsp.hover': { action: 'hover', language: 'typescript', file: 'index.js', position: { line: 0, character: 1 } },
+      'environment.dap.run': { runtime: 'node', launch: { program: 'index.js' } },
+      'environment.browser.run': { steps: [{ op: 'goto', url: 'https://example.com/' }] },
+      'environment.computer.start': { target: { command: '/usr/bin/xmessage', args: ['hi'] }, timeout_ms: 10_000 },
+    };
+    for (const bundle of set.bundles) await bundle.provider.execute(inputs[bundle.definition.name]).catch(() => {});
+    assert.deepEqual([...seen.keys()].sort(), [...SERVICES].sort(), 'all four services were created by the real caller');
+    // Identity: not the default, and not any other function, however it was built (an alias of a no-op included).
+    for (const [name, passed] of seen) assert.equal(passed, sink, `${name} received exactly the sink`);
+    // Effect: each service's own event is in the SQLite ledger.
     const types = db
-      .prepare("SELECT event_type FROM execution_events WHERE aggregate_type = 'environment_session'")
+      .prepare("SELECT event_type FROM execution_events WHERE aggregate_type = 'environment_session' ORDER BY position")
       .all()
       .map((row) => row.event_type);
-    assert.deepEqual(types.sort(), ['environment.browser.refused', 'environment.computer.refused']);
+    assert.deepEqual(
+      types.map((type) => type.replace(/\.(?:blocked|refused)$/, '')),
+      ['environment.lsp', 'environment.dap', 'environment.browser', 'environment.computer'],
+    );
   } finally {
     Object.assign(environment, originals);
     db.close();

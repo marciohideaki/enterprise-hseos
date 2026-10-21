@@ -1034,3 +1034,29 @@ test('stopping a session through the tool clears it, so the task is quiescent', 
   await set.drain();
   assert.equal(fake.state.stops, 1, 'nothing left to stop');
 });
+
+test('memory.delete derives the store approval from the human approval of the call, bound to project and memory, and releases it', async (t) => {
+  const env = memoryHost({ derive: true });
+  env.seed();
+  env.seed({ memory_id: 'note-2', content: 'the deploy pipeline also rolls back automatically' });
+  const del = (memoryId) => ({ name: 'memory.delete', input: { project_id: 'proj-1', memory_id: memoryId, reason: 'obsolete' } });
+  const asked = [];
+  // Nothing was seeded by hand: the approval of the call is what backs the deletion.
+  const done = await execute(t, project(t, MEMORY), [del('note-1'), del('missing-1')], { ...env.host, approve: grant(asked) });
+  assert.deepEqual(toolErrors(done), ['memory.delete:AGENT_MEMORY_NOT_FOUND'], JSON.stringify(done));
+  assert.deepEqual(env.store.list('proj-1'), [
+    { memory_id: 'note-1', status: 'deleted', trust: 'trusted' },
+    { memory_id: 'note-2', status: 'active', trust: 'trusted' },
+  ]);
+  // Released whatever happened: the approval granted for note-1 serves no other call, and nothing is left resolvable.
+  const operation = memory.memoryDeleteOperation('proj-1', 'note-1');
+  assert.equal(env.host.memory.deleteApprovals.resolveApprovalId({ operation_id: operation.operation_id }), undefined);
+  assert.equal(env.host.memory.deleteApprovals.resolveApprovalId({ operation_id: 'memory.delete:proj-1:missing-1' }), undefined);
+  // Without the person's approval at the runtime nothing is derived and nothing is deleted.
+  const refused = await execute(t, project(t, MEMORY), [del('note-2')], { ...env.host });
+  assert.deepEqual(toolErrors(refused), ['memory.delete:EXECUTION_APPROVAL_REQUIRED']);
+  assert.equal(env.store.list('proj-1')[1].status, 'active');
+  // The approval is attributed to the approver the host named.
+  const rows = env.db.prepare('SELECT authorizer_json FROM execution_approvals').all();
+  assert.ok(rows.some((row) => JSON.parse(row.authorizer_json).id === 'owner-1'));
+});
