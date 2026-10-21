@@ -19,6 +19,12 @@ const mutations = {
     "if (state.cancellation_request) return this.#settleCancellation(state, active);\n    return this.#terminalize(state, 'session.completed'",
     "if (false) return this.#settleCancellation(state, active);\n    return this.#terminalize(state, 'session.completed'",
   ],
+  session_failure_reason: [
+    'tools/cli/lib/engineering-task-runtime.js',
+    "errorCode === 'budget_exceeded' ? 'session-budget-exceeded' : `session-failed:${errorCode}`",
+    "'session-not-completed'",
+  ],
+  stopped_session_budget: ['packages/agent-runtime/runtime.js', "terminal.payload.finish_reason !== 'stop') {\n          const used", "true) {\n          const used"],
   task_cancellation: ['tools/cli/lib/engineering-task-runtime.js', 'function observeTaskCancellation() {', 'function observeTaskCancellation() { return false;'],
   job_shutdown: ['tools/cli/lib/job-dispatch.js', "if (this.#closing) reject('JOB_WORKER_CLOSING');", 'if (false) {}'],
   job_acceptance: ['tools/cli/lib/job-dispatch.js', '!approved || state.cancellation_requested', 'false'],

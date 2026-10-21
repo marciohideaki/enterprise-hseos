@@ -232,6 +232,24 @@ para campanha ou terminal inexistente) retorna 404; antes retornava 409 para
 terminal e campanha (mudança 409 para 404). Referência desconhecida no corpo de
 um POST (`CONTROL_PROVIDER_BINDING_UNKNOWN`, `CONTROL_BINDING_UNKNOWN`) continua 409.
 
+### Motivo (`reason`) quando a sessão não conclui
+
+Se a sessão do modelo não chega a `completed`, a tarefa fica `failed` e o `reason`
+vem do evento terminal da sessão, não de um valor genérico:
+
+| `reason`                  | Quando                                                                                        |
+| ------------------------- | --------------------------------------------------------------------------------------------- |
+| `session-budget-exceeded` | A sessão terminou com `error_code: budget_exceeded` (orçamento de tokens, turnos ou chamadas) |
+| `session-failed:<code>`   | Qualquer outra falha terminal da sessão (`<code>` é o `error_code`)                           |
+| `session-not-completed`   | A sessão não tem evento terminal de falha (sem terminal ou cancelada)                         |
+
+Nos dois primeiros casos, a evidência (`evidence` na ação `evidence`) traz
+`session_failure: { error_code, message }` e `token_accounting`. Em
+`budget_exceeded` por projeção, a mensagem informa projetado, máximo, usado,
+request e reserva (`max_output_tokens`). Uma sessão que termina com `stop` não
+falha por estimativa de tokens; o limite só impede abrir um novo passo.
+Cancelamento e reconciliação mantêm `cancelled` e `reconciliation-required`.
+
 ## Aceite protegido e aplicação
 
 O contrato v2 referencia raiz do projeto, `baseline_sha` (HEAD) e hash dos arquivos.

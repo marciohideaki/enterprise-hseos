@@ -24,6 +24,7 @@ const {
 } = require('../packages/agent-runtime-contracts');
 const { RelationalSessionEventStore, canonicalJson } = require('../packages/agent-session-store');
 const { ModelProviderRegistry, ScriptedModelProvider } = require('../packages/model-providers');
+const { accountSessionTokens } = require('../packages/agent-context/token-counter');
 const { ToolRuntime, ToolRuntimeRegistry, governanceRef } = require('../packages/tool-runtime');
 const { ExecutionContractRegistry } = require('../tools/lib/governed-execution/contract-registry');
 const { createExecutionEventRegistry } = require('../tools/lib/governed-execution/event-registry');
@@ -126,7 +127,12 @@ function toolDefinition() {
   };
 }
 
-function modelRoutes({ slow = false, calls = null } = {}) {
+function modelRoutes({
+  slow = false,
+  calls = null,
+  toolStepUsage = null,
+  finalUsage = { input_tokens: 20, output_tokens: 3, cached_tokens: 0 },
+} = {}) {
   return [
     {
       match: (request) => request.messages.at(-1).role === 'user',
@@ -140,6 +146,7 @@ function modelRoutes({ slow = false, calls = null } = {}) {
               event_type: 'tool_call.delta',
               payload: { tool_call_id: 'call:echo-1', name: 'fixture.echo', arguments_delta: '{"value":"durable"}' },
             },
+            ...(toolStepUsage ? [{ event_type: 'usage', payload: toolStepUsage }] : []),
             { event_type: 'completed', payload: { finish_reason: 'tool_calls', provider_response_ref: 'scripted://tool' } },
           ],
     },
@@ -152,7 +159,7 @@ function modelRoutes({ slow = false, calls = null } = {}) {
         assert.match(request.messages.at(-1).content, /durable/);
         return [
           { event_type: 'content.delta', payload: { text: 'verified external state' } },
-          { event_type: 'usage', payload: { input_tokens: 20, output_tokens: 3, cached_tokens: 0 } },
+          { event_type: 'usage', payload: finalUsage },
           { event_type: 'completed', payload: { finish_reason: 'stop', provider_response_ref: 'scripted://done' } },
         ];
       },
@@ -818,6 +825,47 @@ test('duration, token, tool and implementation caps terminate without unbounded 
   context.after(() => oversized.db.close());
   const invalid = spec('session:oversized', { max_tool_calls: RUNTIME_CAPS.max_tool_calls + 1 });
   await assert.rejects(() => oversized.runtime.create(createCommand(invalid)), /safety cap/);
+});
+
+test('a projected overflow fails before the step opens and reports the numbers', async (context) => {
+  const fixture = setup({ limits: { max_tokens: 1500 } });
+  context.after(() => fixture.db.close());
+  await fixture.runtime.create(createCommand(fixture.sessionSpec));
+  await fixture.runtime.send(sendCommand());
+  const failure = fixture.sessionStore.replay('session:loop').terminal_event.payload;
+  assert.equal(failure.error_code, 'budget_exceeded');
+  const numbers = /projected (\d+) > max 1500 \(used (\d+) \+ request (\d+) \+ reserve 64\)/.exec(failure.message);
+  assert.ok(numbers, failure.message);
+  const [projected, used, request] = numbers.slice(1).map(Number);
+  assert.equal(projected, used + request + 64);
+  assert.ok(projected > 1500);
+});
+
+test('a session that stops within its window completes even when reported usage passes the limit', async (context) => {
+  const fixture = setup({
+    routes: modelRoutes({ finalUsage: { input_tokens: 6000, output_tokens: 3, cached_tokens: 0 } }),
+    limits: { max_tokens: 3000 },
+  });
+  context.after(() => fixture.db.close());
+  await fixture.runtime.create(createCommand(fixture.sessionSpec));
+  await fixture.runtime.send(sendCommand());
+  const done = fixture.sessionStore.replay('session:loop');
+  assert.equal(done.status, 'completed', JSON.stringify(done.terminal_event));
+  assert.ok(accountSessionTokens(done).total_tokens > 3000);
+});
+
+test('a step that needs another step fails when reported usage exhausted the budget', async (context) => {
+  const fixture = setup({
+    routes: modelRoutes({ toolStepUsage: { input_tokens: 6000, output_tokens: 3, cached_tokens: 0 } }),
+    limits: { max_tokens: 3000 },
+  });
+  context.after(() => fixture.db.close());
+  await fixture.runtime.create(createCommand(fixture.sessionSpec));
+  await fixture.runtime.send(sendCommand());
+  const failed = fixture.sessionStore.replay('session:loop');
+  assert.equal(failed.status, 'failed');
+  assert.equal(failed.terminal_event.payload.error_code, 'budget_exceeded');
+  assert.match(failed.terminal_event.payload.message, /session token budget exhausted: used \d+ > max 3000/);
 });
 
 test('unknown sessions, delegated ownership, concurrent sends and stale resume fail closed', async (context) => {
