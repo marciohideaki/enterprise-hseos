@@ -137,3 +137,12 @@ test('a timeout and an abort are named in the diagnostic', async (t) => {
   setTimeout(() => controller.abort(), 1500);
   assert.equal((await pending).diagnostic.aborted, true);
 });
+
+test('a client output limit overrun travels client, worker and runner as the explicit provider output limit', async (t) => {
+  const f = setup(t, { run: 'output_limit' });
+  const error = await rejection(create(f).adapter.run({ task_id: f.id, signal: new AbortController().signal }));
+  assert.equal(error.code, 'CONTROL_PROVIDER_OUTPUT_LIMIT');
+  assert.equal(error.diagnostic.limit, 'output_tokens');
+  assert.equal(error.diagnostic.client_limit_tokens, f.m.limits.max_output_tokens);
+  assert.equal(f.calls().filter((call) => call.argv.includes('-p')).length, 1, 'not retried');
+});

@@ -828,3 +828,35 @@ test('receipts exactly at the input and output limits are accepted, cache includ
   assert.equal(result.receipt.input_tokens, 1000);
   assert.equal(result.receipt.output_tokens, 64);
 });
+
+test('an input total that only overruns because of cached tokens is refused, and fits again without them', async (t) => {
+  const { setup } = require('./helpers/claude-account');
+  const outcome = async (cache) => {
+    const account = setup(t, {
+      mode: { usage: { input_tokens: 5, output_tokens: 2, cache_read_input_tokens: cache, cache_creation_input_tokens: 0 } },
+    });
+    const { adapter } = account.create();
+    let f;
+    f = await fixture(t, {
+      run: async () => ({
+        ...(await adapter.run({ task_id: account.id, signal: new AbortController().signal })),
+        binding_sha256: f.configured.manifest.binding_sha256,
+      }),
+    });
+    return f.campaigns.execute(f.command('run', { binding_id: f.configured.manifest.binding_id, task_id: f.taskId })).then(
+      (result) => ({ result }),
+      (error) => ({ error, event: f.campaigns.rows(f.id).findLast((row) => row.payload.kind === 'uncertain') }),
+    );
+  };
+  // 5 direct tokens are far under the limit of 1000; with 996 cached the total is exactly 1001.
+  const over = await outcome(996);
+  assert.equal(over.error.code, 'CONTROL_OUTCOME_UNCERTAIN');
+  assert.deepEqual(over.event.payload.diagnostic, {
+    code: 'CONTROL_PROVIDER_RECEIPT_INVALID',
+    reason: 'CONTROL_PROVIDER_INPUT_LIMIT',
+    input_tokens: 1001,
+    max_input_tokens: 1000,
+  });
+  const fits = await outcome(995);
+  assert.equal(fits.result.receipt.input_tokens, 1000);
+});

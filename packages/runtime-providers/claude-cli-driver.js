@@ -237,11 +237,10 @@ class ClaudeCliDriver {
           throw new RuntimeProviderError('Claude assistant message is malformed', 'protocol_error');
         if (['rate_limit', 'billing_error'].includes(message.error))
           throw new RuntimeProviderError('Claude quota is unavailable', 'quota_unavailable');
-        if (message.error === 'max_output_tokens') {
-          // Its text is the client's own error line, not model output: it is neither streamed nor retained.
-          outputLimit = true;
-          return;
-        }
+        // The text of this message is the client's own error line, not model output: it is neither streamed nor retained. Its
+        // blocks are still validated, so an effect smuggled into such a message is refused like any other.
+        const clientLimitNotice = message.error === 'max_output_tokens';
+        if (clientLimitNotice) outputLimit = true;
         for (const block of message.message.content) {
           if (!record(block) || typeof block.type !== 'string')
             throw new RuntimeProviderError('Claude content block is malformed', 'protocol_error');
@@ -251,7 +250,7 @@ class ClaudeCliDriver {
           }
           if (block.type === 'text') {
             if (typeof block.text !== 'string') throw new RuntimeProviderError('Claude text block is malformed', 'protocol_error');
-            if (block.text.length > 0) on_event({ type: 'message.delta', text: block.text });
+            if (block.text.length > 0 && !clientLimitNotice) on_event({ type: 'message.delta', text: block.text });
           }
         }
         return;

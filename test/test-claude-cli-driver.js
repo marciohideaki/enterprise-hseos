@@ -191,3 +191,10 @@ test('other error results stay refusals', async (t) => {
   assert.equal(result.stop_reason, 'refused');
   assert.equal(result.limit, undefined);
 });
+
+test('an effect inside a client limit notice is refused like any other effect', async (t) => {
+  const f = setup(t, { run: 'output_limit_tool' });
+  const events = [];
+  await assert.rejects(run(f, { on_event: (event) => events.push(event) }), { error_code: 'policy_denied' });
+  assert.deepEqual(events, [{ type: 'effect.attempted', effect: 'tool_use' }]);
+});

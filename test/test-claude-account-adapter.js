@@ -249,3 +249,11 @@ test('the manifest output limit counts reasoning, as the client cap does, and a 
     );
   assert.equal(plain.diagnostic.reasoning_tokens, null, 'absent reasoning is reported as unknown, not zero');
 });
+
+test('cache reads and cache creation stay part of the input total of the receipt', async (t) => {
+  const f = setup(t, {
+    mode: { usage: { input_tokens: 5, output_tokens: 2, cache_read_input_tokens: 600, cache_creation_input_tokens: 400 } },
+  });
+  const receipt = await f.create().adapter.run({ task_id: f.id, signal: signal() });
+  assert.equal(receipt.input_tokens, 1005, 'direct 5 + cache read 600 + cache creation 400');
+});

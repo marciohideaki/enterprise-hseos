@@ -75,12 +75,20 @@ if (argv[0] === '--version') {
     });
     if (mode.run === 'tool') emit({ ...base, type: 'assistant', message: { content: [{ type: 'tool_use', id: 't1', name: 'Bash', input: {} }] } });
     if (mode.run === 'user') emit({ ...base, type: 'user', message: { content: [] } });
-    if (mode.run === 'output_limit') {
+    if (mode.run === 'output_limit' || mode.run === 'output_limit_tool') {
       // As captured from the real client when reasoning used up CLAUDE_CODE_MAX_OUTPUT_TOKENS: an assistant error message, then an
       // error result that still says subtype success.
       const text =
         "API Error: Claude's response exceeded the 4096 output token maximum. To configure this behavior, set the CLAUDE_CODE_MAX_OUTPUT_TOKENS environment variable.";
-      emit({ ...base, type: 'assistant', error: 'max_output_tokens', message: { stop_reason: 'stop_sequence', content: [{ type: 'text', text }] } });
+      emit({
+        ...base,
+        type: 'assistant',
+        error: 'max_output_tokens',
+        message: {
+          stop_reason: 'stop_sequence',
+          content: [...(mode.run === 'output_limit_tool' ? [{ type: 'tool_use', id: 't1', name: 'Bash', input: {} }] : []), { type: 'text', text }],
+        },
+      });
       emit({
         ...base,
         type: 'result',
