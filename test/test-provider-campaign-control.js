@@ -756,3 +756,46 @@ test('terminal account client composes without changing identity or enabling rec
     assert.throws(() => fixture.service.validateComposition(), /COMPOSITION_INVALID/);
   }
 });
+
+test('an adapter failure after the reservation leaves its redacted cause in the uncertain event and the error', async (t) => {
+  const cause = Object.assign(new Error('CONTROL_PROVIDER_QUOTA_UNAVAILABLE'), {
+    code: 'CONTROL_PROVIDER_QUOTA_UNAVAILABLE',
+    diagnostic: {
+      worker: { name: 'Error', message: 'quota window closed', code: 'quota_unavailable' },
+      exit_code: 1,
+      nested: { too: { deep: { to: 'keep' } } },
+    },
+  });
+  const f = await fixture(t, {
+    run: async () => {
+      throw cause;
+    },
+  });
+  const error = await f.campaigns.execute(f.command('run', { binding_id: f.configured.manifest.binding_id, task_id: f.taskId })).then(
+    () => null,
+    (error_) => error_,
+  );
+  assert.equal(error.code, 'CONTROL_OUTCOME_UNCERTAIN');
+  assert.equal(error.diagnostic.code, 'CONTROL_PROVIDER_QUOTA_UNAVAILABLE');
+  assert.equal(error.diagnostic.worker.code, 'quota_unavailable');
+  const event = f.campaigns.rows(f.id).findLast((row) => row.payload.kind === 'uncertain');
+  assert.deepEqual(event.payload.diagnostic, error.diagnostic);
+  assert.equal(JSON.stringify(event.payload.diagnostic).includes('keep'), false, 'depth is bounded');
+});
+
+test('a credential in an adapter error message is withheld from the uncertain event', async (t) => {
+  const secret = `sk-ant-api03-${'B'.repeat(40)}`;
+  const f = await fixture(t, {
+    run: async () => {
+      throw new Error(`upstream rejected ${secret}`);
+    },
+  });
+  const error = await f.campaigns.execute(f.command('run', { binding_id: f.configured.manifest.binding_id, task_id: f.taskId })).then(
+    () => null,
+    (error_) => error_,
+  );
+  assert.equal(error.code, 'CONTROL_OUTCOME_UNCERTAIN');
+  const event = f.campaigns.rows(f.id).findLast((row) => row.payload.kind === 'uncertain');
+  assert.equal(event.payload.diagnostic.message, '<withheld: credential pattern>');
+  assert.equal(JSON.stringify(event.payload).includes('sk-ant'), false);
+});

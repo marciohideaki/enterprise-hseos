@@ -6,6 +6,7 @@ const { engineeringDigest } = require('./engineering-task-state');
 const { parseProviderControlManifest, inspectProviderControlManifest } = require('../../lib/provider-control-manifest');
 const { executorOwner, isExecutorOwnerAlive } = require('../../../packages/agent-isolation-attestation/executor');
 const { MAX_EVIDENCE_BYTES, storeEvidence, readEvidence } = require('./campaign-evidence-store');
+const { sanitizeDiagnostic } = require('./provider-campaign-process');
 
 const integer = z.number().int().nonnegative().safe();
 const hash = z.string().regex(/^[a-f0-9]{64}$/);
@@ -92,10 +93,19 @@ const authorizationSchema = z
     }
   });
 
-function reject(code) {
+function reject(code, diagnostic) {
   const error = new Error(code);
   error.code = code;
+  if (diagnostic) error.diagnostic = diagnostic;
   throw error;
+}
+
+/** The cause of an adapter failure as a bounded, redacted diagnostic for the uncertain event and the error. */
+function describeFailure(error) {
+  const found = {};
+  if (typeof error?.code === 'string' && /^[A-Z][A-Z0-9_]{2,80}$/.test(error.code)) found.code = error.code;
+  if (typeof error?.message === 'string' && error.message !== error.code) found.message = error.message;
+  return sanitizeDiagnostic({ ...found, ...(error?.diagnostic && typeof error.diagnostic === 'object' ? error.diagnostic : {}) });
 }
 
 /** Campaign reservations extend the control ledger; adapters remain effect owners. */
@@ -664,12 +674,13 @@ class ProviderCampaignControl {
         })
         .immediate();
       return result;
-    } catch {
+    } catch (error) {
       context.open = false;
       abort.abort();
       await Promise.allSettled(children);
-      this.append(id, { kind: 'uncertain', command_id: commandId, measured_microusd: observedReceipt?.cost_microusd ?? null });
-      reject('CONTROL_OUTCOME_UNCERTAIN');
+      const diagnostic = describeFailure(error);
+      this.append(id, { kind: 'uncertain', command_id: commandId, measured_microusd: observedReceipt?.cost_microusd ?? null, diagnostic });
+      reject('CONTROL_OUTCOME_UNCERTAIN', diagnostic);
     } finally {
       clearTimeout(timeout);
       clearInterval(cancellation);
