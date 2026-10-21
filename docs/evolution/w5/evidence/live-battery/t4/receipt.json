@@ -1,0 +1,280 @@
+{
+  "schema": "hseos-live-battery-receipt/v1",
+  "task": "T4",
+  "capability": [
+    "FR14: contrato de tarefa e aceite",
+    "FR15: projeto/sandbox de engenharia",
+    "FR11: superficie de campanha (ledger de despacho)",
+    "Auditoria de UI: escape de HTML do kanban (state-ui-server)"
+  ],
+  "base_sha": "7a5a12fdc84f2ad67e07825b9b6120b851396245",
+  "dispatch_baseline_sha": "7a5a12fdc84f2ad67e07825b9b6120b851396245",
+  "clone_baseline_sha": "44cd76822c7424260cad7594de1db4dbada87a42",
+  "branch": "task/hseos-w5-live-t4",
+  "executor": {
+    "model": "claude-sonnet-5-5",
+    "route": "claude subscription",
+    "binding_id": "binding:claude-w5-account",
+    "dispatches": [
+      {
+        "attempt": 1,
+        "result": "PASS",
+        "campaign_id": "e6b7489c-e56f-4169-b1ce-a8ed97377c52",
+        "command_id": "f451c60f-f25e-468f-913c-3fc603ff5575",
+        "max_requests": 2,
+        "receipt_status": "completed",
+        "tokens_in": 6893,
+        "tokens_out": 2673,
+        "cost_microusd": null,
+        "committed_microusd": 0,
+        "evidence": "dispatch-1/ledger-rows.json, dispatch-1/result.json"
+      }
+    ],
+    "requests_used_by_t4": "1 of 2 authorised (one campaign)",
+    "battery_requests_after_t4": "4 of 12 (2 from T2, 1 from T3, 1 from T4)"
+  },
+  "real_work": {
+    "description": "The kanban web client (tools/state-ui-server/web/app.js) no longer lets registry or database data alter its markup: escapeHtml also escapes the double and single quote, wave and the agent run id go through escapeHtml, and the project color is accepted only as #rgb..#rrggbbaa hexadecimal (an invalid color reaches neither the border, nor a style attribute; the badge keeps its label with no style). The production change was written by the model through one governed patch; the new test test/test-state-ui-web.js, its registration in the test:state script, the harness and this receipt were prepared by the executor.",
+    "pr": null,
+    "merged": false,
+    "is_synthetic": false,
+    "synthetic_reason": null,
+    "prompt_nature": "PRESCRIPTIVE: the prompt states the required behaviour in detail (which values to escape, the exact color rule, the inline style of the valid badge) and gives the exact block to replace. The dispatch proves the governed route (contract, scoped patch, protected verifier, ledger), NOT the ability of the model to design the solution.",
+    "prompt": {
+      "path": "prompt.txt",
+      "sha256": "9569cc5ed7fe927836d977db9569c940299f23397e3e05e56d180e6e7fbd28f9",
+      "note": "file has no trailing newline; the CLI output of t4-prompt.mjs adds one"
+    },
+    "formatting": "The model output was not formatted. prettier --write was run on tools/state-ui-server/web/app.js after applying it (the project badge ternary is wrapped on three lines; nothing else changed). The ASTs of the model output and of the formatted file are identical (espree, locations and raw stripped, hash 8f3e9760e2a5b0bcdaebb1a70b7190b56739bc2f414d5551312f21f0239a08d8); the verifier was run on the formatted file in the worktree. dispatch-1/model-patch.diff is the unformatted model output."
+  },
+  "capability_use": [
+    {
+      "capability": "FR11: superficie de campanha",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "campaign ledger rows opened/intent/done/reserved/receipt/done",
+        "source": "ledger",
+        "ref": "campaign://e6b7489c-e56f-4169-b1ce-a8ed97377c52/f451c60f-f25e-468f-913c-3fc603ff5575",
+        "sha256": "46c95cc34d32bef59125c62290823b338baad2db4b548c3bfcb6a90e7eb4cdc3"
+      },
+      "recorded_by": "system",
+      "asserted_by_script": "live-dispatch.mjs step t4-dispatch (verifier pin checked before the first reservation and after the receipt)",
+      "result": "PASS",
+      "limit": "proves reservation before receipt and the cost ceiling for one dispatch; the ledger actor is hseos/provider-control on every row; the ledger copy is redacted (owner and provider_session_id); assert-receipts.mjs was not run for T4"
+    },
+    {
+      "capability": "Auditoria de UI: escape de HTML",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "tests over the HTML strings the real app.js assigns in a vm sandbox with a fake DOM: option attributes limited to value/selected for quote-bearing ids, wave and agent id escaped, malicious color absent from style, escaped value round-trips",
+        "source": "evidence",
+        "ref": "dispatch-1/verdict-verify.log.gz",
+        "sha256": "f0707be49527612d0da34df79db7786b92c67a1ef16dd5b13091d05016910277"
+      },
+      "recorded_by": "system",
+      "asserted_by_script": "bash /build/tmp/hseos-w5/live/t4/verify-t4.sh (sha256 ab0a75d752ea06d0ef9a8e39acd4cdea991c0fe08e41f2a8e20a8b5f31d0c9e6)",
+      "result": "PASS",
+      "limit": "string-level evidence: the markup is tokenised, not parsed by a browser; a real browser remains the final judge of XSS. the border color (style.borderLeftColor) is asserted only by the strengthened test added after the review, not by the test that judged the dispatch"
+    },
+    {
+      "capability": "Auditoria de UI: escape de HTML (adversarial)",
+      "scenario": "adversarial",
+      "system_record": {
+        "kind": "tests with payloads containing double and single quotes, angle brackets, ampersand, url( and semicolon in project id/label, color, wave, task fields and agent run id; ampersand escaped exactly once",
+        "source": "evidence",
+        "ref": "dispatch-1/verdict-verify.log.gz",
+        "sha256": "f0707be49527612d0da34df79db7786b92c67a1ef16dd5b13091d05016910277"
+      },
+      "recorded_by": "system",
+      "asserted_by_script": "bash /build/tmp/hseos-w5/live/t4/verify-t4.sh",
+      "result": "PASS",
+      "limit": "the dispatch itself was not adversarial; a named color (red) would also pass the tests, the prompt restricts the color to hexadecimal"
+    },
+    {
+      "capability": "Auditoria de UI: controles",
+      "scenario": "control",
+      "system_record": {
+        "kind": "tests: benign task and agent cards byte-identical to the base markup, valid #00d3ff kept on border and badge, project filter, null/number/empty values; the harness tokeniser detects an injected attribute and tag; on the base the 7 positive cases fail and these controls pass (dispatch-1/baseline-verify.log.gz)",
+        "source": "evidence",
+        "ref": "dispatch-1/baseline-verify.log.gz",
+        "sha256": "ad2fa068b308d345d38964777db1bafa607475fd52d49c9ebaa72d07591d32b4"
+      },
+      "recorded_by": "system",
+      "asserted_by_script": "bash /build/tmp/hseos-w5/live/t4/verify-t4.sh",
+      "result": "PASS",
+      "limit": "the verifier was satisfied beforehand by a disposable reference solution (not kept in the worktree)"
+    },
+    {
+      "capability": "FR14: aceite por verificador protegido",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "verifier exit 0 on the corrected clone (test-state-ui-web.js 14 of 14 and test-state-ui.js 10 of 10 (runner count 15 of 15, the second file counts as one), test-package-surface 1 of 1) with the pin checked before and after the first reservation; the baseline was rejected (7 red)",
+        "source": "evidence",
+        "ref": "dispatch-1/verdict-verify.log.gz",
+        "sha256": "f0707be49527612d0da34df79db7786b92c67a1ef16dd5b13091d05016910277"
+      },
+      "recorded_by": "system",
+      "asserted_by_script": "bash /build/tmp/hseos-w5/live/t4/verify-t4.sh",
+      "result": "PASS",
+      "limit": "no coverage gate: app.js is not in .c8-kernel.json and none was invented"
+    },
+    {
+      "capability": "FR14: contrato de tarefa e aceite",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "return value of runEngineeringTask captured by the harness (task_result approved, reason criteria-satisfied, review_sha256 25f1dee17a561d7e468301f8e6af371c7ff440ddadff31f9723db36b9af0bd52)",
+        "source": "evidence",
+        "ref": "dispatch-1/result.json",
+        "sha256": "3bd1128adc9e5954d98f0c248e7952710a05e800593c4c33810626c306ecded1"
+      },
+      "recorded_by": "agent_claim_only",
+      "asserted_by_script": "live-dispatch.mjs step t4-correction",
+      "result": "PASS",
+      "limit": "the task state was discarded by the harness after apply, so the approval is the value the script captured, not a retained ledger record; the in-sandbox acceptance check only compiles the file and looks for the EventSource entry and escapeHtml"
+    },
+    {
+      "capability": "FR15: projeto/sandbox de engenharia",
+      "scenario": "positive",
+      "system_record": {
+        "kind": "managed-project task: write scope limited to tools/state-ui-server/web/app.js, baseline_sha 44cd76822c7424260cad7594de1db4dbada87a42 (clone), applied change set equal to that one file",
+        "source": "evidence",
+        "ref": "dispatch-1/result.json",
+        "sha256": "3bd1128adc9e5954d98f0c248e7952710a05e800593c4c33810626c306ecded1"
+      },
+      "recorded_by": "agent_claim_only",
+      "asserted_by_script": "live-dispatch.mjs steps t4-contract and t4-correction",
+      "result": "PASS",
+      "limit": "same retention limit as above"
+    },
+    {
+      "capability": "FR06: LSP",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "environment events are not persisted and the campaign model only emits text"
+    },
+    {
+      "capability": "FR07: DAP",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "same as LSP"
+    },
+    {
+      "capability": "FR08: navegador",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "same as LSP; the page was never loaded in a browser (contrast, focus and aria not audited)"
+    },
+    {
+      "capability": "FR09: computer-use",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "same as LSP"
+    },
+    {
+      "capability": "FR03: memoria",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "the engineering runtime fixes memory: []"
+    },
+    {
+      "capability": "FR05/FR13: MCP",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "the campaign model does not call MCP"
+    },
+    {
+      "capability": "FR04: compactacao/resume/fork",
+      "scenario": "positive",
+      "system_record": null,
+      "recorded_by": "system",
+      "asserted_by_script": null,
+      "result": "NOT_EXERCISED",
+      "limit": "no production profile uses overflow_policy compact"
+    }
+  ],
+  "cost": {
+    "committed_microusd": 0,
+    "cost_microusd_measured": null,
+    "tokens_in": 6893,
+    "tokens_out": 2673,
+    "wall_s": 17,
+    "note": "sob subscricao o recibo traz cost_microusd null; nao e custo medido. wall_s is reserved-to-receipt in the ledger (04:21:15.4 to 04:21:32.7 UTC). Session token accounting: conservative estimate 44491, total 44493 of max_tokens 400000."
+  },
+  "review": {
+    "reviewer": "independent skeptical reviewer",
+    "pinned_sha": "1a7c7c7117f2af5a3eba8d51e6cb8cdbee0f3aad",
+    "pass1": "APPROVED WITH RESERVATIONS: production code correct, no open vector; findings on the test",
+    "pass2": null,
+    "rounds": 1,
+    "note": "round 1 of correction: test strengthened (border color, regex bounds, exact badge style); 16 mutations of app.js (quotes, raw wave/id, regex anchors, {6}, {3,6}, {2,8}, {3,9}, no i flag, raw border color, raw badge color, ampersand) are all killed; the committed app.js, the model output and the reference solution pass; the base fails"
+  },
+  "gates": {
+    "verify_t4": "PASS: verify-t4.sh with the strengthened test (16 cases) on the committed app.js; the first commit passed with the 14-case test",
+    "kernel_quality": "NOT_RUN: app.js and test-state-ui-web.js are not in the kernel set; package.json only gained a test:state entry",
+    "kernel_coverage": "NOT_RUN: tools/state-ui-server/web/app.js is not in .c8-kernel.json (only lib/snapshot*.js of state-ui-server is)",
+    "mutations": "NOT_RUN: not requested for this step",
+    "npm_test": "NOT_RUN: full suite not run outside the commit hook (heavy-work rule); the new test is registered in test:state, which npm test runs",
+    "package_surface": "PASS: test/test-package-surface.js 1 of 1 (inside verify-t4)",
+    "inventory_g3": "1538/1556; packages 137/137; tools 393/393; .agents 203; .enterprise 464; .hseos 63; docs/evolution in the pack: 0; test-state-ui-web.js in the pack: no (npm pack --dry-run --json --ignore-scripts, Node 24)",
+    "quality_gates": "PASS: scripts/governance/quality-gates.sh --phase ci, exit 0, no [FAIL]; 2 pre-existing WARN (placeholders in docs/activity-coordination/README.md and an epics template)",
+    "format_lint": "PASS: prettier --check and eslint --max-warnings=0 on tools/state-ui-server/web/app.js and test/test-state-ui-web.js; package.json is not covered by the repository prettier gate (prettier --check flags it on master too, so it is outside the gate; one script entry added)",
+    "node24": "PASS: verify-t4 and quality gates run on Node 24.15",
+    "node22": "PASS for test-state-ui-web.js (14 of 14 on v22.23.3, it needs no better-sqlite3); NOT VERIFIED for test-state-ui.js (better-sqlite3 is built for the Node 24 ABI, no rebuild attempted)"
+  },
+  "protected_pins": {
+    "verifier_script_sha256": "ab0a75d752ea06d0ef9a8e39acd4cdea991c0fe08e41f2a8e20a8b5f31d0c9e6",
+    "test_files_sha256": {
+      "test/test-state-ui-web.js": "deeaa9e0c0f1ed6a2a6a4c49d123f9f4b274fc75ebcea2ff72a742bf692acdb1"
+    },
+    "note": "the dispatch was judged by test/test-state-ui-web.js with sha256 d3419ef6395365dca5eb406b0189aa0b39aab43eb21056214609bc78ab631016 (14 cases, pinned before the reservation). After the skeptical review (pass 1) the test was strengthened in a second commit (new sha256 deeaa9e0c0f1ed6a2a6a4c49d123f9f4b274fc75ebcea2ff72a742bf692acdb1, 16 cases: border color, boundaries of the colour pattern, exact badge style). The model's app.js (unformatted output and the committed prettier version) satisfies the strengthened test without any change. The harness pin (composite aa716f93efbd89173b3e44cd6b92feb96be77366804e49b62a0f964c72ad4b6a) was computed over the original test and also covers hseos_w5/verify.mjs and test/test-state-ui.js.",
+    "dispatch_judged_test_sha256": {
+      "test/test-state-ui-web.js": "d3419ef6395365dca5eb406b0189aa0b39aab43eb21056214609bc78ab631016"
+    }
+  },
+  "redaction": "owner (pid, cgroup path) and provider_session_id are replaced by \"<redacted>\" in the repository copies of the ledger rows; the heavy-run queue line was removed from the logs",
+  "limitations": [
+    "the prompt was prescriptive: it proves the governed route, not design ability",
+    "evidence is by HTML string, without a browser; contrast, focus and aria were not exercised",
+    "no coverage gate (app.js is outside .c8-kernel.json)",
+    "a named color (for example red) would pass the tests; the prompt restricts the color to hexadecimal",
+    "the governance console (tools/managed-governance-control-plane) was not audited in depth; its app.js only uses textContent/createElement",
+    "browser and computer-use capabilities were NOT_EXERCISED",
+    "battery counter: 4 of 12 requests after T4 (T4 used 1 of its 2 authorised)",
+    "a named color (for example red) is rejected by the strengthened test as the prompt requires hexadecimal only; the original judging test would have accepted it"
+  ],
+  "product_findings": [
+    "the defect was a real, deterministic HTML injection of low to medium severity in the kanban client: escapeHtml left quotes alone while used in a double-quoted attribute, and the project color, wave and agent id reached innerHTML unescaped; sources are the local projects.json registry and the project databases",
+    "tools/state-ui-server does not send a Content-Security-Policy; not fixed here",
+    "the model output needed prettier (one wrapped ternary): the governed route applies a patch as produced and nothing formats it"
+  ],
+  "does_not_prove": [
+    "that the model can design the change (the prompt was prescriptive)",
+    "XSS closure in a real browser",
+    "LSP, DAP, browser, computer-use, memory, MCP and compaction usage",
+    "a measured cost (the subscription route reports null)",
+    "review by an independent skeptical reviewer"
+  ],
+  "known_findings_not_fixed": [
+    "the server sends no CSP header",
+    "accessibility findings (connection dot by color only, no aria-live, no reduced-motion query) are out of scope and unverified without a browser",
+    "the typeof string guard on the colour is not isolated by a dedicated test (an array such as ['#fff'] coerces to a matching string in RegExp.test); the review item is recorded without a fix"
+  ]
+}

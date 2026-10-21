@@ -1,0 +1,56 @@
+You are changing one browser JavaScript file. Answer with ONE JSON array of tool calls and nothing else: no prose, no code fence.
+The array is executed as a script. No tool result is returned to you, so base every edit on the excerpt below.
+
+Objective:
+  tools/state-ui-server/web/app.js is the client of the HSEOS kanban. It builds card and filter markup as HTML strings assigned to innerHTML, with data that comes from project registry and database content (not trusted). The escaping is incomplete: `escapeHtml` leaves quote characters alone although its result is also placed inside double-quoted attribute values, and some values reach the markup with no escaping at all. Fix it so the markup cannot be altered by the data:
+  - `escapeHtml` must also neutralise the double quote and the single quote (as &quot; and &#39;), keeping the existing replacements of &, < and > exactly as they are (an ampersand must still be escaped exactly once).
+  - Every value interpolated into the card markup must go through `escapeHtml`: the `wave` value of a task card (keep the `?` fallback when it is null or undefined) and the numeric-looking `id` of an agent run card, which today are interpolated raw. The other already escaped values stay as they are.
+  - The project color (`meta.color`) is accepted only when it is a hexadecimal color: `#` followed by 3 to 8 hexadecimal digits, case-insensitive. A valid color keeps working exactly as today: the card's border color is set from it and the project badge keeps the inline `style="color:<the color>"` in the markup. An invalid, missing or malicious color must not appear anywhere: not in the border color, not in any style attribute, and the badge is still rendered with its label but with no style attribute at all.
+  - Benign data must render byte-for-byte as before: do not change the whitespace, text or structure of the markup, the project filter option markup for ordinary values, or any other behavior.
+  - Define the color pattern as a constant or a small local helper placed inside the replaced block (the block is inside the IIFE; no import or other line outside the block may change). Add no files and change no other code.
+
+Allowed to change: only tools/state-ui-server/web/app.js. Everything else is read-only; you may read hseos_w5/verify.mjs with engineering.read.
+Acceptance, run by a protected verifier after your patch is applied (from the repository root): `bash /build/tmp/hseos-w5/live/t4/verify-t4.sh`. It runs the relevant test files of the repository and the package surface test; all must pass. The test files already contain the cases for this change.
+
+<<<tools/state-ui-server/web/app.js (file sha256 af86a6d3d5df06fba33e479381e286274dbc0b50895750814bfd5a6d6ab4eca9); the `before` is exactly the lines between the markers
+-----BEGIN-----
+    const meta = projectsMeta && item.project_id ? projectsMeta.find((p) => p.id === item.project_id) : null;
+    if (meta?.color) el.style.borderLeftColor = meta.color;
+    const projectBadge = meta ? `<span class="card-project" style="color:${meta.color}">${escapeHtml(meta.label || meta.id)}</span>` : '';
+    if (kind === 'pending' || kind === 'aborted') {
+      // task card
+      el.innerHTML = `
+        <div class="card-head">
+          <span class="card-id">${escapeHtml(item.id)}</span>
+          <span class="card-tier">${escapeHtml(item.model_tier || '-')}</span>
+        </div>
+        <div class="card-meta">${projectBadge}wave=${item.wave ?? '?'} · ${escapeHtml(item.run_id)}</div>
+        ${item.goal ? `<div class="card-goal">${escapeHtml(item.goal)}</div>` : ''}
+      `;
+      return el;
+    }
+    // agent_run card
+    const age = ageSeconds(item.last_heartbeat_at);
+    const ageClass = age == null ? 'age-none' : age < 60 ? 'age-fresh' : age < 300 ? 'age-warm' : 'age-stale';
+    el.innerHTML = `
+      <div class="card-head">
+        <span class="card-id">#${item.id} ${escapeHtml(item.agent_name)}</span>
+        <span class="card-hb ${ageClass}">${age == null ? '—' : '♥ ' + fmtAge(age)}</span>
+      </div>
+      <div class="card-meta">${projectBadge}${escapeHtml(item.task_id || '-')} · ${escapeHtml(item.run_id)}</div>
+      ${item.exit_reason ? `<div class="card-goal">${escapeHtml(item.exit_reason)}</div>` : ''}
+    `;
+    return el;
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;');
+-----END-----
+tools/state-ui-server/web/app.js>>>
+
+Output format, exactly (ONE patch object; the engineering.read call is optional):
+[{"name":"engineering.read","input":{"path":"hseos_w5/verify.mjs"}},{"name":"engineering.patch","input":{"path":"tools/state-ui-server/web/app.js","expected_sha256":"af86a6d3d5df06fba33e479381e286274dbc0b50895750814bfd5a6d6ab4eca9","before":"<exact substring>","after":"<replacement>"}},{"name":"engineering.diff","input":{}}]
+Rules: exactly ONE engineering.patch for the file (a second patch would need a file hash you do not have). `before` is the block shown, copied exactly (it occurs once in the file), and every change goes into its `after`. Keep the change minimal and do not touch any other file.

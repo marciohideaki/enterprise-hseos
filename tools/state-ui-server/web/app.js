@@ -71,9 +71,13 @@
   function makeCard(kind, item, projectsMeta) {
     const el = document.createElement('div');
     el.className = `card card-${kind}`;
+    const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/;
     const meta = projectsMeta && item.project_id ? projectsMeta.find((p) => p.id === item.project_id) : null;
-    if (meta?.color) el.style.borderLeftColor = meta.color;
-    const projectBadge = meta ? `<span class="card-project" style="color:${meta.color}">${escapeHtml(meta.label || meta.id)}</span>` : '';
+    const color = typeof meta?.color === 'string' && HEX_COLOR.test(meta.color) ? meta.color : null;
+    if (color) el.style.borderLeftColor = color;
+    const projectBadge = meta
+      ? `<span class="card-project"${color ? ` style="color:${color}"` : ''}>${escapeHtml(meta.label || meta.id)}</span>`
+      : '';
     if (kind === 'pending' || kind === 'aborted') {
       // task card
       el.innerHTML = `
@@ -81,7 +85,7 @@
           <span class="card-id">${escapeHtml(item.id)}</span>
           <span class="card-tier">${escapeHtml(item.model_tier || '-')}</span>
         </div>
-        <div class="card-meta">${projectBadge}wave=${item.wave ?? '?'} · ${escapeHtml(item.run_id)}</div>
+        <div class="card-meta">${projectBadge}wave=${escapeHtml(item.wave ?? '?')} · ${escapeHtml(item.run_id)}</div>
         ${item.goal ? `<div class="card-goal">${escapeHtml(item.goal)}</div>` : ''}
       `;
       return el;
@@ -91,7 +95,7 @@
     const ageClass = age == null ? 'age-none' : age < 60 ? 'age-fresh' : age < 300 ? 'age-warm' : 'age-stale';
     el.innerHTML = `
       <div class="card-head">
-        <span class="card-id">#${item.id} ${escapeHtml(item.agent_name)}</span>
+        <span class="card-id">#${escapeHtml(item.id)} ${escapeHtml(item.agent_name)}</span>
         <span class="card-hb ${ageClass}">${age == null ? '—' : '♥ ' + fmtAge(age)}</span>
       </div>
       <div class="card-meta">${projectBadge}${escapeHtml(item.task_id || '-')} · ${escapeHtml(item.run_id)}</div>
@@ -104,7 +108,9 @@
     return String(s ?? '')
       .replaceAll('&', '&amp;')
       .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;');
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
   }
 
   // localStorage-persisted project filter
