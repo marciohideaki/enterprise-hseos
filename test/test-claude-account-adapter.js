@@ -192,3 +192,18 @@ test('claude/account keeps accepting 32-256 and refusing out-of-range or non-int
     assert.throws(() => f.create(), { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' });
   }
 });
+
+test('a client output limit overrun is an explicit provider output limit, never a bare uncertain outcome', async (t) => {
+  const f = setup(t, { run: 'output_limit' });
+  const error = await f
+    .create()
+    .adapter.run({ task_id: f.id, signal: signal() })
+    .then(
+      () => null,
+      (error_) => error_,
+    );
+  assert.equal(error.code, 'CONTROL_PROVIDER_OUTPUT_LIMIT');
+  assert.equal(error.diagnostic.limit, 'output_tokens');
+  assert.equal(error.diagnostic.client_limit_tokens, f.m.limits.max_output_tokens);
+  assert.equal(f.calls().filter((call) => call.argv.includes('-p')).length, 1, 'not retried');
+});

@@ -5,7 +5,7 @@ const { createHash } = require('node:crypto');
 const yaml = require('yaml');
 const { z } = require('zod');
 const { engineeringDigest } = require('./engineering-task-state');
-const { runCampaignProcess } = require('./provider-campaign-process');
+const { runCampaignProcess, sanitizeDiagnostic } = require('./provider-campaign-process');
 
 const PROFILE_ID = 'agent-claude-cli-account-candidate';
 const PROVIDER_ID = 'runtime:claude-cli';
@@ -33,10 +33,11 @@ const settingsSchema = {
     }
   },
 };
-const refusals = new Set(['CONTROL_PROVIDER_IDENTITY_UNVERIFIED', 'CONTROL_PROVIDER_QUOTA_UNAVAILABLE']);
+const refusals = new Set(['CONTROL_PROVIDER_IDENTITY_UNVERIFIED', 'CONTROL_PROVIDER_QUOTA_UNAVAILABLE', 'CONTROL_PROVIDER_OUTPUT_LIMIT']);
 
-function fail(code) {
-  throw Object.assign(new Error(code), { code });
+/** A stable code, with an optional bounded diagnostic that names the numbers behind it. */
+function fail(code, diagnostic) {
+  throw Object.assign(new Error(code), { code, ...(diagnostic ? { diagnostic } : {}) });
 }
 
 const hashes = new Map();
@@ -201,7 +202,7 @@ function createClaudeAccountCampaignAdapter(
           timeout_ms: manifest.limits.max_duration_ms,
           ...profile(),
         });
-        if (refusals.has(result.refusal)) fail(result.refusal);
+        if (refusals.has(result.refusal)) fail(result.refusal, sanitizeDiagnostic(result.diagnostic));
         const { attested, fields } = retainOutput(result, []);
         const usage = result.usage?.usage;
         const input =

@@ -7,6 +7,7 @@ const { engineeringDigest } = require('./engineering-task-state');
 
 const IDENTITY = 'CONTROL_PROVIDER_IDENTITY_UNVERIFIED';
 const QUOTA = 'CONTROL_PROVIDER_QUOTA_UNAVAILABLE';
+const OUTPUT_LIMIT = 'CONTROL_PROVIDER_OUTPUT_LIMIT';
 const refusalByCode = { identity_unverified: IDENTITY, quota_unavailable: QUOTA };
 
 /** Verifies the logged-in subscription identity without ever reading a credential file. */
@@ -73,6 +74,13 @@ async function main(input) {
         }
       },
     });
+    // The client applies CLAUDE_CODE_MAX_OUTPUT_TOKENS to the whole answer, reasoning included: its overrun is a known budget
+    // stop, reported with its own stable code instead of an uncertain outcome.
+    if (result.stop_reason === 'budget_exceeded' && result.limit === 'output_tokens')
+      return {
+        refusal: OUTPUT_LIMIT,
+        diagnostic: { limit: 'output_tokens', client_limit_tokens: Number(config.environment.CLAUDE_CODE_MAX_OUTPUT_TOKENS) || null },
+      };
     if (result.stop_reason !== 'completed' || !usage)
       throw new Error(
         `uncertain result: stop_reason=${JSON.stringify(result.stop_reason)} usage=${usage === undefined ? 'absent' : 'present'}`,

@@ -158,6 +158,8 @@ class ClaudeCliDriver {
     let seenInit = false;
     let initial = { model: null, fast_mode_state: null };
     let observedSession;
+    // The client reports an output limit overrun (reasoning included) as an assistant error message, then an error result.
+    let outputLimit = false;
     let result;
     let bytes = 0;
     let pending = '';
@@ -235,6 +237,11 @@ class ClaudeCliDriver {
           throw new RuntimeProviderError('Claude assistant message is malformed', 'protocol_error');
         if (['rate_limit', 'billing_error'].includes(message.error))
           throw new RuntimeProviderError('Claude quota is unavailable', 'quota_unavailable');
+        if (message.error === 'max_output_tokens') {
+          // Its text is the client's own error line, not model output: it is neither streamed nor retained.
+          outputLimit = true;
+          return;
+        }
         for (const block of message.message.content) {
           if (!record(block) || typeof block.type !== 'string')
             throw new RuntimeProviderError('Claude content block is malformed', 'protocol_error');
@@ -270,6 +277,10 @@ class ClaudeCliDriver {
         }
         if (message.subtype === 'error_max_turns' || message.subtype === 'error_max_budget_usd') {
           result = { stop_reason: 'budget_exceeded' };
+          return;
+        }
+        if (outputLimit && message.is_error === true) {
+          result = { stop_reason: 'budget_exceeded', limit: 'output_tokens' };
           return;
         }
         result = { stop_reason: 'refused' };

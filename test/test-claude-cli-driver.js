@@ -175,3 +175,19 @@ test('fast mode and a different pinned model are refused; init state is recorded
   const { result } = await run(setup(t), { model: 'opus' });
   assert.deepEqual(result.init, { model: 'opus', fast_mode_state: null });
 });
+
+test('an output limit overrun reported by the client is a budget stop, not a refusal, and its text is not model output', async (t) => {
+  const f = setup(t, { run: 'output_limit' });
+  const { result, events, usage } = await run(f);
+  assert.equal(result.stop_reason, 'budget_exceeded');
+  assert.equal(result.limit, 'output_tokens');
+  assert.deepEqual(events, []);
+  assert.deepEqual(usage, []);
+});
+
+test('other error results stay refusals', async (t) => {
+  const f = setup(t, { run: 'error' });
+  const { result } = await run(f);
+  assert.equal(result.stop_reason, 'refused');
+  assert.equal(result.limit, undefined);
+});
