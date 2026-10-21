@@ -22,9 +22,15 @@ const { attestEngineeringVerifier, verifyEngineeringTask } = require('./engineer
 const { materializeStoreLinks, pinStoreMount, verifyPnpmStoreMount } = require('./engineering-workspace');
 const { EngineeringTaskState, engineeringDigest } = require('./engineering-task-state');
 const { evaluatePermissionLattice } = require('../../../packages/agent-policy-lattice');
+const { containsCredential } = require('./campaign-evidence-store');
+const { accountSessionTokens } = require('../../../packages/agent-context/token-counter');
 
 const MANIFEST = 'engineering-task.json';
 const MODEL = 'model:engineering-scripted';
+const PROJECT_INSTRUCTION = 'Implement only the declared disposable task. A model response is not proof of acceptance.';
+// Managed projects can hold files too large to read whole: the model is told how to work on them without fetching them.
+const LARGE_FILE_GUIDANCE =
+  'A file above 64 KB cannot be read whole: find the place with engineering.search, read only the lines you need with engineering.read (start_line, end_line; at most 300 lines or 12 KiB per call), and change it with a short engineering.patch (before is the exact text, within narrows it to a line range when the text repeats, expected_sha256 is the sha256 of the whole file and each patch answers with the next one). engineering.write is refused on such a file. Review a change with engineering.diff (path, start_line, end_line).';
 const { createTaskExtensions, taskContextReservations } = require('./engineering-task-extensions');
 const responsesSchema = z.array(z.object({ name: z.string().min(1).max(160), input: z.record(z.string(), z.json()) }).strict()).max(64);
 
@@ -398,7 +404,7 @@ function assemble(handle, created, { environment, fetchImpl, extensionCatalog = 
               {
                 source_ref: 'profile://engineering/candidate',
                 classification: 'internal',
-                content: 'Implement only the declared disposable task. A model response is not proof of acceptance.',
+                content: contract.schema_version === 2 ? `${PROJECT_INSTRUCTION} ${LARGE_FILE_GUIDANCE}` : PROJECT_INSTRUCTION,
               },
               'directive',
               'trusted',
@@ -464,7 +470,7 @@ function summary(handle, id, task, assembly) {
     ...(state.created.extensions ? { extensions: state.created.extensions } : {}),
     ...(state.created.plugin_model ? { plugin_model: pluginModel } : {}),
     ...(state.created.response_source ? { response_source: state.created.response_source } : {}),
-    token_accounting: session ? require('../../../packages/agent-context/token-counter').accountSessionTokens(session) : null,
+    token_accounting: session ? accountSessionTokens(session) : null,
     correction_reviews: state.reviews || [],
     correction_diagnoses: state.diagnoses || [],
     questions: state.uncertainty ? [state.uncertainty.question] : state.result?.evidence?.questions || [],
@@ -715,7 +721,7 @@ async function executeTask(handle, task, assembly, created, verificationOnly = f
     const verified =
       !task.read().uncertainty && ended.status === 'completed' && !task.read().cancellation
         ? await verifyEngineeringTask({ contract, policy: assembly.policy, deadline: created.deadline, signal: controller.signal, files })
-        : { approved: false, reason: 'session-not-completed' };
+        : unverifiedSession(ended);
     if (engineeringDigest(assembly.tools.snapshot()) !== engineeringDigest(files) && !task.read().uncertainty)
       task.append(
         {
@@ -733,6 +739,7 @@ async function executeTask(handle, task, assembly, created, verificationOnly = f
         reason: finalState.cancellation ? 'cancelled' : finalState.uncertainty ? 'reconciliation-required' : verified.reason,
         evidence: {
           ...verified,
+          ...overBudgetEvidence(ended, contract),
           schema_version: 1,
           contract_sha256: created.contract_sha256,
           session_id: created.session_id,
@@ -747,6 +754,33 @@ async function executeTask(handle, task, assembly, created, verificationOnly = f
     await assembly.tools.drain();
   }
   return operationResult;
+}
+
+const SESSION_FAILURE_MESSAGE_MAX = 512;
+// The failure message is runtime-authored text that reaches durable evidence: drop it whole if it looks like a credential.
+function evidenceMessage(message) {
+  if (containsCredential(message)) return '[redacted: credential-like content]';
+  return message.length > SESSION_FAILURE_MESSAGE_MAX ? `${message.slice(0, SESSION_FAILURE_MESSAGE_MAX)}...` : message;
+}
+
+// A session that stopped is completed even past max_tokens (the budget only gates new steps); say so in the evidence.
+function overBudgetEvidence(session, contract) {
+  if (session.status !== 'completed') return {};
+  const accounting = accountSessionTokens(session);
+  if (accounting.total_tokens <= contract.limits.max_tokens) return {};
+  return { token_accounting: { ...accounting, over_budget: true, max_tokens: contract.limits.max_tokens } };
+}
+
+// Why a task whose session never completed has no verdict: the session's own terminal failure, else no terminal at all.
+function unverifiedSession(session) {
+  if (session.status !== 'failed') return { approved: false, reason: 'session-not-completed' };
+  const { error_code: errorCode, message } = session.terminal_event.payload;
+  return {
+    approved: false,
+    reason: errorCode === 'budget_exceeded' ? 'session-budget-exceeded' : `session-failed:${errorCode}`,
+    session_failure: { error_code: errorCode, message: evidenceMessage(message) },
+    token_accounting: accountSessionTokens(session),
+  };
 }
 
 async function inspectEngineeringTask({
@@ -987,3 +1021,4 @@ async function executeJobTask(control, id) {
   }
 }
 module.exports.executeJobTask = executeJobTask;
+module.exports.sessionEvidence = { evidenceMessage, overBudgetEvidence, unverifiedSession };
