@@ -18,6 +18,7 @@ const FIRST_DISPLAY = 99;
 const READY_ATTEMPTS = 50;
 const READY_STEP_MS = 100;
 const WINDOW_ATTEMPTS = 30;
+const PAINT_ATTEMPTS = 30;
 const TOOL_TIMEOUT_MS = 8000;
 const OUTPUT_RESERVE_BYTES = 4096;
 const XWD_HEADER_FIELDS = 25;
@@ -135,6 +136,24 @@ function xwdToPng(bytes, limits = LIMITS) {
     }
   }
   return { png: encodePng(width, height, rgb), width, height };
+}
+
+/** True once the capture holds more than one colour. A mapped window is blank until its client has handled the first Expose. */
+function xwdDrawn(bytes) {
+  if (!Buffer.isBuffer(bytes) || bytes.length < XWD_HEADER_FIELDS * 4) return false;
+  const field = (index) => bytes.readUInt32BE(index * 4);
+  const [width, height, order, bytesPerLine] = [field(4), field(5), field(7), field(12)];
+  const offset = field(0) + field(18) * 12;
+  if (bytesPerLine < width * 4 || bytes.length < offset + bytesPerLine * height) return false;
+  const mask = (field(14) | field(15) | field(16)) >>> 0;
+  const read = (at) => ((order === 0 ? bytes.readUInt32LE(at) : bytes.readUInt32BE(at)) & mask) >>> 0;
+  const first = read(offset);
+  for (let row = 0; row < height; row += 1) {
+    for (let column = 0; column < width; column += 1) {
+      if (read(offset + row * bytesPerLine + column * 4) !== first) return true;
+    }
+  }
+  return false;
 }
 
 /** The xdotool command line for one validated action. No shell, no string is ever interpreted. */
@@ -260,6 +279,15 @@ function createHost({
       windowShown = found.status === 0 && found.stdout?.length > 0;
       if (!windowShown) await sleep(READY_STEP_MS);
     }
+    // The window is mapped before its client has drawn it, and a screenshot of the blank root is no use to the model:
+    // wait (bounded) until the root shows more than one colour. A target that never draws still starts.
+    if (windowShown) {
+      for (let attempt = 0; attempt < PAINT_ATTEMPTS; attempt += 1) {
+        const capture = tool(XWD, ['-root', '-silent']);
+        if (capture.status === 0 && xwdDrawn(capture.stdout)) break;
+        await sleep(READY_STEP_MS);
+      }
+    }
     out({ event: 'ready', display: { width: size.width, height: size.height }, sockets, target_window: windowShown });
   }
 
@@ -374,7 +402,9 @@ module.exports = {
   XDOTOOL,
   XVFB,
   XWD,
+  PAINT_ATTEMPTS,
   createHost,
+  xwdDrawn,
   crc32,
   encodePng,
   main,
