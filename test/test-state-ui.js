@@ -55,6 +55,18 @@ function fetchResponse(port, path_, token = null) {
   });
 }
 
+/** Status and headers only: an SSE stream never ends, so the request is dropped as soon as the headers arrive. */
+function fetchHeaders(port, path_, token = null) {
+  return new Promise((resolve, reject) => {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const req = http.get({ host: '127.0.0.1', port, path: path_, headers, timeout: 4000 }, (res) => {
+      resolve({ statusCode: res.statusCode, headers: res.headers });
+      req.destroy();
+    });
+    req.on('error', (error) => (error.code === 'ECONNRESET' ? undefined : reject(error)));
+  });
+}
+
 async function fetchJson(port, path_, token = null) {
   const response = await fetchResponse(port, path_, token);
   if (response.statusCode !== 200) throw new Error(`status ${response.statusCode}`);
@@ -192,8 +204,15 @@ async function fetchJson(port, path_, token = null) {
         await fetchResponse(port, '/api/state', token),
         await fetchResponse(port, '/api/state'),
         await fetchResponse(port, '/missing', token),
+        await fetchResponse(port, '/assets/does-not-exist.js', token),
+        await fetchResponse(port, '/favicon.ico'),
         await fetchResponse(port, '/health'),
+        await fetchHeaders(port, '/events', token),
       ];
+      const sse = responses.at(-1);
+      if (sse.statusCode !== 200 || !/text\/event-stream/.test(sse.headers['content-type']))
+        throw new Error('/events is not an event stream');
+      if (responses.at(-4).statusCode !== 404) throw new Error('missing asset is not a 404');
       for (const response of responses) {
         const csp = response.headers['content-security-policy'];
         if (!csp) throw new Error(`status ${response.statusCode} has no Content-Security-Policy`);
