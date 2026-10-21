@@ -517,3 +517,45 @@ test('a historical contract with weak acceptance is still read', (t) => {
   const { contract } = readEngineeringTask(f.filename);
   assert.equal(contract.verifier.reference, 'verifier://project/web-content-v1');
 });
+
+// The contract is also pinned to the real workspace, which these synthetic files are not: a structurally accepted
+// contract therefore stops at the workspace digest, and a refused one stops earlier with its own reason.
+const ACCEPTED = 'ENGINEERING_WORKSPACE_DIGEST_MISMATCH';
+const parseReason = (contract) => {
+  try {
+    parseEngineeringTask(contract);
+    return 'ok';
+  } catch (error) {
+    return error.reason;
+  }
+};
+
+test('v2 large files: 256 KiB accepted, one character more refused, at most 4 above 64 KB, v1 keeps 64 KB', (t) => {
+  const withFiles =
+    (sizes, char = 'x') =>
+    (contract) => {
+      contract.max_artifact_bytes = PROJECT_LIMITS.artifact_bytes;
+      for (const [index, size] of sizes.entries()) {
+        const content = char.repeat(size);
+        contract.scope.read.push(`big${index}.js`);
+        contract.initial_files.push({ path: `big${index}.js`, content, sha256: sha(content) });
+      }
+    };
+  assert.deepEqual(
+    [PROJECT_LIMITS.large_file_chars, PROJECT_LIMITS.large_files_max, PROJECT_LIMITS.read_window_bytes, PROJECT_LIMITS.read_window_lines],
+    [262_144, 4, 12_288, 300],
+  );
+  assert.equal(parseReason(projectContract(t, withFiles([262_144]))), ACCEPTED);
+  assert.equal(parseReason(projectContract(t, withFiles([262_145]))), 'ENGINEERING_CONTRACT_SCHEMA_INVALID');
+  assert.equal(parseReason(projectContract(t, withFiles([65_537, 65_537, 65_537, 65_537]))), ACCEPTED);
+  assert.equal(parseReason(projectContract(t, withFiles([65_537, 65_537, 65_537, 65_537, 65_537]))), 'ENGINEERING_INITIAL_FILES_INVALID');
+  // Files up to 64 KB never count as large.
+  assert.equal(parseReason(projectContract(t, withFiles([65_536, 65_536, 65_536, 65_536, 65_536, 65_536]))), ACCEPTED);
+  // The large files together stay within 1 MiB of bytes: two 1 MiB halves fit, a third large file does not.
+  assert.equal(parseReason(projectContract(t, withFiles([262_144, 262_144], 'é'))), ACCEPTED);
+  assert.equal(parseReason(projectContract(t, withFiles([262_144, 262_144, 65_537], 'é'))), 'ENGINEERING_INITIAL_FILES_INVALID');
+  const v1 = fixture();
+  const content = 'x'.repeat(65_537);
+  v1.initial_files = [{ path: 'add.js', content, sha256: sha(content) }];
+  assert.equal(parseReason(v1), 'ENGINEERING_CONTRACT_SCHEMA_INVALID');
+});

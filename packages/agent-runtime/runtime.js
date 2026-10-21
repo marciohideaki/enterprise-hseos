@@ -498,11 +498,17 @@ class AgentRuntime {
   #startStep(state, turn, request, sourceEventIds, active) {
     const index = turn.model_steps.length;
     const stepId = stableId('step', state.session_id, turn.turn_id, index);
-    const projected = tokenUsage(state) + Buffer.byteLength(canonicalJson(request), 'utf8') + request.parameters.max_output_tokens;
+    const used = tokenUsage(state);
+    const requestBytes = Buffer.byteLength(canonicalJson(request), 'utf8');
+    const reserve = request.parameters.max_output_tokens;
+    const projected = used + requestBytes + reserve;
     if (projected > state.spec.limits.max_tokens) {
       return this.#fail(
         state,
-        { code: 'budget_exceeded', message: 'session token budget cannot reserve another model step' },
+        {
+          code: 'budget_exceeded',
+          message: `session token budget cannot reserve another model step: projected ${projected} > max ${state.spec.limits.max_tokens} (used ${used} + request ${requestBytes} + reserve ${reserve})`,
+        },
         active,
         'token-budget',
       );
@@ -982,8 +988,17 @@ class AgentRuntime {
         if (terminal.payload.finish_reason === 'length') {
           return this.#fail(state, { code: 'budget_exceeded', message: 'model output limit reached' }, active, `length:${step.step_id}`);
         }
-        if (tokenUsage(state) > state.spec.limits.max_tokens) {
-          return this.#fail(state, { code: 'budget_exceeded', message: 'session token budget exhausted' }, active, 'token-budget');
+        // A session that stopped is complete; the budget only gates opening another step.
+        if (terminal.payload.finish_reason !== 'stop') {
+          const used = tokenUsage(state);
+          if (used > state.spec.limits.max_tokens) {
+            return this.#fail(
+              state,
+              { code: 'budget_exceeded', message: `session token budget exhausted: used ${used} > max ${state.spec.limits.max_tokens}` },
+              active,
+              'token-budget',
+            );
+          }
         }
         if (terminal.payload.finish_reason === 'stop') {
           let revision = step.revision;

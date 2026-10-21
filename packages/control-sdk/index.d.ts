@@ -101,6 +101,7 @@ export interface TaskStatus {
   task_run_id: string;
   current_sequence: number;
   task_result: 'approved' | 'failed' | 'blocked' | 'not_executed';
+  reason?: string;
   session_id: string;
   questions: string[];
   [key: string]: unknown;

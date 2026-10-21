@@ -5,13 +5,13 @@ const os = require('node:os');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
 const test = require('node:test');
-const { runEngineeringTask, inspectEngineeringTask } = require('../tools/cli/lib/engineering-task-runtime');
+const { runEngineeringTask, inspectEngineeringTask, sessionEvidence } = require('../tools/cli/lib/engineering-task-runtime');
 const { engineeringVerifier } = require('../tools/cli/lib/engineering-verifier');
 const base = require('./fixtures/engineering-task/addition.json');
 const sha = (s) => createHash('sha256').update(s).digest('hex');
 
 async function fixture(
-  { code, initial, reference = base.verifier.reference, file = 'add.js', runtime = 'node', responses, createOnly = false },
+  { code, initial, reference = base.verifier.reference, file = 'add.js', runtime = 'node', responses, createOnly = false, limits = {} },
   check,
 ) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-engineering-run-test-'));
@@ -28,6 +28,7 @@ async function fixture(
     task.scope = { read: [file], write: [file] };
     task.commands = [{ id: 'check', runtime, entrypoint: file, args: [] }];
     task.limits.max_duration_ms = 30_000;
+    Object.assign(task.limits, limits);
     fs.writeFileSync(path.join(directory, 'task.json'), JSON.stringify(task));
     fs.writeFileSync(
       path.join(directory, 'responses.json'),
@@ -99,6 +100,48 @@ test('a completed model response without implementation fails independent verifi
     assert.equal(result.status, 'completed');
     assert.equal(result.task_result, 'failed');
   }));
+
+test('a session that exhausts its token budget reports session-budget-exceeded with the failure evidence', () =>
+  fixture({ code: 'module.exports=(a,b)=>a+b;\n', limits: { max_tokens: 20_000 } }, async (result) => {
+    assert.equal(result.status, 'failed');
+    assert.equal(result.task_result, 'failed');
+    assert.equal(result.reason, 'session-budget-exceeded', JSON.stringify(result));
+    const evidence = await inspectEngineeringTask({ state: result.state, action: 'evidence' });
+    const recorded = evidence.verification.evidence;
+    assert.equal(recorded.session_failure.error_code, 'budget_exceeded');
+    assert.match(recorded.session_failure.message, /projected \d+ > max 20000/);
+    assert.equal(typeof recorded.token_accounting.total_tokens, 'number');
+  }));
+
+test('a session that fails for another reason reports session-failed with its error code', () =>
+  fixture({ responses: [{ name: 'unknown.run', input: {} }] }, async (result) => {
+    assert.equal(result.task_result, 'failed');
+    assert.equal(result.reason, 'session-failed:tool_failed', JSON.stringify(result));
+    const evidence = await inspectEngineeringTask({ state: result.state, action: 'evidence' });
+    assert.equal(evidence.verification.evidence.session_failure.error_code, 'tool_failed');
+  }));
+
+test('the session failure message is redacted when credential-like and bounded otherwise', () => {
+  const failed = (message) => ({ status: 'failed', terminal_event: { payload: { error_code: 'internal_error', message } }, turns: {} });
+  const secret = `token leaked ghp_${'a1B2'.repeat(9)} in output`;
+  const redacted = sessionEvidence.unverifiedSession(failed(secret)).session_failure.message;
+  assert.equal(redacted, '[redacted: credential-like content]');
+  assert.ok(!redacted.includes('ghp_'));
+  const long = sessionEvidence.unverifiedSession(failed('x'.repeat(4096))).session_failure.message;
+  assert.equal(long.length, 512 + 3);
+  assert.equal(sessionEvidence.unverifiedSession(failed('short failure')).session_failure.message, 'short failure');
+});
+
+test('a completed session past max_tokens is flagged in the evidence without changing its status', () => {
+  const session = (status) => ({ status, turns: {}, reconciliation_reserved_tokens: 5000 });
+  const contract = { limits: { max_tokens: 4000 } };
+  const flagged = sessionEvidence.overBudgetEvidence(session('completed'), contract).token_accounting;
+  assert.equal(flagged.over_budget, true);
+  assert.equal(flagged.max_tokens, 4000);
+  assert.equal(flagged.total_tokens, 5000);
+  assert.deepEqual(sessionEvidence.overBudgetEvidence(session('completed'), { limits: { max_tokens: 5000 } }), {});
+  assert.deepEqual(sessionEvidence.overBudgetEvidence(session('failed'), contract), {});
+});
 
 test('incorrect code cannot pass using a successful process exit', () =>
   fixture({ code: 'process.exit(0);\n' }, (result) => {
