@@ -656,13 +656,30 @@ class ProviderCampaignControl {
       await Promise.allSettled(children);
       if (childFailure) reject('CONTROL_OUTCOME_UNCERTAIN');
       if (input.resume_from && receipt.provider_session_id !== this.resumeSession(id, input)) reject('CONTROL_PROVIDER_RECEIPT_INVALID');
-      if (
-        receipt.binding_sha256 !== binding.manifest.binding_sha256 ||
-        receipt.input_tokens > binding.manifest.limits.max_input_tokens ||
-        receipt.output_tokens > binding.manifest.limits.max_output_tokens ||
-        (receipt.cost_microusd !== null && receipt.cost_microusd > binding.manifest.billing.max_request_microusd)
-      )
-        reject('CONTROL_PROVIDER_RECEIPT_INVALID');
+      // Each breach is refused alone so the uncertain event names which limit and which numbers. `input_tokens` is the whole
+      // context the request used (direct input plus cache reads and cache creation, summed by the adapter): a cached token is
+      // still read by the model, so the limit is not relaxed for it; counting fresh input only would be a policy change.
+      const { limits, billing } = binding.manifest;
+      if (receipt.binding_sha256 !== binding.manifest.binding_sha256)
+        reject('CONTROL_PROVIDER_RECEIPT_INVALID', { reason: 'binding_mismatch' });
+      if (receipt.input_tokens > limits.max_input_tokens)
+        reject('CONTROL_PROVIDER_RECEIPT_INVALID', {
+          reason: 'CONTROL_PROVIDER_INPUT_LIMIT',
+          input_tokens: receipt.input_tokens,
+          max_input_tokens: limits.max_input_tokens,
+        });
+      if (receipt.output_tokens > limits.max_output_tokens)
+        reject('CONTROL_PROVIDER_RECEIPT_INVALID', {
+          reason: 'CONTROL_PROVIDER_OUTPUT_LIMIT',
+          output_tokens: receipt.output_tokens,
+          max_output_tokens: limits.max_output_tokens,
+        });
+      if (receipt.cost_microusd !== null && receipt.cost_microusd > billing.max_request_microusd)
+        reject('CONTROL_PROVIDER_RECEIPT_INVALID', {
+          reason: 'cost_over_request_limit',
+          cost_microusd: receipt.cost_microusd,
+          max_request_microusd: billing.max_request_microusd,
+        });
       if (Boolean(receipt.evidence_ref) !== (outputText !== undefined)) reject('CONTROL_PROVIDER_RECEIPT_INVALID');
       const stored = receipt.evidence_ref ? storeEvidence(this.control.state, outputText, receipt.evidence_ref) : null;
       const result = { resource_id: id, action, receipt };

@@ -799,3 +799,32 @@ test('a credential in an adapter error message is withheld from the uncertain ev
   assert.equal(event.payload.diagnostic.message, '<withheld: credential pattern>');
   assert.equal(JSON.stringify(event.payload).includes('sk-ant'), false);
 });
+
+const receiptOf = (f) => f.receipt;
+
+test('a receipt that breaks a manifest limit is refused with the limit named in the uncertain event', async (t) => {
+  const cases = [
+    ['input_tokens', 1001, { reason: 'CONTROL_PROVIDER_INPUT_LIMIT', input_tokens: 1001, max_input_tokens: 1000 }],
+    ['output_tokens', 65, { reason: 'CONTROL_PROVIDER_OUTPUT_LIMIT', output_tokens: 65, max_output_tokens: 64 }],
+    ['binding_sha256', 'e'.repeat(64), { reason: 'binding_mismatch' }],
+    ['cost_microusd', 1001, { reason: 'cost_over_request_limit', cost_microusd: 1001, max_request_microusd: 1000 }],
+  ];
+  for (const [field, value, expected] of cases) {
+    const f = await fixture(t, { run: async () => ({ ...receiptOf(f), [field]: value }), maxCost: 5000 });
+    const error = await f.campaigns.execute(f.command('run', { binding_id: f.configured.manifest.binding_id, task_id: f.taskId })).then(
+      () => null,
+      (error_) => error_,
+    );
+    assert.equal(error.code, 'CONTROL_OUTCOME_UNCERTAIN', field);
+    assert.deepEqual(error.diagnostic, { code: 'CONTROL_PROVIDER_RECEIPT_INVALID', ...expected }, field);
+    const event = f.campaigns.rows(f.id).findLast((row) => row.payload.kind === 'uncertain');
+    assert.deepEqual(event.payload.diagnostic, error.diagnostic, field);
+  }
+});
+
+test('receipts exactly at the input and output limits are accepted, cache included in the input count', async (t) => {
+  const f = await fixture(t, { run: async () => ({ ...receiptOf(f), input_tokens: 1000, output_tokens: 64 }) });
+  const result = await f.campaigns.execute(f.command('run', { binding_id: f.configured.manifest.binding_id, task_id: f.taskId }));
+  assert.equal(result.receipt.input_tokens, 1000);
+  assert.equal(result.receipt.output_tokens, 64);
+});
