@@ -7,6 +7,13 @@ reservation. The per-task evidence is in `t1/` to `t4/` (receipt, prompt, one fo
 cross-task view and the cost of the squad. It holds no raw prompt text beyond what the receipts already carry, no
 credential and no account identifier.
 
+This report does not repeat any prompt. The exact prompt of each task is committed by design in `t1/prompt.txt` to
+`t4/prompt.txt` (see the README of this folder), next to its receipt, together with the redacted ledgers.
+
+Local paths: the `result.json`, `ledger-rows.json` and receipts cite paths such as `/build/tmp/...` and worktree
+paths. They are local references of the execution (harness, clones and logs kept outside the repository), not files
+of this repository, and may not exist on another machine.
+
 ## 1. Outcome
 
 | Task | What was fixed or added                                                                                                                  | Capabilities exercised                                      | Dispatches                                    | Verifier                                                              | Review                                                                       | PR / merge                                                            |
@@ -46,12 +53,12 @@ not a measured cost, and the dispatch cost to the owner is zero by the decision 
 
 | Task | Passing attempt |                                           Input tokens |                     Output tokens | `cost_microusd` | Reserved to receipt |
 | ---- | --------------- | -----------------------------------------------------: | --------------------------------: | --------------- | ------------------: |
-| T2   | 2               |                                                  7,436 |                             2,429 | null            |               208 s |
+| T2   | 2               |                                                  7,436 |                             2,429 | null            |                16 s |
 | T3   | 1               |                                                  6,829 |                             2,469 | null            |                17 s |
 | T4   | 1               |                                                  6,893 |                             2,673 | null            |                17 s |
 | T1   | 5               | 7,977 (7,784 cache read, 191 cache creation, 2 direct) | 14,971 (12,824 of them reasoning) | null            |               110 s |
 
-T2 attempt 1 (FAIL by the harness, not by the model) used 7,436 input and 2,410 output tokens. The four T1 attempts
+T2 attempt 1 (FAIL by the harness, not by the model) used 7,436 input and 2,410 output tokens and 18 s from reservation to receipt. The times come from the campaign ledger rows. The T2 receipt keeps its historical `wall_s` (208 s and 117 s), which do not match the ledger; it carries a correction note and `wall_s_ledger`. The four T1 attempts
 without a receipt have no usage: their reservations stay counted as spent.
 
 ## 4. Review and correction rounds
