@@ -231,6 +231,7 @@ function createEnvironmentBundles({
   operatorDisplay,
   isCancelled = () => false,
   assertApproved = () => {},
+  approverOf = () => {},
 } = {}) {
   if (!Array.isArray(capabilities) || capabilities.length === 0) reject('ENVIRONMENT_CAPABILITIES_REQUIRED');
   if (typeof ledgerSink !== 'function') reject('ENVIRONMENT_LEDGER_SINK_REQUIRED');
@@ -337,10 +338,21 @@ function createEnvironmentBundles({
         refuseCall('AGENT_MEMORY_CREDENTIAL_DETECTED', 'the query looks like a credential');
       return memory.store.retrieve(value);
     },
-    'memory.delete': (value) => {
+    'memory.delete': (value, context) => {
       requireMemory(memory.store);
       if (value.project_id !== projectId) refuseCall('AGENT_MEMORY_PROJECT_MISMATCH', 'memory can only be deleted from the task project');
-      memory.store.forget(value, { actor: memory.operator });
+      // The store wants its own single-use approval for this exact deletion. When the host gave a deriver, it is issued
+      // now from the person's approval of this call (bound to project and memory) and released whatever happens.
+      const release = memory.deleteApprovals?.derive({
+        project_id: value.project_id,
+        memory_id: value.memory_id,
+        approver: approverOf(context) ?? 'host',
+      });
+      try {
+        memory.store.forget(value, { actor: memory.operator });
+      } finally {
+        release?.();
+      }
       return { memory_id: value.memory_id, deleted: true };
     },
   };
@@ -362,7 +374,7 @@ function createEnvironmentBundles({
         async execute(value, context) {
           try {
             assertApproved(name, value, context);
-            return { data: await track(Promise.resolve().then(() => handlers[name](value))), evidence: [`environment://${name}`] };
+            return { data: await track(Promise.resolve().then(() => handlers[name](value, context))), evidence: [`environment://${name}`] };
           } catch (error) {
             return family === 'memory' ? memoryFailure(error) : Promise.reject(error);
           }
@@ -454,7 +466,7 @@ function createExecutionApprovalResolver({
     if (decision?.approved !== true) return null;
     // An approval given for other content is not an approval of this call.
     if (decision.input_digest !== undefined && decision.input_digest !== digest) return null;
-    bind(operation.operation_id, digest);
+    bind(operation.operation_id, digest, decision.approver);
     // The host may present an approval it already holds; the store still binds it to this operation when it is spent.
     if (typeof decision.approval_id === 'string') return decision.approval_id;
     if (typeof decision.approver !== 'string' || decision.approver.length === 0) return null;
@@ -520,6 +532,7 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
   // The call the policy just evaluated is the one the approver is shown and the one the provider must receive.
   let noted = { tool: null, input: undefined };
   const approvedInputs = new Map();
+  const approvers = new Map();
   const environment = createEnvironmentBundles({
     capabilities,
     policies,
@@ -534,6 +547,7 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
     mediaStore: host.mediaStore,
     operatorDisplay: host.operatorDisplay,
     isCancelled,
+    approverOf: (context) => approvers.get(context?.operation_id),
     assertApproved(name, value, context) {
       if (!needsApproval(name)) return;
       if (approvedInputs.get(context?.operation_id) !== inputDigest(value))
@@ -549,7 +563,10 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
     store: new ExecutionApprovalStore(db),
     approve: host.approve,
     inputOf: (operation) => (noted.tool === operation.tool ? noted.input : undefined),
-    bind: (operationId, digest) => approvedInputs.set(operationId, digest),
+    bind: (operationId, digest, approver) => {
+      approvedInputs.set(operationId, digest);
+      approvers.set(operationId, approver);
+    },
   });
   // Governed memory enters the context only when the task declared the capability and the host owns a store. The
   // assembler resolves its profile synchronously, so the (async) collection runs once before the session starts and
@@ -578,6 +595,45 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
   });
 }
 
+/**
+ * Host-side deriver of the memory store's own deletion approval. The host builds its store's approval verifier with
+ * `resolveApprovalId` and hands `derive` to the task environment: when a person approves `memory.delete` at the runtime,
+ * a single-use approval bound to that project and memory is issued for the store, spent by `forget`, and released.
+ */
+function createMemoryDeleteApprovals({
+  approvalStore,
+  policyVersion = 'hseos-operational-v1',
+  ttl_ms = 30_000,
+  now = Date.now,
+  id = require('node:crypto').randomUUID,
+}) {
+  const granted = new Map();
+  return Object.freeze({
+    resolveApprovalId: ({ operation_id: operationId }) => granted.get(operationId),
+    derive({ project_id: projectId, memory_id: memoryId, approver }) {
+      const { operation_id: operationId, resource_scope: resourceScope } = require('../../../packages/agent-memory').memoryDeleteOperation(
+        projectId,
+        memoryId,
+      );
+      const approvalId = id();
+      const issued = now();
+      approvalStore.issue({
+        approval_id: approvalId,
+        operation_id: operationId,
+        authorizer: { id: approver, type: 'human' },
+        resource_scope: resourceScope,
+        issued_at: new Date(issued).toISOString(),
+        expires_at: new Date(issued + ttl_ms).toISOString(),
+        decision: 'approved',
+        policy_version: policyVersion,
+        evidence_ref: `hseos://engineering/derived-approval/${approvalId}`,
+      });
+      granted.set(operationId, approvalId);
+      return () => granted.delete(operationId);
+    },
+  });
+}
+
 const MEMORY_QUERY_CHARS = 1024;
 
 /** The retrieval query of a task: its requirements, bounded and deterministic. Never the model's words. */
@@ -589,6 +645,7 @@ function taskMemoryQuery(contract) {
 }
 
 module.exports = {
+  createMemoryDeleteApprovals,
   taskMemoryQuery,
   createTaskExtensions,
   taskContextReservations,
