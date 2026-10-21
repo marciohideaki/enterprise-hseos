@@ -683,7 +683,7 @@ test('engineering: static-only acceptance is refused at admission (A5b)', (t) =>
     delete c.verifier.command_checks;
     delete c.verifier.protected_paths;
     c.verifier.reference = 'verifier://project/web-content-v1';
-    c.verifier.checks = [{ path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
+    c.verifier.checks = [{ id: 'c1', path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
   };
   assert.equal(admission(t, weak), 'ENGINEERING_ACCEPTANCE_WEAK');
 });
