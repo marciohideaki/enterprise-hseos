@@ -11,6 +11,10 @@ function generateRunId() {
   return `${ts}-squad`;
 }
 
+function requestedRunId(args) {
+  return args.run_id === undefined || args.run_id === null || args.run_id === '' ? generateRunId() : args.run_id;
+}
+
 function buildPlanMd(batchDescription, tierHints, runId) {
   const lines = [
     `# SWARM Squad Plan — ${runId}`,
@@ -47,8 +51,12 @@ module.exports = [
       },
       required: ['batch_description'],
     },
+    // Side-effect-free scope check, run before a person is asked to approve; the handler repeats it (defence in depth).
+    preflight(args) {
+      resolveRunDir(requestedRunId(args));
+    },
     handler(_db, args) {
-      const runId = args.run_id === undefined || args.run_id === null || args.run_id === '' ? generateRunId() : args.run_id;
+      const runId = requestedRunId(args);
       const runDir = resolveRunDir(runId);
       fs.mkdirSync(runDir, { recursive: true });
 

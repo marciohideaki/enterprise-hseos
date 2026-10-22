@@ -187,7 +187,17 @@ function startNativeMcpServer({
       throw error;
     }
   };
-  const execution = createOperationalExecution({ db, serverId, tools, invokeTool: gatedInvokeTool, environmentHost });
+  let execution;
+  try {
+    execution = createOperationalExecution({ db, serverId, tools, invokeTool: gatedInvokeTool, environmentHost });
+  } catch (error) {
+    // A host the runtime refuses must not leave the database, the observation store or the timer open: the caller may
+    // start the server again without the host.
+    clearInterval(legacyObservationTimer);
+    legacyUsageStore.close();
+    if (db.open) db.close();
+    throw error;
+  }
   recordDenial = createDenialRecorder({
     ledger: execution.ledger,
     serverId,

@@ -166,7 +166,7 @@ let runtimeHandle;
 let operationalDb = null;
 let environmentHostFactory = null;
 if (governedExecution) {
-  const { composeMcpEnvironmentHost } = require('../cli/lib/engineering-task-extensions');
+  const { composeMcpEnvironmentHost, startWithCapabilityFallback } = require('../cli/lib/engineering-task-extensions');
   toolMap.set('scheduler_sweep_orphans', {
     name: 'scheduler_sweep_orphans',
     description: 'Internal governed stale-heartbeat sweep',
@@ -181,19 +181,32 @@ if (governedExecution) {
   // legacy server never get one. A missing or invalid `environment:` section only means no capability.
   environmentHostFactory =
     governedMode.mode === 'modern' ? composeMcpEnvironmentHost(configPath, { log: (m) => logToStderr('info', m) }) : null;
-  runtimeHandle = startNativeMcpServer({
-    serverId: 'project_state',
-    tools: toolMap,
-    mode,
-    port,
-    dbPath,
-    health: instanceId ? { instance_id: instanceId } : {},
-    environmentHost: environmentHostFactory,
-    invokeTool(name, args, context) {
-      return handleTool(runtimeHandle.db, name, args, context);
+  // A task that does not exist cannot be updated: the read-only existence check runs before a person is asked to approve.
+  toolMap.set('tasks_update', {
+    ...toolMap.get('tasks_update'),
+    preflight(args) {
+      if (!args || typeof args.id !== 'string' || !args.id) return;
+      if (!runtimeHandle.db.prepare('SELECT 1 FROM tasks WHERE id = ?').get(args.id)) {
+        throw Object.assign(new Error(`Task not found: ${args.id}`), { code: 'TASK_NOT_FOUND', retryable: false });
+      }
     },
-    log: (message) => logToStderr('info', message),
   });
+  const startGoverned = (environmentHost) =>
+    startNativeMcpServer({
+      serverId: 'project_state',
+      tools: toolMap,
+      mode,
+      port,
+      dbPath,
+      health: instanceId ? { instance_id: instanceId } : {},
+      environmentHost,
+      invokeTool(name, args, context) {
+        return handleTool(runtimeHandle.db, name, args, context);
+      },
+      log: (message) => logToStderr('info', message),
+    });
+  // A host that cannot be built never takes the governance server down: one retry without it (the helper logs why).
+  runtimeHandle = startWithCapabilityFallback(startGoverned, environmentHostFactory, { log: (m) => logToStderr('info', m) });
 } else {
   operationalDb = openOperationalStateDatabase(dbPath, { log: logToStderr });
   runtimeHandle = startLegacyMcpServer({

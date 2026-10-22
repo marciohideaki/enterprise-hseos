@@ -28,11 +28,26 @@ const {
 const { MCP_MODERN_PROTOCOL_VERSION } = require('../tools/lib/mcp-protocol');
 const { activateExecutionLedger, openOperationalStateDatabase } = require('../tools/mcp-project-state/lib/operational-state-db');
 const { startNativeMcpServer } = require('../tools/lib/governed-execution/native-mcp-server');
-const { createMcpEnvironmentHostFactory, composeMcpEnvironmentHost } = require('../tools/cli/lib/engineering-task-extensions');
+const {
+  createMcpEnvironmentHostFactory,
+  composeMcpEnvironmentHost,
+  defaultIsolationProbe,
+  startWithCapabilityFallback,
+} = require('../tools/cli/lib/engineering-task-extensions');
 const { sha256Text } = require('../packages/agent-memory');
 const { LSP_OK } = require('./helpers/environment-fixtures');
 
 const ROOT = path.join(__dirname, '..');
+const AVAILABLE = () => ({ available: true, reason: '' });
+const inDelegatedCgroup = (() => {
+  try {
+    require('../packages/agent-isolation-attestation/executor').executorOwner();
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
 const NOW = () => Date.parse('2026-10-22T12:00:00.000Z');
 const ALLOW_WRITE = [{ id: 'memory-write', source: 'project', stage: 'allow', decision: 'allow' }];
 const TOOLCHAIN_CACHE = process.env.HSEOS_TOOLCHAIN_CACHE || '/build/cache/hseos-toolchain';
@@ -207,6 +222,7 @@ test('the host is built from the wiring: memory over the wiring ledger and the s
       workspace: { host_workspace: path.join(main, 'ws'), main_checkout: main, protected_paths: [path.join(main, 'manifest.json')] },
     }),
     {
+      isolationProbe: AVAILABLE,
       prepare: { lsp: () => ({ root: toolchainRoot }), dap: () => ({ root: toolchainRoot }) },
       factories: {
         lsp: (context) => {
@@ -282,6 +298,7 @@ test('a toolchain the cache cannot provide leaves that family off instead of fai
   const box = sandbox(t);
   const logs = [];
   const factory = createMcpEnvironmentHostFactory(environmentSection({ toolchain_cache: box.root }), {
+    isolationProbe: AVAILABLE,
     prepare: {
       lsp: () => {
         throw new Error('lsp toolchain missing from the cache');
@@ -605,7 +622,13 @@ test('a legacy client never gets to approve: memory.delete answers MCP_LEGACY_AP
 const cacheReady = fs.existsSync(path.join(TOOLCHAIN_CACHE, 'toolchain-manifest.json'));
 test(
   'a real TypeScript hover through the MCP server, with the event in the activated ledger',
-  { skip: cacheReady ? false : `pinned toolchain cache not provisioned at ${TOOLCHAIN_CACHE} (set HSEOS_TOOLCHAIN_CACHE)` },
+  {
+    skip: inDelegatedCgroup
+      ? cacheReady
+        ? false
+        : `pinned toolchain cache not provisioned at ${TOOLCHAIN_CACHE} (set HSEOS_TOOLCHAIN_CACHE)`
+      : 'requires a delegated cgroup (run it through run-in-cgroup.sh)',
+  },
   async (t) => {
     const box = sandbox(t);
     await activated(box);
@@ -649,3 +672,505 @@ test(
     assert.ok(ledgerEvents(box.databasePath, 'environment_session').some((event) => event.type === 'environment.lsp.completed'));
   },
 );
+
+// ---------------------------------------------------------------------------------------------------------------
+// W10/K9: lsp and dap are advertised only when the isolation they need exists at start-up (fail-closed and visible).
+// ---------------------------------------------------------------------------------------------------------------
+
+const NO_CGROUP = () => ({ available: false, reason: 'delegated cgroup unavailable (A delegated parent cgroup is required)' });
+const NO_BWRAP = () => ({ available: false, reason: 'the bwrap binary (/usr/bin/bwrap) is unavailable' });
+
+/** Tool names of a modern native server built on the factory, plus the log lines and the prepared families. */
+async function advertisedWith(t, isolationProbe) {
+  const box = sandbox(t);
+  await activated(box);
+  const toolchainRoot = path.join(box.root, 'toolchain');
+  fs.mkdirSync(toolchainRoot);
+  const main = path.join(box.root, 'main');
+  fs.mkdirSync(path.join(main, 'ws'), { recursive: true });
+  fs.writeFileSync(path.join(main, 'manifest.json'), '{}');
+  const logs = [];
+  const prepared = [];
+  const factory = createMcpEnvironmentHostFactory(
+    environmentSection({
+      toolchain_cache: box.root,
+      workspace: { host_workspace: path.join(main, 'ws'), main_checkout: main, protected_paths: [path.join(main, 'manifest.json')] },
+    }),
+    {
+      isolationProbe,
+      prepare: {
+        lsp: () => (prepared.push('lsp'), { root: toolchainRoot }),
+        dap: () => (prepared.push('dap'), { root: toolchainRoot }),
+      },
+      factories: { lsp: () => ({ run: async () => LSP_OK }), dap: () => ({ run: async () => ({ status: 'ok' }) }) },
+      log: (message) => logs.push(message),
+    },
+  );
+  t.after(() => factory?.dispose());
+  const handle = startNativeMcpServer({
+    serverId: 'swarm',
+    tools: new Map([['list_runs', { name: 'list_runs', description: 'd', inputSchema: { type: 'object' } }]]),
+    invokeTool: async () => ({ runs: [] }),
+    mode: 'http',
+    port: 0,
+    dbPath: box.databasePath,
+    environmentHost: factory,
+    log: () => {},
+  });
+  t.after(() => handle.close());
+  const listed = await handle.adapter.handle({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'tools/list',
+    params: {
+      _meta: {
+        [PROTOCOL_VERSION_META_KEY]: MCP_MODERN_PROTOCOL_VERSION,
+        [CLIENT_INFO_META_KEY]: { name: 'k9', version: '1' },
+        [CLIENT_CAPABILITIES_META_KEY]: {},
+      },
+    },
+  });
+  return { names: new Set(listed.result.tools.map((tool) => tool.name)), logs, prepared };
+}
+
+const MEMORY_TOOLS = ['memory.write', 'memory.retrieve', 'memory.delete'];
+
+test('K9: without a delegated cgroup lsp and dap are omitted from tools/list, memory stays, and the log says how to launch', async (t) => {
+  const { names, logs, prepared } = await advertisedWith(t, NO_CGROUP);
+  for (const absent of ['environment.lsp.hover', 'environment.dap.run']) assert.ok(!names.has(absent), `${absent} must be omitted`);
+  for (const kept of MEMORY_TOOLS) assert.ok(names.has(kept), `${kept} needs no isolation and must stay`);
+  assert.deepEqual(prepared, [], 'no toolchain is prepared for a family that cannot run');
+  const line = logs.find((message) => /environment\.lsp and environment\.dap are off/.test(message));
+  assert.ok(line, logs.join('\n'));
+  assert.match(line, /delegated cgroup/);
+  assert.match(line, /systemd-run --user -p Delegate=yes/);
+});
+
+test('K9: without bwrap lsp and dap are omitted with the bwrap cause, memory stays', async (t) => {
+  const { names, logs } = await advertisedWith(t, NO_BWRAP);
+  for (const absent of ['environment.lsp.hover', 'environment.dap.run']) assert.ok(!names.has(absent), absent);
+  for (const kept of MEMORY_TOOLS) assert.ok(names.has(kept), kept);
+  assert.ok(
+    logs.some((message) => /are off/.test(message) && /bwrap/.test(message)),
+    logs.join('\n'),
+  );
+});
+
+test('K9: with isolation available the K5b behaviour is intact', async (t) => {
+  const { names, logs, prepared } = await advertisedWith(t, AVAILABLE);
+  for (const expected of ['environment.lsp.hover', 'environment.dap.run', ...MEMORY_TOOLS]) assert.ok(names.has(expected), expected);
+  assert.deepEqual(prepared.sort(), ['dap', 'lsp']);
+  assert.ok(!logs.some((message) => /environment\.lsp and environment\.dap are off/.test(message)), logs.join('\n'));
+});
+
+test('K9: no isolation and no memory operator means no host at all', () => {
+  const logs = [];
+  const factory = createMcpEnvironmentHostFactory({ project_id: 'alpha' }, { isolationProbe: NO_CGROUP, log: (m) => logs.push(m) });
+  assert.equal(factory, null);
+  assert.ok(logs.some((message) => /are off/.test(message)));
+});
+
+const probeInputs = (overrides = {}) => ({ checkCgroup: () => {}, ...overrides });
+
+test('K9: the probe is unavailable when the cgroup check fails, even where a cgroup exists (injected check)', () => {
+  const result = defaultIsolationProbe(
+    probeInputs({
+      checkCgroup: () => {
+        throw new Error('A delegated parent cgroup is required');
+      },
+    }),
+  );
+  assert.equal(result.available, false);
+  assert.match(result.reason, /delegated cgroup unavailable.*delegated parent cgroup/);
+});
+
+test('K9: the probe requires bwrap to be a real executable file: absent, symlink and non-executable are refused', (t) => {
+  const box = sandbox(t);
+  const real = path.join(box.root, 'bwrap');
+  fs.writeFileSync(real, '#!/bin/sh\n', { mode: 0o755 });
+  const link = path.join(box.root, 'bwrap-link');
+  fs.symlinkSync(real, link);
+  const plain = path.join(box.root, 'bwrap-plain');
+  fs.writeFileSync(plain, 'x', { mode: 0o644 });
+  assert.deepEqual(defaultIsolationProbe(probeInputs({ bwrapPath: real })), { available: true, reason: '' });
+  for (const bwrapPath of [path.join(box.root, 'missing'), link, plain, box.root]) {
+    const result = defaultIsolationProbe(probeInputs({ bwrapPath }));
+    assert.equal(result.available, false, bwrapPath);
+    assert.match(result.reason, /bwrap/);
+  }
+});
+
+test('K9: the default probe reaches the factory: with no injection its verdict decides the family set', () => {
+  const logs = [];
+  const factory = createMcpEnvironmentHostFactory(environmentSection(), {
+    factories: { lsp: () => ({}), dap: () => ({}) },
+    log: (message) => logs.push(message),
+  });
+  const off = logs.some((message) => /environment\.lsp and environment\.dap are off/.test(message));
+  const expected = defaultIsolationProbe().available;
+  assert.equal(off, !expected, `cgroup=${inDelegatedCgroup}\n${logs.join('\n')}`);
+  factory.dispose();
+});
+
+test('K9: the memory note is printed only when memory is configured', () => {
+  const noMemory = [];
+  createMcpEnvironmentHostFactory({ project_id: 'alpha' }, { isolationProbe: NO_CGROUP, log: (m) => noMemory.push(m) });
+  assert.ok(!noMemory.some((m) => /memory is unaffected/.test(m)), noMemory.join('\n'));
+  const withMemory = [];
+  createMcpEnvironmentHostFactory(environmentSection(), { isolationProbe: NO_CGROUP, log: (m) => withMemory.push(m) })?.dispose();
+  assert.ok(
+    withMemory.some((m) => /memory is unaffected/.test(m)),
+    withMemory.join('\n'),
+  );
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// W10/K9: a family that cannot be composed never takes the server down; it is omitted with a logged cause.
+// ---------------------------------------------------------------------------------------------------------------
+
+function workspaceFor(box) {
+  const main = path.join(box.root, 'main');
+  fs.mkdirSync(path.join(main, 'ws'), { recursive: true });
+  fs.writeFileSync(path.join(main, 'manifest.json'), '{}');
+  return { host_workspace: path.join(main, 'ws'), main_checkout: main, protected_paths: [path.join(main, 'manifest.json')] };
+}
+
+/** Boots a native modern server over the activated database with the factory, as project_state does, and lists its tools. */
+async function serverToolsWith(t, box, section, options) {
+  await activated(box);
+  const logs = [];
+  const factory = createMcpEnvironmentHostFactory(section, { isolationProbe: AVAILABLE, ...options, log: (m) => logs.push(m) });
+  t.after(() => factory?.dispose());
+  const handle = startNativeMcpServer({
+    serverId: 'swarm',
+    tools: new Map([['list_runs', { name: 'list_runs', description: 'd', inputSchema: { type: 'object' } }]]),
+    invokeTool: async () => ({ runs: [] }),
+    mode: 'http',
+    port: 0,
+    dbPath: box.databasePath,
+    environmentHost: factory,
+    log: () => {},
+  });
+  t.after(() => handle.close());
+  const listed = await handle.adapter.handle({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'tools/list',
+    params: {
+      _meta: {
+        [PROTOCOL_VERSION_META_KEY]: MCP_MODERN_PROTOCOL_VERSION,
+        [CLIENT_INFO_META_KEY]: { name: 'k9', version: '1' },
+        [CLIENT_CAPABILITIES_META_KEY]: {},
+      },
+    },
+  });
+  return { names: new Set(listed.result.tools.map((tool) => tool.name)), logs, factory };
+}
+
+const BROKEN_FAMILIES = {
+  'a toolchain without a usable root (what an empty cache can yield)': {
+    prepare: { lsp: () => ({}), dap: () => ({}) },
+    pattern: /isolation policy/,
+  },
+  'a toolchain whose pin is invalid': {
+    prepare: {
+      lsp: () => {
+        throw new Error('pin mismatch for typescript-language-server');
+      },
+      dap: () => {
+        throw new Error('pin mismatch for js-debug');
+      },
+    },
+    pattern: /pin mismatch/,
+  },
+};
+
+for (const [name, { prepare, pattern }] of Object.entries(BROKEN_FAMILIES)) {
+  test(`K9: ${name} omits lsp and dap with a logged cause and the server still boots with memory`, async (t) => {
+    const box = sandbox(t);
+    const { names, logs } = await serverToolsWith(t, box, environmentSection({ toolchain_cache: box.root, workspace: workspaceFor(box) }), {
+      prepare,
+    });
+    for (const kept of MEMORY_TOOLS) assert.ok(names.has(kept), kept);
+    for (const absent of ['environment.lsp.hover', 'environment.dap.run']) assert.ok(!names.has(absent), absent);
+    assert.ok(
+      logs.some((message) => /lsp/.test(message) && pattern.test(message)),
+      logs.join('\n'),
+    );
+  });
+}
+
+test('K9: a workspace that does not exist is a configuration error: no capability, a warning, and the server stays up', async (t) => {
+  const box = sandbox(t);
+  await activated(box);
+  const workspace = { ...workspaceFor(box), host_workspace: path.join(box.root, 'does-not-exist') };
+  const config = configFile(box, environmentSection({ toolchain_cache: box.root, workspace }));
+  const client = await withServer(t, box, { config });
+  const names = await client.names();
+  assert.ok(names.size > 0, 'the governance tools are still served');
+  for (const absent of ['environment.lsp.hover', 'environment.dap.run']) assert.ok(!names.has(absent), absent);
+  assert.match(client.stderr(), /host_workspace/);
+});
+
+for (const [label, prepareCache] of [
+  ['an empty toolchain cache', () => {}],
+  [
+    'a cache without the toolchain',
+    (dir) => fs.writeFileSync(path.join(dir, 'toolchain-manifest.json'), JSON.stringify({ schema_version: 1, toolchains: {} })),
+  ],
+]) {
+  test(`K9: the server boots with ${label} and a workspace: no lsp/dap, memory.* stays, the cause is on stderr`, async (t) => {
+    const box = sandbox(t);
+    await activated(box);
+    const cache = path.join(box.root, 'cache');
+    fs.mkdirSync(cache);
+    prepareCache(cache);
+    const config = configFile(box, environmentSection({ toolchain_cache: cache, workspace: workspaceFor(box) }));
+    const client = await withServer(t, box, { config });
+    const names = await client.names();
+    for (const kept of MEMORY_TOOLS) assert.ok(names.has(kept), `${kept}\n${client.stderr()}`);
+    for (const absent of ['environment.lsp.hover', 'environment.dap.run']) assert.ok(!names.has(absent), absent);
+    assert.match(client.stderr(), /\b(lsp|dap)\b.*\boff\b/s);
+  });
+}
+
+test('K9: an isolation policy the package refuses (a protected path that does not exist) omits the family, with its cause on stderr', async (t) => {
+  const box = sandbox(t);
+  const workspace = { ...workspaceFor(box), protected_paths: [path.join(box.root, 'main', 'nope.json')] };
+  const { names, logs } = await serverToolsWith(t, box, environmentSection({ toolchain_cache: box.root, workspace }), {
+    prepare: { lsp: () => ({ root: box.root }), dap: () => ({ root: box.root }) },
+  });
+  for (const kept of MEMORY_TOOLS) assert.ok(names.has(kept), kept);
+  for (const absent of ['environment.lsp.hover', 'environment.dap.run']) assert.ok(!names.has(absent), absent);
+  assert.ok(
+    logs.some((message) => /the lsp service is off.*protected path must exist/.test(message)),
+    logs.join('\n'),
+  );
+});
+
+test(
+  'K9: a workspace without permission never takes the server down: it boots and memory is served',
+  { skip: process.getuid?.() === 0 ? 'running as root: mode 000 does not restrict root' : false },
+  async (t) => {
+    const box = sandbox(t);
+    const workspace = workspaceFor(box);
+    fs.chmodSync(workspace.host_workspace, 0o000);
+    // Restored in a finally: the sandbox cleanup (registered earlier) would otherwise hit the locked directory first.
+    try {
+      // Composition only attests the path; the refusal of an unreadable workspace happens per call, in the service.
+      const { names } = await serverToolsWith(t, box, environmentSection({ toolchain_cache: box.root, workspace }), {
+        prepare: { lsp: () => ({ root: box.root }), dap: () => ({ root: box.root }) },
+      });
+      for (const kept of MEMORY_TOOLS) assert.ok(names.has(kept), kept);
+    } finally {
+      fs.chmodSync(workspace.host_workspace, 0o755);
+    }
+  },
+);
+
+test('K9: the off line carries the error code when there is one, and never a stack', async (t) => {
+  const box = sandbox(t);
+  const { logs } = await serverToolsWith(t, box, environmentSection({ toolchain_cache: box.root, workspace: workspaceFor(box) }), {
+    prepare: { lsp: () => ({ root: box.root }), dap: () => ({ root: box.root }) },
+    factories: {
+      lsp: () => {
+        throw Object.assign(new Error('boom'), { code: 'ENV_TEST_CODE' });
+      },
+      dap: () => {
+        throw new Error('plain');
+      },
+    },
+  });
+  assert.ok(logs.includes('hseos mcp: the lsp service is off [ENV_TEST_CODE]: boom'), logs.join('\n'));
+  assert.ok(logs.includes('hseos mcp: the dap service is off: plain'), logs.join('\n'));
+  assert.ok(!logs.some((message) => /\n\s+at /.test(message)));
+});
+
+// Every combination of lsp, dap and memory, each either composed or failing: the server always boots and advertises exactly
+// what was composed, and an empty result is a null host, never a refusal.
+for (const lsp of [true, false])
+  for (const dap of [true, false])
+    for (const memory of [true, false]) {
+      test(`K9 matrix: lsp ${lsp ? 'ok' : 'fails'}, dap ${dap ? 'ok' : 'fails'}, memory ${memory ? 'configured' : 'absent'}`, async (t) => {
+        const box = sandbox(t);
+        const section = environmentSection({ toolchain_cache: box.root, workspace: workspaceFor(box) });
+        if (!memory) delete section.memory;
+        const { names, logs } = await serverToolsWith(t, box, section, {
+          // A family fails by getting a toolchain without a usable root (what an empty cache yields); the others are composed.
+          prepare: { lsp: () => (lsp ? { root: box.root } : {}), dap: () => (dap ? { root: box.root } : {}) },
+          factories: {
+            ...(lsp ? { lsp: () => ({ run: async () => LSP_OK }) } : {}),
+            ...(dap ? { dap: () => ({ run: async () => ({ status: 'ok' }) }) } : {}),
+          },
+        });
+        assert.equal(names.has('environment.lsp.hover'), lsp, 'lsp');
+        assert.equal(names.has('environment.dap.run'), dap, 'dap');
+        for (const tool of MEMORY_TOOLS) assert.equal(names.has(tool), memory, tool);
+        assert.equal(
+          logs.some((message) => /the lsp service is off/.test(message)),
+          !lsp,
+        );
+        assert.equal(
+          logs.some((message) => /no environment capability could be composed/.test(message)),
+          !lsp && !dap && !memory,
+        );
+      });
+    }
+
+test('K9: the real server boots with an empty cache, a workspace and NO memory operator: no capability, a warning, exit never', async (t) => {
+  const box = sandbox(t);
+  await activated(box);
+  const cache = path.join(box.root, 'cache');
+  fs.mkdirSync(cache);
+  const section = environmentSection({ toolchain_cache: cache, workspace: workspaceFor(box) });
+  delete section.memory;
+  const client = await withServer(t, box, { config: configFile(box, section) });
+  const names = await client.names();
+  assert.ok(names.size > 0, 'the governance tools are still served');
+  for (const absent of [...MEMORY_TOOLS, 'environment.lsp.hover', 'environment.dap.run']) assert.ok(!names.has(absent), absent);
+  assert.match(client.stderr(), /no environment capability could be composed/);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// W10/K9: defence in depth. A host that passes the checks and still cannot be built at start-up never takes the server down.
+// ---------------------------------------------------------------------------------------------------------------
+
+/** How many descriptors of this process point at `file` (the database and its -wal/-shm siblings). */
+const openDescriptorsOf = (file) =>
+  fs.readdirSync('/proc/self/fd').filter((fd) => {
+    try {
+      return fs.readlinkSync(`/proc/self/fd/${fd}`).startsWith(file);
+    } catch {
+      return false;
+    }
+  }).length;
+
+/** A factory whose only service passes the pre-check (an injected one) and throws when the host is built; no memory. */
+function lateFailingFactory(box, logs) {
+  return createMcpEnvironmentHostFactory(
+    { project_id: 'alpha', toolchain_cache: box.root, workspace: workspaceFor(box) },
+    {
+      isolationProbe: AVAILABLE,
+      // dap has no usable root, so the pre-check drops it; lsp is injected, so it passes the pre-check.
+      prepare: { lsp: () => ({ root: box.root }), dap: () => ({}) },
+      factories: {
+        lsp: () => {
+          throw Object.assign(new Error('late failure\n    at stack line'), { code: 'ENV_LATE_FAILURE' });
+        },
+      },
+      log: (message) => logs.push(message),
+    },
+  );
+}
+
+const nativeStarter = (box, attempts) => (environmentHost) => {
+  attempts.push({ host: environmentHost === null ? 'none' : 'factory', open_before: openDescriptorsOf(box.databasePath) });
+  return startNativeMcpServer({
+    serverId: 'swarm',
+    tools: new Map([['list_runs', { name: 'list_runs', description: 'd', inputSchema: { type: 'object' } }]]),
+    invokeTool: async () => ({ runs: [] }),
+    mode: 'http',
+    port: 0,
+    dbPath: box.databasePath,
+    environmentHost,
+    log: () => {},
+  });
+};
+
+test('K9: a host that fails only when built starts the server once more without it, with the first start fully closed', async (t) => {
+  const box = sandbox(t);
+  await activated(box);
+  const logs = [];
+  const factory = lateFailingFactory(box, logs);
+  assert.ok(factory, 'the pre-check passes, so the factory exists');
+  const realDispose = factory.dispose;
+  let disposed = 0;
+  factory.dispose = () => {
+    disposed += 1;
+    realDispose();
+  };
+  const attempts = [];
+  const handle = startWithCapabilityFallback(nativeStarter(box, attempts), factory, { log: (m) => logs.push(m) });
+  t.after(() => handle.close());
+  assert.equal(disposed, 1, 'the factory is disposed exactly once, after the first start failed');
+  assert.deepEqual(
+    attempts.map((attempt) => attempt.host),
+    ['factory', 'none'],
+    'exactly one retry, without the host',
+  );
+  assert.equal(attempts[1].open_before, 0, 'the failed start released the database before the second one opened it');
+  const line = logs.find((message) => /capability host is off/.test(message));
+  assert.equal(
+    line,
+    'hseos mcp: capability host is off: environment host must provide at least one service or the memory store',
+    logs.join('\n'),
+  );
+  assert.ok(!logs.some((message) => /at stack line/.test(message)), 'no stack');
+  const names = new Set(
+    (
+      await handle.adapter.handle({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/list',
+        params: {
+          _meta: {
+            [PROTOCOL_VERSION_META_KEY]: MCP_MODERN_PROTOCOL_VERSION,
+            [CLIENT_INFO_META_KEY]: { name: 'k9', version: '1' },
+            [CLIENT_CAPABILITIES_META_KEY]: {},
+          },
+        },
+      })
+    ).result.tools.map((tool) => tool.name),
+  );
+  assert.ok(names.has('list_runs'));
+  for (const absent of ['environment.lsp.hover', ...MEMORY_TOOLS]) assert.ok(!names.has(absent), absent);
+});
+
+test('K9: when the second start fails too the error propagates after exactly two attempts, and nothing is left open', async (t) => {
+  const box = sandbox(t);
+  await activated(box);
+  const logs = [];
+  const attempts = [];
+  const failing = (host) => {
+    attempts.push(host === null ? 'none' : 'factory');
+    throw Object.assign(new Error('the server itself is broken'), { code: 'ENV_REAL_FAILURE' });
+  };
+  const failingFactory = lateFailingFactory(box, logs);
+  let disposed = 0;
+  const realDispose = failingFactory.dispose;
+  failingFactory.dispose = () => {
+    disposed += 1;
+    realDispose();
+  };
+  assert.throws(() => startWithCapabilityFallback(failing, failingFactory, { log: (m) => logs.push(m) }), /the server itself is broken/);
+  assert.equal(disposed, 1, 'disposed once even when the retry fails too');
+  assert.deepEqual(attempts, ['factory', 'none']);
+  assert.equal(openDescriptorsOf(box.databasePath), 0);
+});
+
+test('K9: a valid host (or none) starts once, without retry or warning', async (t) => {
+  const box = sandbox(t);
+  await activated(box);
+  const logs = [];
+  const attempts = [];
+  const factory = createMcpEnvironmentHostFactory(environmentSection(), { isolationProbe: AVAILABLE, log: (m) => logs.push(m) });
+  let disposed = 0;
+  const realDispose = factory.dispose;
+  factory.dispose = () => {
+    disposed += 1;
+    realDispose();
+  };
+  const handle = startWithCapabilityFallback(nativeStarter(box, attempts), factory, { log: (m) => logs.push(m) });
+  t.after(() => handle.close());
+  assert.equal(disposed, 0, 'a start that succeeds never disposes the host');
+  assert.deepEqual(
+    attempts.map((attempt) => attempt.host),
+    ['factory'],
+  );
+  assert.ok(!logs.some((message) => /capability host is off/.test(message)));
+  assert.deepEqual(
+    startWithCapabilityFallback((host) => host, null),
+    null,
+    'no factory: one start with no host',
+  );
+});
