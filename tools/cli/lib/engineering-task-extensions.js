@@ -856,11 +856,13 @@ function createMcpEnvironmentHostFactory(section, options = {}) {
   const dispose = () => {
     for (const directory of scratch.splice(0)) rmSync(directory, { recursive: true, force: true });
   };
-  const isolation = (options.isolationProbe ?? defaultIsolationProbe)();
+  const isolation = (options.isolationProbe ?? (() => defaultIsolationProbe()))();
   if (!isolation.available) {
     log(
       `hseos mcp: environment.lsp and environment.dap are off: ${isolation.reason}. Launch the server in a delegated cgroup, ` +
-        'for example `systemd-run --user -p Delegate=yes --wait --collect --pipe -- <server command>`; memory is unaffected',
+        `for example \`systemd-run --user -p Delegate=yes --wait --collect --pipe -- <server command>\`${
+          config.memory?.operator ? '; memory is unaffected' : ''
+        }`,
     );
   }
   if (isolation.available && config.toolchain_cache) {
@@ -946,16 +948,21 @@ function createMcpEnvironmentHostFactory(section, options = {}) {
  * on every call (`executorOwner`), and the bwrap binary the policy binds. Cheap and side-effect free; `options.isolationProbe`
  * replaces it in tests and returns `{ available, reason }`.
  */
-function defaultIsolationProbe() {
+function defaultIsolationProbe(inputs = {}) {
+  const fs = inputs.fs ?? require('node:fs');
+  const checkCgroup = inputs.checkCgroup ?? (() => require('../../../packages/agent-isolation-attestation/executor').executorOwner());
+  const bwrapPath = inputs.bwrapPath ?? '/usr/bin/bwrap';
   try {
-    require('../../../packages/agent-isolation-attestation/executor').executorOwner();
+    checkCgroup();
   } catch (error) {
     return { available: false, reason: `delegated cgroup unavailable (${error.message})` };
   }
+  // The same criterion as the isolation package: a real executable file, never a symlink.
   try {
-    require('node:fs').accessSync('/usr/bin/bwrap', require('node:fs').constants.X_OK);
+    const stat = fs.lstatSync(bwrapPath);
+    if (!stat.isFile() || stat.isSymbolicLink() || (stat.mode & 0o111) === 0) throw new Error('not a real executable');
   } catch {
-    return { available: false, reason: 'the bwrap binary (/usr/bin/bwrap) is unavailable' };
+    return { available: false, reason: `the bwrap binary (${bwrapPath}) is unavailable or is not a real executable` };
   }
   return { available: true, reason: '' };
 }
@@ -996,5 +1003,6 @@ module.exports = {
   createProductionEnvironmentHost,
   createMcpEnvironmentHostFactory,
   composeMcpEnvironmentHost,
+  defaultIsolationProbe,
   readEnvironmentSection,
 };

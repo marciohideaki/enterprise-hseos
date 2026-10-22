@@ -28,11 +28,25 @@ const {
 const { MCP_MODERN_PROTOCOL_VERSION } = require('../tools/lib/mcp-protocol');
 const { activateExecutionLedger, openOperationalStateDatabase } = require('../tools/mcp-project-state/lib/operational-state-db');
 const { startNativeMcpServer } = require('../tools/lib/governed-execution/native-mcp-server');
-const { createMcpEnvironmentHostFactory, composeMcpEnvironmentHost } = require('../tools/cli/lib/engineering-task-extensions');
+const {
+  createMcpEnvironmentHostFactory,
+  composeMcpEnvironmentHost,
+  defaultIsolationProbe,
+} = require('../tools/cli/lib/engineering-task-extensions');
 const { sha256Text } = require('../packages/agent-memory');
 const { LSP_OK } = require('./helpers/environment-fixtures');
 
 const ROOT = path.join(__dirname, '..');
+const AVAILABLE = () => ({ available: true, reason: '' });
+const inDelegatedCgroup = (() => {
+  try {
+    require('../packages/agent-isolation-attestation/executor').executorOwner();
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
 const NOW = () => Date.parse('2026-10-22T12:00:00.000Z');
 const ALLOW_WRITE = [{ id: 'memory-write', source: 'project', stage: 'allow', decision: 'allow' }];
 const TOOLCHAIN_CACHE = process.env.HSEOS_TOOLCHAIN_CACHE || '/build/cache/hseos-toolchain';
@@ -207,6 +221,7 @@ test('the host is built from the wiring: memory over the wiring ledger and the s
       workspace: { host_workspace: path.join(main, 'ws'), main_checkout: main, protected_paths: [path.join(main, 'manifest.json')] },
     }),
     {
+      isolationProbe: AVAILABLE,
       prepare: { lsp: () => ({ root: toolchainRoot }), dap: () => ({ root: toolchainRoot }) },
       factories: {
         lsp: (context) => {
@@ -282,6 +297,7 @@ test('a toolchain the cache cannot provide leaves that family off instead of fai
   const box = sandbox(t);
   const logs = [];
   const factory = createMcpEnvironmentHostFactory(environmentSection({ toolchain_cache: box.root }), {
+    isolationProbe: AVAILABLE,
     prepare: {
       lsp: () => {
         throw new Error('lsp toolchain missing from the cache');
@@ -605,7 +621,13 @@ test('a legacy client never gets to approve: memory.delete answers MCP_LEGACY_AP
 const cacheReady = fs.existsSync(path.join(TOOLCHAIN_CACHE, 'toolchain-manifest.json'));
 test(
   'a real TypeScript hover through the MCP server, with the event in the activated ledger',
-  { skip: cacheReady ? false : `pinned toolchain cache not provisioned at ${TOOLCHAIN_CACHE} (set HSEOS_TOOLCHAIN_CACHE)` },
+  {
+    skip: inDelegatedCgroup
+      ? cacheReady
+        ? false
+        : `pinned toolchain cache not provisioned at ${TOOLCHAIN_CACHE} (set HSEOS_TOOLCHAIN_CACHE)`
+      : 'requires a delegated cgroup (run it through run-in-cgroup.sh)',
+  },
   async (t) => {
     const box = sandbox(t);
     await activated(box);
@@ -654,7 +676,6 @@ test(
 // W10/K9: lsp and dap are advertised only when the isolation they need exists at start-up (fail-closed and visible).
 // ---------------------------------------------------------------------------------------------------------------
 
-const AVAILABLE = () => ({ available: true, reason: '' });
 const NO_CGROUP = () => ({ available: false, reason: 'delegated cgroup unavailable (A delegated parent cgroup is required)' });
 const NO_BWRAP = () => ({ available: false, reason: 'the bwrap binary (/usr/bin/bwrap) is unavailable' });
 
@@ -748,53 +769,56 @@ test('K9: no isolation and no memory operator means no host at all', () => {
   assert.ok(logs.some((message) => /are off/.test(message)));
 });
 
-const inDelegatedCgroup = (() => {
-  try {
-    require('../packages/agent-isolation-attestation/executor').executorOwner();
-    return true;
-  } catch {
-    return false;
-  }
-})();
+const probeInputs = (overrides = {}) => ({ checkCgroup: () => {}, ...overrides });
 
-test('K9: the real probe agrees with the executor check (available only inside a delegated cgroup, with bwrap)', () => {
+test('K9: the probe is unavailable when the cgroup check fails, even where a cgroup exists (injected check)', () => {
+  const result = defaultIsolationProbe(
+    probeInputs({
+      checkCgroup: () => {
+        throw new Error('A delegated parent cgroup is required');
+      },
+    }),
+  );
+  assert.equal(result.available, false);
+  assert.match(result.reason, /delegated cgroup unavailable.*delegated parent cgroup/);
+});
+
+test('K9: the probe requires bwrap to be a real executable file: absent, symlink and non-executable are refused', (t) => {
+  const box = sandbox(t);
+  const real = path.join(box.root, 'bwrap');
+  fs.writeFileSync(real, '#!/bin/sh\n', { mode: 0o755 });
+  const link = path.join(box.root, 'bwrap-link');
+  fs.symlinkSync(real, link);
+  const plain = path.join(box.root, 'bwrap-plain');
+  fs.writeFileSync(plain, 'x', { mode: 0o644 });
+  assert.deepEqual(defaultIsolationProbe(probeInputs({ bwrapPath: real })), { available: true, reason: '' });
+  for (const bwrapPath of [path.join(box.root, 'missing'), link, plain, box.root]) {
+    const result = defaultIsolationProbe(probeInputs({ bwrapPath }));
+    assert.equal(result.available, false, bwrapPath);
+    assert.match(result.reason, /bwrap/);
+  }
+});
+
+test('K9: the default probe reaches the factory: with no injection its verdict decides the family set', () => {
   const logs = [];
-  // No injected probe: the default one decides. Services come only from the injected factories, so the outcome is observable.
   const factory = createMcpEnvironmentHostFactory(environmentSection(), {
     factories: { lsp: () => ({}), dap: () => ({}) },
     log: (message) => logs.push(message),
   });
   const off = logs.some((message) => /environment\.lsp and environment\.dap are off/.test(message));
-  const hasBwrap = fs.existsSync('/usr/bin/bwrap');
-  assert.equal(off, !(inDelegatedCgroup && hasBwrap), `cgroup=${inDelegatedCgroup} bwrap=${hasBwrap}\n${logs.join('\n')}`);
-  if (off && !inDelegatedCgroup) assert.ok(logs.some((message) => /delegated/.test(message)));
+  const expected = defaultIsolationProbe().available;
+  assert.equal(off, !expected, `cgroup=${inDelegatedCgroup}\n${logs.join('\n')}`);
   factory.dispose();
 });
 
-test(
-  'K9: outside a delegated cgroup the real probe reports it unavailable',
-  { skip: inDelegatedCgroup ? 'running inside a delegated cgroup (run-in-cgroup.sh); the unavailable case is covered outside it' : false },
-  () => {
-    const logs = [];
-    createMcpEnvironmentHostFactory(environmentSection(), { factories: { lsp: () => ({}) }, log: (m) => logs.push(m) })?.dispose();
-    assert.ok(
-      logs.some((message) => /delegated cgroup unavailable/.test(message)),
-      logs.join('\n'),
-    );
-  },
-);
-
-test(
-  'K9: inside a delegated cgroup the real probe reports it available',
-  {
-    skip:
-      inDelegatedCgroup && fs.existsSync('/usr/bin/bwrap')
-        ? false
-        : 'not inside a delegated cgroup with bwrap (run-in-cgroup.sh provides one)',
-  },
-  () => {
-    const logs = [];
-    createMcpEnvironmentHostFactory(environmentSection(), { factories: { lsp: () => ({}) }, log: (m) => logs.push(m) })?.dispose();
-    assert.ok(!logs.some((message) => /environment\.lsp and environment\.dap are off/.test(message)), logs.join('\n'));
-  },
-);
+test('K9: the memory note is printed only when memory is configured', () => {
+  const noMemory = [];
+  createMcpEnvironmentHostFactory({ project_id: 'alpha' }, { isolationProbe: NO_CGROUP, log: (m) => noMemory.push(m) });
+  assert.ok(!noMemory.some((m) => /memory is unaffected/.test(m)), noMemory.join('\n'));
+  const withMemory = [];
+  createMcpEnvironmentHostFactory(environmentSection(), { isolationProbe: NO_CGROUP, log: (m) => withMemory.push(m) })?.dispose();
+  assert.ok(
+    withMemory.some((m) => /memory is unaffected/.test(m)),
+    withMemory.join('\n'),
+  );
+});
