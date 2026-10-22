@@ -64,7 +64,10 @@ function resolveCallLimits(value = {}) {
     memory_max_bytes: value.memory_max_bytes ?? LIMIT_FLOOR.memory_max_bytes,
   };
   if (!Number.isSafeInteger(limits.pids_max) || limits.pids_max < LIMIT_FLOOR.pids_max || limits.pids_max > LIMIT_CEILING.pids_max) {
-    throw new IsolationProfileError('pids_max is outside 32-256', 'AGENT_ISOLATION_LIMIT_INVALID');
+    throw new IsolationProfileError(
+      `pids_max is outside ${LIMIT_FLOOR.pids_max}-${LIMIT_CEILING.pids_max}`,
+      'AGENT_ISOLATION_LIMIT_INVALID',
+    );
   }
   if (
     !Number.isSafeInteger(limits.memory_max_bytes) ||

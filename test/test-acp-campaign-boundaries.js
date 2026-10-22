@@ -287,6 +287,20 @@ test('launcher forwards only pinned startup configuration and propagates child f
   run();
   assert.equal(children.length, 1);
 });
+test('native adapter settings accept pids_max 32-256 and refuse 31 and 257', (t) => {
+  for (const [value, accepted] of [
+    [31, false],
+    [32, true],
+    [256, true],
+    [257, false],
+  ]) {
+    const f = adapterFixture(t);
+    f.nativeOptions.pids_max = value;
+    f.pin();
+    if (accepted) assert.doesNotThrow(f.create, `pids_max ${value}`);
+    else assert.throws(f.create, { code: 'CONTROL_PROVIDER_CONFIGURATION_INVALID' }, `pids_max ${value}`);
+  }
+});
 test('ACP campaign refuses native options without pids_max', (t) => {
   const f = adapterFixture(t);
   delete f.nativeOptions.pids_max;

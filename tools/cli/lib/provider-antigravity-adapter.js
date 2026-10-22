@@ -4,6 +4,7 @@ const path = require('node:path');
 const { createHash } = require('node:crypto');
 const { z } = require('zod');
 const { engineeringDigest } = require('./engineering-task-state');
+const { LIMIT_CEILING, LIMIT_FLOOR } = require('../../../packages/agent-isolation-attestation/profiles');
 const { startCampaignModelBridge } = require('./provider-campaign-bridge');
 const { runCampaignProcess } = require('./provider-campaign-process');
 const absolute = z.string().refine((v) => path.isAbsolute(v));
@@ -15,7 +16,7 @@ const schema = z
     scratch: absolute,
     subordinate_binding_id: z.string().min(1).max(160),
     max_model_calls: z.number().int().min(1).max(4),
-    pids_max: z.number().int().min(32).max(256).optional(),
+    pids_max: z.number().int().min(LIMIT_FLOOR.pids_max).max(LIMIT_CEILING.pids_max).optional(),
     memory_max_bytes: z.number().int().min(268_435_456).max(2_147_483_648).optional(),
     tasks: z.record(z.string().uuid(), z.object({ prompt: z.string().min(1).max(16_384) }).strict()),
   })
