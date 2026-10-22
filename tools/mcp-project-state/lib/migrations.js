@@ -42,6 +42,8 @@ function setVersion(db, version) {
  * @param {string} migrationsDir Absolute path to migrations directory.
  * @param {object} [options]
  * @param {(level: 'info'|'warn'|'error', msg: string) => void} [options.log] Optional logger.
+ * @param {boolean} [options.externalTransaction] The caller already holds a transaction and owns COMMIT/ROLLBACK,
+ *   so every migration joins it and a failure leaves the rollback decision to the caller.
  * @returns {{applied: string[], current: number}}
  */
 function runMigrations(db, migrationsDir, options = {}) {
@@ -56,6 +58,19 @@ function runMigrations(db, migrationsDir, options = {}) {
 
   for (const m of migrations) {
     const sql = fs.readFileSync(m.fullPath, 'utf8');
+    if (options.externalTransaction) {
+      if (m.version <= getCurrentVersion(db)) continue;
+      try {
+        db.exec(sql);
+        setVersion(db, m.version);
+      } catch (error) {
+        log('error', `failed ${m.name}: ${error.message}`);
+        throw error;
+      }
+      applied.push(m.name);
+      log('info', `applied ${m.name} (user_version → ${m.version})`);
+      continue;
+    }
     try {
       db.exec('BEGIN IMMEDIATE');
       if (m.version <= getCurrentVersion(db)) {
