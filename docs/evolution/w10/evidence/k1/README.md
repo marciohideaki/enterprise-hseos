@@ -20,7 +20,7 @@ Dois achados que mudam o ADR:
 - Não manter a data fixa 2026-11-30 para o Codex: com a evidência desta medição, o Codex só falaria o moderno com flag experimental, e o caminho de compat não o serve.
 - Antes de trocar qualquer MCP para o moderno: (a) o adaptador deve responder a `initialize` de revisões legadas conhecidas (`2025-03-26`, `2025-06-18`, `2025-11-25`) negociando para `2024-11-05` (ou o servidor legado deve continuar registrado para o Codex), e (b) o K7 deve ter teste adversarial com esses `initialize`. Isso é mudança de código, fora do escopo do K1; fica como achado para G0/K7.
 - Condição objetiva de sunset: remover a compat só quando o Codex estável (sem flag) enviar `server/discover` com `2026-07-28` contra este servidor, medido de novo com este harness. Sem isso a compat continua, sem data fixa (o ramo já previsto no PLAN-CONCLUSAO).
-- Claude Code não bloqueia o sunset: já fala o moderno por padrão.
+- Claude Code só deixa de bloquear o sunset depois que a compat legada aceitar `2025-11-25`: ele fala o moderno na maioria das execuções, mas em 1 de 8 caiu em `initialize` `2025-11-25` e foi recusado (ver "Variabilidade").
 
 ## Método
 
@@ -89,7 +89,7 @@ Com `/workspace/local/sdk/nvm/versions/node/v24.15.0/bin` na frente do PATH (nec
 
 Codex: US$ 0; cada `codex exec` termina em 401 antes de qualquer inferência (`runs/codex-exec-*-output.txt`, saída redigida: ids de requisição, `cf-ray`, sessão e timestamps).
 
-Claude Code (Haiku 5.5), da reexecução de rastreabilidade (`runs/claude-runs-cost.jsonl`, `runs/claude-governed-repetitions.jsonl`): governado US$ 0,0014 (execução anômala, sem ferramenta), MRTR US$ 0,0014, legado US$ 0,0017, mais 6 repetições US$ 0,0058; total ≈ US$ 0,010. Os US$ 0,0051 citados na primeira versão vinham das execuções originais, cujas saídas não foram preservadas (declarado, sem artefato); `runs/node24-prefix-claude-runs-cost.jsonl` é de clientes antigos e não entra na conta.
+Claude Code (Haiku 5.5), da reexecução de rastreabilidade (`runs/claude-runs-cost.jsonl`, `runs/claude-governed-repetitions.jsonl`): governado US$ 0,0014 (execução anômala, sem ferramenta), MRTR US$ 0,0014, legado US$ 0,0017, mais 6 repetições US$ 0,0058: ≈ US$ 0,010. À parte, a descoberta do efeito do PATH gastou ≈ US$ 0,073 com clientes antigos (Haiku 4.5; `runs/node24-prefix-claude-runs-cost.jsonl`). Total geral ≈ US$ 0,083, discriminado. Os US$ 0,0051 citados na primeira versão vinham das execuções originais, cujas saídas não foram preservadas (declarado, sem artefato) e não entram nesta soma.
 
 ## Arquivos
 
