@@ -515,6 +515,9 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
     containsCredential,
   });
   const approvalGate = host.approvalGate ?? createApprovalGate({ ledger: ledgerSink });
+  // A host that cannot own a store before the task database exists (the production host) hands a factory instead: the
+  // store is then built over this task's ledger, together with the deriver of its deletion approvals.
+  const memory = typeof host.memory?.create === 'function' ? { ...host.memory, ...host.memory.create({ ledger, db }) } : host.memory;
   const policies = { ...host.policies };
   for (const family of new Set(capabilities.map(familyOf))) {
     const root = host.toolchains?.[family]?.root;
@@ -541,7 +544,7 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
     approvalGate,
     approve: host.approve,
     project_id: host.project_id,
-    memory: host.memory,
+    memory,
     factories: host.factories,
     broker: host.broker,
     mediaStore: host.mediaStore,
@@ -571,7 +574,7 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
   // Governed memory enters the context only when the task declared the capability and the host owns a store. The
   // assembler resolves its profile synchronously, so the (async) collection runs once before the session starts and
   // the resolver reads the frozen result; the retrieval itself is the store's synchronous, governed `retrieve`.
-  const wantsMemory = capabilities.includes('memory.retrieve') && Boolean(host.memory?.store);
+  const wantsMemory = capabilities.includes('memory.retrieve') && Boolean(memory?.store);
   let memorySources = Object.freeze([]);
   return Object.freeze({
     ...environment,
@@ -583,7 +586,7 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
       // A query that looks like a credential is never used to search: nothing leaves, nothing is found.
       memorySources = deepFreeze(
         wantsMemory && !containsCredential(query)
-          ? await require('./memory-context-source').collectMemorySources({ store: host.memory.store, project_id: host.project_id, query })
+          ? await require('./memory-context-source').collectMemorySources({ store: memory.store, project_id: host.project_id, query })
           : [],
       );
     },
@@ -634,6 +637,132 @@ function createMemoryDeleteApprovals({
   });
 }
 
+// ---------------------------------------------------------------------------------------------------------------
+// Production host: the `environment:` section of the global configuration, composed into the host of a task.
+// ---------------------------------------------------------------------------------------------------------------
+
+const ENVIRONMENT_ISOLATION_BACKENDS = Object.freeze(['bwrap']);
+const environmentConfigSchema = z
+  .object({
+    project_id: IdentifierSchema,
+    toolchain_cache: z.string().min(1).max(4096).optional(),
+    memory: z
+      .object({
+        rules: z.array(z.record(z.string(), z.json())).max(256).default([]),
+        operator: z
+          .object({ id: IdentifierSchema, kind: z.literal('operator') })
+          .strict()
+          .optional(),
+      })
+      .strict()
+      .optional(),
+    isolation: z.array(z.enum(ENVIRONMENT_ISOLATION_BACKENDS)).min(1).max(ENVIRONMENT_ISOLATION_BACKENDS.length).optional(),
+  })
+  .strict();
+
+function configError(message) {
+  return Object.assign(new Error(`environment configuration: ${message}`), { code: 'ENGINEERING_ENVIRONMENT_CONFIG_INVALID' });
+}
+
+/** The `environment:` section of a global configuration file; `null` when the file or the section is absent. */
+function readEnvironmentSection(file) {
+  const fs = require('node:fs');
+  if (!fs.existsSync(file)) return null;
+  let parsed;
+  try {
+    parsed = require('yaml').parse(fs.readFileSync(file, 'utf8'));
+  } catch (error) {
+    throw configError(`${file} is not valid YAML (${error.message})`);
+  }
+  return parsed?.environment ?? null;
+}
+
+// Preparers of the pinned toolchain of each family: they copy the verified cache into a read-only directory.
+function defaultToolchainPreparers() {
+  const environment = require('../../../packages/agent-environment');
+  const install = environment.loadPins().installToolchain;
+  return {
+    lsp: ({ cacheDirectory, destination }) => environment.prepareLspToolchain({ install, cacheDirectory, destination }),
+    dap: ({ cacheDirectory, destination }) => environment.prepareDapToolchain({ install, cacheDirectory, destination }),
+  };
+}
+
+/**
+ * The host of a task, built from the `environment:` section (`section`, already read) of the global configuration.
+ *
+ * Returns `null` without the section: the host stays absent and a contract that declares capabilities is refused
+ * (`ENGINEERING_ENVIRONMENT_HOST_REQUIRED`). The section is strict: an unknown key, a rule the permission lattice does
+ * not accept or an unsupported isolation backend is refused with a clear message, never ignored.
+ *
+ * Fail-closed by construction:
+ * - `approve` always denies. The CLI has no channel to a person, and nothing here approves on anyone's behalf, so
+ *   `environment.computer.start/act` and `memory.delete` are denied until a host with a real channel is composed.
+ * - memory writes are denied unless `memory.rules` allows them; deletion also needs `memory.operator`.
+ * - a family whose toolchain is not provisioned (or has no preparer, such as the browser, which needs the mediated
+ *   egress broker the CLI does not have) stays blocked.
+ *
+ * Limitation of this phase: the memory store is built over the ledger of each TASK (see `memory.create`), so memory
+ * written by one task is not seen by the next. Durable memory across tasks needs the activated project database.
+ *
+ * `options.capabilities` limits the toolchain preparation to the families a task declared; `options.prepare` and
+ * `options.factories` replace the preparers and services (tests, alternative hosts). `host.dispose()` removes the
+ * prepared toolchains.
+ */
+function createProductionEnvironmentHost(section, options = {}) {
+  if (section === null || section === undefined) return null;
+  const parsed = environmentConfigSchema.safeParse(section);
+  if (!parsed.success)
+    throw configError(parsed.error.issues.map((issue) => `${issue.path.join('.') || '<root>'}: ${issue.message}`).join('; '));
+  const config = parsed.data;
+  const rules = config.memory?.rules ?? [];
+  try {
+    require('../../../packages/agent-policy-lattice').evaluatePermissionLattice({ rules });
+  } catch (error) {
+    throw configError(`memory.rules: ${error.message}`);
+  }
+  const { mkdtempSync, rmSync } = require('node:fs');
+  const toolchains = {};
+  const scratch = [];
+  const families = new Set((options.capabilities ?? []).map(familyOf).filter((family) => family && family !== 'memory'));
+  if (config.toolchain_cache && families.size > 0) {
+    const preparers = options.prepare ?? defaultToolchainPreparers();
+    for (const family of families) {
+      if (typeof preparers[family] !== 'function') continue;
+      const destination = mkdtempSync(require('node:path').join(require('node:os').tmpdir(), `hseos-env-${family}-`));
+      scratch.push(destination);
+      toolchains[family] = preparers[family]({ cacheDirectory: config.toolchain_cache, destination });
+    }
+  }
+  const operator = config.memory?.operator;
+  return Object.freeze({
+    project_id: config.project_id,
+    toolchains,
+    policies: {},
+    isolation: config.isolation ?? ENVIRONMENT_ISOLATION_BACKENDS,
+    factories: options.factories,
+    approve: async () => ({ approved: false }),
+    memory: Object.freeze({
+      rules,
+      ...(operator ? { operator: { kind: operator.kind, id: operator.id } } : {}),
+      create({ ledger, db }) {
+        const { ExecutionApprovalStore } = require('../../mcp-project-state/lib/execution-approval-store');
+        const { createExecutionApprovalVerifier } = require('../../../packages/agent-memory');
+        const approvalStore = new ExecutionApprovalStore(db);
+        const deleteApprovals = createMemoryDeleteApprovals({ approvalStore });
+        const { createGovernedMemory } = require('./memory-context-source');
+        const store = createGovernedMemory({
+          ledger,
+          approvalVerifier: createExecutionApprovalVerifier({ approvalStore, resolveApprovalId: deleteApprovals.resolveApprovalId }),
+        });
+        return { store, deleteApprovals };
+      },
+    }),
+    dispose() {
+      for (const directory of scratch.splice(0)) rmSync(directory, { recursive: true, force: true });
+    },
+  });
+}
+
 const MEMORY_QUERY_CHARS = 1024;
 
 /** The retrieval query of a task: its requirements, bounded and deterministic. Never the model's words. */
@@ -652,4 +781,6 @@ module.exports = {
   createEnvironmentBundles,
   createExecutionApprovalResolver,
   createTaskEnvironment,
+  createProductionEnvironmentHost,
+  readEnvironmentSection,
 };
