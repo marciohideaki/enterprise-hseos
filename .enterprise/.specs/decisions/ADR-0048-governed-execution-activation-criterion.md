@@ -2,11 +2,27 @@
 
 ## Status
 
-Proposed — 2026-10-22. Aguarda decisão do owner. Nada neste documento ativa, migra ou remove
-coisa alguma: a ativação operacional exige este ADR em **Accepted** e autorização explícita
-por banco (ver Decision, item 6). Campos de aprovação humana ficam em branco de propósito.
+Accepted — 2026-10-22
 
-**NOTE para o owner (ao aceitar):** a linha de status deve ficar curta, no formato
+Aceite humano explícito do owner, registrado em 2026-10-22. O aceite não ativa, migra ou
+remove coisa alguma: a ativação operacional continua exigindo autorização explícita por banco
+(ver Decision, item 6) e a janela supervisionada do item 7.
+
+### Aprovação humana
+
+- **Aprovador:** owner (Marcio Hideaki).
+- **Data:** 2026-10-22.
+- **Forma:** aceite explícito do owner na sessão de 2026-10-22 ("Aceito o ADR").
+- **Escopo do aceite:** o ADR como está, inclusive a exceção de rollback delimitada ao banco
+  piloto (Decision, item 5).
+- **Não decidido por este aceite (continua pendente de decisão do owner):**
+  - a data de sunset do legado: segue "a fixar pelo owner" e, sem data, a compatibilidade
+    legada não expira (Decision, item 3);
+  - `tools/call` e o fluxo MRTR do Codex na K7 (login e gasto): não autorizados; permanecem
+    como limitação declarada;
+  - navegador/computer-use na CLI: não autorizado.
+
+**Nota de formato:** a linha de status deve permanecer curta, no formato
 `Accepted — AAAA-MM-DD`. O parser do comando de ativação (K2) recusa prosa depois da data. O
 parser só aceita formas exatas de aprovado (`fb516b82`). O ADR-0047 real, com prosa na linha de
 status, também deixa de passar nesse parser; isso é irrelevante para a ativação, que aponta
@@ -29,8 +45,8 @@ trocado.
 | K10     | journey moderno 503/0/4 com negativos de escopo                             | `task/w10-k10` (`e9c5f31b`), ainda fora da feature         |
 
 **Supersedes:** ADR-0022 §Mitigations (último item, critério de ativação e datas) e
-ADR-0023 §Mitigations (último item, janela de compatibilidade). A supersessão só produz
-efeito quando este ADR for Accepted; até lá os critérios antigos continuam vigentes.
+ADR-0023 §Mitigations (último item, janela de compatibilidade). A supersessão produz
+efeito desde 2026-10-22 (ADR-0048 Accepted); as seções antigas de ADR-0022/0023 permanecem como histórico.
 **Superseded By:** N/A
 **Atualiza por referência:** ADR-0024 §Activation, item 1 ("ADR-0022/0023 compatibility
 evidence and migration gate"), que passa a ser satisfeito pelo critério deste ADR.
@@ -137,7 +153,7 @@ protocolo dos clientes registrados.
    deixa de ser a constante `LEGACY_SUNSET = '2026-11-30'` e passa a vir da variável
    `HSEOS_MCP_LEGACY_SUNSET` (data ISO ou instante). Sem valor, a compatibilidade não expira;
    valor inválido aborta o boot (código de saída 78 segundo o relato da K4, **a reconfirmar**).
-   Fixtures mantêm a data embutida até este ADR ser Accepted.
+   Fixtures mantêm a data embutida.
    A constante `LEGACY_SUNSET` de `tools/lib/legacy-mcp-server.js`, que era ligada ao critério
    de 30 dias, deixou de existir na mesma entrega (`b639f965`).
 4. **Rollback.** Parar os servidores e CLIs que usam o banco, restaurar o backup da etapa (b)
@@ -160,8 +176,8 @@ protocolo dos clientes registrados.
 --adr` foi **entregue pela W10/K2** (`53cb916a`, `da7bfce7`, `4743ba19`, `961fb250`, `fb516b82`, na
    feature) e passa a existir na `master` quando a PR da W10 for mergeada; não existia em
    1a23be3b. A recusa de `plan` e `apply` sem `--adr` apontando para um ADR com status
-   **Accepted** é parte dele e foi exercitada contra este ADR em Proposed (K3, bloqueio
-   `EXECUTION_ACTIVATION_ADR_NOT_ACCEPTED`). Este ADR em Proposed não satisfaz o gate. O
+   **Accepted** é parte dele e foi exercitada contra este ADR ainda não aceito (K3, bloqueio
+   `EXECUTION_ACTIVATION_ADR_NOT_ACCEPTED`). Este ADR, enquanto não Accepted, não satisfazia o gate; desde 2026-10-22 ele o satisfaz. O
    comando decide o modo por banco: v4 legado; ativado (`user_version` 17, `application_id`
    `0x48534f53` e integridade) é moderno; qualquer outro estado é recusado como
    inconsistente, sem fallback.
@@ -254,9 +270,11 @@ protocolo dos clientes registrados.
 
 ## Compliance
 
-- [ ] Aprovado pelo owner (Accepted) — **pendente; não preenchido por este rascunho**
-- [ ] Exceção de rollback do item 5 aceita expressamente pelo owner — pendente
-- [ ] Data-limite do sunset fixada pelo owner após K1 — **a fixar pelo owner após K1**
+- [x] Aprovado pelo owner (Accepted) em 2026-10-22, aceite explícito na sessão ("Aceito o ADR")
+- [x] Exceção de rollback do item 5 aceita pelo owner no mesmo aceite (o ADR como está, inclusive
+      a exceção delimitada ao piloto). A ciência da perda das escritas pós-ativação continua
+      exigida antes do passo 1b, na janela supervisionada
+- [ ] Data-limite do sunset fixada pelo owner após K1 — **a fixar pelo owner; o aceite não a fixou**
 - [x] Evidência K1 (protocolo dos clientes) arquivada em `docs/evolution/w10/evidence/k1/`
       (`task/w10-k1`; sustenta o critério (d) e o sunset). Não é aprovação, só evidência.
 - [x] Evidência por critério, em `docs/evolution/w10/evidence/`:
@@ -275,7 +293,7 @@ protocolo dos clientes registrados.
     servidores, sem executar ferramentas com aprovação. **Atendido.**
 - [ ] Entregas de código da W10 mergeadas na `master` (PR da W10): K2, K4, K5/K5b, K8, K9, K11
 - [ ] Gate `g9-zero-legacy-window` do ensaio oficial reconciliado — **pendente, não entregue**
-- [ ] Owner decide se autoriza `tools/call`/MRTR do Codex na K7 (login/gasto); senão, limitação declarada
+- [ ] Owner decide se autoriza `tools/call`/MRTR do Codex na K7 (login/gasto) e navegador/computer-use na CLI — **pendente; o aceite não os autorizou**; sem decisão, limitação declarada
 - [ ] Lista nominal de clientes, CLIs e hooks re-registrados no servidor moderno antes do `apply`
 - [ ] Janela supervisionada da ativação real (servidores parados; WAL com dados exercitado)
 - [ ] Checklist aberto de ADR-0022 (padrões ES/CQRS/AR/Tool Design referenciando o ADR;
@@ -286,7 +304,7 @@ protocolo dos clientes registrados.
 - [ ] Índice de ADRs e documentos citados por ADR-0022 (`.hseos/AGENT-MANIFEST.md`, workflow
       dev-squad, workflows de resume, skill dev-squad, documentação de state-tracking)
       atualizados na ativação
-- [ ] Data de ativação: pendente de Accepted
+- [ ] Data de ativação: pendente (Accepted em 2026-10-22; falta janela supervisionada e autorização por banco)
 - [ ] Data de revisão: 90 dias após a ativação do piloto
 
 ## Alternatives Considered

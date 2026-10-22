@@ -6,7 +6,7 @@
 **Affects Standards:** ADR-0008; ADR-0019; MCP bundles; MCP transport; tool contracts; security and observability boundaries
 **Supersedes:** ADR-0019
 **Superseded By:** N/A
-**Addendum (2026-10-22):** ADR-0048 (Proposed) propõe superseder em parte §Mitigations (último item: janela de compatibilidade e datas) e revogar o "only" de `2024-11-05`, aceitando também `2025-06-18` e `2025-11-25` no modo compat. Sem efeito até ADR-0048 ser Accepted; o critério vigente continua em vigor.
+**Addendum (2026-10-22):** ADR-0048 supersede em parte §Mitigations (último item: janela de compatibilidade e datas) e revoga o "only" de `2024-11-05`, aceitando também `2025-06-18` e `2025-11-25` no modo compat. Efetivo desde 2026-10-22 (ADR-0048 Accepted); as seções originais permanecem como histórico.
 
 ---
 

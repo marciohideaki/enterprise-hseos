@@ -517,12 +517,29 @@ test('the CLI companion plans, applies and rolls back with --json and refuses ap
   assert.equal(blocked.status, 2);
   assert.equal(JSON.parse(blocked.stdout).plan.ready, false);
 
-  // An Accepted ADR that does not define the criterion never opens the gate, and ADR-0048 is not Accepted here.
+  // An Accepted ADR that does not define the criterion never opens the gate.
   const unrelated = run('apply', '--db', databasePath, '--adr', 'ADR-0047', '--backup-dir', sandbox.backups, '--json');
   assert.notEqual(unrelated.status, 0);
   assert.match(unrelated.stderr, /EXECUTION_ACTIVATION_ADR_NOT_CRITERION/);
-  const unaccepted = run('plan', '--db', databasePath, '--adr', 'ADR-0048', '--backup-dir', sandbox.backups, '--json');
-  assert.equal(unaccepted.status, 2);
+
+  // The real ADR-0048 is Accepted (owner acceptance, 2026-10-22): the CLI plan no longer reports the ADR gate as a blocker.
+  const accepted = run('plan', '--db', databasePath, '--adr', 'ADR-0048', '--backup-dir', sandbox.backups, '--json');
+  const acceptedPlan = JSON.parse(accepted.stdout).plan;
+  assert.equal(acceptedPlan.adr_status, 'Accepted');
+  assert.ok(!acceptedPlan.blockers.some((blocker) => blocker.code === 'EXECUTION_ACTIVATION_ADR_NOT_ACCEPTED'));
+  assert.equal(userVersion(databasePath), OPERATIONAL_SCHEMA_VERSION);
+
+  // A Proposed ADR-0048 (fixture; the CLI has no decisions-directory option, so this goes through the library) keeps the gate shut.
+  const proposedDirectory = path.join(sandbox.root, 'decisions-proposed');
+  fs.mkdirSync(proposedDirectory);
+  fs.writeFileSync(path.join(proposedDirectory, 'ADR-0048-criterion.md'), '# ADR-0048: criterion\n\n## Status\n\nProposed — 2026-10-22\n');
+  const unaccepted = planExecutionLedgerActivation(databasePath, {
+    adr: 'ADR-0048',
+    backupDir: sandbox.backups,
+    internal: { decisionsDirectory: proposedDirectory },
+  });
+  assert.equal(unaccepted.ready, false);
+  assert.ok(unaccepted.blockers.some((blocker) => blocker.code === 'EXECUTION_ACTIVATION_ADR_NOT_ACCEPTED'));
   assert.equal(userVersion(databasePath), OPERATIONAL_SCHEMA_VERSION);
 
   // The mechanism itself is exercised through the library; the CLI rollback reads the verified backup.
