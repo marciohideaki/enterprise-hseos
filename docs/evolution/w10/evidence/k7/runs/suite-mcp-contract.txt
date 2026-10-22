@@ -1,0 +1,214 @@
+Delegated test cgroup controllers verified
+mcp cross-server contract test
+  PASS  hseos-governance: fixture supports the gated modern protocol
+  PASS  hseos-governance: discovery returns serverInfo.name
+  PASS  hseos-governance: exposes at least one tool
+  PASS  hseos-governance: tool names are unique
+  PASS  hseos-governance: every tool declares name, description and inputSchema
+  PASS  hseos-project-state: fixture supports the gated modern protocol
+  PASS  hseos-project-state: discovery returns serverInfo.name
+  PASS  hseos-project-state: exposes at least one tool
+  PASS  hseos-project-state: tool names are unique
+  PASS  hseos-project-state: every tool declares name, description and inputSchema
+  PASS  hseos-swarm: fixture supports the gated modern protocol
+  PASS  hseos-swarm: discovery returns serverInfo.name
+  PASS  hseos-swarm: exposes at least one tool
+  PASS  hseos-swarm: tool names are unique
+  PASS  hseos-swarm: every tool declares name, description and inputSchema
+  PASS  axon-bridge (http): fixture supports the gated modern protocol
+  PASS  axon-bridge (http): discovery returns serverInfo.name
+  PASS  axon-bridge (http): exposes at least one tool
+  PASS  axon-bridge (http): tool names are unique
+  PASS  axon-bridge (http): every tool declares name, description and inputSchema
+  PASS  all four servers report an identical protocolVersion
+  PASS  catalog: a valid directory loads and ignores non-js files
+  PASS  catalog: the shipped mcp-hseos-governance tools load
+  PASS  catalog: the shipped mcp-hseos-swarm tools load
+  PASS  catalog: the shipped mcp-project-state tools load
+  PASS  catalog: the shipped mcp-axon-bridge tools load
+  PASS  catalog: non-array export, next to a valid module, still fails the whole catalog with its own cause
+  PASS  catalog: non-object tool, next to a valid module, still fails the whole catalog with its own cause
+  PASS  catalog: array as tool, next to a valid module, still fails the whole catalog with its own cause
+  PASS  catalog: invalid name, next to a valid module, still fails the whole catalog with its own cause
+  PASS  catalog: missing description, next to a valid module, still fails the whole catalog with its own cause
+  PASS  catalog: missing handler, next to a valid module, still fails the whole catalog with its own cause
+  PASS  catalog: missing inputSchema, next to a valid module, still fails the whole catalog with its own cause
+  PASS  catalog: array inputSchema, next to a valid module, still fails the whole catalog with its own cause
+  PASS  catalog: duplicate across files, next to a valid module, still fails the whole catalog with its own cause
+  PASS  catalog: module that throws on load, next to a valid module, still fails the whole catalog with its own cause
+  PASS  catalog: an empty directory has its own code, distinct from a malformed catalog
+  PASS  catalog: a missing directory fails closed
+  PASS  catalog: failBoot reports the code on stderr and exits with the stable boot code
+  PASS  mcp-hseos-governance: a malformed tool module fails the boot with exit 78 and the error code
+  PASS  mcp-hseos-swarm: a malformed tool module fails the boot with exit 78 and the error code
+  PASS  mcp-project-state: a malformed tool module fails the boot with exit 78 and the error code
+  PASS  mcp-axon-bridge: a malformed tool module fails the boot with exit 78 and the error code
+  PASS  stubs: every environment.* and memory.* contract is registered
+  PASS  stubs: environment.browser.run is versioned and fail-closed
+  PASS  stubs: environment.computer.start is versioned and fail-closed
+  PASS  stubs: environment.computer.act is versioned and fail-closed
+  PASS  stubs: environment.computer.stop is versioned and fail-closed
+  PASS  stubs: environment.computer.screenshot is versioned and fail-closed
+  PASS  stubs: memory.write is versioned and fail-closed
+  PASS  stubs: memory.retrieve is versioned and fail-closed
+  PASS  stubs: memory.delete is versioned and fail-closed
+  PASS  environment: LSP and DAP are implemented contracts, not stubs
+  PASS  environment: a valid LSP input validates
+  PASS  environment: an LSP contract refuses the input of another action
+  PASS  environment: an LSP input with an unknown field is refused
+  PASS  environment: a valid DAP input validates
+  PASS  environment: a DAP breakpoint condition is refused
+  PASS  environment: an output that is not untrusted data is refused
+  PASS  environment: an LSP output validates under its own action
+  PASS  environment: an LSP output of another action is refused
+  PASS  environment: the DAP contract timeout covers the longest request plus the reaping grace
+  PASS  environment: the LSP contract timeout is the server timeout
+  PASS  stubs: computer-use actions and memory deletion require approval
+  PASS  memory.write: a well-formed entry validates
+  PASS  memory.write: an empty input is refused
+  PASS  memory.write: host-owned fields are refused
+  PASS  memory.write: an entry that is not data authority is refused
+  PASS  memory.write: an untrusted origin cannot be stored as trusted
+  PASS  memory.write: a missing ttl is refused
+  PASS  memory.write: an entry carrying a credential is refused
+  PASS  memory.write: a digest that does not match the content is refused
+  PASS  memory.write: the receipt validates
+  PASS  memory.write: a receipt without a policy reference is refused
+  PASS  memory.retrieve: a query validates
+  PASS  memory.retrieve: an empty query is refused
+  PASS  memory.retrieve: a limit out of range is refused
+  PASS  memory.retrieve: a limit above the ceiling is refused
+  PASS  memory.retrieve: an unknown field is refused
+  PASS  memory.retrieve: untrusted data sources validate
+  PASS  memory.retrieve: a directive source is refused
+  PASS  memory.retrieve: a trusted source is refused
+  PASS  memory.retrieve: a non-list output is refused
+  PASS  memory.delete: a deletion request validates
+  PASS  memory.delete: the approval never travels in the input
+  PASS  memory.delete: an invalid identifier is refused
+  PASS  memory.delete: a reason with a credential is refused
+  PASS  memory.delete: the receipt validates
+  PASS  memory.delete: a receipt that does not confirm deletion is refused
+  PASS  browser: a navigation input validates
+  PASS  browser: the first step must be a goto
+  PASS  browser: an unknown field is refused
+  PASS  browser: a trusted output is refused
+  PASS  browser: an untrusted output validates
+  PASS  computer.start: a target validates
+  PASS  computer.start: a target outside /usr/bin is refused
+  PASS  computer.act: an approved action validates
+  PASS  computer.act: a screenshot is not an approved action
+  PASS  computer.act: an unknown action is refused
+  PASS  computer.act: a session is required
+  PASS  computer.act: an approval id never travels in the input
+  PASS  computer.screenshot: a session validates
+  PASS  computer.screenshot: a session is required
+  PASS  computer.screenshot: extra fields are refused
+  PASS  computer.screenshot: an output that is not display data is refused
+  PASS  computer.screenshot: a traced untrusted capture validates
+  PASS  computer.act: the input is normalized with the defaults the approval binds
+  PASS  contracts: a non-read-only contract without approval declares an idempotent provider (the runtime would otherwise demand approval)
+  PASS  computer.stop: a session validates
+  PASS  computer.stop: extra fields are refused
+  PASS  computer.stop: a session is required
+  PASS  computer: a display output that is trusted is refused
+  PASS  computer: a plain status output validates
+  PASS  contracts: reversibility follows the effect
+  PASS  stubs: registration needs a contract registry
+  PASS  stubs: registering twice is refused as a duplicate
+  PASS  registry: a valid contract registers and lists sorted
+  PASS  registry: non-object contract is rejected
+  PASS  registry: array contract is rejected
+  PASS  registry: missing text field is rejected
+  PASS  registry: duplicate tool is rejected
+  PASS  registry: bad reversibility is rejected
+  PASS  registry: bad cancellation is rejected
+  PASS  registry: bad failure mode is rejected
+  PASS  registry: timeout too large is rejected
+  PASS  registry: timeout not integer is rejected
+  PASS  registry: non-boolean flag is rejected
+  PASS  registry: schema without safeParse is rejected
+  PASS  registry: schema version zero is rejected
+  PASS  registry: an unknown tool resolves to a stable code
+  PASS  registry: a schema may classify its own rejection
+  PASS  registry: the default rejection code names the phase
+  PASS  registry: a throwing schema is reported, not propagated raw
+  PASS  registry: a conforming value passes through
+  PASS  registry: starts unsealed
+  PASS  registry: seals
+  PASS  registry: a sealed registry refuses new contracts
+  PASS  events: the lifecycle registry is sealed and describes every type
+  PASS  events: a gateway denial is one ExecutionFailed fact on a dedicated aggregate with a stable code
+  PASS  events: a non-string tool and a missing rpc code are recorded without leaking input
+  PASS  events: a client-controlled tool name is truncated
+  PASS  events: an unsupported denial code is refused
+  PASS  events: validateForAppend rejects an unregistered type
+  PASS  events: validateForAppend rejects a non-current version
+  PASS  events: validateForAppend rejects a non-object event
+  PASS  events: unknown payload fields are refused
+  PASS  events: malformed ExecutionFailed payload #1 is refused
+  PASS  events: malformed ExecutionFailed payload #2 is refused
+  PASS  events: malformed ExecutionFailed payload #3 is refused
+  PASS  events: malformed ExecutionFailed payload #4 is refused
+  PASS  events: malformed ExecutionFailed payload #5 is refused
+  PASS  events: malformed ExecutionFailed payload #6 is refused
+  PASS  events: positive integers are enforced
+  PASS  events: object fields are enforced
+  PASS  events: optional strings are enforced
+  PASS  events: deserialize keeps a current event intact
+  PASS  events: deserialize rejects an unsupported schema version
+  PASS  events: deserialize rejects a non-object event
+  PASS  events: deserialize rejects a non-JSON payload
+  PASS  events: a declarative upcaster renames, removes and adds
+  PASS  events: an upcaster add that collides is refused
+  PASS  events: non-object definition is rejected at registration
+  PASS  events: missing event type is rejected at registration
+  PASS  events: duplicate type is rejected at registration
+  PASS  events: unclassified field is rejected at registration
+  PASS  events: invalid schema is rejected at registration
+  PASS  events: missing current schema is rejected at registration
+  PASS  events: missing upcaster is rejected at registration
+  PASS  events: unsupported upcaster operation is rejected at registration
+  PASS  events: upcaster rename collision is rejected at registration
+  PASS  events: a sealed registry refuses registration
+  PASS  project-state: health reports the instance id
+  PASS  project-state: state_write stores and reports fields
+  PASS  project-state: state_read returns what was written
+  PASS  project-state: tasks_add without required fields is an error
+  PASS  project-state: tasks_list lists all and by status
+  PASS  project-state: tasks_update changes a task
+  PASS  project-state: tasks_update of a missing task is an error
+  PASS  project-state: tasks_update without status is an error
+  PASS  project-state: state_history returns the writes
+  PASS  project-state: a dynamic tool runs with the data access layer
+  PASS  project-state: an unknown tool is denied by the gateway
+  PASS  project-state: SIGTERM shuts the server down cleanly
+  PASS  project-state: the unknown-tool denial is durable in the legacy telemetry store
+  PASS  project-state: a non-numeric port refuses to start
+  PASS  project-state: a port out of range refuses to start
+  PASS  project-state: a malformed instance id refuses to start
+  PASS  project-state: the governed fixture executes a read through the scheduler
+  PASS  axon-bridge: HTTP mode without a credential refuses to start
+  PASS  axon-bridge: a request without a credential is 401
+  PASS  axon-bridge: a wrong credential is 401
+  PASS  axon-bridge: a browser origin is 403
+  PASS  axon-bridge: a non-loopback Host is 403
+  PASS  axon-bridge: a valid credential reaches the server
+  PASS  axon-bridge: an unknown tool is denied
+  PASS  axon-bridge: a known tool answers (AXON_UNAVAILABLE when the binary is absent)
+  PASS  axon-bridge: SIGTERM shuts the server down cleanly
+  PASS  axon-bridge: stdio mode serves and exits when stdin closes
+  PASS  governance: legacy initialize is accepted inside the window
+  PASS  governance: legacy initialize is refused after the sunset with UNSUPPORTED_PROTOCOL_VERSION
+  PASS  governance: the modern protocol is still served after the sunset
+
+MCP contract tests: 201 passed, 0 failed
+✔ test/test-mcp-contract.js (5859.027245ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5865.445815

@@ -103,3 +103,9 @@ node docs/evolution/w10/evidence/k7/activate-db.cjs "$PWD" <backup-v4> "$K/cm/.h
 ```
 
 O scratch (`/build/tmp/hseos-w5/closeout/k7*`, `k3*`, o `CODEX_HOME`) foi removido ao final; a evidência arquivada é este diretório.
+
+## Adendo (2026-10-22) — entradas hostis e suítes do critério (a)
+
+- `runs/hostile-inputs.json` (harness `hostile-inputs.mjs`, servidor de governança, banco ativado e banco v4 de controle): dentre 22 entradas stdio (número, string, `[]`, `true`, `{}`, objeto sem `jsonrpc`, `[null]`, lote com `null`, lote válido, `id` nulo, `method` não string, `params` nulo ou array, `_meta` nulo, `arguments`/`name` nulos, JSON truncado e inválido, linha de 2 MiB e de 20 MiB, aninhamento de 100000 níveis) **só a linha `null` derruba o servidor moderno**; todas as outras recebem erro JSON-RPC e o servidor segue respondendo. O legado sobrevive a todas.
+- **F1b — o mesmo defeito em HTTP:** corpo `null` em `POST /mcp` mata o servidor moderno (`tools/lib/mcp-2026-adapter.js:1133`, `message.id` sobre `null`); `[null]`, `1` e `[]` recebem `-32600` (`runs/hostile-inputs-http.txt`). Qualquer processo local que alcance a porta derruba o servidor.
+- Critério (a): `test/test-mcp-2026-adapter.js` 24/24 (`runs/suite-mcp-2026-adapter.txt`); `test/test-mcp-contract.js` passa, mas roda sobre servidores em fixture (`NODE_ENV=test`), **não** sobre banco ativado existente (`runs/suite-mcp-contract.txt`). Logo (a) segue **parcial**: o que roda sobre banco ativado é `test-mcp-activated-mode.js` (17/17).
