@@ -56,7 +56,7 @@ async function execute(action, options = {}) {
     if (!options.taskContract || Object.keys(options).some((key) => !['taskContract', 'json'].includes(key))) {
       throw new Error('validate-task requires --task-contract and accepts only --json as an additional option.');
     }
-    const { contract, sha256 } = readEngineeringTask(options.taskContract);
+    const { contract, sha256 } = readEngineeringTask(options.taskContract, { admission: true });
     const result = {
       schema_version: 1,
       task_id: contract.task_id,

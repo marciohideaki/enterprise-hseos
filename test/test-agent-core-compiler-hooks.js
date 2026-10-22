@@ -403,10 +403,16 @@ async function testAgentCoreCompileRejectsFailingPluginConformance() {
     );
 
     let error;
+    // The conformance run spawns `node --test`; under an outer `node --test` (the light pre-commit hook) the inherited
+    // NODE_TEST_CONTEXT makes the child skip its tests and pass, so the fixture failure would go unseen.
+    const outerContext = process.env.NODE_TEST_CONTEXT;
+    delete process.env.NODE_TEST_CONTEXT;
     try {
       await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
     } catch (error_) {
       error = error_;
+    } finally {
+      if (outerContext !== undefined) process.env.NODE_TEST_CONTEXT = outerContext;
     }
     assertPass('compile rejects an active plugin with failing behavior tests', Boolean(error));
     assertPass('failed conformance writes no manifest', !fs.existsSync(path.join(tempDir, '.agents', 'manifest.yaml')));
