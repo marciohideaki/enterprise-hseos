@@ -756,3 +756,107 @@ test('terminal account client composes without changing identity or enabling rec
     assert.throws(() => fixture.service.validateComposition(), /COMPOSITION_INVALID/);
   }
 });
+
+test('an adapter failure after the reservation leaves its redacted cause in the uncertain event and the error', async (t) => {
+  const cause = Object.assign(new Error('CONTROL_PROVIDER_QUOTA_UNAVAILABLE'), {
+    code: 'CONTROL_PROVIDER_QUOTA_UNAVAILABLE',
+    diagnostic: {
+      worker: { name: 'Error', message: 'quota window closed', code: 'quota_unavailable' },
+      exit_code: 1,
+      nested: { too: { deep: { to: 'keep' } } },
+    },
+  });
+  const f = await fixture(t, {
+    run: async () => {
+      throw cause;
+    },
+  });
+  const error = await f.campaigns.execute(f.command('run', { binding_id: f.configured.manifest.binding_id, task_id: f.taskId })).then(
+    () => null,
+    (error_) => error_,
+  );
+  assert.equal(error.code, 'CONTROL_OUTCOME_UNCERTAIN');
+  assert.equal(error.diagnostic.code, 'CONTROL_PROVIDER_QUOTA_UNAVAILABLE');
+  assert.equal(error.diagnostic.worker.code, 'quota_unavailable');
+  const event = f.campaigns.rows(f.id).findLast((row) => row.payload.kind === 'uncertain');
+  assert.deepEqual(event.payload.diagnostic, error.diagnostic);
+  assert.equal(JSON.stringify(event.payload.diagnostic).includes('keep'), false, 'depth is bounded');
+});
+
+test('a credential in an adapter error message is withheld from the uncertain event', async (t) => {
+  const secret = `sk-ant-api03-${'B'.repeat(40)}`;
+  const f = await fixture(t, {
+    run: async () => {
+      throw new Error(`upstream rejected ${secret}`);
+    },
+  });
+  const error = await f.campaigns.execute(f.command('run', { binding_id: f.configured.manifest.binding_id, task_id: f.taskId })).then(
+    () => null,
+    (error_) => error_,
+  );
+  assert.equal(error.code, 'CONTROL_OUTCOME_UNCERTAIN');
+  const event = f.campaigns.rows(f.id).findLast((row) => row.payload.kind === 'uncertain');
+  assert.equal(event.payload.diagnostic.message, '<withheld: credential pattern>');
+  assert.equal(JSON.stringify(event.payload).includes('sk-ant'), false);
+});
+
+const receiptOf = (f) => f.receipt;
+
+test('a receipt that breaks a manifest limit is refused with the limit named in the uncertain event', async (t) => {
+  const cases = [
+    ['input_tokens', 1001, { reason: 'CONTROL_PROVIDER_INPUT_LIMIT', input_tokens: 1001, max_input_tokens: 1000 }],
+    ['output_tokens', 65, { reason: 'CONTROL_PROVIDER_OUTPUT_LIMIT', output_tokens: 65, max_output_tokens: 64 }],
+    ['binding_sha256', 'e'.repeat(64), { reason: 'binding_mismatch' }],
+    ['cost_microusd', 1001, { reason: 'cost_over_request_limit', cost_microusd: 1001, max_request_microusd: 1000 }],
+  ];
+  for (const [field, value, expected] of cases) {
+    const f = await fixture(t, { run: async () => ({ ...receiptOf(f), [field]: value }), maxCost: 5000 });
+    const error = await f.campaigns.execute(f.command('run', { binding_id: f.configured.manifest.binding_id, task_id: f.taskId })).then(
+      () => null,
+      (error_) => error_,
+    );
+    assert.equal(error.code, 'CONTROL_OUTCOME_UNCERTAIN', field);
+    assert.deepEqual(error.diagnostic, { code: 'CONTROL_PROVIDER_RECEIPT_INVALID', ...expected }, field);
+    const event = f.campaigns.rows(f.id).findLast((row) => row.payload.kind === 'uncertain');
+    assert.deepEqual(event.payload.diagnostic, error.diagnostic, field);
+  }
+});
+
+test('receipts exactly at the input and output limits are accepted, cache included in the input count', async (t) => {
+  const f = await fixture(t, { run: async () => ({ ...receiptOf(f), input_tokens: 1000, output_tokens: 64 }) });
+  const result = await f.campaigns.execute(f.command('run', { binding_id: f.configured.manifest.binding_id, task_id: f.taskId }));
+  assert.equal(result.receipt.input_tokens, 1000);
+  assert.equal(result.receipt.output_tokens, 64);
+});
+
+test('an input total that only overruns because of cached tokens is refused, and fits again without them', async (t) => {
+  const { setup } = require('./helpers/claude-account');
+  const outcome = async (cache) => {
+    const account = setup(t, {
+      mode: { usage: { input_tokens: 5, output_tokens: 2, cache_read_input_tokens: cache, cache_creation_input_tokens: 0 } },
+    });
+    const { adapter } = account.create();
+    let f;
+    f = await fixture(t, {
+      run: async () => ({
+        ...(await adapter.run({ task_id: account.id, signal: new AbortController().signal })),
+        binding_sha256: f.configured.manifest.binding_sha256,
+      }),
+    });
+    return f.campaigns.execute(f.command('run', { binding_id: f.configured.manifest.binding_id, task_id: f.taskId })).then(
+      (result) => ({ result }),
+      (error) => ({ error, event: f.campaigns.rows(f.id).findLast((row) => row.payload.kind === 'uncertain') }),
+    );
+  };
+  // 5 direct tokens are far under the limit of 1000; with 996 cached the total is exactly 1001.
+  const over = await outcome(996);
+  assert.equal(over.error.code, 'CONTROL_OUTCOME_UNCERTAIN');
+  assert.deepEqual(over.event.payload.diagnostic, {
+    code: 'CONTROL_PROVIDER_RECEIPT_INVALID',
+    reason: 'CONTROL_PROVIDER_INPUT_LIMIT',
+    input_tokens: 1001,
+    max_input_tokens: 1000,
+  });
+  const fits = await outcome(995);
+  assert.equal(fits.result.receipt.input_tokens, 1000);
+});

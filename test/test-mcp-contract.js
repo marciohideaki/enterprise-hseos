@@ -1188,6 +1188,10 @@ const productionEnv = (tmp) => ({
   HSEOS_LEGACY_TELEMETRY_DB: path.join(tmp, 'telemetry.db'),
 });
 
+// A refusal is only evidence when it is the schema refusal for the missing field, never any error (a transport failure too).
+const isMissingProperty = (error, property) =>
+  error?.code === -32_602 && String(error.message).includes(`must have required property '${property}'`);
+
 async function runEntrypointTests() {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-w5-04-entry-'));
   const rpc = (port, id, name, args) => postJson(port, { jsonrpc: '2.0', id, method: 'tools/call', params: { name, arguments: args } });
@@ -1212,7 +1216,7 @@ async function runEntrypointTests() {
       assertPass(
         'project-state: tasks_add without required fields is an error',
         (await rpc(port, 5, 'tasks_add', { id: 'T3', owner: 'o', description: 'x'.repeat(4) })).body.error === undefined &&
-          (await rpc(port, 6, 'tasks_add', { id: 'T3' })).body.error !== undefined,
+          isMissingProperty((await rpc(port, 6, 'tasks_add', { id: 'T3' })).body.error, 'owner'),
       );
       assertPass(
         'project-state: tasks_list lists all and by status',
@@ -1229,7 +1233,7 @@ async function runEntrypointTests() {
       );
       assertPass(
         'project-state: tasks_update without status is an error',
-        (await rpc(port, 11, 'tasks_update', { id: 'T1' })).body.error !== undefined,
+        isMissingProperty((await rpc(port, 11, 'tasks_update', { id: 'T1' })).body.error, 'status'),
       );
       assertPass(
         'project-state: state_history returns the writes',

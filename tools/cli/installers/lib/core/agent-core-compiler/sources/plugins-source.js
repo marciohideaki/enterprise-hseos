@@ -410,11 +410,15 @@ async function verifyActivePluginConformance(root, manifests, agentsDirName = '.
     const pluginDir = path.join(root, agentsDirName, 'plugins', 'definitions', manifest.id);
     const testsDir = resolveInsidePlugin(pluginDir, manifest.verification.conformance_tests, `Active plugin ${manifest.id} tests`);
     const behaviorTests = await listBehaviorTests(testsDir);
+    // A parent that is itself a test runner exports NODE_TEST_CONTEXT, and a nested `node --test` that inherits it
+    // exits 0 even when a test fails, which would let a failing plugin through the gate.
+    const { NODE_TEST_CONTEXT: _inheritedRunnerContext, ...environment } = process.env;
     childProcess.execFileSync(process.execPath, ['--test', ...behaviorTests], {
       cwd: pluginDir,
       encoding: 'utf8',
       stdio: 'pipe',
       timeout: 30_000,
+      env: environment,
     });
   }
 }

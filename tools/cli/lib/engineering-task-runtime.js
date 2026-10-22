@@ -526,7 +526,13 @@ async function attestExecutor(policy, deadline) {
     timeout_ms: Math.min(remaining, 3000),
     max_output_bytes: 1024,
   });
-  if (probe.status !== 'succeeded' || !probe.descendants_terminated) throw new Error('Executor resource/teardown proof failed');
+  if (probe.status !== 'succeeded' || !probe.descendants_terminated) {
+    // The reason has no error code, so say what the probe saw: a load-dependent timeout and a launcher failure look alike otherwise.
+    const stderr = typeof probe.stderr === 'string' ? probe.stderr.trim().slice(0, 200) : '';
+    throw new Error(
+      `Executor resource/teardown proof failed: status=${probe.status} exit_code=${probe.exit_code} descendants_terminated=${probe.descendants_terminated}${stderr ? ` stderr=${JSON.stringify(stderr)}` : ''}`,
+    );
+  }
 }
 
 function createEngineeringTaskWorkspace(handle, created, id) {
@@ -667,7 +673,12 @@ async function runEngineeringTask({
     const state = task.read();
     if (state.created && !state.result)
       task.append(
-        { kind: 'result', result: 'blocked', reason: error.code || 'engineering-precondition-failed', evidence: {} },
+        {
+          kind: 'result',
+          result: 'blocked',
+          reason: error.code || 'engineering-precondition-failed',
+          evidence: { error_message: evidenceMessage(String(error.message)) },
+        },
         state.version,
       );
     return summary(handle, id, task, assembly);

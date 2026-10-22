@@ -402,11 +402,18 @@ async function testAgentCoreCompileRejectsFailingPluginConformance() {
       yaml.stringify({ plugins: [{ id: 'broken-plugin', version: '1.0.0', status: 'active' }] }),
     );
 
+    // A parent that is itself a test runner exports NODE_TEST_CONTEXT; a nested `node --test` that inherits it exits 0
+    // even when a test fails. The gate must hold either way, so run it with that variable present.
+    const inheritedContext = process.env.NODE_TEST_CONTEXT;
+    process.env.NODE_TEST_CONTEXT = 'child-v8';
     let error;
     try {
       await agentCoreCommand.action('compile', { directory: tempDir, target: 'claude-code' });
     } catch (error_) {
       error = error_;
+    } finally {
+      if (inheritedContext === undefined) delete process.env.NODE_TEST_CONTEXT;
+      else process.env.NODE_TEST_CONTEXT = inheritedContext;
     }
     assertPass('compile rejects an active plugin with failing behavior tests', Boolean(error));
     assertPass('failed conformance writes no manifest', !fs.existsSync(path.join(tempDir, '.agents', 'manifest.yaml')));

@@ -57,6 +57,24 @@ function parseArgs() {
   return { port, host, dbPath, pollMs, staleMinutes, registry, authToken, authTokenEnv, instanceId, projectDirectory };
 }
 
+// The kanban loads one script and one stylesheet from /assets, reads /events over EventSource and sets colours
+// through the CSSOM (element.style), which a CSP without 'unsafe-inline' allows. Nothing here needs inline code.
+const SECURITY_HEADERS = {
+  'Content-Security-Policy': [
+    "default-src 'none'",
+    "script-src 'self'",
+    "style-src 'self'",
+    "connect-src 'self'",
+    "img-src 'self'",
+    "frame-ancestors 'none'",
+    "base-uri 'none'",
+    "object-src 'none'",
+    "form-action 'none'",
+  ].join('; '),
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'no-referrer',
+};
+
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
@@ -144,6 +162,7 @@ function start({
 
   const server = http.createServer((req, res) => {
     const url = req.url.split('?')[0];
+    for (const [name, value] of Object.entries(SECURITY_HEADERS)) res.setHeader(name, value);
 
     if (url === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
