@@ -31,7 +31,7 @@ function makeSandbox(t) {
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const decisions = path.join(root, 'decisions');
   fs.mkdirSync(decisions);
-  fs.writeFileSync(path.join(decisions, 'ADR-9001-accepted.md'), '# ADR-9001: ok\n\n## Status\n\nAccepted — 2026-10-22. Owner approved.\n');
+  fs.writeFileSync(path.join(decisions, 'ADR-9001-accepted.md'), '# ADR-9001: ok\n\n## Status\n\nAccepted — 2026-10-22\n');
   fs.writeFileSync(
     path.join(decisions, 'ADR-9002-legacy.md'),
     '# ADR-9002 — legacy format\n\n**Status:** Accepted (human-approved 2026-08-21)\n',
@@ -41,14 +41,8 @@ function makeSandbox(t) {
     '# ADR-9003: later\n\n## Status\n\nProposed — 2026-10-22. Aguarda decisão.\n',
   );
   fs.writeFileSync(path.join(decisions, 'ADR-9004-superseded.md'), '# ADR-9004\n\n**Status:** Superseded by ADR-9001\n');
-  fs.writeFileSync(
-    path.join(decisions, 'ADR-0048-criterion.md'),
-    '# ADR-0048: criterion\n\n## Status\n\nAccepted — 2026-10-22. Owner approved.\n',
-  );
-  fs.writeFileSync(
-    path.join(decisions, 'ADR-0047-unrelated.md'),
-    '# ADR-0047: unrelated\n\n## Status\n\nAccepted — 2026-10-11. Unrelated decision.\n',
-  );
+  fs.writeFileSync(path.join(decisions, 'ADR-0048-criterion.md'), '# ADR-0048: criterion\n\n## Status\n\nAccepted — 2026-10-22\n');
+  fs.writeFileSync(path.join(decisions, 'ADR-0047-unrelated.md'), '# ADR-0047: unrelated\n\n## Status\n\nAccepted — 2026-10-11\n');
   const criterionAdrs = ['ADR-0048', 'ADR-9001', 'ADR-9002', 'ADR-9003', 'ADR-9004', 'ADR-9999'];
   return {
     root,
@@ -600,6 +594,16 @@ test('the ADR status parser accepts only an unambiguous Accepted status line', a
     ['superseded after dash', heading('Accepted — superseded by ADR-0001'), false],
     ['Proposed', heading('Proposed'), false],
     ['Accepted with conditions', heading('Accepted with conditions'), false],
+    ['awaiting signature', heading('Accepted — awaiting owner signature'), false],
+    ['aguarda ratificacao', heading('Accepted (aguarda ratificação do owner)'), false],
+    ['conditional', heading('Accepted (conditional)'), false],
+    ['not yet approved', heading('Accepted - not yet approved'), false],
+    ['date followed by prose', heading('Accepted — 2026-10-22. Awaiting signature'), false],
+    ['approved by plus awaiting', heading('Accepted — approved by owner, awaiting merge of the follow-up change request'), false],
+    ['whole status section commented out', '# ADR\n\n<!--\n## Status\n\nAccepted — 2026-10-22\n-->\n\n## Context\n\ntext\n', false],
+    ['status line commented out', '# ADR\n\n## Status\n\n<!-- Accepted -->\n\n## Context\n\ntext\n', false],
+    ['owner-approved with date', heading('Accepted — owner-approved 2026-10-22'), true],
+    ['approved by name', heading('Accepted (approved by Marcio Hideaki 2026-10-22)'), true],
     ['Acceptedish', heading('Acceptedish'), false],
     ['Not Accepted', heading('Not Accepted'), false],
     ['lowercase', heading('accepted'), false],
@@ -638,7 +642,8 @@ test('the real Accepted ADR layouts of the repository satisfy the parser', async
   const sandbox = makeSandbox(t);
   const databasePath = makeV4Database(sandbox.root);
   const decisions = path.join(__dirname, '..', '.enterprise', '.specs', 'decisions');
-  for (const adr of ['ADR-0022', 'ADR-0023', 'ADR-0047']) {
+  // ADR-0047 is deliberately absent: its status paragraph carries trailing prose, which the exact-form rule refuses.
+  for (const adr of ['ADR-0022', 'ADR-0023']) {
     const plan = planExecutionLedgerActivation(databasePath, { adr, internal: { decisionsDirectory: decisions, criterionAdrs: [adr] } });
     assert.equal(plan.adr_status, 'Accepted', adr);
   }

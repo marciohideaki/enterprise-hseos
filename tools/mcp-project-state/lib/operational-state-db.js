@@ -125,8 +125,11 @@ const LOCK_BUSY_TIMEOUT_MS = 200;
 // Only the ADR that defines the activation criterion opens the gate. A later ADR that supersedes the criterion
 // must be added here explicitly; an unrelated Accepted ADR never satisfies the gate.
 const ACTIVATION_CRITERION_ADRS = Object.freeze(['ADR-0048']);
-const ACCEPTED_STATUS_LINE = /^Accepted(\s*(\(|—|–|-\s).*)?$/;
-const REJECTED_STATUS_WORDS = /pending|superseded|deprecated|rejected|proposed|withdrawn/i;
+// Positive list: the status line is exactly `Accepted`, or `Accepted` plus one approval complement and nothing else.
+const APPROVAL_DATE = String.raw`\d{4}-\d{2}-\d{2}`;
+const APPROVAL_COMPLEMENT = String.raw`(?:${APPROVAL_DATE}|(?:human|owner)-approved(?: ${APPROVAL_DATE})?|approved by [A-Za-z0-9 ._@-]{1,40}?(?: ${APPROVAL_DATE})?)`;
+const ACCEPTED_STATUS_LINE = new RegExp(String.raw`^Accepted(?: [—–-] ${APPROVAL_COMPLEMENT}| \(${APPROVAL_COMPLEMENT}\))?$`);
+const REJECTED_STATUS_WORDS = /pending|superseded|deprecated|rejected|proposed|withdrawn|awaiting|aguarda|conditional|not yet/i;
 const SHA256_HEX = /^[0-9a-f]{64}$/;
 
 class ExecutionActivationError extends Error {
@@ -156,7 +159,10 @@ function sha256File(file) {
 /** Status lines of an ADR: the first line under `## Status` and any `**Status:**` line, outside code, tables and quotes. */
 function extractStatusLines(text) {
   const found = new Set();
-  const lines = text.split(/\r?\n/).map((line) => line.trim());
+  const lines = text
+    .replaceAll(/<!--[\s\S]*?-->/g, '')
+    .split(/\r?\n/)
+    .map((line) => line.trim());
   let fenced = false;
   const usable = [];
   for (const line of lines) {
