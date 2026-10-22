@@ -925,7 +925,7 @@ function createMcpEnvironmentHostFactory(section, options = {}) {
         });
       } catch (error) {
         delete host[family];
-        log(`hseos mcp: the ${family} service is off: ${error.message}`);
+        log(`hseos mcp: the ${family} service is off${error.code ? ` [${error.code}]` : ''}: ${error.message}`);
       }
     }
     if (memory) {

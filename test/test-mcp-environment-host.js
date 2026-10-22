@@ -933,3 +933,55 @@ for (const [label, prepareCache] of [
     assert.match(client.stderr(), /\b(lsp|dap)\b.*\boff\b/s);
   });
 }
+
+test('K9: an isolation policy the package refuses (a protected path that does not exist) omits the family, with its cause on stderr', async (t) => {
+  const box = sandbox(t);
+  const workspace = { ...workspaceFor(box), protected_paths: [path.join(box.root, 'main', 'nope.json')] };
+  const { names, logs } = await serverToolsWith(t, box, environmentSection({ toolchain_cache: box.root, workspace }), {
+    prepare: { lsp: () => ({ root: box.root }), dap: () => ({ root: box.root }) },
+  });
+  for (const kept of MEMORY_TOOLS) assert.ok(names.has(kept), kept);
+  for (const absent of ['environment.lsp.hover', 'environment.dap.run']) assert.ok(!names.has(absent), absent);
+  assert.ok(
+    logs.some((message) => /the lsp service is off.*protected path must exist/.test(message)),
+    logs.join('\n'),
+  );
+});
+
+test(
+  'K9: a workspace without permission never takes the server down: it boots and memory is served',
+  { skip: process.getuid?.() === 0 ? 'running as root: mode 000 does not restrict root' : false },
+  async (t) => {
+    const box = sandbox(t);
+    const workspace = workspaceFor(box);
+    fs.chmodSync(workspace.host_workspace, 0o000);
+    // Restored in a finally: the sandbox cleanup (registered earlier) would otherwise hit the locked directory first.
+    try {
+      // Composition only attests the path; the refusal of an unreadable workspace happens per call, in the service.
+      const { names } = await serverToolsWith(t, box, environmentSection({ toolchain_cache: box.root, workspace }), {
+        prepare: { lsp: () => ({ root: box.root }), dap: () => ({ root: box.root }) },
+      });
+      for (const kept of MEMORY_TOOLS) assert.ok(names.has(kept), kept);
+    } finally {
+      fs.chmodSync(workspace.host_workspace, 0o755);
+    }
+  },
+);
+
+test('K9: the off line carries the error code when there is one, and never a stack', async (t) => {
+  const box = sandbox(t);
+  const { logs } = await serverToolsWith(t, box, environmentSection({ toolchain_cache: box.root, workspace: workspaceFor(box) }), {
+    prepare: { lsp: () => ({ root: box.root }), dap: () => ({ root: box.root }) },
+    factories: {
+      lsp: () => {
+        throw Object.assign(new Error('boom'), { code: 'ENV_TEST_CODE' });
+      },
+      dap: () => {
+        throw new Error('plain');
+      },
+    },
+  });
+  assert.ok(logs.includes('hseos mcp: the lsp service is off [ENV_TEST_CODE]: boom'), logs.join('\n'));
+  assert.ok(logs.includes('hseos mcp: the dap service is off: plain'), logs.join('\n'));
+  assert.ok(!logs.some((message) => /\n\s+at /.test(message)));
+});
