@@ -839,8 +839,7 @@ async function serverToolsWith(t, box, section, options) {
   await activated(box);
   const logs = [];
   const factory = createMcpEnvironmentHostFactory(section, { isolationProbe: AVAILABLE, ...options, log: (m) => logs.push(m) });
-  assert.ok(factory, logs.join('\n'));
-  t.after(() => factory.dispose());
+  t.after(() => factory?.dispose());
   const handle = startNativeMcpServer({
     serverId: 'swarm',
     tools: new Map([['list_runs', { name: 'list_runs', description: 'd', inputSchema: { type: 'object' } }]]),
@@ -864,7 +863,7 @@ async function serverToolsWith(t, box, section, options) {
       },
     },
   });
-  return { names: new Set(listed.result.tools.map((tool) => tool.name)), logs };
+  return { names: new Set(listed.result.tools.map((tool) => tool.name)), logs, factory };
 }
 
 const BROKEN_FAMILIES = {
@@ -984,4 +983,49 @@ test('K9: the off line carries the error code when there is one, and never a sta
   assert.ok(logs.includes('hseos mcp: the lsp service is off [ENV_TEST_CODE]: boom'), logs.join('\n'));
   assert.ok(logs.includes('hseos mcp: the dap service is off: plain'), logs.join('\n'));
   assert.ok(!logs.some((message) => /\n\s+at /.test(message)));
+});
+
+// Every combination of lsp, dap and memory, each either composed or failing: the server always boots and advertises exactly
+// what was composed, and an empty result is a null host, never a refusal.
+for (const lsp of [true, false])
+  for (const dap of [true, false])
+    for (const memory of [true, false]) {
+      test(`K9 matrix: lsp ${lsp ? 'ok' : 'fails'}, dap ${dap ? 'ok' : 'fails'}, memory ${memory ? 'configured' : 'absent'}`, async (t) => {
+        const box = sandbox(t);
+        const section = environmentSection({ toolchain_cache: box.root, workspace: workspaceFor(box) });
+        if (!memory) delete section.memory;
+        const { names, logs } = await serverToolsWith(t, box, section, {
+          // A family fails by getting a toolchain without a usable root (what an empty cache yields); the others are composed.
+          prepare: { lsp: () => (lsp ? { root: box.root } : {}), dap: () => (dap ? { root: box.root } : {}) },
+          factories: {
+            ...(lsp ? { lsp: () => ({ run: async () => LSP_OK }) } : {}),
+            ...(dap ? { dap: () => ({ run: async () => ({ status: 'ok' }) }) } : {}),
+          },
+        });
+        assert.equal(names.has('environment.lsp.hover'), lsp, 'lsp');
+        assert.equal(names.has('environment.dap.run'), dap, 'dap');
+        for (const tool of MEMORY_TOOLS) assert.equal(names.has(tool), memory, tool);
+        assert.equal(
+          logs.some((message) => /the lsp service is off/.test(message)),
+          !lsp,
+        );
+        assert.equal(
+          logs.some((message) => /no environment capability could be composed/.test(message)),
+          !lsp && !dap && !memory,
+        );
+      });
+    }
+
+test('K9: the real server boots with an empty cache, a workspace and NO memory operator: no capability, a warning, exit never', async (t) => {
+  const box = sandbox(t);
+  await activated(box);
+  const cache = path.join(box.root, 'cache');
+  fs.mkdirSync(cache);
+  const section = environmentSection({ toolchain_cache: cache, workspace: workspaceFor(box) });
+  delete section.memory;
+  const client = await withServer(t, box, { config: configFile(box, section) });
+  const names = await client.names();
+  assert.ok(names.size > 0, 'the governance tools are still served');
+  for (const absent of [...MEMORY_TOOLS, 'environment.lsp.hover', 'environment.dap.run']) assert.ok(!names.has(absent), absent);
+  assert.match(client.stderr(), /no environment capability could be composed/);
 });

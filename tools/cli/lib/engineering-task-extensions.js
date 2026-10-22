@@ -892,12 +892,39 @@ function createMcpEnvironmentHostFactory(section, options = {}) {
     dispose();
     return null;
   }
+  const policyFor = (family) =>
+    config.workspace && typeof toolchains[family]?.root === 'string'
+      ? require('../../../packages/agent-isolation-attestation').createIsolationPolicy({
+          backend: 'bwrap',
+          ...config.workspace,
+          profile: SERVICE_PROFILE[family],
+          toolchain_roots: [toolchains[family].root],
+        })
+      : undefined;
+  // The host is built when the server starts, and an empty host is refused there. So what the default service needs is
+  // checked now, without a ledger: a family with no usable toolchain root, or whose isolation policy is refused, is omitted
+  // here with its code and cause, and an empty result becomes a null factory (the server boots without the capability).
+  const composable = services.filter((family) => {
+    if (options.factories?.[family]) return true;
+    try {
+      if (!policyFor(family)) throw new Error('the toolchain has no usable root, so there is no isolation policy');
+      return true;
+    } catch (error) {
+      log(`hseos mcp: the ${family} service is off${error.code ? ` [${error.code}]` : ''}: ${error.message}`);
+      return false;
+    }
+  });
+  if (composable.length === 0 && !memory) {
+    log('hseos mcp: no environment capability could be composed, so the server runs without one');
+    dispose();
+    return null;
+  }
   const factory = (wiring) => {
     const { randomUUID } = require('node:crypto');
     const environment = require('../../../packages/agent-environment');
     const { containsCredential } = require('./campaign-evidence-store');
     const host = { project_id: config.project_id };
-    for (const family of services) {
+    for (const family of composable) {
       // A family that cannot be composed (no usable toolchain root, a policy the workspace refuses) is omitted with its
       // cause; it never takes the governance server down.
       try {
@@ -909,15 +936,7 @@ function createMcpEnvironmentHostFactory(section, options = {}) {
           session_id: `mcp-${family}-${randomUUID()}`,
           containsCredential,
         });
-        const policy =
-          config.workspace && typeof toolchain?.root === 'string'
-            ? require('../../../packages/agent-isolation-attestation').createIsolationPolicy({
-                backend: 'bwrap',
-                ...config.workspace,
-                profile: SERVICE_PROFILE[family],
-                toolchain_roots: [toolchain.root],
-              })
-            : undefined;
+        const policy = policyFor(family);
         host[family] = (options.factories?.[family] ?? defaultServiceFactory(family))({
           policy,
           toolchain: toolchain ?? NOT_READY(family),
