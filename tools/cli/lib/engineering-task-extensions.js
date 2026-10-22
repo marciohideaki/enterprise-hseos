@@ -827,6 +827,11 @@ const MCP_ENVIRONMENT_ACTOR = Object.freeze({ id: 'agent:mcp-environment', type:
 const MCP_SERVICE_FAMILIES = Object.freeze(['lsp', 'dap']);
 const defaultGlobalConfigPath = () => require('node:path').join(require('node:os').homedir(), '.config', 'hseos', 'config.yaml');
 const stderrLog = (message) => process.stderr.write(`${message}\n`);
+// One short line of an error for a log: never a stack, never a multi-line message.
+const shortMessage = (error) =>
+  String(error?.message ?? error)
+    .split('\n')[0]
+    .slice(0, 200);
 
 /**
  * The host factory of an MCP server on an ACTIVATED database: `(wiring) => host`, where `wiring` is the
@@ -842,7 +847,8 @@ const stderrLog = (message) => process.stderr.write(`${message}\n`);
  *   cannot provide stays off, with a log line.
  * - computer and browser stay off by construction: they need a media store and an egress broker no server provides yet.
  *
- * `options.prepare` and `options.factories` replace the preparers and services (tests); `options.log` receives the
+ * Without isolation at start-up (no delegated cgroup, or no bwrap) lsp and dap are omitted with a logged cause, memory stays.
+ * `options.prepare`, `options.factories` and `options.isolationProbe` replace the preparers, services and probe (tests); `options.log` receives the
  * reasons. `factory.dispose()` removes the prepared toolchains.
  */
 function createMcpEnvironmentHostFactory(section, options = {}) {
@@ -855,7 +861,16 @@ function createMcpEnvironmentHostFactory(section, options = {}) {
   const dispose = () => {
     for (const directory of scratch.splice(0)) rmSync(directory, { recursive: true, force: true });
   };
-  if (config.toolchain_cache) {
+  const isolation = (options.isolationProbe ?? (() => defaultIsolationProbe()))();
+  if (!isolation.available) {
+    log(
+      `hseos mcp: environment.lsp and environment.dap are off: ${isolation.reason}. Launch the server in a delegated cgroup, ` +
+        `for example \`systemd-run --user -p Delegate=yes --wait --collect --pipe -- <server command>\`${
+          config.memory?.operator ? '; memory is unaffected' : ''
+        }`,
+    );
+  }
+  if (isolation.available && config.toolchain_cache) {
     const preparers = options.prepare ?? defaultToolchainPreparers();
     for (const family of MCP_SERVICE_FAMILIES) {
       if (typeof preparers[family] !== 'function') continue;
@@ -869,6 +884,7 @@ function createMcpEnvironmentHostFactory(section, options = {}) {
     }
   }
   const services = MCP_SERVICE_FAMILIES.filter((family) => {
+    if (!isolation.available) return false;
     const available = Boolean(options.factories?.[family]) || Boolean(toolchains[family] && config.workspace);
     if (!available)
       log(`hseos mcp: ${family} is off (it needs environment.toolchain_cache with that toolchain, and environment.workspace)`);
@@ -881,34 +897,60 @@ function createMcpEnvironmentHostFactory(section, options = {}) {
     dispose();
     return null;
   }
+  const policyFor = (family) =>
+    config.workspace && typeof toolchains[family]?.root === 'string'
+      ? require('../../../packages/agent-isolation-attestation').createIsolationPolicy({
+          backend: 'bwrap',
+          ...config.workspace,
+          profile: SERVICE_PROFILE[family],
+          toolchain_roots: [toolchains[family].root],
+        })
+      : undefined;
+  // The host is built when the server starts, and an empty host is refused there. So what the default service needs is
+  // checked now, without a ledger: a family with no usable toolchain root, or whose isolation policy is refused, is omitted
+  // here with its code and cause, and an empty result becomes a null factory (the server boots without the capability).
+  const composable = services.filter((family) => {
+    if (options.factories?.[family]) return true;
+    try {
+      if (!policyFor(family)) throw new Error('the toolchain has no usable root, so there is no isolation policy');
+      return true;
+    } catch (error) {
+      log(`hseos mcp: the ${family} service is off${error.code ? ` [${error.code}]` : ''}: ${shortMessage(error)}`);
+      return false;
+    }
+  });
+  if (composable.length === 0 && !memory) {
+    log('hseos mcp: no environment capability could be composed, so the server runs without one');
+    dispose();
+    return null;
+  }
   const factory = (wiring) => {
     const { randomUUID } = require('node:crypto');
     const environment = require('../../../packages/agent-environment');
     const { containsCredential } = require('./campaign-evidence-store');
     const host = { project_id: config.project_id };
-    for (const family of services) {
-      const toolchain = toolchains[family];
-      const ledger = environment.createEnvironmentLedgerSink({
-        ledger: wiring.ledger,
-        project_id: config.project_id,
-        actor: MCP_ENVIRONMENT_ACTOR,
-        session_id: `mcp-${family}-${randomUUID()}`,
-        containsCredential,
-      });
-      const policy =
-        config.workspace && typeof toolchain?.root === 'string'
-          ? require('../../../packages/agent-isolation-attestation').createIsolationPolicy({
-              backend: 'bwrap',
-              ...config.workspace,
-              profile: SERVICE_PROFILE[family],
-              toolchain_roots: [toolchain.root],
-            })
-          : undefined;
-      host[family] = (options.factories?.[family] ?? defaultServiceFactory(family))({
-        policy,
-        toolchain: toolchain ?? NOT_READY(family),
-        ledger,
-      });
+    for (const family of composable) {
+      // A family that cannot be composed (no usable toolchain root, a policy the workspace refuses) is omitted with its
+      // cause; it never takes the governance server down.
+      try {
+        const toolchain = toolchains[family];
+        const ledger = environment.createEnvironmentLedgerSink({
+          ledger: wiring.ledger,
+          project_id: config.project_id,
+          actor: MCP_ENVIRONMENT_ACTOR,
+          session_id: `mcp-${family}-${randomUUID()}`,
+          containsCredential,
+        });
+        const policy = policyFor(family);
+        host[family] = (options.factories?.[family] ?? defaultServiceFactory(family))({
+          policy,
+          toolchain: toolchain ?? NOT_READY(family),
+          ledger,
+        });
+      } catch (error) {
+        delete host[family];
+        log(`hseos mcp: the ${family} service is off${error.code ? ` [${error.code}]` : ''}: ${shortMessage(error)}`);
+      }
     }
     if (memory) {
       const { createExecutionApprovalVerifier } = require('../../../packages/agent-memory');
@@ -930,6 +972,55 @@ function createMcpEnvironmentHostFactory(section, options = {}) {
   };
   factory.dispose = dispose;
   return factory;
+}
+
+/**
+ * Whether the isolation the services need exists at start-up: the same delegated-cgroup verification the executor applies
+ * on every call (`executorOwner`), and the bwrap binary the policy binds. Cheap and side-effect free; `options.isolationProbe`
+ * replaces it in tests and returns `{ available, reason }`.
+ */
+function defaultIsolationProbe(inputs = {}) {
+  const fs = inputs.fs ?? require('node:fs');
+  const checkCgroup = inputs.checkCgroup ?? (() => require('../../../packages/agent-isolation-attestation/executor').executorOwner());
+  const bwrapPath = inputs.bwrapPath ?? '/usr/bin/bwrap';
+  try {
+    checkCgroup();
+  } catch (error) {
+    return { available: false, reason: `delegated cgroup unavailable (${error.message})` };
+  }
+  // The same criterion as the isolation package: a real executable file, never a symlink.
+  try {
+    const stat = fs.lstatSync(bwrapPath);
+    if (!stat.isFile() || stat.isSymbolicLink() || (stat.mode & 0o111) === 0) throw new Error('not a real executable');
+  } catch {
+    return { available: false, reason: `the bwrap binary (${bwrapPath}) is unavailable or is not a real executable` };
+  }
+  return { available: true, reason: '' };
+}
+
+/**
+ * Starts a server that takes an optional capability host. Defence in depth for "an environment error never takes the
+ * governance server down": if the start throws while a host was provided, the cause is logged (code and a short message,
+ * no stack), what the host opened is disposed, and the server is started ONCE more without the host. A second failure is
+ * a real server failure and propagates. `start(host)` receives the factory or `null`.
+ *
+ * Known imprecision, kept on purpose: the "capability host is off" line is printed whenever the first start fails, even if
+ * the cause was unrelated to the host (a busy port, say). The retry then fails the same way and that error propagates, so
+ * the line can read as misleading; it never changes what the server does.
+ */
+function startWithCapabilityFallback(start, factory, options = {}) {
+  const log = options.log ?? stderrLog;
+  if (!factory) return start(null);
+  try {
+    return start(factory);
+  } catch (error) {
+    const message = String(error?.message ?? error)
+      .split('\n')[0]
+      .slice(0, 200);
+    log(`hseos mcp: capability host is off${error?.code ? ` [${error.code}]` : ''}: ${message}`);
+    factory.dispose?.();
+    return start(null);
+  }
 }
 
 /**
@@ -968,5 +1059,7 @@ module.exports = {
   createProductionEnvironmentHost,
   createMcpEnvironmentHostFactory,
   composeMcpEnvironmentHost,
+  startWithCapabilityFallback,
+  defaultIsolationProbe,
   readEnvironmentSection,
 };
