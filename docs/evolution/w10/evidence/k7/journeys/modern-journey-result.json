@@ -1,0 +1,1191 @@
+{
+  "started_at": "2026-10-22T10:49:23.188Z",
+  "node": "v24.15.0",
+  "counts": [
+    {
+      "label": "ativado/moderno",
+      "server": "hseos-governance",
+      "transport": "stdio",
+      "banco": "<descartavel>",
+      "discover": {
+        "resultType": "complete",
+        "supportedVersions": ["2026-07-28"],
+        "serverInfo": {
+          "name": "hseos-governance",
+          "version": "2.0.0"
+        }
+      },
+      "modern": {
+        "count": 15,
+        "names": [
+          "check_authority",
+          "diff_governance_releases",
+          "evaluate_governed_action",
+          "explain_governance_decision",
+          "get_effective_governance_context",
+          "get_governance_artifact",
+          "get_governance_readiness",
+          "get_governance_release",
+          "get_governance_session_preflight",
+          "get_governance_session_status",
+          "list_skills",
+          "list_workflows",
+          "query_constitution",
+          "validate_adr",
+          "verify_governance_snapshot"
+        ]
+      },
+      "legacy_compat": {
+        "2024-11-05": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-governance",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-03-26": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-governance",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-06-18": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-governance",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-11-25": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-governance",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        }
+      }
+    },
+    {
+      "label": "ativado/moderno",
+      "server": "hseos-governance",
+      "transport": "http",
+      "banco": "<descartavel>",
+      "discover": {
+        "resultType": "complete",
+        "supportedVersions": ["2026-07-28"],
+        "serverInfo": {
+          "name": "hseos-governance",
+          "version": "2.0.0"
+        }
+      },
+      "modern": {
+        "count": 15,
+        "names": [
+          "check_authority",
+          "diff_governance_releases",
+          "evaluate_governed_action",
+          "explain_governance_decision",
+          "get_effective_governance_context",
+          "get_governance_artifact",
+          "get_governance_readiness",
+          "get_governance_release",
+          "get_governance_session_preflight",
+          "get_governance_session_status",
+          "list_skills",
+          "list_workflows",
+          "query_constitution",
+          "validate_adr",
+          "verify_governance_snapshot"
+        ]
+      },
+      "legacy_compat": {
+        "2024-11-05": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-governance",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-03-26": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-governance",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-06-18": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-governance",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-11-25": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-governance",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        }
+      }
+    },
+    {
+      "label": "ativado/moderno",
+      "server": "hseos-swarm",
+      "transport": "stdio",
+      "banco": "<descartavel>",
+      "discover": {
+        "resultType": "complete",
+        "supportedVersions": ["2026-07-28"],
+        "serverInfo": {
+          "name": "hseos-swarm",
+          "version": "2.0.0"
+        }
+      },
+      "modern": {
+        "count": 5,
+        "names": ["consolidate_handoff", "dispatch_wave", "get_run_state", "list_runs", "plan_squad"]
+      },
+      "legacy_compat": {
+        "2024-11-05": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-swarm",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 5
+          }
+        },
+        "2025-03-26": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-swarm",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 5
+          }
+        },
+        "2025-06-18": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-swarm",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 5
+          }
+        },
+        "2025-11-25": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-swarm",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 5
+          }
+        }
+      }
+    },
+    {
+      "label": "ativado/moderno",
+      "server": "hseos-swarm",
+      "transport": "http",
+      "banco": "<descartavel>",
+      "discover": {
+        "resultType": "complete",
+        "supportedVersions": ["2026-07-28"],
+        "serverInfo": {
+          "name": "hseos-swarm",
+          "version": "2.0.0"
+        }
+      },
+      "modern": {
+        "count": 5,
+        "names": ["consolidate_handoff", "dispatch_wave", "get_run_state", "list_runs", "plan_squad"]
+      },
+      "legacy_compat": {
+        "2024-11-05": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-swarm",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 5
+          }
+        },
+        "2025-03-26": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-swarm",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 5
+          }
+        },
+        "2025-06-18": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-swarm",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 5
+          }
+        },
+        "2025-11-25": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-swarm",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 5
+          }
+        }
+      }
+    },
+    {
+      "label": "ativado/moderno",
+      "server": "hseos-project-state",
+      "transport": "stdio",
+      "banco": "<descartavel>",
+      "discover": {
+        "resultType": "complete",
+        "supportedVersions": ["2026-07-28"],
+        "serverInfo": {
+          "name": "hseos-project-state",
+          "version": "2.0.0"
+        }
+      },
+      "modern": {
+        "count": 15,
+        "names": [
+          "agent_runs_list",
+          "event_emit",
+          "events_search",
+          "handoff_get",
+          "handoffs_list",
+          "orphans_list",
+          "run_create",
+          "run_describe",
+          "runs_list",
+          "state_history",
+          "state_read",
+          "state_write",
+          "tasks_add",
+          "tasks_list",
+          "tasks_update"
+        ]
+      },
+      "legacy_compat": {
+        "2024-11-05": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-03-26": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-06-18": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-11-25": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        }
+      }
+    },
+    {
+      "label": "ativado/moderno",
+      "server": "hseos-project-state",
+      "transport": "http",
+      "banco": "<descartavel>",
+      "discover": {
+        "resultType": "complete",
+        "supportedVersions": ["2026-07-28"],
+        "serverInfo": {
+          "name": "hseos-project-state",
+          "version": "2.0.0"
+        }
+      },
+      "modern": {
+        "count": 15,
+        "names": [
+          "agent_runs_list",
+          "event_emit",
+          "events_search",
+          "handoff_get",
+          "handoffs_list",
+          "orphans_list",
+          "run_create",
+          "run_describe",
+          "runs_list",
+          "state_history",
+          "state_read",
+          "state_write",
+          "tasks_add",
+          "tasks_list",
+          "tasks_update"
+        ]
+      },
+      "legacy_compat": {
+        "2024-11-05": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-03-26": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-06-18": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-11-25": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        }
+      }
+    },
+    {
+      "label": "ativado/moderno",
+      "server": "axon-bridge",
+      "transport": "stdio",
+      "banco": "<descartavel>",
+      "discover": {
+        "resultType": "complete",
+        "supportedVersions": ["2026-07-28"],
+        "serverInfo": {
+          "name": "axon-bridge",
+          "version": "2.0.0"
+        }
+      },
+      "modern": {
+        "count": 6,
+        "names": ["code_search", "dep_graph", "get_overview", "get_skeleton", "memory_search", "run_pipeline"]
+      },
+      "legacy_compat": {
+        "2024-11-05": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "axon-bridge",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 6
+          }
+        },
+        "2025-03-26": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "axon-bridge",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 6
+          }
+        },
+        "2025-06-18": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "axon-bridge",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 6
+          }
+        },
+        "2025-11-25": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "axon-bridge",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 6
+          }
+        }
+      }
+    },
+    {
+      "label": "ativado/moderno",
+      "server": "axon-bridge",
+      "transport": "http",
+      "banco": "<descartavel>",
+      "discover": {
+        "resultType": "complete",
+        "supportedVersions": ["2026-07-28"],
+        "serverInfo": {
+          "name": "axon-bridge",
+          "version": "2.0.0"
+        }
+      },
+      "modern": {
+        "count": 6,
+        "names": ["code_search", "dep_graph", "get_overview", "get_skeleton", "memory_search", "run_pipeline"]
+      },
+      "legacy_compat": {
+        "2024-11-05": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "axon-bridge",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 6
+          }
+        },
+        "2025-03-26": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "axon-bridge",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 6
+          }
+        },
+        "2025-06-18": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "axon-bridge",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 6
+          }
+        },
+        "2025-11-25": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "axon-bridge",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 6
+          }
+        }
+      }
+    },
+    {
+      "label": "ativado+environment",
+      "server": "hseos-project-state",
+      "transport": "stdio",
+      "banco": "<descartavel>",
+      "discover": {
+        "resultType": "complete",
+        "supportedVersions": ["2026-07-28"],
+        "serverInfo": {
+          "name": "hseos-project-state",
+          "version": "2.0.0"
+        }
+      },
+      "modern": {
+        "count": 18,
+        "names": [
+          "agent_runs_list",
+          "event_emit",
+          "events_search",
+          "handoff_get",
+          "handoffs_list",
+          "memory.delete",
+          "memory.retrieve",
+          "memory.write",
+          "orphans_list",
+          "run_create",
+          "run_describe",
+          "runs_list",
+          "state_history",
+          "state_read",
+          "state_write",
+          "tasks_add",
+          "tasks_list",
+          "tasks_update"
+        ]
+      },
+      "legacy_compat": {
+        "2024-11-05": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 18
+          }
+        },
+        "2025-03-26": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 18
+          }
+        },
+        "2025-06-18": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 18
+          }
+        },
+        "2025-11-25": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 18
+          }
+        }
+      }
+    },
+    {
+      "label": "ativado+environment",
+      "server": "hseos-project-state",
+      "transport": "http",
+      "banco": "<descartavel>",
+      "discover": {
+        "resultType": "complete",
+        "supportedVersions": ["2026-07-28"],
+        "serverInfo": {
+          "name": "hseos-project-state",
+          "version": "2.0.0"
+        }
+      },
+      "modern": {
+        "count": 18,
+        "names": [
+          "agent_runs_list",
+          "event_emit",
+          "events_search",
+          "handoff_get",
+          "handoffs_list",
+          "memory.delete",
+          "memory.retrieve",
+          "memory.write",
+          "orphans_list",
+          "run_create",
+          "run_describe",
+          "runs_list",
+          "state_history",
+          "state_read",
+          "state_write",
+          "tasks_add",
+          "tasks_list",
+          "tasks_update"
+        ]
+      },
+      "legacy_compat": {
+        "2024-11-05": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 18
+          }
+        },
+        "2025-03-26": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 18
+          }
+        },
+        "2025-06-18": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 18
+          }
+        },
+        "2025-11-25": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "2.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 18
+          }
+        }
+      }
+    },
+    {
+      "label": "controle v4/legado",
+      "server": "hseos-governance",
+      "transport": "stdio",
+      "banco": "<descartavel>",
+      "discover": {
+        "error": {
+          "code": -32601,
+          "message": "Method not found: server/discover"
+        }
+      },
+      "modern": {
+        "count": 15,
+        "names": [
+          "check_authority",
+          "list_skills",
+          "list_workflows",
+          "get_effective_governance_context",
+          "evaluate_governed_action",
+          "explain_governance_decision",
+          "get_governance_artifact",
+          "get_governance_release",
+          "diff_governance_releases",
+          "verify_governance_snapshot",
+          "get_governance_session_status",
+          "get_governance_session_preflight",
+          "get_governance_readiness",
+          "query_constitution",
+          "validate_adr"
+        ]
+      },
+      "legacy_compat": {
+        "2024-11-05": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-governance",
+              "version": "1.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-03-26": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-governance",
+              "version": "1.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-06-18": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-governance",
+              "version": "1.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-11-25": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-governance",
+              "version": "1.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        }
+      }
+    },
+    {
+      "label": "controle v4/legado",
+      "server": "hseos-swarm",
+      "transport": "stdio",
+      "banco": "<descartavel>",
+      "discover": {
+        "error": {
+          "code": -32601,
+          "message": "Method not found: server/discover"
+        }
+      },
+      "modern": {
+        "count": 5,
+        "names": ["consolidate_handoff", "dispatch_wave", "get_run_state", "list_runs", "plan_squad"]
+      },
+      "legacy_compat": {
+        "2024-11-05": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-swarm",
+              "version": "1.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 5
+          }
+        },
+        "2025-03-26": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-swarm",
+              "version": "1.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 5
+          }
+        },
+        "2025-06-18": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-swarm",
+              "version": "1.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 5
+          }
+        },
+        "2025-11-25": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-swarm",
+              "version": "1.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 5
+          }
+        }
+      }
+    },
+    {
+      "label": "controle v4/legado",
+      "server": "hseos-project-state",
+      "transport": "stdio",
+      "banco": "<descartavel>",
+      "discover": {
+        "error": {
+          "code": -32601,
+          "message": "Method not found: server/discover"
+        }
+      },
+      "modern": {
+        "count": 15,
+        "names": [
+          "state_read",
+          "state_write",
+          "tasks_list",
+          "tasks_add",
+          "tasks_update",
+          "state_history",
+          "agent_runs_list",
+          "orphans_list",
+          "event_emit",
+          "events_search",
+          "handoffs_list",
+          "handoff_get",
+          "runs_list",
+          "run_describe",
+          "run_create"
+        ]
+      },
+      "legacy_compat": {
+        "2024-11-05": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "1.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-03-26": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "1.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-06-18": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "1.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        },
+        "2025-11-25": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "hseos-project-state",
+              "version": "1.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 15
+          }
+        }
+      }
+    },
+    {
+      "label": "controle v4/legado",
+      "server": "axon-bridge",
+      "transport": "stdio",
+      "banco": "<descartavel>",
+      "discover": {
+        "error": {
+          "code": -32601,
+          "message": "Method not found: server/discover"
+        }
+      },
+      "modern": {
+        "count": 6,
+        "names": ["code_search", "dep_graph", "get_overview", "get_skeleton", "memory_search", "run_pipeline"]
+      },
+      "legacy_compat": {
+        "2024-11-05": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "axon-bridge",
+              "version": "1.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 6
+          }
+        },
+        "2025-03-26": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "axon-bridge",
+              "version": "1.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 6
+          }
+        },
+        "2025-06-18": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "axon-bridge",
+              "version": "1.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 6
+          }
+        },
+        "2025-11-25": {
+          "initialize": {
+            "negotiated": "2024-11-05",
+            "serverInfo": {
+              "name": "axon-bridge",
+              "version": "1.0.0"
+            }
+          },
+          "tools_list": {
+            "count": 6
+          }
+        }
+      }
+    }
+  ],
+  "host": [
+    {
+      "id": "h01",
+      "title": "tools/list moderno anuncia memory.* e environment.lsp.*; computer/browser seguem desligados",
+      "status": "PASS",
+      "detail": {
+        "count": 24,
+        "environment_and_memory": [
+          "environment.dap.run",
+          "environment.lsp.definition",
+          "environment.lsp.diagnostics",
+          "environment.lsp.hover",
+          "environment.lsp.references",
+          "environment.lsp.rename_preview",
+          "memory.delete",
+          "memory.retrieve",
+          "memory.write"
+        ]
+      }
+    },
+    {
+      "id": "h02",
+      "title": "environment.lsp.hover real (typescript-language-server do cache pinado)",
+      "status": "PASS",
+      "detail": {
+        "ok": true,
+        "hover_data_excerpt": "{\"operation_id\":\"3cdb23b1-1d14-53b1-8b71-7cd84f38dfd1\",\"result\":{\"contract\":\"environment.lsp.v1\",\"status\":\"ok\",\"action\":\"hover\",\"language\":\"typescript\",\"result\":{\"hover\":\"\\n```typescript\\nfunction calculate(n: number): number\\n```\\n\",\"trunc"
+      }
+    },
+    {
+      "id": "h03",
+      "title": "memory.write -> memory.retrieve (include_untrusted)",
+      "status": "PASS",
+      "detail": {
+        "retrieved": 1,
+        "authority": "data"
+      }
+    },
+    {
+      "id": "h04",
+      "title": "memory duravel: retrieve depois de reiniciar o servidor (novo processo, mesmo project.db)",
+      "status": "PASS",
+      "detail": {
+        "retrieved_after_restart": 1
+      }
+    },
+    {
+      "id": "h05",
+      "title": "memory.delete: input_required; decline NAO apaga",
+      "status": "PASS",
+      "detail": {
+        "resultType": "input_required",
+        "after_decline_count": 1
+      }
+    },
+    {
+      "id": "h06",
+      "title": "memory.delete: accept apaga",
+      "status": "PASS",
+      "detail": {
+        "after_accept_count": 0
+      }
+    },
+    {
+      "id": "h07",
+      "title": "cliente legado (initialize 2025-06-18) -> memory.delete = MCP_LEGACY_APPROVAL_UNSUPPORTED e nada apagado",
+      "status": "PASS",
+      "detail": {
+        "negotiated": "2024-11-05",
+        "code": "MCP_LEGACY_APPROVAL_UNSUPPORTED"
+      }
+    },
+    {
+      "id": "h08",
+      "title": "credencial na memoria e recusada e nunca chega ao ledger",
+      "status": "PASS",
+      "detail": {
+        "refused": true
+      }
+    },
+    {
+      "id": "h09",
+      "title": "ledger do project.db ativado: eventos agent_memory e environment_session; credencial ausente",
+      "status": "PASS",
+      "detail": {
+        "agent_memory": {
+          "memory.written": 2,
+          "memory.deleted": 1
+        },
+        "environment_session": {
+          "environment.lsp.completed": 1
+        },
+        "credential_in_ledger": false
+      }
+    },
+    {
+      "id": "h10",
+      "title": "controle: sem a secao environment: nenhuma capability anunciada",
+      "status": "PASS",
+      "detail": {
+        "advertised": 0,
+        "error": "Unknown tool: memory.retrieve"
+      }
+    }
+  ],
+  "finished_at": "2026-10-22T10:49:44.527Z",
+  "verdict": "PASS"
+}

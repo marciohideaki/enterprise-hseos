@@ -1,0 +1,3 @@
+mcp_legacy_usage_daily: [{"usage_day":"2026-10-22","server_id":"project_state","client_hash":"afbf3652e26de401a197ce5dd0e92fa94d97c96034e2fd49c3c342aac520db9b","client_label":"codex-mcp-client@0.163.0","protocol_version":"2024-11-05","request_count":3,"first_seen_at":"2026-10-22T10:42:32.510Z","last_seen_at":"2026-10-22T10:42:32.514Z","sunset":"none-configured"}]
+mcp_legacy_observation_daily: [{"usage_day":"2026-10-22","server_id":"project_state","heartbeat_count":12,"legacy_request_count":3,"first_observed_at":"2026-10-22T10:42:32.223Z","last_observed_at":"2026-10-22T10:44:11.691Z"}]
+claude-code rows in usage_daily: 0

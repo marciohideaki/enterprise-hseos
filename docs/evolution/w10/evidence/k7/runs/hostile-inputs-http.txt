@@ -1,0 +1,4 @@
+body=null -> [ http=000] servidor=MORREU TypeError: Cannot read properties of null (reading 'id')
+body=[null] -> [{"jsonrpc":"2.0","id":null,"error":{"code":-32600,"message":"Invalid JSON-RPC request"}} http=200] servidor=vivo 
+body=1 -> [{"jsonrpc":"2.0","id":null,"error":{"code":-32600,"message":"Invalid JSON-RPC request"}} http=200] servidor=vivo 
+body=[] -> [{"jsonrpc":"2.0","id":null,"error":{"code":-32600,"message":"Invalid JSON-RPC request"}} http=200] servidor=vivo 

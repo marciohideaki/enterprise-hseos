@@ -1,0 +1,106 @@
+[
+  {
+    "t": "2026-10-22T10:42:31.782Z",
+    "dir": "client->server",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 0,
+      "method": "initialize",
+      "params": {
+        "protocolVersion": "2025-06-18",
+        "capabilities": {
+          "experimental": {
+            "codex/auth-change": {}
+          },
+          "elicitation": {
+            "form": {},
+            "url": {}
+          }
+        },
+        "clientInfo": {
+          "name": "codex-mcp-client",
+          "title": "Codex",
+          "version": "0.163.0"
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T10:42:32.510Z",
+    "dir": "server->client",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 0,
+      "result": {
+        "protocolVersion": "2024-11-05",
+        "serverInfo": {
+          "name": "hseos-project-state",
+          "version": "2.0.0"
+        },
+        "capabilities": {
+          "tools": {}
+        },
+        "_meta": {
+          "deprecation": "MCP 2024-11-05 compatibility is deprecated; migrate to MCP 2026-07-28",
+          "sunset": "none-configured"
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T10:42:32.512Z",
+    "dir": "client->server",
+    "frame": {
+      "jsonrpc": "2.0",
+      "method": "notifications/initialized"
+    }
+  },
+  {
+    "t": "2026-10-22T10:42:32.514Z",
+    "dir": "client->server",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "method": "tools/list",
+      "params": {
+        "_meta": {
+          "progressToken": 0
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T10:42:32.514Z",
+    "dir": "server->client",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "tools": {
+          "count": 15,
+          "names": [
+            "agent_runs_list",
+            "event_emit",
+            "events_search",
+            "handoff_get",
+            "handoffs_list",
+            "orphans_list",
+            "run_create",
+            "run_describe",
+            "runs_list",
+            "state_history",
+            "state_read",
+            "state_write",
+            "tasks_add",
+            "tasks_list",
+            "tasks_update"
+          ]
+        },
+        "_meta": {
+          "deprecation": "Legacy compatibility is deprecated",
+          "sunset": "none-configured"
+        }
+      }
+    }
+  }
+]
