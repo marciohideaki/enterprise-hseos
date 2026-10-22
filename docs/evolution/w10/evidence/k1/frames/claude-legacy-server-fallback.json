@@ -1,0 +1,170 @@
+[
+  {
+    "t": "2026-10-22T03:08:35.412Z",
+    "dir": "client->server",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": "server-discover-probe-1",
+      "method": "server/discover",
+      "params": {
+        "_meta": {
+          "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+          "io.modelcontextprotocol/clientInfo": {
+            "name": "claude-code",
+            "title": "Claude Code",
+            "version": "2.1.305",
+            "description": "Anthropic's agentic coding tool",
+            "websiteUrl": "https://claude.com/claude-code"
+          },
+          "io.modelcontextprotocol/clientCapabilities": {
+            "roots": {
+              "listChanged": true
+            },
+            "elicitation": {
+              "form": {},
+              "url": {}
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T03:08:35.639Z",
+    "dir": "server->client",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": "server-discover-probe-1",
+      "error": {
+        "code": -32601,
+        "message": "Method not found: server/discover"
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T03:08:35.647Z",
+    "dir": "client->server",
+    "frame": {
+      "method": "initialize",
+      "params": {
+        "protocolVersion": "2025-11-25",
+        "capabilities": {
+          "roots": {
+            "listChanged": true
+          },
+          "elicitation": {
+            "form": {},
+            "url": {}
+          }
+        },
+        "clientInfo": {
+          "name": "claude-code",
+          "title": "Claude Code",
+          "version": "2.1.305",
+          "description": "Anthropic's agentic coding tool",
+          "websiteUrl": "https://claude.com/claude-code"
+        }
+      },
+      "jsonrpc": "2.0",
+      "id": 0
+    }
+  },
+  {
+    "t": "2026-10-22T03:08:35.648Z",
+    "dir": "server->client",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 0,
+      "result": {
+        "protocolVersion": "2024-11-05",
+        "serverInfo": {
+          "name": "hseos-governance",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "tools": {}
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T03:08:35.652Z",
+    "dir": "client->server",
+    "frame": {
+      "jsonrpc": "2.0",
+      "method": "notifications/initialized"
+    }
+  },
+  {
+    "t": "2026-10-22T03:08:35.652Z",
+    "dir": "client->server",
+    "frame": {
+      "method": "tools/list",
+      "jsonrpc": "2.0",
+      "id": 1
+    }
+  },
+  {
+    "t": "2026-10-22T03:08:35.653Z",
+    "dir": "server->client",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "tools": {
+          "count": 15,
+          "names": [
+            "check_authority",
+            "list_skills",
+            "list_workflows",
+            "get_effective_governance_context",
+            "evaluate_governed_action",
+            "explain_governance_decision",
+            "get_governance_artifact",
+            "get_governance_release",
+            "diff_governance_releases",
+            "verify_governance_snapshot",
+            "get_governance_session_status",
+            "get_governance_session_preflight",
+            "get_governance_readiness",
+            "query_constitution",
+            "validate_adr"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T03:08:38.304Z",
+    "dir": "client->server",
+    "frame": {
+      "method": "tools/call",
+      "params": {
+        "name": "list_workflows",
+        "arguments": {},
+        "_meta": {
+          "claudecode/toolUseId": "toolu_012zPBi2xbvRXiNM6hDvCPqj",
+          "progressToken": 2
+        }
+      },
+      "jsonrpc": "2.0",
+      "id": 2
+    }
+  },
+  {
+    "t": "2026-10-22T03:08:38.333Z",
+    "dir": "server->client",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 2,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text_bytes": 2293
+          }
+        ]
+      }
+    }
+  }
+]

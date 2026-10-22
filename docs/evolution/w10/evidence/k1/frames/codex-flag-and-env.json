@@ -1,0 +1,123 @@
+[
+  {
+    "t": "2026-10-22T03:07:16.987Z",
+    "dir": "client->server",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 0,
+      "method": "server/discover",
+      "params": {
+        "_meta": {
+          "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+          "io.modelcontextprotocol/clientInfo": {
+            "name": "codex-mcp-client",
+            "title": "Codex",
+            "version": "0.163.0"
+          },
+          "io.modelcontextprotocol/clientCapabilities": {
+            "experimental": {
+              "codex/auth-change": {}
+            },
+            "elicitation": {
+              "form": {},
+              "url": {}
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T03:07:17.426Z",
+    "dir": "server->client",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 0,
+      "result": {
+        "resultType": "complete",
+        "supportedVersions": ["2026-07-28"],
+        "capabilities": {
+          "tools": {}
+        },
+        "ttlMs": 30000,
+        "cacheScope": "private",
+        "_meta": {
+          "io.hseos/toolCatalogRevision": "975ec6a2507bfb64d5e8591c15e4d4e52b32fead5c153118979d84316896be53",
+          "io.modelcontextprotocol/serverInfo": {
+            "name": "hseos-governance",
+            "version": "2.0.0"
+          }
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T03:07:17.426Z",
+    "dir": "client->server",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "method": "tools/list",
+      "params": {
+        "_meta": {
+          "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+          "io.modelcontextprotocol/clientInfo": {
+            "name": "codex-mcp-client",
+            "title": "Codex",
+            "version": "0.163.0"
+          },
+          "io.modelcontextprotocol/clientCapabilities": {
+            "experimental": {
+              "codex/auth-change": {}
+            },
+            "elicitation": {
+              "form": {},
+              "url": {}
+            }
+          },
+          "progressToken": 0
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T03:07:17.427Z",
+    "dir": "server->client",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "resultType": "complete",
+        "tools": {
+          "count": 15,
+          "names": [
+            "check_authority",
+            "diff_governance_releases",
+            "evaluate_governed_action",
+            "explain_governance_decision",
+            "get_effective_governance_context",
+            "get_governance_artifact",
+            "get_governance_readiness",
+            "get_governance_release",
+            "get_governance_session_preflight",
+            "get_governance_session_status",
+            "list_skills",
+            "list_workflows",
+            "query_constitution",
+            "validate_adr",
+            "verify_governance_snapshot"
+          ]
+        },
+        "ttlMs": 30000,
+        "cacheScope": "private",
+        "_meta": {
+          "io.hseos/toolCatalogRevision": "975ec6a2507bfb64d5e8591c15e4d4e52b32fead5c153118979d84316896be53",
+          "io.modelcontextprotocol/serverInfo": {
+            "name": "hseos-governance",
+            "version": "2.0.0"
+          }
+        }
+      }
+    }
+  }
+]
