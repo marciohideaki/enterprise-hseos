@@ -211,12 +211,23 @@ const MAX_PENDING_GRANTS = 64;
  * action, opens the service's own request for exactly that action); `grant` runs only after that human accepted and
  * resolves the service gate with the approver's identity; `take` hands the provider the grant for the very same input.
  */
-function createCapabilityApprovals({ host, normalize }) {
+function createCapabilityApprovals({ host, normalize, tools = new Map() }) {
   const pending = new Map();
   // The runtime hands a provider the contract-normalized input (defaults filled); both sides compare that one form.
   const canonical = (tool, input) => stable(normalize(tool, input));
   return Object.freeze({
     describe(request, operationId) {
+      // A tool may declare a deterministic, side-effect-free `preflight(input)`: scope and input that can never succeed are
+      // refused here, before a person is asked. The tool repeats the same check when it executes.
+      const preflight = tools.get(request.tool)?.preflight;
+      if (typeof preflight === 'function') {
+        try {
+          preflight(request.input);
+        } catch (error) {
+          if (error && typeof error.code === 'string') throw Object.assign(error, { preApprovalRefusal: true });
+          throw error;
+        }
+      }
       if (request.tool === 'environment.computer.act') {
         if (!host?.computer) throw capabilityUnavailable(request.tool, 'the host has no computer');
         const { session_id: sessionId, ...action } = normalize(request.tool, request.input);
@@ -453,6 +464,7 @@ function createOperationalExecution({ db, serverId, tools, invokeTool, maxConcur
   const host = environmentHost ? validateEnvironmentHost(environmentHost(wiring)) : null;
   const capabilityApprovals = createCapabilityApprovals({
     host,
+    tools,
     normalize: (tool, input) => contracts.validateInput(contracts.resolve(tool), input),
   });
   const deriveDeleteApproval = (input, context) => {
