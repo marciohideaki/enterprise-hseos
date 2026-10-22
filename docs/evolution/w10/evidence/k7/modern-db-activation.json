@@ -1,0 +1,11 @@
+{
+  "mode": {
+    "mode": "modern",
+    "fixture": false,
+    "modern": true,
+    "user_version": 17
+  },
+  "user_version_after": 17,
+  "backup_sha256": "c9dfebafc5a0f50d00a58525f9416ee772bd3ced745cfd352a70c343c2cf7cc8",
+  "original_sha256_before": "c9dfebafc5a0f50d00a58525f9416ee772bd3ced745cfd352a70c343c2cf7cc8"
+}

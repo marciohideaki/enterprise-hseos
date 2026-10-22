@@ -1,0 +1,57 @@
+{
+  "veredito": "FAIL",
+  "totais": {
+    "PASS": 85,
+    "FAIL": 34,
+    "BLOCKED": 0,
+    "NOT_EXERCISED": 4
+  },
+  "fail_por_categoria": {
+    "envelope-governado": 12,
+    "crash": 3,
+    "aprovacao-nao-suportada-no-legado": 3,
+    "cascata-timeout-apos-crash": 16
+  },
+  "legenda": {
+    "crash": "linha JSON `null` derruba o servidor moderno em stdio (TypeError em tools/lib/mcp-2026-adapter.js:1194); o servidor legado responde -32600",
+    "aprovacao-nao-suportada-no-legado": "esperado: cliente legado nao aprova (ADR-0023 item 15); a ferramenta e listada e a chamada devolve MCP_LEGACY_APPROVAL_UNSUPPORTED",
+    "envelope-governado": "o journey legado espera o corpo cru do legado; o servidor governado devolve o envelope {schema_version, ok, data|error}; a chamada em si retorna ok:true (ou ok:false com o codigo esperado AXON_UNAVAILABLE)",
+    "cascata-timeout-apos-crash": "passos executados depois da morte do servidor: nao provam nada sobre o servidor moderno"
+  },
+  "itens": [
+    "hseos-governance query_constitution  -> envelope-governado",
+    "hseos-governance check_authority  -> envelope-governado",
+    "hseos-governance validate_adr  -> envelope-governado",
+    "hseos-governance list_skills  -> envelope-governado",
+    "hseos-governance non-request:null non-object -> crash",
+    "hseos-swarm plan_squad  -> aprovacao-nao-suportada-no-legado",
+    "hseos-swarm get_run_state  -> envelope-governado",
+    "hseos-swarm non-request:null non-object -> crash",
+    "hseos-swarm plan_squad schema-required-missing -> cascata-timeout-apos-crash",
+    "hseos-swarm get_run_state out-of-scope-read:relative-traversal -> cascata-timeout-apos-crash",
+    "hseos-swarm get_run_state out-of-scope-read:absolute-path -> cascata-timeout-apos-crash",
+    "hseos-swarm get_run_state out-of-scope-read:dotdot -> cascata-timeout-apos-crash",
+    "hseos-swarm dispatch_wave out-of-scope-read:relative-traversal -> cascata-timeout-apos-crash",
+    "hseos-swarm consolidate_handoff out-of-scope-read:relative-traversal -> cascata-timeout-apos-crash",
+    "hseos-swarm consolidate_handoff out-of-scope-read:source_task-traversal -> cascata-timeout-apos-crash",
+    "hseos-swarm get_run_state out-of-scope-read:symlinked-run-dir -> cascata-timeout-apos-crash",
+    "hseos-swarm get_run_state out-of-scope-read:symlinked-file -> cascata-timeout-apos-crash",
+    "hseos-swarm get_run_state out-of-scope-read:dangling-symlink -> cascata-timeout-apos-crash",
+    "hseos-swarm plan_squad out-of-scope-write:relative-traversal -> cascata-timeout-apos-crash",
+    "hseos-swarm plan_squad out-of-scope-write:absolute-path -> cascata-timeout-apos-crash",
+    "hseos-swarm plan_squad out-of-scope-write:symlinked-run-dir -> cascata-timeout-apos-crash",
+    "hseos-project-state state_write  -> aprovacao-nao-suportada-no-legado",
+    "hseos-project-state state_read  -> envelope-governado",
+    "hseos-project-state tasks_add  -> envelope-governado",
+    "hseos-project-state tasks_list  -> envelope-governado",
+    "hseos-project-state tasks_update  -> aprovacao-nao-suportada-no-legado",
+    "hseos-project-state runs_list  -> envelope-governado",
+    "hseos-project-state state_history  -> envelope-governado",
+    "hseos-project-state non-request:null non-object -> crash",
+    "hseos-project-state tasks_list enum-violation -> cascata-timeout-apos-crash",
+    "hseos-project-state run_describe nonexistent-entity -> cascata-timeout-apos-crash",
+    "hseos-project-state tasks_update nonexistent-entity -> cascata-timeout-apos-crash",
+    "axon-bridge[axon-absent] get_overview axon-unavailable -> envelope-governado",
+    "axon-bridge[axon-absent] code_search axon-unavailable -> envelope-governado"
+  ]
+}
