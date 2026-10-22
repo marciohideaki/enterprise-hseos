@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Deterministic stand-in for the `claude` binary: `--version`, `auth status` and headless stream-json.
 // Behaviour comes from ${HOME}/fake-mode.json because the driver forwards only an allowlisted environment.
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -29,9 +30,16 @@ if (argv[0] === '--version') {
   for await (const chunk of process.stdin) prompt += chunk;
   const session = flag('--session-id') ?? flag('--resume') ?? randomUUID();
   const base = { session_id: session, uuid: randomUUID() };
-  if (mode.run === 'stubborn') {
+  if (mode.run === 'stubborn' || mode.run === 'immortal') {
     process.on('SIGINT', () => {});
     process.on('SIGTERM', () => {});
+  }
+  if (mode.run === 'immortal') {
+    // A grandchild in its own session and process group: no signal sent to the client or its group reaches it, so only a
+    // kill of the whole cgroup does. The test reads its pid from this file.
+    const grandchild = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { detached: true, stdio: 'ignore' });
+    grandchild.unref();
+    fs.writeFileSync(path.join(home, 'grandchild.pid'), String(grandchild.pid));
   }
   emit({
     ...base,
@@ -59,7 +67,7 @@ if (argv[0] === '--version') {
     await new Promise((resolve) => setTimeout(resolve, 100));
     process.stdout.write(line.subarray(cut));
   }
-  if (mode.run === 'stubborn') setInterval(() => {}, 1000);
+  if (mode.run === 'stubborn' || mode.run === 'immortal') setInterval(() => {}, 1000);
   else {
     if (mode.run === 'big') for (let i = 0; i < 40; i++) emit({ ...base, type: 'assistant', message: { content: [{ type: 'text', text: 'x'.repeat(30_000) }] } });
     const status = { warning: 'allowed_warning', rejected: 'rejected' }[mode.run] ?? 'allowed';

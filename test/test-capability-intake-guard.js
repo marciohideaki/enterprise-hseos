@@ -1418,13 +1418,27 @@ test('lexer: the sliced legacy lexer equals the pinned legacy lexer, and a reali
     'export const helper = (a, b) => a / b + (a % b) / 2;',
     '',
   ].join('\n');
-  const content = module.repeat(Math.ceil(1_000_000 / module.length)) + 'export class R {}';
+  const realistic = (bytes) => module.repeat(Math.ceil(bytes / module.length)) + 'export class R {}';
+  const content = realistic(1_000_000);
   assert.ok(content.length >= 1_000_000);
-  const started = process.hrtime.bigint();
-  const found = detectExports(content);
-  const milliseconds = Number(process.hrtime.bigint() - started) / 1e6;
-  assert.ok(found.symbols.includes('R') && found.symbols.includes('helper'));
-  assert.ok(milliseconds < 200, `realistic 1 MB took ${milliseconds} ms`);
+  const fastest = (text) => {
+    let best = Number.POSITIVE_INFINITY;
+    for (let round = 0; round < 5; round += 1) {
+      const started = process.hrtime.bigint();
+      const found = detectExports(text);
+      best = Math.min(best, Number(process.hrtime.bigint() - started) / 1e6);
+      assert.ok(found.symbols.includes('R') && found.symbols.includes('helper'));
+    }
+    return best;
+  };
+  // Cost must scale with the input: four times the text may cost about four times as much (measured 4.1 to 4.8, also
+  // on a heavily loaded host), where an extra quadratic pass would cost sixteen. Both sides come from this same run, so
+  // the load cancels out. The wall-clock figure is only a backstop (ten times the old 200 ms budget) for a catastrophic
+  // regression; it is not the guarantee.
+  const quarter = fastest(realistic(250_000));
+  const full = fastest(content);
+  assert.ok(full < quarter * 7, `4x the text cost ${full / quarter}x (${quarter} ms -> ${full} ms)`);
+  assert.ok(full < 2000, `realistic 1 MB took ${full} ms`);
 });
 
 test('guard: ambiguous slashes cost a constant number of passes, however many there are (1 MB)', () => {
@@ -1439,12 +1453,16 @@ test('guard: ambiguous slashes cost a constant number of passes, however many th
     }
     return best;
   };
+  // The guarantee is a number of passes, not wall time: every bound is relative to timings taken in this same run, so a
+  // loaded host slows the controls and the measurements alike. (The absolute budget of a realistic file is asserted above.)
+  const ambiguousWith = (count) =>
+    Array.from({ length: count }, (_, index) => `let v${index} = a\n/x${index}/g.test(b)\n`).join('') + filler;
   const baseline = fastest(filler);
+  const single = fastest(ambiguousWith(1));
   for (const count of [1, 2, 8, 9, 16, 64]) {
-    const ambiguous = Array.from({ length: count }, (_, index) => `let v${index} = a\n/x${index}/g.test(b)\n`).join('');
-    const milliseconds = fastest(ambiguous + filler);
-    assert.ok(milliseconds < 200, `${count} ambiguous slashes + 1 MB took ${milliseconds} ms`);
+    const milliseconds = fastest(ambiguousWith(count));
     assert.ok(milliseconds < baseline * 2.5 + 20, `${count} ambiguous slashes took ${milliseconds} ms against ${baseline} ms without`);
+    assert.ok(milliseconds < single * 2 + 20, `${count} ambiguous slashes took ${milliseconds} ms against ${single} ms with one`);
   }
 });
 
