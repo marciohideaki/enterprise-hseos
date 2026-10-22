@@ -68,8 +68,20 @@ protocolo dos clientes registrados.
      `environment.*` e `memory.*` (contagens 15/15/5 por servidor, **a conferir na K7**).
    - (d) Prova com cliente real (Codex instalado) via `tools/list` e `tools/call` contra o
      servidor moderno, com a versão de protocolo negociada registrada.
-   - (e) A compatibilidade **legado-dentro-do-moderno** (`2024-11-05`) permanece ativa no
-     servidor moderno, de modo que clientes só-legado continuam funcionando após a troca.
+   - (e) A compatibilidade **legado-dentro-do-moderno** permanece ativa no servidor moderno,
+     de modo que clientes só-legado continuam funcionando após a troca.
+   - (f) A compat legada do servidor moderno **negocia o `initialize` das revisões legadas
+     conhecidas** (`2024-11-05`, `2025-06-18`, `2025-11-25`), atendendo-as no modo compat, com
+     aviso de depreciação e contador de uso, e **sem expor a esses clientes ferramentas que
+     exigem aprovação** (ADR-0023, Decision item 15: clientes legados não executam ferramentas
+     que exigem aprovação). Motivo (K1, `task/w10-k1` b64ffa2c): o Codex 0.163.0 envia
+     `initialize` com `2025-06-18` e o adaptador atual só aceita `2024-11-05` exato
+     (`tools/lib/mcp-2026-adapter.js:978`), recusando com `-32022`; o Claude Code 2.1.305 fala
+     `2026-07-28` por padrão. O servidor legado não pode continuar registrado para o Codex,
+     pois se recusa a abrir banco ativado. Sem (f), a troca do Codex para o moderno quebra o
+     cliente. A mudança é **entrega futura da W10/K4** (inexistente em 1a23be3b) e é coerente
+     com o "suporta o legado até R" do ADR-0023 §Mitigations: amplia as revisões legadas
+     aceitas dentro da mesma janela, sem estendê-la.
 3. **Sunset do legado.** A data fixa 2026-11-30 deixa de valer. O sunset passa a ser
    condicional à evidência (spike K1, `docs/evolution/w10/evidence/k1/`) de que os clientes
    registrados (Codex, Claude Code) falam `2026-07-28` em `tools/list`/`tools/call`. Sem essa
@@ -77,6 +89,9 @@ protocolo dos clientes registrados.
    (sem valor proposto aqui); a fixação e qualquer extensão exigem decisão registrada com
    evidência de uso, nos moldes já exigidos por ADR-0022/0023. **Enquanto o owner não fixar a
    data, a compatibilidade legada NÃO expira.**
+   O sunset também fica condicionado a que o **Codex estável, sem flag**, envie
+   `server/discover` `2026-07-28`; hoje isso exige a feature `mcp_2026_07_28`, em
+   desenvolvimento, mais `CODEX_MCP_PROTOCOL_VERSION` (K1). Sem data fixa.
    Consequência de código, **entrega futura da W10/K4** (inexistente em 1a23be3b): o sunset
    deixa de ser a constante `LEGACY_SUNSET = '2026-11-30'`
    (`tools/lib/mcp-2026-adapter.js:33`, aplicada em `:695` por `LEGACY_SUNSET_INSTANT`) e
@@ -132,6 +147,9 @@ protocolo dos clientes registrados.
 
 - A exceção de rollback (item 5) aceita perda de escritas pós-ativação no piloto.
 - A compatibilidade legado-dentro-do-moderno fica mantida por mais tempo que o previsto.
+- Limitação declarada: `tools/call` e o fluxo MRTR do Codex ficaram **NOT_EXERCISED** no K1
+  (exigem modelo). Entram na prova (d)/K7 apenas se o owner autorizar login e gasto; sem
+  autorização permanecem como limitação, e a prova (d) do Codex cobre `tools/list`.
 - O piloto passa a ser trabalho operacional adicional (K1–K3, K7) antes de qualquer expansão.
 
 ### Risks
@@ -162,6 +180,8 @@ protocolo dos clientes registrados.
 - [ ] Exceção de rollback do item 5 aceita expressamente pelo owner — pendente
 - [ ] Data-limite do sunset fixada pelo owner após K1 — **a fixar pelo owner após K1**
 - [ ] Evidência K1 (protocolo dos clientes) arquivada em `docs/evolution/w10/evidence/k1/`
+- [ ] Critério (f) entregue na K4 (initialize legado `2024-11-05`/`2025-06-18`/`2025-11-25` sem ferramentas com aprovação)
+- [ ] Owner decide se autoriza `tools/call`/MRTR do Codex na K7 (login/gasto); senão, limitação declarada
 - [ ] Evidência K3 (ensaio de ativação e rollback em cópia; backup com integrity_check e sha256)
 - [ ] Lista nominal de clientes, CLIs e hooks re-registrados no servidor moderno antes do `apply`
 - [ ] Evidência K7 (journey MCP moderno, contagens e prova com cliente real)
