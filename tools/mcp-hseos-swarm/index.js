@@ -4,6 +4,7 @@ const path = require('node:path');
 const { failBoot, loadServerTools } = require('../lib/governed-execution/contract-registry');
 const { startNativeMcpServer } = require('../lib/governed-execution/native-mcp-server');
 const { startLegacyMcpServer } = require('../lib/legacy-mcp-server');
+const { resolveGovernedExecutionMode } = require('../mcp-project-state/lib/operational-state-db');
 
 const DEFAULT_PORT = 3102;
 
@@ -22,7 +23,6 @@ try {
 }
 
 const { mode, port } = parseArgs();
-const fixtureActivation = process.env.NODE_ENV === 'test' && process.env.HSEOS_GOVERNED_EXECUTION_FIXTURE === '1';
 const serverOptions = {
   serverId: 'swarm',
   tools,
@@ -36,7 +36,8 @@ const serverOptions = {
 };
 let runtimeHandle;
 try {
-  runtimeHandle = fixtureActivation
+  // Modern governed mode for a fixture or an activated database; a v4 database keeps the legacy server; an inconsistent one is refused.
+  runtimeHandle = resolveGovernedExecutionMode().modern
     ? startNativeMcpServer(serverOptions)
     : startLegacyMcpServer({ ...serverOptions, serverName: 'hseos-swarm', health: { tools: tools.size } });
 } catch (error) {

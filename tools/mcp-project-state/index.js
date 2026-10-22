@@ -12,7 +12,7 @@ const path = require('node:path');
 const { failBoot, loadServerTools } = require('../lib/governed-execution/contract-registry');
 const { startNativeMcpServer } = require('../lib/governed-execution/native-mcp-server');
 const { startLegacyMcpServer } = require('../lib/legacy-mcp-server');
-const { openOperationalStateDatabase } = require('./lib/operational-state-db');
+const { openOperationalStateDatabase, resolveGovernedExecutionMode } = require('./lib/operational-state-db');
 const { LEGACY_TOOLS } = require('./tool-catalog');
 
 const DEFAULT_PORT = 3100;
@@ -152,10 +152,18 @@ function listTools() {
 
 const { dbPath, instanceId, mode, port } = parseArgs();
 const toolMap = new Map(listTools().map((tool) => [tool.name, tool]));
-const fixtureActivation = process.env.NODE_ENV === 'test' && process.env.HSEOS_GOVERNED_EXECUTION_FIXTURE === '1';
+let governedMode;
+try {
+  // Modern governed mode for a fixture or an activated database; a v4 database keeps the legacy server; an inconsistent one is refused.
+  governedMode = resolveGovernedExecutionMode(dbPath);
+} catch (error) {
+  logToStderr('error', error.message);
+  process.exit(1);
+}
+const governedExecution = governedMode.modern;
 let runtimeHandle;
 let operationalDb = null;
-if (fixtureActivation) {
+if (governedExecution) {
   toolMap.set('scheduler_sweep_orphans', {
     name: 'scheduler_sweep_orphans',
     description: 'Internal governed stale-heartbeat sweep',
@@ -204,7 +212,7 @@ if (fixtureActivation) {
 // Start in-process scheduler (stale-orphan sweep every 5min) if available.
 let stopScheduler = null;
 try {
-  if (!fixtureActivation) throw new Error('legacy compatibility mode does not run governed background mutations');
+  if (!governedExecution) throw new Error('legacy compatibility mode does not run governed background mutations');
   const { startScheduler } = require('./lib/scheduler');
   stopScheduler = startScheduler(runtimeHandle.execution.scheduler, {
     dbPath,
