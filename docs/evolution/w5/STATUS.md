@@ -292,7 +292,16 @@ PR #223 (`task/hseos-w5-08`) mergeada em `4c152844` (tag `hseos-w5-b3b`); commit
 
 Branch `task/hseos-cl2`, base `4c152844`. Resíduos da B2/W5-05 aceitos pela revisão. Receipt: [evidence/cl2/receipt.json](evidence/cl2/receipt.json).
 
-1. **Licença por digest** (`a3b3b2e6`). Cada pin e cada variante do `xdotool` carrega `license_sha256`, o SHA-256 do texto da licença extraído do artefato fixado do cache (`/build/cache/hseos-toolchain`). `verifyPin` o compara depois dos `license_markers`; divergência é BLOCKED com `ENV_TOOLCHAIN_LICENSE_DIGEST`. Um pin sem digest também é BLOCKED (fail-closed). Teste novo em LSP, DAP e computer-use: uma licença com todos os markers presentes, mas com texto diferente, que os markers sozinhos aceitariam, agora é BLOCKED por digest. As duas variantes do `xdotool` têm o mesmo texto de licença, logo o mesmo digest.
+1. **Instáveis observados no CI: causa e correção por teste.**
+   - Descrição: quatro instáveis foram investigados na W6-E8 e na W6-E3; o relato do Commander está nas últimas linhas de `.hseos/runs/dev-squad/20261020-w5-closeout/PLAN.md`.
+     - `cancellation during workflow dispatch drains before settlement` (shard 22.x 1/6 da W7, run 39505105700): a cancelação relançava a rejeição do filho e o teardown não liberava a reserva. Corrigido em `05356840`; `1b211da1` fecha a regressão do join com deadline. Frequência de ~8% antes e 0 em 110 execuções depois.
+     - `the dialog is drawn: more than the empty black root` (CI da W4-C8, run 39535516377): a janela estava mapeada mas ainda em branco. Corrigido em `6f70aaed`; 2 falhas em 60 antes, 100 de 100 depois. Pode exceder o prazo sob carga extrema, e isso é resíduo aceito.
+     - `parallel tasks share the declared aggregate budget` (Node 22 shard 1/6 da W6-E3, run 39536874211): a tarefa `addition` terminou `blocked` (`engineering-execution-blocked`) com o orçamento íntegro. **Sem causa determinada** (0 falhas em 130 execuções); `a30c97d0` só registra o motivo do bloqueio por erro sem código, para o próximo caso.
+     - Testes do host de browser sob contenção: `46953631` dimensiona o orçamento de chamada pelo custo medido no host (22 de 25 passavam sob contenção, 25 de 25 depois).
+     - Teto de parede do guard (`ambiguous slashes cost a constant number of passes (1 MB)`, 200 ms, e `realistic 1 MB took 203 ms` no CI da #241): tratado na W6-E8 (`abf2c7bb`, depois `2cf09f86`), que prova o custo por escala.
+   - Justificativa: os três primeiros têm causa e correção com medição antes e depois; o terceiro fica aceito sem causa.
+   - Dono: Commander (investigação na W6-E8); owner se algum reaparecer como bloqueio de merge.
+   - Destino: **aceito**, sem afrouxar asserção. Reaparecimento vira task própria de investigação.
 2. **jsdoc de `installToolchain`** (`603a9ebe`). Contrato com parâmetros, retorno, códigos de erro, recusa de pins de sistema (fora do conjunto padrão), efeitos em disco e atomicidade (verificação de todos antes de gravar; gravação por pin, não transacional). Só comentário.
 3. **Prettier** (`c21fc308`). Reformatados `tools/lib/environment-plugin-pack.js`, `packages/agent-environment/lsp-host.js`, `test/test-environment-plugin-pack.js` e `test/test-lsp-plugin-parity.js`; `framing.js` e `index.js` já estavam no estilo. A árvore sintática de cada arquivo é idêntica antes e depois (comparação de AST com `espree`). O pack dos plugins é montado em tempo de teste a partir desses arquivos e nenhum espelho `.agents`/`plugins` os contém, então nada foi regenerado; as paridades e `agent-core compile --check` (242 checks) passam. Fora do escopo da W5 e não tocados: `package.json`, `design.md`, `STATUS.md` e o `SKILL.md` do plugin memory seguem fora do prettier.
 4. **Rodada de correção 1 (revisão cética, APROVADO COM RESSALVAS, 0 blocker, 0 major).**
@@ -397,7 +406,7 @@ Registro da onda W6 (task E7), sobre a base `5962ae66` de `feature/hseos-w5-clos
    - Dono: Commander.
    - Destino: **aceito**.
 7. **Join com fallback após o deadline relança rejeições.**
-   - Descrição: caso (a) da W6-E8, o join em fallback depois do deadline relança as rejeições de runtime, inclusive a da própria cancelação.
+   - Descrição: caso (a) da W6-E8, o join em fallback depois do deadline relança as rejeições de runtime, inclusive a da própria cancelação. A regressão do join com deadline foi fechada em `1b211da1`.
    - Justificativa: efeito aceito explicitamente na revisão da E8 (`abf2c7bb`); a alternativa de engolir a rejeição esconderia falha de runtime.
    - Dono: Commander.
    - Destino: **aceito**.
@@ -408,7 +417,7 @@ Registro da onda W6 (task E7), sobre a base `5962ae66` de `feature/hseos-w5-clos
    - Descrição: `tools/lib/mcp-transport.js:205` usa `buildMcpError(id, -32000, error.message)` sem código estável, então `MCP_SCOPE_DENIED` não chega ao cliente do servidor legado e os testes casam por mensagem. A ressalva (a) da W0-5, `test/test-mcp-contract.js` casando `'required'`, foi tratada na W6-E3.
    - Justificativa: expor `error.data = {code}` mexe numa superfície legada que tem sunset (revisão da W0-5).
    - Dono: owner (data do sunset).
-   - Destino: **aceito**, enquanto o legado existir. A data e a condição do sunset passam por ADR novo (→ W10, G0).
+   - Destino: **→ W10** (G0, ADR-0048, e K4: o sunset do legado deixa de ser a data fixa). Até o legado sair, o fio legado segue **aceito** como está.
 9. **O servidor legado ignora o sunset de 2026-11-30.**
    - Descrição: os 4 servidores MCP instalados sobem o legado (`tools/lib/legacy-mcp-server.js`) e só gravam o sunset como metadado de telemetria; o moderno, o único que recusa o legado depois do sunset, está bloqueado por `EXECUTION_ACTIVATION_PENDING` até a ativação ADR-0022/0023, que exige 30 dias de zero legado e não cabe antes de 30/11. Decisão do owner de 2026-10-20: registrar como dívida da ativação, sem mexer na produção.
    - Justificativa: o sunset só vale ao ativar o moderno.
@@ -440,11 +449,11 @@ Registro da onda W6 (task E7), sobre a base `5962ae66` de `feature/hseos-w5-clos
     - Justificativa: não reproduziu e o log não nomeou o teste; a prova completa é o CI de cada push.
     - Dono: Commander.
     - Destino: **aceito**; reaparecimento exige capturar o nome do teste antes de reexecutar.
-14. **Falhas ambientais fora do cgroup.**
-    - Descrição: `worktree-manager.sh validate` reprova 5 casos de `test/test-kernel-mutations.js` (`task_cancellation`, `job_shutdown`, `job_acceptance`, `job_ledger`, `job_preparation`) fora do cgroup, também na master pura (desvio de 2026-10-20). A lista do plano de conclusão atribui as 5 falhas ambientais a `test-provider-campaign-adapters`; o PLAN.md só registra o arquivo `test-kernel-mutations.js`, e a divergência de nome fica sem resolver nesta fonte.
-    - Justificativa: o isolamento exige o cgroup delegado; os commits e testes passam a rodar por `/build/tmp/hseos-w5/bin/commit-in-cgroup.sh` e `run-in-cgroup.sh`.
+14. **Falhas ambientais fora do cgroup (dois relatos distintos).**
+    - Descrição: (a) `worktree-manager.sh validate` reprova 5 casos de `test/test-kernel-mutations.js` (`task_cancellation`, `job_shutdown`, `job_acceptance`, `job_ledger`, `job_preparation`) fora do cgroup, também na master pura (desvio de 2026-10-20, PLAN.md). (b) **Relato do revisor da W6-E5 (`5d35b336`/`84746de5`), não reproduzido pelo Commander e com causa não verificada:** `test/test-provider-campaign-adapters.js` tem 5 falhas rodando fora do cgroup (testes de worker real, supervisor e perfil de recursos), idênticas em `84746de5` e `953949a0`. A leitura "exigem cgroup delegado" é inferência do revisor pelos nomes dos testes.
+    - Justificativa: os dois relatos são de arquivos diferentes e não se confundem; nenhum afirma causa comprovada além de rodar fora do cgroup. Commits e testes passam a rodar por `/build/tmp/hseos-w5/bin/commit-in-cgroup.sh` e `run-in-cgroup.sh`.
     - Dono: Commander.
-    - Destino: **aceito**.
+    - Destino: **aceito**; confirmar a causa de (b) fica para quem reproduzir.
 15. **Falhas de infra do CI.**
     - Descrição: `apt` com HTTP 403 em `packages.microsoft.com` e falha no fetch do `chrome-headless-shell` durante o provisionamento (CI da W6-E5), resolvidos por re-run sem mudança. O smoke em ambiente limpo sem cache de toolchain na #241 foi corrigido em `766f13ab`.
     - Justificativa: falha externa ao código, sem mudança de teste ou de workflow.
@@ -465,9 +474,9 @@ Registro da onda W6 (task E7), sobre a base `5962ae66` de `feature/hseos-w5-clos
 
 18. **Opacidade com `max_tokens` abaixo de ~12000.**
     - Descrição: o contrato de engenharia termina em `session-failed:internal_error` com mensagem genérica (overflow de montagem de contexto descartado por `normalizedFailure`); candidato é validar um mínimo ou expor `context_overflow`.
-    - Justificativa: o PLAN.md manda registrar aqui "se não for tratado na W1" e não registra o tratamento; esta fonte não permite afirmar que foi tratado.
+    - Justificativa: **não tratado**. Nenhum termo `context_overflow`, `MIN_MAX_TOKENS` ou mínimo de `max_tokens` aparece em `git grep` no SHA `5962ae66`; o PLAN.md mandava registrar aqui se a W1 não tratasse.
     - Dono: Commander.
-    - Destino: **aceito**, não verificado se a W1 tratou.
+    - Destino: **aceito** como dívida aberta; tratar exige task própria.
 19. **Elicitação mostra o digest do screenshot, não a imagem.**
     - Descrição: quem aprova o `computer.*` depende do cliente para ter visto a imagem.
     - Justificativa: limitação registrada na W4 (C7); mostrar a imagem depende do cliente.
@@ -489,6 +498,43 @@ Registro da onda W6 (task E7), sobre a base `5962ae66` de `feature/hseos-w5-clos
     - Dono: owner.
     - Destino: **→ W10** (G0, K2, K3, K4, K7) e **→ ativação** (passo 1b do runbook, só com autorização própria).
 
+### Decisões e desvios de processo
+
+23. **`memory.write` sem aprovação do runtime.**
+    - Descrição: decisão do owner de 2026-10-21; o provider é idempotente pelo `memory_id` e o controle é a política `admitWrite` do store (deny por padrão) mais a varredura de credencial. `computer.stop` é idempotente e sem aprovação (só encerra). Fonte: PLAN.md, desvio de 2026-10-21.
+    - Justificativa: decisão explícita do owner.
+    - Dono: owner.
+    - Destino: **aceito**; as regras de escrita por projeto entram no host de produção (→ W10, K5).
+24. **`packages/agent-environment/index.js` fora de `.c8-kernel.json`.**
+    - Descrição: correção de fato do planejamento: o arquivo não está no gate de cobertura 90/80 por arquivo do kernel (os demais arquivos do pacote estão, linhas 75-92). Fonte: PLAN.md, desvio de 2026-10-20.
+    - Justificativa: registrado na W3 como correção de fato; mudar o conjunto do gate de cobertura é decisão do owner.
+    - Dono: owner.
+    - Destino: **aceito**.
+25. **Merges da W6-INT-1 fora do `commit-in-cgroup`.**
+    - Descrição: desvio da integração (`97a5ac14`): os commits de merge saíram fora do `commit-in-cgroup.sh`; o hook commit-msg passou e não houve bypass (PLAN.md, W6-INT-1).
+    - Justificativa: merge sem testes selecionados; a prova completa é o CI de cada push.
+    - Dono: Commander.
+    - Destino: **aceito**.
+26. **Wrapper global `~/.local/bin/hseos` frágil.**
+    - Descrição: o wrapper escolhe a maior versão do `nvm` (`sort -V`); um Node maior sem o pacote o quebra (incidente de 2026-10-20, runbook §1).
+    - Justificativa: corrigir o wrapper está fora do repositório; o runbook mitiga fixando o PATH do Node 24.15.
+    - Dono: owner.
+    - Destino: **→ ativação** (passo 1: PATH fixado em todos os comandos).
+27. **Worker do adapter engolia o stderr (FECHADO).**
+    - Descrição: o worker do adapter `claude/account` rodava com stdio `ignore` e convertia qualquer falha em `CONTROL_OUTCOME_UNCERTAIN` sem causa (achado do T1).
+    - Justificativa: fechado por `d83d8907`, que mantém a causa real no evento `uncertain`.
+    - Dono: Commander.
+    - Destino: **fechado**.
+
 ### Resíduos anteriores que seguem como estão
 
-Os resíduos registrados nas seções acima (B1, B2, B3, cl1, cl2, B4 e "Limitações aceitas na entrega") continuam aceitos pelas revisões que os registraram; este registro não reabre nenhum deles. Os plugins seguem `scaffolded` (C12), `real_consumers: not_verified` para F14, F15 e F20, e a ativação (hooks, timer, contratos, tags, distribuição) segue não executada e dependente de autorização própria por passo.
+Nenhum dos itens abaixo é reaberto por este registro; cada um continua aceito pela revisão que o registrou, na fonte citada:
+
+- **LV/CO e integração B1** (seções "Resíduos a registrar" e "Resíduos acrescentados pela revisão da integração" acima): LV1 (status desconhecido de `background_tasks`, TeammateIdle, R5 com `WAITING_ON` de até 4 h); LV2 (tabelas sem migração numerada, retenção de eventos, itens 3 a 6 da revisão 4, systemd e `notify-send` não verificados); CO1 (F13, sidecars `-wal`/`-shm`, N1, N2.2); CO2 (A1, template do Codex não verificado no Codex real); G1 (grafias YAML exóticas).
+- **`init`, `rate_limit` e `pids_peak`:** sinais declarados desconhecidos e não expostos no recibo (W5-10 e `revalidation-2026-10/STATUS.md`).
+- **Revalidação de 2026-10** (`docs/evolution/revalidation-2026-10/STATUS.md`): `pids_max=64` insuficiente para clientes reais; critérios de aceite fracos (endurecimento na W5-10b, só para novas admissões); adapters de API, ACP e local sem retenção da saída; divergência `-32600` do adapter `mcp-2026`; transporte HTTP legado sem limite de corpo; `$ref` não resolvível só falha na chamada; riscos residuais no `swarm` (TOCTOU, hardlink, `cwd`); digest de conta sem sal; `requirements.json` sem atualização das 27 famílias.
+- **Validação de consumidor de 2026-10** (`docs/evolution/consumer-validation-2026-10/STATUS.md`, "Resíduos aceitos e pendências"): F6 parcial; F9 (`sandbox engineering-check` bloqueado sem causa exposta); dois installs simultâneos sem lock; recall menor em consultas genéricas; `react` em `devDependencies` da raiz; mensagem de escopo; `e2e`, `scripts` e `infra` fora do guard; registry sem implementação `stable`; A7, A8 e A9 reconfirmados.
+- **Limitações aceitas na entrega** (W5-12, seção acima): contexto v2 com `retrieved_at` convencional, Node 22, mutantes, consumidores reais, ativação, marketplace e inventário.
+- **Fora da W5, só registradas:** `loop-guard.sh` em `node_modules` (corrigido na cl1, item 9), evidência de saída nos adapters API/ACP/local, digest de conta sem sal, hook de commit que bloqueia nomes de fornecedor.
+
+Os plugins seguem `scaffolded` (C12), `real_consumers: not_verified` para F14, F15 e F20, e a ativação (hooks, timer, contratos, tags, distribuição) segue não executada e dependente de autorização.
