@@ -827,6 +827,11 @@ const MCP_ENVIRONMENT_ACTOR = Object.freeze({ id: 'agent:mcp-environment', type:
 const MCP_SERVICE_FAMILIES = Object.freeze(['lsp', 'dap']);
 const defaultGlobalConfigPath = () => require('node:path').join(require('node:os').homedir(), '.config', 'hseos', 'config.yaml');
 const stderrLog = (message) => process.stderr.write(`${message}\n`);
+// One short line of an error for a log: never a stack, never a multi-line message.
+const shortMessage = (error) =>
+  String(error?.message ?? error)
+    .split('\n')[0]
+    .slice(0, 200);
 
 /**
  * The host factory of an MCP server on an ACTIVATED database: `(wiring) => host`, where `wiring` is the
@@ -910,7 +915,7 @@ function createMcpEnvironmentHostFactory(section, options = {}) {
       if (!policyFor(family)) throw new Error('the toolchain has no usable root, so there is no isolation policy');
       return true;
     } catch (error) {
-      log(`hseos mcp: the ${family} service is off${error.code ? ` [${error.code}]` : ''}: ${error.message}`);
+      log(`hseos mcp: the ${family} service is off${error.code ? ` [${error.code}]` : ''}: ${shortMessage(error)}`);
       return false;
     }
   });
@@ -944,7 +949,7 @@ function createMcpEnvironmentHostFactory(section, options = {}) {
         });
       } catch (error) {
         delete host[family];
-        log(`hseos mcp: the ${family} service is off${error.code ? ` [${error.code}]` : ''}: ${error.message}`);
+        log(`hseos mcp: the ${family} service is off${error.code ? ` [${error.code}]` : ''}: ${shortMessage(error)}`);
       }
     }
     if (memory) {
@@ -994,6 +999,27 @@ function defaultIsolationProbe(inputs = {}) {
 }
 
 /**
+ * Starts a server that takes an optional capability host. Defence in depth for "an environment error never takes the
+ * governance server down": if the start throws while a host was provided, the cause is logged (code and a short message,
+ * no stack), what the host opened is disposed, and the server is started ONCE more without the host. A second failure is
+ * a real server failure and propagates. `start(host)` receives the factory or `null`.
+ */
+function startWithCapabilityFallback(start, factory, options = {}) {
+  const log = options.log ?? stderrLog;
+  if (!factory) return start(null);
+  try {
+    return start(factory);
+  } catch (error) {
+    const message = String(error?.message ?? error)
+      .split('\n')[0]
+      .slice(0, 200);
+    log(`hseos mcp: capability host is off${error?.code ? ` [${error.code}]` : ''}: ${message}`);
+    factory.dispose?.();
+    return start(null);
+  }
+}
+
+/**
  * The host factory of an MCP server, read from the global configuration (`configPath`, default
  * ~/.config/hseos/config.yaml). A configuration that cannot be read or is invalid never takes the server down: it logs
  * the reason and returns `null`, so the server runs without the capability.
@@ -1029,6 +1055,7 @@ module.exports = {
   createProductionEnvironmentHost,
   createMcpEnvironmentHostFactory,
   composeMcpEnvironmentHost,
+  startWithCapabilityFallback,
   defaultIsolationProbe,
   readEnvironmentSection,
 };

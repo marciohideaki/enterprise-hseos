@@ -32,6 +32,7 @@ const {
   createMcpEnvironmentHostFactory,
   composeMcpEnvironmentHost,
   defaultIsolationProbe,
+  startWithCapabilityFallback,
 } = require('../tools/cli/lib/engineering-task-extensions');
 const { sha256Text } = require('../packages/agent-memory');
 const { LSP_OK } = require('./helpers/environment-fixtures');
@@ -1028,4 +1029,129 @@ test('K9: the real server boots with an empty cache, a workspace and NO memory o
   assert.ok(names.size > 0, 'the governance tools are still served');
   for (const absent of [...MEMORY_TOOLS, 'environment.lsp.hover', 'environment.dap.run']) assert.ok(!names.has(absent), absent);
   assert.match(client.stderr(), /no environment capability could be composed/);
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// W10/K9: defence in depth. A host that passes the checks and still cannot be built at start-up never takes the server down.
+// ---------------------------------------------------------------------------------------------------------------
+
+/** How many descriptors of this process point at `file` (the database and its -wal/-shm siblings). */
+const openDescriptorsOf = (file) =>
+  fs.readdirSync('/proc/self/fd').filter((fd) => {
+    try {
+      return fs.readlinkSync(`/proc/self/fd/${fd}`).startsWith(file);
+    } catch {
+      return false;
+    }
+  }).length;
+
+/** A factory whose only service passes the pre-check (an injected one) and throws when the host is built; no memory. */
+function lateFailingFactory(box, logs) {
+  return createMcpEnvironmentHostFactory(
+    { project_id: 'alpha', toolchain_cache: box.root, workspace: workspaceFor(box) },
+    {
+      isolationProbe: AVAILABLE,
+      // dap has no usable root, so the pre-check drops it; lsp is injected, so it passes the pre-check.
+      prepare: { lsp: () => ({ root: box.root }), dap: () => ({}) },
+      factories: {
+        lsp: () => {
+          throw Object.assign(new Error('late failure\n    at stack line'), { code: 'ENV_LATE_FAILURE' });
+        },
+      },
+      log: (message) => logs.push(message),
+    },
+  );
+}
+
+const nativeStarter = (box, attempts) => (environmentHost) => {
+  attempts.push({ host: environmentHost === null ? 'none' : 'factory', open_before: openDescriptorsOf(box.databasePath) });
+  return startNativeMcpServer({
+    serverId: 'swarm',
+    tools: new Map([['list_runs', { name: 'list_runs', description: 'd', inputSchema: { type: 'object' } }]]),
+    invokeTool: async () => ({ runs: [] }),
+    mode: 'http',
+    port: 0,
+    dbPath: box.databasePath,
+    environmentHost,
+    log: () => {},
+  });
+};
+
+test('K9: a host that fails only when built starts the server once more without it, with the first start fully closed', async (t) => {
+  const box = sandbox(t);
+  await activated(box);
+  const logs = [];
+  const factory = lateFailingFactory(box, logs);
+  assert.ok(factory, 'the pre-check passes, so the factory exists');
+  const attempts = [];
+  const handle = startWithCapabilityFallback(nativeStarter(box, attempts), factory, { log: (m) => logs.push(m) });
+  t.after(() => handle.close());
+  assert.deepEqual(
+    attempts.map((attempt) => attempt.host),
+    ['factory', 'none'],
+    'exactly one retry, without the host',
+  );
+  assert.equal(attempts[1].open_before, 0, 'the failed start released the database before the second one opened it');
+  const line = logs.find((message) => /capability host is off/.test(message));
+  assert.equal(
+    line,
+    'hseos mcp: capability host is off: environment host must provide at least one service or the memory store',
+    logs.join('\n'),
+  );
+  assert.ok(!logs.some((message) => /at stack line/.test(message)), 'no stack');
+  const names = new Set(
+    (
+      await handle.adapter.handle({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/list',
+        params: {
+          _meta: {
+            [PROTOCOL_VERSION_META_KEY]: MCP_MODERN_PROTOCOL_VERSION,
+            [CLIENT_INFO_META_KEY]: { name: 'k9', version: '1' },
+            [CLIENT_CAPABILITIES_META_KEY]: {},
+          },
+        },
+      })
+    ).result.tools.map((tool) => tool.name),
+  );
+  assert.ok(names.has('list_runs'));
+  for (const absent of ['environment.lsp.hover', ...MEMORY_TOOLS]) assert.ok(!names.has(absent), absent);
+});
+
+test('K9: when the second start fails too the error propagates after exactly two attempts, and nothing is left open', async (t) => {
+  const box = sandbox(t);
+  await activated(box);
+  const logs = [];
+  const attempts = [];
+  const failing = (host) => {
+    attempts.push(host === null ? 'none' : 'factory');
+    throw Object.assign(new Error('the server itself is broken'), { code: 'ENV_REAL_FAILURE' });
+  };
+  assert.throws(
+    () => startWithCapabilityFallback(failing, lateFailingFactory(box, logs), { log: (m) => logs.push(m) }),
+    /the server itself is broken/,
+  );
+  assert.deepEqual(attempts, ['factory', 'none']);
+  assert.equal(openDescriptorsOf(box.databasePath), 0);
+});
+
+test('K9: a valid host (or none) starts once, without retry or warning', async (t) => {
+  const box = sandbox(t);
+  await activated(box);
+  const logs = [];
+  const attempts = [];
+  const factory = createMcpEnvironmentHostFactory(environmentSection(), { isolationProbe: AVAILABLE, log: (m) => logs.push(m) });
+  const handle = startWithCapabilityFallback(nativeStarter(box, attempts), factory, { log: (m) => logs.push(m) });
+  t.after(() => handle.close());
+  assert.deepEqual(
+    attempts.map((attempt) => attempt.host),
+    ['factory'],
+  );
+  assert.ok(!logs.some((message) => /capability host is off/.test(message)));
+  assert.deepEqual(
+    startWithCapabilityFallback((host) => host, null),
+    null,
+    'no factory: one start with no host',
+  );
 });
