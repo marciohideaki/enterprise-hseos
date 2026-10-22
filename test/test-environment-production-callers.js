@@ -82,8 +82,9 @@ test('precondition: the runtimes accept an environment host; the CLI composes on
   // Admission first: the contract is read with the admission rules before the compositor is ever called.
   const calls = [...cli.matchAll(/(?<!function )composeEnvironmentHost\(options/g)].map((match) => match.index);
   assert.ok(calls.length >= 2, 'run and inspect/resume both compose the host');
-  const admitted = cli.indexOf('readEngineeringTask(options.taskContract, { admission: true })', cli.indexOf('Admission first'));
-  assert.ok(admitted > 0 && admitted < calls[0], 'agent run admits the contract before it composes the host');
+  const runBranch = cli.indexOf('Engineering runs accept only');
+  const admitted = cli.indexOf('readEngineeringTask(options.taskContract, { admission: true })', runBranch);
+  assert.ok(runBranch > 0 && admitted > runBranch && admitted < calls[0], 'agent run admits the contract before it composes the host');
   assert.deepEqual(callerFiles('createProductionEnvironmentHost'), ['tools/cli/commands/agent.js']);
   assert.equal([...cli.matchAll(/createProductionEnvironmentHost\(/g)].length, 1, 'one place in the CLI builds the host');
   assert.match(cli, /requires state and accepts expected-sequence, config and JSON only/);

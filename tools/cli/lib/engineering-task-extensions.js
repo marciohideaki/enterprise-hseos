@@ -641,11 +641,35 @@ function createMemoryDeleteApprovals({
 // Production host: the `environment:` section of the global configuration, composed into the host of a task.
 // ---------------------------------------------------------------------------------------------------------------
 
+// `isolation` is informational: a single-value restriction. The task environment always isolates with bwrap (the only
+// backend `createIsolationPolicy` implements); the key does not select a backend, it only refuses any other value.
 const ENVIRONMENT_ISOLATION_BACKENDS = Object.freeze(['bwrap']);
+
+/** An absolute, normalized path of an existing directory that is not itself a symbolic link. */
+function pinnedDirectory(value, context) {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  if (
+    !path.isAbsolute(value) ||
+    value.split('/').includes('..') ||
+    path.normalize(value) !== value ||
+    (value.length > 1 && value.endsWith('/'))
+  )
+    return context.addIssue({ code: 'custom', message: 'must be an absolute, normalized path without ".." segments' });
+  let stat;
+  try {
+    stat = fs.lstatSync(value);
+  } catch {
+    return context.addIssue({ code: 'custom', message: 'must be an existing directory' });
+  }
+  // Only the final component is checked; a symbolic link in an intermediate component is not resolved here.
+  if (stat.isSymbolicLink() || !stat.isDirectory())
+    context.addIssue({ code: 'custom', message: 'must be a directory, not a symbolic link' });
+}
 const environmentConfigSchema = z
   .object({
     project_id: IdentifierSchema,
-    toolchain_cache: z.string().min(1).max(4096).optional(),
+    toolchain_cache: z.string().min(1).max(4096).superRefine(pinnedDirectory).optional(),
     memory: z
       .object({
         rules: z.array(z.record(z.string(), z.json())).max(256).default([]),
@@ -664,6 +688,17 @@ function configError(message) {
   return Object.assign(new Error(`environment configuration: ${message}`), { code: 'ENGINEERING_ENVIRONMENT_CONFIG_INVALID' });
 }
 
+function editDistance(a, b) {
+  let previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i += 1) {
+    const row = [i];
+    for (let j = 1; j <= b.length; j += 1)
+      row[j] = Math.min(previous[j] + 1, row[j - 1] + 1, previous[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    previous = row;
+  }
+  return previous[b.length];
+}
+
 /** The `environment:` section of a global configuration file; `null` when the file or the section is absent. */
 function readEnvironmentSection(file) {
   const fs = require('node:fs');
@@ -673,6 +708,15 @@ function readEnvironmentSection(file) {
     parsed = require('yaml').parse(fs.readFileSync(file, 'utf8'));
   } catch (error) {
     throw configError(`${file} is not valid YAML (${error.message})`);
+  }
+  // The host stays absent (fail-closed) in both cases below; the warning only tells the person why.
+  if (parsed && typeof parsed === 'object') {
+    if ('environment' in parsed && parsed.environment === null)
+      process.stderr.write(`hseos: the environment section of ${file} is empty; no environment host is composed\n`);
+    for (const key of Object.keys(parsed).filter(
+      (entry) => entry !== 'environment' && editDistance(entry.toLowerCase(), 'environment') <= 2,
+    ))
+      process.stderr.write(`hseos: ${file} has the key "${key}", did you mean "environment"? no environment host is composed\n`);
   }
   return parsed?.environment ?? null;
 }

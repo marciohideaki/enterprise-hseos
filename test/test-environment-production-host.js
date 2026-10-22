@@ -85,10 +85,11 @@ test('without the environment section there is no host, and a missing file is th
 });
 
 test('a valid section composes the host of the task: project, memory rules and operator, isolation, toolchains', (t) => {
+  const cache = scratch(t, 'hseos-k5-cache-');
   const prepared = [];
   const host = createProductionEnvironmentHost(
     section({
-      toolchain_cache: '/cache/hseos-toolchain',
+      toolchain_cache: cache,
       memory: { rules: ALLOW_WRITE, operator: { id: 'owner', kind: 'operator' } },
       isolation: ['bwrap'],
     }),
@@ -107,7 +108,7 @@ test('a valid section composes the host of the task: project, memory rules and o
   assert.deepEqual(host.isolation, ['bwrap']);
   assert.deepEqual(host.memory.rules, ALLOW_WRITE);
   assert.deepEqual(host.memory.operator, { kind: 'operator', id: 'owner' });
-  assert.deepEqual(prepared, ['/cache/hseos-toolchain']);
+  assert.deepEqual(prepared, [cache]);
   assert.equal(host.toolchains.lsp.status, 'ready');
   assert.equal(fs.existsSync(host.toolchains.lsp.root), true);
   const root = host.toolchains.lsp.root;
@@ -121,7 +122,7 @@ test('only the families the task declared are prepared', (t) => {
     prepared.push(family);
     return { status: 'ready', root: os.tmpdir() };
   };
-  const host = createProductionEnvironmentHost(section({ toolchain_cache: '/cache' }), {
+  const host = createProductionEnvironmentHost(section({ toolchain_cache: scratch(t, 'hseos-k5-cache-') }), {
     capabilities: ['environment.dap.run', 'memory.retrieve'],
     prepare: { lsp: preparer('lsp'), dap: preparer('dap') },
   });
@@ -143,6 +144,7 @@ test('the section is strict: an unknown key, a bad rule or an unsupported isolat
   refused(section({ memory: { rules: [{ id: 'x', source: 'nowhere', stage: 'allow', decision: 'allow' }] } }), /memory\.rules/);
   refused(section({ memory: { operator: { id: 'owner', kind: 'agent' } } }), /memory/);
   refused(section({ isolation: ['ai-jail'] }), /isolation/);
+  refused(section({ isolation: ['bwrap', 'docker'] }), /isolation/);
 });
 
 test('an invalid YAML file is refused as a configuration error', (t) => {
@@ -334,3 +336,117 @@ test(
     assert.deepEqual(environmentEvents(result), ['environment.lsp.completed']);
   },
 );
+
+// ---------------------------------------------------------------------------------------------------------------
+// Review round 1.
+// ---------------------------------------------------------------------------------------------------------------
+
+test('toolchain_cache must be an absolute, normalized, existing directory that is not a symbolic link', (t) => {
+  const root = scratch(t, 'hseos-k5-cache-');
+  const file = path.join(root, 'file');
+  fs.writeFileSync(file, 'x');
+  fs.symlinkSync(root, path.join(root, 'link'));
+  fs.mkdirSync(path.join(root, 'real'));
+  const refused = (value) =>
+    assert.throws(
+      () => createProductionEnvironmentHost(section({ toolchain_cache: value })),
+      (error) => error.code === 'ENGINEERING_ENVIRONMENT_CONFIG_INVALID' && /toolchain_cache/.test(error.message),
+      String(value),
+    );
+  refused('relative/cache');
+  refused(`${root}/real/../real`);
+  refused(`${root}//real`);
+  refused(`${root}/real/`);
+  refused(path.join(root, 'absent'));
+  refused(file);
+  refused(path.join(root, 'link'));
+  // The final component is checked; a link in an intermediate component is a known limitation of this check.
+  assert.doesNotThrow(() => createProductionEnvironmentHost(section({ toolchain_cache: path.join(root, 'real') })));
+});
+
+test('agent run admits the contract before the host is ever composed: a refused contract never reaches the compositor', async (t) => {
+  const extensions = require('../tools/cli/lib/engineering-task-extensions');
+  const original = extensions.createProductionEnvironmentHost;
+  let composed = 0;
+  extensions.createProductionEnvironmentHost = (...args) => {
+    composed += 1;
+    return original(...args);
+  };
+  t.after(() => {
+    extensions.createProductionEnvironmentHost = original;
+  });
+  const config = configFile(t, section({ memory: { rules: ALLOW_WRITE } }));
+  const uncovered = task(t, ['memory.write']);
+  delete uncovered.f.contract.acceptance[0].check_ids;
+  uncovered.f.save();
+  await assert.rejects(
+    agent.execute('run', { taskContract: uncovered.f.filename, scriptedResponses: uncovered.write([]), config, json: true }),
+    (error) =>
+      error.reason === 'ENGINEERING_ACCEPTANCE_UNCOVERED' || /ENGINEERING_ACCEPTANCE_UNCOVERED/.test(`${error.code} ${error.message}`),
+  );
+  assert.equal(composed, 0, 'the compositor was not called for a contract that failed admission');
+  // Control: the same flow with an admitted contract does compose the host (the spy sees the path).
+  const result = await cliRun(t, ['memory.write'], [{ name: 'memory.write', input: MODEL_NOTE }], config);
+  assert.equal(composed, 1);
+  assert.deepEqual(toolErrors(result), []);
+});
+
+test('browser and computer-use stay blocked on the CLI: no broker, no media store, no flag that enables them', async (t) => {
+  const cache = scratch(t, 'hseos-k5-cache-');
+  const config = configFile(t, section({ toolchain_cache: cache }));
+  for (const capabilities of [['environment.browser.run'], ['environment.computer.start', 'environment.computer.stop']]) {
+    const { f, write } = task(t, capabilities);
+    const outcome = await agent.execute('run', { taskContract: f.filename, scriptedResponses: write([]), config, json: true }).then(
+      (result) => {
+        fs.rmSync(result.state, { recursive: true, force: true });
+        return `${result.task_result}/${result.reason}`;
+      },
+      (error) => `${error.code}`,
+    );
+    assert.match(outcome, /ENGINEERING_ENVIRONMENT_POLICY_REQUIRED/, `${capabilities}: ${outcome}`);
+  }
+  assert.equal(
+    agent.options.some(([flag]) => /broker|media|browser|computer|environment-host/.test(flag)),
+    false,
+  );
+});
+
+test('without --config the real user configuration is never read by these tests: HOME is isolated', async (t) => {
+  const home = scratch(t, 'hseos-k5-home-');
+  const previous = process.env.HOME;
+  process.env.HOME = home;
+  t.after(() => {
+    process.env.HOME = previous;
+  });
+  fs.mkdirSync(path.join(home, '.config', 'hseos'), { recursive: true });
+  fs.writeFileSync(path.join(home, '.config', 'hseos', 'config.yaml'), require('yaml').stringify({ environment: section() }));
+  const { f, write } = task(t, ['memory.write']);
+  const result = await agent.execute('run', { taskContract: f.filename, scriptedResponses: write([]), json: true });
+  t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
+  // The default path is under HOME (the scratch one here): the host was composed from it, not from the real one.
+  assert.notEqual(reasonOf(result), 'blocked/ENGINEERING_ENVIRONMENT_HOST_REQUIRED');
+  fs.rmSync(path.join(home, '.config'), { recursive: true });
+  const bare = await agent.execute('run', { taskContract: f.filename, scriptedResponses: write([]), json: true });
+  t.after(() => fs.rmSync(bare.state, { recursive: true, force: true }));
+  assert.equal(reasonOf(bare), 'blocked/ENGINEERING_ENVIRONMENT_HOST_REQUIRED');
+});
+
+test('an empty or misspelled environment section warns on stderr and stays fail-closed', (t) => {
+  const warnings = [];
+  const original = process.stderr.write;
+  process.stderr.write = (chunk) => (warnings.push(String(chunk)), true);
+  t.after(() => {
+    process.stderr.write = original;
+  });
+  const write = (content) => {
+    const file = path.join(scratch(t, 'hseos-k5-warn-'), 'config.yaml');
+    fs.writeFileSync(file, content);
+    return file;
+  };
+  assert.equal(readEnvironmentSection(write('environment:\n')), null);
+  assert.equal(readEnvironmentSection(write('enviroment:\n  project_id: proj-1\n')), null);
+  assert.equal(readEnvironmentSection(write('toolchain:\n  pnpm_store_dirs: []\n')), null);
+  assert.equal(warnings.length, 2, warnings.join('|'));
+  assert.match(warnings[0], /environment.*empty/i);
+  assert.match(warnings[1], /enviroment.*environment/);
+});
