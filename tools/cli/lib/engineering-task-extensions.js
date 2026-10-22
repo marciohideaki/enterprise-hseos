@@ -681,6 +681,15 @@ const environmentConfigSchema = z
       .strict()
       .optional(),
     isolation: z.array(z.enum(ENVIRONMENT_ISOLATION_BACKENDS)).min(1).max(ENVIRONMENT_ISOLATION_BACKENDS.length).optional(),
+    // Read by the MCP host only (the CLI isolates each task in the task's own workspace): the sandbox of its LSP and DAP services.
+    workspace: z
+      .object({
+        host_workspace: z.string().min(1).max(4096).superRefine(pinnedDirectory),
+        main_checkout: z.string().min(1).max(4096).superRefine(pinnedDirectory),
+        protected_paths: z.array(z.string().min(1).max(4096)).min(1).max(64),
+      })
+      .strict()
+      .optional(),
   })
   .strict();
 
@@ -731,6 +740,19 @@ function defaultToolchainPreparers() {
   };
 }
 
+/** The strict, validated `environment:` section: an unknown key, a rule the lattice refuses or a bad path is an error. */
+function parseEnvironmentSection(section) {
+  const parsed = environmentConfigSchema.safeParse(section);
+  if (!parsed.success)
+    throw configError(parsed.error.issues.map((issue) => `${issue.path.join('.') || '<root>'}: ${issue.message}`).join('; '));
+  try {
+    require('../../../packages/agent-policy-lattice').evaluatePermissionLattice({ rules: parsed.data.memory?.rules ?? [] });
+  } catch (error) {
+    throw configError(`memory.rules: ${error.message}`);
+  }
+  return parsed.data;
+}
+
 /**
  * The host of a task, built from the `environment:` section (`section`, already read) of the global configuration.
  *
@@ -754,16 +776,8 @@ function defaultToolchainPreparers() {
  */
 function createProductionEnvironmentHost(section, options = {}) {
   if (section === null || section === undefined) return null;
-  const parsed = environmentConfigSchema.safeParse(section);
-  if (!parsed.success)
-    throw configError(parsed.error.issues.map((issue) => `${issue.path.join('.') || '<root>'}: ${issue.message}`).join('; '));
-  const config = parsed.data;
+  const config = parseEnvironmentSection(section);
   const rules = config.memory?.rules ?? [];
-  try {
-    require('../../../packages/agent-policy-lattice').evaluatePermissionLattice({ rules });
-  } catch (error) {
-    throw configError(`memory.rules: ${error.message}`);
-  }
   const { mkdtempSync, rmSync } = require('node:fs');
   const toolchains = {};
   const scratch = [];
@@ -807,6 +821,130 @@ function createProductionEnvironmentHost(section, options = {}) {
   });
 }
 
+const MCP_ENVIRONMENT_ACTOR = Object.freeze({ id: 'agent:mcp-environment', type: 'agent' });
+const MCP_SERVICE_FAMILIES = Object.freeze(['lsp', 'dap']);
+const defaultGlobalConfigPath = () => require('node:path').join(require('node:os').homedir(), '.config', 'hseos', 'config.yaml');
+const stderrLog = (message) => process.stderr.write(`${message}\n`);
+
+/**
+ * The host factory of an MCP server on an ACTIVATED database: `(wiring) => host`, where `wiring` is the
+ * `{ ledger, approvalStore, resolveMemoryDeleteApproval }` the server's execution hands over once its real ledger exists.
+ * `null` without the section, or when the section backs nothing (the tools stay absent: ENV_CAPABILITY_UNAVAILABLE).
+ *
+ * - memory: a governed store over the WIRING ledger, so it is durable in the activated project.db; writes follow
+ *   `memory.rules` (deny by default) and deletion is approved by the person through the modern client's
+ *   `input_required` flow (the runtime derives the single-use approval the store's verifier resolves). Needs
+ *   `memory.operator`.
+ * - lsp and dap: the real services over an isolation policy (bwrap) and the pinned toolchain prepared from
+ *   `toolchain_cache`, with a ledger sink over the wiring ledger. They need `workspace` as well; a family the cache
+ *   cannot provide stays off, with a log line.
+ * - computer and browser stay off by construction: they need a media store and an egress broker no server provides yet.
+ *
+ * `options.prepare` and `options.factories` replace the preparers and services (tests); `options.log` receives the
+ * reasons. `factory.dispose()` removes the prepared toolchains.
+ */
+function createMcpEnvironmentHostFactory(section, options = {}) {
+  if (section === null || section === undefined) return null;
+  const config = parseEnvironmentSection(section);
+  const log = options.log ?? stderrLog;
+  const { mkdtempSync, rmSync } = require('node:fs');
+  const toolchains = {};
+  const scratch = [];
+  const dispose = () => {
+    for (const directory of scratch.splice(0)) rmSync(directory, { recursive: true, force: true });
+  };
+  if (config.toolchain_cache) {
+    const preparers = options.prepare ?? defaultToolchainPreparers();
+    for (const family of MCP_SERVICE_FAMILIES) {
+      if (typeof preparers[family] !== 'function') continue;
+      const destination = mkdtempSync(require('node:path').join(require('node:os').tmpdir(), `hseos-env-${family}-`));
+      scratch.push(destination);
+      try {
+        toolchains[family] = preparers[family]({ cacheDirectory: config.toolchain_cache, destination });
+      } catch (error) {
+        log(`hseos mcp: the ${family} toolchain is unavailable, so ${family} is off: ${error.message}`);
+      }
+    }
+  }
+  const services = MCP_SERVICE_FAMILIES.filter((family) => {
+    const available = Boolean(options.factories?.[family]) || Boolean(toolchains[family] && config.workspace);
+    if (!available)
+      log(`hseos mcp: ${family} is off (it needs environment.toolchain_cache with that toolchain, and environment.workspace)`);
+    return available;
+  });
+  const memory = Boolean(config.memory?.operator);
+  if (!memory) log('hseos mcp: memory is off (it needs environment.memory.operator)');
+  log('hseos mcp: computer and browser are off in this phase (they need a media store and an egress broker)');
+  if (services.length === 0 && !memory) {
+    dispose();
+    return null;
+  }
+  const factory = (wiring) => {
+    const { randomUUID } = require('node:crypto');
+    const environment = require('../../../packages/agent-environment');
+    const { containsCredential } = require('./campaign-evidence-store');
+    const host = { project_id: config.project_id };
+    for (const family of services) {
+      const toolchain = toolchains[family];
+      const ledger = environment.createEnvironmentLedgerSink({
+        ledger: wiring.ledger,
+        project_id: config.project_id,
+        actor: MCP_ENVIRONMENT_ACTOR,
+        session_id: `mcp-${family}-${randomUUID()}`,
+        containsCredential,
+      });
+      const policy =
+        config.workspace && typeof toolchain?.root === 'string'
+          ? require('../../../packages/agent-isolation-attestation').createIsolationPolicy({
+              backend: 'bwrap',
+              ...config.workspace,
+              profile: SERVICE_PROFILE[family],
+              toolchain_roots: [toolchain.root],
+            })
+          : undefined;
+      host[family] = (options.factories?.[family] ?? defaultServiceFactory(family))({
+        policy,
+        toolchain: toolchain ?? NOT_READY(family),
+        ledger,
+      });
+    }
+    if (memory) {
+      const { createExecutionApprovalVerifier } = require('../../../packages/agent-memory');
+      const operator = { kind: config.memory.operator.kind, id: config.memory.operator.id };
+      host.memory = {
+        store: require('./memory-context-source').createGovernedMemory({
+          ledger: wiring.ledger,
+          approvalVerifier: createExecutionApprovalVerifier({
+            approvalStore: wiring.approvalStore,
+            resolveApprovalId: wiring.resolveMemoryDeleteApproval,
+          }),
+        }),
+        rules: config.memory.rules,
+        actor: operator,
+        operator,
+      };
+    }
+    return host;
+  };
+  factory.dispose = dispose;
+  return factory;
+}
+
+/**
+ * The host factory of an MCP server, read from the global configuration (`configPath`, default
+ * ~/.config/hseos/config.yaml). A configuration that cannot be read or is invalid never takes the server down: it logs
+ * the reason and returns `null`, so the server runs without the capability.
+ */
+function composeMcpEnvironmentHost(configPath = defaultGlobalConfigPath(), options = {}) {
+  const log = options.log ?? stderrLog;
+  try {
+    return createMcpEnvironmentHostFactory(readEnvironmentSection(configPath), { ...options, log });
+  } catch (error) {
+    log(`hseos mcp: the capability host is off: ${error.message}`);
+    return null;
+  }
+}
+
 const MEMORY_QUERY_CHARS = 1024;
 
 /** The retrieval query of a task: its requirements, bounded and deterministic. Never the model's words. */
@@ -826,5 +964,7 @@ module.exports = {
   createExecutionApprovalResolver,
   createTaskEnvironment,
   createProductionEnvironmentHost,
+  createMcpEnvironmentHostFactory,
+  composeMcpEnvironmentHost,
   readEnvironmentSection,
 };

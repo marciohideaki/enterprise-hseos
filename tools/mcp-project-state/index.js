@@ -25,10 +25,11 @@ function parseArgs() {
   const port = Number(portText);
   if (!Number.isSafeInteger(port) || port < 1 || port > 65_535) throw new Error('port must be an integer from 1 to 65535');
   const dbPath = args.find((a) => a.startsWith('--db='))?.split('=')[1] || process.env.HSEOS_STATE_DB || DEFAULT_DB;
+  const configPath = args.find((a) => a.startsWith('--config='))?.slice('--config='.length) || undefined;
   const instanceId = args.find((a) => a.startsWith('--instance-id='))?.slice('--instance-id='.length) || null;
   if (instanceId !== null && !/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(instanceId)) throw new Error('instance-id must be a UUID');
   const mode = args.includes('--http') || args.some((a) => a.startsWith('--port=')) ? 'http' : 'stdio';
-  return { dbPath, instanceId, mode, port };
+  return { configPath, dbPath, instanceId, mode, port };
 }
 
 // Discover and require all `./tools/*.js` files; each exports an array of tool descriptors
@@ -150,7 +151,7 @@ function listTools() {
   return [...LEGACY_TOOLS, ...dynamicDescriptors];
 }
 
-const { dbPath, instanceId, mode, port } = parseArgs();
+const { configPath, dbPath, instanceId, mode, port } = parseArgs();
 const toolMap = new Map(listTools().map((tool) => [tool.name, tool]));
 let governedMode;
 try {
@@ -163,7 +164,9 @@ try {
 const governedExecution = governedMode.modern;
 let runtimeHandle;
 let operationalDb = null;
+let environmentHostFactory = null;
 if (governedExecution) {
+  const { composeMcpEnvironmentHost } = require('../cli/lib/engineering-task-extensions');
   toolMap.set('scheduler_sweep_orphans', {
     name: 'scheduler_sweep_orphans',
     description: 'Internal governed stale-heartbeat sweep',
@@ -174,6 +177,10 @@ if (governedExecution) {
       additionalProperties: false,
     },
   });
+  // The capability host (environment.* and durable memory.*) exists only on an activated database; the fixture and the
+  // legacy server never get one. A missing or invalid `environment:` section only means no capability.
+  environmentHostFactory =
+    governedMode.mode === 'modern' ? composeMcpEnvironmentHost(configPath, { log: (m) => logToStderr('info', m) }) : null;
   runtimeHandle = startNativeMcpServer({
     serverId: 'project_state',
     tools: toolMap,
@@ -181,6 +188,7 @@ if (governedExecution) {
     port,
     dbPath,
     health: instanceId ? { instance_id: instanceId } : {},
+    environmentHost: environmentHostFactory,
     invokeTool(name, args, context) {
       return handleTool(runtimeHandle.db, name, args, context);
     },
@@ -227,6 +235,7 @@ try {
 async function shutdown() {
   if (stopScheduler) stopScheduler();
   await runtimeHandle.close();
+  environmentHostFactory?.dispose();
   if (operationalDb?.open) operationalDb.close();
   process.exit(0);
 }
