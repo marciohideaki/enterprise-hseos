@@ -6,6 +6,28 @@ Proposed — 2026-10-22. Aguarda decisão do owner. Nada neste documento ativa, 
 coisa alguma: a ativação operacional exige este ADR em **Accepted** e autorização explícita
 por banco (ver Decision, item 6). Campos de aprovação humana ficam em branco de propósito.
 
+**NOTE para o owner (ao aceitar):** a linha de status deve ficar curta, no formato
+`Accepted — AAAA-MM-DD`. O parser do comando de ativação (K2) recusa prosa depois da data. O
+parser só aceita formas exatas de aprovado (`fb516b82`). O ADR-0047 real, com prosa na linha de
+status, também deixa de passar nesse parser; isso é irrelevante para a ativação, que aponta
+apenas para este ADR.
+
+**Estado das entregas (W10, branch `feature/hseos-w5-closeout-w10`):** o código que este ADR
+exige já foi entregue na feature e passa a existir na `master` quando a PR da W10 for
+mergeada. Nada foi ativado: nenhum `project.db` real foi alterado, nenhum registro de cliente foi
+trocado.
+
+| Entrega | Conteúdo                                                                    | Commits / branch                                           |
+| ------- | --------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| K2      | comando `hseos execution-activation plan\|apply\|rollback`                  | `53cb916a`, `da7bfce7`, `4743ba19`, `961fb250`, `fb516b82` |
+| K4      | modo moderno por banco ativado, compat de `initialize`, sunset configurável | `b639f965`                                                 |
+| K5      | host de produção na CLI (`agent run`)                                       | `f4532928`, `af600411`                                     |
+| K5b     | host de produção no MCP do project-state, memória durável                   | `9370103d`, `f9ed523c`                                     |
+| K8      | DoS do adaptador moderno (linha `null`)                                     | `b2b0d5ce`, `30af1f2d`                                     |
+| K9      | omissão de `lsp`/`dap` sem isolamento                                       | `e8ad550d`, `60347b3a`, `77129c59`, `ed429562`             |
+| K11     | escopo recusado antes da aprovação                                          | `6254db70`                                                 |
+| K10     | journey moderno 503/0/4 com negativos de escopo                             | `task/w10-k10` (`e9c5f31b`), ainda fora da feature         |
+
 **Supersedes:** ADR-0022 §Mitigations (último item, critério de ativação e datas) e
 ADR-0023 §Mitigations (último item, janela de compatibilidade). A supersessão só produz
 efeito quando este ADR for Accepted; até lá os critérios antigos continuam vigentes.
@@ -70,7 +92,10 @@ protocolo dos clientes registrados.
      `workspace`, total 24) aparecem **somente no project-state e somente com a seção
      `environment:`** na configuração; nenhum outro servidor passa `environmentHost`. A K7
      também achou que o `mcp-journey.mjs` atual só exercita o caminho legado, e a medição
-     do modo moderno hoje vem de um harness próprio (a ajustar na entrega futura).
+     do modo moderno vinha de um harness próprio. **Entregue pela K10** (`task/w10-k10`,
+     `e9c5f31b`): `mcp-journey.mjs --mode modern` sobre banco ativado, 503 PASS / 0 FAIL / 4
+     NOT_EXERCISED (axon real ausente do `PATH`), com os negativos de escopo do swarm
+     (evidência em `docs/evolution/w10/evidence/k10/`).
    - (d) Prova com cliente real (Codex instalado) via `tools/list` e `tools/call` contra o
      servidor moderno, com a versão de protocolo negociada registrada.
    - (e) A compatibilidade **legado-dentro-do-moderno** permanece ativa no servidor moderno,
@@ -91,7 +116,10 @@ protocolo dos clientes registrados.
      de 8 execuções** caiu em `initialize` `2025-11-25` e foi recusado (causa não
      determinada; hipótese não verificada: flag remota em cache). Portanto o (f) é necessário também para ele. O servidor legado não pode continuar registrado para o Codex,
      pois se recusa a abrir banco ativado. Sem (f), a troca do Codex para o moderno quebra o
-     cliente. A mudança é **entrega futura da W10/K4** (inexistente em 1a23be3b) e é
+     cliente. A mudança é **entregue pela W10/K4** (`b639f965`, na feature: o servidor moderno serve o banco ativado e
+     atende o `initialize` das quatro revisões, `2024-11-05`, `2025-03-26`, `2025-06-18` e
+     `2025-11-25`, todas negociadas para `2024-11-05`; a `2025-03-26` não teve frame observado
+     de cliente real, só o harness da K7) e é
      **alteração parcial do ADR-0023 §Mitigations** (último item): a janela de compatibilidade
      não se estende, mas o "only" de "supports only `2024-11-05` through `R`" é **revogado**,
      pois passam a ser aceitas as revisões `2025-06-18` e `2025-11-25`.
@@ -105,12 +133,13 @@ protocolo dos clientes registrados.
    O sunset também fica condicionado a que o **Codex estável, sem flag**, envie
    `server/discover` `2026-07-28`; hoje isso exige a feature `mcp_2026_07_28`, em
    desenvolvimento, mais `CODEX_MCP_PROTOCOL_VERSION` (K1). Sem data fixa.
-   Consequência de código, **entrega futura da W10/K4** (inexistente em 1a23be3b): o sunset
-   deixa de ser a constante `LEGACY_SUNSET = '2026-11-30'`
-   (`tools/lib/mcp-2026-adapter.js:33`, aplicada em `:695` por `LEGACY_SUNSET_INSTANT`) e
-   passa a ser configurável e derivado deste ADR (sem data configurada = sem expiração).
-   O `LEGACY_SUNSET` de `tools/lib/legacy-mcp-server.js:10`, hoje ligado ao critério de 30
-   dias, é religado ao novo critério pela mesma entrega.
+   Consequência de código, **entregue pela W10/K4** (`b639f965`): em banco ativado o sunset
+   deixa de ser a constante `LEGACY_SUNSET = '2026-11-30'` e passa a vir da variável
+   `HSEOS_MCP_LEGACY_SUNSET` (data ISO ou instante). Sem valor, a compatibilidade não expira;
+   valor inválido aborta o boot (código de saída 78 segundo o relato da K4, **a reconfirmar**).
+   Fixtures mantêm a data embutida até este ADR ser Accepted.
+   A constante `LEGACY_SUNSET` de `tools/lib/legacy-mcp-server.js`, que era ligada ao critério
+   de 30 dias, deixou de existir na mesma entrega (`b639f965`).
 4. **Rollback.** Parar os servidores e CLIs que usam o banco, restaurar o backup da etapa (b)
    e re-registrar o servidor legado nos clientes. A **perda das escritas posteriores à
    ativação é aceita explicitamente** (declarada ao owner antes do passo 1b). O banco
@@ -128,9 +157,14 @@ protocolo dos clientes registrados.
      Sem a aceitação expressa dessa exceção pelo owner, o item 4 não pode ser executado e o
      rollback fica restrito ao procedimento original de ADR-0022.
 6. **Gate de ativação.** O comando `hseos execution-activation plan|apply|rollback --db
---adr` é **entrega futura (W10/K2)** e **não existe em 1a23be3b**; a recusa de `apply`
-   sem `--adr` apontando para um ADR com status **Accepted** é **requisito** dele (com passo
-   negativo testado), não um fato atual. Este ADR em Proposed não satisfaz o gate.
+--adr` foi **entregue pela W10/K2** (`53cb916a`, `da7bfce7`, `4743ba19`, `961fb250`, `fb516b82`, na
+   feature) e passa a existir na `master` quando a PR da W10 for mergeada; não existia em
+   1a23be3b. A recusa de `plan` e `apply` sem `--adr` apontando para um ADR com status
+   **Accepted** é parte dele e foi exercitada contra este ADR em Proposed (K3, bloqueio
+   `EXECUTION_ACTIVATION_ADR_NOT_ACCEPTED`). Este ADR em Proposed não satisfaz o gate. O
+   comando decide o modo por banco: v4 legado; ativado (`user_version` 17, `application_id`
+   `0x48534f53` e integridade) é moderno; qualquer outro estado é recusado como
+   inconsistente, sem fallback.
 7. **Pré-condições do `apply`.**
    - Congelar as escritas legadas e provar o escritor único: reaplica-se a mitigação de
      ADR-0022 §Mitigations ("freeze legacy writes before enabling the new path and add a
@@ -156,11 +190,13 @@ protocolo dos clientes registrados.
      exercitado no ensaio e conferido na ativação real, com os servidores parados.
    - **Gate `g9-zero-legacy-window`.** O ensaio oficial
      (`tools/lib/agentic-activation-rehearsal.js`) ainda lista esse gate, que é o critério
-     de 30 dias que este ADR substitui. Reconciliar/atualizar o gate g9 é **entrega futura**;
-     este ADR não altera código.
+     de 30 dias que este ADR substitui. Reconciliar/atualizar o gate g9 **continua pendente**
+     (não entregue); este ADR não altera código.
    - **K8 integrada.** A K7 achou um DoS local no adaptador moderno (linha JSON ou corpo
-     HTTP `null` derruba o servidor moderno), corrigido pela task K8. A ativação real fica
-     **condicionada à K8 integrada**.
+     HTTP `null` derruba o servidor moderno), **corrigido pela K8** (`b2b0d5ce`, `30af1f2d`, na
+     feature; a K10 confirma que linhas `null`, número, `[]` e string não derrubam mais o
+     servidor). A condição de integração da K8 está atendida na feature; a ativação real
+     continua condicionada à PR da W10 mergeada.
 
 ## Consequences
 
@@ -185,11 +221,14 @@ protocolo dos clientes registrados.
 
 - **Ferramentas `environment.lsp`/`environment.dap` exigem cgroup delegado.** Fora dele
   devolvem `ENGINEERING_ISOLATION_UNAVAILABLE`, e um MCP iniciado pelos clientes a partir da
-  configuração padrão não roda delegado (K7, F4). Mitigação: a task K9 faz o servidor omitir
-  essas famílias quando o isolamento não estiver disponível e documenta o lançamento
-  delegado; sem o isolamento, `memory.*` continua funcionando.
+  configuração padrão não roda delegado (K7, F4). Mitigação entregue pela K9 (`e8ad550d`,
+  `60347b3a`, `77129c59`, `ed429562`): o servidor omite essas famílias, com aviso, quando o
+  isolamento não está disponível, e se a composição do host falhar reinicia uma única vez sem
+  host. O lançamento delegado está documentado no runbook. Sem o isolamento, `memory.*`
+  continua funcionando. Não verificado com cliente real.
 - **DoS local no adaptador moderno** (linha JSON ou corpo HTTP `null`, K7 F1/F1b).
-  Mitigação: correção pela task K8; ativação condicionada à K8 integrada.
+  Mitigação: corrigido pela K8 (`b2b0d5ce`, `30af1f2d`). Resolvido na feature; segue
+  dependente do merge da PR da W10.
 
 - **Clientes só-legado quebram após o sunset.** Mitigação: o sunset só vale com a evidência K1
   de que os clientes registrados falam `2026-07-28`; a compat permanece até lá.
@@ -197,7 +236,9 @@ protocolo dos clientes registrados.
   backup e re-registra o legado; o ensaio em cópia (b) prova a volta antes da ativação real.
 - **Perda de escritas pós-ativação.** Mitigação: janela supervisionada, servidores parados,
   perda declarada ao owner antes da ativação; ledger ativado preservado como evidência.
-- **Ativação sem governança.** Mitigação: é requisito do comando futuro (W10/K2) recusar `apply` sem `--adr` Accepted; até ele existir, a ativação não ocorre.
+- **Ativação sem governança.** Mitigação: o comando entregue pela K2 recusa `plan` e `apply`
+  sem `--adr` Accepted (exercitado na K3). A K11 (`6254db70`) também fecha a escrita fora de
+  escopo antes de pedir aprovação, sem eventos `ExecutionOutcomeUncertain` (K10).
 - **Efeito de precedente.** Mitigação: a exceção do item 5 é restrita ao piloto; os demais
   bancos exigem ADR ou autorização própria.
 
@@ -216,13 +257,27 @@ protocolo dos clientes registrados.
 - [ ] Aprovado pelo owner (Accepted) — **pendente; não preenchido por este rascunho**
 - [ ] Exceção de rollback do item 5 aceita expressamente pelo owner — pendente
 - [ ] Data-limite do sunset fixada pelo owner após K1 — **a fixar pelo owner após K1**
-- [ ] Evidência K1 (protocolo dos clientes) arquivada em `docs/evolution/w10/evidence/k1/`
-- [ ] K8 (correção do DoS `null`) integrada antes da ativação real
-- [ ] Critério (f) entregue na K4 (initialize legado `2024-11-05`/`2025-06-18`/`2025-11-25` sem ferramentas com aprovação)
+- [x] Evidência K1 (protocolo dos clientes) arquivada em `docs/evolution/w10/evidence/k1/`
+      (`task/w10-k1`; sustenta o critério (d) e o sunset). Não é aprovação, só evidência.
+- [x] Evidência por critério, em `docs/evolution/w10/evidence/`:
+  - (a) K7 (`k7/`): suíte `test-mcp-activated-mode.js` 17/17; as suítes `test-mcp-2026-adapter.js`
+    e `test-mcp-contract.js` provadas pelo CI, não nesta evidência. **Parcial.**
+  - (b) K3 (`k3/`): ensaio de ativação e rollback em cópia do `project.db` real. **Atendido.**
+  - (b2) backup do banco **real** com `integrity_check` e sha256: só existe na ativação real.
+    **Pendente.**
+  - (c) K7 e K10 (`k7/`, `k10/`): contagens 15/15/5/6 conferidas e journey moderno
+    503 PASS / 0 FAIL / 4 NOT_EXERCISED. **Atendido com ressalvas** (axon real ausente).
+  - (d) K1 e K7 (`k1/`, `k7/`): Claude Code 8/8 em `2026-07-28`; Codex `initialize` e
+    `tools/list` concluem no banco ativado. `tools/call` e MRTR do Codex **NOT_EXERCISED**.
+    **Parcial.**
+  - (e) K7 e K10: compat legado-dentro-do-moderno mantida. **Atendido.**
+  - (f) K7 e K10: `initialize` das revisões legadas negociado para `2024-11-05` nos 4
+    servidores, sem executar ferramentas com aprovação. **Atendido.**
+- [ ] Entregas de código da W10 mergeadas na `master` (PR da W10): K2, K4, K5/K5b, K8, K9, K11
+- [ ] Gate `g9-zero-legacy-window` do ensaio oficial reconciliado — **pendente, não entregue**
 - [ ] Owner decide se autoriza `tools/call`/MRTR do Codex na K7 (login/gasto); senão, limitação declarada
-- [ ] Evidência K3, arquivada em `docs/evolution/w10/evidence/k3/` (ensaio de ativação e rollback em cópia; backup com integrity_check e sha256)
 - [ ] Lista nominal de clientes, CLIs e hooks re-registrados no servidor moderno antes do `apply`
-- [ ] Evidência K7, arquivada em `docs/evolution/w10/evidence/k7/` (journey MCP moderno, contagens e prova com cliente real)
+- [ ] Janela supervisionada da ativação real (servidores parados; WAL com dados exercitado)
 - [ ] Checklist aberto de ADR-0022 (padrões ES/CQRS/AR/Tool Design referenciando o ADR;
       dry-run de migração revisado contra cópia de backup; suíte de conformance de adaptadores;
       equipes notificadas) ligado às evidências acima
@@ -240,5 +295,5 @@ protocolo dos clientes registrados.
 | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Manter os 30 dias de zero uso legado                | Inalcançável: o uso normal do owner e do Codex conta como legado e reinicia o contador; trava a ativação por tempo indeterminado e deixa o sunset sem enforcement |
 | Ativar sem ADR Accepted, só com a evidência técnica | Remove o gate humano exigido por ADR-0022/0024; evidência técnica não substitui autoridade de decisão                                                             |
-| Ativar globalmente nos 22 bancos                    | Raio de dano máximo, sem evidência de rollback real por banco; o piloto precisa produzir a prova antes de qualquer expansão                                       |
+| Ativar globalmente em todos os `project.db` do host | Raio de dano máximo, sem evidência de rollback real por banco; o piloto precisa produzir a prova antes de qualquer expansão                                       |
 | Remover o legado na data fixa de 2026-11-30         | Pode quebrar clientes que só falam `2024-11-05`; sem evidência K1 a data é arbitrária                                                                             |
