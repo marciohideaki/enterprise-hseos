@@ -134,6 +134,14 @@ A configuração vive em uma seção nova `environment:` de `~/.config/hseos/con
 - **`isolation`**: informativo, uma restrição de valor único. O ambiente da tarefa sempre isola com bwrap (único backend implementado); a chave não escolhe backend, apenas recusa qualquer outro valor;
 - **`toolchain_cache`** deve ser um caminho absoluto, normalizado, sem `..`, de um diretório existente e que não seja symlink (só o componente final é verificado); caso contrário a seção é recusada com `ENGINEERING_ENVIRONMENT_CONFIG_INVALID`. Seção vazia ou chave parecida com `environment` (ex.: `enviroment`) emite aviso no stderr e o host continua ausente.
 
+Servidor MCP `project-state` (banco ativado), mesma seção, com estas particularidades:
+
+- `--config=<caminho>` escolhe o arquivo (padrão `~/.config/hseos/config.yaml`); a seção só é lida com o banco ativado, nunca no modo legado ou fixture. Seção inválida: aviso no stderr e servidor sem a capability.
+- **`workspace`** (`host_workspace`, `main_checkout`, `protected_paths`): só o host MCP lê; liga LSP e DAP junto com `toolchain_cache`. `host_workspace` é o **diretório real do usuário**, montado **somente leitura** no sandbox (escrita falha com EROFS). `file` das ferramentas LSP é relativo a essa raiz: caminho absoluto (inclusive a grafia do sandbox, `/workspace/index.ts`) e `..` são recusados com `ENV_LSP_OUT_OF_SCOPE`, por desenho.
+- **O DAP executa programas do workspace por design** (esse é o seu objetivo); a contenção é o sandbox (somente leitura, sem rede, toolchain pinado), não a escolha do diretório. Aponte `host_workspace` apenas para um checkout em que você aceite executar o código.
+- **Memória via MCP é sempre `origin: agent` e `trust: untrusted`.** O cliente que enviar outro `origin`/`trust` recebe `MEMORY_WRITE_FIELD_NOT_ALLOWED` e nada é gravado; o `memory.operator` da config é só a identidade vista pelas regras de escrita, não a origem da memória. A recuperação padrão não devolve `untrusted` (precisa de `include_untrusted`). Promoção a `trusted` fica fora desta fase (exigiria um caminho de operador futuro).
+- `memory.delete` com `project_id` de outro projeto é recusado antes de qualquer pedido de aprovação ao humano.
+
 **Sem a seção `environment:` o host fica ausente** e o comportamento atual se mantém: `ENV_CAPABILITY_UNAVAILABLE` no servidor MCP e `ENGINEERING_ENVIRONMENT_HOST_REQUIRED` na CLI. A seção é escrita no passo 1b.0, com backup e rollback: ela só vale com o banco ativado (memória durável no `project.db`); na CLI sem banco ativado a memória usa o ledger da tarefa, com aviso. Pré-condição de segurança: o `agent run` admite o contrato (K6) antes de montar o host. A seção não carrega segredo, e este runbook não os manuseia.
 
 ## 4. Passo 2 — hooks Codex com `trusted_hash`
