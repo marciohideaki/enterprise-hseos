@@ -1,6 +1,6 @@
 [
   {
-    "t": "2026-10-22T03:05:06.337Z",
+    "t": "2026-10-22T03:36:15.750Z",
     "dir": "client->server",
     "frame": {
       "jsonrpc": "2.0",
@@ -30,7 +30,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:05:06.808Z",
+    "t": "2026-10-22T03:36:16.208Z",
     "dir": "server->client",
     "frame": {
       "jsonrpc": "2.0",
@@ -54,7 +54,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:05:06.821Z",
+    "t": "2026-10-22T03:36:16.235Z",
     "dir": "client->server",
     "frame": {
       "method": "tools/list",
@@ -84,7 +84,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:05:06.821Z",
+    "t": "2026-10-22T03:36:16.236Z",
     "dir": "server->client",
     "frame": {
       "jsonrpc": "2.0",
@@ -124,7 +124,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:05:10.153Z",
+    "t": "2026-10-22T03:36:18.761Z",
     "dir": "client->server",
     "frame": {
       "method": "tools/call",
@@ -149,7 +149,7 @@
               "url": {}
             }
           },
-          "claudecode/toolUseId": "toolu_01P78UkUtN1BcRs4QejfLzVU",
+          "claudecode/toolUseId": "toolu_01PaPXxuFtndtvaQZhyFC6Tu",
           "progressToken": 1
         }
       },
@@ -158,7 +158,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:05:10.274Z",
+    "t": "2026-10-22T03:36:18.871Z",
     "dir": "server->client",
     "frame": {
       "jsonrpc": "2.0",

@@ -1,6 +1,6 @@
 [
   {
-    "t": "2026-10-22T03:08:35.412Z",
+    "t": "2026-10-22T03:35:46.827Z",
     "dir": "client->server",
     "frame": {
       "jsonrpc": "2.0",
@@ -30,7 +30,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:08:35.639Z",
+    "t": "2026-10-22T03:35:47.048Z",
     "dir": "server->client",
     "frame": {
       "jsonrpc": "2.0",
@@ -42,7 +42,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:08:35.647Z",
+    "t": "2026-10-22T03:35:47.054Z",
     "dir": "client->server",
     "frame": {
       "method": "initialize",
@@ -70,7 +70,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:08:35.648Z",
+    "t": "2026-10-22T03:35:47.055Z",
     "dir": "server->client",
     "frame": {
       "jsonrpc": "2.0",
@@ -88,7 +88,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:08:35.652Z",
+    "t": "2026-10-22T03:35:47.059Z",
     "dir": "client->server",
     "frame": {
       "jsonrpc": "2.0",
@@ -96,7 +96,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:08:35.652Z",
+    "t": "2026-10-22T03:35:47.059Z",
     "dir": "client->server",
     "frame": {
       "method": "tools/list",
@@ -105,7 +105,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:08:35.653Z",
+    "t": "2026-10-22T03:35:47.060Z",
     "dir": "server->client",
     "frame": {
       "jsonrpc": "2.0",
@@ -135,7 +135,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:08:38.304Z",
+    "t": "2026-10-22T03:35:49.811Z",
     "dir": "client->server",
     "frame": {
       "method": "tools/call",
@@ -143,7 +143,7 @@
         "name": "list_workflows",
         "arguments": {},
         "_meta": {
-          "claudecode/toolUseId": "toolu_012zPBi2xbvRXiNM6hDvCPqj",
+          "claudecode/toolUseId": "toolu_01LsSDXUNTr57vbaQ7G1zs39",
           "progressToken": 2
         }
       },
@@ -152,7 +152,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:08:38.333Z",
+    "t": "2026-10-22T03:35:49.840Z",
     "dir": "server->client",
     "frame": {
       "jsonrpc": "2.0",

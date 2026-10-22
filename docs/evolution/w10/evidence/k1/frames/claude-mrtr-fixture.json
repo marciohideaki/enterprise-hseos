@@ -1,6 +1,6 @@
 [
   {
-    "t": "2026-10-22T03:08:16.292Z",
+    "t": "2026-10-22T03:35:41.404Z",
     "dir": "client->server",
     "frame": {
       "jsonrpc": "2.0",
@@ -30,7 +30,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:08:16.395Z",
+    "t": "2026-10-22T03:35:41.508Z",
     "dir": "server->client",
     "frame": {
       "jsonrpc": "2.0",
@@ -54,7 +54,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:08:16.409Z",
+    "t": "2026-10-22T03:35:41.518Z",
     "dir": "client->server",
     "frame": {
       "method": "tools/list",
@@ -84,7 +84,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:08:16.409Z",
+    "t": "2026-10-22T03:35:41.518Z",
     "dir": "server->client",
     "frame": {
       "jsonrpc": "2.0",
@@ -108,7 +108,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:08:19.672Z",
+    "t": "2026-10-22T03:35:44.320Z",
     "dir": "client->server",
     "frame": {
       "method": "tools/call",
@@ -135,7 +135,7 @@
               "url": {}
             }
           },
-          "claudecode/toolUseId": "toolu_01T5sP39DqffYFHaTyokDboN",
+          "claudecode/toolUseId": "toolu_01CPAtjsAqYoJmCwQGivhDCr",
           "progressToken": 1
         }
       },
@@ -144,7 +144,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:08:19.760Z",
+    "t": "2026-10-22T03:35:44.403Z",
     "dir": "server->client",
     "frame": {
       "jsonrpc": "2.0",
@@ -156,7 +156,7 @@
             "method": "elicitation/create",
             "params": {
               "mode": "form",
-              "message": "Approve governed execution 80641506-3bed-53d6-8e30-c8a01a9ff48d?",
+              "message": "Approve governed execution 592efa52-d62a-5296-80b3-bcd01920427b?",
               "requestedSchema": {
                 "type": "object",
                 "properties": {
@@ -181,7 +181,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:08:19.763Z",
+    "t": "2026-10-22T03:35:44.407Z",
     "dir": "client->server",
     "frame": {
       "method": "tools/call",
@@ -208,7 +208,7 @@
               "url": {}
             }
           },
-          "claudecode/toolUseId": "toolu_01T5sP39DqffYFHaTyokDboN",
+          "claudecode/toolUseId": "toolu_01CPAtjsAqYoJmCwQGivhDCr",
           "progressToken": 2
         },
         "inputResponses": {
@@ -223,7 +223,7 @@
     }
   },
   {
-    "t": "2026-10-22T03:08:19.837Z",
+    "t": "2026-10-22T03:35:44.482Z",
     "dir": "server->client",
     "frame": {
       "jsonrpc": "2.0",
