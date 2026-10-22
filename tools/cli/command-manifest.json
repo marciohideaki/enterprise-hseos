@@ -93,7 +93,41 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "4445fe96aee4a5a90776af2044de4600a382c5acd9a1308814dcfaedb44af4c5"
+      "source_sha256": "e9ff275033493b2cdf30d097ff9208b67029e8e575a39ca8d9cc5c6621428b09"
+    },
+    {
+      "filename": "agent-activation-rehearsal.js",
+      "command": "execution-activation <action>",
+      "description": "Plan, apply or roll back activation of the governed execution ledger on one existing state database (apply requires an Accepted ADR and a backup directory).",
+      "options": [
+        [
+          "--db <path>",
+          "State database to activate or restore (a regular schema-v4 file; never a link)"
+        ],
+        [
+          "--adr <id>",
+          "ADR identifier whose status must be Accepted (for example ADR-0048)"
+        ],
+        [
+          "--backup-dir <dir>",
+          "Directory that receives the verified pre-activation backup and receipt"
+        ],
+        [
+          "--backup <path>",
+          "Backup file to restore (rollback)"
+        ],
+        [
+          "--expected-sha256 <hex>",
+          "Expected sha256 of the backup file (rollback)"
+        ],
+        [
+          "--json",
+          "Output machine-readable JSON"
+        ]
+      ],
+      "governed": false,
+      "source_sha256": "e9ff275033493b2cdf30d097ff9208b67029e8e575a39ca8d9cc5c6621428b09",
+      "companion": "execution-activation"
     },
     {
       "filename": "agent-core.js",
