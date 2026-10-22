@@ -1,0 +1,15 @@
+# printf "null\n" | node mcp-hseos-governance/index.js  (pacote instalado, banco ativado)
+[governance] governed mode=activated user_version=17
+[governance] governed MCP stdio ready; tools=15
+<consumidor>/node_modules/hseos/tools/lib/mcp-2026-adapter.js:1194
+    if (Object.hasOwn(message, 'id')) inflight.set(message.id, controller);
+               ^
+
+TypeError: Cannot convert undefined or null to object
+    at Object.hasOwn (<anonymous>)
+    at Interface.<anonymous> (<consumidor>/node_modules/hseos/tools/lib/mcp-2026-adapter.js:1194:16)
+exit=1
+
+# controle: o mesmo em banco v4 (servidor legado)
+[governance] legacy MCP compatibility stdio ready; tools=15
+{"jsonrpc":"2.0","id":null,"error":{"code":-32600,"message":"Invalid Request"}}

@@ -1,0 +1,26 @@
+Delegated test cgroup controllers verified
+✔ resolveGovernedExecutionMode: absent and v4 databases are legacy, an activated one is modern (107.479255ms)
+✔ resolveGovernedExecutionMode refuses every intermediate or inconsistent state (518.506156ms)
+✔ resolveGovernedExecutionMode refuses a corrupt activated database (integrity_check) (87.35804ms)
+✔ the fixture gate keeps its own path and takes precedence (0.544971ms)
+✔ the legacy boundary still refuses an activated database and points to the modern release (89.016978ms)
+✔ openActivated does not reapply migrations and rejects a v4 database (89.689328ms)
+✔ a v4 database keeps the legacy server (initialize 2024-11-05, no governed mode) (687.225535ms)
+✔ an activated database starts the modern server without the fixture gate (counts, discover, call) (2134.154452ms)
+✔ the axon bridge starts modern on an activated database and legacy on v4 (663.583438ms)
+✔ every entrypoint refuses an inconsistent database, with no legacy fallback (883.120263ms)
+✔ compat: legacy initialize revisions are served as 2024-11-05 with a warning and a counter (566.041188ms)
+✔ compat: an unknown protocol version is still refused with -32022 (510.447649ms)
+✔ compat: approval-required tools stay listed and answer MCP_LEGACY_APPROVAL_UNSUPPORTED on legacy tools/call (118.805901ms)
+✔ sunset: default keeps 2026-11-30, null never expires, a configured date expires on that date (68.353904ms)
+✔ sunset wiring: an activated server has no expiry by default, HSEOS_MCP_LEGACY_SUNSET in the past refuses (1399.308547ms)
+✔ sunset wiring: the fixture path keeps the built-in 2026-11-30 and ignores the variable (420.463936ms)
+✔ governed-action: v4 stays legacy, activated runs governed, inconsistent is refused (174.93899ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 25289.513058

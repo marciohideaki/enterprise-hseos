@@ -211,12 +211,23 @@ const MAX_PENDING_GRANTS = 64;
  * action, opens the service's own request for exactly that action); `grant` runs only after that human accepted and
  * resolves the service gate with the approver's identity; `take` hands the provider the grant for the very same input.
  */
-function createCapabilityApprovals({ host, normalize }) {
+function createCapabilityApprovals({ host, normalize, tools = new Map() }) {
   const pending = new Map();
   // The runtime hands a provider the contract-normalized input (defaults filled); both sides compare that one form.
   const canonical = (tool, input) => stable(normalize(tool, input));
   return Object.freeze({
     describe(request, operationId) {
+      // A tool may declare a deterministic, side-effect-free `preflight(input)`: scope and input that can never succeed are
+      // refused here, before a person is asked. The tool repeats the same check when it executes.
+      const preflight = tools.get(request.tool)?.preflight;
+      if (typeof preflight === 'function') {
+        try {
+          preflight(request.input);
+        } catch (error) {
+          if (error && typeof error.code === 'string') throw Object.assign(error, { preApprovalRefusal: true });
+          throw error;
+        }
+      }
       if (request.tool === 'environment.computer.act') {
         if (!host?.computer) throw capabilityUnavailable(request.tool, 'the host has no computer');
         const { session_id: sessionId, ...action } = normalize(request.tool, request.input);
@@ -231,6 +242,10 @@ function createCapabilityApprovals({ host, normalize }) {
       }
       if (request.tool === 'memory.delete') {
         const { project_id: projectId, memory_id: memoryId, reason } = request.input;
+        // The scope is checked before a person is asked: a deletion in another project is never put to the human.
+        if (host?.memory && projectId !== host.project_id) {
+          throw refusal('ENV_PROJECT_SCOPE_MISMATCH', `memory.delete is bound to project ${host.project_id}`);
+        }
         return `Approve deleting memory ${memoryId} of project ${projectId}${reason ? ` (reason: ${reason})` : ''}?`;
       }
       return null;
@@ -258,6 +273,7 @@ function createCapabilityApprovals({ host, normalize }) {
   });
 }
 
+const MCP_MEMORY_WRITE_FIXED = Object.freeze({ origin: 'agent', trust: 'untrusted' });
 const memoryProject = (tool, input) => (tool === 'memory.write' ? input?.scope?.project_id : input?.project_id);
 
 /**
@@ -271,7 +287,17 @@ function createCapabilityHandlers({ host, deriveDeleteApproval, capabilityApprov
     if (!value) throw capabilityUnavailable(tool, host ? `the host has no ${name}` : 'no environment host was supplied');
     return value;
   };
-  const viaRun = (name) => (tool, input) => member(tool, name).run(input);
+  // A service reports a refusal as data (`status` blocked/refused/failed, with its own `code`). That is a failed call carrying
+  // that code, not a malformed output: the output contract only describes a success.
+  const served = (result) => {
+    if (result && ['ok', 'started', 'stopped', 'ready'].includes(result.status)) return result;
+    throw Object.assign(new Error(result?.cause || `environment capability reported ${result?.status}`), {
+      code: result?.code || 'ENV_CAPABILITY_FAILED',
+      retryable: false,
+      outcome: result?.status === 'uncertain' ? 'uncertain' : 'failed',
+    });
+  };
+  const viaRun = (name) => async (tool, input) => served(await member(tool, name).run(input));
   const memoryStore = (tool, input) => {
     const store = member(tool, 'store');
     if (memoryProject(tool, input) !== host.project_id) {
@@ -299,7 +325,15 @@ function createCapabilityHandlers({ host, deriveDeleteApproval, capabilityApprov
     'memory.write': (tool, input) => {
       const store = memoryStore(tool, input);
       const { rules, actor } = host.memory;
-      return store.write(input, { rules, ...(actor ? { actor } : {}) });
+      // A client of this surface never decides what a memory is worth: origin and trust are fixed here, and a request
+      // that names anything else is refused instead of silently rewritten. The configured actor is the identity the
+      // write rules see, never the origin of the entry. Promotion to trusted needs an operator path that does not exist yet.
+      for (const [field, allowed] of Object.entries(MCP_MEMORY_WRITE_FIXED)) {
+        if (input[field] !== undefined && input[field] !== allowed) {
+          throw refusal('MEMORY_WRITE_FIELD_NOT_ALLOWED', `memory.write over MCP stores ${field}=${allowed} only`);
+        }
+      }
+      return store.write({ ...input, ...MCP_MEMORY_WRITE_FIXED }, { rules, ...(actor ? { actor } : {}) });
     },
     'memory.retrieve': (tool, input) => memoryStore(tool, input).retrieve(input),
     'memory.delete': (tool, input, context) => {
@@ -430,6 +464,7 @@ function createOperationalExecution({ db, serverId, tools, invokeTool, maxConcur
   const host = environmentHost ? validateEnvironmentHost(environmentHost(wiring)) : null;
   const capabilityApprovals = createCapabilityApprovals({
     host,
+    tools,
     normalize: (tool, input) => contracts.validateInput(contracts.resolve(tool), input),
   });
   const deriveDeleteApproval = (input, context) => {

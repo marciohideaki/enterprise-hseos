@@ -12,7 +12,7 @@ const path = require('node:path');
 const { failBoot, loadServerTools } = require('../lib/governed-execution/contract-registry');
 const { startNativeMcpServer } = require('../lib/governed-execution/native-mcp-server');
 const { startLegacyMcpServer } = require('../lib/legacy-mcp-server');
-const { openOperationalStateDatabase } = require('./lib/operational-state-db');
+const { openOperationalStateDatabase, resolveGovernedExecutionMode } = require('./lib/operational-state-db');
 const { LEGACY_TOOLS } = require('./tool-catalog');
 
 const DEFAULT_PORT = 3100;
@@ -25,10 +25,11 @@ function parseArgs() {
   const port = Number(portText);
   if (!Number.isSafeInteger(port) || port < 1 || port > 65_535) throw new Error('port must be an integer from 1 to 65535');
   const dbPath = args.find((a) => a.startsWith('--db='))?.split('=')[1] || process.env.HSEOS_STATE_DB || DEFAULT_DB;
+  const configPath = args.find((a) => a.startsWith('--config='))?.slice('--config='.length) || undefined;
   const instanceId = args.find((a) => a.startsWith('--instance-id='))?.slice('--instance-id='.length) || null;
   if (instanceId !== null && !/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(instanceId)) throw new Error('instance-id must be a UUID');
   const mode = args.includes('--http') || args.some((a) => a.startsWith('--port=')) ? 'http' : 'stdio';
-  return { dbPath, instanceId, mode, port };
+  return { configPath, dbPath, instanceId, mode, port };
 }
 
 // Discover and require all `./tools/*.js` files; each exports an array of tool descriptors
@@ -150,12 +151,22 @@ function listTools() {
   return [...LEGACY_TOOLS, ...dynamicDescriptors];
 }
 
-const { dbPath, instanceId, mode, port } = parseArgs();
+const { configPath, dbPath, instanceId, mode, port } = parseArgs();
 const toolMap = new Map(listTools().map((tool) => [tool.name, tool]));
-const fixtureActivation = process.env.NODE_ENV === 'test' && process.env.HSEOS_GOVERNED_EXECUTION_FIXTURE === '1';
+let governedMode;
+try {
+  // Modern governed mode for a fixture or an activated database; a v4 database keeps the legacy server; an inconsistent one is refused.
+  governedMode = resolveGovernedExecutionMode(dbPath);
+} catch (error) {
+  logToStderr('error', error.message);
+  process.exit(1);
+}
+const governedExecution = governedMode.modern;
 let runtimeHandle;
 let operationalDb = null;
-if (fixtureActivation) {
+let environmentHostFactory = null;
+if (governedExecution) {
+  const { composeMcpEnvironmentHost, startWithCapabilityFallback } = require('../cli/lib/engineering-task-extensions');
   toolMap.set('scheduler_sweep_orphans', {
     name: 'scheduler_sweep_orphans',
     description: 'Internal governed stale-heartbeat sweep',
@@ -166,18 +177,36 @@ if (fixtureActivation) {
       additionalProperties: false,
     },
   });
-  runtimeHandle = startNativeMcpServer({
-    serverId: 'project_state',
-    tools: toolMap,
-    mode,
-    port,
-    dbPath,
-    health: instanceId ? { instance_id: instanceId } : {},
-    invokeTool(name, args, context) {
-      return handleTool(runtimeHandle.db, name, args, context);
+  // The capability host (environment.* and durable memory.*) exists only on an activated database; the fixture and the
+  // legacy server never get one. A missing or invalid `environment:` section only means no capability.
+  environmentHostFactory =
+    governedMode.mode === 'modern' ? composeMcpEnvironmentHost(configPath, { log: (m) => logToStderr('info', m) }) : null;
+  // A task that does not exist cannot be updated: the read-only existence check runs before a person is asked to approve.
+  toolMap.set('tasks_update', {
+    ...toolMap.get('tasks_update'),
+    preflight(args) {
+      if (!args || typeof args.id !== 'string' || !args.id) return;
+      if (!runtimeHandle.db.prepare('SELECT 1 FROM tasks WHERE id = ?').get(args.id)) {
+        throw Object.assign(new Error(`Task not found: ${args.id}`), { code: 'TASK_NOT_FOUND', retryable: false });
+      }
     },
-    log: (message) => logToStderr('info', message),
   });
+  const startGoverned = (environmentHost) =>
+    startNativeMcpServer({
+      serverId: 'project_state',
+      tools: toolMap,
+      mode,
+      port,
+      dbPath,
+      health: instanceId ? { instance_id: instanceId } : {},
+      environmentHost,
+      invokeTool(name, args, context) {
+        return handleTool(runtimeHandle.db, name, args, context);
+      },
+      log: (message) => logToStderr('info', message),
+    });
+  // A host that cannot be built never takes the governance server down: one retry without it (the helper logs why).
+  runtimeHandle = startWithCapabilityFallback(startGoverned, environmentHostFactory, { log: (m) => logToStderr('info', m) });
 } else {
   operationalDb = openOperationalStateDatabase(dbPath, { log: logToStderr });
   runtimeHandle = startLegacyMcpServer({
@@ -204,7 +233,7 @@ if (fixtureActivation) {
 // Start in-process scheduler (stale-orphan sweep every 5min) if available.
 let stopScheduler = null;
 try {
-  if (!fixtureActivation) throw new Error('legacy compatibility mode does not run governed background mutations');
+  if (!governedExecution) throw new Error('legacy compatibility mode does not run governed background mutations');
   const { startScheduler } = require('./lib/scheduler');
   stopScheduler = startScheduler(runtimeHandle.execution.scheduler, {
     dbPath,
@@ -219,6 +248,7 @@ try {
 async function shutdown() {
   if (stopScheduler) stopScheduler();
   await runtimeHandle.close();
+  environmentHostFactory?.dispose();
   if (operationalDb?.open) operationalDb.close();
   process.exit(0);
 }

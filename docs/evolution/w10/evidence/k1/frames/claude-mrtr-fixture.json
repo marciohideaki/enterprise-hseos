@@ -1,0 +1,237 @@
+[
+  {
+    "t": "2026-10-22T03:35:41.404Z",
+    "dir": "client->server",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": "server-discover-probe-1",
+      "method": "server/discover",
+      "params": {
+        "_meta": {
+          "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+          "io.modelcontextprotocol/clientInfo": {
+            "name": "claude-code",
+            "title": "Claude Code",
+            "version": "2.1.305",
+            "description": "Anthropic's agentic coding tool",
+            "websiteUrl": "https://claude.com/claude-code"
+          },
+          "io.modelcontextprotocol/clientCapabilities": {
+            "roots": {
+              "listChanged": true
+            },
+            "elicitation": {
+              "form": {},
+              "url": {}
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T03:35:41.508Z",
+    "dir": "server->client",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": "server-discover-probe-1",
+      "result": {
+        "resultType": "complete",
+        "supportedVersions": ["2026-07-28"],
+        "capabilities": {
+          "tools": {}
+        },
+        "ttlMs": 30000,
+        "cacheScope": "private",
+        "_meta": {
+          "io.hseos/toolCatalogRevision": "249089ff1d58f0c1d284a8906110c1980c7438ece2e803b4ffef970f0a46e1da",
+          "io.modelcontextprotocol/serverInfo": {
+            "name": "k1-mrtr-fixture",
+            "version": "1.0.0"
+          }
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T03:35:41.518Z",
+    "dir": "client->server",
+    "frame": {
+      "method": "tools/list",
+      "jsonrpc": "2.0",
+      "id": 0,
+      "params": {
+        "_meta": {
+          "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+          "io.modelcontextprotocol/clientInfo": {
+            "name": "claude-code",
+            "title": "Claude Code",
+            "version": "2.1.305",
+            "description": "Anthropic's agentic coding tool",
+            "websiteUrl": "https://claude.com/claude-code"
+          },
+          "io.modelcontextprotocol/clientCapabilities": {
+            "roots": {
+              "listChanged": true
+            },
+            "elicitation": {
+              "form": {},
+              "url": {}
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T03:35:41.518Z",
+    "dir": "server->client",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 0,
+      "result": {
+        "resultType": "complete",
+        "tools": {
+          "count": 1,
+          "names": ["approval_echo"]
+        },
+        "ttlMs": 30000,
+        "cacheScope": "private",
+        "_meta": {
+          "io.hseos/toolCatalogRevision": "249089ff1d58f0c1d284a8906110c1980c7438ece2e803b4ffef970f0a46e1da",
+          "io.modelcontextprotocol/serverInfo": {
+            "name": "k1-mrtr-fixture",
+            "version": "1.0.0"
+          }
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T03:35:44.320Z",
+    "dir": "client->server",
+    "frame": {
+      "method": "tools/call",
+      "params": {
+        "name": "approval_echo",
+        "arguments": {
+          "value": "hi"
+        },
+        "_meta": {
+          "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+          "io.modelcontextprotocol/clientInfo": {
+            "name": "claude-code",
+            "title": "Claude Code",
+            "version": "2.1.305",
+            "description": "Anthropic's agentic coding tool",
+            "websiteUrl": "https://claude.com/claude-code"
+          },
+          "io.modelcontextprotocol/clientCapabilities": {
+            "roots": {
+              "listChanged": true
+            },
+            "elicitation": {
+              "form": {},
+              "url": {}
+            }
+          },
+          "claudecode/toolUseId": "toolu_01CPAtjsAqYoJmCwQGivhDCr",
+          "progressToken": 1
+        }
+      },
+      "jsonrpc": "2.0",
+      "id": 1
+    }
+  },
+  {
+    "t": "2026-10-22T03:35:44.403Z",
+    "dir": "server->client",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "resultType": "input_required",
+        "inputRequests": {
+          "confirm": {
+            "method": "elicitation/create",
+            "params": {
+              "mode": "form",
+              "message": "Approve governed execution 592efa52-d62a-5296-80b3-bcd01920427b?",
+              "requestedSchema": {
+                "type": "object",
+                "properties": {
+                  "approved": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["approved"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "requestState": "eyJiaW5kaW5nX2RpZ2VzdCI6...(truncated)",
+        "_meta": {
+          "io.modelcontextprotocol/serverInfo": {
+            "name": "k1-mrtr-fixture",
+            "version": "1.0.0"
+          }
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T03:35:44.407Z",
+    "dir": "client->server",
+    "frame": {
+      "method": "tools/call",
+      "params": {
+        "name": "approval_echo",
+        "arguments": {
+          "value": "hi"
+        },
+        "_meta": {
+          "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+          "io.modelcontextprotocol/clientInfo": {
+            "name": "claude-code",
+            "title": "Claude Code",
+            "version": "2.1.305",
+            "description": "Anthropic's agentic coding tool",
+            "websiteUrl": "https://claude.com/claude-code"
+          },
+          "io.modelcontextprotocol/clientCapabilities": {
+            "roots": {
+              "listChanged": true
+            },
+            "elicitation": {
+              "form": {},
+              "url": {}
+            }
+          },
+          "claudecode/toolUseId": "toolu_01CPAtjsAqYoJmCwQGivhDCr",
+          "progressToken": 2
+        },
+        "inputResponses": {
+          "confirm": {
+            "action": "cancel"
+          }
+        },
+        "requestState": "eyJiaW5kaW5nX2RpZ2VzdCI6...(truncated)"
+      },
+      "jsonrpc": "2.0",
+      "id": 2
+    }
+  },
+  {
+    "t": "2026-10-22T03:35:44.482Z",
+    "dir": "server->client",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 2,
+      "error": {
+        "code": -32603,
+        "message": "Governed execution was not explicitly approved"
+      }
+    }
+  }
+]

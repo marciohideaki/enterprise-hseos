@@ -9,6 +9,19 @@ const { readEngineeringTask } = require('../lib/engineering-task-contract');
 
 const ACTIONS = new Set(['run', 'resume', 'cancel', 'validate-task', 'status', 'evidence', 'reconcile']);
 const REFERENCE_PROFILE = 'agent-reference';
+const DEFAULT_GLOBAL_CONFIG = () => require('node:path').join(require('node:os').homedir(), '.config', 'hseos', 'config.yaml');
+
+/**
+ * The environment host of an engineering task, from the `environment:` section of the global configuration (`--config`,
+ * default ~/.config/hseos/config.yaml). `null` when the section is absent. Only ever called after the contract was
+ * admitted; the host is never an option of the user.
+ */
+function composeEnvironmentHost(options, capabilities) {
+  const extensions = require('../lib/engineering-task-extensions');
+  return extensions.createProductionEnvironmentHost(extensions.readEnvironmentSection(options.config ?? DEFAULT_GLOBAL_CONFIG()), {
+    capabilities,
+  });
+}
 const PROFILES = new Set([
   REFERENCE_PROFILE,
   CANDIDATE_PROFILE,
@@ -56,7 +69,7 @@ async function execute(action, options = {}) {
     if (!options.taskContract || Object.keys(options).some((key) => !['taskContract', 'json'].includes(key))) {
       throw new Error('validate-task requires --task-contract and accepts only --json as an additional option.');
     }
-    const { contract, sha256 } = readEngineeringTask(options.taskContract);
+    const { contract, sha256 } = readEngineeringTask(options.taskContract, { admission: true });
     const result = {
       schema_version: 1,
       task_id: contract.task_id,
@@ -69,32 +82,59 @@ async function execute(action, options = {}) {
     return result;
   }
   if (options.taskContract && action === 'run') {
-    if (Object.keys(options).some((key) => !['taskContract', 'scriptedResponses', 'binding', 'createOnly', 'json'].includes(key))) {
+    if (
+      Object.keys(options).some((key) => !['taskContract', 'scriptedResponses', 'binding', 'createOnly', 'config', 'json'].includes(key))
+    ) {
       throw new Error(
-        'Engineering runs accept only task contract, one model source (binding or scripted responses), create-only and JSON options.',
+        'Engineering runs accept only task contract, one model source (binding or scripted responses), create-only, config and JSON options.',
       );
     }
-    const result = await require('../lib/engineering-task-runtime').runEngineeringTask(options);
-    render(result, options.json === true);
-    return result;
+    // Admission first: a contract that is not admitted never gets a host.
+    const { contract } = readEngineeringTask(options.taskContract, { admission: true });
+    const { config: _config, ...runOptions } = options;
+    const environmentHost = contract.environment ? composeEnvironmentHost(options, contract.environment.capabilities) : null;
+    try {
+      const result = await require('../lib/engineering-task-runtime').runEngineeringTask({
+        ...runOptions,
+        ...(environmentHost ? { environmentHost } : {}),
+      });
+      render(result, options.json === true);
+      return result;
+    } finally {
+      environmentHost?.dispose();
+    }
   }
   if (options.profile === 'disposable-engineering-candidate' && ['status', 'resume', 'cancel', 'evidence', 'reconcile'].includes(action)) {
     if (
       !options.state ||
-      Object.keys(options).some((key) => !['profile', 'state', 'expectedSequence', 'reconciliationDecision', 'json'].includes(key))
+      Object.keys(options).some(
+        (key) => !['profile', 'state', 'expectedSequence', 'reconciliationDecision', 'config', 'json'].includes(key),
+      )
     ) {
-      throw new Error('Engineering status/resume/cancel requires state and accepts expected-sequence and JSON only.');
+      throw new Error('Engineering status/resume/cancel requires state and accepts expected-sequence, config and JSON only.');
     }
-    const result = await require('../lib/engineering-task-runtime').inspectEngineeringTask({
-      state: options.state,
-      action,
-      expectedSequence: integer(options.expectedSequence, '--expected-sequence'),
-      reconciliationDecision: options.reconciliationDecision
-        ? require('../lib/engineering-reconciliation').readReconciliationDecision(options.reconciliationDecision)
-        : undefined,
-    });
-    render(result, options.json === true || action === 'evidence');
-    return result;
+    const runtime = require('../lib/engineering-task-runtime');
+    // The same host as the run, built from the contract the task was admitted with, so resume keeps its tools.
+    let environmentHost = null;
+    if (['resume', 'cancel', 'reconcile'].includes(action)) {
+      const { contract } = await runtime.inspectEngineeringTask({ state: options.state, action: 'evidence' });
+      if (contract.environment) environmentHost = composeEnvironmentHost(options, contract.environment.capabilities);
+    }
+    try {
+      const result = await runtime.inspectEngineeringTask({
+        state: options.state,
+        action,
+        expectedSequence: integer(options.expectedSequence, '--expected-sequence'),
+        reconciliationDecision: options.reconciliationDecision
+          ? require('../lib/engineering-reconciliation').readReconciliationDecision(options.reconciliationDecision)
+          : undefined,
+        ...(environmentHost ? { environmentHost } : {}),
+      });
+      render(result, options.json === true || action === 'evidence');
+      return result;
+    } finally {
+      environmentHost?.dispose();
+    }
   }
   if (['status', 'evidence'].includes(action)) throw new Error('Status requires the disposable engineering profile.');
   if (options.taskContract || options.scriptedResponses) throw new Error('Engineering inputs require agent run --task-contract.');
@@ -222,6 +262,7 @@ module.exports = {
     ['--expected-sequence <number>', 'Required optimistic sequence for resume'],
     ['--reason <text>', 'Cancellation reason'],
     ['--reconciliation-decision <path>', 'Explicit answers bound to the current reconciliation report'],
+    ['--config <path>', 'Global configuration with the environment: section (default: ~/.config/hseos/config.yaml)'],
     ['--json', 'Emit one JSON object'],
   ],
   async action(action, options) {

@@ -369,8 +369,8 @@ const mcpEntry = (overrides = {}) => ({
   scope: { project_id: 'alpha' },
   memory_id: 'note-1',
   content: 'the deploy pipeline uses blue green rollouts',
-  origin: 'operator',
-  trust: 'trusted',
+  origin: 'agent',
+  trust: 'untrusted',
   classification: 'internal',
   source_ref: 'doc://runbook/deploy',
   ttl_seconds: 3600,
@@ -401,7 +401,7 @@ test('MCP journey: tools/list advertises what the host backs, and the same flow 
     const lsp = await call('environment.lsp.diagnostics', DIAGNOSTICS);
     assert.equal(lsp.result.structuredContent.ok, true, JSON.stringify(lsp));
     assert.equal((await call('memory.write', withDigest(mcpEntry()))).result.structuredContent.ok, true);
-    const found = await call('memory.retrieve', { project_id: 'alpha', query: 'blue green' });
+    const found = await call('memory.retrieve', { project_id: 'alpha', query: 'blue green', include_untrusted: true });
     assert.equal(found.result.structuredContent.data.result.length, 1);
     assert.equal(found.result.structuredContent.data.result[0].authority, 'data');
 
@@ -439,7 +439,8 @@ test('MCP journey: tools/list advertises what the host backs, and the same flow 
     const refused = await call('memory.delete', { project_id: 'alpha', memory_id: 'note-1' });
     assert.equal(refused.result.resultType, 'input_required', 'asking is not deleting');
     assert.equal(
-      (await call('memory.retrieve', { project_id: 'alpha', query: 'blue green' })).result.structuredContent.data.result.length,
+      (await call('memory.retrieve', { project_id: 'alpha', query: 'blue green', include_untrusted: true })).result.structuredContent.data
+        .result.length,
       1,
     );
     const deletion = await approveVia(
@@ -455,7 +456,8 @@ test('MCP journey: tools/list advertises what the host backs, and the same flow 
     );
     assert.equal(deletion.retry.result.structuredContent.ok, true, JSON.stringify(deletion.retry));
     assert.equal(
-      (await call('memory.retrieve', { project_id: 'alpha', query: 'blue green' })).result.structuredContent.data.result.length,
+      (await call('memory.retrieve', { project_id: 'alpha', query: 'blue green', include_untrusted: true })).result.structuredContent.data
+        .result.length,
       0,
     );
 

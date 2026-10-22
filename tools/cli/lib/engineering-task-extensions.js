@@ -515,6 +515,9 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
     containsCredential,
   });
   const approvalGate = host.approvalGate ?? createApprovalGate({ ledger: ledgerSink });
+  // A host that cannot own a store before the task database exists (the production host) hands a factory instead: the
+  // store is then built over this task's ledger, together with the deriver of its deletion approvals.
+  const memory = typeof host.memory?.create === 'function' ? { ...host.memory, ...host.memory.create({ ledger, db }) } : host.memory;
   const policies = { ...host.policies };
   for (const family of new Set(capabilities.map(familyOf))) {
     const root = host.toolchains?.[family]?.root;
@@ -541,7 +544,7 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
     approvalGate,
     approve: host.approve,
     project_id: host.project_id,
-    memory: host.memory,
+    memory,
     factories: host.factories,
     broker: host.broker,
     mediaStore: host.mediaStore,
@@ -571,7 +574,7 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
   // Governed memory enters the context only when the task declared the capability and the host owns a store. The
   // assembler resolves its profile synchronously, so the (async) collection runs once before the session starts and
   // the resolver reads the frozen result; the retrieval itself is the store's synchronous, governed `retrieve`.
-  const wantsMemory = capabilities.includes('memory.retrieve') && Boolean(host.memory?.store);
+  const wantsMemory = capabilities.includes('memory.retrieve') && Boolean(memory?.store);
   let memorySources = Object.freeze([]);
   return Object.freeze({
     ...environment,
@@ -583,7 +586,7 @@ function createTaskEnvironment({ capabilities, db, session_id: sessionId, host, 
       // A query that looks like a credential is never used to search: nothing leaves, nothing is found.
       memorySources = deepFreeze(
         wantsMemory && !containsCredential(query)
-          ? await require('./memory-context-source').collectMemorySources({ store: host.memory.store, project_id: host.project_id, query })
+          ? await require('./memory-context-source').collectMemorySources({ store: memory.store, project_id: host.project_id, query })
           : [],
       );
     },
@@ -634,6 +637,407 @@ function createMemoryDeleteApprovals({
   });
 }
 
+// ---------------------------------------------------------------------------------------------------------------
+// Production host: the `environment:` section of the global configuration, composed into the host of a task.
+// ---------------------------------------------------------------------------------------------------------------
+
+// `isolation` is informational: a single-value restriction. The task environment always isolates with bwrap (the only
+// backend `createIsolationPolicy` implements); the key does not select a backend, it only refuses any other value.
+const ENVIRONMENT_ISOLATION_BACKENDS = Object.freeze(['bwrap']);
+
+/** An absolute, normalized path of an existing directory that is not itself a symbolic link. */
+function pinnedDirectory(value, context) {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  if (
+    !path.isAbsolute(value) ||
+    value.split('/').includes('..') ||
+    path.normalize(value) !== value ||
+    (value.length > 1 && value.endsWith('/'))
+  )
+    return context.addIssue({ code: 'custom', message: 'must be an absolute, normalized path without ".." segments' });
+  let stat;
+  try {
+    stat = fs.lstatSync(value);
+  } catch {
+    return context.addIssue({ code: 'custom', message: 'must be an existing directory' });
+  }
+  // Only the final component is checked; a symbolic link in an intermediate component is not resolved here.
+  if (stat.isSymbolicLink() || !stat.isDirectory())
+    context.addIssue({ code: 'custom', message: 'must be a directory, not a symbolic link' });
+}
+const environmentConfigSchema = z
+  .object({
+    project_id: IdentifierSchema,
+    toolchain_cache: z.string().min(1).max(4096).superRefine(pinnedDirectory).optional(),
+    memory: z
+      .object({
+        rules: z.array(z.record(z.string(), z.json())).max(256).default([]),
+        operator: z
+          .object({ id: IdentifierSchema, kind: z.literal('operator') })
+          .strict()
+          .optional(),
+      })
+      .strict()
+      .optional(),
+    isolation: z.array(z.enum(ENVIRONMENT_ISOLATION_BACKENDS)).min(1).max(ENVIRONMENT_ISOLATION_BACKENDS.length).optional(),
+    // Read by the MCP host only (the CLI isolates each task in the task's own workspace): the sandbox of its LSP and DAP
+    // services. `host_workspace` is the user's real directory, mounted read-only in the sandbox; DAP runs the programs of
+    // that workspace by design.
+    workspace: z
+      .object({
+        host_workspace: z.string().min(1).max(4096).superRefine(pinnedDirectory),
+        main_checkout: z.string().min(1).max(4096).superRefine(pinnedDirectory),
+        protected_paths: z.array(z.string().min(1).max(4096)).min(1).max(64),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
+function configError(message) {
+  return Object.assign(new Error(`environment configuration: ${message}`), { code: 'ENGINEERING_ENVIRONMENT_CONFIG_INVALID' });
+}
+
+function editDistance(a, b) {
+  let previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i += 1) {
+    const row = [i];
+    for (let j = 1; j <= b.length; j += 1)
+      row[j] = Math.min(previous[j] + 1, row[j - 1] + 1, previous[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    previous = row;
+  }
+  return previous[b.length];
+}
+
+/** The `environment:` section of a global configuration file; `null` when the file or the section is absent. */
+function readEnvironmentSection(file) {
+  const fs = require('node:fs');
+  if (!fs.existsSync(file)) return null;
+  let parsed;
+  try {
+    parsed = require('yaml').parse(fs.readFileSync(file, 'utf8'));
+  } catch (error) {
+    throw configError(`${file} is not valid YAML (${error.message})`);
+  }
+  // The host stays absent (fail-closed) in both cases below; the warning only tells the person why.
+  if (parsed && typeof parsed === 'object') {
+    if ('environment' in parsed && parsed.environment === null)
+      process.stderr.write(`hseos: the environment section of ${file} is empty; no environment host is composed\n`);
+    for (const key of Object.keys(parsed).filter(
+      (entry) => entry !== 'environment' && editDistance(entry.toLowerCase(), 'environment') <= 2,
+    ))
+      process.stderr.write(`hseos: ${file} has the key "${key}", did you mean "environment"? no environment host is composed\n`);
+  }
+  return parsed?.environment ?? null;
+}
+
+// Preparers of the pinned toolchain of each family: they copy the verified cache into a read-only directory.
+function defaultToolchainPreparers() {
+  const environment = require('../../../packages/agent-environment');
+  const install = environment.loadPins().installToolchain;
+  return {
+    lsp: ({ cacheDirectory, destination }) => environment.prepareLspToolchain({ install, cacheDirectory, destination }),
+    dap: ({ cacheDirectory, destination }) => environment.prepareDapToolchain({ install, cacheDirectory, destination }),
+  };
+}
+
+/** The strict, validated `environment:` section: an unknown key, a rule the lattice refuses or a bad path is an error. */
+function parseEnvironmentSection(section) {
+  const parsed = environmentConfigSchema.safeParse(section);
+  if (!parsed.success)
+    throw configError(parsed.error.issues.map((issue) => `${issue.path.join('.') || '<root>'}: ${issue.message}`).join('; '));
+  try {
+    require('../../../packages/agent-policy-lattice').evaluatePermissionLattice({ rules: parsed.data.memory?.rules ?? [] });
+  } catch (error) {
+    throw configError(`memory.rules: ${error.message}`);
+  }
+  return parsed.data;
+}
+
+/**
+ * The host of a task, built from the `environment:` section (`section`, already read) of the global configuration.
+ *
+ * Returns `null` without the section: the host stays absent and a contract that declares capabilities is refused
+ * (`ENGINEERING_ENVIRONMENT_HOST_REQUIRED`). The section is strict: an unknown key, a rule the permission lattice does
+ * not accept or an unsupported isolation backend is refused with a clear message, never ignored.
+ *
+ * Fail-closed by construction:
+ * - `approve` always denies. The CLI has no channel to a person, and nothing here approves on anyone's behalf, so
+ *   `environment.computer.start/act` and `memory.delete` are denied until a host with a real channel is composed.
+ * - memory writes are denied unless `memory.rules` allows them; deletion also needs `memory.operator`.
+ * - a family whose toolchain is not provisioned (or has no preparer, such as the browser, which needs the mediated
+ *   egress broker the CLI does not have) stays blocked.
+ *
+ * Limitation of this phase: the memory store is built over the ledger of each TASK (see `memory.create`), so memory
+ * written by one task is not seen by the next. Durable memory across tasks needs the activated project database.
+ *
+ * `options.capabilities` limits the toolchain preparation to the families a task declared; `options.prepare` and
+ * `options.factories` replace the preparers and services (tests, alternative hosts). `host.dispose()` removes the
+ * prepared toolchains.
+ */
+function createProductionEnvironmentHost(section, options = {}) {
+  if (section === null || section === undefined) return null;
+  const config = parseEnvironmentSection(section);
+  const rules = config.memory?.rules ?? [];
+  const { mkdtempSync, rmSync } = require('node:fs');
+  const toolchains = {};
+  const scratch = [];
+  const families = new Set((options.capabilities ?? []).map(familyOf).filter((family) => family && family !== 'memory'));
+  if (config.toolchain_cache && families.size > 0) {
+    const preparers = options.prepare ?? defaultToolchainPreparers();
+    for (const family of families) {
+      if (typeof preparers[family] !== 'function') continue;
+      const destination = mkdtempSync(require('node:path').join(require('node:os').tmpdir(), `hseos-env-${family}-`));
+      scratch.push(destination);
+      toolchains[family] = preparers[family]({ cacheDirectory: config.toolchain_cache, destination });
+    }
+  }
+  const operator = config.memory?.operator;
+  return Object.freeze({
+    project_id: config.project_id,
+    toolchains,
+    policies: {},
+    isolation: config.isolation ?? ENVIRONMENT_ISOLATION_BACKENDS,
+    factories: options.factories,
+    approve: async () => ({ approved: false }),
+    memory: Object.freeze({
+      rules,
+      ...(operator ? { operator: { kind: operator.kind, id: operator.id } } : {}),
+      create({ ledger, db }) {
+        const { ExecutionApprovalStore } = require('../../mcp-project-state/lib/execution-approval-store');
+        const { createExecutionApprovalVerifier } = require('../../../packages/agent-memory');
+        const approvalStore = new ExecutionApprovalStore(db);
+        const deleteApprovals = createMemoryDeleteApprovals({ approvalStore });
+        const { createGovernedMemory } = require('./memory-context-source');
+        const store = createGovernedMemory({
+          ledger,
+          approvalVerifier: createExecutionApprovalVerifier({ approvalStore, resolveApprovalId: deleteApprovals.resolveApprovalId }),
+        });
+        return { store, deleteApprovals };
+      },
+    }),
+    dispose() {
+      for (const directory of scratch.splice(0)) rmSync(directory, { recursive: true, force: true });
+    },
+  });
+}
+
+const MCP_ENVIRONMENT_ACTOR = Object.freeze({ id: 'agent:mcp-environment', type: 'agent' });
+const MCP_SERVICE_FAMILIES = Object.freeze(['lsp', 'dap']);
+const defaultGlobalConfigPath = () => require('node:path').join(require('node:os').homedir(), '.config', 'hseos', 'config.yaml');
+const stderrLog = (message) => process.stderr.write(`${message}\n`);
+// One short line of an error for a log: never a stack, never a multi-line message.
+const shortMessage = (error) =>
+  String(error?.message ?? error)
+    .split('\n')[0]
+    .slice(0, 200);
+
+/**
+ * The host factory of an MCP server on an ACTIVATED database: `(wiring) => host`, where `wiring` is the
+ * `{ ledger, approvalStore, resolveMemoryDeleteApproval }` the server's execution hands over once its real ledger exists.
+ * `null` without the section, or when the section backs nothing (the tools stay absent: ENV_CAPABILITY_UNAVAILABLE).
+ *
+ * - memory: a governed store over the WIRING ledger, so it is durable in the activated project.db; writes follow
+ *   `memory.rules` (deny by default) and deletion is approved by the person through the modern client's
+ *   `input_required` flow (the runtime derives the single-use approval the store's verifier resolves). Needs
+ *   `memory.operator`.
+ * - lsp and dap: the real services over an isolation policy (bwrap) and the pinned toolchain prepared from
+ *   `toolchain_cache`, with a ledger sink over the wiring ledger. They need `workspace` as well; a family the cache
+ *   cannot provide stays off, with a log line.
+ * - computer and browser stay off by construction: they need a media store and an egress broker no server provides yet.
+ *
+ * Without isolation at start-up (no delegated cgroup, or no bwrap) lsp and dap are omitted with a logged cause, memory stays.
+ * `options.prepare`, `options.factories` and `options.isolationProbe` replace the preparers, services and probe (tests); `options.log` receives the
+ * reasons. `factory.dispose()` removes the prepared toolchains.
+ */
+function createMcpEnvironmentHostFactory(section, options = {}) {
+  if (section === null || section === undefined) return null;
+  const config = parseEnvironmentSection(section);
+  const log = options.log ?? stderrLog;
+  const { mkdtempSync, rmSync } = require('node:fs');
+  const toolchains = {};
+  const scratch = [];
+  const dispose = () => {
+    for (const directory of scratch.splice(0)) rmSync(directory, { recursive: true, force: true });
+  };
+  const isolation = (options.isolationProbe ?? (() => defaultIsolationProbe()))();
+  if (!isolation.available) {
+    log(
+      `hseos mcp: environment.lsp and environment.dap are off: ${isolation.reason}. Launch the server in a delegated cgroup, ` +
+        `for example \`systemd-run --user -p Delegate=yes --wait --collect --pipe -- <server command>\`${
+          config.memory?.operator ? '; memory is unaffected' : ''
+        }`,
+    );
+  }
+  if (isolation.available && config.toolchain_cache) {
+    const preparers = options.prepare ?? defaultToolchainPreparers();
+    for (const family of MCP_SERVICE_FAMILIES) {
+      if (typeof preparers[family] !== 'function') continue;
+      const destination = mkdtempSync(require('node:path').join(require('node:os').tmpdir(), `hseos-env-${family}-`));
+      scratch.push(destination);
+      try {
+        toolchains[family] = preparers[family]({ cacheDirectory: config.toolchain_cache, destination });
+      } catch (error) {
+        log(`hseos mcp: the ${family} toolchain is unavailable, so ${family} is off: ${error.message}`);
+      }
+    }
+  }
+  const services = MCP_SERVICE_FAMILIES.filter((family) => {
+    if (!isolation.available) return false;
+    const available = Boolean(options.factories?.[family]) || Boolean(toolchains[family] && config.workspace);
+    if (!available)
+      log(`hseos mcp: ${family} is off (it needs environment.toolchain_cache with that toolchain, and environment.workspace)`);
+    return available;
+  });
+  const memory = Boolean(config.memory?.operator);
+  if (!memory) log('hseos mcp: memory is off (it needs environment.memory.operator)');
+  log('hseos mcp: computer and browser are off in this phase (they need a media store and an egress broker)');
+  if (services.length === 0 && !memory) {
+    dispose();
+    return null;
+  }
+  const policyFor = (family) =>
+    config.workspace && typeof toolchains[family]?.root === 'string'
+      ? require('../../../packages/agent-isolation-attestation').createIsolationPolicy({
+          backend: 'bwrap',
+          ...config.workspace,
+          profile: SERVICE_PROFILE[family],
+          toolchain_roots: [toolchains[family].root],
+        })
+      : undefined;
+  // The host is built when the server starts, and an empty host is refused there. So what the default service needs is
+  // checked now, without a ledger: a family with no usable toolchain root, or whose isolation policy is refused, is omitted
+  // here with its code and cause, and an empty result becomes a null factory (the server boots without the capability).
+  const composable = services.filter((family) => {
+    if (options.factories?.[family]) return true;
+    try {
+      if (!policyFor(family)) throw new Error('the toolchain has no usable root, so there is no isolation policy');
+      return true;
+    } catch (error) {
+      log(`hseos mcp: the ${family} service is off${error.code ? ` [${error.code}]` : ''}: ${shortMessage(error)}`);
+      return false;
+    }
+  });
+  if (composable.length === 0 && !memory) {
+    log('hseos mcp: no environment capability could be composed, so the server runs without one');
+    dispose();
+    return null;
+  }
+  const factory = (wiring) => {
+    const { randomUUID } = require('node:crypto');
+    const environment = require('../../../packages/agent-environment');
+    const { containsCredential } = require('./campaign-evidence-store');
+    const host = { project_id: config.project_id };
+    for (const family of composable) {
+      // A family that cannot be composed (no usable toolchain root, a policy the workspace refuses) is omitted with its
+      // cause; it never takes the governance server down.
+      try {
+        const toolchain = toolchains[family];
+        const ledger = environment.createEnvironmentLedgerSink({
+          ledger: wiring.ledger,
+          project_id: config.project_id,
+          actor: MCP_ENVIRONMENT_ACTOR,
+          session_id: `mcp-${family}-${randomUUID()}`,
+          containsCredential,
+        });
+        const policy = policyFor(family);
+        host[family] = (options.factories?.[family] ?? defaultServiceFactory(family))({
+          policy,
+          toolchain: toolchain ?? NOT_READY(family),
+          ledger,
+        });
+      } catch (error) {
+        delete host[family];
+        log(`hseos mcp: the ${family} service is off${error.code ? ` [${error.code}]` : ''}: ${shortMessage(error)}`);
+      }
+    }
+    if (memory) {
+      const { createExecutionApprovalVerifier } = require('../../../packages/agent-memory');
+      const operator = { kind: config.memory.operator.kind, id: config.memory.operator.id };
+      host.memory = {
+        store: require('./memory-context-source').createGovernedMemory({
+          ledger: wiring.ledger,
+          approvalVerifier: createExecutionApprovalVerifier({
+            approvalStore: wiring.approvalStore,
+            resolveApprovalId: wiring.resolveMemoryDeleteApproval,
+          }),
+        }),
+        rules: config.memory.rules,
+        actor: operator,
+        operator,
+      };
+    }
+    return host;
+  };
+  factory.dispose = dispose;
+  return factory;
+}
+
+/**
+ * Whether the isolation the services need exists at start-up: the same delegated-cgroup verification the executor applies
+ * on every call (`executorOwner`), and the bwrap binary the policy binds. Cheap and side-effect free; `options.isolationProbe`
+ * replaces it in tests and returns `{ available, reason }`.
+ */
+function defaultIsolationProbe(inputs = {}) {
+  const fs = inputs.fs ?? require('node:fs');
+  const checkCgroup = inputs.checkCgroup ?? (() => require('../../../packages/agent-isolation-attestation/executor').executorOwner());
+  const bwrapPath = inputs.bwrapPath ?? '/usr/bin/bwrap';
+  try {
+    checkCgroup();
+  } catch (error) {
+    return { available: false, reason: `delegated cgroup unavailable (${error.message})` };
+  }
+  // The same criterion as the isolation package: a real executable file, never a symlink.
+  try {
+    const stat = fs.lstatSync(bwrapPath);
+    if (!stat.isFile() || stat.isSymbolicLink() || (stat.mode & 0o111) === 0) throw new Error('not a real executable');
+  } catch {
+    return { available: false, reason: `the bwrap binary (${bwrapPath}) is unavailable or is not a real executable` };
+  }
+  return { available: true, reason: '' };
+}
+
+/**
+ * Starts a server that takes an optional capability host. Defence in depth for "an environment error never takes the
+ * governance server down": if the start throws while a host was provided, the cause is logged (code and a short message,
+ * no stack), what the host opened is disposed, and the server is started ONCE more without the host. A second failure is
+ * a real server failure and propagates. `start(host)` receives the factory or `null`.
+ *
+ * Known imprecision, kept on purpose: the "capability host is off" line is printed whenever the first start fails, even if
+ * the cause was unrelated to the host (a busy port, say). The retry then fails the same way and that error propagates, so
+ * the line can read as misleading; it never changes what the server does.
+ */
+function startWithCapabilityFallback(start, factory, options = {}) {
+  const log = options.log ?? stderrLog;
+  if (!factory) return start(null);
+  try {
+    return start(factory);
+  } catch (error) {
+    const message = String(error?.message ?? error)
+      .split('\n')[0]
+      .slice(0, 200);
+    log(`hseos mcp: capability host is off${error?.code ? ` [${error.code}]` : ''}: ${message}`);
+    factory.dispose?.();
+    return start(null);
+  }
+}
+
+/**
+ * The host factory of an MCP server, read from the global configuration (`configPath`, default
+ * ~/.config/hseos/config.yaml). A configuration that cannot be read or is invalid never takes the server down: it logs
+ * the reason and returns `null`, so the server runs without the capability.
+ */
+function composeMcpEnvironmentHost(configPath = defaultGlobalConfigPath(), options = {}) {
+  const log = options.log ?? stderrLog;
+  try {
+    return createMcpEnvironmentHostFactory(readEnvironmentSection(configPath), { ...options, log });
+  } catch (error) {
+    log(`hseos mcp: the capability host is off: ${error.message}`);
+    return null;
+  }
+}
+
 const MEMORY_QUERY_CHARS = 1024;
 
 /** The retrieval query of a task: its requirements, bounded and deterministic. Never the model's words. */
@@ -652,4 +1056,10 @@ module.exports = {
   createEnvironmentBundles,
   createExecutionApprovalResolver,
   createTaskEnvironment,
+  createProductionEnvironmentHost,
+  createMcpEnvironmentHostFactory,
+  composeMcpEnvironmentHost,
+  startWithCapabilityFallback,
+  defaultIsolationProbe,
+  readEnvironmentSection,
 };

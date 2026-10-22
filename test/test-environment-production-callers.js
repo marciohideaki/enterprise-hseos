@@ -68,14 +68,27 @@ test('the composition is reached only from the engineering task runtime', () => 
   assert.match(runtime, /createTaskEnvironment\(\{[\s\S]*?db: handle\.db/, 'the task ledger is the one the environment writes to');
 });
 
-test('precondition: only the runtimes accept an environment host, never the CLI or the worker', () => {
-  // agent run and the job worker read contracts without the admission rules, so they must not be given a host.
+test('precondition: the runtimes accept an environment host; the CLI composes one itself, only after admission, and never takes it from the user', () => {
   const accepting = production.filter(({ text }) => /\benvironmentHost\b/.test(text)).map(({ file }) => file);
   assert.deepEqual(accepting.sort(), [
+    'tools/cli/commands/agent.js',
     'tools/cli/lib/engineering-task-runtime.js',
     'tools/lib/governed-execution/native-mcp-server.js',
     'tools/lib/governed-execution/operational-runtime.js',
+    'tools/mcp-project-state/index.js',
   ]);
+  const cli = production.find(({ file }) => file === 'tools/cli/commands/agent.js').text;
+  // The user cannot hand the CLI a host (or an admission switch): neither is an option, nor an allowed key.
+  assert.doesNotMatch(cli, /options\.environmentHost|'environmentHost'|--environment-host|'admission'|--admission/);
+  // Admission first: the contract is read with the admission rules before the compositor is ever called.
+  const calls = [...cli.matchAll(/(?<!function )composeEnvironmentHost\(options/g)].map((match) => match.index);
+  assert.ok(calls.length >= 2, 'run and inspect/resume both compose the host');
+  const runBranch = cli.indexOf('Engineering runs accept only');
+  const admitted = cli.indexOf('readEngineeringTask(options.taskContract, { admission: true })', runBranch);
+  assert.ok(runBranch > 0 && admitted > runBranch && admitted < calls[0], 'agent run admits the contract before it composes the host');
+  assert.deepEqual(callerFiles('createProductionEnvironmentHost'), ['tools/cli/commands/agent.js']);
+  assert.equal([...cli.matchAll(/createProductionEnvironmentHost\(/g)].length, 1, 'one place in the CLI builds the host');
+  assert.match(cli, /requires state and accepts expected-sequence, config and JSON only/);
 });
 
 test('every production call of a service hands it a ledger, and none relies on the default', () => {
@@ -119,11 +132,33 @@ test('the governed memory store is built over a ledger wherever production build
     const found = name === 'MemoryStore' ? [...calls(outsideOwn, 'new MemoryStore')] : calls(outsideOwn, name);
     for (const call of found) assert.match(call.args, /ledger/, `${call.file}: ${name} needs the execution ledger`);
   }
-  // Production never builds the store itself: the host does (the task runtime and the MCP runtime both take it from the
-  // host). The only constructor is the helper below, which has no production caller.
-  assert.deepEqual(callerFiles('createGovernedMemory'), [], 'createGovernedMemory is the host-side helper');
+  // Production builds the store in one place only: the host compositor, over the ledger it is handed (the task's).
+  assert.deepEqual(callerFiles('createGovernedMemory'), [REAL_CALLER], 'createGovernedMemory is called by the compositor alone');
+  const extensions = production.find(({ file }) => file === REAL_CALLER).text;
+  const compositor = extensions.slice(extensions.indexOf('function createProductionEnvironmentHost'));
+  assert.match(compositor, /createGovernedMemory\(\{\s*ledger,/, 'the compositor builds it over the ledger it receives');
+  assert.match(compositor, /approve: async \(\) => \(\{ approved: false \}\)/, 'the production host denies every approval');
   const helper = production.find(({ file }) => file === 'tools/cli/lib/memory-context-source.js').text;
   assert.match(helper, /new MemoryStore\(\{ ledger,/);
+});
+
+test('the MCP host (W10-K5b) is composed in one place, only for an activated database, over the wiring ledger and never with an approval of its own', () => {
+  assert.deepEqual(callerFiles('composeMcpEnvironmentHost'), ['tools/mcp-project-state/index.js']);
+  assert.deepEqual(callerFiles('createMcpEnvironmentHostFactory'), [REAL_CALLER], 'only the compositor module builds the factory');
+  const entry = production.find(({ file }) => file === 'tools/mcp-project-state/index.js').text;
+  assert.match(entry, /governedMode\.mode === 'modern' \? composeMcpEnvironmentHost\(/, 'a fixture or legacy server never gets a host');
+  const extensions = production.find(({ file }) => file === REAL_CALLER).text;
+  const start = extensions.indexOf('function createMcpEnvironmentHostFactory');
+  const factory = extensions.slice(start, extensions.indexOf('function composeMcpEnvironmentHost'));
+  assert.ok(start > 0 && factory.length > 0);
+  assert.match(factory, /createEnvironmentLedgerSink\(\{\s*ledger: wiring\.ledger,/, 'the services write to the ledger of the wiring');
+  assert.match(factory, /createGovernedMemory\(\{\s*ledger: wiring\.ledger,/, 'memory is durable in the ledger of the wiring');
+  assert.match(factory, /resolveApprovalId: wiring\.resolveMemoryDeleteApproval/, 'deletion is approved through the runtime flow');
+  assert.doesNotMatch(
+    factory,
+    /approve\s*:|approvals\s*:|host\.computer|host\.browser|computer\s*:|browser\s*:|mediaStore|broker\s*:/,
+    'computer and browser stay off by construction',
+  );
 });
 
 test('runtime: every service the real caller creates writes through exactly the execution-ledger sink', async (t) => {

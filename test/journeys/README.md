@@ -5,12 +5,13 @@ fora do checkout), como um consumidor o usaria. Ficam em `test/`, portanto não
 entram no pacote. Não usam modelo, provedor nem segredos: as respostas são fixtures
 roteirizadas. Contexto e resultados: [revalidação 2026-10](../../docs/evolution/revalidation-2026-10/README.md).
 
-| Arquivo                                  | Papel                                                                                                                             |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `core-journey.mjs`                       | Plano de controle: API HTTP e SDKs JS, TypeScript e Python contra uma única instância de `hseos control serve` em cgroup delegado |
-| `sdk-ts-client.ts`, `sdk-ts-negative.ts` | Worker TypeScript tipado (strict, nodenext) e contrato negativo de tipos                                                          |
-| `sdk_py_client.py`                       | Worker Python (somente stdlib)                                                                                                    |
-| `mcp-journey.mjs`                        | Os 4 servidores MCP do pacote instalado                                                                                           |
+| Arquivo                                  | Papel                                                                                                                                                         |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core-journey.mjs`                       | Plano de controle: API HTTP e SDKs JS, TypeScript e Python contra uma única instância de `hseos control serve` em cgroup delegado                             |
+| `sdk-ts-client.ts`, `sdk-ts-negative.ts` | Worker TypeScript tipado (strict, nodenext) e contrato negativo de tipos                                                                                      |
+| `sdk_py_client.py`                       | Worker Python (somente stdlib)                                                                                                                                |
+| `mcp-journey.mjs`                        | Os 4 servidores MCP do pacote instalado                                                                                                                       |
+| `mcp-modern-protocol.mjs`                | Helpers do protocolo 2026-07-28 do `mcp-journey.mjs --mode modern` (constantes lidas do pacote instalado, `_meta`, cabeçalhos HTTP, normalização do envelope) |
 
 O script de cgroup é derivado em tempo de execução de `.github/scripts/enable-test-cgroup.mjs`
 (só o import muda, para apontar ao executor instalado).
@@ -47,6 +48,31 @@ qualquer modo. O CI usa o padrão (o runner não tem axon); o axon real é exerc
 (`docs/evolution/revalidation-2026-10`).
 Cada passo registra PASS, FAIL, BLOCKED (ou NOT_EXERCISED, só no mcp-journey); a saída é `core-journey-result.json` e
 `mcp-journey-result.json` no diretório `--out`. O núcleo sai com 1 se algum passo não for PASS.
+
+### `mcp-journey.mjs --mode modern`
+
+`--mode legacy` (padrão) é o comportamento de sempre: banco v4, protocolo legado. `--mode modern` roda os mesmos passos sobre um
+**banco ativado** e falando o protocolo `2026-07-28`:
+
+- o consumidor (`--prefix`) tem o `.hseos/state/project.db` ativado pelo próprio journey (`activateExecutionLedger` com uma
+  **fixture** ADR-0048 `Accepted` em `<out>/adr-fixture`, opção interna `decisionsDirectory`; o ADR real não é tocado) e
+  `HSEOS_STATE_DB` apontando para ele em todos os servidores. Use um consumidor por modo: a ativação é permanente naquele banco;
+- `server/discover` + `tools/list` + `tools/call` por requisição (`_meta` por requisição; em HTTP, `POST /mcp` com
+  `MCP-Protocol-Version`, `Mcp-Method`, `Mcp-Name`); aprovações por MRTR (`input_required` respondido com `accept`), mais negativos
+  de `decline` e de cliente sem `elicitation`;
+- os 4 servidores em stdio e HTTP, com as contagens de ferramentas conferidas (governance 15, project-state 15, swarm 5,
+  axon-bridge 6) e os negativos de escopo do swarm (travessia, symlink, caminho absoluto, NUL) com o mesmo critério do legado;
+- um bloco de **compat** que fala `initialize` `2024-11-05`, `2025-06-18` e `2025-11-25` ao servidor moderno e repete os negativos de escopo;
+- a saída (`mcp-journey-result.json`) traz `modo`, `ativacao`, `ledger_eventos`, `contagens_de_ferramentas`, `achados` e `limitacoes`.
+  A execução de referência e a tabela legado × moderno × compat estão em
+  [`docs/evolution/w10/evidence/k10`](../../docs/evolution/w10/evidence/k10/README.md).
+
+```bash
+node test/journeys/mcp-journey.mjs --mode modern --prefix $J/consumer-modern --tgz $J/pack/hseos-*.tgz --out $J/out/mcp-modern
+```
+
+As respostas modernas vêm no envelope governado; o journey as normaliza (desembrulha `data.result`, mapeia `ok:false` para erro de
+domínio) para que as asserções sejam as mesmas do legado, sem afrouxar nenhuma.
 
 Em máquinas compartilhadas, rode sob `heavy-run` e um job por vez. No CI: workflow
 `.github/workflows/core-journey.yaml`.

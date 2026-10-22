@@ -6,7 +6,11 @@ const path = require('node:path');
 const { randomBytes, randomUUID } = require('node:crypto');
 
 const { createMcp2026HttpServer, createMcpApprovalStateCodec, startMcp2026Stdio } = require('../mcp-2026-adapter');
-const { DEFAULT_STATE_DB, openOperationalStateDatabase } = require('../../mcp-project-state/lib/operational-state-db');
+const {
+  DEFAULT_STATE_DB,
+  openOperationalStateDatabase,
+  resolveGovernedExecutionMode,
+} = require('../../mcp-project-state/lib/operational-state-db');
 const { McpLegacyUsageStore } = require('../../mcp-project-state/lib/mcp-legacy-usage-store');
 const { createNativeMcpAdapter, NATIVE_MCP_SERVERS } = require('./native-mcp-adapters');
 const { buildGatewayDenialFact } = require('./event-registry');
@@ -102,6 +106,15 @@ function createLocalApprovalFlow({ execution, serverId }) {
   };
 }
 
+// Legacy initialize revisions served in compat mode (negotiated down to 2024-11-05); 2025-03-26 is listed by the Codex binary.
+const LEGACY_COMPAT_PROTOCOL_VERSIONS = Object.freeze(['2024-11-05', '2025-03-26', '2025-06-18', '2025-11-25']);
+
+/** HSEOS_MCP_LEGACY_SUNSET (ISO date or instant); unset or empty means the legacy compat never expires. */
+function configuredLegacySunset() {
+  const value = process.env.HSEOS_MCP_LEGACY_SUNSET;
+  return value === undefined || value.trim() === '' ? null : value.trim();
+}
+
 function startNativeMcpServer({
   serverId,
   tools,
@@ -116,22 +129,39 @@ function startNativeMcpServer({
   const serverSpec = NATIVE_MCP_SERVERS[serverId];
   if (!serverSpec) throw new TypeError(`Unknown native MCP server: ${serverId}`);
   const fixtureActivation = process.env.NODE_ENV === 'test' && process.env.HSEOS_GOVERNED_EXECUTION_FIXTURE === '1';
-  if (!fixtureActivation) {
-    const error = new Error('Governed MCP activation is pending ADR-0022/0023 compatibility evidence');
-    error.code = 'EXECUTION_ACTIVATION_PENDING';
-    throw error;
-  }
   const resolvedDbPath = path.resolve(dbPath || process.env.HSEOS_STATE_DB || DEFAULT_STATE_DB);
-  const temporaryRoot = `${path.resolve(os.tmpdir())}${path.sep}`;
-  if (!resolvedDbPath.startsWith(temporaryRoot)) throw new Error('Governed MCP fixture activation requires a temporary database');
-  if (fs.existsSync(resolvedDbPath)) throw new Error('Governed MCP fixture activation requires a fresh database');
-  fs.mkdirSync(path.dirname(resolvedDbPath), { recursive: true });
-  const realParent = `${fs.realpathSync(path.dirname(resolvedDbPath))}${path.sep}`;
-  if (!realParent.startsWith(temporaryRoot)) throw new Error('Governed MCP fixture database resolved outside the temporary root');
-  const db = openOperationalStateDatabase(resolvedDbPath, {
-    activatePendingFixture: true,
-    log: (level, message) => log(`[${serverId}:migration:${level}] ${message}`),
-  });
+  let db;
+  if (fixtureActivation) {
+    const temporaryRoot = `${path.resolve(os.tmpdir())}${path.sep}`;
+    if (!resolvedDbPath.startsWith(temporaryRoot)) throw new Error('Governed MCP fixture activation requires a temporary database');
+    if (fs.existsSync(resolvedDbPath)) throw new Error('Governed MCP fixture activation requires a fresh database');
+    fs.mkdirSync(path.dirname(resolvedDbPath), { recursive: true });
+    const realParent = `${fs.realpathSync(path.dirname(resolvedDbPath))}${path.sep}`;
+    if (!realParent.startsWith(temporaryRoot)) throw new Error('Governed MCP fixture database resolved outside the temporary root');
+    db = openOperationalStateDatabase(resolvedDbPath, {
+      activatePendingFixture: true,
+      log: (level, message) => log(`[${serverId}:migration:${level}] ${message}`),
+    });
+  } else {
+    // Only a database activated through activateExecutionLedger (ADR-0048 Accepted) opens here; the check is repeated
+    // by the open itself, so a database that changed between the entrypoint decision and now is still refused.
+    if (resolveGovernedExecutionMode(resolvedDbPath).mode !== 'modern') {
+      const error = new Error(
+        'Governed MCP requires a database activated by activateExecutionLedger (ADR-0048); this one is not activated',
+      );
+      error.code = 'EXECUTION_ACTIVATION_PENDING';
+      throw error;
+    }
+    db = openOperationalStateDatabase(resolvedDbPath, {
+      openActivated: true,
+      log: (level, message) => log(`[${serverId}:migration:${level}] ${message}`),
+    });
+  }
+  // The legacy sunset is configurable only on an activated database; fixtures keep the built-in date until ADR-0048 is Accepted.
+  const legacySunsetOptions = fixtureActivation ? {} : { legacySunset: configuredLegacySunset() };
+  log(
+    `[${serverId}] governed mode=${fixtureActivation ? 'fixture' : 'activated'} user_version=${db.pragma('user_version', { simple: true })}`,
+  );
   const legacyUsageStore = new McpLegacyUsageStore(path.join(path.dirname(resolvedDbPath), 'mcp-legacy-usage.db'));
   legacyUsageStore.markObservation(serverId);
   const legacyObservationTimer = setInterval(
@@ -157,7 +187,17 @@ function startNativeMcpServer({
       throw error;
     }
   };
-  const execution = createOperationalExecution({ db, serverId, tools, invokeTool: gatedInvokeTool, environmentHost });
+  let execution;
+  try {
+    execution = createOperationalExecution({ db, serverId, tools, invokeTool: gatedInvokeTool, environmentHost });
+  } catch (error) {
+    // A host the runtime refuses must not leave the database, the observation store or the timer open: the caller may
+    // start the server again without the host.
+    clearInterval(legacyObservationTimer);
+    legacyUsageStore.close();
+    if (db.open) db.close();
+    throw error;
+  }
   recordDenial = createDenialRecorder({
     ledger: execution.ledger,
     serverId,
@@ -178,6 +218,8 @@ function startNativeMcpServer({
       approvalFlow,
       approvalStateCodec,
       onDenied: (denial) => recordDenial(denial),
+      legacyProtocolVersions: LEGACY_COMPAT_PROTOCOL_VERSIONS,
+      ...legacySunsetOptions,
       legacyUsage(event) {
         try {
           legacyUsageStore.record({ ...event, server_id: serverId });
@@ -232,4 +274,4 @@ function startNativeMcpServer({
   return handle;
 }
 
-module.exports = { createDenialRecorder, createLocalApprovalFlow, startNativeMcpServer };
+module.exports = { createDenialRecorder, createLocalApprovalFlow, LEGACY_COMPAT_PROTOCOL_VERSIONS, startNativeMcpServer };

@@ -6,6 +6,7 @@ const { resolve: resolveAxon } = require('./lib/binary-resolver');
 const { failBoot, loadServerTools } = require('../lib/governed-execution/contract-registry');
 const { startNativeMcpServer } = require('../lib/governed-execution/native-mcp-server');
 const { startLegacyMcpServer } = require('../lib/legacy-mcp-server');
+const { resolveGovernedExecutionMode } = require('../mcp-project-state/lib/operational-state-db');
 
 const DEFAULT_PORT = 3103;
 const MIN_CREDENTIAL_LENGTH = 32;
@@ -62,7 +63,14 @@ if (mode === 'http' && credential.length < MIN_CREDENTIAL_LENGTH) {
   );
   process.exit(1);
 }
-const fixtureActivation = process.env.NODE_ENV === 'test' && process.env.HSEOS_GOVERNED_EXECUTION_FIXTURE === '1';
+let governedMode;
+try {
+  // Modern governed mode for a fixture or an activated database; a v4 database keeps the legacy server; an inconsistent one is refused.
+  governedMode = resolveGovernedExecutionMode();
+} catch (error) {
+  console.error(`[axon-bridge] ${error.message}`);
+  process.exit(1);
+}
 const serverOptions = {
   serverId: 'axon_bridge',
   tools,
@@ -76,7 +84,7 @@ const serverOptions = {
     return tool.handler(null, args, null, context);
   },
 };
-const runtimeHandle = fixtureActivation
+const runtimeHandle = governedMode.modern
   ? startNativeMcpServer(serverOptions)
   : startLegacyMcpServer({
       ...serverOptions,

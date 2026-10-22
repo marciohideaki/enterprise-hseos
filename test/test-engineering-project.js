@@ -84,6 +84,9 @@ for (const scenario of [
     reference: 'verifier://project/web-content-v1',
     expected: '<h1>Project</h1>',
     args: [],
+    // Static-only acceptance is refused by admission (`agent run` admits by default); this scenario replays a historical
+    // contract to exercise the static verifier's isolation, so it reads without admission like a job replay does.
+    admission: false,
   },
   { name: 'incorrect delivery', expected: 99, outcome: 'failed' },
 ]) {
@@ -91,7 +94,11 @@ for (const scenario of [
     const f = fixture(t, scenario);
     const responses = path.join(f.directory, 'responses.json');
     fs.writeFileSync(responses, '[]');
-    const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+    const result = await runEngineeringTask({
+      taskContract: f.filename,
+      scriptedResponses: responses,
+      ...(scenario.admission === undefined ? {} : { admission: scenario.admission }),
+    });
     t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
     assert.equal(result.task_result, scenario.outcome || 'approved', JSON.stringify(result));
     assert.equal(result.profile, 'managed-project');
@@ -147,7 +154,11 @@ for (const scenario of ACCEPTANCE_COMMANDS) {
     const f = acceptanceCommandFixture(t, scenario.script, scenario);
     const responses = path.join(f.directory, 'responses.json');
     fs.writeFileSync(responses, '[]');
-    const result = await runEngineeringTask({ taskContract: f.filename, scriptedResponses: responses });
+    const result = await runEngineeringTask({
+      taskContract: f.filename,
+      scriptedResponses: responses,
+      ...(scenario.admission === undefined ? {} : { admission: scenario.admission }),
+    });
     t.after(() => fs.rmSync(result.state, { recursive: true, force: true }));
     assert.equal(result.task_result, scenario.outcome, JSON.stringify(result));
     const { verification } = await inspectEngineeringTask({ state: result.state, action: 'evidence' });

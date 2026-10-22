@@ -1,0 +1,457 @@
+{
+  "started_at": "2026-10-22T10:49:00.825Z",
+  "variant": "normalized",
+  "source": {
+    "path": "/workspace/github/marciohideaki/enterprise-hseos/.hseos/state/project.db",
+    "before": {
+      "size": 159744,
+      "mtime": "2026-09-26T04:35:21.763Z",
+      "sha256": "f4f62c0c15ef298500b68db5e78817acef6085867ceed78b7640674d6d846375"
+    },
+    "sidecars_before": {
+      "project.db-wal": {
+        "size": 663352,
+        "mtime_ns": "1791561962778394848"
+      },
+      "project.db-shm": {
+        "size": 32768,
+        "mtime_ns": "1791562081833667455"
+      }
+    },
+    "live_view": {
+      "user_version": 4,
+      "journal_mode": "wal"
+    },
+    "after": {
+      "size": 159744,
+      "mtime": "2026-09-26T04:35:21.763Z",
+      "sha256": "f4f62c0c15ef298500b68db5e78817acef6085867ceed78b7640674d6d846375"
+    },
+    "sidecars_after": {
+      "project.db-wal": {
+        "size": 663352,
+        "mtime_ns": "1791561962778394848"
+      },
+      "project.db-shm": {
+        "size": 32768,
+        "mtime_ns": "1791562081833667455"
+      }
+    },
+    "main_file_identical": true,
+    "sidecars_identical": true
+  },
+  "copy": {
+    "path": "/build/tmp/hseos-w5/closeout/k3/db/project-copy.db",
+    "facts": {
+      "size": 159744,
+      "mtime": "2026-10-22T10:49:00.832Z",
+      "sha256": "686c49daa38f8c1cec1c8827b7dd9a42a39c6260da421ebb3a160eff6c4712a3"
+    },
+    "journal_mode_after_backup": "wal",
+    "facts_after_normalise": {
+      "size": 159744,
+      "mtime": "2026-10-22T10:49:00.839Z",
+      "sha256": "c9dfebafc5a0f50d00a58525f9416ee772bd3ced745cfd352a70c343c2cf7cc8"
+    },
+    "sha256_pre_activation": "c9dfebafc5a0f50d00a58525f9416ee772bd3ced745cfd352a70c343c2cf7cc8"
+  },
+  "pre_activation": {
+    "user_version": 4,
+    "application_id": 0,
+    "journal_mode": "delete",
+    "integrity_check": "ok",
+    "tables": {
+      "as_agent_runs": {
+        "rows": 5,
+        "sha256": "93fbf2425140e31067e45c009c8e03c1838ca671fc1d86327aa9af2fe46cdba8"
+      },
+      "as_events": {
+        "rows": 16,
+        "sha256": "ce168b509d773b75709528fca0d2e1c342f4b9f1b766edeecd7dcfc7140d25be"
+      },
+      "as_events_fts": {
+        "rows": 16,
+        "sha256": "0faa1727c86705f21f9bdde72d7d7be0df62b653401fd25dc347dc057236b550"
+      },
+      "as_events_fts_config": {
+        "rows": 1,
+        "sha256": "756c92c2cdbdddc20ef0fe8713974731a08470d68ddf1bd4041a187aace0dbe6"
+      },
+      "as_events_fts_data": {
+        "rows": 3,
+        "sha256": "a0a85890905d97d39b7a238f792f65d2e0dff9b693bf924094d09a6e79bf0f16"
+      },
+      "as_events_fts_docsize": {
+        "rows": 16,
+        "sha256": "d141c4b09c8246d4c532a2cf3f460017619100f2d9049be9394d1c80b2be8dac"
+      },
+      "as_events_fts_idx": {
+        "rows": 1,
+        "sha256": "50999bed70e4e5c2b946e44f00a37b2353542a7fe0cc261cf0ac1232755ec4d8"
+      },
+      "as_handoffs": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "as_runs": {
+        "rows": 3,
+        "sha256": "c601d33a99ed93204bc8f3779d2f597cb4e288c2ad1f5877a416965ef009591a"
+      },
+      "as_sessions": {
+        "rows": 2,
+        "sha256": "d873b682a57abdb6b0c38a4860d7369b38751214e18052e2d424d09c368f7804"
+      },
+      "as_tasks": {
+        "rows": 5,
+        "sha256": "a74dddaabddc1357cd2c611dd4ede7233d1afce320bbd21e65dc8ca4450bdcf5"
+      },
+      "as_wave_executions": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "as_worktree_state": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "state": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "state_history": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "tasks": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "real_cli_proposed_adr": {
+    "plan": {
+      "exit": 2,
+      "stdout": "{\n  \"action\": \"plan\",\n  \"plan\": {\n    \"ready\": false,\n    \"blockers\": [\n      {\n        \"code\": \"EXECUTION_ACTIVATION_ADR_NOT_ACCEPTED\",\n        \"message\": \"Activation requires an ADR with status Accepted; ADR-0048 is Proposed — 2026-10-22. Aguarda decisão do owner. Nada neste documento ativa, mig\"\n      }\n    ],\n    \"database_path\": \"/build/tmp/hseos-w5/closeout/k3/db/project-copy.db\",\n    \"adr\": \"ADR-0048\",\n    \"adr_status\": \"Proposed — 2026-10-22. Aguarda decisão do owner. Nada neste documento ativa, mig\",\n    \"adr_sha256\": null,\n    \"unscannable_processes\": 388,\n    \"user_version\": 4,\n    \"target_user_version\": 17,\n    \"migrations_to_apply\": [\n      \"005-governed-execution-ledger-v2.sql\",\n      \"006-execution-projections.sql\",\n      \"007-execution-approvals.sql\",\n      \"008-delegated-runtime-event-catalog.sql\",\n      \"009-delegated-worker-lifecycle.sql\",\n      \"010-engineering-task-events.sql\",\n      \"011-control-command-events.sql\",\n      \"012-job-events.sql\",\n      \"013-job-lifecycle-events.sql\",\n      \"014-job-materialization-events.sql\",\n      \"015-job-execution-events.sql\",\n      \"016-job-workflow-expansion.sql\",\n      \"017-agent-memory-events.sql\"\n    ],\n    \"backup_path\": \"/build/tmp/hseos-w5/closeout/k3/backups-cli/20261022T104901Z-project-copy.db\",\n    \"receipt_path\": \"/build/tmp/hseos-w5/closeout/k3/backups-cli/20261022T104901Z-project-copy.db.receipt.json\"\n  }\n}\n",
+      "stderr": ""
+    },
+    "apply": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "[hseos] EXECUTION_ACTIVATION_ADR_NOT_ACCEPTED: Activation requires an ADR with status Accepted; ADR-0048 is Proposed — 2026-10-22. Aguarda decisão do owner. Nada neste documento ativa, mig\n"
+    },
+    "apply_without_adr": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "[hseos] EXECUTION_ACTIVATION_ADR_NOT_ACCEPTED: Activation requires an ADR identifier (ADR-NNNN); got (none)\n"
+    },
+    "copy_unchanged": true
+  },
+  "lock_refusal": {
+    "ready": false,
+    "blockers": [
+      {
+        "code": "EXECUTION_ACTIVATION_DATABASE_LOCKED",
+        "message": "Database is open in process(es): 2863195"
+      }
+    ],
+    "unscannable_processes": 388
+  },
+  "plan": {
+    "ready": true,
+    "blockers": [],
+    "database_path": "/build/tmp/hseos-w5/closeout/k3/db/project-copy.db",
+    "adr": "ADR-0048",
+    "adr_status": "Accepted",
+    "adr_sha256": "23a3a9345b5d445f97ebca10822f479200a0589c652283294e28a832f5d34bb5",
+    "unscannable_processes": 388,
+    "user_version": 4,
+    "target_user_version": 17,
+    "migrations_to_apply": [
+      "005-governed-execution-ledger-v2.sql",
+      "006-execution-projections.sql",
+      "007-execution-approvals.sql",
+      "008-delegated-runtime-event-catalog.sql",
+      "009-delegated-worker-lifecycle.sql",
+      "010-engineering-task-events.sql",
+      "011-control-command-events.sql",
+      "012-job-events.sql",
+      "013-job-lifecycle-events.sql",
+      "014-job-materialization-events.sql",
+      "015-job-execution-events.sql",
+      "016-job-workflow-expansion.sql",
+      "017-agent-memory-events.sql"
+    ],
+    "backup_path": "/build/tmp/hseos-w5/closeout/k3/backups/20261022T104901Z-project-copy.db",
+    "receipt_path": "/build/tmp/hseos-w5/closeout/k3/backups/20261022T104901Z-project-copy.db.receipt.json"
+  },
+  "dry_run": {
+    "dry_run": true,
+    "ready": true,
+    "copy_unchanged": true
+  },
+  "apply": {
+    "receipt": {
+      "adr": "ADR-0048",
+      "adr_status": "Accepted",
+      "adr_sha256": "23a3a9345b5d445f97ebca10822f479200a0589c652283294e28a832f5d34bb5",
+      "unscannable_processes": 388,
+      "commit": "a9c3646867feab335531b27c545cb9237d069313",
+      "database_path": "/build/tmp/hseos-w5/closeout/k3/db/project-copy.db",
+      "backup_path": "/build/tmp/hseos-w5/closeout/k3/backups/20261022T104901Z-project-copy.db",
+      "original_sha256_before": "c9dfebafc5a0f50d00a58525f9416ee772bd3ced745cfd352a70c343c2cf7cc8",
+      "backup_sha256": "c9dfebafc5a0f50d00a58525f9416ee772bd3ced745cfd352a70c343c2cf7cc8",
+      "user_version_before": 4,
+      "user_version_after": 17,
+      "applied_migrations": [
+        "005-governed-execution-ledger-v2.sql",
+        "006-execution-projections.sql",
+        "007-execution-approvals.sql",
+        "008-delegated-runtime-event-catalog.sql",
+        "009-delegated-worker-lifecycle.sql",
+        "010-engineering-task-events.sql",
+        "011-control-command-events.sql",
+        "012-job-events.sql",
+        "013-job-lifecycle-events.sql",
+        "014-job-materialization-events.sql",
+        "015-job-execution-events.sql",
+        "016-job-workflow-expansion.sql",
+        "017-agent-memory-events.sql"
+      ],
+      "started_at": "2026-10-22T10:49:01.685Z",
+      "finished_at": "2026-10-22T10:49:01.700Z"
+    },
+    "receipt_path": "/build/tmp/hseos-w5/closeout/k3/backups/20261022T104901Z-project-copy.db.receipt.json",
+    "backup_path": "/build/tmp/hseos-w5/closeout/k3/backups/20261022T104901Z-project-copy.db"
+  },
+  "post_activation": {
+    "user_version": 17,
+    "application_id_hex": "0x48534f53",
+    "integrity_check": "ok",
+    "resolved_mode": {
+      "mode": "modern",
+      "fixture": false,
+      "modern": true,
+      "user_version": 17
+    },
+    "tables_001_004_preserved": true,
+    "per_table": {
+      "as_agent_runs": {
+        "before": 5,
+        "after": 5,
+        "same_digest": true
+      },
+      "as_events": {
+        "before": 16,
+        "after": 16,
+        "same_digest": true
+      },
+      "as_events_fts": {
+        "before": 16,
+        "after": 16,
+        "same_digest": true
+      },
+      "as_events_fts_config": {
+        "before": 1,
+        "after": 1,
+        "same_digest": true
+      },
+      "as_events_fts_data": {
+        "before": 3,
+        "after": 3,
+        "same_digest": true
+      },
+      "as_events_fts_docsize": {
+        "before": 16,
+        "after": 16,
+        "same_digest": true
+      },
+      "as_events_fts_idx": {
+        "before": 1,
+        "after": 1,
+        "same_digest": true
+      },
+      "as_handoffs": {
+        "before": 0,
+        "after": 0,
+        "same_digest": true
+      },
+      "as_runs": {
+        "before": 3,
+        "after": 3,
+        "same_digest": true
+      },
+      "as_sessions": {
+        "before": 2,
+        "after": 2,
+        "same_digest": true
+      },
+      "as_tasks": {
+        "before": 5,
+        "after": 5,
+        "same_digest": true
+      },
+      "as_wave_executions": {
+        "before": 0,
+        "after": 0,
+        "same_digest": true
+      },
+      "as_worktree_state": {
+        "before": 0,
+        "after": 0,
+        "same_digest": true
+      },
+      "state": {
+        "before": 0,
+        "after": 0,
+        "same_digest": true
+      },
+      "state_history": {
+        "before": 0,
+        "after": 0,
+        "same_digest": true
+      },
+      "tasks": {
+        "before": 0,
+        "after": 0,
+        "same_digest": true
+      }
+    },
+    "new_tables": 7,
+    "receipt_on_disk": true,
+    "backup_sha256_matches_before": true,
+    "receipt_original_sha256_matches": true,
+    "legacy_open_refused": "EXECUTION_ACTIVATION_PENDING: Operational state requires schema v4; pending execution schema is not activated. If this database was activated, this legacy server cannot open it: re-register the MCP server on the governed (modern) release."
+  },
+  "rollback": {
+    "restored_sha256": "c9dfebafc5a0f50d00a58525f9416ee772bd3ced745cfd352a70c343c2cf7cc8",
+    "sha256_equals_original_sha256_before": true,
+    "user_version": 4,
+    "application_id": 0,
+    "integrity_check": "ok",
+    "tables_identical_to_pre_activation": true,
+    "resolved_mode": {
+      "mode": "legacy",
+      "fixture": false,
+      "modern": false,
+      "user_version": 4
+    },
+    "preserved_activated_path": "/build/tmp/hseos-w5/closeout/k3/db/project-copy.db.activated-20261022T104901Z",
+    "preserved_activated_exists": true,
+    "content_matches_original": true
+  },
+  "official_rehearsal": {
+    "exit": 0,
+    "status": "rehearsal-passed",
+    "remaining_gates": ["provider-environment-validation", "g9-zero-legacy-window", "explicit-human-cutover"],
+    "evidence": {
+      "migration": {
+        "ready": true,
+        "source_version": 4,
+        "target_version": 17,
+        "applied": [
+          "005-governed-execution-ledger-v2.sql",
+          "006-execution-projections.sql",
+          "007-execution-approvals.sql",
+          "008-delegated-runtime-event-catalog.sql",
+          "009-delegated-worker-lifecycle.sql",
+          "010-engineering-task-events.sql",
+          "011-control-command-events.sql",
+          "012-job-events.sql",
+          "013-job-lifecycle-events.sql",
+          "014-job-materialization-events.sql",
+          "015-job-execution-events.sql",
+          "016-job-workflow-expansion.sql",
+          "017-agent-memory-events.sql"
+        ],
+        "integrity": ["ok"],
+        "changed_legacy_tables": []
+      },
+      "rollback": {
+        "ready": true,
+        "restored_version": 4,
+        "integrity": ["ok"],
+        "baseline_tables_preserved": true,
+        "migrated_candidate_discarded": true
+      },
+      "profile": {
+        "ready": true,
+        "profile_id": "agent-openai-compatible-candidate",
+        "operational": false,
+        "model_provider_id": "model:openai-compatible",
+        "runtime_provider_id": "runtime:hseos-kernel",
+        "provider_protocol": "openai-compatible-sse",
+        "normalized_events": ["content.delta", "usage", "completed"],
+        "secret_resolved_at_dispatch": true,
+        "secret_absent_from_evidence": true,
+        "manifest_sha256": "1e6cd856ec22a892b36cf7964976201c7609f20fa15cb80cc5c74f898927d928"
+      },
+      "sandbox": {
+        "ready": true,
+        "required": true,
+        "provider": "ai-jail",
+        "profile": "lockdown",
+        "checks": [
+          {
+            "id": "sandbox_config",
+            "ok": true,
+            "required": true,
+            "details": "Configured provider: ai-jail"
+          },
+          {
+            "id": "sandbox_provider",
+            "ok": true,
+            "required": true,
+            "details": "ai-jail external provider selected"
+          },
+          {
+            "id": "ai_jail_binary",
+            "ok": true,
+            "required": true,
+            "details": "ai-jail found on PATH"
+          },
+          {
+            "id": "bwrap_binary",
+            "ok": true,
+            "required": true,
+            "details": "bwrap found on PATH"
+          },
+          {
+            "id": "sandbox_runtime_probe",
+            "ok": true,
+            "required": true,
+            "details": "A clean lockdown sandbox executed successfully"
+          },
+          {
+            "id": "user_namespaces",
+            "ok": true,
+            "required": true,
+            "details": "kernel.unprivileged_userns_clone=1"
+          },
+          {
+            "id": "apparmor_userns",
+            "ok": true,
+            "required": true,
+            "details": "AppArmor restricts user namespaces globally, but the sandbox runtime probe passed"
+          }
+        ],
+        "errors": []
+      },
+      "operational_source": {
+        "unchanged": true,
+        "mode": "stable-read-only-source",
+        "files_before": {
+          "project-rehearsal.db": {
+            "bytes": 159744,
+            "sha256": "c9dfebafc5a0f50d00a58525f9416ee772bd3ced745cfd352a70c343c2cf7cc8"
+          }
+        },
+        "files_after": {
+          "project-rehearsal.db": {
+            "bytes": 159744,
+            "sha256": "c9dfebafc5a0f50d00a58525f9416ee772bd3ced745cfd352a70c343c2cf7cc8"
+          }
+        }
+      }
+    }
+  },
+  "finished_at": "2026-10-22T10:49:02.068Z"
+}

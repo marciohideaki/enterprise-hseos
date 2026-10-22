@@ -8,7 +8,7 @@ const { TextDecoder } = require('node:util');
 const { Worker } = require('node:worker_threads');
 const Ajv2020 = require('ajv/dist/2020');
 
-const { assertCanonicalEnvelope } = require('./governed-execution/canonical-envelope');
+const { assertCanonicalEnvelope, failureEnvelope } = require('./governed-execution/canonical-envelope');
 const { deterministicOperationId } = require('./governed-execution/runtime');
 const { MCP_LEGACY_PROTOCOL_VERSION, MCP_MODERN_PROTOCOL_VERSION } = require('./mcp-protocol');
 
@@ -32,6 +32,17 @@ const HSEOS_CATALOG_REVISION_META_KEY = 'io.hseos/toolCatalogRevision';
 const HSEOS_IDEMPOTENCY_META_KEY = 'io.hseos/idempotencyKey';
 const LEGACY_SUNSET = '2026-11-30';
 const LEGACY_SUNSET_INSTANT = Date.parse(`${LEGACY_SUNSET}T00:00:00.000Z`);
+// Reported as the sunset when no expiry is configured (ADR-0048 item 3: without a configured date the compat never expires).
+const LEGACY_SUNSET_NONE = 'none-configured';
+
+/** `undefined` keeps the default date, `null` means the compat never expires, a string is an ISO date or instant. */
+function resolveLegacySunset(value) {
+  if (value === undefined) return { label: LEGACY_SUNSET, instant: LEGACY_SUNSET_INSTANT };
+  if (value === null) return { label: LEGACY_SUNSET_NONE, instant: null };
+  const instant = typeof value === 'string' ? Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00.000Z` : value) : Number.NaN;
+  if (!Number.isFinite(instant)) throw new McpAdapterError('legacySunset must be an ISO-8601 date, an instant or null');
+  return { label: value, instant };
+}
 const UTF8_DECODER = new TextDecoder('utf-8', { fatal: true });
 
 class McpAdapterError extends Error {
@@ -198,6 +209,28 @@ function jsonDepth(value) {
 
 function rpcResult(id, result) {
   return { jsonrpc: '2.0', id, result };
+}
+
+// A decoded JSON value is only a usable JSON-RPC message when it is a non-null, non-array object. Every field read on
+// a message goes through this check first: null, arrays and scalars are valid JSON and must never reach a property read.
+function isMessageObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function hasMessageId(message) {
+  return isMessageObject(message) && Object.hasOwn(message, 'id');
+}
+
+// The only ids the server tracks, echoes or interpolates: a non-empty string or an integer. Anything else (object,
+// array, boolean, null, fraction) is invalid and is never read as text, since an object can carry its own toString.
+function isUsableId(id) {
+  return (typeof id === 'string' && id.length > 0) || (typeof id === 'number' && Number.isInteger(id));
+}
+
+// Unexpected failures are logged for the operator and reported to the client without internal detail.
+function internalErrorResponse(id, error) {
+  process.stderr.write(`[mcp] internal error: ${error && error.stack ? error.stack : String(error)}\n`);
+  return rpcError(id, JSON_RPC.INTERNAL_ERROR, 'Internal error');
 }
 
 function rpcError(id, code, message, data) {
@@ -605,6 +638,8 @@ class Mcp2026Adapter {
     validationWorkerPath = path.join(__dirname, 'json-schema-validation-worker.js'),
     legacyEnabled = true,
     legacyUsage = null,
+    legacySunset,
+    legacyProtocolVersions = [MCP_LEGACY_PROTOCOL_VERSION],
     onDenied = null,
     maxLegacyIdentities = 1024,
     allowedOrigins = [],
@@ -658,6 +693,13 @@ class Mcp2026Adapter {
     this.activeValidationWorkers = 0;
     this.legacyEnabled = legacyEnabled;
     this.legacyUsage = legacyUsage;
+    const sunset = resolveLegacySunset(legacySunset);
+    this.legacySunset = sunset.label;
+    this.legacySunsetInstant = sunset.instant;
+    if (!Array.isArray(legacyProtocolVersions) || !legacyProtocolVersions.includes(MCP_LEGACY_PROTOCOL_VERSION)) {
+      throw new McpAdapterError(`legacyProtocolVersions must be an array that includes ${MCP_LEGACY_PROTOCOL_VERSION}`);
+    }
+    this.legacyProtocolVersions = new Set(legacyProtocolVersions);
     if (onDenied !== null && typeof onDenied !== 'function') throw new McpAdapterError('onDenied must be a function');
     this.onDenied = onDenied;
     this.maxLegacyIdentities = maxLegacyIdentities;
@@ -685,14 +727,20 @@ class Mcp2026Adapter {
       this.legacyCounters.has(identity) || this.legacyCounters.size < this.maxLegacyIdentities ? identity : '__overflow__';
     this.legacyCounters.set(counterIdentity, (this.legacyCounters.get(counterIdentity) || 0) + 1);
     if (typeof this.legacyUsage === 'function') {
-      this.legacyUsage({ client_identity: identity, protocol_version: MCP_LEGACY_PROTOCOL_VERSION, sunset: LEGACY_SUNSET });
+      this.legacyUsage({ client_identity: identity, protocol_version: MCP_LEGACY_PROTOCOL_VERSION, sunset: this.legacySunset });
     }
-    return `MCP ${MCP_LEGACY_PROTOCOL_VERSION} compatibility is deprecated and will be removed by ${LEGACY_SUNSET}`;
+    return this.legacySunsetInstant === null
+      ? `MCP ${MCP_LEGACY_PROTOCOL_VERSION} compatibility is deprecated; migrate to MCP ${MCP_MODERN_PROTOCOL_VERSION}`
+      : `MCP ${MCP_LEGACY_PROTOCOL_VERSION} compatibility is deprecated and will be removed by ${this.legacySunset}`;
+  }
+
+  _legacyDeprecation(subject) {
+    return this.legacySunsetInstant === null ? `${subject} is deprecated` : `${subject} ends ${this.legacySunset}`;
   }
 
   _assertLegacyAvailable() {
     const now = new Date(this.clock.now()).getTime();
-    if (!this.legacyEnabled || !Number.isFinite(now) || now >= LEGACY_SUNSET_INSTANT) {
+    if (!this.legacyEnabled || !Number.isFinite(now) || (this.legacySunsetInstant !== null && now >= this.legacySunsetInstant)) {
       throw new McpAdapterError('Legacy MCP compatibility is unavailable', JSON_RPC.UNSUPPORTED_PROTOCOL_VERSION, {
         requested: MCP_LEGACY_PROTOCOL_VERSION,
         supported: [MCP_MODERN_PROTOCOL_VERSION],
@@ -701,8 +749,9 @@ class Mcp2026Adapter {
   }
 
   _bounded(message) {
-    if (byteLength(message) > this.maxBodyBytes) throw new McpAdapterError('Request body exceeds limit', JSON_RPC.REQUEST_TOO_LARGE);
+    // Depth first: it is iterative, whereas serialising a pathologically nested value to measure it overflows the stack.
     if (jsonDepth(message) > this.maxJsonDepth) throw new McpAdapterError('Request JSON depth exceeds limit', JSON_RPC.INVALID_REQUEST);
+    if (byteLength(message) > this.maxBodyBytes) throw new McpAdapterError('Request body exceeds limit', JSON_RPC.REQUEST_TOO_LARGE);
   }
 
   _modernResponse(id, result) {
@@ -881,7 +930,15 @@ class Mcp2026Adapter {
         });
       }
       requireElicitationCapability(requestContext.clientCapabilities, outcome.error.operation_id);
-      const pending = await this.approvalFlow.begin({ outcome, executionRequest, requestContext });
+      let pending;
+      try {
+        pending = await this.approvalFlow.begin({ outcome, executionRequest, requestContext });
+      } catch (error) {
+        // A request that can never succeed (scope, input) is refused as a domain error before anyone is asked to approve it.
+        if (!error || error.preApprovalRefusal !== true) throw error;
+        if (error.code === 'MCP_SCOPE_DENIED') this._reportDenied({ tool: params.name, code: error.code, rpc_code: -32_000 });
+        return this._toolResult(failureEnvelope(error, outcome.error.operation_id), era);
+      }
       if (
         !pending ||
         !pending.state ||
@@ -927,10 +984,7 @@ class Mcp2026Adapter {
       ? modernResult(this.serverInfo, result)
       : {
           ...result,
-          _meta: {
-            deprecation: `MCP ${MCP_LEGACY_PROTOCOL_VERSION} compatibility ends ${LEGACY_SUNSET}`,
-            sunset: LEGACY_SUNSET,
-          },
+          _meta: { deprecation: this._legacyDeprecation(`MCP ${MCP_LEGACY_PROTOCOL_VERSION} compatibility`), sunset: this.legacySunset },
         };
   }
 
@@ -975,7 +1029,7 @@ class Mcp2026Adapter {
       if (!message.params || typeof message.params !== 'object' || Array.isArray(message.params)) {
         throw new McpAdapterError('Legacy initialize params are required', JSON_RPC.INVALID_PARAMS);
       }
-      if (message.params.protocolVersion !== MCP_LEGACY_PROTOCOL_VERSION) {
+      if (!this.legacyProtocolVersions.has(message.params.protocolVersion)) {
         throw new McpAdapterError('Unsupported legacy protocol version', JSON_RPC.UNSUPPORTED_PROTOCOL_VERSION);
       }
       requestContext.legacyNegotiated = true;
@@ -986,7 +1040,7 @@ class Mcp2026Adapter {
         protocolVersion: MCP_LEGACY_PROTOCOL_VERSION,
         serverInfo: this.serverInfo,
         capabilities: { tools: {} },
-        _meta: { deprecation: warning, sunset: LEGACY_SUNSET },
+        _meta: { deprecation: warning, sunset: this.legacySunset },
       });
     }
     if (!requestContext.legacyNegotiated && !requestContext.legacyStateless) {
@@ -997,22 +1051,27 @@ class Mcp2026Adapter {
     if (message.method === 'tools/list') {
       return rpcResult(message.id, {
         tools: this.catalog.map((entry) => entry.descriptor),
-        _meta: { deprecation: `Legacy compatibility ends ${LEGACY_SUNSET}`, sunset: LEGACY_SUNSET },
+        _meta: { deprecation: this._legacyDeprecation('Legacy compatibility'), sunset: this.legacySunset },
       });
     }
     if (message.method === 'tools/call') return rpcResult(message.id, await this._executeTool(message, requestContext, 'legacy'));
     throw new McpAdapterError(`Method not found: ${message.method}`, JSON_RPC.METHOD_NOT_FOUND);
   }
 
+  /**
+   * Answers one decoded JSON-RPC message; never throws.
+   *
+   * Error policy: a failure raised by this adapter (McpAdapterError) carries a controlled domain message and code.
+   * Any other failure keeps its own message under -32603 (a contract the canonical-envelope tests rely on); the stack
+   * is never sent. Failures that escape handle() altogether are caught by the transports' last resort, which answers a
+   * fixed "Internal error" with a null id and logs the cause on stderr.
+   */
   async handle(message, requestContext = {}) {
-    const id = message && Object.hasOwn(message, 'id') ? message.id : null;
+    const id = hasMessageId(message) && isUsableId(message.id) ? message.id : null;
     try {
       this._bounded(message);
       validateRpcRequest(message);
-      if (
-        Object.hasOwn(message, 'id') &&
-        !((typeof message.id === 'string' && message.id.length > 0) || (typeof message.id === 'number' && Number.isInteger(message.id)))
-      ) {
+      if (Object.hasOwn(message, 'id') && !isUsableId(message.id)) {
         throw new McpAdapterError('JSON-RPC request id must be a non-empty string or integer', JSON_RPC.INVALID_REQUEST);
       }
       if (!Object.hasOwn(message, 'id') && !['notifications/cancelled', 'notifications/initialized'].includes(message.method)) {
@@ -1027,7 +1086,9 @@ class Mcp2026Adapter {
       const modernMeta = message.params && message.params._meta && message.params._meta[PROTOCOL_VERSION_META_KEY];
       const headerProtocol = requestContext.headers && requestContext.headers['mcp-protocol-version'];
       const requestedEra =
-        modernMeta !== undefined || (headerProtocol !== undefined && headerProtocol !== MCP_LEGACY_PROTOCOL_VERSION) ? 'modern' : 'legacy';
+        modernMeta !== undefined || (headerProtocol !== undefined && !this.legacyProtocolVersions.has(headerProtocol))
+          ? 'modern'
+          : 'legacy';
       if (requestContext.transport === 'stdio' && context.era && context.era !== requestedEra) {
         throw new McpAdapterError('MCP protocol era is pinned for this stdio connection', JSON_RPC.UNSUPPORTED_PROTOCOL_VERSION);
       }
@@ -1082,6 +1143,16 @@ function createMcp2026HttpServer(adapter, healthPayload = null) {
       else chunks.push(chunk);
     });
     req.on('end', async () => {
+      try {
+        await handleHttpBody();
+      } catch (error) {
+        // Last resort: nothing thrown while serving one request may leave the loop and stop the process.
+        const body = JSON.stringify(internalErrorResponse(null, error));
+        if (!res.headersSent) res.writeHead(500, { 'Content-Type': 'application/json' });
+        if (!res.writableEnded) res.end(body);
+      }
+    });
+    async function handleHttpBody() {
       if (overflow) {
         res.writeHead(413, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(rpcError(null, JSON_RPC.REQUEST_TOO_LARGE, 'Request body exceeds limit')));
@@ -1105,7 +1176,7 @@ function createMcp2026HttpServer(adapter, healthPayload = null) {
         transport: 'http',
         headers: req.headers,
         signal: controller.signal,
-        correlationId: req.headers.traceparent || `mcp-http:${message.id}`,
+        correlationId: req.headers.traceparent || `mcp-http:${isMessageObject(message) && isUsableId(message.id) ? message.id : undefined}`,
       });
       if (controller.signal.aborted || res.destroyed) return;
       if (response === null) {
@@ -1124,7 +1195,7 @@ function createMcp2026HttpServer(adapter, healthPayload = null) {
             : 200;
       res.writeHead(status, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(response));
-    });
+    }
   });
 }
 
@@ -1133,6 +1204,14 @@ function startMcp2026Stdio(adapter, { input = process.stdin, output = process.st
   const inflight = new Map();
   const rl = readline.createInterface({ input, crlfDelay: Number.POSITIVE_INFINITY });
   rl.on('line', async (line) => {
+    try {
+      await handleStdioLine(line);
+    } catch (error) {
+      // Last resort: nothing thrown while serving one line may leave the loop and stop the process.
+      output.write(`${JSON.stringify(internalErrorResponse(null, error))}\n`);
+    }
+  });
+  async function handleStdioLine(line) {
     if (!line.trim()) return;
     if (byteLength(line) > adapter.maxBodyBytes) {
       output.write(`${JSON.stringify(rpcError(null, JSON_RPC.REQUEST_TOO_LARGE, 'Request body exceeds limit'))}\n`);
@@ -1145,7 +1224,7 @@ function startMcp2026Stdio(adapter, { input = process.stdin, output = process.st
       output.write(`${JSON.stringify(rpcError(null, JSON_RPC.PARSE_ERROR, 'Parse error'))}\n`);
       return;
     }
-    if (message && message.method === 'notifications/cancelled' && !Object.hasOwn(message, 'id')) {
+    if (isMessageObject(message) && message.method === 'notifications/cancelled' && !Object.hasOwn(message, 'id')) {
       let requestId;
       try {
         validateRpcRequest(message);
@@ -1166,14 +1245,15 @@ function startMcp2026Stdio(adapter, { input = process.stdin, output = process.st
       return;
     }
     const controller = new AbortController();
-    if (Object.hasOwn(message, 'id')) inflight.set(message.id, controller);
+    const trackedId = hasMessageId(message) && isUsableId(message.id);
+    if (trackedId) inflight.set(message.id, controller);
     try {
       const response = await adapter.handle(message, { transport: 'stdio', connection, signal: controller.signal });
       if (response) output.write(`${JSON.stringify(response)}\n`);
     } finally {
-      if (Object.hasOwn(message, 'id') && inflight.get(message.id) === controller) inflight.delete(message.id);
+      if (trackedId && inflight.get(message.id) === controller) inflight.delete(message.id);
     }
-  });
+  }
   return rl;
 }
 

@@ -404,7 +404,7 @@ function parseEngineeringTask(value, { admission = false } = {}) {
   return deepFreeze(contract);
 }
 
-function readEngineeringTask(filename) {
+function readEngineeringTask(filename, { admission = false } = {}) {
   let fd;
   try {
     fd = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK);
@@ -423,11 +423,14 @@ function readEngineeringTask(filename) {
         current.dev === before.dev &&
         !current.isSymbolicLink(),
     );
-    let contract = parseEngineeringTask(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(buffer.subarray(0, bytes))));
-    if (contract.schema_version === 2) contract = parseEngineeringTask(require('./engineering-workspace').hydrateProjectTask(contract));
+    const raw = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(buffer.subarray(0, bytes)));
+    let contract = parseEngineeringTask(raw, { admission });
+    if (contract.schema_version === 2)
+      contract = parseEngineeringTask(require('./engineering-workspace').hydrateProjectTask(contract), { admission });
     return deepFreeze({ contract, sha256: sha(canonicalJson(contract)) });
-  } catch {
-    throw new EngineeringTaskContractError();
+  } catch (error) {
+    // An admitting read surfaces the curated refusal cause; a plain read keeps the generic reason.
+    throw new EngineeringTaskContractError(admission && error instanceof EngineeringTaskContractError ? error.reason : undefined);
   } finally {
     if (fd !== undefined) fs.closeSync(fd);
   }

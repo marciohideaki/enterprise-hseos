@@ -6,6 +6,7 @@
 **Affects Standards:** Event Sourcing Standard ES-01; CQRS Standard CQ-02/CQ-17; Agent Rules AR-17; Tool Design Governance; ADR-0001; ADR-0002; ADR-0003; ADR-0012; ADR-0014; ADR-0016
 **Supersedes:** N/A
 **Superseded By:** N/A
+**Addendum (2026-10-22):** ADR-0048 (Proposed) propõe superseder em parte §Mitigations (último item: critério de ativação e datas) e propõe uma exceção delimitada a §Rollback (piloto). Sem efeito até ADR-0048 ser Accepted; o critério vigente continua em vigor.
 
 ---
 

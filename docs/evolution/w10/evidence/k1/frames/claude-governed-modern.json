@@ -1,0 +1,184 @@
+[
+  {
+    "t": "2026-10-22T03:36:15.750Z",
+    "dir": "client->server",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": "server-discover-probe-1",
+      "method": "server/discover",
+      "params": {
+        "_meta": {
+          "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+          "io.modelcontextprotocol/clientInfo": {
+            "name": "claude-code",
+            "title": "Claude Code",
+            "version": "2.1.305",
+            "description": "Anthropic's agentic coding tool",
+            "websiteUrl": "https://claude.com/claude-code"
+          },
+          "io.modelcontextprotocol/clientCapabilities": {
+            "roots": {
+              "listChanged": true
+            },
+            "elicitation": {
+              "form": {},
+              "url": {}
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T03:36:16.208Z",
+    "dir": "server->client",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": "server-discover-probe-1",
+      "result": {
+        "resultType": "complete",
+        "supportedVersions": ["2026-07-28"],
+        "capabilities": {
+          "tools": {}
+        },
+        "ttlMs": 30000,
+        "cacheScope": "private",
+        "_meta": {
+          "io.hseos/toolCatalogRevision": "975ec6a2507bfb64d5e8591c15e4d4e52b32fead5c153118979d84316896be53",
+          "io.modelcontextprotocol/serverInfo": {
+            "name": "hseos-governance",
+            "version": "2.0.0"
+          }
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T03:36:16.235Z",
+    "dir": "client->server",
+    "frame": {
+      "method": "tools/list",
+      "jsonrpc": "2.0",
+      "id": 0,
+      "params": {
+        "_meta": {
+          "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+          "io.modelcontextprotocol/clientInfo": {
+            "name": "claude-code",
+            "title": "Claude Code",
+            "version": "2.1.305",
+            "description": "Anthropic's agentic coding tool",
+            "websiteUrl": "https://claude.com/claude-code"
+          },
+          "io.modelcontextprotocol/clientCapabilities": {
+            "roots": {
+              "listChanged": true
+            },
+            "elicitation": {
+              "form": {},
+              "url": {}
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T03:36:16.236Z",
+    "dir": "server->client",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 0,
+      "result": {
+        "resultType": "complete",
+        "tools": {
+          "count": 15,
+          "names": [
+            "check_authority",
+            "diff_governance_releases",
+            "evaluate_governed_action",
+            "explain_governance_decision",
+            "get_effective_governance_context",
+            "get_governance_artifact",
+            "get_governance_readiness",
+            "get_governance_release",
+            "get_governance_session_preflight",
+            "get_governance_session_status",
+            "list_skills",
+            "list_workflows",
+            "query_constitution",
+            "validate_adr",
+            "verify_governance_snapshot"
+          ]
+        },
+        "ttlMs": 30000,
+        "cacheScope": "private",
+        "_meta": {
+          "io.hseos/toolCatalogRevision": "975ec6a2507bfb64d5e8591c15e4d4e52b32fead5c153118979d84316896be53",
+          "io.modelcontextprotocol/serverInfo": {
+            "name": "hseos-governance",
+            "version": "2.0.0"
+          }
+        }
+      }
+    }
+  },
+  {
+    "t": "2026-10-22T03:36:18.761Z",
+    "dir": "client->server",
+    "frame": {
+      "method": "tools/call",
+      "params": {
+        "name": "list_workflows",
+        "arguments": {},
+        "_meta": {
+          "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+          "io.modelcontextprotocol/clientInfo": {
+            "name": "claude-code",
+            "title": "Claude Code",
+            "version": "2.1.305",
+            "description": "Anthropic's agentic coding tool",
+            "websiteUrl": "https://claude.com/claude-code"
+          },
+          "io.modelcontextprotocol/clientCapabilities": {
+            "roots": {
+              "listChanged": true
+            },
+            "elicitation": {
+              "form": {},
+              "url": {}
+            }
+          },
+          "claudecode/toolUseId": "toolu_01PaPXxuFtndtvaQZhyFC6Tu",
+          "progressToken": 1
+        }
+      },
+      "jsonrpc": "2.0",
+      "id": 1
+    }
+  },
+  {
+    "t": "2026-10-22T03:36:18.871Z",
+    "dir": "server->client",
+    "frame": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "resultType": "complete",
+        "content": [
+          {
+            "type": "text",
+            "text_bytes": 1506
+          }
+        ],
+        "isError": false,
+        "_meta": {
+          "io.modelcontextprotocol/serverInfo": {
+            "name": "hseos-governance",
+            "version": "2.0.0"
+          }
+        }
+      }
+    }
+  }
+]

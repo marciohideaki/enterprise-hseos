@@ -531,8 +531,8 @@ async function runCapabilityProviderTests() {
     scope: { project_id: 'alpha' },
     memory_id: 'note-1',
     content: 'the deploy pipeline uses blue green rollouts',
-    origin: 'operator',
-    trust: 'trusted',
+    origin: 'agent',
+    trust: 'untrusted',
     classification: 'internal',
     source_ref: 'doc://runbook/deploy',
     ttl_seconds: 3600,
@@ -628,7 +628,7 @@ async function runCapabilityProviderTests() {
       const written = await run('memory.write', withDigest(entry()));
       assert.equal(written.ok, true, JSON.stringify(written));
       assert.equal(written.data.result.write_policy_ref, 'rule:memory-write');
-      const found = await run('memory.retrieve', { project_id: 'alpha', query: 'blue green' });
+      const found = await run('memory.retrieve', { project_id: 'alpha', query: 'blue green', include_untrusted: true });
       assert.equal(found.ok, true, JSON.stringify(found));
       assert.equal(found.data.result.length, 1);
       assert.equal(found.data.result[0].authority, 'data');
@@ -666,7 +666,7 @@ async function runCapabilityProviderTests() {
       const refused = await run('memory.delete', { project_id: 'alpha', memory_id: 'note-1' });
       assert.equal(refused.ok, false);
       assert.equal(refused.error.code, 'EXECUTION_APPROVAL_REQUIRED');
-      const still = await run('memory.retrieve', { project_id: 'alpha', query: 'blue green' });
+      const still = await run('memory.retrieve', { project_id: 'alpha', query: 'blue green', include_untrusted: true });
       assert.equal(still.data.result.length, 1, 'an unapproved delete leaves the entry');
 
       const deleted = await run('memory.delete', { project_id: 'alpha', memory_id: 'note-1', reason: 'obsolete' }, { approved: true });
@@ -674,7 +674,7 @@ async function runCapabilityProviderTests() {
       assert.deepEqual(deleted.data.result, { memory_id: 'note-1', deleted: true });
       const operation = memoryPackage.memoryDeleteOperation('alpha', 'note-1').operation_id;
       assert.equal(wired().resolveMemoryDeleteApproval({ operation_id: operation }), undefined, 'the grant is gone after the delete');
-      const gone = await run('memory.retrieve', { project_id: 'alpha', query: 'blue green' });
+      const gone = await run('memory.retrieve', { project_id: 'alpha', query: 'blue green', include_untrusted: true });
       assert.equal(gone.data.result.length, 0);
       const events = db.prepare("SELECT event_type FROM execution_events WHERE aggregate_type = 'agent_memory'").all();
       assert.ok(events.some((row) => row.event_type === memoryPackage.EVENTS.DELETED));
@@ -933,7 +933,7 @@ async function runCapabilityProviderTests() {
       assert.ok(message.includes('note-1') && message.includes('alpha'), message);
       assert.equal(retry.result.resultType, 'complete', JSON.stringify(retry));
       assert.equal(retry.result.structuredContent.ok, true, JSON.stringify(retry));
-      const found = await call('memory.retrieve', { project_id: 'alpha', query: 'blue green' });
+      const found = await call('memory.retrieve', { project_id: 'alpha', query: 'blue green', include_untrusted: true });
       assert.equal(found.result.structuredContent.data.result.length, 0);
     });
   });

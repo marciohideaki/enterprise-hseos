@@ -11,7 +11,10 @@ for (const entry of manifest.entries) {
   const command = program.command(entry.command).description(entry.description);
   for (const option of entry.options) command.option(...option);
   command.action((...args) => {
-    const implementation = require(path.join(__dirname, 'commands', entry.filename));
+    const module_ = require(path.join(__dirname, 'commands', entry.filename));
+    const implementation = entry.companion
+      ? module_.companions.find((companion) => companion.command.split(/\s+/, 1)[0] === entry.companion)
+      : module_;
     if (entry.governed) {
       const { runGovernedCliAction } = require('./lib/governed-action');
       return runGovernedCliAction(entry.command.split(/\s+/, 1)[0], implementation.action, args);

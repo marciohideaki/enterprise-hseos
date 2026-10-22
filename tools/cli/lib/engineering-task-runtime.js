@@ -590,6 +590,9 @@ async function runEngineeringTask({
   resourceId,
   responseSource,
   environmentHost,
+  // Direct callers (`agent run`) admit the contract; the control API has already admitted it (or is replaying a job
+  // admitted earlier) and passes `admission: false`.
+  admission = true,
 }) {
   if (pluginModel && !createOnly)
     throw Object.assign(new Error('PLUGIN_TASK_REGISTRATION_REQUIRED'), { code: 'PLUGIN_TASK_REGISTRATION_REQUIRED' });
@@ -600,7 +603,7 @@ async function runEngineeringTask({
         require('../../lib/agent-provider-binding').readProviderBinding(bindingPath).binding,
       )
     : undefined;
-  const { contract, sha256 } = readEngineeringTask(taskContract);
+  const { contract, sha256 } = readEngineeringTask(taskContract, { admission });
   const responses = scriptedResponses ? readResponses(scriptedResponses) : [];
   const pinned = require('../../lib/execution-plugin-selection').pinExecutionPluginSelection(
     extensionCatalog,
@@ -654,9 +657,8 @@ async function runEngineeringTask({
     }
     attestEngineeringVerifier(contract);
     // Declared capabilities without a host would be silently denied; a task that asked for them is blocked instead.
-    // `agent run` (tools/cli/commands/agent.js) reads the contract without the admission rules and accepts no `environmentHost`,
-    // so a contract with environment.capabilities is blocked there. Accepting a host means admitting the contract first
-    // (parseEngineeringTask with { admission: true }).
+    // `agent run` (tools/cli/commands/agent.js) accepts no `environmentHost`, so a contract with environment.capabilities
+    // is blocked there. Accepting a host requires the contract to be admitted (the read above admits by default).
     if (contract.environment && !environmentHost)
       throw Object.assign(new Error('ENGINEERING_ENVIRONMENT_HOST_REQUIRED'), { code: 'ENGINEERING_ENVIRONMENT_HOST_REQUIRED' });
     assembly = assemble(handle, created, { environment, fetchImpl, extensionCatalog, campaigns, resourceId, environmentHost });

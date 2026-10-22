@@ -1,0 +1,486 @@
+{
+  "null": {
+    "modern": {
+      "alive_after": false,
+      "exit": {
+        "code": 1,
+        "sig": null
+      },
+      "replies": [],
+      "crash_line": "TypeError: Cannot convert undefined or null to object",
+      "at": "at Object.hasOwn (<anonymous>)"
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "number": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid JSON-RPC request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "string": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid JSON-RPC request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "array_empty": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid JSON-RPC request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "boolean": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid JSON-RPC request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "object_empty": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid JSON-RPC request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "object_no_jsonrpc": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32600,\"message\":\"Invalid JSON-RPC request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "batch_with_null": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid JSON-RPC request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "batch_valid_and_null": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid JSON-RPC request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "batch_of_requests": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid JSON-RPC request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "id_null_object": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"JSON-RPC request id must be a non-empty string or integer\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request: id must be a non-empty string or an integer\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "method_not_string": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32600,\"message\":\"JSON-RPC method is required\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "params_null": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32602,\"message\":\"JSON-RPC params must be an object\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "params_array": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32602,\"message\":\"JSON-RPC params must be an object\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "meta_null": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32022,\"message\":\"Modern request metadata is required\",\"data\":{\"requested\":null,\"supported\":[\"2026-0",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "call_args_null": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32602,\"message\":\"Tool arguments must be an object when provided\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32602,\"message\":\"Invalid params: (arguments) must be object\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "call_name_null": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32602,\"message\":\"Unknown tool: null\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32602,\"message\":\"Invalid params: tools/call requires a string \\\"name\\\"\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "truncated_json": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "invalid_json": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "huge_line_2MiB": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32023,\"message\":\"Request body exceeds limit\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "huge_line_20MiB": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32023,\"message\":\"Request body exceeds limit\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  },
+  "deep_nesting": {
+    "modern": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32603,\"message\":\"Maximum call stack size exceeded\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"resultType\":\"complete\",\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints f"
+      ],
+      "crash_line": "",
+      "at": ""
+    },
+    "legacy": {
+      "alive_after": true,
+      "exit": null,
+      "replies": [
+        "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"check_authority\",\"description\":\"Read authority and constraints for an HSEOS agent by cod"
+      ],
+      "crash_line": "",
+      "at": ""
+    }
+  }
+}

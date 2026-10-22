@@ -7,7 +7,7 @@ const { randomUUID } = require('node:crypto');
 
 const { GovernedEntrypointAdapter } = require('../../lib/governed-execution/entrypoint-adapters');
 const { createOperationalExecution } = require('../../lib/governed-execution/operational-runtime');
-const { openOperationalStateDatabase } = require('../../mcp-project-state/lib/operational-state-db');
+const { openOperationalStateDatabase, resolveGovernedExecutionMode } = require('../../mcp-project-state/lib/operational-state-db');
 const { McpLegacyUsageStore } = require('../../mcp-project-state/lib/mcp-legacy-usage-store');
 const { LEGACY_SUNSET } = require('../../lib/legacy-mcp-server');
 
@@ -52,9 +52,11 @@ async function runGovernedCliAction(commandName, originalAction, originalArgumen
   const directory = actionDirectory(commandName, options);
   const dbPath = path.join(directory, '.hseos', 'state', 'project.db');
   const fixtureActivation = process.env.NODE_ENV === 'test' && process.env.HSEOS_GOVERNED_EXECUTION_FIXTURE === '1';
+  // Fixture or activated database runs governed; v4 keeps the legacy path; an inconsistent database throws (never falls back).
+  const governedMode = resolveGovernedExecutionMode(dbPath);
   const temporaryRoot = `${path.resolve(os.tmpdir())}${path.sep}`;
   const parent = path.dirname(dbPath);
-  if (!fixtureActivation) {
+  if (!governedMode.modern) {
     if (commandName === 'state-purge' && options.force === true) {
       const error = new Error('Forced purge requires the governed approval boundary, which is pending activation');
       error.code = 'EXECUTION_APPROVAL_REQUIRED';
@@ -78,24 +80,26 @@ async function runGovernedCliAction(commandName, originalAction, originalArgumen
       usage.close();
     }
   }
-  if (!path.resolve(dbPath).startsWith(temporaryRoot)) {
-    const error = new Error('Governed CLI fixture activation requires a temporary project');
-    error.code = 'EXECUTION_ACTIVATION_PENDING';
-    throw error;
+  if (fixtureActivation) {
+    if (!path.resolve(dbPath).startsWith(temporaryRoot)) {
+      const error = new Error('Governed CLI fixture activation requires a temporary project');
+      error.code = 'EXECUTION_ACTIVATION_PENDING';
+      throw error;
+    }
+    fs.mkdirSync(parent, { recursive: true });
+    const fixturePathIsSafe = `${fs.realpathSync(parent)}${path.sep}`.startsWith(temporaryRoot);
+    if (fs.existsSync(dbPath) && fs.statSync(dbPath).nlink !== 1) {
+      const error = new Error('Governed CLI fixture database must not be hard-linked');
+      error.code = 'EXECUTION_ACTIVATION_PENDING';
+      throw error;
+    }
+    if (!fixturePathIsSafe) {
+      const error = new Error('Governed CLI activation is pending ADR-0022 compatibility evidence');
+      error.code = 'EXECUTION_ACTIVATION_PENDING';
+      throw error;
+    }
   }
-  fs.mkdirSync(parent, { recursive: true });
-  const fixturePathIsSafe = `${fs.realpathSync(parent)}${path.sep}`.startsWith(temporaryRoot);
-  if (fs.existsSync(dbPath) && fs.statSync(dbPath).nlink !== 1) {
-    const error = new Error('Governed CLI fixture database must not be hard-linked');
-    error.code = 'EXECUTION_ACTIVATION_PENDING';
-    throw error;
-  }
-  if (!fixturePathIsSafe) {
-    const error = new Error('Governed CLI activation is pending ADR-0022 compatibility evidence');
-    error.code = 'EXECUTION_ACTIVATION_PENDING';
-    throw error;
-  }
-  const db = openOperationalStateDatabase(dbPath, { activatePendingFixture: true });
+  const db = openOperationalStateDatabase(dbPath, fixtureActivation ? { activatePendingFixture: true } : { openActivated: true });
   const tool = `cli.${commandName}`;
   const input = strictJson({ arguments: optionsIndex === -1 ? originalArguments : originalArguments.slice(0, optionsIndex), options });
   const toolMap = new Map([

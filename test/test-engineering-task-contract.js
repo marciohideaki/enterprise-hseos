@@ -717,3 +717,81 @@ test('admission treats a task with environment capabilities like any other: acce
   const dangling = withEnvironment((c) => c.environment.capabilities.push('environment.computer.act'));
   assert.equal(admissionCode(dangling), 'ENGINEERING_ENVIRONMENT_INVALID', 'a computer action without start is refused');
 });
+
+// K6: `agent run` and `validate-task` admit the contract like the control API; the plain read stays lenient.
+const admittedFile = (t, contract) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-admit-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const filename = path.join(directory, 'task.json');
+  fs.writeFileSync(filename, JSON.stringify(contract));
+  const responses = path.join(directory, 'responses.json');
+  fs.writeFileSync(responses, '[]');
+  return { filename, responses };
+};
+const refusedReason = async (action) => {
+  try {
+    await action();
+  } catch (error) {
+    assert.equal(error.code, 'ENGINEERING_TASK_CONTRACT_INVALID', 'the compatibility category is kept');
+    return error.reason;
+  }
+  return 'ok';
+};
+const silently = async (action) => {
+  const write = process.stdout.write;
+  process.stdout.write = () => true;
+  try {
+    return await action();
+  } finally {
+    process.stdout.write = write;
+  }
+};
+
+test('agent run and validate-task refuse a contract the admission refuses, with the curated cause (K6)', async (t) => {
+  const agent = require('../tools/cli/commands/agent');
+  const { runEngineeringTask } = require('../tools/cli/lib/engineering-task-runtime');
+  const uncovered = admissionContract(t, (c) => delete c.acceptance[0].check_ids);
+  const weak = admissionContract(t, (c) => {
+    delete c.verifier.command_checks;
+    delete c.verifier.protected_paths;
+    c.verifier.reference = 'verifier://project/web-content-v1';
+    c.verifier.checks = [{ id: 'c1', path: 'index.js', export_name: 'default', args: [], expected: 'module.exports' }];
+    c.acceptance[0].check_ids = ['c1'];
+  });
+  const open = admissionContract(t, undefined, { 'package.json': '{}' });
+  const cases = [
+    ['ENGINEERING_ACCEPTANCE_UNCOVERED', uncovered],
+    ['ENGINEERING_ACCEPTANCE_WEAK', weak],
+    ['ENGINEERING_PROTECTED_CONFIG_MISSING', open],
+  ];
+  for (const [reason, contract] of cases) {
+    const { filename, responses } = admittedFile(t, contract);
+    assert.equal(
+      await refusedReason(() => runEngineeringTask({ taskContract: filename, scriptedResponses: responses })),
+      reason,
+      `run ${reason}`,
+    );
+    assert.equal(
+      await refusedReason(() => agent.execute('run', { taskContract: filename, scriptedResponses: responses })),
+      reason,
+      `cli run ${reason}`,
+    );
+    assert.equal(
+      await refusedReason(() => agent.execute('validate-task', { taskContract: filename })),
+      reason,
+      `cli validate-task ${reason}`,
+    );
+    assert.equal(await refusedReason(() => silently(() => readEngineeringTask(filename, { admission: true }))), reason, `read ${reason}`);
+    assert.ok(readEngineeringTask(filename).contract, `the plain read (worker replay) still accepts ${reason}`);
+  }
+});
+
+test('validate-task still accepts admitted v1 and v2 contracts (K6)', async (t) => {
+  const agent = require('../tools/cli/commands/agent');
+  for (const contract of [fixture(), admissionContract(t)]) {
+    const { filename } = admittedFile(t, contract);
+    const result = await silently(() => agent.execute('validate-task', { taskContract: filename, json: true }));
+    assert.equal(result.status, 'structurally-valid');
+    assert.equal(result.contract_sha256, readEngineeringTask(filename, { admission: true }).sha256);
+  }
+});

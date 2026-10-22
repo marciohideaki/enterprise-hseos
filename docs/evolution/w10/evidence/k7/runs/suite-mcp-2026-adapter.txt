@@ -1,0 +1,33 @@
+Delegated test cgroup controllers verified
+✔ MRTR state codec enforces integrity, exact operation binding, and expiry (3.576478ms)
+✔ modern discovery and tool list are stateless, deterministic, cacheable, and server-stamped (50.814859ms)
+✔ modern HTTP routing headers are required and must match the body exactly (182.956393ms)
+✔ x-mcp-header parameters are validated against nested body values before execution (156.495462ms)
+✔ x-mcp-header rejects annotations outside an exclusive properties chain (37.744222ms)
+✔ modern calls use only the governed execution port and preserve one structured envelope (157.801483ms)
+✔ advertised output schema is enforced at the adapter boundary (169.366647ms)
+✔ execution port must return the exact canonical six-field envelope (342.307827ms)
+✔ invalid input and unsupported modern lifecycle methods fail before execution (228.595557ms)
+✔ schema and request limits fail closed and external references are rejected (55.683765ms)
+✔ absolute MCP execution deadline bounds a port that never settles (1018.553105ms)
+✔ legacy era is explicit, isolated, metered, deprecated, and cannot skip initialize (42.35715ms)
+✔ legacy usage evidence survives restart in a bounded daily aggregate (27.244982ms)
+✔ legacy activation readiness requires every hour of 30 completed zero-use days from every native server (297.675099ms)
+✔ one heartbeat per day cannot produce false-green legacy readiness (24.844543ms)
+✔ durable legacy telemetry bounds identity cardinality and expires old aggregates (28.809736ms)
+✔ legacy compatibility stops at the approved sunset and keeps identity metrics bounded (49.250592ms)
+✔ legacy approval failures are explicit, deprecated, and never redispatched (83.171118ms)
+✔ approval-required calls use MRTR only for capable modern clients and bind retry state through the approval flow (366.08397ms)
+✔ HTTP transport bounds bodies and returns the same modern structured semantics (313.549806ms)
+✔ legacy HTTP subset remains stateless, deprecated, and metered during the compatibility window (163.570184ms)
+✔ HTTP missing client capability maps to protocol -32021 and status 400 (90.812307ms)
+✔ modern stdio cancellation aborts the matching in-flight request (115.718538ms)
+✔ legacy readiness: read-only evidence rejects links and sidecars, and counter tampering is an integrity error (19.864377ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4115.153843
