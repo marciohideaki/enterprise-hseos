@@ -93,7 +93,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "dac76fc86a7eec2dccd52b98ca6408a06a1f7b3cdcd8304bcdebc65a93d673c0"
+      "source_sha256": "e9ff275033493b2cdf30d097ff9208b67029e8e575a39ca8d9cc5c6621428b09"
     },
     {
       "filename": "agent-activation-rehearsal.js",
@@ -126,7 +126,7 @@
         ]
       ],
       "governed": false,
-      "source_sha256": "dac76fc86a7eec2dccd52b98ca6408a06a1f7b3cdcd8304bcdebc65a93d673c0",
+      "source_sha256": "e9ff275033493b2cdf30d097ff9208b67029e8e575a39ca8d9cc5c6621428b09",
       "companion": "execution-activation"
     },
     {

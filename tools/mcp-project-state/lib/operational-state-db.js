@@ -122,6 +122,12 @@ const REPOSITORY_ROOT = path.join(__dirname, '..', '..', '..');
 const DEFAULT_DECISIONS_DIRECTORY = path.join(REPOSITORY_ROOT, '.enterprise', '.specs', 'decisions');
 const ADR_IDENTIFIER = /^ADR-\d{4}$/;
 const LOCK_BUSY_TIMEOUT_MS = 200;
+// Only the ADR that defines the activation criterion opens the gate. A later ADR that supersedes the criterion
+// must be added here explicitly; an unrelated Accepted ADR never satisfies the gate.
+const ACTIVATION_CRITERION_ADRS = Object.freeze(['ADR-0048']);
+const ACCEPTED_STATUS_LINE = /^Accepted(\s*(\(|—|–|-\s).*)?$/;
+const REJECTED_STATUS_WORDS = /pending|superseded|deprecated|rejected|proposed|withdrawn/i;
+const SHA256_HEX = /^[0-9a-f]{64}$/;
 
 class ExecutionActivationError extends Error {
   constructor(code, message, details = {}) {
@@ -147,35 +153,63 @@ function sha256File(file) {
   return createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 }
 
-/** Status keyword of an ADR in either layout used by the repository, or null when the ADR cannot be resolved. */
-function readAdrStatus(adr, decisionsDirectory) {
-  if (typeof adr !== 'string' || !ADR_IDENTIFIER.test(adr)) return null;
-  if (!fs.existsSync(decisionsDirectory)) return null;
+/** Status lines of an ADR: the first line under `## Status` and any `**Status:**` line, outside code, tables and quotes. */
+function extractStatusLines(text) {
+  const found = new Set();
+  const lines = text.split(/\r?\n/).map((line) => line.trim());
+  let fenced = false;
+  const usable = [];
+  for (const line of lines) {
+    if (/^(```|~~~)/.test(line)) {
+      fenced = !fenced;
+      usable.push(null);
+    } else usable.push(fenced || line.startsWith('|') || line.startsWith('>') ? null : line);
+  }
+  for (const [index, line] of usable.entries()) {
+    if (line === null) continue;
+    const inline = line.match(/^\*\*Status:\*\*\s*(.+)$/);
+    if (inline) found.add(inline[1].trim());
+    if (/^##\s+Status$/.test(line)) {
+      const next = usable.slice(index + 1).find((candidate) => candidate !== '');
+      if (typeof next === 'string' && !next.startsWith('#')) found.add(next);
+    }
+  }
+  return [...found];
+}
+
+/** Resolves an ADR file by identifier and reports its status line, or null when it cannot be resolved. */
+function readAdr(adr, decisionsDirectory) {
+  if (typeof adr !== 'string' || !ADR_IDENTIFIER.test(adr) || !fs.existsSync(decisionsDirectory)) return null;
   const matches = fs.readdirSync(decisionsDirectory).filter((name) => name.startsWith(`${adr}-`) && name.endsWith('.md'));
   if (matches.length !== 1) return null;
-  const text = fs.readFileSync(path.join(decisionsDirectory, matches[0]), 'utf8');
-  const inline = text.match(/^\*\*Status:\*\*[ \t]*(.+)$/m);
-  const heading = text.match(/^##[ \t]+Status[ \t]*\r?\n(?:[ \t]*\r?\n)*[ \t]*(\S.*)$/m);
-  const line = (inline || heading || [])[1];
-  const keyword = line && line.match(/^[A-Za-z]+/);
-  return keyword ? keyword[0] : null;
+  const file = path.join(decisionsDirectory, matches[0]);
+  const bytes = fs.readFileSync(file);
+  return { file, sha256: createHash('sha256').update(bytes).digest('hex'), statusLines: extractStatusLines(bytes.toString('utf8')) };
+}
+
+function isAcceptedStatusLine(line) {
+  return ACCEPTED_STATUS_LINE.test(line) && !REJECTED_STATUS_WORDS.test(line);
 }
 
 /** Processes (Linux /proc) that hold the database or its WAL sidecars open, this process included. */
 function findDatabaseHolders(databasePath) {
   const targets = new Set([databasePath, `${databasePath}-wal`, `${databasePath}-shm`]);
-  const holders = [];
+  const result = { holders: [], unscannable: 0, unavailable: false };
+  if (process.platform !== 'linux') return result;
   let pids;
   try {
     pids = fs.readdirSync('/proc').filter((name) => /^\d+$/.test(name));
   } catch {
-    return holders;
+    result.unavailable = true;
+    return result;
   }
+  const gone = new Set(['ENOENT', 'ESRCH']);
   for (const pid of pids) {
     let descriptors;
     try {
       descriptors = fs.readdirSync(`/proc/${pid}/fd`);
-    } catch {
+    } catch (error) {
+      if (!gone.has(error.code)) result.unscannable += 1;
       continue;
     }
     for (const descriptor of descriptors) {
@@ -186,12 +220,12 @@ function findDatabaseHolders(databasePath) {
         continue;
       }
       if (targets.has(target)) {
-        holders.push(Number(pid));
+        result.holders.push(Number(pid));
         break;
       }
     }
   }
-  return holders;
+  return result;
 }
 
 function lockedError(databasePath, detail) {
@@ -249,6 +283,53 @@ function inspectDatabaseFile(databasePath, blockers) {
   return link;
 }
 
+/** Real path of the backup directory, refusing a symlink leaf; ancestors that do not exist yet are kept as-is. */
+function resolveBackupDirectory(backupDir, blockers) {
+  const resolved = path.resolve(backupDir);
+  const invalid = (reason) => {
+    blockers.push(activationBlocker('EXECUTION_ACTIVATION_BACKUP_DIR_INVALID', `Backup directory ${resolved} is invalid: ${reason}`));
+    return null;
+  };
+  let probe = resolved;
+  const tail = [];
+  for (;;) {
+    let entry;
+    try {
+      entry = fs.lstatSync(probe);
+    } catch (error) {
+      if (error.code !== 'ENOENT') return invalid(error.code);
+      tail.unshift(path.basename(probe));
+      probe = path.dirname(probe);
+      continue;
+    }
+    if (probe === resolved && entry.isSymbolicLink()) return invalid('it is a symlink');
+    if (!entry.isDirectory() && !entry.isSymbolicLink()) return invalid(`${probe} is not a directory`);
+    break;
+  }
+  return path.join(fs.realpathSync(probe), ...tail);
+}
+
+function checkBackupOutsideDatabase(backupDirectory, databasePath, blockers) {
+  const databaseDirectory = path.dirname(databasePath);
+  if (backupDirectory === databaseDirectory || backupDirectory.startsWith(`${databaseDirectory}${path.sep}`)) {
+    blockers.push(
+      activationBlocker(
+        'EXECUTION_ACTIVATION_BACKUP_DIR_INVALID',
+        `Backup directory ${backupDirectory} must be outside the database directory`,
+      ),
+    );
+  }
+}
+
+function fsyncDirectory(directory) {
+  const descriptor = fs.openSync(directory, 'r');
+  try {
+    fs.fsyncSync(descriptor);
+  } finally {
+    fs.closeSync(descriptor);
+  }
+}
+
 /**
  * Read-only activation plan. Never writes; reports blockers instead of throwing.
  * `opts.internal` exists for tests (alternative ADR and migration directories).
@@ -256,22 +337,59 @@ function inspectDatabaseFile(databasePath, blockers) {
 function planExecutionLedgerActivation(databasePath, opts = {}) {
   const { adr, backupDir, now = Date.now, internal } = opts;
   const { decisionsDirectory, migrationsDirectory } = activationInternals(internal);
-  const resolved = path.resolve(databasePath);
+  let resolved = path.resolve(databasePath);
   const blockers = [];
-  const adrStatus = readAdrStatus(adr, decisionsDirectory);
-  if (adrStatus !== 'Accepted') {
+  const criterion = internal && internal.criterionAdrs ? internal.criterionAdrs : ACTIVATION_CRITERION_ADRS;
+  let adrStatus = null;
+  let adrSha256 = null;
+  if (typeof adr !== 'string' || !ADR_IDENTIFIER.test(adr)) {
     blockers.push(
       activationBlocker(
         'EXECUTION_ACTIVATION_ADR_NOT_ACCEPTED',
-        `Activation requires an ADR with status Accepted; ${adr || '(none)'} is ${adrStatus || 'missing or unresolvable'}`,
+        `Activation requires an ADR identifier (ADR-NNNN); got ${adr || '(none)'}`,
+      ),
+    );
+  } else if (criterion.includes(adr)) {
+    const record = readAdr(adr, decisionsDirectory);
+    if (!record) {
+      blockers.push(activationBlocker('EXECUTION_ACTIVATION_ADR_NOT_ACCEPTED', `${adr} was not found in the decisions directory`));
+    } else if (record.statusLines.length > 1) {
+      blockers.push(
+        activationBlocker(
+          'EXECUTION_ACTIVATION_ADR_STATUS_AMBIGUOUS',
+          `${adr} declares conflicting status lines: ${record.statusLines.join(' | ')}`,
+        ),
+      );
+    } else if (record.statusLines.length === 1 && isAcceptedStatusLine(record.statusLines[0])) {
+      adrStatus = 'Accepted';
+      adrSha256 = record.sha256;
+    } else {
+      adrStatus = record.statusLines[0] ? record.statusLines[0].slice(0, 80) : null;
+      blockers.push(
+        activationBlocker(
+          'EXECUTION_ACTIVATION_ADR_NOT_ACCEPTED',
+          `Activation requires an ADR with status Accepted; ${adr} is ${adrStatus || 'without a status'}`,
+        ),
+      );
+    }
+  } else {
+    blockers.push(
+      activationBlocker(
+        'EXECUTION_ACTIVATION_ADR_NOT_CRITERION',
+        `${adr} does not define the activation criterion; accepted criterion ADRs: ${criterion.join(', ')}`,
       ),
     );
   }
-  if (!backupDir) blockers.push(activationBlocker('EXECUTION_ACTIVATION_BACKUP_DIR_REQUIRED', 'A backup directory is required'));
+  let backupDirectory = null;
+  if (backupDir) backupDirectory = resolveBackupDirectory(backupDir, blockers);
+  else blockers.push(activationBlocker('EXECUTION_ACTIVATION_BACKUP_DIR_REQUIRED', 'A backup directory is required'));
   const migrations = listMigrations(migrationsDirectory);
   const targetVersion = migrations.length > 0 ? migrations.at(-1).version : OPERATIONAL_SCHEMA_VERSION;
   let userVersion = null;
+  let unscannable = 0;
   if (inspectDatabaseFile(resolved, blockers)) {
+    resolved = path.join(fs.realpathSync(path.dirname(resolved)), path.basename(resolved));
+    if (backupDirectory) checkBackupOutsideDatabase(backupDirectory, resolved, blockers);
     let db;
     const sidecars = [`${resolved}-wal`, `${resolved}-shm`].filter((file) => !fs.existsSync(file));
     try {
@@ -298,11 +416,23 @@ function planExecutionLedgerActivation(databasePath, opts = {}) {
     } finally {
       if (db) db.close();
       // A read-only open of a WAL database creates its sidecars; the plan must leave the directory as found.
-      if (findDatabaseHolders(resolved).length === 0) for (const file of sidecars) fs.rmSync(file, { force: true });
+      if (findDatabaseHolders(resolved).holders.length === 0) for (const file of sidecars) fs.rmSync(file, { force: true });
     }
-    const holders = findDatabaseHolders(resolved);
-    if (holders.length > 0)
-      blockers.push(activationBlocker('EXECUTION_ACTIVATION_DATABASE_LOCKED', `Database is open in process(es): ${holders.join(', ')}`));
+    const scan = findDatabaseHolders(resolved);
+    unscannable = scan.unscannable;
+    if (scan.unavailable) {
+      blockers.push(
+        activationBlocker(
+          'EXECUTION_ACTIVATION_PROC_SCAN_UNAVAILABLE',
+          'Cannot enumerate processes to prove the database is not open elsewhere',
+        ),
+      );
+    }
+    if (scan.holders.length > 0) {
+      blockers.push(
+        activationBlocker('EXECUTION_ACTIVATION_DATABASE_LOCKED', `Database is open in process(es): ${scan.holders.join(', ')}`),
+      );
+    }
   }
   const stamp = utcStamp(now());
   return {
@@ -311,13 +441,15 @@ function planExecutionLedgerActivation(databasePath, opts = {}) {
     database_path: resolved,
     adr: adr || null,
     adr_status: adrStatus,
+    adr_sha256: adrSha256,
+    unscannable_processes: unscannable,
     user_version: userVersion,
     target_user_version: targetVersion,
     migrations_to_apply: migrations
       .filter((migration) => migration.version > OPERATIONAL_SCHEMA_VERSION)
       .map((migration) => migration.name),
-    backup_path: backupDir ? path.join(path.resolve(backupDir), `${stamp}-${path.basename(resolved)}`) : null,
-    receipt_path: backupDir ? path.join(path.resolve(backupDir), `${stamp}-${path.basename(resolved)}.receipt.json`) : null,
+    backup_path: backupDirectory ? path.join(backupDirectory, `${stamp}-${path.basename(resolved)}`) : null,
+    receipt_path: backupDirectory ? path.join(backupDirectory, `${stamp}-${path.basename(resolved)}.receipt.json`) : null,
   };
 }
 
@@ -339,6 +471,7 @@ function currentCommit() {
  */
 function backupBytes(databasePath, backupPath) {
   fs.copyFileSync(databasePath, backupPath, fs.constants.COPYFILE_EXCL);
+  fs.chmodSync(backupPath, 0o600);
   const descriptor = fs.openSync(backupPath, 'r+');
   try {
     fs.fsyncSync(descriptor);
@@ -378,7 +511,7 @@ async function activateExecutionLedger(databasePath, opts = {}) {
     throw new ExecutionActivationError(first.code, first.message, { blockers: plan.blockers });
   }
   const startedAt = new Date(now()).toISOString();
-  fs.mkdirSync(path.resolve(backupDir), { recursive: true, mode: 0o700 });
+  fs.mkdirSync(path.dirname(plan.backup_path), { recursive: true, mode: 0o700 });
   if (fs.existsSync(plan.backup_path)) {
     throw new ExecutionActivationError('EXECUTION_ACTIVATION_BACKUP_EXISTS', `Backup already exists: ${plan.backup_path}`);
   }
@@ -398,6 +531,7 @@ async function activateExecutionLedger(databasePath, opts = {}) {
       }
     }
     backupBytes(plan.database_path, plan.backup_path);
+    fsyncDirectory(path.dirname(plan.backup_path));
     const backupSha256 = sha256File(plan.backup_path);
     if (backupSha256 !== originalSha256 || sha256File(plan.database_path) !== originalSha256) {
       fs.rmSync(plan.backup_path, { force: true });
@@ -432,6 +566,8 @@ async function activateExecutionLedger(databasePath, opts = {}) {
     const receipt = {
       adr: plan.adr,
       adr_status: plan.adr_status,
+      adr_sha256: plan.adr_sha256,
+      unscannable_processes: plan.unscannable_processes,
       commit: currentCommit(),
       database_path: plan.database_path,
       backup_path: plan.backup_path,
@@ -459,15 +595,32 @@ async function activateExecutionLedger(databasePath, opts = {}) {
   }
 }
 
+function readReceipt(receiptFile) {
+  if (!fs.existsSync(receiptFile)) return null;
+  const invalid = (reason) =>
+    new ExecutionActivationError('EXECUTION_ACTIVATION_RECEIPT_INVALID', `Receipt ${receiptFile} is invalid: ${reason}`);
+  let receipt;
+  try {
+    receipt = JSON.parse(fs.readFileSync(receiptFile, 'utf8'));
+  } catch (error) {
+    throw invalid(error.message);
+  }
+  if (receipt === null || typeof receipt !== 'object' || Array.isArray(receipt)) throw invalid('not an object');
+  if (receipt.original_sha256_before !== undefined && !SHA256_HEX.test(String(receipt.original_sha256_before))) {
+    throw invalid('original_sha256_before is not a sha256');
+  }
+  return receipt;
+}
+
 /**
  * Restores a verified backup over an activated database. The activated database is preserved next to it
  * (ADR-0022: the ledger is never deleted during rollback) and the swap is an atomic rename.
  */
 async function restoreExecutionLedgerBackup(databasePath, opts = {}) {
   const { backupPath, expectedSha256, receiptPath, now = Date.now } = opts;
-  const resolved = path.resolve(databasePath);
+  let resolved = path.resolve(databasePath);
   if (!backupPath) throw new ExecutionActivationError('EXECUTION_ACTIVATION_BACKUP_REQUIRED', 'A backup path is required');
-  if (typeof expectedSha256 !== 'string' || !/^[0-9a-f]{64}$/.test(expectedSha256)) {
+  if (typeof expectedSha256 !== 'string' || !SHA256_HEX.test(expectedSha256)) {
     throw new ExecutionActivationError('EXECUTION_ACTIVATION_BACKUP_HASH_REQUIRED', 'The expected sha256 of the backup is required');
   }
   const backup = path.resolve(backupPath);
@@ -485,8 +638,8 @@ async function restoreExecutionLedgerBackup(databasePath, opts = {}) {
   }
   const blockers = [];
   if (!inspectDatabaseFile(resolved, blockers)) throw new ExecutionActivationError(blockers[0].code, blockers[0].message);
-  const receiptFile = receiptPath ? path.resolve(receiptPath) : `${backup}.receipt.json`;
-  const receipt = fs.existsSync(receiptFile) ? JSON.parse(fs.readFileSync(receiptFile, 'utf8')) : null;
+  resolved = path.join(fs.realpathSync(path.dirname(resolved)), path.basename(resolved));
+  const receipt = readReceipt(receiptPath ? path.resolve(receiptPath) : `${backup}.receipt.json`);
 
   let contentMatchesOriginal = null;
   withVerificationCopy(backup, (check) => {
@@ -511,9 +664,27 @@ async function restoreExecutionLedgerBackup(databasePath, opts = {}) {
     }
   }
 
-  const holders = findDatabaseHolders(resolved);
-  if (holders.length > 0) throw lockedError(resolved, `open in process(es): ${holders.join(', ')}`);
-  lockForActivation(resolved).close();
+  const scan = findDatabaseHolders(resolved);
+  if (scan.unavailable) {
+    throw new ExecutionActivationError(
+      'EXECUTION_ACTIVATION_PROC_SCAN_UNAVAILABLE',
+      'Cannot enumerate processes to prove the database is not open elsewhere',
+    );
+  }
+  if (scan.holders.length > 0) throw lockedError(resolved, `open in process(es): ${scan.holders.join(', ')}`);
+  const lock = lockForActivation(resolved);
+  let activated;
+  try {
+    activated = lock.pragma('user_version', { simple: true }) > OPERATIONAL_SCHEMA_VERSION || executionTableNames(lock).length > 0;
+  } finally {
+    lock.close();
+  }
+  if (!activated) {
+    throw new ExecutionActivationError(
+      'EXECUTION_ACTIVATION_ROLLBACK_NOT_ACTIVATED',
+      'Rollback applies only to a database with the execution ledger activated',
+    );
+  }
   for (const sidecar of [`${resolved}-wal`, `${resolved}-shm`]) {
     if (fs.existsSync(sidecar)) {
       if (sidecar.endsWith('-wal') && fs.statSync(sidecar).size > 0) throw lockedError(resolved, 'WAL sidecar still holds data');
@@ -539,19 +710,15 @@ async function restoreExecutionLedgerBackup(databasePath, opts = {}) {
     }
     fs.linkSync(resolved, preserved);
     fs.renameSync(temporary, resolved);
+    fsyncDirectory(path.dirname(resolved));
   } catch (error) {
     fs.rmSync(temporary, { force: true });
     throw error;
   }
 
   const restoredSha256 = sha256File(resolved);
-  const verify = new Database(resolved, { readonly: true, fileMustExist: true });
-  let restoredVersion;
-  try {
-    restoredVersion = verify.pragma('user_version', { simple: true });
-  } finally {
-    verify.close();
-  }
+  // Verified on a private copy: a read-only open of a WAL database would leave sidecars next to the restored file.
+  const restoredVersion = withVerificationCopy(resolved, (verify) => verify.pragma('user_version', { simple: true }));
   if (restoredSha256 !== expectedSha256 || restoredVersion !== OPERATIONAL_SCHEMA_VERSION) {
     throw new ExecutionActivationError('EXECUTION_ACTIVATION_RESTORE_VERIFICATION_FAILED', 'Restored database failed verification', {
       preserved_activated_path: preserved,
@@ -564,6 +731,7 @@ async function restoreExecutionLedgerBackup(databasePath, opts = {}) {
     preserved_activated_path: preserved,
     restored_sha256: restoredSha256,
     user_version: restoredVersion,
+    post_activation_writes_preserved_at: preserved,
     content_matches_original: contentMatchesOriginal,
   };
 }

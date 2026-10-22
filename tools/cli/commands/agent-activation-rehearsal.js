@@ -52,7 +52,7 @@ function renderActivation(report) {
     'Execution ledger rolled back to the verified backup',
     `  user_version ${report.user_version}`,
     `  restored sha256: ${report.restored_sha256}`,
-    `  activated database preserved at: ${report.preserved_activated_path}`,
+    `  writes made after the activation are preserved in ${report.preserved_activated_path}, not in the restored database`,
   ].join('\n');
 }
 
