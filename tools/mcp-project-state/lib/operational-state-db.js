@@ -205,25 +205,19 @@ function integrityCheck(db) {
   return db.pragma('integrity_check', { simple: true });
 }
 
-/** Digest of schema and rows, stable across the byte-level header changes that db.backup() makes. */
-function logicalDigest(db) {
-  const hash = createHash('sha256');
-  hash.update(`user_version=${db.pragma('user_version', { simple: true })}\n`);
-  const objects = db.prepare("SELECT type, name, sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type, name").all();
-  for (const object of objects) {
-    hash.update(`${JSON.stringify(object)}\n`);
-    const virtual = /^\s*CREATE\s+VIRTUAL/i.test(object.sql || '');
-    if (object.type !== 'table' || virtual) continue;
-    const quoted = `"${object.name.replaceAll('"', '""')}"`;
-    let rows;
-    try {
-      rows = db.prepare(`SELECT * FROM ${quoted} ORDER BY rowid`).all();
-    } catch {
-      rows = db.prepare(`SELECT * FROM ${quoted}`).all();
-    }
-    for (const row of rows) hash.update(`${JSON.stringify(row)}\n`);
+/** Runs `inspect` on a private read-only copy so verifying a backup never creates sidecars beside it. */
+function withVerificationCopy(file, inspect) {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hseos-ledger-verify-'));
+  let db;
+  try {
+    const copy = path.join(directory, 'verify.db');
+    fs.copyFileSync(file, copy);
+    db = new Database(copy, { readonly: true, fileMustExist: true });
+    return inspect(db);
+  } finally {
+    if (db) db.close();
+    fs.rmSync(directory, { recursive: true, force: true });
   }
-  return hash.digest('hex');
 }
 
 function executionTableNames(db) {
@@ -339,12 +333,17 @@ function currentCommit() {
   }
 }
 
-async function backupSnapshot(databasePath, backupPath) {
-  const reader = new Database(databasePath, { readonly: true, fileMustExist: true });
+/**
+ * Byte copy of the checkpointed database. The caller holds BEGIN IMMEDIATE on another connection, so no writer can
+ * change the file and the truncated WAL leaves nothing pending; the copy is therefore the exact original bytes.
+ */
+function backupBytes(databasePath, backupPath) {
+  fs.copyFileSync(databasePath, backupPath, fs.constants.COPYFILE_EXCL);
+  const descriptor = fs.openSync(backupPath, 'r+');
   try {
-    await reader.backup(backupPath);
+    fs.fsyncSync(descriptor);
   } finally {
-    reader.close();
+    fs.closeSync(descriptor);
   }
 }
 
@@ -393,23 +392,22 @@ async function activateExecutionLedger(databasePath, opts = {}) {
       throw new ExecutionActivationError('EXECUTION_ACTIVATION_INTEGRITY_FAILED', 'integrity_check failed on the original database');
     }
     const originalSha256 = sha256File(plan.database_path);
-    const originalLogical = logicalDigest(db);
-    await backupSnapshot(plan.database_path, plan.backup_path);
-    const backupCheck = new Database(plan.backup_path, { readonly: true, fileMustExist: true });
-    try {
+    for (const sidecar of [`${plan.database_path}-wal`, `${plan.database_path}-shm`]) {
+      if (sidecar.endsWith('-wal') && fs.existsSync(sidecar) && fs.statSync(sidecar).size > 0) {
+        throw lockedError(plan.database_path, 'WAL sidecar still holds data after the checkpoint');
+      }
+    }
+    backupBytes(plan.database_path, plan.backup_path);
+    const backupSha256 = sha256File(plan.backup_path);
+    if (backupSha256 !== originalSha256 || sha256File(plan.database_path) !== originalSha256) {
+      fs.rmSync(plan.backup_path, { force: true });
+      throw new ExecutionActivationError('EXECUTION_ACTIVATION_BACKUP_HASH_MISMATCH', 'Backup bytes differ from the original database');
+    }
+    withVerificationCopy(plan.backup_path, (backupCheck) => {
       if (integrityCheck(backupCheck) !== 'ok') {
         throw new ExecutionActivationError('EXECUTION_ACTIVATION_INTEGRITY_FAILED', 'integrity_check failed on the backup');
       }
-      if (logicalDigest(backupCheck) !== originalLogical) {
-        throw new ExecutionActivationError(
-          'EXECUTION_ACTIVATION_BACKUP_CONTENT_MISMATCH',
-          'Backup content differs from the original database',
-        );
-      }
-    } finally {
-      backupCheck.close();
-    }
-    const backupSha256 = sha256File(plan.backup_path);
+    });
 
     let applied;
     try {
@@ -438,7 +436,6 @@ async function activateExecutionLedger(databasePath, opts = {}) {
       database_path: plan.database_path,
       backup_path: plan.backup_path,
       original_sha256_before: originalSha256,
-      original_logical_sha256: originalLogical,
       backup_sha256: backupSha256,
       user_version_before: version,
       user_version_after: versionAfter,
@@ -491,9 +488,8 @@ async function restoreExecutionLedgerBackup(databasePath, opts = {}) {
   const receiptFile = receiptPath ? path.resolve(receiptPath) : `${backup}.receipt.json`;
   const receipt = fs.existsSync(receiptFile) ? JSON.parse(fs.readFileSync(receiptFile, 'utf8')) : null;
 
-  const check = new Database(backup, { readonly: true, fileMustExist: true });
   let contentMatchesOriginal = null;
-  try {
+  withVerificationCopy(backup, (check) => {
     if (integrityCheck(check) !== 'ok') {
       throw new ExecutionActivationError('EXECUTION_ACTIVATION_INTEGRITY_FAILED', 'integrity_check failed on the backup');
     }
@@ -504,17 +500,15 @@ async function restoreExecutionLedgerBackup(databasePath, opts = {}) {
         `Backup must be at user_version ${OPERATIONAL_SCHEMA_VERSION}; found ${backupVersion}`,
       );
     }
-    if (receipt && receipt.original_logical_sha256) {
-      contentMatchesOriginal = logicalDigest(check) === receipt.original_logical_sha256;
-      if (!contentMatchesOriginal) {
-        throw new ExecutionActivationError(
-          'EXECUTION_ACTIVATION_BACKUP_CONTENT_MISMATCH',
-          'Backup content differs from the receipt of the original database',
-        );
-      }
+  });
+  if (receipt && receipt.original_sha256_before) {
+    contentMatchesOriginal = receipt.original_sha256_before === expectedSha256;
+    if (!contentMatchesOriginal) {
+      throw new ExecutionActivationError(
+        'EXECUTION_ACTIVATION_BACKUP_CONTENT_MISMATCH',
+        'Backup sha256 differs from the original database recorded in the receipt',
+      );
     }
-  } finally {
-    check.close();
   }
 
   const holders = findDatabaseHolders(resolved);

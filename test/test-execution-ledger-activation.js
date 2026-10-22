@@ -159,6 +159,7 @@ test('apply keeps every original row, reaches v17 and the legacy boundary refuse
   assert.match(result.receipt.original_sha256_before, /^[0-9a-f]{64}$/);
   assert.match(result.receipt.backup_sha256, /^[0-9a-f]{64}$/);
   assert.equal(sha256(result.backup_path), result.receipt.backup_sha256);
+  assert.equal(result.receipt.backup_sha256, result.receipt.original_sha256_before, 'the backup is a byte copy of the original');
   assert.ok(path.basename(result.backup_path).startsWith('20261022T120000Z-'));
   assert.deepEqual(JSON.parse(fs.readFileSync(result.receipt_path, 'utf8')), result.receipt);
 
@@ -205,7 +206,8 @@ test('rollback restores v4, preserves the activated database and matches the pre
   assert.equal(userVersion(databasePath), OPERATIONAL_SCHEMA_VERSION);
   assert.equal(executionTables(databasePath).length, 0);
   assert.deepEqual(dumpOperational(databasePath), before);
-  assert.equal(sha256(databasePath), activation.receipt.backup_sha256);
+  assert.equal(sha256(databasePath), original, 'rollback returns the bytes of the original database');
+  assert.equal(restored.restored_sha256, activation.receipt.original_sha256_before);
   assert.equal(restored.content_matches_original, true);
   assert.equal(userVersion(restored.preserved_activated_path), ACTIVATED_VERSION);
   assert.match(path.basename(restored.preserved_activated_path), /^project\.db\.activated-20261022T120000Z$/);
@@ -231,6 +233,36 @@ test('rollback refuses a backup whose sha256 differs from the expected digest', 
   );
   assert.equal(sha256(databasePath), activatedSha, 'the activated database must not be touched');
   assert.equal(userVersion(databasePath), ACTIVATED_VERSION);
+});
+
+test('rollback refuses when the receipt of the original database disagrees with the backup', async (t) => {
+  const sandbox = makeSandbox(t);
+  const databasePath = makeV4Database(sandbox.root);
+  const activation = await activateExecutionLedger(databasePath, {
+    adr: 'ADR-9001',
+    backupDir: sandbox.backups,
+    now: NOW,
+    internal: sandbox.internal,
+  });
+  const receipt = { ...activation.receipt, original_sha256_before: '0'.repeat(64) };
+  fs.writeFileSync(activation.receipt_path, JSON.stringify(receipt));
+  const activatedSha = sha256(databasePath);
+
+  await rejectsWithCode(
+    restoreExecutionLedgerBackup(databasePath, { backupPath: activation.backup_path, expectedSha256: activation.receipt.backup_sha256 }),
+    'EXECUTION_ACTIVATION_BACKUP_CONTENT_MISMATCH',
+  );
+  assert.equal(sha256(databasePath), activatedSha);
+});
+
+test('the backup directory receives no SQLite sidecars from the verification', async (t) => {
+  const sandbox = makeSandbox(t);
+  const databasePath = makeV4Database(sandbox.root);
+  await activateExecutionLedger(databasePath, { adr: 'ADR-9001', backupDir: sandbox.backups, now: NOW, internal: sandbox.internal });
+  assert.deepEqual(
+    fs.readdirSync(sandbox.backups).filter((name) => /-(wal|shm)$/.test(name)),
+    [],
+  );
 });
 
 test('rollback refuses a missing expected digest', async (t) => {
