@@ -292,16 +292,7 @@ PR #223 (`task/hseos-w5-08`) mergeada em `4c152844` (tag `hseos-w5-b3b`); commit
 
 Branch `task/hseos-cl2`, base `4c152844`. Resíduos da B2/W5-05 aceitos pela revisão. Receipt: [evidence/cl2/receipt.json](evidence/cl2/receipt.json).
 
-1. **Instáveis observados no CI: causa e correção por teste.**
-   - Descrição: quatro instáveis foram investigados na W6-E8 e na W6-E3; o relato do Commander está nas últimas linhas de `.hseos/runs/dev-squad/20261020-w5-closeout/PLAN.md`.
-     - `cancellation during workflow dispatch drains before settlement` (shard 22.x 1/6 da W7, run 39505105700): a cancelação relançava a rejeição do filho e o teardown não liberava a reserva. Corrigido em `05356840`; `1b211da1` fecha a regressão do join com deadline. Frequência de ~8% antes e 0 em 110 execuções depois.
-     - `the dialog is drawn: more than the empty black root` (CI da W4-C8, run 39535516377): a janela estava mapeada mas ainda em branco. Corrigido em `6f70aaed`; 2 falhas em 60 antes, 100 de 100 depois. Pode exceder o prazo sob carga extrema, e isso é resíduo aceito.
-     - `parallel tasks share the declared aggregate budget` (Node 22 shard 1/6 da W6-E3, run 39536874211): a tarefa `addition` terminou `blocked` (`engineering-execution-blocked`) com o orçamento íntegro. **Sem causa determinada** (0 falhas em 130 execuções); `a30c97d0` só registra o motivo do bloqueio por erro sem código, para o próximo caso.
-     - Testes do host de browser sob contenção: `46953631` dimensiona o orçamento de chamada pelo custo medido no host (22 de 25 passavam sob contenção, 25 de 25 depois).
-     - Teto de parede do guard (`ambiguous slashes cost a constant number of passes (1 MB)`, 200 ms, e `realistic 1 MB took 203 ms` no CI da #241): tratado na W6-E8 (`abf2c7bb`, depois `2cf09f86`), que prova o custo por escala.
-   - Justificativa: os três primeiros têm causa e correção com medição antes e depois; o terceiro fica aceito sem causa.
-   - Dono: Commander (investigação na W6-E8); owner se algum reaparecer como bloqueio de merge.
-   - Destino: **aceito**, sem afrouxar asserção. Reaparecimento vira task própria de investigação.
+1. **Licença por digest** (`a3b3b2e6`). Cada pin e cada variante do `xdotool` carrega `license_sha256`, o SHA-256 do texto da licença extraído do artefato fixado do cache (`/build/cache/hseos-toolchain`). `verifyPin` o compara depois dos `license_markers`; divergência é BLOCKED com `ENV_TOOLCHAIN_LICENSE_DIGEST`. Um pin sem digest também é BLOCKED (fail-closed). Teste novo em LSP, DAP e computer-use: uma licença com todos os markers presentes, mas com texto diferente, que os markers sozinhos aceitariam, agora é BLOCKED por digest. As duas variantes do `xdotool` têm o mesmo texto de licença, logo o mesmo digest.
 2. **jsdoc de `installToolchain`** (`603a9ebe`). Contrato com parâmetros, retorno, códigos de erro, recusa de pins de sistema (fora do conjunto padrão), efeitos em disco e atomicidade (verificação de todos antes de gravar; gravação por pin, não transacional). Só comentário.
 3. **Prettier** (`c21fc308`). Reformatados `tools/lib/environment-plugin-pack.js`, `packages/agent-environment/lsp-host.js`, `test/test-environment-plugin-pack.js` e `test/test-lsp-plugin-parity.js`; `framing.js` e `index.js` já estavam no estilo. A árvore sintática de cada arquivo é idêntica antes e depois (comparação de AST com `espree`). O pack dos plugins é montado em tempo de teste a partir desses arquivos e nenhum espelho `.agents`/`plugins` os contém, então nada foi regenerado; as paridades e `agent-core compile --check` (242 checks) passam. Fora do escopo da W5 e não tocados: `package.json`, `design.md`, `STATUS.md` e o `SKILL.md` do plugin memory seguem fora do prettier.
 4. **Rodada de correção 1 (revisão cética, APROVADO COM RESSALVAS, 0 blocker, 0 major).**
@@ -369,10 +360,15 @@ Registro da onda W6 (task E7), sobre a base `5962ae66` de `feature/hseos-w5-clos
 
 ### Testes instáveis e mutantes
 
-1. **Três testes instáveis observados no CI e um de teto absoluto.**
-   - Descrição: `cancellation during workflow dispatch drains before settlement` falhou uma vez no shard 22.x 1/6 da W7 (run 39505105700, mudança só de docs) e passou no re-run. `the dialog is drawn: more than the empty black root` (display real) falhou na 1ª tentativa do CI da W4-C8 (run 39535516377) e passou no re-run. `parallel tasks share the declared aggregate budget` falhou no Node 22 shard 1/6 do CI da W6-E3 (run 39536874211) e passou no re-run; a leitura do revisor foi que a tarefa `addition` terminou `blocked` (`engineering-execution-blocked`) enquanto `clamp` foi aprovada, com o orçamento íntegro, e a suspeita é bloqueio de isolamento ou de recursos sob carga do shard. O teste do guard `ambiguous slashes cost a constant number of passes (1 MB)` tinha teto absoluto de 200 ms e reprovava sob load ~20 até na master (250–300 ms); `realistic 1 MB took 203 ms` falhou no CI da #241 e o job foi reexecutado.
-   - Justificativa: nenhum dos três primeiros reproduziu depois do re-run e não há causa determinada para os dois primeiros nas fontes; o PLAN.md não registra a causa-raiz deles. Os casos de teto de parede do guard foram tratados na W6-E8 (`abf2c7bb`, depois `2cf09f86`), que passou a provar o custo por escala em vez de por tempo absoluto.
-   - Dono: Commander (investigação na task própria W6-E8); owner se um deles reaparecer como bloqueio de merge.
+1. **Instáveis observados no CI: causa e correção por teste.**
+   - Descrição: quatro instáveis foram investigados na W6-E8 e na W6-E3; o relato do Commander está nas últimas linhas de `.hseos/runs/dev-squad/20261020-w5-closeout/PLAN.md`.
+     - `cancellation during workflow dispatch drains before settlement` (shard 22.x 1/6 da W7, run 39505105700): a cancelação relançava a rejeição do filho e o teardown não liberava a reserva. Corrigido em `05356840`; `1b211da1` fecha a regressão do join com deadline. Frequência de ~8% antes e 0 em 110 execuções depois.
+     - `the dialog is drawn: more than the empty black root` (CI da W4-C8, run 39535516377): a janela estava mapeada mas ainda em branco. Corrigido em `6f70aaed`; 2 falhas em 60 antes, 100 de 100 depois. Pode exceder o prazo sob carga extrema, e isso é resíduo aceito.
+     - `parallel tasks share the declared aggregate budget` (Node 22 shard 1/6 da W6-E3, run 39536874211): a tarefa `addition` terminou `blocked` (`engineering-execution-blocked`) com o orçamento íntegro. **Sem causa determinada** (0 falhas em 130 execuções); `a30c97d0` só registra o motivo do bloqueio por erro sem código, para o próximo caso.
+     - Testes do host de browser sob contenção: `46953631` dimensiona o orçamento de chamada pelo custo medido no host (o commit registra que a chamada falhava em 22 de 25 execuções sob contenção de CPU; sem contagem pós-correção no commit; o executor w0-6-exec relatou 3 de 25 passando antes e 25 de 25 depois, sob 4 laços em 1 CPU, relato do executor da E8).
+     - Teto de parede do guard (`ambiguous slashes cost a constant number of passes (1 MB)`, 200 ms, e `realistic 1 MB took 203 ms` no CI da #241): tratado na W6-E8 (`abf2c7bb`, depois `2cf09f86`), que prova o custo por escala.
+   - Justificativa: os três primeiros têm causa e correção com medição antes e depois; o terceiro fica aceito sem causa.
+   - Dono: Commander (investigação na W6-E8); owner se algum reaparecer como bloqueio de merge.
    - Destino: **aceito**, sem afrouxar asserção. Reaparecimento vira task própria de investigação.
 2. **Instabilidade de `aborting the campaign kills the client through the cgroup` (caso g).**
    - Descrição: sob carga o cliente morria antes pelo timeout do próprio worker, e o teste não discriminava o `cgroup.kill`. A W6-E8 consertou o estado do processo (`b1ba8bff`) e, na rodada 2 (`2cf09f86`), a fixture `immortal` (ignora sinais, neto com `setsid`) passou a exigir o `cgroup.kill`.
@@ -474,7 +470,7 @@ Registro da onda W6 (task E7), sobre a base `5962ae66` de `feature/hseos-w5-clos
 
 18. **Opacidade com `max_tokens` abaixo de ~12000.**
     - Descrição: o contrato de engenharia termina em `session-failed:internal_error` com mensagem genérica (overflow de montagem de contexto descartado por `normalizedFailure`); candidato é validar um mínimo ou expor `context_overflow`.
-    - Justificativa: **não tratado**. Nenhum termo `context_overflow`, `MIN_MAX_TOKENS` ou mínimo de `max_tokens` aparece em `git grep` no SHA `5962ae66`; o PLAN.md mandava registrar aqui se a W1 não tratasse.
+    - Justificativa: **não tratado**. Nenhum termo `context_overflow`, `MIN_MAX_TOKENS` ou mínimo de `max_tokens` aparece em `git grep` no SHA `333828f2`; o PLAN.md mandava registrar aqui se a W1 não tratasse.
     - Dono: Commander.
     - Destino: **aceito** como dívida aberta; tratar exige task própria.
 19. **Elicitação mostra o digest do screenshot, não a imagem.**
@@ -512,7 +508,7 @@ Registro da onda W6 (task E7), sobre a base `5962ae66` de `feature/hseos-w5-clos
     - Destino: **aceito**.
 25. **Merges da W6-INT-1 fora do `commit-in-cgroup`.**
     - Descrição: desvio da integração (`97a5ac14`): os commits de merge saíram fora do `commit-in-cgroup.sh`; o hook commit-msg passou e não houve bypass (PLAN.md, W6-INT-1).
-    - Justificativa: merge sem testes selecionados; a prova completa é o CI de cada push.
+    - Justificativa (inferência, não registrada na fonte): merge sem testes selecionados; a prova completa é o CI de cada push.
     - Dono: Commander.
     - Destino: **aceito**.
 26. **Wrapper global `~/.local/bin/hseos` frágil.**
