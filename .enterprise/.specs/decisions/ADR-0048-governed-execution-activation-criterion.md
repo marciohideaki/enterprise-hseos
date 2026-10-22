@@ -71,17 +71,24 @@ protocolo dos clientes registrados.
    - (e) A compatibilidade **legado-dentro-do-moderno** permanece ativa no servidor moderno,
      de modo que clientes só-legado continuam funcionando após a troca.
    - (f) A compat legada do servidor moderno **negocia o `initialize` das revisões legadas
-     conhecidas** (`2024-11-05`, `2025-06-18`, `2025-11-25`), atendendo-as no modo compat, com
-     aviso de depreciação e contador de uso, e **sem expor a esses clientes ferramentas que
-     exigem aprovação** (ADR-0023, Decision item 15: clientes legados não executam ferramentas
-     que exigem aprovação). Motivo (K1, `task/w10-k1` b64ffa2c): o Codex 0.163.0 envia
-     `initialize` com `2025-06-18` e o adaptador atual só aceita `2024-11-05` exato
-     (`tools/lib/mcp-2026-adapter.js:978`), recusando com `-32022`; o Claude Code 2.1.305 fala
-     `2026-07-28` por padrão. O servidor legado não pode continuar registrado para o Codex,
+     conhecidas** (`2024-11-05`, `2025-06-18`, `2025-11-25`; a K4 avalia também `2025-03-26`,
+     listada na recomendação da K1), atendendo-as no modo compat, com aviso de depreciação e
+     contador de uso, e **sem executar para esses clientes ferramentas que exigem aprovação**
+     (ADR-0023, Decision item 15). A ferramenta continua listada, e a chamada devolve
+     `MCP_LEGACY_APPROVAL_UNSUPPORTED` (`tools/lib/mcp-2026-adapter.js:911-917`). No
+     `initialize` compat, o servidor **negocia para `2024-11-05`**, como o legado de produção
+     responde hoje, salvo evidência em contrário da K1/K4. Motivo (K1, evidência em
+     `docs/evolution/w10/evidence/k1/`, branch `task/w10-k1`; SHA não citado por a branch
+     ainda estar em revisão): o Codex 0.163.0 envia `initialize` com `2025-06-18` e o
+     adaptador atual só aceita `2024-11-05` exato (`tools/lib/mcp-2026-adapter.js:978`),
+     recusando com `-32022`; o Claude Code 2.1.305 fala `2026-07-28` por padrão, **mas em 1
+     de 8 execuções** caiu em `initialize` `2025-11-25` e foi recusado (flag remota
+     `tengu_mcp_protocol_negotiation_stdio`). Portanto o (f) é necessário também para ele. O servidor legado não pode continuar registrado para o Codex,
      pois se recusa a abrir banco ativado. Sem (f), a troca do Codex para o moderno quebra o
-     cliente. A mudança é **entrega futura da W10/K4** (inexistente em 1a23be3b) e é coerente
-     com o "suporta o legado até R" do ADR-0023 §Mitigations: amplia as revisões legadas
-     aceitas dentro da mesma janela, sem estendê-la.
+     cliente. A mudança é **entrega futura da W10/K4** (inexistente em 1a23be3b) e é
+     **alteração parcial do ADR-0023 §Mitigations** (último item): a janela de compatibilidade
+     não se estende, mas o "only" de "supports only `2024-11-05` through `R`" é **revogado**,
+     pois passam a ser aceitas as revisões `2025-06-18` e `2025-11-25`.
 3. **Sunset do legado.** A data fixa 2026-11-30 deixa de valer. O sunset passa a ser
    condicional à evidência (spike K1, `docs/evolution/w10/evidence/k1/`) de que os clientes
    registrados (Codex, Claude Code) falam `2026-07-28` em `tools/list`/`tools/call`. Sem essa
@@ -160,19 +167,19 @@ protocolo dos clientes registrados.
   backup e re-registra o legado; o ensaio em cópia (b) prova a volta antes da ativação real.
 - **Perda de escritas pós-ativação.** Mitigação: janela supervisionada, servidores parados,
   perda declarada ao owner antes da ativação; ledger ativado preservado como evidência.
-- **Ativação sem governança.** Mitigação: o comando recusa sem `--adr` Accepted.
+- **Ativação sem governança.** Mitigação: é requisito do comando futuro (W10/K2) recusar `apply` sem `--adr` Accepted; até ele existir, a ativação não ocorre.
 - **Efeito de precedente.** Mitigação: a exceção do item 5 é restrita ao piloto; os demais
   bancos exigem ADR ou autorização própria.
 
 ## Affected Standards
 
-| Standard                                | Section / Rule                                                              | Change                                                                                   |
-| --------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| ADR-0022                                | §Mitigations (critério de ativação e datas); §Rollback (exceção delimitada) | Supersedes o critério; Extends o rollback com exceção do piloto                          |
-| ADR-0023                                | §Mitigations (janela de compatibilidade e datas)                            | Supersedes                                                                               |
-| ADR-0024                                | §Activation, item 1                                                         | Clarifies (satisfeito pelo critério deste ADR)                                           |
-| ADR-0035                                | Sunset do rastreamento de negações em `as_events`                           | Clarifies (gatilho passa a ser a ativação conforme este ADR)                             |
-| `docs/evolution/runbooks/activation.md` | Passo 1b; §9 Dívida do sunset MCP                                           | Passa a citar este ADR; o runbook é atualizado na E7b (`task/w6-e7`, ainda não mergeada) |
+| Standard                                | Section / Rule                                                              | Change                                                                                                                 |
+| --------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| ADR-0022                                | §Mitigations (critério de ativação e datas); §Rollback (exceção delimitada) | Supersedes o critério; Extends o rollback com exceção do piloto                                                        |
+| ADR-0023                                | §Mitigations (janela de compatibilidade e datas)                            | Supersedes a janela e as datas; Amends o \"only\" de `2024-11-05` (passa a aceitar também `2025-06-18` e `2025-11-25`) |
+| ADR-0024                                | §Activation, item 1                                                         | Clarifies (satisfeito pelo critério deste ADR)                                                                         |
+| ADR-0035                                | Sunset do rastreamento de negações em `as_events`                           | Clarifies (gatilho passa a ser a ativação conforme este ADR)                                                           |
+| `docs/evolution/runbooks/activation.md` | Passo 1b; §9 Dívida do sunset MCP                                           | Passa a citar este ADR; o runbook é atualizado na E7b (`task/w6-e7`, ainda não mergeada)                               |
 
 ## Compliance
 
@@ -182,9 +189,9 @@ protocolo dos clientes registrados.
 - [ ] Evidência K1 (protocolo dos clientes) arquivada em `docs/evolution/w10/evidence/k1/`
 - [ ] Critério (f) entregue na K4 (initialize legado `2024-11-05`/`2025-06-18`/`2025-11-25` sem ferramentas com aprovação)
 - [ ] Owner decide se autoriza `tools/call`/MRTR do Codex na K7 (login/gasto); senão, limitação declarada
-- [ ] Evidência K3 (ensaio de ativação e rollback em cópia; backup com integrity_check e sha256)
+- [ ] Evidência K3, arquivada em `docs/evolution/w10/evidence/k3/` (ensaio de ativação e rollback em cópia; backup com integrity_check e sha256)
 - [ ] Lista nominal de clientes, CLIs e hooks re-registrados no servidor moderno antes do `apply`
-- [ ] Evidência K7 (journey MCP moderno, contagens e prova com cliente real)
+- [ ] Evidência K7, arquivada em `docs/evolution/w10/evidence/k7/` (journey MCP moderno, contagens e prova com cliente real)
 - [ ] Checklist aberto de ADR-0022 (padrões ES/CQRS/AR/Tool Design referenciando o ADR;
       dry-run de migração revisado contra cópia de backup; suíte de conformance de adaptadores;
       equipes notificadas) ligado às evidências acima
