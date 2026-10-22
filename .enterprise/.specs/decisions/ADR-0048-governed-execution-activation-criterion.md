@@ -54,7 +54,7 @@ protocolo dos clientes registrados.
 
 1. **Piloto e escopo.** O primeiro e único banco coberto por este ADR é
    `.hseos/state/project.db` do repositório enterprise-hseos. Ativa-se um banco por vez. Os
-   demais 21 `project.db` do workspace (número **a verificar na K3**) ficam fora até ADR ou autorização própria.
+   demais `project.db` do host (a K7 contou 18 no total; contagem a reconfirmar na hora) ficam fora até ADR ou autorização própria.
 2. **Critério de ativação (todas as condições, com evidência arquivada).**
    - (a) As suítes de contrato do servidor moderno (`test/test-mcp-2026-adapter.js` e
      `test/test-mcp-contract.js`) passam sobre um **banco existente já ativado** (não apenas
@@ -64,8 +64,13 @@ protocolo dos clientes registrados.
    - (b2) O backup do banco real traz `PRAGMA integrity_check` = `ok` e o sha256 do
      original e do backup, registrados como evidência própria, separada do ensaio em cópia.
    - (c) A journey MCP moderna (`test/journeys/mcp-journey.mjs`) roda de ponta a ponta com
-     **contagens de ferramentas conferidas** contra o catálogo esperado, inclusive
-     `environment.*` e `memory.*` (contagens 15/15/5 por servidor, **a conferir na K7**).
+     **contagens de ferramentas conferidas** contra o catálogo esperado. Contagens medidas na
+     K7 (`docs/evolution/w10/evidence/k7/`): governance 15, project-state 15, swarm 5 e
+     axon-bridge 6. As famílias `memory.*` (+3, total 18) e `environment.*` (+6 com
+     `workspace`, total 24) aparecem **somente no project-state e somente com a seção
+     `environment:`** na configuração; nenhum outro servidor passa `environmentHost`. A K7
+     também achou que o `mcp-journey.mjs` atual só exercita o caminho legado, e a medição
+     do modo moderno hoje vem de um harness próprio (a ajustar na entrega futura).
    - (d) Prova com cliente real (Codex instalado) via `tools/list` e `tools/call` contra o
      servidor moderno, com a versão de protocolo negociada registrada.
    - (e) A compatibilidade **legado-dentro-do-moderno** permanece ativa no servidor moderno,
@@ -140,6 +145,22 @@ protocolo dos clientes registrados.
      nominal **a levantar na K3**), no Claude Code e nos hooks. O re-registro entra na
      verificação (d) e no checklist de Compliance; sem lista nominal fechada, o `apply` não
      roda.
+   - **Janela supervisionada e prova parcial de "banco não aberto".** A varredura de
+     processos do `apply` deixa ≈390 processos não inspecionáveis (K3); o `apply` prossegue
+     mesmo assim e a prova de que o banco não está aberto em outro lugar é **parcial**. Por
+     isso a ativação real exige janela supervisionada com os servidores, CLIs, hooks e
+     sessões que mantêm o `project.db` aberto **parados** (lista nominal levantada na hora,
+     por exemplo os MCPs do Codex), e o `apply` recusa se o lock de escrita falhar.
+   - **WAL com dados não checkpointados** bloqueia o `apply` ("WAL sidecar still holds
+     data"). O banco piloto tem WAL com dados e a K3 não exercitou esse caminho: ele deve ser
+     exercitado no ensaio e conferido na ativação real, com os servidores parados.
+   - **Gate `g9-zero-legacy-window`.** O ensaio oficial
+     (`tools/lib/agentic-activation-rehearsal.js`) ainda lista esse gate, que é o critério
+     de 30 dias que este ADR substitui. Reconciliar/atualizar o gate g9 é **entrega futura**;
+     este ADR não altera código.
+   - **K8 integrada.** A K7 achou um DoS local no adaptador moderno (linha JSON ou corpo
+     HTTP `null` derruba o servidor moderno), corrigido pela task K8. A ativação real fica
+     **condicionada à K8 integrada**.
 
 ## Consequences
 
@@ -161,6 +182,14 @@ protocolo dos clientes registrados.
 - O piloto passa a ser trabalho operacional adicional (K1–K3, K7) antes de qualquer expansão.
 
 ### Risks
+
+- **Ferramentas `environment.lsp`/`environment.dap` exigem cgroup delegado.** Fora dele
+  devolvem `ENGINEERING_ISOLATION_UNAVAILABLE`, e um MCP iniciado pelos clientes a partir da
+  configuração padrão não roda delegado (K7, F4). Mitigação: a task K9 faz o servidor omitir
+  essas famílias quando o isolamento não estiver disponível e documenta o lançamento
+  delegado; sem o isolamento, `memory.*` continua funcionando.
+- **DoS local no adaptador moderno** (linha JSON ou corpo HTTP `null`, K7 F1/F1b).
+  Mitigação: correção pela task K8; ativação condicionada à K8 integrada.
 
 - **Clientes só-legado quebram após o sunset.** Mitigação: o sunset só vale com a evidência K1
   de que os clientes registrados falam `2026-07-28`; a compat permanece até lá.
@@ -188,6 +217,7 @@ protocolo dos clientes registrados.
 - [ ] Exceção de rollback do item 5 aceita expressamente pelo owner — pendente
 - [ ] Data-limite do sunset fixada pelo owner após K1 — **a fixar pelo owner após K1**
 - [ ] Evidência K1 (protocolo dos clientes) arquivada em `docs/evolution/w10/evidence/k1/`
+- [ ] K8 (correção do DoS `null`) integrada antes da ativação real
 - [ ] Critério (f) entregue na K4 (initialize legado `2024-11-05`/`2025-06-18`/`2025-11-25` sem ferramentas com aprovação)
 - [ ] Owner decide se autoriza `tools/call`/MRTR do Codex na K7 (login/gasto); senão, limitação declarada
 - [ ] Evidência K3, arquivada em `docs/evolution/w10/evidence/k3/` (ensaio de ativação e rollback em cópia; backup com integrity_check e sha256)
