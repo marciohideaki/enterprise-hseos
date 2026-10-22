@@ -259,6 +259,7 @@ test('last resort on modern stdio: an unexpected throw becomes -32603 without de
       MODERN_PROBE,
     );
     assert.equal(others.length, 1);
+    assert.equal(others[0].id, null, 'the last resort cannot trust the request id');
     assert.equal(others[0].error.code, JSON_RPC.INTERNAL_ERROR);
     assert.ok(!JSON.stringify(others[0]).includes('SECRET-INTERNAL-DETAIL'));
     assert.ok(probeAnswer.result);
@@ -372,6 +373,63 @@ test('last resort on modern HTTP: an unexpected throw becomes 500 / -32603 witho
   const probe = await postRaw(port, JSON.stringify(MODERN_PROBE), MODERN_HTTP_HEADERS);
   assert.ok(probe.body.result);
   assert.ok(stderr.join('').includes('SECRET-INTERNAL-DETAIL'));
+});
+
+const BAD_IDS = [
+  ['toString key', '{"toString":1}'],
+  ['empty array', '[]'],
+  ['array with toString', '[{"toString":1}]'],
+  ['boolean', 'true'],
+  ['fractional', '1.5'],
+  ['empty object', '{}'],
+];
+
+test('stdio: a non-string, non-integer id is refused with -32600 and a null id, never echoed', async () => {
+  const session = openStdio(newAdapter());
+  try {
+    for (const [label, id] of BAD_IDS) {
+      const { probeAnswer, others } = await session.exchange(`{"jsonrpc":"2.0","id":${id},"method":"tools/list"}`, MODERN_PROBE);
+      assert.equal(others.length, 1, label);
+      assert.equal(others[0].id, null, label);
+      assert.equal(others[0].error.code, JSON_RPC.INVALID_REQUEST, label);
+      assert.ok(probeAnswer.result, label);
+    }
+  } finally {
+    session.close();
+  }
+});
+
+test('modern HTTP: a non-string, non-integer id is refused with -32600 and a null id, never a 500', async (t) => {
+  const server = createMcp2026HttpServer(newAdapter());
+  const port = await listen(server);
+  t.after(() => server.close());
+  for (const [label, id] of BAD_IDS) {
+    const answer = await postRaw(port, `{"jsonrpc":"2.0","id":${id},"method":"tools/list"}`, MODERN_HTTP_HEADERS);
+    assert.equal(answer.status, 200, label);
+    assert.equal(answer.body.id, null, label);
+    assert.equal(answer.body.error.code, JSON_RPC.INVALID_REQUEST, label);
+  }
+  const probe = await postRaw(port, JSON.stringify(MODERN_PROBE), MODERN_HTTP_HEADERS);
+  assert.ok(probe.body.result);
+});
+
+// Characterisation of CURRENT behaviour (not an endorsement): handle() relays the message of an unexpected failure raised
+// by the execution port. Recorded as a residue; the policy is documented on handle().
+test('characterisation: an execution port throwing a system error is relayed by message, as -32603, today', async (t) => {
+  silenceStderr(t);
+  const instance = newAdapter({
+    execute: async () => {
+      throw Object.assign(new Error("ENOENT: no such file or directory, open '/fixture/path'"), { code: 'ENOENT' });
+    },
+  });
+  const response = await instance.handle(
+    { jsonrpc: '2.0', id: 9, method: 'tools/call', params: { name: 'alpha.read', arguments: {}, _meta: modernMeta() } },
+    { transport: 'stdio', connection: instance.createConnectionContext() },
+  );
+  assert.equal(response.id, 9);
+  assert.equal(response.error.code, JSON_RPC.INTERNAL_ERROR);
+  assert.equal(response.error.message, "ENOENT: no such file or directory, open '/fixture/path'");
+  assert.ok(!/\n\s+at\s/.test(JSON.stringify(response)), 'no stack on the wire');
 });
 
 // ---------------------------------------------------------------------------

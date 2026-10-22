@@ -221,6 +221,12 @@ function hasMessageId(message) {
   return isMessageObject(message) && Object.hasOwn(message, 'id');
 }
 
+// The only ids the server tracks, echoes or interpolates: a non-empty string or an integer. Anything else (object,
+// array, boolean, null, fraction) is invalid and is never read as text, since an object can carry its own toString.
+function isUsableId(id) {
+  return (typeof id === 'string' && id.length > 0) || (typeof id === 'number' && Number.isInteger(id));
+}
+
 // Unexpected failures are logged for the operator and reported to the client without internal detail.
 function internalErrorResponse(id, error) {
   process.stderr.write(`[mcp] internal error: ${error && error.stack ? error.stack : String(error)}\n`);
@@ -1044,15 +1050,20 @@ class Mcp2026Adapter {
     throw new McpAdapterError(`Method not found: ${message.method}`, JSON_RPC.METHOD_NOT_FOUND);
   }
 
+  /**
+   * Answers one decoded JSON-RPC message; never throws.
+   *
+   * Error policy: a failure raised by this adapter (McpAdapterError) carries a controlled domain message and code.
+   * Any other failure keeps its own message under -32603 (a contract the canonical-envelope tests rely on); the stack
+   * is never sent. Failures that escape handle() altogether are caught by the transports' last resort, which answers a
+   * fixed "Internal error" with a null id and logs the cause on stderr.
+   */
   async handle(message, requestContext = {}) {
-    const id = hasMessageId(message) ? message.id : null;
+    const id = hasMessageId(message) && isUsableId(message.id) ? message.id : null;
     try {
       this._bounded(message);
       validateRpcRequest(message);
-      if (
-        Object.hasOwn(message, 'id') &&
-        !((typeof message.id === 'string' && message.id.length > 0) || (typeof message.id === 'number' && Number.isInteger(message.id)))
-      ) {
+      if (Object.hasOwn(message, 'id') && !isUsableId(message.id)) {
         throw new McpAdapterError('JSON-RPC request id must be a non-empty string or integer', JSON_RPC.INVALID_REQUEST);
       }
       if (!Object.hasOwn(message, 'id') && !['notifications/cancelled', 'notifications/initialized'].includes(message.method)) {
@@ -1157,7 +1168,7 @@ function createMcp2026HttpServer(adapter, healthPayload = null) {
         transport: 'http',
         headers: req.headers,
         signal: controller.signal,
-        correlationId: req.headers.traceparent || `mcp-http:${isMessageObject(message) ? message.id : undefined}`,
+        correlationId: req.headers.traceparent || `mcp-http:${isMessageObject(message) && isUsableId(message.id) ? message.id : undefined}`,
       });
       if (controller.signal.aborted || res.destroyed) return;
       if (response === null) {
@@ -1226,7 +1237,7 @@ function startMcp2026Stdio(adapter, { input = process.stdin, output = process.st
       return;
     }
     const controller = new AbortController();
-    const trackedId = hasMessageId(message);
+    const trackedId = hasMessageId(message) && isUsableId(message.id);
     if (trackedId) inflight.set(message.id, controller);
     try {
       const response = await adapter.handle(message, { transport: 'stdio', connection, signal: controller.signal });
